@@ -18,17 +18,6 @@ After having cloned the react-admin repository, run the following command at the
 npm install
 ```
 
-Then, login into your supabase account:
-
-```sh
-npx supabase login
-```
-
-Then, create a new supabase project:
-```sh
-npx supabase projects create react-admin-crm
-```
-
 
 ## Available Scripts
 
@@ -57,4 +46,29 @@ Your app is ready to be deployed!
 
 ### `npm run deploy`
 
-Deploy the build to GitHub gh-pages.
+Create a remote Supabase project and initialize it with the migrations.
+
+## Manual Deployment
+
+To deploy this application, you need a Supabase instance.
+
+Login into your supabase account:
+
+```sh
+npx supabase login
+```
+
+Then, create a new supabase project. Keep note of the database password you'll have to enter and of the supabase project reference.
+```sh
+npx supabase projects create react-admin-crm
+```
+
+Now, link this project to the local supabase instance. You'll be asked to enter the database password.
+```sh
+supabase link --project-ref ********************
+```
+
+Finally, apply the migrations on it:
+```sh
+supabase db push
+```
