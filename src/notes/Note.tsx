@@ -1,46 +1,48 @@
-import * as React from 'react';
-import { useState, FormEvent, ChangeEvent } from 'react';
-import {
-    TextField,
-    ReferenceField,
-    DateField,
-    useResourceContext,
-    useDelete,
-    useUpdate,
-    useNotify,
-    useRecordContext,
-} from 'react-admin';
+import ContentSave from '@mui/icons-material/Save';
 import {
     Box,
-    Typography,
-    Tooltip,
-    IconButton,
-    FilledInput,
     Button,
+    IconButton,
+    Stack,
+    Tooltip,
+    Typography,
 } from '@mui/material';
-import EditIcon from '@mui/icons-material/Edit';
+import * as React from 'react';
+import { useState } from 'react';
+import {
+    DateField,
+    Form,
+    ReferenceField,
+    TextField,
+    useDelete,
+    useNotify,
+    useResourceContext,
+    useUpdate,
+} from 'react-admin';
+
 import TrashIcon from '@mui/icons-material/Delete';
+import EditIcon from '@mui/icons-material/Edit';
+import { FieldValues, SubmitHandler } from 'react-hook-form';
 
 import { Status } from '../misc/Status';
+import { ContactNote, DealNote } from '../types';
+import { NoteAttachments } from './NoteAttachments';
+import { NoteInputs } from './NoteInputs';
 
 export const Note = ({
     showStatus,
     note,
-    reference,
 }: {
     showStatus?: boolean;
-    note: any;
+    note: DealNote | ContactNote;
     isLast: boolean;
-    reference: string;
 }) => {
     const [isHover, setHover] = useState(false);
     const [isEditing, setEditing] = useState(false);
-    const [noteText, setNoteText] = useState(note.text);
     const resource = useResourceContext();
-    const record = useRecordContext();
     const notify = useNotify();
 
-    const [update, { isLoading }] = useUpdate();
+    const [update, { isPending }] = useUpdate();
 
     const [deleteNote] = useDelete(
         resource,
@@ -58,28 +60,21 @@ export const Note = ({
     };
 
     const handleEnterEditMode = () => {
-        setEditing(true);
+        setEditing(!isEditing);
     };
 
     const handleCancelEdit = () => {
         setEditing(false);
-        setNoteText(note.text);
         setHover(false);
     };
 
-    const handleTextChange = (event: ChangeEvent<HTMLInputElement>) => {
-        setNoteText(event.target.value);
-    };
-
-    const handleNoteUpdate = (event: FormEvent<HTMLFormElement>) => {
-        event.preventDefault();
+    const handleNoteUpdate: SubmitHandler<FieldValues> = values => {
         update(
             resource,
-            { id: note.id, data: { text: noteText }, previousData: note },
+            { id: note.id, data: values, previousData: note },
             {
                 onSuccess: () => {
                     setEditing(false);
-                    setNoteText(note.text);
                     setHover(false);
                 },
             }
@@ -88,52 +83,68 @@ export const Note = ({
 
     return (
         <Box
-            mb={2}
             onMouseEnter={() => setHover(true)}
             onMouseLeave={() => setHover(false)}
         >
-            <Box mb={1} color="text.secondary">
-                <ReferenceField
-                    record={note}
-                    resource="contactNotes"
-                    source="sales_id"
-                    reference="sales"
-                >
-                    <TextField source="first_name" variant="body1" />
-                </ReferenceField>{' '}
-                <Typography component="span" variant="body1">
-                    added a note on{' '}
-                </Typography>
-                <DateField
-                    source="date"
-                    record={note}
-                    variant="body1"
-                    showTime
-                    locales="en"
-                    options={{
-                        dateStyle: 'full',
-                        timeStyle: 'short',
-                    }}
-                />{' '}
-                {showStatus && <Status status={note.status} />}
-            </Box>
-            {isEditing ? (
-                <form onSubmit={handleNoteUpdate}>
-                    <FilledInput
-                        value={noteText}
-                        onChange={handleTextChange}
-                        fullWidth
-                        multiline
-                        sx={{
-                            paddingTop: '16px',
-                            paddingLeft: '14px',
-                            paddingRight: '60px',
-                            paddingBottom: '14px',
-                            lineHeight: 1.3,
+            <Stack
+                direction="row"
+                justifyContent="space-between"
+                alignItems="center"
+            >
+                <Box color="text.secondary">
+                    <ReferenceField
+                        record={note}
+                        resource={resource}
+                        source="sales_id"
+                        reference="sales"
+                    >
+                        <TextField source="first_name" variant="body2" />
+                    </ReferenceField>{' '}
+                    <Typography component="span" variant="body2">
+                        added a note on{' '}
+                    </Typography>
+                    <DateField
+                        source="date"
+                        record={note}
+                        variant="body2"
+                        showTime
+                        options={{
+                            dateStyle: 'full',
+                            timeStyle: 'short',
                         }}
-                        autoFocus
-                    />
-                    <Box display="flex" justifyContent="flex-end" mt={1}>
+                    />{' '}
+                    {showStatus && <Status status={note.status} />}
+                </Box>
+                <Box
+                    sx={{
+                        visibility: isHover ? 'visible' : 'hidden',
+                    }}
+                >
+                    <Tooltip title="Edit note">
+                        <IconButton size="small" onClick={handleEnterEditMode}>
+                            <EditIcon />
+                        </IconButton>
+                    </Tooltip>
+                    <Tooltip title="Delete note">
+                        <IconButton size="small" onClick={handleDelete}>
+                            <TrashIcon />
+                        </IconButton>
+                    </Tooltip>
+                </Box>
+            </Stack>
+            {isEditing ? (
+                <Form onSubmit={handleNoteUpdate} record={note}>
+                    <NoteInputs showStatus={showStatus} edition />
+                    <Box display="flex" justifyContent="flex-start" mt={1}>
+                        <Button
+                            type="submit"
+                            color="primary"
+                            variant="contained"
+                            disabled={isPending}
+                            startIcon={<ContentSave />}
+                        >
+                            Update Note
+                        </Button>
                         <Button
                             sx={{ mr: 1 }}
                             onClick={handleCancelEdit}
@@ -141,65 +152,44 @@ export const Note = ({
                         >
                             Cancel
                         </Button>
-                        <Button
-                            type="submit"
-                            color="primary"
-                            variant="contained"
-                            disabled={isLoading}
-                        >
-                            Update Note
-                        </Button>
                     </Box>
-                </form>
+                </Form>
             ) : (
                 <Box
                     sx={{
-                        bgcolor: '#edf3f0',
-                        padding: '0 1em',
-                        borderRadius: '10px',
+                        paddingTop: '0.5em',
                         display: 'flex',
                         alignItems: 'stretch',
-                        marginBottom: 1,
                     }}
                 >
-                    <Box flex={1}>
+                    <Box
+                        flex={1}
+                        sx={{
+                            maxWidth: '80%',
+                            '& p:first-of-type': {
+                                marginTop: 0,
+                            },
+                            '& p:last-of-type': {
+                                marginBottom: 0,
+                            },
+                        }}
+                    >
                         {note.text
-                            .split('\n')
+                            ?.split('\n')
                             .map((paragraph: string, index: number) => (
                                 <Box
                                     component="p"
                                     fontFamily="fontFamily"
-                                    fontSize="body1.fontSize"
-                                    lineHeight={1.3}
+                                    fontSize="body2.fontSize"
+                                    lineHeight={1.5}
                                     marginBottom={2.4}
                                     key={index}
                                 >
                                     {paragraph}
                                 </Box>
                             ))}
-                    </Box>
-                    <Box
-                        sx={{
-                            marginLeft: 2,
-                            display: 'flex',
-                            flexDirection: 'column',
-                            justifyContent: 'space-around',
-                            visibility: isHover ? 'visible' : 'hidden',
-                        }}
-                    >
-                        <Tooltip title="Edit note">
-                            <IconButton
-                                size="small"
-                                onClick={handleEnterEditMode}
-                            >
-                                <EditIcon />
-                            </IconButton>
-                        </Tooltip>
-                        <Tooltip title="Delete note">
-                            <IconButton size="small" onClick={handleDelete}>
-                                <TrashIcon />
-                            </IconButton>
-                        </Tooltip>
+
+                        {note.attachments && <NoteAttachments note={note} />}
                     </Box>
                 </Box>
             )}

@@ -7,6 +7,7 @@ import {
     useGetList,
     Identifier,
     useRecordContext,
+    Toolbar,
 } from 'react-admin';
 import {
     Chip,
@@ -25,6 +26,8 @@ import EditIcon from '@mui/icons-material/Edit';
 
 import { colors } from '../tags/colors';
 import { Contact, Tag } from '../types';
+import { DialogCloseButton } from '../misc/DialogCloseButton';
+import ContentSave from '@mui/icons-material/Save';
 
 export const TagsListEdit = () => {
     const record = useRecordContext<Contact>();
@@ -34,23 +37,25 @@ export const TagsListEdit = () => {
     const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
     const [disabled, setDisabled] = useState(false);
 
-    const { data: allTags, isLoading: isLoadingAllTags } = useGetList<Tag>(
+    const { data: allTags, isPending: isPendingAllTags } = useGetList<Tag>(
         'tags',
         {
             pagination: { page: 1, perPage: 10 },
             sort: { field: 'name', order: 'ASC' },
         }
     );
-    const { data: tags, isLoading: isLoadingRecordTags } = useGetMany<Tag>(
+    const { data: tags, isPending: isPendingRecordTags } = useGetMany<Tag>(
         'tags',
-        { ids: record.tags },
+        { ids: record?.tags },
         { enabled: record && record.tags && record.tags.length > 0 }
     );
     const [update] = useUpdate<Contact>();
     const [create] = useCreate<Tag>();
 
     const unselectedTags =
-        allTags && allTags.filter(tag => !record.tags.includes(tag.id));
+        allTags &&
+        record &&
+        allTags.filter(tag => !record.tags.includes(tag.id));
 
     const handleOpen = (event: React.MouseEvent<HTMLDivElement>) => {
         setAnchorEl(event.currentTarget);
@@ -61,6 +66,9 @@ export const TagsListEdit = () => {
     };
 
     const handleDeleteTag = (id: Identifier) => {
+        if (!record) {
+            throw new Error('No contact record found');
+        }
         const tags = record.tags.filter(tagId => tagId !== id);
         update('contacts', {
             id: record.id,
@@ -70,6 +78,9 @@ export const TagsListEdit = () => {
     };
 
     const handleAddTag = (id: Identifier) => {
+        if (!record) {
+            throw new Error('No contact record found');
+        }
         const tags = [...record.tags, id];
         update('contacts', {
             id: record.id,
@@ -93,6 +104,9 @@ export const TagsListEdit = () => {
 
     const handleCreateTag = (event: FormEvent<HTMLFormElement>) => {
         event.preventDefault();
+        if (!record) {
+            throw new Error('No contact record found');
+        }
         setDisabled(true);
         create(
             'tags',
@@ -119,7 +133,7 @@ export const TagsListEdit = () => {
         );
     };
 
-    if (isLoadingRecordTags || isLoadingAllTags) return null;
+    if (isPendingRecordTags || isPendingAllTags) return null;
     return (
         <>
             {tags?.map(tag => (
@@ -179,6 +193,7 @@ export const TagsListEdit = () => {
                 aria-labelledby="form-dialog-title"
             >
                 <form onSubmit={handleCreateTag}>
+                    <DialogCloseButton onClose={() => setOpen(false)} />
                     <DialogTitle id="form-dialog-title">
                         Create a new tag
                     </DialogTitle>
@@ -186,7 +201,6 @@ export const TagsListEdit = () => {
                         <TextField
                             autoFocus
                             label="Tag name"
-                            fullWidth
                             value={newTagName}
                             onChange={handleNewTagNameChange}
                             sx={{ mt: 1 }}
@@ -204,17 +218,27 @@ export const TagsListEdit = () => {
                             ))}
                         </Box>
                     </DialogContent>
-                    <DialogActions>
-                        <Button onClick={() => setOpen(false)} color="primary">
-                            Cancel
-                        </Button>
-                        <Button
-                            type="submit"
-                            color="primary"
-                            disabled={disabled}
+                    <DialogActions
+                        sx={{
+                            justifyContent: 'flex-start',
+                            p: 0,
+                        }}
+                    >
+                        <Toolbar
+                            sx={{
+                                width: '100%',
+                            }}
                         >
-                            Add tag
-                        </Button>
+                            <Button
+                                type="submit"
+                                color="primary"
+                                disabled={disabled}
+                                variant="contained"
+                                startIcon={<ContentSave />}
+                            >
+                                Save
+                            </Button>
+                        </Toolbar>
                     </DialogActions>
                 </form>
             </Dialog>

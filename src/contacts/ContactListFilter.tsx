@@ -15,8 +15,10 @@ import SupervisorAccountIcon from '@mui/icons-material/SupervisorAccount';
 import { endOfYesterday, startOfWeek, startOfMonth, subMonths } from 'date-fns';
 
 import { Status } from '../misc/Status';
+import { useConfigurationContext } from '../root/ConfigurationContext';
 
 export const ContactListFilter = () => {
+    const { noteStatuses } = useConfigurationContext();
     const { identity } = useGetIdentity();
     const { data } = useGetList('tags', {
         pagination: { page: 1, perPage: 10 },
@@ -30,41 +32,42 @@ export const ContactListFilter = () => {
                     display: 'block',
                     '& .MuiFilledInput-root': { width: '100%' },
                 }}
+                placeholder="Search name, company, etc."
             />
-            <FilterList label="Last seen" icon={<AccessTimeIcon />}>
+            <FilterList label="Last activity" icon={<AccessTimeIcon />}>
                 <FilterListItem
                     label="Today"
                     value={{
-                        'last_seen@gte': endOfYesterday().toISOString(),
-                        'last_seen@lte': undefined,
+                        last_seen_gte: endOfYesterday().toISOString(),
+                        last_seen_lte: undefined,
                     }}
                 />
                 <FilterListItem
                     label="This week"
                     value={{
-                        'last_seen@gte': startOfWeek(new Date()).toISOString(),
-                        'last_seen@lte': undefined,
+                        last_seen_gte: startOfWeek(new Date()).toISOString(),
+                        last_seen_lte: undefined,
                     }}
                 />
                 <FilterListItem
                     label="Before this week"
                     value={{
-                        'last_seen@gte': undefined,
-                        'last_seen@lte': startOfWeek(new Date()).toISOString(),
+                        last_seen_gte: undefined,
+                        last_seen_lte: startOfWeek(new Date()).toISOString(),
                     }}
                 />
                 <FilterListItem
                     label="Before this month"
                     value={{
-                        'last_seen@gte': undefined,
-                        'last_seen@lte': startOfMonth(new Date()).toISOString(),
+                        last_seen_gte: undefined,
+                        last_seen_lte: startOfMonth(new Date()).toISOString(),
                     }}
                 />
                 <FilterListItem
                     label="Before last month"
                     value={{
-                        'last_seen@gte': undefined,
-                        'last_seen@lte': subMonths(
+                        last_seen_gte: undefined,
+                        last_seen_lte: subMonths(
                             startOfMonth(new Date()),
                             1
                         ).toISOString(),
@@ -72,38 +75,17 @@ export const ContactListFilter = () => {
                 />
             </FilterList>
             <FilterList label="Status" icon={<TrendingUpIcon />}>
-                <FilterListItem
-                    label={
-                        <>
-                            Cold <Status status="cold" />
-                        </>
-                    }
-                    value={{ status: 'cold' }}
-                />
-                <FilterListItem
-                    label={
-                        <>
-                            Warm <Status status="warm" />
-                        </>
-                    }
-                    value={{ status: 'warm' }}
-                />
-                <FilterListItem
-                    label={
-                        <>
-                            Hot <Status status="hot" />
-                        </>
-                    }
-                    value={{ status: 'hot' }}
-                />
-                <FilterListItem
-                    label={
-                        <>
-                            In contract <Status status="in-contract" />
-                        </>
-                    }
-                    value={{ status: 'in-contract' }}
-                />
+                {noteStatuses.map(status => (
+                    <FilterListItem
+                        key={status.value}
+                        label={
+                            <>
+                                {status.label} <Status status={status.value} />
+                            </>
+                        }
+                        value={{ status: status.value }}
+                    />
+                ))}
             </FilterList>
             <FilterList label="Tags" icon={<LocalOfferIcon />}>
                 {data &&
@@ -121,9 +103,9 @@ export const ContactListFilter = () => {
                                     }}
                                 />
                             }
-                            value={{ 'tags@cs': `{${record.id}}` }}
+                            value={{ tags: [record.id] }}
                         />
-                    ))} 
+                    ))}
             </FilterList>
             <FilterList
                 label="Account manager"

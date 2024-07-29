@@ -1,9 +1,9 @@
 import * as React from 'react';
-import { Box } from '@mui/material';
+import { Box, Divider, Stack } from '@mui/material';
 import { useListContext } from 'react-admin';
 
 import { Note } from './Note';
-import { NewNote } from './NewNote';
+import { NoteCreate } from './NoteCreate';
 
 export const NotesIterator = ({
     showStatus,
@@ -12,22 +12,26 @@ export const NotesIterator = ({
     showStatus?: boolean;
     reference: 'contacts' | 'deals';
 }) => {
-    const { data, isLoading } = useListContext();
-    if (isLoading) return null;
+    const { data, error, isPending } = useListContext();
+    if (isPending || error) return null;
     return (
-        <>
-            <NewNote showStatus={showStatus} reference={reference} />
-            <Box mt="0.5em">
-                {data.map((note, index) => (
-                    <Note
-                        note={note}
-                        isLast={index === data.length - 1}
-                        showStatus={showStatus}
-                        reference={reference}
-                        key={index}
-                    />
-                ))}
-            </Box>
-        </>
+        <Box mt={4}>
+            <NoteCreate showStatus={showStatus} reference={reference} />
+            {data && (
+                <Stack mt={4} gap={3}>
+                    {data.map((note, index) => (
+                        <React.Fragment key={index}>
+                            <Divider />
+                            <Note
+                                note={note}
+                                isLast={index === data.length - 1}
+                                showStatus={showStatus}
+                                key={index}
+                            />
+                        </React.Fragment>
+                    ))}
+                </Stack>
+            )}
+        </Box>
     );
 };
