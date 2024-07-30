@@ -8,7 +8,7 @@ import {
 } from 'react-admin';
 import { getActivityLog } from './dataProvider/activity';
 import { supabase } from './supabase';
-import { Deal, SignUpData } from './types';
+import { Deal, Sale, SalesFormData, SignUpData } from './types';
 
 if (import.meta.env.VITE_SUPABASE_URL === undefined) {
     throw new Error('Please set the VITE_SUPABASE_URL environment variable');
@@ -27,7 +27,7 @@ const baseDataProvider = supabaseDataProvider({
 
 const dataProviderWithCustomMethods = {
     ...baseDataProvider,
-    signUp: async ({ email, password, first_name, last_name }: SignUpData) => {
+    async signUp({ email, password, first_name, last_name }: SignUpData) {
         const response = await supabase.auth.signUp({
             email,
             password,
@@ -38,17 +38,90 @@ const dataProviderWithCustomMethods = {
                 },
             },
         });
-        if (response.error) {
+
+        if (!response.data?.user || response.error) {
             console.error('signUp.error', response.error);
             throw new Error('Failed to create account');
         }
 
         return {
+            id: response.data.user.id,
             email,
             password,
         };
     },
-    transferAdministratorRole: async (from: Identifier, to: Identifier) => {
+    async salesCreate({ administrator, ...signUpData }: SalesFormData) {
+        const { data, error } = await supabase.functions.invoke<{
+            user: { id: Identifier };
+        }>('users', {
+            method: 'POST',
+            body: signUpData,
+        });
+
+        if (!data?.user || error) {
+            console.error('salesCreate.error', error);
+            throw new Error('Failed to create user');
+        }
+
+        console.log('data.user.id', data.user.id);
+
+        // We need to update sale administrator role here as we can't do it in signUp method as
+        // it is not supported in the trigger for security reasons.
+        const { data: users, error: userError } = await supabase
+            .from('sales')
+            .update({ administrator })
+            .eq('user_id', data.user.id)
+            .select('*');
+
+        console.log(users, administrator);
+        if (!users?.length || userError) {
+            // We silently fail here as the user is created but the role is not updated
+            return null;
+        }
+
+        return users.at(0);
+    },
+    async salesUpdate(
+        id: Identifier,
+        data: Partial<Omit<SalesFormData, 'password'>>
+    ) {
+        const { data: sale } = await baseDataProvider.getOne<Sale>('sales', {
+            id,
+        });
+
+        if (!sale) {
+            return null;
+        }
+
+        const { email, first_name, last_name, administrator } = data;
+
+        const updatedUser = await supabase.auth.admin.updateUserById(
+            sale.user_id,
+            {
+                email,
+                user_metadata: {
+                    first_name,
+                    last_name,
+                },
+            }
+        );
+
+        if (updatedUser.error) {
+            console.error('salesUpdate.error', updatedUser.error);
+            throw new Error('Failed to update sale');
+        }
+
+        return await baseDataProvider.update('sales', {
+            id,
+            data: {
+                first_name,
+                last_name,
+                administrator,
+            },
+            previousData: sale,
+        });
+    },
+    async transferAdministratorRole(from: Identifier, to: Identifier) {
         const { data: sales } = await baseDataProvider.getList('sales', {
             filter: { id: [from, to] },
             pagination: { page: 1, perPage: 2 },
@@ -79,7 +152,7 @@ const dataProviderWithCustomMethods = {
         });
         return updatedUser.data;
     },
-    unarchiveDeal: async (deal: Deal) => {
+    async unarchiveDeal(deal: Deal) {
         // get all deals where stage is the same as the deal to unarchive
         const { data: deals } = await baseDataProvider.getList<Deal>('deals', {
             filter: { stage: deal.stage },
@@ -104,7 +177,7 @@ const dataProviderWithCustomMethods = {
             )
         );
     },
-    getActivityLog: async (companyId?: Identifier) => {
+    async getActivityLog(companyId?: Identifier) {
         return getActivityLog(baseDataProvider, companyId);
     },
     async isInitialized() {
