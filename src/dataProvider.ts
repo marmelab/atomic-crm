@@ -50,76 +50,45 @@ const dataProviderWithCustomMethods = {
             password,
         };
     },
-    async salesCreate({ administrator, ...signUpData }: SalesFormData) {
-        const { data, error } = await supabase.functions.invoke<{
-            user: { id: Identifier };
-        }>('users', {
+    async salesCreate(body: SalesFormData) {
+        const { data, error } = await supabase.functions.invoke<Sale>('users', {
             method: 'POST',
-            body: signUpData,
+            body,
         });
 
-        if (!data?.user || error) {
+        if (!data || error) {
             console.error('salesCreate.error', error);
-            throw new Error('Failed to create user');
+            throw new Error('Failed to create account manager');
         }
 
-        console.log('data.user.id', data.user.id);
-
-        // We need to update sale administrator role here as we can't do it in signUp method as
-        // it is not supported in the trigger for security reasons.
-        const { data: users, error: userError } = await supabase
-            .from('sales')
-            .update({ administrator })
-            .eq('user_id', data.user.id)
-            .select('*');
-
-        console.log(users, administrator);
-        if (!users?.length || userError) {
-            // We silently fail here as the user is created but the role is not updated
-            return null;
-        }
-
-        return users.at(0);
+        return data;
     },
     async salesUpdate(
         id: Identifier,
         data: Partial<Omit<SalesFormData, 'password'>>
     ) {
-        const { data: sale } = await baseDataProvider.getOne<Sale>('sales', {
-            id,
-        });
-
-        if (!sale) {
-            return null;
-        }
-
         const { email, first_name, last_name, administrator } = data;
 
-        const updatedUser = await supabase.auth.admin.updateUserById(
-            sale.user_id,
+        const { data: sale, error } = await supabase.functions.invoke<Sale>(
+            'users',
             {
-                email,
-                user_metadata: {
+                method: 'PATCH',
+                body: {
+                    sales_id: id,
+                    email,
                     first_name,
                     last_name,
+                    administrator,
                 },
             }
         );
 
-        if (updatedUser.error) {
-            console.error('salesUpdate.error', updatedUser.error);
-            throw new Error('Failed to update sale');
+        if (!sale || error) {
+            console.error('salesCreate.error', error);
+            throw new Error('Failed to update account manager');
         }
 
-        return await baseDataProvider.update('sales', {
-            id,
-            data: {
-                first_name,
-                last_name,
-                administrator,
-            },
-            previousData: sale,
-        });
+        return data;
     },
     async transferAdministratorRole(from: Identifier, to: Identifier) {
         const { data: sales } = await baseDataProvider.getList('sales', {

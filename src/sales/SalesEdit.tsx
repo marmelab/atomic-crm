@@ -65,8 +65,6 @@ export function SalesEdit() {
         mutate(data);
     };
 
-    console.log('record', record);
-
     return (
         <Container maxWidth="sm" sx={{ mt: 4 }}>
             <Card>
