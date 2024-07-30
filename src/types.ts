@@ -7,6 +7,13 @@ import {
     DEAL_NOTE_CREATED,
 } from './consts';
 
+export type SignUpData = {
+    email: string;
+    password: string;
+    first_name: string;
+    last_name: string;
+};
+
 export interface Sale extends RaRecord {
     first_name: string;
     last_name: string;
