@@ -9,6 +9,9 @@ install: package.json ## install dependencies
 start-supabase: ## start supabase locally
 	npx supabase start
 
+start-functions:
+	npx supabase functions serve
+
 start-app: ## start the app locally
 	npm run dev
 
