@@ -1,18 +1,22 @@
 import { ImageList, ImageListItem, Stack } from '@mui/material';
 import { AttachmentNote, ContactNote, DealNote } from '../types';
-import { FileField } from 'react-admin';
 import AttachFileIcon from '@mui/icons-material/AttachFile';
+import { supabase } from '../supabase';
 
 export const NoteAttachments = ({ note }: { note: ContactNote | DealNote }) => {
     if (!note.attachments || note.attachments.length === 0) {
         return null;
     }
 
+    if (!note.attachments) {
+        return null;
+    }
+
     const imageAttachments = note.attachments.filter(
-        (attachment: AttachmentNote) => isImage(attachment.rawFile)
+        (attachment: AttachmentNote) => isImage(attachment.src)
     );
     const otherAttachments = note.attachments.filter(
-        (attachment: AttachmentNote) => !isImage(attachment.rawFile)
+        (attachment: AttachmentNote) => !isImage(attachment.src)
     );
 
     return (
@@ -23,7 +27,7 @@ export const NoteAttachments = ({ note }: { note: ContactNote | DealNote }) => {
                         (attachment: AttachmentNote, index: number) => (
                             <ImageListItem key={index}>
                                 <img
-                                    src={attachment.src}
+                                    src={getPublicUrl(attachment.src)}
                                     alt={attachment.title}
                                     style={{
                                         width: '200px',
@@ -47,12 +51,15 @@ export const NoteAttachments = ({ note }: { note: ContactNote | DealNote }) => {
                     (attachment: AttachmentNote, index: number) => (
                         <Stack key={index} direction="row" alignItems="center">
                             <AttachFileIcon fontSize="small" />
-                            <FileField
-                                record={{ attachment }}
-                                source="attachment.src"
-                                title="attachment.title"
-                                target="_blank"
-                            />
+
+                            <div>
+                                <a
+                                    href={getPublicUrl(attachment.src)}
+                                    title={attachment.title}
+                                >
+                                    {attachment.title}
+                                </a>
+                            </div>
                         </Stack>
                     )
                 )}
@@ -60,6 +67,18 @@ export const NoteAttachments = ({ note }: { note: ContactNote | DealNote }) => {
     );
 };
 
-const isImage = (file: File) => {
-    return file && file.type.startsWith('image/');
+const isImage = (pathFile: string) => {
+    const extension = pathFile.split('.').pop();
+    if (!extension) {
+        return false;
+    }
+    return ['jpg', 'jpeg', 'png', 'gif', 'svg'].includes(extension);
+};
+
+const getPublicUrl = (filePath: string) => {
+    const { data } = supabase.storage
+        .from('attachments')
+        .getPublicUrl(filePath);
+
+    return data.publicUrl;
 };

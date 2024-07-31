@@ -164,6 +164,46 @@ export const dataProvider = withLifecycleCallbacks(
     dataProviderWithCustomMethods,
     [
         {
+            resource: 'contactNotes',
+            beforeSave: async (data, _, __) => {
+                if (data.attachments) {
+                    for (const fi of data.attachments) {
+                        const response = await fetch(
+                            `${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/attachments/${fi.src}`,
+                            {
+                                method: 'HEAD',
+                                headers: {
+                                    authorization: import.meta.env
+                                        .VITE_SUPABASE_ANON_KEY,
+                                },
+                            }
+                        );
+
+                        if (response.status === 200) {
+                            continue;
+                        }
+
+                        const file = fi.rawFile;
+                        const fileExt = file.name.split('.').pop();
+                        const fileName = `${Math.random()}.${fileExt}`;
+                        const filePath = `${fileName}`;
+                        const { error: uploadError } = await supabase.storage
+                            .from('attachments')
+                            .upload(filePath, file);
+
+                        if (uploadError) {
+                            console.error('uploadError', uploadError);
+                            throw new Error('Failed to upload attachment');
+                        }
+
+                        fi.src = filePath;
+                    }
+                }
+                console.log('data', data);
+                return data;
+            },
+        },
+        {
             resource: 'contacts',
             beforeGetList: async params => {
                 return applyFullTextSearch([
