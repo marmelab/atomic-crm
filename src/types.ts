@@ -21,6 +21,7 @@ export type SalesFormData = {
     first_name: string;
     last_name: string;
     administrator: boolean;
+    disabled: boolean;
 };
 
 export interface Sale extends RaRecord {

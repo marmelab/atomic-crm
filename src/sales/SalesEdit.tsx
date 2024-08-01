@@ -1,14 +1,11 @@
 import { Card, Container, Typography } from '@mui/material';
 import { useMutation } from '@tanstack/react-query';
 import {
-    DeleteWithConfirmButton,
-    PasswordInput,
     SaveButton,
     SimpleForm,
     Toolbar,
     useDataProvider,
     useEditController,
-    useGetIdentity,
     useNotify,
     useRecordContext,
     useRedirect,
@@ -19,21 +16,9 @@ import { Sale, SalesFormData } from '../types';
 import { SalesInputs } from './SalesInputs';
 
 function EditToolbar() {
-    const { identity } = useGetIdentity();
-    const record = useRecordContext<Sale>();
-
     return (
         <Toolbar sx={{ display: 'flex', justifyContent: 'space-between' }}>
             <SaveButton />
-
-            <DeleteWithConfirmButton
-                disabled={record?.id === identity?.id}
-                mutationOptions={{
-                    meta: {
-                        identity,
-                    },
-                }}
-            />
         </Toolbar>
     );
 }
@@ -71,15 +56,10 @@ export function SalesEdit() {
                 <SimpleForm
                     toolbar={<EditToolbar />}
                     onSubmit={onSubmit as SubmitHandler<any>}
-                    defaultValues={record}
+                    record={record}
                 >
                     <SaleEditTitle />
-                    <SalesInputs>
-                        <PasswordInput
-                            source="new_password"
-                            helperText={false}
-                        />
-                    </SalesInputs>
+                    <SalesInputs />
                 </SimpleForm>
             </Card>
         </Container>
