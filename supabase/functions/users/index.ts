@@ -86,8 +86,6 @@ async function patchUser(req: Request) {
         .eq('id', sales_id)
         .single();
 
-    console.log('sale', sale);
-
     if (!sale) {
         return createErrorResponse(404, 'Not Found');
     }
