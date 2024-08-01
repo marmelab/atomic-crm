@@ -7,8 +7,9 @@ import {
     DialogActions,
     DialogContent,
     DialogTitle,
+    Link,
     Stack,
-    Tooltip,
+    Typography,
 } from '@mui/material';
 import 'cropperjs/dist/cropper.css';
 import { useFieldValue } from 'ra-core';
@@ -21,8 +22,11 @@ import { DialogCloseButton } from './DialogCloseButton';
 
 const ImageEditorField = (props: ImageEditorFieldProps) => {
     const { getValues } = useFormContext();
-    const imageUrl = getValues(props.source);
+    const source = getValues(props.source);
+    const imageUrl = source?.src;
     const [isDialogOpen, setIsDialogOpen] = useState(false);
+
+    const { type = 'image', emptyText, linkPosition = 'none' } = props;
 
     const commonProps = {
         src: imageUrl,
@@ -30,26 +34,47 @@ const ImageEditorField = (props: ImageEditorFieldProps) => {
         style: { cursor: 'pointer' },
         sx: {
             ...props.sx,
-            width: props.width || (props.type === 'avatar' ? 50 : 200),
-            height: props.height || (props.type === 'avatar' ? 50 : 200),
+            width: props.width || (type === 'avatar' ? 50 : 200),
+            height: props.height || (type === 'avatar' ? 50 : 200),
         },
     };
 
     return (
-        <div style={{ position: 'relative', display: 'inline-block' }}>
-            <Tooltip title="Update image" followCursor>
+        <>
+            <Stack
+                direction={linkPosition === 'right' ? 'row' : 'column'}
+                alignItems={'center'}
+                gap={linkPosition === 'right' ? 2 : 0.5}
+                borderRadius={1}
+                p={props.backgroundImageColor ? 1 : 0}
+                sx={{
+                    backgroundColor:
+                        props.backgroundImageColor || 'transparent',
+                }}
+            >
                 {props.type === 'avatar' ? (
-                    <Avatar {...commonProps}>{props.emptyText}</Avatar>
+                    <Avatar {...commonProps}>{emptyText}</Avatar>
                 ) : (
                     <Box component={'img'} {...commonProps} />
                 )}
-            </Tooltip>
+                {linkPosition !== 'none' && (
+                    <Typography
+                        component={Link}
+                        variant="caption"
+                        onClick={() => setIsDialogOpen(true)}
+                        textAlign="center"
+                        sx={{ display: 'inline', cursor: 'pointer' }}
+                    >
+                        Change
+                    </Typography>
+                )}
+            </Stack>
             <ImageEditorDialog
                 open={isDialogOpen}
                 onClose={() => setIsDialogOpen(false)}
                 {...props}
             />
-        </div>
+        </>
     );
 };
 
@@ -57,9 +82,13 @@ const ImageEditorDialog = (props: ImageEditorDialogProps) => {
     const { setValue, handleSubmit } = useFormContext();
     const cropperRef = createRef<ReactCropperElement>();
     const initialValue = useFieldValue(props);
-    const [imageSrc, setImageSrc] = useState<string | undefined>(initialValue);
+    const [file, setFile] = useState<File | undefined>();
+    const [imageSrc, setImageSrc] = useState<string | undefined>(
+        initialValue?.src
+    );
     const onDrop = useCallback((files: File[]) => {
         const preview = URL.createObjectURL(files[0]);
+        setFile(files[0]);
         setImageSrc(preview);
     }, []);
 
@@ -68,13 +97,26 @@ const ImageEditorDialog = (props: ImageEditorDialogProps) => {
         const croppedImage = cropper?.getCroppedCanvas().toDataURL();
         if (croppedImage) {
             setImageSrc(croppedImage);
-            setValue(props.source, croppedImage, { shouldDirty: true });
+            setValue(
+                props.source,
+                {
+                    src: croppedImage,
+                    title: file?.name,
+                    rawFile: file,
+                },
+                { shouldDirty: true }
+            );
             props.onClose();
 
             if (props.onSave) {
                 handleSubmit(props.onSave)();
             }
         }
+    };
+
+    const deleteImage = () => {
+        setValue(props.source, undefined, { shouldDirty: true });
+        props.onClose();
     };
 
     const { getRootProps, getInputProps } = useDropzone({
@@ -101,7 +143,7 @@ const ImageEditorDialog = (props: ImageEditorDialogProps) => {
                 </style>
             )}
             <DialogCloseButton onClose={props.onClose} />
-            <DialogTitle>Resize your image</DialogTitle>
+            <DialogTitle>Upload and resize image</DialogTitle>
             <DialogContent>
                 <Stack gap={2} justifyContent="center">
                     <Stack
@@ -126,9 +168,14 @@ const ImageEditorDialog = (props: ImageEditorDialogProps) => {
                 </Stack>
             </DialogContent>
             <DialogActions sx={{ p: 0 }}>
-                <Toolbar sx={{ width: '100%' }}>
+                <Toolbar
+                    sx={{ width: '100%', justifyContent: 'space-between' }}
+                >
                     <Button variant="contained" onClick={updateImage}>
                         Update Image
+                    </Button>
+                    <Button variant="text" color="error" onClick={deleteImage}>
+                        Delete
                     </Button>
                 </Toolbar>
             </DialogActions>
@@ -146,6 +193,8 @@ export interface ImageEditorFieldProps<
     height?: number;
     type?: 'avatar' | 'image';
     onSave?: any;
+    linkPosition?: 'right' | 'bottom' | 'none';
+    backgroundImageColor?: string;
 }
 
 export interface ImageEditorDialogProps extends ImageEditorFieldProps {

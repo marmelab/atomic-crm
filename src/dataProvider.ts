@@ -1,14 +1,26 @@
 import { supabaseDataProvider } from 'ra-supabase';
 
 import {
+    CreateParams,
     DataProvider,
     GetListParams,
     Identifier,
+    UpdateParams,
     withLifecycleCallbacks,
 } from 'react-admin';
 import { getActivityLog } from './dataProvider/activity';
 import { supabase } from './supabase';
-import { Deal, Sale, SalesFormData, SignUpData } from './types';
+import {
+    Contact,
+    ContactNote,
+    Deal,
+    RAFile,
+    Sale,
+    SalesFormData,
+    SignUpData,
+} from './types';
+import { getCompanyAvatar } from './misc/getCompanyAvatar';
+import { getContactAvatar } from './misc/getContactAvatar';
 
 if (import.meta.env.VITE_SUPABASE_URL === undefined) {
     throw new Error('Please set the VITE_SUPABASE_URL environment variable');
@@ -24,6 +36,44 @@ const baseDataProvider = supabaseDataProvider({
     apiKey: import.meta.env.VITE_SUPABASE_ANON_KEY,
     supabaseClient: supabase,
 });
+
+const processCompanyLogo = async (params: any) => {
+    let logo = params.data.logo;
+
+    if (typeof logo !== 'object' || logo === null || !logo.src) {
+        logo = await getCompanyAvatar(params.data);
+    } else if (logo.rawFile instanceof File) {
+        await uploadToBucket(logo);
+    }
+
+    return {
+        ...params,
+        data: {
+            ...params.data,
+            logo,
+        },
+    };
+};
+
+async function processContactAvatar(
+    params: UpdateParams<Contact>
+): Promise<UpdateParams<Contact>>;
+
+async function processContactAvatar(
+    params: CreateParams<Contact>
+): Promise<CreateParams<Contact>>;
+
+async function processContactAvatar(
+    params: CreateParams<Contact> | UpdateParams<Contact>
+): Promise<CreateParams<Contact> | UpdateParams<Contact>> {
+    const { data } = params;
+    const avatarUrl = await getContactAvatar(data);
+
+    // Clone the data and modify the clone
+    const newData = { ...data, avatar: { src: avatarUrl || undefined } };
+
+    return { ...params, data: newData };
+}
 
 const dataProviderWithCustomMethods = {
     ...baseDataProvider,
@@ -165,46 +215,32 @@ export const dataProvider = withLifecycleCallbacks(
     [
         {
             resource: 'contactNotes',
-            beforeSave: async (data, _, __) => {
+            beforeSave: async (data: ContactNote, _, __) => {
                 if (data.attachments) {
                     for (const fi of data.attachments) {
-                        const response = await fetch(
-                            `${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/attachments/${fi.src}`,
-                            {
-                                method: 'HEAD',
-                                headers: {
-                                    authorization: import.meta.env
-                                        .VITE_SUPABASE_ANON_KEY,
-                                },
-                            }
-                        );
-
-                        if (response.status === 200) {
-                            continue;
-                        }
-
-                        const file = fi.rawFile;
-                        const fileExt = file.name.split('.').pop();
-                        const fileName = `${Math.random()}.${fileExt}`;
-                        const filePath = `${fileName}`;
-                        const { error: uploadError } = await supabase.storage
-                            .from('attachments')
-                            .upload(filePath, file);
-
-                        if (uploadError) {
-                            console.error('uploadError', uploadError);
-                            throw new Error('Failed to upload attachment');
-                        }
-
-                        fi.src = filePath;
+                        await uploadToBucket(fi);
                     }
                 }
-                console.log('data', data);
+                return data;
+            },
+        },
+        {
+            resource: 'sales',
+            beforeSave: async (data: Sale, _, __) => {
+                if (data.avatar) {
+                    await uploadToBucket(data.avatar);
+                }
                 return data;
             },
         },
         {
             resource: 'contacts',
+            beforeCreate: async params => {
+                return processContactAvatar(params);
+            },
+            beforeUpdate: async params => {
+                return processContactAvatar(params);
+            },
             beforeGetList: async params => {
                 return applyFullTextSearch([
                     'first_name',
@@ -228,6 +264,20 @@ export const dataProvider = withLifecycleCallbacks(
                     'city',
                     'stateAbbr',
                 ])(params);
+            },
+            beforeCreate: async params => {
+                const createParams = await processCompanyLogo(params);
+
+                return {
+                    ...createParams,
+                    data: {
+                        ...createParams.data,
+                        created_at: new Date().toISOString(),
+                    },
+                };
+            },
+            beforeUpdate: async params => {
+                return await processCompanyLogo(params);
             },
         },
         {
@@ -259,4 +309,44 @@ const applyFullTextSearch = (columns: string[]) => (params: GetListParams) => {
             ),
         },
     };
+};
+
+const uploadToBucket = async (fi: RAFile) => {
+    if (!fi.src.startsWith('blob:') && !fi.src.startsWith('data:')) {
+        const response = await fetch(
+            `${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/attachments/${fi.src}`,
+            {
+                method: 'HEAD',
+                headers: {
+                    authorization: import.meta.env.VITE_SUPABASE_ANON_KEY,
+                },
+            }
+        );
+
+        if (response.status === 200) {
+            return;
+        }
+    }
+
+    const file = fi.rawFile;
+    const fileExt = file.name.split('.').pop();
+    const fileName = `${Math.random()}.${fileExt}`;
+    const filePath = `${fileName}`;
+    const { error: uploadError } = await supabase.storage
+        .from('attachments')
+        .upload(filePath, file);
+
+    if (uploadError) {
+        console.error('uploadError', uploadError);
+        throw new Error('Failed to upload attachment');
+    }
+
+    const { data } = supabase.storage
+        .from('attachments')
+        .getPublicUrl(filePath);
+
+    fi.path = filePath;
+    fi.src = data.publicUrl;
+
+    return fi;
 };
