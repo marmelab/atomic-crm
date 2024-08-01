@@ -10,6 +10,7 @@
         "@nivo/bar": "^0.87.0",
         "@nivo/core": "^0.87.0",
         "@supabase/supabase-js": "^2.39.3",
+        "@types/jsonexport": "^3.0.5",
         "clsx": "^2.1.0",
         "date-fns": "^3.3.1",
         "dotenv": "^16.4.1",
@@ -23,7 +24,8 @@
         "react-dom": "^18.2.0",
         "react-error-boundary": "^4.0.12",
         "react-router": "^6.21.3",
-        "react-router-dom": "^6.21.3"
+        "react-router-dom": "^6.21.3",
+        "serve": "^14.2.3"
     },
     "devDependencies": {
         "@inquirer/prompts": "^5.3.2",
@@ -31,7 +33,9 @@
         "@testing-library/react": "^16.0.0",
         "@testing-library/user-event": "^14.5.2",
         "@types/jsonexport": "^3.0.5",
+        "@types/jest": "^29.5.11",
         "@types/lodash": "^4.17.7",
+        "@types/papaparse": "^5.3.14",
         "@types/pg": "^8.11.0",
         "@types/react": "^18.2.48",
         "@types/react-dom": "^18.2.18",
@@ -57,8 +61,8 @@
         "dev": "vite --force",
         "build": "tsc && vite build",
         "preview": "vite preview",
-        "deploy": "node ./scripts/deploy.mjs",
         "lint": "eslint --ext .js,.ts,.tsx \"./src/**/*.{js,ts,tsx}\"",
-        "prettier": "prettier --config ./.prettierrc.mjs --write --list-different \"src/**/*.{js,json,ts,tsx,css,md}\""
+        "prettier": "prettier --config ./.prettierrc.mjs --write --list-different \"src/**/*.{js,json,ts,tsx,css,md}\"",
+        "supabase:remote:init": "node ./scripts/supabase-remote-init.mjs"
     }
 }
