@@ -8,6 +8,7 @@ import {
     SelectField,
     useRecordContext,
     Link,
+    ReferenceManyCount,
 } from 'react-admin';
 
 import { CompanyAvatar } from './CompanyAvatar';
@@ -35,7 +36,6 @@ export const CompanyCard = (props: { record?: Company }) => {
             <Paper
                 sx={{
                     height: 200,
-                    width: 195,
                     display: 'flex',
                     flexDirection: 'column',
                     justifyContent: 'space-between',
@@ -62,27 +62,19 @@ export const CompanyCard = (props: { record?: Company }) => {
                 <Box display="flex" justifyContent="space-around" width="100%">
                     <Box display="flex" alignItems="center">
                         <ContactsIcon color="disabled" sx={{ mr: 1 }} />
-                        <div>
-                            <Typography variant="subtitle2" sx={{ mb: -1 }}>
-                                {record.nb_contacts}
-                            </Typography>
-                            <Typography variant="caption" color="textSecondary">
-                                {record.nb_contacts > 1
-                                    ? 'contacts'
-                                    : 'contact'}
-                            </Typography>
-                        </div>
+                        <ReferenceManyCount
+                            label="Nb contacts"
+                            reference="contacts"
+                            target="company_id"
+                        />
                     </Box>
                     <Box sx={{ display: 'flex', alignItems: 'center' }}>
                         <DealIcon color="disabled" sx={{ mr: 1 }} />
-                        <div>
-                            <Typography variant="subtitle2" sx={{ mb: -1 }}>
-                                {record.nb_deals}
-                            </Typography>
-                            <Typography variant="caption" color="textSecondary">
-                                {record.nb_deals > 1 ? 'deals' : 'deal'}
-                            </Typography>
-                        </div>
+                        <ReferenceManyCount
+                            label="Nb deals"
+                            reference="deals"
+                            target="company_id"
+                        />
                     </Box>
                 </Box>
             </Paper>

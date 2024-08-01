@@ -48,8 +48,6 @@ export interface Company extends RaRecord {
     zipcode: string;
     city: string;
     stateAbbr: string;
-    nb_contacts: number;
-    nb_deals: number;
     sales_id: Identifier;
     created_at: string;
     description: string;
