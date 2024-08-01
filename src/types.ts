@@ -7,13 +7,31 @@ import {
     DEAL_NOTE_CREATED,
 } from './consts';
 
+export type SignUpData = {
+    email: string;
+    password: string;
+    first_name: string;
+    last_name: string;
+};
+
+export type SalesFormData = {
+    email: string;
+    password: string;
+    first_name: string;
+    last_name: string;
+    administrator: boolean;
+};
+
 export interface Sale extends RaRecord {
     first_name: string;
     last_name: string;
-    email: string;
-    password: string;
     administrator: boolean;
     avatar?: string;
+    user_id: string;
+
+    // This is a copy of the user's email, to make it easier to handle by react admin
+    // DO NOT UPDATE this field directly, it should be updated by the backend
+    email: string;
 }
 
 export interface Company extends RaRecord {

@@ -1,16 +1,22 @@
+import { Card, Container, Typography } from '@mui/material';
+import { useMutation } from '@tanstack/react-query';
 import {
     DeleteWithConfirmButton,
-    Edit,
     PasswordInput,
     SaveButton,
     SimpleForm,
     Toolbar,
+    useDataProvider,
+    useEditController,
     useGetIdentity,
+    useNotify,
     useRecordContext,
+    useRedirect,
 } from 'react-admin';
-import { Sale } from '../types';
+import { SubmitHandler } from 'react-hook-form';
+import { CustomDataProvider } from '../dataProvider';
+import { Sale, SalesFormData } from '../types';
 import { SalesInputs } from './SalesInputs';
-import { Container, Typography } from '@mui/material';
 
 function EditToolbar() {
     const { identity } = useGetIdentity();
@@ -33,10 +39,40 @@ function EditToolbar() {
 }
 
 export function SalesEdit() {
+    const { record } = useEditController();
+
+    const dataProvider = useDataProvider<CustomDataProvider>();
+    const notify = useNotify();
+    const redirect = useRedirect();
+
+    const { mutate } = useMutation({
+        mutationKey: ['signup'],
+        mutationFn: async (data: SalesFormData) => {
+            if (!record) {
+                throw new Error('Record not found');
+            }
+            return dataProvider.salesUpdate(record.id, data);
+        },
+        onSuccess: () => {
+            redirect('/sales');
+        },
+        onError: () => {
+            notify('An error occurred. Please try again.');
+        },
+    });
+
+    const onSubmit: SubmitHandler<SalesFormData> = async data => {
+        mutate(data);
+    };
+
     return (
         <Container maxWidth="sm" sx={{ mt: 4 }}>
-            <Edit>
-                <SimpleForm toolbar={<EditToolbar />}>
+            <Card>
+                <SimpleForm
+                    toolbar={<EditToolbar />}
+                    onSubmit={onSubmit as SubmitHandler<any>}
+                    defaultValues={record}
+                >
                     <SaleEditTitle />
                     <SalesInputs>
                         <PasswordInput
@@ -45,7 +81,7 @@ export function SalesEdit() {
                         />
                     </SalesInputs>
                 </SimpleForm>
-            </Edit>
+            </Card>
         </Container>
     );
 }
