@@ -9,10 +9,9 @@ import { Sale } from '../types';
 import { ReactNode } from 'react';
 import { Stack } from '@mui/material';
 
-export function SalesInputs({ children }: { children: ReactNode }) {
+export function SalesInputs({ children }: { children?: ReactNode }) {
     const { identity } = useGetIdentity();
     const record = useRecordContext<Sale>();
-
     return (
         <Stack gap={1} sx={{ width: '100%' }}>
             <TextInput
@@ -33,6 +32,11 @@ export function SalesInputs({ children }: { children: ReactNode }) {
             {children}
             <BooleanInput
                 source="administrator"
+                readOnly={record?.id === identity?.id}
+                helperText={false}
+            />
+            <BooleanInput
+                source="disabled"
                 readOnly={record?.id === identity?.id}
                 helperText={false}
             />
