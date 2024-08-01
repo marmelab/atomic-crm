@@ -15,8 +15,6 @@ create table "public"."companies" (
     "context_links" json,
     "country" text,
     "description" text,
-    "nb_contacts" integer,
-    "nb_deals" integer,
     "revenue" text,
     "tax_identifier" text,
     "logo" jsonb
@@ -57,8 +55,7 @@ create table "public"."contacts" (
     "tags" bigint[],
     "company_id" bigint,
     "sales_id" bigint,
-    "linkedin_url" text,
-    "nb_notes" integer
+    "linkedin_url" text
 );
 
 
@@ -89,9 +86,9 @@ create table "public"."deals" (
     "created_at" timestamp with time zone not null default now(),
     "updated_at" timestamp with time zone not null default now(),
     "archived_at" timestamp with time zone default null,
+    "expected_closing_date" timestamp with time zone default null,
     "sales_id" bigint,
-    "index" smallint,
-    "nb_notes" integer
+    "index" smallint
 );
 
 

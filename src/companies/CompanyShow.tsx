@@ -15,6 +15,7 @@ import {
 import { formatDistance } from 'date-fns';
 import {
     RecordContextProvider,
+    ReferenceManyCount,
     ReferenceManyField,
     ShowBase,
     SortButton,
@@ -96,20 +97,15 @@ const CompanyShowContent = () => {
                                     <ContactsIterator />
                                 </ReferenceManyField>
                             </TabbedShowLayout.Tab>
-                            {record.nb_deals ? (
-                                <TabbedShowLayout.Tab
-                                    label="Deals"
-                                    path="deals"
+                            <TabbedShowLayout.Tab label="Deals" path="deals">
+                                <ReferenceManyField
+                                    reference="deals"
+                                    target="company_id"
+                                    sort={{ field: 'name', order: 'ASC' }}
                                 >
-                                    <ReferenceManyField
-                                        reference="deals"
-                                        target="company_id"
-                                        sort={{ field: 'name', order: 'ASC' }}
-                                    >
-                                        <DealsIterator />
-                                    </ReferenceManyField>
-                                </TabbedShowLayout.Tab>
-                            ) : null}
+                                    <DealsIterator />
+                                </ReferenceManyField>
+                            </TabbedShowLayout.Tab>
                         </TabbedShowLayout>
                     </CardContent>
                 </Card>
@@ -144,12 +140,12 @@ const ContactsIterator = () => {
                             secondary={
                                 <>
                                     {contact.title}
-                                    {contact.nb_tasks
-                                        ? ` - ${contact.nb_tasks} task${
-                                              contact.nb_tasks > 1 ? 's' : ''
-                                          }`
-                                        : ''}
-                                    &nbsp; &nbsp;
+                                    {'  '}
+                                    <ReferenceManyCount
+                                        reference="tasks"
+                                        target="contact_id"
+                                    />{' '}
+                                    tasks
                                     <TagsList />
                                 </>
                             }
