@@ -36,7 +36,7 @@ const DealList = () => {
                 sales_id: identity?.id,
             }}
             filter={{
-                archived_at_eq: null,
+                'archived_at@': 'is.null',
             }}
             sort={{ field: 'index', order: 'DESC' }}
         >

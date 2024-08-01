@@ -1,18 +1,19 @@
-import { Button, Container, Stack, TextField, Typography } from '@mui/material';
-import { useQuery } from '@tanstack/react-query';
-import { useCreate, useDataProvider, useLogin, useNotify } from 'react-admin';
+import {
+    Button,
+    CircularProgress,
+    Container,
+    Stack,
+    TextField,
+    Typography,
+} from '@mui/material';
+import { useMutation, useQuery } from '@tanstack/react-query';
+import { useDataProvider, useLogin, useNotify } from 'react-admin';
 import { SubmitHandler, useForm } from 'react-hook-form';
 import { Navigate } from 'react-router';
 import { CustomDataProvider } from '../dataProvider';
 import { useConfigurationContext } from '../root/ConfigurationContext';
+import { SignUpData } from '../types';
 import { LoginSkeleton } from './LoginSkeleton';
-
-interface UserInput {
-    first_name: string;
-    last_name: string;
-    email: string;
-    password: string;
-}
 
 export const SignupPage = () => {
     const dataProvider = useDataProvider<CustomDataProvider>();
@@ -22,17 +23,38 @@ export const SignupPage = () => {
         queryFn: async () => {
             return dataProvider.isInitialized();
         },
-    })
+    });
+
+    const { isPending: isSignUpPending, mutate } = useMutation({
+        mutationKey: ['signup'],
+        mutationFn: async (data: SignUpData) => {
+            return dataProvider.signUp(data);
+        },
+        onSuccess: data => {
+            login({
+                email: data.email,
+                password: data.password,
+                redirectTo: '/contacts',
+            });
+            setTimeout(() => {
+                notify(
+                    'Welcome! You can now start entering contacts, write notes and plan deals'
+                );
+            }, 0);
+        },
+        onError: () => {
+            notify('An error occurred. Please try again.');
+        },
+    });
 
     const login = useLogin();
     const notify = useNotify();
-    const [create] = useCreate();
 
     const {
         register,
         handleSubmit,
         formState: { isValid },
-    } = useForm<UserInput>({
+    } = useForm<SignUpData>({
         mode: 'onChange',
     });
 
@@ -45,28 +67,8 @@ export const SignupPage = () => {
         return <Navigate to="/login" />;
     }
 
-    const onSubmit: SubmitHandler<UserInput> = async data => {
-        await create(
-            'sales',
-            { data: { ...data, administrator: true } }, // The first sale is an administrator
-            {
-                onSuccess: () => {
-                    login({
-                        email: data.email,
-                        password: data.password,
-                        redirectTo: '/contacts',
-                    });
-                    setTimeout(() => {
-                        notify(
-                            'Welcome! You can now start entering contacts, write notes and plan deals'
-                        );
-                    }, 0);
-                },
-                onError: () => {
-                    notify('An error occurred. Please try again.');
-                },
-            }
-        );
+    const onSubmit: SubmitHandler<SignUpData> = async data => {
+        mutate(data);
     };
 
     return (
@@ -138,9 +140,13 @@ export const SignupPage = () => {
                             <Button
                                 type="submit"
                                 variant="contained"
-                                disabled={!isValid}
+                                disabled={!isValid || isSignUpPending}
                             >
-                                Create account
+                                {isSignUpPending ? (
+                                    <CircularProgress />
+                                ) : (
+                                    'Create account'
+                                )}
                             </Button>
                         </Stack>
                     </form>

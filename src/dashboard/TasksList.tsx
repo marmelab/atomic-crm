@@ -1,13 +1,12 @@
-import * as React from 'react';
-import { Card, Box, Button } from '@mui/material';
 import AssignmentTurnedInIcon from '@mui/icons-material/AssignmentTurnedIn';
+import { Box, Button, Card } from '@mui/material';
 import {
-    useGetList,
     Link,
-    useGetIdentity,
-    useList,
     ListContextProvider,
     ResourceContextProvider,
+    useGetIdentity,
+    useGetList,
+    useList,
 } from 'react-admin';
 import { TasksIterator } from '../tasks/TasksIterator';
 
@@ -32,10 +31,14 @@ export const TasksList = () => {
         {
             pagination: { page: 1, perPage: 100 },
             sort: { field: 'due_date', order: 'ASC' },
-            filter: {
-                done_date: undefined,
-                contact_id: contacts?.map(contact => contact.id),
-            },
+            filter: contacts?.length
+                ? {
+                      'done_date@': 'is.null',
+                      contact_id: contacts.map(contact => contact.id),
+                  }
+                : {
+                      'done_date@': 'is.null',
+                  },
         },
         { enabled: !!contacts }
     );

@@ -22,6 +22,9 @@ export async function getActivityLog(
 ) {
     const sales = await getSales(dataProvider);
     const companies = await getCompaniesLog(dataProvider, sales, companyId);
+    if (!companies.companiesIds.length) {
+        return [];
+    }
 
     const [contactsLog, dealsLog] = await Promise.all([
         getContactsLog(dataProvider, sales, companies),
@@ -35,6 +38,7 @@ export async function getActivityLog(
 async function getSales(dataProvider: DataProvider) {
     const salesById = await dataProvider
         .getList<Sale>('sales', {
+            filter: {},
             pagination: { page: 1, perPage: 10_000 },
             sort: { field: 'id', order: 'ASC' },
         })
