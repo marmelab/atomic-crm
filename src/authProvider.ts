@@ -7,7 +7,7 @@ export const authProvider = supabaseAuthProvider(supabase, {
     getIdentity: async user => {
         const { data, error } = await supabase
             .from('sales')
-            .select('id, first_name, last_name')
+            .select('id, first_name, last_name, avatar')
             .match({ user_id: user.id })
             .single();
 
@@ -18,6 +18,7 @@ export const authProvider = supabaseAuthProvider(supabase, {
         return {
             id: data.id,
             fullName: `${data.first_name} ${data.last_name}`,
+            avatar: data.avatar?.src,
         };
     },
     getPermissions: async user => {

@@ -1,7 +1,7 @@
 import { ImageList, ImageListItem, Stack } from '@mui/material';
 import { AttachmentNote, ContactNote, DealNote } from '../types';
 import AttachFileIcon from '@mui/icons-material/AttachFile';
-import { supabase } from '../supabase';
+import { FileField } from 'react-admin';
 
 export const NoteAttachments = ({ note }: { note: ContactNote | DealNote }) => {
     if (!note.attachments || note.attachments.length === 0) {
@@ -27,7 +27,7 @@ export const NoteAttachments = ({ note }: { note: ContactNote | DealNote }) => {
                         (attachment: AttachmentNote, index: number) => (
                             <ImageListItem key={index}>
                                 <img
-                                    src={getPublicUrl(attachment.src)}
+                                    src={attachment.src}
                                     alt={attachment.title}
                                     style={{
                                         width: '200px',
@@ -51,15 +51,12 @@ export const NoteAttachments = ({ note }: { note: ContactNote | DealNote }) => {
                     (attachment: AttachmentNote, index: number) => (
                         <Stack key={index} direction="row" alignItems="center">
                             <AttachFileIcon fontSize="small" />
-
-                            <div>
-                                <a
-                                    href={getPublicUrl(attachment.src)}
-                                    title={attachment.title}
-                                >
-                                    {attachment.title}
-                                </a>
-                            </div>
+                            <FileField
+                                record={{ attachment }}
+                                source="attachment.src"
+                                title="attachment.title"
+                                target="_blank"
+                            />
                         </Stack>
                     )
                 )}
@@ -73,12 +70,4 @@ const isImage = (pathFile: string) => {
         return false;
     }
     return ['jpg', 'jpeg', 'png', 'gif', 'svg'].includes(extension);
-};
-
-const getPublicUrl = (filePath: string) => {
-    const { data } = supabase.storage
-        .from('attachments')
-        .getPublicUrl(filePath);
-
-    return data.publicUrl;
 };
