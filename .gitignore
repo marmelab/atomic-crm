@@ -24,4 +24,5 @@ yarn-error.log*
 supabase/.branches
 supabase/.temp
 
+dist/
 .env
