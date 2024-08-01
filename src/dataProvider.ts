@@ -67,6 +67,9 @@ async function processContactAvatar(
     params: CreateParams<Contact> | UpdateParams<Contact>
 ): Promise<CreateParams<Contact> | UpdateParams<Contact>> {
     const { data } = params;
+    if (!data.avatar && !data.email) {
+        return params;
+    }
     const avatarUrl = await getContactAvatar(data);
 
     // Clone the data and modify the clone
