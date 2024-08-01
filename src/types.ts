@@ -62,7 +62,6 @@ export interface Contact extends RaRecord {
     last_name: string;
     title: string;
     company_id: Identifier;
-    company_name: string;
     email: string;
     avatar?: Partial<RAFile>;
     linkedin_url?: string;
@@ -72,7 +71,6 @@ export interface Contact extends RaRecord {
     tags: Identifier[];
     gender: string;
     sales_id: Identifier;
-    nb_notes: number;
     status: string;
     background: string;
     phone_number1: { number: string; type: 'Work' | 'Home' | 'Other' };
@@ -102,7 +100,6 @@ export interface Deal extends RaRecord {
     expected_closing_date: string;
     sales_id: Identifier;
     index: number;
-    nb_notes: number;
 }
 
 export interface DealNote extends RaRecord {
