@@ -31,7 +31,8 @@ create table "public"."contactNotes" (
     "text" text,
     "date" timestamp with time zone default now(),
     "sales_id" bigint,
-    "status" text
+    "status" text,
+    "attachments" jsonb[]
 );
 
 
@@ -48,7 +49,7 @@ create table "public"."contacts" (
     "phone_number2" text,
     "background" text,
     "acquisition" text,
-    "avatar" text,
+    "avatar" jsonb,
     "first_seen" timestamp with time zone,
     "last_seen" timestamp with time zone,
     "has_newsletter" boolean,
@@ -69,7 +70,8 @@ create table "public"."dealNotes" (
     "type" text,
     "text" text,
     "date" timestamp with time zone default now(),
-    "sales_id" bigint
+    "sales_id" bigint,
+    "attachments" jsonb[]
 );
 
 
@@ -101,7 +103,8 @@ create table "public"."sales" (
     "last_name" text not null,
     "email" text not null,
     "administrator" boolean not null,
-    "user_id" uuid not null
+    "user_id" uuid not null,
+    "avatar" jsonb
 );
 
 
@@ -480,5 +483,15 @@ to authenticated
 using (true);
 
 
+-- Use Postgres to create a bucket.
+
+insert into storage.buckets
+  (id, name, public)
+values
+  ('attachments', 'attachments', true);
+
+CREATE POLICY "Attachments 1mt4rzk_0" ON storage.objects FOR SELECT TO authenticated USING (bucket_id = 'attachments');
+CREATE POLICY "Attachments 1mt4rzk_1" ON storage.objects FOR INSERT TO authenticated WITH CHECK (bucket_id = 'attachments');
+CREATE POLICY "Attachments 1mt4rzk_3" ON storage.objects FOR DELETE TO authenticated USING (bucket_id = 'attachments');
 
 
