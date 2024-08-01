@@ -67,11 +67,12 @@ const CompanyDisplayInputs = () => {
     return (
         <Stack gap={2} flex={1} direction="row">
             <ImageEditorField
-                source="logo.src"
+                source="logo"
                 type="avatar"
                 width={60}
                 height={60}
                 emptyText={record?.name.charAt(0)}
+                linkPosition="bottom"
             />
             <TextInput source="name" validate={required()} helperText={false} />
         </Stack>
