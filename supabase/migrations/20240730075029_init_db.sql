@@ -483,6 +483,78 @@ to authenticated
 using (true);
 
 
+create policy "Company Delete Policy"
+on "public"."companies"
+as permissive
+for delete
+to authenticated
+using (true);
+
+
+create policy "Contact Notes Delete Policy"
+on "public"."contactNotes"
+as permissive
+for delete
+to authenticated
+using (true);
+
+
+create policy "Contact Notes Update policy"
+on "public"."contactNotes"
+as permissive
+for update
+to authenticated
+using (true);
+
+
+create policy "Contact Delete Policy"
+on "public"."contacts"
+as permissive
+for delete
+to authenticated
+using (true);
+
+
+create policy "Deal Notes Delete Policy"
+on "public"."dealNotes"
+as permissive
+for delete
+to authenticated
+using (true);
+
+
+create policy "Deal Notes Update Policy"
+on "public"."dealNotes"
+as permissive
+for update
+to authenticated
+using (true);
+
+
+create policy "Deals Delete Policy"
+on "public"."deals"
+as permissive
+for delete
+to authenticated
+using (true);
+
+
+create policy "Task Delete Policy"
+on "public"."tasks"
+as permissive
+for delete
+to authenticated
+using (true);
+
+
+create policy "Task Update Policy"
+on "public"."tasks"
+as permissive
+for update
+to authenticated
+using (true);
+
+
 -- Use Postgres to create a bucket.
 
 insert into storage.buckets
@@ -493,5 +565,3 @@ values
 CREATE POLICY "Attachments 1mt4rzk_0" ON storage.objects FOR SELECT TO authenticated USING (bucket_id = 'attachments');
 CREATE POLICY "Attachments 1mt4rzk_1" ON storage.objects FOR INSERT TO authenticated WITH CHECK (bucket_id = 'attachments');
 CREATE POLICY "Attachments 1mt4rzk_3" ON storage.objects FOR DELETE TO authenticated USING (bucket_id = 'attachments');
-
-
