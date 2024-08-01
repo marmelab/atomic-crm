@@ -6,6 +6,7 @@ import {
     DEAL_CREATED,
     DEAL_NOTE_CREATED,
 } from './consts';
+import { SvgIconComponent } from '@mui/icons-material';
 
 export type SignUpData = {
     email: string;
@@ -27,6 +28,7 @@ export interface Sale extends RaRecord {
     last_name: string;
     administrator: boolean;
     avatar?: RAFile;
+    disabled?: boolean;
     user_id: string;
 
     // This is a copy of the user's email, to make it easier to handle by react admin
@@ -82,7 +84,7 @@ export interface Contact extends RaRecord {
 export interface ContactNote extends RaRecord {
     contact_id: Identifier;
     text: string;
-    date: Date;
+    date: string;
     sales_id: Identifier;
     status: string;
     attachments?: AttachmentNote[];
@@ -108,7 +110,7 @@ export interface Deal extends RaRecord {
 export interface DealNote extends RaRecord {
     deal_id: Identifier;
     text: string;
-    date: Date;
+    date: string;
     sales_id: Identifier;
     attachments?: AttachmentNote[];
 }
@@ -192,4 +194,5 @@ export interface NoteStatus {
 export interface ContactGender {
     value: string;
     label: string;
+    icon: SvgIconComponent;
 }
