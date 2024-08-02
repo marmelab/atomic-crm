@@ -9,13 +9,10 @@ install: package.json ## install dependencies
 start-supabase: ## start supabase locally
 	npx supabase start
 
-start-functions:
-	npx supabase functions serve
-
 start-app: ## start the app locally
 	npm run dev
 
-start: start-supabase start-app start-functions## start the stack locally
+start: start-supabase start-app## start the stack locally
 
 stop-supabase: ## stop local supabase
 	npx supabase stop
@@ -24,3 +21,9 @@ stop: stop-supabase ## stop the stack locally
 
 build: ## build the app
 	npm run build
+
+start-prod: build
+	open http://127.0.0.1:3000 && npx serve -l tcp://127.0.0.1:3000 dist
+
+supabase-remote-init:
+	npm run supabase:remote:init
