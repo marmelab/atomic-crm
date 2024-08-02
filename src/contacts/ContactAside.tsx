@@ -1,9 +1,10 @@
 import EmailIcon from '@mui/icons-material/Email';
 import LinkedInIcon from '@mui/icons-material/LinkedIn';
 import PhoneIcon from '@mui/icons-material/Phone';
-import { Box, Divider, Stack, Typography } from '@mui/material';
+import { Box, Divider, Stack, SvgIcon, Typography } from '@mui/material';
 import {
     DateField,
+    DeleteButton,
     EditButton,
     EmailField,
     FunctionField,
@@ -19,10 +20,12 @@ import { AddTask } from '../tasks/AddTask';
 import { TasksIterator } from '../tasks/TasksIterator';
 import { TagsListEdit } from './TagsListEdit';
 
+import { useLocation } from 'react-router';
 import { useConfigurationContext } from '../root/ConfigurationContext';
 import { Contact, Sale } from '../types';
 
 export const ContactAside = ({ link = 'edit' }: { link?: 'edit' | 'show' }) => {
+    const location = useLocation();
     const { contactGender } = useConfigurationContext();
     const record = useRecordContext<Contact>();
     if (!record) return null;
@@ -48,6 +51,11 @@ export const ContactAside = ({ link = 'edit' }: { link?: 'edit' | 'show' }) => {
                     <EmailField source="email" />
                 </Stack>
             )}
+            {record.has_newsletter && (
+                <Typography variant="body2" color="textSecondary" pl={3.5}>
+                    Subscribed to newsletter
+                </Typography>
+            )}
 
             {record.linkedin_url && (
                 <Stack
@@ -59,14 +67,13 @@ export const ContactAside = ({ link = 'edit' }: { link?: 'edit' | 'show' }) => {
                     <LinkedInIcon color="disabled" fontSize="small" />
                     <UrlField
                         source="linkedin_url"
-                        content="linkedin_url"
+                        content="LinkedIn profile"
                         target="_blank"
                         rel="noopener"
-                        label="LinkedIn"
                     />
                 </Stack>
             )}
-            {record.phone_number1.number && (
+            {record.phone_number1?.number && (
                 <Stack direction="row" alignItems="center" gap={1}>
                     <PhoneIcon color="disabled" fontSize="small" />
                     <Box>
@@ -80,8 +87,13 @@ export const ContactAside = ({ link = 'edit' }: { link?: 'edit' | 'show' }) => {
                     </Box>
                 </Stack>
             )}
-            {record.phone_number2.number && (
-                <Stack direction="row" alignItems="center" gap={1}>
+            {record.phone_number2?.number && (
+                <Stack
+                    direction="row"
+                    alignItems="center"
+                    gap={1}
+                    minHeight={24}
+                >
                     <PhoneIcon color="disabled" fontSize="small" />
                     <Box>
                         <TextField source="phone_number2.number" />{' '}
@@ -97,7 +109,21 @@ export const ContactAside = ({ link = 'edit' }: { link?: 'edit' | 'show' }) => {
             <SelectField
                 source="gender"
                 choices={contactGender}
-                optionText="label"
+                optionText={choice => (
+                    <Stack
+                        direction="row"
+                        alignItems="center"
+                        gap={1}
+                        minHeight={24}
+                    >
+                        <SvgIcon
+                            component={choice.icon}
+                            color="disabled"
+                            fontSize="small"
+                        ></SvgIcon>
+                        <span>{choice.label}</span>
+                    </Stack>
+                )}
                 optionValue="value"
             />
             <Typography variant="subtitle2" mt={2}>
@@ -155,7 +181,7 @@ export const ContactAside = ({ link = 'edit' }: { link?: 'edit' | 'show' }) => {
                 <Divider />
                 <TagsListEdit />
             </Box>
-            <Box>
+            <Box mb={3}>
                 <Typography variant="subtitle2">Tasks</Typography>
                 <Divider />
                 <ReferenceManyField
@@ -167,6 +193,7 @@ export const ContactAside = ({ link = 'edit' }: { link?: 'edit' | 'show' }) => {
                 </ReferenceManyField>
                 <AddTask />
             </Box>
+            <DeleteButton redirect={location.state?.from || undefined} />
         </Box>
     );
 };

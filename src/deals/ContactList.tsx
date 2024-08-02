@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { useListContext } from 'react-admin';
+import { ReferenceField, TextField, useListContext } from 'react-admin';
 import { Link, Stack, Typography } from '@mui/material';
 import { Link as RouterLink } from 'react-router-dom';
 import { Avatar } from '../contacts/Avatar';
@@ -21,7 +21,14 @@ export const ContactList = () => {
                             {contact.first_name} {contact.last_name}
                         </Link>
                         <Typography variant="caption" color="text.secondary">
-                            {contact.title} at {contact.company_name}
+                            {contact.title} at{' '}
+                            <ReferenceField
+                                source="company_id"
+                                reference="companies"
+                                link={false}
+                            >
+                                <TextField source="name" variant="caption" />
+                            </ReferenceField>
                         </Typography>
                     </Stack>
                 </Stack>

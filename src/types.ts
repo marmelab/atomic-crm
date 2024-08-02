@@ -6,6 +6,7 @@ import {
     DEAL_CREATED,
     DEAL_NOTE_CREATED,
 } from './consts';
+import { SvgIconComponent } from '@mui/icons-material';
 
 export type SignUpData = {
     email: string;
@@ -20,6 +21,7 @@ export type SalesFormData = {
     first_name: string;
     last_name: string;
     administrator: boolean;
+    disabled: boolean;
 };
 
 export interface Sale extends RaRecord {
@@ -27,6 +29,7 @@ export interface Sale extends RaRecord {
     last_name: string;
     administrator: boolean;
     avatar?: RAFile;
+    disabled?: boolean;
     user_id: string;
 
     // This is a copy of the user's email, to make it easier to handle by react admin
@@ -46,8 +49,6 @@ export interface Company extends RaRecord {
     zipcode: string;
     city: string;
     stateAbbr: string;
-    nb_contacts: number;
-    nb_deals: number;
     sales_id: Identifier;
     created_at: string;
     description: string;
@@ -62,7 +63,6 @@ export interface Contact extends RaRecord {
     last_name: string;
     title: string;
     company_id: Identifier;
-    company_name: string;
     email: string;
     avatar?: Partial<RAFile>;
     linkedin_url?: string;
@@ -72,7 +72,6 @@ export interface Contact extends RaRecord {
     tags: Identifier[];
     gender: string;
     sales_id: Identifier;
-    nb_notes: number;
     status: string;
     background: string;
     phone_number1: { number: string; type: 'Work' | 'Home' | 'Other' };
@@ -82,7 +81,7 @@ export interface Contact extends RaRecord {
 export interface ContactNote extends RaRecord {
     contact_id: Identifier;
     text: string;
-    date: Date;
+    date: string;
     sales_id: Identifier;
     status: string;
     attachments?: AttachmentNote[];
@@ -102,13 +101,12 @@ export interface Deal extends RaRecord {
     expected_closing_date: string;
     sales_id: Identifier;
     index: number;
-    nb_notes: number;
 }
 
 export interface DealNote extends RaRecord {
     deal_id: Identifier;
     text: string;
-    date: Date;
+    date: string;
     sales_id: Identifier;
     attachments?: AttachmentNote[];
 }
@@ -192,4 +190,5 @@ export interface NoteStatus {
 export interface ContactGender {
     value: string;
     label: string;
+    icon: SvgIconComponent;
 }

@@ -16,7 +16,7 @@ import { useFormContext } from 'react-hook-form';
 
 import { Stack } from '@mui/material';
 import { NoteInputs } from './NoteInputs';
-import { getCurrentDate } from './note';
+import { getCurrentDate } from './utils';
 
 const foreignKeyMapping = {
     contacts: 'contact_id',
@@ -63,7 +63,15 @@ const NoteCreateButton = ({
     if (!record || !identity) return null;
 
     const handleSuccess = (data: any) => {
-        reset();
+        reset(
+            {
+                date: getCurrentDate(),
+                text: null,
+                status: 'warm',
+                attachments: null,
+            },
+            { keepValues: false }
+        );
         refetch();
         update(reference, {
             id: (record && record.id) as unknown as Identifier,

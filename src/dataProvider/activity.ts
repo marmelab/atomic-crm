@@ -22,9 +22,6 @@ export async function getActivityLog(
 ) {
     const sales = await getSales(dataProvider);
     const companies = await getCompaniesLog(dataProvider, sales, companyId);
-    if (!companies.companiesIds.length) {
-        return [];
-    }
 
     const [contactsLog, dealsLog] = await Promise.all([
         getContactsLog(dataProvider, sales, companies),
@@ -38,9 +35,9 @@ export async function getActivityLog(
 async function getSales(dataProvider: DataProvider) {
     const salesById = await dataProvider
         .getList<Sale>('sales', {
-            filter: {},
-            pagination: { page: 1, perPage: 10_000 },
+            pagination: { page: 1, perPage: 200 },
             sort: { field: 'id', order: 'ASC' },
+            filter: {},
         })
         .then(({ data }) =>
             data.reduce((acc, sale) => {
@@ -94,8 +91,8 @@ async function getContactsLog(
     const contacts = await dataProvider
         .getList<Contact>('contacts', {
             filter: {
-                company_id: companiesIds,
-                sales_id: salesIds,
+                'company_id@in': `(${companiesIds})`,
+                'sales_id@in': `(${salesIds})`,
             },
             pagination: { page: 1, perPage: 10_000 },
             sort: { field: 'first_seen', order: 'DESC' },
@@ -110,8 +107,8 @@ async function getContactsLog(
     const contactNotes = await dataProvider
         .getList<ContactNote>('contactNotes', {
             filter: {
-                contact_id: contacts.map(({ id }) => id),
-                sales_id: salesIds,
+                'contact_id@in': `(${contacts.map(({ id }) => id)})`,
+                'sales_id@in': `(${salesIds})`,
             },
             pagination: { page: 1, perPage: 10_000 },
             sort: { field: 'date', order: 'DESC' },
@@ -139,7 +136,7 @@ async function getContactsLog(
                     sale: salesDict.get(contactNote.sales_id) as Sale,
                     contact,
                     contactNote,
-                    date: contactNote.date.toISOString(),
+                    date: contactNote.date,
                 };
             })
         );
@@ -153,8 +150,8 @@ async function getDealsLog(
     const deals = await dataProvider
         .getList<Deal>('deals', {
             filter: {
-                company_id: companiesIds,
-                sales_id: salesIds,
+                'company_id@in': `(${companiesIds})`,
+                'sales_id@in': `(${salesIds})`,
             },
             pagination: { page: 1, perPage: 10_000 },
             sort: { field: 'created_at', order: 'DESC' },
@@ -169,8 +166,8 @@ async function getDealsLog(
     const dealsNotes = await dataProvider
         .getList<DealNote>('dealNotes', {
             filter: {
-                deal_id: deals.map(({ id }) => id),
-                sales_id: salesIds,
+                'deal_id@in': `(${deals.map(({ id }) => id)})`,
+                'sales_id@in': `(${salesIds})`,
             },
             pagination: { page: 1, perPage: 10_000 },
             sort: { field: 'date', order: 'DESC' },
@@ -196,7 +193,7 @@ async function getDealsLog(
                     sale: salesDict.get(dealNote.sales_id) as Sale,
                     deal,
                     dealNote,
-                    date: dealNote.date.toISOString(),
+                    date: dealNote.date,
                 };
             })
         );

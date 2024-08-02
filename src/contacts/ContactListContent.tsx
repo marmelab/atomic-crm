@@ -1,10 +1,9 @@
 /* eslint-disable import/no-anonymous-default-export */
 import * as React from 'react';
 import {
-    BulkActionsToolbar,
-    BulkDeleteButton,
     RecordContextProvider,
     ReferenceField,
+    ReferenceManyCount,
     SimpleListLoading,
     TextField,
     useListContext,
@@ -22,7 +21,7 @@ import {
 } from '@mui/material';
 import type { Theme } from '@mui/material';
 import { Link } from 'react-router-dom';
-import { formatDistance } from 'date-fns';
+import { formatRelative } from 'date-fns';
 
 import { Avatar } from './Avatar';
 import { Status } from '../misc/Status';
@@ -50,9 +49,6 @@ export const ContactListContent = () => {
 
     return (
         <>
-            <BulkActionsToolbar>
-                <BulkDeleteButton />
-            </BulkActionsToolbar>
             <List dense>
                 {contacts.map(contact => (
                     <RecordContextProvider key={contact.id} value={contact}>
@@ -88,14 +84,12 @@ export const ContactListContent = () => {
                                         >
                                             <TextField source="name" />
                                         </ReferenceField>
-                                        {contact.nb_tasks
-                                            ? ` - ${contact.nb_tasks} task${
-                                                  contact.nb_tasks > 1
-                                                      ? 's'
-                                                      : ''
-                                              }`
-                                            : ''}
-                                        &nbsp;&nbsp;
+                                        {' - '}
+                                        <ReferenceManyCount
+                                            reference="tasks"
+                                            target="contact_id"
+                                        />{' '}
+                                        tasks
                                         <TagsList />
                                     </>
                                 }
@@ -112,10 +106,11 @@ export const ContactListContent = () => {
                                     title={contact.last_seen}
                                 >
                                     {!isSmall && 'last activity '}
-                                    {formatDistance(
+                                    {formatRelative(
                                         contact.last_seen,
                                         now
-                                    )} ago <Status status={contact.status} />
+                                    )}{' '}
+                                    <Status status={contact.status} />
                                 </Typography>
                             </ListItemSecondaryAction>
                         </ListItem>

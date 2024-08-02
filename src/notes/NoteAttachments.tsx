@@ -1,14 +1,10 @@
 import { ImageList, ImageListItem, Stack } from '@mui/material';
 import { AttachmentNote, ContactNote, DealNote } from '../types';
-import AttachFileIcon from '@mui/icons-material/AttachFile';
 import { FileField } from 'react-admin';
+import AttachFileIcon from '@mui/icons-material/AttachFile';
 
 export const NoteAttachments = ({ note }: { note: ContactNote | DealNote }) => {
     if (!note.attachments || note.attachments.length === 0) {
-        return null;
-    }
-
-    if (!note.attachments) {
         return null;
     }
 
