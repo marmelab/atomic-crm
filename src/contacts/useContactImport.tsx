@@ -51,7 +51,7 @@ export function useContactImport() {
                 ? await dataProvider.getList(entity, {
                       filter: { name: uncachedEntities },
                       pagination: { page: 1, perPage: 1 },
-                      sort: { field: 'first_name', order: 'ASC' },
+                      sort: { field: 'id', order: 'ASC' },
                   })
                 : { data: [] };
 
