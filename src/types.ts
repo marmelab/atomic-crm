@@ -56,6 +56,8 @@ export interface Company extends RaRecord {
     tax_identifier: string;
     country: string;
     context_links?: string[];
+    nb_contacts?: number;
+    nb_deals?: number;
 }
 
 export interface Contact extends RaRecord {

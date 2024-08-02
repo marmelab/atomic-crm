@@ -1,5 +1,5 @@
 import { Stack, Typography } from '@mui/material';
-import { ReferenceField, TextField, useRecordContext } from 'react-admin';
+import { useRecordContext } from 'react-admin';
 import { Avatar } from '../contacts/Avatar';
 import { Contact } from '../types';
 
@@ -12,14 +12,7 @@ const ContactOptionRender = () => {
             <Stack>
                 {record.first_name} {record.last_name}
                 <Typography variant="caption" color="text.secondary">
-                    {record.title} at{' '}
-                    <ReferenceField
-                        source="company_id"
-                        reference="companies"
-                        link={false}
-                    >
-                        <TextField source="name" variant="caption" />
-                    </ReferenceField>
+                    {record.title} at {record.company_name}
                 </Typography>
             </Stack>
         </Stack>
