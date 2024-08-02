@@ -26,6 +26,13 @@ function createErrorResponse(status: number, message: string) {
     });
 }
 
+async function updateSaleDisabled(user_id: string, disabled: boolean) {
+    return await supabaseServiceClient
+        .from('sales')
+        .update({ disabled })
+        .eq('user_id', user_id);
+}
+
 async function updateSaleAdministrator(
     user_id: string,
     administrator: boolean
@@ -77,9 +84,8 @@ async function inviteUser(req: Request) {
 }
 
 async function patchUser(req: Request) {
-    const { sales_id, email, first_name, last_name, administrator } =
+    const { sales_id, email, first_name, last_name, administrator, disabled } =
         await req.json();
-
     const { data: sale } = await supabaseServiceClient
         .from('sales')
         .select('*')
@@ -102,6 +108,7 @@ async function patchUser(req: Request) {
     }
 
     try {
+        await updateSaleDisabled(data.user.id, disabled);
         const sale = await updateSaleAdministrator(data.user.id, administrator);
 
         return new Response(

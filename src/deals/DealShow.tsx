@@ -1,6 +1,7 @@
 import {
     Box,
     Button,
+    Chip,
     Dialog,
     DialogContent,
     Divider,
@@ -16,7 +17,6 @@ import {
     ReferenceField,
     ReferenceManyField,
     ShowBase,
-    TextField,
     useDataProvider,
     useNotify,
     useRecordContext,
@@ -42,7 +42,7 @@ export const DealShow = ({ open, id }: { open: boolean; id?: string }) => {
     };
 
     return (
-        <Dialog open={open} onClose={handleClose} fullWidth maxWidth="lg">
+        <Dialog open={open} onClose={handleClose} fullWidth maxWidth="md">
             <DialogContent sx={{ padding: 0 }}>
                 {!!id ? (
                     <ShowBase id={id}>
@@ -54,7 +54,7 @@ export const DealShow = ({ open, id }: { open: boolean; id?: string }) => {
     );
 };
 
-const CLOSE_TOP_WITH_ARCHIVED = 64 + 22 + 8; // 22 is initial top, 8 is padding, 64 is the height of the archived title
+const CLOSE_TOP_WITH_ARCHIVED = 14;
 const DealShowContent = ({ handleClose }: { handleClose: () => void }) => {
     const { dealStages } = useConfigurationContext();
     const record = useRecordContext<Deal>();
@@ -63,41 +63,32 @@ const DealShowContent = ({ handleClose }: { handleClose: () => void }) => {
         <>
             <DialogCloseButton
                 onClose={handleClose}
-                top={record.archived_at ? CLOSE_TOP_WITH_ARCHIVED : 22}
+                top={record.archived_at ? CLOSE_TOP_WITH_ARCHIVED : 16}
                 right={20}
+                color={record.archived_at ? 'white' : undefined}
             />
             <Stack gap={1}>
                 {record.archived_at ? <ArchivedTitle /> : null}
-                <Box display="flex" p={3}>
-                    <Box
-                        width={100}
-                        display="flex"
-                        flexDirection="column"
-                        alignItems="center"
-                    >
-                        <ReferenceField
-                            source="company_id"
-                            reference="companies"
-                            link="show"
-                        >
-                            <CompanyAvatar />
-                        </ReferenceField>
-                        <ReferenceField
-                            source="company_id"
-                            reference="companies"
-                            link="show"
-                        >
-                            <TextField
-                                source="name"
-                                align="center"
-                                component="div"
-                            />
-                        </ReferenceField>
-                    </Box>
+                <Box display="flex" p={2}>
                     <Box ml={2} flex="1">
                         <Stack direction="row" justifyContent="space-between">
-                            <Typography variant="h5">{record.name}</Typography>
-                            <Stack gap={1} direction="row" pr={4}>
+                            <Stack direction="row" alignItems="center" gap={2}>
+                                <ReferenceField
+                                    source="company_id"
+                                    reference="companies"
+                                    link="show"
+                                >
+                                    <CompanyAvatar />
+                                </ReferenceField>
+                                <Typography variant="h5">
+                                    {record.name}
+                                </Typography>
+                            </Stack>
+                            <Stack
+                                gap={1}
+                                direction="row"
+                                pr={record.archived_at ? 0 : 4}
+                            >
                                 {record.archived_at ? (
                                     <>
                                         <UnarchiveButton record={record} />
@@ -120,9 +111,26 @@ const DealShowContent = ({ handleClose }: { handleClose: () => void }) => {
                                 >
                                     Expected closing date
                                 </Typography>
-                                <Typography variant="body2">
-                                    {format(record.expected_closing_date, 'PP')}
-                                </Typography>
+                                <Stack
+                                    direction="row"
+                                    alignItems="center"
+                                    gap={1}
+                                >
+                                    <Typography variant="body2">
+                                        {format(
+                                            record.expected_closing_date,
+                                            'PP'
+                                        )}
+                                    </Typography>
+                                    {new Date(record.expected_closing_date) <
+                                    new Date() ? (
+                                        <Chip
+                                            label="Past"
+                                            color="error"
+                                            size="small"
+                                        />
+                                    ) : null}
+                                </Stack>
                             </Box>
 
                             <Box display="flex" mr={5} flexDirection="column">
@@ -277,7 +285,7 @@ const ArchiveButton = ({ record }: { record: Deal }) => {
     };
 
     return (
-        <Button onClick={handleClick} startIcon={<ArchiveIcon />}>
+        <Button onClick={handleClick} startIcon={<ArchiveIcon />} size="small">
             Archive
         </Button>
     );
@@ -309,7 +317,11 @@ const UnarchiveButton = ({ record }: { record: Deal }) => {
     };
 
     return (
-        <Button onClick={handleClick} startIcon={<UnarchiveIcon />}>
+        <Button
+            onClick={handleClick}
+            startIcon={<UnarchiveIcon />}
+            size="small"
+        >
             Send back to the board
         </Button>
     );

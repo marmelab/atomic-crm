@@ -38,36 +38,36 @@ export const ContactListFilter = () => {
                 <FilterListItem
                     label="Today"
                     value={{
-                        last_seen_gte: endOfYesterday().toISOString(),
-                        last_seen_lte: undefined,
+                        'last_seen@gte': endOfYesterday().toISOString(),
+                        'last_seen@lte': undefined,
                     }}
                 />
                 <FilterListItem
                     label="This week"
                     value={{
-                        last_seen_gte: startOfWeek(new Date()).toISOString(),
-                        last_seen_lte: undefined,
+                        'last_seen@gte': startOfWeek(new Date()).toISOString(),
+                        'last_seen@lte': undefined,
                     }}
                 />
                 <FilterListItem
                     label="Before this week"
                     value={{
-                        last_seen_gte: undefined,
-                        last_seen_lte: startOfWeek(new Date()).toISOString(),
+                        'last_seen@gte': undefined,
+                        'last_seen@lte': startOfWeek(new Date()).toISOString(),
                     }}
                 />
                 <FilterListItem
                     label="Before this month"
                     value={{
-                        last_seen_gte: undefined,
-                        last_seen_lte: startOfMonth(new Date()).toISOString(),
+                        'last_seen@gte': undefined,
+                        'last_seen@lte': startOfMonth(new Date()).toISOString(),
                     }}
                 />
                 <FilterListItem
                     label="Before last month"
                     value={{
-                        last_seen_gte: undefined,
-                        last_seen_lte: subMonths(
+                        'last_seen@gte': undefined,
+                        'last_seen@lte': subMonths(
                             startOfMonth(new Date()),
                             1
                         ).toISOString(),

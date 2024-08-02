@@ -1,9 +1,12 @@
 import Typography from '@mui/material/Typography';
-import { Link, RecordContextProvider } from 'react-admin';
+import { Link } from 'react-admin';
+
 import { CompanyAvatar } from '../companies/CompanyAvatar';
 import type { ActivityDealNoteCreated } from '../types';
-import { ActivityLogDate } from './ActivityLogDate';
+import { SaleName } from '../sales/SaleName';
+import { RelativeDate } from '../misc/RelativeDate';
 import { ActivityLogNote } from './ActivityLogNote';
+import { useActivityLogContext } from './ActivityLogContext';
 
 type ActivityLogDealNoteCreatedProps = {
     activity: ActivityDealNoteCreated;
@@ -12,40 +15,42 @@ type ActivityLogDealNoteCreatedProps = {
 export function ActivityLogDealNoteCreated({
     activity: { company, sale, deal, dealNote },
 }: ActivityLogDealNoteCreatedProps) {
+    const context = useActivityLogContext();
     return (
-        <RecordContextProvider value={company}>
-            <ActivityLogNote
-                header={
-                    <>
-                        <CompanyAvatar width={20} height={20} />
+        <ActivityLogNote
+            header={
+                <>
+                    <CompanyAvatar width={20} height={20} record={company} />
+                    <Typography
+                        component="p"
+                        variant="body2"
+                        color="text.secondary"
+                        flexGrow={1}
+                    >
+                        <SaleName sale={sale} /> added a note about deal{' '}
+                        <Link to={`/deals/${deal.id}/show`}>{deal.name}</Link>
+                        {context !== 'company' && (
+                            <>
+                                {' at '}
+                                <Link to={`/companies/${deal.company_id}/show`}>
+                                    {company.name}
+                                </Link>{' '}
+                                <RelativeDate date={dealNote.date} />
+                            </>
+                        )}
+                    </Typography>
+                    {context === 'company' && (
                         <Typography
-                            component="p"
-                            sx={{
-                                flexGrow: 1,
-                            }}
+                            color="textSecondary"
                             variant="body2"
-                            color="text.secondary"
+                            component="span"
                         >
-                            {sale.first_name} {sale.last_name} added note about
-                            deal{' '}
-                            <Link to={`/deals/${deal.id}/show`} variant="body2">
-                                {deal.name}
-                            </Link>{' '}
-                            at{' '}
-                            <Link
-                                component={Link}
-                                to={`/companies/${deal.company_id}/show`}
-                                variant="body2"
-                            >
-                                {company.name}
-                            </Link>
+                            <RelativeDate date={dealNote.date} />
                         </Typography>
-
-                        <ActivityLogDate date={dealNote.date.toISOString()} />
-                    </>
-                }
-                text={dealNote.text}
-            />
-        </RecordContextProvider>
+                    )}
+                </>
+            }
+            text={dealNote.text}
+        />
     );
 }

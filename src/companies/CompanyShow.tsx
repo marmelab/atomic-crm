@@ -4,32 +4,27 @@ import {
     Button,
     Card,
     CardContent,
-    Divider,
     List,
     ListItem,
     ListItemAvatar,
     ListItemSecondaryAction,
     ListItemText,
     Stack,
-    Tab,
-    Tabs,
     Typography,
 } from '@mui/material';
 import { formatDistance } from 'date-fns';
-import * as React from 'react';
-import { ChangeEvent, useState } from 'react';
 import {
     RecordContextProvider,
+    ReferenceManyCount,
     ReferenceManyField,
-    SelectField,
     ShowBase,
     SortButton,
-    TextField,
+    TabbedShowLayout,
     useListContext,
     useRecordContext,
     useShowContext,
 } from 'react-admin';
-import { Link as RouterLink } from 'react-router-dom';
+import { Link as RouterLink, useLocation } from 'react-router-dom';
 
 import { ActivityLog } from '../activity/ActivityLog';
 import { Avatar } from '../contacts/Avatar';
@@ -40,7 +35,6 @@ import { useConfigurationContext } from '../root/ConfigurationContext';
 import { Company, Contact, Deal } from '../types';
 import { CompanyAside } from './CompanyAside';
 import { CompanyAvatar } from './CompanyAvatar';
-import { sizes } from './sizes';
 
 export const CompanyShow = () => (
     <ShowBase>
@@ -50,13 +44,8 @@ export const CompanyShow = () => (
 
 const CompanyShowContent = () => {
     const { record, isPending } = useShowContext<Company>();
-    const [tabValue, setTabValue] = useState(0);
-    const handleTabChange = (_: ChangeEvent<{}>, newValue: number) => {
-        setTabValue(newValue);
-    };
-    if (isPending || !record) return null;
 
-    let tabIndex = 0;
+    if (isPending || !record) return null;
 
     return (
         <Box mt={2} display="flex">
@@ -65,62 +54,37 @@ const CompanyShowContent = () => {
                     <CardContent>
                         <Box display="flex" mb={1}>
                             <CompanyAvatar />
-                            <Box ml={2} flex="1">
-                                <Typography variant="h5">
-                                    {record.name}
-                                </Typography>
-                                <Typography variant="body2">
-                                    <TextField source="sector" />
-                                    {record.size && ', '}
-                                    <SelectField
-                                        source="size"
-                                        choices={sizes}
-                                    />
-                                </Typography>
-                            </Box>
+                            <Typography variant="h5" ml={2} flex="1">
+                                {record.name}
+                            </Typography>
                         </Box>
-                        <Tabs
-                            value={tabValue}
-                            indicatorColor="primary"
-                            textColor="primary"
-                            onChange={handleTabChange}
-                        >
-                            <Tab
-                                label={
-                                    !record.nb_contacts
-                                        ? 'No Contacts'
-                                        : record.nb_contacts === 1
-                                          ? '1 Contact'
-                                          : `${record.nb_contacts} Contacts`
-                                }
-                            />
-                            {record.nb_deals && (
-                                <Tab
-                                    label={
-                                        record.nb_deals === 1
-                                            ? '1 deal'
-                                            : `${record.nb_deals} Deals`
-                                    }
-                                />
-                            )}
-                            {record.description && <Tab label="Description" />}
-                            <Tab label="Activity Log" />
-                        </Tabs>
-                        <Divider />
 
-                        <TabPanel value={tabValue} index={tabIndex++}>
-                            <ReferenceManyField
-                                reference="contacts"
-                                target="company_id"
-                                sort={{ field: 'last_name', order: 'ASC' }}
+                        <TabbedShowLayout
+                            sx={{
+                                '& .RaTabbedShowLayout-content': { p: 0 },
+                            }}
+                        >
+                            <TabbedShowLayout.Tab label="Activity">
+                                <ActivityLog
+                                    companyId={record.id}
+                                    context="company"
+                                />
+                            </TabbedShowLayout.Tab>
+                            <TabbedShowLayout.Tab
+                                label="Contacts"
+                                path="contacts"
                             >
-                                <Stack
-                                    direction="row"
-                                    justifyContent="flex-end"
-                                    spacing={2}
-                                    mt={1}
+                                <ReferenceManyField
+                                    reference="contacts"
+                                    target="company_id"
+                                    sort={{ field: 'last_name', order: 'ASC' }}
                                 >
-                                    {!!record.nb_contacts && (
+                                    <Stack
+                                        direction="row"
+                                        justifyContent="flex-end"
+                                        spacing={2}
+                                        mt={1}
+                                    >
                                         <SortButton
                                             fields={[
                                                 'last_name',
@@ -128,14 +92,12 @@ const CompanyShowContent = () => {
                                                 'last_seen',
                                             ]}
                                         />
-                                    )}
-                                    <CreateRelatedContactButton />
-                                </Stack>
-                                <ContactsIterator />
-                            </ReferenceManyField>
-                        </TabPanel>
-                        {record.nb_deals ? (
-                            <TabPanel value={tabValue} index={tabIndex++}>
+                                        <CreateRelatedContactButton />
+                                    </Stack>
+                                    <ContactsIterator />
+                                </ReferenceManyField>
+                            </TabbedShowLayout.Tab>
+                            <TabbedShowLayout.Tab label="Deals" path="deals">
                                 <ReferenceManyField
                                     reference="deals"
                                     target="company_id"
@@ -143,22 +105,8 @@ const CompanyShowContent = () => {
                                 >
                                     <DealsIterator />
                                 </ReferenceManyField>
-                            </TabPanel>
-                        ) : null}
-                        {record.description ? (
-                            <TabPanel value={tabValue} index={tabIndex++}>
-                                <Stack
-                                    pt={2}
-                                    px={2}
-                                    sx={{ whiteSpace: 'pre-line' }}
-                                >
-                                    <TextField source="description" />
-                                </Stack>
-                            </TabPanel>
-                        ) : null}
-                        <TabPanel value={tabValue} index={tabIndex++}>
-                            <ActivityLog companyId={record.id} />
-                        </TabPanel>
+                            </TabbedShowLayout.Tab>
+                        </TabbedShowLayout>
                     </CardContent>
                 </Card>
             </Box>
@@ -167,30 +115,10 @@ const CompanyShowContent = () => {
     );
 };
 
-interface TabPanelProps {
-    children?: React.ReactNode;
-    index: any;
-    value: any;
-}
-
-const TabPanel = (props: TabPanelProps) => {
-    const { children, value, index, ...other } = props;
-
-    return (
-        <div
-            role="tabpanel"
-            hidden={value !== index}
-            id={`wrapped-tabpanel-${index}`}
-            aria-labelledby={`wrapped-tab-${index}`}
-            {...other}
-        >
-            {children}
-        </div>
-    );
-};
-
 const ContactsIterator = () => {
+    const location = useLocation();
     const { data: contacts, error, isPending } = useListContext<Contact>();
+
     if (isPending || error) return null;
 
     const now = Date.now();
@@ -202,6 +130,7 @@ const ContactsIterator = () => {
                         button
                         component={RouterLink}
                         to={`/contacts/${contact.id}/show`}
+                        state={{ from: location.pathname }}
                     >
                         <ListItemAvatar>
                             <Avatar />
@@ -211,12 +140,12 @@ const ContactsIterator = () => {
                             secondary={
                                 <>
                                     {contact.title}
-                                    {contact.nb_tasks
-                                        ? ` - ${contact.nb_tasks} task${
-                                              contact.nb_tasks > 1 ? 's' : ''
-                                          }`
-                                        : ''}
-                                    &nbsp; &nbsp;
+                                    {'  '}
+                                    <ReferenceManyCount
+                                        reference="tasks"
+                                        target="contact_id"
+                                    />{' '}
+                                    tasks
                                     <TagsList />
                                 </>
                             }
