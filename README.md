@@ -17,15 +17,19 @@ To run this project you will need the following tools installed on your computer
 - NPM
 - Docker (required by supabase)
 
-After having cloned the [`atomic-crm` repository](https://github.com/marmelab/atomic-crm), run the following command at the project root:
+After having cloned the [`atomic-crm` repository](https://github.com/marmelab/atomic-crm), run the following command at the project root to install dependencies:
 
 ```sh
-# Install dependencies
 make install
+```
 
-# Start the stack in development mode
+Then you can start the stack in development mode with the following command:
+```sh
 make start
 ```
+
+It will start the vite dev server and the local supabase instance. You can then access the app via [`http://localhost:5173/`](http://localhost:5173/).
+
 
 ## Remote Instance Setup
 
@@ -82,3 +86,5 @@ make prod-start
 ```
 
 Note: It will apply migrations and deploy edge functions.
+
+You can then access the app via [`http://localhost:3000/`](http://localhost:3000/).
