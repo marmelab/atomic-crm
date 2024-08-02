@@ -1,9 +1,14 @@
 import * as React from 'react';
-import { Link as RouterLink } from 'react-router-dom';
-import { Card, Box, Link } from '@mui/material';
+import { Card, Box, Stack } from '@mui/material';
 import ContactsIcon from '@mui/icons-material/Contacts';
-import { useGetList, SimpleList, useGetIdentity } from 'react-admin';
-import { formatDistance } from 'date-fns';
+import {
+    useGetList,
+    Link,
+    SimpleList,
+    useGetIdentity,
+    ReferenceField,
+    TextField,
+} from 'react-admin';
 
 import { Avatar } from '../contacts/Avatar';
 import { Contact } from '../types';
@@ -13,7 +18,7 @@ export const HotContacts = () => {
     const {
         data: contactData,
         total: contactTotal,
-        isLoading: contactsLoading,
+        isPending: contactsLoading,
     } = useGetList<Contact>(
         'contacts',
         {
@@ -23,20 +28,20 @@ export const HotContacts = () => {
         },
         { enabled: Number.isInteger(identity?.id) }
     );
+
     return (
-        <>
-            <Box display="flex" alignItems="center" marginBottom="1em">
-                <Box ml={2} mr={2} display="flex">
-                    <ContactsIcon color="disabled" fontSize="large" />
+        <Stack>
+            <Box display="flex" alignItems="center" mb={1}>
+                <Box mr={1} display="flex">
+                    <ContactsIcon color="disabled" fontSize="medium" />
                 </Box>
                 <Link
                     underline="none"
                     variant="h5"
                     color="textSecondary"
-                    component={RouterLink}
                     to="/contacts"
                 >
-                    Hot contacts
+                    Hot Contacts
                 </Link>
             </Box>
             <Card>
@@ -44,23 +49,27 @@ export const HotContacts = () => {
                     linkType="show"
                     data={contactData}
                     total={contactTotal}
-                    isLoading={contactsLoading}
+                    isPending={contactsLoading}
+                    resource="contacts"
                     primaryText={contact =>
                         `${contact.first_name} ${contact.last_name}`
                     }
-                    resource="contacts"
-                    secondaryText={(contact: Contact) =>
-                        formatDistance(
-                            new Date(contact.last_seen),
-                            new Date(),
-                            {
-                                addSuffix: true,
-                            }
-                        )
-                    }
+                    secondaryText={contact => (
+                        <>
+                            {contact.title} at{' '}
+                            <ReferenceField
+                                source="company_id"
+                                reference="companies"
+                                link={false}
+                            >
+                                <TextField source="name" />
+                            </ReferenceField>
+                        </>
+                    )}
                     leftAvatar={contact => <Avatar record={contact} />}
+                    dense
                 />
             </Card>
-        </>
+        </Stack>
     );
 };

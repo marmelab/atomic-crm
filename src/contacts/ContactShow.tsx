@@ -10,9 +10,9 @@ import { Box, Card, CardContent, Typography } from '@mui/material';
 
 import { Avatar } from './Avatar';
 import { ContactAside } from './ContactAside';
-import { LogoField } from '../companies/LogoField';
 import { NotesIterator } from '../notes';
 import { Contact } from '../types';
+import { CompanyAvatar } from '../companies/CompanyAvatar';
 
 export const ContactShow = () => (
     <ShowBase>
@@ -21,10 +21,11 @@ export const ContactShow = () => (
 );
 
 const ContactShowContent = () => {
-    const { record, isLoading } = useShowContext<Contact>();
-    if (isLoading || !record) return null;
+    const { record, isPending } = useShowContext<Contact>();
+    if (isPending || !record) return null;
+
     return (
-        <Box mt={2} display="flex">
+        <Box mt={2} mb={2} display="flex">
             <Box flex="1">
                 <Card>
                     <CardContent>
@@ -34,7 +35,7 @@ const ContactShowContent = () => {
                                 <Typography variant="h5">
                                     {record.first_name} {record.last_name}
                                 </Typography>
-                                <Typography variant="body2">
+                                <Typography variant="body2" component="div">
                                     {record.title} at{' '}
                                     <ReferenceField
                                         source="company_id"
@@ -51,7 +52,7 @@ const ContactShowContent = () => {
                                     reference="companies"
                                     link="show"
                                 >
-                                    <LogoField />
+                                    <CompanyAvatar />
                                 </ReferenceField>
                             </Box>
                         </Box>

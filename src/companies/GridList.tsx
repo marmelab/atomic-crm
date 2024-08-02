@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { Box, Paper } from '@mui/material';
+import { Box, Paper, Typography } from '@mui/material';
 import { RecordContextProvider, useListContext } from 'react-admin';
 
 import { CompanyCard } from './CompanyCard';
@@ -26,22 +26,31 @@ const LoadingGridList = () => (
 );
 
 const LoadedGridList = () => {
-    const { data, isLoading } = useListContext<Company>();
+    const { data, error, isPending } = useListContext<Company>();
 
-    if (isLoading) return null;
+    if (isPending || error) return null;
 
     return (
-        <Box display="flex" flexWrap="wrap" width="100%" gap={1}>
+        <Box
+            width="100%"
+            gap={1}
+            display="grid"
+            gridTemplateColumns="repeat(auto-fill, minmax(180px, 1fr))"
+        >
             {data.map(record => (
                 <RecordContextProvider key={record.id} value={record}>
                     <CompanyCard />
                 </RecordContextProvider>
             ))}
+
+            {data.length === 0 && (
+                <Typography p={2}>No companies found</Typography>
+            )}
         </Box>
     );
 };
 
 export const ImageList = () => {
-    const { isLoading } = useListContext();
-    return isLoading ? <LoadingGridList /> : <LoadedGridList />;
+    const { isPending } = useListContext();
+    return isPending ? <LoadingGridList /> : <LoadedGridList />;
 };
