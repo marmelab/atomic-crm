@@ -7,12 +7,16 @@ import { LoginSkeleton } from './LoginSkeleton';
 
 export const LoginPage = () => {
     const dataProvider = useDataProvider<CustomDataProvider>();
-    const { data: isInitialized, error, isPending } = useQuery({
+    const {
+        data: isInitialized,
+        error,
+        isPending,
+    } = useQuery({
         queryKey: ['init'],
         queryFn: async () => {
             return dataProvider.isInitialized();
         },
-    })
+    });
 
     if (isPending) return <LoginSkeleton />;
     if (error) return <LoginForm />;

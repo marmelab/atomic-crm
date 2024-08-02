@@ -8,7 +8,6 @@ import {
     SelectField,
     useRecordContext,
     Link,
-    ReferenceManyCount,
 } from 'react-admin';
 
 import { CompanyAvatar } from './CompanyAvatar';
@@ -62,19 +61,33 @@ export const CompanyCard = (props: { record?: Company }) => {
                 <Box display="flex" justifyContent="space-around" width="100%">
                     <Box display="flex" alignItems="center">
                         <ContactsIcon color="disabled" sx={{ mr: 1 }} />
-                        <ReferenceManyCount
-                            label="Nb contacts"
-                            reference="contacts"
-                            target="company_id"
-                        />
+                        <div>
+                            <Typography variant="subtitle2" sx={{ mb: -1 }}>
+                                {record.nb_contacts}
+                            </Typography>
+                            <Typography variant="caption" color="textSecondary">
+                                {record.nb_contacts
+                                    ? record.nb_contacts > 1
+                                        ? 'contacts'
+                                        : 'contact'
+                                    : 'contact'}
+                            </Typography>
+                        </div>
                     </Box>
                     <Box sx={{ display: 'flex', alignItems: 'center' }}>
                         <DealIcon color="disabled" sx={{ mr: 1 }} />
-                        <ReferenceManyCount
-                            label="Nb deals"
-                            reference="deals"
-                            target="company_id"
-                        />
+                        <div>
+                            <Typography variant="subtitle2" sx={{ mb: -1 }}>
+                                {record.nb_deals}
+                            </Typography>
+                            <Typography variant="caption" color="textSecondary">
+                                {record.nb_deals
+                                    ? record.nb_deals > 1
+                                        ? 'deals'
+                                        : 'deal'
+                                    : 'deal'}
+                            </Typography>
+                        </div>
                     </Box>
                 </Box>
             </Paper>

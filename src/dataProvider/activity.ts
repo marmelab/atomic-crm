@@ -60,8 +60,8 @@ async function getCompaniesLog(
     const companies = await dataProvider
         .getList<Company>('companies', {
             filter: companyId
-                ? { id: companyId, sales_id: salesIds }
-                : { sales_id: salesIds },
+                ? { id: companyId, 'sales_id@in': `(${salesIds})` }
+                : { 'sales_id@in': `(${salesIds})` },
             pagination: { page: 1, perPage: 10_000 },
             sort: { field: 'created_at', order: 'DESC' },
         })

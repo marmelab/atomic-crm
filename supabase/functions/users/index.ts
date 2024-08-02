@@ -58,6 +58,7 @@ async function inviteUser(req: Request) {
         await supabaseServiceClient.auth.admin.createUser({
             email,
             password,
+            email_confirm: true,
             user_metadata: { first_name, last_name },
         });
 
@@ -99,6 +100,7 @@ async function patchUser(req: Request) {
     const { data, error: userError } =
         await supabaseServiceClient.auth.admin.updateUserById(sale.user_id, {
             email,
+            ban_duration: disabled ? '87600h' : 'none',
             user_metadata: { first_name, last_name },
         });
 

@@ -100,7 +100,7 @@ export const AddTask = ({ selectContact }: { selectContact?: boolean }) => {
                                 {selectContact && (
                                     <ReferenceInput
                                         source="contact_id"
-                                        reference="contacts"
+                                        reference="contacts_summary"
                                     >
                                         <AutocompleteInput
                                             label="Contact"
