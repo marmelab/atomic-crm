@@ -22,8 +22,11 @@ stop: stop-supabase ## stop the stack locally
 build: ## build the app
 	npm run build
 
-start-prod: build
+prod-start: build
 	open http://127.0.0.1:3000 && npx serve -l tcp://127.0.0.1:3000 dist
+
+prod-deploy: build ## deploy the app to production
+	npm run ghpages:deploy
 
 supabase-remote-init:
 	npm run supabase:remote:init

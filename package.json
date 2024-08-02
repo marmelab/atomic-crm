@@ -63,6 +63,7 @@
         "preview": "vite preview",
         "lint": "eslint --ext .js,.ts,.tsx \"./src/**/*.{js,ts,tsx}\"",
         "prettier": "prettier --config ./.prettierrc.mjs --write --list-different \"src/**/*.{js,json,ts,tsx,css,md}\"",
+        "ghpages:deploy": "node ./scripts/ghpages-deploy.mjs",
         "supabase:remote:init": "node ./scripts/supabase-remote-init.mjs"
     }
 }
