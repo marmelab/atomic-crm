@@ -100,7 +100,10 @@ const DealLinkedToInputs = () => {
                 />
             </ReferenceInput>
 
-            <ReferenceArrayInput source="contact_ids" reference="contacts">
+            <ReferenceArrayInput
+                source="contact_ids"
+                reference="contacts_summary"
+            >
                 <AutocompleteArrayInput
                     label="Contacts"
                     optionText={contactOptionText}

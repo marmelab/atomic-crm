@@ -1,14 +1,7 @@
 import * as React from 'react';
 import { Card, Box, Stack } from '@mui/material';
 import ContactsIcon from '@mui/icons-material/Contacts';
-import {
-    useGetList,
-    Link,
-    SimpleList,
-    useGetIdentity,
-    ReferenceField,
-    TextField,
-} from 'react-admin';
+import { useGetList, Link, SimpleList, useGetIdentity } from 'react-admin';
 
 import { Avatar } from '../contacts/Avatar';
 import { Contact } from '../types';
@@ -56,14 +49,7 @@ export const HotContacts = () => {
                     }
                     secondaryText={contact => (
                         <>
-                            {contact.title} at{' '}
-                            <ReferenceField
-                                source="company_id"
-                                reference="companies"
-                                link={false}
-                            >
-                                <TextField source="name" />
-                            </ReferenceField>
+                            {contact.title} at {contact.company_name}
                         </>
                     )}
                     leftAvatar={contact => <Avatar record={contact} />}

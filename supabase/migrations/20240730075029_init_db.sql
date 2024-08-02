@@ -558,3 +558,37 @@ values
 CREATE POLICY "Attachments 1mt4rzk_0" ON storage.objects FOR SELECT TO authenticated USING (bucket_id = 'attachments');
 CREATE POLICY "Attachments 1mt4rzk_1" ON storage.objects FOR INSERT TO authenticated WITH CHECK (bucket_id = 'attachments');
 CREATE POLICY "Attachments 1mt4rzk_3" ON storage.objects FOR DELETE TO authenticated USING (bucket_id = 'attachments');
+
+-- Use Postgres to create views for companies.
+
+create view "public"."companies_summary" as
+select 
+    c.*,
+    count(distinct d.id) as nb_deals,
+    count(distinct co.id) as nb_contacts
+from 
+    "public"."companies" c
+left join 
+    "public"."deals" d on c.id = d.company_id
+left join 
+    "public"."contacts" co on c.id = co.company_id
+group by 
+    c.id;
+    
+-- Use Postgres to create views for contacts.
+
+create view "public"."contacts_summary" as
+select 
+    co.*,
+    c.name as company_name,
+    count(distinct t.id) as nb_tasks
+from
+    "public"."contacts" co
+left join
+    "public"."tasks" t on co.id = t.contact_id
+left join
+    "public"."companies" c on co.company_id = c.id
+group by
+    co.id, c.name;
+
+
