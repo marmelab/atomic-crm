@@ -15,7 +15,6 @@ import {
 import { formatDistance } from 'date-fns';
 import {
     RecordContextProvider,
-    ReferenceManyCount,
     ReferenceManyField,
     ShowBase,
     SortButton,
@@ -71,11 +70,17 @@ const CompanyShowContent = () => {
                                 />
                             </TabbedShowLayout.Tab>
                             <TabbedShowLayout.Tab
-                                label="Contacts"
+                                label={
+                                    !record.nb_contacts
+                                        ? 'No Contacts'
+                                        : record.nb_contacts === 1
+                                          ? '1 Contact'
+                                          : `${record.nb_contacts} Contacts`
+                                }
                                 path="contacts"
                             >
                                 <ReferenceManyField
-                                    reference="contacts"
+                                    reference="contacts_summary"
                                     target="company_id"
                                     sort={{ field: 'last_name', order: 'ASC' }}
                                 >
@@ -85,27 +90,38 @@ const CompanyShowContent = () => {
                                         spacing={2}
                                         mt={1}
                                     >
-                                        <SortButton
-                                            fields={[
-                                                'last_name',
-                                                'first_name',
-                                                'last_seen',
-                                            ]}
-                                        />
+                                        {!!record.nb_contacts && (
+                                            <SortButton
+                                                fields={[
+                                                    'last_name',
+                                                    'first_name',
+                                                    'last_seen',
+                                                ]}
+                                            />
+                                        )}
                                         <CreateRelatedContactButton />
                                     </Stack>
                                     <ContactsIterator />
                                 </ReferenceManyField>
                             </TabbedShowLayout.Tab>
-                            <TabbedShowLayout.Tab label="Deals" path="deals">
-                                <ReferenceManyField
-                                    reference="deals"
-                                    target="company_id"
-                                    sort={{ field: 'name', order: 'ASC' }}
+                            {record.nb_deals ? (
+                                <TabbedShowLayout.Tab
+                                    label={
+                                        record.nb_deals === 1
+                                            ? '1 deal'
+                                            : `${record.nb_deals} Deals`
+                                    }
+                                    path="deals"
                                 >
-                                    <DealsIterator />
-                                </ReferenceManyField>
-                            </TabbedShowLayout.Tab>
+                                    <ReferenceManyField
+                                        reference="deals"
+                                        target="company_id"
+                                        sort={{ field: 'name', order: 'ASC' }}
+                                    >
+                                        <DealsIterator />
+                                    </ReferenceManyField>
+                                </TabbedShowLayout.Tab>
+                            ) : null}
                         </TabbedShowLayout>
                     </CardContent>
                 </Card>
@@ -140,12 +156,12 @@ const ContactsIterator = () => {
                             secondary={
                                 <>
                                     {contact.title}
-                                    {'  '}
-                                    <ReferenceManyCount
-                                        reference="tasks"
-                                        target="contact_id"
-                                    />{' '}
-                                    tasks
+                                    {contact.nb_tasks
+                                        ? ` - ${contact.nb_tasks} task${
+                                              contact.nb_tasks > 1 ? 's' : ''
+                                          }`
+                                        : ''}
+                                    &nbsp; &nbsp;
                                     <TagsList />
                                 </>
                             }

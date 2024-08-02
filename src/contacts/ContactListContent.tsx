@@ -3,7 +3,6 @@ import * as React from 'react';
 import {
     RecordContextProvider,
     ReferenceField,
-    ReferenceManyCount,
     SimpleListLoading,
     TextField,
     useListContext,
@@ -84,12 +83,14 @@ export const ContactListContent = () => {
                                         >
                                             <TextField source="name" />
                                         </ReferenceField>
-                                        {' - '}
-                                        <ReferenceManyCount
-                                            reference="tasks"
-                                            target="contact_id"
-                                        />{' '}
-                                        tasks
+                                        {contact.nb_tasks
+                                            ? ` - ${contact.nb_tasks} task${
+                                                  contact.nb_tasks > 1
+                                                      ? 's'
+                                                      : ''
+                                              }`
+                                            : ''}
+                                        &nbsp;&nbsp;
                                         <TagsList />
                                     </>
                                 }

@@ -80,6 +80,27 @@ async function processContactAvatar(
 
 const dataProviderWithCustomMethods = {
     ...baseDataProvider,
+    async getList(resource: string, params: GetListParams) {
+        if (resource === 'companies') {
+            return baseDataProvider.getList('companies_summary', params);
+        }
+        if (resource === 'contacts') {
+            return baseDataProvider.getList('contacts_summary', params);
+        }
+
+        return baseDataProvider.getList(resource, params);
+    },
+    async getOne(resource: string, params: any) {
+        if (resource === 'companies') {
+            return baseDataProvider.getOne('companies_summary', params);
+        }
+        if (resource === 'contacts') {
+            return baseDataProvider.getOne('contacts_summary', params);
+        }
+
+        return baseDataProvider.getOne(resource, params);
+    },
+
     async signUp({ email, password, first_name, last_name }: SignUpData) {
         const response = await supabase.auth.signUp({
             email,
@@ -218,6 +239,7 @@ export const dataProvider = withLifecycleCallbacks(
                 return applyFullTextSearch([
                     'first_name',
                     'last_name',
+                    'company_name',
                     'title',
                     'email',
                     'phone_number1',
@@ -276,7 +298,7 @@ const applyFullTextSearch = (columns: string[]) => (params: GetListParams) => {
             '@or': columns.reduce(
                 (acc, column) => ({
                     ...acc,
-                    [`${column}@fts`]: q,
+                    [`${column}@ilike`]: q,
                 }),
                 {}
             ),
