@@ -1,28 +1,35 @@
+/**
+ * This component displays the deals pipeline for the current user.
+ * It's currently not used in the application but can be added to the dashboard.
+ */
+
 import * as React from 'react';
-import { Link as RouterLink } from 'react-router-dom';
-import { Card, Link, Box } from '@mui/material';
+import { Card, Box } from '@mui/material';
 import MonetizationOnIcon from '@mui/icons-material/MonetizationOn';
 import {
     useGetList,
     SimpleList,
     useGetIdentity,
+    Link,
     ReferenceField,
 } from 'react-admin';
 
 import { CompanyAvatar } from '../companies/CompanyAvatar';
-import { stages, stageNames } from '../deals/stages';
 import { Deal } from '../types';
+import { useConfigurationContext } from '../root/ConfigurationContext';
+import { findDealLabel } from '../deals/deal';
 
 export const DealsPipeline = () => {
     const { identity } = useGetIdentity();
-    const { data, total, isLoading } = useGetList<Deal>(
-      "deals",
-      {
-        pagination: { page: 1, perPage: 10 },
-        sort: { field: "updated_at", order: "DESC" },
-        filter: { "stage@neq": "lost", sales_id: identity?.id },
-      },
-      { enabled: Number.isInteger(identity?.id) }
+    const { dealStages, dealPipelineStatuses } = useConfigurationContext();
+    const { data, total, isPending } = useGetList<Deal>(
+        'deals',
+        {
+            pagination: { page: 1, perPage: 10 },
+            sort: { field: 'last_seen', order: 'DESC' },
+            filter: { 'stage@neq': 'lost', sales_id: identity?.id },
+        },
+        { enabled: Number.isInteger(identity?.id) }
     );
 
     const getOrderedDeals = (data?: Deal[]): Deal[] | undefined => {
@@ -30,11 +37,11 @@ export const DealsPipeline = () => {
             return;
         }
         const deals: Deal[] = [];
-        stages
-            .filter(stage => stage !== 'won')
+        dealStages
+            .filter(stage => !dealPipelineStatuses.includes(stage.value))
             .forEach(stage =>
                 data
-                    .filter(deal => deal.stage === stage)
+                    .filter(deal => deal.stage === stage.value)
                     .forEach(deal => deals.push(deal))
             );
         return deals;
@@ -50,7 +57,6 @@ export const DealsPipeline = () => {
                     underline="none"
                     variant="h5"
                     color="textSecondary"
-                    component={RouterLink}
                     to="/deals"
                 >
                     Deals Pipeline
@@ -62,7 +68,7 @@ export const DealsPipeline = () => {
                     linkType="show"
                     data={getOrderedDeals(data)}
                     total={total}
-                    isLoading={isLoading}
+                    isPending={isPending}
                     primaryText={deal => deal.name}
                     secondaryText={deal =>
                         `${deal.amount.toLocaleString('en-US', {
@@ -71,8 +77,7 @@ export const DealsPipeline = () => {
                             currency: 'USD',
                             currencyDisplay: 'narrowSymbol',
                             minimumSignificantDigits: 3,
-                            // @ts-ignore
-                        })} , ${stageNames[deal.stage]}`
+                        })} , ${findDealLabel(dealStages, deal.stage)}`
                     }
                     leftAvatar={deal => (
                         <ReferenceField
@@ -82,7 +87,7 @@ export const DealsPipeline = () => {
                             resource="deals"
                             link={false}
                         >
-                            <CompanyAvatar size="small" />
+                            <CompanyAvatar width={20} height={20} />
                         </ReferenceField>
                     )}
                 />

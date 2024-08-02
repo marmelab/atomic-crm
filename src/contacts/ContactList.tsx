@@ -1,148 +1,110 @@
 /* eslint-disable import/no-anonymous-default-export */
-import * as React from "react";
+import { Card, LinearProgress, Stack } from '@mui/material';
+import jsonExport from 'jsonexport/dist';
+import type { Exporter } from 'react-admin';
 import {
-  List as RaList,
-  SimpleListLoading,
-  ReferenceField,
-  TextField,
-  useListContext,
-  ExportButton,
-  SortButton,
-  TopToolbar,
-  CreateButton,
-  Pagination,
-  useGetIdentity,
-  BulkActionsToolbar,
-  BulkDeleteButton,
-  RecordContextProvider,
-} from "react-admin";
-import {
-  List,
-  ListItem,
-  ListItemAvatar,
-  ListItemIcon,
-  ListItemSecondaryAction,
-  ListItemText,
-  Checkbox,
-  Typography,
-} from "@mui/material";
-import { Link } from "react-router-dom";
-import { formatDistance } from "date-fns";
+    BulkActionsToolbar,
+    BulkDeleteButton,
+    CreateButton,
+    downloadCSV,
+    ExportButton,
+    ListBase,
+    ListToolbar,
+    Pagination,
+    SortButton,
+    Title,
+    TopToolbar,
+    useGetIdentity,
+    useListContext,
+} from 'react-admin';
+import { hasOtherFiltersThanDefault } from '../misc/hasOtherFiltersThanDefault';
+import { Company, Contact, Sale, Tag } from '../types';
+import { ContactEmpty } from './ContactEmpty';
+import { ContactImportButton } from './ContactImportButton';
+import { ContactListContent } from './ContactListContent';
+import { ContactListFilter } from './ContactListFilter';
 
-import { Avatar } from "./Avatar";
-import { Status } from "../misc/Status";
-import { TagsList } from "./TagsList";
-import { ContactListFilter } from "./ContactListFilter";
-import { Contact } from "../types";
-import { useReferenceManyCount } from "../misc/useReferenceManyCount";
+export const ContactList = () => {
+    const { identity } = useGetIdentity();
 
-const ContactListContent = () => {
-  const {
-    data: contacts,
-    isLoading,
-    onToggleItem,
-    selectedIds,
-  } = useListContext<Contact>();
-  if (isLoading) {
-    return <SimpleListLoading hasLeftAvatarOrIcon hasSecondaryText />;
-  }
-  const now = Date.now();
+    if (!identity) return null;
 
-  return (
-    <>
-      <BulkActionsToolbar>
-        <BulkDeleteButton />
-      </BulkActionsToolbar>
-      <List>
-        {contacts.map((contact) => (
-          <RecordContextProvider key={contact.id} value={contact}>
-            <ListItem
-              button
-              component={Link}
-              to={`/contacts/${contact.id}/show`}
-            >
-              <ListItemIcon>
-                <Checkbox
-                  edge="start"
-                  checked={selectedIds.includes(contact.id)}
-                  tabIndex={-1}
-                  disableRipple
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onToggleItem(contact.id);
-                  }}
-                />
-              </ListItemIcon>
-              <ListItemAvatar>
-                <Avatar />
-              </ListItemAvatar>
-              <ListItemText
-                primary={`${contact.first_name} ${contact.last_name}`}
-                secondary={
-                  <>
-                    {contact.title} at{" "}
-                    <ReferenceField
-                      source="company_id"
-                      reference="companies"
-                      link={false}
-                    >
-                      <TextField source="name" />
-                    </ReferenceField>{" "}
-                    <ContactNotes />
-                    &nbsp;&nbsp;
-                    <TagsList />
-                  </>
-                }
-              />
-              <ListItemSecondaryAction>
-                <Typography variant="body2" color="textSecondary">
-                  last activity{" "}
-                  {formatDistance(new Date(contact.last_seen), now)} ago{" "}
-                  <Status status={contact.status} />
-                </Typography>
-              </ListItemSecondaryAction>
-            </ListItem>
-          </RecordContextProvider>
-        ))}
-      </List>
-    </>
-  );
+    return (
+        <ListBase
+            perPage={25}
+            filterDefaultValues={{ sales_id: identity?.id }}
+            sort={{ field: 'last_seen', order: 'DESC' }}
+            exporter={exporter}
+        >
+            <ContactListLayout />
+        </ListBase>
+    );
+};
+
+const ContactListLayout = () => {
+    const { data, isPending, filterValues } = useListContext();
+    const { identity } = useGetIdentity();
+    const hasOtherFiltersThanDefaultBoolean = hasOtherFiltersThanDefault(
+        filterValues,
+        'sales_id',
+        identity?.id
+    );
+
+    if (!identity) return null;
+    if (isPending) return <LinearProgress />;
+
+    if (!data?.length && !hasOtherFiltersThanDefaultBoolean)
+        return <ContactEmpty />;
+
+    return (
+        <Stack direction="row">
+            <ContactListFilter />
+            <Stack sx={{ width: '100%' }}>
+                <Title title={'Contacts'} />
+                <ListToolbar actions={<ContactListActions />} />
+                <BulkActionsToolbar>
+                    <BulkDeleteButton />
+                </BulkActionsToolbar>
+                <Card>
+                    <ContactListContent />
+                </Card>
+                <Pagination rowsPerPageOptions={[10, 25, 50, 100]} />
+            </Stack>
+        </Stack>
+    );
 };
 
 const ContactListActions = () => (
-  <TopToolbar>
-    <SortButton fields={["last_name", "first_name", "last_seen"]} />
-    <ExportButton />
-    <CreateButton
-      variant="contained"
-      label="New Contact"
-      sx={{ marginLeft: 2 }}
-    />
-  </TopToolbar>
+    <TopToolbar>
+        <SortButton fields={['last_name', 'first_name', 'last_seen']} />
+        <ContactImportButton />
+        <ExportButton />
+        <CreateButton
+            variant="contained"
+            label="New Contact"
+            sx={{ marginLeft: 2 }}
+        />
+    </TopToolbar>
 );
 
-export const ContactList = () => {
-  const { identity } = useGetIdentity();
-  return identity ? (
-    <RaList
-      actions={<ContactListActions />}
-      aside={<ContactListFilter />}
-      perPage={25}
-      pagination={<Pagination rowsPerPageOptions={[10, 25, 50, 100]} />}
-      filterDefaultValues={{ sales_id: identity?.id }}
-      sort={{ field: "last_seen", order: "DESC" }}
-    >
-      <ContactListContent />
-    </RaList>
-  ) : null;
-};
+const exporter: Exporter<Contact> = async (records, fetchRelatedRecords) => {
+    const companies = await fetchRelatedRecords<Company>(
+        records,
+        'company_id',
+        'companies'
+    );
+    const sales = await fetchRelatedRecords<Sale>(records, 'sales_id', 'sales');
+    const tags = await fetchRelatedRecords<Tag>(records, 'tags', 'tags');
 
-const ContactNotes = () => {
-  const nb_notes = useReferenceManyCount({
-    reference: "contactNotes",
-    target: "contact_id",
-  });
-
-  if (!nb_notes) return null;
-  return `- ${nb_notes} notes`;
+    const contacts = records.map(contact => ({
+        ...contact,
+        company: companies[contact.company_id].name,
+        sales: `${sales[contact.sales_id].first_name} ${
+            sales[contact.sales_id].last_name
+        }`,
+        tags: contact.tags.map(tagId => tags[tagId].name).join(', '),
+    }));
+    return jsonExport(contacts, {}, (_err: any, csv: string) => {
+        downloadCSV(csv, 'contacts');
+    });
 };

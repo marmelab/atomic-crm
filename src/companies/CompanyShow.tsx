@@ -1,256 +1,234 @@
-import * as React from "react";
-import { useState, ChangeEvent } from "react";
+import PersonAddIcon from '@mui/icons-material/PersonAdd';
 import {
-  ShowBase,
-  TextField,
-  ReferenceManyField,
-  SelectField,
-  useShowContext,
-  useRecordContext,
-  useListContext,
-  RecordContextProvider,
-} from "react-admin";
+    Box,
+    Button,
+    Card,
+    CardContent,
+    List,
+    ListItem,
+    ListItemAvatar,
+    ListItemSecondaryAction,
+    ListItemText,
+    Stack,
+    Typography,
+} from '@mui/material';
+import { formatDistance } from 'date-fns';
 import {
-  Box,
-  Button,
-  Card,
-  CardContent,
-  Typography,
-  List,
-  ListItem,
-  ListItemAvatar,
-  ListItemText,
-  ListItemSecondaryAction,
-  Tabs,
-  Tab,
-  Divider,
-} from "@mui/material";
-import PersonAddIcon from "@mui/icons-material/PersonAdd";
-import { Link as RouterLink } from "react-router-dom";
-import { formatDistance } from "date-fns";
+    RecordContextProvider,
+    ReferenceManyCount,
+    ReferenceManyField,
+    ShowBase,
+    SortButton,
+    TabbedShowLayout,
+    useListContext,
+    useRecordContext,
+    useShowContext,
+} from 'react-admin';
+import { Link as RouterLink, useLocation } from 'react-router-dom';
 
-import { Avatar } from "../contacts/Avatar";
-import { Status } from "../misc/Status";
-import { TagsList } from "../contacts/TagsList";
-import { sizes } from "./sizes";
-import { LogoField } from "./LogoField";
-import { CompanyAside } from "./CompanyAside";
-import { Company, Deal, Contact } from "../types";
-import { stageNames } from "../deals/stages";
-import { useReferenceManyCount } from "../misc/useReferenceManyCount";
+import { ActivityLog } from '../activity/ActivityLog';
+import { Avatar } from '../contacts/Avatar';
+import { TagsList } from '../contacts/TagsList';
+import { findDealLabel } from '../deals/deal';
+import { Status } from '../misc/Status';
+import { useConfigurationContext } from '../root/ConfigurationContext';
+import { Company, Contact, Deal } from '../types';
+import { CompanyAside } from './CompanyAside';
+import { CompanyAvatar } from './CompanyAvatar';
 
 export const CompanyShow = () => (
-  <ShowBase>
-    <CompanyShowContent />
-  </ShowBase>
+    <ShowBase>
+        <CompanyShowContent />
+    </ShowBase>
 );
 
 const CompanyShowContent = () => {
-  const { record, isLoading } = useShowContext<Company>();
-  const [tabValue, setTabValue] = useState(0);
-  const handleTabChange = (event: ChangeEvent<{}>, newValue: number) => {
-    setTabValue(newValue);
-  };
-  const nb_contacts = useReferenceManyCount({
-    reference: "contacts",
-    target: "company_id",
-  });
-  const nb_deals = useReferenceManyCount({
-    reference: "deals",
-    target: "company_id",
-  });
-  if (isLoading || !record) return null;
-  return (
-    <Box mt={2} display="flex">
-      <Box flex="1">
-        <Card>
-          <CardContent>
-            <Box display="flex" mb={1}>
-              <LogoField />
-              <Box ml={2} flex="1">
-                <Typography variant="h5">{record.name}</Typography>
-                <Typography variant="body2">
-                  <TextField source="sector" />,{" "}
-                  <SelectField source="size" choices={sizes} />
-                </Typography>
-              </Box>
+    const { record, isPending } = useShowContext<Company>();
+
+    if (isPending || !record) return null;
+
+    return (
+        <Box mt={2} display="flex">
+            <Box flex="1">
+                <Card>
+                    <CardContent>
+                        <Box display="flex" mb={1}>
+                            <CompanyAvatar />
+                            <Typography variant="h5" ml={2} flex="1">
+                                {record.name}
+                            </Typography>
+                        </Box>
+
+                        <TabbedShowLayout
+                            sx={{
+                                '& .RaTabbedShowLayout-content': { p: 0 },
+                            }}
+                        >
+                            <TabbedShowLayout.Tab label="Activity">
+                                <ActivityLog
+                                    companyId={record.id}
+                                    context="company"
+                                />
+                            </TabbedShowLayout.Tab>
+                            <TabbedShowLayout.Tab
+                                label="Contacts"
+                                path="contacts"
+                            >
+                                <ReferenceManyField
+                                    reference="contacts"
+                                    target="company_id"
+                                    sort={{ field: 'last_name', order: 'ASC' }}
+                                >
+                                    <Stack
+                                        direction="row"
+                                        justifyContent="flex-end"
+                                        spacing={2}
+                                        mt={1}
+                                    >
+                                        <SortButton
+                                            fields={[
+                                                'last_name',
+                                                'first_name',
+                                                'last_seen',
+                                            ]}
+                                        />
+                                        <CreateRelatedContactButton />
+                                    </Stack>
+                                    <ContactsIterator />
+                                </ReferenceManyField>
+                            </TabbedShowLayout.Tab>
+                            <TabbedShowLayout.Tab label="Deals" path="deals">
+                                <ReferenceManyField
+                                    reference="deals"
+                                    target="company_id"
+                                    sort={{ field: 'name', order: 'ASC' }}
+                                >
+                                    <DealsIterator />
+                                </ReferenceManyField>
+                            </TabbedShowLayout.Tab>
+                        </TabbedShowLayout>
+                    </CardContent>
+                </Card>
             </Box>
-            <Tabs
-              value={tabValue}
-              indicatorColor="primary"
-              textColor="primary"
-              onChange={handleTabChange}
-            >
-              {nb_contacts && (
-                <Tab
-                  label={
-                    nb_contacts === 1 ? "1 Contact" : `${nb_contacts} Contacts`
-                  }
-                />
-              )}
-              {nb_deals && (
-                <Tab label={nb_deals === 1 ? "1 deal" : `${nb_deals} Deals`} />
-              )}
-            </Tabs>
-            <Divider />
-            <TabPanel value={tabValue} index={0}>
-              <ReferenceManyField
-                reference="contacts"
-                target="company_id"
-                sort={{ field: "last_name", order: "ASC" }}
-              >
-                <ContactsIterator />
-              </ReferenceManyField>
-            </TabPanel>
-            <TabPanel value={tabValue} index={1}>
-              <ReferenceManyField
-                reference="deals"
-                target="company_id"
-                sort={{ field: "name", order: "ASC" }}
-              >
-                <DealsIterator />
-              </ReferenceManyField>
-            </TabPanel>
-          </CardContent>
-        </Card>
-      </Box>
-      <CompanyAside />
-    </Box>
-  );
-};
-
-interface TabPanelProps {
-  children?: React.ReactNode;
-  index: any;
-  value: any;
-}
-
-const TabPanel = (props: TabPanelProps) => {
-  const { children, value, index, ...other } = props;
-
-  return (
-    <div
-      role="tabpanel"
-      hidden={value !== index}
-      id={`wrapped-tabpanel-${index}`}
-      aria-labelledby={`wrapped-tab-${index}`}
-      {...other}
-    >
-      {children}
-    </div>
-  );
+            <CompanyAside />
+        </Box>
+    );
 };
 
 const ContactsIterator = () => {
-  const { data: contacts, isLoading } = useListContext<Contact>();
-  if (isLoading) return null;
+    const location = useLocation();
+    const { data: contacts, error, isPending } = useListContext<Contact>();
 
-  const now = Date.now();
-  return (
-    <Box>
-      <List>
-        {contacts.map((contact) => (
-          <RecordContextProvider key={contact.id} value={contact}>
-            <ListItem
-              button
-              component={RouterLink}
-              to={`/contacts/${contact.id}/show`}
-            >
-              <ListItemAvatar>
-                <Avatar />
-              </ListItemAvatar>
-              <ListItemText
-                primary={`${contact.first_name} ${contact.last_name}`}
-                secondary={
-                  <>
-                    {contact.title} <TagsList />
-                  </>
-                }
-              />
-              <ListItemSecondaryAction>
-                <Typography
-                  variant="body2"
-                  color="textSecondary"
-                  component="span"
-                >
-                  last activity{" "}
-                  {formatDistance(new Date(contact.last_seen), now)} ago{" "}
-                  <Status status={contact.status} />
-                </Typography>
-              </ListItemSecondaryAction>
-            </ListItem>
-          </RecordContextProvider>
-        ))}
-      </List>
-      <Box textAlign="center" mt={1}>
-        <CreateRelatedContactButton />
-      </Box>
-    </Box>
-  );
+    if (isPending || error) return null;
+
+    const now = Date.now();
+    return (
+        <List dense sx={{ pt: 0 }}>
+            {contacts.map(contact => (
+                <RecordContextProvider key={contact.id} value={contact}>
+                    <ListItem
+                        button
+                        component={RouterLink}
+                        to={`/contacts/${contact.id}/show`}
+                        state={{ from: location.pathname }}
+                    >
+                        <ListItemAvatar>
+                            <Avatar />
+                        </ListItemAvatar>
+                        <ListItemText
+                            primary={`${contact.first_name} ${contact.last_name}`}
+                            secondary={
+                                <>
+                                    {contact.title}
+                                    {'  '}
+                                    <ReferenceManyCount
+                                        reference="tasks"
+                                        target="contact_id"
+                                    />{' '}
+                                    tasks
+                                    <TagsList />
+                                </>
+                            }
+                        />
+                        <ListItemSecondaryAction>
+                            <Typography
+                                variant="body2"
+                                color="textSecondary"
+                                component="span"
+                            >
+                                last activity{' '}
+                                {formatDistance(contact.last_seen, now)} ago{' '}
+                                <Status status={contact.status} />
+                            </Typography>
+                        </ListItemSecondaryAction>
+                    </ListItem>
+                </RecordContextProvider>
+            ))}
+        </List>
+    );
 };
 
 const CreateRelatedContactButton = () => {
-  const company = useRecordContext<Company>();
-  return (
-    <Button
-      component={RouterLink}
-      to="/contacts/create"
-      state={{ record: { company_id: company.id } }}
-      color="primary"
-      variant="contained"
-      size="small"
-      startIcon={<PersonAddIcon />}
-    >
-      Add contact
-    </Button>
-  );
+    const company = useRecordContext<Company>();
+    return (
+        <Button
+            component={RouterLink}
+            to="/contacts/create"
+            state={company ? { record: { company_id: company.id } } : undefined}
+            color="primary"
+            size="small"
+            startIcon={<PersonAddIcon />}
+        >
+            Add contact
+        </Button>
+    );
 };
 
 const DealsIterator = () => {
-  const { data: deals, isLoading } = useListContext<Deal>();
-  if (isLoading) return null;
+    const { data: deals, error, isPending } = useListContext<Deal>();
+    const { dealStages } = useConfigurationContext();
+    if (isPending || error) return null;
 
-  const now = Date.now();
-  return (
-    <Box>
-      <List>
-        {deals.map((deal) => (
-          <ListItem
-            button
-            key={deal.id}
-            component={RouterLink}
-            to={`/deals/${deal.id}/show`}
-          >
-            <ListItemText
-              primary={deal.name}
-              secondary={
-                <>
-                  {/* @ts-ignore */}
-                  {stageNames[deal.stage]},{" "}
-                  {deal.amount.toLocaleString("en-US", {
-                    notation: "compact",
-                    style: "currency",
-                    currency: "USD",
-                    currencyDisplay: "narrowSymbol",
-                    minimumSignificantDigits: 3,
-                  })}
-                  , {deal.type}
-                </>
-              }
-            />
-            <ListItemSecondaryAction>
-              <Typography
-                variant="body2"
-                color="textSecondary"
-                component="span"
-              >
-                last activity {formatDistance(new Date(deal.updated_at), now)}{" "}
-                ago{" "}
-              </Typography>
-            </ListItemSecondaryAction>
-          </ListItem>
-        ))}
-      </List>
-    </Box>
-  );
+    const now = Date.now();
+    return (
+        <Box>
+            <List dense>
+                {deals.map(deal => (
+                    <ListItem
+                        button
+                        key={deal.id}
+                        component={RouterLink}
+                        to={`/deals/${deal.id}/show`}
+                    >
+                        <ListItemText
+                            primary={deal.name}
+                            secondary={
+                                <>
+                                    {findDealLabel(dealStages, deal.stage)},{' '}
+                                    {deal.amount.toLocaleString('en-US', {
+                                        notation: 'compact',
+                                        style: 'currency',
+                                        currency: 'USD',
+                                        currencyDisplay: 'narrowSymbol',
+                                        minimumSignificantDigits: 3,
+                                    })}
+                                    , {deal.type}
+                                </>
+                            }
+                        />
+                        <ListItemSecondaryAction>
+                            <Typography
+                                variant="body2"
+                                color="textSecondary"
+                                component="span"
+                            >
+                                last activity{' '}
+                                {formatDistance(deal.updated_at, now)} ago{' '}
+                            </Typography>
+                        </ListItemSecondaryAction>
+                    </ListItem>
+                ))}
+            </List>
+        </Box>
+    );
 };
