@@ -1,4 +1,4 @@
-# React-admin CRM
+# Atomic CRM
 
 This is a demo of the [react-admin](https://github.com/marmelab/react-admin) library for React.js. It's a CRM for a fake Web agency with a few sales. You can test it online at https://marmelab.com/react-admin-crm.
 
@@ -8,67 +8,77 @@ React-admin usually requires a REST/GraphQL server to provide data. In this demo
 
 To explore the source code, start with [src/App.tsx](https://github.com/marmelab/react-admin/blob/master/examples/crm/src/App.tsx).
 
-**Note**: This project was bootstrapped with [Create React App](https://github.com/facebookincubator/create-react-app).
 
 ## Setup
 
-After having cloned the react-admin repository, run the following command at the project root:
+To run this project you will need the following tools installed on your computer:
+- Make
+- Node 20 LTS
+- NPM
+- Docker (required by supabase)
+
+After having cloned the [`atomic-crm` repository](https://github.com/marmelab/atomic-crm), run the following command at the project root:
 
 ```sh
-npm install
+# Install dependencies
+make install
+
+# Start the stack in development mode
+make start
 ```
 
+## Remote Instance Setup
 
-## Available Scripts
+You can create a remote supabase using the following script:
+```sh
+make supabase-remote-init
+```
 
-In the project directory, you can run:
+The script will prompt your for the project configuration and will apply migrations and deploy edge functions.
 
-### `npm start`
 
-Runs the app in the development mode.<br>
-Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
+## Manual Remove Instance Link
 
-The page will reload if you make edits.<br>
-You will also see any lint errors in the console.
+If you already created the supabase instance, you can link the instance manually using the following commands:
 
-### `npm test`
-
-Launches the test runner in the interactive watch mode.<br>
-See the section about [running tests](#running-tests) for more information.
-
-### `npm run build`
-
-Builds the app for production to the `build` folder.<br>
-It correctly bundles React in production mode and optimizes the build for the best performance.
-
-The build is minified and the filenames include the hashes.<br>
-Your app is ready to be deployed!
-
-### `npm run deploy`
-
-Create a remote Supabase project and initialize it with the migrations.
-
-## Manual Deployment
-
-To deploy this application, you need a Supabase instance.
-
-Login into your supabase account:
+First, login into your supabase account:
 
 ```sh
 npx supabase login
 ```
 
-Then, create a new supabase project. Keep note of the database password you'll have to enter and of the supabase project reference.
-```sh
-npx supabase projects create react-admin-crm
-```
-
 Now, link this project to the local supabase instance. You'll be asked to enter the database password.
 ```sh
-supabase link --project-ref ********************
+npx supabase link --project-ref ********************
 ```
 
-Finally, apply the migrations on it:
+Then, apply the migrations on it:
 ```sh
-supabase db push
+npx supabase db push
+npx supabase functions deploy
 ```
+
+Finally, create the `.env.production.local` file with your supabase configuration:
+
+```sh
+VITE_SUPABASE_URL=<instance_url>
+VITE_SUPABASE_ANON_KEY=<instance_anon_token>
+```
+
+## Deploy Updates
+
+If you want to deploy a new version of your CRM, you can run the following command:
+```sh
+make prod-deploy
+```
+
+It will apply migrations, deploy edge functions and push the built applications to the `gh-pages` branch.
+
+## Test Production Mode
+
+If you want to test you application in production mode using the remote supabase instance, you can run the following command:
+```sh
+make prod-start
+```
+
+Note: It will apply migrations and deploy edge functions.
