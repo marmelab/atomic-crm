@@ -22,7 +22,6 @@ export async function getCompanyAvatar(record: Partial<Company>): Promise<{
     src: string;
     title: string;
 } | null> {
-    console.log('Getting avatar for company', record);
     if (!record.website) {
         return null;
     }

@@ -239,7 +239,7 @@ export const dataProvider = withLifecycleCallbacks(
                     'company_name',
                     'title',
                     'email',
-                    'phone_2_number',
+                    'phone_1_number',
                     'phone_2_number',
                     'background',
                 ])(params);
