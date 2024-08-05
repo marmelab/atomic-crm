@@ -11,6 +11,7 @@ import {
 import { getActivityLog } from './dataProvider/activity';
 import { supabase } from './supabase';
 import {
+    AttachmentNote,
     Contact,
     ContactNote,
     Deal,
@@ -344,4 +345,18 @@ const uploadToBucket = async (fi: RAFile) => {
     fi.src = data.publicUrl;
 
     return fi;
+};
+
+/**
+ * Return if an attachment is an image.
+ * @param attachment
+ * @returns boolean
+ */
+export const isImage = (attachment: AttachmentNote) => {
+    const pathFile = attachment.src;
+    const extension = pathFile.split('.').pop();
+    if (!extension) {
+        return false;
+    }
+    return ['jpg', 'jpeg', 'png', 'gif', 'svg'].includes(extension);
 };
