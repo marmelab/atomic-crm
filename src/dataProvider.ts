@@ -251,8 +251,8 @@ export const dataProvider = withLifecycleCallbacks(
                     'company_name',
                     'title',
                     'email',
-                    'phone_number1',
-                    'phone_number2',
+                    'phone_1_number',
+                    'phone_2_number',
                     'background',
                 ])(params);
             },
