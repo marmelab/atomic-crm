@@ -46,7 +46,7 @@ jobs:
                   eslint: true
                   eslint_args: "**/*.{mjs,ts,tsx}"
                   prettier: true
-                  prettier_args: "--config ./.prettierrc.mjs \"**/*.{js,json,ts,tsx,css,md}\""
+                  prettier_args: "--config ./.prettierrc.mjs \"**/*.{js,json,ts,tsx,css,md,html}\""
 
     build:
         name: ⚙️ Build

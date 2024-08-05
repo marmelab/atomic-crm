@@ -64,8 +64,8 @@
         "preview": "vite preview",
         "lint:apply": "eslint **/*.{mjs,ts,tsx} --fix",
         "lint:check": "eslint **/*.{mjs,ts,tsx}",
-        "prettier:apply": "prettier --config ./.prettierrc.mjs --write --list-different \"**/*.{js,json,ts,tsx,css,md}\"",
-        "prettier:check": "prettier --config ./.prettierrc.mjs --check \"**/*.{js,json,ts,tsx,css,md}\"",
+        "prettier:apply": "prettier --config ./.prettierrc.mjs --write --list-different \"**/*.{js,json,ts,tsx,css,md,html}\"",
+        "prettier:check": "prettier --config ./.prettierrc.mjs --check \"**/*.{js,json,ts,tsx,css,md,html}\"",
         "ghpages:deploy": "node ./scripts/ghpages-deploy.mjs",
         "supabase:remote:init": "node ./scripts/supabase-remote-init.mjs"
     }
