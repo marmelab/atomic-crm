@@ -104,7 +104,7 @@ create table "public"."sales" (
     "administrator" boolean not null,
     "user_id" uuid not null,
     "avatar" jsonb,
-    "disabled" boolean
+    "disabled" boolean not null default FALSE
 );
 
 

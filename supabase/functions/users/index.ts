@@ -29,7 +29,7 @@ function createErrorResponse(status: number, message: string) {
 async function updateSaleDisabled(user_id: string, disabled: boolean) {
     return await supabaseServiceClient
         .from('sales')
-        .update({ disabled })
+        .update({ disabled: disabled ?? false })
         .eq('user_id', user_id);
 }
 
@@ -51,7 +51,7 @@ async function updateSaleAdministrator(
 }
 
 async function inviteUser(req: Request) {
-    const { email, password, first_name, last_name, administrator } =
+    const { email, password, first_name, last_name, disabled, administrator } =
         await req.json();
 
     const { data, error: userError } =
@@ -68,6 +68,7 @@ async function inviteUser(req: Request) {
     }
 
     try {
+        await updateSaleDisabled(data.user.id, disabled);
         const sale = await updateSaleAdministrator(data.user.id, administrator);
 
         return new Response(
