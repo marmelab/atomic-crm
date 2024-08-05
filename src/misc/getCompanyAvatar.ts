@@ -3,7 +3,10 @@ import { Company } from '../types';
 // Helper function to get the favicon URL
 async function getFaviconUrl(website: string): Promise<string | null> {
     try {
-        const faviconUrl = `${website}/favicon.ico`;
+        // get favicon from domain
+        const url = new URL(website);
+        const domain = url.origin;
+        const faviconUrl = `${domain}/favicon.ico`;
         const response = await fetch(faviconUrl);
         if (response.ok) {
             return faviconUrl;
@@ -19,6 +22,7 @@ export async function getCompanyAvatar(record: Partial<Company>): Promise<{
     src: string;
     title: string;
 } | null> {
+    console.log('Getting avatar for company', record);
     if (!record.website) {
         return null;
     }
