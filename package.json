@@ -62,8 +62,10 @@
         "dev": "vite --force",
         "build": "tsc && vite build",
         "preview": "vite preview",
-        "lint": "eslint --ext .js,.ts,.tsx \"./src/**/*.{js,ts,tsx}\"",
-        "prettier": "prettier --config ./.prettierrc.mjs --write --list-different \"src/**/*.{js,json,ts,tsx,css,md}\"",
+        "lint:apply": "eslint **/*.{mjs,ts,tsx} --fix",
+        "lint:check": "eslint **/*.{mjs,ts,tsx}",
+        "prettier:apply": "prettier --config ./.prettierrc.mjs --write --list-different \"**/*.{js,json,ts,tsx,css,md,html}\"",
+        "prettier:check": "prettier --config ./.prettierrc.mjs --check \"**/*.{js,json,ts,tsx,css,md,html}\"",
         "ghpages:deploy": "node ./scripts/ghpages-deploy.mjs",
         "supabase:remote:init": "node ./scripts/supabase-remote-init.mjs"
     }

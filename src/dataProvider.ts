@@ -8,7 +8,10 @@ import {
     UpdateParams,
     withLifecycleCallbacks,
 } from 'react-admin';
+import { getIsInitialized } from './authProvider';
 import { getActivityLog } from './dataProvider/activity';
+import { getCompanyAvatar } from './misc/getCompanyAvatar';
+import { getContactAvatar } from './misc/getContactAvatar';
 import { supabase } from './supabase';
 import {
     Contact,
@@ -19,8 +22,6 @@ import {
     SalesFormData,
     SignUpData,
 } from './types';
-import { getCompanyAvatar } from './misc/getCompanyAvatar';
-import { getContactAvatar } from './misc/getContactAvatar';
 
 if (import.meta.env.VITE_SUPABASE_URL === undefined) {
     throw new Error('Please set the VITE_SUPABASE_URL environment variable');
@@ -194,11 +195,7 @@ const dataProviderWithCustomMethods = {
         return getActivityLog(baseDataProvider, companyId);
     },
     async isInitialized() {
-        const { data } = await supabase
-            .from('init_state')
-            .select('is_initialized');
-
-        return data?.at(0)?.is_initialized > 0;
+        return getIsInitialized();
     },
 } satisfies DataProvider;
 

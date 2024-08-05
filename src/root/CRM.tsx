@@ -8,6 +8,7 @@ import {
     localStorageStore,
 } from 'react-admin';
 
+import { deepmerge } from '@mui/utils';
 import { Route } from 'react-router';
 import Layout from '../Layout';
 import { authProvider } from '../authProvider';
@@ -18,6 +19,7 @@ import { dataProvider } from '../dataProvider';
 import deals from '../deals';
 import { LoginPage } from '../login/LoginPage';
 import { SignupPage } from '../login/SignupPage';
+import sales from '../sales';
 import { SettingsPage } from '../settings/SettingsPage';
 import {
     ConfigurationContextValue,
@@ -34,8 +36,6 @@ import {
     defaultTaskTypes,
     defaultTitle,
 } from './defaultConfiguration';
-import sales from '../sales';
-import { deepmerge } from '@mui/utils';
 
 // Define the interface for the CRM component props
 type CRMProps = {
@@ -136,14 +136,11 @@ export const CRM = ({
             theme={lightTheme}
             darkTheme={darkTheme || null}
         >
+            <CustomRoutes noLayout>
+                <Route path={SignupPage.path} element={<SignupPage />} />
+            </CustomRoutes>
             {permissions => (
                 <>
-                    <CustomRoutes noLayout>
-                        <Route
-                            path={SignupPage.path}
-                            element={<SignupPage />}
-                        />
-                    </CustomRoutes>
                     <CustomRoutes>
                         <Route
                             path={SettingsPage.path}
