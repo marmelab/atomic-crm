@@ -175,6 +175,7 @@ export interface RAFile {
     title: string;
     path?: string;
     rawFile: File;
+    type?: string;
 }
 
 export type AttachmentNote = RAFile;
