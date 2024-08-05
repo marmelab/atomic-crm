@@ -1,4 +1,4 @@
-name: 🚀 Deploy
+name: ✅ Check
 on:
     push:
         branches:
