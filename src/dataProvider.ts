@@ -17,6 +17,7 @@ import {
     Contact,
     ContactNote,
     Deal,
+    DealNote,
     RAFile,
     Sale,
     SalesFormData,
@@ -216,6 +217,17 @@ export const dataProvider = withLifecycleCallbacks(
             },
         },
         {
+            resource: 'dealNotes',
+            beforeSave: async (data: DealNote, _, __) => {
+                if (data.attachments) {
+                    for (const fi of data.attachments) {
+                        await uploadToBucket(fi);
+                    }
+                }
+                return data;
+            },
+        },
+        {
             resource: 'sales',
             beforeSave: async (data: Sale, _, __) => {
                 if (data.avatar) {
@@ -339,6 +351,10 @@ const uploadToBucket = async (fi: RAFile) => {
 
     fi.path = filePath;
     fi.src = data.publicUrl;
+
+    // save MIME type
+    const mimeType = file.type;
+    fi.type = mimeType;
 
     return fi;
 };
