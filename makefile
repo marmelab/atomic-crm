@@ -35,3 +35,7 @@ supabase-remote-init:
 supabase-deploy:
 	npx supabase db push
 	npx supabase functions deploy
+
+lint:
+	npm run lint:check
+	npm run prettier:check
