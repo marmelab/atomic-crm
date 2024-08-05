@@ -9,10 +9,10 @@ export type ContactImportSchema = {
     title: string;
     company: string;
     email: string;
-    'phone_number1.number': string;
-    'phone_number1.type': string;
-    'phone_number2.number': string;
-    'phone_number2.type': string;
+    phone_1_number: string;
+    phone_1_type: string;
+    phone_2_number: string;
+    phone_2_type: string;
     background: string;
     acquisition: string;
     avatar: string;
@@ -137,10 +137,10 @@ export function useContactImport() {
                         gender,
                         title,
                         email,
-                        'phone_number1.type': phoneNumber1Type,
-                        'phone_number1.number': phoneNumber1Number,
-                        'phone_number2.type': phoneNumber2Type,
-                        'phone_number2.number': phoneNumber2Number,
+                        phone_1_number,
+                        phone_1_type,
+                        phone_2_number,
+                        phone_2_type,
                         background,
                         acquisition,
                         first_seen,
@@ -168,14 +168,10 @@ export function useContactImport() {
                                 gender,
                                 title,
                                 email,
-                                phone_number1: {
-                                    number: phoneNumber1Number,
-                                    type: phoneNumber1Type,
-                                },
-                                phone_number2: {
-                                    number: phoneNumber2Number,
-                                    type: phoneNumber2Type,
-                                },
+                                phone_1_number,
+                                phone_1_type,
+                                phone_2_number,
+                                phone_2_type,
                                 background,
                                 acquisition,
                                 first_seen: new Date(first_seen),
