@@ -93,7 +93,7 @@ You can then access the app via [`http://localhost:3000/`](http://localhost:3000
 # GitHub Actions
 
 This project supports github actions for continuous integration and delivery. To enable GitHub actions on this repo, you will
-have to create the following secrets for the `deploy` environment:
+have to create the following secrets:
 
 ```bash
 SUPABASE_ACCESS_TOKEN: Your personal access token, can be found at https://supabase.com/dashboard/account/tokens
