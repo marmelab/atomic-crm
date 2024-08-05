@@ -3,7 +3,6 @@ on:
     push:
         branches:
             - main
-            - dev
     pull_request:
         types:
             - opened
@@ -23,15 +22,15 @@ permissions:
 
 jobs:
     lint:
-        name: ⬣ ESLint
+        name: 🔎 ESLint
         runs-on: ubuntu-latest
         timeout-minutes: 10
         if: ${{ !github.event.pull_request.draft || github.event_name == 'push' }}
         steps:
-            - name: ⬇️ Checkout repo
+            - name: 📥 Checkout repo
               uses: actions/checkout@v4
 
-            - name: ⎔ Setup node
+            - name: ⚙️ Setup node
               uses: actions/setup-node@v4
               with:
                   node-version: 20
@@ -49,15 +48,15 @@ jobs:
                   prettier_args: "--config ./.prettierrc.mjs \"**/*.{js,json,ts,tsx,css,md,html}\""
 
     build:
-        name: ⚙️ Build
+        name: 🔨 Build
         timeout-minutes: 10
         runs-on: ubuntu-latest
         if: ${{ !github.event.pull_request.draft || github.event_name == 'push' }}
         steps:
-            - name: ⬇️ Checkout repo
+            - name: 📥 Checkout repo
               uses: actions/checkout@v4
 
-            - name: ⎔ Setup node
+            - name: ⚙️ Setup node
               uses: actions/setup-node@v4
               with:
                   node-version: 20
@@ -66,5 +65,5 @@ jobs:
             - name: 📥 Download deps
               run: npm install
 
-            - name: ⚙️ Build
+            - name: 🔨 Build
               run: make build

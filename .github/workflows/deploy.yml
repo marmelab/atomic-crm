@@ -1,0 +1,58 @@
+name: 🚀 Deploy
+on:
+    push:
+        branches:
+            - main
+
+concurrency:
+    group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+    cancel-in-progress: true
+
+permissions:
+    actions: write
+    contents: write
+    checks: write
+    pull-requests: write
+
+
+jobs:
+    deploy:
+        name: 🚀 Deploy
+        runs-on: ubuntu-latest
+        timeout-minutes: 10
+
+        env:
+            SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+            SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
+            SUPABASE_PROJECT_ID: ${{ secrets.SUPABASE_PROJECT_ID }}
+
+        steps:
+            - name: 📥 Checkout repo
+              uses: actions/checkout@v4
+
+            - name: ⚙️ Setup node
+              uses: actions/setup-node@v4
+              with:
+                  node-version: 20
+                  cache: npm
+
+            - name: ⚙️ Setup supabase
+              uses: supabase/setup-cli@v1
+
+            - name: 📥 Download deps
+              run: npm install
+
+            - name: 🔨 Build
+              run: make build
+            
+            - name: 🔗 Supabase Link
+              run: npx supabase link --project-ref $SUPABASE_PROJECT_ID
+
+            - name: 📡 Push supabase migrations
+              run: npx supabase db push
+
+            - name: 📡 Deploy supabase functions
+              run: npx supabase functions deploy
+
+            - name: 📡 Deploy GitHub pages
+              run: npm run ghpages:deploy
