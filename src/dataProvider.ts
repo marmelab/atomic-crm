@@ -11,10 +11,10 @@ import {
 import { getActivityLog } from './dataProvider/activity';
 import { supabase } from './supabase';
 import {
-    AttachmentNote,
     Contact,
     ContactNote,
     Deal,
+    DealNote,
     RAFile,
     Sale,
     SalesFormData,
@@ -201,23 +201,6 @@ const dataProviderWithCustomMethods = {
 
         return data?.at(0)?.is_initialized > 0;
     },
-    isImage(attachment: AttachmentNote): Promise<boolean> {
-        return new Promise((resolve, reject) => {
-            try {
-                const pathFile = attachment.src;
-                const extension = pathFile.split('.').pop();
-                if (!extension) {
-                    resolve(false);
-                } else {
-                    resolve(
-                        ['jpg', 'jpeg', 'png', 'gif', 'svg'].includes(extension)
-                    );
-                }
-            } catch (error) {
-                reject(error);
-            }
-        });
-    },
 } satisfies DataProvider;
 
 export type CustomDataProvider = typeof dataProviderWithCustomMethods;
@@ -228,6 +211,17 @@ export const dataProvider = withLifecycleCallbacks(
         {
             resource: 'contactNotes',
             beforeSave: async (data: ContactNote, _, __) => {
+                if (data.attachments) {
+                    for (const fi of data.attachments) {
+                        await uploadToBucket(fi);
+                    }
+                }
+                return data;
+            },
+        },
+        {
+            resource: 'dealNotes',
+            beforeSave: async (data: DealNote, _, __) => {
                 if (data.attachments) {
                     for (const fi of data.attachments) {
                         await uploadToBucket(fi);
@@ -360,6 +354,10 @@ const uploadToBucket = async (fi: RAFile) => {
 
     fi.path = filePath;
     fi.src = data.publicUrl;
+
+    // save MIME type
+    const mimeType = file.type;
+    fi.type = mimeType;
 
     return fi;
 };
