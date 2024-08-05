@@ -201,6 +201,23 @@ const dataProviderWithCustomMethods = {
 
         return data?.at(0)?.is_initialized > 0;
     },
+    isImage(attachment: AttachmentNote): Promise<boolean> {
+        return new Promise((resolve, reject) => {
+            try {
+                const pathFile = attachment.src;
+                const extension = pathFile.split('.').pop();
+                if (!extension) {
+                    resolve(false);
+                } else {
+                    resolve(
+                        ['jpg', 'jpeg', 'png', 'gif', 'svg'].includes(extension)
+                    );
+                }
+            } catch (error) {
+                reject(error);
+            }
+        });
+    },
 } satisfies DataProvider;
 
 export type CustomDataProvider = typeof dataProviderWithCustomMethods;
@@ -345,18 +362,4 @@ const uploadToBucket = async (fi: RAFile) => {
     fi.src = data.publicUrl;
 
     return fi;
-};
-
-/**
- * Return if an attachment is an image.
- * @param attachment
- * @returns boolean
- */
-export const isImage = (attachment: AttachmentNote) => {
-    const pathFile = attachment.src;
-    const extension = pathFile.split('.').pop();
-    if (!extension) {
-        return false;
-    }
-    return ['jpg', 'jpeg', 'png', 'gif', 'svg'].includes(extension);
 };
