@@ -1,9 +1,10 @@
 import { supabaseAuthProvider } from 'ra-supabase';
+import { AuthProvider } from 'react-admin';
 import { supabase } from './supabase';
 
 export const USER_STORAGE_KEY = 'user';
 
-export const authProvider = supabaseAuthProvider(supabase, {
+const baseAuthProvider = supabaseAuthProvider(supabase, {
     getIdentity: async user => {
         const { data, error } = await supabase
             .from('sales')
@@ -29,9 +30,32 @@ export const authProvider = supabaseAuthProvider(supabase, {
             .single();
 
         if (!data || error) {
-            throw new Error();
+            return null;
         }
 
         return data?.administrator ? 'admin' : 'user';
     },
 });
+
+export async function getIsInitialized() {
+    const { data } = await supabase.from('init_state').select('is_initialized');
+
+    return data?.at(0)?.is_initialized > 0;
+}
+
+export const authProvider: AuthProvider = {
+    ...baseAuthProvider,
+    checkAuth: async params => {
+        const isInitialized = await getIsInitialized();
+
+        if (!isInitialized) {
+            // eslint-disable-next-line no-throw-literal
+            throw {
+                redirectTo: '/sign-up',
+                message: false,
+            };
+        }
+
+        return baseAuthProvider.checkAuth(params);
+    },
+};
