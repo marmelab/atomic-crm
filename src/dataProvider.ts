@@ -317,18 +317,15 @@ const applyFullTextSearch = (columns: string[]) => (params: GetListParams) => {
 
 const uploadToBucket = async (fi: RAFile) => {
     if (!fi.src.startsWith('blob:') && !fi.src.startsWith('data:')) {
-        const response = await fetch(
-            `${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/attachments/${fi.src}`,
-            {
-                method: 'HEAD',
-                headers: {
-                    authorization: import.meta.env.VITE_SUPABASE_ANON_KEY,
-                },
-            }
-        );
+        // Sign URL check if path exists in the bucket
+        if (fi.path) {
+            const { error } = await supabase.storage
+                .from('attachments')
+                .createSignedUrl(fi.path, 60);
 
-        if (response.status === 200) {
-            return;
+            if (!error) {
+                return;
+            }
         }
     }
 
