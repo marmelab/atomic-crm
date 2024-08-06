@@ -17,6 +17,7 @@
         "lodash": "~4.17.5",
         "papaparse": "^5.4.1",
         "prop-types": "^15.8.1",
+        "ra-data-fakerest": "^5.1.1",
         "ra-supabase": "^3.0.0",
         "react": "^18.2.0",
         "react-admin": "^5.1.0",
@@ -56,9 +57,11 @@
         "supabase": "^1.136.3",
         "typescript": "^5.3.3",
         "vite": "^5.0.12",
+        "vitest": "^2.0.5",
         "web-vitals": "^4.2.2"
     },
     "scripts": {
+        "test": "vitest",
         "dev": "vite --force",
         "build": "tsc && vite build",
         "preview": "vite preview",
