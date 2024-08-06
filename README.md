@@ -88,6 +88,14 @@ Note: It will apply migrations and deploy edge functions.
 
 You can then access the app via [`http://localhost:3000/`](http://localhost:3000/).
 
+## Testing
+
+You can run unit test using the following command:
+```sh
+make test
+# or 
+npm test
+```
 
 ## GitHub Actions
 
