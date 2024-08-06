@@ -162,6 +162,28 @@ describe('getList', () => {
         });
     });
 
+    it("should transform '@or'", () => {
+        const getList = jest.fn();
+        const mockDataProvider = {
+            getList,
+        } as unknown as DataProvider;
+
+        getList.mockResolvedValueOnce([{ id: 1 }]);
+
+        const { getList: getListAdapter } =
+            withSupabaseFilterAdapter(mockDataProvider);
+
+        expect(
+            getListAdapter('resource', {
+                filter: { '@or': { last_name: 'one' } },
+            })
+        ).resolves.toEqual([{ id: 1 }]);
+
+        expect(getList).toHaveBeenCalledWith('resource', {
+            filter: { q: 'one' },
+        });
+    });
+
     it('should not transform a filter without operator', () => {
         const getList = jest.fn();
         const mockDataProvider = {
@@ -421,6 +443,36 @@ describe('getManyReference', () => {
             pagination: { page: 1, perPage: 10 },
             sort: { field: 'id', order: 'ASC' },
             filter: { tags: [1, 2, 'a'] },
+        });
+    });
+
+    it("should transform '@or'", () => {
+        const getManyReference = jest.fn();
+        const mockDataProvider = {
+            getManyReference,
+        } as unknown as DataProvider;
+
+        getManyReference.mockResolvedValueOnce([{ id: 1 }]);
+
+        const { getManyReference: getManyReferenceAdapter } =
+            withSupabaseFilterAdapter(mockDataProvider);
+
+        expect(
+            getManyReferenceAdapter('resource', {
+                id: 1,
+                target: 'target',
+                pagination: { page: 1, perPage: 10 },
+                sort: { field: 'id', order: 'ASC' },
+                filter: { '@or': { last_name: 'one' } },
+            })
+        ).resolves.toEqual([{ id: 1 }]);
+
+        expect(getManyReference).toHaveBeenCalledWith('resource', {
+            id: 1,
+            target: 'target',
+            pagination: { page: 1, perPage: 10 },
+            sort: { field: 'id', order: 'ASC' },
+            filter: { q: 'one' },
         });
     });
 

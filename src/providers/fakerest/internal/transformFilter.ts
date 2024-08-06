@@ -1,5 +1,6 @@
 import { transformContainsFilter } from './transformContainsFilter';
 import { transformInFilter } from './transformInFilter';
+import { transformOrFilter } from './transformOrFilter';
 
 export function transformFilter(filter: Record<string, any>) {
     const transformedFilters: Record<string, any> = {};
@@ -28,6 +29,12 @@ export function transformFilter(filter: Record<string, any>) {
         if (key.endsWith('@cs')) {
             transformedFilters[`${key.slice(0, -3)}`] =
                 transformContainsFilter(value);
+            continue;
+        }
+
+        // Search query
+        if (key.endsWith('@or')) {
+            transformedFilters['q'] = transformOrFilter(value);
             continue;
         }
 
