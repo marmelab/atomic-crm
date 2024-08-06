@@ -26,3 +26,5 @@ supabase/.temp
 
 dist/
 .env
+
+deno.lock

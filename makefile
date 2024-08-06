@@ -15,7 +15,7 @@ start-supabase-functions: ## start the supabase Functions watcher
 start-app: ## start the app locally
 	npm run dev
 
-start: start-supabase start-supabase-functions start-app ## start the stack locally
+start: start-supabase start-app ## start the stack locally
 
 stop-supabase: ## stop local supabase
 	npx supabase stop
