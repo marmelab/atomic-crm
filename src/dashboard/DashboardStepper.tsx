@@ -81,7 +81,7 @@ export const DashboardStepper = ({
                                 <Typography variant="body2" fontWeight="bold">
                                     Add your first contact
                                 </Typography>
-                                <Typography variant="caption">
+                                <Typography variant="body2">
                                     Create or import your contacts
                                 </Typography>
                                 <Stack spacing={2} direction="row">
@@ -104,7 +104,7 @@ export const DashboardStepper = ({
                                 <Typography variant="body2" fontWeight="bold">
                                     Add your first note
                                 </Typography>
-                                <Typography variant="caption">
+                                <Typography variant="body2">
                                     Got to a contact page and add a note
                                 </Typography>
                                 <Button
