@@ -9,12 +9,14 @@ import {
     Stack,
     Typography,
 } from '@mui/material';
+import { useMutation } from '@tanstack/react-query';
 import { useState } from 'react';
 import {
     Form,
     Labeled,
     TextField,
     TextInput,
+    useDataProvider,
     useGetIdentity,
     useGetOne,
     useNotify,
@@ -22,49 +24,52 @@ import {
 } from 'react-admin';
 import { useFormState } from 'react-hook-form';
 import { USER_STORAGE_KEY } from '../authProvider';
-import { UpdatePassword } from './UpdatePassword';
 import ImageEditorField from '../misc/ImageEditorField';
+import { UpdatePassword } from './UpdatePassword';
+import { SalesFormData } from '../types';
+import { CustomDataProvider } from '../dataProvider';
 
 export const SettingsPage = () => {
-    const [update] = useUpdate();
     const [isEditMode, setEditMode] = useState(false);
-    const { identity, refetch } = useGetIdentity();
-    const user = useGetOne('sales', { id: identity?.id });
+    const { identity, refetch: refetchIdentity } = useGetIdentity();
+    const { data, refetch: refetchUser } = useGetOne('sales', {
+        id: identity?.id,
+    });
     const notify = useNotify();
+    const dataProvider = useDataProvider<CustomDataProvider>();
+
+    const { mutate } = useMutation({
+        mutationKey: ['signup'],
+        mutationFn: async (data: SalesFormData) => {
+            if (!identity) {
+                throw new Error('Record not found');
+            }
+            return dataProvider.salesUpdate(identity.id, data);
+        },
+        onSuccess: data => {
+            // Update local user
+            localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(data));
+            refetchIdentity();
+            refetchUser();
+            setEditMode(false);
+            notify('Your profile has been updated');
+        },
+        onError: _ => {
+            notify('An error occurred. Please try again', {
+                type: 'error',
+            });
+        },
+    });
 
     if (!identity) return null;
 
     const handleOnSubmit = async (values: any) => {
-        await update(
-            'sales',
-            {
-                id: identity.id,
-                data: values,
-                previousData: identity,
-            },
-            {
-                onSuccess: data => {
-                    // Update local user
-                    localStorage.setItem(
-                        USER_STORAGE_KEY,
-                        JSON.stringify(data)
-                    );
-                    refetch();
-                    setEditMode(false);
-                    notify('Your profile has been updated');
-                },
-                onError: _ => {
-                    notify('An error occurred. Please try again', {
-                        type: 'error',
-                    });
-                },
-            }
-        );
+        mutate(values);
     };
 
     return (
         <Container maxWidth="sm" sx={{ mt: 4 }}>
-            <Form onSubmit={handleOnSubmit} record={user.data}>
+            <Form onSubmit={handleOnSubmit} record={data}>
                 <SettingsForm
                     isEditMode={isEditMode}
                     setEditMode={setEditMode}
