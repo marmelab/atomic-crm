@@ -46,9 +46,7 @@ export const SettingsPage = () => {
             }
             return dataProvider.salesUpdate(identity.id, data);
         },
-        onSuccess: data => {
-            // Update local user
-            localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(data));
+        onSuccess: () => {
             refetchIdentity();
             refetchUser();
             setEditMode(false);
