@@ -22,7 +22,7 @@ const taskFilters = {
     },
     tomorrow: {
         'done_date@is': null,
-        'due_date@gte': endOfTodayDateISO,
+        'due_date@gt': endOfTodayDateISO,
         'due_date@lt': startOfWeekDateISO,
     },
     thisWeek: {
