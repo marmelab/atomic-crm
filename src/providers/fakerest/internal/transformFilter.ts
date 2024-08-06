@@ -20,6 +20,16 @@ export function transformFilter(filter: Record<string, any>) {
             continue;
         }
 
+        if (key.endsWith('@is')) {
+            transformedFilters[`${key.slice(0, -3)}_eq`] = value;
+            continue;
+        }
+
+        if (key.endsWith('@not.is')) {
+            transformedFilters[`${key.slice(0, -7)}_neq`] = value;
+            continue;
+        }
+
         if (key.endsWith('@in')) {
             transformedFilters[`${key.slice(0, -3)}_eq_any`] =
                 transformInFilter(value);

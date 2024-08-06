@@ -42,6 +42,86 @@ describe('getList', () => {
         });
     });
 
+    it("should transform '@eq'", () => {
+        const getList = jest.fn();
+        const mockDataProvider = {
+            getList,
+        } as unknown as DataProvider;
+
+        getList.mockResolvedValueOnce([{ id: 1 }]);
+
+        const { getList: getListAdapter } =
+            withSupabaseFilterAdapter(mockDataProvider);
+
+        expect(
+            getListAdapter('resource', { filter: { 'a@id@eq': '1' } })
+        ).resolves.toEqual([{ id: 1 }]);
+
+        expect(getList).toHaveBeenCalledWith('resource', {
+            filter: { 'a@id_eq': '1' },
+        });
+    });
+
+    it("should transform '@neq'", () => {
+        const getList = jest.fn();
+        const mockDataProvider = {
+            getList,
+        } as unknown as DataProvider;
+
+        getList.mockResolvedValueOnce([{ id: 1 }]);
+
+        const { getList: getListAdapter } =
+            withSupabaseFilterAdapter(mockDataProvider);
+
+        expect(
+            getListAdapter('resource', { filter: { 'a@id@neq': '1' } })
+        ).resolves.toEqual([{ id: 1 }]);
+
+        expect(getList).toHaveBeenCalledWith('resource', {
+            filter: { 'a@id_neq': '1' },
+        });
+    });
+
+    it("should transform '@is'", () => {
+        const getList = jest.fn();
+        const mockDataProvider = {
+            getList,
+        } as unknown as DataProvider;
+
+        getList.mockResolvedValueOnce([{ id: 1 }]);
+
+        const { getList: getListAdapter } =
+            withSupabaseFilterAdapter(mockDataProvider);
+
+        expect(
+            getListAdapter('resource', { filter: { 'id@is': null } })
+        ).resolves.toEqual([{ id: 1 }]);
+
+        expect(getList).toHaveBeenCalledWith('resource', {
+            filter: { id_eq: null },
+        });
+    });
+
+    it("should transform '@not.is'", () => {
+        const getList = jest.fn();
+        const mockDataProvider = {
+            getList,
+        } as unknown as DataProvider;
+
+        getList.mockResolvedValueOnce([{ id: 1 }]);
+
+        const { getList: getListAdapter } =
+            withSupabaseFilterAdapter(mockDataProvider);
+
+        expect(
+            getListAdapter('resource', { filter: { 'id@not.is': null } })
+        ).resolves.toEqual([{ id: 1 }]);
+
+        expect(getList).toHaveBeenCalledWith('resource', {
+            filter: { id_neq: null },
+        });
+    });
+
     it("should transform '@lt'", () => {
         const getList = jest.fn();
         const mockDataProvider = {
@@ -263,6 +343,66 @@ describe('getManyReference', () => {
             pagination: { page: 1, perPage: 10 },
             sort: { field: 'id', order: 'ASC' },
             filter: { 'a@id_neq': '2' },
+        });
+    });
+
+    it('should transform @is', () => {
+        const getManyReference = jest.fn();
+        const mockDataProvider = {
+            getManyReference,
+        } as unknown as DataProvider;
+
+        getManyReference.mockResolvedValueOnce([{ id: 1 }]);
+
+        const { getManyReference: getManyReferenceAdapter } =
+            withSupabaseFilterAdapter(mockDataProvider);
+
+        expect(
+            getManyReferenceAdapter('resource', {
+                id: 1,
+                target: 'target',
+                pagination: { page: 1, perPage: 10 },
+                sort: { field: 'id', order: 'ASC' },
+                filter: { 'id@is': null },
+            })
+        ).resolves.toEqual([{ id: 1 }]);
+
+        expect(getManyReference).toHaveBeenCalledWith('resource', {
+            id: 1,
+            target: 'target',
+            pagination: { page: 1, perPage: 10 },
+            sort: { field: 'id', order: 'ASC' },
+            filter: { id_eq: null },
+        });
+    });
+
+    it('should transform @not.is', () => {
+        const getManyReference = jest.fn();
+        const mockDataProvider = {
+            getManyReference,
+        } as unknown as DataProvider;
+
+        getManyReference.mockResolvedValueOnce([{ id: 1 }]);
+
+        const { getManyReference: getManyReferenceAdapter } =
+            withSupabaseFilterAdapter(mockDataProvider);
+
+        expect(
+            getManyReferenceAdapter('resource', {
+                id: 1,
+                target: 'target',
+                pagination: { page: 1, perPage: 10 },
+                sort: { field: 'id', order: 'ASC' },
+                filter: { 'id@not.is': null },
+            })
+        ).resolves.toEqual([{ id: 1 }]);
+
+        expect(getManyReference).toHaveBeenCalledWith('resource', {
+            id: 1,
+            target: 'target',
+            pagination: { page: 1, perPage: 10 },
+            sort: { field: 'id', order: 'ASC' },
+            filter: { id_neq: null },
         });
     });
 
