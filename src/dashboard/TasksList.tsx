@@ -20,6 +20,11 @@ const taskFilters = {
         'due_date@gte': startOfTodayDateISO,
         'due_date@lte': endOfTodayDateISO,
     },
+    tomorrow: {
+        'done_date@is': null,
+        'due_date@gt': endOfTodayDateISO,
+        'due_date@lt': startOfWeekDateISO,
+    },
     thisWeek: {
         'done_date@is': null,
         'due_date@gte': startOfWeekDateISO,
@@ -72,6 +77,11 @@ export const TasksList = () => {
                     <TasksListFilter
                         title="Today"
                         filter={taskFilters.today}
+                        contacts={contacts}
+                    />
+                    <TasksListFilter
+                        title="Tomorrow"
+                        filter={taskFilters.tomorrow}
                         contacts={contacts}
                     />
                     <TasksListFilter
