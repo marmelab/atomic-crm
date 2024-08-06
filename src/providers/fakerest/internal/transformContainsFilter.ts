@@ -1,9 +1,9 @@
-const IN_FILTER_REGEX = /^\([a-z0-9-]+(,[a-z0-9-]+)*\)$/i;
+const CONTAINS_FILTER_REGEX = /^\{[a-z0-9-]+(,[a-z0-9-]+)*\}$/i;
 
-export function transformInFilter(value: any) {
-    if (typeof value !== 'string' || !value.match(IN_FILTER_REGEX)) {
+export function transformContainsFilter(value: any) {
+    if (typeof value !== 'string' || !value.match(CONTAINS_FILTER_REGEX)) {
         throw new Error(
-            `Invalid '@in' filter value, expected a string matching '\\([a-z0-9-]+(,[a-z0-9-]+)*\\)', got: ${value}`
+            `Invalid '@cs' filter value, expected a string matching '\\{[a-z0-9-]+(,[a-z0-9-]+)*\\}', got: ${value}`
         );
     }
 
