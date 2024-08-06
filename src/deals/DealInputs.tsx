@@ -141,6 +141,7 @@ const DealMiscInputs = () => {
                 fullWidth
                 validate={[validateRequired]}
                 helperText={false}
+                inputProps={{ max: '9999-12-31' }}
             />
             <SelectInput
                 source="stage"

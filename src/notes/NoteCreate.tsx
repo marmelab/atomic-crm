@@ -62,16 +62,23 @@ const NoteCreateButton = ({
 
     if (!record || !identity) return null;
 
+    const resetValues: {
+        date: string;
+        text: null;
+        attachments: null;
+        status?: string;
+    } = {
+        date: getCurrentDate(),
+        text: null,
+        attachments: null,
+    };
+
+    if (reference === 'contacts') {
+        resetValues.status = 'warm';
+    }
+
     const handleSuccess = (data: any) => {
-        reset(
-            {
-                date: getCurrentDate(),
-                text: null,
-                status: 'warm',
-                attachments: null,
-            },
-            { keepValues: false }
-        );
+        reset(resetValues, { keepValues: false });
         refetch();
         update(reference, {
             id: (record && record.id) as unknown as Identifier,
