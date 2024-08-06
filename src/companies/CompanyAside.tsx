@@ -46,7 +46,7 @@ export const CompanyAside = ({ link = 'edit' }: CompanyAsideProps) => {
 };
 
 const CompanyInfo = ({ record }: { record: Company }) => {
-    if (!record.website && !record.linkedIn && !record.phone_number) {
+    if (!record.website && !record.linkedin_url && !record.phone_number) {
         return null;
     }
 
