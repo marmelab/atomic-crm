@@ -1,4 +1,5 @@
 import { DataProvider } from 'react-admin';
+import { transformContainsFilter } from './internal/transformContainsFilter';
 import { transformInFilter } from './internal/transformInFilter';
 
 function transformFilter(filter: Record<string, any>) {
@@ -7,6 +8,12 @@ function transformFilter(filter: Record<string, any>) {
         if (key.endsWith('@in')) {
             transformedFilters[`${key.slice(0, -3)}_eq_any`] =
                 transformInFilter(value);
+            continue;
+        }
+
+        if (key.endsWith('@cs')) {
+            transformedFilters[`${key.slice(0, -3)}`] =
+                transformContainsFilter(value);
             continue;
         }
 
