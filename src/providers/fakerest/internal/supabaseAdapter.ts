@@ -1,5 +1,5 @@
 import { DataProvider } from 'react-admin';
-import { transformFilter } from './internal/transformFilter';
+import { transformFilter } from './transformFilter';
 
 export function withSupabaseFilterAdapter<T extends DataProvider>(
     dataProvider: T

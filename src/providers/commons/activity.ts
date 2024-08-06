@@ -5,7 +5,7 @@ import {
     CONTACT_NOTE_CREATED,
     DEAL_CREATED,
     DEAL_NOTE_CREATED,
-} from '../consts';
+} from '../../consts';
 import {
     Activity,
     Company,
@@ -14,7 +14,7 @@ import {
     Deal,
     DealNote,
     Sale,
-} from '../types';
+} from '../../types';
 
 export async function getActivityLog(
     dataProvider: DataProvider,
@@ -66,6 +66,8 @@ async function getCompaniesLog(
             sort: { field: 'created_at', order: 'DESC' },
         })
         .then(({ data }) => data);
+
+    console.log('companies', companies);
 
     return {
         companiesLog: companies.map<Activity>(company => ({

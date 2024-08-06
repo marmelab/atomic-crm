@@ -8,11 +8,6 @@ import {
     UpdateParams,
     withLifecycleCallbacks,
 } from 'react-admin';
-import { getIsInitialized } from './authProvider';
-import { getActivityLog } from './dataProvider/activity';
-import { getCompanyAvatar } from './misc/getCompanyAvatar';
-import { getContactAvatar } from './misc/getContactAvatar';
-import { supabase } from './supabase';
 import {
     Contact,
     ContactNote,
@@ -23,7 +18,12 @@ import {
     SalesFormData,
     SignUpData,
     UpdatePasswordData,
-} from './types';
+} from '../../types';
+import { getActivityLog } from '../commons/activity';
+import { getCompanyAvatar } from '../commons/getCompanyAvatar';
+import { getContactAvatar } from '../commons/getContactAvatar';
+import { getIsInitialized } from './authProvider';
+import { supabase } from './supabase';
 
 if (import.meta.env.VITE_SUPABASE_URL === undefined) {
     throw new Error('Please set the VITE_SUPABASE_URL environment variable');
@@ -221,7 +221,7 @@ const dataProviderWithCustomMethods = {
     },
 } satisfies DataProvider;
 
-export type CustomDataProvider = typeof dataProviderWithCustomMethods;
+export type CrmDataProvider = typeof dataProviderWithCustomMethods;
 
 export const dataProvider = withLifecycleCallbacks(
     dataProviderWithCustomMethods,

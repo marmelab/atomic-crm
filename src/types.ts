@@ -72,7 +72,7 @@ export type Contact = {
     company_id: Identifier;
     email: string;
     avatar?: Partial<RAFile>;
-    linkedin_url?: string;
+    linkedin_url?: string | null;
     first_seen: string;
     last_seen: string;
     has_newsletter: Boolean;
