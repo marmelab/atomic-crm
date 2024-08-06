@@ -100,3 +100,31 @@ SUPABASE_ACCESS_TOKEN: Your personal access token, can be found at https://supab
 SUPABASE_DB_PASSWORD: Your supabase database password
 SUPABASE_PROJECT_ID: Your supabase project id
 ```
+
+## Supabase
+
+### Password Reset When Forgotten
+If users forgot their password, they can request for a reset. Atomic CRM handle it for you. All the magic is done by the custom route `/forgot-password` and `/reset-password` that you can find in the `CRM` component.
+
+If you want to update default configuration: 
+
+1. Go to your `config.toml` file
+2. In `[auth]` section set `site_url` to  your application URL
+3. In `[auth]`, add the following URL in the `additional_redirect_urls = [{APPLICATION_URL}}/auth-callback"]`
+4. Add an `[auth.email.templace.recovery]` section with the following option
+```
+[auth.email.template.recovery]
+subject = "Reset Password"
+content_path = "./supabase/templates/recovery.html"
+```
+
+In Recovery email template set the `auth-callback` redirection
+
+```HTML
+<html>
+  <body>
+    <h2>Reset Password</h2>
+    <p><a href="{{ .ConfirmationURL }}/auth-callback">Reset your password</a></p>
+  </body>
+</html>
+```
