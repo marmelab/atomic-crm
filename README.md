@@ -101,6 +101,12 @@ SUPABASE_DB_PASSWORD: Your supabase database password
 SUPABASE_PROJECT_ID: Your supabase project id
 ```
 
+You will also need to configure the following environment variables to deploy to GH pages:
+```bash
+GIT_USER_NAME: The deploy account's name
+GIT_USER_EMAIL: The deploy user's email
+```
+
 ## Supabase
 
 ### Password Reset When Forgotten
@@ -127,4 +133,3 @@ In Recovery email template set the `auth-callback` redirection
     <p><a href="{{ .ConfirmationURL }}/auth-callback">Reset your password</a></p>
   </body>
 </html>
-```
