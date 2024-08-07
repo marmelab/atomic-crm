@@ -22,6 +22,7 @@ import {
     TextInput,
     Toolbar,
     required,
+    useGetIdentity,
     useRecordContext,
 } from 'react-admin';
 import { useConfigurationContext } from '../root/ConfigurationContext';
@@ -29,12 +30,16 @@ import { DialogCloseButton } from '../misc/DialogCloseButton';
 import { contactInputText, contactOptionText } from '../misc/ContactOption';
 
 export const AddTask = ({ selectContact }: { selectContact?: boolean }) => {
+    const { identity } = useGetIdentity();
     const { taskTypes } = useConfigurationContext();
     const contact = useRecordContext();
     const [open, setOpen] = useState(false);
     const handleOpen = () => {
         setOpen(true);
     };
+
+    if (!identity) return null;
+
     return (
         <>
             <Box mt={2} mb={2}>
@@ -53,6 +58,7 @@ export const AddTask = ({ selectContact }: { selectContact?: boolean }) => {
                     type: 'None',
                     contact_id: contact?.id,
                     due_date: new Date().toISOString().slice(0, 10),
+                    sales_id: identity.id,
                 }}
                 transform={data => {
                     const dueDate = new Date(data.due_date);

@@ -1,8 +1,7 @@
 import * as React from 'react';
 import { Card, Box, Stack } from '@mui/material';
 import AssignmentTurnedInIcon from '@mui/icons-material/AssignmentTurnedIn';
-import { useGetList, Link, useGetIdentity } from 'react-admin';
-import { Contact } from '../types';
+import { Link } from 'react-admin';
 import { AddTask } from '../tasks/AddTask';
 import { startOfToday, endOfToday, addDays } from 'date-fns';
 import { TasksListFilter } from './TasksListFilter';
@@ -34,18 +33,6 @@ const taskFilters = {
 };
 
 export const TasksList = () => {
-    const { identity } = useGetIdentity();
-    const { data: contacts, isPending: contactsLoading } = useGetList<Contact>(
-        'contacts',
-        {
-            pagination: { page: 1, perPage: 500 },
-            filter: { sales_id: identity?.id },
-        },
-        { enabled: !!identity }
-    );
-
-    if (contactsLoading || !contacts) return null;
-
     return (
         <Stack>
             <Box display="flex" alignItems="center" mb={1}>
@@ -72,28 +59,17 @@ export const TasksList = () => {
                     <TasksListFilter
                         title="Overdue"
                         filter={taskFilters.overdue}
-                        contacts={contacts}
                     />
-                    <TasksListFilter
-                        title="Today"
-                        filter={taskFilters.today}
-                        contacts={contacts}
-                    />
+                    <TasksListFilter title="Today" filter={taskFilters.today} />
                     <TasksListFilter
                         title="Tomorrow"
                         filter={taskFilters.tomorrow}
-                        contacts={contacts}
                     />
                     <TasksListFilter
                         title="This week"
                         filter={taskFilters.thisWeek}
-                        contacts={contacts}
                     />
-                    <TasksListFilter
-                        title="Later"
-                        filter={taskFilters.later}
-                        contacts={contacts}
-                    />
+                    <TasksListFilter title="Later" filter={taskFilters.later} />
                 </Stack>
             </Card>
         </Stack>
