@@ -64,4 +64,4 @@ jobs:
               run: npm install
 
             - name: 🔨 Build
-              run: make build
+              run: npm run build
