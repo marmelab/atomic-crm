@@ -110,14 +110,16 @@ GIT_USER_EMAIL: The deploy user's email
 ## Supabase
 
 ### Password Reset When Forgotten
-If users forgot their password, they can request for a reset. Atomic CRM handle it for you. All the magic is done by the custom route `/forgot-password` and `/reset-password` that you can find in the `CRM` component.
+If users forgot their password, they can request for a reset. Atomic CRM handle it for you. All the magic is done by the custom route `/forgot-password` and `/set-password` that you can find in the `CRM` component.
 
 If you want to update default configuration: 
+
+### Local development
 
 1. Go to your `config.toml` file
 2. In `[auth]` section set `site_url` to  your application URL
 3. In `[auth]`, add the following URL in the `additional_redirect_urls = [{APPLICATION_URL}}/auth-callback"]`
-4. Add an `[auth.email.templace.recovery]` section with the following option
+4. Add an `[auth.email.template.recovery]` section with the following option
 ```
 [auth.email.template.recovery]
 subject = "Reset Password"
@@ -133,3 +135,15 @@ In Recovery email template set the `auth-callback` redirection
     <p><a href="{{ .ConfirmationURL }}/auth-callback">Reset your password</a></p>
   </body>
 </html>
+```
+
+Supabase provides an [Inbucket](https://inbucket.org/) instance that allows you to test your emails and configure your flow.
+
+### Production
+
+This requires you to configure your supabase instance:
+
+1. Go to your dashboard Authentication section
+2. In URL Configuration, set Site URL to your application URL
+3. In URL Configuration, add the following URL in the Redirect URLs section: `YOUR_APPLICATION_URL/auth-callback`
+4. In Email Templates, change the `"{{ .ConfirmationURL }}"` to `"{{ .ConfirmationURL }}/auth-callback"`
