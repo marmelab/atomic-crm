@@ -24,6 +24,11 @@ export type SalesFormData = {
     disabled: boolean;
 };
 
+export type UpdatePasswordData = {
+    currentPassword: string;
+    newPassword: string;
+};
+
 export interface Sale extends RaRecord {
     first_name: string;
     last_name: string;

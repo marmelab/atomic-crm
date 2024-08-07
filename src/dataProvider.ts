@@ -22,6 +22,7 @@ import {
     Sale,
     SalesFormData,
     SignUpData,
+    UpdatePasswordData,
 } from './types';
 
 if (import.meta.env.VITE_SUPABASE_URL === undefined) {
@@ -163,6 +164,26 @@ const dataProviderWithCustomMethods = {
         if (!sale || error) {
             console.error('salesCreate.error', error);
             throw new Error('Failed to update account manager');
+        }
+
+        return data;
+    },
+    async updatePassword(id: Identifier, data: UpdatePasswordData) {
+        const { currentPassword, newPassword } = data;
+
+        const { data: passwordUpdated, error } =
+            await supabase.functions.invoke<Sale>('updatePassword', {
+                method: 'PATCH',
+                body: {
+                    sales_id: id,
+                    currentPassword,
+                    newPassword,
+                },
+            });
+
+        if (!passwordUpdated || error) {
+            console.error('passwordUpdate.error', error);
+            throw new Error('Failed to update password');
         }
 
         return data;
