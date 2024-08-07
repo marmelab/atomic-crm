@@ -5,9 +5,6 @@ help:
 
 install: package.json ## install dependencies
 	npm install;
-
-start-supabase-functions: ## start the supabase Functions watcher
-	npx supabase functions serve
 	
 start-supabase: ## start supabase locally
 	npx supabase start
