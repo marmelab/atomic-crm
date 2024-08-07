@@ -49,7 +49,9 @@ create trigger on_auth_user_updated
   after update on auth.users
   for each row execute procedure public.handle_update_user();
 
-create view init_state as
+create view init_state
+  with (security_invoker=off)
+  as
 select count(id) as is_initialized
 from public.sales
 limit 1;
