@@ -101,6 +101,12 @@ SUPABASE_DB_PASSWORD: Your supabase database password
 SUPABASE_PROJECT_ID: Your supabase project id
 ```
 
+Also, you will need to configure the some variables:
+```bash
+VITE_APPLICATION_BASENAME: The base URL of your application, optional
+VITE_IS_DEMO: Set to `true` if you want to display the demo banner
+```
+
 You will also need to configure the following environment variables to deploy to GH pages:
 ```bash
 GIT_USER_NAME: The deploy account's name
