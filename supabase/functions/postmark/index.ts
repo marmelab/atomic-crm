@@ -5,6 +5,8 @@
 // Setup type definitions for built-in Supabase Runtime APIs
 import 'jsr:@supabase/functions-js/edge-runtime.d.ts';
 import { supabaseAdmin } from '../_shared/supabaseAdmin.ts';
+import { getExpectedAuthorization } from './getExpectedAuthorization.ts';
+import { extractMailContactData } from './extractMailContactData.ts';
 
 const webhookUser = Deno.env.get('POSTMARK_WEBHOOK_USER');
 const webhookPassword = Deno.env.get('POSTMARK_WEBHOOK_PASSWORD');
@@ -57,11 +59,6 @@ Deno.serve(async req => {
     });
 });
 
-export const getExpectedAuthorization = (
-    webhookUser: string,
-    webhookPassword: string
-) => `Basic ${btoa(`${webhookUser}:${webhookPassword}`)}`;
-
 const checkRequestTypeAndHeaders = (req: Request) => {
     // Only allow known IP addresses
     // We can use the x-forwarded-for header as it is populated by Supabase
@@ -108,51 +105,7 @@ const checkBody = (json: any) => {
         });
 };
 
-/**
- * Extracts the first name, last name, email, and domain from a mail contact.
- *
- * Example:
- *   "ToFull": [
- *     {
- *       "Email": "firstname.lastname@marmelab.com",
- *       "Name": "Firstname Lastname"
- *     }
- *   ]
- *
- * Return Value:
- *  {
- *    firstName: "Firstname",
- *    lastName: "Lastname",
- *    email: "firstname.lastname@marmelab.com",
- *    domain: "marmelab.com"
- * }
- *
- */
-export const extractMailContactData = (
-    ToFull: {
-        Email: string;
-        Name: string;
-    }[]
-) => {
-    // We only support one recipient for now
-    const contact = ToFull[0];
-
-    const domain = contact.Email.split('@')[1];
-    const fullName = contact.Name;
-    let firstName = '';
-    let lastName = fullName;
-    if (fullName && fullName.includes(' ')) {
-        const parts = fullName.split(' ');
-        firstName = parts[0];
-        lastName = parts.slice(1).join(' ');
-    }
-    return { firstName, lastName, email: contact.Email, domain };
-};
-
-export const getNoteContent = (
-    subject: string,
-    strippedText: string
-) => `${subject}
+const getNoteContent = (subject: string, strippedText: string) => `${subject}
 
 ${strippedText}`;
 
