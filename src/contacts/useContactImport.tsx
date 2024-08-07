@@ -21,6 +21,7 @@ export type ContactImportSchema = {
     has_newsletter: string;
     status: string;
     tags: string;
+    linkedin_url: string;
 };
 
 export function useContactImport() {
@@ -149,6 +150,7 @@ export function useContactImport() {
                         status,
                         company: companyName,
                         tags: tagNames,
+                        linkedin_url,
                     }) => {
                         const company = companies.get(companyName.trim());
                         const tagList = parseTags(tagNames)
@@ -181,6 +183,7 @@ export function useContactImport() {
                                 company_id: company.id,
                                 tags: tagList.map(tag => tag.id),
                                 sales_id: user?.identity?.id,
+                                linkedin_url,
                             },
                         });
                     }
