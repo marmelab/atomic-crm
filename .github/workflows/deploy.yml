@@ -10,6 +10,7 @@ concurrency:
 
 permissions:
     pages: write
+    contents: write
 
 jobs:
     deploy:
@@ -21,6 +22,11 @@ jobs:
             SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
             SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
             SUPABASE_PROJECT_ID: ${{ secrets.SUPABASE_PROJECT_ID }}
+            VITE_SUPABASE_URL: ${{ secrets.SUPABASE_PROJECT_URL }}
+            VITE_SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+            VITE_APPLICATION_BASENAME: ${{ vars.VITE_APPLICATION_BASENAME }}
+            VITE_IS_DEMO: ${{ vars.VITE_IS_DEMO }}
+
 
         steps:
             - name: 📥 Checkout repo
@@ -52,7 +58,9 @@ jobs:
 
             - name: 📡 Deploy GitHub pages
               run: |
-                  git remote set-url origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@$GITHUB_SERVER_URL/$GITHUB_REPOSITORY
-                  git config --global user.email ${{ vars.GIT_USER_NAME }}
-                  git config --global user.name ${{ vars.GIT_USER_EMAIL }}
+                  git remote set-url origin https://git:${{ secrets.GITHUB_TOKEN }}@github.com/${GITHUB_REPOSITORY}
+                  git config --global user.email support+actions@github.com
+                  git config --global user.name github-actions-bot 
                   npm run ghpages:deploy
+              env:
+                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
