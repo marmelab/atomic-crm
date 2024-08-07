@@ -1,16 +1,23 @@
 // sum.test.js
-import { transformContainsFilter } from './transformContainsFilter';
+import {
+    CONTAINS_FILTER_REGEX,
+    transformContainsFilter,
+} from './transformContainsFilter';
 
 it('should throw an error if the filter is not a string', () => {
     expect(() => transformContainsFilter(1)).toThrow(
-        "Invalid '@cs' filter value, expected a string matching '\\{[a-z0-9-]+(,[a-z0-9-]+)*\\}', got: 1"
+        `Invalid '@cs' filter value, expected a string matching '${CONTAINS_FILTER_REGEX.source}', got: 1`
     );
 });
 
 it('should throw an error if the filter does not match pattern', () => {
     expect(() => transformContainsFilter('1,2')).toThrow(
-        "Invalid '@cs' filter value, expected a string matching '\\{[a-z0-9-]+(,[a-z0-9-]+)*\\}', got: 1,2"
+        `Invalid '@cs' filter value, expected a string matching '${CONTAINS_FILTER_REGEX.source}', got: 1,2`
     );
+});
+
+it('should support empty arrays', () => {
+    expect(transformContainsFilter('{}')).toEqual([]);
 });
 
 it('should return an array of numbers', () => {

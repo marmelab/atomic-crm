@@ -1,16 +1,20 @@
 // sum.test.js
-import { transformInFilter } from './transformInFilter';
+import { IN_FILTER_REGEX, transformInFilter } from './transformInFilter';
 
 it('should throw an error if the filter is not a string', () => {
     expect(() => transformInFilter(1)).toThrow(
-        "Invalid '@in' filter value, expected a string matching '\\([a-z0-9-]+(,[a-z0-9-]+)*\\)', got: 1"
+        `Invalid '@in' filter value, expected a string matching '${IN_FILTER_REGEX.source}', got: 1`
     );
 });
 
 it('should throw an error if the filter does not match pattern', () => {
     expect(() => transformInFilter('1,2')).toThrow(
-        "Invalid '@in' filter value, expected a string matching '\\([a-z0-9-]+(,[a-z0-9-]+)*\\)', got: 1,2"
+        `Invalid '@in' filter value, expected a string matching '${IN_FILTER_REGEX.source}', got: 1,2`
     );
+});
+
+it('should support empty arrays', () => {
+    expect(transformInFilter('()')).toEqual([]);
 });
 
 it('should return an array of numbers', () => {

@@ -1,9 +1,14 @@
-const CONTAINS_FILTER_REGEX = /^\{[a-z0-9-]+(,[a-z0-9-]+)*\}$/i;
+export const CONTAINS_FILTER_REGEX =
+    /^\{[A-Za-zÀ-ÖØ-öø-ÿ0-9-]+(,[A-Za-zÀ-ÖØ-öø-ÿ0-9-]+)*\}$/i;
 
 export function transformContainsFilter(value: any) {
+    if (value === '{}') {
+        return [];
+    }
+
     if (typeof value !== 'string' || !value.match(CONTAINS_FILTER_REGEX)) {
         throw new Error(
-            `Invalid '@cs' filter value, expected a string matching '\\{[a-z0-9-]+(,[a-z0-9-]+)*\\}', got: ${value}`
+            `Invalid '@cs' filter value, expected a string matching '${CONTAINS_FILTER_REGEX.source}', got: ${value}`
         );
     }
 
