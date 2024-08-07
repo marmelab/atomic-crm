@@ -1,33 +1,10 @@
 import 'jsr:@supabase/functions-js/edge-runtime.d.ts';
 import { createClient } from 'jsr:@supabase/supabase-js@2';
-
-export const corsHeaders = {
-    'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Headers':
-        'authorization, x-client-info, apikey, content-type',
-    'Access-Control-Allow-Methods': 'POST, PATCH, DELETE',
-};
-
-const supabaseServiceClient = createClient(
-    Deno.env.get('SUPABASE_URL') ?? '',
-    Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
-    {
-        auth: {
-            autoRefreshToken: false,
-            persistSession: false,
-        },
-    }
-);
-
-function createErrorResponse(status: number, message: string) {
-    return new Response(JSON.stringify({ status, message }), {
-        headers: { 'Content-Type': 'application/json', ...corsHeaders },
-        status,
-    });
-}
+import { supabaseAdmin } from '../_shared/supabaseAdmin.ts';
+import { corsHeaders, createErrorResponse } from '../_shared/utils.ts';
 
 async function updateSaleDisabled(user_id: string, disabled: boolean) {
-    return await supabaseServiceClient
+    return await supabaseAdmin
         .from('sales')
         .update({ disabled: disabled ?? false })
         .eq('user_id', user_id);
@@ -37,7 +14,7 @@ async function updateSaleAdministrator(
     user_id: string,
     administrator: boolean
 ) {
-    const { data: sales, error: salesError } = await supabaseServiceClient
+    const { data: sales, error: salesError } = await supabaseAdmin
         .from('sales')
         .update({ administrator })
         .eq('user_id', user_id)
@@ -55,7 +32,7 @@ async function inviteUser(req: Request) {
         await req.json();
 
     const { data, error: userError } =
-        await supabaseServiceClient.auth.admin.createUser({
+        await supabaseAdmin.auth.admin.createUser({
             email,
             password,
             email_confirm: true,
@@ -88,7 +65,7 @@ async function inviteUser(req: Request) {
 async function patchUser(req: Request) {
     const { sales_id, email, first_name, last_name, administrator, disabled } =
         await req.json();
-    const { data: sale } = await supabaseServiceClient
+    const { data: sale } = await supabaseAdmin
         .from('sales')
         .select('*')
         .eq('id', sales_id)
@@ -99,7 +76,7 @@ async function patchUser(req: Request) {
     }
 
     const { data, error: userError } =
-        await supabaseServiceClient.auth.admin.updateUserById(sale.user_id, {
+        await supabaseAdmin.auth.admin.updateUserById(sale.user_id, {
             email,
             ban_duration: disabled ? '87600h' : 'none',
             user_metadata: { first_name, last_name },

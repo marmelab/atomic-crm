@@ -7,9 +7,17 @@ import {
     Stack,
     TextField,
 } from '@mui/material';
-import { Toolbar, useGetIdentity, useNotify, useUpdate } from 'react-admin';
+import {
+    Toolbar,
+    useDataProvider,
+    useGetIdentity,
+    useNotify,
+} from 'react-admin';
 import { useForm } from 'react-hook-form';
 import { DialogCloseButton } from '../misc/DialogCloseButton';
+import { useMutation } from '@tanstack/react-query';
+import { CustomDataProvider } from '../dataProvider';
+import { UpdatePasswordData } from '../types';
 
 const PASSWORD_POLICY = {
     regex: /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$/, // Example policy: Minimum 8 characters, at least one letter and one number
@@ -23,7 +31,6 @@ export const UpdatePassword = ({
     open: boolean;
     setOpen: (value: boolean) => void;
 }) => {
-    const [update] = useUpdate();
     const {
         register,
         handleSubmit,
@@ -36,33 +43,32 @@ export const UpdatePassword = ({
     const newPassword = watch('newPassword');
     const { identity } = useGetIdentity();
     const notify = useNotify();
+    const dataProvider = useDataProvider<CustomDataProvider>();
+
+    const { mutate } = useMutation({
+        mutationKey: ['updatePassword'],
+        mutationFn: async (data: UpdatePasswordData) => {
+            if (!identity) {
+                throw new Error('Record not found');
+            }
+            return dataProvider.updatePassword(identity.id, data);
+        },
+        onSuccess: () => {
+            notify('Your password has been updated');
+            setOpen(false);
+            reset();
+        },
+        onError: e => {
+            notify(`${e}`, {
+                type: 'error',
+            });
+        },
+    });
 
     if (!identity) return null;
 
     const onSubmit = async (data: any) => {
-        await update(
-            'sales',
-            {
-                id: identity.id,
-                data: {
-                    password: data.newPassword,
-                },
-                previousData: identity,
-            },
-            {
-                onSuccess: _ => {
-                    notify('Your password has been updated');
-                    setOpen(false);
-                    reset();
-                },
-                onError: _ => {
-                    notify('An error occurred. Please try again', {
-                        type: 'error',
-                    });
-                },
-            }
-        );
-        setOpen(false);
+        mutate(data);
     };
 
     const handleClose = () => {
