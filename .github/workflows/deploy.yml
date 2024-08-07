@@ -10,6 +10,7 @@ concurrency:
 
 permissions:
     pages: write
+    contents: write
 
 jobs:
     deploy:
@@ -54,10 +55,10 @@ jobs:
               run: npx supabase functions deploy
 
             - name: 📡 Deploy GitHub pages
-              env:
-                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
               run: |
-                  git remote set-url origin https://git:${{ secrets.GITHUB_TOKEN }}@github.com/marmelab/atomic-crm.git
+                  git remote set-url origin https://git:${{ secrets.GITHUB_TOKEN }}@github.com/${GITHUB_REPOSITORY}
                   git config --global user.email support+actions@github.com
                   git config --global user.name github-actions-bot 
                   npm run ghpages:deploy
+              env:
+                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
