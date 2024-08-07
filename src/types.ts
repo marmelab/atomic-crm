@@ -1,4 +1,3 @@
-import { SvgIconComponent } from '@mui/icons-material';
 import { Identifier, RaRecord } from 'react-admin';
 import {
     COMPANY_CREATED,
@@ -7,6 +6,7 @@ import {
     DEAL_CREATED,
     DEAL_NOTE_CREATED,
 } from './consts';
+import { SvgIconComponent } from '@mui/icons-material';
 
 export type SignUpData = {
     email: string;
@@ -29,7 +29,7 @@ export type UpdatePasswordData = {
     newPassword: string;
 };
 
-export type Sale = {
+export interface Sale extends RaRecord {
     first_name: string;
     last_name: string;
     administrator: boolean;
@@ -40,9 +40,9 @@ export type Sale = {
     // This is a copy of the user's email, to make it easier to handle by react admin
     // DO NOT UPDATE this field directly, it should be updated by the backend
     email: string;
-} & Pick<RaRecord, 'id'>;
+}
 
-export type Company = {
+export interface Company extends RaRecord {
     name: string;
     logo: RAFile;
     sector: string;
@@ -63,9 +63,9 @@ export type Company = {
     context_links?: string[];
     nb_contacts?: number;
     nb_deals?: number;
-} & Pick<RaRecord, 'id'>;
+}
 
-export type Contact = {
+export interface Contact extends RaRecord {
     first_name: string;
     last_name: string;
     title: string;
@@ -85,21 +85,18 @@ export type Contact = {
     phone_1_number: string;
     phone_2_type: 'Work' | 'Home' | 'Other';
     phone_2_number: string;
+}
 
-    nb_tasks?: number;
-    company_name?: string;
-} & Pick<RaRecord, 'id'>;
-
-export type ContactNote = {
+export interface ContactNote extends RaRecord {
     contact_id: Identifier;
     text: string;
     date: string;
     sales_id: Identifier;
     status: string;
     attachments?: AttachmentNote[];
-} & Pick<RaRecord, 'id'>;
+}
 
-export type Deal = {
+export interface Deal extends RaRecord {
     name: string;
     company_id: Identifier;
     contact_ids: Identifier[];
@@ -113,32 +110,29 @@ export type Deal = {
     expected_closing_date: string;
     sales_id: Identifier;
     index: number;
-} & Pick<RaRecord, 'id'>;
+}
 
-export type DealNote = {
+export interface DealNote extends RaRecord {
     deal_id: Identifier;
     text: string;
     date: string;
     sales_id: Identifier;
     attachments?: AttachmentNote[];
+}
 
-    // This is defined for compatibility with `ContactNote`
-    status?: undefined;
-} & Pick<RaRecord, 'id'>;
-
-export type Tag = {
+export interface Tag extends RaRecord {
     name: string;
     color: string;
-} & Pick<RaRecord, 'id'>;
+}
 
-export type Task = {
+export interface Task extends RaRecord {
     contact_id: Identifier;
     type: string;
     text: string;
     due_date: string;
     done_date?: string | null;
     sales_id?: Identifier;
-} & Pick<RaRecord, 'id'>;
+}
 
 export type ActivityCompanyCreated = {
     type: typeof COMPANY_CREATED;
