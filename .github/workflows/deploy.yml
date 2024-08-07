@@ -59,3 +59,5 @@ jobs:
                   git config --global user.email ${{ vars.GIT_USER_NAME }}
                   git config --global user.name ${{ vars.GIT_USER_EMAIL }}
                   npm run ghpages:deploy
+              env:
+                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
