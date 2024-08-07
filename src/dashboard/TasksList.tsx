@@ -4,6 +4,7 @@ import AssignmentTurnedInIcon from '@mui/icons-material/AssignmentTurnedIn';
 import { AddTask } from '../tasks/AddTask';
 import { startOfToday, endOfToday, addDays } from 'date-fns';
 import { TasksListFilter } from './TasksListFilter';
+import { TasksListEmpty } from './TasksListEmpty';
 
 const today = new Date();
 const startOfTodayDateISO = startOfToday().toISOString();
@@ -44,12 +45,11 @@ export const TasksList = () => {
                 <Typography variant="h5" color="textSecondary">
                     Upcoming Tasks
                 </Typography>
+                <AddTask display="icon" selectContact />
             </Box>
-            <Card sx={{ px: 2 }}>
-                <Box textAlign="center" mb={-2}>
-                    <AddTask selectContact />
-                </Box>
-                <Stack mb={2}>
+            <Card sx={{ p: 2 }}>
+                <Stack>
+                    <TasksListEmpty />
                     <TasksListFilter
                         title="Overdue"
                         filter={taskFilters.overdue}
