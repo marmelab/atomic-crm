@@ -22,6 +22,8 @@ jobs:
             SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
             SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
             SUPABASE_PROJECT_ID: ${{ secrets.SUPABASE_PROJECT_ID }}
+            VITE_SUPABASE_URL: ${{ secrets.SUPABASE_PROJECT_URL }}
+            VITE_SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
             VITE_APPLICATION_BASENAME: ${{ vars.VITE_APPLICATION_BASENAME }}
             VITE_IS_DEMO: ${{ vars.VITE_IS_DEMO }}
 
@@ -41,13 +43,6 @@ jobs:
 
             - name: 📥 Download deps
               run: npm install
-
-            - name: ⚙️ Setup build config
-              run: |
-                touch .env.production.local
-                echo "VITE_SUPABASE_URL=${{ secrets.SUPABASE_PROJECT_URL }}" >> .env.production.local
-                echo "VITE_SUPABASE_ANON_KEY=${{ secrets.SUPABASE_ANON_KEY }}" >> .env.production.local
-                cat .env.production.local
 
             - name: 🔨 Build
               run: make build
