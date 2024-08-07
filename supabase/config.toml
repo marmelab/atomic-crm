@@ -71,7 +71,7 @@ enabled = true
 # in emails.
 site_url = "http://localhost:5173/"
 # A list of *exact* URLs that auth providers are permitted to redirect to post authentication.
-additional_redirect_urls = ["https://localhost:5173/auth-callback"]
+additional_redirect_urls = ["https://localhost:5173/auth-callback/index.html"]
 # How long tokens are valid for, in seconds. Defaults to 3600 (1 hour), maximum 604,800 (1 week).
 jwt_expiry = 3600
 # If disabled, the refresh token will never expire.

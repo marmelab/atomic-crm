@@ -45,7 +45,6 @@ import {
     SetPasswordPage,
     raSupabaseEnglishMessages,
 } from 'ra-supabase';
-import { BrowserRouter } from 'react-router-dom';
 
 // Define the interface for the CRM component props
 type CRMProps = {
@@ -136,53 +135,49 @@ export const CRM = ({
         taskTypes={taskTypes}
         title={title}
     >
-        <BrowserRouter
-            basename={import.meta.env.VITE_APPLICATION_BASENAME || undefined}
+        <Admin
+            dataProvider={dataProvider}
+            authProvider={authProvider}
+            store={localStorageStore(undefined, 'CRM')}
+            layout={Layout}
+            loginPage={LoginPage}
+            dashboard={Dashboard}
+            theme={lightTheme}
+            darkTheme={darkTheme || null}
+            i18nProvider={i18nProvider}
         >
-            <Admin
-                dataProvider={dataProvider}
-                authProvider={authProvider}
-                store={localStorageStore(undefined, 'CRM')}
-                layout={Layout}
-                loginPage={LoginPage}
-                dashboard={Dashboard}
-                theme={lightTheme}
-                darkTheme={darkTheme || null}
-                i18nProvider={i18nProvider}
-            >
-                <CustomRoutes noLayout>
-                    <Route path={SignupPage.path} element={<SignupPage />} />
-                    <Route
-                        path={SetPasswordPage.path}
-                        element={<SetPasswordPage />}
-                    />
-                    <Route
-                        path={ForgotPasswordPage.path}
-                        element={<ForgotPasswordPage />}
-                    />
-                </CustomRoutes>
-                {permissions => (
-                    <>
-                        <CustomRoutes>
-                            <Route
-                                path={SettingsPage.path}
-                                element={<SettingsPage />}
-                            />
-                        </CustomRoutes>
-                        <Resource name="deals" {...deals} />
-                        <Resource name="contacts" {...contacts} />
-                        <Resource name="companies" {...companies} />
-                        <Resource name="contactNotes" />
-                        <Resource name="dealNotes" />
-                        <Resource name="tasks" list={ListGuesser} />
-                        {permissions === 'admin' ? (
-                            <Resource name="sales" {...sales} />
-                        ) : null}
-                        <Resource name="tags" list={ListGuesser} />
-                    </>
-                )}
-            </Admin>
-        </BrowserRouter>
+            <CustomRoutes noLayout>
+                <Route path={SignupPage.path} element={<SignupPage />} />
+                <Route
+                    path={SetPasswordPage.path}
+                    element={<SetPasswordPage />}
+                />
+                <Route
+                    path={ForgotPasswordPage.path}
+                    element={<ForgotPasswordPage />}
+                />
+            </CustomRoutes>
+            {permissions => (
+                <>
+                    <CustomRoutes>
+                        <Route
+                            path={SettingsPage.path}
+                            element={<SettingsPage />}
+                        />
+                    </CustomRoutes>
+                    <Resource name="deals" {...deals} />
+                    <Resource name="contacts" {...contacts} />
+                    <Resource name="companies" {...companies} />
+                    <Resource name="contactNotes" />
+                    <Resource name="dealNotes" />
+                    <Resource name="tasks" list={ListGuesser} />
+                    {permissions === 'admin' ? (
+                        <Resource name="sales" {...sales} />
+                    ) : null}
+                    <Resource name="tags" list={ListGuesser} />
+                </>
+            )}
+        </Admin>
     </ConfigurationProvider>
 );
 
