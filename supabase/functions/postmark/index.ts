@@ -10,12 +10,30 @@ const webhookUser = Deno.env.get('POSTMARK_WEBHOOK_USER');
 const webhookPassword = Deno.env.get('POSTMARK_WEBHOOK_PASSWORD');
 if (!webhookUser || !webhookPassword) {
     throw new Error(
-        'Missing POSTMARK_WEBHOOK_USER or POSTMARK_WEBHOOK_PASSWORD'
+        'Missing POSTMARK_WEBHOOK_USER or POSTMARK_WEBHOOK_PASSWORD env variable'
     );
 }
 const expectedAuthorization = `Basic ${btoa(`${webhookUser}:${webhookPassword}`)}`;
 
+const rawAuthorizedIPs = Deno.env.get('POSTMARK_WEBHOOK_AUTHORIZED_IPS');
+if (!rawAuthorizedIPs) {
+    throw new Error('Missing POSTMARK_WEBHOOK_AUTHORIZED_IPS env variable');
+}
+const authorizedIPs = rawAuthorizedIPs.split(',').map(ip => ip.trim());
+
 Deno.serve(async req => {
+    // Only allow known IP addresses
+    // We can use the x-forwarded-for header as it is populated by Supabase
+    // https://supabase.com/docs/guides/api/securing-your-api#accessing-request-information
+    const forwardedFor = req.headers.get('x-forwarded-for');
+    if (!forwardedFor) {
+        return new Response('Unauthorized', { status: 401 });
+    }
+    const ips = forwardedFor.split(',').map(ip => ip.trim());
+    if (!ips.some(ip => authorizedIPs.includes(ip))) {
+        return new Response('Unauthorized', { status: 401 });
+    }
+
     // Only allow POST requests
     if (req.method !== 'POST') {
         return new Response(null, { status: 405 });
@@ -24,7 +42,7 @@ Deno.serve(async req => {
     // Check the Authorization header
     const authorization = req.headers.get('Authorization');
     if (authorization !== expectedAuthorization) {
-        return new Response('Unauthorized', { status: 403 });
+        return new Response('Unauthorized', { status: 401 });
     }
 
     const { ToFull, FromFull, Subject, TextBody, StrippedTextReply } =
@@ -213,6 +231,7 @@ ${strippedText}`;
   5. In another terminal, make an HTTP request:
   curl -i --location --request POST 'http://127.0.0.1:54321/functions/v1/postmark' \
     --header 'Content-Type: application/json' \
+    --header 'Authorization: Basic dGVzdHVzZXI6dGVzdHB3ZA==' \
     --data '{
         "FromName": "Postmarkapp Support",
         "From": "support@postmarkapp.com",
