@@ -45,7 +45,7 @@ jobs:
               run: npm install
 
             - name: 🔨 Build
-              run: make build
+              run: npm run build
             
             - name: 🔗 Supabase Link
               run: npx supabase link --project-ref $SUPABASE_PROJECT_ID
