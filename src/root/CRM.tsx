@@ -20,7 +20,7 @@ import { Dashboard } from '../dashboard/Dashboard';
 import deals from '../deals';
 import { LoginPage } from '../login/LoginPage';
 import { SignupPage } from '../login/SignupPage';
-import { authProvider, dataProvider } from '../providers/fakerest';
+import { authProvider, dataProvider } from '../providers/supabase';
 import sales from '../sales';
 import { SettingsPage } from '../settings/SettingsPage';
 import {

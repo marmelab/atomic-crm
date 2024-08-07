@@ -20,10 +20,11 @@ import { getActivityLog } from '../commons/activity';
 import { getCompanyAvatar } from '../commons/getCompanyAvatar';
 import { getContactAvatar } from '../commons/getContactAvatar';
 import { CrmDataProvider } from '../types';
+import { authProvider, USER_STORAGE_KEY } from './authProvider';
 import generateData from './dataGenerator';
 import { withSupabaseFilterAdapter } from './internal/supabaseAdapter';
 
-const baseDataProvider = fakeRestDataProvider(generateData(), true, 300);
+const baseDataProvider = fakeRestDataProvider(generateData(), false, 300);
 
 const TASK_MARKED_AS_DONE = 'TASK_MARKED_AS_DONE';
 const TASK_MARKED_AS_UNDONE = 'TASK_MARKED_AS_UNDONE';
@@ -240,6 +241,16 @@ export const dataProvider = withLifecycleCallbacks(
                 }
 
                 return params;
+            },
+            afterSave: async data => {
+                const currentUser = await authProvider.getIdentity?.();
+                if (currentUser?.id === data.id) {
+                    localStorage.setItem(
+                        USER_STORAGE_KEY,
+                        JSON.stringify(data)
+                    );
+                }
+                return data;
             },
             beforeDelete: async params => {
                 if (params.meta?.identity?.id == null) {

@@ -67,8 +67,6 @@ async function getCompaniesLog(
         })
         .then(({ data }) => data);
 
-    console.log('companies', companies);
-
     return {
         companiesLog: companies.map<Activity>(company => ({
             id: `company.${company.id}.created`,
