@@ -230,7 +230,7 @@ export const Dashboard = () => {
 
 You can create a new migration using the following command:
 ```sh
-npx supabase migrate create <migration_name>
+npx supabase migration new <migration_name>
 ```
 
 You can apply the migrations using the following command:
@@ -241,4 +241,4 @@ npx supabase migration up
 But you can also apply changes in the database directly using the supabase Dashboard.
 Create a new migration using the following command:
 ```sh
-npx supabase db diff | npx supabase migration create <migration_name>
+npx supabase db diff | npx supabase migration new <migration_name>
