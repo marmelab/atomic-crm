@@ -646,3 +646,76 @@ describe('getManyReference', () => {
         });
     });
 });
+
+it('should remove summary suffix', () => {
+    const getOne = jest.fn();
+    const getList = jest.fn();
+    const getMany = jest.fn();
+    const getManyReference = jest.fn();
+    const create = jest.fn();
+    const del = jest.fn();
+    const deleteMany = jest.fn();
+    const update = jest.fn();
+    const updateMany = jest.fn();
+
+    const dataProvider: DataProvider = withSupabaseFilterAdapter({
+        getOne,
+        getList,
+        getMany,
+        getManyReference,
+        create,
+        delete: del,
+        deleteMany,
+        update,
+        updateMany,
+    });
+
+    expect(
+        Promise.all([
+            dataProvider.getOne('resource_summary', { id: 1 }),
+            dataProvider.getList('resource_summary', {
+                pagination: { page: 1, perPage: 10 },
+            }),
+            dataProvider.getMany('resource_summary', { ids: [1] }),
+            dataProvider.getManyReference('resource_summary', {
+                id: 1,
+                target: 'target',
+                pagination: { page: 1, perPage: 10 },
+                sort: { field: 'id', order: 'ASC' },
+                filter: {},
+            }),
+            dataProvider.create('resource_summary', { data: {} }),
+            dataProvider.delete('resource_summary', { id: 1 }),
+            dataProvider.deleteMany('resource_summary', { ids: [1] }),
+            dataProvider.update('resource_summary', {
+                id: 1,
+                data: {},
+                previousData: {},
+            }),
+            dataProvider.updateMany('resource_summary', { ids: [1], data: {} }),
+        ])
+    ).resolves.toHaveLength(9);
+
+    expect(getOne).toHaveBeenCalledWith('resource', { id: 1 });
+    expect(getList).toHaveBeenCalledWith('resource', {
+        pagination: { page: 1, perPage: 10 },
+        filter: undefined,
+    });
+    expect(getMany).toHaveBeenCalledWith('resource', { ids: [1] });
+    expect(getManyReference).toHaveBeenCalledWith('resource', {
+        id: 1,
+        target: 'target',
+        pagination: { page: 1, perPage: 10 },
+        sort: { field: 'id', order: 'ASC' },
+        filter: {},
+    });
+    expect(create).toHaveBeenCalledWith('resource', { data: {} });
+    expect(del).toHaveBeenCalledWith('resource', { id: 1 });
+    expect(deleteMany).toHaveBeenCalledWith('resource', { ids: [1] });
+    expect(update).toHaveBeenCalledWith('resource', {
+        id: 1,
+        data: {},
+        previousData: {},
+    });
+    expect(updateMany).toHaveBeenCalledWith('resource', { ids: [1], data: {} });
+});
