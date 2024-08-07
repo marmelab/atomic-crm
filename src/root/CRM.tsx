@@ -140,6 +140,9 @@ export const CRM = ({
             basename={import.meta.env.VITE_APPLICATION_BASENAME || undefined}
         >
             <Admin
+                basename={
+                    import.meta.env.VITE_APPLICATION_BASENAME || undefined
+                }
                 dataProvider={dataProvider}
                 authProvider={authProvider}
                 store={localStorageStore(undefined, 'CRM')}
