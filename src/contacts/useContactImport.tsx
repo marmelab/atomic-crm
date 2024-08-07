@@ -14,7 +14,6 @@ export type ContactImportSchema = {
     phone_2_number: string;
     phone_2_type: string;
     background: string;
-    acquisition: string;
     avatar: string;
     first_seen: string;
     last_seen: string;
@@ -143,7 +142,6 @@ export function useContactImport() {
                         phone_2_number,
                         phone_2_type,
                         background,
-                        acquisition,
                         first_seen,
                         last_seen,
                         has_newsletter,
@@ -175,7 +173,6 @@ export function useContactImport() {
                                 phone_2_number,
                                 phone_2_type,
                                 background,
-                                acquisition,
                                 first_seen: new Date(first_seen),
                                 last_seen: new Date(last_seen),
                                 has_newsletter,
