@@ -15,6 +15,7 @@ import {
     SalesFormData,
     SignUpData,
     Task,
+    UpdatePasswordData,
 } from '../../types';
 import { getActivityLog } from '../commons/activity';
 import { getCompanyAvatar } from '../commons/getCompanyAvatar';
@@ -200,6 +201,39 @@ const dataProviderWithCustomMethod: CrmDataProvider = {
             return false;
         }
         return true;
+    },
+    updatePassword: async (
+        id: Identifier,
+        data: UpdatePasswordData
+    ): Promise<UpdatePasswordData> => {
+        const currentUser = await authProvider.getIdentity?.();
+        if (!currentUser) {
+            throw new Error('User not found');
+        }
+        const { data: previousData } = await dataProvider.getOne<Sale>(
+            'sales',
+            {
+                id: currentUser.id,
+            }
+        );
+
+        if (!previousData) {
+            throw new Error('User not found');
+        }
+
+        if (previousData.password !== data.currentPassword) {
+            throw new Error('Current password is incorrect');
+        }
+
+        await dataProvider.update('sales', {
+            id,
+            data: {
+                password: data.newPassword,
+            },
+            previousData,
+        });
+
+        return data;
     },
 };
 
