@@ -99,6 +99,8 @@ have to create the following secrets:
 SUPABASE_ACCESS_TOKEN: Your personal access token, can be found at https://supabase.com/dashboard/account/tokens
 SUPABASE_DB_PASSWORD: Your supabase database password
 SUPABASE_PROJECT_ID: Your supabase project id
+SUPABASE_URL: Your supabase project URL
+SUPABASE_ANON_KEY: Your supabase project anonymous key
 ```
 
 Also, you will need to configure the some variables:
