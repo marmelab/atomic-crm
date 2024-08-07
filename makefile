@@ -10,7 +10,7 @@ start-supabase: ## start supabase locally
 	npx supabase start
 
 start-supabase-functions: ## start the supabase Functions watcher
-	npx supabase functions serve
+	npx supabase functions serve --env-file supabase/functions/.env.development
 
 start-app: ## start the app locally
 	npm run dev

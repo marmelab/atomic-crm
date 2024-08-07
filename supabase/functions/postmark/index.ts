@@ -6,10 +6,25 @@
 import 'jsr:@supabase/functions-js/edge-runtime.d.ts';
 import { supabaseAdmin } from '../_shared/supabaseAdmin.ts';
 
+const webhookUser = Deno.env.get('POSTMARK_WEBHOOK_USER');
+const webhookPassword = Deno.env.get('POSTMARK_WEBHOOK_PASSWORD');
+if (!webhookUser || !webhookPassword) {
+    throw new Error(
+        'Missing POSTMARK_WEBHOOK_USER or POSTMARK_WEBHOOK_PASSWORD'
+    );
+}
+const expectedAuthorization = `Basic ${btoa(`${webhookUser}:${webhookPassword}`)}`;
+
 Deno.serve(async req => {
     // Only allow POST requests
     if (req.method !== 'POST') {
         return new Response(null, { status: 405 });
+    }
+
+    // Check the Authorization header
+    const authorization = req.headers.get('Authorization');
+    if (authorization !== expectedAuthorization) {
+        return new Response('Unauthorized', { status: 403 });
     }
 
     const { ToFull, FromFull, Subject, TextBody, StrippedTextReply } =
