@@ -4,10 +4,6 @@ ghpages.publish(
     'dist',
     {
         branch: 'gh-pages',
-        user: {
-            name: process.env.GIT_USER_NAME || 'Marmebot',
-            email: process.env.GIT_USER_EMAIL || 'developer@marmelab.com',
-        },
     },
     function (err) {
         if (err) {
