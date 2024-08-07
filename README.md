@@ -99,6 +99,14 @@ have to create the following secrets:
 SUPABASE_ACCESS_TOKEN: Your personal access token, can be found at https://supabase.com/dashboard/account/tokens
 SUPABASE_DB_PASSWORD: Your supabase database password
 SUPABASE_PROJECT_ID: Your supabase project id
+SUPABASE_URL: Your supabase project URL
+SUPABASE_ANON_KEY: Your supabase project anonymous key
+```
+
+Also, you will need to configure the some variables:
+```bash
+VITE_APPLICATION_BASENAME: The base URL of your application, optional
+VITE_IS_DEMO: Set to `true` if you want to display the demo banner
 ```
 
 You will also need to configure the following environment variables to deploy to GH pages:
@@ -114,3 +122,44 @@ From the crm, a user can import a list of contacts via a csv file. This csv file
 By default, we provide a sample file located at `./src/contacts/contacts_export.csv`.
 
 If you change your data structure for a contact, don't forget to modify this sample. You'll also need to modify the import function found in `./src/contacts/useContactImport.tsx`
+
+## Supabase
+
+### Password Reset When Forgotten
+If users forgot their password, they can request for a reset. Atomic CRM handle it for you. All the magic is done by the custom route `/forgot-password` and `/set-password` that you can find in the `CRM` component.
+
+If you want to update default configuration: 
+
+### Local development
+
+1. Go to your `config.toml` file
+2. In `[auth]` section set `site_url` to  your application URL
+3. In `[auth]`, add the following URL in the `additional_redirect_urls = [{APPLICATION_URL}}/auth-callback"]`
+4. Add an `[auth.email.template.recovery]` section with the following option
+```
+[auth.email.template.recovery]
+subject = "Reset Password"
+content_path = "./supabase/templates/recovery.html"
+```
+
+In Recovery email template set the `auth-callback` redirection
+
+```HTML
+<html>
+  <body>
+    <h2>Reset Password</h2>
+    <p><a href="{{ .ConfirmationURL }}/auth-callback">Reset your password</a></p>
+  </body>
+</html>
+```
+
+Supabase provides an [Inbucket](https://inbucket.org/) instance that allows you to test your emails and configure your flow.
+
+### Production
+
+This requires you to configure your supabase instance:
+
+1. Go to your dashboard Authentication section
+2. In URL Configuration, set Site URL to your application URL
+3. In URL Configuration, add the following URL in the Redirect URLs section: `YOUR_APPLICATION_URL/auth-callback`
+4. In Email Templates, change the `"{{ .ConfirmationURL }}"` to `"{{ .ConfirmationURL }}/auth-callback"`
