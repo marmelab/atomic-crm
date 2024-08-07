@@ -563,7 +563,9 @@ CREATE POLICY "Attachments 1mt4rzk_3" ON storage.objects FOR DELETE TO authentic
 
 -- Use Postgres to create views for companies.
 
-create view "public"."companies_summary" as
+create view "public"."companies_summary"
+    with (security_invoker=on)
+    as
 select 
     c.*,
     count(distinct d.id) as nb_deals,
@@ -579,7 +581,9 @@ group by
     
 -- Use Postgres to create views for contacts.
 
-create view "public"."contacts_summary" as
+create view "public"."contacts_summary"
+    with (security_invoker=on)
+    as
 select 
     co.*,
     c.name as company_name,
