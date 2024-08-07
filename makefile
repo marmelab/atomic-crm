@@ -6,6 +6,9 @@ help:
 install: package.json ## install dependencies
 	npm install;
 
+start-supabase-functions: ## start the supabase Functions watcher
+	npx supabase functions serve
+	
 start-supabase: ## start supabase locally
 	npx supabase start
 
@@ -38,6 +41,12 @@ supabase-remote-init:
 supabase-deploy:
 	npx supabase db push
 	npx supabase functions deploy
+
+test:
+	npm test
+
+test-ci:
+	CI=1 npm test
 
 lint:
 	npm run lint:check

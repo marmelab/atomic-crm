@@ -8,6 +8,10 @@ concurrency:
     group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
     cancel-in-progress: true
 
+permissions:
+    pages: write
+    contents: write
+
 jobs:
     deploy:
         name: 🚀 Deploy
@@ -18,6 +22,10 @@ jobs:
             SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
             SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
             SUPABASE_PROJECT_ID: ${{ secrets.SUPABASE_PROJECT_ID }}
+            VITE_SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+            VITE_SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+            VITE_IS_DEMO: ${{ vars.VITE_IS_DEMO }}
+
 
         steps:
             - name: 📥 Checkout repo
@@ -36,7 +44,7 @@ jobs:
               run: npm install
 
             - name: 🔨 Build
-              run: make build
+              run: npm run build
             
             - name: 🔗 Supabase Link
               run: npx supabase link --project-ref $SUPABASE_PROJECT_ID
@@ -48,4 +56,10 @@ jobs:
               run: npx supabase functions deploy
 
             - name: 📡 Deploy GitHub pages
-              run: npm run ghpages:deploy
+              run: |
+                  git remote set-url origin https://git:${{ secrets.GITHUB_TOKEN }}@github.com/${GITHUB_REPOSITORY}
+                  git config --global user.email support+actions@github.com
+                  git config --global user.name github-actions-bot 
+                  npm run ghpages:deploy
+              env:
+                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

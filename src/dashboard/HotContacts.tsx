@@ -37,7 +37,13 @@ export const HotContacts = () => {
                     Hot Contacts
                 </Link>
             </Box>
-            <Card>
+            <Card
+                sx={{
+                    '& .MuiCardContent-root': {
+                        padding: 2,
+                    },
+                }}
+            >
                 <SimpleList<Contact>
                     linkType="show"
                     data={contactData}
