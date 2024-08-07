@@ -1,7 +1,7 @@
 import * as React from 'react';
-import { Card, Box, Stack } from '@mui/material';
+import { Card, Box, Stack, Typography } from '@mui/material';
 import ContactsIcon from '@mui/icons-material/Contacts';
-import { useGetList, Link, SimpleList, useGetIdentity } from 'react-admin';
+import { useGetList, SimpleList, useGetIdentity } from 'react-admin';
 
 import { Avatar } from '../contacts/Avatar';
 import { Contact } from '../types';
@@ -28,14 +28,9 @@ export const HotContacts = () => {
                 <Box mr={1} display="flex">
                     <ContactsIcon color="disabled" fontSize="medium" />
                 </Box>
-                <Link
-                    underline="none"
-                    variant="h5"
-                    color="textSecondary"
-                    to="/contacts"
-                >
+                <Typography variant="h5" color="textSecondary">
                     Hot Contacts
-                </Link>
+                </Typography>
             </Box>
             <Card
                 sx={{
