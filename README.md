@@ -104,7 +104,6 @@ SUPABASE_ANON_KEY: Your supabase project anonymous key
 
 Also, you will need to configure the some variables:
 ```bash
-VITE_APPLICATION_BASENAME: The base URL of your application, optional
 VITE_IS_DEMO: Set to `true` if you want to display the demo banner
 ```
 
