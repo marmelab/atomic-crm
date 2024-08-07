@@ -277,6 +277,8 @@ export const dataProvider = withLifecycleCallbacks(
                 return params;
             },
             afterSave: async data => {
+                // Since the current user is stored in localStorage in fakerest authProvider
+                // we need to update it to keep information up to date in the UI
                 const currentUser = await authProvider.getIdentity?.();
                 if (currentUser?.id === data.id) {
                     localStorage.setItem(
