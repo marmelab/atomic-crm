@@ -12,7 +12,8 @@ Deno.serve(async req => {
         return new Response(null, { status: 405 });
     }
 
-    const { ToFull, FromFull, Subject, StrippedTextReply } = await req.json();
+    const { ToFull, FromFull, Subject, TextBody, StrippedTextReply } =
+        await req.json();
 
     if (!ToFull || !ToFull.length)
         return new Response('Missing parameter: ToFull', { status: 403 });
@@ -20,12 +21,12 @@ Deno.serve(async req => {
         return new Response('Missing parameter: FromFull', { status: 403 });
     if (!Subject)
         return new Response('Missing parameter: Subject', { status: 403 });
-    if (!StrippedTextReply)
-        return new Response('Missing parameter: StrippedTextReply', {
+    if (!TextBody)
+        return new Response('Missing parameter: TextBody', {
             status: 403,
         });
 
-    const noteContent = getNoteContent(Subject, StrippedTextReply);
+    const noteContent = getNoteContent(Subject, StrippedTextReply || TextBody);
 
     const { Email: salesEmail } = FromFull;
     if (!salesEmail)
