@@ -152,3 +152,6 @@ s3_secret_key = "env(S3_SECRET_KEY)"
 
 [functions.mailgun]
 verify_jwt = false
+
+[functions.postmark]
+verify_jwt = false
