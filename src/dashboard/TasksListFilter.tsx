@@ -29,7 +29,7 @@ export const TasksListFilter = ({
             sort: { field: 'due_date', order: 'ASC' },
             filter: {
                 ...filter,
-                'sales_id@in': `(${identity?.id})`,
+                sales_id: identity?.id,
             },
         },
         { enabled: !!identity }
