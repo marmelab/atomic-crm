@@ -22,6 +22,7 @@ import {
     Sale,
     SalesFormData,
     SignUpData,
+    UpdatePasswordData,
 } from './types';
 
 if (import.meta.env.VITE_SUPABASE_URL === undefined) {
@@ -167,6 +168,26 @@ const dataProviderWithCustomMethods = {
 
         return data;
     },
+    async updatePassword(id: Identifier, data: UpdatePasswordData) {
+        const { currentPassword, newPassword } = data;
+
+        const { data: passwordUpdated, error } =
+            await supabase.functions.invoke<Sale>('updatePassword', {
+                method: 'PATCH',
+                body: {
+                    sales_id: id,
+                    currentPassword,
+                    newPassword,
+                },
+            });
+
+        if (!passwordUpdated || error) {
+            console.error('passwordUpdate.error', error);
+            throw new Error('Failed to update password');
+        }
+
+        return data;
+    },
     async unarchiveDeal(deal: Deal) {
         // get all deals where stage is the same as the deal to unarchive
         const { data: deals } = await baseDataProvider.getList<Deal>('deals', {
@@ -285,6 +306,12 @@ export const dataProvider = withLifecycleCallbacks(
             },
         },
         {
+            resource: 'contacts_summary',
+            beforeGetList: async params => {
+                return applyFullTextSearch(['first_name', 'last_name'])(params);
+            },
+        },
+        {
             resource: 'deals',
             beforeGetList: async params => {
                 return applyFullTextSearch(['name', 'type', 'description'])(
@@ -317,18 +344,15 @@ const applyFullTextSearch = (columns: string[]) => (params: GetListParams) => {
 
 const uploadToBucket = async (fi: RAFile) => {
     if (!fi.src.startsWith('blob:') && !fi.src.startsWith('data:')) {
-        const response = await fetch(
-            `${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/attachments/${fi.src}`,
-            {
-                method: 'HEAD',
-                headers: {
-                    authorization: import.meta.env.VITE_SUPABASE_ANON_KEY,
-                },
-            }
-        );
+        // Sign URL check if path exists in the bucket
+        if (fi.path) {
+            const { error } = await supabase.storage
+                .from('attachments')
+                .createSignedUrl(fi.path, 60);
 
-        if (response.status === 200) {
-            return;
+            if (!error) {
+                return;
+            }
         }
     }
 

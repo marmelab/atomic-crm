@@ -20,7 +20,7 @@ permissions:
 
 jobs:
     lint:
-        name: 🔎 ESLint
+        name: 🔬 ESLint
         runs-on: ubuntu-latest
         timeout-minutes: 10
         if: ${{ !github.event.pull_request.draft || github.event_name == 'push' }}
@@ -45,6 +45,28 @@ jobs:
                   prettier: true
                   prettier_args: "--config ./.prettierrc.mjs \"**/*.{js,json,ts,tsx,css,md,html}\""
 
+    test:
+        name: 🔎 Test
+        runs-on: ubuntu-latest
+        timeout-minutes: 10
+        if: ${{ !github.event.pull_request.draft || github.event_name == 'push' }}
+        steps:
+            - name: 📥 Checkout repo
+              uses: actions/checkout@v4
+
+            - name: ⚙️ Setup node
+              uses: actions/setup-node@v4
+              with:
+                  node-version: 20
+                  cache: npm
+
+            - name: 📥 Download deps
+              run: npm install
+
+            - name: 🔎 Test
+              run: make test-ci
+
+
     build:
         name: 🔨 Build
         timeout-minutes: 10
@@ -64,4 +86,4 @@ jobs:
               run: npm install
 
             - name: 🔨 Build
-              run: make build
+              run: npm run build

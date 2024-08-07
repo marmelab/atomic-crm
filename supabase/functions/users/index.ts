@@ -1,20 +1,7 @@
 import 'jsr:@supabase/functions-js/edge-runtime.d.ts';
 import { createClient } from 'jsr:@supabase/supabase-js@2';
 import { supabaseAdmin } from '../_shared/supabaseAdmin.ts';
-
-export const corsHeaders = {
-    'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Headers':
-        'authorization, x-client-info, apikey, content-type',
-    'Access-Control-Allow-Methods': 'POST, PATCH, DELETE',
-};
-
-function createErrorResponse(status: number, message: string) {
-    return new Response(JSON.stringify({ status, message }), {
-        headers: { 'Content-Type': 'application/json', ...corsHeaders },
-        status,
-    });
-}
+import { corsHeaders, createErrorResponse } from '../_shared/utils.ts';
 
 async function updateSaleDisabled(user_id: string, disabled: boolean) {
     return await supabaseAdmin

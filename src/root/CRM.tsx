@@ -6,9 +6,12 @@ import {
     Resource,
     defaultTheme,
     localStorageStore,
+    mergeTranslations,
 } from 'react-admin';
 
 import { deepmerge } from '@mui/utils';
+import polyglotI18nProvider from 'ra-i18n-polyglot';
+import englishMessages from 'ra-language-english';
 import { Route } from 'react-router';
 import Layout from '../Layout';
 import { authProvider } from '../authProvider';
@@ -36,6 +39,12 @@ import {
     defaultTaskTypes,
     defaultTitle,
 } from './defaultConfiguration';
+
+import {
+    ForgotPasswordPage,
+    SetPasswordPage,
+    raSupabaseEnglishMessages,
+} from 'ra-supabase';
 
 // Define the interface for the CRM component props
 type CRMProps = {
@@ -135,9 +144,18 @@ export const CRM = ({
             dashboard={Dashboard}
             theme={lightTheme}
             darkTheme={darkTheme || null}
+            i18nProvider={i18nProvider}
         >
             <CustomRoutes noLayout>
                 <Route path={SignupPage.path} element={<SignupPage />} />
+                <Route
+                    path={SetPasswordPage.path}
+                    element={<SetPasswordPage />}
+                />
+                <Route
+                    path={ForgotPasswordPage.path}
+                    element={<ForgotPasswordPage />}
+                />
             </CustomRoutes>
             {permissions => (
                 <>
@@ -162,3 +180,7 @@ export const CRM = ({
         </Admin>
     </ConfigurationProvider>
 );
+
+const i18nProvider = polyglotI18nProvider(() => {
+    return mergeTranslations(englishMessages, raSupabaseEnglishMessages);
+}, 'en');
