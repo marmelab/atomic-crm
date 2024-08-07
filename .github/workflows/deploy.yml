@@ -24,7 +24,6 @@ jobs:
             SUPABASE_PROJECT_ID: ${{ secrets.SUPABASE_PROJECT_ID }}
             VITE_SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
             VITE_SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
-            VITE_APPLICATION_BASENAME: ${{ vars.VITE_APPLICATION_BASENAME }}
             VITE_IS_DEMO: ${{ vars.VITE_IS_DEMO }}
 
 
