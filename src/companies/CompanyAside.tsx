@@ -102,7 +102,7 @@ const CompanyInfo = ({ record }: { record: Company }) => {
 };
 
 const ContextInfo = ({ record }: { record: Company }) => {
-    if (!record.revenue && !record.id) {
+    if (!record.revenue && !record.identifier) {
         return null;
     }
 

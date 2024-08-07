@@ -1,5 +1,3 @@
-import TrashIcon from '@mui/icons-material/Delete';
-import EditIcon from '@mui/icons-material/Edit';
 import ContentSave from '@mui/icons-material/Save';
 import {
     Box,
@@ -19,16 +17,18 @@ import {
     useUpdate,
     WithRecord,
 } from 'react-admin';
+import TrashIcon from '@mui/icons-material/Delete';
+import EditIcon from '@mui/icons-material/Edit';
 import { FieldValues, SubmitHandler } from 'react-hook-form';
 
-import { CompanyAvatar } from '../companies/CompanyAvatar';
 import { Avatar } from '../contacts/Avatar';
-import { RelativeDate } from '../misc/RelativeDate';
 import { Status } from '../misc/Status';
-import { SaleName } from '../sales/SaleName';
 import { ContactNote, DealNote } from '../types';
 import { NoteAttachments } from './NoteAttachments';
 import { NoteInputs } from './NoteInputs';
+import { SaleName } from '../sales/SaleName';
+import { RelativeDate } from '../misc/RelativeDate';
+import { CompanyAvatar } from '../companies/CompanyAvatar';
 
 export const Note = ({
     showStatus,
@@ -112,10 +112,7 @@ export const Note = ({
                             render={record => <SaleName sale={record} />}
                         />
                     </ReferenceField>{' '}
-                    added a note{' '}
-                    {showStatus && note.status && (
-                        <Status status={note.status} />
-                    )}
+                    added a note {showStatus && <Status status={note.status} />}
                     <Box
                         component="span"
                         sx={{
