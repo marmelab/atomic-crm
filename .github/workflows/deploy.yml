@@ -56,8 +56,8 @@ jobs:
             - name: 📡 Deploy GitHub pages
               run: |
                   git remote set-url origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/$GITHUB_REPOSITORY
-                  git config --global user.email ${{ vars.GIT_USER_NAME }}
-                  git config --global user.name ${{ vars.GIT_USER_EMAIL }}
+                  git config --global user.email support+actions@github.com
+                  git config --global user.name github-actions-bot 
                   npm run ghpages:deploy
               env:
                   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
