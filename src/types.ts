@@ -126,7 +126,7 @@ export interface Task extends RaRecord {
     text: string;
     due_date: string;
     done_date?: string | null;
-    sales_id: Identifier;
+    sales_id?: Identifier;
 }
 
 export type ActivityCompanyCreated = {
