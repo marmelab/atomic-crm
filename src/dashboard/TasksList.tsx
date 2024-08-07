@@ -1,7 +1,6 @@
 import * as React from 'react';
-import { Card, Box, Stack } from '@mui/material';
+import { Card, Box, Stack, Typography } from '@mui/material';
 import AssignmentTurnedInIcon from '@mui/icons-material/AssignmentTurnedIn';
-import { Link } from 'react-admin';
 import { AddTask } from '../tasks/AddTask';
 import { startOfToday, endOfToday, addDays } from 'date-fns';
 import { TasksListFilter } from './TasksListFilter';
@@ -42,14 +41,9 @@ export const TasksList = () => {
                         fontSize="medium"
                     />
                 </Box>
-                <Link
-                    underline="none"
-                    variant="h5"
-                    color="textSecondary"
-                    to="/contacts"
-                >
+                <Typography variant="h5" color="textSecondary">
                     Upcoming Tasks
-                </Link>
+                </Typography>
             </Box>
             <Card sx={{ px: 2 }}>
                 <Box textAlign="center" mb={-2}>
