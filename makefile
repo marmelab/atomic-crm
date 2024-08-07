@@ -39,6 +39,12 @@ supabase-deploy:
 	npx supabase db push
 	npx supabase functions deploy
 
+test:
+	npm test
+
+test-ci:
+	CI=1 npm test
+
 lint:
 	npm run lint:check
 	npm run prettier:check
