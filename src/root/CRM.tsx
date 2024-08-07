@@ -6,9 +6,12 @@ import {
     Resource,
     defaultTheme,
     localStorageStore,
+    mergeTranslations,
 } from 'react-admin';
 
 import { deepmerge } from '@mui/utils';
+import polyglotI18nProvider from 'ra-i18n-polyglot';
+import englishMessages from 'ra-language-english';
 import { Route } from 'react-router';
 import Layout from '../Layout';
 import { authProvider } from '../authProvider';
@@ -36,6 +39,13 @@ import {
     defaultTaskTypes,
     defaultTitle,
 } from './defaultConfiguration';
+
+import {
+    ForgotPasswordPage,
+    SetPasswordPage,
+    raSupabaseEnglishMessages,
+} from 'ra-supabase';
+import { BrowserRouter } from 'react-router-dom';
 
 // Define the interface for the CRM component props
 type CRMProps = {
@@ -126,39 +136,54 @@ export const CRM = ({
         taskTypes={taskTypes}
         title={title}
     >
-        <Admin
-            dataProvider={dataProvider}
-            authProvider={authProvider}
-            store={localStorageStore(undefined, 'CRM')}
-            layout={Layout}
-            loginPage={LoginPage}
-            dashboard={Dashboard}
-            theme={lightTheme}
-            darkTheme={darkTheme || null}
-        >
-            <CustomRoutes noLayout>
-                <Route path={SignupPage.path} element={<SignupPage />} />
-            </CustomRoutes>
-            {permissions => (
-                <>
-                    <CustomRoutes>
-                        <Route
-                            path={SettingsPage.path}
-                            element={<SettingsPage />}
-                        />
-                    </CustomRoutes>
-                    <Resource name="deals" {...deals} />
-                    <Resource name="contacts" {...contacts} />
-                    <Resource name="companies" {...companies} />
-                    <Resource name="contactNotes" />
-                    <Resource name="dealNotes" />
-                    <Resource name="tasks" list={ListGuesser} />
-                    {permissions === 'admin' ? (
-                        <Resource name="sales" {...sales} />
-                    ) : null}
-                    <Resource name="tags" list={ListGuesser} />
-                </>
-            )}
-        </Admin>
+        <BrowserRouter>
+            <Admin
+                dataProvider={dataProvider}
+                authProvider={authProvider}
+                store={localStorageStore(undefined, 'CRM')}
+                layout={Layout}
+                loginPage={LoginPage}
+                dashboard={Dashboard}
+                theme={lightTheme}
+                darkTheme={darkTheme || null}
+                i18nProvider={i18nProvider}
+            >
+                <CustomRoutes noLayout>
+                    <Route path={SignupPage.path} element={<SignupPage />} />
+                    <Route
+                        path={SetPasswordPage.path}
+                        element={<SetPasswordPage />}
+                    />
+                    <Route
+                        path={ForgotPasswordPage.path}
+                        element={<ForgotPasswordPage />}
+                    />
+                </CustomRoutes>
+                {permissions => (
+                    <>
+                        <CustomRoutes>
+                            <Route
+                                path={SettingsPage.path}
+                                element={<SettingsPage />}
+                            />
+                        </CustomRoutes>
+                        <Resource name="deals" {...deals} />
+                        <Resource name="contacts" {...contacts} />
+                        <Resource name="companies" {...companies} />
+                        <Resource name="contactNotes" />
+                        <Resource name="dealNotes" />
+                        <Resource name="tasks" list={ListGuesser} />
+                        {permissions === 'admin' ? (
+                            <Resource name="sales" {...sales} />
+                        ) : null}
+                        <Resource name="tags" list={ListGuesser} />
+                    </>
+                )}
+            </Admin>
+        </BrowserRouter>
     </ConfigurationProvider>
 );
+
+const i18nProvider = polyglotI18nProvider(() => {
+    return mergeTranslations(englishMessages, raSupabaseEnglishMessages);
+}, 'en');
