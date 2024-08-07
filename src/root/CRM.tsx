@@ -136,7 +136,9 @@ export const CRM = ({
         taskTypes={taskTypes}
         title={title}
     >
-        <BrowserRouter>
+        <BrowserRouter
+            basename={import.meta.env.VITE_APPLICATION_BASENAME || undefined}
+        >
             <Admin
                 dataProvider={dataProvider}
                 authProvider={authProvider}
