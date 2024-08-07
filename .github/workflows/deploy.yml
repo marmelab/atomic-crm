@@ -8,6 +8,9 @@ concurrency:
     group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
     cancel-in-progress: true
 
+permissions:
+    pages: write
+
 jobs:
     deploy:
         name: 🚀 Deploy
@@ -48,4 +51,8 @@ jobs:
               run: npx supabase functions deploy
 
             - name: 📡 Deploy GitHub pages
-              run: npm run ghpages:deploy
+              run: |
+                  git remote set-url origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@$GITHUB_SERVER_URL/$GITHUB_REPOSITORY
+                  git config --global user.email ${{ vars.GIT_USER_NAME }}
+                  git config --global user.name ${{ vars.GIT_USER_EMAIL }}
+                  npm run ghpages:deploy

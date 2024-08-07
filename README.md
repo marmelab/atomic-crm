@@ -100,6 +100,11 @@ SUPABASE_DB_PASSWORD: Your supabase database password
 SUPABASE_PROJECT_ID: Your supabase project id
 ```
 
+You will also need to configure the following environment variables to deploy to GH pages:
+```bash
+GIT_USER_NAME: The deploy account's name
+GIT_USER_EMAIL: The deploy user's email
+```
 
 ## Customizing
 
@@ -237,4 +242,3 @@ But you can also apply changes in the database directly using the supabase Dashb
 Create a new migration using the following command:
 ```sh
 npx supabase db diff | npx supabase migration create <migration_name>
-```
