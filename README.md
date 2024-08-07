@@ -6,7 +6,7 @@ https://user-images.githubusercontent.com/99944/116970434-4a926480-acb8-11eb-8ce
 
 You can test it online at https://marmelab.com/react-admin-crm.
 
-## Setup
+## Local Supabase Setup
 
 To run this project locally, you will need the following tools installed on your computer:
 
@@ -49,49 +49,9 @@ This project contains unit tests. Run them with the following command:
 make test
 ```
 
-## Deploying To Production
+## Supabase Configuration
 
-In production, Atomic CRM is designed to be a Single-Page Application using Supabase for its API.
-
-### Supabase Setup
-
-Create a project on Supabase using the following script:
-
-```sh
-make supabase-remote-init
-```
-
-The script will open a web browser to let you log in to your Supabase account. Then it will prompt you for the project configuration, create a database, apply migrations, and deploy edge functions.
-
-### Using An Existing Supabase Instance
-
-If you already created the Supabase instance, you can link the instance manually using the following instructions.
-
-First, log into your Supabase account:
-
-```sh
-npx supabase login
-```
-
-Now, link the project to the Supabase instance. You'll be asked to enter the database password.
-
-```sh
-npx supabase link --project-ref ********************
-```
-
-Then, apply the migrations:
-
-```sh
-npx supabase db push
-npx supabase functions deploy
-```
-
-Finally, create the `.env.production.local` file with your supabase configuration:
-
-```sh
-VITE_SUPABASE_URL=<instance_url>
-VITE_SUPABASE_ANON_KEY=<instance_anon_token>
-```
+To configure supabase, please have a look at [dedicated configuration guide](./doc/supabase-configuration.md).
 
 ### Testing Production Mode
 
