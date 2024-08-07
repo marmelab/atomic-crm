@@ -13,15 +13,56 @@ if (!webhookUser || !webhookPassword) {
         'Missing POSTMARK_WEBHOOK_USER or POSTMARK_WEBHOOK_PASSWORD env variable'
     );
 }
-const expectedAuthorization = `Basic ${btoa(`${webhookUser}:${webhookPassword}`)}`;
 
 const rawAuthorizedIPs = Deno.env.get('POSTMARK_WEBHOOK_AUTHORIZED_IPS');
 if (!rawAuthorizedIPs) {
     throw new Error('Missing POSTMARK_WEBHOOK_AUTHORIZED_IPS env variable');
 }
-const authorizedIPs = rawAuthorizedIPs.split(',').map(ip => ip.trim());
 
 Deno.serve(async req => {
+    let response: Response | undefined;
+
+    response = checkRequestTypeAndHeaders(req);
+    if (response) return response;
+
+    const json = await req.json();
+    response = checkBody(json);
+    if (response) return response;
+
+    const { ToFull, FromFull, Subject, TextBody, StrippedTextReply } = json;
+
+    const noteContent = getNoteContent(Subject, StrippedTextReply || TextBody);
+
+    const { Email: salesEmail } = FromFull;
+    if (!salesEmail)
+        return new Response(
+            `Could not extract sales email from FromFull: ${FromFull}`,
+            { status: 403 }
+        );
+
+    const { firstName, lastName, email, domain } =
+        extractMailContactData(ToFull);
+    if (!email)
+        return new Response(`Could not extract email from ToFull: ${ToFull}`, {
+            status: 403,
+        });
+
+    return await addNoteToContact({
+        salesEmail,
+        email,
+        domain,
+        firstName,
+        lastName,
+        noteContent,
+    });
+});
+
+export const getExpectedAuthorization = (
+    webhookUser: string,
+    webhookPassword: string
+) => `Basic ${btoa(`${webhookUser}:${webhookPassword}`)}`;
+
+const checkRequestTypeAndHeaders = (req: Request) => {
     // Only allow known IP addresses
     // We can use the x-forwarded-for header as it is populated by Supabase
     // https://supabase.com/docs/guides/api/securing-your-api#accessing-request-information
@@ -30,6 +71,7 @@ Deno.serve(async req => {
         return new Response('Unauthorized', { status: 401 });
     }
     const ips = forwardedFor.split(',').map(ip => ip.trim());
+    const authorizedIPs = rawAuthorizedIPs.split(',').map(ip => ip.trim());
     if (!ips.some(ip => authorizedIPs.includes(ip))) {
         return new Response('Unauthorized', { status: 401 });
     }
@@ -40,13 +82,19 @@ Deno.serve(async req => {
     }
 
     // Check the Authorization header
+    const expectedAuthorization = getExpectedAuthorization(
+        webhookUser,
+        webhookPassword
+    );
     const authorization = req.headers.get('Authorization');
     if (authorization !== expectedAuthorization) {
         return new Response('Unauthorized', { status: 401 });
     }
+};
 
-    const { ToFull, FromFull, Subject, TextBody, StrippedTextReply } =
-        await req.json();
+// deno-lint-ignore no-explicit-any
+const checkBody = (json: any) => {
+    const { ToFull, FromFull, Subject, TextBody } = json;
 
     if (!ToFull || !ToFull.length)
         return new Response('Missing parameter: ToFull', { status: 403 });
@@ -58,15 +106,71 @@ Deno.serve(async req => {
         return new Response('Missing parameter: TextBody', {
             status: 403,
         });
+};
 
-    const noteContent = getNoteContent(Subject, StrippedTextReply || TextBody);
+/**
+ * Extracts the first name, last name, email, and domain from a mail contact.
+ *
+ * Example:
+ *   "ToFull": [
+ *     {
+ *       "Email": "firstname.lastname@marmelab.com",
+ *       "Name": "Firstname Lastname"
+ *     }
+ *   ]
+ *
+ * Return Value:
+ *  {
+ *    firstName: "Firstname",
+ *    lastName: "Lastname",
+ *    email: "firstname.lastname@marmelab.com",
+ *    domain: "marmelab.com"
+ * }
+ *
+ */
+export const extractMailContactData = (
+    ToFull: {
+        Email: string;
+        Name: string;
+    }[]
+) => {
+    // We only support one recipient for now
+    const contact = ToFull[0];
 
-    const { Email: salesEmail } = FromFull;
-    if (!salesEmail)
-        return new Response(
-            `Could not extract sales email from FromFull: ${FromFull}`,
-            { status: 403 }
-        );
+    const domain = contact.Email.split('@')[1];
+    const fullName = contact.Name;
+    let firstName = '';
+    let lastName = fullName;
+    if (fullName && fullName.includes(' ')) {
+        const parts = fullName.split(' ');
+        firstName = parts[0];
+        lastName = parts.slice(1).join(' ');
+    }
+    return { firstName, lastName, email: contact.Email, domain };
+};
+
+export const getNoteContent = (
+    subject: string,
+    strippedText: string
+) => `${subject}
+
+${strippedText}`;
+
+const addNoteToContact = async ({
+    salesEmail,
+    email,
+    domain,
+    firstName,
+    lastName,
+    noteContent,
+}: {
+    salesEmail: string;
+    email: string;
+    domain: string;
+    firstName: string;
+    lastName: string;
+    noteContent: string;
+}) => {
     const { data: sales, error: fetchSalesError } = await supabaseAdmin
         .from('sales')
         .select('*')
@@ -83,13 +187,7 @@ Deno.serve(async req => {
             { status: 403 }
         );
 
-    const { firstName, lastName, email, domain } =
-        extractMailContactData(ToFull);
-    if (!email)
-        return new Response(`Could not extract email from ToFull: ${ToFull}`, {
-            status: 403,
-        });
-
+    // Check if the contact already exists
     const { data: existingContact, error: fetchContactError } =
         await supabaseAdmin
             .from('contacts')
@@ -108,6 +206,8 @@ Deno.serve(async req => {
         contact = existingContact;
     } else {
         // If the contact does not exist, we need to create it, along with the company if needed
+
+        // Check if the company already exists
         const { data: existingCompany, error: fetchCompanyError } =
             await supabaseAdmin
                 .from('companies')
@@ -176,52 +276,7 @@ Deno.serve(async req => {
         );
 
     return new Response('OK');
-});
-
-/**
- * Extracts the first name, last name, email, and domain from a mail contact.
- *
- * Example:
- *   "ToFull": [
- *     {
- *       "Email": "firstname.lastname@marmelab.com",
- *       "Name": "Firstname Lastname"
- *     }
- *   ]
- *
- * Return Value:
- *  {
- *    firstName: "Firstname",
- *    lastName: "Lastname",
- *    email: "firstname.lastname@marmelab.com",
- *    domain: "marmelab.com.com"
- * }
- *
- */
-const extractMailContactData = (
-    ToFull: {
-        Email: string;
-        Name: string;
-    }[]
-) => {
-    // We only support one recipient for now
-    const contact = ToFull[0];
-
-    const domain = contact.Email.split('@')[1];
-    const fullName = contact.Name;
-    let firstName = '';
-    let lastName = fullName;
-    if (fullName && fullName.includes(' ')) {
-        const parts = fullName.split(' ');
-        firstName = parts[0];
-        lastName = parts.slice(1).join(' ');
-    }
-    return { firstName, lastName, email: contact.Email, domain };
 };
-
-const getNoteContent = (subject: string, strippedText: string) => `${subject}
-
-${strippedText}`;
 
 /* To invoke locally:
   1. Run `make start`
