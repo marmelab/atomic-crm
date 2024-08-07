@@ -285,6 +285,12 @@ export const dataProvider = withLifecycleCallbacks(
             },
         },
         {
+            resource: 'contacts_summary',
+            beforeGetList: async params => {
+                return applyFullTextSearch(['first_name', 'last_name'])(params);
+            },
+        },
+        {
             resource: 'deals',
             beforeGetList: async params => {
                 return applyFullTextSearch(['name', 'type', 'description'])(
