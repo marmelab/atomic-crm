@@ -228,7 +228,7 @@ const DealsIterator = () => {
                                         currencyDisplay: 'narrowSymbol',
                                         minimumSignificantDigits: 3,
                                     })}
-                                    , {deal.type}
+                                    {deal.category ? `, ${deal.category}` : ''}
                                 </>
                             }
                         />
