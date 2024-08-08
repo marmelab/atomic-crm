@@ -253,12 +253,12 @@ Create a new migration using the following command:
 npx supabase db diff | npx supabase migration new <migration_name>
 ```
 
-### Password Reset When Forgotten
-If users forgot their password, they can request for a reset. Atomic CRM handle it for you. All the magic is done by the custom route `/forgot-password` and `/set-password` that you can find in the `CRM` component.
+### Password Reset When Forgotten or Password change
+If users forgot their password or want to update it, they can request for a reset. Atomic CRM handle it for you. All the magic is done by the custom route `/forgot-password` and `/set-password` that you can find in the `CRM` component.
 
 If you want to update default configuration: 
 
-### Local development
+#### Local development
 
 1. Go to your `config.toml` file
 2. In `[auth]` section set `site_url` to  your application URL
@@ -283,7 +283,7 @@ In Recovery email template set the `auth-callback` redirection
 
 Supabase provides an [Inbucket](https://inbucket.org/) instance that allows you to test your emails and configure your flow.
 
-### Production
+#### Production
 
 This requires you to configure your supabase instance:
 
@@ -291,3 +291,7 @@ This requires you to configure your supabase instance:
 2. In URL Configuration, set Site URL to your application URL
 3. In URL Configuration, add the following URL in the Redirect URLs section: `YOUR_APPLICATION_URL/auth-callback`
 4. In Email Templates, change the `"{{ .ConfirmationURL }}"` to `"{{ .ConfirmationURL }}/auth-callback"`
+
+### Invite Users
+
+You can invite users to your CRM. The invitation is sent by email. The invited user will receive an email with a link to set a password. Do the same configuration as the password reset process but with the `invite` template.
