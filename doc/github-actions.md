@@ -13,7 +13,7 @@ SUPABASE_URL: Your supabase project URL
 SUPABASE_ANON_KEY: Your supabase project anonymous key
 POSTMARK_WEBHOOK_USER: User configured in Postmark to secure the webhook
 POSTMARK_WEBHOOK_PASSWORD: Password configured in Postmark to secure the webhook
-POSTMARK_WEBHOOK_AUTHORIZED_IPS: List of IPs (comma separated) authorized to send requests to the webhook
+POSTMARK_WEBHOOK_AUTHORIZED_IPS: List of IPs (comma separated) authorized to send requests to the Postmark webhook
 ```
 
 ## Deploying to Another Repository
