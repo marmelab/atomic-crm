@@ -38,7 +38,7 @@ These commands will push the secrets to your remote Supabase project.
 
 > **Note:** The list of authorized Postmark IPs can be found in the [Postmark support pages](https://postmarkapp.com/support/article/800-ips-for-firewalls#webhooks).
 
-If you are using this repository's GitHub Actions to automatically deploy to your Supabase instace, you will need to set these secrets in your repository's settings.
+If you are using this repository's GitHub Actions to automatically deploy to your Supabase instance, you will need to set these secrets in your repository's settings.
 
 ```sh
 POSTMARK_WEBHOOK_USER=<user>
