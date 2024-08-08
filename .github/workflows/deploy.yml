@@ -52,6 +52,12 @@ jobs:
             - name: 📡 Push supabase migrations
               run: npx supabase db push
 
+            - name: 📡 Push supabase functions secrets
+              run: |
+                  npx supabase secrets set POSTMARK_WEBHOOK_USER=${{ secrets.POSTMARK_WEBHOOK_USER }}
+                  npx supabase secrets set POSTMARK_WEBHOOK_PASSWORD=${{ secrets.POSTMARK_WEBHOOK_PASSWORD }}
+                  npx supabase secrets set POSTMARK_WEBHOOK_AUTHORIZED_IPS=${{ secrets.POSTMARK_WEBHOOK_AUTHORIZED_IPS }}
+
             - name: 📡 Deploy supabase functions
               run: npx supabase functions deploy
 
