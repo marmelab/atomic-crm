@@ -25,11 +25,14 @@ export const addNoteToContact = async ({
             `Could not fetch sales from database, email: ${salesEmail}`,
             { status: 500 }
         );
-    if (!sales)
+    if (!sales) {
+        // Return a 403 to let Postmark know that it's no use to retry this request
+        // https://postmarkapp.com/developer/webhooks/inbound-webhook#errors-and-retries
         return new Response(
             `Unable to find sales in database, email: ${salesEmail}`,
             { status: 403 }
         );
+    }
 
     // Check if the contact already exists
     const { data: existingContact, error: fetchContactError } =
