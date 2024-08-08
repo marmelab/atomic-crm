@@ -1,10 +1,10 @@
 import * as React from 'react';
-import { Card, Box, Stack } from '@mui/material';
+import { Card, Box, Stack, Typography } from '@mui/material';
 import AssignmentTurnedInIcon from '@mui/icons-material/AssignmentTurnedIn';
-import { Link } from 'react-admin';
 import { AddTask } from '../tasks/AddTask';
 import { startOfToday, endOfToday, addDays } from 'date-fns';
 import { TasksListFilter } from './TasksListFilter';
+import { TasksListEmpty } from './TasksListEmpty';
 
 const today = new Date();
 const startOfTodayDateISO = startOfToday().toISOString();
@@ -42,20 +42,14 @@ export const TasksList = () => {
                         fontSize="medium"
                     />
                 </Box>
-                <Link
-                    underline="none"
-                    variant="h5"
-                    color="textSecondary"
-                    to="/contacts"
-                >
+                <Typography variant="h5" color="textSecondary">
                     Upcoming Tasks
-                </Link>
+                </Typography>
+                <AddTask display="icon" selectContact />
             </Box>
-            <Card sx={{ px: 2 }}>
-                <Box textAlign="center" mb={-2}>
-                    <AddTask selectContact />
-                </Box>
-                <Stack mb={2}>
+            <Card sx={{ p: 2 }}>
+                <Stack>
+                    <TasksListEmpty />
                     <TasksListFilter
                         title="Overdue"
                         filter={taskFilters.overdue}
