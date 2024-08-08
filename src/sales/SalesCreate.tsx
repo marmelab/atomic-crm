@@ -6,14 +6,17 @@ import {
     SimpleForm,
     useDataProvider,
     useNotify,
+    usePermissions,
     useRedirect,
 } from 'react-admin';
 import { SubmitHandler } from 'react-hook-form';
+import { Navigate } from 'react-router';
 import { CrmDataProvider } from '../providers/types';
 import { SalesFormData } from '../types';
 import { SalesInputs } from './SalesInputs';
 
 export function SalesCreate() {
+    const { isPending, permissions } = usePermissions();
     const dataProvider = useDataProvider<CrmDataProvider>();
     const notify = useNotify();
     const redirect = useRedirect();
@@ -33,6 +36,14 @@ export function SalesCreate() {
     const onSubmit: SubmitHandler<SalesFormData> = async data => {
         mutate(data);
     };
+
+    if (isPending) {
+        return null;
+    }
+
+    if (permissions !== 'admin') {
+        return <Navigate to="/" />;
+    }
 
     return (
         <Container maxWidth="sm" sx={{ mt: 4 }}>
