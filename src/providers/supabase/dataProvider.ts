@@ -359,13 +359,17 @@ const uploadToBucket = async (fi: RAFile) => {
         }
     }
 
+    const dataContent = fi.src
+        ? await fetch(fi.src).then(res => res.blob())
+        : fi.rawFile;
+
     const file = fi.rawFile;
     const fileExt = file.name.split('.').pop();
     const fileName = `${Math.random()}.${fileExt}`;
     const filePath = `${fileName}`;
     const { error: uploadError } = await supabase.storage
         .from('attachments')
-        .upload(filePath, file);
+        .upload(filePath, dataContent);
 
     if (uploadError) {
         console.error('uploadError', uploadError);
