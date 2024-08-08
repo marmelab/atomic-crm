@@ -14,14 +14,13 @@ import polyglotI18nProvider from 'ra-i18n-polyglot';
 import englishMessages from 'ra-language-english';
 import { Route } from 'react-router';
 import Layout from '../Layout';
-import { authProvider } from '../authProvider';
 import companies from '../companies';
 import contacts from '../contacts';
 import { Dashboard } from '../dashboard/Dashboard';
-import { dataProvider } from '../dataProvider';
 import deals from '../deals';
 import { LoginPage } from '../login/LoginPage';
 import { SignupPage } from '../login/SignupPage';
+import { authProvider, dataProvider } from '../providers/supabase';
 import sales from '../sales';
 import { SettingsPage } from '../settings/SettingsPage';
 import {

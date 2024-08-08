@@ -23,11 +23,10 @@ import {
     useUpdate,
 } from 'react-admin';
 import { useFormState } from 'react-hook-form';
-import { USER_STORAGE_KEY } from '../authProvider';
 import ImageEditorField from '../misc/ImageEditorField';
-import { UpdatePassword } from './UpdatePassword';
+import { CrmDataProvider } from '../providers/types';
 import { SalesFormData } from '../types';
-import { CustomDataProvider } from '../dataProvider';
+import { UpdatePassword } from './UpdatePassword';
 
 export const SettingsPage = () => {
     const [isEditMode, setEditMode] = useState(false);
@@ -36,7 +35,7 @@ export const SettingsPage = () => {
         id: identity?.id,
     });
     const notify = useNotify();
-    const dataProvider = useDataProvider<CustomDataProvider>();
+    const dataProvider = useDataProvider<CrmDataProvider>();
 
     const { mutate } = useMutation({
         mutationKey: ['signup'],
@@ -105,12 +104,7 @@ const SettingsForm = ({
                 previousData: identity,
             },
             {
-                onSuccess: data => {
-                    // Update local user
-                    localStorage.setItem(
-                        USER_STORAGE_KEY,
-                        JSON.stringify(data)
-                    );
+                onSuccess: () => {
                     refetch();
                     setEditMode(false);
                     notify('Your profile has been updated');

@@ -3,6 +3,9 @@ import { transformInFilter } from './transformInFilter';
 import { transformOrFilter } from './transformOrFilter';
 
 export function transformFilter(filter: Record<string, any>) {
+    if (!filter) {
+        return undefined;
+    }
     const transformedFilters: Record<string, any> = {};
     for (const [key, value] of Object.entries(filter)) {
         if (
