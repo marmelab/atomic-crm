@@ -1,6 +1,10 @@
 # Supabase Configuration
 
-## Remote Instance Setup
+## Link Remote Instance Locally
+
+Local remote instance link can be interesting if you want to deploy from your development computer or if you want your app with production data in production mode.
+
+### Automatic Remote Instance Setup
 
 You can create a remote supabase using the following script:
 ```sh
@@ -10,7 +14,7 @@ make supabase-remote-init
 The script will prompt you for the project configuration and will apply migrations and deploy edge functions.
 
 
-## Manual Remove Instance Link
+### Manual Remote Instance Link
 
 If you already created the supabase instance, you can link the instance manually using the following commands:
 First, log into your supabase account:
@@ -37,9 +41,32 @@ VITE_SUPABASE_URL=<instance_url>
 VITE_SUPABASE_ANON_KEY=<instance_anon_token>
 ```
 
+This will allow your to use the linked supabase instance when running the following command to test the app in production mode locally:
+```sh
+make prod-start
+```
+
+## Continuous Integration and Continuous Delivery
+
+This repository includes GitHub action worflow for Continuous Delivery. The configuration is explained in the [GitHub Actiosns guide](./github-actions.md) in the same directory.
+
 ## Login Callback
 
-To configure the authentication URL, you can go to your project dashboard at [supabase.com](https://supabase.com/). Then go to **Authentication** > **URL Configuration**. You can set up you callbacl URL in the **Site URL** field.
+To configure the authentication URL, you can go to your project dashboard at [supabase.com](https://supabase.com/). Then go to **Authentication** > **URL Configuration**. You can set up you callback URL in the **Site URL** field.
+
+## Customizing Mail Template
+
+### Local Instance Templates
+
+You can customize the mail templates via the [supabase config](../supabase/config.toml) file. An example of a custom template has been done for the [recovery](../supabase/templates/recovery.html) email.
+
+Note: updating the templates requires to restart your supabase instance.
+
+If you want more information on how to customize email templates, go to the [related supabase documentation](https://supabase.com/docs/guides/cli/customizing-email-templates).
+
+### Linked Instance Templates
+
+If you want to customize the production templates, you can go to your project dashboard at [supabase.com](https://supabase.com/). Then go to **Authentication** > **Email Templates**. You can the choose which template to change using the email template stabs.
 
 ## Fequently Asked Questions
 
