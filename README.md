@@ -49,7 +49,9 @@ This project contains unit tests. Run them with the following command:
 make test
 ```
 
-## Supabase Configuration
+## Deploying to production
+
+### Supabase Configuration
 
 To configure supabase, please have a look at [dedicated configuration guide](./doc/supabase-configuration.md).
 
