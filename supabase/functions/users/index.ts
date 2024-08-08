@@ -38,10 +38,10 @@ async function inviteUser(req: Request) {
             user_metadata: { first_name, last_name },
         });
 
-    const { data: emailData, error: emailError } =
+    const { _, error: emailError } =
         await supabaseAdmin.auth.admin.inviteUserByEmail(email);
 
-    if (!data?.user || userError) {
+    if (!data?.user || userError || emailError) {
         console.error('Error inviting user:', userError);
         return createErrorResponse(500, 'Internal Server Error');
     }
