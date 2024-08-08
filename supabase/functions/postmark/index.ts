@@ -37,18 +37,24 @@ Deno.serve(async req => {
     const noteContent = getNoteContent(Subject, StrippedTextReply || TextBody);
 
     const { Email: salesEmail } = FromFull;
-    if (!salesEmail)
+    if (!salesEmail) {
+        // Return a 403 to let Postmark know that it's no use to retry this request
+        // https://postmarkapp.com/developer/webhooks/inbound-webhook#errors-and-retries
         return new Response(
             `Could not extract sales email from FromFull: ${FromFull}`,
             { status: 403 }
         );
+    }
 
     const { firstName, lastName, email, domain } =
         extractMailContactData(ToFull);
-    if (!email)
+    if (!email) {
+        // Return a 403 to let Postmark know that it's no use to retry this request
+        // https://postmarkapp.com/developer/webhooks/inbound-webhook#errors-and-retries
         return new Response(`Could not extract email from ToFull: ${ToFull}`, {
             status: 403,
         });
+    }
 
     return await addNoteToContact({
         salesEmail,
@@ -94,6 +100,9 @@ const checkRequestTypeAndHeaders = (req: Request) => {
 const checkBody = (json: any) => {
     const { ToFull, FromFull, Subject, TextBody } = json;
 
+    // In case of incorrect request data, we
+    // return a 403 to let Postmark know that it's no use to retry this request
+    // https://postmarkapp.com/developer/webhooks/inbound-webhook#errors-and-retries
     if (!ToFull || !ToFull.length)
         return new Response('Missing parameter: ToFull', { status: 403 });
     if (!FromFull)
