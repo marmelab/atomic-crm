@@ -25,7 +25,7 @@ jobs:
             VITE_SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
             VITE_SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
             VITE_IS_DEMO: ${{ vars.VITE_IS_DEMO }}
-            DEPLOY_REPO_URL: ${{ secrets.DEPLOY_REPO_URL }}
+            DEPLOY_REPO_URL: ${{ vars.DEPLOY_REPO_URL }}
 
         steps:
             - name: 📥 Checkout repo
