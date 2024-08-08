@@ -1,5 +1,5 @@
-import SettingsIcon from '@mui/icons-material/Settings';
 import PeopleIcon from '@mui/icons-material/People';
+import SettingsIcon from '@mui/icons-material/Settings';
 import {
     AppBar,
     Box,

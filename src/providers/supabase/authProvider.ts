@@ -58,6 +58,7 @@ export const authProvider: AuthProvider = {
         const isInitialized = await getIsInitialized();
 
         if (!isInitialized) {
+            await supabase.auth.signOut();
             // eslint-disable-next-line no-throw-literal
             throw {
                 redirectTo: '/sign-up',

@@ -7,7 +7,12 @@ import {
     Typography,
 } from '@mui/material';
 import { useMutation, useQuery } from '@tanstack/react-query';
-import { useDataProvider, useLogin, useNotify } from 'react-admin';
+import {
+    useDataProvider,
+    useLogin,
+    useNotify,
+    usePermissions,
+} from 'react-admin';
 import { SubmitHandler, useForm } from 'react-hook-form';
 import { Navigate } from 'react-router';
 import { CrmDataProvider } from '../providers/types';
@@ -16,6 +21,7 @@ import { SignUpData } from '../types';
 import { LoginSkeleton } from './LoginSkeleton';
 
 export const SignupPage = () => {
+    const { refetch } = usePermissions();
     const dataProvider = useDataProvider<CrmDataProvider>();
     const { logo, title } = useConfigurationContext();
     const { data: isInitialized, isPending } = useQuery({
@@ -35,10 +41,10 @@ export const SignupPage = () => {
                 email: data.email,
                 password: data.password,
                 redirectTo: '/contacts',
-            });
-            setTimeout(() => {
+            }).then(() => {
                 notify('Initial user successfully created');
-            }, 0);
+                refetch();
+            });
         },
         onError: () => {
             notify('An error occurred. Please try again.');
