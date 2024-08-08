@@ -8,6 +8,7 @@ import {
     DialogTitle,
     IconButton,
     Stack,
+    Tooltip,
 } from '@mui/material';
 import * as React from 'react';
 import { useState } from 'react';
@@ -51,18 +52,20 @@ export const AddTask = ({
     return (
         <>
             {display === 'icon' ? (
-                <IconButton
-                    size="small"
-                    sx={{
-                        color: 'text.secondary',
-                        ml: 'auto',
-                    }}
-                    component={Link}
-                    to={'#'}
-                    onClick={handleOpen}
-                >
-                    <ControlPointIcon fontSize="inherit" />
-                </IconButton>
+                <Tooltip title="Create task">
+                    <IconButton
+                        size="small"
+                        sx={{
+                            color: 'text.secondary',
+                            ml: 'auto',
+                        }}
+                        component={Link}
+                        to={'#'}
+                        onClick={handleOpen}
+                    >
+                        <ControlPointIcon fontSize="inherit" />
+                    </IconButton>
+                </Tooltip>
             ) : (
                 <Box mt={2} mb={2}>
                     <Chip
