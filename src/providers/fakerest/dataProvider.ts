@@ -267,15 +267,6 @@ export const dataProvider = withLifecycleCallbacks(
                 }
                 return params;
             },
-            beforeUpdate: async params => {
-                const { data } = params;
-                if (data.new_password) {
-                    data.password = data.new_password;
-                    delete data.new_password;
-                }
-
-                return params;
-            },
             afterSave: async data => {
                 // Since the current user is stored in localStorage in fakerest authProvider
                 // we need to update it to keep information up to date in the UI
