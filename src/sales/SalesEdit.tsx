@@ -11,7 +11,7 @@ import {
     useRedirect,
 } from 'react-admin';
 import { SubmitHandler } from 'react-hook-form';
-import { CustomDataProvider } from '../dataProvider';
+import { CrmDataProvider } from '../providers/types';
 import { Sale, SalesFormData } from '../types';
 import { SalesInputs } from './SalesInputs';
 
@@ -26,7 +26,7 @@ function EditToolbar() {
 export function SalesEdit() {
     const { record } = useEditController();
 
-    const dataProvider = useDataProvider<CustomDataProvider>();
+    const dataProvider = useDataProvider<CrmDataProvider>();
     const notify = useNotify();
     const redirect = useRedirect();
 

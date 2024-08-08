@@ -1,4 +1,4 @@
-import { Company } from '../types';
+import { Company } from '../../types';
 
 // Helper function to get the favicon URL
 async function getFaviconUrl(website: string): Promise<string | null> {
