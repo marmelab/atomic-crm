@@ -31,7 +31,7 @@ export const CompanyListFilter = () => {
                 <FilterListItem
                     label="Me"
                     value={{
-                        sales_id: identity && identity.id,
+                        sales_id: identity?.id,
                     }}
                 />
             </FilterList>

@@ -57,6 +57,9 @@ const defaultLightTheme = deepmerge(defaultTheme, {
         background: {
             default: '#fafafb',
         },
+        primary: {
+            main: '#2F68AC',
+        },
     },
     components: {
         RaFileInput: {

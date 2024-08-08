@@ -38,10 +38,7 @@ export const ContactListFilter = () => {
                 label="Account manager"
                 icon={<SupervisorAccountIcon />}
             >
-                <FilterListItem
-                    label="Me"
-                    value={{ sales_id: identity && identity.id }}
-                />
+                <FilterListItem label="Me" value={{ sales_id: identity?.id }} />
             </FilterList>
             <FilterList label="Last activity" icon={<AccessTimeIcon />}>
                 <FilterListItem
