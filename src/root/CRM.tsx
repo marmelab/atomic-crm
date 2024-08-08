@@ -147,6 +147,7 @@ export const CRM = ({
             theme={lightTheme}
             darkTheme={darkTheme || null}
             i18nProvider={i18nProvider}
+            requireAuth
         >
             <CustomRoutes noLayout>
                 <Route path={SignupPage.path} element={<SignupPage />} />

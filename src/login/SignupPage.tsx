@@ -81,7 +81,7 @@ export const SignupPage = () => {
                 <img
                     src={logo}
                     alt={title}
-                    width={50}
+                    width={24}
                     style={{ filter: 'invert(0.9)' }}
                 />
                 <Typography component="span" variant="h5">
