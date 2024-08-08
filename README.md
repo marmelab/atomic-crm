@@ -135,27 +135,7 @@ It will apply migrations, deploy edge functions and push the built applications 
 
 ## GitHub Actions
 
-This project supports github actions for continuous integration and delivery. To enable GitHub actions on this repo, you will
-have to create the following secrets:
-
-```bash
-SUPABASE_ACCESS_TOKEN: Your personal access token, can be found at https://supabase.com/dashboard/account/tokens
-SUPABASE_DB_PASSWORD: Your supabase database password
-SUPABASE_PROJECT_ID: Your supabase project id
-SUPABASE_URL: Your supabase project URL
-SUPABASE_ANON_KEY: Your supabase project anonymous key
-```
-
-Also, you will need to configure the some variables:
-```bash
-VITE_IS_DEMO: Set to `true` if you want to display the demo banner
-```
-
-You will also need to configure the following environment variables to deploy to GH pages:
-```bash
-GIT_USER_NAME: The deploy account's name
-GIT_USER_EMAIL: The deploy user's email
-```
+Learn how to [configure GitHub Actions for Atomic CRM](./doc/github-actions.md).
 
 ## Customizing
 
