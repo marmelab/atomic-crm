@@ -37,9 +37,7 @@ export const SignupPage = () => {
                 redirectTo: '/contacts',
             });
             setTimeout(() => {
-                notify(
-                    'Welcome! You can now start entering contacts, write notes and plan deals'
-                );
+                notify('Initial user successfully created');
             }, 0);
         },
         onError: () => {
@@ -90,28 +88,23 @@ export const SignupPage = () => {
                         gap: 1,
                     }}
                 >
-                    <Typography variant="h3" component="h1" gutterBottom>
-                        Welcome!
+                    <Typography variant="h4" component="h1" gutterBottom>
+                        Welcome to Atomic CRM
                     </Typography>
                     <Typography variant="body1" gutterBottom>
-                        Create your account to manage your contacts, companies,
-                        and deals.
+                        Create the first user account to complete the setup.
                     </Typography>
                     <form onSubmit={handleSubmit(onSubmit)}>
                         <TextField
                             {...register('first_name', { required: true })}
                             label="First name"
                             variant="outlined"
-                            helperText={false}
-                            InputLabelProps={{ shrink: true }}
                             required
                         />
                         <TextField
                             {...register('last_name', { required: true })}
                             label="Last name"
                             variant="outlined"
-                            helperText={false}
-                            InputLabelProps={{ shrink: true }}
                             required
                         />
                         <TextField
@@ -119,8 +112,6 @@ export const SignupPage = () => {
                             label="Email"
                             type="email"
                             variant="outlined"
-                            helperText={false}
-                            InputLabelProps={{ shrink: true }}
                             required
                         />
                         <TextField
@@ -128,7 +119,6 @@ export const SignupPage = () => {
                             label="Password"
                             type="password"
                             variant="outlined"
-                            InputLabelProps={{ shrink: true }}
                             required
                         />
                         <Stack
@@ -141,6 +131,7 @@ export const SignupPage = () => {
                                 type="submit"
                                 variant="contained"
                                 disabled={!isValid || isSignUpPending}
+                                fullWidth
                             >
                                 {isSignUpPending ? (
                                     <CircularProgress />
