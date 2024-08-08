@@ -27,7 +27,7 @@ export const extractMailContactData = (
     // We only support one recipient for now
     const contact = ToFull[0];
 
-    const domain = contact.Email.split('@')[1];
+    const domain = contact.Email.split('@').at(-1);
     const fullName = contact.Name;
     let firstName = '';
     let lastName = fullName;
