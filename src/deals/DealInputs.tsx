@@ -142,6 +142,7 @@ const DealMiscInputs = () => {
                 validate={[validateRequired]}
                 helperText={false}
                 inputProps={{ max: '9999-12-31' }}
+                defaultValue={new Date().toISOString().split('T')[0]}
             />
             <SelectInput
                 source="stage"
