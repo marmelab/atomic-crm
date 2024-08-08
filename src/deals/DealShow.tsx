@@ -207,7 +207,7 @@ const DealShowContent = ({ handleClose }: { handleClose: () => void }) => {
                                     </Typography>
                                     <ReferenceArrayField
                                         source="contact_ids"
-                                        reference="contacts"
+                                        reference="contacts_summary"
                                     >
                                         <ContactList />
                                     </ReferenceArrayField>
