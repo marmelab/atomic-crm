@@ -41,6 +41,13 @@ This will start the Vite dev server for the frontend, the local Supabase instanc
 
 You can then access the app via [http://localhost:5173/](http://localhost:5173/).
 
+If you need debug the backend, you can access the following services: 
+
+- Supabase dashboard: [http://localhost:54323/](http://localhost:54323/)
+- REST API: [http://127.0.0.1:54321](http://127.0.0.1:54321)
+- Attachments storage: [http://localhost:54323/project/default/storage/buckets/attachments](http://localhost:54323/project/default/storage/buckets/attachments)
+- Inbucket email testing service: [http://localhost:54324/](http://localhost:54324/)
+
 ## Testing
 
 This project contains unit tests. Run them with the following command:
