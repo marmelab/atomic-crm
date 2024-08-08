@@ -15,7 +15,7 @@ SUPABASE_ANON_KEY: Your supabase project anonymous key
 
 ## Deploying to Another Repository
 
-If you want to deploy the static website to another repository, you can configure the following secret on you repository:
+If you want to deploy the static website to another repository, you can configure the following variable on you repository:
 ```bash
 DEPLOY_REPO_URL=git@github.com:<org>/<repository>.git
 ```
