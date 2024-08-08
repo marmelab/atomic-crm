@@ -159,26 +159,18 @@ export const CRM = ({
                     element={<ForgotPasswordPage />}
                 />
             </CustomRoutes>
-            {permissions => (
-                <>
-                    <CustomRoutes>
-                        <Route
-                            path={SettingsPage.path}
-                            element={<SettingsPage />}
-                        />
-                    </CustomRoutes>
-                    <Resource name="deals" {...deals} />
-                    <Resource name="contacts" {...contacts} />
-                    <Resource name="companies" {...companies} />
-                    <Resource name="contactNotes" />
-                    <Resource name="dealNotes" />
-                    <Resource name="tasks" list={ListGuesser} />
-                    {permissions === 'admin' ? (
-                        <Resource name="sales" {...sales} />
-                    ) : null}
-                    <Resource name="tags" list={ListGuesser} />
-                </>
-            )}
+
+            <CustomRoutes>
+                <Route path={SettingsPage.path} element={<SettingsPage />} />
+            </CustomRoutes>
+            <Resource name="deals" {...deals} />
+            <Resource name="contacts" {...contacts} />
+            <Resource name="companies" {...companies} />
+            <Resource name="contactNotes" />
+            <Resource name="dealNotes" />
+            <Resource name="tasks" list={ListGuesser} />
+            <Resource name="sales" {...sales} />
+            <Resource name="tags" list={ListGuesser} />
         </Admin>
     </ConfigurationProvider>
 );
