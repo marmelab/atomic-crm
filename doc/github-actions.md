@@ -16,6 +16,8 @@ POSTMARK_WEBHOOK_PASSWORD: Password configured in Postmark to secure the webhook
 POSTMARK_WEBHOOK_AUTHORIZED_IPS: List of IPs (comma separated) authorized to send requests to the Postmark webhook
 ```
 
+> **Note:** The `POSTMARK_*` variables are required for Atomic CRM's email features. Have a look at the the [email features documentation](./email-features.md) to learn more about their usage and setup.
+
 ## Deploying to Another Repository
 
 If you want to deploy the static website to another repository, you can configure the following variable on you repository:
