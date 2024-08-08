@@ -1,7 +1,6 @@
 import ControlPointIcon from '@mui/icons-material/ControlPoint';
 import {
     Box,
-    Button,
     Chip,
     Dialog,
     DialogActions,
@@ -30,6 +29,7 @@ import {
 import { useConfigurationContext } from '../root/ConfigurationContext';
 import { DialogCloseButton } from '../misc/DialogCloseButton';
 import { contactInputText, contactOptionText } from '../misc/ContactOption';
+import { Link } from 'react-router-dom';
 
 export const AddTask = ({
     selectContact,
@@ -57,7 +57,8 @@ export const AddTask = ({
                         color: 'text.secondary',
                         ml: 'auto',
                     }}
-                    component={Button}
+                    component={Link}
+                    to={'#'}
                     onClick={handleOpen}
                 >
                     <ControlPointIcon fontSize="inherit" />
