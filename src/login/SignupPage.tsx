@@ -72,7 +72,12 @@ export const SignupPage = () => {
     return (
         <Stack sx={{ height: '100dvh', p: 2 }}>
             <Stack direction="row" alignItems="center" gap={1}>
-                <img src={logo} alt={title} width={50} />
+                <img
+                    src={logo}
+                    alt={title}
+                    width={50}
+                    style={{ filter: 'invert(0.9)' }}
+                />
                 <Typography component="span" variant="h5">
                     {title}
                 </Typography>
