@@ -38,7 +38,7 @@ async function inviteUser(req: Request) {
             user_metadata: { first_name, last_name },
         });
 
-    const { _, error: emailError } =
+    const { error: emailError } =
         await supabaseAdmin.auth.admin.inviteUserByEmail(email);
 
     if (!data?.user || userError || emailError) {
