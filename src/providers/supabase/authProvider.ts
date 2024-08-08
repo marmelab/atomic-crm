@@ -36,9 +36,20 @@ const baseAuthProvider = supabaseAuthProvider(supabase, {
 });
 
 export async function getIsInitialized() {
-    const { data } = await supabase.from('init_state').select('is_initialized');
+    if (getIsInitialized._is_initialized_cache == null) {
+        const { data } = await supabase
+            .from('init_state')
+            .select('is_initialized');
 
-    return data?.at(0)?.is_initialized > 0;
+        getIsInitialized._is_initialized_cache =
+            data?.at(0)?.is_initialized > 0;
+    }
+
+    return getIsInitialized._is_initialized_cache;
+}
+
+export namespace getIsInitialized {
+    export var _is_initialized_cache: boolean | null = null;
 }
 
 export const authProvider: AuthProvider = {
@@ -55,5 +66,9 @@ export const authProvider: AuthProvider = {
         }
 
         return baseAuthProvider.checkAuth(params);
+    },
+    async getPermissions(params) {
+        const isInitialized = await getIsInitialized();
+        return isInitialized ? baseAuthProvider.getPermissions(params) : null;
     },
 };

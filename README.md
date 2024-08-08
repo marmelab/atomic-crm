@@ -27,7 +27,7 @@ cd atomic-crm
 make install
 ```
 
-This will install the dependencies for the frontend and the backend, including a local Supabase clone.
+This will install the dependencies for the frontend and the backend, including a local Supabase instance.
 
 ## Running the App In Development Mode
 
@@ -39,7 +39,14 @@ make start
 
 This will start the Vite dev server for the frontend, the local Supabase instance for the API, and a Postgres database (thanks to Docker).
 
-You can then access the app via [`http://localhost:5173/`](http://localhost:5173/).
+You can then access the app via [http://localhost:5173/](http://localhost:5173/).
+
+If you need debug the backend, you can access the following services: 
+
+- Supabase dashboard: [http://localhost:54323/](http://localhost:54323/)
+- REST API: [http://127.0.0.1:54321](http://127.0.0.1:54321)
+- Attachments storage: [http://localhost:54323/project/default/storage/buckets/attachments](http://localhost:54323/project/default/storage/buckets/attachments)
+- Inbucket email testing service: [http://localhost:54324/](http://localhost:54324/)
 
 ## Testing
 
@@ -49,11 +56,11 @@ This project contains unit tests. Run them with the following command:
 make test
 ```
 
-## Deploying to production
+## Deploying to Production
 
 ### Supabase Configuration
 
-To configure supabase, please have a look at [dedicated configuration guide](./doc/supabase-configuration.md).
+To configure Supabase, please have a look at [dedicated configuration guide](./doc/supabase-configuration.md).
 
 ### Testing Production Mode
 

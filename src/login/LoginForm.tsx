@@ -77,7 +77,7 @@ export const LoginForm = () => {
                     <TextInput
                         autoFocus
                         source="email"
-                        label="email"
+                        label="Email"
                         autoComplete="email"
                     />
                     <TextInput
