@@ -37,9 +37,18 @@ export type Sale = {
     disabled?: boolean;
     user_id: string;
 
-    // This is a copy of the user's email, to make it easier to handle by react admin
-    // DO NOT UPDATE this field directly, it should be updated by the backend
+    /**
+     * This is a copy of the user's email, to make it easier to handle by react admin
+     * DO NOT UPDATE this field directly, it should be updated by the backend
+     */
     email: string;
+
+    /**
+     * This is used by the fake rest provider to store the password
+     * DO NOT USE this field in your code besides the fake rest provider
+     * @deprecated
+     */
+    password?: string;
 } & Pick<RaRecord, 'id'>;
 
 export type Company = {
@@ -72,7 +81,7 @@ export type Contact = {
     company_id: Identifier;
     email: string;
     avatar?: Partial<RAFile>;
-    linkedin_url?: string;
+    linkedin_url?: string | null;
     first_seen: string;
     last_seen: string;
     has_newsletter: Boolean;

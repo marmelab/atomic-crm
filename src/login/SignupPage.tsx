@@ -10,13 +10,13 @@ import { useMutation, useQuery } from '@tanstack/react-query';
 import { useDataProvider, useLogin, useNotify } from 'react-admin';
 import { SubmitHandler, useForm } from 'react-hook-form';
 import { Navigate } from 'react-router';
-import { CustomDataProvider } from '../dataProvider';
+import { CrmDataProvider } from '../providers/types';
 import { useConfigurationContext } from '../root/ConfigurationContext';
 import { SignUpData } from '../types';
 import { LoginSkeleton } from './LoginSkeleton';
 
 export const SignupPage = () => {
-    const dataProvider = useDataProvider<CustomDataProvider>();
+    const dataProvider = useDataProvider<CrmDataProvider>();
     const { logo, title } = useConfigurationContext();
     const { data: isInitialized, isPending } = useQuery({
         queryKey: ['init'],
