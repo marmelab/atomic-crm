@@ -289,7 +289,7 @@ If users forgot their password, they can request for a reset. Atomic CRM handle 
 
 If you want to update default configuration: 
 
-### Local development
+#### Local development
 
 1. Go to your `config.toml` file
 2. In `[auth]` section set `site_url` to  your application URL
@@ -314,7 +314,7 @@ In Recovery email template set the `auth-callback` redirection
 
 Supabase provides an [Inbucket](https://inbucket.org/) instance that allows you to test your emails and configure your flow.
 
-### Production
+#### Production
 
 This requires you to configure your supabase instance:
 
@@ -322,3 +322,12 @@ This requires you to configure your supabase instance:
 2. In URL Configuration, set Site URL to your application URL
 3. In URL Configuration, add the following URL in the Redirect URLs section: `YOUR_APPLICATION_URL/auth-callback`
 4. In Email Templates, change the `"{{ .ConfirmationURL }}"` to `"{{ .ConfirmationURL }}/auth-callback"`
+
+## Email Features
+
+Atomic CRM supports inbound email features:
+
+- You can add a note to a contact by sending an email to a specific email address
+- _More to come!_
+
+Learn more about their usage and setup in the [email features documentation](./doc/email-features.md).
