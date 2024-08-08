@@ -53,15 +53,13 @@ const Header = () => {
                                 color: 'inherit',
                                 textDecoration: 'inherit',
                             }}
+                            gap={1.5}
                         >
                             <Box
                                 component="img"
-                                sx={{
-                                    marginRight: '1em',
-                                    height: 30,
-                                }}
+                                sx={{ height: 24 }}
                                 src={logo}
-                                alt="CRM Logo"
+                                alt={title}
                             />
                             <Typography component="span" variant="h5">
                                 {title}
