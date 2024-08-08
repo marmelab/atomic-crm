@@ -85,7 +85,7 @@ const NoteCreateButton = ({
             data: { last_seen: data.date, status: data.status },
             previousData: record,
         });
-        notify('Note added', { type: 'success' });
+        notify('Note added');
     };
     return (
         <SaveButton

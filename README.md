@@ -1,61 +1,86 @@
 # Atomic CRM
 
-This is a demo of the [react-admin](https://github.com/marmelab/react-admin) library for React.js. It's a CRM for a fake Web agency with a few sales. You can test it online at https://marmelab.com/react-admin-crm.
+A full-feature CRM built with React and Supabase. 
 
 https://user-images.githubusercontent.com/99944/116970434-4a926480-acb8-11eb-8ce2-0602c680e45e.mp4
 
-React-admin usually requires a REST/GraphQL server to provide data. In this demo however, the API is simulated by the browser (using [FakeRest](https://github.com/marmelab/FakeRest)). The source data is generated at runtime by a package called [data-generator](https://github.com/marmelab/react-admin/tree/master/examples/data-generator).
-
-To explore the source code, start with [src/App.tsx](https://github.com/marmelab/react-admin/blob/master/examples/crm/src/App.tsx).
-
+You can test it online at https://marmelab.com/react-admin-crm.
 
 ## Setup
 
-To run this project you will need the following tools installed on your computer:
+To run this project locally, you will need the following tools installed on your computer:
+
 - Make
 - Node 20 LTS
-- NPM
-- Docker (required by supabase)
+- Docker (required by Supabase)
 
-After having cloned the [`atomic-crm` repository](https://github.com/marmelab/atomic-crm), run the following command at the project root to install dependencies:
+Fork the [`marmelab/atomic-crm`](https://github.com/marmelab/atomic-crm) repository to your user/organization, then clone it locally:
 
 ```sh
+git clone https://github.com/[username]/atomic-crm.git
+```
+
+Install dependencies:
+
+```sh
+cd atomic-crm
 make install
 ```
 
-Then you can start the stack in development mode with the following command:
+This will install the dependencies for the frontend and the backend, including a local Supabase clone.
+
+## Running the App In Development Mode
+
+Start the app locally with the following command:
+
 ```sh
 make start
 ```
 
-It will start the vite dev server and the local supabase instance. You can then access the app via [`http://localhost:5173/`](http://localhost:5173/).
+This will start the Vite dev server for the frontend, the local Supabase instance for the API, and a Postgres database (thanks to Docker).
 
+You can then access the app via [`http://localhost:5173/`](http://localhost:5173/).
 
-## Remote Instance Setup
+## Testing
 
-You can create a remote supabase using the following script:
+This project contains unit tests. Run them with the following command:
+
+```sh
+make test
+```
+
+## Deploying To Production
+
+In production, Atomic CRM is designed to be a Single-Page Application using Supabase for its API.
+
+### Supabase Setup
+
+Create a project on Supabase using the following script:
+
 ```sh
 make supabase-remote-init
 ```
 
-The script will prompt you for the project configuration and will apply migrations and deploy edge functions.
+The script will open a web browser to let you log in to your Supabase account. Then it will prompt you for the project configuration, create a database, apply migrations, and deploy edge functions.
 
+### Using An Existing Supabase Instance
 
-## Manual Remove Instance Link
+If you already created the Supabase instance, you can link the instance manually using the following instructions.
 
-If you already created the supabase instance, you can link the instance manually using the following commands:
-First, log into your supabase account:
+First, log into your Supabase account:
 
 ```sh
 npx supabase login
 ```
 
-Now, link this project to the local supabase instance. You'll be asked to enter the database password.
+Now, link the project to the Supabase instance. You'll be asked to enter the database password.
+
 ```sh
 npx supabase link --project-ref ********************
 ```
 
-Then, apply the migrations on it:
+Then, apply the migrations:
+
 ```sh
 npx supabase db push
 npx supabase functions deploy
@@ -68,18 +93,10 @@ VITE_SUPABASE_URL=<instance_url>
 VITE_SUPABASE_ANON_KEY=<instance_anon_token>
 ```
 
-## Deploy Updates
+### Testing Production Mode
 
-If you want to deploy a new version of your CRM, you can run the following command:
-```sh
-make prod-deploy
-```
+If you want to test you code locally using production mode and the remote Supabase instance, you can run the following command:
 
-It will apply migrations, deploy edge functions and push the built applications to the `gh-pages` branch.
-
-## Test Production Mode
-
-If you want to test you application in production mode using the remote supabase instance, you can run the following command:
 ```sh
 make prod-start
 ```
@@ -88,14 +105,33 @@ Note: It will apply migrations and deploy edge functions.
 
 You can then access the app via [`http://localhost:3000/`](http://localhost:3000/).
 
-## Testing
+### Deploying The Frontend
 
-You can run unit test using the following command:
+The frontend of the CRM is a Single-Page App that can be deployed to any CDN, or to GitHub Pages.
+
+First, build the fontend bundle with:
+
 ```sh
-make test
-# or 
-npm test
+make build
 ```
+
+This will create a `dist` directory with the built application made of static HTML, CSS, and JS files.
+
+Then, upload this directory to the CDN of your choice. If you want to deploy it to the `gh-pages` branch of the your repository, you can use the following command:
+
+```sh
+npm run ghpages:deploy
+``` 
+
+### Deploying Updates
+
+If you've modified the code, run the following command to deploy a new version of your CRM:
+
+```sh
+make prod-deploy
+```
+
+It will apply migrations, deploy edge functions and push the built applications to the `gh-pages` branch.
 
 ## GitHub Actions
 
