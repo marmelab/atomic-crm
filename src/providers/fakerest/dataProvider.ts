@@ -157,12 +157,12 @@ const dataProviderWithCustomMethod: CrmDataProvider = {
             password,
         };
     },
-    async salesCreate({
-        password: _password,
-        ...data
-    }: SalesFormData): Promise<Sale> {
+    async salesCreate({ ...data }: SalesFormData): Promise<Sale> {
         const user = await dataProvider.create('sales', {
-            data,
+            data: {
+                ...data,
+                password: 'new_password',
+            },
         });
 
         return {
