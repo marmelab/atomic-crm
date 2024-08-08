@@ -4,7 +4,7 @@
 
 Local remote instance link can be interesting if you want to deploy from your development computer or if you want your app with production data in production mode.
 
-### Automatic Remote Instance Setup
+### Creating a new remote Supabase Instance
 
 You can create a remote supabase using the following script:
 ```sh
@@ -14,7 +14,7 @@ make supabase-remote-init
 The script will prompt you for the project configuration and will apply migrations and deploy edge functions.
 
 
-### Manual Remote Instance Link
+### Using An Existing Remote Supabase Instance
 
 If you already created the supabase instance, you can link the instance manually using the following commands:
 First, log into your supabase account:
