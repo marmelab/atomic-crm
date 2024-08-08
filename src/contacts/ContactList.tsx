@@ -17,7 +17,6 @@ import {
     useGetIdentity,
     useListContext,
 } from 'react-admin';
-import { hasOtherFiltersThanDefault } from '../misc/hasOtherFiltersThanDefault';
 import { Company, Contact, Sale, Tag } from '../types';
 import { ContactEmpty } from './ContactEmpty';
 import { ContactImportButton } from './ContactImportButton';
@@ -32,7 +31,6 @@ export const ContactList = () => {
     return (
         <ListBase
             perPage={25}
-            filterDefaultValues={{ sales_id: identity?.id }}
             sort={{ field: 'last_seen', order: 'DESC' }}
             exporter={exporter}
         >
@@ -44,17 +42,13 @@ export const ContactList = () => {
 const ContactListLayout = () => {
     const { data, isPending, filterValues } = useListContext();
     const { identity } = useGetIdentity();
-    const hasOtherFiltersThanDefaultBoolean = hasOtherFiltersThanDefault(
-        filterValues,
-        'sales_id',
-        identity?.id
-    );
+
+    const hasFilters = filterValues && Object.keys(filterValues).length > 0;
 
     if (!identity) return null;
     if (isPending) return <LinearProgress />;
 
-    if (!data?.length && !hasOtherFiltersThanDefaultBoolean)
-        return <ContactEmpty />;
+    if (!data?.length && !hasFilters) return <ContactEmpty />;
 
     return (
         <Stack direction="row">
