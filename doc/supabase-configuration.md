@@ -1,54 +1,60 @@
 # Supabase Configuration
 
-## Link Remote Instance Locally
+### Creating a Remote Supabase Instance
 
-Local remote instance link can be interesting if you want to deploy from your development computer or if you want your app with production data in production mode.
+You can create a remote Supabase using the following script:
 
-### Creating a new remote Supabase Instance
-
-You can create a remote supabase using the following script:
 ```sh
 make supabase-remote-init
 ```
 
-The script will prompt you for the project configuration and will apply migrations and deploy edge functions.
+The script will ask you for the Supabase instance name, create the database, apply the migrations and deploy the edge functions. Finally, it will create a `.env.production.local` file with your remote Supabase configuration.
 
+### Alternative: Using An Existing Supabase Instance
 
-### Using An Existing Remote Supabase Instance
+If you already created a Supabase instance for Atomic CRM, you can link the instance manually as follows.
 
-If you already created the supabase instance, you can link the instance manually using the following commands:
-First, log into your supabase account:
+First, log into your Supabase account:
 
 ```sh
 npx supabase login
 ```
 
-Now, link this project to the local supabase instance. You'll be asked to enter the database password.
+Now, link this project to the local Supabase instance. You'll be asked to enter the database password.
+
 ```sh
 npx supabase link --project-ref ********************
 ```
 
 Then, apply the migrations on it:
+
 ```sh
 npx supabase db push
 npx supabase functions deploy
 ```
 
-Finally, create the `.env.production.local` file with your supabase configuration:
+Finally, add a `.env.production.local` file in the root directory with your remote Supabase credentials:
 
 ```sh
 VITE_SUPABASE_URL=<instance_url>
 VITE_SUPABASE_ANON_KEY=<instance_anon_token>
 ```
 
-This will allow your to use the linked supabase instance when running the following command to test the app in production mode locally:
+## Testing Production Mode
+
+Before deploying the frontend code to production, you should test the local frontend code when connected to the remote Supabase instance. 
+
+To do so, call the following command:
+
 ```sh
 make prod-start
 ```
 
+Using a remote Supabase instance can be interesting if you deploy from your computer, or if you want to test your app with production data in production mode.
+
 ## Continuous Integration and Continuous Delivery
 
-This repository includes GitHub action worflow for Continuous Delivery. The configuration is explained in the [GitHub Actiosns guide](./github-actions.md) in the same directory.
+This repository includes GitHub action workflow for Continuous Delivery. The configuration is explained in the [GitHub Actiosns guide](./github-actions.md) in the same directory.
 
 ## Login Callback
 
