@@ -35,9 +35,11 @@ async function inviteUser(req: Request) {
         await supabaseAdmin.auth.admin.createUser({
             email,
             password,
-            email_confirm: true,
             user_metadata: { first_name, last_name },
         });
+
+    const { data: emailData, error: emailError } =
+        await supabaseAdmin.auth.admin.inviteUserByEmail(email);
 
     if (!data?.user || userError) {
         console.error('Error inviting user:', userError);
