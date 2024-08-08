@@ -7,6 +7,7 @@ import {
     Stack,
     TextField,
 } from '@mui/material';
+import { useMutation } from '@tanstack/react-query';
 import {
     Toolbar,
     useDataProvider,
@@ -15,8 +16,7 @@ import {
 } from 'react-admin';
 import { useForm } from 'react-hook-form';
 import { DialogCloseButton } from '../misc/DialogCloseButton';
-import { useMutation } from '@tanstack/react-query';
-import { CustomDataProvider } from '../dataProvider';
+import { CrmDataProvider } from '../providers/types';
 import { UpdatePasswordData } from '../types';
 
 const PASSWORD_POLICY = {
@@ -43,7 +43,7 @@ export const UpdatePassword = ({
     const newPassword = watch('newPassword');
     const { identity } = useGetIdentity();
     const notify = useNotify();
-    const dataProvider = useDataProvider<CustomDataProvider>();
+    const dataProvider = useDataProvider<CrmDataProvider>();
 
     const { mutate } = useMutation({
         mutationKey: ['updatePassword'],

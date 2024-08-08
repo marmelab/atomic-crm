@@ -2,8 +2,6 @@ import { supabaseAuthProvider } from 'ra-supabase';
 import { AuthProvider } from 'react-admin';
 import { supabase } from './supabase';
 
-export const USER_STORAGE_KEY = 'user';
-
 const baseAuthProvider = supabaseAuthProvider(supabase, {
     getIdentity: async user => {
         const { data, error } = await supabase
