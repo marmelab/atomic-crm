@@ -52,6 +52,14 @@ This repository includes GitHub action worflow for Continuous Delivery. The conf
 
 ## Login Callback
 
+### Local Supabase Instance
+
+Go to your [local supabase config](../supabase/config.toml) file:
+1. In `[auth]` section set `site_url` to your application URL
+2. In `[auth]`, add the following URL in the `additional_redirect_urls = [<APPLICATION_URL>/auth-callback.html"]`
+
+### Remote Supabase Instance
+
 To configure the authentication URL, you can go to your project dashboard at [supabase.com](https://supabase.com/). Then go to **Authentication** > **URL Configuration**. You can set up you callback URL in the **Site URL** field.
 
 ## Customizing Mail Template
