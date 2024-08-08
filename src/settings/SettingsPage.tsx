@@ -9,7 +9,6 @@ import {
     Stack,
     Typography,
 } from '@mui/material';
-import { useMutation } from '@tanstack/react-query';
 import { useState } from 'react';
 import {
     Form,
@@ -26,7 +25,7 @@ import { useFormState } from 'react-hook-form';
 import ImageEditorField from '../misc/ImageEditorField';
 import { CrmDataProvider } from '../providers/types';
 import { SalesFormData } from '../types';
-import { UpdatePassword } from './UpdatePassword';
+import { useMutation } from '@tanstack/react-query';
 
 export const SettingsPage = () => {
     const [isEditMode, setEditMode] = useState(false);
@@ -87,12 +86,32 @@ const SettingsForm = ({
     const notify = useNotify();
     const { identity, refetch } = useGetIdentity();
     const { isDirty } = useFormState();
-    const [openPasswordChange, setOpenPasswordChange] = useState(false);
+    const dataProvider = useDataProvider<CrmDataProvider>();
+
+    const { mutate } = useMutation({
+        mutationKey: ['updatePassword'],
+        mutationFn: async () => {
+            if (!identity) {
+                throw new Error('Record not found');
+            }
+            return dataProvider.updatePassword(identity.id);
+        },
+        onSuccess: () => {
+            notify(
+                'An reset password email has been sent to your email address'
+            );
+        },
+        onError: e => {
+            notify(`${e}`, {
+                type: 'error',
+            });
+        },
+    });
 
     if (!identity) return null;
 
     const handleClickOpenPasswordChange = () => {
-        setOpenPasswordChange(true);
+        mutate();
     };
 
     const handleAvatarUpdate = async (values: any) => {
@@ -145,10 +164,6 @@ const SettingsForm = ({
                         >
                             Change password
                         </Button>
-                        <UpdatePassword
-                            open={openPasswordChange}
-                            setOpen={setOpenPasswordChange}
-                        />
                     </>
                 )}
             </CardContent>
