@@ -19,6 +19,7 @@ export const addNoteToContact = async ({
         .from('sales')
         .select('*')
         .eq('email', salesEmail)
+        .neq('disabled', true)
         .maybeSingle();
     if (fetchSalesError)
         return new Response(
@@ -29,7 +30,7 @@ export const addNoteToContact = async ({
         // Return a 403 to let Postmark know that it's no use to retry this request
         // https://postmarkapp.com/developer/webhooks/inbound-webhook#errors-and-retries
         return new Response(
-            `Unable to find sales in database, email: ${salesEmail}`,
+            `Unable to find (active) sales in database, email: ${salesEmail}`,
             { status: 403 }
         );
     }
