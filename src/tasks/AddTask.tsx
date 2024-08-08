@@ -6,6 +6,7 @@ import {
     DialogActions,
     DialogContent,
     DialogTitle,
+    IconButton,
     Stack,
 } from '@mui/material';
 import * as React from 'react';
@@ -28,8 +29,15 @@ import {
 import { useConfigurationContext } from '../root/ConfigurationContext';
 import { DialogCloseButton } from '../misc/DialogCloseButton';
 import { contactInputText, contactOptionText } from '../misc/ContactOption';
+import { Link } from 'react-router-dom';
 
-export const AddTask = ({ selectContact }: { selectContact?: boolean }) => {
+export const AddTask = ({
+    selectContact,
+    display = 'chip',
+}: {
+    selectContact?: boolean;
+    display?: 'chip' | 'icon';
+}) => {
     const { identity } = useGetIdentity();
     const { taskTypes } = useConfigurationContext();
     const contact = useRecordContext();
@@ -42,16 +50,32 @@ export const AddTask = ({ selectContact }: { selectContact?: boolean }) => {
 
     return (
         <>
-            <Box mt={2} mb={2}>
-                <Chip
-                    icon={<ControlPointIcon />}
+            {display === 'icon' ? (
+                <IconButton
                     size="small"
-                    variant="outlined"
+                    sx={{
+                        color: 'text.secondary',
+                        ml: 'auto',
+                    }}
+                    component={Link}
+                    to={'#'}
                     onClick={handleOpen}
-                    label="Add task"
-                    color="primary"
-                />
-            </Box>
+                >
+                    <ControlPointIcon fontSize="inherit" />
+                </IconButton>
+            ) : (
+                <Box mt={2} mb={2}>
+                    <Chip
+                        icon={<ControlPointIcon />}
+                        size="small"
+                        variant="outlined"
+                        onClick={handleOpen}
+                        label="Add task"
+                        color="primary"
+                    />
+                </Box>
+            )}
+
             <CreateBase
                 resource="tasks"
                 record={{

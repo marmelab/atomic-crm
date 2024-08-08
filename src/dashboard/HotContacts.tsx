@@ -1,10 +1,12 @@
 import * as React from 'react';
-import { Card, Box, Stack } from '@mui/material';
+import { Card, Box, Stack, Typography, IconButton } from '@mui/material';
 import ContactsIcon from '@mui/icons-material/Contacts';
-import { useGetList, Link, SimpleList, useGetIdentity } from 'react-admin';
+import { useGetList, SimpleList, useGetIdentity } from 'react-admin';
 
 import { Avatar } from '../contacts/Avatar';
 import { Contact } from '../types';
+import ControlPointIcon from '@mui/icons-material/ControlPoint';
+import { Link } from 'react-router-dom';
 
 export const HotContacts = () => {
     const { identity } = useGetIdentity();
@@ -28,19 +30,25 @@ export const HotContacts = () => {
                 <Box mr={1} display="flex">
                     <ContactsIcon color="disabled" fontSize="medium" />
                 </Box>
-                <Link
-                    underline="none"
-                    variant="h5"
-                    color="textSecondary"
-                    to="/contacts"
-                >
+                <Typography variant="h5" color="textSecondary">
                     Hot Contacts
-                </Link>
+                </Typography>
+                <IconButton
+                    size="small"
+                    sx={{
+                        color: 'text.secondary',
+                        ml: 'auto',
+                    }}
+                    component={Link}
+                    to="/contacts/create"
+                >
+                    <ControlPointIcon fontSize="inherit" />
+                </IconButton>
             </Box>
             <Card
                 sx={{
                     '& .MuiCardContent-root': {
-                        padding: 2,
+                        padding: '16px !important',
                     },
                 }}
             >
