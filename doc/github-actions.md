@@ -32,7 +32,7 @@ Then you can configure the following GitHub action variable on you repository:
 DEPLOY_REPOSITORY=<org>/<repository>
 ```
 
-And finally, you must creat ethe following GitHub Action secret:
+And finally, you must create the following GitHub Action secret:
 
 ```bash
 DEPLOY_TOKEN=<personal_access_token>
