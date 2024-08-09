@@ -17,7 +17,6 @@ import {
     Sale,
     SalesFormData,
     SignUpData,
-    UpdatePasswordData,
 } from '../../types';
 import { getActivityLog } from '../commons/activity';
 import { getCompanyAvatar } from '../commons/getCompanyAvatar';
@@ -171,16 +170,12 @@ const dataProviderWithCustomMethods = {
 
         return data;
     },
-    async updatePassword(id: Identifier, data: UpdatePasswordData) {
-        const { currentPassword, newPassword } = data;
-
+    async updatePassword(id: Identifier) {
         const { data: passwordUpdated, error } =
-            await supabase.functions.invoke<Sale>('updatePassword', {
+            await supabase.functions.invoke<boolean>('updatePassword', {
                 method: 'PATCH',
                 body: {
                     sales_id: id,
-                    currentPassword,
-                    newPassword,
                 },
             });
 
@@ -189,7 +184,7 @@ const dataProviderWithCustomMethods = {
             throw new Error('Failed to update password');
         }
 
-        return data;
+        return passwordUpdated;
     },
     async unarchiveDeal(deal: Deal) {
         // get all deals where stage is the same as the deal to unarchive

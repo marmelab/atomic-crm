@@ -24,11 +24,6 @@ export type SalesFormData = {
     disabled: boolean;
 };
 
-export type UpdatePasswordData = {
-    currentPassword: string;
-    newPassword: string;
-};
-
 export type Sale = {
     first_name: string;
     last_name: string;
