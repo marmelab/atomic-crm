@@ -41,9 +41,14 @@ async function inviteUser(req: Request) {
     const { error: emailError } =
         await supabaseAdmin.auth.admin.inviteUserByEmail(email);
 
-    if (!data?.user || userError || emailError) {
-        console.error('Error inviting user:', userError);
+    if (!data?.user || userError) {
+        console.error(`Error inviting user: user_error=${userError}`);
         return createErrorResponse(500, 'Internal Server Error');
+    }
+
+    if (!data?.user || userError || emailError) {
+        console.error(`Error inviting user, email_error=${emailError}`);
+        return createErrorResponse(500, 'Failed to send invitation mail');
     }
 
     try {
