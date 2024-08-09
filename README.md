@@ -253,9 +253,9 @@ Create a new migration using the following command:
 npx supabase db diff | npx supabase migration new <migration_name>
 ```
 
-### Password Reset
+### Password Reset And Invitations
 
-If users forget their password, they can request for a reset. Atomic CRM handles it for you, using Supabase.
+An user can be invited to the CRM by an administrator. The user will receive an email with a link to set their password. The password reset feature is also available. You don't have to worry about these processes, Atomic CRM handles them for you, using Supabase.
 
 Please make sure to read and apply the [Login Callback](./doc/supabase-configuration.md#login-callback) and [Customizing Mail Template](./doc/supabase-configuration.md#customizing-mail-template) sections to properly configure the password reset feature.
 
