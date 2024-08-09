@@ -2,15 +2,23 @@ import * as React from 'react';
 import { Card, Box, Stack, Typography } from '@mui/material';
 import AssignmentTurnedInIcon from '@mui/icons-material/AssignmentTurnedIn';
 import { AddTask } from '../tasks/AddTask';
-import { startOfToday, endOfToday, addDays } from 'date-fns';
+import {
+    startOfToday,
+    endOfToday,
+    endOfTomorrow,
+    endOfWeek,
+    getDay,
+} from 'date-fns';
 import { TasksListFilter } from './TasksListFilter';
 import { TasksListEmpty } from './TasksListEmpty';
 
 const today = new Date();
+const todayDayOfWeek = getDay(today);
+const isBeforeFriday = todayDayOfWeek < 5; // Friday is represented by 5
 const startOfTodayDateISO = startOfToday().toISOString();
 const endOfTodayDateISO = endOfToday().toISOString();
-const startOfWeekDateISO = addDays(today, 1).toISOString();
-const endOfWeekDateISO = addDays(today, 7).toISOString();
+const endOfTomorrowDateISO = endOfTomorrow().toISOString();
+const endOfWeekDateISO = endOfWeek(today, { weekStartsOn: 0 }).toISOString();
 
 const taskFilters = {
     overdue: { 'done_date@is': null, 'due_date@lt': startOfTodayDateISO },
@@ -22,11 +30,11 @@ const taskFilters = {
     tomorrow: {
         'done_date@is': null,
         'due_date@gt': endOfTodayDateISO,
-        'due_date@lt': startOfWeekDateISO,
+        'due_date@lt': endOfTomorrowDateISO,
     },
     thisWeek: {
         'done_date@is': null,
-        'due_date@gte': startOfWeekDateISO,
+        'due_date@gte': endOfTomorrowDateISO,
         'due_date@lte': endOfWeekDateISO,
     },
     later: { 'done_date@is': null, 'due_date@gt': endOfWeekDateISO },
@@ -59,10 +67,12 @@ export const TasksList = () => {
                         title="Tomorrow"
                         filter={taskFilters.tomorrow}
                     />
-                    <TasksListFilter
-                        title="This week"
-                        filter={taskFilters.thisWeek}
-                    />
+                    {isBeforeFriday && (
+                        <TasksListFilter
+                            title="This week"
+                            filter={taskFilters.thisWeek}
+                        />
+                    )}
                     <TasksListFilter title="Later" filter={taskFilters.later} />
                 </Stack>
             </Card>
