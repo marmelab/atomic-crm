@@ -28,7 +28,9 @@ export const extractMailContactData = (
     const contact = ToFull[0];
 
     const domain = contact.Email.split('@').at(-1);
-    const fullName = contact.Name;
+    const fullName =
+        contact.Name ||
+        contact.Email.split('@').slice(0, -1).join(' ').split('.').join(' ');
     let firstName = '';
     let lastName = fullName;
     if (fullName && fullName.includes(' ')) {
