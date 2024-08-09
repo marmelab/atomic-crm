@@ -86,6 +86,8 @@ If you want to customize the production templates, you can go to your project da
 
 Supabase requires additional configuration to enable Atomic CRM's email features. Have a look at the the [email features documentation](./email-features.md) to learn more about their usage and the required setup.
 
+Warning: Free quota for email features is very low. If you encounter problems when creating a user or reseting a password, you can increase the sending limit via a custom STMP server setup. Please refer to the [supabase documentation](https://supabase.com/docs/guides/auth/auth-smtp) if this is your case.
+
 ## Fequently Asked Questions
 
 - I have a **Security Definer View** error in **Security Advisor**
