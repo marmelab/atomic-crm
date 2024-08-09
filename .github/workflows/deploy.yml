@@ -62,11 +62,12 @@ jobs:
 
             - name: 📡 Deploy GitHub pages
               run: |
-                  echo "Deploying to pages to ${DEPLOY_REPO_URL}"
+                  echo "Deploying to pages to ${PRODUCTION_REMOTE}"
                   git remote set-url origin https://git:${{ secrets.GITHUB_TOKEN }}@github.com/${GITHUB_REPOSITORY}
-                  git remote set-url production https://git:${{ secrets.GITHUB_TOKEN }}@github.com/${{ vars.DEPLOY_REPOSITORY || github.repository }}
+                  git remote add production ${PRODUCTION_REMOTE}
                   git config --global user.email support+actions@github.com
                   git config --global user.name github-actions-bot 
                   npx gh-pages --remote production -d dist -b ${{ vars.DEPLOY_BRANCH || 'gh-pages' }}
               env:
+                  PRODUCTION_REMOTE: https://git:${{ secrets.GITHUB_TOKEN }}@github.com/${{ vars.DEPLOY_REPOSITORY || github.repository }}
                   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
