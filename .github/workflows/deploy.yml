@@ -25,7 +25,7 @@ jobs:
             VITE_SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
             VITE_SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
             VITE_IS_DEMO: ${{ vars.VITE_IS_DEMO }}
-            DEPLOY_REPO_URL: ${{ vars.DEPLOY_REPO_URL }}
+            DEPLOY_REPO_URL: 'https://git:${{ secrets.GITHUB_TOKEN }}@github.com/${{ vars.DEPLOY_REPO_REPOSITORY || ${GITHUB_REPOSITORY} }}'
 
         steps:
             - name: 📥 Checkout repo
@@ -63,7 +63,7 @@ jobs:
 
             - name: 📡 Deploy GitHub pages
               run: |
-                  git remote set-url origin https://git:${{ secrets.GITHUB_TOKEN }}@github.com/${GITHUB_REPOSITORY}
+                  echo "Deploying to pages to ${DEPLOY_REPO_URL}"
                   git config --global user.email support+actions@github.com
                   git config --global user.name github-actions-bot 
                   npm run ghpages:deploy
