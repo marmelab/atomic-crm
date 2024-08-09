@@ -43,7 +43,9 @@ jobs:
                   git remote set-url origin https://git:${{ secrets.GITHUB_TOKEN }}@github.com/${GITHUB_REPOSITORY}
                   git remote add production $PRODUCTION_REMOTE
                   git config --global user.email support+actions@github.com
-                  git config --global user.name github-actions-bot 
+                  git config --global user.name github-actions-bot
+                  echo Configured remotes:
+                  git remote -v
 
             - name: ⚙️ Setup supabase
               uses: supabase/setup-cli@v1
