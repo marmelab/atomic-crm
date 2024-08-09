@@ -3,7 +3,7 @@ import * as ghpages from 'gh-pages';
 ghpages.publish(
     'dist',
     {
-        branch: 'gh-pages',
+        branch: process.env.DEPLOY_BRANCH || 'gh-pages',
         repo: process.env.DEPLOY_REPO_URL || undefined,
     },
     function (err) {
