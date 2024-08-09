@@ -20,7 +20,16 @@ POSTMARK_WEBHOOK_AUTHORIZED_IPS: List of IPs (comma separated) authorized to sen
 
 ## Deploying to Another Repository
 
-If you want to deploy the static website to another repository, you can configure the following variable on you repository:
+Warning: The deploy repository MUST be in the same GitHub `org` as the `atomic-crm` repository.
+
+If you want to deploy the static website to another repository, you must first
+
+Then you can configure the following GitHub action variable on you repository:
 ```bash
-DEPLOY_REPO_URL=git@github.com:<org>/<repository>.git
+DEPLOY_REPOSITORY=<org>/<repository>
+```
+
+You can also configure the deploy branch using
+```bash
+DEPLOY_BRANCH=main # Defaults to `gh-pages`
 ```
