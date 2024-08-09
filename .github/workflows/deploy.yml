@@ -25,7 +25,7 @@ jobs:
             VITE_SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
             VITE_SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
             VITE_IS_DEMO: ${{ vars.VITE_IS_DEMO }}
-            DEPLOY_REPO_URL: 'https://git:${{ secrets.GITHUB_TOKEN }}@github.com/${{ vars.DEPLOY_REPO_REPOSITORY || ${GITHUB_REPOSITORY} }}'
+            DEPLOY_REPO_URL: 'https://git:${{ secrets.GITHUB_TOKEN }}@github.com/${{ vars.DEPLOY_REPOSITORY || GITHUB_REPOSITORY }}'
 
         steps:
             - name: 📥 Checkout repo
