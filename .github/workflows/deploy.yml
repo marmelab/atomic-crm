@@ -25,6 +25,7 @@ jobs:
             VITE_SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
             VITE_SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
             VITE_IS_DEMO: ${{ vars.VITE_IS_DEMO }}
+            PRODUCTION_REMOTE: https://git:${{ secrets.GITHUB_TOKEN }}@github.com/${{ vars.DEPLOY_REPOSITORY || github.repository }}
 
         steps:
             - name: 📥 Checkout repo
@@ -69,5 +70,4 @@ jobs:
                   git config --global user.name github-actions-bot 
                   npx gh-pages --remote production -d dist -b ${{ vars.DEPLOY_BRANCH || 'gh-pages' }}
               env:
-                  PRODUCTION_REMOTE: https://git:${{ secrets.GITHUB_TOKEN }}@github.com/${{ vars.DEPLOY_REPOSITORY || github.repository }}
                   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
