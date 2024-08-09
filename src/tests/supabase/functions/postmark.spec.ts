@@ -72,4 +72,81 @@ describe('extractMailContactData', () => {
             domain: 'marmelab.com',
         });
     });
+
+    it('should support multiple @ in email', () => {
+        // Because it is allowed by https://www.rfc-editor.org/rfc/rfc5322
+        const result = extractMailContactData([
+            {
+                Email: '"john@doe"@marmelab.com',
+                Name: 'John Doe',
+            },
+        ]);
+        expect(result).toEqual({
+            firstName: 'John',
+            lastName: 'Doe',
+            email: '"john@doe"@marmelab.com',
+            domain: 'marmelab.com',
+        });
+    });
+
+    it('should use first part of email when Name is empty', () => {
+        const result = extractMailContactData([
+            {
+                Email: 'john.doe@marmelab.com',
+                Name: '',
+            },
+        ]);
+        expect(result).toEqual({
+            firstName: 'john',
+            lastName: 'doe',
+            email: 'john.doe@marmelab.com',
+            domain: 'marmelab.com',
+        });
+    });
+
+    it('should use first part of email when Name is empty and support single word', () => {
+        const result = extractMailContactData([
+            {
+                Email: 'john@marmelab.com',
+                Name: '',
+            },
+        ]);
+        expect(result).toEqual({
+            firstName: '',
+            lastName: 'john',
+            email: 'john@marmelab.com',
+            domain: 'marmelab.com',
+        });
+    });
+
+    it('should use first part of email when Name is empty and support multiple words', () => {
+        const result = extractMailContactData([
+            {
+                Email: 'john.doe.multi@marmelab.com',
+                Name: '',
+            },
+        ]);
+        expect(result).toEqual({
+            firstName: 'john',
+            lastName: 'doe multi',
+            email: 'john.doe.multi@marmelab.com',
+            domain: 'marmelab.com',
+        });
+    });
+
+    it('should support empty Name and multiple @ in email', () => {
+        // Because it is allowed by https://www.rfc-editor.org/rfc/rfc5322
+        const result = extractMailContactData([
+            {
+                Email: '"john@doe"@marmelab.com',
+                Name: '',
+            },
+        ]);
+        expect(result).toEqual({
+            firstName: '"john',
+            lastName: 'doe"',
+            email: '"john@doe"@marmelab.com',
+            domain: 'marmelab.com',
+        });
+    });
 });
