@@ -1,8 +1,6 @@
 import { Card, Container, Typography } from '@mui/material';
 import { useMutation } from '@tanstack/react-query';
 import {
-    PasswordInput,
-    required,
     SimpleForm,
     useDataProvider,
     useNotify,
@@ -50,13 +48,7 @@ export function SalesCreate() {
             <Card>
                 <SimpleForm onSubmit={onSubmit as SubmitHandler<any>}>
                     <Typography variant="h6">Create sale person</Typography>
-                    <SalesInputs>
-                        <PasswordInput
-                            source="password"
-                            validate={required()}
-                            helperText={false}
-                        />
-                    </SalesInputs>
+                    <SalesInputs />
                 </SimpleForm>
             </Card>
         </Container>
