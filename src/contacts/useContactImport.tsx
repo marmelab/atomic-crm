@@ -49,8 +49,10 @@ export function useContactImport() {
 
             const entities = uncachedEntities.length
                 ? await dataProvider.getList(entity, {
-                      filter: { name: uncachedEntities },
-                      pagination: { page: 1, perPage: 1 },
+                      filter: {
+                          'name@in': `(${uncachedEntities.map(entity => `"${entity}"`).join(',')})`,
+                      },
+                      pagination: { page: 1, perPage: trimmedNames.length },
                       sort: { field: 'id', order: 'ASC' },
                   })
                 : { data: [] };
