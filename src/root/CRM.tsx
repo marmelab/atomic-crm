@@ -176,6 +176,18 @@ export const CRM = ({
     </ConfigurationProvider>
 );
 
+export const raSupabaseEnglishMessagesOverride = {
+    'ra-supabase': {
+        auth: {
+            password_reset: 'Check your emails for a Reset Password message.',
+        },
+    },
+};
+
 const i18nProvider = polyglotI18nProvider(() => {
-    return mergeTranslations(englishMessages, raSupabaseEnglishMessages);
+    return mergeTranslations(
+        englishMessages,
+        raSupabaseEnglishMessages,
+        raSupabaseEnglishMessagesOverride
+    );
 }, 'en');
