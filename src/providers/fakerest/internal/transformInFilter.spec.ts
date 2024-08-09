@@ -26,3 +26,8 @@ it('should return an array of strings', () => {
     expect(transformInFilter('(a)')).toEqual(['a']);
     expect(transformInFilter('(a,B,c-d)')).toEqual(['a', 'B', 'c-d']);
 });
+
+it('should return an array of quoted strings', () => {
+    expect(transformInFilter('("a")')).toEqual(['a']);
+    expect(transformInFilter('("a","B, c")')).toEqual(['a', 'B, c']);
+});

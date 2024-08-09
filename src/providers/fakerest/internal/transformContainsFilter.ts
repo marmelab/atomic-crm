@@ -1,5 +1,6 @@
-export const CONTAINS_FILTER_REGEX =
-    /^\{[A-Za-zÀ-ÖØ-öø-ÿ0-9-]+(,[A-Za-zÀ-ÖØ-öø-ÿ0-9-]+)*\}$/i;
+import { LIST_REGEX_BASE, parseList } from './listParser';
+
+export const CONTAINS_FILTER_REGEX = new RegExp(`^\\{${LIST_REGEX_BASE}\\}$`);
 
 export function transformContainsFilter(value: any) {
     if (value === '{}') {
@@ -12,14 +13,5 @@ export function transformContainsFilter(value: any) {
         );
     }
 
-    return value
-        .slice(1, -1)
-        .split(',')
-        .map((v: string) => {
-            const parsedFloat = Number.parseFloat(v);
-            if (!Number.isNaN(parsedFloat)) {
-                return parsedFloat;
-            }
-            return v;
-        });
+    return parseList(value.slice(1, -1));
 }
