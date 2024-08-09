@@ -44,8 +44,6 @@ jobs:
                   git remote add production $PRODUCTION_REMOTE
                   git config --global user.email support+actions@github.com
                   git config --global user.name github-actions-bot
-                  echo Configured remotes:
-                  git remote -v
 
             - name: ⚙️ Setup supabase
               uses: supabase/setup-cli@v1
@@ -74,4 +72,4 @@ jobs:
             - name: 📡 Deploy GitHub pages
               run: npx gh-pages --remote production -d dist -b ${{ vars.DEPLOY_BRANCH || 'gh-pages' }}
               env:
-                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+                  GITHUB_TOKEN: ${{ secrets.DEPLOY_TOKEN || secrets.GITHUB_TOKEN }}
