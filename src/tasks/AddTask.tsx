@@ -63,7 +63,7 @@ export const AddTask = ({
                         to={'#'}
                         onClick={handleOpen}
                     >
-                        <ControlPointIcon fontSize="inherit" />
+                        <ControlPointIcon fontSize="inherit" color="primary" />
                     </IconButton>
                 </Tooltip>
             ) : (

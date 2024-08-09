@@ -50,7 +50,7 @@ export const HotContacts = () => {
                         component={Link}
                         to="/contacts/create"
                     >
-                        <ControlPointIcon fontSize="inherit" />
+                        <ControlPointIcon fontSize="inherit" color="primary" />
                     </IconButton>
                 </Tooltip>
             </Box>
