@@ -24,7 +24,7 @@ import { authProvider, USER_STORAGE_KEY } from './authProvider';
 import generateData from './dataGenerator';
 import { withSupabaseFilterAdapter } from './internal/supabaseAdapter';
 
-const baseDataProvider = fakeRestDataProvider(generateData(), false, 300);
+const baseDataProvider = fakeRestDataProvider(generateData(), true, 300);
 
 const TASK_MARKED_AS_DONE = 'TASK_MARKED_AS_DONE';
 const TASK_MARKED_AS_UNDONE = 'TASK_MARKED_AS_UNDONE';
