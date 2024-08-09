@@ -3,24 +3,12 @@ import { createClient } from 'jsr:@supabase/supabase-js@2';
 import { corsHeaders, createErrorResponse } from '../_shared/utils.ts';
 import { supabaseAdmin } from '../_shared/supabaseAdmin.ts';
 
-async function updatePassword(req: Request, user: any) {
-    const { currentPassword, newPassword } = await req.json();
+async function updatePassword(user: any) {
+    const { data, error } = await supabaseAdmin.auth.resetPasswordForEmail(
+        user.email
+    );
 
-    const { _, error: errorLogin } =
-        await supabaseAdmin.auth.signInWithPassword({
-            email: user.email,
-            password: currentPassword,
-        });
-
-    if (errorLogin) {
-        return createErrorResponse(400, 'Invalid current password');
-    }
-
-    const { data, error: errorUpdate } = await supabaseAdmin.auth.updateUser({
-        password: newPassword,
-    });
-
-    if (!data || errorUpdate) {
+    if (!data || error) {
         return createErrorResponse(500, 'Internal Server Error');
     }
 
@@ -55,7 +43,7 @@ Deno.serve(async (req: Request) => {
     }
 
     if (req.method === 'PATCH') {
-        return updatePassword(req, data.user);
+        return updatePassword(data.user);
     }
 
     return createErrorResponse(405, 'Method Not Allowed');
