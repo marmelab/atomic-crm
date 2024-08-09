@@ -170,42 +170,31 @@ export const Note = ({
                     </Box>
                 </Form>
             ) : (
-                <Box
+                <Stack
                     sx={{
                         paddingTop: '0.5em',
                         display: 'flex',
-                        alignItems: 'stretch',
+                        '& p:empty': {
+                            minHeight: '0.75em',
+                        },
                     }}
                 >
-                    <Box
-                        flex={1}
-                        sx={{
-                            '& p:first-of-type': {
-                                marginTop: 0,
-                            },
-                            '& p:last-of-type': {
-                                marginBottom: 0,
-                            },
-                        }}
-                    >
-                        {note.text
-                            ?.split('\n')
-                            .map((paragraph: string, index: number) => (
-                                <Box
-                                    component="p"
-                                    fontFamily="fontFamily"
-                                    fontSize="body2.fontSize"
-                                    lineHeight={1.5}
-                                    marginBottom={2.4}
-                                    key={index}
-                                >
-                                    {paragraph}
-                                </Box>
-                            ))}
+                    {note.text
+                        ?.split('\n')
+                        .map((paragraph: string, index: number) => (
+                            <Typography
+                                component="p"
+                                variant="body2"
+                                lineHeight={1.5}
+                                margin={0}
+                                key={index}
+                            >
+                                {paragraph}
+                            </Typography>
+                        ))}
 
-                        {note.attachments && <NoteAttachments note={note} />}
-                    </Box>
-                </Box>
+                    {note.attachments && <NoteAttachments note={note} />}
+                </Stack>
             )}
         </Box>
     );
