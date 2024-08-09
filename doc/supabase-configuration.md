@@ -82,6 +82,10 @@ If you want more information on how to customize email templates, go to the [rel
 
 If you want to customize the production templates, you can go to your project dashboard at [supabase.com](https://supabase.com/). Then go to **Authentication** > **Email Templates**. You can the choose which template to change using the email template stabs.
 
+## Email Features
+
+Supabase requires additional configuration to enable Atomic CRM's email features. Have a look at the the [email features documentation](./email-features.md) to learn more about their usage and the required setup.
+
 ## Fequently Asked Questions
 
 - I have a **Security Definer View** error in **Security Advisor**
