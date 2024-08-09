@@ -7,7 +7,12 @@ import {
     Typography,
 } from '@mui/material';
 import { useMutation, useQuery } from '@tanstack/react-query';
-import { useDataProvider, useLogin, useNotify } from 'react-admin';
+import {
+    useDataProvider,
+    useLogin,
+    useNotify,
+    usePermissions,
+} from 'react-admin';
 import { SubmitHandler, useForm } from 'react-hook-form';
 import { Navigate } from 'react-router';
 import { CrmDataProvider } from '../providers/types';
@@ -16,6 +21,7 @@ import { SignUpData } from '../types';
 import { LoginSkeleton } from './LoginSkeleton';
 
 export const SignupPage = () => {
+    const { refetch } = usePermissions();
     const dataProvider = useDataProvider<CrmDataProvider>();
     const { logo, title } = useConfigurationContext();
     const { data: isInitialized, isPending } = useQuery({
@@ -35,10 +41,10 @@ export const SignupPage = () => {
                 email: data.email,
                 password: data.password,
                 redirectTo: '/contacts',
-            });
-            setTimeout(() => {
+            }).then(() => {
                 notify('Initial user successfully created');
-            }, 0);
+                refetch();
+            });
         },
         onError: () => {
             notify('An error occurred. Please try again.');
@@ -72,7 +78,12 @@ export const SignupPage = () => {
     return (
         <Stack sx={{ height: '100dvh', p: 2 }}>
             <Stack direction="row" alignItems="center" gap={1}>
-                <img src={logo} alt={title} width={50} />
+                <img
+                    src={logo}
+                    alt={title}
+                    width={24}
+                    style={{ filter: 'invert(0.9)' }}
+                />
                 <Typography component="span" variant="h5">
                     {title}
                 </Typography>

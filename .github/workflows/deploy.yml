@@ -25,7 +25,7 @@ jobs:
             VITE_SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
             VITE_SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
             VITE_IS_DEMO: ${{ vars.VITE_IS_DEMO }}
-            DEPLOY_REPO_URL: ${{ vars.DEPLOY_REPO_URL }}
+            PRODUCTION_REMOTE: https://git:${{ secrets.GITHUB_TOKEN }}@github.com/${{ vars.DEPLOY_REPOSITORY || github.repository }}
 
         steps:
             - name: 📥 Checkout repo
@@ -36,6 +36,14 @@ jobs:
               with:
                   node-version: 20
                   cache: npm
+
+            - name: ⚙️ Setup git
+              run: |
+                  echo Deploying to pages to $PRODUCTION_REMOTE
+                  git remote set-url origin https://git:${{ secrets.GITHUB_TOKEN }}@github.com/${GITHUB_REPOSITORY}
+                  git remote add production $PRODUCTION_REMOTE
+                  git config --global user.email support+actions@github.com
+                  git config --global user.name github-actions-bot
 
             - name: ⚙️ Setup supabase
               uses: supabase/setup-cli@v1
@@ -52,14 +60,16 @@ jobs:
             - name: 📡 Push supabase migrations
               run: npx supabase db push
 
+            - name: 📡 Push supabase functions secrets
+              run: |
+                  npx supabase secrets set POSTMARK_WEBHOOK_USER=${{ secrets.POSTMARK_WEBHOOK_USER }}
+                  npx supabase secrets set POSTMARK_WEBHOOK_PASSWORD=${{ secrets.POSTMARK_WEBHOOK_PASSWORD }}
+                  npx supabase secrets set POSTMARK_WEBHOOK_AUTHORIZED_IPS=${{ secrets.POSTMARK_WEBHOOK_AUTHORIZED_IPS }}
+
             - name: 📡 Deploy supabase functions
               run: npx supabase functions deploy
 
             - name: 📡 Deploy GitHub pages
-              run: |
-                  git remote set-url origin https://git:${{ secrets.GITHUB_TOKEN }}@github.com/${GITHUB_REPOSITORY}
-                  git config --global user.email support+actions@github.com
-                  git config --global user.name github-actions-bot 
-                  npm run ghpages:deploy
+              run: npx gh-pages --remote production -d dist -b ${{ vars.DEPLOY_BRANCH || 'gh-pages' }}
               env:
-                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+                  GITHUB_TOKEN: ${{ secrets.DEPLOY_TOKEN || secrets.GITHUB_TOKEN }}

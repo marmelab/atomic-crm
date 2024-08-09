@@ -253,45 +253,17 @@ Create a new migration using the following command:
 npx supabase db diff | npx supabase migration new <migration_name>
 ```
 
-### Password Reset When Forgotten or Password change
-If users forgot their password or want to update it, they can request for a reset. Atomic CRM handle it for you. All the magic is done by the custom route `/forgot-password` and `/set-password` that you can find in the `CRM` component.
+### Password Reset And Invitations
 
-If you want to update default configuration: 
+An user can be invited to the CRM by an administrator. The user will receive an email with a link to set their password. The password reset feature is also available. You don't have to worry about these processes, Atomic CRM handles them for you, using Supabase.
 
-#### Local development
+Please make sure to read and apply the [Login Callback](./doc/supabase-configuration.md#login-callback) and [Customizing Mail Template](./doc/supabase-configuration.md#customizing-mail-template) sections to properly configure the password reset feature.
 
-1. Go to your `config.toml` file
-2. In `[auth]` section set `site_url` to  your application URL
-3. In `[auth]`, add the following URL in the `additional_redirect_urls = [{APPLICATION_URL}}/auth-callback"]`
-4. Add an `[auth.email.template.recovery]` section with the following option
-```
-[auth.email.template.recovery]
-subject = "Reset Password"
-content_path = "./supabase/templates/recovery.html"
-```
+## Email Features
 
-In Recovery email template set the `auth-callback` redirection
+Atomic CRM supports inbound email features:
 
-```HTML
-<html>
-  <body>
-    <h2>Reset Password</h2>
-    <p><a href="{{ .ConfirmationURL }}/auth-callback">Reset your password</a></p>
-  </body>
-</html>
-```
+- You can add a note to a contact by sending an email to a specific email address
+- _More to come!_
 
-Supabase provides an [Inbucket](https://inbucket.org/) instance that allows you to test your emails and configure your flow.
-
-#### Production
-
-This requires you to configure your supabase instance:
-
-1. Go to your dashboard Authentication section
-2. In URL Configuration, set Site URL to your application URL
-3. In URL Configuration, add the following URL in the Redirect URLs section: `YOUR_APPLICATION_URL/auth-callback`
-4. In Email Templates, change the `"{{ .ConfirmationURL }}"` to `"{{ .ConfirmationURL }}/auth-callback"`
-
-### Invite Users
-
-You can invite users to your CRM. The invitation is sent by email. The invited user will receive an email with a link to set a password. Do the same configuration as the password reset process but with the `invite` template.
+Learn more about their usage and setup in the [email features documentation](./doc/email-features.md).

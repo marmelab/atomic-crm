@@ -1,5 +1,12 @@
 import * as React from 'react';
-import { Card, Box, Stack, Typography, IconButton } from '@mui/material';
+import {
+    Card,
+    Box,
+    Stack,
+    Typography,
+    IconButton,
+    Tooltip,
+} from '@mui/material';
 import ContactsIcon from '@mui/icons-material/Contacts';
 import { useGetList, SimpleList, useGetIdentity } from 'react-admin';
 
@@ -33,17 +40,19 @@ export const HotContacts = () => {
                 <Typography variant="h5" color="textSecondary">
                     Hot Contacts
                 </Typography>
-                <IconButton
-                    size="small"
-                    sx={{
-                        color: 'text.secondary',
-                        ml: 'auto',
-                    }}
-                    component={Link}
-                    to="/contacts/create"
-                >
-                    <ControlPointIcon fontSize="inherit" />
-                </IconButton>
+                <Tooltip title="Create contact">
+                    <IconButton
+                        size="small"
+                        sx={{
+                            color: 'text.secondary',
+                            ml: 'auto',
+                        }}
+                        component={Link}
+                        to="/contacts/create"
+                    >
+                        <ControlPointIcon fontSize="inherit" />
+                    </IconButton>
+                </Tooltip>
             </Box>
             <Card
                 sx={{
