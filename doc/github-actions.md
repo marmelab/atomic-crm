@@ -20,13 +20,21 @@ POSTMARK_WEBHOOK_AUTHORIZED_IPS: List of IPs (comma separated) authorized to sen
 
 ## Deploying to Another Repository
 
-If you want to deploy the static website to another repository, you must first
+If you want to deploy the static website to another repository, you must first generete a personal access token [in the GitHub settings](https://github.com/settings/tokens?type=beta):
+
+- Give a name to the token
+- Set token expiration
+- Select `Only select repositories`, and select the target repository
+- On the repository permissions, select "Write Access" under "Contents"
 
 Then you can configure the following GitHub action variable on you repository:
 ```bash
 DEPLOY_REPOSITORY=<org>/<repository>
+```
 
-# A personal access token can be created at https://github.com/settings/tokens?type=beta
+And finally, you must create the following GitHub Action secret:
+
+```bash
 DEPLOY_TOKEN=<personal_access_token>
 ```
 
