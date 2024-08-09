@@ -37,6 +37,14 @@ jobs:
                   node-version: 20
                   cache: npm
 
+            - name: ⚙️ Setup git
+              run: |
+                  echo "Deploying to pages to ${{ PRODUCTION_REMOTE }}"
+                  git remote set-url origin https://git:${{ secrets.GITHUB_TOKEN }}@github.com/${GITHUB_REPOSITORY}
+                  git remote add production "${{ PRODUCTION_REMOTE }}"
+                  git config --global user.email support+actions@github.com
+                  git config --global user.name github-actions-bot 
+
             - name: ⚙️ Setup supabase
               uses: supabase/setup-cli@v1
 
@@ -62,12 +70,6 @@ jobs:
               run: npx supabase functions deploy
 
             - name: 📡 Deploy GitHub pages
-              run: |
-                  echo "Deploying to pages to $PRODUCTION_REMOTE"
-                  git remote set-url origin https://git:${{ secrets.GITHUB_TOKEN }}@github.com/${GITHUB_REPOSITORY}
-                  git remote add production $PRODUCTION_REMOTE
-                  git config --global user.email support+actions@github.com
-                  git config --global user.name github-actions-bot 
-                  npx gh-pages --remote production -d dist -b ${{ vars.DEPLOY_BRANCH || 'gh-pages' }}
+              run: npx gh-pages --remote production -d dist -b ${{ vars.DEPLOY_BRANCH || 'gh-pages' }}
               env:
                   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
