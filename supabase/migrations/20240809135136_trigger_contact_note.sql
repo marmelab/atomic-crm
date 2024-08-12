@@ -6,7 +6,7 @@ as $$
 begin
   update public."contacts"
   set 
-    last_seen = new.date
+    last_seen = NOW()
   where id = new.contact_id;
 
   return new;
