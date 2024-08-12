@@ -123,5 +123,8 @@ export const addNoteToContact = async ({
             { status: 500 }
         );
 
-    return new Response('OK');
+    await supabaseAdmin
+        .from('contacts')
+        .update({ last_seen: new Date() })
+        .eq('id', contact.id);
 };
