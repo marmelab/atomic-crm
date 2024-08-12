@@ -1,4 +1,3 @@
-import * as React from 'react';
 import {
     CreateBase,
     Form,
@@ -82,7 +81,7 @@ const NoteCreateButton = ({
         refetch();
         update(reference, {
             id: (record && record.id) as unknown as Identifier,
-            data: { last_seen: data.date, status: data.status },
+            data: { last_seen: new Date().toISOString(), status: data.status },
             previousData: record,
         });
         notify('Note added');
