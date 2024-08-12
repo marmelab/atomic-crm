@@ -131,7 +131,7 @@
         function interceptAuthCallback() {
                 const hash = window.location.hash;
                 const {access_token, refresh_token, type} = getUrlParams();
-                window.location.href = `../#/auth-callback?access_token=${access_token}&refresh_token=${refresh_token}&type=${type}`;
+                window.location.href = `./#/auth-callback?access_token=${access_token}&refresh_token=${refresh_token}&type=${type}`;
         }
     
         // Call the function to intercept the auth callback
