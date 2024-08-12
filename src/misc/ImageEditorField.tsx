@@ -117,7 +117,10 @@ const ImageEditorDialog = (props: ImageEditorDialogProps) => {
     };
 
     const deleteImage = () => {
-        setValue(props.source, undefined, { shouldDirty: true });
+        setValue(props.source, null, { shouldDirty: true });
+        if (props.onSave) {
+            handleSubmit(props.onSave)();
+        }
         props.onClose();
     };
 
