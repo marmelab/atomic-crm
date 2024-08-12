@@ -7,6 +7,7 @@ import {
     CardContent,
     Container,
     Stack,
+    Tooltip,
     Typography,
 } from '@mui/material';
 import { useState } from 'react';
@@ -26,6 +27,7 @@ import ImageEditorField from '../misc/ImageEditorField';
 import { CrmDataProvider } from '../providers/types';
 import { SalesFormData } from '../types';
 import { useMutation } from '@tanstack/react-query';
+import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 
 export const SettingsPage = () => {
     const [isEditMode, setEditMode] = useState(false);
@@ -138,63 +140,98 @@ const SettingsForm = ({
     };
 
     return (
-        <Card>
-            <CardContent>
-                <Stack mb={2} direction="row" justifyContent="space-between">
-                    <Typography variant="h5" color="textSecondary">
-                        My info
-                    </Typography>
-                </Stack>
-                <Stack gap={2} mb={2}>
-                    <ImageEditorField
-                        source="avatar"
-                        type="avatar"
-                        onSave={handleAvatarUpdate}
-                        linkPosition="right"
-                    />
-                    <TextRender source="first_name" isEditMode={isEditMode} />
-                    <TextRender source="last_name" isEditMode={isEditMode} />
-                    <TextRender source="email" isEditMode={isEditMode} />
-                </Stack>
-                {!isEditMode && (
-                    <>
-                        <Button
-                            variant="outlined"
-                            onClick={handleClickOpenPasswordChange}
-                        >
-                            Change password
-                        </Button>
-                    </>
-                )}
-            </CardContent>
-
-            <CardActions
-                sx={{
-                    paddingX: 2,
-                    background: theme => theme.palette.background.default,
-                    justifyContent: isEditMode ? 'space-between' : 'flex-end',
-                }}
-            >
-                {isEditMode && (
-                    <Button
-                        variant="contained"
-                        type="submit"
-                        disabled={!isDirty}
-                        hidden={isEditMode}
+        <Stack gap={4}>
+            <Card>
+                <CardContent>
+                    <Stack
+                        mb={2}
+                        direction="row"
+                        justifyContent="space-between"
                     >
-                        Save
-                    </Button>
-                )}
-                <Button
-                    variant="text"
-                    size="small"
-                    startIcon={isEditMode ? <VisibilityIcon /> : <EditIcon />}
-                    onClick={() => setEditMode(!isEditMode)}
+                        <Typography variant="h5" color="textSecondary">
+                            My info
+                        </Typography>
+                    </Stack>
+                    <Stack gap={2} mb={2}>
+                        <ImageEditorField
+                            source="avatar"
+                            type="avatar"
+                            onSave={handleAvatarUpdate}
+                            linkPosition="right"
+                        />
+                        <TextRender
+                            source="first_name"
+                            isEditMode={isEditMode}
+                        />
+                        <TextRender
+                            source="last_name"
+                            isEditMode={isEditMode}
+                        />
+                        <TextRender source="email" isEditMode={isEditMode} />
+                    </Stack>
+                    {!isEditMode && (
+                        <>
+                            <Button
+                                variant="outlined"
+                                onClick={handleClickOpenPasswordChange}
+                            >
+                                Change password
+                            </Button>
+                        </>
+                    )}
+                </CardContent>
+
+                <CardActions
+                    sx={{
+                        paddingX: 2,
+                        background: theme => theme.palette.background.default,
+                        justifyContent: isEditMode
+                            ? 'space-between'
+                            : 'flex-end',
+                    }}
                 >
-                    {isEditMode ? 'Show' : 'Edit'}
-                </Button>
-            </CardActions>
-        </Card>
+                    {isEditMode && (
+                        <Button
+                            variant="contained"
+                            type="submit"
+                            disabled={!isDirty}
+                            hidden={isEditMode}
+                        >
+                            Save
+                        </Button>
+                    )}
+                    <Button
+                        variant="text"
+                        size="small"
+                        startIcon={
+                            isEditMode ? <VisibilityIcon /> : <EditIcon />
+                        }
+                        onClick={() => setEditMode(!isEditMode)}
+                    >
+                        {isEditMode ? 'Show' : 'Edit'}
+                    </Button>
+                </CardActions>
+            </Card>
+            {import.meta.env.VITE_INBOUND_EMAIL && (
+                <Card>
+                    <CardContent>
+                        <Stack gap={2} justifyContent="space-between">
+                            <Typography variant="h5" color="textSecondary">
+                                Inboud email
+                            </Typography>
+                            <Typography variant="body2" color="textSecondary">
+                                You can start sending emails to your server's
+                                inbound email address, e.g. by adding it to the
+                                <b> Cc: </b> field. Atomic CRM will process the
+                                emails and add notes to the corresponding
+                                contacts.
+                            </Typography>
+                            <CopyPaste />
+                        </Stack>
+                    </CardContent>
+                </Card>
+            )}
+        </Stack>
     );
 };
 
@@ -212,6 +249,31 @@ const TextRender = ({
         <Labeled sx={{ mb: 0 }}>
             <TextField source={source} />
         </Labeled>
+    );
+};
+
+const CopyPaste = () => {
+    const [copied, setCopied] = useState(false);
+    const handleCopy = () => {
+        setCopied(true);
+        navigator.clipboard.writeText(import.meta.env.VITE_INBOUND_EMAIL);
+        setTimeout(() => {
+            setCopied(false);
+        }, 1500);
+    };
+    return (
+        <Tooltip placement="top" title={copied ? 'Copied!' : 'Copy'}>
+            <Button
+                onClick={handleCopy}
+                sx={{
+                    textTransform: 'none',
+                    justifyContent: 'space-between',
+                }}
+                endIcon={<ContentCopyIcon />}
+            >
+                {import.meta.env.VITE_INBOUND_EMAIL}
+            </Button>
+        </Tooltip>
     );
 };
 
