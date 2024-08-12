@@ -4,9 +4,9 @@
 
 // Setup type definitions for built-in Supabase Runtime APIs
 import 'jsr:@supabase/functions-js/edge-runtime.d.ts';
-import { getExpectedAuthorization } from './getExpectedAuthorization.ts';
-import { extractMailContactData } from './extractMailContactData.ts';
 import { addNoteToContact } from './addNoteToContact.ts';
+import { extractMailContactData } from './extractMailContactData.ts';
+import { getExpectedAuthorization } from './getExpectedAuthorization.ts';
 import { getNoteContent } from './getNoteContent.ts';
 
 const webhookUser = Deno.env.get('POSTMARK_WEBHOOK_USER');
@@ -46,24 +46,31 @@ Deno.serve(async req => {
         );
     }
 
-    const { firstName, lastName, email, domain } =
-        extractMailContactData(ToFull);
-    if (!email) {
-        // Return a 403 to let Postmark know that it's no use to retry this request
-        // https://postmarkapp.com/developer/webhooks/inbound-webhook#errors-and-retries
-        return new Response(`Could not extract email from ToFull: ${ToFull}`, {
-            status: 403,
+    const contacts = extractMailContactData(ToFull);
+
+    for (const { firstName, lastName, email, domain } of contacts) {
+        if (!email) {
+            // Return a 403 to let Postmark know that it's no use to retry this request
+            // https://postmarkapp.com/developer/webhooks/inbound-webhook#errors-and-retries
+            return new Response(
+                `Could not extract email from ToFull: ${ToFull}`,
+                {
+                    status: 403,
+                }
+            );
+        }
+
+        await addNoteToContact({
+            salesEmail,
+            email,
+            domain,
+            firstName,
+            lastName,
+            noteContent,
         });
     }
 
-    return await addNoteToContact({
-        salesEmail,
-        email,
-        domain,
-        firstName,
-        lastName,
-        noteContent,
-    });
+    return new Response('OK');
 });
 
 const checkRequestTypeAndHeaders = (req: Request) => {
