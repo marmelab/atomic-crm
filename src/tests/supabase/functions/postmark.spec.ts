@@ -1,5 +1,5 @@
-import { getExpectedAuthorization } from '../../../../supabase/functions/postmark/getExpectedAuthorization.js';
 import { extractMailContactData } from '../../../../supabase/functions/postmark/extractMailContactData.js';
+import { getExpectedAuthorization } from '../../../../supabase/functions/postmark/getExpectedAuthorization.js';
 
 describe('getExpectedAuthorization', () => {
     it('should return the expected Authorization header from provided user and password', () => {
@@ -16,15 +16,17 @@ describe('extractMailContactData', () => {
                 Name: 'Firstname Lastname',
             },
         ]);
-        expect(result).toEqual({
-            firstName: 'Firstname',
-            lastName: 'Lastname',
-            email: 'firstname.lastname@marmelab.com',
-            domain: 'marmelab.com',
-        });
+        expect(result).toEqual([
+            {
+                firstName: 'Firstname',
+                lastName: 'Lastname',
+                email: 'firstname.lastname@marmelab.com',
+                domain: 'marmelab.com',
+            },
+        ]);
     });
 
-    it('should ignore extra recipients', () => {
+    it('should support extra recipients', () => {
         const result = extractMailContactData([
             {
                 Email: 'firstname.lastname@marmelab.com',
@@ -35,12 +37,20 @@ describe('extractMailContactData', () => {
                 Name: 'John Doe',
             },
         ]);
-        expect(result).toEqual({
-            firstName: 'Firstname',
-            lastName: 'Lastname',
-            email: 'firstname.lastname@marmelab.com',
-            domain: 'marmelab.com',
-        });
+        expect(result).toEqual([
+            {
+                firstName: 'Firstname',
+                lastName: 'Lastname',
+                email: 'firstname.lastname@marmelab.com',
+                domain: 'marmelab.com',
+            },
+            {
+                firstName: 'John',
+                lastName: 'Doe',
+                email: 'john.doe@marmelab.com',
+                domain: 'marmelab.com',
+            },
+        ]);
     });
 
     it('should use a single word name as last name', () => {
@@ -50,12 +60,14 @@ describe('extractMailContactData', () => {
                 Name: 'Name',
             },
         ]);
-        expect(result).toEqual({
-            firstName: '',
-            lastName: 'Name',
-            email: 'name@marmelab.com',
-            domain: 'marmelab.com',
-        });
+        expect(result).toEqual([
+            {
+                firstName: '',
+                lastName: 'Name',
+                email: 'name@marmelab.com',
+                domain: 'marmelab.com',
+            },
+        ]);
     });
 
     it('should support multi word last name', () => {
@@ -65,12 +77,14 @@ describe('extractMailContactData', () => {
                 Name: 'Multi Word Name',
             },
         ]);
-        expect(result).toEqual({
-            firstName: 'Multi',
-            lastName: 'Word Name',
-            email: 'multi.word.name@marmelab.com',
-            domain: 'marmelab.com',
-        });
+        expect(result).toEqual([
+            {
+                firstName: 'Multi',
+                lastName: 'Word Name',
+                email: 'multi.word.name@marmelab.com',
+                domain: 'marmelab.com',
+            },
+        ]);
     });
 
     it('should support multiple @ in email', () => {
@@ -81,12 +95,14 @@ describe('extractMailContactData', () => {
                 Name: 'John Doe',
             },
         ]);
-        expect(result).toEqual({
-            firstName: 'John',
-            lastName: 'Doe',
-            email: '"john@doe"@marmelab.com',
-            domain: 'marmelab.com',
-        });
+        expect(result).toEqual([
+            {
+                firstName: 'John',
+                lastName: 'Doe',
+                email: '"john@doe"@marmelab.com',
+                domain: 'marmelab.com',
+            },
+        ]);
     });
 
     it('should use first part of email when Name is empty', () => {
@@ -96,12 +112,14 @@ describe('extractMailContactData', () => {
                 Name: '',
             },
         ]);
-        expect(result).toEqual({
-            firstName: 'john',
-            lastName: 'doe',
-            email: 'john.doe@marmelab.com',
-            domain: 'marmelab.com',
-        });
+        expect(result).toEqual([
+            {
+                firstName: 'john',
+                lastName: 'doe',
+                email: 'john.doe@marmelab.com',
+                domain: 'marmelab.com',
+            },
+        ]);
     });
 
     it('should use first part of email when Name is empty and support single word', () => {
@@ -111,12 +129,14 @@ describe('extractMailContactData', () => {
                 Name: '',
             },
         ]);
-        expect(result).toEqual({
-            firstName: '',
-            lastName: 'john',
-            email: 'john@marmelab.com',
-            domain: 'marmelab.com',
-        });
+        expect(result).toEqual([
+            {
+                firstName: '',
+                lastName: 'john',
+                email: 'john@marmelab.com',
+                domain: 'marmelab.com',
+            },
+        ]);
     });
 
     it('should use first part of email when Name is empty and support multiple words', () => {
@@ -126,12 +146,14 @@ describe('extractMailContactData', () => {
                 Name: '',
             },
         ]);
-        expect(result).toEqual({
-            firstName: 'john',
-            lastName: 'doe multi',
-            email: 'john.doe.multi@marmelab.com',
-            domain: 'marmelab.com',
-        });
+        expect(result).toEqual([
+            {
+                firstName: 'john',
+                lastName: 'doe multi',
+                email: 'john.doe.multi@marmelab.com',
+                domain: 'marmelab.com',
+            },
+        ]);
     });
 
     it('should support empty Name and multiple @ in email', () => {
@@ -142,11 +164,13 @@ describe('extractMailContactData', () => {
                 Name: '',
             },
         ]);
-        expect(result).toEqual({
-            firstName: '"john',
-            lastName: 'doe"',
-            email: '"john@doe"@marmelab.com',
-            domain: 'marmelab.com',
-        });
+        expect(result).toEqual([
+            {
+                firstName: '"john',
+                lastName: 'doe"',
+                email: '"john@doe"@marmelab.com',
+                domain: 'marmelab.com',
+            },
+        ]);
     });
 });
