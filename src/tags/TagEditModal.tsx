@@ -32,7 +32,7 @@ export function TagEditModal({
     return (
         <TagDialog
             open={open}
-            title={`Update ${tag.name} tag`}
+            title="Edit tag"
             onClose={onClose}
             onSubmit={handleEditTag}
             tag={tag}
