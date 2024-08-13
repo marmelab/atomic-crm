@@ -27,6 +27,7 @@ import {
     useGetIdentity,
     useNotify,
     useRecordContext,
+    useUpdate,
 } from 'react-admin';
 import { Link } from 'react-router-dom';
 import { contactInputText, contactOptionText } from '../misc/ContactOption';
@@ -42,6 +43,7 @@ export const AddTask = ({
 }) => {
     const { identity } = useGetIdentity();
     const dataProvider = useDataProvider();
+    const [update] = useUpdate();
     const notify = useNotify();
     const { taskTypes } = useConfigurationContext();
     const contact = useRecordContext();
@@ -57,11 +59,12 @@ export const AddTask = ({
         });
         if (!contact.data) return;
 
-        dataProvider.update('contacts', {
+        await update('contacts', {
             id: contact.data.id,
             data: { last_seen: new Date().toISOString() },
             previousData: contact.data,
         });
+
         notify('Note added');
     };
 
