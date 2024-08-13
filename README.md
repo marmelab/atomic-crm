@@ -6,7 +6,7 @@ https://user-images.githubusercontent.com/99944/116970434-4a926480-acb8-11eb-8ce
 
 You can test it online at https://marmelab.com/react-admin-crm.
 
-## Local Supabase Setup
+## Install Project
 
 To run this project locally, you will need the following tools installed on your computer:
 
@@ -29,9 +29,24 @@ make install
 
 This will install the dependencies for the frontend and the backend, including a local Supabase instance.
 
-## Running the App In Development Mode
 
-Start the app locally with the following command:
+## Developing with Atomic CRM
+
+### Configuration
+
+1. [Supabase Configuration](./doc/developer/01-supabase-configuration.md)
+2. [Customizing the CRM](./doc/developer/02-customizing.md)
+3. [Deploying to Production](./doc/developer/03-manual-deploy.md)
+4. [GitHub Actions Configuration](./doc/developer/04-github-actions.md) *(optional)*
+5. [Email Inbound Configuration](./doc/developer/05-email-inbound.md) *(optional)*
+6. [Creating Migrations](./doc/developer/06-supabase-migrations.md) *(optional)*
+7. [Contact Import Customization](./doc/developer/07-contact-import.md) *(optional)*
+8. [Using Fake Rest Data Provider for Development](./doc/developer/08-data-providers.md) *(optional)*
+9. [Learn More About Architecture Decisions](./doc/developer/09-architecture-choices.md) *(optional)*
+
+### Running the App In Development Mode
+
+Once you app is configred, start the app locally with the following command:
 
 ```sh
 make start
@@ -48,7 +63,7 @@ If you need debug the backend, you can access the following services:
 - Attachments storage: [http://localhost:54323/project/default/storage/buckets/attachments](http://localhost:54323/project/default/storage/buckets/attachments)
 - Inbucket email testing service: [http://localhost:54324/](http://localhost:54324/)
 
-## Testing
+### Testing
 
 This project contains unit tests. Run them with the following command:
 
@@ -56,214 +71,8 @@ This project contains unit tests. Run them with the following command:
 make test
 ```
 
-## Deploying to Production
 
-### Supabase Configuration
+## User documentation
 
-To configure Supabase, please have a look at [dedicated configuration guide](./doc/supabase-configuration.md).
-
-### Testing Production Mode
-
-If you want to test you code locally using production mode and the remote Supabase instance, you can run the following command:
-
-```sh
-make prod-start
-```
-
-Note: It will apply migrations and deploy edge functions.
-
-You can then access the app via [`http://localhost:3000/`](http://localhost:3000/).
-
-### Deploying The Frontend
-
-The frontend of the CRM is a Single-Page App that can be deployed to any CDN, or to GitHub Pages.
-
-First, build the fontend bundle with:
-
-```sh
-make build
-```
-
-This will create a `dist` directory with the built application made of static HTML, CSS, and JS files.
-
-Then, upload this directory to the CDN of your choice. If you want to deploy it to the `gh-pages` branch of the your repository, you can use the following command:
-
-```sh
-npm run ghpages:deploy
-``` 
-
-### Deploying Updates
-
-If you've modified the code, run the following command to deploy a new version of your CRM:
-
-```sh
-make prod-deploy
-```
-
-It will apply migrations, deploy edge functions and push the built applications to the `gh-pages` branch.
-
-## GitHub Actions
-
-Learn how to [configure GitHub Actions for Atomic CRM](./doc/github-actions.md).
-
-## Customizing
-
-You can customize the title, logo, theme, and domain of the CRM app by passing custom props to the `<CRM>` component:
-
-```tsx
-// App.tsx
-import React from 'react';
-import CRM from './CRM';
-
-const App = () => (
-    <CRM 
-        title="Custom CRM Title" 
-        logo="custom-logo.png" 
-    />
-);
-
-export default App;
-```
-
-## Domain & Process
-
-In addition to the design, you can easily customize various aspects relevant to your business domain. The behavior is the same as described above. You can modify the following:
-
-| Props                 | Description                                                           | Type            |
-|-----------------------|-----------------------------------------------------------------------|-----------------|
-| contactGender         | The gender options for contacts used in the application.              | ContactGender[] |
-| companySectors        | The list of company sectors used in the application.                  |  string[]       |
-| darkTheme             | The theme to use when the application is in dark mode.                | RaThemeOptions  |
-| dealCategories        | The categories of deals used in the application.                      | string[]        |
-| dealPipelineStatuses  | The statuses of deals in the pipeline used in the application         | string[]        |
-| dealStages            | The stages of deals used in the application.                          | DealStage[]     |
-| lightTheme            | The theme to use when the application is in light mode.               | RaThemeOptions  |
-| logo                  | The logo used in the CRM application.                                 | string          |
-| noteStatuses          | The statuses of notes used in the application.                        | NoteStatus[]    |
-| taskTypes             | The types of tasks used in the application.                           | string[]        |
-| title                 | The title of the CRM application.                                     | string          |
-
-```tsx
-import { CRM } from './root/CRM';
-import { ThemeOptions } from '@mui/material/styles';
-
-const lightTheme: ThemeOptions = {
-    palette: {
-        mode: 'light',
-    },
-};
-
-const darkTheme: ThemeOptions = {
-    palette: {
-        mode: 'dark',
-    },
-};
-
-const App = () => {
-    return (
-        <CRM
-            contactGender={[
-                { value: 'male', label: 'He' },
-                { value: 'female', label: 'She' },
-            ]}
-            companySectors={['Technology', 'Finance']}
-            darkTheme={darkTheme}
-            dealCategories={['Copywriting', 'Design']}
-            dealPipelineStatuses={['won']}
-            dealStages={[
-                { value: 'opportunity', label: 'Opportunity' },
-                { value: 'proposal-sent', label: 'Proposal Sent' },
-                { value: 'won', label: 'Won' },
-                { value: 'lost', label: 'Lost' },
-            ]}
-            lightTheme={lightTheme}
-            logo="https://example.com/logo.png"
-            noteStatuses={[
-                { value: 'cold', label: 'Cold', color: '#7dbde8' },
-                { value: 'warm', label: 'Warm', color: '#e8cb7d' },
-                { value: 'hot', label: 'Hot', color: '#e88b7d' },
-            ]}
-            taskTypes={['Call', 'Email', 'Meeting']}
-            title="CRM Dashboard"
-        />
-    );
-};
-
-export default App;
-```
-
-## Adding Sales
-
-To add a new sale to the CRM, you need to use an administrator account. By default, the first account created has this role. If you are starting fresh, a sign-up page will prompt you to create this admin account.
-
-When logged in as an admin, an 'Account Manager' tab will be available. From this page, you can create sales and transfer the administrator role.
-
-![Adding sales](./public/img/adding-sales.png "Adding sales")
-
-
-## Customizing the Homepage
-
-The first page of the application is managed by the `Dashboard.tsx` component. You can customize it by updating this file.
-
-```jsx
-// ./src/dashboard/Dashboard.tsx
-import React from 'react';
-import { Card, CardContent, Typography } from '@mui/material';
-
-export const Dashboard = () => {
-    return (
-        <Card>
-            <CardContent>
-                <Typography variant="h5" component="div">
-                    Welcome to the Custom Dashboard!
-                </Typography>
-                <Typography variant="body2" color="text.secondary">
-                    This is a customized homepage for your application. You can add any components or content here to suit your needs.
-                </Typography>
-            </CardContent>
-        </Card>
-    );
-};
-```
-
-## Import Contacts
-
-From the crm, a user can import a list of contacts via a csv file. This csv file must match the data you use to store your contacts. 
-By default, we provide a sample file located at `./src/contacts/contacts_export.csv`.
-
-If you change your data structure for a contact, don't forget to modify this sample. You'll also need to modify the import function found in `./src/contacts/useContactImport.tsx`
-
-## Supabase
-
-### Migrations
-
-You can create a new migration using the following command:
-```sh
-npx supabase migration new <migration_name>
-```
-
-You can apply the migrations using the following command:
-```sh
-npx supabase migration up
-```
-
-But you can also apply changes in the database directly using the supabase Dashboard.
-Create a new migration using the following command:
-```sh
-npx supabase db diff | npx supabase migration new <migration_name>
-```
-
-### Password Reset And Invitations
-
-An user can be invited to the CRM by an administrator. The user will receive an email with a link to set their password. The password reset feature is also available. You don't have to worry about these processes, Atomic CRM handles them for you, using Supabase.
-
-Please make sure to read and apply the [Login Callback](./doc/supabase-configuration.md#login-callback) and [Customizing Mail Template](./doc/supabase-configuration.md#customizing-mail-template) sections to properly configure the password reset feature.
-
-## Email Features
-
-Atomic CRM supports inbound email features:
-
-- You can add a note to a contact by sending an email to a specific email address
-- _More to come!_
-
-Learn more about their usage and setup in the [email features documentation](./doc/email-features.md).
+1. [Create First User](./doc/user/01-create-first-user.md)
+2. [Create First User](./doc/user/02-import-contacts.md)
