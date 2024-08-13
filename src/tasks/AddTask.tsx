@@ -10,7 +10,6 @@ import {
     Stack,
     Tooltip,
 } from '@mui/material';
-import * as React from 'react';
 import { useState } from 'react';
 import {
     AutocompleteInput,
@@ -24,13 +23,16 @@ import {
     TextInput,
     Toolbar,
     required,
+    useDataProvider,
     useGetIdentity,
+    useNotify,
     useRecordContext,
+    useUpdate,
 } from 'react-admin';
-import { useConfigurationContext } from '../root/ConfigurationContext';
-import { DialogCloseButton } from '../misc/DialogCloseButton';
-import { contactInputText, contactOptionText } from '../misc/ContactOption';
 import { Link } from 'react-router-dom';
+import { contactInputText, contactOptionText } from '../misc/ContactOption';
+import { DialogCloseButton } from '../misc/DialogCloseButton';
+import { useConfigurationContext } from '../root/ConfigurationContext';
 
 export const AddTask = ({
     selectContact,
@@ -40,11 +42,30 @@ export const AddTask = ({
     display?: 'chip' | 'icon';
 }) => {
     const { identity } = useGetIdentity();
+    const dataProvider = useDataProvider();
+    const [update] = useUpdate();
+    const notify = useNotify();
     const { taskTypes } = useConfigurationContext();
     const contact = useRecordContext();
     const [open, setOpen] = useState(false);
     const handleOpen = () => {
         setOpen(true);
+    };
+
+    const handleSuccess = async (data: any) => {
+        setOpen(false);
+        const contact = await dataProvider.getOne('contacts', {
+            id: data.contact_id,
+        });
+        if (!contact.data) return;
+
+        await update('contacts', {
+            id: contact.data.id,
+            data: { last_seen: new Date().toISOString() },
+            previousData: contact.data,
+        });
+
+        notify('Note added');
     };
 
     if (!identity) return null;
@@ -96,7 +117,7 @@ export const AddTask = ({
                         due_date: new Date(data.due_date).toISOString(),
                     };
                 }}
-                mutationOptions={{ onSuccess: () => setOpen(false) }}
+                mutationOptions={{ onSuccess: handleSuccess }}
             >
                 <Dialog
                     open={open}
