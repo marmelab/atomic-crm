@@ -18,13 +18,11 @@ export function TagEditModal({
     const [update] = useUpdate<Tag>();
 
     const handleEditTag = async (data: Pick<Tag, 'name' | 'color'>) => {
-        console.log('handleEditTag', data);
         await update(
             'tags',
             { id: tag.id, data, previousData: tag },
             {
                 onSuccess: async tag => {
-                    console.log('update.tag.onSuccess', tag);
                     await onSuccess?.(tag);
                 },
             }

@@ -58,7 +58,6 @@ export function TagDialog({
     };
 
     useEffect(() => {
-        console.log('tag.updated');
         setNewTagName(tag?.name ?? '');
         setNewTagColor(tag?.color ?? colors[0]);
     }, [tag]);
