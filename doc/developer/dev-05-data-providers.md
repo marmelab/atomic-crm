@@ -1,8 +1,8 @@
 # Data Providers
 
 This project supports two data providers:
-- A [supabase data provider](../src/providers/supabase/) (default)
-- A [fakerest data provider](../src/providers/fakerest/)
+- A [supabase data provider](../../src/providers/supabase/) (default)
+- A [fakerest data provider](../../src/providers/fakerest/)
 
 ## Supabase Data Provider
 
@@ -17,4 +17,4 @@ local development with generated data.
 
 The list filters used in this project MUST follow the [`ra-data-postgrest`](https://github.com/raphiniert-com/ra-data-postgrest) convention. The filters are then mapped at runtime to the fakerest filters.
 
-If a filter is not supported by the transformer, you can add new filter adapters in the [`supabaseAdapter` ](../src/providers/fakerest/internal/supabaseAdapter.ts) file.
+If a filter is not supported by the transformer, you can add new filter adapters in the [`supabaseAdapter` ](../../src/providers/fakerest/internal/supabaseAdapter.ts) file.

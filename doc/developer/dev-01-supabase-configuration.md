@@ -52,15 +52,11 @@ make prod-start
 
 Using a remote Supabase instance can be interesting if you deploy from your computer, or if you want to test your app with production data in production mode.
 
-## Continuous Integration and Continuous Delivery
-
-This repository includes GitHub action workflow for Continuous Delivery. The configuration is explained in the [GitHub Actiosns guide](./github-actions.md) in the same directory.
-
 ## Login Callback
 
 ### Local Supabase Instance
 
-Go to your [local supabase config](../supabase/config.toml) file:
+Go to your [local supabase config](../../supabase/config.toml) file:
 1. In `[auth]` section set `site_url` to your application URL
 2. In `[auth]`, add the following URL in the `additional_redirect_urls = [<APPLICATION_URL>/auth-callback.html"]`
 
@@ -72,7 +68,7 @@ To configure the authentication URL, you can go to your project dashboard at [su
 
 ### Local Instance Templates
 
-You can customize the mail templates via the [supabase config](../supabase/config.toml) file. An example of a custom template has been done for the [recovery](../supabase/templates/recovery.html) email.
+You can customize the mail templates via the [supabase config](../../supabase/config.toml) file. An example of a custom template has been done for the [recovery](../../supabase/templates/recovery.html) email.
 
 Note: updating the templates requires to restart your supabase instance.
 
@@ -81,12 +77,6 @@ If you want more information on how to customize email templates, go to the [rel
 ### Linked Instance Templates
 
 If you want to customize the production templates, you can go to your project dashboard at [supabase.com](https://supabase.com/). Then go to **Authentication** > **Email Templates**. You can the choose which template to change using the email template stabs.
-
-## Email Features
-
-Supabase requires additional configuration to enable Atomic CRM's email features. Have a look at the the [email features documentation](./email-features.md) to learn more about their usage and the required setup.
-
-Warning: Free quota for email features is very low. If you encounter problems when creating a user or reseting a password, you can increase the sending limit via a custom STMP server setup. Please refer to the [supabase documentation](https://supabase.com/docs/guides/auth/auth-smtp) if this is your case.
 
 ## Fequently Asked Questions
 
