@@ -26,7 +26,7 @@ To enable inbound email features, you need to create a webhook in Postmark.
 
 Atomic CRM uses a Supabase Edge Function to handle the webhook and process the received emails. You need to configure your Supabase project to handle the incoming requests.
 
-In a terminal, after you have [linked your Supabase project](./supabase-configuration.md#using-an-existing-remote-supabase-instance), run the following commands:
+In a terminal, after you have [linked your Supabase project](./dev-01-supabase-configuration.md#using-an-existing-remote-supabase-instance), run the following commands:
 
 ```sh
 npx supabase secrets set POSTMARK_WEBHOOK_USER=<user>
