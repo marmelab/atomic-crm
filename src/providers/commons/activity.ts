@@ -16,6 +16,7 @@ import {
     Sale,
 } from '../../types';
 
+// FIXME: Super inefficient implementation, will not scale for a large dataset
 export async function getActivityLog(
     dataProvider: DataProvider,
     companyId?: Identifier
