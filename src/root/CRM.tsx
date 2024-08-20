@@ -183,10 +183,15 @@ export const raSupabaseEnglishMessagesOverride = {
     },
 };
 
-const i18nProvider = polyglotI18nProvider(() => {
-    return mergeTranslations(
-        englishMessages,
-        raSupabaseEnglishMessages,
-        raSupabaseEnglishMessagesOverride
-    );
-}, 'en');
+const i18nProvider = polyglotI18nProvider(
+    () => {
+        return mergeTranslations(
+            englishMessages,
+            raSupabaseEnglishMessages,
+            raSupabaseEnglishMessagesOverride
+        );
+    },
+    'en',
+    [{ locale: 'en', name: 'English' }],
+    { allowMissing: true }
+);
