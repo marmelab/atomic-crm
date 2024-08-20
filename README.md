@@ -1,6 +1,6 @@
 # Atomic CRM
 
-A full-feature CRM built with React, react-admin, and Supabase.
+A full-featured CRM built with React, react-admin, and Supabase.
 
 https://user-images.githubusercontent.com/99944/116970434-4a926480-acb8-11eb-8ce2-0602c680e45e.mp4
 
