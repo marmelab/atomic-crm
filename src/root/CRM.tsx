@@ -8,12 +8,17 @@ import {
     localStorageStore,
     mergeTranslations,
 } from 'react-admin';
-
 import { deepmerge } from '@mui/utils';
 import polyglotI18nProvider from 'ra-i18n-polyglot';
 import englishMessages from 'ra-language-english';
 import { Route } from 'react-router';
-import Layout from '../Layout';
+import {
+    ForgotPasswordPage,
+    SetPasswordPage,
+    raSupabaseEnglishMessages,
+} from 'ra-supabase';
+
+import Layout from '../layout/Layout';
 import companies from '../companies';
 import contacts from '../contacts';
 import { Dashboard } from '../dashboard/Dashboard';
@@ -38,12 +43,6 @@ import {
     defaultTaskTypes,
     defaultTitle,
 } from './defaultConfiguration';
-
-import {
-    ForgotPasswordPage,
-    SetPasswordPage,
-    raSupabaseEnglishMessages,
-} from 'ra-supabase';
 
 // Define the interface for the CRM component props
 type CRMProps = {

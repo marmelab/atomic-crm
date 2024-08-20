@@ -1,10 +1,12 @@
-# Email Features
+# Inbound Email Configuration
 
-## Setup
+Atomic CRM can receive inbound emails and automatically create or update contacts based on the email content. This feature is useful to keep your CRM up-to-date with the latest interactions with your contacts.
 
-### Postmark
+Atomic CRM uses [Postmark](https://postmarkapp.com/) to receive and process inbound emails.
 
-Atomic CRM uses [Postmark](https://postmarkapp.com/) to receive inbound emails. You can use an existing Postmark account or [create a new one](https://account.postmarkapp.com/sign_up). The free tier allows you to send or receive up to 100 emails per month.
+## Postmark Setup
+
+You can use an existing Postmark account or [create a new one](https://account.postmarkapp.com/sign_up). The free tier allows you to send or receive up to 100 emails per month.
 
 To enable inbound email features, you need to create a webhook in Postmark.
 
@@ -22,11 +24,11 @@ To enable inbound email features, you need to create a webhook in Postmark.
 
 > **Note**: The server’s inbound email address can be customized by registering a domain to your Postmark account.
 
-### Supabase
+## Supabase Setup
 
 Atomic CRM uses a Supabase Edge Function to handle the webhook and process the received emails. You need to configure your Supabase project to handle the incoming requests.
 
-In a terminal, after you have [linked your Supabase project](./dev-01-supabase-configuration.md#using-an-existing-remote-supabase-instance), run the following commands:
+In a terminal, after [linking your Supabase project](./dev-01-supabase-configuration.md#using-an-existing-remote-supabase-instance), run the following commands:
 
 ```sh
 npx supabase secrets set POSTMARK_WEBHOOK_USER=<user>
@@ -46,35 +48,12 @@ POSTMARK_WEBHOOK_PASSWORD=<password>
 POSTMARK_WEBHOOK_AUTHORIZED_IPS=<comma-separated list of IPs>
 ```
 
-## Usage
+## Application Configuration
 
-Once you have set up Postmark and Supabase, you can start sending emails to your server's inbound email address, e.g. by adding it to the **Cc:** field. Atomic CRM will process the emails and add notes to the corresponding contacts.
+Store the Postmark inbound email address in a `.env` file at the root of the project, so that users can easily find it in the application.
 
-Atomic CRM uses the sender's email address to identify the sales member, and the recipient's email address to identify the contact. If the contact does not yet exist, Atomic CRM will create it for you, using the email's domain as company name.
-
-Example email
-
-```
-From: Jane Doe <jane.doe@marmelab.com>
-To: Kim Hegmann <kim.gegmann@acme.com>
-Cc: xxxxxxx@inbound.postmarkapp.com
-Subject: Meeting with Kim Hegmann
-
-Hi Kim,
-I would like to schedule a meeting with you next week. Please let me know your availability.
-```
-
-When receiving this email, Atomic CRM will:
-- Create the _Acme_ company if it does not exist
-- Create the _Kim Hegmann_ contact if it does not exist
-- Associate both to _Jane Doe_
-- Add a note to the _Kim Hegmann_ contact with the following content
-
-```
-Meeting with Kim Hegmann
-
-Hi Kim,
-I would like to schedule a meeting with you next week. Please let me know your availability.
+```sh
+VITE_INBOUND_EMAIL=xxxxxxxxxxx@inbound.postmarkapp.com
 ```
 
 ## Testing locally

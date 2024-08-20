@@ -1,12 +1,12 @@
 # Atomic CRM
 
-A full-feature CRM built with React and Supabase. 
+A full-feature CRM built with React and Supabase.
 
 https://user-images.githubusercontent.com/99944/116970434-4a926480-acb8-11eb-8ce2-0602c680e45e.mp4
 
 You can test it online at https://marmelab.com/react-admin-crm.
 
-## Install Project
+## Installation
 
 To run this project locally, you will need the following tools installed on your computer:
 
@@ -29,18 +29,6 @@ make install
 
 This will install the dependencies for the frontend and the backend, including a local Supabase instance.
 
-
-## Developing with Atomic CRM
-
-### Local Development Setup
-
-1. [Supabase Configuration](./doc/developer/dev-01-supabase-configuration.md)
-2. [Customizing the CRM](./doc/developer/dev-02-customizing.md)
-3. [Creating Migrations](./doc/developer/dev-03-supabase-migrations.md) *(optional)*
-4. [Contact Import Customization](./doc/developer/dev-04-contact-import.md) *(optional)*
-5. [Using Fake Rest Data Provider for Development](./doc/developer/dev-O5-data-providers.md) *(optional)*
-6. [Learn More About Architecture Decisions](./doc/developer/dev-06-architecture-choices.md) *(optional)*
-
 Once you app is configured, start the app locally with the following command:
 
 ```sh
@@ -49,7 +37,7 @@ make start
 
 This will start the Vite dev server for the frontend, the local Supabase instance for the API, and a Postgres database (thanks to Docker).
 
-You can then access the app via [http://localhost:5173/](http://localhost:5173/).
+You can then access the app via [http://localhost:5173/](http://localhost:5173/). You will be prompted to create the first user.
 
 If you need debug the backend, you can access the following services: 
 
@@ -58,13 +46,28 @@ If you need debug the backend, you can access the following services:
 - Attachments storage: [http://localhost:54323/project/default/storage/buckets/attachments](http://localhost:54323/project/default/storage/buckets/attachments)
 - Inbucket email testing service: [http://localhost:54324/](http://localhost:54324/)
 
-### Deploying to Production
+## User Documentation
 
-1. [Manual Production Deploy](./doc/developer/prod-01-manual-deploy.md)
-2. [GitHub Actions Configuration](./doc/developer/prod-02-github-actions.md) *(optional)*
-3. [Email Inbound Configuration](./doc/developer/prod-03-email-inbound.md) *(optional)*
+1. [User Management](./doc/user/user-management.md)
+2. [Importing And Exporting Data](./doc/user/import-contacts.md)
+3. [Inbound Email](./doc/user/inbound-email.md)
 
-### Testing
+## Deploying to Production
+
+1. [Configuring Supabase](./doc/developer/supabase-configuration.md)
+2. [Configuring Inbound Email](./doc/developer/inbound-email-configuration.md) *(optional)*
+3. [Deployment](./doc/developer/deploy.md)
+
+## Customizing Atomic CRM
+
+To customize Atomic CRM, you will need TypeScript and React programming skills as there is no graphical user interface for customization. Here are some resources to assist you in getting started.
+
+1. [Customizing the CRM](./doc/developer/customizing.md)
+2. [Creating Migrations](./doc/developer/migrations.md) *(optional)*
+3. [Using Fake Rest Data Provider for Development](./doc/developer/data-providers.md) *(optional)*
+4. [Architecture Decisions](./doc/developer/architecture-choices.md) *(optional)*
+
+## Testing Changes
 
 This project contains unit tests. Run them with the following command:
 
@@ -72,7 +75,4 @@ This project contains unit tests. Run them with the following command:
 make test
 ```
 
-## User documentation
-
-1. [Create First User](./doc/user/01-create-first-user.md)
-2. [Import Contacts](./doc/user/02-import-contacts.md)
+You can add your own unit tests powered by Jest anywhere in the `src` directory. The test files should be named `*.test.tsx` or `*.test.ts`.
