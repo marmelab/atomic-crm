@@ -1,10 +1,23 @@
 # Atomic CRM
 
-A full-feature CRM built with React and Supabase.
+A full-feature CRM built with React, react-admin, and Supabase.
 
 https://user-images.githubusercontent.com/99944/116970434-4a926480-acb8-11eb-8ce2-0602c680e45e.mp4
 
-You can test it online at https://marmelab.com/react-admin-crm.
+Atomic CRM is free and open-source. You can test it online at https://marmelab.com/react-admin-crm.
+
+## Features
+
+- 📇 **Organize Contacts**: Keep all your contacts in one easily accessible place.
+- ⏰ **Create Tasks & Set Reminders**: Never miss a follow-up or deadline.
+- 📝 **Take Notes**: Capture important details and insights effortlessly.
+- ✉️ **Capture Emails**: CC Atomic CRM to automatically save communications as notes.
+- 📊 **Manage Deals**: Visualize and track your sales pipeline in a Kanban board.
+- 🔄 **Import & Export Data**: Easily transfer contacts in and out of the system.
+- 🔐 **Control Access**: Log in with Google, Azure, Keycloak, and Auth0.
+- 📜 **Track Activity History**: View all interactions in aggregated activity logs.
+- 🔗 **Integrate via API**: Connect seamlessly with other systems using our API.
+- 🛠️ **Customize Everything**: Add custom fields, change the theme, and replace any component to fit your needs.
 
 ## Installation
 
