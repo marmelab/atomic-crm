@@ -69,6 +69,16 @@ export default App;
 | taskTypes             | The types of tasks used in the application.                           | string[]        |
 | title                 | The title of the CRM application.                                     | string          |
 
+## Using Test Data
+
+Developing features with an empty database can be challenging. To help with this, Atomic CRM includes a CSV file with test data that can be imported into the application.
+
+To import the test data, follow these steps:
+
+1. Go to the contacts page.
+2. Click the "Import" button.
+3. Select the file located at `test-data/contacts.csv`.
+
 ## Customizing The Theme
 
 Atomic CRM uses the Material-UI library for theming. You can customize the light and dark themes by setting the `lightTheme` and `darkTheme` props on the `<CRM>` component.
