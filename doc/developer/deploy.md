@@ -26,13 +26,13 @@ You can then access the app via [`http://localhost:3000/`](http://localhost:3000
 
 The frontend of the CRM is a Single-Page App that can be deployed to any CDN, or to GitHub Pages.
 
-First, build the fontend bundle with:
+First, build the frontend bundle with:
 
 ```sh
 make build
 ```
 
-This will create a `dist` directory with the built application made of static HTML, CSS, and JS files. Upload this directory to the CDN of your choice.
+This will create a `dist` directory with the built application made of static HTML, CSS, and JS files. Upload this directory to the CDN of your choice (e.g. Netlify, Vercel, etc.).
 
 If you want to deploy it to GitHub pages, you can use the following command:
 
