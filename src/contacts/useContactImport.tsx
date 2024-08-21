@@ -24,6 +24,7 @@ export type ContactImportSchema = {
 };
 
 export function useContactImport() {
+    const today = new Date().toISOString();
     const user = useGetIdentity();
     const dataProvider = useDataProvider();
 
@@ -177,10 +178,10 @@ export function useContactImport() {
                                 background,
                                 first_seen: first_seen
                                     ? new Date(first_seen).toISOString()
-                                    : undefined,
+                                    : today,
                                 last_seen: last_seen
                                     ? new Date(last_seen).toISOString()
-                                    : undefined,
+                                    : today,
                                 has_newsletter,
                                 status,
                                 company_id: company.id,
@@ -193,7 +194,14 @@ export function useContactImport() {
                 )
             );
         },
-        [dataProvider, getCompanies, parseTags, getTags, user?.identity?.id]
+        [
+            dataProvider,
+            getCompanies,
+            parseTags,
+            getTags,
+            user?.identity?.id,
+            today,
+        ]
     );
 
     return {
