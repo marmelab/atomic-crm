@@ -29,7 +29,7 @@ export async function getActivityLog(
         getDealsLog(dataProvider, sales, companies),
     ]);
     return companies.companiesLog.concat(contactsLog, dealsLog).sort(
-        (a, b) => a.date.localeCompare(b.date) * -1 // sort by date desc
+        (a, b) => (a.date && b.date ? a.date.localeCompare(b.date) * -1 : 0) // sort by date desc
     );
 }
 

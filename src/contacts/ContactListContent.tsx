@@ -94,25 +94,27 @@ export const ContactListContent = () => {
                                     </>
                                 }
                             />
-                            <ListItemSecondaryAction
-                                sx={{
-                                    top: '10px',
-                                    transform: 'none',
-                                }}
-                            >
-                                <Typography
-                                    variant="body2"
-                                    color="textSecondary"
-                                    title={contact.last_seen}
+                            {contact.last_seen && (
+                                <ListItemSecondaryAction
+                                    sx={{
+                                        top: '10px',
+                                        transform: 'none',
+                                    }}
                                 >
-                                    {!isSmall && 'last activity '}
-                                    {formatRelative(
-                                        contact.last_seen,
-                                        now
-                                    )}{' '}
-                                    <Status status={contact.status} />
-                                </Typography>
-                            </ListItemSecondaryAction>
+                                    <Typography
+                                        variant="body2"
+                                        color="textSecondary"
+                                        title={contact.last_seen}
+                                    >
+                                        {!isSmall && 'last activity '}
+                                        {formatRelative(
+                                            contact.last_seen,
+                                            now
+                                        )}{' '}
+                                        <Status status={contact.status} />
+                                    </Typography>
+                                </ListItemSecondaryAction>
+                            )}
                         </ListItem>
                     </RecordContextProvider>
                 ))}
