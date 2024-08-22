@@ -67,18 +67,18 @@ jobs:
               name: 📡 Push supabase migrations
               run: npx supabase db push
 
-            - if: ${{ env.IS_SUPABASE_CONFIGURED }} && ${{ env.POSTMARK_WEBHOOK_USER }}
-              name: 📡 Push supabase postman webhook user secret
+            - if: ${{ env.IS_SUPABASE_CONFIGURED && env.POSTMARK_WEBHOOK_USER }}
+              name: 📡 Push supabase postmark webhook user secret
               run: |
                   npx supabase secrets set POSTMARK_WEBHOOK_USER=${{ env.POSTMARK_WEBHOOK_USER }}
 
-            - if: ${{ env.IS_SUPABASE_CONFIGURED }} && ${{ env.POSTMARK_WEBHOOK_PASSWORD }}
-              name: 📡 Push supabase postman webhook password secret
+            - if: ${{ env.IS_SUPABASE_CONFIGURED && env.POSTMARK_WEBHOOK_PASSWORD }}
+              name: 📡 Push supabase postmark webhook password secret
               run: |
                   npx supabase secrets set POSTMARK_WEBHOOK_PASSWORD=${{ secrets.POSTMARK_WEBHOOK_PASSWORD }}
 
-            - if: ${{ env.IS_SUPABASE_CONFIGURED }} && ${{ env.POSTMARK_WEBHOOK_AUTHORIZED_IPS }}
-              name: 📡 Push supabase whebhook authorized IPS secret
+            - if: ${{ env.IS_SUPABASE_CONFIGURED && env.POSTMARK_WEBHOOK_AUTHORIZED_IPS }}
+              name: 📡 Push supabase postmark whebhook authorized IPS secret
               run: |
                   npx supabase secrets set POSTMARK_WEBHOOK_AUTHORIZED_IPS=${{ secrets.POSTMARK_WEBHOOK_AUTHORIZED_IPS }}
 
