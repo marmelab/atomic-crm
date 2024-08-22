@@ -22,11 +22,15 @@ jobs:
             SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
             SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
             SUPABASE_PROJECT_ID: ${{ secrets.SUPABASE_PROJECT_ID }}
+            IS_SUPABASE_CONFIGURED: ${{ secrets.SUPABASE_ACCESS_TOKEN && secrets.SUPABASE_DB_PASSWORD && secrets.SUPABASE_PROJECT_ID }}
             VITE_SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
             VITE_SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
             VITE_IS_DEMO: ${{ vars.VITE_IS_DEMO }}
             VITE_INBOUND_EMAIL: ${{ vars.VITE_INBOUND_EMAIL }}
             PRODUCTION_REMOTE: https://git:${{ secrets.DEPLOY_TOKEN || secrets.GITHUB_TOKEN }}@github.com/${{ vars.DEPLOY_REPOSITORY || github.repository }}
+            POSTMARK_WEBHOOK_USER: ${{secrets.POSTMARK_WEBHOOK_USER}}
+            POSTMARK_WEBHOOK_PASSWORD: ${{secrets.POSTMARK_WEBHOOK_PASSWORD}}
+            POSTMARK_WEBHOOK_AUTHORIZED_IPS: ${{secrets.POSTMARK_WEBHOOK_AUTHORIZED_IPS}}
 
         steps:
             - name: 📥 Checkout repo
@@ -55,19 +59,31 @@ jobs:
             - name: 🔨 Build
               run: npm run build
             
-            - name: 🔗 Supabase Link
+            - if: ${{ env.IS_SUPABASE_CONFIGURED }}
+              name: 🔗 Supabase Link
               run: npx supabase link --project-ref $SUPABASE_PROJECT_ID
 
-            - name: 📡 Push supabase migrations
+            - if: ${{ env.IS_SUPABASE_CONFIGURED }}
+              name: 📡 Push supabase migrations
               run: npx supabase db push
 
-            - name: 📡 Push supabase functions secrets
+            - if: ${{ env.IS_SUPABASE_CONFIGURED }} && ${{ env.POSTMARK_WEBHOOK_USER }}
+              name: 📡 Push supabase postman webhook user secret
               run: |
-                  npx supabase secrets set POSTMARK_WEBHOOK_USER=${{ secrets.POSTMARK_WEBHOOK_USER }}
+                  npx supabase secrets set POSTMARK_WEBHOOK_USER=${{ env.POSTMARK_WEBHOOK_USER }}
+
+            - if: ${{ env.IS_SUPABASE_CONFIGURED }} && ${{ env.POSTMARK_WEBHOOK_PASSWORD }}
+              name: 📡 Push supabase postman webhook password secret
+              run: |
                   npx supabase secrets set POSTMARK_WEBHOOK_PASSWORD=${{ secrets.POSTMARK_WEBHOOK_PASSWORD }}
+
+            - if: ${{ env.IS_SUPABASE_CONFIGURED }} && ${{ env.POSTMARK_WEBHOOK_AUTHORIZED_IPS }}
+              name: 📡 Push supabase whebhook authorized IPS secret
+              run: |
                   npx supabase secrets set POSTMARK_WEBHOOK_AUTHORIZED_IPS=${{ secrets.POSTMARK_WEBHOOK_AUTHORIZED_IPS }}
 
-            - name: 📡 Deploy supabase functions
+            - if: ${{ env.IS_SUPABASE_CONFIGURED }}
+              name: 📡 Deploy supabase functions
               run: npx supabase functions deploy
 
             - name: 📡 Deploy GitHub pages
