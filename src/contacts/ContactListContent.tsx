@@ -71,7 +71,7 @@ export const ContactListContent = () => {
                                 <Avatar />
                             </ListItemAvatar>
                             <ListItemText
-                                primary={`${contact.first_name} ${contact.last_name}`}
+                                primary={`${contact.first_name} ${contact.last_name ?? ''}`}
                                 secondary={
                                     <>
                                         {contact.title}
