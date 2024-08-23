@@ -103,6 +103,7 @@ export function useContactImport() {
                         tags: tagNames,
                         linkedin_url,
                     }) => {
+                        const singleEmail = email.split(',')[0];
                         const company = companyName?.trim()
                             ? companies.get(companyName.trim())
                             : undefined;
@@ -116,7 +117,7 @@ export function useContactImport() {
                                 last_name,
                                 gender,
                                 title,
-                                email,
+                                email: singleEmail,
                                 phone_1_number,
                                 phone_1_type,
                                 phone_2_number,
