@@ -30,7 +30,7 @@ type ContactImportModalProps = {
 
 export function ContactImportModal({ open, onClose }: ContactImportModalProps) {
     const refresh = useRefresh();
-    const { processBatch } = useContactImport();
+    const processBatch = useContactImport();
     const { importer, parseCsv, reset } = usePapaParse<ContactImportSchema>({
         batchSize: 10,
         processBatch,
