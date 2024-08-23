@@ -109,7 +109,6 @@ const ContactPositionInputs = () => {
             <ReferenceInput source="company_id" reference="companies">
                 <AutocompleteInput
                     optionText="name"
-                    validate={required()}
                     onCreate={handleCreateCompany}
                     helperText={false}
                 />

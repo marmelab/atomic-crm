@@ -36,14 +36,19 @@ const ContactShowContent = () => {
                                     {record.first_name} {record.last_name}
                                 </Typography>
                                 <Typography variant="body2" component="div">
-                                    {record.title} at{' '}
-                                    <ReferenceField
-                                        source="company_id"
-                                        reference="companies"
-                                        link="show"
-                                    >
-                                        <TextField source="name" />
-                                    </ReferenceField>
+                                    {record.title}
+                                    {record.title &&
+                                        record.company_id != null &&
+                                        ' at '}
+                                    {record.company_id != null && (
+                                        <ReferenceField
+                                            source="company_id"
+                                            reference="companies"
+                                            link="show"
+                                        >
+                                            <TextField source="name" />
+                                        </ReferenceField>
+                                    )}
                                 </Typography>
                             </Box>
                             <Box>
