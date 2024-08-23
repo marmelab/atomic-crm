@@ -1,6 +1,7 @@
 import { useCallback, useMemo } from 'react';
 import { useDataProvider, useGetIdentity } from 'react-admin';
-import { Company, Tag } from '../types';
+import type { DataProvider } from 'react-admin';
+import type { Company, Tag } from '../types';
 
 export type ContactImportSchema = {
     first_name: string;
@@ -28,66 +29,16 @@ export function useContactImport() {
     const user = useGetIdentity();
     const dataProvider = useDataProvider();
 
-    // Sales cache to avoid creating the same tag multiple times and costly roundtrips
+    // company cache to avoid creating the same company multiple times and costly roundtrips
     // Cache is dependent of dataProvider, so it's safe to use it as a dependency
     const companiesCache = useMemo(
         () => new Map<string, Company>(),
         // eslint-disable-next-line react-hooks/exhaustive-deps
         [dataProvider]
     );
-
-    const _cacheFetchBatch = useCallback(
-        async function <T>(
-            entity: string,
-            cache: Map<string, T>,
-            names: string[],
-            getCreateData: (name: string) => Partial<T>
-        ) {
-            const trimmedNames = [...new Set(names.map(name => name.trim()))];
-            const uncachedEntities = trimmedNames.filter(
-                name => !cache.has(name)
-            );
-
-            const entities = uncachedEntities.length
-                ? await dataProvider.getList(entity, {
-                      filter: {
-                          'name@in': `(${uncachedEntities.map(entity => `"${entity}"`).join(',')})`,
-                      },
-                      pagination: { page: 1, perPage: trimmedNames.length },
-                      sort: { field: 'id', order: 'ASC' },
-                  })
-                : { data: [] };
-
-            for (const entity of entities.data) {
-                cache.set(entity.name.trim(), entity);
-            }
-
-            await Promise.all(
-                uncachedEntities.map(async name => {
-                    if (!cache.has(name)) {
-                        const createdEntity = await dataProvider.create(
-                            entity,
-                            {
-                                data: getCreateData(name),
-                            }
-                        );
-                        cache.set(name, createdEntity.data);
-                    }
-                    return Promise.resolve();
-                })
-            );
-
-            return trimmedNames.reduce((acc, name) => {
-                acc.set(name, cache.get(name) as T);
-                return acc;
-            }, new Map<string, T>());
-        },
-        [dataProvider]
-    );
-
     const getCompanies = useCallback(
-        async (names: string[]) => {
-            return _cacheFetchBatch<Company>(
+        async (names: string[]) =>
+            fetchRecordsWithCache<Company>(
                 'companies',
                 companiesCache,
                 names,
@@ -95,40 +46,39 @@ export function useContactImport() {
                     name,
                     created_at: new Date().toISOString(),
                     sales_id: user?.identity?.id,
-                })
-            );
-        },
-        [_cacheFetchBatch, companiesCache, user?.identity?.id]
+                }),
+                dataProvider
+            ),
+        [companiesCache, user?.identity?.id, dataProvider]
     );
 
     // Tags cache to avoid creating the same tag multiple times and costly roundtrips
     // Cache is dependent of dataProvider, so it's safe to use it as a dependency
     // eslint-disable-next-line react-hooks/exhaustive-deps
     const tagsCache = useMemo(() => new Map<string, Tag>(), [dataProvider]);
-
     const getTags = useCallback(
-        async (names: string[]) => {
-            return _cacheFetchBatch<Tag>('tags', tagsCache, names, name => ({
-                name,
-                color: '#f9f9f9',
-            }));
-        },
-        [_cacheFetchBatch, tagsCache]
+        async (names: string[]) =>
+            fetchRecordsWithCache<Tag>(
+                'tags',
+                tagsCache,
+                names,
+                name => ({
+                    name,
+                    color: '#f9f9f9',
+                }),
+                dataProvider
+            ),
+        [tagsCache, dataProvider]
     );
-
-    const parseTags = useCallback((tags: string) => {
-        return (
-            tags
-                ?.split(',')
-                ?.map((tag: string) => tag.trim())
-                ?.filter((tag: string) => tag) ?? []
-        );
-    }, []);
 
     const processBatch = useCallback(
         async (batch: ContactImportSchema[]) => {
             const [companies, tags] = await Promise.all([
-                getCompanies(batch.map(contact => contact.company.trim())),
+                getCompanies(
+                    batch
+                        .map(contact => contact.company?.trim())
+                        .filter(name => name)
+                ),
                 getTags(batch.flatMap(batch => parseTags(batch.tags))),
             ]);
 
@@ -153,16 +103,12 @@ export function useContactImport() {
                         tags: tagNames,
                         linkedin_url,
                     }) => {
-                        const company = companies.get(companyName.trim());
+                        const company = companyName?.trim()
+                            ? companies.get(companyName.trim())
+                            : undefined;
                         const tagList = parseTags(tagNames)
                             .map(name => tags.get(name))
                             .filter((tag): tag is Tag => !!tag);
-
-                        // This should not happen, but we silently fail in case of error
-                        // TODO: warn user about missing company
-                        if (!company) {
-                            return;
-                        }
 
                         return dataProvider.create('contacts', {
                             data: {
@@ -184,7 +130,7 @@ export function useContactImport() {
                                     : today,
                                 has_newsletter,
                                 status,
-                                company_id: company.id,
+                                company_id: company?.id,
                                 tags: tagList.map(tag => tag.id),
                                 sales_id: user?.identity?.id,
                                 linkedin_url,
@@ -194,17 +140,56 @@ export function useContactImport() {
                 )
             );
         },
-        [
-            dataProvider,
-            getCompanies,
-            parseTags,
-            getTags,
-            user?.identity?.id,
-            today,
-        ]
+        [dataProvider, getCompanies, getTags, user?.identity?.id, today]
     );
 
-    return {
-        processBatch,
-    };
+    return processBatch;
 }
+
+const fetchRecordsWithCache = async function <T>(
+    resource: string,
+    cache: Map<string, T>,
+    names: string[],
+    getCreateData: (name: string) => Partial<T>,
+    dataProvider: DataProvider
+) {
+    const trimmedNames = [...new Set(names.map(name => name.trim()))];
+    const uncachedRecordNames = trimmedNames.filter(name => !cache.has(name));
+
+    // check the backend for existing records
+    if (uncachedRecordNames.length > 0) {
+        const response = await dataProvider.getList(resource, {
+            filter: {
+                'name@in': `(${uncachedRecordNames.map(name => `"${name}"`).join(',')})`,
+            },
+            pagination: { page: 1, perPage: trimmedNames.length },
+            sort: { field: 'id', order: 'ASC' },
+        });
+        for (const record of response.data) {
+            cache.set(record.name.trim(), record);
+        }
+    }
+
+    // create missing records in parallel
+    await Promise.all(
+        uncachedRecordNames.map(async name => {
+            if (cache.has(name)) return;
+            const response = await dataProvider.create(resource, {
+                data: getCreateData(name),
+            });
+            cache.set(name, response.data);
+        })
+    );
+
+    // now all records are in cache, return a map of all records
+    return trimmedNames.reduce((acc, name) => {
+        acc.set(name, cache.get(name) as T);
+        return acc;
+    }, new Map<string, T>());
+};
+
+const parseTags = (tags: string) =>
+    tags
+        ?.split(',')
+        ?.map((tag: string) => tag.trim())
+        ?.filter((tag: string) => tag) ?? [];
