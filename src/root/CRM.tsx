@@ -8,6 +8,7 @@ import {
     localStorageStore,
     mergeTranslations,
 } from 'react-admin';
+import type { AuthProvider, DataProvider } from 'react-admin';
 import { deepmerge } from '@mui/utils';
 import polyglotI18nProvider from 'ra-i18n-polyglot';
 import englishMessages from 'ra-language-english';
@@ -25,7 +26,10 @@ import { Dashboard } from '../dashboard/Dashboard';
 import deals from '../deals';
 import { LoginPage } from '../login/LoginPage';
 import { SignupPage } from '../login/SignupPage';
-import { authProvider, dataProvider } from '../providers/supabase';
+import {
+    authProvider as defaultAuthProvider,
+    dataProvider as defaultDataProvider,
+} from '../providers/supabase';
 import sales from '../sales';
 import { SettingsPage } from '../settings/SettingsPage';
 import {
@@ -46,6 +50,8 @@ import {
 
 // Define the interface for the CRM component props
 type CRMProps = {
+    dataProvider?: DataProvider;
+    authProvider?: AuthProvider;
     lightTheme?: RaThemeOptions;
     darkTheme?: RaThemeOptions;
 } & Partial<ConfigurationContextValue>;
@@ -124,6 +130,8 @@ export const CRM = ({
     noteStatuses = defaultNoteStatuses,
     taskTypes = defaultTaskTypes,
     title = defaultTitle,
+    dataProvider = defaultDataProvider,
+    authProvider = defaultAuthProvider,
 }: CRMProps) => (
     <ConfigurationProvider
         contactGender={contactGender}
