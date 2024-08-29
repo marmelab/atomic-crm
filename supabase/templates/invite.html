@@ -40,7 +40,7 @@
                 padding: 10px;
                 text-align: center;
                 background-color: #007bff;
-                color: #ffffff;
+                color: #ffffff !important;
                 text-decoration: none;
                 border-radius: 5px;
             }
@@ -52,18 +52,21 @@
                 <h2>Confirm your account</h2>
             </div>
             <div class="content">
-                <p>Welcome to Atomic CRM.</p>
+                <p>Hello {{ .Data.first_name }},</p>
                 <p>
-                    You've been invited to join the CRM organization. Confirm
-                    your address below:
+                    You've been invited to join Atomic CRM. To confirm your
+                    account and choose your password, please click the link
+                    below.
                 </p>
-                <a
-                    href="{{ .ConfirmationURL }}auth-callback.html"
-                    class="button"
-                    >Confirm my account</a
-                >
+                <p>
+                    <a
+                        href="{{ .ConfirmationURL }}auth-callback.html"
+                        class="button"
+                        >Create my account</a
+                    >
+                </p>
                 <p>See you soon!</p>
-                <p>Atomic CRM team</p>
+                <p>The Atomic CRM team</p>
             </div>
         </div>
     </body>
