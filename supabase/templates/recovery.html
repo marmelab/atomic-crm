@@ -40,7 +40,7 @@
                 padding: 10px;
                 text-align: center;
                 background-color: #007bff;
-                color: #ffffff;
+                color: #ffffff !important;
                 text-decoration: none;
                 border-radius: 5px;
             }
@@ -53,18 +53,24 @@
             </div>
             <div class="content">
                 <p>Hello,</p>
-                <p>To reset your password, follow the link below:</p>
-                <a
-                    href="{{ .ConfirmationURL }}auth-callback.html"
-                    class="button"
-                    >Reset my password</a
-                >
                 <p>
-                    <strong>Warning:</strong> If the password reset request did
-                    not originate from you, please contact us immediately as
-                    this may be a fraudulent attempt.
+                    We've received a request to reset the password for the
+                    Atomic CRM account associated with the email {{ .Email }}.
+                    No changes have been made to your account yet.
                 </p>
-                <p>Atomic CRM</p>
+                <p>You can reset your password by clicking the button below.</p>
+                <p>
+                    <a
+                        href="{{ .ConfirmationURL }}auth-callback.html"
+                        class="button"
+                        >Reset your password</a
+                    >
+                </p>
+                <p>
+                    If you did not request a new password, please contact the
+                    Atomic CRM administrator immediately.
+                </p>
+                <p>The Atomic CRM team</p>
             </div>
         </div>
     </body>
