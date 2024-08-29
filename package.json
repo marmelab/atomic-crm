@@ -1,8 +1,8 @@
 {
-    "name": "react-admin-crm",
-    "version": "4.12.0",
-    "private": true,
+    "name": "atomic-crm",
+    "version": "0.0.1",
     "type": "module",
+    "module": "src/root/CRM.tsx",
     "dependencies": {
         "@hello-pangea/dnd": "^16.5.0",
         "@mui/icons-material": "^5.15.6",
