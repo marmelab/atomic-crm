@@ -1,3 +1,4 @@
+import * as React from 'react';
 import {
     Divider,
     Stack,
@@ -19,7 +20,6 @@ import {
     useNotify,
 } from 'react-admin';
 import { useFormContext } from 'react-hook-form';
-import { ClipboardEventHandler } from 'react';
 
 import { isLinkedinUrl } from '../misc/isLinkedInUrl';
 import { useConfigurationContext } from '../root/ConfigurationContext';
@@ -124,13 +124,22 @@ const ContactPersonalInformationInputs = () => {
     const { getValues, setValue } = useFormContext();
 
     // set first and last name based on email
-    const handleEmailPaste: ClipboardEventHandler<HTMLDivElement> = e => {
-        const email = e.clipboardData?.getData('text/plain');
+    const handleEmailChange = (email: string) => {
         const { first_name, last_name } = getValues();
         if (first_name || last_name || !email) return;
         const [first, last] = email.split('@')[0].split('.');
         setValue('first_name', first.charAt(0).toUpperCase() + first.slice(1));
         setValue('last_name', last.charAt(0).toUpperCase() + last.slice(1));
+    };
+
+    const handleEmailPaste: React.ClipboardEventHandler<HTMLDivElement> = e => {
+        const email = e.clipboardData?.getData('text/plain');
+        handleEmailChange(email);
+    };
+
+    const handleEmailBlur = (e: React.FocusEvent<HTMLInputElement>) => {
+        const email = e.target.value;
+        handleEmailChange(email);
     };
 
     return (
@@ -141,6 +150,7 @@ const ContactPersonalInformationInputs = () => {
                 helperText={false}
                 validate={email()}
                 onPaste={handleEmailPaste}
+                onBlur={handleEmailBlur}
             />
             <Stack gap={1} flexDirection="row">
                 <TextInput
