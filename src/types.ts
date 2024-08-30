@@ -146,41 +146,48 @@ export type Task = {
 
 export type ActivityCompanyCreated = {
     type: typeof COMPANY_CREATED;
+    company_id: Identifier;
     company: Company;
     sale: Sale;
+    date: string;
 };
 
 export type ActivityContactCreated = {
     type: typeof CONTACT_CREATED;
-    company: Company;
+    company_id: Identifier;
     sale: Sale;
     contact: Contact;
+    date: string;
 };
 
 export type ActivityContactNoteCreated = {
     type: typeof CONTACT_NOTE_CREATED;
     sale: Sale;
-    company: Company;
+    company_id: Identifier;
     contact: Contact;
     contactNote: ContactNote;
+    date: string;
 };
 
 export type ActivityDealCreated = {
     type: typeof DEAL_CREATED;
-    company: Company;
+    company_id: Identifier;
     sale: Sale;
     deal: Deal;
+    date: string;
 };
 
 export type ActivityDealNoteCreated = {
     type: typeof DEAL_NOTE_CREATED;
-    company: Company;
+    company_id: Identifier;
     sale: Sale;
     deal: Deal;
     dealNote: DealNote;
+    date: string;
 };
 
-export type Activity = RaRecord & { date: string } & (
+export type Activity = RaRecord &
+    (
         | ActivityCompanyCreated
         | ActivityContactCreated
         | ActivityContactNoteCreated

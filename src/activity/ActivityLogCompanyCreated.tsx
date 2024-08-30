@@ -12,9 +12,10 @@ type ActivityLogCompanyCreatedProps = {
 };
 
 export function ActivityLogCompanyCreated({
-    activity: { sale, company },
+    activity,
 }: ActivityLogCompanyCreatedProps) {
     const context = useActivityLogContext();
+    const { sale, company } = activity;
     return (
         <ListItem disableGutters>
             <Stack direction="row" spacing={1} alignItems="center" width="100%">
@@ -32,7 +33,7 @@ export function ActivityLogCompanyCreated({
                     {context === 'all' && (
                         <>
                             {' '}
-                            <RelativeDate date={company.created_at} />
+                            <RelativeDate date={activity.date} />
                         </>
                     )}
                 </Typography>
@@ -42,7 +43,7 @@ export function ActivityLogCompanyCreated({
                         variant="body2"
                         component="span"
                     >
-                        <RelativeDate date={company.created_at} />
+                        <RelativeDate date={activity.date} />
                     </Typography>
                 )}
             </Stack>

@@ -1,5 +1,5 @@
 import Typography from '@mui/material/Typography';
-import { Link } from 'react-admin';
+import { Link, ReferenceField } from 'react-admin';
 
 import { CompanyAvatar } from '../companies/CompanyAvatar';
 import type { ActivityDealNoteCreated } from '../types';
@@ -13,14 +13,22 @@ type ActivityLogDealNoteCreatedProps = {
 };
 
 export function ActivityLogDealNoteCreated({
-    activity: { company, sale, deal, dealNote },
+    activity,
 }: ActivityLogDealNoteCreatedProps) {
     const context = useActivityLogContext();
+    const { sale, deal, dealNote } = activity;
     return (
         <ActivityLogNote
             header={
                 <>
-                    <CompanyAvatar width={20} height={20} record={company} />
+                    <ReferenceField
+                        source="company_id"
+                        reference="companies"
+                        record={activity}
+                        link={false}
+                    >
+                        <CompanyAvatar width={20} height={20} />
+                    </ReferenceField>
                     <Typography
                         component="p"
                         variant="body2"
@@ -32,10 +40,13 @@ export function ActivityLogDealNoteCreated({
                         {context !== 'company' && (
                             <>
                                 {' at '}
-                                <Link to={`/companies/${deal.company_id}/show`}>
-                                    {company.name}
-                                </Link>{' '}
-                                <RelativeDate date={dealNote.date} />
+                                <ReferenceField
+                                    source="company_id"
+                                    reference="companies"
+                                    record={activity}
+                                    link="show"
+                                />{' '}
+                                <RelativeDate date={activity.date} />
                             </>
                         )}
                     </Typography>
@@ -45,7 +56,7 @@ export function ActivityLogDealNoteCreated({
                             variant="body2"
                             component="span"
                         >
-                            <RelativeDate date={dealNote.date} />
+                            <RelativeDate date={activity.date} />
                         </Typography>
                     )}
                 </>

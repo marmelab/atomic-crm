@@ -1,5 +1,5 @@
 import { ListItem, Stack, Typography } from '@mui/material';
-import { Link } from 'react-admin';
+import { Link, ReferenceField } from 'react-admin';
 
 import { Avatar } from '../contacts/Avatar';
 import type { ActivityContactCreated } from '../types';
@@ -12,9 +12,10 @@ type ActivityLogContactCreatedProps = {
 };
 
 export function ActivityLogContactCreated({
-    activity: { sale, contact, company },
+    activity,
 }: ActivityLogContactCreatedProps) {
     const context = useActivityLogContext();
+    const { sale, contact } = activity;
     return (
         <ListItem disableGutters>
             <Stack direction="row" spacing={1} alignItems="center" width="100%">
@@ -32,10 +33,13 @@ export function ActivityLogContactCreated({
                     {context !== 'company' && (
                         <>
                             to{' '}
-                            <Link to={`/companies/${contact.company_id}/show`}>
-                                {company.name}
-                            </Link>{' '}
-                            <RelativeDate date={contact.first_seen} />
+                            <ReferenceField
+                                source="company_id"
+                                reference="companies"
+                                record={activity}
+                                link="show"
+                            />{' '}
+                            <RelativeDate date={activity.date} />
                         </>
                     )}
                 </Typography>
@@ -45,7 +49,7 @@ export function ActivityLogContactCreated({
                         variant="body2"
                         component="span"
                     >
-                        <RelativeDate date={contact.first_seen} />
+                        <RelativeDate date={activity.date} />
                     </Typography>
                 )}
             </Stack>
