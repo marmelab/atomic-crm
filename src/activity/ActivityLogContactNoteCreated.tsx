@@ -1,5 +1,5 @@
 import { Typography } from '@mui/material';
-import { Link } from 'react-admin';
+import { Link, ReferenceField } from 'react-admin';
 
 import { Avatar } from '../contacts/Avatar';
 import type { ActivityContactNoteCreated } from '../types';
@@ -13,9 +13,10 @@ type ActivityLogContactNoteCreatedProps = {
 };
 
 export function ActivityLogContactNoteCreated({
-    activity: { sale, contact, contactNote, company },
+    activity,
 }: ActivityLogContactNoteCreatedProps) {
     const context = useActivityLogContext();
+    const { sale, contact, contactNote } = activity;
     return (
         <ActivityLogNote
             header={
@@ -34,10 +35,13 @@ export function ActivityLogContactNoteCreated({
                         {context !== 'company' && (
                             <>
                                 {' from '}
-                                <Link to={`/companies/${company.id}/show`}>
-                                    {company.name}
-                                </Link>{' '}
-                                <RelativeDate date={contactNote.date} />
+                                <ReferenceField
+                                    source="company_id"
+                                    reference="companies"
+                                    record={activity}
+                                    link="show"
+                                />{' '}
+                                <RelativeDate date={activity.date} />
                             </>
                         )}
                     </Typography>
@@ -47,7 +51,7 @@ export function ActivityLogContactNoteCreated({
                             variant="body2"
                             component="span"
                         >
-                            <RelativeDate date={contactNote.date} />
+                            <RelativeDate date={activity.date} />
                         </Typography>
                     )}
                 </>
