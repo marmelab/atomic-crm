@@ -5,6 +5,7 @@ import type { Exporter, Identifier, RaRecord } from 'react-admin';
 import {
     BulkActionsToolbar,
     BulkDeleteButton,
+    BulkExportButton,
     CreateButton,
     downloadCSV,
     ExportButton,
@@ -57,6 +58,7 @@ const ContactListLayout = () => {
                 <Title title={'Contacts'} />
                 <ListToolbar actions={<ContactListActions />} />
                 <BulkActionsToolbar>
+                    <BulkExportButton />
                     <BulkDeleteButton />
                 </BulkActionsToolbar>
                 <Card>
@@ -101,7 +103,10 @@ const exporter: Exporter<Contact> = async (
 
     const contacts = records.map(contact => ({
         ...contact,
-        company: companies[contact.company_id].name,
+        company:
+            contact.company_id != null
+                ? companies[contact.company_id].name
+                : undefined,
         sales: `${sales[contact.sales_id].first_name} ${
             sales[contact.sales_id].last_name
         }`,
