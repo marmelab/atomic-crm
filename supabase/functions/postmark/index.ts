@@ -32,9 +32,9 @@ Deno.serve(async req => {
     response = checkBody(json);
     if (response) return response;
 
-    const { ToFull, FromFull, Subject, TextBody, StrippedTextReply } = json;
+    const { ToFull, FromFull, Subject, TextBody } = json;
 
-    const noteContent = getNoteContent(Subject, StrippedTextReply || TextBody);
+    const noteContent = getNoteContent(Subject, TextBody);
 
     const { Email: salesEmail } = FromFull;
     if (!salesEmail) {
