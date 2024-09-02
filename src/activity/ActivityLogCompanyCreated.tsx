@@ -1,5 +1,5 @@
 import { ListItem, Stack, Typography } from '@mui/material';
-import { Link } from 'react-admin';
+import { Link, ReferenceField } from 'react-admin';
 
 import { CompanyAvatar } from '../companies/CompanyAvatar';
 import { SaleName } from '../sales/SaleName';
@@ -15,7 +15,7 @@ export function ActivityLogCompanyCreated({
     activity,
 }: ActivityLogCompanyCreatedProps) {
     const context = useActivityLogContext();
-    const { sale, company } = activity;
+    const { company } = activity;
     return (
         <ListItem disableGutters>
             <Stack direction="row" spacing={1} alignItems="center" width="100%">
@@ -26,7 +26,15 @@ export function ActivityLogCompanyCreated({
                     color="text.secondary"
                     flexGrow={1}
                 >
-                    <SaleName sale={sale} /> added company{' '}
+                    <ReferenceField
+                        source="sales_id"
+                        reference="sales"
+                        record={activity}
+                        link={false}
+                    >
+                        <SaleName />
+                    </ReferenceField>{' '}
+                    added company{' '}
                     <Link to={`/companies/${company.id}/show`}>
                         {company.name}
                     </Link>

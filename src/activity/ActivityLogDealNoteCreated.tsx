@@ -1,5 +1,5 @@
 import Typography from '@mui/material/Typography';
-import { Link, ReferenceField } from 'react-admin';
+import { ReferenceField } from 'react-admin';
 
 import { CompanyAvatar } from '../companies/CompanyAvatar';
 import type { ActivityDealNoteCreated } from '../types';
@@ -16,18 +16,24 @@ export function ActivityLogDealNoteCreated({
     activity,
 }: ActivityLogDealNoteCreatedProps) {
     const context = useActivityLogContext();
-    const { sale, deal, dealNote } = activity;
+    const { dealNote } = activity;
     return (
         <ActivityLogNote
             header={
                 <>
                     <ReferenceField
-                        source="company_id"
-                        reference="companies"
-                        record={activity}
+                        source="deal_id"
+                        reference="deals"
+                        record={dealNote}
                         link={false}
                     >
-                        <CompanyAvatar width={20} height={20} />
+                        <ReferenceField
+                            source="company_id"
+                            reference="companies"
+                            link={false}
+                        >
+                            <CompanyAvatar width={20} height={20} />
+                        </ReferenceField>
                     </ReferenceField>
                     <Typography
                         component="p"
@@ -35,17 +41,36 @@ export function ActivityLogDealNoteCreated({
                         color="text.secondary"
                         flexGrow={1}
                     >
-                        <SaleName sale={sale} /> added a note about deal{' '}
-                        <Link to={`/deals/${deal.id}/show`}>{deal.name}</Link>
+                        <ReferenceField
+                            source="sales_id"
+                            reference="sales"
+                            record={activity}
+                            link={false}
+                        >
+                            <SaleName />
+                        </ReferenceField>{' '}
+                        added a note about deal{' '}
+                        <ReferenceField
+                            source="deal_id"
+                            reference="deals"
+                            record={dealNote}
+                            link="show"
+                        />
                         {context !== 'company' && (
                             <>
                                 {' at '}
                                 <ReferenceField
-                                    source="company_id"
-                                    reference="companies"
-                                    record={activity}
-                                    link="show"
-                                />{' '}
+                                    source="deal_id"
+                                    reference="deals"
+                                    record={dealNote}
+                                    link={false}
+                                >
+                                    <ReferenceField
+                                        source="company_id"
+                                        reference="companies"
+                                        link="show"
+                                    />
+                                </ReferenceField>{' '}
                                 <RelativeDate date={activity.date} />
                             </>
                         )}

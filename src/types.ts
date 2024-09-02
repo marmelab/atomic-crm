@@ -148,23 +148,21 @@ export type ActivityCompanyCreated = {
     type: typeof COMPANY_CREATED;
     company_id: Identifier;
     company: Company;
-    sale: Sale;
+    sales_id: Identifier;
     date: string;
 };
 
 export type ActivityContactCreated = {
     type: typeof CONTACT_CREATED;
     company_id: Identifier;
-    sale: Sale;
+    sales_id?: Identifier;
     contact: Contact;
     date: string;
 };
 
 export type ActivityContactNoteCreated = {
     type: typeof CONTACT_NOTE_CREATED;
-    sale: Sale;
-    company_id: Identifier;
-    contact: Contact;
+    sales_id?: Identifier;
     contactNote: ContactNote;
     date: string;
 };
@@ -172,16 +170,14 @@ export type ActivityContactNoteCreated = {
 export type ActivityDealCreated = {
     type: typeof DEAL_CREATED;
     company_id: Identifier;
-    sale: Sale;
+    sales_id?: Identifier;
     deal: Deal;
     date: string;
 };
 
 export type ActivityDealNoteCreated = {
     type: typeof DEAL_NOTE_CREATED;
-    company_id: Identifier;
-    sale: Sale;
-    deal: Deal;
+    sales_id?: Identifier;
     dealNote: DealNote;
     date: string;
 };
