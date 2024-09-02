@@ -15,7 +15,7 @@ export function ActivityLogDealCreated({
     activity,
 }: ActivityLogDealCreatedProps) {
     const context = useActivityLogContext();
-    const { sale, deal } = activity;
+    const { deal } = activity;
     return (
         <ListItem disableGutters>
             <Stack direction="row" spacing={1} alignItems="center" width="100%">
@@ -33,7 +33,15 @@ export function ActivityLogDealCreated({
                     color="text.secondary"
                     flexGrow={1}
                 >
-                    <SaleName sale={sale} /> added deal{' '}
+                    <ReferenceField
+                        source="sales_id"
+                        reference="sales"
+                        record={activity}
+                        link={false}
+                    >
+                        <SaleName />
+                    </ReferenceField>{' '}
+                    added deal{' '}
                     <Link to={`/deals/${deal.id}/show`}>{deal.name}</Link>{' '}
                     {context !== 'company' && (
                         <>

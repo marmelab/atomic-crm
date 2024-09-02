@@ -15,7 +15,7 @@ export function ActivityLogContactCreated({
     activity,
 }: ActivityLogContactCreatedProps) {
     const context = useActivityLogContext();
-    const { sale, contact } = activity;
+    const { contact } = activity;
     return (
         <ListItem disableGutters>
             <Stack direction="row" spacing={1} alignItems="center" width="100%">
@@ -26,7 +26,15 @@ export function ActivityLogContactCreated({
                     color="text.secondary"
                     flexGrow={1}
                 >
-                    <SaleName sale={sale} /> added{' '}
+                    <ReferenceField
+                        source="sales_id"
+                        reference="sales"
+                        record={activity}
+                        link={false}
+                    >
+                        <SaleName />
+                    </ReferenceField>{' '}
+                    added{' '}
                     <Link to={`/contacts/${contact.id}/show`}>
                         {contact.first_name} {contact.last_name}
                     </Link>{' '}
