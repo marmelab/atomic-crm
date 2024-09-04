@@ -37,6 +37,7 @@ const baseDataProvider = supabaseDataProvider({
     instanceUrl: import.meta.env.VITE_SUPABASE_URL,
     apiKey: import.meta.env.VITE_SUPABASE_ANON_KEY,
     supabaseClient: supabase,
+    sortOrder: 'asc,desc.nullslast' as any,
 });
 
 const processCompanyLogo = async (params: any) => {
