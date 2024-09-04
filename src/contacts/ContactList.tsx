@@ -1,7 +1,7 @@
 /* eslint-disable import/no-anonymous-default-export */
 import { Card, Stack } from '@mui/material';
 import jsonExport from 'jsonexport/dist';
-import type { Exporter, Identifier, RaRecord } from 'react-admin';
+import type { Exporter } from 'react-admin';
 import {
     BulkActionsToolbar,
     BulkDeleteButton,
@@ -83,23 +83,14 @@ const ContactListActions = () => (
     </TopToolbar>
 );
 
-const exporter: Exporter<Contact> = async (
-    records,
-    fetchRelatedRecords,
-    dataProvider
-) => {
+const exporter: Exporter<Contact> = async (records, fetchRelatedRecords) => {
     const companies = await fetchRelatedRecords<Company>(
         records,
         'company_id',
         'companies'
     );
     const sales = await fetchRelatedRecords<Sale>(records, 'sales_id', 'sales');
-    const tagsIds = getRelatedIds(records, 'tags');
-    const tags = await dataProvider.getList<Tag>('tags', {
-        filter: { 'id@in': `(${tagsIds.flat()})` },
-        pagination: { page: 1, perPage: 1000 },
-        sort: { field: 'name', order: 'ASC' },
-    });
+    const tags = await fetchRelatedRecords<Tag>(records, 'tags', 'tags');
 
     const contacts = records.map(contact => ({
         ...contact,
@@ -110,24 +101,9 @@ const exporter: Exporter<Contact> = async (
         sales: `${sales[contact.sales_id].first_name} ${
             sales[contact.sales_id].last_name
         }`,
-        tags: contact.tags
-            .map(tagId => tags.data.find(tag => tag.id === tagId)?.name)
-            .join(', '),
+        tags: contact.tags.map(tagId => tags[tagId].name).join(', '),
     }));
     return jsonExport(contacts, {}, (_err: any, csv: string) => {
         downloadCSV(csv, 'contacts');
     });
 };
-
-export const getRelatedIds = (
-    records: RaRecord[],
-    field: string
-): Identifier[] =>
-    Array.from(
-        new Set(
-            records
-                .filter(record => record[field] != null)
-                .map(record => record[field])
-                .reduce((ids, value) => ids.concat(value), [])
-        )
-    );
