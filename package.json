@@ -5,7 +5,10 @@
     "types": "./lib/types",
     "module": "./lib/index.js",
     "main": "./lib/index.cjs",
-    "files": ["lib", "README.md"],
+    "files": [
+        "lib",
+        "README.md"
+    ],
     "dependencies": {
         "@hello-pangea/dnd": "^16.5.0",
         "@mui/icons-material": "^5.15.6",
