@@ -2,7 +2,9 @@
     "name": "atomic-crm",
     "version": "0.0.1",
     "type": "module",
-    "module": "src/root/CRM.tsx",
+    "types": "./lib/types",
+    "module": "./lib/index.js",
+    "main": "./lib/index.cjs",
     "dependencies": {
         "@hello-pangea/dnd": "^16.5.0",
         "@mui/icons-material": "^5.15.6",
@@ -59,6 +61,7 @@
         "supabase": "^1.136.3",
         "typescript": "^5.3.3",
         "vite": "^5.0.12",
+        "vite-plugin-dts": "^4.2.1",
         "vitest": "^2.0.5",
         "web-vitals": "^4.2.2"
     },
@@ -66,6 +69,7 @@
         "test": "vitest",
         "dev": "vite --force",
         "build": "tsc && vite build",
+        "build-lib": "tsc && vite build --config vite.lib.config",
         "preview": "vite preview",
         "lint:apply": "eslint **/*.{mjs,ts,tsx} --fix",
         "lint:check": "eslint **/*.{mjs,ts,tsx}",
