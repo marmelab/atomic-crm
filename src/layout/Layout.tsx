@@ -5,7 +5,7 @@ import { ErrorBoundary } from 'react-error-boundary';
 
 import Header from './Header';
 
-const Layout = ({ children }: { children: ReactNode }) => (
+export const Layout = ({ children }: { children: ReactNode }) => (
     <>
         <CssBaseline />
         <Header />
@@ -19,5 +19,3 @@ const Layout = ({ children }: { children: ReactNode }) => (
         <CheckForApplicationUpdate interval={30 * 1000} />
     </>
 );
-
-export default Layout;
