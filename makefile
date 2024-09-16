@@ -25,6 +25,9 @@ stop: stop-supabase ## stop the stack locally
 build: ## build the app
 	npm run build
 
+build-lib: ## build the library
+	npm run build-lib
+
 prod-start: build supabase-deploy
 	open http://127.0.0.1:3000 && npx serve -l tcp://127.0.0.1:3000 dist
 
