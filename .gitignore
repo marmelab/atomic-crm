@@ -27,3 +27,4 @@ supabase/.temp
 dist/
 lib/
 .env
+*storybook.log
