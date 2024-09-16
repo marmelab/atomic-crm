@@ -52,6 +52,9 @@ lint:
 	npm run lint:check
 	npm run prettier:check
 
+storybook: ## start storybook
+	npm run storybook
+
 publish:
 	npm run build-lib
 	npm publish
