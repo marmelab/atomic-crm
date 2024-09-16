@@ -6,20 +6,14 @@ import {
     Resource,
     defaultTheme,
     localStorageStore,
-    mergeTranslations,
 } from 'react-admin';
 import type { AdminProps, AuthProvider, DataProvider } from 'react-admin';
 import { deepmerge } from '@mui/utils';
-import polyglotI18nProvider from 'ra-i18n-polyglot';
-import englishMessages from 'ra-language-english';
 import { Route } from 'react-router';
-import {
-    ForgotPasswordPage,
-    SetPasswordPage,
-    raSupabaseEnglishMessages,
-} from 'ra-supabase';
+import { ForgotPasswordPage, SetPasswordPage } from 'ra-supabase';
 
-import Layout from '../layout/Layout';
+import { Layout } from '../layout/Layout';
+import { i18nProvider } from './i18nProvider';
 import companies from '../companies';
 import contacts from '../contacts';
 import { Dashboard } from '../dashboard/Dashboard';
@@ -49,7 +43,7 @@ import {
 } from './defaultConfiguration';
 
 // Define the interface for the CRM component props
-type CRMProps = {
+export type CRMProps = {
     dataProvider?: DataProvider;
     authProvider?: AuthProvider;
     lightTheme?: RaThemeOptions;
@@ -184,25 +178,4 @@ export const CRM = ({
             <Resource name="tags" list={ListGuesser} />
         </Admin>
     </ConfigurationProvider>
-);
-
-export const raSupabaseEnglishMessagesOverride = {
-    'ra-supabase': {
-        auth: {
-            password_reset: 'Check your emails for a Reset Password message.',
-        },
-    },
-};
-
-const i18nProvider = polyglotI18nProvider(
-    () => {
-        return mergeTranslations(
-            englishMessages,
-            raSupabaseEnglishMessages,
-            raSupabaseEnglishMessagesOverride
-        );
-    },
-    'en',
-    [{ locale: 'en', name: 'English' }],
-    { allowMissing: true }
 );
