@@ -16,8 +16,8 @@ const sizes = [1, 10, 50, 250, 500];
 
 const regex = /\W+/;
 
-export const generateCompanies = (db: Db): Required<Company>[] => {
-    return Array.from(Array(55).keys()).map(id => {
+export const generateCompanies = (db: Db, size = 55): Required<Company>[] => {
+    return Array.from(Array(size).keys()).map(id => {
         const name = company.companyName();
         return {
             id,

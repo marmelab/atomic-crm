@@ -23,11 +23,11 @@ const maxContacts = {
     500: 50,
 };
 
-export const generateContacts = (db: Db): Required<Contact>[] => {
+export const generateContacts = (db: Db, size = 500): Required<Contact>[] => {
     const nbAvailblePictures = 223;
     let numberOfContacts = 0;
 
-    return Array.from(Array(500).keys()).map(id => {
+    return Array.from(Array(size).keys()).map(id => {
         const has_avatar =
             weightedBoolean(25) && numberOfContacts < nbAvailblePictures;
         const gender = random.arrayElement(defaultContactGender).value;
