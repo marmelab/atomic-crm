@@ -51,3 +51,7 @@ test-ci:
 lint:
 	npm run lint:check
 	npm run prettier:check
+
+publish:
+	npm run build-lib
+	npm publish

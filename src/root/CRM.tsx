@@ -8,7 +8,7 @@ import {
     localStorageStore,
     mergeTranslations,
 } from 'react-admin';
-import type { AuthProvider, DataProvider } from 'react-admin';
+import type { AdminProps, AuthProvider, DataProvider } from 'react-admin';
 import { deepmerge } from '@mui/utils';
 import polyglotI18nProvider from 'ra-i18n-polyglot';
 import englishMessages from 'ra-language-english';
@@ -54,7 +54,8 @@ type CRMProps = {
     authProvider?: AuthProvider;
     lightTheme?: RaThemeOptions;
     darkTheme?: RaThemeOptions;
-} & Partial<ConfigurationContextValue>;
+} & Partial<ConfigurationContextValue> &
+    Partial<AdminProps>;
 
 const defaultLightTheme = deepmerge(defaultTheme, {
     palette: {
@@ -132,6 +133,7 @@ export const CRM = ({
     title = defaultTitle,
     dataProvider = defaultDataProvider,
     authProvider = defaultAuthProvider,
+    ...rest
 }: CRMProps) => (
     <ConfigurationProvider
         contactGender={contactGender}
@@ -155,6 +157,7 @@ export const CRM = ({
             darkTheme={darkTheme || null}
             i18nProvider={i18nProvider}
             requireAuth
+            {...rest}
         >
             <CustomRoutes noLayout>
                 <Route path={SignupPage.path} element={<SignupPage />} />
