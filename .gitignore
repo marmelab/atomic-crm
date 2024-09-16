@@ -25,4 +25,5 @@ supabase/.branches
 supabase/.temp
 
 dist/
+lib/
 .env
