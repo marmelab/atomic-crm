@@ -16,3 +16,11 @@ export const Basic: Story = {
         authProvider,
     },
 };
+
+export const Layout: Story = {
+    args: {
+        dataProvider,
+        authProvider,
+        layout: ({ children }) => <div>{children}</div>,
+    },
+};
