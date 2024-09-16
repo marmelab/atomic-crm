@@ -1,3 +1,1 @@
-import { CRM } from './root/CRM';
-
-export default CRM;
+export { CRM } from './root/CRM';
