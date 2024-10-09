@@ -27,6 +27,6 @@ To solve this problem, Atomic CRM uses a `users` edge function in charge of:
 
 Atomic CRM does not support user deletion to avoid data losses. Yet, it is possible to disable a user's account (relying on Supabase's ban feature).
 
-Atomic also uses Edge functions to handle the webhook and process the received emails. Check the [Inbound Email](./inbound-email.md) documentation for more information.
+Atomic also uses Edge functions to handle the webhook and process the received emails. Check the [Inbound Email](./inbound-email-configuration.md) documentation for more information.
 
 The edge functions can be found in the `supabase/functions/` directory.
