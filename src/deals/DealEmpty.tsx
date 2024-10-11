@@ -30,7 +30,7 @@ export const DealEmpty = ({ children }: { children?: React.ReactNode }) => {
                 height: `calc(100dvh - ${appbarHeight}px)`,
             }}
         >
-            <img src="./img/empty.svg" alt="No contacts found" />
+            <img src="./img/empty.svg" alt="No deals found" />
             {contacts && contacts.length > 0 ? (
                 <>
                     <Stack gap={0} alignItems="center">
