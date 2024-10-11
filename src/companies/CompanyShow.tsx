@@ -109,7 +109,7 @@ const CompanyShowContent = () => {
                                     label={
                                         record.nb_deals === 1
                                             ? '1 deal'
-                                            : `${record.nb_deals} Deals`
+                                            : `${record.nb_deals} deals`
                                     }
                                     path="deals"
                                 >
