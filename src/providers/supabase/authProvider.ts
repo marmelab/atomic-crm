@@ -1,6 +1,7 @@
 import { supabaseAuthProvider } from 'ra-supabase';
 import { AuthProvider } from 'react-admin';
 import { supabase } from './supabase';
+import { canAccess } from '../commons/canAccess';
 
 const baseAuthProvider = supabaseAuthProvider(supabase, {
     getIdentity: async user => {
@@ -20,20 +21,12 @@ const baseAuthProvider = supabaseAuthProvider(supabase, {
             avatar: data.avatar?.src,
         };
     },
-    getPermissions: async user => {
-        const { data, error } = await supabase
-            .from('sales')
-            .select('administrator')
-            .match({ user_id: user.id })
-            .single();
-
-        if (!data || error) {
-            return null;
-        }
-
-        return data?.administrator ? 'admin' : 'user';
-    },
 });
+// FIXME: Now that react-admin pessimistically calls getPermissions, it calls getPermissions when it initializes its routes
+// However, getPermissions will currently fails if not signed in and that triggers a rerender of the signup page which clears
+// all current inputs.
+// The solution is to remove getPermissions from the authProvider as we now use canAccess.
+delete baseAuthProvider.getPermissions;
 
 export async function getIsInitialized() {
     if (getIsInitialized._is_initialized_cache == null) {
@@ -90,10 +83,26 @@ export const authProvider: AuthProvider = {
 
         return baseAuthProvider.checkAuth(params);
     },
-    async getPermissions(params) {
+    // FIXME: supabaseAuthProvider does not yet provide canAccess
+    canAccess: async params => {
         const isInitialized = await getIsInitialized();
-        return isInitialized && baseAuthProvider.getPermissions
-            ? baseAuthProvider.getPermissions(params)
-            : null;
+        if (!isInitialized) return false;
+
+        // Get the current user
+        const { data: dataSession, error: errorSession } =
+            await supabase.auth.getSession();
+        if (!dataSession.session?.user || errorSession) return false;
+
+        // Get the matching sale
+        const { data: dataSale, error: errorSale } = await supabase
+            .from('sales')
+            .select('administrator')
+            .match({ user_id: dataSession.session.user.id })
+            .single();
+        if (!dataSale || errorSale) return false;
+
+        // Compute access rights from the sale role
+        const role = dataSale.administrator ? 'admin' : 'user';
+        return canAccess(role, params);
     },
 };
