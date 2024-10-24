@@ -92,6 +92,8 @@ export const authProvider: AuthProvider = {
     },
     async getPermissions(params) {
         const isInitialized = await getIsInitialized();
-        return isInitialized ? baseAuthProvider.getPermissions(params) : null;
+        return isInitialized && baseAuthProvider.getPermissions
+            ? baseAuthProvider.getPermissions(params)
+            : null;
     },
 };
