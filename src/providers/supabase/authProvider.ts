@@ -106,7 +106,6 @@ export const authProvider: AuthProvider = {
 
         return baseAuthProvider.checkAuth(params);
     },
-    // FIXME: supabaseAuthProvider does not yet provide canAccess
     canAccess: async params => {
         const isInitialized = await getIsInitialized();
         if (!isInitialized) return false;
