@@ -4,21 +4,17 @@ import { supabase } from './supabase';
 import { canAccess } from '../commons/canAccess';
 
 const baseAuthProvider = supabaseAuthProvider(supabase, {
-    getIdentity: async user => {
-        const { data, error } = await supabase
-            .from('sales')
-            .select('id, first_name, last_name, avatar')
-            .match({ user_id: user.id })
-            .single();
+    getIdentity: async () => {
+        const sale = getSaleFromLocalStorage();
 
-        if (!data || error) {
+        if (sale == null) {
             throw new Error();
         }
 
         return {
-            id: data.id,
-            fullName: `${data.first_name} ${data.last_name}`,
-            avatar: data.avatar?.src,
+            id: sale.id,
+            fullName: `${sale.first_name} ${sale.last_name}`,
+            avatar: sale.avatar?.src,
         };
     },
 });
@@ -45,8 +41,35 @@ export namespace getIsInitialized {
     export var _is_initialized_cache: boolean | null = null;
 }
 
+export const USER_STORAGE_KEY = 'user';
+
 export const authProvider: AuthProvider = {
     ...baseAuthProvider,
+    login: async params => {
+        const result = await baseAuthProvider.login(params);
+
+        const { data: dataSession, error: errorSession } =
+            await supabase.auth.getSession();
+
+        // Shouldn't happen after login but just in case
+        if (dataSession?.session?.user == null || errorSession) {
+            throw new Error('Invalid Supabase session');
+        }
+
+        const { data: dataSale, error: errorSale } = await supabase
+            .from('sales')
+            .select('id, first_name, last_name, avatar, administrator')
+            .match({ user_id: dataSession?.session?.user.id })
+            .single();
+
+        // Shouldn't happen either as all users are sales but just in case
+        if (dataSale == null || errorSale) {
+            throw new Error('No sale found for user');
+        }
+
+        localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(dataSale));
+        return result;
+    },
     checkAuth: async params => {
         // Users are on the set-password page, nothing to do
         if (
@@ -89,20 +112,24 @@ export const authProvider: AuthProvider = {
         if (!isInitialized) return false;
 
         // Get the current user
-        const { data: dataSession, error: errorSession } =
-            await supabase.auth.getSession();
-        if (!dataSession.session?.user || errorSession) return false;
-
-        // Get the matching sale
-        const { data: dataSale, error: errorSale } = await supabase
-            .from('sales')
-            .select('administrator')
-            .match({ user_id: dataSession.session.user.id })
-            .single();
-        if (!dataSale || errorSale) return false;
+        const sale = getSaleFromLocalStorage();
+        if (sale == null) return false;
 
         // Compute access rights from the sale role
-        const role = dataSale.administrator ? 'admin' : 'user';
+        const role = sale.administrator ? 'admin' : 'user';
         return canAccess(role, params);
     },
+};
+
+const getSaleFromLocalStorage = () => {
+    const storedSale = localStorage.getItem(USER_STORAGE_KEY);
+    if (storedSale == null) return false;
+    let sale: any;
+    try {
+        sale = JSON.parse(storedSale);
+    } catch (e) {
+        return;
+    }
+
+    return sale;
 };
