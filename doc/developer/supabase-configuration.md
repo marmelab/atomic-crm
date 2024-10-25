@@ -12,6 +12,8 @@ make supabase-remote-init
 
 The script will ask you for the Supabase instance name, create the database, apply the migrations and deploy the edge functions. Finally, it will create a `.env.production.local` file with your remote Supabase configuration.
 
+However, we cannot yet automate the configuration of the required SMTP provider on your Supabase instance. To do that, please follow the instructions detailed in the [Email Provider Setup](#email-provider-setup) section.
+
 ## Alternative: Using An Existing Supabase Instance
 
 If you already created a project on [supabase.com](https://supabase.com/), you can configure the Atomic CRM frontend to use it.
@@ -53,6 +55,13 @@ make prod-start
 ```
 
 Using a remote Supabase instance can be interesting if you deploy from your computer, or if you want to test your app with production data in production mode.
+
+## Email Provider Setup
+
+In order to support [the invitations workflow](#invitation-handling) and the default email/password authentication (including password reset), you have two options:
+
+- [configure Supabase with a custom SMTP provider](https://supabase.com/docs/guides/auth/auth-smtp#how-to-set-up-smtp)
+- [set up an authentication hook to send the emails yourself](https://supabase.com/docs/guides/auth/auth-hooks/send-email-hook)
 
 ## Setting The Login Callback
 
