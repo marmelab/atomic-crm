@@ -18,10 +18,9 @@ const baseAuthProvider = supabaseAuthProvider(supabase, {
         };
     },
 });
-// FIXME: Now that react-admin pessimistically calls getPermissions, it calls getPermissions when it initializes its routes
-// However, getPermissions will currently fails if not signed in and that triggers a rerender of the signup page which clears
-// all current inputs.
-// The solution is to remove getPermissions from the authProvider as we now use canAccess.
+// FIXME: The default implementation of getPermissions in ra-supabase will throw when the user is not authenticated,
+// which is an issue for our signup page.
+// To be removed when https://github.com/marmelab/ra-supabase/pull/79 is merged and released.
 delete baseAuthProvider.getPermissions;
 
 export async function getIsInitialized() {
