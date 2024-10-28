@@ -5,7 +5,7 @@ import { canAccess } from '../commons/canAccess';
 
 const baseAuthProvider = supabaseAuthProvider(supabase, {
     getIdentity: async () => {
-        const sale = getSaleFromLocalStorage();
+        const sale = await getSaleFromCache();
 
         if (sale == null) {
             throw new Error();
@@ -41,33 +41,12 @@ export namespace getIsInitialized {
     export var _is_initialized_cache: boolean | null = null;
 }
 
-export const USER_STORAGE_KEY = 'user';
-
 export const authProvider: AuthProvider = {
     ...baseAuthProvider,
     login: async params => {
         const result = await baseAuthProvider.login(params);
-
-        const { data: dataSession, error: errorSession } =
-            await supabase.auth.getSession();
-
-        // Shouldn't happen after login but just in case
-        if (dataSession?.session?.user == null || errorSession) {
-            throw new Error('Invalid Supabase session');
-        }
-
-        const { data: dataSale, error: errorSale } = await supabase
-            .from('sales')
-            .select('id, first_name, last_name, avatar, administrator')
-            .match({ user_id: dataSession?.session?.user.id })
-            .single();
-
-        // Shouldn't happen either as all users are sales but just in case
-        if (dataSale == null || errorSale) {
-            throw new Error('No sale found for user');
-        }
-
-        localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(dataSale));
+        // clear cached sale
+        cachedSale = undefined;
         return result;
     },
     checkAuth: async params => {
@@ -111,7 +90,7 @@ export const authProvider: AuthProvider = {
         if (!isInitialized) return false;
 
         // Get the current user
-        const sale = getSaleFromLocalStorage();
+        const sale = await getSaleFromCache();
         if (sale == null) return false;
 
         // Compute access rights from the sale role
@@ -120,15 +99,29 @@ export const authProvider: AuthProvider = {
     },
 };
 
-const getSaleFromLocalStorage = () => {
-    const storedSale = localStorage.getItem(USER_STORAGE_KEY);
-    if (storedSale == null) return false;
-    let sale: any;
-    try {
-        sale = JSON.parse(storedSale);
-    } catch (e) {
-        return;
+let cachedSale: any;
+const getSaleFromCache = async () => {
+    if (cachedSale != null) return cachedSale;
+
+    const { data: dataSession, error: errorSession } =
+        await supabase.auth.getSession();
+
+    // Shouldn't happen after login but just in case
+    if (dataSession?.session?.user == null || errorSession) {
+        return undefined;
     }
 
-    return sale;
+    const { data: dataSale, error: errorSale } = await supabase
+        .from('sales')
+        .select('id, first_name, last_name, avatar, administrator')
+        .match({ user_id: dataSession?.session?.user.id })
+        .single();
+
+    // Shouldn't happen either as all users are sales but just in case
+    if (dataSale == null || errorSale) {
+        return undefined;
+    }
+
+    cachedSale = dataSale;
+    return dataSale;
 };
