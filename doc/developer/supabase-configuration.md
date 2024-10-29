@@ -12,7 +12,9 @@ make supabase-remote-init
 
 The script will ask you for the Supabase instance name, create the database, apply the migrations and deploy the edge functions. Finally, it will create a `.env.production.local` file with your remote Supabase configuration.
 
-However, we cannot yet automate the configuration of the required SMTP provider on your Supabase instance. To do that, please follow the instructions detailed in the [Email Provider Setup](#email-provider-setup) section.
+### Setting Up An Email Provider
+
+The script cannot yet automate the configuration of the required SMTP provider on your Supabase instance. To do that, please follow the instructions detailed in the [Email Provider Setup](#email-provider-setup) section.
 
 ## Alternative: Using An Existing Supabase Instance
 
@@ -44,6 +46,10 @@ VITE_SUPABASE_URL=<instance_url>
 VITE_SUPABASE_ANON_KEY=<instance_anon_token>
 ```
 
+### Setting Up An Email Provider
+
+Atomic CRM requires that an email provider is set up on your Supabase instance. If you don't have one yet, please follow the instructions detailed in the [Email Provider Setup](#email-provider-setup) section.
+
 ## Testing Production Mode
 
 Before deploying the frontend code to production, you may want to test the local frontend code when connected to the remote Supabase instance.
@@ -58,10 +64,29 @@ Using a remote Supabase instance can be interesting if you deploy from your comp
 
 ## Email Provider Setup
 
-In order to support [the invitations workflow](#invitation-handling) and the default email/password authentication (including password reset), you have two options:
+In order to support [the invitations workflow](../user/user-management.md#adding-users) and the default email/password authentication (including password reset), Atomic CRM needs to be able to send emails from your Supabase instance.
 
-- [configure Supabase with a custom SMTP provider](https://supabase.com/docs/guides/auth/auth-smtp#how-to-set-up-smtp)
-- [set up an authentication hook to send the emails yourself](https://supabase.com/docs/guides/auth/auth-hooks/send-email-hook)
+By default, Supabase provides a simple SMTP server for all projects. But this server imposes a few important restrictions and is not meant for production use:
+- It can only send messages to pre-authorized addresses
+- It imposes significant rate-limits
+- There is no SLA guarantee on message delivery or uptime
+
+For this reason, it is recommended to use a [custom SMTP provider](https://supabase.com/docs/guides/auth/auth-smtp#how-to-set-up-a-custom-smtp-server).
+
+A non-exhaustive list of services that work with Supabase Auth is:
+
+- [Postmark](https://postmarkapp.com/developer/user-guide/send-email-with-smtp) (recommended if you also plan to use the [Inbound Email](../user/inbound-email.md) feature)
+- [Resend](https://resend.com/docs/send-with-supabase-smtp)
+- [AWS SES](https://docs.aws.amazon.com/ses/latest/dg/send-email-smtp.html)
+- [Twilio SendGrid](https://www.twilio.com/docs/sendgrid/for-developers/sending-email/getting-started-smtp)
+- [ZeptoMail](https://www.zoho.com/zeptomail/help/smtp-home.html)
+- [Brevo](https://help.brevo.com/hc/en-us/articles/7924908994450-Send-transactional-emails-using-Brevo-SMTP)
+
+Once you've set up your account with an email sending service, head to the [Authentication settings page](https://supabase.com/dashboard/project/_/settings/auth) to enable and configure custom SMTP.
+
+Once you save these settings, your project's Auth server will send messages to all addresses. To protect the reputation of your newly set up service a low rate-limit of 30 messages per hour is imposed. To adjust this to an acceptable value for your use case head to the [Rate Limits configuration page](https://supabase.com/dashboard/project/_/auth/rate-limits).
+
+**Note:** Alternatively, you can also [set up an authentication hook](https://supabase.com/docs/guides/auth/auth-hooks/send-email-hook) to send the emails yourself.
 
 ## Setting The Login Callback
 
