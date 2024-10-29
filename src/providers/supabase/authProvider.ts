@@ -18,10 +18,6 @@ const baseAuthProvider = supabaseAuthProvider(supabase, {
         };
     },
 });
-// FIXME: The default implementation of getPermissions in ra-supabase will throw when the user is not authenticated,
-// which is an issue for our signup page.
-// To be removed when https://github.com/marmelab/ra-supabase/pull/79 is merged and released.
-delete baseAuthProvider.getPermissions;
 
 export async function getIsInitialized() {
     if (getIsInitialized._is_initialized_cache == null) {
