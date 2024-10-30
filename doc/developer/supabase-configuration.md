@@ -12,8 +12,6 @@ make supabase-remote-init
 
 The script will ask you for the Supabase instance name, create the database, apply the migrations and deploy the edge functions. Finally, it will create a `.env.production.local` file with your remote Supabase configuration.
 
-### Setting Up An Email Provider
-
 The script cannot yet automate the configuration of the required SMTP provider on your Supabase instance. To do that, please follow the instructions detailed in the [Email Provider Setup](#email-provider-setup) section.
 
 ## Alternative: Using An Existing Supabase Instance
@@ -45,8 +43,6 @@ Finally, add a `.env.production.local` file in the root directory with your remo
 VITE_SUPABASE_URL=<instance_url>
 VITE_SUPABASE_ANON_KEY=<instance_anon_token>
 ```
-
-### Setting Up An Email Provider
 
 Atomic CRM requires that you set up an email provider on your Supabase instance. If you don't have one yet, please follow the instructions detailed in the [Email Provider Setup](#email-provider-setup) section.
 
