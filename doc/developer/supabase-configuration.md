@@ -48,7 +48,7 @@ VITE_SUPABASE_ANON_KEY=<instance_anon_token>
 
 ### Setting Up An Email Provider
 
-Atomic CRM requires that an email provider is set up on your Supabase instance. If you don't have one yet, please follow the instructions detailed in the [Email Provider Setup](#email-provider-setup) section.
+Atomic CRM requires that you set up an email provider on your Supabase instance. If you don't have one yet, please follow the instructions detailed in the [Email Provider Setup](#email-provider-setup) section.
 
 ## Testing Production Mode
 
