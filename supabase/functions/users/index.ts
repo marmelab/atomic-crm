@@ -31,7 +31,7 @@ async function inviteUser(req: Request, currentUserSale: any) {
     const { email, password, first_name, last_name, disabled, administrator } =
         await req.json();
 
-    if (!currentUserSale.data.administrator) {
+    if (!currentUserSale.administrator) {
         return createErrorResponse(401, 'Not Authorized');
     }
 
