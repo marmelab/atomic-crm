@@ -27,9 +27,13 @@ async function updateSaleAdministrator(
     return sales.at(0);
 }
 
-async function inviteUser(req: Request) {
+async function inviteUser(req: Request, currentUserSale: any) {
     const { email, password, first_name, last_name, disabled, administrator } =
         await req.json();
+
+    if (!currentUserSale.data.administrator) {
+        return createErrorResponse(401, 'Not Authorized');
+    }
 
     const { data, error: userError } =
         await supabaseAdmin.auth.admin.createUser({
@@ -69,7 +73,7 @@ async function inviteUser(req: Request) {
     }
 }
 
-async function patchUser(req: Request) {
+async function patchUser(req: Request, currentUserSale: any) {
     const { sales_id, email, first_name, last_name, administrator, disabled } =
         await req.json();
     const { data: sale } = await supabaseAdmin
@@ -80,6 +84,11 @@ async function patchUser(req: Request) {
 
     if (!sale) {
         return createErrorResponse(404, 'Not Found');
+    }
+
+    // Users can only update their own profile unless they are an administrator
+    if (!currentUserSale.administrator && currentUserSale.id !== sale.id) {
+        return createErrorResponse(401, 'Not Authorized');
     }
 
     const { data, error: userError } =
@@ -94,16 +103,38 @@ async function patchUser(req: Request) {
         return createErrorResponse(500, 'Internal Server Error');
     }
 
+    // Only administrators can update the administrator and disabled status
+    if (!currentUserSale.administrator) {
+        const { data: new_sale } = await supabaseAdmin
+            .from('sales')
+            .select('*')
+            .eq('id', sales_id)
+            .single();
+        return new Response(
+            JSON.stringify({
+                data: new_sale,
+            }),
+            {
+                headers: {
+                    'Content-Type': 'application/json',
+                    ...corsHeaders,
+                },
+            }
+        );
+    }
+
     try {
         await updateSaleDisabled(data.user.id, disabled);
         const sale = await updateSaleAdministrator(data.user.id, administrator);
-
         return new Response(
             JSON.stringify({
                 data: sale,
             }),
             {
-                headers: { 'Content-Type': 'application/json', ...corsHeaders },
+                headers: {
+                    'Content-Type': 'application/json',
+                    ...corsHeaders,
+                },
             }
         );
     } catch (e) {
@@ -126,18 +157,25 @@ Deno.serve(async (req: Request) => {
         Deno.env.get('SUPABASE_ANON_KEY') ?? '',
         { global: { headers: { Authorization: authHeader } } }
     );
-
     const { data } = await localClient.auth.getUser();
     if (!data?.user) {
         return createErrorResponse(401, 'Unauthorized');
     }
+    const currentUserSale = await supabaseAdmin
+        .from('sales')
+        .select('*')
+        .eq('user_id', data.user.id)
+        .single();
 
+    if (!currentUserSale?.data) {
+        return createErrorResponse(401, 'Unauthorized');
+    }
     if (req.method === 'POST') {
-        return inviteUser(req);
+        return inviteUser(req, currentUserSale.data);
     }
 
     if (req.method === 'PATCH') {
-        return patchUser(req);
+        return patchUser(req, currentUserSale.data);
     }
 
     return createErrorResponse(405, 'Method Not Allowed');
