@@ -63,7 +63,7 @@ export function SalesList() {
                 actions={<SalesListActions />}
                 sort={{ field: 'first_name', order: 'ASC' }}
             >
-                <DatagridConfigurable rowClick="edit">
+                <DatagridConfigurable rowClick="edit" bulkActionButtons={false}>
                     <TextField source="first_name" />
                     <TextField source="last_name" />
                     <TextField source="email" />
