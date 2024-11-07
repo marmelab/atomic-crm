@@ -20,12 +20,12 @@ import {
     useGetIdentity,
     useGetOne,
     useNotify,
-    useUpdate,
+    useRecordContext,
 } from 'react-admin';
 import { useFormState } from 'react-hook-form';
 import ImageEditorField from '../misc/ImageEditorField';
 import { CrmDataProvider } from '../providers/types';
-import { SalesFormData } from '../types';
+import { Sale, SalesFormData } from '../types';
 import { useMutation } from '@tanstack/react-query';
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 
@@ -84,13 +84,13 @@ const SettingsForm = ({
     isEditMode: boolean;
     setEditMode: (value: boolean) => void;
 }) => {
-    const [update] = useUpdate();
     const notify = useNotify();
+    const record = useRecordContext<Sale>();
     const { identity, refetch } = useGetIdentity();
     const { isDirty } = useFormState();
     const dataProvider = useDataProvider<CrmDataProvider>();
 
-    const { mutate } = useMutation({
+    const { mutate: updatePassword } = useMutation({
         mutationKey: ['updatePassword'],
         mutationFn: async () => {
             if (!identity) {
@@ -110,33 +110,30 @@ const SettingsForm = ({
         },
     });
 
+    const { mutate: mutateSale } = useMutation({
+        mutationKey: ['signup'],
+        mutationFn: async (data: SalesFormData) => {
+            if (!record) {
+                throw new Error('Record not found');
+            }
+            return dataProvider.salesUpdate(record.id, data);
+        },
+        onSuccess: () => {
+            refetch();
+            notify('Your profile has been updated');
+        },
+        onError: () => {
+            notify('An error occurred. Please try again.');
+        },
+    });
     if (!identity) return null;
 
     const handleClickOpenPasswordChange = () => {
-        mutate();
+        updatePassword();
     };
 
     const handleAvatarUpdate = async (values: any) => {
-        await update(
-            'sales',
-            {
-                id: identity.id,
-                data: values,
-                previousData: identity,
-            },
-            {
-                onSuccess: () => {
-                    refetch();
-                    setEditMode(false);
-                    notify('Your profile has been updated');
-                },
-                onError: _ => {
-                    notify('An error occurred. Please try again', {
-                        type: 'error',
-                    });
-                },
-            }
-        );
+        mutateSale(values);
     };
 
     return (

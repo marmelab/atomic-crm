@@ -21,7 +21,21 @@ async function updateSaleAdministrator(
         .select('*');
 
     if (!sales?.length || salesError) {
-        console.error('Error inviting user:', salesError);
+        console.error('Error updating user:', salesError);
+        throw salesError ?? new Error('Failed to update sale');
+    }
+    return sales.at(0);
+}
+
+async function updateSaleAvatar(user_id: string, avatar: string) {
+    const { data: sales, error: salesError } = await supabaseAdmin
+        .from('sales')
+        .update({ avatar })
+        .eq('user_id', user_id)
+        .select('*');
+
+    if (!sales?.length || salesError) {
+        console.error('Error updating user:', salesError);
         throw salesError ?? new Error('Failed to update sale');
     }
     return sales.at(0);
@@ -74,8 +88,15 @@ async function inviteUser(req: Request, currentUserSale: any) {
 }
 
 async function patchUser(req: Request, currentUserSale: any) {
-    const { sales_id, email, first_name, last_name, administrator, disabled } =
-        await req.json();
+    const {
+        sales_id,
+        email,
+        first_name,
+        last_name,
+        avatar,
+        administrator,
+        disabled,
+    } = await req.json();
     const { data: sale } = await supabaseAdmin
         .from('sales')
         .select('*')
@@ -101,6 +122,10 @@ async function patchUser(req: Request, currentUserSale: any) {
     if (!data?.user || userError) {
         console.error('Error patching user:', userError);
         return createErrorResponse(500, 'Internal Server Error');
+    }
+
+    if (avatar) {
+        await updateSaleAvatar(data.user.id, avatar);
     }
 
     // Only administrators can update the administrator and disabled status
