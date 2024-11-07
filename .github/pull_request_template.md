@@ -14,3 +14,5 @@ _Describe the steps required to test the changes_
 
 - [ ] The **documentation** is up to date
 - [ ] Tested with **fakerest** provider (see [related documentation](../doc/data-providers.md))
+
+Also, please make sure to read the [contributing guidelines](https://github.com/marmelab/atomic-crm#contributing).
