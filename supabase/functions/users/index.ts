@@ -21,15 +21,33 @@ async function updateSaleAdministrator(
         .select('*');
 
     if (!sales?.length || salesError) {
-        console.error('Error inviting user:', salesError);
+        console.error('Error updating user:', salesError);
         throw salesError ?? new Error('Failed to update sale');
     }
     return sales.at(0);
 }
 
-async function inviteUser(req: Request) {
+async function updateSaleAvatar(user_id: string, avatar: string) {
+    const { data: sales, error: salesError } = await supabaseAdmin
+        .from('sales')
+        .update({ avatar })
+        .eq('user_id', user_id)
+        .select('*');
+
+    if (!sales?.length || salesError) {
+        console.error('Error updating user:', salesError);
+        throw salesError ?? new Error('Failed to update sale');
+    }
+    return sales.at(0);
+}
+
+async function inviteUser(req: Request, currentUserSale: any) {
     const { email, password, first_name, last_name, disabled, administrator } =
         await req.json();
+
+    if (!currentUserSale.administrator) {
+        return createErrorResponse(401, 'Not Authorized');
+    }
 
     const { data, error: userError } =
         await supabaseAdmin.auth.admin.createUser({
@@ -69,9 +87,16 @@ async function inviteUser(req: Request) {
     }
 }
 
-async function patchUser(req: Request) {
-    const { sales_id, email, first_name, last_name, administrator, disabled } =
-        await req.json();
+async function patchUser(req: Request, currentUserSale: any) {
+    const {
+        sales_id,
+        email,
+        first_name,
+        last_name,
+        avatar,
+        administrator,
+        disabled,
+    } = await req.json();
     const { data: sale } = await supabaseAdmin
         .from('sales')
         .select('*')
@@ -80,6 +105,11 @@ async function patchUser(req: Request) {
 
     if (!sale) {
         return createErrorResponse(404, 'Not Found');
+    }
+
+    // Users can only update their own profile unless they are an administrator
+    if (!currentUserSale.administrator && currentUserSale.id !== sale.id) {
+        return createErrorResponse(401, 'Not Authorized');
     }
 
     const { data, error: userError } =
@@ -94,16 +124,42 @@ async function patchUser(req: Request) {
         return createErrorResponse(500, 'Internal Server Error');
     }
 
+    if (avatar) {
+        await updateSaleAvatar(data.user.id, avatar);
+    }
+
+    // Only administrators can update the administrator and disabled status
+    if (!currentUserSale.administrator) {
+        const { data: new_sale } = await supabaseAdmin
+            .from('sales')
+            .select('*')
+            .eq('id', sales_id)
+            .single();
+        return new Response(
+            JSON.stringify({
+                data: new_sale,
+            }),
+            {
+                headers: {
+                    'Content-Type': 'application/json',
+                    ...corsHeaders,
+                },
+            }
+        );
+    }
+
     try {
         await updateSaleDisabled(data.user.id, disabled);
         const sale = await updateSaleAdministrator(data.user.id, administrator);
-
         return new Response(
             JSON.stringify({
                 data: sale,
             }),
             {
-                headers: { 'Content-Type': 'application/json', ...corsHeaders },
+                headers: {
+                    'Content-Type': 'application/json',
+                    ...corsHeaders,
+                },
             }
         );
     } catch (e) {
@@ -126,18 +182,25 @@ Deno.serve(async (req: Request) => {
         Deno.env.get('SUPABASE_ANON_KEY') ?? '',
         { global: { headers: { Authorization: authHeader } } }
     );
-
     const { data } = await localClient.auth.getUser();
     if (!data?.user) {
         return createErrorResponse(401, 'Unauthorized');
     }
+    const currentUserSale = await supabaseAdmin
+        .from('sales')
+        .select('*')
+        .eq('user_id', data.user.id)
+        .single();
 
+    if (!currentUserSale?.data) {
+        return createErrorResponse(401, 'Unauthorized');
+    }
     if (req.method === 'POST') {
-        return inviteUser(req);
+        return inviteUser(req, currentUserSale.data);
     }
 
     if (req.method === 'PATCH') {
-        return patchUser(req);
+        return patchUser(req, currentUserSale.data);
     }
 
     return createErrorResponse(405, 'Method Not Allowed');

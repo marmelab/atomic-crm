@@ -16,6 +16,7 @@ export type SignUpData = {
 };
 
 export type SalesFormData = {
+    avatar: string;
     email: string;
     password: string;
     first_name: string;
