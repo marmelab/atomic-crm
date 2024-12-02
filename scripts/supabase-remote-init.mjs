@@ -14,6 +14,7 @@ import fs from 'node:fs';
     });
 
     const projectRef = await createProject({ projectName, databasePassword });
+    await waitForProjectToBeReady({ projectRef });
 
     // This also ensures the project is ready
     const { anonKey } = await fetchApiKeys({
@@ -47,6 +48,8 @@ async function createProject({ projectName, databasePassword }) {
             'projects',
             'create',
             '--interactive',
+            '--output',
+            'json',
             '--db-password',
             databasePassword,
             projectName,
@@ -57,11 +60,47 @@ async function createProject({ projectName, databasePassword }) {
         }
     );
 
-    const projectRef = stdout.match(
-        /https:\/\/supabase.com\/dashboard\/project\/([a-zA-Z0-9_-]*)/
-    )[1];
+    try {
+        const matchJSON = stdout.match(new RegExp('{.*}', 's'));
+        if (!matchJSON) {
+            throw new Error('Invalid JSON output');
+        }
+        const jsonOuput = JSON.parse(matchJSON[0]);
+        return jsonOuput.id;
+    } catch (e) {
+        console.error('Failed to create project');
+        console.error(e);
+        throw e;
+    }
+}
 
-    return projectRef;
+async function waitForProjectToBeReady({ projectRef }) {
+    console.log('Waiting for project to be ready...');
+    const { stdout } = await execa(
+        'npx',
+        ['supabase', 'projects', 'list', '--output', 'json'],
+        {
+            stdout: 'pipe',
+        }
+    );
+
+    try {
+        // The response is an Array of objects
+        const matchJSON = stdout.match(new RegExp('\\[.*\\]', 's'));
+        if (!matchJSON) {
+            throw new Error('Invalid JSON output');
+        }
+        const jsonOuput = JSON.parse(matchJSON[0]);
+        const project = jsonOuput.find(project => project.id === projectRef);
+        if (project.status !== 'ACTIVE_HEALTHY') {
+            await sleep(1000);
+            return waitForProjectToBeReady({ projectRef });
+        }
+    } catch (e) {
+        console.error('Failed to create project');
+        console.error(e);
+        throw e;
+    }
 }
 
 let retry = 0;
@@ -77,7 +116,7 @@ async function linkProject({ projectRef, databasePassword }) {
             databasePassword,
         ],
         {
-            stdout: 'inherit',
+            stdout: 'ignore',
             stderr: 'ignore',
         }
     ).catch(() => {
@@ -111,27 +150,38 @@ async function setupDatabase({ databasePassword }) {
 
 async function fetchApiKeys({ projectRef }) {
     let anonKey = '';
-
     try {
-        const { stdout } = await execa(
+        const { stdout, exitCode } = await execa(
             'npx',
-            ['supabase', 'projects', 'api-keys', '--project-ref', projectRef],
+            [
+                'supabase',
+                'projects',
+                'api-keys',
+                '--output',
+                'json',
+                '--project-ref',
+                projectRef,
+            ],
             {
+                stdout: 'pipe',
                 stderr: 'ignore',
             }
         );
-
-        const keys = stdout
-            .trim()
-            .match(/[ ]+([a-z_]*)[ ]+│[ ]+([a-zA-Z0-9._-]+)/gm);
-
-        for (const key of keys) {
-            const [name, value] = key.split('│').map(s => s.trim());
-            if (name === 'anon') {
-                anonKey = value;
+        // If the exitCode is not 0, the command failed most probably because the project is not ready
+        if (exitCode === 0) {
+            // The response is an Array of objects
+            const matchJSON = stdout.match(new RegExp('\\[.*\\]', 's'));
+            if (!matchJSON) {
+                throw new Error('Invalid JSON output');
             }
+            const jsonOuput = JSON.parse(matchJSON[0]);
+            anonKey = jsonOuput.find(key => key.name === 'anon')?.api_key;
         }
-    } catch (e) {}
+    } catch (e) {
+        console.error('Failed to fetch API keys');
+        console.error(e);
+        throw e;
+    }
 
     if (anonKey === '') {
         await sleep(1000);
@@ -142,24 +192,13 @@ async function fetchApiKeys({ projectRef }) {
 }
 
 async function persistSupabaseEnv({ projectRef, anonKey }) {
-    let envFileStream = fs.createWriteStream(
+    fs.writeFileSync(
         `${process.cwd()}/.env.production.local`,
-        { flags: 'a' }
+        `
+VITE_SUPABASE_URL=https://${projectRef}.supabase.co
+VITE_SUPABASE_ANON_KEY=${anonKey}`,
+        { flag: 'a' }
     );
-    await execa(
-        'echo',
-        [`VITE_SUPABASE_URL=https://${projectRef}.supabase.co`],
-        {
-            stdout: [envFileStream, 'pipe'],
-        }
-    );
-    envFileStream = fs.createWriteStream(
-        `${process.cwd()}/.env.production.local`,
-        { flags: 'a' }
-    );
-    await execa('echo', [`VITE_SUPABASE_ANON_KEY=${anonKey}`], {
-        stdout: [envFileStream, 'pipe'],
-    });
 }
 
 function generatePassword(length) {
