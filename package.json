@@ -74,7 +74,7 @@
         "prettier": "~3.2.5",
         "rollup-plugin-visualizer": "^5.12.0",
         "storybook": "^8.3.0",
-        "supabase": "^1.136.3",
+        "supabase": "^1.226.3",
         "typescript": "^5.3.3",
         "vite": "^5.0.12",
         "vite-plugin-dts": "^4.2.1",
