@@ -10,6 +10,8 @@ After configuring your Supabase instance, you can deploy the backend changes wit
 make supabase-deploy
 ```
 
+Make sure you access the frontend once to initialize the main admin account. See [Testing Production Mode](#testing-production-mode).
+
 ## Testing Production Mode
 
 If you want to test you local frontend code using the remote Supabase instance and the production settings, you can run the following command:
