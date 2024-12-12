@@ -4,13 +4,13 @@
 
 The entire backend of Atomic CRM is hosted on Supabase. The backend is composed of a Postgres database, a REST API, and edge functions. Check out the [Supabase Configuration](./supabase-configuration.md) section for details.
 
-After configuring your Supabase instance, you can deploy the backend changes with the following command:
+After [configuring your Supabase instance](./supabase-configuration.md), you can deploy the backend changes with the following command:
 
 ```sh
 make supabase-deploy
 ```
 
-Make sure you access the frontend once to initialize the main admin account. See [Testing Production Mode](#testing-production-mode).
+Make sure you access the frontend once to initialize the main admin account.
 
 ## Testing Production Mode
 
