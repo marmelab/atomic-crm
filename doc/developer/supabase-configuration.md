@@ -56,6 +56,8 @@ To do so, call the following command:
 make prod-start
 ```
 
+You will be prompted to create the first production user.
+
 Using a remote Supabase instance can be interesting if you deploy from your computer, or if you want to test your app with production data in production mode.
 
 ## Email Provider Setup
