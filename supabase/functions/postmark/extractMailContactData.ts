@@ -40,6 +40,26 @@ export const extractMailContactData = (
             firstName = parts[0];
             lastName = parts.slice(1).join(' ');
         }
-        return { firstName, lastName, email: contact.Email, domain };
+        return {
+            firstName,
+            lastName,
+            email: contact.Email,
+            domain,
+            companyName: extractCompanyName(domain),
+        };
     });
 };
+
+export function extractCompanyName(domain: string) {
+    const name = domain.split('.').at(-2)!;
+
+    const lowerCaseName = name
+        .replace('-', ' ')
+        .replace('_', ' ')
+        .toLowerCase();
+
+    return lowerCaseName
+        .split(' ')
+        .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+        .join(' ');
+}
