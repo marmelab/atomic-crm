@@ -4,7 +4,7 @@ Atomic CRM can receive inbound emails and automatically create or update contact
 
 ## Setup
 
-You must setup Postmark and Supabase to use the inbound email feature. Check the [Inbound Email Setup](./developer/inbound-email.md) documentation for more information.
+You must setup Postmark and Supabase to use the inbound email feature. Check the [Inbound Email Setup](../developer/inbound-email-configuration.md) documentation for more information.
 
 ## Usage
 
