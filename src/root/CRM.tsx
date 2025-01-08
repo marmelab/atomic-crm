@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import {
     Admin,
     CustomRoutes,
@@ -127,55 +128,76 @@ export const CRM = ({
     title = defaultTitle,
     dataProvider = defaultDataProvider,
     authProvider = defaultAuthProvider,
+    disableTelemetry,
     ...rest
-}: CRMProps) => (
-    <ConfigurationProvider
-        contactGender={contactGender}
-        companySectors={companySectors}
-        dealCategories={dealCategories}
-        dealPipelineStatuses={dealPipelineStatuses}
-        dealStages={dealStages}
-        logo={logo}
-        noteStatuses={noteStatuses}
-        taskTypes={taskTypes}
-        title={title}
-    >
-        <Admin
-            dataProvider={dataProvider}
-            authProvider={authProvider}
-            store={localStorageStore(undefined, 'CRM')}
-            layout={Layout}
-            loginPage={LoginPage}
-            dashboard={Dashboard}
-            theme={lightTheme}
-            darkTheme={darkTheme || null}
-            i18nProvider={i18nProvider}
-            requireAuth
-            {...rest}
-        >
-            <CustomRoutes noLayout>
-                <Route path={SignupPage.path} element={<SignupPage />} />
-                <Route
-                    path={SetPasswordPage.path}
-                    element={<SetPasswordPage />}
-                />
-                <Route
-                    path={ForgotPasswordPage.path}
-                    element={<ForgotPasswordPage />}
-                />
-            </CustomRoutes>
+}: CRMProps) => {
+    useEffect(() => {
+        if (
+            disableTelemetry ||
+            process.env.NODE_ENV !== 'production' ||
+            typeof window === 'undefined' ||
+            typeof window.location === 'undefined' ||
+            typeof Image === 'undefined'
+        ) {
+            return;
+        }
+        const img = new Image();
+        img.src = `//https://o5drun0dw3.execute-api.eu-west-3.amazonaws.com/default/atomic-crm-telemetry?domain=${window.location.hostname}`;
+    }, [disableTelemetry]);
 
-            <CustomRoutes>
-                <Route path={SettingsPage.path} element={<SettingsPage />} />
-            </CustomRoutes>
-            <Resource name="deals" {...deals} />
-            <Resource name="contacts" {...contacts} />
-            <Resource name="companies" {...companies} />
-            <Resource name="contactNotes" />
-            <Resource name="dealNotes" />
-            <Resource name="tasks" list={ListGuesser} />
-            <Resource name="sales" {...sales} />
-            <Resource name="tags" list={ListGuesser} />
-        </Admin>
-    </ConfigurationProvider>
-);
+    return (
+        <ConfigurationProvider
+            contactGender={contactGender}
+            companySectors={companySectors}
+            dealCategories={dealCategories}
+            dealPipelineStatuses={dealPipelineStatuses}
+            dealStages={dealStages}
+            logo={logo}
+            noteStatuses={noteStatuses}
+            taskTypes={taskTypes}
+            title={title}
+        >
+            <Admin
+                dataProvider={dataProvider}
+                authProvider={authProvider}
+                store={localStorageStore(undefined, 'CRM')}
+                layout={Layout}
+                loginPage={LoginPage}
+                dashboard={Dashboard}
+                theme={lightTheme}
+                darkTheme={darkTheme || null}
+                i18nProvider={i18nProvider}
+                requireAuth
+                disableTelemetry
+                {...rest}
+            >
+                <CustomRoutes noLayout>
+                    <Route path={SignupPage.path} element={<SignupPage />} />
+                    <Route
+                        path={SetPasswordPage.path}
+                        element={<SetPasswordPage />}
+                    />
+                    <Route
+                        path={ForgotPasswordPage.path}
+                        element={<ForgotPasswordPage />}
+                    />
+                </CustomRoutes>
+
+                <CustomRoutes>
+                    <Route
+                        path={SettingsPage.path}
+                        element={<SettingsPage />}
+                    />
+                </CustomRoutes>
+                <Resource name="deals" {...deals} />
+                <Resource name="contacts" {...contacts} />
+                <Resource name="companies" {...companies} />
+                <Resource name="contactNotes" />
+                <Resource name="dealNotes" />
+                <Resource name="tasks" list={ListGuesser} />
+                <Resource name="sales" {...sales} />
+                <Resource name="tags" list={ListGuesser} />
+            </Admin>
+        </ConfigurationProvider>
+    );
+};
