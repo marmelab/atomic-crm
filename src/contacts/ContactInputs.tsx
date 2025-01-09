@@ -7,11 +7,13 @@ import {
     useTheme,
 } from '@mui/material';
 import {
+    ArrayInput,
     AutocompleteInput,
     BooleanInput,
     RadioButtonGroupInput,
     ReferenceInput,
     SelectInput,
+    SimpleFormIterator,
     TextInput,
     email,
     required,
@@ -148,13 +150,18 @@ const ContactPersonalInformationInputs = () => {
     return (
         <Stack>
             <Typography variant="h6">Personal info</Typography>
-            <TextInput
-                source="email"
-                helperText={false}
-                validate={email()}
-                onPaste={handleEmailPaste}
-                onBlur={handleEmailBlur}
-            />
+            <ArrayInput source="email" label="Email addresses">
+                <SimpleFormIterator inline>
+                    <TextInput
+                        source=""
+                        helperText={false}
+                        validate={email()}
+                        onPaste={handleEmailPaste}
+                        onBlur={handleEmailBlur}
+                        hiddenLabel
+                    />
+                </SimpleFormIterator>
+            </ArrayInput>
             <Stack gap={1} flexDirection="row">
                 <TextInput
                     source="phone_1_number"

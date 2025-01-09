@@ -16,18 +16,18 @@ Object.defineProperty(globalThis, 'crypto', {
 });
 
 it('should return gravatar URL for anthony@marmelab.com', async () => {
-    const email = 'anthony@marmelab.com';
+    const email = ['anthony@marmelab.com'];
     const record: Partial<Contact> = { email };
 
     const avatarUrl = await getContactAvatar(record);
-    const hashedEmail = await hash(email);
+    const hashedEmail = await hash(email[0]);
     expect(avatarUrl).toBe(
         `https://www.gravatar.com/avatar/${hashedEmail}?d=404`
     );
 });
 
 it('should return favicon URL if gravatar does not exist', async () => {
-    const email = 'no-gravatar@gravatar.com';
+    const email = ['no-gravatar@gravatar.com'];
     const record: Partial<Contact> = { email };
 
     const avatarUrl = await getContactAvatar(record);
@@ -35,7 +35,7 @@ it('should return favicon URL if gravatar does not exist', async () => {
 });
 
 it('should not return favicon URL if not domain not allowed', async () => {
-    const email = 'no-gravatar@gmail.com';
+    const email = ['no-gravatar@gmail.com'];
     const record: Partial<Contact> = { email };
 
     const avatarUrl = await getContactAvatar(record);
@@ -49,10 +49,29 @@ it('should return null if no email is provided', async () => {
     expect(avatarUrl).toBeNull();
 });
 
-it('should return null if email has no gravatar or validate domain', async () => {
-    const email = 'anthony@fake-domain-marmelab.com';
+it('should return null if an empty array is provided', async () => {
+    const email: string[] = [];
     const record: Partial<Contact> = { email };
 
     const avatarUrl = await getContactAvatar(record);
     expect(avatarUrl).toBeNull();
+});
+
+it('should return null if email has no gravatar or validate domain', async () => {
+    const email = ['anthony@fake-domain-marmelab.com'];
+    const record: Partial<Contact> = { email };
+
+    const avatarUrl = await getContactAvatar(record);
+    expect(avatarUrl).toBeNull();
+});
+
+it('should return gravatar URL for 2nd email if 1st email has no gravatar nor valid domain', async () => {
+    const email = ['anthony@fake-domain-marmelab.com', 'anthony@marmelab.com'];
+    const record: Partial<Contact> = { email };
+
+    const avatarUrl = await getContactAvatar(record);
+    const hashedEmail = await hash(email[1]);
+    expect(avatarUrl).toBe(
+        `https://www.gravatar.com/avatar/${hashedEmail}?d=404`
+    );
 });

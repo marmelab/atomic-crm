@@ -3,18 +3,22 @@ import LinkedInIcon from '@mui/icons-material/LinkedIn';
 import PhoneIcon from '@mui/icons-material/Phone';
 import { Box, Divider, Stack, SvgIcon, Typography } from '@mui/material';
 import {
+    ArrayField,
     DateField,
     DeleteButton,
     EditButton,
     EmailField,
     FunctionField,
+    RecordContextProvider,
     ReferenceField,
     ReferenceManyField,
     SelectField,
     ShowButton,
+    SingleFieldList,
     TextField,
     UrlField,
     useRecordContext,
+    WithRecord,
 } from 'react-admin';
 import { AddTask } from '../tasks/AddTask';
 import { TasksIterator } from '../tasks/TasksIterator';
@@ -40,17 +44,28 @@ export const ContactAside = ({ link = 'edit' }: { link?: 'edit' | 'show' }) => {
             </Box>
             <Typography variant="subtitle2">Personal info</Typography>
             <Divider sx={{ mb: 2 }} />
-            {record.email && (
-                <Stack
-                    direction="row"
-                    alignItems="center"
-                    gap={1}
-                    minHeight={24}
-                >
-                    <EmailIcon color="disabled" fontSize="small" />
-                    <EmailField source="email" />
-                </Stack>
-            )}
+            <ArrayField source="email">
+                <SingleFieldList linkType={false} gap={0}>
+                    <WithRecord
+                        render={email => (
+                            <RecordContextProvider value={{ email }}>
+                                <Stack
+                                    direction="row"
+                                    alignItems="center"
+                                    gap={1}
+                                    minHeight={24}
+                                >
+                                    <EmailIcon
+                                        color="disabled"
+                                        fontSize="small"
+                                    />
+                                    <EmailField source="email" />
+                                </Stack>
+                            </RecordContextProvider>
+                        )}
+                    />
+                </SingleFieldList>
+            </ArrayField>
             {record.has_newsletter && (
                 <Typography variant="body2" color="textSecondary" pl={3.5}>
                     Subscribed to newsletter
