@@ -40,29 +40,31 @@ async function getFaviconUrl(domain: string): Promise<string | null> {
 export async function getContactAvatar(
     record: Partial<Contact>
 ): Promise<string | null> {
-    if (!record.email) {
+    if (!record.email || !record.email.length) {
         return null;
     }
 
-    // Step 1: Try to get Gravatar image
-    const gravatarUrl = await getGravatarUrl(record.email);
-    try {
-        const gravatarResponse = await fetch(gravatarUrl);
-        if (gravatarResponse.ok) {
-            return gravatarUrl;
+    for (const email of record.email) {
+        // Step 1: Try to get Gravatar image
+        const gravatarUrl = await getGravatarUrl(email);
+        try {
+            const gravatarResponse = await fetch(gravatarUrl);
+            if (gravatarResponse.ok) {
+                return gravatarUrl;
+            }
+        } catch (error) {
+            // Gravatar not found
         }
-    } catch (error) {
-        // Gravatar not found
-    }
 
-    // Step 2: Try to get favicon from email domain
-    const domain = record.email.split('@')[1];
-    const faviconUrl = await getFaviconUrl(domain);
-    if (faviconUrl) {
-        return faviconUrl;
-    }
+        // Step 2: Try to get favicon from email domain
+        const domain = email.split('@')[1];
+        const faviconUrl = await getFaviconUrl(domain);
+        if (faviconUrl) {
+            return faviconUrl;
+        }
 
-    // TODO: Step 3: Try to get image from LinkedIn.
+        // TODO: Step 3: Try to get image from LinkedIn.
+    }
 
     return null;
 }

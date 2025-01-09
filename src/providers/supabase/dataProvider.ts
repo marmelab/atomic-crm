@@ -70,7 +70,7 @@ async function processContactAvatar(
     params: CreateParams<Contact> | UpdateParams<Contact>
 ): Promise<CreateParams<Contact> | UpdateParams<Contact>> {
     const { data } = params;
-    if (!data.avatar && !data.email) {
+    if (data.avatar || !data.email || !data.email.length) {
         return params;
     }
     const avatarUrl = await getContactAvatar(data);
@@ -339,10 +339,16 @@ const applyFullTextSearch = (columns: string[]) => (params: GetListParams) => {
         filter: {
             ...filter,
             '@or': columns.reduce(
-                (acc, column) => ({
-                    ...acc,
-                    [`${column}@ilike`]: q,
-                }),
+                (acc, column) =>
+                    column === 'email'
+                        ? {
+                              ...acc,
+                              [`${column}@cs`]: `{${q}}`,
+                          }
+                        : {
+                              ...acc,
+                              [`${column}@ilike`]: q,
+                          },
                 {}
             ),
         },
