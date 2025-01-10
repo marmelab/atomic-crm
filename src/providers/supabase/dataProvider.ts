@@ -70,7 +70,7 @@ async function processContactAvatar(
     params: CreateParams<Contact> | UpdateParams<Contact>
 ): Promise<CreateParams<Contact> | UpdateParams<Contact>> {
     const { data } = params;
-    if (data.avatar || !data.email || !data.email.length) {
+    if (data.avatar || !data.email_jsonb || !data.email_jsonb.length) {
         return params;
     }
     const avatarUrl = await getContactAvatar(data);
@@ -343,7 +343,7 @@ const applyFullTextSearch = (columns: string[]) => (params: GetListParams) => {
                     column === 'email'
                         ? {
                               ...acc,
-                              [`${column}@cs`]: `{${q}}`,
+                              [`email_fts@ilike`]: q,
                           }
                         : {
                               ...acc,

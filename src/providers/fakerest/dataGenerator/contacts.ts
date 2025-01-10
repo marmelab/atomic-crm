@@ -33,7 +33,12 @@ export const generateContacts = (db: Db, size = 500): Required<Contact>[] => {
         const gender = random.arrayElement(defaultContactGender).value;
         const first_name = name.firstName(gender as any);
         const last_name = name.lastName();
-        const email = [internet.email(first_name, last_name)];
+        const email = [
+            {
+                email: internet.email(first_name, last_name),
+                type: 'Work' as const,
+            },
+        ];
         const avatar = {
             src: has_avatar
                 ? 'https://marmelab.com/posters/avatar-' +
@@ -67,7 +72,7 @@ export const generateContacts = (db: Db, size = 500): Required<Contact>[] => {
             title: title.charAt(0).toUpperCase() + title.substr(1),
             company_id: company.id,
             company_name: company.name,
-            email,
+            email_jsonb: email,
             phone_1_number: phone.phoneNumber(),
             phone_1_type: random.arrayElement(['Work', 'Home', 'Other']),
             phone_2_number: phone.phoneNumber(),

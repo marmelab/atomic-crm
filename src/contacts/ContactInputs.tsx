@@ -35,8 +35,8 @@ export const ContactInputs = () => {
     return (
         <Stack gap={2} p={1}>
             <Avatar />
-            <Stack gap={4} direction={isMobile ? 'column' : 'row'}>
-                <Stack gap={4} flex={1}>
+            <Stack gap={3} direction={isMobile ? 'column' : 'row'}>
+                <Stack gap={4} flex={4}>
                     <ContactIdentityInputs />
                     <ContactPositionInputs />
                 </Stack>
@@ -44,7 +44,7 @@ export const ContactInputs = () => {
                     orientation={isMobile ? 'horizontal' : 'vertical'}
                     flexItem
                 />
-                <Stack gap={4} flex={1}>
+                <Stack gap={4} flex={5}>
                     <ContactPersonalInformationInputs />
                     <ContactMiscInputs />
                 </Stack>
@@ -150,15 +150,31 @@ const ContactPersonalInformationInputs = () => {
     return (
         <Stack>
             <Typography variant="h6">Personal info</Typography>
-            <ArrayInput source="email" label="Email addresses">
-                <SimpleFormIterator inline>
+            <ArrayInput
+                source="email_jsonb"
+                label="Email addresses"
+                helperText={false}
+            >
+                <SimpleFormIterator inline disableReordering>
                     <TextInput
-                        source=""
+                        source="email"
                         helperText={false}
                         validate={email()}
                         onPaste={handleEmailPaste}
                         onBlur={handleEmailBlur}
-                        hiddenLabel
+                    />
+                    <SelectInput
+                        source="type"
+                        helperText={false}
+                        optionText="id"
+                        choices={[
+                            { id: 'Work' },
+                            { id: 'Home' },
+                            { id: 'Other' },
+                        ]}
+                        defaultValue="Work"
+                        fullWidth={false}
+                        sx={{ width: 100, minWidth: 100 }}
                     />
                 </SimpleFormIterator>
             </ArrayInput>
@@ -172,9 +188,11 @@ const ContactPersonalInformationInputs = () => {
                     source="phone_1_type"
                     label="Type"
                     helperText={false}
-                    optionText={choice => choice.id}
+                    optionText="id"
                     choices={[{ id: 'Work' }, { id: 'Home' }, { id: 'Other' }]}
-                    defaultValue={'Work'}
+                    defaultValue="Work"
+                    fullWidth={false}
+                    sx={{ width: 130, minWidth: 130 }}
                 />
             </Stack>
             <Stack gap={1} flexDirection="row">
@@ -187,9 +205,11 @@ const ContactPersonalInformationInputs = () => {
                     source="phone_2_type"
                     label="Type"
                     helperText={false}
-                    optionText={choice => choice.id}
+                    optionText="id"
                     choices={[{ id: 'Work' }, { id: 'Home' }, { id: 'Other' }]}
-                    defaultValue={'Work'}
+                    defaultValue="Work"
+                    fullWidth={false}
+                    sx={{ width: 130, minWidth: 130 }}
                 />
             </Stack>
             <TextInput

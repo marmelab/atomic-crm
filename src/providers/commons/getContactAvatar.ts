@@ -40,11 +40,11 @@ async function getFaviconUrl(domain: string): Promise<string | null> {
 export async function getContactAvatar(
     record: Partial<Contact>
 ): Promise<string | null> {
-    if (!record.email || !record.email.length) {
+    if (!record.email_jsonb || !record.email_jsonb.length) {
         return null;
     }
 
-    for (const email of record.email) {
+    for (const { email } of record.email_jsonb) {
         // Step 1: Try to get Gravatar image
         const gravatarUrl = await getGravatarUrl(email);
         try {
