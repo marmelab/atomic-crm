@@ -113,3 +113,23 @@ export const Dashboard = () => (
     </Card>
 );
 ```
+
+## Disabling Telemetry
+
+In production, atomic-crm applications send an anonymous request on mount to a telemetry server operated by Marmelab. You can see this request by looking at the Network tab of your browser DevTools:
+
+```
+https://atomic-crm-telemetry.marmelab.com/atomic-crm-telemetry
+```
+
+The only data sent to the telemetry server is the admin domain (e.g. “example.com”) - no personal data is ever sent, and no cookie is included in the response. The atomic-crm team uses these domains to track the usage of the framework.
+
+You can opt out of telemetry by simply adding `disableTelemetry` to the `<CRM>` component:
+
+```tsx
+import { CRM } from './root/CRM';
+
+const App = () => <CRM disableTelemetry />;
+
+export default App;
+```
