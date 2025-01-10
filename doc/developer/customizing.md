@@ -114,7 +114,7 @@ export const Dashboard = () => (
 );
 ```
 
-### Disabling Telemetry
+## Disabling Telemetry
 
 In production, atomic-crm applications send an anonymous request on mount to a telemetry server operated by Marmelab. You can see this request by looking at the Network tab of your browser DevTools:
 
