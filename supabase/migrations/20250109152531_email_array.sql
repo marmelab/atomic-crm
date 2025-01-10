@@ -1,12 +1,10 @@
-alter table contacts add column email_array text[];
+alter table contacts add column email_jsonb jsonb;
 
-update contacts set email_array = array[email];
+update contacts set email_jsonb = ('[{"email": ' || email || ', "type": "Other"}]')::jsonb;
 
 drop view contacts_summary;
 
 alter table contacts drop column email;
-
-alter table contacts rename column email_array to email;
 
 create view contacts_summary
 as
@@ -16,7 +14,8 @@ select
     co.last_name,
     co.gender,
     co.title,
-    co.email,
+    co.email_jsonb,
+    jsonb_path_query_array(co.email_jsonb, '$[*].email')::text as email_fts,
     co.phone_1_number,
     co.phone_1_type,
     co.phone_2_number,
