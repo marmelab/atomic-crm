@@ -142,7 +142,7 @@ export const CRM = ({
             return;
         }
         const img = new Image();
-        img.src = `//https://o5drun0dw3.execute-api.eu-west-3.amazonaws.com/default/atomic-crm-telemetry?domain=${window.location.hostname}`;
+        img.src = `//https://atomic-crm-telemetry.marmelab.com/atomic-crm-telemetry?domain=${window.location.hostname}`;
     }, [disableTelemetry]);
 
     return (
