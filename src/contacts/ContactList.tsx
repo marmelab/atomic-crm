@@ -111,6 +111,7 @@ const exporter: Exporter<Contact> = async (records, fetchRelatedRecords) => {
                 email => email.type === 'Other'
             )?.email,
             email_jsonb: undefined,
+            email_fts: undefined,
             phone_work: contact.phone_jsonb.find(phone => phone.type === 'Work')
                 ?.number,
             phone_home: contact.phone_jsonb.find(phone => phone.type === 'Home')
@@ -119,9 +120,12 @@ const exporter: Exporter<Contact> = async (records, fetchRelatedRecords) => {
                 phone => phone.type === 'Other'
             )?.number,
             phone_jsonb: undefined,
+            phone_fts: undefined,
         };
         delete exportedContact.email_jsonb;
+        delete exportedContact.email_fts;
         delete exportedContact.phone_jsonb;
+        delete exportedContact.phone_fts;
         return exportedContact;
     });
     return jsonExport(contacts, {}, (_err: any, csv: string) => {
