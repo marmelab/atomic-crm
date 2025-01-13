@@ -70,7 +70,7 @@ async function processContactAvatar(
     params: CreateParams<Contact> | UpdateParams<Contact>
 ): Promise<CreateParams<Contact> | UpdateParams<Contact>> {
     const { data } = params;
-    if (data.avatar || !data.email_jsonb || !data.email_jsonb.length) {
+    if (data.avatar?.src || !data.email_jsonb || !data.email_jsonb.length) {
         return params;
     }
     const avatarUrl = await getContactAvatar(data);
