@@ -279,8 +279,7 @@ export const dataProvider = withLifecycleCallbacks(
                     'company_name',
                     'title',
                     'email',
-                    'phone_1_number',
-                    'phone_2_number',
+                    'phone',
                     'background',
                 ])(params);
             },
@@ -338,19 +337,23 @@ const applyFullTextSearch = (columns: string[]) => (params: GetListParams) => {
         ...params,
         filter: {
             ...filter,
-            '@or': columns.reduce(
-                (acc, column) =>
-                    column === 'email'
-                        ? {
-                              ...acc,
-                              [`email_fts@ilike`]: q,
-                          }
-                        : {
-                              ...acc,
-                              [`${column}@ilike`]: q,
-                          },
-                {}
-            ),
+            '@or': columns.reduce((acc, column) => {
+                if (column === 'email')
+                    return {
+                        ...acc,
+                        [`email_fts@ilike`]: q,
+                    };
+                if (column === 'phone')
+                    return {
+                        ...acc,
+                        [`phone_fts@ilike`]: q,
+                    };
+                else
+                    return {
+                        ...acc,
+                        [`${column}@ilike`]: q,
+                    };
+            }, {}),
         },
     };
 };

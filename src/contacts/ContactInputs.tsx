@@ -178,40 +178,28 @@ const ContactPersonalInformationInputs = () => {
                     />
                 </SimpleFormIterator>
             </ArrayInput>
-            <Stack gap={1} flexDirection="row">
-                <TextInput
-                    source="phone_1_number"
-                    label="Phone number 1"
-                    helperText={false}
-                />
-                <SelectInput
-                    source="phone_1_type"
-                    label="Type"
-                    helperText={false}
-                    optionText="id"
-                    choices={[{ id: 'Work' }, { id: 'Home' }, { id: 'Other' }]}
-                    defaultValue="Work"
-                    fullWidth={false}
-                    sx={{ width: 130, minWidth: 130 }}
-                />
-            </Stack>
-            <Stack gap={1} flexDirection="row">
-                <TextInput
-                    source="phone_2_number"
-                    label="Phone number 2"
-                    helperText={false}
-                />
-                <SelectInput
-                    source="phone_2_type"
-                    label="Type"
-                    helperText={false}
-                    optionText="id"
-                    choices={[{ id: 'Work' }, { id: 'Home' }, { id: 'Other' }]}
-                    defaultValue="Work"
-                    fullWidth={false}
-                    sx={{ width: 130, minWidth: 130 }}
-                />
-            </Stack>
+            <ArrayInput
+                source="phone_jsonb"
+                label="Phone numbers"
+                helperText={false}
+            >
+                <SimpleFormIterator inline disableReordering>
+                    <TextInput source="number" helperText={false} />
+                    <SelectInput
+                        source="type"
+                        helperText={false}
+                        optionText="id"
+                        choices={[
+                            { id: 'Work' },
+                            { id: 'Home' },
+                            { id: 'Other' },
+                        ]}
+                        defaultValue="Work"
+                        fullWidth={false}
+                        sx={{ width: 100, minWidth: 100 }}
+                    />
+                </SimpleFormIterator>
+            </ArrayInput>
             <TextInput
                 source="linkedin_url"
                 label="Linkedin URL"

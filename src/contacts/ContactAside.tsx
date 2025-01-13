@@ -90,39 +90,26 @@ export const ContactAside = ({ link = 'edit' }: { link?: 'edit' | 'show' }) => {
                     />
                 </Stack>
             )}
-            {record.phone_1_number && (
-                <Stack direction="row" alignItems="center" gap={1}>
-                    <PhoneIcon color="disabled" fontSize="small" />
-                    <Box>
-                        <TextField source="phone_1_number" />{' '}
-                        {record.phone_1_type !== 'Other' && (
-                            <TextField
-                                source="phone_1_type"
-                                color="textSecondary"
+            <ArrayField source="phone_jsonb">
+                <SingleFieldList linkType={false} gap={0}>
+                    <Stack direction="row" alignItems="center" gap={1}>
+                        <PhoneIcon color="disabled" fontSize="small" />
+                        <Box>
+                            <TextField source="number" />{' '}
+                            <WithRecord
+                                render={row =>
+                                    row.type !== 'Other' && (
+                                        <TextField
+                                            source="type"
+                                            color="textSecondary"
+                                        />
+                                    )
+                                }
                             />
-                        )}
-                    </Box>
-                </Stack>
-            )}
-            {record.phone_2_number && (
-                <Stack
-                    direction="row"
-                    alignItems="center"
-                    gap={1}
-                    minHeight={24}
-                >
-                    <PhoneIcon color="disabled" fontSize="small" />
-                    <Box>
-                        <TextField source="phone_2_number" />{' '}
-                        {record.phone_2_type !== 'Other' && (
-                            <TextField
-                                source="phone_2_type"
-                                color="textSecondary"
-                            />
-                        )}
-                    </Box>
-                </Stack>
-            )}
+                        </Box>
+                    </Stack>
+                </SingleFieldList>
+            </ArrayField>
             <SelectField
                 source="gender"
                 choices={contactGender}
