@@ -9,11 +9,12 @@ export type ContactImportSchema = {
     gender: string;
     title: string;
     company: string;
-    email: string;
-    phone_1_number: string;
-    phone_1_type: string;
-    phone_2_number: string;
-    phone_2_type: string;
+    email_work: string;
+    email_home: string;
+    email_other: string;
+    phone_work: string;
+    phone_home: string;
+    phone_other: string;
     background: string;
     avatar: string;
     first_seen: string;
@@ -89,11 +90,12 @@ export function useContactImport() {
                         last_name,
                         gender,
                         title,
-                        email,
-                        phone_1_number,
-                        phone_1_type,
-                        phone_2_number,
-                        phone_2_type,
+                        email_work,
+                        email_home,
+                        email_other,
+                        phone_work,
+                        phone_home,
+                        phone_other,
                         background,
                         first_seen,
                         last_seen,
@@ -103,7 +105,16 @@ export function useContactImport() {
                         tags: tagNames,
                         linkedin_url,
                     }) => {
-                        const emailArray = email.split(';');
+                        const email_jsonb = [
+                            { email: email_work, type: 'Work' },
+                            { email: email_home, type: 'Home' },
+                            { email: email_other, type: 'Other' },
+                        ].filter(({ email }) => email);
+                        const phone_jsonb = [
+                            { number: phone_work, type: 'Work' },
+                            { number: phone_home, type: 'Home' },
+                            { number: phone_other, type: 'Other' },
+                        ].filter(({ number }) => number);
                         const company = companyName?.trim()
                             ? companies.get(companyName.trim())
                             : undefined;
@@ -117,11 +128,8 @@ export function useContactImport() {
                                 last_name,
                                 gender,
                                 title,
-                                email: emailArray,
-                                phone_1_number,
-                                phone_1_type,
-                                phone_2_number,
-                                phone_2_type,
+                                email_jsonb,
+                                phone_jsonb,
                                 background,
                                 first_seen: first_seen
                                     ? new Date(first_seen).toISOString()
