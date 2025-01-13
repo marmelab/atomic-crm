@@ -75,6 +75,11 @@ export type EmailAndType = {
     type: 'Work' | 'Home' | 'Other';
 };
 
+export type PhoneNumberAndType = {
+    number: string;
+    type: 'Work' | 'Home' | 'Other';
+};
+
 export type Contact = {
     first_name: string;
     last_name: string;
@@ -91,10 +96,7 @@ export type Contact = {
     sales_id: Identifier;
     status: string;
     background: string;
-    phone_1_type: 'Work' | 'Home' | 'Other';
-    phone_1_number: string;
-    phone_2_type: 'Work' | 'Home' | 'Other';
-    phone_2_number: string;
+    phone_jsonb: PhoneNumberAndType[];
 
     nb_tasks?: number;
     company_name?: string;
