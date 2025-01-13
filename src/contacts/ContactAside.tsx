@@ -44,7 +44,7 @@ export const ContactAside = ({ link = 'edit' }: { link?: 'edit' | 'show' }) => {
             <Typography variant="subtitle2">Personal info</Typography>
             <Divider sx={{ mb: 2 }} />
             <ArrayField source="email_jsonb">
-                <SingleFieldList linkType={false} gap={0}>
+                <SingleFieldList linkType={false} gap={0} direction="column">
                     <Stack
                         direction="row"
                         alignItems="center"
@@ -91,7 +91,7 @@ export const ContactAside = ({ link = 'edit' }: { link?: 'edit' | 'show' }) => {
                 </Stack>
             )}
             <ArrayField source="phone_jsonb">
-                <SingleFieldList linkType={false} gap={0}>
+                <SingleFieldList linkType={false} gap={0} direction="column">
                     <Stack direction="row" alignItems="center" gap={1}>
                         <PhoneIcon color="disabled" fontSize="small" />
                         <Box>
