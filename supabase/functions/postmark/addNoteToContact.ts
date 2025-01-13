@@ -40,7 +40,7 @@ export const addNoteToContact = async ({
         await supabaseAdmin
             .from('contacts')
             .select('*')
-            .overlaps('email', [email]) // FIXME
+            .contains('email_jsonb', JSON.stringify([{ email }]))
             .maybeSingle();
     if (fetchContactError)
         return new Response(
