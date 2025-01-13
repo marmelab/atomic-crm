@@ -1,6 +1,6 @@
 alter table contacts add column email_jsonb jsonb;
 
-update contacts set email_jsonb = ('[{"email": ' || email || ', "type": "Other"}]')::jsonb;
+update contacts set email_jsonb = ('[{"email": "' || email || '", "type": "Other"}]')::jsonb;
 
 drop view contacts_summary;
 
