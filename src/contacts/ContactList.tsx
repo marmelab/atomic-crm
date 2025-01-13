@@ -92,17 +92,38 @@ const exporter: Exporter<Contact> = async (records, fetchRelatedRecords) => {
     const sales = await fetchRelatedRecords<Sale>(records, 'sales_id', 'sales');
     const tags = await fetchRelatedRecords<Tag>(records, 'tags', 'tags');
 
-    const contacts = records.map(contact => ({
-        ...contact,
-        company:
-            contact.company_id != null
-                ? companies[contact.company_id].name
-                : undefined,
-        sales: `${sales[contact.sales_id].first_name} ${
-            sales[contact.sales_id].last_name
-        }`,
-        tags: contact.tags.map(tagId => tags[tagId].name).join(', '),
-    }));
+    const contacts = records.map(contact => {
+        const exportedContact = {
+            ...contact,
+            company:
+                contact.company_id != null
+                    ? companies[contact.company_id].name
+                    : undefined,
+            sales: `${sales[contact.sales_id].first_name} ${
+                sales[contact.sales_id].last_name
+            }`,
+            tags: contact.tags.map(tagId => tags[tagId].name).join(', '),
+            email_work: contact.email_jsonb.find(email => email.type === 'Work')
+                ?.email,
+            email_home: contact.email_jsonb.find(email => email.type === 'Home')
+                ?.email,
+            email_other: contact.email_jsonb.find(
+                email => email.type === 'Other'
+            )?.email,
+            email_jsonb: undefined,
+            phone_work: contact.phone_jsonb.find(phone => phone.type === 'Work')
+                ?.number,
+            phone_home: contact.phone_jsonb.find(phone => phone.type === 'Home')
+                ?.number,
+            phone_other: contact.phone_jsonb.find(
+                phone => phone.type === 'Other'
+            )?.number,
+            phone_jsonb: undefined,
+        };
+        delete exportedContact.email_jsonb;
+        delete exportedContact.phone_jsonb;
+        return exportedContact;
+    });
     return jsonExport(contacts, {}, (_err: any, csv: string) => {
         downloadCSV(csv, 'contacts');
     });
