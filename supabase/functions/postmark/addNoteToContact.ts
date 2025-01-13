@@ -93,7 +93,7 @@ export const addNoteToContact = async ({
                 .insert({
                     first_name: firstName,
                     last_name: lastName,
-                    email: [email],
+                    email_jsonb: [{ email, type: 'Work' }],
                     company_id: company.id,
                     sales_id: sales.id,
                     first_seen: new Date(),
