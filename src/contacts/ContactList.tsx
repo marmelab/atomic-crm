@@ -103,28 +103,30 @@ const exporter: Exporter<Contact> = async (records, fetchRelatedRecords) => {
                 sales[contact.sales_id].last_name
             }`,
             tags: contact.tags.map(tagId => tags[tagId].name).join(', '),
-            email_work: contact.email_jsonb.find(email => email.type === 'Work')
-                ?.email,
-            email_home: contact.email_jsonb.find(email => email.type === 'Home')
-                ?.email,
-            email_other: contact.email_jsonb.find(
+            email_work: contact.email_jsonb?.find(
+                email => email.type === 'Work'
+            )?.email,
+            email_home: contact.email_jsonb?.find(
+                email => email.type === 'Home'
+            )?.email,
+            email_other: contact.email_jsonb?.find(
                 email => email.type === 'Other'
             )?.email,
-            email_jsonb: undefined,
+            email_jsonb: JSON.stringify(contact.email_jsonb),
             email_fts: undefined,
-            phone_work: contact.phone_jsonb.find(phone => phone.type === 'Work')
-                ?.number,
-            phone_home: contact.phone_jsonb.find(phone => phone.type === 'Home')
-                ?.number,
-            phone_other: contact.phone_jsonb.find(
+            phone_work: contact.phone_jsonb?.find(
+                phone => phone.type === 'Work'
+            )?.number,
+            phone_home: contact.phone_jsonb?.find(
+                phone => phone.type === 'Home'
+            )?.number,
+            phone_other: contact.phone_jsonb?.find(
                 phone => phone.type === 'Other'
             )?.number,
-            phone_jsonb: undefined,
+            phone_jsonb: JSON.stringify(contact.phone_jsonb),
             phone_fts: undefined,
         };
-        delete exportedContact.email_jsonb;
         delete exportedContact.email_fts;
-        delete exportedContact.phone_jsonb;
         delete exportedContact.phone_fts;
         return exportedContact;
     });
