@@ -26,6 +26,7 @@ import { TagsListEdit } from './TagsListEdit';
 import { useLocation } from 'react-router';
 import { useConfigurationContext } from '../root/ConfigurationContext';
 import { Contact, Sale } from '../types';
+import { ReactNode } from 'react';
 
 export const ContactAside = ({ link = 'edit' }: { link?: 'edit' | 'show' }) => {
     const location = useLocation();
@@ -45,27 +46,11 @@ export const ContactAside = ({ link = 'edit' }: { link?: 'edit' | 'show' }) => {
             <Divider sx={{ mb: 2 }} />
             <ArrayField source="email_jsonb">
                 <SingleFieldList linkType={false} gap={0} direction="column">
-                    <Stack
-                        direction="row"
-                        alignItems="center"
-                        gap={1}
-                        minHeight={24}
-                    >
-                        <EmailIcon color="disabled" fontSize="small" />
-                        <Box>
-                            <EmailField source="email" />{' '}
-                            <WithRecord
-                                render={row =>
-                                    row.type !== 'Other' && (
-                                        <TextField
-                                            source="type"
-                                            color="textSecondary"
-                                        />
-                                    )
-                                }
-                            />
-                        </Box>
-                    </Stack>
+                    <PersonalInfoRow
+                        icon={<EmailIcon color="disabled" fontSize="small" />}
+                        primary={<EmailField source="email" />}
+                        showType
+                    />
                 </SingleFieldList>
             </ArrayField>
             {record.has_newsletter && (
@@ -75,58 +60,41 @@ export const ContactAside = ({ link = 'edit' }: { link?: 'edit' | 'show' }) => {
             )}
 
             {record.linkedin_url && (
-                <Stack
-                    direction="row"
-                    alignItems="center"
-                    gap={1}
-                    minHeight={24}
-                >
-                    <LinkedInIcon color="disabled" fontSize="small" />
-                    <UrlField
-                        source="linkedin_url"
-                        content="LinkedIn profile"
-                        target="_blank"
-                        rel="noopener"
-                    />
-                </Stack>
+                <PersonalInfoRow
+                    icon={<LinkedInIcon color="disabled" fontSize="small" />}
+                    primary={
+                        <UrlField
+                            source="linkedin_url"
+                            content="LinkedIn profile"
+                            target="_blank"
+                            rel="noopener"
+                        />
+                    }
+                />
             )}
             <ArrayField source="phone_jsonb">
                 <SingleFieldList linkType={false} gap={0} direction="column">
-                    <Stack direction="row" alignItems="center" gap={1}>
-                        <PhoneIcon color="disabled" fontSize="small" />
-                        <Box>
-                            <TextField source="number" />{' '}
-                            <WithRecord
-                                render={row =>
-                                    row.type !== 'Other' && (
-                                        <TextField
-                                            source="type"
-                                            color="textSecondary"
-                                        />
-                                    )
-                                }
-                            />
-                        </Box>
-                    </Stack>
+                    <PersonalInfoRow
+                        icon={<PhoneIcon color="disabled" fontSize="small" />}
+                        primary={<TextField source="number" />}
+                        showType
+                    />
                 </SingleFieldList>
             </ArrayField>
             <SelectField
                 source="gender"
                 choices={contactGender}
                 optionText={choice => (
-                    <Stack
-                        direction="row"
-                        alignItems="center"
-                        gap={1}
-                        minHeight={24}
-                    >
-                        <SvgIcon
-                            component={choice.icon}
-                            color="disabled"
-                            fontSize="small"
-                        ></SvgIcon>
-                        <span>{choice.label}</span>
-                    </Stack>
+                    <PersonalInfoRow
+                        icon={
+                            <SvgIcon
+                                component={choice.icon}
+                                color="disabled"
+                                fontSize="small"
+                            />
+                        }
+                        primary={<span>{choice.label}</span>}
+                    />
                 )}
                 optionValue="value"
             />
@@ -201,3 +169,29 @@ export const ContactAside = ({ link = 'edit' }: { link?: 'edit' | 'show' }) => {
         </Box>
     );
 };
+
+const PersonalInfoRow = ({
+    icon,
+    primary,
+    showType,
+}: {
+    icon: ReactNode;
+    primary: ReactNode;
+    showType?: boolean;
+}) => (
+    <Stack direction="row" alignItems="center" gap={1} minHeight={24}>
+        {icon}
+        <Box display="flex" flexWrap="wrap" columnGap={0.5} rowGap={0}>
+            {primary}
+            {showType ? (
+                <WithRecord
+                    render={row =>
+                        row.type !== 'Other' && (
+                            <TextField source="type" color="textSecondary" />
+                        )
+                    }
+                />
+            ) : null}
+        </Box>
+    </Stack>
+);
