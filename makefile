@@ -12,6 +12,12 @@ start-supabase: ## start supabase locally
 start-supabase-functions: ## start the supabase Functions watcher
 	npx supabase functions serve --env-file supabase/functions/.env.development
 
+supabase-migrate-database: ## apply the migrations to the database
+	npx supabase migration up
+
+supabase-reset-database: ## reset (and clear!) the database
+	npx supabase db reset
+
 start-app: ## start the app locally
 	npm run dev
 

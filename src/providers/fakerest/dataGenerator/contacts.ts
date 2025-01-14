@@ -23,6 +23,9 @@ const maxContacts = {
     500: 50,
 };
 
+const getRandomContactDetailsType = () =>
+    random.arrayElement(['Work', 'Home', 'Other']) as 'Work' | 'Home' | 'Other';
+
 export const generateContacts = (db: Db, size = 500): Required<Contact>[] => {
     const nbAvailblePictures = 223;
     let numberOfContacts = 0;
@@ -33,7 +36,22 @@ export const generateContacts = (db: Db, size = 500): Required<Contact>[] => {
         const gender = random.arrayElement(defaultContactGender).value;
         const first_name = name.firstName(gender as any);
         const last_name = name.lastName();
-        const email = internet.email(first_name, last_name);
+        const email_jsonb = [
+            {
+                email: internet.email(first_name, last_name),
+                type: getRandomContactDetailsType(),
+            },
+        ];
+        const phone_jsonb = [
+            {
+                number: phone.phoneNumber(),
+                type: getRandomContactDetailsType(),
+            },
+            {
+                number: phone.phoneNumber(),
+                type: getRandomContactDetailsType(),
+            },
+        ];
         const avatar = {
             src: has_avatar
                 ? 'https://marmelab.com/posters/avatar-' +
@@ -67,11 +85,8 @@ export const generateContacts = (db: Db, size = 500): Required<Contact>[] => {
             title: title.charAt(0).toUpperCase() + title.substr(1),
             company_id: company.id,
             company_name: company.name,
-            email,
-            phone_1_number: phone.phoneNumber(),
-            phone_1_type: random.arrayElement(['Work', 'Home', 'Other']),
-            phone_2_number: phone.phoneNumber(),
-            phone_2_type: random.arrayElement(['Work', 'Home', 'Other']),
+            email_jsonb,
+            phone_jsonb,
             background: lorem.sentence(),
             acquisition: random.arrayElement(['inbound', 'outbound']),
             avatar,
