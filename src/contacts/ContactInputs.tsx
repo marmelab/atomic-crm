@@ -167,11 +167,7 @@ const ContactPersonalInformationInputs = () => {
                         source="type"
                         helperText={false}
                         optionText="id"
-                        choices={[
-                            { id: 'Work' },
-                            { id: 'Home' },
-                            { id: 'Other' },
-                        ]}
+                        choices={personalInfoTypes}
                         defaultValue="Work"
                         fullWidth={false}
                         sx={{ width: 100, minWidth: 100 }}
@@ -189,11 +185,7 @@ const ContactPersonalInformationInputs = () => {
                         source="type"
                         helperText={false}
                         optionText="id"
-                        choices={[
-                            { id: 'Work' },
-                            { id: 'Home' },
-                            { id: 'Other' },
-                        ]}
+                        choices={personalInfoTypes}
                         defaultValue="Work"
                         fullWidth={false}
                         sx={{ width: 100, minWidth: 100 }}
@@ -209,6 +201,8 @@ const ContactPersonalInformationInputs = () => {
         </Stack>
     );
 };
+
+const personalInfoTypes = [{ id: 'Work' }, { id: 'Home' }, { id: 'Other' }];
 
 const ContactMiscInputs = () => {
     return (
