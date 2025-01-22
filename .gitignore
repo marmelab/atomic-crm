@@ -28,3 +28,6 @@ dist/
 lib/
 .env
 *storybook.log
+
+# zero
+zero-schema.json

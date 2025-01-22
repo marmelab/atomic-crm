@@ -24,7 +24,8 @@ import { SignupPage } from '../login/SignupPage';
 import {
     authProvider as defaultAuthProvider,
     dataProvider as defaultDataProvider,
-} from '../providers/supabase';
+    z,
+} from '../providers/zero';
 import sales from '../sales';
 import { SettingsPage } from '../settings/SettingsPage';
 import {
@@ -42,6 +43,8 @@ import {
     defaultTaskTypes,
     defaultTitle,
 } from './defaultConfiguration';
+// @ts-ignore
+import { ZeroProvider } from '@rocicorp/zero/react';
 
 // Define the interface for the CRM component props
 export type CRMProps = {
@@ -146,58 +149,63 @@ export const CRM = ({
     }, [disableTelemetry]);
 
     return (
-        <ConfigurationProvider
-            contactGender={contactGender}
-            companySectors={companySectors}
-            dealCategories={dealCategories}
-            dealPipelineStatuses={dealPipelineStatuses}
-            dealStages={dealStages}
-            logo={logo}
-            noteStatuses={noteStatuses}
-            taskTypes={taskTypes}
-            title={title}
-        >
-            <Admin
-                dataProvider={dataProvider}
-                authProvider={authProvider}
-                store={localStorageStore(undefined, 'CRM')}
-                layout={Layout}
-                loginPage={LoginPage}
-                dashboard={Dashboard}
-                theme={lightTheme}
-                darkTheme={darkTheme || null}
-                i18nProvider={i18nProvider}
-                requireAuth
-                disableTelemetry
-                {...rest}
+        <ZeroProvider zero={z}>
+            <ConfigurationProvider
+                contactGender={contactGender}
+                companySectors={companySectors}
+                dealCategories={dealCategories}
+                dealPipelineStatuses={dealPipelineStatuses}
+                dealStages={dealStages}
+                logo={logo}
+                noteStatuses={noteStatuses}
+                taskTypes={taskTypes}
+                title={title}
             >
-                <CustomRoutes noLayout>
-                    <Route path={SignupPage.path} element={<SignupPage />} />
-                    <Route
-                        path={SetPasswordPage.path}
-                        element={<SetPasswordPage />}
-                    />
-                    <Route
-                        path={ForgotPasswordPage.path}
-                        element={<ForgotPasswordPage />}
-                    />
-                </CustomRoutes>
+                <Admin
+                    dataProvider={dataProvider}
+                    authProvider={authProvider}
+                    store={localStorageStore(undefined, 'CRM')}
+                    layout={Layout}
+                    loginPage={LoginPage}
+                    dashboard={Dashboard}
+                    theme={lightTheme}
+                    darkTheme={darkTheme || null}
+                    i18nProvider={i18nProvider}
+                    requireAuth
+                    disableTelemetry
+                    {...rest}
+                >
+                    <CustomRoutes noLayout>
+                        <Route
+                            path={SignupPage.path}
+                            element={<SignupPage />}
+                        />
+                        <Route
+                            path={SetPasswordPage.path}
+                            element={<SetPasswordPage />}
+                        />
+                        <Route
+                            path={ForgotPasswordPage.path}
+                            element={<ForgotPasswordPage />}
+                        />
+                    </CustomRoutes>
 
-                <CustomRoutes>
-                    <Route
-                        path={SettingsPage.path}
-                        element={<SettingsPage />}
-                    />
-                </CustomRoutes>
-                <Resource name="deals" {...deals} />
-                <Resource name="contacts" {...contacts} />
-                <Resource name="companies" {...companies} />
-                <Resource name="contactNotes" />
-                <Resource name="dealNotes" />
-                <Resource name="tasks" list={ListGuesser} />
-                <Resource name="sales" {...sales} />
-                <Resource name="tags" list={ListGuesser} />
-            </Admin>
-        </ConfigurationProvider>
+                    <CustomRoutes>
+                        <Route
+                            path={SettingsPage.path}
+                            element={<SettingsPage />}
+                        />
+                    </CustomRoutes>
+                    <Resource name="deals" {...deals} />
+                    <Resource name="contacts" {...contacts} />
+                    <Resource name="companies" {...companies} />
+                    <Resource name="contactNotes" />
+                    <Resource name="dealNotes" />
+                    <Resource name="tasks" list={ListGuesser} />
+                    <Resource name="sales" {...sales} />
+                    <Resource name="tags" list={ListGuesser} />
+                </Admin>
+            </ConfigurationProvider>
+        </ZeroProvider>
     );
 };

@@ -64,3 +64,6 @@ storybook: ## start storybook
 publish:
 	npm run build-lib
 	npm publish
+
+start-zero: ## start the Zero cache
+	npm run dev:zero-cache

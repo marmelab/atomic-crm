@@ -34,7 +34,8 @@
         "react-error-boundary": "^4.0.12",
         "react-router": "^6.21.3",
         "react-router-dom": "^6.21.3",
-        "serve": "^14.2.3"
+        "serve": "^14.2.3",
+        "@rocicorp/zero": "^0.10.2024122404"
     },
     "devDependencies": {
         "@chromatic-com/storybook": "^1.9.0",
@@ -94,6 +95,8 @@
         "ghpages:deploy": "node ./scripts/ghpages-deploy.mjs",
         "supabase:remote:init": "node ./scripts/supabase-remote-init.mjs",
         "storybook": "storybook dev -p 6006",
-        "build-storybook": "storybook build"
+        "build-storybook": "storybook build",
+        "dev:zero-cache": "zero-cache-dev -p src/schema.ts",
+        "dev:clean": "source .env && rm -rf \"${ZERO_REPLICA_FILE}\"*"
     }
 }
