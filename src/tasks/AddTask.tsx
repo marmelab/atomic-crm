@@ -188,12 +188,8 @@ export const AddTask = ({
                             </Stack>
                         </DialogContent>
                         <DialogActions sx={{ p: 0 }}>
-                            <Toolbar
-                                sx={{
-                                    width: '100%',
-                                }}
-                            >
-                                <SaveButton onClick={() => setOpen(false)} />
+                            <Toolbar sx={{ width: '100%' }}>
+                                <SaveButton />
                             </Toolbar>
                         </DialogActions>
                     </Form>
