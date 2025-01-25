@@ -101,12 +101,21 @@ export const SignupPage = () => {
                         Welcome to Atomic CRM
                     </Typography>
                     <Typography variant="body1" gutterBottom>
-                        Create the first user account to complete the setup.
+                        Create account for your organization administrator to
+                        complete the setup.
                     </Typography>
                     <form onSubmit={handleSubmit(onSubmit)}>
                         <TextField
+                            {...register('organization_name', {
+                                required: true,
+                            })}
+                            label="organization name"
+                            variant="outlined"
+                            required
+                        />
+                        <TextField
                             {...register('first_name', { required: true })}
-                            label="First name"
+                            label="User name"
                             variant="outlined"
                             required
                         />

@@ -104,7 +104,9 @@ create table "public"."sales" (
     "administrator" boolean not null,
     "user_id" uuid not null,
     "avatar" jsonb,
-    "disabled" boolean not null default FALSE
+    "disabled" boolean not null default FALSE,
+    "tenant_id" uuid not null 
+
 );
 
 
@@ -131,6 +133,11 @@ create table "public"."tasks" (
 
 alter table "public"."tasks" enable row level security;
 
+create table public.tenants (
+    id UUID DEFAULT gen_random_uuid() not null,
+    name text not null,
+    created_at timestamp with time zone default now()
+);
 CREATE UNIQUE INDEX companies_pkey ON public.companies USING btree (id);
 
 CREATE UNIQUE INDEX "contactNotes_pkey" ON public."contactNotes" USING btree (id);
@@ -147,6 +154,9 @@ CREATE UNIQUE INDEX tags_pkey ON public.tags USING btree (id);
 
 CREATE UNIQUE INDEX tasks_pkey ON public.tasks USING btree (id);
 
+CREATE UNIQUE INDEX tenants_pkey ON public.tenants USING btree (id);
+
+
 alter table "public"."companies" add constraint "companies_pkey" PRIMARY KEY using index "companies_pkey";
 
 alter table "public"."contactNotes" add constraint "contactNotes_pkey" PRIMARY KEY using index "contactNotes_pkey";
@@ -162,6 +172,11 @@ alter table "public"."sales" add constraint "sales_pkey" PRIMARY KEY using index
 alter table "public"."tags" add constraint "tags_pkey" PRIMARY KEY using index "tags_pkey";
 
 alter table "public"."tasks" add constraint "tasks_pkey" PRIMARY KEY using index "tasks_pkey";
+
+alter table "public"."tenants" add constraint "tenants_pkey" PRIMARY KEY using index "tenants_pkey";
+
+
+
 
 alter table "public"."companies" add constraint "companies_sales_id_fkey" FOREIGN KEY (sales_id) REFERENCES sales(id) not valid;
 
@@ -206,6 +221,9 @@ alter table "public"."sales" validate constraint "sales_user_id_fkey";
 alter table "public"."tasks" add constraint "tasks_contact_id_fkey" FOREIGN KEY (contact_id) REFERENCES contacts(id) ON UPDATE CASCADE ON DELETE CASCADE not valid;
 
 alter table "public"."tasks" validate constraint "tasks_contact_id_fkey";
+
+alter table "public"."sales" add constraint "sales_tenant_id_fkey" FOREIGN KEY (tenant_id) REFERENCES tenants(id) not valid;
+   
 
 set check_function_bodies = off;
 

@@ -17,6 +17,7 @@ import {
     Sale,
     SalesFormData,
     SignUpData,
+    Tenant,
 } from '../../types';
 import { getActivityLog } from '../commons/activity';
 import { getCompanyAvatar } from '../commons/getCompanyAvatar';
@@ -104,7 +105,23 @@ const dataProviderWithCustomMethods = {
         return baseDataProvider.getOne(resource, params);
     },
 
-    async signUp({ email, password, first_name, last_name }: SignUpData) {
+    async signUp({
+        email,
+        password,
+        first_name,
+        last_name,
+        organization_name,
+    }: SignUpData) {
+        const { data: tenantData, error } =
+            await supabase.functions.invoke<Tenant>('tenant', {
+                method: 'POST',
+                body: { name: organization_name },
+            });
+        if (!tenantData && error) {
+            console.error('createTenant.error', error);
+            throw new Error('Failed to create Tenant');
+        }
+
         const response = await supabase.auth.signUp({
             email,
             password,
@@ -112,6 +129,7 @@ const dataProviderWithCustomMethods = {
                 data: {
                     first_name,
                     last_name,
+                    tenant_id: tenantData?.id,
                 },
             },
         });
