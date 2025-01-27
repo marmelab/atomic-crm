@@ -214,7 +214,7 @@ const SettingsForm = ({
                     <CardContent>
                         <Stack gap={2} justifyContent="space-between">
                             <Typography variant="h5" color="textSecondary">
-                                Inboud email
+                                Inbound email
                             </Typography>
                             <Typography variant="body2" color="textSecondary">
                                 You can start sending emails to your server's
