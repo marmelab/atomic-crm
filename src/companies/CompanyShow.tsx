@@ -32,7 +32,7 @@ import { TagsList } from '../contacts/TagsList';
 import { findDealLabel } from '../deals/deal';
 import { Status } from '../misc/Status';
 import { useConfigurationContext } from '../root/ConfigurationContext';
-import { Company, Contact, Deal } from '../types';
+import { Company, Contact, Deal, Location } from '../types';
 import { CompanyAside } from './CompanyAside';
 import { CompanyAvatar } from './CompanyAvatar';
 
@@ -64,12 +64,6 @@ const CompanyShowContent = () => {
                                 '& .RaTabbedShowLayout-content': { p: 0 },
                             }}
                         >
-                            <TabbedShowLayout.Tab label="Activity">
-                                <ActivityLog
-                                    companyId={record.id}
-                                    context="company"
-                                />
-                            </TabbedShowLayout.Tab>
                             <TabbedShowLayout.Tab
                                 label={
                                     !record.nb_contacts
@@ -78,7 +72,7 @@ const CompanyShowContent = () => {
                                           ? '1 Contact'
                                           : `${record.nb_contacts} Contacts`
                                 }
-                                path="contacts"
+                                // path="contacts"
                             >
                                 <ReferenceManyField
                                     reference="contacts_summary"
@@ -105,6 +99,37 @@ const CompanyShowContent = () => {
                                     <ContactsIterator />
                                 </ReferenceManyField>
                             </TabbedShowLayout.Tab>
+
+                            <TabbedShowLayout.Tab
+                                label={
+                                    !record.nb_locations
+                                        ? 'No Locations'
+                                        : record.nb_locations === 1
+                                          ? '1 Location'
+                                          : `${record.nb_locations} Locations`
+                                }
+                                path="locations"
+                            >
+                                <ReferenceManyField
+                                    reference="locations"
+                                    target="company_id"
+                                    sort={{ field: 'name', order: 'ASC' }}
+                                >
+                                    <Stack
+                                        direction="row"
+                                        justifyContent="flex-end"
+                                        spacing={2}
+                                        mt={1}
+                                    >
+                                        {!!record.nb_locations && (
+                                            <SortButton fields={['name']} />
+                                        )}
+                                        <CreateRelatedLocationButton />
+                                    </Stack>
+                                    <LocationsIterator />
+                                </ReferenceManyField>
+                            </TabbedShowLayout.Tab>
+
                             {record.nb_deals ? (
                                 <TabbedShowLayout.Tab
                                     label={
@@ -123,6 +148,16 @@ const CompanyShowContent = () => {
                                     </ReferenceManyField>
                                 </TabbedShowLayout.Tab>
                             ) : null}
+
+                            <TabbedShowLayout.Tab
+                                label="Activity"
+                                path="activity"
+                            >
+                                <ActivityLog
+                                    companyId={record.id}
+                                    context="company"
+                                />
+                            </TabbedShowLayout.Tab>
                         </TabbedShowLayout>
                     </CardContent>
                 </Card>
@@ -190,6 +225,34 @@ const ContactsIterator = () => {
     );
 };
 
+const LocationsIterator = () => {
+    const location = useLocation();
+    const { data: locations, error, isPending } = useListContext<Location>();
+
+    if (isPending || error) return null;
+
+    return (
+        <List dense sx={{ pt: 0 }}>
+            {locations.map(loc => (
+                <RecordContextProvider key={loc.id} value={loc}>
+                    <ListItem disablePadding>
+                        <ListItemButton
+                            component={RouterLink}
+                            to={`/locations/${loc.id}/show`}
+                            state={{ from: location.pathname }}
+                        >
+                            <ListItemAvatar>
+                                <Avatar />
+                            </ListItemAvatar>
+                            <ListItemText primary={loc.name} />
+                        </ListItemButton>
+                    </ListItem>
+                </RecordContextProvider>
+            ))}
+        </List>
+    );
+};
+
 const CreateRelatedContactButton = () => {
     const company = useRecordContext<Company>();
     return (
@@ -202,6 +265,22 @@ const CreateRelatedContactButton = () => {
             startIcon={<PersonAddIcon />}
         >
             Add contact
+        </Button>
+    );
+};
+
+const CreateRelatedLocationButton = () => {
+    const company = useRecordContext<Company>();
+    return (
+        <Button
+            component={RouterLink}
+            to="/locations/create"
+            state={company ? { record: { company_id: company.id } } : undefined}
+            color="primary"
+            size="small"
+            startIcon={<PersonAddIcon />}
+        >
+            Add location
         </Button>
     );
 };

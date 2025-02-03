@@ -16,6 +16,7 @@ import { ForgotPasswordPage, SetPasswordPage } from 'ra-supabase';
 import { Layout } from '../layout/Layout';
 import { i18nProvider } from './i18nProvider';
 import companies from '../companies';
+import locations from '../locations';
 import contacts from '../contacts';
 import { Dashboard } from '../dashboard/Dashboard';
 import deals from '../deals';
@@ -192,6 +193,7 @@ export const CRM = ({
                 <Resource name="deals" {...deals} />
                 <Resource name="contacts" {...contacts} />
                 <Resource name="companies" {...companies} />
+                <Resource name="locations" {...locations} />
                 <Resource name="contactNotes" />
                 <Resource name="dealNotes" />
                 <Resource name="tasks" list={ListGuesser} />

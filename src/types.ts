@@ -68,6 +68,7 @@ export type Company = {
     context_links?: string[];
     nb_contacts?: number;
     nb_deals?: number;
+    nb_locations?: number;
 } & Pick<RaRecord, 'id'>;
 
 export type EmailAndType = {
@@ -224,3 +225,8 @@ export interface ContactGender {
     label: string;
     icon: SvgIconComponent;
 }
+
+export type Location = {
+    company_id: Identifier;
+    name: string;
+} & Pick<RaRecord, 'id'>;
