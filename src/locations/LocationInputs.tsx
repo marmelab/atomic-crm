@@ -65,7 +65,14 @@ const LocationCompanyInputs = () => {
     return (
         <Stack>
             <Typography variant="h6">Location</Typography>
-            <TextInput source="name" validate={required()} helperText={false} />
+            <TextInput
+                source="name"
+                validate={required()}
+                helperText={false}
+                id="location:name" // added to disable autocomplete
+                autoComplete="location:name" // added to disable autocomplete
+                label="Location name"
+            />
             <ReferenceInput source="company_id" reference="companies">
                 <AutocompleteInput
                     optionText="name"
@@ -83,6 +90,8 @@ const LocationAddress = () => {
             <Typography variant="h6">Additional Info</Typography>
             <TextInput
                 source="shipping_address"
+                id="location:shipping_address" // added to disable autocomplete
+                autoComplete="location:shipping_address" // added to disable autocomplete
                 helperText={false}
                 multiline
                 minRows={5}
