@@ -129,9 +129,23 @@ const CompanyShowContent = () => {
                                     disableSyncWithLocation
                                     actions={
                                         <TopToolbar>
-                                            <CreateRelatedLocationButton />
+                                            <CreateRelatedLocationButton
+                                                pathname={location.pathname}
+                                            />
                                             <ExportButton />
                                         </TopToolbar>
+                                    }
+                                    empty={
+                                        <Stack
+                                            direction="row"
+                                            justifyContent="flex-end"
+                                            spacing={2}
+                                            mt={1}
+                                        >
+                                            <CreateRelatedLocationButton
+                                                pathname={location.pathname}
+                                            />
+                                        </Stack>
                                     }
                                 >
                                     <Datagrid
@@ -157,8 +171,8 @@ const CompanyShowContent = () => {
                                             return false;
                                         }}
                                     >
-                                        <TextField source="name"> </TextField>
-                                        <BooleanField source="active"></BooleanField>
+                                        <TextField source="name" />
+                                        <BooleanField source="active" />
                                     </Datagrid>
                                 </RaList>
                             </TabbedShowLayout.Tab>
@@ -264,13 +278,23 @@ const CreateRelatedContactButton = () => {
     );
 };
 
-const CreateRelatedLocationButton = () => {
+const CreateRelatedLocationButton = (props: { pathname: string }) => {
+    const { pathname } = props;
     const company = useRecordContext<Company>();
+
+    const state = pathname
+        ? {
+              from: pathname,
+              redirect_on_save: pathname,
+              record: { company_id: company?.id },
+          }
+        : undefined;
+
     return (
         <RaButton
             component={RouterLink}
             to="/locations/create"
-            state={company ? { record: { company_id: company.id } } : undefined}
+            state={state}
             label="Add location"
         >
             <AddCircle />
