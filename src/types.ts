@@ -229,4 +229,7 @@ export interface ContactGender {
 export type Location = {
     company_id: Identifier;
     name: string;
+    shipping_address: string;
+    notes: string;
+    active: boolean;
 } & Pick<RaRecord, 'id'>;

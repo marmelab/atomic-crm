@@ -1,4 +1,3 @@
-import * as React from 'react';
 import {
     Divider,
     Stack,
@@ -82,7 +81,20 @@ const LocationAddress = () => {
     return (
         <Stack>
             <Typography variant="h6">Additional Info</Typography>
-            Reserved for future
+            <TextInput
+                source="shipping_address"
+                helperText={false}
+                multiline
+                minRows={5}
+                maxRows={15}
+            />
+            <TextInput
+                source="notes"
+                helperText={false}
+                multiline
+                minRows={5}
+                maxRows={15}
+            />
         </Stack>
     );
 };

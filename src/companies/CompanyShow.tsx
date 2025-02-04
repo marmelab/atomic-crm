@@ -1,4 +1,4 @@
-import PersonAddIcon from '@mui/icons-material/PersonAdd';
+import AddCircle from '@mui/icons-material/AddCircleOutline';
 import {
     Box,
     Button,
@@ -23,18 +23,27 @@ import {
     useListContext,
     useRecordContext,
     useShowContext,
+    List as RaList,
+    Datagrid,
+    TextField,
+    BooleanField,
+    TopToolbar,
+    ExportButton,
+    Button as RaButton,
+    useRefresh,
 } from 'react-admin';
-import { Link as RouterLink, useLocation } from 'react-router-dom';
+import { Link as RouterLink, useLocation, useNavigate } from 'react-router-dom';
 
-import { ActivityLog } from '../activity/ActivityLog';
 import { Avatar } from '../contacts/Avatar';
 import { TagsList } from '../contacts/TagsList';
 import { findDealLabel } from '../deals/deal';
 import { Status } from '../misc/Status';
 import { useConfigurationContext } from '../root/ConfigurationContext';
-import { Company, Contact, Deal, Location } from '../types';
+import { Company, Contact, Deal } from '../types';
 import { CompanyAside } from './CompanyAside';
 import { CompanyAvatar } from './CompanyAvatar';
+
+import { Location } from '../types';
 
 export const CompanyShow = () => (
     <ShowBase>
@@ -44,6 +53,10 @@ export const CompanyShow = () => (
 
 const CompanyShowContent = () => {
     const { record, isPending } = useShowContext<Company>();
+    const location = useLocation();
+    const refresh = useRefresh();
+
+    const navigate = useNavigate();
 
     if (isPending || !record) return null;
 
@@ -110,24 +123,44 @@ const CompanyShowContent = () => {
                                 }
                                 path="locations"
                             >
-                                <ReferenceManyField
-                                    reference="locations"
-                                    target="company_id"
-                                    sort={{ field: 'name', order: 'ASC' }}
+                                <RaList<Location>
+                                    resource="locations"
+                                    filter={{ company_id: record.id }}
+                                    disableSyncWithLocation
+                                    actions={
+                                        <TopToolbar>
+                                            <CreateRelatedLocationButton />
+                                            <ExportButton />
+                                        </TopToolbar>
+                                    }
                                 >
-                                    <Stack
-                                        direction="row"
-                                        justifyContent="flex-end"
-                                        spacing={2}
-                                        mt={1}
+                                    <Datagrid
+                                        bulkActionButtons={false}
+                                        rowClick={(
+                                            _id: string | number,
+                                            _resource: string,
+                                            record: any
+                                        ) => {
+                                            navigate(
+                                                `/locations/${record.id}/show`,
+                                                {
+                                                    state: {
+                                                        from: location.pathname,
+                                                        redirect_on_save:
+                                                            location.pathname,
+                                                    },
+                                                }
+                                            );
+
+                                            refresh();
+
+                                            return false;
+                                        }}
                                     >
-                                        {!!record.nb_locations && (
-                                            <SortButton fields={['name']} />
-                                        )}
-                                        <CreateRelatedLocationButton />
-                                    </Stack>
-                                    <LocationsIterator />
-                                </ReferenceManyField>
+                                        <TextField source="name"> </TextField>
+                                        <BooleanField source="active"></BooleanField>
+                                    </Datagrid>
+                                </RaList>
                             </TabbedShowLayout.Tab>
 
                             {record.nb_deals ? (
@@ -148,16 +181,6 @@ const CompanyShowContent = () => {
                                     </ReferenceManyField>
                                 </TabbedShowLayout.Tab>
                             ) : null}
-
-                            <TabbedShowLayout.Tab
-                                label="Activity"
-                                path="activity"
-                            >
-                                <ActivityLog
-                                    companyId={record.id}
-                                    context="company"
-                                />
-                            </TabbedShowLayout.Tab>
                         </TabbedShowLayout>
                     </CardContent>
                 </Card>
@@ -225,34 +248,6 @@ const ContactsIterator = () => {
     );
 };
 
-const LocationsIterator = () => {
-    const location = useLocation();
-    const { data: locations, error, isPending } = useListContext<Location>();
-
-    if (isPending || error) return null;
-
-    return (
-        <List dense sx={{ pt: 0 }}>
-            {locations.map(loc => (
-                <RecordContextProvider key={loc.id} value={loc}>
-                    <ListItem disablePadding>
-                        <ListItemButton
-                            component={RouterLink}
-                            to={`/locations/${loc.id}/show`}
-                            state={{ from: location.pathname }}
-                        >
-                            <ListItemAvatar>
-                                <Avatar />
-                            </ListItemAvatar>
-                            <ListItemText primary={loc.name} />
-                        </ListItemButton>
-                    </ListItem>
-                </RecordContextProvider>
-            ))}
-        </List>
-    );
-};
-
 const CreateRelatedContactButton = () => {
     const company = useRecordContext<Company>();
     return (
@@ -262,7 +257,7 @@ const CreateRelatedContactButton = () => {
             state={company ? { record: { company_id: company.id } } : undefined}
             color="primary"
             size="small"
-            startIcon={<PersonAddIcon />}
+            startIcon={<AddCircle />}
         >
             Add contact
         </Button>
@@ -272,16 +267,14 @@ const CreateRelatedContactButton = () => {
 const CreateRelatedLocationButton = () => {
     const company = useRecordContext<Company>();
     return (
-        <Button
+        <RaButton
             component={RouterLink}
             to="/locations/create"
             state={company ? { record: { company_id: company.id } } : undefined}
-            color="primary"
-            size="small"
-            startIcon={<PersonAddIcon />}
+            label="Add location"
         >
-            Add location
-        </Button>
+            <AddCircle />
+        </RaButton>
     );
 };
 

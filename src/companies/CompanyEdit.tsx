@@ -1,4 +1,3 @@
-import * as React from 'react';
 import { Edit, Form, Toolbar } from 'react-admin';
 import { CardContent } from '@mui/material';
 
