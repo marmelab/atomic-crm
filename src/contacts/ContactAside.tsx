@@ -137,7 +137,7 @@ export const ContactAside = ({ link = 'edit' }: { link?: 'edit' | 'show' }) => {
                     variant="body2"
                     color="textSecondary"
                 >
-                    Followed by
+                    Contact Owner
                 </Typography>{' '}
                 <ReferenceField source="sales_id" reference="sales">
                     <FunctionField<Sale>

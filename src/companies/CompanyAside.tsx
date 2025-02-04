@@ -45,7 +45,7 @@ export const CompanyAside = ({ link = 'edit' }: CompanyAsideProps) => {
     );
 };
 
-const CompanyInfo = ({ record }: { record: Company }) => {
+export const CompanyInfo = ({ record }: { record: Company }) => {
     if (!record.website && !record.linkedin_url && !record.phone_number) {
         return null;
     }
@@ -108,7 +108,7 @@ const CompanyInfo = ({ record }: { record: Company }) => {
     );
 };
 
-const ContextInfo = ({ record }: { record: Company }) => {
+export const ContextInfo = ({ record }: { record: Company }) => {
     if (!record.revenue && !record.id) {
         return null;
     }
@@ -167,7 +167,7 @@ const ContextInfo = ({ record }: { record: Company }) => {
     );
 };
 
-const AddressInfo = ({ record }: { record: Company }) => {
+export const AddressInfo = ({ record }: { record: Company }) => {
     if (
         !record.address &&
         !record.city &&
@@ -190,7 +190,7 @@ const AddressInfo = ({ record }: { record: Company }) => {
     );
 };
 
-const AdditionalInfo = ({ record }: { record: Company }) => {
+export const AdditionalInfo = ({ record }: { record: Company }) => {
     if (
         !record.created_at &&
         !record.sales_id &&
@@ -236,7 +236,7 @@ const AdditionalInfo = ({ record }: { record: Company }) => {
             )}
             {record.sales_id !== null && (
                 <Typography variant="body2" color="textSecondary" gutterBottom>
-                    Followed by{' '}
+                    Account owner{' '}
                     <ReferenceField
                         source="sales_id"
                         reference="sales"
@@ -244,6 +244,7 @@ const AdditionalInfo = ({ record }: { record: Company }) => {
                     />
                 </Typography>
             )}
+
             {record.created_at && (
                 <Typography variant="body2" color="textSecondary" gutterBottom>
                     Added on{' '}

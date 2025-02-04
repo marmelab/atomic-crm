@@ -1,4 +1,4 @@
-import PersonAddIcon from '@mui/icons-material/PersonAdd';
+import AddCircle from '@mui/icons-material/AddCircleOutline';
 import {
     Box,
     Button,
@@ -23,10 +23,17 @@ import {
     useListContext,
     useRecordContext,
     useShowContext,
+    List as RaList,
+    Datagrid,
+    TextField,
+    BooleanField,
+    TopToolbar,
+    ExportButton,
+    Button as RaButton,
+    useRefresh,
 } from 'react-admin';
-import { Link as RouterLink, useLocation } from 'react-router-dom';
+import { Link as RouterLink, useLocation, useNavigate } from 'react-router-dom';
 
-import { ActivityLog } from '../activity/ActivityLog';
 import { Avatar } from '../contacts/Avatar';
 import { TagsList } from '../contacts/TagsList';
 import { findDealLabel } from '../deals/deal';
@@ -36,6 +43,8 @@ import { Company, Contact, Deal } from '../types';
 import { CompanyAside } from './CompanyAside';
 import { CompanyAvatar } from './CompanyAvatar';
 
+import { Location } from '../types';
+
 export const CompanyShow = () => (
     <ShowBase>
         <CompanyShowContent />
@@ -44,6 +53,10 @@ export const CompanyShow = () => (
 
 const CompanyShowContent = () => {
     const { record, isPending } = useShowContext<Company>();
+    const location = useLocation();
+    const refresh = useRefresh();
+
+    const navigate = useNavigate();
 
     if (isPending || !record) return null;
 
@@ -64,12 +77,6 @@ const CompanyShowContent = () => {
                                 '& .RaTabbedShowLayout-content': { p: 0 },
                             }}
                         >
-                            <TabbedShowLayout.Tab label="Activity">
-                                <ActivityLog
-                                    companyId={record.id}
-                                    context="company"
-                                />
-                            </TabbedShowLayout.Tab>
                             <TabbedShowLayout.Tab
                                 label={
                                     !record.nb_contacts
@@ -78,7 +85,7 @@ const CompanyShowContent = () => {
                                           ? '1 Contact'
                                           : `${record.nb_contacts} Contacts`
                                 }
-                                path="contacts"
+                                // path="contacts"
                             >
                                 <ReferenceManyField
                                     reference="contacts_summary"
@@ -105,6 +112,57 @@ const CompanyShowContent = () => {
                                     <ContactsIterator />
                                 </ReferenceManyField>
                             </TabbedShowLayout.Tab>
+
+                            <TabbedShowLayout.Tab
+                                label={
+                                    !record.nb_locations
+                                        ? 'No Locations'
+                                        : record.nb_locations === 1
+                                          ? '1 Location'
+                                          : `${record.nb_locations} Locations`
+                                }
+                                path="locations"
+                            >
+                                <RaList<Location>
+                                    resource="locations"
+                                    filter={{ company_id: record.id }}
+                                    disableSyncWithLocation
+                                    actions={
+                                        <TopToolbar>
+                                            <CreateRelatedLocationButton />
+                                            <ExportButton />
+                                        </TopToolbar>
+                                    }
+                                >
+                                    <Datagrid
+                                        bulkActionButtons={false}
+                                        rowClick={(
+                                            _id: string | number,
+                                            _resource: string,
+                                            record: any
+                                        ) => {
+                                            navigate(
+                                                `/locations/${record.id}/show`,
+                                                {
+                                                    state: {
+                                                        from: location.pathname,
+                                                        redirect_on_save:
+                                                            location.pathname,
+                                                    },
+                                                }
+                                            );
+
+                                            refresh();
+
+                                            return false;
+                                        }}
+                                    >
+                                        <TextField source="name"> </TextField>
+                                        <BooleanField source="active"></BooleanField>
+                                    </Datagrid>
+                                </RaList>
+                            </TabbedShowLayout.Tab>
+
                             {record.nb_deals ? (
                                 <TabbedShowLayout.Tab
                                     label={
@@ -199,10 +257,24 @@ const CreateRelatedContactButton = () => {
             state={company ? { record: { company_id: company.id } } : undefined}
             color="primary"
             size="small"
-            startIcon={<PersonAddIcon />}
+            startIcon={<AddCircle />}
         >
             Add contact
         </Button>
+    );
+};
+
+const CreateRelatedLocationButton = () => {
+    const company = useRecordContext<Company>();
+    return (
+        <RaButton
+            component={RouterLink}
+            to="/locations/create"
+            state={company ? { record: { company_id: company.id } } : undefined}
+            label="Add location"
+        >
+            <AddCircle />
+        </RaButton>
     );
 };
 
