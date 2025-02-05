@@ -13,6 +13,8 @@ import {
     useRecordContext,
 } from 'react-admin';
 
+import { CurrencyField } from '../CurrencyField';
+
 import { Company } from '../types';
 import { sizes } from './sizes';
 
@@ -125,16 +127,7 @@ export const ContextInfo = ({ record }: { record: Company }) => {
             >
                 Agent fee:{' '}
                 {record.agent_fee && record.agent_fee > 0 ? (
-                    <>
-                        <Typography
-                            color="textPrimary"
-                            component="span"
-                            variant="body2"
-                        >
-                            $
-                        </Typography>
-                        <TextField source="agent_fee" color="textPrimary" />
-                    </>
+                    <CurrencyField source="agent_fee" color="textPrimary" />
                 ) : (
                     'none'
                 )}

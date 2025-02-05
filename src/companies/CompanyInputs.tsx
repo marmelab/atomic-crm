@@ -99,8 +99,8 @@ const CompanyContactInputs = () => {
 const helperTextAgent = (
     <>
         <span style={{ display: 'block' }}>
-            Fee ($ per load) charged by the agent; this fee can be overriddent
-            by material or commodity fees.
+            Fee ($ per load) charged by the agent; this fee can be overridden
+            commodity fees.
         </span>
         <span>Up to 2 decimal values are allowed.</span>
     </>
