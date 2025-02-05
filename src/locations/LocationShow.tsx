@@ -18,6 +18,7 @@ import {
     Form,
     Toolbar,
     TextInput,
+    NumberInput,
     SaveButton,
     BooleanInput,
 } from 'react-admin';
@@ -32,6 +33,23 @@ export const LocationShow = () => (
     <ShowBase>
         <LocationShowContent />
     </ShowBase>
+);
+
+const helperTextAgent = (
+    <>
+        <div>
+            Fee ($ per load) charged by the agent; this fee can be overriddent
+            by material or commodity fees.
+        </div>
+        <div>Up to 2 decimal values are allowed.</div>
+    </>
+);
+
+const helperTextPort = (
+    <>
+        <div>Fee ($ per load) charged by the port and/or customs.</div>
+        <div>Up to 2 decimal values are allowed.</div>
+    </>
 );
 
 const LocationShowContent = () => {
@@ -85,6 +103,22 @@ const LocationShowContent = () => {
                                     >
                                         <Form>
                                             <CardContent>
+                                                <TextInput
+                                                    source="id"
+                                                    disabled
+                                                />
+                                                <TextInput source="name" />
+
+                                                <NumberInput
+                                                    source="port_fee"
+                                                    min={0}
+                                                    helperText={helperTextPort}
+                                                />
+                                                <NumberInput
+                                                    source="agent_fee"
+                                                    min={0}
+                                                    helperText={helperTextAgent}
+                                                />
                                                 <TextInput
                                                     source="shipping_address"
                                                     multiline

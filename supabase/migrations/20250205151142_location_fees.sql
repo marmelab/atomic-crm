@@ -1,0 +1,2 @@
+alter table public.locations add column port_fee numeric(10,2);; -- $/load fee charged by the port, e.g. customs fee
+alter table public.locations add column agent_fee numeric(10,2); -- $/load agent fee (can be overridden by material or commodity fees)
