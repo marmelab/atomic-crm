@@ -14,6 +14,8 @@ export const CurrencyField = (props: TextFieldProps) => {
     if (!record) return null;
     const val = record[props.source];
 
+    if (val === null || val === undefined) return null;
+
     const formatted = val.toLocaleString('en-US', {
         style: 'currency',
         currency: 'USD',

@@ -179,6 +179,10 @@ const CompanyShowContent = () => {
                                     >
                                         <TextField source="name" />
                                         <BooleanField source="active" />
+                                        <CurrencyField
+                                            source="port_fee"
+                                            label="Port Fee ($/mt)"
+                                        />
                                     </Datagrid>
                                 </RaList>
                             </TabbedShowLayout.Tab>
