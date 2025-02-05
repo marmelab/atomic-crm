@@ -18,6 +18,7 @@ import {
     Form,
     Toolbar,
     TextInput,
+    NumberInput,
     SaveButton,
     BooleanInput,
 } from 'react-admin';
@@ -32,6 +33,15 @@ export const LocationShow = () => (
     <ShowBase>
         <LocationShowContent />
     </ShowBase>
+);
+
+const helperTextPort = (
+    <>
+        <span style={{ display: 'block' }}>
+            Fee ($ per load) charged by the port and/or customs.
+        </span>
+        <span>Up to 2 decimal values are allowed.</span>
+    </>
 );
 
 const LocationShowContent = () => {
@@ -85,6 +95,16 @@ const LocationShowContent = () => {
                                     >
                                         <Form>
                                             <CardContent>
+                                                <TextInput
+                                                    source="id"
+                                                    disabled
+                                                />
+                                                <TextInput source="name" />
+                                                <NumberInput
+                                                    source="port_fee"
+                                                    min={0}
+                                                    helperText={helperTextPort}
+                                                />
                                                 <TextInput
                                                     source="shipping_address"
                                                     multiline

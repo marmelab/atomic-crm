@@ -18,6 +18,8 @@ import { i18nProvider } from './i18nProvider';
 import companies from '../companies';
 import locations from '../locations';
 import materials from '../materials';
+import company_material_fees from '../company_material_fees';
+import company_commodity_fees from '../company_commodity_fees';
 import commodities from '../commodities';
 import contacts from '../contacts';
 import { Dashboard } from '../dashboard/Dashboard';
@@ -195,6 +197,14 @@ export const CRM = ({
                 <Resource name="deals" {...deals} />
                 <Resource name="contacts" {...contacts} />
                 <Resource name="companies" {...companies} />
+                <Resource
+                    name="company_material_fees"
+                    {...company_material_fees}
+                />
+                <Resource
+                    name="company_commodity_fees"
+                    {...company_commodity_fees}
+                />
                 <Resource name="commodities" {...commodities} />
                 <Resource name="locations" {...locations} />
                 <Resource name="materials" {...materials} />

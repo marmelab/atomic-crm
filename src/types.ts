@@ -69,6 +69,7 @@ export type Company = {
     nb_contacts?: number;
     nb_deals?: number;
     nb_locations?: number;
+    agent_fee?: number;
 } & Pick<RaRecord, 'id'>;
 
 export type EmailAndType = {

@@ -15,7 +15,10 @@ export const LocationAside = () => {
     return (
         <Stack ml={4} width={300} minWidth={300} spacing={2}>
             <Typography variant="h6">
-                <Link to={`/companies/${record.id}/show`} underline="none">
+                <Link
+                    to={`/companies/${record.id}/show/locations`}
+                    underline="none"
+                >
                     {record.name}
                 </Link>
             </Typography>
