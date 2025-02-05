@@ -117,6 +117,28 @@ export const ContextInfo = ({ record }: { record: Company }) => {
         <Stack>
             <Typography variant="subtitle2">Context</Typography>
             <Divider sx={{ mb: 1 }} />
+            <Typography
+                component="span"
+                variant="body2"
+                color="textSecondary"
+                gutterBottom
+            >
+                Agent fee:{' '}
+                {record.agent_fee && record.agent_fee > 0 ? (
+                    <>
+                        <Typography
+                            color="textPrimary"
+                            component="span"
+                            variant="body2"
+                        >
+                            $
+                        </Typography>
+                        <TextField source="agent_fee" color="textPrimary" />
+                    </>
+                ) : (
+                    'none'
+                )}
+            </Typography>
             {record.sector && (
                 <Typography
                     component="span"

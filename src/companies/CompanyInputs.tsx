@@ -13,6 +13,7 @@ import {
     TextInput,
     required,
     useRecordContext,
+    NumberInput,
 } from 'react-admin';
 import { isLinkedinUrl } from '../misc/isLinkedInUrl';
 import { useConfigurationContext } from '../root/ConfigurationContext';
@@ -95,6 +96,16 @@ const CompanyContactInputs = () => {
     );
 };
 
+const helperTextAgent = (
+    <>
+        <span style={{ display: 'block' }}>
+            Fee ($ per load) charged by the agent; this fee can be overriddent
+            by material or commodity fees.
+        </span>
+        <span>Up to 2 decimal values are allowed.</span>
+    </>
+);
+
 const CompanyContextInputs = () => {
     const { companySectors } = useConfigurationContext();
     return (
@@ -111,6 +122,11 @@ const CompanyContextInputs = () => {
             <SelectInput source="size" choices={sizes} helperText={false} />
             <TextInput source="revenue" helperText={false} />
             <TextInput source="tax_identifier" helperText={false} />
+            <NumberInput
+                source="agent_fee"
+                min={0}
+                helperText={helperTextAgent}
+            />
         </Stack>
     );
 };
