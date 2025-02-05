@@ -89,7 +89,7 @@ const ContactPositionInputs = () => {
     const handleCreateCompany = async (name?: string) => {
         if (!name) return;
         try {
-            const newCompany = await create(
+            const val = await create(
                 'companies',
                 {
                     data: {
@@ -100,7 +100,7 @@ const ContactPositionInputs = () => {
                 },
                 { returnPromise: true }
             );
-            return newCompany;
+            return val;
         } catch (error) {
             notify('An error occurred while creating the company', {
                 type: 'error',

@@ -70,7 +70,7 @@ const DealLinkedToInputs = () => {
     const handleCreateCompany = async (name?: string) => {
         if (!name) return;
         try {
-            const newCompany = await create(
+            const val = await create(
                 'companies',
                 {
                     data: {
@@ -81,7 +81,7 @@ const DealLinkedToInputs = () => {
                 },
                 { returnPromise: true }
             );
-            return newCompany;
+            return val;
         } catch (error) {
             notify('An error occurred while creating the company', {
                 type: 'error',

@@ -44,7 +44,7 @@ const LocationCompanyInputs = () => {
     const handleCreateCompany = async (name?: string) => {
         if (!name) return;
         try {
-            const newCompany = await create(
+            const val = await create(
                 'companies',
                 {
                     data: {
@@ -55,7 +55,7 @@ const LocationCompanyInputs = () => {
                 },
                 { returnPromise: true }
             );
-            return newCompany;
+            return val;
         } catch (error) {
             notify('An error occurred while creating the company', {
                 type: 'error',
@@ -70,7 +70,7 @@ const LocationCompanyInputs = () => {
                 validate={required()}
                 helperText={false}
                 id="location:name" // added to disable autocomplete
-                autoComplete="location:name" // added to disable autocomplete
+                autoComplete="off" // added to disable autocomplete
                 label="Location name"
             />
             <ReferenceInput source="company_id" reference="companies">
@@ -91,7 +91,7 @@ const LocationAddress = () => {
             <TextInput
                 source="shipping_address"
                 id="location:shipping_address" // added to disable autocomplete
-                autoComplete="location:shipping_address" // added to disable autocomplete
+                autoComplete="off" // added to disable autocomplete
                 helperText={false}
                 multiline
                 minRows={5}

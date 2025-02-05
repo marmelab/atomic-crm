@@ -90,11 +90,23 @@ const Header = () => {
                                     value="/companies"
                                 />
                                 <Tab
+                                    label={'Commodities'}
+                                    component={Link}
+                                    to="/commodities"
+                                    value="/commodities"
+                                />
+                                <Tab
+                                    label={'Materials'}
+                                    component={Link}
+                                    to="/materials"
+                                    value="/materials"
+                                />
+                                {/* <Tab
                                     label={'Deals'}
                                     component={Link}
                                     to="/deals"
                                     value="/deals"
-                                />
+                                /> */}
                             </Tabs>
                         </Box>
                         <Box display="flex" alignItems="center">
