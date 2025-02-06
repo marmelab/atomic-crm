@@ -163,7 +163,11 @@ export const LocationPricesCreate = () => {
                                         />
                                     </ReferenceInput>
 
-                                    <TextInput source="commodity_grade" />
+                                    <TextInput
+                                        source="commodity_grade"
+                                        id="location_prices:commodity grade"
+                                        autoComplete="location_prices:commodity grade"
+                                    />
                                 </Stack>
 
                                 <Stack gap={4} direction="row">
