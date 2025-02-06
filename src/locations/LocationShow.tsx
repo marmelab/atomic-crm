@@ -24,6 +24,7 @@ import {
 } from 'react-admin';
 
 import { LocationAside } from './LocationShow_Aside';
+import { TabSalePrices } from './LocationShowTabSalePrices';
 
 import { Location } from '../types';
 
@@ -129,10 +130,14 @@ const LocationShowContent = () => {
                             </TabbedShowLayout.Tab>
 
                             <TabbedShowLayout.Tab
-                                label="Price List"
-                                path="price_list"
+                                label="Sale Prices"
+                                path="sale_prices"
                             >
-                                <>TBD</>
+                                <TabSalePrices
+                                    location_id={record.id}
+                                    company_id={record.company_id}
+                                    pathname={location.pathname}
+                                />
                             </TabbedShowLayout.Tab>
                         </TabbedShowLayout>
                     </CardContent>

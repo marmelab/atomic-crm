@@ -90,6 +90,12 @@ const dataProviderWithCustomMethods = {
         if (resource === 'contacts') {
             return baseDataProvider.getList('contacts_summary', params);
         }
+        if (resource === 'location_prices') {
+            return baseDataProvider.getList('location_prices_summary', params);
+        }
+        if (resource === 'commodities') {
+            return baseDataProvider.getList('commodities_summary', params);
+        }
 
         return baseDataProvider.getList(resource, params);
     },
@@ -99,6 +105,12 @@ const dataProviderWithCustomMethods = {
         }
         if (resource === 'contacts') {
             return baseDataProvider.getOne('contacts_summary', params);
+        }
+        if (resource === 'location_prices') {
+            return baseDataProvider.getOne('location_prices_summary', params);
+        }
+        if (resource === 'commodities') {
+            return baseDataProvider.getOne('commodities_summary', params);
         }
 
         return baseDataProvider.getOne(resource, params);

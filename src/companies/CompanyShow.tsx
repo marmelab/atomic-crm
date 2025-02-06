@@ -31,9 +31,12 @@ import {
     ExportButton,
     Button as RaButton,
     useRefresh,
-    ReferenceField,
 } from 'react-admin';
+
 import { Link as RouterLink, useLocation, useNavigate } from 'react-router-dom';
+
+import { TabAgentFees } from './CompanyShowTabAgentFees';
+import { TabSalePrices } from './CompanyShowTabSalePrices';
 
 import { Avatar } from '../contacts/Avatar';
 import { TagsList } from '../contacts/TagsList';
@@ -179,168 +182,32 @@ const CompanyShowContent = () => {
                                     >
                                         <TextField source="name" />
                                         <BooleanField source="active" />
+                                        <CurrencyField
+                                            source="port_fee"
+                                            label="Port Fee ($/mt)"
+                                        />
                                     </Datagrid>
                                 </RaList>
                             </TabbedShowLayout.Tab>
 
                             <TabbedShowLayout.Tab
-                                label="Product Fees"
-                                path="product_fees"
+                                label="Agent Fees"
+                                path="agent_fees"
                             >
-                                <Typography variant="h6" ml={1} mt={2} flex="1">
-                                    Agent Fees (materials)
-                                </Typography>
-                                <Typography
-                                    variant="caption"
-                                    mb={0}
-                                    ml={1}
-                                    flex="1"
-                                    color="grey"
-                                >
-                                    Overrides company-level agent fee;
-                                    overridden by commodity-level fee with the
-                                    same material
-                                </Typography>
+                                <TabAgentFees
+                                    company_id={record.id}
+                                    pathname={location.pathname}
+                                />
+                            </TabbedShowLayout.Tab>
 
-                                <RaList
-                                    resource="company_material_fees"
-                                    filter={{ company_id: record.id }}
-                                    disableSyncWithLocation
-                                    actions={
-                                        <TopToolbar>
-                                            <CreateRelatedMaterialFeeButton
-                                                pathname={location.pathname}
-                                            />
-                                            <ExportButton />
-                                        </TopToolbar>
-                                    }
-                                    empty={
-                                        <Stack
-                                            direction="row"
-                                            justifyContent="flex-end"
-                                            spacing={2}
-                                            mt={1}
-                                        >
-                                            <CreateRelatedMaterialFeeButton
-                                                pathname={location.pathname}
-                                            />
-                                        </Stack>
-                                    }
-                                >
-                                    <Datagrid>
-                                        <ReferenceField
-                                            reference="materials"
-                                            source="material_id"
-                                            link={false}
-                                            label="Material Name"
-                                        >
-                                            <TextField source="name" />
-                                        </ReferenceField>
-
-                                        <ReferenceField
-                                            reference="materials"
-                                            source="material_id"
-                                            link={false}
-                                            label="Material Status"
-                                        >
-                                            <BooleanField source="active" />
-                                        </ReferenceField>
-
-                                        <CurrencyField
-                                            source="fee"
-                                            label="Fee ($/mt)"
-                                        />
-                                    </Datagrid>
-                                </RaList>
-
-                                <Typography
-                                    variant="h6"
-                                    ml={1}
-                                    mt={0}
-                                    mb={0}
-                                    flex="1"
-                                >
-                                    Agent Fees (commodities)
-                                </Typography>
-                                <Typography
-                                    variant="caption"
-                                    mb={0}
-                                    ml={1}
-                                    flex="1"
-                                    color="grey"
-                                >
-                                    Overrides company-level agent fee and
-                                    material-level fees
-                                </Typography>
-
-                                <RaList
-                                    resource="company_commodity_fees"
-                                    filter={{ company_id: record.id }}
-                                    disableSyncWithLocation
-                                    actions={
-                                        <TopToolbar>
-                                            <CreateRelatedCommodityFeeButton
-                                                pathname={location.pathname}
-                                            />
-                                            <ExportButton />
-                                        </TopToolbar>
-                                    }
-                                    empty={
-                                        <>
-                                            <Stack
-                                                direction="row"
-                                                justifyContent="flex-end"
-                                                spacing={2}
-                                                mt={1}
-                                            >
-                                                <CreateRelatedCommodityFeeButton
-                                                    pathname={location.pathname}
-                                                />
-                                            </Stack>
-                                            <div>No records</div>
-                                        </>
-                                    }
-                                >
-                                    <Datagrid>
-                                        <ReferenceField
-                                            reference="commodities"
-                                            source="commodity_id"
-                                            link={false}
-                                            label="Commodity Name"
-                                        >
-                                            <TextField source="name" />
-                                        </ReferenceField>
-
-                                        <ReferenceField
-                                            reference="commodities"
-                                            source="commodity_id"
-                                            link={false}
-                                            label="Commodity Material"
-                                        >
-                                            <ReferenceField
-                                                reference="materials"
-                                                source="material_id"
-                                                link={false}
-                                            >
-                                                <TextField source="name" />
-                                            </ReferenceField>
-                                        </ReferenceField>
-
-                                        <ReferenceField
-                                            reference="commodities"
-                                            source="commodity_id"
-                                            link={false}
-                                            label="Commodity Status"
-                                        >
-                                            <BooleanField source="active" />
-                                        </ReferenceField>
-
-                                        <CurrencyField
-                                            source="fee"
-                                            label="Fee ($/mt)"
-                                        />
-                                    </Datagrid>
-                                </RaList>
+                            <TabbedShowLayout.Tab
+                                label="Sale prices"
+                                path="sale_prices"
+                            >
+                                <TabSalePrices
+                                    company_id={record.id}
+                                    pathname={location.pathname}
+                                />
                             </TabbedShowLayout.Tab>
 
                             {record.nb_deals ? (
@@ -462,54 +329,6 @@ const CreateRelatedLocationButton = (props: { pathname: string }) => {
             to="/locations/create"
             state={state}
             label="Add location"
-        >
-            <AddCircle />
-        </RaButton>
-    );
-};
-
-const CreateRelatedMaterialFeeButton = (props: { pathname: string }) => {
-    const { pathname } = props;
-    const company = useRecordContext();
-
-    const state = pathname
-        ? {
-              from: pathname,
-              redirect_on_save: pathname,
-              record: { company_id: company?.id },
-          }
-        : undefined;
-
-    return (
-        <RaButton
-            component={RouterLink}
-            to="/company_material_fees/create"
-            state={state}
-            label="Add Material Fee"
-        >
-            <AddCircle />
-        </RaButton>
-    );
-};
-
-const CreateRelatedCommodityFeeButton = (props: { pathname: string }) => {
-    const { pathname } = props;
-    const company = useRecordContext();
-
-    const state = pathname
-        ? {
-              from: pathname,
-              redirect_on_save: pathname,
-              record: { company_id: company?.id },
-          }
-        : undefined;
-
-    return (
-        <RaButton
-            component={RouterLink}
-            to="/company_commodity_fees/create"
-            state={state}
-            label="Add Commodity Fee"
         >
             <AddCircle />
         </RaButton>
