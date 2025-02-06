@@ -79,8 +79,6 @@ export const LocationPricesCreate = () => {
 
     const redirect = redirect_on_save ?? 'list';
 
-    console.log({ locationFilters, companyFilter });
-
     return (
         <CreateBase
             redirect={redirect}

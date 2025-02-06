@@ -21,7 +21,6 @@ const ValueField = (props: TextFieldProps) => {
     const record = useRecordContext();
     if (!record) return null;
 
-    console.log({ zzz: record[props.source] });
     if (record.price_type === 'PERCENT')
         if ((record[props.source] ?? null) !== null)
             return `${record[props.source]}%`;
