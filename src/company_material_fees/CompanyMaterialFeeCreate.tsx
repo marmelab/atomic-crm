@@ -39,7 +39,7 @@ export const CreateFee = () => {
     return (
         <Create
             redirect={(_resource, _id, data) => {
-                return `companies/${data!.company_id}/show/product_fees`;
+                return `companies/${data!.company_id}/show/agent_fees`;
             }}
         >
             <SimpleForm>

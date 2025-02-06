@@ -21,6 +21,7 @@ import materials from '../materials';
 import company_material_fees from '../company_material_fees';
 import company_commodity_fees from '../company_commodity_fees';
 import commodities from '../commodities';
+import location_prices from '../location_prices';
 import contacts from '../contacts';
 import { Dashboard } from '../dashboard/Dashboard';
 import deals from '../deals';
@@ -207,6 +208,7 @@ export const CRM = ({
                 />
                 <Resource name="commodities" {...commodities} />
                 <Resource name="locations" {...locations} />
+                <Resource name="location_prices" {...location_prices} />
                 <Resource name="materials" {...materials} />
                 <Resource name="contactNotes" />
                 <Resource name="dealNotes" />
