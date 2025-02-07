@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 import {
     List,
@@ -19,6 +19,8 @@ import {
     RaRecord,
     TextInput,
     useGetIdentity,
+    useUnselectAll,
+    useStore,
 } from 'react-admin';
 
 import { DialogContent, Dialog, DialogTitle } from '@mui/material';
@@ -260,6 +262,24 @@ export const LocationTabPriceList = (props: {
 
     const filter = { company_id, location_id };
     if (filter.location_id === undefined) delete filter.location_id;
+
+    const [savedPath, setSavedPath] = useStore(
+        'location_prices.selectedIds.pathname',
+        pathname
+    );
+
+    const unselectAll = useUnselectAll('location_prices');
+
+    useEffect(
+        () => {
+            if (savedPath !== pathname) {
+                unselectAll();
+            }
+            setSavedPath(pathname);
+        },
+
+        [savedPath, pathname, setSavedPath, unselectAll] // make sure we unselect all when location or company changes or when table loads
+    );
 
     return (
         <LocationPricesList
