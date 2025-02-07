@@ -209,7 +209,7 @@ export const LocationPricesList = (props: Omit<ListProps, 'children'>) => {
 
     return (
         <>
-            <List perPage={perPage} sort={sort} {...rest} bu>
+            <List perPage={perPage} sort={sort} {...rest}>
                 <Datagrid
                     rowSx={record => {
                         if (record.location_is_active) return {};
