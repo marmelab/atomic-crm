@@ -2,7 +2,7 @@ import ControlPointIcon from '@mui/icons-material/ControlPoint';
 import EditIcon from '@mui/icons-material/Edit';
 import { Box, Chip, Menu, MenuItem } from '@mui/material';
 
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import {
     Identifier,
     useGetList,
@@ -81,7 +81,7 @@ export const TagsListEdit = () => {
         setOpen(false);
     };
 
-    const handleTagCreated = React.useCallback(
+    const handleTagCreated = useCallback(
         async (tag: Tag) => {
             if (!record) {
                 throw new Error('No contact record found');
