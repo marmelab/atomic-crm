@@ -31,11 +31,11 @@ jobs:
             - name: ⚙️ Setup node
               uses: actions/setup-node@v4
               with:
-                  node-version: 20
-                  cache: npm
+                  node-version: 23
+                  cache: yarn
 
             - name: 📥 Download deps
-              run: npm install
+              run: yarn install
 
             - name: 🔬 Lint
               uses: wearerequired/lint-action@v2
@@ -57,11 +57,11 @@ jobs:
             - name: ⚙️ Setup node
               uses: actions/setup-node@v4
               with:
-                  node-version: 20
-                  cache: npm
+                  node-version: 23
+                  cache: yarn
 
             - name: 📥 Download deps
-              run: npm install
+              run: yarn install
 
             - name: 🔎 Test
               run: make test-ci
@@ -79,11 +79,11 @@ jobs:
             - name: ⚙️ Setup node
               uses: actions/setup-node@v4
               with:
-                  node-version: 20
-                  cache: npm
+                  node-version: 23
+                  cache: yarn
 
             - name: 📥 Download deps
-              run: npm install
+              run: yarn install
 
             - name: 🔨 Build
-              run: npm run build
+              run: yarn run build

@@ -39,7 +39,7 @@ This will create a `dist` directory with the built application made of static HT
 If you want to deploy it to GitHub pages, you can use the following command:
 
 ```sh
-npm run ghpages:deploy
+yarn run ghpages:deploy
 ```
 
 The CRM will be available at `https://<username>.github.io/atomic-crm/`.

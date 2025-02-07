@@ -39,8 +39,8 @@ jobs:
             - name: ⚙️ Setup node
               uses: actions/setup-node@v4
               with:
-                  node-version: 20
-                  cache: npm
+                  node-version: 23
+                  cache: yarn
 
             - name: ⚙️ Setup git
               run: |
@@ -54,10 +54,10 @@ jobs:
               uses: supabase/setup-cli@v1
 
             - name: 📥 Download deps
-              run: npm install
+              run: yarn install
 
             - name: 🔨 Build
-              run: npm run build
+              run: yarn build
             
             - if: ${{ env.IS_SUPABASE_CONFIGURED }}
               name: 🔗 Supabase Link
