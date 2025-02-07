@@ -24,7 +24,7 @@ import {
 } from 'react-admin';
 
 import { LocationAside } from './LocationShow_Aside';
-import { TabSalePrices } from './LocationShowTabSalePrices';
+import { LocationTabPriceList } from '../location_prices';
 
 import { Location } from '../types';
 
@@ -133,7 +133,7 @@ const LocationShowContent = () => {
                                 label="Sale Prices"
                                 path="sale_prices"
                             >
-                                <TabSalePrices
+                                <LocationTabPriceList
                                     location_id={record.id}
                                     company_id={record.company_id}
                                     pathname={location.pathname}

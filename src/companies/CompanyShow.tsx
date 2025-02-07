@@ -36,7 +36,7 @@ import {
 import { Link as RouterLink, useLocation, useNavigate } from 'react-router-dom';
 
 import { TabAgentFees } from './CompanyShowTabAgentFees';
-import { TabSalePrices } from './CompanyShowTabSalePrices';
+import { LocationTabPriceList } from '../location_prices';
 
 import { Avatar } from '../contacts/Avatar';
 import { TagsList } from '../contacts/TagsList';
@@ -204,7 +204,7 @@ const CompanyShowContent = () => {
                                 label="Sale prices"
                                 path="sale_prices"
                             >
-                                <TabSalePrices
+                                <LocationTabPriceList
                                     company_id={record.id}
                                     pathname={location.pathname}
                                 />

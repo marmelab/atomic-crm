@@ -79,8 +79,6 @@ export const LocationPricesCreate = () => {
 
     const redirect = redirect_on_save ?? 'list';
 
-    console.log({ locationFilters, companyFilter });
-
     return (
         <CreateBase
             redirect={redirect}
@@ -145,54 +143,7 @@ export const LocationPricesCreate = () => {
                                 </Stack>
 
                                 <Divider sx={{ marginBottom: '8px' }} />
-
-                                <Stack gap={4} direction="row">
-                                    <ReferenceInput
-                                        source="commodity_id"
-                                        reference="commodities"
-                                        filter={{
-                                            active: true,
-                                        }}
-                                    >
-                                        <AutocompleteInput
-                                            optionText={v => {
-                                                return `${v.material_name} | ${v.name}`;
-                                            }}
-                                            helperText={false}
-                                            validate={required()}
-                                        />
-                                    </ReferenceInput>
-
-                                    <TextInput source="commodity_grade" />
-                                </Stack>
-
-                                <Stack gap={4} direction="row">
-                                    <AutocompleteInput
-                                        source="market_type"
-                                        choices={market_types_choices}
-                                        validate={required()}
-                                    />
-                                    <AutocompleteInput
-                                        source="price_type"
-                                        choices={price_type_choices}
-                                        validate={[
-                                            required(),
-                                            validate_price_type,
-                                        ]}
-                                    />
-                                    <NumberInput
-                                        source="price_value"
-                                        validate={[
-                                            required(),
-                                            validate_price_value,
-                                        ]}
-                                    />
-
-                                    <NumberInput
-                                        source="market_price_fix"
-                                        validate={validate_market_fix}
-                                    />
-                                </Stack>
+                                <MaterialEditFields active_commodities />
                             </CardContent>
                             <Toolbar />
                         </Card>
@@ -200,5 +151,61 @@ export const LocationPricesCreate = () => {
                 </Box>
             </Box>
         </CreateBase>
+    );
+};
+
+export const MaterialEditFields = (props: { active_commodities: boolean }) => {
+    const filter = props.active_commodities
+        ? {
+              active: true,
+          }
+        : {};
+
+    return (
+        <>
+            <Stack gap={4} direction="row">
+                <ReferenceInput
+                    source="commodity_id"
+                    reference="commodities"
+                    filter={filter}
+                >
+                    <AutocompleteInput
+                        optionText={v => {
+                            return `${v.material_name} | ${v.name}`;
+                        }}
+                        helperText={false}
+                        validate={required()}
+                    />
+                </ReferenceInput>
+
+                <TextInput
+                    source="commodity_grade"
+                    id="location_prices:commodity grade"
+                    autoComplete="location_prices:commodity grade"
+                />
+            </Stack>
+
+            <Stack gap={4} direction="row">
+                <AutocompleteInput
+                    source="market_type"
+                    choices={market_types_choices}
+                    validate={required()}
+                />
+                <AutocompleteInput
+                    source="price_type"
+                    choices={price_type_choices}
+                    validate={[required(), validate_price_type]}
+                />
+                <NumberInput
+                    source="price_value"
+                    validate={[required(), validate_price_value]}
+                />
+
+                <NumberInput
+                    source="market_price_fix"
+                    validate={validate_market_fix}
+                />
+            </Stack>
+        </>
     );
 };
