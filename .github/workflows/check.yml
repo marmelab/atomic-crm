@@ -34,6 +34,12 @@ jobs:
                   node-version: 23
                   cache: yarn
 
+            - name: ⚙️ Enable corepack
+              run: corepack enable
+
+            - name: ⚙️ Configure yarn version
+              run: yarn set version berry
+
             - name: 📥 Download deps
               run: yarn install
 
@@ -60,6 +66,12 @@ jobs:
                   node-version: 23
                   cache: yarn
 
+            - name: ⚙️ Enable corepack
+              run: corepack enable
+
+            - name: ⚙️ Configure yarn version
+              run: yarn set version berry
+
             - name: 📥 Download deps
               run: yarn install
 
@@ -81,6 +93,12 @@ jobs:
               with:
                   node-version: 23
                   cache: yarn
+
+            - name: ⚙️ Enable corepack
+              run: corepack enable
+
+            - name: ⚙️ Configure yarn version
+              run: yarn set version berry
 
             - name: 📥 Download deps
               run: yarn install
