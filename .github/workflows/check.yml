@@ -28,17 +28,17 @@ jobs:
             - name: 📥 Checkout repo
               uses: actions/checkout@v4
 
-            - name: ⚙️ Setup node
-              uses: actions/setup-node@v4
-              with:
-                  node-version: 23
-                  cache: yarn
-
             - name: ⚙️ Enable corepack
               run: corepack enable
 
             - name: ⚙️ Configure yarn version
               run: yarn set version berry
+
+            - name: ⚙️ Setup node
+              uses: actions/setup-node@v4
+              with:
+                  node-version: 23
+                  cache: yarn
 
             - name: 📥 Download deps
               run: yarn install
@@ -60,17 +60,17 @@ jobs:
             - name: 📥 Checkout repo
               uses: actions/checkout@v4
 
-            - name: ⚙️ Setup node
-              uses: actions/setup-node@v4
-              with:
-                  node-version: 23
-                  cache: yarn
-
             - name: ⚙️ Enable corepack
               run: corepack enable
 
             - name: ⚙️ Configure yarn version
               run: yarn set version berry
+
+            - name: ⚙️ Setup node
+              uses: actions/setup-node@v4
+              with:
+                  node-version: 23
+                  cache: yarn
 
             - name: 📥 Download deps
               run: yarn install
@@ -88,18 +88,18 @@ jobs:
             - name: 📥 Checkout repo
               uses: actions/checkout@v4
 
-            - name: ⚙️ Setup node
-              uses: actions/setup-node@v4
-              with:
-                  node-version: 23
-                  cache: yarn
-
             - name: ⚙️ Enable corepack
               run: corepack enable
 
             - name: ⚙️ Configure yarn version
               run: yarn set version berry
 
+            - name: ⚙️ Setup node
+              uses: actions/setup-node@v4
+              with:
+                  node-version: 23
+                  cache: yarn
+                  
             - name: 📥 Download deps
               run: yarn install
 
