@@ -41,7 +41,7 @@ jobs:
                   cache: yarn
 
             - name: 📥 Download deps
-              run: yarn YARN_CHECKSUM_BEHAVIOR=update yarn install --immutable
+              run: YARN_CHECKSUM_BEHAVIOR=update yarn install --immutable
 
             - name: 🔬 Lint
               uses: wearerequired/lint-action@v2
@@ -73,7 +73,7 @@ jobs:
                   cache: yarn
 
             - name: 📥 Download deps
-              run: yarn YARN_CHECKSUM_BEHAVIOR=update yarn install --immutable
+              run: YARN_CHECKSUM_BEHAVIOR=update yarn install --immutable
 
             - name: 🔎 Test
               run: make test-ci
@@ -101,7 +101,7 @@ jobs:
                   cache: yarn
 
             - name: 📥 Download deps
-              run: yarn YARN_CHECKSUM_BEHAVIOR=update yarn install --immutable
+              run: YARN_CHECKSUM_BEHAVIOR=update yarn install --immutable
 
             - name: 🔨 Build
               run: yarn run build
