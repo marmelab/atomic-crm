@@ -1,4 +1,3 @@
-import * as React from 'react';
 import { Card, Box, Stack, Typography } from '@mui/material';
 import AssignmentTurnedInIcon from '@mui/icons-material/AssignmentTurnedIn';
 import { AddTask } from '../tasks/AddTask';

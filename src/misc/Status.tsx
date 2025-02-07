@@ -1,4 +1,3 @@
-import * as React from 'react';
 import { Box, Tooltip } from '@mui/material';
 import { useConfigurationContext } from '../root/ConfigurationContext';
 

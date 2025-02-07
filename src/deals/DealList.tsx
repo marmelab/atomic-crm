@@ -50,14 +50,19 @@ const DealLayout = () => {
     const { dealCategories } = useConfigurationContext();
 
     const dealFilters = [
-        <SearchInput source="q" alwaysOn />,
-        <ReferenceInput source="company_id" reference="companies" />,
+        <SearchInput source="q" alwaysOn key="search" />,
+        <ReferenceInput
+            source="company_id"
+            reference="companies"
+            key="company_id"
+        />,
         <SelectInput
             source="category"
             label="Category"
             choices={dealCategories.map(type => ({ id: type, name: type }))}
+            key="category"
         />,
-        <OnlyMineInput source="sales_id" alwaysOn />,
+        <OnlyMineInput source="sales_id" alwaysOn key="sales_id" />,
     ];
 
     const { data, isPending, filterValues } = useListContext();
@@ -66,12 +71,10 @@ const DealLayout = () => {
     if (isPending) return null;
     if (!data?.length && !hasFilters)
         return (
-            <>
-                <DealEmpty>
-                    <DealShow open={!!matchShow} id={matchShow?.params.id} />
-                    <DealArchivedList />
-                </DealEmpty>
-            </>
+            <DealEmpty>
+                <DealShow open={!!matchShow} id={matchShow?.params.id} />
+                <DealArchivedList />
+            </DealEmpty>
         );
 
     return (

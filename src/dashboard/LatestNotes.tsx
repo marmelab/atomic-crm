@@ -1,4 +1,3 @@
-import * as React from 'react';
 import { Card, CardContent, Typography, Box } from '@mui/material';
 import NoteIcon from '@mui/icons-material/Note';
 import {

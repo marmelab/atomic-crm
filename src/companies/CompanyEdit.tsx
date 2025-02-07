@@ -10,7 +10,8 @@ export const CompanyEdit = () => (
         aside={<CompanyAside link="show" />}
         actions={false}
         redirect="show"
-        transform={values => {
+        transform={values_props => {
+            const values = { ...values_props };
             // add https:// before website if not present
             if (values.website && !values.website.startsWith('http')) {
                 values.website = `https://${values.website}`;

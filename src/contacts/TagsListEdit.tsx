@@ -1,7 +1,7 @@
 import ControlPointIcon from '@mui/icons-material/ControlPoint';
 import EditIcon from '@mui/icons-material/Edit';
 import { Box, Chip, Menu, MenuItem } from '@mui/material';
-import * as React from 'react';
+
 import { useState } from 'react';
 import {
     Identifier,

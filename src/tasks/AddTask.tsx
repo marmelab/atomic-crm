@@ -111,10 +111,10 @@ export const AddTask = ({
                 transform={data => {
                     const dueDate = new Date(data.due_date);
                     dueDate.setHours(0, 0, 0, 0);
-                    data.due_date = dueDate.toISOString();
+                    const due_date = dueDate.toISOString();
                     return {
                         ...data,
-                        due_date: new Date(data.due_date).toISOString(),
+                        due_date: new Date(due_date).toISOString(),
                     };
                 }}
                 mutationOptions={{ onSuccess: handleSuccess }}

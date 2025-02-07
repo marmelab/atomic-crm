@@ -232,7 +232,7 @@ export const AdditionalInfo = ({ record }: { record: Company }) => {
                 <Stack>
                     {record.context_links.map((link, index) =>
                         link ? (
-                            <Tooltip title={link}>
+                            <Tooltip title={link} key={link}>
                                 <Typography
                                     key={index}
                                     variant="body2"

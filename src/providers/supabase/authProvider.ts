@@ -32,8 +32,10 @@ export async function getIsInitialized() {
     return getIsInitialized._is_initialized_cache;
 }
 
+// eslint-disable-next-line @typescript-eslint/no-namespace
 export namespace getIsInitialized {
-    export var _is_initialized_cache: boolean | null = null;
+    // eslint-disable-next-line prefer-const
+    export let _is_initialized_cache: boolean | null = null;
 }
 
 export const authProvider: AuthProvider = {
@@ -71,7 +73,6 @@ export const authProvider: AuthProvider = {
 
         if (!isInitialized) {
             await supabase.auth.signOut();
-            // eslint-disable-next-line no-throw-literal
             throw {
                 redirectTo: '/sign-up',
                 message: false,

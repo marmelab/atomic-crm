@@ -48,6 +48,7 @@ export const DealsChart = () => {
                 won: dealsByMonth[month]
                     .filter((deal: Deal) => deal.stage === 'won')
                     .reduce((acc: number, deal: Deal) => {
+                        // eslint-disable-next-line no-param-reassign
                         acc += deal.amount;
                         return acc;
                     }, 0),
@@ -57,12 +58,14 @@ export const DealsChart = () => {
                     )
                     .reduce((acc: number, deal: Deal) => {
                         // @ts-ignore
+                        // eslint-disable-next-line no-param-reassign
                         acc += deal.amount * multiplier[deal.stage];
                         return acc;
                     }, 0),
                 lost: dealsByMonth[month]
                     .filter((deal: Deal) => deal.stage === 'lost')
                     .reduce((acc: number, deal: Deal) => {
+                        // eslint-disable-next-line no-param-reassign
                         acc -= deal.amount;
                         return acc;
                     }, 0),

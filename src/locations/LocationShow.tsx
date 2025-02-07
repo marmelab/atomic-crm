@@ -7,7 +7,7 @@ import {
     useMediaQuery,
 } from '@mui/material';
 
-import { useRef } from 'react';
+import { useState } from 'react';
 
 import {
     ReferenceField,
@@ -52,7 +52,9 @@ const LocationShowContent = () => {
     const { record, isPending } = useShowContext<Location>();
     const location = useLocation();
 
-    const fromRef = useRef(location.state || undefined);
+    const [loc_state] = useState(location.state || undefined);
+
+    const redirect = loc_state?.redirect_on_save || 'list';
 
     if (isPending || !record) return null;
 
@@ -76,11 +78,9 @@ const LocationShowContent = () => {
                                 <Box mt={2}>
                                     <Edit
                                         actions={false}
-                                        redirect={
-                                            fromRef.current?.redirect_on_save ||
-                                            'list'
-                                        }
-                                        transform={values => {
+                                        redirect={redirect}
+                                        transform={values_params => {
+                                            const values = { ...values_params };
                                             // add https:// before website if not present
                                             if (
                                                 values.website &&

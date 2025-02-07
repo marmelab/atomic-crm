@@ -1,4 +1,3 @@
-import * as React from 'react';
 import { useState } from 'react';
 import { AvatarGroup, Paper, Typography, Box } from '@mui/material';
 import DealIcon from '@mui/icons-material/MonetizationOn';

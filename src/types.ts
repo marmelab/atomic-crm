@@ -92,7 +92,7 @@ export type Contact = {
     linkedin_url?: string | null;
     first_seen: string;
     last_seen: string;
-    has_newsletter: Boolean;
+    has_newsletter: boolean;
     tags: Identifier[];
     gender: string;
     sales_id: Identifier;

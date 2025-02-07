@@ -370,7 +370,8 @@ const applyFullTextSearch = (columns: string[]) => (params: GetListParams) => {
     };
 };
 
-const uploadToBucket = async (fi: RAFile) => {
+async function uploadToBucket(fi_prop: RAFile) {
+    const fi = fi_prop;
     if (!fi.src.startsWith('blob:') && !fi.src.startsWith('data:')) {
         // Sign URL check if path exists in the bucket
         if (fi.path) {
@@ -413,4 +414,4 @@ const uploadToBucket = async (fi: RAFile) => {
     fi.type = mimeType;
 
     return fi;
-};
+}

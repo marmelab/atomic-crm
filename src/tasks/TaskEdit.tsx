@@ -5,7 +5,7 @@ import {
     DialogTitle,
     Stack,
 } from '@mui/material';
-import * as React from 'react';
+
 import {
     DateInput,
     DeleteButton,

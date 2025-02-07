@@ -1,4 +1,3 @@
-import * as React from 'react';
 import { CreateBase, Form, Toolbar, useGetIdentity } from 'react-admin';
 import { Card, CardContent, Box } from '@mui/material';
 

@@ -1,4 +1,3 @@
-import * as React from 'react';
 import { Box, Paper, Typography } from '@mui/material';
 import { RecordContextProvider, useListContext } from 'react-admin';
 

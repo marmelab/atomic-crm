@@ -3,7 +3,6 @@
  * It's currently not used in the application but can be added to the dashboard.
  */
 
-import * as React from 'react';
 import { Card, Box } from '@mui/material';
 import MonetizationOnIcon from '@mui/icons-material/MonetizationOn';
 import {

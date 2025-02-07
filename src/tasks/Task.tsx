@@ -10,7 +10,7 @@ import {
     MenuItem,
     Typography,
 } from '@mui/material';
-import * as React from 'react';
+
 import { MouseEvent, useState } from 'react';
 import {
     DateField,
@@ -160,7 +160,7 @@ export const Task = ({
                     </ListItemIcon>
                     <ListItemText
                         sx={{
-                            textDecoration: !!task.done_date
+                            textDecoration: task.done_date
                                 ? 'line-through'
                                 : 'none',
                         }}

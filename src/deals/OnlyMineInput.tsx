@@ -1,4 +1,3 @@
-import * as React from 'react';
 import { useListFilterContext, useGetIdentity } from 'react-admin';
 import { Box, Switch, FormControlLabel } from '@mui/material';
 

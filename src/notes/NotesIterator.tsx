@@ -1,4 +1,4 @@
-import * as React from 'react';
+import { Fragment } from 'react';
 import { Box, Divider, Stack } from '@mui/material';
 import { useListContext } from 'react-admin';
 
@@ -20,7 +20,7 @@ export const NotesIterator = ({
             {data && (
                 <Stack mt={2} gap={1}>
                     {data.map((note, index) => (
-                        <React.Fragment key={index}>
+                        <Fragment key={index}>
                             <Note
                                 note={note}
                                 isLast={index === data.length - 1}
@@ -28,7 +28,7 @@ export const NotesIterator = ({
                                 key={index}
                             />
                             {index < data.length - 1 && <Divider />}
-                        </React.Fragment>
+                        </Fragment>
                     ))}
                 </Stack>
             )}

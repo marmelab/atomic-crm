@@ -1,4 +1,3 @@
-import * as React from 'react';
 import { Avatar } from '@mui/material';
 import { useRecordContext } from 'react-admin';
 

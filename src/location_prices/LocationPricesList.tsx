@@ -14,13 +14,11 @@ import {
     useNotify,
     EditBase,
     Toolbar,
-    DeleteWithConfirmButton,
-    SaveButton,
+    BulkDeleteWithConfirmButton,
     Form,
     RaRecord,
     TextInput,
     useGetIdentity,
-    BooleanInput,
 } from 'react-admin';
 
 import { DialogContent, Dialog, DialogTitle } from '@mui/material';
@@ -209,12 +207,9 @@ export const LocationPricesList = (props: Omit<ListProps, 'children'>) => {
         setEditDialog(null);
     };
 
-    rest.storeKey = 'zzzzzz';
-    console.log(rest.storeKey);
-
     return (
         <>
-            <List perPage={perPage} sort={sort} {...rest}>
+            <List perPage={perPage} sort={sort} {...rest} bu>
                 <Datagrid
                     rowSx={record => {
                         if (record.location_is_active) return {};
@@ -229,6 +224,9 @@ export const LocationPricesList = (props: Omit<ListProps, 'children'>) => {
                         setEditDialog(record);
                         return false;
                     }}
+                    bulkActionButtons={
+                        <BulkDeleteWithConfirmButton mutationMode="pessimistic" />
+                    }
                 >
                     <TextField source="company_name" />
                     <TextField source="location_name" />
@@ -326,12 +324,3 @@ const CreateRelatedLocation = (props: {
         </Button>
     );
 };
-
-function EditToolbar() {
-    return (
-        <Toolbar sx={{ display: 'flex', justifyContent: 'space-between' }}>
-            <SaveButton />
-            <DeleteWithConfirmButton />
-        </Toolbar>
-    );
-}

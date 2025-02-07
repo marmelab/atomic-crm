@@ -5,6 +5,7 @@ export const finalize = (db: Db) => {
     db.contactNotes
         .sort((a, b) => new Date(a.date).valueOf() - new Date(b.date).valueOf())
         .forEach(note => {
+            // eslint-disable-next-line no-param-reassign
             db.contacts[note.contact_id as number].status = note.status;
         });
 };

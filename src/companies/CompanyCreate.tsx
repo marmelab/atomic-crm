@@ -1,4 +1,3 @@
-import * as React from 'react';
 import { Create, Form, Toolbar, useGetIdentity } from 'react-admin';
 import { CardContent } from '@mui/material';
 
@@ -10,7 +9,8 @@ export const CompanyCreate = () => {
         <Create
             actions={false}
             redirect="show"
-            transform={values => {
+            transform={values_props => {
+                const values = { ...values_props };
                 // add https:// before website if not present
                 if (values.website && !values.website.startsWith('http')) {
                     values.website = `https://${values.website}`;

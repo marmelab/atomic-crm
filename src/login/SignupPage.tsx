@@ -26,6 +26,9 @@ export const SignupPage = () => {
         },
     });
 
+    const login = useLogin();
+    const notify = useNotify();
+
     const { isPending: isSignUpPending, mutate } = useMutation({
         mutationKey: ['signup'],
         mutationFn: async (data: SignUpData) => {
@@ -48,9 +51,6 @@ export const SignupPage = () => {
             notify('An error occurred. Please try again.');
         },
     });
-
-    const login = useLogin();
-    const notify = useNotify();
 
     const {
         register,
