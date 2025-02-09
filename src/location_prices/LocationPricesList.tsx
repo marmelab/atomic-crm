@@ -278,9 +278,13 @@ export const LocationPricesList = (props: Omit<ListProps, 'children'>) => {
                     rowSx={record => {
                         // if (record.location_is_active) return {};
 
-                        const validation_date = new Date(
-                            record.validation_date
-                        );
+                        const validation_date_str = (
+                            record.validation_date ?? ''
+                        )
+                            .replace('T', ' ')
+                            .replace(/\.\d+$/, 'Z');
+
+                        const validation_date = new Date(validation_date_str);
 
                         const age_hh =
                             (Date.now() - validation_date.getTime()) /
@@ -291,12 +295,17 @@ export const LocationPricesList = (props: Omit<ListProps, 'children'>) => {
                         if (age_hh >= 12)
                             return {
                                 backgroundColor: '#FFF9C4',
+                                // textDecoration: 'line-through',
                             };
                         return {};
                     }}
-                    sx={{ '& .MuiTableCell-root': { color: 'unset' } }}
-                    rowClick={(id, resource, record) => {
-                        console.log(id, resource, record);
+                    sx={{
+                        '& .MuiTableCell-root': { color: 'unset' },
+                        '& .MuiTableRow-root:hover': {
+                            backgroundColor: '#E0E0E0',
+                        },
+                    }}
+                    rowClick={(_id, _blankresource, record) => {
                         setEditDialog(record);
                         return false;
                     }}
