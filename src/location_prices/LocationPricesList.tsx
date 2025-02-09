@@ -23,14 +23,23 @@ import {
     useStore,
     BulkUpdateWithConfirmButton,
     useRefresh,
+    BooleanInput,
 } from 'react-admin';
 
 import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
 import WarningIcon from '@mui/icons-material/Warning';
 import ReportIcon from '@mui/icons-material/Report';
 
-import { DialogContent, Dialog, DialogTitle, Tooltip } from '@mui/material';
+import {
+    DialogContent,
+    Dialog,
+    DialogTitle,
+    Tooltip,
+    Typography,
+} from '@mui/material';
 import { Card, CardContent, Stack, Divider } from '@mui/material';
+
+import { StandardCSSProperties } from '@mui/system/styleFunctionSx';
 
 import { Link } from 'react-router-dom';
 import AddCircle from '@mui/icons-material/AddCircleOutline';
@@ -79,15 +88,6 @@ const ValueField = (props: TextFieldProps) => {
         else return null;
 
     return <CurrencyField source={props.source} />;
-};
-
-const Active = (props: TextFieldProps) => {
-    const record = useRecordContext();
-    if (!record) return null;
-
-    if (record.location_is_active)
-        return <BooleanField source={props.source} />;
-    else return <BooleanField source={props.source} sx={{ color: 'red' }} />;
 };
 
 const EditDialog = (props: {
@@ -192,6 +192,7 @@ const EditDialog = (props: {
                                 <MaterialEditFields
                                     active_commodities={false}
                                 />
+                                <BooleanInput source="active" />
                             </CardContent>
                             <Toolbar />
                         </Card>
@@ -224,7 +225,17 @@ const LastUpdated = (_props: TextFieldProps) => {
                     </span>
                 }
             >
-                <CheckCircleOutlineIcon style={{ color: 'green' }} />
+                <Typography component="span" variant="body2">
+                    <CheckCircleOutlineIcon
+                        style={{
+                            color: 'green',
+                            display: 'inline-flex',
+                            verticalAlign: 'middle',
+                            lineHeight: 0,
+                        }}
+                        fontSize="small"
+                    />
+                </Typography>
             </Tooltip>
         );
     } else if (age_hh < 24) {
@@ -237,7 +248,17 @@ const LastUpdated = (_props: TextFieldProps) => {
                     </span>
                 }
             >
-                <WarningIcon style={{ color: 'orange' }} />
+                <Typography component="span" variant="body2">
+                    <WarningIcon
+                        style={{
+                            color: 'orange',
+                            display: 'inline-flex',
+                            verticalAlign: 'middle',
+                            lineHeight: 0,
+                        }}
+                        fontSize="small"
+                    />
+                </Typography>
             </Tooltip>
         );
     }
@@ -251,7 +272,17 @@ const LastUpdated = (_props: TextFieldProps) => {
                 </span>
             }
         >
-            <ReportIcon style={{ color: 'red' }} />
+            <Typography component="span" variant="body2">
+                <ReportIcon
+                    style={{
+                        color: 'red',
+                        display: 'inline-flex',
+                        verticalAlign: 'middle',
+                        lineHeight: 0,
+                    }}
+                    fontSize="small"
+                />
+            </Typography>
         </Tooltip>
     );
 };
@@ -292,12 +323,15 @@ export const LocationPricesList = (props: Omit<ListProps, 'children'>) => {
                             60 /
                             60;
 
-                        if (age_hh >= 12)
-                            return {
-                                backgroundColor: '#FFF9C4',
-                                // textDecoration: 'line-through',
-                            };
-                        return {};
+                        const ret: StandardCSSProperties = {};
+
+                        if (age_hh >= 12) ret.backgroundColor = '#FFF9C4';
+                        if (!record.active) {
+                            ret.textDecoration = 'line-through';
+                            ret.color = 'grey';
+                        }
+
+                        return ret;
                     }}
                     sx={{
                         '& .MuiTableCell-root': { color: 'unset' },
@@ -340,9 +374,12 @@ export const LocationPricesList = (props: Omit<ListProps, 'children'>) => {
                 >
                     <TextField source="company_name" />
                     <TextField source="location_name" />
-                    <Active
+                    <BooleanField
                         source="location_is_active"
                         label="Active Location?"
+                        sx={{
+                            '& .RaBooleanField-falseIcon': { color: 'red' },
+                        }}
                     />
                     <TextField source="material_name" />
                     <TextField source="commodity_name" />
@@ -355,6 +392,12 @@ export const LocationPricesList = (props: Omit<ListProps, 'children'>) => {
                         label="Fixed Market"
                     />
                     <LastUpdated source="validation_date" label="Up to date?" />
+                    <BooleanField
+                        source="active"
+                        sx={{
+                            '& .RaBooleanField-falseIcon': { color: 'red' },
+                        }}
+                    />
                 </Datagrid>
             </List>
             <EditDialog handleClose={handleClose} record={editDialog} />
