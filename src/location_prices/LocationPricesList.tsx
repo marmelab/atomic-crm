@@ -21,9 +21,15 @@ import {
     useGetIdentity,
     useUnselectAll,
     useStore,
+    BulkUpdateWithConfirmButton,
+    useRefresh,
 } from 'react-admin';
 
-import { DialogContent, Dialog, DialogTitle } from '@mui/material';
+import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
+import WarningIcon from '@mui/icons-material/Warning';
+import ReportIcon from '@mui/icons-material/Report';
+
+import { DialogContent, Dialog, DialogTitle, Tooltip } from '@mui/material';
 import { Card, CardContent, Stack, Divider } from '@mui/material';
 
 import { Link } from 'react-router-dom';
@@ -196,12 +202,68 @@ const EditDialog = (props: {
     );
 };
 
+const LastUpdated = (_props: TextFieldProps) => {
+    const record = useRecordContext();
+    if (!record) return null;
+    let validation_date = record.validation_date;
+
+    if (!validation_date) return null;
+
+    validation_date = validation_date.replace('T', ' ').replace(/\.\d+$/, 'Z');
+
+    const dt = new Date(validation_date);
+    const age_hh = (Date.now() - dt.getTime()) / 1000 / 60 / 60;
+
+    if (age_hh < 12) {
+        return (
+            <Tooltip
+                title={
+                    <span style={{ fontSize: '14px' }}>
+                        <div>Last updated within last 12 hours</div>
+                        <div>Last update: {dt.toLocaleString()}</div>
+                    </span>
+                }
+            >
+                <CheckCircleOutlineIcon style={{ color: 'green' }} />
+            </Tooltip>
+        );
+    } else if (age_hh < 24) {
+        return (
+            <Tooltip
+                title={
+                    <span style={{ fontSize: '14px' }}>
+                        <div>Last updated more than 12 hours ago</div>
+                        <div>Last update: {dt.toLocaleString()}</div>
+                    </span>
+                }
+            >
+                <WarningIcon style={{ color: 'orange' }} />
+            </Tooltip>
+        );
+    }
+
+    return (
+        <Tooltip
+            title={
+                <span style={{ fontSize: '14px' }}>
+                    <div>Last updated more than 24 hours ago</div>
+                    <div>Last update: {dt.toLocaleString()}</div>
+                </span>
+            }
+        >
+            <ReportIcon style={{ color: 'red' }} />
+        </Tooltip>
+    );
+};
+
 export const LocationPricesList = (props: Omit<ListProps, 'children'>) => {
     const {
         sort = { field: 'id', order: 'ASC' },
         perPage = 25,
         ...rest
     } = props;
+
+    const refresh = useRefresh();
 
     const [editDialog, setEditDialog] = useState<RaRecord | null>(null);
 
@@ -214,11 +276,23 @@ export const LocationPricesList = (props: Omit<ListProps, 'children'>) => {
             <List perPage={perPage} sort={sort} {...rest}>
                 <Datagrid
                     rowSx={record => {
-                        if (record.location_is_active) return {};
-                        else
+                        // if (record.location_is_active) return {};
+
+                        const validation_date = new Date(
+                            record.validation_date
+                        );
+
+                        const age_hh =
+                            (Date.now() - validation_date.getTime()) /
+                            1000 /
+                            60 /
+                            60;
+
+                        if (age_hh >= 12)
                             return {
-                                backgroundColor: 'yellow',
+                                backgroundColor: '#FFF9C4',
                             };
+                        return {};
                     }}
                     sx={{ '& .MuiTableCell-root': { color: 'unset' } }}
                     rowClick={(id, resource, record) => {
@@ -227,7 +301,32 @@ export const LocationPricesList = (props: Omit<ListProps, 'children'>) => {
                         return false;
                     }}
                     bulkActionButtons={
-                        <BulkDeleteWithConfirmButton mutationMode="pessimistic" />
+                        <>
+                            <BulkUpdateWithConfirmButton
+                                data={{
+                                    validation_date: new Date().toISOString(),
+                                }}
+                                confirmContent="Are you sure you want to mark prices as validated?"
+                                label="Confirm prices"
+                                mutationOptions={{
+                                    onSettled: (
+                                        data,
+                                        error,
+                                        variables,
+                                        context
+                                    ) => {
+                                        refresh();
+                                        console.log({
+                                            data,
+                                            error,
+                                            variables,
+                                            context,
+                                        });
+                                    },
+                                }}
+                            />
+                            <BulkDeleteWithConfirmButton mutationMode="pessimistic" />
+                        </>
                     }
                 >
                     <TextField source="company_name" />
@@ -246,6 +345,7 @@ export const LocationPricesList = (props: Omit<ListProps, 'children'>) => {
                         source="market_price_fix"
                         label="Fixed Market"
                     />
+                    <LastUpdated source="validation_date" label="Up to date?" />
                 </Datagrid>
             </List>
             <EditDialog handleClose={handleClose} record={editDialog} />
