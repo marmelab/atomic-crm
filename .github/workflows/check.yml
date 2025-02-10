@@ -44,7 +44,7 @@ jobs:
               run: YARN_CHECKSUM_BEHAVIOR=update yarn install --immutable
 
             - name: 🔬 Lint
-              uses: wearerequired/lint-action@v2
+              uses: wearerequired/lint-action@master
               with:
                   eslint: true
                   eslint_args: "**/*.{mjs,ts,tsx}"
