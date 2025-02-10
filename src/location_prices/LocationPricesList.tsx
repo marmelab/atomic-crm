@@ -22,8 +22,11 @@ import {
     useUnselectAll,
     useStore,
     BulkUpdateWithConfirmButton,
+    UpdateWithConfirmButton,
     useRefresh,
     BooleanInput,
+    SaveButton,
+    DeleteWithConfirmButton,
 } from 'react-admin';
 
 import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
@@ -37,7 +40,7 @@ import {
     Tooltip,
     Typography,
 } from '@mui/material';
-import { Card, CardContent, Stack, Divider } from '@mui/material';
+import { Card, CardContent, Stack, Divider, Box } from '@mui/material';
 
 import { StandardCSSProperties } from '@mui/system/styleFunctionSx';
 
@@ -96,9 +99,18 @@ const EditDialog = (props: {
 }) => {
     const { identity } = useGetIdentity();
     const notify = useNotify();
+    const refresh = useRefresh();
     const { record, handleClose } = props;
 
     if (record === null) return null;
+
+    const validation_date_str = (record.validation_date ?? '')
+        .replace('T', ' ')
+        .replace(/\.\d+$/, 'Z');
+
+    const validate_date = validation_date_str
+        ? new Date(validation_date_str).toLocaleString()
+        : null;
 
     const {
         id,
@@ -164,10 +176,15 @@ const EditDialog = (props: {
                         <Card>
                             <CardContent>
                                 <Stack gap={4} direction="row">
-                                    <TextInput source="company_name" disabled />
+                                    <TextInput
+                                        source="company_name"
+                                        disabled
+                                        helperText={false}
+                                    />
                                     <TextInput
                                         source="location_name"
                                         disabled
+                                        helperText={false}
                                         format={v =>
                                             location_is_active
                                                 ? v
@@ -175,7 +192,19 @@ const EditDialog = (props: {
                                         }
                                     />
                                 </Stack>
-
+                                <Box
+                                    pb={1}
+                                    pt={1}
+                                    sx={{
+                                        display: 'inline-flex',
+                                        verticalAlign: 'middle',
+                                    }}
+                                >
+                                    <span style={{ marginRight: '8px' }}>
+                                        Validation status: {validate_date}
+                                    </span>
+                                    <LastUpdated source="validation_date" />{' '}
+                                </Box>
                                 <Divider sx={{ marginBottom: '8px' }} />
                                 {commodity_is_active === false && (
                                     <div style={{ color: 'red' }}>
@@ -188,13 +217,37 @@ const EditDialog = (props: {
                                         archived
                                     </div>
                                 )}
-
                                 <MaterialEditFields
                                     active_commodities={false}
                                 />
                                 <BooleanInput source="active" />
                             </CardContent>
-                            <Toolbar />
+                            <Toolbar
+                                style={{
+                                    flex: 1,
+                                    display: 'flex',
+                                    justifyContent: 'space-between',
+                                }}
+                            >
+                                <SaveButton alwaysEnable />
+                                <UpdateWithConfirmButton
+                                    data={{
+                                        validation_date:
+                                            new Date().toISOString(),
+                                    }}
+                                    confirmContent="Are you sure you want to mark prices as validated?"
+                                    confirmTitle="Validate price"
+                                    label="Confirm prices"
+                                    mutationOptions={{
+                                        onSuccess: () => {
+                                            refresh();
+                                            handleClose();
+                                        },
+                                    }}
+                                    mutationMode="pessimistic"
+                                />
+                                <DeleteWithConfirmButton />
+                            </Toolbar>
                         </Card>
                     </DialogContent>
                 </Form>
@@ -352,19 +405,8 @@ export const LocationPricesList = (props: Omit<ListProps, 'children'>) => {
                                 confirmContent="Are you sure you want to mark prices as validated?"
                                 label="Confirm prices"
                                 mutationOptions={{
-                                    onSettled: (
-                                        data,
-                                        error,
-                                        variables,
-                                        context
-                                    ) => {
+                                    onSettled: () => {
                                         refresh();
-                                        console.log({
-                                            data,
-                                            error,
-                                            variables,
-                                            context,
-                                        });
                                     },
                                 }}
                             />
