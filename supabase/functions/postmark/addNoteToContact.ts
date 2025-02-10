@@ -7,6 +7,7 @@ export const addNoteToContact = async ({
     firstName,
     lastName,
     noteContent,
+    companyName,
 }: {
     salesEmail: string;
     email: string;
@@ -14,6 +15,7 @@ export const addNoteToContact = async ({
     firstName: string;
     lastName: string;
     noteContent: string;
+    companyName: string;
 }) => {
     const { data: sales, error: fetchSalesError } = await supabaseAdmin
         .from('sales')
@@ -60,7 +62,7 @@ export const addNoteToContact = async ({
             await supabaseAdmin
                 .from('companies')
                 .select('*')
-                .eq('name', domain)
+                .eq('name', companyName)
                 .maybeSingle();
         if (fetchCompanyError)
             return new Response(
@@ -76,7 +78,11 @@ export const addNoteToContact = async ({
             const { data: newCompanies, error: createCompanyError } =
                 await supabaseAdmin
                     .from('companies')
-                    .insert({ name: domain, sales_id: sales.id })
+                    .insert({
+                        name: companyName,
+                        website: `https://${domain}`,
+                        sales_id: sales.id,
+                    })
                     .select();
             if (createCompanyError)
                 return new Response(
