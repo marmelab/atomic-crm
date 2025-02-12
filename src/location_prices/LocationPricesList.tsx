@@ -42,6 +42,8 @@ import {
 } from '@mui/material';
 import { Card, CardContent, Stack, Divider, Box } from '@mui/material';
 
+import { LocationPricesAside } from './LocationPricesAside';
+
 import { StandardCSSProperties } from '@mui/system/styleFunctionSx';
 
 import { Link } from 'react-router-dom';
@@ -482,12 +484,20 @@ export const LocationTabPriceList = (props: {
             filter={filter}
             actions={
                 <TopToolbar>
-                    <CreateRelatedLocation
-                        pathname={pathname}
-                        company_id={company_id}
-                        location_id={location_id}
-                    />
-                    <ExportButton />
+                    <Stack
+                        direction="row"
+                        justifyContent="flex-end"
+                        spacing={2}
+                        mt={1}
+                    >
+                        <LocationPricesAside filter={filter} />
+                        <CreateRelatedLocation
+                            pathname={pathname}
+                            company_id={company_id}
+                            location_id={location_id}
+                        />
+                        <ExportButton />
+                    </Stack>
                 </TopToolbar>
             }
             storeKey={`location_prices:${pathname}`}

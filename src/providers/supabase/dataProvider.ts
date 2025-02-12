@@ -1,4 +1,4 @@
-import { supabaseDataProvider } from 'ra-supabase';
+import { supabaseDataProvider } from './supabaseDataProvider';
 
 import {
     CreateParams,
@@ -7,6 +7,7 @@ import {
     Identifier,
     UpdateParams,
     withLifecycleCallbacks,
+    GetListResult,
 } from 'react-admin';
 import {
     Contact,
@@ -84,20 +85,34 @@ async function processContactAvatar(
 const dataProviderWithCustomMethods = {
     ...baseDataProvider,
     async getList(resource: string, params: GetListParams) {
+        let data: GetListResult<any>;
+
         if (resource === 'companies') {
-            return baseDataProvider.getList('companies_summary', params);
-        }
-        if (resource === 'contacts') {
-            return baseDataProvider.getList('contacts_summary', params);
-        }
-        if (resource === 'location_prices') {
-            return baseDataProvider.getList('location_prices_summary', params);
-        }
-        if (resource === 'commodities') {
-            return baseDataProvider.getList('commodities_summary', params);
+            data = await baseDataProvider.getList('companies_summary', params);
+        } else if (resource === 'contacts') {
+            data = await baseDataProvider.getList('contacts_summary', params);
+        } else if (resource === 'location_prices') {
+            data = await baseDataProvider.getList(
+                'location_prices_summary',
+                params
+            );
+        } else if (resource === 'commodities') {
+            data = await baseDataProvider.getList(
+                'commodities_summary',
+                params
+            );
+        } else data = await baseDataProvider.getList(resource, params);
+
+        if (data.data && data.data.length > 0) {
+            data.data = data.data.map(v => {
+                if (v.id === undefined) {
+                    const { _row_count, ...rest } = v;
+                    return { ...v, id: JSON.stringify(rest) };
+                } else return v;
+            });
         }
 
-        return baseDataProvider.getList(resource, params);
+        return data;
     },
     async getOne(resource: string, params: any) {
         if (resource === 'companies') {
