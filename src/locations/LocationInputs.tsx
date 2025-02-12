@@ -78,6 +78,11 @@ const LocationCompanyInputs = () => {
                     optionText="name"
                     onCreate={handleCreateCompany}
                     helperText={false}
+                    filterToQuery={(q: string) => {
+                        return {
+                            'name@ilike': q,
+                        };
+                    }}
                 />
             </ReferenceInput>
         </Stack>

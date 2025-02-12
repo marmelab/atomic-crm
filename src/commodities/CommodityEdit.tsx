@@ -60,6 +60,11 @@ export const CommodityEdit = () => {
                                 optionText="name"
                                 onCreate={handleCreate}
                                 helperText={false}
+                                filterToQuery={(q: string) => {
+                                    return {
+                                        'name@ilike': q,
+                                    };
+                                }}
                             />
                         </ReferenceInput>
                         <BooleanInput source="active" />

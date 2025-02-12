@@ -116,7 +116,13 @@ export const LocationPricesCreate = () => {
                                         <AutocompleteInput
                                             optionText="name"
                                             helperText={false}
-                                            disabled
+                                            disabled={company_id !== undefined}
+                                            source="name"
+                                            filterToQuery={(q: string) => {
+                                                return {
+                                                    'name@ilike': q,
+                                                };
+                                            }}
                                         />
                                     </ReferenceInput>
 
@@ -138,6 +144,11 @@ export const LocationPricesCreate = () => {
                                                     : undefined
                                             }
                                             disabled={location_id !== undefined}
+                                            filterToQuery={(q: string) => {
+                                                return {
+                                                    'name@ilike': q,
+                                                };
+                                            }}
                                         />
                                     </ReferenceInput>
                                 </Stack>
@@ -158,6 +169,7 @@ export const MaterialEditFields = (props: { active_commodities: boolean }) => {
     const filter = props.active_commodities
         ? {
               active: true,
+              material_is_active: true,
           }
         : {};
 
@@ -175,6 +187,14 @@ export const MaterialEditFields = (props: { active_commodities: boolean }) => {
                         }}
                         helperText={false}
                         validate={required()}
+                        filterToQuery={(q: string) => {
+                            return {
+                                '@or': {
+                                    'material_name@ilike': q,
+                                    'name@ilike': q,
+                                },
+                            };
+                        }}
                     />
                 </ReferenceInput>
 

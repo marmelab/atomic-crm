@@ -63,6 +63,11 @@ export const CreateFee = () => {
                     <AutocompleteInput
                         optionText="name"
                         helperText="only active materials are displayed that are not yet used for this company"
+                        filterToQuery={(q: string) => {
+                            return {
+                                'name@ilike': q,
+                            };
+                        }}
                     />
                 </ReferenceInput>
 

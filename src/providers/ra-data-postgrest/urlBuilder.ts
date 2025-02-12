@@ -235,7 +235,7 @@ export const parseFilters = (
                     filterExpressions.push(...val.map(v => [op, v].join('.')));
                 else filterExpressions.push([op, val].join('.'));
             });
-            f.queryString = `${f.operation}.(${filterExpressions.join(',')})`;
+            f.queryString = `(${filterExpressions.join(',')})`;
         } else if (f.operation === '') {
             f.values = escape(f.values);
             if (f.values === undefined) return;
@@ -272,35 +272,6 @@ export const parseFilters = (
 
     return result;
 };
-
-const filter = {
-    q1: 'foo',
-    'q2@ilike': 'bar',
-    'q3@like': 'baz qux',
-    'q4@gt': 'c',
-    'q5@cs': '{foo}',
-    'q6@cs': '{foo,bar}',
-    'q7@cd': '{foo}',
-    'q8@cd': '{foo,bar}',
-    q9: { 'foo@ilike': 'bar' },
-    q10: { 'foo@like': 'baz qux' },
-    q11: { 'foo@gt': 'c' },
-    q12: { 'foo@cs': '{bar}' },
-    q13: { 'foo@cs': '{foo,bar}' },
-    q14: { 'foo@cd': '{bar}' },
-    q15: { 'foo@cd': '{foo,bar}' },
-    q16: { foo: { 'bar@cs': '{foo,bar}' } },
-    'q17@cd': '["foo","bar"]',
-    'q18@cd': JSON.stringify({ foo: 'bar' }),
-    '@or': {
-        'age@lt': 18,
-        'age@gt': 21,
-        q1: 'foo',
-        'q2@ilike': 'bar',
-        'q3@like': 'baz qux',
-        'q4@gt': 'c',
-    },
-} as any;
 
 // compound keys capability
 export type PrimaryKey = Array<string>;

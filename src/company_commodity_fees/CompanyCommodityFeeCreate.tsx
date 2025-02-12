@@ -61,8 +61,18 @@ export const CreateFee = () => {
                     }}
                 >
                     <AutocompleteInput
-                        optionText="name"
+                        optionText={v => {
+                            return `${v.material_name} | ${v.name}`;
+                        }}
                         helperText="only active commodities are displayed that are not yet used for this company"
+                        filterToQuery={(q: string) => {
+                            return {
+                                '@or': {
+                                    'material_name@ilike': q,
+                                    'name@ilike': q,
+                                },
+                            };
+                        }}
                     />
                 </ReferenceInput>
 

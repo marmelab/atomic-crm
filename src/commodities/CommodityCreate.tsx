@@ -57,6 +57,11 @@ export const CommodityCreate = () => {
                                 optionText="name"
                                 onCreate={handleCreate}
                                 helperText={false}
+                                filterToQuery={(q: string) => {
+                                    return {
+                                        'name@ilike': q,
+                                    };
+                                }}
                             />
                         </ReferenceInput>
                     </CardContent>
