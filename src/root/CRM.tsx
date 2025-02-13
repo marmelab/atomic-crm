@@ -23,6 +23,8 @@ import company_commodity_fees from '../company_commodity_fees';
 import commodities from '../commodities';
 import location_prices from '../location_prices';
 import contacts from '../contacts';
+import { Quote } from '../quote';
+
 import { Dashboard } from '../dashboard/Dashboard';
 import deals from '../deals';
 import { LoginPage } from '../login/LoginPage';
@@ -194,6 +196,7 @@ export const CRM = ({
                         path={SettingsPage.path}
                         element={<SettingsPage />}
                     />
+                    <Route path={'/quote'} element={<Quote />} />
                 </CustomRoutes>
                 <Resource name="deals" {...deals} />
                 <Resource name="contacts" {...contacts} />
