@@ -14,9 +14,12 @@ import {
     TextInput,
     useListFilterContext,
     Form,
+    Link,
 } from 'react-admin';
 
 import { useForm, FormProvider, useFormContext } from 'react-hook-form';
+
+import { To } from 'react-router';
 
 import omit from 'lodash/omit';
 
@@ -127,6 +130,23 @@ const LastUpdated = (_props: TextFieldProps) => {
     );
 };
 
+const TextWithLink = (
+    props: TextFieldProps & { to: To | ((record: any) => To) }
+) => {
+    const record = useRecordContext();
+    if (!record) return null;
+
+    const { to: toProp, ...rest } = props;
+
+    const to = typeof toProp === 'function' ? toProp(record) : toProp;
+
+    return (
+        <Link to={to} underline="none">
+            <TextField {...rest} />
+        </Link>
+    );
+};
+
 const QuoteView = () => {
     const { filterValues } = useListFilterContext();
 
@@ -185,14 +205,13 @@ const QuoteView = () => {
                 <MarketForm markets={markets.data} />
             </Form>
             <Datagrid>
-                <TextField source="company_name" />
-                <TextField source="location_name" />
-                <BooleanField
-                    source="location_is_active"
-                    label="Active Location?"
-                    sx={{
-                        '& .RaBooleanField-falseIcon': { color: 'red' },
-                    }}
+                <TextWithLink
+                    source="company_name"
+                    to={v => `/companies/${v.company_id}/show/sale_prices`}
+                />
+                <TextWithLink
+                    source="location_name"
+                    to={v => `/locations/${v.location_id}/show/sale_prices`}
                 />
                 <TextField source="material_name" />
                 <TextField source="commodity_name" />
@@ -202,12 +221,6 @@ const QuoteView = () => {
                 <ValueField source="price_value" label="Price" />
                 <ValueField source="market_price_fix" label="Fixed Market" />
                 <LastUpdated source="validation_date" label="Up to date?" />
-                <BooleanField
-                    source="active"
-                    sx={{
-                        '& .RaBooleanField-falseIcon': { color: 'red' },
-                    }}
-                />
             </Datagrid>{' '}
         </>
     );
@@ -291,7 +304,7 @@ const filter = {
     material_is_active: true,
     commodity_is_active: true,
     active: true,
-    'validation_date_age@lte': 24,
+    // 'validation_date_age@lte': 24,
 };
 
 export const Quote = () => {

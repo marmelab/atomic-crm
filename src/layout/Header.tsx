@@ -101,6 +101,12 @@ const Header = () => {
                                     to="/materials"
                                     value="/materials"
                                 />
+                                <Tab
+                                    label={'Quotes'}
+                                    component={Link}
+                                    to="/quote"
+                                    value="/quote"
+                                />
                                 {/* <Tab
                                     label={'Deals'}
                                     component={Link}
