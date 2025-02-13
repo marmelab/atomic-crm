@@ -221,6 +221,12 @@ const QuoteView = () => {
                 <ValueField source="price_value" label="Price" />
                 <ValueField source="market_price_fix" label="Fixed Market" />
                 <LastUpdated source="validation_date" label="Up to date?" />
+                <BooleanField
+                    source="active"
+                    sx={{
+                        '& .RaBooleanField-falseIcon': { color: 'red' },
+                    }}
+                />
             </Datagrid>{' '}
         </>
     );
@@ -303,7 +309,6 @@ const filter = {
     location_is_active: true,
     material_is_active: true,
     commodity_is_active: true,
-    active: true,
     // 'validation_date_age@lte': 24,
 };
 
