@@ -9,6 +9,8 @@ import {
     withLifecycleCallbacks,
 } from 'react-admin';
 import {
+    Call,
+    CallData,
     Contact,
     ContactNote,
     Deal,
@@ -157,6 +159,19 @@ const dataProviderWithCustomMethods = {
         if (!data || error) {
             console.error('salesCreate.error', error);
             throw new Error('Failed to create account manager');
+        }
+
+        return data;
+    },
+    async createCall(body: CallData) {
+        const { data, error } = await supabase.functions.invoke<Call>('calls', {
+            method: 'POST',
+            body,
+        });
+
+        if (!data || error) {
+            console.error('call.error', error);
+            throw new Error('Failed to initiate a phone call');
         }
 
         return data;

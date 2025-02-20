@@ -1,7 +1,14 @@
 import EmailIcon from '@mui/icons-material/Email';
 import LinkedInIcon from '@mui/icons-material/LinkedIn';
 import PhoneIcon from '@mui/icons-material/Phone';
-import { Box, Divider, Stack, SvgIcon, Typography } from '@mui/material';
+import {
+    Box,
+    Button,
+    Divider,
+    Stack,
+    SvgIcon,
+    Typography,
+} from '@mui/material';
 import {
     ArrayField,
     DateField,
@@ -16,6 +23,7 @@ import {
     SingleFieldList,
     TextField,
     UrlField,
+    useDataProvider,
     useRecordContext,
     WithRecord,
 } from 'react-admin';
@@ -25,12 +33,47 @@ import { TagsListEdit } from './TagsListEdit';
 
 import { useLocation } from 'react-router';
 import { useConfigurationContext } from '../root/ConfigurationContext';
-import { Contact, Sale } from '../types';
-import { ReactNode } from 'react';
+import { CallData, Contact, Sale } from '../types';
+import { ReactNode, useCallback } from 'react';
+import { CrmDataProvider } from '../providers/types';
+
+import { useMutation } from '@tanstack/react-query';
 
 export const ContactAside = ({ link = 'edit' }: { link?: 'edit' | 'show' }) => {
     const location = useLocation();
     const { contactGender } = useConfigurationContext();
+    const dataProvider = useDataProvider<CrmDataProvider>(); //
+
+    const { mutate, error } = useMutation({
+        mutationKey: ['createCall'],
+        mutationFn: async (data: CallData) => {
+            return dataProvider.createCall(data); //
+        },
+    });
+
+    const initiateCall = useCallback(
+        (recipientId: number, phoneNumber: string) => {
+            if (!recipientId || !phoneNumber) {
+                alert('Please enter recipient ID and phone number');
+                return;
+            }
+
+            mutate({
+                recipient_id: recipientId,
+                phone_number: phoneNumber,
+                caller_id: 1,
+            });
+
+            if (error) {
+                console.error('Error initiating call:', error);
+                alert('Failed to initiate call');
+            } else {
+                alert('Call initiated successfully!');
+            }
+        },
+        [mutate, error]
+    );
+
     const record = useRecordContext<Contact>();
     if (!record) return null;
     return (
@@ -75,9 +118,11 @@ export const ContactAside = ({ link = 'edit' }: { link?: 'edit' | 'show' }) => {
             <ArrayField source="phone_jsonb">
                 <SingleFieldList linkType={false} gap={0} direction="column">
                     <PersonalInfoRow
-                        icon={<PhoneIcon color="disabled" fontSize="small" />}
+                        icon={<PhoneIcon color="success" fontSize="small" />}
                         primary={<TextField source="number" />}
                         showType
+                        initiateCall={initiateCall}
+
                     />
                 </SingleFieldList>
             </ArrayField>
@@ -174,24 +219,35 @@ const PersonalInfoRow = ({
     icon,
     primary,
     showType,
+    initiateCall,
 }: {
     icon: ReactNode;
     primary: ReactNode;
     showType?: boolean;
+    initiateCall?: (recipientId: number, phoneNumber: string) => void;
 }) => (
     <Stack direction="row" alignItems="center" gap={1} minHeight={24}>
         {icon}
-        <Box display="flex" flexWrap="wrap" columnGap={0.5} rowGap={0}>
-            {primary}
-            {showType ? (
-                <WithRecord
-                    render={row =>
-                        row.type !== 'Other' && (
-                            <TextField source="type" color="textSecondary" />
-                        )
-                    }
-                />
-            ) : null}
-        </Box>
+        <Button
+            onClick={() => {
+                initiateCall && initiateCall(1, '0764671415');
+            }}
+        >
+            <Box display="flex" flexWrap="wrap" columnGap={0.5} rowGap={0}>
+                {primary}
+                {showType ? (
+                    <WithRecord
+                        render={row =>
+                            row.type !== 'Other' && (
+                                <TextField
+                                    source="type"
+                                    color="textSecondary"
+                                />
+                            )
+                        }
+                    />
+                ) : null}
+            </Box>
+        </Button>
     </Stack>
 );

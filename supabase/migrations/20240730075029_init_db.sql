@@ -138,6 +138,21 @@ create table public.tenants (
     name text not null,
     created_at timestamp with time zone default now()
 );
+
+create table public.calls (
+    id UUID DEFAULT gen_random_uuid() not null,
+    recipient_id bigint not null,
+    caller_id bigint not null,
+    phone_number  text not null,
+    created_at timestamp with time zone default now()
+);
+
+create table public."callDetail" (
+    id UUID DEFAULT gen_random_uuid() not null,
+    call_id uuid not null,
+    duration timestamp with time zone default now()
+);
+
 CREATE UNIQUE INDEX companies_pkey ON public.companies USING btree (id);
 
 CREATE UNIQUE INDEX "contactNotes_pkey" ON public."contactNotes" USING btree (id);
@@ -155,6 +170,12 @@ CREATE UNIQUE INDEX tags_pkey ON public.tags USING btree (id);
 CREATE UNIQUE INDEX tasks_pkey ON public.tasks USING btree (id);
 
 CREATE UNIQUE INDEX tenants_pkey ON public.tenants USING btree (id);
+
+CREATE UNIQUE INDEX calls_pkey ON public.calls USING btree (id);
+
+CREATE UNIQUE INDEX "callDetail_pkey" ON public."callDetail" USING btree (id);
+
+
 
 
 alter table "public"."companies" add constraint "companies_pkey" PRIMARY KEY using index "companies_pkey";
@@ -175,6 +196,9 @@ alter table "public"."tasks" add constraint "tasks_pkey" PRIMARY KEY using index
 
 alter table "public"."tenants" add constraint "tenants_pkey" PRIMARY KEY using index "tenants_pkey";
 
+alter table "public"."calls" add constraint "calls_pkey" PRIMARY KEY using index "calls_pkey";
+
+alter table "public"."callDetail" add constraint "callDetail_pkey" PRIMARY KEY using index "callDetail_pkey";
 
 
 
@@ -224,6 +248,13 @@ alter table "public"."tasks" validate constraint "tasks_contact_id_fkey";
 
 alter table "public"."sales" add constraint "sales_tenant_id_fkey" FOREIGN KEY (tenant_id) REFERENCES tenants(id) not valid;
    
+alter table "public"."calls" add constraint "calls_recipient_id_fkey" FOREIGN KEY (recipient_id) REFERENCES contacts(id) not valid;
+
+alter table "public"."calls" add constraint "calls_caller_id_fkey" FOREIGN KEY (caller_id) REFERENCES sales(id) not valid;
+
+alter table "public"."callDetail" add constraint "callDetail_call_id_fkey" FOREIGN KEY (call_id) REFERENCES calls(id) not valid;
+
+
 
 set check_function_bodies = off;
 
