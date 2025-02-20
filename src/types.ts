@@ -9,6 +9,7 @@ import {
 } from './consts';
 
 export type SignUpData = {
+    organization_name: string;
     email: string;
     password: string;
     first_name: string;
@@ -32,6 +33,7 @@ export type Sale = {
     avatar?: RAFile;
     disabled?: boolean;
     user_id: string;
+    tenant_id: string;
 
     /**
      * This is a copy of the user's email, to make it easier to handle by react admin
@@ -150,6 +152,11 @@ export type Task = {
     due_date: string;
     done_date?: string | null;
     sales_id?: Identifier;
+} & Pick<RaRecord, 'id'>;
+
+export type Tenant = {
+    name: string;
+    created_at: string;
 } & Pick<RaRecord, 'id'>;
 
 export type ActivityCompanyCreated = {

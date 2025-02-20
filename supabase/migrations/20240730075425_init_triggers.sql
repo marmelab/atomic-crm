@@ -9,13 +9,14 @@ begin
   select count(id) into sales_count
   from public.sales;
 
-  insert into public.sales (first_name, last_name, email, user_id, administrator)
+  insert into public.sales (first_name, last_name, email, user_id, administrator, tenant_id)
   values (
     new.raw_user_meta_data ->> 'first_name', 
     new.raw_user_meta_data ->> 'last_name', 
     new.email, 
     new.id, 
-    case when sales_count > 0 then FALSE else TRUE end
+    case when sales_count > 0 then FALSE else TRUE end,
+    (new.raw_user_meta_data ->> 'tenant_id')::uuid
   );
   return new;
 end;
