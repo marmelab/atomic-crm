@@ -84,6 +84,12 @@ const Header = () => {
                                     value="/contacts"
                                 />
                                 <Tab
+                                    label={'Candidates'}
+                                    component={Link}
+                                    to="/contacts"
+                                    value="/contacts"
+                                />
+                                <Tab
                                     label={'Companies'}
                                     component={Link}
                                     to="/companies"

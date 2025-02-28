@@ -224,3 +224,107 @@ export interface ContactGender {
     label: string;
     icon: SvgIconComponent;
 }
+
+// Changes to add a candidate type  ==========================================
+// Start changes
+
+export type EducationEntry = {
+    institution: string;
+    degree: string;
+    field_of_study: string;
+    start_date: string;
+    end_date: string | null; // null if currently studying
+    description?: string;
+};
+
+export type WorkExperienceEntry = {
+    company: string;
+    position: string;
+    start_date: string;
+    end_date: string | null; // null if current position
+    description: string;
+    location?: string;
+};
+
+export type Skill = {
+    name: string;
+    level: 'Beginner' | 'Intermediate' | 'Advanced' | 'Expert';
+    years_experience?: number;
+};
+
+export type AvailabilityStatus = 'Immediately' | 'Two Weeks' | 'One Month' | 'Three Months' | 'Custom';
+
+export type Candidate = {
+    // Base information (similar to Contact)
+    first_name: string;
+    last_name: string;
+    title: string; // Job title
+    email_jsonb: EmailAndType[];
+    phone_jsonb: PhoneNumberAndType[];
+    avatar?: Partial<RAFile>;
+    linkedin_url?: string | null;
+    gender: string;
+    sales_id: Identifier; // Recruiter ID
+    status: string; // Application status
+    background: string; // General notes
+    
+    last_seen: string;
+    // Resume-specific information
+    resume: RAFile; // The actual resume file
+    cover_letter?: RAFile;
+    
+    // Education and Experience
+    education_jsonb: EducationEntry[];
+    work_experience_jsonb: WorkExperienceEntry[];
+    
+    // Skills and qualifications
+    skills: Skill[];
+    certifications?: string[]; // List of certifications
+    languages?: { language: string; proficiency: string }[];
+    
+    // Availability and expectations
+    availability_status: AvailabilityStatus;
+    availability_date?: string; // Specific date if custom
+    salary_expectation_min?: number;
+    salary_expectation_max?: number;
+    salary_currency?: string; // USD, EUR, etc.
+    willing_to_relocate: boolean;
+    preferred_locations?: string[];
+    
+    // Job matching
+    job_types?: ('Full-time' | 'Part-time' | 'Contract' | 'Temporary' | 'Internship')[];
+    remote_preference?: 'Remote' | 'Hybrid' | 'On-site' | 'Flexible';
+    
+    // Application tracking
+    source: string; // Where the candidate was sourced from
+    applied_jobs?: Identifier[]; // Jobs the candidate has applied to
+    interview_history?: {
+        date: string;
+        job_id: Identifier;
+        interviewer_id: Identifier;
+        notes: string;
+        status: string;
+    }[];
+    
+    // Metadata
+    created_at: string;
+    updated_at: string;
+    last_contact_date?: string;
+    
+    // References
+    references?: {
+        name: string;
+        company: string;
+        position: string;
+        email: string;
+        phone?: string;
+        relationship: string;
+    }[];
+    
+    // Additional fields for compatibility
+    company_id?: Identifier; // If associated with a company
+    tags?: Identifier[]; // Tags for categorization
+    nb_tasks?: number;
+} & Pick<RaRecord, 'id'>;
+
+// End changes
