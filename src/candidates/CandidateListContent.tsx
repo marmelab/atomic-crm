@@ -77,7 +77,6 @@ export const CandidateListContent = () => {
                                     primary={`${candidate.first_name} ${candidate.last_name ?? ''}`}
                                     secondary={
                                         <>
-                                            {candidate.full_name}
                                             {candidate.working_years && ` • ${candidate.working_years} years exp`}
                                             {candidate.education_level && ` • ${candidate.education_level}`}
                                             &nbsp;&nbsp;
