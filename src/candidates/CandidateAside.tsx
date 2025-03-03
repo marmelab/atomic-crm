@@ -44,7 +44,7 @@ export const CandidateAside = ({ link = 'edit' }: { link?: 'edit' | 'show' }) =>
             </Box>
             <Typography variant="subtitle2">Personal info</Typography>
             <Divider sx={{ mb: 2 }} />
-            <ArrayField source="email_jsonb">
+            <ArrayField source="emails">
                 <SingleFieldList linkType={false} gap={0} direction="column">
                     <PersonalInfoRow
                         icon={<EmailIcon color="disabled" fontSize="small" />}
@@ -67,7 +67,7 @@ export const CandidateAside = ({ link = 'edit' }: { link?: 'edit' | 'show' }) =>
                     }
                 />
             )}
-            <ArrayField source="phone_jsonb">
+            <ArrayField source="phone_numbers">
                 <SingleFieldList linkType={false} gap={0} direction="column">
                     <PersonalInfoRow
                         icon={<PhoneIcon color="disabled" fontSize="small" />}
@@ -76,90 +76,85 @@ export const CandidateAside = ({ link = 'edit' }: { link?: 'edit' | 'show' }) =>
                     />
                 </SingleFieldList>
             </ArrayField>
-            <SelectField
-                source="gender"
-                choices={contactGender}
-                optionText={choice => (
-                    <PersonalInfoRow
-                        icon={
-                            <SvgIcon
-                                component={choice.icon}
-                                color="disabled"
-                                fontSize="small"
-                            />
-                        }
-                        primary={<span>{choice.label}</span>}
-                    />
+
+            <Typography variant="subtitle2" mt={2}>
+                Skills & Experience
+            </Typography>
+            <Divider />
+            <Box mt={1}>
+                <Typography variant="body2">
+                    {record.working_years} years of experience
+                </Typography>
+                <Typography variant="body2">
+                    Education: {record.education_level}
+                </Typography>
+                {record.programming_languages && record.programming_languages.length > 0 && (
+                    <Typography variant="body2">
+                        Languages: {record.programming_languages.join(', ')}
+                    </Typography>
                 )}
-                optionValue="value"
-            />
+            </Box>
+
+            <Typography variant="subtitle2" mt={2}>
+                Hiring Status
+            </Typography>
+            <Divider />
+            <Box mt={1}>
+                <Typography variant="body2">
+                    Stage: {record.hiring_stage}
+                </Typography>
+                <Typography variant="body2">
+                    Available: {record.availability_status}
+                    {record.availability_date && ` (${new Date(record.availability_date).toLocaleDateString()})`}
+                </Typography>
+                {record.salary_expectation_min && record.salary_expectation_max && (
+                    <Typography variant="body2">
+                        Expected Salary: ${record.salary_expectation_min.toLocaleString()} - ${record.salary_expectation_max.toLocaleString()}
+                    </Typography>
+                )}
+            </Box>
+
             <Typography variant="subtitle2" mt={2}>
                 Background info
             </Typography>
             <Divider />
             <Typography variant="body2" mt={2}>
-                {record && record.background}
+                {record.background}
             </Typography>
+
             <Box mt={1} mb={3}>
-                <Typography
-                    component="span"
-                    variant="body2"
-                    color="textSecondary"
-                >
-                    Added on
-                </Typography>{' '}
-                <DateField
-                    source="first_seen"
-                    options={{ year: 'numeric', month: 'long', day: 'numeric' }}
-                    color="textSecondary"
-                />
-                <br />
-                <Typography
-                    component="span"
-                    variant="body2"
-                    color="textSecondary"
-                >
-                    Last activity on
-                </Typography>{' '}
-                <DateField
-                    source="last_seen"
-                    options={{ year: 'numeric', month: 'long', day: 'numeric' }}
-                    color="textSecondary"
-                />
-                <br />
-                <Typography
-                    component="span"
-                    variant="body2"
-                    color="textSecondary"
-                >
-                    Followed by
-                </Typography>{' '}
-                <ReferenceField source="sales_id" reference="sales">
-                    <FunctionField<Sale>
-                        source="last_name"
-                        render={record =>
-                            `${record.first_name} ${record.last_name}`
-                        }
+                <Typography variant="body2" color="textSecondary">
+                    Added on{' '}
+                    <DateField
+                        source="created_at"
+                        options={{ year: 'numeric', month: 'long', day: 'numeric' }}
                     />
-                </ReferenceField>
+                </Typography>
+                <Typography variant="body2" color="textSecondary">
+                    Last updated{' '}
+                    <DateField
+                        source="updated_at"
+                        options={{ year: 'numeric', month: 'long', day: 'numeric' }}
+                    />
+                </Typography>
+                <Typography variant="body2" color="textSecondary">
+                    Recruiter:{' '}
+                    <ReferenceField source="sales_id" reference="sales">
+                        <FunctionField<Sale>
+                            render={record =>
+                                `${record.first_name} ${record.last_name}`
+                            }
+                        />
+                    </ReferenceField>
+                </Typography>
             </Box>
+
             <Box mb={3}>
                 <Typography variant="subtitle2">Tags</Typography>
                 <Divider />
                 <TagsListEdit />
             </Box>
-            <Box mb={3}>
-                <Typography variant="subtitle2">Tasks</Typography>
-                <Divider />
-                <ReferenceManyField
-                    target="contact_id"
-                    reference="tasks"
-                    sort={{ field: 'due_date', order: 'ASC' }}
-                >
-                    <TasksIterator />
-                </ReferenceManyField>
-                <AddTask />
-            </Box>
+
             <DeleteButton redirect={location.state?.from || undefined} />
         </Box>
     );

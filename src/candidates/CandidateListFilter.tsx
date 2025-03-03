@@ -11,20 +11,19 @@ import { Box, Chip } from '@mui/material';
 import AccessTimeIcon from '@mui/icons-material/AccessTime';
 import TrendingUpIcon from '@mui/icons-material/TrendingUp';
 import LocalOfferIcon from '@mui/icons-material/LocalOffer';
-import AssignmentTurnedInIcon from '@mui/icons-material/AssignmentTurnedIn';
+import SchoolIcon from '@mui/icons-material/School';
+import CodeIcon from '@mui/icons-material/Code';
+import WorkIcon from '@mui/icons-material/Work';
 import SupervisorAccountIcon from '@mui/icons-material/SupervisorAccount';
-import { endOfYesterday, startOfWeek, startOfMonth, subMonths } from 'date-fns';
-
-import { Status } from '../misc/Status';
-import { useConfigurationContext } from '../root/ConfigurationContext';
+import { ProgrammingLanguage } from '../types';
 
 export const CandidateListFilter = () => {
-    const { noteStatuses } = useConfigurationContext();
     const { identity } = useGetIdentity();
-    const { data } = useGetList('tags', {
+    const { data: tags } = useGetList('tags', {
         pagination: { page: 1, perPage: 10 },
         sort: { field: 'name', order: 'ASC' },
     });
+
     return (
         <Box width="13em" minWidth="13em" order={-1} mr={2} mt={5}>
             <FilterLiveSearch
@@ -33,92 +32,124 @@ export const CandidateListFilter = () => {
                     display: 'block',
                     '& .MuiFilledInput-root': { width: '100%' },
                 }}
-                placeholder="Search name, company, etc."
+                placeholder="Search name, skills, etc."
             />
-            <FilterList label="Last activity" icon={<AccessTimeIcon />}>
+
+            <FilterList label="Hiring Stage" icon={<TrendingUpIcon />}>
                 <FilterListItem
-                    label="Today"
-                    value={{
-                        'last_seen@gte': endOfYesterday().toISOString(),
-                        'last_seen@lte': undefined,
-                    }}
+                    label="New"
+                    value={{ hiring_stage: 'New' }}
                 />
                 <FilterListItem
-                    label="This week"
-                    value={{
-                        'last_seen@gte': startOfWeek(new Date()).toISOString(),
-                        'last_seen@lte': undefined,
-                    }}
+                    label="Screening"
+                    value={{ hiring_stage: 'Screening' }}
                 />
                 <FilterListItem
-                    label="Before this week"
-                    value={{
-                        'last_seen@gte': undefined,
-                        'last_seen@lte': startOfWeek(new Date()).toISOString(),
-                    }}
+                    label="Interview"
+                    value={{ hiring_stage: 'Interview' }}
                 />
                 <FilterListItem
-                    label="Before this month"
-                    value={{
-                        'last_seen@gte': undefined,
-                        'last_seen@lte': startOfMonth(new Date()).toISOString(),
-                    }}
+                    label="Technical"
+                    value={{ hiring_stage: 'Technical' }}
                 />
                 <FilterListItem
-                    label="Before last month"
-                    value={{
-                        'last_seen@gte': undefined,
-                        'last_seen@lte': subMonths(
-                            startOfMonth(new Date()),
-                            1
-                        ).toISOString(),
-                    }}
+                    label="Offer"
+                    value={{ hiring_stage: 'Offer' }}
                 />
             </FilterList>
-            <FilterList label="Status" icon={<TrendingUpIcon />}>
-                {noteStatuses.map(status => (
+
+            <FilterList label="Experience" icon={<WorkIcon />}>
+                <FilterListItem
+                    label="Junior (0-2 years)"
+                    value={{ 'working_years@lte': 2 }}
+                />
+                <FilterListItem
+                    label="Mid (3-5 years)"
+                    value={{ 'working_years@gte': 3, 'working_years@lte': 5 }}
+                />
+                <FilterListItem
+                    label="Senior (6+ years)"
+                    value={{ 'working_years@gte': 6 }}
+                />
+            </FilterList>
+
+            <FilterList label="Education" icon={<SchoolIcon />}>
+                <FilterListItem
+                    label="High School"
+                    value={{ education_level: 'high_school' }}
+                />
+                <FilterListItem
+                    label="Bachelor's"
+                    value={{ education_level: 'bachelors' }}
+                />
+                <FilterListItem
+                    label="Master's"
+                    value={{ education_level: 'masters' }}
+                />
+                <FilterListItem
+                    label="PhD"
+                    value={{ education_level: 'phd' }}
+                />
+            </FilterList>
+
+            <FilterList label="Programming" icon={<CodeIcon />}>
+                {Object.values(ProgrammingLanguage).map((lang: ProgrammingLanguage) => (
                     <FilterListItem
-                        key={status.value}
-                        label={
-                            <>
-                                {status.label} <Status status={status.value} />
-                            </>
-                        }
-                        value={{ status: status.value }}
+                        key={lang}
+                        label={lang}
+                        value={{ 'programming_languages@contains': lang }}
                     />
                 ))}
             </FilterList>
+
+            <FilterList label="Availability" icon={<AccessTimeIcon />}>
+                <FilterListItem
+                    label="Immediate"
+                    value={{ availability_status: 'Immediately' }}
+                />
+                <FilterListItem
+                    label="Two Weeks"
+                    value={{ availability_status: 'Two Weeks' }}
+                />
+                <FilterListItem
+                    label="One Month"
+                    value={{ availability_status: 'One Month' }}
+                />
+                <FilterListItem
+                    label="Three Months"
+                    value={{ availability_status: 'Three Months' }}
+                />
+            </FilterList>
+
             <FilterList label="Tags" icon={<LocalOfferIcon />}>
-                {data &&
-                    data.map(record => (
+                {tags &&
+                    tags.map(tag => (
                         <FilterListItem
-                            key={record.id}
+                            key={tag.id}
                             label={
                                 <Chip
-                                    label={record?.name}
+                                    label={tag.name}
                                     size="small"
                                     style={{
-                                        backgroundColor: record?.color,
+                                        backgroundColor: tag.color,
                                         border: 0,
                                         cursor: 'pointer',
                                     }}
                                 />
                             }
-                            value={{ 'tags@cs': `{${record.id}}` }}
+                            value={{ 'tags@cs': `{${tag.id}}` }}
                         />
                     ))}
             </FilterList>
-            <FilterList label="Tasks" icon={<AssignmentTurnedInIcon />}>
-                <FilterListItem
-                    label="With pending tasks"
-                    value={{ 'nb_tasks@gt': 0 }}
-                />
-            </FilterList>
+
             <FilterList
-                label="Account manager"
+                label="Recruiter"
                 icon={<SupervisorAccountIcon />}
             >
-                <FilterListItem label="Me" value={{ sales_id: identity?.id }} />
+                <FilterListItem 
+                    label="My Candidates" 
+                    value={{ sales_id: identity?.id }} 
+                />
             </FilterList>
         </Box>
     );

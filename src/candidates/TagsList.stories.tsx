@@ -8,14 +8,14 @@ import { random } from 'faker/locale/en_US';
 import { TagsList } from './TagsList';
 import { generateTags } from '../providers/fakerest/dataGenerator/tags';
 import { generateCompanies } from '../providers/fakerest/dataGenerator/companies';
-import { generateContacts } from '../providers/fakerest/dataGenerator/contacts';
+import { generateCandidates } from '../providers/fakerest/dataGenerator/candidates';
 import { Db } from '../providers/fakerest/dataGenerator/types';
 
 const db = {} as Db;
 db.tags = generateTags(db);
 db.companies = generateCompanies(db, 1);
-db.contacts = generateContacts(db, 1);
-db.contacts[0].tags = random.arrayElements(db.tags, 3).map(tag => tag.id);
+db.candidates = generateCandidates(db, 1);
+db.candidates[0].tags = random.arrayElements(db.tags, 3).map(tag => tag.id);
 
 const meta: Meta<typeof TagsList> = {
     component: TagsList,
@@ -27,7 +27,7 @@ const meta: Meta<typeof TagsList> = {
                         <DataProviderContext.Provider
                             value={fakerestDataProvider(db)}
                         >
-                            <RecordContextProvider value={db.contacts[0]}>
+                            <RecordContextProvider value={db.candidates[0]}>
                                 <Story />
                             </RecordContextProvider>
                         </DataProviderContext.Provider>

@@ -42,6 +42,7 @@ import {
     defaultTaskTypes,
     defaultTitle,
 } from './defaultConfiguration';
+import candidates from '../candidates';
 
 // Define the interface for the CRM component props
 export type CRMProps = {
@@ -192,6 +193,7 @@ export const CRM = ({
                 <Resource name="deals" {...deals} />
                 <Resource name="contacts" {...contacts} />
                 <Resource name="companies" {...companies} />
+                <Resource name="candidates" {...candidates} />
                 <Resource name="contactNotes" />
                 <Resource name="dealNotes" />
                 <Resource name="tasks" list={ListGuesser} />

@@ -254,42 +254,136 @@ export type Skill = {
 
 export type AvailabilityStatus = 'Immediately' | 'Two Weeks' | 'One Month' | 'Three Months' | 'Custom';
 
+export interface ProgrammingLanguageSkill {
+    language: ProgrammingLanguage;
+    level:'Beginner' | 'Intermediate' | 'Advanced' | 'Expert';
+    yearsOfExperience: number;
+}
+
+export enum ProgrammingLanguage {
+    JAVASCRIPT = 'JavaScript',
+    TYPESCRIPT = 'TypeScript',
+    PYTHON = 'Python',
+    JAVA = 'Java',
+    CSHARP = 'C#',
+    CPP = 'C++',
+    C = 'C',
+    GO = 'Go',
+    RUST = 'Rust',
+    SWIFT = 'Swift',
+    KOTLIN = 'Kotlin',
+    PHP = 'PHP',
+    RUBY = 'Ruby',
+    SQL = 'SQL',
+    SCALA = 'Scala',
+    R = 'R',
+    DART = 'Dart',
+    PERL = 'Perl',
+    HASKELL = 'Haskell',
+    MATLAB = 'MATLAB'
+    // Add more languages as needed
+}
+
+export enum AITechnology {
+    TENSORFLOW = 'TensorFlow',
+    PYTORCH = 'PyTorch',
+    KERAS = 'Keras',
+    SCIKIT_LEARN = 'Scikit-learn',
+    OPENCV = 'OpenCV',
+    HUGGING_FACE = 'Hugging Face',
+    LANGCHAIN = 'LangChain',
+    OPENAI_API = 'OpenAI API',
+    NLTK = 'NLTK',
+    SPACY = 'spaCy',
+    PANDAS = 'Pandas',
+    NUMPY = 'NumPy',
+    MATPLOTLIB = 'Matplotlib',
+    RAPIDS = 'RAPIDS',
+    TRANSFORMERS = 'Transformers',
+    FASTAI = 'Fast.ai',
+    MLFLOW = 'MLflow',
+    KUBEFLOW = 'Kubeflow',
+    VERTEX_AI = 'Vertex AI',
+    SAGEMAKER = 'SageMaker'
+    // Add more AI technologies as needed
+}
+
+export enum Language {
+    ENGLISH = 'English',
+    SPANISH = 'Spanish',
+    FRENCH = 'French',
+    GERMAN = 'German',
+    CHINESE = 'Chinese',
+    JAPANESE = 'Japanese',
+    KOREAN = 'Korean',
+    RUSSIAN = 'Russian',
+    ARABIC = 'Arabic',
+    PORTUGUESE = 'Portuguese',
+    ITALIAN = 'Italian',
+    HINDI = 'Hindi',
+    // Add more languages as needed
+}
+
+export enum LanguageProficiency {
+    ELEMENTARY = 'Elementary',
+    LIMITED_WORKING = 'Limited Working',
+    PROFESSIONAL_WORKING = 'Professional Working',
+    FULL_PROFESSIONAL = 'Full Professional',
+    FLUENT = 'Fluent',
+    NATIVE = 'Native/Bilingual'
+}
+
+export interface AISkill {
+    technology: AITechnology;
+    yearsOfExperience: number;
+}
+
 export type Candidate = {
     // Base information (similar to Contact)
     first_name: string;
     last_name: string;
+    contact_time: Date;
     title: string; // Job title
-    email_jsonb: EmailAndType[];
-    phone_jsonb: PhoneNumberAndType[];
+    emails: EmailAndType[];
+    phone_numbers: PhoneNumberAndType[];
     avatar?: Partial<RAFile>;
     linkedin_url?: string | null;
     gender: string;
     sales_id: Identifier; // Recruiter ID
-    status: string; // Application status
+    status: string; // Application status   //Action Item - this should be an enum
     background: string; // General notes
-    
+    working_years: number;
+    position_id: string; //Action Item - Remove
+    position_name: string;
     last_seen: string;
     // Resume-specific information
-    resume: RAFile; // The actual resume file
+    resume?: RAFile; // The actual resume file
     cover_letter?: RAFile;
     
     // Education and Experience
+    education_level: string;  //Action Item - this should be an enum
     education_jsonb: EducationEntry[];
     work_experience_jsonb: WorkExperienceEntry[];
     
     // Skills and qualifications
     skills: Skill[];
     certifications?: string[]; // List of certifications
-    languages?: { language: string; proficiency: string }[];
-    
+    languages?: { language: Language; proficiency: LanguageProficiency }[]; 
+    programming_languages?: ProgrammingLanguage[];
+    ai_skills?: AISkill[];
+
     // Availability and expectations
     availability_status: AvailabilityStatus;
     availability_date?: string; // Specific date if custom
+    current_salary?: number;
     salary_expectation_min?: number;
     salary_expectation_max?: number;
     salary_currency?: string; // USD, EUR, etc.
     willing_to_relocate: boolean;
     preferred_locations?: string[];
+    
+    // Communication skills
+    english_level: string;
     
     // Job matching
     job_types?: ('Full-time' | 'Part-time' | 'Contract' | 'Temporary' | 'Internship')[];
@@ -305,6 +399,7 @@ export type Candidate = {
         notes: string;
         status: string;
     }[];
+    contacted: boolean;
     
     // Metadata
     created_at: string;
@@ -320,11 +415,51 @@ export type Candidate = {
         phone?: string;
         relationship: string;
     }[];
-    
+
     // Additional fields for compatibility
     company_id?: Identifier; // If associated with a company
     tags?: Identifier[]; // Tags for categorization
     nb_tasks?: number;
+
+    // Hiring Process
+    hiring_stage: 'New' | 'Screening' | 'Interview' | 'Technical' | 'Offer' | 'Accepted' | 'Rejected' | 'Withdrawn';
+    current_step_due_date?: string; // Next action due date
+    rejection_reason?: string;
+    offer_details?: {
+        offer_date?: string;
+        offer_amount: number;
+        offer_currency: string;
+        benefits: string[];
+        bonus_structure?: string;
+        equity?: string;
+        proposed_start_date?: string;
+        offer_expiration_date: string;
+        offer_status: 'Draft' | 'Sent' | 'Accepted' | 'Negotiating' | 'Declined';
+    };
+    background_check?: {
+        status: 'Not Started' | 'In Progress' | 'Completed' | 'Failed';
+        completion_date?: string;
+        notes?: string;
+    };
+    onboarding_status?: {
+        documents_submitted: boolean;
+        document_checklist: {
+            document_name: string;
+            required: boolean;
+            received: boolean;
+            verification_status?: 'Pending' | 'Verified' | 'Rejected';
+        }[];
+        start_date?: string;
+    };
+    internal_notes?: {
+        date: string;
+        author_id: Identifier;
+        content: string;
+        category: 'Interview' | 'Salary' | 'Background Check' | 'General';
+    }[];
 } & Pick<RaRecord, 'id'>;
 
+
+
 // End changes
+

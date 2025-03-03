@@ -3,7 +3,7 @@ import { useDataProvider, useGetIdentity } from 'react-admin';
 import type { DataProvider } from 'react-admin';
 import type { Company, Tag } from '../types';
 
-export type ContactImportSchema = {
+export type CandidateImportSchema = {
     first_name: string;
     last_name: string;
     gender: string;
@@ -25,7 +25,7 @@ export type ContactImportSchema = {
     linkedin_url: string;
 };
 
-export function useContactImport() {
+export function useCandidateImport() {
     const today = new Date().toISOString();
     const user = useGetIdentity();
     const dataProvider = useDataProvider();
@@ -73,11 +73,11 @@ export function useContactImport() {
     );
 
     const processBatch = useCallback(
-        async (batch: ContactImportSchema[]) => {
+        async (batch: CandidateImportSchema[]) => {
             const [companies, tags] = await Promise.all([
                 getCompanies(
                     batch
-                        .map(contact => contact.company?.trim())
+                        .map(candidate => candidate.company?.trim())
                         .filter(name => name)
                 ),
                 getTags(batch.flatMap(batch => parseTags(batch.tags))),
@@ -122,7 +122,7 @@ export function useContactImport() {
                             .map(name => tags.get(name))
                             .filter((tag): tag is Tag => !!tag);
 
-                        return dataProvider.create('contacts', {
+                        return dataProvider.create('candidates', {
                             data: {
                                 first_name,
                                 last_name,

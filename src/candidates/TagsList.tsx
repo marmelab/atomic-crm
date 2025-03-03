@@ -15,6 +15,7 @@ const ColoredChipField = (props: any) => {
             {...props}
             style={{ backgroundColor: record.color, border: 0 }}
             component="span"
+            size="small"
         />
     );
 };
@@ -22,7 +23,7 @@ const ColoredChipField = (props: any) => {
 export const TagsList = () => (
     <ReferenceArrayField
         sx={{ display: 'inline-block' }}
-        resource="contacts"
+        resource="candidates"
         source="tags"
         reference="tags"
     >

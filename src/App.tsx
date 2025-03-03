@@ -1,5 +1,5 @@
 import { CRM } from './root/CRM';
-import { radiantLightTheme, radiantDarkTheme } from 'react-admin';
+import { radiantLightTheme, radiantDarkTheme, nanoDarkTheme, nanoLightTheme, houseDarkTheme,houseLightTheme } from 'react-admin';
 
 /**
  * Application entry point
@@ -30,8 +30,8 @@ const App = () => (
     <CRM
         title="GDev"
         logo="./img/gdev_logo.png" // The logo path is relative to the public directory
-        lightTheme={radiantLightTheme}
-        darkTheme={radiantDarkTheme}
+        lightTheme={nanoLightTheme}
+        darkTheme={nanoLightTheme}
         companySectors={['Technology', 'Finance']}
         dealCategories={['Copywriting', 'Design']}
         dealPipelineStatuses={['won']}

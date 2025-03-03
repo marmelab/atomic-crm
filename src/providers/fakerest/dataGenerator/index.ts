@@ -1,18 +1,18 @@
 /* eslint-disable import/no-anonymous-default-export */
 import { generateCompanies } from './companies';
-import { generateContactNotes } from './contactNotes';
 import { generateContacts } from './contacts';
-import { generateDealNotes } from './dealNotes';
+import { generateContactNotes } from './contactNotes';
 import { generateDeals } from './deals';
-import { finalize } from './finalize';
+import { generateDealNotes } from './dealNotes';
 import { generateSales } from './sales';
 import { generateTags } from './tags';
 import { generateTasks } from './tasks';
+import { generateCandidates } from './candidates';
 import { Db } from './types';
 
-export default (): Db => {
+export const generateDb = (): Db => {
     const db = {} as Db;
-    db.sales = generateSales(db);
+    db.sales = generateSales();
     db.tags = generateTags(db);
     db.companies = generateCompanies(db);
     db.contacts = generateContacts(db);
@@ -20,7 +20,8 @@ export default (): Db => {
     db.deals = generateDeals(db);
     db.dealNotes = generateDealNotes(db);
     db.tasks = generateTasks(db);
-    finalize(db);
-
+    db.candidates = generateCandidates(db);
     return db;
 };
+
+export type { Db };

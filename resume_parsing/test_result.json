@@ -1,0 +1,149 @@
+{
+    "first_name": "Lihua",
+    "last_name": "Huang",
+    "contact_time": "2025-02-28T00:00:00Z",   //Incorrect time
+    "title": "Senior Automation Test Engineer",
+    "email_jsonb": [
+      {
+        "email": "894048590@qq.com",
+        "type": "personal"
+      }
+    ],
+    "phone_jsonb": [
+      {
+        "number": "17767266834",
+        "type": "mobile"
+      }
+    ],
+    "linkedin_url": null,
+    "gender": "Female",
+    "sales_id": "12345",   //Incorrect idenfifier - hallucination
+    "status": "Open to work",  //this should be an enum 
+    "background": "Experienced software test engineer with expertise in automation testing, defect management, and AI-related technologies.",
+    "working_years": 9,
+    "position_id": "test-engineer",  //INCORRECT - hallucination
+    "position_name": "Test Engineer",
+    "last_seen": "2025-02-28",
+    "resume": {
+      "filename": "resume.pdf",
+      "url": "/mnt/data/【高级自动化测试工程师_上海】黄丽华 9年.pdf" //INCORRECT - hallucination
+    },
+    "education_level": "Bachelor's Degree",
+    "education_jsonb": [
+      {
+        "institution": "Fujian University of Technology",
+        "degree": "Bachelor's Degree",
+        "field_of_study": "Software Engineering",
+        "start_date": "2011-09",
+        "end_date": "2015-06",
+        "description": "Major courses: C++, C#, Java, Python, Computer Network, Data Structure, MySQL, Linux, Automated Testing (LoadRunner)."
+      }
+    ],
+    "work_experience_jsonb": [
+      {
+        "company": "Nokia Communications Systems Technologies Ltd.",
+        "position": "Test Engineer",
+        "start_date": "2020-01",
+        "end_date": "2024-06",
+        "description": "Responsible for automated regression testing and test environment setup using Python, Jenkins, and RobotFramework. Managed defect tracking and testing process optimization."
+      },
+      {
+        "company": "iSoftStone Technologies Co., Ltd. (Huawei Assignment)",
+        "position": "Test Engineer",
+        "start_date": "2016-11",
+        "end_date": "2024-08",
+        "description": "Participated in software testing for enterprise landline telephones. Specialized in automation, feature testing, and training new employees."
+      },
+      {
+        "company": "RuiDa Interactive Technology Co., Ltd.",
+        "position": "Test Engineer",
+        "start_date": "2015-10",
+        "end_date": "2016-11",
+        "description": "Focused on automation and software testing for smart classroom applications."
+      }
+    ],
+    "skills": [
+      {
+        "name": "Software Testing",
+        "level": "Expert",
+        "years_experience": 9
+      },
+      {
+        "name": "Automation Testing",
+        "level": "Expert",
+        "years_experience": 7
+      },
+      {
+        "name": "Defect Management",
+        "level": "Advanced",
+        "years_experience": 6
+      },
+      {
+        "name": "Team Collaboration & Training",
+        "level": "Advanced",
+        "years_experience": 5
+      }
+    ],
+    "programming_languages": [
+      {
+        "language": "Python",
+        "yearsOfExperience": 5
+      },
+      {
+        "language": "Java",
+        "yearsOfExperience": 4
+      },
+      {
+        "language": "C++",
+        "yearsOfExperience": 3
+      },
+      {
+        "language": "C#",
+        "yearsOfExperience": 2
+      }
+    ],
+    "ai_skills": [
+      {
+        "technology": "TensorFlow",
+        "yearsOfExperience": 2
+      },
+      {
+        "technology": "Scikit-learn",
+        "yearsOfExperience": 3
+      }
+    ],
+    "certifications": [
+      "Communications Engineer Certificate",
+      "College English Test Band 6"
+    ],
+    "languages": [
+      {
+        "language": "Chinese",
+        "proficiency": "Native"
+      },
+      {
+        "language": "English",
+        "proficiency": "Fluent"
+      }
+    ],
+    "availability_status": "Immediately",
+    "current_salary": 18000,
+    "salary_expectation_min": 18000,
+    "salary_expectation_max": 25000,
+    "salary_currency": "CNY",
+    "willing_to_relocate": false,
+    "preferred_locations": [
+      "Shanghai"
+    ],
+    "english_level": "Fluent",
+    "job_types": [
+      "Full-time"
+    ],
+    "remote_preference": "On-site",
+    "source": "Direct Application",
+    "contacted": false,
+    "created_at": "2025-02-28",
+    "updated_at": "2025-02-28",
+    "hiring_stage": "New"
+  }
+  

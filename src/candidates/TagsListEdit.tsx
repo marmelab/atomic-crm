@@ -13,10 +13,10 @@ import {
 
 import { TagChip } from '../tags/TagChip';
 import { TagCreateModal } from '../tags/TagCreateModal';
-import { Contact, Tag } from '../types';
+import { Candidate, Tag } from '../types';
 
 export const TagsListEdit = () => {
-    const record = useRecordContext<Contact>();
+    const record = useRecordContext<Candidate>();
     const [open, setOpen] = useState(false);
     const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
 
@@ -32,12 +32,12 @@ export const TagsListEdit = () => {
         { ids: record?.tags },
         { enabled: record && record.tags && record.tags.length > 0 }
     );
-    const [update] = useUpdate<Contact>();
+    const [update] = useUpdate<Candidate>();
 
     const unselectedTags =
         allTags &&
         record &&
-        allTags.filter(tag => !record.tags.includes(tag.id));
+        allTags.filter(tag => !record.tags?.includes(tag.id));
 
     const handleMenuOpen = (event: React.MouseEvent<HTMLDivElement>) => {
         setAnchorEl(event.currentTarget);
@@ -49,10 +49,10 @@ export const TagsListEdit = () => {
 
     const handleTagAdd = (id: Identifier) => {
         if (!record) {
-            throw new Error('No contact record found');
+            throw new Error('No candidate record found');
         }
-        const tags = [...record.tags, id];
-        update('contacts', {
+        const tags = [...(record.tags || []), id];
+        update('candidates', {
             id: record.id,
             data: { tags },
             previousData: record,
@@ -62,10 +62,10 @@ export const TagsListEdit = () => {
 
     const handleTagDelete = async (id: Identifier) => {
         if (!record) {
-            throw new Error('No contact record found');
+            throw new Error('No candidate record found');
         }
-        const tags = record.tags.filter(tagId => tagId !== id);
-        await update('contacts', {
+        const tags = record.tags?.filter(tagId => tagId !== id) || [];
+        await update('candidates', {
             id: record.id,
             data: { tags },
             previousData: record,
@@ -84,14 +84,14 @@ export const TagsListEdit = () => {
     const handleTagCreated = React.useCallback(
         async (tag: Tag) => {
             if (!record) {
-                throw new Error('No contact record found');
+                throw new Error('No candidate record found');
             }
 
             await update(
-                'contacts',
+                'candidates',
                 {
                     id: record.id,
-                    data: { tags: [...record.tags, tag.id] },
+                    data: { tags: [...(record.tags || []), tag.id] },
                     previousData: record,
                 },
                 {

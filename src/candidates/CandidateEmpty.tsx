@@ -14,10 +14,10 @@ export const CandidateEmpty = () => {
                 height: `calc(100dvh - ${appbarHeight}px)`,
             }}
         >
-            <img src="./img/empty.svg" alt="No contacts found" />
+            <img src="./img/empty.svg" alt="No candidates found" />
             <Stack gap={0} alignItems="center">
                 <Typography variant="h6" fontWeight="bold">
-                    No contacts found
+                    No candidates found
                 </Typography>
                 <Typography
                     variant="body2"
@@ -25,7 +25,7 @@ export const CandidateEmpty = () => {
                     color="text.secondary"
                     gutterBottom
                 >
-                    It seems your contact list is empty.
+                    It seems your candidate list is empty.
                 </Typography>
             </Stack>
             <Stack spacing={2} direction="row">

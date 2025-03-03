@@ -3,16 +3,13 @@ import {
     ShowBase,
     TextField,
     ReferenceField,
-    ReferenceManyField,
     useShowContext,
 } from 'react-admin';
-import { Box, Card, CardContent, Typography } from '@mui/material';
+import { Box, Card, CardContent, Typography, Grid, Chip } from '@mui/material';
 
 import { Avatar } from './Avatar';
 import { CandidateAside } from './CandidateAside';
-import { NotesIterator } from '../notes';
 import { Candidate } from '../types';
-import { CompanyAvatar } from '../companies/CompanyAvatar';
 
 export const CandidateShow = () => (
     <ShowBase>
@@ -35,40 +32,64 @@ const CandidateShowContent = () => {
                                 <Typography variant="h5">
                                     {record.first_name} {record.last_name}
                                 </Typography>
-                                <Typography variant="body2" component="div">
+                                <Typography variant="body2">
                                     {record.title}
-                                    {record.title &&
-                                        record.company_id != null &&
-                                        ' at '}
-                                    {record.company_id != null && (
-                                        <ReferenceField
-                                            source="company_id"
-                                            reference="companies"
-                                            link="show"
-                                        >
-                                            <TextField source="name" />
-                                        </ReferenceField>
-                                    )}
+                                </Typography>
+                                <Typography variant="body2" color="textSecondary">
+                                    {record.working_years} years of experience • {record.education_level}
                                 </Typography>
                             </Box>
-                            <Box>
-                                <ReferenceField
-                                    source="company_id"
-                                    reference="companies"
-                                    link="show"
-                                    sx={{ '& a': { textDecoration: 'none' } }}
-                                >
-                                    <CompanyAvatar />
-                                </ReferenceField>
-                            </Box>
                         </Box>
-                        <ReferenceManyField
-                            target="contact_id"
-                            reference="contactNotes"
-                            sort={{ field: 'date', order: 'DESC' }}
-                        >
-                            <NotesIterator showStatus reference="contacts" />
-                        </ReferenceManyField>
+
+                        <Grid container spacing={2} sx={{ mt: 2 }}>
+                            {record.programming_languages && (
+                                <Grid item xs={12}>
+                                    <Typography variant="subtitle2">Programming Languages</Typography>
+                                    <Box display="flex" gap={1} flexWrap="wrap">
+                                        {record.programming_languages.map(lang => (
+                                            <Chip key={lang} label={lang} size="small" />
+                                        ))}
+                                    </Box>
+                                </Grid>
+                            )}
+
+                            {record.ai_skills && record.ai_skills.length > 0 && (
+                                <Grid item xs={12}>
+                                    <Typography variant="subtitle2">AI Technologies</Typography>
+                                    <Box display="flex" gap={1} flexWrap="wrap">
+                                        {record.ai_skills.map(skill => (
+                                            <Chip 
+                                                key={skill.technology} 
+                                                label={`${skill.technology} (${skill.yearsOfExperience}y)`}
+                                                size="small" 
+                                            />
+                                        ))}
+                                    </Box>
+                                </Grid>
+                            )}
+
+                            {record.languages && record.languages.length > 0 && (
+                                <Grid item xs={12}>
+                                    <Typography variant="subtitle2">Languages</Typography>
+                                    <Box display="flex" gap={1} flexWrap="wrap">
+                                        {record.languages.map(lang => (
+                                            <Chip 
+                                                key={lang.language} 
+                                                label={`${lang.language} (${lang.proficiency})`}
+                                                size="small" 
+                                            />
+                                        ))}
+                                    </Box>
+                                </Grid>
+                            )}
+                        </Grid>
+
+                        {record.background && (
+                            <Box mt={2}>
+                                <Typography variant="subtitle2">Background</Typography>
+                                <Typography variant="body2">{record.background}</Typography>
+                            </Box>
+                        )}
                     </CardContent>
                 </Card>
             </Box>

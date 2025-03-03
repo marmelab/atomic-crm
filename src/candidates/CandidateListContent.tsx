@@ -77,52 +77,31 @@ export const CandidateListContent = () => {
                                     primary={`${candidate.first_name} ${candidate.last_name ?? ''}`}
                                     secondary={
                                         <>
-                                            {candidate.title}
-                                            {candidate.title &&
-                                                candidate.company_id != null &&
-                                                ' at '}
-                                            {candidate.company_id != null && (
-                                                <ReferenceField
-                                                    source="company_id"
-                                                    reference="companies"
-                                                    link={false}
-                                                >
-                                                    <TextField source="name" />
-                                                </ReferenceField>
-                                            )}
-                                            {candidate.nb_tasks
-                                                ? ` - ${candidate.nb_tasks} task${
-                                                      candidate.nb_tasks > 1
-                                                          ? 's'
-                                                          : ''
-                                                  }`
-                                                : ''}
+                                            {candidate.full_name}
+                                            {candidate.working_years && ` • ${candidate.working_years} years exp`}
+                                            {candidate.education_level && ` • ${candidate.education_level}`}
                                             &nbsp;&nbsp;
                                             <TagsList />
+                                            {(candidate.programming_languages && candidate.programming_languages.length > 0) && 
+                                                ` • ${candidate.programming_languages.join(', ')}`}
                                         </>
                                     }
                                 />
-                                {candidate.last_seen && (
-                                    <ListItemSecondaryAction
-                                        sx={{
-                                            top: '10px',
-                                            transform: 'none',
-                                        }}
+                                <ListItemSecondaryAction
+                                    sx={{
+                                        top: '10px',
+                                        transform: 'none',
+                                    }}
+                                >
+                                    <Typography
+                                        variant="body2"
+                                        color="textSecondary"
                                     >
-                                        <Typography
-                                            variant="body2"
-                                            color="textSecondary"
-                                            title={candidate.last_seen}
-                                        >
-                                            {!isSmall && 'last activity '}
-                                            {formatRelative(
-                                                candidate.last_seen,
-                                                now
-                                            )}{' '}
-                                            <Status status={candidate.status} />
-                                        </Typography>
-                                    </ListItemSecondaryAction>
-                                )}
+                                        {!isSmall && 'Stage: '}
+                                        {candidate.hiring_stage}{' '}
+                                        <Status status={candidate.status} />
+                                    </Typography>
+                                </ListItemSecondaryAction>
                             </ListItemButton>
                         </ListItem>
                     </RecordContextProvider>

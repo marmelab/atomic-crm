@@ -90,6 +90,9 @@ const dataProviderWithCustomMethods = {
         if (resource === 'contacts') {
             return baseDataProvider.getList('contacts_summary', params);
         }
+        if (resource === 'candidates') {
+            return baseDataProvider.getList('candidates_summary', params);
+        }
 
         return baseDataProvider.getList(resource, params);
     },
@@ -99,6 +102,9 @@ const dataProviderWithCustomMethods = {
         }
         if (resource === 'contacts') {
             return baseDataProvider.getOne('contacts_summary', params);
+        }
+        if (resource === 'candidates') {
+            return baseDataProvider.getOne('candidates_summary', params);
         }
 
         return baseDataProvider.getOne(resource, params);
@@ -323,6 +329,18 @@ export const dataProvider = withLifecycleCallbacks(
                 return applyFullTextSearch(['name', 'type', 'description'])(
                     params
                 );
+            },
+        },
+        {
+            resource: 'candidates',
+            beforeGetList: async params => {
+                return applyFullTextSearch([
+                    'first_name',
+                    'last_name',
+                    'email',
+                    'phone',
+                    'background'
+                ])(params);
             },
         },
     ]

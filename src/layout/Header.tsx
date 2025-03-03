@@ -86,8 +86,8 @@ const Header = () => {
                                 <Tab
                                     label={'Candidates'}
                                     component={Link}
-                                    to="/contacts"
-                                    value="/contacts"
+                                    to="/candidates"
+                                    value="/candidates"
                                 />
                                 <Tab
                                     label={'Companies'}

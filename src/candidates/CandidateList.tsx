@@ -52,7 +52,8 @@ const CandidateListLayout = () => {
     if (!data?.length && !hasFilters) return <CandidateEmpty />;
 
     return (
-        <Stack direction="row">
+        <Stack direction="row"> 
+
             <CandidateListFilter />
             <Stack sx={{ width: '100%' }}>
                 <Title title={'Candidates'} />
@@ -102,28 +103,28 @@ const exporter: Exporter<Candidate> = async (records, fetchRelatedRecords) => {
             sales: `${sales[candidate.sales_id].first_name} ${
                 sales[candidate.sales_id].last_name
             }`,
-            tags: candidate.tags.map(tagId => tags[tagId].name).join(', '),
-            email_work: candidate.email_jsonb?.find(
+            tags: candidate.tags?.map(tagId => tags[tagId].name).join(', ') ?? '',
+            email_work: candidate.emails?.find(
                 email => email.type === 'Work'
             )?.email,
-            email_home: candidate.email_jsonb?.find(
+            email_home: candidate.emails?.find(
                 email => email.type === 'Home'
             )?.email,
-            email_other: candidate.email_jsonb?.find(
+            email_other: candidate.emails?.find(
                 email => email.type === 'Other'
             )?.email,
-            email_jsonb: JSON.stringify(candidate.email_jsonb),
+            email_jsonb: JSON.stringify(candidate.emails),
             email_fts: undefined,
-            phone_work: candidate.phone_jsonb?.find(
+            phone_work: candidate.phone_numbers?.find(
                 phone => phone.type === 'Work'
             )?.number,
-            phone_home: candidate.phone_jsonb?.find(
+            phone_home: candidate.phone_numbers?.find(
                 phone => phone.type === 'Home'
             )?.number,
-            phone_other: candidate.phone_jsonb?.find(
+            phone_other: candidate.phone_numbers?.find(
                 phone => phone.type === 'Other'
             )?.number,
-            phone_jsonb: JSON.stringify(candidate.phone_jsonb),
+            phone_jsonb: JSON.stringify(candidate.phone_numbers),
             phone_fts: undefined,
         };
         delete exportedCandidate.email_fts;

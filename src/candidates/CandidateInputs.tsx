@@ -20,6 +20,8 @@ import {
     useCreate,
     useGetIdentity,
     useNotify,
+    NumberInput,
+    DateInput,
 } from 'react-admin';
 import { useFormContext } from 'react-hook-form';
 
@@ -78,46 +80,70 @@ const CandidateIdentityInputs = () => {
                 validate={required()}
                 helperText={false}
             />
+            <TextInput source="title" helperText={false} />
+            <SelectInput 
+                source="education_level"
+                choices={[
+                    { id: 'high_school', name: 'High School' },
+                    { id: 'bachelors', name: "Bachelor's Degree" },
+                    { id: 'masters', name: "Master's Degree" },
+                    { id: 'phd', name: 'PhD' },
+                ]}
+                helperText={false}
+            />
+            <NumberInput 
+                source="working_years"
+                helperText={false}
+            />
         </Stack>
     );
 };
 
 const CandidatePositionInputs = () => {
-    const [create] = useCreate();
-    const { identity } = useGetIdentity();
-    const notify = useNotify();
-    const handleCreateCompany = async (name?: string) => {
-        if (!name) return;
-        try {
-            const newCompany = await create(
-                'companies',
-                {
-                    data: {
-                        name,
-                        sales_id: identity?.id,
-                        created_at: new Date().toISOString(),
-                    },
-                },
-                { returnPromise: true }
-            );
-            return newCompany;
-        } catch (error) {
-            notify('An error occurred while creating the company', {
-                type: 'error',
-            });
-        }
-    };
     return (
         <Stack>
-            <Typography variant="h6">Position</Typography>
-            <TextInput source="title" helperText={false} />
-            <ReferenceInput source="company_id" reference="companies">
-                <AutocompleteInput
-                    optionText="name"
-                    onCreate={handleCreateCompany}
-                    helperText={false}
-                />
-            </ReferenceInput>
+            <Typography variant="h6">Position Details</Typography>
+            <SelectInput
+                source="hiring_stage"
+                choices={[
+                    { id: 'New', name: 'New' },
+                    { id: 'Screening', name: 'Screening' },
+                    { id: 'Interview', name: 'Interview' },
+                    { id: 'Technical', name: 'Technical' },
+                    { id: 'Offer', name: 'Offer' },
+                    { id: 'Accepted', name: 'Accepted' },
+                    { id: 'Rejected', name: 'Rejected' },
+                    { id: 'Withdrawn', name: 'Withdrawn' },
+                ]}
+                helperText={false}
+            />
+            <SelectInput
+                source="availability_status"
+                choices={[
+                    { id: 'Immediately', name: 'Immediately' },
+                    { id: 'Two Weeks', name: 'Two Weeks' },
+                    { id: 'One Month', name: 'One Month' },
+                    { id: 'Three Months', name: 'Three Months' },
+                    { id: 'Custom', name: 'Custom' },
+                ]}
+                helperText={false}
+            />
+            <DateInput 
+                source="availability_date"
+                helperText={false}
+            />
+            <NumberInput
+                source="current_salary"
+                helperText={false}
+            />
+            <NumberInput
+                source="salary_expectation_min"
+                helperText={false}
+            />
+            <NumberInput
+                source="salary_expectation_max"
+                helperText={false}
+            />
         </Stack>
     );
 };
