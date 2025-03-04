@@ -12,6 +12,8 @@ import {
     Stack,
     Typography,
     useMediaQuery,
+    IconButton,
+    Tooltip,
 } from '@mui/material';
 import {
     RecordContextProvider,
@@ -19,6 +21,11 @@ import {
     useListContext,
 } from 'react-admin';
 import { Link } from 'react-router-dom';
+import StarIcon from '@mui/icons-material/Star';
+import StarOutlineIcon from '@mui/icons-material/StarOutline';
+import VisibilityIcon from '@mui/icons-material/Visibility';
+import CalendarTodayIcon from '@mui/icons-material/CalendarToday';
+import { useState } from 'react';
 
 import { Status } from '../misc/Status';
 import { Candidate } from '../types';
@@ -51,8 +58,6 @@ export const CandidateListContent = () => {
                         <Grid item xs={12}>
                             <CandidateCard 
                                 candidate={candidate}
-                                isSelected={selectedIds.includes(candidate.id)}
-                                onToggleSelect={() => onToggleItem(candidate.id)}
                                 isSmall={isSmall}
                             />
                         </Grid>
@@ -73,25 +78,37 @@ export const CandidateListContent = () => {
 
 const CandidateCard = ({ 
     candidate, 
-    isSelected, 
-    onToggleSelect,
     isSmall 
 }: { 
-    candidate: Candidate; 
-    isSelected: boolean;
-    onToggleSelect: () => void;
+    candidate: Candidate;
     isSmall: boolean;
 }) => {
+    const [starred, setStarred] = useState(false);
     const fullName = `${candidate.first_name} ${candidate.last_name ?? ''}`;
+    
+    const handleStar = (e: React.MouseEvent) => {
+        e.preventDefault();
+        e.stopPropagation();
+        setStarred(!starred);
+        // Here you would implement the actual save functionality
+    };
+    
+    const handleMeetingRequest = (e: React.MouseEvent) => {
+        e.preventDefault();
+        e.stopPropagation();
+        // Implement meeting request functionality here
+        console.log('Schedule meeting with', fullName);
+    };
     
     return (
         <Card 
-            variant="outlined" 
+            elevation={1}
             sx={{ 
                 height: '100%',
                 display: 'flex',
                 flexDirection: 'column',
                 position: 'relative',
+                borderRadius: '8px',
                 '&:hover': {
                     boxShadow: 3
                 }
@@ -100,20 +117,48 @@ const CandidateCard = ({
             <Box 
                 position="absolute" 
                 top={8} 
-                left={8} 
-                onClick={(e) => {
-                    e.stopPropagation();
-                    onToggleSelect();
-                }}
+                right={8} 
+                zIndex={1}
+                display="flex"
+                gap={1}
             >
-                <Checkbox checked={isSelected} />
+                <Tooltip title={starred ? "Unstar candidate" : "Star candidate"}>
+                    <IconButton 
+                        onClick={handleStar}
+                        color={starred ? "primary" : "default"}
+                        size="small"
+                    >
+                        {starred ? <StarIcon /> : <StarOutlineIcon />}
+                    </IconButton>
+                </Tooltip>
+                
+                <Tooltip title="View candidate details">
+                    <IconButton 
+                        component={Link} 
+                        to={`/candidates/${candidate.id}/show`}
+                        color="default"
+                        size="small"
+                    >
+                        <VisibilityIcon />
+                    </IconButton>
+                </Tooltip>
+                
+                <Tooltip title="Schedule meeting">
+                    <IconButton 
+                        onClick={handleMeetingRequest}
+                        color="default"
+                        size="small"
+                    >
+                        <CalendarTodayIcon />
+                    </IconButton>
+                </Tooltip>
             </Box>
             
             <CardContent sx={{ flexGrow: 1 }}>
                 <Grid container spacing={2}>
                     <Grid item xs={12} md={3}>
                         <Stack direction="row" spacing={2} alignItems="flex-start">
-                            <Avatar sx={{ width: 64, height: 64 }} />
+                            <Avatar/>
                             <Box flexGrow={1}>
                                 <Typography variant="h6" component="h2">
                                     {fullName}
@@ -191,18 +236,6 @@ const CandidateCard = ({
                                     </Box>
                                 </Box>
                             )}
-                            
-                            <Box sx={{ mt: 'auto', pt: 1 }}>
-                                <Button 
-                                    variant="contained" 
-                                    fullWidth
-                                    component={Link}
-                                    to={`/candidates/${candidate.id}/show`}
-                                    color="primary"
-                                >
-                                    View Candidate
-                                </Button>
-                            </Box>
                         </Stack>
                     </Grid>
                 </Grid>

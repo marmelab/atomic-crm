@@ -23,6 +23,34 @@ export const CandidateListFilter = () => {
         pagination: { page: 1, perPage: 10 },
         sort: { field: 'name', order: 'ASC' },
     });
+    const [selectedLanguages, setSelectedLanguages] = React.useState<ProgrammingLanguage[]>([]);
+    const [selectedTags, setSelectedTags] = React.useState<string[]>([]);
+
+    const handleLanguageToggle = (language: ProgrammingLanguage) => {
+        setSelectedLanguages(prevSelected => 
+            prevSelected.includes(language)
+                ? prevSelected.filter(lang => lang !== language)
+                : [...prevSelected, language]
+        );
+    };
+
+    const handleTagToggle = (tagId: string) => {
+        setSelectedTags(prevSelected => 
+            prevSelected.includes(tagId)
+                ? prevSelected.filter(id => id !== tagId)
+                : [...prevSelected, tagId]
+        );
+    };
+
+    const programmingLanguagesFilter = 
+        selectedLanguages.length > 0
+            ? { 'programming_languages@contains': selectedLanguages }
+            : {};
+
+    const tagsFilter = 
+        selectedTags.length > 0
+            ? { 'tags@cs': `{${selectedTags.join(',')}}` }
+            : {};
 
     return (
         <Box width="13em" minWidth="13em" order={-1} mr={2} mt={5}>
@@ -93,13 +121,28 @@ export const CandidateListFilter = () => {
             </FilterList>
 
             <FilterList label="Programming" icon={<CodeIcon />}>
-                {Object.values(ProgrammingLanguage).map((lang: ProgrammingLanguage) => (
+                <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5, padding: '0 1rem' }}>
+                    {Object.values(ProgrammingLanguage).map((lang: ProgrammingLanguage) => (
+                        <Chip
+                            key={lang}
+                            label={lang}
+                            size="small"
+                            onClick={() => handleLanguageToggle(lang)}
+                            color={selectedLanguages.includes(lang) ? "primary" : "default"}
+                            style={{ 
+                                cursor: 'pointer', 
+                                margin: '2px',
+                                border: `1px solid ${selectedLanguages.includes(lang) ? '#1976d2' : '#e0e0e0'}`,
+                            }}
+                        />
+                    ))}
+                </Box>
+                {selectedLanguages.length > 0 && (
                     <FilterListItem
-                        key={lang}
-                        label={lang}
-                        value={{ 'programming_languages@contains': lang }}
+                        label={`${selectedLanguages.length} selected`}
+                        value={programmingLanguagesFilter}
                     />
-                ))}
+                )}
             </FilterList>
 
             <FilterList label="Availability" icon={<AccessTimeIcon />}>
@@ -122,24 +165,30 @@ export const CandidateListFilter = () => {
             </FilterList>
 
             <FilterList label="Tags" icon={<LocalOfferIcon />}>
-                {tags &&
-                    tags.map(tag => (
-                        <FilterListItem
-                            key={tag.id}
-                            label={
-                                <Chip
-                                    label={tag.name}
-                                    size="small"
-                                    style={{
-                                        backgroundColor: tag.color,
-                                        border: 0,
-                                        cursor: 'pointer',
-                                    }}
-                                />
-                            }
-                            value={{ 'tags@cs': `{${tag.id}}` }}
-                        />
-                    ))}
+                <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5, padding: '0 1rem' }}>
+                    {tags &&
+                        tags.map(tag => (
+                            <Chip
+                                key={tag.id}
+                                label={tag.name}
+                                size="small"
+                                onClick={() => handleTagToggle(tag.id)}
+                                color={selectedTags.includes(tag.id) ? "primary" : "default"}
+                                style={{
+                                    backgroundColor: selectedTags.includes(tag.id) ? undefined : tag.color,
+                                    border: `1px solid ${selectedTags.includes(tag.id) ? '#1976d2' : '#757575'}`,
+                                    cursor: 'pointer',
+                                    margin: '2px'
+                                }}
+                            />
+                        ))}
+                </Box>
+                {selectedTags.length > 0 && (
+                    <FilterListItem
+                        label={`${selectedTags.length} selected`}
+                        value={tagsFilter}
+                    />
+                )}
             </FilterList>
 
             <FilterList
