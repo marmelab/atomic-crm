@@ -55,6 +55,7 @@ select
     co.sales_id,
     co.linkedin_url,
     c.name as company_name,
+    co.tenant_id,
     count(distinct t.id) as nb_tasks
 from
     contacts co
@@ -63,5 +64,5 @@ left join
 left join
     companies c on co.company_id = c.id
 group by
-    co.id, c.name;
+    co.id, co.tenant_id, c.name;
 

@@ -113,6 +113,20 @@ export const LoginForm = () => {
                     >
                         Forgot your password?
                     </Typography>
+                    {/* Sign Up Link */}
+                    <Typography variant="caption">
+                        Don't have an account?{' '}
+                        <Link
+                            to="/sign-up"
+                            style={{
+                                textDecoration: 'none',
+                                color: '#1976d2',
+                                fontWeight: 'bold',
+                            }}
+                        >
+                            Sign up
+                        </Link>
+                    </Typography>
                 </CardActions>
             </StyledForm>
         </Login>

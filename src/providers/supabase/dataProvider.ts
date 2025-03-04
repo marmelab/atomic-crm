@@ -23,6 +23,7 @@ import { getCompanyAvatar } from '../commons/getCompanyAvatar';
 import { getContactAvatar } from '../commons/getContactAvatar';
 import { getIsInitialized } from './authProvider';
 import { supabase } from './supabase';
+import { getUserTenantId, onAddUser } from '../../utils/helperFunctions';
 
 if (import.meta.env.VITE_SUPABASE_URL === undefined) {
     throw new Error('Please set the VITE_SUPABASE_URL environment variable');
@@ -88,7 +89,14 @@ const dataProviderWithCustomMethods = {
             return baseDataProvider.getList('companies_summary', params);
         }
         if (resource === 'contacts') {
-            return baseDataProvider.getList('contacts_summary', params);
+           const tenantId =  await getUserTenantId();
+            return baseDataProvider.getList('contacts_summary', {
+                ...params,
+                filter: {
+                    ...params.filter,
+                    tenant_id: tenantId, 
+                },
+            });
         }
 
         return baseDataProvider.getList(resource, params);
@@ -130,18 +138,10 @@ const dataProviderWithCustomMethods = {
             password,
         };
     },
+  
     async salesCreate(body: SalesFormData) {
-        const { data, error } = await supabase.functions.invoke<Sale>('users', {
-            method: 'POST',
-            body,
-        });
-
-        if (!data || error) {
-            console.error('salesCreate.error', error);
-            throw new Error('Failed to create account manager');
-        }
-
-        return data;
+        const user = await onAddUser(body);
+        return user;
     },
     async salesUpdate(
         id: Identifier,

@@ -30,7 +30,8 @@ create table "public"."contactNotes" (
     "date" timestamp with time zone default now(),
     "sales_id" bigint,
     "status" text,
-    "attachments" jsonb[]
+    "attachments" jsonb[],
+    "tenant_id" uuid not null
 );
 
 
@@ -70,7 +71,8 @@ create table "public"."dealNotes" (
     "text" text,
     "date" timestamp with time zone default now(),
     "sales_id" bigint,
-    "attachments" jsonb[]
+    "attachments" jsonb[],
+    "tenant_id" uuid not null
 );
 
 
@@ -209,10 +211,6 @@ alter table "public"."tasks" validate constraint "tasks_contact_id_fkey";
 
 set check_function_bodies = off;
 
-grant delete on table "public"."companies" to "authenticated";
-grant insert on table "public"."companies" to "authenticated";
-grant select on table "public"."companies" to "authenticated";
-grant update on table "public"."companies" to "authenticated";
 
 grant delete on table "public"."companies" to "service_role";
 grant insert on table "public"."companies" to "service_role";
@@ -222,10 +220,6 @@ grant trigger on table "public"."companies" to "service_role";
 grant truncate on table "public"."companies" to "service_role";
 grant update on table "public"."companies" to "service_role";
 
-grant delete on table "public"."contactNotes" to "authenticated";
-grant insert on table "public"."contactNotes" to "authenticated";
-grant select on table "public"."contactNotes" to "authenticated";
-grant update on table "public"."contactNotes" to "authenticated";
 
 grant delete on table "public"."contactNotes" to "service_role";
 grant insert on table "public"."contactNotes" to "service_role";
@@ -235,10 +229,7 @@ grant trigger on table "public"."contactNotes" to "service_role";
 grant truncate on table "public"."contactNotes" to "service_role";
 grant update on table "public"."contactNotes" to "service_role";
 
-grant delete on table "public"."contacts" to "authenticated";
-grant insert on table "public"."contacts" to "authenticated";
-grant select on table "public"."contacts" to "authenticated";
-grant update on table "public"."contacts" to "authenticated";
+
 
 grant delete on table "public"."contacts" to "service_role";
 grant insert on table "public"."contacts" to "service_role";
@@ -248,10 +239,7 @@ grant trigger on table "public"."contacts" to "service_role";
 grant truncate on table "public"."contacts" to "service_role";
 grant update on table "public"."contacts" to "service_role";
 
-grant delete on table "public"."dealNotes" to "authenticated";
-grant insert on table "public"."dealNotes" to "authenticated";
-grant select on table "public"."dealNotes" to "authenticated";
-grant update on table "public"."dealNotes" to "authenticated";
+
 
 grant delete on table "public"."dealNotes" to "service_role";
 grant insert on table "public"."dealNotes" to "service_role";
@@ -262,10 +250,6 @@ grant truncate on table "public"."dealNotes" to "service_role";
 grant update on table "public"."dealNotes" to "service_role";
 
 
-grant delete on table "public"."deals" to "authenticated";
-grant insert on table "public"."deals" to "authenticated";
-grant select on table "public"."deals" to "authenticated";
-grant update on table "public"."deals" to "authenticated";
 
 grant delete on table "public"."deals" to "service_role";
 grant insert on table "public"."deals" to "service_role";
@@ -275,10 +259,7 @@ grant trigger on table "public"."deals" to "service_role";
 grant truncate on table "public"."deals" to "service_role";
 grant update on table "public"."deals" to "service_role";
 
-grant delete on table "public"."sales" to "authenticated";
-grant insert on table "public"."sales" to "authenticated";
-grant select on table "public"."sales" to "authenticated";
-grant update on table "public"."sales" to "authenticated";
+
 
 grant delete on table "public"."sales" to "service_role";
 grant insert on table "public"."sales" to "service_role";
@@ -288,10 +269,7 @@ grant trigger on table "public"."sales" to "service_role";
 grant truncate on table "public"."sales" to "service_role";
 grant update on table "public"."sales" to "service_role";
 
-grant delete on table "public"."tags" to "authenticated";
-grant insert on table "public"."tags" to "authenticated";
-grant select on table "public"."tags" to "authenticated";
-grant update on table "public"."tags" to "authenticated";
+
 
 grant delete on table "public"."tags" to "service_role";
 grant insert on table "public"."tags" to "service_role";
@@ -301,10 +279,7 @@ grant trigger on table "public"."tags" to "service_role";
 grant truncate on table "public"."tags" to "service_role";
 grant update on table "public"."tags" to "service_role";
 
-grant delete on table "public"."tasks" to "authenticated";
-grant insert on table "public"."tasks" to "authenticated";
-grant select on table "public"."tasks" to "authenticated";
-grant update on table "public"."tasks" to "authenticated";
+
 
 grant delete on table "public"."tasks" to "service_role";
 grant insert on table "public"."tasks" to "service_role";
@@ -313,241 +288,6 @@ grant select on table "public"."tasks" to "service_role";
 grant trigger on table "public"."tasks" to "service_role";
 grant truncate on table "public"."tasks" to "service_role";
 grant update on table "public"."tasks" to "service_role";
-
-create policy "Enable insert for authenticated users only"
-on "public"."companies"
-as permissive
-for insert
-to authenticated
-with check (true);
-
-
-create policy "Enable read access for authenticated users"
-on "public"."companies"
-as permissive
-for select
-to authenticated
-using (true);
-
-
-create policy "Enable update for authenticated users only"
-on "public"."companies"
-as permissive
-for update
-to authenticated
-using (true)
-with check (true);
-
-
-create policy "Enable insert for authenticated users only"
-on "public"."contactNotes"
-as permissive
-for insert
-to authenticated
-with check (true);
-
-
-create policy "Enable read access for authenticated users"
-on "public"."contactNotes"
-as permissive
-for select
-to authenticated
-using (true);
-
-
-create policy "Enable insert for authenticated users only"
-on "public"."contacts"
-as permissive
-for insert
-to authenticated
-with check (true);
-
-
-create policy "Enable read access for authenticated users"
-on "public"."contacts"
-as permissive
-for select
-to authenticated
-using (true);
-
-
-create policy "Enable update for authenticated users only"
-on "public"."contacts"
-as permissive
-for update
-to authenticated
-using (true)
-with check (true);
-
-
-create policy "Enable insert for authenticated users only"
-on "public"."dealNotes"
-as permissive
-for insert
-to authenticated
-with check (true);
-
-
-create policy "Enable read access for authenticated users"
-on "public"."dealNotes"
-as permissive
-for select
-to authenticated
-using (true);
-
-
-create policy "Enable insert for authenticated users only"
-on "public"."deals"
-as permissive
-for insert
-to authenticated
-with check (true);
-
-
-create policy "Enable read access for authenticated users"
-on "public"."deals"
-as permissive
-for select
-to authenticated
-using (true);
-
-
-create policy "Enable update for authenticated users only"
-on "public"."deals"
-as permissive
-for update
-to authenticated
-using (true)
-with check (true);
-
-
-create policy "Enable insert for authenticated users only"
-on "public"."sales"
-as permissive
-for insert
-to authenticated
-with check (true);
-
-
-create policy "Enable update for authenticated users only"
-on "public"."sales"
-as permissive
-for update
-to authenticated
-using (true)
-with check (true);
-
-
-create policy "Enable read access for authenticated users"
-on "public"."sales"
-as permissive
-for select
-to authenticated
-using (true);
-
-
-create policy "Enable insert for authenticated users only"
-on "public"."tags"
-as permissive
-for insert
-to authenticated
-with check (true);
-
-
-create policy "Enable read access for authenticated users"
-on "public"."tags"
-as permissive
-for select
-to authenticated
-using (true);
-
-
-create policy "Enable insert for authenticated users only"
-on "public"."tasks"
-as permissive
-for insert
-to authenticated
-with check (true);
-
-
-create policy "Enable read access for authenticated users"
-on "public"."tasks"
-as permissive
-for select
-to authenticated
-using (true);
-
-
-create policy "Company Delete Policy"
-on "public"."companies"
-as permissive
-for delete
-to authenticated
-using (true);
-
-
-create policy "Contact Notes Delete Policy"
-on "public"."contactNotes"
-as permissive
-for delete
-to authenticated
-using (true);
-
-
-create policy "Contact Notes Update policy"
-on "public"."contactNotes"
-as permissive
-for update
-to authenticated
-using (true);
-
-
-create policy "Contact Delete Policy"
-on "public"."contacts"
-as permissive
-for delete
-to authenticated
-using (true);
-
-
-create policy "Deal Notes Delete Policy"
-on "public"."dealNotes"
-as permissive
-for delete
-to authenticated
-using (true);
-
-
-create policy "Deal Notes Update Policy"
-on "public"."dealNotes"
-as permissive
-for update
-to authenticated
-using (true);
-
-
-create policy "Deals Delete Policy"
-on "public"."deals"
-as permissive
-for delete
-to authenticated
-using (true);
-
-
-create policy "Task Delete Policy"
-on "public"."tasks"
-as permissive
-for delete
-to authenticated
-using (true);
-
-
-create policy "Task Update Policy"
-on "public"."tasks"
-as permissive
-for update
-to authenticated
-using (true);
 
 
 -- Use Postgres to create a bucket.
@@ -598,3 +338,27 @@ group by
     co.id, c.name;
 
 
+-- 1: Create profiles table
+CREATE TABLE profiles (
+    id UUID PRIMARY KEY DEFAULT auth.uid(),
+    email TEXT UNIQUE NOT NULL,
+    tenant_id UUID NOT NULL,
+    role TEXT NOT NULL DEFAULT 'admin',
+    FOREIGN KEY (id) REFERENCES auth.users(id) ON DELETE CASCADE
+);
+
+-- 2: Add tenant_id to every table
+ALTER TABLE contacts ADD COLUMN tenant_id UUID NOT NULL;
+ALTER TABLE companies ADD COLUMN tenant_id UUID NOT NULL;
+ALTER TABLE tasks ADD COLUMN tenant_id UUID NOT NULL;
+ALTER TABLE sales ADD COLUMN tenant_id UUID NOT NULL;
+ALTER TABLE tags ADD COLUMN tenant_id UUID NOT NULL;
+ALTER TABLE deals ADD COLUMN tenant_id UUID NOT NULL;
+
+-- Ensure tenant_id is indexed for performance
+CREATE INDEX contacts_tenant_id_idx ON contacts (tenant_id);
+CREATE INDEX companies_tenant_id_idx ON companies (tenant_id);
+CREATE INDEX tasks_tenant_id_idx ON tasks (tenant_id);
+CREATE INDEX sales_tenant_id_idx ON sales (tenant_id);
+CREATE INDEX tags_tenant_id_idx ON tags (tenant_id);
+CREATE INDEX deals_tenant_id_idx ON deals (tenant_id);

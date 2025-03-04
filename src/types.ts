@@ -13,6 +13,7 @@ export type SignUpData = {
     password: string;
     first_name: string;
     last_name: string;
+    tenant_id?:string;
 };
 
 export type SalesFormData = {
