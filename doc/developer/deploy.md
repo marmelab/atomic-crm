@@ -72,4 +72,4 @@ POSTMARK_WEBHOOK_AUTHORIZED_IPS: List of IPs (comma separated) authorized to sen
 
 > **Note:** The `POSTMARK_*` variables are required for Atomic CRM's inbound email features. Have a look at the the [inbound email configuration](./inbound-email-configuration.md) to learn more about their usage and setup.
 
-The GitHub action will run the `prod-deploy` command on every push to the `main` branch, deplyiong the frontend to GitHub pages and updating the Supabase instance.
+The GitHub action will run the `prod-deploy` command on every push to the `main` branch, deploying the frontend to GitHub pages and updating the Supabase instance.
