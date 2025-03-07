@@ -16,7 +16,7 @@ John,Doe,male,Sales Executive,,2024-07-01T00:00:00+00:00,2024-07-01T11:54:49.95+
 Jane,Doe,female,Designer,,2024-07-01T00:00:00+00:00,2024-07-01T11:54:49.95+00:00,false,in-contract,"UI, design",https://www.linkedin.com/in/janedoe,Acme,,,jane@doe.example,659-980-2020,740.647.3802,
 ```
 
-When importing contacts, companies and tags will be automatically matched if they exist on the system, or imported ortherwise.
+When importing contacts, companies and tags will be automatically matched if they exist on the system, or imported otherwise.
 
 ## Exporting Data
 
