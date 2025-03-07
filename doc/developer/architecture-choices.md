@@ -14,7 +14,7 @@ When using [the FakeRest data provider](./data-providers.md#setting-up-the-faker
 
 User credentials are stored in Supabase's `auth.users` table. Supabase does not allow to add columns tp this table. That's why additional user details are stored in a `sales` table created by Atomic CRM. A database trigger is used to automatically sync the `sales` record when a user is created or updated (e.g. for the `first_name` and `last_name` fields).
 
-The trigger can be found in the `supabase/migrations/init_triggerssql` file.
+The trigger can be found in the `supabase/migrations/init_triggers.sql` file.
 
 ## Edge Functions
 
