@@ -2,7 +2,7 @@
 
 ## Creating the First User
 
-The first time you open the Atomic CRM App, you will be prompted to create the first user. This first user user will automatically be granted administrator role.
+The first time you open the Atomic CRM App, you will be prompted to create the first user. This first user will automatically be granted administrator role.
 
 https://github.com/user-attachments/assets/1969c422-d280-4139-bac9-e4d91d65eda3
 
