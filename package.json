@@ -19,7 +19,7 @@
         "@supabase/supabase-js": "^2.49.1",
         "@types/jsonexport": "^3.0.5",
         "clsx": "^2.1.0",
-        "date-fns": "^4.1.0",
+        "date-fns": "^3.6.0",
         "dotenv": "^16.4.7",
         "faker": "5.5.3",
         "lodash": "~4.17.5",
