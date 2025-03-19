@@ -246,7 +246,8 @@ const DealsIterator = () => {
                                     component="span"
                                 >
                                     last activity{' '}
-                                    {formatDistance(deal.updated_at, now)} ago{' '}
+                                    {formatDistance(deal.updated_at, now)}{' '}
+                                    ago{' '}
                                 </Typography>
                             </ListItemSecondaryAction>
                         </ListItemButton>
