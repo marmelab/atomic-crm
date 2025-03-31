@@ -4,7 +4,7 @@
 
 You can import contacts and companies from a CSV file, e.g. to migrate from another CRM.
 
-https://github.com/user-attachments/assets/278a1969-b67f-4128-b75f-23e1b6ac1090
+https://github.com/user-attachments/assets/dcd0ad3f-de0c-4926-8213-3b1d127cf89f
 
 Atomic CRM displays an import contact buttons in the initial user onboarding page, and in the contacts page. 
 
