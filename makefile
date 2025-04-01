@@ -17,6 +17,7 @@ supabase-migrate-database: ## apply the migrations to the database
 
 supabase-reset-database: ## reset (and clear!) the database
 	npx supabase db reset
+	$(MAKE) supabase-migrate-database
 
 start-app: ## start the app locally
 	npm run dev
