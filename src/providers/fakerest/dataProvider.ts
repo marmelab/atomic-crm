@@ -8,6 +8,8 @@ import {
     withLifecycleCallbacks,
 } from 'react-admin';
 import {
+    Call,
+    CallData,
     Company,
     Contact,
     Deal,
@@ -23,6 +25,7 @@ import { CrmDataProvider } from '../types';
 import { authProvider, USER_STORAGE_KEY } from './authProvider';
 import generateData from './dataGenerator';
 import { withSupabaseFilterAdapter } from './internal/supabaseAdapter';
+import { supabase } from '../supabase/supabase';
 
 const baseDataProvider = fakeRestDataProvider(generateData(), true, 300);
 
@@ -168,6 +171,19 @@ const dataProviderWithCustomMethod: CrmDataProvider = {
             ...user.data,
         };
     },
+     async createCall(body: CallData) {
+            const { data, error } = await supabase.functions.invoke<Call>('calls', {
+                method: 'POST',
+                body,
+            });
+    
+            if (!data || error) {
+                console.error('call.error', error);
+                throw new Error('Failed to initiate a phone call');
+            }
+    
+            return data;
+        },
     async salesUpdate(
         id: Identifier,
         data: Partial<Omit<SalesFormData, 'password'>>

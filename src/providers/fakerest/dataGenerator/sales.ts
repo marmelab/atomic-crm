@@ -17,10 +17,13 @@ export const generateSales = (_: Db): Sale[] => {
             email,
             password: 'demo',
             administrator: false,
+            tenant_id:'',
+
         };
     });
     return [
         {
+            tenant_id:'',
             id: 0,
             user_id: '0',
             first_name: 'Jane',
@@ -33,5 +36,6 @@ export const generateSales = (_: Db): Sale[] => {
             } as RAFile,
         },
         ...randomSales,
+
     ];
 };

@@ -8,6 +8,11 @@ import {
     DEAL_NOTE_CREATED,
 } from './consts';
 
+export type CallData ={
+    recipient_id: number,
+    phone_number: string,
+    caller_id:number	
+}
 export type SignUpData = {
     organization_name: string;
     email: string;
@@ -103,6 +108,14 @@ export type Contact = {
     nb_tasks?: number;
     company_name?: string;
 } & Pick<RaRecord, 'id'>;
+
+export type Call = {
+    recipient_id:number
+    caller_id:number
+    phone_number:string
+    created_at: string;
+} & Pick<RaRecord, 'id'>;
+
 
 export type ContactNote = {
     contact_id: Identifier;
