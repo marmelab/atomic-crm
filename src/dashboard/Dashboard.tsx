@@ -1,4 +1,4 @@
-import { Grid, Stack } from '@mui/material';
+import { GridLegacy as Grid, Stack } from '@mui/material';
 import { DashboardActivityLog } from './DashboardActivityLog';
 import { DealsChart } from './DealsChart';
 import { HotContacts } from './HotContacts';

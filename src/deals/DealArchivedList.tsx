@@ -3,7 +3,7 @@ import {
     Dialog,
     DialogContent,
     DialogTitle,
-    Grid,
+    GridLegacy as Grid,
     Stack,
     Typography,
 } from '@mui/material';
