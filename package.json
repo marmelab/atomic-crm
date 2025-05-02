@@ -90,6 +90,9 @@
     "scripts": {
         "test": "vitest",
         "dev": "vite --force",
+        "update": "npx npm-check-updates '/^(?!@setools-v2/).*$/' --deep --upgrade",
+        "update2": "npx npm-check-updates '/^(?!@setools-v2/).*$/' --deep --target minor --upgrade",
+        "upgrade": "rm -f yarn.lock && make install",
         "build": "tsc && vite build",
         "build-lib": "tsc && vite build --config vite.lib.config",
         "preview": "vite preview",
