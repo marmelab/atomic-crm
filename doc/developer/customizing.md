@@ -16,18 +16,13 @@ export default App;
 
 `<CRM>` accepts various props to customize the application domain and look and feel, so the `App.tsx` file is the best place to configure your CRM.
 
-For instance, the following code snippet shows how to customize the CRM application title, logo, themes, and domain-specific data.
+For instance, the following code snippet shows how to customize the CRM application domain-specific data.
 
 ```tsx
 import { CRM } from './root/CRM';
-import { radiantLightTheme, radiantDarkTheme } from 'react-admin';
 
 const App = () => (
     <CRM
-        title="ACME CRM"
-        logo="./img/logo.png" // The logo path is relative to the public directory
-        lightTheme={radiantLightTheme}
-        darkTheme={radiantDarkTheme}
         contactGender={[
             { value: 'male', label: 'He' },
             { value: 'female', label: 'She' },
@@ -55,64 +50,19 @@ export default App;
 
 `<CRM>` accepts the following props:
 
-| Props                 | Description                                                           | Type            |
-|-----------------------|-----------------------------------------------------------------------|-----------------|
-| contactGender         | The gender options for contacts used in the application.              | ContactGender[] |
-| companySectors        | The list of company sectors used in the application.                  |  string[]       |
-| darkTheme             | The theme to use when the application is in dark mode.                | RaThemeOptions  |
-| dealCategories        | The categories of deals used in the application.                      | string[]        |
-| dealPipelineStatuses  | The statuses of deals in the pipeline used in the application         | string[]        |
-| dealStages            | The stages of deals used in the application.                          | DealStage[]     |
-| lightTheme            | The theme to use when the application is in light mode.               | RaThemeOptions  |
-| logo                  | The logo used in the CRM application.                                 | string          |
-| noteStatuses          | The statuses of notes used in the application.                        | NoteStatus[]    |
-| taskTypes             | The types of tasks used in the application.                           | string[]        |
-| title                 | The title of the CRM application.                                     | string          |
-
-## Using Test Data
-
-Developing features with an empty database can be challenging. To help with this, Atomic CRM includes a CSV file with test data that can be imported into the application.
-
-To import the test data, follow these steps:
-
-1. Go to the contacts page.
-2. Click the "Import" button.
-3. Select the file located at `test-data/contacts.csv`.
-
-## Customizing The Theme
-
-Atomic CRM uses the Material-UI library for theming. You can customize the light and dark themes by setting the `lightTheme` and `darkTheme` props on the `<CRM>` component.
-
-Check out react-admin's [theming documentation](https://marmelab.com/react-admin/Theming.html) for more information on how to customize the themes.
-
-## Customizing The Layout
-
-The components that make up the layout of the application (menu, container, etc) are located in the `src/layout` directory. You can customize the layout by modifying these components.
-
-## Customizing the Homepage
-
-The home page of the application is rendered by the `Dashboard.tsx` component. Updating this file to customize the dashboard.
-
-Here is a simple example of a customized dashboard:
-
-```jsx
-// ./src/dashboard/Dashboard.tsx
-import React from 'react';
-import { Card, CardContent, Typography } from '@mui/material';
-
-export const Dashboard = () => (
-    <Card>
-        <CardContent>
-            <Typography variant="h5" component="div">
-                Welcome to the Custom Dashboard!
-            </Typography>
-            <Typography variant="body2" color="text.secondary">
-                This is a customized homepage for your application. You can add any components or content here to suit your needs.
-            </Typography>
-        </CardContent>
-    </Card>
-);
-```
+| Props                   | Description                                                           | Type            |
+|-------------------------|-----------------------------------------------------------------------|-----------------|
+| `contactGender`         | The gender options for contacts used in the application.              | ContactGender[] |
+| `companySectors`        | The list of company sectors used in the application.                  | string[]       |
+| `darkTheme`             | The theme to use when the application is in dark mode.                | RaThemeOptions  |
+| `dealCategories`        | The categories of deals used in the application.                      | string[]        |
+| `dealPipelineStatuses`  | The statuses of deals in the pipeline used in the application         | string[]        |
+| `dealStages`            | The stages of deals used in the application.                          | DealStage[]     |
+| `lightTheme`            | The theme to use when the application is in light mode.               | RaThemeOptions  |
+| `logo`                  | The logo used in the CRM application.                                 | string          |
+| `noteStatuses`          | The statuses of notes used in the application.                        | NoteStatus[]    |
+| `taskTypes`             | The types of tasks used in the application.                           | string[]        |
+| `title`                 | The title of the CRM application.                                     | string          |
 
 ## Disabling Telemetry
 

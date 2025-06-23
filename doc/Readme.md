@@ -13,14 +13,16 @@ Check the project [README](../README.md#installation) for installation instructi
 ## Developer Documentation
 
 - [General Concepts](./developer/architecture-choices.md)
+- [Using Fake Rest Data Provider for Development](./developer/data-providers.md)
 
-### Customization
+- Customization
 
-- [Customizing the CRM](./developer/customizing.md)- [Creating Migrations](./developer/migrations.md) *(optional)*
-- [Using Fake Rest Data Provider for Development](./developer/data-providers.md) *(optional)*
+  - [Changing The Constants](./developer/customizing.md)
+  - [Theming](./developer/theming.md)
+  - [Updating The Model](./developer/migrations.md)
 
-### Deploying to Production
+- Deploying to Production
 
-- [Configuring Supabase](./developer/supabase-configuration.md)
-- [Configuring Inbound Email](./developer/inbound-email-configuration.md) *(optional)*
-- [Deployment](./developer/deploy.md)
+  - [Configuring Supabase](./developer/supabase-configuration.md)
+  - [Configuring Inbound Email](./developer/inbound-email-configuration.md) *(optional)*
+  - [Deployment](./developer/deploy.md)

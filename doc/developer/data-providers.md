@@ -2,6 +2,16 @@
 
 By default, the CRM demo uses [Supabase](https://supabase.com) for the backend API. Supabase is an open-source alternative to Firebase, built on top of Postgres. It provides a REST API and a real-time subscription system. The generous free tier allows you to run a small CRM for free.
 
+## Using Test Data
+
+Developing features with an empty database can be challenging. To help with this, Atomic CRM includes a CSV file with test data that can be imported into the application.
+
+To import the test data, follow these steps:
+
+1. Go to the contacts page.
+2. Click the "Import" button.
+3. Select the file located at `test-data/contacts.csv`.
+
 ## Using A Fake API For Development
 
 For development purposes, you can use an alternative data provider called [FakeRest](https://github.com/marmelab/FakeRest). It's a simple REST API running in the browser that resets the data on each page reload. It's useful for testing the frontend without having to set up a backend, e.g. to let end users test some updates before the backend is ready.
