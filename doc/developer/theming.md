@@ -37,11 +37,15 @@ const App = () => (
 
 Atomic CRM comes with 5 built-in themes:
 
+| | |
+| - | - |
 | &nbsp;&nbsp; [Default](https://marmelab.com/react-admin/AppTheme.html#default) [![Default light theme](https://marmelab.com/react-admin/img/defaultLightTheme1.jpg)]((AppTheme.html#default)) | &nbsp;&nbsp; [B&W](https://marmelab.com/react-admin/AppTheme.html#bw) [![B&W light theme](https://marmelab.com/react-admin/img/bwLightTheme1.jpg)](https://marmelab.com/react-admin/AppTheme.htmlml#bw) |
 | &nbsp;&nbsp; [Nano](https://marmelab.com/react-admin/AppTheme.html#nano) [![Nano light theme](https://marmelab.com/react-admin/img/nanoLightTheme1.jpg)](https://marmelab.com/react-admin/AppTheme.htmlml#nano) | &nbsp;&nbsp; [Radiant](https://marmelab.com/react-admin/AppTheme.html#radiant) [![Radiant light theme](https://marmelab.com/react-admin/img/radiantLightTheme1.jpg)](https://marmelab.com/react-admin/AppTheme.htmlml#radiant) |
 | &nbsp;&nbsp; [House](https://marmelab.com/react-admin/AppTheme.html#house) [![House light theme](https://marmelab.com/react-admin/img/houseLightTheme1.jpg)](https://marmelab.com/react-admin/AppTheme.htmlml#house) | |
 
-Check out react-admin's [theming documentation](https://marmelab.com/react-admin/Theming.html) for more information on how to customize the themes.
+You can also create your own theme from scratch to match your brand's identity.
+
+Check out react-admin's [theming documentation](https://marmelab.com/react-admin/Theming.html) for more information on how to customize the theme.
 
 ## Customizing The Layout
 
