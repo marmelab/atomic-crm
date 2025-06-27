@@ -22,6 +22,7 @@ describe('extractMailContactData', () => {
                 lastName: 'Lastname',
                 email: 'firstname.lastname@marmelab.com',
                 domain: 'marmelab.com',
+                companyName: 'Marmelab',
             },
         ]);
     });
@@ -43,12 +44,14 @@ describe('extractMailContactData', () => {
                 lastName: 'Lastname',
                 email: 'firstname.lastname@marmelab.com',
                 domain: 'marmelab.com',
+                companyName: 'Marmelab',
             },
             {
                 firstName: 'John',
                 lastName: 'Doe',
                 email: 'john.doe@marmelab.com',
                 domain: 'marmelab.com',
+                companyName: 'Marmelab',
             },
         ]);
     });
@@ -66,6 +69,7 @@ describe('extractMailContactData', () => {
                 lastName: 'Name',
                 email: 'name@marmelab.com',
                 domain: 'marmelab.com',
+                companyName: 'Marmelab',
             },
         ]);
     });
@@ -83,6 +87,7 @@ describe('extractMailContactData', () => {
                 lastName: 'Word Name',
                 email: 'multi.word.name@marmelab.com',
                 domain: 'marmelab.com',
+                companyName: 'Marmelab',
             },
         ]);
     });
@@ -101,6 +106,7 @@ describe('extractMailContactData', () => {
                 lastName: 'Doe',
                 email: '"john@doe"@marmelab.com',
                 domain: 'marmelab.com',
+                companyName: 'Marmelab',
             },
         ]);
     });
@@ -118,6 +124,7 @@ describe('extractMailContactData', () => {
                 lastName: 'doe',
                 email: 'john.doe@marmelab.com',
                 domain: 'marmelab.com',
+                companyName: 'Marmelab',
             },
         ]);
     });
@@ -135,6 +142,7 @@ describe('extractMailContactData', () => {
                 lastName: 'john',
                 email: 'john@marmelab.com',
                 domain: 'marmelab.com',
+                companyName: 'Marmelab',
             },
         ]);
     });
@@ -152,6 +160,7 @@ describe('extractMailContactData', () => {
                 lastName: 'doe multi',
                 email: 'john.doe.multi@marmelab.com',
                 domain: 'marmelab.com',
+                companyName: 'Marmelab',
             },
         ]);
     });
@@ -170,6 +179,45 @@ describe('extractMailContactData', () => {
                 lastName: 'doe"',
                 email: '"john@doe"@marmelab.com',
                 domain: 'marmelab.com',
+                companyName: 'Marmelab',
+            },
+        ]);
+    });
+
+    it('should support subdomains', () => {
+        // Because it is allowed by https://www.rfc-editor.org/rfc/rfc5322
+        const result = extractMailContactData([
+            {
+                Email: 'john.doe@sub.marmelab.com',
+                Name: 'John DOE',
+            },
+        ]);
+        expect(result).toEqual([
+            {
+                firstName: 'John',
+                lastName: 'DOE',
+                email: 'john.doe@sub.marmelab.com',
+                domain: 'sub.marmelab.com',
+                companyName: 'Marmelab',
+            },
+        ]);
+    });
+
+    it('should support domains with hyphens and underscores', () => {
+        // Because it is allowed by https://www.rfc-editor.org/rfc/rfc5322
+        const result = extractMailContactData([
+            {
+                Email: 'john.doe@sub.mar-me_lab.com',
+                Name: 'John DOE',
+            },
+        ]);
+        expect(result).toEqual([
+            {
+                firstName: 'John',
+                lastName: 'DOE',
+                email: 'john.doe@sub.mar-me_lab.com',
+                domain: 'sub.mar-me_lab.com',
+                companyName: 'Mar Me Lab',
             },
         ]);
     });

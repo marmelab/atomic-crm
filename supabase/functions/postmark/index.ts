@@ -48,7 +48,13 @@ Deno.serve(async req => {
 
     const contacts = extractMailContactData(ToFull);
 
-    for (const { firstName, lastName, email, domain } of contacts) {
+    for (const {
+        firstName,
+        lastName,
+        email,
+        domain,
+        companyName,
+    } of contacts) {
         if (!email) {
             // Return a 403 to let Postmark know that it's no use to retry this request
             // https://postmarkapp.com/developer/webhooks/inbound-webhook#errors-and-retries
@@ -67,6 +73,7 @@ Deno.serve(async req => {
             firstName,
             lastName,
             noteContent,
+            companyName,
         });
     }
 
