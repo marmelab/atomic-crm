@@ -8,10 +8,10 @@ import { useGetList } from 'react-admin';
 import { Engagement } from '../types';
 
 const multiplier = {
-    opportunity: 0.2,
-    'proposal-sent': 0.5,
-    'in-negociation': 0.8,
-    delayed: 0.3,
+    'results-found': 0.2,
+    'engagement-triggered': 0.5,
+    'engagement-active': 0.8,
+    'triage': 0.3,
 };
 
 const threeMonthsAgo = new Date(
@@ -45,23 +45,23 @@ export const EngagementsChart = () => {
         const amountByMonth = Object.keys(engagementsByMonth).map(month => {
             return {
                 date: format(month, 'MMM'),
-                won: engagementsByMonth[month]
-                    .filter((engagement: Engagement) => engagement.stage === 'won')
+                resolved: engagementsByMonth[month]
+                    .filter((engagement: Engagement) => engagement.stage === 'resolved')
                     .reduce((acc: number, engagement: Engagement) => {
                         acc += engagement.amount;
                         return acc;
                     }, 0),
-                pending: engagementsByMonth[month]
+                inProgress: engagementsByMonth[month]
                     .filter(
-                        (engagement: Engagement) => !['won', 'lost'].includes(engagement.stage)
+                        (engagement: Engagement) => !['resolved', 'risk-accepted'].includes(engagement.stage)
                     )
                     .reduce((acc: number, engagement: Engagement) => {
                         // @ts-ignore
                         acc += engagement.amount * multiplier[engagement.stage];
                         return acc;
                     }, 0),
-                lost: engagementsByMonth[month]
-                    .filter((engagement: Engagement) => engagement.stage === 'lost')
+                riskAccepted: engagementsByMonth[month]
+                    .filter((engagement: Engagement) => engagement.stage === 'risk-accepted')
                     .reduce((acc: number, engagement: Engagement) => {
                         acc -= engagement.amount;
                         return acc;
@@ -75,8 +75,8 @@ export const EngagementsChart = () => {
     if (isPending) return null; // FIXME return skeleton instead
     const range = months.reduce(
         (acc, month) => {
-            acc.min = Math.min(acc.min, month.lost);
-            acc.max = Math.max(acc.max, month.won + month.pending);
+            acc.min = Math.min(acc.min, month.riskAccepted);
+            acc.max = Math.max(acc.max, month.resolved + month.inProgress);
             return acc;
         },
         { min: 0, max: 0 }
@@ -95,7 +95,7 @@ export const EngagementsChart = () => {
                 <ResponsiveBar
                     data={months}
                     indexBy="date"
-                    keys={['won', 'pending', 'lost']}
+                    keys={['resolved', 'inProgress', 'riskAccepted']}
                     colors={['#61cdbb', '#97e3d5', '#e25c3b']}
                     margin={{ top: 30, right: 50, bottom: 30, left: 0 }}
                     padding={0.3}
@@ -130,7 +130,7 @@ export const EngagementsChart = () => {
                                 value: 0,
                                 lineStyle: { strokeOpacity: 0 },
                                 textStyle: { fill: '#2ebca6' },
-                                legend: 'Won',
+                                legend: 'Resolved',
                                 legendPosition: 'top-left',
                                 legendOrientation: 'vertical',
                             },
@@ -142,7 +142,7 @@ export const EngagementsChart = () => {
                                     strokeWidth: 1,
                                 },
                                 textStyle: { fill: '#e25c3b' },
-                                legend: 'Lost',
+                                legend: 'Risk Accepted',
                                 legendPosition: 'bottom-left',
                                 legendOrientation: 'vertical',
                             },
