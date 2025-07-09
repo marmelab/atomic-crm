@@ -1,4 +1,5 @@
 import { CRM } from './root/CRM';
+import { dataProvider, authProvider } from './providers/fakerest';
 
 /**
  * Application entry point
@@ -25,6 +26,6 @@ import { CRM } from './root/CRM';
  *    />
  * );
  */
-const App = () => <CRM />;
+const App = () => <CRM dataProvider={dataProvider} authProvider={authProvider} />;
 
 export default App;

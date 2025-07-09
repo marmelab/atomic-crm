@@ -29,10 +29,10 @@ import { Link as RouterLink, useLocation } from 'react-router-dom';
 import { ActivityLog } from '../activity/ActivityLog';
 import { Avatar } from '../contacts/Avatar';
 import { TagsList } from '../contacts/TagsList';
-import { findDealLabel } from '../deals/deal';
+import { findEngagementLabel } from '../engagements/engagement';
 import { Status } from '../misc/Status';
 import { useConfigurationContext } from '../root/ConfigurationContext';
-import { Company, Contact, Deal } from '../types';
+import { Company, Contact, Engagement } from '../types';
 import { CompanyAside } from './CompanyAside';
 import { CompanyAvatar } from './CompanyAvatar';
 
@@ -105,21 +105,21 @@ const CompanyShowContent = () => {
                                     <ContactsIterator />
                                 </ReferenceManyField>
                             </TabbedShowLayout.Tab>
-                            {record.nb_deals ? (
+                            {record.nb_engagements ? (
                                 <TabbedShowLayout.Tab
                                     label={
-                                        record.nb_deals === 1
-                                            ? '1 deal'
-                                            : `${record.nb_deals} deals`
+                                        record.nb_engagements === 1
+                                            ? '1 engagement'
+                                            : `${record.nb_engagements} engagements`
                                     }
-                                    path="deals"
+                                    path="engagements"
                                 >
                                     <ReferenceManyField
-                                        reference="deals"
+                                        reference="engagements"
                                         target="company_id"
                                         sort={{ field: 'name', order: 'ASC' }}
                                     >
-                                        <DealsIterator />
+                                        <EngagementsIterator />
                                     </ReferenceManyField>
                                 </TabbedShowLayout.Tab>
                             ) : null}
@@ -206,35 +206,35 @@ const CreateRelatedContactButton = () => {
     );
 };
 
-const DealsIterator = () => {
-    const { data: deals, error, isPending } = useListContext<Deal>();
-    const { dealStages } = useConfigurationContext();
+const EngagementsIterator = () => {
+    const { data: engagements, error, isPending } = useListContext<Engagement>();
+    const { engagementStages } = useConfigurationContext();
     if (isPending || error) return null;
 
     const now = Date.now();
     return (
         <Box>
             <List dense>
-                {deals.map(deal => (
-                    <ListItem disablePadding key={deal.id}>
+                {engagements.map(engagement => (
+                    <ListItem disablePadding key={engagement.id}>
                         <ListItemButton
                             component={RouterLink}
-                            to={`/deals/${deal.id}/show`}
+                            to={`/engagements/${engagement.id}/show`}
                         >
                             <ListItemText
-                                primary={deal.name}
+                                primary={engagement.name}
                                 secondary={
                                     <>
-                                        {findDealLabel(dealStages, deal.stage)},{' '}
-                                        {deal.amount.toLocaleString('en-US', {
+                                        {findEngagementLabel(engagementStages, engagement.stage)},{' '}
+                                        {engagement.amount.toLocaleString('en-US', {
                                             notation: 'compact',
                                             style: 'currency',
                                             currency: 'USD',
                                             currencyDisplay: 'narrowSymbol',
                                             minimumSignificantDigits: 3,
                                         })}
-                                        {deal.category
-                                            ? `, ${deal.category}`
+                                        {engagement.category
+                                            ? `, ${engagement.category}`
                                             : ''}
                                     </>
                                 }
@@ -246,7 +246,7 @@ const DealsIterator = () => {
                                     component="span"
                                 >
                                     last activity{' '}
-                                    {formatDistance(deal.updated_at, now)} ago{' '}
+                                    {formatDistance(engagement.updated_at, now)} ago{' '}
                                 </Typography>
                             </ListItemSecondaryAction>
                         </ListItemButton>

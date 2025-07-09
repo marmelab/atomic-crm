@@ -2,22 +2,22 @@ import { createContext, ReactNode, useContext } from 'react';
 import {
     defaultCompanySectors,
     defaultContactGender,
-    defaultDealCategories,
-    defaultDealPipelineStatuses,
-    defaultDealStages,
+    defaultEngagementCategories,
+    defaultEngagementPipelineStatuses,
+    defaultEngagementStages,
     defaultLogo,
     defaultNoteStatuses,
     defaultTaskTypes,
     defaultTitle,
 } from './defaultConfiguration';
-import { ContactGender, DealStage, NoteStatus } from '../types';
+import { ContactGender, EngagementStage, NoteStatus } from '../types';
 
 // Define types for the context value
 export interface ConfigurationContextValue {
     companySectors: string[];
-    dealCategories: string[];
-    dealPipelineStatuses: string[];
-    dealStages: DealStage[];
+    engagementCategories: string[];
+    engagementPipelineStatuses: string[];
+    engagementStages: EngagementStage[];
     noteStatuses: NoteStatus[];
     taskTypes: string[];
     title: string;
@@ -32,9 +32,9 @@ export interface ConfigurationProviderProps extends ConfigurationContextValue {
 // Create context with default value
 export const ConfigurationContext = createContext<ConfigurationContextValue>({
     companySectors: defaultCompanySectors,
-    dealCategories: defaultDealCategories,
-    dealPipelineStatuses: defaultDealPipelineStatuses,
-    dealStages: defaultDealStages,
+    engagementCategories: defaultEngagementCategories,
+    engagementPipelineStatuses: defaultEngagementPipelineStatuses,
+    engagementStages: defaultEngagementStages,
     noteStatuses: defaultNoteStatuses,
     taskTypes: defaultTaskTypes,
     title: defaultTitle,
@@ -45,9 +45,9 @@ export const ConfigurationContext = createContext<ConfigurationContextValue>({
 export const ConfigurationProvider = ({
     children,
     companySectors,
-    dealCategories,
-    dealPipelineStatuses,
-    dealStages,
+    engagementCategories,
+    engagementPipelineStatuses,
+    engagementStages,
     logo,
     noteStatuses,
     taskTypes,
@@ -57,9 +57,9 @@ export const ConfigurationProvider = ({
     <ConfigurationContext.Provider
         value={{
             companySectors,
-            dealCategories,
-            dealPipelineStatuses,
-            dealStages,
+            engagementCategories,
+            engagementPipelineStatuses,
+            engagementStages,
             logo,
             noteStatuses,
             title,

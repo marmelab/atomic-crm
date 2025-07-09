@@ -31,14 +31,14 @@ import { CompanyAvatar } from '../companies/CompanyAvatar';
 import { DialogCloseButton } from '../misc/DialogCloseButton';
 import { NotesIterator } from '../notes';
 import { useConfigurationContext } from '../root/ConfigurationContext';
-import { Deal } from '../types';
+import { Engagement } from '../types';
 import { ContactList } from './ContactList';
-import { findDealLabel } from './deal';
+import { findEngagementLabel } from './engagement';
 
-export const DealShow = ({ open, id }: { open: boolean; id?: string }) => {
+export const EngagementShow = ({ open, id }: { open: boolean; id?: string }) => {
     const redirect = useRedirect();
     const handleClose = () => {
-        redirect('list', 'deals');
+        redirect('list', 'engagements');
     };
 
     return (
@@ -56,7 +56,7 @@ export const DealShow = ({ open, id }: { open: boolean; id?: string }) => {
             <DialogContent sx={{ padding: 0 }}>
                 {!!id ? (
                     <ShowBase id={id}>
-                        <DealShowContent handleClose={handleClose} />
+                        <EngagementShowContent handleClose={handleClose} />
                     </ShowBase>
                 ) : null}
             </DialogContent>
@@ -65,9 +65,9 @@ export const DealShow = ({ open, id }: { open: boolean; id?: string }) => {
 };
 
 const CLOSE_TOP_WITH_ARCHIVED = 14;
-const DealShowContent = ({ handleClose }: { handleClose: () => void }) => {
-    const { dealStages } = useConfigurationContext();
-    const record = useRecordContext<Deal>();
+const EngagementShowContent = ({ handleClose }: { handleClose: () => void }) => {
+    const { engagementStages } = useConfigurationContext();
+    const record = useRecordContext<Engagement>();
     if (!record) return null;
 
     return (
@@ -201,7 +201,7 @@ const DealShowContent = ({ handleClose }: { handleClose: () => void }) => {
                                     Stage
                                 </Typography>
                                 <Typography variant="body2">
-                                    {findDealLabel(dealStages, record.stage)}
+                                    {findEngagementLabel(engagementStages, record.stage)}
                                 </Typography>
                             </Box>
                         </Box>
@@ -247,11 +247,11 @@ const DealShowContent = ({ handleClose }: { handleClose: () => void }) => {
                         <Box m={2}>
                             <Divider />
                             <ReferenceManyField
-                                target="deal_id"
-                                reference="dealNotes"
+                                target="engagement_id"
+                                reference="engagementNotes"
                                 sort={{ field: 'date', order: 'DESC' }}
                             >
-                                <NotesIterator reference="deals" />
+                                <NotesIterator reference="engagements" />
                             </ReferenceManyField>
                         </Box>
                     </Box>
@@ -276,19 +276,19 @@ const ArchivedTitle = () => (
                 color: theme => theme.palette.warning.contrastText,
             }}
         >
-            Archived Deal
+            Archived Engagement
         </Typography>
     </Box>
 );
 
-const ArchiveButton = ({ record }: { record: Deal }) => {
+const ArchiveButton = ({ record }: { record: Engagement }) => {
     const [update] = useUpdate();
     const redirect = useRedirect();
     const notify = useNotify();
     const refresh = useRefresh();
     const handleClick = () => {
         update(
-            'deals',
+            'engagements',
             {
                 id: record.id,
                 data: { archived_at: new Date().toISOString() },
@@ -296,12 +296,12 @@ const ArchiveButton = ({ record }: { record: Deal }) => {
             },
             {
                 onSuccess: () => {
-                    redirect('list', 'deals');
-                    notify('Deal archived', { type: 'info', undoable: false });
+                    redirect('list', 'engagements');
+                    notify('Engagement archived', { type: 'info', undoable: false });
                     refresh();
                 },
                 onError: () => {
-                    notify('Error: deal not archived', { type: 'error' });
+                    notify('Error: engagement not archived', { type: 'error' });
                 },
             }
         );
@@ -314,24 +314,24 @@ const ArchiveButton = ({ record }: { record: Deal }) => {
     );
 };
 
-const UnarchiveButton = ({ record }: { record: Deal }) => {
+const UnarchiveButton = ({ record }: { record: Engagement }) => {
     const dataProvider = useDataProvider();
     const redirect = useRedirect();
     const notify = useNotify();
     const refresh = useRefresh();
 
     const { mutate } = useMutation({
-        mutationFn: () => dataProvider.unarchiveDeal(record),
+        mutationFn: () => dataProvider.unarchiveEngagement(record),
         onSuccess: () => {
-            redirect('list', 'deals');
-            notify('Deal unarchived', {
+            redirect('list', 'engagements');
+            notify('Engagement unarchived', {
                 type: 'info',
                 undoable: false,
             });
             refresh();
         },
         onError: () => {
-            notify('Error: deal not unarchived', { type: 'error' });
+            notify('Error: engagement not unarchived', { type: 'error' });
         },
     });
 

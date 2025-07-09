@@ -67,7 +67,7 @@ export type Company = {
     country: string;
     context_links?: string[];
     nb_contacts?: number;
-    nb_deals?: number;
+    nb_engagements?: number;
 } & Pick<RaRecord, 'id'>;
 
 export type EmailAndType = {
@@ -111,7 +111,7 @@ export type ContactNote = {
     attachments?: AttachmentNote[];
 } & Pick<RaRecord, 'id'>;
 
-export type Deal = {
+export type Engagement = {
     name: string;
     company_id: Identifier;
     contact_ids: Identifier[];
@@ -127,8 +127,8 @@ export type Deal = {
     index: number;
 } & Pick<RaRecord, 'id'>;
 
-export type DealNote = {
-    deal_id: Identifier;
+export type EngagementNote = {
+    engagement_id: Identifier;
     text: string;
     date: string;
     sales_id: Identifier;
@@ -175,18 +175,18 @@ export type ActivityContactNoteCreated = {
     date: string;
 };
 
-export type ActivityDealCreated = {
+export type ActivityEngagementCreated = {
     type: typeof DEAL_CREATED;
     company_id: Identifier;
     sales_id?: Identifier;
-    deal: Deal;
+    engagement: Engagement;
     date: string;
 };
 
-export type ActivityDealNoteCreated = {
+export type ActivityEngagementNoteCreated = {
     type: typeof DEAL_NOTE_CREATED;
     sales_id?: Identifier;
-    dealNote: DealNote;
+    engagementNote: EngagementNote;
     date: string;
 };
 
@@ -195,8 +195,8 @@ export type Activity = RaRecord &
         | ActivityCompanyCreated
         | ActivityContactCreated
         | ActivityContactNoteCreated
-        | ActivityDealCreated
-        | ActivityDealNoteCreated
+        | ActivityEngagementCreated
+        | ActivityEngagementNoteCreated
     );
 
 export interface RAFile {
@@ -208,7 +208,7 @@ export interface RAFile {
 }
 
 export type AttachmentNote = RAFile;
-export interface DealStage {
+export interface EngagementStage {
     value: string;
     label: string;
 }

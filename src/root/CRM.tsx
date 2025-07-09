@@ -18,7 +18,7 @@ import { i18nProvider } from './i18nProvider';
 import companies from '../companies';
 import contacts from '../contacts';
 import { Dashboard } from '../dashboard/Dashboard';
-import deals from '../deals';
+import engagements from '../engagements';
 import { LoginPage } from '../login/LoginPage';
 import { SignupPage } from '../login/SignupPage';
 import {
@@ -34,9 +34,9 @@ import {
 import {
     defaultCompanySectors,
     defaultContactGender,
-    defaultDealCategories,
-    defaultDealPipelineStatuses,
-    defaultDealStages,
+    defaultEngagementCategories,
+    defaultEngagementPipelineStatuses,
+    defaultEngagementStages,
     defaultLogo,
     defaultNoteStatuses,
     defaultTaskTypes,
@@ -118,9 +118,9 @@ export const CRM = ({
     contactGender = defaultContactGender,
     companySectors = defaultCompanySectors,
     darkTheme,
-    dealCategories = defaultDealCategories,
-    dealPipelineStatuses = defaultDealPipelineStatuses,
-    dealStages = defaultDealStages,
+    engagementCategories = defaultEngagementCategories,
+    engagementPipelineStatuses = defaultEngagementPipelineStatuses,
+    engagementStages = defaultEngagementStages,
     lightTheme = defaultLightTheme,
     logo = defaultLogo,
     noteStatuses = defaultNoteStatuses,
@@ -149,9 +149,9 @@ export const CRM = ({
         <ConfigurationProvider
             contactGender={contactGender}
             companySectors={companySectors}
-            dealCategories={dealCategories}
-            dealPipelineStatuses={dealPipelineStatuses}
-            dealStages={dealStages}
+            engagementCategories={engagementCategories}
+            engagementPipelineStatuses={engagementPipelineStatuses}
+            engagementStages={engagementStages}
             logo={logo}
             noteStatuses={noteStatuses}
             taskTypes={taskTypes}
@@ -189,11 +189,11 @@ export const CRM = ({
                         element={<SettingsPage />}
                     />
                 </CustomRoutes>
-                <Resource name="deals" {...deals} />
+                <Resource name="engagements" {...engagements} />
                 <Resource name="contacts" {...contacts} />
                 <Resource name="companies" {...companies} />
                 <Resource name="contactNotes" />
-                <Resource name="dealNotes" />
+                <Resource name="engagementNotes" />
                 <Resource name="tasks" list={ListGuesser} />
                 <Resource name="sales" {...sales} />
                 <Resource name="tags" list={ListGuesser} />

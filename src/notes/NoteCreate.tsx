@@ -19,7 +19,7 @@ import { getCurrentDate } from './utils';
 
 const foreignKeyMapping = {
     contacts: 'contact_id',
-    deals: 'deal_id',
+    engagements: 'engagement_id',
 };
 
 export const NoteCreate = ({
@@ -27,7 +27,7 @@ export const NoteCreate = ({
     reference,
 }: {
     showStatus?: boolean;
-    reference: 'contacts' | 'deals';
+    reference: 'contacts' | 'engagements';
 }) => {
     const resource = useResourceContext();
     const record = useRecordContext();
@@ -50,7 +50,7 @@ const NoteCreateButton = ({
     reference,
     record,
 }: {
-    reference: 'contacts' | 'deals';
+    reference: 'contacts' | 'engagements';
     record: RaRecord<Identifier>;
 }) => {
     const [update] = useUpdate();

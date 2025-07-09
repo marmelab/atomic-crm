@@ -20,7 +20,7 @@ export const defaultCompanySectors = [
     'Utilities',
 ];
 
-export const defaultDealStages = [
+export const defaultEngagementStages = [
     { value: 'opportunity', label: 'Opportunity' },
     { value: 'proposal-sent', label: 'Proposal Sent' },
     { value: 'in-negociation', label: 'In Negotiation' },
@@ -29,9 +29,9 @@ export const defaultDealStages = [
     { value: 'delayed', label: 'Delayed' },
 ];
 
-export const defaultDealPipelineStatuses = ['won'];
+export const defaultEngagementPipelineStatuses = ['won'];
 
-export const defaultDealCategories = [
+export const defaultEngagementCategories = [
     'Other',
     'Copywriting',
     'Print project',
