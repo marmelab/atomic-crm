@@ -1,6 +1,6 @@
 import { EngagementStage } from '../types';
 
-export const findEngagementLabel = (engagementStages: EngagementStage[], engagementValue: string) => {
-    const stage = engagementStages.find(s => s.value === engagementValue);
-    return stage ? stage.label : engagementValue;
-};
+export function findEngagementLabel(stages: { value: string; label: string }[], value: string) {
+    const stage = stages.find(stage => stage.value === value);
+    return stage ? stage.label : value;
+}

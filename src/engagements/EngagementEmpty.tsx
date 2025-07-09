@@ -2,13 +2,13 @@ import { LinearProgress, Stack, Typography } from '@mui/material';
 import { CreateButton, useGetList } from 'react-admin';
 import useAppBarHeight from '../misc/useAppBarHeight';
 import { matchPath, useLocation } from 'react-router';
-import { DealCreate } from './DealCreate';
+import { EngagementCreate } from './EngagementCreate';
 import { Contact } from '../types';
 import { Link } from 'react-router-dom';
 
-export const DealEmpty = ({ children }: { children?: React.ReactNode }) => {
+export const EngagementEmpty = ({ children }: { children?: React.ReactNode }) => {
     const location = useLocation();
-    const matchCreate = matchPath('/deals/create', location.pathname);
+    const matchCreate = matchPath('/engagements/create', location.pathname);
     const appbarHeight = useAppBarHeight();
 
     // get Contact data
@@ -30,12 +30,12 @@ export const DealEmpty = ({ children }: { children?: React.ReactNode }) => {
                 height: `calc(100dvh - ${appbarHeight}px)`,
             }}
         >
-            <img src="./img/empty.svg" alt="No deals found" />
+            <img src="./img/empty.svg" alt="No engagements found" />
             {contacts && contacts.length > 0 ? (
                 <>
                     <Stack gap={0} alignItems="center">
                         <Typography variant="h6" fontWeight="bold">
-                            No deals found
+                            No engagements found
                         </Typography>
                         <Typography
                             variant="body2"
@@ -43,19 +43,19 @@ export const DealEmpty = ({ children }: { children?: React.ReactNode }) => {
                             color="text.secondary"
                             gutterBottom
                         >
-                            It seems your deal list is empty.
+                            It seems your engagement list is empty.
                         </Typography>
                     </Stack>
                     <Stack spacing={2} direction="row">
-                        <CreateButton variant="contained" label="Create deal" />
+                        <CreateButton variant="contained" label="Create engagement" />
                     </Stack>
-                    <DealCreate open={!!matchCreate} />
+                    <EngagementCreate open={!!matchCreate} />
                     {children}
                 </>
             ) : (
                 <Stack gap={0} alignItems="center">
                     <Typography variant="h6" fontWeight="bold">
-                        No deals found
+                        No engagements found
                     </Typography>
                     <Typography
                         variant="body2"
@@ -68,7 +68,7 @@ export const DealEmpty = ({ children }: { children?: React.ReactNode }) => {
                         <Link to="/contacts/create">
                             Add your first contact
                         </Link>{' '}
-                        before creating a deal.
+                        before creating an engagement.
                     </Typography>
                 </Stack>
             )}

@@ -90,10 +90,10 @@ const Header = () => {
                                     value="/companies"
                                 />
                                 <Tab
-                                    label={'Deals'}
+                                    label={'Engagements'}
                                     component={Link}
-                                    to="/deals"
-                                    value="/deals"
+                                    to="/engagements"
+                                    value="/engagements"
                                 />
                             </Tabs>
                         </Box>

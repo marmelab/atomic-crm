@@ -16,15 +16,15 @@ import { matchPath, useLocation } from 'react-router';
 
 import { Card, Stack } from '@mui/material';
 import { useConfigurationContext } from '../root/ConfigurationContext';
-import { DealArchivedList } from './DealArchivedList';
-import { DealCreate } from './DealCreate';
-import { DealEdit } from './DealEdit';
-import { DealEmpty } from './DealEmpty';
-import { DealListContent } from './DealListContent';
-import { DealShow } from './DealShow';
+import { EngagementArchivedList } from './EngagementArchivedList';
+import { EngagementCreate } from './EngagementCreate';
+import { EngagementEdit } from './EngagementEdit';
+import { EngagementEmpty } from './EngagementEmpty';
+import { EngagementListContent } from './EngagementListContent';
+import { EngagementShow } from './EngagementShow';
 import { OnlyMineInput } from './OnlyMineInput';
 
-const DealList = () => {
+const EngagementList = () => {
     const { identity } = useGetIdentity();
 
     if (!identity) return null;
@@ -36,26 +36,26 @@ const DealList = () => {
             }}
             sort={{ field: 'index', order: 'DESC' }}
         >
-            <DealLayout />
+            <EngagementLayout />
         </ListBase>
     );
 };
 
-const DealLayout = () => {
+const EngagementLayout = () => {
     const location = useLocation();
-    const matchCreate = matchPath('/deals/create', location.pathname);
-    const matchShow = matchPath('/deals/:id/show', location.pathname);
-    const matchEdit = matchPath('/deals/:id', location.pathname);
+    const matchCreate = matchPath('/engagements/create', location.pathname);
+    const matchShow = matchPath('/engagements/:id/show', location.pathname);
+    const matchEdit = matchPath('/engagements/:id', location.pathname);
 
-    const { dealCategories } = useConfigurationContext();
+    const { engagementCategories } = useConfigurationContext();
 
-    const dealFilters = [
+    const engagementFilters = [
         <SearchInput source="q" alwaysOn />,
         <ReferenceInput source="company_id" reference="companies" />,
         <SelectInput
             source="category"
             label="Category"
-            choices={dealCategories.map(type => ({ id: type, name: type }))}
+            choices={engagementCategories.map(type => ({ id: type, name: type }))}
         />,
         <OnlyMineInput source="sales_id" alwaysOn />,
     ];
@@ -67,43 +67,43 @@ const DealLayout = () => {
     if (!data?.length && !hasFilters)
         return (
             <>
-                <DealEmpty>
-                    <DealShow open={!!matchShow} id={matchShow?.params.id} />
-                    <DealArchivedList />
-                </DealEmpty>
+                <EngagementEmpty>
+                    <EngagementShow open={!!matchShow} id={matchShow?.params.id} />
+                    <EngagementArchivedList />
+                </EngagementEmpty>
             </>
         );
 
     return (
         <Stack component="div" sx={{ width: '100%' }}>
-            <Title title={'Deals'} />
-            <ListToolbar filters={dealFilters} actions={<DealActions />} />
+            <Title title={'Engagements'} />
+            <ListToolbar filters={engagementFilters} actions={<EngagementActions />} />
             <Card>
-                <DealListContent />
+                <EngagementListContent />
             </Card>
-            <DealArchivedList />
-            <DealCreate open={!!matchCreate} />
-            <DealEdit
+            <EngagementArchivedList />
+            <EngagementCreate open={!!matchCreate} />
+            <EngagementEdit
                 open={!!matchEdit && !matchCreate}
                 id={matchEdit?.params.id}
             />
-            <DealShow open={!!matchShow} id={matchShow?.params.id} />
+            <EngagementShow open={!!matchShow} id={matchShow?.params.id} />
         </Stack>
     );
 };
 
-const DealActions = () => {
+const EngagementActions = () => {
     return (
         <TopToolbar>
             <FilterButton />
             <ExportButton />
             <CreateButton
                 variant="contained"
-                label="New Deal"
+                label="New Engagement"
                 sx={{ marginLeft: 2 }}
             />
         </TopToolbar>
     );
 };
 
-export default DealList;
+export default EngagementList;

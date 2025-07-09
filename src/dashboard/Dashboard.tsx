@@ -1,6 +1,6 @@
 import { Grid, Stack } from '@mui/material';
 import { DashboardActivityLog } from './DashboardActivityLog';
-import { DealsChart } from './DealsChart';
+import { EngagementsChart } from './EngagementsChart';
 import { HotContacts } from './HotContacts';
 import { TasksList } from './TasksList';
 import { Welcome } from './Welcome';
@@ -22,15 +22,15 @@ export const Dashboard = () => {
             pagination: { page: 1, perPage: 1 },
         });
 
-    const { total: totalDeal, isPending: isPendingDeal } = useGetList<Contact>(
-        'deals',
+    const { total: totalEngagement, isPending: isPendingEngagement } = useGetList<Contact>(
+        'engagements',
         {
             pagination: { page: 1, perPage: 1 },
         }
     );
 
     const isPending =
-        isPendingContact || isPendingContactNotes || isPendingDeal;
+        isPendingContact || isPendingContactNotes || isPendingEngagement;
 
     if (isPending) {
         return null;
@@ -56,7 +56,7 @@ export const Dashboard = () => {
             </Grid>
             <Grid item xs={12} md={6}>
                 <Stack gap={4}>
-                    {totalDeal ? <DealsChart /> : null}
+                    {totalEngagement ? <EngagementsChart /> : null}
                     <DashboardActivityLog />
                 </Stack>
             </Grid>

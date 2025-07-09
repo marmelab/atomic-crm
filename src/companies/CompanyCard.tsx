@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { useState } from 'react';
 import { AvatarGroup, Paper, Typography, Box } from '@mui/material';
-import DealIcon from '@mui/icons-material/MonetizationOn';
+import GroupWorkIcon from '@mui/icons-material/GroupWork'; // Example: use a more generic icon for engagements
 import {
     useCreatePath,
     SelectField,
@@ -71,7 +71,7 @@ export const CompanyCard = (props: { record?: Company }) => {
                             </ReferenceManyField>
                         ) : null}
                     </Box>
-                    {record.nb_deals ? (
+                    {record.nb_engagements ? (
                         <Box
                             sx={{
                                 display: 'flex',
@@ -80,16 +80,16 @@ export const CompanyCard = (props: { record?: Company }) => {
                                 gap: 0.5,
                             }}
                         >
-                            <DealIcon color="disabled" />
+                            <GroupWorkIcon color="disabled" />
                             <Typography variant="subtitle2">
-                                {record.nb_deals}
+                                {record.nb_engagements}
                             </Typography>
                             <Typography variant="caption" color="textSecondary">
-                                {record.nb_deals
-                                    ? record.nb_deals > 1
-                                        ? 'deals'
-                                        : 'deal'
-                                    : 'deal'}
+                                {record.nb_engagements
+                                    ? record.nb_engagements > 1
+                                        ? 'engagements'
+                                        : 'engagement'
+                                    : 'engagement'}
                             </Typography>
                         </Box>
                     ) : null}

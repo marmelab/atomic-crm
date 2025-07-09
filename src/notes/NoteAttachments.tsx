@@ -1,9 +1,9 @@
 import { ImageList, ImageListItem, Stack } from '@mui/material';
-import { AttachmentNote, ContactNote, DealNote } from '../types';
+import { AttachmentNote, ContactNote, EngagementNote } from '../types';
 import { FileField } from 'react-admin';
 import AttachFileIcon from '@mui/icons-material/AttachFile';
 
-export const NoteAttachments = ({ note }: { note: ContactNote | DealNote }) => {
+export const NoteAttachments = ({ note }: { note: ContactNote | EngagementNote }) => {
     if (!note.attachments || note.attachments.length === 0) {
         return null;
     }

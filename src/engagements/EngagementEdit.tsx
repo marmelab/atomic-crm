@@ -15,16 +15,16 @@ import {
 } from 'react-admin';
 import { Link } from 'react-router-dom';
 import { DialogCloseButton } from '../misc/DialogCloseButton';
-import { Deal } from '../types';
-import { DealInputs } from './DealInputs';
+import { Engagement } from '../types';
+import { EngagementInputs } from './EngagementInputs';
 import { CompanyAvatar } from '../companies/CompanyAvatar';
 
-export const DealEdit = ({ open, id }: { open: boolean; id?: string }) => {
+export const EngagementEdit = ({ open, id }: { open: boolean; id?: string }) => {
     const redirect = useRedirect();
     const notify = useNotify();
 
     const handleClose = () => {
-        redirect('/deals', undefined, undefined, undefined, {
+        redirect('/engagements', undefined, undefined, undefined, {
             _scrollToTop: false,
         });
     };
@@ -47,9 +47,9 @@ export const DealEdit = ({ open, id }: { open: boolean; id?: string }) => {
                     mutationMode="pessimistic"
                     mutationOptions={{
                         onSuccess: () => {
-                            notify('Deal updated');
+                            notify('Engagement updated');
                             redirect(
-                                `/deals/${id}/show`,
+                                `/engagements/${id}/show`,
                                 undefined,
                                 undefined,
                                 undefined,
@@ -64,7 +64,7 @@ export const DealEdit = ({ open, id }: { open: boolean; id?: string }) => {
                     <EditHeader />
                     <Form>
                         <DialogContent>
-                            <DealInputs />
+                            <EngagementInputs />
                         </DialogContent>
                         <EditToolbar />
                     </Form>
@@ -75,8 +75,8 @@ export const DealEdit = ({ open, id }: { open: boolean; id?: string }) => {
 };
 
 function EditHeader() {
-    const deal = useRecordContext<Deal>();
-    if (!deal) {
+    const engagement = useRecordContext<Engagement>();
+    if (!engagement) {
         return null;
     }
 
@@ -100,16 +100,16 @@ function EditHeader() {
                     >
                         <CompanyAvatar />
                     </ReferenceField>
-                    <Typography variant="h6">Edit {deal.name} deal</Typography>
+                    <Typography variant="h6">Edit {engagement.name} engagement</Typography>
                 </Stack>
 
                 <Stack direction="row" spacing={1} sx={{ pr: 3 }}>
                     <Button
                         component={Link}
-                        to={`/deals/${deal.id}/show`}
+                        to={`/engagements/${engagement.id}/show`}
                         size="small"
                     >
-                        Back to deal
+                        Back to engagement
                     </Button>
                 </Stack>
             </Stack>

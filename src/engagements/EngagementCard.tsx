@@ -2,36 +2,37 @@ import { Draggable } from '@hello-pangea/dnd';
 import { Box, Card, Typography } from '@mui/material';
 import { ReferenceField, useRedirect } from 'react-admin';
 import { CompanyAvatar } from '../companies/CompanyAvatar';
-import { Deal } from '../types';
+import { Engagement } from '../types';
 
-export const DealCard = ({ deal, index }: { deal: Deal; index: number }) => {
-    if (!deal) return null;
+export const EngagementCard = ({ engagement, index }: { engagement: Engagement; index: number }) => {
+    if (!engagement) return null;
 
     return (
-        <Draggable draggableId={String(deal.id)} index={index}>
+        <Draggable draggableId={String(engagement.id)} index={index}>
             {(provided, snapshot) => (
-                <DealCardContent
+                <EngagementCardContent
                     provided={provided}
                     snapshot={snapshot}
-                    deal={deal}
+                    engagement={engagement}
                 />
             )}
         </Draggable>
     );
 };
 
-export const DealCardContent = ({
+export const EngagementCardContent = ({
     provided,
     snapshot,
-    deal,
+    engagement,
 }: {
     provided?: any;
     snapshot?: any;
-    deal: Deal;
+    engagement: Engagement;
 }) => {
+    console.log('EngagementCardContent engagement:', engagement);
     const redirect = useRedirect();
     const handleClick = () => {
-        redirect(`/deals/${deal.id}/show`, undefined, undefined, undefined, {
+        redirect(`/engagements/${engagement.id}/show`, undefined, undefined, undefined, {
             _scrollToTop: false,
         });
     };
@@ -54,7 +55,7 @@ export const DealCardContent = ({
                 <Box padding={1} display="flex">
                     <ReferenceField
                         source="company_id"
-                        record={deal}
+                        record={engagement}
                         reference="companies"
                         link={false}
                     >
@@ -62,17 +63,17 @@ export const DealCardContent = ({
                     </ReferenceField>
                     <Box sx={{ marginLeft: 1 }}>
                         <Typography variant="body2" gutterBottom>
-                            {deal.name}
+                            {engagement.name}
                         </Typography>
                         <Typography variant="caption" color="textSecondary">
-                            {deal.amount.toLocaleString('en-US', {
+                            {engagement.amount.toLocaleString('en-US', {
                                 notation: 'compact',
                                 style: 'currency',
                                 currency: 'USD',
                                 currencyDisplay: 'narrowSymbol',
                                 minimumSignificantDigits: 3,
                             })}
-                            {deal.category ? `, ${deal.category}` : ''}
+                            {engagement.category ? `, ${engagement.category}` : ''}
                         </Typography>
                     </Box>
                 </Box>

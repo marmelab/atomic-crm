@@ -4,15 +4,15 @@ import {
     COMPANY_CREATED,
     CONTACT_CREATED,
     CONTACT_NOTE_CREATED,
-    DEAL_CREATED,
-    DEAL_NOTE_CREATED,
+    ENGAGEMENT_CREATED,
+    ENGAGEMENT_NOTE_CREATED,
 } from '../consts';
 import { Activity } from '../types';
 import { ActivityLogCompanyCreated } from './ActivityLogCompanyCreated';
 import { ActivityLogContactCreated } from './ActivityLogContactCreated';
 import { ActivityLogContactNoteCreated } from './ActivityLogContactNoteCreated';
 import { ActivityLogDealCreated } from './ActivityLogDealCreated';
-import { ActivityLogDealNoteCreated } from './ActivityLogDealNoteCreated';
+import { ActivityLogEngagementNoteCreated } from './ActivityLogEngagementNoteCreated';
 
 type ActivityLogIteratorProps = {
     activities: Activity[];
@@ -76,12 +76,12 @@ function ActivityItem({ activity }: { activity: Activity }) {
         return <ActivityLogContactNoteCreated activity={activity} />;
     }
 
-    if (activity.type === DEAL_CREATED) {
+    if (activity.type === ENGAGEMENT_CREATED) {
         return <ActivityLogDealCreated activity={activity} />;
     }
 
-    if (activity.type === DEAL_NOTE_CREATED) {
-        return <ActivityLogDealNoteCreated activity={activity} />;
+    if (activity.type === ENGAGEMENT_NOTE_CREATED) {
+        return <ActivityLogEngagementNoteCreated activity={activity} />;
     }
 
     return null;

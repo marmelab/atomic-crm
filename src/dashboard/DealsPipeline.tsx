@@ -15,15 +15,15 @@ import {
 } from 'react-admin';
 
 import { CompanyAvatar } from '../companies/CompanyAvatar';
-import { Deal } from '../types';
+import { Engagement } from '../types';
 import { useConfigurationContext } from '../root/ConfigurationContext';
-import { findDealLabel } from '../deals/deal';
+import { findEngagementLabel } from '../engagements/engagement';
 
 export const DealsPipeline = () => {
     const { identity } = useGetIdentity();
-    const { dealStages, dealPipelineStatuses } = useConfigurationContext();
-    const { data, total, isPending } = useGetList<Deal>(
-        'deals',
+    const { engagementStages, engagementPipelineStatuses } = useConfigurationContext();
+    const { data, total, isPending } = useGetList<Engagement>(
+        'engagements',
         {
             pagination: { page: 1, perPage: 10 },
             sort: { field: 'last_seen', order: 'DESC' },
@@ -32,19 +32,19 @@ export const DealsPipeline = () => {
         { enabled: Number.isInteger(identity?.id) }
     );
 
-    const getOrderedDeals = (data?: Deal[]): Deal[] | undefined => {
+    const getOrderedEngagements = (data?: Engagement[]): Engagement[] | undefined => {
         if (!data) {
             return;
         }
-        const deals: Deal[] = [];
-        dealStages
-            .filter(stage => !dealPipelineStatuses.includes(stage.value))
+        const engagements: Engagement[] = [];
+        engagementStages
+            .filter(stage => !engagementPipelineStatuses.includes(stage.value))
             .forEach(stage =>
                 data
-                    .filter(deal => deal.stage === stage.value)
-                    .forEach(deal => deals.push(deal))
+                    .filter(engagement => engagement.stage === stage.value)
+                    .forEach(engagement => engagements.push(engagement))
             );
-        return deals;
+        return engagements;
     };
 
     return (
@@ -57,34 +57,34 @@ export const DealsPipeline = () => {
                     underline="none"
                     variant="h5"
                     color="textSecondary"
-                    to="/deals"
+                    to="/engagements"
                 >
                     Deals Pipeline
                 </Link>
             </Box>
             <Card>
-                <SimpleList<Deal>
-                    resource="deals"
+                <SimpleList<Engagement>
+                    resource="engagements"
                     linkType="show"
-                    data={getOrderedDeals(data)}
+                    data={getOrderedEngagements(data)}
                     total={total}
                     isPending={isPending}
-                    primaryText={deal => deal.name}
-                    secondaryText={deal =>
-                        `${deal.amount.toLocaleString('en-US', {
+                    primaryText={engagement => engagement.name}
+                    secondaryText={engagement =>
+                        `${engagement.amount.toLocaleString('en-US', {
                             notation: 'compact',
                             style: 'currency',
                             currency: 'USD',
                             currencyDisplay: 'narrowSymbol',
                             minimumSignificantDigits: 3,
-                        })} , ${findDealLabel(dealStages, deal.stage)}`
+                        })} , ${findEngagementLabel(engagementStages, engagement.stage)}`
                     }
-                    leftAvatar={deal => (
+                    leftAvatar={engagement => (
                         <ReferenceField
                             source="company_id"
-                            record={deal}
+                            record={engagement}
                             reference="companies"
-                            resource="deals"
+                            resource="engagements"
                             link={false}
                         >
                             <CompanyAvatar width={20} height={20} />

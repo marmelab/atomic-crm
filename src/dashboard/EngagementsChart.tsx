@@ -5,7 +5,7 @@ import { format, startOfMonth } from 'date-fns';
 import { useMemo } from 'react';
 import { useGetList } from 'react-admin';
 
-import { Deal } from '../types';
+import { Engagement } from '../types';
 
 const multiplier = {
     opportunity: 0.2,
@@ -18,8 +18,8 @@ const threeMonthsAgo = new Date(
     new Date().setMonth(new Date().getMonth() - 6)
 ).toISOString();
 
-export const DealsChart = () => {
-    const { data, isPending } = useGetList<Deal>('deals', {
+export const EngagementsChart = () => {
+    const { data, isPending } = useGetList<Engagement>('engagements', {
         pagination: { perPage: 100, page: 1 },
         sort: {
             field: 'created_at',
@@ -31,39 +31,39 @@ export const DealsChart = () => {
     });
     const months = useMemo(() => {
         if (!data) return [];
-        const dealsByMonth = data.reduce((acc, deal) => {
+        const engagementsByMonth = data.reduce((acc, engagement) => {
             const month = startOfMonth(
-                deal.created_at ?? new Date()
+                engagement.created_at ?? new Date()
             ).toISOString();
             if (!acc[month]) {
                 acc[month] = [];
             }
-            acc[month].push(deal);
+            acc[month].push(engagement);
             return acc;
         }, {} as any);
 
-        const amountByMonth = Object.keys(dealsByMonth).map(month => {
+        const amountByMonth = Object.keys(engagementsByMonth).map(month => {
             return {
                 date: format(month, 'MMM'),
-                won: dealsByMonth[month]
-                    .filter((deal: Deal) => deal.stage === 'won')
-                    .reduce((acc: number, deal: Deal) => {
-                        acc += deal.amount;
+                won: engagementsByMonth[month]
+                    .filter((engagement: Engagement) => engagement.stage === 'won')
+                    .reduce((acc: number, engagement: Engagement) => {
+                        acc += engagement.amount;
                         return acc;
                     }, 0),
-                pending: dealsByMonth[month]
+                pending: engagementsByMonth[month]
                     .filter(
-                        (deal: Deal) => !['won', 'lost'].includes(deal.stage)
+                        (engagement: Engagement) => !['won', 'lost'].includes(engagement.stage)
                     )
-                    .reduce((acc: number, deal: Deal) => {
+                    .reduce((acc: number, engagement: Engagement) => {
                         // @ts-ignore
-                        acc += deal.amount * multiplier[deal.stage];
+                        acc += engagement.amount * multiplier[engagement.stage];
                         return acc;
                     }, 0),
-                lost: dealsByMonth[month]
-                    .filter((deal: Deal) => deal.stage === 'lost')
-                    .reduce((acc: number, deal: Deal) => {
-                        acc -= deal.amount;
+                lost: engagementsByMonth[month]
+                    .filter((engagement: Engagement) => engagement.stage === 'lost')
+                    .reduce((acc: number, engagement: Engagement) => {
+                        acc -= engagement.amount;
                         return acc;
                     }, 0),
             };

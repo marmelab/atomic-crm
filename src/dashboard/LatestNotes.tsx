@@ -24,8 +24,8 @@ export const LatestNotes = () => {
             },
             { enabled: Number.isInteger(identity?.id) }
         );
-    const { data: dealNotesData, isPending: dealNotesLoading } = useGetList(
-        'dealNotes',
+    const { data: engagementNotesData, isPending: engagementNotesLoading } = useGetList(
+        'engagementNotes',
         {
             pagination: { page: 1, perPage: 5 },
             sort: { field: 'date', order: 'DESC' },
@@ -33,11 +33,11 @@ export const LatestNotes = () => {
         },
         { enabled: Number.isInteger(identity?.id) }
     );
-    if (contactNotesLoading || dealNotesLoading) {
+    if (contactNotesLoading || engagementNotesLoading) {
         return null;
     }
     // TypeScript guards
-    if (!contactNotesData || !dealNotesData) {
+    if (!contactNotesData || !engagementNotesData) {
         return null;
     }
 
@@ -47,7 +47,7 @@ export const LatestNotes = () => {
                 ...note,
                 type: 'contactNote',
             })),
-            dealNotesData.map(note => ({ ...note, type: 'dealNote' }))
+            engagementNotesData.map(note => ({ ...note, type: 'engagementNote' }))
         )
         .sort((a, b) => new Date(b.date).valueOf() - new Date(a.date).valueOf())
         .slice(0, 5);
@@ -76,8 +76,8 @@ export const LatestNotes = () => {
                                 component="div"
                             >
                                 on{' '}
-                                {note.type === 'dealNote' ? (
-                                    <Deal note={note} />
+                                {note.type === 'engagementNote' ? (
+                                    <Engagement note={note} />
                                 ) : (
                                     <Contact note={note} />
                                 )}
@@ -107,13 +107,13 @@ export const LatestNotes = () => {
     );
 };
 
-const Deal = ({ note }: any) => (
+const Engagement = ({ note }: any) => (
     <>
-        Deal{' '}
+        Engagement{' '}
         <ReferenceField
             record={note}
-            source="deal_id"
-            reference="deals"
+            source="engagement_id"
+            reference="engagements"
             link="show"
         >
             <TextField source="name" variant="body2" />

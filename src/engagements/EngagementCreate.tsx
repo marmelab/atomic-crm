@@ -12,70 +12,70 @@ import {
     useRedirect,
 } from 'react-admin';
 import { DialogCloseButton } from '../misc/DialogCloseButton';
-import { Deal } from '../types';
-import { DealInputs } from './DealInputs';
+import { Engagement } from '../types';
+import { EngagementInputs } from './EngagementInputs';
 
-export const DealCreate = ({ open }: { open: boolean }) => {
+export const EngagementCreate = ({ open }: { open: boolean }) => {
     const redirect = useRedirect();
     const dataProvider = useDataProvider();
-    const { data: allDeals } = useListContext<Deal>();
+    const { data: allEngagements } = useListContext<Engagement>();
 
     const handleClose = () => {
-        redirect('/deals');
+        redirect('/engagements');
     };
 
     const queryClient = useQueryClient();
 
-    const onSuccess = async (deal: Deal) => {
-        if (!allDeals) {
-            redirect('/deals');
+    const onSuccess = async (engagement: Engagement) => {
+        if (!allEngagements) {
+            redirect('/engagements');
             return;
         }
-        // increase the index of all deals in the same stage as the new deal
-        // first, get the list of deals in the same stage
-        const deals = allDeals.filter(
-            (d: Deal) => d.stage === deal.stage && d.id !== deal.id
+        // increase the index of all engagements in the same stage as the new engagement
+        // first, get the list of engagements in the same stage
+        const engagements = allEngagements.filter(
+            (e: Engagement) => e.stage === engagement.stage && e.id !== engagement.id
         );
-        // update the actual deals in the database
+        // update the actual engagements in the database
         await Promise.all(
-            deals.map(async oldDeal =>
-                dataProvider.update('deals', {
-                    id: oldDeal.id,
-                    data: { index: oldDeal.index + 1 },
-                    previousData: oldDeal,
+            engagements.map(async oldEngagement =>
+                dataProvider.update('engagements', {
+                    id: oldEngagement.id,
+                    data: { index: oldEngagement.index + 1 },
+                    previousData: oldEngagement,
                 })
             )
         );
-        // refresh the list of deals in the cache as we used dataProvider.update(),
+        // refresh the list of engagements in the cache as we used dataProvider.update(),
         // which does not update the cache
-        const dealsById = deals.reduce(
-            (acc, d) => ({
+        const engagementsById = engagements.reduce(
+            (acc, e) => ({
                 ...acc,
-                [d.id]: { ...d, index: d.index + 1 },
+                [e.id]: { ...e, index: e.index + 1 },
             }),
-            {} as { [key: string]: Deal }
+            {} as { [key: string]: Engagement }
         );
         const now = Date.now();
         queryClient.setQueriesData<GetListResult | undefined>(
-            { queryKey: ['deals', 'getList'] },
+            { queryKey: ['engagements', 'getList'] },
             res => {
                 if (!res) return res;
                 return {
                     ...res,
-                    data: res.data.map((d: Deal) => dealsById[d.id] || d),
+                    data: res.data.map((e: Engagement) => engagementsById[e.id] || e),
                 };
             },
             { updatedAt: now }
         );
-        redirect('/deals');
+        redirect('/engagements');
     };
 
     const { identity } = useGetIdentity();
 
     return (
         <Dialog open={open} onClose={handleClose} fullWidth maxWidth="md">
-            <Create<Deal>
-                resource="deals"
+            <Create<Engagement>
+                resource="engagements"
                 mutationOptions={{ onSuccess }}
                 sx={{ '& .RaCreate-main': { mt: 0 } }}
             >
@@ -85,7 +85,7 @@ export const DealCreate = ({ open }: { open: boolean }) => {
                         paddingBottom: 0,
                     }}
                 >
-                    Create a new deal
+                    Create a new engagement
                 </DialogTitle>
                 <Form
                     defaultValues={{
@@ -95,7 +95,7 @@ export const DealCreate = ({ open }: { open: boolean }) => {
                     }}
                 >
                     <DialogContent>
-                        <DealInputs />
+                        <EngagementInputs />
                     </DialogContent>
                     <Toolbar>
                         <SaveButton />

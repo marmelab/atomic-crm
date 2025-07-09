@@ -1,21 +1,15 @@
 import { Droppable } from '@hello-pangea/dnd';
 import { Box, Stack, Typography } from '@mui/material';
 
-import { Deal } from '../types';
-import { DealCard } from './DealCard';
+import { Engagement } from '../types';
+import { EngagementCard } from './EngagementCard';
 import { useConfigurationContext } from '../root/ConfigurationContext';
-import { findDealLabel } from './deal';
+import { findEngagementLabel } from './engagement';
 
-export const DealColumn = ({
-    stage,
-    deals,
-}: {
-    stage: string;
-    deals: Deal[];
-}) => {
-    const totalAmount = deals.reduce((sum, deal) => sum + deal.amount, 0);
+export const EngagementColumn = ({ stage, engagements }: { stage: string; engagements: Engagement[] }) => {
+    const totalAmount = engagements.reduce((sum, engagement) => sum + engagement.amount, 0);
 
-    const { dealStages } = useConfigurationContext();
+    const { engagementStages } = useConfigurationContext();
     return (
         <Box
             sx={{
@@ -35,7 +29,7 @@ export const DealColumn = ({
         >
             <Stack alignItems="center">
                 <Typography variant="subtitle1">
-                    {findDealLabel(dealStages, stage)}
+                    {findEngagementLabel(engagementStages, stage)}
                 </Typography>
                 <Typography
                     variant="subtitle1"
@@ -69,8 +63,8 @@ export const DealColumn = ({
                             },
                         }}
                     >
-                        {deals.map((deal, index) => (
-                            <DealCard key={deal.id} deal={deal} index={index} />
+                        {engagements.map((engagement, index) => (
+                            <EngagementCard key={engagement.id} engagement={engagement} index={index} />
                         ))}
                         {droppableProvided.placeholder}
                     </Box>

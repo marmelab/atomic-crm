@@ -4,8 +4,8 @@ import {
     COMPANY_CREATED,
     CONTACT_CREATED,
     CONTACT_NOTE_CREATED,
-    DEAL_CREATED,
-    DEAL_NOTE_CREATED,
+    ENGAGEMENT_CREATED,
+    ENGAGEMENT_NOTE_CREATED,
 } from './consts';
 
 export type SignUpData = {
@@ -176,7 +176,7 @@ export type ActivityContactNoteCreated = {
 };
 
 export type ActivityEngagementCreated = {
-    type: typeof DEAL_CREATED;
+    type: typeof ENGAGEMENT_CREATED;
     company_id: Identifier;
     sales_id?: Identifier;
     engagement: Engagement;
@@ -184,7 +184,7 @@ export type ActivityEngagementCreated = {
 };
 
 export type ActivityEngagementNoteCreated = {
-    type: typeof DEAL_NOTE_CREATED;
+    type: typeof ENGAGEMENT_NOTE_CREATED;
     sales_id?: Identifier;
     engagementNote: EngagementNote;
     date: string;

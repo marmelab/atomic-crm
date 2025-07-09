@@ -20,13 +20,18 @@ import {
     useNotify,
 } from 'react-admin';
 import { useConfigurationContext } from '../root/ConfigurationContext';
+import { Engagement } from '../types';
 import { contactInputText, contactOptionText } from '../misc/ContactOption';
 
 const validateRequired = required();
 
-export const DealInputs = () => {
+export const EngagementInputs = () => {
     const theme = useTheme();
     const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+    const { engagementStages, engagementCategories } = useConfigurationContext();
+    if (!engagementStages) {
+        console.error('engagementStages is undefined in EngagementInputs');
+    }
     return (
         <Stack gap={4} p={1}>
             <DealInfoInputs />
@@ -116,7 +121,10 @@ const DealLinkedToInputs = () => {
 };
 
 const DealMiscInputs = () => {
-    const { dealStages, dealCategories } = useConfigurationContext();
+    const { engagementStages, engagementCategories } = useConfigurationContext();
+    if (!engagementStages) {
+        console.error('engagementStages is undefined in DealMiscInputs');
+    }
     return (
         <Stack gap={1} flex={1}>
             <Typography variant="subtitle1">Misc</Typography>
@@ -124,7 +132,7 @@ const DealMiscInputs = () => {
             <SelectInput
                 source="category"
                 label="Category"
-                choices={dealCategories.map(type => ({
+                choices={engagementCategories.map(type => ({
                     id: type,
                     name: type,
                 }))}
@@ -146,7 +154,7 @@ const DealMiscInputs = () => {
             />
             <SelectInput
                 source="stage"
-                choices={dealStages.map(stage => ({
+                choices={engagementStages.map(stage => ({
                     id: stage.value,
                     name: stage.label,
                 }))}
