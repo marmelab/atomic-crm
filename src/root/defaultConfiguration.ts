@@ -21,12 +21,12 @@ export const defaultCompanySectors = [
 ];
 
 export const defaultEngagementStages = [
-    { value: 'opportunity', label: 'Opportunity' },
-    { value: 'proposal-sent', label: 'Proposal Sent' },
-    { value: 'in-negociation', label: 'In Negotiation' },
-    { value: 'won', label: 'Won' },
-    { value: 'lost', label: 'Lost' },
-    { value: 'delayed', label: 'Delayed' },
+    { value: 'results-found', label: 'Results Found' },
+    { value: 'engagement-triggered', label: 'Engagement Triggered' },
+    { value: 'engagement-active', label: 'Engagement Active' },
+    { value: 'resolved', label: 'Resolved' },
+    { value: 'risk-accepted', label: 'Risk Accepted' },
+    { value: 'triage', label: 'Triage' },
 ];
 
 export const defaultEngagementPipelineStatuses = ['won'];
