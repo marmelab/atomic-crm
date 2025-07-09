@@ -33,9 +33,9 @@ const App = () => (
             { value: 'female', label: 'She' },
         ]}
         companySectors={['Technology', 'Finance']}
-        dealCategories={['Copywriting', 'Design']}
-        dealPipelineStatuses={['won']}
-        dealStages={[
+        engagementCategories={['Copywriting', 'Design']}
+        engagementPipelineStatuses={['won']}
+        engagementStages={[
             { value: 'opportunity', label: 'Opportunity' },
             { value: 'proposal-sent', label: 'Proposal Sent' },
             { value: 'won', label: 'Won' },
@@ -60,9 +60,9 @@ export default App;
 | contactGender         | The gender options for contacts used in the application.              | ContactGender[] |
 | companySectors        | The list of company sectors used in the application.                  |  string[]       |
 | darkTheme             | The theme to use when the application is in dark mode.                | RaThemeOptions  |
-| dealCategories        | The categories of deals used in the application.                      | string[]        |
-| dealPipelineStatuses  | The statuses of deals in the pipeline used in the application         | string[]        |
-| dealStages            | The stages of deals used in the application.                          | DealStage[]     |
+| engagementCategories        | The categories of engagements used in the application.                      | string[]        |
+| engagementPipelineStatuses  | The statuses of engagements in the pipeline used in the application         | string[]        |
+| engagementStages            | The stages of engagements used in the application.                          | EngagementStage[]     |
 | lightTheme            | The theme to use when the application is in light mode.               | RaThemeOptions  |
 | logo                  | The logo used in the CRM application.                                 | string          |
 | noteStatuses          | The statuses of notes used in the application.                        | NoteStatus[]    |

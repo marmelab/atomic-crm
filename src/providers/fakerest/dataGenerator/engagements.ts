@@ -2,17 +2,17 @@ import { add } from 'date-fns';
 import { lorem, random } from 'faker/locale/en_US';
 
 import {
-    defaultDealCategories,
-    defaultDealStages,
+    defaultEngagementCategories,
+    defaultEngagementStages,
 } from '../../../root/defaultConfiguration';
-import { Deal } from '../../../types';
+import { Engagement } from '../../../types';
 import { Db } from './types';
 import { randomDate } from './utils';
 
-export const generateDeals = (db: Db): Deal[] => {
-    const deals = Array.from(Array(50).keys()).map(id => {
+export const generateEngagements = (db: Db): Engagement[] => {
+    const engagements = Array.from(Array(50).keys()).map(id => {
         const company = random.arrayElement(db.companies);
-        company.nb_deals++;
+        company.nb_engagements++;
         const contacts = random.arrayElements(
             db.contacts.filter(contact => contact.company_id === company.id),
             random.number({ min: 1, max: 3 })
@@ -32,8 +32,8 @@ export const generateDeals = (db: Db): Deal[] => {
             name: lowercaseName[0].toUpperCase() + lowercaseName.slice(1),
             company_id: company.id,
             contact_ids: contacts.map(contact => contact.id),
-            category: random.arrayElement(defaultDealCategories),
-            stage: random.arrayElement(defaultDealStages).value,
+            category: random.arrayElement(defaultEngagementCategories),
+            stage: random.arrayElement(defaultEngagementStages).value,
             description: lorem.paragraphs(random.number({ min: 1, max: 4 })),
             amount: random.number(1000) * 100,
             created_at,
@@ -44,12 +44,12 @@ export const generateDeals = (db: Db): Deal[] => {
         };
     });
     // compute index based on stage
-    defaultDealStages.forEach(stage => {
-        deals
-            .filter(deal => deal.stage === stage.value)
-            .forEach((deal, index) => {
-                deals[deal.id].index = index;
+    defaultEngagementStages.forEach(stage => {
+        engagements
+            .filter(engagement => engagement.stage === stage.value)
+            .forEach((engagement, index) => {
+                engagements[engagement.id].index = index;
             });
     });
-    return deals;
+    return engagements;
 };

@@ -11,8 +11,8 @@ import {
 import {
     Contact,
     ContactNote,
-    Deal,
-    DealNote,
+    Engagement,
+    EngagementNote,
     RAFile,
     Sale,
     SalesFormData,
@@ -195,27 +195,27 @@ const dataProviderWithCustomMethods = {
 
         return passwordUpdated;
     },
-    async unarchiveDeal(deal: Deal) {
-        // get all deals where stage is the same as the deal to unarchive
-        const { data: deals } = await baseDataProvider.getList<Deal>('deals', {
-            filter: { stage: deal.stage },
+    async unarchiveEngagement(engagement: Engagement) {
+        // get all engagements where stage is the same as the engagement to unarchive
+        const { data: engagements } = await baseDataProvider.getList<Engagement>('engagements', {
+            filter: { stage: engagement.stage },
             pagination: { page: 1, perPage: 1000 },
             sort: { field: 'index', order: 'ASC' },
         });
 
-        // set index for each deal starting from 1, if the deal to unarchive is found, set its index to the last one
-        const updatedDeals = deals.map((d, index) => ({
+        // set index for each engagement starting from 1, if the engagement to unarchive is found, set its index to the last one
+        const updatedEngagements = engagements.map((d, index) => ({
             ...d,
-            index: d.id === deal.id ? 0 : index + 1,
-            archived_at: d.id === deal.id ? null : d.archived_at,
+            index: d.id === engagement.id ? 0 : index + 1,
+            archived_at: d.id === engagement.id ? null : d.archived_at,
         }));
 
         return await Promise.all(
-            updatedDeals.map(updatedDeal =>
-                baseDataProvider.update('deals', {
-                    id: updatedDeal.id,
-                    data: updatedDeal,
-                    previousData: deals.find(d => d.id === updatedDeal.id),
+            updatedEngagements.map(updatedEngagement =>
+                baseDataProvider.update('engagements', {
+                    id: updatedEngagement.id,
+                    data: updatedEngagement,
+                    previousData: engagements.find(d => d.id === updatedEngagement.id),
                 })
             )
         );
@@ -245,8 +245,8 @@ export const dataProvider = withLifecycleCallbacks(
             },
         },
         {
-            resource: 'dealNotes',
-            beforeSave: async (data: DealNote, _, __) => {
+            resource: 'engagementNotes',
+            beforeSave: async (data: EngagementNote, _, __) => {
                 if (data.attachments) {
                     for (const fi of data.attachments) {
                         await uploadToBucket(fi);
@@ -318,7 +318,7 @@ export const dataProvider = withLifecycleCallbacks(
             },
         },
         {
-            resource: 'deals',
+            resource: 'engagements',
             beforeGetList: async params => {
                 return applyFullTextSearch(['name', 'type', 'description'])(
                     params
