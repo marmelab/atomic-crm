@@ -2,9 +2,9 @@ import Man2Icon from '@mui/icons-material/Man2';
 import WcIcon from '@mui/icons-material/Wc';
 import Woman2Icon from '@mui/icons-material/Woman2';
 
-export const defaultLogo = './logos/logo_atomic_crm.svg';
+export const defaultLogo = '/purplinity_logo_white1.png';
 
-export const defaultTitle = 'Atomic CRM';
+export const defaultTitle = 'Purplinity CRM';
 
 export const defaultCompanySectors = [
     'Communication Services',

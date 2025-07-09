@@ -48,7 +48,7 @@ export const EngagementsChart = () => {
                 resolved: engagementsByMonth[month]
                     .filter((engagement: Engagement) => engagement.stage === 'resolved')
                     .reduce((acc: number, engagement: Engagement) => {
-                        acc += engagement.amount;
+                        acc += engagement.resultCount;
                         return acc;
                     }, 0),
                 inProgress: engagementsByMonth[month]
@@ -57,13 +57,13 @@ export const EngagementsChart = () => {
                     )
                     .reduce((acc: number, engagement: Engagement) => {
                         // @ts-ignore
-                        acc += engagement.amount * multiplier[engagement.stage];
+                        acc += engagement.resultCount * multiplier[engagement.stage];
                         return acc;
                     }, 0),
                 riskAccepted: engagementsByMonth[month]
                     .filter((engagement: Engagement) => engagement.stage === 'risk-accepted')
                     .reduce((acc: number, engagement: Engagement) => {
-                        acc -= engagement.amount;
+                        acc -= engagement.resultCount;
                         return acc;
                     }, 0),
             };

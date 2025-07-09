@@ -40,9 +40,9 @@ const Header = () => {
 
     return (
         <Box component="nav" sx={{ flexGrow: 1 }}>
-            <AppBar position="static" color="primary">
-                <Toolbar variant="dense">
-                    <Box flex={1} display="flex" justifyContent="space-between">
+            <AppBar position="static" color="primary" sx={{ backgroundColor: '#5E35B1' }}>
+                <Toolbar variant="dense" sx={{ alignItems: 'center', minHeight: 0 }}>
+                    <Box flex={1} display="flex" justifyContent="space-between" alignItems="center">
                         <Box
                             display="flex"
                             alignItems="center"
@@ -56,12 +56,12 @@ const Header = () => {
                         >
                             <Box
                                 component="img"
-                                sx={{ height: 24 }}
+                                sx={{ height: 100 }}
                                 src={logo}
-                                alt={title}
+                                alt="Engagement Management"
                             />
                             <Typography component="span" variant="h5">
-                                {title}
+                                Engagement Management
                             </Typography>
                         </Box>
                         <Box>

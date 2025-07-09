@@ -66,13 +66,7 @@ export const EngagementCardContent = ({
                             {engagement.name}
                         </Typography>
                         <Typography variant="caption" color="textSecondary">
-                            {engagement.amount.toLocaleString('en-US', {
-                                notation: 'compact',
-                                style: 'currency',
-                                currency: 'USD',
-                                currencyDisplay: 'narrowSymbol',
-                                minimumSignificantDigits: 3,
-                            })}
+                            {engagement.resultCount} Result{engagement.resultCount === 1 ? '' : 's'}
                             {engagement.category ? `, ${engagement.category}` : ''}
                         </Typography>
                     </Box>

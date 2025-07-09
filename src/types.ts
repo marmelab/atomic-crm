@@ -118,7 +118,7 @@ export type Engagement = {
     category: string;
     stage: string;
     description: string;
-    amount: number;
+    resultCount: number;
     created_at: string;
     updated_at: string;
     archived_at?: string;

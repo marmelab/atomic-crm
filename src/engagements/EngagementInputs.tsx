@@ -139,7 +139,8 @@ const DealMiscInputs = () => {
                 helperText={false}
             />
             <NumberInput
-                source="amount"
+                source="resultCount"
+                label="Result Count"
                 defaultValue={0}
                 validate={validateRequired}
                 helperText={false}
@@ -159,7 +160,7 @@ const DealMiscInputs = () => {
                     name: stage.label,
                 }))}
                 validate={validateRequired}
-                defaultValue="opportunity"
+                defaultValue="results-found"
                 helperText={false}
             />
         </Stack>

@@ -7,7 +7,7 @@ import { useConfigurationContext } from '../root/ConfigurationContext';
 import { findEngagementLabel } from './engagement';
 
 export const EngagementColumn = ({ stage, engagements }: { stage: string; engagements: Engagement[] }) => {
-    const totalAmount = engagements.reduce((sum, engagement) => sum + engagement.amount, 0);
+    const totalResultCount = engagements.reduce((sum, engagement) => sum + engagement.resultCount, 0);
 
     const { engagementStages } = useConfigurationContext();
     return (
@@ -36,13 +36,7 @@ export const EngagementColumn = ({ stage, engagements }: { stage: string; engage
                     color="text.secondary"
                     fontSize="small"
                 >
-                    {totalAmount.toLocaleString('en-US', {
-                        notation: 'compact',
-                        style: 'currency',
-                        currency: 'USD',
-                        currencyDisplay: 'narrowSymbol',
-                        minimumSignificantDigits: 3,
-                    })}
+                    {totalResultCount} Result{totalResultCount === 1 ? '' : 's'}
                 </Typography>
             </Stack>
             <Droppable droppableId={stage}>

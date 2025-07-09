@@ -35,7 +35,7 @@ export const generateEngagements = (db: Db): Engagement[] => {
             category: random.arrayElement(defaultEngagementCategories),
             stage: random.arrayElement(defaultEngagementStages).value,
             description: lorem.paragraphs(random.number({ min: 1, max: 4 })),
-            amount: random.number(1000) * 100,
+            resultCount: random.number(100),
             created_at,
             updated_at: randomDate(new Date(created_at)).toISOString(),
             expected_closing_date,

@@ -165,13 +165,7 @@ const EngagementShowContent = ({ handleClose }: { handleClose: () => void }) => 
                                     Budget
                                 </Typography>
                                 <Typography variant="body2">
-                                    {record.amount.toLocaleString('en-US', {
-                                        notation: 'compact',
-                                        style: 'currency',
-                                        currency: 'USD',
-                                        currencyDisplay: 'narrowSymbol',
-                                        minimumSignificantDigits: 3,
-                                    })}
+                                    {record.resultCount} Result{record.resultCount === 1 ? '' : 's'}
                                 </Typography>
                             </Box>
 
