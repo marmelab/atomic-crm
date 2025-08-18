@@ -77,9 +77,6 @@ export default defineConfig({
             filename: './dist/stats.html',
         }),
     ],
-    define: {
-        'process.env': process.env,
-    },
     base: './',
     esbuild: {
         keepNames: true,
