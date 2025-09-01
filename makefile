@@ -5,7 +5,7 @@ help:
 
 install: package.json ## install dependencies
 	npm install;
-	
+
 start-supabase: ## start supabase locally
 	npx supabase start
 
@@ -58,9 +58,9 @@ lint:
 	npm run lint:check
 	npm run prettier:check
 
-storybook: ## start storybook
-	npm run storybook
-
 publish:
 	npm run build-lib
 	npm publish
+
+typecheck:
+	npm run typecheck
