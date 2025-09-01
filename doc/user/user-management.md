@@ -4,7 +4,7 @@
 
 The first time you open the Atomic CRM App, you will be prompted to create the first user. This first user will automatically be granted administrator role.
 
-https://github.com/user-attachments/assets/1969c422-d280-4139-bac9-e4d91d65eda3
+https://github.com/user-attachments/assets/2e5fa809-bd46-4ea1-926f-6f53358de681
 
 Note: If the application is connected to the production database, the first user will need to validate their account by mail.
 
