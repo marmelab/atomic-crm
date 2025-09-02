@@ -33,6 +33,13 @@ export const TextInput = (props: TextInputProps) => {
   } = props;
   const { id, field, isRequired } = useInput(props);
 
+  const value =
+    props.type === "datetime-local"
+      ? field.value?.slice(0, 16) // Adjust for datetime-local input format
+      : props.type === "date"
+        ? field.value?.slice(0, 10) // Adjust for date input format
+        : field.value;
+
   return (
     <FormField id={id} className={cn(className, "w-full")} name={field.name}>
       {label !== false && (
@@ -47,9 +54,9 @@ export const TextInput = (props: TextInputProps) => {
       )}
       <FormControl>
         {multiline ? (
-          <Textarea {...rest} {...field} />
+          <Textarea {...rest} {...field} value={value} />
         ) : (
-          <Input {...rest} {...field} />
+          <Input {...rest} {...field} value={value} />
         )}
       </FormControl>
       <InputHelperText helperText={props.helperText} />
