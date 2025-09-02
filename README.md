@@ -2,7 +2,7 @@
 
 A full-featured CRM built with React, shadcn-admin-kit, and Supabase.
 
-https://user-images.githubusercontent.com/99944/116970434-4a926480-acb8-11eb-8ce2-0602c680e45e.mp4
+https://github.com/user-attachments/assets/0d7554b5-49ef-41c6-bcc9-a76214fc5c99
 
 Atomic CRM is free and open-source. You can test it online at https://marmelab.com/react-admin-crm.
 
