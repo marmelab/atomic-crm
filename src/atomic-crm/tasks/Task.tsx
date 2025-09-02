@@ -123,8 +123,8 @@ export const Task = ({
           <DropdownMenuTrigger asChild>
             <Button
               variant="ghost"
-              size="sm"
-              className="h-5 pr-0! cursor-pointer"
+              size="icon"
+              className="h-5 pr-0! size-8 cursor-pointer"
               aria-label="task actions"
             >
               <MoreVertical className="h-4 w-4" />
