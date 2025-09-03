@@ -15,21 +15,37 @@ import {
 } from "ra-core";
 import { ReactNode } from "react";
 import { Link } from "react-router";
+import { cn } from "@/lib/utils";
 
 export type CreateProps = CreateViewProps & CreateBaseProps;
 
-export const Create = ({ title, children, ...rest }: CreateProps) => (
+export const Create = ({
+  title,
+  children,
+  actions,
+  className,
+  ...rest
+}: CreateProps) => (
   <CreateBase {...rest}>
-    <CreateView title={title}>{children}</CreateView>
+    <CreateView title={title} actions={actions} className={className}>
+      {children}
+    </CreateView>
   </CreateBase>
 );
 
 export type CreateViewProps = {
-  title?: ReactNode | string | false;
+  actions?: ReactNode;
   children: ReactNode;
+  className?: string;
+  title?: ReactNode | string | false;
 };
 
-export const CreateView = ({ title, children }: CreateViewProps) => {
+export const CreateView = ({
+  actions,
+  title,
+  children,
+  className,
+}: CreateViewProps) => {
   const context = useCreateContext();
 
   const resource = useResourceContext();
@@ -64,10 +80,16 @@ export const CreateView = ({ title, children }: CreateViewProps) => {
           <Translate i18nKey="ra.action.create">Create</Translate>
         </BreadcrumbPage>
       </Breadcrumb>
-      <div className="flex justify-between items-start flex-wrap gap-2 my-2">
+      <div
+        className={cn(
+          "flex justify-between items-start flex-wrap gap-2 my-2",
+          className,
+        )}
+      >
         <h2 className="text-2xl font-bold tracking-tight">
           {title !== undefined ? title : context.defaultTitle}
         </h2>
+        {actions}
       </div>
       <div className="my-2">{children}</div>
     </>

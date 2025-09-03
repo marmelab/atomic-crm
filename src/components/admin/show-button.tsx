@@ -9,7 +9,10 @@ import {
   useResourceContext,
 } from "ra-core";
 
-export type ShowButtonProps = { label?: string };
+export type ShowButtonProps = {
+  label?: string;
+  icon?: React.ReactNode;
+} & React.AnchorHTMLAttributes<HTMLAnchorElement>;
 
 export const ShowButton = (props: ShowButtonProps) => {
   const resource = useResourceContext();
@@ -20,15 +23,17 @@ export const ShowButton = (props: ShowButtonProps) => {
     type: "show",
     id: record?.id,
   });
+  const { label, icon, ...rest } = props;
   return (
     <Link
       className={buttonVariants({ variant: "outline" })}
       to={link}
       onClick={stopPropagation}
+      {...rest}
     >
-      <Eye />
-      <Translate i18nKey={props.label ?? "ra.action.show"}>
-        {props.label ?? "Show"}
+      {icon ?? <Eye />}
+      <Translate i18nKey={label ?? "ra.action.show"}>
+        {label ?? "Show"}
       </Translate>
     </Link>
   );

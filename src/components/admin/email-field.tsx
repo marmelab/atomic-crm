@@ -3,7 +3,7 @@ import React, { AnchorHTMLAttributes } from "react";
 
 import { cn } from "@/lib/utils";
 import { genericMemo } from "@/lib/genericMemo";
-import { FieldProps } from "@/lib/field.type.ts";
+import { FieldProps } from "@/lib/field.type";
 
 const EmailFieldImpl = <
    
@@ -11,25 +11,19 @@ const EmailFieldImpl = <
 >(
   inProps: EmailFieldProps<RecordType>,
 ) => {
-  const {
-    className,
-    empty,
-    defaultValue,
-    source,
-    record,
-    resource: _,
-    ...rest
-  } = inProps;
+  const { className, empty, defaultValue, source, record, ...rest } = inProps;
   const value = useFieldValue({ defaultValue, source, record });
   const translate = useTranslate();
 
   if (value == null) {
+    if (!empty) {
+      return null;
+    }
+
     return (
-      <a className={className} {...rest}>
-        {empty && typeof empty === "string"
-          ? translate(empty, { _: empty })
-          : empty}
-      </a>
+      <span className={className} {...rest}>
+        {typeof empty === "string" ? translate(empty, { _: empty }) : empty}
+      </span>
     );
   }
 

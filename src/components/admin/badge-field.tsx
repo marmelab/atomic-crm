@@ -1,7 +1,7 @@
 import * as React from "react";
 import { RaRecord, useFieldValue, useTranslate } from "ra-core";
 import { Badge } from "@/components/ui/badge";
-import { FieldProps } from "@/lib/field.type.ts";
+import { FieldProps } from "@/lib/field.type";
 
 type BadgeProps = React.ComponentProps<typeof Badge>;
 
@@ -10,7 +10,6 @@ export const BadgeField = <RecordType extends RaRecord = RaRecord>({
   source,
   record,
   empty,
-  resource: _,
   variant = "outline",
   ...rest
 }: BadgeFieldProps<RecordType>) => {

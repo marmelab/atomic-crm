@@ -63,7 +63,7 @@ import { cn } from "@/lib/utils";
  * );
  */
 export const ColumnsButton = (props: ColumnsButtonProps) => {
-  const { className, ...rest } = props;
+  const { className, storeKey: _, ...rest } = props;
   const resource = useResourceContext(props);
   const storeKey = props.storeKey || `${resource}.datatable`;
 
@@ -129,16 +129,16 @@ export const ColumnsSelector = ({ children }: ColumnsSelectorProps) => {
   const translate = useTranslate();
   const { storeKey, defaultHiddenColumns } = useDataTableStoreContext();
   const [columnRanks, setColumnRanks] = useStore<number[] | undefined>(
-    `${storeKey}_columnRanks`
+    `${storeKey}_columnRanks`,
   );
   const [_hiddenColumns, setHiddenColumns] = useStore<string[]>(
     storeKey,
-    defaultHiddenColumns
+    defaultHiddenColumns,
   );
   const elementId = `${storeKey}-columnsSelector`;
 
   const [container, setContainer] = useState<HTMLElement | null>(() =>
-    typeof document !== "undefined" ? document.getElementById(elementId) : null
+    typeof document !== "undefined" ? document.getElementById(elementId) : null,
   );
 
   // on first mount, we don't have the container yet, so we wait for it
@@ -221,7 +221,7 @@ export const ColumnsSelector = ({ children }: ColumnsSelectorProps) => {
         </Button>
       </li>
     </ul>,
-    container
+    container,
   );
 };
 
@@ -230,7 +230,7 @@ interface ColumnsSelectorProps {
 }
 
 export const ColumnsSelectorItem = <
-  RecordType extends RaRecord<Identifier> = RaRecord<Identifier>
+  RecordType extends RaRecord<Identifier> = RaRecord<Identifier>,
 >({
   source,
   label,
@@ -239,11 +239,11 @@ export const ColumnsSelectorItem = <
   const { storeKey, defaultHiddenColumns } = useDataTableStoreContext();
   const [hiddenColumns, setHiddenColumns] = useStore<string[]>(
     storeKey,
-    defaultHiddenColumns
+    defaultHiddenColumns,
   );
   const columnRank = useDataTableColumnRankContext();
   const [columnRanks, setColumnRanks] = useStore<number[]>(
-    `${storeKey}_columnRanks`
+    `${storeKey}_columnRanks`,
   );
   const columnFilter = useDataTableColumnFilterContext();
   const translateLabel = useTranslateLabel();
@@ -258,13 +258,16 @@ export const ColumnsSelectorItem = <
 
   const handleMove = (
     index1: number | string,
-    index2: number | string | null
+    index2: number | string | null,
   ) => {
     const colRanks = !columnRanks
       ? padRanks([], Math.max(Number(index1), Number(index2 || 0)) + 1)
       : Math.max(Number(index1), Number(index2 || 0)) > columnRanks.length - 1
-      ? padRanks(columnRanks, Math.max(Number(index1), Number(index2 || 0)) + 1)
-      : columnRanks;
+        ? padRanks(
+            columnRanks,
+            Math.max(Number(index1), Number(index2 || 0)) + 1,
+          )
+        : columnRanks;
     const index1Pos = colRanks.findIndex((index) => index == Number(index1));
     const index2Pos = colRanks.findIndex((index) => index == Number(index2));
     if (index1Pos === -1 || index2Pos === -1) {
@@ -299,7 +302,7 @@ export const ColumnsSelectorItem = <
       onToggle={() =>
         isColumnHidden
           ? setHiddenColumns(
-              hiddenColumns.filter((column) => column !== source!)
+              hiddenColumns.filter((column) => column !== source!),
             )
           : setHiddenColumns([...hiddenColumns, source!])
       }
@@ -311,7 +314,7 @@ export const ColumnsSelectorItem = <
 // this is the same interface as DataTableColumnProps
 // but we copied it here to avoid circular dependencies with data-table
 export interface ColumnsSelectorItemProps<
-  RecordType extends RaRecord<Identifier> = RaRecord<Identifier>
+  RecordType extends RaRecord<Identifier> = RaRecord<Identifier>,
 > {
   className?: string;
   cellClassName?: string;
@@ -328,7 +331,7 @@ export interface ColumnsSelectorItemProps<
 // Function to help with column ranking
 const padRanks = (ranks: number[], length: number) =>
   ranks.concat(
-    Array.from({ length: length - ranks.length }, (_, i) => ranks.length + i)
+    Array.from({ length: length - ranks.length }, (_, i) => ranks.length + i),
   );
 
 const fieldLabelMatchesFilter = (fieldLabel: string, columnFilter?: string) =>

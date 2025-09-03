@@ -13,7 +13,7 @@ import {
   FormControl,
   FormLabel,
   FormError,
-} from "@/components/admin";
+} from "@/components/admin/form";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -44,7 +44,7 @@ export const RadioButtonGroupInput = (inProps: RadioButtonGroupInputProps) => {
     className,
     helperText,
     label,
-    row = true,
+    row,
     ...rest
   } = inProps;
 
@@ -117,7 +117,7 @@ export const RadioButtonGroupInput = (inProps: RadioButtonGroupInputProps) => {
           {...rest}
           value={field.value || ""}
           onValueChange={field.onChange}
-          className={cn("flex gap-4", row ? "flex-row" : "flex-col")}
+          className={cn("flex", row ? "flex-row gap-4" : "flex-col gap-2")}
           disabled={disabled || readOnly}
         >
           {allChoices?.map((choice) => {

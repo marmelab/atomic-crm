@@ -2,7 +2,7 @@ import { HTMLAttributes } from "react";
 import { useFieldValue, useTranslate } from "ra-core";
 
 import { genericMemo } from "@/lib/genericMemo";
-import { FieldProps } from "@/lib/field.type.ts";
+import { FieldProps } from "@/lib/field.type";
 
 /**
  * Display a date value as a locale string.
@@ -43,7 +43,6 @@ const DateFieldImpl = <
     transform = defaultTransform,
     source,
     record,
-    resource: _,
     defaultValue,
     ...rest
   } = inProps;

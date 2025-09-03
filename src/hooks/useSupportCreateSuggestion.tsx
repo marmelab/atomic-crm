@@ -32,9 +32,9 @@ import set from "lodash/set";
  * - createElement: a React element to render after the input. It will be rendered when users choose to create a new choice. It renders null otherwise.
  * - getOptionDisabled: a function which should be passed to the input to disable the create choice when the filter is empty (to make it a hint).
  */
-export const useSupportCreateSuggestion = (
-  options: SupportCreateSuggestionOptions,
-): UseSupportCreateValue => {
+export const useSupportCreateSuggestion = <T = unknown,>(
+  options: SupportCreateSuggestionOptions<T>,
+): UseSupportCreateValue<T> => {
   const {
     create,
     createLabel = "ra.action.create",
@@ -74,6 +74,7 @@ export const useSupportCreateSuggestion = (
             : createLabel,
       );
     },
+     
     handleChange: async (eventOrValue: MouseEvent | any) => {
       const value = eventOrValue?.target?.value || eventOrValue;
       const finalValue = Array.isArray(value) ? [...value].pop() : value;
@@ -107,7 +108,7 @@ export const useSupportCreateSuggestion = (
             onCancel: () => setRenderOnCreate(false),
             onCreate: (item) => {
               setRenderOnCreate(false);
-              handleChange(item);
+              handleChange(item as T);
             },
           }}
         >
@@ -115,21 +116,22 @@ export const useSupportCreateSuggestion = (
         </CreateSuggestionContext.Provider>
       ) : null,
     getOptionDisabled: (option) =>
-      option?.id === createHintValue || option === createHintValue,
+       
+      (option as any)?.id === createHintValue || option === createHintValue,
   };
 };
 
 /**
  * @deprecated Use `SupportCreateSuggestionOptions` from "ra-core" when available.
  */
-export interface SupportCreateSuggestionOptions {
+export interface SupportCreateSuggestionOptions<T = unknown> {
   create?: ReactElement;
   createValue?: string;
   createHintValue?: string;
   createLabel?: React.ReactNode;
   createItemLabel?: string | ((filter: string) => React.ReactNode);
   filter?: string;
-  handleChange: (value: any) => void;
+  handleChange: (value: T) => void;
   onCreate?: OnCreateHandler;
   optionText?: OptionText;
 }
@@ -137,16 +139,17 @@ export interface SupportCreateSuggestionOptions {
 /**
  * @deprecated Use `UseSupportCreateValue` from "ra-core" when available.
  */
-export interface UseSupportCreateValue {
+export interface UseSupportCreateValue<T = unknown> {
   createId: string;
   createHintId: string;
   getCreateItem: (filterValue?: string) => {
     id: Identifier;
+     
     [key: string]: any;
   };
-  handleChange: (eventOrValue: ChangeEvent | any) => Promise<void>;
+  handleChange: (eventOrValue: ChangeEvent | T) => Promise<void>;
   createElement: ReactElement | null;
-  getOptionDisabled: (option: any) => boolean;
+  getOptionDisabled: (option: T) => boolean;
 }
 
 /**
@@ -159,9 +162,9 @@ const CreateSuggestionContext = createContext<
 /**
  * @deprecated Use `CreateSuggestionContextValue` from "ra-core" when available.
  */
-interface CreateSuggestionContextValue {
+interface CreateSuggestionContextValue<T = unknown> {
   filter?: string;
-  onCreate: (choice: any) => void;
+  onCreate: (choice: T) => void;
   onCancel: () => void;
 }
 
@@ -181,4 +184,5 @@ export const useCreateSuggestionContext = () => {
 /**
  * @deprecated Use `OnCreateHandler` from "ra-core" when available.
  */
+ 
 export type OnCreateHandler = (filter?: string) => any | Promise<any>;

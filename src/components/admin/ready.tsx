@@ -8,7 +8,7 @@ import {
 export const Ready = () => (
   <div className="flex flex-col h-screen">
     <div
-      className="flex-1 flex flex-col color-white text-center justify-center items-center flex-1"
+      className="flex-1 flex flex-col color-white text-center justify-center items-center"
       style={{
         background:
           "linear-gradient(135deg, #00023b 0%, #00023b 50%, #313264 100%)",
@@ -25,7 +25,7 @@ export const Ready = () => (
     </div>
     <div className="flex h-[20vh] bg-zinc-100 text-black items-center justify-evenly">
       <div className="text-xl">
-        <a href="https://github.com/marmelab/shadcn-admin-kit/tree/main/docs">
+        <a href="https://marmelab.com/shadcn-admin-kit/docs">
           <BookOpenText className="inline mr-4 w-10 h-10" />
           Documentation
         </a>

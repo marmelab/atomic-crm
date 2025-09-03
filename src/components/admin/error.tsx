@@ -55,7 +55,7 @@ export const Error = (props: InternalErrorProps & {}) => {
                   Check the{" "}
                   <a
                     className="text-primary underline-offset-4 hover:underline"
-                    href="https://github.com/marmelab/shadcn-admin-kit/tree/main/docs"
+                    href="https://marmelab.com/shadcn-admin-kit/docs"
                   >
                     shadcn-admin-kit documentation
                   </a>

@@ -1,12 +1,13 @@
 import { memo, type ReactElement, type ReactNode } from "react";
 import {
-  useListContext,
-  type SortPayload,
-  type FilterPayload,
-  ReferenceArrayFieldBase,
-  type RaRecord,
-  HintedString,
   ExtractRecordPaths,
+  HintedString,
+  ReferenceArrayFieldBase,
+  useListContext,
+  type FilterPayload,
+  type ListControllerResult,
+  type RaRecord,
+  type SortPayload,
 } from "ra-core";
 import type { UseQueryOptions } from "@tanstack/react-query";
 import { SingleFieldList } from "@/components/admin/single-field-list";
@@ -65,9 +66,9 @@ import { SingleFieldList } from "@/components/admin/single-field-list";
  */
 export const ReferenceArrayField = <
   RecordType extends RaRecord = RaRecord,
-  ReferenceRecordType extends RaRecord = RaRecord
+  ReferenceRecordType extends RaRecord = RaRecord,
 >(
-  props: ReferenceArrayFieldProps<RecordType, ReferenceRecordType>
+  props: ReferenceArrayFieldProps<RecordType, ReferenceRecordType>,
 ) => {
   const {
     filter,
@@ -78,6 +79,7 @@ export const ReferenceArrayField = <
     sort,
     source,
     queryOptions,
+    render,
     ...rest
   } = props;
   return (
@@ -90,6 +92,7 @@ export const ReferenceArrayField = <
       sort={sort}
       source={source}
       queryOptions={queryOptions}
+      render={render}
     >
       <PureReferenceArrayFieldView {...rest} />
     </ReferenceArrayFieldBase>
@@ -97,7 +100,7 @@ export const ReferenceArrayField = <
 };
 export interface ReferenceArrayFieldProps<
   RecordType extends RaRecord = RaRecord,
-  ReferenceRecordType extends RaRecord = RaRecord
+  ReferenceRecordType extends RaRecord = RaRecord,
 > extends ReferenceArrayFieldViewProps {
   filter?: FilterPayload;
   page?: number;
@@ -111,6 +114,7 @@ export interface ReferenceArrayFieldProps<
     UseQueryOptions<ReferenceRecordType[], Error>,
     "queryFn" | "queryKey"
   >;
+  render?: (props: ListControllerResult<ReferenceRecordType>) => ReactElement;
 }
 
 export interface ReferenceArrayFieldViewProps {
@@ -123,7 +127,7 @@ export interface ReferenceArrayFieldViewProps {
 }
 
 export const ReferenceArrayFieldView = (
-  props: ReferenceArrayFieldViewProps
+  props: ReferenceArrayFieldViewProps,
 ) => {
   const {
     children = defaultChildren,

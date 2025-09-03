@@ -1,6 +1,9 @@
- 
-import * as React from "react";
-import { type ReactNode, type ElementType } from "react";
+import {
+  createElement,
+  type ReactNode,
+  type ElementType,
+  HTMLAttributes,
+} from "react";
 import {
   FieldTitle,
   useRecordContext,
@@ -25,15 +28,18 @@ export const RecordField = <
     field,
     label,
     render,
+    resource: _,
     source,
     record: recordProp,
     variant,
     ...rest
   } = props;
-  const resource = useResourceContext();
+  const resource = useResourceContext(props);
   const record = useRecordContext<RecordType>({ recordProp });
   const translate = useTranslate();
+
   if (!source && !label && !render) return null;
+
   return (
     <div
       className={cn(
@@ -70,18 +76,13 @@ export const RecordField = <
           </span>
         )
       ) : field ? (
-        React.createElement(field, {
+        createElement(field, {
           source,
           empty,
           className: "flex-1",
         })
       ) : source ? (
-        <TextField
-          source={source}
-          empty={empty}
-          resource={resource}
-          className="flex-1"
-        />
+        <TextField source={source} empty={empty} className="flex-1" />
       ) : null}
     </div>
   );
@@ -92,13 +93,14 @@ type NoInfer<T> = T extends infer U ? U : never;
 
 export interface RecordFieldProps<
   RecordType extends Record<string, any> = Record<string, any>,
-> {
+> extends HTMLAttributes<HTMLDivElement> {
   children?: ReactNode;
   className?: string;
   empty?: ReactNode;
   field?: ElementType;
   label?: ReactNode;
   render?: (record: RecordType) => React.ReactNode;
+  resource?: string;
   source?: NoInfer<HintedString<ExtractRecordPaths<RecordType>>>;
   record?: RecordType;
   variant?: "default" | "inline";

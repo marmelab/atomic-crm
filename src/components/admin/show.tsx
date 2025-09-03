@@ -13,36 +13,58 @@ import {
   useGetResourceLabel,
   useResourceContext,
   useResourceDefinition,
+  type ShowBaseProps,
 } from "ra-core";
 import { ReactNode } from "react";
 import { Link } from "react-router";
+import { cn } from "@/lib/utils";
 import { EditButton } from "@/components/admin/edit-button";
 
+export interface ShowProps
+  extends ShowViewProps,
+    Omit<ShowBaseProps, "children"> {}
+
 export const Show = ({
+  disableAuthentication,
+  id,
+  queryOptions,
+  resource,
   actions,
   title,
   children,
-}: {
-  actions?: ReactNode;
-  title?: ReactNode | string | false;
-  children: ReactNode;
-}) => (
-  <ShowBase>
-    <ShowView title={title} actions={actions}>
+  className,
+  render,
+  loading,
+}: ShowProps) => (
+  <ShowBase
+    id={id}
+    resource={resource}
+    queryOptions={queryOptions}
+    disableAuthentication={disableAuthentication}
+    render={render}
+    loading={loading}
+  >
+    <ShowView title={title} actions={actions} className={className}>
       {children}
     </ShowView>
   </ShowBase>
 );
 
+export interface ShowViewProps {
+  actions?: ReactNode;
+  title?: ReactNode | string | false;
+  children: ReactNode;
+  className?: string;
+  emptyWhileLoading?: boolean;
+}
+
 export const ShowView = ({
   actions,
   title,
   children,
-}: {
-  actions?: ReactNode;
-  title?: ReactNode | string | false;
-  children: ReactNode;
-}) => {
+  className,
+  emptyWhileLoading,
+}: ShowViewProps) => {
   const context = useShowContext();
 
   const resource = useResourceContext();
@@ -68,6 +90,9 @@ export const ShowView = ({
   if (context.isLoading || !context.record) {
     return null;
   }
+  if (!context.record && emptyWhileLoading) {
+    return null;
+  }
 
   return (
     <>
@@ -84,7 +109,12 @@ export const ShowView = ({
         </BreadcrumbItem>
         <BreadcrumbPage>{recordRepresentation}</BreadcrumbPage>
       </Breadcrumb>
-      <div className="flex justify-between items-start flex-wrap gap-2 my-2">
+      <div
+        className={cn(
+          "flex justify-between items-start flex-wrap gap-2 my-2",
+          className,
+        )}
+      >
         <h2 className="text-2xl font-bold tracking-tight">
           {title !== undefined ? title : context.defaultTitle}
         </h2>
