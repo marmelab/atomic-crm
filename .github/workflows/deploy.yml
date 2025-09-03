@@ -46,7 +46,7 @@ jobs:
               run: npm install
 
             - name: 🔨 Build
-              run: npm run build-demo
+              run: npm run build:demo
 
             - name: 📡 Deploy GitHub pages
               run: npx gh-pages --remote production -d dist -b ${{ vars.DEPLOY_BRANCH || 'gh-pages' }}
