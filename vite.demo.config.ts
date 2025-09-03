@@ -18,24 +18,20 @@ export default defineConfig({
       minify: true,
       inject: {
         data: {
-          mainScript: `src/main.tsx`,
+          mainScript: `demo/main.tsx`,
         },
       },
     }),
   ],
   define: {
-    "import.meta.env.VITE_IS_DEMO": JSON.stringify(process.env.VITE_IS_DEMO),
+    "import.meta.env.VITE_IS_DEMO": JSON.stringify("true"),
     "import.meta.env.VITE_SUPABASE_URL": JSON.stringify(
-      process.env.VITE_IS_DEMO,
+      process.env.VITE_SUPABASE_URL ?? "https://demo.example.org",
     ),
     "import.meta.env.VITE_SUPABASE_ANON_KEY": JSON.stringify(
-      process.env.VITE_IS_DEMO,
-    ),
-    "import.meta.env.VITE_INBOUND_EMAIL": JSON.stringify(
-      process.env.VITE_INBOUND_EMAIL,
+      process.env.VITE_SUPABASE_ANON_KEY ?? "https://demo.example.org",
     ),
   },
-  base: "./",
   esbuild: {
     keepNames: true,
   },
