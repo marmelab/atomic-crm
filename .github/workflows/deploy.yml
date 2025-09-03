@@ -13,8 +13,48 @@ permissions:
     contents: write
 
 jobs:
-    deploy:
-        name: 🚀 Deploy
+    deploy-demo:
+        name: 🚀 Deploy (demo)
+        runs-on: ubuntu-latest
+        timeout-minutes: 10
+
+        env:
+            VITE_IS_DEMO: true
+            VITE_INBOUND_EMAIL: ${{ vars.VITE_INBOUND_EMAIL }}
+            PRODUCTION_REMOTE: https://git:${{ secrets.DEPLOY_TOKEN || secrets.GITHUB_TOKEN }}@github.com/${{ vars.DEMO_DEPLOY_REPOSITORY }}
+            DEPLOY_REPOSITORY: ${{ vars.DEMO_DEPLOY_REPOSITORY }}
+
+        steps:
+            - name: 📥 Checkout repo
+              uses: actions/checkout@v4
+
+            - name: ⚙️ Setup node
+              uses: actions/setup-node@v4
+              with:
+                  node-version: 20
+                  cache: npm
+
+            - name: ⚙️ Setup git
+              run: |
+                  echo Deploying to pages to $PRODUCTION_REMOTE
+                  git remote set-url origin https://git:${{ secrets.GITHUB_TOKEN }}@github.com/${DEPLOY_REPOSITORY}
+                  git remote add production $PRODUCTION_REMOTE
+                  git config --global user.email support+actions@github.com
+                  git config --global user.name github-actions-bot
+
+            - name: 📥 Download deps
+              run: npm install
+
+            - name: 🔨 Build
+              run: npm run build-demo
+
+            - name: 📡 Deploy GitHub pages
+              run: npx gh-pages --remote production -d dist -b ${{ vars.DEPLOY_BRANCH || 'gh-pages' }}
+              env:
+                  GITHUB_TOKEN: ${{ secrets.DEPLOY_TOKEN || secrets.GITHUB_TOKEN }}
+
+    deploy-supabase:
+        name: 🚀 Deploy (supabase)
         runs-on: ubuntu-latest
         timeout-minutes: 10
 
@@ -58,7 +98,7 @@ jobs:
 
             - name: 🔨 Build
               run: npm run build
-            
+
             - if: ${{ env.IS_SUPABASE_CONFIGURED }}
               name: 🔗 Supabase Link
               run: npx supabase link --project-ref $SUPABASE_PROJECT_ID
