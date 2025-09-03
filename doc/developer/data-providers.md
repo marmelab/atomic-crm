@@ -20,10 +20,20 @@ FakeRest is used in the [Atomic CRM demo](https://marmelab.com/try-atomic-crm/),
 
 ### Setting Up The FakeRest Data Provider
 
-To set up the FakeRest data provider, you need to set the `VITE_USE_FAKEREST` environment variable to `true`. You can do this by creating a `.env.local` file in the root of the project with the following content:
+To set up the FakeRest data provider, you need to change the `dataProvider` import in the `src/App.tsx` file:
 
-```env
-VITE_USE_FAKEREST=true
+```diff
+// in App.tsx
+import { CRM } from "@/atomic-crm/root/CRM";
++import { authProvider, dataProvider } from "@/atomic-crm/providers/fakerest";
+
+const App = () => (
+-    <CRM />
++    <CRM dataProvider={dataProvider} authProvider={authProvider} />
+);
+
+export default App;
+
 ```
 
 ### Filters Syntax

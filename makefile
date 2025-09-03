@@ -24,10 +24,7 @@ start-app: ## start the app locally
 start: start-supabase start-app ## start the stack locally
 
 start-demo: ## start the app locally in demo mode
-	VITE_IS_DEMO=true npm run dev
-
-start-dev: ## start the app locally in dev mode (with fakerest and demo data)
-	VITE_USE_FAKEREST=true npm run dev
+	npm run dev:demo
 
 stop-supabase: ## stop local supabase
 	npx supabase stop
@@ -36,6 +33,9 @@ stop: stop-supabase ## stop the stack locally
 
 build: ## build the app
 	npm run build
+
+build-demo: ## build the app in demo mode
+	npm run build:demo
 
 build-lib: ## build the library
 	npm run build-lib
