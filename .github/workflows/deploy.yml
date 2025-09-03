@@ -22,7 +22,6 @@ jobs:
             VITE_IS_DEMO: true
             VITE_INBOUND_EMAIL: ${{ vars.VITE_INBOUND_EMAIL }}
             PRODUCTION_REMOTE: https://git:${{ secrets.DEPLOY_TOKEN || secrets.GITHUB_TOKEN }}@github.com/${{ vars.DEMO_DEPLOY_REPOSITORY }}
-            DEPLOY_REPOSITORY: ${{ vars.DEMO_DEPLOY_REPOSITORY }}
 
         steps:
             - name: 📥 Checkout repo
@@ -31,13 +30,13 @@ jobs:
             - name: ⚙️ Setup node
               uses: actions/setup-node@v4
               with:
-                  node-version: 20
+                  node-version: 22
                   cache: npm
 
             - name: ⚙️ Setup git
               run: |
-                  echo Deploying to pages to $PRODUCTION_REMOTE
-                  git remote set-url origin https://git:${{ secrets.GITHUB_TOKEN }}@github.com/${DEPLOY_REPOSITORY}
+                  echo Deploying to pages to ${{ vars.DEMO_DEPLOY_REPOSITORY }}
+                  git remote set-url origin https://git:${{ secrets.DEPLOY_TOKEN || secrets.GITHUB_TOKEN }}@github.com/${{ vars.DEMO_DEPLOY_REPOSITORY }}
                   git remote add production $PRODUCTION_REMOTE
                   git config --global user.email support+actions@github.com
                   git config --global user.name github-actions-bot
@@ -67,7 +66,7 @@ jobs:
             IS_SUPABASE_CONFIGURED: ${{ secrets.SUPABASE_ACCESS_TOKEN && secrets.SUPABASE_DB_PASSWORD && secrets.SUPABASE_PROJECT_ID && secrets.SUPABASE_URL && secrets.SUPABASE_ANON_KEY }}
             VITE_IS_DEMO: ${{ vars.VITE_IS_DEMO }}
             VITE_INBOUND_EMAIL: ${{ vars.VITE_INBOUND_EMAIL }}
-            PRODUCTION_REMOTE: https://git:${{ secrets.DEPLOY_TOKEN || secrets.GITHUB_TOKEN }}@github.com/${{ vars.DEPLOY_REPOSITORY || github.repository }}
+            PRODUCTION_REMOTE: https://git:${{ secrets.DEPLOY_TOKEN || secrets.GITHUB_TOKEN }}@github.com/${{ vars.DEPLOY_REPOSITORY }}
             POSTMARK_WEBHOOK_USER: ${{secrets.POSTMARK_WEBHOOK_USER}}
             POSTMARK_WEBHOOK_PASSWORD: ${{secrets.POSTMARK_WEBHOOK_PASSWORD}}
             POSTMARK_WEBHOOK_AUTHORIZED_IPS: ${{secrets.POSTMARK_WEBHOOK_AUTHORIZED_IPS}}
@@ -79,13 +78,13 @@ jobs:
             - name: ⚙️ Setup node
               uses: actions/setup-node@v4
               with:
-                  node-version: 20
+                  node-version: 22
                   cache: npm
 
             - name: ⚙️ Setup git
               run: |
-                  echo Deploying to pages to $PRODUCTION_REMOTE
-                  git remote set-url origin https://git:${{ secrets.GITHUB_TOKEN }}@github.com/${GITHUB_REPOSITORY}
+                  echo Deploying to pages to ${{ vars.DEPLOY_REPOSITORY }}
+                  git remote set-url origin https://git:${{ secrets.DEPLOY_TOKEN || secrets.GITHUB_TOKEN }}@github.com/${{ vars.DEPLOY_REPOSITORY }}
                   git remote add production $PRODUCTION_REMOTE
                   git config --global user.email support+actions@github.com
                   git config --global user.name github-actions-bot
