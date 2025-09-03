@@ -1,4 +1,3 @@
- 
 import get from "lodash/get";
 import {
   FormDataConsumer,
@@ -49,7 +48,7 @@ import {
   useSimpleFormIteratorItem,
 } from "@/hooks/simple-form-iterator-context";
 import { Confirm } from "@/components/admin/confirm";
-import { IconButtonWithTooltip } from "@/components/admin/icon-button-with-tooltip.tsx";
+import { IconButtonWithTooltip } from "@/components/admin/icon-button-with-tooltip";
 
 type GetItemLabelFunc = (index: number) => string | ReactElement;
 

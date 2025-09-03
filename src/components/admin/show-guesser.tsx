@@ -1,4 +1,3 @@
- 
 import {
   ReactNode,
   useEffect,
@@ -16,9 +15,10 @@ import {
 } from "ra-core";
 import { capitalize, singularize } from "inflection";
 import { ShowView } from "@/components/admin/show";
-import { SimpleShowLayout } from "@/components/admin/simple-show-layout";
 import { RecordField } from "@/components/admin/record-field";
+import { DateField } from "./date-field";
 import { ReferenceField } from "@/components/admin/reference-field";
+import { NumberField } from "@/components/admin/number-field";
 import { ArrayField } from "@/components/admin/array-field";
 import { BadgeField } from "@/components/admin/badge-field";
 import { SingleFieldList } from "@/components/admin/single-field-list";
@@ -64,7 +64,9 @@ const ShowViewGuesser = (props: { enableLog?: boolean }) => {
             new Set(
               Array.from(representation.matchAll(/<([^/\s>]+)/g))
                 .map((match) => match[1])
-                .filter((component) => component !== "span"),
+                .filter(
+                  (component) => component !== "span" && component !== "div",
+                ),
             ),
           ),
         )
@@ -97,15 +99,17 @@ ${inferredChild.getRepresentation()}
 
 const showFieldTypes: InferredTypeMap = {
   show: {
-    component: (props: any) => <SimpleShowLayout {...props} />,
+    component: (props: any) => (
+      <div className="flex flex-col gap-4">{props.children}</div>
+    ),
     representation: (
       _props: any,
       children: { getRepresentation: () => string }[],
-    ) => `        <SimpleShowLayout>
+    ) => `        <div className="flex flex-col gap-4">
 ${children
   .map((child) => `            ${child.getRepresentation()}`)
   .join("\n")}
-        </SimpleShowLayout>`,
+        </div>`,
   },
   reference: {
     component: (props: any) => (
@@ -157,6 +161,38 @@ ${children
     representation: (props: any) =>
       `<RecordField source="${props.source}">
                 <ReferenceArrayField source="${props.source}" reference="${props.reference}" />
+            </RecordField>`,
+  },
+  boolean: {
+    component: (props: any) => (
+      <RecordField
+        source={props.source}
+        render={(record) => (record[props.source] ? "Yes" : "No")}
+      />
+    ),
+    representation: (props: any) =>
+      `<RecordField source="${props.source}" render={record => record[${props.source}] ? 'Yes' : 'No'} />`,
+  },
+  date: {
+    component: (props: any) => (
+      <RecordField source={props.source}>
+        <DateField source={props.source} />
+      </RecordField>
+    ),
+    representation: (props: any) =>
+      `<RecordField source="${props.source}">
+                <DateField source="${props.source}" />
+            </RecordField>`,
+  },
+  number: {
+    component: (props: any) => (
+      <RecordField source={props.source}>
+        <NumberField source={props.source} />
+      </RecordField>
+    ),
+    representation: (props: any) =>
+      `<RecordField source="${props.source}">
+                <NumberField source="${props.source}" />
             </RecordField>`,
   },
   string: {

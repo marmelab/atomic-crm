@@ -31,8 +31,8 @@ import {
   extractValidSavedQueries,
   SavedQuery,
   useSavedQueries,
-} from "@/hooks/saved-queries.tsx";
-import { Button } from "@/components/ui/button.tsx";
+} from "@/hooks/saved-queries";
+import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -43,7 +43,7 @@ import {
 import {
   AddSavedQueryDialog,
   RemoveSavedQueryDialog,
-} from "@/components/admin/saved-queries.tsx";
+} from "@/components/admin/saved-queries";
 
 export const FilterForm = (inProps: FilterFormProps) => {
   const { filters: filtersProps, ...rest } = inProps;

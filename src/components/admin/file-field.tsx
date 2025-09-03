@@ -49,18 +49,19 @@ export const FileField = <
     })?.toString() ?? title;
   const translate = useTranslate();
 
-  if (!sourceValue) {
-    if (empty) {
-      return (
-        <span className={className} {...rest}>
-          {empty && typeof empty === "string"
-            ? translate(empty, { _: empty })
-            : empty}
-        </span>
-      );
+  if (
+    sourceValue == null ||
+    (Array.isArray(sourceValue) && sourceValue.length === 0)
+  ) {
+    if (!empty) {
+      return null;
     }
 
-    return <div className={cn("inline-block", className)} {...rest} />;
+    return (
+      <div className={cn("inline-block", className)} {...rest}>
+        {typeof empty === "string" ? translate(empty, { _: empty }) : empty}
+      </div>
+    );
   }
 
   if (Array.isArray(sourceValue)) {

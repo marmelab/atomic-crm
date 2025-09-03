@@ -17,12 +17,12 @@ import {
 } from "ra-core";
 import { ReactElement, ReactNode } from "react";
 import { Link } from "react-router";
-import { cn } from "@/lib/utils.ts";
-import { FilterContext, FilterElementProps } from "@/hooks/filter-context.tsx";
+import { cn } from "@/lib/utils";
+import { FilterContext, FilterElementProps } from "@/hooks/filter-context";
 import { CreateButton } from "@/components/admin/create-button";
 import { ExportButton } from "@/components/admin/export-button";
 import { ListPagination } from "@/components/admin/list-pagination";
-import { FilterForm } from "@/components/admin/filter-form.tsx";
+import { FilterForm } from "@/components/admin/filter-form";
 
 export const List = <RecordType extends RaRecord = RaRecord>(
   props: ListProps<RecordType>,

@@ -6,7 +6,7 @@ import {
   type ReactElement,
   type ReactNode,
   useEffect,
-  HTMLAttributes
+  HTMLAttributes,
 } from "react";
 import {
   FieldTitle,
@@ -14,21 +14,21 @@ import {
   RecordContextProvider,
   shallowEqual,
   useInput,
-  useTranslate
+  useTranslate,
 } from "ra-core";
 import {
   useDropzone,
   type DropzoneOptions,
   FileRejection,
   DropEvent,
-  DropzoneInputProps
+  DropzoneInputProps,
 } from "react-dropzone";
 import { XCircle } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 import { FormError, FormField, FormLabel } from "@/components/admin/form";
 import { InputHelperText } from "@/components/admin/input-helper-text";
-import { Button } from "@/components/ui/button.tsx";
+import { Button } from "@/components/ui/button";
 
 export const FileInput = (props: FileInputProps) => {
   const {
@@ -79,7 +79,7 @@ export const FileInput = (props: FileInputProps) => {
     const transformedFile: TransformedFile = {
       rawFile: file,
       src: preview,
-      title: file.name
+      title: file.name,
     };
 
     return transformedFile;
@@ -100,7 +100,7 @@ export const FileInput = (props: FileInputProps) => {
   const {
     id,
     field: { onChange, onBlur, value, name },
-    isRequired
+    isRequired,
   } = useInput({
     alwaysOn,
     defaultValue,
@@ -115,7 +115,7 @@ export const FileInput = (props: FileInputProps) => {
     source,
     validate,
     readOnly,
-    disabled
+    disabled,
   });
   const files = value ? (Array.isArray(value) ? value : [value]) : [];
 
@@ -123,7 +123,7 @@ export const FileInput = (props: FileInputProps) => {
      
     newFiles: any[],
     rejectedFiles: FileRejection[],
-    event: DropEvent
+    event: DropEvent,
   ) => {
     const updatedFiles = multiple ? [...files, ...newFiles] : [...newFiles];
 
@@ -152,7 +152,7 @@ export const FileInput = (props: FileInputProps) => {
 
     if (multiple) {
       const filteredFiles = files.filter(
-        (stateFile) => !shallowEqual(stateFile, file)
+        (stateFile) => !shallowEqual(stateFile, file),
       );
       onChange(filteredFiles);
       onBlur();
@@ -178,7 +178,7 @@ export const FileInput = (props: FileInputProps) => {
     multiple,
     disabled: disabled || readOnly,
     ...options,
-    onDrop
+    onDrop,
   });
 
   return (
@@ -207,15 +207,15 @@ export const FileInput = (props: FileInputProps) => {
             "hover:border-sidebar-ring focus:outline-none",
             disabled || readOnly
               ? "bg-muted cursor-not-allowed"
-              : "bg-muted text-muted-foreground cursor-pointer"
-          )
+              : "bg-muted text-muted-foreground cursor-pointer",
+          ),
         })}
       >
         <input
           id={id}
           name={name}
           {...getInputProps({
-            ...inputPropsOptions
+            ...inputPropsOptions,
           })}
         />
 
@@ -232,7 +232,7 @@ export const FileInput = (props: FileInputProps) => {
       <FormError />
 
       {children && (
-        <div className="previews space-y-2 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="previews flex flex-col gap-1">
           {
              
             files.map((file: any, index: number) => (
@@ -304,11 +304,11 @@ export const FileInputPreview = (props: FileInputPreviewProps) => {
   }, [file]);
 
   return (
-    <div className={cn("relative", className)} {...rest}>
+    <div className={cn("flex flex-row gap-1", className)} {...rest}>
       <Button
         variant="ghost"
         size="icon"
-        className="absolute top-0 right-0 h-6 w-6 rounded-full shadow-sm cursor-pointer"
+        className="h-6 w-6 rounded-full shadow-sm cursor-pointer"
         onClick={onRemove}
         aria-label={translate("ra.action.delete")}
         title={translate("ra.action.delete")}

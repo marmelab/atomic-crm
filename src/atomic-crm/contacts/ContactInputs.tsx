@@ -50,6 +50,7 @@ const ContactIdentityInputs = () => {
       <h6 className="text-lg font-semibold">Identity</h6>
       <RadioButtonGroupInput
         label={false}
+        row
         source="gender"
         choices={contactGender}
         helperText={false}

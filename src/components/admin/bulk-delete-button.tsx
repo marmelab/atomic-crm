@@ -5,26 +5,58 @@ import {
   useDeleteMany,
   useListContext,
   useNotify,
+  useRefresh,
   useResourceContext,
   useTranslate,
   type MutationMode,
+  type RaRecord,
+  type UseDeleteManyOptions,
 } from "ra-core";
+import { cn } from "@/lib/utils";
+import { ReactNode } from "react";
 
-export const BulkDeleteButton = ({
-  mutationMode = "undoable",
-}: {
+export interface BulkDeleteButtonProps<
+  RecordType extends RaRecord = any,
+  MutationOptionsError = unknown,
+> extends React.HTMLAttributes<HTMLButtonElement> {
   mutationMode?: MutationMode;
-}) => {
-  const resource = useResourceContext();
-  const [deleteMany, { isPending }] = useDeleteMany();
+  label?: string;
+  resource?: string;
+  className?: string;
+  icon?: ReactNode;
+  mutationOptions?: UseDeleteManyOptions<RecordType, MutationOptionsError> & {
+    meta?: any;
+  };
+}
+
+export const BulkDeleteButton = <
+  RecordType extends RaRecord = any,
+  MutationOptionsError = unknown,
+>(
+  props: BulkDeleteButtonProps<RecordType, MutationOptionsError>,
+) => {
+  const {
+    mutationMode = "undoable",
+    icon = defaultIcon,
+    label,
+    className,
+    mutationOptions = {},
+  } = props;
+  const { meta: mutationMeta, ...otherMutationOptions } = mutationOptions;
+  const resource = useResourceContext(props);
+  const [deleteMany, { isPending }] = useDeleteMany<
+    RecordType,
+    MutationOptionsError
+  >();
   const { selectedIds, onUnselectItems } = useListContext();
   const notify = useNotify();
+  const refresh = useRefresh();
   const translate = useTranslate();
   const handleClick = (e: React.MouseEvent) => {
     stopPropagation(e);
     deleteMany(
       resource,
-      { ids: selectedIds },
+      { ids: selectedIds, meta: mutationMeta },
       {
         mutationMode,
         onSuccess: () => {
@@ -40,7 +72,17 @@ export const BulkDeleteButton = ({
             undoable: mutationMode === "undoable",
           });
         },
-      }
+        onError: (error: MutationOptionsError) => {
+          const errorMessage =
+            typeof error === "string" ? error : (error as any)?.message;
+          notify(errorMessage || "ra.notification.http_error", {
+            type: "error",
+            messageArgs: { _: errorMessage },
+          });
+          refresh();
+        },
+        ...otherMutationOptions,
+      },
     );
   };
   return (
@@ -49,13 +91,17 @@ export const BulkDeleteButton = ({
       type="button"
       onClick={handleClick}
       disabled={isPending}
-      className="h-9"
+      className={cn("h-9", className)}
     >
-      <Trash />
-      <Translate i18nKey="ra.action.delete">Delete</Translate>
+      {icon}
+      <Translate i18nKey={label ?? "ra.action.delete"}>
+        {label ?? "Delete"}
+      </Translate>
     </Button>
   );
 };
+
+const defaultIcon = <Trash />;
 
 // useful to prevent click bubbling in a datagrid with rowClick
 const stopPropagation = (e: React.MouseEvent) => e.stopPropagation();

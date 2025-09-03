@@ -16,7 +16,7 @@ import { Label } from "@/components/ui/label";
 import {
   extractValidSavedQueries,
   useSavedQueries,
-} from "@/hooks/saved-queries.tsx";
+} from "@/hooks/saved-queries";
 
 export const AddSavedQueryDialog = ({
   open,

@@ -24,11 +24,13 @@ const UrlFieldImpl = <
   const translate = useTranslate();
 
   if (value == null) {
+    if (!empty) {
+      return null;
+    }
+
     return (
       <span className={className} {...rest}>
-        {empty && typeof empty === "string"
-          ? translate(empty, { _: empty })
-          : empty}
+        {typeof empty === "string" ? translate(empty, { _: empty }) : empty}
       </span>
     );
   }

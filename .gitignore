@@ -30,6 +30,6 @@ supabase/.branches
 supabase/.temp
 
 dist/
-lib/
+/lib/
 .env
 *storybook.log
