@@ -11,6 +11,7 @@ import { Layout } from "@/components/admin/layout";
 import { LoginPage } from "@/components/admin/login-page";
 import { Ready } from "@/components/admin/ready";
 import { ThemeProvider } from "@/components/admin/theme-provider";
+import { AuthCallback } from "@/components/admin/authentication";
 
 const defaultStore = localStorageStore();
 
@@ -24,6 +25,7 @@ const AdminUI = (props: CoreAdminUIProps) => (
       layout={Layout}
       loginPage={LoginPage}
       ready={Ready}
+      authCallbackPage={AuthCallback}
       {...props}
     />
   </ThemeProvider>
@@ -32,7 +34,7 @@ const AdminUI = (props: CoreAdminUIProps) => (
 export const Admin = (props: CoreAdminProps) => {
   const {
     accessDenied,
-    authCallbackPage,
+    authCallbackPage = AuthCallback,
     authenticationError,
     authProvider,
     basename,
