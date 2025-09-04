@@ -52,7 +52,6 @@ export const SetPasswordPage = () => {
         refresh_token,
         password: values.password,
       });
-      setLoading(false);
     } catch (error: any) {
       notify(
         typeof error === "string"
@@ -72,6 +71,8 @@ export const SetPasswordPage = () => {
           },
         },
       );
+    } finally {
+      setLoading(false);
     }
   };
 
