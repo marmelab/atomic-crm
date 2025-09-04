@@ -26,10 +26,10 @@ export default defineConfig({
   define: {
     "import.meta.env.VITE_IS_DEMO": JSON.stringify(process.env.VITE_IS_DEMO),
     "import.meta.env.VITE_SUPABASE_URL": JSON.stringify(
-      process.env.VITE_IS_DEMO,
+      process.env.VITE_SUPABASE_URL,
     ),
     "import.meta.env.VITE_SUPABASE_ANON_KEY": JSON.stringify(
-      process.env.VITE_IS_DEMO,
+      process.env.VITE_SUPABASE_ANON_KEY,
     ),
     "import.meta.env.VITE_INBOUND_EMAIL": JSON.stringify(
       process.env.VITE_INBOUND_EMAIL,
