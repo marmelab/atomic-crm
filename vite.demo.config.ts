@@ -32,6 +32,7 @@ export default defineConfig({
       process.env.VITE_SUPABASE_ANON_KEY ?? "https://demo.example.org",
     ),
   },
+  base: "./",
   esbuild: {
     keepNames: true,
   },
