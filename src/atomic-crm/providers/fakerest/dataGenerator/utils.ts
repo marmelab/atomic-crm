@@ -4,8 +4,8 @@ export const weightedArrayElement = (values: any[], weights: any) =>
   faker.random.arrayElement(
     values.reduce(
       (acc, value, index) => acc.concat(new Array(weights[index]).fill(value)),
-      []
-    )
+      [],
+    ),
   );
 
 export const weightedBoolean = (likelyhood: number) =>

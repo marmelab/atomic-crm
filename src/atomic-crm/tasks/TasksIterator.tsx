@@ -17,7 +17,7 @@ export const TasksIterator = ({
   const tasks = data.filter(
     (task) =>
       !task.done_date ||
-      isAfter(new Date(task.done_date), new Date(Date.now() - 5 * 60 * 1000))
+      isAfter(new Date(task.done_date), new Date(Date.now() - 5 * 60 * 1000)),
   );
 
   return (

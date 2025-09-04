@@ -30,12 +30,12 @@ export const TagsListEdit = () => {
     {
       pagination: { page: 1, perPage: 10 },
       sort: { field: "name", order: "ASC" },
-    }
+    },
   );
   const { data: tags, isPending: isPendingRecordTags } = useGetMany<Tag>(
     "tags",
     { ids: record?.tags },
-    { enabled: record && record.tags && record.tags.length > 0 }
+    { enabled: record && record.tags && record.tags.length > 0 },
   );
   const [update] = useUpdate<Contact>();
 
@@ -91,10 +91,10 @@ export const TagsListEdit = () => {
           onSuccess: () => {
             setOpen(false);
           },
-        }
+        },
       );
     },
-    [update, record]
+    [update, record],
   );
 
   if (isPendingRecordTags || isPendingAllTags) return null;

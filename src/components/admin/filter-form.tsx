@@ -139,7 +139,6 @@ const StyledForm = (props: React.FormHTMLAttributes<HTMLFormElement>) => {
   );
 };
 
- 
 const isEmptyValue = (filterValue: any): boolean => {
   if (filterValue === "" || filterValue == null) return true;
 
@@ -254,7 +253,6 @@ export const FilterButton = (props: FilterButtonProps) => {
   );
 
   const handleShow = useCallback(
-     
     ({ source, defaultValue }: { source: string; defaultValue: any }) => {
       showFilter(source, defaultValue === "" ? undefined : defaultValue);
       // We have to fallback to imperative code because the new FilterFormInput
@@ -488,7 +486,7 @@ export const FilterButtonMenuItem = React.forwardRef<
 export interface FilterButtonMenuItemProps {
   filter: React.ReactElement<FilterElementProps>;
   displayed: boolean;
-   
+
   onShow: (params: { source: string; defaultValue: any }) => void;
   onHide: (params: { source: string }) => void;
   resource?: string;

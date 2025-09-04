@@ -14,7 +14,7 @@ const multiplier = {
 };
 
 const threeMonthsAgo = new Date(
-  new Date().setMonth(new Date().getMonth() - 6)
+  new Date().setMonth(new Date().getMonth() - 6),
 ).toISOString();
 
 const DEFAULT_LOCALE = "en-US";
@@ -81,7 +81,7 @@ export const DealsChart = memo(() => {
       acc.max = Math.max(acc.max, month.won + month.pending);
       return acc;
     },
-    { min: 0, max: 0 }
+    { min: 0, max: 0 },
   );
   return (
     <div className="flex flex-col">

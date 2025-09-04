@@ -23,7 +23,7 @@ it("should return gravatar URL for anthony@marmelab.com", async () => {
   const avatarUrl = await getContactAvatar(record);
   const hashedEmail = await hash(email[0].email);
   expect(avatarUrl).toBe(
-    `https://www.gravatar.com/avatar/${hashedEmail}?d=404`
+    `https://www.gravatar.com/avatar/${hashedEmail}?d=404`,
   );
 });
 
@@ -82,6 +82,6 @@ it("should return gravatar URL for 2nd email if 1st email has no gravatar nor va
   const avatarUrl = await getContactAvatar(record);
   const hashedEmail = await hash(email[1].email);
   expect(avatarUrl).toBe(
-    `https://www.gravatar.com/avatar/${hashedEmail}?d=404`
+    `https://www.gravatar.com/avatar/${hashedEmail}?d=404`,
   );
 });

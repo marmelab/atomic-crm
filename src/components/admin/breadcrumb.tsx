@@ -88,7 +88,7 @@ export const Breadcrumb = ({ children, ref }: BreadcrumbProps) => {
         </BreadcrumbList>
       </BaseBreadcrumb>
     </>,
-    breadcrumbPortal
+    breadcrumbPortal,
   );
 };
 

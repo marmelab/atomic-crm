@@ -25,7 +25,7 @@ export function TagEditModal({
         onSuccess: async (tag) => {
           await onSuccess?.(tag);
         },
-      }
+      },
     );
   };
 

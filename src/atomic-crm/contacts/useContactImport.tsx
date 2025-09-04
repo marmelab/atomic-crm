@@ -35,7 +35,7 @@ export function useContactImport() {
   const companiesCache = useMemo(
     () => new Map<string, Company>(),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [dataProvider]
+    [dataProvider],
   );
   const getCompanies = useCallback(
     async (names: string[]) =>
@@ -48,9 +48,9 @@ export function useContactImport() {
           created_at: new Date().toISOString(),
           sales_id: user?.identity?.id,
         }),
-        dataProvider
+        dataProvider,
       ),
-    [companiesCache, user?.identity?.id, dataProvider]
+    [companiesCache, user?.identity?.id, dataProvider],
   );
 
   // Tags cache to avoid creating the same tag multiple times and costly roundtrips
@@ -67,16 +67,18 @@ export function useContactImport() {
           name,
           color: "#f9f9f9",
         }),
-        dataProvider
+        dataProvider,
       ),
-    [tagsCache, dataProvider]
+    [tagsCache, dataProvider],
   );
 
   const processBatch = useCallback(
     async (batch: ContactImportSchema[]) => {
       const [companies, tags] = await Promise.all([
         getCompanies(
-          batch.map((contact) => contact.company?.trim()).filter((name) => name)
+          batch
+            .map((contact) => contact.company?.trim())
+            .filter((name) => name),
         ),
         getTags(batch.flatMap((batch) => parseTags(batch.tags))),
       ]);
@@ -143,11 +145,11 @@ export function useContactImport() {
                 linkedin_url,
               },
             });
-          }
-        )
+          },
+        ),
       );
     },
-    [dataProvider, getCompanies, getTags, user?.identity?.id, today]
+    [dataProvider, getCompanies, getTags, user?.identity?.id, today],
   );
 
   return processBatch;
@@ -158,7 +160,7 @@ const fetchRecordsWithCache = async function <T>(
   cache: Map<string, T>,
   names: string[],
   getCreateData: (name: string) => Partial<T>,
-  dataProvider: DataProvider
+  dataProvider: DataProvider,
 ) {
   const trimmedNames = [...new Set(names.map((name) => name.trim()))];
   const uncachedRecordNames = trimmedNames.filter((name) => !cache.has(name));
@@ -187,7 +189,7 @@ const fetchRecordsWithCache = async function <T>(
         data: getCreateData(name),
       });
       cache.set(name, response.data);
-    })
+    }),
   );
 
   // now all records are in cache, return a map of all records

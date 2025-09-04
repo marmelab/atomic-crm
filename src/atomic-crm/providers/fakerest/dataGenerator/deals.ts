@@ -15,14 +15,14 @@ export const generateDeals = (db: Db): Deal[] => {
     company.nb_deals++;
     const contacts = random.arrayElements(
       db.contacts.filter((contact) => contact.company_id === company.id),
-      datatype.number({ min: 1, max: 3 })
+      datatype.number({ min: 1, max: 3 }),
     );
     const lowercaseName = lorem.words();
     const created_at = randomDate(new Date(company.created_at)).toISOString();
 
     const expected_closing_date = randomDate(
       new Date(created_at),
-      add(new Date(created_at), { months: 6 })
+      add(new Date(created_at), { months: 6 }),
     ).toISOString();
 
     return {

@@ -23,7 +23,7 @@ export function TagCreateModal({
         onSuccess: async (tag) => {
           await onSuccess?.(tag);
         },
-      }
+      },
     );
   };
 

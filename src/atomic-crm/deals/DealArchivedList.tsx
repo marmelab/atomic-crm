@@ -41,7 +41,7 @@ export const DealArchivedList = () => {
       acc[date].push(deal);
       return acc;
     },
-    {} as { [date: string]: Deal[] }
+    {} as { [date: string]: Deal[] },
   );
 
   return (

@@ -6,7 +6,6 @@ import { genericMemo } from "@/lib/genericMemo";
 import { FieldProps } from "@/lib/field.type";
 
 const UrlFieldImpl = <
-   
   RecordType extends Record<string, any> = Record<string, any>,
 >(
   inProps: UrlFieldProps<RecordType>,
@@ -51,7 +50,6 @@ UrlFieldImpl.displayName = "UrlFieldImpl";
 export const UrlField = genericMemo(UrlFieldImpl);
 
 export interface UrlFieldProps<
-   
   RecordType extends Record<string, any> = Record<string, any>,
 > extends FieldProps<RecordType>,
     AnchorHTMLAttributes<HTMLAnchorElement> {}

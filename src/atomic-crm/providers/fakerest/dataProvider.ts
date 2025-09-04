@@ -51,15 +51,15 @@ const processCompanyLogo = async (params: any) => {
 };
 
 async function processContactAvatar(
-  params: UpdateParams<Contact>
+  params: UpdateParams<Contact>,
 ): Promise<UpdateParams<Contact>>;
 
 async function processContactAvatar(
-  params: CreateParams<Contact>
+  params: CreateParams<Contact>,
 ): Promise<CreateParams<Contact>>;
 
 async function processContactAvatar(
-  params: CreateParams<Contact> | UpdateParams<Contact>
+  params: CreateParams<Contact> | UpdateParams<Contact>,
 ): Promise<CreateParams<Contact> | UpdateParams<Contact>> {
   const { data } = params;
   if (data.avatar?.src || !data.email_jsonb || !data.email_jsonb.length) {
@@ -75,17 +75,17 @@ async function processContactAvatar(
 
 async function fetchAndUpdateCompanyData(
   params: UpdateParams<Contact>,
-  dataProvider: DataProvider
+  dataProvider: DataProvider,
 ): Promise<UpdateParams<Contact>>;
 
 async function fetchAndUpdateCompanyData(
   params: CreateParams<Contact>,
-  dataProvider: DataProvider
+  dataProvider: DataProvider,
 ): Promise<CreateParams<Contact>>;
 
 async function fetchAndUpdateCompanyData(
   params: CreateParams<Contact> | UpdateParams<Contact>,
-  dataProvider: DataProvider
+  dataProvider: DataProvider,
 ): Promise<CreateParams<Contact> | UpdateParams<Contact>> {
   const { data } = params;
   const newData = { ...data };
@@ -129,8 +129,8 @@ const dataProviderWithCustomMethod: CrmDataProvider = {
           id: updatedDeal.id,
           data: updatedDeal,
           previousData: deals.find((d) => d.id === updatedDeal.id),
-        })
-      )
+        }),
+      ),
     );
   },
   // We simulate a remote endpoint that is in charge of returning activity log
@@ -170,7 +170,7 @@ const dataProviderWithCustomMethod: CrmDataProvider = {
   },
   async salesUpdate(
     id: Identifier,
-    data: Partial<Omit<SalesFormData, "password">>
+    data: Partial<Omit<SalesFormData, "password">>,
   ): Promise<Partial<Omit<SalesFormData, "password">>> {
     const { data: previousData } = await dataProvider.getOne<Sale>("sales", {
       id,
@@ -225,7 +225,7 @@ const dataProviderWithCustomMethod: CrmDataProvider = {
 
 async function updateCompany(
   companyId: Identifier,
-  updateFn: (company: Company) => Partial<Company>
+  updateFn: (company: Company) => Partial<Company>,
 ) {
   const { data: company } = await dataProvider.getOne<Company>("companies", {
     id: companyId,
@@ -496,7 +496,7 @@ export const dataProvider = withLifecycleCallbacks(
         return result;
       },
     } satisfies ResourceCallbacks<Deal>,
-  ]
+  ],
 );
 
 /**

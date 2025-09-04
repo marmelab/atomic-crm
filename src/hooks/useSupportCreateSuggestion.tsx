@@ -74,7 +74,7 @@ export const useSupportCreateSuggestion = <T = unknown,>(
             : createLabel,
       );
     },
-     
+
     handleChange: async (eventOrValue: MouseEvent | any) => {
       const value = eventOrValue?.target?.value || eventOrValue;
       const finalValue = Array.isArray(value) ? [...value].pop() : value;
@@ -116,7 +116,6 @@ export const useSupportCreateSuggestion = <T = unknown,>(
         </CreateSuggestionContext.Provider>
       ) : null,
     getOptionDisabled: (option) =>
-       
       (option as any)?.id === createHintValue || option === createHintValue,
   };
 };
@@ -144,7 +143,7 @@ export interface UseSupportCreateValue<T = unknown> {
   createHintId: string;
   getCreateItem: (filterValue?: string) => {
     id: Identifier;
-     
+
     [key: string]: any;
   };
   handleChange: (eventOrValue: ChangeEvent | T) => Promise<void>;
@@ -184,5 +183,5 @@ export const useCreateSuggestionContext = () => {
 /**
  * @deprecated Use `OnCreateHandler` from "ra-core" when available.
  */
- 
+
 export type OnCreateHandler = (filter?: string) => any | Promise<any>;

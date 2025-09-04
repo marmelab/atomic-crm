@@ -96,6 +96,6 @@ export interface ExportButtonProps {
   maxResults?: number;
   onClick?: (e: React.MouseEvent<HTMLButtonElement>) => void;
   resource?: string;
-   
+
   meta?: any;
 }

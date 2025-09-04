@@ -77,7 +77,7 @@ export const ReferenceArrayInput = (props: ReferenceArrayInputProps) => {
   } = props;
   if (React.Children.count(children) !== 1) {
     throw new Error(
-      "<ReferenceArrayInput> only accepts a single child (like <AutocompleteArrayInput>)"
+      "<ReferenceArrayInput> only accepts a single child (like <AutocompleteArrayInput>)",
     );
   }
 

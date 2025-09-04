@@ -34,7 +34,7 @@ export function TagDialog({
   const [disabled, setDisabled] = useState(false);
 
   const handleNewTagNameChange = (
-    event: React.ChangeEvent<HTMLInputElement>
+    event: React.ChangeEvent<HTMLInputElement>,
   ) => {
     setNewTagName(event.target.value);
   };
@@ -105,7 +105,7 @@ export function TagDialog({
               className={cn(
                 buttonVariants({ variant: "outline" }),
                 "text-primary",
-                disabled ? "opacity-50 cursor-not-allowed" : "cursor-pointer"
+                disabled ? "opacity-50 cursor-not-allowed" : "cursor-pointer",
               )}
             >
               <SaveIcon />

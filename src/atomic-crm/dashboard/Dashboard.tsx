@@ -25,7 +25,7 @@ export const Dashboard = () => {
     "deals",
     {
       pagination: { page: 1, perPage: 1 },
-    }
+    },
   );
 
   const isPending = isPendingContact || isPendingContactNotes || isPendingDeal;

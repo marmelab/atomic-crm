@@ -24,7 +24,7 @@ export const ContactListContent = () => {
 
   // StopPropagation does not work for some reason on Checkbox, this handler is a workaround
   const handleLinkClick = useCallback(function handleLinkClick(
-    e: MouseEvent<HTMLAnchorElement>
+    e: MouseEvent<HTMLAnchorElement>,
   ) {
     if (e.target instanceof HTMLButtonElement) {
       e.preventDefault();

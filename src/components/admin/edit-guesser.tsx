@@ -65,7 +65,6 @@ const EditViewGuesser = (props: { enableLog?: boolean }) => {
         )
         .sort();
 
-       
       console.log(
         `Guessed Edit:
 

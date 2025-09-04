@@ -14,7 +14,7 @@ import { useCallback, useMemo } from "react";
  * @deprecated Import from 'ra-core' instead.
  */
 export function useBulkExport<
-  ResourceInformationsType extends Partial<{ resource: string }>
+  ResourceInformationsType extends Partial<{ resource: string }>,
 >(props: UseBulkExportProps<ResourceInformationsType>) {
   const { exporter: customExporter, meta } = props;
 
@@ -33,8 +33,8 @@ export function useBulkExport<
             data,
             fetchRelatedRecords(dataProvider),
             dataProvider,
-            resource
-          )
+            resource,
+          ),
         )
         .catch((error) => {
           console.error(error);
@@ -56,6 +56,6 @@ export type ResourceInformation = Partial<{ resource: string }>;
 
 export type UseBulkExportProps<T extends ResourceInformation> = T & {
   exporter?: Exporter;
-   
+
   meta?: any;
 };

@@ -29,7 +29,6 @@ import { FieldProps } from "@/lib/field.type";
  * <span>mercredi 7 novembre 2012</span>
  */
 const DateFieldImpl = <
-   
   RecordType extends Record<string, any> = Record<string, any>,
 >(
   inProps: DateFieldProps<RecordType>,
@@ -101,7 +100,6 @@ DateFieldImpl.displayName = "DateFieldImpl";
 export const DateField = genericMemo(DateFieldImpl);
 
 export interface DateFieldProps<
-   
   RecordType extends Record<string, any> = Record<string, any>,
 > extends FieldProps<RecordType>,
     HTMLAttributes<HTMLSpanElement> {

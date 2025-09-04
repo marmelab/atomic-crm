@@ -8,7 +8,7 @@ function removeSummarySuffix(resource: string) {
 }
 
 export function withSupabaseFilterAdapter<T extends DataProvider>(
-  dataProvider: T
+  dataProvider: T,
 ): T {
   return {
     ...dataProvider,

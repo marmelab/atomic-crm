@@ -38,7 +38,7 @@ async function getFaviconUrl(domain: string): Promise<string | null> {
 
 // Main function to get the avatar URL
 export async function getContactAvatar(
-  record: Partial<Contact>
+  record: Partial<Contact>,
 ): Promise<string | null> {
   if (!record.email_jsonb || !record.email_jsonb.length) {
     return null;

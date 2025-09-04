@@ -14,7 +14,7 @@ export const DealListContent = () => {
   const dataProvider = useDataProvider();
 
   const [dealsByStage, setDealsByStage] = useState<DealsByStage>(
-    getDealsByStage([], dealStages)
+    getDealsByStage([], dealStages),
   );
 
   useEffect(() => {
@@ -59,8 +59,8 @@ export const DealListContent = () => {
         sourceDeal,
         { stage: sourceStage, index: source.index },
         { stage: destinationStage, index: destination.index },
-        dealsByStage
-      )
+        dealsByStage,
+      ),
     );
 
     // persist the changes
@@ -91,7 +91,7 @@ const updateDealStageLocal = (
     stage: string;
     index?: number; // undefined if dropped after the last item
   },
-  dealsByStage: DealsByStage
+  dealsByStage: DealsByStage,
 ) => {
   if (source.stage === destination.stage) {
     // moving deal inside the same column
@@ -110,7 +110,7 @@ const updateDealStageLocal = (
     destinationColumn.splice(
       destination.index ?? destinationColumn.length + 1,
       0,
-      sourceDeal
+      sourceDeal,
     );
     return {
       ...dealsByStage,
@@ -126,7 +126,7 @@ const updateDealStage = async (
     stage: string;
     index?: number; // undefined if dropped after the last item
   },
-  dataProvider: DataProvider
+  dataProvider: DataProvider,
 ) => {
   if (source.stage === destination.stage) {
     // moving deal inside the same column
@@ -148,14 +148,14 @@ const updateDealStage = async (
         ...columnDeals
           .filter(
             (deal) =>
-              deal.index >= destinationIndex && deal.index < source.index
+              deal.index >= destinationIndex && deal.index < source.index,
           )
           .map((deal) =>
             dataProvider.update("deals", {
               id: deal.id,
               data: { index: deal.index + 1 },
               previousData: deal,
-            })
+            }),
           ),
         // for the deal that was moved, update its index
         dataProvider.update("deals", {
@@ -174,14 +174,14 @@ const updateDealStage = async (
         ...columnDeals
           .filter(
             (deal) =>
-              deal.index <= destinationIndex && deal.index > source.index
+              deal.index <= destinationIndex && deal.index > source.index,
           )
           .map((deal) =>
             dataProvider.update("deals", {
               id: deal.id,
               data: { index: deal.index - 1 },
               previousData: deal,
-            })
+            }),
           ),
         // for the deal that was moved, update its index
         dataProvider.update("deals", {
@@ -218,7 +218,7 @@ const updateDealStage = async (
             id: deal.id,
             data: { index: deal.index - 1 },
             previousData: deal,
-          })
+          }),
         ),
       // increase index on the deals after the destination index in the destination columns
       ...destinationDeals
@@ -228,7 +228,7 @@ const updateDealStage = async (
             id: deal.id,
             data: { index: deal.index + 1 },
             previousData: deal,
-          })
+          }),
         ),
       // change the dragged deal to take the destination index and column
       dataProvider.update("deals", {

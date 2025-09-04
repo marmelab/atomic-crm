@@ -57,15 +57,15 @@ const processCompanyLogo = async (params: any) => {
 };
 
 async function processContactAvatar(
-  params: UpdateParams<Contact>
+  params: UpdateParams<Contact>,
 ): Promise<UpdateParams<Contact>>;
 
 async function processContactAvatar(
-  params: CreateParams<Contact>
+  params: CreateParams<Contact>,
 ): Promise<CreateParams<Contact>>;
 
 async function processContactAvatar(
-  params: CreateParams<Contact> | UpdateParams<Contact>
+  params: CreateParams<Contact> | UpdateParams<Contact>,
 ): Promise<CreateParams<Contact> | UpdateParams<Contact>> {
   const { data } = params;
   if (data.avatar?.src || !data.email_jsonb || !data.email_jsonb.length) {
@@ -143,7 +143,7 @@ const dataProviderWithCustomMethods = {
   },
   async salesUpdate(
     id: Identifier,
-    data: Partial<Omit<SalesFormData, "password">>
+    data: Partial<Omit<SalesFormData, "password">>,
   ) {
     const { email, first_name, last_name, administrator, avatar, disabled } =
       data;
@@ -161,7 +161,7 @@ const dataProviderWithCustomMethods = {
           disabled,
           avatar,
         },
-      }
+      },
     );
 
     if (!sale || error) {
@@ -208,8 +208,8 @@ const dataProviderWithCustomMethods = {
           id: updatedDeal.id,
           data: updatedDeal,
           previousData: deals.find((d) => d.id === updatedDeal.id),
-        })
-      )
+        }),
+      ),
     );
   },
   async getActivityLog(companyId?: Identifier) {
@@ -315,7 +315,7 @@ export const dataProvider = withLifecycleCallbacks(
         return applyFullTextSearch(["name", "type", "description"])(params);
       },
     },
-  ]
+  ],
 );
 
 const applyFullTextSearch = (columns: string[]) => (params: GetListParams) => {

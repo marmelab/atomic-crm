@@ -109,7 +109,6 @@ const ListViewGuesser = (
         .sort();
 
       if (enableLog) {
-         
         console.log(
           `Guessed List:
 

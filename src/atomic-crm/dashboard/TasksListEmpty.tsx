@@ -11,7 +11,7 @@ export const TasksListEmpty = () => {
         sales_id: identity?.id,
       },
     },
-    { enabled: !!identity }
+    { enabled: !!identity },
   );
 
   if (total) return null;

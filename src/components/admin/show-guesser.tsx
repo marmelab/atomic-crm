@@ -72,7 +72,6 @@ const ShowViewGuesser = (props: { enableLog?: boolean }) => {
         )
         .sort();
 
-       
       console.log(
         `Guessed Show:
 

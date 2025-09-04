@@ -194,7 +194,6 @@ const SaveButton = <RecordType extends RaRecord = RaRecord>(
   );
 
   const handleSubmit = useCallback(
-     
     async (values: any) => {
       let errors;
       if (saveContext?.save) {
@@ -279,7 +278,6 @@ export type SaveButtonProps<RecordType extends RaRecord = RaRecord> =
       alwaysEnable?: boolean;
     };
 
- 
 const valueOrDefault = (value: any, defaultValue: any) =>
   typeof value === "undefined" ? defaultValue : value;
 
