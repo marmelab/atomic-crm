@@ -16,10 +16,10 @@ export const i18nProvider = polyglotI18nProvider(
     return mergeTranslations(
       englishMessages,
       raSupabaseEnglishMessages,
-      raSupabaseEnglishMessagesOverride
+      raSupabaseEnglishMessagesOverride,
     );
   },
   "en",
   [{ locale: "en", name: "English" }],
-  { allowMissing: true }
+  { allowMissing: true },
 );

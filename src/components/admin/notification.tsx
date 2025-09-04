@@ -55,8 +55,8 @@ export const Notification = (props: ToasterProps) => {
           ? typeof message === "string"
             ? translate(message, messageArgs)
             : React.isValidElement(message)
-            ? message
-            : undefined
+              ? message
+              : undefined
           : undefined;
 
         toast[type](finalMessage, {

@@ -42,7 +42,7 @@ export function ActivityLogIterator({
           onClick={(e) => {
             e.preventDefault();
             setActivityDisplayed(
-              (activitiesDisplayed) => activitiesDisplayed + pageSize
+              (activitiesDisplayed) => activitiesDisplayed + pageSize,
             );
           }}
           className="flex w-full justify-center text-sm underline hover:no-underline"

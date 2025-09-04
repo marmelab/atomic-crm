@@ -14,7 +14,7 @@ describe("getList", () => {
       withSupabaseFilterAdapter(mockDataProvider);
 
     expect(
-      getListAdapter("resource", { filter: { "a@id@eq": "1" } })
+      getListAdapter("resource", { filter: { "a@id@eq": "1" } }),
     ).resolves.toEqual([{ id: 1 }]);
 
     expect(getList).toHaveBeenCalledWith("resource", {
@@ -34,7 +34,7 @@ describe("getList", () => {
       withSupabaseFilterAdapter(mockDataProvider);
 
     expect(
-      getListAdapter("resource", { filter: { "a@id@neq": "1" } })
+      getListAdapter("resource", { filter: { "a@id@neq": "1" } }),
     ).resolves.toEqual([{ id: 1 }]);
 
     expect(getList).toHaveBeenCalledWith("resource", {
@@ -54,7 +54,7 @@ describe("getList", () => {
       withSupabaseFilterAdapter(mockDataProvider);
 
     expect(
-      getListAdapter("resource", { filter: { "a@id@eq": "1" } })
+      getListAdapter("resource", { filter: { "a@id@eq": "1" } }),
     ).resolves.toEqual([{ id: 1 }]);
 
     expect(getList).toHaveBeenCalledWith("resource", {
@@ -74,7 +74,7 @@ describe("getList", () => {
       withSupabaseFilterAdapter(mockDataProvider);
 
     expect(
-      getListAdapter("resource", { filter: { "a@id@neq": "1" } })
+      getListAdapter("resource", { filter: { "a@id@neq": "1" } }),
     ).resolves.toEqual([{ id: 1 }]);
 
     expect(getList).toHaveBeenCalledWith("resource", {
@@ -94,7 +94,7 @@ describe("getList", () => {
       withSupabaseFilterAdapter(mockDataProvider);
 
     expect(
-      getListAdapter("resource", { filter: { "id@is": null } })
+      getListAdapter("resource", { filter: { "id@is": null } }),
     ).resolves.toEqual([{ id: 1 }]);
 
     expect(getList).toHaveBeenCalledWith("resource", {
@@ -114,7 +114,7 @@ describe("getList", () => {
       withSupabaseFilterAdapter(mockDataProvider);
 
     expect(
-      getListAdapter("resource", { filter: { "id@not.is": null } })
+      getListAdapter("resource", { filter: { "id@not.is": null } }),
     ).resolves.toEqual([{ id: 1 }]);
 
     expect(getList).toHaveBeenCalledWith("resource", {
@@ -134,7 +134,7 @@ describe("getList", () => {
       withSupabaseFilterAdapter(mockDataProvider);
 
     expect(
-      getListAdapter("resource", { filter: { "a@id@lt": "1" } })
+      getListAdapter("resource", { filter: { "a@id@lt": "1" } }),
     ).resolves.toEqual([{ id: 1 }]);
 
     expect(getList).toHaveBeenCalledWith("resource", {
@@ -154,7 +154,7 @@ describe("getList", () => {
       withSupabaseFilterAdapter(mockDataProvider);
 
     expect(
-      getListAdapter("resource", { filter: { "a@id@lte": "1" } })
+      getListAdapter("resource", { filter: { "a@id@lte": "1" } }),
     ).resolves.toEqual([{ id: 1 }]);
 
     expect(getList).toHaveBeenCalledWith("resource", {
@@ -174,7 +174,7 @@ describe("getList", () => {
       withSupabaseFilterAdapter(mockDataProvider);
 
     expect(
-      getListAdapter("resource", { filter: { "a@id@gt": "1" } })
+      getListAdapter("resource", { filter: { "a@id@gt": "1" } }),
     ).resolves.toEqual([{ id: 1 }]);
 
     expect(getList).toHaveBeenCalledWith("resource", {
@@ -194,7 +194,7 @@ describe("getList", () => {
       withSupabaseFilterAdapter(mockDataProvider);
 
     expect(
-      getListAdapter("resource", { filter: { "a@id@gte": "1" } })
+      getListAdapter("resource", { filter: { "a@id@gte": "1" } }),
     ).resolves.toEqual([{ id: 1 }]);
 
     expect(getList).toHaveBeenCalledWith("resource", {
@@ -214,7 +214,7 @@ describe("getList", () => {
       withSupabaseFilterAdapter(mockDataProvider);
 
     expect(
-      getListAdapter("resource", { filter: { "id@in": "(1,2,a)" } })
+      getListAdapter("resource", { filter: { "id@in": "(1,2,a)" } }),
     ).resolves.toEqual([{ id: 1 }]);
 
     expect(getList).toHaveBeenCalledWith("resource", {
@@ -234,7 +234,7 @@ describe("getList", () => {
       withSupabaseFilterAdapter(mockDataProvider);
 
     expect(
-      getListAdapter("resource", { filter: { "tags@cs": "{1,2,a}" } })
+      getListAdapter("resource", { filter: { "tags@cs": "{1,2,a}" } }),
     ).resolves.toEqual([{ id: 1 }]);
 
     expect(getList).toHaveBeenCalledWith("resource", {
@@ -256,7 +256,7 @@ describe("getList", () => {
     expect(
       getListAdapter("resource", {
         filter: { "@or": { last_name: "one" } },
-      })
+      }),
     ).resolves.toEqual([{ id: 1 }]);
 
     expect(getList).toHaveBeenCalledWith("resource", {
@@ -304,7 +304,7 @@ describe("getManyReference", () => {
         pagination: { page: 1, perPage: 10 },
         sort: { field: "id", order: "ASC" },
         filter: { "a@id@eq": "2" },
-      })
+      }),
     ).resolves.toEqual([{ id: 1 }]);
 
     expect(getManyReference).toHaveBeenCalledWith("resource", {
@@ -334,7 +334,7 @@ describe("getManyReference", () => {
         pagination: { page: 1, perPage: 10 },
         sort: { field: "id", order: "ASC" },
         filter: { "a@id@neq": "2" },
-      })
+      }),
     ).resolves.toEqual([{ id: 1 }]);
 
     expect(getManyReference).toHaveBeenCalledWith("resource", {
@@ -364,7 +364,7 @@ describe("getManyReference", () => {
         pagination: { page: 1, perPage: 10 },
         sort: { field: "id", order: "ASC" },
         filter: { "id@is": null },
-      })
+      }),
     ).resolves.toEqual([{ id: 1 }]);
 
     expect(getManyReference).toHaveBeenCalledWith("resource", {
@@ -394,7 +394,7 @@ describe("getManyReference", () => {
         pagination: { page: 1, perPage: 10 },
         sort: { field: "id", order: "ASC" },
         filter: { "id@not.is": null },
-      })
+      }),
     ).resolves.toEqual([{ id: 1 }]);
 
     expect(getManyReference).toHaveBeenCalledWith("resource", {
@@ -424,7 +424,7 @@ describe("getManyReference", () => {
         pagination: { page: 1, perPage: 10 },
         sort: { field: "id", order: "ASC" },
         filter: { "a@id@lt": "2" },
-      })
+      }),
     ).resolves.toEqual([{ id: 1 }]);
 
     expect(getManyReference).toHaveBeenCalledWith("resource", {
@@ -454,7 +454,7 @@ describe("getManyReference", () => {
         pagination: { page: 1, perPage: 10 },
         sort: { field: "id", order: "ASC" },
         filter: { "a@id@lte": "2" },
-      })
+      }),
     ).resolves.toEqual([{ id: 1 }]);
 
     expect(getManyReference).toHaveBeenCalledWith("resource", {
@@ -484,7 +484,7 @@ describe("getManyReference", () => {
         pagination: { page: 1, perPage: 10 },
         sort: { field: "id", order: "ASC" },
         filter: { "a@id@gt": "2" },
-      })
+      }),
     ).resolves.toEqual([{ id: 1 }]);
 
     expect(getManyReference).toHaveBeenCalledWith("resource", {
@@ -514,7 +514,7 @@ describe("getManyReference", () => {
         pagination: { page: 1, perPage: 10 },
         sort: { field: "id", order: "ASC" },
         filter: { "a@id@gte": "2" },
-      })
+      }),
     ).resolves.toEqual([{ id: 1 }]);
 
     expect(getManyReference).toHaveBeenCalledWith("resource", {
@@ -544,7 +544,7 @@ describe("getManyReference", () => {
         pagination: { page: 1, perPage: 10 },
         sort: { field: "id", order: "ASC" },
         filter: { "id@in": "(1,2,a)" },
-      })
+      }),
     ).resolves.toEqual([{ id: 1 }]);
 
     expect(getManyReference).toHaveBeenCalledWith("resource", {
@@ -574,7 +574,7 @@ describe("getManyReference", () => {
         pagination: { page: 1, perPage: 10 },
         sort: { field: "id", order: "ASC" },
         filter: { "tags@cs": "{1,2,a}" },
-      })
+      }),
     ).resolves.toEqual([{ id: 1 }]);
 
     expect(getManyReference).toHaveBeenCalledWith("resource", {
@@ -604,7 +604,7 @@ describe("getManyReference", () => {
         pagination: { page: 1, perPage: 10 },
         sort: { field: "id", order: "ASC" },
         filter: { "@or": { last_name: "one" } },
-      })
+      }),
     ).resolves.toEqual([{ id: 1 }]);
 
     expect(getManyReference).toHaveBeenCalledWith("resource", {
@@ -634,7 +634,7 @@ describe("getManyReference", () => {
         pagination: { page: 1, perPage: 10 },
         sort: { field: "id", order: "ASC" },
         filter: { id: 2 },
-      })
+      }),
     ).resolves.toEqual([{ id: 1 }]);
 
     expect(getManyReference).toHaveBeenCalledWith("resource", {
@@ -693,7 +693,7 @@ it("should remove summary suffix", () => {
         previousData: {},
       }),
       dataProvider.updateMany("resource_summary", { ids: [1], data: {} }),
-    ])
+    ]),
   ).resolves.toHaveLength(9);
 
   expect(getOne).toHaveBeenCalledWith("resource", { id: 1 });

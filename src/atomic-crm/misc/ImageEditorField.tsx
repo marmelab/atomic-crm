@@ -86,7 +86,7 @@ const ImageEditorDialog = (props: ImageEditorDialogProps) => {
   const initialValue = useFieldValue({ source: props.source });
   const [file, setFile] = useState<File | undefined>();
   const [imageSrc, setImageSrc] = useState<string | undefined>(
-    initialValue?.src
+    initialValue?.src,
   );
   const onDrop = useCallback((files: File[]) => {
     const preview = URL.createObjectURL(files[0]);
@@ -108,7 +108,7 @@ const ImageEditorDialog = (props: ImageEditorDialogProps) => {
           title: newFile.name,
           rawFile: newFile,
         },
-        { shouldDirty: true }
+        { shouldDirty: true },
       );
       props.onClose();
 

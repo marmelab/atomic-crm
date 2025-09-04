@@ -50,7 +50,7 @@ export const Note = ({
       onSuccess: () => {
         notify("Note deleted", { type: "info", undoable: true });
       },
-    }
+    },
   );
 
   const handleDelete = () => {
@@ -75,7 +75,7 @@ export const Note = ({
           setEditing(false);
           setHover(false);
         },
-      }
+      },
     );
   };
 

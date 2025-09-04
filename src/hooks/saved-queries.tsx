@@ -13,9 +13,8 @@ export const useSavedQueries = (resource: string) => {
 export interface SavedQuery {
   label: string;
   value: {
-     
     filter?: any;
-     
+
     displayedFilters?: any[];
     sort?: SortPayload;
     perPage?: number;

@@ -4,13 +4,12 @@ import { useContext } from "react";
 export interface FilterElementProps {
   alwaysOn?: boolean;
   context?: string;
-   
+
   defaultValue?: any;
   resource?: string;
   record?: object;
   source: string;
 
-   
   [key: string]: any; // Allow any other prop
 }
 

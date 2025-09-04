@@ -20,7 +20,7 @@ import {
 export async function getActivityLog(
   dataProvider: DataProvider,
   companyId?: Identifier,
-  salesId?: Identifier
+  salesId?: Identifier,
 ) {
   const companyFilter = {} as any;
   if (companyId) {
@@ -46,7 +46,7 @@ export async function getActivityLog(
     [...newCompanies, ...newContactsAndNotes, ...newDealsAndNotes]
       // sort by date desc
       .sort((a, b) =>
-        a.date && b.date ? a.date.localeCompare(b.date) * -1 : 0
+        a.date && b.date ? a.date.localeCompare(b.date) * -1 : 0,
       )
       // limit to 250 activities
       .slice(0, 250)
@@ -55,7 +55,7 @@ export async function getActivityLog(
 
 const getNewCompanies = async (
   dataProvider: DataProvider,
-  filter: any
+  filter: any,
 ): Promise<Activity[]> => {
   const { data: companies } = await dataProvider.getList<Company>("companies", {
     filter,
@@ -74,7 +74,7 @@ const getNewCompanies = async (
 
 async function getNewContactsAndNotes(
   dataProvider: DataProvider,
-  filter: any
+  filter: any,
 ): Promise<Activity[]> {
   const { data: contacts } = await dataProvider.getList<Contact>("contacts", {
     filter,
@@ -99,7 +99,7 @@ async function getNewContactsAndNotes(
       filter: recentContactNotesFilter,
       pagination: { page: 1, perPage: 250 },
       sort: { field: "date", order: "DESC" },
-    }
+    },
   );
 
   const newContacts = contacts.map((contact) => ({
@@ -124,7 +124,7 @@ async function getNewContactsAndNotes(
 
 async function getNewDealsAndNotes(
   dataProvider: DataProvider,
-  filter: any
+  filter: any,
 ): Promise<Activity[]> {
   const { data: deals } = await dataProvider.getList<Deal>("deals", {
     filter,
@@ -149,7 +149,7 @@ async function getNewDealsAndNotes(
       filter: recentDealNotesFilter,
       pagination: { page: 1, perPage: 250 },
       sort: { field: "date", order: "DESC" },
-    }
+    },
   );
 
   const newDeals = deals.map((deal) => ({

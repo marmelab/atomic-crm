@@ -27,5 +27,4 @@ export type ArrayFieldProps<
     children?: ReactNode;
   };
 
- 
 const emptyArray: any[] = [];

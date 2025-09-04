@@ -1,5 +1,5 @@
-import { formatRelative } from 'date-fns';
+import { formatRelative } from "date-fns";
 
 export function RelativeDate({ date }: { date: string }) {
-    return formatRelative(new Date(date), new Date());
+  return formatRelative(new Date(date), new Date());
 }

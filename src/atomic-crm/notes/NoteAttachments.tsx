@@ -7,10 +7,10 @@ export const NoteAttachments = ({ note }: { note: ContactNote | DealNote }) => {
   }
 
   const imageAttachments = note.attachments.filter(
-    (attachment: AttachmentNote) => isImageMimeType(attachment.type)
+    (attachment: AttachmentNote) => isImageMimeType(attachment.type),
   );
   const otherAttachments = note.attachments.filter(
-    (attachment: AttachmentNote) => !isImageMimeType(attachment.type)
+    (attachment: AttachmentNote) => !isImageMimeType(attachment.type),
   );
 
   return (

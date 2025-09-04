@@ -15,9 +15,9 @@ import { UseQueryOptions } from "@tanstack/react-query";
 
 export const ReferenceField = <
   RecordType extends RaRecord = RaRecord,
-  ReferenceRecordType extends RaRecord = RaRecord
+  ReferenceRecordType extends RaRecord = RaRecord,
 >(
-  props: ReferenceFieldProps<RecordType, ReferenceRecordType>
+  props: ReferenceFieldProps<RecordType, ReferenceRecordType>,
 ) => {
   const { loading, error, empty, render, ...rest } = props;
   const id = useFieldValue<RecordType>(props);
@@ -43,11 +43,10 @@ export const ReferenceField = <
 
 export interface ReferenceFieldProps<
   RecordType extends RaRecord = RaRecord,
-  ReferenceRecordType extends RaRecord = RaRecord
+  ReferenceRecordType extends RaRecord = RaRecord,
 > extends Partial<ReferenceFieldViewProps<ReferenceRecordType>> {
   children?: ReactNode;
   queryOptions?: UseQueryOptions<RaRecord[], Error> & {
-     
     meta?: any;
   };
   record?: RecordType;
@@ -62,9 +61,9 @@ const stopPropagation = (e: MouseEvent<HTMLAnchorElement>) =>
   e.stopPropagation();
 
 export const ReferenceFieldView = <
-  ReferenceRecordType extends RaRecord = RaRecord
+  ReferenceRecordType extends RaRecord = RaRecord,
 >(
-  props: ReferenceFieldViewProps<ReferenceRecordType>
+  props: ReferenceFieldViewProps<ReferenceRecordType>,
 ) => {
   const {
     children,
@@ -112,7 +111,7 @@ export const ReferenceFieldView = <
 };
 
 export interface ReferenceFieldViewProps<
-  ReferenceRecordType extends RaRecord = RaRecord
+  ReferenceRecordType extends RaRecord = RaRecord,
 > {
   children?: ReactNode;
   className?: string;

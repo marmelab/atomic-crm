@@ -5,7 +5,6 @@ import {
 } from "ra-core";
 import { Badge } from "@/components/ui/badge";
 
- 
 export const SingleFieldList = <RecordType = any,>({
   children,
   render,

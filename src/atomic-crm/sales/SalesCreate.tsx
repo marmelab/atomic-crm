@@ -19,7 +19,7 @@ export function SalesCreate() {
     },
     onSuccess: () => {
       notify(
-        "User created. They will soon receive an email to set their password."
+        "User created. They will soon receive an email to set their password.",
       );
       redirect("/sales");
     },

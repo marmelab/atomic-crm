@@ -120,7 +120,6 @@ export const FileInput = (props: FileInputProps) => {
   const files = value ? (Array.isArray(value) ? value : [value]) : [];
 
   const onDrop = (
-     
     newFiles: any[],
     rejectedFiles: FileRejection[],
     event: DropEvent,
@@ -140,7 +139,6 @@ export const FileInput = (props: FileInputProps) => {
     }
   };
 
-   
   const onRemove = (file: any) => async () => {
     if (validateFileRemoval) {
       try {
@@ -233,21 +231,18 @@ export const FileInput = (props: FileInputProps) => {
 
       {children && (
         <div className="previews flex flex-col gap-1">
-          {
-             
-            files.map((file: any, index: number) => (
-              <FileInputPreview
-                key={index}
-                file={file}
-                onRemove={onRemove(file)}
-                removeIcon={removeIcon}
-              >
-                <RecordContextProvider value={file}>
-                  {childrenElement}
-                </RecordContextProvider>
-              </FileInputPreview>
-            ))
-          }
+          {files.map((file: any, index: number) => (
+            <FileInputPreview
+              key={index}
+              file={file}
+              onRemove={onRemove(file)}
+              removeIcon={removeIcon}
+            >
+              <RecordContextProvider value={file}>
+                {childrenElement}
+              </RecordContextProvider>
+            </FileInputPreview>
+          ))}
         </div>
       )}
     </FormField>
@@ -264,12 +259,12 @@ export type FileInputProps = Omit<InputProps, "type"> & {
   minSize?: DropzoneOptions["minSize"];
   multiple?: DropzoneOptions["multiple"];
   options?: DropzoneOptions;
-   
+
   onRemove?: (file: any) => void;
   placeholder?: ReactNode;
   removeIcon?: ComponentType<{ className?: string }>;
   inputProps?: DropzoneInputProps & React.ComponentProps<"input">;
-   
+
   validateFileRemoval?(file: any): boolean | Promise<boolean>;
 };
 
@@ -321,7 +316,6 @@ export const FileInputPreview = (props: FileInputPreviewProps) => {
 };
 
 export interface FileInputPreviewProps extends HTMLAttributes<HTMLDivElement> {
-   
   file: any;
   onRemove: () => void;
   removeIcon?: React.ComponentType<{ className?: string }>;

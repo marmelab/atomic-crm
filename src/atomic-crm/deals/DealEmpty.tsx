@@ -17,7 +17,7 @@ export const DealEmpty = ({ children }: { children?: React.ReactNode }) => {
     "contacts",
     {
       pagination: { page: 1, perPage: 1 },
-    }
+    },
   );
 
   if (contactsLoading) return <Progress value={50} />;
