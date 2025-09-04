@@ -36,6 +36,8 @@ export default App;
 
 ```
 
+**Warning**: As supabase is still the default data provider, its environment variables (`VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY`) are **still required**.
+
 ### Filters Syntax
 
 The list filters used in this project MUST follow the [`ra-data-postgrest`](https://github.com/raphiniert-com/ra-data-postgrest) convention, where the filter operator is concatenated to the field name with an `@`. For example, to filter contacts by first name, you would use the `first_name@eq` filter.
