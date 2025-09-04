@@ -1,9 +1,9 @@
-import { useHandleAuthCallback, useTranslate } from "ra-core";
-import { cn } from "@/lib/utils";
-import { Loading } from "@/components/admin/loading";
-import { Button } from "@/components/ui/button";
-import { LockIcon } from "lucide-react";
 import { Link } from "react-router";
+import { Translate, useHandleAuthCallback, useTranslate } from "ra-core";
+import { CircleAlert, LockIcon } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
+import { Loading } from "@/components/admin/loading";
 
 /**
  * A standalone page to be used in a route called by external authentication services (e.g. OAuth)
@@ -55,8 +55,11 @@ export const AuthError = (props: AuthErrorProps) => {
       )}
       {...rest}
     >
-      <h1>{translate(title, { _: title })}</h1>
-      <div>{translate(message, { _: message })}</div>
+      <h1 className="flex items-center text-3xl my-5 gap-3" role="alert">
+        <CircleAlert className="w-2em h-2em" />
+        <Translate i18nKey={title} />
+      </h1>
+      <p className="my-5">{translate(message, { _: message })}</p>
       <Button asChild>
         <Link to="/login">
           <LockIcon /> {translate("ra.auth.sign_in", { _: "Sign in" })}
