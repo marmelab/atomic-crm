@@ -22,8 +22,10 @@ const foreignKeyMapping = {
 
 export const NoteCreate = ({
   reference,
+  showStatus,
 }: {
   reference: "contacts" | "deals";
+  showStatus?: boolean;
 }) => {
   const resource = useResourceContext();
   const record = useRecordContext();
@@ -35,7 +37,7 @@ export const NoteCreate = ({
     <CreateBase resource={resource} redirect={false}>
       <Form>
         <div className="space-y-3">
-          <NoteInputs />
+          <NoteInputs showStatus={showStatus} />
           <NoteCreateButton reference={reference} record={record} />
         </div>
       </Form>

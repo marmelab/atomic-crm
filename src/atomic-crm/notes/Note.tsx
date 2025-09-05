@@ -103,7 +103,9 @@ export const Note = ({
             <WithRecord render={(record) => <SaleName sale={record} />} />
           </ReferenceField>{" "}
           added a note{" "}
-          {showStatus && note.status && <Status status={note.status} />}
+          {showStatus && note.status && (
+            <Status className="ml-2" status={note.status} />
+          )}
         </div>
         <span className={`${isHover ? "visible" : "invisible"}`}>
           <TooltipProvider>

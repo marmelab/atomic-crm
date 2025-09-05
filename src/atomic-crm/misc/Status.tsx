@@ -1,13 +1,20 @@
+import { cn } from "@/lib/utils.ts";
 import { useConfigurationContext } from "../root/ConfigurationContext";
 
-export const Status = ({ status }: { status: string }) => {
+export const Status = ({
+  status,
+  className,
+}: {
+  status: string;
+  className?: string;
+}) => {
   const { noteStatuses } = useConfigurationContext();
   if (!status || !noteStatuses) return null;
   const statusObject = noteStatuses.find((s: any) => s.value === status);
 
   if (!statusObject) return null;
   return (
-    <div className="group relative inline-block ml-2">
+    <div className={cn("group relative inline-block mr-2", className)}>
       <span
         className="inline-block w-2.5 h-2.5 rounded-full"
         style={{ backgroundColor: statusObject.color }}
