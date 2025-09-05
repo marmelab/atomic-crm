@@ -11,8 +11,8 @@ import {
 import { isValidElement, type ReactElement } from "react";
 
 import { ListNoResults } from "./ListNoResults.tsx";
+import type { FunctionToElement } from "./SimpleListItem.tsx";
 import {
-  FunctionToElement,
   type SimpleListBaseProps,
   SimpleListItem,
   type SimpleListItemProps,

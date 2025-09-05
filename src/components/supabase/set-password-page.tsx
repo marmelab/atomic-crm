@@ -1,7 +1,8 @@
 import { useState } from "react";
-import { Form, required, useNotify, useTranslate, ValidateForm } from "ra-core";
+import type { ValidateForm } from "ra-core";
+import { Form, required, useNotify, useTranslate } from "ra-core";
 import { useSetPassword, useSupabaseAccessToken } from "ra-supabase-core";
-import { FieldValues, SubmitHandler } from "react-hook-form";
+import type { FieldValues, SubmitHandler } from "react-hook-form";
 import { Button } from "@/components/ui/button";
 import { TextInput } from "@/components/admin/text-input";
 import { Layout } from "@/components/supabase/layout";

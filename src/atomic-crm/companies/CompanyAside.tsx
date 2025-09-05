@@ -11,7 +11,7 @@ import { Globe, Linkedin, Phone } from "lucide-react";
 import { useRecordContext } from "ra-core";
 import { AsideSection } from "../misc/AsideSection";
 import { SaleName } from "../sales/SaleName";
-import { Company } from "../types";
+import type { Company } from "../types";
 import { sizes } from "./sizes";
 
 interface CompanyAsideProps {

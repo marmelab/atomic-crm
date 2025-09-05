@@ -1,5 +1,5 @@
+import type { Exporter } from "ra-core";
 import {
-  Exporter,
   fetchRelatedRecords,
   useDataProvider,
   useListContext,

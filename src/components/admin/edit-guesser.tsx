@@ -1,11 +1,12 @@
-import { ReactNode, useEffect, useState } from "react";
+import type { ReactNode } from "react";
+import { useEffect, useState } from "react";
+import type { InferredTypeMap } from "ra-core";
 import {
   EditBase,
   InferredElement,
   useResourceContext,
   useEditContext,
   getElementsFromRecords,
-  InferredTypeMap,
 } from "ra-core";
 import { capitalize, singularize } from "inflection";
 import { EditView } from "@/components/admin/edit";

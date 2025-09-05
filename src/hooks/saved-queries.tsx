@@ -1,4 +1,5 @@
-import { SortPayload, useStore } from "ra-core";
+import type { SortPayload } from "ra-core";
+import { useStore } from "ra-core";
 
 /**
  * @deprecated Use useSavedQueries from `ra-core` once available.

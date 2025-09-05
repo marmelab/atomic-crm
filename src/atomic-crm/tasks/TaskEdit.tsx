@@ -11,7 +11,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { EditBase, Form, Identifier, required, useNotify } from "ra-core";
+import type { Identifier } from "ra-core";
+import { EditBase, Form, required, useNotify } from "ra-core";
 import { useConfigurationContext } from "../root/ConfigurationContext";
 
 export const TaskEdit = ({

@@ -2,9 +2,9 @@ import { SimpleForm } from "@/components/admin";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useMutation } from "@tanstack/react-query";
 import { useDataProvider, useNotify, useRedirect } from "ra-core";
-import { SubmitHandler } from "react-hook-form";
-import { CrmDataProvider } from "../providers/types";
-import { SalesFormData } from "../types";
+import type { SubmitHandler } from "react-hook-form";
+import type { CrmDataProvider } from "../providers/types";
+import type { SalesFormData } from "../types";
 import { SalesInputs } from "./SalesInputs";
 
 export function SalesCreate() {

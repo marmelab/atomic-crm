@@ -1,6 +1,6 @@
 import { useTranslate } from "ra-core";
 import * as React from "react";
-import { MouseEvent } from "react";
+import type { MouseEvent } from "react";
 
 import { Button } from "@/components/ui/button";
 import {

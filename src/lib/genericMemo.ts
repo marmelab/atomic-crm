@@ -1,4 +1,5 @@
-import { FunctionComponent, memo } from "react";
+import type { FunctionComponent} from "react";
+import { memo } from "react";
 
 /**
  * A version of React.memo that preserves the original component type allowing it to accept generics.

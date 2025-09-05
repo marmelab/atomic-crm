@@ -1,6 +1,6 @@
+import type { InputProps } from "ra-core";
 import {
   FieldTitle,
-  InputProps,
   OptionalResourceContextProvider,
   SourceContextProvider,
   type SourceContextValue,

@@ -12,7 +12,7 @@ import {
 } from "ra-core";
 import { Link } from "react-router";
 import { CompanyAvatar } from "../companies/CompanyAvatar";
-import { Deal } from "../types";
+import type { Deal } from "../types";
 import { DealInputs } from "./DealInputs";
 
 export const DealEdit = ({ open, id }: { open: boolean; id?: string }) => {

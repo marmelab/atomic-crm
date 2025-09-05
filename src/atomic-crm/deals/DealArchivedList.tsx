@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { useGetIdentity, useGetList } from "ra-core";
 import { useEffect, useState } from "react";
-import { Deal } from "../types";
+import type { Deal } from "../types";
 import { DealCardContent } from "./DealCard";
 
 export const DealArchivedList = () => {

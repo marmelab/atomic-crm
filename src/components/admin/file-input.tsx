@@ -1,4 +1,5 @@
 import * as React from "react";
+import type { HTMLAttributes } from "react";
 import {
   Children,
   isValidElement,
@@ -6,23 +7,21 @@ import {
   type ReactElement,
   type ReactNode,
   useEffect,
-  HTMLAttributes,
 } from "react";
+import type { InputProps } from "ra-core";
 import {
   FieldTitle,
-  InputProps,
   RecordContextProvider,
   shallowEqual,
   useInput,
   useTranslate,
 } from "ra-core";
-import {
-  useDropzone,
-  type DropzoneOptions,
+import type {
   FileRejection,
   DropEvent,
   DropzoneInputProps,
 } from "react-dropzone";
+import { useDropzone, type DropzoneOptions } from "react-dropzone";
 import { XCircle } from "lucide-react";
 
 import { cn } from "@/lib/utils";

@@ -1,7 +1,8 @@
 import * as React from "react";
-import { RaRecord, useFieldValue, useTranslate } from "ra-core";
+import type { RaRecord } from "ra-core";
+import { useFieldValue, useTranslate } from "ra-core";
 import { Badge } from "@/components/ui/badge";
-import { FieldProps } from "@/lib/field.type";
+import type { FieldProps } from "@/lib/field.type";
 
 type BadgeProps = React.ComponentProps<typeof Badge>;
 

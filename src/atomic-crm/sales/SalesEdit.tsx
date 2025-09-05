@@ -10,9 +10,9 @@ import {
   useRecordContext,
   useRedirect,
 } from "ra-core";
-import { SubmitHandler } from "react-hook-form";
-import { CrmDataProvider } from "../providers/types";
-import { Sale, SalesFormData } from "../types";
+import type { SubmitHandler } from "react-hook-form";
+import type { CrmDataProvider } from "../providers/types";
+import type { Sale, SalesFormData } from "../types";
 import { SalesInputs } from "./SalesInputs";
 
 function EditToolbar() {

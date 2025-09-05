@@ -1,4 +1,4 @@
-import { Db } from "./types";
+import type { Db } from "./types";
 
 export const finalize = (db: Db) => {
   // set contact status according to the latest note

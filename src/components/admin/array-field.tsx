@@ -1,12 +1,6 @@
-import { ReactNode } from "react";
-import {
-  ListContextProvider,
-  useList,
-  useFieldValue,
-  RaRecord,
-  UseListOptions,
-  UseFieldValueOptions,
-} from "ra-core";
+import type { ReactNode } from "react";
+import type { RaRecord, UseListOptions, UseFieldValueOptions } from "ra-core";
+import { ListContextProvider, useList, useFieldValue } from "ra-core";
 
 export const ArrayField = <RecordType extends RaRecord = RaRecord>(
   props: ArrayFieldProps<RecordType>,

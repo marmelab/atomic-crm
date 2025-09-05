@@ -20,8 +20,8 @@ import {
 import { useState } from "react";
 import { useFormState } from "react-hook-form";
 import ImageEditorField from "../misc/ImageEditorField";
-import { CrmDataProvider } from "../providers/types";
-import { Sale, SalesFormData } from "../types";
+import type { CrmDataProvider } from "../providers/types";
+import type { Sale, SalesFormData } from "../types";
 
 export const SettingsPage = () => {
   const [isEditMode, setEditMode] = useState(false);

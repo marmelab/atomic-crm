@@ -26,10 +26,11 @@ import {
   X,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { FilterElementProps, useFilterContext } from "@/hooks/filter-context";
+import type { FilterElementProps } from "@/hooks/filter-context";
+import { useFilterContext } from "@/hooks/filter-context";
+import type { SavedQuery } from "@/hooks/saved-queries";
 import {
   extractValidSavedQueries,
-  SavedQuery,
   useSavedQueries,
 } from "@/hooks/saved-queries";
 import { Button } from "@/components/ui/button";

@@ -1,8 +1,8 @@
-import { HTMLAttributes } from "react";
+import type { HTMLAttributes } from "react";
 import { useFieldValue, useTranslate } from "ra-core";
 
 import { genericMemo } from "@/lib/genericMemo";
-import { FieldProps } from "@/lib/field.type";
+import type { FieldProps } from "@/lib/field.type";
 
 /**
  * Display a date value as a locale string.

@@ -1,14 +1,14 @@
 import * as React from "react";
+import type { ChangeEvent, ReactElement } from "react";
 import {
-  ChangeEvent,
   createContext,
   isValidElement,
-  ReactElement,
   useContext,
   useRef,
   useState,
 } from "react";
-import { Identifier, OptionText, useTranslate } from "ra-core";
+import type { Identifier, OptionText } from "ra-core";
+import { useTranslate } from "ra-core";
 import set from "lodash/set";
 
 /**

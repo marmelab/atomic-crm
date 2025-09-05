@@ -1,5 +1,5 @@
 import { useGetIdentity, useRecordContext } from "ra-core";
-import { Sale } from "../types";
+import type { Sale } from "../types";
 
 export const SaleName = ({ sale }: { sale?: Sale }) => {
   const { identity, isPending } = useGetIdentity();

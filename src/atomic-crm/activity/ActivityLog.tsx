@@ -2,9 +2,10 @@ import { Alert } from "@/components/ui/alert";
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useQuery } from "@tanstack/react-query";
-import { Identifier, useDataProvider } from "ra-core";
+import type { Identifier } from "ra-core";
+import { useDataProvider } from "ra-core";
 
-import { CrmDataProvider } from "../providers/types";
+import type { CrmDataProvider } from "../providers/types";
 import { ActivityLogContext } from "./ActivityLogContext";
 import { ActivityLogIterator } from "./ActivityLogIterator";
 

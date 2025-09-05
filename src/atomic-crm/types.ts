@@ -1,6 +1,6 @@
-import { Identifier, RaRecord } from "ra-core";
-import { ComponentType } from "react";
-import {
+import type { Identifier, RaRecord } from "ra-core";
+import type { ComponentType } from "react";
+import type {
   COMPANY_CREATED,
   CONTACT_CREATED,
   CONTACT_NOTE_CREATED,

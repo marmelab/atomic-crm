@@ -24,7 +24,7 @@ import { TagsList } from "../contacts/TagsList";
 import { findDealLabel } from "../deals/deal";
 import { Status } from "../misc/Status";
 import { useConfigurationContext } from "../root/ConfigurationContext";
-import { Company, Contact, Deal } from "../types";
+import type { Company, Contact, Deal } from "../types";
 import { CompanyAside } from "./CompanyAside";
 import { CompanyAvatar } from "./CompanyAvatar";
 

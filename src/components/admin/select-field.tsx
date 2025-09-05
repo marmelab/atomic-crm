@@ -1,7 +1,8 @@
-import { HTMLAttributes } from "react";
-import { ChoicesProps, useChoices, useFieldValue, useTranslate } from "ra-core";
+import type { HTMLAttributes } from "react";
+import type { ChoicesProps } from "ra-core";
+import { useChoices, useFieldValue, useTranslate } from "ra-core";
 
-import { FieldProps } from "@/lib/field.type";
+import type { FieldProps } from "@/lib/field.type";
 import { genericMemo } from "@/lib/genericMemo";
 
 /**

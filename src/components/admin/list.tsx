@@ -3,11 +3,10 @@ import {
   BreadcrumbItem,
   BreadcrumbPage,
 } from "@/components/admin/breadcrumb";
+import type { ListBaseProps, RaRecord } from "ra-core";
 import {
   ListBase,
-  ListBaseProps,
   type ListControllerResult,
-  RaRecord,
   Translate,
   useGetResourceLabel,
   useHasDashboard,
@@ -15,10 +14,11 @@ import {
   useResourceDefinition,
   useTranslate,
 } from "ra-core";
-import { ReactElement, ReactNode } from "react";
+import type { ReactElement, ReactNode } from "react";
 import { Link } from "react-router";
 import { cn } from "@/lib/utils";
-import { FilterContext, FilterElementProps } from "@/hooks/filter-context";
+import type { FilterElementProps } from "@/hooks/filter-context";
+import { FilterContext } from "@/hooks/filter-context";
 import { CreateButton } from "@/components/admin/create-button";
 import { ExportButton } from "@/components/admin/export-button";
 import { ListPagination } from "@/components/admin/list-pagination";

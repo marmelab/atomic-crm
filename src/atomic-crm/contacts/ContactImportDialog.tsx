@@ -10,7 +10,8 @@ import { Loader2 } from "lucide-react";
 import { Form, useRefresh } from "ra-core";
 import { Link } from "react-router";
 import { usePapaParse } from "../misc/usePapaParse";
-import { ContactImportSchema, useContactImport } from "./useContactImport";
+import type { ContactImportSchema } from "./useContactImport";
+import { useContactImport } from "./useContactImport";
 
 import { FormToolbar, FileInput, FileField } from "@/components/admin";
 import * as React from "react";

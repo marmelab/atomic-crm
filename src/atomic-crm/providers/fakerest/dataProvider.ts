@@ -1,13 +1,13 @@
-import {
+import type {
   CreateParams,
   DataProvider,
   Identifier,
   ResourceCallbacks,
   UpdateParams,
-  withLifecycleCallbacks,
 } from "ra-core";
+import { withLifecycleCallbacks } from "ra-core";
 import fakeRestDataProvider from "ra-data-fakerest";
-import {
+import type {
   Company,
   Contact,
   Deal,
@@ -19,7 +19,7 @@ import {
 import { getActivityLog } from "../commons/activity";
 import { getCompanyAvatar } from "../commons/getCompanyAvatar";
 import { getContactAvatar } from "../commons/getContactAvatar";
-import { CrmDataProvider } from "../types";
+import type { CrmDataProvider } from "../types";
 import { authProvider, USER_STORAGE_KEY } from "./authProvider";
 import generateData from "./dataGenerator";
 import { withSupabaseFilterAdapter } from "./internal/supabaseAdapter";

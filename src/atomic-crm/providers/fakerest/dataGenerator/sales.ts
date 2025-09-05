@@ -1,7 +1,7 @@
 import { internet, name } from "faker/locale/en_US";
 
-import { RAFile, Sale } from "../../../types";
-import { Db } from "./types";
+import type { RAFile, Sale } from "../../../types";
+import type { Db } from "./types";
 
 export const generateSales = (_: Db): Sale[] => {
   const randomSales = Array.from(Array(5).keys()).map((id) => {

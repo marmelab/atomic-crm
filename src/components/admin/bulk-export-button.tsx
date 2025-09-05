@@ -2,11 +2,11 @@ import { Download } from "lucide-react";
 import { Translate } from "ra-core";
 
 import { Button } from "../ui/button";
-import {
+import type {
   ResourceInformation,
-  useBulkExport,
   UseBulkExportProps,
 } from "@/hooks/useBulkExport";
+import { useBulkExport } from "@/hooks/useBulkExport";
 
 /**
  * Export the selected rows

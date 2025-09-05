@@ -13,8 +13,8 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import { Button } from "@/components/ui/button";
-import { HtmlHTMLAttributes } from "react";
-import { ErrorInfo } from "react";
+import type { HtmlHTMLAttributes } from "react";
+import type { ErrorInfo } from "react";
 
 export const Error = (props: InternalErrorProps & {}) => {
   const { error, errorInfo, resetErrorBoundary, ...rest } = props;

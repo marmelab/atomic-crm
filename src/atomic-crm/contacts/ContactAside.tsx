@@ -15,11 +15,11 @@ import {
   DateField,
   EmailField,
 } from "@/components/admin";
-import { ReactNode } from "react";
+import type { ReactNode } from "react";
 import { AsideSection } from "../misc/AsideSection";
 import { useConfigurationContext } from "../root/ConfigurationContext";
 import { SaleName } from "../sales/SaleName";
-import { Contact } from "../types";
+import type { Contact } from "../types";
 
 export const ContactAside = ({ link = "edit" }: { link?: "edit" | "show" }) => {
   const { contactGender } = useConfigurationContext();

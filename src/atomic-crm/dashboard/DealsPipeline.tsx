@@ -13,7 +13,7 @@ import { SimpleList } from "../simple-list/SimpleList";
 import { CompanyAvatar } from "../companies/CompanyAvatar";
 import { findDealLabel } from "../deals/deal";
 import { useConfigurationContext } from "../root/ConfigurationContext";
-import { Deal } from "../types";
+import type { Deal } from "../types";
 
 export const DealsPipeline = () => {
   const { identity } = useGetIdentity();

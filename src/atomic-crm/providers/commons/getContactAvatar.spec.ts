@@ -5,7 +5,7 @@
 // This test file uses the node environment because the getContactAvatar uses the TextEncoder API. This API is not available in the version of JSDOM used by Jest in CI.
 // As CI uses Node18 and not the latest LTS, the crypto module is not available in the global scope.
 
-import { Contact, EmailAndType } from "../../types";
+import type { Contact, EmailAndType } from "../../types";
 import { getContactAvatar, hash } from "./getContactAvatar";
 
 import { webcrypto } from "node:crypto";

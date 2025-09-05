@@ -1,4 +1,4 @@
-import { Sale } from "../types";
+import type { Sale } from "../types";
 import { SalesCreate } from "./SalesCreate";
 import { SalesEdit } from "./SalesEdit";
 import { SalesList } from "./SalesList";

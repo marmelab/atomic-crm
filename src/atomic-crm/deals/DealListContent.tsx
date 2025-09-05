@@ -1,12 +1,15 @@
-import { DragDropContext, OnDragEndResponder } from "@hello-pangea/dnd";
+import type { OnDragEndResponder } from "@hello-pangea/dnd";
+import { DragDropContext } from "@hello-pangea/dnd";
 import isEqual from "lodash/isEqual";
-import { DataProvider, useDataProvider, useListContext } from "ra-core";
+import type { DataProvider } from "ra-core";
+import { useDataProvider, useListContext } from "ra-core";
 import { useEffect, useState } from "react";
 
 import { useConfigurationContext } from "../root/ConfigurationContext";
-import { Deal } from "../types";
+import type { Deal } from "../types";
 import { DealColumn } from "./DealColumn";
-import { DealsByStage, getDealsByStage } from "./stages";
+import type { DealsByStage } from "./stages";
+import { getDealsByStage } from "./stages";
 
 export const DealListContent = () => {
   const { dealStages } = useConfigurationContext();

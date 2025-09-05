@@ -1,11 +1,10 @@
 import * as React from "react";
-import { ReactElement } from "react";
+import type { ReactElement } from "react";
+import type { InputProps, UseReferenceArrayInputParams } from "ra-core";
 import {
-  InputProps,
   useReferenceArrayInputController,
   ResourceContextProvider,
   ChoicesContextProvider,
-  UseReferenceArrayInputParams,
 } from "ra-core";
 import { AutocompleteArrayInput } from "@/components/admin/autocomplete-array-input";
 

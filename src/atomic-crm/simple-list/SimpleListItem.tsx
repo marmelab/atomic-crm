@@ -1,14 +1,12 @@
+import type { Identifier, LinkToType, RaRecord } from "ra-core";
 import {
-  Identifier,
-  LinkToType,
-  RaRecord,
   useEvent,
   useGetPathForRecord,
   useGetPathForRecordCallback,
   useRecordContext,
   useResourceContext,
 } from "ra-core";
-import { ReactElement, ReactNode } from "react";
+import type { ReactElement, ReactNode } from "react";
 import { Link, useNavigate } from "react-router";
 
 export const SimpleListItem = <RecordType extends RaRecord = any>(

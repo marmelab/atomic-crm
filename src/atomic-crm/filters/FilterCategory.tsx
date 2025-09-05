@@ -1,5 +1,5 @@
 import { Translate } from "ra-core";
-import { ReactNode } from "react";
+import type { ReactNode } from "react";
 
 export const FilterCategory = ({
   icon,

@@ -1,5 +1,5 @@
-import { BaseFieldProps } from "ra-core";
-import { ReactNode } from "react";
+import type { BaseFieldProps } from "ra-core";
+import type { ReactNode } from "react";
 
 export interface FieldProps<
    

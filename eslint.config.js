@@ -34,6 +34,7 @@ export default tseslint.config(
         },
       ],
       "@typescript-eslint/no-explicit-any": "off",
+      "@typescript-eslint/consistent-type-imports": "warn",
     },
   },
   storybook.configs["flat/recommended"],

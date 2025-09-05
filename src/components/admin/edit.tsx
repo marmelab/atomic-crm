@@ -1,6 +1,6 @@
+import type { EditBaseProps } from "ra-core";
 import {
   EditBase,
-  EditBaseProps,
   Translate,
   useCreatePath,
   useEditContext,
@@ -10,7 +10,7 @@ import {
   useResourceContext,
   useResourceDefinition,
 } from "ra-core";
-import { ReactNode } from "react";
+import type { ReactNode } from "react";
 import { Link } from "react-router";
 import {
   Breadcrumb,

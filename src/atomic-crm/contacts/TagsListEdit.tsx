@@ -7,19 +7,14 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Edit, Plus } from "lucide-react";
-import {
-  Identifier,
-  useGetList,
-  useGetMany,
-  useRecordContext,
-  useUpdate,
-} from "ra-core";
+import type { Identifier } from "ra-core";
+import { useGetList, useGetMany, useRecordContext, useUpdate } from "ra-core";
 import * as React from "react";
 import { useState } from "react";
 
 import { TagChip } from "../tags/TagChip";
 import { TagCreateModal } from "../tags/TagCreateModal";
-import { Contact, Tag } from "../types";
+import type { Contact, Tag } from "../types";
 
 export const TagsListEdit = () => {
   const record = useRecordContext<Contact>();

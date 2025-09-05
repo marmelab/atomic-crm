@@ -1,8 +1,7 @@
+import type { Identifier, RaRecord } from "ra-core";
 import {
   CreateBase,
   Form,
-  Identifier,
-  RaRecord,
   useGetIdentity,
   useListContext,
   useNotify,

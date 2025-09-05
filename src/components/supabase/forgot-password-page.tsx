@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useResetPassword } from "ra-supabase-core";
 import { Form, required, useNotify, useTranslate } from "ra-core";
 import { Layout } from "@/components/supabase/layout.tsx";
-import { FieldValues, SubmitHandler } from "react-hook-form";
+import type { FieldValues, SubmitHandler } from "react-hook-form";
 import { TextInput } from "@/components/admin";
 import { Button } from "@/components/ui/button.tsx";
 

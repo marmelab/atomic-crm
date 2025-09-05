@@ -3,15 +3,15 @@ import { SaveButton } from "@/components/admin";
 import { FormToolbar } from "@/components/admin";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { useQueryClient } from "@tanstack/react-query";
+import type { GetListResult } from "ra-core";
 import {
   Form,
-  GetListResult,
   useDataProvider,
   useGetIdentity,
   useListContext,
   useRedirect,
 } from "ra-core";
-import { Deal } from "../types";
+import type { Deal } from "../types";
 import { DealInputs } from "./DealInputs";
 
 export const DealCreate = ({ open }: { open: boolean }) => {

@@ -1,7 +1,6 @@
 import { memo, type ReactElement, type ReactNode } from "react";
+import type { ExtractRecordPaths, HintedString } from "ra-core";
 import {
-  ExtractRecordPaths,
-  HintedString,
   ReferenceArrayFieldBase,
   useListContext,
   type FilterPayload,

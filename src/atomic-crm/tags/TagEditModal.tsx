@@ -1,5 +1,5 @@
 import { useUpdate } from "ra-core";
-import { Tag } from "../types";
+import type { Tag } from "../types";
 import { TagDialog } from "./TagDialog";
 
 type TagEditModalProps = {
