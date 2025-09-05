@@ -15,7 +15,7 @@ import {
   WithRecord,
 } from "ra-core";
 import { useState } from "react";
-import { FieldValues, SubmitHandler } from "react-hook-form";
+import type { FieldValues, SubmitHandler } from "react-hook-form";
 
 import { ReferenceField } from "@/components/admin";
 import { CompanyAvatar } from "../companies/CompanyAvatar";
@@ -23,7 +23,7 @@ import { Avatar } from "../contacts/Avatar";
 import { RelativeDate } from "../misc/RelativeDate";
 import { Status } from "../misc/Status";
 import { SaleName } from "../sales/SaleName";
-import { ContactNote, DealNote } from "../types";
+import type { ContactNote, DealNote } from "../types";
 import { NoteAttachments } from "./NoteAttachments";
 import { NoteInputs } from "./NoteInputs";
 

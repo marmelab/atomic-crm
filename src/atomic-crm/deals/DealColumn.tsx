@@ -1,7 +1,7 @@
 import { Droppable } from "@hello-pangea/dnd";
 
 import { useConfigurationContext } from "../root/ConfigurationContext";
-import { Deal } from "../types";
+import type { Deal } from "../types";
 import { findDealLabel } from "./deal";
 import { DealCard } from "./DealCard";
 

@@ -4,7 +4,7 @@ import { DollarSign } from "lucide-react";
 import { useGetList } from "ra-core";
 import { memo, useMemo } from "react";
 
-import { Deal } from "../types";
+import type { Deal } from "../types";
 
 const multiplier = {
   opportunity: 0.2,

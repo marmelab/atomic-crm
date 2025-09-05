@@ -11,8 +11,8 @@ import {
   defaultContactGender,
   defaultNoteStatuses,
 } from "../../../root/defaultConfiguration";
-import { Company, Contact } from "../../../types";
-import { Db } from "./types";
+import type { Company, Contact } from "../../../types";
+import type { Db } from "./types";
 import { randomDate, weightedBoolean } from "./utils";
 
 const maxContacts = {

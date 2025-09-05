@@ -11,7 +11,7 @@ import { required, useRecordContext } from "ra-core";
 import ImageEditorField from "../misc/ImageEditorField";
 import { isLinkedinUrl } from "../misc/isLinkedInUrl";
 import { useConfigurationContext } from "../root/ConfigurationContext";
-import { Company, Sale } from "../types";
+import type { Company, Sale } from "../types";
 import { sizes } from "./sizes";
 
 const isUrl = (url: string) => {

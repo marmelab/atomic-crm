@@ -10,8 +10,8 @@ import {
 import { randomDate } from "./utils";
 
 import { defaultCompanySectors } from "../../../root/defaultConfiguration";
-import { Company, RAFile } from "../../../types";
-import { Db } from "./types";
+import type { Company, RAFile } from "../../../types";
+import type { Db } from "./types";
 
 const sizes = [1, 10, 50, 250, 500];
 

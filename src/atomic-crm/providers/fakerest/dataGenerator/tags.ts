@@ -1,4 +1,4 @@
-import { Db } from "./types";
+import type { Db } from "./types";
 
 const tags = [
   { id: 0, name: "football-fan", color: "#424D5B" },

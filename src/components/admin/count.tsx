@@ -1,9 +1,9 @@
+import type { SortPayload } from "ra-core";
 import {
   useResourceContext,
   useGetList,
   useTimeout,
   useCreatePath,
-  SortPayload,
 } from "ra-core";
 import { CircleX, LoaderCircle } from "lucide-react";
 

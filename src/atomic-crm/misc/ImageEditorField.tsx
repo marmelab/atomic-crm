@@ -10,7 +10,8 @@ import {
 import "cropperjs/dist/cropper.css";
 import { useFieldValue } from "ra-core";
 import { createRef, useCallback, useState } from "react";
-import { Cropper, ReactCropperElement } from "react-cropper";
+import type { ReactCropperElement } from "react-cropper";
+import { Cropper } from "react-cropper";
 import { useDropzone } from "react-dropzone";
 import { useFormContext } from "react-hook-form";
 

@@ -5,8 +5,8 @@ import {
   defaultDealCategories,
   defaultDealStages,
 } from "../../../root/defaultConfiguration";
-import { Deal } from "../../../types";
-import { Db } from "./types";
+import type { Deal } from "../../../types";
+import type { Db } from "./types";
 import { randomDate } from "./utils";
 
 export const generateDeals = (db: Db): Deal[] => {

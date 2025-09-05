@@ -2,7 +2,7 @@ import { useDataProvider } from "ra-core";
 import { useQuery } from "@tanstack/react-query";
 import { Navigate } from "react-router-dom";
 import { LoginPage } from "@/components/admin";
-import { CrmDataProvider } from "../providers/types";
+import type { CrmDataProvider } from "../providers/types";
 import { LoginSkeleton } from "./LoginSkeleton";
 
 export const StartPage = () => {

@@ -1,6 +1,5 @@
+import type { RaRecord, SortPayload } from "ra-core";
 import {
-  RaRecord,
-  SortPayload,
   useCreatePath,
   useRecordContext,
   useReferenceManyFieldController,

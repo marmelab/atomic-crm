@@ -1,4 +1,4 @@
-import { DataProvider } from "ra-core";
+import type { DataProvider } from "ra-core";
 import { withSupabaseFilterAdapter } from "./supabaseAdapter";
 
 describe("getList", () => {

@@ -13,7 +13,7 @@ import {
   type UseDeleteManyOptions,
 } from "ra-core";
 import { cn } from "@/lib/utils";
-import { ReactNode } from "react";
+import type { ReactNode } from "react";
 
 export interface BulkDeleteButtonProps<
   RecordType extends RaRecord = any,

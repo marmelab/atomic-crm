@@ -1,12 +1,12 @@
 import * as React from "react";
 import { useCallback } from "react";
 import { Download } from "lucide-react";
+import type { Exporter } from "ra-core";
 import {
   fetchRelatedRecords,
   useDataProvider,
   useNotify,
   useListContext,
-  Exporter,
   Translate,
 } from "ra-core";
 import { Button } from "@/components/ui/button";

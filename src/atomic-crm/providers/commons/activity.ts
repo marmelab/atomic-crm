@@ -1,4 +1,4 @@
-import { DataProvider, Identifier } from "ra-core";
+import type { DataProvider, Identifier } from "ra-core";
 import {
   COMPANY_CREATED,
   CONTACT_CREATED,
@@ -6,7 +6,7 @@ import {
   DEAL_CREATED,
   DEAL_NOTE_CREATED,
 } from "../../consts";
-import {
+import type {
   Activity,
   Company,
   Contact,

@@ -4,7 +4,7 @@ import { useGetList } from "ra-core";
 import { matchPath, useLocation } from "react-router";
 import { Link } from "react-router";
 import useAppBarHeight from "../misc/useAppBarHeight";
-import { Contact } from "../types";
+import type { Contact } from "../types";
 import { DealCreate } from "./DealCreate";
 
 export const DealEmpty = ({ children }: { children?: React.ReactNode }) => {

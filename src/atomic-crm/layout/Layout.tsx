@@ -1,6 +1,7 @@
 import { Notification, Error } from "@/components/admin";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ReactNode, Suspense } from "react";
+import type { ReactNode } from "react";
+import { Suspense } from "react";
 import { ErrorBoundary } from "react-error-boundary";
 import Header from "./Header";
 

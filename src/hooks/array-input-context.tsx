@@ -1,5 +1,5 @@
 import { createContext, useContext, useMemo } from "react";
-import { UseFieldArrayReturn } from "react-hook-form";
+import type { UseFieldArrayReturn } from "react-hook-form";
 
 /**
  * A React context that provides access to an ArrayInput methods as provided by react-hook-form

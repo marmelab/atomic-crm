@@ -19,7 +19,7 @@ import {
   warning,
 } from "ra-core";
 import { Loader2, Save } from "lucide-react";
-import * as LabelPrimitive from "@radix-ui/react-label";
+import type * as LabelPrimitive from "@radix-ui/react-label";
 import { Slot } from "@radix-ui/react-slot";
 import { FormProvider, useFormContext, useFormState } from "react-hook-form";
 import type { UseMutationOptions } from "@tanstack/react-query";

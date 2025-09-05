@@ -6,9 +6,10 @@ import { Link } from "react-router";
 
 import { ReferenceField, TextField } from "@/components/admin";
 import { Skeleton } from "@/components/ui/skeleton";
-import { MouseEvent, useCallback } from "react";
+import type { MouseEvent } from "react";
+import { useCallback } from "react";
 import { Status } from "../misc/Status";
-import { Contact } from "../types";
+import type { Contact } from "../types";
 import { Avatar } from "./Avatar";
 import { TagsList } from "./TagsList";
 

@@ -2,7 +2,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { CreateBase, Form, useGetIdentity } from "ra-core";
 
 import { FormToolbar } from "@/components/admin";
-import { Contact } from "../types";
+import type { Contact } from "../types";
 import { ContactInputs } from "./ContactInputs";
 
 export const ContactCreate = () => {

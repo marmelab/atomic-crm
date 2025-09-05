@@ -21,9 +21,8 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import type { ChoicesProps, InputProps } from "ra-core";
 import {
-  ChoicesProps,
-  InputProps,
   useChoices,
   useChoicesContext,
   useGetRecordRepresentation,
@@ -33,10 +32,8 @@ import {
   useEvent,
 } from "ra-core";
 import { InputHelperText } from "./input-helper-text";
-import {
-  SupportCreateSuggestionOptions,
-  useSupportCreateSuggestion,
-} from "@/hooks/useSupportCreateSuggestion";
+import type { SupportCreateSuggestionOptions } from "@/hooks/useSupportCreateSuggestion";
+import { useSupportCreateSuggestion } from "@/hooks/useSupportCreateSuggestion";
 
 export const AutocompleteInput = (
   props: Omit<InputProps, "source"> &

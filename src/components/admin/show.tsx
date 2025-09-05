@@ -15,7 +15,7 @@ import {
   useResourceDefinition,
   type ShowBaseProps,
 } from "ra-core";
-import { ReactNode } from "react";
+import type { ReactNode } from "react";
 import { Link } from "react-router";
 import { cn } from "@/lib/utils";
 import { EditButton } from "@/components/admin/edit-button";

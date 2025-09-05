@@ -1,6 +1,7 @@
 /* eslint-disable react-refresh/only-export-components */
-import { createContext, ReactNode, useContext } from "react";
-import { ContactGender, DealStage, NoteStatus } from "../types";
+import type { ReactNode } from "react";
+import { createContext, useContext } from "react";
+import type { ContactGender, DealStage, NoteStatus } from "../types";
 import {
   defaultCompanySectors,
   defaultContactGender,

@@ -1,5 +1,6 @@
 import * as React from "react";
 import { useState, useEffect } from "react";
+import type { RaRecord } from "ra-core";
 import {
   ListBase,
   getElementsFromRecords,
@@ -7,10 +8,10 @@ import {
   useListContext,
   usePrevious,
   useResourceContext,
-  RaRecord,
 } from "ra-core";
 import { useLocation } from "react-router";
-import { ListProps, ListView, ListViewProps } from "@/components/admin/list";
+import type { ListProps, ListViewProps } from "@/components/admin/list";
+import { ListView } from "@/components/admin/list";
 import { capitalize, singularize } from "inflection";
 import { DataTable } from "@/components/admin/data-table";
 import { ArrayField } from "@/components/admin/array-field";

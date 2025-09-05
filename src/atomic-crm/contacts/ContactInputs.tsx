@@ -16,7 +16,7 @@ import {
 import { SimpleFormIterator } from "@/components/admin";
 import { isLinkedinUrl } from "../misc/isLinkedInUrl";
 import { useConfigurationContext } from "../root/ConfigurationContext";
-import { Sale } from "../types";
+import type { Sale } from "../types";
 import { Avatar } from "./Avatar";
 
 export const ContactInputs = () => {

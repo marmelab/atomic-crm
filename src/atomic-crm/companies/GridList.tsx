@@ -1,6 +1,6 @@
 import { RecordContextProvider, useListContext } from "ra-core";
 
-import { Company } from "../types";
+import type { Company } from "../types";
 import { CompanyCard } from "./CompanyCard";
 
 const times = (nbChildren: number, fn: (key: number) => any) =>

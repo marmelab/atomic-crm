@@ -13,7 +13,7 @@ import {
   useHasDashboard,
   useResourceContext,
 } from "ra-core";
-import { ReactNode } from "react";
+import type { ReactNode } from "react";
 import { Link } from "react-router";
 import { cn } from "@/lib/utils";
 

@@ -1,4 +1,4 @@
-import { ReactNode } from "react";
+import type { ReactNode } from "react";
 
 /**
  * @deprecated Use a simple div with flex and flex-col instead

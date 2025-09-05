@@ -1,9 +1,10 @@
 import { useFieldValue, useTranslate } from "ra-core";
-import React, { AnchorHTMLAttributes } from "react";
+import type { AnchorHTMLAttributes } from "react";
+import React from "react";
 
 import { cn } from "@/lib/utils";
 import { genericMemo } from "@/lib/genericMemo";
-import { FieldProps } from "@/lib/field.type";
+import type { FieldProps } from "@/lib/field.type";
 
 const EmailFieldImpl = <
   RecordType extends Record<string, any> = Record<string, any>,

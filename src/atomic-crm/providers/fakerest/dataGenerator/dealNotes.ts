@@ -1,6 +1,6 @@
 import { datatype, lorem, random } from "faker/locale/en_US";
 
-import { Db } from "./types";
+import type { Db } from "./types";
 import { randomDate } from "./utils";
 
 export const generateDealNotes = (db: Db) => {

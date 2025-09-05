@@ -11,10 +11,10 @@ import {
   useWrappedSource,
 } from "ra-core";
 import * as React from "react";
+import type { ReactNode } from "react";
 import {
   Children,
   type ReactElement,
-  ReactNode,
   useCallback,
   useMemo,
   useRef,
@@ -36,15 +36,13 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import {
-  ArrayInputContextValue,
-  useArrayInput,
-} from "@/hooks/array-input-context";
+import type { ArrayInputContextValue } from "@/hooks/array-input-context";
+import { useArrayInput } from "@/hooks/array-input-context";
+import type { SimpleFormIteratorItemContextValue } from "@/hooks/simple-form-iterator-context";
 import {
   SimpleFormIteratorContext,
   useSimpleFormIterator,
   SimpleFormIteratorItemContext,
-  SimpleFormIteratorItemContextValue,
   useSimpleFormIteratorItem,
 } from "@/hooks/simple-form-iterator-context";
 import { Confirm } from "@/components/admin/confirm";

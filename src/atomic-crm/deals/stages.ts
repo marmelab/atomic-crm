@@ -1,5 +1,5 @@
-import { ConfigurationContextValue } from "../root/ConfigurationContext";
-import { Deal } from "../types";
+import type { ConfigurationContextValue } from "../root/ConfigurationContext";
+import type { Deal } from "../types";
 
 export type DealsByStage = Record<Deal["stage"], Deal[]>;
 

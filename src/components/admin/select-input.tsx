@@ -1,12 +1,8 @@
-import {
-  ComponentProps,
-  useCallback,
-  useEffect,
-  type ReactElement,
-} from "react";
+import type { ComponentProps } from "react";
+import { useCallback, useEffect, type ReactElement } from "react";
+import type { InputProps } from "ra-core";
 import {
   FieldTitle,
-  InputProps,
   useChoices,
   useChoicesContext,
   useGetRecordRepresentation,
@@ -25,10 +21,8 @@ import {
 } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
-import {
-  SupportCreateSuggestionOptions,
-  useSupportCreateSuggestion,
-} from "@/hooks/useSupportCreateSuggestion";
+import type { SupportCreateSuggestionOptions } from "@/hooks/useSupportCreateSuggestion";
+import { useSupportCreateSuggestion } from "@/hooks/useSupportCreateSuggestion";
 import { FormField, FormLabel, FormError } from "@/components/admin/form";
 import { InputHelperText } from "@/components/admin/input-helper-text";
 

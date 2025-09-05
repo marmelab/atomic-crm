@@ -1,11 +1,10 @@
-import { ReactNode } from "react";
-import {
-  ReferenceManyFieldBase,
-  useListContext,
+import type { ReactNode } from "react";
+import type {
   RaRecord,
   UseReferenceManyFieldControllerParams,
   ListControllerResult,
 } from "ra-core";
+import { ReferenceManyFieldBase, useListContext } from "ra-core";
 
 export const ReferenceManyField = <
   RecordType extends RaRecord = RaRecord,

@@ -1,9 +1,5 @@
-import {
-  createElement,
-  type ReactNode,
-  type ElementType,
-  HTMLAttributes,
-} from "react";
+import type { HTMLAttributes } from "react";
+import { createElement, type ReactNode, type ElementType } from "react";
 import {
   FieldTitle,
   useRecordContext,

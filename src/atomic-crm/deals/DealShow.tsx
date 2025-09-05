@@ -25,7 +25,7 @@ import { Separator } from "@/components/ui/separator";
 import { CompanyAvatar } from "../companies/CompanyAvatar";
 import { NotesIterator } from "../notes";
 import { useConfigurationContext } from "../root/ConfigurationContext";
-import { Deal } from "../types";
+import type { Deal } from "../types";
 import { ContactList } from "./ContactList";
 import { findDealLabel } from "./deal";
 

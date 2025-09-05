@@ -12,7 +12,7 @@ import { Link } from "react-router";
 
 import { SimpleList } from "../simple-list/SimpleList";
 import { Avatar } from "../contacts/Avatar";
-import { Contact } from "../types";
+import type { Contact } from "../types";
 
 export const HotContacts = () => {
   const { identity } = useGetIdentity();

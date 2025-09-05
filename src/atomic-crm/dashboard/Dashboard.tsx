@@ -1,5 +1,5 @@
 import { useGetList } from "ra-core";
-import { Contact, ContactNote } from "../types";
+import type { Contact, ContactNote } from "../types";
 import { DashboardActivityLog } from "./DashboardActivityLog";
 import { DashboardStepper } from "./DashboardStepper";
 import { DealsChart } from "./DealsChart";

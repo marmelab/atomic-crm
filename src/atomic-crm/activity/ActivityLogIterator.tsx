@@ -7,7 +7,7 @@ import {
   DEAL_CREATED,
   DEAL_NOTE_CREATED,
 } from "../consts";
-import { Activity } from "../types";
+import type { Activity } from "../types";
 import { ActivityLogCompanyCreated } from "./ActivityLogCompanyCreated";
 import { ActivityLogContactCreated } from "./ActivityLogContactCreated";
 import { ActivityLogContactNoteCreated } from "./ActivityLogContactNoteCreated";

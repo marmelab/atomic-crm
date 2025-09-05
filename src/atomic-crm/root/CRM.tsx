@@ -1,13 +1,8 @@
 import { Admin } from "@/components/admin";
 import { ForgotPasswordPage } from "@/components/supabase/forgot-password-page";
 import { SetPasswordPage } from "@/components/supabase/set-password-page";
-import {
-  AuthProvider,
-  CustomRoutes,
-  DataProvider,
-  localStorageStore,
-  Resource,
-} from "ra-core";
+import type { AuthProvider, DataProvider } from "ra-core";
+import { CustomRoutes, localStorageStore, Resource } from "ra-core";
 import { useEffect } from "react";
 import { Route } from "react-router";
 import companies from "../companies";
@@ -22,10 +17,8 @@ import {
 } from "../providers/supabase";
 import sales from "../sales";
 import { SettingsPage } from "../settings/SettingsPage";
-import {
-  ConfigurationContextValue,
-  ConfigurationProvider,
-} from "./ConfigurationContext";
+import type { ConfigurationContextValue } from "./ConfigurationContext";
+import { ConfigurationProvider } from "./ConfigurationContext";
 import {
   defaultCompanySectors,
   defaultContactGender,

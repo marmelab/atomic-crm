@@ -5,17 +5,19 @@ import {
   useCallback,
   type ReactNode,
 } from "react";
-import {
-  DataTableBase,
+import type {
   DataTableBaseProps,
-  DataTableRenderContext,
   ExtractRecordPaths,
-  FieldTitle,
   HintedString,
   Identifier,
   RaRecord,
-  RecordContextProvider,
   SortPayload,
+} from "ra-core";
+import {
+  DataTableBase,
+  DataTableRenderContext,
+  FieldTitle,
+  RecordContextProvider,
   useDataTableCallbacksContext,
   useDataTableConfigContext,
   useDataTableDataContext,

@@ -4,11 +4,12 @@ import { Label } from "@/components/ui/label";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Loader2 } from "lucide-react";
 import { useDataProvider, useLogin, useNotify } from "ra-core";
-import { SubmitHandler, useForm } from "react-hook-form";
+import type { SubmitHandler } from "react-hook-form";
+import { useForm } from "react-hook-form";
 import { Navigate } from "react-router";
-import { CrmDataProvider } from "../providers/types";
+import type { CrmDataProvider } from "../providers/types";
 import { useConfigurationContext } from "../root/ConfigurationContext";
-import { SignUpData } from "../types";
+import type { SignUpData } from "../types";
 import { LoginSkeleton } from "./LoginSkeleton";
 
 export const SignupPage = () => {

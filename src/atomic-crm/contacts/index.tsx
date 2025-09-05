@@ -1,4 +1,4 @@
-import { Contact } from "../types";
+import type { Contact } from "../types";
 import { ContactCreate } from "./ContactCreate";
 import { ContactEdit } from "./ContactEdit";
 import { ContactList } from "./ContactList";

@@ -1,6 +1,6 @@
 import { useRecordContext } from "ra-core";
 import { Avatar } from "../contacts/Avatar";
-import { Contact } from "../types";
+import type { Contact } from "../types";
 
 // eslint-disable-next-line react-refresh/only-export-components
 const ContactOptionRender = () => {

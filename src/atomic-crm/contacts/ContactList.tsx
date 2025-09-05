@@ -9,7 +9,7 @@ import {
   SortButton,
 } from "@/components/admin";
 import { Card } from "@/components/ui/card";
-import { Company, Contact, Sale, Tag } from "../types";
+import type { Company, Contact, Sale, Tag } from "../types";
 import { ContactEmpty } from "./ContactEmpty";
 import { ContactImportButton } from "./ContactImportButton";
 import { ContactListContent } from "./ContactListContent";

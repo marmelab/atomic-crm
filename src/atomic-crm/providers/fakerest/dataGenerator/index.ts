@@ -7,7 +7,7 @@ import { finalize } from "./finalize";
 import { generateSales } from "./sales";
 import { generateTags } from "./tags";
 import { generateTasks } from "./tasks";
-import { Db } from "./types";
+import type { Db } from "./types";
 
 export default (): Db => {
   const db = {} as Db;
