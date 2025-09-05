@@ -83,7 +83,7 @@ export const NoteInputs = ({ showStatus }: { showStatus?: boolean }) => {
 const optionRenderer = (choice: any) => {
   return (
     <div>
-      {choice.name} <Status status={choice.value} />
+      <Status status={choice.value} /> {choice.name}
     </div>
   );
 };
