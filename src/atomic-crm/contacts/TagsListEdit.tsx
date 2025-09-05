@@ -118,10 +118,9 @@ export const TagsListEdit = () => {
               >
                 <Badge
                   variant="secondary"
-                  className="text-xs"
+                  className="text-xs text-white"
                   style={{
                     backgroundColor: tag.color,
-                    color: "white",
                   }}
                 >
                   {tag.name}
