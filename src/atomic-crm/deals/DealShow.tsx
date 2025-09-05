@@ -23,7 +23,7 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Separator } from "@/components/ui/separator";
 import { CompanyAvatar } from "../companies/CompanyAvatar";
-import { NotesIterator } from "../notes";
+import { NoteCreate, NotesIterator } from "../notes";
 import { useConfigurationContext } from "../root/ConfigurationContext";
 import type { Deal } from "../types";
 import { ContactList } from "./ContactList";
@@ -164,11 +164,12 @@ const DealShowContent = () => {
             )}
 
             <div className="m-4">
-              <Separator />
+              <Separator className="mb-4" />
               <ReferenceManyField
                 target="deal_id"
                 reference="dealNotes"
                 sort={{ field: "date", order: "DESC" }}
+                empty={<NoteCreate reference={"deals"} />}
               >
                 <NotesIterator reference="deals" />
               </ReferenceManyField>
