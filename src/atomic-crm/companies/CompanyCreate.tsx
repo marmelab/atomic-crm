@@ -1,6 +1,6 @@
 import { Form, useGetIdentity } from "ra-core";
 
-import { Create } from "@/components/admin";
+import { CancelButton, Create } from "@/components/admin";
 import { SaveButton } from "@/components/admin";
 import { FormToolbar } from "@/components/admin";
 import { CompanyInputs } from "./CompanyInputs";
@@ -21,7 +21,10 @@ export const CompanyCreate = () => {
       <Form defaultValues={{ sales_id: identity?.id }}>
         <CompanyInputs />
         <FormToolbar>
-          <SaveButton label="Create Company" />
+          <div className="flex flex-row gap-2 justify-end">
+            <CancelButton />
+            <SaveButton label="Create Company" />
+          </div>
         </FormToolbar>
       </Form>
     </Create>
