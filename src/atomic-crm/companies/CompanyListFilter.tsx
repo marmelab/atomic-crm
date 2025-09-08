@@ -21,13 +21,18 @@ export const CompanyListFilter = () => {
 
       <FilterCategory icon={<Building className="h-4 w-4" />} label="Size">
         {sizes.map((size) => (
-          <ToggleFilterButton label={size.name} value={{ size: size.id }} />
+          <ToggleFilterButton
+            className="w-full justify-between"
+            label={size.name}
+            value={{ size: size.id }}
+          />
         ))}
       </FilterCategory>
 
       <FilterCategory icon={<Truck className="h-4 w-4" />} label="Sector">
         {sectors.map((sector) => (
           <ToggleFilterButton
+            className="w-full justify-between"
             label={sector.name}
             value={{ sector: sector.id }}
           />
@@ -38,7 +43,11 @@ export const CompanyListFilter = () => {
         icon={<Users className="h-4 w-4" />}
         label="Account Manager"
       >
-        <ToggleFilterButton label={"Me"} value={{ sales_id: identity?.id }} />
+        <ToggleFilterButton
+          className="w-full justify-between"
+          label={"Me"}
+          value={{ sales_id: identity?.id }}
+        />
       </FilterCategory>
     </div>
   );

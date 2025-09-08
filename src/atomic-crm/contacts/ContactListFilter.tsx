@@ -24,6 +24,7 @@ export const ContactListFilter = () => {
 
       <FilterCategory label="Last activity" icon={<Clock />}>
         <ToggleFilterButton
+          className="w-full justify-between"
           label="Today"
           value={{
             "last_seen@gte": endOfYesterday().toISOString(),
@@ -31,6 +32,7 @@ export const ContactListFilter = () => {
           }}
         />
         <ToggleFilterButton
+          className="w-full justify-between"
           label="This week"
           value={{
             "last_seen@gte": startOfWeek(new Date()).toISOString(),
@@ -38,6 +40,7 @@ export const ContactListFilter = () => {
           }}
         />
         <ToggleFilterButton
+          className="w-full justify-between"
           label="Before this week"
           value={{
             "last_seen@gte": undefined,
@@ -45,6 +48,7 @@ export const ContactListFilter = () => {
           }}
         />
         <ToggleFilterButton
+          className="w-full justify-between"
           label="Before this month"
           value={{
             "last_seen@gte": undefined,
@@ -52,6 +56,7 @@ export const ContactListFilter = () => {
           }}
         />
         <ToggleFilterButton
+          className="w-full justify-between"
           label="Before last month"
           value={{
             "last_seen@gte": undefined,
@@ -67,10 +72,11 @@ export const ContactListFilter = () => {
         {noteStatuses.map((status) => (
           <ToggleFilterButton
             key={status.value}
+            className="w-full justify-between"
             label={
-              <>
+              <span>
                 {status.label} <Status status={status.value} />
-              </>
+              </span>
             }
             value={{ status: status.value }}
           />
@@ -81,6 +87,7 @@ export const ContactListFilter = () => {
         {data &&
           data.map((record) => (
             <ToggleFilterButton
+              className="w-full justify-between"
               key={record.id}
               label={
                 <Badge
@@ -101,6 +108,7 @@ export const ContactListFilter = () => {
 
       <FilterCategory icon={<CheckSquare className="h-4 w-4" />} label="Tasks">
         <ToggleFilterButton
+          className="w-full justify-between"
           label={"With pending tasks"}
           value={{ "nb_tasks@gt": 0 }}
         />
@@ -110,7 +118,11 @@ export const ContactListFilter = () => {
         icon={<Users className="h-4 w-4" />}
         label="Account Manager"
       >
-        <ToggleFilterButton label={"Me"} value={{ sales_id: identity?.id }} />
+        <ToggleFilterButton
+          className="w-full justify-between"
+          label={"Me"}
+          value={{ sales_id: identity?.id }}
+        />
       </FilterCategory>
     </div>
   );
