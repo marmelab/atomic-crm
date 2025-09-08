@@ -60,10 +60,9 @@ const CompanyDisplayInputs = () => {
       />
       <TextInput
         source="name"
-        className="w-full"
+        className="w-full h-fit"
         validate={required()}
         helperText={false}
-        label={false}
       />
     </div>
   );
