@@ -62,7 +62,7 @@ const ContactShowContent = () => {
               target="contact_id"
               reference="contactNotes"
               sort={{ field: "date", order: "DESC" }}
-              empty={<NoteCreate reference={"contacts"} />}
+              empty={<NoteCreate reference="contacts" showStatus />}
             >
               <NotesIterator reference="contacts" showStatus />
             </ReferenceManyField>
