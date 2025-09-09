@@ -97,12 +97,12 @@ export const TagsListEdit = () => {
   return (
     <div className="flex flex-wrap gap-2">
       {tags?.map((tag) => (
-        <div key={tag.id} className="mt-1 mb-1">
+        <div key={tag.id}>
           <TagChip tag={tag} onUnlink={() => handleTagDelete(tag.id)} />
         </div>
       ))}
 
-      <div className="mt-1">
+      <div>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="outline" size="sm" className="h-6 cursor-pointer">
