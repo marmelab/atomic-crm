@@ -1,11 +1,10 @@
 import { Separator } from "@/components/ui/separator";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { email, required, useGetIdentity, useCreate, useNotify } from "ra-core";
+import { email, required } from "ra-core";
 import * as React from "react";
 import { useFormContext } from "react-hook-form";
 
 import {
-  AutocompleteInput,
   BooleanInput,
   ReferenceInput,
   TextInput,
@@ -18,6 +17,7 @@ import { isLinkedinUrl } from "../misc/isLinkedInUrl";
 import { useConfigurationContext } from "../root/ConfigurationContext";
 import type { Sale } from "../types";
 import { Avatar } from "./Avatar";
+import { AutocompleteCompanyInput } from "@/atomic-crm/companies/AutocompleteCompanyInput.tsx";
 
 export const ContactInputs = () => {
   const isMobile = useIsMobile();
@@ -65,42 +65,12 @@ const ContactIdentityInputs = () => {
 };
 
 const ContactPositionInputs = () => {
-  const [create] = useCreate();
-  const { identity } = useGetIdentity();
-  const notify = useNotify();
-  const handleCreateCompany = async (name?: string) => {
-    if (!name) return;
-    try {
-      const newCompany = await create(
-        "companies",
-        {
-          data: {
-            name,
-            sales_id: identity?.id,
-            created_at: new Date().toISOString(),
-          },
-        },
-        { returnPromise: true },
-      );
-      return newCompany;
-    } catch {
-      notify("An error occurred while creating the company", {
-        type: "error",
-      });
-    }
-  };
-
   return (
     <div className="flex flex-col gap-4">
       <h6 className="text-lg font-semibold">Position</h6>
       <TextInput source="title" helperText={false} />
       <ReferenceInput source="company_id" reference="companies">
-        <AutocompleteInput
-          optionText="name"
-          helperText={false}
-          onCreate={handleCreateCompany}
-          createItemLabel="Create %{item}"
-        />
+        <AutocompleteCompanyInput />
       </ReferenceInput>
     </div>
   );
