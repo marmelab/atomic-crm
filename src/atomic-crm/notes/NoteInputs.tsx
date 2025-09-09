@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useFormContext } from "react-hook-form";
 
+import { cn } from "@/lib/utils.ts";
 import {
   TextInput,
   FileInput,
@@ -46,36 +47,39 @@ export const NoteInputs = ({ showStatus }: { showStatus?: boolean }) => {
         </div>
       )}
 
-      {displayMore && (
-        <div className="space-y-3 mt-3">
-          <div className="flex gap-4">
-            {showStatus && (
-              <SelectInput
-                source="status"
-                choices={noteStatuses.map((status) => ({
-                  id: status.value,
-                  name: status.label,
-                  value: status.value,
-                }))}
-                optionText={optionRenderer}
-                defaultValue={"warm"}
-                helperText={false}
-              />
-            )}
-            <TextInput
-              source="date"
-              label="Date"
+      <div
+        className={cn(
+          "space-y-3 mt-3 overflow-hidden transition-transform ease-in-out duration-300 origin-top",
+          !displayMore ? "scale-0 max-h-0 h-0" : "scale-100",
+        )}
+      >
+        <div className="flex gap-4">
+          {showStatus && (
+            <SelectInput
+              source="status"
+              choices={noteStatuses.map((status) => ({
+                id: status.value,
+                name: status.label,
+                value: status.value,
+              }))}
+              optionText={optionRenderer}
+              defaultValue={"warm"}
               helperText={false}
-              type="datetime-local"
-              className="text-primary"
-              defaultValue={new Date().toISOString().slice(0, 16)}
             />
-          </div>
-          <FileInput source="attachments" multiple>
-            <FileField source="src" title="title" target="_blank" />
-          </FileInput>
+          )}
+          <TextInput
+            source="date"
+            label="Date"
+            helperText={false}
+            type="datetime-local"
+            className="text-primary"
+            defaultValue={new Date().toISOString().slice(0, 16)}
+          />
         </div>
-      )}
+        <FileInput source="attachments" multiple>
+          <FileField source="src" title="title" target="_blank" />
+        </FileInput>
+      </div>
     </div>
   );
 };
