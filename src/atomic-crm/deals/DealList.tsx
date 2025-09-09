@@ -60,6 +60,7 @@ const DealList = () => {
       sort={{ field: "index", order: "DESC" }}
       filters={dealFilters}
       actions={<DealActions />}
+      pagination={null}
     >
       <Breadcrumb>
         <BreadcrumbItem>
