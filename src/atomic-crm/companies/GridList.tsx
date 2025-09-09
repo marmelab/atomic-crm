@@ -26,7 +26,7 @@ const LoadedGridList = () => {
     <div
       className="w-full gap-2 grid"
       style={{
-        gridTemplateColumns: "repeat(5, minmax(180px, 1fr))",
+        gridTemplateColumns: "repeat(auto-fill, minmax(180px, 1fr))",
       }}
     >
       {data.map((record) => (
