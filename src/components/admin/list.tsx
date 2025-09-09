@@ -12,7 +12,6 @@ import {
   useHasDashboard,
   useResourceContext,
   useResourceDefinition,
-  useTranslate,
 } from "ra-core";
 import type { ReactElement, ReactNode } from "react";
 import { Link } from "react-router";
@@ -70,14 +69,7 @@ export interface ListProps<RecordType extends RaRecord = RaRecord>
 export const ListView = <RecordType extends RaRecord = RaRecord>(
   props: ListViewProps<RecordType>,
 ) => {
-  const {
-    filters,
-    pagination = defaultPagination,
-    title,
-    children,
-    actions,
-  } = props;
-  const translate = useTranslate();
+  const { filters, pagination = defaultPagination, children, actions } = props;
   const resource = useResourceContext();
   if (!resource) {
     throw new Error(
@@ -86,12 +78,6 @@ export const ListView = <RecordType extends RaRecord = RaRecord>(
   }
   const getResourceLabel = useGetResourceLabel();
   const resourceLabel = getResourceLabel(resource, 2);
-  const finalTitle =
-    title !== undefined
-      ? title
-      : translate("ra.page.list", {
-          name: resourceLabel,
-        });
   const { hasCreate } = useResourceDefinition({ resource });
   const hasDashboard = useHasDashboard();
 
@@ -109,10 +95,8 @@ export const ListView = <RecordType extends RaRecord = RaRecord>(
       </Breadcrumb>
 
       <FilterContext.Provider value={filters}>
-        <div className="flex justify-between items-start flex-wrap gap-2 my-2">
-          <h2 className="text-2xl font-bold tracking-tight mb-2">
-            {finalTitle}
-          </h2>
+        <div className="flex justify-between items-center flex-wrap gap-2 my-2">
+          <FilterForm />
           {actions ?? (
             <div className="flex items-center gap-2">
               {hasCreate ? <CreateButton /> : null}
@@ -120,7 +104,6 @@ export const ListView = <RecordType extends RaRecord = RaRecord>(
             </div>
           )}
         </div>
-        <FilterForm />
 
         <div className={cn("my-2", props.className)}>{children}</div>
         {pagination}
