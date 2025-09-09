@@ -92,10 +92,9 @@ export const ContactListFilter = () => {
               label={
                 <Badge
                   variant="secondary"
-                  className="text-xs cursor-pointer"
+                  className="text-black text-xs font-normal cursor-pointer"
                   style={{
                     backgroundColor: record?.color,
-                    color: "white",
                   }}
                 >
                   {record?.name}
