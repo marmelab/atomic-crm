@@ -60,7 +60,7 @@ export const SettingsPage = () => {
   };
 
   return (
-    <div className="max-w-md mx-auto mt-8">
+    <div className="max-w-lg mx-auto mt-8">
       <Form onSubmit={handleOnSubmit} record={data}>
         <SettingsForm isEditMode={isEditMode} setEditMode={setEditMode} />
       </Form>
@@ -231,11 +231,14 @@ const CopyPaste = () => {
       <Tooltip>
         <TooltipTrigger asChild>
           <Button
+            type="button"
             onClick={handleCopy}
-            variant="outline"
+            variant="ghost"
             className="normal-case justify-between w-full"
           >
-            {import.meta.env.VITE_INBOUND_EMAIL}
+            <span className="overflow-hidden text-ellipsis">
+              {import.meta.env.VITE_INBOUND_EMAIL}
+            </span>
             <Copy className="h-4 w-4 ml-2" />
           </Button>
         </TooltipTrigger>
