@@ -3,6 +3,7 @@ import type { Exporter } from "ra-core";
 import { downloadCSV, useGetIdentity, useListContext } from "ra-core";
 
 import {
+  BulkActionsToolbar,
   CreateButton,
   ExportButton,
   List,
@@ -52,6 +53,7 @@ const ContactListLayout = () => {
           <ContactListContent />
         </Card>
       </div>
+      <BulkActionsToolbar />
     </div>
   );
 };
