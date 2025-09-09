@@ -163,12 +163,11 @@ export const Note = ({
             </Button>
             <Button
               type="submit"
-              variant="outline"
               disabled={isPending}
               className="flex items-center gap-2 cursor-pointer"
             >
               <Save className="w-4 h-4" />
-              Update Note
+              Update note
             </Button>
           </div>
         </Form>
