@@ -37,7 +37,7 @@ export const DealShow = ({ open, id }: { open: boolean; id?: string }) => {
 
   return (
     <Dialog open={open} onOpenChange={(open) => !open && handleClose()}>
-      <DialogContent className="lg:max-w-4xl p-0 overflow-y-auto max-h-9/10 top-1/20 translate-y-0">
+      <DialogContent className="lg:max-w-4xl p-4 overflow-y-auto max-h-9/10 top-1/20 translate-y-0">
         {id ? (
           <ShowBase id={id}>
             <DealShowContent />
@@ -57,123 +57,119 @@ const DealShowContent = () => {
     <>
       <div className="space-y-2">
         {record.archived_at ? <ArchivedTitle /> : null}
-        <div className="flex p-4">
-          <div className="flex-1">
-            <div className="flex justify-between items-start mb-8">
-              <div className="flex items-center gap-4">
-                <ReferenceField
-                  source="company_id"
-                  reference="companies"
-                  link="show"
-                >
-                  <CompanyAvatar />
-                </ReferenceField>
-                <h2 className="text-2xl font-semibold">{record.name}</h2>
-              </div>
-              <div
-                className={`flex gap-2 ${record.archived_at ? "" : "pr-12"}`}
+        <div className="flex-1">
+          <div className="flex justify-between items-start mb-8">
+            <div className="flex items-center gap-4">
+              <ReferenceField
+                source="company_id"
+                reference="companies"
+                link="show"
               >
-                {record.archived_at ? (
-                  <>
-                    <UnarchiveButton record={record} />
-                    <DeleteButton />
-                  </>
-                ) : (
-                  <>
-                    <ArchiveButton record={record} />
-                    <EditButton />
-                  </>
-                )}
-              </div>
+                <CompanyAvatar />
+              </ReferenceField>
+              <h2 className="text-2xl font-semibold">{record.name}</h2>
             </div>
-
-            <div className="flex gap-8 m-4">
-              <div className="flex flex-col mr-10">
-                <span className="text-xs text-muted-foreground tracking-wide">
-                  Expected closing date
-                </span>
-                <div className="flex items-center gap-2">
-                  <span className="text-sm">
-                    {isValid(new Date(record.expected_closing_date))
-                      ? format(new Date(record.expected_closing_date), "PP")
-                      : "Invalid date"}
-                  </span>
-                  {new Date(record.expected_closing_date) < new Date() ? (
-                    <Badge variant="destructive">Past</Badge>
-                  ) : null}
-                </div>
-              </div>
-
-              <div className="flex flex-col mr-10">
-                <span className="text-xs text-muted-foreground tracking-wide">
-                  Budget
-                </span>
-                <span className="text-sm">
-                  {record.amount.toLocaleString("en-US", {
-                    notation: "compact",
-                    style: "currency",
-                    currency: "USD",
-                    currencyDisplay: "narrowSymbol",
-                    minimumSignificantDigits: 3,
-                  })}
-                </span>
-              </div>
-
-              {record.category && (
-                <div className="flex flex-col mr-10">
-                  <span className="text-xs text-muted-foreground tracking-wide">
-                    Category
-                  </span>
-                  <span className="text-sm">{record.category}</span>
-                </div>
+            <div className={`flex gap-2 ${record.archived_at ? "" : "pr-12"}`}>
+              {record.archived_at ? (
+                <>
+                  <UnarchiveButton record={record} />
+                  <DeleteButton />
+                </>
+              ) : (
+                <>
+                  <ArchiveButton record={record} />
+                  <EditButton />
+                </>
               )}
+            </div>
+          </div>
 
+          <div className="flex gap-8 m-4">
+            <div className="flex flex-col mr-10">
+              <span className="text-xs text-muted-foreground tracking-wide">
+                Expected closing date
+              </span>
+              <div className="flex items-center gap-2">
+                <span className="text-sm">
+                  {isValid(new Date(record.expected_closing_date))
+                    ? format(new Date(record.expected_closing_date), "PP")
+                    : "Invalid date"}
+                </span>
+                {new Date(record.expected_closing_date) < new Date() ? (
+                  <Badge variant="destructive">Past</Badge>
+                ) : null}
+              </div>
+            </div>
+
+            <div className="flex flex-col mr-10">
+              <span className="text-xs text-muted-foreground tracking-wide">
+                Budget
+              </span>
+              <span className="text-sm">
+                {record.amount.toLocaleString("en-US", {
+                  notation: "compact",
+                  style: "currency",
+                  currency: "USD",
+                  currencyDisplay: "narrowSymbol",
+                  minimumSignificantDigits: 3,
+                })}
+              </span>
+            </div>
+
+            {record.category && (
               <div className="flex flex-col mr-10">
                 <span className="text-xs text-muted-foreground tracking-wide">
-                  Stage
+                  Category
                 </span>
-                <span className="text-sm">
-                  {findDealLabel(dealStages, record.stage)}
-                </span>
+                <span className="text-sm">{record.category}</span>
               </div>
+            )}
+
+            <div className="flex flex-col mr-10">
+              <span className="text-xs text-muted-foreground tracking-wide">
+                Stage
+              </span>
+              <span className="text-sm">
+                {findDealLabel(dealStages, record.stage)}
+              </span>
             </div>
+          </div>
 
-            {!!record.contact_ids?.length && (
-              <div className="m-4">
-                <div className="flex flex-col min-h-12 mr-10">
-                  <span className="text-xs text-muted-foreground tracking-wide">
-                    Contacts
-                  </span>
-                  <ReferenceArrayField
-                    source="contact_ids"
-                    reference="contacts_summary"
-                  >
-                    <ContactList />
-                  </ReferenceArrayField>
-                </div>
-              </div>
-            )}
-
-            {record.description && (
-              <div className="m-4 whitespace-pre-line">
-                <span className="text-xs text-muted-foreground tracking-wide">
-                  Description
-                </span>
-                <p className="text-sm leading-6">{record.description}</p>
-              </div>
-            )}
-
+          {!!record.contact_ids?.length && (
             <div className="m-4">
-              <Separator className="mb-4" />
-              <ReferenceManyField
-                target="deal_id"
-                reference="dealNotes"
-                sort={{ field: "date", order: "DESC" }}
-                empty={<NoteCreate reference={"deals"} />}
-              >
-                <NotesIterator reference="deals" />
-              </ReferenceManyField>
+              <div className="flex flex-col min-h-12 mr-10">
+                <span className="text-xs text-muted-foreground tracking-wide">
+                  Contacts
+                </span>
+                <ReferenceArrayField
+                  source="contact_ids"
+                  reference="contacts_summary"
+                >
+                  <ContactList />
+                </ReferenceArrayField>
+              </div>
             </div>
+          )}
+
+          {record.description && (
+            <div className="m-4 whitespace-pre-line">
+              <span className="text-xs text-muted-foreground tracking-wide">
+                Description
+              </span>
+              <p className="text-sm leading-6">{record.description}</p>
+            </div>
+          )}
+
+          <div className="m-4">
+            <Separator className="mb-4" />
+            <ReferenceManyField
+              target="deal_id"
+              reference="dealNotes"
+              sort={{ field: "date", order: "DESC" }}
+              empty={<NoteCreate reference={"deals"} />}
+            >
+              <NotesIterator reference="deals" />
+            </ReferenceManyField>
           </div>
         </div>
       </div>
