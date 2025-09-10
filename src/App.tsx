@@ -1,4 +1,5 @@
-import { CRM } from "@/atomic-crm/root/CRM";
+import { CRM } from '@/atomic-crm/root/CRM';
+import { authProvider, dataProvider } from '@/atomic-crm/providers/fakerest';
 
 /**
  * Application entry point
@@ -25,6 +26,8 @@ import { CRM } from "@/atomic-crm/root/CRM";
  *    />
  * );
  */
-const App = () => <CRM />;
+const App = () => (
+    <CRM authProvider={authProvider} dataProvider={dataProvider} />
+);
 
 export default App;
