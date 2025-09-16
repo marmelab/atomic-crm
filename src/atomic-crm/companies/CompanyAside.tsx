@@ -1,3 +1,5 @@
+import { Globe, Linkedin, Phone } from "lucide-react";
+import { useRecordContext } from "ra-core";
 import {
   EditButton,
   ReferenceField,
@@ -7,8 +9,7 @@ import {
   UrlField,
   SelectField,
 } from "@/components/admin";
-import { Globe, Linkedin, Phone } from "lucide-react";
-import { useRecordContext } from "ra-core";
+
 import { AsideSection } from "../misc/AsideSection";
 import { SaleName } from "../sales/SaleName";
 import type { Company } from "../types";
@@ -23,7 +24,7 @@ export const CompanyAside = ({ link = "edit" }: CompanyAsideProps) => {
   if (!record) return null;
 
   return (
-    <div className="ml-4 w-[250px] min-w-[250px] space-y-4">
+    <div className="hidden sm:block w-[250px] min-w-[250px] space-y-4">
       <div className="flex flex-row space-x-1">
         {link === "edit" ? (
           <EditButton label="Edit Company" />

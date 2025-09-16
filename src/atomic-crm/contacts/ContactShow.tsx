@@ -22,7 +22,7 @@ const ContactShowContent = () => {
   if (isPending || !record) return null;
 
   return (
-    <div className="mt-2 mb-2 flex">
+    <div className="mt-2 mb-2 flex gap-8">
       <div className="flex-1">
         <Card>
           <CardContent>

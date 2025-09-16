@@ -1,8 +1,8 @@
+import { DollarSign } from "lucide-react";
+import { Link } from "react-router";
+import { useCreatePath, useListContext, useRecordContext } from "ra-core";
 import { ReferenceManyField } from "@/components/admin";
 import { Card } from "@/components/ui/card";
-import { DollarSign } from "lucide-react";
-import { useCreatePath, useListContext, useRecordContext } from "ra-core";
-import { Link } from "react-router";
 
 import { Avatar as ContactAvatar } from "../contacts/Avatar";
 import type { Company } from "../types";
@@ -22,7 +22,7 @@ export const CompanyCard = (props: { record?: Company }) => {
       })}
       className="no-underline"
     >
-      <Card className="h-[200px] flex flex-col justify-between p-4 transition-shadow shadow hover:bg-muted">
+      <Card className="h-[200px] flex flex-col justify-between p-4 hover:bg-muted">
         <div className="flex flex-col items-center gap-1">
           <CompanyAvatar />
           <div className="text-center mt-1">

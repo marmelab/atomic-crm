@@ -13,7 +13,7 @@ export function DashboardActivityLog() {
           Latest Activity
         </h2>
       </div>
-      <Card className="mb-2 p-4">
+      <Card className="mb-2 p-6">
         <ActivityLog pageSize={10} />
       </Card>
     </div>

@@ -1,5 +1,6 @@
-import { Separator } from "@/components/ui/separator";
 import { Fragment, useState } from "react";
+import { Separator } from "@/components/ui/separator";
+
 import {
   COMPANY_CREATED,
   CONTACT_CREATED,
@@ -28,7 +29,7 @@ export function ActivityLogIterator({
   const filteredActivities = activities.slice(0, activitiesDisplayed);
 
   return (
-    <div className="space-y-2">
+    <div className="space-y-4">
       {filteredActivities.map((activity, index) => (
         <Fragment key={index}>
           <ActivityItem key={activity.id} activity={activity} />

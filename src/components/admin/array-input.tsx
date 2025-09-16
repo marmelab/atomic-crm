@@ -135,7 +135,7 @@ export const ArrayInput = (props: ArrayInputProps) => {
       name={finalSource}
       {...sanitizeInputRestProps(rest)}
     >
-      <Label className="text-muted-foreground text-sm">
+      <Label className="text-sm">
         <FieldTitle
           label={label}
           source={arraySource}

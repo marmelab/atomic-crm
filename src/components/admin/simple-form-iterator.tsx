@@ -331,7 +331,7 @@ export const SimpleFormIteratorItem = React.forwardRef(
         <li
           ref={ref}
           className={cn(
-            "flex flex-row items-start justify-between gap-2 pb-2 border-b border-border last:border-b-0",
+            "flex flex-row items-start justify-between gap-3 pb-2 border-b border-border last:border-b-0",
             // Align the buttons with the input
             "[&:has(label)>.simple-form-iterator-item-actions]:pt-10",
           )}

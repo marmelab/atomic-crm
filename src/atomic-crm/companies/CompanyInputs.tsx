@@ -30,8 +30,8 @@ export const CompanyInputs = () => {
   return (
     <div className="flex flex-col gap-4 p-1">
       <CompanyDisplayInputs />
-      <div className={`flex gap-4 ${isMobile ? "flex-col" : "flex-row"}`}>
-        <div className="flex flex-col gap-8 flex-1">
+      <div className={`flex gap-6 ${isMobile ? "flex-col" : "flex-row"}`}>
+        <div className="flex flex-col gap-10 flex-1">
           <CompanyContactInputs />
           <CompanyContextInputs />
         </div>
@@ -63,6 +63,7 @@ const CompanyDisplayInputs = () => {
         className="w-full h-fit"
         validate={required()}
         helperText={false}
+        placeholder="Company name"
       />
     </div>
   );

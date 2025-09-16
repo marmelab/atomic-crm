@@ -25,8 +25,8 @@ export const ContactInputs = () => {
   return (
     <div className="flex flex-col gap-2 p-1">
       <Avatar />
-      <div className={`flex gap-4 ${isMobile ? "flex-col" : "flex-row"}`}>
-        <div className="flex flex-col gap-6 flex-1">
+      <div className={`flex gap-6 ${isMobile ? "flex-col" : "flex-row"}`}>
+        <div className="flex flex-col gap-10 flex-1">
           <ContactIdentityInputs />
           <ContactPositionInputs />
         </div>
@@ -34,7 +34,7 @@ export const ContactInputs = () => {
           orientation={isMobile ? "horizontal" : "vertical"}
           className="flex-shrink-0"
         />
-        <div className="flex flex-col gap-4 flex-1">
+        <div className="flex flex-col gap-10 flex-1">
           <ContactPersonalInformationInputs />
           <ContactMiscInputs />
         </div>
@@ -113,11 +113,18 @@ const ContactPersonalInformationInputs = () => {
         label="Email addresses"
         helperText={false}
       >
-        <SimpleFormIterator inline disableReordering>
+        <SimpleFormIterator
+          inline
+          disableReordering
+          disableClear
+          className="[&>ul>li]:border-b-0 [&>ul>li]:pb-0"
+        >
           <TextInput
             source="email"
             className="w-full"
             helperText={false}
+            label={false}
+            placeholder="Email"
             validate={email()}
             onPaste={handleEmailPaste}
             onBlur={handleEmailBlur}
@@ -125,6 +132,7 @@ const ContactPersonalInformationInputs = () => {
           <SelectInput
             source="type"
             helperText={false}
+            label={false}
             optionText="id"
             choices={personalInfoTypes}
             defaultValue="Work"
@@ -133,11 +141,23 @@ const ContactPersonalInformationInputs = () => {
         </SimpleFormIterator>
       </ArrayInput>
       <ArrayInput source="phone_jsonb" label="Phone numbers" helperText={false}>
-        <SimpleFormIterator inline disableReordering>
-          <TextInput source="number" className="w-full" helperText={false} />
+        <SimpleFormIterator
+          inline
+          disableReordering
+          disableClear
+          className="[&>ul>li]:border-b-0 [&>ul>li]:pb-0"
+        >
+          <TextInput
+            source="number"
+            className="w-full"
+            helperText={false}
+            label={false}
+            placeholder="Phone number"
+          />
           <SelectInput
             source="type"
             helperText={false}
+            label={false}
             optionText="id"
             choices={personalInfoTypes}
             defaultValue="Work"
