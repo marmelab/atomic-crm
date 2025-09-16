@@ -1,4 +1,4 @@
 export const getExpectedAuthorization = (
-    webhookUser: string,
-    webhookPassword: string
+  webhookUser: string,
+  webhookPassword: string,
 ) => `Basic ${btoa(`${webhookUser}:${webhookPassword}`)}`;

@@ -1,5 +1,10 @@
 # See https://help.github.com/ignore-files/ for more about ignoring files.
 
+# editors
+.idea/
+*.iml
+.vscode/
+
 # dependencies
 /node_modules
 
@@ -25,6 +30,6 @@ supabase/.branches
 supabase/.temp
 
 dist/
-lib/
+/lib/
 .env
 *storybook.log

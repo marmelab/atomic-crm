@@ -5,7 +5,7 @@ help:
 
 install: package.json ## install dependencies
 	npm install;
-	
+
 start-supabase: ## start supabase locally
 	npx supabase start
 
@@ -23,6 +23,9 @@ start-app: ## start the app locally
 
 start: start-supabase start-app ## start the stack locally
 
+start-demo: ## start the app locally in demo mode
+	npm run dev:demo
+
 stop-supabase: ## stop local supabase
 	npx supabase stop
 
@@ -30,6 +33,9 @@ stop: stop-supabase ## stop the stack locally
 
 build: ## build the app
 	npm run build
+
+build-demo: ## build the app in demo mode
+	npm run build:demo
 
 build-lib: ## build the library
 	npm run build-lib
@@ -58,9 +64,9 @@ lint:
 	npm run lint:check
 	npm run prettier:check
 
-storybook: ## start storybook
-	npm run storybook
-
 publish:
 	npm run build-lib
 	npm publish
+
+typecheck:
+	npm run typecheck
