@@ -20,8 +20,8 @@ import {
 import { SimpleListLoading } from "./SimpleListLoading.tsx";
 
 /**
- * The <SimpleList> component renders a list of records as a Material UI <List>.
- * It is usually used as a child of react-admin's <List> and <ReferenceManyField> components.
+ * The <SimpleList> component renders a list of records
+ * It is usually used as a child of shadcn-admin-kit's <List> and <ReferenceManyField> components.
  *
  * Also widely used on Mobile.
  *

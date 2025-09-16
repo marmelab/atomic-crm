@@ -15,7 +15,7 @@ import { CRM } from "@/atomic-crm/root/CRM";
  *  - noteStatuses
  *  - taskTypes
  *  - title
- * ... as well as all the props accepted by react-admin's <Admin> component.
+ * ... as well as all the props accepted by shadcn-admin-kit's <Admin> component.
  *
  * @example
  * const App = () => (
