@@ -16,7 +16,7 @@ To import the test data, follow these steps:
 
 For development purposes, you can use an alternative data provider called [FakeRest](https://github.com/marmelab/FakeRest). It's a simple REST API running in the browser that resets the data on each page reload. It's useful for testing the frontend without having to set up a backend, e.g. to let end users test some updates before the backend is ready.
 
-FakeRest is used in the [Atomic CRM demo](https://marmelab.com/try-atomic-crm/), where you can test it live.
+FakeRest is used in the [Atomic CRM demo](https://marmelab.com/atomic-crm-demo/), where you can test it live.
 
 ### Setting Up The FakeRest Data Provider
 

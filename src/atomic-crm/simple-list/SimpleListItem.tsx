@@ -100,15 +100,15 @@ export interface SimpleListBaseProps<RecordType extends RaRecord = any> {
   /**
    * The action to trigger when the user clicks on a row.
    *
-   * @see https://marmelab.com/react-admin/Datagrid.html#rowclick
+   * @see https://marmelab.com/shadcn-admin-kit/docs/datatable/
    * @example
-   * import { List, Datagrid } from 'react-admin';
+   * import { List, DataTable } from 'shadcn-admin-kit';
    *
    * export const PostList = () => (
    *     <List>
-   *         <Datagrid rowClick="edit">
+   *         <DataTable rowClick="edit">
    *             ...
-   *         </Datagrid>                    </ListItem>
+   *         </DataTable>                    </ListItem>
 
    *     </List>
    * );
