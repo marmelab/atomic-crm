@@ -152,6 +152,7 @@ const SettingsForm = ({
               <>
                 <Button
                   variant="outline"
+                  type="button"
                   onClick={handleClickOpenPasswordChange}
                 >
                   Change password

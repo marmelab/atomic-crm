@@ -75,8 +75,8 @@ export const HotContacts = () => {
           )}
           leftAvatar={(contact) => <Avatar record={contact} />}
           empty={
-            <div className="p-8">
-              <p className="text-sm">
+            <div className="p-4">
+              <p className="text-sm mb-4">
                 Contacts with a "hot" status will appear here.
               </p>
               <p className="text-sm">

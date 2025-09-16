@@ -33,8 +33,8 @@ const ContactShowContent = () => {
                   {record.first_name} {record.last_name}
                 </h5>
                 <div className="inline-flex text-sm text-muted-foreground">
-                  {record.title}&nbsp;
-                  {record.title && record.company_id != null && "at"}
+                  {record.title}
+                  {record.title && record.company_id != null && " at "}
                   {record.company_id != null && (
                     <ReferenceField
                       source="company_id"
