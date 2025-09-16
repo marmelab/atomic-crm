@@ -18,7 +18,7 @@ export const CompanyEdit = () => (
       return values;
     }}
   >
-    <div className="flex">
+    <div className="mt-2 flex gap-8">
       <Form className="flex flex-1 flex-col gap-4 pb-2">
         <Card>
           <CardContent>

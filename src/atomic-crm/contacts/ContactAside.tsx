@@ -26,7 +26,7 @@ export const ContactAside = ({ link = "edit" }: { link?: "edit" | "show" }) => {
   const record = useRecordContext<Contact>();
   if (!record) return null;
   return (
-    <div className="ml-4 w-64 min-w-64 text-sm">
+    <div className="hidden sm:block w-64 min-w-64 text-sm">
       <div className="mb-4 -ml-1">
         {link === "edit" ? (
           <EditButton label="Edit Contact" />
