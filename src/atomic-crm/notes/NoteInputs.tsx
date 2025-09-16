@@ -50,7 +50,7 @@ export const NoteInputs = ({ showStatus }: { showStatus?: boolean }) => {
       <div
         className={cn(
           "space-y-3 mt-3 overflow-hidden transition-transform ease-in-out duration-300 origin-top",
-          !displayMore ? "scale-0 max-h-0 h-0" : "scale-100",
+          !displayMore ? "scale-y-0 max-h-0 h-0" : "scale-y-100",
         )}
       >
         <div className="flex gap-4">
