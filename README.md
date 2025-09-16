@@ -1,10 +1,10 @@
 # Atomic CRM
 
-A full-featured CRM built with React, react-admin, and Supabase.
+A full-featured CRM built with React, shadcn-admin-kit, and Supabase.
 
-https://user-images.githubusercontent.com/99944/116970434-4a926480-acb8-11eb-8ce2-0602c680e45e.mp4
+https://github.com/user-attachments/assets/0d7554b5-49ef-41c6-bcc9-a76214fc5c99
 
-Atomic CRM is free and open-source. You can test it online at https://marmelab.com/react-admin-crm.
+Atomic CRM is free and open-source. You can test it online at https://marmelab.com/atomic-crm-demo.
 
 ## Features
 
@@ -24,7 +24,7 @@ Atomic CRM is free and open-source. You can test it online at https://marmelab.c
 To run this project locally, you will need the following tools installed on your computer:
 
 - Make
-- Node 20 LTS
+- Node 22 LTS
 - Docker (required by Supabase)
 
 Fork the [`marmelab/atomic-crm`](https://github.com/marmelab/atomic-crm) repository to your user/organization, then clone it locally:

@@ -1,94 +1,56 @@
-import { defineConfig } from 'vite';
-import react from '@vitejs/plugin-react';
-import { visualizer } from 'rollup-plugin-visualizer';
-import path from 'node:path';
-
-const alias = [
-    {
-        find: 'react-admin',
-        replacement: path.resolve(__dirname, './node_modules/react-admin/src'),
-    },
-    {
-        find: 'ra-core',
-        replacement: path.resolve(__dirname, './node_modules/ra-core/src'),
-    },
-    {
-        find: 'ra-i18n-polyglot',
-        replacement: path.resolve(
-            __dirname,
-            './node_modules/ra-i18n-polyglot/src'
-        ),
-    },
-    {
-        find: 'ra-language-english',
-        replacement: path.resolve(
-            __dirname,
-            './node_modules/ra-language-english/src'
-        ),
-    },
-    {
-        find: 'ra-ui-materialui',
-        replacement: path.resolve(
-            __dirname,
-            './node_modules/ra-ui-materialui/src'
-        ),
-    },
-    {
-        find: 'ra-data-fakerest',
-        replacement: path.resolve(
-            __dirname,
-            './node_modules/ra-data-fakerest/src'
-        ),
-    },
-    {
-        find: 'ra-supabase-core',
-        replacement: path.resolve(
-            __dirname,
-            './node_modules/ra-supabase-core/src'
-        ),
-    },
-    {
-        find: 'ra-supabase-ui-materialui',
-        replacement: path.resolve(
-            __dirname,
-            './node_modules/ra-supabase-ui-materialui/src'
-        ),
-    },
-    {
-        find: 'ra-supabase-language-english',
-        replacement: path.resolve(
-            __dirname,
-            './node_modules/ra-supabase-language-english/src'
-        ),
-    },
-    {
-        find: 'ra-supabase',
-        replacement: path.resolve(__dirname, './node_modules/ra-supabase/src'),
-    },
-    // add any other react-admin packages you have
-];
+import path from "node:path";
+import { defineConfig } from "vite";
+import tailwindcss from "@tailwindcss/vite";
+import react from "@vitejs/plugin-react";
+import { visualizer } from "rollup-plugin-visualizer";
+import createHtmlPlugin from "vite-plugin-simple-html";
 
 // https://vitejs.dev/config/
 export default defineConfig({
-    plugins: [
-        react(),
-        visualizer({
-            open: process.env.NODE_ENV !== 'CI',
-            filename: './dist/stats.html',
-        }),
-    ],
-    define: {
-        'process.env': process.env,
+  plugins: [
+    react(),
+    tailwindcss(),
+    visualizer({
+      open: process.env.NODE_ENV !== "CI",
+      filename: "./dist/stats.html",
+    }),
+    createHtmlPlugin({
+      minify: true,
+      inject: {
+        data: {
+          mainScript: `src/main.tsx`,
+        },
+      },
+    }),
+  ],
+  define:
+    process.env.NODE_ENV === "production"
+      ? {
+          "import.meta.env.VITE_IS_DEMO": JSON.stringify(
+            process.env.VITE_IS_DEMO,
+          ),
+          "import.meta.env.VITE_SUPABASE_URL": JSON.stringify(
+            process.env.VITE_SUPABASE_URL,
+          ),
+          "import.meta.env.VITE_SUPABASE_ANON_KEY": JSON.stringify(
+            process.env.VITE_SUPABASE_ANON_KEY,
+          ),
+          "import.meta.env.VITE_INBOUND_EMAIL": JSON.stringify(
+            process.env.VITE_INBOUND_EMAIL,
+          ),
+        }
+      : undefined,
+  base: "./",
+  esbuild: {
+    keepNames: true,
+  },
+  build: {
+    sourcemap: true,
+  },
+  resolve: {
+    preserveSymlinks: true,
+    alias: {
+      "@": path.resolve(__dirname, "./src"),
     },
-    base: './',
-    esbuild: {
-        keepNames: true,
-    },
-    build: {
-        sourcemap: true,
-    },
-    resolve: {
-        alias,
-        preserveSymlinks: true,
-    },
+  },
 });
