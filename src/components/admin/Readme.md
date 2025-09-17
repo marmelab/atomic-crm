@@ -22,11 +22,13 @@ The components in this directory come from [Shadcn Admin Kit](https://marmelab.c
 
 These components are built on top of [TanStack Query](https://tanstack.com/query/latest), [React Hook Form](https://react-hook-form.com/), [React Router](https://reactrouter.com/), [ra-core](https://marmelab.com/ra-core/), [Radix UI](https://www.radix-ui.com/) and [Shadcn UI](https://ui.shadcn.com/).
 
-In Atomic CRM, these components are sometimes slightly modified to fit the look and feel of the application.
-
 ## Documentation
 
 You can find the documentation for these components on the [Shadcn Admin Kit website](https://marmelab.com/shadcn-admin-kit/docs).
+
+## Customization
+
+In Atomic CRM, these components are sometimes slightly modified to fit the look and feel of the application. You can customize them further by editing the source files in this directory.
 
 ## Updates
 
