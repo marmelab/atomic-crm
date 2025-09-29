@@ -14,7 +14,7 @@ export const SearchInput = (inProps: SearchInputProps) => {
   }
 
   return (
-    <div className="flex flex-grow relative mt-auto w-full">
+    <div className="flex flex-grow relative mt-auto">
       <TextInput
         label={false}
         helperText={false}
