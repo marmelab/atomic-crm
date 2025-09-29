@@ -105,7 +105,7 @@ export const ContactListFilter = () => {
           ))}
       </FilterCategory>
 
-      <FilterCategory icon={<CheckSquare className="h-4 w-4" />} label="Tasks">
+      <FilterCategory icon={<CheckSquare />} label="Tasks">
         <ToggleFilterButton
           className="w-full justify-between"
           label={"With pending tasks"}
@@ -114,7 +114,7 @@ export const ContactListFilter = () => {
       </FilterCategory>
 
       <FilterCategory
-        icon={<Users className="h-4 w-4" />}
+        icon={<Users />}
         label="Account Manager"
       >
         <ToggleFilterButton
