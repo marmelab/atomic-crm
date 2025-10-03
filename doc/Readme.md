@@ -14,6 +14,8 @@ Atomic CRM is designed to be easy to customize and extend by developers with bas
 
 1. Fork the Atomic CRM repository on GitHub to your own account.
 
+    ![Fork the repository](./images/atomic-crm-repository.png)
+
 2. Clone your forked repository to your local machine:
 
     ```bash
@@ -43,24 +45,34 @@ Atomic CRM is designed to be easy to customize and extend by developers with bas
 
 Atomic CRM now runs at [http://localhost:5173/](http://localhost:5173/).
 
+![Welcome Screen](./images/welcome-screen.png)
+
+:::tip
 If you need debug the backend, you can access the following services: 
 
 - Supabase dashboard: [http://localhost:54323/](http://localhost:54323/)
 - REST API: [http://127.0.0.1:54321](http://127.0.0.1:54321)
 - Attachments storage: [http://localhost:54323/project/default/storage/buckets/attachments](http://localhost:54323/project/default/storage/buckets/attachments)
 - Inbucket email testing service: [http://localhost:54324/](http://localhost:54324/)
+:::
 
 ## Admin User Setup
 
 When you first access the application at [http://localhost:5173/](http://localhost:5173/), you will be prompted to create the first admin user. This user will have full access to the application and will be able to manage other users.
 
-Once the admin user is created, you will be redirected to the dashboard. It's showing an onboarding screen to help you get started as long as there is no data in the database.
+Once the admin user is created, you will be redirected to the dashboard. It's currently showing an onboarding screen to help you get started as long as there is no data in the database.
+
+![Onboarding Screen](./images/onboarding.png)
 
 ## Bootstrapping with Sample Data
 
 It's easier to develop on a non-empty application. Atomic CRM provides a sample dataset you can import to get started. Click the import button and choose the sample data file at `test-data/contacts.csv`. This will add 500 contacts and 55 companies to your local database.
 
-Play with the application to get familiar with its features. Add a few notes and tasks to some contacts. This will end the onboarding and reveal the regular dashboard.
+![Import dialog](./images/import.png)
+
+Now you can navigate to the Contacts list. Play with the application to get familiar with its features. Add a few notes and tasks to some contacts. This will end the onboarding and reveal the regular dashboard.
+
+![Contact List](./images/contact-list.png)
 
 :::tip
 If you need to reset the database, stop the Supabase instance with `npx supabase stop --no-backup`, and restart it with `npx supabase start`.
@@ -94,6 +106,8 @@ const App = () => (
 export default App;
 ```
 
+![Customized Title](./images/customized-title.png)
+
 Check the [Customizing Atomic CRM](./doc/developer/customizing.md) guide for an exhaustive list of configuration settings you can customize.
 
 ## Adding Custom Fields
@@ -102,18 +116,25 @@ You can extend the data model of Atomic CRM by adding custom fields to the exist
 
 You will do so in the Supabase Studio. To access the Studio, go to [http://localhost:54323/](http://localhost:54323/).
 
+![Supabase Studio](./images/supabase-studio.png)
+
 We're going to add a custom field to the Contacts table: a "Referred By" text field to store the name of the person who referred the contact.
 
 1. Click on the Database menu
 2. Choose the Tables section in the Database management panel. You will see the list of tables used by Atomic CRM.
 3. Click on the `contacts` table in the list of tables.
 4. Click on the "New Column" button to add a new column to the table.
+
+    ![Supabase Tables](./images/supabase-tables.png)
+
 5. In the "Add new column to contacts" dialog, enter the following details:
     - Name: `referred_by`
     - Type: `text`
     - Default value: leave empty
     - Allow Nullable: checked
 6. Finally, click on the "Save" button to add the new column to the table.
+
+    ![Supabase New Column](./images/supabase-new-column.png)
 
 Atomic CRM uses views to simplify the queries. You need to update the `contacts_summary` view to include the new `referred_by` field.
 
@@ -139,15 +160,19 @@ Atomic CRM uses views to simplify the queries. You need to update the `contacts_
         co.id, c.name;
     ```
 
-3. Click on the "Run" button to execute the SQL command.
+    ![Supabase SQL Editor](./images/supabase-sql-editor.png)
 
-4. Create a migration for these changes, to allow them to be replicated in production. Run the following command in your terminal:
+3. Click on the "Run" button to execute the SQL command. You will need to confirm the action since it will drop and recreate the view.
+
+4. Create a migration for these schema changes, to allow them to be replicated in production. Run the following command in your terminal:
 
     ```sh
     npx supabase db diff -f create_referred_by
     ```
 
     This will create a new migration file in the `supabase/migrations` folder. Supabase will automatically apply this migration when you deploy to production.
+
+That's it! You've just added a custom field to the Contacts entity. Supabase automatically updates the API to include the new field.
 
 ## Displaying Custom Fields in the Frontend
 
@@ -228,6 +253,8 @@ const ContactMiscInputs = () => {
 
 The application will automatically pick up this code change. Go back to [http://localhost:5173/](http://localhost:5173/) and you can now create or edit a contact and set the "Referred By" field.
 
+![Referred By in Contact Form](./images/contact-inputs-referred-by.png)
+
 Finally, update the Contacts sidebar to display the referrer when available. Open the `src/atomic-crm/contacts/ContactAside.tsx` file and add a new `<TextField>` for the `referred_by` field.
 
 ```tsx{4-11}
@@ -255,7 +282,7 @@ export const ContactAside = ({ link = "edit" }: { link?: "edit" | "show" }) => {
 
 This will display the "Referred By" information in the contact sidebar when available.
 
-## Customizing The UI
+![Contact Sidebar](./images/contact-sidebar.png)
 
 ## Deploying to Production
 
@@ -290,6 +317,8 @@ npm run ghpages:deploy
 After a couple minutes, your customized CRM will be available at `https://<username>.github.io/atomic-crm/`, and connected to the production Supabase instance you created earlier.
 
 You can proceed with the creation of the first admin user and start using your CRM in production!
+
+![Atomic CRM in Production](./images/atomic-crm-demo.png)
 
 :::tip
 Supabase.com and GitHub Pages are just two of the many services you can use to host your Atomic CRM. You can [self-host a supabase instace](https://supabase.com/docs/guides/self-hosting), and use any static server or CDN (e.g. CloudFlare, Netlify, Vercel, etc.) to host the frontend.
