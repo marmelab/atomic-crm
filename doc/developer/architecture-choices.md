@@ -2,6 +2,21 @@
 
 This document explains some of the architecture decisions made in the development of Atomic CRM.
 
+## Components
+
+![Architecture Diagram](../images/architecture.png)
+
+The frontend is a Single-Page Application built with [Shadcn Admin Kit](https://marmelab/shadcn-admin-kit), a React application framework that glues together the most popular and robust React libraries, such as:
+
+- [React Router](https://reactrouter.com/) for routing
+- [React Query](https://tanstack.com/query/latest) for data fetching and caching
+- [React Hook Form](https://react-hook-form.com/) for form management
+- [Shadcn UI](https://ui.shadcn.com/) for beautiful, accessible, and customizable components
+- [Radix UI](https://www.radix-ui.com/) for accessible UI components
+- [Tailwind CSS](https://tailwindcss.com/) for styling
+
+For the backend, Atomic CRM leverages [Supabase](https://supabase.com/). Supabase provides a PostgreSQL database, a REST API, authentication, storage, and edge functions. In practice, this means that there is very little backend code to maintain (a few edge functions for user management and inbound email processing).
+
 ## Views
 
 Some pages in Atomic CRM require data from multiple tables. To simplify the frontend code and reduce the HTTP overhead, Atomic CRM uses database views to abstract the complexity of the queries.
