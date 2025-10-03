@@ -7,7 +7,7 @@ Developers can customize the Atomic CRM application to suit their business needs
 The entry point of the frontend application is the `src/App.tsx` file. By default, this file simply renders the `<CRM>` component, which is the root component of Atomic CRM.
 
 ```tsx
-import { CRM } from './root/CRM';
+import { CRM } from "@/atomic-crm/root/CRM";
 
 const App = () => <CRM />;
 
@@ -19,7 +19,7 @@ export default App;
 For instance, the following code snippet shows how to customize the CRM application domain-specific data.
 
 ```tsx
-import { CRM } from './root/CRM';
+import { CRM } from "@/atomic-crm/root/CRM";
 
 const App = () => (
     <CRM
@@ -77,7 +77,7 @@ The only data sent to the telemetry server is the admin domain (e.g. “example.
 You can opt out of telemetry by simply adding `disableTelemetry` to the `<CRM>` component:
 
 ```tsx
-import { CRM } from './root/CRM';
+import { CRM } from "@/atomic-crm/root/CRM";
 
 const App = () => <CRM disableTelemetry />;
 
