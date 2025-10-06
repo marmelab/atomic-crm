@@ -10,10 +10,6 @@ export default defineConfig({
   plugins: [
     react(),
     tailwindcss(),
-    visualizer({
-      open: process.env.NODE_ENV !== "CI",
-      filename: "./dist/stats.html",
-    }),
     createHtmlPlugin({
       minify: true,
       inject: {
@@ -23,23 +19,6 @@ export default defineConfig({
       },
     }),
   ],
-  define:
-    process.env.NODE_ENV === "production"
-      ? {
-          "import.meta.env.VITE_IS_DEMO": JSON.stringify(
-            process.env.VITE_IS_DEMO,
-          ),
-          "import.meta.env.VITE_SUPABASE_URL": JSON.stringify(
-            process.env.VITE_SUPABASE_URL,
-          ),
-          "import.meta.env.VITE_SUPABASE_ANON_KEY": JSON.stringify(
-            process.env.VITE_SUPABASE_ANON_KEY,
-          ),
-          "import.meta.env.VITE_INBOUND_EMAIL": JSON.stringify(
-            process.env.VITE_INBOUND_EMAIL,
-          ),
-        }
-      : undefined,
   base: "./",
   esbuild: {
     keepNames: true,

@@ -1,4 +1,5 @@
 import { CRM } from "@/atomic-crm/root/CRM";
+import { BrowserRouter } from "react-router";
 
 /**
  * Application entry point

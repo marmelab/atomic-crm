@@ -10,9 +10,8 @@ import {
   useUpdate,
 } from "ra-core";
 import { useFormContext } from "react-hook-form";
-import { SaveButton } from "@/components/admin";
-import { cn } from "@/lib/utils";
 
+import { SaveButton } from "@/components/admin";
 import { NoteInputs } from "./NoteInputs";
 import { getCurrentDate } from "./utils";
 
@@ -24,11 +23,9 @@ const foreignKeyMapping = {
 export const NoteCreate = ({
   reference,
   showStatus,
-  className,
 }: {
   reference: "contacts" | "deals";
   showStatus?: boolean;
-  className?: string;
 }) => {
   const resource = useResourceContext();
   const record = useRecordContext();
@@ -39,7 +36,7 @@ export const NoteCreate = ({
   return (
     <CreateBase resource={resource} redirect={false}>
       <Form>
-        <div className={cn("space-y-3", className)}>
+        <div className="space-y-3">
           <NoteInputs showStatus={showStatus} />
           <NoteCreateButton reference={reference} record={record} />
         </div>
