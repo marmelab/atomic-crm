@@ -18,6 +18,9 @@ jobs:
         runs-on: ubuntu-latest
         timeout-minutes: 5
 
+        env:
+          PRODUCTION_REMOTE: https://git:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}
+
         steps:
             - name: 📥 Checkout repo
               uses: actions/checkout@v4
@@ -30,6 +33,7 @@ jobs:
 
             - name: ⚙️ Setup git
               run: |
+                git remote set-url origin https://git:${{ secrets.GITHUB_TOKEN }}@github.com/${GITHUB_REPOSITORY}
                 git config --global user.email support+actions@github.com
                 git config --global user.name github-actions-bot
                 
