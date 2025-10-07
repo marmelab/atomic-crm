@@ -1,9 +1,10 @@
 import { useTranslate } from "ra-core";
 import { Search } from "lucide-react";
 import { TextInput, type TextInputProps } from "@/components/admin/text-input";
+import { cn } from "@/lib/utils";
 
 export const SearchInput = (inProps: SearchInputProps) => {
-  const { label, ...rest } = inProps;
+  const { label, className, ...rest } = inProps;
 
   const translate = useTranslate();
 
@@ -19,6 +20,8 @@ export const SearchInput = (inProps: SearchInputProps) => {
         label={false}
         helperText={false}
         placeholder={translate("ra.action.search")}
+        className={cn("flex-grow", className)}
+        inputClassName="pr-8"
         {...rest}
       />
       <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
