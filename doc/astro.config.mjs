@@ -9,6 +9,9 @@ export default defineConfig({
   vite: {
     plugins: [tailwindcss()],
   },
+  build: {
+    assets: "assets",
+  },
   integrations: [
     starlight({
       title: "Atomic CRM",
