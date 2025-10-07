@@ -1,0 +1,23 @@
+{
+  "name": "atomic-crm-doc",
+  "type": "module",
+  "version": "0.0.1",
+  "scripts": {
+    "dev": "astro dev",
+    "start": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "astro": "astro"
+  },
+  "dependencies": {
+    "@astrojs/starlight": "^0.36.0",
+    "@astrojs/starlight-tailwind": "^4.0.1",
+    "@tailwindcss/vite": "^4.1.14",
+    "astro": "^5.6.1",
+    "sharp": "^0.34.2",
+    "tailwindcss": "^4.1.14"
+  },
+  "devDependencies": {
+    "gh-pages": "^6.3.0"
+  }
+}

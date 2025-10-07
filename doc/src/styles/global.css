@@ -1,0 +1,111 @@
+@layer base, starlight, theme, components, utilities;
+
+@import "@astrojs/starlight-tailwind";
+@import "tailwindcss/theme.css" layer(utilities);
+@import "tailwindcss/utilities.css" layer(utilities);
+
+@layer utilities {
+  :root {
+    --sl-color-bg-nav: var(--sl-color-black);
+    --sl-color-bg: var(--sl-color-black);
+    --sl-color-bg-sidebar: var(--sl-color-black);
+    --sl-color-hairline-shade: var(--sl-color-gray-6);
+
+    --color-accent-50: var(--color-indigo-50);
+    --color-accent-100: var(--color-indigo-100);
+    --color-accent-200: var(--color-indigo-200);
+    --color-accent-300: var(--color-indigo-300);
+    --color-accent-400: var(--color-indigo-400);
+    --color-accent-500: var(--color-indigo-500);
+    --color-accent-600: var(--color-indigo-600);
+    --color-accent-700: var(--color-indigo-700);
+    --color-accent-800: var(--color-indigo-800);
+    --color-accent-900: var(--color-indigo-900);
+  }
+}
+
+.header a span,
+.header a svg {
+  color: var(--color-white);
+}
+
+[data-theme="light"] .header a span,
+[data-theme="light"] .header a svg {
+  color: var(--color-black);
+}
+
+img.icon {
+  display: inline;
+  box-shadow: none;
+  margin: 0;
+  width: 26px;
+  height: 26px;
+  transform: translate(0, 40%);
+  margin-top: -16px;
+  margin-left: -4px;
+  margin-right: -4px;
+}
+
+.rcg-tab {
+  margin: 0;
+}
+
+.expressive-code button.cb-fullscreen__button {
+  color: var(--ec-frm-inlBtnFg);
+}
+
+/* Auth and Data Provider icons */
+
+.providers-list img {
+  width: 25px !important;
+  margin: 2px 10px 2px 0px !important;
+  box-shadow: none !important;
+  vertical-align: middle;
+  display: inline;
+}
+.providers-list ul {
+  padding-left: 0;
+}
+.providers-list ul > li {
+  list-style-type: none;
+}
+.providers-list .flex {
+  display: flex !important;
+  text-align: -webkit-match-parent !important;
+  align-items: center !important;
+  flex-wrap: wrap;
+  margin: 0;
+}
+.providers-list .avatar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: DarkGray;
+  width: 25px;
+  height: 25px;
+  margin: 2px 10px 2px 0px;
+  border-radius: 100%;
+  font-size: 12px;
+}
+
+/* 
+   Improve props table layout
+*/
+.sl-markdown-content table {
+  font-size: 0.8rem;
+}
+.sl-markdown-content table code {
+  font-size: 0.8rem;
+}
+.sl-markdown-content table tr td:has(code) {
+  max-width: 140px;
+}
+.sl-markdown-content table tr td code {
+  overflow-wrap: break-word;
+}
+
+li ul,
+li p {
+  margin-block: 0;
+  padding-block: 0;
+}

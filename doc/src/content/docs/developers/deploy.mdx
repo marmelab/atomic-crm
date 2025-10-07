@@ -1,10 +1,13 @@
-# Deploying to Production Manually
+---
+title: Deploying Atomic CRM to Production
+description: This document explains how to deploy Atomic CRM to production.
+---
 
 ## Deploying The Backend
 
-The entire backend of Atomic CRM is hosted on Supabase. The backend is composed of a Postgres database, a REST API, and edge functions. Check out the [Supabase Configuration](./supabase-configuration.md) section for details.
+The entire backend of Atomic CRM is hosted on Supabase. The backend is composed of a Postgres database, a REST API, and edge functions. Check out the [Supabase Configuration](./supabase-configuration) section for details.
 
-After [configuring your Supabase instance](./supabase-configuration.md), you can deploy the backend changes with the following command:
+After [configuring your Supabase instance](./supabase-configuration), you can deploy the backend changes with the following command:
 
 ```sh
 make supabase-deploy
@@ -70,6 +73,6 @@ POSTMARK_WEBHOOK_PASSWORD: Password configured in Postmark to secure the webhook
 POSTMARK_WEBHOOK_AUTHORIZED_IPS: List of IPs (comma separated) authorized to send requests to the Postmark webhook
 ```
 
-> **Note:** The `POSTMARK_*` variables are required for Atomic CRM's inbound email features. Have a look at the the [inbound email configuration](./inbound-email-configuration.md) to learn more about their usage and setup.
+> **Note:** The `POSTMARK_*` variables are required for Atomic CRM's inbound email features. Have a look at the the [inbound email configuration](./inbound-email-configuration) to learn more about their usage and setup.
 
 The GitHub action will run the `prod-deploy` command on every push to the `main` branch, deploying the frontend to GitHub pages and updating the Supabase instance.
