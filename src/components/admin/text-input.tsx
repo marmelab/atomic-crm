@@ -17,6 +17,7 @@ import { InputHelperText } from "@/components/admin/input-helper-text";
 
 export type TextInputProps = InputProps & {
   multiline?: boolean;
+  inputClassName?: string;
 } & React.ComponentProps<"textarea"> &
   React.ComponentProps<"input">;
 
@@ -27,6 +28,7 @@ export const TextInput = (props: TextInputProps) => {
     source,
     multiline,
     className,
+    inputClassName,
     validate: _validateProp,
     format: _formatProp,
     ...rest
@@ -54,9 +56,19 @@ export const TextInput = (props: TextInputProps) => {
       )}
       <FormControl>
         {multiline ? (
-          <Textarea {...rest} {...field} value={value} />
+          <Textarea
+            {...rest}
+            {...field}
+            value={value}
+            className={inputClassName}
+          />
         ) : (
-          <Input {...rest} {...field} value={value} />
+          <Input
+            {...rest}
+            {...field}
+            value={value}
+            className={inputClassName}
+          />
         )}
       </FormControl>
       <InputHelperText helperText={props.helperText} />
