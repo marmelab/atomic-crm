@@ -70,3 +70,18 @@ publish:
 
 typecheck:
 	npm run typecheck
+
+doc-install:
+	@(cd doc && npm install)
+
+doc-dev:
+	@(cd doc && npm run dev)
+
+doc-build:
+	@(cd doc && npm run build)
+
+doc-preview: doc-build
+	@(cd doc && npm run preview)
+
+doc-deploy:
+	@(cd doc && npx gh-pages -d dist -e doc -b gh-pages -m "Deploy docs" -a)
