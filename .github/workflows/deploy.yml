@@ -68,6 +68,11 @@ jobs:
             - name: 📥 Download deps
               run: npm install
 
+            - name: ⚙️ Setup git
+              run: |
+                git config --global user.email support+actions@github.com
+                git config --global user.name github-actions-bot
+                
             - name: 🔨 Build
               run: npm run build:demo
 
