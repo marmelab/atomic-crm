@@ -113,10 +113,7 @@ export const ContactListFilter = () => {
         />
       </FilterCategory>
 
-      <FilterCategory
-        icon={<Users />}
-        label="Account Manager"
-      >
+      <FilterCategory icon={<Users />} label="Account Manager">
         <ToggleFilterButton
           className="w-full justify-between"
           label={"Me"}
