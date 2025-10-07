@@ -28,8 +28,14 @@ jobs:
                   node-version: 22
                   cache: npm
 
+            - name: ⚙️ Setup git
+              run: |
+                git config --global user.email support+actions@github.com
+                git config --global user.name github-actions-bot
+                
             - name: 📥 Download deps
               run: make doc-install
+              
 
             - name: 🔨 Build
               run: make doc-build
@@ -68,11 +74,6 @@ jobs:
             - name: 📥 Download deps
               run: npm install
 
-            - name: ⚙️ Setup git
-              run: |
-                git config --global user.email support+actions@github.com
-                git config --global user.name github-actions-bot
-                
             - name: 🔨 Build
               run: npm run build:demo
 
