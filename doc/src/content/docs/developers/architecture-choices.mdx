@@ -1,10 +1,13 @@
-# Architecture Choices
+---
+title: Architecture Choices
+description: This document explains some of the architecture decisions made in the development of Atomic CRM.
+---
 
 This document explains some of the architecture decisions made in the development of Atomic CRM.
 
 ## Components
 
-![Architecture Diagram](../images/architecture.png)
+![Architecture Diagram](../../images/architecture.png)
 
 The frontend is a Single-Page Application built with [Shadcn Admin Kit](https://marmelab/shadcn-admin-kit), a React application framework that glues together the most popular and robust React libraries, such as:
 
@@ -23,7 +26,7 @@ Some pages in Atomic CRM require data from multiple tables. To simplify the fron
 
 For instance, the contact list page displays the number of tasks for each contact. This information is provided by the `contacts_summary` view, defined in the `supabase/migrations/init_db.sql` file.
 
-When using [the FakeRest data provider](./data-providers.md#setting-up-the-fakerest-data-provider), these views are emulated in the frontend.
+When using [the FakeRest data provider](./data-providers#setting-up-the-fakerest-data-provider), these views are emulated in the frontend.
 
 ## Triggers
 
@@ -42,6 +45,6 @@ To solve this problem, Atomic CRM uses a `users` edge function in charge of:
 
 Atomic CRM does not support user deletion to avoid data losses. Yet, it is possible to disable a user's account (relying on Supabase's ban feature).
 
-Atomic also uses Edge functions to handle the webhook and process the received emails. Check the [Inbound Email](./inbound-email-configuration.md) documentation for more information.
+Atomic also uses Edge functions to handle the webhook and process the received emails. Check the [Inbound Email](./inbound-email-configuration) documentation for more information.
 
 The edge functions can be found in the `supabase/functions/` directory.

@@ -13,6 +13,30 @@ permissions:
     contents: write
 
 jobs:
+    deploy-doc:
+        name: 🚀 Deploy (doc)
+        runs-on: ubuntu-latest
+        timeout-minutes: 5
+
+        steps:
+            - name: 📥 Checkout repo
+              uses: actions/checkout@v4
+
+            - name: ⚙️ Setup node
+              uses: actions/setup-node@v4
+              with:
+                  node-version: 22
+                  cache: npm
+
+            - name: 📥 Download deps
+              run: make doc-install
+
+            - name: 🔨 Build
+              run: make doc-build
+
+            - name: 📡 Deploy GitHub pages
+              run: make doc-deploy
+
     deploy-demo:
         name: 🚀 Deploy (demo)
         runs-on: ubuntu-latest
