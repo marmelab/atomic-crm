@@ -33,3 +33,4 @@ dist/
 /lib/
 .env
 *storybook.log
+.claude

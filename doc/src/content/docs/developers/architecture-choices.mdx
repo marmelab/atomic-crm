@@ -20,6 +20,19 @@ The frontend is a Single-Page Application built with [Shadcn Admin Kit](https://
 
 For the backend, Atomic CRM leverages [Supabase](https://supabase.com/). Supabase provides a PostgreSQL database, a REST API, authentication, storage, and edge functions. In practice, this means that there is very little backend code to maintain (a few edge functions for user management and inbound email processing).
 
+## Mutable Dependencies
+
+The Atomic CRM code primarily lives in the `src/atomic-crm` directory. With less than 15,000 lines of code, it is a small codebase that can be easily customized.
+
+The Atomic CRM code also contains some mutable dependencies, i.e. libraries that are directly integrated into the codebase to be modified if needed. These dependencies are located in the following directories:
+
+- `src/components/admin`: [Shadcn Admin Kit](https://marmelab/shadcn-admin-kit), providing the frontend architecture and the glue code to integrate the various libraries. 
+- `src/copmponents/ui`: [Shadcn UI](https://ui.shadcn.com/), providing beautiful, accessible, and customizable components powered by Tailwind CSS.
+
+You can modify or replaces the files in these directories. It's the recommended way to customize the application.
+
+If you want to upgrade these dependencies, you can follow the instructions in their respective documentation.
+
 ## Views
 
 Some pages in Atomic CRM require data from multiple tables. To simplify the frontend code and reduce the HTTP overhead, Atomic CRM uses database views to abstract the complexity of the queries.

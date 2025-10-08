@@ -13,7 +13,9 @@ You must setup Postmark and Supabase to use the inbound email feature. Check the
 
 Send of forward emails to Atomic CRM's inbound email address to automatically add notes to the corresponding contacts. You can find this email address in the user menu by clicking on the "My Info" menu item, in the "Inbound Email" section. It looks like `xxxxxxx@inbound.postmarkapp.com`.
 
-Atomic CRM uses the sender's email address to identify the user member, and the recipient's email address to identify the contact. If the contact does not yet exist, Atomic CRM creates it using the email's domain as company name.
+![Inbound Email Address](../../images/inbound-email.jpg)
+
+When you write to a contact in your email client, add the inbound email address in the **Bcc** field. PPostmark will receive a copy of your email, and forward it to Atomic CRM. Atomic CRM uses the sender's email address to identify the user, and the recipient's email address to identify the contact. If the contact does not yet exist, Atomic CRM creates it using the email's domain as company name. The content of the email is added as a note to the contact.
 
 **Tip**: Use the **Bcc** field to send emails to Atomic CRM without notifying the recipients.
 
