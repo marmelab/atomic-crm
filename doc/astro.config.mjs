@@ -78,11 +78,15 @@ export default defineConfig({
       ],
       sidebar: [
         {
-          label: "Users",
+          label: "Getting Started",
+          link: "/",
+        },
+        {
+          label: "Users Documentation",
           autogenerate: { directory: "users" },
         },
         {
-          label: "Developers",
+          label: "Developers Documentation",
           autogenerate: { directory: "developers" },
         },
       ],
