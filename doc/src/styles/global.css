@@ -34,6 +34,10 @@
   color: var(--color-black);
 }
 
+.title-wrapper img {
+  @apply size-8;
+}
+
 img.icon {
   display: inline;
   box-shadow: none;

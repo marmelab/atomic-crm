@@ -84,4 +84,4 @@ doc-preview: doc-build
 	@(cd doc && npm run preview)
 
 doc-deploy:
-	@(cd doc && npx gh-pages -d dist -e doc -b gh-pages -m "Deploy docs" -a)
+	@(cd doc && npx gh-pages -d dist -e doc -b gh-pages -m "Deploy docs" --remove doc)
