@@ -96,7 +96,7 @@ export default App;
 
 `<CRM>` accepts various props to customize the application domain and look and feel. For instance, the following code snippet shows how to customize the app title, the task types, and deal categories.
 
-```tsx{5-7}
+```tsx {5-7}
 import { CRM } from "@/atomic-crm/root/CRM";
 
 const App = () => (
@@ -190,7 +190,7 @@ Atomic CRM leverages two libraries that provided high-level building blocks: [Sh
 
 Atomic CRM uses TypeScript to ensure type safety, so you'll need to modify the `Contact` type to include the new `referred_by` field. Open the `src/atomic-crm/types.ts` file and add the `referred_by` field to the `Contact` interface.
 
-```tsx{18}
+```tsx {18}
 export type Contact = {
   first_name: string;
   last_name: string;
@@ -217,7 +217,7 @@ export type Contact = {
 You will modify the contact creation and edition form to include an input for the `referred_by` field.
 To do so, open the `src/atomic-crm/contacts/ContactInputs.tsx` file to edit the `<ContactInputs>` component and add a new `<TextInput>`.
 
-```tsx{5-8}
+```tsx {5-8}
 const ContactMiscInputs = () => {
   return (
     <div className="flex flex-col gap-4">
@@ -261,7 +261,7 @@ The application will automatically pick up this code change. Go back to [http://
 
 Finally, update the Contacts sidebar to display the referrer when available. Open the `src/atomic-crm/contacts/ContactAside.tsx` file and add a new `<TextField>` for the `referred_by` field.
 
-```tsx{4-11}
+```tsx {4-11}
 export const ContactAside = ({ link = "edit" }: { link?: "edit" | "show" }) => {
     // ...
       <AsideSection title="Background info">
