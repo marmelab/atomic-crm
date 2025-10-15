@@ -42,7 +42,7 @@ make install
 
 This will install the dependencies for the frontend and the backend, including a local Supabase instance.
 
-Once you app is configured, start the app locally with the following command:
+Once your app is configured, start the app locally with the following command:
 
 ```sh
 make start
