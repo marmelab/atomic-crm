@@ -87,7 +87,7 @@ If you need to reset the database, stop the Supabase instance with `npx supabase
 The entry point of the application is the `src/App.tsx` file. By default, this file simply renders the `<CRM>` component, which is the root component of Atomic CRM.
 
 ```tsx
-import { CRM } from "@/atomic-crm/root/CRM";
+import { CRM } from "@/components/atomic-crm/root/CRM";
 
 const App = () => <CRM />;
 
@@ -97,7 +97,7 @@ export default App;
 `<CRM>` accepts various props to customize the application domain and look and feel. For instance, the following code snippet shows how to customize the app title, the task types, and deal categories.
 
 ```tsx {5-7}
-import { CRM } from "@/atomic-crm/root/CRM";
+import { CRM } from "@/components/atomic-crm/root/CRM";
 
 const App = () => (
     <CRM
