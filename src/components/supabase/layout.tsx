@@ -1,6 +1,6 @@
 import * as React from "react";
 import { Notification } from "@/components/admin";
-import { useConfigurationContext } from "@/atomic-crm/root/ConfigurationContext";
+import { useConfigurationContext } from "@/components/atomic-crm/root/ConfigurationContext";
 
 export const Layout = ({ children }: React.PropsWithChildren) => {
   const { darkModeLogo, title } = useConfigurationContext();

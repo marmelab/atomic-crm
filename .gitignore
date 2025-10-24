@@ -34,3 +34,6 @@ dist/
 .env
 *storybook.log
 .claude
+
+# Shadcn Registry
+public/r/
