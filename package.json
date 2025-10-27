@@ -16,7 +16,8 @@
     "registry:build": "shadcn build",
     "registry:gen": "./bin/generate-registry.mjs",
     "ghpages:deploy": "node ./scripts/ghpages-deploy.mjs",
-    "supabase:remote:init": "node ./scripts/supabase-remote-init.mjs"
+    "supabase:remote:init": "node ./scripts/supabase-remote-init.mjs",
+    "prepare": "husky"
   },
   "dependencies": {
     "@hello-pangea/dnd": "^18.0.1",
@@ -89,6 +90,7 @@
     "eslint-plugin-storybook": "^9.0.13",
     "glob": "^11.0.3",
     "globals": "^16.3.0",
+    "husky": "^9.1.7",
     "prettier": "^3.6.2",
     "shadcn": "^3.5.0",
     "supabase": "^2.53.6",
