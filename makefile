@@ -88,3 +88,6 @@ doc-deploy:
 
 registry-build: ## build the shadcn registry
 	npm run registry:build
+
+registry-gen: ## generate the shadcn registry
+	npm run registry:gen
