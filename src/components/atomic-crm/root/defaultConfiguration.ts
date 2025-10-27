@@ -1,9 +1,7 @@
 import { Mars, NonBinary, Venus } from "lucide-react";
 
-export const defaultDarkModeLogo =
-  "@/components/atomic-crm/dashboard/logos/logo_atomic_crm_dark.svg";
-export const defaultLightModeLogo =
-  "@/components/atomic-crm/dashboard/logos/logo_atomic_crm_light.svg";
+export const defaultDarkModeLogo = "./logos/logo_atomic_crm_dark.svg";
+export const defaultLightModeLogo = "./logos/logo_atomic_crm_light.svg";
 
 export const defaultTitle = "Atomic CRM";
 
