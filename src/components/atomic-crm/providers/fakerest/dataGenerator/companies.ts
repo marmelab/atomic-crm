@@ -24,7 +24,7 @@ export const generateCompanies = (db: Db, size = 55): Required<Company>[] => {
       name: name,
       logo: {
         title: lorem.text(1),
-        src: `@/components/atomic-crm/dashboard/logos/${id}.png`,
+        src: `./logos/${id}.png`,
       } as RAFile,
       sector: random.arrayElement(defaultCompanySectors),
       size: random.arrayElement(sizes) as 1 | 10 | 50 | 250 | 500,
