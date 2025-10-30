@@ -61,24 +61,24 @@ If you need debug the backend, you can access the following services:
 
 ## User Documentation
 
-1. [User Management](./doc/user/user-management.md)
-2. [Importing And Exporting Data](./doc/user/import-contacts.md)
-3. [Inbound Email](./doc/user/inbound-email.md)
+1. [User Management](./doc/src/content/docs/users/user-management.mdx)
+2. [Importing And Exporting Data](./doc/src/content/docs/users/import-contacts.mdx)
+3. [Inbound Email](./doc/src/content/docs/users/inbound-email.mdx)
 
 ## Deploying to Production
 
-1. [Configuring Supabase](./doc/developer/supabase-configuration.md)
-2. [Configuring Inbound Email](./doc/developer/inbound-email-configuration.md) *(optional)*
-3. [Deployment](./doc/developer/deploy.md)
+1. [Configuring Supabase](./doc/src/content/docs/developers/supabase-configuration.mdx)
+2. [Configuring Inbound Email](./doc/src/content/docs/developers/inbound-email-configuration.mdx) *(optional)*
+3. [Deployment](./doc/src/content/docs/developers/deploy.mdx)
 
 ## Customizing Atomic CRM
 
 To customize Atomic CRM, you will need TypeScript and React programming skills as there is no graphical user interface for customization. Here are some resources to assist you in getting started.
 
-1. [Customizing the CRM](./doc/developer/customizing.md)
-2. [Creating Migrations](./doc/developer/migrations.md) *(optional)*
-3. [Using Fake Rest Data Provider for Development](./doc/developer/data-providers.md) *(optional)*
-4. [Architecture Decisions](./doc/developer/architecture-choices.md) *(optional)*
+1. [Customizing the CRM](./doc/src/content/docs/developers/customizing.mdx)
+2. [Creating Migrations](./doc/src/content/docs/developers/migrations.mdx) *(optional)*
+3. [Using Fake Rest Data Provider for Development](./doc/src/content/docs/developers/data-providers.mdx) *(optional)*
+4. [Architecture Decisions](./doc/src/content/docs/developers/architecture-choices.mdx) *(optional)*
 
 ## Testing Changes
 
