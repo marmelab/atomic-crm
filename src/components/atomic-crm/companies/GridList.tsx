@@ -1,6 +1,6 @@
 import { RecordContextProvider, useListContext } from "ra-core";
-import type { Company } from "@/components/atomic-crm/types";
-import { CompanyCard } from "@/components/atomic-crm/companies/CompanyCard";
+import type { Company } from "../types";
+import { CompanyCard } from "./CompanyCard";
 
 const times = (nbChildren: number, fn: (key: number) => any) =>
   Array.from({ length: nbChildren }, (_, key) => fn(key));

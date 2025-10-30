@@ -6,13 +6,13 @@ import {
   CONTACT_NOTE_CREATED,
   DEAL_CREATED,
   DEAL_NOTE_CREATED,
-} from "@/components/atomic-crm/consts";
-import type { Activity } from "@/components/atomic-crm/types";
-import { ActivityLogCompanyCreated } from "@/components/atomic-crm/activity/ActivityLogCompanyCreated";
-import { ActivityLogContactCreated } from "@/components/atomic-crm/activity/ActivityLogContactCreated";
-import { ActivityLogContactNoteCreated } from "@/components/atomic-crm/activity/ActivityLogContactNoteCreated";
-import { ActivityLogDealCreated } from "@/components/atomic-crm/activity/ActivityLogDealCreated";
-import { ActivityLogDealNoteCreated } from "@/components/atomic-crm/activity/ActivityLogDealNoteCreated";
+} from "../consts";
+import type { Activity } from "../types";
+import { ActivityLogCompanyCreated } from "./ActivityLogCompanyCreated";
+import { ActivityLogContactCreated } from "./ActivityLogContactCreated";
+import { ActivityLogContactNoteCreated } from "./ActivityLogContactNoteCreated";
+import { ActivityLogDealCreated } from "./ActivityLogDealCreated";
+import { ActivityLogDealNoteCreated } from "./ActivityLogDealNoteCreated";
 
 type ActivityLogIteratorProps = {
   activities: Activity[];

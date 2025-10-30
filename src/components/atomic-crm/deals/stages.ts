@@ -1,5 +1,5 @@
-import type { ConfigurationContextValue } from "@/components/atomic-crm/root/ConfigurationContext";
-import type { Deal } from "@/components/atomic-crm/types";
+import type { ConfigurationContextValue } from "../root/ConfigurationContext";
+import type { Deal } from "../types";
 
 export type DealsByStage = Record<Deal["stage"], Deal[]>;
 

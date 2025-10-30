@@ -11,9 +11,9 @@ import {
   useRedirect,
 } from "ra-core";
 import { Link } from "react-router";
-import { CompanyAvatar } from "@/components/atomic-crm/companies/CompanyAvatar";
-import type { Deal } from "@/components/atomic-crm/types";
-import { DealInputs } from "@/components/atomic-crm/deals/DealInputs";
+import { CompanyAvatar } from "../companies/CompanyAvatar";
+import type { Deal } from "../types";
+import { DealInputs } from "./DealInputs";
 
 export const DealEdit = ({ open, id }: { open: boolean; id?: string }) => {
   const redirect = useRedirect();

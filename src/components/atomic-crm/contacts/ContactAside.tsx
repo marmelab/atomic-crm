@@ -1,9 +1,8 @@
 import { Linkedin, Mail, Phone } from "lucide-react";
 import { useRecordContext, WithRecord } from "ra-core";
-import { AddTask } from "@/components/atomic-crm/tasks/AddTask";
-import { TasksIterator } from "@/components/atomic-crm/tasks/TasksIterator";
-import { TagsListEdit } from "@/components/atomic-crm/contacts/TagsListEdit";
-
+import { AddTask } from "../tasks/AddTask";
+import { TasksIterator } from "../tasks/TasksIterator";
+import { TagsListEdit } from "./TagsListEdit";
 import {
   ArrayField,
   EditButton,
@@ -16,10 +15,10 @@ import {
   EmailField,
 } from "@/components/admin";
 import type { ReactNode } from "react";
-import { AsideSection } from "@/components/atomic-crm/misc/AsideSection";
-import { useConfigurationContext } from "@/components/atomic-crm/root/ConfigurationContext";
-import { SaleName } from "@/components/atomic-crm/sales/SaleName";
-import type { Contact } from "@/components/atomic-crm/types";
+import { AsideSection } from "../misc/AsideSection";
+import { useConfigurationContext } from "../root/ConfigurationContext";
+import { SaleName } from "../sales/SaleName";
+import type { Contact } from "../types";
 
 export const ContactAside = ({ link = "edit" }: { link?: "edit" | "show" }) => {
   const { contactGender } = useConfigurationContext();

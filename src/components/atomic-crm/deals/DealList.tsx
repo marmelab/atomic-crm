@@ -10,15 +10,15 @@ import {
 } from "@/components/admin";
 import { useGetIdentity, useListContext } from "ra-core";
 import { matchPath, useLocation } from "react-router";
-import { useConfigurationContext } from "@/components/atomic-crm/root/ConfigurationContext";
-import { TopToolbar } from "@/components/atomic-crm/layout/TopToolbar";
-import { DealArchivedList } from "@/components/atomic-crm/deals/DealArchivedList";
-import { DealCreate } from "@/components/atomic-crm/deals/DealCreate";
-import { DealEdit } from "@/components/atomic-crm/deals/DealEdit";
-import { DealEmpty } from "@/components/atomic-crm/deals/DealEmpty";
-import { DealListContent } from "@/components/atomic-crm/deals/DealListContent";
-import { DealShow } from "@/components/atomic-crm/deals/DealShow";
-import { OnlyMineInput } from "@/components/atomic-crm/deals/OnlyMineInput";
+import { useConfigurationContext } from "../root/ConfigurationContext";
+import { TopToolbar } from "../layout/TopToolbar";
+import { DealArchivedList } from "./DealArchivedList";
+import { DealCreate } from "./DealCreate";
+import { DealEdit } from "./DealEdit";
+import { DealEmpty } from "./DealEmpty";
+import { DealListContent } from "./DealListContent";
+import { DealShow } from "./DealShow";
+import { OnlyMineInput } from "./OnlyMineInput";
 
 const DealList = () => {
   const { identity } = useGetIdentity();

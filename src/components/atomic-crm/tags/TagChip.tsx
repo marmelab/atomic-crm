@@ -1,7 +1,7 @@
 import { X } from "lucide-react";
 import { useState } from "react";
-import type { Tag } from "@/components/atomic-crm/types";
-import { TagEditModal } from "@/components/atomic-crm/tags/TagEditModal";
+import type { Tag } from "../types";
+import { TagEditModal } from "./TagEditModal";
 
 type TagChipProps = {
   tag: Tag;

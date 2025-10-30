@@ -5,12 +5,11 @@ import {
 } from "@/components/admin";
 import { Card, CardContent } from "@/components/ui/card";
 import { ShowBase, useShowContext } from "ra-core";
-import { CompanyAvatar } from "@/components/atomic-crm/companies/CompanyAvatar";
-import { NoteCreate } from "@/components/atomic-crm/notes/NoteCreate";
-import { NotesIterator } from "@/components/atomic-crm/notes/NotesIterator";
-import type { Contact } from "@/components/atomic-crm/types";
-import { Avatar } from "@/components/atomic-crm/contacts/Avatar";
-import { ContactAside } from "@/components/atomic-crm/contacts/ContactAside";
+import { CompanyAvatar } from "../companies/CompanyAvatar";
+import { NoteCreate, NotesIterator } from "../notes";
+import type { Contact } from "../types";
+import { Avatar } from "./Avatar";
+import { ContactAside } from "./ContactAside";
 
 export const ContactShow = () => (
   <ShowBase>

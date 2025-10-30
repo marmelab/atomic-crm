@@ -1,3 +1,3 @@
-export * from "@/components/atomic-crm/notes/NoteCreate";
-export * from "@/components/atomic-crm/notes/NotesIterator";
-export * from "@/components/atomic-crm/notes/StatusSelector";
+export * from "./NoteCreate";
+export * from "./NotesIterator";
+export * from "./StatusSelector";

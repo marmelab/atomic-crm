@@ -9,9 +9,9 @@ import {
 import { Plus, Users } from "lucide-react";
 import { useGetIdentity, useGetList } from "ra-core";
 import { Link } from "react-router";
-import { SimpleList } from "@/components/atomic-crm/simple-list/SimpleList";
-import { Avatar } from "@/components/atomic-crm/contacts/Avatar";
-import type { Contact } from "@/components/atomic-crm/types";
+import { SimpleList } from "../simple-list/SimpleList";
+import { Avatar } from "../contacts/Avatar";
+import type { Contact } from "../types";
 
 export const HotContacts = () => {
   const { identity } = useGetIdentity();

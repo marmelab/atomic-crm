@@ -4,11 +4,11 @@ import isEqual from "lodash/isEqual";
 import type { DataProvider } from "ra-core";
 import { useDataProvider, useListContext } from "ra-core";
 import { useEffect, useState } from "react";
-import { useConfigurationContext } from "@/components/atomic-crm/root/ConfigurationContext";
-import type { Deal } from "@/components/atomic-crm/types";
-import { DealColumn } from "@/components/atomic-crm/deals/DealColumn";
-import type { DealsByStage } from "@/components/atomic-crm/deals/stages";
-import { getDealsByStage } from "@/components/atomic-crm/deals/stages";
+import { useConfigurationContext } from "../root/ConfigurationContext";
+import type { Deal } from "../types";
+import { DealColumn } from "./DealColumn";
+import type { DealsByStage } from "./stages";
+import { getDealsByStage } from "./stages";
 
 export const DealListContent = () => {
   const { dealStages } = useConfigurationContext();

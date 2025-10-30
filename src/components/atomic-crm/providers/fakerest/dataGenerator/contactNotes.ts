@@ -1,8 +1,8 @@
 import { datatype, lorem, random } from "faker/locale/en_US";
-import { defaultNoteStatuses } from "@/components/atomic-crm/root/defaultConfiguration";
-import type { ContactNote } from "@/components/atomic-crm/types";
-import type { Db } from "@/components/atomic-crm/providers/fakerest/dataGenerator/types";
-import { randomDate } from "@/components/atomic-crm/providers/fakerest/dataGenerator/utils";
+import { defaultNoteStatuses } from "../../../root/defaultConfiguration";
+import type { ContactNote } from "../../../types";
+import type { Db } from "./types";
+import { randomDate } from "./utils";
 
 export const generateContactNotes = (db: Db): ContactNote[] => {
   return Array.from(Array(1200).keys()).map((id) => {

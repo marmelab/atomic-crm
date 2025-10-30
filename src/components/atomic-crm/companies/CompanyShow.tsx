@@ -17,15 +17,15 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { ReferenceManyField, SortButton } from "@/components/admin";
-import { ActivityLog } from "@/components/atomic-crm/activity//ActivityLog";
-import { Avatar } from "@/components/atomic-crm/contacts/Avatar";
-import { TagsList } from "@/components/atomic-crm/contacts/TagsList";
-import { findDealLabel } from "@/components/atomic-crm/deals/deal";
-import { Status } from "@/components/atomic-crm/misc/Status";
-import { useConfigurationContext } from "@/components/atomic-crm/root/ConfigurationContext";
-import type { Company, Contact, Deal } from "@/components/atomic-crm/types";
-import { CompanyAside } from "@/components/atomic-crm/companies/CompanyAside";
-import { CompanyAvatar } from "@/components/atomic-crm/companies/CompanyAvatar";
+import { ActivityLog } from "../activity/ActivityLog";
+import { Avatar } from "../contacts/Avatar";
+import { TagsList } from "../contacts/TagsList";
+import { findDealLabel } from "../deals/deal";
+import { Status } from "../misc/Status";
+import { useConfigurationContext } from "../root/ConfigurationContext";
+import type { Company, Contact, Deal } from "../types";
+import { CompanyAside } from "./CompanyAside";
+import { CompanyAvatar } from "./CompanyAvatar";
 
 export const CompanyShow = () => (
   <ShowBase>

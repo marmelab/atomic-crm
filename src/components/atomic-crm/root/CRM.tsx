@@ -5,20 +5,20 @@ import type { AuthProvider, DataProvider } from "ra-core";
 import { CustomRoutes, localStorageStore, Resource } from "ra-core";
 import { useEffect } from "react";
 import { Route } from "react-router";
-import companies from "@/components/atomic-crm/companies";
-import contacts from "@/components/atomic-crm/contacts";
-import { Dashboard } from "@/components/atomic-crm/dashboard/Dashboard";
-import deals from "@/components/atomic-crm/deals";
-import { Layout } from "@/components/atomic-crm/layout/Layout";
-import { SignupPage } from "@/components/atomic-crm/login/SignupPage";
+import companies from "../companies";
+import contacts from "../contacts";
+import { Dashboard } from "../dashboard/Dashboard";
+import deals from "../deals";
+import { Layout } from "../layout/Layout";
+import { SignupPage } from "../login/SignupPage";
 import {
   authProvider as defaultAuthProvider,
   dataProvider as defaultDataProvider,
-} from "@/components/atomic-crm/providers/supabase";
-import sales from "@/components/atomic-crm/sales";
-import { SettingsPage } from "@/components/atomic-crm/settings/SettingsPage";
-import type { ConfigurationContextValue } from "@/components/atomic-crm/root/ConfigurationContext";
-import { ConfigurationProvider } from "@/components/atomic-crm/root/ConfigurationContext";
+} from "../providers/supabase";
+import sales from "../sales";
+import { SettingsPage } from "../settings/SettingsPage";
+import type { ConfigurationContextValue } from "./ConfigurationContext";
+import { ConfigurationProvider } from "./ConfigurationContext";
 import {
   defaultCompanySectors,
   defaultContactGender,
@@ -30,9 +30,9 @@ import {
   defaultNoteStatuses,
   defaultTaskTypes,
   defaultTitle,
-} from "@/components/atomic-crm/root/defaultConfiguration";
-import { i18nProvider } from "@/components/atomic-crm/root/i18nProvider";
-import { StartPage } from "@/components/atomic-crm/login/StartPage.tsx";
+} from "./defaultConfiguration";
+import { i18nProvider } from "./i18nProvider";
+import { StartPage } from "../login/StartPage.tsx";
 
 export type CRMProps = {
   dataProvider?: DataProvider;

@@ -1,6 +1,6 @@
-import { fetchWithTimeout } from "@/components/atomic-crm/misc/fetchWithTimeout";
-import { DOMAINS_NOT_SUPPORTING_FAVICON } from "@/components/atomic-crm/misc/unsupportedDomains.const";
-import type { Contact } from "@/components/atomic-crm/types";
+import { fetchWithTimeout } from "../../misc/fetchWithTimeout";
+import { DOMAINS_NOT_SUPPORTING_FAVICON } from "../../misc/unsupportedDomains.const";
+import type { Contact } from "../../types";
 
 export async function hash(string: string) {
   const utf8 = new TextEncoder().encode(string);

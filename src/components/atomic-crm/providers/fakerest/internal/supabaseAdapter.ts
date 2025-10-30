@@ -1,5 +1,5 @@
 import type { DataProvider } from "ra-core";
-import { transformFilter } from "@/components/atomic-crm/providers/fakerest/internal/transformFilter";
+import { transformFilter } from "./transformFilter";
 
 function removeSummarySuffix(resource: string) {
   return resource.endsWith("_summary")

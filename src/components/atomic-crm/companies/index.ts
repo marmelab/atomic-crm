@@ -1,7 +1,7 @@
-import { CompanyList } from "@/components/atomic-crm/companies/CompanyList";
-import { CompanyCreate } from "@/components/atomic-crm/companies/CompanyCreate";
-import { CompanyShow } from "@/components/atomic-crm/companies/CompanyShow";
-import { CompanyEdit } from "@/components/atomic-crm/companies/CompanyEdit";
+import { CompanyList } from "./CompanyList";
+import { CompanyCreate } from "./CompanyCreate";
+import { CompanyShow } from "./CompanyShow";
+import { CompanyEdit } from "./CompanyEdit";
 
 export default {
   list: CompanyList,

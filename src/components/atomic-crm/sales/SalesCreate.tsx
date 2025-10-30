@@ -3,9 +3,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useMutation } from "@tanstack/react-query";
 import { useDataProvider, useNotify, useRedirect } from "ra-core";
 import type { SubmitHandler } from "react-hook-form";
-import type { CrmDataProvider } from "@/components/atomic-crm/providers/types";
-import type { SalesFormData } from "@/components/atomic-crm/types";
-import { SalesInputs } from "@/components/atomic-crm/sales/SalesInputs";
+import type { CrmDataProvider } from "../providers/types";
+import type { SalesFormData } from "../types";
+import { SalesInputs } from "./SalesInputs";
 
 export function SalesCreate() {
   const dataProvider = useDataProvider<CrmDataProvider>();

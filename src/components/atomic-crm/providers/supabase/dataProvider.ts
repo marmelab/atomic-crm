@@ -17,12 +17,12 @@ import type {
   Sale,
   SalesFormData,
   SignUpData,
-} from "@/components/atomic-crm/types";
-import { getActivityLog } from "@/components/atomic-crm/providers/commons/activity";
-import { getCompanyAvatar } from "@/components/atomic-crm/providers/commons/getCompanyAvatar";
-import { getContactAvatar } from "@/components/atomic-crm/providers/commons/getContactAvatar";
-import { getIsInitialized } from "@/components/atomic-crm/providers/supabase/authProvider";
-import { supabase } from "@/components/atomic-crm/providers/supabase/supabase";
+} from "../../types";
+import { getActivityLog } from "../commons/activity";
+import { getCompanyAvatar } from "../commons/getCompanyAvatar";
+import { getContactAvatar } from "../commons/getContactAvatar";
+import { getIsInitialized } from "./authProvider";
+import { supabase } from "./supabase";
 
 if (import.meta.env.VITE_SUPABASE_URL === undefined) {
   throw new Error("Please set the VITE_SUPABASE_URL environment variable");

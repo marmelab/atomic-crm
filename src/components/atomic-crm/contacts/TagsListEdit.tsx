@@ -9,11 +9,10 @@ import {
 import { Edit, Plus } from "lucide-react";
 import type { Identifier } from "ra-core";
 import { useGetList, useGetMany, useRecordContext, useUpdate } from "ra-core";
-import * as React from "react";
-import { useState } from "react";
-import { TagChip } from "@/components/atomic-crm/tags/TagChip";
-import { TagCreateModal } from "@/components/atomic-crm/tags/TagCreateModal";
-import type { Contact, Tag } from "@/components/atomic-crm/types";
+import { useCallback, useState } from "react";
+import { TagChip } from "../tags/TagChip";
+import { TagCreateModal } from "../tags/TagCreateModal";
+import type { Contact, Tag } from "../types";
 
 export const TagsListEdit = () => {
   const record = useRecordContext<Contact>();
@@ -68,7 +67,7 @@ export const TagsListEdit = () => {
     setOpen(false);
   };
 
-  const handleTagCreated = React.useCallback(
+  const handleTagCreated = useCallback(
     async (tag: Tag) => {
       if (!record) {
         throw new Error("No contact record found");

@@ -1,8 +1,8 @@
 import { datatype, lorem, random } from "faker/locale/en_US";
-import { defaultTaskTypes } from "@/components/atomic-crm/root/defaultConfiguration";
-import type { Task } from "@/components/atomic-crm/types";
-import type { Db } from "@/components/atomic-crm/providers/fakerest/dataGenerator/types";
-import { randomDate } from "@/components/atomic-crm/providers/fakerest/dataGenerator/utils";
+import { defaultTaskTypes } from "../../../root/defaultConfiguration";
+import type { Task } from "../../../types";
+import type { Db } from "./types";
+import { randomDate } from "./utils";
 
 type TaskType = (typeof defaultTaskTypes)[number];
 

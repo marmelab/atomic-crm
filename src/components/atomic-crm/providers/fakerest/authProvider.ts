@@ -1,7 +1,7 @@
 import type { AuthProvider } from "ra-core";
-import type { Sale } from "@/components/atomic-crm/types";
-import { canAccess } from "@/components/atomic-crm/providers/commons/canAccess";
-import { dataProvider } from "@/components/atomic-crm/providers/fakerest/dataProvider";
+import type { Sale } from "../../types";
+import { canAccess } from "../commons/canAccess";
+import { dataProvider } from "./dataProvider";
 
 export const DEFAULT_USER = {
   id: 0,

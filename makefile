@@ -89,9 +89,9 @@ doc-deploy:
 registry-build: ## build the shadcn registry
 	npm run registry:build
 
-registry-deploy: registry-build ## deploy the shadcn registry
+registry-deploy: registry-build ## Deploy the shadcn registry (Automatically done by CI/CD pipeline)
 	@(cd public/r && npx gh-pages -b gh-pages -s atomic-crm.json -e r -m "Deploy registry" --remove r)
 
-registry-gen: ## generate the shadcn registry
+registry-gen: ## Generate the shadcn registry (ran automatically by a pre-commit hook)
 	npm run registry:gen
 	npx prettier --config ./.prettierrc.mjs --write "registry.json"

@@ -12,8 +12,8 @@ import {
 import { useFormContext } from "react-hook-form";
 import { SaveButton } from "@/components/admin";
 import { cn } from "@/lib/utils";
-import { NoteInputs } from "@/components/atomic-crm/notes/NoteInputs";
-import { getCurrentDate } from "@/components/atomic-crm/notes/utils";
+import { NoteInputs } from "./NoteInputs";
+import { getCurrentDate } from "./utils";
 
 const foreignKeyMapping = {
   contacts: "contact_id",

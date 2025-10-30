@@ -2,8 +2,8 @@ import { useDataProvider } from "ra-core";
 import { useQuery } from "@tanstack/react-query";
 import { Navigate } from "react-router-dom";
 import { LoginPage } from "@/components/admin";
-import type { CrmDataProvider } from "@/components/atomic-crm/providers/types";
-import { LoginSkeleton } from "@/components/atomic-crm/login/LoginSkeleton";
+import type { CrmDataProvider } from "../providers/types";
+import { LoginSkeleton } from "./LoginSkeleton";
 
 export const StartPage = () => {
   const dataProvider = useDataProvider<CrmDataProvider>();

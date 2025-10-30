@@ -3,7 +3,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import type { ReactNode } from "react";
 import { Suspense } from "react";
 import { ErrorBoundary } from "react-error-boundary";
-import Header from "@/components/atomic-crm/layout/Header";
+import Header from "./Header";
 
 export const Layout = ({ children }: { children: ReactNode }) => (
   <>

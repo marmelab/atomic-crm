@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Upload } from "lucide-react";
 import { useState } from "react";
-import { ContactImportDialog } from "@/components/atomic-crm/contacts/ContactImportDialog";
+import { ContactImportDialog } from "./ContactImportDialog";
 
 export const ContactImportButton = () => {
   const [modalOpen, setModalOpen] = useState(false);

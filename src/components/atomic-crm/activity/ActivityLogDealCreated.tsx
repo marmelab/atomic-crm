@@ -1,8 +1,8 @@
 import { Link } from "react-router";
 import type { RaRecord } from "ra-core";
-import { RelativeDate } from "@/components/atomic-crm/misc/RelativeDate";
-import type { ActivityDealCreated } from "@/components/atomic-crm/types";
-import { useActivityLogContext } from "@/components/atomic-crm/activity/ActivityLogContext";
+import { RelativeDate } from "../misc/RelativeDate";
+import type { ActivityDealCreated } from "../types";
+import { useActivityLogContext } from "./ActivityLogContext";
 
 type ActivityLogDealCreatedProps = {
   activity: RaRecord & ActivityDealCreated;

@@ -8,9 +8,9 @@ import {
   SelectInput,
 } from "@/components/admin";
 import { Button } from "@/components/ui/button";
-import { Status } from "@/components/atomic-crm/misc/Status";
-import { useConfigurationContext } from "@/components/atomic-crm/root/ConfigurationContext";
-import { getCurrentDate } from "@/components/atomic-crm/notes/utils";
+import { Status } from "../misc/Status";
+import { useConfigurationContext } from "../root/ConfigurationContext";
+import { getCurrentDate } from "./utils";
 
 export const NoteInputs = ({ showStatus }: { showStatus?: boolean }) => {
   const { noteStatuses } = useConfigurationContext();

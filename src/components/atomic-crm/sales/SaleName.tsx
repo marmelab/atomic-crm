@@ -1,5 +1,5 @@
 import { useGetIdentity, useRecordContext } from "ra-core";
-import type { Sale } from "@/components/atomic-crm/types";
+import type { Sale } from "../types";
 
 export const SaleName = ({ sale }: { sale?: Sale }) => {
   const { identity, isPending } = useGetIdentity();

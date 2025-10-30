@@ -1,11 +1,7 @@
 /* eslint-disable react-refresh/only-export-components */
 import type { ReactNode } from "react";
 import { createContext, useContext } from "react";
-import type {
-  ContactGender,
-  DealStage,
-  NoteStatus,
-} from "@/components/atomic-crm/types";
+import type { ContactGender, DealStage, NoteStatus } from "../types";
 import {
   defaultCompanySectors,
   defaultContactGender,
@@ -17,7 +13,7 @@ import {
   defaultNoteStatuses,
   defaultTaskTypes,
   defaultTitle,
-} from "@/components/atomic-crm/root/defaultConfiguration";
+} from "./defaultConfiguration";
 
 // Define types for the context value
 export interface ConfigurationContextValue {

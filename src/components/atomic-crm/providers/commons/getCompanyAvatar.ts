@@ -1,4 +1,4 @@
-import type { Company } from "@/components/atomic-crm/";
+import type { Company } from "../../types";
 
 // Main function to get the avatar URL
 export async function getCompanyAvatar(record: Partial<Company>): Promise<{

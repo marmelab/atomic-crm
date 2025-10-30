@@ -32,8 +32,8 @@ import {
   useUpdate,
 } from "ra-core";
 import { useState } from "react";
-import { contactOptionText } from "@/components/atomic-crm/misc/ContactOption";
-import { useConfigurationContext } from "@/components/atomic-crm/root/ConfigurationContext";
+import { contactOptionText } from "../misc/ContactOption";
+import { useConfigurationContext } from "../root/ConfigurationContext";
 
 export const AddTask = ({
   selectContact,

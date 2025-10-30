@@ -7,7 +7,7 @@ import {
 } from "@/components/admin";
 import { Badge } from "@/components/ui/badge";
 import { useRecordContext } from "ra-core";
-import { TopToolbar } from "@/components/atomic-crm/layout/TopToolbar";
+import { TopToolbar } from "../layout/TopToolbar";
 
 const SalesListActions = () => (
   <TopToolbar>

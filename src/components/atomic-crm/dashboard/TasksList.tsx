@@ -7,9 +7,9 @@ import {
   startOfToday,
 } from "date-fns";
 import { CheckSquare } from "lucide-react";
-import { AddTask } from "@/components/atomic-crm/tasks/AddTask";
-import { TasksListEmpty } from "@/components/atomic-crm/dashboard/TasksListEmpty";
-import { TasksListFilter } from "@/components/atomic-crm/dashboard/TasksListFilter";
+import { AddTask } from "../tasks/AddTask";
+import { TasksListEmpty } from "./TasksListEmpty";
+import { TasksListFilter } from "./TasksListFilter";
 
 const today = new Date();
 const todayDayOfWeek = getDay(today);

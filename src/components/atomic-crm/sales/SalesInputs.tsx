@@ -1,6 +1,6 @@
 import { BooleanInput, TextInput } from "@/components/admin";
 import { email, required, useGetIdentity, useRecordContext } from "ra-core";
-import type { Sale } from "@/components/atomic-crm/types";
+import type { Sale } from "../types";
 
 export function SalesInputs() {
   const { identity } = useGetIdentity();

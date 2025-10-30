@@ -7,11 +7,11 @@ import { DollarSign } from "lucide-react";
 import { useGetIdentity, useGetList } from "ra-core";
 import { ReferenceField } from "@/components/admin";
 import { Link } from "react-router";
-import { SimpleList } from "@/components/atomic-crm/simple-list/SimpleList";
-import { CompanyAvatar } from "@/components/atomic-crm/companies/CompanyAvatar";
-import { findDealLabel } from "@/components/atomic-crm/deals/deal";
-import { useConfigurationContext } from "@/components/atomic-crm/root/ConfigurationContext";
-import type { Deal } from "@/components/atomic-crm/types";
+import { SimpleList } from "../simple-list/SimpleList";
+import { CompanyAvatar } from "../companies/CompanyAvatar";
+import { findDealLabel } from "../deals/deal";
+import { useConfigurationContext } from "../root/ConfigurationContext";
+import type { Deal } from "../types";
 
 export const DealsPipeline = () => {
   const { identity } = useGetIdentity();
