@@ -12,11 +12,11 @@ import {
   ArrayInput,
 } from "@/components/admin";
 import { SimpleFormIterator } from "@/components/admin";
-import { isLinkedinUrl } from "@/components/atomic-crm/misc/isLinkedInUrl";
-import { useConfigurationContext } from "@/components/atomic-crm/root/ConfigurationContext";
-import type { Sale } from "@/components/atomic-crm/types";
-import { Avatar } from "@/components/atomic-crm/contacts/Avatar";
-import { AutocompleteCompanyInput } from "@/components/atomic-crm/companies/AutocompleteCompanyInput.tsx";
+import { isLinkedinUrl } from "../misc/isLinkedInUrl";
+import { useConfigurationContext } from "../root/ConfigurationContext";
+import type { Sale } from "../types";
+import { Avatar } from "./Avatar";
+import { AutocompleteCompanyInput } from "../companies/AutocompleteCompanyInput.tsx";
 
 export const ContactInputs = () => {
   const isMobile = useIsMobile();

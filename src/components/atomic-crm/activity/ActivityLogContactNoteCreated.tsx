@@ -1,14 +1,11 @@
 import { ReferenceField, TextField } from "@/components/admin";
 import { useRecordContext } from "ra-core";
-import { Avatar } from "@/components/atomic-crm/contacts/Avatar";
-import { RelativeDate } from "@/components/atomic-crm/misc/RelativeDate";
-import { SaleName } from "@/components/atomic-crm/sales/SaleName";
-import type {
-  ActivityContactNoteCreated,
-  Contact,
-} from "@/components/atomic-crm/types";
-import { useActivityLogContext } from "@/components/atomic-crm/activity/ActivityLogContext";
-import { ActivityLogNote } from "@/components/atomic-crm/activity/ActivityLogNote";
+import { Avatar } from "../contacts/Avatar";
+import { RelativeDate } from "../misc/RelativeDate";
+import { SaleName } from "../sales/SaleName";
+import type { ActivityContactNoteCreated, Contact } from "../types";
+import { useActivityLogContext } from "./ActivityLogContext";
+import { ActivityLogNote } from "./ActivityLogNote";
 
 type ActivityLogContactNoteCreatedProps = {
   activity: ActivityContactNoteCreated;

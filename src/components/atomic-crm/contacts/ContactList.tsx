@@ -9,17 +9,12 @@ import {
   SortButton,
 } from "@/components/admin";
 import { Card } from "@/components/ui/card";
-import type {
-  Company,
-  Contact,
-  Sale,
-  Tag,
-} from "@/components/atomic-crm/types";
-import { ContactEmpty } from "@/components/atomic-crm/contacts/ContactEmpty";
-import { ContactImportButton } from "@/components/atomic-crm/contacts/ContactImportButton";
-import { ContactListContent } from "@/components/atomic-crm/contacts/ContactListContent";
-import { ContactListFilter } from "@/components/atomic-crm/contacts/ContactListFilter";
-import { TopToolbar } from "@/components/atomic-crm/layout/TopToolbar";
+import type { Company, Contact, Sale, Tag } from "../types";
+import { ContactEmpty } from "./ContactEmpty";
+import { ContactImportButton } from "./ContactImportButton";
+import { ContactListContent } from "./ContactListContent";
+import { ContactListFilter } from "./ContactListFilter";
+import { TopToolbar } from "../layout/TopToolbar";
 
 export const ContactList = () => {
   const { identity } = useGetIdentity();

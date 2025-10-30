@@ -7,7 +7,7 @@ import type {
   Sale,
   Tag,
   Task,
-} from "@/components/atomic-crm/types";
+} from "../../../types";
 
 export interface Db {
   companies: Required<Company>[];

@@ -1,5 +1,5 @@
 import { cn } from "@/lib/utils.ts";
-import { useConfigurationContext } from "@/components/atomic-crm/root/ConfigurationContext";
+import { useConfigurationContext } from "../root/ConfigurationContext";
 
 export const Status = ({
   status,

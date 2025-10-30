@@ -9,10 +9,10 @@ import {
   UrlField,
   SelectField,
 } from "@/components/admin";
-import { AsideSection } from "@/components/atomic-crm/misc/AsideSection";
-import { SaleName } from "@/components/atomic-crm/sales/SaleName";
-import type { Company } from "@/components/atomic-crm/types";
-import { sizes } from "@/components/atomic-crm/companies/sizes";
+import { AsideSection } from "../misc/AsideSection";
+import { SaleName } from "../sales/SaleName";
+import type { Company } from "../types";
+import { sizes } from "./sizes";
 
 interface CompanyAsideProps {
   link?: string;

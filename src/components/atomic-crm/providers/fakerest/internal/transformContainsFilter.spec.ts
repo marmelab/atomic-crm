@@ -2,7 +2,7 @@
 import {
   CONTAINS_FILTER_REGEX,
   transformContainsFilter,
-} from "@/components/atomic-crm/providers/fakerest/internal/transformContainsFilter";
+} from "./transformContainsFilter";
 
 it("should throw an error if the filter is not a string", () => {
   expect(() => transformContainsFilter(1)).toThrow(

@@ -1,10 +1,10 @@
 import { Link } from "react-router";
 import { ReferenceField } from "@/components/admin";
-import { CompanyAvatar } from "@/components/atomic-crm/companies/CompanyAvatar";
-import { RelativeDate } from "@/components/atomic-crm/misc/RelativeDate";
-import { SaleName } from "@/components/atomic-crm/sales/SaleName";
-import type { ActivityCompanyCreated } from "@/components/atomic-crm/types";
-import { useActivityLogContext } from "@/components/atomic-crm/activity/ActivityLogContext";
+import { CompanyAvatar } from "../companies/CompanyAvatar";
+import { RelativeDate } from "../misc/RelativeDate";
+import { SaleName } from "../sales/SaleName";
+import type { ActivityCompanyCreated } from "../types";
+import { useActivityLogContext } from "./ActivityLogContext";
 
 type ActivityLogCompanyCreatedProps = {
   activity: ActivityCompanyCreated;

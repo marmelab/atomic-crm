@@ -1,4 +1,4 @@
-import type { Db } from "@/components/atomic-crm/providers/fakerest/dataGenerator/types";
+import type { Db } from "./types";
 
 const tags = [
   { id: 0, name: "football-fan", color: "#eddcd2" },

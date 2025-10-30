@@ -1,7 +1,7 @@
 import { isAfter } from "date-fns";
 import { useListContext } from "ra-core";
 
-import { Task } from "@/components/atomic-crm/tasks/Task";
+import { Task } from "./Task";
 
 export const TasksIterator = ({
   showContact,

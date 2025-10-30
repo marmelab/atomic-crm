@@ -6,10 +6,10 @@ import {
   ListPagination,
   SortButton,
 } from "@/components/admin";
-import { TopToolbar } from "@/components/atomic-crm/layout/TopToolbar";
-import { CompanyEmpty } from "@/components/atomic-crm/companies/CompanyEmpty";
-import { CompanyListFilter } from "@/components/atomic-crm/companies/CompanyListFilter";
-import { ImageList } from "@/components/atomic-crm/companies/GridList";
+import { TopToolbar } from "../layout/TopToolbar";
+import { CompanyEmpty } from "./CompanyEmpty";
+import { CompanyListFilter } from "./CompanyListFilter";
+import { ImageList } from "./GridList";
 
 export const CompanyList = () => {
   const { identity } = useGetIdentity();

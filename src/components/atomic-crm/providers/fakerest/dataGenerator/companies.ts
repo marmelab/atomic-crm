@@ -7,10 +7,10 @@ import {
   phone,
   random,
 } from "faker/locale/en_US";
-import { randomDate } from "@/components/atomic-crm/providers/fakerest/dataGenerator/utils";
-import { defaultCompanySectors } from "@/components/atomic-crm/root/defaultConfiguration";
-import type { Company, RAFile } from "@/components/atomic-crm/types";
-import type { Db } from "@/components/atomic-crm/providers/fakerest/dataGenerator/types";
+import { randomDate } from "./utils";
+import { defaultCompanySectors } from "../../../root/defaultConfiguration";
+import type { Company, RAFile } from "../../../types";
+import type { Db } from "./types";
 
 const sizes = [1, 10, 50, 250, 500];
 

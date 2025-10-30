@@ -1,8 +1,8 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { CreateBase, Form, useGetIdentity } from "ra-core";
 import { FormToolbar } from "@/components/admin";
-import type { Contact } from "@/components/atomic-crm/types";
-import { ContactInputs } from "@/components/atomic-crm/contacts/ContactInputs";
+import type { Contact } from "../types";
+import { ContactInputs } from "./ContactInputs";
 
 export const ContactCreate = () => {
   const { identity } = useGetIdentity();

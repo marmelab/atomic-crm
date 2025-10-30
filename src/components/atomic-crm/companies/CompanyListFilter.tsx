@@ -1,9 +1,9 @@
 import { Building, Truck, Users } from "lucide-react";
 import { FilterLiveForm, useGetIdentity } from "ra-core";
 import { ToggleFilterButton, SearchInput } from "@/components/admin";
-import { FilterCategory } from "@/components/atomic-crm/filters/FilterCategory";
-import { useConfigurationContext } from "@/components/atomic-crm/root/ConfigurationContext";
-import { sizes } from "@/components/atomic-crm/companies/sizes";
+import { FilterCategory } from "../filters/FilterCategory";
+import { useConfigurationContext } from "../root/ConfigurationContext";
+import { sizes } from "./sizes";
 
 export const CompanyListFilter = () => {
   const { identity } = useGetIdentity();

@@ -2,8 +2,8 @@
  * @jest-environment node
  */
 
-import type { Company } from "@/components/atomic-crm/types";
-import { getCompanyAvatar } from "@/components/atomic-crm/providers/commons/getCompanyAvatar";
+import type { Company } from "../../types";
+import { getCompanyAvatar } from "./getCompanyAvatar";
 
 it("should return favicon URL if website url exist", async () => {
   const website = "https://example.com";

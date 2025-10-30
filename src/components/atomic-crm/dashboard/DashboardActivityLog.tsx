@@ -1,6 +1,6 @@
 import { Card } from "@/components/ui/card";
 import { Clock } from "lucide-react";
-import { ActivityLog } from "@/components/atomic-crm/activity//ActivityLog";
+import { ActivityLog } from "../activity//ActivityLog";
 
 export function DashboardActivityLog() {
   return (

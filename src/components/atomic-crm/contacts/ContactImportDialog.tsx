@@ -9,13 +9,13 @@ import {
 import { Loader2 } from "lucide-react";
 import { Form, useRefresh } from "ra-core";
 import { Link } from "react-router";
-import { usePapaParse } from "@/components/atomic-crm/misc/usePapaParse";
-import type { ContactImportSchema } from "@/components/atomic-crm/contacts/useContactImport";
-import { useContactImport } from "@/components/atomic-crm/contacts/useContactImport";
+import { usePapaParse } from "../misc/usePapaParse";
+import type { ContactImportSchema } from "./useContactImport";
+import { useContactImport } from "./useContactImport";
 import { FormToolbar, FileInput, FileField } from "@/components/admin";
 import * as React from "react";
 import { useEffect, useState } from "react";
-import * as sampleCsv from "@/components/atomic-crm/contacts/contacts_export.csv?raw";
+import * as sampleCsv from "./contacts_export.csv?raw";
 
 const SAMPLE_URL = `data:text/csv;name=crm_contacts_sample.csv;charset=utf-8,${encodeURIComponent(
   sampleCsv.default,

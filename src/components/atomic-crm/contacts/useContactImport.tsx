@@ -1,7 +1,7 @@
 import type { DataProvider } from "ra-core";
 import { useDataProvider, useGetIdentity } from "ra-core";
 import { useCallback, useMemo } from "react";
-import type { Company, Tag } from "@/components/atomic-crm/types";
+import type { Company, Tag } from "../types";
 
 export type ContactImportSchema = {
   first_name: string;

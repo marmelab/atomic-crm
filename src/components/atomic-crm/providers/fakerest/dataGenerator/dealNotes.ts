@@ -1,6 +1,6 @@
 import { datatype, lorem, random } from "faker/locale/en_US";
-import type { Db } from "@/components/atomic-crm/providers/fakerest/dataGenerator/types";
-import { randomDate } from "@/components/atomic-crm/providers/fakerest/dataGenerator/utils";
+import type { Db } from "./types";
+import { randomDate } from "./utils";
 
 export const generateDealNotes = (db: Db) => {
   return Array.from(Array(300).keys()).map((id) => {

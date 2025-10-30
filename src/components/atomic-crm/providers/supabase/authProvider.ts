@@ -2,8 +2,8 @@
 /* eslint-disable @typescript-eslint/no-namespace */
 import type { AuthProvider } from "ra-core";
 import { supabaseAuthProvider } from "ra-supabase-core";
-import { canAccess } from "@/components/atomic-crm/providers/commons/canAccess";
-import { supabase } from "@/components/atomic-crm/providers/supabase/supabase";
+import { canAccess } from "../commons/canAccess";
+import { supabase } from "./supabase";
 
 const baseAuthProvider = supabaseAuthProvider(supabase, {
   getIdentity: async () => {

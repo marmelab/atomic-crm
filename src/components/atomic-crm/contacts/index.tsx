@@ -1,8 +1,8 @@
-import type { Contact } from "@/components/atomic-crm/types";
-import { ContactCreate } from "@/components/atomic-crm/contacts/ContactCreate";
-import { ContactEdit } from "@/components/atomic-crm/contacts/ContactEdit";
-import { ContactList } from "@/components/atomic-crm/contacts/ContactList";
-import { ContactShow } from "@/components/atomic-crm/contacts/ContactShow";
+import type { Contact } from "../types";
+import { ContactCreate } from "./ContactCreate";
+import { ContactEdit } from "./ContactEdit";
+import { ContactList } from "./ContactList";
+import { ContactShow } from "./ContactShow";
 
 export default {
   list: ContactList,

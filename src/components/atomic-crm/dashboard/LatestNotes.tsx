@@ -3,7 +3,7 @@ import { formatDistance } from "date-fns";
 import { FileText } from "lucide-react";
 import { useGetIdentity, useGetList } from "ra-core";
 import { ReferenceField, TextField } from "@/components/admin";
-import type { Contact, ContactNote } from "@/components/atomic-crm/types";
+import type { Contact, ContactNote } from "../types";
 
 export const LatestNotes = () => {
   const { identity } = useGetIdentity();

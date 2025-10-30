@@ -1,6 +1,6 @@
 import { useUpdate } from "ra-core";
-import type { Tag } from "@/components/atomic-crm/types";
-import { TagDialog } from "@/components/atomic-crm/tags/TagDialog";
+import type { Tag } from "../types";
+import { TagDialog } from "./TagDialog";
 
 type TagEditModalProps = {
   tag: Tag;

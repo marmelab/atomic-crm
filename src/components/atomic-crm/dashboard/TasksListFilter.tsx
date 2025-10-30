@@ -5,7 +5,7 @@ import {
   useGetList,
   useList,
 } from "ra-core";
-import { TasksIterator } from "@/components/atomic-crm/tasks/TasksIterator";
+import { TasksIterator } from "../tasks/TasksIterator";
 
 export const TasksListFilter = ({
   title,

@@ -8,11 +8,11 @@ import {
 import { Separator } from "@/components/ui/separator";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { required, useRecordContext } from "ra-core";
-import ImageEditorField from "@/components/atomic-crm/misc/ImageEditorField";
-import { isLinkedinUrl } from "@/components/atomic-crm/misc/isLinkedInUrl";
-import { useConfigurationContext } from "@/components/atomic-crm/root/ConfigurationContext";
-import type { Company, Sale } from "@/components/atomic-crm/types";
-import { sizes } from "@/components/atomic-crm/companies/sizes";
+import ImageEditorField from "../misc/ImageEditorField";
+import { isLinkedinUrl } from "../misc/isLinkedInUrl";
+import { useConfigurationContext } from "../root/ConfigurationContext";
+import type { Company, Sale } from "../types";
+import { sizes } from "./sizes";
 
 const isUrl = (url: string) => {
   if (!url) return;

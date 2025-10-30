@@ -15,17 +15,14 @@ import type {
   SalesFormData,
   SignUpData,
   Task,
-} from "@/components/atomic-crm/types";
-import { getActivityLog } from "@/components/atomic-crm/providers/commons/activity";
-import { getCompanyAvatar } from "@/components/atomic-crm/providers/commons/getCompanyAvatar";
-import { getContactAvatar } from "@/components/atomic-crm/providers/commons/getContactAvatar";
-import type { CrmDataProvider } from "@/components/atomic-crm/providers/types";
-import {
-  authProvider,
-  USER_STORAGE_KEY,
-} from "@/components/atomic-crm/providers/fakerest/authProvider";
-import generateData from "@/components/atomic-crm/providers/fakerest/dataGenerator";
-import { withSupabaseFilterAdapter } from "@/components/atomic-crm/providers/fakerest/internal/supabaseAdapter";
+} from "../../types";
+import { getActivityLog } from "../commons/activity";
+import { getCompanyAvatar } from "../commons/getCompanyAvatar";
+import { getContactAvatar } from "../commons/getContactAvatar";
+import type { CrmDataProvider } from "../types";
+import { authProvider, USER_STORAGE_KEY } from "./authProvider";
+import generateData from "./dataGenerator";
+import { withSupabaseFilterAdapter } from "./internal/supabaseAdapter";
 
 const baseDataProvider = fakeRestDataProvider(generateData(), true, 300);
 

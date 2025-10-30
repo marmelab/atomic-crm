@@ -10,14 +10,14 @@ import {
 } from "ra-core";
 import { isValidElement, type ReactElement } from "react";
 
-import { ListNoResults } from "@/components/atomic-crm/simple-list/ListNoResults.tsx";
-import type { FunctionToElement } from "@/components/atomic-crm/simple-list/SimpleListItem.tsx";
+import { ListNoResults } from "./ListNoResults.tsx";
+import type { FunctionToElement } from "./SimpleListItem.tsx";
 import {
   type SimpleListBaseProps,
   SimpleListItem,
   type SimpleListItemProps,
-} from "@/components/atomic-crm/simple-list/SimpleListItem.tsx";
-import { SimpleListLoading } from "@/components/atomic-crm/simple-list/SimpleListLoading.tsx";
+} from "./SimpleListItem.tsx";
+import { SimpleListLoading } from "./SimpleListLoading.tsx";
 
 /**
  * The <SimpleList> component renders a list of records

@@ -3,9 +3,9 @@ import { endOfYesterday, startOfMonth, startOfWeek, subMonths } from "date-fns";
 import { CheckSquare, Clock, Tag, TrendingUp, Users } from "lucide-react";
 import { FilterLiveForm, useGetIdentity, useGetList } from "ra-core";
 import { ToggleFilterButton, SearchInput } from "@/components/admin";
-import { FilterCategory } from "@/components/atomic-crm/filters/FilterCategory";
-import { Status } from "@/components/atomic-crm/misc/Status";
-import { useConfigurationContext } from "@/components/atomic-crm/root/ConfigurationContext";
+import { FilterCategory } from "../filters/FilterCategory";
+import { Status } from "../misc/Status";
+import { useConfigurationContext } from "../root/ConfigurationContext";
 
 export const ContactListFilter = () => {
   const { noteStatuses } = useConfigurationContext();

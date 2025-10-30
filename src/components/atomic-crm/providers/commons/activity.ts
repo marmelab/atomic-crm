@@ -5,7 +5,7 @@ import {
   CONTACT_NOTE_CREATED,
   DEAL_CREATED,
   DEAL_NOTE_CREATED,
-} from "@/components/atomic-crm/consts";
+} from "../../consts";
 import type {
   Activity,
   Company,
@@ -13,7 +13,7 @@ import type {
   ContactNote,
   Deal,
   DealNote,
-} from "@/components/atomic-crm/types";
+} from "../../types";
 
 // FIXME: Requires 5 large queries to get the latest activities.
 // Replace with a server-side view or a custom API endpoint.

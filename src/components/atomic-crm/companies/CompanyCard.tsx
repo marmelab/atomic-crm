@@ -3,9 +3,9 @@ import { Link } from "react-router";
 import { useCreatePath, useListContext, useRecordContext } from "ra-core";
 import { ReferenceManyField } from "@/components/admin";
 import { Card } from "@/components/ui/card";
-import { Avatar as ContactAvatar } from "@/components/atomic-crm/contacts/Avatar";
-import type { Company } from "@/components/atomic-crm/types";
-import { CompanyAvatar } from "@/components/atomic-crm/companies/CompanyAvatar";
+import { Avatar as ContactAvatar } from "../contacts/Avatar";
+import type { Company } from "../types";
+import { CompanyAvatar } from "./CompanyAvatar";
 
 export const CompanyCard = (props: { record?: Company }) => {
   const createPath = useCreatePath();

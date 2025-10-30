@@ -17,14 +17,14 @@ import {
 import { useState } from "react";
 import type { FieldValues, SubmitHandler } from "react-hook-form";
 import { ReferenceField } from "@/components/admin";
-import { CompanyAvatar } from "@/components/atomic-crm/companies/CompanyAvatar";
-import { Avatar } from "@/components/atomic-crm/contacts/Avatar";
-import { RelativeDate } from "@/components/atomic-crm/misc/RelativeDate";
-import { Status } from "@/components/atomic-crm/misc/Status";
-import { SaleName } from "@/components/atomic-crm/sales/SaleName";
-import type { ContactNote, DealNote } from "@/components/atomic-crm/types";
-import { NoteAttachments } from "@/components/atomic-crm/notes/NoteAttachments";
-import { NoteInputs } from "@/components/atomic-crm/notes/NoteInputs";
+import { CompanyAvatar } from "../companies/CompanyAvatar";
+import { Avatar } from "../contacts/Avatar";
+import { RelativeDate } from "../misc/RelativeDate";
+import { Status } from "../misc/Status";
+import { SaleName } from "../sales/SaleName";
+import type { ContactNote, DealNote } from "../types";
+import { NoteAttachments } from "./NoteAttachments";
+import { NoteInputs } from "./NoteInputs";
 
 export const Note = ({
   showStatus,

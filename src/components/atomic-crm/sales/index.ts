@@ -1,7 +1,7 @@
-import type { Sale } from "@/components/atomic-crm/types";
-import { SalesCreate } from "@/components/atomic-crm/sales/SalesCreate";
-import { SalesEdit } from "@/components/atomic-crm/sales/SalesEdit";
-import { SalesList } from "@/components/atomic-crm/sales/SalesList";
+import type { Sale } from "../types";
+import { SalesCreate } from "./SalesCreate";
+import { SalesEdit } from "./SalesEdit";
+import { SalesList } from "./SalesList";
 
 export default {
   list: SalesList,

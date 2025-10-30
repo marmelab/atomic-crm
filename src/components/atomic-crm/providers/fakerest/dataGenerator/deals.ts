@@ -3,10 +3,10 @@ import { datatype, lorem, random } from "faker/locale/en_US";
 import {
   defaultDealCategories,
   defaultDealStages,
-} from "@/components/atomic-crm/root/defaultConfiguration";
-import type { Deal } from "@/components/atomic-crm/types";
-import type { Db } from "@/components/atomic-crm/providers/fakerest/dataGenerator/types";
-import { randomDate } from "@/components/atomic-crm/providers/fakerest/dataGenerator/utils";
+} from "../../../root/defaultConfiguration";
+import type { Deal } from "../../../types";
+import type { Db } from "./types";
+import { randomDate } from "./utils";
 
 export const generateDeals = (db: Db): Deal[] => {
   const deals = Array.from(Array(50).keys()).map((id) => {

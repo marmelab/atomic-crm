@@ -1,9 +1,5 @@
 import { Paperclip } from "lucide-react";
-import type {
-  AttachmentNote,
-  ContactNote,
-  DealNote,
-} from "@/components/atomic-crm/types";
+import type { AttachmentNote, ContactNote, DealNote } from "../types";
 
 export const NoteAttachments = ({ note }: { note: ContactNote | DealNote }) => {
   if (!note.attachments || note.attachments.length === 0) {

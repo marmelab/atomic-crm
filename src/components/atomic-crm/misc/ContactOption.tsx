@@ -1,6 +1,6 @@
 import { useRecordContext } from "ra-core";
-import { Avatar } from "@/components/atomic-crm/contacts/Avatar";
-import type { Contact } from "@/components/atomic-crm/types";
+import { Avatar } from "../contacts/Avatar";
+import type { Contact } from "../types";
 
 // eslint-disable-next-line react-refresh/only-export-components
 const ContactOptionRender = () => {

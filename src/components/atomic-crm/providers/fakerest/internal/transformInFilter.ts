@@ -1,7 +1,4 @@
-import {
-  LIST_REGEX_BASE,
-  parseList,
-} from "@/components/atomic-crm/providers/fakerest/internal/listParser";
+import { LIST_REGEX_BASE, parseList } from "./listParser";
 
 export const IN_FILTER_REGEX = new RegExp(`^\\(${LIST_REGEX_BASE}\\)$`);
 

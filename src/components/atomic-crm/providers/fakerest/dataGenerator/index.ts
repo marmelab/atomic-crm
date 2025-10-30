@@ -1,13 +1,13 @@
-import { generateCompanies } from "@/components/atomic-crm/providers/fakerest/dataGenerator/companies";
-import { generateContactNotes } from "@/components/atomic-crm/providers/fakerest/dataGenerator/contactNotes";
-import { generateContacts } from "@/components/atomic-crm/providers/fakerest/dataGenerator/contacts";
-import { generateDealNotes } from "@/components/atomic-crm/providers/fakerest/dataGenerator/dealNotes";
-import { generateDeals } from "@/components/atomic-crm/providers/fakerest/dataGenerator/deals";
-import { finalize } from "@/components/atomic-crm/providers/fakerest/dataGenerator/finalize";
-import { generateSales } from "@/components/atomic-crm/providers/fakerest/dataGenerator/sales";
-import { generateTags } from "@/components/atomic-crm/providers/fakerest/dataGenerator/tags";
-import { generateTasks } from "@/components/atomic-crm/providers/fakerest/dataGenerator/tasks";
-import type { Db } from "@/components/atomic-crm/providers/fakerest/dataGenerator/types";
+import { generateCompanies } from "./companies";
+import { generateContactNotes } from "./contactNotes";
+import { generateContacts } from "./contacts";
+import { generateDealNotes } from "./dealNotes";
+import { generateDeals } from "./deals";
+import { finalize } from "./finalize";
+import { generateSales } from "./sales";
+import { generateTags } from "./tags";
+import { generateTasks } from "./tasks";
+import type { Db } from "./types";
 
 export default (): Db => {
   const db = {} as Db;

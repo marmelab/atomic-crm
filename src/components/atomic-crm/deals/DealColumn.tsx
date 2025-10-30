@@ -1,8 +1,8 @@
 import { Droppable } from "@hello-pangea/dnd";
-import { useConfigurationContext } from "@/components/atomic-crm/root/ConfigurationContext";
-import type { Deal } from "@/components/atomic-crm/types";
-import { findDealLabel } from "@/components/atomic-crm/deals/deal";
-import { DealCard } from "@/components/atomic-crm/deals/DealCard";
+import { useConfigurationContext } from "../root/ConfigurationContext";
+import type { Deal } from "../types";
+import { findDealLabel } from "./deal";
+import { DealCard } from "./DealCard";
 
 export const DealColumn = ({
   stage,

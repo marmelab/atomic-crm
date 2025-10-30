@@ -1,6 +1,6 @@
-import { transformContainsFilter } from "@/components/atomic-crm/providers/fakerest/internal/transformContainsFilter";
-import { transformInFilter } from "@/components/atomic-crm/providers/fakerest/internal/transformInFilter";
-import { transformOrFilter } from "@/components/atomic-crm/providers/fakerest/internal/transformOrFilter";
+import { transformContainsFilter } from "./transformContainsFilter";
+import { transformInFilter } from "./transformInFilter";
+import { transformOrFilter } from "./transformOrFilter";
 
 export function transformFilter(filter: Record<string, any>) {
   if (!filter) {

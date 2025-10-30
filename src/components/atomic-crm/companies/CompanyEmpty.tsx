@@ -1,5 +1,5 @@
 import { CreateButton } from "@/components/admin";
-import useAppBarHeight from "@/components/atomic-crm/misc/useAppBarHeight";
+import useAppBarHeight from "../misc/useAppBarHeight";
 
 export const CompanyEmpty = () => {
   const appbarHeight = useAppBarHeight();
@@ -10,10 +10,7 @@ export const CompanyEmpty = () => {
         height: `calc(100dvh - ${appbarHeight}px)`,
       }}
     >
-      <img
-        src="@/components/atomic-crm/dashboard/img/empty.svg"
-        alt="No companies found"
-      />
+      <img src="./img/empty.svg" alt="No companies found" />
       <div className="flex flex-col gap-0 items-center">
         <h6 className="text-lg font-bold">No companies found</h6>
         <p className="text-sm text-center text-muted-foreground mb-4">

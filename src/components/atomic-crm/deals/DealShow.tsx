@@ -22,13 +22,13 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Separator } from "@/components/ui/separator";
-import { CompanyAvatar } from "@/components/atomic-crm/companies/CompanyAvatar";
-import { NoteCreate } from "@/components/atomic-crm/notes/NoteCreate";
-import { NotesIterator } from "@/components/atomic-crm/notes/NotesIterator";
-import { useConfigurationContext } from "@/components/atomic-crm/root/ConfigurationContext";
-import type { Deal } from "@/components/atomic-crm/types";
-import { ContactList } from "@/components/atomic-crm/deals/ContactList";
-import { findDealLabel } from "@/components/atomic-crm/deals/deal";
+import { CompanyAvatar } from "../companies/CompanyAvatar";
+import { NoteCreate } from "../notes/NoteCreate";
+import { NotesIterator } from "../notes/NotesIterator";
+import { useConfigurationContext } from "../root/ConfigurationContext";
+import type { Deal } from "../types";
+import { ContactList } from "./ContactList";
+import { findDealLabel } from "./deal";
 
 export const DealShow = ({ open, id }: { open: boolean; id?: string }) => {
   const redirect = useRedirect();

@@ -4,7 +4,7 @@ import {
   Avatar as ShadcnAvatar,
 } from "@/components/ui/avatar";
 import { useRecordContext } from "ra-core";
-import type { Contact } from "@/components/atomic-crm/types";
+import type { Contact } from "../types";
 
 export const Avatar = (props: {
   record?: Contact;

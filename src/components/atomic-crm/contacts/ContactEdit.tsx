@@ -1,9 +1,9 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { EditBase, Form, useEditContext } from "ra-core";
-import type { Contact } from "@/components/atomic-crm/types";
-import { ContactAside } from "@/components/atomic-crm/contacts/ContactAside";
-import { ContactInputs } from "@/components/atomic-crm/contacts/ContactInputs";
-import { FormToolbar } from "@/components/atomic-crm/layout/FormToolbar";
+import type { Contact } from "../types";
+import { ContactAside } from "./ContactAside";
+import { ContactInputs } from "./ContactInputs";
+import { FormToolbar } from "../layout/FormToolbar";
 
 export const ContactEdit = () => (
   <EditBase redirect="show">

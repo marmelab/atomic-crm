@@ -1,11 +1,11 @@
 import { ReferenceField } from "@/components/admin";
 import type { RaRecord } from "ra-core";
-import { CompanyAvatar } from "@/components/atomic-crm/companies/CompanyAvatar";
-import { RelativeDate } from "@/components/atomic-crm/misc/RelativeDate";
-import { SaleName } from "@/components/atomic-crm/sales/SaleName";
-import type { ActivityDealNoteCreated } from "@/components/atomic-crm/types";
-import { useActivityLogContext } from "@/components/atomic-crm/activity/ActivityLogContext";
-import { ActivityLogNote } from "@/components/atomic-crm/activity/ActivityLogNote";
+import { CompanyAvatar } from "../companies/CompanyAvatar";
+import { RelativeDate } from "../misc/RelativeDate";
+import { SaleName } from "../sales/SaleName";
+import type { ActivityDealNoteCreated } from "../types";
+import { useActivityLogContext } from "./ActivityLogContext";
+import { ActivityLogNote } from "./ActivityLogNote";
 
 type ActivityLogDealNoteCreatedProps = {
   activity: RaRecord & ActivityDealNoteCreated;

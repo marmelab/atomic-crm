@@ -11,9 +11,9 @@ import {
   useRedirect,
 } from "ra-core";
 import type { SubmitHandler } from "react-hook-form";
-import type { CrmDataProvider } from "@/components/atomic-crm/providers/types";
-import type { Sale, SalesFormData } from "@/components/atomic-crm/types";
-import { SalesInputs } from "@/components/atomic-crm/sales/SalesInputs";
+import type { CrmDataProvider } from "../providers/types";
+import type { Sale, SalesFormData } from "../types";
+import { SalesInputs } from "./SalesInputs";
 
 function EditToolbar() {
   return (

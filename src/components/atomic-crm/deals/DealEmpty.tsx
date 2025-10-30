@@ -3,9 +3,9 @@ import { Progress } from "@/components/ui/progress";
 import { useGetList } from "ra-core";
 import { matchPath, useLocation } from "react-router";
 import { Link } from "react-router";
-import useAppBarHeight from "@/components/atomic-crm/misc/useAppBarHeight";
-import type { Contact } from "@/components/atomic-crm/types";
-import { DealCreate } from "@/components/atomic-crm/deals/DealCreate";
+import useAppBarHeight from "../misc/useAppBarHeight";
+import type { Contact } from "../types";
+import { DealCreate } from "./DealCreate";
 
 export const DealEmpty = ({ children }: { children?: React.ReactNode }) => {
   const location = useLocation();
@@ -29,10 +29,7 @@ export const DealEmpty = ({ children }: { children?: React.ReactNode }) => {
         height: `calc(100dvh - ${appbarHeight}px)`,
       }}
     >
-      <img
-        src="@/components/atomic-crm/dashboard/img/empty.svg"
-        alt="No deals found"
-      />
+      <img src="./img/empty.svg" alt="No deals found" />
       {contacts && contacts.length > 0 ? (
         <>
           <div className="flex flex-col items-center gap-0">

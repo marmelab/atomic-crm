@@ -11,8 +11,8 @@ import {
   useListContext,
   useRedirect,
 } from "ra-core";
-import type { Deal } from "@/components/atomic-crm/types";
-import { DealInputs } from "@/components/atomic-crm/deals/DealInputs";
+import type { Deal } from "../types";
+import { DealInputs } from "./DealInputs";
 
 export const DealCreate = ({ open }: { open: boolean }) => {
   const redirect = useRedirect();

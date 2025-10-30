@@ -11,9 +11,9 @@ import { cn } from "@/lib/utils";
 import { SaveIcon } from "lucide-react";
 import type { FormEvent } from "react";
 import { useEffect, useState } from "react";
-import type { Tag } from "@/components/atomic-crm/types";
-import { colors } from "@/components/atomic-crm/tags/colors";
-import { RoundButton } from "@/components/atomic-crm/tags/RoundButton";
+import type { Tag } from "../types";
+import { colors } from "./colors";
+import { RoundButton } from "./RoundButton";
 
 type TagDialogProps = {
   open: boolean;

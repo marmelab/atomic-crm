@@ -5,8 +5,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Status } from "@/components/atomic-crm/misc/Status";
-import { useConfigurationContext } from "@/components/atomic-crm/root/ConfigurationContext";
+import { Status } from "../misc/Status";
+import { useConfigurationContext } from "../root/ConfigurationContext";
 
 export const StatusSelector = ({ status, setStatus }: any) => {
   const { noteStatuses } = useConfigurationContext();

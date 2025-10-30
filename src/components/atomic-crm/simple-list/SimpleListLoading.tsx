@@ -1,5 +1,5 @@
 import { useTimeout } from "ra-core";
-import { ListPlaceholder } from "@/components/atomic-crm/simple-list/ListPlaceholder.tsx";
+import { ListPlaceholder } from "./ListPlaceholder.tsx";
 
 export const SimpleListLoading = (props: SimpleListLoadingProps) => {
   const {

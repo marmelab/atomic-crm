@@ -1,8 +1,5 @@
 // sum.test.js
-import {
-  IN_FILTER_REGEX,
-  transformInFilter,
-} from "@/components/atomic-crm/providers/fakerest/internal/transformInFilter";
+import { IN_FILTER_REGEX, transformInFilter } from "./transformInFilter";
 
 it("should throw an error if the filter is not a string", () => {
   expect(() => transformInFilter(1)).toThrow(

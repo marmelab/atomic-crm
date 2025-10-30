@@ -1,8 +1,8 @@
 import { EditBase, Form } from "ra-core";
-import { CompanyInputs } from "@/components/atomic-crm/companies/CompanyInputs";
+import { CompanyInputs } from "./CompanyInputs";
 import { Card, CardContent } from "@/components/ui/card";
-import { CompanyAside } from "@/components/atomic-crm/companies/CompanyAside";
-import { FormToolbar } from "@/components/atomic-crm/layout/FormToolbar";
+import { CompanyAside } from "./CompanyAside";
+import { FormToolbar } from "../layout/FormToolbar";
 
 export const CompanyEdit = () => (
   <EditBase

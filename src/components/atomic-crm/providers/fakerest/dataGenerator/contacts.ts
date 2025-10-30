@@ -9,13 +9,10 @@ import {
 import {
   defaultContactGender,
   defaultNoteStatuses,
-} from "@/components/atomic-crm/root/defaultConfiguration";
-import type { Company, Contact } from "@/components/atomic-crm/types";
-import type { Db } from "@/components/atomic-crm/providers/fakerest/dataGenerator/types";
-import {
-  randomDate,
-  weightedBoolean,
-} from "@/components/atomic-crm/providers/fakerest/dataGenerator/utils";
+} from "../../../root/defaultConfiguration";
+import type { Company, Contact } from "../../../types";
+import type { Db } from "./types";
+import { randomDate, weightedBoolean } from "./utils";
 
 const maxContacts = {
   1: 1,

@@ -9,9 +9,9 @@ import {
 import { Separator } from "@/components/ui/separator";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { required } from "ra-core";
-import { contactOptionText } from "@/components/atomic-crm/misc/ContactOption";
-import { useConfigurationContext } from "@/components/atomic-crm/root/ConfigurationContext";
-import { AutocompleteCompanyInput } from "@/components/atomic-crm/companies/AutocompleteCompanyInput.tsx";
+import { contactOptionText } from "../misc/ContactOption";
+import { useConfigurationContext } from "../root/ConfigurationContext";
+import { AutocompleteCompanyInput } from "../companies/AutocompleteCompanyInput.tsx";
 
 export const DealInputs = () => {
   const isMobile = useIsMobile();

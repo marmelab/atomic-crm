@@ -19,9 +19,9 @@ import {
 } from "ra-core";
 import { useState } from "react";
 import { useFormState } from "react-hook-form";
-import ImageEditorField from "@/components/atomic-crm/misc/ImageEditorField";
-import type { CrmDataProvider } from "@/components/atomic-crm/providers/types";
-import type { Sale, SalesFormData } from "@/components/atomic-crm/types";
+import ImageEditorField from "../misc/ImageEditorField";
+import type { CrmDataProvider } from "../providers/types";
+import type { Sale, SalesFormData } from "../types";
 
 export const SettingsPage = () => {
   const [isEditMode, setEditMode] = useState(false);

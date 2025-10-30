@@ -6,7 +6,7 @@ import type {
   CONTACT_NOTE_CREATED,
   DEAL_CREATED,
   DEAL_NOTE_CREATED,
-} from "@/components/atomic-crm/consts";
+} from "./consts";
 
 export type SignUpData = {
   email: string;

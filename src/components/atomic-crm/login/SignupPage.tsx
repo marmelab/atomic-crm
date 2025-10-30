@@ -7,10 +7,10 @@ import { useDataProvider, useLogin, useNotify } from "ra-core";
 import type { SubmitHandler } from "react-hook-form";
 import { useForm } from "react-hook-form";
 import { Navigate } from "react-router";
-import type { CrmDataProvider } from "@/components/atomic-crm/providers/types";
-import { useConfigurationContext } from "@/components/atomic-crm/root/ConfigurationContext";
-import type { SignUpData } from "@/components/atomic-crm/types";
-import { LoginSkeleton } from "@/components/atomic-crm/login/LoginSkeleton";
+import type { CrmDataProvider } from "../providers/types";
+import { useConfigurationContext } from "../root/ConfigurationContext";
+import type { SignUpData } from "../types";
+import { LoginSkeleton } from "./LoginSkeleton";
 
 export const SignupPage = () => {
   const queryClient = useQueryClient();

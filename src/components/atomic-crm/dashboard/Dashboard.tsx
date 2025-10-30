@@ -1,11 +1,11 @@
 import { useGetList } from "ra-core";
-import type { Contact, ContactNote } from "@/components/atomic-crm/types";
-import { DashboardActivityLog } from "@/components/atomic-crm/dashboard/DashboardActivityLog";
-import { DashboardStepper } from "@/components/atomic-crm/dashboard/DashboardStepper";
-import { DealsChart } from "@/components/atomic-crm/dashboard/DealsChart";
-import { HotContacts } from "@/components/atomic-crm/dashboard/HotContacts";
-import { TasksList } from "@/components/atomic-crm/dashboard/TasksList";
-import { Welcome } from "@/components/atomic-crm/dashboard/Welcome";
+import type { Contact, ContactNote } from "../types";
+import { DashboardActivityLog } from "./DashboardActivityLog";
+import { DashboardStepper } from "./DashboardStepper";
+import { DealsChart } from "./DealsChart";
+import { HotContacts } from "./HotContacts";
+import { TasksList } from "./TasksList";
+import { Welcome } from "./Welcome";
 
 export const Dashboard = () => {
   const {

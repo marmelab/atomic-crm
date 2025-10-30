@@ -1,5 +1,5 @@
 import type { DataProvider } from "ra-core";
-import { withSupabaseFilterAdapter } from "@/components/atomic-crm/providers/fakerest/internal/supabaseAdapter";
+import { withSupabaseFilterAdapter } from "./supabaseAdapter";
 
 describe("getList", () => {
   it("should transform '@eq'", () => {
