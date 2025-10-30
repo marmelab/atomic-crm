@@ -647,6 +647,18 @@
           "type": "registry:component"
         },
         {
+          "path": "src/components/supabase/set-password-page.tsx",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/supabase/layout.tsx",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/supabase/forgot-password-page.tsx",
+          "type": "registry:component"
+        },
+        {
           "path": "src/hooks/user-menu-context.tsx",
           "type": "registry:hook"
         },
