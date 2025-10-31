@@ -90,7 +90,7 @@ registry-build: ## build the shadcn registry
 	npm run registry:build
 
 registry-deploy: registry-build ## Deploy the shadcn registry (Automatically done by CI/CD pipeline)
-	@(cd public/r && npx gh-pages -b gh-pages -s atomic-crm.json -e r -m "Deploy registry" --remove r)
+	@(cd public/r && npx gh-pages -b gh-pages -d ./ -s atomic-crm.json -e r -m "Deploy registry" --remove r)
 
 registry-gen: ## Generate the shadcn registry (ran automatically by a pre-commit hook)
 	npm run registry:gen
