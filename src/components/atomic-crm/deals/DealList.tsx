@@ -1,3 +1,6 @@
+import { useGetIdentity, useListContext } from "ra-core";
+import { matchPath, useLocation } from "react-router";
+
 import {
   AutocompleteInput,
   CreateButton,
@@ -8,8 +11,6 @@ import {
   SearchInput,
   SelectInput,
 } from "@/components/admin";
-import { useGetIdentity, useListContext } from "ra-core";
-import { matchPath, useLocation } from "react-router";
 import { useConfigurationContext } from "../root/ConfigurationContext";
 import { TopToolbar } from "../layout/TopToolbar";
 import { DealArchivedList } from "./DealArchivedList";

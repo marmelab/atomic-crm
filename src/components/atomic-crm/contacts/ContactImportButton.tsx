@@ -1,6 +1,7 @@
-import { Button } from "@/components/ui/button";
 import { Upload } from "lucide-react";
 import { useState } from "react";
+
+import { Button } from "@/components/ui/button";
 import { ContactImportDialog } from "./ContactImportDialog";
 
 export const ContactImportButton = () => {

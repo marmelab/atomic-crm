@@ -1,10 +1,11 @@
-import { CreateButton } from "@/components/admin";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { Progress } from "@/components/ui/progress";
 import { CheckCircle, Circle } from "lucide-react";
 import type { Identifier } from "ra-core";
 import { Link } from "react-router";
+
+import { CreateButton } from "@/components/admin";
+import { Progress } from "@/components/ui/progress";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
 import { ContactImportButton } from "../contacts/ContactImportButton";
 import useAppBarHeight from "../misc/useAppBarHeight";
 

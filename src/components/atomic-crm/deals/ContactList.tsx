@@ -1,5 +1,6 @@
 import { useListContext } from "ra-core";
 import { Link as RouterLink } from "react-router";
+
 import { Avatar } from "../contacts/Avatar";
 
 export const ContactList = () => {

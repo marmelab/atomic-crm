@@ -8,7 +8,7 @@ import {
   useResourceContext,
   useTranslate,
 } from "ra-core";
-import { isValidElement, type ReactElement } from "react";
+import { isValidElement } from "react";
 
 import { ListNoResults } from "./ListNoResults.tsx";
 import type { FunctionToElement } from "./SimpleListItem.tsx";
@@ -128,7 +128,7 @@ export const SimpleList = <RecordType extends RaRecord = any>(
 export interface SimpleListProps<RecordType extends RaRecord = any>
   extends SimpleListBaseProps<RecordType> {
   className?: string;
-  empty?: ReactElement;
+  empty?: React.ReactElement;
   // can be injected when using the component without context
   resource?: string;
   data?: RecordType[];

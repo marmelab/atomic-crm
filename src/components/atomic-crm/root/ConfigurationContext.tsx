@@ -1,6 +1,6 @@
 /* eslint-disable react-refresh/only-export-components */
-import type { ReactNode } from "react";
 import { createContext, useContext } from "react";
+
 import type { ContactGender, DealStage, NoteStatus } from "../types";
 import {
   defaultCompanySectors,
@@ -30,7 +30,7 @@ export interface ConfigurationContextValue {
 }
 
 export interface ConfigurationProviderProps extends ConfigurationContextValue {
-  children: ReactNode;
+  children: React.ReactNode;
 }
 
 // Create context with default value

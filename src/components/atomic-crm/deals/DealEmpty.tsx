@@ -1,8 +1,8 @@
+import { useGetList } from "ra-core";
+import { matchPath, useLocation, Link } from "react-router";
+
 import { CreateButton } from "@/components/admin";
 import { Progress } from "@/components/ui/progress";
-import { useGetList } from "ra-core";
-import { matchPath, useLocation } from "react-router";
-import { Link } from "react-router";
 import useAppBarHeight from "../misc/useAppBarHeight";
 import type { Contact } from "../types";
 import { DealCreate } from "./DealCreate";

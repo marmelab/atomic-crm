@@ -1,3 +1,10 @@
+import { useFieldValue } from "ra-core";
+import { createRef, useCallback, useState } from "react";
+import type { ReactCropperElement } from "react-cropper";
+import { Cropper } from "react-cropper";
+import { useDropzone } from "react-dropzone";
+import { useFormContext } from "react-hook-form";
+
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import {
@@ -7,13 +14,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+
 import "cropperjs/dist/cropper.css";
-import { useFieldValue } from "ra-core";
-import { createRef, useCallback, useState } from "react";
-import type { ReactCropperElement } from "react-cropper";
-import { Cropper } from "react-cropper";
-import { useDropzone } from "react-dropzone";
-import { useFormContext } from "react-hook-form";
 
 const ImageEditorField = (props: ImageEditorFieldProps) => {
   const { getValues } = useFormContext();

@@ -1,3 +1,7 @@
+import { Plus, Users } from "lucide-react";
+import { useGetIdentity, useGetList } from "ra-core";
+import { Link } from "react-router";
+
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import {
@@ -6,9 +10,6 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { Plus, Users } from "lucide-react";
-import { useGetIdentity, useGetList } from "ra-core";
-import { Link } from "react-router";
 import { SimpleList } from "../simple-list/SimpleList";
 import { Avatar } from "../contacts/Avatar";
 import type { Contact } from "../types";

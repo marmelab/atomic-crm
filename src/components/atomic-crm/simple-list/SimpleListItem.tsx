@@ -6,7 +6,6 @@ import {
   useRecordContext,
   useResourceContext,
 } from "ra-core";
-import type { ReactElement, ReactNode } from "react";
 import { Link, useNavigate } from "react-router";
 
 export const SimpleListItem = <RecordType extends RaRecord = any>(
@@ -84,14 +83,14 @@ export const SimpleListItem = <RecordType extends RaRecord = any>(
 export type FunctionToElement<RecordType extends RaRecord = any> = (
   record: RecordType,
   id: Identifier,
-) => ReactNode;
+) => React.ReactNode;
 
 export type FunctionLinkType = (record: RaRecord, id: Identifier) => string;
 
 export interface SimpleListBaseProps<RecordType extends RaRecord = any> {
   leftAvatar?: FunctionToElement<RecordType>;
   leftIcon?: FunctionToElement<RecordType>;
-  primaryText?: FunctionToElement<RecordType> | ReactElement | string;
+  primaryText?: FunctionToElement<RecordType> | React.ReactElement | string;
   /**
    * @deprecated use rowClick instead
    */
@@ -116,8 +115,8 @@ export interface SimpleListBaseProps<RecordType extends RaRecord = any> {
   rowClick?: string | RowClickFunction | false;
   rightAvatar?: FunctionToElement<RecordType>;
   rightIcon?: FunctionToElement<RecordType>;
-  secondaryText?: FunctionToElement<RecordType> | ReactElement | string;
-  tertiaryText?: FunctionToElement<RecordType> | ReactElement | string;
+  secondaryText?: FunctionToElement<RecordType> | React.ReactElement | string;
+  tertiaryText?: FunctionToElement<RecordType> | React.ReactElement | string;
 }
 
 export interface SimpleListItemProps<RecordType extends RaRecord = any>
@@ -125,7 +124,7 @@ export interface SimpleListItemProps<RecordType extends RaRecord = any>
   rowIndex: number;
   className?: string;
   style?: React.CSSProperties;
-  children?: ReactNode;
+  children?: React.ReactNode;
   resource?: string;
 }
 

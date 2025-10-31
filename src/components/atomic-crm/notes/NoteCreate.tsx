@@ -1,4 +1,3 @@
-import type { Identifier, RaRecord } from "ra-core";
 import {
   CreateBase,
   Form,
@@ -8,8 +7,11 @@ import {
   useRecordContext,
   useResourceContext,
   useUpdate,
+  type Identifier,
+  type RaRecord,
 } from "ra-core";
 import { useFormContext } from "react-hook-form";
+
 import { SaveButton } from "@/components/admin";
 import { cn } from "@/lib/utils";
 import { NoteInputs } from "./NoteInputs";

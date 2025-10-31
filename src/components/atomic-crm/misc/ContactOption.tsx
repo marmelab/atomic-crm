@@ -1,4 +1,5 @@
 import { useRecordContext } from "ra-core";
+
 import { Avatar } from "../contacts/Avatar";
 import type { Contact } from "../types";
 

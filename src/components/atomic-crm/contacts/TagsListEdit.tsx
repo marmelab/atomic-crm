@@ -1,3 +1,13 @@
+import { Edit, Plus } from "lucide-react";
+import {
+  useGetList,
+  useGetMany,
+  useRecordContext,
+  useUpdate,
+  type Identifier,
+} from "ra-core";
+import { useCallback, useState } from "react";
+
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -6,10 +16,6 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Edit, Plus } from "lucide-react";
-import type { Identifier } from "ra-core";
-import { useGetList, useGetMany, useRecordContext, useUpdate } from "ra-core";
-import { useCallback, useState } from "react";
 import { TagChip } from "../tags/TagChip";
 import { TagCreateModal } from "../tags/TagCreateModal";
 import type { Contact, Tag } from "../types";

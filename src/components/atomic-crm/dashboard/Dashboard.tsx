@@ -1,4 +1,5 @@
 import { useGetList } from "ra-core";
+
 import type { Contact, ContactNote } from "../types";
 import { DashboardActivityLog } from "./DashboardActivityLog";
 import { DashboardStepper } from "./DashboardStepper";

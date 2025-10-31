@@ -1,5 +1,6 @@
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useRecordContext } from "ra-core";
+
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import type { Company } from "../types";
 
 export const CompanyAvatar = (props: {

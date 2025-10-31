@@ -1,6 +1,7 @@
+import { useGetIdentity, useListFilterContext } from "ra-core";
+
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import { useGetIdentity, useListFilterContext } from "ra-core";
 
 export const OnlyMineInput = (_: { alwaysOn: boolean; source: string }) => {
   const { filterValues, displayedFilters, setFilters } = useListFilterContext();

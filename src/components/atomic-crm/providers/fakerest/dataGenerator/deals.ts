@@ -1,5 +1,6 @@
 import { add } from "date-fns";
 import { datatype, lorem, random } from "faker/locale/en_US";
+
 import {
   defaultDealCategories,
   defaultDealStages,

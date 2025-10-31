@@ -1,8 +1,8 @@
+import { email, required } from "ra-core";
+import { useFormContext } from "react-hook-form";
+
 import { Separator } from "@/components/ui/separator";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { email, required } from "ra-core";
-import * as React from "react";
-import { useFormContext } from "react-hook-form";
 import {
   BooleanInput,
   ReferenceInput,
@@ -10,8 +10,8 @@ import {
   RadioButtonGroupInput,
   SelectInput,
   ArrayInput,
+  SimpleFormIterator,
 } from "@/components/admin";
-import { SimpleFormIterator } from "@/components/admin";
 import { isLinkedinUrl } from "../misc/isLinkedInUrl";
 import { useConfigurationContext } from "../root/ConfigurationContext";
 import type { Sale } from "../types";

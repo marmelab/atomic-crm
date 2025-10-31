@@ -1,13 +1,13 @@
 import { supabaseDataProvider } from "ra-supabase-core";
-
-import type {
-  CreateParams,
-  DataProvider,
-  GetListParams,
-  Identifier,
-  UpdateParams,
+import {
+  withLifecycleCallbacks,
+  type CreateParams,
+  type DataProvider,
+  type GetListParams,
+  type Identifier,
+  type UpdateParams,
 } from "ra-core";
-import { withLifecycleCallbacks } from "ra-core";
+
 import type {
   Contact,
   ContactNote,

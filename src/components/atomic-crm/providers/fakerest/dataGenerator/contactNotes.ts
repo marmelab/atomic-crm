@@ -1,4 +1,5 @@
 import { datatype, lorem, random } from "faker/locale/en_US";
+
 import { defaultNoteStatuses } from "../../../root/defaultConfiguration";
 import type { ContactNote } from "../../../types";
 import type { Db } from "./types";

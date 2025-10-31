@@ -1,4 +1,5 @@
 import type { DataProvider, Identifier } from "ra-core";
+
 import {
   COMPANY_CREATED,
   CONTACT_CREATED,

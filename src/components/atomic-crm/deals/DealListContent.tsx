@@ -1,9 +1,8 @@
-import type { OnDragEndResponder } from "@hello-pangea/dnd";
-import { DragDropContext } from "@hello-pangea/dnd";
+import { DragDropContext, type OnDragEndResponder } from "@hello-pangea/dnd";
 import isEqual from "lodash/isEqual";
-import type { DataProvider } from "ra-core";
-import { useDataProvider, useListContext } from "ra-core";
+import { useDataProvider, useListContext, type DataProvider } from "ra-core";
 import { useEffect, useState } from "react";
+
 import { useConfigurationContext } from "../root/ConfigurationContext";
 import type { Deal } from "../types";
 import { DealColumn } from "./DealColumn";

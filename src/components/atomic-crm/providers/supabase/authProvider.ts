@@ -2,6 +2,7 @@
 /* eslint-disable @typescript-eslint/no-namespace */
 import type { AuthProvider } from "ra-core";
 import { supabaseAuthProvider } from "ra-supabase-core";
+
 import { canAccess } from "../commons/canAccess";
 import { supabase } from "./supabase";
 

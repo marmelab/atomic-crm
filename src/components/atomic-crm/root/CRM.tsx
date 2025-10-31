@@ -1,10 +1,16 @@
+import {
+  CustomRoutes,
+  localStorageStore,
+  Resource,
+  type AuthProvider,
+  type DataProvider,
+} from "ra-core";
+import { useEffect } from "react";
+import { Route } from "react-router";
+
 import { Admin } from "@/components/admin";
 import { ForgotPasswordPage } from "@/components/supabase/forgot-password-page";
 import { SetPasswordPage } from "@/components/supabase/set-password-page";
-import type { AuthProvider, DataProvider } from "ra-core";
-import { CustomRoutes, localStorageStore, Resource } from "ra-core";
-import { useEffect } from "react";
-import { Route } from "react-router";
 import companies from "../companies";
 import contacts from "../contacts";
 import { Dashboard } from "../dashboard/Dashboard";
