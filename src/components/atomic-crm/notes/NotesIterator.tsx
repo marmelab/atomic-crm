@@ -1,5 +1,5 @@
 import { useListContext } from "ra-core";
-import { Fragment } from "react/jsx-runtime";
+import { Fragment } from "react";
 import { Separator } from "@/components/ui/separator";
 
 import { Note } from "./Note";
