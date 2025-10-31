@@ -1,5 +1,5 @@
-import { EditBase, Form, useEditContext } from "ra-core";
 import { Card, CardContent } from "@/components/ui/card";
+import { EditBase, Form, useEditContext } from "ra-core";
 
 import type { Contact } from "../types";
 import { ContactAside } from "./ContactAside";
