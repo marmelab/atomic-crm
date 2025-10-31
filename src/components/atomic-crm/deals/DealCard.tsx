@@ -1,8 +1,8 @@
 import { Draggable } from "@hello-pangea/dnd";
 import { useRedirect } from "ra-core";
-
 import { ReferenceField } from "@/components/admin";
 import { Card, CardContent } from "@/components/ui/card";
+
 import { CompanyAvatar } from "../companies/CompanyAvatar";
 import type { Deal } from "../types";
 

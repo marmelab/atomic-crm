@@ -2,11 +2,11 @@ import { formatRelative } from "date-fns";
 import { RecordContextProvider, useListContext } from "ra-core";
 import { type MouseEvent, useCallback } from "react";
 import { Link } from "react-router";
-
 import { ReferenceField, TextField } from "@/components/admin";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useIsMobile } from "@/hooks/use-mobile";
+
 import { Status } from "../misc/Status";
 import type { Contact } from "../types";
 import { Avatar } from "./Avatar";

@@ -1,5 +1,4 @@
 import { useGetIdentity, useListFilterContext } from "ra-core";
-
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 

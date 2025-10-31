@@ -9,7 +9,6 @@ import {
 } from "ra-core";
 import { useState } from "react";
 import type { FieldValues, SubmitHandler } from "react-hook-form";
-
 import { ReferenceField } from "@/components/admin";
 import { Button } from "@/components/ui/button";
 import {
@@ -18,6 +17,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+
 import { CompanyAvatar } from "../companies/CompanyAvatar";
 import { Avatar } from "../contacts/Avatar";
 import { RelativeDate } from "../misc/RelativeDate";

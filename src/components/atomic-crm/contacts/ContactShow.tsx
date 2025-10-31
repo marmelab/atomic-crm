@@ -1,11 +1,11 @@
 import { ShowBase, useShowContext } from "ra-core";
-
 import {
   ReferenceField,
   ReferenceManyField,
   TextField,
 } from "@/components/admin";
 import { Card, CardContent } from "@/components/ui/card";
+
 import { CompanyAvatar } from "../companies/CompanyAvatar";
 import { NoteCreate, NotesIterator } from "../notes";
 import type { Contact } from "../types";

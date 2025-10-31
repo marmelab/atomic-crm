@@ -1,19 +1,19 @@
-/**
- * This component displays the deals pipeline for the current user.
- * It's currently not used in the application but can be added to the dashboard.
- */
 import { DollarSign } from "lucide-react";
 import { useGetIdentity, useGetList } from "ra-core";
 import { Link } from "react-router";
-
 import { ReferenceField } from "@/components/admin";
 import { Card } from "@/components/ui/card";
+
 import { SimpleList } from "../simple-list/SimpleList";
 import { CompanyAvatar } from "../companies/CompanyAvatar";
 import { findDealLabel } from "../deals/deal";
 import { useConfigurationContext } from "../root/ConfigurationContext";
 import type { Deal } from "../types";
 
+/**
+ * This component displays the deals pipeline for the current user.
+ * It's currently not used in the application but can be added to the dashboard.
+ */
 export const DealsPipeline = () => {
   const { identity } = useGetIdentity();
   const { dealStages, dealPipelineStatuses } = useConfigurationContext();

@@ -5,7 +5,6 @@ import {
   useListContext,
   type Exporter,
 } from "ra-core";
-
 import {
   BulkActionsToolbar,
   CreateButton,
@@ -14,6 +13,7 @@ import {
   SortButton,
 } from "@/components/admin";
 import { Card } from "@/components/ui/card";
+
 import type { Company, Contact, Sale, Tag } from "../types";
 import { ContactEmpty } from "./ContactEmpty";
 import { ContactImportButton } from "./ContactImportButton";

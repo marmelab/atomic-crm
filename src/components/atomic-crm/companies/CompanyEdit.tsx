@@ -1,6 +1,6 @@
 import { EditBase, Form } from "ra-core";
-
 import { Card, CardContent } from "@/components/ui/card";
+
 import { CompanyInputs } from "./CompanyInputs";
 import { CompanyAside } from "./CompanyAside";
 import { FormToolbar } from "../layout/FormToolbar";

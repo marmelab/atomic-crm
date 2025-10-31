@@ -1,6 +1,5 @@
 import { Globe, Linkedin, Phone } from "lucide-react";
 import { useRecordContext } from "ra-core";
-
 import {
   EditButton,
   ReferenceField,
@@ -10,6 +9,7 @@ import {
   UrlField,
   SelectField,
 } from "@/components/admin";
+
 import { AsideSection } from "../misc/AsideSection";
 import { SaleName } from "../sales/SaleName";
 import type { Company } from "../types";

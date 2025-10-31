@@ -1,9 +1,9 @@
 import { formatDistance } from "date-fns";
 import { FileText } from "lucide-react";
 import { useGetIdentity, useGetList } from "ra-core";
-
 import { ReferenceField, TextField } from "@/components/admin";
 import { Card, CardContent } from "@/components/ui/card";
+
 import type { Contact, ContactNote } from "../types";
 
 export const LatestNotes = () => {

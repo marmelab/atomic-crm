@@ -1,5 +1,4 @@
 import { useGetIdentity, useListContext } from "ra-core";
-
 import {
   CreateButton,
   ExportButton,
@@ -7,6 +6,7 @@ import {
   ListPagination,
   SortButton,
 } from "@/components/admin";
+
 import { TopToolbar } from "../layout/TopToolbar";
 import { CompanyEmpty } from "./CompanyEmpty";
 import { CompanyListFilter } from "./CompanyListFilter";

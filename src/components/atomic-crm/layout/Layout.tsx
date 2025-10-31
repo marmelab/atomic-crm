@@ -1,8 +1,8 @@
 import { Suspense, type ReactNode } from "react";
 import { ErrorBoundary } from "react-error-boundary";
-
 import { Notification, Error } from "@/components/admin";
 import { Skeleton } from "@/components/ui/skeleton";
+
 import Header from "./Header";
 
 export const Layout = ({ children }: { children: ReactNode }) => (
