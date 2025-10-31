@@ -1,4 +1,4 @@
-import { CRM } from "@/atomic-crm/root/CRM";
+import { CRM } from "@/components/atomic-crm/root/CRM";
 
 /**
  * Application entry point
