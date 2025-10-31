@@ -1,5 +1,4 @@
 import { required, useRecordContext } from "ra-core";
-
 import {
   ReferenceInput,
   TextInput,
@@ -9,6 +8,7 @@ import {
 } from "@/components/admin";
 import { Separator } from "@/components/ui/separator";
 import { useIsMobile } from "@/hooks/use-mobile";
+
 import ImageEditorField from "../misc/ImageEditorField";
 import { isLinkedinUrl } from "../misc/isLinkedInUrl";
 import { useConfigurationContext } from "../root/ConfigurationContext";

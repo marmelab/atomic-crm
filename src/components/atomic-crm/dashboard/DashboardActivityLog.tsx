@@ -1,6 +1,6 @@
 import { Clock } from "lucide-react";
-
 import { Card } from "@/components/ui/card";
+
 import { ActivityLog } from "../activity/ActivityLog";
 
 export function DashboardActivityLog() {

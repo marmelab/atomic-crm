@@ -1,7 +1,7 @@
 import { CreateBase, Form, useGetIdentity } from "ra-core";
-
 import { FormToolbar } from "@/components/admin";
 import { Card, CardContent } from "@/components/ui/card";
+
 import type { Contact } from "../types";
 import { ContactInputs } from "./ContactInputs";
 

@@ -1,7 +1,7 @@
 import { CreateBase, Form, useGetIdentity } from "ra-core";
-
 import { Card, CardContent } from "@/components/ui/card";
 import { CancelButton, SaveButton, FormToolbar } from "@/components/admin";
+
 import { CompanyInputs } from "./CompanyInputs";
 
 export const CompanyCreate = () => {

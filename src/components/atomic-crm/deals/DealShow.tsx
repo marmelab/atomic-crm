@@ -10,7 +10,6 @@ import {
   useRefresh,
   useUpdate,
 } from "ra-core";
-
 import {
   DeleteButton,
   EditButton,
@@ -22,6 +21,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Separator } from "@/components/ui/separator";
+
 import { CompanyAvatar } from "../companies/CompanyAvatar";
 import { NoteCreate } from "../notes/NoteCreate";
 import { NotesIterator } from "../notes/NotesIterator";

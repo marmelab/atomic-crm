@@ -10,7 +10,6 @@ import {
 } from "ra-core";
 import { useState } from "react";
 import { useFormState } from "react-hook-form";
-
 import { RecordField, TextInput } from "@/components/admin";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -20,6 +19,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+
 import ImageEditorField from "../misc/ImageEditorField";
 import type { CrmDataProvider } from "../providers/types";
 import type { Sale, SalesFormData } from "../types";

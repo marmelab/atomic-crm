@@ -11,7 +11,6 @@ import {
   useUpdate,
 } from "ra-core";
 import { useState } from "react";
-
 import {
   AutocompleteInput,
   ReferenceInput,
@@ -33,6 +32,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+
 import { contactOptionText } from "../misc/ContactOption";
 import { useConfigurationContext } from "../root/ConfigurationContext";
 

@@ -1,7 +1,6 @@
 import { Linkedin, Mail, Phone } from "lucide-react";
 import { useRecordContext, WithRecord } from "ra-core";
 import type { ReactNode } from "react";
-
 import {
   ArrayField,
   EditButton,
@@ -13,6 +12,7 @@ import {
   DateField,
   EmailField,
 } from "@/components/admin";
+
 import { AddTask } from "../tasks/AddTask";
 import { TasksIterator } from "../tasks/TasksIterator";
 import { TagsListEdit } from "./TagsListEdit";

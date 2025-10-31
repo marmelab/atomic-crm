@@ -6,7 +6,6 @@ import {
   useRedirect,
 } from "ra-core";
 import { Link } from "react-router";
-
 import {
   DeleteButton,
   ReferenceField,
@@ -15,6 +14,7 @@ import {
 } from "@/components/admin";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
+
 import { CompanyAvatar } from "../companies/CompanyAvatar";
 import type { Deal } from "../types";
 import { DealInputs } from "./DealInputs";

@@ -1,10 +1,10 @@
 import { useRecordContext } from "ra-core";
-
 import {
   AvatarFallback,
   AvatarImage,
   Avatar as ShadcnAvatar,
 } from "@/components/ui/avatar";
+
 import type { Contact } from "../types";
 
 export const Avatar = (props: {

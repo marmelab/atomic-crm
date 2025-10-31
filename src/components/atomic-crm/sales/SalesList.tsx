@@ -1,5 +1,4 @@
 import { useRecordContext } from "ra-core";
-
 import {
   CreateButton,
   DataTable,
@@ -8,6 +7,7 @@ import {
   SearchInput,
 } from "@/components/admin";
 import { Badge } from "@/components/ui/badge";
+
 import { TopToolbar } from "../layout/TopToolbar";
 
 const SalesListActions = () => (

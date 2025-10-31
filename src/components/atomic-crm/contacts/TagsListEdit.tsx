@@ -7,7 +7,6 @@ import {
   type Identifier,
 } from "ra-core";
 import { useCallback, useState } from "react";
-
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -16,6 +15,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+
 import { TagChip } from "../tags/TagChip";
 import { TagCreateModal } from "../tags/TagCreateModal";
 import type { Contact, Tag } from "../types";

@@ -1,5 +1,4 @@
 import { required } from "ra-core";
-
 import {
   AutocompleteArrayInput,
   ReferenceArrayInput,
@@ -10,6 +9,7 @@ import {
 } from "@/components/admin";
 import { Separator } from "@/components/ui/separator";
 import { useIsMobile } from "@/hooks/use-mobile";
+
 import { contactOptionText } from "../misc/ContactOption";
 import { useConfigurationContext } from "../root/ConfigurationContext";
 import { AutocompleteCompanyInput } from "../companies/AutocompleteCompanyInput.tsx";
