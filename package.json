@@ -13,7 +13,7 @@
     "lint:check": "eslint **/*.{mjs,ts,tsx}",
     "prettier:apply": "prettier --config ./.prettierrc.mjs --write --list-different \"**/*.{js,json,ts,tsx,css,md,html}\"",
     "prettier:check": "prettier --config ./.prettierrc.mjs --check \"**/*.{js,json,ts,tsx,css,md,html}\"",
-    "registry:build": "shadcn build",
+    "registry:build": "npx shadcn build",
     "registry:gen": "node ./scripts/generate-registry.mjs",
     "ghpages:deploy": "node ./scripts/ghpages-deploy.mjs",
     "supabase:remote:init": "node ./scripts/supabase-remote-init.mjs",
