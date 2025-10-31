@@ -1,7 +1,7 @@
 import { Loader2 } from "lucide-react";
 import { Form, useRefresh } from "ra-core";
 import { Link } from "react-router";
-import { useEffect, useState } from "react";
+import { type MouseEvent, useEffect, useState } from "react";
 
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
@@ -60,7 +60,7 @@ export function ContactImportDialog({
     onClose();
   };
 
-  const handleReset = (e: React.MouseEvent<HTMLButtonElement>) => {
+  const handleReset = (e: MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
     reset();
   };

@@ -1,5 +1,6 @@
 import { useTimeout } from "ra-core";
 import { ListPlaceholder } from "./ListPlaceholder.tsx";
+import type { ReactNode } from "react";
 
 export const SimpleListLoading = (props: SimpleListLoadingProps) => {
   const {
@@ -45,7 +46,7 @@ export const SimpleListLoading = (props: SimpleListLoadingProps) => {
   ) : null;
 };
 
-const times = (nbChildren: number, fn: (key: number) => React.ReactNode) =>
+const times = (nbChildren: number, fn: (key: number) => ReactNode) =>
   Array.from({ length: nbChildren }, (_, key) => fn(key));
 
 export interface SimpleListLoadingProps {

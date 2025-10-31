@@ -1,9 +1,11 @@
+import type { ReactNode } from "react";
+
 import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
 
 export type AsideSectionProps = {
   title: string;
-  children?: React.ReactNode;
+  children?: ReactNode;
   noGap?: boolean;
 };
 
