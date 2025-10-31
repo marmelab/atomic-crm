@@ -1,5 +1,5 @@
 import { SaveIcon } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useState, type ChangeEvent, type FormEvent } from "react";
 
 import { Button, buttonVariants } from "@/components/ui/button";
 import {
@@ -34,9 +34,7 @@ export function TagDialog({
   const [newTagColor, setNewTagColor] = useState(colors[0]);
   const [disabled, setDisabled] = useState(false);
 
-  const handleNewTagNameChange = (
-    event: React.ChangeEvent<HTMLInputElement>,
-  ) => {
+  const handleNewTagNameChange = (event: ChangeEvent<HTMLInputElement>) => {
     setNewTagName(event.target.value);
   };
 
@@ -45,7 +43,7 @@ export function TagDialog({
     onClose();
   };
 
-  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
     await onSubmit({ name: newTagName, color: newTagColor });

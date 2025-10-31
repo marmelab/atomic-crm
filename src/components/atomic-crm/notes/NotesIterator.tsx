@@ -1,5 +1,5 @@
 import { useListContext } from "ra-core";
-import * as React from "react";
+import { Fragment } from "react/jsx-runtime";
 
 import { Separator } from "@/components/ui/separator";
 import { Note } from "./Note";
@@ -20,7 +20,7 @@ export const NotesIterator = ({
       {data && (
         <div className="mt-4 space-y-4">
           {data.map((note, index) => (
-            <React.Fragment key={index}>
+            <Fragment key={index}>
               <Note
                 note={note}
                 isLast={index === data.length - 1}
@@ -28,7 +28,7 @@ export const NotesIterator = ({
                 showStatus={showStatus}
               />
               {index < data.length - 1 && <Separator />}
-            </React.Fragment>
+            </Fragment>
           ))}
         </div>
       )}

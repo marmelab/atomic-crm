@@ -1,5 +1,6 @@
 import { Linkedin, Mail, Phone } from "lucide-react";
 import { useRecordContext, WithRecord } from "ra-core";
+import type { ReactNode } from "react";
 
 import {
   ArrayField,
@@ -147,8 +148,8 @@ const PersonalInfoRow = ({
   primary,
   showType,
 }: {
-  icon: React.ReactNode;
-  primary: React.ReactNode;
+  icon: ReactNode;
+  primary: ReactNode;
   showType?: boolean;
 }) => (
   <div className="flex flex-row items-center gap-2 min-h-6">

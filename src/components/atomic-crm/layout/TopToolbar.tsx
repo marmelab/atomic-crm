@@ -1,7 +1,8 @@
 import { cn } from "@/lib/utils.ts";
+import type { HTMLAttributes, ReactNode } from "react";
 
-export interface TopToolbarProps extends React.HTMLAttributes<HTMLDivElement> {
-  children?: React.ReactNode;
+export interface TopToolbarProps extends HTMLAttributes<HTMLDivElement> {
+  children?: ReactNode;
 }
 
 export const TopToolbar = (inProps: TopToolbarProps) => {

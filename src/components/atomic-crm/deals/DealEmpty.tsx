@@ -1,5 +1,6 @@
 import { useGetList } from "ra-core";
 import { matchPath, useLocation, Link } from "react-router";
+import type { ReactNode } from "react";
 
 import { CreateButton } from "@/components/admin";
 import { Progress } from "@/components/ui/progress";
@@ -7,7 +8,7 @@ import useAppBarHeight from "../misc/useAppBarHeight";
 import type { Contact } from "../types";
 import { DealCreate } from "./DealCreate";
 
-export const DealEmpty = ({ children }: { children?: React.ReactNode }) => {
+export const DealEmpty = ({ children }: { children?: ReactNode }) => {
   const location = useLocation();
   const matchCreate = matchPath("/deals/create", location.pathname);
   const appbarHeight = useAppBarHeight();
