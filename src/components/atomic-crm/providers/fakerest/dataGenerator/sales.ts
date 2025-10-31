@@ -1,4 +1,5 @@
 import { internet, name } from "faker/locale/en_US";
+
 import type { RAFile, Sale } from "../../../types";
 import type { Db } from "./types";
 

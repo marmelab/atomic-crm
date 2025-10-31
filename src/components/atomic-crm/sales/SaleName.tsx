@@ -1,4 +1,5 @@
 import { useGetIdentity, useRecordContext } from "ra-core";
+
 import type { Sale } from "../types";
 
 export const SaleName = ({ sale }: { sale?: Sale }) => {

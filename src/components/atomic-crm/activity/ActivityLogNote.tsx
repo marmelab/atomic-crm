@@ -1,7 +1,7 @@
-import { type ReactNode, Fragment } from "react";
+import { Fragment } from "react";
 
 type ActivityLogContactNoteCreatedProps = {
-  header: ReactNode;
+  header: React.ReactNode;
   text: string;
 };
 

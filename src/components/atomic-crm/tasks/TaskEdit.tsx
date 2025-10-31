@@ -1,3 +1,5 @@
+import { EditBase, Form, required, useNotify, type Identifier } from "ra-core";
+
 import {
   DeleteButton,
   TextInput,
@@ -11,8 +13,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import type { Identifier } from "ra-core";
-import { EditBase, Form, required, useNotify } from "ra-core";
 import { useConfigurationContext } from "../root/ConfigurationContext";
 
 export const TaskEdit = ({

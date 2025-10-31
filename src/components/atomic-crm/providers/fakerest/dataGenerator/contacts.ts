@@ -6,6 +6,7 @@ import {
   phone,
   random,
 } from "faker/locale/en_US";
+
 import {
   defaultContactGender,
   defaultNoteStatuses,

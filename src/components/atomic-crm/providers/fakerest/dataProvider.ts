@@ -1,12 +1,13 @@
-import type {
-  CreateParams,
-  DataProvider,
-  Identifier,
-  ResourceCallbacks,
-  UpdateParams,
+import {
+  withLifecycleCallbacks,
+  type CreateParams,
+  type DataProvider,
+  type Identifier,
+  type ResourceCallbacks,
+  type UpdateParams,
 } from "ra-core";
-import { withLifecycleCallbacks } from "ra-core";
 import fakeRestDataProvider from "ra-data-fakerest";
+
 import type {
   Company,
   Contact,

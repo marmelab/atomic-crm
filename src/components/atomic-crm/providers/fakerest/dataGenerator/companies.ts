@@ -7,6 +7,7 @@ import {
   phone,
   random,
 } from "faker/locale/en_US";
+
 import { randomDate } from "./utils";
 import { defaultCompanySectors } from "../../../root/defaultConfiguration";
 import type { Company, RAFile } from "../../../types";

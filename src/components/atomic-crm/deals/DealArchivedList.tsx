@@ -1,8 +1,9 @@
 /* eslint-disable react-refresh/only-export-components */
-import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { useGetIdentity, useGetList } from "ra-core";
 import { useEffect, useState } from "react";
+
+import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import type { Deal } from "../types";
 import { DealCardContent } from "./DealCard";
 

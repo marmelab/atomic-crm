@@ -1,4 +1,3 @@
-import { Card } from "@/components/ui/card";
 import {
   endOfToday,
   endOfTomorrow,
@@ -7,6 +6,8 @@ import {
   startOfToday,
 } from "date-fns";
 import { CheckSquare } from "lucide-react";
+
+import { Card } from "@/components/ui/card";
 import { AddTask } from "../tasks/AddTask";
 import { TasksListEmpty } from "./TasksListEmpty";
 import { TasksListFilter } from "./TasksListFilter";

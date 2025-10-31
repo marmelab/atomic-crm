@@ -1,6 +1,6 @@
-import type { DataProvider } from "ra-core";
-import { useDataProvider, useGetIdentity } from "ra-core";
+import { useDataProvider, useGetIdentity, type DataProvider } from "ra-core";
 import { useCallback, useMemo } from "react";
+
 import type { Company, Tag } from "../types";
 
 export type ContactImportSchema = {

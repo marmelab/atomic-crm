@@ -1,11 +1,11 @@
-import { Notification, Error } from "@/components/admin";
-import { Skeleton } from "@/components/ui/skeleton";
-import type { ReactNode } from "react";
 import { Suspense } from "react";
 import { ErrorBoundary } from "react-error-boundary";
+
+import { Notification, Error } from "@/components/admin";
+import { Skeleton } from "@/components/ui/skeleton";
 import Header from "./Header";
 
-export const Layout = ({ children }: { children: ReactNode }) => (
+export const Layout = ({ children }: { children: React.ReactNode }) => (
   <>
     <Header />
     <main className="max-w-screen-xl mx-auto pt-4 px-4" id="main-content">

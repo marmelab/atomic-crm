@@ -1,4 +1,5 @@
 import type { AuthProvider } from "ra-core";
+
 import type { Sale } from "../../types";
 import { canAccess } from "../commons/canAccess";
 import { dataProvider } from "./dataProvider";

@@ -1,3 +1,17 @@
+import { Plus } from "lucide-react";
+import {
+  CreateBase,
+  Form,
+  RecordRepresentation,
+  required,
+  useDataProvider,
+  useGetIdentity,
+  useNotify,
+  useRecordContext,
+  useUpdate,
+} from "ra-core";
+import { useState } from "react";
+
 import {
   AutocompleteInput,
   ReferenceInput,
@@ -19,19 +33,6 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { Plus } from "lucide-react";
-import {
-  CreateBase,
-  Form,
-  RecordRepresentation,
-  required,
-  useDataProvider,
-  useGetIdentity,
-  useNotify,
-  useRecordContext,
-  useUpdate,
-} from "ra-core";
-import { useState } from "react";
 import { contactOptionText } from "../misc/ContactOption";
 import { useConfigurationContext } from "../root/ConfigurationContext";
 

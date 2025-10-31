@@ -1,4 +1,5 @@
 import { Link } from "react-router";
+
 import { ReferenceField } from "@/components/admin";
 import { CompanyAvatar } from "../companies/CompanyAvatar";
 import { RelativeDate } from "../misc/RelativeDate";

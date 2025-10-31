@@ -1,6 +1,7 @@
-import { Card } from "@/components/ui/card";
 import { Clock } from "lucide-react";
-import { ActivityLog } from "../activity//ActivityLog";
+
+import { Card } from "@/components/ui/card";
+import { ActivityLog } from "../activity/ActivityLog";
 
 export function DashboardActivityLog() {
   return (

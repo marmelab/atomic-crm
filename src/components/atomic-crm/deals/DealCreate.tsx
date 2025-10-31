@@ -1,16 +1,15 @@
-import { Create } from "@/components/admin";
-import { SaveButton } from "@/components/admin";
-import { FormToolbar } from "@/components/admin";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { useQueryClient } from "@tanstack/react-query";
-import type { GetListResult } from "ra-core";
 import {
   Form,
   useDataProvider,
   useGetIdentity,
   useListContext,
   useRedirect,
+  type GetListResult,
 } from "ra-core";
+
+import { Create, SaveButton, FormToolbar } from "@/components/admin";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
 import type { Deal } from "../types";
 import { DealInputs } from "./DealInputs";
 

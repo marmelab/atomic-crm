@@ -1,5 +1,6 @@
-import { ReferenceField, TextField } from "@/components/admin";
 import { useRecordContext } from "ra-core";
+
+import { ReferenceField, TextField } from "@/components/admin";
 import { Avatar } from "../contacts/Avatar";
 import { RelativeDate } from "../misc/RelativeDate";
 import { SaleName } from "../sales/SaleName";

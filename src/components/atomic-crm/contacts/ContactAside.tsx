@@ -1,8 +1,6 @@
 import { Linkedin, Mail, Phone } from "lucide-react";
 import { useRecordContext, WithRecord } from "ra-core";
-import { AddTask } from "../tasks/AddTask";
-import { TasksIterator } from "../tasks/TasksIterator";
-import { TagsListEdit } from "./TagsListEdit";
+
 import {
   ArrayField,
   EditButton,
@@ -14,7 +12,9 @@ import {
   DateField,
   EmailField,
 } from "@/components/admin";
-import type { ReactNode } from "react";
+import { AddTask } from "../tasks/AddTask";
+import { TasksIterator } from "../tasks/TasksIterator";
+import { TagsListEdit } from "./TagsListEdit";
 import { AsideSection } from "../misc/AsideSection";
 import { useConfigurationContext } from "../root/ConfigurationContext";
 import { SaleName } from "../sales/SaleName";
@@ -147,8 +147,8 @@ const PersonalInfoRow = ({
   primary,
   showType,
 }: {
-  icon: ReactNode;
-  primary: ReactNode;
+  icon: React.ReactNode;
+  primary: React.ReactNode;
   showType?: boolean;
 }) => (
   <div className="flex flex-row items-center gap-2 min-h-6">

@@ -3,6 +3,7 @@ import { format, startOfMonth } from "date-fns";
 import { DollarSign } from "lucide-react";
 import { useGetList } from "ra-core";
 import { memo, useMemo } from "react";
+
 import type { Deal } from "../types";
 
 const multiplier = {

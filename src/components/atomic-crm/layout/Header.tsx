@@ -1,9 +1,10 @@
-import { RefreshButton, ThemeModeToggle, UserMenu } from "@/components/admin";
-import { useUserMenu } from "@/hooks/user-menu-context";
 import { DropdownMenuItem } from "@/components/ui/dropdown-menu";
 import { Settings, User } from "lucide-react";
 import { CanAccess } from "ra-core";
 import { Link, matchPath, useLocation } from "react-router";
+
+import { RefreshButton, ThemeModeToggle, UserMenu } from "@/components/admin";
+import { useUserMenu } from "@/hooks/user-menu-context";
 import { useConfigurationContext } from "../root/ConfigurationContext";
 
 const Header = () => {

@@ -1,6 +1,7 @@
-import { useDataProvider } from "ra-core";
 import { useQuery } from "@tanstack/react-query";
+import { useDataProvider } from "ra-core";
 import { Navigate } from "react-router-dom";
+
 import { LoginPage } from "@/components/admin";
 import type { CrmDataProvider } from "../providers/types";
 import { LoginSkeleton } from "./LoginSkeleton";

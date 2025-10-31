@@ -1,4 +1,5 @@
 import { RecordContextProvider, useListContext } from "ra-core";
+
 import type { Company } from "../types";
 import { CompanyCard } from "./CompanyCard";
 
