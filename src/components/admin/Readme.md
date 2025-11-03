@@ -35,6 +35,6 @@ In Atomic CRM, these components are sometimes slightly modified to fit the look 
 Shadcn Admin Kit components are actively maintained and updated. To update the components in Atomic CRM, type the following command:
 
 ```
-npx shadcn@latest add -o https://marmelab.com/shadcn-admin-kit/r/shadcn-admin-kit-base.json
+npx shadcn@latest add -o https://marmelab.com/shadcn-admin-kit/r/admin.json
 ```
 
