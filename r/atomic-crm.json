@@ -15,7 +15,7 @@
     "zod@^4.0.5"
   ],
   "registryDependencies": [
-    "https://marmelab.com/shadcn-admin-kit/r/shadcn-admin-kit-base.json"
+    "https://marmelab.com/shadcn-admin-kit/r/admin.json"
   ],
   "files": [
     {
