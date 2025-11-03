@@ -1,6 +1,6 @@
 import type { RaRecord } from "ra-core";
 
-import { ReferenceField } from "@/components/admin";
+import { ReferenceField } from "@/components/admin/reference-field";
 import { CompanyAvatar } from "../companies/CompanyAvatar";
 import { RelativeDate } from "../misc/RelativeDate";
 import { SaleName } from "../sales/SaleName";

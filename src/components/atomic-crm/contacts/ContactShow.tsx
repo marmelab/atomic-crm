@@ -1,9 +1,7 @@
 import { ShowBase, useShowContext } from "ra-core";
-import {
-  ReferenceField,
-  ReferenceManyField,
-  TextField,
-} from "@/components/admin";
+import { ReferenceField } from "@/components/admin/reference-field";
+import { ReferenceManyField } from "@/components/admin/reference-many-field";
+import { TextField } from "@/components/admin/text-field";
 import { Card, CardContent } from "@/components/ui/card";
 
 import { CompanyAvatar } from "../companies/CompanyAvatar";

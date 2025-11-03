@@ -7,7 +7,9 @@ import {
   useRedirect,
   type GetListResult,
 } from "ra-core";
-import { Create, SaveButton, FormToolbar } from "@/components/admin";
+import { Create } from "@/components/admin/create";
+import { SaveButton } from "@/components/admin/form";
+import { FormToolbar } from "@/components/admin/simple-form";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 
 import type { Deal } from "../types";

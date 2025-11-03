@@ -10,13 +10,11 @@ import {
   useRefresh,
   useUpdate,
 } from "ra-core";
-import {
-  DeleteButton,
-  EditButton,
-  ReferenceArrayField,
-  ReferenceField,
-  ReferenceManyField,
-} from "@/components/admin";
+import { DeleteButton } from "@/components/admin/delete-button";
+import { EditButton } from "@/components/admin/edit-button";
+import { ReferenceArrayField } from "@/components/admin/reference-array-field";
+import { ReferenceField } from "@/components/admin/reference-field";
+import { ReferenceManyField } from "@/components/admin/reference-many-field";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent } from "@/components/ui/dialog";

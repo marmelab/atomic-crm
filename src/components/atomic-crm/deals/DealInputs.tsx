@@ -1,12 +1,10 @@
 import { required } from "ra-core";
-import {
-  AutocompleteArrayInput,
-  ReferenceArrayInput,
-  ReferenceInput,
-  TextInput,
-  NumberInput,
-  SelectInput,
-} from "@/components/admin";
+import { AutocompleteArrayInput } from "@/components/admin/autocomplete-array-input";
+import { ReferenceArrayInput } from "@/components/admin/reference-array-input";
+import { ReferenceInput } from "@/components/admin/reference-input";
+import { TextInput } from "@/components/admin/text-input";
+import { NumberInput } from "@/components/admin/number-input";
+import { SelectInput } from "@/components/admin/select-input";
 import { Separator } from "@/components/ui/separator";
 import { useIsMobile } from "@/hooks/use-mobile";
 

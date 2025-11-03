@@ -14,7 +14,9 @@ import {
 import { usePapaParse } from "../misc/usePapaParse";
 import type { ContactImportSchema } from "./useContactImport";
 import { useContactImport } from "./useContactImport";
-import { FormToolbar, FileInput, FileField } from "@/components/admin";
+import { FormToolbar } from "@/components/admin/simple-form";
+import { FileInput } from "@/components/admin/file-input";
+import { FileField } from "@/components/admin/file-field";
 
 import * as sampleCsv from "./contacts_export.csv?raw";
 

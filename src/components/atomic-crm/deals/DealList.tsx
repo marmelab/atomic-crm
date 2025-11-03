@@ -1,15 +1,13 @@
 import { useGetIdentity, useListContext } from "ra-core";
 import { matchPath, useLocation } from "react-router";
-import {
-  AutocompleteInput,
-  CreateButton,
-  ExportButton,
-  List,
-  ReferenceInput,
-  FilterButton,
-  SearchInput,
-  SelectInput,
-} from "@/components/admin";
+import { AutocompleteInput } from "@/components/admin/autocomplete-input";
+import { CreateButton } from "@/components/admin/create-button";
+import { ExportButton } from "@/components/admin/export-button";
+import { List } from "@/components/admin/list";
+import { ReferenceInput } from "@/components/admin/reference-input";
+import { FilterButton } from "@/components/admin/filter-form";
+import { SearchInput } from "@/components/admin/search-input";
+import { SelectInput } from "@/components/admin/select-input";
 
 import { useConfigurationContext } from "../root/ConfigurationContext";
 import { TopToolbar } from "../layout/TopToolbar";
