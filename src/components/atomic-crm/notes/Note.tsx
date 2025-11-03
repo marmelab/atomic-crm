@@ -9,7 +9,7 @@ import {
 } from "ra-core";
 import { useState } from "react";
 import type { FieldValues, SubmitHandler } from "react-hook-form";
-import { ReferenceField } from "@/components/admin";
+import { ReferenceField } from "@/components/admin/reference-field";
 import { Button } from "@/components/ui/button";
 import {
   Tooltip,

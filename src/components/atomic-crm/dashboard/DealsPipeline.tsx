@@ -1,7 +1,7 @@
 import { DollarSign } from "lucide-react";
 import { useGetIdentity, useGetList } from "ra-core";
 import { Link } from "react-router";
-import { ReferenceField } from "@/components/admin";
+import { ReferenceField } from "@/components/admin/reference-field";
 import { Card } from "@/components/ui/card";
 
 import { SimpleList } from "../simple-list/SimpleList";

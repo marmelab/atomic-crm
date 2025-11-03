@@ -1,7 +1,8 @@
 import { endOfYesterday, startOfMonth, startOfWeek, subMonths } from "date-fns";
 import { CheckSquare, Clock, Tag, TrendingUp, Users } from "lucide-react";
 import { FilterLiveForm, useGetIdentity, useGetList } from "ra-core";
-import { ToggleFilterButton, SearchInput } from "@/components/admin";
+import { ToggleFilterButton } from "@/components/admin/toggle-filter-button";
+import { SearchInput } from "@/components/admin/search-input";
 import { Badge } from "@/components/ui/badge";
 
 import { FilterCategory } from "../filters/FilterCategory";

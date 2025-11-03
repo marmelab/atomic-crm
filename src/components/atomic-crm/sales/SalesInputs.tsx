@@ -1,5 +1,6 @@
 import { email, required, useGetIdentity, useRecordContext } from "ra-core";
-import { BooleanInput, TextInput } from "@/components/admin";
+import { BooleanInput } from "@/components/admin/boolean-input";
+import { TextInput } from "@/components/admin/text-input";
 
 import type { Sale } from "../types";
 

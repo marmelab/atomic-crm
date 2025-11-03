@@ -6,12 +6,10 @@ import {
   useRedirect,
 } from "ra-core";
 import { Link } from "react-router";
-import {
-  DeleteButton,
-  ReferenceField,
-  SaveButton,
-  FormToolbar,
-} from "@/components/admin";
+import { DeleteButton } from "@/components/admin/delete-button";
+import { ReferenceField } from "@/components/admin/reference-field";
+import { SaveButton } from "@/components/admin/form";
+import { FormToolbar } from "@/components/admin/simple-form";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 

@@ -2,7 +2,8 @@ import { useQueryClient } from "@tanstack/react-query";
 import { MoreVertical } from "lucide-react";
 import { useDeleteWithUndoController, useNotify, useUpdate } from "ra-core";
 import { useEffect, useState } from "react";
-import { ReferenceField, DateField } from "@/components/admin";
+import { ReferenceField } from "@/components/admin/reference-field";
+import { DateField } from "@/components/admin/date-field";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
