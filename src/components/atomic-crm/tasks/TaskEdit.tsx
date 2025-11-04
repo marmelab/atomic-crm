@@ -1,10 +1,8 @@
 import { EditBase, Form, required, useNotify, type Identifier } from "ra-core";
-import {
-  DeleteButton,
-  TextInput,
-  SelectInput,
-  SaveButton,
-} from "@/components/admin";
+import { DeleteButton } from "@/components/admin/delete-button";
+import { TextInput } from "@/components/admin/text-input";
+import { SelectInput } from "@/components/admin/select-input";
+import { SaveButton } from "@/components/admin/form";
 import {
   Dialog,
   DialogContent,

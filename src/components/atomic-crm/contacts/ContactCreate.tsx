@@ -1,5 +1,5 @@
 import { CreateBase, Form, useGetIdentity } from "ra-core";
-import { FormToolbar } from "@/components/admin";
+import { FormToolbar } from "@/components/admin/simple-form";
 import { Card, CardContent } from "@/components/ui/card";
 
 import type { Contact } from "../types";

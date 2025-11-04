@@ -1,17 +1,15 @@
 import { Linkedin, Mail, Phone } from "lucide-react";
 import { useRecordContext, WithRecord } from "ra-core";
 import type { ReactNode } from "react";
-import {
-  ArrayField,
-  EditButton,
-  ReferenceField,
-  ReferenceManyField,
-  ShowButton,
-  SingleFieldList,
-  TextField,
-  DateField,
-  EmailField,
-} from "@/components/admin";
+import { ArrayField } from "@/components/admin/array-field";
+import { EditButton } from "@/components/admin/edit-button";
+import { ReferenceField } from "@/components/admin/reference-field";
+import { ReferenceManyField } from "@/components/admin/reference-many-field";
+import { ShowButton } from "@/components/admin/show-button";
+import { SingleFieldList } from "@/components/admin/single-field-list";
+import { TextField } from "@/components/admin/text-field";
+import { DateField } from "@/components/admin/date-field";
+import { EmailField } from "@/components/admin/email-field";
 
 import { AddTask } from "../tasks/AddTask";
 import { TasksIterator } from "../tasks/TasksIterator";

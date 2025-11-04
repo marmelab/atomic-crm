@@ -1,11 +1,9 @@
 import { useState } from "react";
 import { useFormContext } from "react-hook-form";
-import {
-  TextInput,
-  FileInput,
-  FileField,
-  SelectInput,
-} from "@/components/admin";
+import { TextInput } from "@/components/admin/text-input";
+import { FileInput } from "@/components/admin/file-input";
+import { FileField } from "@/components/admin/file-field";
+import { SelectInput } from "@/components/admin/select-input";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils.ts";
 
