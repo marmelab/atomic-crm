@@ -9,7 +9,7 @@
       "title": "Atomic CRM",
       "description": "A fully fledged CRM application built with Shadcn Admin Kit",
       "registryDependencies": [
-        "https://marmelab.com/shadcn-admin-kit/r/shadcn-admin-kit-base.json"
+        "https://marmelab.com/shadcn-admin-kit/r/admin.json"
       ],
       "dependencies": [
         "@hello-pangea/dnd@^18.0.1",
