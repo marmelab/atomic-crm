@@ -3,15 +3,13 @@ import type { FocusEvent, ClipboardEventHandler } from "react";
 import { useFormContext } from "react-hook-form";
 import { Separator } from "@/components/ui/separator";
 import { useIsMobile } from "@/hooks/use-mobile";
-import {
-  BooleanInput,
-  ReferenceInput,
-  TextInput,
-  RadioButtonGroupInput,
-  SelectInput,
-  ArrayInput,
-  SimpleFormIterator,
-} from "@/components/admin";
+import { BooleanInput } from "@/components/admin/boolean-input";
+import { ReferenceInput } from "@/components/admin/reference-input";
+import { TextInput } from "@/components/admin/text-input";
+import { RadioButtonGroupInput } from "@/components/admin/radio-button-group-input";
+import { SelectInput } from "@/components/admin/select-input";
+import { ArrayInput } from "@/components/admin/array-input";
+import { SimpleFormIterator } from "@/components/admin/simple-form-iterator";
 
 import { isLinkedinUrl } from "../misc/isLinkedInUrl";
 import { useConfigurationContext } from "../root/ConfigurationContext";

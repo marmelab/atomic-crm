@@ -16,7 +16,8 @@ import {
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { ReferenceManyField, SortButton } from "@/components/admin";
+import { ReferenceManyField } from "@/components/admin/reference-many-field";
+import { SortButton } from "@/components/admin/sort-button";
 
 import { ActivityLog } from "../activity/ActivityLog";
 import { Avatar } from "../contacts/Avatar";

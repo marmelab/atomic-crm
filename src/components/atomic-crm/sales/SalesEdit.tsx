@@ -7,7 +7,9 @@ import {
   useRedirect,
 } from "ra-core";
 import type { SubmitHandler } from "react-hook-form";
-import { SimpleForm, CancelButton, SaveButton } from "@/components/admin";
+import { SimpleForm } from "@/components/admin/simple-form";
+import { CancelButton } from "@/components/admin/cancel-button";
+import { SaveButton } from "@/components/admin/form";
 import { Card, CardContent } from "@/components/ui/card";
 
 import type { CrmDataProvider } from "../providers/types";
