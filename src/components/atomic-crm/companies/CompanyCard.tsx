@@ -63,7 +63,7 @@ const AvatarGroupIterator = () => {
 
   const MAX_AVATARS = 3;
   return (
-    <div className="*:data-[slot=avatar]:ring-background flex -space-x-0.5 *:data-[slot=avatar]:ring-2 *:data-[slot=avatar]:grayscale">
+    <div className="*:data-[slot=avatar]:ring-background flex -space-x-0.5 *:data-[slot=avatar]:ring-2 *:data-[slot=avatar]:grayscale-50">
       {data.slice(0, MAX_AVATARS).map((record: any) => (
         <ContactAvatar
           key={record.id}
