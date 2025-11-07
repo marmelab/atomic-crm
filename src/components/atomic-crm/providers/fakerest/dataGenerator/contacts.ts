@@ -30,7 +30,7 @@ export const generateContacts = (db: Db, size = 500): Required<Contact>[] => {
   const nbAvailblePictures = 223;
   let numberOfContacts = 0;
 
-  return Array.from(Array(size).keys()).map((id) => {
+  const contacts = Array.from(Array(size).keys()).map((id) => {
     const has_avatar =
       weightedBoolean(25) && numberOfContacts < nbAvailblePictures;
     const gender = random.arrayElement(defaultContactGender).value;
@@ -98,6 +98,19 @@ export const generateContacts = (db: Db, size = 500): Required<Contact>[] => {
       sales_id: company.sales_id,
       nb_tasks: 0,
       linkedin_url: null,
+      referred_by_id: null as number | null,
     };
   });
+
+  // Assign referrers: ~30% of contacts have a referrer, 70% have no referrer
+  contacts.forEach((contact, index) => {
+    if (index > 0 && weightedBoolean(30)) {
+      // Select a random earlier contact as referrer
+      const referrerIndex = random.number({ min: 0, max: index - 1 });
+      contact.referred_by_id = contacts[referrerIndex].id as number;
+    }
+    // Otherwise referred_by_id remains null (no referrer)
+  });
+
+  return contacts;
 };

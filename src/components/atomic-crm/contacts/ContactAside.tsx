@@ -115,6 +115,19 @@ export const ContactAside = ({ link = "edit" }: { link?: "edit" | "show" }) => {
           />
         </div>
 
+        {record.referred_by_id && (
+          <div className="inline-flex text-muted-foreground">
+            Referred by&nbsp;
+            <ReferenceField
+              source="referred_by_id"
+              reference="contacts"
+              link="show"
+            >
+              <TextField source="first_name" /> <TextField source="last_name" />
+            </ReferenceField>
+          </div>
+        )}
+
         <div className="inline-flex text-muted-foreground">
           Followed by&nbsp;
           <ReferenceField source="sales_id" reference="sales">

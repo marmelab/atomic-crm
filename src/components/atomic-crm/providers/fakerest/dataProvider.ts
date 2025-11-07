@@ -354,11 +354,31 @@ export const dataProvider = withLifecycleCallbacks(
         const newParams = await processContactAvatar(params);
         return fetchAndUpdateCompanyData(newParams, dataProvider);
       },
-      afterDelete: async (result) => {
+      afterDelete: async (result, dataProvider) => {
+        const deletedContactId = result.data.id;
+
+        // Update company contact count
         if (result.data.company_id != null) {
           await updateCompany(result.data.company_id, (company) => ({
             nb_contacts: (company.nb_contacts ?? 1) - 1,
           }));
+        }
+
+        // Clear referred_by_id for any contacts that reference this deleted contact
+        const { data: referringContacts } = await dataProvider.getList(
+          "contacts",
+          {
+            filter: { referred_by_id: deletedContactId },
+            pagination: { page: 1, perPage: 1000 },
+            sort: { field: "id", order: "ASC" },
+          },
+        );
+
+        if (referringContacts.length > 0) {
+          await dataProvider.updateMany("contacts", {
+            ids: referringContacts.map((contact) => contact.id),
+            data: { referred_by_id: null },
+          });
         }
 
         return result;

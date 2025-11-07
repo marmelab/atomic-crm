@@ -16,6 +16,7 @@ import { useConfigurationContext } from "../root/ConfigurationContext";
 import type { Sale } from "../types";
 import { Avatar } from "./Avatar";
 import { AutocompleteCompanyInput } from "../companies/AutocompleteCompanyInput.tsx";
+import { AutocompleteContactInput } from "./AutocompleteContactInput";
 
 export const ContactInputs = () => {
   const isMobile = useIsMobile();
@@ -176,6 +177,8 @@ const ContactPersonalInformationInputs = () => {
 const personalInfoTypes = [{ id: "Work" }, { id: "Home" }, { id: "Other" }];
 
 const ContactMiscInputs = () => {
+  const { getValues } = useFormContext();
+
   return (
     <div className="flex flex-col gap-4">
       <h6 className="text-lg font-semibold">Misc</h6>
@@ -185,6 +188,18 @@ const ContactMiscInputs = () => {
         multiline
         helperText={false}
       />
+      <ReferenceInput
+        reference="contacts"
+        source="referred_by_id"
+        label="Referred by"
+        sort={{ field: "last_name", order: "ASC" }}
+        filter={() => ({
+          // Prevent selecting self as referrer
+          "id@neq": getValues("id") || 0,
+        })}
+      >
+        <AutocompleteContactInput />
+      </ReferenceInput>
       <BooleanInput source="has_newsletter" helperText={false} />
       <ReferenceInput
         reference="sales"
