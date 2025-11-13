@@ -33,6 +33,7 @@ export const AutocompleteCompanyInput = () => {
       helperText={false}
       onCreate={handleCreateCompany}
       createItemLabel="Create %{item}"
+      createLabel="Start typing to create a new company"
     />
   );
 };
