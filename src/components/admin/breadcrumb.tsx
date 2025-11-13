@@ -76,14 +76,18 @@ export const Breadcrumb = ({ children, ref }: BreadcrumbProps) => {
               {React.Children.toArray(children).slice(-1)}
             </React.Fragment>
           ) : (
-            React.Children.map(children, (child, index) => (
-              <React.Fragment key={index}>
-                {child}
-                {index < React.Children.count(children) - 1 ? (
-                  <BreadcrumbSeparator />
-                ) : null}
-              </React.Fragment>
-            ))
+            React.Children.map(
+              children,
+              (child, index) =>
+                child && (
+                  <React.Fragment key={index}>
+                    {child}
+                    {index < React.Children.count(children) - 1 ? (
+                      <BreadcrumbSeparator />
+                    ) : null}
+                  </React.Fragment>
+                ),
+            )
           )}
         </BreadcrumbList>
       </BaseBreadcrumb>
@@ -91,6 +95,8 @@ export const Breadcrumb = ({ children, ref }: BreadcrumbProps) => {
     breadcrumbPortal,
   );
 };
+Breadcrumb.Item = BreadcrumbItem;
+Breadcrumb.PageItem = BreadcrumbPage;
 
 export { BreadcrumbItem, BreadcrumbPage };
 

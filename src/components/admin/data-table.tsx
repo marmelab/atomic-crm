@@ -1,10 +1,5 @@
-import {
-  Children,
-  createElement,
-  isValidElement,
-  useCallback,
-  type ReactNode,
-} from "react";
+import type { ReactNode } from "react";
+import { Children, createElement, isValidElement, useCallback } from "react";
 import type {
   DataTableBaseProps,
   ExtractRecordPaths,
@@ -259,6 +254,7 @@ const DataTableRow = ({
   );
 };
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const isPromise = (value: any): value is Promise<any> =>
   value && typeof value.then === "function";
 

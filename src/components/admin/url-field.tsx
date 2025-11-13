@@ -1,12 +1,13 @@
 import { useFieldValue, useTranslate } from "ra-core";
 import type { AnchorHTMLAttributes } from "react";
-import React from "react";
+import * as React from "react";
 
 import { cn } from "@/lib/utils";
 import { genericMemo } from "@/lib/genericMemo";
-import type { FieldProps } from "@/lib/field.type";
+import { FieldProps } from "@/lib/field.type";
 
 const UrlFieldImpl = <
+  //eslint-disable-next-line @typescript-eslint/no-explicit-any
   RecordType extends Record<string, any> = Record<string, any>,
 >(
   inProps: UrlFieldProps<RecordType>,
@@ -51,6 +52,7 @@ UrlFieldImpl.displayName = "UrlFieldImpl";
 export const UrlField = genericMemo(UrlFieldImpl);
 
 export interface UrlFieldProps<
+  //eslint-disable-next-line @typescript-eslint/no-explicit-any
   RecordType extends Record<string, any> = Record<string, any>,
 > extends FieldProps<RecordType>,
     AnchorHTMLAttributes<HTMLAnchorElement> {}

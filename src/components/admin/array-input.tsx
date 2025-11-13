@@ -1,9 +1,7 @@
-import type { InputProps } from "ra-core";
 import {
   FieldTitle,
   OptionalResourceContextProvider,
   SourceContextProvider,
-  type SourceContextValue,
   composeSyncValidators,
   isRequired,
   useApplyInputDefaultValues,
@@ -11,7 +9,10 @@ import {
   useFormGroups,
   useGetValidationErrorMessage,
   useSourceContext,
+  sanitizeInputRestProps,
+  ArrayInputContext,
 } from "ra-core";
+import type { InputProps, SourceContextValue } from "ra-core";
 import * as React from "react";
 import { useEffect } from "react";
 import { useFieldArray, useFormContext } from "react-hook-form";
@@ -19,8 +20,6 @@ import { useFieldArray, useFormContext } from "react-hook-form";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
 import { Skeleton } from "../ui/skeleton";
-import { sanitizeInputRestProps } from "@/lib/sanitizeInputRestProps";
-import { ArrayInputContext } from "@/hooks/array-input-context";
 import { InputHelperText } from "@/components/admin/input-helper-text";
 import { FormError, FormField } from "@/components/admin/form";
 

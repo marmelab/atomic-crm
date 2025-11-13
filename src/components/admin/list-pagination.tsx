@@ -49,7 +49,7 @@ export const ListPagination = ({
   const startPages = range(1, Math.min(boundaryCount, count));
   const endPages = range(
     Math.max(count - boundaryCount + 1, boundaryCount + 1),
-    count,
+    count
   );
 
   const siblingsStart = Math.max(
@@ -57,10 +57,10 @@ export const ListPagination = ({
       // Natural start
       page - siblingCount,
       // Lower boundary when page is high
-      count - boundaryCount - siblingCount * 2 - 1,
+      count - boundaryCount - siblingCount * 2 - 1
     ),
     // Greater than startPages
-    boundaryCount + 2,
+    boundaryCount + 2
   );
 
   const siblingsEnd = Math.min(
@@ -68,10 +68,10 @@ export const ListPagination = ({
       // Natural end
       page + siblingCount,
       // Upper boundary when page is low
-      boundaryCount + siblingCount * 2 + 2,
+      boundaryCount + siblingCount * 2 + 2
     ),
     // Less than endPages
-    count - boundaryCount - 1,
+    count - boundaryCount - 1
   );
 
   const siblingPages = range(siblingsStart, siblingsEnd);
@@ -133,7 +133,7 @@ export const ListPagination = ({
               onClick={pageChangeHandler(page - 1)}
               className={cn(
                 "gap-1 px-2.5 sm:pr-2.5",
-                !hasPreviousPage ? "opacity-50 cursor-not-allowed" : "",
+                !hasPreviousPage ? "opacity-50 cursor-not-allowed" : ""
               )}
               aria-label={translate("ra.navigation.previous", {
                 _: "Previous",
@@ -212,7 +212,7 @@ export const ListPagination = ({
               size="default"
               className={cn(
                 "gap-1 px-2.5 sm:pr-2.5",
-                !hasNextPage ? "opacity-50 cursor-not-allowed" : "",
+                !hasNextPage ? "opacity-50 cursor-not-allowed" : ""
               )}
               aria-label={translate("ra.navigation.next", { _: "Next" })}
             >

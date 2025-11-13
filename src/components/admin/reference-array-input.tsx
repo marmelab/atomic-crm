@@ -102,5 +102,4 @@ export interface ReferenceArrayInputProps
   extends InputProps,
     UseReferenceArrayInputParams {
   children?: ReactElement;
-  label?: string;
 }

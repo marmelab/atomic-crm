@@ -1,17 +1,14 @@
 import * as React from "react";
+import type { MouseEventHandler } from "react";
+import { createContext, useCallback, useContext, useMemo } from "react";
+import type {
+  CreateParams,
+  RaRecord,
+  TransformData,
+  UpdateParams,
+} from "ra-core";
 import {
-  createContext,
-  type MouseEventHandler,
-  useCallback,
-  useContext,
-  useMemo,
-} from "react";
-import {
-  type CreateParams,
-  type RaRecord,
   setSubmissionErrors,
-  type TransformData,
-  type UpdateParams,
   useRecordFromLocation,
   useSaveContext,
   useTranslate,
@@ -19,7 +16,7 @@ import {
   warning,
 } from "ra-core";
 import { Loader2, Save } from "lucide-react";
-import type * as LabelPrimitive from "@radix-ui/react-label";
+import * as LabelPrimitive from "@radix-ui/react-label";
 import { Slot } from "@radix-ui/react-slot";
 import { FormProvider, useFormContext, useFormState } from "react-hook-form";
 import type { UseMutationOptions } from "@tanstack/react-query";
@@ -194,6 +191,7 @@ const SaveButton = <RecordType extends RaRecord = RaRecord>(
   );
 
   const handleSubmit = useCallback(
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     async (values: any) => {
       let errors;
       if (saveContext?.save) {
@@ -278,6 +276,7 @@ export type SaveButtonProps<RecordType extends RaRecord = RaRecord> =
       alwaysEnable?: boolean;
     };
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const valueOrDefault = (value: any, defaultValue: any) =>
   typeof value === "undefined" ? defaultValue : value;
 

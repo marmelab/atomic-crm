@@ -1,7 +1,3 @@
-/**
- * @jest-environment node
- */
-
 import type { Company } from "../../types";
 import { getCompanyAvatar } from "./getCompanyAvatar";
 

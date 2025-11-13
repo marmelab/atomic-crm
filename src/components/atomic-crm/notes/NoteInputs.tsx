@@ -5,7 +5,7 @@ import { FileInput } from "@/components/admin/file-input";
 import { FileField } from "@/components/admin/file-field";
 import { SelectInput } from "@/components/admin/select-input";
 import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils.ts";
+import { cn } from "@/lib/utils";
 
 import { Status } from "../misc/Status";
 import { useConfigurationContext } from "../root/ConfigurationContext";

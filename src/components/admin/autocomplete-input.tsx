@@ -9,6 +9,7 @@ import {
   CommandGroup,
   CommandInput,
   CommandItem,
+  CommandList,
 } from "@/components/ui/command";
 import {
   FormControl,
@@ -32,8 +33,10 @@ import {
   useEvent,
 } from "ra-core";
 import { InputHelperText } from "./input-helper-text";
-import type { SupportCreateSuggestionOptions } from "@/hooks/useSupportCreateSuggestion";
-import { useSupportCreateSuggestion } from "@/hooks/useSupportCreateSuggestion";
+import {
+  SupportCreateSuggestionOptions,
+  useSupportCreateSuggestion,
+} from "@/hooks/useSupportCreateSuggestion";
 
 export const AutocompleteInput = (
   props: Omit<InputProps, "source"> &
@@ -208,40 +211,42 @@ export const AutocompleteInput = (
                     }
                   }}
                 />
-                <CommandEmpty>No matching item found.</CommandEmpty>
-                <CommandGroup>
-                  {finalChoices.map((choice) => {
-                    const isCreateItem =
-                      !!createItem && choice?.id === createItem.id;
-                    const disabled = getOptionDisabled(choice);
+                <CommandList>
+                  <CommandEmpty>No matching item found.</CommandEmpty>
+                  <CommandGroup>
+                    {finalChoices.map((choice) => {
+                      const isCreateItem =
+                        !!createItem && choice?.id === createItem.id;
+                      const disabled = getOptionDisabled(choice);
 
-                    return (
-                      <CommandItem
-                        key={getChoiceValue(choice)}
-                        value={
-                          isCreateItem
-                            ? // if it's the create option, include the filter value so it is shown in the command input
-                              // characters before and after the filter value are required
-                              // to show the option when the filter value starts or ends with a space
-                              `?${filterValue}?`
-                            : getChoiceValue(choice)
-                        }
-                        onSelect={() => handleChangeWithCreateSupport(choice)}
-                        disabled={disabled}
-                      >
-                        <Check
-                          className={cn(
-                            "mr-2 h-4 w-4",
-                            field.value === getChoiceValue(choice)
-                              ? "opacity-100"
-                              : "opacity-0",
-                          )}
-                        />
-                        {getChoiceText(isCreateItem ? createItem : choice)}
-                      </CommandItem>
-                    );
-                  })}
-                </CommandGroup>
+                      return (
+                        <CommandItem
+                          key={getChoiceValue(choice)}
+                          value={
+                            isCreateItem
+                              ? // if it's the create option, include the filter value so it is shown in the command input
+                                // characters before and after the filter value are required
+                                // to show the option when the filter value starts or ends with a space
+                                `?${filterValue}?`
+                              : getChoiceValue(choice)
+                          }
+                          onSelect={() => handleChangeWithCreateSupport(choice)}
+                          disabled={disabled}
+                        >
+                          <Check
+                            className={cn(
+                              "mr-2 h-4 w-4",
+                              field.value === getChoiceValue(choice)
+                                ? "opacity-100"
+                                : "opacity-0",
+                            )}
+                          />
+                          {getChoiceText(isCreateItem ? createItem : choice)}
+                        </CommandItem>
+                      );
+                    })}
+                  </CommandGroup>
+                </CommandList>
               </Command>
             </PopoverContent>
           </Popover>

@@ -1,6 +1,5 @@
-import type { ComponentProps } from "react";
-import { useCallback, useEffect, type ReactElement } from "react";
-import type { InputProps } from "ra-core";
+import { X } from "lucide-react";
+import type { ChoicesProps, InputProps } from "ra-core";
 import {
   FieldTitle,
   useChoices,
@@ -8,10 +7,12 @@ import {
   useGetRecordRepresentation,
   useInput,
   useTranslate,
-  type ChoicesProps,
 } from "ra-core";
-import { X } from "lucide-react";
+import type { ComponentProps, ReactElement } from "react";
+import { useCallback, useEffect } from "react";
 
+import { FormError, FormField, FormLabel } from "@/components/admin/form";
+import { InputHelperText } from "@/components/admin/input-helper-text";
 import {
   Select,
   SelectContent,
@@ -20,11 +21,11 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
+import {
+  SupportCreateSuggestionOptions,
+  useSupportCreateSuggestion,
+} from "@/hooks/useSupportCreateSuggestion";
 import { cn } from "@/lib/utils";
-import type { SupportCreateSuggestionOptions } from "@/hooks/useSupportCreateSuggestion";
-import { useSupportCreateSuggestion } from "@/hooks/useSupportCreateSuggestion";
-import { FormField, FormLabel, FormError } from "@/components/admin/form";
-import { InputHelperText } from "@/components/admin/input-helper-text";
 
 export const SelectInput = (props: SelectInputProps) => {
   const {
@@ -139,6 +140,7 @@ export const SelectInput = (props: SelectInputProps) => {
   }, [emptyText, translate]);
 
   const renderMenuItemOption = useCallback(
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (choice: any) => getChoiceText(choice),
     [getChoiceText],
   );
@@ -240,6 +242,7 @@ export const SelectInput = (props: SelectInputProps) => {
           >
             <SelectTrigger
               className={cn("w-full transition-all hover:bg-accent")}
+              disabled={field.disabled}
             >
               <SelectValue placeholder={renderEmptyItemOption()} />
 
@@ -288,7 +291,7 @@ export type SelectInputProps = ChoicesProps &
   Partial<InputProps> &
   Omit<SupportCreateSuggestionOptions, "handleChange"> & {
     emptyText?: string | ReactElement;
-
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     emptyValue?: any;
     onChange?: (value: string) => void;
   } & Omit<ComponentProps<typeof FormField>, "id" | "name" | "children">;

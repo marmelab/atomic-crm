@@ -8,7 +8,7 @@ import {
 export const Ready = () => (
   <div className="flex flex-col h-screen">
     <div
-      className="flex-1 flex flex-col color-white text-center justify-center items-center"
+      className="flex-1 flex flex-col text-white text-center justify-center items-center"
       style={{
         background:
           "linear-gradient(135deg, #00023b 0%, #00023b 50%, #313264 100%)",

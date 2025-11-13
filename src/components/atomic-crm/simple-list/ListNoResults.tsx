@@ -4,7 +4,7 @@ import {
   useResourceContext,
   useTranslate,
 } from "ra-core";
-import { Button } from "@/components/ui/button.tsx";
+import { Button } from "@/components/ui/button";
 
 export const ListNoResults = (props: ListNoResultsProps) => {
   const translate = useTranslate();

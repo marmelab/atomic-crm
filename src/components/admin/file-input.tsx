@@ -1,13 +1,11 @@
 import * as React from "react";
-import type { HTMLAttributes } from "react";
-import {
-  Children,
-  isValidElement,
-  type ComponentType,
-  type ReactElement,
-  type ReactNode,
-  useEffect,
+import type {
+  ComponentType,
+  ReactElement,
+  ReactNode,
+  HTMLAttributes,
 } from "react";
+import { Children, isValidElement, useEffect } from "react";
 import type { InputProps } from "ra-core";
 import {
   FieldTitle,
@@ -16,12 +14,13 @@ import {
   useInput,
   useTranslate,
 } from "ra-core";
-import type {
+import type { DropzoneOptions } from "react-dropzone";
+import {
+  useDropzone,
   FileRejection,
   DropEvent,
   DropzoneInputProps,
 } from "react-dropzone";
-import { useDropzone, type DropzoneOptions } from "react-dropzone";
 import { XCircle } from "lucide-react";
 
 import { cn } from "@/lib/utils";
@@ -119,6 +118,7 @@ export const FileInput = (props: FileInputProps) => {
   const files = value ? (Array.isArray(value) ? value : [value]) : [];
 
   const onDrop = (
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     newFiles: any[],
     rejectedFiles: FileRejection[],
     event: DropEvent,
@@ -138,6 +138,7 @@ export const FileInput = (props: FileInputProps) => {
     }
   };
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const onRemove = (file: any) => async () => {
     if (validateFileRemoval) {
       try {
@@ -230,18 +231,21 @@ export const FileInput = (props: FileInputProps) => {
 
       {children && (
         <div className="previews flex flex-col gap-1">
-          {files.map((file: any, index: number) => (
-            <FileInputPreview
-              key={index}
-              file={file}
-              onRemove={onRemove(file)}
-              removeIcon={removeIcon}
-            >
-              <RecordContextProvider value={file}>
-                {childrenElement}
-              </RecordContextProvider>
-            </FileInputPreview>
-          ))}
+          {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            files.map((file: any, index: number) => (
+              <FileInputPreview
+                key={index}
+                file={file}
+                onRemove={onRemove(file)}
+                removeIcon={removeIcon}
+              >
+                <RecordContextProvider value={file}>
+                  {childrenElement}
+                </RecordContextProvider>
+              </FileInputPreview>
+            ))
+          }
         </div>
       )}
     </FormField>
@@ -258,12 +262,12 @@ export type FileInputProps = Omit<InputProps, "type"> & {
   minSize?: DropzoneOptions["minSize"];
   multiple?: DropzoneOptions["multiple"];
   options?: DropzoneOptions;
-
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   onRemove?: (file: any) => void;
   placeholder?: ReactNode;
   removeIcon?: ComponentType<{ className?: string }>;
   inputProps?: DropzoneInputProps & React.ComponentProps<"input">;
-
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   validateFileRemoval?(file: any): boolean | Promise<boolean>;
 };
 
@@ -315,6 +319,7 @@ export const FileInputPreview = (props: FileInputPreviewProps) => {
 };
 
 export interface FileInputPreviewProps extends HTMLAttributes<HTMLDivElement> {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   file: any;
   onRemove: () => void;
   removeIcon?: React.ComponentType<{ className?: string }>;
