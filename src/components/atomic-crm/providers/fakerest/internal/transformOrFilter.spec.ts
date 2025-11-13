@@ -1,4 +1,3 @@
-// sum.test.js
 import { transformOrFilter } from "./transformOrFilter";
 
 it("should throw an error if the value is not an object", () => {

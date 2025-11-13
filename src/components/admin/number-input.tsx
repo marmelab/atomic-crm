@@ -1,11 +1,7 @@
 import * as React from "react";
 import { useEffect, useState } from "react";
-import {
-  FieldTitle,
-  type InputProps,
-  useInput,
-  useResourceContext,
-} from "ra-core";
+import type { InputProps } from "ra-core";
+import { FieldTitle, useInput, useResourceContext } from "ra-core";
 import { FormControl, FormField, FormLabel } from "@/components/admin/form";
 import { Input } from "@/components/ui/input";
 import { FormError } from "@/components/admin/form";

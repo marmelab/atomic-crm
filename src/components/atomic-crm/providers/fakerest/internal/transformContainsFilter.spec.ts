@@ -1,4 +1,3 @@
-// sum.test.js
 import {
   CONTAINS_FILTER_REGEX,
   transformContainsFilter,

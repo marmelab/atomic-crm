@@ -21,4 +21,5 @@ export type ArrayFieldProps<
     children?: ReactNode;
   };
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const emptyArray: any[] = [];

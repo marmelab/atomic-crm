@@ -1,4 +1,3 @@
-/* eslint-disable react-refresh/only-export-components */
 import { createContext, useContext, type ReactNode } from "react";
 
 import type { ContactGender, DealStage, NoteStatus } from "../types";

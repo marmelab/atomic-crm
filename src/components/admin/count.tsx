@@ -82,6 +82,7 @@ export const Count = (props: CountProps) => {
 };
 
 export interface CountProps {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   filter?: any;
   sort?: SortPayload;
   link?: boolean;

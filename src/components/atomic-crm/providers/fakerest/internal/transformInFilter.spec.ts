@@ -1,4 +1,3 @@
-// sum.test.js
 import { IN_FILTER_REGEX, transformInFilter } from "./transformInFilter";
 
 it("should throw an error if the filter is not a string", () => {

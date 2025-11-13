@@ -1,12 +1,8 @@
 import { Download } from "lucide-react";
-import { Translate } from "ra-core";
+import type { RaRecord } from "ra-core";
+import { Translate, useBulkExport, UseBulkExportOptions } from "ra-core";
 
 import { Button } from "../ui/button";
-import type {
-  ResourceInformation,
-  UseBulkExportProps,
-} from "@/hooks/useBulkExport";
-import { useBulkExport } from "@/hooks/useBulkExport";
 
 /**
  * Export the selected rows
@@ -31,13 +27,13 @@ import { useBulkExport } from "@/hooks/useBulkExport";
  *   </List>
  * );
  */
-export const BulkExportButton = <T extends ResourceInformation>({
+export const BulkExportButton = <T extends RaRecord>({
   icon = defaultIcon,
   label = "ra.action.export",
   onClick,
   ...props
 }: BulkExportButtonProps<T>) => {
-  const { bulkExport } = useBulkExport(props);
+  const bulkExport = useBulkExport(props);
 
   const handleClick = (event: React.MouseEvent<HTMLButtonElement>) => {
     bulkExport();
@@ -61,13 +57,13 @@ export const BulkExportButton = <T extends ResourceInformation>({
 
 const defaultIcon = <Download className="h-4 w-4" />;
 
-export type BulkExportButtonProps<T extends ResourceInformation> =
-  UseBulkExportProps<T> & {
+export type BulkExportButtonProps<T extends RaRecord> =
+  UseBulkExportOptions<T> & {
     icon?: React.ReactNode;
     label?: string;
   } & React.ComponentProps<typeof Button>;
 
-const sanitizeRestProps = <T extends ResourceInformation>({
+const sanitizeRestProps = <T extends RaRecord>({
   resource: _resource,
   exporter: _exporter,
   onClick: _onClick,

@@ -1,4 +1,4 @@
-import { cn } from "@/lib/utils.ts";
+import { cn } from "@/lib/utils";
 import type { HTMLAttributes, ReactNode } from "react";
 
 export interface TopToolbarProps extends HTMLAttributes<HTMLDivElement> {

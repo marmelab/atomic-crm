@@ -1,7 +1,11 @@
-import type { LinkToType, RaRecord, ExtractRecordPaths } from "ra-core";
+import type {
+  ExtractRecordPaths,
+  LinkToType,
+  RaRecord,
+  UseReferenceFieldControllerResult,
+} from "ra-core";
 import {
   ReferenceFieldBase,
-  type UseReferenceFieldControllerResult,
   useFieldValue,
   useGetRecordRepresentation,
   useReferenceFieldContext,
@@ -45,6 +49,7 @@ export interface ReferenceFieldProps<
 > extends Partial<ReferenceFieldViewProps<ReferenceRecordType>> {
   children?: ReactNode;
   queryOptions?: UseQueryOptions<RaRecord[], Error> & {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     meta?: any;
   };
   record?: RecordType;

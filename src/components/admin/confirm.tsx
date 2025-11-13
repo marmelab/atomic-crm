@@ -99,7 +99,7 @@ export interface ConfirmProps {
   confirmColor?: "primary" | "warning";
   ConfirmIcon?: ComponentType;
   CancelIcon?: ComponentType;
-  content: React.ReactNode;
+  content?: React.ReactNode;
   isOpen?: boolean;
   loading?: boolean;
   onClose: () => void;

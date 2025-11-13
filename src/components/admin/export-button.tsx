@@ -96,6 +96,6 @@ export interface ExportButtonProps {
   maxResults?: number;
   onClick?: (e: React.MouseEvent<HTMLButtonElement>) => void;
   resource?: string;
-
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   meta?: any;
 }

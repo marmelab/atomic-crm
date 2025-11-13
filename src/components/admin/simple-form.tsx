@@ -1,7 +1,8 @@
 import * as React from "react";
 import type { ReactNode } from "react";
 import { Children } from "react";
-import { Form, type FormProps } from "ra-core";
+import type { FormProps } from "ra-core";
+import { Form } from "ra-core";
 import { cn } from "@/lib/utils";
 import { CancelButton } from "@/components/admin/cancel-button";
 import { SaveButton } from "@/components/admin/form";
@@ -11,11 +12,7 @@ export const SimpleForm = ({
   className,
   toolbar = defaultFormToolbar,
   ...rest
-}: {
-  children: ReactNode;
-  className?: string;
-  toolbar?: ReactNode;
-} & FormProps) => (
+}: SimpleFormProps) => (
   <Form
     className={cn(`flex flex-col gap-4 w-full max-w-lg`, className)}
     {...rest}
@@ -48,6 +45,12 @@ export const FormToolbar = ({
     )}
   </div>
 );
+
+export type SimpleFormProps = {
+  children: ReactNode;
+  className?: string;
+  toolbar?: ReactNode;
+} & FormProps;
 
 export interface FormToolbarProps extends React.HTMLAttributes<HTMLDivElement> {
   children?: ReactNode;

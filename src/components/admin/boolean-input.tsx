@@ -75,7 +75,7 @@ export interface BooleanInputProps {
   defaultValue?: boolean;
   format?: (value: any) => any;
   helperText?: React.ReactNode;
-  label?: string;
+  label?: React.ReactNode;
   onBlur?: (event: React.FocusEvent<HTMLButtonElement>) => void;
   onChange?: (value: any) => void;
   onFocus?: (event: React.FocusEvent<HTMLButtonElement>) => void;

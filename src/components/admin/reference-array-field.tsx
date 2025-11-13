@@ -1,12 +1,16 @@
-import { memo, type ReactElement, type ReactNode } from "react";
-import type { ExtractRecordPaths, HintedString } from "ra-core";
+import type { ReactElement, ReactNode } from "react";
+import { memo } from "react";
+import type {
+  FilterPayload,
+  ListControllerResult,
+  RaRecord,
+  SortPayload,
+} from "ra-core";
 import {
+  ExtractRecordPaths,
+  HintedString,
   ReferenceArrayFieldBase,
   useListContext,
-  type FilterPayload,
-  type ListControllerResult,
-  type RaRecord,
-  type SortPayload,
 } from "ra-core";
 import type { UseQueryOptions } from "@tanstack/react-query";
 import { SingleFieldList } from "@/components/admin/single-field-list";

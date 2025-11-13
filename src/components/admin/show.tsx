@@ -3,6 +3,7 @@ import {
   BreadcrumbItem,
   BreadcrumbPage,
 } from "@/components/admin/breadcrumb";
+import type { ShowBaseProps } from "ra-core";
 import {
   ShowBase,
   Translate,
@@ -13,7 +14,6 @@ import {
   useGetResourceLabel,
   useResourceContext,
   useResourceDefinition,
-  type ShowBaseProps,
 } from "ra-core";
 import type { ReactNode } from "react";
 import { Link } from "react-router";
@@ -25,16 +25,17 @@ export interface ShowProps
     Omit<ShowBaseProps, "children"> {}
 
 export const Show = ({
-  disableAuthentication,
-  id,
-  queryOptions,
-  resource,
   actions,
-  title,
   children,
   className,
-  render,
+  disableAuthentication,
+  disableBreadcrumb,
+  id,
   loading,
+  queryOptions,
+  render,
+  resource,
+  title,
 }: ShowProps) => (
   <ShowBase
     id={id}
@@ -44,7 +45,12 @@ export const Show = ({
     render={render}
     loading={loading}
   >
-    <ShowView title={title} actions={actions} className={className}>
+    <ShowView
+      title={title}
+      actions={actions}
+      className={className}
+      disableBreadcrumb={disableBreadcrumb}
+    >
       {children}
     </ShowView>
   </ShowBase>
@@ -52,18 +58,20 @@ export const Show = ({
 
 export interface ShowViewProps {
   actions?: ReactNode;
-  title?: ReactNode | string | false;
+  disableBreadcrumb?: boolean;
   children: ReactNode;
   className?: string;
   emptyWhileLoading?: boolean;
+  title?: ReactNode | string | false;
 }
 
 export const ShowView = ({
   actions,
-  title,
   children,
   className,
+  disableBreadcrumb,
   emptyWhileLoading,
+  title,
 }: ShowViewProps) => {
   const context = useShowContext();
 
@@ -96,19 +104,21 @@ export const ShowView = ({
 
   return (
     <>
-      <Breadcrumb>
-        {hasDashboard && (
+      {!disableBreadcrumb && (
+        <Breadcrumb>
+          {hasDashboard && (
+            <BreadcrumbItem>
+              <Link to="/">
+                <Translate i18nKey="ra.page.dashboard">Home</Translate>
+              </Link>
+            </BreadcrumbItem>
+          )}
           <BreadcrumbItem>
-            <Link to="/">
-              <Translate i18nKey="ra.page.dashboard">Home</Translate>
-            </Link>
+            <Link to={listLink}>{listLabel}</Link>
           </BreadcrumbItem>
-        )}
-        <BreadcrumbItem>
-          <Link to={listLink}>{listLabel}</Link>
-        </BreadcrumbItem>
-        <BreadcrumbPage>{recordRepresentation}</BreadcrumbPage>
-      </Breadcrumb>
+          <BreadcrumbPage>{recordRepresentation}</BreadcrumbPage>
+        </Breadcrumb>
+      )}
       <div
         className={cn(
           "flex justify-between items-start flex-wrap gap-2 my-2",

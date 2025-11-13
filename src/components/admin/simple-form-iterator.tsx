@@ -1,26 +1,29 @@
 import get from "lodash/get";
+import * as React from "react";
+import type { ReactElement, ReactNode } from "react";
+import { Children, useCallback, useMemo, useRef, useState } from "react";
+import type {
+  ArrayInputContextValue,
+  RaRecord,
+  SimpleFormIteratorItemContextValue,
+} from "ra-core";
 import {
   FormDataConsumer,
-  type RaRecord,
   RecordContextProvider,
+  SimpleFormIteratorContext,
+  SimpleFormIteratorItemContext,
   SourceContextProvider,
+  useArrayInput,
   useRecordContext,
   useResourceContext,
+  useSimpleFormIterator,
+  useSimpleFormIteratorItem,
   useSourceContext,
   useTranslate,
   useWrappedSource,
 } from "ra-core";
-import * as React from "react";
-import type { ReactNode } from "react";
-import {
-  Children,
-  type ReactElement,
-  useCallback,
-  useMemo,
-  useRef,
-  useState,
-} from "react";
-import { type UseFieldArrayReturn, useFormContext } from "react-hook-form";
+import type { UseFieldArrayReturn } from "react-hook-form";
+import { useFormContext } from "react-hook-form";
 import {
   ArrowDownCircle,
   ArrowUpCircle,
@@ -36,15 +39,6 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import type { ArrayInputContextValue } from "@/hooks/array-input-context";
-import { useArrayInput } from "@/hooks/array-input-context";
-import type { SimpleFormIteratorItemContextValue } from "@/hooks/simple-form-iterator-context";
-import {
-  SimpleFormIteratorContext,
-  useSimpleFormIterator,
-  SimpleFormIteratorItemContext,
-  useSimpleFormIteratorItem,
-} from "@/hooks/simple-form-iterator-context";
 import { Confirm } from "@/components/admin/confirm";
 import { IconButtonWithTooltip } from "@/components/admin/icon-button-with-tooltip";
 
@@ -331,7 +325,7 @@ export const SimpleFormIteratorItem = React.forwardRef(
         <li
           ref={ref}
           className={cn(
-            "flex flex-row items-start justify-between gap-3 pb-2 border-b border-border last:border-b-0",
+            "flex flex-row items-start justify-between gap-2 pb-2 border-b border-border last:border-b-0",
             // Align the buttons with the input
             "[&:has(label)>.simple-form-iterator-item-actions]:pt-10",
           )}

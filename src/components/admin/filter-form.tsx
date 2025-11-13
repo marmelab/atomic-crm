@@ -1,10 +1,6 @@
 import * as React from "react";
-import {
-  type HtmlHTMLAttributes,
-  useCallback,
-  useEffect,
-  useState,
-} from "react";
+import type { HtmlHTMLAttributes } from "react";
+import { useCallback, useEffect, useState } from "react";
 import get from "lodash/get";
 import isEqual from "lodash/isEqual";
 import queryString from "query-string";
@@ -26,11 +22,10 @@ import {
   X,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import type { FilterElementProps } from "@/hooks/filter-context";
-import { useFilterContext } from "@/hooks/filter-context";
-import type { SavedQuery } from "@/hooks/saved-queries";
+import { FilterElementProps, useFilterContext } from "@/hooks/filter-context";
 import {
   extractValidSavedQueries,
+  SavedQuery,
   useSavedQueries,
 } from "@/hooks/saved-queries";
 import { Button } from "@/components/ui/button";
@@ -140,6 +135,7 @@ const StyledForm = (props: React.FormHTMLAttributes<HTMLFormElement>) => {
   );
 };
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const isEmptyValue = (filterValue: any): boolean => {
   if (filterValue === "" || filterValue == null) return true;
 
@@ -174,7 +170,6 @@ export const FilterFormInput = (inProps: FilterFormInputProps) => {
         helperText: false,
         // ignore defaultValue in Field because it was already set in Form (via mergedInitialValuesWithDefaultValues)
         defaultValue: undefined,
-        label: false,
       })}
       {!filterElement.props.alwaysOn && (
         <Button
@@ -254,6 +249,7 @@ export const FilterButton = (props: FilterButtonProps) => {
   );
 
   const handleShow = useCallback(
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     ({ source, defaultValue }: { source: string; defaultValue: any }) => {
       showFilter(source, defaultValue === "" ? undefined : defaultValue);
       // We have to fallback to imperative code because the new FilterFormInput
@@ -487,7 +483,7 @@ export const FilterButtonMenuItem = React.forwardRef<
 export interface FilterButtonMenuItemProps {
   filter: React.ReactElement<FilterElementProps>;
   displayed: boolean;
-
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   onShow: (params: { source: string; defaultValue: any }) => void;
   onHide: (params: { source: string }) => void;
   resource?: string;

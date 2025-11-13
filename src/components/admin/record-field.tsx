@@ -1,12 +1,11 @@
-import type { HTMLAttributes } from "react";
-import { createElement, type ReactNode, type ElementType } from "react";
+import type { ReactNode, ElementType, HTMLAttributes } from "react";
+import { createElement } from "react";
+import type { ExtractRecordPaths, HintedString } from "ra-core";
 import {
   FieldTitle,
   useRecordContext,
   useResourceContext,
   useTranslate,
-  type ExtractRecordPaths,
-  type HintedString,
 } from "ra-core";
 import { cn } from "@/lib/utils";
 

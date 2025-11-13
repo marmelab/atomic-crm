@@ -110,6 +110,7 @@ const ListViewGuesser = (
         .sort();
 
       if (enableLog) {
+        // eslint-disable-next-line no-console
         console.log(
           `Guessed List:
 
