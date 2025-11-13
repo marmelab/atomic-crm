@@ -67,7 +67,7 @@ const ContactPositionInputs = () => {
     <div className="flex flex-col gap-4">
       <h6 className="text-lg font-semibold">Position</h6>
       <TextInput source="title" helperText={false} />
-      <ReferenceInput source="company_id" reference="companies">
+      <ReferenceInput source="company_id" reference="companies" perPage={10}>
         <AutocompleteCompanyInput />
       </ReferenceInput>
     </div>
