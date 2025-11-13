@@ -24,6 +24,7 @@ export const NoteInputs = ({ showStatus }: { showStatus?: boolean }) => {
         multiline
         helperText={false}
         placeholder="Add a note"
+        rows={6}
       />
 
       {!displayMore && (
