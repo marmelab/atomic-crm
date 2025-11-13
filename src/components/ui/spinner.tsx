@@ -1,8 +1,8 @@
-import { cn } from "@/lib/utils";
-import type { VariantProps } from "class-variance-authority";
-import { cva } from "class-variance-authority";
-import { Loader2 } from "lucide-react";
-import React from "react";
+import { cn } from "@/lib/utils"
+import type { VariantProps } from "class-variance-authority"
+import { cva } from "class-variance-authority"
+import { Loader2 } from "lucide-react"
+import React from "react"
 
 const spinnerVariants = cva("flex-col items-center justify-center", {
   variants: {
@@ -14,7 +14,7 @@ const spinnerVariants = cva("flex-col items-center justify-center", {
   defaultVariants: {
     show: true,
   },
-});
+})
 
 const loaderVariants = cva("animate-spin text-primary", {
   variants: {
@@ -27,13 +27,13 @@ const loaderVariants = cva("animate-spin text-primary", {
   defaultVariants: {
     size: "medium",
   },
-});
+})
 
 interface SpinnerContentProps
   extends VariantProps<typeof spinnerVariants>,
     VariantProps<typeof loaderVariants> {
-  className?: string;
-  children?: React.ReactNode;
+  className?: string
+  children?: React.ReactNode
 }
 
 export function Spinner({
@@ -47,5 +47,5 @@ export function Spinner({
       <Loader2 className={cn(loaderVariants({ size }), className)} />
       {children}
     </span>
-  );
+  )
 }

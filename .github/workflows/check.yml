@@ -43,7 +43,7 @@ jobs:
                   eslint: true
                   eslint_args: "**/*.{mjs,ts,tsx}"
                   prettier: true
-                  prettier_args: "--config ./.prettierrc.mjs \"**/*.{js,json,ts,tsx,css,md,html}\""
+                  prettier_args: "--config ./.prettierrc.json \"**/*.{js,json,ts,tsx,css,md,html}\""
 
     test:
         name: 🔎 Test
