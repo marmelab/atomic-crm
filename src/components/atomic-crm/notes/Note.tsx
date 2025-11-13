@@ -149,9 +149,9 @@ export const Note = ({
         </span>
       </div>
       {isEditing ? (
-        <Form onSubmit={handleNoteUpdate} record={note}>
+        <Form onSubmit={handleNoteUpdate} record={note} className="mt-1">
           <NoteInputs showStatus={showStatus} />
-          <div className="flex justify-end mt-4 space-x-4">
+          <div className="flex justify-end mt-2 space-x-4">
             <Button
               variant="ghost"
               onClick={handleCancelEdit}
