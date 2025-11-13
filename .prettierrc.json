@@ -1,0 +1,21 @@
+{
+  "overrides": [
+    {
+      "files": ["*.md", "*.mdx"],
+      "options": {
+        "singleQuote": true,
+        "tabWidth": 4
+      }
+    },
+    {
+      "files": ["src/components/ui/*.tsx"],
+      "options": {
+        "endOfLine": "lf",
+        "semi": false,
+        "singleQuote": false,
+        "tabWidth": 2,
+        "trailingComma": "es5"
+      }
+    }
+  ]
+}

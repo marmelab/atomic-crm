@@ -94,4 +94,4 @@ registry-deploy: registry-build ## Deploy the shadcn registry (Automatically don
 
 registry-gen: ## Generate the shadcn registry (ran automatically by a pre-commit hook)
 	npm run registry:gen
-	npx prettier --config ./.prettierrc.mjs --write "registry.json"
+	npx prettier --config ./.prettierrc.json --write "registry.json"
