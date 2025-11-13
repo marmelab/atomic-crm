@@ -1,5 +1,5 @@
 import * as React from "react";
-import { Notification } from "@/components/admin";
+import { Notification } from "@/components/admin/notification";
 import { useConfigurationContext } from "@/components/atomic-crm/root/ConfigurationContext";
 
 export const Layout = ({ children }: React.PropsWithChildren) => {
