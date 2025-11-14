@@ -669,10 +669,6 @@
         {
           "path": "src/hooks/simple-form-iterator-context.tsx",
           "type": "registry:hook"
-        },
-        {
-          "path": "src/hooks/array-input-context.tsx",
-          "type": "registry:hook"
         }
       ]
     }
