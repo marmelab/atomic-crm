@@ -1,6 +1,7 @@
 import { EditBase, Form, required, useNotify, type Identifier } from "ra-core";
 import { DeleteButton } from "@/components/admin/delete-button";
 import { TextInput } from "@/components/admin/text-input";
+import { DateInput } from "@/components/admin/date-input";
 import { SelectInput } from "@/components/admin/select-input";
 import { SaveButton } from "@/components/admin/form";
 import {
@@ -55,11 +56,10 @@ export const TaskEdit = ({
                 multiline
                 helperText={false}
               />
-              <div className="flex flex-row gap-4">
-                <TextInput
+              <div className="grid grid-cols-2 gap-4">
+                <DateInput
                   source="due_date"
                   helperText={false}
-                  type="date"
                   validate={required()}
                 />
                 <SelectInput

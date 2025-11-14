@@ -217,7 +217,7 @@ export const DateInput = (props: DateInputProps) => {
           className={cn(
             "ra-input",
             `ra-input-${source}`,
-            "[color-scheme:light] dark:[color-scheme:dark] relative [&::-webkit-calendar-picker-indicator]:cursor-pointer [&::-webkit-calendar-picker-indicator]:absolute [&::-webkit-calendar-picker-indicator]:right-3 [&::-webkit-calendar-picker-indicator]:opacity-100 pr-10",
+            "[color-scheme:light] dark:[color-scheme:dark] relative [&::-webkit-calendar-picker-indicator]:cursor-pointer [&::-webkit-calendar-picker-indicator]:absolute [&::-webkit-calendar-picker-indicator]:right-3 [&::-webkit-calendar-picker-indicator]:opacity-100",
             inputClassName,
           )}
           disabled={disabled || readOnly}

@@ -72,7 +72,7 @@ export const NoteInputs = ({ showStatus }: { showStatus?: boolean }) => {
             helperText={false}
             type="datetime-local"
             className="text-primary"
-            defaultValue={new Date().toISOString().slice(0, 16)}
+            defaultValue={getCurrentDate()}
           />
         </div>
         <FileInput source="attachments" multiple>

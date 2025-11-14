@@ -4,6 +4,7 @@ import { ReferenceArrayInput } from "@/components/admin/reference-array-input";
 import { ReferenceInput } from "@/components/admin/reference-input";
 import { TextInput } from "@/components/admin/text-input";
 import { NumberInput } from "@/components/admin/number-input";
+import { DateInput } from "@/components/admin/date-input";
 import { SelectInput } from "@/components/admin/select-input";
 import { Separator } from "@/components/ui/separator";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -82,11 +83,10 @@ const DealMiscInputs = () => {
         helperText={false}
         validate={required()}
       />
-      <TextInput
+      <DateInput
         validate={required()}
         source="expected_closing_date"
         helperText={false}
-        type="date"
         defaultValue={new Date().toISOString().split("T")[0]}
       />
       <SelectInput
