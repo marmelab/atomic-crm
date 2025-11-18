@@ -1,16 +1,11 @@
-import {
-  type InputProps,
-  useInput,
-  useResourceContext,
-  FieldTitle,
-} from "ra-core";
+import type { InputProps } from "ra-core";
+import { useInput, useResourceContext, FieldTitle } from "ra-core";
 import {
   FormControl,
   FormError,
   FormField,
   FormLabel,
 } from "@/components/admin/form";
-import { cn } from "@/lib/utils.ts";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { InputHelperText } from "@/components/admin/input-helper-text";
@@ -35,15 +30,8 @@ export const TextInput = (props: TextInputProps) => {
   } = props;
   const { id, field, isRequired } = useInput(props);
 
-  const value =
-    props.type === "datetime-local"
-      ? field.value?.slice(0, 16) // Adjust for datetime-local input format
-      : props.type === "date"
-        ? field.value?.slice(0, 10) // Adjust for date input format
-        : field.value;
-
   return (
-    <FormField id={id} className={cn(className, "w-full")} name={field.name}>
+    <FormField id={id} className={className} name={field.name}>
       {label !== false && (
         <FormLabel>
           <FieldTitle
@@ -56,19 +44,9 @@ export const TextInput = (props: TextInputProps) => {
       )}
       <FormControl>
         {multiline ? (
-          <Textarea
-            {...rest}
-            {...field}
-            value={value}
-            className={inputClassName}
-          />
+          <Textarea {...rest} {...field} className={inputClassName} />
         ) : (
-          <Input
-            {...rest}
-            {...field}
-            value={value}
-            className={inputClassName}
-          />
+          <Input {...rest} {...field} className={inputClassName} />
         )}
       </FormControl>
       <InputHelperText helperText={props.helperText} />

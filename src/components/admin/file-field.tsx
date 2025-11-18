@@ -1,11 +1,7 @@
-import type { HTMLAttributes } from "react";
+import { HTMLAttributes } from "react";
 import get from "lodash/get";
-import {
-  type ExtractRecordPaths,
-  type HintedString,
-  useFieldValue,
-  useTranslate,
-} from "ra-core";
+import type { ExtractRecordPaths, HintedString } from "ra-core";
+import { useFieldValue, useTranslate } from "ra-core";
 import { cn } from "@/lib/utils";
 import type { FieldProps } from "@/lib/field.type";
 
@@ -23,6 +19,7 @@ import type { FieldProps } from "@/lib/field.type";
  * </div>
  */
 export const FileField = <
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   RecordType extends Record<string, any> = Record<string, any>,
 >(
   props: FileFieldProps<RecordType>,
@@ -106,6 +103,7 @@ export const FileField = <
 };
 
 export interface FileFieldProps<
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   RecordType extends Record<string, any> = Record<string, any>,
 > extends FieldProps<RecordType>,
     HTMLAttributes<HTMLElement> {
