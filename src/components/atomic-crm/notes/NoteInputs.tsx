@@ -4,6 +4,7 @@ import { TextInput } from "@/components/admin/text-input";
 import { FileInput } from "@/components/admin/file-input";
 import { FileField } from "@/components/admin/file-field";
 import { SelectInput } from "@/components/admin/select-input";
+import { DateTimeInput } from "@/components/admin/date-time-input";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
@@ -52,7 +53,7 @@ export const NoteInputs = ({ showStatus }: { showStatus?: boolean }) => {
           !displayMore ? "scale-y-0 max-h-0 h-0" : "scale-y-100",
         )}
       >
-        <div className="flex gap-4">
+        <div className="grid grid-cols-2 gap-4">
           {showStatus && (
             <SelectInput
               source="status"
@@ -66,11 +67,10 @@ export const NoteInputs = ({ showStatus }: { showStatus?: boolean }) => {
               helperText={false}
             />
           )}
-          <TextInput
+          <DateTimeInput
             source="date"
             label="Date"
             helperText={false}
-            type="datetime-local"
             className="text-primary"
             defaultValue={getCurrentDate()}
           />
