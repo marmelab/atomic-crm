@@ -5,6 +5,7 @@ import {
 } from "@/components/admin/breadcrumb";
 import type { ListBaseProps, RaRecord } from "ra-core";
 import {
+  FilterContext,
   ListBase,
   type ListControllerResult,
   Translate,
@@ -17,7 +18,6 @@ import type { ReactElement, ReactNode } from "react";
 import { Link } from "react-router";
 import { cn } from "@/lib/utils";
 import type { FilterElementProps } from "@/hooks/filter-context";
-import { FilterContext } from "@/hooks/filter-context";
 import { CreateButton } from "@/components/admin/create-button";
 import { ExportButton } from "@/components/admin/export-button";
 import { ListPagination } from "@/components/admin/list-pagination";
