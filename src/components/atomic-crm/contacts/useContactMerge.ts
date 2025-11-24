@@ -121,7 +121,10 @@ export const useContactMerge = () => {
       const winnerUpdate = updateContact("contacts", {
         id: winnerId,
         data: {
-          avatar: winnerContact.avatar ?? loserContact.avatar,
+          avatar:
+            winnerContact.avatar && winnerContact.avatar.src
+              ? winnerContact.avatar
+              : loserContact.avatar,
           gender: winnerContact.gender ?? loserContact.gender,
           first_name: winnerContact.first_name ?? loserContact.first_name,
           last_name: winnerContact.last_name ?? loserContact.last_name,
