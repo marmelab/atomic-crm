@@ -1,5 +1,6 @@
-import { Linkedin, Mail, Phone } from "lucide-react";
+import { Linkedin, Mail, Phone, Merge } from "lucide-react";
 import { useRecordContext, WithRecord } from "ra-core";
+import { useState } from "react";
 import type { ReactNode } from "react";
 import { ArrayField } from "@/components/admin/array-field";
 import { EditButton } from "@/components/admin/edit-button";
@@ -10,6 +11,7 @@ import { SingleFieldList } from "@/components/admin/single-field-list";
 import { TextField } from "@/components/admin/text-field";
 import { DateField } from "@/components/admin/date-field";
 import { EmailField } from "@/components/admin/email-field";
+import { Button } from "@/components/ui/button";
 
 import { AddTask } from "../tasks/AddTask";
 import { TasksIterator } from "../tasks/TasksIterator";
@@ -18,10 +20,13 @@ import { AsideSection } from "../misc/AsideSection";
 import { useConfigurationContext } from "../root/ConfigurationContext";
 import { SaleName } from "../sales/SaleName";
 import type { Contact } from "../types";
+import { ContactMergeDialog } from "./ContactMergeDialog";
 
 export const ContactAside = ({ link = "edit" }: { link?: "edit" | "show" }) => {
   const { contactGender } = useConfigurationContext();
   const record = useRecordContext<Contact>();
+  const [mergeDialogOpen, setMergeDialogOpen] = useState(false);
+
   if (!record) return null;
   return (
     <div className="hidden sm:block w-64 min-w-64 text-sm">
@@ -137,6 +142,24 @@ export const ContactAside = ({ link = "edit" }: { link?: "edit" | "show" }) => {
         </ReferenceManyField>
         <AddTask />
       </AsideSection>
+
+      {link !== "edit" && (
+        <div className="mt-6 pt-6 border-t hidden sm:block">
+          <Button
+            variant="outline"
+            className="h-6 cursor-pointer"
+            size="sm"
+            onClick={() => setMergeDialogOpen(true)}
+          >
+            <Merge className="w-4 h-4" />
+            Merge with another contact
+          </Button>
+          <ContactMergeDialog
+            open={mergeDialogOpen}
+            onClose={() => setMergeDialogOpen(false)}
+          />
+        </div>
+      )}
     </div>
   );
 };
