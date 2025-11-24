@@ -61,8 +61,8 @@ test-ci:
 	CI=1 npm test
 
 lint:
-	npm run lint:check
-	npm run prettier:check
+	npm run lint
+	npm run prettier
 
 publish:
 	npm run build-lib
