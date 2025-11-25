@@ -55,7 +55,6 @@ const DealLinkedToInputs = () => {
           label="Contacts"
           optionText={contactOptionText}
           helperText={false}
-          validate={required()}
         />
       </ReferenceArrayInput>
     </div>

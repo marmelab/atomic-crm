@@ -493,11 +493,19 @@
           "type": "registry:component"
         },
         {
+          "path": "src/components/atomic-crm/contacts/useContactMerge.ts",
+          "type": "registry:component"
+        },
+        {
           "path": "src/components/atomic-crm/contacts/useContactImport.tsx",
           "type": "registry:component"
         },
         {
           "path": "src/components/atomic-crm/contacts/index.tsx",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/contacts/exportToVCard.ts",
           "type": "registry:component"
         },
         {
@@ -509,7 +517,15 @@
           "type": "registry:component"
         },
         {
+          "path": "src/components/atomic-crm/contacts/ExportVCardButton.tsx",
+          "type": "registry:component"
+        },
+        {
           "path": "src/components/atomic-crm/contacts/ContactShow.tsx",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/contacts/ContactMergeButton.tsx",
           "type": "registry:component"
         },
         {
