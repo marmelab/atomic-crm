@@ -1,5 +1,5 @@
 import { useGetIdentity, useListContext } from "ra-core";
-import { matchPath, useLocation } from "react-router";
+import { Link, matchPath, useLocation } from "react-router";
 import { AutocompleteInput } from "@/components/admin/autocomplete-input";
 import { CreateButton } from "@/components/admin/create-button";
 import { ExportButton } from "@/components/admin/export-button";
@@ -18,25 +18,32 @@ import { DealEmpty } from "./DealEmpty";
 import { DealListContent } from "./DealListContent";
 import { DealShow } from "./DealShow";
 import { OnlyMineInput } from "./OnlyMineInput";
+import { useIsMobile } from "@/hooks/use-mobile";
+import { Button } from "@/components/ui/button";
+import { Plus } from "lucide-react";
 
 const DealList = () => {
   const { identity } = useGetIdentity();
   const { dealCategories } = useConfigurationContext();
+  const isMobile = useIsMobile();
 
   if (!identity) return null;
 
-  const dealFilters = [
-    <SearchInput source="q" alwaysOn />,
-    <ReferenceInput source="company_id" reference="companies">
-      <AutocompleteInput label={false} placeholder="Company" />
-    </ReferenceInput>,
-    <SelectInput
-      source="category"
-      emptyText="Category"
-      choices={dealCategories.map((type) => ({ id: type, name: type }))}
-    />,
-    <OnlyMineInput source="sales_id" alwaysOn />,
-  ];
+  const dealFilters = [<SearchInput source="q" alwaysOn />];
+
+  if (!isMobile) {
+    dealFilters.push(
+      <ReferenceInput source="company_id" reference="companies">
+        <AutocompleteInput label={false} placeholder="Company" />
+      </ReferenceInput>,
+      <SelectInput
+        source="category"
+        emptyText="Category"
+        choices={dealCategories.map((type) => ({ id: type, name: type }))}
+      />,
+      <OnlyMineInput source="sales_id" alwaysOn />,
+    );
+  }
 
   return (
     <List
@@ -45,10 +52,21 @@ const DealList = () => {
       title={false}
       sort={{ field: "index", order: "DESC" }}
       filters={dealFilters}
-      actions={<DealActions />}
+      actions={isMobile ? false : <DealActions />}
       pagination={null}
     >
       <DealLayout />
+      <Button
+        variant="default"
+        size="icon"
+        className="rounded-full fixed bottom-12 right-12 w-12 h-12"
+        asChild
+      >
+        <Link to="/deals/create">
+          <span className="sr-only">Create new deal</span>
+          <Plus />
+        </Link>
+      </Button>
     </List>
   );
 };
