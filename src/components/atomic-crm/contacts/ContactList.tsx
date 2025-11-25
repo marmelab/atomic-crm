@@ -18,9 +18,15 @@ import { ContactImportButton } from "./ContactImportButton";
 import { ContactListContent } from "./ContactListContent";
 import { ContactListFilter } from "./ContactListFilter";
 import { TopToolbar } from "../layout/TopToolbar";
+import { useIsMobile } from "@/hooks/use-mobile";
+import { SearchInput } from "@/components/admin";
+import { Button } from "@/components/ui/button";
+import { Plus } from "lucide-react";
+import { Link } from "react-router";
 
 export const ContactList = () => {
   const { identity } = useGetIdentity();
+  const isMobile = useIsMobile();
 
   if (!identity) return null;
 
@@ -31,8 +37,31 @@ export const ContactList = () => {
       perPage={25}
       sort={{ field: "last_seen", order: "DESC" }}
       exporter={exporter}
+      filters={
+        isMobile
+          ? [
+              <SearchInput
+                source="q"
+                alwaysOn
+                className="w-full"
+                placeholder="Name, company"
+              />,
+            ]
+          : undefined
+      }
     >
       <ContactListLayout />
+      <Button
+        variant="default"
+        size="icon"
+        className="rounded-full fixed bottom-12 right-12 w-12 h-12"
+        asChild
+      >
+        <Link to="/contacts/create">
+          <span className="sr-only">Create new contact</span>
+          <Plus />
+        </Link>
+      </Button>
     </List>
   );
 };
@@ -40,6 +69,7 @@ export const ContactList = () => {
 const ContactListLayout = () => {
   const { data, isPending, filterValues } = useListContext();
   const { identity } = useGetIdentity();
+  const isMobile = useIsMobile();
 
   const hasFilters = filterValues && Object.keys(filterValues).length > 0;
 
@@ -49,25 +79,32 @@ const ContactListLayout = () => {
 
   return (
     <div className="flex flex-row gap-8">
-      <ContactListFilter />
+      {isMobile ? null : <ContactListFilter />}
       <div className="w-full flex flex-col gap-4">
         <Card className="py-0">
           <ContactListContent />
         </Card>
       </div>
-      <BulkActionsToolbar />
+      {isMobile ? null : <BulkActionsToolbar />}
     </div>
   );
 };
 
-const ContactListActions = () => (
-  <TopToolbar>
-    <SortButton fields={["first_name", "last_name", "last_seen"]} />
-    <ContactImportButton />
-    <ExportButton exporter={exporter} />
-    <CreateButton />
-  </TopToolbar>
-);
+const ContactListActions = () => {
+  const isMobile = useIsMobile();
+  return (
+    <TopToolbar>
+      <SortButton fields={["first_name", "last_name", "last_seen"]} />
+      {isMobile ? null : (
+        <>
+          <ContactImportButton />
+          <ExportButton exporter={exporter} />
+          <CreateButton />
+        </>
+      )}
+    </TopToolbar>
+  );
+};
 
 const exporter: Exporter<Contact> = async (records, fetchRelatedRecords) => {
   const companies = await fetchRelatedRecords<Company>(

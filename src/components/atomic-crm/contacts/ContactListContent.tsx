@@ -50,49 +50,57 @@ export const ContactListContent = () => {
             className="flex flex-row gap-4 items-center px-4 py-2 hover:bg-muted transition-colors first:rounded-t-xl last:rounded-b-xl"
             onClick={handleLinkClick}
           >
-            <Checkbox
-              className="cursor-pointer"
-              checked={selectedIds.includes(contact.id)}
-              onCheckedChange={() => onToggleItem(contact.id)}
-            />
+            {isSmall ? null : (
+              <Checkbox
+                className="cursor-pointer"
+                checked={selectedIds.includes(contact.id)}
+                onCheckedChange={() => onToggleItem(contact.id)}
+              />
+            )}
             <Avatar />
-            <div className="flex-1 min-w-0">
-              <div className="font-medium">
-                {`${contact.first_name} ${contact.last_name ?? ""}`}
-              </div>
-              <div className="text-sm text-muted-foreground">
-                {contact.title}
-                {contact.title && contact.company_id != null && " at "}
-                {contact.company_id != null && (
-                  <ReferenceField
-                    source="company_id"
-                    reference="companies"
-                    link={false}
-                  >
-                    <TextField source="name" />
-                  </ReferenceField>
-                )}
-                {contact.nb_tasks
-                  ? ` - ${contact.nb_tasks} task${
-                      contact.nb_tasks > 1 ? "s" : ""
-                    }`
-                  : ""}
-                &nbsp;&nbsp;
-                <TagsList />
-              </div>
-            </div>
-            {contact.last_seen && (
-              <div className="text-right ml-4">
-                <div
-                  className="text-sm text-muted-foreground"
-                  title={contact.last_seen}
-                >
-                  {!isSmall && "last activity "}
-                  {formatRelative(contact.last_seen, now)}{" "}
-                  <Status status={contact.status} />
+            <div className="flex flex-col md:flex-row">
+              <div className="flex-1 min-w-0">
+                <div className="font-medium">
+                  {`${contact.first_name} ${contact.last_name ?? ""}`}
+                </div>
+                <div className="text-sm text-muted-foreground">
+                  <div className="flex flex-col md:flex-row">
+                    <span>
+                      {contact.title}
+                      {contact.title && contact.company_id != null && " at "}
+                      {contact.company_id != null && (
+                        <ReferenceField
+                          source="company_id"
+                          reference="companies"
+                          link={false}
+                        >
+                          <TextField source="name" />
+                        </ReferenceField>
+                      )}
+                    </span>
+                    {contact.nb_tasks ? (
+                      <span className="md:before:mx-1 md:before:content-['-']">
+                        {contact.nb_tasks} task{contact.nb_tasks > 1 ? "s" : ""}
+                      </span>
+                    ) : null}
+                    &nbsp;&nbsp;
+                    <TagsList />
+                  </div>
                 </div>
               </div>
-            )}
+              {contact.last_seen && (
+                <div className="md:text-right md:ml-4">
+                  <div
+                    className="text-sm text-muted-foreground"
+                    title={contact.last_seen}
+                  >
+                    {!isSmall && "last activity "}
+                    {formatRelative(contact.last_seen, now)}{" "}
+                    <Status status={contact.status} />
+                  </div>
+                </div>
+              )}
+            </div>
           </Link>
         </RecordContextProvider>
       ))}
