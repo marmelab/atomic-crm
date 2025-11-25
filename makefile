@@ -37,9 +37,6 @@ build: ## build the app
 build-demo: ## build the app in demo mode
 	npm run build:demo
 
-build-lib: ## build the library
-	npm run build-lib
-
 prod-start: build supabase-deploy
 	open http://127.0.0.1:3000 && npx serve -l tcp://127.0.0.1:3000 dist
 
@@ -65,7 +62,6 @@ lint:
 	npm run prettier:check
 
 publish:
-	npm run build-lib
 	npm publish
 
 typecheck:
