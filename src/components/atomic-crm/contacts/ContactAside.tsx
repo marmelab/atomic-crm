@@ -18,10 +18,13 @@ import { AsideSection } from "../misc/AsideSection";
 import { useConfigurationContext } from "../root/ConfigurationContext";
 import { SaleName } from "../sales/SaleName";
 import type { Contact } from "../types";
+import { ContactMergeButton } from "./ContactMergeButton";
+import { ExportVCardButton } from "./ExportVCardButton";
 
 export const ContactAside = ({ link = "edit" }: { link?: "edit" | "show" }) => {
   const { contactGender } = useConfigurationContext();
   const record = useRecordContext<Contact>();
+
   if (!record) return null;
   return (
     <div className="hidden sm:block w-64 min-w-64 text-sm">
@@ -137,6 +140,13 @@ export const ContactAside = ({ link = "edit" }: { link?: "edit" | "show" }) => {
         </ReferenceManyField>
         <AddTask />
       </AsideSection>
+
+      {link !== "edit" && (
+        <div className="mt-6 pt-6 border-t hidden sm:flex flex-col gap-2 items-start">
+          <ExportVCardButton />
+          <ContactMergeButton />
+        </div>
+      )}
     </div>
   );
 };
