@@ -9,6 +9,15 @@ import { TasksList } from "./TasksList";
 import { Welcome } from "./Welcome";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Button } from "@/components/ui/button";
+import { Plus } from "lucide-react";
+import { Link } from "react-router";
 
 export const Dashboard = () => {
   const {
@@ -48,9 +57,7 @@ export const Dashboard = () => {
   if (isMobile) {
     return (
       <div className="flex flex-col gap-6">
-        <div className="mt-1">
-          {totalDeal ? <DealsChart /> : null}
-        </div>
+        <div className="mt-1">{totalDeal ? <DealsChart /> : null}</div>
         <Tabs defaultValue="tasks">
           <TabsList>
             <TabsTrigger value="tasks">Tasks</TabsTrigger>
@@ -63,6 +70,56 @@ export const Dashboard = () => {
             <DashboardActivityLog />
           </TabsContent>
         </Tabs>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button
+              variant="default"
+              size="icon"
+              className="rounded-full fixed bottom-12 right-12 w-12 h-12"
+            >
+              <span className="sr-only">Create new item</span>
+              <Plus />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent>
+            <DropdownMenuItem asChild>
+              <Link
+                to="/deals/create"
+                className="px-6 py-3 text-sm font-medium transition-colors md:border-b-2 w-full"
+              >
+                <span className="sr-only">New</span>
+                Deal
+              </Link>
+            </DropdownMenuItem>
+            <DropdownMenuItem asChild>
+              <Link
+                to="/tasks/create"
+                className="px-6 py-3 text-sm font-medium transition-colors md:border-b-2 w-full"
+              >
+                <span className="sr-only">New</span>
+                Task
+              </Link>
+            </DropdownMenuItem>
+            <DropdownMenuItem asChild>
+              <Link
+                to="/companies/create"
+                className="px-6 py-3 text-sm font-medium transition-colors md:border-b-2 w-full"
+              >
+                <span className="sr-only">New</span>
+                Company
+              </Link>
+            </DropdownMenuItem>
+            <DropdownMenuItem asChild>
+              <Link
+                to="/contacts/create"
+                className="px-6 py-3 text-sm font-medium transition-colors md:border-b-2 w-full"
+              >
+                <span className="sr-only">New</span>
+                Contact
+              </Link>
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
     );
   }
