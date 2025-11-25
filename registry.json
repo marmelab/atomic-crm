@@ -545,10 +545,6 @@
           "type": "registry:component"
         },
         {
-          "path": "src/components/atomic-crm/contacts/ContactImportDialog.tsx",
-          "type": "registry:component"
-        },
-        {
           "path": "src/components/atomic-crm/contacts/ContactImportButton.tsx",
           "type": "registry:component"
         },
