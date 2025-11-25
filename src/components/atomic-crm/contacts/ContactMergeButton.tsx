@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { Merge, CircleX, AlertTriangle, ArrowDown } from "lucide-react";
 import {
+  useDataProvider,
   useRecordContext,
   useGetList,
   useGetManyReference,
@@ -24,7 +25,7 @@ import { AutocompleteInput } from "@/components/admin/autocomplete-input";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import type { Contact } from "../types";
 import { contactOptionText } from "../misc/ContactOption";
-import { useContactMerge } from "./useContactMerge";
+import { mergeContacts } from "./mergeContacts";
 
 export const ContactMergeButton = () => {
   const [mergeDialogOpen, setMergeDialogOpen] = useState(false);
@@ -56,12 +57,12 @@ const ContactMergeDialog = ({ open, onClose }: ContactMergeDialogProps) => {
   const loserContact = useRecordContext<Contact>();
   const notify = useNotify();
   const redirect = useRedirect();
+  const dataProvider = useDataProvider();
   const [winnerId, setWinnerId] = useState<Identifier | null>(null);
   const [suggestedWinnerId, setSuggestedWinnerId] = useState<Identifier | null>(
     null,
   );
-
-  const { mergeContacts, isMerging } = useContactMerge();
+  const [isMerging, setIsMerging] = useState(false);
 
   // Find potential contacts with matching first and last name
   const { data: matchingContacts } = useGetList(
@@ -123,11 +124,14 @@ const ContactMergeDialog = ({ open, onClose }: ContactMergeDialogProps) => {
     }
 
     try {
-      await mergeContacts(loserContact.id, winnerId);
+      setIsMerging(true);
+      await mergeContacts(loserContact.id, winnerId, dataProvider);
+      setIsMerging(false);
       notify("Contacts merged successfully", { type: "success" });
       redirect(`/contacts/${winnerId}/show`);
       onClose();
     } catch (error) {
+      setIsMerging(false);
       notify("Failed to merge contacts", { type: "error" });
       console.error("Merge failed:", error);
     }
