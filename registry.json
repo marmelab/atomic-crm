@@ -523,10 +523,6 @@
           "type": "registry:component"
         },
         {
-          "path": "src/components/atomic-crm/contacts/ContactMergeDialog.tsx",
-          "type": "registry:component"
-        },
-        {
           "path": "src/components/atomic-crm/contacts/ContactMergeButton.tsx",
           "type": "registry:component"
         },
