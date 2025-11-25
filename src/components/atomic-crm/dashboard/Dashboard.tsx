@@ -7,6 +7,8 @@ import { DealsChart } from "./DealsChart";
 import { HotContacts } from "./HotContacts";
 import { TasksList } from "./TasksList";
 import { Welcome } from "./Welcome";
+import { useIsMobile } from "@/hooks/use-mobile";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export const Dashboard = () => {
   const {
@@ -28,7 +30,7 @@ export const Dashboard = () => {
       pagination: { page: 1, perPage: 1 },
     },
   );
-
+  const isMobile = useIsMobile();
   const isPending = isPendingContact || isPendingContactNotes || isPendingDeal;
 
   if (isPending) {
@@ -41,6 +43,28 @@ export const Dashboard = () => {
 
   if (!totalContactNotes) {
     return <DashboardStepper step={2} contactId={dataContact?.[0]?.id} />;
+  }
+
+  if (isMobile) {
+    return (
+      <div className="flex flex-col gap-6">
+        <div className="mt-1">
+          {totalDeal ? <DealsChart /> : null}
+        </div>
+        <Tabs defaultValue="tasks">
+          <TabsList>
+            <TabsTrigger value="tasks">Tasks</TabsTrigger>
+            <TabsTrigger value="activity">Activity</TabsTrigger>
+          </TabsList>
+          <TabsContent value="tasks">
+            <TasksList />
+          </TabsContent>
+          <TabsContent value="activity">
+            <DashboardActivityLog />
+          </TabsContent>
+        </Tabs>
+      </div>
+    );
   }
 
   return (

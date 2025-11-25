@@ -11,6 +11,7 @@ import { Card } from "@/components/ui/card";
 import { AddTask } from "../tasks/AddTask";
 import { TasksListEmpty } from "./TasksListEmpty";
 import { TasksListFilter } from "./TasksListFilter";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 const today = new Date();
 const todayDayOfWeek = getDay(today);
@@ -41,9 +42,10 @@ const taskFilters = {
 };
 
 export const TasksList = () => {
+  const isMobile = useIsMobile();
   return (
     <div className="flex flex-col gap-2">
-      <div className="flex items-center">
+      <div className="items-center hidden md:flex">
         <div className="mr-3 flex">
           <CheckSquare className="text-muted-foreground w-6 h-6" />
         </div>
@@ -57,11 +59,18 @@ export const TasksList = () => {
           <TasksListEmpty />
           <TasksListFilter title="Overdue" filter={taskFilters.overdue} />
           <TasksListFilter title="Today" filter={taskFilters.today} />
-          <TasksListFilter title="Tomorrow" filter={taskFilters.tomorrow} />
-          {isBeforeFriday && (
-            <TasksListFilter title="This week" filter={taskFilters.thisWeek} />
+          {isMobile ? null : (
+            <>
+              <TasksListFilter title="Tomorrow" filter={taskFilters.tomorrow} />
+              {isBeforeFriday && (
+                <TasksListFilter
+                  title="This week"
+                  filter={taskFilters.thisWeek}
+                />
+              )}
+              <TasksListFilter title="Later" filter={taskFilters.later} />
+            </>
           )}
-          <TasksListFilter title="Later" filter={taskFilters.later} />
         </div>
       </Card>
     </div>
