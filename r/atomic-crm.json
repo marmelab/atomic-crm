@@ -15,6 +15,8 @@
     "zod@^4.0.5"
   ],
   "registryDependencies": [
+    "progress",
+    "tabs",
     "https://marmelab.com/shadcn-admin-kit/r/admin.json"
   ],
   "files": [
