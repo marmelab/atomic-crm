@@ -105,6 +105,7 @@ const CompanyMobileList = () => (
     </ul>
   </Card>
 );
+
 /**
  * Necessary until we have a render prop on ReferenceManyCountBase
  */

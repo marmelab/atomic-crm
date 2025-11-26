@@ -22,7 +22,6 @@ import { ContactMergeButton } from "./ContactMergeButton";
 import { ExportVCardButton } from "./ExportVCardButton";
 
 export const ContactAside = ({ link = "edit" }: { link?: "edit" | "show" }) => {
-  const { contactGender } = useConfigurationContext();
   const record = useRecordContext<Contact>();
 
   if (!record) return null;
@@ -36,6 +35,35 @@ export const ContactAside = ({ link = "edit" }: { link?: "edit" | "show" }) => {
         )}
       </div>
 
+      <ContactDetails />
+
+      <AsideSection title="Tasks">
+        <ReferenceManyField
+          target="contact_id"
+          reference="tasks"
+          sort={{ field: "due_date", order: "ASC" }}
+        >
+          <TasksIterator />
+        </ReferenceManyField>
+        <AddTask />
+      </AsideSection>
+
+      {link !== "edit" && (
+        <div className="mt-6 pt-6 border-t hidden sm:flex flex-col gap-2 items-start">
+          <ExportVCardButton />
+          <ContactMergeButton />
+        </div>
+      )}
+    </div>
+  );
+};
+
+export const ContactDetails = () => {
+  const record = useRecordContext<Contact>();
+  const { contactGender } = useConfigurationContext();
+  if (!record) return null;
+  return (
+    <>
       <AsideSection title="Personal info">
         <ArrayField source="email_jsonb">
           <SingleFieldList className="flex-col">
@@ -129,25 +157,7 @@ export const ContactAside = ({ link = "edit" }: { link?: "edit" | "show" }) => {
       <AsideSection title="Tags">
         <TagsListEdit />
       </AsideSection>
-
-      <AsideSection title="Tasks">
-        <ReferenceManyField
-          target="contact_id"
-          reference="tasks"
-          sort={{ field: "due_date", order: "ASC" }}
-        >
-          <TasksIterator />
-        </ReferenceManyField>
-        <AddTask />
-      </AsideSection>
-
-      {link !== "edit" && (
-        <div className="mt-6 pt-6 border-t hidden sm:flex flex-col gap-2 items-start">
-          <ExportVCardButton />
-          <ContactMergeButton />
-        </div>
-      )}
-    </div>
+    </>
   );
 };
 
