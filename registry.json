@@ -635,6 +635,10 @@
           "type": "registry:component"
         },
         {
+          "path": "src/components/atomic-crm/activity/ActivityLogHeader.tsx",
+          "type": "registry:component"
+        },
+        {
           "path": "src/components/atomic-crm/activity/ActivityLogDealNoteCreated.tsx",
           "type": "registry:component"
         },
