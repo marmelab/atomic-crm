@@ -8,7 +8,7 @@ import {
 import { BulkActionsToolbar } from "@/components/admin/bulk-actions-toolbar";
 import { CreateButton } from "@/components/admin/create-button";
 import { ExportButton } from "@/components/admin/export-button";
-import { List } from "@/components/admin/list";
+import { List, ListView } from "@/components/admin/list";
 import { SortButton } from "@/components/admin/sort-button";
 import { Card } from "@/components/ui/card";
 
@@ -19,16 +19,42 @@ import { ContactListContent } from "./ContactListContent";
 import { ContactListFilter } from "./ContactListFilter";
 import { TopToolbar } from "../layout/TopToolbar";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { SearchInput } from "@/components/admin";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 import { Link } from "react-router";
+import { InfiniteListBase } from "ra-core";
+import { InfinitePagination } from "../misc/InfinitePagination";
 
 export const ContactList = () => {
   const { identity } = useGetIdentity();
   const isMobile = useIsMobile();
 
   if (!identity) return null;
+
+  if (isMobile) {
+    return (
+      <InfiniteListBase
+        perPage={25}
+        sort={{ field: "last_seen", order: "DESC" }}
+        exporter={exporter}
+      >
+        <ListView pagination={<InfinitePagination />} actions={false}>
+          <ContactListLayout />
+        </ListView>
+        <Button
+          variant="default"
+          size="icon"
+          className="rounded-full fixed bottom-12 right-12 w-12 h-12"
+          asChild
+        >
+          <Link to="/contacts/create">
+            <span className="sr-only">Create new contact</span>
+            <Plus />
+          </Link>
+        </Button>
+      </InfiniteListBase>
+    );
+  }
 
   return (
     <List
@@ -37,31 +63,8 @@ export const ContactList = () => {
       perPage={25}
       sort={{ field: "last_seen", order: "DESC" }}
       exporter={exporter}
-      filters={
-        isMobile
-          ? [
-              <SearchInput
-                source="q"
-                alwaysOn
-                className="w-full"
-                placeholder="Name, company"
-              />,
-            ]
-          : undefined
-      }
     >
       <ContactListLayout />
-      <Button
-        variant="default"
-        size="icon"
-        className="rounded-full fixed bottom-12 right-12 w-12 h-12"
-        asChild
-      >
-        <Link to="/contacts/create">
-          <span className="sr-only">Create new contact</span>
-          <Plus />
-        </Link>
-      </Button>
     </List>
   );
 };
