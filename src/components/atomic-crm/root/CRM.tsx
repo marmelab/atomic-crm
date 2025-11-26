@@ -39,6 +39,7 @@ import {
 } from "./defaultConfiguration";
 import { i18nProvider } from "./i18nProvider";
 import { StartPage } from "../login/StartPage.tsx";
+import { useIsMobile } from "@/hooks/use-mobile.ts";
 
 export type CRMProps = {
   dataProvider?: DataProvider;
@@ -102,6 +103,7 @@ export const CRM = ({
   disableTelemetry,
   ...rest
 }: CRMProps) => {
+  const isMobile = useIsMobile();
   useEffect(() => {
     if (
       disableTelemetry ||
@@ -153,7 +155,13 @@ export const CRM = ({
         <CustomRoutes>
           <Route path={SettingsPage.path} element={<SettingsPage />} />
         </CustomRoutes>
-        <Resource name="deals" {...deals} />
+        <Resource
+          name="deals"
+          list={deals.list}
+          edit={isMobile ? deals.edit : undefined}
+          show={isMobile ? deals.show : undefined}
+          create={isMobile ? deals.create : undefined}
+        />
         <Resource name="contacts" {...contacts} />
         <Resource name="companies" {...companies} />
         <Resource name="contactNotes" />

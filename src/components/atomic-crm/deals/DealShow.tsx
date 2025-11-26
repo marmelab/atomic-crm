@@ -1,6 +1,6 @@
 import { useMutation } from "@tanstack/react-query";
 import { format, isValid } from "date-fns";
-import { Archive, ArchiveRestore } from "lucide-react";
+import { Archive, ArchiveRestore, Edit } from "lucide-react";
 import {
   ShowBase,
   useDataProvider,
@@ -27,6 +27,10 @@ import { useConfigurationContext } from "../root/ConfigurationContext";
 import type { Deal } from "../types";
 import { ContactList } from "./ContactList";
 import { findDealLabel } from "./deal";
+import { useIsMobile } from "@/hooks/use-mobile";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { ReferenceManyCount } from "../misc/ReferenceManyCount";
+import { Link } from "react-router";
 
 export const DealShow = ({ open, id }: { open: boolean; id?: string }) => {
   const redirect = useRedirect();
@@ -37,18 +41,20 @@ export const DealShow = ({ open, id }: { open: boolean; id?: string }) => {
   return (
     <Dialog open={open} onOpenChange={(open) => !open && handleClose()}>
       <DialogContent className="lg:max-w-4xl p-4 overflow-y-auto max-h-9/10 top-1/20 translate-y-0">
-        {id ? (
-          <ShowBase id={id}>
-            <DealShowContent />
-          </ShowBase>
-        ) : null}
+        {id ? <DealShowPage id={id} /> : null}
       </DialogContent>
     </Dialog>
   );
 };
 
+export const DealShowPage = ({ id }: { id?: string }) => (
+  <ShowBase id={id}>
+    <DealShowContent />
+  </ShowBase>
+);
+
 const DealShowContent = () => {
-  const { dealStages } = useConfigurationContext();
+  const isMobile = useIsMobile();
   const record = useRecordContext<Deal>();
   if (!record) return null;
 
@@ -67,112 +73,190 @@ const DealShowContent = () => {
                 <CompanyAvatar />
               </ReferenceField>
               <h2 className="text-2xl font-semibold">{record.name}</h2>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="rounded-full"
+                asChild
+              >
+                <Link to={`/deals/${record.id}`}>
+                  <span className="sr-only">Edit</span>
+                  <Edit />
+                </Link>
+              </Button>
             </div>
-            <div className={`flex gap-2 ${record.archived_at ? "" : "pr-12"}`}>
-              {record.archived_at ? (
-                <>
-                  <UnarchiveButton record={record} />
-                  <DeleteButton />
-                </>
-              ) : (
-                <>
-                  <ArchiveButton record={record} />
-                  <EditButton />
-                </>
-              )}
-            </div>
-          </div>
-
-          <div className="flex gap-8 m-4">
-            <div className="flex flex-col mr-10">
-              <span className="text-xs text-muted-foreground tracking-wide">
-                Expected closing date
-              </span>
-              <div className="flex items-center gap-2">
-                <span className="text-sm">
-                  {isValid(new Date(record.expected_closing_date))
-                    ? format(new Date(record.expected_closing_date), "PP")
-                    : "Invalid date"}
-                </span>
-                {new Date(record.expected_closing_date) < new Date() ? (
-                  <Badge variant="destructive">Past</Badge>
-                ) : null}
-              </div>
-            </div>
-
-            <div className="flex flex-col mr-10">
-              <span className="text-xs text-muted-foreground tracking-wide">
-                Budget
-              </span>
-              <span className="text-sm">
-                {record.amount.toLocaleString("en-US", {
-                  notation: "compact",
-                  style: "currency",
-                  currency: "USD",
-                  currencyDisplay: "narrowSymbol",
-                  minimumSignificantDigits: 3,
-                })}
-              </span>
-            </div>
-
-            {record.category && (
-              <div className="flex flex-col mr-10">
-                <span className="text-xs text-muted-foreground tracking-wide">
-                  Category
-                </span>
-                <span className="text-sm">{record.category}</span>
+            {isMobile ? null : (
+              <div
+                className={`flex gap-2 ${record.archived_at ? "" : "pr-12"}`}
+              >
+                {record.archived_at ? (
+                  <>
+                    <UnarchiveButton record={record} />
+                    <DeleteButton />
+                  </>
+                ) : (
+                  <>
+                    <ArchiveButton record={record} />
+                    <EditButton />
+                  </>
+                )}
               </div>
             )}
-
-            <div className="flex flex-col mr-10">
-              <span className="text-xs text-muted-foreground tracking-wide">
-                Stage
-              </span>
-              <span className="text-sm">
-                {findDealLabel(dealStages, record.stage)}
-              </span>
-            </div>
           </div>
 
-          {!!record.contact_ids?.length && (
-            <div className="m-4">
-              <div className="flex flex-col min-h-12 mr-10">
-                <span className="text-xs text-muted-foreground tracking-wide">
-                  Contacts
-                </span>
+          {isMobile ? (
+            <Tabs defaultValue="notes">
+              <TabsList className="grid w-full grid-cols-3">
+                <TabsTrigger value="notes">
+                  <ReferenceManyCount
+                    reference="dealNotes"
+                    target="deal_id"
+                    render={(total) => (
+                      <>
+                        {total?.toString()} {total === 1 ? "note" : "notes"}
+                      </>
+                    )}
+                  />
+                </TabsTrigger>
+                <TabsTrigger value="contacts">
+                  <ReferenceArrayField
+                    reference="contacts_summary"
+                    source="contact_ids"
+                    render={({ total }) => (
+                      <>
+                        {total?.toString()}{" "}
+                        {total === 1 ? "contact" : "contacts"}
+                      </>
+                    )}
+                  />
+                </TabsTrigger>
+                <TabsTrigger value="about">About</TabsTrigger>
+              </TabsList>
+              <TabsContent value="notes">
+                <ReferenceManyField
+                  target="deal_id"
+                  reference="dealNotes"
+                  sort={{ field: "date", order: "DESC" }}
+                  empty={<NoteCreate reference={"deals"} />}
+                >
+                  <NotesIterator reference="deals" />
+                </ReferenceManyField>
+              </TabsContent>
+              <TabsContent value="contacts">
                 <ReferenceArrayField
                   source="contact_ids"
                   reference="contacts_summary"
                 >
                   <ContactList />
                 </ReferenceArrayField>
+              </TabsContent>
+              <TabsContent value="about">
+                <DealDetails />
+              </TabsContent>
+            </Tabs>
+          ) : (
+            <>
+              <DealDetails />
+              {!!record.contact_ids?.length && (
+                <div className="m-4">
+                  <div className="flex flex-col min-h-12 mr-10">
+                    <span className="text-xs text-muted-foreground tracking-wide">
+                      Contacts
+                    </span>
+                    <ReferenceArrayField
+                      source="contact_ids"
+                      reference="contacts_summary"
+                    >
+                      <ContactList />
+                    </ReferenceArrayField>
+                  </div>
+                </div>
+              )}
+
+              {record.description && (
+                <div className="m-4 whitespace-pre-line">
+                  <span className="text-xs text-muted-foreground tracking-wide">
+                    Description
+                  </span>
+                  <p className="text-sm leading-6">{record.description}</p>
+                </div>
+              )}
+
+              <div className="m-4">
+                <Separator className="mb-4" />
+                <ReferenceManyField
+                  target="deal_id"
+                  reference="dealNotes"
+                  sort={{ field: "date", order: "DESC" }}
+                  empty={<NoteCreate reference={"deals"} />}
+                >
+                  <NotesIterator reference="deals" />
+                </ReferenceManyField>
               </div>
-            </div>
+            </>
           )}
-
-          {record.description && (
-            <div className="m-4 whitespace-pre-line">
-              <span className="text-xs text-muted-foreground tracking-wide">
-                Description
-              </span>
-              <p className="text-sm leading-6">{record.description}</p>
-            </div>
-          )}
-
-          <div className="m-4">
-            <Separator className="mb-4" />
-            <ReferenceManyField
-              target="deal_id"
-              reference="dealNotes"
-              sort={{ field: "date", order: "DESC" }}
-              empty={<NoteCreate reference={"deals"} />}
-            >
-              <NotesIterator reference="deals" />
-            </ReferenceManyField>
-          </div>
         </div>
       </div>
     </>
+  );
+};
+
+const DealDetails = () => {
+  const { dealStages } = useConfigurationContext();
+  const record = useRecordContext<Deal>();
+
+  if (!record) return null;
+  return (
+    <div className="flex flex-col md:flex-row gap-4 md:gap-8 md:m-4">
+      <div className="flex flex-col mr-10">
+        <span className="text-xs text-muted-foreground tracking-wide">
+          Expected closing date
+        </span>
+        <div className="flex items-center gap-2">
+          <span className="text-sm">
+            {isValid(new Date(record.expected_closing_date))
+              ? format(new Date(record.expected_closing_date), "PP")
+              : "Invalid date"}
+          </span>
+          {new Date(record.expected_closing_date) < new Date() ? (
+            <Badge variant="destructive">Past</Badge>
+          ) : null}
+        </div>
+      </div>
+
+      <div className="flex flex-col mr-10">
+        <span className="text-xs text-muted-foreground tracking-wide">
+          Budget
+        </span>
+        <span className="text-sm">
+          {record.amount.toLocaleString("en-US", {
+            notation: "compact",
+            style: "currency",
+            currency: "USD",
+            currencyDisplay: "narrowSymbol",
+            minimumSignificantDigits: 3,
+          })}
+        </span>
+      </div>
+
+      {record.category && (
+        <div className="flex flex-col mr-10">
+          <span className="text-xs text-muted-foreground tracking-wide">
+            Category
+          </span>
+          <span className="text-sm">{record.category}</span>
+        </div>
+      )}
+
+      <div className="flex flex-col mr-10">
+        <span className="text-xs text-muted-foreground tracking-wide">
+          Stage
+        </span>
+        <span className="text-sm">
+          {findDealLabel(dealStages, record.stage)}
+        </span>
+      </div>
+    </div>
   );
 };
 

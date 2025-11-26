@@ -13,11 +13,10 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AddTask } from "../tasks/AddTask";
 import { TasksIterator } from "../tasks/TasksIterator";
-import { useRecordContext } from "ra-core";
-import { useReferenceManyFieldController } from "ra-core";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router";
 import { Edit } from "lucide-react";
+import { ReferenceManyCount } from "../misc/ReferenceManyCount";
 
 export const ContactShow = () => (
   <ShowBase>
@@ -88,9 +87,27 @@ const ContactShowContent = () => {
             {isMobile ? (
               <Tabs defaultValue="notes" className="mt-4">
                 <TabsList className="grid w-full grid-cols-3">
-                  <TabsTrigger value="notes">Notes</TabsTrigger>
+                  <TabsTrigger value="notes">
+                    <ReferenceManyCount
+                      reference="contactNotes"
+                      target="contact_id"
+                      render={(total) => (
+                        <>
+                          {total?.toString()} {total === 1 ? "note" : "notes"}
+                        </>
+                      )}
+                    />
+                  </TabsTrigger>
                   <TabsTrigger value="tasks">
-                    <TasksCount />
+                    <ReferenceManyCount
+                      reference="tasks"
+                      target="contact_id"
+                      render={(total) => (
+                        <>
+                          {total?.toString()} {total === 1 ? "task" : "tasks"}
+                        </>
+                      )}
+                    />
                   </TabsTrigger>
                   <TabsTrigger value="details">Contact details</TabsTrigger>
                 </TabsList>
@@ -146,25 +163,4 @@ const ContactShowContent = () => {
       {isMobile ? null : <ContactAside />}
     </div>
   );
-};
-
-/**
- * Necessary until we have a render prop on ReferenceManyCountBase
- */
-const TasksCount = () => {
-  const record = useRecordContext();
-  const { isLoading, error, total } = useReferenceManyFieldController({
-    page: 1,
-    perPage: 1,
-    record,
-    reference: "tasks",
-    target: "contact_id",
-  });
-
-  const body = isLoading
-    ? ""
-    : error
-      ? "error"
-      : `${total} ${total === 1 ? "task" : "tasks"}`;
-  return <span>{body}</span>;
 };

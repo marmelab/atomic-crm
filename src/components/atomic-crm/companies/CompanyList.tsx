@@ -1,4 +1,4 @@
-import { useGetIdentity, useListContext } from "ra-core";
+import { RecordsIterator, useGetIdentity, useListContext } from "ra-core";
 import { CreateButton } from "@/components/admin/create-button";
 import { ExportButton } from "@/components/admin/export-button";
 import { List } from "@/components/admin/list";
@@ -15,10 +15,8 @@ import { Button } from "@/components/ui/button";
 import { Link } from "react-router";
 import { Plus } from "lucide-react";
 import { CompanyAvatar } from "./CompanyAvatar";
-import { RecordsIterator } from "ra-core";
 import { Card } from "@/components/ui/card";
-import { useRecordContext } from "ra-core";
-import { useReferenceManyFieldController } from "ra-core";
+import { ReferenceManyCount } from "../misc/ReferenceManyCount";
 
 export const CompanyList = () => {
   const { identity } = useGetIdentity();
@@ -94,7 +92,15 @@ const CompanyMobileList = () => (
                 <div className="flex items-center justify-between gap-2 text-sm text-gray-400">
                   <TextField source="sector" />
                   <div className="flex items-center gap-1">
-                    <DealsCount />
+                    <ReferenceManyCount
+                      reference="deals"
+                      target="company_id"
+                      render={(total) => (
+                        <>
+                          {total} {total === 1 ? "deal" : "deals"}
+                        </>
+                      )}
+                    />
                   </div>
                 </div>
               </div>
@@ -105,27 +111,6 @@ const CompanyMobileList = () => (
     </ul>
   </Card>
 );
-
-/**
- * Necessary until we have a render prop on ReferenceManyCountBase
- */
-const DealsCount = () => {
-  const record = useRecordContext();
-  const { isLoading, error, total } = useReferenceManyFieldController({
-    page: 1,
-    perPage: 1,
-    record,
-    reference: "deals",
-    target: "company_id",
-  });
-
-  const body = isLoading
-    ? ""
-    : error
-      ? "error"
-      : `${total} ${total === 1 ? "deal" : "deals"}`;
-  return <span>{body}</span>;
-};
 
 const CompanyListActions = () => {
   const isMobile = useIsMobile();

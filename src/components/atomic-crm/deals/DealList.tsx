@@ -73,9 +73,12 @@ const DealList = () => {
 
 const DealLayout = () => {
   const location = useLocation();
-  const matchCreate = matchPath("/deals/create", location.pathname);
-  const matchShow = matchPath("/deals/:id/show", location.pathname);
-  const matchEdit = matchPath("/deals/:id", location.pathname);
+  const isMobile = useIsMobile();
+  const matchCreate =
+    !isMobile && matchPath("/deals/create", location.pathname);
+  const matchShow =
+    !isMobile && matchPath("/deals/:id/show", location.pathname);
+  const matchEdit = !isMobile && matchPath("/deals/:id", location.pathname);
 
   const { data, isPending, filterValues } = useListContext();
   const hasFilters = filterValues && Object.keys(filterValues).length > 0;
@@ -85,7 +88,10 @@ const DealLayout = () => {
     return (
       <>
         <DealEmpty>
-          <DealShow open={!!matchShow} id={matchShow?.params.id} />
+          <DealShow
+            open={!!matchShow}
+            id={matchShow ? matchShow?.params.id : undefined}
+          />
           <DealArchivedList />
         </DealEmpty>
       </>
@@ -96,8 +102,14 @@ const DealLayout = () => {
       <DealListContent />
       <DealArchivedList />
       <DealCreate open={!!matchCreate} />
-      <DealEdit open={!!matchEdit && !matchCreate} id={matchEdit?.params.id} />
-      <DealShow open={!!matchShow} id={matchShow?.params.id} />
+      <DealEdit
+        open={!!matchEdit && !matchCreate}
+        id={matchEdit ? matchEdit?.params.id : undefined}
+      />
+      <DealShow
+        open={!!matchShow}
+        id={matchShow ? matchShow?.params.id : undefined}
+      />
     </div>
   );
 };

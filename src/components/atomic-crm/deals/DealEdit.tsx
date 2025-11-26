@@ -55,27 +55,57 @@ export const DealEdit = ({ open, id }: { open: boolean; id?: string }) => {
   );
 };
 
-function EditHeader() {
+export const DealEditPage = () => {
+  const redirect = useRedirect();
+  const notify = useNotify();
+  return (
+    <EditBase
+      mutationMode="pessimistic"
+      mutationOptions={{
+        onSuccess: () => {
+          notify("Deal updated");
+          redirect(`show`, undefined, undefined, undefined, {
+            _scrollToTop: false,
+          });
+        },
+      }}
+    >
+      <EditTitle />
+      <Form>
+        <DealInputs />
+        <EditToolbar />
+      </Form>
+    </EditBase>
+  );
+};
+
+function EditTitle() {
   const deal = useRecordContext<Deal>();
   if (!deal) {
     return null;
   }
 
   return (
-    <DialogTitle className="pb-0">
-      <div className="flex justify-between items-start mb-8">
-        <div className="flex items-center gap-4">
-          <ReferenceField source="company_id" reference="companies" link="show">
-            <CompanyAvatar />
-          </ReferenceField>
-          <h2 className="text-2xl font-semibold">Edit {deal.name} deal</h2>
-        </div>
-        <div className="flex gap-2 pr-12">
-          <Button asChild variant="outline" className="h-9">
-            <Link to={`/deals/${deal.id}/show`}>Back to deal</Link>
-          </Button>
-        </div>
+    <div className="flex flex-col md:flex-row justify-between items-start mb-8">
+      <div className="flex items-center gap-4">
+        <ReferenceField source="company_id" reference="companies" link="show">
+          <CompanyAvatar />
+        </ReferenceField>
+        <h2 className="text-2xl font-semibold">Edit {deal.name} deal</h2>
       </div>
+      <div className="flex gap-2 pr-12">
+        <Button asChild variant="outline" className="h-9">
+          <Link to={`/deals/${deal.id}/show`}>Back to deal</Link>
+        </Button>
+      </div>
+    </div>
+  );
+}
+
+function EditHeader() {
+  return (
+    <DialogTitle className="pb-0">
+      <EditTitle />
     </DialogTitle>
   );
 }
