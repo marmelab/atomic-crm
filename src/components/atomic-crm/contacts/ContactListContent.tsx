@@ -58,13 +58,13 @@ export const ContactListContent = () => {
               />
             )}
             <Avatar />
-            <div className="flex flex-col md:flex-row">
+            <div className="flex flex-col md:flex-row grow justify-between">
               <div className="flex-1 min-w-0">
                 <div className="font-medium">
                   {`${contact.first_name} ${contact.last_name ?? ""}`}
                 </div>
                 <div className="text-sm text-muted-foreground">
-                  <div className="flex flex-col md:flex-row">
+                  <div className="flex flex-col md:flex-row gap-2">
                     <span>
                       {contact.title}
                       {contact.title && contact.company_id != null && " at "}
@@ -79,17 +79,16 @@ export const ContactListContent = () => {
                       )}
                     </span>
                     {contact.nb_tasks ? (
-                      <span className="md:before:mx-1 md:before:content-['-']">
+                      <span className="md:before:mr-1 md:before:content-['-']">
                         {contact.nb_tasks} task{contact.nb_tasks > 1 ? "s" : ""}
                       </span>
                     ) : null}
-                    &nbsp;&nbsp;
-                    <TagsList />
+                    {isSmall ? null : <TagsList />}
                   </div>
                 </div>
               </div>
-              {contact.last_seen && (
-                <div className="md:text-right md:ml-4">
+              {contact.last_seen && !isSmall && (
+                <div className="text-right ml-4 flex items-center">
                   <div
                     className="text-sm text-muted-foreground"
                     title={contact.last_seen}
