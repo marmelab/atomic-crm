@@ -5,6 +5,7 @@ import { useGetList } from "ra-core";
 import { memo, useMemo } from "react";
 
 import type { Deal } from "../types";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 const multiplier = {
   opportunity: 0.2,
@@ -21,6 +22,7 @@ const DEFAULT_LOCALE = "en-US";
 const CURRENCY = "USD";
 
 export const DealsChart = memo(() => {
+  const isMobile = useIsMobile();
   const acceptedLanguages = navigator
     ? navigator.languages || [navigator.language]
     : [DEFAULT_LOCALE];
@@ -85,7 +87,7 @@ export const DealsChart = memo(() => {
   );
   return (
     <div className="flex flex-col">
-      <div className="flex items-center mb-4">
+      <div className="hidden md:flex items-center mb-4">
         <div className="mr-3 flex">
           <DollarSign className="text-muted-foreground w-6 h-6" />
         </div>
@@ -100,7 +102,7 @@ export const DealsChart = memo(() => {
           keys={["won", "pending", "lost"]}
           colors={["#61cdbb", "#97e3d5", "#e25c3b"]}
           margin={{ top: 30, right: 50, bottom: 30, left: 0 }}
-          padding={0.3}
+          padding={isMobile ? 0.6 : 0.3}
           valueScale={{
             type: "linear",
             min: range.min * 1.2,

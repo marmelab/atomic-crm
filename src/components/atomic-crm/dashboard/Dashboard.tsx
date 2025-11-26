@@ -7,6 +7,17 @@ import { DealsChart } from "./DealsChart";
 import { HotContacts } from "./HotContacts";
 import { TasksList } from "./TasksList";
 import { Welcome } from "./Welcome";
+import { useIsMobile } from "@/hooks/use-mobile";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Button } from "@/components/ui/button";
+import { Plus } from "lucide-react";
+import { Link } from "react-router";
 
 export const Dashboard = () => {
   const {
@@ -28,7 +39,7 @@ export const Dashboard = () => {
       pagination: { page: 1, perPage: 1 },
     },
   );
-
+  const isMobile = useIsMobile();
   const isPending = isPendingContact || isPendingContactNotes || isPendingDeal;
 
   if (isPending) {
@@ -41,6 +52,76 @@ export const Dashboard = () => {
 
   if (!totalContactNotes) {
     return <DashboardStepper step={2} contactId={dataContact?.[0]?.id} />;
+  }
+
+  if (isMobile) {
+    return (
+      <div className="flex flex-col gap-6">
+        <div className="mt-1">{totalDeal ? <DealsChart /> : null}</div>
+        <Tabs defaultValue="tasks">
+          <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="tasks">Tasks</TabsTrigger>
+            <TabsTrigger value="activity">Activity</TabsTrigger>
+          </TabsList>
+          <TabsContent value="tasks">
+            <TasksList />
+          </TabsContent>
+          <TabsContent value="activity">
+            <DashboardActivityLog />
+          </TabsContent>
+        </Tabs>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button
+              variant="default"
+              size="icon"
+              className="rounded-full fixed bottom-12 right-12 w-12 h-12"
+            >
+              <span className="sr-only">Create new item</span>
+              <Plus />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent>
+            <DropdownMenuItem asChild>
+              <Link
+                to="/deals/create"
+                className="px-6 py-3 text-sm font-medium transition-colors md:border-b-2 w-full"
+              >
+                <span className="sr-only">New</span>
+                Deal
+              </Link>
+            </DropdownMenuItem>
+            <DropdownMenuItem asChild>
+              <Link
+                to="/tasks/create"
+                className="px-6 py-3 text-sm font-medium transition-colors md:border-b-2 w-full"
+              >
+                <span className="sr-only">New</span>
+                Task
+              </Link>
+            </DropdownMenuItem>
+            <DropdownMenuItem asChild>
+              <Link
+                to="/companies/create"
+                className="px-6 py-3 text-sm font-medium transition-colors md:border-b-2 w-full"
+              >
+                <span className="sr-only">New</span>
+                Company
+              </Link>
+            </DropdownMenuItem>
+            <DropdownMenuItem asChild>
+              <Link
+                to="/contacts/create"
+                className="px-6 py-3 text-sm font-medium transition-colors md:border-b-2 w-full"
+              >
+                <span className="sr-only">New</span>
+                Contact
+              </Link>
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
+    );
   }
 
   return (

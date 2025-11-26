@@ -7,7 +7,7 @@ import {
   useRedirect,
   type GetListResult,
 } from "ra-core";
-import { Create } from "@/components/admin/create";
+import { Create, CreateProps } from "@/components/admin/create";
 import { SaveButton } from "@/components/admin/form";
 import { FormToolbar } from "@/components/admin/simple-form";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
@@ -16,14 +16,9 @@ import type { Deal } from "../types";
 import { DealInputs } from "./DealInputs";
 
 export const DealCreate = ({ open }: { open: boolean }) => {
-  const redirect = useRedirect();
   const dataProvider = useDataProvider();
+  const redirect = useRedirect();
   const { data: allDeals } = useListContext<Deal>();
-
-  const handleClose = () => {
-    redirect("/deals");
-  };
-
   const queryClient = useQueryClient();
 
   const onSuccess = async (deal: Deal) => {
@@ -70,26 +65,35 @@ export const DealCreate = ({ open }: { open: boolean }) => {
     redirect("/deals");
   };
 
-  const { identity } = useGetIdentity();
+  const handleClose = () => {
+    redirect("/deals");
+  };
 
   return (
     <Dialog open={open} onOpenChange={() => handleClose()}>
       <DialogContent className="lg:max-w-4xl overflow-y-auto max-h-9/10 top-1/20 translate-y-0">
-        <Create resource="deals" mutationOptions={{ onSuccess }}>
-          <Form
-            defaultValues={{
-              sales_id: identity?.id,
-              contact_ids: [],
-              index: 0,
-            }}
-          >
-            <DealInputs />
-            <FormToolbar>
-              <SaveButton />
-            </FormToolbar>
-          </Form>
-        </Create>
+        <DealCreatePage mutationOptions={{ onSuccess }} />
       </DialogContent>
     </Dialog>
+  );
+};
+
+export const DealCreatePage = (props: Partial<CreateProps>) => {
+  const { identity } = useGetIdentity();
+  return (
+    <Create resource="deals" redirect="list" {...props}>
+      <Form
+        defaultValues={{
+          sales_id: identity?.id,
+          contact_ids: [],
+          index: 0,
+        }}
+      >
+        <DealInputs />
+        <FormToolbar>
+          <SaveButton />
+        </FormToolbar>
+      </Form>
+    </Create>
   );
 };

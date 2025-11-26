@@ -341,6 +341,10 @@
           "type": "registry:component"
         },
         {
+          "path": "src/components/atomic-crm/misc/ReferenceManyCount.tsx",
+          "type": "registry:component"
+        },
+        {
           "path": "src/components/atomic-crm/misc/ImageEditorField.tsx",
           "type": "registry:component"
         },
@@ -630,6 +634,10 @@
         },
         {
           "path": "src/components/atomic-crm/activity/ActivityLogIterator.tsx",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/activity/ActivityLogHeader.tsx",
           "type": "registry:component"
         },
         {

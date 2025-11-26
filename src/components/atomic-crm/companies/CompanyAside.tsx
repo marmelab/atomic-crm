@@ -42,7 +42,7 @@ export const CompanyAside = ({ link = "edit" }: CompanyAsideProps) => {
   );
 };
 
-const CompanyInfo = ({ record }: { record: Company }) => {
+export const CompanyInfo = ({ record }: { record: Company }) => {
   if (!record.website && !record.linkedin_url && !record.phone_number) {
     return null;
   }
@@ -86,7 +86,7 @@ const CompanyInfo = ({ record }: { record: Company }) => {
   );
 };
 
-const ContextInfo = ({ record }: { record: Company }) => {
+export const ContextInfo = ({ record }: { record: Company }) => {
   if (!record.revenue && !record.id) {
     return null;
   }
@@ -117,7 +117,7 @@ const ContextInfo = ({ record }: { record: Company }) => {
   );
 };
 
-const AddressInfo = ({ record }: { record: Company }) => {
+export const AddressInfo = ({ record }: { record: Company }) => {
   if (!record.address && !record.city && !record.zipcode && !record.stateAbbr) {
     return null;
   }
@@ -133,7 +133,7 @@ const AddressInfo = ({ record }: { record: Company }) => {
   );
 };
 
-const AdditionalInfo = ({ record }: { record: Company }) => {
+export const AdditionalInfo = ({ record }: { record: Company }) => {
   if (
     !record.created_at &&
     !record.sales_id &&

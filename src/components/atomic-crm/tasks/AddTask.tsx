@@ -34,6 +34,8 @@ import {
 
 import { contactOptionText } from "../misc/ContactOption";
 import { useConfigurationContext } from "../root/ConfigurationContext";
+import { useIsMobile } from "@/hooks/use-mobile";
+import { cn } from "@/lib/utils";
 
 export const AddTask = ({
   selectContact,
@@ -49,6 +51,7 @@ export const AddTask = ({
   const { taskTypes } = useConfigurationContext();
   const contact = useRecordContext();
   const [open, setOpen] = useState(false);
+  const isMobile = useIsMobile();
   const handleOpen = () => {
     setOpen(true);
   };
@@ -93,9 +96,12 @@ export const AddTask = ({
         <div className="my-2">
           <Button
             variant="outline"
-            className="h-6 cursor-pointer"
+            className={cn("cursor-pointer", {
+              "w-full": isMobile,
+              "h-6": !isMobile,
+            })}
             onClick={handleOpen}
-            size="sm"
+            size={isMobile ? "lg" : "sm"}
           >
             <Plus className="w-4 h-4" />
             Add task
