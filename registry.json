@@ -339,6 +339,10 @@
           "type": "registry:component"
         },
         {
+          "path": "src/components/atomic-crm/misc/ReferenceManyCount.tsx",
+          "type": "registry:component"
+        },
+        {
           "path": "src/components/atomic-crm/misc/ImageEditorField.tsx",
           "type": "registry:component"
         },
