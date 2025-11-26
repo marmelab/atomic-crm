@@ -72,11 +72,7 @@ const CompanyListLayout = () => {
     <div className="w-full flex flex-row gap-8">
       {isMobile ? null : <CompanyListFilter />}
       <div className="flex flex-col flex-1 gap-4">
-        {isMobile ? (
-          <CompanyMobileList />
-        ) : (
-          <ImageList />
-        )}
+        {isMobile ? <CompanyMobileList /> : <ImageList />}
       </div>
     </div>
   );

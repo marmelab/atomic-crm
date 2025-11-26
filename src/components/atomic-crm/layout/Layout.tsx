@@ -9,7 +9,10 @@ import Header from "./Header";
 export const Layout = ({ children }: { children: ReactNode }) => (
   <>
     <Header />
-    <main className="max-w-screen-xl mx-auto pt-2 px-2 md:pt-4 md:px-4" id="main-content">
+    <main
+      className="max-w-screen-xl mx-auto pt-2 px-2 md:pt-4 md:px-4"
+      id="main-content"
+    >
       <ErrorBoundary FallbackComponent={Error}>
         <Suspense fallback={<Skeleton className="h-12 w-12 rounded-full" />}>
           {children}
