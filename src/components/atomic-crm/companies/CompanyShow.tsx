@@ -26,8 +26,16 @@ import { findDealLabel } from "../deals/deal";
 import { Status } from "../misc/Status";
 import { useConfigurationContext } from "../root/ConfigurationContext";
 import type { Company, Contact, Deal } from "../types";
-import { CompanyAside } from "./CompanyAside";
+import {
+  AdditionalInfo,
+  AddressInfo,
+  CompanyAside,
+  CompanyInfo,
+  ContextInfo,
+} from "./CompanyAside";
 import { CompanyAvatar } from "./CompanyAvatar";
+import { useIsMobile } from "@/hooks/use-mobile";
+import { cn } from "@/lib/utils";
 
 export const CompanyShow = () => (
   <ShowBase>
@@ -38,6 +46,7 @@ export const CompanyShow = () => (
 const CompanyShowContent = () => {
   const { record, isPending } = useShowContext<Company>();
   const navigate = useNavigate();
+  const isMobile = useIsMobile();
 
   // Get tab from URL or default to "activity"
   const tabMatch = useMatch("/companies/:id/show/:tab");
@@ -57,14 +66,19 @@ const CompanyShowContent = () => {
   return (
     <div className="mt-2 flex pb-2 gap-8">
       <div className="flex-1">
-        <Card>
-          <CardContent>
+        <Card className="max-md:border-none max-md:py-0">
+          <CardContent className="p-0 md:p-4">
             <div className="flex mb-3">
               <CompanyAvatar />
               <h5 className="text-xl ml-2 flex-1">{record.name}</h5>
             </div>
             <Tabs defaultValue={currentTab} onValueChange={handleTabChange}>
-              <TabsList className="grid w-full grid-cols-3">
+              <TabsList
+                className={cn("grid w-full", {
+                  "grid-cols-3": !isMobile,
+                  "grid-cols-4": isMobile,
+                })}
+              >
                 <TabsTrigger value="activity">Activity</TabsTrigger>
                 <TabsTrigger value="contacts">
                   {record.nb_contacts
@@ -79,6 +93,9 @@ const CompanyShowContent = () => {
                       ? "1 deal"
                       : `${record.nb_deals} deals`}
                   </TabsTrigger>
+                ) : null}
+                {isMobile ? (
+                  <TabsTrigger value="about">About</TabsTrigger>
                 ) : null}
               </TabsList>
               <TabsContent value="activity" className="pt-2">
@@ -122,17 +139,24 @@ const CompanyShowContent = () => {
                   </ReferenceManyField>
                 ) : null}
               </TabsContent>
+              <TabsContent value="about">
+                <CompanyInfo record={record} />
+                <AddressInfo record={record} />
+                <ContextInfo record={record} />
+                <AdditionalInfo record={record} />
+              </TabsContent>
             </Tabs>
           </CardContent>
         </Card>
       </div>
-      <CompanyAside />
+      {isMobile ? null : <CompanyAside />}
     </div>
   );
 };
 
 const ContactsIterator = () => {
   const location = useLocation();
+  const isMobile = useIsMobile();
   const { data: contacts, error, isPending } = useListContext<Contact>();
 
   if (isPending || error) return null;
@@ -162,11 +186,15 @@ const ContactsIterator = () => {
                         contact.nb_tasks > 1 ? "s" : ""
                       }`
                     : ""}
-                  &nbsp; &nbsp;
-                  <TagsList />
+                  {isMobile ? null : (
+                    <>
+                      &nbsp; &nbsp;
+                      <TagsList />
+                    </>
+                  )}
                 </div>
               </div>
-              {contact.last_seen && (
+              {!isMobile && contact.last_seen && (
                 <div className="text-right">
                   <div className="text-sm text-muted-foreground">
                     last activity {formatDistance(contact.last_seen, now)} ago{" "}
@@ -211,9 +239,9 @@ const DealsIterator = () => {
           <div key={deal.id} className="p-0 text-sm">
             <RouterLink
               to={`/deals/${deal.id}/show`}
-              className="flex items-center justify-between hover:bg-muted py-2 px-4 transition-colors"
+              className="flex flex-col md:flex-row md:items-center justify-between hover:bg-muted py-2 px-4 transition-colors"
             >
-              <div className="flex-1 min-w-0">
+              <div className="flex flex-col md:flex-row flex-1 min-w-0">
                 <div className="font-medium">{deal.name}</div>
                 <div className="text-sm text-muted-foreground">
                   {findDealLabel(dealStages, deal.stage)},{" "}
@@ -227,7 +255,7 @@ const DealsIterator = () => {
                   {deal.category ? `, ${deal.category}` : ""}
                 </div>
               </div>
-              <div className="text-right">
+              <div className="md:text-right">
                 <div className="text-sm text-muted-foreground">
                   last activity {formatDistance(deal.updated_at, now)} ago{" "}
                 </div>

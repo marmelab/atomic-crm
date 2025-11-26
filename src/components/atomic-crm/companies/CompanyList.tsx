@@ -86,7 +86,7 @@ const CompanyMobileList = () => (
           <li className="flex flex-col">
             <Link
               className="flex items-center gap-2"
-              to={`/companies/${record.id}`}
+              to={`/companies/${record.id}/show`}
             >
               <CompanyAvatar />
               <div className="flex flex-col grow">

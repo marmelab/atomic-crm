@@ -33,8 +33,8 @@ const ContactShowContent = () => {
   return (
     <div className="mt-2 mb-2 flex gap-8">
       <div className="flex-1">
-        <Card>
-          <CardContent className="px-2 md:px-4">
+        <Card className="max-md:border-none max-md:py-0">
+          <CardContent className="p-0 md:p-4">
             <div className="flex">
               <Avatar />
               <div className="ml-2 flex-1">
@@ -87,7 +87,7 @@ const ContactShowContent = () => {
             </div>
             {isMobile ? (
               <Tabs defaultValue="notes" className="mt-4">
-                <TabsList>
+                <TabsList className="grid w-full grid-cols-3">
                   <TabsTrigger value="notes">Notes</TabsTrigger>
                   <TabsTrigger value="tasks">
                     <TasksCount />

@@ -59,7 +59,7 @@ export const Dashboard = () => {
       <div className="flex flex-col gap-6">
         <div className="mt-1">{totalDeal ? <DealsChart /> : null}</div>
         <Tabs defaultValue="tasks">
-          <TabsList>
+          <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="tasks">Tasks</TabsTrigger>
             <TabsTrigger value="activity">Activity</TabsTrigger>
           </TabsList>
