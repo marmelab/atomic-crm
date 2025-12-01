@@ -59,7 +59,6 @@ const Header = () => {
 const MobileHeader = ({ currentPath }: { currentPath: string | boolean }) => {
   const { title } = useConfigurationContext();
   const [open, setOpen] = useState(false);
-  console.log({ currentPath });
   return (
     <div className="p-2 flex w-full items-center">
       <Drawer direction="left" modal open={open} onOpenChange={setOpen}>
@@ -212,7 +211,6 @@ const NavigationLink = ({
   isActive: boolean;
 } & LinkProps &
   RefAttributes<HTMLAnchorElement>) => {
-  console.log({ props });
   return (
     <Link
       to={to}

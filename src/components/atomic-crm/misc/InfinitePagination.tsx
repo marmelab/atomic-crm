@@ -97,9 +97,6 @@ export const InfinitePagination = ({
         </Item>
       ) : (
         <Item variant="default">
-          <ItemMedia>
-            <Spinner />
-          </ItemMedia>
           <ItemContent>
             <ItemTitle className="line-clamp-1">&nbsp;</ItemTitle>
           </ItemContent>
