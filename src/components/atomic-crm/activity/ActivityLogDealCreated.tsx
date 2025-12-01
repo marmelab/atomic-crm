@@ -27,11 +27,7 @@ export function ActivityLogDealCreated({
         </ReferenceField>
       </span>
       &nbsp;added deal <Link to={`/deals/${deal.id}/show`}>{deal.name}</Link>
-      {context !== "company" && (
-        <>
-          &nbsp;to company {activity.company_id}
-        </>
-      )}
+      {context !== "company" && <>&nbsp;to company {activity.company_id}</>}
     </ActivityLogHeader>
   );
 }
