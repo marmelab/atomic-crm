@@ -16,6 +16,16 @@ import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { CompanyAvatar } from "../companies/CompanyAvatar";
 import type { Deal } from "../types";
 import { DealInputs } from "./DealInputs";
+import { ArchiveButton } from "./ArchiveButton";
+import { UnarchiveButton } from "./UnarchiveButton";
+import { useIsMobile } from "@/hooks/use-mobile";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { MoreVertical } from "lucide-react";
 
 export const DealEdit = ({ open, id }: { open: boolean; id?: string }) => {
   const redirect = useRedirect();
@@ -81,6 +91,8 @@ export const DealEditPage = () => {
 
 function EditTitle() {
   const deal = useRecordContext<Deal>();
+  const isMobile = useIsMobile();
+
   if (!deal) {
     return null;
   }
@@ -92,6 +104,30 @@ function EditTitle() {
           <CompanyAvatar />
         </ReferenceField>
         <h2 className="text-2xl font-semibold">Edit {deal.name} deal</h2>
+        {isMobile ? (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" className="rounded-full">
+                <span className="sr-only">Actions</span>
+                <MoreVertical className="w-4 h-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent>
+              <DropdownMenuItem asChild>
+                <DeleteButton className="w-full justify-start border-none" />
+              </DropdownMenuItem>
+              {deal.archived_at ? (
+                <DropdownMenuItem asChild>
+                  <UnarchiveButton className="w-full justify-start border-none" />
+                </DropdownMenuItem>
+              ) : (
+                <DropdownMenuItem asChild>
+                  <ArchiveButton className="w-full justify-start border-none" />
+                </DropdownMenuItem>
+              )}
+            </DropdownMenuContent>
+          </DropdownMenu>
+        ) : null}
       </div>
       <div className="flex gap-2 pr-12">
         <Button asChild variant="outline" className="h-9">
@@ -111,10 +147,14 @@ function EditHeader() {
 }
 
 function EditToolbar() {
+  const record = useRecordContext<Deal>();
+  const isMobile = useIsMobile();
+  if (!record) return null;
+
   return (
     <FormToolbar>
       <div className="flex-1 flex justify-between">
-        <DeleteButton />
+        {isMobile ? null : <DeleteButton />}
         <SaveButton />
       </div>
     </FormToolbar>

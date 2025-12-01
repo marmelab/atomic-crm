@@ -1,15 +1,9 @@
-import { useMutation } from "@tanstack/react-query";
 import { format, isValid } from "date-fns";
-import { Archive, ArchiveRestore, Edit } from "lucide-react";
-import {
-  ShowBase,
-  useDataProvider,
-  useNotify,
-  useRecordContext,
-  useRedirect,
-  useRefresh,
-  useUpdate,
-} from "ra-core";
+import { ShowBase, useRecordContext, useRedirect } from "ra-core";
+import { Edit } from "lucide-react";
+import { Link } from "react-router";
+
+import { useIsMobile } from "@/hooks/use-mobile";
 import { DeleteButton } from "@/components/admin/delete-button";
 import { EditButton } from "@/components/admin/edit-button";
 import { ReferenceArrayField } from "@/components/admin/reference-array-field";
@@ -19,6 +13,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Separator } from "@/components/ui/separator";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 import { CompanyAvatar } from "../companies/CompanyAvatar";
 import { NoteCreate } from "../notes/NoteCreate";
@@ -27,10 +22,9 @@ import { useConfigurationContext } from "../root/ConfigurationContext";
 import type { Deal } from "../types";
 import { ContactList } from "./ContactList";
 import { findDealLabel } from "./deal";
-import { useIsMobile } from "@/hooks/use-mobile";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ReferenceManyCount } from "../misc/ReferenceManyCount";
-import { Link } from "react-router";
+import { UnarchiveButton } from "./UnarchiveButton";
+import { ArchiveButton } from "./ArchiveButton";
 
 export const DealShow = ({ open, id }: { open: boolean; id?: string }) => {
   const redirect = useRedirect();
@@ -91,12 +85,12 @@ const DealShowContent = () => {
               >
                 {record.archived_at ? (
                   <>
-                    <UnarchiveButton record={record} />
+                    <UnarchiveButton />
                     <DeleteButton />
                   </>
                 ) : (
                   <>
-                    <ArchiveButton record={record} />
+                    <ArchiveButton />
                     <EditButton />
                   </>
                 )}
@@ -265,80 +259,3 @@ const ArchivedTitle = () => (
     <h3 className="text-lg font-bold text-white">Archived Deal</h3>
   </div>
 );
-
-const ArchiveButton = ({ record }: { record: Deal }) => {
-  const [update] = useUpdate();
-  const redirect = useRedirect();
-  const notify = useNotify();
-  const refresh = useRefresh();
-  const handleClick = () => {
-    update(
-      "deals",
-      {
-        id: record.id,
-        data: { archived_at: new Date().toISOString() },
-        previousData: record,
-      },
-      {
-        onSuccess: () => {
-          redirect("list", "deals");
-          notify("Deal archived", { type: "info", undoable: false });
-          refresh();
-        },
-        onError: () => {
-          notify("Error: deal not archived", { type: "error" });
-        },
-      },
-    );
-  };
-
-  return (
-    <Button
-      onClick={handleClick}
-      size="sm"
-      variant="outline"
-      className="flex items-center gap-2 h-9"
-    >
-      <Archive className="w-4 h-4" />
-      Archive
-    </Button>
-  );
-};
-
-const UnarchiveButton = ({ record }: { record: Deal }) => {
-  const dataProvider = useDataProvider();
-  const redirect = useRedirect();
-  const notify = useNotify();
-  const refresh = useRefresh();
-
-  const { mutate } = useMutation({
-    mutationFn: () => dataProvider.unarchiveDeal(record),
-    onSuccess: () => {
-      redirect("list", "deals");
-      notify("Deal unarchived", {
-        type: "info",
-        undoable: false,
-      });
-      refresh();
-    },
-    onError: () => {
-      notify("Error: deal not unarchived", { type: "error" });
-    },
-  });
-
-  const handleClick = () => {
-    mutate();
-  };
-
-  return (
-    <Button
-      onClick={handleClick}
-      size="sm"
-      variant="outline"
-      className="flex items-center gap-2 h-9"
-    >
-      <ArchiveRestore className="w-4 h-4" />
-      Send back to the board
-    </Button>
-  );
-};
