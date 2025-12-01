@@ -59,6 +59,7 @@ const Header = () => {
 const MobileHeader = ({ currentPath }: { currentPath: string | boolean }) => {
   const { title } = useConfigurationContext();
   const [open, setOpen] = useState(false);
+  console.log({ currentPath });
   return (
     <div className="p-2 flex w-full items-center">
       <Drawer direction="left" modal open={open} onOpenChange={setOpen}>
@@ -77,18 +78,20 @@ const MobileHeader = ({ currentPath }: { currentPath: string | boolean }) => {
                 <NavigationMenuLink
                   asChild
                   className={navigationMenuTriggerStyle()}
+                  active={currentPath === "/"}
                 >
                   <NavigationLink
                     label="Dashboard"
                     to="/"
                     isActive={currentPath === "/"}
-                    ref={(element) => element?.focus()}
                     onClick={() => setOpen(false)}
+                    ref={(element) => element?.focus()}
                   />
                 </NavigationMenuLink>
                 <NavigationMenuLink
                   asChild
                   className={navigationMenuTriggerStyle()}
+                  active={currentPath === "/contacts"}
                 >
                   <NavigationLink
                     label="Contacts"
@@ -100,6 +103,7 @@ const MobileHeader = ({ currentPath }: { currentPath: string | boolean }) => {
                 <NavigationMenuLink
                   asChild
                   className={navigationMenuTriggerStyle()}
+                  active={currentPath === "/companies"}
                 >
                   <NavigationLink
                     label="Companies"
@@ -111,6 +115,7 @@ const MobileHeader = ({ currentPath }: { currentPath: string | boolean }) => {
                 <NavigationMenuLink
                   asChild
                   className={navigationMenuTriggerStyle()}
+                  active={currentPath === "/deals"}
                 >
                   <NavigationLink
                     label="Deals"
@@ -199,6 +204,7 @@ const NavigationLink = ({
   label,
   to,
   isActive,
+  className,
   ...props
 }: {
   label: string;
@@ -206,11 +212,13 @@ const NavigationLink = ({
   isActive: boolean;
 } & LinkProps &
   RefAttributes<HTMLAnchorElement>) => {
+  console.log({ props });
   return (
     <Link
       to={to}
       className={cn(
         "px-6 py-3 text-sm font-medium transition-colors md:border-b-2 w-full",
+        className,
         {
           "text-secondary-foreground border-secondary-foreground": isActive,
           "text-secondary-foreground/70 border-transparent hover:text-secondary-foreground/80":
