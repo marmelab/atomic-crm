@@ -417,6 +417,10 @@
           "type": "registry:component"
         },
         {
+          "path": "src/components/atomic-crm/deals/UnarchiveButton.tsx",
+          "type": "registry:component"
+        },
+        {
           "path": "src/components/atomic-crm/deals/OnlyMineInput.tsx",
           "type": "registry:component"
         },
@@ -462,6 +466,10 @@
         },
         {
           "path": "src/components/atomic-crm/deals/ContactList.tsx",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/deals/ArchiveButton.tsx",
           "type": "registry:component"
         },
         {

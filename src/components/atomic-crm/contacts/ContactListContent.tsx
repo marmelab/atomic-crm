@@ -60,8 +60,11 @@ export const ContactListContent = () => {
             <Avatar />
             <div className="flex flex-col md:flex-row grow justify-between">
               <div className="flex-1 min-w-0">
-                <div className="font-medium">
-                  {`${contact.first_name} ${contact.last_name ?? ""}`}
+                <div className="flex justify-between">
+                  <div className="font-medium">
+                    {`${contact.first_name} ${contact.last_name ?? ""}`}
+                  </div>
+                  {isSmall ? <Status status={contact.status} /> : null}
                 </div>
                 <div className="text-sm text-muted-foreground">
                   <div className="flex flex-col md:flex-row gap-2">
