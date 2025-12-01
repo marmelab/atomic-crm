@@ -1,6 +1,7 @@
 import jsonExport from "jsonexport/dist";
 import {
   downloadCSV,
+  InfiniteListBase,
   useGetIdentity,
   useListContext,
   type Exporter,
@@ -11,6 +12,10 @@ import { ExportButton } from "@/components/admin/export-button";
 import { List, ListView } from "@/components/admin/list";
 import { SortButton } from "@/components/admin/sort-button";
 import { Card } from "@/components/ui/card";
+import { useIsMobile } from "@/hooks/use-mobile";
+import { Button } from "@/components/ui/button";
+import { Plus } from "lucide-react";
+import { Link } from "react-router";
 
 import type { Company, Contact, Sale, Tag } from "../types";
 import { ContactEmpty } from "./ContactEmpty";
@@ -18,11 +23,6 @@ import { ContactImportButton } from "./ContactImportButton";
 import { ContactListContent } from "./ContactListContent";
 import { ContactListFilter } from "./ContactListFilter";
 import { TopToolbar } from "../layout/TopToolbar";
-import { useIsMobile } from "@/hooks/use-mobile";
-import { Button } from "@/components/ui/button";
-import { Plus } from "lucide-react";
-import { Link } from "react-router";
-import { InfiniteListBase } from "ra-core";
 import { InfinitePagination } from "../misc/InfinitePagination";
 
 export const ContactList = () => {
