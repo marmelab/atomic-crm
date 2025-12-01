@@ -6,9 +6,11 @@ import { FilterCategory } from "../filters/FilterCategory";
 import { useConfigurationContext } from "../root/ConfigurationContext";
 import { sizes } from "./sizes";
 import { ResponsiveFilters } from "../misc/ResponsiveFilters";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 export const CompanyListFilter = () => {
   const { identity } = useGetIdentity();
+  const isMobile = useIsMobile();
   const { companySectors } = useConfigurationContext();
   const sectors = companySectors.map((sector) => ({
     id: sector,
@@ -19,8 +21,8 @@ export const CompanyListFilter = () => {
       <FilterCategory icon={<Building className="h-4 w-4" />} label="Size">
         {sizes.map((size) => (
           <ToggleFilterButton
-            className="w-full justify-between"
-            label={size.name}
+            className="w-auto md:w-full justify-between"
+            label={isMobile ? size.shortName : size.name}
             value={{ size: size.id }}
           />
         ))}
@@ -29,7 +31,7 @@ export const CompanyListFilter = () => {
       <FilterCategory icon={<Truck className="h-4 w-4" />} label="Sector">
         {sectors.map((sector) => (
           <ToggleFilterButton
-            className="w-full justify-between"
+            className="w-auto md:w-full justify-between"
             label={sector.name}
             value={{ sector: sector.id }}
           />

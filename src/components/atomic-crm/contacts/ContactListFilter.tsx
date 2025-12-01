@@ -21,7 +21,7 @@ export const ContactListFilter = () => {
     <ResponsiveFilters searchInput={{ placeholder: "Name, company" }}>
       <FilterCategory label="Last activity" icon={<Clock />}>
         <ToggleFilterButton
-          className="w-full justify-between"
+          className="w-auto md:w-full justify-between"
           label="Today"
           value={{
             "last_seen@gte": endOfYesterday().toISOString(),
@@ -29,7 +29,7 @@ export const ContactListFilter = () => {
           }}
         />
         <ToggleFilterButton
-          className="w-full justify-between"
+          className="w-auto md:w-full justify-between"
           label="This week"
           value={{
             "last_seen@gte": startOfWeek(new Date()).toISOString(),
@@ -37,7 +37,7 @@ export const ContactListFilter = () => {
           }}
         />
         <ToggleFilterButton
-          className="w-full justify-between"
+          className="w-auto md:w-full justify-between"
           label="Before this week"
           value={{
             "last_seen@gte": undefined,
@@ -45,7 +45,7 @@ export const ContactListFilter = () => {
           }}
         />
         <ToggleFilterButton
-          className="w-full justify-between"
+          className="w-auto md:w-full justify-between"
           label="Before this month"
           value={{
             "last_seen@gte": undefined,
@@ -53,7 +53,7 @@ export const ContactListFilter = () => {
           }}
         />
         <ToggleFilterButton
-          className="w-full justify-between"
+          className="w-auto md:w-full justify-between"
           label="Before last month"
           value={{
             "last_seen@gte": undefined,
@@ -69,7 +69,7 @@ export const ContactListFilter = () => {
         {noteStatuses.map((status) => (
           <ToggleFilterButton
             key={status.value}
-            className="w-full justify-between"
+            className="w-auto md:w-full justify-between"
             label={
               <span>
                 {status.label} <Status status={status.value} />
@@ -84,7 +84,7 @@ export const ContactListFilter = () => {
         {data &&
           data.map((record) => (
             <ToggleFilterButton
-              className="w-full justify-between"
+              className="w-auto md:w-full justify-between"
               key={record.id}
               label={
                 <Badge
