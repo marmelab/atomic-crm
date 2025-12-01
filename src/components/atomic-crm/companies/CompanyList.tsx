@@ -33,6 +33,7 @@ export const CompanyList = () => {
     return (
       <InfiniteListBase>
         <ListView pagination={<InfinitePagination />} actions={false}>
+          <CompanyListFilter />
           <CompanyListLayout />
         </ListView>
         <Button

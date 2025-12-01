@@ -39,6 +39,7 @@ export const ContactList = () => {
         exporter={exporter}
       >
         <ListView pagination={<InfinitePagination />} actions={false}>
+          <ContactListFilter />
           <ContactListLayout />
         </ListView>
         <Button

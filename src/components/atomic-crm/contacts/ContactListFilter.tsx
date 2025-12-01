@@ -1,13 +1,13 @@
 import { endOfYesterday, startOfMonth, startOfWeek, subMonths } from "date-fns";
 import { CheckSquare, Clock, Tag, TrendingUp, Users } from "lucide-react";
-import { FilterLiveForm, useGetIdentity, useGetList } from "ra-core";
+import { useGetIdentity, useGetList } from "ra-core";
 import { ToggleFilterButton } from "@/components/admin/toggle-filter-button";
-import { SearchInput } from "@/components/admin/search-input";
 import { Badge } from "@/components/ui/badge";
 
 import { FilterCategory } from "../filters/FilterCategory";
 import { Status } from "../misc/Status";
 import { useConfigurationContext } from "../root/ConfigurationContext";
+import { ResponsiveFilters } from "../misc/ResponsiveFilters";
 
 export const ContactListFilter = () => {
   const { noteStatuses } = useConfigurationContext();
@@ -18,11 +18,7 @@ export const ContactListFilter = () => {
   });
 
   return (
-    <div className="w-52 min-w-52 order-first pt-0.75 flex flex-col gap-4">
-      <FilterLiveForm>
-        <SearchInput source="q" placeholder="Search name, company..." />
-      </FilterLiveForm>
-
+    <ResponsiveFilters searchInput={{ placeholder: "Name, company" }}>
       <FilterCategory label="Last activity" icon={<Clock />}>
         <ToggleFilterButton
           className="w-full justify-between"
@@ -121,6 +117,6 @@ export const ContactListFilter = () => {
           value={{ sales_id: identity?.id }}
         />
       </FilterCategory>
-    </div>
+    </ResponsiveFilters>
   );
 };
