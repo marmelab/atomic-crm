@@ -93,21 +93,25 @@ const CompanyMobileList = () => (
             >
               <CompanyAvatar />
               <div className="flex flex-col grow">
-                <TextField source="name" />
-                <div className="flex items-center justify-between gap-2 text-sm text-gray-400">
-                  <TextField source="sector" />
-                  <div className="flex items-center gap-1">
-                    <ReferenceManyCount
-                      reference="deals"
-                      target="company_id"
-                      render={(total) => (
-                        <>
-                          {total} {total === 1 ? "deal" : "deals"}
-                        </>
-                      )}
-                    />
-                  </div>
+                <div className="flex gap-1 items-baseline">
+                  <TextField
+                    source="name"
+                    className="flex-1 inline-block truncate min-w-0"
+                  />
+                  <ReferenceManyCount
+                    reference="deals"
+                    target="company_id"
+                    render={(total) => (
+                      <span className="inline-block basis-1/5 -m-2 text-muted-foreground text-sm whitespace-nowrap">
+                        {total} {total === 1 ? "deal" : "deals"}
+                      </span>
+                    )}
+                  />
                 </div>
+                <TextField
+                  className="flex items-center justify-between gap-2 text-sm text-muted-foreground"
+                  source="sector"
+                />
               </div>
             </Link>
           </li>
