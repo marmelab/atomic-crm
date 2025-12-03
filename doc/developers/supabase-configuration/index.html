@@ -94,7 +94,7 @@
 <p>You will be prompted to create the first production user.</p>
 <p>Using a remote Supabase instance can be interesting if you deploy from your computer, or if you want to test your app with production data in production mode.</p>
 <div class="sl-heading-wrapper level-h2"><h2 id="email-provider-setup">Email Provider Setup</h2><a class="sl-anchor-link" href="#email-provider-setup"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24"><path fill="currentcolor" d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 0 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 1 0-1.42-1.42Zm8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 0 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 1 0 1.42 1.42l3.88-3.89a4.49 4.49 0 0 0 0-6.33ZM8.83 15.17a1 1 0 0 0 1.1.22 1 1 0 0 0 .32-.22l4.92-4.92a1 1 0 0 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42Z"></path></svg></span><span class="sr-only">Section titled “Email Provider Setup”</span></a></div>
-<p>In order to support <a href="../users/user-management#adding-users">the invitations workflow</a> and the default email/password authentication (including password reset), Atomic CRM needs to be able to send emails from your Supabase instance.</p>
+<p>In order to support <a href="../../users/user-management#adding-users">the invitations workflow</a> and the default email/password authentication (including password reset), Atomic CRM needs to be able to send emails from your Supabase instance.</p>
 <p>By default, Supabase provides a simple SMTP server for all projects. But this server imposes a few important restrictions and is not meant for production use:</p>
 <ul>
 <li>It can only send messages to pre-authorized addresses</li>
@@ -104,7 +104,7 @@
 <p>For this reason, it is recommended to use a <a href="https://supabase.com/docs/guides/auth/auth-smtp#how-to-set-up-a-custom-smtp-server">custom SMTP provider</a>.</p>
 <p>A non-exhaustive list of services that work with Supabase Auth is:</p>
 <ul>
-<li><a href="https://postmarkapp.com/developer/user-guide/send-email-with-smtp">Postmark</a> (recommended if you also plan to use the <a href="../users/inbound-email">Inbound Email</a> feature)</li>
+<li><a href="https://postmarkapp.com/developer/user-guide/send-email-with-smtp">Postmark</a> (recommended if you also plan to use the <a href="../../users/inbound-email">Inbound Email</a> feature)</li>
 <li><a href="https://resend.com/docs/send-with-supabase-smtp">Resend</a></li>
 <li><a href="https://docs.aws.amazon.com/ses/latest/dg/send-email-smtp.html">AWS SES</a></li>
 <li><a href="https://www.twilio.com/docs/sendgrid/for-developers/sending-email/getting-started-smtp">Twilio SendGrid</a></li>
@@ -126,7 +126,7 @@
 <p>If you host Atomic CRM under the <code dir="auto">https://example.com/atomic-crm/</code> URL, the callback URL should be <code dir="auto">https://example.com/atomic-crm/auth-callback.html</code>.</p>
 <div class="sl-heading-wrapper level-h2"><h2 id="customizing-email-templates">Customizing Email Templates</h2><a class="sl-anchor-link" href="#customizing-email-templates"><span aria-hidden="true" class="sl-anchor-icon"><svg width="16" height="16" viewBox="0 0 24 24"><path fill="currentcolor" d="m12.11 15.39-3.88 3.88a2.52 2.52 0 0 1-3.5 0 2.47 2.47 0 0 1 0-3.5l3.88-3.88a1 1 0 0 0-1.42-1.42l-3.88 3.89a4.48 4.48 0 0 0 6.33 6.33l3.89-3.88a1 1 0 1 0-1.42-1.42Zm8.58-12.08a4.49 4.49 0 0 0-6.33 0l-3.89 3.88a1 1 0 0 0 1.42 1.42l3.88-3.88a2.52 2.52 0 0 1 3.5 0 2.47 2.47 0 0 1 0 3.5l-3.88 3.88a1 1 0 1 0 1.42 1.42l3.88-3.89a4.49 4.49 0 0 0 0-6.33ZM8.83 15.17a1 1 0 0 0 1.1.22 1 1 0 0 0 .32-.22l4.92-4.92a1 1 0 0 0-1.42-1.42l-4.92 4.92a1 1 0 0 0 0 1.42Z"></path></svg></span><span class="sr-only">Section titled “Customizing Email Templates”</span></a></div>
 <p>Atomic CRM uses Supabase to send authentication-related emails (confirm signup, reset password, etc).</p>
-<p>When developing with a local Supabase instance, you test your custom mail templates via the <a href="../../supabase/config.toml">supabase TOML config</a> file. An example of a custom template has been done for the <a href="../../supabase/templates/recovery.html">recovery</a> email. Note that you will need to restart your supabase instance to apply the changes.</p>
+<p>When developing with a local Supabase instance, you test your custom mail templates via the <a href="https://github.com/marmelab/atomic-crm/blob/main/supabase/config.toml">supabase TOML config</a> file. An example of a custom template has been done for the <a href="https://github.com/marmelab/atomic-crm/blob/main/supabase/templates/recovery.html">recovery</a> email. Note that you will need to restart your supabase instance to apply the changes.</p>
 <p>When using a remote Supabase instance, you can configure the email templates as follows:</p>
 <ol>
 <li>Go to the project dashboard at <a href="https://supabase.com/">supabase.com</a>.</li>
