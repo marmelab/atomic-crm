@@ -281,6 +281,10 @@
           "type": "registry:component"
         },
         {
+          "path": "src/components/atomic-crm/providers/commons/mergeContacts.ts",
+          "type": "registry:component"
+        },
+        {
           "path": "src/components/atomic-crm/notes/utils.ts",
           "type": "registry:component"
         },
@@ -494,10 +498,6 @@
         },
         {
           "path": "src/components/atomic-crm/contacts/useContactImport.tsx",
-          "type": "registry:component"
-        },
-        {
-          "path": "src/components/atomic-crm/contacts/mergeContacts.ts",
           "type": "registry:component"
         },
         {

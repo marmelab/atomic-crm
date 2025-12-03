@@ -1,6 +1,6 @@
 import type { Identifier, DataProvider } from "ra-core";
 
-import type { Contact, Task, Deal, ContactNote } from "../types";
+import type { Contact, Task, Deal, ContactNote } from "../../types";
 
 /**
  * Merge one contact (loser) into another contact (winner).

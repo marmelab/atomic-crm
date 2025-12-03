@@ -11,6 +11,7 @@ import {
   useRedirect,
 } from "ra-core";
 import type { Identifier } from "ra-core";
+import { useMutation } from "@tanstack/react-query";
 import {
   Dialog,
   DialogContent,
@@ -25,7 +26,6 @@ import { AutocompleteInput } from "@/components/admin/autocomplete-input";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import type { Contact } from "../types";
 import { contactOptionText } from "../misc/ContactOption";
-import { mergeContacts } from "./mergeContacts";
 
 export const ContactMergeButton = () => {
   const [mergeDialogOpen, setMergeDialogOpen] = useState(false);
@@ -63,6 +63,12 @@ const ContactMergeDialog = ({ open, onClose }: ContactMergeDialogProps) => {
     null,
   );
   const [isMerging, setIsMerging] = useState(false);
+  const { mutateAsync } = useMutation({
+    mutationKey: ["contacts", "merge", { loserId: loserContact?.id, winnerId }],
+    mutationFn: async () => {
+      return dataProvider.mergeContacts(loserContact?.id, winnerId);
+    },
+  });
 
   // Find potential contacts with matching first and last name
   const { data: matchingContacts } = useGetList(
@@ -71,7 +77,7 @@ const ContactMergeDialog = ({ open, onClose }: ContactMergeDialogProps) => {
       filter: {
         first_name: loserContact?.first_name,
         last_name: loserContact?.last_name,
-        "id@neq": loserContact?.id, // Exclude current contact
+        "id@neq": `${loserContact?.id}`, // Exclude current contact
       },
       pagination: { page: 1, perPage: 10 },
     },
@@ -125,7 +131,7 @@ const ContactMergeDialog = ({ open, onClose }: ContactMergeDialogProps) => {
 
     try {
       setIsMerging(true);
-      await mergeContacts(loserContact.id, winnerId, dataProvider);
+      await mutateAsync();
       setIsMerging(false);
       notify("Contacts merged successfully", { type: "success" });
       redirect(`/contacts/${winnerId}/show`);
@@ -167,7 +173,7 @@ const ContactMergeDialog = ({ open, onClose }: ContactMergeDialogProps) => {
               <ReferenceInput
                 source="winner_id"
                 reference="contacts"
-                filter={{ id_neq: loserContact.id }}
+                filter={{ "id@neq": loserContact.id }}
               >
                 <AutocompleteInput
                   label=""
