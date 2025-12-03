@@ -3,6 +3,7 @@ import { useRecordContext, WithRecord } from "ra-core";
 import type { ReactNode } from "react";
 import { ArrayField } from "@/components/admin/array-field";
 import { EditButton } from "@/components/admin/edit-button";
+import { DeleteButton } from "@/components/admin";
 import { ReferenceField } from "@/components/admin/reference-field";
 import { ReferenceManyField } from "@/components/admin/reference-many-field";
 import { ShowButton } from "@/components/admin/show-button";
@@ -142,10 +143,18 @@ export const ContactAside = ({ link = "edit" }: { link?: "edit" | "show" }) => {
       </AsideSection>
 
       {link !== "edit" && (
-        <div className="mt-6 pt-6 border-t hidden sm:flex flex-col gap-2 items-start">
-          <ExportVCardButton />
-          <ContactMergeButton />
-        </div>
+        <>
+          <div className="mt-6 pt-6 border-t hidden sm:flex flex-col gap-2 items-start">
+            <ExportVCardButton />
+            <ContactMergeButton />
+          </div>
+          <div className="mt-6 pt-6 border-t hidden sm:flex flex-col gap-2 items-start">
+            <DeleteButton
+              className="h-6 cursor-pointer hover:bg-destructive/10! text-destructive! border-destructive! focus-visible:ring-destructive/20 dark:focus-visible:ring-destructive/40"
+              size="sm"
+            />
+          </div>
+        </>
       )}
     </div>
   );
