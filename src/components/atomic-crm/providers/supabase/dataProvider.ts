@@ -219,7 +219,7 @@ const dataProviderWithCustomMethods = {
   async isInitialized() {
     return getIsInitialized();
   },
-  async mergeContacts (sourceId: Identifier, targetId: Identifier) {
+  async mergeContacts(sourceId: Identifier, targetId: Identifier) {
     // FIXME this should be done in a lambda function using a transaction instead
     return mergeContacts(sourceId, targetId, baseDataProvider);
   },

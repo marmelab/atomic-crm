@@ -139,7 +139,7 @@ const dataProviderWithCustomMethod: CrmDataProvider = {
   getActivityLog: async (companyId?: Identifier) => {
     return getActivityLog(dataProvider, companyId);
   },
-  signUp: async({
+  signUp: async ({
     email,
     password,
     first_name,
@@ -158,7 +158,7 @@ const dataProviderWithCustomMethod: CrmDataProvider = {
       password,
     };
   },
-   salesCreate: async({ ...data }: SalesFormData): Promise<Sale> => {
+  salesCreate: async ({ ...data }: SalesFormData): Promise<Sale> => {
     const user = await dataProvider.create("sales", {
       data: {
         ...data,
@@ -170,7 +170,7 @@ const dataProviderWithCustomMethod: CrmDataProvider = {
       ...user.data,
     };
   },
-   salesUpdate: async(
+  salesUpdate: async (
     id: Identifier,
     data: Partial<Omit<SalesFormData, "password">>,
   ): Promise<Partial<Omit<SalesFormData, "password">>> => {
@@ -189,7 +189,7 @@ const dataProviderWithCustomMethod: CrmDataProvider = {
     });
     return sale;
   },
-   isInitialized: async(): Promise<boolean> => {
+  isInitialized: async (): Promise<boolean> => {
     const sales = await dataProvider.getList<Sale>("sales", {
       filter: {},
       pagination: { page: 1, perPage: 1 },
@@ -225,7 +225,7 @@ const dataProviderWithCustomMethod: CrmDataProvider = {
   },
   mergeContacts: async (sourceId: Identifier, targetId: Identifier) => {
     return mergeContacts(sourceId, targetId, baseDataProvider);
-  }
+  },
 };
 
 async function updateCompany(
