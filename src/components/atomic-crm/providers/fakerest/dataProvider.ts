@@ -20,6 +20,7 @@ import type {
 import { getActivityLog } from "../commons/activity";
 import { getCompanyAvatar } from "../commons/getCompanyAvatar";
 import { getContactAvatar } from "../commons/getContactAvatar";
+import { mergeContacts } from "../commons/mergeContacts";
 import type { CrmDataProvider } from "../types";
 import { authProvider, USER_STORAGE_KEY } from "./authProvider";
 import generateData from "./dataGenerator";
@@ -138,12 +139,12 @@ const dataProviderWithCustomMethod: CrmDataProvider = {
   getActivityLog: async (companyId?: Identifier) => {
     return getActivityLog(dataProvider, companyId);
   },
-  async signUp({
+  signUp: async({
     email,
     password,
     first_name,
     last_name,
-  }: SignUpData): Promise<{ id: string; email: string; password: string }> {
+  }: SignUpData): Promise<{ id: string; email: string; password: string }> => {
     const user = await baseDataProvider.create("sales", {
       data: {
         email,
@@ -157,7 +158,7 @@ const dataProviderWithCustomMethod: CrmDataProvider = {
       password,
     };
   },
-  async salesCreate({ ...data }: SalesFormData): Promise<Sale> {
+   salesCreate: async({ ...data }: SalesFormData): Promise<Sale> => {
     const user = await dataProvider.create("sales", {
       data: {
         ...data,
@@ -169,10 +170,10 @@ const dataProviderWithCustomMethod: CrmDataProvider = {
       ...user.data,
     };
   },
-  async salesUpdate(
+   salesUpdate: async(
     id: Identifier,
     data: Partial<Omit<SalesFormData, "password">>,
-  ): Promise<Partial<Omit<SalesFormData, "password">>> {
+  ): Promise<Partial<Omit<SalesFormData, "password">>> => {
     const { data: previousData } = await dataProvider.getOne<Sale>("sales", {
       id,
     });
@@ -188,7 +189,7 @@ const dataProviderWithCustomMethod: CrmDataProvider = {
     });
     return sale;
   },
-  async isInitialized(): Promise<boolean> {
+   isInitialized: async(): Promise<boolean> => {
     const sales = await dataProvider.getList<Sale>("sales", {
       filter: {},
       pagination: { page: 1, perPage: 1 },
@@ -222,6 +223,9 @@ const dataProviderWithCustomMethod: CrmDataProvider = {
 
     return true;
   },
+  mergeContacts: async (sourceId: Identifier, targetId: Identifier) => {
+    return mergeContacts(sourceId, targetId, baseDataProvider);
+  }
 };
 
 async function updateCompany(
