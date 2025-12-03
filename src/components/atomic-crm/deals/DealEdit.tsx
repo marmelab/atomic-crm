@@ -8,11 +8,10 @@ import {
 import { Link } from "react-router";
 import { DeleteButton } from "@/components/admin/delete-button";
 import { ReferenceField } from "@/components/admin/reference-field";
-import { SaveButton } from "@/components/admin/form";
-import { FormToolbar } from "@/components/admin/simple-form";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 
+import { FormToolbar } from "../layout/FormToolbar";
 import { CompanyAvatar } from "../companies/CompanyAvatar";
 import type { Deal } from "../types";
 import { DealInputs } from "./DealInputs";
@@ -46,7 +45,7 @@ export const DealEdit = ({ open, id }: { open: boolean; id?: string }) => {
             <EditHeader />
             <Form>
               <DealInputs />
-              <EditToolbar />
+              <FormToolbar />
             </Form>
           </EditBase>
         ) : null}
@@ -71,22 +70,12 @@ function EditHeader() {
           <h2 className="text-2xl font-semibold">Edit {deal.name} deal</h2>
         </div>
         <div className="flex gap-2 pr-12">
+          <DeleteButton />
           <Button asChild variant="outline" className="h-9">
             <Link to={`/deals/${deal.id}/show`}>Back to deal</Link>
           </Button>
         </div>
       </div>
     </DialogTitle>
-  );
-}
-
-function EditToolbar() {
-  return (
-    <FormToolbar>
-      <div className="flex-1 flex justify-between">
-        <DeleteButton />
-        <SaveButton />
-      </div>
-    </FormToolbar>
   );
 }

@@ -1,15 +1,12 @@
 import { CancelButton } from "@/components/admin/cancel-button";
-import { DeleteButton } from "@/components/admin/delete-button";
 import { SaveButton } from "@/components/admin/form";
-import { FormToolbar as KitFormToolbar } from "@/components/admin/simple-form";
 
 export const FormToolbar = () => (
-  <KitFormToolbar className="flex md:flex flex-row justify-between gap-2">
-    <DeleteButton />
-
-    <div className="flex flex-row gap-2 justify-end">
-      <CancelButton />
-      <SaveButton />
-    </div>
-  </KitFormToolbar>
+  <div
+    role="toolbar"
+    className="sticky flex pt-4 pb-4 md:pb-0 bottom-0 bg-linear-to-b from-transparent to-card to-10% flex-row justify-end gap-2"
+  >
+    <CancelButton />
+    <SaveButton />
+  </div>
 );
