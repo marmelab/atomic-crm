@@ -27,10 +27,12 @@ Type the following command to start the application with the FakeRest data provi
 npm run dev:demo
 ```
 
-This will start the application on [http://localhost:5173/](http://localhost:5173/) using FakeRest as the data provider. You will be logged in as a demo user with admin rights.
+This will start the application on [http://localhost:5173/](http://localhost:5173/) using FakeRest as the data provider. You will be logged in as a demo user with admin rights. The CRM will be pre-filled with random test data. You can modify the data, but it will be reset when you reload the page.
+
+If you add custom fields and want them to be included in the FakeRest data, you can modify the data generator logic located in the [`src/components/atomic-crm/providers/fakerest/dataGenerator`](https://github.com/marmelab/atomic-crm/blob/main/src/components/atomic-crm/providers/fakerest/dataGenerator/) directory.
 
 :::tip
-FakeRest is used in the [Atomic CRM demo](https://marmelab.com/atomic-crm-demo/), where you can test it live.
+The [Atomic CRM demo](https://marmelab.com/atomic-crm-demo/) also uses FakeRest. Check it out to see how it works!
 :::
 
 ### Setting Up The FakeRest Data Provider
@@ -57,4 +59,4 @@ export default App;
 
 The list filters used in this project MUST follow the [`ra-data-postgrest`](https://github.com/raphiniert-com/ra-data-postgrest) convention, where the filter operator is concatenated to the field name with an `@`. For example, to filter contacts by first name, you would use the `first_name@eq` filter.
 
-When using FakeRest, the filters are mapped at runtime to the FakeRest filter syntax by the the [`supabaseAdapter`](../../src/providers/fakerest/internal/supabaseAdapter.ts) file. If a filter is not yet supported by the adapter, you have to modify this file to add support for it.
+When using FakeRest, the filters are mapped at runtime to the FakeRest filter syntax by the the [`supabaseAdapter`](https://github.com/marmelab/atomic-crm/blob/main/src/components/atomic-crm/providers/fakerest/internal/supabaseAdapter.ts) file. If a filter is not yet supported by the adapter, you have to modify this file to add support for it.

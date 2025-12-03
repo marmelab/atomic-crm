@@ -8,10 +8,10 @@ Atomic CRM is designed to be easy to customize and extend by developers with bas
 
 ## Prerequisites
 
-- A [GitHub](https://github.com/) account 
+- A [GitHub](https://github.com/) account
 - [Git](https://git-scm.com/)
 - [Node.js](https://nodejs.org/en/download/) (version 20 or higher)
-- [Docker](https://docs.docker.com/get-docker/) 
+- [Docker](https://docs.docker.com/get-docker/)
 - A [Supabase](https://supabase.com/) account for production deployment
 
 ## Installation
@@ -52,7 +52,7 @@ Atomic CRM now runs at [http://localhost:5173/](http://localhost:5173/).
 ![Welcome Screen](../images/welcome-screen.png)
 
 :::tip
-If you need debug the backend, you can access the following services: 
+If you need debug the backend, you can access the following services:
 
 - Supabase dashboard: [http://localhost:54323/](http://localhost:54323/)
 - REST API: [http://127.0.0.1:54321](http://127.0.0.1:54321)
@@ -150,7 +150,7 @@ Atomic CRM uses views to simplify the queries. You need to update the `contacts_
     create view "public"."contacts_summary"
         with (security_invoker=on)
         as
-    select 
+    select
         co.*,
         c.name as company_name,
         count(distinct t.id) as nb_tasks
@@ -180,12 +180,12 @@ That's it! You've just added a custom field to the Contacts entity. Supabase aut
 
 ## Displaying Custom Fields in the Frontend
 
-Next, you need to make this new field available in the frontend. 
+Next, you need to make this new field available in the frontend.
 
 The frontend code lives in the `src/components/atomic-crm` folder, and is organized by entities. Each entity has its own folder containing all the components related to that entity. Take a few minutes to explore the codebase and familiarize yourself with its structure.
 
 :::tip
-Atomic CRM leverages two libraries that provided high-level building blocks: [Shadcn Admin Kit](https://marmelab.com/shadcn-admin-kit/) for the application logic, and [Shadcn/ui](https://ui.shadcn.com/) for the UI components. The code for these libraries is copied in the `src/components` folder. 
+Atomic CRM leverages two libraries that provided high-level building blocks: [Shadcn Admin Kit](https://marmelab.com/shadcn-admin-kit/) for the application logic, and [Shadcn/ui](https://ui.shadcn.com/) for the UI components. The code for these libraries is copied in the `src/components` folder.
 :::
 
 Atomic CRM uses TypeScript to ensure type safety, so you'll need to modify the `Contact` type to include the new `referred_by` field. Open the `src/components/atomic-crm/types.ts` file and add the `referred_by` field to the `Contact` interface.
@@ -310,7 +310,7 @@ First, build the frontend bundle with:
 npm run build
 ```
 
-This will create a `dist` directory with the built application made of static HTML, CSS, and JS files. 
+This will create a `dist` directory with the built application made of static HTML, CSS, and JS files.
 
 To deploy it to GitHub pages, use the following command:
 
@@ -346,7 +346,6 @@ Explore the documentation to learn more about Atomic CRM:
 - Customization
 
   - [Changing The Constants](./developers/customizing)
-  - [Theming](./developers/theming)
   - [Updating The Model](./developers/migrations)
 
 - Deploying to Production

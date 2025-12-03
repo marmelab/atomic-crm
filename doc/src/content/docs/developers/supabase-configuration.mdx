@@ -65,7 +65,7 @@ Using a remote Supabase instance can be interesting if you deploy from your comp
 
 ## Email Provider Setup
 
-In order to support [the invitations workflow](../users/user-management#adding-users) and the default email/password authentication (including password reset), Atomic CRM needs to be able to send emails from your Supabase instance.
+In order to support [the invitations workflow](../../users/user-management#adding-users) and the default email/password authentication (including password reset), Atomic CRM needs to be able to send emails from your Supabase instance.
 
 By default, Supabase provides a simple SMTP server for all projects. But this server imposes a few important restrictions and is not meant for production use:
 - It can only send messages to pre-authorized addresses
@@ -76,7 +76,7 @@ For this reason, it is recommended to use a [custom SMTP provider](https://supab
 
 A non-exhaustive list of services that work with Supabase Auth is:
 
-- [Postmark](https://postmarkapp.com/developer/user-guide/send-email-with-smtp) (recommended if you also plan to use the [Inbound Email](../users/inbound-email) feature)
+- [Postmark](https://postmarkapp.com/developer/user-guide/send-email-with-smtp) (recommended if you also plan to use the [Inbound Email](../../users/inbound-email) feature)
 - [Resend](https://resend.com/docs/send-with-supabase-smtp)
 - [AWS SES](https://docs.aws.amazon.com/ses/latest/dg/send-email-smtp.html)
 - [Twilio SendGrid](https://www.twilio.com/docs/sendgrid/for-developers/sending-email/getting-started-smtp)
@@ -107,7 +107,7 @@ If you host Atomic CRM under the `https://example.com/atomic-crm/` URL, the call
 
 Atomic CRM uses Supabase to send authentication-related emails (confirm signup, reset password, etc).
 
-When developing with a local Supabase instance, you test your custom mail templates via the [supabase TOML config](../../supabase/config.toml) file. An example of a custom template has been done for the [recovery](../../supabase/templates/recovery.html) email. Note that you will need to restart your supabase instance to apply the changes.
+When developing with a local Supabase instance, you test your custom mail templates via the [supabase TOML config](https://github.com/marmelab/atomic-crm/blob/main/supabase/config.toml) file. An example of a custom template has been done for the [recovery](https://github.com/marmelab/atomic-crm/blob/main/supabase/templates/recovery.html) email. Note that you will need to restart your supabase instance to apply the changes.
 
 When using a remote Supabase instance, you can configure the email templates as follows:
 
@@ -124,4 +124,4 @@ If you want more information on how to customize email templates, check the [Cus
 
 This warning informs you that the `init_state` state view is public and can be called by everybody.
 
-This view is required to test if the CRM has been setup correctly. It doesn't expose any data, so you can ignore the Security Advisor error. 
+This view is required to test if the CRM has been setup correctly. It doesn't expose any data, so you can ignore the Security Advisor error.
