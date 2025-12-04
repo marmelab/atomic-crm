@@ -47,7 +47,7 @@ const DealLinkedToInputs = () => {
     <div className="flex flex-col gap-4 flex-1">
       <h3 className="text-base font-medium">Linked to</h3>
       <ReferenceInput source="company_id" reference="companies">
-        <AutocompleteCompanyInput />
+        <AutocompleteCompanyInput validate={required()} />
       </ReferenceInput>
 
       <ReferenceArrayInput source="contact_ids" reference="contacts_summary">
