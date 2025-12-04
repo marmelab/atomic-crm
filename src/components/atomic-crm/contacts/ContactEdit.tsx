@@ -18,8 +18,8 @@ const ContactEditContent = () => {
   return (
     <div className="mt-2 flex gap-8">
       <Form className="flex flex-1 flex-col gap-4">
-        <Card>
-          <CardContent>
+        <Card className="max-md:border-none max-md:py-0">
+          <CardContent className="p-0 md:p-4">
             <ContactInputs />
             <FormToolbar />
           </CardContent>

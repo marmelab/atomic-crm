@@ -8,6 +8,7 @@ import { CompanyInputs } from "./CompanyInputs";
 
 export const CompanyCreate = () => {
   const { identity } = useGetIdentity();
+
   return (
     <CreateBase
       redirect="show"
@@ -22,8 +23,8 @@ export const CompanyCreate = () => {
       <div className="mt-2 flex lg:mr-72">
         <div className="flex-1">
           <Form defaultValues={{ sales_id: identity?.id }}>
-            <Card>
-              <CardContent>
+            <Card className="max-md:border-none max-md:py-0">
+              <CardContent className="p-0 md:p-4">
                 <CompanyInputs />
                 <FormToolbar>
                   <div className="flex flex-row gap-2 justify-end">

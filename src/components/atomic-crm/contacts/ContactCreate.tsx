@@ -20,8 +20,8 @@ export const ContactCreate = () => {
       <div className="mt-2 flex lg:mr-72">
         <div className="flex-1">
           <Form defaultValues={{ sales_id: identity?.id }}>
-            <Card>
-              <CardContent>
+            <Card className="max-md:border-none max-md:py-0">
+              <CardContent className="p-0 md:p-4">
                 <ContactInputs />
                 <FormToolbar />
               </CardContent>
