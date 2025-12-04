@@ -33,7 +33,7 @@ const ContactShowContent = () => {
     <div className="mt-2 mb-2 flex gap-8">
       <div className="flex-1">
         <Card className="max-md:border-none max-md:py-0">
-          <CardContent className="p-0 md:p-4">
+          <CardContent className="flex flex-col gap-2 p-0 md:p-4">
             <div className="flex">
               <Avatar />
               <div className="ml-2 flex-1">
@@ -85,7 +85,14 @@ const ContactShowContent = () => {
               )}
             </div>
             {isMobile ? (
-              <Tabs defaultValue="notes" className="mt-4">
+              <div>
+                <Button asChild>
+                  <Link to="/contacts">Back to contact list</Link>
+                </Button>
+              </div>
+            ) : null}
+            {isMobile ? (
+              <Tabs defaultValue="notes">
                 <TabsList className="grid w-full grid-cols-3">
                   <TabsTrigger value="notes">
                     <ReferenceManyCount
@@ -116,13 +123,7 @@ const ContactShowContent = () => {
                     target="contact_id"
                     reference="contactNotes"
                     sort={{ field: "date", order: "DESC" }}
-                    empty={
-                      <NoteCreate
-                        reference="contacts"
-                        showStatus
-                        className="mt-4"
-                      />
-                    }
+                    empty={<NoteCreate reference="contacts" showStatus />}
                   >
                     <NotesIterator reference="contacts" showStatus />
                   </ReferenceManyField>

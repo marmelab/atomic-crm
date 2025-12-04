@@ -1,4 +1,4 @@
-import { CircleX, Edit, Save, Trash2 } from "lucide-react";
+import { CircleX, Edit, MoreVertical, Save, Trash2 } from "lucide-react";
 import {
   Form,
   useDelete,
@@ -17,6 +17,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 import { CompanyAvatar } from "../companies/CompanyAvatar";
 import { Avatar } from "../contacts/Avatar";
@@ -26,6 +27,12 @@ import { SaleName } from "../sales/SaleName";
 import type { ContactNote, DealNote } from "../types";
 import { NoteAttachments } from "./NoteAttachments";
 import { NoteInputs } from "./NoteInputs";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 export const Note = ({
   showStatus,
@@ -39,6 +46,7 @@ export const Note = ({
   const [isEditing, setEditing] = useState(false);
   const resource = useResourceContext();
   const notify = useNotify();
+  const isMobile = useIsMobile();
 
   const [update, { isPending }] = useUpdate();
 
@@ -84,67 +92,108 @@ export const Note = ({
       onMouseEnter={() => setHover(true)}
       onMouseLeave={() => setHover(false)}
     >
-      <div className="flex items-center space-x-4 w-full">
-        {resource === "contactNote" ? (
-          <Avatar width={20} height={20} />
-        ) : (
-          <ReferenceField source="company_id" reference="companies" link="show">
-            <CompanyAvatar width={20} height={20} />
-          </ReferenceField>
-        )}
-        <div className="inline-flex h-full items-center text-sm text-muted-foreground">
-          <ReferenceField
-            record={note}
-            resource={resource}
-            source="sales_id"
-            reference="sales"
-            link={false}
-          >
-            <WithRecord render={(record) => <SaleName sale={record} />} />
-          </ReferenceField>{" "}
-          added a note{" "}
-          {showStatus && note.status && (
-            <Status className="ml-2" status={note.status} />
+      <div className="flex flex-col md:flex-row md:items-center md:space-x-4 w-full">
+        <div className="flex justify-between md:items-center md:space-x-4">
+          <div className="flex md:items-center md:space-x-4">
+            {resource === "contactNote" ? (
+              <Avatar width={20} height={20} />
+            ) : (
+              <ReferenceField
+                source="company_id"
+                reference="companies"
+                link="show"
+              >
+                <CompanyAvatar width={20} height={20} />
+              </ReferenceField>
+            )}
+            <div className="inline-flex h-full items-center text-sm text-muted-foreground">
+              <ReferenceField
+                record={note}
+                resource={resource}
+                source="sales_id"
+                reference="sales"
+                link={false}
+              >
+                <WithRecord render={(record) => <SaleName sale={record} />} />
+              </ReferenceField>{" "}
+              added a note{" "}
+              {showStatus && note.status && (
+                <Status className="ml-2" status={note.status} />
+              )}
+            </div>
+          </div>
+          {isMobile ? (
+            <DropdownMenu>
+              <DropdownMenuTrigger>
+                <span className="sr-only">Actions</span>
+                <MoreVertical className="w-4 h-4" />
+              </DropdownMenuTrigger>
+              <DropdownMenuContent>
+                <DropdownMenuItem asChild>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={handleEnterEditMode}
+                    className="md:p-1 h-auto cursor-pointer"
+                  >
+                    <span className="block md:sr-only">Edit</span>
+                    <Edit className="hidden md:block w-4 h-4" />
+                  </Button>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={handleDelete}
+                    className="md:p-1 h-auto cursor-pointer"
+                  >
+                    <span className="block md:sr-only">Delete</span>
+                    <Trash2 className="hidden md:block w-4 h-4" />
+                  </Button>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          ) : (
+            <span className={`${isHover ? "visible" : "invisible"}`}>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={handleEnterEditMode}
+                      className="p-1 h-auto cursor-pointer"
+                    >
+                      <Edit className="w-4 h-4" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Edit note</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={handleDelete}
+                      className="p-1 h-auto cursor-pointer"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Delete note</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            </span>
           )}
         </div>
-        <span className={`${isHover ? "visible" : "invisible"}`}>
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={handleEnterEditMode}
-                  className="p-1 h-auto cursor-pointer"
-                >
-                  <Edit className="w-4 h-4" />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>Edit note</p>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={handleDelete}
-                  className="p-1 h-auto cursor-pointer"
-                >
-                  <Trash2 className="w-4 h-4" />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>Delete note</p>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
-        </span>
         <div className="flex-1"></div>
-        <span className="text-sm text-muted-foreground">
+        <span className="pl-[20px] md:pl-0 text-sm text-muted-foreground">
           <RelativeDate date={note.date} />
         </span>
       </div>
