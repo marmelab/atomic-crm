@@ -219,9 +219,9 @@ const dataProviderWithCustomMethods = {
     return getIsInitialized();
   },
   async mergeContacts(sourceId: Identifier, targetId: Identifier) {
-    const { data, error } = await supabase.rpc("merge_contacts", {
-      loser_id: sourceId,
-      winner_id: targetId,
+    const { data, error } = await supabase.functions.invoke("mergeContacts", {
+      method: "POST",
+      body: { loserId: sourceId, winnerId: targetId },
     });
 
     if (error) {
@@ -229,7 +229,7 @@ const dataProviderWithCustomMethods = {
       throw new Error("Failed to merge contacts");
     }
 
-    return { success: true, winnerId: data };
+    return data;
   },
 } satisfies DataProvider;
 
