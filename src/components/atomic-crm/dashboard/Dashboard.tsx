@@ -93,15 +93,6 @@ export const Dashboard = () => {
             </DropdownMenuItem>
             <DropdownMenuItem asChild>
               <Link
-                to="/tasks/create"
-                className="px-6 py-3 text-sm font-medium transition-colors md:border-b-2 w-full"
-              >
-                <span className="sr-only">New</span>
-                Task
-              </Link>
-            </DropdownMenuItem>
-            <DropdownMenuItem asChild>
-              <Link
                 to="/companies/create"
                 className="px-6 py-3 text-sm font-medium transition-colors md:border-b-2 w-full"
               >
