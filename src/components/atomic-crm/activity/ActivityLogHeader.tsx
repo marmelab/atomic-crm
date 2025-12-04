@@ -24,7 +24,7 @@ export const ActivityLogHeader = ({
           {children}
           {isMobile ? (
             <>
-              &nbsp;at <RelativeDate date={activity.date} />
+              &nbsp;- <RelativeDate date={activity.date} />
             </>
           ) : null}
         </div>
