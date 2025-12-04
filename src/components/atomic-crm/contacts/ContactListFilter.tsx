@@ -8,9 +8,11 @@ import { FilterCategory } from "../filters/FilterCategory";
 import { Status } from "../misc/Status";
 import { useConfigurationContext } from "../root/ConfigurationContext";
 import { ResponsiveFilters } from "../misc/ResponsiveFilters";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 export const ContactListFilter = () => {
   const { noteStatuses } = useConfigurationContext();
+  const isMobile = useIsMobile();
   const { identity } = useGetIdentity();
   const { data } = useGetList("tags", {
     pagination: { page: 1, perPage: 10 },
@@ -27,6 +29,7 @@ export const ContactListFilter = () => {
             "last_seen@gte": endOfYesterday().toISOString(),
             "last_seen@lte": undefined,
           }}
+          size={isMobile ? "lg" : undefined}
         />
         <ToggleFilterButton
           className="w-auto md:w-full justify-between"
@@ -35,6 +38,7 @@ export const ContactListFilter = () => {
             "last_seen@gte": startOfWeek(new Date()).toISOString(),
             "last_seen@lte": undefined,
           }}
+          size={isMobile ? "lg" : undefined}
         />
         <ToggleFilterButton
           className="w-auto md:w-full justify-between"
@@ -43,6 +47,7 @@ export const ContactListFilter = () => {
             "last_seen@gte": undefined,
             "last_seen@lte": startOfWeek(new Date()).toISOString(),
           }}
+          size={isMobile ? "lg" : undefined}
         />
         <ToggleFilterButton
           className="w-auto md:w-full justify-between"
@@ -51,6 +56,7 @@ export const ContactListFilter = () => {
             "last_seen@gte": undefined,
             "last_seen@lte": startOfMonth(new Date()).toISOString(),
           }}
+          size={isMobile ? "lg" : undefined}
         />
         <ToggleFilterButton
           className="w-auto md:w-full justify-between"
@@ -62,6 +68,7 @@ export const ContactListFilter = () => {
               1,
             ).toISOString(),
           }}
+          size={isMobile ? "lg" : undefined}
         />
       </FilterCategory>
 
@@ -76,6 +83,7 @@ export const ContactListFilter = () => {
               </span>
             }
             value={{ status: status.value }}
+            size={isMobile ? "lg" : undefined}
           />
         ))}
       </FilterCategory>
@@ -98,6 +106,7 @@ export const ContactListFilter = () => {
                 </Badge>
               }
               value={{ "tags@cs": `{${record.id}}` }}
+              size={isMobile ? "lg" : undefined}
             />
           ))}
       </FilterCategory>
@@ -107,6 +116,7 @@ export const ContactListFilter = () => {
           className="w-full justify-between"
           label={"With pending tasks"}
           value={{ "nb_tasks@gt": 0 }}
+          size={isMobile ? "lg" : undefined}
         />
       </FilterCategory>
 
@@ -115,6 +125,7 @@ export const ContactListFilter = () => {
           className="w-full justify-between"
           label={"Me"}
           value={{ sales_id: identity?.id }}
+          size={isMobile ? "lg" : undefined}
         />
       </FilterCategory>
     </ResponsiveFilters>

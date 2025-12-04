@@ -24,6 +24,7 @@ export const CompanyListFilter = () => {
             className="w-auto md:w-full justify-between"
             label={isMobile ? size.shortName : size.name}
             value={{ size: size.id }}
+            size={isMobile ? "lg" : undefined}
           />
         ))}
       </FilterCategory>
@@ -34,6 +35,7 @@ export const CompanyListFilter = () => {
             className="w-auto md:w-full justify-between"
             label={sector.name}
             value={{ sector: sector.id }}
+            size={isMobile ? "lg" : undefined}
           />
         ))}
       </FilterCategory>
@@ -46,6 +48,7 @@ export const CompanyListFilter = () => {
           className="w-full justify-between"
           label={"Me"}
           value={{ sales_id: identity?.id }}
+          size={isMobile ? "lg" : undefined}
         />
       </FilterCategory>
     </ResponsiveFilters>
