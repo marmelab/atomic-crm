@@ -21,7 +21,6 @@ import type {
 import { getActivityLog } from "../commons/activity";
 import { getCompanyAvatar } from "../commons/getCompanyAvatar";
 import { getContactAvatar } from "../commons/getContactAvatar";
-import { mergeContacts } from "../commons/mergeContacts";
 import { getIsInitialized } from "./authProvider";
 import { supabase } from "./supabase";
 
@@ -220,8 +219,17 @@ const dataProviderWithCustomMethods = {
     return getIsInitialized();
   },
   async mergeContacts(sourceId: Identifier, targetId: Identifier) {
-    // FIXME this should be done in a lambda function using a transaction instead
-    return mergeContacts(sourceId, targetId, baseDataProvider);
+    const { data, error } = await supabase.rpc("merge_contacts", {
+      loser_id: sourceId,
+      winner_id: targetId,
+    });
+
+    if (error) {
+      console.error("mergeContacts.error", error);
+      throw new Error("Failed to merge contacts");
+    }
+
+    return { success: true, winnerId: data };
   },
 } satisfies DataProvider;
 
