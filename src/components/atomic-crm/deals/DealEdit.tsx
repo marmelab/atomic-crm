@@ -153,9 +153,11 @@ function EditToolbar() {
 
   return (
     <FormToolbar>
-      <div className="flex-1 flex justify-between">
+      <div className="flex-1 flex flex-col md:flex-row justify-between">
         {isMobile ? null : <DeleteButton />}
-        <SaveButton />
+        <div className="flex md:block justify-end">
+          <SaveButton />
+        </div>
       </div>
     </FormToolbar>
   );

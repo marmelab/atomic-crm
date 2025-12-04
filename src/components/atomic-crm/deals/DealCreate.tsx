@@ -7,7 +7,7 @@ import {
   useRedirect,
   type GetListResult,
 } from "ra-core";
-import { Create, CreateProps } from "@/components/admin/create";
+import { Create, type CreateProps } from "@/components/admin/create";
 import { SaveButton } from "@/components/admin/form";
 import { FormToolbar } from "@/components/admin/simple-form";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
@@ -81,19 +81,23 @@ export const DealCreate = ({ open }: { open: boolean }) => {
 export const DealCreatePage = (props: Partial<CreateProps>) => {
   const { identity } = useGetIdentity();
   return (
-    <Create resource="deals" redirect="list" {...props}>
-      <Form
-        defaultValues={{
-          sales_id: identity?.id,
-          contact_ids: [],
-          index: 0,
-        }}
-      >
-        <DealInputs />
-        <FormToolbar>
-          <SaveButton />
-        </FormToolbar>
-      </Form>
-    </Create>
+    <div className="p-2 md:p-0">
+      <Create resource="deals" redirect="list" {...props}>
+        <Form
+          defaultValues={{
+            sales_id: identity?.id,
+            contact_ids: [],
+            index: 0,
+          }}
+        >
+          <DealInputs />
+          <FormToolbar>
+            <div className="flex md:block justify-end">
+              <SaveButton />
+            </div>
+          </FormToolbar>
+        </Form>
+      </Create>
+    </div>
   );
 };
