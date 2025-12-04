@@ -3,13 +3,16 @@ import { FilterLiveForm } from "ra-core";
 import { SearchInput, type SearchInputProps } from "@/components/admin";
 import {
   Drawer,
+  DrawerClose,
   DrawerContent,
+  DrawerFooter,
   DrawerHeader,
   DrawerTitle,
   DrawerTrigger,
 } from "@/components/ui/drawer";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
 
 const TIMEOUT_DURATION_IN_SECONDS = 0.5;
 
@@ -59,6 +62,11 @@ export const ResponsiveFilters = ({
             <DrawerTitle>Filters</DrawerTitle>
           </DrawerHeader>
           {children}
+          <DrawerFooter>
+            <DrawerClose asChild>
+              <Button>Apply</Button>
+            </DrawerClose>
+          </DrawerFooter>
         </DrawerContent>
       </Drawer>
     );
