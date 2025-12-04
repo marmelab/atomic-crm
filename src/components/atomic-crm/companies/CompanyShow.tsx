@@ -98,7 +98,7 @@ const CompanyShowContent = () => {
                   <TabsTrigger value="about">About</TabsTrigger>
                 ) : null}
               </TabsList>
-              <TabsContent value="activity" className="pt-2">
+              <TabsContent value="activity" className="p-2">
                 <ActivityLog companyId={record.id} context="company" />
               </TabsContent>
               <TabsContent value="contacts">
@@ -139,7 +139,7 @@ const CompanyShowContent = () => {
                   </ReferenceManyField>
                 ) : null}
               </TabsContent>
-              <TabsContent value="about">
+              <TabsContent value="about" className="p-2">
                 <CompanyInfo record={record} />
                 <AddressInfo record={record} />
                 <ContextInfo record={record} />
