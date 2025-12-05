@@ -1,7 +1,7 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "jsr:@supabase/supabase-js@2";
 import { sql, type Selectable } from "https://esm.sh/kysely@0.27.2";
-import { db, type ContactsTable } from "../_shared/db.ts";
+import { db, type ContactsTable, CompiledQuery } from "../_shared/db.ts";
 import { corsHeaders, createErrorResponse } from "../_shared/utils.ts";
 
 type Contact = Selectable<ContactsTable>;
@@ -75,9 +75,15 @@ function mergeContactData(winner: Contact, loser: Contact) {
   };
 }
 
-async function mergeContacts(loserId: number, winnerId: number) {
+async function mergeContacts(loserId: number, winnerId: number, userId: string) {
   try {
     return await db.transaction().execute(async (trx) => {
+      // Enable RLS by switching to authenticated role and setting user context
+      await trx.executeQuery(CompiledQuery.raw("SET LOCAL ROLE authenticated"));
+      await trx.executeQuery(
+        CompiledQuery.raw(`SELECT set_config('request.jwt.claim.sub', '${userId}', true)`)
+      );
+
       // 1. Fetch both contacts
       const [winner, loser] = await Promise.all([
         trx
@@ -183,7 +189,7 @@ Deno.serve(async (req: Request) => {
         return createErrorResponse(400, "Missing loserId or winnerId");
       }
 
-      const result = await mergeContacts(loserId, winnerId);
+      const result = await mergeContacts(loserId, winnerId, user.id);
 
       return new Response(JSON.stringify(result), {
         headers: { "Content-Type": "application/json", ...corsHeaders },
