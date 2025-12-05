@@ -11,6 +11,8 @@ import {
   PostgresQueryCompiler,
   type Generated,
 } from "https://esm.sh/kysely@0.27.2";
+
+export { CompiledQuery };
 import type { PoolClient } from "https://deno.land/x/postgres@v0.17.0/mod.ts";
 import { Pool } from "https://deno.land/x/postgres@v0.17.0/mod.ts";
 
