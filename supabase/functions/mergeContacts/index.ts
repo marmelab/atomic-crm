@@ -75,13 +75,19 @@ function mergeContactData(winner: Contact, loser: Contact) {
   };
 }
 
-async function mergeContacts(loserId: number, winnerId: number, userId: string) {
+async function mergeContacts(
+  loserId: number,
+  winnerId: number,
+  userId: string,
+) {
   try {
     return await db.transaction().execute(async (trx) => {
       // Enable RLS by switching to authenticated role and setting user context
       await trx.executeQuery(CompiledQuery.raw("SET LOCAL ROLE authenticated"));
       await trx.executeQuery(
-        CompiledQuery.raw(`SELECT set_config('request.jwt.claim.sub', '${userId}', true)`)
+        CompiledQuery.raw(
+          `SELECT set_config('request.jwt.claim.sub', '${userId}', true)`,
+        ),
       );
 
       // 1. Fetch both contacts
