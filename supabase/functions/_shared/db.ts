@@ -170,7 +170,8 @@ class DenoPostgresConnection implements DatabaseConnection {
 
 // Create connection pool
 // Use SUPABASE_DB_URL if available (production), otherwise fall back to local dev connection string
-const connectionString = Deno.env.get("SUPABASE_DB_URL") ||
+const connectionString =
+  Deno.env.get("SUPABASE_DB_URL") ||
   "postgresql://postgres:postgres@db:5432/postgres";
 
 const pool = new Pool(connectionString, 1); // Single connection for edge functions
