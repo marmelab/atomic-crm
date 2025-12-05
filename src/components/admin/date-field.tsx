@@ -4,30 +4,6 @@ import { useFieldValue, useTranslate } from "ra-core";
 import { genericMemo } from "@/lib/genericMemo";
 import type { FieldProps } from "@/lib/field.type";
 
-/**
- * Display a date value as a locale string.
- *
- * Uses Intl.DateTimeFormat() if available, passing the locales and options props as arguments.
- * If Intl is not available, it outputs date as is (and ignores the locales and options props).
- *
- * @see https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/toLocaleString
- * @example
- * <DateField source="published_at" />
- * // renders the record { id: 1234, published_at: new Date('2012-11-07') } as
- * <span>07/11/2012</span>
- *
- * <DateField source="published_at" className="red" />
- * // renders the record { id: 1234, new Date('2012-11-07') } as
- * <span class="red">07/11/2012</span>
- *
- * <DateField source="share" options={{ weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }} />
- * // renders the record { id: 1234, new Date('2012-11-07') } as
- * <span>Wednesday, November 7, 2012</span>
- *
- * <DateField source="price" locales="fr-FR" options={{ weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }} />
- * // renders the record { id: 1234, new Date('2012-11-07') } as
- * <span>mercredi 7 novembre 2012</span>
- */
 const DateFieldImpl = <
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   RecordType extends Record<string, any> = Record<string, any>,
@@ -98,6 +74,36 @@ const DateFieldImpl = <
 };
 DateFieldImpl.displayName = "DateFieldImpl";
 
+/**
+ * Displays a date value with locale-specific formatting.
+ *
+ * This field automatically formats dates according to the user's locale using Intl.DateTimeFormat.
+ * It supports showing date only, time only, or both, with custom locales and formatting options.
+ * To be used with RecordField or DataTable.Col components, or anywhere a RecordContext is available.
+ *
+ * @see {@link https://marmelab.com/shadcn-admin-kit/docs/datefield/ DateField documentation}
+ *
+ * @example
+ * import {
+ *   List,
+ *   DataTable,
+ *   DateField,
+ * } from '@/components/admin';
+ *
+ * const PostList = () => (
+ *   <List>
+ *     <DataTable>
+ *       <DataTable.Col source="title" />
+ *       <DataTable.Col>
+ *         <DateField source="published_at" />
+ *       </DataTable.Col>
+ *       <DataTable.Col>
+ *         <DateField source="updated_at" showTime />
+ *       </DataTable.Col>
+ *     </DataTable>
+ *   </List>
+ * );
+ */
 export const DateField = genericMemo(DateFieldImpl);
 
 export interface DateFieldProps<

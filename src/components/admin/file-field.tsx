@@ -6,7 +6,13 @@ import { cn } from "@/lib/utils";
 import type { FieldProps } from "@/lib/field.type";
 
 /**
- * Render a link to a file based on a path contained in a record field
+ * Displays a downloadable file link with customizable title and target.
+ *
+ * This field renders file URLs as clickable links that can open in new tabs or trigger downloads.
+ * It supports arrays of files and prevents click bubbling in DataTable rows.
+ * To be used with RecordField or DataTable.Col components, or anywhere a RecordContext is available.
+ *
+ * @see {@link https://marmelab.com/shadcn-admin-kit/docs/filefield/ FileField documentation}
  *
  * @example
  * import { FileField } from '@/components/admin/file-field';

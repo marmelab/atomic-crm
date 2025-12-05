@@ -5,7 +5,9 @@ import { Switch } from "@/components/ui/switch";
 import { cn } from "@/lib/utils";
 
 /**
- * UI to enable/disable a field
+ * A toggleable field item with drag-and-drop reordering, used by ColumnsSelector
+ *
+ * @internal
  */
 export const FieldToggle = (props: FieldToggleProps) => {
   const { selected, label, onToggle, onMove, source, index } = props;

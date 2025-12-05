@@ -6,6 +6,11 @@ import { BulkDeleteButton } from "@/components/admin/bulk-delete-button";
 import { X } from "lucide-react";
 import { BulkExportButton } from "./bulk-export-button";
 
+/**
+ * Default children for BulkActionsToolbar. Renders BulkExportButton and BulkDeleteButton.
+ *
+ * @internal
+ */
 export function BulkActionsToolbarChildren() {
   return (
     <>
@@ -15,6 +20,31 @@ export function BulkActionsToolbarChildren() {
   );
 }
 
+/**
+ * A sticky toolbar that appears when rows are selected in a DataTable.
+ *
+ * Shows the number of selected rows and provides bulk action buttons. Automatically hidden
+ * when no rows are selected. Positioned at the bottom center of the screen.
+ *
+ * @see {@link https://marmelab.com/shadcn-admin-kit/docs/bulkactionstoolbar/ BulkActionsToolbar documentation}
+ *
+ * @example
+ * import { BulkActionsToolbar, BulkDeleteButton } from '@/components/admin';
+ *
+ * const CustomBulkToolbar = () => (
+ *     <BulkActionsToolbar>
+ *         <BulkDeleteButton />
+ *     </BulkActionsToolbar>
+ * );
+ *
+ * const PostList = () => (
+ *   <List>
+ *     <DataTable bulkActionsToolbar={<CustomBulkToolbar />}>
+ *       ...
+ *     </DataTable>
+ *   </List>
+ * );
+ */
 export const BulkActionsToolbar = ({
   children = <BulkActionsToolbarChildren />,
 }: {

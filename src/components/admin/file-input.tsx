@@ -28,6 +28,36 @@ import { FormError, FormField, FormLabel } from "@/components/admin/form";
 import { InputHelperText } from "@/components/admin/input-helper-text";
 import { Button } from "@/components/ui/button";
 
+/**
+ * File upload input with drag-and-drop support and preview capabilities.
+ *
+ * Use `<FileInput>` for document uploads, images, PDFs, CSV files, or any file attachment field.
+ * Powered by react-dropzone with support for multiple files, file type restrictions (accept), and
+ * size constraints. Pass a child component (typically `<FileField>`) to render file previews.
+ *
+ * @see {@link https://marmelab.com/shadcn-admin-kit/docs/fileinput/ FileInput documentation}
+ * @see {@link https://react-dropzone.js.org/ React Dropzone documentation}
+ *
+ * @example
+ * import {
+ *   Edit,
+ *   SimpleForm,
+ *   TextInput,
+ *   FileInput,
+ *   FileField,
+ * } from '@/components/admin';
+ *
+ * const DocumentEdit = () => (
+ *   <Edit>
+ *     <SimpleForm>
+ *       <TextInput source="title" />
+ *       <FileInput source="attachments" multiple accept={{ 'image/*': [], 'application/pdf': [] }}>
+ *         <FileField source="src" title="title" />
+ *       </FileInput>
+ *     </SimpleForm>
+ *   </Edit>
+ * );
+ */
 export const FileInput = (props: FileInputProps) => {
   const {
     alwaysOn,
@@ -277,6 +307,11 @@ export interface TransformedFile {
   title: string;
 }
 
+/**
+ * Preview container for uploaded files in `<FileInput>`, with a remove button.
+ *
+ * @internal
+ */
 export const FileInputPreview = (props: FileInputPreviewProps) => {
   const {
     className,

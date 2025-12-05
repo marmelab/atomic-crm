@@ -13,6 +13,34 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Skeleton } from "@/components/ui/skeleton";
 import { InputHelperText } from "@/components/admin/input-helper-text";
 
+/**
+ * Single-select input rendered as a list of radio buttons, arranged vertically or horizontally.
+ *
+ * Use `<RadioButtonGroupInput>` when you have a small set of options (2-5) that users should
+ * see all at once, like status, priority, or category fields. For longer lists, prefer
+ * `<SelectInput>`. Set `row` to `true` for horizontal layout.
+ *
+ * @see {@link https://marmelab.com/shadcn-admin-kit/docs/radiobuttongroupinput/ RadioButtonGroupInput documentation}
+ *
+ * @example
+ * import { Edit, SimpleForm, TextInput, RadioButtonGroupInput } from '@/components/admin';
+ *
+ * const PostEdit = () => (
+ *   <Edit>
+ *     <SimpleForm>
+ *       <TextInput source="title" />
+ *       <RadioButtonGroupInput
+ *         source="category"
+ *         choices={[
+ *           { id: 'tech', name: 'Tech' },
+ *           { id: 'lifestyle', name: 'Lifestyle' },
+ *           { id: 'people', name: 'People' },
+ *         ]}
+ *       />
+ *     </SimpleForm>
+ *   </Edit>
+ * );
+ */
 export const RadioButtonGroupInput = (inProps: RadioButtonGroupInputProps) => {
   const {
     choices: choicesProp,

@@ -38,6 +38,40 @@ import {
   useSupportCreateSuggestion,
 } from "@/hooks/useSupportCreateSuggestion";
 
+/**
+ * Form control that lets users choose a value from a list using a dropdown with autocompletion.
+ *
+ * This input allows editing scalar values with a searchable dropdown interface. It supports creating
+ * new choices on the fly and works seamlessly inside ReferenceInput for editing foreign key relationships.
+ *
+ * @see {@link https://marmelab.com/shadcn-admin-kit/docs/autocompleteinput/ AutocompleteInput documentation}
+ *
+ * @example
+ * import {
+ *   Create,
+ *   SimpleForm,
+ *   AutocompleteInput,
+ *   ReferenceInput,
+ * } from '@/components/admin';
+ *
+ * const PostCreate = () => (
+ *   <Create>
+ *     <SimpleForm>
+ *       <AutocompleteInput
+ *         source="category"
+ *         choices={[
+ *           { id: 'tech', name: 'Tech' },
+ *           { id: 'lifestyle', name: 'Lifestyle' },
+ *           { id: 'people', name: 'People' },
+ *         ]}
+ *       />
+ *       <ReferenceInput label="Author" source="author_id" reference="authors">
+ *         <AutocompleteInput />
+ *       </ReferenceInput>
+ *     </SimpleForm>
+ *   </Create>
+ * );
+ */
 export const AutocompleteInput = (
   props: Omit<InputProps, "source"> &
     Omit<SupportCreateSuggestionOptions, "handleChange" | "filter"> &

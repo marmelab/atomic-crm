@@ -6,6 +6,27 @@ import { cn } from "@/lib/utils";
 import { genericMemo } from "@/lib/genericMemo";
 import { FieldProps } from "@/lib/field.type";
 
+/**
+ * Displays a URL as a clickable hyperlink.
+ *
+ * Click events are prevented from bubbling up, making it safe to use in DataTable rows with rowClick.
+ *
+ * @see {@link https://marmelab.com/shadcn-admin-kit/docs/urlfield/ UrlField documentation}
+ *
+ * @example
+ * import { List, DataTable, UrlField } from '@/components/admin';
+ *
+ * const WebsiteList = () => (
+ *   <List>
+ *     <DataTable>
+ *       <DataTable.Col source="id" />
+ *       <DataTable.Col source="website">
+ *         <UrlField source="website" empty="No website available" />
+ *       </DataTable.Col>
+ *     </DataTable>
+ *   </List>
+ * );
+ */
 const UrlFieldImpl = <
   //eslint-disable-next-line @typescript-eslint/no-explicit-any
   RecordType extends Record<string, any> = Record<string, any>,

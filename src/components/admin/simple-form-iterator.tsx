@@ -44,6 +44,26 @@ import { IconButtonWithTooltip } from "@/components/admin/icon-button-with-toolt
 
 type GetItemLabelFunc = (index: number) => string | ReactElement;
 
+/**
+ * An array input iterator for managing dynamic lists of items in forms.
+ *
+ * Renders a list of form items with add, remove, and reorder controls. Use inside ArrayInput
+ * for arrays of objects or scalar values. Supports inline layouts and custom buttons.
+ *
+ * @see {@link https://marmelab.com/shadcn-admin-kit/docs/arrayinput/ ArrayInput documentation}
+ *
+ * @example
+ * import { ArrayInput, SimpleFormIterator, TextInput } from '@/components/admin';
+ *
+ * const PostEdit = () => (
+ *   <ArrayInput source="authors">
+ *     <SimpleFormIterator>
+ *       <TextInput source="name" />
+ *       <TextInput source="email" />
+ *     </SimpleFormIterator>
+ *   </ArrayInput>
+ * );
+ */
 export const SimpleFormIterator = (props: SimpleFormIteratorProps) => {
   const {
     addButton = defaultAddItemButton,
@@ -159,10 +179,18 @@ export const SimpleFormIterator = (props: SimpleFormIteratorProps) => {
       total: fields.length,
       add: addField,
       remove: removeField,
+      clear: handleArrayClear,
       reOrder: handleReorder,
       source: finalSource,
     }),
-    [addField, fields.length, handleReorder, removeField, finalSource],
+    [
+      fields.length,
+      addField,
+      removeField,
+      handleArrayClear,
+      handleReorder,
+      finalSource,
+    ],
   );
   return fields ? (
     <SimpleFormIteratorContext.Provider value={context}>
@@ -236,6 +264,17 @@ export interface SimpleFormIteratorProps extends Partial<UseFieldArrayReturn> {
   source?: string;
 }
 
+/**
+ * A single item in a SimpleFormIterator list with controls.
+ *
+ * Renders one item from an array with its input fields and action buttons (remove, reorder).
+ * Usually used internally by SimpleFormIterator but can be customized.
+ *
+ * @example
+ * import { SimpleFormIteratorItem } from '@/components/admin';
+ *
+ * // Typically used internally by SimpleFormIterator
+ */
 export const SimpleFormIteratorItem = React.forwardRef(
   (
     props: SimpleFormIteratorItemProps,
@@ -376,6 +415,23 @@ export type SimpleFormIteratorItemProps = Partial<ArrayInputContextValue> & {
   source?: string;
 };
 
+/**
+ * A button to add new items to a SimpleFormIterator.
+ *
+ * Renders a plus icon button that appends a new item to the array. Works with the
+ * SimpleFormIterator context to add items with default values.
+ *
+ * @example
+ * import { ArrayInput, SimpleFormIterator, AddItemButton } from '@/components/admin';
+ *
+ * const PostEdit = () => (
+ *     <ArrayInput source="tags">
+ *         <SimpleFormIterator addButton={<AddItemButton />}>
+ *             ...
+ *         </SimpleFormIterator>
+ *     </ArrayInput>
+ * );
+ */
 export const AddItemButton = (props: React.ComponentProps<"button">) => {
   const { add, source } = useSimpleFormIterator();
   const { className, ...rest } = props;
@@ -401,6 +457,21 @@ export const AddItemButton = (props: React.ComponentProps<"button">) => {
   );
 };
 
+/**
+ * Up and down buttons for reordering items in a SimpleFormIterator.
+ *
+ * Renders arrow buttons that move an item up or down in the list. Used internally
+ * by SimpleFormIterator but can be customized.
+ *
+ * @example
+ * import { SimpleFormIterator, ReOrderButtons } from '@/components/admin';
+ *
+ * const PostEdit = () => (
+ *     <SimpleFormIterator reOrderButtons={<ReOrderButtons />}>
+ *         ...
+ *     </SimpleFormIterator>
+ * );
+ */
 export const ReOrderButtons = ({ className }: { className?: string }) => {
   const { index, total, reOrder } = useSimpleFormIteratorItem();
   const { source } = useSimpleFormIterator();
@@ -431,6 +502,17 @@ export const ReOrderButtons = ({ className }: { className?: string }) => {
   );
 };
 
+/**
+ * A button to clear all items from a SimpleFormIterator.
+ *
+ * Renders a trash icon button that removes all items from the array after confirmation.
+ * Used internally by SimpleFormIterator when disableClear is false.
+ *
+ * @example
+ * import { ClearArrayButton } from '@/components/admin';
+ *
+ * // Typically used internally by SimpleFormIterator
+ */
 export const ClearArrayButton = (props: React.ComponentProps<"button">) => {
   const translate = useTranslate();
   return (
@@ -449,6 +531,21 @@ export const ClearArrayButton = (props: React.ComponentProps<"button">) => {
   );
 };
 
+/**
+ * A button to remove a single item from a SimpleFormIterator.
+ *
+ * Renders a close icon button that removes the current item from the array. Used internally
+ * by SimpleFormIterator for each item when disableRemove is false.
+ *
+ * @example
+ * import { SimpleFormIterator, RemoveItemButton } from '@/components/admin';
+ *
+ * const PostEdit = () => (
+ *     <SimpleFormIterator removeButton={<RemoveItemButton />}>
+ *         ...
+ *     </SimpleFormIterator>
+ * );
+ */
 export const RemoveItemButton = (props: React.ComponentProps<"button">) => {
   const { remove, index } = useSimpleFormIteratorItem();
   const { source } = useSimpleFormIterator();

@@ -1,6 +1,15 @@
 import { Translate, useTimeout } from "ra-core";
 import { Spinner } from "./spinner";
 
+/**
+ * Loading indicator used for slow element or page loads.
+ *
+ * Displays a spinner and customizable loading messages.
+ * Automatically shown by the default Layout when page loading takes more than 1 second.
+ * Works as a fallback for React Suspense boundaries.
+ *
+ * @see {@link https://marmelab.com/shadcn-admin-kit/docs/loading/ Loading documentation}
+ */
 export const Loading = (props: LoadingProps) => {
   const {
     loadingPrimary = "ra.page.loading",

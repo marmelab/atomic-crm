@@ -11,6 +11,31 @@ import {
 } from "ra-core";
 import { Button } from "@/components/ui/button";
 
+/**
+ * A button that exports list data to a file.
+ *
+ * Respects current filters and sort order, with configurable maximum results.
+ * Use a custom exporter to customize the result and fetch related records.
+ *
+ * @see {@link https://marmelab.com/shadcn-admin-kit/docs/exportbutton/ ExportButton documentation}
+ *
+ * @example
+ * import { CreateButton, ExportButton, TopToolbar } from '@/components/admin';
+ *
+ * const PostListActions = () => (
+ *   <>
+ *     <FilterButton />
+ *     <CreateButton />
+ *     <ExportButton />
+ *   </>
+ * );
+ *
+ * export const PostList = () => (
+ *   <List actions={<PostListActions />}>
+ *     ...
+ *   </List>
+ * );
+ */
 export const ExportButton = (props: ExportButtonProps) => {
   const {
     maxResults = 1000,

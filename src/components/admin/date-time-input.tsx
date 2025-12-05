@@ -12,7 +12,32 @@ import { Input } from "@/components/ui/input";
 import { InputHelperText } from "@/components/admin/input-helper-text";
 
 /**
- * Input component for entering a date and a time with timezone, using the browser locale
+ * Date and time picker input for editing datetime values with timezone support.
+ *
+ * Use `<DateTimeInput>` for timestamps like "created at", "updated at", or scheduled events.
+ * Renders a native browser datetime-local picker. Expects and returns ISO 8601 formatted strings
+ * (e.g. '2025-11-17T10:10:32.390Z'), automatically converting other formats like Date objects or timestamps.
+ *
+ * @see {@link https://marmelab.com/shadcn-admin-kit/docs/datetimeinput/ DateTimeInput documentation}
+ * @see {@link https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input/datetime-local MDN documentation for input type="datetime-local"}
+ *
+ * @example
+ * import {
+ *   Edit,
+ *   SimpleForm,
+ *   DateTimeInput,
+ *   TextInput,
+ * } from '@/components/admin';
+ *
+ * const EventEdit = () => (
+ *   <Edit>
+ *     <SimpleForm>
+ *       <TextInput source="title" />
+ *       <DateTimeInput source="starts_at" />
+ *       <DateTimeInput source="ends_at" />
+ *     </SimpleForm>
+ *   </Edit>
+ * );
  */
 export const DateTimeInput = ({
   className,
