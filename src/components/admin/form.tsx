@@ -147,6 +147,25 @@ const FormError = ({ className, ...props }: React.ComponentProps<"p">) => {
   );
 };
 
+/**
+ * A button that saves form data with loading state and validation.
+ *
+ * Automatically handles form submission, validation, and loading states. Shows a spinner during
+ * save operations and can be disabled when the form is pristine or invalid.
+ *
+ * @see {@link https://marmelab.com/shadcn-admin-kit/docs/savebutton/ SaveButton documentation}
+ *
+ * @example
+ * import { SimpleForm, SaveButton } from '@/components/admin';
+ *
+ * const PostEdit = () => (
+ *   <Edit>
+ *     <SimpleForm toolbar={<SaveButton />}>
+ *       // form inputs here
+ *     </SimpleForm>
+ *   </Edit>
+ * )
+ */
 const SaveButton = <RecordType extends RaRecord = RaRecord>(
   props: SaveButtonProps<RecordType>,
 ) => {

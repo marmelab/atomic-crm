@@ -14,6 +14,20 @@ export type ShowButtonProps = {
   icon?: React.ReactNode;
 } & React.AnchorHTMLAttributes<HTMLAnchorElement>;
 
+/**
+ * A button that navigates to the show page for a record.
+ *
+ * Works within RecordContext to automatically get the record ID.
+ *
+ * @see {@link https://marmelab.com/shadcn-admin-kit/docs/showbutton/ ShowButton documentation}
+ *
+ * @example
+ * import { ShowButton } from '@/components/admin';
+ *
+ * const PostActions = () => (
+ *   <ShowButton label="View Details" />
+ * );
+ */
 export const ShowButton = (props: ShowButtonProps) => {
   const resource = useResourceContext();
   const record = useRecordContext();

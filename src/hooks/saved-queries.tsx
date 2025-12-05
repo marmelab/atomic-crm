@@ -14,8 +14,9 @@ export const useSavedQueries = (resource: string) => {
 export interface SavedQuery {
   label: string;
   value: {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     filter?: any;
-
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     displayedFilters?: any[];
     sort?: SortPayload;
     perPage?: number;

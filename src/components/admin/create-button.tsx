@@ -9,6 +9,27 @@ export type CreateButtonProps = {
   resource?: string;
 };
 
+/**
+ * A button that navigates to the create page for a resource.
+ *
+ * Automatically uses the current resource unless overridden.
+ *
+ * @see {@link https://marmelab.com/shadcn-admin-kit/docs/createbutton/ CreateButton documentation}
+ *
+ * @example
+ * import { CreateButton, List, ExportButton } from '@/components/admin';
+ *
+ * const PostList = () => (
+ *   <List
+ *     actions={<>
+ *       <CreateButton />
+ *       <ExportButton />
+ *     </>}
+ *   >
+ *     ...
+ *   </List>
+ * );
+ */
 export const CreateButton = ({
   label,
   resource: targetResource,

@@ -11,6 +11,36 @@ import { cn } from "@/lib/utils";
 
 import { TextField } from "@/components/admin/text-field";
 
+/**
+ * Displays a labeled field-value pair with flexible rendering options.
+ *
+ * Supports either vertical or inline layout.
+ * It can render children, use a custom field component, or display a TextField by default.
+ * To be used with RecordContext, e.g. inside Show, or inside ArrayField to display array items.
+ *
+ * @see {@link https://marmelab.com/shadcn-admin-kit/docs/recordfield/ RecordField documentation}
+ *
+ * @example
+ * import { NumberField, RecordField, Show } from '@/components/admin';
+ *
+ * const PostShow = () => (
+ *   <Show>
+ *     <div className="flex flex-col gap-4">
+ *       <RecordField source="reference" label="Ref." />
+ *       <RecordField
+ *         label="dimensions"
+ *         render={record => `${record.width}x${record.height}`}
+ *       />
+ *       <RecordField source="price">
+ *         <NumberField source="price" options={
+ *           style: 'currency',
+ *           currency: 'USD',
+ *         }/>
+ *       <RecordField source="status" variant="inline" />
+ *     </div>
+ *   </Show>
+ * );
+ */
 export const RecordField = <
   RecordType extends Record<string, any> = Record<string, any>,
 >(

@@ -23,6 +23,30 @@ import { DeleteButton } from "./delete-button";
 
 export interface EditProps extends EditViewProps, EditBaseProps {}
 
+/**
+ * A complete edit page with breadcrumb, title, and default actions.
+ *
+ * Combines data fetching, form context, and UI layout for editing records. Renders breadcrumb,
+ * page title, Show and Delete buttons, and wraps your form components.
+ *
+ * @see {@link https://marmelab.com/shadcn-admin-kit/docs/edit/ Edit documentation}
+ *
+ * @example
+ * import { Edit, SimpleForm, BooleanInput, TextInput } from "@/components/admin";
+ * import { required } from 'ra-core';
+ *
+ * export const CustomerEdit = () => (
+ *   <Edit>
+ *     <SimpleForm>
+ *       <TextInput source="first_name" validate={required()} />
+ *       <TextInput source="last_name" validate={required()} />
+ *       <TextInput source="email" validate={required()} />
+ *       <BooleanInput source="has_ordered" />
+ *       <TextInput multiline source="notes" />
+ *     </SimpleForm>
+ *   </Edit>
+ * );
+ */
 export const Edit = ({
   actions,
   children,
@@ -51,6 +75,11 @@ export interface EditViewProps {
   className?: string;
 }
 
+/**
+ * The view component for Edit pages with layout and UI.
+ *
+ * @internal
+ */
 export const EditView = ({
   disableBreadcrumb,
   title,

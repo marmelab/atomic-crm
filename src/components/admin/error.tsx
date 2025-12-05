@@ -1,5 +1,4 @@
 import type { FallbackProps } from "react-error-boundary";
-
 import { useResetErrorBoundaryOnLocationChange, Translate } from "ra-core";
 import { CircleAlert, History } from "lucide-react";
 import {
@@ -9,9 +8,16 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import { Button } from "@/components/ui/button";
-import type { HtmlHTMLAttributes } from "react";
-import { ErrorInfo } from "react";
+import type { HtmlHTMLAttributes, ErrorInfo } from "react";
 
+/**
+ * App-wide error component for displaying error boundaries.
+ *
+ * Displays the error message and a back button.
+ * In development mode, also shows the component stack trace in an expandable accordion.
+ *
+ * @see {@link https://marmelab.com/shadcn-admin-kit/docs/error Error documentation}
+ */
 export const Error = (props: InternalErrorProps & {}) => {
   const { error, errorInfo, resetErrorBoundary, ...rest } = props;
 

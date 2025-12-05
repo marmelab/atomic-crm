@@ -4,6 +4,30 @@ import type { TextInputProps } from "@/components/admin/text-input";
 import { TextInput } from "@/components/admin/text-input";
 import { cn } from "@/lib/utils";
 
+/**
+ * Text input with a search icon, designed for filter forms without a label.
+ *
+ * It automatically uses the 'q' source for full-text search by default.
+ *
+ * @see {@link https://marmelab.com/shadcn-admin-kit/docs/searchinput/ SearchInput documentation}
+ *
+ * @example
+ * import { List, DataTable, SearchInput } from '@/components/admin';
+ *
+ * const postListFilters = [
+ *   <SearchInput source="q" alwaysOn />,
+ * ];
+ *
+ * const PostList = () => (
+ *   <List filters={postListFilters}>
+ *     <DataTable>
+ *       <DataTable.Col source="title" />
+ *       <DataTable.Col source="author" />
+ *       <DataTable.Col source="published_at" />
+ *     </DataTable>
+ *   </List>
+ * );
+ */
 export const SearchInput = (inProps: SearchInputProps) => {
   const { label, className, ...rest } = inProps;
 

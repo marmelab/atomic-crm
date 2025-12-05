@@ -6,6 +6,34 @@ import type {
 } from "ra-core";
 import { ReferenceManyFieldBase, useListContext } from "ra-core";
 
+/**
+ * Displays multiple related records that reference the current record via a foreign key.
+ *
+ * This field fetches records from a related resource where the foreign key points to the current record.
+ * It provides a ListContext to its children, enabling list rendering with DataTable or custom components.
+ *
+ * @see {@link https://marmelab.com/shadcn-admin-kit/docs/referencemanyfield/ ReferenceManyField documentation}
+ *
+ * @example
+ * import { Show, ReferenceManyField, DataTable, DateField, RecordField } from '@/components/admin';
+ *
+ * const AuthorShow = () => (
+ *   <Show>
+ *     <div className="flex flex-col gap-4">
+ *       <RecordField source="first_name" />
+ *       <RecordField source="last_name" />
+ *       <RecordField label="Books">
+ *         <ReferenceManyField reference="books" target="author_id" label="Books">
+ *           <DataTable>
+ *             <DataTable.Col source="title" />
+ *             <DataTable.Col source="published_at" field={DateField} />
+ *           </DataTable>
+ *         </ReferenceManyField>
+ *       </RecordField>
+ *     </div>
+ *   </Show>
+ * );
+ */
 export const ReferenceManyField = <
   RecordType extends RaRecord = RaRecord,
   ReferenceRecordType extends RaRecord = RaRecord,

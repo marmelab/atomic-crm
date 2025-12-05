@@ -12,19 +12,31 @@ import { InputHelperText } from "@/components/admin/input-helper-text";
 import { cn } from "@/lib/utils";
 
 /**
- * Form input to edit a Date string value in the "YYYY-MM-DD" format (e.g. '2021-06-23').
+ * Date picker input for editing date values in "YYYY-MM-DD" format.
  *
- * Renders a date picker (the exact UI depends on the browser).
+ * Use `<DateInput>` for publication dates, deadlines, birthdays, or any date field. Renders
+ * a native browser date picker (appearance varies by browser). Automatically handles date parsing
+ * from ISO strings, Date objects, or timestamps.
+ *
+ * @see {@link https://marmelab.com/shadcn-admin-kit/docs/dateinput/ DateInput documentation}
+ * @see {@link https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input/date MDN documentation for input type="date"}
  *
  * @example
- * import { Edit, SimpleForm, DateInput } from 'react-admin';
+ * import {
+ *   Edit,
+ *   SimpleForm,
+ *   DateInput,
+ *   TextInput,
+ * } from '@/components/admin';
  *
  * const PostEdit = () => (
- *     <Edit>
- *         <SimpleForm>
- *             <DateInput source="published_at" />
- *         </SimpleForm>
- *     </Edit>
+ *   <Edit>
+ *     <SimpleForm>
+ *       <TextInput source="title" />
+ *       <DateInput source="published_at" />
+ *       <DateInput source="expires_at" />
+ *     </SimpleForm>
+ *   </Edit>
  * );
  *
  * @example

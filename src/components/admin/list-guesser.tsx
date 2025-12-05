@@ -20,6 +20,26 @@ import { ReferenceField } from "@/components/admin/reference-field";
 import { SingleFieldList } from "@/components/admin/single-field-list";
 import { ReferenceArrayField } from "@/components/admin/reference-array-field";
 
+/**
+ * A list page that automatically generates a DataTable from your data.
+ *
+ * Inspects the first record to infer field types and automatically creates appropriate columns.
+ * Useful for rapid prototyping. Logs generated code to console.
+ *
+ * @see {@link https://marmelab.com/shadcn-admin-kit/docs/list/#scaffolding-a-list-page ListGuesser documentation}
+ *
+ * @example
+ * import { Admin, ListGuesser } from '@/components/admin';
+ * import { Resource } from 'ra-core';
+ * import { dataProvider } from './dataProvider';
+ *
+ * const App = () => (
+ *   <Admin dataProvider={dataProvider}>
+ *     // ...
+ *     <Resource name="posts" list={ListGuesser} />
+ *   </Admin>
+ * );
+ */
 export const ListGuesser = <RecordType extends RaRecord = RaRecord>(
   props: Omit<ListProps, "children"> & { enableLog?: boolean },
 ) => {

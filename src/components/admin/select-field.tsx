@@ -6,52 +6,28 @@ import type { FieldProps } from "@/lib/field.type";
 import { genericMemo } from "@/lib/genericMemo";
 
 /**
- * Display a value in an enumeration
+ * Displays a value from an enumeration by mapping it to a human-readable label.
  *
- * Pass possible options as an array of objects in the 'choices' attribute.
+ * Supports custom optionText and optionValue properties, and automatic translation of choice labels.
+ * To be used with RecordField or DataTable.Col components, or anywhere a RecordContext is available.
  *
- * @example
- * const choices = [
- *    { id: 'M', name: 'Male' },
- *    { id: 'F', name: 'Female' },
- * ];
- * <SelectField source="gender" choices={choices} />
- *
- * By default, the text is built by
- * - finding a choice where the 'id' property equals the field value
- * - using the 'name' property as the option text
- *
- * You can also customize the properties to use for the value and text,
- * thanks to the 'optionValue' and 'optionText' attributes.
+ * @see {@link https://marmelab.com/shadcn-admin-kit/docs/selectfield/ SelectField documentation}
  *
  * @example
- * const choices = [
- *    { _id: 123, full_name: 'Leo Tolstoi', sex: 'M' },
- *    { _id: 456, full_name: 'Jane Austen', sex: 'F' },
- * ];
- * <SelectField source="author_id" choices={choices} optionText="full_name" optionValue="_id" />
+ * import { List, DataTable, SelectField } from '@/components/admin';
  *
- * `optionText` also accepts a function, so you can shape the option text at will:
- * @example
- * const choices = [
- *    { id: 123, first_name: 'Leo', last_name: 'Tolstoi' },
- *    { id: 456, first_name: 'Jane', last_name: 'Austen' },
- * ];
- * const optionRenderer = choice => `${choice.first_name} ${choice.last_name}`;
- * <SelectField source="author_id" choices={choices} optionText={optionRenderer} />
+ * const choices = [{ id: 'M', name: 'Male' }, { id: 'F', name: 'Female' }];
  *
- * `optionText` also accepts a React Element, that can access
- * the related choice through the `useRecordContext` hook. You can use Field components there.
- * @example
- * const choices = [
- *    { id: 123, first_name: 'Leo', last_name: 'Tolstoi' },
- *    { id: 456, first_name: 'Jane', last_name: 'Austen' },
- * ];
- * const FullNameField = () => {
- *     const record = useRecordContext();
- *     return (<Chip>{record.first_name} {record.last_name}</Chip>)
- * };
- * <SelectField source="gender" choices={choices} optionText={<FullNameField />}/>
+ * const UserList = () => (
+ *   <List>
+ *     <DataTable>
+ *       <DataTable.Col source="name" />
+ *       <DataTable.Col>
+ *         <SelectField source="gender" choices={choices} />
+ *       </DataTable.Col>
+ *     </DataTable>
+ *   </List>
+ * );
  *
  * The current choice is translated by default, so you can use translation identifiers as choices:
  * @example

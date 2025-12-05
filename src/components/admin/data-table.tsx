@@ -60,6 +60,32 @@ import {
 
 const defaultBulkActionButtons = <BulkActionsToolbarChildren />;
 
+/**
+ * A powerful data table with sorting, selection, and column customization.
+ *
+ * Displays records in a table with built-in support for column sorting, bulk selection, row clicks,
+ * and column visibility controls. Use DataTable.Col to define columns.
+ *
+ * @see {@link https://marmelab.com/shadcn-admin-kit/docs/datatable/ DataTable documentation}
+ *
+ * @example
+ * import { List, DataTable, ReferenceField, EditButton } from '@/components/admin';
+ *
+ * export const PostList = () => (
+ *   <List>
+ *     <DataTable>
+ *       <DataTable.Col source="id" />
+ *       <DataTable.Col label="User">
+ *         <ReferenceField source="user_id" reference="users" />
+ *       </DataTable.Col>
+ *       <DataTable.Col source="title" />
+ *       <DataTable.Col>
+ *         <EditButton />
+ *       </DataTable.Col>
+ *     </DataTable>
+ *   </List>
+ * );
+ */
 export function DataTable<RecordType extends RaRecord = RaRecord>(
   props: DataTableProps<RecordType>,
 ) {

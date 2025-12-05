@@ -34,6 +34,9 @@ interface SpinnerContentProps
   className?: string;
 }
 
+/**
+ * Animated spinner component for loading states.
+ */
 export function Spinner({ size, show, className }: SpinnerContentProps) {
   return (
     <span className={spinnerVariants({ show })}>

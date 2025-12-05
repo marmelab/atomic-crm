@@ -21,6 +21,11 @@ const initialState: ThemeProviderState = {
 
 const ThemeProviderContext = createContext<ThemeProviderState>(initialState);
 
+/**
+ * Theme provider that enables light, dark, and system theme modes.
+ *
+ * @internal
+ */
 export function ThemeProvider({
   children,
   defaultTheme = "system",

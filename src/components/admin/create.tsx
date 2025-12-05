@@ -19,6 +19,26 @@ import { cn } from "@/lib/utils";
 
 export type CreateProps = CreateViewProps & CreateBaseProps;
 
+/**
+ * A complete create page with breadcrumb, title, and actions.
+ *
+ * Combines data fetching, form context, and UI layout for creating new records. Renders breadcrumb
+ * navigation, page title, and wraps your form components.
+ *
+ * @see {@link https://marmelab.com/shadcn-admin-kit/docs/create/ Create documentation}
+ *
+ * @example
+ * import { Create, SimpleForm, TextInput } from '@/components/admin';
+ *
+ * export const PostCreate = () => (
+ *   <Create>
+ *     <SimpleForm>
+ *       <TextInput source="title" />
+ *       <TextInput source="body" />
+ *     </SimpleForm>
+ *   </Create>
+ * );
+ */
 export const Create = ({
   actions,
   children,
@@ -47,6 +67,11 @@ export type CreateViewProps = {
   title?: ReactNode | string | false;
 };
 
+/**
+ * The view component for Create pages with layout and UI.
+ *
+ * @internal
+ */
 export const CreateView = ({
   actions,
   disableBreadcrumb,

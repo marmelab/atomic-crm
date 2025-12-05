@@ -15,6 +15,29 @@ import type { MouseEvent, ReactNode } from "react";
 import { Link } from "react-router";
 import type { UseQueryOptions } from "@tanstack/react-query";
 
+/**
+ * Displays a field from a related record by following a foreign key relationship.
+ *
+ * This field fetches the related record using the foreign key value and displays it using the record representation.
+ * It supports linking to the related record's show or edit page.
+ * To be used with RecordField or DataTable.Col components, or anywhere a RecordContext is available.
+ *
+ * @see {@link https://marmelab.com/shadcn-admin-kit/docs/referencefield/ ReferenceField documentation}
+ *
+ * @example
+ * import { List, DataTable, ReferenceField } from '@/components/admin';
+ *
+ * const PostList = () => (
+ *   <List>
+ *     <DataTable>
+ *       <DataTable.Col source="title" />
+ *       <DataTable.Col label="Author">
+ *         <ReferenceField source="author_id" reference="authors" link="show" />
+ *       </DataTable.Col>
+ *     </DataTable>
+ *   </List>
+ * );
+ */
 export const ReferenceField = <
   RecordType extends RaRecord = RaRecord,
   ReferenceRecordType extends RaRecord = RaRecord,

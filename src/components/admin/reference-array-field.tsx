@@ -5,67 +5,39 @@ import type {
   ListControllerResult,
   RaRecord,
   SortPayload,
-} from "ra-core";
-import {
   ExtractRecordPaths,
   HintedString,
-  ReferenceArrayFieldBase,
-  useListContext,
 } from "ra-core";
+import { ReferenceArrayFieldBase, useListContext } from "ra-core";
 import type { UseQueryOptions } from "@tanstack/react-query";
 import { SingleFieldList } from "@/components/admin/single-field-list";
 
 /**
- * A container component that fetches records from another resource specified
- * by an array of *ids* in current record.
+ * Displays multiple related records by following an array of foreign keys.
  *
- * You must define the fields to be passed to the iterator component as children.
+ * This field fetches related records using an array of IDs and renders them using a child component (SingleFieldList by default).
+ * It supports custom sorting, filtering, and rendering with DataTable or other list components.
+ * To be used with RecordField or DataTable.Col components, or anywhere a RecordContext is available.
  *
- * @example Display all the categories of the current product as a list of chips (the default)
- * // product = {
- * //   id: 456,
- * //   category_ids: [11, 22, 33],
- * // }
- * <ReferenceArrayField label="Categories" reference="categories" source="category_ids"/ >
+ * @see {@link https://marmelab.com/shadcn-admin-kit/docs/referencearrayfield/ ReferenceArrayField documentation}
  *
- * @example Display all the products of the current order as DataTable
- * // order = {
- * //   id: 123,
- * //   product_ids: [456, 457, 458],
- * // }
- * <ReferenceArrayField label="Products" reference="products" source="product_ids">
+ * @example
+ * import { List, DataTable, ReferenceArrayField } from '@/components/admin';
+ *
+ * export const PostList = () => (
+ *   <List>
  *     <DataTable>
- *         <DataTable.Col source="id" />
- *         <DataTable.Col source="description" />
- *         <DataTable.NumberCol source="price" options={{ style: 'currency', currency: 'USD' }} />
- *         <DataTable.Col><EditButton /></DataTable.Col>
+ *       <DataTable.Col source="id" />
+ *       <DataTable.Col source="title" />
+ *       <DataTable.Col source="tag_ids" label="Tags">
+ *         <ReferenceArrayField reference="tags" source="tag_ids" />
+ *       </DataTable.Col>
+ *       <DataTable.Col>
+ *         <EditButton />
+ *       </DataTable.Col>
  *     </DataTable>
- * </ReferenceArrayField>
- *
- * By default, restricts the displayed values to 1000. You can extend this limit
- * by setting the `perPage` prop.
- *
- * @example
- * <ReferenceArrayField perPage={10} reference="categories" source="category_ids">
- *    ...
- * </ReferenceArrayField>
- *
- * By default, the field displays the results in the order in which they are referenced
- * (i.e. in the order of the list of ids). You can change this order
- * by setting the `sort` prop (an object with `field` and `order` properties).
- *
- * @example
- * <ReferenceArrayField sort={{ field: 'name', order: 'ASC' }} reference="categories" source="category_ids">
- *    ...
- * </ReferenceArrayField>
- *
- * Also, you can filter the results to display only a subset of values. Use the
- * `filter` prop for that.
- *
- * @example
- * <ReferenceArrayField filter={{ is_published: true }} reference="categories" source="category_ids">
- *    ...
- * </ReferenceArrayField>
+ *   </List>
+ * );
  */
 export const ReferenceArrayField = <
   RecordType extends RaRecord = RaRecord,

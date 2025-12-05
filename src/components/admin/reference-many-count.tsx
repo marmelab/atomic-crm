@@ -6,6 +6,28 @@ import {
 } from "ra-core";
 import { Link } from "react-router";
 
+/**
+ * Displays the count of related records that reference the current record.
+ *
+ * Calls dataProvider.getList() to compute the the number of records in a related resource that have a foreign key pointing to the current record.
+ * It can optionally link to a filtered list of those records.
+ *
+ * @see {@link https://marmelab.com/shadcn-admin-kit/docs/referencemanycount/ ReferenceManyCount documentation}
+ *
+ * @example
+ * import { List, DataTable, ReferenceManyCount } from '@/components/admin';
+ *
+ * const AuthorList = () => (
+ *   <List>
+ *     <DataTable>
+ *       <DataTable.Col source="name" />
+ *       <DataTable.Col label="Number of Books">
+ *         <ReferenceManyCount reference="books" target="author_id" link />
+ *       </DataTable.Col>
+ *     </DataTable>
+ *   </List>
+ * );
+ */
 export const ReferenceManyCount = <RecordType extends RaRecord = RaRecord>(
   props: ReferenceManyCountProps<RecordType>,
 ) => {

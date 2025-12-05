@@ -7,6 +7,15 @@ import { TextInput } from "@/components/admin/text-input";
 import { Notification } from "@/components/admin/notification";
 import { useConfigurationContext } from "@/components/atomic-crm/root/ConfigurationContext.tsx";
 
+/**
+ * Login page displayed when authentication is enabled and the user is not authenticated.
+ *
+ * Automatically shown when an unauthenticated user tries to access a protected route.
+ * Handles login via authProvider.login() and displays error notifications on failure.
+ *
+ * @see {@link https://marmelab.com/shadcn-admin-kit/docs/loginpage LoginPage documentation}
+ * @see {@link https://marmelab.com/shadcn-admin-kit/docs/security Security documentation}
+ */
 export const LoginPage = (props: { redirectTo?: string }) => {
   const { darkModeLogo, title } = useConfigurationContext();
   const { redirectTo } = props;

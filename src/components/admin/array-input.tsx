@@ -23,6 +23,41 @@ import { Skeleton } from "../ui/skeleton";
 import { InputHelperText } from "@/components/admin/input-helper-text";
 import { FormError, FormField } from "@/components/admin/form";
 
+/**
+ * Creates a list of sub-forms for editing arrays of data embedded inside a record.
+ *
+ * Use `<ArrayInput>` when you need to edit array fields like order items, tags, or any
+ * repeatable embedded data. Requires a form iterator child (typically `<SimpleFormIterator>`)
+ * to render and manage individual array items.
+ *
+ * @see {@link https://marmelab.com/shadcn-admin-kit/docs/arrayinput/ ArrayInput documentation}
+ *
+ * @example
+ * import {
+ *   Edit,
+ *   SimpleForm,
+ *   TextInput,
+ *   NumberInput,
+ *   ArrayInput,
+ *   SimpleFormIterator,
+ * } from '@/components/admin';
+ *
+ * const OrderEdit = () => (
+ *   <Edit>
+ *     <SimpleForm>
+ *       <TextInput source="customer" />
+ *       <TextInput source="date" type="date" />
+ *       <ArrayInput source="items">
+ *         <SimpleFormIterator inline>
+ *           <TextInput source="name" />
+ *           <NumberInput source="price" />
+ *           <NumberInput source="quantity" />
+ *         </SimpleFormIterator>
+ *       </ArrayInput>
+ *     </SimpleForm>
+ *   </Edit>
+ * );
+ */
 export const ArrayInput = (props: ArrayInputProps) => {
   const {
     className,

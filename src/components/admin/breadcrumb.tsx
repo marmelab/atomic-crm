@@ -23,6 +23,38 @@ import {
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Translate } from "ra-core";
 
+/**
+ * A breadcrumb navigation component with mobile drawer support.
+ *
+ * Renders breadcrumb navigation in the app header via portal. On mobile, shows a drawer with
+ * ellipsis for long breadcrumb trails. Use Breadcrumb.Item and Breadcrumb.PageItem as children.
+ *
+ * CRUD pages already include a Breadcrumb by default; set `disableBreadcrumb` to hide the
+ * breadcrumb and/or provide your own.
+ *
+ * @see {@link https://marmelab.com/shadcn-admin-kit/docs/breadcrumb/ Breadcrumb documentation}
+ * @see {@link https://ui.shadcn.com/docs/components/breadcrumb Breadcrumb UI documentation}
+ *
+ * @example
+ * import { Edit, Breadcrumb, SimpleForm } from "@/components/admin";
+ * import { RecordRepresentation } from 'ra-core';
+ * import { Link } from "react-router";
+ *
+ * const PostEdit = () => (
+ *   <Edit disableBreadcrumb>
+ *     <Breadcrumb>
+ *       <Breadcrumb.Item><Link to="/">Home</Link></Breadcrumb.Item>
+ *       <Breadcrumb.Item><Link to="/posts">Articles</Link></Breadcrumb.Item>
+ *       <Breadcrumb.PageItem>
+ *         Edit Article "<RecordRepresentation />"
+ *       </Breadcrumb.Item>
+ *     </Breadcrumb>
+ *     <SimpleForm>
+ *       ...
+ *     </SimpleForm>
+ *   </Edit>
+ * );
+ */
 export const Breadcrumb = ({ children, ref }: BreadcrumbProps) => {
   const breadcrumbPortal = document.getElementById("breadcrumb");
   const isMobile = useIsMobile();

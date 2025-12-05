@@ -42,22 +42,24 @@ import { cn } from "@/lib/utils";
 /**
  * Renders a button that lets users show / hide columns in a DataTable
  *
+ * @see {@link https://marmelab.com/shadcn-admin-kit/docs/columnsbutton/ ColumnsButton documentation}
+ *
  * @example
- * import { ColumnsButton, DataTable } from 'shadcn-admin-kit';
+ * import { List, DataTable, EditButton, CreateButton, ExportButton, ColumnsButton } from '@/components/admin';
  *
- * const PostListActions = () => (
- *   <div className="flex items-center gap-2">
-        <ColumnsButton />
-        <FilterButton />
- *   </div>
- * );
- *
- * const PostList = () => (
- *   <List actions={<PostListActions />}>
+ * const PostsList = () => (
+ *   <List
+ *     actions={<>
+ *       <ColumnsButton />
+ *       <CreateButton />
+ *       <ExportButton />
+ *     </>}
+ *   >
  *     <DataTable>
  *       <DataTable.Col source="title" />
- *       <DataTable.Col source="author" />
-         ...
+ *       <DataTable.Col source="body" />
+ *       <DataTable.Col source="updated_at" />
+ *       <EditButton />
  *     </DataTable>
  *   </List>
  * );
