@@ -72,12 +72,40 @@ export const authProvider: AuthProvider = {
     });
   },
   async getAuthorizationDetails() {
-    throw new Error("Method not implemented.");
+    await new Promise((resolve) => setTimeout(resolve, 500));
+    // return dummy data to avoid errors in OAuthConsentPage
+    return {
+      data: {
+        authorization_id: "dummy",
+        user: {
+          id: "0",
+          email: "johndoe@example.com",
+        },
+        client: {
+          name: "Dummy Client",
+        },
+        scope: "openid profile email phone",
+        redirect_uri: "https://example.com/auth_callback",
+      },
+      error: null,
+    };
   },
   async approveAuthorization() {
-    throw new Error("Method not implemented.");
+    // return dummy success response
+    return {
+      data: {
+        redirect_url: "https://example.com/auth_callback",
+      },
+      error: null,
+    };
   },
   async denyAuthorization() {
-    throw new Error("Method not implemented.");
+    // return dummy denied response
+    return {
+      data: {
+        redirect_url: "https://example.com/denied",
+      },
+      error: null,
+    };
   },
 };

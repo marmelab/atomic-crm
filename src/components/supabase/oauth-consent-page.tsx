@@ -1,7 +1,16 @@
-// src/pages/OAuthConsent.tsx
 import { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { useAuthProvider } from "ra-core";
+import { useAuthProvider, useTranslate } from "ra-core";
+import { Layout } from "@/components/supabase/layout";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 
 /**
  * Authorization UI for OAuth Consent Page
@@ -18,11 +27,13 @@ export function OAuthConsentPage() {
   const [searchParams] = useSearchParams();
   const authorizationId = searchParams.get("authorization_id");
   const authProvider = useAuthProvider();
+  const translate = useTranslate();
 
   const [authDetails, setAuthDetails] =
     useState<OAuthAuthorizationDetails | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
     async function loadAuthDetails() {
@@ -66,11 +77,13 @@ export function OAuthConsentPage() {
   async function handleApprove() {
     if (!authorizationId || !authProvider) return;
 
+    setSubmitting(true);
     const { data, error } =
       await authProvider.approveAuthorization(authorizationId);
 
     if (error) {
       setError(error.message);
+      setSubmitting(false);
     } else {
       // Redirect to client app
       window.location.href = data.redirect_url;
@@ -80,50 +93,114 @@ export function OAuthConsentPage() {
   async function handleDeny() {
     if (!authorizationId || !authProvider) return;
 
+    setSubmitting(true);
     const { data, error } =
       await authProvider.denyAuthorization(authorizationId);
-
     if (error) {
       setError(error.message);
+      setSubmitting(false);
     } else {
       // Redirect to client app with error
-      window.location.href = data.redirect_to;
+      window.location.href = data.redirect_url;
     }
   }
 
-  if (loading) return <div>Loading...</div>;
-  if (error) return <div>Error: {error}</div>;
-  if (!authDetails) return <div>No authorization request found</div>;
+  if (loading) {
+    return (
+      <Layout>
+        <div className="flex flex-col space-y-2 text-center">
+          <p className="text-muted-foreground">
+            {translate("ra.message.loading", { _: "Loading..." })}
+          </p>
+        </div>
+      </Layout>
+    );
+  }
+
+  if (error) {
+    return (
+      <Layout>
+        <div className="flex flex-col space-y-2 text-center">
+          <h1 className="text-2xl font-semibold tracking-tight">
+            {translate("ra.message.error", { _: "Error" })}
+          </h1>
+          <p className="text-destructive">{error}</p>
+        </div>
+      </Layout>
+    );
+  }
+
+  if (!authDetails) {
+    return (
+      <Layout>
+        <div className="flex flex-col space-y-2 text-center">
+          <p className="text-muted-foreground">
+            {translate("ra-supabase.oauth.no_request", {
+              _: "No authorization request found",
+            })}
+          </p>
+        </div>
+      </Layout>
+    );
+  }
 
   return (
-    <div>
-      <h1>Authorize {authDetails.client.name}</h1>
-      <p>This application wants to access your account.</p>
-
-      <div>
-        <p>
-          <strong>Client:</strong> {authDetails.client.name}
+    <Layout>
+      <div className="flex flex-col space-y-2 text-center">
+        <h1 className="text-2xl font-semibold tracking-tight">
+          {translate("ra-supabase.oauth.authorize", {
+            _: "Authorize Application",
+          })}
+        </h1>
+        <p className="text-muted-foreground">
+          {translate("ra-supabase.oauth.authorize_details", {
+            _: "This application wants to access your account",
+          })}
         </p>
-        <p>
-          <strong>Redirect URI:</strong> {authDetails.redirect_uri}
-        </p>
-        {authDetails.scope && authDetails.scope.length > 0 && (
-          <div>
-            <strong>Requested permissions:</strong>
-            <ul>
-              {authDetails.scope.split(" ").map((scopeItem) => (
-                <li key={scopeItem}>{scopeItem}</li>
-              ))}
-            </ul>
-          </div>
-        )}
       </div>
 
-      <div>
-        <button onClick={handleApprove}>Approve</button>
-        <button onClick={handleDeny}>Deny</button>
-      </div>
-    </div>
+      <Card>
+        <CardHeader>
+          <CardTitle>{authDetails.client.name}</CardTitle>
+          <CardDescription>{authDetails.redirect_uri}</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {authDetails.scope && authDetails.scope.length > 0 && (
+            <div>
+              <p className="text-sm font-medium text-muted-foreground mb-2">
+                {translate("ra-supabase.oauth.permissions", {
+                  _: "Requested permissions",
+                })}
+              </p>
+              <ul className="list-disc list-inside space-y-1">
+                {authDetails.scope.split(" ").map((scopeItem) => (
+                  <li key={scopeItem} className="text-sm">
+                    {scopeItem}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+        </CardContent>
+        <CardFooter className="flex gap-2">
+          <Button
+            variant="outline"
+            onClick={handleDeny}
+            disabled={submitting}
+            className="flex-1"
+          >
+            {translate("ra.action.cancel", { _: "Deny" })}
+          </Button>
+          <Button
+            onClick={handleApprove}
+            disabled={submitting}
+            className="flex-1"
+          >
+            {translate("ra.action.confirm", { _: "Approve" })}
+          </Button>
+        </CardFooter>
+      </Card>
+    </Layout>
   );
 }
 
