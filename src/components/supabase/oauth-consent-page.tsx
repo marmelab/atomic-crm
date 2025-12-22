@@ -72,8 +72,9 @@ export function OAuthConsentPage() {
     if (error) {
       setError(error.message);
     } else {
+      console.log(data);
       // Redirect to client app
-      window.location.href = data.redirect_to;
+      window.location.href = data.redirect_url;
     }
   }
 
@@ -94,7 +95,7 @@ export function OAuthConsentPage() {
   if (loading) return <div>Loading...</div>;
   if (error) return <div>Error: {error}</div>;
   if (!authDetails) return <div>No authorization request found</div>;
-
+  console.log(authDetails);
   return (
     <div>
       <h1>Authorize {authDetails.client.name}</h1>
@@ -105,7 +106,7 @@ export function OAuthConsentPage() {
           <strong>Client:</strong> {authDetails.client.name}
         </p>
         <p>
-          <strong>Redirect URI:</strong> {authDetails.redirect_url}
+          <strong>Redirect URI:</strong> {authDetails.redirect_uri}
         </p>
         {authDetails.scope && authDetails.scope.length > 0 && (
           <div>
@@ -138,7 +139,7 @@ type OAuthAuthorizationDetails = {
   /** The authorization ID */
   authorization_id: string;
   /** Redirect URL - present if user already consented (can be used to trigger immediate redirect) */
-  redirect_url?: string;
+  redirect_uri?: string;
   /** User object associated with the authorization */
   /** OAuth client requesting authorization */
   client: {
