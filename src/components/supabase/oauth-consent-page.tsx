@@ -72,7 +72,6 @@ export function OAuthConsentPage() {
     if (error) {
       setError(error.message);
     } else {
-      console.log(data);
       // Redirect to client app
       window.location.href = data.redirect_url;
     }
@@ -95,7 +94,7 @@ export function OAuthConsentPage() {
   if (loading) return <div>Loading...</div>;
   if (error) return <div>Error: {error}</div>;
   if (!authDetails) return <div>No authorization request found</div>;
-  console.log(authDetails);
+
   return (
     <div>
       <h1>Authorize {authDetails.client.name}</h1>
