@@ -71,4 +71,13 @@ export const authProvider: AuthProvider = {
       avatar: user?.avatar?.src,
     });
   },
+  async getAuthorizationDetails() {
+    throw new Error("Method not implemented.");
+  },
+  async approveAuthorization() {
+    throw new Error("Method not implemented.");
+  },
+  async denyAuthorization() {
+    throw new Error("Method not implemented.");
+  },
 };

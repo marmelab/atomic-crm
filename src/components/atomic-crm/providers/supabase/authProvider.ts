@@ -91,6 +91,15 @@ export const authProvider: AuthProvider = {
     const role = sale.administrator ? "admin" : "user";
     return canAccess(role, params);
   },
+  getAuthorizationDetails(authorizationId: string) {
+    return supabase.auth.oauth.getAuthorizationDetails(authorizationId);
+  },
+  approveAuthorization(authorizationId: string) {
+    return supabase.auth.oauth.approveAuthorization(authorizationId);
+  },
+  denyAuthorization(authorizationId: string) {
+    return supabase.auth.oauth.denyAuthorization(authorizationId);
+  },
 };
 
 let cachedSale: any;

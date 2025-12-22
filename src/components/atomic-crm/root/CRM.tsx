@@ -10,6 +10,7 @@ import { Route } from "react-router";
 import { Admin } from "@/components/admin/admin";
 import { ForgotPasswordPage } from "@/components/supabase/forgot-password-page";
 import { SetPasswordPage } from "@/components/supabase/set-password-page";
+import { OAuthConsentPage } from "@/components/supabase/oauth-consent-page";
 
 import companies from "../companies";
 import contacts from "../contacts";
@@ -148,6 +149,7 @@ export const CRM = ({
             path={ForgotPasswordPage.path}
             element={<ForgotPasswordPage />}
           />
+          <Route path={OAuthConsentPage.path} element={<OAuthConsentPage />} />
         </CustomRoutes>
 
         <CustomRoutes>
