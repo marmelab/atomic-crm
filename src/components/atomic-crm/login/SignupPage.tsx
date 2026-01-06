@@ -42,7 +42,7 @@ export const SignupPage = () => {
         });
       });
     },
-    onError: error => {
+    onError: (error) => {
       notify(error.message);
     },
   });
