@@ -11,6 +11,7 @@ import type { CrmDataProvider } from "../providers/types";
 import { useConfigurationContext } from "../root/ConfigurationContext";
 import type { SignUpData } from "../types";
 import { LoginSkeleton } from "./LoginSkeleton";
+import { Notification } from "@/components/admin";
 
 export const SignupPage = () => {
   const queryClient = useQueryClient();
@@ -143,6 +144,7 @@ export const SignupPage = () => {
           </form>
         </div>
       </div>
+      <Notification />
     </div>
   );
 };
