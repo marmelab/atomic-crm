@@ -42,8 +42,8 @@ export const SignupPage = () => {
         });
       });
     },
-    onError: () => {
-      notify("An error occurred. Please try again.");
+    onError: error => {
+      notify(error.message);
     },
   });
 
