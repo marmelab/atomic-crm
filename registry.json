@@ -665,6 +665,10 @@
           "type": "registry:component"
         },
         {
+          "path": "src/components/supabase/oauth-consent-page.tsx",
+          "type": "registry:component"
+        },
+        {
           "path": "src/components/supabase/layout.tsx",
           "type": "registry:component"
         },
