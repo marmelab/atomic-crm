@@ -9,12 +9,12 @@ import { DropdownMenuItem } from "@/components/ui/dropdown-menu";
 import { useUserMenu } from "@/hooks/user-menu-context";
 
 import { useConfigurationContext } from "../root/ConfigurationContext";
-import { ImportFromHighriseDialog } from "./ImportFromHighriseDialog";
+import { ImportFromJsonDialog } from "./ImportFromJsonDialog";
 
 const Header = () => {
   const { darkModeLogo, lightModeLogo, title } = useConfigurationContext();
   const location = useLocation();
-  const [isImportFromHighriseDialogOpen, setIsImportFromHighriseOpen] =
+  const [isImportFromJsonDialogOpen, setIsImportFromJsonOpen] =
     React.useState(false);
 
   let currentPath: string | boolean = "/";
@@ -81,8 +81,8 @@ const Header = () => {
                 <RefreshButton />
                 <UserMenu>
                   <ConfigurationMenu />
-                  <ImportFromHighriseButton
-                    onClick={() => setIsImportFromHighriseOpen(true)}
+                  <ImportFromJsonButton
+                    onClick={() => setIsImportFromJsonOpen(true)}
                   />
                   <CanAccess resource="sales" action="list">
                     <UsersMenu />
@@ -93,9 +93,9 @@ const Header = () => {
           </div>
         </header>
       </nav>
-      <ImportFromHighriseDialog
-        open={isImportFromHighriseDialogOpen}
-        onOpenChange={(open) => setIsImportFromHighriseOpen(open)}
+      <ImportFromJsonDialog
+        open={isImportFromJsonDialogOpen}
+        onOpenChange={(open) => setIsImportFromJsonOpen(open)}
       />
     </>
   );
@@ -145,7 +145,7 @@ const ConfigurationMenu = () => {
   );
 };
 
-const ImportFromHighriseButton = ({ onClick }: { onClick: () => void }) => {
+const ImportFromJsonButton = ({ onClick }: { onClick: () => void }) => {
   const { onClose } = useUserMenu() ?? { onClose: () => {} };
   return (
     <DropdownMenuItem
@@ -155,7 +155,7 @@ const ImportFromHighriseButton = ({ onClick }: { onClick: () => void }) => {
         onClick();
       }}
     >
-      <Import /> Import from Highrise
+      <Import /> Import from JSON
     </DropdownMenuItem>
   );
 };

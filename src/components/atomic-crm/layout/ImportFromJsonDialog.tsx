@@ -10,24 +10,24 @@ import {
 import { Button } from "@/components/ui/button";
 import { FileField, FileInput } from "@/components/admin";
 import {
-  type ImportFromHighriseFailures,
-  type ImportFromHighriseStats,
-  useImportFromHighrise,
-} from "./useImportFromHighrise";
+  type ImportFromJsonFailures,
+  type ImportFromJsonStats,
+  useImportFromJson,
+} from "./useImportFromJson";
 import React from "react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { AlertCircleIcon } from "lucide-react";
 
-export const ImportFromHighriseDialog = (
+export const ImportFromJsonDialog = (
   props: React.ComponentProps<typeof Dialog>,
 ) => {
-  const [importStatus, importFile] = useImportFromHighrise();
+  const [importStatus, importFile] = useImportFromJson();
 
   return (
     <Dialog {...props}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Import from Highrise</DialogTitle>
+          <DialogTitle>Import from JSON</DialogTitle>
         </DialogHeader>
         {importStatus.status === "idle" || importStatus.status === "error" ? (
           <Form
@@ -106,7 +106,7 @@ export const ImportFromHighriseDialog = (
   );
 };
 
-const hasFailedImports = (failedImports: ImportFromHighriseFailures) => {
+const hasFailedImports = (failedImports: ImportFromJsonFailures) => {
   return (
     failedImports.sales.length > 0 ||
     failedImports.companies.length > 0 ||
@@ -127,7 +127,7 @@ const encodeJSONToBase64 = (data: Record<string, unknown>) => {
 const DownloadErrorFileButton = ({
   failedImports,
 }: {
-  failedImports: ImportFromHighriseFailures;
+  failedImports: ImportFromJsonFailures;
 }) => {
   return (
     <a
@@ -143,8 +143,8 @@ const ImportStats = ({
   stats,
   failedImports,
 }: {
-  stats: ImportFromHighriseStats;
-  failedImports: ImportFromHighriseFailures;
+  stats: ImportFromJsonStats;
+  failedImports: ImportFromJsonFailures;
 }) => (
   <ul>
     <ImportStat

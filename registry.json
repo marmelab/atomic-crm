@@ -369,11 +369,19 @@
           "type": "registry:component"
         },
         {
+          "path": "src/components/atomic-crm/layout/useImportFromJson.ts",
+          "type": "registry:component"
+        },
+        {
           "path": "src/components/atomic-crm/layout/TopToolbar.tsx",
           "type": "registry:component"
         },
         {
           "path": "src/components/atomic-crm/layout/Layout.tsx",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/layout/ImportFromJsonDialog.tsx",
           "type": "registry:component"
         },
         {
@@ -662,6 +670,10 @@
         },
         {
           "path": "src/components/supabase/set-password-page.tsx",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/supabase/oauth-consent-page.tsx",
           "type": "registry:component"
         },
         {
