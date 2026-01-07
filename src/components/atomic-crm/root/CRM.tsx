@@ -19,6 +19,7 @@ import { Dashboard } from "../dashboard/Dashboard";
 import { MobileDashboard } from "../dashboard/MobileDashboard";
 import deals from "../deals";
 import { Layout } from "../layout/Layout";
+import { MobileLayout } from "../layout/MobileLayout";
 import { SignupPage } from "../login/SignupPage";
 import {
   authProvider as defaultAuthProvider,
@@ -193,7 +194,7 @@ const MobileAdmin = (props: CoreAdminProps) => {
   return (
     <Admin
       store={localStorageStore(undefined, "CRM")}
-      layout={Layout}
+      layout={MobileLayout}
       loginPage={StartPage}
       i18nProvider={i18nProvider}
       dashboard={MobileDashboard}
