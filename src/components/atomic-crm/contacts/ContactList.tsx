@@ -1,6 +1,7 @@
 import jsonExport from "jsonexport/dist";
 import {
   downloadCSV,
+  InfiniteListBase,
   useGetIdentity,
   useListContext,
   type Exporter,
@@ -8,7 +9,7 @@ import {
 import { BulkActionsToolbar } from "@/components/admin/bulk-actions-toolbar";
 import { CreateButton } from "@/components/admin/create-button";
 import { ExportButton } from "@/components/admin/export-button";
-import { List } from "@/components/admin/list";
+import { List, ListView } from "@/components/admin/list";
 import { SortButton } from "@/components/admin/sort-button";
 import { Card } from "@/components/ui/card";
 
@@ -18,8 +19,15 @@ import { ContactImportButton } from "./ContactImportButton";
 import { ContactListContent } from "./ContactListContent";
 import { ContactListFilter } from "./ContactListFilter";
 import { TopToolbar } from "../layout/TopToolbar";
+import { useIsMobile } from "@/hooks/use-mobile";
+import { InfinitePagination } from "../misc/InfinitePagination";
 
 export const ContactList = () => {
+  const isMobile = useIsMobile();
+  return isMobile ? <ContactListMobile /> : <ContactListDesktop />;
+};
+
+const ContactListDesktop = () => {
   const { identity } = useGetIdentity();
 
   if (!identity) return null;
@@ -32,12 +40,30 @@ export const ContactList = () => {
       sort={{ field: "last_seen", order: "DESC" }}
       exporter={exporter}
     >
-      <ContactListLayout />
+      <DesktopContactListLayout />
     </List>
   );
 };
 
-const ContactListLayout = () => {
+const ContactListMobile = () => {
+  const { identity } = useGetIdentity();
+
+  if (!identity) return null;
+
+  return (
+    <InfiniteListBase
+      perPage={25}
+      sort={{ field: "last_seen", order: "DESC" }}
+      exporter={exporter}
+    >
+      <ListView pagination={<InfinitePagination />} actions={false}>
+        <MobileContactListLayout />
+      </ListView>
+    </InfiniteListBase>
+  );
+};
+
+const DesktopContactListLayout = () => {
   const { data, isPending, filterValues } = useListContext();
   const { identity } = useGetIdentity();
 
@@ -56,6 +82,26 @@ const ContactListLayout = () => {
         </Card>
       </div>
       <BulkActionsToolbar />
+    </div>
+  );
+};
+
+const MobileContactListLayout = () => {
+  const { data, isPending, filterValues } = useListContext();
+  const { identity } = useGetIdentity();
+
+  const hasFilters = filterValues && Object.keys(filterValues).length > 0;
+
+  if (!identity || isPending) return null;
+
+  if (!data?.length && !hasFilters) return <ContactEmpty />;
+
+  return (
+    <div>
+      <ContactListFilter />
+      <Card className="py-0">
+        <ContactListContent />
+      </Card>
     </div>
   );
 };
