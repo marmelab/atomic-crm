@@ -6,7 +6,7 @@ import type { CrmDataProvider } from "../providers/types";
 import type { RAFile, Sale, Tag } from "../types";
 import { colors } from "../tags/colors";
 
-export type ImportFromHighriseStats = {
+export type ImportFromJsonStats = {
   sales: number;
   companies: number;
   contacts: number;
@@ -14,7 +14,7 @@ export type ImportFromHighriseStats = {
   tasks: number;
 };
 
-export type ImportFromHighriseFailures = {
+export type ImportFromJsonFailures = {
   sales: Array<any>;
   companies: Array<any>;
   contacts: Array<any>;
@@ -22,39 +22,39 @@ export type ImportFromHighriseFailures = {
   tasks: Array<any>;
 };
 
-type ImportFromHighriseIdleState = {
+type ImportFromJsonIdleState = {
   status: "idle";
   error: null;
-  stats: ImportFromHighriseStats;
-  failedImports: ImportFromHighriseFailures;
+  stats: ImportFromJsonStats;
+  failedImports: ImportFromJsonFailures;
 };
 
-type ImportFromHighriseImportingState = {
+type ImportFromJsonImportingState = {
   status: "importing";
-  stats: ImportFromHighriseStats;
+  stats: ImportFromJsonStats;
   error: null;
-  failedImports: ImportFromHighriseFailures;
+  failedImports: ImportFromJsonFailures;
 };
 
-type ImportFromHighriseErrorState = {
+type ImportFromJsonErrorState = {
   status: "error";
   error: Error;
-  stats: ImportFromHighriseStats;
-  failedImports: ImportFromHighriseFailures;
+  stats: ImportFromJsonStats;
+  failedImports: ImportFromJsonFailures;
 };
 
-type ImportFromHighriseSuccessState = {
+type ImportFromJsonSuccessState = {
   status: "success";
-  stats: ImportFromHighriseStats;
+  stats: ImportFromJsonStats;
   error: null;
-  failedImports: ImportFromHighriseFailures;
+  failedImports: ImportFromJsonFailures;
 };
 
-type ImportFromHighriseState =
-  | ImportFromHighriseErrorState
-  | ImportFromHighriseIdleState
-  | ImportFromHighriseImportingState
-  | ImportFromHighriseSuccessState;
+type ImportFromJsonState =
+  | ImportFromJsonErrorState
+  | ImportFromJsonIdleState
+  | ImportFromJsonImportingState
+  | ImportFromJsonSuccessState;
 
 type ImportFunction = (file: File) => Promise<void>;
 
@@ -74,12 +74,9 @@ const defaultStats = {
   tasks: 0,
 };
 
-export const useImportFromHighrise = (): [
-  ImportFromHighriseState,
-  ImportFunction,
-] => {
+export const useImportFromJson = (): [ImportFromJsonState, ImportFunction] => {
   const dataProvider = useDataProvider<CrmDataProvider>();
-  const [state, setState] = useState<ImportFromHighriseState>({
+  const [state, setState] = useState<ImportFromJsonState>({
     status: "idle",
     error: null,
     stats: defaultStats,
