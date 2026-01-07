@@ -1,4 +1,5 @@
 import {
+  type CoreAdminProps,
   CustomRoutes,
   localStorageStore,
   Resource,
@@ -15,6 +16,7 @@ import { OAuthConsentPage } from "@/components/supabase/oauth-consent-page";
 import companies from "../companies";
 import contacts from "../contacts";
 import { Dashboard } from "../dashboard/Dashboard";
+import { MobileDashboard } from "../dashboard/MobileDashboard";
 import deals from "../deals";
 import { Layout } from "../layout/Layout";
 import { SignupPage } from "../login/SignupPage";
@@ -40,6 +42,7 @@ import {
 } from "./defaultConfiguration";
 import { i18nProvider } from "./i18nProvider";
 import { StartPage } from "../login/StartPage.tsx";
+import { useIsMobile } from "@/hooks/use-mobile.ts";
 
 export type CRMProps = {
   dataProvider?: DataProvider;
@@ -117,6 +120,8 @@ export const CRM = ({
     img.src = `https://atomic-crm-telemetry.marmelab.com/atomic-crm-telemetry?domain=${window.location.hostname}`;
   }, [disableTelemetry]);
 
+  const isMobile = useIsMobile();
+
   return (
     <ConfigurationProvider
       contactGender={contactGender}
@@ -130,40 +135,93 @@ export const CRM = ({
       taskTypes={taskTypes}
       title={title}
     >
-      <Admin
-        dataProvider={dataProvider}
-        authProvider={authProvider}
-        store={localStorageStore(undefined, "CRM")}
-        layout={Layout}
-        loginPage={StartPage}
-        i18nProvider={i18nProvider}
-        dashboard={Dashboard}
-        requireAuth
-        disableTelemetry
-        {...rest}
-      >
-        <CustomRoutes noLayout>
-          <Route path={SignupPage.path} element={<SignupPage />} />
-          <Route path={SetPasswordPage.path} element={<SetPasswordPage />} />
-          <Route
-            path={ForgotPasswordPage.path}
-            element={<ForgotPasswordPage />}
-          />
-          <Route path={OAuthConsentPage.path} element={<OAuthConsentPage />} />
-        </CustomRoutes>
-
-        <CustomRoutes>
-          <Route path={SettingsPage.path} element={<SettingsPage />} />
-        </CustomRoutes>
-        <Resource name="deals" {...deals} />
-        <Resource name="contacts" {...contacts} />
-        <Resource name="companies" {...companies} />
-        <Resource name="contactNotes" />
-        <Resource name="dealNotes" />
-        <Resource name="tasks" />
-        <Resource name="sales" {...sales} />
-        <Resource name="tags" />
-      </Admin>
+      {isMobile ? (
+        <MobileAdmin
+          dataProvider={dataProvider}
+          authProvider={authProvider}
+          {...rest}
+        />
+      ) : (
+        <DesktopAdmin
+          dataProvider={dataProvider}
+          authProvider={authProvider}
+          {...rest}
+        />
+      )}
     </ConfigurationProvider>
+  );
+};
+
+const DesktopAdmin = (props: CoreAdminProps) => {
+  return (
+    <Admin
+      store={localStorageStore(undefined, "CRM")}
+      layout={Layout}
+      loginPage={StartPage}
+      i18nProvider={i18nProvider}
+      dashboard={Dashboard}
+      requireAuth
+      disableTelemetry
+      {...props}
+    >
+      <CustomRoutes noLayout>
+        <Route path={SignupPage.path} element={<SignupPage />} />
+        <Route path={SetPasswordPage.path} element={<SetPasswordPage />} />
+        <Route
+          path={ForgotPasswordPage.path}
+          element={<ForgotPasswordPage />}
+        />
+        <Route path={OAuthConsentPage.path} element={<OAuthConsentPage />} />
+      </CustomRoutes>
+
+      <CustomRoutes>
+        <Route path={SettingsPage.path} element={<SettingsPage />} />
+      </CustomRoutes>
+      <Resource name="deals" {...deals} />
+      <Resource name="contacts" {...contacts} />
+      <Resource name="companies" {...companies} />
+      <Resource name="contactNotes" />
+      <Resource name="dealNotes" />
+      <Resource name="tasks" />
+      <Resource name="sales" {...sales} />
+      <Resource name="tags" />
+    </Admin>
+  );
+};
+
+const MobileAdmin = (props: CoreAdminProps) => {
+  return (
+    <Admin
+      store={localStorageStore(undefined, "CRM")}
+      layout={Layout}
+      loginPage={StartPage}
+      i18nProvider={i18nProvider}
+      dashboard={MobileDashboard}
+      requireAuth
+      disableTelemetry
+      {...props}
+    >
+      <CustomRoutes noLayout>
+        <Route path={SignupPage.path} element={<SignupPage />} />
+        <Route path={SetPasswordPage.path} element={<SetPasswordPage />} />
+        <Route
+          path={ForgotPasswordPage.path}
+          element={<ForgotPasswordPage />}
+        />
+        <Route path={OAuthConsentPage.path} element={<OAuthConsentPage />} />
+      </CustomRoutes>
+
+      <CustomRoutes>
+        <Route path={SettingsPage.path} element={<SettingsPage />} />
+      </CustomRoutes>
+      <Resource name="deals" {...deals} />
+      <Resource name="contacts" {...contacts} />
+      <Resource name="companies" {...companies} />
+      <Resource name="contactNotes" />
+      <Resource name="dealNotes" />
+      <Resource name="tasks" />
+      <Resource name="sales" {...sales} />
+      <Resource name="tags" />
+    </Admin>
   );
 };
