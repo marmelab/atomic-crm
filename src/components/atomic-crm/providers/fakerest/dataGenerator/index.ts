@@ -12,13 +12,13 @@ import type { Db } from "./types";
 export default (): Db => {
   const db = {} as Db;
   db.sales = generateSales(db);
-  db.tags = []; // generateTags(db);
-  db.companies = []; // generateCompanies(db);
-  db.contacts = []; // generateContacts(db);
-  db.contactNotes = []; // generateContactNotes(db);
-  db.deals = []; // generateDeals(db);
-  db.dealNotes = []; // generateDealNotes(db);
-  db.tasks = []; // generateTasks(db);
+  db.tags = generateTags(db);
+  db.companies = generateCompanies(db);
+  db.contacts = generateContacts(db);
+  db.contactNotes = generateContactNotes(db);
+  db.deals = generateDeals(db);
+  db.dealNotes = generateDealNotes(db);
+  db.tasks = generateTasks(db);
   finalize(db);
 
   return db;
