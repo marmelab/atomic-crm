@@ -341,6 +341,10 @@
           "type": "registry:component"
         },
         {
+          "path": "src/components/atomic-crm/misc/ResponsiveFilters.tsx",
+          "type": "registry:component"
+        },
+        {
           "path": "src/components/atomic-crm/misc/RelativeDate.tsx",
           "type": "registry:component"
         },
