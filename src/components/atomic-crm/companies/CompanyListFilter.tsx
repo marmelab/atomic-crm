@@ -25,6 +25,7 @@ export const CompanyListFilter = () => {
           <ToggleFilterButton
             className="w-full justify-between"
             label={size.name}
+            key={size.name}
             value={{ size: size.id }}
           />
         ))}
@@ -35,6 +36,7 @@ export const CompanyListFilter = () => {
           <ToggleFilterButton
             className="w-full justify-between"
             label={sector.name}
+            key={sector.name}
             value={{ sector: sector.id }}
           />
         ))}

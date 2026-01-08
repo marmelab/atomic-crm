@@ -14,13 +14,13 @@ import {
   useInput,
   useTranslate,
 } from "ra-core";
-import type { DropzoneOptions } from "react-dropzone";
-import {
-  useDropzone,
+import type {
+  DropzoneOptions,
   FileRejection,
   DropEvent,
   DropzoneInputProps,
 } from "react-dropzone";
+import { useDropzone } from "react-dropzone";
 import { XCircle } from "lucide-react";
 
 import { cn } from "@/lib/utils";
