@@ -139,6 +139,7 @@ async function setupDatabase({ databasePassword }) {
       "push",
       "--linked",
       "--include-roles",
+      "--include-seed",
       "--password",
       databasePassword,
     ],

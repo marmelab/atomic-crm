@@ -17,9 +17,9 @@ export type SignUpData = {
 };
 
 export type SalesFormData = {
-  avatar: string;
+  avatar?: string;
   email: string;
-  password: string;
+  password?: string;
   first_name: string;
   last_name: string;
   administrator: boolean;
@@ -60,7 +60,7 @@ export type Company = {
   zipcode: string;
   city: string;
   stateAbbr: string;
-  sales_id: Identifier;
+  sales_id?: Identifier | null;
   created_at: string;
   description: string;
   revenue: string;
@@ -85,7 +85,7 @@ export type Contact = {
   first_name: string;
   last_name: string;
   title: string;
-  company_id: Identifier;
+  company_id?: Identifier | null;
   email_jsonb: EmailAndType[];
   avatar?: Partial<RAFile>;
   linkedin_url?: string | null;
@@ -94,7 +94,7 @@ export type Contact = {
   has_newsletter: boolean;
   tags: Identifier[];
   gender: string;
-  sales_id: Identifier;
+  sales_id?: Identifier | null;
   status: string;
   background: string;
   phone_jsonb: PhoneNumberAndType[];
