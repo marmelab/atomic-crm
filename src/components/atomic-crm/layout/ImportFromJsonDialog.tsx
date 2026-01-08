@@ -1,4 +1,7 @@
+import React from "react";
+import { AlertCircleIcon } from "lucide-react";
 import { Form, required } from "ra-core";
+import ms from "ms";
 import {
   Dialog,
   DialogClose,
@@ -7,6 +10,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { FileField, FileInput } from "@/components/admin";
 import {
@@ -14,9 +18,6 @@ import {
   type ImportFromJsonStats,
   useImportFromJson,
 } from "./useImportFromJson";
-import React from "react";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { AlertCircleIcon } from "lucide-react";
 
 export const ImportFromJsonDialog = (
   props: React.ComponentProps<typeof Dialog>,
@@ -40,7 +41,8 @@ export const ImportFromJsonDialog = (
                 <AlertCircleIcon />
                 <AlertTitle>Unable to import this file.</AlertTitle>
                 <AlertDescription>
-                  {importStatus.error.message}
+                  <p>{importStatus.error.message}</p>
+                  <p>Duration: {ms(importStatus.duration, { long: true })}</p>
                 </AlertDescription>
                 <DownloadErrorFileButton
                   failedImports={importStatus.failedImports}
@@ -83,6 +85,7 @@ export const ImportFromJsonDialog = (
                       />
                     </>
                   ) : null}
+                  <p>Duration: {ms(importStatus.duration, { long: true })}</p>
                 </AlertDescription>
               </Alert>
             )}
@@ -94,7 +97,7 @@ export const ImportFromJsonDialog = (
               <DialogFooter>
                 <DialogClose asChild>
                   <Button variant="outline" type="button">
-                    Cancel
+                    Close
                   </Button>
                 </DialogClose>
               </DialogFooter>

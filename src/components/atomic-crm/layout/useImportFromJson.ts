@@ -1,5 +1,10 @@
 import { useState } from "react";
-import { type Identifier, useDataProvider, useEvent } from "ra-core";
+import {
+  type Identifier,
+  useDataProvider,
+  useEvent,
+  useRefresh,
+} from "ra-core";
 import { JSONParser } from "@streamparser/json-whatwg";
 import mime from "mime/lite";
 import type { CrmDataProvider } from "../providers/types";
@@ -41,6 +46,7 @@ type ImportFromJsonErrorState = {
   error: Error;
   stats: ImportFromJsonStats;
   failedImports: ImportFromJsonFailures;
+  duration: number;
 };
 
 type ImportFromJsonSuccessState = {
@@ -48,6 +54,7 @@ type ImportFromJsonSuccessState = {
   stats: ImportFromJsonStats;
   error: null;
   failedImports: ImportFromJsonFailures;
+  duration: number;
 };
 
 type ImportFromJsonState =
@@ -76,6 +83,7 @@ const defaultStats = {
 
 export const useImportFromJson = (): [ImportFromJsonState, ImportFunction] => {
   const dataProvider = useDataProvider<CrmDataProvider>();
+  const refresh = useRefresh();
   const [state, setState] = useState<ImportFromJsonState>({
     status: "idle",
     error: null,
@@ -84,6 +92,8 @@ export const useImportFromJson = (): [ImportFromJsonState, ImportFunction] => {
   });
 
   const importFile = useEvent(async (file: File) => {
+    const startedAt = new Date();
+
     setState({
       status: "importing",
       stats: defaultStats,
@@ -113,7 +123,7 @@ export const useImportFromJson = (): [ImportFromJsonState, ImportFunction] => {
         return existingRecord.data[0].id;
       }
 
-      const data = await dataProvider.salesCreate({
+      const { data } = await dataProvider.salesCreate({
         email: dataToImport.email.trim(),
         first_name: dataToImport.name.trim(),
         last_name: dataToImport.name.trim(),
@@ -144,20 +154,22 @@ export const useImportFromJson = (): [ImportFromJsonState, ImportFunction] => {
     };
 
     const importContact = async (dataToImport: ContactImport) => {
-      const tagsIds: Array<Identifier> = [];
+      let tagsIds: Array<Identifier> = [];
       if (dataToImport.tags && Array.isArray(dataToImport.tags)) {
-        for (const tag of dataToImport.tags) {
-          if (idsMaps.tags[tag]) {
-            tagsIds.push(idsMaps.tags[tag]);
-          }
-          const { data } = await dataProvider.create<Tag>("tags", {
-            data: {
-              name: tag,
-              color: colors[Math.floor(Math.random() * colors.length)],
-            },
-          });
-          tagsIds.push(data.id);
-        }
+        tagsIds = await Promise.all(
+          dataToImport.tags.map(async (tag) => {
+            if (idsMaps.tags[tag]) {
+              return idsMaps.tags[tag];
+            }
+            const { data } = await dataProvider.create<Tag>("tags", {
+              data: {
+                name: tag,
+                color: colors[Math.floor(Math.random() * colors.length)],
+              },
+            });
+            return data.id;
+          }),
+        );
       }
 
       const { data } = await dataProvider.create("contacts", {
@@ -166,7 +178,7 @@ export const useImportFromJson = (): [ImportFromJsonState, ImportFunction] => {
           first_name: dataToImport.firstName,
           title: dataToImport.title,
           background: dataToImport.background,
-          linkedinUrl: dataToImport.linkedinUrl,
+          linkedin_url: dataToImport.linkedinUrl,
           company_id: dataToImport.companyId
             ? idsMaps.companies[dataToImport.companyId]
             : undefined,
@@ -246,13 +258,15 @@ export const useImportFromJson = (): [ImportFromJsonState, ImportFunction] => {
           contact_id: idsMaps.contacts[dataToImport.contactId],
           sales_id: idsMaps.sales[dataToImport.salesId] ?? defaultSale.id,
           text: dataToImport.text,
-          due_date: dataToImport.dueDate,
-          done_date: dataToImport.doneDate,
+          due_date: dataToImport.dueDate || undefined,
+          done_date: dataToImport.doneDate || undefined,
         },
       });
     };
 
+    let defaultSale: Sale | null = null;
     const getDefaultSale = async () => {
+      if (defaultSale) return defaultSale;
       const { data } = await dataProvider.getList<Sale>("sales", {
         pagination: { page: 1, perPage: 1000 },
         sort: { field: "id", order: "ASC" },
@@ -260,9 +274,11 @@ export const useImportFromJson = (): [ImportFromJsonState, ImportFunction] => {
       });
 
       // get the first admin or the first sale if no admin yet
-      return data.find((item) => item.administrator) ?? data[0];
+      defaultSale = data.find((item) => item.administrator) ?? data[0];
+      return defaultSale;
     };
 
+    let currentTask: Promise<any> | null = null;
     let currentBatch: Array<Promise<void>> = [];
     const BATCH_SIZE = 50;
 
@@ -276,25 +292,21 @@ export const useImportFromJson = (): [ImportFromJsonState, ImportFunction] => {
       ],
       keepStack: false,
     });
-    const reader = file.stream().pipeThrough(parser).getReader();
+    const stream = file.stream();
+    const reader = stream.pipeThrough(parser).getReader();
 
+    const proccesBatchIfPossible = async (ignoreSize: boolean = false) => {
+      if (currentBatch.length === BATCH_SIZE || ignoreSize) {
+        currentTask = Promise.all(currentBatch);
+        await currentTask;
+        currentBatch = [];
+        currentTask = null;
+      }
+    };
     while (true) {
-      const proccesBatchIfPossible = async () => {
-        if (currentBatch.length === BATCH_SIZE) {
-          await Promise.all(currentBatch);
-          currentBatch = [];
-        }
-      };
       const { done, value: parsedElementInfo } = await reader.read();
       if (done) {
-        setState((old) => {
-          if (old.status === "error") return old;
-          return {
-            ...old,
-            status: "success",
-            error: null,
-          };
-        });
+        await proccesBatchIfPossible(true);
         break;
       }
       const { value, stack, partial } = parsedElementInfo;
@@ -340,13 +352,14 @@ export const useImportFromJson = (): [ImportFromJsonState, ImportFunction] => {
                   ...old.failedImports,
                   sales: [...old.failedImports.sales, value],
                 },
+                duration: new Date().getDate() - startedAt.getDate(),
               }));
             }),
         );
         await proccesBatchIfPossible();
         continue;
       }
-      await proccesBatchIfPossible();
+      await proccesBatchIfPossible(true);
       // Error state should stop the import process
       if (state.status === "error") {
         await reader.cancel();
@@ -388,7 +401,7 @@ export const useImportFromJson = (): [ImportFromJsonState, ImportFunction] => {
         await proccesBatchIfPossible();
         continue;
       }
-      await proccesBatchIfPossible();
+      await proccesBatchIfPossible(true);
 
       if (type === "contacts") {
         if (!isContact(value)) continue;
@@ -423,7 +436,7 @@ export const useImportFromJson = (): [ImportFromJsonState, ImportFunction] => {
         await proccesBatchIfPossible();
         continue;
       }
-      await proccesBatchIfPossible();
+      await proccesBatchIfPossible(true);
       if (type === "notes") {
         if (!isNote(value)) continue;
 
@@ -456,7 +469,7 @@ export const useImportFromJson = (): [ImportFromJsonState, ImportFunction] => {
         await proccesBatchIfPossible();
         continue;
       }
-      await proccesBatchIfPossible();
+      await proccesBatchIfPossible(true);
       if (type === "tasks") {
         if (!isTask(value)) continue;
 
@@ -490,7 +503,7 @@ export const useImportFromJson = (): [ImportFromJsonState, ImportFunction] => {
         continue;
       }
 
-      await proccesBatchIfPossible();
+      await proccesBatchIfPossible(true);
     }
 
     setState((old) => {
@@ -500,8 +513,10 @@ export const useImportFromJson = (): [ImportFromJsonState, ImportFunction] => {
       return {
         ...old,
         status: "success",
+        duration: new Date().getDate() - startedAt.getDate(),
       };
     });
+    refresh();
   });
 
   return [state, importFile];
