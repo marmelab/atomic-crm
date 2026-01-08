@@ -1,15 +1,16 @@
-import { supabaseDataProvider } from "ra-supabase-core";
+import { supabaseDataProvider, supabaseHttpClient } from "ra-supabase-core";
 import {
   withLifecycleCallbacks,
-  type CreateParams,
   type DataProvider,
   type GetListParams,
   type Identifier,
-  type UpdateParams,
+  type ResourceCallbacks,
 } from "ra-core";
-
+import {
+  defaultPrimaryKeys,
+  defaultSchema,
+} from "@raphiniert/ra-data-postgrest";
 import type {
-  Contact,
   ContactNote,
   Deal,
   DealNote,
@@ -19,8 +20,6 @@ import type {
   SignUpData,
 } from "../../types";
 import { getActivityLog } from "../commons/activity";
-import { getCompanyAvatar } from "../commons/getCompanyAvatar";
-import { getContactAvatar } from "../commons/getContactAvatar";
 import { getIsInitialized } from "./authProvider";
 import { supabase } from "./supabase";
 
@@ -31,19 +30,25 @@ if (import.meta.env.VITE_SUPABASE_ANON_KEY === undefined) {
   throw new Error("Please set the VITE_SUPABASE_ANON_KEY environment variable");
 }
 
-const baseDataProvider = supabaseDataProvider({
+const config = {
   instanceUrl: import.meta.env.VITE_SUPABASE_URL,
   apiKey: import.meta.env.VITE_SUPABASE_ANON_KEY,
   supabaseClient: supabase,
   sortOrder: "asc,desc.nullslast" as any,
-});
+  primaryKeys: defaultPrimaryKeys,
+  httpClient: supabaseHttpClient({
+    apiKey: import.meta.env.VITE_SUPABASE_ANON_KEY,
+    supabaseClient: supabase,
+  }),
+  schema: defaultSchema,
+};
+
+const baseDataProvider = supabaseDataProvider(config);
 
 const processCompanyLogo = async (params: any) => {
-  let logo = params.data.logo;
+  const logo = params.data.logo;
 
-  if (typeof logo !== "object" || logo === null || !logo.src) {
-    logo = await getCompanyAvatar(params.data);
-  } else if (logo.rawFile instanceof File) {
+  if (logo?.rawFile instanceof File) {
     await uploadToBucket(logo);
   }
 
@@ -55,29 +60,6 @@ const processCompanyLogo = async (params: any) => {
     },
   };
 };
-
-async function processContactAvatar(
-  params: UpdateParams<Contact>,
-): Promise<UpdateParams<Contact>>;
-
-async function processContactAvatar(
-  params: CreateParams<Contact>,
-): Promise<CreateParams<Contact>>;
-
-async function processContactAvatar(
-  params: CreateParams<Contact> | UpdateParams<Contact>,
-): Promise<CreateParams<Contact> | UpdateParams<Contact>> {
-  const { data } = params;
-  if (data.avatar?.src || !data.email_jsonb || !data.email_jsonb.length) {
-    return params;
-  }
-  const avatarUrl = await getContactAvatar(data);
-
-  // Clone the data and modify the clone
-  const newData = { ...data, avatar: { src: avatarUrl || undefined } };
-
-  return { ...params, data: newData };
-}
 
 const dataProviderWithCustomMethods = {
   ...baseDataProvider,
@@ -129,10 +111,13 @@ const dataProviderWithCustomMethods = {
     };
   },
   async salesCreate(body: SalesFormData) {
-    const { data, error } = await supabase.functions.invoke<Sale>("users", {
-      method: "POST",
-      body,
-    });
+    const { data, error } = await supabase.functions.invoke<{ data: Sale }>(
+      "users",
+      {
+        method: "POST",
+        body,
+      },
+    );
 
     if (!data || error) {
       console.error("salesCreate.error", error);
@@ -235,100 +220,96 @@ const dataProviderWithCustomMethods = {
 
 export type CrmDataProvider = typeof dataProviderWithCustomMethods;
 
+const lifeCycleCallbacks: ResourceCallbacks[] = [
+  {
+    resource: "contactNotes",
+    beforeSave: async (data: ContactNote, _, __) => {
+      if (data.attachments) {
+        data.attachments = await Promise.all(
+          data.attachments.map((fi) => uploadToBucket(fi)),
+        );
+      }
+      return data;
+    },
+  },
+  {
+    resource: "dealNotes",
+    beforeSave: async (data: DealNote, _, __) => {
+      if (data.attachments) {
+        data.attachments = await Promise.all(
+          data.attachments.map((fi) => uploadToBucket(fi)),
+        );
+      }
+      return data;
+    },
+  },
+  {
+    resource: "sales",
+    beforeSave: async (data: Sale, _, __) => {
+      if (data.avatar) {
+        await uploadToBucket(data.avatar);
+      }
+      return data;
+    },
+  },
+  {
+    resource: "contacts",
+    beforeGetList: async (params) => {
+      return applyFullTextSearch([
+        "first_name",
+        "last_name",
+        "company_name",
+        "title",
+        "email",
+        "phone",
+        "background",
+      ])(params);
+    },
+  },
+  {
+    resource: "companies",
+    beforeGetList: async (params) => {
+      return applyFullTextSearch([
+        "name",
+        "phone_number",
+        "website",
+        "zipcode",
+        "city",
+        "stateAbbr",
+      ])(params);
+    },
+    beforeCreate: async (params) => {
+      const createParams = await processCompanyLogo(params);
+
+      return {
+        ...createParams,
+        data: {
+          ...createParams.data,
+          created_at: new Date().toISOString(),
+        },
+      };
+    },
+    beforeUpdate: async (params) => {
+      return await processCompanyLogo(params);
+    },
+  },
+  {
+    resource: "contacts_summary",
+    beforeGetList: async (params) => {
+      return applyFullTextSearch(["first_name", "last_name"])(params);
+    },
+  },
+  {
+    resource: "deals",
+    beforeGetList: async (params) => {
+      return applyFullTextSearch(["name", "type", "description"])(params);
+    },
+  },
+];
+
 export const dataProvider = withLifecycleCallbacks(
   dataProviderWithCustomMethods,
-  [
-    {
-      resource: "contactNotes",
-      beforeSave: async (data: ContactNote, _, __) => {
-        if (data.attachments) {
-          for (const fi of data.attachments) {
-            await uploadToBucket(fi);
-          }
-        }
-        return data;
-      },
-    },
-    {
-      resource: "dealNotes",
-      beforeSave: async (data: DealNote, _, __) => {
-        if (data.attachments) {
-          for (const fi of data.attachments) {
-            await uploadToBucket(fi);
-          }
-        }
-        return data;
-      },
-    },
-    {
-      resource: "sales",
-      beforeSave: async (data: Sale, _, __) => {
-        if (data.avatar) {
-          await uploadToBucket(data.avatar);
-        }
-        return data;
-      },
-    },
-    {
-      resource: "contacts",
-      beforeCreate: async (params) => {
-        return processContactAvatar(params);
-      },
-      beforeUpdate: async (params) => {
-        return processContactAvatar(params);
-      },
-      beforeGetList: async (params) => {
-        return applyFullTextSearch([
-          "first_name",
-          "last_name",
-          "company_name",
-          "title",
-          "email",
-          "phone",
-          "background",
-        ])(params);
-      },
-    },
-    {
-      resource: "companies",
-      beforeGetList: async (params) => {
-        return applyFullTextSearch([
-          "name",
-          "phone_number",
-          "website",
-          "zipcode",
-          "city",
-          "stateAbbr",
-        ])(params);
-      },
-      beforeCreate: async (params) => {
-        const createParams = await processCompanyLogo(params);
-
-        return {
-          ...createParams,
-          data: {
-            ...createParams.data,
-            created_at: new Date().toISOString(),
-          },
-        };
-      },
-      beforeUpdate: async (params) => {
-        return await processCompanyLogo(params);
-      },
-    },
-    {
-      resource: "contacts_summary",
-      beforeGetList: async (params) => {
-        return applyFullTextSearch(["first_name", "last_name"])(params);
-      },
-    },
-    {
-      resource: "deals",
-      beforeGetList: async (params) => {
-        return applyFullTextSearch(["name", "type", "description"])(params);
-      },
-    },
-  ],
+  lifeCycleCallbacks,
 );
 
 const applyFullTextSearch = (columns: string[]) => (params: GetListParams) => {
@@ -370,14 +351,31 @@ const uploadToBucket = async (fi: RAFile) => {
         .createSignedUrl(fi.path, 60);
 
       if (!error) {
-        return;
+        return fi;
       }
     }
   }
 
   const dataContent = fi.src
-    ? await fetch(fi.src).then((res) => res.blob())
+    ? await fetch(fi.src, {
+        mode: "no-cors",
+      })
+        .then((res) => {
+          if (res.status !== 200) {
+            return null;
+          }
+          return res.blob();
+        })
+        .catch(() => null)
     : fi.rawFile;
+
+  if (dataContent == null) {
+    // We weren't able to download the file from its src (e.g. user must be signed in on another website to access it)
+    // or the file has no content (not probable)
+    // In that case, just return it as is: when trying to download it, users should be redirected to the other website
+    // and see they need to be signed in. It will then be their responsibility to upload the file back to the note.
+    return fi;
+  }
 
   const file = fi.rawFile;
   const fileExt = file.name.split(".").pop();

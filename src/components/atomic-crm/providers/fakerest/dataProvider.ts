@@ -108,7 +108,7 @@ async function fetchAndUpdateCompanyData(
   return { ...params, data: newData };
 }
 
-const dataProviderWithCustomMethod: CrmDataProvider = {
+const dataProviderWithCustomMethod: DataProvider & Partial<CrmDataProvider> = {
   ...baseDataProvider,
   unarchiveDeal: async (deal: Deal) => {
     // get all deals where stage is the same as the deal to unarchive
@@ -158,17 +158,15 @@ const dataProviderWithCustomMethod: CrmDataProvider = {
       password,
     };
   },
-  salesCreate: async ({ ...data }: SalesFormData): Promise<Sale> => {
-    const user = await dataProvider.create("sales", {
+  salesCreate: async ({ ...data }: SalesFormData): Promise<{ data: Sale }> => {
+    const response = await dataProvider.create("sales", {
       data: {
         ...data,
         password: "new_password",
       },
     });
 
-    return {
-      ...user.data,
-    };
+    return response;
   },
   salesUpdate: async (
     id: Identifier,
