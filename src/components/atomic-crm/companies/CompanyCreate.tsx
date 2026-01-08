@@ -2,7 +2,6 @@ import { CreateBase, Form, useGetIdentity } from "ra-core";
 import { Card, CardContent } from "@/components/ui/card";
 import { CancelButton } from "@/components/admin/cancel-button";
 import { SaveButton } from "@/components/admin/form";
-import { FormToolbar } from "@/components/admin/simple-form";
 
 import { CompanyInputs } from "./CompanyInputs";
 
@@ -25,12 +24,13 @@ export const CompanyCreate = () => {
             <Card>
               <CardContent>
                 <CompanyInputs />
-                <FormToolbar>
-                  <div className="flex flex-row gap-2 justify-end">
-                    <CancelButton />
-                    <SaveButton label="Create Company" />
-                  </div>
-                </FormToolbar>
+                <div
+                  role="toolbar"
+                  className="sticky flex pt-4 pb-4 md:pb-0 bottom-0 bg-linear-to-b from-transparent to-card to-10% flex-row justify-end gap-2"
+                >
+                  <CancelButton />
+                  <SaveButton label="Create Company" />
+                </div>
               </CardContent>
             </Card>
           </Form>
