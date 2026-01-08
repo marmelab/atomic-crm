@@ -120,7 +120,7 @@ export const ListPagination = ({
             setPerPage(Number(value));
           }}
         >
-          <SelectTrigger className="h-8 w-[70px]">
+          <SelectTrigger className="h-8 w-fit">
             <SelectValue placeholder={perPage} />
           </SelectTrigger>
           <SelectContent side="top">
@@ -149,19 +149,27 @@ export const ListPagination = ({
       <Pagination className="-w-full -mx-auto">
         <PaginationContent>
           <PaginationItem>
-            <PaginationLink
-              href="#"
-              onClick={pageChangeHandler(page - 1)}
-              className={cn(
-                "gap-1 px-2.5 sm:pr-2.5",
-                !hasPreviousPage ? "opacity-50 cursor-not-allowed" : "",
-              )}
-              aria-label={translate("ra.navigation.previous", {
-                _: "Previous",
-              })}
-            >
-              <ChevronLeftIcon />
-            </PaginationLink>
+            {hasPreviousPage ? (
+              <PaginationLink
+                href="#"
+                onClick={pageChangeHandler(page - 1)}
+                aria-label={translate("ra.navigation.previous", {
+                  _: "Previous",
+                })}
+              >
+                <ChevronLeftIcon />
+              </PaginationLink>
+            ) : (
+              <span className="inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm font-medium size-9">
+                <ChevronLeftIcon
+                  aria-label={translate("ra.navigation.previous", {
+                    _: "Previous",
+                  })}
+                  size="16"
+                  className="text-muted-foreground"
+                />
+              </span>
+            )}
           </PaginationItem>
           {startPages.map((pageNumber) => (
             <PaginationItem key={pageNumber}>
@@ -227,18 +235,28 @@ export const ListPagination = ({
             </PaginationItem>
           ))}
           <PaginationItem>
-            <PaginationLink
-              href="#"
-              onClick={pageChangeHandler(page + 1)}
-              size="default"
-              className={cn(
-                "gap-1 px-2.5 sm:pr-2.5",
-                !hasNextPage ? "opacity-50 cursor-not-allowed" : "",
-              )}
-              aria-label={translate("ra.navigation.next", { _: "Next" })}
-            >
-              <ChevronRightIcon />
-            </PaginationLink>
+            {hasNextPage ? (
+              <PaginationLink
+                href="#"
+                onClick={pageChangeHandler(page + 1)}
+                size="default"
+                className={cn(
+                  "gap-1 px-2.5 sm:pr-2.5",
+                  !hasNextPage ? "opacity-50 cursor-not-allowed" : "",
+                )}
+                aria-label={translate("ra.navigation.next", { _: "Next" })}
+              >
+                <ChevronRightIcon />
+              </PaginationLink>
+            ) : (
+              <span className="inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm font-medium size-9">
+                <ChevronRightIcon
+                  aria-label={translate("ra.navigation.next", { _: "Next" })}
+                  size="16"
+                  className="text-muted-foreground"
+                />
+              </span>
+            )}
           </PaginationItem>
         </PaginationContent>
       </Pagination>
