@@ -167,6 +167,7 @@ export const useImportFromJson = (): [ImportFromJsonState, ImportFunction] => {
                 color: colors[Math.floor(Math.random() * colors.length)],
               },
             });
+            idsMaps.tags[tag] = data.id;
             return data.id;
           }),
         );
