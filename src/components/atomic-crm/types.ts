@@ -139,9 +139,10 @@ export type DealNote = {
 } & Pick<RaRecord, "id">;
 
 export type Tag = {
+  id: number;
   name: string;
   color: string;
-} & Pick<RaRecord, "id">;
+};
 
 export type Task = {
   contact_id: Identifier;
