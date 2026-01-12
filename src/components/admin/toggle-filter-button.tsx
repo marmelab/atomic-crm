@@ -45,7 +45,7 @@ export const ToggleFilterButton = ({
       onClick={handleClick}
       className={cn(
         "cursor-pointer",
-        "flex flex-row items-center justify-between gap-2 px-2.5 w-full",
+        "flex flex-row items-center justify-between gap-2 px-2 w-full h-8",
         className,
       )}
       size={size}

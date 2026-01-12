@@ -2,14 +2,14 @@ import { useState } from "react";
 import { FilterLiveForm } from "ra-core";
 import { SearchInput, type SearchInputProps } from "@/components/admin";
 import {
-  Drawer,
-  DrawerClose,
-  DrawerContent,
-  DrawerFooter,
-  DrawerHeader,
-  DrawerTitle,
-  DrawerTrigger,
-} from "@/components/ui/drawer";
+  Sheet,
+  SheetClose,
+  SheetContent,
+  SheetFooter,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Button } from "@/components/ui/button";
 
@@ -30,8 +30,8 @@ export const ResponsiveFilters = ({
 
   if (isMobile) {
     return (
-      <Drawer open={open} onClose={() => setOpen(false)}>
-        <DrawerTrigger asChild>
+      <Sheet open={open} onOpenChange={setOpen}>
+        <SheetTrigger asChild>
           <FilterLiveForm>
             <div className="mb-2">
               <SearchInput
@@ -48,11 +48,14 @@ export const ResponsiveFilters = ({
               />
             </div>
           </FilterLiveForm>
-        </DrawerTrigger>
-        <DrawerContent className="data-[vaul-drawer-direction='bottom']:mt-0! data-[vaul-drawer-direction='bottom']:max-h-none! p-2 flex flex-col gap-4">
-          <DrawerHeader className="sr-only">
-            <DrawerTitle>Filters</DrawerTitle>
-          </DrawerHeader>
+        </SheetTrigger>
+        <SheetContent
+          side="bottom"
+          className="max-h-screen overflow-y-auto p-4 flex flex-col gap-3"
+        >
+          <SheetHeader>
+            <SheetTitle>Filters</SheetTitle>
+          </SheetHeader>
           <FilterLiveForm>
             <div className="mb-2">
               <SearchInput
@@ -64,13 +67,13 @@ export const ResponsiveFilters = ({
             </div>
           </FilterLiveForm>
           {children}
-          <DrawerFooter>
-            <DrawerClose asChild>
+          <SheetFooter>
+            <SheetClose asChild>
               <Button>Apply</Button>
-            </DrawerClose>
-          </DrawerFooter>
-        </DrawerContent>
-      </Drawer>
+            </SheetClose>
+          </SheetFooter>
+        </SheetContent>
+      </Sheet>
     );
   }
 
