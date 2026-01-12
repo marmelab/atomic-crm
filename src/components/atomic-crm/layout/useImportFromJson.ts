@@ -5,11 +5,12 @@ import {
   useEvent,
   useRefresh,
 } from "ra-core";
-import { JSONParser } from "@streamparser/json-whatwg";
+import { JSONParser, type JsonTypes } from "@streamparser/json-whatwg";
 import mime from "mime/lite";
 import type { CrmDataProvider } from "../providers/types";
 import type { RAFile, Sale, Tag } from "../types";
 import { colors } from "../tags/colors";
+import { Braces } from "lucide-react";
 
 export type ImportFromJsonStats = {
   sales: number;
@@ -102,10 +103,10 @@ export const useImportFromJson = (): [ImportFromJsonState, ImportFunction] => {
     });
 
     const idsMaps: {
-      sales: Record<number, number>;
-      companies: Record<number, number>;
-      contacts: Record<number, number>;
-      tags: Record<string, number>;
+      sales: Record<number, Identifier>;
+      companies: Record<number, Identifier>;
+      contacts: Record<number, Identifier>;
+      tags: Record<string, Identifier>;
     } = {
       sales: {},
       companies: {},
@@ -113,156 +114,357 @@ export const useImportFromJson = (): [ImportFromJsonState, ImportFunction] => {
       tags: {},
     };
 
-    const importSale = async (dataToImport: SaleImport) => {
-      const existingRecord = await dataProvider.getList("sales", {
-        filter: { email: dataToImport.email.trim() },
-        pagination: { page: 1, perPage: 1 },
-        sort: { field: "id", order: "ASC" },
-      });
-      if (existingRecord.total === 1) {
-        return existingRecord.data[0].id;
+    const importSale = async (
+      dataToImport: JsonTypes.JsonPrimitive | JsonTypes.JsonStruct | undefined,
+    ) => {
+      if (!isSale(dataToImport)) {
+        setState((old) => ({
+          ...old,
+          status: "error",
+          error: new Error(`Error while importing sale: Invalid data`),
+          failedImports: {
+            ...old.failedImports,
+            sales: [...old.failedImports.sales, dataToImport],
+          },
+          duration: new Date().getDate() - startedAt.getDate(),
+        }));
+        return;
+      }
+      try {
+        const existingRecord = await dataProvider.getList("sales", {
+          filter: { email: dataToImport.email.trim() },
+          pagination: { page: 1, perPage: 1 },
+          sort: { field: "id", order: "ASC" },
+        });
+        if (existingRecord.total === 1) {
+          return existingRecord.data[0].id;
+        }
+
+        const { data } = await dataProvider.salesCreate({
+          email: dataToImport.email.trim(),
+          first_name: dataToImport.name.trim(),
+          last_name: dataToImport.name.trim(),
+          administrator: false,
+          disabled: false,
+        });
+
+        idsMaps.sales[dataToImport.id] = data.id;
+        setState((old) => {
+          if (old.status === "error") {
+            return {
+              ...old,
+              stats: {
+                ...(old.stats ?? defaultStats),
+                sales: (old.stats ?? defaultStats).sales + 1,
+              },
+            };
+          }
+          return {
+            ...old,
+            status: "importing",
+            stats: {
+              ...(old.stats ?? defaultStats),
+              sales: (old.stats ?? defaultStats).sales + 1,
+            },
+            error: null,
+          };
+        });
+        return data;
+      } catch (err) {
+        setState((old) => ({
+          ...old,
+          status: "error",
+          error: new Error(
+            `Error while importing sale ${dataToImport.id} (${dataToImport.email}): ${(err as Error).message}`,
+          ),
+          failedImports: {
+            ...old.failedImports,
+            sales: [...old.failedImports.sales, dataToImport],
+          },
+          duration: new Date().getDate() - startedAt.getDate(),
+        }));
+      }
+    };
+
+    const importCompany = async (
+      dataToImport: JsonTypes.JsonPrimitive | JsonTypes.JsonStruct | undefined,
+    ) => {
+      if (!isCompany(dataToImport)) {
+        setState((old) => ({
+          ...old,
+          status: "importing",
+          error: null,
+          failedImports: {
+            ...old.failedImports,
+            companies: [...old.failedImports.companies, dataToImport],
+          },
+        }));
+        return;
+      }
+      try {
+        const { data } = await dataProvider.create("companies", {
+          data: {
+            name: dataToImport.name.trim(),
+            description: dataToImport.description?.trim(),
+            city: dataToImport.city?.trim(),
+            country: dataToImport.country?.trim(),
+            address: dataToImport.address?.trim(),
+            zipcode: dataToImport.zipcode?.trim(),
+            stateAbbr: dataToImport.stateAbbr?.trim(),
+            sales_id: dataToImport.salesId
+              ? idsMaps.sales[dataToImport.salesId]
+              : undefined,
+          },
+        });
+
+        idsMaps.companies[dataToImport.id] = data.id;
+        setState((old) => ({
+          ...old,
+          status: "importing",
+          stats: {
+            ...old.stats,
+            companies: old.stats.companies + 1,
+          },
+          error: null,
+        }));
+        return data;
+      } catch (err) {
+        console.error(err);
+        setState((old) => ({
+          ...old,
+          status: "importing",
+          error: null,
+          failedImports: {
+            ...old.failedImports,
+            companies: [...old.failedImports.companies, dataToImport],
+          },
+        }));
+      }
+    };
+
+    const importContact = async (
+      dataToImport: JsonTypes.JsonPrimitive | JsonTypes.JsonStruct | undefined,
+    ) => {
+      if (!isContact(dataToImport)) {
+        setState((old) => ({
+          ...old,
+          status: "importing",
+          error: null,
+          failedImports: {
+            ...old.failedImports,
+            contacts: [...old.failedImports.contacts, dataToImport],
+          },
+        }));
+        return;
       }
 
-      const { data } = await dataProvider.salesCreate({
-        email: dataToImport.email.trim(),
-        first_name: dataToImport.name.trim(),
-        last_name: dataToImport.name.trim(),
-        administrator: false,
-        disabled: false,
-      });
+      try {
+        let tagsIds: Array<Identifier> = [];
+        if (dataToImport.tags && Array.isArray(dataToImport.tags)) {
+          tagsIds = await Promise.all(
+            dataToImport.tags.map(async (tag) => {
+              if (idsMaps.tags[tag]) {
+                return idsMaps.tags[tag];
+              }
+              const { data } = await dataProvider.create<Tag>("tags", {
+                data: {
+                  name: tag,
+                  color: colors[Math.floor(Math.random() * colors.length)],
+                },
+              });
+              idsMaps.tags[tag] = data.id;
+              return data.id;
+            }),
+          );
+        }
 
-      return data;
+        const { data } = await dataProvider.create("contacts", {
+          data: {
+            last_name: dataToImport.lastName,
+            first_name: dataToImport.firstName,
+            title: dataToImport.title,
+            background: dataToImport.background,
+            linkedin_url: dataToImport.linkedinUrl,
+            company_id: dataToImport.companyId
+              ? idsMaps.companies[dataToImport.companyId]
+              : undefined,
+            email_jsonb: Array.isArray(dataToImport.emails)
+              ? dataToImport.emails
+              : undefined,
+            phone_jsonb: Array.isArray(dataToImport.phones)
+              ? dataToImport.phones
+              : undefined,
+            sales_id: dataToImport.salesId
+              ? idsMaps.sales[dataToImport.salesId]
+              : undefined,
+            tags: tagsIds,
+          },
+        });
+        idsMaps.contacts[dataToImport.id] = data.id;
+        setState((old) => ({
+          ...old,
+          status: "importing",
+          stats: {
+            ...old.stats,
+            contacts: old.stats.contacts + 1,
+          },
+          error: null,
+        }));
+        return data;
+      } catch (err) {
+        console.error(err);
+        setState((old) => ({
+          ...old,
+          status: "importing",
+          error: null,
+          failedImports: {
+            ...old.failedImports,
+            contacts: [...old.failedImports.contacts, dataToImport],
+          },
+        }));
+      }
     };
 
-    const importCompany = async (dataToImport: CompanyImport) => {
-      const { data } = await dataProvider.create("companies", {
-        data: {
-          name: dataToImport.name.trim(),
-          description: dataToImport.description?.trim(),
-          city: dataToImport.city?.trim(),
-          country: dataToImport.country?.trim(),
-          address: dataToImport.address?.trim(),
-          zipcode: dataToImport.zipcode?.trim(),
-          stateAbbr: dataToImport.stateAbbr?.trim(),
-          sales_id: dataToImport.salesId
-            ? idsMaps.sales[dataToImport.salesId]
-            : undefined,
-        },
-      });
+    const importNote = async (
+      dataToImport: JsonTypes.JsonPrimitive | JsonTypes.JsonStruct | undefined,
+    ) => {
+      if (!isNote(dataToImport)) {
+        setState((old) => ({
+          ...old,
+          status: "importing",
+          failedImports: {
+            ...old.failedImports,
+            notes: [...old.failedImports.notes, dataToImport],
+          },
+          error: null,
+        }));
+        return;
+      }
+      try {
+        const defaultSale = await getDefaultSale();
 
-      return data;
-    };
+        if (idsMaps.sales[dataToImport.salesId] == null) {
+          console.error(
+            `note ${dataToImport.text} has an invalid sales ID: ${dataToImport.salesId}`,
+          );
+        }
+        if (idsMaps.contacts[dataToImport.contactId] == null) {
+          throw new Error(
+            `note ${dataToImport.text} has an invalid contact ID: ${dataToImport.contactId}`,
+          );
+          return;
+        }
 
-    const importContact = async (dataToImport: ContactImport) => {
-      let tagsIds: Array<Identifier> = [];
-      if (dataToImport.tags && Array.isArray(dataToImport.tags)) {
-        tagsIds = await Promise.all(
-          dataToImport.tags.map(async (tag) => {
-            if (idsMaps.tags[tag]) {
-              return idsMaps.tags[tag];
-            }
-            const { data } = await dataProvider.create<Tag>("tags", {
-              data: {
-                name: tag,
-                color: colors[Math.floor(Math.random() * colors.length)],
+        const attachments: Array<
+          Omit<RAFile, "rawFile"> & {
+            rawFile: { name: string; type: string | null };
+          }
+        > = [];
+        if (Array.isArray(dataToImport.attachments)) {
+          for (const file of dataToImport.attachments) {
+            attachments.push({
+              src: file.url,
+              title: file.name,
+              rawFile: {
+                name: file.name,
+                type: mime.getType(file.name.split(".").pop()!),
               },
             });
-            idsMaps.tags[tag] = data.id;
-            return data.id;
-          }),
-        );
+          }
+        }
+
+        await dataProvider.create("contactNotes", {
+          data: {
+            contact_id: idsMaps.contacts[dataToImport.contactId],
+            sales_id: idsMaps.sales[dataToImport.salesId] ?? defaultSale.id,
+            text: dataToImport.text,
+            date: dataToImport.date,
+            attachments,
+          },
+        });
+        setState((old) => ({
+          ...old,
+          status: "importing",
+          stats: {
+            ...old.stats,
+            notes: old.stats.notes + 1,
+          },
+          error: null,
+        }));
+      } catch (err) {
+        console.error(err);
+        setState((old) => ({
+          ...old,
+          status: "importing",
+          failedImports: {
+            ...old.failedImports,
+            notes: [...old.failedImports.notes, dataToImport],
+          },
+          error: null,
+        }));
       }
-
-      const { data } = await dataProvider.create("contacts", {
-        data: {
-          last_name: dataToImport.lastName,
-          first_name: dataToImport.firstName,
-          title: dataToImport.title,
-          background: dataToImport.background,
-          linkedin_url: dataToImport.linkedinUrl,
-          company_id: dataToImport.companyId
-            ? idsMaps.companies[dataToImport.companyId]
-            : undefined,
-          email_jsonb: Array.isArray(dataToImport.emails)
-            ? dataToImport.emails
-            : undefined,
-          phone_jsonb: Array.isArray(dataToImport.phones)
-            ? dataToImport.phones
-            : undefined,
-          sales_id: dataToImport.salesId
-            ? idsMaps.sales[dataToImport.salesId]
-            : undefined,
-          tags: tagsIds,
-        },
-      });
-
-      return data;
     };
 
-    const importNote = async (dataToImport: NoteImport, defaultSale: Sale) => {
-      if (idsMaps.sales[dataToImport.salesId] == null) {
-        console.error(
-          `note ${dataToImport.text} has an invalid sales ID: ${dataToImport.salesId}`,
-        );
-      }
-      if (idsMaps.contacts[dataToImport.contactId] == null) {
-        throw new Error(
-          `note ${dataToImport.text} has an invalid contact ID: ${dataToImport.contactId}`,
-        );
+    const importTask = async (
+      dataToImport: JsonTypes.JsonPrimitive | JsonTypes.JsonStruct | undefined,
+    ) => {
+      if (!isTask(dataToImport)) {
+        setState((old) => ({
+          ...old,
+          status: "importing",
+          failedImports: {
+            ...old.failedImports,
+            tasks: [...old.failedImports.tasks, dataToImport],
+          },
+          error: null,
+        }));
         return;
       }
+      try {
+        const defaultSale = await getDefaultSale();
 
-      const attachments: Array<
-        Omit<RAFile, "rawFile"> & {
-          rawFile: { name: string; type: string | null };
+        if (idsMaps.sales[dataToImport.salesId] == null) {
+          console.error(
+            `task ${dataToImport.text} has an invalid sales ID: ${dataToImport.salesId}`,
+          );
         }
-      > = [];
-      if (Array.isArray(dataToImport.attachments)) {
-        for (const file of dataToImport.attachments) {
-          attachments.push({
-            src: file.url,
-            title: file.name,
-            rawFile: {
-              name: file.name,
-              type: mime.getType(file.name.split(".").pop()!),
-            },
-          });
+        if (idsMaps.contacts[dataToImport.contactId] == null) {
+          throw new Error(
+            `task ${dataToImport.text} has an invalid contact ID: ${dataToImport.contactId}`,
+          );
+          return;
         }
-      }
 
-      await dataProvider.create("contactNotes", {
-        data: {
-          contact_id: idsMaps.contacts[dataToImport.contactId],
-          sales_id: idsMaps.sales[dataToImport.salesId] ?? defaultSale.id,
-          text: dataToImport.text,
-          date: dataToImport.date,
-          attachments,
-        },
-      });
-    };
-
-    const importTask = async (dataToImport: TaskImport, defaultSale: Sale) => {
-      if (idsMaps.sales[dataToImport.salesId] == null) {
-        console.error(
-          `task ${dataToImport.text} has an invalid sales ID: ${dataToImport.salesId}`,
-        );
+        await dataProvider.create("tasks", {
+          data: {
+            contact_id: idsMaps.contacts[dataToImport.contactId],
+            sales_id: idsMaps.sales[dataToImport.salesId] ?? defaultSale.id,
+            text: dataToImport.text,
+            due_date: dataToImport.dueDate || undefined,
+            done_date: dataToImport.doneDate || undefined,
+          },
+        });
+        setState((old) => ({
+          ...old,
+          status: "importing",
+          stats: {
+            ...old.stats,
+            tasks: old.stats.tasks + 1,
+          },
+          error: null,
+        }));
+      } catch (err) {
+        console.error(err);
+        setState((old) => ({
+          ...old,
+          status: "importing",
+          failedImports: {
+            ...old.failedImports,
+            tasks: [...old.failedImports.tasks, dataToImport],
+          },
+          error: null,
+        }));
       }
-      if (idsMaps.contacts[dataToImport.contactId] == null) {
-        throw new Error(
-          `task ${dataToImport.text} has an invalid contact ID: ${dataToImport.contactId}`,
-        );
-        return;
-      }
-
-      await dataProvider.create("tasks", {
-        data: {
-          contact_id: idsMaps.contacts[dataToImport.contactId],
-          sales_id: idsMaps.sales[dataToImport.salesId] ?? defaultSale.id,
-          text: dataToImport.text,
-          due_date: dataToImport.dueDate || undefined,
-          done_date: dataToImport.doneDate || undefined,
-        },
-      });
     };
 
     let defaultSale: Sale | null = null;
@@ -304,6 +506,7 @@ export const useImportFromJson = (): [ImportFromJsonState, ImportFunction] => {
         currentTask = null;
       }
     };
+    let currentType: Types = "sales";
     while (true) {
       const { done, value: parsedElementInfo } = await reader.read();
       if (done) {
@@ -312,199 +515,46 @@ export const useImportFromJson = (): [ImportFromJsonState, ImportFunction] => {
       }
       const { value, stack, partial } = parsedElementInfo;
       if (partial) continue;
-      const type = stack.length > 1 ? stack[1].key : undefined;
+      const type =
+        stack.length > 1 ? getType(stack[1].key?.toString()) : undefined;
 
-      if (type === "sales") {
-        if (!isSale(value)) continue;
-
-        currentBatch.push(
-          importSale(value)
-            .then((data) => {
-              idsMaps.sales[value.id] = data.id;
-              setState((old) => {
-                if (old.status === "error") {
-                  return {
-                    ...old,
-                    stats: {
-                      ...(old.stats ?? defaultStats),
-                      sales: (old.stats ?? defaultStats).sales + 1,
-                    },
-                  };
-                }
-                return {
-                  ...old,
-                  status: "importing",
-                  stats: {
-                    ...(old.stats ?? defaultStats),
-                    sales: (old.stats ?? defaultStats).sales + 1,
-                  },
-                  error: null,
-                };
-              });
-            })
-            .catch((err) => {
-              setState((old) => ({
-                ...old,
-                status: "error",
-                error: new Error(
-                  `Error while importing sale ${value.id} (${value.email}): ${(err as Error).message}`,
-                ),
-                failedImports: {
-                  ...old.failedImports,
-                  sales: [...old.failedImports.sales, value],
-                },
-                duration: new Date().getDate() - startedAt.getDate(),
-              }));
-            }),
-        );
-        await proccesBatchIfPossible();
+      if (type == null) {
         continue;
       }
-      await proccesBatchIfPossible(true);
+
+      if (type !== currentType) {
+        // When moving to another type, make sure we wait for the previous batch to be imported
+        await proccesBatchIfPossible(true);
+        currentType = type;
+      }
+      switch (type) {
+        case "sales": {
+          currentBatch.push(importSale(value));
+          break;
+        }
+        case "companies": {
+          currentBatch.push(importCompany(value));
+          break;
+        }
+        case "contacts": {
+          currentBatch.push(importContact(value));
+          break;
+        }
+        case "notes": {
+          currentBatch.push(importNote(value));
+          break;
+        }
+        case "tasks": {
+          currentBatch.push(importTask(value));
+          break;
+        }
+      }
+      await proccesBatchIfPossible();
       // Error state should stop the import process
       if (state.status === "error") {
         await reader.cancel();
         break;
       }
-
-      const defaultSale = await getDefaultSale();
-
-      if (type === "companies") {
-        if (!isCompany(value)) continue;
-
-        currentBatch.push(
-          importCompany(value)
-            .then((data) => {
-              idsMaps.companies[value.id] = data.id;
-              setState((old) => ({
-                ...old,
-                status: "importing",
-                stats: {
-                  ...old.stats,
-                  companies: old.stats.companies + 1,
-                },
-                error: null,
-              }));
-            })
-            .catch((err) => {
-              console.error(err);
-              setState((old) => ({
-                ...old,
-                status: "importing",
-                error: null,
-                failedImports: {
-                  ...old.failedImports,
-                  companies: [...old.failedImports.companies, value],
-                },
-              }));
-            }),
-        );
-        await proccesBatchIfPossible();
-        continue;
-      }
-      await proccesBatchIfPossible(true);
-
-      if (type === "contacts") {
-        if (!isContact(value)) continue;
-
-        currentBatch.push(
-          importContact(value)
-            .then((data) => {
-              idsMaps.contacts[value.id] = data.id;
-              setState((old) => ({
-                ...old,
-                status: "importing",
-                stats: {
-                  ...old.stats,
-                  contacts: old.stats.contacts + 1,
-                },
-                error: null,
-              }));
-            })
-            .catch((err) => {
-              console.error(err);
-              setState((old) => ({
-                ...old,
-                status: "importing",
-                error: null,
-                failedImports: {
-                  ...old.failedImports,
-                  contacts: [...old.failedImports.contacts, value],
-                },
-              }));
-            }),
-        );
-        await proccesBatchIfPossible();
-        continue;
-      }
-      await proccesBatchIfPossible(true);
-      if (type === "notes") {
-        if (!isNote(value)) continue;
-
-        currentBatch.push(
-          importNote(value, defaultSale)
-            .then(() => {
-              setState((old) => ({
-                ...old,
-                status: "importing",
-                stats: {
-                  ...old.stats,
-                  notes: old.stats.notes + 1,
-                },
-                error: null,
-              }));
-            })
-            .catch((err) => {
-              console.error(err);
-              setState((old) => ({
-                ...old,
-                status: "importing",
-                failedImports: {
-                  ...old.failedImports,
-                  notes: [...old.failedImports.notes, value],
-                },
-                error: null,
-              }));
-            }),
-        );
-        await proccesBatchIfPossible();
-        continue;
-      }
-      await proccesBatchIfPossible(true);
-      if (type === "tasks") {
-        if (!isTask(value)) continue;
-
-        currentBatch.push(
-          importTask(value, defaultSale)
-            .then(() => {
-              setState((old) => ({
-                ...old,
-                status: "importing",
-                stats: {
-                  ...old.stats,
-                  tasks: old.stats.tasks + 1,
-                },
-                error: null,
-              }));
-            })
-            .catch((err) => {
-              console.error(err);
-              setState((old) => ({
-                ...old,
-                status: "importing",
-                failedImports: {
-                  ...old.failedImports,
-                  tasks: [...old.failedImports.tasks, value],
-                },
-                error: null,
-              }));
-            }),
-        );
-        await proccesBatchIfPossible();
-        continue;
-      }
-
-      await proccesBatchIfPossible(true);
     }
 
     setState((old) => {
@@ -521,6 +571,15 @@ export const useImportFromJson = (): [ImportFromJsonState, ImportFunction] => {
   });
 
   return [state, importFile];
+};
+
+const TYPES = ["sales", "companies", "contacts", "notes", "tasks"] as const;
+type Types = (typeof TYPES)[number];
+
+const getType = (value: string | undefined): Types | undefined => {
+  const type = value as Types;
+  if (TYPES.includes(type)) return type;
+  return undefined;
 };
 
 type SaleImport = {

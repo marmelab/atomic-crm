@@ -155,3 +155,8 @@ s3_secret_key = "env(S3_SECRET_KEY)"
 
 [functions.postmark]
 verify_jwt = false
+
+# https://github.com/supabase/supabase/issues/17164#issuecomment-2683354018
+# This should only affect Supabase local instances
+[functions.users]
+verify_jwt = false
