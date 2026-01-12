@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { FilterLiveForm } from "ra-core";
+import { FilterLiveForm, useListContext } from "ra-core";
 import { SearchInput, type SearchInputProps } from "@/components/admin";
 import {
   Sheet,
@@ -27,6 +27,7 @@ export const ResponsiveFilters = ({
     ...otherSearchInputProps
   } = searchInput || {};
   const isMobile = useIsMobile();
+  const { setFilters } = useListContext();
 
   if (isMobile) {
     return (
@@ -53,7 +54,7 @@ export const ResponsiveFilters = ({
           side="bottom"
           className="max-h-screen overflow-y-auto p-4 flex flex-col gap-3"
         >
-          <SheetHeader>
+          <SheetHeader className="-p-4">
             <SheetTitle>Filters</SheetTitle>
           </SheetHeader>
           <FilterLiveForm>
@@ -67,10 +68,20 @@ export const ResponsiveFilters = ({
             </div>
           </FilterLiveForm>
           {children}
-          <SheetFooter>
-            <SheetClose asChild>
-              <Button>Apply</Button>
-            </SheetClose>
+          <SheetFooter className="-p-4">
+            <div className="flex w-full gap-4">
+              <Button
+                onClick={() => setFilters({}, [])}
+                type="button"
+                variant="secondary"
+                className="flex-1"
+              >
+                Clear filters
+              </Button>
+              <SheetClose asChild>
+                <Button className="flex-1">Apply</Button>
+              </SheetClose>
+            </div>
           </SheetFooter>
         </SheetContent>
       </Sheet>
