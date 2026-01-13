@@ -27,6 +27,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Spinner } from "@/components/ui/spinner";
+import sampleFile from "./import-sample.json?url";
 
 export const ImportFromJsonDialog = ({
   onOpenChange,
@@ -63,12 +64,24 @@ export const ImportFromJsonDialog = ({
                 <AlertDescription>
                   <p>{importStatus.error.message}</p>
                 </AlertDescription>
-                <DownloadErrorFileButton
-                  failedImports={importStatus.failedImports}
-                />
               </Alert>
-            ) : null}
-            <FileInput source="file" validate={required()}>
+            ) : (
+              <Alert>
+                <AlertTitle>Instructions</AlertTitle>
+                <AlertDescription>
+                  Provide a JSON file containing sales, companies, contacts,
+                  notes or tasks
+                  <a
+                    className="font-bold hover:underline"
+                    download="import-sample.json"
+                    href={sampleFile}
+                  >
+                    Download a sample
+                  </a>
+                </AlertDescription>
+              </Alert>
+            )}
+            <FileInput className="mt-4" source="file" validate={required()}>
               <FileField source="src" title="title" />
             </FileInput>
             <DialogFooter>
