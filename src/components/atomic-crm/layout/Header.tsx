@@ -9,7 +9,7 @@ import { DropdownMenuItem } from "@/components/ui/dropdown-menu";
 import { useUserMenu } from "@/hooks/user-menu-context";
 
 import { useConfigurationContext } from "../root/ConfigurationContext";
-import { ImportFromJsonDialog } from "./ImportFromJsonDialog";
+import { ImportFromJsonDialog } from "../misc/ImportFromJsonDialog";
 
 const Header = () => {
   const { darkModeLogo, lightModeLogo, title } = useConfigurationContext();

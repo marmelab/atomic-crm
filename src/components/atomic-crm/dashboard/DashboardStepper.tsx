@@ -8,6 +8,7 @@ import { Card, CardContent } from "@/components/ui/card";
 
 import { ContactImportButton } from "../contacts/ContactImportButton";
 import useAppBarHeight from "../misc/useAppBarHeight";
+import { ImportFromJsonButton } from "../misc/ImportFromJsonButton";
 
 export const DashboardStepper = ({
   step,
@@ -51,6 +52,7 @@ export const DashboardStepper = ({
                 <div className="flex gap-8">
                   <CreateButton label="New Contact" resource="contacts" />
                   <ContactImportButton />
+                  <ImportFromJsonButton />
                 </div>
               </div>
             </div>
