@@ -145,10 +145,6 @@
           "type": "registry:component"
         },
         {
-          "path": "src/components/atomic-crm/providers/supabase/raDataPostgrestUtils.ts",
-          "type": "registry:component"
-        },
-        {
           "path": "src/components/atomic-crm/providers/supabase/index.ts",
           "type": "registry:component"
         },
