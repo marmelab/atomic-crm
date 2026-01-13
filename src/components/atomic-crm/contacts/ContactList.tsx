@@ -65,11 +65,10 @@ const ContactListMobile = () => {
 
 const DesktopContactListLayout = () => {
   const { data, isPending, filterValues } = useListContext();
-  const { identity } = useGetIdentity();
 
   const hasFilters = filterValues && Object.keys(filterValues).length > 0;
 
-  if (!identity || isPending) return null;
+  if (isPending) return null;
 
   if (!data?.length && !hasFilters) return <ContactEmpty />;
 
@@ -88,11 +87,10 @@ const DesktopContactListLayout = () => {
 
 const MobileContactListLayout = () => {
   const { data, isPending, filterValues } = useListContext();
-  const { identity } = useGetIdentity();
 
   const hasFilters = filterValues && Object.keys(filterValues).length > 0;
 
-  if (!identity || isPending) return null;
+  if (isPending) return null;
 
   if (!data?.length && !hasFilters) return <ContactEmpty />;
 
