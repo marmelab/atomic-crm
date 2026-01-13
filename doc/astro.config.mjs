@@ -2,6 +2,7 @@
 import { defineConfig } from "astro/config";
 import starlight from "@astrojs/starlight";
 import tailwindcss from "@tailwindcss/vite";
+import { server } from "typescript";
 
 // https://astro.build/config
 export default defineConfig({
@@ -83,7 +84,13 @@ export default defineConfig({
         },
         {
           label: "Users Documentation",
-          autogenerate: { directory: "users" },
+          items: [
+            "users/user-management",
+            "users/import-contacts",
+            "users/merging-contacts",
+            "users/inbound-email",
+            "users/mcp-server",
+          ],
         },
         {
           label: "Developers Documentation",
