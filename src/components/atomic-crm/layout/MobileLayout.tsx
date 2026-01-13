@@ -5,14 +5,19 @@ import { Suspense, type ReactNode } from "react";
 import { ErrorBoundary } from "react-error-boundary";
 
 import { MobileNavigation } from "./MobileNavigation";
+import { MobileContent } from "./MobileContent";
+import { MobileAppBar } from "./MobileAppBar";
 
 export const MobileLayout = ({ children }: { children: ReactNode }) => (
   <>
-    <ErrorBoundary FallbackComponent={Error}>
-      <Suspense fallback={<Skeleton className="h-12 w-12 rounded-full" />}>
-        {children}
-      </Suspense>
-    </ErrorBoundary>
+    <MobileAppBar />
+    <MobileContent>
+      <ErrorBoundary FallbackComponent={Error}>
+        <Suspense fallback={<Skeleton className="h-12 w-12 rounded-full" />}>
+          {children}
+        </Suspense>
+      </ErrorBoundary>
+    </MobileContent>
     <MobileNavigation />
     <Notification />
   </>
