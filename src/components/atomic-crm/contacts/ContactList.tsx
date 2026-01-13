@@ -9,7 +9,7 @@ import {
 import { BulkActionsToolbar } from "@/components/admin/bulk-actions-toolbar";
 import { CreateButton } from "@/components/admin/create-button";
 import { ExportButton } from "@/components/admin/export-button";
-import { List, ListView } from "@/components/admin/list";
+import { List } from "@/components/admin/list";
 import { SortButton } from "@/components/admin/sort-button";
 import { Card } from "@/components/ui/card";
 
@@ -21,6 +21,8 @@ import { ContactListFilter } from "./ContactListFilter";
 import { TopToolbar } from "../layout/TopToolbar";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { InfinitePagination } from "../misc/InfinitePagination";
+import MobileHeader from "../layout/MobileHeader";
+import { MobileContent } from "../layout/MobileContent";
 
 export const ContactList = () => {
   const isMobile = useIsMobile();
@@ -56,9 +58,7 @@ const ContactListMobile = () => {
       sort={{ field: "last_seen", order: "DESC" }}
       exporter={exporter}
     >
-      <ListView pagination={<InfinitePagination />} actions={false}>
-        <MobileContactListLayout />
-      </ListView>
+      <MobileContactListLayout />
     </InfiniteListBase>
   );
 };
@@ -98,10 +98,17 @@ const MobileContactListLayout = () => {
 
   return (
     <div>
-      <ContactListFilter />
-      <Card className="py-0">
-        <ContactListContent />
-      </Card>
+      <MobileHeader>
+        <ContactListFilter />
+      </MobileHeader>
+      <MobileContent>
+        <Card className="py-0">
+          <ContactListContent />
+        </Card>
+        <div className="flex justify-center">
+          <InfinitePagination />
+        </div>
+      </MobileContent>
     </div>
   );
 };

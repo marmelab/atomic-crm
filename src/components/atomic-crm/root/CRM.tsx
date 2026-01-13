@@ -215,7 +215,6 @@ const MobileAdmin = (props: CoreAdminProps) => {
       <CustomRoutes>
         <Route path={SettingsPage.path} element={<SettingsPage />} />
       </CustomRoutes>
-      <Resource name="deals" {...deals} />
       <Resource name="contacts" {...contacts} />
       <Resource name="companies" {...companies} />
       <Resource name="contactNotes" />
