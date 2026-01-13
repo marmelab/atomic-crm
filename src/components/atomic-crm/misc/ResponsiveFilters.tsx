@@ -52,7 +52,7 @@ export const ResponsiveFilters = ({
         </SheetTrigger>
         <SheetContent
           side="bottom"
-          className="max-h-screen overflow-y-auto p-4 flex flex-col gap-3"
+          className="h-screen overflow-y-auto p-4 flex flex-col gap-3"
         >
           <SheetHeader className="-p-4">
             <SheetTitle>Filters</SheetTitle>
