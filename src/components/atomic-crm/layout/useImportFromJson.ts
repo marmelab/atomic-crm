@@ -10,7 +10,6 @@ import mime from "mime/lite";
 import type { CrmDataProvider } from "../providers/types";
 import type { RAFile, Sale, Tag } from "../types";
 import { colors } from "../tags/colors";
-import { Braces } from "lucide-react";
 
 export type ImportFromJsonStats = {
   sales: number;
@@ -65,6 +64,7 @@ type ImportFromJsonState =
   | ImportFromJsonSuccessState;
 
 type ImportFunction = (file: File) => Promise<void>;
+type ResetFunction = () => void;
 
 const defaultFailedImports = {
   sales: [],
@@ -82,7 +82,11 @@ const defaultStats = {
   tasks: 0,
 };
 
-export const useImportFromJson = (): [ImportFromJsonState, ImportFunction] => {
+export const useImportFromJson = (): [
+  ImportFromJsonState,
+  ImportFunction,
+  ResetFunction,
+] => {
   const dataProvider = useDataProvider<CrmDataProvider>();
   const refresh = useRefresh();
   const [state, setState] = useState<ImportFromJsonState>({
@@ -90,6 +94,15 @@ export const useImportFromJson = (): [ImportFromJsonState, ImportFunction] => {
     error: null,
     stats: defaultStats,
     failedImports: defaultFailedImports,
+  });
+
+  const reset = useEvent(() => {
+    setState({
+      status: "idle",
+      error: null,
+      stats: defaultStats,
+      failedImports: defaultFailedImports,
+    });
   });
 
   const importFile = useEvent(async (file: File) => {
@@ -570,7 +583,7 @@ export const useImportFromJson = (): [ImportFromJsonState, ImportFunction] => {
     refresh();
   });
 
-  return [state, importFile];
+  return [state, importFile, reset];
 };
 
 const TYPES = ["sales", "companies", "contacts", "notes", "tasks"] as const;

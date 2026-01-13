@@ -19,13 +19,24 @@ import {
   useImportFromJson,
 } from "./useImportFromJson";
 
-export const ImportFromJsonDialog = (
-  props: React.ComponentProps<typeof Dialog>,
-) => {
-  const [importStatus, importFile] = useImportFromJson();
+export const ImportFromJsonDialog = ({
+  onOpenChange,
+  ...props
+}: React.ComponentProps<typeof Dialog>) => {
+  const [importStatus, importFile, reset] = useImportFromJson();
 
   return (
-    <Dialog {...props}>
+    <Dialog
+      onOpenChange={(open) => {
+        if (importStatus.status !== "importing") {
+          reset();
+          if (onOpenChange) {
+            onOpenChange(open);
+          }
+        }
+      }}
+      {...props}
+    >
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Import from JSON</DialogTitle>
