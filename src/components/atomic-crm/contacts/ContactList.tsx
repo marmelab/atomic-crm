@@ -21,8 +21,7 @@ import { ContactListFilter } from "./ContactListFilter";
 import { TopToolbar } from "../layout/TopToolbar";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { InfinitePagination } from "../misc/InfinitePagination";
-import MobileHeader from "../layout/MobileHeader";
-import { MobileContent } from "../layout/MobileContent";
+import { MobileHeader } from "../layout/MobileHeader";
 
 export const ContactList = () => {
   const isMobile = useIsMobile();
@@ -59,6 +58,9 @@ const ContactListMobile = () => {
       exporter={exporter}
     >
       <MobileContactListLayout />
+      <div className="flex justify-center">
+        <InfinitePagination />
+      </div>
     </InfiniteListBase>
   );
 };
@@ -95,19 +97,14 @@ const MobileContactListLayout = () => {
   if (!data?.length && !hasFilters) return <ContactEmpty />;
 
   return (
-    <div>
+    <>
       <MobileHeader>
         <ContactListFilter />
       </MobileHeader>
-      <MobileContent>
-        <Card className="py-0">
-          <ContactListContent />
-        </Card>
-        <div className="flex justify-center">
-          <InfinitePagination />
-        </div>
-      </MobileContent>
-    </div>
+      <Card className="py-0">
+        <ContactListContent />
+      </Card>
+    </>
   );
 };
 
