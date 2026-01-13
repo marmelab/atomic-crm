@@ -184,6 +184,7 @@ export const useImportFromJson = (): [
         });
         return data;
       } catch (err) {
+        const duration = new Date().valueOf() - startedAt.valueOf();
         setState((old) => ({
           ...old,
           status: "error",
@@ -194,7 +195,7 @@ export const useImportFromJson = (): [
             ...old.failedImports,
             sales: [...old.failedImports.sales, dataToImport],
           },
-          duration: new Date().getDate() - startedAt.getDate(),
+          duration,
         }));
       }
     };
@@ -574,10 +575,11 @@ export const useImportFromJson = (): [
       if (old.status === "error") {
         return old;
       }
+      const duration = new Date().valueOf() - startedAt.valueOf();
       return {
         ...old,
         status: "success",
-        duration: new Date().getDate() - startedAt.getDate(),
+        duration,
       };
     });
     refresh();

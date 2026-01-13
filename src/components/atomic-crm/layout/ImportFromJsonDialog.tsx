@@ -1,7 +1,6 @@
 import React from "react";
 import { AlertCircleIcon } from "lucide-react";
 import { Form, required } from "ra-core";
-import ms from "ms";
 import {
   Dialog,
   DialogClose,
@@ -18,6 +17,16 @@ import {
   type ImportFromJsonStats,
   useImportFromJson,
 } from "./useImportFromJson";
+import {
+  Table,
+  TableBody,
+  TableCaption,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Spinner } from "@/components/ui/spinner";
 
 export const ImportFromJsonDialog = ({
   onOpenChange,
@@ -53,7 +62,6 @@ export const ImportFromJsonDialog = ({
                 <AlertTitle>Unable to import this file.</AlertTitle>
                 <AlertDescription>
                   <p>{importStatus.error.message}</p>
-                  <p>Duration: {ms(importStatus.duration, { long: true })}</p>
                 </AlertDescription>
                 <DownloadErrorFileButton
                   failedImports={importStatus.failedImports}
@@ -76,7 +84,9 @@ export const ImportFromJsonDialog = ({
           <>
             {importStatus.status === "importing" ? (
               <Alert>
-                <AlertTitle>Importing data...</AlertTitle>
+                <AlertTitle>
+                  <Spinner /> Importing data...
+                </AlertTitle>
                 <AlertDescription>
                   Do not close this browser tab
                 </AlertDescription>
@@ -90,13 +100,14 @@ export const ImportFromJsonDialog = ({
                   </p>
                   {hasFailedImports(importStatus.failedImports) ? (
                     <>
-                      <p>Some records were not imported.</p>
+                      <p className="text-destructive">
+                        Some records were not imported.
+                      </p>
                       <DownloadErrorFileButton
                         failedImports={importStatus.failedImports}
                       />
                     </>
                   ) : null}
-                  <p>Duration: {ms(importStatus.duration, { long: true })}</p>
                 </AlertDescription>
               </Alert>
             )}
@@ -139,6 +150,7 @@ const DownloadErrorFileButton = ({
     <a
       href={`data:application/json,${JSON.stringify(failedImports)}`}
       download="invalid-import-data.json"
+      className="font-semibold"
     >
       Download the error report
     </a>
@@ -151,51 +163,57 @@ const ImportStats = ({
 }: {
   stats: ImportFromJsonStats;
   failedImports: ImportFromJsonFailures;
-}) => (
-  <ul>
-    <ImportStat
-      label="Sales"
-      imported={stats.sales}
-      failed={failedImports.sales.length}
-    />
-    <ImportStat
-      label="Companies"
-      imported={stats.companies}
-      failed={failedImports.companies.length}
-    />
-    <ImportStat
-      label="Contacts"
-      imported={stats.contacts}
-      failed={failedImports.contacts.length}
-    />
-    <ImportStat
-      label="Notes"
-      imported={stats.notes}
-      failed={failedImports.notes.length}
-    />
-    <ImportStat
-      label="Tasks"
-      imported={stats.tasks}
-      failed={failedImports.tasks.length}
-    />
-  </ul>
-);
-
-const ImportStat = ({
-  label,
-  imported,
-  failed,
-}: {
-  label: string;
-  imported: number;
-  failed: number;
-}) => (
-  <li>
-    <span className="mr-1">{label}:</span>
-    <span className="inline-flex gap-1">
-      <span>{imported.toString()}</span>
-      <span>/</span>
-      <span className="text-destructive">{failed.toString()}</span>
-    </span>
-  </li>
-);
+}) => {
+  const data = [
+    {
+      entity: "sales",
+      imported: stats.sales,
+      failed: failedImports.sales.length,
+    },
+    {
+      entity: "companies",
+      imported: stats.companies,
+      failed: failedImports.companies.length,
+    },
+    {
+      entity: "contacts",
+      imported: stats.contacts,
+      failed: failedImports.contacts.length,
+    },
+    {
+      entity: "notes",
+      imported: stats.notes,
+      failed: failedImports.notes.length,
+    },
+    {
+      entity: "tasks",
+      imported: stats.tasks,
+      failed: failedImports.tasks.length,
+    },
+  ];
+  return (
+    <Table>
+      <TableCaption className="sr-only">Import status</TableCaption>
+      <TableHeader>
+        <TableRow>
+          <TableHead className="w-[100px]"></TableHead>
+          <TableHead className="text-right">Imported</TableHead>
+          <TableHead className="text-right">Failed</TableHead>
+        </TableRow>
+      </TableHeader>
+      <TableBody>
+        {data.map((record) => (
+          <TableRow key={record.entity}>
+            <TableCell className="font-medium">{record.entity}</TableCell>
+            <TableCell className="text-right text-success">
+              {record.imported}
+            </TableCell>
+            <TableCell className="text-right text-destructive">
+              {record.failed}
+            </TableCell>
+          </TableRow>
+        ))}
+      </TableBody>
+    </Table>
+  );
+};
