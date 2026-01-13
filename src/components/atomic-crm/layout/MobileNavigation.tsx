@@ -1,12 +1,38 @@
+import { useTheme } from "@/components/admin/theme-provider";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuPortal,
+  DropdownMenuSeparator,
+  DropdownMenuSub,
+  DropdownMenuSubContent,
+  DropdownMenuSubTrigger,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
-import { Building2, HandHeart, Home, Plus, Users } from "lucide-react";
+import {
+  Building2,
+  Check,
+  Home,
+  LogOut,
+  Moon,
+  Plus,
+  Settings,
+  Sun,
+  User,
+  Users,
+} from "lucide-react";
+import {
+  CanAccess,
+  Translate,
+  useAuthProvider,
+  useGetIdentity,
+  useLogout,
+  useUserMenu,
+} from "ra-core";
 import { Link, matchPath, useLocation } from "react-router";
 
 export const MobileNavigation = () => {
@@ -51,12 +77,7 @@ export const MobileNavigation = () => {
             label="Companies"
             isActive={currentPath === "/companies"}
           />
-          <NavigationButton
-            href="/deals"
-            Icon={HandHeart}
-            label="Deals"
-            isActive={currentPath === "/deals"}
-          />
+          <SettingsButton />
         </>
       </div>
     </nav>
@@ -108,3 +129,101 @@ const CreateButton = () => (
     </DropdownMenuContent>
   </DropdownMenu>
 );
+
+const SettingsButton = () => {
+  const authProvider = useAuthProvider();
+  const { data: identity } = useGetIdentity();
+  const logout = useLogout();
+  if (!authProvider) return null;
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button
+          variant="ghost"
+          className="flex-col gap-1 h-auto py-2 px-1 rounded-md w-16 text-muted-foreground"
+        >
+          <Settings className="size-6" />
+          <span className="text-[0.6rem] font-medium">Settings</span>
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent>
+        <DropdownMenuLabel className="font-normal">
+          <div className="flex flex-col space-y-1">
+            <p className="text-sm font-medium leading-none">
+              {identity?.fullName}
+            </p>
+          </div>
+        </DropdownMenuLabel>
+        <DropdownMenuSeparator />
+        <ThemeMenu />
+        <ConfigurationMenu />
+        <CanAccess resource="sales" action="list">
+          <UsersMenu />
+        </CanAccess>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem onClick={() => logout()} className="cursor-pointer">
+          <LogOut />
+          <Translate i18nKey="ra.auth.logout">Log out</Translate>
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+};
+
+const UsersMenu = () => {
+  const { onClose } = useUserMenu() ?? {};
+  return (
+    <DropdownMenuItem asChild onClick={onClose}>
+      <Link to="/sales" className="flex items-center gap-2">
+        <User /> Users
+      </Link>
+    </DropdownMenuItem>
+  );
+};
+
+const ConfigurationMenu = () => {
+  const { onClose } = useUserMenu() ?? {};
+  return (
+    <DropdownMenuItem asChild onClick={onClose}>
+      <Link to="/settings" className="flex items-center gap-2">
+        <Settings />
+        My info
+      </Link>
+    </DropdownMenuItem>
+  );
+};
+
+const ThemeMenu = () => {
+  const { theme, setTheme } = useTheme();
+  return (
+    <DropdownMenuSub>
+      <DropdownMenuSubTrigger className="p-0">
+        <DropdownMenuItem
+          onSelect={(e) => {
+            e.preventDefault();
+          }}
+        >
+          <Sun className="rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
+          <Moon className="absolute rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
+          Theme
+        </DropdownMenuItem>
+      </DropdownMenuSubTrigger>
+      <DropdownMenuPortal>
+        <DropdownMenuSubContent>
+          <DropdownMenuItem onClick={() => setTheme("light")}>
+            Light
+            <Check className={cn("ml-auto", theme !== "light" && "hidden")} />
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={() => setTheme("dark")}>
+            Dark
+            <Check className={cn("ml-auto", theme !== "dark" && "hidden")} />
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={() => setTheme("system")}>
+            System
+            <Check className={cn("ml-auto", theme !== "system" && "hidden")} />
+          </DropdownMenuItem>
+        </DropdownMenuSubContent>
+      </DropdownMenuPortal>
+    </DropdownMenuSub>
+  );
+};

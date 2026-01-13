@@ -33,21 +33,21 @@ export const ResponsiveFilters = ({
     return (
       <Sheet open={open} onOpenChange={setOpen}>
         <SheetTrigger asChild>
-          <FilterLiveForm>
-            <div className="mb-2">
-              <SearchInput
-                source={source}
-                onClick={(event) => {
-                  event.preventDefault();
-                  setOpen(true);
-                }}
-                onKeyDown={(event) => {
-                  event.preventDefault();
-                }}
-                className={className}
-                {...otherSearchInputProps}
-              />
-            </div>
+          <FilterLiveForm
+            formComponent={(props) => <form className="flex-1" {...props} />}
+          >
+            <SearchInput
+              source={source}
+              onClick={(event) => {
+                event.preventDefault();
+                setOpen(true);
+              }}
+              onKeyDown={(event) => {
+                event.preventDefault();
+              }}
+              className={className}
+              {...otherSearchInputProps}
+            />
           </FilterLiveForm>
         </SheetTrigger>
         <SheetContent
