@@ -155,8 +155,8 @@ export const useImportFromJson = (): [
 
         const { data } = await dataProvider.salesCreate({
           email: dataToImport.email.trim(),
-          first_name: dataToImport.name.trim(),
-          last_name: dataToImport.name.trim(),
+          first_name: dataToImport.first_name.trim(),
+          last_name: dataToImport.last_name.trim(),
           administrator: false,
           disabled: false,
         });
@@ -224,9 +224,9 @@ export const useImportFromJson = (): [
             country: dataToImport.country?.trim(),
             address: dataToImport.address?.trim(),
             zipcode: dataToImport.zipcode?.trim(),
-            stateAbbr: dataToImport.stateAbbr?.trim(),
-            sales_id: dataToImport.salesId
-              ? idsMaps.sales[dataToImport.salesId]
+            stateAbbr: dataToImport.state_abbr?.trim(),
+            sales_id: dataToImport.sales_id
+              ? idsMaps.sales[dataToImport.sales_id]
               : undefined,
           },
         });
@@ -294,13 +294,13 @@ export const useImportFromJson = (): [
 
         const { data } = await dataProvider.create("contacts", {
           data: {
-            last_name: dataToImport.lastName,
-            first_name: dataToImport.firstName,
-            title: dataToImport.title,
-            background: dataToImport.background,
-            linkedin_url: dataToImport.linkedinUrl,
-            company_id: dataToImport.companyId
-              ? idsMaps.companies[dataToImport.companyId]
+            last_name: dataToImport.last_name.trim(),
+            first_name: dataToImport.first_name.trim(),
+            title: dataToImport.title?.trim(),
+            background: dataToImport.background?.trim(),
+            linkedin_url: dataToImport.linkedin_url?.trim(),
+            company_id: dataToImport.company_id
+              ? idsMaps.companies[dataToImport.company_id]
               : undefined,
             email_jsonb: Array.isArray(dataToImport.emails)
               ? dataToImport.emails
@@ -308,8 +308,8 @@ export const useImportFromJson = (): [
             phone_jsonb: Array.isArray(dataToImport.phones)
               ? dataToImport.phones
               : undefined,
-            sales_id: dataToImport.salesId
-              ? idsMaps.sales[dataToImport.salesId]
+            sales_id: dataToImport.sales_id
+              ? idsMaps.sales[dataToImport.sales_id]
               : undefined,
             tags: tagsIds,
           },
@@ -357,14 +357,14 @@ export const useImportFromJson = (): [
       try {
         const defaultSale = await getDefaultSale();
 
-        if (idsMaps.sales[dataToImport.salesId] == null) {
+        if (idsMaps.sales[dataToImport.sales_id] == null) {
           console.error(
-            `note ${dataToImport.text} has an invalid sales ID: ${dataToImport.salesId}`,
+            `note ${dataToImport.text} has an invalid sales ID: ${dataToImport.sales_id}`,
           );
         }
-        if (idsMaps.contacts[dataToImport.contactId] == null) {
+        if (idsMaps.contacts[dataToImport.contact_id] == null) {
           throw new Error(
-            `note ${dataToImport.text} has an invalid contact ID: ${dataToImport.contactId}`,
+            `note ${dataToImport.text} has an invalid contact ID: ${dataToImport.contact_id}`,
           );
           return;
         }
@@ -389,8 +389,8 @@ export const useImportFromJson = (): [
 
         await dataProvider.create("contactNotes", {
           data: {
-            contact_id: idsMaps.contacts[dataToImport.contactId],
-            sales_id: idsMaps.sales[dataToImport.salesId] ?? defaultSale.id,
+            contact_id: idsMaps.contacts[dataToImport.contact_id],
+            sales_id: idsMaps.sales[dataToImport.sales_id] ?? defaultSale.id,
             text: dataToImport.text,
             date: dataToImport.date,
             attachments,
@@ -437,25 +437,25 @@ export const useImportFromJson = (): [
       try {
         const defaultSale = await getDefaultSale();
 
-        if (idsMaps.sales[dataToImport.salesId] == null) {
+        if (idsMaps.sales[dataToImport.sales_id] == null) {
           console.error(
-            `task ${dataToImport.text} has an invalid sales ID: ${dataToImport.salesId}`,
+            `task ${dataToImport.text} has an invalid sales ID: ${dataToImport.sales_id}`,
           );
         }
-        if (idsMaps.contacts[dataToImport.contactId] == null) {
+        if (idsMaps.contacts[dataToImport.contact_id] == null) {
           throw new Error(
-            `task ${dataToImport.text} has an invalid contact ID: ${dataToImport.contactId}`,
+            `task ${dataToImport.text} has an invalid contact ID: ${dataToImport.contact_id}`,
           );
           return;
         }
 
         await dataProvider.create("tasks", {
           data: {
-            contact_id: idsMaps.contacts[dataToImport.contactId],
-            sales_id: idsMaps.sales[dataToImport.salesId] ?? defaultSale.id,
+            contact_id: idsMaps.contacts[dataToImport.contact_id],
+            sales_id: idsMaps.sales[dataToImport.sales_id] ?? defaultSale.id,
             text: dataToImport.text,
-            due_date: dataToImport.dueDate || undefined,
-            done_date: dataToImport.doneDate || undefined,
+            due_date: dataToImport.due_date || undefined,
+            done_date: dataToImport.done_date || undefined,
           },
         });
         setState((old) => ({
@@ -600,7 +600,8 @@ const getType = (value: string | undefined): Types | undefined => {
 type SaleImport = {
   id: number;
   email: string;
-  name: string;
+  first_name: string;
+  last_name: string;
 };
 
 const isSale = (data: any): data is SaleImport =>
@@ -609,18 +610,19 @@ const isSale = (data: any): data is SaleImport =>
   !Array.isArray(data) &&
   data.id != null &&
   data.email != null &&
-  data.name != null;
+  data.first_name !== null &&
+  data.last_name != null;
 
 type CompanyImport = {
   id: number;
   name: string;
-  salesId?: number;
+  sales_id?: number;
   description?: string;
   city?: string;
   country?: string;
   address?: string;
   zipcode?: string;
-  stateAbbr?: string;
+  state_abbr?: string;
 };
 
 const isCompany = (data: any): data is CompanyImport =>
@@ -632,13 +634,13 @@ const isCompany = (data: any): data is CompanyImport =>
 
 type ContactImport = {
   id: number;
-  salesId: number;
-  companyId?: number;
-  firstName: string;
-  lastName: string;
+  sales_id: number;
+  company_id?: number;
+  first_name: string;
+  last_name: string;
   title?: string;
   background?: string;
-  linkedinUrl?: string;
+  linkedin_url?: string;
   avatar?: string;
   emails: Array<{ email: string; type: string }>;
   phones: Array<{ number: string; type: string }>;
@@ -652,8 +654,8 @@ const isContact = (data: any): data is ContactImport =>
   data.id != null;
 
 type NoteImport = {
-  contactId: number;
-  salesId: number;
+  contact_id: number;
+  sales_id: number;
   text: string;
   date: string;
   attachments: Array<{ url: string; name: string }>;
@@ -663,23 +665,23 @@ const isNote = (data: any): data is NoteImport =>
   data != null &&
   typeof data === "object" &&
   !Array.isArray(data) &&
-  data.salesId != null &&
-  data.contactId != null &&
+  data.sales_id != null &&
+  data.contact_id != null &&
   data.text != null &&
   data.date != null;
 
 type TaskImport = {
-  contactId: number;
-  salesId: number;
+  contact_id: number;
+  sales_id: number;
   text: string;
-  dueDate?: string;
-  doneDate?: string;
+  due_date?: string;
+  done_date?: string;
 };
 
 const isTask = (data: any): data is TaskImport =>
   data != null &&
   typeof data === "object" &&
   !Array.isArray(data) &&
-  data.salesId != null &&
-  data.contactId != null &&
+  data.sales_id != null &&
+  data.contact_id != null &&
   data.text != null;
