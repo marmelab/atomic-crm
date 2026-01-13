@@ -130,14 +130,6 @@ const hasFailedImports = (failedImports: ImportFromJsonFailures) => {
   );
 };
 
-const encodeJSONToBase64 = (data: Record<string, unknown>) => {
-  const bytes = new TextEncoder().encode(JSON.stringify(data));
-  const binString = Array.from(bytes, (byte) =>
-    String.fromCodePoint(byte),
-  ).join("");
-  return btoa(binString);
-};
-
 const DownloadErrorFileButton = ({
   failedImports,
 }: {
@@ -145,8 +137,8 @@ const DownloadErrorFileButton = ({
 }) => {
   return (
     <a
-      href={`data:text/plain;base64,:${encodeJSONToBase64(failedImports)}`}
-      download
+      href={`data:application/json,${JSON.stringify(failedImports)}`}
+      download="invalid-import-data.json"
     >
       Download the error report
     </a>
