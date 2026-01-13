@@ -11,6 +11,7 @@ import type { CrmDataProvider } from "../providers/types";
 import { useConfigurationContext } from "../root/ConfigurationContext";
 import type { SignUpData } from "../types";
 import { LoginSkeleton } from "./LoginSkeleton";
+import { Notification } from "@/components/admin/notification";
 
 export const SignupPage = () => {
   const queryClient = useQueryClient();
@@ -41,8 +42,8 @@ export const SignupPage = () => {
         });
       });
     },
-    onError: () => {
-      notify("An error occurred. Please try again.");
+    onError: (error) => {
+      notify(error.message);
     },
   });
 
@@ -143,6 +144,7 @@ export const SignupPage = () => {
           </form>
         </div>
       </div>
+      <Notification />
     </div>
   );
 };

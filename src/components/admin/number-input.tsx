@@ -39,6 +39,7 @@ export const NumberInput = (props: NumberInputProps) => {
     format: _formatProp,
     parse = convertStringToNumber,
     onFocus,
+    helperText,
     ...rest
   } = props;
   const resource = useResourceContext({ resource: resourceProp });
@@ -99,7 +100,7 @@ export const NumberInput = (props: NumberInputProps) => {
           onBlur={handleBlur}
         />
       </FormControl>
-      <InputHelperText helperText={props.helperText} />
+      <InputHelperText helperText={helperText} />
       <FormError />
     </FormField>
   );

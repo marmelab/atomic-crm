@@ -34,6 +34,7 @@ export function OAuthConsentPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [approved, setApproved] = useState(false);
 
   useEffect(() => {
     async function loadAuthDetails() {
@@ -85,7 +86,8 @@ export function OAuthConsentPage() {
       setError(error.message);
       setSubmitting(false);
     } else {
-      // Redirect to client app
+      // Show success message and redirect to client app
+      setApproved(true);
       window.location.href = data.redirect_url;
     }
   }
@@ -137,6 +139,25 @@ export function OAuthConsentPage() {
           <p className="text-muted-foreground">
             {translate("ra-supabase.oauth.no_request", {
               _: "No authorization request found",
+            })}
+          </p>
+        </div>
+      </Layout>
+    );
+  }
+
+  if (approved) {
+    return (
+      <Layout>
+        <div className="flex flex-col space-y-2 text-center">
+          <h1 className="text-2xl font-semibold tracking-tight">
+            {translate("ra-supabase.oauth.approved", {
+              _: "Authorization Approved",
+            })}
+          </h1>
+          <p className="text-muted-foreground">
+            {translate("ra-supabase.oauth.close_tab", {
+              _: "You can now close this tab.",
             })}
           </p>
         </div>

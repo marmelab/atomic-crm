@@ -45,6 +45,7 @@ export const TextInput = (props: TextInputProps) => {
     multiline,
     className,
     inputClassName,
+    helperText,
     validate: _validateProp,
     format: _formatProp,
     ...rest
@@ -70,7 +71,7 @@ export const TextInput = (props: TextInputProps) => {
           <Input {...rest} {...field} className={inputClassName} />
         )}
       </FormControl>
-      <InputHelperText helperText={props.helperText} />
+      <InputHelperText helperText={helperText} />
       <FormError />
     </FormField>
   );

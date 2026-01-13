@@ -98,7 +98,7 @@ const dataProviderWithCustomMethods = {
 
     if (!response.data?.user || response.error) {
       console.error("signUp.error", response.error);
-      throw new Error("Failed to create account");
+      throw new Error(response?.error?.message || "Failed to create account");
     }
 
     // Update the is initialized cache
