@@ -5,22 +5,19 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuLabel,
-  DropdownMenuPortal,
   DropdownMenuSeparator,
-  DropdownMenuSub,
-  DropdownMenuSubContent,
-  DropdownMenuSubTrigger,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { cn } from "@/lib/utils";
 import {
   Building2,
-  Check,
   Home,
   LogOut,
   Moon,
   Plus,
   Settings,
+  Smartphone,
   Sun,
   User,
   Users,
@@ -158,6 +155,7 @@ const SettingsButton = () => {
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
         <ThemeMenu />
+        <DropdownMenuSeparator />
         <ConfigurationMenu />
         <CanAccess resource="sales" action="list">
           <UsersMenu />
@@ -201,44 +199,38 @@ const ConfigurationMenu = () => {
 const ThemeMenu = () => {
   const { theme, setTheme } = useTheme();
   return (
-    <DropdownMenuSub>
-      <DropdownMenuSubTrigger className="p-0">
-        <DropdownMenuItem
-          onSelect={(e) => {
-            e.preventDefault();
-          }}
-          className="h-12 px-4 text-base"
+    <div className="px-3 py-2">
+      <ToggleGroup
+        type="single"
+        value={theme}
+        onValueChange={(value) =>
+          value && setTheme(value as "light" | "dark" | "system")
+        }
+        className="justify-start"
+        size="lg"
+        variant="outline"
+      >
+        <ToggleGroupItem
+          value="system"
+          aria-label="System theme"
+          className="px-3"
         >
-          <Sun className="rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
-          <Moon className="absolute rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
-          Theme
-        </DropdownMenuItem>
-      </DropdownMenuSubTrigger>
-      <DropdownMenuPortal>
-        <DropdownMenuSubContent>
-          <DropdownMenuItem
-            onClick={() => setTheme("light")}
-            className="h-12 px-4 text-base"
-          >
-            Light
-            <Check className={cn("ml-auto", theme !== "light" && "hidden")} />
-          </DropdownMenuItem>
-          <DropdownMenuItem
-            onClick={() => setTheme("dark")}
-            className="h-12 px-4 text-base"
-          >
-            Dark
-            <Check className={cn("ml-auto", theme !== "dark" && "hidden")} />
-          </DropdownMenuItem>
-          <DropdownMenuItem
-            onClick={() => setTheme("system")}
-            className="h-12 px-4 text-base"
-          >
-            System
-            <Check className={cn("ml-auto", theme !== "system" && "hidden")} />
-          </DropdownMenuItem>
-        </DropdownMenuSubContent>
-      </DropdownMenuPortal>
-    </DropdownMenuSub>
+          <Smartphone className="size-5 mx-2" />
+          <span className="sr-only">System</span>
+        </ToggleGroupItem>
+        <ToggleGroupItem
+          value="light"
+          aria-label="Light theme"
+          className="px-3"
+        >
+          <Sun className="size-5 mx-2" />
+          <span className="sr-only">Light</span>
+        </ToggleGroupItem>
+        <ToggleGroupItem value="dark" aria-label="Dark theme" className="px-3">
+          <Moon className="size-5 mx-2" />
+          <span className="sr-only">Dark</span>
+        </ToggleGroupItem>
+      </ToggleGroup>
+    </div>
   );
 };
