@@ -3,18 +3,130 @@ import { ReferenceField } from "@/components/admin/reference-field";
 import { ReferenceManyField } from "@/components/admin/reference-many-field";
 import { TextField } from "@/components/admin/text-field";
 import { Card, CardContent } from "@/components/ui/card";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { useIsMobile } from "@/hooks/use-mobile";
+import MobileHeader from "../layout/MobileHeader";
+import { MobileContent } from "../layout/MobileContent";
 
 import { CompanyAvatar } from "../companies/CompanyAvatar";
 import { NoteCreate, NotesIterator } from "../notes";
+import { TasksIterator } from "../tasks/TasksIterator";
+import { AddTask } from "../tasks/AddTask";
+import { TagsListEdit } from "./TagsListEdit";
+import { ContactPersonalInfo } from "./ContactPersonalInfo";
+import { ContactBackgroundInfo } from "./ContactBackgroundInfo";
 import type { Contact } from "../types";
 import { Avatar } from "./Avatar";
 import { ContactAside } from "./ContactAside";
 
-export const ContactShow = () => (
-  <ShowBase>
-    <ContactShowContent />
-  </ShowBase>
-);
+export const ContactShow = () => {
+  const isMobile = useIsMobile();
+
+  return (
+    <ShowBase>
+      {isMobile ? <ContactShowContentMobile /> : <ContactShowContent />}
+    </ShowBase>
+  );
+};
+
+const ContactShowContentMobile = () => {
+  const { record, isPending } = useShowContext<Contact>();
+  if (isPending || !record) return null;
+
+  return (
+    <>
+      <MobileHeader>
+        <div className="flex items-center gap-2 text-secondary-foreground no-underline py-3">
+          <h1 className="text-xl font-semibold">Contacts</h1>
+        </div>
+      </MobileHeader>
+      <MobileContent>
+        <div className="mb-6">
+          <div className="flex items-center mb-4">
+            <Avatar />
+            <div className="mx-3 flex-1">
+              <h2 className="text-2xl font-bold">
+                {record.first_name} {record.last_name}
+              </h2>
+              <div className="text-sm text-muted-foreground">
+                {record.title}
+                {record.title && record.company_id != null && " at "}
+                {record.company_id != null && (
+                  <ReferenceField
+                    source="company_id"
+                    reference="companies"
+                    link="show"
+                  >
+                    <TextField source="name" className="underline" />
+                  </ReferenceField>
+                )}
+              </div>
+            </div>
+            <div>
+              <ReferenceField
+                source="company_id"
+                reference="companies"
+                link="show"
+                className="no-underline"
+              >
+                <CompanyAvatar />
+              </ReferenceField>
+            </div>
+          </div>
+        </div>
+
+        <Tabs defaultValue="notes" className="w-full">
+          <TabsList className="grid w-full grid-cols-3">
+            <TabsTrigger value="notes">Notes</TabsTrigger>
+            <TabsTrigger value="tasks">Tasks</TabsTrigger>
+            <TabsTrigger value="details">Contact Details</TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="notes" className="mt-4">
+            <ReferenceManyField
+              target="contact_id"
+              reference="contactNotes"
+              sort={{ field: "date", order: "DESC" }}
+              empty={
+                <NoteCreate reference="contacts" showStatus className="mt-4" />
+              }
+            >
+              <NotesIterator reference="contacts" showStatus />
+            </ReferenceManyField>
+          </TabsContent>
+
+          <TabsContent value="tasks" className="mt-4">
+            <ReferenceManyField
+              target="contact_id"
+              reference="tasks"
+              sort={{ field: "due_date", order: "ASC" }}
+            >
+              <TasksIterator />
+            </ReferenceManyField>
+            <AddTask />
+          </TabsContent>
+
+          <TabsContent value="details" className="mt-4">
+            <div className="space-y-6">
+              <div>
+                <h3 className="text-lg font-semibold mb-3">Personal info</h3>
+                <ContactPersonalInfo />
+              </div>
+              <div>
+                <h3 className="text-lg font-semibold mb-3">Background info</h3>
+                <ContactBackgroundInfo />
+              </div>
+              <div>
+                <h3 className="text-lg font-semibold mb-3">Tags</h3>
+                <TagsListEdit />
+              </div>
+            </div>
+          </TabsContent>
+        </Tabs>
+      </MobileContent>
+    </>
+  );
+};
 
 const ContactShowContent = () => {
   const { record, isPending } = useShowContext<Contact>();
