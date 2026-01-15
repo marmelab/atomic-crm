@@ -37,7 +37,7 @@ export const generateCompanies = (db: Db, size = 55): Required<Company>[] => {
       address: address.streetAddress(),
       zipcode: address.zipCode(),
       city: address.city(),
-      stateAbbr: address.stateAbbr(),
+      state_abbr: address.state_abbr(),
       nb_contacts: 0,
       nb_deals: 0,
       // at least 1/3rd of companies for Jane Doe

@@ -10,7 +10,7 @@ import type { Contact, ContactNote } from "../types";
 export const LatestNotes = () => {
   const { identity } = useGetIdentity();
   const { data: contactNotesData, isPending: contactNotesLoading } = useGetList(
-    "contactNotes",
+    "contact_notes",
     {
       pagination: { page: 1, perPage: 5 },
       sort: { field: "date", order: "DESC" },
@@ -19,7 +19,7 @@ export const LatestNotes = () => {
     { enabled: Number.isInteger(identity?.id) },
   );
   const { data: dealNotesData, isPending: dealNotesLoading } = useGetList(
-    "dealNotes",
+    "deal_notes",
     {
       pagination: { page: 1, perPage: 5 },
       sort: { field: "date", order: "DESC" },

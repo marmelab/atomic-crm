@@ -95,7 +95,7 @@ async function getNewContactsAndNotes(
   }
 
   const { data: contactNotes } = await dataProvider.getList<ContactNote>(
-    "contactNotes",
+    "contact_notes",
     {
       filter: recentContactNotesFilter,
       pagination: { page: 1, perPage: 250 },
@@ -145,7 +145,7 @@ async function getNewDealsAndNotes(
   }
 
   const { data: dealNotes } = await dataProvider.getList<DealNote>(
-    "dealNotes",
+    "deal_notes",
     {
       filter: recentDealNotesFilter,
       pagination: { page: 1, perPage: 250 },
