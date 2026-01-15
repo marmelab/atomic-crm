@@ -397,10 +397,6 @@
           "type": "registry:component"
         },
         {
-          "path": "src/components/atomic-crm/layout/MobileAppBar.tsx",
-          "type": "registry:component"
-        },
-        {
           "path": "src/components/atomic-crm/layout/Layout.tsx",
           "type": "registry:component"
         },
