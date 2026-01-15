@@ -12,9 +12,9 @@ import type {
 export interface Db {
   companies: Required<Company>[];
   contacts: Required<Contact>[];
-  contactNotes: ContactNote[];
+  contact_notes: ContactNote[];
   deals: Deal[];
-  dealNotes: DealNote[];
+  deal_notes: DealNote[];
   sales: Sale[];
   tags: Tag[];
   tasks: Task[];
