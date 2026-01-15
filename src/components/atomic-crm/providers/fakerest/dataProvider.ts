@@ -291,7 +291,7 @@ export const dataProvider = withLifecycleCallbacks(
             },
             sort: { field: "id", order: "ASC" },
           }),
-          dataProvider.getList("contactNotes", {
+          dataProvider.getList("contact_notes", {
             filter: { sales_id: params.id },
             pagination: {
               page: 1,
@@ -322,7 +322,7 @@ export const dataProvider = withLifecycleCallbacks(
               sales_id: newSaleId,
             },
           }),
-          dataProvider.updateMany("contactNotes", {
+          dataProvider.updateMany("contact_notes", {
             ids: contactNotes.data.map((company) => company.id),
             data: {
               sales_id: newSaleId,

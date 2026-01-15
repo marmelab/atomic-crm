@@ -110,7 +110,7 @@ const CompanyAddressInputs = () => {
       <TextInput source="address" helperText={false} />
       <TextInput source="city" helperText={false} />
       <TextInput source="zipcode" helperText={false} />
-      <TextInput source="stateAbbr" helperText={false} />
+      <TextInput source="state_abbr" helperText={false} />
       <TextInput source="country" helperText={false} />
     </div>
   );

@@ -84,7 +84,11 @@ const NoteCreateButton = ({
     refetch();
     update(reference, {
       id: (record && record.id) as unknown as Identifier,
-      data: { last_seen: new Date().toISOString(), status: data.status },
+      data: {
+        last_seen:
+          reference === "contacts" ? new Date().toISOString() : undefined,
+        status: data.status,
+      },
       previousData: record,
     });
     notify("Note added");
