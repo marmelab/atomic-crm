@@ -553,6 +553,10 @@
           "type": "registry:component"
         },
         {
+          "path": "src/components/atomic-crm/contacts/ContactPersonalInfo.tsx",
+          "type": "registry:component"
+        },
+        {
           "path": "src/components/atomic-crm/contacts/ContactMergeButton.tsx",
           "type": "registry:component"
         },
@@ -586,6 +590,10 @@
         },
         {
           "path": "src/components/atomic-crm/contacts/ContactCreate.tsx",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/contacts/ContactBackgroundInfo.tsx",
           "type": "registry:component"
         },
         {
