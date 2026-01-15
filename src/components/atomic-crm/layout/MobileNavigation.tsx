@@ -123,9 +123,11 @@ const CreateButton = () => (
       </Button>
     </DropdownMenuTrigger>
     <DropdownMenuContent>
-      <DropdownMenuItem>Contact</DropdownMenuItem>
-      <DropdownMenuItem>Note</DropdownMenuItem>
-      <DropdownMenuItem>Task</DropdownMenuItem>
+      <DropdownMenuItem className="h-12 px-4 text-base">
+        Contact
+      </DropdownMenuItem>
+      <DropdownMenuItem className="h-12 px-4 text-base">Note</DropdownMenuItem>
+      <DropdownMenuItem className="h-12 px-4 text-base">Task</DropdownMenuItem>
     </DropdownMenuContent>
   </DropdownMenu>
 );
@@ -147,9 +149,9 @@ const SettingsButton = () => {
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent>
-        <DropdownMenuLabel className="font-normal">
-          <div className="flex flex-col space-y-1">
-            <p className="text-sm font-medium leading-none">
+        <DropdownMenuLabel className="font-normal h-12 px-4">
+          <div className="flex flex-col justify-center h-full">
+            <p className="text-base font-medium leading-none">
               {identity?.fullName}
             </p>
           </div>
@@ -161,7 +163,10 @@ const SettingsButton = () => {
           <UsersMenu />
         </CanAccess>
         <DropdownMenuSeparator />
-        <DropdownMenuItem onClick={() => logout()} className="cursor-pointer">
+        <DropdownMenuItem
+          onClick={() => logout()}
+          className="cursor-pointer h-12 px-4 text-base"
+        >
           <LogOut />
           <Translate i18nKey="ra.auth.logout">Log out</Translate>
         </DropdownMenuItem>
@@ -173,7 +178,7 @@ const SettingsButton = () => {
 const UsersMenu = () => {
   const { onClose } = useUserMenu() ?? {};
   return (
-    <DropdownMenuItem asChild onClick={onClose}>
+    <DropdownMenuItem asChild onClick={onClose} className="h-12 px-4 text-base">
       <Link to="/sales" className="flex items-center gap-2">
         <User /> Users
       </Link>
@@ -184,7 +189,7 @@ const UsersMenu = () => {
 const ConfigurationMenu = () => {
   const { onClose } = useUserMenu() ?? {};
   return (
-    <DropdownMenuItem asChild onClick={onClose}>
+    <DropdownMenuItem asChild onClick={onClose} className="h-12 px-4 text-base">
       <Link to="/settings" className="flex items-center gap-2">
         <Settings />
         My info
@@ -202,6 +207,7 @@ const ThemeMenu = () => {
           onSelect={(e) => {
             e.preventDefault();
           }}
+          className="h-12 px-4 text-base"
         >
           <Sun className="rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
           <Moon className="absolute rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
@@ -210,15 +216,24 @@ const ThemeMenu = () => {
       </DropdownMenuSubTrigger>
       <DropdownMenuPortal>
         <DropdownMenuSubContent>
-          <DropdownMenuItem onClick={() => setTheme("light")}>
+          <DropdownMenuItem
+            onClick={() => setTheme("light")}
+            className="h-12 px-4 text-base"
+          >
             Light
             <Check className={cn("ml-auto", theme !== "light" && "hidden")} />
           </DropdownMenuItem>
-          <DropdownMenuItem onClick={() => setTheme("dark")}>
+          <DropdownMenuItem
+            onClick={() => setTheme("dark")}
+            className="h-12 px-4 text-base"
+          >
             Dark
             <Check className={cn("ml-auto", theme !== "dark" && "hidden")} />
           </DropdownMenuItem>
-          <DropdownMenuItem onClick={() => setTheme("system")}>
+          <DropdownMenuItem
+            onClick={() => setTheme("system")}
+            className="h-12 px-4 text-base"
+          >
             System
             <Check className={cn("ml-auto", theme !== "system" && "hidden")} />
           </DropdownMenuItem>
