@@ -10,11 +10,10 @@ import { MobileContent } from "../layout/MobileContent";
 
 import { CompanyAvatar } from "../companies/CompanyAvatar";
 import { NoteCreate, NotesIterator } from "../notes";
-import { TasksIterator } from "../tasks/TasksIterator";
-import { AddTask } from "../tasks/AddTask";
 import { TagsListEdit } from "./TagsListEdit";
 import { ContactPersonalInfo } from "./ContactPersonalInfo";
 import { ContactBackgroundInfo } from "./ContactBackgroundInfo";
+import { ContactTasksList } from "./ContactTasksList";
 import type { Contact } from "../types";
 import { Avatar } from "./Avatar";
 import { ContactAside } from "./ContactAside";
@@ -98,14 +97,7 @@ const ContactShowContentMobile = () => {
           </TabsContent>
 
           <TabsContent value="tasks" className="mt-4">
-            <ReferenceManyField
-              target="contact_id"
-              reference="tasks"
-              sort={{ field: "due_date", order: "ASC" }}
-            >
-              <TasksIterator />
-            </ReferenceManyField>
-            <AddTask />
+            <ContactTasksList />
           </TabsContent>
 
           <TabsContent value="details" className="mt-4">
