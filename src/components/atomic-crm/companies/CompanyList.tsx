@@ -6,8 +6,9 @@ import { SortButton } from "@/components/admin/sort-button";
 import { InfiniteListBase, useGetIdentity, useListContext } from "ra-core";
 
 import { useIsMobile } from "@/hooks/use-mobile";
+import { MobileContent } from "../layout/MobileContent";
+import MobileHeader from "../layout/MobileHeader";
 import { TopToolbar } from "../layout/TopToolbar";
-import { MobileHeader } from "../layout/MobileHeader";
 import { InfinitePagination } from "../misc/InfinitePagination";
 import { CompanyEmpty } from "./CompanyEmpty";
 import { CompanyListFilter } from "./CompanyListFilter";
@@ -44,9 +45,6 @@ const CompanyListMobile = () => {
   return (
     <InfiniteListBase perPage={25} sort={{ field: "name", order: "ASC" }}>
       <MobileCompanyListLayout />
-      <div className="flex justify-center">
-        <InfinitePagination />
-      </div>
     </InfiniteListBase>
   );
 };
@@ -78,12 +76,17 @@ const MobileCompanyListLayout = () => {
   if (!data?.length && !hasFilters) return <CompanyEmpty />;
 
   return (
-    <>
+    <div>
       <MobileHeader>
         <CompanyListFilter />
       </MobileHeader>
+      <MobileContent>
         <ImageList />
-    </>
+        <div className="flex justify-center">
+          <InfinitePagination />
+        </div>
+      </MobileContent>
+    </div>
   );
 };
 
