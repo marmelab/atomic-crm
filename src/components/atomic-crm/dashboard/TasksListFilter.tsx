@@ -11,9 +11,11 @@ import { TasksIterator } from "../tasks/TasksIterator";
 export const TasksListFilter = ({
   title,
   filter,
+  contactId,
 }: {
   title: string;
   filter: any;
+  contactId?: string | number;
 }) => {
   const { identity } = useGetIdentity();
 
@@ -28,10 +30,10 @@ export const TasksListFilter = ({
       sort: { field: "due_date", order: "ASC" },
       filter: {
         ...filter,
-        sales_id: identity?.id,
+        ...(contactId ? { contact_id: contactId } : { sales_id: identity?.id }),
       },
     },
-    { enabled: !!identity },
+    { enabled: contactId ? true : !!identity },
   );
 
   const listContext = useList({
@@ -50,7 +52,7 @@ export const TasksListFilter = ({
       </p>
       <ResourceContextProvider value="tasks">
         <ListContextProvider value={listContext}>
-          <TasksIterator showContact />
+          <TasksIterator showContact={!contactId} />
         </ListContextProvider>
       </ResourceContextProvider>
       {total > listContext.perPage && (
