@@ -349,6 +349,10 @@
           "type": "registry:component"
         },
         {
+          "path": "src/components/atomic-crm/misc/ListButton.tsx",
+          "type": "registry:component"
+        },
+        {
           "path": "src/components/atomic-crm/misc/InfinitePagination.tsx",
           "type": "registry:component"
         },

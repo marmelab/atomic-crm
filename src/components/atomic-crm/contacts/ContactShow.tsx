@@ -18,6 +18,7 @@ import { ContactBackgroundInfo } from "./ContactBackgroundInfo";
 import type { Contact } from "../types";
 import { Avatar } from "./Avatar";
 import { ContactAside } from "./ContactAside";
+import { ListButton } from "../misc/ListButton";
 
 export const ContactShow = () => {
   const isMobile = useIsMobile();
@@ -36,7 +37,8 @@ const ContactShowContentMobile = () => {
   return (
     <>
       <MobileHeader>
-        <div className="flex items-center gap-2 text-secondary-foreground no-underline py-3">
+        <ListButton />
+        <div className="flex flex-1 items-center gap-2 text-secondary-foreground no-underline py-3">
           <h1 className="text-xl font-semibold">Contacts</h1>
         </div>
       </MobileHeader>
