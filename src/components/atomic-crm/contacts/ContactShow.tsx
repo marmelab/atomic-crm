@@ -1,6 +1,7 @@
 import { ShowBase, useShowContext } from "ra-core";
 import { ReferenceField } from "@/components/admin/reference-field";
 import { ReferenceManyField } from "@/components/admin/reference-many-field";
+import { ReferenceManyCount } from "@/components/admin/reference-many-count";
 import { TextField } from "@/components/admin/text-field";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
@@ -79,7 +80,14 @@ const ContactShowContentMobile = () => {
         <Tabs defaultValue="notes" className="w-full">
           <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="notes">Notes</TabsTrigger>
-            <TabsTrigger value="tasks">Tasks</TabsTrigger>
+            <TabsTrigger value="tasks">
+              <ReferenceManyCount
+                target="contact_id"
+                reference="tasks"
+                filter={{ "done_date@is": null }}
+              />{" "}
+              Tasks
+            </TabsTrigger>
             <TabsTrigger value="details">Contact Details</TabsTrigger>
           </TabsList>
 
