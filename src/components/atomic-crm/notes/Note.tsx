@@ -26,6 +26,7 @@ import { SaleName } from "../sales/SaleName";
 import type { ContactNote, DealNote } from "../types";
 import { NoteAttachments } from "./NoteAttachments";
 import { NoteInputs } from "./NoteInputs";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 export const Note = ({
   showStatus,
@@ -35,6 +36,7 @@ export const Note = ({
   note: DealNote | ContactNote;
   isLast: boolean;
 }) => {
+  const isMobile = useIsMobile();
   const [isHover, setHover] = useState(false);
   const [isEditing, setEditing] = useState(false);
   const resource = useResourceContext();
@@ -84,7 +86,7 @@ export const Note = ({
       onMouseEnter={() => setHover(true)}
       onMouseLeave={() => setHover(false)}
     >
-      <div className="flex items-center space-x-4 w-full">
+      <div className="flex items-center space-x-2 md:space-x-4 w-full">
         {resource === "contactNote" ? (
           <Avatar width={20} height={20} />
         ) : (
@@ -93,6 +95,7 @@ export const Note = ({
           </ReferenceField>
         )}
         <div className="inline-flex h-full items-center text-sm text-muted-foreground">
+          {isMobile ? "By " : null}
           <ReferenceField
             record={note}
             resource={resource}
@@ -102,47 +105,49 @@ export const Note = ({
           >
             <WithRecord render={(record) => <SaleName sale={record} />} />
           </ReferenceField>{" "}
-          added a note{" "}
+          {isMobile ? null : "added a note "}
           {showStatus && note.status && (
             <Status className="ml-2" status={note.status} />
           )}
         </div>
-        <span className={`${isHover ? "visible" : "invisible"}`}>
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={handleEnterEditMode}
-                  className="p-1 h-auto cursor-pointer"
-                >
-                  <Edit className="w-4 h-4" />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>Edit note</p>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={handleDelete}
-                  className="p-1 h-auto cursor-pointer"
-                >
-                  <Trash2 className="w-4 h-4" />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>Delete note</p>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
-        </span>
+        {isMobile ? null : (
+          <span className={`${isHover ? "visible" : "invisible"}`}>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={handleEnterEditMode}
+                    className="p-1 h-auto cursor-pointer"
+                  >
+                    <Edit className="w-4 h-4" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Edit note</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={handleDelete}
+                    className="p-1 h-auto cursor-pointer"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Delete note</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          </span>
+        )}
         <div className="flex-1"></div>
         <span className="text-sm text-muted-foreground">
           <RelativeDate date={note.date} />
