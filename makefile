@@ -91,3 +91,15 @@ registry-deploy: registry-build ## Deploy the shadcn registry (Automatically don
 registry-gen: ## Generate the shadcn registry (ran automatically by a pre-commit hook)
 	npm run registry:gen
 	npx prettier --config ./.prettierrc.json --write "registry.json"
+
+docker-init:
+	sh ./scripts/init-docker.sh
+
+docker-start:
+	docker compose -p atomic-crm --env-file .env.development --env-file ./docker/.env -f ./docker/docker-compose.yml -f ./docker/docker-compose-atomic-development.yml up
+
+docker-start-production:
+	docker compose -p atomic-crm --env-file .env -f ./docker/docker-compose.yml -f ./docker/docker-compose-atomic-production.yml up
+
+docker-stop:
+	docker compose -p atomic-crm --env-file .env.development --env-file ./docker/.env -f ./docker/docker-compose.yml -f ./docker/docker-compose-atomic.yml down

@@ -37,3 +37,7 @@ dist/
 
 # Shadcn Registry
 public/r/
+docker/*
+!docker/docker-compose-atomic-development.yml
+!docker/docker-compose-atomic-production.yml
+!docker/Dockerfile

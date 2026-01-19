@@ -1,0 +1,32 @@
+name: AtomicCRM
+
+services:
+  frontend:
+    image: atomic-crm-frontend
+    build:
+      context: ..
+      dockerfile: ./docker/Dockerfile
+    command: npm run preview
+    environment:
+      NODE_ENV: production
+      FRONTEND_HTTP_HOST: ${FRONTEND_HTTP_HOST}
+      FRONTEND_HTTP_PORT: ${FRONTEND_HTTP_PORT}
+      FRONTEND_HMR_PORT: ${FRONTEND_HMR_PORT}
+      VITE_SUPABASE_URL: ${VITE_SUPABASE_URL}
+      VITE_SUPABASE_ANON_KEY: ${VITE_SUPABASE_ANON_KEY}
+      VITE_IS_DEMO: ${VITE_IS_DEMO}
+      VITE_INBOUND_EMAIL: ${VITE_INBOUND_EMAIL}
+      SKIP_PREFLIGHT_CHECK: ${SKIP_PREFLIGHT_CHECK}
+    ports:
+      - ${FRONTEND_HTTP_PORT}:${FRONTEND_HTTP_PORT}/tcp
+      - ${FRONTEND_HMR_PORT}:${FRONTEND_HMR_PORT}/tcp
+    volumes:
+      - ../index.html:/app/index.html
+      - ../demo:/app/demo
+      - ../src:/app/src
+      - ../public:/app/public
+      - ../vite.config.ts:/app/vite.config.ts
+      - ../vite.demo.config.ts:/app/vite.demo.config.ts
+      - ../tsconfig.json:/app/tsconfig.json
+      - ../tsconfig.app.json:/app/tsconfig.app.json
+      - ../tsconfig.node.json:/app/tsconfig.node.json
