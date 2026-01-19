@@ -53,17 +53,23 @@ export const TasksList = () => {
         <AddTask display="icon" selectContact />
       </div>
       <Card className="p-4 mb-2">
-        <div className="flex flex-col gap-4">
-          <TasksListEmpty />
-          <TasksListFilter title="Overdue" filter={taskFilters.overdue} />
-          <TasksListFilter title="Today" filter={taskFilters.today} />
-          <TasksListFilter title="Tomorrow" filter={taskFilters.tomorrow} />
-          {isBeforeFriday && (
-            <TasksListFilter title="This week" filter={taskFilters.thisWeek} />
-          )}
-          <TasksListFilter title="Later" filter={taskFilters.later} />
-        </div>
+        <TasksListContent />
       </Card>
+    </div>
+  );
+};
+
+export const TasksListContent = () => {
+  return (
+    <div className="flex flex-col gap-4">
+      <TasksListEmpty />
+      <TasksListFilter title="Overdue" filter={taskFilters.overdue} />
+      <TasksListFilter title="Today" filter={taskFilters.today} />
+      <TasksListFilter title="Tomorrow" filter={taskFilters.tomorrow} />
+      {isBeforeFriday && (
+        <TasksListFilter title="This week" filter={taskFilters.thisWeek} />
+      )}
+      <TasksListFilter title="Later" filter={taskFilters.later} />
     </div>
   );
 };

@@ -45,6 +45,10 @@
           "type": "registry:component"
         },
         {
+          "path": "src/components/atomic-crm/tasks/MobileTasksList.tsx",
+          "type": "registry:component"
+        },
+        {
           "path": "src/components/atomic-crm/tasks/AddTask.tsx",
           "type": "registry:component"
         },
