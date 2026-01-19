@@ -76,6 +76,7 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.22.0",
+    "@inquirer/prompts": "^8.2.0",
     "@testing-library/jest-dom": "^6.6.3",
     "@types/faker": "^5.5.9",
     "@types/jsonexport": "^3.0.5",
