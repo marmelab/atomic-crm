@@ -11,25 +11,17 @@ import {
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { cn } from "@/lib/utils";
 import {
-  ListTodo,
   Home,
+  ListTodo,
   LogOut,
   Moon,
   Plus,
   Settings,
   Smartphone,
   Sun,
-  User,
   Users,
 } from "lucide-react";
-import {
-  CanAccess,
-  Translate,
-  useAuthProvider,
-  useGetIdentity,
-  useLogout,
-  useUserMenu,
-} from "ra-core";
+import { Translate, useAuthProvider, useGetIdentity, useLogout } from "ra-core";
 import { Link, matchPath, useLocation } from "react-router";
 
 export const MobileNavigation = () => {
@@ -158,11 +150,6 @@ const SettingsButton = () => {
         <DropdownMenuSeparator />
         <ThemeMenu />
         <DropdownMenuSeparator />
-        <ConfigurationMenu />
-        <CanAccess resource="sales" action="list">
-          <UsersMenu />
-        </CanAccess>
-        <DropdownMenuSeparator />
         <DropdownMenuItem
           onClick={() => logout()}
           className="cursor-pointer h-12 px-4 text-base"
@@ -172,29 +159,6 @@ const SettingsButton = () => {
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
-  );
-};
-
-const UsersMenu = () => {
-  const { onClose } = useUserMenu() ?? {};
-  return (
-    <DropdownMenuItem asChild onClick={onClose} className="h-12 px-4 text-base">
-      <Link to="/sales" className="flex items-center gap-2">
-        <User /> Users
-      </Link>
-    </DropdownMenuItem>
-  );
-};
-
-const ConfigurationMenu = () => {
-  const { onClose } = useUserMenu() ?? {};
-  return (
-    <DropdownMenuItem asChild onClick={onClose} className="h-12 px-4 text-base">
-      <Link to="/settings" className="flex items-center gap-2">
-        <Settings />
-        My info
-      </Link>
-    </DropdownMenuItem>
   );
 };
 
