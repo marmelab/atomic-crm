@@ -1,6 +1,11 @@
 import { useQueryClient } from "@tanstack/react-query";
 import { MoreVertical } from "lucide-react";
-import { useDeleteWithUndoController, useNotify, useUpdate } from "ra-core";
+import {
+  useCreatePath,
+  useDeleteWithUndoController,
+  useNotify,
+  useUpdate,
+} from "ra-core";
 import { useEffect, useState } from "react";
 import { ReferenceField } from "@/components/admin/reference-field";
 import { DateField } from "@/components/admin/date-field";
@@ -15,6 +20,8 @@ import {
 
 import type { Contact, Task as TData } from "../types";
 import { TaskEdit } from "./TaskEdit";
+import { useIsMobile } from "@/hooks/use-mobile";
+import { useNavigate } from "react-router";
 
 export const Task = ({
   task,
@@ -23,6 +30,9 @@ export const Task = ({
   task: TData;
   showContact?: boolean;
 }) => {
+  const isMobile = useIsMobile();
+  const navigate = useNavigate();
+  const createPath = useCreatePath();
   const notify = useNotify();
   const queryClient = useQueryClient();
 
@@ -45,6 +55,15 @@ export const Task = ({
   });
 
   const handleEdit = () => {
+    if (isMobile) {
+      const path = createPath({
+        resource: "tasks",
+        id: task.id,
+        type: "edit",
+      });
+      navigate(path);
+      return;
+    }
     setOpenEdit(true);
   };
 
@@ -176,7 +195,7 @@ export const Task = ({
       </div>
 
       {/* This part is for editing the Task directly via a Dialog */}
-      {openEdit && (
+      {!isMobile && openEdit && (
         <TaskEdit taskId={task.id} open={openEdit} close={handleCloseEdit} />
       )}
     </>
