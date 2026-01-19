@@ -45,6 +45,7 @@ import { i18nProvider } from "./i18nProvider";
 import { StartPage } from "../login/StartPage.tsx";
 import { useIsMobile } from "@/hooks/use-mobile.ts";
 import { MobileTasksList } from "../tasks/MobileTasksList.tsx";
+import { MobileTaskEdit } from "../tasks/MobileTaskEdit.tsx";
 
 export type CRMProps = {
   dataProvider?: DataProvider;
@@ -214,7 +215,7 @@ const MobileAdmin = (props: CoreAdminProps) => {
       </CustomRoutes>
       <Resource name="contacts" {...contacts} />
       <Resource name="contactNotes" />
-      <Resource name="tasks" list={MobileTasksList} />
+      <Resource name="tasks" list={MobileTasksList} edit={MobileTaskEdit} />
     </Admin>
   );
 };

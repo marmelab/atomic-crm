@@ -38,7 +38,7 @@ const ContactShowContentMobile = () => {
     <>
       <MobileHeader>
         <ListButton />
-        <div className="flex flex-1 items-center gap-2 text-secondary-foreground no-underline py-3">
+        <div className="flex flex-1">
           <h1 className="text-xl font-semibold">Contacts</h1>
         </div>
       </MobileHeader>
