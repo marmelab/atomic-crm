@@ -1,6 +1,7 @@
 import { CircleX, Edit, Save, Trash2 } from "lucide-react";
 import {
   Form,
+  useCreatePath,
   useDelete,
   useNotify,
   useResourceContext,
@@ -9,6 +10,7 @@ import {
 } from "ra-core";
 import { useState } from "react";
 import type { FieldValues, SubmitHandler } from "react-hook-form";
+import { Link } from "react-router";
 import { ReferenceField } from "@/components/admin/reference-field";
 import { Button } from "@/components/ui/button";
 import {
@@ -19,7 +21,6 @@ import {
 } from "@/components/ui/tooltip";
 
 import { CompanyAvatar } from "../companies/CompanyAvatar";
-import { Avatar } from "../contacts/Avatar";
 import { RelativeDate } from "../misc/RelativeDate";
 import { Status } from "../misc/Status";
 import { SaleName } from "../sales/SaleName";
@@ -41,6 +42,18 @@ export const Note = ({
   const [isEditing, setEditing] = useState(false);
   const resource = useResourceContext();
   const notify = useNotify();
+  const createPath = useCreatePath();
+
+  const editPath = createPath({
+    resource,
+    type: "edit",
+    id: note.id,
+  });
+
+  const linkState =
+    resource === "contactNotes"
+      ? { reference: "contacts", showStatus: true }
+      : { reference: "deals" };
 
   const [update, { isPending }] = useUpdate();
 
@@ -81,19 +94,16 @@ export const Note = ({
     );
   };
 
-  return (
+  const content = (
     <div
       onMouseEnter={() => setHover(true)}
       onMouseLeave={() => setHover(false)}
+      className="mb-4"
     >
       <div className="flex items-center space-x-2 md:space-x-4 w-full">
-        {resource === "contactNote" ? (
-          <Avatar width={20} height={20} />
-        ) : (
-          <ReferenceField source="company_id" reference="companies" link="show">
-            <CompanyAvatar width={20} height={20} />
-          </ReferenceField>
-        )}
+        <ReferenceField source="company_id" reference="companies" link="show">
+          <CompanyAvatar width={20} height={20} />
+        </ReferenceField>
         <div className="inline-flex h-full items-center text-sm text-muted-foreground">
           {isMobile ? "By " : null}
           <ReferenceField
@@ -189,4 +199,14 @@ export const Note = ({
       )}
     </div>
   );
+
+  if (isMobile) {
+    return (
+      <Link to={editPath} state={{ record: linkState }}>
+        {content}
+      </Link>
+    );
+  }
+
+  return content;
 };

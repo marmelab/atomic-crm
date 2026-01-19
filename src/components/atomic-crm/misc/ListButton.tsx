@@ -3,8 +3,8 @@ import { useNavigate } from "react-router";
 import { ChevronLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
-export const ListButton = () => {
-  const resource = useResourceContext();
+export const ListButton = (props: { resource?: string }) => {
+  const resource = useResourceContext(props);
   const navigate = useNavigate();
   const createPath = useCreatePath();
   const to = createPath({ resource, type: "list" });

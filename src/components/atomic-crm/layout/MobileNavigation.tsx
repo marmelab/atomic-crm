@@ -134,7 +134,26 @@ const CreateButton = () => {
         <DropdownMenuItem className="h-12 px-4 text-base">
           Contact
         </DropdownMenuItem>
-        <DropdownMenuItem className="h-12 px-4 text-base">
+        <DropdownMenuItem
+          className="h-12 px-4 text-base"
+          onSelect={() => {
+            navigate(
+              createPath({
+                resource: "contactNotes",
+                type: "create",
+              }),
+              {
+                state: {
+                  record: {
+                    reference_id: contact_id || undefined,
+                    reference: "contacts",
+                    showStatus: true,
+                  },
+                },
+              },
+            );
+          }}
+        >
           Note
         </DropdownMenuItem>
         <DropdownMenuItem
@@ -146,11 +165,7 @@ const CreateButton = () => {
                 type: "create",
               }),
               {
-                state: contact_id
-                  ? {
-                      record: { contact_id },
-                    }
-                  : undefined,
+                state: contact_id ? { record: { contact_id } } : undefined,
               },
             );
           }}

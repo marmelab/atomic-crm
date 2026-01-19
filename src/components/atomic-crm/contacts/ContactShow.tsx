@@ -19,6 +19,7 @@ import type { Contact } from "../types";
 import { Avatar } from "./Avatar";
 import { ContactAside } from "./ContactAside";
 import { ListButton } from "../misc/ListButton";
+import { CreateButton } from "@/components/admin";
 
 export const ContactShow = () => {
   const isMobile = useIsMobile();
@@ -97,7 +98,20 @@ const ContactShowContentMobile = () => {
               reference="contactNotes"
               sort={{ field: "date", order: "DESC" }}
               empty={
-                <NoteCreate reference="contacts" showStatus className="mt-4" />
+                <div className="flex flex-col items-center justify-center py-8 text-center">
+                  <p className="text-muted-foreground mb-4">No notes yet</p>
+                  <CreateButton
+                    resource="contactNotes"
+                    state={{
+                      record: {
+                        reference_id: record.id,
+                        reference: "contacts",
+                        showStatus: true,
+                      },
+                    }}
+                    label="Add note"
+                  />
+                </div>
               }
             >
               <NotesIterator reference="contacts" showStatus />

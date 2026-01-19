@@ -11,8 +11,22 @@ import { cn } from "@/lib/utils";
 import { Status } from "../misc/Status";
 import { useConfigurationContext } from "../root/ConfigurationContext";
 import { getCurrentDate } from "./utils";
+import { foreignKeyMapping } from "./foreignKeyMapping";
+import { AutocompleteInput, ReferenceInput } from "@/components/admin";
+import { required } from "ra-core";
+import { contactOptionText } from "../misc/ContactOption";
+import { useIsMobile } from "@/hooks/use-mobile";
 
-export const NoteInputs = ({ showStatus }: { showStatus?: boolean }) => {
+export const NoteInputs = ({
+  showStatus,
+  selectReference,
+  reference,
+}: {
+  showStatus?: boolean;
+  selectReference?: boolean;
+  reference?: "contacts" | "deals";
+}) => {
+  const isMobile = useIsMobile();
   const { noteStatuses } = useConfigurationContext();
   const { setValue } = useFormContext();
   const [displayMore, setDisplayMore] = useState(false);
@@ -28,7 +42,23 @@ export const NoteInputs = ({ showStatus }: { showStatus?: boolean }) => {
         rows={6}
       />
 
-      {!displayMore && (
+      {selectReference && reference && (
+        <ReferenceInput
+          source={foreignKeyMapping[reference]}
+          reference={reference}
+        >
+          <AutocompleteInput
+            label={reference === "contacts" ? "Contact" : "Deal"}
+            optionText={
+              reference === "contacts" ? contactOptionText : undefined
+            }
+            helperText={false}
+            validate={required()}
+          />
+        </ReferenceInput>
+      )}
+
+      {!displayMore && !isMobile && (
         <div className="flex justify-end items-center gap-2">
           <Button
             variant="link"
@@ -49,11 +79,12 @@ export const NoteInputs = ({ showStatus }: { showStatus?: boolean }) => {
 
       <div
         className={cn(
-          "space-y-3 mt-3 overflow-hidden transition-transform ease-in-out duration-300 origin-top",
-          !displayMore ? "scale-y-0 max-h-0 h-0" : "scale-y-100",
+          "space-y-3 mt-3 overflow-hidden origin-top",
+          !isMobile ? "transition-transform ease-in-out duration-300 " : "",
+          !displayMore && !isMobile ? "scale-y-0 max-h-0 h-0" : "scale-y-100",
         )}
       >
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {showStatus && (
             <SelectInput
               source="status"
