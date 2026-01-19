@@ -5,8 +5,9 @@ import {
   getDay,
   startOfToday,
 } from "date-fns";
-import { useRecordContext } from "ra-core";
+import { useRecordContext, useGetList } from "ra-core";
 
+import { CreateButton } from "../../admin";
 import { TasksListFilter } from "../dashboard/TasksListFilter";
 import type { Contact } from "../types";
 
@@ -41,7 +42,31 @@ const taskFilters = {
 export const ContactTasksList = () => {
   const record = useRecordContext<Contact>();
 
+  const { total, isLoading } = useGetList("tasks", {
+    filter: {
+      "contact_id@eq": record?.id,
+      "done_date@is": null,
+    },
+    pagination: { page: 1, perPage: 1 },
+    sort: { field: "due_date", order: "ASC" },
+  });
+
   if (!record) return null;
+
+  const hasActiveTasks = total != null && total > 0;
+
+  if (!isLoading && !hasActiveTasks) {
+    return (
+      <div className="flex flex-col items-center justify-center py-8 text-center">
+        <p className="text-muted-foreground mb-4">No tasks yet</p>
+        <CreateButton
+          resource="tasks"
+          state={{ record: { contact_id: record.id } }}
+          label="Add task"
+        />
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col gap-4">
