@@ -21,8 +21,20 @@ import {
   Sun,
   Users,
 } from "lucide-react";
-import { Translate, useAuthProvider, useGetIdentity, useLogout } from "ra-core";
-import { Link, matchPath, useLocation } from "react-router";
+import {
+  Translate,
+  useAuthProvider,
+  useCreatePath,
+  useGetIdentity,
+  useLogout,
+} from "ra-core";
+import {
+  Link,
+  matchPath,
+  useLocation,
+  useMatch,
+  useNavigate,
+} from "react-router";
 
 export const MobileNavigation = () => {
   const location = useLocation();
@@ -101,27 +113,54 @@ const NavigationButton = ({
   </Button>
 );
 
-const CreateButton = () => (
-  <DropdownMenu>
-    <DropdownMenuTrigger asChild>
-      <Button
-        variant="default"
-        size="icon"
-        className="h-16 w-16 rounded-full -mt-3"
-        aria-label="Create"
-      >
-        <Plus className="size-10" />
-      </Button>
-    </DropdownMenuTrigger>
-    <DropdownMenuContent>
-      <DropdownMenuItem className="h-12 px-4 text-base">
-        Contact
-      </DropdownMenuItem>
-      <DropdownMenuItem className="h-12 px-4 text-base">Note</DropdownMenuItem>
-      <DropdownMenuItem className="h-12 px-4 text-base">Task</DropdownMenuItem>
-    </DropdownMenuContent>
-  </DropdownMenu>
-);
+const CreateButton = () => {
+  const contact_id = useMatch("/contacts/:id/*")?.params.id;
+  const navigate = useNavigate();
+  const createPath = useCreatePath();
+
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button
+          variant="default"
+          size="icon"
+          className="h-16 w-16 rounded-full -mt-3"
+          aria-label="Create"
+        >
+          <Plus className="size-10" />
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent>
+        <DropdownMenuItem className="h-12 px-4 text-base">
+          Contact
+        </DropdownMenuItem>
+        <DropdownMenuItem className="h-12 px-4 text-base">
+          Note
+        </DropdownMenuItem>
+        <DropdownMenuItem
+          className="h-12 px-4 text-base"
+          onSelect={() => {
+            navigate(
+              createPath({
+                resource: "tasks",
+                type: "create",
+              }),
+              {
+                state: contact_id
+                  ? {
+                      record: { contact_id },
+                    }
+                  : undefined,
+              },
+            );
+          }}
+        >
+          Task
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+};
 
 const SettingsButton = () => {
   const authProvider = useAuthProvider();

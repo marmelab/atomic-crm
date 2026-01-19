@@ -8,7 +8,6 @@ import {
 import { useRecordContext } from "ra-core";
 
 import { TasksListFilter } from "../dashboard/TasksListFilter";
-import { AddTask } from "../tasks/AddTask";
 import type { Contact } from "../types";
 
 const today = new Date();
@@ -73,7 +72,6 @@ export const ContactTasksList = () => {
         filter={taskFilters.later}
         contactId={record.id}
       />
-      <AddTask />
     </div>
   );
 };
