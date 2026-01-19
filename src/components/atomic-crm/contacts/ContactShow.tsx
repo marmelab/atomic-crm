@@ -1,20 +1,148 @@
 import { ShowBase, useShowContext } from "ra-core";
 import { ReferenceField } from "@/components/admin/reference-field";
 import { ReferenceManyField } from "@/components/admin/reference-many-field";
+import { ReferenceManyCount } from "@/components/admin/reference-many-count";
 import { TextField } from "@/components/admin/text-field";
 import { Card, CardContent } from "@/components/ui/card";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { useIsMobile } from "@/hooks/use-mobile";
+import MobileHeader from "../layout/MobileHeader";
+import { MobileContent } from "../layout/MobileContent";
 
 import { CompanyAvatar } from "../companies/CompanyAvatar";
 import { NoteCreate, NotesIterator } from "../notes";
+import { TagsListEdit } from "./TagsListEdit";
+import { ContactPersonalInfo } from "./ContactPersonalInfo";
+import { ContactBackgroundInfo } from "./ContactBackgroundInfo";
+import { ContactTasksList } from "./ContactTasksList";
 import type { Contact } from "../types";
 import { Avatar } from "./Avatar";
 import { ContactAside } from "./ContactAside";
+import { ListButton } from "../misc/ListButton";
+import { CreateButton } from "@/components/admin";
 
-export const ContactShow = () => (
-  <ShowBase>
-    <ContactShowContent />
-  </ShowBase>
-);
+export const ContactShow = () => {
+  const isMobile = useIsMobile();
+
+  return (
+    <ShowBase>
+      {isMobile ? <ContactShowContentMobile /> : <ContactShowContent />}
+    </ShowBase>
+  );
+};
+
+const ContactShowContentMobile = () => {
+  const { record, isPending } = useShowContext<Contact>();
+  if (isPending || !record) return null;
+
+  return (
+    <>
+      <MobileHeader>
+        <ListButton />
+        <div className="flex flex-1">
+          <h1 className="text-xl font-semibold">Contacts</h1>
+        </div>
+      </MobileHeader>
+      <MobileContent>
+        <div className="mb-6">
+          <div className="flex items-center mb-4">
+            <Avatar />
+            <div className="mx-3 flex-1">
+              <h2 className="text-2xl font-bold">
+                {record.first_name} {record.last_name}
+              </h2>
+              <div className="text-sm text-muted-foreground">
+                {record.title}
+                {record.title && record.company_id != null && " at "}
+                {record.company_id != null && (
+                  <ReferenceField
+                    source="company_id"
+                    reference="companies"
+                    link="show"
+                  >
+                    <TextField source="name" className="underline" />
+                  </ReferenceField>
+                )}
+              </div>
+            </div>
+            <div>
+              <ReferenceField
+                source="company_id"
+                reference="companies"
+                link="show"
+                className="no-underline"
+              >
+                <CompanyAvatar />
+              </ReferenceField>
+            </div>
+          </div>
+        </div>
+
+        <Tabs defaultValue="notes" className="w-full">
+          <TabsList className="grid w-full grid-cols-3">
+            <TabsTrigger value="notes">Notes</TabsTrigger>
+            <TabsTrigger value="tasks">
+              <ReferenceManyCount
+                target="contact_id"
+                reference="tasks"
+                filter={{ "done_date@is": null }}
+              />{" "}
+              Tasks
+            </TabsTrigger>
+            <TabsTrigger value="details">Contact Details</TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="notes" className="mt-4">
+            <ReferenceManyField
+              target="contact_id"
+              reference="contactNotes"
+              sort={{ field: "date", order: "DESC" }}
+              empty={
+                <div className="flex flex-col items-center justify-center py-8 text-center">
+                  <p className="text-muted-foreground mb-4">No notes yet</p>
+                  <CreateButton
+                    resource="contactNotes"
+                    state={{
+                      record: {
+                        reference_id: record.id,
+                        reference: "contacts",
+                        showStatus: true,
+                      },
+                    }}
+                    label="Add note"
+                  />
+                </div>
+              }
+            >
+              <NotesIterator reference="contacts" showStatus />
+            </ReferenceManyField>
+          </TabsContent>
+
+          <TabsContent value="tasks" className="mt-4">
+            <ContactTasksList />
+          </TabsContent>
+
+          <TabsContent value="details" className="mt-4">
+            <div className="space-y-6">
+              <div>
+                <h3 className="text-lg font-semibold mb-3">Personal info</h3>
+                <ContactPersonalInfo />
+              </div>
+              <div>
+                <h3 className="text-lg font-semibold mb-3">Background info</h3>
+                <ContactBackgroundInfo />
+              </div>
+              <div>
+                <h3 className="text-lg font-semibold mb-3">Tags</h3>
+                <TagsListEdit />
+              </div>
+            </div>
+          </TabsContent>
+        </Tabs>
+      </MobileContent>
+    </>
+  );
+};
 
 const ContactShowContent = () => {
   const { record, isPending } = useShowContext<Contact>();

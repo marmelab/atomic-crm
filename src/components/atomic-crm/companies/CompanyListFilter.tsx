@@ -1,9 +1,9 @@
-import { Building, Truck, Users } from "lucide-react";
-import { FilterLiveForm, useGetIdentity } from "ra-core";
 import { ToggleFilterButton } from "@/components/admin/toggle-filter-button";
-import { SearchInput } from "@/components/admin/search-input";
+import { Building, Truck, Users } from "lucide-react";
+import { useGetIdentity } from "ra-core";
 
 import { FilterCategory } from "../filters/FilterCategory";
+import { ResponsiveFilters } from "../misc/ResponsiveFilters";
 import { useConfigurationContext } from "../root/ConfigurationContext";
 import { sizes } from "./sizes";
 
@@ -15,14 +15,11 @@ export const CompanyListFilter = () => {
     name: sector,
   }));
   return (
-    <div className="w-52 min-w-52 flex flex-col gap-8">
-      <FilterLiveForm>
-        <SearchInput source="q" />
-      </FilterLiveForm>
-
+    <ResponsiveFilters>
       <FilterCategory icon={<Building className="h-4 w-4" />} label="Size">
         {sizes.map((size) => (
           <ToggleFilterButton
+            key={size.id}
             className="w-full justify-between"
             label={size.name}
             key={size.name}
@@ -34,6 +31,7 @@ export const CompanyListFilter = () => {
       <FilterCategory icon={<Truck className="h-4 w-4" />} label="Sector">
         {sectors.map((sector) => (
           <ToggleFilterButton
+            key={sector.id}
             className="w-full justify-between"
             label={sector.name}
             key={sector.name}
@@ -52,6 +50,6 @@ export const CompanyListFilter = () => {
           value={{ sales_id: identity?.id }}
         />
       </FilterCategory>
-    </div>
+    </ResponsiveFilters>
   );
 };
