@@ -47,6 +47,8 @@ import { useIsMobile } from "@/hooks/use-mobile.ts";
 import { MobileTasksList } from "../tasks/MobileTasksList.tsx";
 import { MobileTaskEdit } from "../tasks/MobileTaskEdit.tsx";
 import { MobileTaskCreate } from "../tasks/MobileTaskCreate.tsx";
+import { MobileNoteEdit } from "../notes/MobileNoteEdit.tsx";
+import { MobileNoteCreate } from "../notes/MobileNoteCreate.tsx";
 
 export type CRMProps = {
   dataProvider?: DataProvider;
@@ -215,7 +217,11 @@ const MobileAdmin = (props: CoreAdminProps) => {
         <Route path={OAuthConsentPage.path} element={<OAuthConsentPage />} />
       </CustomRoutes>
       <Resource name="contacts" {...contacts} />
-      <Resource name="contactNotes" />
+      <Resource
+        name="contactNotes"
+        edit={MobileNoteEdit}
+        create={MobileNoteCreate}
+      />
       <Resource
         name="tasks"
         list={MobileTasksList}
