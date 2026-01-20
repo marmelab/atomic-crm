@@ -389,6 +389,10 @@
           "type": "registry:component"
         },
         {
+          "path": "src/components/atomic-crm/misc/EditButton.tsx",
+          "type": "registry:component"
+        },
+        {
           "path": "src/components/atomic-crm/misc/ContactOption.tsx",
           "type": "registry:component"
         },
