@@ -1,17 +1,22 @@
+import { useState } from "react";
 import { DropdownMenuItem } from "@/components/ui/dropdown-menu";
-import { Settings, User } from "lucide-react";
+import { Menu, Settings, User } from "lucide-react";
 import { CanAccess } from "ra-core";
 import { Link, matchPath, useLocation } from "react-router";
+
 import { RefreshButton } from "@/components/admin/refresh-button";
 import { ThemeModeToggle } from "@/components/admin/theme-mode-toggle";
 import { UserMenu } from "@/components/admin/user-menu";
+import { Button } from "@/components/ui/button";
 import { useUserMenu } from "@/hooks/user-menu-context";
 
 import { useConfigurationContext } from "../root/ConfigurationContext";
+import { MobileNavigation } from "./MobileNavigation";
 
 const Header = () => {
   const { darkModeLogo, lightModeLogo, title } = useConfigurationContext();
   const location = useLocation();
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   let currentPath: string | boolean = "/";
   if (matchPath("/", location.pathname)) {
@@ -25,6 +30,10 @@ const Header = () => {
   } else {
     currentPath = false;
   }
+
+  const toggleMobileMenu = () => {
+    setIsMobileMenuOpen(!isMobileMenuOpen);
+  };
 
   return (
     <nav className="flex-grow">
@@ -47,7 +56,7 @@ const Header = () => {
               />
               <h1 className="text-xl font-semibold">{title}</h1>
             </Link>
-            <div>
+            <div className="hidden md:flex">
               <nav className="flex">
                 <NavigationTab
                   label="Dashboard"
@@ -80,10 +89,26 @@ const Header = () => {
                   <UsersMenu />
                 </CanAccess>
               </UserMenu>
+              <div className="md:hidden ml-2">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={toggleMobileMenu}
+                  aria-label="Open menu"
+                >
+                  <Menu className="h-6 w-6" />
+                </Button>
+              </div>
             </div>
           </div>
         </div>
       </header>
+      {isMobileMenuOpen && (
+        <MobileNavigation
+          onClose={toggleMobileMenu}
+          currentPath={currentPath}
+        />
+      )}
     </nav>
   );
 };
