@@ -131,7 +131,17 @@ const CreateButton = () => {
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent>
-        <DropdownMenuItem className="h-12 px-4 text-base">
+        <DropdownMenuItem
+          className="h-12 px-4 text-base"
+          onSelect={() => {
+            navigate(
+              createPath({
+                resource: "contacts",
+                type: "create",
+              }),
+            );
+          }}
+        >
           Contact
         </DropdownMenuItem>
         <DropdownMenuItem

@@ -19,6 +19,7 @@ import type { Contact } from "../types";
 import { Avatar } from "./Avatar";
 import { ContactAside } from "./ContactAside";
 import { ListButton } from "../misc/ListButton";
+import { EditButton } from "../misc/EditButton";
 import { CreateButton } from "@/components/admin";
 
 export const ContactShow = () => {
@@ -42,6 +43,7 @@ const ContactShowContentMobile = () => {
         <div className="flex flex-1">
           <h1 className="text-xl font-semibold">Contacts</h1>
         </div>
+        <EditButton />
       </MobileHeader>
       <MobileContent>
         <div className="mb-6">
