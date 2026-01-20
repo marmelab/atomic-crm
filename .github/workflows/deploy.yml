@@ -36,10 +36,10 @@ jobs:
                 git remote set-url origin https://git:${{ secrets.GITHUB_TOKEN }}@github.com/${GITHUB_REPOSITORY}
                 git config --global user.email support+actions@github.com
                 git config --global user.name github-actions-bot
-                
+
             - name: 📥 Download deps
               run: make doc-install
-              
+
             - name: 🔨 Build Registry
               run: make registry-build
 
@@ -81,7 +81,7 @@ jobs:
                   git config --global user.name github-actions-bot
 
             - name: 📥 Download deps
-              run: npm install
+              run: npm ci
 
             - name: 🔨 Build
               run: npm run build:demo
@@ -132,7 +132,7 @@ jobs:
               uses: supabase/setup-cli@v1
 
             - name: 📥 Download deps
-              run: npm install
+              run: npm ci
 
             - name: 🔨 Build
               run: npm run build
