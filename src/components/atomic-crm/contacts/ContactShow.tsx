@@ -103,11 +103,7 @@ const ContactShowContentMobile = () => {
                   <CreateButton
                     resource="contactNotes"
                     state={{
-                      record: {
-                        reference_id: record.id,
-                        reference: "contacts",
-                        showStatus: true,
-                      },
+                      record: { contact_id: record.id },
                     }}
                     label="Add note"
                   />

@@ -4,7 +4,6 @@ import {
   RecordRepresentation,
   useCreatePath,
   useGetIdentity,
-  useRecordFromLocation,
 } from "ra-core";
 
 import { NoteInputs } from "./NoteInputs";
@@ -12,24 +11,21 @@ import { DeleteButton, ReferenceField, SaveButton } from "@/components/admin";
 import MobileHeader from "../layout/MobileHeader";
 import { ListButton } from "../misc/ListButton";
 import { MobileContent } from "../layout/MobileContent";
-import { foreignKeyMapping } from "./foreignKeyMapping";
 
 export const MobileNoteEdit = () => {
   const { identity } = useGetIdentity();
   const createPath = useCreatePath();
-  const recordFromLocation = useRecordFromLocation() || {};
-  const { reference, showStatus } = recordFromLocation;
 
-  if (!identity || !reference) return null;
+  if (!identity) return null;
 
   return (
-    <EditBase redirect={createPath({ resource: reference, type: "list" })}>
+    <EditBase redirect={createPath({ resource: "contacts", type: "list" })}>
       <MobileHeader>
-        <ListButton resource={reference} />
+        <ListButton resource="contacts" />
         <div className="flex flex-1">
           <ReferenceField
-            source={foreignKeyMapping[reference as "contacts" | "deals"]}
-            reference={reference}
+            source="contact_id"
+            reference="contacts"
             render={({ referenceRecord }) => (
               <h1 className="text-xl font-semibold text-ellipsis overflow-hidden whitespace-nowrap">
                 Edit Note
@@ -38,7 +34,7 @@ export const MobileNoteEdit = () => {
                     {" for "}
                     <RecordRepresentation
                       record={referenceRecord}
-                      resource={reference}
+                      resource="contacts"
                     />
                   </>
                 ) : null}
@@ -49,11 +45,11 @@ export const MobileNoteEdit = () => {
       </MobileHeader>
       <MobileContent>
         <Form className="mt-1">
-          <NoteInputs showStatus={showStatus} />
+          <NoteInputs showStatus />
           <div className="flex flex-col gap-2 mt-6">
             <SaveButton />
             <DeleteButton
-              redirect={createPath({ resource: reference, type: "list" })}
+              redirect={createPath({ resource: "contacts", type: "list" })}
             />
           </div>
         </Form>
