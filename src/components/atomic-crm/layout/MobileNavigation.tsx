@@ -143,13 +143,7 @@ const CreateButton = () => {
                 type: "create",
               }),
               {
-                state: {
-                  record: {
-                    reference_id: contact_id || undefined,
-                    reference: "contacts",
-                    showStatus: true,
-                  },
-                },
+                state: contact_id ? { record: { contact_id } } : undefined,
               },
             );
           }}

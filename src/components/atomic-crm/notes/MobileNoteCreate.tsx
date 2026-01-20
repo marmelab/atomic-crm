@@ -17,30 +17,27 @@ import { NoteInputs } from "./NoteInputs";
 export const MobileNoteCreate = () => {
   const { identity } = useGetIdentity();
   const createPath = useCreatePath();
-  const recordFromLocation = useRecordFromLocation() || {};
-  const { reference_id, reference, showStatus } = recordFromLocation;
-  const selectReference = reference_id == null;
+  const recordFromLocation = useRecordFromLocation();
+  const contact_id = recordFromLocation?.contact_id;
+  const selectContact = contact_id == null;
 
-  const { data: referenceRecord } = useGetOne(
-    reference,
-    { id: reference_id! },
-    { enabled: !!reference_id && !!reference },
+  const { data: contact } = useGetOne(
+    "contacts",
+    { id: contact_id! },
+    { enabled: !!contact_id },
   );
 
-  if (!reference || !identity) return null;
+  if (!identity) return null;
 
   return (
-    <CreateBase redirect={createPath({ resource: reference, type: "list" })}>
+    <CreateBase redirect={createPath({ resource: "contacts", type: "list" })}>
       <MobileHeader>
-        <ListButton resource={reference} />
+        <ListButton resource="contacts" />
         <div className="flex flex-1">
           <h1 className="text-xl font-semibold text-ellipsis overflow-hidden whitespace-nowrap">
-            {!selectReference ? "Create Note for " : "Create Note"}
-            {!selectReference && (
-              <RecordRepresentation
-                record={referenceRecord}
-                resource={reference}
-              />
+            {!selectContact ? "Create Note for " : "Create Note"}
+            {!selectContact && (
+              <RecordRepresentation record={contact} resource="contacts" />
             )}
           </h1>
         </div>
@@ -49,11 +46,11 @@ export const MobileNoteCreate = () => {
         <Form>
           <div className="space-y-3">
             <NoteInputs
-              showStatus={showStatus}
-              selectReference={selectReference}
-              reference={reference}
+              showStatus
+              reference="contacts"
+              selectReference={selectContact}
             />
-            <NoteCreateButton reference={reference} record={referenceRecord} />
+            <NoteCreateButton reference="contacts" record={contact} />
           </div>
         </Form>
       </MobileContent>
