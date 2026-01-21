@@ -124,7 +124,7 @@ const dataProviderWithCustomMethods = {
       throw new Error("Failed to create account manager");
     }
 
-    return data;
+    return data.data;
   },
   async salesUpdate(
     id: Identifier,
@@ -133,28 +133,27 @@ const dataProviderWithCustomMethods = {
     const { email, first_name, last_name, administrator, avatar, disabled } =
       data;
 
-    const { data: sale, error } = await supabase.functions.invoke<Sale>(
-      "users",
-      {
-        method: "PATCH",
-        body: {
-          sales_id: id,
-          email,
-          first_name,
-          last_name,
-          administrator,
-          disabled,
-          avatar,
-        },
+    const { data: updatedData, error } = await supabase.functions.invoke<{
+      data: Sale;
+    }>("users", {
+      method: "PATCH",
+      body: {
+        sales_id: id,
+        email,
+        first_name,
+        last_name,
+        administrator,
+        disabled,
+        avatar,
       },
-    );
+    });
 
-    if (!sale || error) {
+    if (!updatedData || error) {
       console.error("salesCreate.error", error);
       throw new Error("Failed to update account manager");
     }
 
-    return data;
+    return updatedData.data;
   },
   async updatePassword(id: Identifier) {
     const { data: passwordUpdated, error } =
