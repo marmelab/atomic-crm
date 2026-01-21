@@ -1,12 +1,11 @@
 import React from "react";
 import { Import, Settings, User } from "lucide-react";
-import { CanAccess } from "ra-core";
+import { CanAccess, useUserMenu } from "ra-core";
 import { Link, matchPath, useLocation } from "react-router";
 import { RefreshButton } from "@/components/admin/refresh-button";
 import { ThemeModeToggle } from "@/components/admin/theme-mode-toggle";
 import { UserMenu } from "@/components/admin/user-menu";
 import { DropdownMenuItem } from "@/components/ui/dropdown-menu";
-import { useUserMenu } from "@/hooks/user-menu-context";
 
 import { useConfigurationContext } from "../root/ConfigurationContext";
 import { ImportFromJsonDialog } from "../misc/ImportFromJsonDialog";
@@ -81,7 +80,7 @@ const Header = () => {
                 <RefreshButton />
                 <UserMenu>
                   <ConfigurationMenu />
-                  <ImportFromJsonButton
+                  <ImportFromJsonMenuItem
                     onClick={() => setIsImportFromJsonOpen(true)}
                   />
                   <CanAccess resource="sales" action="list">
@@ -93,6 +92,8 @@ const Header = () => {
           </div>
         </header>
       </nav>
+      {/* The dialog is rendered here instead of in ImportFromJsonMenuItem because otherwise
+          it would disappear when closing the menu */}
       <ImportFromJsonDialog
         open={isImportFromJsonDialogOpen}
         onOpenChange={(open) => setIsImportFromJsonOpen(open)}
@@ -123,9 +124,12 @@ const NavigationTab = ({
 );
 
 const UsersMenu = () => {
-  const { onClose } = useUserMenu() ?? {};
+  const userMenuContext = useUserMenu();
+  if (!userMenuContext) {
+    throw new Error("<UsersMenu> must be used inside <UserMenu?");
+  }
   return (
-    <DropdownMenuItem asChild onClick={onClose}>
+    <DropdownMenuItem asChild onClick={userMenuContext.onClose}>
       <Link to="/sales" className="flex items-center gap-2">
         <User /> Users
       </Link>
@@ -134,9 +138,12 @@ const UsersMenu = () => {
 };
 
 const ConfigurationMenu = () => {
-  const { onClose } = useUserMenu() ?? {};
+  const userMenuContext = useUserMenu();
+  if (!userMenuContext) {
+    throw new Error("<ConfigurationMenu> must be used inside <UserMenu?");
+  }
   return (
-    <DropdownMenuItem asChild onClick={onClose}>
+    <DropdownMenuItem asChild onClick={userMenuContext.onClose}>
       <Link to="/settings" className="flex items-center gap-2">
         <Settings />
         My info
@@ -145,13 +152,16 @@ const ConfigurationMenu = () => {
   );
 };
 
-const ImportFromJsonButton = ({ onClick }: { onClick: () => void }) => {
-  const { onClose } = useUserMenu() ?? { onClose: () => {} };
+const ImportFromJsonMenuItem = ({ onClick }: { onClick: () => void }) => {
+  const userMenuContext = useUserMenu();
+  if (!userMenuContext) {
+    throw new Error("<ImportFromJsonMenuItem> must be used inside <UserMenu?");
+  }
   return (
     <DropdownMenuItem
       className="flex items-center gap-2 cursor-pointer"
       onClick={() => {
-        onClose();
+        userMenuContext.onClose();
         onClick();
       }}
     >
