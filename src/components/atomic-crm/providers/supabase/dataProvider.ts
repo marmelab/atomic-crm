@@ -1,4 +1,4 @@
-import { supabaseDataProvider, supabaseHttpClient } from "ra-supabase-core";
+import { supabaseDataProvider } from "ra-supabase-core";
 import {
   withLifecycleCallbacks,
   type DataProvider,
@@ -6,10 +6,6 @@ import {
   type Identifier,
   type ResourceCallbacks,
 } from "ra-core";
-import {
-  defaultPrimaryKeys,
-  defaultSchema,
-} from "@raphiniert/ra-data-postgrest";
 import type {
   ContactNote,
   Deal,
@@ -30,20 +26,12 @@ if (import.meta.env.VITE_SUPABASE_ANON_KEY === undefined) {
   throw new Error("Please set the VITE_SUPABASE_ANON_KEY environment variable");
 }
 
-const config = {
+const baseDataProvider = supabaseDataProvider({
   instanceUrl: import.meta.env.VITE_SUPABASE_URL,
   apiKey: import.meta.env.VITE_SUPABASE_ANON_KEY,
   supabaseClient: supabase,
   sortOrder: "asc,desc.nullslast" as any,
-  primaryKeys: defaultPrimaryKeys,
-  httpClient: supabaseHttpClient({
-    apiKey: import.meta.env.VITE_SUPABASE_ANON_KEY,
-    supabaseClient: supabase,
-  }),
-  schema: defaultSchema,
-};
-
-const baseDataProvider = supabaseDataProvider(config);
+});
 
 const processCompanyLogo = async (params: any) => {
   const logo = params.data.logo;
