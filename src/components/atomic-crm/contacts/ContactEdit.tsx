@@ -16,7 +16,7 @@ const ContactEditContent = () => {
   const { isPending, record } = useEditContext<Contact>();
   if (isPending || !record) return null;
   return (
-    <div className="mt-2 flex gap-8">
+    <div className="mt-2 flex flex-col-reverse md:flex-row gap-8">
       <Form className="flex flex-1 flex-col gap-4">
         <Card>
           <CardContent>
@@ -26,7 +26,9 @@ const ContactEditContent = () => {
         </Card>
       </Form>
 
-      <ContactAside link="show" />
+      <div className="w-full md:w-72">
+        <ContactAside link="show" />
+      </div>
     </div>
   );
 };
