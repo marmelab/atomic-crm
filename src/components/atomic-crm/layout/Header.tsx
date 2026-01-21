@@ -40,12 +40,12 @@ const Header = () => {
                 className="flex items-center gap-2 text-secondary-foreground no-underline"
               >
                 <img
-                  className="[.light]:hidden h-6"
+                  className="[.light_&]:hidden h-6"
                   src={darkModeLogo}
                   alt={title}
                 />
                 <img
-                  className="[.dark]:hidden h-6"
+                  className="[.dark_&]:hidden h-6"
                   src={lightModeLogo}
                   alt={title}
                 />
