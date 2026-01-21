@@ -344,9 +344,7 @@ const uploadToBucket = async (fi: RAFile) => {
   }
 
   const dataContent = fi.src
-    ? await fetch(fi.src, {
-        mode: "no-cors",
-      })
+    ? await fetch(fi.src)
         .then((res) => {
           if (res.status !== 200) {
             return null;
