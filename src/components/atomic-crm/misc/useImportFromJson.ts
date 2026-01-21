@@ -3,12 +3,13 @@ import {
   type Identifier,
   useDataProvider,
   useEvent,
+  useGetIdentity,
   useRefresh,
 } from "ra-core";
 import { JSONParser, type JsonTypes } from "@streamparser/json-whatwg";
 import mime from "mime/lite";
 import type { CrmDataProvider } from "../providers/types";
-import type { RAFile, Sale, Tag } from "../types";
+import type { RAFile, Tag } from "../types";
 import { colors } from "../tags/colors";
 
 export type ImportFromJsonStats = {
@@ -20,28 +21,28 @@ export type ImportFromJsonStats = {
 };
 
 export type ImportFromJsonFailures = {
-  sales: Array<any>;
-  companies: Array<any>;
-  contacts: Array<any>;
-  notes: Array<any>;
-  tasks: Array<any>;
+  sales: Array<JsonTypes.JsonPrimitive | JsonTypes.JsonStruct | undefined>;
+  companies: Array<JsonTypes.JsonPrimitive | JsonTypes.JsonStruct | undefined>;
+  contacts: Array<JsonTypes.JsonPrimitive | JsonTypes.JsonStruct | undefined>;
+  notes: Array<JsonTypes.JsonPrimitive | JsonTypes.JsonStruct | undefined>;
+  tasks: Array<JsonTypes.JsonPrimitive | JsonTypes.JsonStruct | undefined>;
 };
 
-type ImportFromJsonIdleState = {
+export type ImportFromJsonIdleState = {
   status: "idle";
   error: null;
   stats: ImportFromJsonStats;
   failedImports: ImportFromJsonFailures;
 };
 
-type ImportFromJsonImportingState = {
+export type ImportFromJsonImportingState = {
   status: "importing";
   stats: ImportFromJsonStats;
   error: null;
   failedImports: ImportFromJsonFailures;
 };
 
-type ImportFromJsonErrorState = {
+export type ImportFromJsonErrorState = {
   status: "error";
   error: Error;
   stats: ImportFromJsonStats;
@@ -49,7 +50,7 @@ type ImportFromJsonErrorState = {
   duration: number;
 };
 
-type ImportFromJsonSuccessState = {
+export type ImportFromJsonSuccessState = {
   status: "success";
   stats: ImportFromJsonStats;
   error: null;
@@ -57,13 +58,13 @@ type ImportFromJsonSuccessState = {
   duration: number;
 };
 
-type ImportFromJsonState =
+export type ImportFromJsonState =
   | ImportFromJsonErrorState
   | ImportFromJsonIdleState
   | ImportFromJsonImportingState
   | ImportFromJsonSuccessState;
 
-type ImportFunction = (file: File) => Promise<void>;
+export type ImportFromJsonFunction = (file: File) => Promise<void>;
 type ResetFunction = () => void;
 
 const defaultFailedImports = {
@@ -82,11 +83,16 @@ const defaultStats = {
   tasks: 0,
 };
 
+/**
+ * A hook that returns a function to import data from a JSON file.
+ * We do the import on the client because edge functions are limited in both execution time and memory.
+ */
 export const useImportFromJson = (): [
   ImportFromJsonState,
-  ImportFunction,
+  ImportFromJsonFunction,
   ResetFunction,
 ] => {
+  const { data: currentSale } = useGetIdentity();
   const dataProvider = useDataProvider<CrmDataProvider>();
   const refresh = useRefresh();
   const [state, setState] = useState<ImportFromJsonState>({
@@ -106,6 +112,9 @@ export const useImportFromJson = (): [
   });
 
   const importFile = useEvent(async (file: File) => {
+    if (currentSale == null) {
+      throw new Error("Importing data requires to be authenticated");
+    }
     const startedAt = new Date();
 
     setState({
@@ -130,30 +139,21 @@ export const useImportFromJson = (): [
     const importSale = async (
       dataToImport: JsonTypes.JsonPrimitive | JsonTypes.JsonStruct | undefined,
     ) => {
-      if (!isSale(dataToImport)) {
-        setState((old) => ({
-          ...old,
-          status: "error",
-          error: new Error(`Error while importing sale: Invalid data`),
-          failedImports: {
-            ...old.failedImports,
-            sales: [...old.failedImports.sales, dataToImport],
-          },
-          duration: new Date().getDate() - startedAt.getDate(),
-        }));
-        return;
-      }
       try {
-        const existingRecord = await dataProvider.getList("sales", {
+        if (!isSale(dataToImport)) {
+          throw new Error(`Error while importing sale: Invalid data`);
+        }
+        const existingRecordResponse = await dataProvider.getList("sales", {
           filter: { email: dataToImport.email.trim() },
           pagination: { page: 1, perPage: 1 },
           sort: { field: "id", order: "ASC" },
         });
-        if (existingRecord.total === 1) {
-          return existingRecord.data[0].id;
+        if (existingRecordResponse.total === 1) {
+          idsMaps.sales[dataToImport.id] = existingRecordResponse.data[0].id;
+          return existingRecordResponse.data[0].id;
         }
 
-        const { data } = await dataProvider.salesCreate({
+        const data = await dataProvider.salesCreate({
           email: dataToImport.email.trim(),
           first_name: dataToImport.first_name.trim(),
           last_name: dataToImport.last_name.trim(),
@@ -189,7 +189,7 @@ export const useImportFromJson = (): [
           ...old,
           status: "error",
           error: new Error(
-            `Error while importing sale ${dataToImport.id} (${dataToImport.email}): ${(err as Error).message}`,
+            `Error while importing sale: ${(err as Error).message}`,
           ),
           failedImports: {
             ...old.failedImports,
@@ -227,7 +227,7 @@ export const useImportFromJson = (): [
             stateAbbr: dataToImport.state_abbr?.trim(),
             sales_id: dataToImport.sales_id
               ? idsMaps.sales[dataToImport.sales_id]
-              : undefined,
+              : currentSale.id,
           },
         });
 
@@ -310,7 +310,7 @@ export const useImportFromJson = (): [
               : undefined,
             sales_id: dataToImport.sales_id
               ? idsMaps.sales[dataToImport.sales_id]
-              : undefined,
+              : currentSale.id,
             tags: tagsIds,
           },
         });
@@ -355,17 +355,21 @@ export const useImportFromJson = (): [
         return;
       }
       try {
-        const defaultSale = await getDefaultSale();
-
         if (idsMaps.sales[dataToImport.sales_id] == null) {
           console.error(
-            `note ${dataToImport.text} has an invalid sales ID: ${dataToImport.sales_id}`,
+            `note ${dataToImport.text} has an invalid sales ID: ${dataToImport.sales_id}. Fallback to default sale`,
           );
         }
         if (idsMaps.contacts[dataToImport.contact_id] == null) {
-          throw new Error(
-            `note ${dataToImport.text} has an invalid contact ID: ${dataToImport.contact_id}`,
-          );
+          setState((old) => ({
+            ...old,
+            status: "importing",
+            failedImports: {
+              ...old.failedImports,
+              notes: [...old.failedImports.notes, dataToImport],
+            },
+            error: null,
+          }));
           return;
         }
 
@@ -390,7 +394,7 @@ export const useImportFromJson = (): [
         await dataProvider.create("contactNotes", {
           data: {
             contact_id: idsMaps.contacts[dataToImport.contact_id],
-            sales_id: idsMaps.sales[dataToImport.sales_id] ?? defaultSale.id,
+            sales_id: idsMaps.sales[dataToImport.sales_id] ?? currentSale.id,
             text: dataToImport.text,
             date: dataToImport.date,
             attachments,
@@ -435,24 +439,28 @@ export const useImportFromJson = (): [
         return;
       }
       try {
-        const defaultSale = await getDefaultSale();
-
         if (idsMaps.sales[dataToImport.sales_id] == null) {
           console.error(
-            `task ${dataToImport.text} has an invalid sales ID: ${dataToImport.sales_id}`,
+            `task ${dataToImport.text} has an invalid sales ID: ${dataToImport.sales_id}. Fallback to default sale`,
           );
         }
         if (idsMaps.contacts[dataToImport.contact_id] == null) {
-          throw new Error(
-            `task ${dataToImport.text} has an invalid contact ID: ${dataToImport.contact_id}`,
-          );
+          setState((old) => ({
+            ...old,
+            status: "importing",
+            failedImports: {
+              ...old.failedImports,
+              tasks: [...old.failedImports.tasks, dataToImport],
+            },
+            error: null,
+          }));
           return;
         }
 
         await dataProvider.create("tasks", {
           data: {
             contact_id: idsMaps.contacts[dataToImport.contact_id],
-            sales_id: idsMaps.sales[dataToImport.sales_id] ?? defaultSale.id,
+            sales_id: idsMaps.sales[dataToImport.sales_id] ?? currentSale.id,
             text: dataToImport.text,
             due_date: dataToImport.due_date || undefined,
             done_date: dataToImport.done_date || undefined,
@@ -481,20 +489,6 @@ export const useImportFromJson = (): [
       }
     };
 
-    let defaultSale: Sale | null = null;
-    const getDefaultSale = async () => {
-      if (defaultSale) return defaultSale;
-      const { data } = await dataProvider.getList<Sale>("sales", {
-        pagination: { page: 1, perPage: 1000 },
-        sort: { field: "id", order: "ASC" },
-        filter: {},
-      });
-
-      // get the first admin or the first sale if no admin yet
-      defaultSale = data.find((item) => item.administrator) ?? data[0];
-      return defaultSale;
-    };
-
     let currentTask: Promise<any> | null = null;
     let currentBatch: Array<Promise<void>> = [];
     const BATCH_SIZE = 50;
@@ -512,8 +506,10 @@ export const useImportFromJson = (): [
     const stream = file.stream();
     const reader = stream.pipeThrough(parser).getReader();
 
-    const proccesBatchIfPossible = async (ignoreSize: boolean = false) => {
-      if (currentBatch.length === BATCH_SIZE || ignoreSize) {
+    const proccesBatchIfPossible = async (
+      shouldProcessIncompleteBatch: boolean = false,
+    ) => {
+      if (currentBatch.length === BATCH_SIZE || shouldProcessIncompleteBatch) {
         currentTask = Promise.all(currentBatch);
         await currentTask;
         currentBatch = [];
@@ -563,11 +559,12 @@ export const useImportFromJson = (): [
           break;
         }
       }
-      await proccesBatchIfPossible();
-      // Error state should stop the import process
-      if (state.status === "error") {
+      try {
+        await proccesBatchIfPossible();
+      } catch {
+        // the state should have been set by the function that throw the error
+        // stop the import
         await reader.cancel();
-        break;
       }
     }
 
