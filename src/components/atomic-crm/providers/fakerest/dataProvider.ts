@@ -108,7 +108,7 @@ async function fetchAndUpdateCompanyData(
   return { ...params, data: newData };
 }
 
-const dataProviderWithCustomMethod: DataProvider & Partial<CrmDataProvider> = {
+const dataProviderWithCustomMethod: CrmDataProvider = {
   ...baseDataProvider,
   unarchiveDeal: async (deal: Deal) => {
     // get all deals where stage is the same as the deal to unarchive
@@ -158,7 +158,7 @@ const dataProviderWithCustomMethod: DataProvider & Partial<CrmDataProvider> = {
       password,
     };
   },
-  salesCreate: async ({ ...data }: SalesFormData): Promise<{ data: Sale }> => {
+  salesCreate: async ({ ...data }: SalesFormData): Promise<Sale> => {
     const response = await dataProvider.create("sales", {
       data: {
         ...data,
@@ -166,12 +166,12 @@ const dataProviderWithCustomMethod: DataProvider & Partial<CrmDataProvider> = {
       },
     });
 
-    return response;
+    return response.data;
   },
   salesUpdate: async (
     id: Identifier,
     data: Partial<Omit<SalesFormData, "password">>,
-  ): Promise<Partial<Omit<SalesFormData, "password">>> => {
+  ): Promise<Sale> => {
     const { data: previousData } = await dataProvider.getOne<Sale>("sales", {
       id,
     });
@@ -180,12 +180,12 @@ const dataProviderWithCustomMethod: DataProvider & Partial<CrmDataProvider> = {
       throw new Error("User not found");
     }
 
-    const { data: sale } = await dataProvider.update("sales", {
+    const { data: sale } = await dataProvider.update<Sale>("sales", {
       id,
       data,
       previousData,
     });
-    return sale;
+    return { ...sale, user_id: sale.id.toString() };
   },
   isInitialized: async (): Promise<boolean> => {
     const sales = await dataProvider.getList<Sale>("sales", {
