@@ -18,7 +18,7 @@ export const Dashboard = () => {
   });
 
   const { total: totalContactNotes, isPending: isPendingContactNotes } =
-    useGetList<ContactNote>("contactNotes", {
+    useGetList<ContactNote>("contact_notes", {
       pagination: { page: 1, perPage: 1 },
     });
 

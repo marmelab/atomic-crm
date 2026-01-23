@@ -128,7 +128,12 @@ const ContextInfo = ({ record }: { record: Company }) => {
 };
 
 const AddressInfo = ({ record }: { record: Company }) => {
-  if (!record.address && !record.city && !record.zipcode && !record.stateAbbr) {
+  if (
+    !record.address &&
+    !record.city &&
+    !record.zipcode &&
+    !record.state_abbr
+  ) {
     return null;
   }
 
@@ -137,7 +142,7 @@ const AddressInfo = ({ record }: { record: Company }) => {
       <TextField source="address" />
       <TextField source="city" />
       <TextField source="zipcode" />
-      <TextField source="stateAbbr" />
+      <TextField source="state_abbr" />
       <TextField source="country" />
     </AsideSection>
   );
