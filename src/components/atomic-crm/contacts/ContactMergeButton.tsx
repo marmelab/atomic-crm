@@ -97,7 +97,7 @@ const ContactMergeDialog = ({ open, onClose }: ContactMergeDialogProps) => {
   );
 
   const { total: notesCount } = useGetManyReference(
-    "contactNotes",
+    "contact_notes",
     {
       target: "contact_id",
       id: loserContact?.id,
