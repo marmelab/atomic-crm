@@ -363,8 +363,9 @@ const uploadToBucket = async (fi: RAFile) => {
   }
 
   const file = fi.rawFile;
-  const fileExt = file.name.split(".").pop();
-  const fileName = `${Math.random()}.${fileExt}`;
+  const fileParts = file.name.split(".");
+  const fileExt = fileParts.length > 1 ? `.${file.name.split(".").pop()}` : "";
+  const fileName = `${Math.random()}${fileExt}`;
   const filePath = `${fileName}`;
   const { error: uploadError } = await supabase.storage
     .from("attachments")
