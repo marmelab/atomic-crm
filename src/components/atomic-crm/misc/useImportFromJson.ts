@@ -224,7 +224,7 @@ export const useImportFromJson = (): [
             country: dataToImport.country?.trim(),
             address: dataToImport.address?.trim(),
             zipcode: dataToImport.zipcode?.trim(),
-            stateAbbr: dataToImport.state_abbr?.trim(),
+            state_abbr: dataToImport.state_abbr?.trim(),
             sales_id: dataToImport.sales_id
               ? idsMaps.sales[dataToImport.sales_id]
               : currentSale.id,
@@ -391,7 +391,7 @@ export const useImportFromJson = (): [
           }
         }
 
-        await dataProvider.create("contactNotes", {
+        await dataProvider.create("contact_notes", {
           data: {
             contact_id: idsMaps.contacts[dataToImport.contact_id],
             sales_id: idsMaps.sales[dataToImport.sales_id] ?? currentSale.id,
