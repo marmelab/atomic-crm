@@ -209,7 +209,7 @@ export type CrmDataProvider = typeof dataProviderWithCustomMethods;
 
 const lifeCycleCallbacks: ResourceCallbacks[] = [
   {
-    resource: "contactNotes",
+    resource: "contact_notes",
     beforeSave: async (data: ContactNote, _, __) => {
       if (data.attachments) {
         data.attachments = await Promise.all(
@@ -220,7 +220,7 @@ const lifeCycleCallbacks: ResourceCallbacks[] = [
     },
   },
   {
-    resource: "dealNotes",
+    resource: "deal_notes",
     beforeSave: async (data: DealNote, _, __) => {
       if (data.attachments) {
         data.attachments = await Promise.all(

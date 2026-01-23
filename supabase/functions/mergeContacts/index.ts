@@ -113,7 +113,7 @@ async function mergeContacts(
 
       // 3. Reassign notes from loser to winner
       await trx
-        .updateTable("contactNotes")
+        .updateTable("contact_notes")
         .set({ contact_id: winnerId })
         .where("contact_id", "=", loserId)
         .execute();
