@@ -77,7 +77,7 @@ interface DealsTable {
 interface Database {
   contacts: ContactsTable;
   tasks: TasksTable;
-  contactNotes: ContactNotesTable;
+  contact_notes: ContactNotesTable;
   deals: DealsTable;
 }
 

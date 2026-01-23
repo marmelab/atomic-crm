@@ -59,7 +59,7 @@ export type Company = {
   address: string;
   zipcode: string;
   city: string;
-  stateAbbr: string;
+  state_abbr: string;
   sales_id?: Identifier | null;
   created_at: string;
   description: string;

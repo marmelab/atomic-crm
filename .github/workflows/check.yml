@@ -35,7 +35,7 @@ jobs:
                   cache: npm
 
             - name: 📥 Download deps
-              run: npm install
+              run: npm ci
 
             - name: 🔬 Lint
               uses: wearerequired/lint-action@v2
@@ -61,7 +61,7 @@ jobs:
                   cache: npm
 
             - name: 📥 Download deps
-              run: npm install
+              run: npm ci
 
             - name: 🔎 Test
               run: make test-ci
@@ -83,7 +83,7 @@ jobs:
                   cache: npm
 
             - name: 📥 Download deps
-              run: npm install
+              run: npm ci
 
             - name: 🔨 Build
               run: npm run build
