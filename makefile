@@ -95,6 +95,9 @@ registry-gen: ## Generate the shadcn registry (ran automatically by a pre-commit
 docker-init:
 	sh ./scripts/init-docker.sh
 
+docker-delete:
+	sudo rm -rf ./docker/dev ./docker/utils ./docker/volumes
+
 docker-start:
 	docker compose -p atomic-crm --env-file .env.development --env-file ./docker/.env -f ./docker/docker-compose.yml -f ./docker/docker-compose-atomic-development.yml up
 
