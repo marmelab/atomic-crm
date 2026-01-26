@@ -1,27 +1,33 @@
+import type { Identifier, RaRecord } from "ra-core";
 import {
   EditBase,
   Form,
   RecordRepresentation,
   useCreatePath,
   useGetIdentity,
+  WithRecord,
 } from "ra-core";
 
-import { NoteInputs } from "./NoteInputs";
 import { DeleteButton, ReferenceField, SaveButton } from "@/components/admin";
-import MobileHeader from "../layout/MobileHeader";
-import { ListButton } from "../misc/ListButton";
 import { MobileContent } from "../layout/MobileContent";
+import MobileHeader from "../layout/MobileHeader";
+import { MobileBackButton } from "../misc/MobileBackButton";
+import { NoteInputs } from "./NoteInputs";
 
 export const MobileNoteEdit = () => {
   const { identity } = useGetIdentity();
   const createPath = useCreatePath();
+  const getRedirectTo = (record: Partial<RaRecord<Identifier>> | undefined) =>
+    createPath({ resource: "contacts", type: "show", id: record?.contact_id });
 
   if (!identity) return null;
 
   return (
-    <EditBase redirect={createPath({ resource: "contacts", type: "list" })}>
+    <EditBase redirect={(_resource, _id, record) => getRedirectTo(record)}>
       <MobileHeader>
-        <ListButton resource="contacts" />
+        <WithRecord
+          render={(record) => <MobileBackButton to={getRedirectTo(record)} />}
+        />
         <div className="flex flex-1">
           <ReferenceField
             source="contact_id"
@@ -48,8 +54,10 @@ export const MobileNoteEdit = () => {
           <NoteInputs showStatus />
           <div className="flex flex-col gap-2 mt-6">
             <SaveButton />
-            <DeleteButton
-              redirect={createPath({ resource: "contacts", type: "list" })}
+            <WithRecord
+              render={(record) => (
+                <DeleteButton redirect={getRedirectTo(record)} />
+              )}
             />
           </div>
         </Form>

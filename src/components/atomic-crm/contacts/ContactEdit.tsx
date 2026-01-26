@@ -1,11 +1,17 @@
 import { Card, CardContent } from "@/components/ui/card";
-import { EditBase, Form, RecordRepresentation, useEditContext } from "ra-core";
+import {
+  EditBase,
+  Form,
+  RecordRepresentation,
+  useCreatePath,
+  useEditContext,
+} from "ra-core";
 
 import { useIsMobile } from "@/hooks/use-mobile";
 import { FormToolbar } from "../layout/FormToolbar";
 import { MobileContent } from "../layout/MobileContent";
 import MobileHeader from "../layout/MobileHeader";
-import { ListButton } from "../misc/ListButton";
+import { MobileBackButton } from "../misc/MobileBackButton";
 import type { Contact } from "../types";
 import { ContactAside } from "./ContactAside";
 import { ContactInputs } from "./ContactInputs";
@@ -41,11 +47,17 @@ const ContactEditContent = () => {
 
 const ContactEditContentMobile = () => {
   const { isPending, record } = useEditContext<Contact>();
+  const createPath = useCreatePath();
+  const to = createPath({
+    resource: "contacts",
+    type: "show",
+    id: record?.id,
+  });
   if (isPending || !record) return null;
   return (
     <div>
       <MobileHeader>
-        <ListButton />
+        <MobileBackButton to={to} />
         <div className="flex flex-1 text-xl font-semibold text-ellipsis overflow-hidden whitespace-nowrap">
           Edit <RecordRepresentation />
         </div>

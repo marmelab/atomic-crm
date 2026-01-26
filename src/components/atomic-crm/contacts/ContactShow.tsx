@@ -18,7 +18,7 @@ import { ContactTasksList } from "./ContactTasksList";
 import type { Contact } from "../types";
 import { Avatar } from "./Avatar";
 import { ContactAside } from "./ContactAside";
-import { ListButton } from "../misc/ListButton";
+import { MobileBackButton } from "../misc/MobileBackButton";
 import { EditButton } from "../misc/EditButton";
 import { CreateButton } from "@/components/admin";
 
@@ -39,7 +39,7 @@ const ContactShowContentMobile = () => {
   return (
     <>
       <MobileHeader>
-        <ListButton />
+        <MobileBackButton />
         <div className="flex flex-1">
           <h1 className="text-xl font-semibold">Contacts</h1>
         </div>

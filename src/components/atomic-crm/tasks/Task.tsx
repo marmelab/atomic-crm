@@ -21,7 +21,7 @@ import {
 import type { Contact, Task as TData } from "../types";
 import { TaskEdit } from "./TaskEdit";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { useNavigate } from "react-router";
+import { useLocation, useNavigate } from "react-router";
 
 export const Task = ({
   task,
@@ -32,6 +32,7 @@ export const Task = ({
 }) => {
   const isMobile = useIsMobile();
   const navigate = useNavigate();
+   const location = useLocation();
   const createPath = useCreatePath();
   const notify = useNotify();
   const queryClient = useQueryClient();
@@ -61,7 +62,7 @@ export const Task = ({
         id: task.id,
         type: "edit",
       });
-      navigate(path);
+      navigate(path, { state: { from: location.pathname } });
       return;
     }
     setOpenEdit(true);
