@@ -50,11 +50,6 @@ export const Note = ({
     id: note.id,
   });
 
-  const linkState =
-    resource === "contactNotes"
-      ? { reference: "contacts", showStatus: true }
-      : { reference: "deals" };
-
   const [update, { isPending }] = useUpdate();
 
   const [deleteNote] = useDelete(
@@ -201,11 +196,7 @@ export const Note = ({
   );
 
   if (isMobile) {
-    return (
-      <Link to={editPath} state={{ record: linkState }}>
-        {content}
-      </Link>
-    );
+    return <Link to={editPath}>{content}</Link>;
   }
 
   return content;
