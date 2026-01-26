@@ -99,10 +99,7 @@ docker-delete:
 	sudo rm -rf ./docker/dev ./docker/utils ./docker/volumes
 
 docker-start:
-	docker compose -p atomic-crm --env-file .env.development --env-file ./docker/.env -f ./docker/docker-compose.yml -f ./docker/docker-compose-atomic-development.yml up
-
-docker-start-production:
-	docker compose -p atomic-crm --env-file .env -f ./docker/docker-compose.yml -f ./docker/docker-compose-atomic-production.yml up
+	docker compose -p atomic-crm --env-file .env.development --env-file ./docker/.env -f ./docker/docker-compose.yml -f ./docker/docker-compose-atomic.yml up
 
 docker-stop:
 	docker compose -p atomic-crm --env-file .env.development --env-file ./docker/.env -f ./docker/docker-compose.yml -f ./docker/docker-compose-atomic.yml down
