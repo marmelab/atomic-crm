@@ -10,7 +10,7 @@ import {
 
 import { MobileContent } from "../layout/MobileContent";
 import MobileHeader from "../layout/MobileHeader";
-import { ListButton } from "../misc/ListButton";
+import { MobileBackButton } from "../misc/MobileBackButton";
 import { NoteCreateButton } from "./NoteCreate";
 import { NoteInputs } from "./NoteInputs";
 
@@ -32,7 +32,7 @@ export const MobileNoteCreate = () => {
   return (
     <CreateBase redirect={createPath({ resource: "contacts", type: "list" })}>
       <MobileHeader>
-        <ListButton resource="contacts" />
+        <MobileBackButton resource="contacts" />
         <div className="flex flex-1">
           <h1 className="text-xl font-semibold text-ellipsis overflow-hidden whitespace-nowrap">
             {!selectContact ? "Create Note for " : "Create Note"}

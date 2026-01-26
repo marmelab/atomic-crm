@@ -5,7 +5,7 @@ import { SaveButton } from "@/components/admin";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { MobileContent } from "../layout/MobileContent";
 import MobileHeader from "../layout/MobileHeader";
-import { ListButton } from "../misc/ListButton";
+import { MobileBackButton } from "../misc/MobileBackButton";
 import type { Contact } from "../types";
 import { ContactInputs } from "./ContactInputs";
 import { FormToolbar } from "../layout/FormToolbar";
@@ -50,7 +50,7 @@ const ContactCreateContentMobile = () => {
   return (
     <div>
       <MobileHeader>
-        <ListButton />
+        <MobileBackButton />
         <div className="flex flex-1 text-xl font-semibold">Create Contact</div>
       </MobileHeader>
       <MobileContent>

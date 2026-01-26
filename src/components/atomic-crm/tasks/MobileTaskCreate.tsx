@@ -13,7 +13,7 @@ import {
 } from "ra-core";
 import { MobileContent } from "../layout/MobileContent";
 import MobileHeader from "../layout/MobileHeader";
-import { ListButton } from "../misc/ListButton";
+import { MobileBackButton } from "../misc/MobileBackButton";
 import { TaskFormContent } from "./TaskFormContent";
 
 export const MobileTaskCreate = () => {
@@ -45,7 +45,11 @@ export const MobileTaskCreate = () => {
     });
 
     notify("Task added");
-    redirect("list", "tasks");
+    redirect(
+      selectContact ? "list" : "show",
+      selectContact ? "tasks" : "contacts",
+      selectContact ? undefined : contact_id,
+    );
   };
 
   if (!identity) return null;
@@ -69,7 +73,7 @@ export const MobileTaskCreate = () => {
       mutationOptions={{ onSuccess: handleSuccess }}
     >
       <MobileHeader>
-        <ListButton />
+        <MobileBackButton />
         <div className="flex flex-1">
           <h1 className="text-xl font-semibold text-ellipsis overflow-hidden whitespace-nowrap">
             {!selectContact ? "Create Task for " : "Create Task"}

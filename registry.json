@@ -377,7 +377,7 @@
           "type": "registry:component"
         },
         {
-          "path": "src/components/atomic-crm/misc/ListButton.tsx",
+          "path": "src/components/atomic-crm/misc/MobileBackButton.tsx",
           "type": "registry:component"
         },
         {
