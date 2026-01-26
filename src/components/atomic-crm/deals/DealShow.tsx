@@ -163,7 +163,7 @@ const DealShowContent = () => {
             <Separator className="mb-4" />
             <ReferenceManyField
               target="deal_id"
-              reference="dealNotes"
+              reference="deal_notes"
               sort={{ field: "date", order: "DESC" }}
               empty={<NoteCreate reference={"deals"} />}
             >

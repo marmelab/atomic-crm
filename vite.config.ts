@@ -25,7 +25,7 @@ export default defineConfig(({ mode }) => {
       }),
     ],
     define:
-      env.NODE_ENV === "production"
+      env.NODE_ENV === "production" && env.VITE_SUPABASE_URL
         ? {
             "import.meta.env.VITE_IS_DEMO": JSON.stringify(env.VITE_IS_DEMO),
             "import.meta.env.VITE_SUPABASE_URL": JSON.stringify(

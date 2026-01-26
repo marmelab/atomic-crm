@@ -110,7 +110,7 @@ export const addNoteToContact = async ({
 
   // Add note to contact
   const { error: createNoteError } = await supabaseAdmin
-    .from("contactNotes")
+    .from("contact_notes")
     .insert({
       contact_id: contact.id,
       text: noteContent,
