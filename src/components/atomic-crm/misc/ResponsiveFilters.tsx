@@ -58,13 +58,17 @@ export const ResponsiveFilters = ({
         </FilterLiveForm>
         <Sheet>
           <SheetTrigger asChild>
-            <Button variant="outline" className="relative">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="relative"
+              aria-label="Filter"
+            >
               <Filter className="w-4 h-4" />
-              Filter
               {activeFiltersCount > 0 && (
                 <Badge
                   variant="destructive"
-                  className="absolute -top-2 -right-2 h-5 w-5 p-0 text-xs flex items-center justify-center"
+                  className="absolute -top-1 -right-1 h-5 w-5 p-0 text-xs flex items-center justify-center"
                 >
                   {activeFiltersCount}
                 </Badge>
