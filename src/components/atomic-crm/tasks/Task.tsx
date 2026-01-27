@@ -154,7 +154,7 @@ export const Task = ({
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
             <DropdownMenuItem
-              className="cursor-pointer"
+              className="cursor-pointer h-12 md:h-8 px-4 md:px-2 text-base md:text-sm"
               onClick={() => {
                 update("tasks", {
                   id: task.id,
@@ -170,7 +170,7 @@ export const Task = ({
               Postpone to tomorrow
             </DropdownMenuItem>
             <DropdownMenuItem
-              className="cursor-pointer"
+              className="cursor-pointer h-12 md:h-8 px-4 md:px-2 text-base md:text-sm"
               onClick={() => {
                 update("tasks", {
                   id: task.id,
@@ -185,10 +185,16 @@ export const Task = ({
             >
               Postpone to next week
             </DropdownMenuItem>
-            <DropdownMenuItem className="cursor-pointer" onClick={handleEdit}>
+            <DropdownMenuItem
+              className="cursor-pointer h-12 md:h-8 px-4 md:px-2 text-base md:text-sm"
+              onClick={handleEdit}
+            >
               Edit
             </DropdownMenuItem>
-            <DropdownMenuItem className="cursor-pointer" onClick={handleDelete}>
+            <DropdownMenuItem
+              className="cursor-pointer h-12 md:h-8 px-4 md:px-2 text-base md:text-sm"
+              onClick={handleDelete}
+            >
               Delete
             </DropdownMenuItem>
           </DropdownMenuContent>

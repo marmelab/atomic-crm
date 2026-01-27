@@ -81,7 +81,7 @@ const ContactShowContentMobile = () => {
         </div>
 
         <Tabs defaultValue="notes" className="w-full">
-          <TabsList className="grid w-full grid-cols-3">
+          <TabsList className="grid w-full grid-cols-3 h-10">
             <TabsTrigger value="notes">Notes</TabsTrigger>
             <TabsTrigger value="tasks">
               <ReferenceManyCount

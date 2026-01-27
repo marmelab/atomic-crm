@@ -37,7 +37,7 @@ export function ActivityLogContactNoteCreated({
 
           <div className="flex flex-row flex-grow">
             <div className="text-sm text-muted-foreground flex-grow">
-              <span className="text-muted-foreground text-sm inline-flex">
+              <span className="text-muted-foreground text-sm flex flex-wrap">
                 <ReferenceField
                   source="sales_id"
                   reference="sales"
@@ -45,12 +45,13 @@ export function ActivityLogContactNoteCreated({
                 >
                   <SaleName />
                 </ReferenceField>
+                &nbsp;added a note about&nbsp;
                 <ReferenceField
                   source="contact_id"
                   reference="contacts"
                   record={activity.contactNote}
                 >
-                  &nbsp;added a note about <TextField source="first_name" />
+                  <TextField source="first_name" />
                   &nbsp;
                   <TextField source="last_name" />
                 </ReferenceField>
