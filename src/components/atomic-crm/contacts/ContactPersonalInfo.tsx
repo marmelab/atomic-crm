@@ -26,7 +26,7 @@ export const ContactPersonalInfo = () => {
       </ArrayField>
 
       {record.has_newsletter && (
-        <p className="pl-6 md:text-sm text-muted-foreground">
+        <p className="pl-6 py-1 md:text-sm text-muted-foreground">
           Subscribed to newsletter
         </p>
       )}
@@ -65,7 +65,7 @@ export const ContactPersonalInfo = () => {
                 icon={
                   <genderOption.icon className="w-4 h-4 text-muted-foreground" />
                 }
-                primary={<span>{genderOption.label}</span>}
+                primary={<div className="pt-2">{genderOption.label}</div>}
               />
             );
           }

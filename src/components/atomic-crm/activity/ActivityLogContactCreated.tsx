@@ -20,7 +20,7 @@ export function ActivityLogContactCreated({
     <div className="p-0">
       <div className="flex flex-row gap-2 items-center w-full">
         <Avatar width={20} height={20} record={contact} />
-        <span className="text-muted-foreground text-sm inline-flex  flex-grow">
+        <span className="text-muted-foreground text-sm flex flex-wrap flex-grow">
           <ReferenceField source="sales_id" reference="sales" record={activity}>
             <SaleName />
           </ReferenceField>
