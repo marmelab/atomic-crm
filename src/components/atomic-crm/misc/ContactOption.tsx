@@ -8,7 +8,7 @@ const ContactOptionRender = () => {
   const record: Contact | undefined = useRecordContext();
   if (!record) return null;
   return (
-    <div className="flex flex-row gap-4 items-center justify-start">
+    <div className="flex flex-row gap-4 items-center justify-start whitespace-normal text-left">
       <Avatar height={40} width={40} record={record} />
       <div className="flex flex-col items-start gap-1">
         <span>
