@@ -42,19 +42,15 @@ export const Note = ({
 
   const [update, { isPending }] = useUpdate();
 
-  const [deleteNote] = useDelete(
-    resource,
-    { id: note.id, previousData: note },
-    {
-      mutationMode: "undoable",
-      onSuccess: () => {
-        notify("Note deleted", { type: "info", undoable: true });
-      },
+  const [deleteNote] = useDelete(resource, undefined, {
+    mutationMode: "undoable",
+    onSuccess: () => {
+      notify("Note deleted", { type: "info", undoable: true });
     },
-  );
+  });
 
   const handleDelete = () => {
-    deleteNote();
+    deleteNote(resource, { id: note.id, previousData: note });
   };
 
   const handleEnterEditMode = () => {
