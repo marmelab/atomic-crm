@@ -81,6 +81,7 @@ export function ActivityLogDealNoteCreated({
         </div>
       }
       text={dealNote.text}
+      link={`/deals/${dealNote.deal_id}/show`}
     />
   );
 }
