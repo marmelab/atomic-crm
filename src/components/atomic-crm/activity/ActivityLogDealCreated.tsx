@@ -20,7 +20,7 @@ export function ActivityLogDealCreated({
     <div className="p-0">
       <div className="flex flex-row space-x-1 items-center w-full">
         <div className="w-5 h-5 bg-gray-300 rounded-full" />
-        <span className="text-muted-foreground text-sm inline-flex flex-grow">
+        <span className="text-muted-foreground text-sm flex-grow">
           <ReferenceField source="sales_id" reference="sales" record={activity}>
             <SaleName />
           </ReferenceField>

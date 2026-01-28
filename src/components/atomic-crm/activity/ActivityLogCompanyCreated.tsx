@@ -21,7 +21,7 @@ export function ActivityLogCompanyCreated({
       <div className="flex flex-row space-x-1 items-center w-full">
         <CompanyAvatar width={20} height={20} record={company} />
 
-        <span className="text-muted-foreground text-sm inline-flex flex-grow">
+        <span className="text-muted-foreground text-sm flex-grow">
           <ReferenceField source="sales_id" reference="sales" record={activity}>
             <SaleName />
           </ReferenceField>

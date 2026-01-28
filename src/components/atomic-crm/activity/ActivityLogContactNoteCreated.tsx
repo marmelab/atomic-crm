@@ -35,34 +35,36 @@ export function ActivityLogContactNoteCreated({
             <ContactAvatar />
           </ReferenceField>
 
-          <div className="flex flex-row flex-grow">
-            <div className="text-sm text-muted-foreground flex-grow">
-              <span className="text-muted-foreground text-sm inline-flex">
-                <ReferenceField
-                  source="sales_id"
-                  reference="sales"
-                  record={activity}
-                >
-                  <SaleName />
-                </ReferenceField>
-                <ReferenceField
-                  source="contact_id"
-                  reference="contacts"
-                  record={activity.contactNote}
-                >
-                  &nbsp;added a note about <TextField source="first_name" />
-                  &nbsp;
-                  <TextField source="last_name" />
-                </ReferenceField>
-              </span>
-            </div>
-
-            {context === "company" && (
-              <span className="text-muted-foreground text-sm">
+          <span className="text-muted-foreground text-sm flex-grow">
+            <ReferenceField
+              source="sales_id"
+              reference="sales"
+              record={activity}
+            >
+              <SaleName />
+            </ReferenceField>
+            <ReferenceField
+              source="contact_id"
+              reference="contacts"
+              record={activity.contactNote}
+            >
+              &nbsp;added a note about&nbsp;
+              <TextField source="first_name" />
+              &nbsp;
+              <TextField source="last_name" />
+            </ReferenceField>
+            {context !== "company" && (
+              <>
+                &nbsp;
                 <RelativeDate date={activity.date} />
-              </span>
+              </>
             )}
-          </div>
+          </span>
+          {context === "company" && (
+            <span className="text-muted-foreground text-sm">
+              <RelativeDate date={activity.date} />
+            </span>
+          )}
         </div>
       }
       text={contactNote.text}
