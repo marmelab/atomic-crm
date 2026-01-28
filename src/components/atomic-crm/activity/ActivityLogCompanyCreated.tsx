@@ -21,24 +21,23 @@ export function ActivityLogCompanyCreated({
       <div className="flex flex-row space-x-1 items-center w-full">
         <CompanyAvatar width={20} height={20} record={company} />
 
-        <div className="text-sm text-muted-foreground flex-grow">
-          <span className="text-muted-foreground text-sm inline-flex">
-            <ReferenceField
-              source="sales_id"
-              reference="sales"
-              record={activity}
-            >
-              <SaleName />
-            </ReferenceField>
-          </span>
-          &nbsp;added company &nbsp;
+        <span className="text-muted-foreground text-sm inline-flex flex-grow">
+          <ReferenceField
+            source="sales_id"
+            reference="sales"
+            record={activity}
+          >
+            <SaleName />
+          </ReferenceField>
+          &nbsp;added company&nbsp;
           <Link to={`/companies/${company.id}/show`}>{company.name}</Link>
           {context === "all" && (
             <>
+              &nbsp;
               <RelativeDate date={activity.date} />
             </>
           )}
-        </div>
+        </span>
         {context === "company" && (
           <span className="text-muted-foreground text-sm">
             <RelativeDate date={activity.date} />
