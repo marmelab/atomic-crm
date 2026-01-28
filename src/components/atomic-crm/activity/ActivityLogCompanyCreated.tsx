@@ -22,11 +22,7 @@ export function ActivityLogCompanyCreated({
         <CompanyAvatar width={20} height={20} record={company} />
 
         <span className="text-muted-foreground text-sm inline-flex flex-grow">
-          <ReferenceField
-            source="sales_id"
-            reference="sales"
-            record={activity}
-          >
+          <ReferenceField source="sales_id" reference="sales" record={activity}>
             <SaleName />
           </ReferenceField>
           &nbsp;added company&nbsp;
