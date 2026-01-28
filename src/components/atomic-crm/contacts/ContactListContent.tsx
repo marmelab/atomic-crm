@@ -45,55 +45,65 @@ export const ContactListContent = () => {
     <div className="divide-y">
       {contacts.map((contact) => (
         <RecordContextProvider key={contact.id} value={contact}>
-          <Link
-            to={`/contacts/${contact.id}/show`}
-            className="flex flex-row gap-4 items-center px-4 py-2 hover:bg-muted transition-colors first:rounded-t-xl last:rounded-b-xl"
-            onClick={handleLinkClick}
-          >
-            <Checkbox
-              className="cursor-pointer"
-              checked={selectedIds.includes(contact.id)}
-              onCheckedChange={() => onToggleItem(contact.id)}
-            />
-            <Avatar />
-            <div className="flex-1 min-w-0">
-              <div className="font-medium">
-                {`${contact.first_name} ${contact.last_name ?? ""}`}
-              </div>
-              <div className="text-sm text-muted-foreground">
-                {contact.title}
-                {contact.title && contact.company_id != null && " at "}
-                {contact.company_id != null && (
-                  <ReferenceField
-                    source="company_id"
-                    reference="companies"
-                    link={false}
-                  >
-                    <TextField source="name" />
-                  </ReferenceField>
-                )}
-                {contact.nb_tasks
-                  ? ` - ${contact.nb_tasks} task${
-                      contact.nb_tasks > 1 ? "s" : ""
-                    }`
-                  : ""}
-                &nbsp;&nbsp;
-                <TagsList />
-              </div>
+          <div className="flex flex-row items-center py-2 hover:bg-muted transition-colors first:rounded-t-xl last:rounded-b-xl">
+            <div
+              className="px-4 py-3 flex items-center cursor-pointer"
+              onClick={() => onToggleItem(contact.id)}
+            >
+              <Checkbox
+                checked={selectedIds.includes(contact.id)}
+                onCheckedChange={() => onToggleItem(contact.id)}
+              />
             </div>
-            {contact.last_seen && (
-              <div className="text-right ml-4">
-                <div
-                  className="text-sm text-muted-foreground"
-                  title={contact.last_seen}
-                >
-                  {!isSmall && "last activity "}
-                  {formatRelative(contact.last_seen, now)}{" "}
-                  <Status status={contact.status} />
+            <Link
+              to={`/contacts/${contact.id}/show`}
+              onClick={handleLinkClick}
+              className="flex-1 flex flex-row gap-4 items-center"
+            >
+              <Avatar />
+              <div className="flex-1 min-w-0">
+                <div className="font-medium">
+                  {`${contact.first_name} ${contact.last_name ?? ""}`}
                 </div>
+                {contact.title ||
+                contact.company_id != null ||
+                contact.nb_tasks ? (
+                  <div className="text-sm text-muted-foreground">
+                    {contact.title}
+                    {contact.title && contact.company_id != null && " at "}
+                    {contact.company_id != null && (
+                      <ReferenceField
+                        source="company_id"
+                        reference="companies"
+                        link={false}
+                      >
+                        <TextField source="name" />
+                      </ReferenceField>
+                    )}
+                    {contact.nb_tasks
+                      ? ` - ${contact.nb_tasks} task${
+                          contact.nb_tasks > 1 ? "s" : ""
+                        }`
+                      : ""}
+                    &nbsp;&nbsp;
+                    <TagsList />
+                  </div>
+                ) : null}
               </div>
-            )}
-          </Link>
+              {contact.last_seen && (
+                <div className="text-right ml-4">
+                  <div
+                    className="text-sm text-muted-foreground"
+                    title={contact.last_seen}
+                  >
+                    {!isSmall && "last activity "}
+                    {formatRelative(contact.last_seen, now)}{" "}
+                    <Status status={contact.status} />
+                  </div>
+                </div>
+              )}
+            </Link>
+          </div>
         </RecordContextProvider>
       ))}
 
