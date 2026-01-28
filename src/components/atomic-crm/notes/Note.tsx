@@ -172,9 +172,9 @@ export const Note = ({
           </div>
         </Form>
       ) : (
-        <div className="pt-2 [&_p:empty]:min-h-[0.75em]">
+        <div className="pt-2 [&_p:empty]:min-h-[0.75em] text-sm md:max-w-220">
           {note.text?.split("\n").map((paragraph: string, index: number) => (
-            <p className="text-sm leading-6 m-0" key={index}>
+            <p className="leading-6 m-0" key={index}>
               {paragraph}
             </p>
           ))}
