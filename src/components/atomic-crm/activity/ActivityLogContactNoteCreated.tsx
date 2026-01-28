@@ -68,6 +68,7 @@ export function ActivityLogContactNoteCreated({
         </div>
       }
       text={contactNote.text}
+      link={`/contacts/${contactNote.contact_id}/show`}
     />
   );
 }
