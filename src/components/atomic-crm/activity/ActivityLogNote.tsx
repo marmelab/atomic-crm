@@ -1,4 +1,6 @@
-import { Fragment, type ReactNode } from "react";
+import { type ReactNode } from "react";
+
+import { Markdown } from "../misc/Markdown";
 
 type ActivityLogContactNoteCreatedProps = {
   header: ReactNode;
@@ -12,7 +14,6 @@ export function ActivityLogNote({
   if (!text) {
     return null;
   }
-  const paragraphs = text.split("\n");
 
   return (
     <div className="p-0">
@@ -21,14 +22,9 @@ export function ActivityLogNote({
           {header}
         </div>
         <div>
-          <div className="text-sm line-clamp-3 overflow-hidden">
-            {paragraphs.map((paragraph: string, index: number) => (
-              <Fragment key={index}>
-                {paragraph}
-                {index < paragraphs.length - 1 && <br />}
-              </Fragment>
-            ))}
-          </div>
+          <Markdown className="text-sm line-clamp-3 overflow-hidden [&_p]:my-1 [&_p:first-child]:mt-0 [&_blockquote]:border-l-2 [&_blockquote]:pl-3 [&_blockquote]:my-1 [&_blockquote]:text-muted-foreground [&_a]:text-primary [&_a]:underline [&_a:hover]:no-underline">
+            {text}
+          </Markdown>
         </div>
       </div>
     </div>
