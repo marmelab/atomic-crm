@@ -36,7 +36,7 @@ export function ActivityLogDealNoteCreated({
             </ReferenceField>
           </ReferenceField>
 
-          <span className="text-muted-foreground text-sm inline-flex flex-grow">
+          <span className="text-muted-foreground text-sm flex-grow">
             <ReferenceField
               source="sales_id"
               reference="sales"
