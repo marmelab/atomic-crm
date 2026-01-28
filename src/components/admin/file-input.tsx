@@ -339,6 +339,7 @@ export const FileInputPreview = (props: FileInputPreviewProps) => {
   return (
     <div className={cn("flex flex-row gap-1", className)} {...rest}>
       <Button
+        type="button"
         variant="ghost"
         size="icon"
         className="h-6 w-6 rounded-full shadow-sm cursor-pointer"
