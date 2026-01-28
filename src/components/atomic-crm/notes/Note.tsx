@@ -7,10 +7,11 @@ import {
   useUpdate,
   WithRecord,
 } from "ra-core";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { FieldValues, SubmitHandler } from "react-hook-form";
 import { ReferenceField } from "@/components/admin/reference-field";
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 import {
   Tooltip,
   TooltipContent,
@@ -38,8 +39,19 @@ export const Note = ({
 }) => {
   const [isHover, setHover] = useState(false);
   const [isEditing, setEditing] = useState(false);
+  const [isExpanded, setExpanded] = useState(false);
+  const [isTruncated, setTruncated] = useState(false);
+  const contentRef = useRef<HTMLDivElement>(null);
   const resource = useResourceContext();
   const notify = useNotify();
+
+  // Detect if content is truncated
+  useEffect(() => {
+    const el = contentRef.current;
+    if (el) {
+      setTruncated(el.scrollHeight > el.clientHeight);
+    }
+  }, [note.text]);
 
   const [update, { isPending }] = useUpdate();
 
@@ -171,9 +183,25 @@ export const Note = ({
       ) : (
         <div className="pt-2 text-sm md:max-w-150">
           {note.text && (
-            <Markdown className="[&_p]:leading-5 [&_p]:my-4 [&_p:first-child]:mt-0 [&_p:last-child]:mb-0 [&_blockquote]:border-l-2 [&_blockquote]:pl-3 [&_blockquote]:my-2 [&_blockquote]:text-muted-foreground [&_a]:text-primary [&_a]:underline [&_a:hover]:no-underline">
-              {note.text}
-            </Markdown>
+            <div
+              ref={contentRef}
+              className={cn(
+                "overflow-hidden transition-[max-height] duration-300 ease-in-out",
+                isExpanded ? "max-h-[5000px]" : "max-h-46",
+              )}
+            >
+              <Markdown className="[&_p]:leading-5 [&_p]:my-4 [&_p:first-child]:mt-0 [&_p:last-child]:mb-0 [&_blockquote]:border-l-2 [&_blockquote]:pl-3 [&_blockquote]:my-2 [&_blockquote]:text-muted-foreground [&_a]:text-primary [&_a]:underline [&_a:hover]:no-underline">
+                {note.text}
+              </Markdown>
+            </div>
+          )}
+          {isTruncated && (
+            <button
+              onClick={() => setExpanded(!isExpanded)}
+              className="text-primary text-sm mt-1 underline hover:no-underline cursor-pointer"
+            >
+              {isExpanded ? "Show less" : "Read more"}
+            </button>
           )}
 
           {note.attachments && <NoteAttachments note={note} />}
