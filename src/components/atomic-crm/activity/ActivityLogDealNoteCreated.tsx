@@ -36,7 +36,7 @@ export function ActivityLogDealNoteCreated({
             </ReferenceField>
           </ReferenceField>
 
-          <span className="text-sm text-muted-foreground flex-grow inline-flex">
+          <span className="text-muted-foreground text-sm flex-grow">
             <ReferenceField
               source="sales_id"
               reference="sales"
@@ -54,7 +54,7 @@ export function ActivityLogDealNoteCreated({
             />
             {context !== "company" && (
               <>
-                {" at "}
+                &nbsp;at&nbsp;
                 <ReferenceField
                   source="deal_id"
                   reference="deals"
@@ -66,7 +66,9 @@ export function ActivityLogDealNoteCreated({
                     reference="companies"
                     link="show"
                   />
-                </ReferenceField>{" "}
+                </ReferenceField>
+                &nbsp;
+                <RelativeDate date={activity.date} />
               </>
             )}
           </span>
@@ -79,6 +81,7 @@ export function ActivityLogDealNoteCreated({
         </div>
       }
       text={dealNote.text}
+      link={`/deals/${dealNote.deal_id}/show`}
     />
   );
 }

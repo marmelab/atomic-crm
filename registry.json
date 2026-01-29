@@ -357,6 +357,10 @@
           "type": "registry:component"
         },
         {
+          "path": "src/components/atomic-crm/misc/Markdown.tsx",
+          "type": "registry:component"
+        },
+        {
           "path": "src/components/atomic-crm/misc/ImageEditorField.tsx",
           "type": "registry:component"
         },
