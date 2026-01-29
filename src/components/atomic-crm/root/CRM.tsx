@@ -45,8 +45,6 @@ import { i18nProvider } from "./i18nProvider";
 import { StartPage } from "../login/StartPage.tsx";
 import { useIsMobile } from "@/hooks/use-mobile.ts";
 import { MobileTasksList } from "../tasks/MobileTasksList.tsx";
-import { MobileTaskEdit } from "../tasks/MobileTaskEdit.tsx";
-import { MobileTaskCreate } from "../tasks/MobileTaskCreate.tsx";
 import { ContactList } from "../contacts/ContactList.tsx";
 import { ContactShow } from "../contacts/ContactShow.tsx";
 
@@ -222,12 +220,7 @@ const MobileAdmin = (props: CoreAdminProps) => {
         show={ContactShow}
         recordRepresentation={contacts.recordRepresentation}
       />
-      <Resource
-        name="tasks"
-        list={MobileTasksList}
-        edit={MobileTaskEdit}
-        create={MobileTaskCreate}
-      />
+      <Resource name="tasks" list={MobileTasksList} />
     </Admin>
   );
 };
