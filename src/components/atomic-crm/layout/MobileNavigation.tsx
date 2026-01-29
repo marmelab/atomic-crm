@@ -35,6 +35,10 @@ import {
   useMatch,
   useNavigate,
 } from "react-router";
+import { CreateSheet } from "../misc/CreateSheet";
+import { ContactInputs } from "../contacts/ContactInputs";
+import { useState } from "react";
+import { type Contact } from "../types";
 
 export const MobileNavigation = () => {
   const location = useLocation();
@@ -118,66 +122,96 @@ const CreateButton = () => {
   const navigate = useNavigate();
   const createPath = useCreatePath();
 
+  const [contactCreateOpen, setContactCreateOpen] = useState(false);
+
   return (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button
-          variant="default"
-          size="icon"
-          className="h-16 w-16 rounded-full -mt-3"
-          aria-label="Create"
-        >
-          <Plus className="size-10" />
-        </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent>
-        <DropdownMenuItem
-          className="h-12 px-4 text-base"
-          onSelect={() => {
-            navigate(
-              createPath({
-                resource: "contacts",
-                type: "create",
-              }),
-            );
-          }}
-        >
-          Contact
-        </DropdownMenuItem>
-        <DropdownMenuItem
-          className="h-12 px-4 text-base"
-          onSelect={() => {
-            navigate(
-              createPath({
-                resource: "contactNotes",
-                type: "create",
-              }),
-              {
-                state: contact_id ? { record: { contact_id } } : undefined,
-              },
-            );
-          }}
-        >
-          Note
-        </DropdownMenuItem>
-        <DropdownMenuItem
-          className="h-12 px-4 text-base"
-          onSelect={() => {
-            navigate(
-              createPath({
-                resource: "tasks",
-                type: "create",
-              }),
-              {
-                state: contact_id ? { record: { contact_id } } : undefined,
-              },
-            );
-          }}
-        >
-          Task
-        </DropdownMenuItem>
-      </DropdownMenuContent>
-    </DropdownMenu>
+    <>
+      <ContactCreateSheet
+        open={contactCreateOpen}
+        onOpenChange={setContactCreateOpen}
+      />
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button
+            variant="default"
+            size="icon"
+            className="h-16 w-16 rounded-full -mt-3"
+            aria-label="Create"
+          >
+            <Plus className="size-10" />
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent>
+          <DropdownMenuItem
+            className="h-12 px-4 text-base"
+            onSelect={() => {
+              setContactCreateOpen(true);
+            }}
+          >
+            Contact
+          </DropdownMenuItem>
+          <DropdownMenuItem
+            className="h-12 px-4 text-base"
+            onSelect={() => {
+              navigate(
+                createPath({
+                  resource: "contactNotes",
+                  type: "create",
+                }),
+                {
+                  state: contact_id ? { record: { contact_id } } : undefined,
+                },
+              );
+            }}
+          >
+            Note
+          </DropdownMenuItem>
+          <DropdownMenuItem
+            className="h-12 px-4 text-base"
+            onSelect={() => {
+              navigate(
+                createPath({
+                  resource: "tasks",
+                  type: "create",
+                }),
+                {
+                  state: contact_id ? { record: { contact_id } } : undefined,
+                },
+              );
+            }}
+          >
+            Task
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+    </>
+  );
+};
+
+const ContactCreateSheet = ({
+  open,
+  onOpenChange,
+}: {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+}) => {
+  const { identity } = useGetIdentity();
+  return (
+    <CreateSheet
+      resource="contacts"
+      title="Create Contact"
+      defaultValues={{ sales_id: identity?.id }}
+      transform={(data: Contact) => ({
+        ...data,
+        first_seen: new Date().toISOString(),
+        last_seen: new Date().toISOString(),
+        tags: [],
+      })}
+      open={open}
+      onOpenChange={onOpenChange}
+    >
+      <ContactInputs />
+    </CreateSheet>
   );
 };
 
