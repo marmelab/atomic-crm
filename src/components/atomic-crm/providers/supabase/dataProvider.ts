@@ -262,7 +262,7 @@ const lifeCycleCallbacks: ResourceCallbacks[] = [
         "website",
         "zipcode",
         "city",
-        "stateAbbr",
+        "state_abbr",
       ])(params);
     },
     beforeCreate: async (params) => {
