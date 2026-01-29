@@ -1,8 +1,8 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
-import { createClient } from "jsr:@supabase/supabase-js@2";
 import { sql, type Selectable } from "https://esm.sh/kysely@0.27.2";
 import { db, type ContactsTable, CompiledQuery } from "../_shared/db.ts";
 import { corsHeaders, createErrorResponse } from "../_shared/utils.ts";
+import { AuthMiddleware, UserMiddleware } from "../_shared/authentication.ts";
 
 type Contact = Selectable<ContactsTable>;
 
@@ -157,59 +157,43 @@ async function mergeContacts(
   }
 }
 
-Deno.serve(async (req: Request) => {
-  // Handle CORS preflight
-  if (req.method === "OPTIONS") {
-    return new Response(null, {
-      status: 204,
-      headers: corsHeaders,
-    });
-  }
-
-  // Authenticate user via Supabase client (bypasses RLS, so we need explicit auth check)
-  const authHeader = req.headers.get("Authorization");
-  if (!authHeader) {
-    return createErrorResponse(401, "Missing Authorization header");
-  }
-
-  const supabaseClient = createClient(
-    Deno.env.get("SUPABASE_URL") ?? "",
-    Deno.env.get("SUPABASE_ANON_KEY") ?? "",
-    { global: { headers: { Authorization: authHeader } } },
-  );
-
-  const {
-    data: { user },
-    error: authError,
-  } = await supabaseClient.auth.getUser();
-  if (!user || authError) {
-    return createErrorResponse(401, "Unauthorized");
-  }
-
-  // Handle POST request
-  if (req.method === "POST") {
-    try {
-      const { loserId, winnerId } = await req.json();
-
-      if (!loserId || !winnerId) {
-        return createErrorResponse(400, "Missing loserId or winnerId");
+Deno.serve(async (req: Request) =>
+  AuthMiddleware(req, async (req) =>
+    UserMiddleware(req, async (req, user) => {
+      // Handle CORS preflight
+      if (req.method === "OPTIONS") {
+        return new Response(null, {
+          status: 204,
+          headers: corsHeaders,
+        });
       }
 
-      const result = await mergeContacts(loserId, winnerId, user.id);
+      // Handle POST request
+      if (req.method === "POST") {
+        try {
+          const { loserId, winnerId } = await req.json();
 
-      return new Response(JSON.stringify(result), {
-        headers: { "Content-Type": "application/json", ...corsHeaders },
-      });
-    } catch (error) {
-      console.error("Merge failed:", error);
-      return createErrorResponse(
-        500,
-        `Failed to merge contacts: ${
-          error instanceof Error ? error.message : "Unknown error"
-        }`,
-      );
-    }
-  }
+          if (!loserId || !winnerId) {
+            return createErrorResponse(400, "Missing loserId or winnerId");
+          }
 
-  return createErrorResponse(405, "Method Not Allowed");
-});
+          const result = await mergeContacts(loserId, winnerId, user.id);
+
+          return new Response(JSON.stringify(result), {
+            headers: { "Content-Type": "application/json", ...corsHeaders },
+          });
+        } catch (error) {
+          console.error("Merge failed:", error);
+          return createErrorResponse(
+            500,
+            `Failed to merge contacts: ${
+              error instanceof Error ? error.message : "Unknown error"
+            }`,
+          );
+        }
+      }
+
+      return createErrorResponse(405, "Method Not Allowed");
+    }),
+  ),
+);
