@@ -125,11 +125,11 @@ export const ReferenceFieldView = <
 
   if (link) {
     return (
-      <div className={className}>
+      <span className={className}>
         <Link to={link} onClick={stopPropagation}>
           {child}
         </Link>
-      </div>
+      </span>
     );
   }
 

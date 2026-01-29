@@ -20,7 +20,7 @@ export function ActivityLogContactCreated({
     <div className="p-0">
       <div className="flex flex-row gap-2 items-center w-full">
         <Avatar width={20} height={20} record={contact} />
-        <span className="text-muted-foreground text-sm inline-flex  flex-grow">
+        <span className="text-muted-foreground text-sm flex-grow">
           <ReferenceField source="sales_id" reference="sales" record={activity}>
             <SaleName />
           </ReferenceField>
@@ -28,8 +28,23 @@ export function ActivityLogContactCreated({
           <Link to={`/contacts/${contact.id}/show`}>
             {contact.first_name}&nbsp;{contact.last_name}
           </Link>
-          &nbsp;
-          {context !== "company" && <>to company {activity.company_id}</>}
+          {context !== "company" && (
+            <>
+              {activity.company_id != null && (
+                <>
+                  &nbsp;to&nbsp;
+                  <ReferenceField
+                    source="company_id"
+                    reference="companies"
+                    record={activity}
+                    link="show"
+                  />
+                </>
+              )}
+              &nbsp;
+              <RelativeDate date={activity.date} />
+            </>
+          )}
         </span>
         {context === "company" && (
           <span className="text-muted-foreground text-sm">
