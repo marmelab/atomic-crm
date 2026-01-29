@@ -1,17 +1,11 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { CreateBase, Form, useGetIdentity } from "ra-core";
 
-import { SaveButton } from "@/components/admin";
-import { useIsMobile } from "@/hooks/use-mobile";
-import { MobileContent } from "../layout/MobileContent";
-import MobileHeader from "../layout/MobileHeader";
-import { MobileBackButton } from "../misc/MobileBackButton";
+import { FormToolbar } from "../layout/FormToolbar";
 import type { Contact } from "../types";
 import { ContactInputs } from "./ContactInputs";
-import { FormToolbar } from "../layout/FormToolbar";
 
 export const ContactCreate = () => {
-  const isMobile = useIsMobile();
   return (
     <CreateBase
       redirect="show"
@@ -22,7 +16,7 @@ export const ContactCreate = () => {
         tags: [],
       })}
     >
-      {isMobile ? <ContactCreateContentMobile /> : <ContactCreateContent />}
+      <ContactCreateContent />
     </CreateBase>
   );
 };
@@ -41,26 +35,6 @@ const ContactCreateContent = () => {
           </Card>
         </Form>
       </div>
-    </div>
-  );
-};
-
-const ContactCreateContentMobile = () => {
-  const { identity } = useGetIdentity();
-  return (
-    <div>
-      <MobileHeader>
-        <MobileBackButton />
-        <div className="flex flex-1 text-xl font-semibold">Create Contact</div>
-      </MobileHeader>
-      <MobileContent>
-        <Form defaultValues={{ sales_id: identity?.id }}>
-          <ContactInputs />
-          <div className="flex flex-col gap-2 mt-4">
-            <SaveButton />
-          </div>
-        </Form>
-      </MobileContent>
     </div>
   );
 };
