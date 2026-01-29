@@ -21,23 +21,12 @@ import {
   Sun,
   Users,
 } from "lucide-react";
-import {
-  Translate,
-  useAuthProvider,
-  useCreatePath,
-  useGetIdentity,
-  useLogout,
-} from "ra-core";
-import {
-  Link,
-  matchPath,
-  useLocation,
-  useMatch,
-  useNavigate,
-} from "react-router";
+import { Translate, useAuthProvider, useGetIdentity, useLogout } from "ra-core";
+import { Link, matchPath, useLocation, useMatch } from "react-router";
 import { ContactCreateSheet } from "../contacts/ContactCreateSheet";
 import { useState } from "react";
 import { NoteCreateSheet } from "../notes/NoteCreateSheet";
+import { TaskCreateSheet } from "../tasks/TaskCreateSheet";
 
 export const MobileNavigation = () => {
   const location = useLocation();
@@ -118,11 +107,9 @@ const NavigationButton = ({
 
 const CreateButton = () => {
   const contact_id = useMatch("/contacts/:id/*")?.params.id;
-  const navigate = useNavigate();
-  const createPath = useCreatePath();
-
   const [contactCreateOpen, setContactCreateOpen] = useState(false);
   const [noteCreateOpen, setNoteCreateOpen] = useState(false);
+  const [taskCreateOpen, setTaskCreateOpen] = useState(false);
 
   return (
     <>
@@ -133,6 +120,11 @@ const CreateButton = () => {
       <NoteCreateSheet
         open={noteCreateOpen}
         onOpenChange={setNoteCreateOpen}
+        contact_id={contact_id}
+      />
+      <TaskCreateSheet
+        open={taskCreateOpen}
+        onOpenChange={setTaskCreateOpen}
         contact_id={contact_id}
       />
       <DropdownMenu>
@@ -166,15 +158,7 @@ const CreateButton = () => {
           <DropdownMenuItem
             className="h-12 px-4 text-base"
             onSelect={() => {
-              navigate(
-                createPath({
-                  resource: "tasks",
-                  type: "create",
-                }),
-                {
-                  state: contact_id ? { record: { contact_id } } : undefined,
-                },
-              );
+              setTaskCreateOpen(true);
             }}
           >
             Task

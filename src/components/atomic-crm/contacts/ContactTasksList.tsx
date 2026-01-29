@@ -6,9 +6,11 @@ import {
   startOfToday,
 } from "date-fns";
 import { useRecordContext, useGetList } from "ra-core";
+import { useState } from "react";
 
-import { CreateButton } from "../../admin";
+import { Button } from "@/components/ui/button";
 import { TasksListFilter } from "../dashboard/TasksListFilter";
+import { TaskCreateSheet } from "../tasks/TaskCreateSheet";
 import type { Contact } from "../types";
 
 const today = new Date();
@@ -41,6 +43,7 @@ const taskFilters = {
 
 export const ContactTasksList = () => {
   const record = useRecordContext<Contact>();
+  const [taskCreateOpen, setTaskCreateOpen] = useState(false);
 
   const { total, isLoading } = useGetList("tasks", {
     filter: {
@@ -57,14 +60,19 @@ export const ContactTasksList = () => {
 
   if (!isLoading && !hasActiveTasks) {
     return (
-      <div className="flex flex-col items-center justify-center py-8 text-center">
-        <p className="text-muted-foreground mb-4">No tasks yet</p>
-        <CreateButton
-          resource="tasks"
-          state={{ record: { contact_id: record.id } }}
-          label="Add task"
+      <>
+        <TaskCreateSheet
+          open={taskCreateOpen}
+          onOpenChange={setTaskCreateOpen}
+          contact_id={record.id}
         />
-      </div>
+        <div className="flex flex-col items-center justify-center py-8 text-center">
+          <p className="text-muted-foreground mb-4">No tasks yet</p>
+          <Button variant="outline" onClick={() => setTaskCreateOpen(true)}>
+            Add task
+          </Button>
+        </div>
+      </>
     );
   }
 
