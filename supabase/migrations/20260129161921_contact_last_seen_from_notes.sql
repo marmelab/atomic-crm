@@ -7,7 +7,7 @@ CREATE OR REPLACE FUNCTION public.handle_contact_note_created_or_updated()
  SET search_path TO ''
 AS $function$
 begin
-  update public.contacts set public.contacts.last_seen = new.date where public.contacts.id = new.contact_id;
+  update public.contacts set last_seen = new.date where contacts.id = new.contact_id;
   return new;
 end;
 $function$
