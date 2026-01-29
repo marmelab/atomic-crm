@@ -173,7 +173,7 @@ const dataProviderWithCustomMethods = {
   },
   async updatePassword(id: Identifier) {
     const { data: passwordUpdated, error } =
-      await supabase.functions.invoke<boolean>("updatePassword", {
+      await supabase.functions.invoke<boolean>("update_password", {
         method: "PATCH",
         body: {
           sales_id: id,
@@ -181,7 +181,7 @@ const dataProviderWithCustomMethods = {
       });
 
     if (!passwordUpdated || error) {
-      console.error("passwordUpdate.error", error);
+      console.error("update_password.error", error);
       throw new Error("Failed to update password");
     }
 
@@ -219,13 +219,13 @@ const dataProviderWithCustomMethods = {
     return getIsInitialized();
   },
   async mergeContacts(sourceId: Identifier, targetId: Identifier) {
-    const { data, error } = await supabase.functions.invoke("mergeContacts", {
+    const { data, error } = await supabase.functions.invoke("merge_contacts", {
       method: "POST",
       body: { loserId: sourceId, winnerId: targetId },
     });
 
     if (error) {
-      console.error("mergeContacts.error", error);
+      console.error("merge_contacts.error", error);
       throw new Error("Failed to merge contacts");
     }
 
