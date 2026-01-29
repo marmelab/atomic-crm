@@ -316,6 +316,7 @@ export const useImportFromJson = (): [
             tags: tagsIds,
             created_at: dataToImport.created_at,
             updated_at: dataToImport.updated_at,
+            last_seen: dataToImport.updated_at,
           },
         });
         idsMaps.contacts[dataToImport.id] = data.id;
