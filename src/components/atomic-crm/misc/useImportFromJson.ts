@@ -193,7 +193,7 @@ export const useImportFromJson = (): [
           ),
           failedImports: {
             ...old.failedImports,
-            sales: [...old.failedImports.sales, dataToImport],
+            sales: [...old.failedImports.sales, { ...(dataToImport as any), error: (err as Error).message }],
           },
           duration,
         }));
@@ -251,7 +251,7 @@ export const useImportFromJson = (): [
           error: null,
           failedImports: {
             ...old.failedImports,
-            companies: [...old.failedImports.companies, dataToImport],
+            companies: [...old.failedImports.companies, { ...(dataToImport as any), error: (err as Error).message }],
           },
         }));
       }
@@ -335,7 +335,7 @@ export const useImportFromJson = (): [
           error: null,
           failedImports: {
             ...old.failedImports,
-            contacts: [...old.failedImports.contacts, dataToImport],
+            contacts: [...old.failedImports.contacts, { ...(dataToImport as any), error: (err as Error).message }],
           },
         }));
       }
@@ -368,7 +368,7 @@ export const useImportFromJson = (): [
             status: "importing",
             failedImports: {
               ...old.failedImports,
-              notes: [...old.failedImports.notes, dataToImport],
+              notes: [...old.failedImports.notes, { ...(dataToImport as any), error: `Invalid contact_id ${dataToImport.contact_id}` }],
             },
             error: null,
           }));
@@ -418,7 +418,7 @@ export const useImportFromJson = (): [
           status: "importing",
           failedImports: {
             ...old.failedImports,
-            notes: [...old.failedImports.notes, dataToImport],
+            notes: [...old.failedImports.notes, { ...(dataToImport as any), error: (err as Error).message }],
           },
           error: null,
         }));
@@ -452,7 +452,7 @@ export const useImportFromJson = (): [
             status: "importing",
             failedImports: {
               ...old.failedImports,
-              tasks: [...old.failedImports.tasks, dataToImport],
+              tasks: [...old.failedImports.tasks, { ...(dataToImport as any), error: `Invalid contact_id ${dataToImport.contact_id}` }],
             },
             error: null,
           }));
@@ -484,7 +484,7 @@ export const useImportFromJson = (): [
           status: "importing",
           failedImports: {
             ...old.failedImports,
-            tasks: [...old.failedImports.tasks, dataToImport],
+            tasks: [...old.failedImports.tasks, { ...(dataToImport as any), error: (err as Error).message }],
           },
           error: null,
         }));
