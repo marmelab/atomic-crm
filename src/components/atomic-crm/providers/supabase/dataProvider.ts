@@ -136,8 +136,14 @@ const dataProviderWithCustomMethods = {
 
     if (!data || error) {
       console.error("salesCreate.error", error);
-      const errorDetails = await error.context.json();
-      throw new Error(errorDetails.message || "Failed to create the user");
+      const errorDetails = await (async () => {
+        try {
+          return (await error?.context?.json()) ?? {};
+        } catch {
+          return {};
+        }
+      })();
+      throw new Error(errorDetails?.message || "Failed to create the user");
     }
 
     return data;
