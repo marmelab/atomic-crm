@@ -36,6 +36,8 @@ FRONTEND_HTTP_HOST=true
 FRONTEND_HTTP_PORT=3000
 FRONTEND_HMR_PORT=3001
 VITE_SUPABASE_URL=http://localhost:8000
+VITE_SUPABASE_ANON_KEY=Put the ANON_KEY value from ./docker/.env
+SUPABASE_SERVICE_ROLE_KEY=Put the SERVICE_ROLE_KEY value from ./docker/.env
 ```
 
-Replace the port of the `VITE_SUPABASE_URL` variable with the one you choose in the Supabase `./docker/.env` file.
+Replace the port of the `VITE_SUPABASE_URL` variable with the one you choose for `SUPABASE_PUBLIC_URL` in the Supabase `./docker/.env` file.
