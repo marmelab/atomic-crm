@@ -8,7 +8,7 @@ export const corsHeaders = {
 export function createErrorResponse(
   status: number,
   message: string,
-  custom: any = {},
+  custom: Record<string, unknown> = {},
 ) {
   return new Response(JSON.stringify({ status, message, ...custom }), {
     headers: { "Content-Type": "application/json", ...corsHeaders },
