@@ -8,9 +8,12 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { useIsMobile } from "@/hooks/use-mobile";
 import MobileHeader from "../layout/MobileHeader";
 import { MobileContent } from "../layout/MobileContent";
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
 
 import { CompanyAvatar } from "../companies/CompanyAvatar";
 import { NoteCreate, NotesIterator } from "../notes";
+import { NoteCreateSheet } from "../notes/NoteCreateSheet";
 import { TagsListEdit } from "./TagsListEdit";
 import { ContactPersonalInfo } from "./ContactPersonalInfo";
 import { ContactBackgroundInfo } from "./ContactBackgroundInfo";
@@ -20,7 +23,6 @@ import { Avatar } from "./Avatar";
 import { ContactAside } from "./ContactAside";
 import { MobileBackButton } from "../misc/MobileBackButton";
 import { EditButton } from "../misc/EditButton";
-import { CreateButton } from "@/components/admin";
 
 export const ContactShow = () => {
   const isMobile = useIsMobile();
@@ -34,10 +36,16 @@ export const ContactShow = () => {
 
 const ContactShowContentMobile = () => {
   const { record, isPending } = useShowContext<Contact>();
+  const [noteCreateOpen, setNoteCreateOpen] = useState(false);
   if (isPending || !record) return null;
 
   return (
     <>
+      <NoteCreateSheet
+        open={noteCreateOpen}
+        onOpenChange={setNoteCreateOpen}
+        contact_id={record.id}
+      />
       <MobileHeader>
         <MobileBackButton />
         <div className="flex flex-1">
@@ -102,13 +110,12 @@ const ContactShowContentMobile = () => {
               empty={
                 <div className="flex flex-col items-center justify-center py-8 text-center">
                   <p className="text-muted-foreground mb-4">No notes yet</p>
-                  <CreateButton
-                    resource="contactNotes"
-                    state={{
-                      record: { contact_id: record.id },
-                    }}
-                    label="Add note"
-                  />
+                  <Button
+                    variant="outline"
+                    onClick={() => setNoteCreateOpen(true)}
+                  >
+                    Add note
+                  </Button>
                 </div>
               }
             >
