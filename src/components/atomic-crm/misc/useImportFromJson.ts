@@ -229,7 +229,6 @@ export const useImportFromJson = (): [
               ? idsMaps.sales[dataToImport.sales_id]
               : currentSale.id,
             created_at: dataToImport.created_at,
-            updated_at: dataToImport.updated_at,
           },
         });
 
@@ -314,8 +313,6 @@ export const useImportFromJson = (): [
               ? idsMaps.sales[dataToImport.sales_id]
               : currentSale.id,
             tags: tagsIds,
-            created_at: dataToImport.created_at,
-            updated_at: dataToImport.updated_at,
             last_seen: dataToImport.updated_at,
           },
         });
@@ -403,8 +400,6 @@ export const useImportFromJson = (): [
             text: dataToImport.text,
             date: dataToImport.date,
             attachments,
-            created_at: dataToImport.created_at,
-            updated_at: dataToImport.updated_at,
           },
         });
         setState((old) => ({
@@ -471,8 +466,6 @@ export const useImportFromJson = (): [
             text: dataToImport.text,
             due_date: dataToImport.due_date || undefined,
             done_date: dataToImport.done_date || undefined,
-            created_at: dataToImport.created_at,
-            updated_at: dataToImport.updated_at,
           },
         });
         setState((old) => ({
