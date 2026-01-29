@@ -133,10 +133,11 @@ const dataProviderWithCustomMethods = {
       method: "POST",
       body,
     });
+    const errorDetails = await error.context.json();
 
     if (!data || error) {
       console.error("salesCreate.error", error);
-      throw new Error("Failed to create account manager");
+      throw new Error(errorDetails.message || "Failed to create the user");
     }
 
     return data;

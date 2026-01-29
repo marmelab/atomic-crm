@@ -55,15 +55,17 @@ async function inviteUser(req: Request, currentUserSale: any) {
     user_metadata: { first_name, last_name },
   });
 
+  if (!data?.user || userError) {
+    console.error(`Error inviting user: user_error=${userError}`);
+    return createErrorResponse(userError.status, (userError as Error).message, {
+      code: userError.code,
+    });
+  }
+
   const { error: emailError } =
     await supabaseAdmin.auth.admin.inviteUserByEmail(email);
 
-  if (!data?.user || userError) {
-    console.error(`Error inviting user: user_error=${userError}`);
-    return createErrorResponse(500, "Internal Server Error");
-  }
-
-  if (!data?.user || userError || emailError) {
+  if (!data?.user || emailError) {
     console.error(`Error inviting user, email_error=${emailError}`);
     return createErrorResponse(500, "Failed to send invitation mail");
   }
