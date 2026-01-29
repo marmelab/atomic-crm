@@ -47,8 +47,6 @@ import { useIsMobile } from "@/hooks/use-mobile.ts";
 import { MobileTasksList } from "../tasks/MobileTasksList.tsx";
 import { MobileTaskEdit } from "../tasks/MobileTaskEdit.tsx";
 import { MobileTaskCreate } from "../tasks/MobileTaskCreate.tsx";
-import { MobileNoteEdit } from "../notes/MobileNoteEdit.tsx";
-import { MobileNoteCreate } from "../notes/MobileNoteCreate.tsx";
 import { ContactList } from "../contacts/ContactList.tsx";
 import { ContactShow } from "../contacts/ContactShow.tsx";
 
@@ -218,11 +216,11 @@ const MobileAdmin = (props: CoreAdminProps) => {
         />
         <Route path={OAuthConsentPage.path} element={<OAuthConsentPage />} />
       </CustomRoutes>
-      <Resource name="contacts" list={ContactList} show={ContactShow} />
       <Resource
-        name="contactNotes"
-        edit={MobileNoteEdit}
-        create={MobileNoteCreate}
+        name="contacts"
+        list={ContactList}
+        show={ContactShow}
+        recordRepresentation={contacts.recordRepresentation}
       />
       <Resource
         name="tasks"

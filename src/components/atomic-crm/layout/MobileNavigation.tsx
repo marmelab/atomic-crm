@@ -35,10 +35,9 @@ import {
   useMatch,
   useNavigate,
 } from "react-router";
-import { CreateSheet } from "../misc/CreateSheet";
-import { ContactInputs } from "../contacts/ContactInputs";
+import { ContactCreateSheet } from "../contacts/ContactCreateSheet";
 import { useState } from "react";
-import { type Contact } from "../types";
+import { NoteCreateSheet } from "../notes/NoteCreateSheet";
 
 export const MobileNavigation = () => {
   const location = useLocation();
@@ -123,12 +122,18 @@ const CreateButton = () => {
   const createPath = useCreatePath();
 
   const [contactCreateOpen, setContactCreateOpen] = useState(false);
+  const [noteCreateOpen, setNoteCreateOpen] = useState(false);
 
   return (
     <>
       <ContactCreateSheet
         open={contactCreateOpen}
         onOpenChange={setContactCreateOpen}
+      />
+      <NoteCreateSheet
+        open={noteCreateOpen}
+        onOpenChange={setNoteCreateOpen}
+        contact_id={contact_id}
       />
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
@@ -153,15 +158,7 @@ const CreateButton = () => {
           <DropdownMenuItem
             className="h-12 px-4 text-base"
             onSelect={() => {
-              navigate(
-                createPath({
-                  resource: "contactNotes",
-                  type: "create",
-                }),
-                {
-                  state: contact_id ? { record: { contact_id } } : undefined,
-                },
-              );
+              setNoteCreateOpen(true);
             }}
           >
             Note
@@ -185,33 +182,6 @@ const CreateButton = () => {
         </DropdownMenuContent>
       </DropdownMenu>
     </>
-  );
-};
-
-const ContactCreateSheet = ({
-  open,
-  onOpenChange,
-}: {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-}) => {
-  const { identity } = useGetIdentity();
-  return (
-    <CreateSheet
-      resource="contacts"
-      title="Create Contact"
-      defaultValues={{ sales_id: identity?.id }}
-      transform={(data: Contact) => ({
-        ...data,
-        first_seen: new Date().toISOString(),
-        last_seen: new Date().toISOString(),
-        tags: [],
-      })}
-      open={open}
-      onOpenChange={onOpenChange}
-    >
-      <ContactInputs />
-    </CreateSheet>
   );
 };
 

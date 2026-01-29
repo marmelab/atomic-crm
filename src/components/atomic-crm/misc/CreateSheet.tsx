@@ -39,7 +39,7 @@ export interface CreateSheetProps extends CreateBaseProps {
   /**
    * The title displayed in the sheet header
    */
-  title?: string;
+  title?: ReactNode;
 
   /**
    * Default values for the form
@@ -90,10 +90,10 @@ export const CreateSheet = ({
   const notify = useNotify();
   const redirect = useRedirect();
 
-  // Handle success - close sheet if redirect is false
+  // Handle success - close sheet in addition to default behavior
   const handleSuccess = (...args: any[]) => {
     if (mutationOptions?.onSuccess) {
-      mutationOptions.onSuccess(
+      return mutationOptions.onSuccess(
         ...(args as Parameters<typeof mutationOptions.onSuccess>),
       );
     }

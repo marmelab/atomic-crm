@@ -325,6 +325,10 @@
           "type": "registry:component"
         },
         {
+          "path": "src/components/atomic-crm/notes/NoteCreateSheet.tsx",
+          "type": "registry:component"
+        },
+        {
           "path": "src/components/atomic-crm/notes/NoteCreate.tsx",
           "type": "registry:component"
         },
@@ -630,6 +634,10 @@
         },
         {
           "path": "src/components/atomic-crm/contacts/ContactEdit.tsx",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/contacts/ContactCreateSheet.tsx",
           "type": "registry:component"
         },
         {
