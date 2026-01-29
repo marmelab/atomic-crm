@@ -17,7 +17,7 @@ import fs from "node:fs";
   await waitForProjectToBeReady({ projectRef });
 
   // This also ensures the project is ready
-  const { anonKey } = await fetchApiKeys({
+  const { publishableKey } = await fetchApiKeys({
     projectRef,
   });
 
@@ -32,7 +32,7 @@ import fs from "node:fs";
 
   await persistSupabaseEnv({
     projectRef,
-    anonKey,
+    publishableKey,
   });
 })();
 
@@ -149,7 +149,7 @@ async function setupDatabase({ databasePassword }) {
 }
 
 async function fetchApiKeys({ projectRef }) {
-  let anonKey = "";
+  let publishableKey = "";
   try {
     const { stdout, exitCode } = await execa(
       "npx",
@@ -174,8 +174,17 @@ async function fetchApiKeys({ projectRef }) {
       if (!matchJSON) {
         throw new Error("Invalid JSON output");
       }
-      const jsonOuput = JSON.parse(matchJSON[0]);
-      anonKey = jsonOuput.find((key) => key.name === "anon")?.api_key;
+      const jsonOutput = JSON.parse(matchJSON[0]);
+
+      // Prioritize the default publishable key, but any publishable key will work.
+      publishableKey = jsonOutput.find(
+        (key) => key.type === "publishable" && key.name === "default",
+      )?.api_key;
+      if (!publishableKey) {
+        publishableKey = jsonOutput.find(
+          (key) => key.type === "publishable",
+        )?.api_key;
+      }
     }
   } catch (e) {
     console.error("Failed to fetch API keys");
@@ -183,20 +192,20 @@ async function fetchApiKeys({ projectRef }) {
     throw e;
   }
 
-  if (anonKey === "") {
+  if (publishableKey === "") {
     await sleep(1000);
     return fetchApiKeys({ projectRef });
   }
 
-  return { anonKey };
+  return { publishableKey };
 }
 
-async function persistSupabaseEnv({ projectRef, anonKey }) {
+async function persistSupabaseEnv({ projectRef, publishableKey }) {
   fs.writeFileSync(
     `${process.cwd()}/.env.production.local`,
     `
 VITE_SUPABASE_URL=https://${projectRef}.supabase.co
-VITE_SUPABASE_ANON_KEY=${anonKey}`,
+VITE_SB_PUBLISHABLE_KEY=${publishableKey}`,
     { flag: "a" },
   );
 }
