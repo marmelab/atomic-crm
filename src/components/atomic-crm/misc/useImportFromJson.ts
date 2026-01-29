@@ -228,6 +228,8 @@ export const useImportFromJson = (): [
             sales_id: dataToImport.sales_id
               ? idsMaps.sales[dataToImport.sales_id]
               : currentSale.id,
+            created_at: dataToImport.created_at,
+            updated_at: dataToImport.updated_at,
           },
         });
 
@@ -312,6 +314,8 @@ export const useImportFromJson = (): [
               ? idsMaps.sales[dataToImport.sales_id]
               : currentSale.id,
             tags: tagsIds,
+            created_at: dataToImport.created_at,
+            updated_at: dataToImport.updated_at,
           },
         });
         idsMaps.contacts[dataToImport.id] = data.id;
@@ -398,6 +402,8 @@ export const useImportFromJson = (): [
             text: dataToImport.text,
             date: dataToImport.date,
             attachments,
+            created_at: dataToImport.created_at,
+            updated_at: dataToImport.updated_at,
           },
         });
         setState((old) => ({
@@ -464,6 +470,8 @@ export const useImportFromJson = (): [
             text: dataToImport.text,
             due_date: dataToImport.due_date || undefined,
             done_date: dataToImport.done_date || undefined,
+            created_at: dataToImport.created_at,
+            updated_at: dataToImport.updated_at,
           },
         });
         setState((old) => ({
@@ -620,6 +628,8 @@ type CompanyImport = {
   address?: string;
   zipcode?: string;
   state_abbr?: string;
+  created_at: string;
+  updated_at: string;
 };
 
 const isCompany = (data: any): data is CompanyImport =>
@@ -642,6 +652,8 @@ type ContactImport = {
   emails: Array<{ email: string; type: string }>;
   phones: Array<{ number: string; type: string }>;
   tags: Array<string>;
+  created_at: string;
+  updated_at: string;
 };
 
 const isContact = (data: any): data is ContactImport =>
@@ -656,6 +668,8 @@ type NoteImport = {
   text: string;
   date: string;
   attachments: Array<{ url: string; name: string }>;
+  created_at: string;
+  updated_at: string;
 };
 
 const isNote = (data: any): data is NoteImport =>
@@ -673,6 +687,8 @@ type TaskImport = {
   text: string;
   due_date?: string;
   done_date?: string;
+  created_at: string;
+  updated_at: string;
 };
 
 const isTask = (data: any): data is TaskImport =>
