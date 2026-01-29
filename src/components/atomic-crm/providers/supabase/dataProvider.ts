@@ -27,13 +27,15 @@ import { supabase } from "./supabase";
 if (import.meta.env.VITE_SUPABASE_URL === undefined) {
   throw new Error("Please set the VITE_SUPABASE_URL environment variable");
 }
-if (import.meta.env.VITE_SUPABASE_ANON_KEY === undefined) {
-  throw new Error("Please set the VITE_SUPABASE_ANON_KEY environment variable");
+if (import.meta.env.VITE_SB_PUBLISHABLE_KEY === undefined) {
+  throw new Error(
+    "Please set the VITE_SB_PUBLISHABLE_KEY environment variable",
+  );
 }
 
 const baseDataProvider = supabaseDataProvider({
   instanceUrl: import.meta.env.VITE_SUPABASE_URL,
-  apiKey: import.meta.env.VITE_SUPABASE_ANON_KEY,
+  apiKey: import.meta.env.VITE_SB_PUBLISHABLE_KEY,
   supabaseClient: supabase,
   sortOrder: "asc,desc.nullslast" as any,
 });
