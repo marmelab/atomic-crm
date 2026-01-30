@@ -203,9 +203,14 @@ const DownloadErrorFileButton = ({
 }) => {
   return (
     <a
-      href={`data:application/json,${JSON.stringify(failedImports)}`}
-      download="invalid-import-data.json"
       className="font-semibold"
+      onClick={async (event) => {
+        const json = JSON.stringify(failedImports);
+        const blob = new Blob([json], { type: "octet/stream" });
+        const url = window.URL.createObjectURL(blob);
+        event.currentTarget.href = url;
+      }}
+      download="atomic-crm-import-report.json"
     >
       Download the error report
     </a>
@@ -249,7 +254,7 @@ const ImportStats = ({
       <TableCaption className="sr-only">Import status</TableCaption>
       <TableHeader>
         <TableRow>
-          <TableHead className="w-[100px]"></TableHead>
+          <TableHead className="w-25"></TableHead>
           <TableHead className="text-right">Imported</TableHead>
           <TableHead className="text-right">Failed</TableHead>
         </TableRow>

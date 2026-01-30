@@ -11,6 +11,7 @@ import mime from "mime/lite";
 import type { CrmDataProvider } from "../providers/types";
 import type { RAFile, Tag } from "../types";
 import { colors } from "../tags/colors";
+import { w } from "node_modules/react-router/dist/development/index-react-server-client-IoJGLOqV.d.mts";
 
 export type ImportFromJsonStats = {
   sales: number;
@@ -210,7 +211,7 @@ export const useImportFromJson = (): [
           error: null,
           failedImports: {
             ...old.failedImports,
-            companies: [...old.failedImports.companies, dataToImport],
+            companies: [...old.failedImports.companies, { ...(dataToImport as any), error: 'Invalid format' }],
           },
         }));
         return;
@@ -267,7 +268,7 @@ export const useImportFromJson = (): [
           error: null,
           failedImports: {
             ...old.failedImports,
-            contacts: [...old.failedImports.contacts, dataToImport],
+            contacts: [...old.failedImports.contacts, { ...(dataToImport as any), error: 'Invalid format' }],
           },
         }));
         return;
@@ -350,7 +351,7 @@ export const useImportFromJson = (): [
           status: "importing",
           failedImports: {
             ...old.failedImports,
-            notes: [...old.failedImports.notes, dataToImport],
+            notes: [...old.failedImports.notes, { ...(dataToImport as any), error: 'Invalid format' }],
           },
           error: null,
         }));
@@ -434,7 +435,7 @@ export const useImportFromJson = (): [
           status: "importing",
           failedImports: {
             ...old.failedImports,
-            tasks: [...old.failedImports.tasks, dataToImport],
+            tasks: [...old.failedImports.tasks, { ...(dataToImport as any), error: 'Invalid format' }],
           },
           error: null,
         }));
@@ -493,7 +494,7 @@ export const useImportFromJson = (): [
 
     let currentTask: Promise<any> | null = null;
     let currentBatch: Array<Promise<void>> = [];
-    const BATCH_SIZE = 50;
+    const BATCH_SIZE = 1;
 
     const parser = new JSONParser({
       paths: [
