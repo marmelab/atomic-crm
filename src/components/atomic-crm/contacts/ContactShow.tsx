@@ -14,6 +14,7 @@ import { Button } from "@/components/ui/button";
 import { CompanyAvatar } from "../companies/CompanyAvatar";
 import { NoteCreate, NotesIterator } from "../notes";
 import { NoteCreateSheet } from "../notes/NoteCreateSheet";
+import { ContactEditSheet } from "./ContactEditSheet";
 import { TagsListEdit } from "./TagsListEdit";
 import { ContactPersonalInfo } from "./ContactPersonalInfo";
 import { ContactBackgroundInfo } from "./ContactBackgroundInfo";
@@ -22,7 +23,7 @@ import type { Contact } from "../types";
 import { Avatar } from "./Avatar";
 import { ContactAside } from "./ContactAside";
 import { MobileBackButton } from "../misc/MobileBackButton";
-import { EditButton } from "../misc/EditButton";
+import { Pencil } from "lucide-react";
 
 export const ContactShow = () => {
   const isMobile = useIsMobile();
@@ -37,6 +38,7 @@ export const ContactShow = () => {
 const ContactShowContentMobile = () => {
   const { record, isPending } = useShowContext<Contact>();
   const [noteCreateOpen, setNoteCreateOpen] = useState(false);
+  const [editOpen, setEditOpen] = useState(false);
   if (isPending || !record) return null;
 
   return (
@@ -46,12 +48,26 @@ const ContactShowContentMobile = () => {
         onOpenChange={setNoteCreateOpen}
         contact_id={record.id}
       />
+      <ContactEditSheet
+        open={editOpen}
+        onOpenChange={setEditOpen}
+        contactId={record.id}
+      />
       <MobileHeader>
         <MobileBackButton />
         <div className="flex flex-1">
           <h1 className="text-xl font-semibold">Contacts</h1>
         </div>
-        <EditButton />
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon"
+          className="rounded-full"
+          onClick={() => setEditOpen(true)}
+        >
+          <Pencil className="size-5" />
+          <span className="sr-only">Edit record</span>
+        </Button>
       </MobileHeader>
       <MobileContent>
         <div className="mb-6">
