@@ -17,7 +17,7 @@ import fs from "node:fs";
   await waitForProjectToBeReady({ projectRef });
 
   // This also ensures the project is ready
-  const { publishableKey } = await fetchApiKeys({
+  const { publishableKey, secretKey } = await fetchApiKeys({
     projectRef,
   });
 
