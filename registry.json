@@ -61,14 +61,6 @@
           "type": "registry:component"
         },
         {
-          "path": "src/components/atomic-crm/tasks/MobileTaskEdit.tsx",
-          "type": "registry:component"
-        },
-        {
-          "path": "src/components/atomic-crm/tasks/MobileTaskCreate.tsx",
-          "type": "registry:component"
-        },
-        {
           "path": "src/components/atomic-crm/tasks/AddTask.tsx",
           "type": "registry:component"
         },
@@ -353,14 +345,6 @@
           "type": "registry:component"
         },
         {
-          "path": "src/components/atomic-crm/notes/MobileNoteEdit.tsx",
-          "type": "registry:component"
-        },
-        {
-          "path": "src/components/atomic-crm/notes/MobileNoteCreate.tsx",
-          "type": "registry:component"
-        },
-        {
           "path": "src/components/atomic-crm/misc/usePapaParse.tsx",
           "type": "registry:component"
         },
@@ -406,10 +390,6 @@
         },
         {
           "path": "src/components/atomic-crm/misc/EditSheet.tsx",
-          "type": "registry:component"
-        },
-        {
-          "path": "src/components/atomic-crm/misc/EditButton.tsx",
           "type": "registry:component"
         },
         {
