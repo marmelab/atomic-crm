@@ -397,6 +397,10 @@
           "type": "registry:component"
         },
         {
+          "path": "src/components/atomic-crm/misc/EditSheet.tsx",
+          "type": "registry:component"
+        },
+        {
           "path": "src/components/atomic-crm/misc/EditButton.tsx",
           "type": "registry:component"
         },
@@ -634,6 +638,10 @@
         },
         {
           "path": "src/components/atomic-crm/contacts/ContactEmpty.tsx",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/contacts/ContactEditSheet.tsx",
           "type": "registry:component"
         },
         {
