@@ -33,6 +33,12 @@ Now, link the local project to the Supabase instance. You'll be asked to enter t
 npx supabase link --project-ref ********************
 ```
 
+Set up secrets for the Supabase instance (follow this [guide](https://supabase.com/docs/guides/api/api-keys#where-to-find-keys) to find your publishable and secret keys):
+
+```sh
+npx supabase secrets set SB_PUBLISHABLE_KEY=<publishable_key> SB_SECRET_KEY=<secret_key>
+```
+
 Then, apply the migrations and deploy the edge functions:
 
 ```sh
@@ -44,7 +50,7 @@ Finally, add a `.env.production.local` file in the root directory with your remo
 
 ```sh
 VITE_SUPABASE_URL=<instance_url>
-VITE_SUPABASE_ANON_KEY=<instance_anon_token>
+VITE_SB_PUBLISHABLE_KEY=<instance_publishable_key>
 ```
 
 Atomic CRM requires that you set up an email provider on your Supabase instance. If you don't have one yet, please follow the instructions detailed in the [Email Provider Setup](#email-provider-setup) section.
