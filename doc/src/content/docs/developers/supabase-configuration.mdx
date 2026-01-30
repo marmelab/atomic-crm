@@ -33,6 +33,12 @@ Now, link the local project to the Supabase instance. You'll be asked to enter t
 npx supabase link --project-ref ********************
 ```
 
+Set up secrets for the Supabase instance (follow this [guide](https://supabase.com/docs/guides/api/api-keys#where-to-find-keys) to find your publishable and secret keys):
+
+```sh
+npx supabase secrets set SB_PUBLISHABLE_KEY=<publishable_key> SB_SECRET_KEY=<secret_key>
+```
+
 Then, apply the migrations and deploy the edge functions:
 
 ```sh
