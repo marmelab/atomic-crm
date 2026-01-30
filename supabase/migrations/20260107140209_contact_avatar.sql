@@ -66,7 +66,7 @@ CREATE OR REPLACE FUNCTION public.handle_contact_saved()
  LANGUAGE plpgsql
 AS $function$declare contact_avatar text;
 declare emails_length int8;
-declare email_entry jsonb;
+declare item jsonb;
 
 begin
     if new.avatar is not null then
@@ -79,9 +79,9 @@ begin
         return new;
     end if;
 
-    for email_entry in select jsonb_array_elements(new.email_jsonb)
+    for item in select jsonb_array_elements(new.email_jsonb)
     loop
-        contact_avatar = get_avatar_for_email(email_entry->>'email');
+        select public.get_avatar_for_email(item->>'email') into contact_avatar;
         if (contact_avatar is not null) then
             exit;
         end if;
