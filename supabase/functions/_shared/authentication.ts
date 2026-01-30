@@ -44,28 +44,19 @@ export const AuthMiddleware = async (
 
     if (isValidJWT) return await next(req);
 
-    return Response.json(
-      { msg: "Invalid authentication" },
-      {
-        status: 401,
-      },
-    );
+    return createErrorResponse(401, "Invalid authentication");
   } catch (e) {
-    return Response.json(
-      { msg: e?.toString() },
-      {
-        status: 401,
-      },
-    );
+    return createErrorResponse(401, e?.toString() || "Unauthorized");
   }
 };
 
 /**
  * Get the authenticated user using the authorization header.
+ * User will be undefined for OPTIONS requests.
  */
 export const UserMiddleware = async (
   req: Request,
-  next: (req: Request, user: User) => Promise<Response>,
+  next: (req: Request, user?: User) => Promise<Response>,
 ) => {
   if (req.method === "OPTIONS") return await next(req);
 
@@ -84,11 +75,6 @@ export const UserMiddleware = async (
 
     return next(req, data.user);
   } catch (err) {
-    return Response.json(
-      { msg: err?.toString() },
-      {
-        status: 401,
-      },
-    );
+    return createErrorResponse(401, err?.toString() || "Unauthorized");
   }
 };
