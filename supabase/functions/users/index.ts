@@ -1,6 +1,7 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { supabaseAdmin } from "../_shared/supabaseAdmin.ts";
-import { corsHeaders, createErrorResponse } from "../_shared/utils.ts";
+import { corsHeaders, OptionsMiddleware } from "../_shared/cors.ts";
+import { createErrorResponse } from "../_shared/utils.ts";
 import { AuthMiddleware, UserMiddleware } from "../_shared/authentication.ts";
 import { getUserSale } from "../_shared/getUserSale.ts";
 
@@ -169,29 +170,24 @@ async function patchUser(req: Request, currentUserSale: any) {
 }
 
 Deno.serve(async (req: Request) =>
-  AuthMiddleware(req, async (req) =>
-    UserMiddleware(req, async (req, user) => {
-      if (req.method === "OPTIONS") {
-        return new Response(null, {
-          status: 204,
-          headers: corsHeaders,
-        });
-      }
+  OptionsMiddleware(req, async (req) =>
+    AuthMiddleware(req, async (req) =>
+      UserMiddleware(req, async (req, user) => {
+        const currentUserSale = await getUserSale(user);
+        if (!currentUserSale) {
+          return createErrorResponse(401, "Unauthorized");
+        }
 
-      const currentUserSale = await getUserSale(user);
-      if (!currentUserSale) {
-        return createErrorResponse(401, "Unauthorized");
-      }
+        if (req.method === "POST") {
+          return inviteUser(req, currentUserSale);
+        }
 
-      if (req.method === "POST") {
-        return inviteUser(req, currentUserSale);
-      }
+        if (req.method === "PATCH") {
+          return patchUser(req, currentUserSale);
+        }
 
-      if (req.method === "PATCH") {
-        return patchUser(req, currentUserSale);
-      }
-
-      return createErrorResponse(405, "Method Not Allowed");
-    }),
+        return createErrorResponse(405, "Method Not Allowed");
+      }),
+    ),
   ),
 );

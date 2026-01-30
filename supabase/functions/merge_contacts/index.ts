@@ -1,7 +1,8 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { sql, type Selectable } from "https://esm.sh/kysely@0.27.2";
 import { db, type ContactsTable, CompiledQuery } from "../_shared/db.ts";
-import { corsHeaders, createErrorResponse } from "../_shared/utils.ts";
+import { corsHeaders, OptionsMiddleware } from "../_shared/cors.ts";
+import { createErrorResponse } from "../_shared/utils.ts";
 import { AuthMiddleware, UserMiddleware } from "../_shared/authentication.ts";
 
 type Contact = Selectable<ContactsTable>;
@@ -158,42 +159,36 @@ async function mergeContacts(
 }
 
 Deno.serve(async (req: Request) =>
-  AuthMiddleware(req, async (req) =>
-    UserMiddleware(req, async (req, user) => {
-      // Handle CORS preflight
-      if (req.method === "OPTIONS") {
-        return new Response(null, {
-          status: 204,
-          headers: corsHeaders,
-        });
-      }
+  OptionsMiddleware(req, async (req) =>
+    AuthMiddleware(req, async (req) =>
+      UserMiddleware(req, async (req, user) => {
+        // Handle POST request
+        if (req.method === "POST") {
+          try {
+            const { loserId, winnerId } = await req.json();
 
-      // Handle POST request
-      if (req.method === "POST") {
-        try {
-          const { loserId, winnerId } = await req.json();
+            if (!loserId || !winnerId) {
+              return createErrorResponse(400, "Missing loserId or winnerId");
+            }
 
-          if (!loserId || !winnerId) {
-            return createErrorResponse(400, "Missing loserId or winnerId");
+            const result = await mergeContacts(loserId, winnerId, user.id);
+
+            return new Response(JSON.stringify(result), {
+              headers: { "Content-Type": "application/json", ...corsHeaders },
+            });
+          } catch (error) {
+            console.error("Merge failed:", error);
+            return createErrorResponse(
+              500,
+              `Failed to merge contacts: ${
+                error instanceof Error ? error.message : "Unknown error"
+              }`,
+            );
           }
-
-          const result = await mergeContacts(loserId, winnerId, user.id);
-
-          return new Response(JSON.stringify(result), {
-            headers: { "Content-Type": "application/json", ...corsHeaders },
-          });
-        } catch (error) {
-          console.error("Merge failed:", error);
-          return createErrorResponse(
-            500,
-            `Failed to merge contacts: ${
-              error instanceof Error ? error.message : "Unknown error"
-            }`,
-          );
         }
-      }
 
-      return createErrorResponse(405, "Method Not Allowed");
-    }),
+        return createErrorResponse(405, "Method Not Allowed");
+      }),
+    ),
   ),
 );

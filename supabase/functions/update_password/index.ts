@@ -1,5 +1,6 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
-import { corsHeaders, createErrorResponse } from "../_shared/utils.ts";
+import { corsHeaders, OptionsMiddleware } from "../_shared/cors.ts";
+import { createErrorResponse } from "../_shared/utils.ts";
 import { supabaseAdmin } from "../_shared/supabaseAdmin.ts";
 import { AuthMiddleware, UserMiddleware } from "../_shared/authentication.ts";
 
@@ -23,20 +24,15 @@ async function updatePassword(user: any) {
 }
 
 Deno.serve(async (req: Request) =>
-  AuthMiddleware(req, async (req) =>
-    UserMiddleware(req, async (req, user) => {
-      if (req.method === "OPTIONS") {
-        return new Response(null, {
-          status: 204,
-          headers: corsHeaders,
-        });
-      }
+  OptionsMiddleware(req, async (req) =>
+    AuthMiddleware(req, async (req) =>
+      UserMiddleware(req, async (req, user) => {
+        if (req.method === "PATCH") {
+          return updatePassword(user);
+        }
 
-      if (req.method === "PATCH") {
-        return updatePassword(user);
-      }
-
-      return createErrorResponse(405, "Method Not Allowed");
-    }),
+        return createErrorResponse(405, "Method Not Allowed");
+      }),
+    ),
   ),
 );
