@@ -1,11 +1,6 @@
 import { useQueryClient } from "@tanstack/react-query";
 import { MoreVertical } from "lucide-react";
-import {
-  useCreatePath,
-  useDeleteWithUndoController,
-  useNotify,
-  useUpdate,
-} from "ra-core";
+import { useDeleteWithUndoController, useNotify, useUpdate } from "ra-core";
 import { useEffect, useState } from "react";
 import { ReferenceField } from "@/components/admin/reference-field";
 import { DateField } from "@/components/admin/date-field";
@@ -20,8 +15,8 @@ import {
 
 import type { Contact, Task as TData } from "../types";
 import { TaskEdit } from "./TaskEdit";
+import { TaskEditSheet } from "./TaskEditSheet";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { useLocation, useNavigate } from "react-router";
 
 export const Task = ({
   task,
@@ -31,9 +26,6 @@ export const Task = ({
   showContact?: boolean;
 }) => {
   const isMobile = useIsMobile();
-  const navigate = useNavigate();
-   const location = useLocation();
-  const createPath = useCreatePath();
   const notify = useNotify();
   const queryClient = useQueryClient();
 
@@ -56,15 +48,6 @@ export const Task = ({
   });
 
   const handleEdit = () => {
-    if (isMobile) {
-      const path = createPath({
-        resource: "tasks",
-        id: task.id,
-        type: "edit",
-      });
-      navigate(path, { state: { from: location.pathname } });
-      return;
-    }
     setOpenEdit(true);
   };
 
@@ -201,8 +184,13 @@ export const Task = ({
         </DropdownMenu>
       </div>
 
-      {/* This part is for editing the Task directly via a Dialog */}
-      {!isMobile && openEdit && (
+      {isMobile ? (
+        <TaskEditSheet
+          taskId={task.id}
+          open={openEdit}
+          onOpenChange={setOpenEdit}
+        />
+      ) : (
         <TaskEdit taskId={task.id} open={openEdit} close={handleCloseEdit} />
       )}
     </>
