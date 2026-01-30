@@ -41,6 +41,10 @@
           "type": "registry:component"
         },
         {
+          "path": "src/components/atomic-crm/tasks/TaskEditSheet.tsx",
+          "type": "registry:component"
+        },
+        {
           "path": "src/components/atomic-crm/tasks/TaskEdit.tsx",
           "type": "registry:component"
         },
