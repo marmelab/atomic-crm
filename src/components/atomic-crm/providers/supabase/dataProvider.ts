@@ -27,13 +27,15 @@ import { supabase } from "./supabase";
 if (import.meta.env.VITE_SUPABASE_URL === undefined) {
   throw new Error("Please set the VITE_SUPABASE_URL environment variable");
 }
-if (import.meta.env.VITE_SUPABASE_ANON_KEY === undefined) {
-  throw new Error("Please set the VITE_SUPABASE_ANON_KEY environment variable");
+if (import.meta.env.VITE_SB_PUBLISHABLE_KEY === undefined) {
+  throw new Error(
+    "Please set the VITE_SB_PUBLISHABLE_KEY environment variable",
+  );
 }
 
 const baseDataProvider = supabaseDataProvider({
   instanceUrl: import.meta.env.VITE_SUPABASE_URL,
-  apiKey: import.meta.env.VITE_SUPABASE_ANON_KEY,
+  apiKey: import.meta.env.VITE_SB_PUBLISHABLE_KEY,
   supabaseClient: supabase,
   sortOrder: "asc,desc.nullslast" as any,
 });
@@ -173,7 +175,7 @@ const dataProviderWithCustomMethods = {
   },
   async updatePassword(id: Identifier) {
     const { data: passwordUpdated, error } =
-      await supabase.functions.invoke<boolean>("updatePassword", {
+      await supabase.functions.invoke<boolean>("update_password", {
         method: "PATCH",
         body: {
           sales_id: id,
@@ -181,7 +183,7 @@ const dataProviderWithCustomMethods = {
       });
 
     if (!passwordUpdated || error) {
-      console.error("passwordUpdate.error", error);
+      console.error("update_password.error", error);
       throw new Error("Failed to update password");
     }
 
@@ -219,13 +221,13 @@ const dataProviderWithCustomMethods = {
     return getIsInitialized();
   },
   async mergeContacts(sourceId: Identifier, targetId: Identifier) {
-    const { data, error } = await supabase.functions.invoke("mergeContacts", {
+    const { data, error } = await supabase.functions.invoke("merge_contacts", {
       method: "POST",
       body: { loserId: sourceId, winnerId: targetId },
     });
 
     if (error) {
-      console.error("mergeContacts.error", error);
+      console.error("merge_contacts.error", error);
       throw new Error("Failed to merge contacts");
     }
 
