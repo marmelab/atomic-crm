@@ -1,7 +1,6 @@
 import { CircleX, Edit, Save, Trash2 } from "lucide-react";
 import {
   Form,
-  useCreatePath,
   useDelete,
   useNotify,
   useResourceContext,
@@ -10,7 +9,6 @@ import {
 } from "ra-core";
 import { useState } from "react";
 import type { FieldValues, SubmitHandler } from "react-hook-form";
-import { Link } from "react-router";
 import { ReferenceField } from "@/components/admin/reference-field";
 import { Button } from "@/components/ui/button";
 import {
@@ -26,6 +24,7 @@ import { Status } from "../misc/Status";
 import { SaleName } from "../sales/SaleName";
 import type { ContactNote, DealNote } from "../types";
 import { NoteAttachments } from "./NoteAttachments";
+import { NoteEditSheet } from "./NoteEditSheet";
 import { NoteInputs } from "./NoteInputs";
 import { useIsMobile } from "@/hooks/use-mobile";
 
@@ -42,13 +41,6 @@ export const Note = ({
   const [isEditing, setEditing] = useState(false);
   const resource = useResourceContext();
   const notify = useNotify();
-  const createPath = useCreatePath();
-
-  const editPath = createPath({
-    resource,
-    type: "edit",
-    id: note.id,
-  });
 
   const [update, { isPending }] = useUpdate();
 
@@ -158,7 +150,7 @@ export const Note = ({
           <RelativeDate date={note.date} />
         </span>
       </div>
-      {isEditing ? (
+      {!isMobile && isEditing ? (
         <Form onSubmit={handleNoteUpdate} record={note} className="mt-1">
           <NoteInputs showStatus={showStatus} />
           <div className="flex justify-end mt-2 space-x-4">
@@ -196,7 +188,18 @@ export const Note = ({
   );
 
   if (isMobile) {
-    return <Link to={editPath}>{content}</Link>;
+    return (
+      <>
+        <NoteEditSheet
+          open={isEditing}
+          onOpenChange={setEditing}
+          noteId={note.id}
+        />
+        <div onClick={() => setEditing(true)} className="cursor-pointer">
+          {content}
+        </div>
+      </>
+    );
   }
 
   return content;

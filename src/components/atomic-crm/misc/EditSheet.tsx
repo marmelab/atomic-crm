@@ -44,6 +44,11 @@ export interface EditSheetProps extends EditBaseProps {
    * Default values for the form
    */
   defaultValues?: FormProps["defaultValues"];
+
+  /**
+   * Custom delete button component. If not provided, defaults to the standard DeleteButton
+   */
+  deleteButton?: ReactNode;
 }
 
 /**
@@ -82,7 +87,9 @@ export const EditSheet = ({
   title = "Edit",
   redirect: redirectTo = "show",
   mutationOptions,
+  mutationMode = "undoable",
   defaultValues,
+  deleteButton,
   ...editBaseProps
 }: EditSheetProps) => {
   const resource = useResourceContext(editBaseProps);
@@ -106,7 +113,7 @@ export const EditSheet = ({
           smart_count: 1,
         }),
       },
-      undoable: editBaseProps.mutationMode === "undoable",
+      undoable: mutationMode === "undoable",
     });
     redirect(redirectTo, resource, data.id, data);
     onOpenChange(false);
@@ -117,6 +124,10 @@ export const EditSheet = ({
     onSuccess: handleSuccess,
   };
 
+  const defaultDeleteButton = (
+    <DeleteButton variant="destructive" className="flex-1" />
+  );
+
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent side="bottom" className="h-screen flex flex-col">
@@ -124,6 +135,7 @@ export const EditSheet = ({
           {...editBaseProps}
           redirect={redirectTo}
           mutationOptions={enhancedMutationOptions}
+          mutationMode={mutationMode}
         >
           <Form
             defaultValues={defaultValues}
@@ -139,7 +151,7 @@ export const EditSheet = ({
 
             <SheetFooter className="border-t">
               <div className="flex w-full gap-4">
-                <DeleteButton variant="destructive" className="flex-1" />
+                {deleteButton || defaultDeleteButton}
                 <SaveButton className="flex-1" />
               </div>
             </SheetFooter>
