@@ -153,10 +153,11 @@ s3_access_key = "env(S3_ACCESS_KEY)"
 # Configures AWS_SECRET_ACCESS_KEY for S3 bucket
 s3_secret_key = "env(S3_SECRET_KEY)"
 
+[functions.merge_contacts]
+verify_jwt = false
 [functions.postmark]
 verify_jwt = false
-
-# https://github.com/supabase/supabase/issues/17164#issuecomment-2683354018
-# This should only affect Supabase local instances
+[functions.update_password]
+verify_jwt = false
 [functions.users]
 verify_jwt = false

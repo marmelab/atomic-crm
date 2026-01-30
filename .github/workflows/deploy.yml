@@ -101,8 +101,8 @@ jobs:
             SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
             SUPABASE_PROJECT_ID: ${{ secrets.SUPABASE_PROJECT_ID }}
             VITE_SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
-            VITE_SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
-            IS_SUPABASE_CONFIGURED: ${{ secrets.SUPABASE_ACCESS_TOKEN && secrets.SUPABASE_DB_PASSWORD && secrets.SUPABASE_PROJECT_ID && secrets.SUPABASE_URL && secrets.SUPABASE_ANON_KEY }}
+            VITE_SB_PUBLISHABLE_KEY: ${{ secrets.SB_PUBLISHABLE_KEY }}
+            IS_SUPABASE_CONFIGURED: ${{ secrets.SUPABASE_ACCESS_TOKEN && secrets.SUPABASE_DB_PASSWORD && secrets.SUPABASE_PROJECT_ID && secrets.SUPABASE_URL && secrets.SB_PUBLISHABLE_KEY }}
             VITE_IS_DEMO: ${{ vars.VITE_IS_DEMO }}
             VITE_INBOUND_EMAIL: ${{ vars.VITE_INBOUND_EMAIL }}
             PRODUCTION_REMOTE: https://git:${{ secrets.DEPLOY_TOKEN || secrets.GITHUB_TOKEN }}@github.com/${{ vars.DEPLOY_REPOSITORY }}
@@ -172,9 +172,9 @@ jobs:
               name: Check SUPABASE_URL secret
               run: echo ':warning:SUPABASE_URL secret is missing' >> $GITHUB_STEP_SUMMARY
 
-            - if: ${{ !env.VITE_SUPABASE_ANON_KEY }}
-              name: Check SUPABASE_ANON_KEY secret
-              run: echo ':warning:SUPABASE_ANON_KEY secret is missing' >> $GITHUB_STEP_SUMMARY
+            - if: ${{ !env.VITE_SB_PUBLISHABLE_KEY }}
+              name: Check SB_PUBLISHABLE_KEY secret
+              run: echo ':warning:SB_PUBLISHABLE_KEY secret is missing' >> $GITHUB_STEP_SUMMARY
 
             - if: ${{ !env.POSTMARK_WEBHOOK_USER }}
               name: Check POSTMARK_WEBHOOK_USER secret
