@@ -24,7 +24,6 @@ export const ContactEditSheet = ({
       }
       open={open}
       onOpenChange={onOpenChange}
-      mutationMode="undoable"
     >
       <ContactInputs />
     </EditSheet>

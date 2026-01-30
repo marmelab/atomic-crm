@@ -329,6 +329,10 @@
           "type": "registry:component"
         },
         {
+          "path": "src/components/atomic-crm/notes/NoteEditSheet.tsx",
+          "type": "registry:component"
+        },
+        {
           "path": "src/components/atomic-crm/notes/NoteCreateSheet.tsx",
           "type": "registry:component"
         },
