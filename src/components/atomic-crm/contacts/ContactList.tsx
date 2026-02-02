@@ -17,7 +17,10 @@ import type { Company, Contact, Sale, Tag } from "../types";
 import { ContactEmpty } from "./ContactEmpty";
 import { ContactImportButton } from "./ContactImportButton";
 import { ContactListContent } from "./ContactListContent";
-import { ContactListFilter } from "./ContactListFilter";
+import {
+  ContactListActiveFilters,
+  ContactListFilter,
+} from "./ContactListFilter";
 import { TopToolbar } from "../layout/TopToolbar";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { InfinitePagination } from "../misc/InfinitePagination";
@@ -100,6 +103,7 @@ const MobileContactListLayout = () => {
         <ContactListFilter />
       </MobileHeader>
       <MobileContent>
+        <ContactListActiveFilters />
         <Card className="py-0">
           <ContactListContent />
         </Card>
