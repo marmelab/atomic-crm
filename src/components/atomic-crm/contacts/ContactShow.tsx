@@ -10,6 +10,7 @@ import MobileHeader from "../layout/MobileHeader";
 import { MobileContent } from "../layout/MobileContent";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
+import { Separator } from "@/components/ui/separator";
 
 import { CompanyAvatar } from "../companies/CompanyAvatar";
 import { NoteCreate, NotesIterator } from "../notes";
@@ -146,16 +147,25 @@ const ContactShowContentMobile = () => {
           <TabsContent value="details" className="mt-4">
             <div className="space-y-6">
               <div>
-                <h3 className="text-lg font-semibold mb-3">Personal info</h3>
-                <ContactPersonalInfo />
+                <h3 className="text-lg font-semibold">Personal info</h3>
+                <Separator />
+                <div className="mt-3">
+                  <ContactPersonalInfo />
+                </div>
               </div>
               <div>
-                <h3 className="text-lg font-semibold mb-3">Background info</h3>
-                <ContactBackgroundInfo />
+                <h3 className="text-lg font-semibold">Background info</h3>
+                <Separator />
+                <div className="mt-3">
+                  <ContactBackgroundInfo />
+                </div>
               </div>
               <div>
-                <h3 className="text-lg font-semibold mb-3">Tags</h3>
-                <TagsListEdit />
+                <h3 className="text-lg font-semibold">Tags</h3>
+                <Separator />
+                <div className="mt-3">
+                  <TagsListEdit />
+                </div>
               </div>
             </div>
           </TabsContent>
