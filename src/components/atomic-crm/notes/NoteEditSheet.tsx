@@ -31,7 +31,7 @@ export const NoteEditSheet = ({
 
   return (
     <EditSheet
-      resource="contactNotes"
+      resource="contact_notes"
       id={noteId}
       title={
         <ReferenceField

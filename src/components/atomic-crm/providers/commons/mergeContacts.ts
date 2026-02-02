@@ -51,7 +51,7 @@ export const mergeContacts = async (
 
   // 2. Reassign all notes from loser to winner
   const { data: loserNotes } = await dataProvider.getManyReference<ContactNote>(
-    "contactNotes",
+    "contact_notes",
     {
       target: "contact_id",
       id: loserId,
@@ -63,7 +63,7 @@ export const mergeContacts = async (
 
   const noteUpdates =
     loserNotes?.map((note) =>
-      dataProvider.update<ContactNote>("contactNotes", {
+      dataProvider.update<ContactNote>("contact_notes", {
         id: note.id,
         data: { contact_id: winnerId },
         previousData: note,

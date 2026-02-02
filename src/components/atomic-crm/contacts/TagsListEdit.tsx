@@ -39,13 +39,15 @@ export const TagsListEdit = () => {
   const [update] = useUpdate<Contact>();
 
   const unselectedTags =
-    allTags && record && allTags.filter((tag) => !record.tags.includes(tag.id));
+    allTags &&
+    record &&
+    allTags.filter((tag) => !record.tags?.includes(tag.id));
 
   const handleTagAdd = (id: Identifier) => {
     if (!record) {
       throw new Error("No contact record found");
     }
-    const tags = [...record.tags, id];
+    const tags = [...(record.tags ?? []), id];
     update("contacts", {
       id: record.id,
       data: { tags },

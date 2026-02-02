@@ -14,13 +14,13 @@ import {
   useInput,
   useTranslate,
 } from "ra-core";
-import type { DropzoneOptions } from "react-dropzone";
-import {
-  useDropzone,
+import type {
+  DropzoneOptions,
   FileRejection,
   DropEvent,
   DropzoneInputProps,
 } from "react-dropzone";
+import { useDropzone } from "react-dropzone";
 import { XCircle } from "lucide-react";
 
 import { cn } from "@/lib/utils";
@@ -339,6 +339,7 @@ export const FileInputPreview = (props: FileInputPreviewProps) => {
   return (
     <div className={cn("flex flex-row gap-1", className)} {...rest}>
       <Button
+        type="button"
         variant="ghost"
         size="icon"
         className="h-6 w-6 rounded-full shadow-sm cursor-pointer"

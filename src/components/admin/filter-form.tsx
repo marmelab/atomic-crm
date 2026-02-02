@@ -23,9 +23,9 @@ import {
   X,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import type { SavedQuery } from "@/hooks/saved-queries";
 import {
   extractValidSavedQueries,
-  SavedQuery,
   useSavedQueries,
 } from "@/hooks/saved-queries";
 import { Button } from "@/components/ui/button";
@@ -167,6 +167,9 @@ export const FilterFormInput = (inProps: FilterFormInputProps) => {
   const { filterElement, handleHide, className } = inProps;
   const resource = useResourceContext(inProps);
   const translate = useTranslate();
+  const { alwaysOn: _, ...filterElementProps } = filterElement.props;
+  const filterElementType =
+    typeof filterElement === "string" ? filterElement : filterElement.type;
 
   return (
     <div
@@ -176,7 +179,8 @@ export const FilterFormInput = (inProps: FilterFormInputProps) => {
         className,
       )}
     >
-      {React.cloneElement(filterElement, {
+      {React.createElement(filterElementType, {
+        ...filterElementProps,
         resource,
         record: emptyRecord,
         size: filterElement.props.size ?? "small",

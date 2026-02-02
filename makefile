@@ -10,7 +10,7 @@ start-supabase: ## start supabase locally
 	npx supabase start
 
 start-supabase-functions: ## start the supabase Functions watcher
-	npx supabase functions serve --env-file supabase/functions/.env.development
+	npx supabase functions serve
 
 supabase-migrate-database: ## apply the migrations to the database
 	npx supabase migration up
