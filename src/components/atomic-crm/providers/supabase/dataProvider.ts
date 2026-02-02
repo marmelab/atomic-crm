@@ -273,8 +273,8 @@ const lifeCycleCallbacks: ResourceCallbacks[] = [
       return {
         ...createParams,
         data: {
-          ...createParams.data,
           created_at: new Date().toISOString(),
+          ...createParams.data,
         },
       };
     },
