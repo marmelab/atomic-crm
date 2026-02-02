@@ -130,7 +130,13 @@ export const CreateSheet = ({
             className="h-screen flex-1 flex flex-col"
           >
             <SheetHeader className="border-b">
-              <SheetTitle>{title}</SheetTitle>
+              <SheetTitle>
+                {typeof title === "string" ? (
+                  <h1 className="text-xl font-semibold">{title}</h1>
+                ) : (
+                  title
+                )}
+              </SheetTitle>
             </SheetHeader>
 
             <div className="flex-1 overflow-y-auto flex flex-col gap-3 p-4">

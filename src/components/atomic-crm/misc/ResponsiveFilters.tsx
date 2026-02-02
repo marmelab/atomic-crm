@@ -77,7 +77,9 @@ export const ResponsiveFilters = ({
           </SheetTrigger>
           <SheetContent side="bottom" className="h-screen p-4 flex flex-col">
             <SheetHeader className="-p-4">
-              <SheetTitle>Filters</SheetTitle>
+              <SheetTitle>
+                <h1 className="text-xl font-semibold">Filters</h1>
+              </SheetTitle>
             </SheetHeader>
             <div className="flex-1 overflow-y-auto flex flex-col gap-3 pb-4">
               {children}

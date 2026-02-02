@@ -23,7 +23,7 @@ export const TaskEditSheet = ({
           source="contact_id"
           reference="contacts"
           render={({ referenceRecord }) => (
-            <>
+            <h1 className="text-xl font-semibold">
               Edit Task
               {referenceRecord ? (
                 <>
@@ -34,7 +34,7 @@ export const TaskEditSheet = ({
                   />
                 </>
               ) : null}
-            </>
+            </h1>
           )}
         />
       }
