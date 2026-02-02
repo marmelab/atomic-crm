@@ -24,8 +24,8 @@ export function SalesCreate() {
       );
       redirect("/sales");
     },
-    onError: () => {
-      notify("An error occurred while creating the user.", {
+    onError: (error) => {
+      notify(error.message || "An error occurred while creating the user.", {
         type: "error",
       });
     },

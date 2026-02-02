@@ -97,32 +97,72 @@ async function inviteUser(req: Request, currentUserSale: any) {
     }
 
     user = data[0];
-    const sale = await createSale(user.id, {
-      email,
-      password,
-      first_name,
-      last_name,
-      disabled,
-      administrator,
-    });
+    try {
+      const { data: existingSale, error: salesError } = await supabaseAdmin
+        .from("sales")
+        .select("*")
+        .eq("user_id", user.id);
+      if (salesError) {
+        return createErrorResponse(
+          salesError.status,
+          salesError.message,
+          {
+            code: salesError.code,
+          },
+        );
+      }
+      if (existingSale.length > 0) {
+        return createErrorResponse(
+          400,
+          'A sales for this email already exists',
+        );
+      }
 
-    return new Response(
-      JSON.stringify({
-        data: sale,
-      }),
-      {
-        headers: { "Content-Type": "application/json", ...corsHeaders },
-      },
-    );
+      const sale = await createSale(user.id, {
+        email,
+        password,
+        first_name,
+        last_name,
+        disabled,
+        administrator,
+      });
+
+      return new Response(
+        JSON.stringify({
+          data: sale,
+        }),
+        {
+          headers: { "Content-Type": "application/json", ...corsHeaders },
+        },
+      );
+    } catch (error) {
+      return createErrorResponse(
+        (error as any).status ?? 500,
+        (error as Error).message,
+        {
+          code: (error as any).code,
+        },
+      );
+    }
   } else {
-    const { error: emailError } =
-      await supabaseAdmin.auth.admin.inviteUserByEmail(email);
-    if (!user || userError) {
+    if (userError) {
       console.error(`Error inviting user: user_error=${userError}`);
+      return createErrorResponse(
+        userError.status,
+        userError.message,
+        {
+          code: userError.code,
+        },
+      );
+    }
+    if (!data?.user) {
+      console.error("Error inviting user: undefined user");
       return createErrorResponse(500, "Internal Server Error");
     }
+    const { error: emailError } =
+      await supabaseAdmin.auth.admin.inviteUserByEmail(email);
 
-    if (!user || userError || emailError) {
+    if (emailError) {
       console.error(`Error inviting user, email_error=${emailError}`);
       return createErrorResponse(500, "Failed to send invitation mail");
     }
