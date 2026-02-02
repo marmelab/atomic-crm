@@ -20,10 +20,10 @@ export const ContactListFilter = () => {
   });
 
   return (
-    <ResponsiveFilters searchInput={{ placeholder: "Name, company..." }}>
+    <ResponsiveFilters searchInput={{ placeholder: "Search name, company..." }}>
       <FilterCategory label="Last activity" icon={<Clock />}>
         <ToggleFilterButton
-          className="w-auto md:w-full justify-between"
+          className="w-auto md:w-full justify-between h-10 md:h-8"
           label="Today"
           value={{
             "last_seen@gte": endOfYesterday().toISOString(),
@@ -32,7 +32,7 @@ export const ContactListFilter = () => {
           size={isMobile ? "lg" : undefined}
         />
         <ToggleFilterButton
-          className="w-auto md:w-full justify-between"
+          className="w-auto md:w-full justify-between h-10 md:h-8"
           label="This week"
           value={{
             "last_seen@gte": startOfWeek(new Date()).toISOString(),
@@ -41,7 +41,7 @@ export const ContactListFilter = () => {
           size={isMobile ? "lg" : undefined}
         />
         <ToggleFilterButton
-          className="w-auto md:w-full justify-between"
+          className="w-auto md:w-full justify-between h-10 md:h-8"
           label="Before this week"
           value={{
             "last_seen@gte": undefined,
@@ -50,7 +50,7 @@ export const ContactListFilter = () => {
           size={isMobile ? "lg" : undefined}
         />
         <ToggleFilterButton
-          className="w-auto md:w-full justify-between"
+          className="w-auto md:w-full justify-between h-10 md:h-8"
           label="Before this month"
           value={{
             "last_seen@gte": undefined,
@@ -59,7 +59,7 @@ export const ContactListFilter = () => {
           size={isMobile ? "lg" : undefined}
         />
         <ToggleFilterButton
-          className="w-auto md:w-full justify-between"
+          className="w-auto md:w-full justify-between h-10 md:h-8"
           label="Before last month"
           value={{
             "last_seen@gte": undefined,
@@ -76,7 +76,7 @@ export const ContactListFilter = () => {
         {noteStatuses.map((status) => (
           <ToggleFilterButton
             key={status.value}
-            className="w-auto md:w-full justify-between"
+            className="w-auto md:w-full justify-between h-10 md:h-8"
             label={
               <span>
                 {status.label} <Status status={status.value} />
@@ -92,12 +92,12 @@ export const ContactListFilter = () => {
         {data &&
           data.map((record) => (
             <ToggleFilterButton
-              className="w-auto md:w-full justify-between"
+              className="w-auto md:w-full justify-between h-10 md:h-8"
               key={record.id}
               label={
                 <Badge
                   variant="secondary"
-                  className="text-black text-xs font-normal cursor-pointer"
+                  className="text-black text-sm md:text-xs font-normal cursor-pointer"
                   style={{
                     backgroundColor: record?.color,
                   }}
@@ -113,7 +113,7 @@ export const ContactListFilter = () => {
 
       <FilterCategory icon={<CheckSquare />} label="Tasks">
         <ToggleFilterButton
-          className="w-full justify-between"
+          className="w-full justify-between h-10 md:h-8"
           label={"With pending tasks"}
           value={{ "nb_tasks@gt": 0 }}
           size={isMobile ? "lg" : undefined}
@@ -122,7 +122,7 @@ export const ContactListFilter = () => {
 
       <FilterCategory icon={<Users />} label="Account Manager">
         <ToggleFilterButton
-          className="w-full justify-between"
+          className="w-full justify-between h-10 md:h-8"
           label={"Me"}
           value={{ sales_id: identity?.id }}
           size={isMobile ? "lg" : undefined}
