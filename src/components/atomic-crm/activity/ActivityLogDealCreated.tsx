@@ -6,6 +6,7 @@ import { RelativeDate } from "../misc/RelativeDate";
 import { SaleName } from "../sales/SaleName";
 import type { ActivityDealCreated } from "../types";
 import { useActivityLogContext } from "./ActivityLogContext";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 type ActivityLogDealCreatedProps = {
   activity: RaRecord & ActivityDealCreated;
@@ -15,6 +16,7 @@ export function ActivityLogDealCreated({
   activity,
 }: ActivityLogDealCreatedProps) {
   const context = useActivityLogContext();
+  const isMobile = useIsMobile();
   const { deal } = activity;
   return (
     <div className="p-0">
@@ -25,7 +27,11 @@ export function ActivityLogDealCreated({
             <SaleName />
           </ReferenceField>
           &nbsp;added deal&nbsp;
-          <Link to={`/deals/${deal.id}/show`}>{deal.name}</Link>
+          {isMobile ? (
+            deal.name
+          ) : (
+            <Link to={`/deals/${deal.id}/show`}>{deal.name}</Link>
+          )}
           &nbsp;
           {context !== "company" && (
             <>
