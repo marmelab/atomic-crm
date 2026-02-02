@@ -1,6 +1,7 @@
 import { Paperclip } from "lucide-react";
 
 import type { AttachmentNote, ContactNote, DealNote } from "../types";
+import { isImageMimeType } from "./isImageMimeType";
 
 export const NoteAttachments = ({ note }: { note: ContactNote | DealNote }) => {
   if (!note.attachments || note.attachments.length === 0) {
@@ -46,11 +47,4 @@ export const NoteAttachments = ({ note }: { note: ContactNote | DealNote }) => {
         ))}
     </div>
   );
-};
-
-const isImageMimeType = (mimeType?: string): boolean => {
-  if (!mimeType) {
-    return false;
-  }
-  return mimeType.startsWith("image/");
 };
