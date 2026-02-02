@@ -36,7 +36,7 @@ export const TaskFormContent = ({
         </ReferenceInput>
       )}
 
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <DateInput source="due_date" helperText={false} validate={required()} />
         <SelectInput
           source="type"
