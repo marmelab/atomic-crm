@@ -111,7 +111,14 @@ const dataProviderWithCustomMethods = {
 
     if (!data || error) {
       console.error("salesCreate.error", error);
-      throw new Error("Failed to create account manager");
+      const errorDetails = await (async () => {
+        try {
+          return (await error?.context?.json()) ?? {};
+        } catch {
+          return {};
+        }
+      })();
+      throw new Error(errorDetails?.message || "Failed to create the user");
     }
 
     return data.data;
