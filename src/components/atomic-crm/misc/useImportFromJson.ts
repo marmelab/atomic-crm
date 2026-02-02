@@ -11,7 +11,6 @@ import mime from "mime/lite";
 import type { CrmDataProvider } from "../providers/types";
 import type { RAFile, Tag } from "../types";
 import { colors } from "../tags/colors";
-import { w } from "node_modules/react-router/dist/development/index-react-server-client-IoJGLOqV.d.mts";
 
 export type ImportFromJsonStats = {
   sales: number;
@@ -194,7 +193,10 @@ export const useImportFromJson = (): [
           ),
           failedImports: {
             ...old.failedImports,
-            sales: [...old.failedImports.sales, { ...(dataToImport as any), error: (err as Error).message }],
+            sales: [
+              ...old.failedImports.sales,
+              { ...(dataToImport as any), error: (err as Error).message },
+            ],
           },
           duration,
         }));
@@ -211,7 +213,10 @@ export const useImportFromJson = (): [
           error: null,
           failedImports: {
             ...old.failedImports,
-            companies: [...old.failedImports.companies, { ...(dataToImport as any), error: 'Invalid format' }],
+            companies: [
+              ...old.failedImports.companies,
+              { ...(dataToImport as any), error: "Invalid format" },
+            ],
           },
         }));
         return;
@@ -252,7 +257,10 @@ export const useImportFromJson = (): [
           error: null,
           failedImports: {
             ...old.failedImports,
-            companies: [...old.failedImports.companies, { ...(dataToImport as any), error: (err as Error).message }],
+            companies: [
+              ...old.failedImports.companies,
+              { ...(dataToImport as any), error: (err as Error).message },
+            ],
           },
         }));
       }
@@ -268,7 +276,10 @@ export const useImportFromJson = (): [
           error: null,
           failedImports: {
             ...old.failedImports,
-            contacts: [...old.failedImports.contacts, { ...(dataToImport as any), error: 'Invalid format' }],
+            contacts: [
+              ...old.failedImports.contacts,
+              { ...(dataToImport as any), error: "Invalid format" },
+            ],
           },
         }));
         return;
@@ -336,7 +347,10 @@ export const useImportFromJson = (): [
           error: null,
           failedImports: {
             ...old.failedImports,
-            contacts: [...old.failedImports.contacts, { ...(dataToImport as any), error: (err as Error).message }],
+            contacts: [
+              ...old.failedImports.contacts,
+              { ...(dataToImport as any), error: (err as Error).message },
+            ],
           },
         }));
       }
@@ -351,7 +365,10 @@ export const useImportFromJson = (): [
           status: "importing",
           failedImports: {
             ...old.failedImports,
-            notes: [...old.failedImports.notes, { ...(dataToImport as any), error: 'Invalid format' }],
+            notes: [
+              ...old.failedImports.notes,
+              { ...(dataToImport as any), error: "Invalid format" },
+            ],
           },
           error: null,
         }));
@@ -369,7 +386,13 @@ export const useImportFromJson = (): [
             status: "importing",
             failedImports: {
               ...old.failedImports,
-              notes: [...old.failedImports.notes, { ...(dataToImport as any), error: `Invalid contact_id ${dataToImport.contact_id}` }],
+              notes: [
+                ...old.failedImports.notes,
+                {
+                  ...(dataToImport as any),
+                  error: `Invalid contact_id ${dataToImport.contact_id}`,
+                },
+              ],
             },
             error: null,
           }));
@@ -419,7 +442,10 @@ export const useImportFromJson = (): [
           status: "importing",
           failedImports: {
             ...old.failedImports,
-            notes: [...old.failedImports.notes, { ...(dataToImport as any), error: (err as Error).message }],
+            notes: [
+              ...old.failedImports.notes,
+              { ...(dataToImport as any), error: (err as Error).message },
+            ],
           },
           error: null,
         }));
@@ -435,7 +461,10 @@ export const useImportFromJson = (): [
           status: "importing",
           failedImports: {
             ...old.failedImports,
-            tasks: [...old.failedImports.tasks, { ...(dataToImport as any), error: 'Invalid format' }],
+            tasks: [
+              ...old.failedImports.tasks,
+              { ...(dataToImport as any), error: "Invalid format" },
+            ],
           },
           error: null,
         }));
@@ -453,7 +482,13 @@ export const useImportFromJson = (): [
             status: "importing",
             failedImports: {
               ...old.failedImports,
-              tasks: [...old.failedImports.tasks, { ...(dataToImport as any), error: `Invalid contact_id ${dataToImport.contact_id}` }],
+              tasks: [
+                ...old.failedImports.tasks,
+                {
+                  ...(dataToImport as any),
+                  error: `Invalid contact_id ${dataToImport.contact_id}`,
+                },
+              ],
             },
             error: null,
           }));
@@ -485,7 +520,10 @@ export const useImportFromJson = (): [
           status: "importing",
           failedImports: {
             ...old.failedImports,
-            tasks: [...old.failedImports.tasks, { ...(dataToImport as any), error: (err as Error).message }],
+            tasks: [
+              ...old.failedImports.tasks,
+              { ...(dataToImport as any), error: (err as Error).message },
+            ],
           },
           error: null,
         }));
