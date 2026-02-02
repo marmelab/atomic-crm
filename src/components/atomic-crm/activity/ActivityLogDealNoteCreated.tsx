@@ -7,6 +7,7 @@ import { SaleName } from "../sales/SaleName";
 import type { ActivityDealNoteCreated } from "../types";
 import { useActivityLogContext } from "./ActivityLogContext";
 import { ActivityLogNote } from "./ActivityLogNote";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 type ActivityLogDealNoteCreatedProps = {
   activity: RaRecord & ActivityDealNoteCreated;
@@ -16,6 +17,7 @@ export function ActivityLogDealNoteCreated({
   activity,
 }: ActivityLogDealNoteCreatedProps) {
   const context = useActivityLogContext();
+  const isMobile = useIsMobile();
   const { dealNote } = activity;
   return (
     <ActivityLogNote
@@ -50,7 +52,7 @@ export function ActivityLogDealNoteCreated({
               source="deal_id"
               reference="deals"
               record={dealNote}
-              link="show"
+              link={isMobile ? false : "show"}
             />
             {context !== "company" && (
               <>
@@ -81,7 +83,7 @@ export function ActivityLogDealNoteCreated({
         </div>
       }
       text={dealNote.text}
-      link={`/deals/${dealNote.deal_id}/show`}
+      link={isMobile ? false : `/deals/${dealNote.deal_id}/show`}
     />
   );
 }
