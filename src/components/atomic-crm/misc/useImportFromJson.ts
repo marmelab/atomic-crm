@@ -325,6 +325,7 @@ export const useImportFromJson = (): [
               ? idsMaps.sales[dataToImport.sales_id]
               : currentSale.id,
             tags: tagsIds,
+            first_seen: dataToImport.created_at,
             last_seen: dataToImport.updated_at,
           },
         });
