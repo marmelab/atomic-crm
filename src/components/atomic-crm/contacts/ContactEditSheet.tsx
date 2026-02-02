@@ -18,9 +18,9 @@ export const ContactEditSheet = ({
       resource="contacts"
       id={contactId}
       title={
-        <>
+        <h1 className="text-xl font-semibold">
           Edit <RecordRepresentation />
-        </>
+        </h1>
       }
       open={open}
       onOpenChange={onOpenChange}
