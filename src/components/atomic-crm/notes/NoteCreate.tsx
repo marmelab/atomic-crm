@@ -85,7 +85,11 @@ export const NoteCreateButton = ({
     reset(resetValues, { keepValues: false });
     update(reference, {
       id: referenceRecordId as unknown as Identifier,
-      data: { last_seen: new Date().toISOString(), status: data.status },
+      data: {
+        last_seen:
+          reference === "contacts" ? new Date().toISOString() : undefined,
+        status: data.status,
+      },
       previousData: record,
     });
     if (refetch) refetch();
@@ -105,7 +109,7 @@ export const NoteCreateButton = ({
           [foreignKeyMapping[reference]]:
             record?.id || data[foreignKeyMapping[reference]],
           sales_id: identity.id,
-          date: data.date || getCurrentDate(),
+          date: new Date(data.date || getCurrentDate()).toISOString(),
         })}
         mutationOptions={{
           onSuccess: handleSuccess,

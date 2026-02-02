@@ -55,6 +55,12 @@ export function ActivityLogContactNoteCreated({
                   &nbsp;
                   <TextField source="last_name" />
                 </ReferenceField>
+                {context !== "company" && (
+                  <>
+                    &nbsp;
+                    <RelativeDate date={activity.date} />
+                  </>
+                )}
               </span>
             </div>
 
@@ -67,6 +73,7 @@ export function ActivityLogContactNoteCreated({
         </div>
       }
       text={contactNote.text}
+      link={`/contacts/${contactNote.contact_id}/show`}
     />
   );
 }

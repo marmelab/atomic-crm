@@ -7,10 +7,11 @@ import {
   useUpdate,
   WithRecord,
 } from "ra-core";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { FieldValues, SubmitHandler } from "react-hook-form";
 import { ReferenceField } from "@/components/admin/reference-field";
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 import {
   Tooltip,
   TooltipContent,
@@ -19,6 +20,7 @@ import {
 } from "@/components/ui/tooltip";
 
 import { CompanyAvatar } from "../companies/CompanyAvatar";
+import { Markdown } from "../misc/Markdown";
 import { RelativeDate } from "../misc/RelativeDate";
 import { Status } from "../misc/Status";
 import { SaleName } from "../sales/SaleName";
@@ -39,24 +41,31 @@ export const Note = ({
   const isMobile = useIsMobile();
   const [isHover, setHover] = useState(false);
   const [isEditing, setEditing] = useState(false);
+  const [isExpanded, setExpanded] = useState(false);
+  const [isTruncated, setTruncated] = useState(false);
+  const contentRef = useRef<HTMLDivElement>(null);
   const resource = useResourceContext();
   const notify = useNotify();
 
+  // Detect if content is truncated
+  useEffect(() => {
+    const el = contentRef.current;
+    if (el) {
+      setTruncated(el.scrollHeight > el.clientHeight);
+    }
+  }, [note.text]);
+
   const [update, { isPending }] = useUpdate();
 
-  const [deleteNote] = useDelete(
-    resource,
-    { id: note.id, previousData: note },
-    {
-      mutationMode: "undoable",
-      onSuccess: () => {
-        notify("Note deleted", { type: "info", undoable: true });
-      },
+  const [deleteNote] = useDelete(resource, undefined, {
+    mutationMode: "undoable",
+    onSuccess: () => {
+      notify("Note deleted", { type: "info", undoable: true });
     },
-  );
+  });
 
   const handleDelete = () => {
-    deleteNote();
+    deleteNote(resource, { id: note.id, previousData: note });
   };
 
   const handleEnterEditMode = () => {
@@ -174,12 +183,28 @@ export const Note = ({
           </div>
         </Form>
       ) : (
-        <div className="pt-2 [&_p:empty]:min-h-[0.75em]">
-          {note.text?.split("\n").map((paragraph: string, index: number) => (
-            <p className="text-sm leading-6 m-0" key={index}>
-              {paragraph}
-            </p>
-          ))}
+        <div className="pt-2 text-sm md:max-w-150">
+          {note.text && (
+            <div
+              ref={contentRef}
+              className={cn(
+                "overflow-hidden transition-[max-height] duration-300 ease-in-out",
+                isExpanded ? "max-h-[5000px]" : "max-h-46",
+              )}
+            >
+              <Markdown className="[&_p]:leading-5 [&_p]:my-4 [&_p:first-child]:mt-0 [&_p:last-child]:mb-0 [&_blockquote]:border-l-2 [&_blockquote]:pl-3 [&_blockquote]:my-2 [&_blockquote]:text-muted-foreground [&_a]:text-primary [&_a]:underline [&_a:hover]:no-underline">
+                {note.text}
+              </Markdown>
+            </div>
+          )}
+          {isTruncated && (
+            <button
+              onClick={() => setExpanded(!isExpanded)}
+              className="text-primary text-sm mt-1 underline hover:no-underline cursor-pointer"
+            >
+              {isExpanded ? "Show less" : "Read more"}
+            </button>
+          )}
 
           {note.attachments && <NoteAttachments note={note} />}
         </div>

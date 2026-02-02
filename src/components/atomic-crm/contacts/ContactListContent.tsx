@@ -1,6 +1,11 @@
 import { formatRelative } from "date-fns";
-import { RecordContextProvider, useListContext } from "ra-core";
-import { type MouseEvent, useCallback } from "react";
+import { difference, union } from "lodash";
+import {
+  type Identifier,
+  RecordContextProvider,
+  useListContext,
+} from "ra-core";
+import { type MouseEvent, useCallback, useRef } from "react";
 import { Link } from "react-router";
 import { ReferenceField } from "@/components/admin/reference-field";
 import { TextField } from "@/components/admin/text-field";
@@ -14,8 +19,48 @@ import { Avatar } from "./Avatar";
 import { TagsList } from "./TagsList";
 
 export const ContactListContent = () => {
-  const { data: contacts, error, isPending } = useListContext<Contact>();
+  const {
+    data: contacts,
+    error,
+    isPending,
+    onSelect,
+    onToggleItem,
+    selectedIds,
+  } = useListContext<Contact>();
   const isSmall = useIsMobile();
+  const lastSelected = useRef<Identifier | null>(null);
+
+  // Handle shift+click to select a range of rows
+  const handleToggleItem = useCallback(
+    (id: Identifier, event: MouseEvent) => {
+      if (!contacts) return;
+
+      const ids = contacts.map((contact) => contact.id);
+      const lastSelectedIndex = lastSelected.current
+        ? ids.indexOf(lastSelected.current)
+        : -1;
+
+      if (event.shiftKey && lastSelectedIndex !== -1) {
+        const index = ids.indexOf(id);
+        const idsBetweenSelections = ids.slice(
+          Math.min(lastSelectedIndex, index),
+          Math.max(lastSelectedIndex, index) + 1,
+        );
+
+        const isClickedItemSelected = selectedIds?.includes(id);
+        const newSelectedIds = isClickedItemSelected
+          ? difference(selectedIds, idsBetweenSelections)
+          : union(selectedIds, idsBetweenSelections);
+
+        onSelect?.(newSelectedIds);
+      } else {
+        onToggleItem(id);
+      }
+
+      lastSelected.current = id;
+    },
+    [contacts, selectedIds, onSelect, onToggleItem],
+  );
 
   // StopPropagation does not work for some reason on Checkbox, this handler is a workaround
   const handleLinkClick = useCallback(function handleLinkClick(
@@ -46,7 +91,10 @@ export const ContactListContent = () => {
             {isSmall ? (
               <ContactItemContentMobile contact={contact} />
             ) : (
-              <ContactItemContentDesktop contact={contact} />
+              <ContactItemContentDesktop
+                contact={contact}
+                handleToggleItem={handleToggleItem}
+              />
             )}
           </Link>
         </RecordContextProvider>
@@ -61,8 +109,14 @@ export const ContactListContent = () => {
   );
 };
 
-const ContactItemContentDesktop = ({ contact }: { contact: Contact }) => {
-  const { onToggleItem, selectedIds } = useListContext<Contact>();
+const ContactItemContentDesktop = ({
+  contact,
+  handleToggleItem,
+}: {
+  contact: Contact;
+  handleToggleItem: (id: Identifier, event: MouseEvent) => void;
+}) => {
+  const { selectedIds } = useListContext<Contact>();
   const now = Date.now();
 
   return (
@@ -70,31 +124,33 @@ const ContactItemContentDesktop = ({ contact }: { contact: Contact }) => {
       <Checkbox
         className="cursor-pointer"
         checked={selectedIds.includes(contact.id)}
-        onCheckedChange={() => onToggleItem(contact.id)}
+        onClick={(e) => handleToggleItem(contact.id, e)}
       />
       <Avatar />
       <div className="flex-1 min-w-0">
         <div className="font-medium">
           {`${contact.first_name} ${contact.last_name ?? ""}`}
         </div>
-        <div className="text-sm text-muted-foreground">
-          {contact.title}
-          {contact.title && contact.company_id != null && " at "}
-          {contact.company_id != null && (
-            <ReferenceField
-              source="company_id"
-              reference="companies"
-              link={false}
-            >
-              <TextField source="name" />
-            </ReferenceField>
-          )}
-          {contact.nb_tasks
-            ? ` - ${contact.nb_tasks} task${contact.nb_tasks > 1 ? "s" : ""}`
-            : ""}
-          &nbsp;&nbsp;
-          <TagsList />
-        </div>
+        {contact.title || contact.company_id != null || contact.nb_tasks ? (
+          <div className="text-sm text-muted-foreground">
+            {contact.title}
+            {contact.title && contact.company_id != null && " at "}
+            {contact.company_id != null && (
+              <ReferenceField
+                source="company_id"
+                reference="companies"
+                link={false}
+              >
+                <TextField source="name" />
+              </ReferenceField>
+            )}
+            {contact.nb_tasks
+              ? ` - ${contact.nb_tasks} task${contact.nb_tasks > 1 ? "s" : ""}`
+              : ""}
+            &nbsp;&nbsp;
+            <TagsList />
+          </div>
+        ) : null}
       </div>
       {contact.last_seen && (
         <div className="text-right ml-4">

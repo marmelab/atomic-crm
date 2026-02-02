@@ -55,9 +55,10 @@ export const Notification = (props: ToasterProps) => {
           window.addEventListener("beforeunload", beforeunload);
         }
 
+        const mutation = takeMutation();
+
         const handleExited = () => {
           if (undoable) {
-            const mutation = takeMutation();
             if (mutation) {
               mutation({ isUndo: false });
             }
@@ -66,7 +67,6 @@ export const Notification = (props: ToasterProps) => {
         };
 
         const handleUndo = () => {
-          const mutation = takeMutation();
           if (mutation) {
             mutation({ isUndo: true });
           }

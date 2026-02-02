@@ -33,10 +33,8 @@ import {
   useEvent,
 } from "ra-core";
 import { InputHelperText } from "./input-helper-text";
-import {
-  SupportCreateSuggestionOptions,
-  useSupportCreateSuggestion,
-} from "@/hooks/useSupportCreateSuggestion";
+import type { SupportCreateSuggestionOptions } from "@/hooks/useSupportCreateSuggestion";
+import { useSupportCreateSuggestion } from "@/hooks/useSupportCreateSuggestion";
 
 /**
  * Form control that lets users choose a value from a list using a dropdown with autocompletion.

@@ -46,8 +46,11 @@ export async function getActivityLog(
   return (
     [...newCompanies, ...newContactsAndNotes, ...newDealsAndNotes]
       // sort by date desc
-      .sort((a, b) =>
-        a.date && b.date ? a.date.localeCompare(b.date) * -1 : 0,
+      .sort(
+        (a, b) =>
+          (a.date || new Date(0).toISOString()).localeCompare(
+            b.date || new Date(0).toISOString(),
+          ) * -1,
       )
       // limit to 250 activities
       .slice(0, 250)
@@ -95,7 +98,7 @@ async function getNewContactsAndNotes(
   }
 
   const { data: contactNotes } = await dataProvider.getList<ContactNote>(
-    "contactNotes",
+    "contact_notes",
     {
       filter: recentContactNotesFilter,
       pagination: { page: 1, perPage: 250 },
@@ -145,7 +148,7 @@ async function getNewDealsAndNotes(
   }
 
   const { data: dealNotes } = await dataProvider.getList<DealNote>(
-    "dealNotes",
+    "deal_notes",
     {
       filter: recentDealNotesFilter,
       pagination: { page: 1, perPage: 250 },

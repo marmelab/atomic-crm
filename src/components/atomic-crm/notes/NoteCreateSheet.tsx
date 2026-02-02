@@ -58,7 +58,7 @@ export const NoteCreateSheet = ({
 
   return (
     <CreateSheet
-      resource="contactNotes"
+      resource="contact_notes"
       title={
         <>
           {!selectContact ? "Create Note for " : "Create Note"}
