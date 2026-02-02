@@ -35,7 +35,7 @@ export const ResponsiveFilters = ({
 
   // Count active filters excluding the search filter
   const activeFiltersCount = Object.entries(filterValues || {}).filter(
-    ([key, value]) => key !== source && value,
+    ([key]) => key !== source,
   ).length;
 
   const handleClearFilters = () => {
