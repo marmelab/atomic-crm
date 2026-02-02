@@ -79,7 +79,10 @@ export const Task = ({
   return (
     <>
       <div className="flex items-start justify-between">
-        <div className="flex items-start gap-2 flex-1">
+        <div
+          className="flex items-start gap-2 flex-1"
+          onClick={isMobile ? handleCheck() : undefined}
+        >
           <Checkbox
             id={labelId}
             checked={!!task.done_date}
