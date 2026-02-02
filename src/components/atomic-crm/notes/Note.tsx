@@ -199,7 +199,10 @@ export const Note = ({
           )}
           {isTruncated && (
             <button
-              onClick={() => setExpanded(!isExpanded)}
+              onClick={(e) => {
+                e.stopPropagation();
+                setExpanded(!isExpanded);
+              }}
               className="text-primary text-sm mt-1 underline hover:no-underline cursor-pointer"
             >
               {isExpanded ? "Show less" : "Read more"}
