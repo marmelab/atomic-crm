@@ -56,6 +56,7 @@ export const AttachmentField = (props: FileFieldProps) => {
                   alt={fileTitleValue}
                   title={fileTitleValue}
                   src={srcValue}
+                  className="w-[200px] h-[100px] object-cover cursor-pointer object-left border border-border"
                 />
               ) : (
                 <a
@@ -79,7 +80,12 @@ export const AttachmentField = (props: FileFieldProps) => {
   return (
     <div className={cn("inline-block", className)} {...rest}>
       {isImageMimeType(record?.rawFile.type) ? (
-        <img alt={titleValue} title={titleValue} src={sourceValue?.toString()} />
+        <img
+          alt={titleValue}
+          title={titleValue}
+          src={sourceValue?.toString()}
+          className="w-[200px] h-[100px] object-cover cursor-pointer object-left border border-border"
+        />
       ) : (
         <a
           href={sourceValue?.toString()}
