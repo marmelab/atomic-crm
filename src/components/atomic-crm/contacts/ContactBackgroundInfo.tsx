@@ -15,29 +15,31 @@ export const ContactBackgroundInfo = () => {
       <WithRecord<Contact>
         render={(record) =>
           record?.background ? (
-            <div className="pb-2">
+            <div className="pb-2 text-sm">
               <TextField source="background" record={record} />
             </div>
           ) : null
         }
       />
-      <div className="text-muted-foreground pb-1">
-        <span className="md:text-sm">Added on</span>{" "}
+      <div className="text-muted-foreground md:py-0.5">
+        <span className="text-sm">Added on</span>{" "}
         <DateField
           source="first_seen"
           options={{ year: "numeric", month: "long", day: "numeric" }}
+          className="text-sm"
         />
       </div>
 
-      <div className="text-muted-foreground pb-1">
-        <span className="md:text-sm">Last activity on</span>{" "}
+      <div className="text-muted-foreground md:py-0.5">
+        <span className="text-sm">Last activity on</span>{" "}
         <DateField
           source="last_seen"
           options={{ year: "numeric", month: "long", day: "numeric" }}
+          className="text-sm"
         />
       </div>
 
-      <div className="inline-flex text-muted-foreground">
+      <div className="inline-flex text-muted-foreground text-sm md:py-0.5">
         Followed by&nbsp;
         <ReferenceField source="sales_id" reference="sales">
           <SaleName />

@@ -115,7 +115,7 @@ const ContactShowContentMobile = () => {
               />{" "}
               Tasks
             </TabsTrigger>
-            <TabsTrigger value="details">Contact Details</TabsTrigger>
+            <TabsTrigger value="details">Details</TabsTrigger>
           </TabsList>
 
           <TabsContent value="notes" className="mt-4">
