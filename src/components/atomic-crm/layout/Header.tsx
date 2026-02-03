@@ -1,4 +1,3 @@
-import React from "react";
 import { Import, Settings, User } from "lucide-react";
 import { CanAccess, useUserMenu } from "ra-core";
 import { Link, matchPath, useLocation } from "react-router";
@@ -8,13 +7,11 @@ import { UserMenu } from "@/components/admin/user-menu";
 import { DropdownMenuItem } from "@/components/ui/dropdown-menu";
 
 import { useConfigurationContext } from "../root/ConfigurationContext";
-import { ImportFromJsonDialog } from "../misc/ImportFromJsonDialog";
+import { ImportPage } from "../misc/ImportPage";
 
 const Header = () => {
   const { darkModeLogo, lightModeLogo, title } = useConfigurationContext();
   const location = useLocation();
-  const [isImportFromJsonDialogOpen, setIsImportFromJsonOpen] =
-    React.useState(false);
 
   let currentPath: string | boolean = "/";
   if (matchPath("/", location.pathname)) {
@@ -80,24 +77,16 @@ const Header = () => {
                 <RefreshButton />
                 <UserMenu>
                   <ConfigurationMenu />
-                  <ImportFromJsonMenuItem
-                    onClick={() => setIsImportFromJsonOpen(true)}
-                  />
                   <CanAccess resource="sales" action="list">
                     <UsersMenu />
                   </CanAccess>
+                  <ImportFromJsonMenuItem />
                 </UserMenu>
               </div>
             </div>
           </div>
         </header>
       </nav>
-      {/* The dialog is rendered here instead of in ImportFromJsonMenuItem because otherwise
-          it would disappear when closing the menu */}
-      <ImportFromJsonDialog
-        open={isImportFromJsonDialogOpen}
-        onOpenChange={(open) => setIsImportFromJsonOpen(open)}
-      />
     </>
   );
 };
@@ -152,20 +141,16 @@ const ConfigurationMenu = () => {
   );
 };
 
-const ImportFromJsonMenuItem = ({ onClick }: { onClick: () => void }) => {
+const ImportFromJsonMenuItem = () => {
   const userMenuContext = useUserMenu();
   if (!userMenuContext) {
-    throw new Error("<ImportFromJsonMenuItem> must be used inside <UserMenu?");
+    throw new Error("<ImportFromJsonMenuItem> must be used inside <UserMenu>");
   }
   return (
-    <DropdownMenuItem
-      className="flex items-center gap-2 cursor-pointer"
-      onClick={() => {
-        userMenuContext.onClose();
-        onClick();
-      }}
-    >
-      <Import /> Import from JSON
+    <DropdownMenuItem asChild onClick={userMenuContext.onClose}>
+      <Link to={ImportPage.path} className="flex items-center gap-2">
+        <Import /> Import data
+      </Link>
     </DropdownMenuItem>
   );
 };
