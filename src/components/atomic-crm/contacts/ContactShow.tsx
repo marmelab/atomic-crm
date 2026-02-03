@@ -45,6 +45,8 @@ const ContactShowContentMobile = () => {
 
   return (
     <>
+      {/* We need to repeat the note creation sheet here to support the note 
+      create button that is rendered when there are no notes. */}
       <NoteCreateSheet
         open={noteCreateOpen}
         onOpenChange={setNoteCreateOpen}
