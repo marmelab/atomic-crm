@@ -25,6 +25,7 @@ import { Avatar } from "./Avatar";
 import { ContactAside } from "./ContactAside";
 import { MobileBackButton } from "../misc/MobileBackButton";
 import { Pencil } from "lucide-react";
+import { Link } from "react-router";
 
 export const ContactShow = () => {
   const isMobile = useIsMobile();
@@ -57,7 +58,9 @@ const ContactShowContentMobile = () => {
       <MobileHeader>
         <MobileBackButton />
         <div className="flex flex-1">
-          <h1 className="text-xl font-semibold">Contacts</h1>
+          <Link to="/contacts">
+            <h1 className="text-xl font-semibold">Contacts</h1>
+          </Link>
         </div>
         <Button
           type="button"
