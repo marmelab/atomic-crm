@@ -8,6 +8,7 @@ import {
   useShowContext,
 } from "ra-core";
 import {
+  Link,
   Link as RouterLink,
   useLocation,
   useMatch,
@@ -58,7 +59,9 @@ const CompanyShowContentMobile = () => {
       <MobileHeader>
         <MobileBackButton to="/" />
         <div className="flex flex-1">
-          <h1 className="text-xl font-semibold">Company</h1>
+          <Link to="/">
+            <h1 className="text-xl font-semibold">Company</h1>
+          </Link>
         </div>
       </MobileHeader>
 
