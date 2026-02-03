@@ -30,7 +30,7 @@ export const NoteCreateSheet = ({
   const { data: contact } = useGetOne(
     "contacts",
     { id: contact_id! },
-    { enabled: !!contact_id },
+    { enabled: !selectContact },
   );
   const [update] = useUpdate();
   const dataProvider = useDataProvider();
@@ -72,7 +72,7 @@ export const NoteCreateSheet = ({
       transform={(data: any) => ({
         ...data,
         [foreignKeyMapping["contacts"]]:
-          contact_id || data[foreignKeyMapping["contacts"]],
+          contact_id ?? data[foreignKeyMapping["contacts"]],
         sales_id: identity.id,
         date: data.date || getCurrentDate(),
       })}
