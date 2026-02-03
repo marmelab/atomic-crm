@@ -32,7 +32,7 @@ import { cn } from "@/lib/utils";
  * );
  */
 export const SearchInput = (inProps: SearchInputProps) => {
-  const { label, className, clearable, source = "q", ...rest } = inProps;
+  const { label, className, disableClearable, source = "q", ...rest } = inProps;
 
   const translate = useTranslate();
   const { setValue } = useFormContext();
@@ -49,7 +49,7 @@ export const SearchInput = (inProps: SearchInputProps) => {
     );
   }
 
-  const showClearButton = clearable && hasValue;
+  const showClearButton = !disableClearable && hasValue;
 
   return (
     <div className="flex flex-grow relative mt-auto">
@@ -70,7 +70,9 @@ export const SearchInput = (inProps: SearchInputProps) => {
           size="sm"
           onClick={handleClear}
           className="absolute right-8 top-1/2 transform -translate-y-1/2 h-6 w-6 rounded-full p-0 text-muted-foreground"
-          aria-label="Clear search"
+          aria-label={translate("ra.action.clear_search", {
+            _: "Clear search",
+          })}
         >
           <X className="h-3 w-3" />
         </Button>
@@ -80,5 +82,5 @@ export const SearchInput = (inProps: SearchInputProps) => {
 };
 
 export type SearchInputProps = TextInputProps & {
-  clearable?: boolean;
+  disableClearable?: boolean;
 };
