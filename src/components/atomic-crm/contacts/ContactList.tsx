@@ -45,7 +45,7 @@ const ContactListDesktop = () => {
       sort={{ field: "last_seen", order: "DESC" }}
       exporter={exporter}
     >
-      <DesktopContactListLayout />
+      <ContactListLayoutDesktop />
     </List>
   );
 };
@@ -61,12 +61,12 @@ const ContactListMobile = () => {
       sort={{ field: "last_seen", order: "DESC" }}
       exporter={exporter}
     >
-      <MobileContactListLayout />
+      <ContactListLayoutMobile />
     </InfiniteListBase>
   );
 };
 
-const DesktopContactListLayout = () => {
+const ContactListLayoutDesktop = () => {
   const { data, isPending, filterValues } = useListContext();
 
   const hasFilters = filterValues && Object.keys(filterValues).length > 0;
@@ -88,7 +88,7 @@ const DesktopContactListLayout = () => {
   );
 };
 
-const MobileContactListLayout = () => {
+const ContactListLayoutMobile = () => {
   const { data, isPending, filterValues } = useListContext();
 
   const hasFilters = filterValues && Object.keys(filterValues).length > 0;
