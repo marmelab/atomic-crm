@@ -28,7 +28,7 @@ export const TaskCreateSheet = ({
   const { data: contact } = useGetOne(
     "contacts",
     { id: contact_id! },
-    { enabled: !!contact_id },
+    { enabled: !selectContact },
   );
   const [update] = useUpdate();
   const dataProvider = useDataProvider();
