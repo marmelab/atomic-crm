@@ -18,6 +18,7 @@ import { Dashboard } from "../dashboard/Dashboard";
 import deals from "../deals";
 import { Layout } from "../layout/Layout";
 import { SignupPage } from "../login/SignupPage";
+import { ConfirmationRequired } from "../login/ConfirmationRequired";
 import { ImportPage } from "../misc/ImportPage";
 import {
   authProvider as defaultAuthProvider,
@@ -145,6 +146,10 @@ export const CRM = ({
       >
         <CustomRoutes noLayout>
           <Route path={SignupPage.path} element={<SignupPage />} />
+          <Route
+            path={ConfirmationRequired.path}
+            element={<ConfirmationRequired />}
+          />
           <Route path={SetPasswordPage.path} element={<SetPasswordPage />} />
           <Route
             path={ForgotPasswordPage.path}
