@@ -218,7 +218,7 @@ export const AutocompleteInput = (
                 variant="outline"
                 role="combobox"
                 aria-expanded={open}
-                className="min-w-0 max-w-full justify-between h-auto py-1.75 font-normal"
+                className="w-full justify-between h-auto py-1.75 font-normal"
               >
                 {selectedChoice ? (
                   getInputText(selectedChoice)
@@ -228,7 +228,7 @@ export const AutocompleteInput = (
                 <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
               </Button>
             </PopoverTrigger>
-            <PopoverContent className="min-w-0 max-w-full p-0">
+            <PopoverContent className="w-full max-w-(--radix-popover-trigger-width) p-0">
               {/* We handle the filtering ourselves */}
               <Command shouldFilter={!isFromReference}>
                 <CommandInput
