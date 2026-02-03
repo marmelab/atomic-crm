@@ -1,3 +1,8 @@
+import { ReferenceManyField } from "@/components/admin/reference-many-field";
+import { SortButton } from "@/components/admin/sort-button";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { formatDistance } from "date-fns";
 import { UserPlus } from "lucide-react";
 import {
@@ -14,16 +19,15 @@ import {
   useMatch,
   useNavigate,
 } from "react-router-dom";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { ReferenceManyField } from "@/components/admin/reference-many-field";
-import { SortButton } from "@/components/admin/sort-button";
 
+import { useIsMobile } from "@/hooks/use-mobile";
 import { ActivityLog } from "../activity/ActivityLog";
 import { Avatar } from "../contacts/Avatar";
 import { TagsList } from "../contacts/TagsList";
 import { findDealLabel } from "../deals/deal";
+import { MobileContent } from "../layout/MobileContent";
+import MobileHeader from "../layout/MobileHeader";
+import { MobileBackButton } from "../misc/MobileBackButton";
 import { Status } from "../misc/Status";
 import { useConfigurationContext } from "../root/ConfigurationContext";
 import type { Company, Contact, Deal } from "../types";
@@ -35,10 +39,6 @@ import {
   ContextInfo,
 } from "./CompanyAside";
 import { CompanyAvatar } from "./CompanyAvatar";
-import { useIsMobile } from "@/hooks/use-mobile";
-import MobileHeader from "../layout/MobileHeader";
-import { MobileBackButton } from "../misc/MobileBackButton";
-import { MobileContent } from "../layout/MobileContent";
 
 export const CompanyShow = () => {
   const isMobile = useIsMobile();
