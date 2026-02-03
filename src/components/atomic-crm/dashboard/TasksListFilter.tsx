@@ -1,4 +1,5 @@
 import {
+  type Identifier,
   ListContextProvider,
   ResourceContextProvider,
   useGetIdentity,
@@ -15,7 +16,7 @@ export const TasksListFilter = ({
 }: {
   title: string;
   filter: any;
-  contactId?: string | number;
+  contactId?: Identifier;
 }) => {
   const { identity } = useGetIdentity();
 
@@ -30,10 +31,12 @@ export const TasksListFilter = ({
       sort: { field: "due_date", order: "ASC" },
       filter: {
         ...filter,
-        ...(contactId ? { contact_id: contactId } : { sales_id: identity?.id }),
+        ...(contactId != null
+          ? { contact_id: contactId }
+          : { sales_id: identity?.id }),
       },
     },
-    { enabled: contactId ? true : !!identity },
+    { enabled: contactId != null ? true : !!identity },
   );
 
   const listContext = useList({
@@ -52,7 +55,7 @@ export const TasksListFilter = ({
       </p>
       <ResourceContextProvider value="tasks">
         <ListContextProvider value={listContext}>
-          <TasksIterator showContact={!contactId} />
+          <TasksIterator showContact={contactId == null} />
         </ListContextProvider>
       </ResourceContextProvider>
       {total > listContext.perPage && (
