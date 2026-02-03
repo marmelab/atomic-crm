@@ -1,45 +1,11 @@
-import {
-  endOfToday,
-  endOfTomorrow,
-  endOfWeek,
-  getDay,
-  startOfToday,
-} from "date-fns";
 import { useRecordContext, useGetList } from "ra-core";
 import { useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { TasksListFilter } from "../dashboard/TasksListFilter";
 import { TaskCreateSheet } from "../tasks/TaskCreateSheet";
+import { taskFilters, isBeforeFriday } from "../tasks/taskFilters";
 import type { Contact } from "../types";
-
-const today = new Date();
-const todayDayOfWeek = getDay(today);
-const isBeforeFriday = todayDayOfWeek < 5; // Friday is represented by 5
-const startOfTodayDateISO = startOfToday().toISOString();
-const endOfTodayDateISO = endOfToday().toISOString();
-const endOfTomorrowDateISO = endOfTomorrow().toISOString();
-const endOfWeekDateISO = endOfWeek(today, { weekStartsOn: 0 }).toISOString();
-
-const taskFilters = {
-  overdue: { "done_date@is": null, "due_date@lt": startOfTodayDateISO },
-  today: {
-    "done_date@is": null,
-    "due_date@gte": startOfTodayDateISO,
-    "due_date@lte": endOfTodayDateISO,
-  },
-  tomorrow: {
-    "done_date@is": null,
-    "due_date@gt": endOfTodayDateISO,
-    "due_date@lt": endOfTomorrowDateISO,
-  },
-  thisWeek: {
-    "done_date@is": null,
-    "due_date@gte": endOfTomorrowDateISO,
-    "due_date@lte": endOfWeekDateISO,
-  },
-  later: { "done_date@is": null, "due_date@gt": endOfWeekDateISO },
-};
 
 export const ContactTasksList = () => {
   const record = useRecordContext<Contact>();
