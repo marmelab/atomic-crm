@@ -360,6 +360,10 @@
           "type": "registry:component"
         },
         {
+          "path": "src/components/atomic-crm/misc/useImportFromJson.ts",
+          "type": "registry:component"
+        },
+        {
           "path": "src/components/atomic-crm/misc/useAppBarHeight.ts",
           "type": "registry:component"
         },
@@ -397,6 +401,14 @@
         },
         {
           "path": "src/components/atomic-crm/misc/InfinitePagination.tsx",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/misc/ImportFromJsonDialog.tsx",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/misc/ImportFromJsonButton.tsx",
           "type": "registry:component"
         },
         {
