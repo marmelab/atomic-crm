@@ -2,9 +2,7 @@ import { CheckSquare } from "lucide-react";
 import { Card } from "@/components/ui/card";
 
 import { AddTask } from "../tasks/AddTask";
-import { taskFilters, isBeforeFriday } from "../tasks/taskFilters";
-import { TasksListEmpty } from "./TasksListEmpty";
-import { TasksListFilter } from "./TasksListFilter";
+import { TasksListContent } from "../tasks/TasksListContent";
 
 export const TasksList = () => {
   return (
@@ -21,21 +19,6 @@ export const TasksList = () => {
       <Card className="p-4 mb-2">
         <TasksListContent />
       </Card>
-    </div>
-  );
-};
-
-export const TasksListContent = () => {
-  return (
-    <div className="flex flex-col gap-4">
-      <TasksListEmpty />
-      <TasksListFilter title="Overdue" filter={taskFilters.overdue} />
-      <TasksListFilter title="Today" filter={taskFilters.today} />
-      <TasksListFilter title="Tomorrow" filter={taskFilters.tomorrow} />
-      {isBeforeFriday && (
-        <TasksListFilter title="This week" filter={taskFilters.thisWeek} />
-      )}
-      <TasksListFilter title="Later" filter={taskFilters.later} />
     </div>
   );
 };

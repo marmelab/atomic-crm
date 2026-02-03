@@ -1,6 +1,6 @@
-import { TasksListContent } from "../dashboard/TasksList";
 import { MobileContent } from "../layout/MobileContent";
 import MobileHeader from "../layout/MobileHeader";
+import { TasksListContent } from "./TasksListContent";
 
 export const MobileTasksList = () => (
   <>
