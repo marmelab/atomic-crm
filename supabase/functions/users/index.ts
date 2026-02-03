@@ -103,18 +103,14 @@ async function inviteUser(req: Request, currentUserSale: any) {
         .select("*")
         .eq("user_id", user.id);
       if (salesError) {
-        return createErrorResponse(
-          salesError.status,
-          salesError.message,
-          {
-            code: salesError.code,
-          },
-        );
+        return createErrorResponse(salesError.status, salesError.message, {
+          code: salesError.code,
+        });
       }
       if (existingSale.length > 0) {
         return createErrorResponse(
           400,
-          'A sales for this email already exists',
+          "A sales for this email already exists",
         );
       }
 
@@ -147,13 +143,9 @@ async function inviteUser(req: Request, currentUserSale: any) {
   } else {
     if (userError) {
       console.error(`Error inviting user: user_error=${userError}`);
-      return createErrorResponse(
-        userError.status,
-        userError.message,
-        {
-          code: userError.code,
-        },
-      );
+      return createErrorResponse(userError.status, userError.message, {
+        code: userError.code,
+      });
     }
     if (!data?.user) {
       console.error("Error inviting user: undefined user");
