@@ -1,24 +1,8 @@
-import React from "react";
 import { AlertCircleIcon } from "lucide-react";
 import { Form, required } from "ra-core";
-import {
-  Dialog,
-  DialogClose,
-  DialogContent,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
-import { FileField, FileInput } from "@/components/admin";
-import {
-  type ImportFromJsonErrorState,
-  type ImportFromJsonFailures,
-  type ImportFromJsonFunction,
-  type ImportFromJsonState,
-  useImportFromJson,
-} from "./useImportFromJson";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Table,
   TableBody,
@@ -29,48 +13,45 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Spinner } from "@/components/ui/spinner";
+import { FileField, FileInput } from "@/components/admin";
+import {
+  type ImportFromJsonErrorState,
+  type ImportFromJsonFailures,
+  type ImportFromJsonFunction,
+  type ImportFromJsonState,
+  useImportFromJson,
+} from "./useImportFromJson";
 import sampleFile from "./import-sample.json?url";
 
-export const ImportFromJsonDialog = ({
-  onOpenChange,
-  ...props
-}: React.ComponentProps<typeof Dialog>) => {
+export const ImportPage = () => {
   const [importState, importFile, reset] = useImportFromJson();
 
   return (
-    <Dialog
-      onOpenChange={(open) => {
-        if (importState.status !== "importing") {
-          // If the import isn't running, reset its state so that users
-          // may import another file after either a successful or failed import.
-          reset();
-          if (onOpenChange) {
-            onOpenChange(open);
-          }
-        }
-      }}
-      {...props}
-    >
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>Import from JSON</DialogTitle>
-        </DialogHeader>
-        {importState.status === "idle" ? (
-          <ImportFromJsonIdle importFile={importFile} />
-        ) : importState.status === "error" ? (
-          <ImportFromJsonError
-            importState={importState}
-            importFile={importFile}
-          />
-        ) : importState.status === "importing" ? (
-          <ImportFromJsonStatus importState={importState} />
-        ) : (
-          <ImportFromJsonSuccess importState={importState} />
-        )}
-      </DialogContent>
-    </Dialog>
+    <div className="max-w-2xl mx-auto mt-8">
+      <Card>
+        <CardHeader>
+          <CardTitle>Import Data</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {importState.status === "idle" ? (
+            <ImportFromJsonIdle importFile={importFile} />
+          ) : importState.status === "error" ? (
+            <ImportFromJsonError
+              importState={importState}
+              importFile={importFile}
+            />
+          ) : importState.status === "importing" ? (
+            <ImportFromJsonStatus importState={importState} />
+          ) : (
+            <ImportFromJsonSuccess importState={importState} reset={reset} />
+          )}
+        </CardContent>
+      </Card>
+    </div>
   );
 };
+
+ImportPage.path = "/import";
 
 const ImportFromJsonIdle = ({
   importFile,
@@ -78,20 +59,21 @@ const ImportFromJsonIdle = ({
   importFile: ImportFromJsonFunction;
 }) => (
   <>
-    <Alert>
-      <AlertTitle>Instructions</AlertTitle>
-      <AlertDescription>
-        Provide a JSON file containing sales, companies, contacts, notes or
-        tasks
+    <div className="mb-4">
+      <p className="text-sm">
+        You can import sales, companies, contacts, companies, notes, and tasks.
+      </p>
+      <p className="text-sm">
+        Data must be in a JSON file matching the following sample:{" "}
         <a
-          className="font-bold hover:underline"
+          className="underline"
           download="import-sample.json"
           href={sampleFile}
         >
-          Download a sample
+          sample.json
         </a>
-      </AlertDescription>
-    </Alert>
+      </p>
+    </div>
     <ImportFromJsonForm importFile={importFile} />
   </>
 );
@@ -104,7 +86,7 @@ const ImportFromJsonError = ({
   importState: ImportFromJsonErrorState;
 }) => (
   <>
-    <Alert variant="destructive">
+    <Alert variant="destructive" className="mb-4">
       <AlertCircleIcon />
       <AlertTitle>Unable to import this file.</AlertTitle>
       <AlertDescription>
@@ -128,14 +110,9 @@ const ImportFromJsonForm = ({
     <FileInput className="mt-4" source="file" validate={required()}>
       <FileField source="src" title="title" />
     </FileInput>
-    <DialogFooter>
+    <div className="flex justify-end mt-4">
       <Button type="submit">Import</Button>
-      <DialogClose asChild>
-        <Button variant="outline" type="button">
-          Cancel
-        </Button>
-      </DialogClose>
-    </DialogFooter>
+    </div>
   </Form>
 );
 
@@ -145,44 +122,41 @@ const ImportFromJsonStatus = ({
   importState: ImportFromJsonState;
 }) => (
   <>
-    <Alert>
-      <AlertTitle>
-        <Spinner /> Importing data...
-      </AlertTitle>
-      <AlertDescription>Do not close this browser tab</AlertDescription>
-    </Alert>
+    <Spinner />
+    <p className="my-4 text-sm text-center text-muted-foreground">
+      Import in progress, please don't navigate away from this page.
+    </p>
     <ImportStats importState={importState} />
   </>
 );
 
 const ImportFromJsonSuccess = ({
   importState,
+  reset,
 }: {
   importState: ImportFromJsonState;
+  reset: () => void;
 }) => (
   <>
-    <Alert>
-      <AlertTitle>Imported data</AlertTitle>
-      <AlertDescription>
-        <p>You can now safely close this browser tab or the dialog.</p>
-        {hasFailedImports(importState.failedImports) ? (
-          <>
-            <p className="text-destructive">Some records were not imported.</p>
-            <DownloadErrorFileButton
-              failedImports={importState.failedImports}
-            />
-          </>
-        ) : null}
-      </AlertDescription>
-    </Alert>
+    <p className="mb-4 text-sm">
+      Import complete.{" "}
+      {hasFailedImports(importState.failedImports) ? (
+        <>
+          <span className="text-destructive">
+            Some records were not imported.
+          </span>
+          <DownloadErrorFileButton failedImports={importState.failedImports} />
+        </>
+      ) : (
+        <span>All records were imported successfully.</span>
+      )}
+    </p>
     <ImportStats importState={importState} />
-    <DialogFooter>
-      <DialogClose asChild>
-        <Button variant="outline" type="button">
-          Close
-        </Button>
-      </DialogClose>
-    </DialogFooter>
+    <div className="flex justify-end mt-4">
+      <Button variant="outline" onClick={reset}>
+        Import another file
+      </Button>
+    </div>
   </>
 );
 
