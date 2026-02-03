@@ -24,7 +24,10 @@ export const NoteAttachments = ({ note }: { note: ContactNote | DealNote }) => {
                 src={attachment.src}
                 alt={attachment.title}
                 className="w-[200px] h-[100px] object-cover cursor-pointer object-left border border-border"
-                onClick={() => window.open(attachment.src, "_blank")}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  window.open(attachment.src, "_blank");
+                }}
               />
             </div>
           ))}
@@ -39,6 +42,7 @@ export const NoteAttachments = ({ note }: { note: ContactNote | DealNote }) => {
               target="_blank"
               rel="noopener noreferrer"
               className="underline hover:no-underline"
+              onClick={(e) => e.stopPropagation()}
             >
               {attachment.title}
             </a>
