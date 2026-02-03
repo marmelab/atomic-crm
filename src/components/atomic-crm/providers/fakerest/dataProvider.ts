@@ -159,21 +159,19 @@ const dataProviderWithCustomMethod: CrmDataProvider = {
     };
   },
   salesCreate: async ({ ...data }: SalesFormData): Promise<Sale> => {
-    const user = await dataProvider.create("sales", {
+    const response = await dataProvider.create("sales", {
       data: {
         ...data,
         password: "new_password",
       },
     });
 
-    return {
-      ...user.data,
-    };
+    return response.data;
   },
   salesUpdate: async (
     id: Identifier,
     data: Partial<Omit<SalesFormData, "password">>,
-  ): Promise<Partial<Omit<SalesFormData, "password">>> => {
+  ): Promise<Sale> => {
     const { data: previousData } = await dataProvider.getOne<Sale>("sales", {
       id,
     });
@@ -182,12 +180,12 @@ const dataProviderWithCustomMethod: CrmDataProvider = {
       throw new Error("User not found");
     }
 
-    const { data: sale } = await dataProvider.update("sales", {
+    const { data: sale } = await dataProvider.update<Sale>("sales", {
       id,
       data,
       previousData,
     });
-    return sale;
+    return { ...sale, user_id: sale.id.toString() };
   },
   isInitialized: async (): Promise<boolean> => {
     const sales = await dataProvider.getList<Sale>("sales", {
