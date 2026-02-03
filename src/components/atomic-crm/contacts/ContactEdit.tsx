@@ -1,18 +1,16 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { EditBase, Form, useEditContext } from "ra-core";
 
-import { FormToolbar } from "../layout/FormToolbar";
 import type { Contact } from "../types";
 import { ContactAside } from "./ContactAside";
 import { ContactInputs } from "./ContactInputs";
+import { FormToolbar } from "../layout/FormToolbar";
 
-export const ContactEdit = () => {
-  return (
-    <EditBase redirect="show">
-      <ContactEditContent />
-    </EditBase>
-  );
-};
+export const ContactEdit = () => (
+  <EditBase redirect="show">
+    <ContactEditContent />
+  </EditBase>
+);
 
 const ContactEditContent = () => {
   const { isPending, record } = useEditContext<Contact>();
