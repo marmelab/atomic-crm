@@ -18,7 +18,7 @@ import { ContactEmpty } from "./ContactEmpty";
 import { ContactImportButton } from "./ContactImportButton";
 import { ContactListContent } from "./ContactListContent";
 import {
-  ContactListActiveFilters,
+  ContactListFilterSummary,
   ContactListFilter,
 } from "./ContactListFilter";
 import { TopToolbar } from "../layout/TopToolbar";
@@ -103,7 +103,7 @@ const ContactListLayoutMobile = () => {
         <ContactListFilter />
       </MobileHeader>
       <MobileContent>
-        <ContactListActiveFilters />
+        <ContactListFilterSummary />
         <Card className="py-0">
           <ContactListContent />
         </Card>

@@ -133,7 +133,7 @@ export const ContactListFilter = () => {
   );
 };
 
-export const ContactListActiveFilters = () => {
+export const ContactListFilterSummary = () => {
   const { noteStatuses } = useConfigurationContext();
   const { identity } = useGetIdentity();
   const { data } = useGetList("tags", {
