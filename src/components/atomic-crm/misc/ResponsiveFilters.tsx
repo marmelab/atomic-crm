@@ -51,7 +51,6 @@ export const ResponsiveFilters = ({
         <FilterLiveForm formComponent={FlexForm}>
           <SearchInput
             source={source}
-            clearable
             className={className}
             {...otherSearchInputProps}
           />
