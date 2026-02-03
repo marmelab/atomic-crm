@@ -17,7 +17,7 @@ export const ContactPersonalInfo = () => {
   return (
     <div>
       <ArrayField source="email_jsonb">
-        <SingleFieldList className="flex-col">
+        <SingleFieldList className="flex-col gap-y-0">
           <PersonalInfoRow
             icon={<Mail className="w-4 h-4 text-muted-foreground" />}
             primary={<EmailField source="email" />}
