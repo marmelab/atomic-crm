@@ -2,10 +2,9 @@ import {
   CreateBase,
   Form,
   useGetIdentity,
-  useListContextWithProps,
+  useListContext,
   useNotify,
   useRecordContext,
-  useRedirect,
   useResourceContext,
   useUpdate,
   type Identifier,
@@ -18,7 +17,6 @@ import { cn } from "@/lib/utils";
 import { NoteInputs } from "./NoteInputs";
 import { getCurrentDate } from "./utils";
 import { foreignKeyMapping } from "./foreignKeyMapping";
-import { useIsMobile } from "@/hooks/use-mobile";
 
 export const NoteCreate = ({
   reference,
@@ -47,22 +45,20 @@ export const NoteCreate = ({
   );
 };
 
-export const NoteCreateButton = ({
+const NoteCreateButton = ({
   reference,
   record,
 }: {
   reference: "contacts" | "deals";
-  record?: RaRecord<Identifier>;
+  record: RaRecord<Identifier>;
 }) => {
-  const isMobile = useIsMobile();
-  const redirect = useRedirect();
   const [update] = useUpdate();
   const notify = useNotify();
   const { identity } = useGetIdentity();
   const { reset } = useFormContext();
-  const { refetch } = useListContextWithProps();
+  const { refetch } = useListContext();
 
-  if (!identity) return null;
+  if (!record || !identity) return null;
 
   const resetValues: {
     date: string;
@@ -80,11 +76,10 @@ export const NoteCreateButton = ({
   }
 
   const handleSuccess = (data: any) => {
-    const referenceRecordId = record?.id || data[foreignKeyMapping[reference]];
-    if (!referenceRecordId) return;
     reset(resetValues, { keepValues: false });
+    refetch();
     update(reference, {
-      id: referenceRecordId as unknown as Identifier,
+      id: (record && record.id) as unknown as Identifier,
       data: {
         last_seen:
           reference === "contacts" ? new Date().toISOString() : undefined,
@@ -92,11 +87,7 @@ export const NoteCreateButton = ({
       },
       previousData: record,
     });
-    if (refetch) refetch();
     notify("Note added");
-    if (isMobile) {
-      redirect("show", reference, referenceRecordId);
-    }
   };
 
   return (
@@ -106,8 +97,7 @@ export const NoteCreateButton = ({
         label="Add this note"
         transform={(data) => ({
           ...data,
-          [foreignKeyMapping[reference]]:
-            record?.id || data[foreignKeyMapping[reference]],
+          [foreignKeyMapping[reference]]: record.id,
           sales_id: identity.id,
           date: new Date(data.date || getCurrentDate()).toISOString(),
         })}
