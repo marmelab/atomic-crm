@@ -21,6 +21,7 @@ import deals from "../deals";
 import { Layout } from "../layout/Layout";
 import { MobileLayout } from "../layout/MobileLayout";
 import { SignupPage } from "../login/SignupPage";
+import { ImportPage } from "../misc/ImportPage";
 import {
   authProvider as defaultAuthProvider,
   dataProvider as defaultDataProvider,
@@ -181,6 +182,7 @@ const DesktopAdmin = (props: CoreAdminProps) => {
 
       <CustomRoutes>
         <Route path={SettingsPage.path} element={<SettingsPage />} />
+        <Route path={ImportPage.path} element={<ImportPage />} />
       </CustomRoutes>
       <Resource name="deals" {...deals} />
       <Resource name="contacts" {...contacts} />

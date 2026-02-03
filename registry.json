@@ -404,7 +404,7 @@
           "type": "registry:component"
         },
         {
-          "path": "src/components/atomic-crm/misc/ImportFromJsonDialog.tsx",
+          "path": "src/components/atomic-crm/misc/ImportPage.tsx",
           "type": "registry:component"
         },
         {
