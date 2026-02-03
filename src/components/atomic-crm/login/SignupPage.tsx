@@ -2,7 +2,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Loader2 } from "lucide-react";
 import { useDataProvider, useLogin, useNotify } from "ra-core";
 import { useForm, type SubmitHandler } from "react-hook-form";
-import { Navigate } from "react-router";
+import { Navigate, useNavigate } from "react-router";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -12,11 +12,13 @@ import { useConfigurationContext } from "../root/ConfigurationContext";
 import type { SignUpData } from "../types";
 import { LoginSkeleton } from "./LoginSkeleton";
 import { Notification } from "@/components/admin/notification";
+import { ConfirmationRequired } from "./ConfirmationRequired";
 
 export const SignupPage = () => {
   const queryClient = useQueryClient();
   const dataProvider = useDataProvider<CrmDataProvider>();
   const { darkModeLogo: logo, title } = useConfigurationContext();
+  const navigate = useNavigate();
   const { data: isInitialized, isPending } = useQuery({
     queryKey: ["init"],
     queryFn: async () => {
@@ -34,13 +36,25 @@ export const SignupPage = () => {
         email: data.email,
         password: data.password,
         redirectTo: "/contacts",
-      }).then(() => {
-        notify("Initial user successfully created");
-        // FIXME: We should probably provide a hook for that in the ra-core package
-        queryClient.invalidateQueries({
-          queryKey: ["auth", "canAccess"],
+      })
+        .then(() => {
+          notify("Initial user successfully created");
+          // FIXME: We should probably provide a hook for that in the ra-core package
+          queryClient.invalidateQueries({
+            queryKey: ["auth", "canAccess"],
+          });
+        })
+        .catch((err) => {
+          if (err.code === "email_not_confirmed") {
+            // An email confirmation is required to continue.
+            navigate(ConfirmationRequired.path);
+          } else {
+            notify("Failed to log in.", {
+              type: "error",
+            });
+            navigate("/login");
+          }
         });
-      });
     },
     onError: (error) => {
       notify(error.message);
