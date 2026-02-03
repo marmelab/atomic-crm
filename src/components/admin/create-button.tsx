@@ -7,7 +7,6 @@ import { Link } from "react-router";
 export type CreateButtonProps = {
   label?: string;
   resource?: string;
-  state?: any;
 };
 
 /**
@@ -34,7 +33,6 @@ export type CreateButtonProps = {
 export const CreateButton = ({
   label,
   resource: targetResource,
-  state,
 }: CreateButtonProps) => {
   const resource = useResourceContext();
   const createPath = useCreatePath();
@@ -46,7 +44,6 @@ export const CreateButton = ({
     <Link
       className={buttonVariants({ variant: "outline" })}
       to={link}
-      state={state}
       onClick={stopPropagation}
     >
       <Plus />
