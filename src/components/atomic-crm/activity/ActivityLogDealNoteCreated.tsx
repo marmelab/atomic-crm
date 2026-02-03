@@ -38,7 +38,7 @@ export function ActivityLogDealNoteCreated({
             </ReferenceField>
           </ReferenceField>
 
-          <span className="text-muted-foreground text-sm flex-grow flex flex-wrap">
+          <span className="text-muted-foreground text-sm flex-grow">
             <ReferenceField
               source="sales_id"
               reference="sales"
@@ -56,7 +56,7 @@ export function ActivityLogDealNoteCreated({
             />
             {context !== "company" && (
               <>
-                {"\u00A0at\u00A0"}
+                &nbsp;at&nbsp;
                 <ReferenceField
                   source="deal_id"
                   reference="deals"
