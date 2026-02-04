@@ -47,29 +47,29 @@ export const ContactTasksList = () => {
       <TasksListFilter
         title="Overdue"
         filter={taskFilters.overdue}
-        contactId={record.id}
+        filterByContact={record.id}
       />
       <TasksListFilter
         title="Today"
         filter={taskFilters.today}
-        contactId={record.id}
+        filterByContact={record.id}
       />
       <TasksListFilter
         title="Tomorrow"
         filter={taskFilters.tomorrow}
-        contactId={record.id}
+        filterByContact={record.id}
       />
       {isBeforeFriday && (
         <TasksListFilter
           title="This week"
           filter={taskFilters.thisWeek}
-          contactId={record.id}
+          filterByContact={record.id}
         />
       )}
       <TasksListFilter
         title="Later"
         filter={taskFilters.later}
-        contactId={record.id}
+        filterByContact={record.id}
       />
     </div>
   );
