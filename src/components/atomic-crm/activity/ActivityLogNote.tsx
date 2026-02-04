@@ -26,7 +26,7 @@ export function ActivityLogNote({ header, text, link }: ActivityLogNoteProps) {
         <div className="flex flex-row space-x-1 items-center w-full">
           {header}
         </div>
-        <div className="md:max-w-150">
+        <div className="md:max-w-150 [&_p]:my-auto">
           {link !== false ? (
             <Link
               to={link}
