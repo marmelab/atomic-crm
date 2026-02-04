@@ -1,25 +1,13 @@
-import { createContext, useContext, useEffect } from "react";
+import { useEffect } from "react";
 import { useStore } from "ra-core";
 
-type Theme = "dark" | "light" | "system";
+import { ThemeProviderContext, type Theme } from "./theme-context";
 
 type ThemeProviderProps = {
   children: React.ReactNode;
   defaultTheme?: Theme;
   storageKey?: string;
 };
-
-type ThemeProviderState = {
-  theme: Theme;
-  setTheme: (theme: Theme) => void;
-};
-
-const initialState: ThemeProviderState = {
-  theme: "system",
-  setTheme: () => null,
-};
-
-const ThemeProviderContext = createContext<ThemeProviderState>(initialState);
 
 /**
  * Theme provider that enables light, dark, and system theme modes.
@@ -63,12 +51,3 @@ export function ThemeProvider({
     </ThemeProviderContext.Provider>
   );
 }
-
-export const useTheme = () => {
-  const context = useContext(ThemeProviderContext);
-
-  if (context === undefined)
-    throw new Error("useTheme must be used within a ThemeProvider");
-
-  return context;
-};
