@@ -130,7 +130,7 @@ export const EditSheet = ({
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent side="bottom" className="h-screen flex flex-col">
+      <SheetContent side="bottom" className="h-dvh flex flex-col">
         <EditBase
           {...editBaseProps}
           redirect={redirectTo}
