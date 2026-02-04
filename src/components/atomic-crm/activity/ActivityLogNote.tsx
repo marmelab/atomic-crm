@@ -26,13 +26,18 @@ export function ActivityLogNote({ header, text, link }: ActivityLogNoteProps) {
         <div className="flex flex-row space-x-1 items-center w-full">
           {header}
         </div>
-        {link !== false ? (
-          <Link to={link} className="hover:bg-muted rounded transition-colors">
-            {markdownElement}
-          </Link>
-        ) : (
-          markdownElement
-        )}
+        <div className="md:max-w-150">
+          {link !== false ? (
+            <Link
+              to={link}
+              className="hover:bg-muted rounded transition-colors"
+            >
+              {markdownElement}
+            </Link>
+          ) : (
+            markdownElement
+          )}
+        </div>
       </div>
     </div>
   );
