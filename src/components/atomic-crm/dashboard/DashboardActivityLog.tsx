@@ -1,12 +1,14 @@
 import { Clock } from "lucide-react";
 import { Card } from "@/components/ui/card";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 import { ActivityLog } from "../activity/ActivityLog";
 
 export function DashboardActivityLog() {
+  const isMobile = useIsMobile();
   return (
     <div className="flex flex-col">
-      <div className="flex items-center mb-2">
+      <div className="flex items-center mb-4 md:mb-2">
         <div className="mr-3 flex">
           <Clock className="text-muted-foreground w-6 h-6" />
         </div>
@@ -14,9 +16,13 @@ export function DashboardActivityLog() {
           Latest Activity
         </h2>
       </div>
-      <Card className="mb-2 p-6">
+      {isMobile ? (
         <ActivityLog pageSize={10} />
-      </Card>
+      ) : (
+        <Card className="mb-2 p-6">
+          <ActivityLog pageSize={10} />
+        </Card>
+      )}
     </div>
   );
 }
