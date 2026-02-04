@@ -8,6 +8,7 @@ import {
 } from "ra-core";
 
 import { TasksIterator } from "../tasks/TasksIterator";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 export const TasksListFilter = ({
   title,
@@ -19,6 +20,7 @@ export const TasksListFilter = ({
   filterByContact?: Identifier;
 }) => {
   const { identity } = useGetIdentity();
+  const isMobile = useIsMobile();
 
   const {
     data: tasks,
@@ -43,7 +45,7 @@ export const TasksListFilter = ({
     data: tasks,
     isPending,
     resource: "tasks",
-    perPage: 5,
+    perPage: isMobile ? 10 : 5,
   });
 
   if (isPending || !tasks || !total) return null;
