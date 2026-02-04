@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import get from "lodash/get";
 import * as React from "react";
 import type { ReactElement } from "react";
