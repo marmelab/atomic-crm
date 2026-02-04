@@ -1,4 +1,5 @@
 import {
+  type CoreAdminProps,
   CustomRoutes,
   localStorageStore,
   Resource,
@@ -15,9 +16,13 @@ import { OAuthConsentPage } from "@/components/supabase/oauth-consent-page";
 import companies from "../companies";
 import contacts from "../contacts";
 import { Dashboard } from "../dashboard/Dashboard";
+import { MobileDashboard } from "../dashboard/MobileDashboard";
 import deals from "../deals";
 import { Layout } from "../layout/Layout";
+import { MobileLayout } from "../layout/MobileLayout";
 import { SignupPage } from "../login/SignupPage";
+import { ConfirmationRequired } from "../login/ConfirmationRequired";
+import { ImportPage } from "../misc/ImportPage";
 import {
   authProvider as defaultAuthProvider,
   dataProvider as defaultDataProvider,
@@ -40,6 +45,11 @@ import {
 } from "./defaultConfiguration";
 import { i18nProvider } from "./i18nProvider";
 import { StartPage } from "../login/StartPage.tsx";
+import { useIsMobile } from "@/hooks/use-mobile.ts";
+import { MobileTasksList } from "../tasks/MobileTasksList.tsx";
+import { ContactList } from "../contacts/ContactList.tsx";
+import { ContactShow } from "../contacts/ContactShow.tsx";
+import { CompanyShow } from "../companies/CompanyShow.tsx";
 
 export type CRMProps = {
   dataProvider?: DataProvider;
@@ -117,6 +127,10 @@ export const CRM = ({
     img.src = `https://atomic-crm-telemetry.marmelab.com/atomic-crm-telemetry?domain=${window.location.hostname}`;
   }, [disableTelemetry]);
 
+  const isMobile = useIsMobile();
+
+  const ResponsiveAdmin = isMobile ? MobileAdmin : DesktopAdmin;
+
   return (
     <ConfigurationProvider
       contactGender={contactGender}
@@ -130,40 +144,77 @@ export const CRM = ({
       taskTypes={taskTypes}
       title={title}
     >
-      <Admin
+      <ResponsiveAdmin
         dataProvider={dataProvider}
         authProvider={authProvider}
-        store={localStorageStore(undefined, "CRM")}
-        layout={Layout}
-        loginPage={StartPage}
         i18nProvider={i18nProvider}
-        dashboard={Dashboard}
+        store={localStorageStore(undefined, "CRM")}
+        loginPage={StartPage}
         requireAuth
         disableTelemetry
         {...rest}
-      >
-        <CustomRoutes noLayout>
-          <Route path={SignupPage.path} element={<SignupPage />} />
-          <Route path={SetPasswordPage.path} element={<SetPasswordPage />} />
-          <Route
-            path={ForgotPasswordPage.path}
-            element={<ForgotPasswordPage />}
-          />
-          <Route path={OAuthConsentPage.path} element={<OAuthConsentPage />} />
-        </CustomRoutes>
-
-        <CustomRoutes>
-          <Route path={SettingsPage.path} element={<SettingsPage />} />
-        </CustomRoutes>
-        <Resource name="deals" {...deals} />
-        <Resource name="contacts" {...contacts} />
-        <Resource name="companies" {...companies} />
-        <Resource name="contact_notes" />
-        <Resource name="deal_notes" />
-        <Resource name="tasks" />
-        <Resource name="sales" {...sales} />
-        <Resource name="tags" />
-      </Admin>
+      />
     </ConfigurationProvider>
+  );
+};
+
+const DesktopAdmin = (props: CoreAdminProps) => {
+  return (
+    <Admin layout={Layout} dashboard={Dashboard} {...props}>
+      <CustomRoutes noLayout>
+        <Route path={SignupPage.path} element={<SignupPage />} />
+        <Route
+          path={ConfirmationRequired.path}
+          element={<ConfirmationRequired />}
+        />
+        <Route path={SetPasswordPage.path} element={<SetPasswordPage />} />
+        <Route
+          path={ForgotPasswordPage.path}
+          element={<ForgotPasswordPage />}
+        />
+        <Route path={OAuthConsentPage.path} element={<OAuthConsentPage />} />
+      </CustomRoutes>
+
+      <CustomRoutes>
+        <Route path={SettingsPage.path} element={<SettingsPage />} />
+        <Route path={ImportPage.path} element={<ImportPage />} />
+      </CustomRoutes>
+      <Resource name="deals" {...deals} />
+      <Resource name="contacts" {...contacts} />
+      <Resource name="companies" {...companies} />
+      <Resource name="contact_notes" />
+      <Resource name="deal_notes" />
+      <Resource name="tasks" />
+      <Resource name="sales" {...sales} />
+      <Resource name="tags" />
+    </Admin>
+  );
+};
+
+const MobileAdmin = (props: CoreAdminProps) => {
+  return (
+    <Admin layout={MobileLayout} dashboard={MobileDashboard} {...props}>
+      <CustomRoutes noLayout>
+        <Route path={SignupPage.path} element={<SignupPage />} />
+        <Route
+          path={ConfirmationRequired.path}
+          element={<ConfirmationRequired />}
+        />
+        <Route path={SetPasswordPage.path} element={<SetPasswordPage />} />
+        <Route
+          path={ForgotPasswordPage.path}
+          element={<ForgotPasswordPage />}
+        />
+        <Route path={OAuthConsentPage.path} element={<OAuthConsentPage />} />
+      </CustomRoutes>
+      <Resource
+        name="contacts"
+        list={ContactList}
+        show={ContactShow}
+        recordRepresentation={contacts.recordRepresentation}
+      />
+      <Resource name="companies" show={CompanyShow} />
+      <Resource name="tasks" list={MobileTasksList} />
+    </Admin>
   );
 };

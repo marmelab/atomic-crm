@@ -1,0 +1,88 @@
+{
+  "sales": [
+    {
+      "id": 123,
+      "first_name": "John",
+      "last_name": "Doe"
+    }
+  ],
+  "companies": [
+    {
+      "id": 234,
+      "name": "A company"
+    },
+    {
+      "id": 345,
+      "name": "Another company",
+      "description": "A description",
+      "city": "A city",
+      "country": "A country",
+      "address": "An address",
+      "zipcode": "A zipcode",
+      "state_abbr": "A state abbreviation",
+      "sales_id": 123
+    }
+  ],
+  "contacts": [
+    {
+      "id": 456,
+      "first_name": "A first name",
+      "last_name": "A last name"
+    },
+    {
+      "id": 567,
+      "first_name": "A first name",
+      "last_name": "A last name",
+      "title": "A title",
+      "company_id": 345,
+      "background": "A background",
+      "linkedin_url": "A URL",
+      "sales_id": 123,
+      "emails": [
+        {
+          "email": "nickname@domain.com",
+          "type": "Work"
+        }
+      ],
+      "phones": {
+        "number": "45646746788",
+        "type": "Home"
+      },
+      "tags": ["MyTag"]
+    }
+  ],
+  "notes": [
+    {
+      "contact_id": 456,
+      "sales_id": 123,
+      "text": "Some text",
+      "date": "2025-11-13T08:16:10Z"
+    },
+    {
+      "contact_id": 456,
+      "sales_id": 123,
+      "text": "Some long text with lines\n\nAnother line",
+      "date": "2025-02-14T09:20:21Z",
+      "attachments": [
+        {
+          "url": "https://mycurrentcrm.com/files/link",
+          "name": "important.pdf"
+        }
+      ]
+    }
+  ],
+  "tasks": [
+    {
+      "contact_id": 456,
+      "sales_id": 123,
+      "text": "A task title"
+    },
+    {
+      "contact_id": 456,
+      "sales_id": 123,
+      "text": "Another task title",
+      "due_date": "2025-03-26T16:15:00Z",
+      "done_date": "2025-04-01T09:00:00"
+    }
+  ]
+}

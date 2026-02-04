@@ -1,7 +1,9 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
-import { createClient } from "jsr:@supabase/supabase-js@2";
 import { supabaseAdmin } from "../_shared/supabaseAdmin.ts";
-import { corsHeaders, createErrorResponse } from "../_shared/utils.ts";
+import { corsHeaders, OptionsMiddleware } from "../_shared/cors.ts";
+import { createErrorResponse } from "../_shared/utils.ts";
+import { AuthMiddleware, UserMiddleware } from "../_shared/authentication.ts";
+import { getUserSale } from "../_shared/getUserSale.ts";
 
 async function updateSaleDisabled(user_id: string, disabled: boolean) {
   return await supabaseAdmin
@@ -23,6 +25,29 @@ async function updateSaleAdministrator(
   if (!sales?.length || salesError) {
     console.error("Error updating user:", salesError);
     throw salesError ?? new Error("Failed to update sale");
+  }
+  return sales.at(0);
+}
+
+async function createSale(
+  user_id: string,
+  data: {
+    email: string;
+    password: string;
+    first_name: string;
+    last_name: string;
+    disabled: boolean;
+    administrator: boolean;
+  },
+) {
+  const { data: sales, error: salesError } = await supabaseAdmin
+    .from("sales")
+    .insert({ ...data, user_id })
+    .select("*");
+
+  if (!sales?.length || salesError) {
+    console.error("Error creating user:", salesError);
+    throw salesError ?? new Error("Failed to create sale");
   }
   return sales.at(0);
 }
@@ -55,22 +80,89 @@ async function inviteUser(req: Request, currentUserSale: any) {
     user_metadata: { first_name, last_name },
   });
 
-  const { error: emailError } =
-    await supabaseAdmin.auth.admin.inviteUserByEmail(email);
+  let user = data?.user;
 
-  if (!data?.user || userError) {
-    console.error(`Error inviting user: user_error=${userError}`);
-    return createErrorResponse(500, "Internal Server Error");
-  }
+  if (!user && userError?.code === "email_exists") {
+    // This may happen if users cleared their database but not the users
+    // We have to create the sale directly
+    const { data, error } = await supabaseAdmin.rpc("get_user_id_by_email", {
+      email,
+    });
 
-  if (!data?.user || userError || emailError) {
-    console.error(`Error inviting user, email_error=${emailError}`);
-    return createErrorResponse(500, "Failed to send invitation mail");
+    if (!data || error) {
+      console.error(
+        `Error inviting user: error=${error ?? "could not fetch users for email"}`,
+      );
+      return createErrorResponse(500, "Internal Server Error");
+    }
+
+    user = data[0];
+    try {
+      const { data: existingSale, error: salesError } = await supabaseAdmin
+        .from("sales")
+        .select("*")
+        .eq("user_id", user.id);
+      if (salesError) {
+        return createErrorResponse(salesError.status, salesError.message, {
+          code: salesError.code,
+        });
+      }
+      if (existingSale.length > 0) {
+        return createErrorResponse(
+          400,
+          "A sales for this email already exists",
+        );
+      }
+
+      const sale = await createSale(user.id, {
+        email,
+        password,
+        first_name,
+        last_name,
+        disabled,
+        administrator,
+      });
+
+      return new Response(
+        JSON.stringify({
+          data: sale,
+        }),
+        {
+          headers: { "Content-Type": "application/json", ...corsHeaders },
+        },
+      );
+    } catch (error) {
+      return createErrorResponse(
+        (error as any).status ?? 500,
+        (error as Error).message,
+        {
+          code: (error as any).code,
+        },
+      );
+    }
+  } else {
+    if (userError) {
+      console.error(`Error inviting user: user_error=${userError}`);
+      return createErrorResponse(userError.status, userError.message, {
+        code: userError.code,
+      });
+    }
+    if (!data?.user) {
+      console.error("Error inviting user: undefined user");
+      return createErrorResponse(500, "Internal Server Error");
+    }
+    const { error: emailError } =
+      await supabaseAdmin.auth.admin.inviteUserByEmail(email);
+
+    if (emailError) {
+      console.error(`Error inviting user, email_error=${emailError}`);
+      return createErrorResponse(500, "Failed to send invitation mail");
+    }
   }
 
   try {
-    await updateSaleDisabled(data.user.id, disabled);
-    const sale = await updateSaleAdministrator(data.user.id, administrator);
+    await updateSaleDisabled(user.id, disabled);
+    const sale = await updateSaleAdministrator(user.id, administrator);
 
     return new Response(
       JSON.stringify({
@@ -167,40 +259,25 @@ async function patchUser(req: Request, currentUserSale: any) {
   }
 }
 
-Deno.serve(async (req: Request) => {
-  if (req.method === "OPTIONS") {
-    return new Response(null, {
-      status: 204,
-      headers: corsHeaders,
-    });
-  }
+Deno.serve(async (req: Request) =>
+  OptionsMiddleware(req, async (req) =>
+    AuthMiddleware(req, async (req) =>
+      UserMiddleware(req, async (req, user) => {
+        const currentUserSale = await getUserSale(user);
+        if (!currentUserSale) {
+          return createErrorResponse(401, "Unauthorized");
+        }
 
-  const authHeader = req.headers.get("Authorization")!;
-  const localClient = createClient(
-    Deno.env.get("SUPABASE_URL") ?? "",
-    Deno.env.get("SUPABASE_ANON_KEY") ?? "",
-    { global: { headers: { Authorization: authHeader } } },
-  );
-  const { data } = await localClient.auth.getUser();
-  if (!data?.user) {
-    return createErrorResponse(401, "Unauthorized");
-  }
-  const currentUserSale = await supabaseAdmin
-    .from("sales")
-    .select("*")
-    .eq("user_id", data.user.id)
-    .single();
+        if (req.method === "POST") {
+          return inviteUser(req, currentUserSale);
+        }
 
-  if (!currentUserSale?.data) {
-    return createErrorResponse(401, "Unauthorized");
-  }
-  if (req.method === "POST") {
-    return inviteUser(req, currentUserSale.data);
-  }
+        if (req.method === "PATCH") {
+          return patchUser(req, currentUserSale);
+        }
 
-  if (req.method === "PATCH") {
-    return patchUser(req, currentUserSale.data);
-  }
-
-  return createErrorResponse(405, "Method Not Allowed");
-});
+        return createErrorResponse(405, "Method Not Allowed");
+      }),
+    ),
+  ),
+);

@@ -38,7 +38,7 @@ export const ContactImportButton = () => {
         onClick={handleOpenModal}
         className="flex items-center gap-2 cursor-pointer"
       >
-        <Upload /> Import
+        <Upload /> Import CSV
       </Button>
       <ContactImportDialog open={modalOpen} onClose={handleCloseModal} />
     </>

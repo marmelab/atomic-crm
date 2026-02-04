@@ -24,7 +24,7 @@ export function TagChip({ tag, onUnlink }: TagChipProps) {
   return (
     <>
       <div
-        className="text-black inline-flex items-center gap-1 px-2 py-1 text-xs rounded-md cursor-pointer hover:opacity-80 transition-opacity"
+        className="text-black inline-flex items-center gap-1 px-4 md:px-2 py-2 md:py-1 text-sm md:text-xs rounded-md cursor-pointer hover:opacity-80 transition-opacity"
         style={{ backgroundColor: tag.color }}
         onClick={handleClick}
       >
@@ -36,7 +36,7 @@ export function TagChip({ tag, onUnlink }: TagChipProps) {
           }}
           className="transition-colors p-0 ml-1 cursor-pointer"
         >
-          <X className="w-3 h-3" />
+          <X className="w-4 h-4 md:w-3 md:h-3" />
         </button>
       </div>
       <TagEditModal tag={tag} open={open} onClose={handleClose} />

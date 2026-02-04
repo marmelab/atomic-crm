@@ -40,3 +40,5 @@ public/r/
 docker/*
 !docker/docker-compose-atomic.yml
 !docker/Dockerfile
+
+!supabase/functions/.env

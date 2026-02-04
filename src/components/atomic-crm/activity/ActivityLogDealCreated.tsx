@@ -1,9 +1,12 @@
-import { Link } from "react-router";
 import type { RaRecord } from "ra-core";
+import { Link } from "react-router";
 
+import { ReferenceField } from "@/components/admin/reference-field";
 import { RelativeDate } from "../misc/RelativeDate";
+import { SaleName } from "../sales/SaleName";
 import type { ActivityDealCreated } from "../types";
 import { useActivityLogContext } from "./ActivityLogContext";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 type ActivityLogDealCreatedProps = {
   activity: RaRecord & ActivityDealCreated;
@@ -13,23 +16,37 @@ export function ActivityLogDealCreated({
   activity,
 }: ActivityLogDealCreatedProps) {
   const context = useActivityLogContext();
+  const isMobile = useIsMobile();
   const { deal } = activity;
   return (
     <div className="p-0">
       <div className="flex flex-row space-x-1 items-center w-full">
         <div className="w-5 h-5 bg-gray-300 rounded-full" />
-        <div className="text-sm text-muted-foreground flex-grow">
-          <span className="text-muted-foreground text-sm">
-            Sales ID: {activity.sales_id}
-          </span>{" "}
-          added deal <Link to={`/deals/${deal.id}/show`}>{deal.name}</Link>{" "}
+        <span className="text-muted-foreground text-sm flex-grow">
+          <ReferenceField source="sales_id" reference="sales" record={activity}>
+            <SaleName />
+          </ReferenceField>
+          &nbsp;added deal&nbsp;
+          {isMobile ? (
+            deal.name
+          ) : (
+            <Link to={`/deals/${deal.id}/show`}>{deal.name}</Link>
+          )}
+          &nbsp;
           {context !== "company" && (
             <>
-              to company {activity.company_id}{" "}
+              to&nbsp;
+              <ReferenceField
+                source="company_id"
+                reference="companies"
+                record={activity}
+                link="show"
+              />
+              &nbsp;
               <RelativeDate date={activity.date} />
             </>
           )}
-        </div>
+        </span>
         {context === "company" && (
           <span className="text-muted-foreground text-sm">
             <RelativeDate date={activity.date} />

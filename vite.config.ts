@@ -12,7 +12,7 @@ export default defineConfig(({ mode }) => {
       react(),
       tailwindcss(),
       visualizer({
-        open: process.env.NODE_ENV !== "CI",
+        open: env.NODE_ENV !== "CI",
         filename: "./dist/stats.html",
       }),
       createHtmlPlugin({
@@ -31,8 +31,8 @@ export default defineConfig(({ mode }) => {
             "import.meta.env.VITE_SUPABASE_URL": JSON.stringify(
               env.VITE_SUPABASE_URL,
             ),
-            "import.meta.env.VITE_SUPABASE_ANON_KEY": JSON.stringify(
-              env.VITE_SUPABASE_ANON_KEY,
+            "import.meta.env.VITE_SB_PUBLISHABLE_KEY": JSON.stringify(
+              env.VITE_SB_PUBLISHABLE_KEY,
             ),
             "import.meta.env.VITE_INBOUND_EMAIL": JSON.stringify(
               env.VITE_INBOUND_EMAIL,
