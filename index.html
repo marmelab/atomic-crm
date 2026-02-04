@@ -4,7 +4,7 @@
     <meta charset="utf-8" />
     <meta
       name="viewport"
-      content="minimum-scale=1, initial-scale=1, width=device-width, shrink-to-fit=no"
+      content="minimum-scale=1, initial-scale=1, width=device-width"
     />
     <meta name="theme-color" content="#000000" />
     <link rel="manifest" href="./manifest.json" />
@@ -16,6 +16,15 @@
         margin: 0;
         padding: 0;
         font-family: sans-serif;
+      }
+
+      /* Prevent accidental double-tap zoom on interactive elements */
+      button,
+      input,
+      select,
+      textarea,
+      a {
+        touch-action: manipulation;
       }
 
       .loader-container {
