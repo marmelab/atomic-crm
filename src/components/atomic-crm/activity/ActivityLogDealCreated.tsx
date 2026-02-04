@@ -21,7 +21,7 @@ export function ActivityLogDealCreated({
   return (
     <div className="p-0">
       <div className="flex flex-row gap-2 items-start w-full">
-        <div className="w-5 h-5 bg-gray-300 rounded-full" />
+        <div className="w-[20px] h-[20px] bg-gray-300 rounded-full shrink-0" />
         <span className="text-muted-foreground text-sm flex-grow">
           <ReferenceField source="sales_id" reference="sales" record={activity}>
             <SaleName />
