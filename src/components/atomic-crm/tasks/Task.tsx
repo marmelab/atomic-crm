@@ -135,7 +135,7 @@ export const Task = ({
               className="h-5 pr-0! size-8 cursor-pointer"
               aria-label="task actions"
             >
-              <MoreVertical className="h-4 w-4" />
+              <MoreVertical className="size-5 md:size-4" />
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
