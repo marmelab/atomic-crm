@@ -128,6 +128,8 @@ export const CRM = ({
 
   const isMobile = useIsMobile();
 
+  const ResponsiveAdmin = isMobile ? MobileAdmin : DesktopAdmin;
+
   return (
     <ConfigurationProvider
       contactGender={contactGender}
@@ -141,35 +143,23 @@ export const CRM = ({
       taskTypes={taskTypes}
       title={title}
     >
-      {isMobile ? (
-        <MobileAdmin
-          dataProvider={dataProvider}
-          authProvider={authProvider}
-          {...rest}
-        />
-      ) : (
-        <DesktopAdmin
-          dataProvider={dataProvider}
-          authProvider={authProvider}
-          {...rest}
-        />
-      )}
+      <ResponsiveAdmin
+        dataProvider={dataProvider}
+        authProvider={authProvider}
+        i18nProvider={i18nProvider}
+        store={localStorageStore(undefined, "CRM")}
+        loginPage={StartPage}
+        requireAuth
+        disableTelemetry
+        {...rest}
+      />
     </ConfigurationProvider>
   );
 };
 
 const DesktopAdmin = (props: CoreAdminProps) => {
   return (
-    <Admin
-      store={localStorageStore(undefined, "CRM")}
-      layout={Layout}
-      loginPage={StartPage}
-      i18nProvider={i18nProvider}
-      dashboard={Dashboard}
-      requireAuth
-      disableTelemetry
-      {...props}
-    >
+    <Admin layout={Layout} dashboard={Dashboard} {...props}>
       <CustomRoutes noLayout>
         <Route path={SignupPage.path} element={<SignupPage />} />
         <Route path={SetPasswordPage.path} element={<SetPasswordPage />} />
@@ -198,16 +188,7 @@ const DesktopAdmin = (props: CoreAdminProps) => {
 
 const MobileAdmin = (props: CoreAdminProps) => {
   return (
-    <Admin
-      store={localStorageStore(undefined, "CRM")}
-      layout={MobileLayout}
-      loginPage={StartPage}
-      i18nProvider={i18nProvider}
-      dashboard={MobileDashboard}
-      requireAuth
-      disableTelemetry
-      {...props}
-    >
+    <Admin layout={MobileLayout} dashboard={MobileDashboard} {...props}>
       <CustomRoutes noLayout>
         <Route path={SignupPage.path} element={<SignupPage />} />
         <Route path={SetPasswordPage.path} element={<SetPasswordPage />} />
