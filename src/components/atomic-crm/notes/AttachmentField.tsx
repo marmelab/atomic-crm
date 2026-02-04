@@ -77,9 +77,11 @@ export const AttachmentField = (props: FileFieldProps) => {
     );
   }
 
+  const type = record?.rawFile?.type ?? record?.type;
+
   return (
     <div className={cn("inline-block", className)} {...rest}>
-      {isImageMimeType(record?.rawFile.type) ? (
+      {isImageMimeType(type) ? (
         <img
           alt={titleValue}
           title={titleValue}
