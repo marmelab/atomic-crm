@@ -141,6 +141,9 @@ input {
 
 /* Prevent mobile zoom on input focus by ensuring 16px minimum font size */
 @media screen and (max-width: 768px) {
+  html {
+    font-size: 18px;
+  }
   input,
   textarea,
   select {
