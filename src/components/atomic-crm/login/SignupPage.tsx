@@ -13,11 +13,12 @@ import type { SignUpData } from "../types";
 import { LoginSkeleton } from "./LoginSkeleton";
 import { Notification } from "@/components/admin/notification";
 import { ConfirmationRequired } from "./ConfirmationRequired";
+import { SSOAuthButton } from "./SSOAuthButton";
 
 export const SignupPage = () => {
   const queryClient = useQueryClient();
   const dataProvider = useDataProvider<CrmDataProvider>();
-  const { darkModeLogo: logo, title } = useConfigurationContext();
+  const { darkModeLogo: logo, title, sso } = useConfigurationContext();
   const navigate = useNavigate();
   const { data: isInitialized, isPending } = useQuery({
     queryKey: ["init"],
@@ -139,7 +140,7 @@ export const SignupPage = () => {
                 required
               />
             </div>
-            <div className="flex justify-between items-center mt-8">
+            <div className="flex flex-col gap-2 justify-between items-center mt-8">
               <Button
                 type="submit"
                 disabled={!isValid || isSignUpPending}
@@ -154,6 +155,11 @@ export const SignupPage = () => {
                   "Create account"
                 )}
               </Button>
+              {sso && sso.domain ? (
+                <SSOAuthButton className="w-full" domain={sso.domain}>
+                  {sso.buttonLabel}
+                </SSOAuthButton>
+              ) : null}
             </div>
           </form>
         </div>

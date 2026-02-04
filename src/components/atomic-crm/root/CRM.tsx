@@ -55,6 +55,10 @@ export type CRMProps = {
   dataProvider?: DataProvider;
   authProvider?: AuthProvider;
   disableTelemetry?: boolean;
+  sso?: {
+    domain: string;
+    buttonLabel: string;
+  };
 } & Partial<ConfigurationContextValue>;
 
 /**
@@ -110,6 +114,7 @@ export const CRM = ({
   title = defaultTitle,
   dataProvider = defaultDataProvider,
   authProvider = defaultAuthProvider,
+  sso,
   disableTelemetry,
   ...rest
 }: CRMProps) => {
@@ -143,6 +148,7 @@ export const CRM = ({
       noteStatuses={noteStatuses}
       taskTypes={taskTypes}
       title={title}
+      sso={sso}
     >
       <ResponsiveAdmin
         dataProvider={dataProvider}

@@ -39,6 +39,17 @@ export namespace getIsInitialized {
 export const authProvider: AuthProvider = {
   ...baseAuthProvider,
   login: async (params) => {
+    if (params.ssoDomain) {
+      const { data, error } = await supabase.auth.signInWithSSO({
+        domain: params.domain,
+      });
+      if (error) {
+        throw error;
+      }
+      return {
+        redirectTo: data.url,
+      };
+    }
     const result = await baseAuthProvider.login(params);
     // clear cached sale
     cachedSale = undefined;
