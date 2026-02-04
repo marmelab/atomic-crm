@@ -54,7 +54,7 @@ export const LoginPage = (props: { redirectTo?: string }) => {
 
   return (
     <div className="min-h-screen flex">
-      <div className="container relative grid flex-col items-center justify-center sm:max-w-none lg:grid-cols-2 lg:px-0">
+      <div className="relative grid w-full lg:grid-cols-2">
         <div className="relative hidden h-full flex-col bg-muted p-10 text-white dark:border-r lg:flex">
           <div className="absolute inset-0 bg-zinc-900" />
           <div className="relative z-20 flex items-center text-lg font-medium">
@@ -62,9 +62,9 @@ export const LoginPage = (props: { redirectTo?: string }) => {
             {title}
           </div>
         </div>
-        <div className="lg:p-8">
-          <div className="mx-auto flex w-full flex-col justify-center space-y-6 sm:w-[350px]">
-            <div className="flex flex-col space-y-2 text-center">
+        <div className="flex flex-col justify-center w-full p-4 lg:p-8">
+          <div className="w-full space-y-6 lg:mx-auto lg:w-[350px]">
+            <div className="text-center">
               <h1 className="text-2xl font-semibold tracking-tight">Sign in</h1>
             </div>
             <Form className="space-y-8" onSubmit={handleSubmit}>
@@ -82,7 +82,7 @@ export const LoginPage = (props: { redirectTo?: string }) => {
               />
               <Button
                 type="submit"
-                className="cursor-pointer"
+                className="w-full cursor-pointer"
                 disabled={loading}
               >
                 Sign in
@@ -91,7 +91,7 @@ export const LoginPage = (props: { redirectTo?: string }) => {
 
             <Link
               to={"/forgot-password"}
-              className="text-sm text-center hover:underline"
+              className="block text-sm text-center hover:underline"
             >
               Forgot your password?
             </Link>
