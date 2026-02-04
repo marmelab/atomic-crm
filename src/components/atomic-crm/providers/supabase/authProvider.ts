@@ -146,4 +146,3 @@ export const authProvider: AuthProvider = {
     return supabase.auth.oauth.denyAuthorization(authorizationId);
   },
 };
-
