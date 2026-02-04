@@ -104,9 +104,7 @@ const ContactListLayoutMobile = () => {
       </MobileHeader>
       <MobileContent>
         <ContactListFilterSummary />
-        <Card className="py-0">
-          <ContactListContent />
-        </Card>
+        <ContactListContent />
         <div className="flex justify-center">
           <InfinitePagination />
         </div>
