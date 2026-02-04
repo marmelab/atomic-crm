@@ -22,7 +22,7 @@ export function ActivityLogDealNoteCreated({
   return (
     <ActivityLogNote
       header={
-        <div className="flex flex-row items-center gap-2 flex-grow">
+        <div className="flex flex-row items-start gap-2 flex-grow">
           <ReferenceField
             source="deal_id"
             reference="deals"
@@ -46,8 +46,8 @@ export function ActivityLogDealNoteCreated({
               link={false}
             >
               <SaleName />
-            </ReferenceField>
-            &nbsp;added a note about deal&nbsp;
+            </ReferenceField>{" "}
+            added a note about deal{" "}
             <ReferenceField
               source="deal_id"
               reference="deals"
@@ -56,7 +56,8 @@ export function ActivityLogDealNoteCreated({
             />
             {context !== "company" && (
               <>
-                &nbsp;at&nbsp;
+                {" "}
+                at{" "}
                 <ReferenceField
                   source="deal_id"
                   reference="deals"
@@ -68,8 +69,7 @@ export function ActivityLogDealNoteCreated({
                     reference="companies"
                     link="show"
                   />
-                </ReferenceField>
-                &nbsp;
+                </ReferenceField>{" "}
                 <RelativeDate date={activity.date} />
               </>
             )}
