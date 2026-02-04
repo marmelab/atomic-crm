@@ -60,10 +60,10 @@ export const ResponsiveFilters = ({
             <Button
               variant="ghost"
               size="icon"
-              className="relative"
+              className="relative size-9"
               aria-label="Filter"
             >
-              <Filter className="w-4 h-4" />
+              <Filter className="size-5" />
               {activeFiltersCount > 0 && (
                 <Badge
                   variant="destructive"
