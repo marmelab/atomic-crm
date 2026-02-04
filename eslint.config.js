@@ -34,8 +34,27 @@ export default tseslint.config(
           argsIgnorePattern: "^_",
         },
       ],
+      "no-console": ["error", { allow: ["warn", "error"] }],
       "@typescript-eslint/no-explicit-any": "off",
       "@typescript-eslint/consistent-type-imports": "warn",
+    },
+  },
+  {
+    files: [
+      "src/components/admin/*.{ts,tsx}",
+      "src/hooks/*.{ts,tsx}",
+      "src/lib/*.{ts,tsx}",
+    ],
+    rules: {
+      "@typescript-eslint/no-explicit-any": "error",
+      "@typescript-eslint/consistent-type-imports": "off",
+    },
+  },
+  {
+    files: ["src/components/ui/*.{ts,tsx}"],
+    rules: {
+      "react-refresh/only-export-components": "off",
+      "@typescript-eslint/consistent-type-imports": "off",
     },
   },
   storybook.configs["flat/recommended"],

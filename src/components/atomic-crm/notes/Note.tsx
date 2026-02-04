@@ -20,14 +20,15 @@ import {
 } from "@/components/ui/tooltip";
 
 import { CompanyAvatar } from "../companies/CompanyAvatar";
-import { Avatar } from "../contacts/Avatar";
 import { Markdown } from "../misc/Markdown";
 import { RelativeDate } from "../misc/RelativeDate";
 import { Status } from "../misc/Status";
 import { SaleName } from "../sales/SaleName";
 import type { ContactNote, DealNote } from "../types";
 import { NoteAttachments } from "./NoteAttachments";
+import { NoteEditSheet } from "./NoteEditSheet";
 import { NoteInputs } from "./NoteInputs";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 export const Note = ({
   showStatus,
@@ -37,6 +38,7 @@ export const Note = ({
   note: DealNote | ContactNote;
   isLast: boolean;
 }) => {
+  const isMobile = useIsMobile();
   const [isHover, setHover] = useState(false);
   const [isEditing, setEditing] = useState(false);
   const [isExpanded, setExpanded] = useState(false);
@@ -88,20 +90,18 @@ export const Note = ({
     );
   };
 
-  return (
+  const content = (
     <div
       onMouseEnter={() => setHover(true)}
       onMouseLeave={() => setHover(false)}
+      className="mb-4"
     >
-      <div className="flex items-center space-x-4 w-full">
-        {resource === "contactNote" ? (
-          <Avatar width={20} height={20} />
-        ) : (
-          <ReferenceField source="company_id" reference="companies" link="show">
-            <CompanyAvatar width={20} height={20} />
-          </ReferenceField>
-        )}
+      <div className="flex items-center space-x-2 md:space-x-4 w-full">
+        <ReferenceField source="company_id" reference="companies" link="show">
+          <CompanyAvatar width={20} height={20} />
+        </ReferenceField>
         <div className="inline-flex h-full items-center text-sm text-muted-foreground">
+          {isMobile ? "By " : null}
           <ReferenceField
             record={note}
             resource={resource}
@@ -111,53 +111,55 @@ export const Note = ({
           >
             <WithRecord render={(record) => <SaleName sale={record} />} />
           </ReferenceField>{" "}
-          added a note{" "}
+          {isMobile ? null : "added a note "}
           {showStatus && note.status && (
             <Status className="ml-2" status={note.status} />
           )}
         </div>
-        <span className={`${isHover ? "visible" : "invisible"}`}>
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={handleEnterEditMode}
-                  className="p-1 h-auto cursor-pointer"
-                >
-                  <Edit className="w-4 h-4" />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>Edit note</p>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={handleDelete}
-                  className="p-1 h-auto cursor-pointer"
-                >
-                  <Trash2 className="w-4 h-4" />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>Delete note</p>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
-        </span>
+        {isMobile ? null : (
+          <span className={`${isHover ? "visible" : "invisible"}`}>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={handleEnterEditMode}
+                    className="p-1 h-auto cursor-pointer"
+                  >
+                    <Edit className="w-4 h-4" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Edit note</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={handleDelete}
+                    className="p-1 h-auto cursor-pointer"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Delete note</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          </span>
+        )}
         <div className="flex-1"></div>
         <span className="text-sm text-muted-foreground">
           <RelativeDate date={note.date} />
         </span>
       </div>
-      {isEditing ? (
+      {!isMobile && isEditing ? (
         <Form onSubmit={handleNoteUpdate} record={note} className="mt-1">
           <NoteInputs showStatus={showStatus} />
           <div className="flex justify-end mt-2 space-x-4">
@@ -197,7 +199,10 @@ export const Note = ({
           )}
           {isTruncated && (
             <button
-              onClick={() => setExpanded(!isExpanded)}
+              onClick={(e) => {
+                e.stopPropagation();
+                setExpanded(!isExpanded);
+              }}
               className="text-primary text-sm mt-1 underline hover:no-underline cursor-pointer"
             >
               {isExpanded ? "Show less" : "Read more"}
@@ -209,4 +214,21 @@ export const Note = ({
       )}
     </div>
   );
+
+  if (isMobile) {
+    return (
+      <>
+        <NoteEditSheet
+          open={isEditing}
+          onOpenChange={setEditing}
+          noteId={note.id}
+        />
+        <div onClick={() => setEditing(true)} className="cursor-pointer">
+          {content}
+        </div>
+      </>
+    );
+  }
+
+  return content;
 };

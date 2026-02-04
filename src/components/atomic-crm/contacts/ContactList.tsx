@@ -1,6 +1,7 @@
 import jsonExport from "jsonexport/dist";
 import {
   downloadCSV,
+  InfiniteListBase,
   useGetIdentity,
   useListContext,
   type Exporter,
@@ -16,10 +17,22 @@ import type { Company, Contact, Sale, Tag } from "../types";
 import { ContactEmpty } from "./ContactEmpty";
 import { ContactImportButton } from "./ContactImportButton";
 import { ContactListContent } from "./ContactListContent";
-import { ContactListFilter } from "./ContactListFilter";
+import {
+  ContactListFilterSummary,
+  ContactListFilter,
+} from "./ContactListFilter";
 import { TopToolbar } from "../layout/TopToolbar";
+import { useIsMobile } from "@/hooks/use-mobile";
+import { InfinitePagination } from "../misc/InfinitePagination";
+import MobileHeader from "../layout/MobileHeader";
+import { MobileContent } from "../layout/MobileContent";
 
 export const ContactList = () => {
+  const isMobile = useIsMobile();
+  return isMobile ? <ContactListMobile /> : <ContactListDesktop />;
+};
+
+const ContactListDesktop = () => {
   const { identity } = useGetIdentity();
 
   if (!identity) return null;
@@ -32,18 +45,33 @@ export const ContactList = () => {
       sort={{ field: "last_seen", order: "DESC" }}
       exporter={exporter}
     >
-      <ContactListLayout />
+      <ContactListLayoutDesktop />
     </List>
   );
 };
 
-const ContactListLayout = () => {
-  const { data, isPending, filterValues } = useListContext();
+const ContactListMobile = () => {
   const { identity } = useGetIdentity();
+
+  if (!identity) return null;
+
+  return (
+    <InfiniteListBase
+      perPage={25}
+      sort={{ field: "last_seen", order: "DESC" }}
+      exporter={exporter}
+    >
+      <ContactListLayoutMobile />
+    </InfiniteListBase>
+  );
+};
+
+const ContactListLayoutDesktop = () => {
+  const { data, isPending, filterValues } = useListContext();
 
   const hasFilters = filterValues && Object.keys(filterValues).length > 0;
 
-  if (!identity || isPending) return null;
+  if (isPending) return null;
 
   if (!data?.length && !hasFilters) return <ContactEmpty />;
 
@@ -56,6 +84,33 @@ const ContactListLayout = () => {
         </Card>
       </div>
       <BulkActionsToolbar />
+    </div>
+  );
+};
+
+const ContactListLayoutMobile = () => {
+  const { data, isPending, filterValues } = useListContext();
+
+  const hasFilters = filterValues && Object.keys(filterValues).length > 0;
+
+  if (isPending) return null;
+
+  if (!data?.length && !hasFilters) return <ContactEmpty />;
+
+  return (
+    <div>
+      <MobileHeader>
+        <ContactListFilter />
+      </MobileHeader>
+      <MobileContent>
+        <ContactListFilterSummary />
+        <Card className="py-0">
+          <ContactListContent />
+        </Card>
+        <div className="flex justify-center">
+          <InfinitePagination />
+        </div>
+      </MobileContent>
     </div>
   );
 };

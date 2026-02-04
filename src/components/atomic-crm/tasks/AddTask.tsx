@@ -3,7 +3,6 @@ import {
   CreateBase,
   Form,
   RecordRepresentation,
-  required,
   useDataProvider,
   useGetIdentity,
   useNotify,
@@ -11,11 +10,6 @@ import {
   useUpdate,
 } from "ra-core";
 import { useState } from "react";
-import { AutocompleteInput } from "@/components/admin/autocomplete-input";
-import { ReferenceInput } from "@/components/admin/reference-input";
-import { TextInput } from "@/components/admin/text-input";
-import { DateInput } from "@/components/admin/date-input";
-import { SelectInput } from "@/components/admin/select-input";
 import { SaveButton } from "@/components/admin/form";
 import { Button } from "@/components/ui/button";
 import {
@@ -32,8 +26,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 
-import { contactOptionText } from "../misc/ContactOption";
-import { useConfigurationContext } from "../root/ConfigurationContext";
+import { TaskFormContent } from "./TaskFormContent";
 
 export const AddTask = ({
   selectContact,
@@ -46,7 +39,6 @@ export const AddTask = ({
   const dataProvider = useDataProvider();
   const [update] = useUpdate();
   const notify = useNotify();
-  const { taskTypes } = useConfigurationContext();
   const contact = useRecordContext();
   const [open, setOpen] = useState(false);
   const handleOpen = () => {
@@ -114,10 +106,9 @@ export const AddTask = ({
         transform={(data) => {
           const dueDate = new Date(data.due_date);
           dueDate.setHours(0, 0, 0, 0);
-          data.due_date = dueDate.toISOString();
           return {
             ...data,
-            due_date: new Date(data.due_date).toISOString(),
+            due_date: dueDate.toISOString(),
           };
         }}
         mutationOptions={{ onSuccess: handleSuccess }}
@@ -138,47 +129,7 @@ export const AddTask = ({
                   )}
                 </DialogTitle>
               </DialogHeader>
-              <div className="flex flex-col gap-4">
-                <TextInput
-                  autoFocus
-                  source="text"
-                  label="Description"
-                  validate={required()}
-                  multiline
-                  className="m-0"
-                  helperText={false}
-                />
-                {selectContact && (
-                  <ReferenceInput
-                    source="contact_id"
-                    reference="contacts_summary"
-                  >
-                    <AutocompleteInput
-                      label="Contact"
-                      optionText={contactOptionText}
-                      helperText={false}
-                      validate={required()}
-                    />
-                  </ReferenceInput>
-                )}
-
-                <div className="grid grid-cols-2 gap-4">
-                  <DateInput
-                    source="due_date"
-                    helperText={false}
-                    validate={required()}
-                  />
-                  <SelectInput
-                    source="type"
-                    validate={required()}
-                    choices={taskTypes.map((type) => ({
-                      id: type,
-                      name: type,
-                    }))}
-                    helperText={false}
-                  />
-                </div>
-              </div>
+              <TaskFormContent selectContact={selectContact} />
               <DialogFooter className="w-full justify-end">
                 <SaveButton />
               </DialogFooter>
