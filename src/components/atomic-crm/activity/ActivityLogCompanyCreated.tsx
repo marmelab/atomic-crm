@@ -18,7 +18,7 @@ export function ActivityLogCompanyCreated({
   const { company } = activity;
   return (
     <div className="p-0">
-      <div className="flex flex-row space-x-1 items-start w-full">
+      <div className="flex flex-row gap-2 items-start w-full">
         <CompanyAvatar width={20} height={20} record={company} />
 
         <span className="text-muted-foreground text-sm flex-grow">
