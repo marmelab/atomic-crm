@@ -46,10 +46,24 @@ export const MobileNavigation = () => {
     currentPath = false;
   }
 
+  // Check if the app is running as a PWA (standalone mode)
+  const isPwa = window.matchMedia("(display-mode: standalone)").matches;
+  // Check if it's iOS on the web
+  const isWebiOS = /iPad|iPod|iPhone/.test(window.navigator.userAgent);
+
   return (
     <nav
       aria-label="CRM navigation"
       className="fixed bottom-0 left-0 right-0 z-50 bg-secondary h-14"
+      style={{
+        // iOS bug: even though viewport is set correctly, the bottom safe area inset is not accounted for
+        // So we manually add some padding to avoid the navigation being too close to the home bar
+        paddingBottom: isPwa && isWebiOS ? 15 : undefined,
+        // We use box-sizing: border-box, so the height contains the padding.
+        // To actually increase the padding, we need to increase the height as well
+        height:
+          "calc(var(--spacing)) * 6" + (isPwa && isWebiOS ? " + 15px" : ""),
+      }}
     >
       <div className="flex justify-center">
         <>
