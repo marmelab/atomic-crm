@@ -21,6 +21,7 @@ import deals from "../deals";
 import { Layout } from "../layout/Layout";
 import { MobileLayout } from "../layout/MobileLayout";
 import { SignupPage } from "../login/SignupPage";
+import { ConfirmationRequired } from "../login/ConfirmationRequired";
 import { ImportPage } from "../misc/ImportPage";
 import {
   authProvider as defaultAuthProvider,
@@ -162,6 +163,10 @@ const DesktopAdmin = (props: CoreAdminProps) => {
     <Admin layout={Layout} dashboard={Dashboard} {...props}>
       <CustomRoutes noLayout>
         <Route path={SignupPage.path} element={<SignupPage />} />
+        <Route
+          path={ConfirmationRequired.path}
+          element={<ConfirmationRequired />}
+        />
         <Route path={SetPasswordPage.path} element={<SetPasswordPage />} />
         <Route
           path={ForgotPasswordPage.path}
@@ -191,6 +196,10 @@ const MobileAdmin = (props: CoreAdminProps) => {
     <Admin layout={MobileLayout} dashboard={MobileDashboard} {...props}>
       <CustomRoutes noLayout>
         <Route path={SignupPage.path} element={<SignupPage />} />
+        <Route
+          path={ConfirmationRequired.path}
+          element={<ConfirmationRequired />}
+        />
         <Route path={SetPasswordPage.path} element={<SetPasswordPage />} />
         <Route
           path={ForgotPasswordPage.path}
