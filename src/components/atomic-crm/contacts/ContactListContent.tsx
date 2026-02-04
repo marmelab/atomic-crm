@@ -71,7 +71,7 @@ export const ContactListContent = () => {
   }
 
   return (
-    <div className="divide-y">
+    <div className="md:divide-y">
       {contacts.map((contact) => (
         <RecordContextProvider key={contact.id} value={contact}>
           {isSmall ? (
@@ -166,7 +166,7 @@ const ContactItemContentMobile = ({ contact }: { contact: Contact }) => {
   return (
     <Link
       to={`/contacts/${contact.id}/show`}
-      className="flex flex-row gap-4 items-center px-4 py-2 hover:bg-muted transition-colors first:rounded-t-xl last:rounded-b-xl"
+      className="flex flex-row gap-4 items-center py-2 hover:bg-muted transition-colors"
     >
       <Avatar />
       <div className="flex flex-col grow justify-between">
