@@ -43,8 +43,8 @@
     "@radix-ui/react-tooltip": "^1.2.8",
     "@streamparser/json-whatwg": "^0.0.22",
     "@tailwindcss/vite": "^4.1.18",
-    "@types/qs": "^6.14.0",
     "@tanstack/react-query": "^5.90.16",
+    "@types/qs": "^6.14.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "cmdk": "^1.1.1",
@@ -111,6 +111,7 @@
     "typescript": "~5.8.3",
     "typescript-eslint": "^8.35.1",
     "vite": "^7.3.0",
+    "vite-plugin-pwa": "^1.2.0",
     "vite-plugin-simple-html": "^1.0.1",
     "vitest": "^3.2.4"
   }
