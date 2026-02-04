@@ -111,8 +111,12 @@ export const TagsListEdit = () => {
       <div>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="outline" size="sm" className="h-6 cursor-pointer">
-              <Plus className="h-3 w-3 mr-1" />
+            <Button
+              variant="outline"
+              size="sm"
+              className="h-9 md:h-6 cursor-pointer"
+            >
+              <Plus className="w-4 h-4 md:w-3 md:h-3 mr-1" />
               Add tag
             </Button>
           </DropdownMenuTrigger>
@@ -124,7 +128,7 @@ export const TagsListEdit = () => {
               >
                 <Badge
                   variant="secondary"
-                  className="text-xs font-normal text-black"
+                  className="text-sm md:text-xs font-normal text-black"
                   style={{
                     backgroundColor: tag.color,
                   }}
@@ -137,9 +141,9 @@ export const TagsListEdit = () => {
               <Button
                 variant="ghost"
                 size="sm"
-                className="w-full justify-start p-0 cursor-pointer"
+                className="w-full justify-start p-0 cursor-pointer text-base md:text-sm"
               >
-                <Edit className="h-3 w-3 mr-2" />
+                <Edit className="w-4 h-4 md:w-3 md:h-3 mr-2" />
                 Create new tag
               </Button>
             </DropdownMenuItem>

@@ -43,12 +43,12 @@ export function ActivityLogContactNoteCreated({
             >
               <SaleName />
             </ReferenceField>
+            &nbsp;added a note about&nbsp;
             <ReferenceField
               source="contact_id"
               reference="contacts"
               record={activity.contactNote}
             >
-              &nbsp;added a note about&nbsp;
               <TextField source="first_name" />
               &nbsp;
               <TextField source="last_name" />
@@ -60,6 +60,7 @@ export function ActivityLogContactNoteCreated({
               </>
             )}
           </span>
+
           {context === "company" && (
             <span className="text-muted-foreground text-sm">
               <RelativeDate date={activity.date} />

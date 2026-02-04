@@ -1,8 +1,5 @@
-import { EditBase, Form, required, useNotify, type Identifier } from "ra-core";
+import { EditBase, Form, useNotify, type Identifier } from "ra-core";
 import { DeleteButton } from "@/components/admin/delete-button";
-import { TextInput } from "@/components/admin/text-input";
-import { DateInput } from "@/components/admin/date-input";
-import { SelectInput } from "@/components/admin/select-input";
 import { SaveButton } from "@/components/admin/form";
 import {
   Dialog,
@@ -12,7 +9,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 
-import { useConfigurationContext } from "../root/ConfigurationContext";
+import { TaskFormContent } from "./TaskFormContent";
 
 export const TaskEdit = ({
   open,
@@ -23,7 +20,6 @@ export const TaskEdit = ({
   open: boolean;
   close: () => void;
 }) => {
-  const { taskTypes } = useConfigurationContext();
   const notify = useNotify();
   return (
     <Dialog open={open} onOpenChange={close}>
@@ -48,30 +44,7 @@ export const TaskEdit = ({
               <DialogHeader>
                 <DialogTitle>Edit task</DialogTitle>
               </DialogHeader>
-              <TextInput
-                autoFocus
-                source="text"
-                label="Description"
-                validate={required()}
-                multiline
-                helperText={false}
-              />
-              <div className="grid grid-cols-2 gap-4">
-                <DateInput
-                  source="due_date"
-                  helperText={false}
-                  validate={required()}
-                />
-                <SelectInput
-                  source="type"
-                  choices={taskTypes.map((type) => ({
-                    id: type,
-                    name: type,
-                  }))}
-                  helperText={false}
-                  validate={required()}
-                />
-              </div>
+              <TaskFormContent />
               <DialogFooter className="w-full sm:justify-between gap-4">
                 <DeleteButton
                   mutationOptions={{
