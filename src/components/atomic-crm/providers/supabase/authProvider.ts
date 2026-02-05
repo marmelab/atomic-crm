@@ -21,8 +21,8 @@ const baseAuthProvider = supabaseAuthProvider(supabase, {
 });
 
 // To speed up checks, we cache them:
-// - in memory for the current sale
 // - in local storage for the initialization state
+// - in memory for the current sale
 
 const IS_INITIALIZED_CACHE_KEY = "crm_is_initialized";
 
@@ -36,7 +36,6 @@ function getLocalStorage(): Storage | null {
 export async function getIsInitialized() {
   const storage = getLocalStorage();
   const cachedValue = storage?.getItem(IS_INITIALIZED_CACHE_KEY);
-
   if (cachedValue != null) {
     return cachedValue === "true";
   }
@@ -44,7 +43,9 @@ export async function getIsInitialized() {
   const { data } = await supabase.from("init_state").select("is_initialized");
   const isInitialized = data?.at(0)?.is_initialized > 0;
 
-  storage?.setItem(IS_INITIALIZED_CACHE_KEY, String(isInitialized));
+  if (isInitialized) {
+    storage?.setItem(IS_INITIALIZED_CACHE_KEY, 'true');
+  }
 
   return isInitialized;
 }
