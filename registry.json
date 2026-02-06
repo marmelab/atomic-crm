@@ -328,15 +328,7 @@
           "type": "registry:component"
         },
         {
-          "path": "src/components/atomic-crm/notes/NotesIteratorMobile.tsx",
-          "type": "registry:component"
-        },
-        {
           "path": "src/components/atomic-crm/notes/NotesIterator.tsx",
-          "type": "registry:component"
-        },
-        {
-          "path": "src/components/atomic-crm/notes/NoteShowPage.tsx",
           "type": "registry:component"
         },
         {
@@ -452,7 +444,15 @@
           "type": "registry:component"
         },
         {
+          "path": "src/components/atomic-crm/login/SSOAuthButton.tsx",
+          "type": "registry:component"
+        },
+        {
           "path": "src/components/atomic-crm/login/LoginSkeleton.tsx",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/login/LoginPage.tsx",
           "type": "registry:component"
         },
         {
