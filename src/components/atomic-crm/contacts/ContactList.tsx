@@ -69,6 +69,15 @@ const ContactListLayoutDesktop = () => {
   );
 };
 
+const ContactListActions = () => (
+  <TopToolbar>
+    <SortButton fields={["first_name", "last_name", "last_seen"]} />
+    <ContactImportButton />
+    <ExportButton exporter={exporter} />
+    <CreateButton />
+  </TopToolbar>
+);
+
 export const ContactListMobile = () => {
   const { identity } = useGetIdentity();
   if (!identity) return null;
@@ -85,7 +94,7 @@ export const ContactListMobile = () => {
 };
 
 const ContactListLayoutMobile = () => {
-  const { isPending, data, filterValues } = useListContext();
+  const { isPending, data, error, filterValues } = useListContext();
 
   const hasFilters = filterValues && Object.keys(filterValues).length > 0;
 
@@ -99,22 +108,15 @@ const ContactListLayoutMobile = () => {
       <MobileContent>
         <ContactListFilterSummary />
         <ContactListContentMobile />
-        <div className="flex justify-center">
-          <InfinitePagination />
-        </div>
+        {!error && (
+          <div className="flex justify-center">
+            <InfinitePagination />
+          </div>
+        )}
       </MobileContent>
     </div>
   );
 };
-
-const ContactListActions = () => (
-  <TopToolbar>
-    <SortButton fields={["first_name", "last_name", "last_seen"]} />
-    <ContactImportButton />
-    <ExportButton exporter={exporter} />
-    <CreateButton />
-  </TopToolbar>
-);
 
 const exporter: Exporter<Contact> = async (records, fetchRelatedRecords) => {
   const companies = await fetchRelatedRecords<Company>(
