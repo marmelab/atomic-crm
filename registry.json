@@ -328,7 +328,15 @@
           "type": "registry:component"
         },
         {
+          "path": "src/components/atomic-crm/notes/NotesIteratorMobile.tsx",
+          "type": "registry:component"
+        },
+        {
           "path": "src/components/atomic-crm/notes/NotesIterator.tsx",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/notes/NoteShowPage.tsx",
           "type": "registry:component"
         },
         {
