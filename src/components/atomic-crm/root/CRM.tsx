@@ -47,7 +47,7 @@ import { i18nProvider } from "./i18nProvider";
 import { StartPage } from "../login/StartPage.tsx";
 import { useIsMobile } from "@/hooks/use-mobile.ts";
 import { MobileTasksList } from "../tasks/MobileTasksList.tsx";
-import { ContactList } from "../contacts/ContactList.tsx";
+import { ContactListMobile } from "../contacts/ContactList.tsx";
 import { ContactShow } from "../contacts/ContactShow.tsx";
 import { CompanyShow } from "../companies/CompanyShow.tsx";
 
@@ -211,7 +211,7 @@ const MobileAdmin = (props: CoreAdminProps) => {
       </CustomRoutes>
       <Resource
         name="contacts"
-        list={ContactList}
+        list={ContactListMobile}
         show={ContactShow}
         recordRepresentation={contacts.recordRepresentation}
       />
