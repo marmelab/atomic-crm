@@ -110,6 +110,7 @@ export const CRM = ({
   title = defaultTitle,
   dataProvider = defaultDataProvider,
   authProvider = defaultAuthProvider,
+  googleWorkplaceDomain = import.meta.env.VITE_GOOGLE_WORKPLACE_DOMAIN,
   disableTelemetry,
   ...rest
 }: CRMProps) => {
@@ -143,6 +144,7 @@ export const CRM = ({
       noteStatuses={noteStatuses}
       taskTypes={taskTypes}
       title={title}
+      googleWorkplaceDomain={googleWorkplaceDomain}
     >
       <ResponsiveAdmin
         dataProvider={dataProvider}

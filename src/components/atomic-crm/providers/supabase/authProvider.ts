@@ -86,6 +86,17 @@ function clearCache() {
 
 export const authProvider: AuthProvider = {
   ...baseAuthProvider,
+  login: async (params) => {
+    if (params.ssoDomain) {
+      const { error } = await supabase.auth.signInWithSSO({
+        domain: params.ssoDomain,
+      });
+      if (error) {
+        throw error;
+      }
+    }
+    return baseAuthProvider.login(params);
+  },
   logout: async (params) => {
     clearCache();
     return baseAuthProvider.logout(params);
