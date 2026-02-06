@@ -50,6 +50,7 @@ import { MobileTasksList } from "../tasks/MobileTasksList.tsx";
 import { ContactList } from "../contacts/ContactList.tsx";
 import { ContactShow } from "../contacts/ContactShow.tsx";
 import { CompanyShow } from "../companies/CompanyShow.tsx";
+import { NoteShowPage } from "../notes/NoteShowPage.tsx";
 
 export type CRMProps = {
   dataProvider?: DataProvider;
@@ -212,7 +213,9 @@ const MobileAdmin = (props: CoreAdminProps) => {
         list={ContactList}
         show={ContactShow}
         recordRepresentation={contacts.recordRepresentation}
-      />
+      >
+        <Route path=":id/notes/:noteId" element={<NoteShowPage />} />
+      </Resource>
       <Resource name="companies" show={CompanyShow} />
       <Resource name="tasks" list={MobileTasksList} />
     </Admin>

@@ -1,4 +1,4 @@
-import { ShowBase, useShowContext } from "ra-core";
+import { RecordRepresentation, ShowBase, useShowContext } from "ra-core";
 import { ReferenceField } from "@/components/admin/reference-field";
 import { ReferenceManyField } from "@/components/admin/reference-many-field";
 import { ReferenceManyCount } from "@/components/admin/reference-many-count";
@@ -13,7 +13,7 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 
 import { CompanyAvatar } from "../companies/CompanyAvatar";
-import { NoteCreate, NotesIterator } from "../notes";
+import { NoteCreate, NotesIterator, NotesIteratorMobile } from "../notes";
 import { NoteCreateSheet } from "../notes/NoteCreateSheet";
 import { ContactEditSheet } from "./ContactEditSheet";
 import { TagsListEdit } from "./TagsListEdit";
@@ -61,7 +61,9 @@ const ContactShowContentMobile = () => {
         <MobileBackButton />
         <div className="flex flex-1">
           <Link to="/contacts">
-            <h1 className="text-xl font-semibold">Contacts</h1>
+            <h1 className="text-xl font-semibold">
+              <RecordRepresentation />
+            </h1>
           </Link>
         </div>
         <Button
@@ -81,7 +83,7 @@ const ContactShowContentMobile = () => {
             <Avatar />
             <div className="mx-3 flex-1">
               <h2 className="text-2xl font-bold">
-                {record.first_name} {record.last_name}
+                <RecordRepresentation />
               </h2>
               <div className="text-sm text-muted-foreground">
                 {record.title}
@@ -141,7 +143,7 @@ const ContactShowContentMobile = () => {
                 </div>
               }
             >
-              <NotesIterator reference="contacts" showStatus />
+              <NotesIteratorMobile contactId={record.id} showStatus />
             </ReferenceManyField>
           </TabsContent>
 
@@ -193,7 +195,7 @@ const ContactShowContent = () => {
               <Avatar />
               <div className="ml-2 flex-1">
                 <h5 className="text-xl font-semibold">
-                  {record.first_name} {record.last_name}
+                  <RecordRepresentation />
                 </h5>
                 <div className="inline-flex text-sm text-muted-foreground">
                   {record.title}
