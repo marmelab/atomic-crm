@@ -111,6 +111,8 @@ export const CRM = ({
   dataProvider = defaultDataProvider,
   authProvider = defaultAuthProvider,
   googleWorkplaceDomain = import.meta.env.VITE_GOOGLE_WORKPLACE_DOMAIN,
+  disableEmailPasswordAuthentication = import.meta.env
+    .VITE_DISABLE_EMAIL_PASSWORD_AUTHENTICATION === "true",
   disableTelemetry,
   ...rest
 }: CRMProps) => {
@@ -145,6 +147,7 @@ export const CRM = ({
       taskTypes={taskTypes}
       title={title}
       googleWorkplaceDomain={googleWorkplaceDomain}
+      disableEmailPasswordAuthentication={disableEmailPasswordAuthentication}
     >
       <ResponsiveAdmin
         dataProvider={dataProvider}
