@@ -8,6 +8,7 @@ import { addNoteToContact } from "./addNoteToContact.ts";
 import { extractMailContactData } from "./extractMailContactData.ts";
 import { getExpectedAuthorization } from "./getExpectedAuthorization.ts";
 import { getNoteContent } from "./getNoteContent.ts";
+import { extractAndUploadAttachments } from "./extractAndUploadAttachments.ts";
 
 const webhookUser = Deno.env.get("POSTMARK_WEBHOOK_USER");
 const webhookPassword = Deno.env.get("POSTMARK_WEBHOOK_PASSWORD");
@@ -32,7 +33,7 @@ Deno.serve(async (req) => {
   response = checkBody(json);
   if (response) return response;
 
-  const { ToFull, FromFull, Subject, TextBody } = json;
+  const { ToFull, FromFull, Subject, TextBody, Attachments } = json;
 
   const noteContent = getNoteContent(Subject, TextBody);
 
@@ -47,6 +48,8 @@ Deno.serve(async (req) => {
   }
 
   const contacts = extractMailContactData(ToFull);
+
+  const attachments = await extractAndUploadAttachments(Attachments);
 
   for (const { firstName, lastName, email, domain } of contacts) {
     if (!email) {
@@ -64,6 +67,7 @@ Deno.serve(async (req) => {
       firstName,
       lastName,
       noteContent,
+      attachments,
     });
   }
 

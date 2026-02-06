@@ -1,4 +1,5 @@
 import { supabaseAdmin } from "../_shared/supabaseAdmin.ts";
+import type { Attachment } from "./extractAndUploadAttachments.ts";
 
 export const addNoteToContact = async ({
   salesEmail,
@@ -7,6 +8,7 @@ export const addNoteToContact = async ({
   firstName,
   lastName,
   noteContent,
+  attachments,
 }: {
   salesEmail: string;
   email: string;
@@ -14,6 +16,7 @@ export const addNoteToContact = async ({
   firstName: string;
   lastName: string;
   noteContent: string;
+  attachments: Attachment[];
 }) => {
   const { data: sales, error: fetchSalesError } = await supabaseAdmin
     .from("sales")
@@ -115,6 +118,7 @@ export const addNoteToContact = async ({
       contact_id: contact.id,
       text: noteContent,
       sales_id: sales.id,
+      attachments,
     });
   if (createNoteError)
     return new Response(
