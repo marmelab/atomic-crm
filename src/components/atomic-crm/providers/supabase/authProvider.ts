@@ -44,7 +44,7 @@ export async function getIsInitialized() {
   const isInitialized = data?.at(0)?.is_initialized > 0;
 
   if (isInitialized) {
-    storage?.setItem(IS_INITIALIZED_CACHE_KEY, 'true');
+    storage?.setItem(IS_INITIALIZED_CACHE_KEY, "true");
   }
 
   return isInitialized;
