@@ -94,6 +94,7 @@ export const authProvider: AuthProvider = {
       if (error) {
         throw error;
       }
+      return;
     }
     return baseAuthProvider.login(params);
   },
