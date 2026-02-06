@@ -20,11 +20,10 @@ const baseAuthProvider = supabaseAuthProvider(supabase, {
   },
 });
 
-// To speed up checks, we cache them:
-// - in local storage for the initialization state
-// - in memory for the current sale
-
-const IS_INITIALIZED_CACHE_KEY = "crm_is_initialized";
+// To speed up checks, we cache the initialization state
+// and the current sale in the local storage. They are cleared on logout.
+const IS_INITIALIZED_CACHE_KEY = "RaStore.auth.is_initialized";
+const CURRENT_SALE_CACHE_KEY = "RaStore.auth.current_sale";
 
 function getLocalStorage(): Storage | null {
   if (typeof window !== "undefined" && window.localStorage) {
@@ -50,10 +49,12 @@ export async function getIsInitialized() {
   return isInitialized;
 }
 
-let cachedSale: any;
-
 const getSale = async () => {
-  if (cachedSale != null) return cachedSale;
+  const storage = getLocalStorage();
+  const cachedValue = storage?.getItem(CURRENT_SALE_CACHE_KEY);
+  if (cachedValue != null) {
+    return JSON.parse(cachedValue);
+  }
 
   const { data: dataSession, error: errorSession } =
     await supabase.auth.getSession();
@@ -74,14 +75,14 @@ const getSale = async () => {
     return undefined;
   }
 
-  cachedSale = dataSale;
+  storage?.setItem(CURRENT_SALE_CACHE_KEY, JSON.stringify(dataSale));
   return dataSale;
 };
 
 function clearCache() {
-  cachedSale = undefined;
   const storage = getLocalStorage();
   storage?.removeItem(IS_INITIALIZED_CACHE_KEY);
+  storage?.removeItem(CURRENT_SALE_CACHE_KEY);
 }
 
 export const authProvider: AuthProvider = {
