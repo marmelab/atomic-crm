@@ -26,6 +26,7 @@ export interface ConfigurationContextValue {
   darkModeLogo: string;
   lightModeLogo: string;
   contactGender: ContactGender[];
+  googleWorkplaceDomain?: string;
 }
 
 export interface ConfigurationProviderProps extends ConfigurationContextValue {
@@ -59,6 +60,7 @@ export const ConfigurationProvider = ({
   taskTypes,
   title,
   contactGender,
+  googleWorkplaceDomain,
 }: ConfigurationProviderProps) => (
   <ConfigurationContext.Provider
     value={{
@@ -72,6 +74,7 @@ export const ConfigurationProvider = ({
       title,
       taskTypes,
       contactGender,
+      googleWorkplaceDomain,
     }}
   >
     {children}
