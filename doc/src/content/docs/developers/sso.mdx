@@ -1,25 +1,35 @@
 ---
-title: Configuring SSO
+title: Single Sign-On (SSO) with SAML
 description: This document explains how to configure SSO for Atomic CRM.
 ---
 
-## Enable SSO in Supabase
+Atomic CRM supports SSO (Single Sign-On) authentication through SAML 2.0. This allows your users to authenticate using their existing credentials from an identity provider, such as Google Workspace, Okta, or Microsoft Azure AD.
 
-In _Authentication > Sign in / Providers_, enable _SAML 2.0_
+## Setup SSO with Google Workspace
+
+This section explains how to set up SSO with Google Workspace as the identity provider. The steps are similar for other identity providers, but the exact UI and terminology may differ.
+
+### Enable SSO in Supabase
+
+In _Authentication > Sign in / Providers_, enable _SAML 2.0_:
+
 ![Supabase SAML](../../images/sso-google-8.png)
 
-## Setup Google Workplace
+### Create Application in Google Workspace
 
 1. **Open your [Google Workplace Console](https://admin.google.com/) and go to _Apps > Web and mobile apps_**
-  ![Google Workplace Console Web and mobile apps](../../images/sso-google-1.png)
+
+   ![Google Workplace Console Web and mobile apps](../../images/sso-google-1.png)
 
 2. **Choose to add custom SAML app**
-  ![Web and mobile apps menu](../../images/sso-google-2.png)
+
+   ![Web and mobile apps menu](../../images/sso-google-2.png)
 
 3. **Fill out app details**
 
    The information you enter here is for visibility into your Google Workspace. You can choose any values you like. _Atomic CRM_ as a name works well for most use cases. Optionally enter a description and a logo.
-  ![New app details screen](../../images/sso-google-3.png)
+
+   ![New app details screen](../../images/sso-google-3.png)
 
 4. **Download IdP metadata**
    
@@ -60,43 +70,45 @@ In _Authentication > Sign in / Providers_, enable _SAML 2.0_
    You can configure this access by clicking on the _User access_ card (or down-arrow). Follow the instructions on screen.
    ![App details screen](../../images/sso-google-7.png)
 
-8. **Save the following JSON in a mapping.json file**
-   ```json title="mapping.json"
-   {
-     "keys": {
-       "email": {
-         "name": "email"
-       },
-       "first_name": {
-         "name": "first_name"
-       },
-       "last_name": {
-         "name": "last_name"
-       }
-     }
-   }
-   ```
+### Register SSO Provider in Supabase
 
-9. **Register the SSO Provider**
+Save the following JSON in a `mapping.json` file:
 
-   Run the following command where the `metadata.xml` file is the file you downloaded at _step 4_ and `mapping.json` the file you created at _step 8_:
-   ```sh
-   npx supabase sso add --type saml --project-ref <your-project> \
-     --metadata-file /path/to/saml/metadata.xml \
-     --attribute-mapping-file /path/to/mapping.json \
-     --domains company.com
-   ```
+```json title="mapping.json"
+{
+  "keys": {
+    "email": {
+      "name": "email"
+    },
+    "first_name": {
+      "name": "first_name"
+    },
+    "last_name": {
+      "name": "last_name"
+    }
+  }
+}
+```
 
-10. **Enable Google Workspace SSO in Atomic CRM**
+The, run the following command where the `metadata.xml` file is the file you downloaded at _step 4_ and `mapping.json` the file you created just now. Replace `<your-project>` with your Supabase project identifier and `company.com` with your company domain:
 
-    Provide the `VITE_GOOGLE_WORKPLACE_DOMAIN` environment variable, for instance by adding it to your `.env` file:
-    ```sh title=".env"
-    ...
-    VITE_GOOGLE_WORKPLACE_DOMAIN=company.com
-    ```
+```sh
+npx supabase sso add --type saml --project-ref <your-project> \
+  --metadata-file /path/to/saml/metadata.xml \
+  --attribute-mapping-file /path/to/mapping.json \
+  --domains company.com
+```
 
-    You can optionally disable email/password authentication by providing the `VITE_DISABLE_EMAIL_PASSWORD_AUTHENTICATION` environment variable:
-    ```sh title=".env"
-    ...
-    VITE_DISABLE_EMAIL_PASSWORD_AUTHENTICATION=true
-    ```
+### Enable Google Workspace SSO in Login Page
+
+Provide the `VITE_GOOGLE_WORKPLACE_DOMAIN` environment variable, for instance by adding it to your `.env` file:
+```sh title=".env"
+...
+VITE_GOOGLE_WORKPLACE_DOMAIN=company.com
+```
+
+You can optionally disable email/password authentication by providing the `VITE_DISABLE_EMAIL_PASSWORD_AUTHENTICATION` environment variable:
+```sh title=".env"
+...
+VITE_DISABLE_EMAIL_PASSWORD_AUTHENTICATION=true
+```
