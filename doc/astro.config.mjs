@@ -86,7 +86,7 @@ export default defineConfig({
           label: "Users Documentation",
           items: [
             "users/user-management",
-            "users/import-contacts",
+            "users/import-data",
             "users/merging-contacts",
             "users/inbound-email",
             "users/mcp-server",

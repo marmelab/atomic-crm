@@ -33,9 +33,9 @@ dist/
 /lib/
 .env
 *storybook.log
-.claude
 
 # Shadcn Registry
 public/r/
 
 !supabase/functions/.env
+.claude/settings.local.json
