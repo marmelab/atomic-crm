@@ -1,4 +1,5 @@
-import { useGetList } from "ra-core";
+import { useGetList, useTimeout } from "ra-core";
+import { Skeleton } from "@/components/ui/skeleton";
 
 import type { Contact, ContactNote } from "../types";
 import { DashboardActivityLog } from "./DashboardActivityLog";
@@ -32,6 +33,16 @@ const Wrapper = ({ children }: { children: React.ReactNode }) => {
   );
 };
 
+const Loading = () => (
+  <Wrapper>
+    <Skeleton className="h-4 w-3/4 mb-4" />
+    <Skeleton className="h-4 w-full mb-2" />
+    <Skeleton className="h-4 w-full mb-2" />
+    <Skeleton className="h-4 w-full mb-2" />
+    <Skeleton className="h-4 w-full mb-2" />
+  </Wrapper>
+);
+
 export const MobileDashboard = () => {
   const {
     data: dataContact,
@@ -40,16 +51,16 @@ export const MobileDashboard = () => {
   } = useGetList<Contact>("contacts", {
     pagination: { page: 1, perPage: 1 },
   });
-
   const { total: totalContactNotes, isPending: isPendingContactNotes } =
     useGetList<ContactNote>("contact_notes", {
       pagination: { page: 1, perPage: 1 },
     });
+  const oneSecondHasPassed = useTimeout(1000);
 
   const isPending = isPendingContact || isPendingContactNotes;
 
   if (isPending) {
-    return null;
+    return oneSecondHasPassed ? <Loading /> : null;
   }
 
   if (!totalContact) {

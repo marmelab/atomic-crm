@@ -8,6 +8,9 @@ import {
 } from "ra-core";
 import { useEffect } from "react";
 import { Route } from "react-router";
+import { QueryClient } from "@tanstack/react-query";
+import { PersistQueryClientProvider } from "@tanstack/react-query-persist-client";
+import { createAsyncStoragePersister } from "@tanstack/query-async-storage-persister";
 import { Admin } from "@/components/admin/admin";
 import { ForgotPasswordPage } from "@/components/supabase/forgot-password-page";
 import { SetPasswordPage } from "@/components/supabase/set-password-page";
@@ -47,7 +50,7 @@ import { i18nProvider } from "./i18nProvider";
 import { StartPage } from "../login/StartPage.tsx";
 import { useIsMobile } from "@/hooks/use-mobile.ts";
 import { MobileTasksList } from "../tasks/MobileTasksList.tsx";
-import { ContactList } from "../contacts/ContactList.tsx";
+import { ContactListMobile } from "../contacts/ContactList.tsx";
 import { ContactShow } from "../contacts/ContactShow.tsx";
 import { CompanyShow } from "../companies/CompanyShow.tsx";
 
@@ -197,29 +200,50 @@ const DesktopAdmin = (props: CoreAdminProps) => {
 };
 
 const MobileAdmin = (props: CoreAdminProps) => {
+  const queryClient = new QueryClient({
+    defaultOptions: {
+      queries: {
+        gcTime: 1000 * 60 * 60 * 24, // 24 hours
+      },
+    },
+  });
+  const asyncStoragePersister = createAsyncStoragePersister({
+    storage: localStorage,
+  });
+
   return (
-    <Admin layout={MobileLayout} dashboard={MobileDashboard} {...props}>
-      <CustomRoutes noLayout>
-        <Route path={SignupPage.path} element={<SignupPage />} />
-        <Route
-          path={ConfirmationRequired.path}
-          element={<ConfirmationRequired />}
+    <PersistQueryClientProvider
+      client={queryClient}
+      persistOptions={{ persister: asyncStoragePersister }}
+    >
+      <Admin
+        queryClient={queryClient}
+        layout={MobileLayout}
+        dashboard={MobileDashboard}
+        {...props}
+      >
+        <CustomRoutes noLayout>
+          <Route path={SignupPage.path} element={<SignupPage />} />
+          <Route
+            path={ConfirmationRequired.path}
+            element={<ConfirmationRequired />}
+          />
+          <Route path={SetPasswordPage.path} element={<SetPasswordPage />} />
+          <Route
+            path={ForgotPasswordPage.path}
+            element={<ForgotPasswordPage />}
+          />
+          <Route path={OAuthConsentPage.path} element={<OAuthConsentPage />} />
+        </CustomRoutes>
+        <Resource
+          name="contacts"
+          list={ContactListMobile}
+          show={ContactShow}
+          recordRepresentation={contacts.recordRepresentation}
         />
-        <Route path={SetPasswordPage.path} element={<SetPasswordPage />} />
-        <Route
-          path={ForgotPasswordPage.path}
-          element={<ForgotPasswordPage />}
-        />
-        <Route path={OAuthConsentPage.path} element={<OAuthConsentPage />} />
-      </CustomRoutes>
-      <Resource
-        name="contacts"
-        list={ContactList}
-        show={ContactShow}
-        recordRepresentation={contacts.recordRepresentation}
-      />
-      <Resource name="companies" show={CompanyShow} />
-      <Resource name="tasks" list={MobileTasksList} />
-    </Admin>
+        <Resource name="companies" show={CompanyShow} />
+        <Resource name="tasks" list={MobileTasksList} />
+      </Admin>
+    </PersistQueryClientProvider>
   );
 };
