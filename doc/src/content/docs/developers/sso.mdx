@@ -8,6 +8,9 @@ description: This document explains how to configure SSO for Atomic CRM.
 In _Authentication > Sign in / Providers_, enable _SAML 2.0_
 ![Supabase SAML](../../images/sso-google-8.png)
 
+## Enable SSO in Atomic CRM
+
+
 ## Setup Google Workplace
 
 1. **Open your [Google Workplace Console](https://admin.google.com/) and go to _Apps > Web and mobile apps_**
@@ -79,10 +82,22 @@ In _Authentication > Sign in / Providers_, enable _SAML 2.0_
 
 9. **Register the SSO Provider**
 
-   Run the following command: 
+   Run the following command where the `metadata.xml` file is the file you downloaded at _step 4_ and `mapping.json` the file you created at _step 8_:
    ```sh
    npx supabase sso add --type saml --project-ref <your-project> \
      --metadata-file /path/to/saml/metadata.xml \
      --attribute-mapping-file /path/to/mapping.json \
      --domains company.com
+   ```
+
+10. **Enable Google Workspace SSO in Atomic CRM**
+   Provide the `VITE_GOOGLE_WORKPLACE_DOMAIN` environment variable, for instance by adding it to your `.env` file:
+   ```sh
+   ...
+   VITE_GOOGLE_WORKPLACE_DOMAIN=company.com
+   ```
+
+   You can optionally disable email/password authentication by providing the `VITE_DISABLE_EMAIL_PASSWORD_AUTHENTICATION` environment variable:
+   ```sh
+   VITE_DISABLE_EMAIL_PASSWORD_AUTHENTICATION=true
    ```
