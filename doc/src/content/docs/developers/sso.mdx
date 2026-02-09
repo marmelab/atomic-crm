@@ -8,9 +8,6 @@ description: This document explains how to configure SSO for Atomic CRM.
 In _Authentication > Sign in / Providers_, enable _SAML 2.0_
 ![Supabase SAML](../../images/sso-google-8.png)
 
-## Enable SSO in Atomic CRM
-
-
 ## Setup Google Workplace
 
 1. **Open your [Google Workplace Console](https://admin.google.com/) and go to _Apps > Web and mobile apps_**
@@ -64,7 +61,7 @@ In _Authentication > Sign in / Providers_, enable _SAML 2.0_
    ![App details screen](../../images/sso-google-7.png)
 
 8. **Save the following JSON in a mapping.json file**
-   ```json
+   ```json title="mapping.json"
    {
      "keys": {
        "email": {
@@ -91,13 +88,15 @@ In _Authentication > Sign in / Providers_, enable _SAML 2.0_
    ```
 
 10. **Enable Google Workspace SSO in Atomic CRM**
-   Provide the `VITE_GOOGLE_WORKPLACE_DOMAIN` environment variable, for instance by adding it to your `.env` file:
-   ```sh
-   ...
-   VITE_GOOGLE_WORKPLACE_DOMAIN=company.com
-   ```
 
-   You can optionally disable email/password authentication by providing the `VITE_DISABLE_EMAIL_PASSWORD_AUTHENTICATION` environment variable:
-   ```sh
-   VITE_DISABLE_EMAIL_PASSWORD_AUTHENTICATION=true
-   ```
+    Provide the `VITE_GOOGLE_WORKPLACE_DOMAIN` environment variable, for instance by adding it to your `.env` file:
+    ```sh title=".env"
+    ...
+    VITE_GOOGLE_WORKPLACE_DOMAIN=company.com
+    ```
+
+    You can optionally disable email/password authentication by providing the `VITE_DISABLE_EMAIL_PASSWORD_AUTHENTICATION` environment variable:
+    ```sh title=".env"
+    ...
+    VITE_DISABLE_EMAIL_PASSWORD_AUTHENTICATION=true
+    ```
