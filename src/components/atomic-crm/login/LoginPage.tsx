@@ -18,13 +18,16 @@ import { SSOAuthButton } from "./SSOAuthButton";
  * @see {@link https://marmelab.com/shadcn-admin-kit/docs/security Security documentation}
  */
 export const LoginPage = (props: { redirectTo?: string }) => {
-  const { darkModeLogo, title, googleWorkplaceDomain } =
-    useConfigurationContext();
+  const {
+    darkModeLogo,
+    title,
+    googleWorkplaceDomain,
+    disableEmailPasswordAuthentication,
+  } = useConfigurationContext();
   const { redirectTo } = props;
   const [loading, setLoading] = useState(false);
   const login = useLogin();
   const notify = useNotify();
-
   const handleSubmit: SubmitHandler<FieldValues> = (values) => {
     setLoading(true);
     login(values, redirectTo)
@@ -69,44 +72,44 @@ export const LoginPage = (props: { redirectTo?: string }) => {
             <div className="text-center">
               <h1 className="text-2xl font-semibold tracking-tight">Sign in</h1>
             </div>
-            <Form className="space-y-8" onSubmit={handleSubmit}>
-              <TextInput
-                label="Email"
-                source="email"
-                type="email"
-                validate={required()}
-              />
-              <TextInput
-                label="Password"
-                source="password"
-                type="password"
-                validate={required()}
-              />
-              <div className="flex flex-col gap-4">
-                <Button
-                  type="submit"
-                  className="w-full cursor-pointer"
-                  disabled={loading}
-                >
-                  Sign in
-                </Button>
-                {googleWorkplaceDomain ? (
-                  <SSOAuthButton
-                    className="w-full"
-                    domain={googleWorkplaceDomain}
+            {disableEmailPasswordAuthentication ? null : (
+              <Form className="space-y-8" onSubmit={handleSubmit}>
+                <TextInput
+                  label="Email"
+                  source="email"
+                  type="email"
+                  validate={required()}
+                />
+                <TextInput
+                  label="Password"
+                  source="password"
+                  type="password"
+                  validate={required()}
+                />
+                <div className="flex flex-col gap-4">
+                  <Button
+                    type="submit"
+                    className="cursor-pointer"
+                    disabled={loading}
                   >
-                    Sign in with Google Workplace
-                  </SSOAuthButton>
-                ) : null}
-              </div>
-            </Form>
-
-            <Link
-              to={"/forgot-password"}
-              className="block text-sm text-center hover:underline"
-            >
-              Forgot your password?
-            </Link>
+                    Sign in
+                  </Button>
+                </div>
+              </Form>
+            )}
+            {googleWorkplaceDomain ? (
+              <SSOAuthButton className="w-full" domain={googleWorkplaceDomain}>
+                Sign in with Google Workplace
+              </SSOAuthButton>
+            ) : null}
+            {disableEmailPasswordAuthentication ? null : (
+              <Link
+                to={"/forgot-password"}
+                className="block text-sm text-center hover:underline"
+              >
+                Forgot your password?
+              </Link>
+            )}
           </div>
         </div>
       </div>
