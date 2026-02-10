@@ -507,13 +507,10 @@ export const dataProvider = withLifecycleCallbacks(
       beforeSave: async (params) => {
         return {
           ...params,
-          attachments: await Promise.all(
-            (params.attachments ?? []).map(async (attachment) => ({
-              ...attachment,
-              type: attachment.rawFile.type,
-              src: await convertFileToBase64(attachment),
-            })),
-          ),
+          attachments: (params.attachments ?? []).map((attachment) => ({
+            ...attachment,
+            type: attachment.rawFile.type,
+          })),
         };
       },
     } satisfies ResourceCallbacks<ContactNote>,
