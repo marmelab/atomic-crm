@@ -27,6 +27,7 @@ export interface ConfigurationContextValue {
   lightModeLogo: string;
   contactGender: ContactGender[];
   googleWorkplaceDomain?: string;
+  disableEmailPasswordAuthentication?: boolean;
 }
 
 export interface ConfigurationProviderProps extends ConfigurationContextValue {
@@ -46,6 +47,7 @@ export const ConfigurationContext = createContext<ConfigurationContextValue>({
   darkModeLogo: defaultDarkModeLogo,
   lightModeLogo: defaultLightModeLogo,
   contactGender: defaultContactGender,
+  disableEmailPasswordAuthentication: false,
 });
 
 export const ConfigurationProvider = ({
@@ -61,6 +63,7 @@ export const ConfigurationProvider = ({
   title,
   contactGender,
   googleWorkplaceDomain,
+  disableEmailPasswordAuthentication,
 }: ConfigurationProviderProps) => (
   <ConfigurationContext.Provider
     value={{
@@ -75,6 +78,7 @@ export const ConfigurationProvider = ({
       taskTypes,
       contactGender,
       googleWorkplaceDomain,
+      disableEmailPasswordAuthentication,
     }}
   >
     {children}
