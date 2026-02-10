@@ -1,8 +1,6 @@
 import { type ReactNode } from "react";
 import { Link } from "react-router";
 
-import { Markdown } from "../misc/Markdown";
-
 type ActivityLogNoteProps = {
   header: ReactNode;
   text: string;
@@ -14,10 +12,10 @@ export function ActivityLogNote({ header, text, link }: ActivityLogNoteProps) {
     return null;
   }
 
-  const markdownElement = (
-    <Markdown className="text-sm line-clamp-3 overflow-hidden [&_p]:my-1 [&_p:first-child]:mt-0 [&_blockquote]:border-l-2 [&_blockquote]:pl-3 [&_blockquote]:my-1 [&_blockquote]:text-muted-foreground [&_a]:text-primary [&_a]:underline [&_a:hover]:no-underline">
-      {text}
-    </Markdown>
+  const plainText = text.replace(/\s+/g, " ").trim();
+
+  const textElement = (
+    <p className="text-sm line-clamp-3 overflow-hidden">{plainText}</p>
   );
 
   return (
@@ -32,10 +30,10 @@ export function ActivityLogNote({ header, text, link }: ActivityLogNoteProps) {
               to={link}
               className="hover:bg-muted rounded transition-colors"
             >
-              {markdownElement}
+              {textElement}
             </Link>
           ) : (
-            markdownElement
+            textElement
           )}
         </div>
       </div>
