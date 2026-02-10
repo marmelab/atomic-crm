@@ -102,12 +102,14 @@ export const LoginPage = (props: { redirectTo?: string }) => {
                 Sign in with Google Workplace
               </SSOAuthButton>
             ) : null}
-            <Link
-              to={"/forgot-password"}
-              className="block text-sm text-center hover:underline"
-            >
-              Forgot your password?
-            </Link>
+            {disableEmailPasswordAuthentication ? null : (
+              <Link
+                to={"/forgot-password"}
+                className="block text-sm text-center hover:underline"
+              >
+                Forgot your password?
+              </Link>
+            )}
           </div>
         </div>
       </div>
