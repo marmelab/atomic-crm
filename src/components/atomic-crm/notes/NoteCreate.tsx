@@ -16,11 +16,7 @@ import { cn } from "@/lib/utils";
 
 import { NoteInputs } from "./NoteInputs";
 import { getCurrentDate } from "./utils";
-
-const foreignKeyMapping = {
-  contacts: "contact_id",
-  deals: "deal_id",
-};
+import { foreignKeyMapping } from "./foreignKeyMapping";
 
 export const NoteCreate = ({
   reference,

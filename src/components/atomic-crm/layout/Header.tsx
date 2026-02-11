@@ -1,13 +1,13 @@
-import { DropdownMenuItem } from "@/components/ui/dropdown-menu";
-import { Settings, User } from "lucide-react";
-import { CanAccess } from "ra-core";
+import { Import, Settings, User } from "lucide-react";
+import { CanAccess, useUserMenu } from "ra-core";
 import { Link, matchPath, useLocation } from "react-router";
 import { RefreshButton } from "@/components/admin/refresh-button";
 import { ThemeModeToggle } from "@/components/admin/theme-mode-toggle";
 import { UserMenu } from "@/components/admin/user-menu";
-import { useUserMenu } from "@/hooks/user-menu-context";
+import { DropdownMenuItem } from "@/components/ui/dropdown-menu";
 
 import { useConfigurationContext } from "../root/ConfigurationContext";
+import { ImportPage } from "../misc/ImportPage";
 
 const Header = () => {
   const { darkModeLogo, lightModeLogo, title } = useConfigurationContext();
@@ -27,64 +27,67 @@ const Header = () => {
   }
 
   return (
-    <nav className="flex-grow">
-      <header className="bg-secondary">
-        <div className="px-4">
-          <div className="flex justify-between items-center flex-1">
-            <Link
-              to="/"
-              className="flex items-center gap-2 text-secondary-foreground no-underline"
-            >
-              <img
-                className="[.light_&]:hidden h-6"
-                src={darkModeLogo}
-                alt={title}
-              />
-              <img
-                className="[.dark_&]:hidden h-6"
-                src={lightModeLogo}
-                alt={title}
-              />
-              <h1 className="text-xl font-semibold">{title}</h1>
-            </Link>
-            <div>
-              <nav className="flex">
-                <NavigationTab
-                  label="Dashboard"
-                  to="/"
-                  isActive={currentPath === "/"}
+    <>
+      <nav className="grow">
+        <header className="bg-secondary">
+          <div className="px-4">
+            <div className="flex justify-between items-center flex-1">
+              <Link
+                to="/"
+                className="flex items-center gap-2 text-secondary-foreground no-underline"
+              >
+                <img
+                  className="[.light_&]:hidden h-6"
+                  src={darkModeLogo}
+                  alt={title}
                 />
-                <NavigationTab
-                  label="Contacts"
-                  to="/contacts"
-                  isActive={currentPath === "/contacts"}
+                <img
+                  className="[.dark_&]:hidden h-6"
+                  src={lightModeLogo}
+                  alt={title}
                 />
-                <NavigationTab
-                  label="Companies"
-                  to="/companies"
-                  isActive={currentPath === "/companies"}
-                />
-                <NavigationTab
-                  label="Deals"
-                  to="/deals"
-                  isActive={currentPath === "/deals"}
-                />
-              </nav>
-            </div>
-            <div className="flex items-center">
-              <ThemeModeToggle />
-              <RefreshButton />
-              <UserMenu>
-                <ConfigurationMenu />
-                <CanAccess resource="sales" action="list">
-                  <UsersMenu />
-                </CanAccess>
-              </UserMenu>
+                <h1 className="text-xl font-semibold">{title}</h1>
+              </Link>
+              <div>
+                <nav className="flex">
+                  <NavigationTab
+                    label="Dashboard"
+                    to="/"
+                    isActive={currentPath === "/"}
+                  />
+                  <NavigationTab
+                    label="Contacts"
+                    to="/contacts"
+                    isActive={currentPath === "/contacts"}
+                  />
+                  <NavigationTab
+                    label="Companies"
+                    to="/companies"
+                    isActive={currentPath === "/companies"}
+                  />
+                  <NavigationTab
+                    label="Deals"
+                    to="/deals"
+                    isActive={currentPath === "/deals"}
+                  />
+                </nav>
+              </div>
+              <div className="flex items-center">
+                <ThemeModeToggle />
+                <RefreshButton />
+                <UserMenu>
+                  <ConfigurationMenu />
+                  <CanAccess resource="sales" action="list">
+                    <UsersMenu />
+                  </CanAccess>
+                  <ImportFromJsonMenuItem />
+                </UserMenu>
+              </div>
             </div>
           </div>
-        </div>
-      </header>
-    </nav>
+        </header>
+      </nav>
+    </>
   );
 };
 
@@ -110,9 +113,12 @@ const NavigationTab = ({
 );
 
 const UsersMenu = () => {
-  const { onClose } = useUserMenu() ?? {};
+  const userMenuContext = useUserMenu();
+  if (!userMenuContext) {
+    throw new Error("<UsersMenu> must be used inside <UserMenu?");
+  }
   return (
-    <DropdownMenuItem asChild onClick={onClose}>
+    <DropdownMenuItem asChild onClick={userMenuContext.onClose}>
       <Link to="/sales" className="flex items-center gap-2">
         <User /> Users
       </Link>
@@ -121,12 +127,29 @@ const UsersMenu = () => {
 };
 
 const ConfigurationMenu = () => {
-  const { onClose } = useUserMenu() ?? {};
+  const userMenuContext = useUserMenu();
+  if (!userMenuContext) {
+    throw new Error("<ConfigurationMenu> must be used inside <UserMenu?");
+  }
   return (
-    <DropdownMenuItem asChild onClick={onClose}>
+    <DropdownMenuItem asChild onClick={userMenuContext.onClose}>
       <Link to="/settings" className="flex items-center gap-2">
         <Settings />
         My info
+      </Link>
+    </DropdownMenuItem>
+  );
+};
+
+const ImportFromJsonMenuItem = () => {
+  const userMenuContext = useUserMenu();
+  if (!userMenuContext) {
+    throw new Error("<ImportFromJsonMenuItem> must be used inside <UserMenu>");
+  }
+  return (
+    <DropdownMenuItem asChild onClick={userMenuContext.onClose}>
+      <Link to={ImportPage.path} className="flex items-center gap-2">
+        <Import /> Import data
       </Link>
     </DropdownMenuItem>
   );

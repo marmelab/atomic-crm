@@ -1,3 +1,8 @@
+import { ReferenceManyField } from "@/components/admin/reference-many-field";
+import { SortButton } from "@/components/admin/sort-button";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { formatDistance } from "date-fns";
 import { UserPlus } from "lucide-react";
 import {
@@ -8,32 +13,75 @@ import {
   useShowContext,
 } from "ra-core";
 import {
+  Link,
   Link as RouterLink,
   useLocation,
   useMatch,
   useNavigate,
 } from "react-router-dom";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { ReferenceManyField } from "@/components/admin/reference-many-field";
-import { SortButton } from "@/components/admin/sort-button";
 
+import { useIsMobile } from "@/hooks/use-mobile";
 import { ActivityLog } from "../activity/ActivityLog";
 import { Avatar } from "../contacts/Avatar";
 import { TagsList } from "../contacts/TagsList";
 import { findDealLabel } from "../deals/deal";
+import { MobileContent } from "../layout/MobileContent";
+import MobileHeader from "../layout/MobileHeader";
+import { MobileBackButton } from "../misc/MobileBackButton";
 import { Status } from "../misc/Status";
 import { useConfigurationContext } from "../root/ConfigurationContext";
 import type { Company, Contact, Deal } from "../types";
-import { CompanyAside } from "./CompanyAside";
+import {
+  AdditionalInfo,
+  AddressInfo,
+  CompanyAside,
+  CompanyInfo,
+  ContextInfo,
+} from "./CompanyAside";
 import { CompanyAvatar } from "./CompanyAvatar";
 
-export const CompanyShow = () => (
-  <ShowBase>
-    <CompanyShowContent />
-  </ShowBase>
-);
+export const CompanyShow = () => {
+  const isMobile = useIsMobile();
+
+  return (
+    <ShowBase>
+      {isMobile ? <CompanyShowContentMobile /> : <CompanyShowContent />}
+    </ShowBase>
+  );
+};
+
+const CompanyShowContentMobile = () => {
+  const { record, isPending } = useShowContext<Company>();
+  if (isPending || !record) return null;
+
+  return (
+    <>
+      <MobileHeader>
+        <MobileBackButton to="/" />
+        <div className="flex flex-1">
+          <Link to="/">
+            <h1 className="text-xl font-semibold">Company</h1>
+          </Link>
+        </div>
+      </MobileHeader>
+
+      <MobileContent>
+        <div className="mb-6">
+          <div className="flex items-center mb-4">
+            <CompanyAvatar />
+            <div className="mx-3 flex-1">
+              <h2 className="text-2xl font-bold">{record.name}</h2>
+            </div>
+          </div>
+        </div>
+        <CompanyInfo record={record} />
+        <AddressInfo record={record} />
+        <ContextInfo record={record} />
+        <AdditionalInfo record={record} />
+      </MobileContent>
+    </>
+  );
+};
 
 const CompanyShowContent = () => {
   const { record, isPending } = useShowContext<Company>();

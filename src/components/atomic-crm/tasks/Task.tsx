@@ -15,6 +15,8 @@ import {
 
 import type { Contact, Task as TData } from "../types";
 import { TaskEdit } from "./TaskEdit";
+import { TaskEditSheet } from "./TaskEditSheet";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 export const Task = ({
   task,
@@ -23,6 +25,7 @@ export const Task = ({
   task: TData;
   showContact?: boolean;
 }) => {
+  const isMobile = useIsMobile();
   const notify = useNotify();
   const queryClient = useQueryClient();
 
@@ -76,7 +79,10 @@ export const Task = ({
   return (
     <>
       <div className="flex items-start justify-between">
-        <div className="flex items-start gap-2 flex-1">
+        <div
+          className="flex items-start gap-2 flex-1"
+          onClick={isMobile ? handleCheck() : undefined}
+        >
           <Checkbox
             id={labelId}
             checked={!!task.done_date}
@@ -129,12 +135,12 @@ export const Task = ({
               className="h-5 pr-0! size-8 cursor-pointer"
               aria-label="task actions"
             >
-              <MoreVertical className="h-4 w-4" />
+              <MoreVertical className="size-5 md:size-4" />
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
             <DropdownMenuItem
-              className="cursor-pointer"
+              className="cursor-pointer h-12 md:h-8 px-4 md:px-2 text-base md:text-sm"
               onClick={() => {
                 update("tasks", {
                   id: task.id,
@@ -150,7 +156,7 @@ export const Task = ({
               Postpone to tomorrow
             </DropdownMenuItem>
             <DropdownMenuItem
-              className="cursor-pointer"
+              className="cursor-pointer h-12 md:h-8 px-4 md:px-2 text-base md:text-sm"
               onClick={() => {
                 update("tasks", {
                   id: task.id,
@@ -165,18 +171,29 @@ export const Task = ({
             >
               Postpone to next week
             </DropdownMenuItem>
-            <DropdownMenuItem className="cursor-pointer" onClick={handleEdit}>
+            <DropdownMenuItem
+              className="cursor-pointer h-12 md:h-8 px-4 md:px-2 text-base md:text-sm"
+              onClick={handleEdit}
+            >
               Edit
             </DropdownMenuItem>
-            <DropdownMenuItem className="cursor-pointer" onClick={handleDelete}>
+            <DropdownMenuItem
+              className="cursor-pointer h-12 md:h-8 px-4 md:px-2 text-base md:text-sm"
+              onClick={handleDelete}
+            >
               Delete
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
 
-      {/* This part is for editing the Task directly via a Dialog */}
-      {openEdit && (
+      {isMobile ? (
+        <TaskEditSheet
+          taskId={task.id}
+          open={openEdit}
+          onOpenChange={setOpenEdit}
+        />
+      ) : (
         <TaskEdit taskId={task.id} open={openEdit} close={handleCloseEdit} />
       )}
     </>

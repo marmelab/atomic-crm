@@ -1,15 +1,12 @@
 import { supabaseDataProvider } from "ra-supabase-core";
 import {
   withLifecycleCallbacks,
-  type CreateParams,
   type DataProvider,
   type GetListParams,
   type Identifier,
-  type UpdateParams,
+  type ResourceCallbacks,
 } from "ra-core";
-
 import type {
-  Contact,
   ContactNote,
   Deal,
   DealNote,
@@ -19,8 +16,6 @@ import type {
   SignUpData,
 } from "../../types";
 import { getActivityLog } from "../commons/activity";
-import { getCompanyAvatar } from "../commons/getCompanyAvatar";
-import { getContactAvatar } from "../commons/getContactAvatar";
 import { getIsInitialized } from "./authProvider";
 import { supabase } from "./supabase";
 
@@ -41,11 +36,9 @@ const baseDataProvider = supabaseDataProvider({
 });
 
 const processCompanyLogo = async (params: any) => {
-  let logo = params.data.logo;
+  const logo = params.data.logo;
 
-  if (typeof logo !== "object" || logo === null || !logo.src) {
-    logo = await getCompanyAvatar(params.data);
-  } else if (logo.rawFile instanceof File) {
+  if (logo?.rawFile instanceof File) {
     await uploadToBucket(logo);
   }
 
@@ -57,29 +50,6 @@ const processCompanyLogo = async (params: any) => {
     },
   };
 };
-
-async function processContactAvatar(
-  params: UpdateParams<Contact>,
-): Promise<UpdateParams<Contact>>;
-
-async function processContactAvatar(
-  params: CreateParams<Contact>,
-): Promise<CreateParams<Contact>>;
-
-async function processContactAvatar(
-  params: CreateParams<Contact> | UpdateParams<Contact>,
-): Promise<CreateParams<Contact> | UpdateParams<Contact>> {
-  const { data } = params;
-  if (data.avatar?.src || !data.email_jsonb || !data.email_jsonb.length) {
-    return params;
-  }
-  const avatarUrl = await getContactAvatar(data);
-
-  // Clone the data and modify the clone
-  const newData = { ...data, avatar: { src: avatarUrl || undefined } };
-
-  return { ...params, data: newData };
-}
 
 const dataProviderWithCustomMethods = {
   ...baseDataProvider,
@@ -131,17 +101,27 @@ const dataProviderWithCustomMethods = {
     };
   },
   async salesCreate(body: SalesFormData) {
-    const { data, error } = await supabase.functions.invoke<Sale>("users", {
-      method: "POST",
-      body,
-    });
+    const { data, error } = await supabase.functions.invoke<{ data: Sale }>(
+      "users",
+      {
+        method: "POST",
+        body,
+      },
+    );
 
     if (!data || error) {
       console.error("salesCreate.error", error);
-      throw new Error("Failed to create account manager");
+      const errorDetails = await (async () => {
+        try {
+          return (await error?.context?.json()) ?? {};
+        } catch {
+          return {};
+        }
+      })();
+      throw new Error(errorDetails?.message || "Failed to create the user");
     }
 
-    return data;
+    return data.data;
   },
   async salesUpdate(
     id: Identifier,
@@ -150,28 +130,27 @@ const dataProviderWithCustomMethods = {
     const { email, first_name, last_name, administrator, avatar, disabled } =
       data;
 
-    const { data: sale, error } = await supabase.functions.invoke<Sale>(
-      "users",
-      {
-        method: "PATCH",
-        body: {
-          sales_id: id,
-          email,
-          first_name,
-          last_name,
-          administrator,
-          disabled,
-          avatar,
-        },
+    const { data: updatedData, error } = await supabase.functions.invoke<{
+      data: Sale;
+    }>("users", {
+      method: "PATCH",
+      body: {
+        sales_id: id,
+        email,
+        first_name,
+        last_name,
+        administrator,
+        disabled,
+        avatar,
       },
-    );
+    });
 
-    if (!sale || error) {
+    if (!updatedData || error) {
       console.error("salesCreate.error", error);
       throw new Error("Failed to update account manager");
     }
 
-    return data;
+    return updatedData.data;
   },
   async updatePassword(id: Identifier) {
     const { data: passwordUpdated, error } =
@@ -237,100 +216,96 @@ const dataProviderWithCustomMethods = {
 
 export type CrmDataProvider = typeof dataProviderWithCustomMethods;
 
+const lifeCycleCallbacks: ResourceCallbacks[] = [
+  {
+    resource: "contact_notes",
+    beforeSave: async (data: ContactNote, _, __) => {
+      if (data.attachments) {
+        data.attachments = await Promise.all(
+          data.attachments.map((fi) => uploadToBucket(fi)),
+        );
+      }
+      return data;
+    },
+  },
+  {
+    resource: "deal_notes",
+    beforeSave: async (data: DealNote, _, __) => {
+      if (data.attachments) {
+        data.attachments = await Promise.all(
+          data.attachments.map((fi) => uploadToBucket(fi)),
+        );
+      }
+      return data;
+    },
+  },
+  {
+    resource: "sales",
+    beforeSave: async (data: Sale, _, __) => {
+      if (data.avatar) {
+        await uploadToBucket(data.avatar);
+      }
+      return data;
+    },
+  },
+  {
+    resource: "contacts",
+    beforeGetList: async (params) => {
+      return applyFullTextSearch([
+        "first_name",
+        "last_name",
+        "company_name",
+        "title",
+        "email",
+        "phone",
+        "background",
+      ])(params);
+    },
+  },
+  {
+    resource: "companies",
+    beforeGetList: async (params) => {
+      return applyFullTextSearch([
+        "name",
+        "phone_number",
+        "website",
+        "zipcode",
+        "city",
+        "state_abbr",
+      ])(params);
+    },
+    beforeCreate: async (params) => {
+      const createParams = await processCompanyLogo(params);
+
+      return {
+        ...createParams,
+        data: {
+          created_at: new Date().toISOString(),
+          ...createParams.data,
+        },
+      };
+    },
+    beforeUpdate: async (params) => {
+      return await processCompanyLogo(params);
+    },
+  },
+  {
+    resource: "contacts_summary",
+    beforeGetList: async (params) => {
+      return applyFullTextSearch(["first_name", "last_name"])(params);
+    },
+  },
+  {
+    resource: "deals",
+    beforeGetList: async (params) => {
+      return applyFullTextSearch(["name", "category", "description"])(params);
+    },
+  },
+];
+
 export const dataProvider = withLifecycleCallbacks(
   dataProviderWithCustomMethods,
-  [
-    {
-      resource: "contact_notes",
-      beforeSave: async (data: ContactNote, _, __) => {
-        if (data.attachments) {
-          for (const fi of data.attachments) {
-            await uploadToBucket(fi);
-          }
-        }
-        return data;
-      },
-    },
-    {
-      resource: "deal_notes",
-      beforeSave: async (data: DealNote, _, __) => {
-        if (data.attachments) {
-          for (const fi of data.attachments) {
-            await uploadToBucket(fi);
-          }
-        }
-        return data;
-      },
-    },
-    {
-      resource: "sales",
-      beforeSave: async (data: Sale, _, __) => {
-        if (data.avatar) {
-          await uploadToBucket(data.avatar);
-        }
-        return data;
-      },
-    },
-    {
-      resource: "contacts",
-      beforeCreate: async (params) => {
-        return processContactAvatar(params);
-      },
-      beforeUpdate: async (params) => {
-        return processContactAvatar(params);
-      },
-      beforeGetList: async (params) => {
-        return applyFullTextSearch([
-          "first_name",
-          "last_name",
-          "company_name",
-          "title",
-          "email",
-          "phone",
-          "background",
-        ])(params);
-      },
-    },
-    {
-      resource: "companies",
-      beforeGetList: async (params) => {
-        return applyFullTextSearch([
-          "name",
-          "phone_number",
-          "website",
-          "zipcode",
-          "city",
-          "state_abbr",
-        ])(params);
-      },
-      beforeCreate: async (params) => {
-        const createParams = await processCompanyLogo(params);
-
-        return {
-          ...createParams,
-          data: {
-            ...createParams.data,
-            created_at: new Date().toISOString(),
-          },
-        };
-      },
-      beforeUpdate: async (params) => {
-        return await processCompanyLogo(params);
-      },
-    },
-    {
-      resource: "contacts_summary",
-      beforeGetList: async (params) => {
-        return applyFullTextSearch(["first_name", "last_name"])(params);
-      },
-    },
-    {
-      resource: "deals",
-      beforeGetList: async (params) => {
-        return applyFullTextSearch(["name", "type", "description"])(params);
-      },
-    },
-  ],
+  lifeCycleCallbacks,
 );
 
 const applyFullTextSearch = (columns: string[]) => (params: GetListParams) => {
@@ -372,18 +347,34 @@ const uploadToBucket = async (fi: RAFile) => {
         .createSignedUrl(fi.path, 60);
 
       if (!error) {
-        return;
+        return fi;
       }
     }
   }
 
   const dataContent = fi.src
-    ? await fetch(fi.src).then((res) => res.blob())
+    ? await fetch(fi.src)
+        .then((res) => {
+          if (res.status !== 200) {
+            return null;
+          }
+          return res.blob();
+        })
+        .catch(() => null)
     : fi.rawFile;
 
+  if (dataContent == null) {
+    // We weren't able to download the file from its src (e.g. user must be signed in on another website to access it)
+    // or the file has no content (not probable)
+    // In that case, just return it as is: when trying to download it, users should be redirected to the other website
+    // and see they need to be signed in. It will then be their responsibility to upload the file back to the note.
+    return fi;
+  }
+
   const file = fi.rawFile;
-  const fileExt = file.name.split(".").pop();
-  const fileName = `${Math.random()}.${fileExt}`;
+  const fileParts = file.name.split(".");
+  const fileExt = fileParts.length > 1 ? `.${file.name.split(".").pop()}` : "";
+  const fileName = `${Math.random()}${fileExt}`;
   const filePath = `${fileName}`;
   const { error: uploadError } = await supabase.storage
     .from("attachments")

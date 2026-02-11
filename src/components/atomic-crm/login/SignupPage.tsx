@@ -2,7 +2,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Loader2 } from "lucide-react";
 import { useDataProvider, useLogin, useNotify } from "ra-core";
 import { useForm, type SubmitHandler } from "react-hook-form";
-import { Navigate } from "react-router";
+import { Navigate, useNavigate } from "react-router";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -12,11 +12,18 @@ import { useConfigurationContext } from "../root/ConfigurationContext";
 import type { SignUpData } from "../types";
 import { LoginSkeleton } from "./LoginSkeleton";
 import { Notification } from "@/components/admin/notification";
+import { ConfirmationRequired } from "./ConfirmationRequired";
+import { SSOAuthButton } from "./SSOAuthButton";
 
 export const SignupPage = () => {
   const queryClient = useQueryClient();
   const dataProvider = useDataProvider<CrmDataProvider>();
-  const { darkModeLogo: logo, title } = useConfigurationContext();
+  const {
+    darkModeLogo: logo,
+    title,
+    googleWorkplaceDomain,
+  } = useConfigurationContext();
+  const navigate = useNavigate();
   const { data: isInitialized, isPending } = useQuery({
     queryKey: ["init"],
     queryFn: async () => {
@@ -34,13 +41,25 @@ export const SignupPage = () => {
         email: data.email,
         password: data.password,
         redirectTo: "/contacts",
-      }).then(() => {
-        notify("Initial user successfully created");
-        // FIXME: We should probably provide a hook for that in the ra-core package
-        queryClient.invalidateQueries({
-          queryKey: ["auth", "canAccess"],
+      })
+        .then(() => {
+          notify("Initial user successfully created");
+          // FIXME: We should probably provide a hook for that in the ra-core package
+          queryClient.invalidateQueries({
+            queryKey: ["auth", "canAccess"],
+          });
+        })
+        .catch((err) => {
+          if (err.code === "email_not_confirmed") {
+            // An email confirmation is required to continue.
+            navigate(ConfirmationRequired.path);
+          } else {
+            notify("Failed to log in.", {
+              type: "error",
+            });
+            navigate("/login");
+          }
         });
-      });
     },
     onError: (error) => {
       notify(error.message);
@@ -125,7 +144,7 @@ export const SignupPage = () => {
                 required
               />
             </div>
-            <div className="flex justify-between items-center mt-8">
+            <div className="flex flex-col gap-4 justify-between items-center mt-8">
               <Button
                 type="submit"
                 disabled={!isValid || isSignUpPending}
@@ -140,6 +159,14 @@ export const SignupPage = () => {
                   "Create account"
                 )}
               </Button>
+              {googleWorkplaceDomain ? (
+                <SSOAuthButton
+                  className="w-full"
+                  domain={googleWorkplaceDomain}
+                >
+                  Sign in with Google Workplace
+                </SSOAuthButton>
+              ) : null}
             </div>
           </form>
         </div>

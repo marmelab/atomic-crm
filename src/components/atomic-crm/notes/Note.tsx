@@ -20,7 +20,6 @@ import {
 } from "@/components/ui/tooltip";
 
 import { CompanyAvatar } from "../companies/CompanyAvatar";
-import { Avatar } from "../contacts/Avatar";
 import { Markdown } from "../misc/Markdown";
 import { RelativeDate } from "../misc/RelativeDate";
 import { Status } from "../misc/Status";
@@ -88,19 +87,16 @@ export const Note = ({
     );
   };
 
-  return (
+  const content = (
     <div
       onMouseEnter={() => setHover(true)}
       onMouseLeave={() => setHover(false)}
+      className="mb-4"
     >
       <div className="flex items-center space-x-4 w-full">
-        {resource === "contactNote" ? (
-          <Avatar width={20} height={20} />
-        ) : (
-          <ReferenceField source="company_id" reference="companies" link="show">
-            <CompanyAvatar width={20} height={20} />
-          </ReferenceField>
-        )}
+        <ReferenceField source="company_id" reference="companies" link="show">
+          <CompanyAvatar width={20} height={20} />
+        </ReferenceField>
         <div className="inline-flex h-full items-center text-sm text-muted-foreground">
           <ReferenceField
             record={note}
@@ -181,7 +177,7 @@ export const Note = ({
           </div>
         </Form>
       ) : (
-        <div className="pt-2 text-sm md:max-w-150">
+        <div className="pt-2 text-sm max-w-150">
           {note.text && (
             <div
               ref={contentRef}
@@ -197,7 +193,10 @@ export const Note = ({
           )}
           {isTruncated && (
             <button
-              onClick={() => setExpanded(!isExpanded)}
+              onClick={(e) => {
+                e.stopPropagation();
+                setExpanded(!isExpanded);
+              }}
               className="text-primary text-sm mt-1 underline hover:no-underline cursor-pointer"
             >
               {isExpanded ? "Show less" : "Read more"}
@@ -209,4 +208,6 @@ export const Note = ({
       )}
     </div>
   );
+
+  return content;
 };

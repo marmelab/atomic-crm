@@ -18,18 +18,18 @@ export function ActivityLogCompanyCreated({
   const { company } = activity;
   return (
     <div className="p-0">
-      <div className="flex flex-row space-x-1 items-center w-full">
+      <div className="flex flex-row gap-2 items-start w-full">
         <CompanyAvatar width={20} height={20} record={company} />
 
         <span className="text-muted-foreground text-sm flex-grow">
           <ReferenceField source="sales_id" reference="sales" record={activity}>
             <SaleName />
-          </ReferenceField>
-          &nbsp;added company&nbsp;
+          </ReferenceField>{" "}
+          added company{" "}
           <Link to={`/companies/${company.id}/show`}>{company.name}</Link>
           {context === "all" && (
             <>
-              &nbsp;
+              {" "}
               <RelativeDate date={activity.date} />
             </>
           )}
