@@ -10,16 +10,12 @@ import { cn } from "@/lib/utils";
 import { Status } from "../misc/Status";
 import { useConfigurationContext } from "../root/ConfigurationContext";
 import { getCurrentDate } from "./utils";
-<<<<<<< HEAD
 import { AttachmentField } from "./AttachmentField";
-||||||| 986add9
-=======
 import { foreignKeyMapping } from "./foreignKeyMapping";
 import { AutocompleteInput, ReferenceInput } from "@/components/admin";
 import { required } from "ra-core";
 import { contactOptionText } from "../misc/ContactOption";
 import { useIsMobile } from "@/hooks/use-mobile";
->>>>>>> main
 
 export const NoteInputs = ({
   showStatus,
