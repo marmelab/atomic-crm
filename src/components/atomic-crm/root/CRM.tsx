@@ -4,9 +4,8 @@ import {
   localStorageStore,
   Resource,
   type AuthProvider,
-  type DataProvider,
 } from "ra-core";
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 import { Route } from "react-router";
 import { QueryClient } from "@tanstack/react-query";
 import { PersistQueryClientProvider } from "@tanstack/react-query-persist-client";
@@ -31,9 +30,12 @@ import {
   dataProvider as defaultDataProvider,
 } from "../providers/supabase";
 import sales from "../sales";
+import { AppConfigPage } from "../settings/AppConfigPage";
 import { SettingsPage } from "../settings/SettingsPage";
 import type { ConfigurationContextValue } from "./ConfigurationContext";
 import { ConfigurationProvider } from "./ConfigurationContext";
+import type { CrmDataProvider } from "../providers/types";
+import { CONFIGURATION_STORE_KEY } from "./storedConfiguration";
 import {
   defaultCompanySectors,
   defaultContactGender,
@@ -55,10 +57,13 @@ import { ContactShow } from "../contacts/ContactShow.tsx";
 import { CompanyShow } from "../companies/CompanyShow.tsx";
 import { NoteShowPage } from "../notes/NoteShowPage.tsx";
 
+const defaultStore = localStorageStore(undefined, "CRM");
+
 export type CRMProps = {
-  dataProvider?: DataProvider;
+  dataProvider?: CrmDataProvider;
   authProvider?: AuthProvider;
   disableTelemetry?: boolean;
+  store?: CoreAdminProps["store"];
 } & Partial<ConfigurationContextValue>;
 
 /**
@@ -114,6 +119,7 @@ export const CRM = ({
   title = defaultTitle,
   dataProvider = defaultDataProvider,
   authProvider = defaultAuthProvider,
+  store = defaultStore,
   googleWorkplaceDomain = import.meta.env.VITE_GOOGLE_WORKPLACE_DOMAIN,
   disableEmailPasswordAuthentication = import.meta.env
     .VITE_DISABLE_EMAIL_PASSWORD_AUTHENTICATION === "true",
@@ -136,10 +142,38 @@ export const CRM = ({
 
   const isMobile = useIsMobile();
 
+  // on login, pre-fetch the configuration to avoid a flickering
+  // when accessing the app for the first time
+  const wrappedAuthProvider = useMemo<AuthProvider>(
+    () => ({
+      ...authProvider,
+      login: async (params: any) => {
+        const result = await authProvider.login(params);
+        try {
+          const config = await dataProvider.getConfiguration();
+          store.setItem(CONFIGURATION_STORE_KEY, config);
+        } catch {
+          // Non-critical: config will load via useConfigurationLoader
+        }
+        return result;
+      },
+      logout: async (params: any) => {
+        try {
+          store.removeItem(CONFIGURATION_STORE_KEY);
+        } catch {
+          // Ignore
+        }
+        return authProvider.logout(params);
+      },
+    }),
+    [authProvider, dataProvider, store],
+  );
+
   const ResponsiveAdmin = isMobile ? MobileAdmin : DesktopAdmin;
 
   return (
     <ConfigurationProvider
+      store={store}
       contactGender={contactGender}
       companySectors={companySectors}
       dealCategories={dealCategories}
@@ -155,9 +189,9 @@ export const CRM = ({
     >
       <ResponsiveAdmin
         dataProvider={dataProvider}
-        authProvider={authProvider}
+        authProvider={wrappedAuthProvider}
         i18nProvider={i18nProvider}
-        store={localStorageStore(undefined, "CRM")}
+        store={store}
         loginPage={StartPage}
         requireAuth
         disableTelemetry
@@ -186,6 +220,7 @@ const DesktopAdmin = (props: CoreAdminProps) => {
 
       <CustomRoutes>
         <Route path={SettingsPage.path} element={<SettingsPage />} />
+        <Route path={AppConfigPage.path} element={<AppConfigPage />} />
         <Route path={ImportPage.path} element={<ImportPage />} />
       </CustomRoutes>
       <Resource name="deals" {...deals} />

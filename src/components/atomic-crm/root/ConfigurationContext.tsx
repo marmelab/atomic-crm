@@ -1,4 +1,13 @@
-import { createContext, useContext, type ReactNode } from "react";
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+  type ReactNode,
+} from "react";
+import type { Store } from "ra-core";
 
 import type { ContactGender, DealStage, NoteStatus } from "../types";
 import {
@@ -13,6 +22,11 @@ import {
   defaultTaskTypes,
   defaultTitle,
 } from "./defaultConfiguration";
+import {
+  CONFIGURATION_STORE_KEY,
+  mergeConfiguration,
+  type StoredConfiguration,
+} from "./storedConfiguration";
 
 // Define types for the context value
 export interface ConfigurationContextValue {
@@ -32,6 +46,7 @@ export interface ConfigurationContextValue {
 
 export interface ConfigurationProviderProps extends ConfigurationContextValue {
   children: ReactNode;
+  store: Store;
 }
 
 // Create context with default value
@@ -50,40 +65,55 @@ export const ConfigurationContext = createContext<ConfigurationContextValue>({
   disableEmailPasswordAuthentication: false,
 });
 
+const ConfigurationUpdaterContext = createContext<
+  (config: StoredConfiguration) => void
+>(() => {});
+
 export const ConfigurationProvider = ({
   children,
-  companySectors,
-  dealCategories,
-  dealPipelineStatuses,
-  dealStages,
-  darkModeLogo,
-  lightModeLogo,
-  noteStatuses,
-  taskTypes,
-  title,
-  contactGender,
-  googleWorkplaceDomain,
-  disableEmailPasswordAuthentication,
-}: ConfigurationProviderProps) => (
-  <ConfigurationContext.Provider
-    value={{
-      companySectors,
-      dealCategories,
-      dealPipelineStatuses,
-      dealStages,
-      darkModeLogo,
-      lightModeLogo,
-      noteStatuses,
-      title,
-      taskTypes,
-      contactGender,
-      googleWorkplaceDomain,
-      disableEmailPasswordAuthentication,
-    }}
-  >
-    {children}
-  </ConfigurationContext.Provider>
-);
+  store,
+  ...codeDefaults
+}: ConfigurationProviderProps) => {
+  const [localConfig, setLocalConfig] = useState<StoredConfiguration | null>(
+    () => store.getItem<StoredConfiguration>(CONFIGURATION_STORE_KEY) ?? null,
+  );
+
+  // Subscribe to external store changes (e.g. config written during login)
+  useEffect(() => {
+    const unsubscribe = store.subscribe(
+      CONFIGURATION_STORE_KEY,
+      (value: StoredConfiguration) => {
+        setLocalConfig(value);
+      },
+    );
+    return unsubscribe;
+  }, [store]);
+
+  const value = useMemo(
+    () => mergeConfiguration(codeDefaults, localConfig),
+    [codeDefaults, localConfig],
+  );
+
+  const updateLocalConfig = useCallback(
+    (config: StoredConfiguration) => {
+      setLocalConfig(config);
+      store.setItem(CONFIGURATION_STORE_KEY, config);
+    },
+    [store],
+  );
+
+  return (
+    <ConfigurationUpdaterContext.Provider value={updateLocalConfig}>
+      <ConfigurationContext.Provider value={value}>
+        {children}
+      </ConfigurationContext.Provider>
+    </ConfigurationUpdaterContext.Provider>
+  );
+};
 
 // eslint-disable-next-line react-refresh/only-export-components
 export const useConfigurationContext = () => useContext(ConfigurationContext);
+
+// eslint-disable-next-line react-refresh/only-export-components
+export const useConfigurationUpdater = () =>
+  useContext(ConfigurationUpdaterContext);

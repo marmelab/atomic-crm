@@ -17,6 +17,7 @@ import type {
   SignUpData,
   Task,
 } from "../../types";
+import type { StoredConfiguration } from "../../root/storedConfiguration";
 import { getActivityLog } from "../commons/activity";
 import { getCompanyAvatar } from "../commons/getCompanyAvatar";
 import { getContactAvatar } from "../commons/getContactAvatar";
@@ -223,6 +224,23 @@ const dataProviderWithCustomMethod: CrmDataProvider = {
   },
   mergeContacts: async (sourceId: Identifier, targetId: Identifier) => {
     return mergeContacts(sourceId, targetId, baseDataProvider);
+  },
+  getConfiguration: async (): Promise<StoredConfiguration> => {
+    const { data } = await baseDataProvider.getOne("configuration", { id: 1 });
+    return (data?.config as StoredConfiguration) ?? {};
+  },
+  updateConfiguration: async (
+    config: StoredConfiguration,
+  ): Promise<StoredConfiguration> => {
+    const { data: prev } = await baseDataProvider.getOne("configuration", {
+      id: 1,
+    });
+    await baseDataProvider.update("configuration", {
+      id: 1,
+      data: { config },
+      previousData: prev,
+    });
+    return config;
   },
 };
 
