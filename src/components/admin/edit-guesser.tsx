@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import type { ReactNode } from "react";
 import { useEffect, useState } from "react";
 import type { InferredTypeMap } from "ra-core";

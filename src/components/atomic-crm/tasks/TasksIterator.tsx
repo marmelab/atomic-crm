@@ -21,7 +21,7 @@ export const TasksIterator = ({
   );
 
   return (
-    <div className={`space-y-2 ${className || ""}`}>
+    <div className={`space-y-4 md:space-y-2 ${className || ""}`}>
       {tasks.map((task) => (
         <Task task={task} showContact={showContact} key={task.id} />
       ))}

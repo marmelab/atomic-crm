@@ -1,4 +1,5 @@
 import {
+  type Identifier,
   ListContextProvider,
   ResourceContextProvider,
   useGetIdentity,
@@ -7,15 +8,19 @@ import {
 } from "ra-core";
 
 import { TasksIterator } from "../tasks/TasksIterator";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 export const TasksListFilter = ({
   title,
   filter,
+  filterByContact,
 }: {
   title: string;
   filter: any;
+  filterByContact?: Identifier;
 }) => {
   const { identity } = useGetIdentity();
+  const isMobile = useIsMobile();
 
   const {
     data: tasks,
@@ -28,17 +33,19 @@ export const TasksListFilter = ({
       sort: { field: "due_date", order: "ASC" },
       filter: {
         ...filter,
-        sales_id: identity?.id,
+        ...(filterByContact != null
+          ? { contact_id: filterByContact }
+          : { sales_id: identity?.id }),
       },
     },
-    { enabled: !!identity },
+    { enabled: filterByContact != null ? true : !!identity },
   );
 
   const listContext = useList({
     data: tasks,
     isPending,
     resource: "tasks",
-    perPage: 5,
+    perPage: isMobile ? 10 : 5,
   });
 
   if (isPending || !tasks || !total) return null;
@@ -50,7 +57,7 @@ export const TasksListFilter = ({
       </p>
       <ResourceContextProvider value="tasks">
         <ListContextProvider value={listContext}>
-          <TasksIterator showContact />
+          <TasksIterator showContact={filterByContact == null} />
         </ListContextProvider>
       </ResourceContextProvider>
       {total > listContext.perPage && (

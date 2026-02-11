@@ -1,6 +1,7 @@
 import jsonExport from "jsonexport/dist";
 import {
   downloadCSV,
+  InfiniteListBase,
   useGetIdentity,
   useListContext,
   type Exporter,
@@ -15,9 +16,18 @@ import { Card } from "@/components/ui/card";
 import type { Company, Contact, Sale, Tag } from "../types";
 import { ContactEmpty } from "./ContactEmpty";
 import { ContactImportButton } from "./ContactImportButton";
-import { ContactListContent } from "./ContactListContent";
-import { ContactListFilter } from "./ContactListFilter";
+import {
+  ContactListContent,
+  ContactListContentMobile,
+} from "./ContactListContent";
+import {
+  ContactListFilterSummary,
+  ContactListFilter,
+} from "./ContactListFilter";
 import { TopToolbar } from "../layout/TopToolbar";
+import { InfinitePagination } from "../misc/InfinitePagination";
+import MobileHeader from "../layout/MobileHeader";
+import { MobileContent } from "../layout/MobileContent";
 
 export const ContactList = () => {
   const { identity } = useGetIdentity();
@@ -32,18 +42,17 @@ export const ContactList = () => {
       sort={{ field: "last_seen", order: "DESC" }}
       exporter={exporter}
     >
-      <ContactListLayout />
+      <ContactListLayoutDesktop />
     </List>
   );
 };
 
-const ContactListLayout = () => {
+const ContactListLayoutDesktop = () => {
   const { data, isPending, filterValues } = useListContext();
-  const { identity } = useGetIdentity();
 
   const hasFilters = filterValues && Object.keys(filterValues).length > 0;
 
-  if (!identity || isPending) return null;
+  if (isPending) return null;
 
   if (!data?.length && !hasFilters) return <ContactEmpty />;
 
@@ -68,6 +77,46 @@ const ContactListActions = () => (
     <CreateButton />
   </TopToolbar>
 );
+
+export const ContactListMobile = () => {
+  const { identity } = useGetIdentity();
+  if (!identity) return null;
+
+  return (
+    <InfiniteListBase
+      perPage={25}
+      sort={{ field: "last_seen", order: "DESC" }}
+      exporter={exporter}
+    >
+      <ContactListLayoutMobile />
+    </InfiniteListBase>
+  );
+};
+
+const ContactListLayoutMobile = () => {
+  const { isPending, data, error, filterValues } = useListContext();
+
+  const hasFilters = filterValues && Object.keys(filterValues).length > 0;
+
+  if (!isPending && !data?.length && !hasFilters) return <ContactEmpty />;
+
+  return (
+    <div>
+      <MobileHeader>
+        <ContactListFilter />
+      </MobileHeader>
+      <MobileContent>
+        <ContactListFilterSummary />
+        <ContactListContentMobile />
+        {!error && (
+          <div className="flex justify-center">
+            <InfinitePagination />
+          </div>
+        )}
+      </MobileContent>
+    </div>
+  );
+};
 
 const exporter: Exporter<Contact> = async (records, fetchRelatedRecords) => {
   const companies = await fetchRelatedRecords<Company>(

@@ -21,17 +21,18 @@ export const ContactInputs = () => {
   const isMobile = useIsMobile();
 
   return (
-    <div className="flex flex-col gap-2 p-1">
-      <Avatar />
-      <div className={`flex gap-6 ${isMobile ? "flex-col" : "flex-row"}`}>
+    <div className="flex flex-col gap-2 p-1 relative md:static">
+      <div className="absolute top-0 right-1 md:static">
+        <Avatar />
+      </div>
+      <div className="flex gap-10 md:gap-6 flex-col md:flex-row">
         <div className="flex flex-col gap-10 flex-1">
           <ContactIdentityInputs />
           <ContactPositionInputs />
         </div>
-        <Separator
-          orientation={isMobile ? "horizontal" : "vertical"}
-          className="flex-shrink-0"
-        />
+        {isMobile ? null : (
+          <Separator orientation="vertical" className="flex-shrink-0" />
+        )}
         <div className="flex flex-col gap-10 flex-1">
           <ContactPersonalInformationInputs />
           <ContactMiscInputs />

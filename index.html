@@ -4,11 +4,29 @@
     <meta charset="utf-8" />
     <meta
       name="viewport"
-      content="minimum-scale=1, initial-scale=1, width=device-width, shrink-to-fit=no"
+      content="minimum-scale=1, initial-scale=1, width=device-width"
     />
     <meta name="theme-color" content="#000000" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
     <link rel="manifest" href="./manifest.json" />
     <link rel="shortcut icon" href="./favicon.ico" />
+    <link rel="apple-touch-icon" sizes="40x40" href="./appIcon/40.png" />
+    <link rel="apple-touch-icon" sizes="58x58" href="./appIcon/58.png" />
+    <link rel="apple-touch-icon" sizes="60x60" href="./appIcon/60.png" />
+    <link rel="apple-touch-icon" sizes="76x76" href="./appIcon/76.png" />
+    <link rel="apple-touch-icon" sizes="80x80" href="./appIcon/80.png" />
+    <link rel="apple-touch-icon" sizes="87x87" href="./appIcon/87.png" />
+    <link rel="apple-touch-icon" sizes="114x114" href="./appIcon/114.png" />
+    <link rel="apple-touch-icon" sizes="120x120" href="./appIcon/120.png" />
+    <link rel="apple-touch-icon" sizes="128x128" href="./appIcon/128.png" />
+    <link rel="apple-touch-icon" sizes="136x136" href="./appIcon/136.png" />
+    <link rel="apple-touch-icon" sizes="152x152" href="./appIcon/152.png" />
+    <link rel="apple-touch-icon" sizes="167x167" href="./appIcon/167.png" />
+    <link rel="apple-touch-icon" sizes="180x180" href="./appIcon/180.png" />
+    <link rel="apple-touch-icon" sizes="192x192" href="./appIcon/192.png" />
+    <link rel="apple-touch-icon" sizes="1024x1024" href="./appIcon/1024.png" />
     <title>Atomic CRM</title>
 
     <style>
@@ -16,6 +34,15 @@
         margin: 0;
         padding: 0;
         font-family: sans-serif;
+      }
+
+      /* Prevent accidental double-tap zoom on interactive elements */
+      button,
+      input,
+      select,
+      textarea,
+      a {
+        touch-action: manipulation;
       }
 
       .loader-container {

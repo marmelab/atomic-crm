@@ -70,6 +70,8 @@ typecheck:
 doc-install:
 	@(cd doc && npm install)
 
+doc: doc-dev
+
 doc-dev:
 	@(cd doc && npm run dev)
 

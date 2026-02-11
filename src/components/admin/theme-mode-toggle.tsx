@@ -7,7 +7,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
-import { useTheme } from "@/components/admin/theme-provider";
+import { useTheme } from "@/components/admin/use-theme";
 
 /**
  * Toggle button that lets users switch between light, dark, and system UI themes.

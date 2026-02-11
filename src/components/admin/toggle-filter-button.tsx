@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import React from "react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -45,7 +46,7 @@ export const ToggleFilterButton = ({
       onClick={handleClick}
       className={cn(
         "cursor-pointer",
-        "flex flex-row items-center justify-between gap-2 px-2.5 w-full",
+        "flex flex-row items-center justify-between gap-2 px-2 w-full",
         className,
       )}
       size={size}

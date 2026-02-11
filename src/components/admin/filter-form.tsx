@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import * as React from "react";
 import type { HtmlHTMLAttributes, ReactNode } from "react";
 import { useCallback, useEffect, useState, isValidElement } from "react";
