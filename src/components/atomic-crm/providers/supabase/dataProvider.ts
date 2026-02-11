@@ -15,6 +15,7 @@ import type {
   SalesFormData,
   SignUpData,
 } from "../../types";
+import type { StoredConfiguration } from "../../root/storedConfiguration";
 import { getActivityLog } from "../commons/activity";
 import { getIsInitialized } from "./authProvider";
 import { supabase } from "./supabase";
@@ -212,6 +213,20 @@ const dataProviderWithCustomMethods = {
 
     return data;
   },
+  async getConfiguration(): Promise<StoredConfiguration> {
+    const { data } = await baseDataProvider.getOne("configuration", { id: 1 });
+    return (data?.config as StoredConfiguration) ?? {};
+  },
+  async updateConfiguration(
+    config: StoredConfiguration,
+  ): Promise<StoredConfiguration> {
+    const { data } = await baseDataProvider.update("configuration", {
+      id: 1,
+      data: { config },
+      previousData: { id: 1 },
+    });
+    return data.config as StoredConfiguration;
+  },
 } satisfies DataProvider;
 
 export type CrmDataProvider = typeof dataProviderWithCustomMethods;
@@ -306,7 +321,7 @@ const lifeCycleCallbacks: ResourceCallbacks[] = [
 export const dataProvider = withLifecycleCallbacks(
   dataProviderWithCustomMethods,
   lifeCycleCallbacks,
-);
+) as CrmDataProvider;
 
 const applyFullTextSearch = (columns: string[]) => (params: GetListParams) => {
   if (!params.filter?.q) {
