@@ -509,7 +509,7 @@ export const dataProvider = withLifecycleCallbacks(
           ...params,
           attachments: (params.attachments ?? []).map((attachment) => ({
             ...attachment,
-            type: attachment.rawFile.type,
+            type: attachment.rawFile.type ?? attachment.type,
           })),
         };
       },
