@@ -6,6 +6,7 @@ import { EmailField } from "@/components/admin/email-field";
 import { Mail, Phone, Linkedin } from "lucide-react";
 import type { ReactNode } from "react";
 import { useConfigurationContext } from "../root/ConfigurationContext";
+import { genderIconRegistry } from "../root/iconRegistry";
 import type { Contact } from "../types";
 
 export const ContactPersonalInfo = () => {
@@ -59,12 +60,12 @@ export const ContactPersonalInfo = () => {
       {contactGender
         .map((genderOption) => {
           if (record.gender === genderOption.value) {
+            const Icon =
+              genderIconRegistry[genderOption.icon] ?? genderIconRegistry.User;
             return (
               <PersonalInfoRow
                 key={genderOption.value}
-                icon={
-                  <genderOption.icon className="w-4 h-4 text-muted-foreground" />
-                }
+                icon={<Icon className="w-4 h-4 text-muted-foreground" />}
                 primary={<div>{genderOption.label}</div>}
               />
             );
