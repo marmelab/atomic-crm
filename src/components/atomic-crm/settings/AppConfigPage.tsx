@@ -15,10 +15,7 @@ import {
   useConfigurationUpdater,
 } from "../root/ConfigurationContext";
 import { genderIconRegistry } from "../root/iconRegistry";
-import {
-  dehydrateContactGender,
-  type StoredConfiguration,
-} from "../root/storedConfiguration";
+import { type ConfigurationContextValue } from "../root/ConfigurationContext";
 
 const SECTIONS = [
   { id: "branding", label: "Branding" },
@@ -53,7 +50,7 @@ const transformFormValues = (data: Record<string, any>) => ({
     dealPipelineStatuses: data.dealPipelineStatuses,
     noteStatuses: data.noteStatuses,
     contactGender: data.contactGender,
-  } satisfies StoredConfiguration,
+  } satisfies ConfigurationContextValue,
 });
 
 export const AppConfigPage = () => {
@@ -98,7 +95,7 @@ const AppConfigForm = () => {
       dealStages: config.dealStages,
       dealPipelineStatuses: config.dealPipelineStatuses,
       noteStatuses: config.noteStatuses,
-      contactGender: dehydrateContactGender(config.contactGender),
+      contactGender: config.contactGender,
     }),
     [config],
   );

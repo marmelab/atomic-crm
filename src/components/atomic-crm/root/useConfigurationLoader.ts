@@ -3,14 +3,16 @@ import { useEffect } from "react";
 import { useDataProvider } from "ra-core";
 
 import type { CrmDataProvider } from "../providers/types";
-import { useConfigurationUpdater } from "./ConfigurationContext";
-import type { StoredConfiguration } from "./storedConfiguration";
+import {
+  useConfigurationUpdater,
+  type ConfigurationContextValue,
+} from "./ConfigurationContext";
 
 export const useConfigurationLoader = () => {
   const dataProvider = useDataProvider<CrmDataProvider>();
   const updateConfiguration = useConfigurationUpdater();
 
-  const { data } = useQuery<StoredConfiguration>({
+  const { data } = useQuery<ConfigurationContextValue>({
     queryKey: ["configuration"],
     queryFn: () => dataProvider.getConfiguration(),
     staleTime: 1000 * 60 * 5, // 5 minutes
@@ -18,7 +20,7 @@ export const useConfigurationLoader = () => {
   });
 
   useEffect(() => {
-    if (data) {
+    if (data && Object.keys(data).length > 0) {
       updateConfiguration(data);
     }
   }, [data, updateConfiguration]);

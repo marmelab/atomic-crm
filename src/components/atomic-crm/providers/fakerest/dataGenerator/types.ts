@@ -8,7 +8,7 @@ import type {
   Tag,
   Task,
 } from "../../../types";
-import type { StoredConfiguration } from "../../../root/storedConfiguration";
+import type { ConfigurationContextValue } from "../../../root/ConfigurationContext";
 
 export interface Db {
   companies: Required<Company>[];
@@ -19,5 +19,5 @@ export interface Db {
   sales: Sale[];
   tags: Tag[];
   tasks: Task[];
-  configuration: Array<{ id: number; config: StoredConfiguration }>;
+  configuration: Array<{ id: number; config: ConfigurationContextValue }>;
 }

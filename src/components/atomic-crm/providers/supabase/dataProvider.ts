@@ -15,7 +15,7 @@ import type {
   SalesFormData,
   SignUpData,
 } from "../../types";
-import type { StoredConfiguration } from "../../root/storedConfiguration";
+import type { ConfigurationContextValue } from "../../root/ConfigurationContext";
 import { getActivityLog } from "../commons/activity";
 import { getIsInitialized } from "./authProvider";
 import { supabase } from "./supabase";
@@ -213,19 +213,19 @@ const dataProviderWithCustomMethods = {
 
     return data;
   },
-  async getConfiguration(): Promise<StoredConfiguration> {
+  async getConfiguration(): Promise<ConfigurationContextValue> {
     const { data } = await baseDataProvider.getOne("configuration", { id: 1 });
-    return (data?.config as StoredConfiguration) ?? {};
+    return (data?.config as ConfigurationContextValue) ?? {};
   },
   async updateConfiguration(
-    config: StoredConfiguration,
-  ): Promise<StoredConfiguration> {
+    config: ConfigurationContextValue,
+  ): Promise<ConfigurationContextValue> {
     const { data } = await baseDataProvider.update("configuration", {
       id: 1,
       data: { config },
       previousData: { id: 1 },
     });
-    return data.config as StoredConfiguration;
+    return data.config as ConfigurationContextValue;
   },
 } satisfies DataProvider;
 

@@ -32,10 +32,11 @@ import {
 import sales from "../sales";
 import { AppConfigPage } from "../settings/AppConfigPage";
 import { SettingsPage } from "../settings/SettingsPage";
-import type { ConfigurationContextValue } from "./ConfigurationContext";
-import { ConfigurationProvider } from "./ConfigurationContext";
+import {
+  CONFIGURATION_STORE_KEY,
+  type ConfigurationContextValue,
+} from "./ConfigurationContext";
 import type { CrmDataProvider } from "../providers/types";
-import { CONFIGURATION_STORE_KEY } from "./storedConfiguration";
 import {
   defaultCompanySectors,
   defaultContactGender,
@@ -71,7 +72,7 @@ export type CRMProps = {
  *
  * This component sets up and renders the main CRM application using `ra-core`. It provides
  * default configurations and themes but allows for customization through props. The component
- * wraps the application with a `ConfigurationProvider` to provide configuration values via context.
+ * seeds the store with any custom prop values for backwards compatibility.
  *
  * @param {Array<ContactGender>} contactGender - The gender options for contacts used in the application.
  * @param {string[]} companySectors - The list of company sectors used in the application.
@@ -140,6 +141,25 @@ export const CRM = ({
     img.src = `https://atomic-crm-telemetry.marmelab.com/atomic-crm-telemetry?domain=${window.location.hostname}`;
   }, [disableTelemetry]);
 
+  // Seed the store with CRM prop values if not already stored
+  // (backwards compatibility for prop-based config)
+  if (!store.getItem(CONFIGURATION_STORE_KEY)) {
+    store.setItem(CONFIGURATION_STORE_KEY, {
+      companySectors,
+      dealCategories,
+      dealPipelineStatuses,
+      dealStages,
+      noteStatuses,
+      taskTypes,
+      title,
+      darkModeLogo,
+      lightModeLogo,
+      contactGender,
+      googleWorkplaceDomain,
+      disableEmailPasswordAuthentication,
+    } satisfies ConfigurationContextValue);
+  }
+
   const isMobile = useIsMobile();
 
   // on login, pre-fetch the configuration to avoid a flickering
@@ -151,7 +171,9 @@ export const CRM = ({
         const result = await authProvider.login(params);
         try {
           const config = await dataProvider.getConfiguration();
-          store.setItem(CONFIGURATION_STORE_KEY, config);
+          if (Object.keys(config).length > 0) {
+            store.setItem(CONFIGURATION_STORE_KEY, config);
+          }
         } catch {
           // Non-critical: config will load via useConfigurationLoader
         }
@@ -172,32 +194,16 @@ export const CRM = ({
   const ResponsiveAdmin = isMobile ? MobileAdmin : DesktopAdmin;
 
   return (
-    <ConfigurationProvider
+    <ResponsiveAdmin
+      dataProvider={dataProvider}
+      authProvider={wrappedAuthProvider}
+      i18nProvider={i18nProvider}
       store={store}
-      contactGender={contactGender}
-      companySectors={companySectors}
-      dealCategories={dealCategories}
-      dealPipelineStatuses={dealPipelineStatuses}
-      dealStages={dealStages}
-      darkModeLogo={darkModeLogo}
-      lightModeLogo={lightModeLogo}
-      noteStatuses={noteStatuses}
-      taskTypes={taskTypes}
-      title={title}
-      googleWorkplaceDomain={googleWorkplaceDomain}
-      disableEmailPasswordAuthentication={disableEmailPasswordAuthentication}
-    >
-      <ResponsiveAdmin
-        dataProvider={dataProvider}
-        authProvider={wrappedAuthProvider}
-        i18nProvider={i18nProvider}
-        store={store}
-        loginPage={StartPage}
-        requireAuth
-        disableTelemetry
-        {...rest}
-      />
-    </ConfigurationProvider>
+      loginPage={StartPage}
+      requireAuth
+      disableTelemetry
+      {...rest}
+    />
   );
 };
 
