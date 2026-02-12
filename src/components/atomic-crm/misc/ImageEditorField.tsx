@@ -39,30 +39,32 @@ const ImageEditorField = (props: ImageEditorFieldProps) => {
       <div
         className={`flex ${
           linkPosition === "right" ? "flex-row" : "flex-col"
-        } items-center ${
-          linkPosition === "right" ? "gap-2" : "gap-1"
-        } rounded p-${props.backgroundImageColor ? "4" : "0"}`}
-        style={{
-          backgroundColor: props.backgroundImageColor || "transparent",
-        }}
+        } items-center ${linkPosition === "right" ? "gap-2" : "gap-1"}`}
       >
-        {props.type === "avatar" ? (
-          <Avatar
-            {...commonProps}
-            className={`cursor-pointer`}
-            style={{ width, height }}
-          >
-            <AvatarImage src={imageUrl} />
-            <AvatarFallback>{emptyText}</AvatarFallback>
-          </Avatar>
-        ) : (
-          <img
-            {...commonProps}
-            className="cursor-pointer object-cover"
-            style={{ width, height }}
-            alt="Editable content"
-          />
-        )}
+        <div
+          className={`rounded ${props.backgroundImageColor ? "p-4" : "p-0"}`}
+          style={{
+            backgroundColor: props.backgroundImageColor || "transparent",
+          }}
+        >
+          {props.type === "avatar" ? (
+            <Avatar
+              {...commonProps}
+              className={`cursor-pointer`}
+              style={{ width, height }}
+            >
+              <AvatarImage src={imageUrl} />
+              <AvatarFallback>{emptyText}</AvatarFallback>
+            </Avatar>
+          ) : (
+            <img
+              {...commonProps}
+              className="cursor-pointer object-cover"
+              style={{ width, height }}
+              alt="Editable content"
+            />
+          )}
+        </div>
         {linkPosition !== "none" && (
           <button
             type="button"
