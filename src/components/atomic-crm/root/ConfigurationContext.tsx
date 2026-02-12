@@ -1,6 +1,7 @@
 import { useStore } from "ra-core";
 
 import type { DealStage, NoteStatus } from "../types";
+import { defaultConfiguration } from "./defaultConfiguration";
 
 export const CONFIGURATION_STORE_KEY = "app.configuration";
 
@@ -19,7 +20,10 @@ export interface ConfigurationContextValue {
 }
 
 export const useConfigurationContext = () => {
-  const [config] = useStore<ConfigurationContextValue>(CONFIGURATION_STORE_KEY);
+  const [config] = useStore<ConfigurationContextValue>(
+    CONFIGURATION_STORE_KEY,
+    defaultConfiguration,
+  );
   return config;
 };
 
