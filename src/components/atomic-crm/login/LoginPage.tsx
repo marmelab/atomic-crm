@@ -42,7 +42,7 @@ export const LoginPage = (props: { redirectTo?: string }) => {
 
     hasDisplayedRecoveryNotification.current = true;
     notify(
-      "If you're a registered user, you should receive an password recovery email shortly.",
+      "If you're a registered user, you should receive a password recovery email shortly.",
       {
         type: "success",
       },
