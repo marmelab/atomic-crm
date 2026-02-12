@@ -9,6 +9,7 @@ import { ArrayInput } from "@/components/admin/array-input";
 import { SimpleFormIterator } from "@/components/admin/simple-form-iterator";
 import { TextInput } from "@/components/admin/text-input";
 
+import ImageEditorField from "../misc/ImageEditorField";
 import {
   useConfigurationContext,
   useConfigurationUpdater,
@@ -41,7 +42,7 @@ const transformFormValues = (data: Record<string, any>) => ({
     dealStages: data.dealStages,
     dealPipelineStatuses: data.dealPipelineStatuses,
     noteStatuses: data.noteStatuses,
-  } satisfies ConfigurationContextValue,
+  } as ConfigurationContextValue,
 });
 
 export const AppConfigPage = () => {
@@ -78,8 +79,8 @@ const AppConfigForm = () => {
   const defaultValues = useMemo(
     () => ({
       title: config.title,
-      lightModeLogo: config.lightModeLogo,
-      darkModeLogo: config.darkModeLogo,
+      lightModeLogo: { src: config.lightModeLogo },
+      darkModeLogo: { src: config.darkModeLogo },
       companySectors: config.companySectors.join("\n"),
       dealCategories: config.dealCategories.join("\n"),
       taskTypes: config.taskTypes.join("\n"),
@@ -140,8 +141,27 @@ const AppConfigFormFields = () => {
               Branding
             </h2>
             <TextInput source="title" label="App Title" />
-            <TextInput source="lightModeLogo" label="Light Mode Logo URL" />
-            <TextInput source="darkModeLogo" label="Dark Mode Logo URL" />
+            <div className="flex gap-8">
+              <div className="flex flex-col items-center gap-1">
+                <p className="text-sm text-muted-foreground">Light Mode Logo</p>
+                <ImageEditorField
+                  source="lightModeLogo"
+                  width={100}
+                  height={100}
+                  linkPosition="bottom"
+                />
+              </div>
+              <div className="flex flex-col items-center gap-1">
+                <p className="text-sm text-muted-foreground">Dark Mode Logo</p>
+                <ImageEditorField
+                  source="darkModeLogo"
+                  width={100}
+                  height={100}
+                  linkPosition="bottom"
+                  backgroundImageColor="#1a1a2e"
+                />
+              </div>
+            </div>
           </CardContent>
         </Card>
 

@@ -231,7 +231,27 @@ const dataProviderWithCustomMethods = {
 
 export type CrmDataProvider = typeof dataProviderWithCustomMethods;
 
+const processConfigLogo = async (logo: any): Promise<string> => {
+  if (typeof logo === "string") return logo;
+  if (logo?.rawFile instanceof File) {
+    await uploadToBucket(logo);
+    return logo.src;
+  }
+  return logo?.src ?? "";
+};
+
 const lifeCycleCallbacks: ResourceCallbacks[] = [
+  {
+    resource: "configuration",
+    beforeUpdate: async (params) => {
+      const config = params.data.config;
+      if (config) {
+        config.lightModeLogo = await processConfigLogo(config.lightModeLogo);
+        config.darkModeLogo = await processConfigLogo(config.darkModeLogo);
+      }
+      return params;
+    },
+  },
   {
     resource: "contact_notes",
     beforeSave: async (data: ContactNote, _, __) => {

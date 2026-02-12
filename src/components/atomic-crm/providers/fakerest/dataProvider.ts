@@ -261,9 +261,28 @@ async function updateCompany(
   });
 }
 
+const processConfigLogo = async (logo: any): Promise<string> => {
+  if (typeof logo === "string") return logo;
+  if (logo?.rawFile instanceof File) {
+    return (await convertFileToBase64(logo)) as string;
+  }
+  return logo?.src ?? "";
+};
+
 export const dataProvider = withLifecycleCallbacks(
   withSupabaseFilterAdapter(dataProviderWithCustomMethod),
   [
+    {
+      resource: "configuration",
+      beforeUpdate: async (params) => {
+        const config = params.data.config;
+        if (config) {
+          config.lightModeLogo = await processConfigLogo(config.lightModeLogo);
+          config.darkModeLogo = await processConfigLogo(config.darkModeLogo);
+        }
+        return params;
+      },
+    },
     {
       resource: "sales",
       beforeCreate: async (params) => {
