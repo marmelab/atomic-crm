@@ -290,7 +290,6 @@ const AppConfigFormFields = () => {
             />
           </CardContent>
         </Card>
-
       </div>
 
       {/* Sticky save button */}
