@@ -26,10 +26,6 @@ import { CRM } from "@/components/atomic-crm/root/CRM";
 
 const App = () => (
     <CRM
-        contactGender={[
-            { value: 'male', label: 'He' },
-            { value: 'female', label: 'She' },
-        ]}
         companySectors={['Technology', 'Finance']}
         dealCategories={['Copywriting', 'Design']}
         dealPipelineStatuses={['won']}
@@ -55,7 +51,6 @@ export default App;
 
 | Props                   | Description                                                           | Type            |
 |-------------------------|-----------------------------------------------------------------------|-----------------|
-| `contactGender`         | The gender options for contacts used in the application.              | ContactGender[] |
 | `companySectors`        | The list of company sectors used in the application.                  | string[]       |
 | `darkTheme`             | The theme to use when the application is in dark mode.                | RaThemeOptions  |
 | `dealCategories`        | The categories of deals used in the application.                      | string[]        |

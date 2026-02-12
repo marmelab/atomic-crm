@@ -39,7 +39,6 @@ import {
 import type { CrmDataProvider } from "../providers/types";
 import {
   defaultCompanySectors,
-  defaultContactGender,
   defaultDarkModeLogo,
   defaultDealCategories,
   defaultDealPipelineStatuses,
@@ -74,7 +73,6 @@ export type CRMProps = {
  * default configurations and themes but allows for customization through props. The component
  * seeds the store with any custom prop values for backwards compatibility.
  *
- * @param {Array<ContactGender>} contactGender - The gender options for contacts used in the application.
  * @param {string[]} companySectors - The list of company sectors used in the application.
  * @param {RaThemeOptions} darkTheme - The theme to use when the application is in dark mode.
  * @param {string[]} dealCategories - The categories of deals used in the application.
@@ -108,7 +106,6 @@ export type CRMProps = {
  * export default App;
  */
 export const CRM = ({
-  contactGender = defaultContactGender,
   companySectors = defaultCompanySectors,
   dealCategories = defaultDealCategories,
   dealPipelineStatuses = defaultDealPipelineStatuses,
@@ -154,7 +151,6 @@ export const CRM = ({
       title,
       darkModeLogo,
       lightModeLogo,
-      contactGender,
       googleWorkplaceDomain,
       disableEmailPasswordAuthentication,
     } satisfies ConfigurationContextValue);
