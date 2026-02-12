@@ -58,14 +58,13 @@ export const defaultTaskTypes = [
 ];
 
 export const defaultConfiguration: ConfigurationContextValue = {
-    companySectors: defaultCompanySectors,
-    dealCategories: defaultDealCategories,
-    dealPipelineStatuses: defaultDealPipelineStatuses,
-    dealStages: defaultDealStages,
-    noteStatuses: defaultNoteStatuses,
-    taskTypes: defaultTaskTypes,
-    title: defaultTitle,
-    darkModeLogo: defaultDarkModeLogo,
-    lightModeLogo: defaultLightModeLogo,
+  companySectors: defaultCompanySectors,
+  dealCategories: defaultDealCategories,
+  dealPipelineStatuses: defaultDealPipelineStatuses,
+  dealStages: defaultDealStages,
+  noteStatuses: defaultNoteStatuses,
+  taskTypes: defaultTaskTypes,
+  title: defaultTitle,
+  darkModeLogo: defaultDarkModeLogo,
+  lightModeLogo: defaultLightModeLogo,
 };
-
