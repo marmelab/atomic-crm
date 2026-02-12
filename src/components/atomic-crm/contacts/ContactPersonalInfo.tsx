@@ -5,12 +5,10 @@ import { TextField } from "@/components/admin/text-field";
 import { EmailField } from "@/components/admin/email-field";
 import { Mail, Phone, Linkedin } from "lucide-react";
 import type { ReactNode } from "react";
-import { useConfigurationContext } from "../root/ConfigurationContext";
-import { genderIconRegistry } from "../root/iconRegistry";
+import { contactGender } from "./contactGender";
 import type { Contact } from "../types";
 
 export const ContactPersonalInfo = () => {
-  const { contactGender } = useConfigurationContext();
   const record = useRecordContext<Contact>();
 
   if (!record) return null;
@@ -60,12 +58,12 @@ export const ContactPersonalInfo = () => {
       {contactGender
         .map((genderOption) => {
           if (record.gender === genderOption.value) {
-            const Icon =
-              genderIconRegistry[genderOption.icon] ?? genderIconRegistry.User;
             return (
               <PersonalInfoRow
                 key={genderOption.value}
-                icon={<Icon className="w-4 h-4 text-muted-foreground" />}
+                icon={
+                  <genderOption.icon className="w-4 h-4 text-muted-foreground" />
+                }
                 primary={<div>{genderOption.label}</div>}
               />
             );

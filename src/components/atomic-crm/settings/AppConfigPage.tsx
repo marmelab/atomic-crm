@@ -6,16 +6,14 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { ArrayInput } from "@/components/admin/array-input";
-import { SelectInput } from "@/components/admin/select-input";
 import { SimpleFormIterator } from "@/components/admin/simple-form-iterator";
 import { TextInput } from "@/components/admin/text-input";
 
 import {
   useConfigurationContext,
   useConfigurationUpdater,
+  type ConfigurationContextValue,
 } from "../root/ConfigurationContext";
-import { genderIconRegistry } from "../root/iconRegistry";
-import { type ConfigurationContextValue } from "../root/ConfigurationContext";
 
 const SECTIONS = [
   { id: "branding", label: "Branding" },
@@ -24,13 +22,7 @@ const SECTIONS = [
   { id: "deal-categories", label: "Deal Categories" },
   { id: "note-statuses", label: "Note Statuses" },
   { id: "task-types", label: "Task Types" },
-  { id: "contact-gender", label: "Contact Gender" },
 ];
-
-const iconChoices = Object.keys(genderIconRegistry).map((name) => ({
-  id: name,
-  name,
-}));
 
 const splitLines = (text: string): string[] =>
   text
@@ -49,7 +41,6 @@ const transformFormValues = (data: Record<string, any>) => ({
     dealStages: data.dealStages,
     dealPipelineStatuses: data.dealPipelineStatuses,
     noteStatuses: data.noteStatuses,
-    contactGender: data.contactGender,
   } satisfies ConfigurationContextValue,
 });
 
@@ -95,7 +86,6 @@ const AppConfigForm = () => {
       dealStages: config.dealStages,
       dealPipelineStatuses: config.dealPipelineStatuses,
       noteStatuses: config.noteStatuses,
-      contactGender: config.contactGender,
     }),
     [config],
   );
@@ -281,26 +271,6 @@ const AppConfigFormFields = () => {
           </CardContent>
         </Card>
 
-        {/* Contact Gender */}
-        <Card id="contact-gender">
-          <CardContent className="space-y-4">
-            <h2 className="text-xl font-semibold text-muted-foreground">
-              Contact Gender Options
-            </h2>
-            <ArrayInput source="contactGender" label={false}>
-              <SimpleFormIterator inline disableReordering>
-                <TextInput source="value" label={false} placeholder="Value" />
-                <TextInput source="label" label={false} placeholder="Label" />
-                <SelectInput
-                  source="icon"
-                  label={false}
-                  choices={iconChoices}
-                  className="w-36"
-                />
-              </SimpleFormIterator>
-            </ArrayInput>
-          </CardContent>
-        </Card>
       </div>
 
       {/* Sticky save button */}

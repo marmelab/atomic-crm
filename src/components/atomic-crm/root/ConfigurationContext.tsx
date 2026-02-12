@@ -1,6 +1,6 @@
 import { useStore } from "ra-core";
 
-import type { ContactGender, DealStage, NoteStatus } from "../types";
+import type { DealStage, NoteStatus } from "../types";
 
 export const CONFIGURATION_STORE_KEY = "app.configuration";
 
@@ -14,7 +14,6 @@ export interface ConfigurationContextValue {
   title: string;
   darkModeLogo: string;
   lightModeLogo: string;
-  contactGender: ContactGender[];
   googleWorkplaceDomain?: string;
   disableEmailPasswordAuthentication?: boolean;
 }

@@ -55,8 +55,3 @@ export const defaultTaskTypes = [
   "Call",
 ];
 
-export const defaultContactGender = [
-  { value: "male", label: "He/Him", icon: "Mars" },
-  { value: "female", label: "She/Her", icon: "Venus" },
-  { value: "nonbinary", label: "They/Them", icon: "NonBinary" },
-];
