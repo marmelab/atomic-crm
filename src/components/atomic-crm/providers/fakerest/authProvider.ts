@@ -46,12 +46,12 @@ export const authProvider: AuthProvider = {
   resetPassword: async () => {
     // FakeRest doesn't send real emails. Keep this async to mimic network latency.
     await new Promise((resolve) => setTimeout(resolve, 250));
-    return Promise.resolve();
+    return;
   },
   setPassword: async () => {
     // FakeRest doesn't persist auth credentials. This is only for local UX testing.
     await new Promise((resolve) => setTimeout(resolve, 250));
-    return Promise.resolve();
+    return;
   },
   logout: () => {
     localStorage.removeItem(USER_STORAGE_KEY);
