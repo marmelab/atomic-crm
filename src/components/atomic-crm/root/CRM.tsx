@@ -205,6 +205,10 @@ const MobileAdmin = (props: CoreAdminProps) => {
     defaultOptions: {
       queries: {
         gcTime: 1000 * 60 * 60 * 24, // 24 hours
+        networkMode: "offlineFirst",
+      },
+      mutations: {
+        networkMode: "offlineFirst",
       },
     },
   });

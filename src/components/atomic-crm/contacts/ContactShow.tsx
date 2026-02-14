@@ -31,7 +31,7 @@ export const ContactShow = () => {
   const isMobile = useIsMobile();
 
   return (
-    <ShowBase>
+    <ShowBase redirectOnError={isMobile ? false : "list"}>
       {isMobile ? <ContactShowContentMobile /> : <ContactShowContent />}
     </ShowBase>
   );
