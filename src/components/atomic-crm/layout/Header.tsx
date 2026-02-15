@@ -1,4 +1,4 @@
-import { Import, Settings, User } from "lucide-react";
+import { Cog, Import, Settings, User } from "lucide-react";
 import { CanAccess, useUserMenu } from "ra-core";
 import { Link, matchPath, useLocation } from "react-router";
 import { RefreshButton } from "@/components/admin/refresh-button";
@@ -80,6 +80,9 @@ const Header = () => {
                   <CanAccess resource="sales" action="list">
                     <UsersMenu />
                   </CanAccess>
+                  <CanAccess resource="configuration" action="edit">
+                    <AppSettingsMenu />
+                  </CanAccess>
                   <ImportFromJsonMenuItem />
                 </UserMenu>
               </div>
@@ -136,6 +139,20 @@ const ConfigurationMenu = () => {
       <Link to="/settings" className="flex items-center gap-2">
         <Settings />
         My info
+      </Link>
+    </DropdownMenuItem>
+  );
+};
+
+const AppSettingsMenu = () => {
+  const userMenuContext = useUserMenu();
+  if (!userMenuContext) {
+    throw new Error("<AppSettingsMenu> must be used inside <UserMenu>");
+  }
+  return (
+    <DropdownMenuItem asChild onClick={userMenuContext.onClose}>
+      <Link to="/app-settings" className="flex items-center gap-2">
+        <Cog /> App Settings
       </Link>
     </DropdownMenuItem>
   );
