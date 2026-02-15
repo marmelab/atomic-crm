@@ -43,7 +43,7 @@ export function ActivityLog({
     );
   }
 
-  if (error) {
+  if (error && !data) {
     return (
       <div className="p-4">
         <div className="text-center text-muted-foreground mb-4">
