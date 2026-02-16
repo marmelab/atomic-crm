@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useResetPassword } from "ra-supabase-core";
-import { Form, required, useNotify, useTranslate } from "ra-core";
+import { Form, required, useNotify, useRedirect, useTranslate } from "ra-core";
 import { Layout } from "@/components/supabase/layout";
 import type { FieldValues, SubmitHandler } from "react-hook-form";
 import { TextInput } from "@/components/admin/text-input";
@@ -14,8 +14,14 @@ export const ForgotPasswordPage = () => {
   const [loading, setLoading] = useState(false);
 
   const notify = useNotify();
+  const redirect = useRedirect();
   const translate = useTranslate();
-  const [, { mutateAsync: resetPassword }] = useResetPassword();
+  const [, { mutateAsync: resetPassword }] = useResetPassword({
+    onSuccess: () => {
+      redirect("/login?passwordRecoveryEmailSent=1");
+    },
+    onError: () => undefined,
+  });
 
   const submit = async (values: FormData) => {
     try {
