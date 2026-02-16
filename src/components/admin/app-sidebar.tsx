@@ -30,14 +30,12 @@ import {
   House,
   List,
   Settings,
-  Users,
 } from "lucide-react";
 
 const resourceIcons: Record<string, React.ComponentType<any>> = {
   contacts: Contact,
   companies: Building2,
   deals: DollarSign,
-  sales: Users,
 };
 
 /**

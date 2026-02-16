@@ -29,7 +29,7 @@ import {
   authProvider as defaultAuthProvider,
   dataProvider as defaultDataProvider,
 } from "../providers/supabase";
-import sales from "../sales";
+import type { Sale } from "../types";
 import { SettingsPage } from "../settings/SettingsPage";
 import type { ConfigurationContextValue } from "./ConfigurationContext";
 import { ConfigurationProvider } from "./ConfigurationContext";
@@ -193,7 +193,12 @@ const DesktopAdmin = (props: CoreAdminProps) => {
       <Resource name="contact_notes" />
       <Resource name="deal_notes" />
       <Resource name="tasks" />
-      <Resource name="sales" {...sales} />
+      <Resource
+        name="sales"
+        recordRepresentation={(record: Sale) =>
+          `${record.first_name} ${record.last_name}`
+        }
+      />
       <Resource name="tags" />
     </Admin>
   );

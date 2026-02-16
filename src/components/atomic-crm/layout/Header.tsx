@@ -1,5 +1,5 @@
-import { Import, Settings, User } from "lucide-react";
-import { CanAccess, useUserMenu } from "ra-core";
+import { Import, Settings } from "lucide-react";
+import { useUserMenu } from "ra-core";
 import { Link, matchPath, useLocation } from "react-router";
 import { RefreshButton } from "@/components/admin/refresh-button";
 import { ThemeModeToggle } from "@/components/admin/theme-mode-toggle";
@@ -77,9 +77,6 @@ const Header = () => {
                 <RefreshButton />
                 <UserMenu>
                   <ConfigurationMenu />
-                  <CanAccess resource="sales" action="list">
-                    <UsersMenu />
-                  </CanAccess>
                   <ImportFromJsonMenuItem />
                 </UserMenu>
               </div>
@@ -111,20 +108,6 @@ const NavigationTab = ({
     {label}
   </Link>
 );
-
-const UsersMenu = () => {
-  const userMenuContext = useUserMenu();
-  if (!userMenuContext) {
-    throw new Error("<UsersMenu> must be used inside <UserMenu?");
-  }
-  return (
-    <DropdownMenuItem asChild onClick={userMenuContext.onClose}>
-      <Link to="/sales" className="flex items-center gap-2">
-        <User /> Users
-      </Link>
-    </DropdownMenuItem>
-  );
-};
 
 const ConfigurationMenu = () => {
   const userMenuContext = useUserMenu();
