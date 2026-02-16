@@ -21,7 +21,6 @@ import contacts from "../contacts";
 import { Dashboard } from "../dashboard/Dashboard";
 import { MobileDashboard } from "../dashboard/MobileDashboard";
 import deals from "../deals";
-import { Layout } from "../layout/Layout";
 import { MobileLayout } from "../layout/MobileLayout";
 import { SignupPage } from "../login/SignupPage";
 import { ConfirmationRequired } from "../login/ConfirmationRequired";
@@ -169,7 +168,7 @@ export const CRM = ({
 
 const DesktopAdmin = (props: CoreAdminProps) => {
   return (
-    <Admin layout={Layout} dashboard={Dashboard} {...props}>
+    <Admin dashboard={Dashboard} {...props}>
       <CustomRoutes noLayout>
         <Route path={SignupPage.path} element={<SignupPage />} />
         <Route

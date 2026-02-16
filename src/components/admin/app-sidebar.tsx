@@ -14,14 +14,31 @@ import {
   SidebarFooter,
   SidebarGroup,
   SidebarGroupContent,
+  SidebarGroupLabel,
   SidebarHeader,
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  SidebarSeparator,
   useSidebar,
 } from "@/components/ui/sidebar";
 import { Skeleton } from "@/components/ui/skeleton";
-import { House, List, Shell } from "lucide-react";
+import {
+  Building2,
+  Contact,
+  DollarSign,
+  House,
+  List,
+  Settings,
+  Users,
+} from "lucide-react";
+
+const resourceIcons: Record<string, React.ComponentType<any>> = {
+  contacts: Contact,
+  companies: Building2,
+  deals: DollarSign,
+  sales: Users,
+};
 
 /**
  * Navigation sidebar displaying menu items, allowing users to navigate between different sections of the application.
@@ -54,15 +71,26 @@ export function AppSidebar() {
               className="data-[slot=sidebar-menu-button]:!p-1.5"
             >
               <Link to="/">
-                <Shell className="!size-5" />
-                <span className="text-base font-semibold">Acme Inc.</span>
+                <img
+                  className="!size-5 dark:hidden"
+                  src="./logos/logo_atomic_crm_light.svg"
+                  alt="Atomic CRM"
+                />
+                <img
+                  className="!size-5 hidden dark:block"
+                  src="./logos/logo_atomic_crm_dark.svg"
+                  alt="Atomic CRM"
+                />
+                <span className="text-base font-semibold">Atomic CRM</span>
               </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarHeader>
+      <SidebarSeparator />
       <SidebarContent>
         <SidebarGroup>
+          <SidebarGroupLabel>Navigation</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               {hasDashboard ? (
@@ -77,6 +105,15 @@ export function AppSidebar() {
                     onClick={handleClick}
                   />
                 ))}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+        <SidebarSeparator />
+        <SidebarGroup>
+          <SidebarGroupLabel>Account</SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              <SettingsMenuItem onClick={handleClick} />
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
@@ -107,6 +144,23 @@ export const DashboardMenuItem = ({ onClick }: { onClick?: () => void }) => {
         <Link to="/" onClick={onClick}>
           <House />
           {label}
+        </Link>
+      </SidebarMenuButton>
+    </SidebarMenuItem>
+  );
+};
+
+/**
+ * Menu item for the settings page in the sidebar.
+ */
+export const SettingsMenuItem = ({ onClick }: { onClick?: () => void }) => {
+  const match = useMatch({ path: "/settings", end: false });
+  return (
+    <SidebarMenuItem>
+      <SidebarMenuButton asChild isActive={!!match}>
+        <Link to="/settings" onClick={onClick}>
+          <Settings />
+          Settings
         </Link>
       </SidebarMenuButton>
     </SidebarMenuItem>
@@ -149,15 +203,13 @@ export const ResourceMenuItem = ({
 
   if (!resources || !resources[name] || !canAccess) return null;
 
+  const Icon = resourceIcons[name] || resources[name].icon;
+
   return (
     <SidebarMenuItem>
       <SidebarMenuButton asChild isActive={!!match}>
         <Link to={to} state={{ _scrollToTop: true }} onClick={onClick}>
-          {resources[name].icon ? (
-            createElement(resources[name].icon)
-          ) : (
-            <List />
-          )}
+          {Icon ? createElement(Icon) : <List />}
           {getResourceLabel(name, 2)}
         </Link>
       </SidebarMenuButton>
