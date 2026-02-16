@@ -15,6 +15,7 @@ import { Admin } from "@/components/admin/admin";
 import { ForgotPasswordPage } from "@/components/supabase/forgot-password-page";
 import { SetPasswordPage } from "@/components/supabase/set-password-page";
 import { OAuthConsentPage } from "@/components/supabase/oauth-consent-page";
+import { Users, Building2, Handshake, UserCog } from "lucide-react";
 
 import companies from "../companies";
 import contacts from "../contacts";
@@ -188,13 +189,13 @@ const DesktopAdmin = (props: CoreAdminProps) => {
         <Route path={SettingsPage.path} element={<SettingsPage />} />
         <Route path={ImportPage.path} element={<ImportPage />} />
       </CustomRoutes>
-      <Resource name="deals" {...deals} />
-      <Resource name="contacts" {...contacts} />
-      <Resource name="companies" {...companies} />
+      <Resource name="deals" icon={Handshake} {...deals} />
+      <Resource name="contacts" icon={Users} {...contacts} />
+      <Resource name="companies" icon={Building2} {...companies} />
       <Resource name="contact_notes" />
       <Resource name="deal_notes" />
       <Resource name="tasks" />
-      <Resource name="sales" {...sales} />
+      <Resource name="sales" icon={UserCog} {...sales} />
       <Resource name="tags" />
     </Admin>
   );

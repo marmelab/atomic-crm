@@ -1,5 +1,6 @@
 import { createElement } from "react";
 import {
+  CanAccess,
   useCanAccess,
   useCreatePath,
   useGetResourceLabel,
@@ -18,10 +19,13 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  SidebarSeparator,
   useSidebar,
 } from "@/components/ui/sidebar";
 import { Skeleton } from "@/components/ui/skeleton";
-import { House, List, Shell } from "lucide-react";
+import { House, Import, List, Settings, User } from "lucide-react";
+import { useConfigurationContext } from "@/components/atomic-crm/root/ConfigurationContext";
+import { ImportPage } from "@/components/atomic-crm/misc/ImportPage";
 
 /**
  * Navigation sidebar displaying menu items, allowing users to navigate between different sections of the application.
@@ -44,8 +48,9 @@ export function AppSidebar() {
       setOpenMobile(false);
     }
   };
+  const { darkModeLogo, lightModeLogo, title } = useConfigurationContext();
   return (
-    <Sidebar variant="floating" collapsible="icon">
+    <Sidebar collapsible="icon">
       <SidebarHeader>
         <SidebarMenu>
           <SidebarMenuItem>
@@ -53,9 +58,20 @@ export function AppSidebar() {
               asChild
               className="data-[slot=sidebar-menu-button]:!p-1.5"
             >
-              <Link to="/">
-                <Shell className="!size-5" />
-                <span className="text-base font-semibold">Acme Inc.</span>
+              <Link to="/" className="flex items-center gap-2">
+                <img
+                  className="[.light_&]:hidden h-5 w-5 shrink-0 object-contain"
+                  src={darkModeLogo}
+                  alt={title}
+                />
+                <img
+                  className="[.dark_&]:hidden h-5 w-5 shrink-0 object-contain"
+                  src={lightModeLogo}
+                  alt={title}
+                />
+                <span className="text-base font-semibold truncate">
+                  {title}
+                </span>
               </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>
@@ -81,19 +97,37 @@ export function AppSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
-      <SidebarFooter />
+      <SidebarFooter>
+        <SidebarSeparator />
+        <SidebarMenu>
+          <FooterMenuItem
+            to="/settings"
+            icon={<Settings />}
+            label="My info"
+            onClick={handleClick}
+          />
+          <CanAccess resource="sales" action="list">
+            <FooterMenuItem
+              to="/sales"
+              icon={<User />}
+              label="Users"
+              onClick={handleClick}
+            />
+          </CanAccess>
+          <FooterMenuItem
+            to={ImportPage.path}
+            icon={<Import />}
+            label="Import data"
+            onClick={handleClick}
+          />
+        </SidebarMenu>
+      </SidebarFooter>
     </Sidebar>
   );
 }
 
 /**
  * Menu item for the dashboard link in the sidebar.
- *
- * This component renders a sidebar menu item that links to the dashboard page.
- * It displays as active when the user is on the dashboard route.
- *
- * @example
- * <DashboardMenuItem onClick={handleClick} />
  */
 export const DashboardMenuItem = ({ onClick }: { onClick?: () => void }) => {
   const translate = useTranslate();
@@ -115,13 +149,6 @@ export const DashboardMenuItem = ({ onClick }: { onClick?: () => void }) => {
 
 /**
  * Menu item for a resource link in the sidebar.
- *
- * This component renders a sidebar menu item that links to a resource's list view.
- * It checks permissions using canAccess and displays as active when the user is viewing that resource.
- * The component icon and label are derived from the resource definition.
- *
- * @example
- * <ResourceMenuItem key={name} name="posts" onClick={handleClick} />
  */
 export const ResourceMenuItem = ({
   name,
@@ -159,6 +186,33 @@ export const ResourceMenuItem = ({
             <List />
           )}
           {getResourceLabel(name, 2)}
+        </Link>
+      </SidebarMenuButton>
+    </SidebarMenuItem>
+  );
+};
+
+/**
+ * Menu item for the sidebar footer (Settings, Users, Import).
+ */
+const FooterMenuItem = ({
+  to,
+  icon,
+  label,
+  onClick,
+}: {
+  to: string;
+  icon: React.ReactNode;
+  label: string;
+  onClick?: () => void;
+}) => {
+  const match = useMatch({ path: to, end: false });
+  return (
+    <SidebarMenuItem>
+      <SidebarMenuButton asChild isActive={!!match}>
+        <Link to={to} onClick={onClick}>
+          {icon}
+          {label}
         </Link>
       </SidebarMenuButton>
     </SidebarMenuItem>
