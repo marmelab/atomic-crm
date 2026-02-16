@@ -5,17 +5,23 @@ import { Error } from "@/components/admin/error";
 import { Skeleton } from "@/components/ui/skeleton";
 
 import Header from "./Header";
+import Sidebar from "./Sidebar";
 
 export const Layout = ({ children }: { children: ReactNode }) => (
-  <>
-    <Header />
-    <main className="max-w-screen-xl mx-auto pt-4 px-4" id="main-content">
-      <ErrorBoundary FallbackComponent={Error}>
-        <Suspense fallback={<Skeleton className="h-12 w-12 rounded-full" />}>
-          {children}
-        </Suspense>
-      </ErrorBoundary>
-    </main>
-    <Notification />
-  </>
+  <div className="flex h-screen overflow-hidden">
+    <Sidebar />
+    <div className="flex-1 flex flex-col overflow-hidden">
+      <Header />
+      <main className="flex-1 overflow-y-auto">
+        <div className="max-w-screen-2xl mx-auto pt-4 px-4 pb-8" id="main-content">
+          <ErrorBoundary FallbackComponent={Error}>
+            <Suspense fallback={<Skeleton className="h-12 w-12 rounded-full" />}>
+              {children}
+            </Suspense>
+          </ErrorBoundary>
+        </div>
+      </main>
+      <Notification />
+    </div>
+  </div>
 );
