@@ -73,15 +73,15 @@ export type CRMProps = {
  * default configurations and themes but allows for customization through props. The component
  * seeds the store with any custom prop values for backwards compatibility.
  *
- * @param {string[]} companySectors - The list of company sectors used in the application.
+ * @param {LabeledValue[]} companySectors - The list of company sectors used in the application.
  * @param {RaThemeOptions} darkTheme - The theme to use when the application is in dark mode.
- * @param {string[]} dealCategories - The categories of deals used in the application.
+ * @param {LabeledValue[]} dealCategories - The categories of deals used in the application.
  * @param {string[]} dealPipelineStatuses - The statuses of deals in the pipeline used in the application.
  * @param {DealStage[]} dealStages - The stages of deals used in the application.
  * @param {RaThemeOptions} lightTheme - The theme to use when the application is in light mode.
  * @param {string} logo - The logo used in the CRM application.
  * @param {NoteStatus[]} noteStatuses - The statuses of notes used in the application.
- * @param {string[]} taskTypes - The types of tasks used in the application.
+ * @param {LabeledValue[]} taskTypes - The types of tasks used in the application.
  * @param {string} title - The title of the CRM application.
  *
  * @returns {JSX.Element} The rendered CRM application.

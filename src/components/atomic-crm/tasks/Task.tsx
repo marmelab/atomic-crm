@@ -13,6 +13,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
+import { useConfigurationContext } from "../root/ConfigurationContext";
 import type { Contact, Task as TData } from "../types";
 import { TaskEdit } from "./TaskEdit";
 import { TaskEditSheet } from "./TaskEditSheet";
@@ -26,6 +27,7 @@ export const Task = ({
   showContact?: boolean;
 }) => {
   const isMobile = useIsMobile();
+  const { taskTypes } = useConfigurationContext();
   const notify = useNotify();
   const queryClient = useQueryClient();
 
@@ -92,9 +94,12 @@ export const Task = ({
           />
           <div className={`flex-grow ${task.done_date ? "line-through" : ""}`}>
             <div className="text-sm">
-              {task.type && task.type !== "None" && (
+              {task.type && task.type !== "none" && (
                 <>
-                  <span className="font-semibold text-sm">{task.type}</span>
+                  <span className="font-semibold text-sm">
+                    {taskTypes.find((t) => t.value === task.type)?.label ??
+                      task.type}
+                  </span>
                   &nbsp;
                 </>
               )}

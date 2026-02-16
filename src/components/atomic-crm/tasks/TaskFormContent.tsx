@@ -41,10 +41,9 @@ export const TaskFormContent = ({
         <SelectInput
           source="type"
           validate={required()}
-          choices={taskTypes.map((type) => ({
-            id: type,
-            name: type,
-          }))}
+          choices={taskTypes}
+          optionText="label"
+          optionValue="value"
           helperText={false}
         />
       </div>

@@ -48,7 +48,7 @@ export const DealShow = ({ open, id }: { open: boolean; id?: string }) => {
 };
 
 const DealShowContent = () => {
-  const { dealStages } = useConfigurationContext();
+  const { dealStages, dealCategories } = useConfigurationContext();
   const record = useRecordContext<Deal>();
   if (!record) return null;
 
@@ -120,7 +120,10 @@ const DealShowContent = () => {
                 <span className="text-xs text-muted-foreground tracking-wide">
                   Category
                 </span>
-                <span className="text-sm">{record.category}</span>
+                <span className="text-sm">
+                  {dealCategories.find((c) => c.value === record.category)
+                    ?.label ?? record.category}
+                </span>
               </div>
             )}
 

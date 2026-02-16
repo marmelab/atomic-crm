@@ -1,17 +1,17 @@
 import { useStore } from "ra-core";
 
-import type { DealStage, NoteStatus } from "../types";
+import type { DealStage, LabeledValue, NoteStatus } from "../types";
 import { defaultConfiguration } from "./defaultConfiguration";
 
 export const CONFIGURATION_STORE_KEY = "app.configuration";
 
 export interface ConfigurationContextValue {
-  companySectors: string[];
-  dealCategories: string[];
+  companySectors: LabeledValue[];
+  dealCategories: LabeledValue[];
   dealPipelineStatuses: string[];
   dealStages: DealStage[];
   noteStatuses: NoteStatus[];
-  taskTypes: string[];
+  taskTypes: LabeledValue[];
   title: string;
   darkModeLogo: string;
   lightModeLogo: string;
