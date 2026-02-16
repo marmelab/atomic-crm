@@ -33,6 +33,7 @@ import {
 import sales from "../sales";
 import { SettingsPage } from "../settings/SettingsPage";
 import { CustomFieldsManager } from "../settings/CustomFieldsManager";
+import { CSVImportWizard } from "../import/CSVImportWizard";
 import type { ConfigurationContextValue } from "./ConfigurationContext";
 import { ConfigurationProvider } from "./ConfigurationContext";
 import {
@@ -189,6 +190,8 @@ const DesktopAdmin = (props: CoreAdminProps) => {
         <Route path={SettingsPage.path} element={<SettingsPage />} />
         <Route path="/custom-fields" element={<CustomFieldsManager />} />
         <Route path={ImportPage.path} element={<ImportPage />} />
+        <Route path="/import/contacts" element={<CSVImportWizard entityType="contact" />} />
+        <Route path="/import/companies" element={<CSVImportWizard entityType="company" />} />
       </CustomRoutes>
       <Resource name="deals" {...deals} />
       <Resource name="contacts" {...contacts} />

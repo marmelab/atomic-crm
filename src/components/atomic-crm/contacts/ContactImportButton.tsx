@@ -21,6 +21,21 @@ import { useContactImport } from "./useContactImport";
 import * as sampleCsv from "./contacts_export.csv?raw";
 
 export const ContactImportButton = () => {
+  return (
+    <Button
+      variant="outline"
+      asChild
+      className="flex items-center gap-2 cursor-pointer"
+    >
+      <Link to="/import/contacts">
+        <Upload /> Import CSV
+      </Link>
+    </Button>
+  );
+};
+
+// Keep old dialog for backward compatibility or manual use
+export const ContactImportButtonOld = () => {
   const [modalOpen, setModalOpen] = useState(false);
 
   const handleOpenModal = () => {
@@ -38,7 +53,7 @@ export const ContactImportButton = () => {
         onClick={handleOpenModal}
         className="flex items-center gap-2 cursor-pointer"
       >
-        <Upload /> Import CSV
+        <Upload /> Import CSV (Legacy)
       </Button>
       <ContactImportDialog open={modalOpen} onClose={handleCloseModal} />
     </>
