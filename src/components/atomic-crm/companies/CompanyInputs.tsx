@@ -73,7 +73,7 @@ const CompanyDisplayInputs = () => {
 const CompanyContactInputs = () => {
   return (
     <div className="flex flex-col gap-4">
-      <h3 className="text-base font-semibold">Contact</h6>
+      <h3 className="text-base font-semibold">Contact</h3>
       <TextInput source="website" helperText={false} validate={isUrl} />
       <TextInput
         source="linkedin_url"
@@ -89,7 +89,7 @@ const CompanyContextInputs = () => {
   const { companySectors } = useConfigurationContext();
   return (
     <div className="flex flex-col gap-4">
-      <h3 className="text-base font-semibold">Context</h6>
+      <h3 className="text-base font-semibold">Context</h3>
       <SelectInput
         source="sector"
         choices={companySectors.map((sector) => ({
@@ -108,7 +108,7 @@ const CompanyContextInputs = () => {
 const CompanyAddressInputs = () => {
   return (
     <div className="flex flex-col gap-4">
-      <h3 className="text-base font-semibold">Address</h6>
+      <h3 className="text-base font-semibold">Address</h3>
       <TextInput source="address" helperText={false} />
       <TextInput source="city" helperText={false} />
       <TextInput source="zipcode" helperText={false} />
@@ -121,7 +121,7 @@ const CompanyAddressInputs = () => {
 const CompanyAdditionalInformationInputs = () => {
   return (
     <div className="flex flex-col gap-4">
-      <h3 className="text-base font-semibold">Additional information</h6>
+      <h3 className="text-base font-semibold">Additional information</h3>
       <TextInput source="description" multiline helperText={false} />
       <ArrayInput source="context_links" helperText={false}>
         <SimpleFormIterator disableReordering fullWidth getItemLabel={false}>
@@ -140,7 +140,7 @@ const CompanyAdditionalInformationInputs = () => {
 const CompanyAccountManagerInput = () => {
   return (
     <div className="flex flex-col gap-4">
-      <h3 className="text-base font-semibold">Account manager</h6>
+      <h3 className="text-base font-semibold">Account manager</h3>
       <ReferenceInput
         source="sales_id"
         reference="sales"
