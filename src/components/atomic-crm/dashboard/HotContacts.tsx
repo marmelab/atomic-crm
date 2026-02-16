@@ -2,7 +2,12 @@ import { Plus, Users } from "lucide-react";
 import { useGetIdentity, useGetList } from "ra-core";
 import { Link } from "react-router";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import {
   Tooltip,
   TooltipContent,
@@ -31,21 +36,19 @@ export const HotContacts = () => {
   );
 
   return (
-    <div className="flex flex-col gap-2">
-      <div className="flex items-center">
-        <div className="mr-3 flex">
-          <Users className="text-muted-foreground w-6 h-6" />
+    <Card>
+      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
+        <div className="flex items-center gap-3">
+          <Users className="text-muted-foreground h-5 w-5" />
+          <CardTitle className="text-lg font-semibold">Hot Contacts</CardTitle>
         </div>
-        <h2 className="text-xl font-semibold text-muted-foreground">
-          Hot Contacts
-        </h2>
         <TooltipProvider>
           <Tooltip>
             <TooltipTrigger asChild>
               <Button
                 variant="ghost"
                 size="sm"
-                className="ml-auto text-muted-foreground"
+                className="text-muted-foreground"
                 asChild
               >
                 <Link to="/contacts/create">
@@ -56,15 +59,15 @@ export const HotContacts = () => {
             <TooltipContent>Create contact</TooltipContent>
           </Tooltip>
         </TooltipProvider>
-      </div>
-      <Card className="py-0">
+      </CardHeader>
+      <CardContent className="px-0 pb-0">
         <SimpleList<Contact>
           linkType="show"
           data={contactData}
           total={contactTotal}
           isPending={contactsLoading}
           resource="contacts"
-          className="[&>li:first-child>a]:rounded-t-xl [&>li:last-child>a]:rounded-b-xl"
+          className="[&>li:last-child>a]:rounded-b-xl"
           primaryText={(contact) =>
             `${contact.first_name} ${contact.last_name}`
           }
@@ -75,7 +78,7 @@ export const HotContacts = () => {
           )}
           leftAvatar={(contact) => <Avatar record={contact} />}
           empty={
-            <div className="p-4">
+            <div className="px-6 pb-6">
               <p className="text-sm mb-4">
                 Contacts with a "hot" status will appear here.
               </p>
@@ -86,7 +89,7 @@ export const HotContacts = () => {
             </div>
           }
         />
-      </Card>
-    </div>
+      </CardContent>
+    </Card>
   );
 };

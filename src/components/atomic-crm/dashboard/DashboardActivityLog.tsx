@@ -1,28 +1,27 @@
 import { Clock } from "lucide-react";
-import { Card } from "@/components/ui/card";
-import { useIsMobile } from "@/hooks/use-mobile";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 
 import { ActivityLog } from "../activity/ActivityLog";
 
 export function DashboardActivityLog() {
-  const isMobile = useIsMobile();
   return (
-    <div className="flex flex-col">
-      <div className="flex items-center mb-4 md:mb-2">
-        <div className="mr-3 flex">
-          <Clock className="text-muted-foreground w-6 h-6" />
+    <Card>
+      <CardHeader className="flex flex-row items-center space-y-0 pb-4">
+        <div className="flex items-center gap-3">
+          <Clock className="text-muted-foreground h-5 w-5" />
+          <CardTitle className="text-lg font-semibold">
+            Latest Activity
+          </CardTitle>
         </div>
-        <h2 className="text-xl font-semibold text-muted-foreground">
-          Latest Activity
-        </h2>
-      </div>
-      {isMobile ? (
+      </CardHeader>
+      <CardContent>
         <ActivityLog pageSize={10} />
-      ) : (
-        <Card className="mb-2 p-6">
-          <ActivityLog pageSize={10} />
-        </Card>
-      )}
-    </div>
+      </CardContent>
+    </Card>
   );
 }

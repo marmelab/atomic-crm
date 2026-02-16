@@ -15,10 +15,12 @@ import {
   SidebarFooter,
   SidebarGroup,
   SidebarGroupContent,
+  SidebarGroupLabel,
   SidebarHeader,
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  SidebarRail,
   SidebarSeparator,
   useSidebar,
 } from "@/components/ui/sidebar";
@@ -50,35 +52,30 @@ export function AppSidebar() {
   };
   const { darkModeLogo, lightModeLogo, title } = useConfigurationContext();
   return (
-    <Sidebar collapsible="icon">
-      <SidebarHeader>
-        <SidebarMenu>
-          <SidebarMenuItem>
-            <SidebarMenuButton
-              asChild
-              className="data-[slot=sidebar-menu-button]:!p-1.5"
-            >
-              <Link to="/" className="flex items-center gap-2">
-                <img
-                  className="[.light_&]:hidden h-5 w-5 shrink-0 object-contain"
-                  src={darkModeLogo}
-                  alt={title}
-                />
-                <img
-                  className="[.dark_&]:hidden h-5 w-5 shrink-0 object-contain"
-                  src={lightModeLogo}
-                  alt={title}
-                />
-                <span className="text-base font-semibold truncate">
-                  {title}
-                </span>
-              </Link>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-        </SidebarMenu>
+    <Sidebar collapsible="icon" variant="sidebar">
+      <SidebarHeader className="border-b px-4 py-4 group-data-[collapsible=icon]:px-2">
+        <Link
+          to="/"
+          className="flex items-center gap-3 text-foreground no-underline"
+        >
+          <img
+            className="[.light_&]:hidden h-7 w-7 shrink-0 object-contain"
+            src={darkModeLogo}
+            alt={title}
+          />
+          <img
+            className="[.dark_&]:hidden h-7 w-7 shrink-0 object-contain"
+            src={lightModeLogo}
+            alt={title}
+          />
+          <span className="text-lg font-semibold truncate group-data-[collapsible=icon]:hidden">
+            {title}
+          </span>
+        </Link>
       </SidebarHeader>
-      <SidebarContent>
+      <SidebarContent className="px-2 py-2">
         <SidebarGroup>
+          <SidebarGroupLabel>Navigation</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               {hasDashboard ? (
@@ -97,8 +94,8 @@ export function AppSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
-      <SidebarFooter>
-        <SidebarSeparator />
+      <SidebarFooter className="px-2 pb-4">
+        <SidebarSeparator className="mb-2" />
         <SidebarMenu>
           <FooterMenuItem
             to="/settings"
@@ -122,6 +119,7 @@ export function AppSidebar() {
           />
         </SidebarMenu>
       </SidebarFooter>
+      <SidebarRail />
     </Sidebar>
   );
 }
@@ -137,10 +135,10 @@ export const DashboardMenuItem = ({ onClick }: { onClick?: () => void }) => {
   const match = useMatch({ path: "/", end: true });
   return (
     <SidebarMenuItem>
-      <SidebarMenuButton asChild isActive={!!match}>
+      <SidebarMenuButton asChild isActive={!!match} tooltip="Dashboard">
         <Link to="/" onClick={onClick}>
           <House />
-          {label}
+          <span>{label}</span>
         </Link>
       </SidebarMenuButton>
     </SidebarMenuItem>
@@ -169,6 +167,7 @@ export const ResourceMenuItem = ({
     type: "list",
   });
   const match = useMatch({ path: to, end: false });
+  const label = getResourceLabel(name, 2);
 
   if (isPending) {
     return <Skeleton className="h-8 w-full" />;
@@ -178,14 +177,14 @@ export const ResourceMenuItem = ({
 
   return (
     <SidebarMenuItem>
-      <SidebarMenuButton asChild isActive={!!match}>
+      <SidebarMenuButton asChild isActive={!!match} tooltip={label}>
         <Link to={to} state={{ _scrollToTop: true }} onClick={onClick}>
           {resources[name].icon ? (
             createElement(resources[name].icon)
           ) : (
             <List />
           )}
-          {getResourceLabel(name, 2)}
+          <span>{label}</span>
         </Link>
       </SidebarMenuButton>
     </SidebarMenuItem>
@@ -209,10 +208,10 @@ const FooterMenuItem = ({
   const match = useMatch({ path: to, end: false });
   return (
     <SidebarMenuItem>
-      <SidebarMenuButton asChild isActive={!!match}>
+      <SidebarMenuButton asChild isActive={!!match} tooltip={label}>
         <Link to={to} onClick={onClick}>
           {icon}
-          {label}
+          <span>{label}</span>
         </Link>
       </SidebarMenuButton>
     </SidebarMenuItem>

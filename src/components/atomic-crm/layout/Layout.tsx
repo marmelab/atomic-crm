@@ -18,43 +18,42 @@ export const Layout = ({ children }: { children: ReactNode }) => {
   return (
     <SidebarProvider>
       <AppSidebar />
-      <main
+      <div
         className={cn(
-          "ml-auto w-full max-w-full",
-          "peer-data-[state=collapsed]:w-[calc(100%-var(--sidebar-width-icon)-1rem)]",
-          "peer-data-[state=expanded]:w-[calc(100%-var(--sidebar-width))]",
-          "sm:transition-[width] sm:duration-200 sm:ease-linear",
-          "flex h-svh flex-col",
-          "group-data-[scroll-locked=1]/body:h-full",
-          "has-[main.fixed-main]:group-data-[scroll-locked=1]/body:h-svh",
+          "flex flex-1 flex-col min-h-svh",
+          "transition-[margin] duration-200 ease-linear",
         )}
       >
-        <header className="flex h-12 shrink-0 items-center gap-2 px-4 border-b">
-          <SidebarTrigger className="scale-125 sm:scale-100" />
+        <header className="sticky top-0 z-10 flex h-14 shrink-0 items-center gap-2 border-b bg-background px-6">
+          <SidebarTrigger />
           <div className="flex-1" />
           <ThemeModeToggle />
           <RefreshButton />
           <UserMenu />
         </header>
-        <ErrorBoundary
-          onError={handleError}
-          fallbackRender={({ error, resetErrorBoundary }) => (
-            <Error
-              error={error}
-              errorInfo={errorInfo}
-              resetErrorBoundary={resetErrorBoundary}
-            />
-          )}
-        >
-          <Suspense
-            fallback={<Skeleton className="h-12 w-12 rounded-full" />}
+        <main className="flex-1 overflow-auto">
+          <ErrorBoundary
+            onError={handleError}
+            fallbackRender={({ error, resetErrorBoundary }) => (
+              <Error
+                error={error}
+                errorInfo={errorInfo}
+                resetErrorBoundary={resetErrorBoundary}
+              />
+            )}
           >
-            <div className="flex flex-1 flex-col overflow-auto p-4">
-              {children}
-            </div>
-          </Suspense>
-        </ErrorBoundary>
-      </main>
+            <Suspense
+              fallback={
+                <div className="p-8">
+                  <Skeleton className="h-8 w-48" />
+                </div>
+              }
+            >
+              <div className="p-6">{children}</div>
+            </Suspense>
+          </ErrorBoundary>
+        </main>
+      </div>
       <Notification />
     </SidebarProvider>
   );

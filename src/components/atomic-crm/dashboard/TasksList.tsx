@@ -1,24 +1,29 @@
 import { CheckSquare } from "lucide-react";
-import { Card } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 
 import { AddTask } from "../tasks/AddTask";
 import { TasksListContent } from "../tasks/TasksListContent";
 
 export const TasksList = () => {
   return (
-    <div className="flex flex-col gap-2">
-      <div className="flex items-center">
-        <div className="mr-3 flex">
-          <CheckSquare className="text-muted-foreground w-6 h-6" />
+    <Card>
+      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
+        <div className="flex items-center gap-3">
+          <CheckSquare className="text-muted-foreground h-5 w-5" />
+          <CardTitle className="text-lg font-semibold">
+            Upcoming Tasks
+          </CardTitle>
         </div>
-        <h2 className="text-xl font-semibold text-muted-foreground flex-1">
-          Upcoming Tasks
-        </h2>
         <AddTask display="icon" selectContact />
-      </div>
-      <Card className="p-4 mb-2">
+      </CardHeader>
+      <CardContent>
         <TasksListContent />
-      </Card>
-    </div>
+      </CardContent>
+    </Card>
   );
 };
