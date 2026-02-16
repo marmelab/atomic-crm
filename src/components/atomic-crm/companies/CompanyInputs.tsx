@@ -90,10 +90,9 @@ const CompanyContextInputs = () => {
       <h6 className="text-lg font-semibold">Context</h6>
       <SelectInput
         source="sector"
-        choices={companySectors.map((sector) => ({
-          id: sector,
-          name: sector,
-        }))}
+        choices={companySectors}
+        optionText="label"
+        optionValue="value"
         helperText={false}
       />
       <SelectInput source="size" choices={sizes} helperText={false} />

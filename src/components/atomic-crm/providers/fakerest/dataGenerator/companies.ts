@@ -27,7 +27,7 @@ export const generateCompanies = (db: Db, size = 55): Required<Company>[] => {
         title: lorem.text(1),
         src: `./logos/${id}.png`,
       } as RAFile,
-      sector: random.arrayElement(defaultCompanySectors),
+      sector: random.arrayElement(defaultCompanySectors).value,
       size: random.arrayElement(sizes) as 1 | 10 | 50 | 250 | 500,
       linkedin_url: `https://www.linkedin.com/company/${name
         .toLowerCase()

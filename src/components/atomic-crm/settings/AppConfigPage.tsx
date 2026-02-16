@@ -1,12 +1,20 @@
-import { Save } from "lucide-react";
+import {
+  ArrowDown,
+  ArrowUp,
+  Check,
+  Pencil,
+  PlusCircle,
+  Save,
+  XCircle,
+} from "lucide-react";
 import { EditBase, Form, useNotify } from "ra-core";
-import { useMemo } from "react";
+import { useCallback, useMemo, useRef, useState } from "react";
 import { useFormContext } from "react-hook-form";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
-import { ArrayInput } from "@/components/admin/array-input";
-import { SimpleFormIterator } from "@/components/admin/simple-form-iterator";
+import { IconButtonWithTooltip } from "@/components/admin/icon-button-with-tooltip";
 import { TextInput } from "@/components/admin/text-input";
 
 import ImageEditorField from "../misc/ImageEditorField";
@@ -25,20 +33,14 @@ const SECTIONS = [
   { id: "task-types", label: "Task Types" },
 ];
 
-const splitLines = (text: string): string[] =>
-  text
-    .split("\n")
-    .map((s) => s.trim())
-    .filter(Boolean);
-
 const transformFormValues = (data: Record<string, any>) => ({
   config: {
     title: data.title,
     lightModeLogo: data.lightModeLogo,
     darkModeLogo: data.darkModeLogo,
-    companySectors: splitLines(data.companySectors),
-    dealCategories: splitLines(data.dealCategories),
-    taskTypes: splitLines(data.taskTypes),
+    companySectors: data.companySectors,
+    dealCategories: data.dealCategories,
+    taskTypes: data.taskTypes,
     dealStages: data.dealStages,
     dealPipelineStatuses: data.dealPipelineStatuses,
     noteStatuses: data.noteStatuses,
@@ -81,9 +83,9 @@ const AppConfigForm = () => {
       title: config.title,
       lightModeLogo: { src: config.lightModeLogo },
       darkModeLogo: { src: config.darkModeLogo },
-      companySectors: config.companySectors.join("\n"),
-      dealCategories: config.dealCategories.join("\n"),
-      taskTypes: config.taskTypes.join("\n"),
+      companySectors: config.companySectors,
+      dealCategories: config.dealCategories,
+      taskTypes: config.taskTypes,
       dealStages: config.dealStages,
       dealPipelineStatuses: config.dealPipelineStatuses,
       noteStatuses: config.noteStatuses,
@@ -171,12 +173,9 @@ const AppConfigFormFields = () => {
             <h2 className="text-xl font-semibold text-muted-foreground">
               Company Sectors
             </h2>
-            <TextInput
+            <LabeledValueListInput
               source="companySectors"
-              label={false}
-              multiline
-              rows={8}
-              helperText="One sector per line"
+              placeholder="New sector"
             />
           </CardContent>
         </Card>
@@ -187,12 +186,11 @@ const AppConfigFormFields = () => {
             <h2 className="text-xl font-semibold text-muted-foreground">
               Deal Stages
             </h2>
-            <ArrayInput source="dealStages" label={false}>
-              <SimpleFormIterator inline disableReordering>
-                <TextInput source="value" label={false} placeholder="Value" />
-                <TextInput source="label" label={false} placeholder="Label" />
-              </SimpleFormIterator>
-            </ArrayInput>
+            <LabeledValueListInput
+              source="dealStages"
+              placeholder="New stage"
+              reorderable
+            />
 
             <Separator />
 
@@ -244,12 +242,9 @@ const AppConfigFormFields = () => {
             <h2 className="text-xl font-semibold text-muted-foreground">
               Deal Categories
             </h2>
-            <TextInput
+            <LabeledValueListInput
               source="dealCategories"
-              label={false}
-              multiline
-              rows={6}
-              helperText="One category per line"
+              placeholder="New category"
             />
           </CardContent>
         </Card>
@@ -260,18 +255,19 @@ const AppConfigFormFields = () => {
             <h2 className="text-xl font-semibold text-muted-foreground">
               Note Statuses
             </h2>
-            <ArrayInput source="noteStatuses" label={false}>
-              <SimpleFormIterator inline disableReordering>
-                <TextInput source="value" label={false} placeholder="Value" />
-                <TextInput source="label" label={false} placeholder="Label" />
-                <TextInput
-                  source="color"
+            <LabeledValueListInput
+              source="noteStatuses"
+              placeholder="New status"
+            >
+              {(item, _index, updateItem) => (
+                <input
                   type="color"
-                  label={false}
-                  inputClassName="w-16 p-1 h-9"
+                  value={item.color || "#000000"}
+                  onChange={(e) => updateItem({ color: e.target.value })}
+                  className="w-8 h-8 p-0.5 rounded border cursor-pointer shrink-0"
                 />
-              </SimpleFormIterator>
-            </ArrayInput>
+              )}
+            </LabeledValueListInput>
           </CardContent>
         </Card>
 
@@ -281,12 +277,9 @@ const AppConfigFormFields = () => {
             <h2 className="text-xl font-semibold text-muted-foreground">
               Task Types
             </h2>
-            <TextInput
+            <LabeledValueListInput
               source="taskTypes"
-              label={false}
-              multiline
-              rows={6}
-              helperText="One type per line"
+              placeholder="New task type"
             />
           </CardContent>
         </Card>
@@ -304,6 +297,217 @@ const AppConfigFormFields = () => {
           </div>
         </div>
       </div>
+    </div>
+  );
+};
+
+/**
+ * Derive a stable slug value from a display label.
+ * e.g. "Communication Services" → "communication-services"
+ */
+const toSlug = (label: string): string =>
+  label
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "");
+
+type LabeledItem = { value: string; label: string; [key: string]: any };
+
+/**
+ * An editable list of { value, label } items, rendered as one row per item.
+ * Users only see and edit the label. The value is auto-derived from the label
+ * when creating a new item, but remains unchanged when editing an existing one.
+ *
+ * Extra fields (e.g. color) can be added per row via the children render prop.
+ */
+const LabeledValueListInput = ({
+  source,
+  placeholder = "New item",
+  reorderable = false,
+  children,
+}: {
+  source: string;
+  placeholder?: string;
+  reorderable?: boolean;
+  children?: (
+    item: LabeledItem,
+    index: number,
+    updateItem: (updates: Record<string, any>) => void,
+  ) => React.ReactNode;
+}) => {
+  const { watch, setValue } = useFormContext();
+  const rawItems: (string | LabeledItem)[] = watch(source) ?? [];
+  // Normalize plain strings (from old config format) into { value, label }
+  const items: LabeledItem[] = rawItems.map((item) =>
+    typeof item === "string" ? { value: toSlug(item), label: item } : item,
+  );
+  const [editingIndex, setEditingIndex] = useState<number | null>(null);
+  const [editLabel, setEditLabel] = useState("");
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  const setItems = useCallback(
+    (next: LabeledItem[]) => setValue(source, next, { shouldDirty: true }),
+    [setValue, source],
+  );
+
+  const startEditing = useCallback(
+    (index: number) => {
+      setEditLabel(items[index].label);
+      setEditingIndex(index);
+      setTimeout(() => inputRef.current?.focus(), 0);
+    },
+    [items],
+  );
+
+  const confirmEdit = useCallback(() => {
+    if (editingIndex == null) return;
+    const trimmed = editLabel.trim();
+    if (trimmed) {
+      const next = [...items];
+      const existing = next[editingIndex];
+      // Keep extra fields (e.g. color) and existing value; only derive value for new items
+      next[editingIndex] = {
+        ...existing,
+        value: existing.value || toSlug(trimmed),
+        label: trimmed,
+      };
+      setItems(next);
+    }
+    setEditingIndex(null);
+  }, [editingIndex, editLabel, items, setItems]);
+
+  const cancelEdit = useCallback(() => {
+    setEditingIndex(null);
+  }, []);
+
+  const removeItem = useCallback(
+    (index: number) => {
+      setItems(items.filter((_, i) => i !== index));
+      if (editingIndex === index) setEditingIndex(null);
+    },
+    [items, setItems, editingIndex],
+  );
+
+  const moveItem = useCallback(
+    (index: number, direction: -1 | 1) => {
+      const target = index + direction;
+      if (target < 0 || target >= items.length) return;
+      const next = [...items];
+      [next[index], next[target]] = [next[target], next[index]];
+      setItems(next);
+      // Keep editing index in sync if the edited item moved
+      if (editingIndex === index) setEditingIndex(target);
+      else if (editingIndex === target) setEditingIndex(index);
+    },
+    [items, setItems, editingIndex],
+  );
+
+  const addItem = useCallback(() => {
+    // Add an empty item — value will be derived on confirm
+    setItems([...items, { value: "", label: "" }]);
+    setEditLabel("");
+    setEditingIndex(items.length);
+    setTimeout(() => inputRef.current?.focus(), 0);
+  }, [items, setItems]);
+
+  return (
+    <div className="space-y-1">
+      <ul className="space-y-1">
+        {items.map((item, index) => {
+          const updateItem = (updates: Record<string, any>) => {
+            const next = [...items];
+            next[index] = { ...next[index], ...updates };
+            setItems(next);
+          };
+          return (
+            <li key={index} className="flex items-center gap-1">
+              {editingIndex === index ? (
+                <>
+                  <Input
+                    ref={inputRef}
+                    value={editLabel}
+                    onChange={(e) => setEditLabel(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") {
+                        e.preventDefault();
+                        confirmEdit();
+                      } else if (e.key === "Escape") {
+                        cancelEdit();
+                      }
+                    }}
+                    onBlur={confirmEdit}
+                    placeholder={placeholder}
+                    className="h-8 text-sm"
+                  />
+                  {children?.(item, index, updateItem)}
+                  <IconButtonWithTooltip
+                    label="Confirm"
+                    onClick={confirmEdit}
+                    className="h-8 w-8 shrink-0"
+                  >
+                    <Check className="h-4 w-4" />
+                  </IconButtonWithTooltip>
+                </>
+              ) : (
+                <>
+                  <span className="flex-1 text-sm px-3 py-1 truncate">
+                    {item.label || (
+                      <span className="text-muted-foreground italic">
+                        (empty)
+                      </span>
+                    )}
+                  </span>
+                  {children?.(item, index, updateItem)}
+                  <IconButtonWithTooltip
+                    label="Edit"
+                    onClick={() => startEditing(index)}
+                    className="h-8 w-8 shrink-0"
+                  >
+                    <Pencil className="h-3.5 w-3.5" />
+                  </IconButtonWithTooltip>
+                  {reorderable && (
+                    <>
+                      <IconButtonWithTooltip
+                        label="Move up"
+                        onClick={() => moveItem(index, -1)}
+                        disabled={index === 0}
+                        className="h-8 w-8 shrink-0"
+                      >
+                        <ArrowUp className="h-3.5 w-3.5" />
+                      </IconButtonWithTooltip>
+                      <IconButtonWithTooltip
+                        label="Move down"
+                        onClick={() => moveItem(index, 1)}
+                        disabled={index === items.length - 1}
+                        className="h-8 w-8 shrink-0"
+                      >
+                        <ArrowDown className="h-3.5 w-3.5" />
+                      </IconButtonWithTooltip>
+                    </>
+                  )}
+                  <IconButtonWithTooltip
+                    label="Remove"
+                    onClick={() => removeItem(index)}
+                    className="h-8 w-8 shrink-0"
+                  >
+                    <XCircle className="h-4 w-4 text-red-500" />
+                  </IconButtonWithTooltip>
+                </>
+              )}
+            </li>
+          );
+        })}
+      </ul>
+      <Button
+        type="button"
+        variant="ghost"
+        size="sm"
+        onClick={addItem}
+        className="mt-1"
+      >
+        <PlusCircle className="h-4 w-4 mr-1" />
+        Add
+      </Button>
     </div>
   );
 };
