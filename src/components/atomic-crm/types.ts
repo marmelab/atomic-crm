@@ -215,7 +215,7 @@ export interface LabeledValue {
   label: string;
 }
 
-export interface DealStage extends LabeledValue {}
+export type DealStage = LabeledValue
 
 export interface NoteStatus extends LabeledValue {
   color: string;
