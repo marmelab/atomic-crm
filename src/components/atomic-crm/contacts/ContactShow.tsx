@@ -187,11 +187,11 @@ const ContactShowContent = () => {
   if (isPending || !record) return null;
 
   return (
-    <div className="mt-2 mb-2 flex gap-8">
+    <div className="mt-4 mb-2 flex gap-6">
       <div className="flex-1">
         <Card>
           <CardContent>
-            <div className="flex">
+            <div className="flex pb-4 border-b border-border">
               <Avatar />
               <div className="ml-2 flex-1">
                 <h5 className="text-xl font-semibold">
@@ -223,16 +223,18 @@ const ContactShowContent = () => {
                 </ReferenceField>
               </div>
             </div>
-            <ReferenceManyField
-              target="contact_id"
-              reference="contact_notes"
-              sort={{ field: "date", order: "DESC" }}
-              empty={
-                <NoteCreate reference="contacts" showStatus className="mt-4" />
-              }
-            >
-              <NotesIterator reference="contacts" showStatus />
-            </ReferenceManyField>
+            <div className="mt-4">
+              <ReferenceManyField
+                target="contact_id"
+                reference="contact_notes"
+                sort={{ field: "date", order: "DESC" }}
+                empty={
+                  <NoteCreate reference="contacts" showStatus className="mt-4" />
+                }
+              >
+                <NotesIterator reference="contacts" showStatus />
+              </ReferenceManyField>
+            </div>
           </CardContent>
         </Card>
       </div>

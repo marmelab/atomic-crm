@@ -23,8 +23,8 @@ export const CompanyAside = ({ link = "edit" }: CompanyAsideProps) => {
   if (!record) return null;
 
   return (
-    <div className="hidden sm:block w-[250px] min-w-[250px] space-y-4">
-      <div className="flex flex-row space-x-1">
+    <div className="hidden sm:block w-[250px] min-w-[250px] space-y-4 border border-border rounded-lg p-4 bg-card">
+      <div className="flex flex-row space-x-1 pb-3 border-b border-border">
         {link === "edit" ? (
           <EditButton label="Edit Company" />
         ) : (

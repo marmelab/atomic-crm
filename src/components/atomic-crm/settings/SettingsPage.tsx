@@ -128,16 +128,16 @@ const SettingsForm = ({
   };
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
       <Card>
         <CardContent>
-          <div className="mb-4 flex flex-row justify-between">
-            <h2 className="text-xl font-semibold text-muted-foreground">
+          <div className="mb-4 pb-3 border-b border-border flex flex-row justify-between">
+            <h2 className="text-xl font-semibold text-foreground">
               My info
             </h2>
           </div>
 
-          <div className="space-y-4 mb-4">
+          <div className="space-y-4 mb-6 p-4 border border-border rounded-lg">
             <ImageEditorField
               source="avatar"
               type="avatar"
@@ -149,7 +149,7 @@ const SettingsForm = ({
             <TextRender source="email" isEditMode={isEditMode} />
           </div>
 
-          <div className="flex flex-row justify-end gap-2">
+          <div className="flex flex-row justify-end gap-2 pt-4 border-t border-border">
             {!isEditMode && (
               <>
                 <Button
@@ -185,16 +185,20 @@ const SettingsForm = ({
         <Card>
           <CardContent>
             <div className="space-y-4 justify-between">
-              <h2 className="text-xl font-semibold text-muted-foreground">
-                Inbound email
-              </h2>
+              <div className="pb-3 border-b border-border">
+                <h2 className="text-xl font-semibold text-foreground">
+                  Inbound email
+                </h2>
+              </div>
               <p className="text-sm text-muted-foreground">
                 You can start sending emails to your server's inbound email
                 address, e.g. by adding it to the
                 <b> Cc: </b> field. Atomic CRM will process the emails and add
                 notes to the corresponding contacts.
               </p>
-              <CopyPaste />
+              <div className="border border-border rounded-md">
+                <CopyPaste />
+              </div>
             </div>
           </CardContent>
         </Card>

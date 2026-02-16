@@ -15,7 +15,7 @@ export const CompanyListFilter = () => {
     name: sector,
   }));
   return (
-    <div className="w-52 min-w-52 flex flex-col gap-8">
+    <div className="w-52 min-w-52 flex flex-col gap-6 border border-border rounded-lg p-4 bg-card">
       <FilterLiveForm>
         <SearchInput source="q" />
       </FilterLiveForm>

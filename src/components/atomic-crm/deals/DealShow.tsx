@@ -83,12 +83,12 @@ const DealShowContent = () => {
             </div>
           </div>
 
-          <div className="flex gap-8 m-4">
-            <div className="flex flex-col mr-10">
-              <span className="text-xs text-muted-foreground tracking-wide">
+          <div className="flex gap-6 mx-4 my-4 p-4 border border-border rounded-lg bg-muted/20">
+            <div className="flex flex-col flex-1">
+              <span className="text-xs text-muted-foreground tracking-wide font-medium">
                 Expected closing date
               </span>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 mt-1">
                 <span className="text-sm">
                   {isValid(new Date(record.expected_closing_date))
                     ? format(new Date(record.expected_closing_date), "PP")
@@ -100,11 +100,11 @@ const DealShowContent = () => {
               </div>
             </div>
 
-            <div className="flex flex-col mr-10">
-              <span className="text-xs text-muted-foreground tracking-wide">
+            <div className="flex flex-col flex-1 border-l border-border pl-6">
+              <span className="text-xs text-muted-foreground tracking-wide font-medium">
                 Budget
               </span>
-              <span className="text-sm">
+              <span className="text-sm mt-1">
                 {record.amount.toLocaleString("en-US", {
                   notation: "compact",
                   style: "currency",
@@ -116,19 +116,19 @@ const DealShowContent = () => {
             </div>
 
             {record.category && (
-              <div className="flex flex-col mr-10">
-                <span className="text-xs text-muted-foreground tracking-wide">
+              <div className="flex flex-col flex-1 border-l border-border pl-6">
+                <span className="text-xs text-muted-foreground tracking-wide font-medium">
                   Category
                 </span>
-                <span className="text-sm">{record.category}</span>
+                <span className="text-sm mt-1">{record.category}</span>
               </div>
             )}
 
-            <div className="flex flex-col mr-10">
-              <span className="text-xs text-muted-foreground tracking-wide">
+            <div className="flex flex-col flex-1 border-l border-border pl-6">
+              <span className="text-xs text-muted-foreground tracking-wide font-medium">
                 Stage
               </span>
-              <span className="text-sm">
+              <span className="text-sm mt-1">
                 {findDealLabel(dealStages, record.stage)}
               </span>
             </div>

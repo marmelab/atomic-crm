@@ -84,12 +84,12 @@ export const DealsChart = memo(() => {
     { min: 0, max: 0 },
   );
   return (
-    <div className="flex flex-col">
-      <div className="flex items-center mb-4">
+    <div className="flex flex-col border border-border rounded-xl p-4 bg-card">
+      <div className="flex items-center pb-3 mb-4 border-b border-border">
         <div className="mr-3 flex">
-          <DollarSign className="text-muted-foreground w-6 h-6" />
+          <DollarSign className="text-muted-foreground w-5 h-5" />
         </div>
-        <h2 className="text-xl font-semibold text-muted-foreground">
+        <h2 className="text-lg font-semibold text-foreground">
           Upcoming Deal Revenue
         </h2>
       </div>

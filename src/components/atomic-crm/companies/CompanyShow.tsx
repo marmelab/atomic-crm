@@ -103,13 +103,13 @@ const CompanyShowContent = () => {
   if (isPending || !record) return null;
 
   return (
-    <div className="mt-2 flex pb-2 gap-8">
+    <div className="mt-4 flex pb-2 gap-6">
       <div className="flex-1">
         <Card>
           <CardContent>
-            <div className="flex mb-3">
+            <div className="flex mb-4 pb-4 border-b border-border">
               <CompanyAvatar />
-              <h5 className="text-xl ml-2 flex-1">{record.name}</h5>
+              <h5 className="text-xl ml-2 flex-1 font-semibold">{record.name}</h5>
             </div>
             <Tabs defaultValue={currentTab} onValueChange={handleTabChange}>
               <TabsList className="grid w-full grid-cols-3">

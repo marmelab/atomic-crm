@@ -40,7 +40,7 @@ export const Layout = (props: CoreLayoutProps) => {
           "has-[main.fixed-main]:group-data-[scroll-locked=1]/body:h-svh",
         )}
       >
-        <header className="flex h-16 md:h-12 shrink-0 items-center gap-2 px-4">
+        <header className="flex h-16 md:h-12 shrink-0 items-center gap-2 px-4 border-b border-border">
           <SidebarTrigger className="scale-125 sm:scale-100" />
           <div className="flex-1 flex items-center" id="breadcrumb" />
           <LocalesMenuButton />
@@ -59,7 +59,7 @@ export const Layout = (props: CoreLayoutProps) => {
           )}
         >
           <Suspense fallback={<Loading />}>
-            <div className="flex flex-1 flex-col px-4 ">{props.children}</div>
+            <div className="flex flex-1 flex-col px-4 pb-6 overflow-y-auto">{props.children}</div>
           </Suspense>
         </ErrorBoundary>
       </main>

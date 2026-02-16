@@ -7,9 +7,9 @@ import { Skeleton } from "@/components/ui/skeleton";
 import Header from "./Header";
 
 export const Layout = ({ children }: { children: ReactNode }) => (
-  <>
+  <div className="flex flex-col h-svh overflow-hidden">
     <Header />
-    <main className="max-w-screen-xl mx-auto pt-4 px-4" id="main-content">
+    <main className="max-w-screen-xl mx-auto pt-4 px-4 w-full flex-1 overflow-y-auto pb-6" id="main-content">
       <ErrorBoundary FallbackComponent={Error}>
         <Suspense fallback={<Skeleton className="h-12 w-12 rounded-full" />}>
           {children}
@@ -17,5 +17,5 @@ export const Layout = ({ children }: { children: ReactNode }) => (
       </ErrorBoundary>
     </main>
     <Notification />
-  </>
+  </div>
 );

@@ -62,7 +62,7 @@ function EditHeader() {
 
   return (
     <DialogTitle className="pb-0">
-      <div className="flex justify-between items-start mb-8">
+      <div className="flex justify-between items-start mb-6 pb-4 border-b border-border">
         <div className="flex items-center gap-4">
           <ReferenceField source="company_id" reference="companies" link="show">
             <CompanyAvatar />

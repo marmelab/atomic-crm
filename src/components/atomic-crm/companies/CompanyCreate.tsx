@@ -18,15 +18,18 @@ export const CompanyCreate = () => {
         return values;
       }}
     >
-      <div className="mt-2 flex lg:mr-72">
+      <div className="mt-4 flex lg:mr-72">
         <div className="flex-1">
           <Form defaultValues={{ sales_id: identity?.id }}>
             <Card>
               <CardContent>
+                <div className="pb-4 mb-4 border-b border-border">
+                  <h2 className="text-xl font-semibold">New Company</h2>
+                </div>
                 <CompanyInputs />
                 <div
                   role="toolbar"
-                  className="sticky flex pt-4 pb-4 md:pb-0 bottom-0 bg-linear-to-b from-transparent to-card to-10% flex-row justify-end gap-2"
+                  className="sticky flex pt-4 pb-4 md:pb-0 bottom-0 bg-linear-to-b from-transparent to-card to-10% flex-row justify-end gap-2 border-t border-border mt-4"
                 >
                   <CancelButton />
                   <SaveButton label="Create Company" />

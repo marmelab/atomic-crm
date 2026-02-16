@@ -28,10 +28,10 @@ const Header = () => {
 
   return (
     <>
-      <nav className="grow">
-        <header className="bg-secondary">
-          <div className="px-4">
-            <div className="flex justify-between items-center flex-1">
+      <nav className="grow-0 shrink-0">
+        <header className="bg-secondary border-b border-border">
+          <div className="px-6">
+            <div className="flex justify-between items-center flex-1 h-14">
               <Link
                 to="/"
                 className="flex items-center gap-2 text-secondary-foreground no-underline"
@@ -49,7 +49,7 @@ const Header = () => {
                 <h1 className="text-xl font-semibold">{title}</h1>
               </Link>
               <div>
-                <nav className="flex">
+                <nav className="flex gap-1">
                   <NavigationTab
                     label="Dashboard"
                     to="/"
@@ -72,7 +72,7 @@ const Header = () => {
                   />
                 </nav>
               </div>
-              <div className="flex items-center">
+              <div className="flex items-center gap-1">
                 <ThemeModeToggle />
                 <RefreshButton />
                 <UserMenu>
@@ -102,10 +102,10 @@ const NavigationTab = ({
 }) => (
   <Link
     to={to}
-    className={`px-6 py-3 text-sm font-medium transition-colors border-b-2 ${
+    className={`px-4 py-2 text-sm font-medium transition-colors rounded-md ${
       isActive
-        ? "text-secondary-foreground border-secondary-foreground"
-        : "text-secondary-foreground/70 border-transparent hover:text-secondary-foreground/80"
+        ? "text-secondary-foreground bg-background border border-border shadow-sm"
+        : "text-secondary-foreground/70 border border-transparent hover:text-secondary-foreground/80 hover:bg-background/50"
     }`}
   >
     {label}

@@ -43,14 +43,14 @@ export const DashboardStepper = ({
       >
         <Card className="w-full max-w-[600px]">
           <CardContent className="px-6">
-            <div className="flex items-center justify-between mb-8">
+            <div className="flex items-center justify-between mb-6 pb-4 border-b border-border">
               <h3 className="text-lg font-bold">What's next?</h3>
               <div className="w-[150px]">
                 <Progress value={(step / 3) * 100} className="mb-2" />
                 <div className="text-right text-sm">{step}/3 done</div>
               </div>
             </div>
-            <div className="flex flex-col gap-12">
+            <div className="flex flex-col gap-10">
               <div className="flex gap-8 items-center">
                 <CheckCircle className="text-green-600 w-5 h-5 shrink-0" />
                 <h4 className="font-bold">Install Atomic CRM</h4>

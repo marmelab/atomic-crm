@@ -180,3 +180,36 @@ input[type="time"] {
     @apply bg-background text-foreground;
   }
 }
+
+/* Visual structure utilities */
+.section-box {
+  @apply border border-border rounded-lg p-4;
+}
+
+.section-box-lg {
+  @apply border border-border rounded-xl p-6;
+}
+
+.section-header {
+  @apply border-b border-border pb-3 mb-4;
+}
+
+.content-section {
+  @apply border border-border rounded-lg bg-card p-4;
+}
+
+.filter-panel {
+  @apply border border-border rounded-lg p-4 bg-card;
+}
+
+.aside-panel {
+  @apply border border-border rounded-lg p-4 bg-card;
+}
+
+.toolbar-section {
+  @apply border border-border rounded-md p-2 bg-card;
+}
+
+.page-container {
+  @apply border border-border rounded-xl p-6 bg-card;
+}

@@ -17,13 +17,18 @@ export const ContactCreate = () => {
         tags: [],
       })}
     >
-      <div className="mt-2 flex lg:mr-72">
+      <div className="mt-4 flex lg:mr-72">
         <div className="flex-1">
           <Form defaultValues={{ sales_id: identity?.id }}>
             <Card>
               <CardContent>
+                <div className="pb-4 mb-4 border-b border-border">
+                  <h2 className="text-xl font-semibold">New Contact</h2>
+                </div>
                 <ContactInputs />
-                <FormToolbar />
+                <div className="pt-4 mt-4 border-t border-border">
+                  <FormToolbar />
+                </div>
               </CardContent>
             </Card>
           </Form>

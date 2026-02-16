@@ -7,21 +7,21 @@ import { ActivityLog } from "../activity/ActivityLog";
 export function DashboardActivityLog() {
   const isMobile = useIsMobile();
   return (
-    <div className="flex flex-col">
-      <div className="flex items-center mb-4 md:mb-2">
+    <div className="flex flex-col border border-border rounded-xl p-4 bg-card">
+      <div className="flex items-center pb-3 mb-4 border-b border-border">
         <div className="mr-3 flex">
-          <Clock className="text-muted-foreground w-6 h-6" />
+          <Clock className="text-muted-foreground w-5 h-5" />
         </div>
-        <h2 className="text-xl font-semibold text-muted-foreground">
+        <h2 className="text-lg font-semibold text-foreground">
           Latest Activity
         </h2>
       </div>
       {isMobile ? (
         <ActivityLog pageSize={10} />
       ) : (
-        <Card className="mb-2 p-6">
+        <div className="px-2">
           <ActivityLog pageSize={10} />
-        </Card>
+        </div>
       )}
     </div>
   );
