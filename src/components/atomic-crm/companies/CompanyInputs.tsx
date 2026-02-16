@@ -12,6 +12,7 @@ import { isLinkedinUrl } from "../misc/isLinkedInUrl";
 import { useConfigurationContext } from "../root/ConfigurationContext";
 import type { Company, Sale } from "../types";
 import { sizes } from "./sizes";
+import { CustomFieldsInput } from "../misc/CustomFieldsInput";
 
 const isUrl = (url: string) => {
   if (!url) return;
@@ -40,6 +41,7 @@ export const CompanyInputs = () => {
           <CompanyAddressInputs />
           <CompanyAdditionalInformationInputs />
           <CompanyAccountManagerInput />
+          <CustomFieldsInput entityType="company" />
         </div>
       </div>
     </div>

@@ -16,6 +16,7 @@ import { useConfigurationContext } from "../root/ConfigurationContext";
 import type { Sale } from "../types";
 import { Avatar } from "./Avatar";
 import { AutocompleteCompanyInput } from "../companies/AutocompleteCompanyInput.tsx";
+import { CustomFieldsInput } from "../misc/CustomFieldsInput";
 
 export const ContactInputs = () => {
   const isMobile = useIsMobile();
@@ -37,6 +38,7 @@ export const ContactInputs = () => {
         <div className="flex flex-col gap-8 flex-1">
           <ContactPersonalInformationInputs />
           <ContactMiscInputs />
+          <CustomFieldsInput entityType="contact" />
         </div>
       </div>
     </div>
