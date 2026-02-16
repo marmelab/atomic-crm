@@ -49,6 +49,7 @@ export type Sale = {
 } & Pick<RaRecord, "id">;
 
 export type Company = {
+  workspace_id?: Identifier;
   name: string;
   logo: RAFile;
   sector: string;
@@ -69,6 +70,7 @@ export type Company = {
   context_links?: string[];
   nb_contacts?: number;
   nb_deals?: number;
+  custom_fields?: Record<string, any>;
 } & Pick<RaRecord, "id">;
 
 export type EmailAndType = {
@@ -82,6 +84,7 @@ export type PhoneNumberAndType = {
 };
 
 export type Contact = {
+  workspace_id?: Identifier;
   first_name: string;
   last_name: string;
   title: string;
@@ -100,6 +103,7 @@ export type Contact = {
   phone_jsonb: PhoneNumberAndType[];
   nb_tasks?: number;
   company_name?: string;
+  custom_fields?: Record<string, any>;
 } & Pick<RaRecord, "id">;
 
 export type ContactNote = {
@@ -225,3 +229,98 @@ export interface ContactGender {
   label: string;
   icon: ComponentType<{ className?: string }>;
 }
+
+// Multi-tenancy
+export type Workspace = {
+  name: string;
+  slug: string;
+  settings: Record<string, any>;
+  created_at: string;
+} & Pick<RaRecord, "id">;
+
+// Custom Fields
+export type CustomFieldDataType =
+  | 'string'
+  | 'number'
+  | 'date'
+  | 'boolean'
+  | 'enum'
+  | 'multi_enum'
+  | 'url'
+  | 'email'
+  | 'phone';
+
+export type CustomFieldInputType =
+  | 'text'
+  | 'textarea'
+  | 'number'
+  | 'date'
+  | 'checkbox'
+  | 'select'
+  | 'multiselect'
+  | 'url'
+  | 'email'
+  | 'phone';
+
+export type CustomFieldEntityType = 'contact' | 'company' | 'deal';
+
+export type CustomFieldDefinition = {
+  workspace_id: Identifier;
+  entity_type: CustomFieldEntityType;
+  key: string;
+  label: string;
+  data_type: CustomFieldDataType;
+  input_type: CustomFieldInputType;
+  is_required: boolean;
+  is_filterable: boolean;
+  is_active: boolean;
+  sort_order: number;
+  options?: any[];
+  default_value?: any;
+  validation_rules?: Record<string, any>;
+  help_text?: string;
+  created_at: string;
+  updated_at: string;
+} & Pick<RaRecord, "id">;
+
+// CSV Import
+export type ImportJobStatus =
+  | 'pending'
+  | 'mapping'
+  | 'validating'
+  | 'importing'
+  | 'completed'
+  | 'failed'
+  | 'cancelled';
+
+export type ImportJob = {
+  workspace_id: Identifier;
+  entity_type: CustomFieldEntityType;
+  created_by: Identifier;
+  status: ImportJobStatus;
+  total_rows: number;
+  processed_rows: number;
+  success_rows: number;
+  failed_rows: number;
+  file_name: string;
+  file_url?: string;
+  mapping: Record<string, string>;
+  validation_errors: any[];
+  failed_rows_data: any[];
+  options: Record<string, any>;
+  created_at: string;
+  updated_at: string;
+  completed_at?: string;
+} & Pick<RaRecord, "id">;
+
+export type ImportMappingTemplate = {
+  workspace_id: Identifier;
+  entity_type: CustomFieldEntityType;
+  name: string;
+  description?: string;
+  mapping: Record<string, string>;
+  is_default: boolean;
+  created_by: Identifier;
+  created_at: string;
+  updated_at: string;
+} & Pick<RaRecord, "id">;

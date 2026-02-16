@@ -34,9 +34,9 @@ const CompanyListLayout = () => {
   if (!data?.length && !hasFilters) return <CompanyEmpty />;
 
   return (
-    <div className="w-full flex flex-row gap-8">
+    <div className="flex flex-row gap-6">
       <CompanyListFilter />
-      <div className="flex flex-col flex-1 gap-4">
+      <div className="flex-1">
         <ImageList />
       </div>
     </div>

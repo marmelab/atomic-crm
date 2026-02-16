@@ -12,8 +12,8 @@ export const Layout = ({ children }: { children: ReactNode }) => (
     <Sidebar />
     <div className="flex-1 flex flex-col overflow-hidden">
       <Header />
-      <main className="flex-1 overflow-y-auto">
-        <div className="max-w-screen-2xl mx-auto pt-4 px-4 pb-8" id="main-content">
+      <main className="flex-1 overflow-y-auto bg-background">
+        <div className="max-w-[1800px] mx-auto px-6 py-6" id="main-content">
           <ErrorBoundary FallbackComponent={Error}>
             <Suspense fallback={<Skeleton className="h-12 w-12 rounded-full" />}>
               {children}

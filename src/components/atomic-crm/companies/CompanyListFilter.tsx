@@ -15,43 +15,45 @@ export const CompanyListFilter = () => {
     name: sector,
   }));
   return (
-    <div className="w-52 min-w-52 flex flex-col gap-8">
-      <FilterLiveForm>
-        <SearchInput source="q" />
-      </FilterLiveForm>
+    <div className="w-64 flex-shrink-0">
+      <div className="sticky top-4 flex flex-col gap-6">
+        <FilterLiveForm>
+          <SearchInput source="q" />
+        </FilterLiveForm>
 
-      <FilterCategory icon={<Building className="h-4 w-4" />} label="Size">
-        {sizes.map((size) => (
+        <FilterCategory icon={<Building className="h-4 w-4" />} label="Size">
+          {sizes.map((size) => (
+            <ToggleFilterButton
+              className="w-full justify-between"
+              label={size.name}
+              key={size.name}
+              value={{ size: size.id }}
+            />
+          ))}
+        </FilterCategory>
+
+        <FilterCategory icon={<Truck className="h-4 w-4" />} label="Sector">
+          {sectors.map((sector) => (
+            <ToggleFilterButton
+              className="w-full justify-between"
+              label={sector.name}
+              key={sector.name}
+              value={{ sector: sector.id }}
+            />
+          ))}
+        </FilterCategory>
+
+        <FilterCategory
+          icon={<Users className="h-4 w-4" />}
+          label="Account Manager"
+        >
           <ToggleFilterButton
             className="w-full justify-between"
-            label={size.name}
-            key={size.name}
-            value={{ size: size.id }}
+            label={"Me"}
+            value={{ sales_id: identity?.id }}
           />
-        ))}
-      </FilterCategory>
-
-      <FilterCategory icon={<Truck className="h-4 w-4" />} label="Sector">
-        {sectors.map((sector) => (
-          <ToggleFilterButton
-            className="w-full justify-between"
-            label={sector.name}
-            key={sector.name}
-            value={{ sector: sector.id }}
-          />
-        ))}
-      </FilterCategory>
-
-      <FilterCategory
-        icon={<Users className="h-4 w-4" />}
-        label="Account Manager"
-      >
-        <ToggleFilterButton
-          className="w-full justify-between"
-          label={"Me"}
-          value={{ sales_id: identity?.id }}
-        />
-      </FilterCategory>
+        </FilterCategory>
+      </div>
     </div>
   );
 };

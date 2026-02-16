@@ -108,11 +108,13 @@ export const ResponsiveFilters = ({
   }
 
   return (
-    <div className="w-52 min-w-52 order-first pt-0.75 flex flex-col gap-4">
-      <FilterLiveForm>
-        <SearchInput source={source} {...otherSearchInputProps} />
-      </FilterLiveForm>
-      {children}
+    <div className="w-64 flex-shrink-0">
+      <div className="sticky top-4 flex flex-col gap-6">
+        <FilterLiveForm>
+          <SearchInput source={source} {...otherSearchInputProps} />
+        </FilterLiveForm>
+        {children}
+      </div>
     </div>
   );
 };
