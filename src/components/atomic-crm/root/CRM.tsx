@@ -32,6 +32,7 @@ import {
 } from "../providers/supabase";
 import sales from "../sales";
 import { SettingsPage } from "../settings/SettingsPage";
+import { CustomFieldsManager } from "../settings/CustomFieldsManager";
 import type { ConfigurationContextValue } from "./ConfigurationContext";
 import { ConfigurationProvider } from "./ConfigurationContext";
 import {
@@ -186,6 +187,7 @@ const DesktopAdmin = (props: CoreAdminProps) => {
 
       <CustomRoutes>
         <Route path={SettingsPage.path} element={<SettingsPage />} />
+        <Route path="/custom-fields" element={<CustomFieldsManager />} />
         <Route path={ImportPage.path} element={<ImportPage />} />
       </CustomRoutes>
       <Resource name="deals" {...deals} />
@@ -196,6 +198,9 @@ const DesktopAdmin = (props: CoreAdminProps) => {
       <Resource name="tasks" />
       <Resource name="sales" {...sales} />
       <Resource name="tags" />
+      <Resource name="custom_field_definitions" />
+      <Resource name="import_jobs" />
+      <Resource name="import_mapping_templates" />
     </Admin>
   );
 };

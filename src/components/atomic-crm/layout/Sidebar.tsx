@@ -1,4 +1,4 @@
-import { Home, Users, Building2, Briefcase, User, Settings, Import } from "lucide-react";
+import { Home, Users, Building2, Briefcase, User, Settings, Import, Sliders } from "lucide-react";
 import { CanAccess } from "ra-core";
 import { Link, matchPath, useLocation } from "react-router";
 import { cn } from "@/lib/utils";
@@ -80,6 +80,14 @@ export const Sidebar = () => {
             label="My info"
             isActive={isActive("/settings")}
           />
+          <CanAccess resource="sales" action="list">
+            <SidebarLink
+              to="/custom-fields"
+              icon={Sliders}
+              label="Custom Fields"
+              isActive={isActive("/custom-fields")}
+            />
+          </CanAccess>
           <SidebarLink
             to={ImportPage.path}
             icon={Import}
