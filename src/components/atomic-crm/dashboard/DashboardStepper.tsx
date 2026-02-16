@@ -43,7 +43,7 @@ export const DashboardStepper = ({
       >
         <Card className="w-full max-w-[600px]">
           <CardContent className="px-6">
-            <div className="flex items-center justify-between mb-6 pb-4 border-b border-border">
+            <div className="flex items-center justify-between pb-3 mb-4 border-b border-border">
               <h3 className="text-lg font-bold">What's next?</h3>
               <div className="w-[150px]">
                 <Progress value={(step / 3) * 100} className="mb-2" />

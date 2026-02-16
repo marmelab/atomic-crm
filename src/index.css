@@ -187,7 +187,7 @@ input[type="time"] {
 }
 
 .section-box-lg {
-  @apply border border-border rounded-xl p-6;
+  @apply border border-border rounded-lg p-6;
 }
 
 .section-header {
@@ -207,9 +207,9 @@ input[type="time"] {
 }
 
 .toolbar-section {
-  @apply border border-border rounded-md p-2 bg-card;
+  @apply border border-border rounded-lg p-2 bg-card;
 }
 
 .page-container {
-  @apply border border-border rounded-xl p-6 bg-card;
+  @apply border border-border rounded-lg p-6 bg-card;
 }

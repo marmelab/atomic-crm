@@ -23,7 +23,7 @@ export const CompanyAside = ({ link = "edit" }: CompanyAsideProps) => {
   if (!record) return null;
 
   return (
-    <div className="hidden sm:block w-[250px] min-w-[250px] space-y-4 border border-border rounded-lg p-4 bg-card">
+    <div className="hidden sm:block w-64 min-w-64 space-y-4 border border-border rounded-lg p-4 bg-card">
       <div className="flex flex-row space-x-1 pb-3 border-b border-border">
         {link === "edit" ? (
           <EditButton label="Edit Company" />
@@ -41,7 +41,7 @@ export const CompanyAside = ({ link = "edit" }: CompanyAsideProps) => {
       <AdditionalInfo record={record} />
 
       {link !== "edit" && (
-        <div className="mt-6 pt-6 border-t hidden sm:flex flex-col gap-2 items-start">
+        <div className="mt-4 pt-4 border-t hidden sm:flex flex-col gap-2 items-start">
           <DeleteButton
             className="h-6 cursor-pointer hover:bg-destructive/10! text-destructive! border-destructive! focus-visible:ring-destructive/20 dark:focus-visible:ring-destructive/40"
             size="sm"

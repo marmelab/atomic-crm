@@ -3,7 +3,6 @@ import { useGetList } from "ra-core";
 import type { Contact, ContactNote } from "../types";
 import { DashboardActivityLog } from "./DashboardActivityLog";
 import { DashboardStepper } from "./DashboardStepper";
-import { HotContacts } from "./HotContacts";
 import { TasksList } from "./TasksList";
 import { Welcome } from "./Welcome";
 
@@ -37,19 +36,15 @@ export const Dashboard = () => {
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-12 gap-6 mt-4">
-      <div className="md:col-span-3">
-        <div className="flex flex-col gap-4">
-          {import.meta.env.VITE_IS_DEMO === "true" ? <Welcome /> : null}
-          <HotContacts />
+      {import.meta.env.VITE_IS_DEMO === "true" ? (
+        <div className="md:col-span-12">
+          <Welcome />
         </div>
+      ) : null}
+      <div className="md:col-span-8">
+        <DashboardActivityLog />
       </div>
-      <div className="md:col-span-6">
-        <div className="flex flex-col gap-6">
-          <DashboardActivityLog />
-        </div>
-      </div>
-
-      <div className="md:col-span-3">
+      <div className="md:col-span-4">
         <TasksList />
       </div>
     </div>

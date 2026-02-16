@@ -16,7 +16,7 @@ export const DealColumn = ({
 
   const { dealStages } = useConfigurationContext();
   return (
-    <div className="flex-1 pb-4 border border-border rounded-xl bg-card overflow-hidden">
+    <div className="flex-1 pb-4 border border-border rounded-lg bg-card overflow-hidden">
       <div className="flex flex-col items-center py-3 border-b border-border bg-muted/30">
         <h3 className="text-base font-medium">
           {findDealLabel(dealStages, stage)}
@@ -36,7 +36,7 @@ export const DealColumn = ({
           <div
             ref={droppableProvided.innerRef}
             {...droppableProvided.droppableProps}
-            className={`flex flex-col rounded-b-xl mt-0 gap-2 p-2 min-h-[100px] ${
+            className={`flex flex-col rounded-b-lg mt-0 gap-2 p-2 min-h-[100px] ${
               snapshot.isDraggingOver ? "bg-muted/50" : ""
             }`}
           >

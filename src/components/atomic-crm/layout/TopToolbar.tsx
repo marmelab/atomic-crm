@@ -11,7 +11,7 @@ export const TopToolbar = (inProps: TopToolbarProps) => {
   return (
     <div
       className={cn(
-        "flex flex-auto justify-end items-end gap-2 whitespace-nowrap border border-border rounded-md px-3 py-2 bg-card",
+        "flex flex-auto justify-end items-end gap-2 whitespace-nowrap border border-border rounded-lg px-3 py-2 bg-card",
         className,
       )}
       {...props}
