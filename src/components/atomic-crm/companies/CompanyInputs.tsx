@@ -29,8 +29,9 @@ export const CompanyInputs = () => {
   return (
     <div className="flex flex-col gap-4 p-1">
       <CompanyDisplayInputs />
+      <p className="text-sm text-muted-foreground">* Required fields</p>
       <div className={`flex gap-6 ${isMobile ? "flex-col" : "flex-row"}`}>
-        <div className="flex flex-col gap-10 flex-1">
+        <div className="flex flex-col gap-8 flex-1">
           <CompanyContactInputs />
           <CompanyContextInputs />
         </div>
@@ -59,6 +60,7 @@ const CompanyDisplayInputs = () => {
       />
       <TextInput
         source="name"
+        label="Company Name *"
         className="w-full h-fit"
         validate={required()}
         helperText={false}
@@ -71,7 +73,7 @@ const CompanyDisplayInputs = () => {
 const CompanyContactInputs = () => {
   return (
     <div className="flex flex-col gap-4">
-      <h6 className="text-lg font-semibold">Contact</h6>
+      <h3 className="text-base font-semibold">Contact</h6>
       <TextInput source="website" helperText={false} validate={isUrl} />
       <TextInput
         source="linkedin_url"
@@ -87,7 +89,7 @@ const CompanyContextInputs = () => {
   const { companySectors } = useConfigurationContext();
   return (
     <div className="flex flex-col gap-4">
-      <h6 className="text-lg font-semibold">Context</h6>
+      <h3 className="text-base font-semibold">Context</h6>
       <SelectInput
         source="sector"
         choices={companySectors.map((sector) => ({
@@ -106,7 +108,7 @@ const CompanyContextInputs = () => {
 const CompanyAddressInputs = () => {
   return (
     <div className="flex flex-col gap-4">
-      <h6 className="text-lg font-semibold">Address</h6>
+      <h3 className="text-base font-semibold">Address</h6>
       <TextInput source="address" helperText={false} />
       <TextInput source="city" helperText={false} />
       <TextInput source="zipcode" helperText={false} />
@@ -119,7 +121,7 @@ const CompanyAddressInputs = () => {
 const CompanyAdditionalInformationInputs = () => {
   return (
     <div className="flex flex-col gap-4">
-      <h6 className="text-lg font-semibold">Additional information</h6>
+      <h3 className="text-base font-semibold">Additional information</h6>
       <TextInput source="description" multiline helperText={false} />
       <ArrayInput source="context_links" helperText={false}>
         <SimpleFormIterator disableReordering fullWidth getItemLabel={false}>
@@ -138,7 +140,7 @@ const CompanyAdditionalInformationInputs = () => {
 const CompanyAccountManagerInput = () => {
   return (
     <div className="flex flex-col gap-4">
-      <h6 className="text-lg font-semibold">Account manager</h6>
+      <h3 className="text-base font-semibold">Account manager</h6>
       <ReferenceInput
         source="sales_id"
         reference="sales"

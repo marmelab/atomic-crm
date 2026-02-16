@@ -113,7 +113,7 @@ const ContactShowContentMobile = () => {
         </div>
 
         <Tabs defaultValue="notes" className="w-full">
-          <TabsList className="grid w-full grid-cols-3 h-10">
+          <TabsList className="grid w-full grid-cols-3 h-12">
             <TabsTrigger value="notes">Notes</TabsTrigger>
             <TabsTrigger value="tasks">
               <ReferenceManyCount
@@ -126,19 +126,22 @@ const ContactShowContentMobile = () => {
             <TabsTrigger value="details">Details</TabsTrigger>
           </TabsList>
 
-          <TabsContent value="notes" className="mt-4">
+          <TabsContent value="notes" className="mt-6">
             <ReferenceManyField
               target="contact_id"
               reference="contact_notes"
               sort={{ field: "date", order: "DESC" }}
               empty={
-                <div className="flex flex-col items-center justify-center py-8 text-center">
-                  <p className="text-muted-foreground mb-4">No notes yet</p>
+                <div className="flex flex-col items-center justify-center py-12 text-center">
+                  <p className="text-muted-foreground mb-2">No notes yet</p>
+                  <p className="text-sm text-muted-foreground mb-6">
+                    Add a note to track conversations and updates
+                  </p>
                   <Button
                     variant="outline"
                     onClick={() => setNoteCreateOpen(true)}
                   >
-                    Add note
+                    Add your first note
                   </Button>
                 </div>
               }
@@ -147,11 +150,11 @@ const ContactShowContentMobile = () => {
             </ReferenceManyField>
           </TabsContent>
 
-          <TabsContent value="tasks" className="mt-4">
+          <TabsContent value="tasks" className="mt-6">
             <ContactTasksList />
           </TabsContent>
 
-          <TabsContent value="details" className="mt-4">
+          <TabsContent value="details" className="mt-6">
             <div className="space-y-6">
               <div>
                 <h3 className="text-lg font-semibold">Personal info</h3>

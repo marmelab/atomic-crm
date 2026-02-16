@@ -21,14 +21,17 @@ export const ContactEmpty = () => {
           height: `calc(100dvh - ${appbarHeight}px)`,
         }}
       >
-        <img src="./img/empty.svg" alt="No contacts found" />
-        <div className="flex flex-col gap-0 items-center">
-          <h6 className="text-lg font-bold">No contacts found</h6>
-          <p className="text-sm text-muted-foreground text-center mb-4">
+        <img src="./img/empty.svg" alt="No contacts found" className="w-48 h-48" />
+        <div className="flex flex-col gap-2 items-center">
+          <h2 className="text-xl font-bold">No contacts found</h2>
+          <p className="text-sm text-muted-foreground text-center">
             It seems your contact list is empty.
           </p>
+          <p className="text-sm text-muted-foreground text-center mb-2">
+            Create your first contact or import from a CSV file.
+          </p>
         </div>
-        <div className="flex flex-row gap-2">
+        <div className="flex flex-row gap-3">
           {isMobile ? (
             <Button
               onClick={() => setCreateOpen(true)}

@@ -17,6 +17,13 @@ export const TasksListEmpty = () => {
   if (total) return null;
 
   return (
-    <p className="text-sm">Tasks added to your contacts will appear here.</p>
+    <div className="text-center py-6">
+      <p className="text-sm text-muted-foreground">
+        Tasks added to your contacts will appear here.
+      </p>
+      <p className="text-sm text-muted-foreground mt-2">
+        Create a task from a contact detail page to get started.
+      </p>
+    </div>
   );
 };

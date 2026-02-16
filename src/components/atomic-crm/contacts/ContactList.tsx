@@ -11,7 +11,8 @@ import { CreateButton } from "@/components/admin/create-button";
 import { ExportButton } from "@/components/admin/export-button";
 import { List } from "@/components/admin/list";
 import { SortButton } from "@/components/admin/sort-button";
-import { Card } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
 
 import type { Company, Contact, Sale, Tag } from "../types";
 import { ContactEmpty } from "./ContactEmpty";
@@ -52,15 +53,15 @@ const ContactListLayoutDesktop = () => {
 
   const hasFilters = filterValues && Object.keys(filterValues).length > 0;
 
-  if (isPending) return null;
+  if (isPending) return <ContactListSkeleton />;
 
   if (!data?.length && !hasFilters) return <ContactEmpty />;
 
   return (
-    <div className="flex flex-row gap-8">
+    <div className="flex flex-row gap-6">
       <ContactListFilter />
-      <div className="w-full flex flex-col gap-4">
-        <Card className="py-0">
+      <div className="flex-1 flex flex-col">
+        <Card className="overflow-hidden">
           <ContactListContent />
         </Card>
       </div>
@@ -114,6 +115,44 @@ const ContactListLayoutMobile = () => {
           </div>
         )}
       </MobileContent>
+    </div>
+  );
+};
+
+const ContactListSkeleton = () => {
+  return (
+    <div className="flex flex-row gap-6">
+      <div className="w-64 flex-shrink-0">
+        <Card>
+          <CardContent className="p-6">
+            <Skeleton className="h-6 w-24 mb-4" />
+            <div className="space-y-3">
+              {[1, 2, 3, 4].map((i) => (
+                <Skeleton key={i} className="h-10 w-full" />
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+      <div className="flex-1">
+        <Card>
+          <CardContent className="p-6">
+            <div className="space-y-4">
+              {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
+                <div key={i} className="flex items-center gap-4">
+                  <Skeleton className="h-10 w-10 rounded-full" />
+                  <div className="flex-1 space-y-2">
+                    <Skeleton className="h-4 w-48" />
+                    <Skeleton className="h-3 w-64" />
+                  </div>
+                  <Skeleton className="h-4 w-32" />
+                  <Skeleton className="h-4 w-24" />
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 };

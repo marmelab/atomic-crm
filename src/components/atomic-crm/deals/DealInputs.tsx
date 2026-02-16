@@ -16,7 +16,8 @@ import { AutocompleteCompanyInput } from "../companies/AutocompleteCompanyInput.
 export const DealInputs = () => {
   const isMobile = useIsMobile();
   return (
-    <div className="flex flex-col gap-8">
+    <div className="flex flex-col gap-6">
+      <p className="text-sm text-muted-foreground">* Required fields</p>
       <DealInfoInputs />
 
       <div className={`flex gap-6 ${isMobile ? "flex-col" : "flex-row"}`}>
@@ -33,7 +34,7 @@ const DealInfoInputs = () => {
     <div className="flex flex-col gap-4 flex-1">
       <TextInput
         source="name"
-        label="Deal name"
+        label="Deal Name *"
         validate={required()}
         helperText={false}
       />
@@ -45,9 +46,9 @@ const DealInfoInputs = () => {
 const DealLinkedToInputs = () => {
   return (
     <div className="flex flex-col gap-4 flex-1">
-      <h3 className="text-base font-medium">Linked to</h3>
+      <h3 className="text-base font-semibold">Linked to</h3>
       <ReferenceInput source="company_id" reference="companies">
-        <AutocompleteCompanyInput validate={required()} />
+        <AutocompleteCompanyInput label="Company *" validate={required()} />
       </ReferenceInput>
 
       <ReferenceArrayInput source="contact_ids" reference="contacts_summary">
@@ -65,7 +66,7 @@ const DealMiscInputs = () => {
   const { dealStages, dealCategories } = useConfigurationContext();
   return (
     <div className="flex flex-col gap-4 flex-1">
-      <h3 className="text-base font-medium">Misc</h3>
+      <h3 className="text-base font-semibold">Misc</h3>
 
       <SelectInput
         source="category"
@@ -78,11 +79,13 @@ const DealMiscInputs = () => {
       />
       <NumberInput
         source="amount"
+        label="Amount *"
         defaultValue={0}
         helperText={false}
         validate={required()}
       />
       <DateInput
+        label="Expected Closing Date *"
         validate={required()}
         source="expected_closing_date"
         helperText={false}
@@ -90,6 +93,7 @@ const DealMiscInputs = () => {
       />
       <SelectInput
         source="stage"
+        label="Stage *"
         choices={dealStages.map((stage) => ({
           id: stage.value,
           name: stage.label,

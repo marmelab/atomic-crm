@@ -31,25 +31,24 @@ export const HotContacts = () => {
   );
 
   return (
-    <div className="flex flex-col gap-2">
-      <div className="flex items-center">
-        <div className="mr-3 flex">
-          <Users className="text-muted-foreground w-6 h-6" />
-        </div>
-        <h2 className="text-xl font-semibold text-muted-foreground">
+    <div className="flex flex-col gap-3">
+      <div className="flex items-center gap-3">
+        <Users className="size-6 text-muted-foreground" />
+        <h2 className="text-lg font-semibold text-muted-foreground flex-1">
           Hot Contacts
         </h2>
         <TooltipProvider>
           <Tooltip>
             <TooltipTrigger asChild>
               <Button
-                variant="ghost"
+                variant="outline"
                 size="sm"
-                className="ml-auto text-muted-foreground"
+                className="h-8"
                 asChild
               >
                 <Link to="/contacts/create">
-                  <Plus className="w-4 h-4 text-primary" />
+                  <Plus className="size-4 mr-1" />
+                  <span className="hidden sm:inline">Add</span>
                 </Link>
               </Button>
             </TooltipTrigger>
@@ -57,7 +56,7 @@ export const HotContacts = () => {
           </Tooltip>
         </TooltipProvider>
       </div>
-      <Card className="py-0">
+      <Card className="overflow-hidden">
         <SimpleList<Contact>
           linkType="show"
           data={contactData}
@@ -75,14 +74,16 @@ export const HotContacts = () => {
           )}
           leftAvatar={(contact) => <Avatar record={contact} />}
           empty={
-            <div className="p-4">
-              <p className="text-sm mb-4">
+            <div className="p-6 text-center">
+              <p className="text-sm text-muted-foreground mb-4">
                 Contacts with a "hot" status will appear here.
               </p>
-              <p className="text-sm">
-                Change the status of a contact by adding a note to that contact
-                and clicking on "show options".
+              <p className="text-sm text-muted-foreground mb-4">
+                Change the status of a contact by adding a note and selecting "hot" status.
               </p>
+              <Button variant="outline" size="sm" asChild>
+                <Link to="/contacts">View all contacts</Link>
+              </Button>
             </div>
           }
         />

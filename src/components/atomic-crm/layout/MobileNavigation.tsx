@@ -114,7 +114,7 @@ const NavigationButton = ({
   >
     <Link to={href}>
       <Icon className="size-6" />
-      <span className="text-[0.6rem] font-medium">{label}</span>
+      <span className="text-xs font-medium">{label}</span>
     </Link>
   </Button>
 );
@@ -196,7 +196,7 @@ const SettingsButton = () => {
           className="flex-col gap-1 h-auto py-2 px-1 rounded-md w-16 text-muted-foreground"
         >
           <Settings className="size-6" />
-          <span className="text-[0.6rem] font-medium">Settings</span>
+          <span className="text-xs font-medium">Settings</span>
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent>

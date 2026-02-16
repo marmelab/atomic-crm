@@ -21,19 +21,20 @@ export const ContactInputs = () => {
   const isMobile = useIsMobile();
 
   return (
-    <div className="flex flex-col gap-2 p-1 relative md:static">
+    <div className="flex flex-col gap-4 p-1 relative md:static">
       <div className="absolute top-0 right-1 md:static">
         <Avatar />
       </div>
-      <div className="flex gap-10 md:gap-6 flex-col md:flex-row">
-        <div className="flex flex-col gap-10 flex-1">
+      <p className="text-sm text-muted-foreground">* Required fields</p>
+      <div className="flex gap-8 md:gap-6 flex-col md:flex-row">
+        <div className="flex flex-col gap-8 flex-1">
           <ContactIdentityInputs />
           <ContactPositionInputs />
         </div>
         {isMobile ? null : (
           <Separator orientation="vertical" className="flex-shrink-0" />
         )}
-        <div className="flex flex-col gap-10 flex-1">
+        <div className="flex flex-col gap-8 flex-1">
           <ContactPersonalInformationInputs />
           <ContactMiscInputs />
         </div>
@@ -46,7 +47,7 @@ const ContactIdentityInputs = () => {
   const { contactGender } = useConfigurationContext();
   return (
     <div className="flex flex-col gap-4">
-      <h6 className="text-lg font-semibold">Identity</h6>
+      <h3 className="text-base font-semibold">Identity</h3>
       <RadioButtonGroupInput
         label={false}
         row
@@ -57,8 +58,8 @@ const ContactIdentityInputs = () => {
         optionValue="value"
         defaultValue={contactGender[0].value}
       />
-      <TextInput source="first_name" validate={required()} helperText={false} />
-      <TextInput source="last_name" validate={required()} helperText={false} />
+      <TextInput source="first_name" label="First Name *" validate={required()} helperText={false} />
+      <TextInput source="last_name" label="Last Name *" validate={required()} helperText={false} />
     </div>
   );
 };
@@ -66,7 +67,7 @@ const ContactIdentityInputs = () => {
 const ContactPositionInputs = () => {
   return (
     <div className="flex flex-col gap-4">
-      <h6 className="text-lg font-semibold">Position</h6>
+      <h3 className="text-base font-semibold">Position</h3>
       <TextInput source="title" helperText={false} />
       <ReferenceInput source="company_id" reference="companies" perPage={10}>
         <AutocompleteCompanyInput />
@@ -106,7 +107,7 @@ const ContactPersonalInformationInputs = () => {
 
   return (
     <div className="flex flex-col gap-4">
-      <h6 className="text-lg font-semibold">Personal info</h6>
+      <h3 className="text-base font-semibold">Personal info</h3>
       <ArrayInput
         source="email_jsonb"
         label="Email addresses"
@@ -179,7 +180,7 @@ const personalInfoTypes = [{ id: "Work" }, { id: "Home" }, { id: "Other" }];
 const ContactMiscInputs = () => {
   return (
     <div className="flex flex-col gap-4">
-      <h6 className="text-lg font-semibold">Misc</h6>
+      <h3 className="text-base font-semibold">Misc</h3>
       <TextInput
         source="background"
         label="Background info (bio, how you met, etc)"
@@ -197,7 +198,7 @@ const ContactMiscInputs = () => {
       >
         <SelectInput
           helperText={false}
-          label="Account manager"
+          label="Account Manager *"
           optionText={saleOptionRenderer}
           validate={required()}
         />
