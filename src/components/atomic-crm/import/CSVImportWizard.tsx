@@ -1,7 +1,7 @@
 import { useState } from "react";
-import { useCreate, useDataProvider, useGetIdentity } from "ra-core";
+import { useCreate, useDataProvider, useGetIdentity, useNotify } from "ra-core";
 import Papa from "papaparse";
-import { Upload, ArrowRight, ArrowLeft, Check, AlertCircle } from "lucide-react";
+import { Upload, ArrowRight, ArrowLeft, Check, AlertCircle, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -52,12 +52,13 @@ export const CSVImportWizard = ({ entityType }: { entityType: CustomFieldEntityT
   const [csvData, setCsvData] = useState<CSVRow[]>([]);
   const [mapping, setMapping] = useState<Record<string, string>>({});
   const [importing, setImporting] = useState(false);
-  const [importResult, setImportResult] = useState<{ success: number; failed: number } | null>(
+  const [importResult, setImportResult] = useState<{ success: number; failed: number; errors: string[] } | null>(
     null
   );
 
   const { identity } = useGetIdentity();
   const dataProvider = useDataProvider();
+  const notify = useNotify();
 
   const availableFields = entityType === "contact" ? CONTACT_FIELDS : COMPANY_FIELDS;
 
@@ -69,8 +70,16 @@ export const CSVImportWizard = ({ entityType }: { entityType: CustomFieldEntityT
 
     Papa.parse(uploadedFile, {
       header: true,
+      skipEmptyLines: true,
       complete: (results) => {
-        setCsvData(results.data as CSVRow[]);
+        const data = results.data as CSVRow[];
+
+        // Filter out completely empty rows
+        const validData = data.filter(row =>
+          Object.values(row).some(val => val && String(val).trim() !== '')
+        );
+
+        setCsvData(validData);
 
         // Auto-detect mappings using fuzzy matching
         const headers = results.meta.fields || [];
@@ -94,14 +103,21 @@ export const CSVImportWizard = ({ entityType }: { entityType: CustomFieldEntityT
       },
       error: (error) => {
         console.error("Error parsing CSV:", error);
+        notify("Error parsing CSV file. Please check the file format.", { type: "error" });
       },
     });
   };
 
   const handleImport = async () => {
+    if (!identity) {
+      notify("Please log in to import data", { type: "error" });
+      return;
+    }
+
     setImporting(true);
     let success = 0;
     let failed = 0;
+    const errors: string[] = [];
 
     try {
       // Process in batches
@@ -109,20 +125,25 @@ export const CSVImportWizard = ({ entityType }: { entityType: CustomFieldEntityT
       for (let i = 0; i < csvData.length; i += batchSize) {
         const batch = csvData.slice(i, i + batchSize);
 
-        await Promise.allSettled(
-          batch.map(async (row) => {
+        const results = await Promise.allSettled(
+          batch.map(async (row, rowIndex) => {
             const transformedData: any = {};
 
             // Map CSV columns to entity fields
             Object.entries(mapping).forEach(([csvColumn, fieldName]) => {
-              if (row[csvColumn]) {
-                transformedData[fieldName] = row[csvColumn];
+              const value = row[csvColumn];
+              if (value && String(value).trim() !== '') {
+                transformedData[fieldName] = String(value).trim();
               }
             });
 
             // Add required fields
-            transformedData.sales_id = identity?.id;
-            transformedData.workspace_id = identity?.workspace_id || 1;
+            transformedData.sales_id = identity.id;
+
+            // Only add workspace_id if it exists in identity (backward compatible)
+            if (identity.workspace_id) {
+              transformedData.workspace_id = identity.workspace_id;
+            }
 
             if (entityType === "contact") {
               transformedData.first_seen = new Date().toISOString();
@@ -140,6 +161,9 @@ export const CSVImportWizard = ({ entityType }: { entityType: CustomFieldEntityT
               }
               if (email_jsonb.length > 0) {
                 transformedData.email_jsonb = email_jsonb;
+              } else {
+                // Ensure email_jsonb is always an array
+                transformedData.email_jsonb = [];
               }
 
               // Handle phone fields
@@ -154,7 +178,15 @@ export const CSVImportWizard = ({ entityType }: { entityType: CustomFieldEntityT
               }
               if (phone_jsonb.length > 0) {
                 transformedData.phone_jsonb = phone_jsonb;
+              } else {
+                // Ensure phone_jsonb is always an array
+                transformedData.phone_jsonb = [];
               }
+
+              // Ensure tags is an array
+              transformedData.tags = transformedData.tags ?
+                transformedData.tags.split(',').map((t: string) => t.trim()) :
+                [];
             }
 
             if (entityType === "company") {
@@ -165,19 +197,40 @@ export const CSVImportWizard = ({ entityType }: { entityType: CustomFieldEntityT
               await dataProvider.create(entityType === "contact" ? "contacts" : "companies", {
                 data: transformedData,
               });
-              success++;
-            } catch (error) {
-              console.error("Error importing row:", error);
-              failed++;
+              return { success: true };
+            } catch (error: any) {
+              const errorMsg = error?.message || String(error);
+              console.error(`Error importing row ${i + rowIndex + 1}:`, error);
+              throw new Error(`Row ${i + rowIndex + 1}: ${errorMsg}`);
             }
           })
         );
+
+        // Count successes and failures
+        results.forEach((result, idx) => {
+          if (result.status === 'fulfilled') {
+            success++;
+          } else {
+            failed++;
+            errors.push(result.reason?.message || `Row ${i + idx + 1}: Unknown error`);
+          }
+        });
       }
 
-      setImportResult({ success, failed });
+      setImportResult({ success, failed, errors });
       setStep(4);
-    } catch (error) {
+
+      if (success > 0) {
+        notify(`Successfully imported ${success} ${entityType}s`, { type: "success" });
+      }
+      if (failed > 0) {
+        notify(`Failed to import ${failed} rows. See details below.`, { type: "warning" });
+      }
+    } catch (error: any) {
       console.error("Import error:", error);
+      notify(`Import failed: ${error?.message || 'Unknown error'}`, { type: "error" });
+      setImportResult({ success, failed, errors: [error?.message || 'Unknown error'] });
+      setStep(4);
     } finally {
       setImporting(false);
     }
@@ -273,41 +326,43 @@ export const CSVImportWizard = ({ entityType }: { entityType: CustomFieldEntityT
                 </AlertDescription>
               </Alert>
 
-              {csvHeaders.map((header) => (
-                <div key={header} className="flex items-center gap-4">
-                  <div className="flex-1">
-                    <Badge variant="secondary">{header}</Badge>
+              <div className="max-h-96 overflow-y-auto space-y-3">
+                {csvHeaders.map((header) => (
+                  <div key={header} className="flex items-center gap-4">
+                    <div className="flex-1 min-w-0">
+                      <Badge variant="secondary" className="truncate max-w-full">{header}</Badge>
+                    </div>
+                    <ArrowRight className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                    <div className="flex-1">
+                      <Select
+                        value={mapping[header] || ""}
+                        onValueChange={(value) =>
+                          setMapping((prev) => ({ ...prev, [header]: value }))
+                        }
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select field..." />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="">Skip this column</SelectItem>
+                          {availableFields.map((field) => (
+                            <SelectItem key={field.value} value={field.value}>
+                              {field.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
                   </div>
-                  <ArrowRight className="h-4 w-4 text-muted-foreground" />
-                  <div className="flex-1">
-                    <Select
-                      value={mapping[header] || ""}
-                      onValueChange={(value) =>
-                        setMapping((prev) => ({ ...prev, [header]: value }))
-                      }
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select field..." />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="">Skip this column</SelectItem>
-                        {availableFields.map((field) => (
-                          <SelectItem key={field.value} value={field.value}>
-                            {field.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-              ))}
+                ))}
+              </div>
 
-              <div className="flex justify-between pt-4">
+              <div className="flex justify-between pt-4 border-t">
                 <Button variant="outline" onClick={() => setStep(1)}>
                   <ArrowLeft className="h-4 w-4 mr-2" />
                   Back
                 </Button>
-                <Button onClick={() => setStep(3)}>
+                <Button onClick={() => setStep(3)} disabled={Object.values(mapping).filter(Boolean).length === 0}>
                   Next
                   <ArrowRight className="h-4 w-4 ml-2" />
                 </Button>
@@ -339,11 +394,11 @@ export const CSVImportWizard = ({ entityType }: { entityType: CustomFieldEntityT
                 <table className="w-full text-sm">
                   <thead className="bg-secondary">
                     <tr>
-                      {Object.values(mapping)
-                        .filter(Boolean)
-                        .map((field) => (
-                          <th key={field} className="px-4 py-2 text-left font-medium">
-                            {field}
+                      {Object.entries(mapping)
+                        .filter(([_, field]) => field)
+                        .map(([csvCol, field]) => (
+                          <th key={field} className="px-4 py-2 text-left font-medium whitespace-nowrap">
+                            {availableFields.find(f => f.value === field)?.label || field}
                           </th>
                         ))}
                     </tr>
@@ -354,7 +409,7 @@ export const CSVImportWizard = ({ entityType }: { entityType: CustomFieldEntityT
                         {Object.entries(mapping)
                           .filter(([_, field]) => field)
                           .map(([csvCol]) => (
-                            <td key={csvCol} className="px-4 py-2">
+                            <td key={csvCol} className="px-4 py-2 whitespace-nowrap">
                               {row[csvCol] || "-"}
                             </td>
                           ))}
@@ -364,7 +419,7 @@ export const CSVImportWizard = ({ entityType }: { entityType: CustomFieldEntityT
                 </table>
               </div>
 
-              <div className="flex justify-between pt-4">
+              <div className="flex justify-between pt-4 border-t">
                 <Button variant="outline" onClick={() => setStep(2)}>
                   <ArrowLeft className="h-4 w-4 mr-2" />
                   Back
@@ -373,6 +428,15 @@ export const CSVImportWizard = ({ entityType }: { entityType: CustomFieldEntityT
                   {importing ? "Importing..." : "Start Import"}
                 </Button>
               </div>
+
+              {importing && (
+                <div className="mt-4">
+                  <Progress value={50} className="w-full" />
+                  <p className="text-sm text-muted-foreground text-center mt-2">
+                    Importing... Please wait
+                  </p>
+                </div>
+              )}
             </div>
           </CardContent>
         </Card>
@@ -387,20 +451,56 @@ export const CSVImportWizard = ({ entityType }: { entityType: CustomFieldEntityT
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              <Alert>
-                <Check className="h-4 w-4" />
-                <AlertDescription>
-                  Successfully imported <strong>{importResult.success}</strong> {entityType}s
-                  {importResult.failed > 0 && (
-                    <>
-                      {" "}
-                      · <strong>{importResult.failed}</strong> failed
-                    </>
-                  )}
-                </AlertDescription>
-              </Alert>
+              {importResult.success > 0 && (
+                <Alert>
+                  <Check className="h-4 w-4" />
+                  <AlertDescription>
+                    Successfully imported <strong>{importResult.success}</strong> {entityType}s
+                  </AlertDescription>
+                </Alert>
+              )}
 
-              <Button onClick={() => window.location.reload()}>Done</Button>
+              {importResult.failed > 0 && (
+                <Alert variant="destructive">
+                  <X className="h-4 w-4" />
+                  <AlertDescription>
+                    <strong>{importResult.failed}</strong> rows failed to import
+                  </AlertDescription>
+                </Alert>
+              )}
+
+              {importResult.errors.length > 0 && (
+                <div className="mt-4">
+                  <h4 className="font-semibold mb-2">Error Details:</h4>
+                  <div className="max-h-48 overflow-y-auto space-y-1 text-sm text-destructive">
+                    {importResult.errors.slice(0, 10).map((error, idx) => (
+                      <div key={idx} className="font-mono text-xs">
+                        {error}
+                      </div>
+                    ))}
+                    {importResult.errors.length > 10 && (
+                      <div className="text-muted-foreground">
+                        ... and {importResult.errors.length - 10} more errors
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              <div className="flex gap-2 pt-4 border-t">
+                <Button variant="outline" onClick={() => {
+                  setStep(1);
+                  setFile(null);
+                  setCsvData([]);
+                  setMapping({});
+                  setImportResult(null);
+                }}>
+                  Import Another File
+                </Button>
+                <Button onClick={() => window.location.href = entityType === 'contact' ? '/contacts' : '/companies'}>
+                  View {entityType === 'contact' ? 'Contacts' : 'Companies'}
+                </Button>
+              </div>
             </div>
           </CardContent>
         </Card>
