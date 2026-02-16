@@ -1,7 +1,7 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Form, required, useLogin, useNotify } from "ra-core";
 import type { SubmitHandler, FieldValues } from "react-hook-form";
-import { Link } from "react-router";
+import { Link, useLocation, useNavigate } from "react-router";
 import { Button } from "@/components/ui/button";
 import { TextInput } from "@/components/admin/text-input";
 import { Notification } from "@/components/admin/notification";
@@ -26,8 +26,39 @@ export const LoginPage = (props: { redirectTo?: string }) => {
   } = useConfigurationContext();
   const { redirectTo } = props;
   const [loading, setLoading] = useState(false);
+  const hasDisplayedRecoveryNotification = useRef(false);
+  const location = useLocation();
+  const navigate = useNavigate();
   const login = useLogin();
   const notify = useNotify();
+
+  useEffect(() => {
+    const searchParams = new URLSearchParams(location.search);
+    const shouldNotify = searchParams.get("passwordRecoveryEmailSent") === "1";
+
+    if (!shouldNotify || hasDisplayedRecoveryNotification.current) {
+      return;
+    }
+
+    hasDisplayedRecoveryNotification.current = true;
+    notify(
+      "If you're a registered user, you should receive a password recovery email shortly.",
+      {
+        type: "success",
+      },
+    );
+
+    searchParams.delete("passwordRecoveryEmailSent");
+    const nextSearch = searchParams.toString();
+    navigate(
+      {
+        pathname: location.pathname,
+        search: nextSearch ? `?${nextSearch}` : "",
+      },
+      { replace: true },
+    );
+  }, [location.pathname, location.search, navigate, notify]);
+
   const handleSubmit: SubmitHandler<FieldValues> = (values) => {
     setLoading(true);
     login(values, redirectTo)
