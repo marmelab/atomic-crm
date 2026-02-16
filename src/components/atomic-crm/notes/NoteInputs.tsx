@@ -58,30 +58,33 @@ export const NoteInputs = ({
         </ReferenceInput>
       )}
 
-      {!displayMore && !isMobile && (
-        <div className="flex justify-end items-center gap-2">
-          <Button
-            variant="link"
-            size="sm"
-            onClick={() => {
-              setDisplayMore(!displayMore);
+      <div className="flex justify-end items-center gap-2">
+        <Button
+          variant="outline"
+          size="sm"
+          type="button"
+          onClick={() => {
+            setDisplayMore(!displayMore);
+            if (!displayMore) {
               setValue("date", getCurrentDate());
-            }}
-            className="text-sm text-muted-foreground underline hover:no-underline p-0 h-auto cursor-pointer"
-          >
-            Show options
-          </Button>
+            }
+          }}
+          className="text-sm cursor-pointer"
+        >
+          {displayMore ? "Hide options" : "Show options"}
+        </Button>
+        {!displayMore && (
           <span className="text-sm text-muted-foreground">
-            (attach files, or change details)
+            (change status, attach files, or change date)
           </span>
-        </div>
-      )}
+        )}
+      </div>
 
       <div
         className={cn(
           "space-y-3 mt-3 overflow-hidden origin-top",
-          !isMobile ? "transition-transform ease-in-out duration-300 " : "",
-          !displayMore && !isMobile ? "scale-y-0 max-h-0 h-0" : "scale-y-100",
+          !isMobile ? "transition-all ease-in-out duration-300 " : "",
+          !displayMore && !isMobile ? "scale-y-0 max-h-0 h-0 opacity-0" : "scale-y-100 opacity-100",
         )}
       >
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
