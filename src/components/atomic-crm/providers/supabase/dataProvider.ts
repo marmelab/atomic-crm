@@ -60,9 +60,11 @@ const deleteNoteAttachments = async (
 ) => {
   const note =
     params.previousData ??
-    (await dataProvider.getOne<ContactNote | DealNote>(resource, {
-      id: params.id,
-    })).data;
+    (
+      await dataProvider.getOne<ContactNote | DealNote>(resource, {
+        id: params.id,
+      })
+    ).data;
 
   const paths = extractAttachmentPaths(note.attachments);
 
