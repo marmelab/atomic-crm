@@ -89,6 +89,7 @@ export default defineConfig({
             "users/import-data",
             "users/merging-contacts",
             "users/inbound-email",
+            "users/mobile-app",
             "users/mcp-server",
           ],
         },
