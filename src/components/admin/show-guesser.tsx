@@ -31,13 +31,15 @@ import { ReferenceArrayField } from "@/components/admin/reference-array-field";
  *
  * export const PostShow = () => <ShowGuesser enableLog />;
  */
-export const ShowGuesser = (props: { enableLog?: boolean }) => (
-  <ShowBase>
-    <ShowViewGuesser {...props} />
-  </ShowBase>
-);
+export const ShowGuesser = (props: ShowGuesserProps) => {
+  return (
+    <ShowBase>
+      <ShowViewGuesser {...props} />
+    </ShowBase>
+  );
+};
 
-const ShowViewGuesser = (props: { enableLog?: boolean }) => {
+const ShowViewGuesser = (props: ShowGuesserProps) => {
   const resource = useResourceContext();
 
   if (!resource) {
@@ -103,6 +105,10 @@ ${inferredChild.getRepresentation()}
 
   return <ShowView {...rest}>{child}</ShowView>;
 };
+
+interface ShowGuesserProps {
+  enableLog?: boolean;
+}
 
 const showFieldTypes: InferredTypeMap = {
   show: {

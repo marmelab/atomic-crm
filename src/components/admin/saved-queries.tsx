@@ -1,4 +1,9 @@
-import { useListContext, useTranslate } from "ra-core";
+import {
+  extractValidSavedQueries,
+  useListContext,
+  useSavedQueries,
+  useTranslate,
+} from "ra-core";
 import type { ChangeEvent, FormEvent, ReactElement } from "react";
 import { useState } from "react";
 import isEqual from "lodash/isEqual";
@@ -14,10 +19,6 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  extractValidSavedQueries,
-  useSavedQueries,
-} from "@/hooks/saved-queries";
 
 /**
  * Dialog for saving the current list view query (filters, sort, pagination) as a named saved query.

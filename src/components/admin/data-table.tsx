@@ -154,7 +154,8 @@ const DataTableHead = ({ children }: { children: ReactNode }) => {
               .filter((record) => !selectedIds.includes(record.id))
               .map((record) => record.id),
           )
-        : [],
+        : // We should only unselect the ids present in the current page
+          selectedIds.filter((id) => !data.some((record) => record.id === id)),
     );
   };
   const selectableIds = Array.isArray(data)

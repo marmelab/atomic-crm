@@ -166,6 +166,31 @@ export const ListView = <RecordType extends RaRecord = RaRecord>(
 
 const defaultPagination = <ListPagination />;
 
+export const Empty = () => {
+  const translate = useTranslate();
+  const resource = useResourceContext();
+  const getResourceLabel = useGetResourceLabel();
+  const { hasCreate } = useResourceDefinition({ resource });
+  if (!resource) {
+    return null;
+  }
+  const resourceLabel = getResourceLabel(resource, 2);
+
+  return (
+    <div className="flex min-h-[50vh] flex-col items-center justify-center gap-2 text-center">
+      <h2 className="text-2xl font-semibold">
+        {translate("ra.page.empty", { name: resourceLabel })}
+      </h2>
+      {hasCreate ? (
+        <>
+          <p className="text-muted-foreground">{translate("ra.page.invite")}</p>
+          <CreateButton />
+        </>
+      ) : null}
+    </div>
+  );
+};
+
 export interface ListViewProps<RecordType extends RaRecord = RaRecord> {
   children?: ReactNode;
   disableBreadcrumb?: boolean;
