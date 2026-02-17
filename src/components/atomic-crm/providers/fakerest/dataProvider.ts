@@ -13,6 +13,7 @@ import type {
   Contact,
   ContactNote,
   Deal,
+  DealNote,
   Sale,
   SalesFormData,
   SignUpData,
@@ -243,6 +244,18 @@ async function updateCompany(
     previousData: company,
   });
 }
+
+const preserveAttachmentMimeType = <
+  NoteType extends { attachments?: Array<{ rawFile?: File; type?: string }> },
+>(
+  note: NoteType,
+): NoteType => ({
+  ...note,
+  attachments: (note.attachments ?? []).map((attachment) => ({
+    ...attachment,
+    type: attachment.rawFile?.type ?? attachment.type,
+  })),
+});
 
 export const dataProvider = withLifecycleCallbacks(
   withSupabaseFilterAdapter(dataProviderWithCustomMethod),
@@ -502,16 +515,12 @@ export const dataProvider = withLifecycleCallbacks(
     } satisfies ResourceCallbacks<Deal>,
     {
       resource: "contact_notes",
-      beforeSave: async (params) => {
-        return {
-          ...params,
-          attachments: (params.attachments ?? []).map((attachment) => ({
-            ...attachment,
-            type: attachment.rawFile.type ?? attachment.type,
-          })),
-        };
-      },
+      beforeSave: async (params) => preserveAttachmentMimeType(params),
     } satisfies ResourceCallbacks<ContactNote>,
+    {
+      resource: "deal_notes",
+      beforeSave: async (params) => preserveAttachmentMimeType(params),
+    } satisfies ResourceCallbacks<DealNote>,
   ],
 );
 
