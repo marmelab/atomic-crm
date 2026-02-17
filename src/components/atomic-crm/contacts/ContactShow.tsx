@@ -31,7 +31,17 @@ export const ContactShow = () => {
   const isMobile = useIsMobile();
 
   return (
-    <ShowBase redirectOnError={isMobile ? false : "list"}>
+    <ShowBase
+      queryOptions={{
+        onError: isMobile
+          ? () => {
+              {
+                /** Disable error notification as the content handles offline */
+              }
+            }
+          : undefined,
+      }}
+    >
       {isMobile ? <ContactShowContentMobile /> : <ContactShowContent />}
     </ShowBase>
   );
