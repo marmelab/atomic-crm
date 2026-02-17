@@ -144,7 +144,7 @@ export const EditSheet = ({
             <SheetHeader className="border-b">
               <SheetTitle>
                 {typeof title === "string" ? (
-                  <h1 className="text-xl font-semibold">{title}</h1>
+                  <span className="text-xl font-semibold">{title}</span>
                 ) : (
                   title
                 )}
