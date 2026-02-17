@@ -79,7 +79,8 @@ describe("supabase dataProvider note attachment deletion", () => {
     mockBaseDelete.mockResolvedValue({ data: { id: 1 } });
     mockStorageGetPublicUrl.mockReturnValue({
       data: {
-        publicUrl: "http://127.0.0.1:54321/storage/v1/object/public/attachments/file.txt",
+        publicUrl:
+          "http://127.0.0.1:54321/storage/v1/object/public/attachments/file.txt",
       },
     });
 
