@@ -180,6 +180,10 @@
           "type": "registry:component"
         },
         {
+          "path": "src/components/atomic-crm/providers/supabase/dataProvider.spec.ts",
+          "type": "registry:component"
+        },
+        {
           "path": "src/components/atomic-crm/providers/supabase/authProvider.ts",
           "type": "registry:component"
         },
