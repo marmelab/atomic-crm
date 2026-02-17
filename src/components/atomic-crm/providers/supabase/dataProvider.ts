@@ -19,6 +19,8 @@ import { getActivityLog } from "../commons/activity";
 import { getIsInitialized } from "./authProvider";
 import { supabase } from "./supabase";
 
+const ATTACHMENTS_BUCKET = "attachments";
+
 if (import.meta.env.VITE_SUPABASE_URL === undefined) {
   throw new Error("Please set the VITE_SUPABASE_URL environment variable");
 }
@@ -49,6 +51,35 @@ const processCompanyLogo = async (params: any) => {
       logo,
     },
   };
+};
+
+const deleteNoteAttachments = async (
+  params: { id: Identifier; previousData?: ContactNote | DealNote },
+  dataProvider: DataProvider,
+  resource: string,
+) => {
+  const note =
+    params.previousData ??
+    (await dataProvider.getOne<ContactNote | DealNote>(resource, {
+      id: params.id,
+    })).data;
+
+  const paths = extractAttachmentPaths(note.attachments);
+
+  if (paths.length === 0) {
+    return params;
+  }
+
+  const { error } = await supabase.storage
+    .from(ATTACHMENTS_BUCKET)
+    .remove(paths);
+
+  if (error) {
+    console.error("deleteAttachmentsError", error);
+    throw new Error("Failed to delete note attachments");
+  }
+
+  return params;
 };
 
 const dataProviderWithCustomMethods = {
@@ -227,6 +258,8 @@ const lifeCycleCallbacks: ResourceCallbacks[] = [
       }
       return data;
     },
+    beforeDelete: async (params, dataProvider, resource) =>
+      deleteNoteAttachments(params, dataProvider, resource),
   },
   {
     resource: "deal_notes",
@@ -238,6 +271,8 @@ const lifeCycleCallbacks: ResourceCallbacks[] = [
       }
       return data;
     },
+    beforeDelete: async (params, dataProvider, resource) =>
+      deleteNoteAttachments(params, dataProvider, resource),
   },
   {
     resource: "sales",
@@ -338,12 +373,36 @@ const applyFullTextSearch = (columns: string[]) => (params: GetListParams) => {
   };
 };
 
+const extractAttachmentPaths = (attachments?: RAFile[] | null): string[] => {
+  const paths = attachments
+    ?.map((attachment) => extractAttachmentPath(attachment))
+    .filter((path): path is string => path != null && path.length > 0);
+
+  return paths ? Array.from(new Set(paths)) : [];
+};
+
+const extractAttachmentPath = (attachment?: Partial<RAFile> | null) => {
+  if (!attachment) {
+    return null;
+  }
+
+  if (attachment.path) {
+    return attachment.path;
+  }
+
+  if (!attachment.src) {
+    return null;
+  }
+
+  return attachment.src;
+};
+
 const uploadToBucket = async (fi: RAFile) => {
   if (!fi.src.startsWith("blob:") && !fi.src.startsWith("data:")) {
     // Sign URL check if path exists in the bucket
     if (fi.path) {
       const { error } = await supabase.storage
-        .from("attachments")
+        .from(ATTACHMENTS_BUCKET)
         .createSignedUrl(fi.path, 60);
 
       if (!error) {
@@ -377,7 +436,7 @@ const uploadToBucket = async (fi: RAFile) => {
   const fileName = `${Math.random()}${fileExt}`;
   const filePath = `${fileName}`;
   const { error: uploadError } = await supabase.storage
-    .from("attachments")
+    .from(ATTACHMENTS_BUCKET)
     .upload(filePath, dataContent);
 
   if (uploadError) {
@@ -385,7 +444,9 @@ const uploadToBucket = async (fi: RAFile) => {
     throw new Error("Failed to upload attachment");
   }
 
-  const { data } = supabase.storage.from("attachments").getPublicUrl(filePath);
+  const { data } = supabase.storage
+    .from(ATTACHMENTS_BUCKET)
+    .getPublicUrl(filePath);
 
   fi.path = filePath;
   fi.src = data.publicUrl;
