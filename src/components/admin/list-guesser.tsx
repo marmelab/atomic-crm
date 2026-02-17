@@ -20,6 +20,7 @@ import { BadgeField } from "@/components/admin/badge-field";
 import { ReferenceField } from "@/components/admin/reference-field";
 import { SingleFieldList } from "@/components/admin/single-field-list";
 import { ReferenceArrayField } from "@/components/admin/reference-array-field";
+import { GuesserEmpty } from "@/components/admin/guesser-empty";
 
 /**
  * A list page that automatically generates a DataTable from your data.
@@ -48,6 +49,7 @@ export const ListGuesser = <RecordType extends RaRecord = RaRecord>(
     debounce,
     disableAuthentication,
     disableSyncWithLocation,
+    empty,
     exporter,
     filter,
     filterDefaultValues,
@@ -69,6 +71,7 @@ export const ListGuesser = <RecordType extends RaRecord = RaRecord>(
       debounce={debounce}
       disableAuthentication={disableAuthentication}
       disableSyncWithLocation={disableSyncWithLocation}
+      empty={empty === undefined ? <GuesserEmpty /> : empty}
       exporter={exporter}
       filter={filter}
       filterDefaultValues={filterDefaultValues}
