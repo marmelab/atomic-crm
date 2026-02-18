@@ -124,6 +124,10 @@
           "type": "registry:component"
         },
         {
+          "path": "src/components/atomic-crm/settings/LabeledValueIterator.tsx",
+          "type": "registry:component"
+        },
+        {
           "path": "src/components/atomic-crm/settings/AppConfigPage.tsx",
           "type": "registry:component"
         },
