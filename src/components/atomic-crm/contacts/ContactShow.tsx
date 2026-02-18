@@ -153,6 +153,14 @@ const ContactShowContentMobile = () => {
                 </div>
               }
               loading={false}
+              error={false}
+              queryOptions={
+                {
+                  onError: () => {
+                    /** override to hide notification as error case is handled by NotesIteratorMobile */
+                  },
+                } as any // fixme: remove once https://github.com/marmelab/react-admin/pull/11166 is released
+              }
             >
               <NotesIteratorMobile contactId={record.id} showStatus />
             </ReferenceManyField>
