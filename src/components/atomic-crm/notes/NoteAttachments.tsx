@@ -5,8 +5,11 @@ import type { AttachmentNote, ContactNote, DealNote } from "../types";
 /**
  * Displays persisted note attachments in note show/list views.
  *
- * Unlike `NoteAttachmentInputField`, this component receives a full note record
- * and renders all its attachments.
+ * This component receives a full note record and renders all attachments.
+ *
+ * @param props - Component props.
+ * @param props.note - Note record containing attachments to render.
+ * @returns `null` when there are no attachments, otherwise attachment previews and links.
  */
 export const NoteAttachments = ({ note }: { note: ContactNote | DealNote }) => {
   if (!note.attachments || note.attachments.length === 0) {
@@ -62,6 +65,12 @@ export const NoteAttachments = ({ note }: { note: ContactNote | DealNote }) => {
   );
 };
 
+/**
+ * Checks whether a mime type corresponds to an image.
+ *
+ * @param mimeType - The attachment mime type.
+ * @returns `true` when the mime type starts with `image/`.
+ */
 const isImageMimeType = (mimeType?: string): boolean => {
   if (!mimeType) {
     return false;

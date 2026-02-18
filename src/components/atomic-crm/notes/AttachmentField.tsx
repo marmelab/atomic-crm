@@ -3,11 +3,14 @@ import type { FileFieldProps } from "@/components/admin";
 import { cn } from "@/lib/utils";
 
 /**
- * Displays a preview for a single note attachment in the edition form.
+ * Displays a preview for a single note attachment in the note edition form.
  *
  * This component is inspired by react-admin's `ImageField` and is intended for
- * use as the child of `<FileInput>` (which provides one attachment record at a time).
- * For note display outside forms, use `<NoteAttachments>`.
+ * usage inside a `<FileInput>`, where the current attachment is provided through
+ * the record context.
+ *
+ * @param props - Field props provided by react-admin file inputs.
+ * @returns An image preview for image attachments, or a regular link for other files.
  */
 export const AttachmentField = (props: FileFieldProps) => {
   const {
@@ -80,6 +83,12 @@ export const AttachmentField = (props: FileFieldProps) => {
   );
 };
 
+/**
+ * Checks whether a mime type corresponds to an image.
+ *
+ * @param mimeType - The attachment mime type.
+ * @returns `true` when the mime type starts with `image/`.
+ */
 const isImageMimeType = (mimeType?: string): boolean => {
   if (!mimeType) {
     return false;
