@@ -253,7 +253,7 @@ const preserveAttachmentMimeType = <
   ...note,
   attachments: (note.attachments ?? []).map((attachment) => ({
     ...attachment,
-    type: attachment.rawFile?.type ?? attachment.type,
+    type: attachment.type ?? attachment.rawFile?.type,
   })),
 });
 
