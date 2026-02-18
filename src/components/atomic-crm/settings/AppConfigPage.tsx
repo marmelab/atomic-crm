@@ -166,7 +166,11 @@ const AppConfigFormFields = () => {
             <h2 className="text-xl font-semibold text-muted-foreground">
               Company Sectors
             </h2>
-            <ArrayInput source="companySectors" label={false} helperText={false}>
+            <ArrayInput
+              source="companySectors"
+              label={false}
+              helperText={false}
+            >
               <LabeledValueIterator placeholder="New sector" />
             </ArrayInput>
           </CardContent>
