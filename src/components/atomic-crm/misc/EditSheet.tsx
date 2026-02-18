@@ -139,7 +139,7 @@ export const EditSheet = ({
         >
           <Form
             defaultValues={defaultValues}
-            className="h-screen flex-1 flex flex-col"
+            className="h-dvh flex-1 flex flex-col"
           >
             <SheetHeader className="border-b">
               <SheetTitle>
