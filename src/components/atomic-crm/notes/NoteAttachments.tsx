@@ -1,8 +1,13 @@
 import { Paperclip } from "lucide-react";
 
 import type { AttachmentNote, ContactNote, DealNote } from "../types";
-import { isImageMimeType } from "./isImageMimeType";
 
+/**
+ * Displays persisted note attachments in note show/list views.
+ *
+ * Unlike `NoteAttachmentInputField`, this component receives a full note record
+ * and renders all its attachments.
+ */
 export const NoteAttachments = ({ note }: { note: ContactNote | DealNote }) => {
   if (!note.attachments || note.attachments.length === 0) {
     return null;
@@ -21,15 +26,19 @@ export const NoteAttachments = ({ note }: { note: ContactNote | DealNote }) => {
         <div className="grid grid-cols-4 gap-8">
           {imageAttachments.map((attachment: AttachmentNote, index: number) => (
             <div key={index}>
-              <img
-                src={attachment.src}
-                alt={attachment.title}
-                className="w-[200px] h-[100px] object-cover cursor-pointer object-left border border-border"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  window.open(attachment.src, "_blank");
-                }}
-              />
+              <a
+                href={attachment.src}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="block"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <img
+                  src={attachment.src}
+                  alt={attachment.title}
+                  className="w-[200px] h-[100px] object-cover cursor-pointer object-left border border-border"
+                />
+              </a>
             </div>
           ))}
         </div>
@@ -51,4 +60,11 @@ export const NoteAttachments = ({ note }: { note: ContactNote | DealNote }) => {
         ))}
     </div>
   );
+};
+
+const isImageMimeType = (mimeType?: string): boolean => {
+  if (!mimeType) {
+    return false;
+  }
+  return mimeType.startsWith("image/");
 };
