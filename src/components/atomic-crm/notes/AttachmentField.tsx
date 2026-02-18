@@ -9,7 +9,7 @@ import { cn } from "@/lib/utils";
  * usage inside a `<FileInput>`, where the current attachment is provided through
  * the record context.
  *
- * @param props - Field props provided by react-admin file inputs.
+ * @param props - FileFieldProps provided by react-admin file inputs.
  * @returns An image preview for image attachments, or a regular link for other files.
  */
 export const AttachmentField = (props: FileFieldProps) => {
