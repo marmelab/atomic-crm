@@ -175,6 +175,23 @@ export const CRM = ({
         }
         return result;
       },
+      handleCallback: async (params: any) => {
+        if (!authProvider.handleCallback) {
+          throw new Error(
+            "handleCallback is not implemented in the authProvider",
+          );
+        }
+        const result = await authProvider.handleCallback(params);
+        try {
+          const config = await dataProvider.getConfiguration();
+          if (Object.keys(config).length > 0) {
+            store.setItem(CONFIGURATION_STORE_KEY, config);
+          }
+        } catch {
+          // Non-critical: config will load via useConfigurationLoader
+        }
+        return result;
+      },
       logout: async (params: any) => {
         try {
           store.removeItem(CONFIGURATION_STORE_KEY);
