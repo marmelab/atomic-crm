@@ -7,7 +7,6 @@ import type { AttachmentNote, ContactNote, DealNote } from "../types";
  *
  * This component receives a full note record and renders all attachments.
  *
- * @param props - Component props.
  * @param props.note - Note record containing attachments to render.
  * @returns `null` when there are no attachments, otherwise attachment previews and links.
  */
