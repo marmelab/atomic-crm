@@ -89,7 +89,6 @@ export const LabeledValueIterator = (props: LabeledValueIteratorProps) => {
 
   const records = getValues(finalSource);
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const getItemDefaults = useEvent((item: any = undefined) => {
     if (item != null) return item;
     return { value: "", label: "" };
@@ -181,7 +180,6 @@ const LabeledValueIteratorItem = ({
 interface LabeledValueIteratorItemProps {
   children?: React.ReactElement | React.ReactElement[];
   disabled?: boolean;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   fields: any;
   index: number;
   reorderable?: boolean;
@@ -309,7 +307,7 @@ const LabeledValueEditRow = ({
             setEditingIndex(null);
           }
         }}
-        onBlur={(e) => {
+        onBlur={() => {
           labelField.onBlur();
           confirmEdit();
         }}
