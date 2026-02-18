@@ -143,6 +143,7 @@ const AppConfigFormFields = () => {
                   width={100}
                   height={100}
                   linkPosition="bottom"
+                  backgroundImageColor="#f5f5f5"
                 />
               </div>
               <div className="flex flex-col items-center gap-1">
@@ -152,7 +153,7 @@ const AppConfigFormFields = () => {
                   width={100}
                   height={100}
                   linkPosition="bottom"
-                  backgroundImageColor="#1a1a2e"
+                  backgroundImageColor="#1a1a1a"
                 />
               </div>
             </div>
