@@ -1,15 +1,19 @@
 import { useFieldValue, useRecordContext, useTranslate } from "ra-core";
-import get from "lodash/get";
 import type { FileFieldProps } from "@/components/admin";
 import { cn } from "@/lib/utils";
-import { isImageMimeType } from "./isImageMimeType";
 
+/**
+ * Displays a preview for a single note attachment in the edition form.
+ *
+ * This component is inspired by react-admin's `ImageField` and is intended for
+ * use as the child of `<FileInput>` (which provides one attachment record at a time).
+ * For note display outside forms, use `<NoteAttachments>`.
+ */
 export const AttachmentField = (props: FileFieldProps) => {
   const {
     className,
     empty,
     title,
-    src,
     target,
     download,
     defaultValue,
@@ -27,10 +31,7 @@ export const AttachmentField = (props: FileFieldProps) => {
     })?.toString() ?? title;
   const translate = useTranslate();
 
-  if (
-    sourceValue == null ||
-    (Array.isArray(sourceValue) && sourceValue.length === 0)
-  ) {
+  if (sourceValue == null) {
     if (!empty) {
       return null;
     }
@@ -42,55 +43,30 @@ export const AttachmentField = (props: FileFieldProps) => {
     );
   }
 
-  if (Array.isArray(sourceValue)) {
-    return (
-      <ul className={cn("inline-block", className)} {...rest}>
-        {sourceValue.map((file, index) => {
-          const fileTitleValue = title ? get(file, title, title) : title;
-          const srcValue = src ? get(file, src, title) : title;
-
-          return (
-            <li key={index}>
-              {isImageMimeType(file.type) ? (
-                <img
-                  alt={fileTitleValue}
-                  title={fileTitleValue}
-                  src={srcValue}
-                  className="w-[200px] h-[100px] object-cover cursor-pointer object-left border border-border"
-                />
-              ) : (
-                <a
-                  href={srcValue}
-                  title={fileTitleValue}
-                  target={target}
-                  download={download}
-                  // useful to prevent click bubbling in a DataTable with rowClick
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  {fileTitleValue}
-                </a>
-              )}
-            </li>
-          );
-        })}
-      </ul>
-    );
-  }
-
-  const type = record?.rawFile?.type ?? record?.type;
+  const type = record?.type ?? record?.rawFile?.type;
+  const srcValue = sourceValue.toString();
 
   return (
     <div className={cn("inline-block", className)} {...rest}>
       {isImageMimeType(type) ? (
-        <img
-          alt={titleValue}
+        <a
+          href={srcValue}
           title={titleValue}
-          src={sourceValue?.toString()}
-          className="w-[200px] h-[100px] object-cover cursor-pointer object-left border border-border"
-        />
+          target={target}
+          download={download}
+          // useful to prevent click bubbling in a DataTable with rowClick
+          onClick={(e) => e.stopPropagation()}
+        >
+          <img
+            alt={titleValue}
+            title={titleValue}
+            src={srcValue}
+            className="w-[200px] h-[100px] object-cover cursor-pointer object-left border border-border"
+          />
+        </a>
       ) : (
         <a
-          href={sourceValue?.toString()}
+          href={srcValue}
           title={titleValue}
           target={target}
           download={download}
@@ -102,4 +78,11 @@ export const AttachmentField = (props: FileFieldProps) => {
       )}
     </div>
   );
+};
+
+const isImageMimeType = (mimeType?: string): boolean => {
+  if (!mimeType) {
+    return false;
+  }
+  return mimeType.startsWith("image/");
 };
