@@ -400,11 +400,13 @@ const extractAttachmentPath = (attachment?: Partial<RAFile> | null) => {
     return null;
   }
 
+  // If we only have `src`, try to recover the file path in attachments from known Supabase URLs.
   const storagePath = extractPathFromStorageUrl(attachment.src);
   if (storagePath) {
     return storagePath;
   }
 
+  // Accept plain relative paths that may be stored directly in `src`.
   return extractRawPath(attachment.src);
 };
 
@@ -421,6 +423,7 @@ const extractPathFromStorageUrl = (src: string) => {
     `/storage/v1/object/${ATTACHMENTS_BUCKET}/`,
   ];
 
+  // Convert `/storage/.../attachments/<file>` into `<file>`.
   for (const prefix of knownPrefixes) {
     if (pathname.startsWith(prefix)) {
       const path = pathname.slice(prefix.length);
