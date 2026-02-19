@@ -400,14 +400,13 @@ const extractAttachmentPath = (attachment?: Partial<RAFile> | null) => {
     return null;
   }
 
-  // If we only have `src`, try to recover the file path in attachments from known Supabase URLs.
+  // If we only have `src`, recover the file path after the attachments bucket segment.
   const storagePath = extractPathFromStorageUrl(attachment.src);
   if (storagePath) {
     return storagePath;
   }
 
-  // Accept plain relative paths that may be stored directly in `src`.
-  return extractRawPath(attachment.src);
+  return null;
 };
 
 const extractPathFromStorageUrl = (src: string) => {
@@ -416,22 +415,15 @@ const extractPathFromStorageUrl = (src: string) => {
     return null;
   }
 
-  const knownPrefixes = [
-    `/storage/v1/object/public/${ATTACHMENTS_BUCKET}/`,
-    `/storage/v1/object/sign/${ATTACHMENTS_BUCKET}/`,
-    `/storage/v1/object/authenticated/${ATTACHMENTS_BUCKET}/`,
-    `/storage/v1/object/${ATTACHMENTS_BUCKET}/`,
-  ];
-
-  // Convert `/storage/.../attachments/<file>` into `<file>`.
-  for (const prefix of knownPrefixes) {
-    if (pathname.startsWith(prefix)) {
-      const path = pathname.slice(prefix.length);
-      return path.length > 0 ? safelyDecodePath(path) : null;
-    }
+  const bucketSegment = `/${ATTACHMENTS_BUCKET}/`;
+  const bucketIndex = pathname.lastIndexOf(bucketSegment);
+  if (bucketIndex < 0) {
+    return null;
   }
 
-  return null;
+  // Convert `.../attachments/<file>` into `<file>`.
+  const path = pathname.slice(bucketIndex + bucketSegment.length);
+  return path.length > 0 ? safelyDecodePath(path) : null;
 };
 
 const getPathname = (value: string) => {
@@ -440,17 +432,6 @@ const getPathname = (value: string) => {
   } catch {
     return null;
   }
-};
-
-const extractRawPath = (src: string) => {
-  if (src.includes("://")) {
-    return null;
-  }
-
-  const pathWithoutQuery = src.split("?")[0].split("#")[0];
-  const normalizedPath = pathWithoutQuery.replace(/^\/+/, "");
-
-  return normalizedPath.length > 0 ? safelyDecodePath(normalizedPath) : null;
 };
 
 const safelyDecodePath = (path: string) => {
