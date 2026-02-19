@@ -17,14 +17,16 @@ const excludedHooks = [
   "useSupportCreateSuggestion.tsx",
 ];
 
+const isTestFile = (filePath) => /\.(spec|test)\.[jt]sx?$/.test(filePath);
+
 const atomicCrmComponents = globSync(
   path.join(atomicCrmComponentsPath, "**", "*.ts*"),
-);
+).filter((filePath) => !isTestFile(filePath));
 const supabaseComponents = globSync(
   path.join(supabaseComponentsPath, "**", "*.ts*"),
-);
+).filter((filePath) => !isTestFile(filePath));
 const hooks = globSync(path.join(hooksPath, "**", "*.ts*")).filter((hook) => {
-  return !excludedHooks.includes(path.basename(hook));
+  return !excludedHooks.includes(path.basename(hook)) && !isTestFile(hook);
 });
 
 const registryContent = JSON.parse(fs.readFileSync(registryPath, "utf-8"));
