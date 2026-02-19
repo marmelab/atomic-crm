@@ -1,12 +1,12 @@
 import { Save } from "lucide-react";
-import { EditBase, Form, useNotify, useWrappedSource } from "ra-core";
+import { EditBase, Form, useInput, useNotify } from "ra-core";
 import { useMemo } from "react";
 import { useFormContext } from "react-hook-form";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { ArrayInput } from "@/components/admin/array-input";
-import { LabeledValueIterator } from "./LabeledValueIterator";
+import { SimpleFormIterator } from "@/components/admin/simple-form-iterator";
 import { TextInput } from "@/components/admin/text-input";
 
 import ImageEditorField from "../misc/ImageEditorField";
@@ -25,17 +25,31 @@ const SECTIONS = [
   { id: "task-types", label: "Task Types" },
 ];
 
+/**
+ * Derive a stable slug value from a display label.
+ * e.g. "Communication Services" → "communication-services"
+ */
+const toSlug = (label: string): string =>
+  label
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "");
+
+/** Ensure every item in a { value, label } array has a value (slug from label). */
+const ensureValues = (items: { value?: string; label: string }[] | undefined) =>
+  items?.map((item) => ({ ...item, value: item.value || toSlug(item.label) }));
+
 const transformFormValues = (data: Record<string, any>) => ({
   config: {
     title: data.title,
     lightModeLogo: data.lightModeLogo,
     darkModeLogo: data.darkModeLogo,
-    companySectors: data.companySectors,
-    dealCategories: data.dealCategories,
-    taskTypes: data.taskTypes,
-    dealStages: data.dealStages,
+    companySectors: ensureValues(data.companySectors),
+    dealCategories: ensureValues(data.dealCategories),
+    taskTypes: ensureValues(data.taskTypes),
+    dealStages: ensureValues(data.dealStages),
     dealPipelineStatuses: data.dealPipelineStatuses,
-    noteStatuses: data.noteStatuses,
+    noteStatuses: ensureValues(data.noteStatuses),
   } as ConfigurationContextValue,
 });
 
@@ -171,7 +185,9 @@ const AppConfigFormFields = () => {
               label={false}
               helperText={false}
             >
-              <LabeledValueIterator placeholder="New sector" />
+              <SimpleFormIterator disableReordering disableClear>
+                <TextInput source="label" label={false} />
+              </SimpleFormIterator>
             </ArrayInput>
           </CardContent>
         </Card>
@@ -183,7 +199,9 @@ const AppConfigFormFields = () => {
               Deal Stages
             </h2>
             <ArrayInput source="dealStages" label={false} helperText={false}>
-              <LabeledValueIterator placeholder="New stage" reorderable />
+              <SimpleFormIterator disableClear>
+                <TextInput source="label" label={false} />
+              </SimpleFormIterator>
             </ArrayInput>
 
             <Separator />
@@ -241,7 +259,9 @@ const AppConfigFormFields = () => {
               label={false}
               helperText={false}
             >
-              <LabeledValueIterator placeholder="New category" />
+              <SimpleFormIterator disableReordering disableClear>
+                <TextInput source="label" label={false} />
+              </SimpleFormIterator>
             </ArrayInput>
           </CardContent>
         </Card>
@@ -253,9 +273,10 @@ const AppConfigFormFields = () => {
               Note Statuses
             </h2>
             <ArrayInput source="noteStatuses" label={false} helperText={false}>
-              <LabeledValueIterator placeholder="New status">
-                <ColorField />
-              </LabeledValueIterator>
+              <SimpleFormIterator inline disableReordering disableClear>
+                <TextInput source="label" label={false} />
+                <ColorInput source="color" />
+              </SimpleFormIterator>
             </ArrayInput>
           </CardContent>
         </Card>
@@ -267,7 +288,9 @@ const AppConfigFormFields = () => {
               Task Types
             </h2>
             <ArrayInput source="taskTypes" label={false} helperText={false}>
-              <LabeledValueIterator placeholder="New task type" />
+              <SimpleFormIterator disableReordering disableClear>
+                <TextInput source="label" label={false} />
+              </SimpleFormIterator>
             </ArrayInput>
           </CardContent>
         </Card>
@@ -289,19 +312,14 @@ const AppConfigFormFields = () => {
   );
 };
 
-/**
- * A color picker input that works inside a LabeledValueIterator.
- * Uses useWrappedSource to get the scoped source for the current array item.
- */
-const ColorField = () => {
-  const source = useWrappedSource("color");
-  const { watch, setValue } = useFormContext();
-  const value = watch(source) || "#000000";
+/** A minimal color picker input compatible with ra-core's useInput. */
+const ColorInput = ({ source }: { source: string }) => {
+  const { field } = useInput({ source });
   return (
     <input
       type="color"
-      value={value}
-      onChange={(e) => setValue(source, e.target.value, { shouldDirty: true })}
+      {...field}
+      value={field.value || "#000000"}
       className="w-8 h-8 p-0.5 rounded border cursor-pointer shrink-0"
     />
   );
