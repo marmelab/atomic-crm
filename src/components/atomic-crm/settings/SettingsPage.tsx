@@ -1,10 +1,12 @@
 import { RotateCcw, Save } from "lucide-react";
+import type { RaRecord } from "ra-core";
 import { EditBase, Form, useGetList, useInput, useNotify } from "ra-core";
 import { useCallback, useMemo } from "react";
 import { useFormContext } from "react-hook-form";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
+import { toSlug } from "@/lib/toSlug";
 import { ArrayInput } from "@/components/admin/array-input";
 import { SimpleFormIterator } from "@/components/admin/simple-form-iterator";
 import { TextInput } from "@/components/admin/text-input";
@@ -26,19 +28,50 @@ const SECTIONS = [
   { id: "task-types", label: "Task Types" },
 ];
 
-/**
- * Derive a stable slug value from a display label.
- * e.g. "Communication Services" → "communication-services"
- */
-const toSlug = (label: string): string =>
-  label
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-|-$/g, "");
-
 /** Ensure every item in a { value, label } array has a value (slug from label). */
 const ensureValues = (items: { value?: string; label: string }[] | undefined) =>
   items?.map((item) => ({ ...item, value: item.value || toSlug(item.label) }));
+
+/**
+ * Validate that no items were removed if they are still referenced by existing deals.
+ * Also rejects duplicate slug values.
+ * Returns undefined if valid, or an error message string.
+ */
+const validateItemsInUse = (
+  items: { value: string; label: string }[] | undefined,
+  deals: RaRecord[] | undefined,
+  fieldName: string,
+  displayName: string,
+) => {
+  if (!items) return undefined;
+  // Check for duplicate slugs
+  const slugs = items.map((i) => i.value || toSlug(i.label));
+  const seen = new Set<string>();
+  const duplicates = new Set<string>();
+  for (const slug of slugs) {
+    if (seen.has(slug)) duplicates.add(slug);
+    seen.add(slug);
+  }
+  if (duplicates.size > 0) {
+    return `Duplicate ${displayName}: ${[...duplicates].join(", ")}`;
+  }
+  // Check that no in-use value was removed (skip if deals haven't loaded)
+  if (!deals) return "Validating…";
+  const values = new Set(slugs);
+  const inUse = [
+    ...new Set(
+      deals
+        .filter(
+          (deal) => deal[fieldName] && !values.has(deal[fieldName] as string),
+        )
+        .map((deal) => deal[fieldName] as string),
+    ),
+  ];
+  if (inUse.length > 0) {
+    return `Cannot remove ${displayName} that are still used by deals: ${inUse.join(", ")}`;
+  }
+  return undefined;
+};
 
 const transformFormValues = (data: Record<string, any>) => ({
   config: {
@@ -123,38 +156,14 @@ const SettingsFormFields = () => {
   });
 
   const validateDealStages = useCallback(
-    (stages: { value: string; label: string }[] | undefined) => {
-      if (!deals || !stages) return undefined;
-      const stageValues = new Set(
-        stages.map((s) => s.value || toSlug(s.label)),
-      );
-      const inUse = deals
-        .filter((deal) => deal.stage && !stageValues.has(deal.stage))
-        .map((deal) => deal.stage);
-      const uniqueInUse = [...new Set(inUse)];
-      if (uniqueInUse.length > 0) {
-        return `Cannot remove stages that are still used by deals: ${uniqueInUse.join(", ")}`;
-      }
-      return undefined;
-    },
+    (stages: { value: string; label: string }[] | undefined) =>
+      validateItemsInUse(stages, deals, "stage", "stages"),
     [deals],
   );
 
   const validateDealCategories = useCallback(
-    (categories: { value: string; label: string }[] | undefined) => {
-      if (!deals || !categories) return undefined;
-      const categoryValues = new Set(
-        categories.map((c) => c.value || toSlug(c.label)),
-      );
-      const inUse = deals
-        .filter((deal) => deal.category && !categoryValues.has(deal.category))
-        .map((deal) => deal.category);
-      const uniqueInUse = [...new Set(inUse)];
-      if (uniqueInUse.length > 0) {
-        return `Cannot remove categories that are still used by deals: ${uniqueInUse.join(", ")}`;
-      }
-      return undefined;
-    },
+    (categories: { value: string; label: string }[] | undefined) =>
+      validateItemsInUse(categories, deals, "category", "categories"),
     [deals],
   );
 
@@ -374,7 +383,7 @@ const SettingsFormFields = () => {
               </Button>
               <Button type="submit" disabled={isSubmitting}>
                 <Save className="h-4 w-4 mr-1" />
-                {isSubmitting ? "Saving..." : "Save Configuration"}
+                {isSubmitting ? "Saving..." : "Save"}
               </Button>
             </div>
           </div>

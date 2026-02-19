@@ -64,13 +64,13 @@ export const ProfilePage = () => {
   return (
     <div className="max-w-lg mx-auto mt-8">
       <Form onSubmit={handleOnSubmit} record={data}>
-        <SettingsForm isEditMode={isEditMode} setEditMode={setEditMode} />
+        <ProfileForm isEditMode={isEditMode} setEditMode={setEditMode} />
       </Form>
     </div>
   );
 };
 
-const SettingsForm = ({
+const ProfileForm = ({
   isEditMode,
   setEditMode,
 }: {
@@ -133,7 +133,7 @@ const SettingsForm = ({
         <CardContent>
           <div className="mb-4 flex flex-row justify-between">
             <h2 className="text-xl font-semibold text-muted-foreground">
-              My info
+              Profile
             </h2>
           </div>
 
