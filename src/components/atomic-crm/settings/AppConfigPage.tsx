@@ -1,6 +1,6 @@
-import { Save } from "lucide-react";
-import { EditBase, Form, useInput, useNotify } from "ra-core";
-import { useMemo } from "react";
+import { RotateCcw, Save } from "lucide-react";
+import { EditBase, Form, useGetList, useInput, useNotify } from "ra-core";
+import { useCallback, useMemo } from "react";
 import { useFormContext } from "react-hook-form";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -15,6 +15,7 @@ import {
   useConfigurationUpdater,
   type ConfigurationContextValue,
 } from "../root/ConfigurationContext";
+import { defaultConfiguration } from "../root/defaultConfiguration";
 
 const SECTIONS = [
   { id: "branding", label: "Branding" },
@@ -110,11 +111,52 @@ const AppConfigFormFields = () => {
   const {
     watch,
     setValue,
+    reset,
     formState: { isSubmitting },
   } = useFormContext();
 
   const dealStages = watch("dealStages");
   const dealPipelineStatuses: string[] = watch("dealPipelineStatuses") ?? [];
+
+  const { data: deals } = useGetList("deals", {
+    pagination: { page: 1, perPage: 1000 },
+  });
+
+  const validateDealStages = useCallback(
+    (stages: { value: string; label: string }[] | undefined) => {
+      if (!deals || !stages) return undefined;
+      const stageValues = new Set(
+        stages.map((s) => s.value || toSlug(s.label)),
+      );
+      const inUse = deals
+        .filter((deal) => deal.stage && !stageValues.has(deal.stage))
+        .map((deal) => deal.stage);
+      const uniqueInUse = [...new Set(inUse)];
+      if (uniqueInUse.length > 0) {
+        return `Cannot remove stages that are still used by deals: ${uniqueInUse.join(", ")}`;
+      }
+      return undefined;
+    },
+    [deals],
+  );
+
+  const validateDealCategories = useCallback(
+    (categories: { value: string; label: string }[] | undefined) => {
+      if (!deals || !categories) return undefined;
+      const categoryValues = new Set(
+        categories.map((c) => c.value || toSlug(c.label)),
+      );
+      const inUse = deals
+        .filter((deal) => deal.category && !categoryValues.has(deal.category))
+        .map((deal) => deal.category);
+      const uniqueInUse = [...new Set(inUse)];
+      if (uniqueInUse.length > 0) {
+        return `Cannot remove categories that are still used by deals: ${uniqueInUse.join(", ")}`;
+      }
+      return undefined;
+    },
+    [deals],
+  );
 
   return (
     <div className="flex gap-8 mt-8 pb-20">
@@ -198,7 +240,12 @@ const AppConfigFormFields = () => {
             <h2 className="text-xl font-semibold text-muted-foreground">
               Deal Stages
             </h2>
-            <ArrayInput source="dealStages" label={false} helperText={false}>
+            <ArrayInput
+              source="dealStages"
+              label={false}
+              helperText={false}
+              validate={validateDealStages}
+            >
               <SimpleFormIterator disableClear>
                 <TextInput source="label" label={false} />
               </SimpleFormIterator>
@@ -258,6 +305,7 @@ const AppConfigFormFields = () => {
               source="dealCategories"
               label={false}
               helperText={false}
+              validate={validateDealCategories}
             >
               <SimpleFormIterator disableReordering disableClear>
                 <TextInput source="label" label={false} />
@@ -274,7 +322,7 @@ const AppConfigFormFields = () => {
             </h2>
             <ArrayInput source="noteStatuses" label={false} helperText={false}>
               <SimpleFormIterator inline disableReordering disableClear>
-                <TextInput source="label" label={false} />
+                <TextInput source="label" label={false} className="flex-1" />
                 <ColorInput source="color" />
               </SimpleFormIterator>
             </ArrayInput>
@@ -300,11 +348,36 @@ const AppConfigFormFields = () => {
       <div className="fixed bottom-0 left-0 right-0 border-t bg-background p-4">
         <div className="max-w-screen-xl mx-auto flex gap-8 px-4">
           <div className="hidden md:block w-48 shrink-0" />
-          <div className="flex-1 min-w-0 max-w-2xl flex justify-end">
-            <Button type="submit" disabled={isSubmitting}>
-              <Save className="h-4 w-4 mr-1" />
-              {isSubmitting ? "Saving..." : "Save Configuration"}
+          <div className="flex-1 min-w-0 max-w-2xl flex justify-between">
+            <Button
+              type="button"
+              variant="ghost"
+              onClick={() =>
+                reset({
+                  ...defaultConfiguration,
+                  lightModeLogo: {
+                    src: defaultConfiguration.lightModeLogo,
+                  },
+                  darkModeLogo: { src: defaultConfiguration.darkModeLogo },
+                })
+              }
+            >
+              <RotateCcw className="h-4 w-4 mr-1" />
+              Reset to Defaults
             </Button>
+            <div className="flex gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => window.history.back()}
+              >
+                Cancel
+              </Button>
+              <Button type="submit" disabled={isSubmitting}>
+                <Save className="h-4 w-4 mr-1" />
+                {isSubmitting ? "Saving..." : "Save Configuration"}
+              </Button>
+            </div>
           </div>
         </div>
       </div>
@@ -320,7 +393,7 @@ const ColorInput = ({ source }: { source: string }) => {
       type="color"
       {...field}
       value={field.value || "#000000"}
-      className="w-8 h-8 p-0.5 rounded border cursor-pointer shrink-0"
+      className="w-9 h-9 shrink-0 cursor-pointer appearance-none rounded border bg-transparent p-0.5 [&::-webkit-color-swatch-wrapper]:cursor-pointer [&::-webkit-color-swatch-wrapper]:p-0 [&::-webkit-color-swatch]:cursor-pointer [&::-webkit-color-swatch]:rounded-sm [&::-webkit-color-swatch]:border-none [&::-moz-color-swatch]:cursor-pointer [&::-moz-color-swatch]:rounded-sm [&::-moz-color-swatch]:border-none"
     />
   );
 };
