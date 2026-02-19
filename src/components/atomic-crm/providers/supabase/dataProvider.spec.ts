@@ -114,25 +114,75 @@ describe("supabase dataProvider note attachment deletion", () => {
     });
   });
 
-  it("deletes deal note attachment using src when path is missing", async () => {
+  it("deletes deal note attachment by extracting path from src", async () => {
     const { dataProvider } = await import("./dataProvider");
-    const attachmentSrc =
-      "http://127.0.0.1:54321/storage/v1/object/public/attachments/folder/my%20report.txt?download=1";
     const previousData = {
       id: 2,
       attachments: [
         {
           title: "my report.txt",
-          src: attachmentSrc,
+          src: "http://127.0.0.1:54321/storage/v1/object/public/attachments/folder/my%20report.txt?download=1",
         },
       ],
     };
 
     await dataProvider.delete("deal_notes", { id: 2, previousData } as any);
 
-    expect(mockStorageRemove).toHaveBeenCalledWith([attachmentSrc]);
+    expect(mockStorageRemove).toHaveBeenCalledWith(["folder/my report.txt"]);
     expect(mockBaseDelete).toHaveBeenCalledWith("deal_notes", {
       id: 2,
+      previousData,
+    });
+  });
+
+  it("fetches note when previousData is missing and deletes its attachments", async () => {
+    const { dataProvider } = await import("./dataProvider");
+    const fetchedNote = {
+      id: 5,
+      attachments: [
+        {
+          title: "from-fetch.txt",
+          src: "http://127.0.0.1:54321/storage/v1/object/public/attachments/from-fetch.txt",
+          path: "from-fetch.txt",
+        },
+      ],
+    };
+
+    mockBaseGetOne.mockResolvedValueOnce({ data: fetchedNote });
+
+    await dataProvider.delete("contact_notes", { id: 5 } as any);
+
+    expect(mockBaseGetOne).toHaveBeenCalledWith("contact_notes", { id: 5 });
+    expect(mockStorageRemove).toHaveBeenCalledWith(["from-fetch.txt"]);
+    expect(mockBaseDelete).toHaveBeenCalledWith("contact_notes", { id: 5 });
+  });
+
+  it("deduplicates attachment paths before calling storage remove", async () => {
+    const { dataProvider } = await import("./dataProvider");
+    const duplicatePath =
+      "http://127.0.0.1:54321/storage/v1/object/public/attachments/folder/my%20report.txt?download=1";
+    const previousData = {
+      id: 8,
+      attachments: [
+        {
+          title: "duplicate-1.txt",
+          src: duplicatePath,
+          path: "dup.txt",
+        },
+        {
+          title: "duplicate-2.txt",
+          src: duplicatePath,
+          path: "dup.txt",
+        },
+      ],
+    };
+
+    await dataProvider.delete("contact_notes", { id: 8, previousData } as any);
+
+    expect(mockStorageRemove).toHaveBeenCalledTimes(1);
+    expect(mockStorageRemove).toHaveBeenCalledWith(["dup.txt"]);
+    expect(mockBaseDelete).toHaveBeenCalledWith("contact_notes", {
+      id: 8,
       previousData,
     });
   });
