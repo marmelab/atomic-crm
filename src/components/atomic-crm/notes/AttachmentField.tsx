@@ -56,6 +56,7 @@ export const AttachmentField = (props: FileFieldProps) => {
           href={srcValue}
           title={titleValue}
           target={target}
+          rel="noopener noreferrer"
           download={download}
           // useful to prevent click bubbling in a DataTable with rowClick
           onClick={(e) => e.stopPropagation()}
@@ -72,6 +73,7 @@ export const AttachmentField = (props: FileFieldProps) => {
           href={srcValue}
           title={titleValue}
           target={target}
+          rel="noopener noreferrer"
           download={download}
           // useful to prevent click bubbling in a DataTable with rowClick
           onClick={(e) => e.stopPropagation()}
