@@ -23,13 +23,14 @@ export const NoteAttachments = ({ note }: { note: ContactNote | DealNote }) => {
   );
 
   return (
-    <div className="flex flex-col">
+    <div className="mt-2 flex flex-col gap-2">
       {imageAttachments.length > 0 && (
         <div className="grid grid-cols-4 gap-8">
           {imageAttachments.map((attachment: AttachmentNote, index: number) => (
             <div key={index}>
               <a
                 href={attachment.src}
+                title={attachment.title}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="block"
