@@ -124,7 +124,7 @@
           "type": "registry:component"
         },
         {
-          "path": "src/components/atomic-crm/settings/AppConfigPage.tsx",
+          "path": "src/components/atomic-crm/settings/ProfilePage.tsx",
           "type": "registry:component"
         },
         {
