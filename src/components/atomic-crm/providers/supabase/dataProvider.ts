@@ -77,7 +77,11 @@ const deleteNoteAttachments = async (
     .remove(paths);
 
   if (error) {
-    console.error("deleteAttachmentsError", error);
+    console.error("deleteAttachmentsError", {
+      resource,
+      noteId: params.id,
+      error,
+    });
     throw new Error("Failed to delete note attachments");
   }
 
@@ -396,7 +400,62 @@ const extractAttachmentPath = (attachment?: Partial<RAFile> | null) => {
     return null;
   }
 
-  return attachment.src;
+  const storagePath = extractPathFromStorageUrl(attachment.src);
+  if (storagePath) {
+    return storagePath;
+  }
+
+  return extractRawPath(attachment.src);
+};
+
+const extractPathFromStorageUrl = (src: string) => {
+  const pathname = getPathname(src);
+  if (!pathname) {
+    return null;
+  }
+
+  const knownPrefixes = [
+    `/storage/v1/object/public/${ATTACHMENTS_BUCKET}/`,
+    `/storage/v1/object/sign/${ATTACHMENTS_BUCKET}/`,
+    `/storage/v1/object/authenticated/${ATTACHMENTS_BUCKET}/`,
+    `/storage/v1/object/${ATTACHMENTS_BUCKET}/`,
+  ];
+
+  for (const prefix of knownPrefixes) {
+    if (pathname.startsWith(prefix)) {
+      const path = pathname.slice(prefix.length);
+      return path.length > 0 ? safelyDecodePath(path) : null;
+    }
+  }
+
+  return null;
+};
+
+const getPathname = (value: string) => {
+  try {
+    return new URL(value, "http://localhost").pathname;
+  } catch {
+    return null;
+  }
+};
+
+const extractRawPath = (src: string) => {
+  if (src.includes("://")) {
+    return null;
+  }
+
+  const pathWithoutQuery = src.split("?")[0].split("#")[0];
+  const normalizedPath = pathWithoutQuery.replace(/^\/+/, "");
+
+  return normalizedPath.length > 0 ? safelyDecodePath(normalizedPath) : null;
+};
+
+const safelyDecodePath = (path: string) => {
+  try {
+    return decodeURIComponent(path);
+  } catch {
+    return path;
+  }
 };
 
 const uploadToBucket = async (fi: RAFile) => {
