@@ -21,11 +21,10 @@ import { defaultConfiguration } from "../root/defaultConfiguration";
 
 const SECTIONS = [
   { id: "branding", label: "Branding" },
-  { id: "company-sectors", label: "Company Sectors" },
-  { id: "deal-stages", label: "Deal Stages" },
-  { id: "deal-categories", label: "Deal Categories" },
-  { id: "note-statuses", label: "Note Statuses" },
-  { id: "task-types", label: "Task Types" },
+  { id: "companies", label: "Companies" },
+  { id: "deals", label: "Deals" },
+  { id: "notes", label: "Notes" },
+  { id: "tasks", label: "Tasks" },
 ];
 
 /** Ensure every item in a { value, label } array has a value (slug from label). */
@@ -224,12 +223,15 @@ const SettingsFormFields = () => {
           </CardContent>
         </Card>
 
-        {/* Company Sectors */}
-        <Card id="company-sectors">
+        {/* Companies */}
+        <Card id="companies">
           <CardContent className="space-y-4">
             <h2 className="text-xl font-semibold text-muted-foreground">
-              Company Sectors
+              Companies
             </h2>
+            <h3 className="text-lg font-medium text-muted-foreground">
+              Sectors
+            </h3>
             <ArrayInput
               source="companySectors"
               label={false}
@@ -242,12 +244,15 @@ const SettingsFormFields = () => {
           </CardContent>
         </Card>
 
-        {/* Deal Stages */}
-        <Card id="deal-stages">
+        {/* Deals */}
+        <Card id="deals">
           <CardContent className="space-y-4">
             <h2 className="text-xl font-semibold text-muted-foreground">
-              Deal Stages
+              Deals
             </h2>
+            <h3 className="text-lg font-medium text-muted-foreground">
+              Stages
+            </h3>
             <ArrayInput
               source="dealStages"
               label={false}
@@ -300,15 +305,12 @@ const SettingsFormFields = () => {
                 },
               )}
             </div>
-          </CardContent>
-        </Card>
 
-        {/* Deal Categories */}
-        <Card id="deal-categories">
-          <CardContent className="space-y-4">
-            <h2 className="text-xl font-semibold text-muted-foreground">
-              Deal Categories
-            </h2>
+            <Separator />
+
+            <h3 className="text-lg font-medium text-muted-foreground">
+              Categories
+            </h3>
             <ArrayInput
               source="dealCategories"
               label={false}
@@ -322,12 +324,15 @@ const SettingsFormFields = () => {
           </CardContent>
         </Card>
 
-        {/* Note Statuses */}
-        <Card id="note-statuses">
+        {/* Notes */}
+        <Card id="notes">
           <CardContent className="space-y-4">
             <h2 className="text-xl font-semibold text-muted-foreground">
-              Note Statuses
+              Notes
             </h2>
+            <h3 className="text-lg font-medium text-muted-foreground">
+              Statuses
+            </h3>
             <ArrayInput source="noteStatuses" label={false} helperText={false}>
               <SimpleFormIterator inline disableReordering disableClear>
                 <TextInput source="label" label={false} className="flex-1" />
@@ -337,12 +342,15 @@ const SettingsFormFields = () => {
           </CardContent>
         </Card>
 
-        {/* Task Types */}
-        <Card id="task-types">
+        {/* Tasks */}
+        <Card id="tasks">
           <CardContent className="space-y-4">
             <h2 className="text-xl font-semibold text-muted-foreground">
-              Task Types
+              Tasks
             </h2>
+            <h3 className="text-lg font-medium text-muted-foreground">
+              Types
+            </h3>
             <ArrayInput source="taskTypes" label={false} helperText={false}>
               <SimpleFormIterator disableReordering disableClear>
                 <TextInput source="label" label={false} />
