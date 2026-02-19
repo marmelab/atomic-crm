@@ -36,7 +36,7 @@ const ensureValues = (items: { value?: string; label: string }[] | undefined) =>
  * Also rejects duplicate slug values.
  * Returns undefined if valid, or an error message string.
  */
-const validateItemsInUse = (
+export const validateItemsInUse = (
   items: { value: string; label: string }[] | undefined,
   deals: RaRecord[] | undefined,
   fieldName: string,
