@@ -30,7 +30,7 @@ import {
   dataProvider as defaultDataProvider,
 } from "../providers/supabase";
 import sales from "../sales";
-import { AppConfigPage } from "../settings/AppConfigPage";
+import { ProfilePage } from "../settings/ProfilePage";
 import { SettingsPage } from "../settings/SettingsPage";
 import {
   CONFIGURATION_STORE_KEY,
@@ -238,8 +238,8 @@ const DesktopAdmin = (props: CoreAdminProps) => {
       </CustomRoutes>
 
       <CustomRoutes>
+        <Route path={ProfilePage.path} element={<ProfilePage />} />
         <Route path={SettingsPage.path} element={<SettingsPage />} />
-        <Route path={AppConfigPage.path} element={<AppConfigPage />} />
         <Route path={ImportPage.path} element={<ImportPage />} />
       </CustomRoutes>
       <Resource name="deals" {...deals} />

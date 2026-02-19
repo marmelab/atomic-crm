@@ -76,12 +76,12 @@ const Header = () => {
                 <ThemeModeToggle />
                 <RefreshButton />
                 <UserMenu>
-                  <ConfigurationMenu />
+                  <ProfileMenu />
                   <CanAccess resource="sales" action="list">
                     <UsersMenu />
                   </CanAccess>
                   <CanAccess resource="configuration" action="edit">
-                    <AppSettingsMenu />
+                    <SettingsMenu />
                   </CanAccess>
                   <ImportFromJsonMenuItem />
                 </UserMenu>
@@ -129,14 +129,14 @@ const UsersMenu = () => {
   );
 };
 
-const ConfigurationMenu = () => {
+const ProfileMenu = () => {
   const userMenuContext = useUserMenu();
   if (!userMenuContext) {
-    throw new Error("<ConfigurationMenu> must be used inside <UserMenu?");
+    throw new Error("<ProfileMenu> must be used inside <UserMenu?");
   }
   return (
     <DropdownMenuItem asChild onClick={userMenuContext.onClose}>
-      <Link to="/settings" className="flex items-center gap-2">
+      <Link to="/profile" className="flex items-center gap-2">
         <User />
         Profile
       </Link>
@@ -144,14 +144,14 @@ const ConfigurationMenu = () => {
   );
 };
 
-const AppSettingsMenu = () => {
+const SettingsMenu = () => {
   const userMenuContext = useUserMenu();
   if (!userMenuContext) {
-    throw new Error("<AppSettingsMenu> must be used inside <UserMenu>");
+    throw new Error("<SettingsMenu> must be used inside <UserMenu>");
   }
   return (
     <DropdownMenuItem asChild onClick={userMenuContext.onClose}>
-      <Link to="/app-settings" className="flex items-center gap-2">
+      <Link to="/settings" className="flex items-center gap-2">
         <Settings /> Settings
       </Link>
     </DropdownMenuItem>
