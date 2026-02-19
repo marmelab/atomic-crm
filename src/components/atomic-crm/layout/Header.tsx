@@ -1,4 +1,4 @@
-import { Cog, Import, Settings, User } from "lucide-react";
+import { Import, Settings, User, Users } from "lucide-react";
 import { CanAccess, useUserMenu } from "ra-core";
 import { Link, matchPath, useLocation } from "react-router";
 import { RefreshButton } from "@/components/admin/refresh-button";
@@ -123,7 +123,7 @@ const UsersMenu = () => {
   return (
     <DropdownMenuItem asChild onClick={userMenuContext.onClose}>
       <Link to="/sales" className="flex items-center gap-2">
-        <User /> Users
+        <Users /> Users
       </Link>
     </DropdownMenuItem>
   );
@@ -137,8 +137,8 @@ const ConfigurationMenu = () => {
   return (
     <DropdownMenuItem asChild onClick={userMenuContext.onClose}>
       <Link to="/settings" className="flex items-center gap-2">
-        <Settings />
-        My info
+        <User />
+        Profile
       </Link>
     </DropdownMenuItem>
   );
@@ -152,7 +152,7 @@ const AppSettingsMenu = () => {
   return (
     <DropdownMenuItem asChild onClick={userMenuContext.onClose}>
       <Link to="/app-settings" className="flex items-center gap-2">
-        <Cog /> App Settings
+        <Settings /> Settings
       </Link>
     </DropdownMenuItem>
   );

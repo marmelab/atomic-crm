@@ -159,10 +159,11 @@ const AppConfigFormFields = () => {
   );
 
   return (
-    <div className="flex gap-8 mt-8 pb-20">
+    <div className="flex gap-8 mt-4 pb-20">
       {/* Left navigation */}
       <nav className="hidden md:block w-48 shrink-0">
         <div className="sticky top-4 space-y-1">
+          <h1 className="text-2xl font-semibold px-3 mb-2">Settings</h1>
           {SECTIONS.map((section) => (
             <button
               key={section.id}
@@ -172,7 +173,7 @@ const AppConfigFormFields = () => {
                   .getElementById(section.id)
                   ?.scrollIntoView({ behavior: "smooth" });
               }}
-              className="block w-full text-left px-3 py-1.5 text-sm rounded-md text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+              className="block w-full text-left px-3 py-1 text-sm rounded-md hover:text-foreground hover:bg-muted transition-colors"
             >
               {section.label}
             </button>
@@ -182,8 +183,6 @@ const AppConfigFormFields = () => {
 
       {/* Main content */}
       <div className="flex-1 min-w-0 max-w-2xl space-y-6">
-        <h1 className="text-2xl font-semibold">App Configuration</h1>
-
         {/* Branding */}
         <Card id="branding">
           <CardContent className="space-y-4">
