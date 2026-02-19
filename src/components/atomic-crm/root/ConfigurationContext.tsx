@@ -1,3 +1,4 @@
+import { useMemo } from "react";
 import { useStore } from "ra-core";
 
 import type { DealStage, LabeledValue, NoteStatus } from "../types";
@@ -24,7 +25,9 @@ export const useConfigurationContext = () => {
     CONFIGURATION_STORE_KEY,
     defaultConfiguration,
   );
-  return config;
+  // Merge with defaults so that missing fields in stored config
+  // fall back to default values (e.g. when new settings are added)
+  return useMemo(() => ({ ...defaultConfiguration, ...config }), [config]);
 };
 
 export const useConfigurationUpdater = () => {
