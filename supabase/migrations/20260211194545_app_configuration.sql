@@ -1,3 +1,8 @@
+-- Singleton table storing the app configuration as a JSONB document.
+-- Admins can customize branding, company sectors, deal stages/categories,
+-- note statuses, and task types via the Settings page.
+-- The app merges stored values with code defaults, so missing keys are safe.
+
 create table "public"."configuration" (
     "id" integer not null default 1,
     "config" jsonb not null default '{}'::jsonb,
@@ -34,3 +39,39 @@ grant select, insert, update on "public"."configuration" to "service_role";
 
 -- Seed empty config (code defaults apply)
 insert into "public"."configuration" ("id", "config") values (1, '{}'::jsonb);
+
+-- Migrate old label-based values to slug-based values.
+--
+-- Previously, companySectors, dealCategories, and taskTypes were stored as
+-- plain string arrays (e.g. ["Energy", "Copywriting"]) in individual records.
+-- Now they use a { value, label } format where `value` is a slug derived from
+-- the label.
+--
+-- This converts record fields (companies.sector, deals.category, tasks.type,
+-- contact_notes.status) from display labels to slugs.
+
+CREATE OR REPLACE FUNCTION pg_temp.to_slug(label text) RETURNS text AS $$
+BEGIN
+  RETURN TRIM(BOTH '-' FROM REGEXP_REPLACE(LOWER(label), '[^a-z0-9]+', '-', 'g'));
+END;
+$$ LANGUAGE plpgsql IMMUTABLE;
+
+UPDATE companies
+SET sector = pg_temp.to_slug(sector)
+WHERE sector IS NOT NULL
+  AND sector != pg_temp.to_slug(sector);
+
+UPDATE deals
+SET category = pg_temp.to_slug(category)
+WHERE category IS NOT NULL
+  AND category != pg_temp.to_slug(category);
+
+UPDATE tasks
+SET type = pg_temp.to_slug(type)
+WHERE type IS NOT NULL
+  AND type != pg_temp.to_slug(type);
+
+UPDATE contact_notes
+SET status = pg_temp.to_slug(status)
+WHERE status IS NOT NULL
+  AND status != pg_temp.to_slug(status);
