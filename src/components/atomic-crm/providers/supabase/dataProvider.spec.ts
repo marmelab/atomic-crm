@@ -135,6 +135,27 @@ describe("supabase dataProvider note attachment deletion", () => {
     });
   });
 
+  it("deletes deal note attachment from a storage URL with another API version", async () => {
+    const { dataProvider } = await import("./dataProvider");
+    const previousData = {
+      id: 9,
+      attachments: [
+        {
+          title: "my report.txt",
+          src: "http://127.0.0.1:54321/storage/v2/object/public/attachments/folder/my%20report.txt?download=1",
+        },
+      ],
+    };
+
+    await dataProvider.delete("deal_notes", { id: 9, previousData } as any);
+
+    expect(mockStorageRemove).toHaveBeenCalledWith(["folder/my report.txt"]);
+    expect(mockBaseDelete).toHaveBeenCalledWith("deal_notes", {
+      id: 9,
+      previousData,
+    });
+  });
+
   it("fetches note when previousData is missing and deletes its attachments", async () => {
     const { dataProvider } = await import("./dataProvider");
     const fetchedNote = {
