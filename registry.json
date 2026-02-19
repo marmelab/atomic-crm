@@ -208,15 +208,7 @@
           "type": "registry:component"
         },
         {
-          "path": "src/components/atomic-crm/providers/fakerest/internal/transformOrFilter.spec.ts",
-          "type": "registry:component"
-        },
-        {
           "path": "src/components/atomic-crm/providers/fakerest/internal/transformInFilter.ts",
-          "type": "registry:component"
-        },
-        {
-          "path": "src/components/atomic-crm/providers/fakerest/internal/transformInFilter.spec.ts",
           "type": "registry:component"
         },
         {
@@ -228,15 +220,7 @@
           "type": "registry:component"
         },
         {
-          "path": "src/components/atomic-crm/providers/fakerest/internal/transformContainsFilter.spec.ts",
-          "type": "registry:component"
-        },
-        {
           "path": "src/components/atomic-crm/providers/fakerest/internal/supabaseAdapter.ts",
-          "type": "registry:component"
-        },
-        {
-          "path": "src/components/atomic-crm/providers/fakerest/internal/supabaseAdapter.spec.ts",
           "type": "registry:component"
         },
         {
@@ -300,15 +284,7 @@
           "type": "registry:component"
         },
         {
-          "path": "src/components/atomic-crm/providers/commons/getContactAvatar.spec.ts",
-          "type": "registry:component"
-        },
-        {
           "path": "src/components/atomic-crm/providers/commons/getCompanyAvatar.ts",
-          "type": "registry:component"
-        },
-        {
-          "path": "src/components/atomic-crm/providers/commons/getCompanyAvatar.spec.ts",
           "type": "registry:component"
         },
         {

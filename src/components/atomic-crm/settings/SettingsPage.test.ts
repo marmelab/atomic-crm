@@ -21,9 +21,7 @@ describe("validateItemsInUse", () => {
       { value: "lost", label: "Lost" },
       { value: "opportunity", label: "Opportunity" },
     ];
-    expect(validateItemsInUse(items, deals, "stage", "stages")).toBe(
-      undefined,
-    );
+    expect(validateItemsInUse(items, deals, "stage", "stages")).toBe(undefined);
   });
 
   it("returns an error when an in-use value is removed", () => {
