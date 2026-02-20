@@ -38,7 +38,7 @@ import { ReferenceArrayInput } from "@/components/admin/reference-array-input";
  *   </Admin>
  * );
  */
-export const EditGuesser = (props: { enableLog?: boolean }) => {
+export const EditGuesser = (props: EditGuesserProps) => {
   return (
     <EditBase>
       <EditViewGuesser {...props} />
@@ -46,7 +46,7 @@ export const EditGuesser = (props: { enableLog?: boolean }) => {
   );
 };
 
-const EditViewGuesser = (props: { enableLog?: boolean }) => {
+const EditViewGuesser = (props: EditGuesserProps) => {
   const resource = useResourceContext();
 
   if (!resource) {
@@ -111,6 +111,10 @@ ${representation}
 
   return <EditView {...rest}>{child}</EditView>;
 };
+
+interface EditGuesserProps {
+  enableLog?: boolean;
+}
 
 const editFieldTypes: InferredTypeMap = {
   form: {

@@ -1,17 +1,19 @@
+import { useState } from "react";
 import { RecordRepresentation, ShowBase, useShowContext } from "ra-core";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { ReferenceField } from "@/components/admin/reference-field";
 import { ReferenceManyField } from "@/components/admin/reference-many-field";
 import { ReferenceManyCount } from "@/components/admin/reference-many-count";
 import { TextField } from "@/components/admin/text-field";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { useIsMobile } from "@/hooks/use-mobile";
-import MobileHeader from "../layout/MobileHeader";
-import { MobileContent } from "../layout/MobileContent";
-import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
+import { Pencil } from "lucide-react";
+import { Link } from "react-router";
 
+import MobileHeader from "../layout/MobileHeader";
+import { MobileContent } from "../layout/MobileContent";
 import { CompanyAvatar } from "../companies/CompanyAvatar";
 import { NoteCreate, NotesIterator, NotesIteratorMobile } from "../notes";
 import { NoteCreateSheet } from "../notes/NoteCreateSheet";
@@ -24,14 +26,22 @@ import type { Contact } from "../types";
 import { Avatar } from "./Avatar";
 import { ContactAside } from "./ContactAside";
 import { MobileBackButton } from "../misc/MobileBackButton";
-import { Pencil } from "lucide-react";
-import { Link } from "react-router";
 
 export const ContactShow = () => {
   const isMobile = useIsMobile();
 
   return (
-    <ShowBase>
+    <ShowBase
+      queryOptions={{
+        onError: isMobile
+          ? () => {
+              {
+                /** Disable error notification as the content handles offline */
+              }
+            }
+          : undefined,
+      }}
+    >
       {isMobile ? <ContactShowContentMobile /> : <ContactShowContent />}
     </ShowBase>
   );
@@ -126,7 +136,7 @@ const ContactShowContentMobile = () => {
             <TabsTrigger value="details">Details</TabsTrigger>
           </TabsList>
 
-          <TabsContent value="notes" className="mt-4">
+          <TabsContent value="notes" className="mt-2">
             <ReferenceManyField
               target="contact_id"
               reference="contact_notes"
@@ -141,6 +151,15 @@ const ContactShowContentMobile = () => {
                     Add note
                   </Button>
                 </div>
+              }
+              loading={false}
+              error={false}
+              queryOptions={
+                {
+                  onError: () => {
+                    /** override to hide notification as error case is handled by NotesIteratorMobile */
+                  },
+                } as any // fixme: remove once https://github.com/marmelab/react-admin/pull/11166 is released
               }
             >
               <NotesIteratorMobile contactId={record.id} showStatus />

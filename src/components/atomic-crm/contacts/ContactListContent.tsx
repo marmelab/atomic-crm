@@ -193,7 +193,7 @@ export const ContactListContentMobile = () => {
     );
   }
 
-  if (error) {
+  if (error && !contacts) {
     return (
       <div className="p-4">
         <div className="text-center text-muted-foreground mb-4">

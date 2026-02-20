@@ -11,7 +11,9 @@ import fakeRestDataProvider from "ra-data-fakerest";
 import type {
   Company,
   Contact,
+  ContactNote,
   Deal,
+  DealNote,
   Sale,
   SalesFormData,
   SignUpData,
@@ -268,6 +270,19 @@ const processConfigLogo = async (logo: any): Promise<string> => {
   }
   return logo?.src ?? "";
 };
+
+const preserveAttachmentMimeType = <
+  NoteType extends { attachments?: Array<{ rawFile?: File; type?: string }> },
+>(
+  note: NoteType,
+): NoteType => ({
+  ...note,
+  attachments: (note.attachments ?? []).map((attachment) => ({
+    ...attachment,
+    type: attachment.type ?? attachment.rawFile?.type,
+  })),
+});
+
 
 export const dataProvider = withLifecycleCallbacks(
   withSupabaseFilterAdapter(dataProviderWithCustomMethod),
@@ -536,6 +551,14 @@ export const dataProvider = withLifecycleCallbacks(
         return result;
       },
     } satisfies ResourceCallbacks<Deal>,
+    {
+      resource: "contact_notes",
+      beforeSave: async (params) => preserveAttachmentMimeType(params),
+    } satisfies ResourceCallbacks<ContactNote>,
+    {
+      resource: "deal_notes",
+      beforeSave: async (params) => preserveAttachmentMimeType(params),
+    } satisfies ResourceCallbacks<DealNote>,
   ],
 );
 
@@ -544,10 +567,11 @@ export const dataProvider = withLifecycleCallbacks(
  * That's not the most optimized way to store images in production, but it's
  * enough to illustrate the idea of dataprovider decoration.
  */
-const convertFileToBase64 = (file: { rawFile: Blob }) =>
+const convertFileToBase64 = (file: { rawFile: Blob }): Promise<string> =>
   new Promise((resolve, reject) => {
     const reader = new FileReader();
-    reader.onload = () => resolve(reader.result);
+    // We know result is a string as we used readAsDataURL
+    reader.onload = () => resolve(reader.result as string);
     reader.onerror = reject;
     reader.readAsDataURL(file.rawFile);
   });

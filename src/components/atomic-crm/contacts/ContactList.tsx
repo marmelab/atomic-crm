@@ -87,6 +87,11 @@ export const ContactListMobile = () => {
       perPage={25}
       sort={{ field: "last_seen", order: "DESC" }}
       exporter={exporter}
+      queryOptions={{
+        onError: () => {
+          /* Disable error notification as ContactListLayoutMobile handles it */
+        },
+      }}
     >
       <ContactListLayoutMobile />
     </InfiniteListBase>
