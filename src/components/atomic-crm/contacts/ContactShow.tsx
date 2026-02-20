@@ -249,6 +249,12 @@ const ContactShowContent = () => {
               empty={
                 <NoteCreate reference="contacts" showStatus className="mt-4" />
               }
+              queryOptions={{
+                // We want infinite pagination so we need to disable placeHolder data to avoid flicker duplicating previous page before showing the new one
+                // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                //@ts-expect-error
+                placeholderData: null,
+              }}
             >
               <NotesIterator reference="contacts" showStatus />
             </ReferenceManyField>

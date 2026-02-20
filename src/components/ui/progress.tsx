@@ -1,5 +1,5 @@
 import * as React from "react"
-import * as ProgressPrimitive from "@radix-ui/react-progress"
+import { Progress as ProgressPrimitive } from "radix-ui"
 
 import { cn } from "@/lib/utils"
 
@@ -26,4 +26,21 @@ function Progress({
   )
 }
 
-export { Progress }
+// @TODO: Replace me by shadcn-admin-kit progressAuto component when it will be released
+function ProgressAuto(
+  props: React.ComponentProps<typeof ProgressPrimitive.Root>
+) {
+  const [progress, setProgress] = React.useState(20)
+
+  React.useEffect(() => {
+    const timer = setTimeout(
+      () => setProgress((prev) => (prev + 20) % 100),
+      1500
+    )
+    return () => clearTimeout(timer)
+  }, [progress])
+
+  return <Progress {...props} value={progress} />
+}
+
+export { Progress, ProgressAuto }
