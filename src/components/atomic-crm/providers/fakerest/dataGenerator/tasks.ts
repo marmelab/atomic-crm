@@ -5,34 +5,32 @@ import type { Task } from "../../../types";
 import type { Db } from "./types";
 import { randomDate } from "./utils";
 
-type TaskType = (typeof defaultTaskTypes)[number];
-
-export const type: TaskType[] = [
-  "Email",
-  "Email",
-  "Email",
-  "Email",
-  "Email",
-  "Email",
-  "Call",
-  "Call",
-  "Call",
-  "Call",
-  "Call",
-  "Call",
-  "Call",
-  "Call",
-  "Call",
-  "Call",
-  "Call",
-  "Demo",
-  "Lunch",
-  "Meeting",
-  "Follow-up",
-  "Follow-up",
-  "Thank you",
-  "Ship",
-  "None",
+export const type: string[] = [
+  "email",
+  "email",
+  "email",
+  "email",
+  "email",
+  "email",
+  "call",
+  "call",
+  "call",
+  "call",
+  "call",
+  "call",
+  "call",
+  "call",
+  "call",
+  "call",
+  "call",
+  "demo",
+  "lunch",
+  "meeting",
+  "follow-up",
+  "follow-up",
+  "thank-you",
+  "ship",
+  "none",
 ];
 
 export const generateTasks = (db: Db) => {
@@ -42,7 +40,7 @@ export const generateTasks = (db: Db) => {
     return {
       id,
       contact_id: contact.id,
-      type: random.arrayElement(defaultTaskTypes),
+      type: random.arrayElement(defaultTaskTypes).value,
       text: lorem.sentence(),
       due_date: randomDate(
         datatype.boolean() ? new Date() : new Date(contact.first_seen),

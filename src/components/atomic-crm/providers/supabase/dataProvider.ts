@@ -15,6 +15,7 @@ import type {
   SalesFormData,
   SignUpData,
 } from "../../types";
+import type { ConfigurationContextValue } from "../../root/ConfigurationContext";
 import { getActivityLog } from "../commons/activity";
 import { getIsInitialized } from "./authProvider";
 import { supabase } from "./supabase";
@@ -249,11 +250,45 @@ const dataProviderWithCustomMethods = {
 
     return data;
   },
+  async getConfiguration(): Promise<ConfigurationContextValue> {
+    const { data } = await baseDataProvider.getOne("configuration", { id: 1 });
+    return (data?.config as ConfigurationContextValue) ?? {};
+  },
+  async updateConfiguration(
+    config: ConfigurationContextValue,
+  ): Promise<ConfigurationContextValue> {
+    const { data } = await baseDataProvider.update("configuration", {
+      id: 1,
+      data: { config },
+      previousData: { id: 1 },
+    });
+    return data.config as ConfigurationContextValue;
+  },
 } satisfies DataProvider;
 
 export type CrmDataProvider = typeof dataProviderWithCustomMethods;
 
+const processConfigLogo = async (logo: any): Promise<string> => {
+  if (typeof logo === "string") return logo;
+  if (logo?.rawFile instanceof File) {
+    await uploadToBucket(logo);
+    return logo.src;
+  }
+  return logo?.src ?? "";
+};
+
 const lifeCycleCallbacks: ResourceCallbacks[] = [
+  {
+    resource: "configuration",
+    beforeUpdate: async (params) => {
+      const config = params.data.config;
+      if (config) {
+        config.lightModeLogo = await processConfigLogo(config.lightModeLogo);
+        config.darkModeLogo = await processConfigLogo(config.darkModeLogo);
+      }
+      return params;
+    },
+  },
   {
     resource: "contact_notes",
     beforeSave: async (data: ContactNote, _, __) => {
@@ -347,7 +382,7 @@ const lifeCycleCallbacks: ResourceCallbacks[] = [
 export const dataProvider = withLifecycleCallbacks(
   dataProviderWithCustomMethods,
   lifeCycleCallbacks,
-);
+) as CrmDataProvider;
 
 const applyFullTextSearch = (columns: string[]) => (params: GetListParams) => {
   if (!params.filter?.q) {

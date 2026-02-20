@@ -7,10 +7,8 @@ import {
   random,
 } from "faker/locale/en_US";
 
-import {
-  defaultContactGender,
-  defaultNoteStatuses,
-} from "../../../root/defaultConfiguration";
+import { defaultNoteStatuses } from "../../../root/defaultConfiguration";
+import { contactGender } from "../../../contacts/contactGender";
 import type { Company, Contact } from "../../../types";
 import type { Db } from "./types";
 import { randomDate, weightedBoolean } from "./utils";
@@ -33,7 +31,7 @@ export const generateContacts = (db: Db, size = 500): Required<Contact>[] => {
   return Array.from(Array(size).keys()).map((id) => {
     const has_avatar =
       weightedBoolean(25) && numberOfContacts < nbAvailblePictures;
-    const gender = random.arrayElement(defaultContactGender).value;
+    const gender = random.arrayElement(contactGender).value;
     const first_name = name.firstName(gender as any);
     const last_name = name.lastName();
     const email_jsonb = [

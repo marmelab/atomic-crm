@@ -5,11 +5,10 @@ import { TextField } from "@/components/admin/text-field";
 import { EmailField } from "@/components/admin/email-field";
 import { Mail, Phone, Linkedin } from "lucide-react";
 import type { ReactNode } from "react";
-import { useConfigurationContext } from "../root/ConfigurationContext";
+import { contactGender } from "./contactGender";
 import type { Contact } from "../types";
 
 export const ContactPersonalInfo = () => {
-  const { contactGender } = useConfigurationContext();
   const record = useRecordContext<Contact>();
 
   if (!record) return null;

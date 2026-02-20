@@ -248,7 +248,7 @@ const CreateRelatedContactButton = () => {
 
 const DealsIterator = () => {
   const { data: deals, error, isPending } = useListContext<Deal>();
-  const { dealStages } = useConfigurationContext();
+  const { dealStages, dealCategories } = useConfigurationContext();
   if (isPending || error) return null;
 
   const now = Date.now();
@@ -272,7 +272,9 @@ const DealsIterator = () => {
                     currencyDisplay: "narrowSymbol",
                     minimumSignificantDigits: 3,
                   })}
-                  {deal.category ? `, ${deal.category}` : ""}
+                  {deal.category
+                    ? `, ${dealCategories.find((c) => c.value === deal.category)?.label ?? deal.category}`
+                    : ""}
                 </div>
               </div>
               <div className="text-right">

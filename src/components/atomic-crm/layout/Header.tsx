@@ -1,4 +1,4 @@
-import { Import, Settings, User } from "lucide-react";
+import { Import, Settings, User, Users } from "lucide-react";
 import { CanAccess, useUserMenu } from "ra-core";
 import { Link, matchPath, useLocation } from "react-router";
 import { RefreshButton } from "@/components/admin/refresh-button";
@@ -76,9 +76,12 @@ const Header = () => {
                 <ThemeModeToggle />
                 <RefreshButton />
                 <UserMenu>
-                  <ConfigurationMenu />
+                  <ProfileMenu />
                   <CanAccess resource="sales" action="list">
                     <UsersMenu />
+                  </CanAccess>
+                  <CanAccess resource="configuration" action="edit">
+                    <SettingsMenu />
                   </CanAccess>
                   <ImportFromJsonMenuItem />
                 </UserMenu>
@@ -120,22 +123,36 @@ const UsersMenu = () => {
   return (
     <DropdownMenuItem asChild onClick={userMenuContext.onClose}>
       <Link to="/sales" className="flex items-center gap-2">
-        <User /> Users
+        <Users /> Users
       </Link>
     </DropdownMenuItem>
   );
 };
 
-const ConfigurationMenu = () => {
+const ProfileMenu = () => {
   const userMenuContext = useUserMenu();
   if (!userMenuContext) {
-    throw new Error("<ConfigurationMenu> must be used inside <UserMenu?");
+    throw new Error("<ProfileMenu> must be used inside <UserMenu?");
+  }
+  return (
+    <DropdownMenuItem asChild onClick={userMenuContext.onClose}>
+      <Link to="/profile" className="flex items-center gap-2">
+        <User />
+        Profile
+      </Link>
+    </DropdownMenuItem>
+  );
+};
+
+const SettingsMenu = () => {
+  const userMenuContext = useUserMenu();
+  if (!userMenuContext) {
+    throw new Error("<SettingsMenu> must be used inside <UserMenu>");
   }
   return (
     <DropdownMenuItem asChild onClick={userMenuContext.onClose}>
       <Link to="/settings" className="flex items-center gap-2">
-        <Settings />
-        My info
+        <Settings /> Settings
       </Link>
     </DropdownMenuItem>
   );

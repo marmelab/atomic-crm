@@ -70,10 +70,9 @@ const DealMiscInputs = () => {
       <SelectInput
         source="category"
         label="Category"
-        choices={dealCategories.map((type) => ({
-          id: type,
-          name: type,
-        }))}
+        choices={dealCategories}
+        optionText="label"
+        optionValue="value"
         helperText={false}
       />
       <NumberInput
@@ -90,10 +89,9 @@ const DealMiscInputs = () => {
       />
       <SelectInput
         source="stage"
-        choices={dealStages.map((stage) => ({
-          id: stage.value,
-          name: stage.label,
-        }))}
+        choices={dealStages}
+        optionText="label"
+        optionValue="value"
         defaultValue="opportunity"
         helperText={false}
         validate={required()}
