@@ -1,4 +1,4 @@
-import { Mars, NonBinary, Venus } from "lucide-react";
+import type { ConfigurationContextValue } from "./ConfigurationContext";
 
 export const defaultDarkModeLogo = "./logos/logo_atomic_crm_dark.svg";
 export const defaultLightModeLogo = "./logos/logo_atomic_crm_light.svg";
@@ -6,17 +6,17 @@ export const defaultLightModeLogo = "./logos/logo_atomic_crm_light.svg";
 export const defaultTitle = "Atomic CRM";
 
 export const defaultCompanySectors = [
-  "Communication Services",
-  "Consumer Discretionary",
-  "Consumer Staples",
-  "Energy",
-  "Financials",
-  "Health Care",
-  "Industrials",
-  "Information Technology",
-  "Materials",
-  "Real Estate",
-  "Utilities",
+  { value: "communication-services", label: "Communication Services" },
+  { value: "consumer-discretionary", label: "Consumer Discretionary" },
+  { value: "consumer-staples", label: "Consumer Staples" },
+  { value: "energy", label: "Energy" },
+  { value: "financials", label: "Financials" },
+  { value: "health-care", label: "Health Care" },
+  { value: "industrials", label: "Industrials" },
+  { value: "information-technology", label: "Information Technology" },
+  { value: "materials", label: "Materials" },
+  { value: "real-estate", label: "Real Estate" },
+  { value: "utilities", label: "Utilities" },
 ];
 
 export const defaultDealStages = [
@@ -31,11 +31,11 @@ export const defaultDealStages = [
 export const defaultDealPipelineStatuses = ["won"];
 
 export const defaultDealCategories = [
-  "Other",
-  "Copywriting",
-  "Print project",
-  "UI Design",
-  "Website design",
+  { value: "other", label: "Other" },
+  { value: "copywriting", label: "Copywriting" },
+  { value: "print-project", label: "Print project" },
+  { value: "ui-design", label: "UI Design" },
+  { value: "website-design", label: "Website design" },
 ];
 
 export const defaultNoteStatuses = [
@@ -46,19 +46,25 @@ export const defaultNoteStatuses = [
 ];
 
 export const defaultTaskTypes = [
-  "None",
-  "Email",
-  "Demo",
-  "Lunch",
-  "Meeting",
-  "Follow-up",
-  "Thank you",
-  "Ship",
-  "Call",
+  { value: "none", label: "None" },
+  { value: "email", label: "Email" },
+  { value: "demo", label: "Demo" },
+  { value: "lunch", label: "Lunch" },
+  { value: "meeting", label: "Meeting" },
+  { value: "follow-up", label: "Follow-up" },
+  { value: "thank-you", label: "Thank you" },
+  { value: "ship", label: "Ship" },
+  { value: "call", label: "Call" },
 ];
 
-export const defaultContactGender = [
-  { value: "male", label: "He/Him", icon: Mars },
-  { value: "female", label: "She/Her", icon: Venus },
-  { value: "nonbinary", label: "They/Them", icon: NonBinary },
-];
+export const defaultConfiguration: ConfigurationContextValue = {
+  companySectors: defaultCompanySectors,
+  dealCategories: defaultDealCategories,
+  dealPipelineStatuses: defaultDealPipelineStatuses,
+  dealStages: defaultDealStages,
+  noteStatuses: defaultNoteStatuses,
+  taskTypes: defaultTaskTypes,
+  title: defaultTitle,
+  darkModeLogo: defaultDarkModeLogo,
+  lightModeLogo: defaultLightModeLogo,
+};

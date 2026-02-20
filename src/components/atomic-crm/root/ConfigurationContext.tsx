@@ -1,89 +1,38 @@
-import { createContext, useContext, type ReactNode } from "react";
+import { useMemo } from "react";
+import { useStore } from "ra-core";
 
-import type { ContactGender, DealStage, NoteStatus } from "../types";
-import {
-  defaultCompanySectors,
-  defaultContactGender,
-  defaultDarkModeLogo,
-  defaultDealCategories,
-  defaultDealPipelineStatuses,
-  defaultDealStages,
-  defaultLightModeLogo,
-  defaultNoteStatuses,
-  defaultTaskTypes,
-  defaultTitle,
-} from "./defaultConfiguration";
+import type { DealStage, LabeledValue, NoteStatus } from "../types";
+import { defaultConfiguration } from "./defaultConfiguration";
 
-// Define types for the context value
+export const CONFIGURATION_STORE_KEY = "app.configuration";
+
 export interface ConfigurationContextValue {
-  companySectors: string[];
-  dealCategories: string[];
+  companySectors: LabeledValue[];
+  dealCategories: LabeledValue[];
   dealPipelineStatuses: string[];
   dealStages: DealStage[];
   noteStatuses: NoteStatus[];
-  taskTypes: string[];
+  taskTypes: LabeledValue[];
   title: string;
   darkModeLogo: string;
   lightModeLogo: string;
-  contactGender: ContactGender[];
   googleWorkplaceDomain?: string;
   disableEmailPasswordAuthentication?: boolean;
 }
 
-export interface ConfigurationProviderProps extends ConfigurationContextValue {
-  children: ReactNode;
-}
+export const useConfigurationContext = () => {
+  const [config] = useStore<ConfigurationContextValue>(
+    CONFIGURATION_STORE_KEY,
+    defaultConfiguration,
+  );
+  // Merge with defaults so that missing fields in stored config
+  // fall back to default values (e.g. when new settings are added)
+  return useMemo(() => ({ ...defaultConfiguration, ...config }), [config]);
+};
 
-// Create context with default value
-// eslint-disable-next-line react-refresh/only-export-components
-export const ConfigurationContext = createContext<ConfigurationContextValue>({
-  companySectors: defaultCompanySectors,
-  dealCategories: defaultDealCategories,
-  dealPipelineStatuses: defaultDealPipelineStatuses,
-  dealStages: defaultDealStages,
-  noteStatuses: defaultNoteStatuses,
-  taskTypes: defaultTaskTypes,
-  title: defaultTitle,
-  darkModeLogo: defaultDarkModeLogo,
-  lightModeLogo: defaultLightModeLogo,
-  contactGender: defaultContactGender,
-  disableEmailPasswordAuthentication: false,
-});
-
-export const ConfigurationProvider = ({
-  children,
-  companySectors,
-  dealCategories,
-  dealPipelineStatuses,
-  dealStages,
-  darkModeLogo,
-  lightModeLogo,
-  noteStatuses,
-  taskTypes,
-  title,
-  contactGender,
-  googleWorkplaceDomain,
-  disableEmailPasswordAuthentication,
-}: ConfigurationProviderProps) => (
-  <ConfigurationContext.Provider
-    value={{
-      companySectors,
-      dealCategories,
-      dealPipelineStatuses,
-      dealStages,
-      darkModeLogo,
-      lightModeLogo,
-      noteStatuses,
-      title,
-      taskTypes,
-      contactGender,
-      googleWorkplaceDomain,
-      disableEmailPasswordAuthentication,
-    }}
-  >
-    {children}
-  </ConfigurationContext.Provider>
-);
-
-// eslint-disable-next-line react-refresh/only-export-components
-export const useConfigurationContext = () => useContext(ConfigurationContext);
+export const useConfigurationUpdater = () => {
+  const [, setConfig] = useStore<ConfigurationContextValue>(
+    CONFIGURATION_STORE_KEY,
+  );
+  return setConfig;
+};

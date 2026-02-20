@@ -10,6 +10,7 @@ import { UrlField } from "@/components/admin/url-field";
 import { SelectField } from "@/components/admin/select-field";
 
 import { AsideSection } from "../misc/AsideSection";
+import { useConfigurationContext } from "../root/ConfigurationContext";
 import { SaleName } from "../sales/SaleName";
 import type { Company } from "../types";
 import { sizes } from "./sizes";
@@ -97,17 +98,18 @@ export const CompanyInfo = ({ record }: { record: Company }) => {
 };
 
 export const ContextInfo = ({ record }: { record: Company }) => {
+  const { companySectors } = useConfigurationContext();
   if (!record.revenue && !record.id) {
     return null;
   }
 
+  const sectorLabel = companySectors.find(
+    (s) => s.value === record.sector,
+  )?.label;
+
   return (
     <AsideSection title="Context">
-      {record.sector && (
-        <span>
-          Sector: <TextField source="sector" />
-        </span>
-      )}
+      {sectorLabel && <span>Sector: {sectorLabel}</span>}
       {record.size && (
         <span>
           Size: <SelectField source="size" choices={sizes} />

@@ -4,6 +4,7 @@ import { ReferenceField } from "@/components/admin/reference-field";
 import { Card, CardContent } from "@/components/ui/card";
 
 import { CompanyAvatar } from "../companies/CompanyAvatar";
+import { useConfigurationContext } from "../root/ConfigurationContext";
 import type { Deal } from "../types";
 
 export const DealCard = ({ deal, index }: { deal: Deal; index: number }) => {
@@ -27,7 +28,11 @@ export const DealCardContent = ({
   snapshot?: any;
   deal: Deal;
 }) => {
+  const { dealCategories } = useConfigurationContext();
   const redirect = useRedirect();
+  const categoryLabel = dealCategories.find(
+    (c) => c.value === deal.category,
+  )?.label;
   const handleClick = () => {
     redirect(`/deals/${deal.id}/show`, undefined, undefined, undefined, {
       _scrollToTop: false,
@@ -68,7 +73,7 @@ export const DealCardContent = ({
                 currencyDisplay: "narrowSymbol",
                 minimumSignificantDigits: 3,
               })}
-              {deal.category ? `, ${deal.category}` : ""}
+              {categoryLabel ? `, ${categoryLabel}` : ""}
             </p>
           </div>
         </CardContent>
