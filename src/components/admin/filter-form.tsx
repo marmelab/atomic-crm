@@ -6,11 +6,14 @@ import get from "lodash/get";
 import isEqual from "lodash/isEqual";
 import queryString from "query-string";
 import {
+  extractValidSavedQueries,
   FieldTitle,
   FilterLiveForm,
+  type SavedQuery,
   useFilterContext,
   useListContext,
   useResourceContext,
+  useSavedQueries,
   useTranslate,
 } from "ra-core";
 import { useNavigate } from "react-router";
@@ -24,11 +27,6 @@ import {
   X,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import type { SavedQuery } from "@/hooks/saved-queries";
-import {
-  extractValidSavedQueries,
-  useSavedQueries,
-} from "@/hooks/saved-queries";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,

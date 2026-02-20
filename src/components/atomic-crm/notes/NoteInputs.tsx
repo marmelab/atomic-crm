@@ -2,7 +2,6 @@ import { useState } from "react";
 import { useFormContext } from "react-hook-form";
 import { TextInput } from "@/components/admin/text-input";
 import { FileInput } from "@/components/admin/file-input";
-import { FileField } from "@/components/admin/file-field";
 import { SelectInput } from "@/components/admin/select-input";
 import { DateTimeInput } from "@/components/admin/date-time-input";
 import { Button } from "@/components/ui/button";
@@ -11,6 +10,7 @@ import { cn } from "@/lib/utils";
 import { Status } from "../misc/Status";
 import { useConfigurationContext } from "../root/ConfigurationContext";
 import { getCurrentDate } from "./utils";
+import { AttachmentField } from "./AttachmentField";
 import { foreignKeyMapping } from "./foreignKeyMapping";
 import { AutocompleteInput, ReferenceInput } from "@/components/admin";
 import { required } from "ra-core";
@@ -107,7 +107,7 @@ export const NoteInputs = ({
           />
         </div>
         <FileInput source="attachments" multiple>
-          <FileField source="src" title="title" target="_blank" />
+          <AttachmentField source="src" title="title" target="_blank" />
         </FileInput>
       </div>
     </div>

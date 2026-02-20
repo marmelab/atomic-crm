@@ -105,7 +105,7 @@ export const ReferenceFieldView = <
   const getRecordRepresentation = useGetRecordRepresentation(reference);
   const translate = useTranslate();
 
-  if (error && errorElement !== false) {
+  if (!referenceRecord && error && errorElement !== false) {
     return errorElement;
   }
   if (isPending && loading !== false) {

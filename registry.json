@@ -348,6 +348,10 @@
           "type": "registry:component"
         },
         {
+          "path": "src/components/atomic-crm/notes/AttachmentField.tsx",
+          "type": "registry:component"
+        },
+        {
           "path": "src/components/atomic-crm/misc/usePapaParse.tsx",
           "type": "registry:component"
         },

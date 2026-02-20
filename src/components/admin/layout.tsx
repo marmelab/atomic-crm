@@ -23,7 +23,7 @@ import { Loading } from "@/components/admin/loading";
  */
 export const Layout = (props: CoreLayoutProps) => {
   const [errorInfo, setErrorInfo] = useState<ErrorInfo | undefined>(undefined);
-  const handleError = (_: Error, info: ErrorInfo) => {
+  const handleError = (_: unknown, info: ErrorInfo) => {
     setErrorInfo(info);
   };
   return (

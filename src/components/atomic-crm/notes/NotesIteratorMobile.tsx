@@ -1,7 +1,11 @@
 import type { Identifier } from "ra-core";
-import { useListContext, WithRecord } from "ra-core";
+import { useListContext, useTimeout, WithRecord } from "ra-core";
 import { Link } from "react-router";
 import { ReferenceField } from "@/components/admin/reference-field";
+import { Button } from "@/components/ui/button";
+import { Separator } from "@/components/ui/separator";
+import { Skeleton } from "@/components/ui/skeleton";
+import { RotateCcw } from "lucide-react";
 
 import { RelativeDate } from "../misc/RelativeDate";
 import { Status } from "../misc/Status";
@@ -15,8 +19,45 @@ export const NotesIteratorMobile = ({
   contactId: Identifier;
   showStatus?: boolean;
 }) => {
-  const { data, error, isPending } = useListContext();
-  if (isPending || error) return null;
+  const { data, error, isPending, refetch } = useListContext();
+  const oneSecondHasPassed = useTimeout(1000);
+  if (isPending) {
+    if (!oneSecondHasPassed) {
+      return null;
+    }
+    return (
+      <div>
+        {Array.from({ length: 3 }).map((_, index) => (
+          <div className="space-y-2 mt-1" key={index}>
+            <div className="flex flex-row space-x-2 items-center">
+              <Skeleton className="w-full h-4" />
+            </div>
+            <Skeleton className="w-full h-12" />
+            <Separator />
+          </div>
+        ))}
+      </div>
+    );
+  }
+  if (error && !data) {
+    return (
+      <div className="p-4">
+        <div className="text-center text-muted-foreground mb-4">
+          Error loading notes
+        </div>
+        <div className="text-center mt-2">
+          <Button
+            onClick={() => {
+              refetch();
+            }}
+          >
+            <RotateCcw />
+            Retry
+          </Button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="divide-y">
