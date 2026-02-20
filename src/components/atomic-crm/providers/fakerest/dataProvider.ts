@@ -283,7 +283,6 @@ const preserveAttachmentMimeType = <
   })),
 });
 
-
 export const dataProvider = withLifecycleCallbacks(
   withSupabaseFilterAdapter(dataProviderWithCustomMethod),
   [
