@@ -1,7 +1,6 @@
 import { supabaseDataProvider } from "ra-supabase-core";
 import {
   withLifecycleCallbacks,
-  type DataProvider,
   type GetListParams,
   type Identifier,
   type ResourceCallbacks,
@@ -52,41 +51,6 @@ const processCompanyLogo = async (params: any) => {
       logo,
     },
   };
-};
-
-const deleteNoteAttachments = async (
-  params: { id: Identifier; previousData?: ContactNote | DealNote },
-  dataProvider: DataProvider,
-  resource: string,
-) => {
-  const note =
-    params.previousData ??
-    (
-      await dataProvider.getOne<ContactNote | DealNote>(resource, {
-        id: params.id,
-      })
-    ).data;
-
-  const paths = extractAttachmentPaths(note.attachments);
-
-  if (paths.length === 0) {
-    return params;
-  }
-
-  const { error } = await supabase.storage
-    .from(ATTACHMENTS_BUCKET)
-    .remove(paths);
-
-  if (error) {
-    console.error("deleteAttachmentsError", {
-      resource,
-      noteId: params.id,
-      error,
-    });
-    throw new Error("Failed to delete note attachments");
-  }
-
-  return params;
 };
 
 const dataProviderWithCustomMethods = {
@@ -299,8 +263,6 @@ const lifeCycleCallbacks: ResourceCallbacks[] = [
       }
       return data;
     },
-    beforeDelete: async (params, dataProvider, resource) =>
-      deleteNoteAttachments(params, dataProvider, resource),
   },
   {
     resource: "deal_notes",
@@ -312,8 +274,6 @@ const lifeCycleCallbacks: ResourceCallbacks[] = [
       }
       return data;
     },
-    beforeDelete: async (params, dataProvider, resource) =>
-      deleteNoteAttachments(params, dataProvider, resource),
   },
   {
     resource: "sales",
@@ -412,69 +372,6 @@ const applyFullTextSearch = (columns: string[]) => (params: GetListParams) => {
       }, {}),
     },
   };
-};
-
-const extractAttachmentPaths = (attachments?: RAFile[] | null): string[] => {
-  const paths = attachments
-    ?.map((attachment) => extractAttachmentPath(attachment))
-    .filter((path): path is string => path != null && path.length > 0);
-
-  return paths ? Array.from(new Set(paths)) : [];
-};
-
-const extractAttachmentPath = (attachment?: Partial<RAFile> | null) => {
-  if (!attachment) {
-    return null;
-  }
-
-  if (attachment.path) {
-    return attachment.path;
-  }
-
-  if (!attachment.src) {
-    return null;
-  }
-
-  // If we only have `src`, recover the file path after the attachments bucket segment.
-  const storagePath = extractPathFromStorageUrl(attachment.src);
-  if (storagePath) {
-    return storagePath;
-  }
-
-  return null;
-};
-
-const extractPathFromStorageUrl = (src: string) => {
-  const pathname = getPathname(src);
-  if (!pathname) {
-    return null;
-  }
-
-  const bucketSegment = `/${ATTACHMENTS_BUCKET}/`;
-  const bucketIndex = pathname.lastIndexOf(bucketSegment);
-  if (bucketIndex < 0) {
-    return null;
-  }
-
-  // Convert `.../attachments/<file>` into `<file>`.
-  const path = pathname.slice(bucketIndex + bucketSegment.length);
-  return path.length > 0 ? safelyDecodePath(path) : null;
-};
-
-const getPathname = (value: string) => {
-  try {
-    return new URL(value, "http://localhost").pathname;
-  } catch {
-    return null;
-  }
-};
-
-const safelyDecodePath = (path: string) => {
-  try {
-    return decodeURIComponent(path);
-  } catch {
-    return path;
-  }
 };
 
 const uploadToBucket = async (fi: RAFile) => {
