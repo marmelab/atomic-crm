@@ -124,6 +124,10 @@
           "type": "registry:component"
         },
         {
+          "path": "src/components/atomic-crm/settings/ProfilePage.tsx",
+          "type": "registry:component"
+        },
+        {
           "path": "src/components/atomic-crm/sales/index.ts",
           "type": "registry:component"
         },
@@ -145,6 +149,10 @@
         },
         {
           "path": "src/components/atomic-crm/sales/SaleName.tsx",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/root/useConfigurationLoader.ts",
           "type": "registry:component"
         },
         {
@@ -337,6 +345,10 @@
         },
         {
           "path": "src/components/atomic-crm/notes/Note.tsx",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/notes/AttachmentField.tsx",
           "type": "registry:component"
         },
         {
@@ -601,6 +613,10 @@
         },
         {
           "path": "src/components/atomic-crm/contacts/exportToVCard.ts",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/contacts/contactGender.ts",
           "type": "registry:component"
         },
         {

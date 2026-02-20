@@ -12,7 +12,7 @@ import { ArrayInput } from "@/components/admin/array-input";
 import { SimpleFormIterator } from "@/components/admin/simple-form-iterator";
 
 import { isLinkedinUrl } from "../misc/isLinkedInUrl";
-import { useConfigurationContext } from "../root/ConfigurationContext";
+import { contactGender } from "./contactGender";
 import type { Sale } from "../types";
 import { Avatar } from "./Avatar";
 import { AutocompleteCompanyInput } from "../companies/AutocompleteCompanyInput.tsx";
@@ -43,7 +43,6 @@ export const ContactInputs = () => {
 };
 
 const ContactIdentityInputs = () => {
-  const { contactGender } = useConfigurationContext();
   return (
     <div className="flex flex-col gap-4">
       <h6 className="text-lg font-semibold">Identity</h6>

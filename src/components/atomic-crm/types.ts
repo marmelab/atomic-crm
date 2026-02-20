@@ -209,14 +209,15 @@ export interface RAFile {
 }
 
 export type AttachmentNote = RAFile;
-export interface DealStage {
+
+export interface LabeledValue {
   value: string;
   label: string;
 }
 
-export interface NoteStatus {
-  value: string;
-  label: string;
+export type DealStage = LabeledValue;
+
+export interface NoteStatus extends LabeledValue {
   color: string;
 }
 

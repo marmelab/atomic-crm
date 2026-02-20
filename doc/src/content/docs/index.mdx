@@ -102,8 +102,16 @@ import { CRM } from "@/components/atomic-crm/root/CRM";
 const App = () => (
     <CRM
         title="Acme CRM"
-        taskTypes={['Call', 'Email', 'Meeting']}
-        dealCategories={['eCommerce', 'SaaS', 'Consulting']}
+        taskTypes={[
+            { value: 'call', label: 'Call' },
+            { value: 'email', label: 'Email' },
+            { value: 'meeting', label: 'Meeting' },
+        ]}
+        dealCategories={[
+            { value: 'ecommerce', label: 'eCommerce' },
+            { value: 'saas', label: 'SaaS' },
+            { value: 'consulting', label: 'Consulting' },
+        ]}
     />
 );
 
