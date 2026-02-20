@@ -1,11 +1,5 @@
 CREATE EXTENSION IF NOT EXISTS pg_net;
 
-DROP TRIGGER IF EXISTS on_contact_notes_deleted_delete_note_attachments
-ON public.contact_notes;
-
-DROP TRIGGER IF EXISTS on_deal_notes_deleted_delete_note_attachments
-ON public.deal_notes;
-
 DROP TRIGGER IF EXISTS on_contact_notes_changed_delete_note_attachments
 ON public.contact_notes;
 
