@@ -65,7 +65,7 @@ vi.mock("../commons/activity", () => ({
   getActivityLog: vi.fn(),
 }));
 
-describe("supabase dataProvider note attachment deletion", () => {
+describe("supabase dataProvider note deletion", () => {
   beforeEach(() => {
     vi.resetModules();
     vi.clearAllMocks();
@@ -91,7 +91,7 @@ describe("supabase dataProvider note attachment deletion", () => {
     vi.restoreAllMocks();
   });
 
-  it("deletes contact note attachment by path", async () => {
+  it("delegates contact note deletion to base provider", async () => {
     const { dataProvider } = await import("./dataProvider");
     const previousData = {
       id: 1,
@@ -106,15 +106,14 @@ describe("supabase dataProvider note attachment deletion", () => {
 
     await dataProvider.delete("contact_notes", { id: 1, previousData } as any);
 
-    expect(mockStorageFrom).toHaveBeenCalledWith("attachments");
-    expect(mockStorageRemove).toHaveBeenCalledWith(["file.txt"]);
+    expect(mockStorageRemove).not.toHaveBeenCalled();
     expect(mockBaseDelete).toHaveBeenCalledWith("contact_notes", {
       id: 1,
       previousData,
     });
   });
 
-  it("deletes deal note attachment by extracting path from src", async () => {
+  it("delegates deal note deletion to base provider", async () => {
     const { dataProvider } = await import("./dataProvider");
     const previousData = {
       id: 2,
@@ -128,123 +127,10 @@ describe("supabase dataProvider note attachment deletion", () => {
 
     await dataProvider.delete("deal_notes", { id: 2, previousData } as any);
 
-    expect(mockStorageRemove).toHaveBeenCalledWith(["folder/my report.txt"]);
+    expect(mockStorageRemove).not.toHaveBeenCalled();
     expect(mockBaseDelete).toHaveBeenCalledWith("deal_notes", {
       id: 2,
       previousData,
     });
-  });
-
-  it("deletes deal note attachment from a storage URL with another API version", async () => {
-    const { dataProvider } = await import("./dataProvider");
-    const previousData = {
-      id: 9,
-      attachments: [
-        {
-          title: "my report.txt",
-          src: "http://127.0.0.1:54321/storage/v2/object/public/attachments/folder/my%20report.txt?download=1",
-        },
-      ],
-    };
-
-    await dataProvider.delete("deal_notes", { id: 9, previousData } as any);
-
-    expect(mockStorageRemove).toHaveBeenCalledWith(["folder/my report.txt"]);
-    expect(mockBaseDelete).toHaveBeenCalledWith("deal_notes", {
-      id: 9,
-      previousData,
-    });
-  });
-
-  it("fetches note when previousData is missing and deletes its attachments", async () => {
-    const { dataProvider } = await import("./dataProvider");
-    const fetchedNote = {
-      id: 5,
-      attachments: [
-        {
-          title: "from-fetch.txt",
-          src: "http://127.0.0.1:54321/storage/v1/object/public/attachments/from-fetch.txt",
-          path: "from-fetch.txt",
-        },
-      ],
-    };
-
-    mockBaseGetOne.mockResolvedValueOnce({ data: fetchedNote });
-
-    await dataProvider.delete("contact_notes", { id: 5 } as any);
-
-    expect(mockBaseGetOne).toHaveBeenCalledWith("contact_notes", { id: 5 });
-    expect(mockStorageRemove).toHaveBeenCalledWith(["from-fetch.txt"]);
-    expect(mockBaseDelete).toHaveBeenCalledWith("contact_notes", { id: 5 });
-  });
-
-  it("deduplicates attachment paths before calling storage remove", async () => {
-    const { dataProvider } = await import("./dataProvider");
-    const duplicatePath =
-      "http://127.0.0.1:54321/storage/v1/object/public/attachments/folder/my%20report.txt?download=1";
-    const previousData = {
-      id: 8,
-      attachments: [
-        {
-          title: "duplicate-1.txt",
-          src: duplicatePath,
-          path: "dup.txt",
-        },
-        {
-          title: "duplicate-2.txt",
-          src: duplicatePath,
-          path: "dup.txt",
-        },
-      ],
-    };
-
-    await dataProvider.delete("contact_notes", { id: 8, previousData } as any);
-
-    expect(mockStorageRemove).toHaveBeenCalledTimes(1);
-    expect(mockStorageRemove).toHaveBeenCalledWith(["dup.txt"]);
-    expect(mockBaseDelete).toHaveBeenCalledWith("contact_notes", {
-      id: 8,
-      previousData,
-    });
-  });
-
-  it("does not call storage remove when note has no attachments", async () => {
-    const { dataProvider } = await import("./dataProvider");
-    const previousData = {
-      id: 3,
-      attachments: [],
-    };
-
-    await dataProvider.delete("contact_notes", { id: 3, previousData } as any);
-
-    expect(mockStorageRemove).not.toHaveBeenCalled();
-    expect(mockBaseDelete).toHaveBeenCalledWith("contact_notes", {
-      id: 3,
-      previousData,
-    });
-  });
-
-  it("throws and aborts note deletion when storage removal fails", async () => {
-    const { dataProvider } = await import("./dataProvider");
-    const previousData = {
-      id: 4,
-      attachments: [
-        {
-          title: "fail.txt",
-          src: "http://127.0.0.1:54321/storage/v1/object/public/attachments/fail.txt",
-          path: "fail.txt",
-        },
-      ],
-    };
-
-    mockStorageRemove.mockResolvedValueOnce({
-      error: { message: "remove failed" },
-    });
-
-    await expect(
-      dataProvider.delete("contact_notes", { id: 4, previousData } as any),
-    ).rejects.toThrow("Failed to delete note attachments");
-
-    expect(mockBaseDelete).not.toHaveBeenCalled();
   });
 });
