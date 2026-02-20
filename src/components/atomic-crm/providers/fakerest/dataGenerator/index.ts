@@ -19,6 +19,12 @@ export default (): Db => {
   db.deals = generateDeals(db);
   db.deal_notes = generateDealNotes(db);
   db.tasks = generateTasks(db);
+  db.configuration = [
+    {
+      id: 1,
+      config: {} as Db["configuration"][number]["config"],
+    },
+  ];
   finalize(db);
 
   return db;

@@ -17,11 +17,15 @@ const excludedHooks = [
   "useSupportCreateSuggestion.tsx",
 ];
 
+const testFilePattern = "**/*.{test,spec}.*";
+
 const atomicCrmComponents = globSync(
   path.join(atomicCrmComponentsPath, "**", "*.ts*"),
+  { ignore: [testFilePattern] },
 );
 const supabaseComponents = globSync(
   path.join(supabaseComponentsPath, "**", "*.ts*"),
+  { ignore: [testFilePattern] },
 );
 const hooks = globSync(path.join(hooksPath, "**", "*.ts*")).filter((hook) => {
   return !excludedHooks.includes(path.basename(hook));
