@@ -348,9 +348,7 @@ const SettingsFormFields = () => {
             <h2 className="text-xl font-semibold text-muted-foreground">
               Tasks
             </h2>
-            <h3 className="text-lg font-medium text-muted-foreground">
-              Types
-            </h3>
+            <h3 className="text-lg font-medium text-muted-foreground">Types</h3>
             <ArrayInput source="taskTypes" label={false} helperText={false}>
               <SimpleFormIterator disableReordering disableClear>
                 <TextInput source="label" label={false} />
