@@ -216,11 +216,7 @@ async function fetchApiKeys({ projectRef }) {
   return { publishableKey, secretKey };
 }
 
-async function setupSupabaseSecrets({
-  projectRef,
-  publishableKey,
-  secretKey,
-}) {
+async function setupSupabaseSecrets({ projectRef, publishableKey, secretKey }) {
   await execa(
     "npx",
     [
