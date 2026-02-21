@@ -2,9 +2,6 @@ import { input } from "@inquirer/prompts";
 import { execa } from "execa";
 import fs from "node:fs";
 
-const DEFAULT_ATTACHMENTS_WEBHOOK_SECRET =
-  "atomic-crm-note-attachments-webhook-secret";
-
 (async () => {
   await loginToSupabase();
   const projectName = await input({
@@ -15,9 +12,6 @@ const DEFAULT_ATTACHMENTS_WEBHOOK_SECRET =
     message: "Enter a database password:",
     default: generatePassword(16),
   });
-  const attachmentsWebhookSecret =
-    process.env.ATTACHMENTS_WEBHOOK_SECRET ??
-    DEFAULT_ATTACHMENTS_WEBHOOK_SECRET;
 
   const projectRef = await createProject({ projectName, databasePassword });
   await waitForProjectToBeReady({ projectRef });
@@ -40,7 +34,6 @@ const DEFAULT_ATTACHMENTS_WEBHOOK_SECRET =
     projectRef,
     publishableKey,
     secretKey,
-    attachmentsWebhookSecret,
   });
 
   await persistSupabaseEnv({
@@ -227,7 +220,6 @@ async function setupSupabaseSecrets({
   projectRef,
   publishableKey,
   secretKey,
-  attachmentsWebhookSecret,
 }) {
   await execa(
     "npx",
@@ -237,7 +229,6 @@ async function setupSupabaseSecrets({
       "set",
       `SB_PUBLISHABLE_KEY=${publishableKey}`,
       `SB_SECRET_KEY=${secretKey}`,
-      `ATTACHMENTS_WEBHOOK_SECRET=${attachmentsWebhookSecret}`,
       "--project-ref",
       projectRef,
     ],

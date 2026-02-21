@@ -109,7 +109,6 @@ jobs:
             POSTMARK_WEBHOOK_USER: ${{secrets.POSTMARK_WEBHOOK_USER}}
             POSTMARK_WEBHOOK_PASSWORD: ${{secrets.POSTMARK_WEBHOOK_PASSWORD}}
             POSTMARK_WEBHOOK_AUTHORIZED_IPS: ${{secrets.POSTMARK_WEBHOOK_AUTHORIZED_IPS}}
-            ATTACHMENTS_WEBHOOK_SECRET: ${{secrets.ATTACHMENTS_WEBHOOK_SECRET}}
             VITE_GOOGLE_WORKPLACE_DOMAIN: ${{secrets.VITE_GOOGLE_WORKPLACE_DOMAIN}}
 
         steps:
@@ -154,10 +153,6 @@ jobs:
                   npx supabase secrets set POSTMARK_WEBHOOK_PASSWORD=${{ env.POSTMARK_WEBHOOK_PASSWORD }}
                   npx supabase secrets set POSTMARK_WEBHOOK_AUTHORIZED_IPS=${{ env.POSTMARK_WEBHOOK_AUTHORIZED_IPS }}
 
-            - if: ${{ env.IS_SUPABASE_CONFIGURED && env.ATTACHMENTS_WEBHOOK_SECRET }}
-              name: 📡 Push note attachments webhook secret
-              run: npx supabase secrets set ATTACHMENTS_WEBHOOK_SECRET=${{ env.ATTACHMENTS_WEBHOOK_SECRET }}
-
             - if: ${{ env.IS_SUPABASE_CONFIGURED }}
               name: 📡 Deploy supabase functions
               run: npx supabase functions deploy
@@ -193,10 +188,6 @@ jobs:
             - if: ${{ !env.POSTMARK_WEBHOOK_AUTHORIZED_IPS }}
               name: Check POSTMARK_WEBHOOK_USER secret
               run: echo ':warning:POSTMARK_WEBHOOK_AUTHORIZED_IPS secret is missing' >> $GITHUB_STEP_SUMMARY
-
-            - if: ${{ !env.ATTACHMENTS_WEBHOOK_SECRET }}
-              name: Check ATTACHMENTS_WEBHOOK_SECRET secret
-              run: echo ':warning:ATTACHMENTS_WEBHOOK_SECRET secret is missing' >> $GITHUB_STEP_SUMMARY
 
             - if: ${{ !env.IS_SUPABASE_CONFIGURED }}
               name: Supabase deployment skipped
