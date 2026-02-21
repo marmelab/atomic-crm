@@ -1,7 +1,6 @@
 import { supabaseDataProvider } from "ra-supabase-core";
 import {
   withLifecycleCallbacks,
-  type DataProvider,
   type GetListParams,
   type Identifier,
   type ResourceCallbacks,
@@ -19,6 +18,8 @@ import type { ConfigurationContextValue } from "../../root/ConfigurationContext"
 import { getActivityLog } from "../commons/activity";
 import { getIsInitialized } from "./authProvider";
 import { supabase } from "./supabase";
+
+const ATTACHMENTS_BUCKET = "attachments";
 
 if (import.meta.env.VITE_SUPABASE_URL === undefined) {
   throw new Error("Please set the VITE_SUPABASE_URL environment variable");
@@ -378,7 +379,7 @@ const uploadToBucket = async (fi: RAFile) => {
     // Sign URL check if path exists in the bucket
     if (fi.path) {
       const { error } = await supabase.storage
-        .from("attachments")
+        .from(ATTACHMENTS_BUCKET)
         .createSignedUrl(fi.path, 60);
 
       if (!error) {
@@ -412,7 +413,7 @@ const uploadToBucket = async (fi: RAFile) => {
   const fileName = `${Math.random()}${fileExt}`;
   const filePath = `${fileName}`;
   const { error: uploadError } = await supabase.storage
-    .from("attachments")
+    .from(ATTACHMENTS_BUCKET)
     .upload(filePath, dataContent);
 
   if (uploadError) {
@@ -420,7 +421,9 @@ const uploadToBucket = async (fi: RAFile) => {
     throw new Error("Failed to upload attachment");
   }
 
-  const { data } = supabase.storage.from("attachments").getPublicUrl(filePath);
+  const { data } = supabase.storage
+    .from(ATTACHMENTS_BUCKET)
+    .getPublicUrl(filePath);
 
   fi.path = filePath;
   fi.src = data.publicUrl;
