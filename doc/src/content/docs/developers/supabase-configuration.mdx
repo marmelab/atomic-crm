@@ -48,12 +48,6 @@ npx supabase functions deploy
 
 The migrations create database triggers that call `delete_note_attachments` when notes are deleted or when attachments are removed from an existing note.
 
-Atomic CRM also needs one extra secret for note attachment cleanup:
-
-```sh
-npx supabase secrets set ATTACHMENTS_WEBHOOK_SECRET=atomic-crm-note-attachments-webhook-secret
-```
-
 Finally, add a `.env.production.local` file in the root directory with your remote Supabase credentials:
 
 ```sh

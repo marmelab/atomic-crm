@@ -2,8 +2,6 @@ import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { supabaseAdmin } from "../_shared/supabaseAdmin.ts";
 
 const ATTACHMENTS_BUCKET = "attachments";
-const WEBHOOK_SECRET_HEADER = "x-webhook-secret";
-const DEFAULT_WEBHOOK_SECRET = "atomic-crm-note-attachments-webhook-secret";
 
 type NoteAttachment = {
   path?: string | null;
@@ -26,19 +24,6 @@ type WebhookPayload = {
 Deno.serve(async (req: Request) => {
   if (req.method !== "POST") {
     return jsonResponse({ error: "Method Not Allowed" }, 405);
-  }
-
-  const expectedSecret = Deno.env.get("ATTACHMENTS_WEBHOOK_SECRET");
-  const receivedSecret = req.headers.get(WEBHOOK_SECRET_HEADER);
-  const acceptedSecrets = [expectedSecret, DEFAULT_WEBHOOK_SECRET].filter(
-    (secret): secret is string => Boolean(secret),
-  );
-  if (!receivedSecret || !acceptedSecrets.includes(receivedSecret)) {
-    console.error("delete_note_attachments.unauthorized", {
-      hasExpectedSecret: Boolean(expectedSecret),
-      hasReceivedSecret: Boolean(receivedSecret),
-    });
-    return jsonResponse({ error: "Unauthorized" }, 401);
   }
 
   const payload = (await req.json()) as WebhookPayload;
