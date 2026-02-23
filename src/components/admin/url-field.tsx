@@ -1,9 +1,8 @@
-import { useFieldValue, useTranslate } from "ra-core";
+import { genericMemo, useFieldValue, useTranslate } from "ra-core";
 import type { AnchorHTMLAttributes } from "react";
 import * as React from "react";
 
 import { cn } from "@/lib/utils";
-import { genericMemo } from "@/lib/genericMemo";
 import type { FieldProps } from "@/lib/field.type";
 
 /**

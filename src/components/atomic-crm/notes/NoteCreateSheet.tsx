@@ -74,7 +74,7 @@ export const NoteCreateSheet = ({
         [foreignKeyMapping["contacts"]]:
           contact_id ?? data[foreignKeyMapping["contacts"]],
         sales_id: identity.id,
-        date: data.date || getCurrentDate(),
+        date: new Date(data.date || getCurrentDate()).toISOString(),
       })}
       mutationOptions={{
         onSuccess: handleSuccess,

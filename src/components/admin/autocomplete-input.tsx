@@ -23,7 +23,11 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import type { ChoicesProps, InputProps } from "ra-core";
+import type {
+  ChoicesProps,
+  InputProps,
+  SupportCreateSuggestionOptions,
+} from "ra-core";
 import {
   useChoices,
   useChoicesContext,
@@ -32,10 +36,9 @@ import {
   useTranslate,
   FieldTitle,
   useEvent,
+  useSupportCreateSuggestion,
 } from "ra-core";
 import { InputHelperText } from "./input-helper-text";
-import type { SupportCreateSuggestionOptions } from "@/hooks/useSupportCreateSuggestion";
-import { useSupportCreateSuggestion } from "@/hooks/useSupportCreateSuggestion";
 
 /**
  * Form control that lets users choose a value from a list using a dropdown with autocompletion.

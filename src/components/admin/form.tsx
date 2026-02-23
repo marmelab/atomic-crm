@@ -9,7 +9,6 @@ import type {
 } from "ra-core";
 import {
   setSubmissionErrors,
-  useRecordFromLocation,
   useSaveContext,
   useTranslate,
   ValidationError,
@@ -179,27 +178,13 @@ const SaveButton = <RecordType extends RaRecord = RaRecord>(
     type = "submit",
     transform,
     variant = "default",
-    alwaysEnable = false,
     ...rest
   } = props;
   const translate = useTranslate();
   const form = useFormContext();
   const saveContext = useSaveContext();
-  const { dirtyFields, isValidating, isSubmitting } = useFormState();
-  // useFormState().isDirty might differ from useFormState().dirtyFields (https://github.com/react-hook-form/react-hook-form/issues/4740)
-  const isDirty = Object.keys(dirtyFields).length > 0;
-  // Use form isDirty, isValidating and form context saving to enable or disable the save button
-  // if alwaysEnable is undefined and the form wasn't prefilled
-  const recordFromLocation = useRecordFromLocation();
-  const disabled = valueOrDefault(
-    alwaysEnable === false || alwaysEnable === undefined
-      ? undefined
-      : !alwaysEnable,
-    disabledProp ||
-      (!isDirty && recordFromLocation == null) ||
-      isValidating ||
-      isSubmitting,
-  );
+  const { isValidating, isSubmitting } = useFormState();
+  const disabled = disabledProp || isValidating || isSubmitting;
 
   warning(
     type === "submit" &&
@@ -290,14 +275,7 @@ interface Props<
 }
 
 export type SaveButtonProps<RecordType extends RaRecord = RaRecord> =
-  Props<RecordType> &
-    React.ComponentProps<"button"> & {
-      alwaysEnable?: boolean;
-    };
-
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const valueOrDefault = (value: any, defaultValue: any) =>
-  typeof value === "undefined" ? defaultValue : value;
+  Props<RecordType> & React.ComponentProps<"button">;
 
 export {
   // eslint-disable-next-line react-refresh/only-export-components

@@ -3,7 +3,9 @@ title: Configuration
 description: This document explains how to customize the Atomic CRM application.
 ---
 
-Developers can customize the Atomic CRM application to suit their business needs. Some of the customizations can be achieved via configuration on the `<CRM>` component, while others require changes to the source code.
+Admin users can already customize the application domain-specific data (e.g., deal stages, note statuses, etc.) via [the Settings page](../user//settings). However, developers can go further and define the defaults for these data by configuring the `<CRM>` component in `src/App.tsx`.
+
+Other customizations require changes to the source code.
 
 ## The `<CRM>` component
 
@@ -26,12 +28,14 @@ import { CRM } from "@/components/atomic-crm/root/CRM";
 
 const App = () => (
     <CRM
-        contactGender={[
-            { value: 'male', label: 'He' },
-            { value: 'female', label: 'She' },
+        companySectors={[
+            { value: 'technology', label: 'Technology' },
+            { value: 'finance', label: 'Finance' },
         ]}
-        companySectors={['Technology', 'Finance']}
-        dealCategories={['Copywriting', 'Design']}
+        dealCategories={[
+            { value: 'copywriting', label: 'Copywriting' },
+            { value: 'design', label: 'Design' },
+        ]}
         dealPipelineStatuses={['won']}
         dealStages={[
             { value: 'opportunity', label: 'Opportunity' },
@@ -44,7 +48,11 @@ const App = () => (
             { value: 'warm', label: 'Warm', color: '#e8cb7d' },
             { value: 'hot', label: 'Hot', color: '#e88b7d' },
         ]}
-        taskTypes={['Call', 'Email', 'Meeting']}
+        taskTypes={[
+            { value: 'call', label: 'Call' },
+            { value: 'email', label: 'Email' },
+            { value: 'meeting', label: 'Meeting' },
+        ]}
     />
 );
 
@@ -55,16 +63,15 @@ export default App;
 
 | Props                   | Description                                                           | Type            |
 |-------------------------|-----------------------------------------------------------------------|-----------------|
-| `contactGender`         | The gender options for contacts used in the application.              | ContactGender[] |
-| `companySectors`        | The list of company sectors used in the application.                  | string[]       |
+| `companySectors`        | The list of company sectors used in the application.                  | LabeledValue[]  |
 | `darkTheme`             | The theme to use when the application is in dark mode.                | RaThemeOptions  |
-| `dealCategories`        | The categories of deals used in the application.                      | string[]        |
+| `dealCategories`        | The categories of deals used in the application.                      | LabeledValue[]  |
 | `dealPipelineStatuses`  | The statuses of deals in the pipeline used in the application         | string[]        |
 | `dealStages`            | The stages of deals used in the application.                          | DealStage[]     |
 | `lightTheme`            | The theme to use when the application is in light mode.               | RaThemeOptions  |
 | `logo`                  | The logo used in the CRM application.                                 | string          |
 | `noteStatuses`          | The statuses of notes used in the application.                        | NoteStatus[]    |
-| `taskTypes`             | The types of tasks used in the application.                           | string[]        |
+| `taskTypes`             | The types of tasks used in the application.                           | LabeledValue[]  |
 | `title`                 | The title of the CRM application.                                     | string          |
 
 ## Disabling Telemetry

@@ -2,6 +2,7 @@ import { useRecordContext } from "ra-core";
 
 import { ReferenceField } from "@/components/admin/reference-field";
 import { TextField } from "@/components/admin/text-field";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { Avatar } from "../contacts/Avatar";
 import { RelativeDate } from "../misc/RelativeDate";
 import { SaleName } from "../sales/SaleName";
@@ -22,7 +23,11 @@ export function ActivityLogContactNoteCreated({
   activity,
 }: ActivityLogContactNoteCreatedProps) {
   const context = useActivityLogContext();
+  const isMobile = useIsMobile();
   const { contactNote } = activity;
+  const link = isMobile
+    ? `/contacts/${contactNote.contact_id}/notes/${contactNote.id}`
+    : `/contacts/${contactNote.contact_id}/show`;
   return (
     <ActivityLogNote
       header={
@@ -67,7 +72,7 @@ export function ActivityLogContactNoteCreated({
         </div>
       }
       text={contactNote.text}
-      link={`/contacts/${contactNote.contact_id}/show`}
+      link={link}
     />
   );
 }

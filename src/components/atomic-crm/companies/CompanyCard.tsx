@@ -5,13 +5,19 @@ import { ReferenceManyField } from "@/components/admin/reference-many-field";
 import { Card } from "@/components/ui/card";
 
 import { Avatar as ContactAvatar } from "../contacts/Avatar";
+import { useConfigurationContext } from "../root/ConfigurationContext";
 import type { Company } from "../types";
 import { CompanyAvatar } from "./CompanyAvatar";
 
 export const CompanyCard = (props: { record?: Company }) => {
   const createPath = useCreatePath();
   const record = useRecordContext<Company>(props);
+  const { companySectors } = useConfigurationContext();
   if (!record) return null;
+
+  const sectorLabel = companySectors.find(
+    (s) => s.value === record.sector,
+  )?.label;
 
   return (
     <Link
@@ -27,7 +33,7 @@ export const CompanyCard = (props: { record?: Company }) => {
           <CompanyAvatar />
           <div className="text-center mt-1">
             <h6 className="text-sm font-medium">{record.name}</h6>
-            <p className="text-xs text-muted-foreground">{record.sector}</p>
+            <p className="text-xs text-muted-foreground">{sectorLabel}</p>
           </div>
         </div>
         <div className="flex flex-row w-full justify-between gap-2">

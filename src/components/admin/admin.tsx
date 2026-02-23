@@ -12,6 +12,7 @@ import { LoginPage } from "@/components/admin/login-page";
 import { Ready } from "@/components/admin/ready";
 import { ThemeProvider } from "@/components/admin/theme-provider";
 import { AuthCallback } from "@/components/admin/authentication";
+import { useEffect } from "react";
 
 const defaultStore = localStorageStore();
 
@@ -35,17 +36,36 @@ const AdminContext = (props: CoreAdminContextProps) => (
  *
  * @internal
  */
-const AdminUI = (props: CoreAdminUIProps) => (
-  <ThemeProvider>
-    <CoreAdminUI
-      layout={Layout}
-      loginPage={LoginPage}
-      ready={Ready}
-      authCallbackPage={AuthCallback}
-      {...props}
-    />
-  </ThemeProvider>
-);
+const AdminUI = (props: CoreAdminUIProps) => {
+  const { disableTelemetry = false, ...rest } = props;
+
+  useEffect(() => {
+    if (
+      disableTelemetry ||
+      process.env.NODE_ENV !== "production" ||
+      typeof window === "undefined" ||
+      typeof window.location === "undefined" ||
+      typeof Image === "undefined"
+    ) {
+      return;
+    }
+    const img = new Image();
+    img.src = `https://shadcn-admin-kit-telemetry.marmelab.com/shadcn-admin-kit-telemetry?domain=${window.location.hostname}`;
+  }, [disableTelemetry]);
+
+  return (
+    <ThemeProvider>
+      <CoreAdminUI
+        layout={Layout}
+        loginPage={LoginPage}
+        ready={Ready}
+        authCallbackPage={AuthCallback}
+        disableTelemetry // Disable telemetry in CoreAdminUI to avoid double logging
+        {...rest}
+      />
+    </ThemeProvider>
+  );
+};
 
 /**
  * Root component of a shadcn-admin-kit application.

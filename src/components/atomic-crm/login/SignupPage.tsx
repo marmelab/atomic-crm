@@ -13,11 +13,16 @@ import type { SignUpData } from "../types";
 import { LoginSkeleton } from "./LoginSkeleton";
 import { Notification } from "@/components/admin/notification";
 import { ConfirmationRequired } from "./ConfirmationRequired";
+import { SSOAuthButton } from "./SSOAuthButton";
 
 export const SignupPage = () => {
   const queryClient = useQueryClient();
   const dataProvider = useDataProvider<CrmDataProvider>();
-  const { darkModeLogo: logo, title } = useConfigurationContext();
+  const {
+    darkModeLogo: logo,
+    title,
+    googleWorkplaceDomain,
+  } = useConfigurationContext();
   const navigate = useNavigate();
   const { data: isInitialized, isPending } = useQuery({
     queryKey: ["init"],
@@ -139,7 +144,7 @@ export const SignupPage = () => {
                 required
               />
             </div>
-            <div className="flex justify-between items-center mt-8">
+            <div className="flex flex-col gap-4 justify-between items-center mt-8">
               <Button
                 type="submit"
                 disabled={!isValid || isSignUpPending}
@@ -154,6 +159,14 @@ export const SignupPage = () => {
                   "Create account"
                 )}
               </Button>
+              {googleWorkplaceDomain ? (
+                <SSOAuthButton
+                  className="w-full"
+                  domain={googleWorkplaceDomain}
+                >
+                  Sign in with Google Workplace
+                </SSOAuthButton>
+              ) : null}
             </div>
           </form>
         </div>

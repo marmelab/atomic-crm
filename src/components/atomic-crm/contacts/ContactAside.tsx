@@ -19,7 +19,7 @@ export const ContactAside = ({ link = "edit" }: { link?: "edit" | "show" }) => {
 
   if (!record) return null;
   return (
-    <div className="hidden sm:block w-64 min-w-64 text-sm">
+    <div className="hidden sm:block w-92 min-w-92 text-sm">
       <div className="mb-4 -ml-1">
         {link === "edit" ? (
           <EditButton label="Edit Contact" />

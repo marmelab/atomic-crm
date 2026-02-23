@@ -43,6 +43,16 @@ export const authProvider: AuthProvider = {
     localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(user));
     return Promise.resolve();
   },
+  resetPassword: async () => {
+    // FakeRest doesn't send real emails. Keep this async to mimic network latency.
+    await new Promise((resolve) => setTimeout(resolve, 250));
+    return;
+  },
+  setPassword: async () => {
+    // FakeRest doesn't persist auth credentials. This is only for local UX testing.
+    await new Promise((resolve) => setTimeout(resolve, 250));
+    return;
+  },
   logout: () => {
     localStorage.removeItem(USER_STORAGE_KEY);
     return Promise.resolve();

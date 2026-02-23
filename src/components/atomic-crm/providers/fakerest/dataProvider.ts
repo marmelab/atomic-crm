@@ -11,12 +11,15 @@ import fakeRestDataProvider from "ra-data-fakerest";
 import type {
   Company,
   Contact,
+  ContactNote,
   Deal,
+  DealNote,
   Sale,
   SalesFormData,
   SignUpData,
   Task,
 } from "../../types";
+import type { ConfigurationContextValue } from "../../root/ConfigurationContext";
 import { getActivityLog } from "../commons/activity";
 import { getCompanyAvatar } from "../commons/getCompanyAvatar";
 import { getContactAvatar } from "../commons/getContactAvatar";
@@ -224,6 +227,23 @@ const dataProviderWithCustomMethod: CrmDataProvider = {
   mergeContacts: async (sourceId: Identifier, targetId: Identifier) => {
     return mergeContacts(sourceId, targetId, baseDataProvider);
   },
+  getConfiguration: async (): Promise<ConfigurationContextValue> => {
+    const { data } = await baseDataProvider.getOne("configuration", { id: 1 });
+    return (data?.config as ConfigurationContextValue) ?? {};
+  },
+  updateConfiguration: async (
+    config: ConfigurationContextValue,
+  ): Promise<ConfigurationContextValue> => {
+    const { data: prev } = await baseDataProvider.getOne("configuration", {
+      id: 1,
+    });
+    await baseDataProvider.update("configuration", {
+      id: 1,
+      data: { config },
+      previousData: prev,
+    });
+    return config;
+  },
 };
 
 async function updateCompany(
@@ -243,9 +263,40 @@ async function updateCompany(
   });
 }
 
+const processConfigLogo = async (logo: any): Promise<string> => {
+  if (typeof logo === "string") return logo;
+  if (logo?.rawFile instanceof File) {
+    return (await convertFileToBase64(logo)) as string;
+  }
+  return logo?.src ?? "";
+};
+
+const preserveAttachmentMimeType = <
+  NoteType extends { attachments?: Array<{ rawFile?: File; type?: string }> },
+>(
+  note: NoteType,
+): NoteType => ({
+  ...note,
+  attachments: (note.attachments ?? []).map((attachment) => ({
+    ...attachment,
+    type: attachment.type ?? attachment.rawFile?.type,
+  })),
+});
+
 export const dataProvider = withLifecycleCallbacks(
   withSupabaseFilterAdapter(dataProviderWithCustomMethod),
   [
+    {
+      resource: "configuration",
+      beforeUpdate: async (params) => {
+        const config = params.data.config;
+        if (config) {
+          config.lightModeLogo = await processConfigLogo(config.lightModeLogo);
+          config.darkModeLogo = await processConfigLogo(config.darkModeLogo);
+        }
+        return params;
+      },
+    },
     {
       resource: "sales",
       beforeCreate: async (params) => {
@@ -499,6 +550,14 @@ export const dataProvider = withLifecycleCallbacks(
         return result;
       },
     } satisfies ResourceCallbacks<Deal>,
+    {
+      resource: "contact_notes",
+      beforeSave: async (params) => preserveAttachmentMimeType(params),
+    } satisfies ResourceCallbacks<ContactNote>,
+    {
+      resource: "deal_notes",
+      beforeSave: async (params) => preserveAttachmentMimeType(params),
+    } satisfies ResourceCallbacks<DealNote>,
   ],
 );
 
@@ -507,10 +566,11 @@ export const dataProvider = withLifecycleCallbacks(
  * That's not the most optimized way to store images in production, but it's
  * enough to illustrate the idea of dataprovider decoration.
  */
-const convertFileToBase64 = (file: { rawFile: Blob }) =>
+const convertFileToBase64 = (file: { rawFile: Blob }): Promise<string> =>
   new Promise((resolve, reject) => {
     const reader = new FileReader();
-    reader.onload = () => resolve(reader.result);
+    // We know result is a string as we used readAsDataURL
+    reader.onload = () => resolve(reader.result as string);
     reader.onerror = reject;
     reader.readAsDataURL(file.rawFile);
   });

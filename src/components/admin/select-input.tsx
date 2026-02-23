@@ -1,11 +1,16 @@
 import { X } from "lucide-react";
-import type { ChoicesProps, InputProps } from "ra-core";
+import type {
+  ChoicesProps,
+  InputProps,
+  SupportCreateSuggestionOptions,
+} from "ra-core";
 import {
   FieldTitle,
   useChoices,
   useChoicesContext,
   useGetRecordRepresentation,
   useInput,
+  useSupportCreateSuggestion,
   useTranslate,
 } from "ra-core";
 import type { ComponentProps, ReactElement } from "react";
@@ -21,8 +26,6 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
-import type { SupportCreateSuggestionOptions } from "@/hooks/useSupportCreateSuggestion";
-import { useSupportCreateSuggestion } from "@/hooks/useSupportCreateSuggestion";
 import { cn } from "@/lib/utils";
 
 /**
