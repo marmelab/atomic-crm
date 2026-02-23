@@ -159,6 +159,8 @@ const ContactShowContentMobile = () => {
                   onError: () => {
                     /** override to hide notification as error case is handled by NotesIteratorMobile */
                   },
+                  // We want infinite pagination so we need to disable placeHolder data to avoid flicker duplicating previous page before showing the new one
+                  placeholderData: null,
                 } as any // fixme: remove once https://github.com/marmelab/react-admin/pull/11166 is released
               }
             >

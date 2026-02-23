@@ -1,5 +1,10 @@
 import type { Identifier } from "ra-core";
-import { useListContext, useTimeout, WithRecord } from "ra-core";
+import {
+  InfinitePaginationContext,
+  useListContext,
+  useTimeout,
+  WithRecord,
+} from "ra-core";
 import { Link } from "react-router";
 import { ReferenceField } from "@/components/admin/reference-field";
 import { Button } from "@/components/ui/button";
@@ -11,6 +16,8 @@ import { RelativeDate } from "../misc/RelativeDate";
 import { Status } from "../misc/Status";
 import { SaleName } from "../sales/SaleName";
 import type { ContactNote } from "../types";
+import { useEffect, useMemo, useState } from "react";
+import { InfinitePagination } from "../misc/InfinitePagination";
 
 export const NotesIteratorMobile = ({
   contactId,
@@ -19,7 +26,24 @@ export const NotesIteratorMobile = ({
   contactId: Identifier;
   showStatus?: boolean;
 }) => {
-  const { data, error, isPending, refetch } = useListContext();
+  const { data, error, isPending, refetch, setPage, page, total } =
+    useListContext();
+
+  const [allPages, setAllPages] = useState<Record<number, any[]>>({});
+
+  useEffect(() => {
+    if (!data) {
+      return;
+    }
+    setAllPages((prev) => ({ ...prev, [page]: data }));
+  }, [page, setAllPages, data]);
+
+  const allLoadedData = useMemo(() => {
+    return Object.entries(allPages)
+      .sort(([pageA], [pageB]) => Number(pageA) - Number(pageB))
+      .flatMap(([, pageData]) => pageData);
+  }, [allPages]);
+
   const oneSecondHasPassed = useTimeout(1000);
   if (isPending) {
     if (!oneSecondHasPassed) {
@@ -39,7 +63,7 @@ export const NotesIteratorMobile = ({
       </div>
     );
   }
-  if (error && !data) {
+  if (error && !allLoadedData.length) {
     return (
       <div className="p-4">
         <div className="text-center text-muted-foreground mb-4">
@@ -60,16 +84,34 @@ export const NotesIteratorMobile = ({
   }
 
   return (
-    <div className="divide-y">
-      {data?.map((note) => (
-        <NoteMobile
-          key={note.id}
-          note={note}
-          contactId={contactId}
-          showStatus={showStatus}
-        />
-      ))}
-    </div>
+    <InfinitePaginationContext.Provider
+      value={{
+        fetchNextPage: async (): Promise<any> => {
+          setPage(page + 1);
+        },
+        hasNextPage: allLoadedData.length < total!,
+        isFetchingNextPage: isPending,
+        fetchPreviousPage: async (): Promise<any> => {
+          setPage(page - 1);
+        },
+        hasPreviousPage: page > 1,
+        isFetchingPreviousPage: false,
+      }}
+    >
+      <div>
+        <div className="divide-y">
+          {allLoadedData?.map((note) => (
+            <NoteMobile
+              key={note.id}
+              note={note}
+              contactId={contactId}
+              showStatus={showStatus}
+            />
+          ))}
+        </div>
+        <InfinitePagination />
+      </div>
+    </InfinitePaginationContext.Provider>
   );
 };
 
