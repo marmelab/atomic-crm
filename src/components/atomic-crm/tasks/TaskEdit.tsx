@@ -23,7 +23,7 @@ export const TaskEdit = ({
   const notify = useNotify();
   return (
     <Dialog open={open} onOpenChange={close}>
-      {taskId && (
+      {open && taskId && (
         <EditBase
           id={taskId}
           resource="tasks"
