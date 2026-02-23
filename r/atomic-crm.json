@@ -829,7 +829,7 @@
     },
     {
       "path": "src/components/atomic-crm/contacts/ContactEditSheet.tsx",
-      "content": "import { RecordRepresentation, type Identifier } from \"ra-core\";\nimport { EditSheet } from \"../misc/EditSheet\";\nimport { ContactInputs } from \"./ContactInputs\";\n\nexport interface ContactEditSheetProps {\n  open: boolean;\n  onOpenChange: (open: boolean) => void;\n  contactId: Identifier;\n}\n\nexport const ContactEditSheet = ({\n  open,\n  onOpenChange,\n  contactId,\n}: ContactEditSheetProps) => {\n  return (\n    <EditSheet\n      resource=\"contacts\"\n      id={contactId}\n      title={\n        <h1 className=\"text-xl font-semibold\">\n          Edit <RecordRepresentation />\n        </h1>\n      }\n      open={open}\n      onOpenChange={onOpenChange}\n    >\n      <ContactInputs />\n    </EditSheet>\n  );\n};\n",
+      "content": "import { RecordRepresentation, type Identifier } from \"ra-core\";\nimport { EditSheet } from \"../misc/EditSheet\";\nimport { ContactInputs } from \"./ContactInputs\";\n\nexport interface ContactEditSheetProps {\n  open: boolean;\n  onOpenChange: (open: boolean) => void;\n  contactId: Identifier;\n}\n\nexport const ContactEditSheet = ({\n  open,\n  onOpenChange,\n  contactId,\n}: ContactEditSheetProps) => {\n  return (\n    <EditSheet\n      resource=\"contacts\"\n      id={contactId}\n      title={\n        <h1 className=\"text-xl font-semibold truncate pr-10\">\n          Edit <RecordRepresentation />\n        </h1>\n      }\n      open={open}\n      onOpenChange={onOpenChange}\n    >\n      <ContactInputs />\n    </EditSheet>\n  );\n};\n",
       "type": "registry:component"
     },
     {
