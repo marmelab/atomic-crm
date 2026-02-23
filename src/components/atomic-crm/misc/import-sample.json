@@ -10,7 +10,14 @@
   "companies": [
     {
       "id": 234,
-      "name": "Black Mesa Research Facility"
+      "name": "Black Mesa Research Facility",
+      "sector": "industrials",
+      "size": 250,
+      "website": "https://blackmesa.com",
+      "linkedin_url": "https://linkedin.com/company/black-mesa",
+      "phone_number": "+1-505-555-0001",
+      "revenue": "$500M",
+      "tax_identifier": "12-3456789"
     },
     {
       "id": 345,
@@ -21,6 +28,17 @@
       "address": "Deep underground facility",
       "zipcode": "99999",
       "state_abbr": "OH",
+      "sector": "industrials",
+      "size": 500,
+      "linkedin_url": "https://linkedin.com/company/aperture-science",
+      "website": "https://aperturescience.com",
+      "phone_number": "+1-216-555-0100",
+      "revenue": "$2B",
+      "tax_identifier": "98-7654321",
+      "context_links": [
+        "https://aperturescience.com/research",
+        "https://aperturescience.com/portal-technology"
+      ],
       "sales_id": 123
     }
   ],
@@ -28,7 +46,9 @@
     {
       "id": 456,
       "first_name": "Gordon",
-      "last_name": "Freeman"
+      "last_name": "Freeman",
+      "gender": "male",
+      "has_newsletter": false
     },
     {
       "id": 567,
@@ -38,6 +58,8 @@
       "company_id": 345,
       "background": "Visionary entrepreneur. Believes in the power of science. May or may not have turned himself into a computer.",
       "linkedin_url": "https://linkedin.com/in/cavejohnson",
+      "gender": "male",
+      "has_newsletter": true,
       "sales_id": 123,
       "emails": [
         {
