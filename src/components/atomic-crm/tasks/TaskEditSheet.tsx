@@ -23,7 +23,7 @@ export const TaskEditSheet = ({
           source="contact_id"
           reference="contacts"
           render={({ referenceRecord }) => (
-            <h1 className="text-xl font-semibold">
+            <h1 className="text-xl font-semibold truncate pr-10">
               Edit Task
               {referenceRecord ? (
                 <>
