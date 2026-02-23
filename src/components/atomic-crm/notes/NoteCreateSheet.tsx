@@ -60,7 +60,7 @@ export const NoteCreateSheet = ({
     <CreateSheet
       resource="contact_notes"
       title={
-        <h1 className="text-xl font-semibold">
+        <h1 className="text-xl font-semibold truncate pr-10">
           {!selectContact ? "Create Note for " : "Create Note"}
           {!selectContact && (
             <RecordRepresentation record={contact} resource="contacts" />
