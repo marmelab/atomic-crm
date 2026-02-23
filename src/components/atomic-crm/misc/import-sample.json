@@ -2,74 +2,74 @@
   "sales": [
     {
       "id": 123,
-      "first_name": "John",
-      "last_name": "Doe",
-      "email": "john@acme.com"
+      "first_name": "Barney",
+      "last_name": "Calhoun",
+      "email": "barney.calhoun@blackmesa.com"
     }
   ],
   "companies": [
     {
       "id": 234,
-      "name": "A company"
+      "name": "Black Mesa Research Facility"
     },
     {
       "id": 345,
-      "name": "Another company",
-      "description": "A description",
-      "city": "A city",
-      "country": "A country",
-      "address": "An address",
-      "zipcode": "A zipcode",
-      "state_abbr": "A state abbreviation",
+      "name": "Aperture Science",
+      "description": "We do what we must because we can",
+      "city": "Cleveland",
+      "country": "USA",
+      "address": "Deep underground facility",
+      "zipcode": "99999",
+      "state_abbr": "OH",
       "sales_id": 123
     }
   ],
   "contacts": [
     {
       "id": 456,
-      "first_name": "A first name",
-      "last_name": "A last name"
+      "first_name": "Gordon",
+      "last_name": "Freeman"
     },
     {
       "id": 567,
-      "first_name": "A first name",
-      "last_name": "A last name",
-      "title": "A title",
+      "first_name": "Cave",
+      "last_name": "Johnson",
+      "title": "CEO & Founder",
       "company_id": 345,
-      "background": "A background",
-      "linkedin_url": "A URL",
+      "background": "Visionary entrepreneur. Believes in the power of science. May or may not have turned himself into a computer.",
+      "linkedin_url": "https://linkedin.com/in/cavejohnson",
       "sales_id": 123,
       "emails": [
         {
-          "email": "nickname@domain.com",
+          "email": "cave.johnson@aperturescience.com",
           "type": "Work"
         }
       ],
       "phones": [
         {
-          "number": "45646746788",
-          "type": "Home"
+          "number": "15551234567",
+          "type": "Work"
         }
       ],
-      "tags": ["MyTag"]
+      "tags": ["VIP", "Science"]
     }
   ],
   "notes": [
     {
       "contact_id": 456,
       "sales_id": 123,
-      "text": "Some text",
+      "text": "Still refuses to speak. Communication continues to be challenging.",
       "date": "2025-11-13T08:16:10Z"
     },
     {
-      "contact_id": 456,
+      "contact_id": 567,
       "sales_id": 123,
-      "text": "Some long text with lines\n\nAnother line",
+      "text": "Discussed new testing initiative involving portals.\n\nCave mentioned something about combustible lemons. Need to follow up on R&D budget.",
       "date": "2025-02-14T09:20:21Z",
       "attachments": [
         {
-          "url": "https://mycurrentcrm.com/files/link",
-          "name": "important.pdf"
+          "url": "https://aperturescience.com/files/combustible-lemons-proposal.pdf",
+          "name": "combustible-lemons-proposal.pdf"
         }
       ]
     }
@@ -78,12 +78,12 @@
     {
       "contact_id": 456,
       "sales_id": 123,
-      "text": "A task title"
+      "text": "Send crowbar maintenance kit"
     },
     {
-      "contact_id": 456,
+      "contact_id": 567,
       "sales_id": 123,
-      "text": "Another task title",
+      "text": "Schedule moon rock conversion demo",
       "due_date": "2025-03-26T16:15:00Z",
       "done_date": "2025-04-01T09:00:00"
     }
