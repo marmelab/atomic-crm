@@ -3,7 +3,7 @@ import { useRecordContext, useGetList, useTimeout } from "ra-core";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 
-import { TasksListFilter } from "../dashboard/TasksListFilter";
+import { TasksListByDueDate } from "../dashboard/TasksListByDueDate";
 import { TaskCreateSheet } from "../tasks/TaskCreateSheet";
 import type { Contact } from "../types";
 
@@ -54,5 +54,5 @@ export const ContactTasksList = () => {
     );
   }
 
-  return <TasksListFilter filterByContact={record.id} />;
+  return <TasksListByDueDate filterByContact={record.id} />;
 };

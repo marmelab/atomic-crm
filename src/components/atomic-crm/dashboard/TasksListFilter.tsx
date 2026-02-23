@@ -2,50 +2,42 @@ import {
   type Identifier,
   ListContextProvider,
   ResourceContextProvider,
-  useGetIdentity,
-  useGetList,
   useList,
 } from "ra-core";
 
 import { TasksIterator } from "../tasks/TasksIterator";
-import { useIsMobile } from "@/hooks/use-mobile";
-import { startOfToday } from "date-fns/startOfToday";
-import { endOfToday } from "date-fns/endOfToday";
-import { endOfTomorrow } from "date-fns/endOfTomorrow";
-import { endOfWeek } from "date-fns/endOfWeek";
-import { isBeforeFriday } from "../tasks/taskFilters";
-
-const today = new Date();
-const startOfTodayDate = startOfToday();
-const endOfTodayDate = endOfToday();
-const endOfTomorrowDate = endOfTomorrow();
-const endOfWeekDate = endOfWeek(today, { weekStartsOn: 0 });
+import { useMemo } from "react";
 
 type TaskListProps = {
   isPending: boolean;
   tasks: any[];
-  total: number;
   title: string;
   filterByContact?: Identifier;
   isMobile: boolean;
+  taskPredicate: (task: any) => boolean;
 };
 
-const TaskList = ({
+export const TaskListFilter = ({
   isPending,
   tasks,
-  total,
+  taskPredicate,
   title,
   filterByContact,
   isMobile,
 }: TaskListProps) => {
+  const filteredTasks = useMemo(() => {
+    return tasks.filter(taskPredicate);
+  }, [tasks, taskPredicate]);
   const listContext = useList({
-    data: tasks,
+    data: filteredTasks,
     isPending,
     resource: "tasks",
     perPage: isMobile ? 10 : 5,
   });
 
-  if (isPending || !tasks || !total) return null;
+  const { total } = listContext;
+
+  if (!filteredTasks?.length || !total) return null;
 
   return (
     <div className="flex flex-col gap-2">
@@ -71,121 +63,6 @@ const TaskList = ({
           </a>
         </div>
       )}
-    </div>
-  );
-};
-
-export const TasksListFilter = ({
-  filterByContact,
-}: {
-  filterByContact?: Identifier;
-}) => {
-  const { identity } = useGetIdentity();
-  const isMobile = useIsMobile();
-
-  const {
-    data: tasks,
-    total,
-    isPending,
-  } = useGetList(
-    "tasks",
-    {
-      pagination: { page: 1, perPage: 1000 },
-      sort: { field: "due_date", order: "ASC" },
-      filter: {
-        ...(filterByContact != null
-          ? { contact_id: filterByContact }
-          : { sales_id: identity?.id }),
-      },
-    },
-    { enabled: filterByContact != null ? true : !!identity },
-  );
-
-  const overdueTasks = tasks?.filter(
-    (task) =>
-      task.done_date == null || new Date(task.due_date) < startOfTodayDate,
-  );
-
-  const todayTasks = tasks?.filter((task) => {
-    if (task.done_date != null) {
-      return false;
-    }
-    const dueDate = new Date(task.due_date);
-    return dueDate >= startOfTodayDate && dueDate < endOfTodayDate;
-  });
-
-  const tomorrowTasks = tasks?.filter((task) => {
-    if (task.done_date != null) {
-      return false;
-    }
-    const dueDate = new Date(task.due_date);
-    return dueDate >= endOfTodayDate && dueDate < endOfTomorrowDate;
-  });
-
-  const thisWeekTasks = tasks?.filter((task) => {
-    if (task.done_date != null) {
-      return false;
-    }
-    const dueDate = new Date(task.due_date);
-    return dueDate >= endOfTomorrowDate && dueDate < endOfWeekDate;
-  });
-
-  const laterTasks = tasks?.filter((task) => {
-    if (task.done_date != null) {
-      return false;
-    }
-    const dueDate = new Date(task.due_date);
-    return dueDate >= endOfWeekDate;
-  });
-
-  if (!tasks || !total || isPending) {
-    return null;
-  }
-
-  return (
-    <div className="flex flex-col gap-4">
-      <TaskList
-        isPending={isPending}
-        tasks={overdueTasks!}
-        total={overdueTasks!.length}
-        title="Overdue"
-        filterByContact={filterByContact}
-        isMobile={isMobile}
-      />
-      <TaskList
-        isPending={isPending}
-        tasks={todayTasks!}
-        total={todayTasks!.length}
-        title="Today"
-        filterByContact={filterByContact}
-        isMobile={isMobile}
-      />
-      <TaskList
-        isPending={isPending}
-        tasks={tomorrowTasks!}
-        total={tomorrowTasks!.length}
-        title="Tomorrow"
-        filterByContact={filterByContact}
-        isMobile={isMobile}
-      />
-      {!filterByContact && isBeforeFriday && (
-        <TaskList
-          isPending={isPending}
-          tasks={thisWeekTasks!}
-          total={thisWeekTasks!.length}
-          title="This week"
-          filterByContact={filterByContact}
-          isMobile={isMobile}
-        />
-      )}
-      <TaskList
-        isPending={isPending}
-        tasks={laterTasks!}
-        total={laterTasks!.length}
-        title="Later"
-        filterByContact={filterByContact}
-        isMobile={isMobile}
-      />
     </div>
   );
 };

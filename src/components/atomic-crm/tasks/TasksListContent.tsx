@@ -1,11 +1,11 @@
 import { TasksListEmpty } from "../dashboard/TasksListEmpty";
-import { TasksListFilter } from "../dashboard/TasksListFilter";
+import { TasksListByDueDate } from "../dashboard/TasksListByDueDate";
 
 export const TasksListContent = () => {
   return (
     <div className="flex flex-col gap-4">
       <TasksListEmpty />
-      <TasksListFilter />
+      <TasksListByDueDate />
     </div>
   );
 };

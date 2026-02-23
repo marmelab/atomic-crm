@@ -98,19 +98,17 @@ export const NotesIteratorMobile = ({
         isFetchingPreviousPage: false,
       }}
     >
-      <div>
-        <div className="divide-y">
-          {allLoadedData?.map((note) => (
-            <NoteMobile
-              key={note.id}
-              note={note}
-              contactId={contactId}
-              showStatus={showStatus}
-            />
-          ))}
-        </div>
-        <InfinitePagination />
+      <div className="divide-y">
+        {allLoadedData?.map((note) => (
+          <NoteMobile
+            key={note.id}
+            note={note}
+            contactId={contactId}
+            showStatus={showStatus}
+          />
+        ))}
       </div>
+      <InfinitePagination />
     </InfinitePaginationContext.Provider>
   );
 };
