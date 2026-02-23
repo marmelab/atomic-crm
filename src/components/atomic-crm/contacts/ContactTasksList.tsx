@@ -5,7 +5,6 @@ import { Button } from "@/components/ui/button";
 
 import { TasksListFilter } from "../dashboard/TasksListFilter";
 import { TaskCreateSheet } from "../tasks/TaskCreateSheet";
-import { taskFilters, isBeforeFriday } from "../tasks/taskFilters";
 import type { Contact } from "../types";
 
 export const ContactTasksList = () => {
@@ -55,35 +54,5 @@ export const ContactTasksList = () => {
     );
   }
 
-  return (
-    <div className="flex flex-col gap-4">
-      <TasksListFilter
-        title="Overdue"
-        filter={taskFilters.overdue}
-        filterByContact={record.id}
-      />
-      <TasksListFilter
-        title="Today"
-        filter={taskFilters.today}
-        filterByContact={record.id}
-      />
-      <TasksListFilter
-        title="Tomorrow"
-        filter={taskFilters.tomorrow}
-        filterByContact={record.id}
-      />
-      {isBeforeFriday && (
-        <TasksListFilter
-          title="This week"
-          filter={taskFilters.thisWeek}
-          filterByContact={record.id}
-        />
-      )}
-      <TasksListFilter
-        title="Later"
-        filter={taskFilters.later}
-        filterByContact={record.id}
-      />
-    </div>
-  );
+  return <TasksListFilter filterByContact={record.id} />;
 };
