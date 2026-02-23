@@ -3,6 +3,7 @@ import { Form, required } from "ra-core";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { cn } from "@/lib/utils";
 import {
   Table,
   TableBody,
@@ -143,7 +144,7 @@ const ImportFromJsonSuccess = ({
       {hasFailedImports(importState.failedImports) ? (
         <>
           <span className="text-destructive">
-            Some records were not imported.
+            Some records were not imported.{" "}
           </span>
           <DownloadErrorFileButton failedImports={importState.failedImports} />
         </>
@@ -240,7 +241,12 @@ const ImportStats = ({
             <TableCell className="text-right text-success">
               {record.imported}
             </TableCell>
-            <TableCell className="text-right text-destructive">
+            <TableCell
+              className={cn(
+                "text-right",
+                record.failed > 0 && "text-destructive",
+              )}
+            >
               {record.failed}
             </TableCell>
           </TableRow>
