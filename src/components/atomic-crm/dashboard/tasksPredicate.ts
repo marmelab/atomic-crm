@@ -20,8 +20,12 @@ type Task = {
   done_date: string | null;
 };
 
-export const isOverdue = (task: Task) =>
-  task.done_date == null || new Date(task.due_date) < startOfTodayDate;
+export const isOverdue = (task: Task) => {
+  if (task.done_date != null) {
+    return false;
+  }
+  return new Date(task.due_date) < startOfTodayDate;
+};
 
 export const isDueToday = (task: Task) => {
   if (task.done_date != null) {
