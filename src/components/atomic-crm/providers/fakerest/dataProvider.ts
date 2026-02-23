@@ -559,7 +559,7 @@ export const dataProvider = withLifecycleCallbacks(
       beforeSave: async (params) => preserveAttachmentMimeType(params),
     } satisfies ResourceCallbacks<DealNote>,
   ],
-);
+) as CrmDataProvider;
 
 /**
  * Convert a `File` object returned by the upload input into a base 64 string.
