@@ -5,6 +5,7 @@
 // Setup type definitions for built-in Supabase Runtime APIs
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { addNoteToContact } from "./addNoteToContact.ts";
+import { detectForwarded } from "./detectForwarded.ts";
 import { extractMailContactData } from "./extractMailContactData.ts";
 import { getExpectedAuthorization } from "./getExpectedAuthorization.ts";
 import { getNoteContent } from "./getNoteContent.ts";
@@ -33,9 +34,8 @@ Deno.serve(async (req) => {
   response = checkBody(json);
   if (response) return response;
 
-  const { ToFull, FromFull, Subject, TextBody, Attachments } = json;
-
-  const noteContent = getNoteContent(Subject, TextBody);
+  const { FromFull, Subject, Attachments, Headers } = json;
+  let { ToFull, TextBody } = json;
 
   const { Email: salesEmail } = FromFull;
   if (!salesEmail) {
@@ -46,6 +46,28 @@ Deno.serve(async (req) => {
       { status: 403 },
     );
   }
+
+  // Detect forwarded emails and reroute the note to the original sender
+  const forwarded = detectForwarded(Subject, TextBody, Headers ?? []);
+  if (forwarded.isForwarded) {
+    if (!forwarded.originalFrom) {
+      // Could not parse the original sender — log and fall through to default
+      // behavior so the email is not silently lost.
+      console.warn(
+        "Detected a forwarded email but could not extract the original sender. " +
+        "Falling back to default contact resolution.",
+      );
+    } else {
+      // Swap the recipient with the original sender so the note is attached to
+      // the right contact, and trim the note to only the original message body.
+      ToFull = [{ Email: forwarded.originalFrom.email, Name: forwarded.originalFrom.name }];
+      if (forwarded.originalBody) {
+        TextBody = forwarded.originalBody;
+      }
+    }
+  }
+
+  const noteContent = getNoteContent(Subject, TextBody);
 
   const contacts = extractMailContactData(ToFull);
 
