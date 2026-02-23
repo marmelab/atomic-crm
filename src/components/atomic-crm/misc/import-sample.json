@@ -45,10 +45,12 @@
           "type": "Work"
         }
       ],
-      "phones": {
-        "number": "45646746788",
-        "type": "Home"
-      },
+      "phones": [
+        {
+          "number": "45646746788",
+          "type": "Home"
+        }
+      ],
       "tags": ["MyTag"]
     }
   ],
