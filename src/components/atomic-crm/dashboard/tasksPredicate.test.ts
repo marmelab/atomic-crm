@@ -22,6 +22,11 @@ describe("tasksPredicate", () => {
     expect(isOverdue(overdue)).toBe(true);
   });
 
+  it("isOverdue returns false for task with due_date in the future", () => {
+    const notOverdue = task(new Date(today.getTime() + 86400000));
+    expect(isOverdue(notOverdue)).toBe(false);
+  });
+
   it("isOverdue returns false for done", () => {
     const done = task(today, true);
     expect(isOverdue(done)).toBe(false);
