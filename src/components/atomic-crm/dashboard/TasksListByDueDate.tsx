@@ -44,7 +44,6 @@ export const TasksListByDueDate = ({
   return (
     <div className="flex flex-col gap-4">
       <TaskListFilter
-        isPending={isPending}
         tasks={tasks}
         title="Overdue"
         filterByContact={filterByContact}
@@ -52,7 +51,6 @@ export const TasksListByDueDate = ({
         isMobile={isMobile}
       />
       <TaskListFilter
-        isPending={isPending}
         tasks={tasks}
         title="Today"
         filterByContact={filterByContact}
@@ -60,7 +58,6 @@ export const TasksListByDueDate = ({
         taskPredicate={isDueToday}
       />
       <TaskListFilter
-        isPending={isPending}
         tasks={tasks!}
         title="Tomorrow"
         filterByContact={filterByContact}
@@ -69,7 +66,6 @@ export const TasksListByDueDate = ({
       />
       {!filterByContact && isBeforeFriday && (
         <TaskListFilter
-          isPending={isPending}
           tasks={tasks}
           title="This week"
           filterByContact={filterByContact}
@@ -78,7 +74,6 @@ export const TasksListByDueDate = ({
         />
       )}
       <TaskListFilter
-        isPending={isPending}
         tasks={tasks}
         title="Later"
         filterByContact={filterByContact}
