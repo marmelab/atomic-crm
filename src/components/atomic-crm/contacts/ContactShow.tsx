@@ -69,9 +69,9 @@ const ContactShowContentMobile = () => {
       />
       <MobileHeader>
         <MobileBackButton />
-        <div className="flex flex-1">
-          <Link to="/contacts">
-            <h1 className="text-xl font-semibold">
+        <div className="flex flex-1 min-w-0">
+          <Link to="/contacts" className="flex-1 min-w-0">
+            <h1 className="truncate text-xl font-semibold">
               <RecordRepresentation />
             </h1>
           </Link>
