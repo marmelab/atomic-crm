@@ -9,7 +9,6 @@ import { TasksIterator } from "../tasks/TasksIterator";
 import { useMemo } from "react";
 
 type TaskListProps = {
-  isPending: boolean;
   tasks: any[];
   title: string;
   filterByContact?: Identifier;
@@ -18,7 +17,6 @@ type TaskListProps = {
 };
 
 export const TaskListFilter = ({
-  isPending,
   tasks,
   taskPredicate,
   title,
@@ -30,7 +28,6 @@ export const TaskListFilter = ({
   }, [tasks, taskPredicate]);
   const listContext = useList({
     data: filteredTasks,
-    isPending,
     resource: "tasks",
     perPage: isMobile ? 10 : 5,
   });

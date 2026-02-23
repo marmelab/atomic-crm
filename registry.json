@@ -36,10 +36,6 @@
           "type": "registry:component"
         },
         {
-          "path": "src/components/atomic-crm/tasks/taskFilters.ts",
-          "type": "registry:component"
-        },
-        {
           "path": "src/components/atomic-crm/tasks/TasksListContent.tsx",
           "type": "registry:component"
         },
@@ -556,6 +552,10 @@
           "type": "registry:component"
         },
         {
+          "path": "src/components/atomic-crm/dashboard/tasksPredicate.ts",
+          "type": "registry:component"
+        },
+        {
           "path": "src/components/atomic-crm/dashboard/Welcome.tsx",
           "type": "registry:component"
         },
@@ -565,6 +565,10 @@
         },
         {
           "path": "src/components/atomic-crm/dashboard/TasksListEmpty.tsx",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/dashboard/TasksListByDueDate.tsx",
           "type": "registry:component"
         },
         {
