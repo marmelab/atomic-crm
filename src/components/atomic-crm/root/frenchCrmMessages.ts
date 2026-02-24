@@ -368,10 +368,12 @@ export const frenchCrmMessages = {
       added: "Note ajoutée",
       inputs: {
         add_note: "Ajouter une note",
+        attachments: "Pièces jointes",
         date: "Date",
         options_hint: "(joindre des fichiers ou modifier les détails)",
         reference_contact: "Contact",
         reference_deal: "Affaire",
+        status: "Statut",
         show_options: "Afficher les options",
       },
     },
