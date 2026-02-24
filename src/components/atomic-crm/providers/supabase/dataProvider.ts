@@ -1,6 +1,7 @@
 import { supabaseDataProvider } from "ra-supabase-core";
 import {
   withLifecycleCallbacks,
+  type DataProvider,
   type GetListParams,
   type Identifier,
   type ResourceCallbacks,
