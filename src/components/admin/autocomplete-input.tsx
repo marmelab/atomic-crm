@@ -215,7 +215,7 @@ export const AutocompleteInput = (
           </FormLabel>
         )}
         <FormControl>
-          <Popover open={open} onOpenChange={handleOpenChange}>
+          <Popover open={open} onOpenChange={handleOpenChange} modal>
             <PopoverTrigger asChild>
               <Button
                 variant="outline"
