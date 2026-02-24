@@ -16,6 +16,7 @@ import { foreignKeyMapping } from "./foreignKeyMapping";
 import { AutocompleteInput, ReferenceInput } from "@/components/admin";
 import { contactOptionText } from "../misc/ContactOption";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { getTranslatedNoteStatusLabel } from "./getTranslatedNoteStatusLabel";
 
 export const NoteInputs = ({
   showStatus,
@@ -106,7 +107,7 @@ export const NoteInputs = ({
               source="status"
               choices={noteStatuses.map((status) => ({
                 id: status.value,
-                name: status.label,
+                name: getTranslatedNoteStatusLabel(status, translate),
                 value: status.value,
               }))}
               optionText={optionRenderer}

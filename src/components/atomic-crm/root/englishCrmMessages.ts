@@ -299,6 +299,12 @@ export const englishCrmMessages = {
         reference_deal: "Deal",
         show_options: "Show options",
       },
+      statuses: {
+        cold: "Cold",
+        warm: "Warm",
+        hot: "Hot",
+        in_contract: "In Contract",
+      },
     },
     sales: {
       create: {
