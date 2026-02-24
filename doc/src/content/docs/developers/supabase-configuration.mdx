@@ -46,8 +46,6 @@ npx supabase db push
 npx supabase functions deploy
 ```
 
-The migrations create database triggers that call `delete_note_attachments` when notes are deleted or when attachments are removed from an existing note.
-
 Finally, add a `.env.production.local` file in the root directory with your remote Supabase credentials:
 
 ```sh
