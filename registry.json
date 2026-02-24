@@ -50,10 +50,6 @@
           "type": "registry:component"
         },
         {
-          "path": "src/components/atomic-crm/tasks/getTranslatedTaskTypeLabel.ts",
-          "type": "registry:component"
-        },
-        {
           "path": "src/components/atomic-crm/tasks/TasksListContent.tsx",
           "type": "registry:component"
         },
@@ -346,10 +342,6 @@
           "type": "registry:component"
         },
         {
-          "path": "src/components/atomic-crm/notes/getTranslatedNoteStatusLabel.ts",
-          "type": "registry:component"
-        },
-        {
           "path": "src/components/atomic-crm/notes/foreignKeyMapping.ts",
           "type": "registry:component"
         },
@@ -543,10 +535,6 @@
         },
         {
           "path": "src/components/atomic-crm/deals/index.ts",
-          "type": "registry:component"
-        },
-        {
-          "path": "src/components/atomic-crm/deals/getTranslatedDealStageLabel.ts",
           "type": "registry:component"
         },
         {
@@ -763,10 +751,6 @@
         },
         {
           "path": "src/components/atomic-crm/companies/getTranslatedCompanySizeLabel.ts",
-          "type": "registry:component"
-        },
-        {
-          "path": "src/components/atomic-crm/companies/getTranslatedCompanySectorLabel.ts",
           "type": "registry:component"
         },
         {
