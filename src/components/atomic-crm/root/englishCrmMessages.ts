@@ -89,6 +89,8 @@ export const englishCrmMessages = {
         website: "Website",
         linkedin_url: "LinkedIn URL",
         phone_number: "Phone number",
+        created_at: "Created at",
+        nb_contacts: "Number of contacts",
         revenue: "Revenue",
         sector: "Sector",
         size: "Size",
@@ -194,6 +196,11 @@ export const englishCrmMessages = {
       },
       list: {
         error_loading: "Error loading contacts",
+      },
+      fields: {
+        first_name: "First name",
+        last_name: "Last name",
+        last_seen: "Last seen",
       },
       merge: {
         action: "Merge with another contact",
@@ -355,8 +362,20 @@ export const englishCrmMessages = {
         update: "Update note",
         add_this: "Add this note",
       },
+      sheet: {
+        create: "Create note",
+        create_for: "Create note for",
+        edit: "Edit note",
+        edit_for: "Edit note for",
+      },
       deleted: "Note deleted",
       empty: "No notes yet",
+      feed: {
+        added: "added a note",
+      },
+      list: {
+        error_loading: "Error loading notes",
+      },
       note_for: "Note for",
       stepper: {
         hint: "Go to a contact page and add a note",
@@ -386,11 +405,20 @@ export const englishCrmMessages = {
           "User created. They will soon receive an email to set their password.",
         title: "Create a new user",
       },
+      edit: {
+        error: "An error occurred. Please try again.",
+        record_not_found: "Record not found",
+        success: "User updated successfully",
+        title: "Edit %{name}",
+      },
       name: "User |||| Users",
       action: {
         new: "New user",
       },
       fields: {
+        first_name: "First name",
+        last_name: "Last name",
+        email: "Email",
         admin: "Admin",
         disabled: "Disabled",
       },
@@ -422,6 +450,16 @@ export const englishCrmMessages = {
       app_title: "App Title",
       sections: {
         branding: "Branding",
+      },
+      validation: {
+        duplicate: "Duplicate %{display_name}: %{items}",
+        in_use:
+          "Cannot remove %{display_name} that are still used by deals: %{items}",
+        validating: "Validating…",
+        entities: {
+          categories: "categories",
+          stages: "stages",
+        },
       },
     },
     tasks: {
@@ -479,6 +517,7 @@ export const englishCrmMessages = {
       light_short: "Light",
       system: "System theme",
       system_short: "System",
+      toggle: "Toggle theme",
     },
     language: "Language",
     navigation: {
@@ -511,6 +550,7 @@ export const englishCrmMessages = {
       },
       password_reset_sent:
         "A reset password email has been sent to your email address",
+      record_not_found: "Record not found",
       title: "Profile",
       updated: "Your profile has been updated",
       update_error: "An error occurred. Please try again",

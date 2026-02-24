@@ -58,9 +58,12 @@ export function SalesList() {
       sort={{ field: "first_name", order: "ASC" }}
     >
       <DataTable>
-        <DataTable.Col source="first_name" />
-        <DataTable.Col source="last_name" />
-        <DataTable.Col source="email" />
+        <DataTable.Col
+          source="first_name"
+          label="crm.sales.fields.first_name"
+        />
+        <DataTable.Col source="last_name" label="crm.sales.fields.last_name" />
+        <DataTable.Col source="email" label="crm.sales.fields.email" />
         <DataTable.Col label={false}>
           <OptionsField />
         </DataTable.Col>

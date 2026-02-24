@@ -1,4 +1,5 @@
 import { Check, Moon, Sun } from "lucide-react";
+import { useTranslate } from "ra-core";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -19,6 +20,7 @@ import { useTheme } from "@/components/admin/use-theme";
  */
 export function ThemeModeToggle() {
   const { theme, setTheme } = useTheme();
+  const translate = useTranslate();
 
   return (
     <DropdownMenu modal={false}>
@@ -26,20 +28,22 @@ export function ThemeModeToggle() {
         <Button variant="ghost" size="icon" className="hidden sm:inline-flex">
           <Sun className="h-[1.2rem] w-[1.2rem] rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
           <Moon className="absolute h-[1.2rem] w-[1.2rem] rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
-          <span className="sr-only">Toggle theme</span>
+          <span className="sr-only">
+            {translate("crm.theme.toggle", { _: "Toggle theme" })}
+          </span>
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
         <DropdownMenuItem onClick={() => setTheme("light")}>
-          Light
+          {translate("crm.theme.light_short", { _: "Light" })}
           <Check className={cn("ml-auto", theme !== "light" && "hidden")} />
         </DropdownMenuItem>
         <DropdownMenuItem onClick={() => setTheme("dark")}>
-          Dark
+          {translate("crm.theme.dark_short", { _: "Dark" })}
           <Check className={cn("ml-auto", theme !== "dark" && "hidden")} />
         </DropdownMenuItem>
         <DropdownMenuItem onClick={() => setTheme("system")}>
-          System
+          {translate("crm.theme.system_short", { _: "System" })}
           <Check className={cn("ml-auto", theme !== "system" && "hidden")} />
         </DropdownMenuItem>
       </DropdownMenuContent>
