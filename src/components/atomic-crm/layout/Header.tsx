@@ -1,10 +1,19 @@
-import { Import, Settings, User, Users } from "lucide-react";
-import { CanAccess, useUserMenu } from "ra-core";
+import { Check, Import, Settings, User, Users } from "lucide-react";
+import {
+  CanAccess,
+  useLocaleState,
+  useLocales,
+  useTranslate,
+  useUserMenu,
+} from "ra-core";
 import { Link, matchPath, useLocation } from "react-router";
 import { RefreshButton } from "@/components/admin/refresh-button";
 import { ThemeModeToggle } from "@/components/admin/theme-mode-toggle";
 import { UserMenu } from "@/components/admin/user-menu";
-import { DropdownMenuItem } from "@/components/ui/dropdown-menu";
+import {
+  DropdownMenuItem,
+  DropdownMenuLabel,
+} from "@/components/ui/dropdown-menu";
 
 import { useConfigurationContext } from "../root/ConfigurationContext";
 import { ImportPage } from "../misc/ImportPage";
@@ -77,6 +86,7 @@ const Header = () => {
                 <RefreshButton />
                 <UserMenu>
                   <ProfileMenu />
+                  <LanguageMenu />
                   <CanAccess resource="sales" action="list">
                     <UsersMenu />
                   </CanAccess>
@@ -116,6 +126,7 @@ const NavigationTab = ({
 );
 
 const UsersMenu = () => {
+  const translate = useTranslate();
   const userMenuContext = useUserMenu();
   if (!userMenuContext) {
     throw new Error("<UsersMenu> must be used inside <UserMenu?");
@@ -123,13 +134,15 @@ const UsersMenu = () => {
   return (
     <DropdownMenuItem asChild onClick={userMenuContext.onClose}>
       <Link to="/sales" className="flex items-center gap-2">
-        <Users /> Users
+        <Users />
+        {translate("resources.sales.name", { smart_count: 2, _: "Users" })}
       </Link>
     </DropdownMenuItem>
   );
 };
 
 const ProfileMenu = () => {
+  const translate = useTranslate();
   const userMenuContext = useUserMenu();
   if (!userMenuContext) {
     throw new Error("<ProfileMenu> must be used inside <UserMenu?");
@@ -138,13 +151,48 @@ const ProfileMenu = () => {
     <DropdownMenuItem asChild onClick={userMenuContext.onClose}>
       <Link to="/profile" className="flex items-center gap-2">
         <User />
-        Profile
+        {translate("crm.profile.title", { _: "Profile" })}
       </Link>
     </DropdownMenuItem>
   );
 };
 
+const LanguageMenu = () => {
+  const translate = useTranslate();
+  const languages = useLocales();
+  const [locale, setLocale] = useLocaleState();
+  const userMenuContext = useUserMenu();
+  if (!userMenuContext) {
+    throw new Error("<LanguageMenu> must be used inside <UserMenu>");
+  }
+  if (languages.length <= 1) {
+    return null;
+  }
+  const changeLocale = (nextLocale: string) => () => {
+    setLocale(nextLocale);
+    userMenuContext.onClose();
+  };
+
+  return (
+    <>
+      <DropdownMenuLabel>
+        {translate("crm.language", { _: "Language" })}
+      </DropdownMenuLabel>
+      {languages.map((language) => (
+        <DropdownMenuItem
+          key={language.locale}
+          onSelect={changeLocale(language.locale)}
+        >
+          {language.name}
+          {locale === language.locale ? <Check className="ml-auto" /> : null}
+        </DropdownMenuItem>
+      ))}
+    </>
+  );
+};
+
 const SettingsMenu = () => {
+  const translate = useTranslate();
   const userMenuContext = useUserMenu();
   if (!userMenuContext) {
     throw new Error("<SettingsMenu> must be used inside <UserMenu>");
@@ -152,13 +200,15 @@ const SettingsMenu = () => {
   return (
     <DropdownMenuItem asChild onClick={userMenuContext.onClose}>
       <Link to="/settings" className="flex items-center gap-2">
-        <Settings /> Settings
+        <Settings />
+        {translate("crm.settings.title", { _: "Settings" })}
       </Link>
     </DropdownMenuItem>
   );
 };
 
 const ImportFromJsonMenuItem = () => {
+  const translate = useTranslate();
   const userMenuContext = useUserMenu();
   if (!userMenuContext) {
     throw new Error("<ImportFromJsonMenuItem> must be used inside <UserMenu>");
@@ -166,7 +216,8 @@ const ImportFromJsonMenuItem = () => {
   return (
     <DropdownMenuItem asChild onClick={userMenuContext.onClose}>
       <Link to={ImportPage.path} className="flex items-center gap-2">
-        <Import /> Import data
+        <Import />
+        {translate("crm.header.import_data", { _: "Import data" })}
       </Link>
     </DropdownMenuItem>
   );
