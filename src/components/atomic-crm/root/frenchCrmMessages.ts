@@ -108,19 +108,6 @@ export const frenchCrmMessages = {
         sector: "Secteur",
         size: "Taille",
       },
-      sectors: {
-        communication_services: "Services de communication",
-        consumer_discretionary: "Consommation discrétionnaire",
-        consumer_staples: "Biens de consommation de base",
-        energy: "Énergie",
-        financials: "Finance",
-        health_care: "Santé",
-        industrials: "Industrie",
-        information_technology: "Technologies de l'information",
-        materials: "Matériaux",
-        real_estate: "Immobilier",
-        utilities: "Services publics",
-      },
       sizes: {
         one_employee: "1 employé",
         two_to_nine_employees: "2-9 employés",
@@ -311,14 +298,6 @@ export const frenchCrmMessages = {
       filters: {
         company: "Entreprise",
       },
-      stages: {
-        opportunity: "Opportunité",
-        proposal_sent: "Proposition envoyée",
-        in_negociation: "En négociation",
-        won: "Gagnée",
-        lost: "Perdue",
-        delayed: "Reportée",
-      },
     },
     header: {
       import_data: "Importer des données",
@@ -394,12 +373,6 @@ export const frenchCrmMessages = {
         reference_contact: "Contact",
         reference_deal: "Affaire",
         show_options: "Afficher les options",
-      },
-      statuses: {
-        cold: "Froid",
-        warm: "Tiède",
-        hot: "Chaud",
-        in_contract: "Sous contrat",
       },
     },
     sales: {
@@ -503,17 +476,6 @@ export const frenchCrmMessages = {
       updated: "Tâche mise à jour",
       name: "Tâche |||| Tâches",
       forcedCaseName: "Tâche",
-      types: {
-        none: "Aucun",
-        email: "E-mail",
-        demo: "Démo",
-        lunch: "Déjeuner",
-        meeting: "Réunion",
-        follow_up: "Relance",
-        thank_you: "Remerciement",
-        ship: "Expédition",
-        call: "Appel",
-      },
     },
     theme: {
       dark: "Thème sombre",

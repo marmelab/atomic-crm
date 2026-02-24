@@ -25,7 +25,6 @@ import {
 } from "../root/ConfigurationContext";
 import { defaultConfiguration } from "../root/defaultConfiguration";
 import { validateItemsInUse } from "./validateItemsInUse";
-import { getTranslatedDealStageLabel } from "../deals/getTranslatedDealStageLabel";
 
 const SECTIONS = [
   {
@@ -350,8 +349,7 @@ const SettingsFormFields = () => {
                         }
                       }}
                     >
-                      {getTranslatedDealStageLabel(stage, translate) ||
-                        stage.value}
+                      {stage.label || stage.value}
                     </Button>
                   );
                 },

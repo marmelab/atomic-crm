@@ -11,7 +11,6 @@ import ImageEditorField from "../misc/ImageEditorField";
 import { isLinkedinUrl } from "../misc/isLinkedInUrl";
 import { useConfigurationContext } from "../root/ConfigurationContext";
 import type { Company, Sale } from "../types";
-import { getTranslatedCompanySectorLabel } from "./getTranslatedCompanySectorLabel";
 import { getTranslatedCompanySizeLabel } from "./getTranslatedCompanySizeLabel";
 import { sizes } from "./sizes";
 
@@ -105,10 +104,6 @@ const CompanyContactInputs = () => {
 const CompanyContextInputs = () => {
   const translate = useTranslate();
   const { companySectors } = useConfigurationContext();
-  const translatedCompanySectors = companySectors.map((sector) => ({
-    ...sector,
-    label: getTranslatedCompanySectorLabel(sector, translate),
-  }));
   const translatedSizes = sizes.map((size) => ({
     ...size,
     name: getTranslatedCompanySizeLabel(size, translate),
@@ -121,7 +116,7 @@ const CompanyContextInputs = () => {
       <SelectInput
         source="sector"
         label="crm.companies.fields.sector"
-        choices={translatedCompanySectors}
+        choices={companySectors}
         optionText="label"
         optionValue="value"
         helperText={false}

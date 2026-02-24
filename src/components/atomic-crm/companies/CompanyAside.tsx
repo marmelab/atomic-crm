@@ -13,7 +13,6 @@ import { AsideSection } from "../misc/AsideSection";
 import { useConfigurationContext } from "../root/ConfigurationContext";
 import { SaleName } from "../sales/SaleName";
 import type { Company } from "../types";
-import { getTranslatedCompanySectorLabel } from "./getTranslatedCompanySectorLabel";
 import { getTranslatedCompanySizeLabel } from "./getTranslatedCompanySizeLabel";
 import { sizes } from "./sizes";
 
@@ -121,9 +120,7 @@ export const ContextInfo = ({ record }: { record: Company }) => {
   }
 
   const sector = companySectors.find((s) => s.value === record.sector);
-  const sectorLabel = sector
-    ? getTranslatedCompanySectorLabel(sector, translate)
-    : undefined;
+  const sectorLabel = sector?.label;
   const translatedSizes = sizes.map((size) => ({
     ...size,
     name: getTranslatedCompanySizeLabel(size, translate),
