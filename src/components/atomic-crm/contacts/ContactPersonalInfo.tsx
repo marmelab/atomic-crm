@@ -1,4 +1,4 @@
-import { useRecordContext, WithRecord } from "ra-core";
+import { useRecordContext, useTranslate, WithRecord } from "ra-core";
 import { ArrayField } from "@/components/admin/array-field";
 import { SingleFieldList } from "@/components/admin/single-field-list";
 import { TextField } from "@/components/admin/text-field";
@@ -6,10 +6,13 @@ import { EmailField } from "@/components/admin/email-field";
 import { Mail, Phone, Linkedin } from "lucide-react";
 import type { ReactNode } from "react";
 import { contactGender } from "./contactGender";
+import { getTranslatedContactGenderLabel } from "./getTranslatedContactGenderLabel";
+import { getTranslatedPersonalInfoTypeLabel } from "./getTranslatedPersonalInfoTypeLabel";
 import type { Contact } from "../types";
 
 export const ContactPersonalInfo = () => {
   const record = useRecordContext<Contact>();
+  const translate = useTranslate();
 
   if (!record) return null;
 
@@ -26,7 +29,9 @@ export const ContactPersonalInfo = () => {
 
       {record.has_newsletter && (
         <p className="pl-6 py-1 text-sm text-muted-foreground">
-          Subscribed to newsletter
+          {translate("crm.contacts.inputs.subscribed_newsletter", {
+            _: "Subscribed to newsletter",
+          })}
         </p>
       )}
 
@@ -64,7 +69,11 @@ export const ContactPersonalInfo = () => {
                 icon={
                   <genderOption.icon className="w-4 h-4 text-muted-foreground" />
                 }
-                primary={<div>{genderOption.label}</div>}
+                primary={
+                  <div>
+                    {getTranslatedContactGenderLabel(genderOption, translate)}
+                  </div>
+                }
               />
             );
           }
@@ -92,7 +101,9 @@ const PersonalInfoRow = ({
         <WithRecord
           render={(row) =>
             row.type !== "Other" && (
-              <TextField source="type" className="text-muted-foreground" />
+              <span className="text-muted-foreground">
+                {getTranslatedPersonalInfoTypeLabel(row.type, translate)}
+              </span>
             )
           }
         />

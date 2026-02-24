@@ -5,12 +5,22 @@ import { SearchInput } from "@/components/admin/search-input";
 
 import { FilterCategory } from "../filters/FilterCategory";
 import { useConfigurationContext } from "../root/ConfigurationContext";
+import { getTranslatedCompanySectorLabel } from "./getTranslatedCompanySectorLabel";
+import { getTranslatedCompanySizeLabel } from "./getTranslatedCompanySizeLabel";
 import { sizes } from "./sizes";
 
 export const CompanyListFilter = () => {
   const { identity } = useGetIdentity();
   const { companySectors } = useConfigurationContext();
   const translate = useTranslate();
+  const translatedSizes = sizes.map((size) => ({
+    ...size,
+    name: getTranslatedCompanySizeLabel(size, translate),
+  }));
+  const translatedSectors = companySectors.map((sector) => ({
+    ...sector,
+    label: getTranslatedCompanySectorLabel(sector, translate),
+  }));
   return (
     <div className="w-52 min-w-52 flex flex-col gap-8">
       <FilterLiveForm>
@@ -21,7 +31,7 @@ export const CompanyListFilter = () => {
         icon={<Building className="h-4 w-4" />}
         label={translate("crm.companies.filters.size", { _: "Size" })}
       >
-        {sizes.map((size) => (
+        {translatedSizes.map((size) => (
           <ToggleFilterButton
             className="w-full justify-between"
             label={size.name}
@@ -35,7 +45,7 @@ export const CompanyListFilter = () => {
         icon={<Truck className="h-4 w-4" />}
         label={translate("crm.companies.filters.sector", { _: "Sector" })}
       >
-        {companySectors.map((sector) => (
+        {translatedSectors.map((sector) => (
           <ToggleFilterButton
             className="w-full justify-between"
             label={sector.label}
