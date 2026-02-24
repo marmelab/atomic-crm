@@ -1,40 +1,29 @@
-import {
-  type Identifier,
-  ListContextProvider,
-  ResourceContextProvider,
-  useList,
-} from "ra-core";
+import { ListContextProvider, ResourceContextProvider, useList } from "ra-core";
 
 import { TasksIterator } from "../tasks/TasksIterator";
-import { useMemo } from "react";
 
 type TaskListProps = {
   tasks: any[];
   title: string;
-  filterByContact?: Identifier;
+  showContact?: boolean;
   isMobile: boolean;
-  taskPredicate: (task: any) => boolean;
 };
 
 export const TaskListFilter = ({
   tasks,
-  taskPredicate,
   title,
-  filterByContact,
+  showContact,
   isMobile,
 }: TaskListProps) => {
-  const filteredTasks = useMemo(() => {
-    return tasks.filter(taskPredicate);
-  }, [tasks, taskPredicate]);
   const listContext = useList({
-    data: filteredTasks,
+    data: tasks,
     resource: "tasks",
     perPage: isMobile ? 10 : 5,
   });
 
   const { total } = listContext;
 
-  if (!filteredTasks?.length || !total) return null;
+  if (!tasks?.length || !total) return null;
 
   return (
     <div className="flex flex-col gap-2">
@@ -43,7 +32,7 @@ export const TaskListFilter = ({
       </p>
       <ResourceContextProvider value="tasks">
         <ListContextProvider value={listContext}>
-          <TasksIterator showContact={filterByContact == null} />
+          <TasksIterator showContact={showContact == null} />
         </ListContextProvider>
       </ResourceContextProvider>
       {total > listContext.perPage && (

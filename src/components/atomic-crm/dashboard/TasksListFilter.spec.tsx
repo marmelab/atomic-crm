@@ -8,7 +8,7 @@ import React from "react";
 const today = new Date();
 const iso = (d: Date) => d.toISOString();
 
-const makeTask = (id: number, dueDate: Date, doneDate?: Date) => ({
+const createTask = (id: number, dueDate: Date, doneDate?: Date) => ({
   id,
   due_date: iso(dueDate),
   done_date: doneDate ? iso(doneDate) : null,
@@ -18,119 +18,52 @@ const makeTask = (id: number, dueDate: Date, doneDate?: Date) => ({
   text: `Task ${id}`,
 });
 
-const makeWrapper =
-  (tasks: ReturnType<typeof makeTask>[]) =>
-  ({ children }: { children: React.ReactNode }) => (
-    <CoreAdminContext
-      dataProvider={fakeDataProvider({ tasks, contacts: [], sales: [] })}
-    >
-      {children}
-    </CoreAdminContext>
-  );
+const Wrapper = ({ children }: { children: React.ReactNode }) => (
+  <CoreAdminContext
+    dataProvider={fakeDataProvider({ tasks: [], contacts: [], sales: [] })}
+  >
+    {children}
+  </CoreAdminContext>
+);
 
 describe("TaskListFilter", () => {
   it("renders nothing when tasks array is empty", () => {
-    const Wrapper = makeWrapper([]);
     const { container } = render(
-      <TaskListFilter
-        tasks={[]}
-        taskPredicate={() => true}
-        title="Today"
-        isMobile={false}
-      />,
+      <TaskListFilter tasks={[]} title="Today" isMobile={false} />,
       { wrapper: Wrapper },
     );
     expect(container.firstChild).toBeNull();
   });
 
-  it("renders nothing when no task passes the predicate", () => {
-    const tasks = [makeTask(1, today), makeTask(2, today)];
-    const Wrapper = makeWrapper(tasks);
-    const { container } = render(
-      <TaskListFilter
-        tasks={tasks}
-        taskPredicate={() => false}
-        title="Today"
-        isMobile={false}
-      />,
-      { wrapper: Wrapper },
-    );
-    expect(container.firstChild).toBeNull();
-  });
-
-  it("renders the section title when tasks pass the predicate", () => {
-    const tasks = [makeTask(1, today)];
-    const Wrapper = makeWrapper(tasks);
-    render(
-      <TaskListFilter
-        tasks={tasks}
-        taskPredicate={() => true}
-        title="Today"
-        isMobile={false}
-      />,
-      { wrapper: Wrapper },
-    );
+  it("renders the section title", () => {
+    const tasks = [createTask(1, today)];
+    render(<TaskListFilter tasks={tasks} title="Today" isMobile={false} />, {
+      wrapper: Wrapper,
+    });
     expect(screen.getByText("Today")).toBeInTheDocument();
   });
 
-  it("renders the section title for overdue tasks", () => {
-    const yesterday = new Date(today.getTime() - 86400000);
-    const tasks = [makeTask(1, yesterday)];
-    const Wrapper = makeWrapper(tasks);
-    render(
-      <TaskListFilter
-        tasks={tasks}
-        taskPredicate={() => true}
-        title="Overdue"
-        isMobile={false}
-      />,
-      { wrapper: Wrapper },
-    );
-    expect(screen.getByText("Overdue")).toBeInTheDocument();
-  });
-
   it("does not show Load more when tasks fit in one page", () => {
-    const tasks = Array.from({ length: 3 }, (_, i) => makeTask(i + 1, today));
-    const Wrapper = makeWrapper(tasks);
-    render(
-      <TaskListFilter
-        tasks={tasks}
-        taskPredicate={() => true}
-        title="Today"
-        isMobile={false}
-      />,
-      { wrapper: Wrapper },
-    );
+    const tasks = Array.from({ length: 3 }, (_, i) => createTask(i + 1, today));
+    render(<TaskListFilter tasks={tasks} title="Today" isMobile={false} />, {
+      wrapper: Wrapper,
+    });
     expect(screen.queryByText("Load more")).not.toBeInTheDocument();
   });
 
   it("shows Load more when tasks exceed page size", () => {
-    const tasks = Array.from({ length: 8 }, (_, i) => makeTask(i + 1, today));
-    const Wrapper = makeWrapper(tasks);
-    render(
-      <TaskListFilter
-        tasks={tasks}
-        taskPredicate={() => true}
-        title="Today"
-        isMobile={false}
-      />,
-      { wrapper: Wrapper },
-    );
+    const tasks = Array.from({ length: 8 }, (_, i) => createTask(i + 1, today));
+    render(<TaskListFilter tasks={tasks} title="Today" isMobile={false} />, {
+      wrapper: Wrapper,
+    });
     expect(screen.getByText("Load more")).toBeInTheDocument();
   });
 
   it("Load more increases visible page size", () => {
-    const tasks = Array.from({ length: 8 }, (_, i) => makeTask(i + 1, today));
-    const Wrapper = makeWrapper(tasks);
-    render(
-      <TaskListFilter
-        tasks={tasks}
-        taskPredicate={() => true}
-        title="Today"
-        isMobile={false}
-      />,
-      { wrapper: Wrapper },
-    );
+    const tasks = Array.from({ length: 8 }, (_, i) => createTask(i + 1, today));
+    render(<TaskListFilter tasks={tasks} title="Today" isMobile={false} />, {
+      wrapper: Wrapper,
+    });
 
     expect(screen.getAllByText(/Task \d+/)).toHaveLength(5);
     const loadMore = screen.getByText("Load more");
