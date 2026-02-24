@@ -4,6 +4,10 @@ DO $migration$
 BEGIN
   EXECUTE 'DROP TRIGGER IF EXISTS on_contact_notes_changed_delete_note_attachments ON public.contact_notes';
   EXECUTE 'DROP TRIGGER IF EXISTS on_deal_notes_changed_delete_note_attachments ON public.deal_notes';
+  EXECUTE 'DROP TRIGGER IF EXISTS on_contact_notes_deleted_delete_note_attachments ON public.contact_notes';
+  EXECUTE 'DROP TRIGGER IF EXISTS on_deal_notes_deleted_delete_note_attachments ON public.deal_notes';
+  EXECUTE 'DROP TRIGGER IF EXISTS on_contact_notes_attachments_updated_delete_note_attachments ON public.contact_notes';
+  EXECUTE 'DROP TRIGGER IF EXISTS on_deal_notes_attachments_updated_delete_note_attachments ON public.deal_notes';
 
   EXECUTE 'DROP FUNCTION IF EXISTS public.cleanup_note_attachments()';
   EXECUTE 'DROP FUNCTION IF EXISTS public.note_attachments_webhook_url()';
@@ -116,7 +120,9 @@ BEGIN
     $function$;
   $cleanup_sql$;
 
-  EXECUTE 'CREATE TRIGGER on_contact_notes_changed_delete_note_attachments AFTER DELETE OR UPDATE ON public.contact_notes FOR EACH ROW EXECUTE FUNCTION public.cleanup_note_attachments()';
-  EXECUTE 'CREATE TRIGGER on_deal_notes_changed_delete_note_attachments AFTER DELETE OR UPDATE ON public.deal_notes FOR EACH ROW EXECUTE FUNCTION public.cleanup_note_attachments()';
+  EXECUTE 'CREATE TRIGGER on_contact_notes_deleted_delete_note_attachments AFTER DELETE ON public.contact_notes FOR EACH ROW EXECUTE FUNCTION public.cleanup_note_attachments()';
+  EXECUTE 'CREATE TRIGGER on_deal_notes_deleted_delete_note_attachments AFTER DELETE ON public.deal_notes FOR EACH ROW EXECUTE FUNCTION public.cleanup_note_attachments()';
+  EXECUTE 'CREATE TRIGGER on_contact_notes_attachments_updated_delete_note_attachments AFTER UPDATE ON public.contact_notes FOR EACH ROW WHEN (OLD.attachments IS DISTINCT FROM NEW.attachments) EXECUTE FUNCTION public.cleanup_note_attachments()';
+  EXECUTE 'CREATE TRIGGER on_deal_notes_attachments_updated_delete_note_attachments AFTER UPDATE ON public.deal_notes FOR EACH ROW WHEN (OLD.attachments IS DISTINCT FROM NEW.attachments) EXECUTE FUNCTION public.cleanup_note_attachments()';
 END;
 $migration$;
