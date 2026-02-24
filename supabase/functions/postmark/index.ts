@@ -55,12 +55,22 @@ Deno.serve(async (req) => {
       // behavior so the email is not silently lost.
       console.warn(
         "Detected a forwarded email but could not extract the original sender. " +
-        "Falling back to default contact resolution.",
+          "Falling back to default contact resolution.",
+        {
+          subject: Subject,
+          textBody: TextBody,
+          headers: Headers,
+        },
       );
     } else {
       // Swap the recipient with the original sender so the note is attached to
       // the right contact, and trim the note to only the original message body.
-      ToFull = [{ Email: forwarded.originalFrom.email, Name: forwarded.originalFrom.name }];
+      ToFull = [
+        {
+          Email: forwarded.originalFrom.email,
+          Name: forwarded.originalFrom.name,
+        },
+      ];
       if (forwarded.originalBody) {
         TextBody = forwarded.originalBody;
       }

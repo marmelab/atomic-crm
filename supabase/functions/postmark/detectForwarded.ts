@@ -41,7 +41,7 @@ const FORWARD_SEPARATOR_PATTERNS = [
  *   John Doe <john@example.com>
  *   john@example.com
  */
-const parseFromLine = (
+export const parseFromLine = (
   raw: string,
 ): { name: string; email: string } | undefined => {
   // Format: "Name" <email> or Name <email>
@@ -64,7 +64,7 @@ const parseFromLine = (
  * The header block is a sequence of lines that look like "Key: value"
  * (From, Date, Subject, To, Cc, …), potentially followed by a blank line.
  */
-const parseForwardedBlock = (
+export const parseForwardedBlock = (
   blockText: string,
 ): {
   originalFrom?: { name: string; email: string };
@@ -119,15 +119,6 @@ export const detectForwarded = (
       const { originalFrom, originalBody } = parseForwardedBlock(blockText);
       return { isForwarded: true, originalFrom, originalBody };
     }
-  }
-
-  // ── Strategy 3: Subject prefix ───────────────────────────────────────────────
-  const subjectHasForwardPrefix = /^(fwd?|tr|wg|ts)\s*:/i.test(subject.trim());
-
-  // still flag as forwarded
-  // but we cannot parse the original sender, so return without originalFrom.
-  if (subjectHasForwardPrefix) {
-    return { isForwarded: true };
   }
 
   return { isForwarded: false };
