@@ -64,11 +64,14 @@ export const TaskCreateSheet = ({
         <h1 className="text-xl font-semibold truncate pr-10">
           {!selectContact
             ? translate("crm.tasks.dialog.create_for", {
-                _: "Create a new task for ",
+                _: "Create task for",
               })
-            : translate("crm.tasks.action.create", { _: "Create task" })}
+            : translate("crm.tasks.dialog.create", { _: "Create task" })}
           {!selectContact && (
-            <RecordRepresentation record={contact} resource="contacts" />
+            <>
+              {" "}
+              <RecordRepresentation record={contact} resource="contacts" />
+            </>
           )}
         </h1>
       }
