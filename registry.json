@@ -316,6 +316,10 @@
           "type": "registry:component"
         },
         {
+          "path": "src/components/atomic-crm/notes/getTranslatedNoteStatusLabel.ts",
+          "type": "registry:component"
+        },
+        {
           "path": "src/components/atomic-crm/notes/foreignKeyMapping.ts",
           "type": "registry:component"
         },
