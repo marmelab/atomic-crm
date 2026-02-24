@@ -103,6 +103,7 @@ export const NoteInputs = ({
           {showStatus && (
             <SelectInput
               source="status"
+              label="crm.notes.inputs.status"
               choices={noteStatuses.map((status) => ({
                 id: status.value,
                 name: status.label,
@@ -121,7 +122,11 @@ export const NoteInputs = ({
             defaultValue={getCurrentDate()}
           />
         </div>
-        <FileInput source="attachments" multiple>
+        <FileInput
+          source="attachments"
+          label="crm.notes.inputs.attachments"
+          multiple
+        >
           <AttachmentField source="src" title="title" target="_blank" />
         </FileInput>
       </div>
