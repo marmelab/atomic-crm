@@ -138,6 +138,10 @@
           "type": "registry:component"
         },
         {
+          "path": "src/components/atomic-crm/settings/validateItemsInUse.ts",
+          "type": "registry:component"
+        },
+        {
           "path": "src/components/atomic-crm/settings/SettingsPage.tsx",
           "type": "registry:component"
         },
