@@ -63,7 +63,7 @@ const CompanyShowContentMobile = () => {
         <div className="flex flex-1">
           <Link to="/">
             <h1 className="text-xl font-semibold">
-              {translate("resources.companies.forcedCaseName", {
+              {translate("crm.companies.forcedCaseName", {
                 _: "Company",
               })}
             </h1>

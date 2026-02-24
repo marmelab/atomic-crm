@@ -122,7 +122,7 @@ export function ContactImportDialog({
                   <strong>
                     {importer.importCount} / {importer.rowCount}
                   </strong>{" "}
-                  {translate("resources.contacts.name", {
+                  {translate("crm.contacts.import.contacts_label", {
                     smart_count: 2,
                     _: "contacts",
                   })}
