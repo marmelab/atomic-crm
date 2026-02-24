@@ -32,4 +32,18 @@ describe("i18nProvider", () => {
       "Consultez vos emails pour trouver le message de reinitialisation du mot de passe.",
     );
   });
+
+  it("translates recently added fr crm keys", async () => {
+    await i18nProvider.changeLocale("fr");
+
+    expect(i18nProvider.translate("crm.deals.empty.title")).toBe(
+      "Aucune affaire trouvée",
+    );
+    expect(i18nProvider.translate("crm.companies.filters.only_mine")).toBe(
+      "Seulement les entreprises que je gère",
+    );
+    expect(i18nProvider.translate("crm.companies.contacts.none")).toBe(
+      "Aucun contact",
+    );
+  });
 });

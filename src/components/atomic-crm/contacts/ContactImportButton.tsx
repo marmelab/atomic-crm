@@ -167,6 +167,8 @@ export function ContactImportDialog({
               <Alert>
                 <AlertDescription>
                   {translate("crm.contacts.import.complete", {
+                    importCount: importer.importCount,
+                    errorCount: importer.errorCount,
                     _: `Contacts import complete. Imported ${importer.importCount} contacts, with ${importer.errorCount} errors`,
                   })}
                 </AlertDescription>
