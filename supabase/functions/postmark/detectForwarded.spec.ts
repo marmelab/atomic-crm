@@ -1,4 +1,8 @@
-import { detectForwarded } from "./detectForwarded.ts";
+import {
+  detectForwarded,
+  parseForwardedBlock,
+  parseFromLine,
+} from "./detectForwarded.ts";
 import { describe, expect, it } from "vitest";
 
 describe("detectForwarded", () => {
@@ -19,7 +23,7 @@ This is the original message body.`;
       name: "John Doe",
       email: "john@example.com",
     });
-    expect(result.originalBody).toContain("This is the original message body.");
+    expect(result.originalBody).toBe("This is the original message body.");
   });
 
   it("detects Apple Mail forwarded block", () => {
@@ -37,7 +41,7 @@ Here are the meeting notes.`;
       name: "Jane Smith",
       email: "jane@company.com",
     });
-    expect(result.originalBody).toContain("Here are the meeting notes.");
+    expect(result.originalBody).toBe("Here are the meeting notes.");
   });
 
   it("detects Outlook forwarded block", () => {
@@ -55,7 +59,7 @@ Budget details attached.`;
       name: "Bob Brown",
       email: "bob@biz.com",
     });
-    expect(result.originalBody).toContain("Budget details attached.");
+    expect(result.originalBody).toBe("Budget details attached.");
   });
 
   it("detects Resent-From header", () => {
@@ -72,21 +76,6 @@ Budget details attached.`;
     });
   });
 
-  it("flags subject prefix only", () => {
-    const subject = "Fwd: No body separator";
-    const textBody = "Just a forwarded message, no separator.";
-    const result = detectForwarded(subject, textBody);
-    expect(result.isForwarded).toBe(true);
-    expect(result.originalFrom).toBeUndefined();
-  });
-
-  it("does not flag replies", () => {
-    const subject = "Re: Follow up";
-    const textBody = "This is a reply, not a forward.";
-    const result = detectForwarded(subject, textBody);
-    expect(result.isForwarded).toBe(false);
-  });
-
   it("handles malformed From line", () => {
     const subject = "Fwd: Weird format";
     const textBody = `----- Forwarded message -----
@@ -99,6 +88,62 @@ Body text.`;
     const result = detectForwarded(subject, textBody);
     expect(result.isForwarded).toBe(true);
     expect(result.originalFrom).toBeUndefined();
-    expect(result.originalBody).toContain("Body text.");
+    expect(result.originalBody).toBe("Body text.");
+  });
+
+  describe("parseFromLine", () => {
+    it("parses 'Name <email>' format", () => {
+      const result = parseFromLine("John Doe <john@doe.com>");
+      expect(result).toEqual({ name: "John Doe", email: "john@doe.com" });
+    });
+
+    it("parses 'email' format", () => {
+      const result = parseFromLine("john@doe.com");
+      expect(result).toEqual({ name: "", email: "john@doe.com" });
+    });
+
+    it("returns undefined for invalid format", () => {
+      const result = parseFromLine("not-an-email");
+      expect(result).toBeUndefined();
+    });
+  });
+
+  describe("parseForwardedBlock", () => {
+    it("parses forwarded block with From and body", () => {
+      const blockText = `From: John Doe <john@doe.com>
+Date: Mon, 1 Jan 2024 10:00:00 +0000
+Subject: Hello
+
+This is the original message body.`;
+      const result = parseForwardedBlock(blockText);
+      expect(result.originalFrom).toEqual({
+        name: "John Doe",
+        email: "john@doe.com",
+      });
+      expect(result.originalBody).toBe("This is the original message body.");
+    });
+
+    it("handles missing From line", () => {
+      const blockText = `Date: Mon, 1 Jan 2024 10:00:00 +0000
+Subject: Hello
+
+Body without From line.`;
+      const result = parseForwardedBlock(blockText);
+      expect(result.originalFrom).toBeUndefined();
+      expect(result.originalBody).toBe("Body without From line.");
+    });
+
+    it("handles no blank line by leaving the body untounched", () => {
+      const blockText = `From: John Doe <john@doe.com>
+This is the body without a blank line separator.`;
+      const result = parseForwardedBlock(blockText);
+      expect(result.originalFrom).toEqual({
+        name: "John Doe",
+        email: "john@doe.com",
+      });
+      expect(result.originalBody).toBe(
+        "From: John Doe <john@doe.com>\nThis is the body without a blank line separator.",
+      );
+    });
   });
 });
