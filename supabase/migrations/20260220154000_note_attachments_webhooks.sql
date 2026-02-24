@@ -104,7 +104,7 @@ BEGIN
           'Authorization',
           auth_header
         ),
-        timeout_milliseconds := 1000
+        timeout_milliseconds := 10000
       );
 
       IF TG_OP = 'DELETE' THEN
