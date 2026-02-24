@@ -1,4 +1,4 @@
-import { useRecordContext } from "ra-core";
+import { useRecordContext, useTranslate } from "ra-core";
 import { EditButton } from "@/components/admin/edit-button";
 import { DeleteButton } from "@/components/admin";
 import { ReferenceManyField } from "@/components/admin/reference-many-field";
@@ -16,31 +16,50 @@ import { ExportVCardButton } from "./ExportVCardButton";
 
 export const ContactAside = ({ link = "edit" }: { link?: "edit" | "show" }) => {
   const record = useRecordContext<Contact>();
+  const translate = useTranslate();
 
   if (!record) return null;
   return (
     <div className="hidden sm:block w-92 min-w-92 text-sm">
       <div className="mb-4 -ml-1">
         {link === "edit" ? (
-          <EditButton label="Edit Contact" />
+          <EditButton
+            label={translate("crm.contacts.action.edit", {
+              _: "Edit contact",
+            })}
+          />
         ) : (
-          <ShowButton label="Show Contact" />
+          <ShowButton
+            label={translate("crm.contacts.action.show", {
+              _: "Show contact",
+            })}
+          />
         )}
       </div>
 
-      <AsideSection title="Personal info">
+      <AsideSection
+        title={translate("crm.contacts.inputs.personal_info", {
+          _: "Personal info",
+        })}
+      >
         <ContactPersonalInfo />
       </AsideSection>
 
-      <AsideSection title="Background info">
+      <AsideSection
+        title={translate("crm.contacts.inputs.background_info_short", {
+          _: "Background info",
+        })}
+      >
         <ContactBackgroundInfo />
       </AsideSection>
 
-      <AsideSection title="Tags">
+      <AsideSection title={translate("crm.tags.name", { smart_count: 2, _: "Tags" })}>
         <TagsListEdit />
       </AsideSection>
 
-      <AsideSection title="Tasks">
+      <AsideSection
+        title={translate("crm.tasks.name", { smart_count: 2, _: "Tasks" })}
+      >
         <ReferenceManyField
           target="contact_id"
           reference="tasks"

@@ -1,4 +1,4 @@
-import { useRecordContext } from "ra-core";
+import { useRecordContext, useTranslate } from "ra-core";
 import { CreateButton } from "@/components/admin/create-button";
 import { DataTable } from "@/components/admin/data-table";
 import { ExportButton } from "@/components/admin/export-button";
@@ -8,17 +8,21 @@ import { Badge } from "@/components/ui/badge";
 
 import { TopToolbar } from "../layout/TopToolbar";
 
-const SalesListActions = () => (
-  <TopToolbar>
-    <ExportButton />
-    <CreateButton label="New user" />
-  </TopToolbar>
-);
+const SalesListActions = () => {
+  const translate = useTranslate();
+  return (
+    <TopToolbar>
+      <ExportButton />
+      <CreateButton label={translate("crm.sales.action.new", { _: "New user" })} />
+    </TopToolbar>
+  );
+};
 
 const filters = [<SearchInput source="q" alwaysOn />];
 
 const OptionsField = (_props: { label?: string | boolean }) => {
   const record = useRecordContext();
+  const translate = useTranslate();
   if (!record) return null;
   return (
     <div className="flex flex-row gap-1">
@@ -27,7 +31,7 @@ const OptionsField = (_props: { label?: string | boolean }) => {
           variant="outline"
           className="border-blue-300 dark:border-blue-700"
         >
-          Admin
+          {translate("crm.sales.fields.admin", { _: "Admin" })}
         </Badge>
       )}
       {record.disabled && (
@@ -35,7 +39,7 @@ const OptionsField = (_props: { label?: string | boolean }) => {
           variant="outline"
           className="border-orange-300 dark:border-orange-700"
         >
-          Disabled
+          {translate("crm.sales.fields.disabled", { _: "Disabled" })}
         </Badge>
       )}
     </div>
@@ -43,9 +47,10 @@ const OptionsField = (_props: { label?: string | boolean }) => {
 };
 
 export function SalesList() {
+  const translate = useTranslate();
   return (
     <List
-      title="Users"
+      title={translate("crm.sales.name", { smart_count: 2, _: "Users" })}
       filters={filters}
       actions={<SalesListActions />}
       sort={{ field: "first_name", order: "ASC" }}

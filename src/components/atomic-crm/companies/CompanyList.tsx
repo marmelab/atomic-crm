@@ -1,4 +1,4 @@
-import { useGetIdentity, useListContext } from "ra-core";
+import { useGetIdentity, useListContext, useTranslate } from "ra-core";
 import { CreateButton } from "@/components/admin/create-button";
 import { ExportButton } from "@/components/admin/export-button";
 import { List } from "@/components/admin/list";
@@ -44,11 +44,14 @@ const CompanyListLayout = () => {
 };
 
 const CompanyListActions = () => {
+  const translate = useTranslate();
   return (
     <TopToolbar>
       <SortButton fields={["name", "created_at", "nb_contacts"]} />
       <ExportButton />
-      <CreateButton label="New Company" />
+      <CreateButton
+        label={translate("crm.companies.action.new", { _: "New Company" })}
+      />
     </TopToolbar>
   );
 };
