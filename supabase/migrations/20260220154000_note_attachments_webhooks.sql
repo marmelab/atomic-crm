@@ -67,7 +67,7 @@ BEGIN
     RETURNS trigger
     LANGUAGE plpgsql
     SECURITY DEFINER
-    SET search_path = public
+    SET search_path TO ''
     AS $function$
     DECLARE
       payload jsonb;
