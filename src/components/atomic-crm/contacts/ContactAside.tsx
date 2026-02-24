@@ -53,7 +53,9 @@ export const ContactAside = ({ link = "edit" }: { link?: "edit" | "show" }) => {
         <ContactBackgroundInfo />
       </AsideSection>
 
-      <AsideSection title={translate("crm.tags.name", { smart_count: 2, _: "Tags" })}>
+      <AsideSection
+        title={translate("crm.tags.name", { smart_count: 2, _: "Tags" })}
+      >
         <TagsListEdit />
       </AsideSection>
 

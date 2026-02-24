@@ -13,7 +13,9 @@ const SalesListActions = () => {
   return (
     <TopToolbar>
       <ExportButton />
-      <CreateButton label={translate("crm.sales.action.new", { _: "New user" })} />
+      <CreateButton
+        label={translate("crm.sales.action.new", { _: "New user" })}
+      />
     </TopToolbar>
   );
 };

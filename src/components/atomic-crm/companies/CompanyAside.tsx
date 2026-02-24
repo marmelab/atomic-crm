@@ -123,7 +123,9 @@ export const ContextInfo = ({ record }: { record: Company }) => {
   )?.label;
 
   return (
-    <AsideSection title={translate("crm.companies.aside.context", { _: "Context" })}>
+    <AsideSection
+      title={translate("crm.companies.aside.context", { _: "Context" })}
+    >
       {sectorLabel && (
         <span>
           {translate("crm.companies.fields.sector", { _: "Sector" })}:{" "}

@@ -87,7 +87,9 @@ export function TagDialog({
             </div>
 
             <div className="space-y-2">
-              <Label>{translate("crm.tags.dialog.color", { _: "Color" })}</Label>
+              <Label>
+                {translate("crm.tags.dialog.color", { _: "Color" })}
+              </Label>
               <div className="flex flex-wrap">
                 {colors.map((color) => (
                   <RoundButton
