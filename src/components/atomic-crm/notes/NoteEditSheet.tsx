@@ -3,6 +3,7 @@ import {
   type Identifier,
   RecordRepresentation,
   useCreatePath,
+  useTranslate,
   WithRecord,
 } from "ra-core";
 import { EditSheet } from "../misc/EditSheet";
@@ -21,6 +22,7 @@ export const NoteEditSheet = ({
   noteId,
 }: NoteEditSheetProps) => {
   const createPath = useCreatePath();
+  const translate = useTranslate();
   const getRedirectTo = (record: any) => {
     return createPath({
       resource: "contacts",
@@ -39,16 +41,19 @@ export const NoteEditSheet = ({
           reference="contacts"
           render={({ referenceRecord }) => (
             <h1 className="text-xl font-semibold truncate pr-10">
-              Edit Note
               {referenceRecord ? (
                 <>
-                  {" for "}
+                  {translate("crm.notes.sheet.edit_for", {
+                    _: "Edit note for",
+                  })}{" "}
                   <RecordRepresentation
                     record={referenceRecord}
                     resource="contacts"
                   />
                 </>
-              ) : null}
+              ) : (
+                translate("crm.notes.sheet.edit", { _: "Edit note" })
+              )}
             </h1>
           )}
         />

@@ -32,6 +32,7 @@ export const ProfilePage = () => {
   const { data, refetch: refetchUser } = useGetOne("sales", {
     id: identity?.id,
   });
+  const translate = useTranslate();
   const notify = useNotify();
   const dataProvider = useDataProvider<CrmDataProvider>();
 
@@ -39,7 +40,11 @@ export const ProfilePage = () => {
     mutationKey: ["signup"],
     mutationFn: async (data: SalesFormData) => {
       if (!identity) {
-        throw new Error("Record not found");
+        throw new Error(
+          translate("crm.profile.record_not_found", {
+            _: "Record not found",
+          }),
+        );
       }
       return dataProvider.salesUpdate(identity.id, data);
     },
@@ -96,7 +101,11 @@ const ProfileForm = ({
     mutationKey: ["updatePassword"],
     mutationFn: async () => {
       if (!identity) {
-        throw new Error("Record not found");
+        throw new Error(
+          translate("crm.profile.record_not_found", {
+            _: "Record not found",
+          }),
+        );
       }
       return dataProvider.updatePassword(identity.id);
     },
@@ -118,7 +127,11 @@ const ProfileForm = ({
     mutationKey: ["signup"],
     mutationFn: async (data: SalesFormData) => {
       if (!record) {
-        throw new Error("Record not found");
+        throw new Error(
+          translate("crm.profile.record_not_found", {
+            _: "Record not found",
+          }),
+        );
       }
       return dataProvider.salesUpdate(record.id, data);
     },
@@ -239,12 +252,13 @@ const TextRender = ({
   source: string;
   isEditMode: boolean;
 }) => {
+  const label = `crm.sales.fields.${source}`;
   if (isEditMode) {
-    return <TextInput source={source} helperText={false} />;
+    return <TextInput source={source} label={label} helperText={false} />;
   }
   return (
     <div className="m-2">
-      <RecordField source={source} />
+      <RecordField source={source} label={label} />
     </div>
   );
 };
