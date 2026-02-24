@@ -40,6 +40,16 @@ export const englishCrmMessages = {
       me: "Me",
       task_count: "task |||| tasks",
     },
+    activity: {
+      you: "You",
+      added_company: "added company",
+      added_contact: "added",
+      added_note_about: "added a note about",
+      added_note_about_deal: "added a note about deal",
+      added_deal: "added deal",
+      to: "to",
+      load_more: "Load more activity",
+    },
     companies: {
       empty: {
         description: "It seems your company list is empty.",
@@ -76,15 +86,50 @@ export const englishCrmMessages = {
       },
       fields: {
         name: "Company name",
+        website: "Website",
+        linkedin_url: "LinkedIn URL",
+        phone_number: "Phone number",
         revenue: "Revenue",
         sector: "Sector",
         size: "Size",
         tax_identifier: "Tax Identifier",
+        address: "Address",
+        city: "City",
+        zipcode: "Zip code",
+        state_abbr: "State",
+        country: "Country",
+        description: "Description",
+        context_links: "Context links",
       },
       filters: {
         only_mine: "Only companies I manage",
         sector: "Sector",
         size: "Size",
+      },
+      sectors: {
+        communication_services: "Communication Services",
+        consumer_discretionary: "Consumer Discretionary",
+        consumer_staples: "Consumer Staples",
+        energy: "Energy",
+        financials: "Financials",
+        health_care: "Health Care",
+        industrials: "Industrials",
+        information_technology: "Information Technology",
+        materials: "Materials",
+        real_estate: "Real Estate",
+        utilities: "Utilities",
+      },
+      sizes: {
+        one_employee: "1 employee",
+        two_to_nine_employees: "2-9 employees",
+        ten_to_forty_nine_employees: "10-49 employees",
+        fifty_to_two_hundred_forty_nine_employees: "50-249 employees",
+        two_hundred_fifty_or_more_employees: "250 or more employees",
+      },
+      autocomplete: {
+        create_error: "An error occurred while creating the company",
+        create_item: "Create %{item}",
+        create_label: "Start typing to create a new company",
       },
     },
     contacts: {
@@ -121,15 +166,31 @@ export const englishCrmMessages = {
       },
       inputs: {
         background_info_short: "Background info",
+        first_name: "First name",
+        last_name: "Last name",
         email: "Email",
         identity: "Identity",
         personal_info: "Personal info",
         phone_number: "Phone number",
         position: "Position",
+        title: "Title",
+        company: "Company",
         email_addresses: "Email addresses",
         phone_numbers: "Phone numbers",
         linkedin_url: "LinkedIn URL",
         background_info: "Background info (bio, how you met, etc)",
+        has_newsletter: "Has newsletter",
+        subscribed_newsletter: "Subscribed to newsletter",
+        genders: {
+          male: "He/Him",
+          female: "She/Her",
+          nonbinary: "They/Them",
+        },
+        personal_info_types: {
+          work: "Work",
+          home: "Home",
+          other: "Other",
+        },
       },
       list: {
         error_loading: "Error loading contacts",
@@ -174,11 +235,15 @@ export const englishCrmMessages = {
       },
     },
     dashboard: {
+      deals_pipeline: "Deals Pipeline",
+      latest_activity: "Latest Activity",
+      latest_activity_error: "Error loading latest activity",
       stepper: {
         install: "Install Atomic CRM",
         progress: "%{step}/3 done",
         whats_next: "What's next?",
       },
+      upcoming_tasks: "Upcoming Tasks",
       welcome: {
         paragraph_1:
           "is a template designed to help you quickly build your own CRM.",
@@ -234,6 +299,14 @@ export const englishCrmMessages = {
       },
       filters: {
         company: "Company",
+      },
+      stages: {
+        opportunity: "Opportunity",
+        proposal_sent: "Proposal Sent",
+        in_negociation: "In Negotiation",
+        won: "Won",
+        lost: "Lost",
+        delayed: "Delayed",
       },
     },
     header: {
@@ -372,7 +445,9 @@ export const englishCrmMessages = {
       empty_list_hint: "Tasks added to your contacts will appear here.",
       fields: {
         due: "due",
+        due_date: "Due date",
         description: "Description",
+        type: "Type",
       },
       filters: {
         later: "Later",
@@ -385,6 +460,17 @@ export const englishCrmMessages = {
       updated: "Task updated",
       name: "Task |||| Tasks",
       forcedCaseName: "Task",
+      types: {
+        none: "None",
+        email: "Email",
+        demo: "Demo",
+        lunch: "Lunch",
+        meeting: "Meeting",
+        follow_up: "Follow-up",
+        thank_you: "Thank you",
+        ship: "Ship",
+        call: "Call",
+      },
     },
     theme: {
       dark: "Dark theme",
@@ -400,8 +486,14 @@ export const englishCrmMessages = {
     },
     tags: {
       name: "Tag |||| Tags",
+      action: {
+        add: "Add tag",
+        create_new: "Create new tag",
+      },
       dialog: {
         color: "Color",
+        create_title: "Create a new tag",
+        edit_title: "Edit tag",
         name_label: "Tag name",
         name_placeholder: "Enter tag name",
       },

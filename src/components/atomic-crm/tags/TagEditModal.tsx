@@ -1,4 +1,4 @@
-import { useUpdate } from "ra-core";
+import { useTranslate, useUpdate } from "ra-core";
 
 import type { Tag } from "../types";
 import { TagDialog } from "./TagDialog";
@@ -17,6 +17,7 @@ export function TagEditModal({
   onSuccess,
 }: TagEditModalProps) {
   const [update] = useUpdate<Tag>();
+  const translate = useTranslate();
 
   const handleEditTag = async (data: Pick<Tag, "name" | "color">) => {
     await update(
@@ -33,7 +34,7 @@ export function TagEditModal({
   return (
     <TagDialog
       open={open}
-      title="Edit tag"
+      title={translate("crm.tags.dialog.edit_title", { _: "Edit tag" })}
       onClose={onClose}
       onSubmit={handleEditTag}
       tag={tag}

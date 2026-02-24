@@ -1,4 +1,3 @@
-import { formatRelative } from "date-fns";
 import { difference, union } from "lodash";
 import {
   type Identifier,
@@ -18,6 +17,7 @@ import { Button } from "@/components/ui/button";
 import { RotateCcw } from "lucide-react";
 
 import { Status } from "../misc/Status";
+import { RelativeDate } from "../misc/RelativeDate";
 import type { Contact } from "../types";
 import { Avatar } from "./Avatar";
 import { TagsList } from "./TagsList";
@@ -105,7 +105,6 @@ const ContactItemContent = ({
 }) => {
   const translate = useTranslate();
   const { selectedIds } = useListContext<Contact>();
-  const now = Date.now();
 
   return (
     <div className="flex flex-row items-center pl-2 pr-4 py-2 hover:bg-muted transition-colors first:rounded-t-xl last:rounded-b-xl">
@@ -160,7 +159,7 @@ const ContactItemContent = ({
               title={contact.last_seen}
             >
               {`${translate("crm.common.last_activity", { _: "last activity" })} `}
-              {formatRelative(contact.last_seen, now)}{" "}
+              <RelativeDate date={contact.last_seen} />{" "}
               <Status status={contact.status} />
             </div>
           </div>

@@ -20,6 +20,7 @@ import {
 
 import { useConfigurationContext } from "../root/ConfigurationContext";
 import type { Contact, Task as TData } from "../types";
+import { getTranslatedTaskTypeLabel } from "./getTranslatedTaskTypeLabel";
 import { TaskEdit } from "./TaskEdit";
 import { TaskEditSheet } from "./TaskEditSheet";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -108,8 +109,14 @@ export const Task = ({
               {task.type && task.type !== "none" && (
                 <>
                   <span className="font-semibold text-sm">
-                    {taskTypes.find((t) => t.value === task.type)?.label ??
-                      task.type}
+                    {(() => {
+                      const matchedTaskType = taskTypes.find(
+                        (taskType) => taskType.value === task.type,
+                      );
+                      return matchedTaskType
+                        ? getTranslatedTaskTypeLabel(matchedTaskType, translate)
+                        : task.type;
+                    })()}
                   </span>
                   &nbsp;
                 </>
