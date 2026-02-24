@@ -164,6 +164,14 @@
           "type": "registry:component"
         },
         {
+          "path": "src/components/atomic-crm/root/frenchCrmMessages.ts",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/root/englishCrmMessages.ts",
+          "type": "registry:component"
+        },
+        {
           "path": "src/components/atomic-crm/root/defaultConfiguration.ts",
           "type": "registry:component"
         },
