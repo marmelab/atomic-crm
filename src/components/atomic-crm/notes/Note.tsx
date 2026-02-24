@@ -115,7 +115,7 @@ export const Note = ({
           >
             <WithRecord render={(record) => <SaleName sale={record} />} />
           </ReferenceField>{" "}
-          added a note{" "}
+          {translate("crm.notes.feed.added", { _: "added a note" })}{" "}
           {showStatus && note.status && (
             <Status className="ml-2" status={note.status} />
           )}

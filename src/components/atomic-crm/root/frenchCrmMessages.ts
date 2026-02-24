@@ -89,6 +89,8 @@ export const frenchCrmMessages = {
         website: "Site web",
         linkedin_url: "URL LinkedIn",
         phone_number: "Numéro de téléphone",
+        created_at: "Date de création",
+        nb_contacts: "Nombre de contacts",
         revenue: "Chiffre d'affaires",
         sector: "Secteur",
         size: "Taille",
@@ -197,6 +199,11 @@ export const frenchCrmMessages = {
       },
       list: {
         error_loading: "Erreur lors du chargement des contacts",
+      },
+      fields: {
+        first_name: "Prénom",
+        last_name: "Nom",
+        last_seen: "Dernière activité",
       },
       merge: {
         action: "Fusionner avec un autre contact",
@@ -359,8 +366,20 @@ export const frenchCrmMessages = {
         update: "Mettre à jour la note",
         add_this: "Ajouter cette note",
       },
+      sheet: {
+        create: "Créer une note",
+        create_for: "Créer une note pour",
+        edit: "Modifier la note",
+        edit_for: "Modifier la note pour",
+      },
       deleted: "Note supprimée",
       empty: "Aucune note pour l'instant",
+      feed: {
+        added: "a ajouté une note",
+      },
+      list: {
+        error_loading: "Erreur lors du chargement des notes",
+      },
       note_for: "Note pour",
       stepper: {
         hint: "Accédez à une page de contact et ajoutez une note",
@@ -391,11 +410,20 @@ export const frenchCrmMessages = {
           "Utilisateur créé. Ils recevront prochainement un email pour définir leur mot de passe.",
         title: "Créer un nouvel utilisateur",
       },
+      edit: {
+        error: "Une erreur s'est produite. Veuillez réessayer.",
+        record_not_found: "Enregistrement introuvable",
+        success: "Utilisateur mis à jour avec succès",
+        title: "Modifier %{name}",
+      },
       name: "Utilisateur |||| Utilisateurs",
       action: {
         new: "Nouvel utilisateur",
       },
       fields: {
+        first_name: "Prénom",
+        last_name: "Nom",
+        email: "E-mail",
         admin: "Admin",
         disabled: "Désactivé",
       },
@@ -427,6 +455,16 @@ export const frenchCrmMessages = {
       app_title: "Titre de l'application",
       sections: {
         branding: "Image de marque",
+      },
+      validation: {
+        duplicate: "%{display_name} en double : %{items}",
+        in_use:
+          "Impossible de supprimer %{display_name} encore utilisés par des affaires : %{items}",
+        validating: "Validation…",
+        entities: {
+          categories: "catégories",
+          stages: "étapes",
+        },
       },
     },
     tasks: {
@@ -484,6 +522,7 @@ export const frenchCrmMessages = {
       light_short: "Clair",
       system: "Thème système",
       system_short: "Système",
+      toggle: "Changer de thème",
     },
     language: "Langue",
     navigation: {
@@ -516,6 +555,7 @@ export const frenchCrmMessages = {
       },
       password_reset_sent:
         "Un e-mail de réinitialisation du mot de passe a été envoyé à votre adresse e-mail",
+      record_not_found: "Enregistrement introuvable",
       title: "Profil",
       updated: "Votre profil a été mis à jour",
       update_error: "Une erreur s'est produite. Veuillez réessayer",

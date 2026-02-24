@@ -134,6 +134,14 @@ const SettingsFormFields = () => {
 
   const dealStages = watch("dealStages");
   const dealPipelineStatuses: string[] = watch("dealPipelineStatuses") ?? [];
+  const stageDisplayName = translate(
+    "crm.settings.validation.entities.stages",
+    { _: "stages" },
+  );
+  const categoryDisplayName = translate(
+    "crm.settings.validation.entities.categories",
+    { _: "categories" },
+  );
 
   const { data: deals } = useGetList("deals", {
     pagination: { page: 1, perPage: 1000 },
@@ -141,14 +149,50 @@ const SettingsFormFields = () => {
 
   const validateDealStages = useCallback(
     (stages: { value: string; label: string }[] | undefined) =>
-      validateItemsInUse(stages, deals, "stage", "stages"),
-    [deals],
+      validateItemsInUse(stages, deals, "stage", stageDisplayName, {
+        duplicate: (displayName, duplicates) =>
+          translate("crm.settings.validation.duplicate", {
+            display_name: displayName,
+            items: duplicates.join(", "),
+            _: `Duplicate ${displayName}: ${duplicates.join(", ")}`,
+          }),
+        inUse: (displayName, inUse) =>
+          translate("crm.settings.validation.in_use", {
+            display_name: displayName,
+            items: inUse.join(", "),
+            _:
+              `Cannot remove ${displayName} that are still used by deals: ` +
+              inUse.join(", "),
+          }),
+        validating: translate("crm.settings.validation.validating", {
+          _: "Validating…",
+        }),
+      }),
+    [deals, stageDisplayName, translate],
   );
 
   const validateDealCategories = useCallback(
     (categories: { value: string; label: string }[] | undefined) =>
-      validateItemsInUse(categories, deals, "category", "categories"),
-    [deals],
+      validateItemsInUse(categories, deals, "category", categoryDisplayName, {
+        duplicate: (displayName, duplicates) =>
+          translate("crm.settings.validation.duplicate", {
+            display_name: displayName,
+            items: duplicates.join(", "),
+            _: `Duplicate ${displayName}: ${duplicates.join(", ")}`,
+          }),
+        inUse: (displayName, inUse) =>
+          translate("crm.settings.validation.in_use", {
+            display_name: displayName,
+            items: inUse.join(", "),
+            _:
+              `Cannot remove ${displayName} that are still used by deals: ` +
+              inUse.join(", "),
+          }),
+        validating: translate("crm.settings.validation.validating", {
+          _: "Validating…",
+        }),
+      }),
+    [categoryDisplayName, deals, translate],
   );
 
   return (

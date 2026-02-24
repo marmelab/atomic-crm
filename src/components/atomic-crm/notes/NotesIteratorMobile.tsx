@@ -1,5 +1,10 @@
 import type { Identifier } from "ra-core";
-import { InfinitePaginationContext, useTimeout, WithRecord } from "ra-core";
+import {
+  InfinitePaginationContext,
+  useTimeout,
+  useTranslate,
+  WithRecord,
+} from "ra-core";
 import { Link } from "react-router";
 import { ReferenceField } from "@/components/admin/reference-field";
 import { Button } from "@/components/ui/button";
@@ -23,7 +28,7 @@ export const NotesIteratorMobile = ({
 }) => {
   const { data, error, isPending, infinitePaginationContextValue, refetch } =
     useAddInfinitePagination();
-
+  const translate = useTranslate();
   const oneSecondHasPassed = useTimeout(1000);
   if (isPending) {
     if (!oneSecondHasPassed) {
@@ -47,7 +52,9 @@ export const NotesIteratorMobile = ({
     return (
       <div className="p-4">
         <div className="text-center text-muted-foreground mb-4">
-          Error loading notes
+          {translate("crm.notes.list.error_loading", {
+            _: "Error loading notes",
+          })}
         </div>
         <div className="text-center mt-2">
           <Button
@@ -56,7 +63,7 @@ export const NotesIteratorMobile = ({
             }}
           >
             <RotateCcw />
-            Retry
+            {translate("crm.common.retry", { _: "Retry" })}
           </Button>
         </div>
       </div>
@@ -88,36 +95,40 @@ export const NoteMobile = ({
   note: ContactNote;
   contactId: Identifier;
   showStatus?: boolean;
-}) => (
-  <Link
-    to={`/contacts/${contactId}/notes/${note.id}`}
-    className="block active:bg-accent/50 -mx-2 px-2 py-2 rounded-md"
-  >
-    <div className="flex items-center space-x-2 w-full">
-      <div className="inline-flex h-full items-center text-sm text-muted-foreground">
-        By{" "}
-        <ReferenceField
-          record={note}
-          resource="contact_notes"
-          source="sales_id"
-          reference="sales"
-          link={false}
-        >
-          <WithRecord render={(record) => <SaleName sale={record} />} />
-        </ReferenceField>
-        {showStatus && note.status && (
-          <Status className="ml-2" status={note.status} />
-        )}
+}) => {
+  const translate = useTranslate();
+
+  return (
+    <Link
+      to={`/contacts/${contactId}/notes/${note.id}`}
+      className="block active:bg-accent/50 -mx-2 px-2 py-2 rounded-md"
+    >
+      <div className="flex items-center space-x-2 w-full">
+        <div className="inline-flex h-full items-center text-sm text-muted-foreground">
+          {translate("crm.common.by", { _: "By" })}{" "}
+          <ReferenceField
+            record={note}
+            resource="contact_notes"
+            source="sales_id"
+            reference="sales"
+            link={false}
+          >
+            <WithRecord render={(record) => <SaleName sale={record} />} />
+          </ReferenceField>
+          {showStatus && note.status && (
+            <Status className="ml-2" status={note.status} />
+          )}
+        </div>
+        <div className="flex-1" />
+        <span className="text-sm text-muted-foreground">
+          <RelativeDate date={note.date} />
+        </span>
       </div>
-      <div className="flex-1" />
-      <span className="text-sm text-muted-foreground">
-        <RelativeDate date={note.date} />
-      </span>
-    </div>
-    {note.text && (
-      <p className="pt-2 text-sm line-clamp-3">
-        {note.text.replace(/\s+/g, " ").trim()}
-      </p>
-    )}
-  </Link>
-);
+      {note.text && (
+        <p className="pt-2 text-sm line-clamp-3">
+          {note.text.replace(/\s+/g, " ").trim()}
+        </p>
+      )}
+    </Link>
+  );
+};
