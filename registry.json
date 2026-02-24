@@ -40,6 +40,10 @@
           "type": "registry:component"
         },
         {
+          "path": "src/components/atomic-crm/tasks/getTranslatedTaskTypeLabel.ts",
+          "type": "registry:component"
+        },
+        {
           "path": "src/components/atomic-crm/tasks/TasksListContent.tsx",
           "type": "registry:component"
         },
@@ -516,6 +520,10 @@
           "type": "registry:component"
         },
         {
+          "path": "src/components/atomic-crm/deals/getTranslatedDealStageLabel.ts",
+          "type": "registry:component"
+        },
+        {
           "path": "src/components/atomic-crm/deals/dealUtils.ts",
           "type": "registry:component"
         },
@@ -628,6 +636,14 @@
           "type": "registry:component"
         },
         {
+          "path": "src/components/atomic-crm/contacts/getTranslatedPersonalInfoTypeLabel.ts",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/contacts/getTranslatedContactGenderLabel.ts",
+          "type": "registry:component"
+        },
+        {
           "path": "src/components/atomic-crm/contacts/exportToVCard.ts",
           "type": "registry:component"
         },
@@ -721,6 +737,14 @@
         },
         {
           "path": "src/components/atomic-crm/companies/index.ts",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/companies/getTranslatedCompanySizeLabel.ts",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/companies/getTranslatedCompanySectorLabel.ts",
           "type": "registry:component"
         },
         {
