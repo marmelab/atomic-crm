@@ -191,6 +191,7 @@ const LanguageMenu = () => {
       {languages.map((language) => (
         <DropdownMenuItem
           key={language.locale}
+          className="cursor-pointer"
           onSelect={changeLocale(language.locale)}
         >
           {language.name}

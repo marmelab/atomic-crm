@@ -240,7 +240,7 @@ const SettingsButton = () => {
             {languages.map((language) => (
               <DropdownMenuItem
                 key={language.locale}
-                className="h-12 px-4 text-base"
+                className="cursor-pointer h-12 px-4 text-base"
                 onSelect={() => setLocale(language.locale)}
               >
                 {language.name}
