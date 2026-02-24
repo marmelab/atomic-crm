@@ -364,10 +364,12 @@ export const englishCrmMessages = {
       added: "Note added",
       inputs: {
         add_note: "Add a note",
+        attachments: "Attachments",
         date: "Date",
         options_hint: "(attach files, or change details)",
         reference_contact: "Contact",
         reference_deal: "Deal",
+        status: "Status",
         show_options: "Show options",
       },
     },

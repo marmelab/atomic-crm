@@ -92,22 +92,26 @@ const PersonalInfoRow = ({
   icon: ReactNode;
   primary: ReactNode;
   showType?: boolean;
-}) => (
-  <div className="flex flex-row items-center gap-x-2 py-1 min-h-6">
-    {icon}
-    <div className="flex flex-wrap gap-x-2 gap-y-0 text-sm">
-      {primary}
-      {showType ? (
-        <WithRecord
-          render={(row) =>
-            row.type !== "Other" && (
-              <span className="text-muted-foreground">
-                {getTranslatedPersonalInfoTypeLabel(row.type, translate)}
-              </span>
-            )
-          }
-        />
-      ) : null}
+}) => {
+  const translate = useTranslate();
+
+  return (
+    <div className="flex flex-row items-center gap-x-2 py-1 min-h-6">
+      {icon}
+      <div className="flex flex-wrap gap-x-2 gap-y-0 text-sm">
+        {primary}
+        {showType ? (
+          <WithRecord
+            render={(row) =>
+              row.type !== "Other" && (
+                <span className="text-muted-foreground">
+                  {getTranslatedPersonalInfoTypeLabel(row.type, translate)}
+                </span>
+              )
+            }
+          />
+        ) : null}
+      </div>
     </div>
-  </div>
-);
+  );
+};
