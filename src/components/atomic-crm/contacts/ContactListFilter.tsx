@@ -15,6 +15,7 @@ import { useConfigurationContext } from "../root/ConfigurationContext";
 import { ResponsiveFilters } from "../misc/ResponsiveFilters";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { ActiveFilterButton } from "../misc/ActiveFilterButton";
+import { getTranslatedNoteStatusLabel } from "../notes/getTranslatedNoteStatusLabel";
 
 export const ContactListFilter = () => {
   const { noteStatuses } = useConfigurationContext();
@@ -108,7 +109,8 @@ export const ContactListFilter = () => {
             className="w-auto md:w-full justify-between h-10 md:h-8"
             label={
               <span>
-                {status.label} <Status status={status.value} />
+                {getTranslatedNoteStatusLabel(status, translate)}{" "}
+                <Status status={status.value} />
               </span>
             }
             value={{ status: status.value }}
@@ -246,7 +248,8 @@ export const ContactListFilterSummary = () => {
           className="w-auto justify-between h-8"
           label={
             <span>
-              {status.label} <Status status={status.value} />
+              {getTranslatedNoteStatusLabel(status, translate)}{" "}
+              <Status status={status.value} />
             </span>
           }
           value={{ status: status.value }}

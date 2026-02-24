@@ -301,6 +301,12 @@ export const frenchCrmMessages = {
         reference_deal: "Affaire",
         show_options: "Afficher les options",
       },
+      statuses: {
+        cold: "Froid",
+        warm: "Tiède",
+        hot: "Chaud",
+        in_contract: "Sous contrat",
+      },
     },
     sales: {
       create: {
