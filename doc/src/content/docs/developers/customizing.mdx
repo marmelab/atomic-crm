@@ -12,7 +12,7 @@ Other customizations require changes to the source code.
 The entry point of the frontend application is the `src/App.tsx` file. By default, this file simply renders the `<CRM>` component, which is the root component of Atomic CRM.
 
 ```tsx
-import { CRM } from "@/components/atomic-crm/root/CRM";
+import { CRM } from '@/components/atomic-crm/root/CRM';
 
 const App = () => <CRM />;
 
@@ -24,7 +24,7 @@ export default App;
 For instance, the following code snippet shows how to customize the CRM application domain-specific data.
 
 ```tsx
-import { CRM } from "@/components/atomic-crm/root/CRM";
+import { CRM } from '@/components/atomic-crm/root/CRM';
 
 const App = () => (
     <CRM
@@ -61,18 +61,53 @@ export default App;
 
 `<CRM>` accepts the following props:
 
-| Props                   | Description                                                           | Type            |
-|-------------------------|-----------------------------------------------------------------------|-----------------|
-| `companySectors`        | The list of company sectors used in the application.                  | LabeledValue[]  |
-| `darkTheme`             | The theme to use when the application is in dark mode.                | RaThemeOptions  |
-| `dealCategories`        | The categories of deals used in the application.                      | LabeledValue[]  |
-| `dealPipelineStatuses`  | The statuses of deals in the pipeline used in the application         | string[]        |
-| `dealStages`            | The stages of deals used in the application.                          | DealStage[]     |
-| `lightTheme`            | The theme to use when the application is in light mode.               | RaThemeOptions  |
-| `logo`                  | The logo used in the CRM application.                                 | string          |
-| `noteStatuses`          | The statuses of notes used in the application.                        | NoteStatus[]    |
-| `taskTypes`             | The types of tasks used in the application.                           | LabeledValue[]  |
-| `title`                 | The title of the CRM application.                                     | string          |
+| Props                  | Description                                                   | Type           |
+| ---------------------- | ------------------------------------------------------------- | -------------- |
+| `companySectors`       | The list of company sectors used in the application.          | LabeledValue[] |
+| `darkTheme`            | The theme to use when the application is in dark mode.        | RaThemeOptions |
+| `dealCategories`       | The categories of deals used in the application.              | LabeledValue[] |
+| `dealPipelineStatuses` | The statuses of deals in the pipeline used in the application | string[]       |
+| `dealStages`           | The stages of deals used in the application.                  | DealStage[]    |
+| `lightTheme`           | The theme to use when the application is in light mode.       | RaThemeOptions |
+| `logo`                 | The logo used in the CRM application.                         | string         |
+| `noteStatuses`         | The statuses of notes used in the application.                | NoteStatus[]   |
+| `taskTypes`            | The types of tasks used in the application.                   | LabeledValue[] |
+| `title`                | The title of the CRM application.                             | string         |
+
+## Languages (i18n)
+
+Atomic CRM language configuration is managed in `src/components/atomic-crm/root/i18nProvider.tsx`.
+
+By default, this repository ships with two locales:
+
+- `en` (English)
+- `fr` (French)
+
+The `i18nProvider` defines:
+
+- the default locale (`initialLocale`)
+- the list of available locales (`availableLocales`)
+- how messages are resolved for each locale
+
+The language switcher appears in the user menu (desktop and mobile) when more than one locale is configured.
+
+### Configure Active Languages
+
+Edit `src/components/atomic-crm/root/i18nProvider.tsx` and update:
+
+- the `initialLocale` argument (keep `en` unless you explicitly want another default)
+- the `availableLocales` array
+- the locale resolver function (`locale => ...`)
+
+### Add A New Language
+
+1. Add or create the message catalog for the new locale.
+2. Merge it with existing base messages in `i18nProvider.tsx`.
+3. Register the locale in `availableLocales`.
+4. Add app-specific keys (for example in a `crm.*` namespace) when needed.
+5. Start the app, switch locale from the user menu, and verify fallback behavior.
+
+If an official package does not exist for a given integration (for example `ra-supabase-language-<locale>`), keep English integration messages as the base and override only the keys you need for your locale.
 
 ## Disabling Telemetry
 
@@ -87,7 +122,7 @@ The only data sent to the telemetry server is the admin domain (e.g. “example.
 You can opt out of telemetry by simply adding `disableTelemetry` to the `<CRM>` component:
 
 ```tsx
-import { CRM } from "@/components/atomic-crm/root/CRM";
+import { CRM } from '@/components/atomic-crm/root/CRM';
 
 const App = () => <CRM disableTelemetry />;
 
