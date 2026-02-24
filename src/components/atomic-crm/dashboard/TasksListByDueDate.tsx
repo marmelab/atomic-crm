@@ -1,4 +1,9 @@
-import { type Identifier, useGetIdentity, useGetList } from "ra-core";
+import {
+  type Identifier,
+  useGetIdentity,
+  useGetList,
+  useTimeout,
+} from "ra-core";
 
 import { useIsMobile } from "@/hooks/use-mobile";
 import { TaskListFilter } from "./TasksListFilter";
@@ -16,18 +21,16 @@ import { useMemo } from "react";
 export const TasksListByDueDate = ({
   filterByContact,
   emptyPlaceholder,
+  pendingPlaceholder,
 }: {
   filterByContact?: Identifier;
   emptyPlaceholder?: React.ReactNode;
+  pendingPlaceholder?: React.ReactNode;
 }) => {
   const { identity } = useGetIdentity();
   const isMobile = useIsMobile();
 
-  const {
-    data: tasks,
-    total,
-    isPending,
-  } = useGetList(
+  const { data: tasks, isPending } = useGetList(
     "tasks",
     {
       pagination: { page: 1, perPage: 1000 },
@@ -79,11 +82,17 @@ export const TasksListByDueDate = ({
     [ongoingTasks],
   );
 
-  if (!tasks || !total || isPending) {
+  const oneSecondHasPassed = useTimeout(1000);
+
+  if (isPending && oneSecondHasPassed) {
+    return pendingPlaceholder ?? null;
+  }
+
+  if (isPending) {
     return null;
   }
 
-  if (!total) {
+  if (!ongoingTasks.length) {
     return emptyPlaceholder ?? null;
   }
 
