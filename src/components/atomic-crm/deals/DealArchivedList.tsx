@@ -1,5 +1,5 @@
 /* eslint-disable react-refresh/only-export-components */
-import { useGetIdentity, useGetList } from "ra-core";
+import { useGetIdentity, useGetList, useTranslate } from "ra-core";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
@@ -8,6 +8,7 @@ import type { Deal } from "../types";
 import { DealCardContent } from "./DealCard";
 
 export const DealArchivedList = () => {
+  const translate = useTranslate();
   const { identity } = useGetIdentity();
   const {
     data: archivedLists,
@@ -52,11 +53,15 @@ export const DealArchivedList = () => {
         onClick={() => setOpenDialog(true)}
         className="my-4"
       >
-        View archived deals
+        {translate("crm.deals.archived.view", { _: "View archived deals" })}
       </Button>
       <Dialog open={openDialog} onOpenChange={() => setOpenDialog(false)}>
         <DialogContent className="lg:max-w-4xl overflow-y-auto max-h-9/10 top-1/20 translate-y-0">
-          <DialogTitle>Archived Deals</DialogTitle>
+          <DialogTitle>
+            {translate("crm.deals.archived.list_title", {
+              _: "Archived Deals",
+            })}
+          </DialogTitle>
           <div className="flex flex-col gap-8">
             {Object.entries(archivedListsByDate).map(([date, deals]) => (
               <div key={date} className="flex flex-col gap-4">
