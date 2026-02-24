@@ -15,8 +15,10 @@ import { useMemo } from "react";
 
 export const TasksListByDueDate = ({
   filterByContact,
+  emptyPlaceholder,
 }: {
   filterByContact?: Identifier;
+  emptyPlaceholder?: React.ReactNode;
 }) => {
   const { identity } = useGetIdentity();
   const isMobile = useIsMobile();
@@ -79,6 +81,10 @@ export const TasksListByDueDate = ({
 
   if (!tasks || !total || isPending) {
     return null;
+  }
+
+  if (!total) {
+    return emptyPlaceholder ?? null;
   }
 
   return (
