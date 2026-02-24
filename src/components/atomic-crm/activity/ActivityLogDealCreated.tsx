@@ -1,5 +1,6 @@
 import type { RaRecord } from "ra-core";
 import { Link } from "react-router";
+import { useTranslate } from "ra-core";
 
 import { ReferenceField } from "@/components/admin/reference-field";
 import { RelativeDate } from "../misc/RelativeDate";
@@ -15,6 +16,7 @@ type ActivityLogDealCreatedProps = {
 export function ActivityLogDealCreated({
   activity,
 }: ActivityLogDealCreatedProps) {
+  const translate = useTranslate();
   const context = useActivityLogContext();
   const isMobile = useIsMobile();
   const { deal } = activity;
@@ -26,7 +28,7 @@ export function ActivityLogDealCreated({
           <ReferenceField source="sales_id" reference="sales" record={activity}>
             <SaleName />
           </ReferenceField>{" "}
-          added deal{" "}
+          {translate("crm.activity.added_deal", { _: "added deal" })}{" "}
           {isMobile ? (
             deal.name
           ) : (
@@ -34,7 +36,7 @@ export function ActivityLogDealCreated({
           )}{" "}
           {context !== "company" && (
             <>
-              to{" "}
+              {translate("crm.activity.to_company", { _: "to" })}{" "}
               <ReferenceField
                 source="company_id"
                 reference="companies"

@@ -1,5 +1,5 @@
 import { Building, Truck, Users } from "lucide-react";
-import { FilterLiveForm, useGetIdentity } from "ra-core";
+import { FilterLiveForm, useGetIdentity, useTranslate } from "ra-core";
 import { ToggleFilterButton } from "@/components/admin/toggle-filter-button";
 import { SearchInput } from "@/components/admin/search-input";
 
@@ -8,6 +8,7 @@ import { useConfigurationContext } from "../root/ConfigurationContext";
 import { sizes } from "./sizes";
 
 export const CompanyListFilter = () => {
+  const translate = useTranslate();
   const { identity } = useGetIdentity();
   const { companySectors } = useConfigurationContext();
   return (
@@ -16,7 +17,10 @@ export const CompanyListFilter = () => {
         <SearchInput source="q" />
       </FilterLiveForm>
 
-      <FilterCategory icon={<Building className="h-4 w-4" />} label="Size">
+      <FilterCategory
+        icon={<Building className="h-4 w-4" />}
+        label={translate("resources.companies.fields.size", { _: "Size" })}
+      >
         {sizes.map((size) => (
           <ToggleFilterButton
             className="w-full justify-between"
@@ -27,7 +31,10 @@ export const CompanyListFilter = () => {
         ))}
       </FilterCategory>
 
-      <FilterCategory icon={<Truck className="h-4 w-4" />} label="Sector">
+      <FilterCategory
+        icon={<Truck className="h-4 w-4" />}
+        label={translate("resources.companies.fields.sector", { _: "Sector" })}
+      >
         {companySectors.map((sector) => (
           <ToggleFilterButton
             className="w-full justify-between"
@@ -40,11 +47,11 @@ export const CompanyListFilter = () => {
 
       <FilterCategory
         icon={<Users className="h-4 w-4" />}
-        label="Account Manager"
+        label={translate("crm.filters.account_manager", { _: "Account Manager" })}
       >
         <ToggleFilterButton
           className="w-full justify-between"
-          label={"Me"}
+          label={translate("crm.filters.me", { _: "Me" })}
           value={{ sales_id: identity?.id }}
         />
       </FilterCategory>

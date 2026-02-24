@@ -5,6 +5,7 @@ import {
   useGetIdentity,
   useGetList,
   useList,
+  useTranslate,
 } from "ra-core";
 
 import { TasksIterator } from "../tasks/TasksIterator";
@@ -21,6 +22,7 @@ export const TasksListFilter = ({
 }) => {
   const { identity } = useGetIdentity();
   const isMobile = useIsMobile();
+  const translate = useTranslate();
 
   const {
     data: tasks,
@@ -68,9 +70,9 @@ export const TasksListFilter = ({
               listContext.setPerPage(listContext.perPage + 10);
               e.preventDefault();
             }}
-            className="text-sm underline hover:no-underline"
-          >
-            Load more
+          className="text-sm underline hover:no-underline"
+        >
+          {translate("crm.load_more", { _: "Load more" })}
           </a>
         </div>
       )}

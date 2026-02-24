@@ -1,4 +1,4 @@
-import { RecordContextProvider, useListContext } from "ra-core";
+import { RecordContextProvider, useListContext, useTranslate } from "ra-core";
 
 import type { Company } from "../types";
 import { CompanyCard } from "./CompanyCard";
@@ -18,6 +18,7 @@ const LoadingGridList = () => (
 );
 
 const LoadedGridList = () => {
+  const translate = useTranslate();
   const { data, error, isPending } = useListContext<Company>();
 
   if (isPending || error) return null;
@@ -35,7 +36,11 @@ const LoadedGridList = () => {
         </RecordContextProvider>
       ))}
 
-      {data.length === 0 && <div className="p-2">No companies found</div>}
+      {data.length === 0 && (
+        <div className="p-2">
+          {translate("crm.companies.empty.title", { _: "No companies found" })}
+        </div>
+      )}
     </div>
   );
 };
