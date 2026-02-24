@@ -63,7 +63,7 @@ export const MobileNavigation = () => {
 
   return (
     <nav
-      aria-label="CRM navigation"
+      aria-label={translate("crm.navigation.label", { _: "CRM navigation" })}
       className="fixed bottom-0 left-0 right-0 z-50 bg-secondary h-14"
       style={{
         // iOS bug: even though viewport is set correctly, the bottom safe area inset is not accounted for

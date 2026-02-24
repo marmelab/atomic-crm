@@ -7,6 +7,7 @@ import {
   useGetOne,
   useNotify,
   useRecordContext,
+  useTranslate,
 } from "ra-core";
 import { useState } from "react";
 import { useFormState } from "react-hook-form";
@@ -46,11 +47,18 @@ export const ProfilePage = () => {
       refetchIdentity();
       refetchUser();
       setEditMode(false);
-      notify("Your profile has been updated");
+      notify("crm.profile.updated", {
+        messageArgs: {
+          _: "Your profile has been updated",
+        },
+      });
     },
     onError: (_) => {
-      notify("An error occurred. Please try again", {
+      notify("crm.profile.update_error", {
         type: "error",
+        messageArgs: {
+          _: "An error occurred. Please try again",
+        },
       });
     },
   });
@@ -78,6 +86,7 @@ const ProfileForm = ({
   setEditMode: (value: boolean) => void;
 }) => {
   const notify = useNotify();
+  const translate = useTranslate();
   const record = useRecordContext<Sale>();
   const { identity, refetch } = useGetIdentity();
   const { isDirty } = useFormState();
@@ -92,7 +101,11 @@ const ProfileForm = ({
       return dataProvider.updatePassword(identity.id);
     },
     onSuccess: () => {
-      notify("A reset password email has been sent to your email address");
+      notify("crm.profile.password_reset_sent", {
+        messageArgs: {
+          _: "A reset password email has been sent to your email address",
+        },
+      });
     },
     onError: (e) => {
       notify(`${e}`, {
@@ -111,10 +124,19 @@ const ProfileForm = ({
     },
     onSuccess: () => {
       refetch();
-      notify("Your profile has been updated");
+      notify("crm.profile.updated", {
+        messageArgs: {
+          _: "Your profile has been updated",
+        },
+      });
     },
     onError: () => {
-      notify("An error occurred. Please try again.");
+      notify("crm.profile.update_error", {
+        type: "error",
+        messageArgs: {
+          _: "An error occurred. Please try again.",
+        },
+      });
     },
   });
   if (!identity) return null;
@@ -133,7 +155,7 @@ const ProfileForm = ({
         <CardContent>
           <div className="mb-4 flex flex-row justify-between">
             <h2 className="text-xl font-semibold text-muted-foreground">
-              Profile
+              {translate("crm.profile.title", { _: "Profile" })}
             </h2>
           </div>
 
@@ -157,7 +179,9 @@ const ProfileForm = ({
                   type="button"
                   onClick={handleClickOpenPasswordChange}
                 >
-                  Change password
+                  {translate("crm.profile.password.change", {
+                    _: "Change password",
+                  })}
                 </Button>
               </>
             )}
@@ -169,13 +193,15 @@ const ProfileForm = ({
               className="flex items-center"
             >
               {isEditMode ? <CircleX /> : <Pencil />}
-              {isEditMode ? "Cancel" : "Edit"}
+              {isEditMode
+                ? translate("ra.action.cancel", { _: "Cancel" })
+                : translate("ra.action.edit", { _: "Edit" })}
             </Button>
 
             {isEditMode && (
               <Button type="submit" disabled={!isDirty} variant="outline">
                 <Save />
-                Save
+                {translate("ra.action.save", { _: "Save" })}
               </Button>
             )}
           </div>
@@ -186,13 +212,18 @@ const ProfileForm = ({
           <CardContent>
             <div className="space-y-4 justify-between">
               <h2 className="text-xl font-semibold text-muted-foreground">
-                Inbound email
+                {translate("crm.profile.inbound.title", { _: "Inbound email" })}
               </h2>
               <p className="text-sm text-muted-foreground">
-                You can start sending emails to your server's inbound email
-                address, e.g. by adding it to the
-                <b> Cc: </b> field. Atomic CRM will process the emails and add
-                notes to the corresponding contacts.
+                {translate("crm.profile.inbound.description_prefix", {
+                  _:
+                    "You can start sending emails to your server's inbound email address, e.g. by adding it to the",
+                })}{" "}
+                <b> Cc: </b>{" "}
+                {translate("crm.profile.inbound.description_suffix", {
+                  _:
+                    "field. Atomic CRM will process the emails and add notes to the corresponding contacts.",
+                })}
               </p>
               <CopyPaste />
             </div>
@@ -221,6 +252,7 @@ const TextRender = ({
 };
 
 const CopyPaste = () => {
+  const translate = useTranslate();
   const [copied, setCopied] = useState(false);
   const handleCopy = () => {
     setCopied(true);
@@ -246,7 +278,11 @@ const CopyPaste = () => {
           </Button>
         </TooltipTrigger>
         <TooltipContent>
-          <p>{copied ? "Copied!" : "Copy"}</p>
+          <p>
+            {copied
+              ? translate("crm.common.copied", { _: "Copied!" })
+              : translate("crm.common.copy", { _: "Copy" })}
+          </p>
         </TooltipContent>
       </Tooltip>
     </TooltipProvider>
