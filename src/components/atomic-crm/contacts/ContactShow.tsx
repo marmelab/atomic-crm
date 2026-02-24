@@ -135,7 +135,7 @@ const ContactShowContentMobile = () => {
         <Tabs defaultValue="notes" className="w-full">
           <TabsList className="grid w-full grid-cols-3 h-10">
             <TabsTrigger value="notes">
-              {translate("resources.contact_notes.name", {
+              {translate("crm.notes.name", {
                 smart_count: 2,
                 _: "Notes",
               })}
@@ -146,7 +146,7 @@ const ContactShowContentMobile = () => {
                 reference="tasks"
                 filter={{ "done_date@is": null }}
               />{" "}
-              {translate("resources.tasks.name", {
+              {translate("crm.tasks.name", {
                 smart_count: 2,
                 _: "Tasks",
               })}
@@ -218,7 +218,7 @@ const ContactShowContentMobile = () => {
               </div>
               <div>
                 <h3 className="text-lg font-semibold">
-                  {translate("resources.tags.name", {
+                  {translate("crm.tags.name", {
                     smart_count: 2,
                     _: "Tags",
                   })}

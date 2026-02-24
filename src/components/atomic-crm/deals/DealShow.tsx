@@ -149,7 +149,7 @@ const DealShowContent = () => {
             <div className="m-4">
               <div className="flex flex-col min-h-12 mr-10">
                 <span className="text-xs text-muted-foreground tracking-wide">
-                  {translate("resources.contacts.name", {
+                  {translate("crm.contacts.name", {
                     smart_count: 2,
                     _: "Contacts",
                   })}

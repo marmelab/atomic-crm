@@ -25,15 +25,25 @@ const raSupabaseFrenchMessagesOverride = {
 const englishCrmMessages = {
   crm: {
     language: "Language",
+    profile: {
+      title: "Profile",
+    },
     common: {
       account_manager: "Account manager",
     },
     companies: {
+      name: "Company |||| Companies",
+      forcedCaseName: "Company",
       action: {
         create: "Create Company",
       },
+      fields: {
+        name: "Company name",
+      },
     },
     contacts: {
+      name: "Contact |||| Contacts",
+      forcedCaseName: "Contact",
       action: {
         new: "New Contact",
       },
@@ -45,9 +55,11 @@ const englishCrmMessages = {
       },
       import: {
         csv_file: "CSV File",
+        contacts_label: "contact |||| contacts",
       },
     },
     deals: {
+      name: "Deal |||| Deals",
       action: {
         create: "Create deal",
       },
@@ -60,11 +72,26 @@ const englishCrmMessages = {
         description: "Description",
       },
     },
+    notes: {
+      name: "Note |||| Notes",
+      forcedCaseName: "Note",
+    },
+    sales: {
+      name: "User |||| Users",
+    },
     settings: {
+      title: "Settings",
       app_title: "App Title",
       sections: {
         branding: "Branding",
       },
+    },
+    tags: {
+      name: "Tag |||| Tags",
+    },
+    tasks: {
+      name: "Task |||| Tasks",
+      forcedCaseName: "Task",
     },
   },
 };
@@ -72,15 +99,25 @@ const englishCrmMessages = {
 const frenchCrmMessages = {
   crm: {
     language: "Langue",
+    profile: {
+      title: "Profil",
+    },
     common: {
       account_manager: "Responsable de compte",
     },
     companies: {
+      name: "Entreprise |||| Entreprises",
+      forcedCaseName: "Entreprise",
       action: {
         create: "Créer une entreprise",
       },
+      fields: {
+        name: "Nom de l'entreprise",
+      },
     },
     contacts: {
+      name: "Contact |||| Contacts",
+      forcedCaseName: "Contact",
       action: {
         new: "Nouveau contact",
       },
@@ -93,9 +130,11 @@ const frenchCrmMessages = {
       },
       import: {
         csv_file: "Fichier CSV",
+        contacts_label: "contact |||| contacts",
       },
     },
     deals: {
+      name: "Affaire |||| Affaires",
       action: {
         create: "Créer un deal",
       },
@@ -108,11 +147,26 @@ const frenchCrmMessages = {
         description: "Description",
       },
     },
+    notes: {
+      name: "Note |||| Notes",
+      forcedCaseName: "Note",
+    },
+    sales: {
+      name: "Utilisateur |||| Utilisateurs",
+    },
     settings: {
+      title: "Paramètres",
       app_title: "Titre de l'application",
       sections: {
         branding: "Image de marque",
       },
+    },
+    tags: {
+      name: "Étiquette |||| Étiquettes",
+    },
+    tasks: {
+      name: "Tâche |||| Tâches",
+      forcedCaseName: "Tâche",
     },
   },
 };

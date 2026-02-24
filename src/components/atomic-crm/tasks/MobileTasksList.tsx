@@ -9,7 +9,7 @@ export const MobileTasksList = () => {
     <>
       <MobileHeader>
         <h1 className="text-xl font-semibold">
-          {translate("resources.tasks.name", { smart_count: 2, _: "Tasks" })}
+          {translate("crm.tasks.name", { smart_count: 2, _: "Tasks" })}
         </h1>
       </MobileHeader>
       <MobileContent>

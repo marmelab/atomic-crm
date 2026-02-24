@@ -63,7 +63,7 @@ const CompanyDisplayInputs = () => {
         className="w-full h-fit"
         validate={required()}
         helperText={false}
-        placeholder={translate("resources.companies.fields.name", {
+        placeholder={translate("crm.companies.fields.name", {
           _: "Company name",
         })}
       />
