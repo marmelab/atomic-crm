@@ -11,6 +11,7 @@ import {
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { cn } from "@/lib/utils";
 import {
+  Check,
   Home,
   ListTodo,
   LogOut,
@@ -21,7 +22,15 @@ import {
   Sun,
   Users,
 } from "lucide-react";
-import { Translate, useAuthProvider, useGetIdentity, useLogout } from "ra-core";
+import {
+  Translate,
+  useAuthProvider,
+  useGetIdentity,
+  useLocaleState,
+  useLocales,
+  useLogout,
+  useTranslate,
+} from "ra-core";
 import { Link, matchPath, useLocation, useMatch } from "react-router";
 import { ContactCreateSheet } from "../contacts/ContactCreateSheet";
 import { useState } from "react";
@@ -184,6 +193,9 @@ const CreateButton = () => {
 };
 
 const SettingsButton = () => {
+  const translate = useTranslate();
+  const languages = useLocales();
+  const [locale, setLocale] = useLocaleState();
   const authProvider = useAuthProvider();
   const { data: identity } = useGetIdentity();
   const logout = useLogout();
@@ -196,7 +208,9 @@ const SettingsButton = () => {
           className="flex-col gap-1 h-auto py-2 px-1 rounded-md w-16 text-muted-foreground"
         >
           <Settings className="size-6" />
-          <span className="text-[0.6rem] font-medium">Settings</span>
+          <span className="text-[0.6rem] font-medium">
+            {translate("crm.settings.title", { _: "Settings" })}
+          </span>
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent>
@@ -209,6 +223,26 @@ const SettingsButton = () => {
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
         <ThemeMenu />
+        {languages.length > 1 && (
+          <>
+            <DropdownMenuSeparator />
+            <DropdownMenuLabel className="text-xs text-muted-foreground uppercase">
+              {translate("crm.language", { _: "Language" })}
+            </DropdownMenuLabel>
+            {languages.map((language) => (
+              <DropdownMenuItem
+                key={language.locale}
+                className="h-12 px-4 text-base"
+                onSelect={() => setLocale(language.locale)}
+              >
+                {language.name}
+                {locale === language.locale ? (
+                  <Check className="ml-auto" />
+                ) : null}
+              </DropdownMenuItem>
+            ))}
+          </>
+        )}
         <DropdownMenuSeparator />
         <DropdownMenuItem
           onClick={() => logout()}
