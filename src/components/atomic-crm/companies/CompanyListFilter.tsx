@@ -5,7 +5,6 @@ import { SearchInput } from "@/components/admin/search-input";
 
 import { FilterCategory } from "../filters/FilterCategory";
 import { useConfigurationContext } from "../root/ConfigurationContext";
-import { getTranslatedCompanySectorLabel } from "./getTranslatedCompanySectorLabel";
 import { getTranslatedCompanySizeLabel } from "./getTranslatedCompanySizeLabel";
 import { sizes } from "./sizes";
 
@@ -16,10 +15,6 @@ export const CompanyListFilter = () => {
   const translatedSizes = sizes.map((size) => ({
     ...size,
     name: getTranslatedCompanySizeLabel(size, translate),
-  }));
-  const translatedSectors = companySectors.map((sector) => ({
-    ...sector,
-    label: getTranslatedCompanySectorLabel(sector, translate),
   }));
   return (
     <div className="w-52 min-w-52 flex flex-col gap-8">
@@ -45,7 +40,7 @@ export const CompanyListFilter = () => {
         icon={<Truck className="h-4 w-4" />}
         label={translate("crm.companies.filters.sector", { _: "Sector" })}
       >
-        {translatedSectors.map((sector) => (
+        {companySectors.map((sector) => (
           <ToggleFilterButton
             className="w-full justify-between"
             label={sector.label}
