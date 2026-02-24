@@ -1,4 +1,5 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
+import { AuthMiddleware } from "../_shared/authentication.ts";
 import { supabaseAdmin } from "../_shared/supabaseAdmin.ts";
 
 const ATTACHMENTS_BUCKET = "attachments";
@@ -19,41 +20,43 @@ type WebhookPayload = {
   record?: NoteRecord | null;
 };
 
-Deno.serve(async (req: Request) => {
-  if (req.method !== "POST") {
-    return jsonResponse({ error: "Method Not Allowed" }, 405);
-  }
+Deno.serve(async (req: Request) =>
+  AuthMiddleware(req, async (req: Request) => {
+    if (req.method !== "POST") {
+      return jsonResponse({ error: "Method Not Allowed" }, 405);
+    }
 
-  const payload = (await req.json()) as WebhookPayload;
-  const paths = getPathsToDelete(payload);
+    const payload = (await req.json()) as WebhookPayload;
+    const paths = getPathsToDelete(payload);
 
-  if (paths.length === 0) {
+    if (paths.length === 0) {
+      return jsonResponse({
+        status: "skipped",
+        reason: "no_paths_to_delete",
+        type: payload.type ?? null,
+      });
+    }
+
+    const { error } = await supabaseAdmin.storage
+      .from(ATTACHMENTS_BUCKET)
+      .remove(paths);
+
+    if (error) {
+      console.error("Failed to delete note attachments", {
+        type: payload.type ?? null,
+        paths,
+        error,
+      });
+      return jsonResponse({ error: "Failed to delete note attachments" }, 500);
+    }
+
     return jsonResponse({
-      status: "skipped",
-      reason: "no_paths_to_delete",
+      status: "ok",
       type: payload.type ?? null,
+      deletedPathsCount: paths.length,
     });
-  }
-
-  const { error } = await supabaseAdmin.storage
-    .from(ATTACHMENTS_BUCKET)
-    .remove(paths);
-
-  if (error) {
-    console.error("Failed to delete note attachments", {
-      type: payload.type ?? null,
-      paths,
-      error,
-    });
-    return jsonResponse({ error: "Failed to delete note attachments" }, 500);
-  }
-
-  return jsonResponse({
-    status: "ok",
-    type: payload.type ?? null,
-    deletedPathsCount: paths.length,
-  });
-});
+  }),
+);
 
 const getPathsToDelete = (payload: WebhookPayload): string[] => {
   const oldPaths = extractAttachmentPaths(payload.old_record?.attachments);

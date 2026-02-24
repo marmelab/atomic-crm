@@ -5,8 +5,14 @@ BEGIN
   EXECUTE 'DROP TRIGGER IF EXISTS on_contact_notes_changed_delete_note_attachments ON public.contact_notes';
   EXECUTE 'DROP TRIGGER IF EXISTS on_deal_notes_changed_delete_note_attachments ON public.deal_notes';
 
+  EXECUTE 'DROP FUNCTION IF EXISTS public.cleanup_note_attachments()';
+  EXECUTE 'DROP FUNCTION IF EXISTS public.note_attachments_webhook_url()';
+  -- TODO: remove these legacy drops before merge once the old function names are no longer needed.
+  EXECUTE 'DROP FUNCTION IF EXISTS public.atomic_crm_notify_note_attachment_cleanup()';
+  EXECUTE 'DROP FUNCTION IF EXISTS public.atomic_crm_note_attachments_webhook_url()';
+
   EXECUTE $url_sql$
-    CREATE OR REPLACE FUNCTION public.atomic_crm_note_attachments_webhook_url()
+    CREATE OR REPLACE FUNCTION public.note_attachments_webhook_url()
     RETURNS text
     LANGUAGE plpgsql
     AS $function$
@@ -57,7 +63,7 @@ BEGIN
   $url_sql$;
 
   EXECUTE $cleanup_sql$
-    CREATE OR REPLACE FUNCTION public.atomic_crm_notify_note_attachment_cleanup()
+    CREATE OR REPLACE FUNCTION public.cleanup_note_attachments()
     RETURNS trigger
     LANGUAGE plpgsql
     SECURITY DEFINER
@@ -65,22 +71,38 @@ BEGIN
     AS $function$
     DECLARE
       payload jsonb;
+      request_headers jsonb;
+      auth_header text;
     BEGIN
+      request_headers := coalesce(
+        nullif(current_setting('request.headers', true), '')::jsonb,
+        '{}'::jsonb
+      );
+      auth_header := request_headers ->> 'authorization';
+
+      IF auth_header IS NULL OR auth_header = '' THEN
+        IF TG_OP = 'DELETE' THEN
+          RETURN OLD;
+        END IF;
+
+        RETURN NEW;
+      END IF;
+
       payload := jsonb_build_object(
         'old_record', OLD,
         'record', NEW,
-        'type', TG_OP,
-        'table', TG_TABLE_NAME,
-        'schema', TG_TABLE_SCHEMA
+        'type', TG_OP
       );
 
       PERFORM net.http_post(
-        url := public.atomic_crm_note_attachments_webhook_url(),
+        url := public.note_attachments_webhook_url(),
         body := payload,
         params := '{}'::jsonb,
         headers := jsonb_build_object(
           'Content-Type',
-          'application/json'
+          'application/json',
+          'Authorization',
+          auth_header
         ),
         timeout_milliseconds := 1000
       );
@@ -94,7 +116,7 @@ BEGIN
     $function$;
   $cleanup_sql$;
 
-  EXECUTE 'CREATE TRIGGER on_contact_notes_changed_delete_note_attachments AFTER DELETE OR UPDATE ON public.contact_notes FOR EACH ROW EXECUTE FUNCTION public.atomic_crm_notify_note_attachment_cleanup()';
-  EXECUTE 'CREATE TRIGGER on_deal_notes_changed_delete_note_attachments AFTER DELETE OR UPDATE ON public.deal_notes FOR EACH ROW EXECUTE FUNCTION public.atomic_crm_notify_note_attachment_cleanup()';
+  EXECUTE 'CREATE TRIGGER on_contact_notes_changed_delete_note_attachments AFTER DELETE OR UPDATE ON public.contact_notes FOR EACH ROW EXECUTE FUNCTION public.cleanup_note_attachments()';
+  EXECUTE 'CREATE TRIGGER on_deal_notes_changed_delete_note_attachments AFTER DELETE OR UPDATE ON public.deal_notes FOR EACH ROW EXECUTE FUNCTION public.cleanup_note_attachments()';
 END;
 $migration$;
