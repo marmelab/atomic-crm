@@ -4,12 +4,14 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { TaskListFilter } from "./TasksListFilter";
 import {
   isBeforeFriday,
+  isDone,
   isDueLater,
   isDueThisWeek,
   isDueToday,
   isDueTomorrow,
   isOverdue,
 } from "./tasksPredicate";
+import { useMemo } from "react";
 
 export const TasksListByDueDate = ({
   filterByContact,
@@ -37,6 +39,44 @@ export const TasksListByDueDate = ({
     { enabled: filterByContact != null ? true : !!identity },
   );
 
+  const showContact = filterByContact == null;
+
+  const ongoingTasks = useMemo(
+    () => tasks?.filter((task) => !isDone(task)) || [],
+    [tasks],
+  );
+
+  const overdueTasks = useMemo(
+    () =>
+      ongoingTasks?.filter((task) => {
+        return isOverdue(task.due_date);
+      }) || [],
+    [ongoingTasks],
+  );
+
+  const dueTodayTasks = useMemo(
+    () =>
+      ongoingTasks?.filter((task) => {
+        return isDueToday(task.due_date);
+      }) || [],
+    [ongoingTasks],
+  );
+
+  const dueTomorrowTasks = useMemo(
+    () => ongoingTasks?.filter((task) => isDueTomorrow(task.due_date)) || [],
+    [ongoingTasks],
+  );
+
+  const dueThisWeekTasks = useMemo(
+    () => ongoingTasks?.filter((task) => isDueThisWeek(task.due_date)) || [],
+    [ongoingTasks],
+  );
+
+  const dueLaterTasks = useMemo(
+    () => ongoingTasks?.filter((task) => isDueLater(task.due_date)) || [],
+    [ongoingTasks],
+  );
+
   if (!tasks || !total || isPending) {
     return null;
   }
@@ -44,41 +84,37 @@ export const TasksListByDueDate = ({
   return (
     <div className="flex flex-col gap-4">
       <TaskListFilter
-        tasks={tasks}
+        tasks={overdueTasks}
         title="Overdue"
-        filterByContact={filterByContact}
-        taskPredicate={isOverdue}
+        showContact={showContact}
         isMobile={isMobile}
       />
       <TaskListFilter
-        tasks={tasks}
+        tasks={dueTodayTasks}
         title="Today"
-        filterByContact={filterByContact}
+        showContact={showContact}
         isMobile={isMobile}
-        taskPredicate={isDueToday}
       />
       <TaskListFilter
-        tasks={tasks!}
+        tasks={dueTomorrowTasks}
         title="Tomorrow"
-        filterByContact={filterByContact}
+        showContact={showContact}
         isMobile={isMobile}
-        taskPredicate={isDueTomorrow}
       />
-      {!filterByContact && isBeforeFriday && (
-        <TaskListFilter
-          tasks={tasks}
-          title="This week"
-          filterByContact={filterByContact}
-          isMobile={isMobile}
-          taskPredicate={isDueThisWeek}
-        />
-      )}
+      {!filterByContact ||
+        (isBeforeFriday && (
+          <TaskListFilter
+            tasks={dueThisWeekTasks}
+            title="This week"
+            showContact={showContact}
+            isMobile={isMobile}
+          />
+        ))}
       <TaskListFilter
-        tasks={tasks}
+        tasks={dueLaterTasks}
         title="Later"
-        filterByContact={filterByContact}
+        showContact={showContact}
         isMobile={isMobile}
-        taskPredicate={isDueLater}
       />
     </div>
   );
