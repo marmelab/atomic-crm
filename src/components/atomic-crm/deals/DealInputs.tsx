@@ -12,7 +12,6 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { contactOptionText } from "../misc/ContactOption";
 import { useConfigurationContext } from "../root/ConfigurationContext";
 import { AutocompleteCompanyInput } from "../companies/AutocompleteCompanyInput.tsx";
-import { getTranslatedDealStageLabel } from "./getTranslatedDealStageLabel";
 
 export const DealInputs = () => {
   const isMobile = useIsMobile();
@@ -66,12 +65,8 @@ const DealLinkedToInputs = () => {
 };
 
 const DealMiscInputs = () => {
-  const translate = useTranslate();
   const { dealStages, dealCategories } = useConfigurationContext();
-  const translatedDealStages = dealStages.map((stage) => ({
-    ...stage,
-    label: getTranslatedDealStageLabel(stage, translate),
-  }));
+  const translate = useTranslate();
   return (
     <div className="flex flex-col gap-4 flex-1">
       <h3 className="text-base font-medium">
@@ -100,7 +95,7 @@ const DealMiscInputs = () => {
       />
       <SelectInput
         source="stage"
-        choices={translatedDealStages}
+        choices={dealStages}
         optionText="label"
         optionValue="value"
         defaultValue="opportunity"

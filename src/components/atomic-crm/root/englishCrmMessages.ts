@@ -108,19 +108,6 @@ export const englishCrmMessages = {
         sector: "Sector",
         size: "Size",
       },
-      sectors: {
-        communication_services: "Communication Services",
-        consumer_discretionary: "Consumer Discretionary",
-        consumer_staples: "Consumer Staples",
-        energy: "Energy",
-        financials: "Financials",
-        health_care: "Health Care",
-        industrials: "Industrials",
-        information_technology: "Information Technology",
-        materials: "Materials",
-        real_estate: "Real Estate",
-        utilities: "Utilities",
-      },
       sizes: {
         one_employee: "1 employee",
         two_to_nine_employees: "2-9 employees",
@@ -307,14 +294,6 @@ export const englishCrmMessages = {
       filters: {
         company: "Company",
       },
-      stages: {
-        opportunity: "Opportunity",
-        proposal_sent: "Proposal Sent",
-        in_negociation: "In Negotiation",
-        won: "Won",
-        lost: "Lost",
-        delayed: "Delayed",
-      },
     },
     header: {
       import_data: "Import data",
@@ -390,12 +369,6 @@ export const englishCrmMessages = {
         reference_contact: "Contact",
         reference_deal: "Deal",
         show_options: "Show options",
-      },
-      statuses: {
-        cold: "Cold",
-        warm: "Warm",
-        hot: "Hot",
-        in_contract: "In Contract",
       },
     },
     sales: {
@@ -498,17 +471,6 @@ export const englishCrmMessages = {
       updated: "Task updated",
       name: "Task |||| Tasks",
       forcedCaseName: "Task",
-      types: {
-        none: "None",
-        email: "Email",
-        demo: "Demo",
-        lunch: "Lunch",
-        meeting: "Meeting",
-        follow_up: "Follow-up",
-        thank_you: "Thank you",
-        ship: "Ship",
-        call: "Call",
-      },
     },
     theme: {
       dark: "Dark theme",

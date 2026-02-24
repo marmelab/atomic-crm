@@ -1,4 +1,3 @@
-import { useTranslate } from "ra-core";
 import {
   Select,
   SelectContent,
@@ -9,11 +8,9 @@ import {
 
 import { Status } from "../misc/Status";
 import { useConfigurationContext } from "../root/ConfigurationContext";
-import { getTranslatedNoteStatusLabel } from "./getTranslatedNoteStatusLabel";
 
 export const StatusSelector = ({ status, setStatus }: any) => {
   const { noteStatuses } = useConfigurationContext();
-  const translate = useTranslate();
 
   const currentStatus = noteStatuses.find((s) => s.value === status);
 
@@ -23,8 +20,7 @@ export const StatusSelector = ({ status, setStatus }: any) => {
         <SelectValue>
           {currentStatus && (
             <div className="flex items-center gap-2">
-              {getTranslatedNoteStatusLabel(currentStatus, translate)}{" "}
-              <Status status={currentStatus.value} />
+              {currentStatus.label} <Status status={currentStatus.value} />
             </div>
           )}
         </SelectValue>
@@ -33,8 +29,7 @@ export const StatusSelector = ({ status, setStatus }: any) => {
         {noteStatuses.map((statusOption) => (
           <SelectItem key={statusOption.value} value={statusOption.value}>
             <div className="flex items-center gap-2">
-              {getTranslatedNoteStatusLabel(statusOption, translate)}{" "}
-              <Status status={statusOption.value} />
+              {statusOption.label} <Status status={statusOption.value} />
             </div>
           </SelectItem>
         ))}
