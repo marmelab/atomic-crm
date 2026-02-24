@@ -1,4 +1,10 @@
-import { EditBase, Form, useNotify, type Identifier } from "ra-core";
+import {
+  EditBase,
+  Form,
+  useNotify,
+  useTranslate,
+  type Identifier,
+} from "ra-core";
 import { DeleteButton } from "@/components/admin/delete-button";
 import { SaveButton } from "@/components/admin/form";
 import {
@@ -21,6 +27,7 @@ export const TaskEdit = ({
   close: () => void;
 }) => {
   const notify = useNotify();
+  const translate = useTranslate();
   return (
     <Dialog open={open} onOpenChange={close}>
       {taskId && (
@@ -31,9 +38,12 @@ export const TaskEdit = ({
           mutationOptions={{
             onSuccess: () => {
               close();
-              notify("Task updated", {
+              notify("crm.tasks.updated", {
                 type: "info",
                 undoable: true,
+                messageArgs: {
+                  _: "Task updated",
+                },
               });
             },
           }}
@@ -42,7 +52,9 @@ export const TaskEdit = ({
           <DialogContent className="lg:max-w-xl overflow-y-auto max-h-9/10 top-1/20 translate-y-0">
             <Form className="flex flex-col gap-4">
               <DialogHeader>
-                <DialogTitle>Edit task</DialogTitle>
+                <DialogTitle>
+                  {translate("crm.tasks.action.edit", { _: "Edit task" })}
+                </DialogTitle>
               </DialogHeader>
               <TaskFormContent />
               <DialogFooter className="w-full sm:justify-between gap-4">
@@ -50,15 +62,18 @@ export const TaskEdit = ({
                   mutationOptions={{
                     onSuccess: () => {
                       close();
-                      notify("Task deleted", {
+                      notify("crm.tasks.deleted", {
                         type: "info",
                         undoable: true,
+                        messageArgs: {
+                          _: "Task deleted",
+                        },
                       });
                     },
                   }}
                   redirect={false}
                 />
-                <SaveButton label="Save" />
+                <SaveButton label="ra.action.save" />
               </DialogFooter>
             </Form>
           </DialogContent>

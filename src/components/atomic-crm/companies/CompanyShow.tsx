@@ -11,6 +11,7 @@ import {
   useListContext,
   useRecordContext,
   useShowContext,
+  useTranslate,
 } from "ra-core";
 import {
   Link,
@@ -51,6 +52,7 @@ export const CompanyShow = () => {
 };
 
 const CompanyShowContentMobile = () => {
+  const translate = useTranslate();
   const { record, isPending } = useShowContext<Company>();
   if (isPending || !record) return null;
 
@@ -60,7 +62,11 @@ const CompanyShowContentMobile = () => {
         <MobileBackButton to="/" />
         <div className="flex flex-1">
           <Link to="/">
-            <h1 className="text-xl font-semibold">Company</h1>
+            <h1 className="text-xl font-semibold">
+              {translate("resources.companies.forcedCaseName", {
+                _: "Company",
+              })}
+            </h1>
           </Link>
         </div>
       </MobileHeader>
@@ -84,6 +90,7 @@ const CompanyShowContentMobile = () => {
 };
 
 const CompanyShowContent = () => {
+  const translate = useTranslate();
   const { record, isPending } = useShowContext<Company>();
   const navigate = useNavigate();
 
@@ -113,19 +120,31 @@ const CompanyShowContent = () => {
             </div>
             <Tabs defaultValue={currentTab} onValueChange={handleTabChange}>
               <TabsList className="grid w-full grid-cols-3">
-                <TabsTrigger value="activity">Activity</TabsTrigger>
+                <TabsTrigger value="activity">
+                  {translate("crm.common.activity", { _: "Activity" })}
+                </TabsTrigger>
                 <TabsTrigger value="contacts">
                   {record.nb_contacts
                     ? record.nb_contacts === 1
-                      ? "1 Contact"
-                      : `${record.nb_contacts} Contacts`
-                    : "No Contacts"}
+                      ? translate("crm.companies.contacts.one", {
+                          _: "1 Contact",
+                        })
+                      : translate("crm.companies.contacts.many", {
+                          smart_count: record.nb_contacts,
+                          _: `${record.nb_contacts} Contacts`,
+                        })
+                    : translate("crm.companies.contacts.none", {
+                        _: "No Contacts",
+                      })}
                 </TabsTrigger>
                 {record.nb_deals ? (
                   <TabsTrigger value="deals">
                     {record.nb_deals === 1
-                      ? "1 deal"
-                      : `${record.nb_deals} deals`}
+                      ? translate("crm.companies.deals.one", { _: "1 deal" })
+                      : translate("crm.companies.deals.many", {
+                          smart_count: record.nb_deals,
+                          _: `${record.nb_deals} deals`,
+                        })}
                   </TabsTrigger>
                 ) : null}
               </TabsList>
@@ -180,6 +199,7 @@ const CompanyShowContent = () => {
 };
 
 const ContactsIterator = () => {
+  const translate = useTranslate();
   const location = useLocation();
   const { data: contacts, error, isPending } = useListContext<Contact>();
 
@@ -206,9 +226,13 @@ const ContactsIterator = () => {
                 <div className="text-sm text-muted-foreground">
                   {contact.title}
                   {contact.nb_tasks
-                    ? ` - ${contact.nb_tasks} task${
-                        contact.nb_tasks > 1 ? "s" : ""
-                      }`
+                    ? ` - ${contact.nb_tasks} ${translate(
+                        "crm.common.task_count",
+                        {
+                          smart_count: contact.nb_tasks,
+                          _: contact.nb_tasks > 1 ? "tasks" : "task",
+                        },
+                      )}`
                     : ""}
                   &nbsp; &nbsp;
                   <TagsList />
@@ -217,7 +241,11 @@ const ContactsIterator = () => {
               {contact.last_seen && (
                 <div className="text-right">
                   <div className="text-sm text-muted-foreground">
-                    last activity {formatDistance(contact.last_seen, now)} ago{" "}
+                    {translate("crm.common.last_activity", {
+                      _: "last activity",
+                    })}{" "}
+                    {formatDistance(contact.last_seen, now)}{" "}
+                    {translate("crm.common.ago", { _: "ago" })}{" "}
                     <Status status={contact.status} />
                   </div>
                 </div>
@@ -231,6 +259,7 @@ const ContactsIterator = () => {
 };
 
 const CreateRelatedContactButton = () => {
+  const translate = useTranslate();
   const company = useRecordContext<Company>();
   return (
     <Button variant="outline" asChild size="sm" className="h-9">
@@ -240,13 +269,14 @@ const CreateRelatedContactButton = () => {
         className="flex items-center gap-2"
       >
         <UserPlus className="h-4 w-4" />
-        Add contact
+        {translate("crm.contacts.action.add", { _: "Add contact" })}
       </RouterLink>
     </Button>
   );
 };
 
 const DealsIterator = () => {
+  const translate = useTranslate();
   const { data: deals, error, isPending } = useListContext<Deal>();
   const { dealStages, dealCategories } = useConfigurationContext();
   if (isPending || error) return null;
@@ -279,7 +309,11 @@ const DealsIterator = () => {
               </div>
               <div className="text-right">
                 <div className="text-sm text-muted-foreground">
-                  last activity {formatDistance(deal.updated_at, now)} ago{" "}
+                  {translate("crm.common.last_activity", {
+                    _: "last activity",
+                  })}{" "}
+                  {formatDistance(deal.updated_at, now)}{" "}
+                  {translate("crm.common.ago", { _: "ago" })}{" "}
                 </div>
               </div>
             </RouterLink>

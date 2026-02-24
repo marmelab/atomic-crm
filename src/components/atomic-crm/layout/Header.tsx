@@ -21,6 +21,7 @@ import { ImportPage } from "../misc/ImportPage";
 const Header = () => {
   const { darkModeLogo, lightModeLogo, title } = useConfigurationContext();
   const location = useLocation();
+  const translate = useTranslate();
 
   let currentPath: string | boolean = "/";
   if (matchPath("/", location.pathname)) {
@@ -60,22 +61,31 @@ const Header = () => {
               <div>
                 <nav className="flex">
                   <NavigationTab
-                    label="Dashboard"
+                    label={translate("ra.page.dashboard", { _: "Dashboard" })}
                     to="/"
                     isActive={currentPath === "/"}
                   />
                   <NavigationTab
-                    label="Contacts"
+                    label={translate("resources.contacts.name", {
+                      smart_count: 2,
+                      _: "Contacts",
+                    })}
                     to="/contacts"
                     isActive={currentPath === "/contacts"}
                   />
                   <NavigationTab
-                    label="Companies"
+                    label={translate("resources.companies.name", {
+                      smart_count: 2,
+                      _: "Companies",
+                    })}
                     to="/companies"
                     isActive={currentPath === "/companies"}
                   />
                   <NavigationTab
-                    label="Deals"
+                    label={translate("resources.deals.name", {
+                      smart_count: 2,
+                      _: "Deals",
+                    })}
                     to="/deals"
                     isActive={currentPath === "/deals"}
                   />

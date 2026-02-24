@@ -39,6 +39,7 @@ import { TaskCreateSheet } from "../tasks/TaskCreateSheet";
 
 export const MobileNavigation = () => {
   const location = useLocation();
+  const translate = useTranslate();
 
   let currentPath: string | boolean = "/";
   if (matchPath("/", location.pathname)) {
@@ -79,20 +80,26 @@ export const MobileNavigation = () => {
           <NavigationButton
             href="/"
             Icon={Home}
-            label="Home"
+            label={translate("ra.page.dashboard", { _: "Home" })}
             isActive={currentPath === "/"}
           />
           <NavigationButton
             href="/contacts"
             Icon={Users}
-            label="Contacts"
+            label={translate("resources.contacts.name", {
+              smart_count: 2,
+              _: "Contacts",
+            })}
             isActive={currentPath === "/contacts"}
           />
           <CreateButton />
           <NavigationButton
             href="/tasks"
             Icon={ListTodo}
-            label="Tasks"
+            label={translate("resources.tasks.name", {
+              smart_count: 2,
+              _: "Tasks",
+            })}
             isActive={currentPath === "/tasks"}
           />
           <SettingsButton />
@@ -129,6 +136,7 @@ const NavigationButton = ({
 );
 
 const CreateButton = () => {
+  const translate = useTranslate();
   const contact_id = useMatch("/contacts/:id/*")?.params.id;
   const [contactCreateOpen, setContactCreateOpen] = useState(false);
   const [noteCreateOpen, setNoteCreateOpen] = useState(false);
@@ -156,7 +164,7 @@ const CreateButton = () => {
             variant="default"
             size="icon"
             className="h-16 w-16 rounded-full -mt-3"
-            aria-label="Create"
+            aria-label={translate("ra.action.create", { _: "Create" })}
           >
             <Plus className="size-10" />
           </Button>
@@ -168,7 +176,7 @@ const CreateButton = () => {
               setContactCreateOpen(true);
             }}
           >
-            Contact
+            {translate("resources.contacts.forcedCaseName", { _: "Contact" })}
           </DropdownMenuItem>
           <DropdownMenuItem
             className="h-12 px-4 text-base"
@@ -176,7 +184,7 @@ const CreateButton = () => {
               setNoteCreateOpen(true);
             }}
           >
-            Note
+            {translate("resources.contact_notes.forcedCaseName", { _: "Note" })}
           </DropdownMenuItem>
           <DropdownMenuItem
             className="h-12 px-4 text-base"
@@ -184,7 +192,7 @@ const CreateButton = () => {
               setTaskCreateOpen(true);
             }}
           >
-            Task
+            {translate("resources.tasks.forcedCaseName", { _: "Task" })}
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
@@ -257,6 +265,7 @@ const SettingsButton = () => {
 };
 
 const ThemeMenu = () => {
+  const translate = useTranslate();
   const { theme, setTheme } = useTheme();
   return (
     <div className="px-3 py-2">
@@ -272,23 +281,33 @@ const ThemeMenu = () => {
       >
         <ToggleGroupItem
           value="system"
-          aria-label="System theme"
+          aria-label={translate("crm.theme.system", { _: "System theme" })}
           className="px-3"
         >
           <Smartphone className="size-5 mx-2" />
-          <span className="sr-only">System</span>
+          <span className="sr-only">
+            {translate("crm.theme.system_short", { _: "System" })}
+          </span>
         </ToggleGroupItem>
         <ToggleGroupItem
           value="light"
-          aria-label="Light theme"
+          aria-label={translate("crm.theme.light", { _: "Light theme" })}
           className="px-3"
         >
           <Sun className="size-5 mx-2" />
-          <span className="sr-only">Light</span>
+          <span className="sr-only">
+            {translate("crm.theme.light_short", { _: "Light" })}
+          </span>
         </ToggleGroupItem>
-        <ToggleGroupItem value="dark" aria-label="Dark theme" className="px-3">
+        <ToggleGroupItem
+          value="dark"
+          aria-label={translate("crm.theme.dark", { _: "Dark theme" })}
+          className="px-3"
+        >
           <Moon className="size-5 mx-2" />
-          <span className="sr-only">Dark</span>
+          <span className="sr-only">
+            {translate("crm.theme.dark_short", { _: "Dark" })}
+          </span>
         </ToggleGroupItem>
       </ToggleGroup>
     </div>

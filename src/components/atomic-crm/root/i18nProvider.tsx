@@ -25,12 +25,95 @@ const raSupabaseFrenchMessagesOverride = {
 const englishCrmMessages = {
   crm: {
     language: "Language",
+    common: {
+      account_manager: "Account manager",
+    },
+    companies: {
+      action: {
+        create: "Create Company",
+      },
+    },
+    contacts: {
+      action: {
+        new: "New Contact",
+      },
+      inputs: {
+        email_addresses: "Email addresses",
+        phone_numbers: "Phone numbers",
+        linkedin_url: "LinkedIn URL",
+        background_info: "Background info (bio, how you met, etc)",
+      },
+      import: {
+        csv_file: "CSV File",
+      },
+    },
+    deals: {
+      action: {
+        create: "Create deal",
+      },
+      inputs: {
+        name: "Deal name",
+        contacts: "Contacts",
+        category: "Category",
+      },
+      fields: {
+        description: "Description",
+      },
+    },
+    settings: {
+      app_title: "App Title",
+      sections: {
+        branding: "Branding",
+      },
+    },
   },
 };
 
 const frenchCrmMessages = {
   crm: {
     language: "Langue",
+    common: {
+      account_manager: "Responsable de compte",
+    },
+    companies: {
+      action: {
+        create: "Créer une entreprise",
+      },
+    },
+    contacts: {
+      action: {
+        new: "Nouveau contact",
+      },
+      inputs: {
+        email_addresses: "Adresses e-mail",
+        phone_numbers: "Numéros de téléphone",
+        linkedin_url: "URL LinkedIn",
+        background_info:
+          "Informations de contexte (bio, comment vous vous êtes rencontrés, etc.)",
+      },
+      import: {
+        csv_file: "Fichier CSV",
+      },
+    },
+    deals: {
+      action: {
+        create: "Créer un deal",
+      },
+      inputs: {
+        name: "Nom du deal",
+        contacts: "Contacts",
+        category: "Catégorie",
+      },
+      fields: {
+        description: "Description",
+      },
+    },
+    settings: {
+      app_title: "Titre de l'application",
+      sections: {
+        branding: "Image de marque",
+      },
+    },
   },
 };
 

@@ -1,5 +1,10 @@
 import { useState } from "react";
-import { RecordRepresentation, ShowBase, useShowContext } from "ra-core";
+import {
+  RecordRepresentation,
+  ShowBase,
+  useShowContext,
+  useTranslate,
+} from "ra-core";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { ReferenceField } from "@/components/admin/reference-field";
 import { ReferenceManyField } from "@/components/admin/reference-many-field";
@@ -48,6 +53,7 @@ export const ContactShow = () => {
 };
 
 const ContactShowContentMobile = () => {
+  const translate = useTranslate();
   const { record, isPending } = useShowContext<Contact>();
   const [noteCreateOpen, setNoteCreateOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
@@ -84,7 +90,9 @@ const ContactShowContentMobile = () => {
           onClick={() => setEditOpen(true)}
         >
           <Pencil className="size-5" />
-          <span className="sr-only">Edit record</span>
+          <span className="sr-only">
+            {translate("ra.action.edit", { _: "Edit record" })}
+          </span>
         </Button>
       </MobileHeader>
       <MobileContent>
@@ -97,7 +105,9 @@ const ContactShowContentMobile = () => {
               </h2>
               <div className="text-sm text-muted-foreground">
                 {record.title}
-                {record.title && record.company_id != null && " at "}
+                {record.title &&
+                  record.company_id != null &&
+                  ` ${translate("crm.common.at", { _: "at" })} `}
                 {record.company_id != null && (
                   <ReferenceField
                     source="company_id"
@@ -124,16 +134,26 @@ const ContactShowContentMobile = () => {
 
         <Tabs defaultValue="notes" className="w-full">
           <TabsList className="grid w-full grid-cols-3 h-10">
-            <TabsTrigger value="notes">Notes</TabsTrigger>
+            <TabsTrigger value="notes">
+              {translate("resources.contact_notes.name", {
+                smart_count: 2,
+                _: "Notes",
+              })}
+            </TabsTrigger>
             <TabsTrigger value="tasks">
               <ReferenceManyCount
                 target="contact_id"
                 reference="tasks"
                 filter={{ "done_date@is": null }}
               />{" "}
-              Tasks
+              {translate("resources.tasks.name", {
+                smart_count: 2,
+                _: "Tasks",
+              })}
             </TabsTrigger>
-            <TabsTrigger value="details">Details</TabsTrigger>
+            <TabsTrigger value="details">
+              {translate("crm.common.details", { _: "Details" })}
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="notes" className="mt-2">
@@ -143,12 +163,14 @@ const ContactShowContentMobile = () => {
               sort={{ field: "date", order: "DESC" }}
               empty={
                 <div className="flex flex-col items-center justify-center py-8 text-center">
-                  <p className="text-muted-foreground mb-4">No notes yet</p>
+                  <p className="text-muted-foreground mb-4">
+                    {translate("crm.notes.empty", { _: "No notes yet" })}
+                  </p>
                   <Button
                     variant="outline"
                     onClick={() => setNoteCreateOpen(true)}
                   >
-                    Add note
+                    {translate("crm.notes.action.add", { _: "Add note" })}
                   </Button>
                 </div>
               }
@@ -173,21 +195,34 @@ const ContactShowContentMobile = () => {
           <TabsContent value="details" className="mt-4">
             <div className="space-y-6">
               <div>
-                <h3 className="text-lg font-semibold">Personal info</h3>
+                <h3 className="text-lg font-semibold">
+                  {translate("crm.contacts.inputs.personal_info", {
+                    _: "Personal info",
+                  })}
+                </h3>
                 <Separator />
                 <div className="mt-3">
                   <ContactPersonalInfo />
                 </div>
               </div>
               <div>
-                <h3 className="text-lg font-semibold">Background info</h3>
+                <h3 className="text-lg font-semibold">
+                  {translate("crm.contacts.inputs.background_info_short", {
+                    _: "Background info",
+                  })}
+                </h3>
                 <Separator />
                 <div className="mt-3">
                   <ContactBackgroundInfo />
                 </div>
               </div>
               <div>
-                <h3 className="text-lg font-semibold">Tags</h3>
+                <h3 className="text-lg font-semibold">
+                  {translate("resources.tags.name", {
+                    smart_count: 2,
+                    _: "Tags",
+                  })}
+                </h3>
                 <Separator />
                 <div className="mt-3">
                   <TagsListEdit />
@@ -202,6 +237,7 @@ const ContactShowContentMobile = () => {
 };
 
 const ContactShowContent = () => {
+  const translate = useTranslate();
   const { record, isPending } = useShowContext<Contact>();
   if (isPending || !record) return null;
 
@@ -218,7 +254,9 @@ const ContactShowContent = () => {
                 </h5>
                 <div className="inline-flex text-sm text-muted-foreground">
                   {record.title}
-                  {record.title && record.company_id != null && " at "}
+                  {record.title &&
+                    record.company_id != null &&
+                    ` ${translate("crm.common.at", { _: "at" })} `}
                   {record.company_id != null && (
                     <ReferenceField
                       source="company_id"
