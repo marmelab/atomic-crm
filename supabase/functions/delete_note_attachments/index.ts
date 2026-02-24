@@ -15,8 +15,6 @@ type NoteRecord = {
 
 type WebhookPayload = {
   type?: string | null;
-  table?: string | null;
-  schema?: string | null;
   old_record?: NoteRecord | null;
   record?: NoteRecord | null;
 };
@@ -28,15 +26,12 @@ Deno.serve(async (req: Request) => {
 
   const payload = (await req.json()) as WebhookPayload;
   const paths = getPathsToDelete(payload);
-  const noteId = payload.old_record?.id ?? payload.record?.id ?? null;
 
   if (paths.length === 0) {
     return jsonResponse({
       status: "skipped",
       reason: "no_paths_to_delete",
       type: payload.type ?? null,
-      table: payload.table ?? null,
-      noteId,
     });
   }
 
@@ -45,10 +40,8 @@ Deno.serve(async (req: Request) => {
     .remove(paths);
 
   if (error) {
-    console.error("delete_note_attachments.remove_error", {
+    console.error("Failed to delete note attachments", {
       type: payload.type ?? null,
-      table: payload.table ?? null,
-      noteId,
       paths,
       error,
     });
@@ -58,8 +51,6 @@ Deno.serve(async (req: Request) => {
   return jsonResponse({
     status: "ok",
     type: payload.type ?? null,
-    table: payload.table ?? null,
-    noteId,
     deletedPathsCount: paths.length,
   });
 });
