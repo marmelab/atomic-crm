@@ -140,7 +140,7 @@ const DealShowContent = () => {
                 {translate("crm.deals.fields.stage", { _: "Stage" })}
               </span>
               <span className="text-sm">
-                {findDealLabel(dealStages, record.stage)}
+                {findDealLabel(dealStages, record.stage, translate)}
               </span>
             </div>
           </div>

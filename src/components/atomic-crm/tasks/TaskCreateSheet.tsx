@@ -5,6 +5,7 @@ import {
   useGetIdentity,
   useGetOne,
   useNotify,
+  useTranslate,
   useUpdate,
 } from "ra-core";
 import { CreateSheet } from "../misc/CreateSheet";
@@ -23,6 +24,7 @@ export const TaskCreateSheet = ({
   contact_id,
 }: TaskCreateSheetProps) => {
   const { identity } = useGetIdentity();
+  const translate = useTranslate();
 
   const selectContact = contact_id == null;
   const { data: contact } = useGetOne(
@@ -48,7 +50,9 @@ export const TaskCreateSheet = ({
       data: { last_seen: new Date().toISOString() },
       previousData: contact,
     });
-    notify("Task added");
+    notify("crm.tasks.added", {
+      messageArgs: { _: "Task added" },
+    });
     // No redirect, only close the sheet
     onOpenChange(false);
   };
@@ -58,7 +62,11 @@ export const TaskCreateSheet = ({
       resource="tasks"
       title={
         <h1 className="text-xl font-semibold truncate pr-10">
-          {!selectContact ? "Create Task for " : "Create Task"}
+          {!selectContact
+            ? translate("crm.tasks.dialog.create_for", {
+                _: "Create a new task for ",
+              })
+            : translate("crm.tasks.action.create", { _: "Create task" })}
           {!selectContact && (
             <RecordRepresentation record={contact} resource="contacts" />
           )}
@@ -66,7 +74,7 @@ export const TaskCreateSheet = ({
       }
       redirect={false}
       record={{
-        type: "None",
+        type: "none",
         contact_id,
         due_date: new Date().toISOString().slice(0, 10),
         sales_id: identity.id,

@@ -11,6 +11,8 @@ import ImageEditorField from "../misc/ImageEditorField";
 import { isLinkedinUrl } from "../misc/isLinkedInUrl";
 import { useConfigurationContext } from "../root/ConfigurationContext";
 import type { Company, Sale } from "../types";
+import { getTranslatedCompanySectorLabel } from "./getTranslatedCompanySectorLabel";
+import { getTranslatedCompanySizeLabel } from "./getTranslatedCompanySizeLabel";
 import { sizes } from "./sizes";
 
 const isUrl = (url: string) => {
@@ -63,6 +65,7 @@ const CompanyDisplayInputs = () => {
         className="w-full h-fit"
         validate={required()}
         helperText={false}
+        label="crm.companies.fields.name"
         placeholder={translate("crm.companies.fields.name", {
           _: "Company name",
         })}
@@ -78,13 +81,23 @@ const CompanyContactInputs = () => {
       <h6 className="text-lg font-semibold">
         {translate("crm.companies.inputs.contact", { _: "Contact" })}
       </h6>
-      <TextInput source="website" helperText={false} validate={isUrl} />
+      <TextInput
+        source="website"
+        label="crm.companies.fields.website"
+        helperText={false}
+        validate={isUrl}
+      />
       <TextInput
         source="linkedin_url"
+        label="crm.companies.fields.linkedin_url"
         helperText={false}
         validate={isLinkedinUrl}
       />
-      <TextInput source="phone_number" helperText={false} />
+      <TextInput
+        source="phone_number"
+        label="crm.companies.fields.phone_number"
+        helperText={false}
+      />
     </div>
   );
 };
@@ -92,6 +105,14 @@ const CompanyContactInputs = () => {
 const CompanyContextInputs = () => {
   const translate = useTranslate();
   const { companySectors } = useConfigurationContext();
+  const translatedCompanySectors = companySectors.map((sector) => ({
+    ...sector,
+    label: getTranslatedCompanySectorLabel(sector, translate),
+  }));
+  const translatedSizes = sizes.map((size) => ({
+    ...size,
+    name: getTranslatedCompanySizeLabel(size, translate),
+  }));
   return (
     <div className="flex flex-col gap-4">
       <h6 className="text-lg font-semibold">
@@ -99,14 +120,28 @@ const CompanyContextInputs = () => {
       </h6>
       <SelectInput
         source="sector"
-        choices={companySectors}
+        label="crm.companies.fields.sector"
+        choices={translatedCompanySectors}
         optionText="label"
         optionValue="value"
         helperText={false}
       />
-      <SelectInput source="size" choices={sizes} helperText={false} />
-      <TextInput source="revenue" helperText={false} />
-      <TextInput source="tax_identifier" helperText={false} />
+      <SelectInput
+        source="size"
+        label="crm.companies.fields.size"
+        choices={translatedSizes}
+        helperText={false}
+      />
+      <TextInput
+        source="revenue"
+        label="crm.companies.fields.revenue"
+        helperText={false}
+      />
+      <TextInput
+        source="tax_identifier"
+        label="crm.companies.fields.tax_identifier"
+        helperText={false}
+      />
     </div>
   );
 };
@@ -118,11 +153,31 @@ const CompanyAddressInputs = () => {
       <h6 className="text-lg font-semibold">
         {translate("crm.companies.inputs.address", { _: "Address" })}
       </h6>
-      <TextInput source="address" helperText={false} />
-      <TextInput source="city" helperText={false} />
-      <TextInput source="zipcode" helperText={false} />
-      <TextInput source="state_abbr" helperText={false} />
-      <TextInput source="country" helperText={false} />
+      <TextInput
+        source="address"
+        label="crm.companies.fields.address"
+        helperText={false}
+      />
+      <TextInput
+        source="city"
+        label="crm.companies.fields.city"
+        helperText={false}
+      />
+      <TextInput
+        source="zipcode"
+        label="crm.companies.fields.zipcode"
+        helperText={false}
+      />
+      <TextInput
+        source="state_abbr"
+        label="crm.companies.fields.state_abbr"
+        helperText={false}
+      />
+      <TextInput
+        source="country"
+        label="crm.companies.fields.country"
+        helperText={false}
+      />
     </div>
   );
 };
@@ -136,8 +191,17 @@ const CompanyAdditionalInformationInputs = () => {
           _: "Additional information",
         })}
       </h6>
-      <TextInput source="description" multiline helperText={false} />
-      <ArrayInput source="context_links" helperText={false}>
+      <TextInput
+        source="description"
+        label="crm.companies.fields.description"
+        multiline
+        helperText={false}
+      />
+      <ArrayInput
+        source="context_links"
+        label="crm.companies.fields.context_links"
+        helperText={false}
+      >
         <SimpleFormIterator disableReordering fullWidth getItemLabel={false}>
           <TextInput
             source=""

@@ -16,6 +16,8 @@ import { contactGender } from "./contactGender";
 import type { Sale } from "../types";
 import { Avatar } from "./Avatar";
 import { AutocompleteCompanyInput } from "../companies/AutocompleteCompanyInput.tsx";
+import { getTranslatedContactGenderLabel } from "./getTranslatedContactGenderLabel";
+import { getTranslatedPersonalInfoTypeLabel } from "./getTranslatedPersonalInfoTypeLabel";
 
 export const ContactInputs = () => {
   const isMobile = useIsMobile();
@@ -55,12 +57,25 @@ const ContactIdentityInputs = () => {
         source="gender"
         choices={contactGender}
         helperText={false}
-        optionText="label"
+        optionText={(choice) =>
+          getTranslatedContactGenderLabel(choice, translate)
+        }
+        translateChoice={false}
         optionValue="value"
         defaultValue={contactGender[0].value}
       />
-      <TextInput source="first_name" validate={required()} helperText={false} />
-      <TextInput source="last_name" validate={required()} helperText={false} />
+      <TextInput
+        source="first_name"
+        label="crm.contacts.inputs.first_name"
+        validate={required()}
+        helperText={false}
+      />
+      <TextInput
+        source="last_name"
+        label="crm.contacts.inputs.last_name"
+        validate={required()}
+        helperText={false}
+      />
     </div>
   );
 };
@@ -72,9 +87,13 @@ const ContactPositionInputs = () => {
       <h6 className="text-lg font-semibold">
         {translate("crm.contacts.inputs.position", { _: "Position" })}
       </h6>
-      <TextInput source="title" helperText={false} />
+      <TextInput
+        source="title"
+        label="crm.contacts.inputs.title"
+        helperText={false}
+      />
       <ReferenceInput source="company_id" reference="companies" perPage={10}>
-        <AutocompleteCompanyInput />
+        <AutocompleteCompanyInput label="crm.contacts.inputs.company" />
       </ReferenceInput>
     </div>
   );
@@ -83,6 +102,20 @@ const ContactPositionInputs = () => {
 const ContactPersonalInformationInputs = () => {
   const translate = useTranslate();
   const { getValues, setValue } = useFormContext();
+  const personalInfoTypes = [
+    {
+      id: "Work",
+      name: getTranslatedPersonalInfoTypeLabel("Work", translate),
+    },
+    {
+      id: "Home",
+      name: getTranslatedPersonalInfoTypeLabel("Home", translate),
+    },
+    {
+      id: "Other",
+      name: getTranslatedPersonalInfoTypeLabel("Other", translate),
+    },
+  ];
 
   // set first and last name based on email
   const handleEmailChange = (email: string) => {
@@ -140,7 +173,7 @@ const ContactPersonalInformationInputs = () => {
             source="type"
             helperText={false}
             label={false}
-            optionText="id"
+            optionText="name"
             choices={personalInfoTypes}
             defaultValue="Work"
             className="w-24 min-w-24"
@@ -171,7 +204,7 @@ const ContactPersonalInformationInputs = () => {
             source="type"
             helperText={false}
             label={false}
-            optionText="id"
+            optionText="name"
             choices={personalInfoTypes}
             defaultValue="Work"
             className="w-24 min-w-24"
@@ -188,8 +221,6 @@ const ContactPersonalInformationInputs = () => {
   );
 };
 
-const personalInfoTypes = [{ id: "Work" }, { id: "Home" }, { id: "Other" }];
-
 const ContactMiscInputs = () => {
   const translate = useTranslate();
   return (
@@ -203,7 +234,11 @@ const ContactMiscInputs = () => {
         multiline
         helperText={false}
       />
-      <BooleanInput source="has_newsletter" helperText={false} />
+      <BooleanInput
+        source="has_newsletter"
+        label="crm.contacts.inputs.has_newsletter"
+        helperText={false}
+      />
       <ReferenceInput
         reference="sales"
         source="sales_id"

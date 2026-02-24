@@ -40,6 +40,16 @@ export const frenchCrmMessages = {
       loading: "Chargement...",
       me: "Moi",
     },
+    activity: {
+      you: "Vous",
+      added_company: "a ajouté l'entreprise",
+      added_contact: "a ajouté",
+      added_note_about: "a ajouté une note sur",
+      added_note_about_deal: "a ajouté une note sur l'affaire",
+      added_deal: "a ajouté l'affaire",
+      to: "à",
+      load_more: "Charger plus d'activité",
+    },
     companies: {
       empty: {
         description: "Il semble que la liste de vos entreprises soit vide.",
@@ -76,15 +86,51 @@ export const frenchCrmMessages = {
       },
       fields: {
         name: "Nom de l'entreprise",
+        website: "Site web",
+        linkedin_url: "URL LinkedIn",
+        phone_number: "Numéro de téléphone",
         revenue: "Chiffre d'affaires",
         sector: "Secteur",
         size: "Taille",
         tax_identifier: "Identifiant fiscal",
+        address: "Adresse",
+        city: "Ville",
+        zipcode: "Code postal",
+        state_abbr: "État",
+        country: "Pays",
+        description: "Description",
+        context_links: "Liens de contexte",
       },
       filters: {
         only_mine: "Seulement les entreprises que je gère",
         sector: "Secteur",
         size: "Taille",
+      },
+      sectors: {
+        communication_services: "Services de communication",
+        consumer_discretionary: "Consommation discrétionnaire",
+        consumer_staples: "Biens de consommation de base",
+        energy: "Énergie",
+        financials: "Finance",
+        health_care: "Santé",
+        industrials: "Industrie",
+        information_technology: "Technologies de l'information",
+        materials: "Matériaux",
+        real_estate: "Immobilier",
+        utilities: "Services publics",
+      },
+      sizes: {
+        one_employee: "1 employé",
+        two_to_nine_employees: "2-9 employés",
+        ten_to_forty_nine_employees: "10-49 employés",
+        fifty_to_two_hundred_forty_nine_employees: "50-249 employés",
+        two_hundred_fifty_or_more_employees: "250 employés ou plus",
+      },
+      autocomplete: {
+        create_error:
+          "Une erreur s'est produite lors de la création de l'entreprise",
+        create_item: "Créer %{item}",
+        create_label: "Commencez à taper pour créer une nouvelle entreprise",
       },
     },
     contacts: {
@@ -122,16 +168,32 @@ export const frenchCrmMessages = {
       },
       inputs: {
         background_info_short: "Informations générales",
+        first_name: "Prénom",
+        last_name: "Nom",
         email: "E-mail",
         identity: "Identité",
         personal_info: "Informations personnelles",
         phone_number: "Numéro de téléphone",
         position: "Position",
+        title: "Titre",
+        company: "Entreprise",
         email_addresses: "Adresses e-mail",
         phone_numbers: "Numéros de téléphone",
         linkedin_url: "URL LinkedIn",
         background_info:
           "Informations de contexte (bio, comment vous vous êtes rencontrés, etc.)",
+        has_newsletter: "Abonné à la newsletter",
+        subscribed_newsletter: "Abonné à la newsletter",
+        genders: {
+          male: "Il/Lui",
+          female: "Elle",
+          nonbinary: "Iel",
+        },
+        personal_info_types: {
+          work: "Pro",
+          home: "Perso",
+          other: "Autre",
+        },
       },
       list: {
         error_loading: "Erreur lors du chargement des contacts",
@@ -176,11 +238,16 @@ export const frenchCrmMessages = {
       },
     },
     dashboard: {
+      deals_pipeline: "Pipeline des affaires",
+      latest_activity: "Dernière activité",
+      latest_activity_error:
+        "Erreur lors du chargement de la dernière activité",
       stepper: {
         install: "Installer Atomic CRM",
         progress: "%{step}/3 terminé",
         whats_next: "Et ensuite ?",
       },
+      upcoming_tasks: "Tâches à venir",
       welcome: {
         paragraph_1:
           "est un modèle conçu pour vous aider à créer rapidement votre propre CRM.",
@@ -236,6 +303,14 @@ export const frenchCrmMessages = {
       },
       filters: {
         company: "Entreprise",
+      },
+      stages: {
+        opportunity: "Opportunité",
+        proposal_sent: "Proposition envoyée",
+        in_negociation: "En négociation",
+        won: "Gagnée",
+        lost: "Perdue",
+        delayed: "Reportée",
       },
     },
     header: {
@@ -375,7 +450,9 @@ export const frenchCrmMessages = {
       empty_list_hint: "Les tâches ajoutées à vos contacts apparaîtront ici.",
       fields: {
         due: "échéance",
+        due_date: "Date d'échéance",
         description: "Description",
+        type: "Type",
       },
       filters: {
         later: "Plus tard",
@@ -388,6 +465,17 @@ export const frenchCrmMessages = {
       updated: "Tâche mise à jour",
       name: "Tâche |||| Tâches",
       forcedCaseName: "Tâche",
+      types: {
+        none: "Aucun",
+        email: "E-mail",
+        demo: "Démo",
+        lunch: "Déjeuner",
+        meeting: "Réunion",
+        follow_up: "Relance",
+        thank_you: "Remerciement",
+        ship: "Expédition",
+        call: "Appel",
+      },
     },
     theme: {
       dark: "Thème sombre",
@@ -403,8 +491,14 @@ export const frenchCrmMessages = {
     },
     tags: {
       name: "Étiquette |||| Étiquettes",
+      action: {
+        add: "Ajouter une étiquette",
+        create_new: "Créer une nouvelle étiquette",
+      },
       dialog: {
         color: "Couleur",
+        create_title: "Créer une nouvelle étiquette",
+        edit_title: "Modifier l'étiquette",
         name_label: "Nom de l'étiquette",
         name_placeholder: "Saisir le nom de l'étiquette",
       },

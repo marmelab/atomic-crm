@@ -7,6 +7,7 @@ import { required, useTranslate } from "ra-core";
 
 import { contactOptionText } from "../misc/ContactOption";
 import { useConfigurationContext } from "../root/ConfigurationContext";
+import { getTranslatedTaskTypeLabel } from "./getTranslatedTaskTypeLabel";
 
 export const TaskFormContent = ({
   selectContact,
@@ -15,6 +16,10 @@ export const TaskFormContent = ({
 }) => {
   const { taskTypes } = useConfigurationContext();
   const translate = useTranslate();
+  const translatedTaskTypes = taskTypes.map((taskType) => ({
+    ...taskType,
+    label: getTranslatedTaskTypeLabel(taskType, translate),
+  }));
   return (
     <div className="flex flex-col gap-4">
       <TextInput
@@ -38,13 +43,20 @@ export const TaskFormContent = ({
       )}
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <DateInput source="due_date" helperText={false} validate={required()} />
+        <DateInput
+          source="due_date"
+          label="crm.tasks.fields.due_date"
+          helperText={false}
+          validate={required()}
+        />
         <SelectInput
           source="type"
+          label="crm.tasks.fields.type"
           validate={required()}
-          choices={taskTypes}
+          choices={translatedTaskTypes}
           optionText="label"
           optionValue="value"
+          defaultValue="none"
           helperText={false}
         />
       </div>

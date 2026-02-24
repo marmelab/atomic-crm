@@ -13,6 +13,8 @@ import { AsideSection } from "../misc/AsideSection";
 import { useConfigurationContext } from "../root/ConfigurationContext";
 import { SaleName } from "../sales/SaleName";
 import type { Company } from "../types";
+import { getTranslatedCompanySectorLabel } from "./getTranslatedCompanySectorLabel";
+import { getTranslatedCompanySizeLabel } from "./getTranslatedCompanySizeLabel";
 import { sizes } from "./sizes";
 
 interface CompanyAsideProps {
@@ -118,9 +120,14 @@ export const ContextInfo = ({ record }: { record: Company }) => {
     return null;
   }
 
-  const sectorLabel = companySectors.find(
-    (s) => s.value === record.sector,
-  )?.label;
+  const sector = companySectors.find((s) => s.value === record.sector);
+  const sectorLabel = sector
+    ? getTranslatedCompanySectorLabel(sector, translate)
+    : undefined;
+  const translatedSizes = sizes.map((size) => ({
+    ...size,
+    name: getTranslatedCompanySizeLabel(size, translate),
+  }));
 
   return (
     <AsideSection
@@ -135,7 +142,7 @@ export const ContextInfo = ({ record }: { record: Company }) => {
       {record.size && (
         <span>
           {translate("crm.companies.fields.size", { _: "Size" })}:{" "}
-          <SelectField source="size" choices={sizes} />
+          <SelectField source="size" choices={translatedSizes} />
         </span>
       )}
       {record.revenue && (
