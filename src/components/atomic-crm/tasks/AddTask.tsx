@@ -126,16 +126,19 @@ export const AddTask = ({
                 <DialogTitle>
                   {!selectContact
                     ? translate("crm.tasks.dialog.create_for", {
-                        _: "Create a new task for ",
+                        _: "Create task for",
                       })
                     : translate("crm.tasks.dialog.create", {
-                        _: "Create a new task",
+                        _: "Create task",
                       })}
                   {!selectContact && (
-                    <RecordRepresentation
-                      record={contact}
-                      resource="contacts"
-                    />
+                    <>
+                      {" "}
+                      <RecordRepresentation
+                        record={contact}
+                        resource="contacts"
+                      />
+                    </>
                   )}
                 </DialogTitle>
               </DialogHeader>

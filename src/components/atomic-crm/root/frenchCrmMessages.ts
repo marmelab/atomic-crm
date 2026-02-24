@@ -454,8 +454,8 @@ export const frenchCrmMessages = {
       added: "Tâche ajoutée",
       deleted: "Tâche supprimée avec succès",
       dialog: {
-        create: "Créer une nouvelle tâche",
-        create_for: "Créer une nouvelle tâche pour",
+        create: "Créer une tâche",
+        create_for: "Créer une tâche pour",
       },
       empty: "Aucune tâche pour l'instant",
       empty_list_hint: "Les tâches ajoutées à vos contacts apparaîtront ici.",

@@ -449,8 +449,8 @@ export const englishCrmMessages = {
       added: "Task added",
       deleted: "Task deleted successfully",
       dialog: {
-        create: "Create a new task",
-        create_for: "Create a new task for ",
+        create: "Create task",
+        create_for: "Create task for",
       },
       empty: "No tasks yet",
       empty_list_hint: "Tasks added to your contacts will appear here.",
