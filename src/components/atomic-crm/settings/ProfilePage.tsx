@@ -216,13 +216,11 @@ const ProfileForm = ({
               </h2>
               <p className="text-sm text-muted-foreground">
                 {translate("crm.profile.inbound.description_prefix", {
-                  _:
-                    "You can start sending emails to your server's inbound email address, e.g. by adding it to the",
+                  _: "You can start sending emails to your server's inbound email address, e.g. by adding it to the",
                 })}{" "}
                 <b> Cc: </b>{" "}
                 {translate("crm.profile.inbound.description_suffix", {
-                  _:
-                    "field. Atomic CRM will process the emails and add notes to the corresponding contacts.",
+                  _: "field. Atomic CRM will process the emails and add notes to the corresponding contacts.",
                 })}
               </p>
               <CopyPaste />

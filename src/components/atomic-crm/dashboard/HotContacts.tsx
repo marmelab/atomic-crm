@@ -87,8 +87,7 @@ export const HotContacts = () => {
               </p>
               <p className="text-sm">
                 {translate("crm.contacts.hot.empty_change_status", {
-                  _:
-                    'Change the status of a contact by adding a note to that contact and clicking on "show options".',
+                  _: 'Change the status of a contact by adding a note to that contact and clicking on "show options".',
                 })}
               </p>
             </div>

@@ -1,6 +1,11 @@
 import { endOfYesterday, startOfMonth, startOfWeek, subMonths } from "date-fns";
 import { CheckSquare, Clock, Tag, TrendingUp, Users } from "lucide-react";
-import { useGetIdentity, useGetList, useListContext, useTranslate } from "ra-core";
+import {
+  useGetIdentity,
+  useGetList,
+  useListContext,
+  useTranslate,
+} from "ra-core";
 import { ToggleFilterButton } from "@/components/admin/toggle-filter-button";
 import { Badge } from "@/components/ui/badge";
 
@@ -46,7 +51,9 @@ export const ContactListFilter = () => {
         />
         <ToggleFilterButton
           className="w-auto md:w-full justify-between h-10 md:h-8"
-          label={translate("crm.contacts.filters.this_week", { _: "This week" })}
+          label={translate("crm.contacts.filters.this_week", {
+            _: "This week",
+          })}
           value={{
             "last_seen@gte": startOfWeek(new Date()).toISOString(),
             "last_seen@lte": undefined,
