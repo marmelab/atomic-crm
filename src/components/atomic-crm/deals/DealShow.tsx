@@ -8,6 +8,7 @@ import {
   useRecordContext,
   useRedirect,
   useRefresh,
+  useTranslate,
   useUpdate,
 } from "ra-core";
 import { DeleteButton } from "@/components/admin/delete-button";
@@ -49,6 +50,7 @@ export const DealShow = ({ open, id }: { open: boolean; id?: string }) => {
 };
 
 const DealShowContent = () => {
+  const translate = useTranslate();
   const { dealStages, dealCategories } = useConfigurationContext();
   const record = useRecordContext<Deal>();
   if (!record) return null;
@@ -87,23 +89,29 @@ const DealShowContent = () => {
           <div className="flex gap-8 m-4">
             <div className="flex flex-col mr-10">
               <span className="text-xs text-muted-foreground tracking-wide">
-                Expected closing date
+                {translate("crm.deals.fields.expected_closing_date", {
+                  _: "Expected closing date",
+                })}
               </span>
               <div className="flex items-center gap-2">
                 <span className="text-sm">
                   {isValid(new Date(record.expected_closing_date))
                     ? formatISODateString(record.expected_closing_date)
-                    : "Invalid date"}
+                    : translate("crm.common.invalid_date", {
+                        _: "Invalid date",
+                      })}
                 </span>
                 {new Date(record.expected_closing_date) < new Date() ? (
-                  <Badge variant="destructive">Past</Badge>
+                  <Badge variant="destructive">
+                    {translate("crm.common.past", { _: "Past" })}
+                  </Badge>
                 ) : null}
               </div>
             </div>
 
             <div className="flex flex-col mr-10">
               <span className="text-xs text-muted-foreground tracking-wide">
-                Budget
+                {translate("crm.deals.fields.budget", { _: "Budget" })}
               </span>
               <span className="text-sm">
                 {record.amount.toLocaleString("en-US", {
@@ -119,7 +127,7 @@ const DealShowContent = () => {
             {record.category && (
               <div className="flex flex-col mr-10">
                 <span className="text-xs text-muted-foreground tracking-wide">
-                  Category
+                  {translate("crm.deals.fields.category", { _: "Category" })}
                 </span>
                 <span className="text-sm">
                   {dealCategories.find((c) => c.value === record.category)
@@ -130,7 +138,7 @@ const DealShowContent = () => {
 
             <div className="flex flex-col mr-10">
               <span className="text-xs text-muted-foreground tracking-wide">
-                Stage
+                {translate("crm.deals.fields.stage", { _: "Stage" })}
               </span>
               <span className="text-sm">
                 {findDealLabel(dealStages, record.stage)}
@@ -142,7 +150,10 @@ const DealShowContent = () => {
             <div className="m-4">
               <div className="flex flex-col min-h-12 mr-10">
                 <span className="text-xs text-muted-foreground tracking-wide">
-                  Contacts
+                  {translate("resources.contacts.name", {
+                    smart_count: 2,
+                    _: "Contacts",
+                  })}
                 </span>
                 <ReferenceArrayField
                   source="contact_ids"
@@ -157,7 +168,9 @@ const DealShowContent = () => {
           {record.description && (
             <div className="m-4 whitespace-pre-line">
               <span className="text-xs text-muted-foreground tracking-wide">
-                Description
+                {translate("crm.deals.fields.description", {
+                  _: "Description",
+                })}
               </span>
               <p className="text-sm leading-6">{record.description}</p>
             </div>
@@ -180,13 +193,19 @@ const DealShowContent = () => {
   );
 };
 
-const ArchivedTitle = () => (
-  <div className="bg-orange-500 px-6 py-4">
-    <h3 className="text-lg font-bold text-white">Archived Deal</h3>
-  </div>
-);
+const ArchivedTitle = () => {
+  const translate = useTranslate();
+  return (
+    <div className="bg-orange-500 px-6 py-4">
+      <h3 className="text-lg font-bold text-white">
+        {translate("crm.deals.archived.title", { _: "Archived Deal" })}
+      </h3>
+    </div>
+  );
+};
 
 const ArchiveButton = ({ record }: { record: Deal }) => {
+  const translate = useTranslate();
   const [update] = useUpdate();
   const redirect = useRedirect();
   const notify = useNotify();
@@ -202,11 +221,18 @@ const ArchiveButton = ({ record }: { record: Deal }) => {
       {
         onSuccess: () => {
           redirect("list", "deals");
-          notify("Deal archived", { type: "info", undoable: false });
+          notify("crm.deals.archived.success", {
+            type: "info",
+            undoable: false,
+            messageArgs: { _: "Deal archived" },
+          });
           refresh();
         },
         onError: () => {
-          notify("Error: deal not archived", { type: "error" });
+          notify("crm.deals.archived.error", {
+            type: "error",
+            messageArgs: { _: "Error: deal not archived" },
+          });
         },
       },
     );
@@ -220,12 +246,13 @@ const ArchiveButton = ({ record }: { record: Deal }) => {
       className="flex items-center gap-2 h-9"
     >
       <Archive className="w-4 h-4" />
-      Archive
+      {translate("crm.deals.archived.action", { _: "Archive" })}
     </Button>
   );
 };
 
 const UnarchiveButton = ({ record }: { record: Deal }) => {
+  const translate = useTranslate();
   const dataProvider = useDataProvider();
   const redirect = useRedirect();
   const notify = useNotify();
@@ -235,14 +262,18 @@ const UnarchiveButton = ({ record }: { record: Deal }) => {
     mutationFn: () => dataProvider.unarchiveDeal(record),
     onSuccess: () => {
       redirect("list", "deals");
-      notify("Deal unarchived", {
+      notify("crm.deals.unarchived.success", {
         type: "info",
         undoable: false,
+        messageArgs: { _: "Deal unarchived" },
       });
       refresh();
     },
     onError: () => {
-      notify("Error: deal not unarchived", { type: "error" });
+      notify("crm.deals.unarchived.error", {
+        type: "error",
+        messageArgs: { _: "Error: deal not unarchived" },
+      });
     },
   });
 
@@ -258,7 +289,9 @@ const UnarchiveButton = ({ record }: { record: Deal }) => {
       className="flex items-center gap-2 h-9"
     >
       <ArchiveRestore className="w-4 h-4" />
-      Send back to the board
+      {translate("crm.deals.unarchived.action", {
+        _: "Send back to the board",
+      })}
     </Button>
   );
 };
