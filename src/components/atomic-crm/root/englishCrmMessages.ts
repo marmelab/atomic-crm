@@ -538,3 +538,20 @@ export const englishCrmMessages = {
     },
   },
 } as const;
+
+type MessageSchema<T> = {
+  [K in keyof T]: T[K] extends string
+    ? string
+    : T[K] extends Record<string, unknown>
+      ? MessageSchema<T[K]>
+      : never;
+};
+
+type DeepPartial<T> = {
+  [K in keyof T]?: T[K] extends Record<string, unknown>
+    ? DeepPartial<T[K]>
+    : T[K];
+};
+
+export type CrmMessages = MessageSchema<typeof englishCrmMessages>;
+export type PartialCrmMessages = DeepPartial<CrmMessages>;
