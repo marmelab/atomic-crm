@@ -2,19 +2,6 @@ CREATE EXTENSION IF NOT EXISTS pg_net;
 
 DO $migration$
 BEGIN
-  EXECUTE 'DROP TRIGGER IF EXISTS on_contact_notes_changed_delete_note_attachments ON public.contact_notes';
-  EXECUTE 'DROP TRIGGER IF EXISTS on_deal_notes_changed_delete_note_attachments ON public.deal_notes';
-  EXECUTE 'DROP TRIGGER IF EXISTS on_contact_notes_deleted_delete_note_attachments ON public.contact_notes';
-  EXECUTE 'DROP TRIGGER IF EXISTS on_deal_notes_deleted_delete_note_attachments ON public.deal_notes';
-  EXECUTE 'DROP TRIGGER IF EXISTS on_contact_notes_attachments_updated_delete_note_attachments ON public.contact_notes';
-  EXECUTE 'DROP TRIGGER IF EXISTS on_deal_notes_attachments_updated_delete_note_attachments ON public.deal_notes';
-
-  EXECUTE 'DROP FUNCTION IF EXISTS public.cleanup_note_attachments()';
-  EXECUTE 'DROP FUNCTION IF EXISTS public.note_attachments_webhook_url()';
-  -- TODO: remove these legacy drops before merge once the old function names are no longer needed.
-  EXECUTE 'DROP FUNCTION IF EXISTS public.atomic_crm_notify_note_attachment_cleanup()';
-  EXECUTE 'DROP FUNCTION IF EXISTS public.atomic_crm_note_attachments_webhook_url()';
-
   EXECUTE $url_sql$
     CREATE OR REPLACE FUNCTION public.note_attachments_webhook_url()
     RETURNS text
