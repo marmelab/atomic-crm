@@ -1,11 +1,12 @@
 import { Download } from "lucide-react";
-import { useGetOne, useRecordContext } from "ra-core";
+import { useGetOne, useRecordContext, useTranslate } from "ra-core";
 import { Button } from "@/components/ui/button";
 import type { Contact, Company } from "../types";
 import { exportToVCard } from "./exportToVCard";
 
 export const ExportVCardButton = () => {
   const contact = useRecordContext<Contact>();
+  const translate = useTranslate();
 
   // Fetch the company data on mount
   const { data: company } = useGetOne<Company>(
@@ -73,7 +74,9 @@ export const ExportVCardButton = () => {
       className="h-6 cursor-pointer"
     >
       <Download className="w-4 h-4" />
-      Export to vCard
+      {translate("crm.contacts.action.export_vcard", {
+        _: "Export to vCard",
+      })}
     </Button>
   );
 };

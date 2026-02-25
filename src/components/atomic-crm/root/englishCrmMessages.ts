@@ -18,6 +18,7 @@ export const englishCrmMessages = {
     },
     common: {
       activity: "Activity",
+      added: "added",
       ago: "ago",
       by: "By",
       details: "Details",
@@ -26,6 +27,7 @@ export const englishCrmMessages = {
       last_activity: "last activity",
       load_more: "Load more",
       misc: "Misc",
+      on: "on",
       past: "Past",
       read_more: "Read more",
       regarding: "Re:",
@@ -126,6 +128,7 @@ export const englishCrmMessages = {
         add: "Add contact",
         add_first: "Add your first contact",
         edit: "Edit contact",
+        export_vcard: "Export to vCard",
         new: "New Contact",
         show: "Show contact",
       },
@@ -229,9 +232,11 @@ export const englishCrmMessages = {
       },
     },
     dashboard: {
+      deals_chart: "Upcoming Deal Revenue",
       deals_pipeline: "Deals Pipeline",
       latest_activity: "Latest Activity",
       latest_activity_error: "Error loading latest activity",
+      latest_notes: "My Latest Notes",
       stepper: {
         install: "Install Atomic CRM",
         progress: "%{step}/3 done",
@@ -293,6 +298,10 @@ export const englishCrmMessages = {
       },
       filters: {
         company: "Company",
+      },
+      stage: {
+        lost: "Lost",
+        won: "Won",
       },
     },
     header: {
@@ -454,6 +463,10 @@ export const englishCrmMessages = {
         create: "Create task",
         create_for: "Create task for",
       },
+      sheet: {
+        edit: "Edit task",
+        edit_for: "Edit task for",
+      },
       empty: "No tasks yet",
       empty_list_hint: "Tasks added to your contacts will appear here.",
       fields: {
@@ -518,6 +531,10 @@ export const englishCrmMessages = {
       title: "Profile",
       updated: "Your profile has been updated",
       update_error: "An error occurred. Please try again",
+    },
+    validation: {
+      invalid_url: "Must be a valid URL",
+      invalid_linkedin_url: "URL must be from linkedin.com",
     },
   },
 } as const;
