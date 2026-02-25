@@ -32,7 +32,7 @@ export const TaskListFilter = ({
       </p>
       <ResourceContextProvider value="tasks">
         <ListContextProvider value={listContext}>
-          <TasksIterator showContact={showContact == null} />
+          <TasksIterator showContact={showContact} />
         </ListContextProvider>
       </ResourceContextProvider>
       {total > listContext.perPage && (
