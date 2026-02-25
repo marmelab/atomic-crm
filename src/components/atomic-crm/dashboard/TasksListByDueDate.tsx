@@ -116,15 +116,14 @@ export const TasksListByDueDate = ({
         showContact={showContact}
         isMobile={isMobile}
       />
-      {!filterByContact ||
-        (isBeforeFriday && (
-          <TaskListFilter
-            tasks={dueThisWeekTasks}
-            title="This week"
-            showContact={showContact}
-            isMobile={isMobile}
-          />
-        ))}
+      {(!filterByContact || (filterByContact && isBeforeFriday)) && (
+        <TaskListFilter
+          tasks={dueThisWeekTasks}
+          title="This week"
+          showContact={showContact}
+          isMobile={isMobile}
+        />
+      )}
       <TaskListFilter
         tasks={dueLaterTasks}
         title="Later"
