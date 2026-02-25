@@ -1,7 +1,7 @@
 import { ResponsiveBar } from "@nivo/bar";
 import { format, startOfMonth } from "date-fns";
 import { DollarSign } from "lucide-react";
-import { useGetList } from "ra-core";
+import { useGetList, useTranslate } from "ra-core";
 import { memo, useMemo } from "react";
 
 import type { Deal } from "../types";
@@ -21,6 +21,7 @@ const DEFAULT_LOCALE = "en-US";
 const CURRENCY = "USD";
 
 export const DealsChart = memo(() => {
+  const translate = useTranslate();
   const acceptedLanguages = navigator
     ? navigator.languages || [navigator.language]
     : [DEFAULT_LOCALE];
@@ -90,7 +91,9 @@ export const DealsChart = memo(() => {
           <DollarSign className="text-muted-foreground w-6 h-6" />
         </div>
         <h2 className="text-xl font-semibold text-muted-foreground">
-          Upcoming Deal Revenue
+          {translate("crm.dashboard.deals_chart", {
+            _: "Upcoming Deal Revenue",
+          })}
         </h2>
       </div>
       <div className="h-[400px]">
@@ -177,7 +180,7 @@ export const DealsChart = memo(() => {
                 value: 0,
                 lineStyle: { strokeOpacity: 0 },
                 textStyle: { fill: "#2ebca6" },
-                legend: "Won",
+                legend: translate("crm.deals.stage.won", { _: "Won" }),
                 legendPosition: "top-left",
                 legendOrientation: "vertical",
               },
@@ -189,7 +192,7 @@ export const DealsChart = memo(() => {
                   strokeWidth: 1,
                 },
                 textStyle: { fill: "#e25c3b" },
-                legend: "Lost",
+                legend: translate("crm.deals.stage.lost", { _: "Lost" }),
                 legendPosition: "bottom-left",
                 legendOrientation: "vertical",
               },
