@@ -1,3 +1,5 @@
+import type { CrmMessages } from "./englishCrmMessages";
+
 export const frenchCrmMessages = {
   crm: {
     auth: {
@@ -542,4 +544,4 @@ export const frenchCrmMessages = {
       invalid_linkedin_url: "L'URL doit provenir de linkedin.com",
     },
   },
-} as const;
+} satisfies CrmMessages;
