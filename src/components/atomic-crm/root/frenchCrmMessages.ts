@@ -18,6 +18,7 @@ export const frenchCrmMessages = {
     },
     common: {
       activity: "Activité",
+      added: "ajoutée",
       ago: "il y a",
       by: "Par",
       details: "Détails",
@@ -26,6 +27,7 @@ export const frenchCrmMessages = {
       last_activity: "dernière activité",
       load_more: "Charger plus",
       misc: "Divers",
+      on: "sur",
       past: "Passé",
       read_more: "En savoir plus",
       regarding: "Concernant:",
@@ -127,6 +129,7 @@ export const frenchCrmMessages = {
         add: "Ajouter un contact",
         add_first: "Ajoutez votre premier contact",
         edit: "Modifier le contact",
+        export_vcard: "Exporter en vCard",
         new: "Nouveau contact",
         show: "Afficher le contact",
       },
@@ -232,10 +235,12 @@ export const frenchCrmMessages = {
       },
     },
     dashboard: {
+      deals_chart: "Revenus des deals à venir",
       deals_pipeline: "Pipeline des affaires",
       latest_activity: "Dernière activité",
       latest_activity_error:
         "Erreur lors du chargement de la dernière activité",
+      latest_notes: "Mes dernières notes",
       stepper: {
         install: "Installer Atomic CRM",
         progress: "%{step}/3 terminé",
@@ -297,6 +302,10 @@ export const frenchCrmMessages = {
       },
       filters: {
         company: "Entreprise",
+      },
+      stage: {
+        lost: "Perdu",
+        won: "Gagné",
       },
     },
     header: {
@@ -459,6 +468,10 @@ export const frenchCrmMessages = {
         create: "Créer une tâche",
         create_for: "Créer une tâche pour",
       },
+      sheet: {
+        edit: "Modifier la tâche",
+        edit_for: "Modifier la tâche pour",
+      },
       empty: "Aucune tâche pour l'instant",
       empty_list_hint: "Les tâches ajoutées à vos contacts apparaîtront ici.",
       fields: {
@@ -523,6 +536,10 @@ export const frenchCrmMessages = {
       title: "Profil",
       updated: "Votre profil a été mis à jour",
       update_error: "Une erreur s'est produite. Veuillez réessayer",
+    },
+    validation: {
+      invalid_url: "Doit être une URL valide",
+      invalid_linkedin_url: "L'URL doit provenir de linkedin.com",
     },
   },
 } as const;
