@@ -1,8 +1,7 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { AuthMiddleware } from "../_shared/authentication.ts";
 import { supabaseAdmin } from "../_shared/supabaseAdmin.ts";
-
-const ATTACHMENTS_BUCKET = "attachments";
+import { ATTACHMENTS_BUCKET } from "../../../src/components/atomic-crm/providers/commons/attachments.ts";
 
 type NoteAttachment = {
   path?: string | null;
