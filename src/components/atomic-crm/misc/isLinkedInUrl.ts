@@ -6,10 +6,16 @@ export const isLinkedinUrl = (url: string) => {
     // Parse the URL to ensure it is valid
     const parsedUrl = new URL(url);
     if (!parsedUrl.href.match(LINKEDIN_URL_REGEX)) {
-      return "URL must be from linkedin.com";
+      return {
+        message: "crm.validation.invalid_linkedin_url",
+        args: { _: "URL must be from linkedin.com" },
+      };
     }
   } catch {
     // If URL parsing fails, return false
-    return "Must be a valid URL";
+    return {
+      message: "crm.validation.invalid_url",
+      args: { _: "Must be a valid URL" },
+    };
   }
 };
