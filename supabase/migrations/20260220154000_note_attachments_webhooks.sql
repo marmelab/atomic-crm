@@ -1,8 +1,13 @@
+-- Deletes attachment files from storage when note attachments are removed,
+-- either by deleting a note or by updating a note attachments list.
 CREATE EXTENSION IF NOT EXISTS pg_net;
 
 DO $migration$
 BEGIN
   EXECUTE $url_sql$
+    -- SQL triggers cannot read Edge Function env vars directly. Resolve the
+    -- function URL from request context for hosted projects, and keep a local
+    -- fallback for dockerized local development.
     CREATE OR REPLACE FUNCTION public.note_attachments_webhook_url()
     RETURNS text
     LANGUAGE plpgsql
