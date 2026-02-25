@@ -5,11 +5,15 @@
 // Setup type definitions for built-in Supabase Runtime APIs
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { addNoteToContact } from "./addNoteToContact.ts";
-import { detectForwarded } from "./detectForwarded.ts";
+import {
+  stripForwardingHeaderBlock,
+  stripSubjectForwardingPrefix,
+} from "./forwardedParser.ts";
 import { extractMailContactData } from "./extractMailContactData.ts";
 import { getExpectedAuthorization } from "./getExpectedAuthorization.ts";
 import { getNoteContent } from "./getNoteContent.ts";
 import { extractAndUploadAttachments } from "./extractAndUploadAttachments.ts";
+import { supabaseAdmin } from "../_shared/supabaseAdmin.ts";
 
 const webhookUser = Deno.env.get("POSTMARK_WEBHOOK_USER");
 const webhookPassword = Deno.env.get("POSTMARK_WEBHOOK_PASSWORD");
@@ -25,6 +29,10 @@ if (!rawAuthorizedIPs) {
 }
 
 Deno.serve(async (req) => {
+  const allSales = await supabaseAdmin.from("sales").select("email");
+  const salesEmails =
+    allSales.data?.map((s: { email: string }) => s.email) ?? [];
+
   let response: Response | undefined;
 
   response = checkRequestTypeAndHeaders(req);
@@ -34,8 +42,8 @@ Deno.serve(async (req) => {
   response = checkBody(json);
   if (response) return response;
 
-  const { FromFull, Subject, Attachments, Headers } = json;
-  let { ToFull, TextBody } = json;
+  const { FromFull, Attachments } = json;
+  let { ToFull, TextBody, Subject } = json;
 
   const { Email: salesEmail } = FromFull;
   if (!salesEmail) {
@@ -47,34 +55,33 @@ Deno.serve(async (req) => {
     );
   }
 
-  // Detect forwarded emails and reroute the note to the original sender
-  const forwarded = detectForwarded(Subject, TextBody, Headers ?? []);
-  if (forwarded.isForwarded) {
-    if (!forwarded.originalFrom) {
-      // Could not parse the original sender — log and fall through to default
-      // behavior so the email is not silently lost.
-      console.warn(
-        "Detected a forwarded email but could not extract the original sender. " +
-          "Falling back to default contact resolution.",
-        {
-          subject: Subject,
-          textBody: TextBody,
-          headers: Headers,
-        },
-      );
-    } else {
-      // Swap the recipient with the original sender so the note is attached to
-      // the right contact, and trim the note to only the original message body.
+  // This env var is only available inside the served function
+  const INBOUND_EMAIL = process.env.VITE_INBOUND_EMAIL;
+
+  // If the email is sent to the inbound email address, and the sender is a known sales email,
+  // then we can try to extract the real recipient email from the body of the email
+  if (
+    ToFull.length === 1 &&
+    ToFull[0].Email === INBOUND_EMAIL &&
+    salesEmails.includes(FromFull.Email)
+  ) {
+    const emailRegex = /[\w.+%-]+@[\w.-]+\.[a-zA-Z]{2,}/g;
+    const emailsInBody = TextBody.match(emailRegex) || [];
+
+    const candidateEmails = emailsInBody.filter(
+      (email: string) =>
+        email !== INBOUND_EMAIL && !salesEmails?.includes(email),
+    );
+    if (candidateEmails.length > 0) {
       ToFull = [
         {
-          Email: forwarded.originalFrom.email,
-          Name: forwarded.originalFrom.name,
+          Email: candidateEmails[0],
+          Name: "",
         },
       ];
-      if (forwarded.originalBody) {
-        TextBody = forwarded.originalBody;
-      }
     }
+    TextBody = stripForwardingHeaderBlock(TextBody);
+    Subject = stripSubjectForwardingPrefix(Subject);
   }
 
   const noteContent = getNoteContent(Subject, TextBody);
@@ -115,7 +122,9 @@ const checkRequestTypeAndHeaders = (req: Request) => {
     return new Response("Unauthorized", { status: 401 });
   }
   const ips = forwardedFor.split(",").map((ip) => ip.trim());
-  const authorizedIPs = rawAuthorizedIPs.split(",").map((ip) => ip.trim());
+  const authorizedIPs = rawAuthorizedIPs
+    .split(",")
+    .map((ip: string) => ip.trim());
   if (!ips.some((ip) => authorizedIPs.includes(ip))) {
     return new Response("Unauthorized", { status: 401 });
   }
