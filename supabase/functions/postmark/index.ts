@@ -6,7 +6,7 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { addNoteToContact } from "./addNoteToContact.ts";
 import {
-  stripForwardingHeaderBlock,
+  getForwardedMailContent,
   stripSubjectForwardingPrefix,
 } from "./forwardedParser.ts";
 import { extractMailContactData } from "./extractMailContactData.ts";
@@ -80,7 +80,7 @@ Deno.serve(async (req) => {
         },
       ];
     }
-    TextBody = stripForwardingHeaderBlock(TextBody);
+    TextBody = getForwardedMailContent(TextBody);
     Subject = stripSubjectForwardingPrefix(Subject);
   }
 

@@ -39,17 +39,12 @@ export const stripForwardingHeaderBlock = (text: string): string => {
     i++;
   }
 
-  const strippedBody = lines.slice(bodyStartIndex).join("\n").trim();
-
-  if (strippedBody === "") {
-    // If stripping the header block results in an empty body, return the original text
-    console.warn(
-      "Stripping forwarded header block resulted in empty body, returning original text",
-    );
-    return text.trim();
+  // No blank line found after the header → no body to extract
+  if (bodyStartIndex === 0) {
+    return "";
   }
 
-  return strippedBody;
+  return lines.slice(bodyStartIndex).join("\n").trim();
 };
 
 export const stripSubjectForwardingPrefix = (subject: string): string => {
@@ -65,4 +60,24 @@ export const stripSubjectForwardingPrefix = (subject: string): string => {
   }
 
   return result;
+};
+
+export const stripMailSignature = (text: string): string => {
+  const signatureSeparatorIndex = text.indexOf("\n-- \n");
+  if (signatureSeparatorIndex !== -1) {
+    return text.substring(0, signatureSeparatorIndex).trim();
+  }
+  return text.trim();
+};
+
+export const getForwardedMailContent = (body: string): string => {
+  const strippedBody = stripForwardingHeaderBlock(stripMailSignature(body));
+
+  if (strippedBody.length === 0) {
+    console.warn(
+      "Stripping mail signature and forwarded header block resulted in empty note content, returning original body",
+    );
+    return body.trim();
+  }
+  return strippedBody;
 };
