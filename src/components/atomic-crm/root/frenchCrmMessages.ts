@@ -49,7 +49,9 @@ export const frenchCrmMessages = {
       added_company: "a ajouté l'entreprise",
       added_contact: "a ajouté",
       added_note_about: "a ajouté une note sur",
+      added_note_about_self: "avez ajouté une note sur",
       added_note_about_deal: "a ajouté une note sur l'affaire",
+      added_note_about_deal_self: "avez ajouté une note sur l'affaire",
       added_deal: "a ajouté l'affaire",
       to: "à",
       load_more: "Charger plus d'activité",
@@ -136,7 +138,7 @@ export const frenchCrmMessages = {
         show: "Afficher le contact",
       },
       background: {
-        last_activity_on: "Dernière activité sur",
+        last_activity_on: "Dernière activité le",
         added_on: "Ajouté le",
         followed_by: "Suivi par",
       },
@@ -161,7 +163,7 @@ export const frenchCrmMessages = {
         contacts_label: "contact |||| contacts",
       },
       inputs: {
-        background_info_short: "Informations générales",
+        background_info_short: "Informations complémentaires",
         first_name: "Prénom",
         last_name: "Nom",
         email: "E-mail",
@@ -175,7 +177,7 @@ export const frenchCrmMessages = {
         phone_numbers: "Numéros de téléphone",
         linkedin_url: "URL LinkedIn",
         background_info:
-          "Informations de contexte (bio, comment vous vous êtes rencontrés, etc.)",
+          "Informations complémentaires (bio, comment vous vous êtes rencontrés, etc.)",
         has_newsletter: "Abonné à la newsletter",
         subscribed_newsletter: "Abonné à la newsletter",
         genders: {
@@ -263,7 +265,7 @@ export const frenchCrmMessages = {
     deals: {
       action: {
         back_to_deal: "Retour à l'affaire",
-        create: "Créer un deal",
+        create: "Créer une affaire",
         new: "Nouvelle affaire",
       },
       archived: {
@@ -286,7 +288,7 @@ export const frenchCrmMessages = {
       },
       inputs: {
         linked_to: "Lié à",
-        name: "Nom du deal",
+        name: "Nom de l'affaire",
         contacts: "Contacts",
         category: "Catégorie",
       },
@@ -314,7 +316,7 @@ export const frenchCrmMessages = {
       import_data: "Importer des données",
     },
     image_editor: {
-      change: "Changement",
+      change: "Changer",
       drop_hint:
         "Déposez un fichier à télécharger ou cliquez pour le sélectionner.",
       editable_content: "Contenu modifiable",
@@ -422,7 +424,7 @@ export const frenchCrmMessages = {
       deals: {
         categories: "Catégories",
         pipeline_help:
-          "Sélectionnez les étapes de deal qui comptent comme deals de pipeline (terminés).",
+          "Sélectionnez les étapes d'affaire à considérer comme des affaires dans le pipeline.",
         pipeline_statuses: "Statuts des pipelines",
         stages: "Étapes",
       },

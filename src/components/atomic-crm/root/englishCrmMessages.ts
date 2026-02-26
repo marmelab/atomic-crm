@@ -47,7 +47,9 @@ export const englishCrmMessages = {
       added_company: "added company",
       added_contact: "added",
       added_note_about: "added a note about",
+      added_note_about_self: "added a note about",
       added_note_about_deal: "added a note about deal",
+      added_note_about_deal_self: "added a note about deal",
       added_deal: "added deal",
       to: "to",
       load_more: "Load more activity",
@@ -415,7 +417,7 @@ export const englishCrmMessages = {
       deals: {
         categories: "Categories",
         pipeline_help:
-          'Select which deal stages count as "pipeline" (completed) deals.',
+          "Select which deal stages should count as pipeline deals.",
         pipeline_statuses: "Pipeline Statuses",
         stages: "Stages",
       },
