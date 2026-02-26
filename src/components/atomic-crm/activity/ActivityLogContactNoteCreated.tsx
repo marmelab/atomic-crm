@@ -1,4 +1,4 @@
-import { useRecordContext, useTranslate } from "ra-core";
+import { useGetIdentity, useRecordContext, useTranslate } from "ra-core";
 
 import { ReferenceField } from "@/components/admin/reference-field";
 import { TextField } from "@/components/admin/text-field";
@@ -25,7 +25,9 @@ export function ActivityLogContactNoteCreated({
   const context = useActivityLogContext();
   const isMobile = useIsMobile();
   const translate = useTranslate();
+  const { identity } = useGetIdentity();
   const { contactNote } = activity;
+  const isCurrentUser = activity.sales_id === identity?.id;
   const link = isMobile
     ? `/contacts/${contactNote.contact_id}/notes/${contactNote.id}`
     : `/contacts/${contactNote.contact_id}/show`;
@@ -49,9 +51,14 @@ export function ActivityLogContactNoteCreated({
             >
               <SaleName />
             </ReferenceField>{" "}
-            {translate("crm.activity.added_note_about", {
-              _: "added a note about",
-            })}{" "}
+            {translate(
+              isCurrentUser
+                ? "crm.activity.added_note_about_self"
+                : "crm.activity.added_note_about",
+              {
+                _: "added a note about",
+              },
+            )}{" "}
             <ReferenceField
               source="contact_id"
               reference="contacts"
