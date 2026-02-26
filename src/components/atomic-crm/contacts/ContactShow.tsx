@@ -125,7 +125,7 @@ const ContactShowContentMobile = () => {
           <TabsList className="grid w-full grid-cols-3 h-10">
             <TabsTrigger value="notes">Notes</TabsTrigger>
             <TabsTrigger value="tasks">
-              {`${record.nb_tasks ?? 0} Tasks`}
+              {`${record.nb_pending_tasks ?? 0} Tasks`}
             </TabsTrigger>
             <TabsTrigger value="details">Details</TabsTrigger>
           </TabsList>
