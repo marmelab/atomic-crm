@@ -32,6 +32,7 @@ export const TaskFormContent = ({
             optionText={contactOptionText}
             helperText={false}
             validate={required()}
+            modal
           />
         </ReferenceInput>
       )}
