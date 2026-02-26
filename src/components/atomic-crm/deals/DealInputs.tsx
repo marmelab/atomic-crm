@@ -83,6 +83,7 @@ const DealMiscInputs = () => {
       />
       <NumberInput
         source="amount"
+        label="crm.deals.fields.budget"
         defaultValue={0}
         helperText={false}
         validate={required()}
@@ -90,11 +91,13 @@ const DealMiscInputs = () => {
       <DateInput
         validate={required()}
         source="expected_closing_date"
+        label="crm.deals.fields.expected_closing_date"
         helperText={false}
         defaultValue={new Date().toISOString().split("T")[0]}
       />
       <SelectInput
         source="stage"
+        label="crm.deals.fields.stage"
         choices={dealStages}
         optionText="label"
         optionValue="value"
