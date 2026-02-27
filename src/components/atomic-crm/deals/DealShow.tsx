@@ -89,7 +89,7 @@ const DealShowContent = () => {
           <div className="flex gap-8 m-4">
             <div className="flex flex-col mr-10">
               <span className="text-xs text-muted-foreground tracking-wide">
-                {translate("crm.deals.fields.expected_closing_date", {
+                {translate("resources.deals.fields.expected_closing_date", {
                   _: "Expected closing date",
                 })}
               </span>
@@ -111,7 +111,7 @@ const DealShowContent = () => {
 
             <div className="flex flex-col mr-10">
               <span className="text-xs text-muted-foreground tracking-wide">
-                {translate("crm.deals.fields.budget", { _: "Budget" })}
+                {translate("resources.deals.fields.amount", { _: "Budget" })}
               </span>
               <span className="text-sm">
                 {record.amount.toLocaleString("en-US", {
@@ -127,7 +127,9 @@ const DealShowContent = () => {
             {record.category && (
               <div className="flex flex-col mr-10">
                 <span className="text-xs text-muted-foreground tracking-wide">
-                  {translate("crm.deals.fields.category", { _: "Category" })}
+                  {translate("resources.deals.fields.category", {
+                    _: "Category",
+                  })}
                 </span>
                 <span className="text-sm">
                   {dealCategories.find((c) => c.value === record.category)
@@ -138,7 +140,7 @@ const DealShowContent = () => {
 
             <div className="flex flex-col mr-10">
               <span className="text-xs text-muted-foreground tracking-wide">
-                {translate("crm.deals.fields.stage", { _: "Stage" })}
+                {translate("resources.deals.fields.stage", { _: "Stage" })}
               </span>
               <span className="text-sm">
                 {findDealLabel(dealStages, record.stage, translate)}
@@ -150,7 +152,7 @@ const DealShowContent = () => {
             <div className="m-4">
               <div className="flex flex-col min-h-12 mr-10">
                 <span className="text-xs text-muted-foreground tracking-wide">
-                  {translate("crm.contacts.name", {
+                  {translate("resources.deals.fields.contact_ids", {
                     smart_count: 2,
                     _: "Contacts",
                   })}
@@ -168,7 +170,7 @@ const DealShowContent = () => {
           {record.description && (
             <div className="m-4 whitespace-pre-line">
               <span className="text-xs text-muted-foreground tracking-wide">
-                {translate("crm.deals.fields.description", {
+                {translate("resources.deals.fields.description", {
                   _: "Description",
                 })}
               </span>
