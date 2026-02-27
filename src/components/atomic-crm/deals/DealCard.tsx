@@ -48,34 +48,34 @@ export const DealCardContent = ({
       onClick={handleClick}
     >
       <Card
-        className={`py-3 transition-all duration-200 ${
+        className={`py-4 transition-all duration-200 ${
           snapshot?.isDragging
             ? "opacity-90 transform rotate-1 shadow-lg"
             : "shadow-sm hover:shadow-md"
         }`}
       >
-        <CardContent className="px-3 flex flex-col">
-          <div className="flex-1 flex">
-            <p className="flex-1 text-sm font-medium mb-2">{deal.name}</p>
-            <ReferenceField
-              source="company_id"
-              record={deal}
-              reference="companies"
-              link={false}
-            >
-              <CompanyAvatar width={20} height={20} />
-            </ReferenceField>
+        <CardContent className="px-4 flex">
+          <ReferenceField
+            source="company_id"
+            record={deal}
+            reference="companies"
+            link={false}
+          >
+            <CompanyAvatar width={20} height={20} />
+          </ReferenceField>
+          <div className="ml-3">
+            <p className="text-sm font-medium mb-2">{deal.name}</p>
+            <p className="text-xs text-muted-foreground">
+              {deal.amount.toLocaleString("en-US", {
+                notation: "compact",
+                style: "currency",
+                currency: "USD",
+                currencyDisplay: "narrowSymbol",
+                minimumSignificantDigits: 3,
+              })}
+              {categoryLabel ? `, ${categoryLabel}` : ""}
+            </p>
           </div>
-          <p className="text-xs text-muted-foreground">
-            {deal.amount.toLocaleString("en-US", {
-              notation: "compact",
-              style: "currency",
-              currency: "USD",
-              currencyDisplay: "narrowSymbol",
-              minimumSignificantDigits: 3,
-            })}
-            {categoryLabel ? `, ${categoryLabel}` : ""}
-          </p>
         </CardContent>
       </Card>
     </div>
