@@ -89,7 +89,7 @@ The `i18nProvider` defines:
 - the list of available locales (`availableLocales`)
 - how messages are resolved for each locale
 
-The language switcher appears in the user menu (desktop and mobile) when more than one locale is configured.
+The language switcher appears in the Profile page when more than one locale is configured.
 
 ### Configure Active Languages
 
@@ -105,7 +105,7 @@ Edit `src/components/atomic-crm/root/i18nProvider.tsx` and update:
 2. Merge it with existing base messages in `i18nProvider.tsx`.
 3. Register the locale in `availableLocales`.
 4. Add app-specific keys (for example in a `crm.*` namespace) when needed.
-5. Start the app, switch locale from the user menu, and verify fallback behavior.
+5. Start the app, switch locale from the Profile page, and verify fallback behavior.
 
 ### Type-Check Message Catalogs
 
