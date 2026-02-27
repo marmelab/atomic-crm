@@ -161,7 +161,6 @@ async function selectRegion() {
 }
 
 async function waitForProjectToBeReady({ projectRef }) {
-  console.log("Waiting for project to be ready...");
   const { stdout } = await execa(
     "npx",
     ["supabase", "projects", "list", "--output", "json"],
@@ -171,8 +170,9 @@ async function waitForProjectToBeReady({ projectRef }) {
   );
 
   try {
-    // The response is an Array of objects
-    const matchJSON = stdout.match(new RegExp("\\[.*\\]", "s"));
+    // The response is an Array of objects or null if there are no projects
+    const matchJSON =
+      stdout === null ? "[]" : stdout.match(new RegExp("\\[.*\\]", "s"));
     if (!matchJSON) {
       throw new Error("Invalid JSON output");
     }
