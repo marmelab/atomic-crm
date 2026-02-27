@@ -3,7 +3,6 @@ import { RecordRepresentation, ShowBase, useShowContext } from "ra-core";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { ReferenceField } from "@/components/admin/reference-field";
 import { ReferenceManyField } from "@/components/admin/reference-many-field";
-import { ReferenceManyCount } from "@/components/admin/reference-many-count";
 import { TextField } from "@/components/admin/text-field";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
@@ -126,12 +125,7 @@ const ContactShowContentMobile = () => {
           <TabsList className="grid w-full grid-cols-3 h-10">
             <TabsTrigger value="notes">Notes</TabsTrigger>
             <TabsTrigger value="tasks">
-              <ReferenceManyCount
-                target="contact_id"
-                reference="tasks"
-                filter={{ "done_date@is": null }}
-              />{" "}
-              Tasks
+              {`${record.nb_pending_tasks ?? 0} Tasks`}
             </TabsTrigger>
             <TabsTrigger value="details">Details</TabsTrigger>
           </TabsList>
@@ -159,6 +153,8 @@ const ContactShowContentMobile = () => {
                   onError: () => {
                     /** override to hide notification as error case is handled by NotesIteratorMobile */
                   },
+                  // We want infinite pagination so we need to disable placeHolder data to avoid flicker duplicating previous page before showing the new one
+                  placeholderData: null,
                 } as any // fixme: remove once https://github.com/marmelab/react-admin/pull/11166 is released
               }
             >
@@ -249,6 +245,12 @@ const ContactShowContent = () => {
               empty={
                 <NoteCreate reference="contacts" showStatus className="mt-4" />
               }
+              queryOptions={{
+                // We want infinite pagination so we need to disable placeHolder data to avoid flicker duplicating previous page before showing the new one
+                // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                //@ts-expect-error
+                placeholderData: null,
+              }}
             >
               <NotesIterator reference="contacts" showStatus />
             </ReferenceManyField>

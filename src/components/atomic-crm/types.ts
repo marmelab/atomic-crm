@@ -99,6 +99,7 @@ export type Contact = {
   background: string;
   phone_jsonb: PhoneNumberAndType[];
   nb_tasks?: number;
+  nb_pending_tasks?: number;
   company_name?: string;
 } & Pick<RaRecord, "id">;
 

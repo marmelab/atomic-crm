@@ -1,54 +1,29 @@
-import {
-  type Identifier,
-  ListContextProvider,
-  ResourceContextProvider,
-  useGetIdentity,
-  useGetList,
-  useList,
-} from "ra-core";
+import { ListContextProvider, ResourceContextProvider, useList } from "ra-core";
 
 import { TasksIterator } from "../tasks/TasksIterator";
-import { useIsMobile } from "@/hooks/use-mobile";
 
-export const TasksListFilter = ({
-  title,
-  filter,
-  filterByContact,
-}: {
+type TaskListProps = {
+  tasks: any[];
   title: string;
-  filter: any;
-  filterByContact?: Identifier;
-}) => {
-  const { identity } = useGetIdentity();
-  const isMobile = useIsMobile();
+  showContact?: boolean;
+  isMobile: boolean;
+};
 
-  const {
-    data: tasks,
-    total,
-    isPending,
-  } = useGetList(
-    "tasks",
-    {
-      pagination: { page: 1, perPage: 100 },
-      sort: { field: "due_date", order: "ASC" },
-      filter: {
-        ...filter,
-        ...(filterByContact != null
-          ? { contact_id: filterByContact }
-          : { sales_id: identity?.id }),
-      },
-    },
-    { enabled: filterByContact != null ? true : !!identity },
-  );
-
+export const TaskListFilter = ({
+  tasks,
+  title,
+  showContact,
+  isMobile,
+}: TaskListProps) => {
   const listContext = useList({
     data: tasks,
-    isPending,
     resource: "tasks",
     perPage: isMobile ? 10 : 5,
   });
 
-  if (isPending || !tasks || !total) return null;
+  const { total } = listContext;
+
+  if (!tasks?.length || !total) return null;
 
   return (
     <div className="flex flex-col gap-2">
@@ -57,7 +32,7 @@ export const TasksListFilter = ({
       </p>
       <ResourceContextProvider value="tasks">
         <ListContextProvider value={listContext}>
-          <TasksIterator showContact={filterByContact == null} />
+          <TasksIterator showContact={showContact} />
         </ListContextProvider>
       </ResourceContextProvider>
       {total > listContext.perPage && (

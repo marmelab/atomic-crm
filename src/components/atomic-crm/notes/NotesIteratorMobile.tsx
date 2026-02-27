@@ -1,5 +1,5 @@
 import type { Identifier } from "ra-core";
-import { useListContext, useTimeout, WithRecord } from "ra-core";
+import { InfinitePaginationContext, useTimeout, WithRecord } from "ra-core";
 import { Link } from "react-router";
 import { ReferenceField } from "@/components/admin/reference-field";
 import { Button } from "@/components/ui/button";
@@ -11,6 +11,8 @@ import { RelativeDate } from "../misc/RelativeDate";
 import { Status } from "../misc/Status";
 import { SaleName } from "../sales/SaleName";
 import type { ContactNote } from "../types";
+import { InfinitePagination } from "../misc/InfinitePagination";
+import { useAddInfinitePagination } from "./useAddInfinitePagination";
 
 export const NotesIteratorMobile = ({
   contactId,
@@ -19,7 +21,9 @@ export const NotesIteratorMobile = ({
   contactId: Identifier;
   showStatus?: boolean;
 }) => {
-  const { data, error, isPending, refetch } = useListContext();
+  const { data, error, isPending, infinitePaginationContextValue, refetch } =
+    useAddInfinitePagination();
+
   const oneSecondHasPassed = useTimeout(1000);
   if (isPending) {
     if (!oneSecondHasPassed) {
@@ -39,7 +43,7 @@ export const NotesIteratorMobile = ({
       </div>
     );
   }
-  if (error && !data) {
+  if (error && !data?.length) {
     return (
       <div className="p-4">
         <div className="text-center text-muted-foreground mb-4">
@@ -60,16 +64,19 @@ export const NotesIteratorMobile = ({
   }
 
   return (
-    <div className="divide-y">
-      {data?.map((note) => (
-        <NoteMobile
-          key={note.id}
-          note={note}
-          contactId={contactId}
-          showStatus={showStatus}
-        />
-      ))}
-    </div>
+    <InfinitePaginationContext.Provider value={infinitePaginationContextValue}>
+      <div className="divide-y">
+        {data?.map((note) => (
+          <NoteMobile
+            key={note.id}
+            note={note}
+            contactId={contactId}
+            showStatus={showStatus}
+          />
+        ))}
+      </div>
+      <InfinitePagination />
+    </InfinitePaginationContext.Provider>
   );
 };
 
