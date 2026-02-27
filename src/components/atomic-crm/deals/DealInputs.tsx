@@ -31,12 +31,7 @@ export const DealInputs = () => {
 const DealInfoInputs = () => {
   return (
     <div className="flex flex-col gap-4 flex-1">
-      <TextInput
-        source="name"
-        label="crm.deals.inputs.name"
-        validate={required()}
-        helperText={false}
-      />
+      <TextInput source="name" validate={required()} helperText={false} />
       <TextInput source="description" multiline rows={3} helperText={false} />
     </div>
   );
@@ -50,12 +45,15 @@ const DealLinkedToInputs = () => {
         {translate("crm.deals.inputs.linked_to", { _: "Linked to" })}
       </h3>
       <ReferenceInput source="company_id" reference="companies">
-        <AutocompleteCompanyInput validate={required()} />
+        <AutocompleteCompanyInput
+          label="resources.deals.fields.company_id"
+          validate={required()}
+        />
       </ReferenceInput>
 
       <ReferenceArrayInput source="contact_ids" reference="contacts_summary">
         <AutocompleteArrayInput
-          label="crm.deals.inputs.contacts"
+          label="resources.deals.fields.contact_ids"
           optionText={contactOptionText}
           helperText={false}
         />
@@ -75,7 +73,6 @@ const DealMiscInputs = () => {
 
       <SelectInput
         source="category"
-        label="crm.deals.inputs.category"
         choices={dealCategories}
         optionText="label"
         optionValue="value"
@@ -83,7 +80,6 @@ const DealMiscInputs = () => {
       />
       <NumberInput
         source="amount"
-        label="crm.deals.fields.budget"
         defaultValue={0}
         helperText={false}
         validate={required()}
@@ -91,13 +87,11 @@ const DealMiscInputs = () => {
       <DateInput
         validate={required()}
         source="expected_closing_date"
-        label="crm.deals.fields.expected_closing_date"
         helperText={false}
         defaultValue={new Date().toISOString().split("T")[0]}
       />
       <SelectInput
         source="stage"
-        label="crm.deals.fields.stage"
         choices={dealStages}
         optionText="label"
         optionValue="value"

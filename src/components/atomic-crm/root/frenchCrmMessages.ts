@@ -1,6 +1,21 @@
 import type { CrmMessages } from "./englishCrmMessages";
 
 export const frenchCrmMessages = {
+  resources: {
+    deals: {
+      name: "Affaire |||| Affaires",
+      fields: {
+        name: "Nom",
+        description: "Description",
+        company_id: "Entreprise",
+        contact_ids: "Contacts",
+        category: "Catégorie",
+        amount: "Budget",
+        expected_closing_date: "Date de clôture prévue",
+        stage: "Étape",
+      }
+    }
+  },
   crm: {
     auth: {
       confirmation_required:
@@ -93,7 +108,7 @@ export const frenchCrmMessages = {
       fields: {
         name: "Nom de l'entreprise",
         website: "Site web",
-        linkedin_url: "URL LinkedIn",
+        linkedin_url: "LinkedIn",
         phone_number: "Numéro de téléphone",
         created_at: "Date de création",
         nb_contacts: "Nombre de contacts",
@@ -107,7 +122,7 @@ export const frenchCrmMessages = {
         state_abbr: "État",
         country: "Pays",
         description: "Description",
-        context_links: "Liens de contexte",
+        context_links: "URLs de contexte",
       },
       filters: {
         only_mine: "Seulement les entreprises que je gère",
@@ -170,20 +185,20 @@ export const frenchCrmMessages = {
         identity: "Identité",
         personal_info: "Informations personnelles",
         phone_number: "Numéro de téléphone",
-        position: "Position",
+        position: "Poste",
         title: "Titre",
         company: "Entreprise",
         email_addresses: "Adresses e-mail",
         phone_numbers: "Numéros de téléphone",
         linkedin_url: "URL LinkedIn",
         background_info:
-          "Informations complémentaires (bio, comment vous vous êtes rencontrés, etc.)",
+          "(bio, comment vous vous êtes rencontrés, etc.)",
         has_newsletter: "Abonné à la newsletter",
         subscribed_newsletter: "Abonné à la newsletter",
         genders: {
-          male: "Il/Lui",
-          female: "Elle",
-          nonbinary: "Iel",
+          male: "Monsieur",
+          female: "Madame",
+          nonbinary: "Indéterminé",
         },
         personal_info_types: {
           work: "Pro",
@@ -239,7 +254,7 @@ export const frenchCrmMessages = {
       },
     },
     dashboard: {
-      deals_chart: "Revenus des deals à venir",
+      deals_chart: "Revenus des affaires à venir",
       deals_pipeline: "Pipeline des affaires",
       latest_activity: "Dernière activité",
       latest_activity_error:
@@ -279,18 +294,8 @@ export const frenchCrmMessages = {
       edit: {
         title: "Modifier l'affaire %{name}",
       },
-      fields: {
-        budget: "Budget",
-        category: "Catégorie",
-        expected_closing_date: "Date de clôture prévue",
-        stage: "Étape",
-        description: "Description",
-      },
       inputs: {
         linked_to: "Lié à",
-        name: "Nom de l'affaire",
-        contacts: "Contacts",
-        category: "Catégorie",
       },
       unarchived: {
         action: "Renvoyer au tableau",
