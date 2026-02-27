@@ -6,8 +6,8 @@ DO $migration$
 BEGIN
   EXECUTE $url_sql$
     -- SQL triggers cannot read Edge Function env vars directly. Resolve the
-    -- function URL from request context for hosted projects, and keep a local
-    -- fallback for dockerized local development.
+    -- function URL from request context first, then fallback to project_ref
+    -- for hosted projects, and host.docker.internal for local Docker.
     CREATE OR REPLACE FUNCTION public.note_attachments_webhook_url()
     RETURNS text
     LANGUAGE plpgsql
@@ -17,7 +17,16 @@ BEGIN
       project_ref text;
       function_url text;
     BEGIN
-      issuer := nullif(current_setting('request.jwt.claim.iss', true), '');
+      issuer := coalesce(
+        nullif(current_setting('request.jwt.claim.iss', true), ''),
+        (
+          coalesce(
+            nullif(current_setting('request.jwt.claims', true), ''),
+            '{}'
+          )::jsonb ->> 'iss'
+        )
+      );
+      issuer := nullif(issuer, '');
 
       IF issuer IS NOT NULL THEN
         issuer := rtrim(issuer, '/');
@@ -67,22 +76,12 @@ BEGIN
     AS $function$
     DECLARE
       payload jsonb;
-      request_headers jsonb;
-      auth_header text;
+      webhook_secret text;
     BEGIN
-      request_headers := coalesce(
-        nullif(current_setting('request.headers', true), '')::jsonb,
-        '{}'::jsonb
+      webhook_secret := coalesce(
+        nullif(current_setting('app.settings.attachments_webhook_secret', true), ''),
+        'atomic-crm-note-attachments-webhook-secret'
       );
-      auth_header := request_headers ->> 'authorization';
-
-      IF auth_header IS NULL OR auth_header = '' THEN
-        IF TG_OP = 'DELETE' THEN
-          RETURN OLD;
-        END IF;
-
-        RETURN NEW;
-      END IF;
 
       payload := jsonb_build_object(
         'old_record', OLD,
@@ -97,8 +96,8 @@ BEGIN
         headers := jsonb_build_object(
           'Content-Type',
           'application/json',
-          'Authorization',
-          auth_header
+          'X-Webhook-Secret',
+          webhook_secret
         ),
         timeout_milliseconds := 10000
       );
