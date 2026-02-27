@@ -135,7 +135,7 @@ export const englishCrmMessages = {
         show: "Show contact",
       },
       background: {
-        last_activity_on: "Last activity on",
+        last_activity_on: "Last activity on %{date}",
         added_on: "Added on",
         followed_by: "Followed by",
       },
