@@ -33,7 +33,7 @@ const OptionsField = (_props: { label?: string | boolean }) => {
           variant="outline"
           className="border-blue-300 dark:border-blue-700"
         >
-          {translate("crm.sales.fields.admin", { _: "Admin" })}
+          {translate("resources.sales.fields.administrator", { _: "Admin" })}
         </Badge>
       )}
       {record.disabled && (
@@ -41,7 +41,7 @@ const OptionsField = (_props: { label?: string | boolean }) => {
           variant="outline"
           className="border-orange-300 dark:border-orange-700"
         >
-          {translate("crm.sales.fields.disabled", { _: "Disabled" })}
+          {translate("resources.sales.fields.disabled", { _: "Disabled" })}
         </Badge>
       )}
     </div>
@@ -60,10 +60,13 @@ export function SalesList() {
       <DataTable>
         <DataTable.Col
           source="first_name"
-          label="crm.sales.fields.first_name"
+          label="resources.sales.fields.first_name"
         />
-        <DataTable.Col source="last_name" label="crm.sales.fields.last_name" />
-        <DataTable.Col source="email" label="crm.sales.fields.email" />
+        <DataTable.Col
+          source="last_name"
+          label="resources.sales.fields.last_name"
+        />
+        <DataTable.Col source="email" label="resources.sales.fields.email" />
         <DataTable.Col label={false}>
           <OptionsField />
         </DataTable.Col>

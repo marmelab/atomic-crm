@@ -123,7 +123,8 @@ export const Task = ({
               {task.text}
             </div>
             <div className="text-sm text-muted-foreground">
-              {translate("crm.tasks.fields.due", { _: "due" })}&nbsp;
+              {translate("resources.tasks.fields.due_short", { _: "due" })}
+              &nbsp;
               <DateField source="due_date" record={task} />
               {showContact && (
                 <ReferenceField<TData, Contact>

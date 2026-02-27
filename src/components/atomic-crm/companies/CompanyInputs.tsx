@@ -67,8 +67,8 @@ const CompanyDisplayInputs = () => {
         className="w-full h-fit"
         validate={required()}
         helperText={false}
-        label="crm.companies.fields.name"
-        placeholder={translate("crm.companies.fields.name", {
+        label="resources.companies.fields.name"
+        placeholder={translate("resources.companies.fields.name", {
           _: "Company name",
         })}
       />
@@ -85,19 +85,19 @@ const CompanyContactInputs = () => {
       </h6>
       <TextInput
         source="website"
-        label="crm.companies.fields.website"
+        label="resources.companies.fields.website"
         helperText={false}
         validate={isUrl}
       />
       <TextInput
         source="linkedin_url"
-        label="crm.companies.fields.linkedin_url"
+        label="resources.companies.fields.linkedin_url"
         helperText={false}
         validate={isLinkedinUrl}
       />
       <TextInput
         source="phone_number"
-        label="crm.companies.fields.phone_number"
+        label="resources.companies.fields.phone_number"
         helperText={false}
       />
     </div>
@@ -118,7 +118,7 @@ const CompanyContextInputs = () => {
       </h6>
       <SelectInput
         source="sector"
-        label="crm.companies.fields.sector"
+        label="resources.companies.fields.sector"
         choices={companySectors}
         optionText="label"
         optionValue="value"
@@ -126,18 +126,18 @@ const CompanyContextInputs = () => {
       />
       <SelectInput
         source="size"
-        label="crm.companies.fields.size"
+        label="resources.companies.fields.size"
         choices={translatedSizes}
         helperText={false}
       />
       <TextInput
         source="revenue"
-        label="crm.companies.fields.revenue"
+        label="resources.companies.fields.revenue"
         helperText={false}
       />
       <TextInput
         source="tax_identifier"
-        label="crm.companies.fields.tax_identifier"
+        label="resources.companies.fields.tax_identifier"
         helperText={false}
       />
     </div>
@@ -153,27 +153,27 @@ const CompanyAddressInputs = () => {
       </h6>
       <TextInput
         source="address"
-        label="crm.companies.fields.address"
+        label="resources.companies.fields.address"
         helperText={false}
       />
       <TextInput
         source="city"
-        label="crm.companies.fields.city"
+        label="resources.companies.fields.city"
         helperText={false}
       />
       <TextInput
         source="zipcode"
-        label="crm.companies.fields.zipcode"
+        label="resources.companies.fields.zipcode"
         helperText={false}
       />
       <TextInput
         source="state_abbr"
-        label="crm.companies.fields.state_abbr"
+        label="resources.companies.fields.state_abbr"
         helperText={false}
       />
       <TextInput
         source="country"
-        label="crm.companies.fields.country"
+        label="resources.companies.fields.country"
         helperText={false}
       />
     </div>
@@ -191,13 +191,13 @@ const CompanyAdditionalInformationInputs = () => {
       </h6>
       <TextInput
         source="description"
-        label="crm.companies.fields.description"
+        label="resources.companies.fields.description"
         multiline
         helperText={false}
       />
       <ArrayInput
         source="context_links"
-        label="crm.companies.fields.context_links"
+        label="resources.companies.fields.context_links"
         helperText={false}
       >
         <SimpleFormIterator disableReordering fullWidth getItemLabel={false}>
@@ -228,7 +228,7 @@ const CompanyAccountManagerInput = () => {
         }}
       >
         <SelectInput
-          label="crm.common.account_manager"
+          label="resources.companies.fields.sales_id"
           helperText={false}
           optionText={saleOptionRenderer}
         />

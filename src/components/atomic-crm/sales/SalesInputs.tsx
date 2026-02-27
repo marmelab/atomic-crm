@@ -11,31 +11,31 @@ export function SalesInputs() {
     <div className="space-y-4 w-full">
       <TextInput
         source="first_name"
-        label="crm.sales.fields.first_name"
+        label="resources.sales.fields.first_name"
         validate={required()}
         helperText={false}
       />
       <TextInput
         source="last_name"
-        label="crm.sales.fields.last_name"
+        label="resources.sales.fields.last_name"
         validate={required()}
         helperText={false}
       />
       <TextInput
         source="email"
-        label="crm.sales.fields.email"
+        label="resources.sales.fields.email"
         validate={[required(), email()]}
         helperText={false}
       />
       <BooleanInput
         source="administrator"
-        label="crm.sales.fields.admin"
+        label="resources.sales.fields.administrator"
         readOnly={record?.id === identity?.id}
         helperText={false}
       />
       <BooleanInput
         source="disabled"
-        label="crm.sales.fields.disabled"
+        label="resources.sales.fields.disabled"
         readOnly={record?.id === identity?.id}
         helperText={false}
       />

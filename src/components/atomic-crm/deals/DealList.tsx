@@ -36,7 +36,9 @@ const DealList = () => {
     </ReferenceInput>,
     <SelectInput
       source="category"
-      emptyText={translate("crm.deals.inputs.category", { _: "Category" })}
+      emptyText={translate("resources.deals.fields.category", {
+        _: "Category",
+      })}
       choices={dealCategories}
       optionText="label"
       optionValue="value"

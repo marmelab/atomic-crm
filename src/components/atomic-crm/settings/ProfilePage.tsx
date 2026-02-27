@@ -285,7 +285,7 @@ const TextRender = ({
   source: string;
   isEditMode: boolean;
 }) => {
-  const label = `crm.sales.fields.${source}`;
+  const label = `resources.sales.fields.${source}`;
   if (isEditMode) {
     return <TextInput source={source} label={label} helperText={false} />;
   }

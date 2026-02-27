@@ -66,13 +66,13 @@ const ContactIdentityInputs = () => {
       />
       <TextInput
         source="first_name"
-        label="crm.contacts.inputs.first_name"
+        label="resources.contacts.fields.first_name"
         validate={required()}
         helperText={false}
       />
       <TextInput
         source="last_name"
-        label="crm.contacts.inputs.last_name"
+        label="resources.contacts.fields.last_name"
         validate={required()}
         helperText={false}
       />
@@ -89,11 +89,11 @@ const ContactPositionInputs = () => {
       </h6>
       <TextInput
         source="title"
-        label="crm.contacts.inputs.title"
+        label="resources.contacts.fields.title"
         helperText={false}
       />
       <ReferenceInput source="company_id" reference="companies" perPage={10}>
-        <AutocompleteCompanyInput label="crm.contacts.inputs.company" />
+        <AutocompleteCompanyInput label="resources.contacts.fields.company_id" />
       </ReferenceInput>
     </div>
   );
@@ -150,7 +150,7 @@ const ContactPersonalInformationInputs = () => {
       </h6>
       <ArrayInput
         source="email_jsonb"
-        label="crm.contacts.inputs.email_addresses"
+        label="resources.contacts.fields.email_jsonb"
         helperText={false}
       >
         <SimpleFormIterator
@@ -164,7 +164,9 @@ const ContactPersonalInformationInputs = () => {
             className="w-full"
             helperText={false}
             label={false}
-            placeholder={translate("crm.contacts.inputs.email", { _: "Email" })}
+            placeholder={translate("resources.contacts.fields.email", {
+              _: "Email",
+            })}
             validate={email()}
             onPaste={handleEmailPaste}
             onBlur={handleEmailBlur}
@@ -182,7 +184,7 @@ const ContactPersonalInformationInputs = () => {
       </ArrayInput>
       <ArrayInput
         source="phone_jsonb"
-        label="crm.contacts.inputs.phone_numbers"
+        label="resources.contacts.fields.phone_jsonb"
         helperText={false}
       >
         <SimpleFormIterator
@@ -196,7 +198,7 @@ const ContactPersonalInformationInputs = () => {
             className="w-full"
             helperText={false}
             label={false}
-            placeholder={translate("crm.contacts.inputs.phone_number", {
+            placeholder={translate("resources.contacts.fields.phone_number", {
               _: "Phone number",
             })}
           />
@@ -213,7 +215,7 @@ const ContactPersonalInformationInputs = () => {
       </ArrayInput>
       <TextInput
         source="linkedin_url"
-        label="crm.contacts.inputs.linkedin_url"
+        label="resources.contacts.fields.linkedin_url"
         helperText={false}
         validate={isLinkedinUrl}
       />
@@ -230,13 +232,13 @@ const ContactMiscInputs = () => {
       </h6>
       <TextInput
         source="background"
-        label="crm.contacts.inputs.background_info"
+        label="resources.contacts.fields.background"
         multiline
         helperText={false}
       />
       <BooleanInput
         source="has_newsletter"
-        label="crm.contacts.inputs.has_newsletter"
+        label="resources.contacts.fields.has_newsletter"
         helperText={false}
       />
       <ReferenceInput
@@ -249,7 +251,7 @@ const ContactMiscInputs = () => {
       >
         <SelectInput
           helperText={false}
-          label="crm.common.account_manager"
+          label="resources.contacts.fields.sales_id"
           optionText={saleOptionRenderer}
           validate={required()}
         />
