@@ -5,13 +5,7 @@ import { endOfWeek } from "date-fns/endOfWeek";
 
 import { getDay } from "date-fns";
 
-const today = new Date();
-const todayDayOfWeek = getDay(today);
-export const isBeforeFriday = todayDayOfWeek < 5; // Friday is represented by 5
-export const startOfTodayDate = startOfToday();
-export const endOfTodayDate = endOfToday();
-export const endOfTomorrowDate = endOfTomorrow();
-export const endOfWeekDate = endOfWeek(today, { weekStartsOn: 0 });
+export const isBeforeFriday = () => getDay(new Date()) < 5; // Friday is represented by 5
 
 type Task = {
   due_date: string;
@@ -21,25 +15,28 @@ type Task = {
 export const isDone = (task: Task) => task.done_date != null;
 
 export const isOverdue = (dateString: string) => {
-  return new Date(dateString) < startOfTodayDate;
+  return new Date(dateString) < startOfToday();
 };
 
 export const isDueToday = (dateString: string) => {
   const dueDate = new Date(dateString);
-  return dueDate >= startOfTodayDate && dueDate < endOfTodayDate;
+  return dueDate >= startOfToday() && dueDate < endOfToday();
 };
 
 export const isDueTomorrow = (dateString: string) => {
   const dueDate = new Date(dateString);
-  return dueDate >= endOfTodayDate && dueDate < endOfTomorrowDate;
+  return dueDate >= endOfToday() && dueDate < endOfTomorrow();
 };
 
 export const isDueThisWeek = (dateString: string) => {
   const dueDate = new Date(dateString);
-  return dueDate >= endOfTomorrowDate && dueDate < endOfWeekDate;
+  return (
+    dueDate >= endOfTomorrow() &&
+    dueDate < endOfWeek(new Date(), { weekStartsOn: 0 })
+  );
 };
 
 export const isDueLater = (dateString: string) => {
   const dueDate = new Date(dateString);
-  return dueDate >= endOfWeekDate;
+  return dueDate >= endOfWeek(new Date(), { weekStartsOn: 0 });
 };
