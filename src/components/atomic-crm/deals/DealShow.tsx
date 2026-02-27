@@ -47,6 +47,20 @@ export const DealShow = ({ open, id }: { open: boolean; id?: string }) => {
   );
 };
 
+const isoDateStringRegex = /^\d{4}-\d{2}-\d{2}$/;
+
+export function formatISODateString(dateString: string) {
+  if (!isoDateStringRegex.test(dateString)) {
+    throw new Error("Invalid date format. Expected YYYY-MM-DD.");
+  }
+  // Some browsers Will consider a date in the format YYYY-MM-DD as UTC, which can cause off-by-one-day issues depending on the user's timezone.
+  // To avoid this, we can parse the date components manually and create a date object in the local timezone.
+  const [year, month, day] = dateString.split("-").map(Number);
+  const date = new Date(year, month - 1, day);
+
+  return format(date, "PP");
+}
+
 const DealShowContent = () => {
   const { dealStages, dealCategories } = useConfigurationContext();
   const record = useRecordContext<Deal>();
@@ -91,7 +105,7 @@ const DealShowContent = () => {
               <div className="flex items-center gap-2">
                 <span className="text-sm">
                   {isValid(new Date(record.expected_closing_date))
-                    ? format(new Date(record.expected_closing_date), "PP")
+                    ? formatISODateString(record.expected_closing_date)
                     : "Invalid date"}
                 </span>
                 {new Date(record.expected_closing_date) < new Date() ? (
