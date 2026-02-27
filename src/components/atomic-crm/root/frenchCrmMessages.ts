@@ -2,6 +2,47 @@ import type { CrmMessages } from "./englishCrmMessages";
 
 export const frenchCrmMessages = {
   resources: {
+    companies: {
+      name: "Entreprise |||| Entreprises",
+      fields: {
+        name: "Nom de l'entreprise",
+        website: "Site web",
+        linkedin_url: "LinkedIn",
+        phone_number: "Numéro de téléphone",
+        created_at: "Date de création",
+        nb_contacts: "Nombre de contacts",
+        revenue: "Chiffre d'affaires",
+        sector: "Secteur",
+        size: "Taille",
+        tax_identifier: "Identifiant fiscal",
+        address: "Adresse",
+        city: "Ville",
+        zipcode: "Code postal",
+        state_abbr: "État",
+        country: "Pays",
+        description: "Description",
+        context_links: "URLs de contexte",
+        sales_id: "Responsable de compte",
+      },
+    },
+    contacts: {
+      name: "Contact |||| Contacts",
+      fields: {
+        first_name: "Prénom",
+        last_name: "Nom",
+        last_seen: "Dernière activité",
+        title: "Titre",
+        company_id: "Entreprise",
+        email_jsonb: "Adresses e-mail",
+        email: "E-mail",
+        phone_jsonb: "Numéros de téléphone",
+        phone_number: "Numéro de téléphone",
+        linkedin_url: "URL LinkedIn",
+        background: "Informations de contexte",
+        has_newsletter: "Abonné à la newsletter",
+        sales_id: "Responsable de compte",
+      },
+    },
     deals: {
       name: "Affaire |||| Affaires",
       fields: {
@@ -13,8 +54,38 @@ export const frenchCrmMessages = {
         amount: "Budget",
         expected_closing_date: "Date de clôture prévue",
         stage: "Étape",
-      }
-    }
+      },
+    },
+    notes: {
+      name: "Note |||| Notes",
+      fields: {
+        status: "Statut",
+        date: "Date",
+        attachments: "Pièces jointes",
+        contact_id: "Contact",
+        deal_id: "Affaire",
+      },
+    },
+    sales: {
+      name: "Utilisateur |||| Utilisateurs",
+      fields: {
+        first_name: "Prénom",
+        last_name: "Nom",
+        email: "E-mail",
+        administrator: "Admin",
+        disabled: "Désactivé",
+      },
+    },
+    tasks: {
+      name: "Tâche |||| Tâches",
+      fields: {
+        text: "Description",
+        due_date: "Date d'échéance",
+        type: "Type",
+        contact_id: "Contact",
+        due_short: "échéance",
+      },
+    },
   },
   crm: {
     auth: {
@@ -191,8 +262,7 @@ export const frenchCrmMessages = {
         email_addresses: "Adresses e-mail",
         phone_numbers: "Numéros de téléphone",
         linkedin_url: "URL LinkedIn",
-        background_info:
-          "(bio, comment vous vous êtes rencontrés, etc.)",
+        background_info: "(bio, comment vous vous êtes rencontrés, etc.)",
         has_newsletter: "Abonné à la newsletter",
         subscribed_newsletter: "Abonné à la newsletter",
         genders: {

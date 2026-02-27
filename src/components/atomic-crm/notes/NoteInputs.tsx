@@ -53,10 +53,10 @@ export const NoteInputs = ({
           <AutocompleteInput
             label={
               reference === "contacts"
-                ? translate("crm.notes.inputs.reference_contact", {
+                ? translate("resources.notes.fields.contact_id", {
                     _: "Contact",
                   })
-                : translate("crm.notes.inputs.reference_deal", {
+                : translate("resources.notes.fields.deal_id", {
                     _: "Deal",
                   })
             }
@@ -104,7 +104,7 @@ export const NoteInputs = ({
           {showStatus && (
             <SelectInput
               source="status"
-              label="crm.notes.inputs.status"
+              label="resources.notes.fields.status"
               choices={noteStatuses.map((status) => ({
                 id: status.value,
                 name: status.label,
@@ -117,7 +117,7 @@ export const NoteInputs = ({
           )}
           <DateTimeInput
             source="date"
-            label="crm.notes.inputs.date"
+            label="resources.notes.fields.date"
             helperText={false}
             className="text-primary"
             defaultValue={getCurrentDate()}
@@ -125,7 +125,7 @@ export const NoteInputs = ({
         </div>
         <FileInput
           source="attachments"
-          label="crm.notes.inputs.attachments"
+          label="resources.notes.fields.attachments"
           multiple
         >
           <AttachmentField source="src" title="title" target="_blank" />
