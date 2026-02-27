@@ -1,7 +1,8 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
-import { AuthMiddleware } from "../_shared/authentication.ts";
 import { supabaseAdmin } from "../_shared/supabaseAdmin.ts";
 import { ATTACHMENTS_BUCKET } from "../../../src/components/atomic-crm/providers/commons/attachments.ts";
+
+const DEFAULT_WEBHOOK_SECRET = "atomic-crm-note-attachments-webhook-secret";
 
 type NoteAttachment = {
   path?: string | null;
@@ -31,7 +32,6 @@ const deleteNoteAttachments = async (req: Request) => {
     return jsonResponse({
       status: "skipped",
       reason: "no_paths_to_delete",
-      type: payload.type ?? null,
     });
   }
 
@@ -50,14 +50,28 @@ const deleteNoteAttachments = async (req: Request) => {
 
   return jsonResponse({
     status: "ok",
-    type: payload.type ?? null,
-    deletedPathsCount: paths.length,
   });
 };
 
-Deno.serve(async (req: Request) =>
-  AuthMiddleware(req, async (req: Request) => deleteNoteAttachments(req)),
-);
+Deno.serve(async (req: Request) => {
+  if (!isWebhookRequestAuthenticated(req)) {
+    return jsonResponse({ error: "Unauthorized" }, 401);
+  }
+
+  return deleteNoteAttachments(req);
+});
+
+const isWebhookRequestAuthenticated = (req: Request) => {
+  const providedSecret = req.headers.get("x-webhook-secret");
+  if (!providedSecret) {
+    return false;
+  }
+
+  const expectedSecret =
+    Deno.env.get("ATTACHMENTS_WEBHOOK_SECRET") ?? DEFAULT_WEBHOOK_SECRET;
+
+  return providedSecret === expectedSecret;
+};
 
 const getPathsToDelete = (payload: WebhookPayload): string[] => {
   const oldPaths = extractAttachmentPaths(payload.old_record?.attachments);
@@ -91,7 +105,7 @@ const extractAttachmentPath = (attachment?: NoteAttachment | null) => {
   }
 
   if (attachment.path) {
-    return attachment.path;
+    return normalizeStoragePath(attachment.path);
   }
 
   if (!attachment.src) {
@@ -110,7 +124,7 @@ const extractAttachmentPath = (attachment?: NoteAttachment | null) => {
   }
 
   const path = pathname.slice(bucketIndex + bucketSegment.length);
-  return path.length > 0 ? safelyDecodePath(path) : null;
+  return normalizeStoragePath(path);
 };
 
 const getPathname = (value: string) => {
@@ -127,6 +141,29 @@ const safelyDecodePath = (path: string) => {
   } catch {
     return path;
   }
+};
+
+const normalizeStoragePath = (path: string) => {
+  const trimmedPath = path.trim();
+  if (trimmedPath.length === 0) {
+    return null;
+  }
+
+  const parsedPath = getPathname(trimmedPath);
+  const candidatePath = parsedPath ?? trimmedPath;
+
+  const bucketSegment = `/${ATTACHMENTS_BUCKET}/`;
+  const bucketIndex = candidatePath.lastIndexOf(bucketSegment);
+  const withoutBucket =
+    bucketIndex >= 0
+      ? candidatePath.slice(bucketIndex + bucketSegment.length)
+      : candidatePath.replace(/^\/+/, "").replace(/^attachments\//, "");
+
+  if (withoutBucket.length === 0) {
+    return null;
+  }
+
+  return safelyDecodePath(withoutBucket);
 };
 
 const jsonResponse = (data: unknown, status = 200) =>
