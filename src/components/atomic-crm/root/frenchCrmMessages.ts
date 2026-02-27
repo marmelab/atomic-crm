@@ -138,7 +138,7 @@ export const frenchCrmMessages = {
         show: "Afficher le contact",
       },
       background: {
-        last_activity_on: "Dernière activité le",
+        last_activity_on: "Dernière activité le %{date}",
         added_on: "Ajouté le",
         followed_by: "Suivi par",
       },
