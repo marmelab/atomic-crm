@@ -1,3 +1,5 @@
+import { format } from "date-fns";
+
 export function getRelativeTimeString(dateString: string): string {
   const date = new Date(dateString);
   date.setHours(0, 0, 0, 0);
@@ -23,4 +25,18 @@ export function getRelativeTimeString(dateString: string): string {
 
 function ucFirst(str: string): string {
   return str.charAt(0).toUpperCase() + str.slice(1);
+}
+
+const isoDateStringRegex = /^\d{4}-\d{2}-\d{2}$/;
+
+export function formatISODateString(dateString: string) {
+  if (!isoDateStringRegex.test(dateString)) {
+    throw new Error("Invalid date format. Expected YYYY-MM-DD.");
+  }
+  // Some browsers Will consider a date in the format YYYY-MM-DD as UTC, which can cause off-by-one-day issues depending on the user's timezone.
+  // To avoid this, we can parse the date components manually and create a date object in the local timezone.
+  const [year, month, day] = dateString.split("-").map(Number);
+  const date = new Date(year, month - 1, day);
+
+  return format(date, "PP");
 }
