@@ -1,5 +1,5 @@
 import { useMutation } from "@tanstack/react-query";
-import { format, isValid } from "date-fns";
+import { isValid } from "date-fns";
 import { Archive, ArchiveRestore } from "lucide-react";
 import {
   ShowBase,
@@ -27,6 +27,7 @@ import { useConfigurationContext } from "../root/ConfigurationContext";
 import type { Deal } from "../types";
 import { ContactList } from "./ContactList";
 import { findDealLabel } from "./deal";
+import { formatISODateString } from "./dealUtils";
 
 export const DealShow = ({ open, id }: { open: boolean; id?: string }) => {
   const redirect = useRedirect();
@@ -46,20 +47,6 @@ export const DealShow = ({ open, id }: { open: boolean; id?: string }) => {
     </Dialog>
   );
 };
-
-const isoDateStringRegex = /^\d{4}-\d{2}-\d{2}$/;
-
-export function formatISODateString(dateString: string) {
-  if (!isoDateStringRegex.test(dateString)) {
-    throw new Error("Invalid date format. Expected YYYY-MM-DD.");
-  }
-  // Some browsers Will consider a date in the format YYYY-MM-DD as UTC, which can cause off-by-one-day issues depending on the user's timezone.
-  // To avoid this, we can parse the date components manually and create a date object in the local timezone.
-  const [year, month, day] = dateString.split("-").map(Number);
-  const date = new Date(year, month - 1, day);
-
-  return format(date, "PP");
-}
 
 const DealShowContent = () => {
   const { dealStages, dealCategories } = useConfigurationContext();
