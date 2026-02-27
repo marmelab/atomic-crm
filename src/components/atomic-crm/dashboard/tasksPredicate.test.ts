@@ -1,19 +1,30 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import {
   isOverdue,
   isDueToday,
   isDueTomorrow,
   isDueThisWeek,
   isDueLater,
-  endOfTodayDate,
-  endOfTomorrowDate,
-  endOfWeekDate,
-  startOfTodayDate,
 } from "./tasksPredicate";
-
-const today = new Date();
+import { startOfToday } from "date-fns/startOfToday";
+import { endOfToday } from "date-fns/endOfToday";
+import { endOfTomorrow } from "date-fns/endOfTomorrow";
+import { endOfWeek } from "date-fns/endOfWeek";
 
 describe("tasksPredicate", () => {
+  // Fixed TUesday: 2026-02-25
+  const WEDNESDAY = new Date("2026-02-24T12:00:00Z");
+  let today: Date;
+
+  beforeEach(() => {
+    vi.setSystemTime(WEDNESDAY);
+
+    today = new Date();
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+  });
   it("isOverdue returns true for date in the past", () => {
     const overdue = new Date(
       today.getTime() - 24 * 60 * 60 * 1000,
@@ -95,24 +106,24 @@ describe("tasksPredicate", () => {
 
   it("isDueLater returns false for due_date before the end of the week", () => {
     const thisWeek = new Date(
-      today.getTime() + 3 * 24 * 60 * 60 * 1000,
+      today.getTime() + 2 * 24 * 60 * 60 * 1000,
     ).toISOString();
     expect(isDueLater(thisWeek)).toBe(false);
   });
 
   describe("boundaries", () => {
     it("should consider date equal to start of today as due today only", () => {
-      const startOfToday = startOfTodayDate.toISOString();
-      expect(isOverdue(startOfToday)).toBe(false);
-      expect(isDueToday(startOfToday)).toBe(true);
-      expect(isDueTomorrow(startOfToday)).toBe(false);
-      expect(isDueThisWeek(startOfToday)).toBe(false);
-      expect(isDueLater(startOfToday)).toBe(false);
+      const startOfTodayDate = startOfToday().toISOString();
+      expect(isOverdue(startOfTodayDate)).toBe(false);
+      expect(isDueToday(startOfTodayDate)).toBe(true);
+      expect(isDueTomorrow(startOfTodayDate)).toBe(false);
+      expect(isDueThisWeek(startOfTodayDate)).toBe(false);
+      expect(isDueLater(startOfTodayDate)).toBe(false);
     });
 
     it("should consider date equal to start of today minus 1 ms as overdue only", () => {
       const justBeforeStartOfToday = new Date(
-        startOfTodayDate.getTime() - 1,
+        startOfToday().getTime() - 1,
       ).toISOString();
       expect(isOverdue(justBeforeStartOfToday)).toBe(true);
       expect(isDueToday(justBeforeStartOfToday)).toBe(false);
@@ -122,17 +133,17 @@ describe("tasksPredicate", () => {
     });
 
     it("should consider date equal to end of today as due tomorrow only", () => {
-      const endOfToday = endOfTodayDate.toISOString();
-      expect(isOverdue(endOfToday)).toBe(false);
-      expect(isDueToday(endOfToday)).toBe(false);
-      expect(isDueTomorrow(endOfToday)).toBe(true);
-      expect(isDueThisWeek(endOfToday)).toBe(false);
-      expect(isDueLater(endOfToday)).toBe(false);
+      const endOfTodayDate = endOfToday().toISOString();
+      expect(isOverdue(endOfTodayDate)).toBe(false);
+      expect(isDueToday(endOfTodayDate)).toBe(false);
+      expect(isDueTomorrow(endOfTodayDate)).toBe(true);
+      expect(isDueThisWeek(endOfTodayDate)).toBe(false);
+      expect(isDueLater(endOfTodayDate)).toBe(false);
     });
 
     it("should consider date equal to end of today minus 1 ms as due today only", () => {
       const justBeforeEndOfToday = new Date(
-        endOfTodayDate.getTime() - 1,
+        endOfToday().getTime() - 1,
       ).toISOString();
       expect(isOverdue(justBeforeEndOfToday)).toBe(false);
       expect(isDueToday(justBeforeEndOfToday)).toBe(true);
@@ -142,17 +153,17 @@ describe("tasksPredicate", () => {
     });
 
     it("should consider date equal to end of tomorrow as due this week only", () => {
-      const endOfTomorrow = endOfTomorrowDate.toISOString();
-      expect(isOverdue(endOfTomorrow)).toBe(false);
-      expect(isDueToday(endOfTomorrow)).toBe(false);
-      expect(isDueTomorrow(endOfTomorrow)).toBe(false);
-      expect(isDueThisWeek(endOfTomorrow)).toBe(true);
-      expect(isDueLater(endOfTomorrow)).toBe(false);
+      const endOfTomorrowDate = endOfTomorrow().toISOString();
+      expect(isOverdue(endOfTomorrowDate)).toBe(false);
+      expect(isDueToday(endOfTomorrowDate)).toBe(false);
+      expect(isDueTomorrow(endOfTomorrowDate)).toBe(false);
+      expect(isDueThisWeek(endOfTomorrowDate)).toBe(true);
+      expect(isDueLater(endOfTomorrowDate)).toBe(false);
     });
 
     it("should consider date equal to end of tomorrow minus 1 ms as due tomorrow only", () => {
       const justBeforeEndOfTomorrow = new Date(
-        endOfTomorrowDate.getTime() - 1,
+        endOfTomorrow().getTime() - 1,
       ).toISOString();
       expect(isOverdue(justBeforeEndOfTomorrow)).toBe(false);
       expect(isDueToday(justBeforeEndOfTomorrow)).toBe(false);
@@ -162,17 +173,19 @@ describe("tasksPredicate", () => {
     });
 
     it("should consider date equal to end of week as due later only", () => {
-      const endOfWeek = new Date(endOfWeekDate).toISOString();
-      expect(isOverdue(endOfWeek)).toBe(false);
-      expect(isDueToday(endOfWeek)).toBe(false);
-      expect(isDueTomorrow(endOfWeek)).toBe(false);
-      expect(isDueThisWeek(endOfWeek)).toBe(false);
-      expect(isDueLater(endOfWeek)).toBe(true);
+      const endOfWeekDate = endOfWeek(new Date(), {
+        weekStartsOn: 0,
+      }).toISOString();
+      expect(isOverdue(endOfWeekDate)).toBe(false);
+      expect(isDueToday(endOfWeekDate)).toBe(false);
+      expect(isDueTomorrow(endOfWeekDate)).toBe(false);
+      expect(isDueThisWeek(endOfWeekDate)).toBe(false);
+      expect(isDueLater(endOfWeekDate)).toBe(true);
     });
 
     it("should consider date equal to end of week minus 1 ms as due this week only", () => {
       const justBeforeEndOfWeek = new Date(
-        endOfWeekDate.getTime() - 1,
+        endOfWeek(new Date(), { weekStartsOn: 0 }).getTime() - 1,
       ).toISOString();
       expect(isOverdue(justBeforeEndOfWeek)).toBe(false);
       expect(isDueToday(justBeforeEndOfWeek)).toBe(false);
@@ -183,7 +196,7 @@ describe("tasksPredicate", () => {
 
     it("should consider date equal to two days from now as due this week only if today is before Friday", () => {
       const twoDaysFromNow = new Date(
-        today.getTime() + 2 * 24 * 60 * 60 * 1000,
+        new Date().getTime() + 2 * 24 * 60 * 60 * 1000,
       ).toISOString();
       expect(isOverdue(twoDaysFromNow)).toBe(false);
       expect(isDueToday(twoDaysFromNow)).toBe(false);
