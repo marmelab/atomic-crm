@@ -1,19 +1,10 @@
-import { Check, Import, Settings, User, Users } from "lucide-react";
-import {
-  CanAccess,
-  useLocaleState,
-  useLocales,
-  useTranslate,
-  useUserMenu,
-} from "ra-core";
+import { Import, Settings, User, Users } from "lucide-react";
+import { CanAccess, useTranslate, useUserMenu } from "ra-core";
 import { Link, matchPath, useLocation } from "react-router";
 import { RefreshButton } from "@/components/admin/refresh-button";
 import { ThemeModeToggle } from "@/components/admin/theme-mode-toggle";
 import { UserMenu } from "@/components/admin/user-menu";
-import {
-  DropdownMenuItem,
-  DropdownMenuLabel,
-} from "@/components/ui/dropdown-menu";
+import { DropdownMenuItem } from "@/components/ui/dropdown-menu";
 
 import { useConfigurationContext } from "../root/ConfigurationContext";
 import { ImportPage } from "../misc/ImportPage";
@@ -96,7 +87,6 @@ const Header = () => {
                 <RefreshButton />
                 <UserMenu>
                   <ProfileMenu />
-                  <LanguageMenu />
                   <CanAccess resource="sales" action="list">
                     <UsersMenu />
                   </CanAccess>
@@ -164,41 +154,6 @@ const ProfileMenu = () => {
         {translate("crm.profile.title", { _: "Profile" })}
       </Link>
     </DropdownMenuItem>
-  );
-};
-
-const LanguageMenu = () => {
-  const translate = useTranslate();
-  const languages = useLocales();
-  const [locale, setLocale] = useLocaleState();
-  const userMenuContext = useUserMenu();
-  if (!userMenuContext) {
-    throw new Error("<LanguageMenu> must be used inside <UserMenu>");
-  }
-  if (languages.length <= 1) {
-    return null;
-  }
-  const changeLocale = (nextLocale: string) => () => {
-    setLocale(nextLocale);
-    userMenuContext.onClose();
-  };
-
-  return (
-    <>
-      <DropdownMenuLabel>
-        {translate("crm.language", { _: "Language" })}
-      </DropdownMenuLabel>
-      {languages.map((language) => (
-        <DropdownMenuItem
-          key={language.locale}
-          className="cursor-pointer"
-          onSelect={changeLocale(language.locale)}
-        >
-          {language.name}
-          {locale === language.locale ? <Check className="ml-auto" /> : null}
-        </DropdownMenuItem>
-      ))}
-    </>
   );
 };
 

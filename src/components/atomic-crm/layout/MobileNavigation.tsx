@@ -11,7 +11,6 @@ import {
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { cn } from "@/lib/utils";
 import {
-  Check,
   Home,
   ListTodo,
   LogOut,
@@ -20,14 +19,13 @@ import {
   Settings,
   Smartphone,
   Sun,
+  User,
   Users,
 } from "lucide-react";
 import {
   Translate,
   useAuthProvider,
   useGetIdentity,
-  useLocaleState,
-  useLocales,
   useLogout,
   useTranslate,
 } from "ra-core";
@@ -202,8 +200,6 @@ const CreateButton = () => {
 
 const SettingsButton = () => {
   const translate = useTranslate();
-  const languages = useLocales();
-  const [locale, setLocale] = useLocaleState();
   const authProvider = useAuthProvider();
   const { data: identity } = useGetIdentity();
   const logout = useLogout();
@@ -230,27 +226,17 @@ const SettingsButton = () => {
           </div>
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
+        <DropdownMenuItem
+          asChild
+          className="cursor-pointer h-12 px-4 text-base"
+        >
+          <Link to="/profile" className="flex items-center gap-2">
+            <User />
+            {translate("crm.profile.title", { _: "Profile" })}
+          </Link>
+        </DropdownMenuItem>
+        <DropdownMenuSeparator />
         <ThemeMenu />
-        {languages.length > 1 && (
-          <>
-            <DropdownMenuSeparator />
-            <DropdownMenuLabel className="text-xs text-muted-foreground uppercase">
-              {translate("crm.language", { _: "Language" })}
-            </DropdownMenuLabel>
-            {languages.map((language) => (
-              <DropdownMenuItem
-                key={language.locale}
-                className="cursor-pointer h-12 px-4 text-base"
-                onSelect={() => setLocale(language.locale)}
-              >
-                {language.name}
-                {locale === language.locale ? (
-                  <Check className="ml-auto" />
-                ) : null}
-              </DropdownMenuItem>
-            ))}
-          </>
-        )}
         <DropdownMenuSeparator />
         <DropdownMenuItem
           onClick={() => logout()}

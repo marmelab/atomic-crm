@@ -5,6 +5,8 @@ import {
   useDataProvider,
   useGetIdentity,
   useGetOne,
+  useLocaleState,
+  useLocales,
   useNotify,
   useRecordContext,
   useTranslate,
@@ -182,6 +184,7 @@ const ProfileForm = ({
             <TextRender source="first_name" isEditMode={isEditMode} />
             <TextRender source="last_name" isEditMode={isEditMode} />
             <TextRender source="email" isEditMode={isEditMode} />
+            <LanguageSelector />
           </div>
 
           <div className="flex flex-row justify-end gap-2">
@@ -241,6 +244,36 @@ const ProfileForm = ({
           </CardContent>
         </Card>
       )}
+    </div>
+  );
+};
+
+const LanguageSelector = () => {
+  const translate = useTranslate();
+  const locales = useLocales();
+  const [locale, setLocale] = useLocaleState();
+
+  if (locales.length <= 1) {
+    return null;
+  }
+
+  return (
+    <div className="space-y-2">
+      <p className="text-sm font-medium text-muted-foreground">
+        {translate("crm.language", { _: "Language" })}
+      </p>
+      <div className="flex flex-wrap gap-2">
+        {locales.map((language) => (
+          <Button
+            key={language.locale}
+            type="button"
+            variant={locale === language.locale ? "default" : "outline"}
+            onClick={() => setLocale(language.locale)}
+          >
+            {language.name}
+          </Button>
+        ))}
+      </div>
     </div>
   );
 };
