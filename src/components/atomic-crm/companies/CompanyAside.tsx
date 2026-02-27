@@ -132,25 +132,25 @@ export const ContextInfo = ({ record }: { record: Company }) => {
     >
       {sectorLabel && (
         <span>
-          {translate("crm.companies.fields.sector", { _: "Sector" })}:{" "}
+          {translate("resources.companies.fields.sector", { _: "Sector" })}:{" "}
           {sectorLabel}
         </span>
       )}
       {record.size && (
         <span>
-          {translate("crm.companies.fields.size", { _: "Size" })}:{" "}
+          {translate("resources.companies.fields.size", { _: "Size" })}:{" "}
           <SelectField source="size" choices={translatedSizes} />
         </span>
       )}
       {record.revenue && (
         <span>
-          {translate("crm.companies.fields.revenue", { _: "Revenue" })}:{" "}
+          {translate("resources.companies.fields.revenue", { _: "Revenue" })}:{" "}
           <TextField source="revenue" />
         </span>
       )}
       {record.tax_identifier && (
         <span>
-          {translate("crm.companies.fields.tax_identifier", {
+          {translate("resources.companies.fields.tax_identifier", {
             _: "Tax Identifier",
           })}
           : <TextField source="tax_identifier" />

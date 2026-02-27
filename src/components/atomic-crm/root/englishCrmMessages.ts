@@ -1,4 +1,90 @@
 export const englishCrmMessages = {
+  resources: {
+    companies: {
+      name: "Company |||| Companies",
+      fields: {
+        name: "Company name",
+        website: "Website",
+        linkedin_url: "LinkedIn URL",
+        phone_number: "Phone number",
+        created_at: "Created at",
+        nb_contacts: "Number of contacts",
+        revenue: "Revenue",
+        sector: "Sector",
+        size: "Size",
+        tax_identifier: "Tax Identifier",
+        address: "Address",
+        city: "City",
+        zipcode: "Zip code",
+        state_abbr: "State",
+        country: "Country",
+        description: "Description",
+        context_links: "Context links",
+        sales_id: "Account manager",
+      },
+    },
+    contacts: {
+      name: "Contact |||| Contacts",
+      fields: {
+        first_name: "First name",
+        last_name: "Last name",
+        last_seen: "Last seen",
+        title: "Title",
+        company_id: "Company",
+        email_jsonb: "Email addresses",
+        email: "Email",
+        phone_jsonb: "Phone numbers",
+        phone_number: "Phone number",
+        linkedin_url: "LinkedIn URL",
+        background: "Background info (bio, how you met, etc)",
+        has_newsletter: "Has newsletter",
+        sales_id: "Account manager",
+      },
+    },
+    deals: {
+      name: "Deal |||| Deals",
+      fields: {
+        name: "Name",
+        description: "Description",
+        company_id: "Company",
+        contact_ids: "Contacts",
+        category: "Category",
+        amount: "Budget",
+        expected_closing_date: "Expected closing date",
+        stage: "Stage",
+      },
+    },
+    notes: {
+      name: "Note |||| Notes",
+      fields: {
+        status: "Status",
+        date: "Date",
+        attachments: "Attachments",
+        contact_id: "Contact",
+        deal_id: "Deal",
+      },
+    },
+    sales: {
+      name: "User |||| Users",
+      fields: {
+        first_name: "First name",
+        last_name: "Last name",
+        email: "Email",
+        administrator: "Admin",
+        disabled: "Disabled",
+      },
+    },
+    tasks: {
+      name: "Task |||| Tasks",
+      fields: {
+        text: "Description",
+        due_date: "Due date",
+        type: "Type",
+        contact_id: "Contact",
+        due_short: "due",
+      },
+    },
+  },
   crm: {
     auth: {
       confirmation_required:
