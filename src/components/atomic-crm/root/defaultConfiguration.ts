@@ -6,55 +6,55 @@ export const defaultLightModeLogo = "./logos/logo_atomic_crm_light.svg";
 export const defaultTitle = "Atomic CRM";
 
 export const defaultCompanySectors = [
-  { value: "communication-services", label: "Communication Services" },
-  { value: "consumer-discretionary", label: "Consumer Discretionary" },
-  { value: "consumer-staples", label: "Consumer Staples" },
-  { value: "energy", label: "Energy" },
-  { value: "financials", label: "Financials" },
-  { value: "health-care", label: "Health Care" },
-  { value: "industrials", label: "Industrials" },
-  { value: "information-technology", label: "Information Technology" },
-  { value: "materials", label: "Materials" },
-  { value: "real-estate", label: "Real Estate" },
-  { value: "utilities", label: "Utilities" },
+  { value: "communication-services", label: "Usługi komunikacyjne" },
+  { value: "consumer-discretionary", label: "Dobra konsumpcyjne (cykliczne)" },
+  { value: "consumer-staples", label: "Dobra konsumpcyjne (podstawowe)" },
+  { value: "energy", label: "Energetyka" },
+  { value: "financials", label: "Finanse" },
+  { value: "health-care", label: "Ochrona zdrowia" },
+  { value: "industrials", label: "Przemysł" },
+  { value: "information-technology", label: "Technologie informacyjne" },
+  { value: "materials", label: "Materiały" },
+  { value: "real-estate", label: "Nieruchomości" },
+  { value: "utilities", label: "Usługi komunalne" },
 ];
 
 export const defaultDealStages = [
-  { value: "opportunity", label: "Opportunity" },
-  { value: "proposal-sent", label: "Proposal Sent" },
-  { value: "in-negociation", label: "In Negotiation" },
-  { value: "won", label: "Won" },
-  { value: "lost", label: "Lost" },
-  { value: "delayed", label: "Delayed" },
+  { value: "opportunity", label: "Szansa" },
+  { value: "proposal-sent", label: "Wysłana oferta" },
+  { value: "in-negociation", label: "Negocjacje" },
+  { value: "won", label: "Wygrana" },
+  { value: "lost", label: "Przegrana" },
+  { value: "delayed", label: "Wstrzymana" },
 ];
 
 export const defaultDealPipelineStatuses = ["won"];
 
 export const defaultDealCategories = [
-  { value: "other", label: "Other" },
+  { value: "other", label: "Inne" },
   { value: "copywriting", label: "Copywriting" },
-  { value: "print-project", label: "Print project" },
-  { value: "ui-design", label: "UI Design" },
-  { value: "website-design", label: "Website design" },
+  { value: "print-project", label: "Projekt drukowany" },
+  { value: "ui-design", label: "Projekt UI" },
+  { value: "website-design", label: "Projekt strony WWW" },
 ];
 
 export const defaultNoteStatuses = [
-  { value: "cold", label: "Cold", color: "#7dbde8" },
-  { value: "warm", label: "Warm", color: "#e8cb7d" },
-  { value: "hot", label: "Hot", color: "#e88b7d" },
-  { value: "in-contract", label: "In Contract", color: "#a4e87d" },
+  { value: "cold", label: "Zimny", color: "#7dbde8" },
+  { value: "warm", label: "Ciepły", color: "#e8cb7d" },
+  { value: "hot", label: "Gorący", color: "#e88b7d" },
+  { value: "in-contract", label: "W kontrakcie", color: "#a4e87d" },
 ];
 
 export const defaultTaskTypes = [
-  { value: "none", label: "None" },
+  { value: "none", label: "Brak" },
   { value: "email", label: "Email" },
   { value: "demo", label: "Demo" },
   { value: "lunch", label: "Lunch" },
-  { value: "meeting", label: "Meeting" },
+  { value: "meeting", label: "Spotkanie" },
   { value: "follow-up", label: "Follow-up" },
-  { value: "thank-you", label: "Thank you" },
-  { value: "ship", label: "Ship" },
-  { value: "call", label: "Call" },
+  { value: "thank-you", label: "Podziękowanie" },
+  { value: "ship", label: "Wysyłka" },
+  { value: "call", label: "Telefon" },
 ];
 
 export const defaultConfiguration: ConfigurationContextValue = {

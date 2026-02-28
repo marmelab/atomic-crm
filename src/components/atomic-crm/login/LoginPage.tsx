@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Form, required, useLogin, useNotify } from "ra-core";
+import { Form, required, useLogin, useNotify, useTranslate } from "ra-core";
 import type { SubmitHandler, FieldValues } from "react-hook-form";
 import { Link, useLocation, useNavigate } from "react-router";
 import { Button } from "@/components/ui/button";
@@ -31,6 +31,7 @@ export const LoginPage = (props: { redirectTo?: string }) => {
   const navigate = useNavigate();
   const login = useLogin();
   const notify = useNotify();
+  const translate = useTranslate();
 
   useEffect(() => {
     const searchParams = new URLSearchParams(location.search);
@@ -41,12 +42,13 @@ export const LoginPage = (props: { redirectTo?: string }) => {
     }
 
     hasDisplayedRecoveryNotification.current = true;
-    notify(
-      "If you're a registered user, you should receive a password recovery email shortly.",
-      {
-        type: "success",
+    notify("crm.auth.password_recovery_sent", {
+      type: "success",
+      messageArgs: {
+        _:
+          "If you're a registered user, you should receive a password recovery email shortly.",
       },
-    );
+    });
 
     searchParams.delete("passwordRecoveryEmailSent");
     const nextSearch = searchParams.toString();
@@ -101,18 +103,20 @@ export const LoginPage = (props: { redirectTo?: string }) => {
         <div className="flex flex-col justify-center w-full p-4 lg:p-8">
           <div className="w-full space-y-6 lg:mx-auto lg:w-[350px]">
             <div className="text-center">
-              <h1 className="text-2xl font-semibold tracking-tight">Sign in</h1>
+              <h1 className="text-2xl font-semibold tracking-tight">
+                {translate("ra.auth.sign_in", { _: "Sign in" })}
+              </h1>
             </div>
             {disableEmailPasswordAuthentication ? null : (
               <Form className="space-y-8" onSubmit={handleSubmit}>
                 <TextInput
-                  label="Email"
+                  label={translate("ra.auth.email", { _: "Email" })}
                   source="email"
                   type="email"
                   validate={required()}
                 />
                 <TextInput
-                  label="Password"
+                  label={translate("ra.auth.password", { _: "Password" })}
                   source="password"
                   type="password"
                   validate={required()}
@@ -123,14 +127,16 @@ export const LoginPage = (props: { redirectTo?: string }) => {
                     className="cursor-pointer"
                     disabled={loading}
                   >
-                    Sign in
+                    {translate("ra.auth.sign_in", { _: "Sign in" })}
                   </Button>
                 </div>
               </Form>
             )}
             {googleWorkplaceDomain ? (
               <SSOAuthButton className="w-full" domain={googleWorkplaceDomain}>
-                Sign in with Google Workplace
+                {translate("crm.auth.sign_in_with_google_workplace", {
+                  _: "Sign in with Google Workplace",
+                })}
               </SSOAuthButton>
             ) : null}
             {disableEmailPasswordAuthentication ? null : (
@@ -138,7 +144,9 @@ export const LoginPage = (props: { redirectTo?: string }) => {
                 to={"/forgot-password"}
                 className="block text-sm text-center hover:underline"
               >
-                Forgot your password?
+                {translate("crm.auth.forgot_password", {
+                  _: "Forgot your password?",
+                })}
               </Link>
             )}
           </div>

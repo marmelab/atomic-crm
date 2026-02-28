@@ -48,7 +48,7 @@ const CompanyListActions = () => {
     <TopToolbar>
       <SortButton fields={["name", "created_at", "nb_contacts"]} />
       <ExportButton />
-      <CreateButton label="New Company" />
+      <CreateButton label="crm.companies.new_company" />
     </TopToolbar>
   );
 };

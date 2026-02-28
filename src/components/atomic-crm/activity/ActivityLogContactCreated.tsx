@@ -1,4 +1,5 @@
 import { Link } from "react-router";
+import { useTranslate } from "ra-core";
 
 import { ReferenceField } from "@/components/admin/reference-field";
 import { Avatar } from "../contacts/Avatar";
@@ -14,6 +15,7 @@ type ActivityLogContactCreatedProps = {
 export function ActivityLogContactCreated({
   activity,
 }: ActivityLogContactCreatedProps) {
+  const translate = useTranslate();
   const context = useActivityLogContext();
   const { contact } = activity;
   return (
@@ -24,7 +26,7 @@ export function ActivityLogContactCreated({
           <ReferenceField source="sales_id" reference="sales" record={activity}>
             <SaleName />
           </ReferenceField>{" "}
-          added{" "}
+          {translate("crm.activity.added_contact", { _: "added" })}{" "}
           <Link to={`/contacts/${contact.id}/show`}>
             {contact.first_name} {contact.last_name}
           </Link>
@@ -33,7 +35,7 @@ export function ActivityLogContactCreated({
               {activity.company_id != null && (
                 <>
                   {" "}
-                  to{" "}
+                  {translate("crm.activity.to_company", { _: "to" })}{" "}
                   <ReferenceField
                     source="company_id"
                     reference="companies"

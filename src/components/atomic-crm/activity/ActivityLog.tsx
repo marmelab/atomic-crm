@@ -2,7 +2,7 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useQuery } from "@tanstack/react-query";
-import { type Identifier, useDataProvider } from "ra-core";
+import { type Identifier, useDataProvider, useTranslate } from "ra-core";
 import { RotateCcw } from "lucide-react";
 
 import type { CrmDataProvider } from "../providers/types";
@@ -21,6 +21,7 @@ export function ActivityLog({
   context = "all",
 }: ActivityLogProps) {
   const dataProvider = useDataProvider<CrmDataProvider>();
+  const translate = useTranslate();
   const { data, isPending, error, refetch } = useQuery({
     queryKey: ["activityLog", companyId],
     queryFn: () => dataProvider.getActivityLog(companyId),
@@ -47,7 +48,9 @@ export function ActivityLog({
     return (
       <div className="p-4">
         <div className="text-center text-muted-foreground mb-4">
-          Error loading latest activity
+          {translate("crm.activity.error_loading", {
+            _: "Error loading latest activity",
+          })}
         </div>
         <div className="text-center mt-2">
           <Button
@@ -56,7 +59,7 @@ export function ActivityLog({
             }}
           >
             <RotateCcw />
-            Retry
+            {translate("crm.retry", { _: "Retry" })}
           </Button>
         </div>
       </div>

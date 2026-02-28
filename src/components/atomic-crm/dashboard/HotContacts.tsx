@@ -1,5 +1,5 @@
 import { Plus, Users } from "lucide-react";
-import { useGetIdentity, useGetList } from "ra-core";
+import { useGetIdentity, useGetList, useTranslate } from "ra-core";
 import { Link } from "react-router";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -15,6 +15,7 @@ import { Avatar } from "../contacts/Avatar";
 import type { Contact } from "../types";
 
 export const HotContacts = () => {
+  const translate = useTranslate();
   const { identity } = useGetIdentity();
   const {
     data: contactData,
@@ -37,7 +38,7 @@ export const HotContacts = () => {
           <Users className="text-muted-foreground w-6 h-6" />
         </div>
         <h2 className="text-xl font-semibold text-muted-foreground">
-          Hot Contacts
+          {translate("crm.dashboard.hot_contacts.title", { _: "Hot Contacts" })}
         </h2>
         <TooltipProvider>
           <Tooltip>
@@ -53,7 +54,11 @@ export const HotContacts = () => {
                 </Link>
               </Button>
             </TooltipTrigger>
-            <TooltipContent>Create contact</TooltipContent>
+            <TooltipContent>
+              {translate("crm.dashboard.hot_contacts.create_contact", {
+                _: "Create contact",
+              })}
+            </TooltipContent>
           </Tooltip>
         </TooltipProvider>
       </div>
@@ -77,11 +82,15 @@ export const HotContacts = () => {
           empty={
             <div className="p-4">
               <p className="text-sm mb-4">
-                Contacts with a "hot" status will appear here.
+                {translate("crm.dashboard.hot_contacts.empty_1", {
+                  _: 'Contacts with a "hot" status will appear here.',
+                })}
               </p>
               <p className="text-sm">
-                Change the status of a contact by adding a note to that contact
-                and clicking on "show options".
+                {translate("crm.dashboard.hot_contacts.empty_2", {
+                  _:
+                    'Change the status of a contact by adding a note to that contact and clicking on "show options".',
+                })}
               </p>
             </div>
           }

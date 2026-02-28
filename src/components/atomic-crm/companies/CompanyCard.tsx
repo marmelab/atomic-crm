@@ -1,6 +1,11 @@
 import { DollarSign } from "lucide-react";
 import { Link } from "react-router";
-import { useCreatePath, useListContext, useRecordContext } from "ra-core";
+import {
+  useCreatePath,
+  useListContext,
+  useRecordContext,
+  useTranslate,
+} from "ra-core";
 import { ReferenceManyField } from "@/components/admin/reference-many-field";
 import { Card } from "@/components/ui/card";
 
@@ -10,6 +15,7 @@ import type { Company } from "../types";
 import { CompanyAvatar } from "./CompanyAvatar";
 
 export const CompanyCard = (props: { record?: Company }) => {
+  const translate = useTranslate();
   const createPath = useCreatePath();
   const record = useRecordContext<Company>(props);
   const { companySectors } = useConfigurationContext();
@@ -49,11 +55,10 @@ export const CompanyCard = (props: { record?: Company }) => {
               <DollarSign className="w-4 h-4 text-muted-foreground" />
               <span className="text-sm font-medium">{record.nb_deals}</span>
               <span className="text-xs text-muted-foreground">
-                {record.nb_deals
-                  ? record.nb_deals > 1
-                    ? "deals"
-                    : "deal"
-                  : "deal"}
+                {translate("resources.deals.name", {
+                  smart_count: record.nb_deals ?? 1,
+                  _: record.nb_deals && record.nb_deals > 1 ? "deals" : "deal",
+                })}
               </span>
             </div>
           ) : null}

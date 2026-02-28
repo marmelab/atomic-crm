@@ -1,6 +1,11 @@
 import { useQueryClient } from "@tanstack/react-query";
 import { MoreVertical } from "lucide-react";
-import { useDeleteWithUndoController, useNotify, useUpdate } from "ra-core";
+import {
+  useDeleteWithUndoController,
+  useNotify,
+  useTranslate,
+  useUpdate,
+} from "ra-core";
 import { useEffect, useState } from "react";
 import { ReferenceField } from "@/components/admin/reference-field";
 import { DateField } from "@/components/admin/date-field";
@@ -29,6 +34,7 @@ export const Task = ({
   const isMobile = useIsMobile();
   const { taskTypes } = useConfigurationContext();
   const notify = useNotify();
+  const translate = useTranslate();
   const queryClient = useQueryClient();
 
   const [openEdit, setOpenEdit] = useState(false);
@@ -44,7 +50,10 @@ export const Task = ({
     redirect: false,
     mutationOptions: {
       onSuccess() {
-        notify("Task deleted successfully", { undoable: true });
+        notify("crm.tasks.notifications.deleted", {
+          undoable: true,
+          messageArgs: { _: "Task deleted successfully" },
+        });
       },
     },
   });
@@ -106,7 +115,7 @@ export const Task = ({
               {task.text}
             </div>
             <div className="text-sm text-muted-foreground">
-              due&nbsp;
+              {translate("crm.tasks.due_prefix", { _: "due" })}&nbsp;
               <DateField source="due_date" record={task} />
               {showContact && (
                 <ReferenceField<TData, Contact>
@@ -120,7 +129,7 @@ export const Task = ({
                     return (
                       <>
                         {" "}
-                        (Re:&nbsp;
+                        ({translate("crm.tasks.re", { _: "Re:" })}&nbsp;
                         {referenceRecord?.first_name}{" "}
                         {referenceRecord?.last_name})
                       </>
@@ -138,7 +147,9 @@ export const Task = ({
               variant="ghost"
               size="icon"
               className="h-5 pr-0! size-8 cursor-pointer"
-              aria-label="task actions"
+              aria-label={translate("crm.tasks.actions", {
+                _: "task actions",
+              })}
             >
               <MoreVertical className="size-5 md:size-4" />
             </Button>
@@ -158,7 +169,9 @@ export const Task = ({
                 });
               }}
             >
-              Postpone to tomorrow
+              {translate("crm.tasks.postpone_tomorrow", {
+                _: "Postpone to tomorrow",
+              })}
             </DropdownMenuItem>
             <DropdownMenuItem
               className="cursor-pointer h-12 md:h-8 px-4 md:px-2 text-base md:text-sm"
@@ -174,19 +187,21 @@ export const Task = ({
                 });
               }}
             >
-              Postpone to next week
+              {translate("crm.tasks.postpone_next_week", {
+                _: "Postpone to next week",
+              })}
             </DropdownMenuItem>
             <DropdownMenuItem
               className="cursor-pointer h-12 md:h-8 px-4 md:px-2 text-base md:text-sm"
               onClick={handleEdit}
             >
-              Edit
+              {translate("ra.action.edit", { _: "Edit" })}
             </DropdownMenuItem>
             <DropdownMenuItem
               className="cursor-pointer h-12 md:h-8 px-4 md:px-2 text-base md:text-sm"
               onClick={handleDelete}
             >
-              Delete
+              {translate("ra.action.delete", { _: "Delete" })}
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

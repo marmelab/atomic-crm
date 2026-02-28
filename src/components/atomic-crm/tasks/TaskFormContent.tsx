@@ -3,7 +3,7 @@ import { DateInput } from "@/components/admin/date-input";
 import { ReferenceInput } from "@/components/admin/reference-input";
 import { SelectInput } from "@/components/admin/select-input";
 import { TextInput } from "@/components/admin/text-input";
-import { required } from "ra-core";
+import { required, useTranslate } from "ra-core";
 
 import { contactOptionText } from "../misc/ContactOption";
 import { useConfigurationContext } from "../root/ConfigurationContext";
@@ -13,13 +13,14 @@ export const TaskFormContent = ({
 }: {
   selectContact?: boolean;
 }) => {
+  const translate = useTranslate();
   const { taskTypes } = useConfigurationContext();
   return (
     <div className="flex flex-col gap-4">
       <TextInput
         autoFocus
         source="text"
-        label="Description"
+        label={translate("resources.tasks.fields.text", { _: "Description" })}
         validate={required()}
         multiline
         className="m-0"
@@ -28,7 +29,9 @@ export const TaskFormContent = ({
       {selectContact && (
         <ReferenceInput source="contact_id" reference="contacts_summary">
           <AutocompleteInput
-            label="Contact"
+            label={translate("resources.tasks.fields.contact_id", {
+              _: "Contact",
+            })}
             optionText={contactOptionText}
             helperText={false}
             validate={required()}
