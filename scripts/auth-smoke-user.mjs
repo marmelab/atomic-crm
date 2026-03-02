@@ -1,57 +1,55 @@
 #!/usr/bin/env node
 
-import { readFileSync, existsSync } from "node:fs";
 import { execFileSync } from "node:child_process";
 import process from "node:process";
 
 import { createClient } from "@supabase/supabase-js";
+import { getLocalSupabaseEnv, parseDotEnvFile } from "./local-admin-config.mjs";
 
 const DEFAULT_PROJECT_REF = "qvdmzhyzpyaveniirsmo";
 const DEFAULT_PASSWORD = "CodexSmoke123!";
 const DEFAULT_TIMEOUT_MS = 8000;
 const DEFAULT_POLL_MS = 300;
 
-function parseDotEnvFile(path) {
-  if (!existsSync(path)) {
-    return {};
-  }
-
-  const lines = readFileSync(path, "utf8").split("\n");
-  const values = {};
-
-  for (const rawLine of lines) {
-    const line = rawLine.trim();
-    if (!line || line.startsWith("#")) continue;
-
-    const separatorIndex = line.indexOf("=");
-    if (separatorIndex === -1) continue;
-
-    const key = line.slice(0, separatorIndex).trim();
-    const value = line.slice(separatorIndex + 1).trim();
-    values[key] = value;
-  }
-
-  return values;
-}
-
-function loadEnv() {
+function loadRemoteEnv() {
   const loaded = {
-    ...parseDotEnvFile(".env.development"),
     ...parseDotEnvFile(".env.production"),
     ...process.env,
   };
 
   return {
+    target: "remote",
     supabaseUrl: loaded.VITE_SUPABASE_URL,
     publishableKey: loaded.VITE_SB_PUBLISHABLE_KEY,
     projectRef: loaded.SUPABASE_PROJECT_REF ?? DEFAULT_PROJECT_REF,
+    serviceRoleKey: undefined,
+  };
+}
+
+function loadLocalEnv() {
+  const loaded = getLocalSupabaseEnv();
+
+  return {
+    target: "local",
+    supabaseUrl: loaded.API_URL,
+    publishableKey: loaded.PUBLISHABLE_KEY,
+    projectRef: "local",
+    serviceRoleKey: loaded.SERVICE_ROLE_KEY,
   };
 }
 
 function getServiceRoleKey(projectRef) {
   const raw = execFileSync(
     "npx",
-    ["supabase", "projects", "api-keys", "--project-ref", projectRef, "-o", "json"],
+    [
+      "supabase",
+      "projects",
+      "api-keys",
+      "--project-ref",
+      projectRef,
+      "-o",
+      "json",
+    ],
     {
       encoding: "utf8",
       stdio: ["ignore", "pipe", "inherit"],
@@ -76,6 +74,10 @@ function getArgValue(flag) {
 
 function getMode() {
   return process.argv[2] ?? "create";
+}
+
+function getTarget() {
+  return getArgValue("--target") ?? process.env.SMOKE_TARGET ?? "remote";
 }
 
 function buildEmail() {
@@ -108,7 +110,8 @@ async function waitForSale(adminClient, userId, timeoutMs) {
 }
 
 async function createSmokeUser() {
-  const { supabaseUrl, publishableKey, projectRef } = loadEnv();
+  const env = getTarget() === "local" ? loadLocalEnv() : loadRemoteEnv();
+  const { supabaseUrl, publishableKey, projectRef } = env;
 
   if (!supabaseUrl || !publishableKey) {
     throw new Error(
@@ -116,7 +119,7 @@ async function createSmokeUser() {
     );
   }
 
-  const serviceRoleKey = getServiceRoleKey(projectRef);
+  const serviceRoleKey = env.serviceRoleKey ?? getServiceRoleKey(projectRef);
   const adminClient = createClient(supabaseUrl, serviceRoleKey);
   const browserClient = createClient(supabaseUrl, publishableKey);
 
@@ -158,6 +161,7 @@ async function createSmokeUser() {
         userId,
         saleId: sale.id,
         projectRef,
+        target: env.target,
       },
       null,
       2,
@@ -166,7 +170,8 @@ async function createSmokeUser() {
 }
 
 async function cleanupSmokeUser() {
-  const { supabaseUrl, publishableKey, projectRef } = loadEnv();
+  const env = getTarget() === "local" ? loadLocalEnv() : loadRemoteEnv();
+  const { supabaseUrl, publishableKey, projectRef } = env;
 
   if (!supabaseUrl || !publishableKey) {
     throw new Error(
@@ -181,7 +186,7 @@ async function cleanupSmokeUser() {
     throw new Error("Per cleanup serve --user-id oppure --email.");
   }
 
-  const serviceRoleKey = getServiceRoleKey(projectRef);
+  const serviceRoleKey = env.serviceRoleKey ?? getServiceRoleKey(projectRef);
   const adminClient = createClient(supabaseUrl, serviceRoleKey);
 
   let resolvedUserId = userId;
@@ -221,6 +226,7 @@ async function cleanupSmokeUser() {
         userId: resolvedUserId,
         cleaned: true,
         projectRef,
+        target: env.target,
       },
       null,
       2,

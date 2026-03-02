@@ -33,6 +33,94 @@ Regola pratica:
 - se una modifica e' solo strutturale/read-only, `Impostazioni` non va toccata
   ma la motivazione va lasciata nei docs di continuita'
 
+## Current Direction
+
+Per la prossima fase il progetto va letto con una priorita' precisa:
+
+1. ricostruire il dominio locale da dati reali
+2. correggere il sistema sui dati reali
+3. usare i test per verificare il risultato
+
+Le fonti di verita' operative da cui deve convergere il rebuild locale sono:
+
+- `Fatture/`
+- per Diego/Gustare, `Fatture/contabilità interna - diego caltabiano/`
+
+Conseguenza pratica:
+
+- fixture hardcoded di dominio usate per smoke o E2E non sono una base
+  architetturale accettabile
+- il bootstrap locale del dominio deve ricostruire il dataset da:
+  - `Fatture/`
+  - poi `Fatture/contabilità interna - diego caltabiano/`
+- se esiste uno script che inventa dati business invece di leggerli dalla fonte
+  reale, va considerato una regressione da correggere
+
+## Current Financial Semantics Warning
+
+Il punto piu' fragile dell'architettura corrente e' la semantica finanziaria.
+
+Oggi `payments` ed `expenses` coprono ancora, in modo parziale e sovrapposto:
+
+- documento emesso/ricevuto
+- stato da incassare/pagare
+- movimento di cassa effettivo
+- in alcuni casi anche allocazione progetto
+
+La direzione architetturale da mantenere esplicita e' separare meglio:
+
+- documenti fiscali
+- posizione aperta da incassare/pagare
+- movimenti di cassa
+- riconciliazioni/allocazioni
+
+Stato attuale della separazione:
+
+- la foundation DB ora esiste in:
+  - `financial_documents`
+  - `financial_document_project_allocations`
+  - `cash_movements`
+  - `financial_document_cash_allocations`
+  - `financial_documents_summary`
+- il rebuild locale da `Fatture/` e contabilità interna popola già questa
+  foundation
+- `financial_documents` ora distingue anche le note di credito:
+  - `customer_credit_note`
+  - `supplier_credit_note`
+- `financial_documents` conserva anche i campi fiscali XML necessari alla
+  riconciliazione:
+  - `xml_document_code`
+  - `taxable_amount`
+  - `tax_amount`
+  - `stamp_amount`
+- nel 2025 reale esiste già un caso importante:
+  - `FPA 1/25` fattura
+  - `FPA 2/25` `TD04` collegata a `FPA 1/25`
+  - `FPA 3/25` riemissione valida
+- la foundation documentale ora distingue:
+  - documento fiscale
+  - tipo documento (`invoice` / `credit_note`)
+  - importi fiscali lordi e imponibili
+  - aperti da incassare/pagare sul documento
+- semantica di progetto da mantenere:
+  - lo stato incasso operativo resta quello di `payments.status`
+  - `payment_type` resta parte del modello operativo dei pagamenti
+- `payments` ed `expenses` restano però ancora il layer compatibilità letto da
+  gran parte di UI, analytics, import e AI
+- il primo consumer già riallineato è `project_financials`:
+  - se il progetto ha documenti nella foundation, il pagato usa
+    `financial_document_cash_allocations`
+  - se il progetto ha documenti ma ancora nessuna cassa allocata, la base
+    semantica è `financial_documents`
+  - il fallback a `payments` legacy resta solo per progetti non ancora coperti
+    dalla foundation
+- il prossimo lavoro corretto è migrare progressivamente i consumer verso la
+  foundation nuova senza perdere il comportamento attuale
+
+Finche' questa separazione non viene introdotta, ogni modifica a import
+documenti, pagamenti, spese, dashboard, analytics e AI va considerata ad alta
+fragilita' semantica.
+
 ## Stato Infrastruttura (snapshot operativa aggiornata)
 
 ### Certezze — Audit superato
@@ -72,6 +160,12 @@ Regola pratica:
 | Test | Suite presente + test mirati per slice | vitest |
 | Lint | Guardrail operativo via ESLint + pre-commit | workflow locale |
 | Deploy Vercel | gestionale-rosario.vercel.app | sessione 5 |
+| Supabase locale | Supportato su porte isolate `5532x`; il bootstrap da zero deve restare replayable con `npx supabase start` | 2026-03-01 |
+| Financial semantics foundation | Tabelle `financial_documents`, `cash_movements` e allocazioni completamente popolate dal rebuild locale per tutte le fatture (non solo Diego/Gustare); `project_financials` usa `financial_foundation` come base primaria; audit automatico via `scripts/audit-aruba-reconciliation.mjs`; il rebuild script dovrà diventare migration one-shot quando il dataset sarà stabile | 2026-03-02 |
+| Admin locale post-reset | Automatizzato via script bootstrap idempotente dopo `make start` / `npx supabase db reset` | 2026-03-01 |
+| Smoke E2E locale | Supportato via Playwright sul runtime reale locale, ma deve restare subordinato al rebuild del dominio da fonti reali | 2026-03-02 |
+| Auth email/password locale | Abilitato solo nel runtime locale per bootstrap admin e smoke browser; non riflette automaticamente il remoto | 2026-03-01 |
+| Rebuild locale del dominio | Implementato: `make start` / `npx supabase db reset` ricostruiscono il dataset locale da `Fatture/` e dalla contabilità interna Diego prima degli smoke E2E; destinato a diventare migration pre-backup quando i dati saranno consolidati | 2026-03-02 |
 
 ### Cose ancora da verificare manualmente
 
@@ -85,6 +179,14 @@ Regola pratica:
 ## Database Schema
 
 ### Tabelle custom (da specifica)
+
+Nota di continuita':
+
+- lo schema corrente e' ancora quello operativo
+- non e' ancora il modello finale desiderato per la semantica finanziaria
+- `payments` ed `expenses` vanno considerati contenitori ancora troppo
+  sovraccarichi finche' non verra' introdotta una separazione piu esplicita tra
+  documenti, aperti e cassa
 
 | Tabella | Scopo | RLS | Colonne |
 |---------|-------|-----|---------|
@@ -131,13 +233,25 @@ acconto_ricevuto → in_lavorazione → completato → saldato → rifiutato / p
 
 | View | Scopo |
 |------|-------|
-| project_financials | Riepilogo finanziario per progetto (fees - discount, km, paid, balance) |
+| project_financials | Riepilogo finanziario per progetto (fees - discount, km, paid, balance) con preferenza per foundation documenti/cassa e fallback legacy solo dove la copertura non e' ancora completa |
 | monthly_revenue | Fatturato mensile per categoria (fees - discount) |
 | analytics_* | Base storica/AI per Storico e consumer analytics (`analytics_business_clock`, `analytics_history_meta`, `analytics_yearly_competence_revenue`, `analytics_yearly_competence_revenue_by_category`, `analytics_client_lifetime_competence_revenue`, `analytics_yearly_cash_inflow`) |
 
 PK esplicite nel dataProvider:
 - `monthly_revenue` → PK composita `month + category`
 - `project_financials` → PK `project_id`
+
+Semantica operativa attuale di `project_financials`:
+
+- `payment_semantics_basis = financial_foundation`
+  - il progetto ha documenti nella foundation e almeno una cassa allocata
+- `payment_semantics_basis = financial_documents`
+  - il progetto ha documenti foundation ma nessuna cassa allocata
+- `payment_semantics_basis = legacy_payments`
+  - il progetto non e' ancora coperto dai documenti foundation e il pagato
+    arriva solo dal layer storico `payments`
+- `payment_semantics_basis = none`
+  - nessuna base di pagamento disponibile
 
 ### Migrations
 
@@ -185,6 +299,7 @@ PK esplicite nel dataProvider:
 | `20260301193000_correct_diego_client_to_gustare_assoc.sql` | Correzione anagrafica fiscale Diego -> Associazione Culturale Gustare Sicilia |
 | `20260301213000_reactivate_contacts_for_clients_projects.sql` | Riattiva `contacts` per i referenti e aggiunge `project_contacts` |
 | `20260301234500_harden_contacts_roles_and_primary.sql` | Ruoli strutturati referenti + referente principale cliente + primario progetto deterministico |
+| `20260302010500_financial_documents_foundation.sql` | Introduce `financial_documents`, `cash_movements`, allocazioni esplicite e il primo riallineamento di `project_financials` verso la nuova foundation |
 
 ## Moduli Frontend
 

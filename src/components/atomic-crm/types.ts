@@ -192,6 +192,93 @@ export type Payment = {
   created_at: string;
 } & Pick<RaRecord, "id">;
 
+export type FinancialDocument = {
+  client_id: Identifier;
+  direction: "inbound" | "outbound";
+  xml_document_code?: string | null;
+  document_type:
+    | "customer_invoice"
+    | "supplier_invoice"
+    | "customer_credit_note"
+    | "supplier_credit_note";
+  related_document_number?: string | null;
+  document_number: string;
+  issue_date: string;
+  due_date?: string | null;
+  total_amount: number;
+  taxable_amount?: number | null;
+  tax_amount?: number | null;
+  stamp_amount?: number | null;
+  currency_code: string;
+  source_path?: string | null;
+  notes?: string | null;
+  created_at: string;
+  updated_at: string;
+} & Pick<RaRecord, "id">;
+
+export type FinancialDocumentSummary = {
+  client_id: Identifier;
+  client_name: string;
+  direction: "inbound" | "outbound";
+  xml_document_code?: string | null;
+  document_type:
+    | "customer_invoice"
+    | "supplier_invoice"
+    | "customer_credit_note"
+    | "supplier_credit_note";
+  related_document_number?: string | null;
+  document_number: string;
+  issue_date: string;
+  due_date?: string | null;
+  total_amount: number;
+  taxable_amount?: number | null;
+  tax_amount?: number | null;
+  stamp_amount?: number | null;
+  settled_amount: number;
+  open_amount: number;
+  settlement_status: "open" | "partial" | "settled" | "overdue";
+  project_allocations_count: number;
+  project_names?: string | null;
+  currency_code: string;
+  source_path?: string | null;
+  notes?: string | null;
+  created_at: string;
+  updated_at: string;
+} & Pick<RaRecord, "id">;
+
+export type CashMovement = {
+  client_id?: Identifier | null;
+  project_id?: Identifier | null;
+  direction: "inbound" | "outbound";
+  movement_date: string;
+  amount: number;
+  method?: "bonifico" | "contanti" | "paypal" | "altro" | null;
+  reference?: string | null;
+  source_path?: string | null;
+  notes?: string | null;
+  created_at: string;
+  updated_at: string;
+} & Pick<RaRecord, "id">;
+
+export type FinancialDocumentProjectAllocation = {
+  document_id: Identifier;
+  project_id?: Identifier | null;
+  allocation_amount: number;
+  notes?: string | null;
+  created_at: string;
+  updated_at: string;
+} & Pick<RaRecord, "id">;
+
+export type FinancialDocumentCashAllocation = {
+  document_id: Identifier;
+  cash_movement_id: Identifier;
+  project_id?: Identifier | null;
+  allocation_amount: number;
+  notes?: string | null;
+  created_at: string;
+  updated_at: string;
+} & Pick<RaRecord, "id">;
+
 export type Expense = {
   project_id?: Identifier | null;
   client_id?: Identifier | null;

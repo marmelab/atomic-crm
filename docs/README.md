@@ -1,6 +1,6 @@
 # Documentation Map
 
-Last updated: 2026-03-01
+Last updated: 2026-03-02
 
 ## Purpose
 
@@ -21,10 +21,46 @@ categorie:
 - i documenti storici non devono sembrare fonte di verita' attuale
 - il workflow supportato di sviluppo/validazione locale usa il runtime reale
   Supabase, non la vecchia demo FakeRest
+- il sistema viene prima dei test:
+  - prima si rende il dominio reale coerente
+  - poi i test verificano che il comportamento corretto non regredisca
+- i dati locali di dominio non vanno inventati in fixture hardcoded se la fonte
+  di verita' esiste gia':
+  - prima `Fatture/` (XML fatture emesse e ricevute)
+  - poi `Fatture/contabilità interna - diego caltabiano/` come arricchimento
+    del caso Diego/Gustare
+  - poi portale Aruba Fatturazione Elettronica per date di incasso esatte
+    (codificate in `ARUBA_PORTAL_TRUTH` dentro `scripts/local-truth-data.mjs`)
+- fixture o bootstrap hardcoded di dominio sono solo debito tecnico
+  temporaneo, non una seconda fonte di verita'
 - se il comportamento e' gia spedito:
   - il codice e le migration sono la verita' operativa
   - i documenti `canonical` vanno aggiornati nello stesso passaggio
 - se un file non e' canonico, deve dichiararlo chiaramente
+
+## Current Continuity Intent
+
+Per la prossima fase del progetto, la continuita' va letta con questo ordine:
+
+1. fonte di verita' reale
+2. rebuild locale del sistema
+3. correzione della semantica e delle relazioni di dominio
+4. test come verifica finale
+
+Tradotto in pratica:
+
+- prima si ricostruisce il database locale partendo da `Fatture/`
+- poi si arricchisce dal materiale di
+  `Fatture/contabilità interna - diego caltabiano/`
+- poi si correggono le superfici applicative che leggono quei dati
+- solo dopo si scrivono o si aggiornano test E2E/smoke
+
+Il fronte piu' fragile da trattare con questa logica e' la semantica
+finanziaria, che oggi va ancora separata meglio tra:
+
+- documento emesso/ricevuto
+- stato da incassare/pagare
+- movimento di cassa effettivo
 
 ## Automation Guardrails
 
@@ -93,11 +129,12 @@ letto come fonte primaria.
 
 1. `docs/README.md`
 2. `docs/development-continuity-map.md`
-3. `docs/historical-analytics-handoff.md`
-4. `docs/architecture.md`
-5. `docs/contacts-client-project-architecture.md`
-6. `docs/data-import-analysis.md`
-7. `Gestionale_Rosario_Furnari_Specifica.md`
+3. `docs/local-truth-rebuild.md`
+4. `docs/historical-analytics-handoff.md`
+5. `docs/architecture.md`
+6. `docs/contacts-client-project-architecture.md`
+7. `docs/data-import-analysis.md`
+8. `Gestionale_Rosario_Furnari_Specifica.md`
 
 ## Canonical
 
@@ -117,6 +154,16 @@ Fonte primaria per:
 - stato implementato ad alto livello
 - schema e risorse correnti
 - mappa moduli e pagine
+
+### `docs/local-truth-rebuild.md`
+
+Fonte primaria per:
+
+- gerarchia di verita' del rebuild locale del dominio
+- `ARUBA_PORTAL_TRUTH` (stato incasso fatture 2023-2025)
+- `ARUBA_CLIENT_REGISTRY` (anagrafica clienti completa)
+- regola di risoluzione runtime per l'import AI
+- fatture ricevute e semantica finanziaria transitoria
 
 ### `docs/contacts-client-project-architecture.md`
 
@@ -170,15 +217,16 @@ Se devi leggere solo il minimo utile:
 
 ### `docs/data-import-analysis.md`
 
-Caso reale e mapping operativo del dominio Diego/Gustare/fatture.
+Caso reale Diego/Gustare: servizi, tariffe, acconti, CSV e mapping operativo.
 
 Fonte primaria solo per:
 
-- storico dati reale
-- interpretazione del caso import/documenti
+- dettaglio dei servizi, fogli contabili e acconti Diego/Gustare
+- tariffe vecchie e nuove, mapping al DB schema
 
-Per il caso Diego/Gustare, la fonte dati di verita' suprema non e' una nota
-derivata ma la cartella repo-root `Fatture/`; al suo interno
+Per la gerarchia di verita' generale, lo stato incasso e l'anagrafica clienti
+completa usare `docs/local-truth-rebuild.md`. La fonte dati suprema resta la
+cartella repo-root `Fatture/`; al suo interno
 `Fatture/contabilità interna - diego caltabiano/` e' la fonte piu autorevole
 per attribuire correttamente Diego Caltabiano come referente operativo di
 `ASSOCIAZIONE CULTURALE GUSTARE SICILIA`.

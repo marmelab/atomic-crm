@@ -6,7 +6,7 @@ obbligatoria delle superfici collegate.
 **Quando usarlo:** ogni volta che una modifica tocca comportamento reale del
 prodotto.
 
-Last updated: 2026-03-01
+Last updated: 2026-03-02
 
 ## Goal
 
@@ -23,6 +23,25 @@ La regola operativa e' semplice:
 - nessuna modifica va considerata chiusa senza controllo di coerenza anche su
   pagine, modali/sheet/dialog, helper, linking, provider ed eventuali Edge
   Functions connesse
+
+## Current Execution Order
+
+Per questa fase del progetto la continuita' non va piu' letta in ottica
+"facciamo passare i test e poi vediamo".
+
+L'ordine corretto e' questo:
+
+1. importare o ricostruire il dominio dai file fonte di verita'
+2. correggere sistema, schema e semantica sui dati reali
+3. riallineare UI, AI, import e analytics
+4. solo dopo aggiornare o scrivere i test
+
+Regola pratica:
+
+- i test sono uno strumento di verifica del sistema
+- non devono diventare il motore che decide il modello di dominio
+- se esiste gia' una fonte reale, non introdurre fixture dominio hardcoded come
+  scorciatoia permanente
 
 ## Automation
 
@@ -53,15 +72,42 @@ Per i file di orchestrazione agentica la regola e':
 Questo non sostituisce il giudizio tecnico, ma riduce il rischio di chiudere un
 commit lasciando il progetto semanticamente spezzato.
 
+## Local Runtime Rule
+
+Per lo sviluppo locale supportato:
+
+- il repo usa Supabase reale locale, non la demo FakeRest
+- questo progetto usa porte locali `5532x` per convivere con altri stack
+  Docker gia' attivi sulla macchina
+- `make start` e `npx supabase db reset` devono lasciare il repo con un admin
+  locale autenticabile gia' pronto, senza setup manuale post-reset
+- se tocchi `supabase/config.toml`, migration storiche o `.env` di sviluppo,
+  devi verificare che `npx supabase start` resti replayable da zero senza
+  dipendere da UUID catturati dal remoto o da stato preesistente
+- il bootstrap locale di dominio usa un rebuild reale basato su:
+  - `Fatture/` (XML fatture emesse e ricevute)
+  - `Fatture/contabilità interna - diego caltabiano/` (CSV contabilita' Diego)
+  - portale Aruba Fatturazione Elettronica (date di incasso esatte 2023-2025,
+    codificate in `ARUBA_PORTAL_TRUTH` dentro `scripts/local-truth-data.mjs`)
+- se tocchi parser, script di rebuild o migration che alimentano quel dataset,
+  devi verificare almeno:
+  - `npx supabase db reset`
+  - bootstrap admin locale
+  - rebuild del dominio
+  - smoke/test che leggono il caso Diego/Gustare
+- non reintrodurre script E2E o seed con dati dominio hardcoded come seconda
+  fonte di verita'
+
 ## Reading Order For A New Chat
 
 1. `docs/README.md`
 2. `docs/development-continuity-map.md`
-3. `docs/historical-analytics-handoff.md`
-4. `docs/historical-analytics-backlog.md`
-5. `docs/contacts-client-project-architecture.md`
-6. `docs/data-import-analysis.md`
-7. `Gestionale_Rosario_Furnari_Specifica.md`
+3. `docs/local-truth-rebuild.md`
+4. `docs/historical-analytics-handoff.md`
+5. `docs/historical-analytics-backlog.md`
+6. `docs/contacts-client-project-architecture.md`
+7. `docs/data-import-analysis.md`
+8. `Gestionale_Rosario_Furnari_Specifica.md`
 
 ## Source Of Truth By Area
 
@@ -74,14 +120,37 @@ commit lasciando il progetto semanticamente spezzato.
   - `docs/historical-analytics-backlog.md`
 - Dominio referenti/clienti/progetti:
   - `docs/contacts-client-project-architecture.md`
-- Import storico/fatture e casi reali:
-  - `docs/data-import-analysis.md`
+- Rebuild locale dominio, fonti dati e stato incasso:
+  - `docs/local-truth-rebuild.md`
   - la cartella repo-root `Fatture/`
+  - portale Aruba Fatturazione Elettronica per stato incasso autoritativo
+- Caso reale Diego/Gustare (servizi, tariffe, acconti):
+  - `docs/data-import-analysis.md`
   - per il caso Diego/Gustare, la sotto-cartella
     `Fatture/contabilità interna - diego caltabiano/` e' la fonte piu
     autorevole per verificare che:
     - `ASSOCIAZIONE CULTURALE GUSTARE SICILIA` e' il cliente fiscale
     - `Diego Caltabiano` e' il referente operativo collegato
+
+## Current Priority Debt
+
+Il prossimo debito strutturale da trattare prima di nuove espansioni di
+dominio e' la semantica finanziaria.
+
+Oggi i flussi `payments` / `expenses` portano ancora troppi significati insieme.
+
+La direzione canonica da mantenere esplicita e':
+
+- separare documento emesso/ricevuto
+- separare stato da incassare/pagare
+- separare movimento di cassa effettivo
+
+Finche' questo passaggio non e' completato:
+
+- ogni modifica su import documenti, pagamenti, spese, dashboard, analytics e
+  chat AI va trattata come semanticamente fragile
+- i test non bastano da soli a considerare "sano" il sistema se il modello
+  sottostante resta ambiguo
 
 ## Full Surface Sweep Rule
 

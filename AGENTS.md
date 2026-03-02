@@ -33,6 +33,33 @@
 - se cambia l'AI del prodotto:
   - aggiornare codice prodotto, registry/semantica, test e docs di continuita'
 
+## SYSTEM-FIRST RULE
+
+- non ottimizzare i test prima del sistema
+- se il modello di dominio e' debole o ambiguo:
+  - prima correggere fonte dati, schema, semantica e flussi reali
+  - poi aggiornare test, smoke ed E2E
+- i test servono a verificare il sistema corretto, non a definire da soli il
+  comportamento giusto
+- se esiste una fonte reale nel repo, non creare una seconda verita' con
+  fixture hardcoded di dominio
+
+Regola attuale per il locale:
+
+- il rebuild del dominio locale parte da dati reali importati da
+  `Fatture/`
+- per Diego/Gustare, i dettagli non presenti nelle fatture vanno letti da
+  `Fatture/contabilità interna - diego caltabiano/`
+- non reintrodurre bootstrap fixture di dominio come seconda fonte di verita'
+
+Regola attuale per migration e bootstrap:
+
+- ogni migration deve essere replayable da zero
+- non dipendere da UUID catturati dal remoto, stato manuale o record creati a
+  mano
+- il bootstrap locale tecnico puo' creare l'admin o dati strettamente tecnici,
+  ma non deve inventare dominio parallelo se la fonte reale esiste
+
 ## DEPLOYMENT RULES - NON DIMENTICARE
 
 - `git push` su `main` aggiorna automaticamente il frontend su `Vercel`
@@ -77,6 +104,7 @@ make stop             # Stop the stack
 
 ```bash
 make test             # Run unit tests (vitest)
+make test-e2e         # Run Playwright smoke tests on the local real stack after the local domain is aligned with real source data
 make typecheck        # Run TypeScript type checking
 make lint             # Run ESLint and Prettier checks
 ```
@@ -273,10 +301,31 @@ FakeRest/demo is not a supported local workflow anymore.
 ### Accessing Local Services During Development
 
 - Frontend: http://localhost:5173/
-- Supabase Dashboard: http://localhost:54323/
-- REST API: http://127.0.0.1:54321
-- Storage (attachments): http://localhost:54323/project/default/storage/buckets/attachments
-- Inbucket (email testing): http://localhost:54324/
+- Supabase Dashboard: http://localhost:55323/
+- REST API: http://127.0.0.1:55321
+- Storage (attachments): http://localhost:55323/project/default/storage/buckets/attachments
+- Inbucket (email testing): http://localhost:55324/
+- questo repo usa porte locali `5532x` per convivere con altri stack Supabase
+  gia' presenti in Docker senza fermarli o sovrascriverli
+- in sviluppo locale, `.env.local` e `.env.development` devono puntare al
+  Supabase locale su `127.0.0.1:55321`
+- `.env.production` resta dedicato al progetto remoto
+- `make start` e `npx supabase db reset` ricreano automaticamente un admin
+  locale autenticabile
+- nel runtime locale il provider email/password Supabase e' abilitato per
+  permettere bootstrap admin e smoke E2E; non e' una regola del remoto
+- `make start`, `make supabase-reset-database` e `make test-e2e` si appoggiano
+  al rebuild locale del dominio basato su:
+  - `Fatture/`
+  - `Fatture/contabilità interna - diego caltabiano/`
+- i browser smoke devono leggere e scrivere sul dataset locale ricostruito,
+  non su fixture dominio hardcoded
+- default admin locale:
+  - email `admin@gestionale.local`
+  - password `LocalAdmin123!`
+- override opzionali in `.env.local`:
+  - `LOCAL_SUPABASE_ADMIN_EMAIL`
+  - `LOCAL_SUPABASE_ADMIN_PASSWORD`
 
 ## Important Notes
 

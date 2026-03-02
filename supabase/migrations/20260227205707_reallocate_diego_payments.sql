@@ -13,40 +13,125 @@
 
 DO $$
 DECLARE
-  v_client_id UUID := '4a01f81c-8517-47e3-830b-94caf2031bd1'; -- Diego Caltabiano
-  -- Project IDs
-  v_gs         UUID := '01431bf8-dc7a-40c8-9e38-1593c45a6342'; -- Gustare Sicilia
-  v_btf        UUID := 'ec227292-cbc4-4478-a4d2-e041dbe37a01'; -- Bella tra i Fornelli
-  v_bm         UUID := '6d9f6b8d-9744-4178-9be1-914d1a319a02'; -- GS Borghi Marinari
-  v_colate     UUID := '20e50f26-1c31-491a-a399-a333353a4691'; -- Spot Colate Verdi Evo Etna
-  v_rosemary   UUID := '262cbdca-fec2-4b03-b85d-c9a3dde74166'; -- Spot Rosemary's Pub
-  v_panino     UUID := '316efba7-f430-4281-90cd-c944406a9aa7'; -- Spot Panino Mania
-  v_hclinic    UUID := '6ff8c9d6-e385-40d9-9e1b-84e8a3e0d204'; -- Spot HCLINIC
-  v_spritz     UUID := '3ffad994-4446-4bce-9bdf-c318b3baf128'; -- Spot Spritz & Co
-  v_castellac  UUID := '4425ce7a-1f48-47ab-8ac6-b63082080881'; -- Spot Il Castellaccio
+  v_client_id UUID;
+  -- Project IDs resolved dynamically so the migration stays replayable on a clean local bootstrap.
+  v_gs         UUID;
+  v_btf        UUID;
+  v_bm         UUID;
+  v_colate     UUID;
+  v_rosemary   UUID;
+  v_panino     UUID;
+  v_hclinic    UUID;
+  v_spritz     UUID;
+  v_castellac  UUID;
 BEGIN
+  SELECT id INTO v_client_id
+  FROM clients
+  WHERE name = 'Diego Caltabiano'
+  ORDER BY created_at DESC
+  LIMIT 1;
+
+  SELECT id INTO v_gs
+  FROM projects
+  WHERE client_id = v_client_id
+    AND name = 'Gustare Sicilia'
+  ORDER BY created_at DESC
+  LIMIT 1;
+
+  SELECT id INTO v_btf
+  FROM projects
+  WHERE client_id = v_client_id
+    AND name = 'Bella tra i Fornelli'
+  ORDER BY created_at DESC
+  LIMIT 1;
+
+  SELECT id INTO v_bm
+  FROM projects
+  WHERE client_id = v_client_id
+    AND name = 'Gustare Sicilia — Borghi Marinari'
+  ORDER BY created_at DESC
+  LIMIT 1;
+
+  SELECT id INTO v_colate
+  FROM projects
+  WHERE client_id = v_client_id
+    AND name = 'Spot Colate Verdi Evo Etna'
+  ORDER BY created_at DESC
+  LIMIT 1;
+
+  SELECT id INTO v_rosemary
+  FROM projects
+  WHERE client_id = v_client_id
+    AND name = 'Spot Rosemary''s Pub'
+  ORDER BY created_at DESC
+  LIMIT 1;
+
+  SELECT id INTO v_panino
+  FROM projects
+  WHERE client_id = v_client_id
+    AND name = 'Spot Panino Mania'
+  ORDER BY created_at DESC
+  LIMIT 1;
+
+  SELECT id INTO v_hclinic
+  FROM projects
+  WHERE client_id = v_client_id
+    AND name = 'Spot HCLINIC'
+  ORDER BY created_at DESC
+  LIMIT 1;
+
+  SELECT id INTO v_spritz
+  FROM projects
+  WHERE client_id = v_client_id
+    AND name = 'Spot Spritz & Co'
+  ORDER BY created_at DESC
+  LIMIT 1;
+
+  SELECT id INTO v_castellac
+  FROM projects
+  WHERE client_id = v_client_id
+    AND name = 'Spot Il Castellaccio'
+  ORDER BY created_at DESC
+  LIMIT 1;
+
+  IF v_client_id IS NULL
+     OR v_gs IS NULL
+     OR v_btf IS NULL
+     OR v_bm IS NULL
+     OR v_colate IS NULL
+     OR v_rosemary IS NULL
+     OR v_panino IS NULL
+     OR v_hclinic IS NULL
+     OR v_spritz IS NULL
+     OR v_castellac IS NULL THEN
+    RAISE EXCEPTION 'Diego payment reallocation requires the historical Diego client and all imported projects to exist before replaying this migration.';
+  END IF;
 
   -- =========================================================================
   -- STEP 1: Delete 10 misallocated payment records
   -- =========================================================================
 
-  -- Foglio 1: 6 payments all wrongly assigned to GS (total €12,407.19)
-  DELETE FROM payments WHERE id IN (
-    'cd98162d-7352-4127-931b-dba549b3ee82',  -- €999.00,   Dec 27, no ref
-    'e4737fe3-48cb-4d3b-96c3-3ef0921b1357',  -- €2,000.00, Feb 10, FPR 1/25
-    'f6d90a90-ca60-482a-b356-68dd471e7fd4',  -- €3,113.00, Mar 3,  FPR 1/25
-    '5db23c34-a2de-4163-af70-0900748e9917',  -- €2,500.00, Apr 22, FPR 2/25
-    'c7296662-a780-4a33-88bc-04031c7ec8f3',  -- €2,000.00, Apr 30, FPR 2/25
-    '4d39930e-3d72-44b4-b231-6424924d2994'   -- €1,795.19, May 14, FPR 2/25
-  );
+  -- Foglio 1: 6 payments all wrongly assigned to GS (total €12,407.19).
+  DELETE FROM payments
+  WHERE client_id = v_client_id
+    AND (
+      (payment_date = '2024-12-27' AND amount = 999.00)
+      OR (payment_date = '2025-02-10' AND amount = 2000.00)
+      OR (payment_date = '2025-03-03' AND amount = 3113.00)
+      OR (payment_date = '2025-04-22' AND amount = 2500.00)
+      OR (payment_date = '2025-04-30' AND amount = 2000.00)
+      OR (payment_date = '2025-05-14' AND amount = 1795.19)
+    );
 
-  -- Foglio 2: 4 payments with wrong project allocations (total €9,834.45)
-  DELETE FROM payments WHERE id IN (
-    'bc633549-d732-4dee-82a4-fefb352ac8f1',  -- €2,682.35, FPR 4/25 (was BM, should be GS+BTF)
-    '93b71c8e-b4c7-485a-9c78-d6d9523bedc0',  -- €989.24,   FPR 6/25 (was GS, should be BM)
-    '85f7a3b5-c3e9-4a17-a784-cf0210f41ced',  -- €5,201.36, FPR 6/25 (was BM)
-    '5337fd24-056d-4607-9128-d3adcc2659fb'   -- €961.50,   FPR 6/25 (was BTF, should be BM)
-  );
+  -- Foglio 2: 4 payments with wrong project allocations (total €9,834.45).
+  DELETE FROM payments
+  WHERE client_id = v_client_id
+    AND (
+      (payment_date = '2025-10-14' AND amount = 2682.35)
+      OR (payment_date = '2025-11-10' AND amount = 989.24)
+      OR (payment_date = '2025-11-10' AND amount = 5201.36)
+      OR (payment_date = '2025-11-10' AND amount = 961.50)
+    );
 
   -- =========================================================================
   -- STEP 2: Create 11 correctly allocated payments

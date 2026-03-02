@@ -43,6 +43,7 @@ const continuityDocs = [
   "docs/architecture.md",
   "docs/contacts-client-project-architecture.md",
   "docs/data-import-analysis.md",
+  "docs/local-truth-rebuild.md",
   "Gestionale_Rosario_Furnari_Specifica.md",
 ];
 

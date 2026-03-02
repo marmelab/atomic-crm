@@ -46,3 +46,5 @@ public/r/
 /Rosario Furnari - Servizi per Diego Caltabiano - DAL 27 10 24 AL 07 04 25.numbers
 .vercel
 .env*.local
+playwright-report/
+test-results/

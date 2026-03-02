@@ -1,12 +1,14 @@
 # Analisi Dati Reali — Caso Diego Caltabiano / Gustare Sicilia
 
 **Stato del documento:** `reference`
-**Scopo:** caso reale di dominio/import e mapping operativo dei dati storici.
-**Quando NON usarlo da solo:** per dedurre architettura generale o stato
-completo del prodotto fuori dal perimetro import/documenti.
+**Scopo:** caso reale di dominio: servizi, tariffe, acconti, CSV e mapping
+operativo del rapporto Diego/Gustare.
+**Quando NON usarlo:** per la gerarchia di verita' generale, lo stato incasso
+di tutte le fatture o l'anagrafica clienti completa. Per quello usare
+`docs/local-truth-rebuild.md`.
 
 **Fonti verificate:** cartella `Fatture/`, sotto-cartella
-`Fatture/contabilità interna - diego caltabiano/`, file Numbers
+`Fatture/contabilita' interna - diego caltabiano/`, file Numbers
 `Rosario Furnari - Servizi per Diego Caltabiano - DAL 27 10 24 AL 07 04 25.numbers`
 **Analizzato:** 2026-02-25
 **Stato:** Dati estratti e VALIDATI con Rosario
@@ -15,30 +17,7 @@ completo del prodotto fuori dal perimetro import/documenti.
 
 ---
 
-## Gerarchia di verita' suprema
-
-Per questo caso reale la gerarchia di verita' non e' negoziabile:
-
-1. `Fatture/`
-2. `Fatture/contabilità interna - diego caltabiano/`
-3. file Numbers e note operative derivate
-
-Nel workspace corrente questi percorsi corrispondono a:
-
-- `/Users/rosariofurnari/Documents/gestionale-rosario/Fatture`
-- `/Users/rosariofurnari/Documents/gestionale-rosario/Fatture/contabilità interna - diego caltabiano`
-
-Regole operative:
-
-- `Fatture/` e' la fonte dati di verita' suprema per documenti fiscali,
-  intestazioni reali, controparti e storico fatture
-- per il caso Diego/Gustare, `Fatture/contabilità interna - diego caltabiano/`
-  e' la fonte piu autorevole per interpretare correttamente il rapporto tra
-  Diego Caltabiano e `ASSOCIAZIONE CULTURALE GUSTARE SICILIA`
-- se un appunto, una bozza di import o una nota storica entra in conflitto con
-  queste cartelle, prevalgono sempre i documenti presenti in queste cartelle
-
-Traduzione di dominio obbligatoria:
+## Traduzione di dominio Diego/Gustare
 
 - `ASSOCIAZIONE CULTURALE GUSTARE SICILIA` = cliente fiscale / controparte
   principale
@@ -47,24 +26,8 @@ Traduzione di dominio obbligatoria:
 Questa regola vale per import AI, anagrafica clienti, referenti, mapping DB,
 analisi storiche e correzione dati.
 
-## Regola di risoluzione runtime per l'import AI
-
-Nel runtime reale dell'import documenti, la risoluzione del `client` non deve
-promuovere automaticamente una persona a cliente se nel CRM quella persona e'
-gia un referente collegato a un'azienda.
-
-Ordine corretto dei segnali:
-
-1. progetto o cliente gia selezionati esplicitamente
-2. identificativi fiscali forti (`CF`, `P.IVA`)
-3. denominazione fiscale / ragione sociale
-4. referente gia presente in `contacts` con collegamento univoco a un cliente
-5. solo in ultima istanza il nome libero della controparte
-
-Per il caso Diego/Gustare questo significa che, anche se un documento nomina
-solo `Diego Caltabiano`, il resolver deve preferire il cliente fiscale
-`ASSOCIAZIONE CULTURALE GUSTARE SICILIA` quando il referente Diego e' gia noto
-nel CRM e collegato a quel cliente.
+Per la gerarchia di verita' completa, le fonti dati autoritarie e le regole di
+risoluzione runtime, vedere `docs/local-truth-rebuild.md`.
 
 ## Struttura del file
 
@@ -92,9 +55,9 @@ Un solo cliente fiscale in questo file:
 
 **Nota importante:** il file operativo e i fogli contabili fanno riferimento a
 Diego Caltabiano come referente, ma la gerarchia di verita' suprema definita
-sopra conferma che l'intestatario fiscale ricorrente e' `ASSOCIAZIONE
-CULTURALE GUSTARE SICILIA`. Nel CRM quindi Diego va trattato come referente
-operativo, non come cliente anagrafico principale.
+in `docs/local-truth-rebuild.md` conferma che l'intestatario fiscale ricorrente
+e' `ASSOCIAZIONE CULTURALE GUSTARE SICILIA`. Nel CRM quindi Diego va trattato
+come referente operativo, non come cliente anagrafico principale.
 
 ---
 
@@ -111,6 +74,8 @@ operativo, non come cliente anagrafico principale.
 | 7 | Spot HCLINIC | spot | — | completato |
 | 8 | Spot Spritz & Co | spot | — | completato |
 | 9 | Spot Il Castellaccio | spot | — | completato |
+| 10 | Spot Camping Carratois | spot | — | completato |
+| 11 | Gustare Sicilia — Nisseno | produzione_tv | gustare_sicilia | completato |
 
 **Note:**
 
@@ -124,11 +89,16 @@ operativo, non come cliente anagrafico principale.
 
 ## 3. Servizi (Registro Lavori) — FOGLIO 1: dal 27/10/2024 al 07/04/2025
 
-### Correzioni date necessarie
-- ROW 1: `2014-10-27` -> `2024-10-27` (errore anno nel file Numbers)
-- ROW 13: `2024-01-05` -> `2025-01-05` (errore anno)
-- ROW 14: `2024-01-08` -> `2025-01-08` (errore anno)
-- ROW 15: `2024-01-13` -> `2025-01-13` (errore anno)
+### Correzioni date applicate al CSV
+
+Corrette direttamente in `SERVIZI-Tabella 1.csv` (errori di digitazione di Diego):
+
+| Riga CSV | Dato originale | Corretto | Verita' canonica | Progetto |
+|----------|---------------|----------|-----------------|----------|
+| 3 | 27 ott 14 | 27 ott 24 | 2024-10-27 | GS Ragalna |
+| 15 | 5 gen 24 | 5 gen 25 | 2025-01-05 | BTF Santocchini |
+| 16 | 8 gen 24 | 8 gen 25 | 2025-01-08 | SPOT HCLINIC |
+| 17 | 13 gen 24 | 13 gen 25 | 2025-01-13 | BTF Pasticceria Vittoria |
 
 ### Servizi Gustare Sicilia (GS) — Foglio 1
 
@@ -247,10 +217,11 @@ che sono state interpretate come settembre 2025.
 | # | Tipo | Trattamento | Importo |
 |---|------|-------------|---------|
 | 1 | Spesa accessoria | Expense: acquisto_materiale, Hard Disk | +260 |
-| 2 | ~~Vendita iPhone~~ | IGNORARE — considerato sconto, nota "Vendita iPhone" | -500 |
+| 2 | Credito ricevuto | Da registrare come `credito_ricevuto` da €500 nel blocco contabile Borghi Marinari | -500 |
 
 **Subtotale spese accessorie foglio 2:** -€240 (confermato: 260 - 500 = -240)
-La vendita iPhone NON va nel DB. Solo l'hard disk da €260 come spesa.
+La vendita iPhone va nel DB come `credito_ricevuto` da €500 associato al
+blocco `Borghi Marinari`, non come riga da ignorare.
 
 ---
 
@@ -268,12 +239,13 @@ La vendita iPhone NON va nel DB. Solo l'hard disk da €260 come spesa.
 | 6 | 14/05/2025 | 1.795,19 | Saldo finale |
 | **TOTALE** | | **12.407,19** | **Da saldare: €0** |
 
-### Foglio 2 — Parzialmente saldato
+### Foglio 2 — Saldato (confermato dal portale Aruba 11/11/2025)
 
 | # | Data | Importo | Note |
 |---|------|---------|------|
-| 1 | 14/10/2025 | 2.682,35 | Unico acconto ricevuto |
-| **TOTALE** | | **2.682,35** | **Da saldare: €7.152,10** |
+| 1 | 14/10/2025 | 2.682,35 | Acconto da CSV |
+| 2 | 11/11/2025 | 7.152,10 | Saldo confermato da portale Aruba |
+| **TOTALE** | | **9.834,45** | **Da saldare: €0** |
 
 ---
 
@@ -285,11 +257,20 @@ La vendita iPhone NON va nel DB. Solo l'hard disk da €260 come spesa.
 | 2 | FPR 1/25 | 01/02/2025 | 0 | 0 | 5.115 | — | 5.115,00 |
 | 3 | FPR 2/25 | 11/04/2025 | 3.701 | 703,19 | 5.592 | — | 6.295,19 |
 | 4 | FPR 4/25 | 12/10/2025 | 665 | 126,35 | 2.556 | — | 2.682,35 |
-| 5 | Borghi Marinari | (pending) | 2.190 | 416,10 | 6.976 | -240 | 7.152,10 |
+| 5 | FPR 6/25 | 04/11/2025 | 2.190 | 416,10 | 6.976 | -240 | 7.152,10 |
+| 6 | FPR 9/25 | (da XML) | 0 | 0 | 1.744 | 2 (bollo) | 1.746,00 |
 
-**Totale fatturato:** €12.407,19 + €9.834,45 = **€22.241,64**
-**Totale pagato:** €12.407,19 + €2.682,35 = **€15.089,54**
-**Da saldare:** €7.152,10
+**Note:**
+
+- FPR 6/25: data emissione effettiva 04/11/2025 (progetto Borghi Marinari,
+  incassata 11/11/2025 — confermato dal portale Aruba)
+- FPR 9/25: 4 puntate GS Nisseno (Mazzarino 15/10, Riesi 16/10, Sommatino
+  20/10, Butera 23/10/2025). Incassata il 26/01/2026. Non coperta dal CSV,
+  servizi derivati dall'XML + verifica utente/calendario.
+
+**Totale fatturato:** €12.407,19 + €9.834,45 + €1.746,00 = **€23.987,64**
+**Totale pagato:** €12.407,19 + €9.834,45 + €1.746,00 = **€23.987,64**
+**Da saldare:** €0
 
 ---
 
@@ -303,9 +284,13 @@ La vendita iPhone NON va nel DB. Solo l'hard disk da €260 come spesa.
 | Spese accessorie | €293 | -€240 | €53 |
 | Km totali | 3.701 km | 2.855 km | 6.556 km |
 | Rimborso km | €703,19 | €542,45 | €1.245,64 |
-| **Totale generale** | **€12.407,19** | **€9.834,45** | **€22.241,64** |
-| Pagato | €12.407,19 | €2.682,35 | €15.089,54 |
-| **Da saldare** | **€0** | **€7.152,10** | **€7.152,10** |
+
+| **Totale generale** | **€12.407,19** | **€9.834,45** | **€1.746,00** | **€23.987,64** |
+| Pagato | €12.407,19 | €9.834,45 | €1.746,00 | €23.987,64 |
+| **Da saldare** | **€0** | **€0** | **€0** | **€0** |
+
+Nota: la colonna "FPR 9/25" rappresenta la fattura Nisseno non coperta dal CSV,
+con servizi derivati da XML + verifica utente/calendario.
 
 ---
 
@@ -336,12 +321,20 @@ VALUES (
 );
 ```
 
-### projects (9 records)
+### projects (11 records)
 
 ```sql
 -- Gustare Sicilia
 INSERT INTO projects (client_id, name, category, tv_show, status, start_date)
 VALUES (:gustare_client_id, 'Gustare Sicilia', 'produzione_tv', 'gustare_sicilia', 'in_corso', '2024-10-27');
+
+-- Gustare Sicilia — Borghi Marinari
+INSERT INTO projects (client_id, name, category, tv_show, status, start_date)
+VALUES (:gustare_client_id, 'Gustare Sicilia — Borghi Marinari', 'produzione_tv', 'gustare_sicilia', 'in_corso', '2025-06-12');
+
+-- Gustare Sicilia — Nisseno
+INSERT INTO projects (client_id, name, category, tv_show, status, start_date)
+VALUES (:gustare_client_id, 'Gustare Sicilia — Nisseno', 'produzione_tv', 'gustare_sicilia', 'completato', '2025-10-15');
 
 -- Bella tra i Fornelli
 INSERT INTO projects (client_id, name, category, tv_show, status, start_date)
@@ -354,7 +347,8 @@ INSERT INTO projects (client_id, name, category, status, start_date) VALUES
 (:gustare_client_id, 'Spot Panino Mania', 'spot', 'completato', '2024-12-28'),
 (:gustare_client_id, 'Spot HCLINIC', 'spot', 'completato', '2025-01-08'),
 (:gustare_client_id, 'Spot Spritz & Co', 'spot', 'completato', '2025-01-23'),
-(:gustare_client_id, 'Spot Il Castellaccio', 'spot', 'completato', '2025-03-04');
+(:gustare_client_id, 'Spot Il Castellaccio', 'spot', 'completato', '2025-03-04'),
+(:gustare_client_id, 'Spot Camping Carratois', 'spot', 'completato', '2024-01-01');
 ```
 
 ### services (~50+ records)
@@ -371,16 +365,23 @@ tariffa flat unica che copre riprese+montaggio. Nel DB va in `fee_other`,
 NON spezzata tra fee_shooting e fee_editing. Il tipo servizio e `riprese_montaggio`
 ma i campi fee_shooting e fee_editing restano a 0.
 
-### payments (7 records)
+### payments (CSV acconti + Aruba portal truth + supplementary truth)
 
-I 6 acconti del foglio 1 + l'acconto del foglio 2.
+I 7 acconti CSV (6 dal foglio 1 + 1 dal foglio 2) sono la base per i
+pagamenti Gustare coperti dalla contabilita' interna. Per lo stato incasso
+di tutte le fatture emesse, vedere `docs/local-truth-rebuild.md` (sezione
+ARUBA_PORTAL_TRUTH).
 
-### expenses (2 records — vendita iPhone ignorata)
+Il conteggio finale dei payments nel dataset dipende dal numero di fatture
+outgoing XML presenti nel repo.
+
+### expenses (3 records — inclusa compensazione iPhone)
 
 | Descrizione | Tipo | Importo | Ricarico | Progetto |
 |-------------|------|---------|----------|----------|
 | Hard Disk Seagate IronWolf Pro 8TB | acquisto_materiale | 234,40 (base) | 25% = 293 | Foglio 1 (da associare) |
 | Hard Disk | acquisto_materiale | 260 | 0% | Borghi Marinari |
+| Vendita iPhone | credito_ricevuto | 500 | 0% | Borghi Marinari |
 
 ---
 
@@ -388,7 +389,8 @@ I 6 acconti del foglio 1 + l'acconto del foglio 2.
 
 1. **Fonte acquisizione cliente:** Passaparola
 2. **Bonus montaggio €249:** IGNORARE — considerato sconto
-3. **Vendita iPhone (-€500):** IGNORARE — considerato sconto
+3. **Vendita iPhone (-€500):** NON ignorare; va registrata come
+   `credito_ricevuto` collegato al progetto Borghi Marinari
 4. **Spot:** In questo storico Diego coordina operativamente gli spot per conto
    dell'associazione. Rosario fa spot anche per altri clienti (saranno
    progetti separati con clienti diversi).
@@ -399,9 +401,9 @@ I 6 acconti del foglio 1 + l'acconto del foglio 2.
 ### Domande ancora aperte
 
 - Contatti referente Diego? (telefono, email) — da inserire quando disponibili
-- Dati anagrafici/fiscali aggiuntivi di `ASSOCIAZIONE CULTURALE GUSTARE
-  SICILIA` oltre al CF gia noto — da completare quando disponibili
-- ROW 32-33 foglio 2 (Cantina Tre Santi senza importi) — lavori da fatturare?
+- ~~ROW 32-33 foglio 2 (Cantina Tre Santi senza importi)~~ — **RISOLTO**: lavori
+  eseguiti non fatturati, importati via `UNFILED_OPERATIONAL_TRUTH` con tariffe
+  standard BTF (187+125) e km=120. Pagamento `in_attesa` da €669,60.
 - Metodo pagamento acconti — tutti bonifico?
 - Date "3 sett 25", "16 sett 25" — confermata interpretazione settembre 2025?
 
@@ -451,7 +453,7 @@ CHECK (tv_show IN ('bella_tra_i_fornelli', 'gustare_sicilia', 'vale_il_viaggio',
 
 Questa nota appartiene al bootstrap originario delle settings.
 
-Nel runtime attuale la configurazione applicativa e' piu ricca e non va letta
+Nel runtime attuale la configurazione applicativa e' piu' ricca e non va letta
 come semplice elenco stabile di chiavi `default_fee_*`.
 
 Questa sezione resta utile solo per capire il passaggio storico delle tariffe:
@@ -494,3 +496,48 @@ ALTER TABLE projects DROP CONSTRAINT projects_tv_show_check;
 ALTER TABLE projects ADD CONSTRAINT projects_tv_show_check
   CHECK (tv_show IN ('bella_tra_i_fornelli', 'gustare_sicilia', 'vale_il_viaggio', 'altro'));
 ```
+
+---
+
+## Appendice A. Mappa canonica verificata Diego/Gustare
+
+Aggiornata il 2026-03-02 con verifica incrociata CSV + XML + Google Calendar.
+
+### Riepilogo fatture
+
+| Fattura | Servizi | Totale | Settlement | Km | Note |
+|---------|---------|--------|------------|----|------|
+| FPR 7/24 | 3 entries | €997 | ricevuto 27/12/24 | 0 (carry) | |
+| FPR 1/25 | 18 entries | €5,115 | ricevuto 03/03/25 | 0 (carry) | |
+| FPR 2/25 | 16+2 special | €6,295.19 | ricevuto 14/05/25 | 3,701 km | |
+| FPR 4/25 | 8 entries | €2,682.35 | ricevuto 14/10/25 | 665 km | |
+| FPR 6/25 | 16+2 special | €7,152.10 | ricevuto 11/11/25 | 2,190 km | Emissione 04/11/2025 |
+| FPR 9/25 | 4 entries | €1,746 | ricevuto 26/01/26 | 0 | Nisseno, senza CSV |
+
+### FPR 9/25 — Dettaglio episodi Nisseno
+
+Fattura coperta dall'XML `IT01879020517A2025_itYcw.xml` ma senza copertura nel
+CSV della contabilita' interna. Servizi ricostruiti da XML + verifica utente e
+calendario.
+
+| # | Data | Localita | Riprese | Montaggio | Km |
+|---|------|----------|---------|-----------|-----|
+| 1 | 2025-10-15 | Mazzarino | 187 | 249 | 0 |
+| 2 | 2025-10-16 | Riesi | 187 | 249 | 0 |
+| 3 | 2025-10-20 | Sommatino | 187 | 249 | 0 |
+| 4 | 2025-10-23 | Butera | 187 | 249 | 0 |
+
+Totale servizi: €1,744. Bollo: €2. Totale fattura: €1,746.
+Incassata il 26/01/2026 tramite bonifico.
+
+### Correzioni date CSV applicate
+
+Errori di digitazione di Diego corretti direttamente in
+`SERVIZI-Tabella 1.csv`:
+
+| Riga | Dato originale | Corretto | Data canonica | Progetto |
+|------|---------------|----------|---------------|----------|
+| 3 | 27 ott 14 | 27 ott 24 | 2024-10-27 | GS Ragalna |
+| 15 | 5 gen 24 | 5 gen 25 | 2025-01-05 | BTF Santocchini |
+| 16 | 8 gen 24 | 8 gen 25 | 2025-01-08 | SPOT HCLINIC |
+| 17 | 13 gen 24 | 13 gen 25 | 2025-01-13 | BTF Pasticceria Vittoria |

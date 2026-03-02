@@ -6,7 +6,7 @@ lavoro senza riaprire decisioni gia prese.
 **Quando NON usarlo da solo:** per dedurre architettura canonica o stato
 prodotto senza incrociarlo con `docs/README.md` e i documenti `canonical`.
 
-Last updated: 2026-03-01
+Last updated: 2026-03-02
 
 ## Goal
 
@@ -82,6 +82,54 @@ The current canonical interpretation is:
 
 - `ASSOCIAZIONE CULTURALE GUSTARE SICILIA` = fiscal client
 - `Diego Caltabiano` = linked operational contact
+
+## Current Recovery Plan
+
+This plan now supersedes the older "next high-value AI/commercial slice"
+language still present lower in this historical handoff.
+
+The current order is explicit:
+
+1. rebuild the local business dataset from real source-of-truth files
+2. fix system semantics on top of those real data
+3. realign UI, AI, import, analytics and linked business flows
+4. only after that, rewrite or extend smoke/E2E coverage
+
+Current source-of-truth order:
+
+- first `Fatture/` (XML outgoing and incoming invoices)
+- then `Fatture/contabilità interna - diego caltabiano/` for details not
+  present in invoices alone
+- then Aruba Fatturazione Elettronica portal for exact collection dates
+  (coded as `ARUBA_PORTAL_TRUTH` in `scripts/local-truth-data.mjs`)
+
+Current explicit runtime truth that must survive chat resets:
+
+- all outgoing invoices from 2023, 2024 and 2025 are operationally `ricevuto`
+  with exact collection dates from the Aruba portal (screenshots 2026-03-02)
+- the only exception is `FPA 1/23` dated `2023-10-30` ("Non incassata" per
+  the Aruba portal), tied to the `NONSOLOLIBRI` work
+- FPA 1/25 and FPA 2/25 are "Stornata" (credit note pair, handled by code)
+- Diego/Gustare is fully paid: EUR 23,987.64 invoiced, EUR 23,987.64 collected
+- FPR 6/25 (Borghi Marinari, EUR 7,152.10) was corrected from "scaduto" to
+  "ricevuto 11/11/2025" via the Aruba portal truth
+
+Current non-negotiable consequences:
+
+- do not treat hardcoded local domain fixtures as a stable foundation
+- do not grow test coverage ahead of system correctness
+- do not open the supplier domain before the current financial semantics are
+  under control
+- do not widen general AI write power while the domain model is still weak
+
+Current structural warning:
+
+- the main system fragility is still the overloaded meaning of:
+  - invoice/document
+  - receivable/payable state
+  - actual cash movement
+- the project must converge toward a clearer separation of those meanings
+  before more expansion work
 
 ## How To Resume In A New Chat
 
@@ -1673,100 +1721,82 @@ Additional runtime note for the annual flow:
 
 ## Current Explicit Next Slice
 
-The previously explicit slice `anagrafica cliente da fatturazione/import
-storico` is now closed.
+The previous `local truth rebuild` slice is now closed:
 
-Analysis is now closed before implementation:
+- local reset now rebuilds the business dataset from the real source files
+- Diego/Gustare semantics now come from imported truth, not from hardcoded
+  local domain fixtures
+- local browser smoke can read and write on top of that rebuilt dataset
 
-- evidence inspected:
-  - current `clients` schema + forms
-  - current invoice-import workspace / draft / extract contract
-  - real outgoing XML invoices in `Fatture/2023`, `Fatture/2024`,
-    `Fatture/2025`
-  - current expense linkage
-- the gap is structural:
-  - `clients` only keeps one freeform `address`
-  - `clients.tax_id` still collapses `Partita IVA` and `Codice Fiscale`
-  - invoice import cannot yet carry structured billing fields from extraction
-- recurring customer fields observed in real XML invoices:
-  - `Denominazione`
-  - `IdPaese`
-  - `IdCodice`
-  - `CodiceFiscale`
-  - `Indirizzo`
-  - `NumeroCivico`
-  - `CAP`
-  - `Comune`
-  - `Provincia`
-  - `Nazione`
-  - `CodiceDestinatario`
+The explicit next slice is now:
+
+- `financial semantic separation`
+
+Goal:
+
+- stop overloading `payments` / `expenses` with mixed meanings
+- separate more clearly:
+  - fiscal document
+  - receivable/payable open state
+  - actual cash movement
+- preserve the rebuilt local truth dataset as the baseline while correcting the
+  model
 
 Execution order for this slice:
 
-1. extend the client billing profile in DB schema, types and UI
-2. extend invoice extraction + draft transport so the launcher can hold the
-   same fields coherently
-3. only later allow AI-assisted creation of a missing client from invoice
-   import, always with explicit confirmation
+1. keep the rebuilt local truth baseline as the only acceptable domain source
+2. preserve and refine the new foundation already introduced for:
+   - emitted/received document
+   - open receivable/payable state
+   - cash movement
+   - project allocation / reconciliation
+3. realign UI, AI, import and analytics from `payments` / `expenses` toward
+   that clearer model
+4. keep compatibility only where migration is not finished yet
+5. only after the system is correct, tighten tests around the new semantics
 
-Important boundary:
+Important boundaries:
 
-- the suspected supplier gap is real too:
-  - `expenses` still references `client_id`
-  - there is still no dedicated supplier resource/page
-- but that is a different slice:
-  - do not mix supplier-resource design into the customer billing-profile
-    migration unless it becomes a hard blocker for the current step
+- do not open the supplier domain before the document/open/cash separation is
+  under control
+- do not treat test convenience as a reason to keep the old overloaded model
+- technical bootstrap data is allowed only for environment setup, not for
+  inventing business truth
 
-Implementation is now closed too:
+Current success condition:
 
-- new nullable client billing fields now exist in DB schema:
-  - `billing_name`
-  - `vat_number`
-  - `fiscal_code`
-  - split billing address fields
-  - `billing_sdi_code`
-  - `billing_pec`
-- client create/edit/show/export and quote PDF now consume those structured
-  fields with fallback to legacy values
-- invoice import now carries the same fiscal fields end-to-end:
-  - Gemini response schema
-  - edge-function prompt
-  - draft payload
-  - draft editor
-- if the imported customer is still missing from the CRM, the draft can now
-  open `clients/create` already prefilled instead of stopping on a dead end
-- if the user still confirms only `payments` / `expenses`, the extracted
-  billing fields are preserved at least in the created record notes
-- runtime verification is now closed too on `qvdmzhyzpyaveniirsmo`:
-  - migration `20260301153000_add_client_billing_profile.sql` pushed remotely
-  - `invoice_import_extract` redeployed remotely
-  - authenticated smoke on real PDF `FPR 1/23` returned:
-    - `billingName = LAURUS S.R.L.`
-    - `vatNumber = IT04126560871`
-    - `billingCity = Pozzallo`
-    - `billingSdiCode = M5UXCR1`
-    - warning for missing client still absent from the CRM
-
-The immediate continuity follow-up is now closed too:
-
-- the unified launcher read snapshot now exposes recent clients with:
-  - billing-coherent customer name
-  - `Partita IVA`
-  - `Codice Fiscale`
-  - `Codice Destinatario`
-  - `PEC`
-  - summarized billing address
-- the same billing-coherent customer naming is now reused on client-linked
-  quote/project/payment references shown inside the launcher
-- client list discovery is now aligned with the new billing profile too:
-  - row preview now shows billing identity badges
-  - filters now support billing name, `P.IVA`, `CF`, `Codice Destinatario`,
-    `PEC`, and billing city
-- this slice stayed local:
-  - no migration
-  - no function redeploy
-  - validation closed with `npm run typecheck` and targeted Vitest
+- the local rebuilt domain remains replayable from the real files
+- the financial foundation tables remain populated from the same rebuild:
+  - `financial_documents`
+  - `cash_movements`
+  - allocation tables
+- the system can answer distinctly:
+  - what document exists
+  - what is still open
+  - what cash really moved
+- the first migrated consumer now behaves coherently:
+  - `project_financials` prefers foundation document/cash semantics when the
+    project is covered by the rebuild
+  - legacy `payments` are only a fallback for projects not yet covered by the
+    foundation
+- 2025 fiscal files are now stronger than before:
+  - `FPR 1/25` and `FPR 2/25` are present as real XML files in `Fatture/2025/`
+  - the May 2025 public-administration trio is explicit:
+    - `FPA 1/25` invoice
+    - `FPA 2/25` `TD04` credit note linked to `FPA 1/25`
+    - `FPA 3/25` valid reissue
+  - `Fatturato attivo 2025` reconstructed from the local truth baseline now
+    closes correctly at `€26.700,35` when credit-note semantics are applied
+  - the foundation now also preserves fiscal XML breakdowns:
+    - `xml_document_code`
+    - `taxable_amount`
+    - `tax_amount`
+    - `stamp_amount`
+  - operational incasso semantics remain the project ones:
+    - `payments.status = ricevuto / in_attesa / scaduto`
+    - `payment_type` remains part of the same operational model
+- the next implementation step can then target supplier/domain expansion on top
+  of a healthier financial core
 
 The next launcher-UX continuity slice is now closed too:
 

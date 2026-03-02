@@ -6,7 +6,7 @@
 incrociarlo con `docs/README.md`, `docs/architecture.md` e i documenti
 `canonical`.
 
-Last updated: 2026-03-01
+Last updated: 2026-03-02
 
 Archivio storico opzionale, da leggere solo se serve piu' contesto:
 
@@ -135,7 +135,86 @@ Strategic product note:
   - only later assisted writes with explicit confirmation
   - no free autonomous CRM writes
 
+Current override for the next phase:
+
+- the old closed AI/commercial milestones below remain useful as archive
+- they are not the current execution priority anymore
+- the current priority is system recovery on real data:
+  - rebuild local business truth from `Fatture/`
+  - enrich with `Fatture/contabilità interna - diego caltabiano/`
+  - then fix system semantics
+  - then realign UI/AI/import/analytics
+  - only after that, update or expand E2E/smoke
+
 ## First Open Priority
+
+The current first open priority now supersedes the old slice-by-slice launcher
+expansion story below.
+
+Current first open priority:
+
+- `financial semantic separation`
+
+Why:
+
+- the local runtime now rebuilds from the real source-of-truth files
+- this exposes the real system weakness more clearly:
+  - document vs due/open state
+  - due/open state vs actual cash movement
+  - partial/project allocations vs fiscal totals
+- without that separation, analytics, AI and future suppliers would keep
+  resting on ambiguous financial meaning
+
+Tasks (completed 2026-03-02):
+
+- [x] preserve the rebuilt local truth dataset as the validation baseline
+- [x] keep the new foundation tables populated from that rebuild:
+  - `financial_documents`
+  - `cash_movements`
+  - explicit allocation tables
+- [x] preserve the fiscal XML breakdowns in the foundation:
+  - `xml_document_code`
+  - `taxable_amount`
+  - `tax_amount`
+  - `stamp_amount`
+- [x] keep `project_financials` on the new priority order:
+  - use foundation cash when the project is covered and settled
+  - use `financial_documents` as the semantic base when the project is covered
+    but still unpaid
+  - fall back to legacy `payments` only for uncovered projects
+- [x] portal cash movements for ALL invoices (not just Diego/Gustare):
+  - gap-based: fills only the delta between CSV-settled and total
+  - audit script: `scripts/audit-aruba-reconciliation.mjs`
+  - 29/29 settlement status match, 15/15 tests pass
+
+Open (next arc):
+
+- map where `payments` and `expenses` still overload document, open state and
+  cash movement semantics
+- migrate UI, AI, import and analytics progressively to the clearer model
+- when the dataset is stable, convert the rebuild script into a one-shot
+  migration (pre-backup) and retire `scripts/bootstrap-local-truth.mjs` +
+  `scripts/local-truth-data.mjs` as runtime dependencies
+
+Acceptance (met):
+
+- the rebuilt local dataset stays replayable from real files
+- the rebuilt local dataset also repopulates the financial foundation tables
+- the system can distinguish:
+  - existing fiscal document
+  - residual open amount/state
+  - actual cash movement
+- keep the product semantic authority internal:
+  - `payments.status` remains the operational truth for incasso state
+  - `payment_type` remains part of the same truth
+- the next open work can then focus on suppliers and richer analytics without
+  carrying forward semantic ambiguity
+
+Archive note:
+
+- the long closed milestone chain that follows remains useful historical
+  evidence
+- it should not be read as the current priority queue
 
 The manual quote-status email step is now closed.
 It is also runtime-verified on the linked remote project:
@@ -702,57 +781,37 @@ Not the next step by default:
 
 ## Stop Line For This Phase
 
-This work must not grow forever. For this phase, `enough` means:
+This work must not grow forever. For the current recovery phase, `enough`
+means:
 
-- `Storico` stays reliable on its current semantic split:
-  - `compensi`
-  - `incassi`
-- `Annuale` stays AI-enabled only on the approved `annual_operations` context,
-  without trying to absorb fiscal simulation or alert logic into the same AI
-  payload.
-- the commercial backbone stays solid on the real cases that matter now:
-  - `client -> payment`
-  - `quote -> payment`
-  - `quote -> project -> payment`
-- `quote` and `project` remain optional:
-  - do not force them on simple jobs such as lightweight wedding work.
+- the local database can be rebuilt from real source-of-truth files
+- Diego/Gustare no longer depends on hardcoded local domain fixtures
+- the rebuilt dataset is good enough to expose real semantic gaps in the
+  financial model
+- only then do tests become worth stabilizing on top of that dataset
 
-What is already enough today:
+What is legitimate work in this phase:
 
-- the current `Storico` AI and non-AI foundations,
-- the current `Annuale` AI operational flow,
-- the current client/quote/project/payment links already validated in the real
-  UI.
-
-What is still legitimate work in this phase:
-
-- keeping tests and semantic rules aligned when these existing widgets change,
-- at most one more small commercial slice if it closes a real workflow gap,
-- importing more real historical data only when it becomes product-useful.
+- rebuild/import work from `Fatture/`
+- enrichment from `Fatture/contabilità interna - diego caltabiano/`
+- correcting schema and domain semantics when real data expose a weakness
+- realigning UI, import, AI and analytics to the rebuilt truth
 
 What is **not** part of this phase by default:
 
-- turning `Annuale` into a full-page AI assistant,
-- opening a multi-turn global AI chat across the whole CRM,
-- adding more dashboard cards unless one replaces confusion with clarity,
-- inventing workflow steps that create bureaucracy without better data.
-- adding more scattered AI interfaces unless they are clearly temporary and
-  compatible with later unification.
-- re-spreading business meanings across forms instead of reusing the semantic
-  registry and shared formulas.
-- shipping customer-facing status emails from page-level copy instead of one
-  shared template layer with explicit send policy.
-- leaving dead communication branches like `Postmark` in the repo after the
-  product direction has already moved elsewhere.
+- adding more AI slices because the old launcher path still has room to grow
+- expanding supplier-resource design before the current financial model is
+  clearer
+- widening general AI writes while the underlying data model is still weak
+- adding more E2E coverage on top of synthetic local business data
 
 Stop condition:
 
-- if the current UI already supports the three commercial paths above without
-  forcing fake structure,
-- and `Storico` / `Annuale` keep producing coherent outputs on the current
-  validated paths,
-- this phase is complete enough and new ideas belong to `v2`, not to endless
-  slice expansion.
+- after reset, the local runtime rebuilds on real business data
+- the next open problem is genuinely semantic/modeling work, not synthetic
+  bootstrap drift
+- from that point, tests can be rewritten as verification of the recovered
+  system instead of as a substitute for it
 
 ## How To Use This Backlog In A New Chat
 
@@ -1385,84 +1444,77 @@ the past.
 
 ## Priority 1
 
-### Keep the new historical / annual / commercial tests updated if widgets evolve
+### Financial semantic separation on rebuilt real data
 
 Why:
 
-- the current baseline is now protected by tests across:
-  - historical widgets,
-  - annual operations AI,
-  - commercial backbone helpers,
-  - quote itemization helpers,
-  - and the new historical cash-inflow AI card.
+- the rebuilt local truth baseline now exists
+- the main weakness is the overloaded meaning of document, due state and cash
+  movement
+- without fixing this, real-data rebuilds will keep surfacing ambiguity instead
+  of producing trustworthy business behavior
 
 Tasks:
 
-- when historical/annual/commercial widgets change, update the tests in the
-  same branch,
-- keep coverage for empty/error/YTD/YoY semantics and AI card actions,
-- keep `quote_items` and lookup-helper tests aligned with any future form
-  refactor,
-- for authenticated smoke on the linked Supabase project, reuse
-  `scripts/auth-smoke-user.mjs` instead of rebuilding temp-user auth manually,
-- for authenticated browser smoke on the local Vite runtime, always use
-  hash-based routes:
-  - `http://127.0.0.1:4173/#/...`
-  - example: `http://127.0.0.1:4173/#/quotes/<id>/show`
-- keep `supabase/config.toml` aligned when new UI-invoked functions are added.
+- map all current reads/writes that overload `payments` and `expenses`
+- introduce a clearer target around:
+  - document
+  - open receivable/payable state
+  - cash movement
+  - allocation / reconciliation
+- preserve compatibility long enough to migrate UI, AI and import safely
 
 Acceptance:
 
-- regressions in semantic rendering, function wiring, or cross-module linking
-  keep getting caught before shipping.
+- the system answers correctly and separately:
+  - what was invoiced/received
+  - what is still due
+  - what was actually paid/incassato
+- follow-up work can focus on suppliers and analytics on top of a healthier
+  financial backbone
 
 ## Priority 2
 
-### Commercial base review before stopping the phase
+### Supplier domain only after the financial core is credible
 
 Why:
 
-- the target paths for this phase are now all represented in the UI:
-  - `client -> payment`
-  - `quote -> payment`
-  - `quote -> project -> payment`
-- so the right next move may now be to stop, not to invent more slices.
+- suppliers will inherit the same semantic risks as clients if the system still
+  confuses document, open state and cash movement
+- opening suppliers too early would duplicate ambiguity instead of resolving it
 
 Tasks:
 
-- verify whether a concrete workflow hole still exists in one of the three
-  target paths,
-- if no such gap exists, stop this phase,
-- if a gap does exist, only then justify one further small slice.
+- keep supplier design parked until the document/open/cash split is explicit
+- prepare the supplier model with the same rule:
+  - fiscal counterparty != operational referent
+- reopen supplier implementation only when the financial backbone is stable
 
 Acceptance:
 
-- either:
-  - the phase is declared complete enough on the commercial side,
-  - or one last small slice is justified by a real gap instead of by momentum.
+- suppliers can be introduced without reusing the old overloaded financial
+  semantics
 
 ## Priority 3
 
-### Future AI interface unification
+### Re-align UI, AI, import and analytics on the recovered model
 
 Why:
 
-- a fundamental product goal is to stop keeping AI features scattered across
-  many pages,
-- while preserving the already useful capabilities and avoiding regressions.
+- once the rebuild and semantics are corrected, the surfaces must read the same
+  truth instead of carrying divergent interpretations
 
 Tasks:
 
-- only after the current foundations are considered stable, map the existing
-  AI entry points and converge them into one clearer experience,
-- keep the semantic rules unchanged,
-- preserve the capabilities already validated in `Storico` and `Annuale`,
-- do not remove page-level utility until the unified replacement is at least as
-  usable.
+- update UI flows, import flows, read contexts and analytics views on top of
+  the recovered domain
+- then rewrite smoke/E2E as verification of the corrected system
+- only later reopen broader supplier or AI expansion discussions
 
 Acceptance:
 
-- AI functionality becomes easier to use from one place,
+- the same business fact is read coherently by forms, dashboards, import and
+  AI surfaces
 - without losing the current validated question/answer capabilities,
 - and without creating regressions in simple day-to-day use.
 

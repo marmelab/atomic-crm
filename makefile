@@ -8,6 +8,8 @@ install: package.json ## install dependencies
 
 start-supabase: ## start supabase locally
 	npx supabase start
+	npm run local:admin:bootstrap
+	npm run local:truth:ensure
 
 start-supabase-functions: ## start the supabase Functions watcher
 	npx supabase functions serve
@@ -17,6 +19,11 @@ supabase-migrate-database: ## apply the migrations to the database
 
 supabase-reset-database: ## reset (and clear!) the database
 	npx supabase db reset
+	npm run local:admin:bootstrap
+	npm run local:truth:rebuild
+
+local-truth-rebuild: ## rebuild local business truth from Fatture/
+	npm run local:truth:rebuild
 
 start-app: ## start the app locally
 	npm run dev
@@ -50,6 +57,9 @@ test:
 
 test-ci:
 	CI=1 npm test
+
+test-e2e:
+	npm run test:e2e
 
 lint:
 	npm run lint

@@ -65,6 +65,27 @@ prodotto e non come reading order iniziale di una nuova chat.
   - answer flow read-only presente
   - handoff verso superfici approvate presente
   - import fatture/ricevute presente con conferma esplicita
+- baseline locale reale:
+  - `make start` e `npx supabase db reset` ricostruiscono il dominio locale da
+    `Fatture/`
+  - il caso Diego/Gustare viene arricchito da
+    `Fatture/contabilità interna - diego caltabiano/`
+  - admin locale tecnico e smoke browser si appoggiano a quel dataset, non a
+    fixture dominio hardcoded
+  - il rebuild locale popola anche una foundation finanziaria esplicita:
+    `financial_documents`, `cash_movements` e allocazioni
+  - `project_financials` e' il primo consumer riallineato:
+    foundation prima, legacy `payments` solo come fallback per progetti non
+    ancora coperti
+  - nuovo export fiscale 2025 integrato:
+    - `FPR 1/25` e `FPR 2/25` ora arrivano da XML reali, non piu' solo dalla
+      contabilita' interna
+    - il trio `FPA 1/25` / `FPA 2/25` / `FPA 3/25` ha rivelato un caso reale
+      `fattura -> TD04 -> riemissione`
+    - la foundation ora conserva anche `xml_document_code`,
+      `taxable_amount`, `tax_amount`, `stamp_amount`
+    - lo stato incasso canonico del progetto resta quello di `payments.status`
+      (`ricevuto / in_attesa / scaduto`)
 - foundation condivise chiuse:
   - `crmSemanticRegistry`
   - `crmCapabilityRegistry`
@@ -75,8 +96,11 @@ prodotto e non come reading order iniziale di una nuova chat.
 - linea di fase:
   - tenere stabile il perimetro chiuso
   - non aggiungere AI sparse
-  - trattare i fornitori come slice separato e non come patch implicita del
-    modello clienti
+  - non trattare i test come priorita' prima del sistema
+  - usare il rebuild reale per far emergere gap su pagato/non pagato,
+    referenti, lavori e allocazioni
+  - priorita' aperta: separare meglio documento, aperto e cassa
+  - solo dopo valutare fornitori come slice separata
 
 ## Last Session
 

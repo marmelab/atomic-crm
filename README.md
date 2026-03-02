@@ -39,6 +39,7 @@ in questo ordine:
 make install
 make start
 make test
+make test-e2e
 make typecheck
 make lint
 ```
@@ -48,6 +49,29 @@ Nota operativa:
 - la modalita' demo/FakeRest non fa piu parte del workflow supportato
 - sviluppo, smoke test e validazione vanno eseguiti sul runtime reale avviato
   con `make start`
+- `make start` e `npx supabase db reset` ricreano automaticamente anche un
+  admin locale autenticabile
+- `make start` verifica anche che il dominio locale minimo sia allineato al
+  rebuild reale da `Fatture/`
+- `make supabase-reset-database` ricostruisce il database locale di dominio da:
+  - `Fatture/`
+  - `Fatture/contabilità interna - diego caltabiano/`
+- nel solo runtime locale il login email/password Supabase resta abilitato per
+  supportare bootstrap admin e smoke E2E
+- `make test-e2e` gira sul dataset locale reale ricostruito, non su fixture
+  dominio hardcoded
+- gli smoke Playwright locali coprono sia lettura sia write-path minimi:
+  - login admin
+  - cliente/referente Diego-Gustare
+  - progetto + snapshot AI
+  - creazione referente da progetto con auto-link
+  - aggiornamento referente primario progetto
+- credenziali locali di default:
+  - email `admin@gestionale.local`
+  - password `LocalAdmin123!`
+- se vuoi cambiarle senza toccare il repo, usa in `.env.local`:
+  - `LOCAL_SUPABASE_ADMIN_EMAIL`
+  - `LOCAL_SUPABASE_ADMIN_PASSWORD`
 
 ## Deploy
 
