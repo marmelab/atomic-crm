@@ -17,6 +17,7 @@ import { supabaseAdmin } from "../_shared/supabaseAdmin.ts";
 
 const webhookUser = Deno.env.get("POSTMARK_WEBHOOK_USER");
 const webhookPassword = Deno.env.get("POSTMARK_WEBHOOK_PASSWORD");
+const INBOUND_EMAIL = Deno.env.get("POSTMARK_INBOUND_EMAIL");
 if (!webhookUser || !webhookPassword) {
   throw new Error(
     "Missing POSTMARK_WEBHOOK_USER or POSTMARK_WEBHOOK_PASSWORD env variable",
@@ -29,10 +30,6 @@ if (!rawAuthorizedIPs) {
 }
 
 Deno.serve(async (req) => {
-  const allSales = await supabaseAdmin.from("sales").select("email");
-  const salesEmails =
-    allSales.data?.map((s: { email: string }) => s.email) ?? [];
-
   let response: Response | undefined;
 
   response = checkRequestTypeAndHeaders(req);
@@ -55,8 +52,9 @@ Deno.serve(async (req) => {
     );
   }
 
-  // This env var is only available inside the served function
-  const INBOUND_EMAIL = process.env.VITE_INBOUND_EMAIL;
+  const allSales = await supabaseAdmin.from("sales").select("email");
+  const salesEmails =
+    allSales.data?.map((s: { email: string }) => s.email) ?? [];
 
   // If the email is sent to the inbound email address, and the sender is a known sales email,
   // then we can try to extract the real recipient email from the body of the email
@@ -79,6 +77,13 @@ Deno.serve(async (req) => {
           Name: "",
         },
       ];
+    } else {
+      // Return a 403 to let Postmark know that it's no use to retry this request
+      // https://postmarkapp.com/developer/webhooks/inbound-webhook#errors-and-retries
+      return new Response(
+        `Could not extract recipient email from transferred email body: ${TextBody}`,
+        { status: 403 },
+      );
     }
     TextBody = getForwardedMailContent(TextBody);
     Subject = stripSubjectForwardingPrefix(Subject);

@@ -109,6 +109,7 @@ jobs:
             POSTMARK_WEBHOOK_USER: ${{secrets.POSTMARK_WEBHOOK_USER}}
             POSTMARK_WEBHOOK_PASSWORD: ${{secrets.POSTMARK_WEBHOOK_PASSWORD}}
             POSTMARK_WEBHOOK_AUTHORIZED_IPS: ${{secrets.POSTMARK_WEBHOOK_AUTHORIZED_IPS}}
+            POSTMARK_INBOUND_EMAIL: ${{secrets.VITE_INBOUND_EMAIL}}
             VITE_GOOGLE_WORKPLACE_DOMAIN: ${{secrets.VITE_GOOGLE_WORKPLACE_DOMAIN}}
 
         steps:
@@ -152,6 +153,7 @@ jobs:
                   npx supabase secrets set POSTMARK_WEBHOOK_USER=${{ env.POSTMARK_WEBHOOK_USER }}
                   npx supabase secrets set POSTMARK_WEBHOOK_PASSWORD=${{ env.POSTMARK_WEBHOOK_PASSWORD }}
                   npx supabase secrets set POSTMARK_WEBHOOK_AUTHORIZED_IPS=${{ env.POSTMARK_WEBHOOK_AUTHORIZED_IPS }}
+                  npx supabase secrets set POSTMARK_INBOUND_EMAIL=${{ env.POSTMARK_INBOUND_EMAIL }}
 
             - if: ${{ env.IS_SUPABASE_CONFIGURED }}
               name: 📡 Deploy supabase functions
