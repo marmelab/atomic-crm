@@ -67,7 +67,6 @@ async function createProject({
       "supabase",
       "projects",
       "create",
-      "--interactive",
       "--output",
       "json",
       "--db-password",
