@@ -58,8 +58,6 @@ export const DashboardAnnual = () => {
         asOfDateLabel={data.meta.asOfDateLabel}
       />
 
-      <DashboardAnnualAiSummaryCard year={data.selectedYear} />
-
       <DashboardKpiCards
         kpis={data.kpis}
         meta={data.meta}
@@ -166,6 +164,8 @@ export const DashboardAnnual = () => {
           </CardContent>
         </Card>
       )}
+
+      <DashboardAnnualAiSummaryCard year={data.selectedYear} />
     </div>
   );
 };

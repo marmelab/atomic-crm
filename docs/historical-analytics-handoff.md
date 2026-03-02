@@ -2212,6 +2212,13 @@ Explicit boundary still kept in place:
 
 ---
 
+## Nota UI 2026-03-02 — AI card spostata in fondo alla vista annuale
+
+`DashboardAnnualAiSummaryCard` è stata spostata in fondo a `DashboardAnnual.tsx`,
+dopo il blocco fiscale. Nessun cambiamento funzionale all'AI o al flusso analytics.
+
+---
+
 ## Nota manutenzione 2026-03-02
 
 `supabase/functions/unified_crm_answer/index.ts` ha ricevuto solo una
