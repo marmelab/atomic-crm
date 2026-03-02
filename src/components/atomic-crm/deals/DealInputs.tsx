@@ -31,8 +31,19 @@ export const DealInputs = () => {
 const DealInfoInputs = () => {
   return (
     <div className="flex flex-col gap-4 flex-1">
-      <TextInput source="name" validate={required()} helperText={false} />
-      <TextInput source="description" multiline rows={3} helperText={false} />
+      <TextInput
+        source="name"
+        label="resources.deals.fields.name"
+        validate={required()}
+        helperText={false}
+      />
+      <TextInput
+        source="description"
+        label="resources.deals.fields.description"
+        multiline
+        rows={3}
+        helperText={false}
+      />
     </div>
   );
 };
@@ -73,6 +84,7 @@ const DealMiscInputs = () => {
 
       <SelectInput
         source="category"
+        label="resources.deals.fields.category"
         choices={dealCategories}
         optionText="label"
         optionValue="value"
@@ -80,6 +92,7 @@ const DealMiscInputs = () => {
       />
       <NumberInput
         source="amount"
+        label="resources.deals.fields.amount"
         defaultValue={0}
         helperText={false}
         validate={required()}
@@ -87,11 +100,13 @@ const DealMiscInputs = () => {
       <DateInput
         validate={required()}
         source="expected_closing_date"
+        label="resources.deals.fields.expected_closing_date"
         helperText={false}
         defaultValue={new Date().toISOString().split("T")[0]}
       />
       <SelectInput
         source="stage"
+        label="resources.deals.fields.stage"
         choices={dealStages}
         optionText="label"
         optionValue="value"

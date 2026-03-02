@@ -36,6 +36,7 @@ const DealList = () => {
     </ReferenceInput>,
     <SelectInput
       source="category"
+      label={false}
       emptyText={translate("resources.deals.fields.category", {
         _: "Category",
       })}
