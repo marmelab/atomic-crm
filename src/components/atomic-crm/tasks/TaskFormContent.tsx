@@ -1,5 +1,4 @@
 import { AutocompleteInput } from "@/components/admin/autocomplete-input";
-import { DateInput } from "@/components/admin/date-input";
 import { ReferenceInput } from "@/components/admin/reference-input";
 import { SelectInput } from "@/components/admin/select-input";
 import { TextInput } from "@/components/admin/text-input";
@@ -7,6 +6,7 @@ import { required } from "ra-core";
 
 import { contactOptionText } from "../misc/ContactOption";
 import { useConfigurationContext } from "../root/ConfigurationContext";
+import { DateTimeInput } from "@/components/admin";
 
 export const TaskFormContent = ({
   selectContact,
@@ -38,7 +38,11 @@ export const TaskFormContent = ({
       )}
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <DateInput source="due_date" helperText={false} validate={required()} />
+        <DateTimeInput
+          source="due_date"
+          helperText={false}
+          validate={required()}
+        />
         <SelectInput
           source="type"
           validate={required()}
