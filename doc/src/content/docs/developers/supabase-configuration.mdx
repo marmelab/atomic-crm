@@ -13,7 +13,7 @@ Atomic CRM comes with a CLI utility to create a backend instance on [supabase.co
 make supabase-remote-init
 ```
 
-The script will ask you for the Supabase instance name, create the database, apply the migrations and deploy the edge functions. Finally, it will create a `.env.production.local` file with your remote Supabase configuration.
+The script will ask you for the Supabase instance name, create the database, apply the migrations, and set up the secrets needed by the edge functions. Finally, it will create a `.env.production.local` file with your remote Supabase configuration.
 
 The script cannot yet automate the configuration of the required SMTP provider on your Supabase instance. To do that, please follow the instructions detailed in the [Email Provider Setup](#email-provider-setup) section.
 
@@ -74,6 +74,7 @@ Using a remote Supabase instance can be interesting if you deploy from your comp
 In order to support [the invitations workflow](../../users/user-management#adding-users) and the default email/password authentication (including password reset), Atomic CRM needs to be able to send emails from your Supabase instance.
 
 By default, Supabase provides a simple SMTP server for all projects. But this server imposes a few important restrictions and is not meant for production use:
+
 - It can only send messages to pre-authorized addresses
 - It imposes significant rate-limits
 - There is no SLA guarantee on message delivery or uptime
@@ -126,7 +127,7 @@ If you want more information on how to customize email templates, check the [Cus
 
 ## Frequently Asked Questions
 
-**I have a *Security Definer View* error in *Security Advisor***
+**I have a _Security Definer View_ error in _Security Advisor_**
 
 This warning informs you that the `init_state` state view is public and can be called by everybody.
 
