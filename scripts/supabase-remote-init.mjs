@@ -1,4 +1,4 @@
-import { input } from "@inquirer/prompts";
+import { input, select } from "@inquirer/prompts";
 import { execa } from "execa";
 import fs from "node:fs";
 
@@ -13,7 +13,16 @@ import fs from "node:fs";
     default: generatePassword(16),
   });
 
-  const projectRef = await createProject({ projectName, databasePassword });
+  const organizationId = await selectOrganization();
+
+  const region = await selectRegion();
+
+  const projectRef = await createProject({
+    projectName,
+    databasePassword,
+    organizationId,
+    region,
+  });
   await waitForProjectToBeReady({ projectRef });
 
   // This also ensures the project is ready
@@ -46,23 +55,30 @@ async function loginToSupabase() {
   await execa("npx", ["supabase", "login"], { stdio: "inherit" });
 }
 
-async function createProject({ projectName, databasePassword }) {
+async function createProject({
+  projectName,
+  databasePassword,
+  organizationId,
+  region,
+}) {
   const { stdout } = await execa(
     "npx",
     [
       "supabase",
       "projects",
       "create",
-      "--interactive",
       "--output",
       "json",
       "--db-password",
       databasePassword,
+      "--region",
+      region,
+      ...(organizationId ? ["--org-id", organizationId] : []),
       projectName,
     ],
     {
-      stdin: "inherit",
-      stdout: ["inherit", "pipe"],
+      stdin: "pipe",
+      stdout: "pipe",
     },
   );
 
@@ -80,6 +96,69 @@ async function createProject({ projectName, databasePassword }) {
   }
 }
 
+async function selectOrganization() {
+  const { stdout: organizationsJson } = await execa(
+    "npx",
+    ["supabase", "orgs", "list", "--output", "json"],
+    {
+      stdout: "pipe",
+    },
+  );
+
+  const organizations = JSON.parse(organizationsJson);
+
+  if (organizations.length === 0) {
+    return null;
+  }
+
+  if (organizations.length === 1) {
+    return organizations[0].id;
+  }
+
+  const selectedOrganizationId = await select({
+    message: "Select an organization to create the project in:",
+    choices: organizations.map((org) => ({
+      name: org.name,
+      value: org.id,
+    })),
+  });
+
+  return selectedOrganizationId;
+}
+
+const regions = [
+  { value: "us-west-1", name: "West US (North California)" },
+  { value: "us-west-2", name: "West US (Oregon)" },
+  { value: "us-east-1", name: "East US (North Virginia)" },
+  { value: "us-east-2", name: "East US (Ohio)" },
+  { value: "ca-central-1", name: "Canada (Central)" },
+  { value: "eu-west-1", name: "West EU (Ireland)" },
+  { value: "eu-west-2", name: "West Europe (London)" },
+  { value: "eu-west-3", name: "West EU (Paris)" },
+  { value: "eu-central-1", name: "Central EU (Frankfurt)" },
+  { value: "eu-central-2", name: "Central Europe (Zurich)" },
+  { value: "eu-north-1", name: "North EU (Stockholm)" },
+  { value: "ap-south-1", name: "South Asia (Mumbai)" },
+  { value: "ap-southeast-1", name: "Southeast Asia (Singapore)" },
+  { value: "ap-northeast-1", name: "Northeast Asia (Tokyo)" },
+  { value: "ap-northeast-2", name: "Northeast Asia (Seoul)" },
+  { value: "ap-southeast-2", name: "Oceania (Sydney)" },
+  { value: "sa-east-1", name: "South America (São Paulo)" },
+];
+
+async function selectRegion() {
+  const selectedRegion = await select({
+    message:
+      "Select a region for the project (close to you for best performance):",
+    choices: regions.map((region) => ({
+      name: region.name,
+      value: region.value,
+    })),
+  });
+
+  return selectedRegion;
+}
+
 async function waitForProjectToBeReady({ projectRef }) {
   console.log("Waiting for project to be ready...");
   const { stdout } = await execa(
@@ -91,8 +170,9 @@ async function waitForProjectToBeReady({ projectRef }) {
   );
 
   try {
-    // The response is an Array of objects
-    const matchJSON = stdout.match(new RegExp("\\[.*\\]", "s"));
+    // The response is an Array of objects or null if there are no projects
+    const matchJSON =
+      stdout === null ? "[]" : stdout.match(new RegExp("\\[.*\\]", "s"));
     if (!matchJSON) {
       throw new Error("Invalid JSON output");
     }
