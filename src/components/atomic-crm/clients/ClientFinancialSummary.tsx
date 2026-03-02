@@ -46,7 +46,10 @@ export const ClientFinancialSummary = ({ record }: { record: Client }) => {
   const { data: clientServices, isPending: sp } = useGetList<Service>(
     "services",
     {
-      filter: { "client_id@eq": record.id, "project_id@is": null as unknown as string },
+      filter: {
+        "client_id@eq": record.id,
+        "project_id@is": null as unknown as string,
+      },
       pagination: { page: 1, perPage: 500 },
     },
   );

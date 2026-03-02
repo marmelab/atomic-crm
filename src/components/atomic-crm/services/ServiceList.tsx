@@ -28,7 +28,11 @@ export const ServiceList = () => {
     async (records, fetchRelatedRecords) => {
       const withProject = records.filter((s) => s.project_id);
       const projects = withProject.length
-        ? await fetchRelatedRecords<Project>(withProject, "project_id", "projects")
+        ? await fetchRelatedRecords<Project>(
+            withProject,
+            "project_id",
+            "projects",
+          )
         : {};
       const rows = records.map((s) => ({
         data_inizio: s.service_date,

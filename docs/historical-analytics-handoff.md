@@ -2209,3 +2209,11 @@ Explicit boundary still kept in place:
 - This closes the fragile fallback where the browser-side SDK could otherwise
   hit the function with a publishable-key context or stale session state,
   especially on mobile Safari / reopened sessions.
+
+---
+
+## Nota manutenzione 2026-03-02
+
+`supabase/functions/unified_crm_answer/index.ts` ha ricevuto solo una
+correzione di formattazione Prettier (whitespace). Nessun cambiamento
+funzionale all'AI o al flusso analytics.

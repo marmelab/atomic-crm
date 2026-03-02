@@ -504,3 +504,12 @@ Non trattare mai il solo `git push` come deploy completo se hai toccato
 - Frontend: non toccato
 - Migration remota: applicata con `npx supabase db push` (5 nuove migration)
 - Edge Functions: non toccate
+
+## Nota manutenzione 2026-03-02 (fix CI)
+
+- `vitest.config.ts`: aggiunto exclude per `tests/e2e/**` — i test Playwright
+  non devono essere racccolti da vitest; questo fix risolve i "Failed Suites 5"
+  in CI causati dall'import errato di `@playwright/test` da vitest
+- correzioni Prettier su 8 file (solo whitespace, nessun cambiamento funzionale)
+- `authStorageKey.ts` / `authStorageKey.test.ts`: nuovo modulo per la gestione
+  della chiave di storage auth (committato con le altre modifiche del batch)

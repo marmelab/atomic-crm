@@ -76,7 +76,8 @@ Bullet che collegano la risposta ai dati della snapshot. Se ci sono voci finanzi
 1 o 2 punti. Se la richiesta sarebbe una scrittura, ricorda che serve un workflow confermato.
 `.trim();
 
-const buildMissingOpenAiAnswerMarkdown = () => `
+const buildMissingOpenAiAnswerMarkdown = () =>
+  `
 ## Risposta breve
 La risposta AI generativa non e disponibile in questo runtime locale.
 

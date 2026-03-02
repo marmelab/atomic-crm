@@ -94,7 +94,11 @@ const ServiceMobileCard = ({
   service: Service;
   link: string;
 }) => {
-  const { data: project } = useGetOne("projects", { id: service.project_id! }, { enabled: !!service.project_id });
+  const { data: project } = useGetOne(
+    "projects",
+    { id: service.project_id! },
+    { enabled: !!service.project_id },
+  );
   const { serviceTypeChoices } = useConfigurationContext();
   const total = calculateServiceNetValue(service);
   const typeLabel =
@@ -135,7 +139,11 @@ const ServiceMobileCard = ({
 
 /* ---- Desktop table row ---- */
 const ServiceRow = ({ service, link }: { service: Service; link: string }) => {
-  const { data: project } = useGetOne("projects", { id: service.project_id! }, { enabled: !!service.project_id });
+  const { data: project } = useGetOne(
+    "projects",
+    { id: service.project_id! },
+    { enabled: !!service.project_id },
+  );
   const { serviceTypeChoices } = useConfigurationContext();
   const total = calculateServiceNetValue(service);
 

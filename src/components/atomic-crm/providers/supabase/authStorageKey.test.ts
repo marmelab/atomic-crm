@@ -5,9 +5,7 @@ import { buildSupabaseAuthStorageKey } from "./authStorageKey";
 describe("buildSupabaseAuthStorageKey", () => {
   it("keeps remote project refs stable without adding an empty port", () => {
     expect(
-      buildSupabaseAuthStorageKey(
-        "https://qvdmzhyzpyaveniirsmo.supabase.co",
-      ),
+      buildSupabaseAuthStorageKey("https://qvdmzhyzpyaveniirsmo.supabase.co"),
     ).toBe("sb-qvdmzhyzpyaveniirsmo-auth-token");
   });
 

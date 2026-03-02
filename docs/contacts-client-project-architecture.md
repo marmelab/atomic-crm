@@ -135,3 +135,10 @@ relazione cliente `ASSOCIAZIONE CULTURALE GUSTARE SICILIA` -> referente
    modellata come controparte autonoma e non solo come estensione dei clienti.
 3. Valutare se riusare una parte del merge legacy di `contacts` solo quando ci
    sara' bisogno reale di deduplica avanzata.
+
+---
+
+## Nota manutenzione 2026-03-02
+
+`ClientFinancialSummary.tsx` ha ricevuto solo una correzione di formattazione
+Prettier (whitespace). Nessun cambiamento funzionale al modello clienti/progetti.
