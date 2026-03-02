@@ -1,5 +1,9 @@
-import { describe, expect, it } from "vitest";
-import { i18nProvider } from "./i18nProvider";
+import { afterEach, describe, expect, it, vi } from "vitest";
+import { getInitialLocale, i18nProvider } from "./i18nProvider";
+
+afterEach(() => {
+  vi.unstubAllGlobals();
+});
 
 describe("i18nProvider", () => {
   it("registers en and fr locales", () => {
@@ -45,5 +49,23 @@ describe("i18nProvider", () => {
     expect(i18nProvider.translate("crm.companies.contacts.none")).toBe(
       "Aucun contact",
     );
+  });
+
+  it("uses browser french locale when available", () => {
+    vi.stubGlobal("navigator", {
+      language: "fr-FR",
+      languages: ["fr-FR", "en-US"],
+    });
+
+    expect(getInitialLocale()).toBe("fr");
+  });
+
+  it("falls back to english when browser locale is unsupported", () => {
+    vi.stubGlobal("navigator", {
+      language: "es-ES",
+      languages: ["es-ES", "pt-BR"],
+    });
+
+    expect(getInitialLocale()).toBe("en");
   });
 });

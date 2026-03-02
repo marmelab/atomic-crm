@@ -85,7 +85,7 @@ By default, this repository ships with two locales:
 
 The `i18nProvider` defines:
 
-- the default locale (`initialLocale`)
+- the initial locale resolver (`getInitialLocale`, browser language with `en` fallback)
 - the list of available locales (`availableLocales`)
 - how messages are resolved for each locale
 
@@ -95,7 +95,7 @@ The language switcher appears in the Profile page when more than one locale is c
 
 Edit `src/components/atomic-crm/root/i18nProvider.tsx` and update:
 
-- the `initialLocale` argument (keep `en` unless you explicitly want another default)
+- the `getInitialLocale` resolver if you want custom startup behavior
 - the `availableLocales` array
 - the locale resolver function (`locale => ...`)
 
