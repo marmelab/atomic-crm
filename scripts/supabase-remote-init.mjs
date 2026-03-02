@@ -161,6 +161,7 @@ async function selectRegion() {
 }
 
 async function waitForProjectToBeReady({ projectRef }) {
+  console.log("Waiting for project to be ready...");
   const { stdout } = await execa(
     "npx",
     ["supabase", "projects", "list", "--output", "json"],
