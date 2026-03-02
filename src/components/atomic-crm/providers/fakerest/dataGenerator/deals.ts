@@ -23,7 +23,9 @@ export const generateDeals = (db: Db): Deal[] => {
     const expected_closing_date = randomDate(
       new Date(created_at),
       add(new Date(created_at), { months: 6 }),
-    ).toISOString();
+    )
+      .toISOString()
+      .split("T")[0];
 
     return {
       id,

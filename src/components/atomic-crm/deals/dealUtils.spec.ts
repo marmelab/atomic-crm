@@ -9,14 +9,17 @@ describe("formatISODateString", () => {
 
   it("should not shift the date for different timezone", () => {
     const originalTZ = process.env.TZ;
-    process.env.TZ = "America/New_York";
-    const isoDate = "2024-06-15";
-    expect(formatISODateString(isoDate)).toBe("Jun 15, 2024");
-    process.env.TZ = "Asia/Tokyo";
-    expect(formatISODateString(isoDate)).toBe("Jun 15, 2024");
-    process.env.TZ = "UTC";
-    expect(formatISODateString(isoDate)).toBe("Jun 15, 2024");
-    process.env.TZ = originalTZ; // Reset timezone after test
+    try {
+      process.env.TZ = "America/New_York";
+      const isoDate = "2024-06-15";
+      expect(formatISODateString(isoDate)).toBe("Jun 15, 2024");
+      process.env.TZ = "Asia/Tokyo";
+      expect(formatISODateString(isoDate)).toBe("Jun 15, 2024");
+      process.env.TZ = "UTC";
+      expect(formatISODateString(isoDate)).toBe("Jun 15, 2024");
+    } finally {
+      process.env.TZ = originalTZ; // Ensure timezone is reset even if test fails
+    }
   });
 
   it("throw for an invalid date string", () => {
