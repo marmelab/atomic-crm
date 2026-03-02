@@ -70,7 +70,7 @@ const ServiceShowContent = () => {
 };
 
 const ServiceHeader = ({ record }: { record: Service }) => {
-  const { data: project } = useGetOne("projects", { id: record.project_id });
+  const { data: project } = useGetOne("projects", { id: record.project_id! }, { enabled: !!record.project_id });
   const { serviceTypeChoices } = useConfigurationContext();
   const serviceLabel =
     serviceTypeChoices.find((t) => t.value === record.service_type)?.label ??

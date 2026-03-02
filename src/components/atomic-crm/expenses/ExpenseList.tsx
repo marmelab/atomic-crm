@@ -1,5 +1,5 @@
-import jsonExport from "jsonexport/dist";
-import { downloadCSV, useListContext, type Exporter } from "ra-core";
+import { useListContext, type Exporter } from "ra-core";
+import { downloadCSVItalian } from "@/lib/downloadCsvItalian";
 import { CreateButton } from "@/components/admin/create-button";
 import { ExportButton } from "@/components/admin/export-button";
 import { List } from "@/components/admin/list";
@@ -103,11 +103,9 @@ const buildExporter =
       tariffa_km: e.km_rate ?? "",
       importo: e.amount ?? "",
       ricarico_percent: e.markup_percent ?? "",
-      totale: computeTotal(e, defaultKmRate).toFixed(2),
+      totale: computeTotal(e, defaultKmRate),
       descrizione: e.description ?? "",
       rif_fattura: e.invoice_ref ?? "",
     }));
-    return jsonExport(rows, {}, (_err: any, csv: string) => {
-      downloadCSV(csv, "spese");
-    });
+    downloadCSVItalian(rows, "spese");
   };

@@ -324,6 +324,16 @@ export type UnifiedCrmReadContext = {
       expenseDate: string;
       description: string | null;
     }>;
+    clientLevelServices: Array<{
+      serviceId: string;
+      clientId: string | null;
+      clientName: string | null;
+      serviceType: string;
+      amount: number;
+      isTaxable: boolean;
+      serviceDate: string;
+      notes: string | null;
+    }>;
   };
   caveats: string[];
 };
@@ -660,7 +670,7 @@ export const buildUnifiedCrmReadContext = ({
           contacts: getProjectContacts(String(project.id)),
         };
       }),
-      pendingPayments: pendingPayments.slice(0, 5).map((payment) => ({
+      pendingPayments: pendingPayments.slice(0, 20).map((payment) => ({
         paymentId: String(payment.id),
         quoteId: payment.quote_id ? String(payment.quote_id) : null,
         clientId: payment.client_id ? String(payment.client_id) : null,
@@ -685,6 +695,19 @@ export const buildUnifiedCrmReadContext = ({
         expenseDate: expense.expense_date,
         description: expense.description ?? null,
       })),
+      clientLevelServices: services
+        .filter((s) => !s.project_id && s.client_id)
+        .slice(0, 10)
+        .map((s) => ({
+          serviceId: String(s.id),
+          clientId: s.client_id ? String(s.client_id) : null,
+          clientName: getClientName(clientById, s.client_id ?? null),
+          serviceType: s.service_type,
+          amount: calculateServiceNetValue(s),
+          isTaxable: s.is_taxable !== false,
+          serviceDate: s.service_date,
+          notes: s.notes ?? null,
+        })),
     },
     caveats: [
       "Questo snapshot e' read-only: nessuna scrittura nel CRM parte da questo contesto o dalle risposte AI che lo usano senza una conferma esplicita in un workflow dedicato.",

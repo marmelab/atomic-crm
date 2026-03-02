@@ -2,6 +2,7 @@ import { required } from "ra-core";
 import { useWatch } from "react-hook-form";
 import { Separator } from "@/components/ui/separator";
 import { TextInput } from "@/components/admin/text-input";
+import { AutocompleteInput } from "@/components/admin/autocomplete-input";
 import { SelectInput } from "@/components/admin/select-input";
 import { ReferenceInput } from "@/components/admin/reference-input";
 import { NumberInput } from "@/components/admin/number-input";
@@ -9,6 +10,7 @@ import { DateInput } from "@/components/admin/date-input";
 import { DateTimeInput } from "@/components/admin/date-time-input";
 import { BooleanInput } from "@/components/admin/boolean-input";
 
+import { buildNameSearchFilter } from "../misc/referenceSearch";
 import {
   projectCategoryChoices,
   projectTvShowChoices,
@@ -45,11 +47,12 @@ const ProjectIdentityInputs = () => (
       helperText={false}
     />
     <ReferenceInput source="client_id" reference="clients">
-      <SelectInput
+      <AutocompleteInput
         label="Cliente"
         optionText="name"
         validate={required()}
         helperText={false}
+        filterToQuery={buildNameSearchFilter}
       />
     </ReferenceInput>
   </div>

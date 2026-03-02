@@ -52,14 +52,17 @@ Il contesto e una snapshot CRM-wide con:
 - progetti attivi con relazioni cliente/referente gia strutturate
 - pagamenti pendenti
 - spese recenti
+- servizi client-level (senza progetto, collegati direttamente al cliente — es. conguagli, crediti, compensi extra non legati a un progetto)
 - registri semantico e capability
 Non inventare dati mancanti.
 Non fingere di aver letto tabelle o moduli che non sono nel contesto.
+Non mostrare MAI ID interni, UUID o riferimenti tecnici nelle risposte: usa solo nomi, date e importi leggibili.
 Quando nel contesto esistono referenti, clienti e progetti collegati, usa sempre quelle relazioni strutturate come fonte primaria invece di inferirle da note libere o dal solo testo dei nomi.
 Se la domanda richiede dati fuori dalla snapshot, dillo chiaramente.
 Se la domanda chiede di creare, modificare, inviare o cancellare qualcosa, spiega chiaramente che questo flow e solo read-only e che le scritture devono passare da workflow dedicati con conferma esplicita.
 Se la domanda chiede di preparare o registrare un pagamento, non proporre bozze testuali tipo email o messaggio e non serializzare JSON o campi strutturati nel markdown: limita il markdown a descrivere il perimetro read-only e il fatto che sotto puo apparire una bozza pagamento strutturata preparata dal sistema.
 Non scrivere URL, route o istruzioni di navigazione tecniche dentro il markdown: gli handoff verso il CRM vengono aggiunti separatamente dal sistema.
+Quando la domanda riguarda importi, soldi dovuti o pagamenti, elenca SEMPRE ogni singola voce con importo, progetto (o "senza progetto") e descrizione/note — non raggruppare ne omettere voci.
 Scrivi in italiano semplice, senza gergo tecnico inutile.
 Rispondi in markdown semplice, con queste sezioni:
 
@@ -67,10 +70,23 @@ Rispondi in markdown semplice, con queste sezioni:
 Massimo 3 frasi molto chiare.
 
 ## Dati usati
-2 o 3 bullet che collegano la risposta ai dati della snapshot.
+Bullet che collegano la risposta ai dati della snapshot. Se ci sono voci finanziarie, elencale tutte singolarmente.
 
 ## Limiti o prossima azione
 1 o 2 punti. Se la richiesta sarebbe una scrittura, ricorda che serve un workflow confermato.
+`.trim();
+
+const buildMissingOpenAiAnswerMarkdown = () => `
+## Risposta breve
+La risposta AI generativa non e disponibile in questo runtime locale.
+
+## Dati usati
+- La domanda e il contesto CRM read-only sono stati ricevuti correttamente.
+- Gli handoff strutturati sotto restano disponibili anche senza modello generativo.
+
+## Limiti o prossima azione
+- Per le domande generiche serve configurare \`OPENAI_API_KEY\` nelle Edge Functions locali.
+- In alternativa usa una richiesta operativa gia coperta dal rule engine oppure gli handoff suggeriti sotto.
 `.trim();
 
 const resolveTravelEstimate = async ({
@@ -308,13 +324,6 @@ async function answerUnifiedCrmQuestion(
       );
     }
 
-    if (!openaiApiKey) {
-      return createErrorResponse(
-        500,
-        "OPENAI_API_KEY non configurata nelle Edge Functions",
-      );
-    }
-
     const suggestedActions = buildUnifiedCrmSuggestedActions({
       question,
       context,
@@ -323,6 +332,24 @@ async function answerUnifiedCrmQuestion(
       question,
       context,
     });
+
+    if (!openaiApiKey) {
+      return new Response(
+        JSON.stringify({
+          data: {
+            question,
+            model: "crm_readonly_fallback",
+            generatedAt: new Date().toISOString(),
+            answerMarkdown: buildMissingOpenAiAnswerMarkdown(),
+            suggestedActions,
+            paymentDraft,
+          },
+        }),
+        {
+          headers: { "Content-Type": "application/json", ...corsHeaders },
+        },
+      );
+    }
 
     const response = await openai.responses.create({
       model: selectedModel,

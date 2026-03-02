@@ -1,5 +1,5 @@
-import jsonExport from "jsonexport/dist";
-import { downloadCSV, useListContext, type Exporter } from "ra-core";
+import { useListContext, type Exporter } from "ra-core";
+import { downloadCSVItalian } from "@/lib/downloadCsvItalian";
 import { CreateButton } from "@/components/admin/create-button";
 import { ExportButton } from "@/components/admin/export-button";
 import { List } from "@/components/admin/list";
@@ -77,7 +77,5 @@ const exporter: Exporter<Project> = async (records, fetchRelatedRecords) => {
     budget: project.budget ?? "",
     note: project.notes ?? "",
   }));
-  return jsonExport(projects, {}, (_err: any, csv: string) => {
-    downloadCSV(csv, "progetti");
-  });
+  downloadCSVItalian(projects, "progetti");
 };

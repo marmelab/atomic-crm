@@ -31,6 +31,7 @@ import {
   shouldClearQuoteForClient,
 } from "./paymentLinking";
 import { toOptionalIdentifier } from "../quotes/quoteProjectLinking";
+import { buildNameSearchFilter } from "../misc/referenceSearch";
 import { buildQuotePaymentsSummary } from "../quotes/quotePaymentsSummary";
 import type { Payment } from "../types";
 
@@ -62,11 +63,12 @@ const PaymentIdentityInputs = () => (
     />
     <LinkedQuoteInput />
     <ReferenceInput source="client_id" reference="clients">
-      <SelectInput
+      <AutocompleteInput
         label="Cliente"
         optionText="name"
         validate={required()}
         helperText={false}
+        filterToQuery={buildNameSearchFilter}
       />
     </ReferenceInput>
     <LinkedProjectInput />

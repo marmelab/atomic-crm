@@ -84,17 +84,17 @@ Per lo sviluppo locale supportato:
 - se tocchi `supabase/config.toml`, migration storiche o `.env` di sviluppo,
   devi verificare che `npx supabase start` resti replayable da zero senza
   dipendere da UUID catturati dal remoto o da stato preesistente
-- il bootstrap locale di dominio usa un rebuild reale basato su:
-  - `Fatture/` (XML fatture emesse e ricevute)
-  - `Fatture/contabilità interna - diego caltabiano/` (CSV contabilita' Diego)
-  - portale Aruba Fatturazione Elettronica (date di incasso esatte 2023-2025,
-    codificate in `ARUBA_PORTAL_TRUTH` dentro `scripts/local-truth-data.mjs`)
-- se tocchi parser, script di rebuild o migration che alimentano quel dataset,
-  devi verificare almeno:
-  - `npx supabase db reset`
-  - bootstrap admin locale
-  - rebuild del dominio
-  - smoke/test che leggono il caso Diego/Gustare
+- il dominio locale e' gestito con una migration snapshot statica:
+  - `supabase/migrations/20260302170000_domain_data_snapshot.sql`
+  - contiene TRUNCATE + INSERT di tutto il dominio al momento dello snapshot
+  - sostituisce i vecchi script dinamici `local-truth-data.mjs`,
+    `bootstrap-local-truth.mjs` e il test `local-truth-data.test.mjs`
+    che sono stati rimossi dal repo il 2026-03-02
+  - `npx supabase db reset` + `npm run local:admin:bootstrap` e' sufficiente
+    per ripristinare esattamente il dataset corrente
+- se il dominio cambia in modo significativo:
+  - creare una nuova migration snapshot aggiornata
+  - non reintrodurre script dinamici o seed paralleli
 - non reintrodurre script E2E o seed con dati dominio hardcoded come seconda
   fonte di verita'
 
@@ -127,7 +127,7 @@ Per lo sviluppo locale supportato:
 - Caso reale Diego/Gustare (servizi, tariffe, acconti):
   - `docs/data-import-analysis.md`
   - per il caso Diego/Gustare, la sotto-cartella
-    `Fatture/contabilità interna - diego caltabiano/` e' la fonte piu
+    `Fatture/contabilità interna - diego caltabiano/` e' la fonte piu
     autorevole per verificare che:
     - `ASSOCIAZIONE CULTURALE GUSTARE SICILIA` e' il cliente fiscale
     - `Diego Caltabiano` e' il referente operativo collegato
@@ -461,3 +461,46 @@ In piu', per i moduli del `Mandatory Product Sweep`, annotare sempre anche:
 
 Non trattare mai il solo `git push` come deploy completo se hai toccato
 `supabase/functions/**`.
+
+## Changelog — Sessione 2026-03-02 (snapshot dominio)
+
+### Cosa è cambiato
+
+- Sistema di rebuild dinamico del dominio (`local-truth-data.mjs`,
+  `bootstrap-local-truth.mjs`, `local-truth-data.test.mjs`) **rimosso**
+- Sostituito da migration snapshot statica:
+  `supabase/migrations/20260302170000_domain_data_snapshot.sql`
+- Aggiunta migration `20260302160000_add_iphone_credit_payment.sql`:
+  credito €250 rimborso iPhone (Diego → Rosario, tipo `rimborso_spese`,
+  stato `in_attesa`, collegato a Borghi Marinari)
+- Aggiunte migration `20260302104422_services_optional_client_id.sql`
+  e `20260302143000_add_historical_billing_rounding_credits.sql`
+- Discrepanza €0,10 Borghi Marinari corretta in DB (cash movement + allocation)
+- Discrepanza €7,32 Gustare Sicilia corretta tramite `credito_ricevuto` in expenses
+
+### Perché è cambiato
+
+- Il sistema dinamico di rebuild introduceva rischio di drift tra fonte reale
+  e script; un reset accidentale poteva perdere dati non riflessi negli script
+- Lo snapshot statico garantisce che `npx supabase db reset` ripristini
+  esattamente il dataset corrente senza passi aggiuntivi
+
+### File/moduli correlati in futuro
+
+- `supabase/migrations/` — aggiungere nuova snapshot quando il dominio cambia
+- `supabase/migrations/20260302170000_domain_data_snapshot.sql` — la fonte
+  di verita' corrente del dataset locale
+- `docs/local-truth-rebuild.md` — storia della semantica del dato (invariata)
+
+### Cosa è stato volutamente NON cambiato
+
+- UI: nessuna modifica frontend
+- `docs/local-truth-rebuild.md`: la documentazione della semantica resta
+  valida come riferimento storico anche se gli script sono stati rimossi
+- `scripts/audit-aruba-reconciliation.mjs`: lasciato per uso diagnostico
+
+### Stato deploy
+
+- Frontend: non toccato
+- Migration remota: applicata con `npx supabase db push` (5 nuove migration)
+- Edge Functions: non toccate

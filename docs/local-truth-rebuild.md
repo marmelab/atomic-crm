@@ -10,11 +10,18 @@ tariffe, acconti, CSV). Per quello usare `docs/data-import-analysis.md`.
 
 **File correlati:**
 
-- `scripts/local-truth-data.mjs` (implementazione)
-- `scripts/local-truth-data.test.mjs` (verifica)
-- `scripts/bootstrap-local-truth.mjs` (inserimento nel DB locale)
+- `supabase/migrations/20260302170000_domain_data_snapshot.sql` — snapshot
+  statico del dominio (dal 2026-03-02 sostituisce i vecchi script dinamici)
 - `docs/data-import-analysis.md` (caso reale Diego/Gustare)
 - `docs/development-continuity-map.md` (sweep e integrazione)
+
+> **Nota (2026-03-02):** gli script `scripts/local-truth-data.mjs`,
+> `scripts/local-truth-data.test.mjs` e `scripts/bootstrap-local-truth.mjs`
+> sono stati rimossi dal repo. Il dataset e' ora gestito interamente tramite la
+> migration snapshot statica. I dettagli storici su ARUBA_PORTAL_TRUTH,
+> ARUBA_CLIENT_REGISTRY e UNFILED_OPERATIONAL_TRUTH restano documentati qui
+> come fonte di riferimento per la semantica del dato, anche se l'implementazione
+> non risiede piu' negli script.
 
 ---
 
@@ -48,9 +55,11 @@ Regole operative:
 
 ## ARUBA_PORTAL_TRUTH — Stato incasso fatture
 
-Mappa unificata in `scripts/local-truth-data.mjs`, derivata dagli screenshot
-del portale Aruba Fatturazione Elettronica (colonna "Doc. coll.", catturati il
-2026-03-02 per gli anni 2023, 2024 e 2025).
+Mappa derivata dagli screenshot del portale Aruba Fatturazione Elettronica
+(colonna "Doc. coll.", catturati il 2026-03-02 per gli anni 2023, 2024 e 2025).
+Originariamente codificata in `scripts/local-truth-data.mjs` (ora rimosso);
+il dataset risultante e' persistito nella migration snapshot
+`20260302170000_domain_data_snapshot.sql`.
 
 ### 2023 — 11 fatture (11 XML completi)
 
@@ -111,7 +120,8 @@ Per tutte le altre fatture (2024, 2025) i due campi coincidono.
 
 ## ARUBA_CLIENT_REGISTRY — Anagrafica clienti
 
-Costante in `scripts/local-truth-data.mjs`, derivata dal file
+Costante originariamente in `scripts/local-truth-data.mjs` (ora rimosso),
+derivata dal file
 `Fatture/ReportClienti.xls` (export "Report Clienti" del portale Aruba
 Fatturazione Elettronica).
 
@@ -242,7 +252,8 @@ dominio reale e va preservata nei refactor della foundation finanziaria.
 
 ## UNFILED_OPERATIONAL_TRUTH — Lavori eseguiti ma non fatturati
 
-Costante in `scripts/local-truth-data.mjs`, array di entry per lavori
+Costante originariamente in `scripts/local-truth-data.mjs` (ora rimosso),
+array di entry per lavori
 confermati dall'utente che il CSV registra solo come date senza importi.
 
 ### Scopo
@@ -283,10 +294,10 @@ Questo permette di:
 
 Quando l'utente conferma il pagamento di un lavoro non fatturato:
 
-- aggiornare il record `payment` (status: `ricevuto`, data, metodo)
+- aggiornare il record `payment` nel DB (status: `ricevuto`, data, metodo)
 - se viene emessa fattura, aggiornare anche `invoice_ref` sui servizi e spese
-- se i dati CSV vengono completati dall'utente, valutare se spostare il record
-  dalla costante `UNFILED` al flusso CSV standard
+- quando il dominio e' sufficientemente aggiornato, creare una nuova migration
+  snapshot aggiornata per consolidare lo stato
 
 ---
 

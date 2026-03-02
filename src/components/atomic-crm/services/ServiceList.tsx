@@ -1,6 +1,6 @@
-import jsonExport from "jsonexport/dist";
 import { useCallback } from "react";
-import { downloadCSV, useListContext, type Exporter } from "ra-core";
+import { useListContext, type Exporter } from "ra-core";
+import { downloadCSVItalian } from "@/lib/downloadCsvItalian";
 import { CreateButton } from "@/components/admin/create-button";
 import { ExportButton } from "@/components/admin/export-button";
 import { List } from "@/components/admin/list";
@@ -26,16 +26,15 @@ export const ServiceList = () => {
 
   const exporter: Exporter<Service> = useCallback(
     async (records, fetchRelatedRecords) => {
-      const projects = await fetchRelatedRecords<Project>(
-        records,
-        "project_id",
-        "projects",
-      );
+      const withProject = records.filter((s) => s.project_id);
+      const projects = withProject.length
+        ? await fetchRelatedRecords<Project>(withProject, "project_id", "projects")
+        : {};
       const rows = records.map((s) => ({
         data_inizio: s.service_date,
         data_fine: s.service_end ?? "",
         tutto_il_giorno: s.all_day ? "Sì" : "No",
-        progetto: projects[s.project_id]?.name ?? "",
+        progetto: s.project_id ? (projects[s.project_id]?.name ?? "") : "",
         tipo: typeLabels[s.service_type] ?? s.service_type,
         tassabile: s.is_taxable === false ? "No" : "Sì",
         riprese: s.fee_shooting,
@@ -48,14 +47,12 @@ export const ServiceList = () => {
           kmDistance: s.km_distance,
           kmRate: s.km_rate,
           defaultKmRate,
-        }).toFixed(2),
+        }),
         localita: s.location ?? "",
         rif_fattura: s.invoice_ref ?? "",
         note: s.notes ?? "",
       }));
-      return jsonExport(rows, {}, (_err: any, csv: string) => {
-        downloadCSV(csv, "registro_lavori");
-      });
+      downloadCSVItalian(rows, "registro_lavori");
     },
     [defaultKmRate, typeLabels],
   );

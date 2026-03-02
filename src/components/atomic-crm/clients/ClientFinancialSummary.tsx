@@ -1,7 +1,7 @@
 import { useGetList } from "ra-core";
 import { Euro, TrendingUp, TrendingDown, Car } from "lucide-react";
 
-import type { Client, Expense, Payment } from "../types";
+import type { Client, Expense, Payment, Service } from "../types";
 
 const eur = (n: number) =>
   n.toLocaleString("it-IT", {
@@ -42,7 +42,16 @@ export const ClientFinancialSummary = ({ record }: { record: Client }) => {
     pagination: { page: 1, perPage: 500 },
   });
 
-  if (fp || pp || ep) {
+  // Services linked directly to the client without a project (flat services)
+  const { data: clientServices, isPending: sp } = useGetList<Service>(
+    "services",
+    {
+      filter: { "client_id@eq": record.id, "project_id@is": null as unknown as string },
+      pagination: { page: 1, perPage: 500 },
+    },
+  );
+
+  if (fp || pp || ep || sp) {
     return (
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 animate-pulse">
         {[...Array(4)].map((_, i) => (
@@ -52,10 +61,31 @@ export const ClientFinancialSummary = ({ record }: { record: Client }) => {
     );
   }
 
-  const totalFees =
+  // Fees from project-linked services (via project_financials view)
+  const projectFees =
     financials?.reduce((s, f) => s + toNum(f.total_fees), 0) ?? 0;
-  const totalKmCost =
+  const projectKmCost =
     financials?.reduce((s, f) => s + toNum(f.total_km_cost), 0) ?? 0;
+
+  // Fees from projectless services (flat services linked directly to client)
+  const directFees =
+    clientServices?.reduce(
+      (s, svc) =>
+        s +
+        toNum(svc.fee_shooting) +
+        toNum(svc.fee_editing) +
+        toNum(svc.fee_other) -
+        toNum(svc.discount),
+      0,
+    ) ?? 0;
+  const directKmCost =
+    clientServices?.reduce(
+      (s, svc) => s + toNum(svc.km_distance) * toNum(svc.km_rate),
+      0,
+    ) ?? 0;
+
+  const totalFees = projectFees + directFees;
+  const totalKmCost = projectKmCost + directKmCost;
 
   // Non-km expenses: credits subtract, others add (with markup)
   const totalExpenses =

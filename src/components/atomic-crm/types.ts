@@ -149,7 +149,8 @@ export type Project = {
 } & Pick<RaRecord, "id">;
 
 export type Service = {
-  project_id: Identifier;
+  project_id?: Identifier | null;
+  client_id?: Identifier | null;
   service_date: string;
   service_end?: string;
   all_day: boolean;

@@ -2,6 +2,7 @@ import { required, minValue } from "ra-core";
 import { useFormContext, useWatch } from "react-hook-form";
 import { Separator } from "@/components/ui/separator";
 import { TextInput } from "@/components/admin/text-input";
+import { AutocompleteInput } from "@/components/admin/autocomplete-input";
 import { SelectInput } from "@/components/admin/select-input";
 import { ReferenceInput } from "@/components/admin/reference-input";
 import { NumberInput } from "@/components/admin/number-input";
@@ -9,6 +10,7 @@ import { DateInput } from "@/components/admin/date-input";
 import { calculateKmReimbursement } from "@/lib/semantics/crmSemanticRegistry";
 
 import { expenseTypeChoices, expenseTypeDescriptions } from "./expenseTypes";
+import { buildNameSearchFilter } from "../misc/referenceSearch";
 import { TravelRouteCalculatorDialog } from "../travel/TravelRouteCalculatorDialog";
 import { useConfigurationContext } from "../root/ConfigurationContext";
 
@@ -51,10 +53,20 @@ const ExpenseIdentityInputs = () => (
       helperText={false}
     />
     <ReferenceInput source="project_id" reference="projects">
-      <SelectInput label="Progetto" optionText="name" helperText={false} />
+      <AutocompleteInput
+        label="Progetto"
+        optionText="name"
+        helperText={false}
+        filterToQuery={buildNameSearchFilter}
+      />
     </ReferenceInput>
     <ReferenceInput source="client_id" reference="clients">
-      <SelectInput label="Cliente" optionText="name" helperText={false} />
+      <AutocompleteInput
+        label="Cliente"
+        optionText="name"
+        helperText={false}
+        filterToQuery={buildNameSearchFilter}
+      />
     </ReferenceInput>
   </div>
 );

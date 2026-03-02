@@ -331,7 +331,7 @@ const gestionaleMessages = {
       },
     },
     payments: {
-      name: "Pagamento |||| Pagamenti",
+      name: "Incasso |||| Incassi",
       fields: {
         client_id: "Cliente",
         project_id: "Progetto",

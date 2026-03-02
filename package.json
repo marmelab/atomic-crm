@@ -9,8 +9,6 @@
     "typecheck": "tsc --noEmit",
     "continuity:check": "node ./scripts/check-continuity.mjs",
     "local:admin:bootstrap": "node ./scripts/bootstrap-local-admin.mjs",
-    "local:truth:ensure": "node ./scripts/bootstrap-local-truth.mjs --mode=ensure",
-    "local:truth:rebuild": "node ./scripts/bootstrap-local-truth.mjs --mode=rebuild",
     "preview": "vite preview",
     "lint:apply": "eslint **/*.{mjs,ts,tsx} --fix",
     "lint": "eslint **/*.{mjs,ts,tsx}",

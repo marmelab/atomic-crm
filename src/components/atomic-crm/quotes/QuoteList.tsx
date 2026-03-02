@@ -1,5 +1,5 @@
-import jsonExport from "jsonexport/dist";
-import { downloadCSV, useListContext, type Exporter } from "ra-core";
+import { useListContext, type Exporter } from "ra-core";
+import { downloadCSVItalian } from "@/lib/downloadCsvItalian";
 import { matchPath, useLocation } from "react-router";
 import { AutocompleteInput } from "@/components/admin/autocomplete-input";
 import { CreateButton } from "@/components/admin/create-button";
@@ -78,9 +78,7 @@ const QuoteList = () => {
       motivo_rifiuto: q.rejection_reason ?? "",
       note: q.notes ?? "",
     }));
-    return jsonExport(rows, {}, (_err: any, csv: string) => {
-      downloadCSV(csv, "preventivi");
-    });
+    downloadCSVItalian(rows, "preventivi");
   };
 
   return (
