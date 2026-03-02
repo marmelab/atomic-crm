@@ -1,5 +1,16 @@
 import type { DealStage } from "../types";
 
-export const findDealLabel = (dealStages: DealStage[], dealValue: string) => {
-  return dealStages.find((dealStage) => dealStage.value === dealValue)?.label;
+type TranslateFn = (key: string, options?: { [key: string]: any }) => string;
+
+export const findDealLabel = (
+  dealStages: DealStage[],
+  dealValue: string,
+  _translate?: TranslateFn,
+) => {
+  const dealStage = dealStages.find((stage) => stage.value === dealValue);
+  if (!dealStage) {
+    return undefined;
+  }
+
+  return dealStage.label;
 };

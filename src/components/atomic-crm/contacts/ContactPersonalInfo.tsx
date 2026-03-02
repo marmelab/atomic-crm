@@ -1,4 +1,4 @@
-import { useRecordContext, WithRecord } from "ra-core";
+import { useRecordContext, useTranslate, WithRecord } from "ra-core";
 import { ArrayField } from "@/components/admin/array-field";
 import { SingleFieldList } from "@/components/admin/single-field-list";
 import { TextField } from "@/components/admin/text-field";
@@ -6,10 +6,13 @@ import { EmailField } from "@/components/admin/email-field";
 import { Mail, Phone, Linkedin } from "lucide-react";
 import type { ReactNode } from "react";
 import { contactGender } from "./contactGender";
+import { getTranslatedContactGenderLabel } from "./getTranslatedContactGenderLabel";
+import { getTranslatedPersonalInfoTypeLabel } from "./getTranslatedPersonalInfoTypeLabel";
 import type { Contact } from "../types";
 
 export const ContactPersonalInfo = () => {
   const record = useRecordContext<Contact>();
+  const translate = useTranslate();
 
   if (!record) return null;
 
@@ -26,7 +29,9 @@ export const ContactPersonalInfo = () => {
 
       {record.has_newsletter && (
         <p className="pl-6 py-1 text-sm text-muted-foreground">
-          Subscribed to newsletter
+          {translate("crm.contacts.inputs.subscribed_newsletter", {
+            _: "Subscribed to newsletter",
+          })}
         </p>
       )}
 
@@ -64,7 +69,11 @@ export const ContactPersonalInfo = () => {
                 icon={
                   <genderOption.icon className="w-4 h-4 text-muted-foreground" />
                 }
-                primary={<div>{genderOption.label}</div>}
+                primary={
+                  <div>
+                    {getTranslatedContactGenderLabel(genderOption, translate)}
+                  </div>
+                }
               />
             );
           }
@@ -83,20 +92,26 @@ const PersonalInfoRow = ({
   icon: ReactNode;
   primary: ReactNode;
   showType?: boolean;
-}) => (
-  <div className="flex flex-row items-center gap-x-2 py-1 min-h-6">
-    {icon}
-    <div className="flex flex-wrap gap-x-2 gap-y-0 text-sm">
-      {primary}
-      {showType ? (
-        <WithRecord
-          render={(row) =>
-            row.type !== "Other" && (
-              <TextField source="type" className="text-muted-foreground" />
-            )
-          }
-        />
-      ) : null}
+}) => {
+  const translate = useTranslate();
+
+  return (
+    <div className="flex flex-row items-center gap-x-2 py-1 min-h-6">
+      {icon}
+      <div className="flex flex-wrap gap-x-2 gap-y-0 text-sm">
+        {primary}
+        {showType ? (
+          <WithRecord
+            render={(row) =>
+              row.type !== "Other" && (
+                <span className="text-muted-foreground">
+                  {getTranslatedPersonalInfoTypeLabel(row.type, translate)}
+                </span>
+              )
+            }
+          />
+        ) : null}
+      </div>
     </div>
-  </div>
-);
+  );
+};

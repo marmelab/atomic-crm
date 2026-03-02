@@ -1,5 +1,5 @@
 import { AlertCircleIcon } from "lucide-react";
-import { Form, required } from "ra-core";
+import { Form, required, useTranslate } from "ra-core";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -25,26 +25,37 @@ import {
 import sampleFile from "./import-sample.json?url";
 
 export const ImportPage = () => {
+  const translate = useTranslate();
   const [importState, importFile, reset] = useImportFromJson();
 
   return (
     <div className="max-w-2xl mx-auto mt-8">
       <Card>
         <CardHeader>
-          <CardTitle>Import Data</CardTitle>
+          <CardTitle>
+            {translate("crm.import.title", { _: "Import Data" })}
+          </CardTitle>
         </CardHeader>
         <CardContent>
           {importState.status === "idle" ? (
-            <ImportFromJsonIdle importFile={importFile} />
+            <ImportFromJsonIdle importFile={importFile} translate={translate} />
           ) : importState.status === "error" ? (
             <ImportFromJsonError
               importState={importState}
               importFile={importFile}
+              translate={translate}
             />
           ) : importState.status === "importing" ? (
-            <ImportFromJsonStatus importState={importState} />
+            <ImportFromJsonStatus
+              importState={importState}
+              translate={translate}
+            />
           ) : (
-            <ImportFromJsonSuccess importState={importState} reset={reset} />
+            <ImportFromJsonSuccess
+              importState={importState}
+              reset={reset}
+              translate={translate}
+            />
           )}
         </CardContent>
       </Card>
@@ -56,16 +67,22 @@ ImportPage.path = "/import";
 
 const ImportFromJsonIdle = ({
   importFile,
+  translate,
 }: {
   importFile: ImportFromJsonFunction;
+  translate: (key: string, options?: any) => string;
 }) => (
   <>
     <div className="mb-4">
       <p className="text-sm">
-        You can import sales, companies, contacts, companies, notes, and tasks.
+        {translate("crm.import.idle.description_1", {
+          _: "You can import sales, companies, contacts, companies, notes, and tasks.",
+        })}
       </p>
       <p className="text-sm">
-        Data must be in a JSON file matching the following sample:{" "}
+        {translate("crm.import.idle.description_2", {
+          _: "Data must be in a JSON file matching the following sample:",
+        })}{" "}
         <a
           className="underline"
           download="import-sample.json"
@@ -75,33 +92,41 @@ const ImportFromJsonIdle = ({
         </a>
       </p>
     </div>
-    <ImportFromJsonForm importFile={importFile} />
+    <ImportFromJsonForm importFile={importFile} translate={translate} />
   </>
 );
 
 const ImportFromJsonError = ({
   importState,
   importFile,
+  translate,
 }: {
   importFile: ImportFromJsonFunction;
   importState: ImportFromJsonErrorState;
+  translate: (key: string, options?: any) => string;
 }) => (
   <>
     <Alert variant="destructive" className="mb-4">
       <AlertCircleIcon />
-      <AlertTitle>Unable to import this file.</AlertTitle>
+      <AlertTitle>
+        {translate("crm.import.error.unable", {
+          _: "Unable to import this file.",
+        })}
+      </AlertTitle>
       <AlertDescription>
         <p>{importState.error.message}</p>
       </AlertDescription>
     </Alert>
-    <ImportFromJsonForm importFile={importFile} />
+    <ImportFromJsonForm importFile={importFile} translate={translate} />
   </>
 );
 
 const ImportFromJsonForm = ({
   importFile,
+  translate,
 }: {
   importFile: ImportFromJsonFunction;
+  translate: (key: string, options?: any) => string;
 }) => (
   <Form
     onSubmit={(values: any) => {
@@ -112,50 +137,69 @@ const ImportFromJsonForm = ({
       <FileField source="src" title="title" />
     </FileInput>
     <div className="flex justify-end mt-4">
-      <Button type="submit">Import</Button>
+      <Button type="submit">
+        {translate("crm.import.action.import", { _: "Import" })}
+      </Button>
     </div>
   </Form>
 );
 
 const ImportFromJsonStatus = ({
   importState,
+  translate,
 }: {
   importState: ImportFromJsonState;
+  translate: (key: string, options?: any) => string;
 }) => (
   <>
     <Spinner />
     <p className="my-4 text-sm text-center text-muted-foreground">
-      Import in progress, please don't navigate away from this page.
+      {translate("crm.import.status.in_progress", {
+        _: "Import in progress, please don't navigate away from this page.",
+      })}
     </p>
-    <ImportStats importState={importState} />
+    <ImportStats importState={importState} translate={translate} />
   </>
 );
 
 const ImportFromJsonSuccess = ({
   importState,
   reset,
+  translate,
 }: {
   importState: ImportFromJsonState;
   reset: () => void;
+  translate: (key: string, options?: any) => string;
 }) => (
   <>
     <p className="mb-4 text-sm">
-      Import complete.{" "}
+      {translate("crm.import.status.complete", { _: "Import complete." })}{" "}
       {hasFailedImports(importState.failedImports) ? (
         <>
           <span className="text-destructive">
-            Some records were not imported.{" "}
+            {translate("crm.import.status.some_failed", {
+              _: "Some records were not imported.",
+            })}{" "}
           </span>
-          <DownloadErrorFileButton failedImports={importState.failedImports} />
+          <DownloadErrorFileButton
+            failedImports={importState.failedImports}
+            translate={translate}
+          />
         </>
       ) : (
-        <span>All records were imported successfully.</span>
+        <span>
+          {translate("crm.import.status.all_success", {
+            _: "All records were imported successfully.",
+          })}
+        </span>
       )}
     </p>
-    <ImportStats importState={importState} />
+    <ImportStats importState={importState} translate={translate} />
     <div className="flex justify-end mt-4">
       <Button variant="outline" onClick={reset}>
-        Import another file
+        {translate("crm.import.action.import_another", {
+          _: "Import another file",
+        })}
       </Button>
     </div>
   </>
@@ -173,8 +217,10 @@ const hasFailedImports = (failedImports: ImportFromJsonFailures) => {
 
 const DownloadErrorFileButton = ({
   failedImports,
+  translate,
 }: {
   failedImports: ImportFromJsonFailures;
+  translate: (key: string, options?: any) => string;
 }) => {
   return (
     <a
@@ -187,15 +233,19 @@ const DownloadErrorFileButton = ({
       }}
       download="atomic-crm-import-report.json"
     >
-      Download the error report
+      {translate("crm.import.action.download_error_report", {
+        _: "Download the error report",
+      })}
     </a>
   );
 };
 
 const ImportStats = ({
   importState: { stats, failedImports },
+  translate,
 }: {
   importState: ImportFromJsonState;
+  translate: (key: string, options?: any) => string;
 }) => {
   const data = [
     {
@@ -226,12 +276,18 @@ const ImportStats = ({
   ];
   return (
     <Table>
-      <TableCaption className="sr-only">Import status</TableCaption>
+      <TableCaption className="sr-only">
+        {translate("crm.import.status.table_caption", { _: "Import status" })}
+      </TableCaption>
       <TableHeader>
         <TableRow>
           <TableHead className="w-25"></TableHead>
-          <TableHead className="text-right">Imported</TableHead>
-          <TableHead className="text-right">Failed</TableHead>
+          <TableHead className="text-right">
+            {translate("crm.import.status.imported", { _: "Imported" })}
+          </TableHead>
+          <TableHead className="text-right">
+            {translate("crm.import.status.failed", { _: "Failed" })}
+          </TableHead>
         </TableRow>
       </TableHeader>
       <TableBody>

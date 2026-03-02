@@ -1,14 +1,20 @@
 import { MobileContent } from "../layout/MobileContent";
 import MobileHeader from "../layout/MobileHeader";
 import { TasksListContent } from "./TasksListContent";
+import { useTranslate } from "ra-core";
 
-export const MobileTasksList = () => (
-  <>
-    <MobileHeader>
-      <h1 className="text-xl font-semibold">Tasks</h1>
-    </MobileHeader>
-    <MobileContent>
-      <TasksListContent />
-    </MobileContent>
-  </>
-);
+export const MobileTasksList = () => {
+  const translate = useTranslate();
+  return (
+    <>
+      <MobileHeader>
+        <h1 className="text-xl font-semibold">
+          {translate("crm.tasks.name", { smart_count: 2, _: "Tasks" })}
+        </h1>
+      </MobileHeader>
+      <MobileContent>
+        <TasksListContent />
+      </MobileContent>
+    </>
+  );
+};

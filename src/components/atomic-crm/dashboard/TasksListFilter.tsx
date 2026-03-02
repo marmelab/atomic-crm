@@ -5,6 +5,7 @@ import {
   useGetIdentity,
   useGetList,
   useList,
+  useTranslate,
 } from "ra-core";
 
 import { TasksIterator } from "../tasks/TasksIterator";
@@ -19,6 +20,7 @@ export const TasksListFilter = ({
   filter: any;
   filterByContact?: Identifier;
 }) => {
+  const translate = useTranslate();
   const { identity } = useGetIdentity();
   const isMobile = useIsMobile();
 
@@ -70,7 +72,7 @@ export const TasksListFilter = ({
             }}
             className="text-sm underline hover:no-underline"
           >
-            Load more
+            {translate("crm.common.load_more", { _: "Load more" })}
           </a>
         </div>
       )}

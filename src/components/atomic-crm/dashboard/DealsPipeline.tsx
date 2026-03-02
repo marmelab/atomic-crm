@@ -1,5 +1,5 @@
 import { DollarSign } from "lucide-react";
-import { useGetIdentity, useGetList } from "ra-core";
+import { useGetIdentity, useGetList, useTranslate } from "ra-core";
 import { Link } from "react-router";
 import { ReferenceField } from "@/components/admin/reference-field";
 import { Card } from "@/components/ui/card";
@@ -15,6 +15,7 @@ import type { Deal } from "../types";
  * It's currently not used in the application but can be added to the dashboard.
  */
 export const DealsPipeline = () => {
+  const translate = useTranslate();
   const { identity } = useGetIdentity();
   const { dealStages, dealPipelineStatuses } = useConfigurationContext();
   const { data, total, isPending } = useGetList<Deal>(
@@ -52,7 +53,7 @@ export const DealsPipeline = () => {
           className="text-xl font-semibold text-muted-foreground hover:underline"
           to="/deals"
         >
-          Deals Pipeline
+          {translate("crm.dashboard.deals_pipeline", { _: "Deals Pipeline" })}
         </Link>
       </div>
       <Card>
@@ -70,7 +71,7 @@ export const DealsPipeline = () => {
               currency: "USD",
               currencyDisplay: "narrowSymbol",
               minimumSignificantDigits: 3,
-            })} , ${findDealLabel(dealStages, deal.stage)}`
+            })} , ${findDealLabel(dealStages, deal.stage, translate)}`
           }
           leftAvatar={(deal) => (
             <ReferenceField

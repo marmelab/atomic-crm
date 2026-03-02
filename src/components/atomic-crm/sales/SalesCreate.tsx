@@ -1,5 +1,5 @@
 import { useMutation } from "@tanstack/react-query";
-import { useDataProvider, useNotify, useRedirect } from "ra-core";
+import { useDataProvider, useNotify, useRedirect, useTranslate } from "ra-core";
 import type { SubmitHandler } from "react-hook-form";
 import { SimpleForm } from "@/components/admin/simple-form";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -11,6 +11,7 @@ import { SalesInputs } from "./SalesInputs";
 export function SalesCreate() {
   const dataProvider = useDataProvider<CrmDataProvider>();
   const notify = useNotify();
+  const translate = useTranslate();
   const redirect = useRedirect();
 
   const { mutate } = useMutation({
@@ -19,15 +20,23 @@ export function SalesCreate() {
       return dataProvider.salesCreate(data);
     },
     onSuccess: () => {
-      notify(
-        "User created. They will soon receive an email to set their password.",
-      );
+      notify("crm.sales.create.success", {
+        messageArgs: {
+          _: "User created. They will soon receive an email to set their password.",
+        },
+      });
       redirect("/sales");
     },
     onError: (error) => {
-      notify(error.message || "An error occurred while creating the user.", {
-        type: "error",
-      });
+      notify(
+        error.message ||
+          translate("crm.sales.create.error", {
+            _: "An error occurred while creating the user.",
+          }),
+        {
+          type: "error",
+        },
+      );
     },
   });
   const onSubmit: SubmitHandler<SalesFormData> = async (data) => {
@@ -38,7 +47,9 @@ export function SalesCreate() {
     <div className="max-w-lg w-full mx-auto mt-8">
       <Card>
         <CardHeader>
-          <CardTitle>Create a new user</CardTitle>
+          <CardTitle>
+            {translate("crm.sales.create.title", { _: "Create a new user" })}
+          </CardTitle>
         </CardHeader>
         <CardContent>
           <SimpleForm onSubmit={onSubmit as SubmitHandler<any>}>

@@ -1,5 +1,10 @@
 import { useState } from "react";
-import { useRecordContext, useGetList, useTimeout } from "ra-core";
+import {
+  useRecordContext,
+  useGetList,
+  useTimeout,
+  useTranslate,
+} from "ra-core";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 
@@ -10,6 +15,7 @@ import type { Contact } from "../types";
 
 export const ContactTasksList = () => {
   const record = useRecordContext<Contact>();
+  const translate = useTranslate();
   const [taskCreateOpen, setTaskCreateOpen] = useState(false);
   const oneSecondHasPassed = useTimeout(1000);
   const { total, isPending } = useGetList("tasks", {
@@ -46,9 +52,11 @@ export const ContactTasksList = () => {
           contact_id={record.id}
         />
         <div className="flex flex-col items-center justify-center py-8 text-center">
-          <p className="text-muted-foreground mb-4">No tasks yet</p>
+          <p className="text-muted-foreground mb-4">
+            {translate("crm.tasks.empty", { _: "No tasks yet" })}
+          </p>
           <Button variant="outline" onClick={() => setTaskCreateOpen(true)}>
-            Add task
+            {translate("crm.tasks.action.add", { _: "Add task" })}
           </Button>
         </div>
       </>
@@ -58,29 +66,29 @@ export const ContactTasksList = () => {
   return (
     <div className="flex flex-col gap-4">
       <TasksListFilter
-        title="Overdue"
+        title={translate("crm.tasks.filters.overdue", { _: "Overdue" })}
         filter={taskFilters.overdue}
         filterByContact={record.id}
       />
       <TasksListFilter
-        title="Today"
+        title={translate("crm.tasks.filters.today", { _: "Today" })}
         filter={taskFilters.today}
         filterByContact={record.id}
       />
       <TasksListFilter
-        title="Tomorrow"
+        title={translate("crm.tasks.filters.tomorrow", { _: "Tomorrow" })}
         filter={taskFilters.tomorrow}
         filterByContact={record.id}
       />
       {isBeforeFriday && (
         <TasksListFilter
-          title="This week"
+          title={translate("crm.tasks.filters.this_week", { _: "This week" })}
           filter={taskFilters.thisWeek}
           filterByContact={record.id}
         />
       )}
       <TasksListFilter
-        title="Later"
+        title={translate("crm.tasks.filters.later", { _: "Later" })}
         filter={taskFilters.later}
         filterByContact={record.id}
       />
