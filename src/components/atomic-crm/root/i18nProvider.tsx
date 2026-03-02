@@ -39,6 +39,19 @@ const frenchCatalog = mergeTranslations(
   frenchCrmMessages,
 );
 
+export const getInitialLocale = (): "en" | "fr" => {
+  if (typeof navigator === "undefined") {
+    return "en";
+  }
+
+  const browserLocale = navigator.languages?.[0] ?? navigator.language;
+  if (browserLocale?.toLowerCase().startsWith("fr")) {
+    return "fr";
+  }
+
+  return "en";
+};
+
 export const i18nProvider = polyglotI18nProvider(
   (locale) => {
     if (locale === "fr") {
@@ -46,7 +59,7 @@ export const i18nProvider = polyglotI18nProvider(
     }
     return englishCatalog;
   },
-  "en",
+  getInitialLocale(),
   [
     { locale: "en", name: "English" },
     { locale: "fr", name: "Français" },
