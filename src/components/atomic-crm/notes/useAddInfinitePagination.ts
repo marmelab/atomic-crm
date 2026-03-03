@@ -1,6 +1,10 @@
 import { useListContext } from "ra-core";
 import { useEffect, useMemo, useState } from "react";
 
+/**
+ * Turn a standard list context into an infinite pagination context by keeping track of all loaded pages and their data.
+ * This allows to use the InfinitePagination component inside a standard List component.
+ */
 export const useAddInfinitePagination = () => {
   const { data, error, isPending, page, setPage, total, refetch } =
     useListContext();
