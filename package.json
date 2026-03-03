@@ -90,8 +90,6 @@
   "devDependencies": {
     "@eslint/js": "^9.22.0",
     "@inquirer/prompts": "^8.2.0",
-    "@testing-library/jest-dom": "^6.6.3",
-    "@testing-library/react": "^16.3.2",
     "@types/dompurify": "^3.0.5",
     "@types/faker": "^5.5.9",
     "@types/jsonexport": "^3.0.5",
@@ -102,6 +100,9 @@
     "@types/react": "^19.1.8",
     "@types/react-dom": "^19.1.6",
     "@vitejs/plugin-react": "^4.6.0",
+    "@vitest/browser-preview": "^4.0.18",
+    "vitest-browser-react": "^2.0.5",
+    "@vitest/browser-playwright": "^4.0.18",
     "eslint": "^9.22.0",
     "eslint-plugin-react-hooks": "^5.2.0",
     "eslint-plugin-react-refresh": "^0.4.19",
@@ -110,7 +111,6 @@
     "glob": "^11.1.0",
     "globals": "^16.3.0",
     "husky": "^9.1.7",
-    "jsdom": "^28.1.0",
     "prettier": "^3.6.2",
     "shadcn": "^3.5.0",
     "typescript": "~5.8.3",
@@ -118,6 +118,6 @@
     "vite": "^7.3.0",
     "vite-plugin-pwa": "^1.2.0",
     "vite-plugin-simple-html": "^1.0.1",
-    "vitest": "^3.2.4"
+    "vitest": "^4.0.18"
   }
 }
