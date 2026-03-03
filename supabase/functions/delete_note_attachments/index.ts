@@ -1,8 +1,7 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
+import { AuthMiddleware } from "../_shared/authentication.ts";
 import { supabaseAdmin } from "../_shared/supabaseAdmin.ts";
 import { ATTACHMENTS_BUCKET } from "../../../src/components/atomic-crm/providers/commons/attachments.ts";
-
-const DEFAULT_WEBHOOK_SECRET = "atomic-crm-note-attachments-webhook-secret";
 
 type NoteAttachment = {
   path?: string | null;
@@ -53,25 +52,9 @@ const deleteNoteAttachments = async (req: Request) => {
   });
 };
 
-Deno.serve(async (req: Request) => {
-  if (!isWebhookRequestAuthenticated(req)) {
-    return jsonResponse({ error: "Unauthorized" }, 401);
-  }
-
-  return deleteNoteAttachments(req);
-});
-
-const isWebhookRequestAuthenticated = (req: Request) => {
-  const providedSecret = req.headers.get("x-webhook-secret");
-  if (!providedSecret) {
-    return false;
-  }
-
-  const expectedSecret =
-    Deno.env.get("ATTACHMENTS_WEBHOOK_SECRET") ?? DEFAULT_WEBHOOK_SECRET;
-
-  return providedSecret === expectedSecret;
-};
+Deno.serve(async (req: Request) =>
+  AuthMiddleware(req, async (req: Request) => deleteNoteAttachments(req)),
+);
 
 const getPathsToDelete = (payload: WebhookPayload): string[] => {
   const oldPaths = extractAttachmentPaths(payload.old_record?.attachments);
