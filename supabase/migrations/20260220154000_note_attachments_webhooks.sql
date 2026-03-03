@@ -6,15 +6,13 @@ DO $migration$
 BEGIN
   EXECUTE $url_sql$
     -- SQL triggers cannot read Edge Function env vars directly. Resolve the
-    -- function URL from request context first, then fallback to project_ref
-    -- for hosted projects, and host.docker.internal for local Docker.
+    -- function URL from request context, and keep a local Docker fallback.
     CREATE OR REPLACE FUNCTION public.note_attachments_webhook_url()
     RETURNS text
     LANGUAGE plpgsql
     AS $function$
     DECLARE
       issuer text;
-      project_ref text;
       function_url text;
     BEGIN
       issuer := coalesce(
@@ -51,14 +49,6 @@ BEGIN
 
           RETURN function_url;
         END IF;
-      END IF;
-
-      project_ref := nullif(current_setting('app.settings.project_ref', true), '');
-      IF project_ref IS NOT NULL THEN
-        RETURN format(
-          'https://%s.supabase.co/functions/v1/delete_note_attachments',
-          project_ref
-        );
       END IF;
 
       RETURN 'http://host.docker.internal:54321/functions/v1/delete_note_attachments';
