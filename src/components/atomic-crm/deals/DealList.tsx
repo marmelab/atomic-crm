@@ -18,6 +18,7 @@ import { DealEmpty } from "./DealEmpty";
 import { DealListContent } from "./DealListContent";
 import { DealShow } from "./DealShow";
 import { OnlyMineInput } from "./OnlyMineInput";
+import { WrapperField } from "@/components/admin/wrapper-field";
 
 const DealList = () => {
   const { identity } = useGetIdentity();
@@ -34,16 +35,23 @@ const DealList = () => {
         placeholder={translate("crm.deals.filters.company", { _: "Company" })}
       />
     </ReferenceInput>,
-    <SelectInput
+    <WrapperField
       source="category"
-      label={false}
-      emptyText={translate("resources.deals.fields.category", {
+      label={translate("resources.deals.fields.category", {
         _: "Category",
       })}
-      choices={dealCategories}
-      optionText="label"
-      optionValue="value"
-    />,
+    >
+      <SelectInput
+        source="category"
+        label={false}
+        emptyText={translate("resources.deals.fields.category", {
+          _: "Category",
+        })}
+        choices={dealCategories}
+        optionText="label"
+        optionValue="value"
+      />
+    </WrapperField>,
     <OnlyMineInput source="sales_id" alwaysOn />,
   ];
 
