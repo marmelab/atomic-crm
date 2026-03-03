@@ -3,7 +3,7 @@ import { useRecordContext } from "ra-core";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 
-import { TasksListByDueDate } from "../dashboard/TasksListByDueDate";
+import { TasksListByDueDate } from "../tasks/TasksListByDueDate";
 import { TaskCreateSheet } from "../tasks/TaskCreateSheet";
 import type { Contact } from "../types";
 

@@ -1,6 +1,6 @@
 import { ListContextProvider, ResourceContextProvider, useList } from "ra-core";
 
-import { TasksIterator } from "../tasks/TasksIterator";
+import { TasksIterator } from "./TasksIterator";
 
 type TaskListProps = {
   tasks: any[];

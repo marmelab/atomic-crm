@@ -1,11 +1,12 @@
+import { useMemo } from "react";
 import {
   type Identifier,
   useGetIdentity,
   useGetList,
   useTimeout,
 } from "ra-core";
-
 import { useIsMobile } from "@/hooks/use-mobile";
+
 import { TaskListFilter } from "./TasksListFilter";
 import {
   isBeforeFriday,
@@ -16,7 +17,6 @@ import {
   isDueTomorrow,
   isOverdue,
 } from "./tasksPredicate";
-import { useMemo } from "react";
 
 export const TasksListByDueDate = ({
   filterByContact,

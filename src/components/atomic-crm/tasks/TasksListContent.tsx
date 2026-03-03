@@ -1,4 +1,4 @@
-import { TasksListByDueDate } from "../dashboard/TasksListByDueDate";
+import { TasksListByDueDate } from "./TasksListByDueDate";
 
 export const TasksListContent = () => {
   return (

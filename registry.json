@@ -36,7 +36,19 @@
           "type": "registry:component"
         },
         {
+          "path": "src/components/atomic-crm/tasks/tasksPredicate.ts",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/tasks/TasksListFilter.tsx",
+          "type": "registry:component"
+        },
+        {
           "path": "src/components/atomic-crm/tasks/TasksListContent.tsx",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/tasks/TasksListByDueDate.tsx",
           "type": "registry:component"
         },
         {
@@ -556,19 +568,7 @@
           "type": "registry:component"
         },
         {
-          "path": "src/components/atomic-crm/dashboard/tasksPredicate.ts",
-          "type": "registry:component"
-        },
-        {
           "path": "src/components/atomic-crm/dashboard/Welcome.tsx",
-          "type": "registry:component"
-        },
-        {
-          "path": "src/components/atomic-crm/dashboard/TasksListFilter.tsx",
-          "type": "registry:component"
-        },
-        {
-          "path": "src/components/atomic-crm/dashboard/TasksListByDueDate.tsx",
           "type": "registry:component"
         },
         {
