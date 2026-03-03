@@ -17,7 +17,7 @@ export const NotesIterator = ({
   const { infinitePaginationContextValue, isPending, error, data } =
     useAddInfinitePagination();
 
-  if (isPending || error || !data) return null;
+  if (isPending || error) return null;
 
   return (
     <InfinitePaginationContext.Provider value={infinitePaginationContextValue}>

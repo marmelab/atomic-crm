@@ -438,7 +438,6 @@ export const dataProvider = withLifecycleCallbacks(
           id: contact_id,
           data: {
             nb_tasks: (contact.nb_tasks ?? 0) + 1,
-            nb_pending_tasks: (contact.nb_pending_tasks ?? 0) + 1,
           },
           previousData: contact,
         });
@@ -456,7 +455,7 @@ export const dataProvider = withLifecycleCallbacks(
         return params;
       },
       afterUpdate: async (result, dataProvider) => {
-        // update the contact: if the task state has changed, decrement the nb of pending tasks if done else increment it
+        // update the contact: if the task state has changed, decrement the nb of tasks if done else increment it
         const { contact_id } = result.data;
         const { data: contact } = await dataProvider.getOne("contacts", {
           id: contact_id,
@@ -465,10 +464,10 @@ export const dataProvider = withLifecycleCallbacks(
           await dataProvider.update("contacts", {
             id: contact_id,
             data: {
-              nb_pending_tasks:
+              nb_tasks:
                 taskUpdateType === TASK_MARKED_AS_DONE
-                  ? (contact.nb_pending_tasks ?? 0) - 1
-                  : (contact.nb_pending_tasks ?? 0) + 1,
+                  ? (contact.nb_tasks ?? 0) - 1
+                  : (contact.nb_tasks ?? 0) + 1,
             },
             previousData: contact,
           });
@@ -485,7 +484,6 @@ export const dataProvider = withLifecycleCallbacks(
           id: contact_id,
           data: {
             nb_tasks: (contact.nb_tasks ?? 0) - 1,
-            nb_pending_tasks: (contact.nb_pending_tasks ?? 0) - 1,
           },
           previousData: contact,
         });
