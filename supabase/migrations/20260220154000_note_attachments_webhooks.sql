@@ -27,7 +27,6 @@ BEGIN
         )
       );
       issuer := nullif(issuer, '');
-
       IF issuer IS NOT NULL THEN
         issuer := rtrim(issuer, '/');
         IF right(issuer, 8) = '/auth/v1' THEN
@@ -76,12 +75,22 @@ BEGIN
     AS $function$
     DECLARE
       payload jsonb;
-      webhook_secret text;
+      request_headers jsonb;
+      auth_header text;
     BEGIN
-      webhook_secret := coalesce(
-        nullif(current_setting('app.settings.attachments_webhook_secret', true), ''),
-        'atomic-crm-note-attachments-webhook-secret'
+      request_headers := coalesce(
+        nullif(current_setting('request.headers', true), '')::jsonb,
+        '{}'::jsonb
       );
+      auth_header := request_headers ->> 'authorization';
+
+      IF auth_header IS NULL OR auth_header = '' THEN
+        IF TG_OP = 'DELETE' THEN
+          RETURN OLD;
+        END IF;
+
+        RETURN NEW;
+      END IF;
 
       payload := jsonb_build_object(
         'old_record', OLD,
@@ -96,8 +105,8 @@ BEGIN
         headers := jsonb_build_object(
           'Content-Type',
           'application/json',
-          'X-Webhook-Secret',
-          webhook_secret
+          'Authorization',
+          auth_header
         ),
         timeout_milliseconds := 10000
       );
