@@ -13,6 +13,9 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { useIsMobile } from "@/hooks/use-mobile";
+import type { LucideIcon } from "lucide-react";
+import { User, Crown, Briefcase, Euro } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 import type { Client, Contact } from "../types";
 import { TopToolbar } from "../layout/TopToolbar";
@@ -94,18 +97,18 @@ const ContactListLayout = () => {
       <>
         <MobilePageTitle title="Referenti" />
         <div className="mt-4 flex flex-col divide-y px-4">
-        {sortedContacts.map((contact) => (
-          <ContactMobileCard
-            key={contact.id}
-            contact={contact}
-            link={createPath({
-              resource: "contacts",
-              type: "show",
-              id: contact.id,
-            })}
-          />
-        ))}
-      </div>
+          {sortedContacts.map((contact) => (
+            <ContactMobileCard
+              key={contact.id}
+              contact={contact}
+              link={createPath({
+                resource: "contacts",
+                type: "show",
+                id: contact.id,
+              })}
+            />
+          ))}
+        </div>
       </>
     );
   }
@@ -114,36 +117,80 @@ const ContactListLayout = () => {
     <>
       <MobilePageTitle title="Referenti" />
       <div className="mt-4">
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead>Referente</TableHead>
-            <TableHead>Ruolo</TableHead>
-            <TableHead className="hidden md:table-cell">Contatti</TableHead>
-            <TableHead className="hidden lg:table-cell">Cliente</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {sortedContacts.map((contact) => (
-            <ContactRow
-              key={contact.id}
-              contact={contact}
-              clientName={
-                contact.client_id
-                  ? clientById.get(String(contact.client_id))
-                  : null
-              }
-              link={createPath({
-                resource: "contacts",
-                type: "show",
-                id: contact.id,
-              })}
-            />
-          ))}
-        </TableBody>
-      </Table>
-    </div>
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Referente</TableHead>
+              <TableHead>Ruolo</TableHead>
+              <TableHead className="hidden md:table-cell">Contatti</TableHead>
+              <TableHead className="hidden lg:table-cell">Cliente</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {sortedContacts.map((contact) => (
+              <ContactRow
+                key={contact.id}
+                contact={contact}
+                clientName={
+                  contact.client_id
+                    ? clientById.get(String(contact.client_id))
+                    : null
+                }
+                link={createPath({
+                  resource: "contacts",
+                  type: "show",
+                  id: contact.id,
+                })}
+              />
+            ))}
+          </TableBody>
+        </Table>
+      </div>
     </>
+  );
+};
+
+const roleConfig: Record<
+  string,
+  { icon: LucideIcon; color: string; bg: string }
+> = {
+  amministrativo: {
+    icon: Crown,
+    color: "text-amber-600",
+    bg: "bg-amber-50 border-amber-200",
+  },
+  operativo: {
+    icon: Briefcase,
+    color: "text-blue-600",
+    bg: "bg-blue-50 border-blue-200",
+  },
+  fatturazione: {
+    icon: Euro,
+    color: "text-green-600",
+    bg: "bg-green-50 border-green-200",
+  },
+  referente: {
+    icon: User,
+    color: "text-slate-600",
+    bg: "bg-slate-50 border-slate-200",
+  },
+};
+
+const ContactIconAvatar = ({ role }: { role: string }) => {
+  const config = roleConfig[role];
+  const Icon = config?.icon ?? User;
+  const colorClass = config?.color ?? "text-slate-500";
+  const bgClass = config?.bg ?? "bg-slate-50 border-slate-200";
+
+  return (
+    <div
+      className={cn(
+        "flex-shrink-0 w-10 h-10 rounded-lg border flex items-center justify-center",
+        bgClass,
+      )}
+    >
+      <Icon className={cn("h-5 w-5", colorClass)} />
+    </div>
   );
 };
 
@@ -158,36 +205,43 @@ const ContactRow = ({
 }) => {
   const primaryEmail = getContactPrimaryEmail(contact);
   const primaryPhone = getContactPrimaryPhone(contact);
-  const roleLabel = getContactRoleLabel(getContactResolvedRole(contact));
+  const resolvedRole = getContactResolvedRole(contact);
+  const roleLabel = getContactRoleLabel(resolvedRole);
 
   return (
     <TableRow className="cursor-pointer hover:bg-muted/50">
       <TableCell>
-        <div className="space-y-1.5">
-          <Link to={link} className="font-medium text-primary hover:underline">
-            {getContactDisplayName(contact)}
-          </Link>
-          <div className="flex flex-wrap gap-1">
-            {isContactPrimaryForClient(contact) ? (
-              <Badge variant="secondary" className="text-[11px]">
-                Principale
-              </Badge>
-            ) : null}
-            {roleLabel ? (
-              <Badge variant="outline" className="text-[11px]">
-                {roleLabel}
-              </Badge>
-            ) : null}
-            {primaryEmail ? (
-              <Badge variant="outline" className="text-[11px]">
-                {primaryEmail}
-              </Badge>
-            ) : null}
-            {primaryPhone ? (
-              <Badge variant="outline" className="text-[11px]">
-                {primaryPhone}
-              </Badge>
-            ) : null}
+        <div className="flex items-start gap-3">
+          <ContactIconAvatar role={resolvedRole} />
+          <div className="space-y-1.5 min-w-0">
+            <Link
+              to={link}
+              className="font-medium text-primary hover:underline block"
+            >
+              {getContactDisplayName(contact)}
+            </Link>
+            <div className="flex flex-wrap gap-1">
+              {isContactPrimaryForClient(contact) ? (
+                <Badge variant="secondary" className="text-[11px]">
+                  Principale
+                </Badge>
+              ) : null}
+              {roleLabel ? (
+                <Badge variant="outline" className="text-[11px]">
+                  {roleLabel}
+                </Badge>
+              ) : null}
+              {primaryEmail ? (
+                <Badge variant="outline" className="text-[11px]">
+                  {primaryEmail}
+                </Badge>
+              ) : null}
+              {primaryPhone ? (
+                <Badge variant="outline" className="text-[11px]">
+                  {primaryPhone}
+                </Badge>
+              ) : null}
+            </div>
           </div>
         </div>
       </TableCell>

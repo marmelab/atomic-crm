@@ -9,6 +9,17 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { useIsMobile } from "@/hooks/use-mobile";
+import type {
+  LucideIcon} from "lucide-react";
+import {
+  Video,
+  Scissors,
+  Camera,
+  Mic,
+  FileText,
+  Briefcase
+} from "lucide-react";
+import { cn } from "@/lib/utils";
 
 import type { Service } from "../types";
 import { useConfigurationContext } from "../root/ConfigurationContext";
@@ -18,6 +29,43 @@ import { calculateServiceNetValue } from "@/lib/semantics/crmSemanticRegistry";
 
 const eur = (n: number) =>
   n ? n.toLocaleString("it-IT", { minimumFractionDigits: 2 }) : "--";
+
+const serviceTypeIcons: Record<string, LucideIcon> = {
+  riprese: Video,
+  montaggio: Scissors,
+  fotografia: Camera,
+  audio: Mic,
+  documentazione: FileText,
+  altro: Briefcase,
+};
+
+const serviceTypeColors: Record<string, string> = {
+  riprese: "text-blue-600 bg-blue-50 border-blue-200",
+  montaggio: "text-purple-600 bg-purple-50 border-purple-200",
+  fotografia: "text-pink-600 bg-pink-50 border-pink-200",
+  audio: "text-amber-600 bg-amber-50 border-amber-200",
+  documentazione: "text-green-600 bg-green-50 border-green-200",
+  altro: "text-slate-600 bg-slate-50 border-slate-200",
+};
+
+const ServiceIconAvatar = ({ type }: { type: string }) => {
+  const Icon = serviceTypeIcons[type] ?? Briefcase;
+  const colorClass = serviceTypeColors[type]?.split(" ")[0] ?? "text-slate-600";
+  const bgClass =
+    serviceTypeColors[type]?.split(" ").slice(1).join(" ") ??
+    "bg-slate-50 border-slate-200";
+
+  return (
+    <div
+      className={cn(
+        "flex-shrink-0 w-9 h-9 rounded-lg border flex items-center justify-center",
+        bgClass,
+      )}
+    >
+      <Icon className={cn("h-4 w-4", colorClass)} />
+    </div>
+  );
+};
 
 export const ServiceListContent = () => {
   const { data, isPending, error } = useListContext<Service>();
@@ -162,8 +210,13 @@ const ServiceRow = ({ service, link }: { service: Service; link: string }) => {
         {project?.name ?? ""}
       </TableCell>
       <TableCell className="text-sm">
-        {serviceTypeChoices.find((t) => t.value === service.service_type)
-          ?.label ?? service.service_type}
+        <div className="flex items-center gap-2">
+          <ServiceIconAvatar type={service.service_type} />
+          <span>
+            {serviceTypeChoices.find((t) => t.value === service.service_type)
+              ?.label ?? service.service_type}
+          </span>
+        </div>
       </TableCell>
       <TableCell className="text-right text-sm hidden md:table-cell">
         {eur(service.fee_shooting)}

@@ -19,6 +19,21 @@ Last updated: 2026-03-04
   - Palette: Produzione TV (blu), Azienda Locale (verde), Wedding (rosa),
     Evento (ambra), Web (viola)
 
+## Update 2026-03-04 (h) — Colored Icons Across All List Views
+
+### UI Enhancement — All Lists
+
+Aggiunte icone colorate coerenti in tutte le liste del CRM:
+
+- **Referenti** (`ContactList`): Icone per ruolo (Crown/Amministrativo, Briefcase/Operativo, Euro/Fatturazione, User/Referente)
+- **Progetti** (`ProjectListContent`): Icone per categoria (TV, Spot, Wedding, Evento, Web)
+- **Servizi** (`ServiceListContent`): Icone per tipo (Riprese, Montaggio, Fotografia, Audio, Documentazione)
+- **Preventivi** (`QuoteCard`): Icone per tipo servizio nelle card Kanban
+- **Pagamenti** (`PaymentListContent`): Icone per tipo (Acconto, Saldo) e stato (Ricevuto, In attesa, Scaduto)
+- **Spese** (`ExpenseListContent`): Icone per tipo (Km, Materiale, Personale, Credito)
+
+Palette coerente con colori distintivi per ogni categoria.
+
 ## Update 2026-03-04 (g) — Header Fix: matchCurrentPath uses HEADER_ITEMS
 
 ### Bug Fix

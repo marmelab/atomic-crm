@@ -10,6 +10,16 @@ import {
 } from "@/components/ui/table";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Badge } from "@/components/ui/badge";
+import type {
+  LucideIcon} from "lucide-react";
+import {
+  Car,
+  ShoppingCart,
+  Users,
+  ArrowLeftRight,
+  Receipt
+} from "lucide-react";
+import { cn } from "@/lib/utils";
 
 import type { Expense } from "../types";
 import { expenseTypeLabels } from "./expenseTypes";
@@ -19,6 +29,41 @@ import { useConfigurationContext } from "../root/ConfigurationContext";
 
 const eur = (n: number) =>
   n ? n.toLocaleString("it-IT", { minimumFractionDigits: 2 }) : "--";
+
+const expenseTypeIcons: Record<string, LucideIcon> = {
+  spostamento_km: Car,
+  materiale: ShoppingCart,
+  personale: Users,
+  altro: Receipt,
+  credito_ricevuto: ArrowLeftRight,
+};
+
+const expenseTypeColors: Record<string, string> = {
+  spostamento_km: "text-amber-600 bg-amber-50 border-amber-200",
+  materiale: "text-blue-600 bg-blue-50 border-blue-200",
+  personale: "text-purple-600 bg-purple-50 border-purple-200",
+  altro: "text-slate-600 bg-slate-50 border-slate-200",
+  credito_ricevuto: "text-green-600 bg-green-50 border-green-200",
+};
+
+const ExpenseIconAvatar = ({ type }: { type: string }) => {
+  const Icon = expenseTypeIcons[type] ?? Receipt;
+  const colorClass = expenseTypeColors[type]?.split(" ")[0] ?? "text-slate-600";
+  const bgClass =
+    expenseTypeColors[type]?.split(" ").slice(1).join(" ") ??
+    "bg-slate-50 border-slate-200";
+
+  return (
+    <div
+      className={cn(
+        "flex-shrink-0 w-9 h-9 rounded-lg border flex items-center justify-center",
+        bgClass,
+      )}
+    >
+      <Icon className={cn("h-4 w-4", colorClass)} />
+    </div>
+  );
+};
 
 const computeTotal = (e: Expense, defaultKmRate: number) => {
   if (e.expense_type === "credito_ricevuto") {
@@ -185,13 +230,18 @@ const ExpenseRow = ({
         </Link>
       </TableCell>
       <TableCell className="text-sm">
-        {expense.expense_type === "credito_ricevuto" ? (
-          <Badge variant="secondary" className="text-green-700">
-            Credito
-          </Badge>
-        ) : (
-          (expenseTypeLabels[expense.expense_type] ?? expense.expense_type)
-        )}
+        <div className="flex items-center gap-2">
+          <ExpenseIconAvatar type={expense.expense_type} />
+          {expense.expense_type === "credito_ricevuto" ? (
+            <Badge variant="secondary" className="text-green-700">
+              Credito
+            </Badge>
+          ) : (
+            <span>
+              {expenseTypeLabels[expense.expense_type] ?? expense.expense_type}
+            </span>
+          )}
+        </div>
       </TableCell>
       <TableCell className="text-sm text-muted-foreground hidden md:table-cell">
         {client?.name ?? ""}

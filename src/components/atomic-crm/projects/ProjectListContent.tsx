@@ -10,6 +10,17 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { useIsMobile } from "@/hooks/use-mobile";
+import type {
+  LucideIcon} from "lucide-react";
+import {
+  Tv,
+  Sparkles,
+  Heart,
+  PartyPopper,
+  Globe,
+  FolderOpen
+} from "lucide-react";
+import { cn } from "@/lib/utils";
 
 import type { Project } from "../types";
 import {
@@ -113,20 +124,28 @@ const ProjectRow = ({ project, link }: { project: Project; link: string }) => {
   return (
     <TableRow className="cursor-pointer hover:bg-muted/50">
       <TableCell>
-        <Link to={link} className="font-medium text-primary hover:underline">
-          {project.name}
-        </Link>
+        <div className="flex items-start gap-3">
+          <ProjectIconAvatar category={project.category} />
+          <div className="min-w-0">
+            <Link
+              to={link}
+              className="font-medium text-primary hover:underline block"
+            >
+              {project.name}
+            </Link>
+            {project.tv_show && (
+              <span className="text-xs text-muted-foreground">
+                {projectTvShowLabels[project.tv_show]}
+              </span>
+            )}
+          </div>
+        </div>
       </TableCell>
       <TableCell className="text-muted-foreground">
         {client?.name ?? ""}
       </TableCell>
       <TableCell>
         <ProjectCategoryBadge category={project.category} />
-        {project.tv_show && (
-          <span className="ml-1 text-xs text-muted-foreground">
-            {projectTvShowLabels[project.tv_show]}
-          </span>
-        )}
       </TableCell>
       <TableCell className="hidden md:table-cell">
         <ProjectStatusBadge status={project.status} />
@@ -138,33 +157,90 @@ const ProjectRow = ({ project, link }: { project: Project; link: string }) => {
   );
 };
 
-const categoryBadgeColors: Record<string, string> = {
-  produzione_tv:
-    "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200",
-  spot: "bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-200",
-  wedding: "bg-pink-100 text-pink-800 dark:bg-pink-900 dark:text-pink-200",
-  evento_privato:
-    "bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200",
-  sviluppo_web:
-    "bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200",
+const categoryConfig: Record<
+  string,
+  { icon: LucideIcon; color: string; bg: string }
+> = {
+  produzione_tv: {
+    icon: Tv,
+    color: "text-blue-600",
+    bg: "bg-blue-50 border-blue-200",
+  },
+  spot: {
+    icon: Sparkles,
+    color: "text-amber-600",
+    bg: "bg-amber-50 border-amber-200",
+  },
+  wedding: {
+    icon: Heart,
+    color: "text-rose-600",
+    bg: "bg-rose-50 border-rose-200",
+  },
+  evento_privato: {
+    icon: PartyPopper,
+    color: "text-orange-600",
+    bg: "bg-orange-50 border-orange-200",
+  },
+  sviluppo_web: {
+    icon: Globe,
+    color: "text-violet-600",
+    bg: "bg-violet-50 border-violet-200",
+  },
 };
 
-export const ProjectCategoryBadge = ({ category }: { category: string }) => (
-  <Badge variant="outline" className={categoryBadgeColors[category] ?? ""}>
-    {projectCategoryLabels[category] ?? category}
-  </Badge>
-);
+const ProjectIconAvatar = ({ category }: { category: string }) => {
+  const config = categoryConfig[category];
+  const Icon = config?.icon ?? FolderOpen;
+  const colorClass = config?.color ?? "text-slate-500";
+  const bgClass = config?.bg ?? "bg-slate-50 border-slate-200";
 
-const statusBadgeColors: Record<string, string> = {
-  in_corso: "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200",
-  completato: "bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200",
-  in_pausa:
-    "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200",
-  cancellato: "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200",
+  return (
+    <div
+      className={cn(
+        "flex-shrink-0 w-10 h-10 rounded-lg border flex items-center justify-center",
+        bgClass,
+      )}
+    >
+      <Icon className={cn("h-5 w-5", colorClass)} />
+    </div>
+  );
 };
 
-export const ProjectStatusBadge = ({ status }: { status: string }) => (
-  <Badge variant="outline" className={statusBadgeColors[status] ?? ""}>
-    {projectStatusLabels[status] ?? status}
-  </Badge>
-);
+export const ProjectCategoryBadge = ({ category }: { category: string }) => {
+  const config = categoryConfig[category];
+  if (!config) {
+    return (
+      <Badge variant="outline">
+        {projectCategoryLabels[category] ?? category}
+      </Badge>
+    );
+  }
+  const Icon = config.icon;
+  return (
+    <Badge
+      variant="outline"
+      className={cn("inline-flex items-center gap-1.5", config.bg)}
+    >
+      <Icon className={cn("h-3 w-3", config.color)} />
+      <span className={config.color}>
+        {projectCategoryLabels[category] ?? category}
+      </span>
+    </Badge>
+  );
+};
+
+const statusConfig: Record<string, { color: string; bg: string }> = {
+  in_corso: { color: "text-green-700", bg: "bg-green-50 border-green-200" },
+  completato: { color: "text-slate-700", bg: "bg-slate-100 border-slate-300" },
+  in_pausa: { color: "text-amber-700", bg: "bg-amber-50 border-amber-200" },
+  cancellato: { color: "text-red-700", bg: "bg-red-50 border-red-200" },
+};
+
+export const ProjectStatusBadge = ({ status }: { status: string }) => {
+  const config = statusConfig[status];
+  return (
+    <Badge variant="outline" className={cn(config?.bg, config?.color)}>
+      {projectStatusLabels[status] ?? status}
+    </Badge>
+  );
+};
