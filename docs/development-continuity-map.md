@@ -8,7 +8,7 @@ prodotto.
 
 Last updated: 2026-03-04
 
-## Update 2026-03-04 (b) — Kanban, Workflow, Proposal
+## Update 2026-03-04 (b) — Kanban, Workflow
 
 ### Kanban progetti
 
@@ -28,16 +28,6 @@ Quando tocchi il modulo workflow o le risorse trigger-abili, verificare:
 - `dataProvider.ts` (lifecycle callbacks `buildWorkflowCallbacks`)
 - `types.ts` (Workflow, WorkflowExecution)
 - migration `20260304140000_workflow_automation.sql`
-
-### Proposal & Contract
-
-Quando tocchi la proposta/contratto nei preventivi, verificare:
-
-- migration `20260304132132_add_proposal_contract_fields.sql`
-- `QuoteInputs.tsx` (TODO: aggiungere campi proposta)
-- `QuotePDF.tsx` (TODO: template contratto)
-- `QuoteShow.tsx` (TODO: sezione proposta e bottone contratto)
-- `types.ts` (Quote type — TODO: aggiungere campi)
 
 ## Update 2026-03-04 — Mandatory Sweep Addendum
 

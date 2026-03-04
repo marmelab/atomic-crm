@@ -33,7 +33,7 @@ Regola pratica:
 - se una modifica e' solo strutturale/read-only, `Impostazioni` non va toccata
   ma la motivazione va lasciata nei docs di continuita'
 
-## Update 2026-03-04 (b) — Kanban, Workflow, Proposal
+## Update 2026-03-04 (b) — Kanban, Workflow
 
 ### Kanban Project View
 
@@ -62,18 +62,6 @@ Engine client-side:
 
 UI: List, Create, Edit, Show con execution history.
 Navigazione: menu "Altro" mobile, non nella header desktop.
-
-### Proposal & Contract (DB-only)
-
-Campi aggiunti alla tabella `quotes`:
-
-- `scope_of_work` (TEXT)
-- `terms_and_conditions` (TEXT)
-- `deliverables` (TEXT)
-- `validity_days` (INTEGER DEFAULT 30)
-- `contract_accepted_at` (TIMESTAMPTZ)
-
-UI e PDF non ancora aggiornati (prossimo step).
 
 ## Update 2026-03-04
 
@@ -393,7 +381,7 @@ Nota di continuita':
 | project_contacts | Join referenti-progetti | auth.uid() IS NOT NULL | FK `project_id`, FK `contact_id`, `is_primary` con unicita' per progetto, timestamps |
 | projects | Progetti/programmi | auth.uid() IS NOT NULL | cliente, categoria, `tv_show`, stato, range date, budget, note, timestamps |
 | services | Registro lavori (cuore) | auth.uid() IS NOT NULL | FK progetto, date/range, tipo servizio, tassabilita', fee, km, `invoice_ref`, note, `updated_at` |
-| quotes | Preventivi + pipeline Kanban + proposta/contratto | auth.uid() IS NOT NULL | cliente/progetto, tipo servizio, range evento, importo, stato, `quote_items`, `scope_of_work`, `terms_and_conditions`, `deliverables`, `validity_days`, `contract_accepted_at`, note |
+| quotes | Preventivi + pipeline Kanban | auth.uid() IS NOT NULL | cliente/progetto, tipo servizio, range evento, importo, stato, `quote_items`, note |
 | workflows | Automazioni trigger-based | auth.uid() IS NOT NULL | nome, trigger (resource/event/conditions JSONB), actions JSONB, is_active, timestamps |
 | workflow_executions | Log esecuzioni workflow | auth.uid() IS NOT NULL | FK workflow, trigger info, status, result JSONB, error, timestamp |
 | payments | Tracking pagamenti | auth.uid() IS NOT NULL | cliente/progetto/preventivo, data, tipo, importo, metodo, `invoice_ref`, stato, note |
