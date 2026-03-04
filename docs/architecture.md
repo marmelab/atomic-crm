@@ -33,6 +33,16 @@ Regola pratica:
 - se una modifica e' solo strutturale/read-only, `Impostazioni` non va toccata
   ma la motivazione va lasciata nei docs di continuita'
 
+## Update 2026-03-04 (f) — Type Safety Cleanup in unifiedCrmAnswer
+
+Fix errori di tipo pre-esistenti in `unifiedCrmAnswer.ts`:
+- `DraftPaymentType` alias + return type annotations per `inferPreferredPaymentType`,
+  `inferQuoteDraftPaymentType`, `inferProjectDraftPaymentType`
+- Estrazione `buildShowHref` in variabili locali nel branch `focusContacts`
+  (stesso pattern applicato a `focusWorkflows` nel commit precedente)
+
+Nessun cambiamento funzionale — solo type safety.
+
 ## Update 2026-03-04 (e) — AI Semantic Audit & Fiscal Deadline Awareness
 
 ### Correzioni

@@ -1157,7 +1157,11 @@ const getObjectArray = (value: unknown): Array<Record<string, unknown>> =>
 const canCreatePaymentFromQuoteStatus = (status: string | null) =>
   Boolean(status && quoteStatusesEligibleForPaymentCreation.has(status));
 
-const inferPreferredPaymentType = (normalizedQuestion: string) => {
+type DraftPaymentType = "acconto" | "saldo" | "parziale" | "rimborso_spese";
+
+const inferPreferredPaymentType = (
+  normalizedQuestion: string,
+): DraftPaymentType | null => {
   if (includesAny(normalizedQuestion, ["rimborso spese", "rimborso", "spes"])) {
     return "rimborso_spese";
   }
@@ -1177,7 +1181,9 @@ const inferPreferredPaymentType = (normalizedQuestion: string) => {
   return null;
 };
 
-const inferQuoteDraftPaymentType = (normalizedQuestion: string) => {
+const inferQuoteDraftPaymentType = (
+  normalizedQuestion: string,
+): DraftPaymentType => {
   const inferred = inferPreferredPaymentType(normalizedQuestion);
 
   if (
@@ -1191,7 +1197,9 @@ const inferQuoteDraftPaymentType = (normalizedQuestion: string) => {
   return "parziale";
 };
 
-const inferProjectDraftPaymentType = (normalizedQuestion: string) => {
+const inferProjectDraftPaymentType = (
+  normalizedQuestion: string,
+): DraftPaymentType => {
   const inferred = inferPreferredPaymentType(normalizedQuestion);
 
   if (
@@ -2857,8 +2865,13 @@ export const buildUnifiedCrmSuggestedActions = ({
             href: buildListHref(routePrefix, "contacts"),
           },
     );
+    const contactClientHref = buildShowHref(
+      routePrefix,
+      "clients",
+      getString(firstContact?.clientId),
+    );
     pushSuggestion(
-      buildShowHref(routePrefix, "clients", getString(firstContact?.clientId))
+      contactClientHref
         ? {
             id: "open-linked-client-from-contact",
             kind: "show",
@@ -2867,20 +2880,17 @@ export const buildUnifiedCrmSuggestedActions = ({
             label: "Apri il cliente collegato",
             description:
               "Vai alla scheda cliente collegata al referente principale dello snapshot.",
-            href: buildShowHref(
-              routePrefix,
-              "clients",
-              getString(firstContact?.clientId),
-            ),
+            href: contactClientHref,
           }
         : null,
     );
+    const contactProjectHref = buildShowHref(
+      routePrefix,
+      "projects",
+      getString(getObjectArray(firstContact?.linkedProjects)[0]?.projectId),
+    );
     pushSuggestion(
-      buildShowHref(
-        routePrefix,
-        "projects",
-        getString(getObjectArray(firstContact?.linkedProjects)[0]?.projectId),
-      )
+      contactProjectHref
         ? {
             id: "open-linked-project-from-contact",
             kind: "show",
@@ -2889,13 +2899,7 @@ export const buildUnifiedCrmSuggestedActions = ({
             label: "Apri il progetto collegato",
             description:
               "Vai al primo progetto collegato al referente principale dello snapshot.",
-            href: buildShowHref(
-              routePrefix,
-              "projects",
-              getString(
-                getObjectArray(firstContact?.linkedProjects)[0]?.projectId,
-              ),
-            ),
+            href: contactProjectHref,
           }
         : null,
     );
