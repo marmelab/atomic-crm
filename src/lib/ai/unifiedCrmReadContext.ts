@@ -29,11 +29,23 @@ import type {
 } from "@/components/atomic-crm/types";
 import type { CrmCapabilityRegistry } from "@/lib/semantics/crmCapabilityRegistry";
 import {
-  calculateKmReimbursement,
   calculateServiceNetValue,
   isPaymentTaxable,
   type CrmSemanticRegistry,
 } from "@/lib/semantics/crmSemanticRegistry";
+import {
+  buildProjectFinancialSummaries,
+  buildClientFinancialSummaries,
+} from "./unifiedCrmFinancialSummaries";
+import type {
+  SnapshotContactReference,
+  UnifiedCrmReadContext,
+} from "./unifiedCrmReadContextTypes";
+
+// Re-export types for backward compatibility
+export type { UnifiedCrmReadContext } from "./unifiedCrmReadContextTypes";
+
+// ── Helpers ───────────────────────────────────────────────────────────
 
 const openQuoteClosedStatuses = new Set([
   "saldato",
@@ -44,10 +56,7 @@ const openQuoteClosedStatuses = new Set([
 const inactiveProjectStatuses = new Set(["completato", "cancellato"]);
 
 const toDateValue = (value?: string | null) => {
-  if (!value) {
-    return Number.NEGATIVE_INFINITY;
-  }
-
+  if (!value) return Number.NEGATIVE_INFINITY;
   const date = new Date(value);
   return Number.isNaN(date.valueOf()) ? Number.NEGATIVE_INFINITY : date.valueOf();
 };
@@ -64,169 +73,11 @@ const diffDays = (from: Date, to: Date) => {
 
 const formatDateTimeLabel = (value: string) => {
   const date = new Date(value);
-  if (Number.isNaN(date.valueOf())) {
-    return value;
-  }
-
+  if (Number.isNaN(date.valueOf())) return value;
   return date.toLocaleString("it-IT", {
     dateStyle: "short",
     timeStyle: "short",
   });
-};
-
-const getExpenseOperationalAmount = (expense: Expense) => {
-  if (expense.expense_type === "credito_ricevuto") {
-    return -Number(expense.amount ?? 0);
-  }
-
-  if (expense.expense_type === "spostamento_km") {
-    return calculateKmReimbursement({
-      kmDistance: expense.km_distance,
-      kmRate: expense.km_rate,
-    });
-  }
-
-  return Number(expense.amount ?? 0) * (1 + Number(expense.markup_percent ?? 0) / 100);
-};
-
-const buildProjectFinancialSummaries = ({
-  projects,
-  services,
-  payments,
-  expenses,
-}: {
-  projects: Project[];
-  services: Service[];
-  payments: Payment[];
-  expenses: Expense[];
-}) => {
-  const summaries = new Map(
-    projects.map((project) => [
-      String(project.id),
-      {
-        totalServices: 0,
-        totalFees: 0,
-        totalExpenses: 0,
-        totalPaid: 0,
-        balanceDue: 0,
-      },
-    ]),
-  );
-
-  services.forEach((service) => {
-    const projectId = service.project_id ? String(service.project_id) : null;
-    if (!projectId) {
-      return;
-    }
-
-    const current = summaries.get(projectId);
-    if (!current) {
-      return;
-    }
-
-    current.totalServices += 1;
-    current.totalFees += calculateServiceNetValue(service);
-  });
-
-  expenses.forEach((expense) => {
-    const projectId = expense.project_id ? String(expense.project_id) : null;
-    if (!projectId) {
-      return;
-    }
-
-    const current = summaries.get(projectId);
-    if (!current) {
-      return;
-    }
-
-    current.totalExpenses += getExpenseOperationalAmount(expense);
-  });
-
-  payments.forEach((payment) => {
-    const projectId = payment.project_id ? String(payment.project_id) : null;
-    if (!projectId || payment.status !== "ricevuto") {
-      return;
-    }
-
-    const current = summaries.get(projectId);
-    if (!current) {
-      return;
-    }
-
-    current.totalPaid +=
-      payment.payment_type === "rimborso"
-        ? -Number(payment.amount ?? 0)
-        : Number(payment.amount ?? 0);
-  });
-
-  summaries.forEach((summary) => {
-    summary.balanceDue =
-      summary.totalFees + summary.totalExpenses - summary.totalPaid;
-  });
-
-  return summaries;
-};
-
-const buildClientFinancialSummaries = ({
-  services,
-  payments,
-  clientById,
-}: {
-  services: Service[];
-  payments: Payment[];
-  clientById: Map<string, Client>;
-}) => {
-  const totals = new Map<
-    string,
-    {
-      totalFees: number;
-      totalPaid: number;
-      uninvoicedServices: number;
-    }
-  >();
-
-  const ensure = (clientId: string) => {
-    if (!totals.has(clientId)) {
-      totals.set(clientId, {
-        totalFees: 0,
-        totalPaid: 0,
-        uninvoicedServices: 0,
-      });
-    }
-    return totals.get(clientId)!;
-  };
-
-  for (const service of services) {
-    if (!service.client_id) continue;
-    const clientId = String(service.client_id);
-    const t = ensure(clientId);
-    t.totalFees += calculateServiceNetValue(service);
-    if (!service.invoice_ref || service.invoice_ref.trim().length === 0) {
-      t.uninvoicedServices += 1;
-    }
-  }
-
-  for (const payment of payments) {
-    if (payment.status !== "ricevuto" || !payment.client_id) continue;
-    const clientId = String(payment.client_id);
-    const t = ensure(clientId);
-    t.totalPaid +=
-      payment.payment_type === "rimborso"
-        ? -Number(payment.amount ?? 0)
-        : Number(payment.amount ?? 0);
-  }
-
-  return Array.from(totals.entries())
-    .map(([clientId, t]) => ({
-      clientId,
-      clientName: clientById.get(clientId)?.name ?? "Cliente",
-      totalFees: t.totalFees,
-      totalPaid: t.totalPaid,
-      balanceDue: t.totalFees - t.totalPaid,
-      hasUninvoicedServices: t.uninvoicedServices > 0,
-    }))
-    .filter((c) => c.totalFees !== 0 || c.totalPaid !== 0)
-    .sort((a, b) => b.balanceDue - a.balanceDue);
 };
 
 const getClientName = (
@@ -242,31 +93,14 @@ const getProjectName = (
   projectById: Map<string, Pick<Project, "id" | "name">>,
   projectId?: Project["id"] | null,
 ) =>
-  projectId ? projectById.get(String(projectId))?.name ?? "Progetto non trovato" : null;
-
-type SnapshotContactReference = {
-  contactId: string;
-  displayName: string;
-  role: string | null;
-  roleLabel: string | null;
-  title: string | null;
-  isPrimaryForClient: boolean;
-  email: string | null;
-  phone: string | null;
-};
-
-type SnapshotProjectReference = {
-  projectId: string;
-  projectName: string;
-  status: string;
-  statusLabel: string;
-};
+  projectId
+    ? projectById.get(String(projectId))?.name ?? "Progetto non trovato"
+    : null;
 
 const buildSnapshotContactReference = (
   contact: Contact,
 ): SnapshotContactReference => {
   const role = getContactResolvedRole(contact);
-
   return {
     contactId: String(contact.id),
     displayName: getContactDisplayName(contact),
@@ -279,184 +113,7 @@ const buildSnapshotContactReference = (
   };
 };
 
-export type UnifiedCrmReadContext = {
-  meta: {
-    generatedAt: string;
-    generatedAtLabel: string;
-    businessTimezone: string;
-    routePrefix: string;
-    scope: "crm_read_snapshot";
-  };
-  registries: {
-    semantic: CrmSemanticRegistry;
-    capability: CrmCapabilityRegistry;
-  };
-  snapshot: {
-    counts: {
-      clients: number;
-      contacts: number;
-      quotes: number;
-      openQuotes: number;
-      activeProjects: number;
-      pendingPayments: number;
-      overduePayments: number;
-      upcomingTasks: number;
-      overdueTasks: number;
-      expenses: number;
-    };
-    totals: {
-      openQuotesAmount: number;
-      pendingPaymentsAmount: number;
-      expensesAmount: number;
-    };
-    recentClients: Array<{
-      clientId: string;
-      clientName: string;
-      operationalName: string | null;
-      billingName: string | null;
-      email: string | null;
-      vatNumber: string | null;
-      fiscalCode: string | null;
-      billingAddress: string | null;
-      billingCity: string | null;
-      billingSdiCode: string | null;
-      billingPec: string | null;
-      contacts: SnapshotContactReference[];
-      activeProjects: SnapshotProjectReference[];
-      createdAt: string;
-    }>;
-    recentContacts: Array<{
-      contactId: string;
-      displayName: string;
-      role: string | null;
-      roleLabel: string | null;
-      title: string | null;
-      isPrimaryForClient: boolean;
-      email: string | null;
-      phone: string | null;
-      clientId: string | null;
-      clientName: string | null;
-      linkedProjects: Array<
-        SnapshotProjectReference & {
-          isPrimary: boolean;
-        }
-      >;
-      updatedAt: string;
-    }>;
-    openQuotes: Array<{
-      quoteId: string;
-      clientId: string | null;
-      projectId: string | null;
-      clientName: string;
-      projectName: string | null;
-      amount: number;
-      linkedPaymentsTotal: number;
-      remainingAmount: number;
-      status: string;
-      statusLabel: string;
-      createdAt: string;
-    }>;
-    activeProjects: Array<{
-      projectId: string;
-      clientId: string | null;
-      projectName: string;
-      clientName: string | null;
-      projectCategory?: string | null;
-      projectTvShow?: string | null;
-      status: string;
-      statusLabel: string;
-      startDate: string | null;
-      totalServices: number;
-      totalFees: number;
-      totalExpenses: number;
-      totalPaid: number;
-      balanceDue: number;
-      contacts: Array<
-        SnapshotContactReference & {
-          isPrimary: boolean;
-        }
-      >;
-    }>;
-    pendingPayments: Array<{
-      paymentId: string;
-      quoteId: string | null;
-      clientId: string | null;
-      projectId: string | null;
-      clientName: string | null;
-      projectName: string | null;
-      amount: number;
-      status: string;
-      statusLabel: string;
-      paymentDate: string | null;
-      isTaxable: boolean;
-    }>;
-    overduePayments: Array<{
-      paymentId: string;
-      quoteId: string | null;
-      clientId: string | null;
-      projectId: string | null;
-      clientName: string | null;
-      projectName: string | null;
-      amount: number;
-      status: string;
-      statusLabel: string;
-      paymentDate: string | null;
-      isTaxable: boolean;
-      daysOverdue: number | null;
-    }>;
-    upcomingTasks: Array<{
-      taskId: string;
-      clientId: string | null;
-      clientName: string | null;
-      text: string;
-      type: string;
-      dueDate: string;
-      allDay: boolean;
-      daysUntilDue: number;
-    }>;
-    overdueTasks: Array<{
-      taskId: string;
-      clientId: string | null;
-      clientName: string | null;
-      text: string;
-      type: string;
-      dueDate: string;
-      allDay: boolean;
-      daysOverdue: number;
-    }>;
-    recentExpenses: Array<{
-      expenseId: string;
-      clientId: string | null;
-      projectId: string | null;
-      clientName: string | null;
-      projectName: string | null;
-      amount: number;
-      expenseType: string;
-      expenseTypeLabel: string;
-      expenseDate: string;
-      description: string | null;
-    }>;
-    clientLevelServices: Array<{
-      serviceId: string;
-      clientId: string | null;
-      clientName: string | null;
-      serviceType: string;
-      amount: number;
-      isTaxable: boolean;
-      serviceDate: string;
-      notes: string | null;
-    }>;
-    clientFinancials: Array<{
-      clientId: string;
-      clientName: string;
-      totalFees: number;
-      totalPaid: number;
-      balanceDue: number;
-      hasUninvoicedServices: boolean;
-    }>;
-  };
-  caveats: string[];
-};
+// ── Main builder ──────────────────────────────────────────────────────
 
 export const buildUnifiedCrmReadContext = ({
   clients,
@@ -507,10 +164,7 @@ export const buildUnifiedCrmReadContext = ({
   const activeProjectsByClientId = new Map<string, Project[]>();
 
   services.forEach((service) => {
-    if (!service.project_id) {
-      return;
-    }
-
+    if (!service.project_id) return;
     const projectId = String(service.project_id);
     const current = servicesByProjectId.get(projectId) ?? [];
     current.push(service);
@@ -518,10 +172,7 @@ export const buildUnifiedCrmReadContext = ({
   });
 
   payments.forEach((payment) => {
-    if (!payment.quote_id) {
-      return;
-    }
-
+    if (!payment.quote_id) return;
     const quoteId = String(payment.quote_id);
     const current = paymentsByQuoteId.get(quoteId) ?? [];
     current.push(payment);
@@ -529,10 +180,7 @@ export const buildUnifiedCrmReadContext = ({
   });
 
   contacts.forEach((contact) => {
-    if (!contact.client_id) {
-      return;
-    }
-
+    if (!contact.client_id) return;
     const clientId = String(contact.client_id);
     const current = contactsByClientId.get(clientId) ?? [];
     current.push(contact);
@@ -547,10 +195,7 @@ export const buildUnifiedCrmReadContext = ({
     .sort((left, right) => toDateValue(right.start_date) - toDateValue(left.start_date));
 
   activeProjects.forEach((project) => {
-    if (!project.client_id) {
-      return;
-    }
-
+    if (!project.client_id) return;
     const clientId = String(project.client_id);
     const current = activeProjectsByClientId.get(clientId) ?? [];
     current.push(project);
@@ -558,16 +203,9 @@ export const buildUnifiedCrmReadContext = ({
   });
 
   projectContacts.forEach((projectContact) => {
-    const projectId = projectContact.project_id
-      ? String(projectContact.project_id)
-      : null;
-    const contactId = projectContact.contact_id
-      ? String(projectContact.contact_id)
-      : null;
-
-    if (!projectId || !contactId || !projectById.has(projectId) || !contactById.has(contactId)) {
-      return;
-    }
+    const projectId = projectContact.project_id ? String(projectContact.project_id) : null;
+    const contactId = projectContact.contact_id ? String(projectContact.contact_id) : null;
+    if (!projectId || !contactId || !projectById.has(projectId) || !contactById.has(contactId)) return;
 
     const currentProjectRows = projectContactsByProjectId.get(projectId) ?? [];
     currentProjectRows.push(projectContact);
@@ -583,20 +221,10 @@ export const buildUnifiedCrmReadContext = ({
   nextWeek.setDate(nextWeek.getDate() + 7);
 
   const pendingPayments = payments
-    .filter(
-      (payment) =>
-        payment.status !== "ricevuto" && payment.payment_type !== "rimborso",
-    )
-    .sort(
-      (left, right) =>
-        toDateValue(left.payment_date ?? left.created_at) -
-        toDateValue(right.payment_date ?? right.created_at),
-    );
+    .filter((payment) => payment.status !== "ricevuto" && payment.payment_type !== "rimborso")
+    .sort((left, right) => toDateValue(left.payment_date ?? left.created_at) - toDateValue(right.payment_date ?? right.created_at));
   const overduePayments = pendingPayments.filter((payment) => {
-    if (payment.status !== "in_attesa" || !payment.payment_date) {
-      return false;
-    }
-
+    if (payment.status !== "in_attesa" || !payment.payment_date) return false;
     return toStartOfDay(new Date(payment.payment_date)) < today;
   });
   const incompleteTasks = tasks
@@ -616,32 +244,14 @@ export const buildUnifiedCrmReadContext = ({
     (left, right) => toDateValue(right.created_at) - toDateValue(left.created_at),
   );
   const recentContacts = [...contacts].sort((left, right) => {
-    const primaryDelta =
-      Number(isContactPrimaryForClient(right)) -
-      Number(isContactPrimaryForClient(left));
-
-    if (primaryDelta !== 0) {
-      return primaryDelta;
-    }
-
-    return (
-      toDateValue(right.updated_at ?? right.created_at) -
-      toDateValue(left.updated_at ?? left.created_at)
-    );
+    const primaryDelta = Number(isContactPrimaryForClient(right)) - Number(isContactPrimaryForClient(left));
+    if (primaryDelta !== 0) return primaryDelta;
+    return toDateValue(right.updated_at ?? right.created_at) - toDateValue(left.updated_at ?? left.created_at);
   });
 
-  const openQuotesAmount = openQuotes.reduce(
-    (sum, quote) => sum + Number(quote.amount ?? 0),
-    0,
-  );
-  const pendingPaymentsAmount = pendingPayments.reduce(
-    (sum, payment) => sum + Number(payment.amount ?? 0),
-    0,
-  );
-  const expensesAmount = recentExpenses.reduce(
-    (sum, expense) => sum + Number(expense.amount ?? 0),
-    0,
-  );
+  const openQuotesAmount = openQuotes.reduce((sum, quote) => sum + Number(quote.amount ?? 0), 0);
+  const pendingPaymentsAmount = pendingPayments.reduce((sum, payment) => sum + Number(payment.amount ?? 0), 0);
+  const expensesAmount = recentExpenses.reduce((sum, expense) => sum + Number(expense.amount ?? 0), 0);
 
   const getClientContacts = (clientId: string) =>
     [...(contactsByClientId.get(clientId) ?? [])]
@@ -651,11 +261,7 @@ export const buildUnifiedCrmReadContext = ({
 
   const getClientActiveProjects = (clientId: string) =>
     [...(activeProjectsByClientId.get(clientId) ?? [])]
-      .sort(
-        (left, right) =>
-          toDateValue(right.start_date ?? right.created_at) -
-          toDateValue(left.start_date ?? left.created_at),
-      )
+      .sort((left, right) => toDateValue(right.start_date ?? right.created_at) - toDateValue(left.start_date ?? left.created_at))
       .map((project) => ({
         projectId: String(project.id),
         projectName: project.name,
@@ -667,71 +273,43 @@ export const buildUnifiedCrmReadContext = ({
   const getProjectContacts = (projectId: string) =>
     [...(projectContactsByProjectId.get(projectId) ?? [])]
       .sort((left, right) => {
-        if (left.is_primary !== right.is_primary) {
-          return left.is_primary ? -1 : 1;
-        }
-
+        if (left.is_primary !== right.is_primary) return left.is_primary ? -1 : 1;
         const leftContact = contactById.get(String(left.contact_id));
         const rightContact = contactById.get(String(right.contact_id));
-
-        if (!leftContact || !rightContact) {
-          return 0;
-        }
-
+        if (!leftContact || !rightContact) return 0;
         return compareContactsForClientContext(leftContact, rightContact);
       })
-      .flatMap((projectContact) => {
-        const contact = contactById.get(String(projectContact.contact_id));
-        if (!contact) {
-          return [];
-        }
-
-        return [
-          {
-            ...buildSnapshotContactReference(contact),
-            isPrimary: projectContact.is_primary === true,
-          },
-        ];
+      .flatMap((pc) => {
+        const contact = contactById.get(String(pc.contact_id));
+        if (!contact) return [];
+        return [{ ...buildSnapshotContactReference(contact), isPrimary: pc.is_primary === true }];
       })
       .slice(0, 4);
 
   const getContactLinkedProjects = (contactId: string) =>
     [...(projectContactsByContactId.get(contactId) ?? [])]
       .sort((left, right) => {
-        if (left.is_primary !== right.is_primary) {
-          return left.is_primary ? -1 : 1;
-        }
-
-        const leftProject = projectById.get(String(left.project_id));
-        const rightProject = projectById.get(String(right.project_id));
-        return (
-          toDateValue(rightProject?.start_date ?? rightProject?.created_at) -
-          toDateValue(leftProject?.start_date ?? leftProject?.created_at)
-        );
+        if (left.is_primary !== right.is_primary) return left.is_primary ? -1 : 1;
+        const lp = projectById.get(String(left.project_id));
+        const rp = projectById.get(String(right.project_id));
+        return toDateValue(rp?.start_date ?? rp?.created_at) - toDateValue(lp?.start_date ?? lp?.created_at);
       })
-      .flatMap((projectContact) => {
-        const project = projectById.get(String(projectContact.project_id));
-        if (!project) {
-          return [];
-        }
-
-        return [
-          {
-            projectId: String(project.id),
-            projectName: project.name,
-            status: project.status,
-            statusLabel: projectStatusLabels[project.status] ?? project.status,
-            isPrimary: projectContact.is_primary === true,
-          },
-        ];
+      .flatMap((pc) => {
+        const project = projectById.get(String(pc.project_id));
+        if (!project) return [];
+        return [{
+          projectId: String(project.id),
+          projectName: project.name,
+          status: project.status,
+          statusLabel: projectStatusLabels[project.status] ?? project.status,
+          isPrimary: pc.is_primary === true,
+        }];
       })
       .slice(0, 4);
 
   const getPaymentTaxable = (payment: Payment) =>
     isPaymentTaxable(payment, {
-      projectServices: payment.project_id
-        ? (servicesByProjectId.get(String(payment.project_id)) ?? [])
-        : [],
+      projectServices: payment.project_id ? (servicesByProjectId.get(String(payment.project_id)) ?? []) : [],
       quote: payment.quote_id ? quoteById.get(String(payment.quote_id)) : null,
     });
 
@@ -743,28 +321,16 @@ export const buildUnifiedCrmReadContext = ({
       routePrefix: capabilityRegistry.routing.routePrefix,
       scope: "crm_read_snapshot",
     },
-    registries: {
-      semantic: semanticRegistry,
-      capability: capabilityRegistry,
-    },
+    registries: { semantic: semanticRegistry, capability: capabilityRegistry },
     snapshot: {
       counts: {
-        clients: clients.length,
-        contacts: contacts.length,
-        quotes: quotes.length,
-        openQuotes: openQuotes.length,
-        activeProjects: activeProjects.length,
-        pendingPayments: pendingPayments.length,
-        overduePayments: overduePayments.length,
-        upcomingTasks: upcomingTasks.length,
-        overdueTasks: overdueTasks.length,
+        clients: clients.length, contacts: contacts.length, quotes: quotes.length,
+        openQuotes: openQuotes.length, activeProjects: activeProjects.length,
+        pendingPayments: pendingPayments.length, overduePayments: overduePayments.length,
+        upcomingTasks: upcomingTasks.length, overdueTasks: overdueTasks.length,
         expenses: expenses.length,
       },
-      totals: {
-        openQuotesAmount,
-        pendingPaymentsAmount,
-        expensesAmount,
-      },
+      totals: { openQuotesAmount, pendingPaymentsAmount, expensesAmount },
       recentClients: recentClients.map((client) => ({
         clientId: String(client.id),
         clientName: getClientBillingDisplayName(client) ?? client.name,
@@ -789,133 +355,74 @@ export const buildUnifiedCrmReadContext = ({
         updatedAt: contact.updated_at ?? contact.created_at,
       })),
       openQuotes: openQuotes.map((quote) => {
-        const paymentSummary = buildQuotePaymentsSummary({
-          quoteAmount: Number(quote.amount ?? 0),
-          payments: paymentsByQuoteId.get(String(quote.id)) ?? [],
-        });
-
+        const ps = buildQuotePaymentsSummary({ quoteAmount: Number(quote.amount ?? 0), payments: paymentsByQuoteId.get(String(quote.id)) ?? [] });
         return {
-          quoteId: String(quote.id),
-          clientId: quote.client_id ? String(quote.client_id) : null,
+          quoteId: String(quote.id), clientId: quote.client_id ? String(quote.client_id) : null,
           projectId: quote.project_id ? String(quote.project_id) : null,
-          clientName:
-            getClientName(clientById, quote.client_id) ?? "Cliente non trovato",
+          clientName: getClientName(clientById, quote.client_id) ?? "Cliente non trovato",
           projectName: getProjectName(projectById, quote.project_id ?? null),
-          amount: Number(quote.amount ?? 0),
-          linkedPaymentsTotal: paymentSummary.linkedTotal,
-          remainingAmount: paymentSummary.remainingAmount,
-          status: quote.status,
-          statusLabel: quoteStatusLabels[quote.status] ?? quote.status,
-          createdAt: quote.created_at,
+          amount: Number(quote.amount ?? 0), linkedPaymentsTotal: ps.linkedTotal, remainingAmount: ps.remainingAmount,
+          status: quote.status, statusLabel: quoteStatusLabels[quote.status] ?? quote.status, createdAt: quote.created_at,
         };
       }),
       activeProjects: activeProjects.map((project) => {
-        const projectFinancials =
-          projectFinancialsById.get(String(project.id)) ?? {
-            totalServices: 0,
-            totalFees: 0,
-            totalExpenses: 0,
-            totalPaid: 0,
-            balanceDue: 0,
-          };
-
+        const pf = projectFinancialsById.get(String(project.id)) ?? { totalServices: 0, totalFees: 0, totalExpenses: 0, totalPaid: 0, balanceDue: 0 };
         return {
-          projectId: String(project.id),
-          clientId: project.client_id ? String(project.client_id) : null,
-          projectName: project.name,
-          clientName: getClientName(clientById, project.client_id),
-          projectCategory: project.category ?? null,
-          projectTvShow: project.tv_show ?? null,
-          status: project.status,
-          statusLabel: projectStatusLabels[project.status] ?? project.status,
+          projectId: String(project.id), clientId: project.client_id ? String(project.client_id) : null,
+          projectName: project.name, clientName: getClientName(clientById, project.client_id),
+          projectCategory: project.category ?? null, projectTvShow: project.tv_show ?? null,
+          status: project.status, statusLabel: projectStatusLabels[project.status] ?? project.status,
           startDate: project.start_date ?? null,
-          totalServices: projectFinancials.totalServices,
-          totalFees: projectFinancials.totalFees,
-          totalExpenses: projectFinancials.totalExpenses,
-          totalPaid: projectFinancials.totalPaid,
-          balanceDue: projectFinancials.balanceDue,
+          totalServices: pf.totalServices, totalFees: pf.totalFees, totalExpenses: pf.totalExpenses,
+          totalPaid: pf.totalPaid, balanceDue: pf.balanceDue,
           contacts: getProjectContacts(String(project.id)),
         };
       }),
       pendingPayments: pendingPayments.map((payment) => ({
-        paymentId: String(payment.id),
-        quoteId: payment.quote_id ? String(payment.quote_id) : null,
-        clientId: payment.client_id ? String(payment.client_id) : null,
-        projectId: payment.project_id ? String(payment.project_id) : null,
-        clientName: getClientName(clientById, payment.client_id),
-        projectName: getProjectName(projectById, payment.project_id ?? null),
-        amount: Number(payment.amount ?? 0),
-        status: payment.status,
-        statusLabel: paymentStatusLabels[payment.status] ?? payment.status,
-        paymentDate: payment.payment_date ?? null,
-        isTaxable: getPaymentTaxable(payment),
+        paymentId: String(payment.id), quoteId: payment.quote_id ? String(payment.quote_id) : null,
+        clientId: payment.client_id ? String(payment.client_id) : null, projectId: payment.project_id ? String(payment.project_id) : null,
+        clientName: getClientName(clientById, payment.client_id), projectName: getProjectName(projectById, payment.project_id ?? null),
+        amount: Number(payment.amount ?? 0), status: payment.status, statusLabel: paymentStatusLabels[payment.status] ?? payment.status,
+        paymentDate: payment.payment_date ?? null, isTaxable: getPaymentTaxable(payment),
       })),
       overduePayments: overduePayments.map((payment) => ({
-        paymentId: String(payment.id),
-        quoteId: payment.quote_id ? String(payment.quote_id) : null,
-        clientId: payment.client_id ? String(payment.client_id) : null,
-        projectId: payment.project_id ? String(payment.project_id) : null,
-        clientName: getClientName(clientById, payment.client_id),
-        projectName: getProjectName(projectById, payment.project_id ?? null),
-        amount: Number(payment.amount ?? 0),
-        status: payment.status,
-        statusLabel: paymentStatusLabels[payment.status] ?? payment.status,
-        paymentDate: payment.payment_date ?? null,
-        isTaxable: getPaymentTaxable(payment),
-        daysOverdue: payment.payment_date
-          ? Math.abs(diffDays(new Date(payment.payment_date), today))
-          : null,
+        paymentId: String(payment.id), quoteId: payment.quote_id ? String(payment.quote_id) : null,
+        clientId: payment.client_id ? String(payment.client_id) : null, projectId: payment.project_id ? String(payment.project_id) : null,
+        clientName: getClientName(clientById, payment.client_id), projectName: getProjectName(projectById, payment.project_id ?? null),
+        amount: Number(payment.amount ?? 0), status: payment.status, statusLabel: paymentStatusLabels[payment.status] ?? payment.status,
+        paymentDate: payment.payment_date ?? null, isTaxable: getPaymentTaxable(payment),
+        daysOverdue: payment.payment_date ? Math.abs(diffDays(new Date(payment.payment_date), today)) : null,
       })),
       upcomingTasks: upcomingTasks.map((task) => ({
-        taskId: String(task.id),
-        clientId: task.client_id ? String(task.client_id) : null,
+        taskId: String(task.id), clientId: task.client_id ? String(task.client_id) : null,
         clientName: getClientName(clientById, task.client_id ?? null),
-        text: task.text,
-        type: task.type,
-        dueDate: task.due_date,
-        allDay: task.all_day,
+        text: task.text, type: task.type, dueDate: task.due_date, allDay: task.all_day,
         daysUntilDue: diffDays(today, new Date(task.due_date)),
       })),
       overdueTasks: overdueTasks.map((task) => ({
-        taskId: String(task.id),
-        clientId: task.client_id ? String(task.client_id) : null,
+        taskId: String(task.id), clientId: task.client_id ? String(task.client_id) : null,
         clientName: getClientName(clientById, task.client_id ?? null),
-        text: task.text,
-        type: task.type,
-        dueDate: task.due_date,
-        allDay: task.all_day,
+        text: task.text, type: task.type, dueDate: task.due_date, allDay: task.all_day,
         daysOverdue: Math.abs(diffDays(new Date(task.due_date), today)),
       })),
       recentExpenses: recentExpenses.map((expense) => ({
-        expenseId: String(expense.id),
-        clientId: expense.client_id ? String(expense.client_id) : null,
+        expenseId: String(expense.id), clientId: expense.client_id ? String(expense.client_id) : null,
         projectId: expense.project_id ? String(expense.project_id) : null,
         clientName: getClientName(clientById, expense.client_id ?? null),
         projectName: getProjectName(projectById, expense.project_id ?? null),
-        amount: Number(expense.amount ?? 0),
-        expenseType: expense.expense_type,
-        expenseTypeLabel:
-          expenseTypeLabels[expense.expense_type] ?? expense.expense_type,
-        expenseDate: expense.expense_date,
-        description: expense.description ?? null,
+        amount: Number(expense.amount ?? 0), expenseType: expense.expense_type,
+        expenseTypeLabel: expenseTypeLabels[expense.expense_type] ?? expense.expense_type,
+        expenseDate: expense.expense_date, description: expense.description ?? null,
       })),
       clientLevelServices: services
         .filter((s) => !s.project_id && s.client_id)
         .map((s) => ({
-          serviceId: String(s.id),
-          clientId: s.client_id ? String(s.client_id) : null,
+          serviceId: String(s.id), clientId: s.client_id ? String(s.client_id) : null,
           clientName: getClientName(clientById, s.client_id ?? null),
-          serviceType: s.service_type,
-          amount: calculateServiceNetValue(s),
-          isTaxable: s.is_taxable !== false,
-          serviceDate: s.service_date,
-          notes: s.notes ?? null,
+          serviceType: s.service_type, amount: calculateServiceNetValue(s),
+          isTaxable: s.is_taxable !== false, serviceDate: s.service_date, notes: s.notes ?? null,
         })),
-      clientFinancials: buildClientFinancialSummaries({
-        services,
-        payments,
-        clientById,
-      }),
+      clientFinancials: buildClientFinancialSummaries({ services, payments, clientById }),
     },
     caveats: [
       "Questo snapshot e' read-only: nessuna scrittura nel CRM parte da questo contesto o dalle risposte AI che lo usano senza una conferma esplicita in un workflow dedicato.",

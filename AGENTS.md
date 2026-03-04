@@ -17,6 +17,14 @@
 - scrivere codice, commenti, nomi variabili e commit in ENGLISH
 - non spiegare concetti base quando non servono
 
+## AGENT AUTONOMY
+
+- NON chiedere "cosa facciamo ora?" o "da dove vuoi partire?"
+- usare la propria conoscenza del codebase per decidere le priorita'
+- seguire il piano o l'attivita' corrente dedotta dal contesto
+- chiedere SOLO per ambiguita' rischiose, impatto distruttivo o tradeoff
+  architetturali non deducibili dal repo
+
 ## BOUNDARY WITH PRODUCT AI
 
 - questo file governa gli agenti che sviluppano il repo, non la chat AI interna

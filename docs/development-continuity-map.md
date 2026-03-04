@@ -374,7 +374,8 @@ Controllare sempre:
 - `src/components/atomic-crm/dashboard/DashboardHistorical.tsx`
 - card AI e non-AI collegate
 - modelli e hook dati:
-  - `dashboardModel.ts`
+  - `dashboardModel.ts` (+ `dashboardModelTypes.ts`, `dashboardFormatters.ts`)
+  - `fiscalModel.ts` (+ `fiscalModelTypes.ts`, `fiscalDeadlines.ts`)
   - `dashboardHistoryModel.ts`
   - `useDashboardData.ts`
   - `useHistoricalDashboardData.ts`
@@ -394,7 +395,7 @@ Controllare sempre:
 
 - `src/components/atomic-crm/ai/**`
 - `src/lib/ai/unifiedCrmAssistant.ts`
-- `src/lib/ai/unifiedCrmReadContext.ts`
+- `src/lib/ai/unifiedCrmReadContext.ts` (+ `unifiedCrmReadContextTypes.ts`, `unifiedCrmFinancialSummaries.ts`)
 - `src/lib/semantics/crmSemanticRegistry.ts`
 - `src/lib/semantics/crmCapabilityRegistry.ts`
 - `supabase/functions/_shared/unifiedCrmAnswer.ts`

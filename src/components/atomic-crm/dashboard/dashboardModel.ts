@@ -12,166 +12,48 @@ import type {
 } from "../types";
 import { sanitizeQuoteItems } from "../quotes/quoteItems";
 import { quoteStatusLabels } from "../quotes/quotesTypes";
-import { buildFiscalModel, type FiscalModel } from "./fiscalModel";
+import { buildFiscalModel } from "./fiscalModel";
+import { getCategoryLabel } from "./dashboardFormatters";
 
-export type MonthlyRevenueRow = {
-  id?: string | number;
-  month: string;
-  category: string;
-  revenue: number | string | null;
-  total_km: number | string | null;
-  km_cost: number | string | null;
-};
+// Re-export types and formatters so existing consumer imports keep working.
+export type {
+  MonthlyRevenueRow,
+  DashboardModel,
+  DashboardMeta,
+  AnnualQualityFlag,
+  DashboardKpis,
+  RevenueTrendPoint,
+  CategoryBreakdownPoint,
+  QuotePipelinePoint,
+  TopClientPoint,
+  DashboardDrilldowns,
+  DashboardAlerts,
+  PendingPaymentDrilldown,
+  OpenQuoteDrilldown,
+  PaymentAlert,
+  UpcomingServiceAlert,
+  UnansweredQuoteAlert,
+} from "./dashboardModelTypes";
 
-export type DashboardModel = {
-  meta: DashboardMeta;
-  kpis: DashboardKpis;
-  revenueTrend: RevenueTrendPoint[];
-  categoryBreakdown: CategoryBreakdownPoint[];
-  quotePipeline: QuotePipelinePoint[];
-  topClients: TopClientPoint[];
-  drilldowns: DashboardDrilldowns;
-  alerts: DashboardAlerts;
-  fiscal: FiscalModel | null;
-  qualityFlags: AnnualQualityFlag[];
-  selectedYear: number;
-  isCurrentYear: boolean;
-};
+export {
+  projectCategoryLabels,
+  formatCurrency,
+  formatCurrencyPrecise,
+  formatCompactCurrency,
+  formatShortDate,
+  formatDayMonth,
+  getCategoryLabel,
+} from "./dashboardFormatters";
 
-export type DashboardMeta = {
-  selectedYear: number;
-  isCurrentYear: boolean;
-  asOfDate: string;
-  asOfDateLabel: string;
-  operationsPeriodLabel: string;
-  monthlyReferenceLabel: string;
-};
-
-export type AnnualQualityFlag =
-  | "partial_current_year"
-  | "future_services_excluded"
-  | "alerts_current_snapshot"
-  | "fiscal_simulation";
-
-export type DashboardKpis = {
-  monthlyRevenue: number;
-  previousMonthRevenue: number;
-  monthlyRevenueDeltaPct: number | null;
-  annualRevenue: number;
-  pendingPaymentsTotal: number;
-  pendingPaymentsCount: number;
-  openQuotesCount: number;
-  openQuotesAmount: number;
-  monthlyKm: number;
-  monthlyKmCost: number;
-};
-
-export type RevenueTrendPoint = {
-  monthKey: string;
-  label: string;
-  revenue: number;
-  kmCost: number;
-};
-
-export type CategoryBreakdownPoint = {
-  category: string;
-  label: string;
-  revenue: number;
-};
-
-export type QuotePipelinePoint = {
-  status: string;
-  label: string;
-  count: number;
-  amount: number;
-};
-
-export type TopClientPoint = {
-  clientId: string;
-  clientName: string;
-  revenue: number;
-};
-
-export type DashboardDrilldowns = {
-  pendingPayments: PendingPaymentDrilldown[];
-  openQuotes: OpenQuoteDrilldown[];
-};
-
-export type DashboardAlerts = {
-  paymentAlerts: PaymentAlert[];
-  upcomingServices: UpcomingServiceAlert[];
-  unansweredQuotes: UnansweredQuoteAlert[];
-};
-
-export type PendingPaymentDrilldown = {
-  paymentId: string;
-  clientId: string;
-  clientName: string;
-  projectId?: string;
-  projectName?: string;
-  quoteId?: string;
-  amount: number;
-  status: string;
-  paymentDate?: string;
-};
-
-export type OpenQuoteDrilldown = {
-  quoteId: string;
-  clientId: string;
-  clientName: string;
-  projectId?: string;
-  projectName?: string;
-  description: string;
-  amount: number;
-  status: string;
-  statusLabel: string;
-  sentDate?: string;
-  hasProject: boolean;
-  hasItemizedLines: boolean;
-  quoteItemsCount: number;
-};
-
-export type PaymentAlert = {
-  id: string;
-  clientName: string;
-  projectName?: string;
-  notes?: string;
-  amount: number;
-  status: string;
-  urgency: "overdue" | "due_soon" | "pending";
-  paymentDate?: string;
-  daysOffset?: number;
-};
-
-export type UpcomingServiceAlert = {
-  id: string;
-  serviceDate: string;
-  serviceEnd?: string;
-  allDay: boolean;
-  projectName: string;
-  clientName: string;
-  serviceType: string;
-  daysAhead: number;
-};
-
-export type UnansweredQuoteAlert = {
-  id: string;
-  clientName: string;
-  description: string;
-  status: string;
-  sentDate: string;
-  daysWaiting: number;
-  amount: number;
-};
-
-export const projectCategoryLabels: Record<string, string> = {
-  produzione_tv: "Produzione TV",
-  spot: "Spot",
-  wedding: "Wedding",
-  evento_privato: "Evento privato",
-  sviluppo_web: "Sviluppo web",
-  __flat: "Servizi diretti",
-};
+import type {
+  AnnualQualityFlag,
+  PaymentAlert,
+  PendingPaymentDrilldown,
+  OpenQuoteDrilldown,
+  QuotePipelinePoint,
+  UpcomingServiceAlert,
+  UnansweredQuoteAlert,
+} from "./dashboardModelTypes";
 
 const quotePipelineOrder = [
   "primo_contatto",
@@ -196,51 +78,6 @@ const unansweredQuoteStatuses = new Set([
   "preventivo_inviato",
   "in_trattativa",
 ]);
-
-export const formatCurrency = (value: number) =>
-  value.toLocaleString("it-IT", {
-    style: "currency",
-    currency: "EUR",
-    maximumFractionDigits: 0,
-  });
-
-export const formatCurrencyPrecise = (value: number) =>
-  value.toLocaleString("it-IT", {
-    style: "currency",
-    currency: "EUR",
-    minimumFractionDigits: 2,
-  });
-
-export const formatCompactCurrency = (value: number) =>
-  value.toLocaleString("it-IT", {
-    style: "currency",
-    currency: "EUR",
-    notation: "compact",
-    maximumFractionDigits: 1,
-  });
-
-export const formatShortDate = (value?: string) => {
-  if (!value) return "--";
-  const date = new Date(value);
-  if (Number.isNaN(date.valueOf())) return "--";
-  return date.toLocaleDateString("it-IT", {
-    day: "2-digit",
-    month: "2-digit",
-  });
-};
-
-export const formatDayMonth = (value?: string) => {
-  if (!value) return "--";
-  const date = new Date(value);
-  if (Number.isNaN(date.valueOf())) return "--";
-  return date.toLocaleDateString("it-IT", {
-    day: "2-digit",
-    month: "short",
-  });
-};
-
-export const getCategoryLabel = (category: string) =>
-  projectCategoryLabels[category] ?? category;
 
 const toNumber = (value: unknown) => {
   if (typeof value === "number") return Number.isFinite(value) ? value : 0;

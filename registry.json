@@ -760,7 +760,15 @@
           "type": "registry:component"
         },
         {
+          "path": "src/components/atomic-crm/dashboard/fiscalModelTypes.ts",
+          "type": "registry:component"
+        },
+        {
           "path": "src/components/atomic-crm/dashboard/fiscalModel.ts",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/dashboard/fiscalDeadlines.ts",
           "type": "registry:component"
         },
         {

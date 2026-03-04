@@ -628,8 +628,12 @@ src/components/atomic-crm/dashboard/
 ├── useDashboardData.ts                 # useGetList multipli + expenses + fiscalConfig (year param)
 ├── useHistoricalDashboardData.ts       # Context builder per la vista Storico
 ├── dashboardModel.ts                   # Aggregazioni KPI/grafici/pipeline/alert + fiscal (year-aware)
+├── dashboardModelTypes.ts              # Tipi dashboard estratti (DashboardModel, KPIs, drilldowns, alerts)
+├── dashboardFormatters.ts              # Formatters (currency, date, category labels)
 ├── dashboardHistoryModel.ts            # Aggregazioni storiche e quality flags
 ├── fiscalModel.ts                      # Logica pura calcoli fiscali regime forfettario
+├── fiscalModelTypes.ts                 # Tipi fiscali estratti (FiscalModel, FiscalKpis, deadlines, health)
+├── fiscalDeadlines.ts                  # buildDeadlines + date helpers (toStartOfDay, diffDays)
 ├── DashboardAnnual.tsx                 # Vista Annuale con guida lettura, AI card e simulazione fiscale
 ├── DashboardHistorical.tsx             # Vista Storico con guida, KPI, cash inflow e AI card
 ├── DashboardAnnualAiSummaryCard.tsx    # AI guidata sul contesto annual_operations

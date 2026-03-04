@@ -12,94 +12,26 @@ import {
   calculateServiceNetValue,
   calculateTaxableServiceNetValue,
 } from "@/lib/semantics/crmSemanticRegistry";
+import { buildDeadlines, toStartOfDay, diffDays } from "./fiscalDeadlines";
+import type {
+  AtecoBreakdownPoint,
+  BusinessHealthKpis,
+  CategoryMargin,
+  FiscalModel,
+  FiscalWarning,
+} from "./fiscalModelTypes";
 
-// ── Output types ──────────────────────────────────────────────────────
-
-export type FiscalModel = {
-  fiscalKpis: FiscalKpis;
-  atecoBreakdown: AtecoBreakdownPoint[];
-  deadlines: FiscalDeadline[];
-  businessHealth: BusinessHealthKpis;
-  warnings: FiscalWarning[];
-};
-
-export type FiscalKpis = {
-  /** Somma compensi netti (fee_shooting + fee_editing + fee_other - discount) anno corrente. */
-  fatturatoLordoYtd: number;
-  /** Somma compensi netti complessivi anno corrente, inclusi servizi non tassabili. */
-  fatturatoTotaleYtd: number;
-  /** Quota non tassabile del fatturato operativo dell'anno. */
-  fatturatoNonTassabileYtd: number;
-  /** SUM(fatturato_categoria × coefficiente_ATECO / 100). */
-  redditoLordoForfettario: number;
-  /** reddito_lordo × aliquota_INPS / 100. */
-  stimaInpsAnnuale: number;
-  /** reddito_lordo - INPS. */
-  redditoImponibile: number;
-  /** reddito_imponibile × aliquota_sostitutiva / 100. */
-  stimaImpostaAnnuale: number;
-  /** fatturato - INPS - imposta. */
-  redditoNettoStimato: number;
-  /** (reddito_netto / fatturato) × 100. */
-  percentualeNetto: number;
-  /** (INPS + imposta) / 12. */
-  accantonamentoMensile: number;
-  /** tetto - fatturato YTD. */
-  distanzaDalTetto: number;
-  /** (fatturato / tetto) × 100. */
-  percentualeUtilizzoTetto: number;
-  /** Effective aliquota sostitutiva used for calculations. */
-  aliquotaSostitutiva: number;
-  /** Number of months of data available (for reliability indicator). */
-  monthsOfData: number;
-};
-
-export type AtecoBreakdownPoint = {
-  atecoCode: string;
-  description: string;
-  coefficiente: number;
-  fatturato: number;
-  redditoForfettario: number;
-  categories: string[];
-};
-
-export type FiscalDeadline = {
-  date: string;
-  label: string;
-  items: DeadlineItem[];
-  totalAmount: number;
-  isPast: boolean;
-  daysUntil: number;
-};
-
-export type DeadlineItem = {
-  description: string;
-  amount: number;
-};
-
-export type BusinessHealthKpis = {
-  marginPerCategory: CategoryMargin[];
-  quoteConversionRate: number;
-  quotesAccepted: number;
-  quotesTotal: number;
-  dso: number | null;
-  clientConcentration: number;
-  weightedPipelineValue: number;
-};
-
-export type CategoryMargin = {
-  category: string;
-  label: string;
-  margin: number;
-  revenue: number;
-  expenses: number;
-};
-
-export type FiscalWarning = {
-  type: "unclassified_revenue" | "ceiling_exceeded" | "ceiling_critical";
-  message: string;
-  amount?: number;
-};
+// Re-export types for backward compatibility
+export type {
+  FiscalModel,
+  FiscalKpis,
+  AtecoBreakdownPoint,
+  FiscalDeadline,
+  DeadlineItem,
+  BusinessHealthKpis,
+  CategoryMargin,
+  FiscalWarning,
+} from "./fiscalModelTypes";
 
 // ── Helpers ───────────────────────────────────────────────────────────
 
@@ -160,24 +92,6 @@ const getExpenseAmount = (expense: Expense) => {
   const base = toNumber(expense.amount);
   const markup = toNumber(expense.markup_percent);
   return markup > 0 ? base * (1 + markup / 100) : base;
-};
-
-const toStartOfDay = (date: Date) =>
-  new Date(date.getFullYear(), date.getMonth(), date.getDate());
-
-/** Format a local Date as YYYY-MM-DD without UTC conversion (avoids off-by-one in timezones ahead of UTC). */
-const toLocalISODate = (date: Date) => {
-  const y = date.getFullYear();
-  const m = String(date.getMonth() + 1).padStart(2, "0");
-  const d = String(date.getDate()).padStart(2, "0");
-  return `${y}-${m}-${d}`;
-};
-
-const diffDays = (from: Date, to: Date) => {
-  const msPerDay = 1000 * 60 * 60 * 24;
-  return Math.floor(
-    (toStartOfDay(to).valueOf() - toStartOfDay(from).valueOf()) / msPerDay,
-  );
 };
 
 const isInYear = (value: string | undefined, year: number) => {
@@ -416,7 +330,6 @@ export const buildFiscalModel = ({
 
   // ── Business Health KPIs ──────────────────────────────────────────
 
-  // Margin per category
   const allCategories = new Set([
     ...categoryRevenue.keys(),
     ...categoryExpenses.keys(),
@@ -536,115 +449,7 @@ export const buildFiscalModel = ({
       dso,
       clientConcentration,
       weightedPipelineValue,
-    },
+    } satisfies BusinessHealthKpis,
     warnings,
   };
-};
-
-// ── Deadlines builder ─────────────────────────────────────────────────
-
-/**
- * Builds fiscal deadlines for regime forfettario.
- *
- * Acconti split: 50/50 (D.L. 124/2019 art. 58 for ISA/forfettari subjects).
- * INPS advances: 80% of estimated annual total.
- *
- * June 30: Saldo anno precedente + 1° acconto anno corrente
- * November 30: 2° acconto anno corrente (not installable)
- */
-const buildDeadlines = ({
-  stimaImpostaAnnuale,
-  stimaInpsAnnuale,
-  annoInizioAttivita,
-  currentYear,
-  today,
-}: {
-  stimaImpostaAnnuale: number;
-  stimaInpsAnnuale: number;
-  annoInizioAttivita: number;
-  currentYear: number;
-  today: Date;
-}): FiscalDeadline[] => {
-  // First year: no deadlines (no previous year to settle)
-  if (annoInizioAttivita === currentYear) return [];
-
-  const deadlines: FiscalDeadline[] = [];
-
-  // Acconto thresholds for imposta sostitutiva
-  const hasDoubleAcconto = stimaImpostaAnnuale > 257.52;
-  const hasSingleAcconto = stimaImpostaAnnuale >= 51.65 && !hasDoubleAcconto;
-
-  // June 30 deadline
-  const juneDate = new Date(currentYear, 5, 30); // month is 0-indexed
-  const juneItems: DeadlineItem[] = [];
-
-  // Saldo imposta anno precedente (full estimate minus advances)
-  juneItems.push({
-    description: "Saldo Imposta Sostitutiva anno precedente",
-    amount: stimaImpostaAnnuale,
-  });
-
-  // Saldo INPS anno precedente (20% not covered by advances)
-  juneItems.push({
-    description: "Saldo INPS anno precedente (20%)",
-    amount: stimaInpsAnnuale * 0.2,
-  });
-
-  // 1° acconto imposta (50% if double, 0 if single — goes to November)
-  if (hasDoubleAcconto) {
-    juneItems.push({
-      description: "1° Acconto Imposta Sostitutiva (50%)",
-      amount: stimaImpostaAnnuale * 0.5,
-    });
-  }
-
-  // 1° acconto INPS (40% of total = 80% × 50%)
-  juneItems.push({
-    description: "1° Acconto INPS Gestione Separata (40%)",
-    amount: stimaInpsAnnuale * 0.4,
-  });
-
-  const juneTotalAmount = juneItems.reduce((s, i) => s + i.amount, 0);
-  deadlines.push({
-    date: toLocalISODate(juneDate),
-    label: "Saldo + 1° Acconto",
-    items: juneItems,
-    totalAmount: juneTotalAmount,
-    isPast: juneDate < today,
-    daysUntil: diffDays(today, juneDate),
-  });
-
-  // November 30 deadline
-  const novDate = new Date(currentYear, 10, 30);
-  const novItems: DeadlineItem[] = [];
-
-  if (hasDoubleAcconto) {
-    novItems.push({
-      description: "2° Acconto Imposta Sostitutiva (50%)",
-      amount: stimaImpostaAnnuale * 0.5,
-    });
-  } else if (hasSingleAcconto) {
-    novItems.push({
-      description: "Acconto Unico Imposta Sostitutiva (100%)",
-      amount: stimaImpostaAnnuale,
-    });
-  }
-
-  // 2° acconto INPS (40% of total = 80% × 50%)
-  novItems.push({
-    description: "2° Acconto INPS Gestione Separata (40%)",
-    amount: stimaInpsAnnuale * 0.4,
-  });
-
-  const novTotalAmount = novItems.reduce((s, i) => s + i.amount, 0);
-  deadlines.push({
-    date: toLocalISODate(novDate),
-    label: "2° Acconto",
-    items: novItems,
-    totalAmount: novTotalAmount,
-    isPast: novDate < today,
-    daysUntil: diffDays(today, novDate),
-  });
-
-  return deadlines;
 };
