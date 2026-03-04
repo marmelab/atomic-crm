@@ -12,7 +12,7 @@ export const WorkflowCreate = () => {
 
   return (
     <CreateBase redirect="list" transform={workflowTransform}>
-      <div className="mt-4 flex px-4 md:px-0">
+      <div className="mt-4 flex gap-4 md:gap-8 px-4 md:px-0">
         <div className="flex-1">
           <Form
             defaultValues={{

@@ -134,7 +134,7 @@ const WorkflowDetailCard = ({ record }: { record: Workflow }) => {
 
 const WorkflowTriggerDetails = ({ record }: { record: Workflow }) => (
   <>
-    <div className="grid grid-cols-2 gap-4 text-sm">
+    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
       <div>
         <span className="text-muted-foreground">Risorsa trigger</span>
         <p className="font-medium">
@@ -152,7 +152,7 @@ const WorkflowTriggerDetails = ({ record }: { record: Workflow }) => (
       Object.keys(record.trigger_conditions).length > 0 && (
         <div className="text-sm">
           <span className="text-muted-foreground">Condizioni</span>
-          <pre className="mt-1 rounded bg-muted p-2 text-xs">
+          <pre className="mt-1 rounded bg-muted p-2 text-xs overflow-x-auto">
             {JSON.stringify(record.trigger_conditions, null, 2)}
           </pre>
         </div>
@@ -176,7 +176,7 @@ const WorkflowActionsList = ({
             {actionTypeLabels[action.type] ?? action.type}
           </span>
           {action.data && Object.keys(action.data).length > 0 && (
-            <pre className="mt-1">
+            <pre className="mt-1 overflow-x-auto">
               {JSON.stringify(action.data, null, 2)}
             </pre>
           )}
@@ -203,9 +203,9 @@ const WorkflowExecutionHistory = ({
           {executions.map((exec) => (
             <div
               key={exec.id}
-              className="flex items-center justify-between rounded bg-muted/50 p-2 text-xs"
+              className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 rounded bg-muted/50 p-2 text-xs"
             >
-              <div>
+              <div className="flex items-center gap-2">
                 <Badge
                   variant={
                     exec.execution_status === "completed"
@@ -216,7 +216,7 @@ const WorkflowExecutionHistory = ({
                 >
                   {exec.execution_status}
                 </Badge>
-                <span className="ml-2 text-muted-foreground">
+                <span className="text-muted-foreground">
                   {exec.trigger_resource} #{exec.trigger_record_id}
                 </span>
               </div>

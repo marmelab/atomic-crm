@@ -61,6 +61,8 @@ Engine client-side:
 - logging automatico in `workflow_executions`
 
 UI: List, Create, Edit, Show con execution history.
+List ha mobile card view (niente tabelle su telefono).
+Show ha griglia responsive e pre-block con overflow.
 Navigazione: menu "Altro" mobile, non nella header desktop.
 
 ## Update 2026-03-04
