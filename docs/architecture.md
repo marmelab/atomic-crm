@@ -33,6 +33,25 @@ Regola pratica:
 - se una modifica e' solo strutturale/read-only, `Impostazioni` non va toccata
   ma la motivazione va lasciata nei docs di continuita'
 
+## Update 2026-03-04 (g) — Split unifiedCrmAnswer.ts (3110 → 6 files)
+
+`supabase/functions/_shared/unifiedCrmAnswer.ts` (3110 righe) splittato per
+concern reale in 5 moduli + barrel re-export:
+
+| File | Righe | Concern |
+|---|---|---|
+| `unifiedCrmAnswerTypes.ts` | 122 | Types + constant |
+| `unifiedCrmAnswerUtils.ts` | 220 | Utility pure condivise |
+| `unifiedCrmAnswerIntents.ts` | 731 | Intent detection, entity matching, inference |
+| `unifiedCrmAnswerCreateFlows.ts` | 824 | Travel/episode/service/expense flows |
+| `unifiedCrmAnswerSuggestions.ts` | 1373 | Suggestion engine + payment draft + validation |
+| `unifiedCrmAnswer.ts` | 41 | Barrel re-export |
+
+Dipendenze: `Types ← Utils ← Intents ← CreateFlows / Suggestions` (nessun ciclo).
+
+Il barrel mantiene tutti gli import dei consumer (`unified_crm_answer/index.ts`
+e `unifiedCrmAnswer.test.ts`) invariati. Nessun cambiamento funzionale.
+
 ## Update 2026-03-04 (f) — Type Safety Cleanup in unifiedCrmAnswer
 
 Fix errori di tipo pre-esistenti in `unifiedCrmAnswer.ts`:
