@@ -281,6 +281,8 @@ export const UnifiedAiLauncher = () => {
           onViewChange={setActiveView}
           canResetChat={activeView === "chat" && canResetChat}
           onResetChat={resetChat}
+          canCopyAnswer={activeView === "chat" && chatAnswer !== null}
+          answerMarkdown={chatAnswer?.answerMarkdown}
         />
 
         <div className="flex min-h-0 flex-1 overflow-hidden">

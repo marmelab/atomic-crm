@@ -33,6 +33,12 @@ Regola pratica:
 - se una modifica e' solo strutturale/read-only, `Impostazioni` non va toccata
   ma la motivazione va lasciata nei docs di continuita'
 
+## Update 2026-03-04 (j) — Copy Answer Button in AI Chat Header
+
+Aggiunto bottone copia (icona Copy) nell'header della chat AI, a sinistra del
+bottone "Nuova". Copia l'intero `answerMarkdown` negli appunti con feedback
+visivo (icona Check per 2 secondi). Visibile solo quando c'è una risposta.
+
 ## Update 2026-03-04 (i) — Rotating Suggestion Cards in AI Chat
 
 L'empty state della chat AI ora mostra 8 card suggerimento divise per categoria
