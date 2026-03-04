@@ -70,7 +70,6 @@ const WorkflowListLayout = () => {
 
   return (
     <>
-      <MobilePageTitle title="Automazioni" />
       {isMobile ? (
         <MobileWorkflowList data={data} />
       ) : (
@@ -100,6 +99,7 @@ const WorkflowListLayout = () => {
 
 const MobileWorkflowList = ({ data }: { data: Workflow[] }) => (
   <div className="flex flex-col gap-3 px-4 pb-4">
+    <MobilePageTitle title="Automazioni" />
     <p className="text-sm text-muted-foreground">
       Azioni automatiche al verificarsi di eventi nel CRM.
     </p>
