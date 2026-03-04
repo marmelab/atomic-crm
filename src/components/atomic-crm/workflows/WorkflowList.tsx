@@ -1,4 +1,5 @@
-import { useListContext, useCreatePath } from "ra-core";
+import { useState } from "react";
+import { useListContext, useCreatePath, useUpdate } from "ra-core";
 import { Link } from "react-router";
 import {
   Table,
@@ -9,13 +10,25 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
+import { Switch } from "@/components/ui/switch";
 import { List } from "@/components/admin/list";
 import { CreateButton } from "@/components/admin/create-button";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { ChevronRight, ArrowRight, Plus, Zap } from "lucide-react";
+import { cn } from "@/lib/utils";
+
 import { MobilePageTitle } from "../layout/MobilePageTitle";
 import { TopToolbar } from "../layout/TopToolbar";
 import type { Workflow } from "../types";
-import { triggerResourceLabels, triggerEventLabels } from "./workflowTypes";
+import {
+  triggerResourceLabels,
+  triggerEventLabels,
+  triggerResourceIcons,
+  triggerResourceColors,
+  actionTypeLabels,
+  actionTypeIcons,
+  describeConditions,
+} from "./workflowTypes";
 
 export const WorkflowList = () => (
   <List
@@ -42,9 +55,13 @@ const WorkflowListLayout = () => {
 
   if (!data.length) {
     return (
-      <div className="flex flex-col items-center justify-center py-16 text-center">
-        <p className="text-muted-foreground mb-4">
-          Nessun workflow configurato
+      <div className="flex flex-col items-center justify-center py-16 text-center px-6">
+        <div className="rounded-full bg-muted p-4 mb-4">
+          <Zap className="h-8 w-8 text-muted-foreground" />
+        </div>
+        <p className="text-base font-medium mb-1">Nessuna automazione</p>
+        <p className="text-sm text-muted-foreground mb-6">
+          Le automazioni eseguono azioni quando accadono eventi nel CRM.
         </p>
         <CreateButton />
       </div>
@@ -54,17 +71,10 @@ const WorkflowListLayout = () => {
   return (
     <>
       <MobilePageTitle title="Automazioni" />
-      <div className="mt-4">
-        <p className="text-sm text-muted-foreground mb-4">
-          Automazioni che si attivano quando accadono cose nel CRM.
-        </p>
-        {isMobile ? (
-          <div className="flex flex-col divide-y px-4">
-            {data.map((workflow) => (
-              <WorkflowMobileCard key={workflow.id} workflow={workflow} />
-            ))}
-          </div>
-        ) : (
+      {isMobile ? (
+        <MobileWorkflowList data={data} />
+      ) : (
+        <div className="mt-4">
           <Table>
             <TableHeader>
               <TableRow>
@@ -80,9 +90,36 @@ const WorkflowListLayout = () => {
               ))}
             </TableBody>
           </Table>
-        )}
-      </div>
+        </div>
+      )}
     </>
+  );
+};
+
+// ─── Mobile ─────────────────────────────────────────────────────────────────
+
+const MobileWorkflowList = ({ data }: { data: Workflow[] }) => (
+  <div className="flex flex-col gap-3 px-4 pb-4">
+    <p className="text-sm text-muted-foreground">
+      Azioni automatiche al verificarsi di eventi nel CRM.
+    </p>
+    {data.map((workflow) => (
+      <WorkflowMobileCard key={workflow.id} workflow={workflow} />
+    ))}
+    <MobileCreateButton />
+  </div>
+);
+
+const MobileCreateButton = () => {
+  const createPath = useCreatePath();
+  return (
+    <Link
+      to={createPath({ resource: "workflows", type: "create" })}
+      className="flex items-center justify-center gap-2 rounded-xl border-2 border-dashed border-muted-foreground/25 py-4 text-sm font-medium text-muted-foreground hover:border-primary/40 hover:text-primary transition-colors"
+    >
+      <Plus className="h-4 w-4" />
+      Nuova automazione
+    </Link>
   );
 };
 
@@ -94,35 +131,122 @@ const WorkflowMobileCard = ({ workflow }: { workflow: Workflow }) => {
     id: workflow.id,
   });
 
+  const TriggerIcon =
+    triggerResourceIcons[workflow.trigger_resource] ?? Zap;
+  const triggerColor =
+    triggerResourceColors[workflow.trigger_resource] ?? "";
+  const firstAction = workflow.actions?.[0];
+  const ActionIcon = firstAction
+    ? (actionTypeIcons[firstAction.type] ?? Zap)
+    : Zap;
+  const conditionStr = describeConditions(
+    workflow.trigger_resource,
+    workflow.trigger_conditions,
+  );
+
   return (
-    <Link to={link} className="block py-3">
-      <div className="flex items-start justify-between gap-2">
-        <div className="min-w-0 flex-1">
-          <p className="font-medium text-sm truncate">{workflow.name}</p>
-          {workflow.description && (
-            <p className="text-xs text-muted-foreground mt-0.5 line-clamp-1">
-              {workflow.description}
-            </p>
-          )}
-          <div className="flex items-center gap-2 mt-1.5">
-            <Badge variant="outline" className="text-xs">
-              {triggerResourceLabels[workflow.trigger_resource]}
-            </Badge>
-            <span className="text-xs text-muted-foreground">
-              {triggerEventLabels[workflow.trigger_event]}
-            </span>
-          </div>
-        </div>
-        <Badge
-          variant={workflow.is_active ? "default" : "secondary"}
-          className="shrink-0"
+    <div
+      className={cn(
+        "rounded-xl border bg-card shadow-sm transition-colors",
+        !workflow.is_active && "opacity-60",
+      )}
+    >
+      {/* Header: Name + Toggle */}
+      <div className="flex items-center justify-between gap-3 px-4 pt-3.5 pb-2">
+        <Link
+          to={link}
+          className="flex-1 min-w-0 font-semibold text-sm truncate"
         >
-          {workflow.is_active ? "Attivo" : "Off"}
-        </Badge>
+          {workflow.name}
+        </Link>
+        <WorkflowToggle workflow={workflow} />
       </div>
-    </Link>
+
+      {/* Visual flow: Trigger → Action */}
+      <Link to={link} className="block px-4 pb-3.5">
+        <div className="flex items-center gap-2.5">
+          {/* Trigger */}
+          <div className="flex items-center gap-2 flex-1 min-w-0">
+            <div
+              className={cn(
+                "shrink-0 rounded-lg p-1.5",
+                triggerColor,
+              )}
+            >
+              <TriggerIcon className="h-4 w-4" />
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="text-xs font-medium truncate">
+                {triggerResourceLabels[workflow.trigger_resource]}
+              </p>
+              <p className="text-[11px] text-muted-foreground truncate">
+                {triggerEventLabels[workflow.trigger_event]}
+                {conditionStr ? ` ${conditionStr}` : ""}
+              </p>
+            </div>
+          </div>
+
+          {/* Arrow */}
+          <ArrowRight className="h-3.5 w-3.5 text-muted-foreground/50 shrink-0" />
+
+          {/* Action */}
+          <div className="flex items-center gap-2 flex-1 min-w-0">
+            <div className="shrink-0 rounded-lg p-1.5 bg-muted">
+              <ActionIcon className="h-4 w-4 text-muted-foreground" />
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="text-xs font-medium truncate">
+                {firstAction
+                  ? (actionTypeLabels[firstAction.type] ?? firstAction.type)
+                  : "Nessuna azione"}
+              </p>
+              {firstAction?.type === "create_task" &&
+                firstAction.data?.text && (
+                  <p className="text-[11px] text-muted-foreground truncate">
+                    {String(firstAction.data.text)}
+                  </p>
+                )}
+            </div>
+          </div>
+
+          {/* Chevron */}
+          <ChevronRight className="h-4 w-4 text-muted-foreground/40 shrink-0" />
+        </div>
+      </Link>
+    </div>
   );
 };
+
+const WorkflowToggle = ({ workflow }: { workflow: Workflow }) => {
+  const [update] = useUpdate();
+  const [optimistic, setOptimistic] = useState(workflow.is_active);
+
+  const handleToggle = (checked: boolean) => {
+    setOptimistic(checked);
+    update(
+      "workflows",
+      {
+        id: workflow.id,
+        data: { is_active: checked },
+        previousData: workflow,
+      },
+      {
+        onError: () => setOptimistic(!checked),
+      },
+    );
+  };
+
+  return (
+    <Switch
+      checked={optimistic}
+      onCheckedChange={handleToggle}
+      aria-label={`${workflow.is_active ? "Disattiva" : "Attiva"} ${workflow.name}`}
+      onClick={(e) => e.stopPropagation()}
+    />
+  );
+};
+
+// ─── Desktop ────────────────────────────────────────────────────────────────
 
 const WorkflowRow = ({ workflow }: { workflow: Workflow }) => (
   <TableRow className="cursor-pointer hover:bg-muted/50">

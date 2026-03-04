@@ -6,6 +6,7 @@ import type { Workflow, WorkflowAction } from "../types";
 import { WorkflowInputs } from "./WorkflowInputs";
 import { FormToolbar } from "../layout/FormToolbar";
 import { MobileBackButton } from "../misc/MobileBackButton";
+import { MobilePageTitle } from "../layout/MobilePageTitle";
 import { workflowTransform } from "./workflowTransform";
 
 export const WorkflowEdit = () => (
@@ -53,8 +54,9 @@ const WorkflowEditContent = () => {
         defaultValues={defaultValues}
       >
         {isMobile && (
-          <div>
+          <div className="space-y-2">
             <MobileBackButton />
+            <MobilePageTitle title="Modifica automazione" />
           </div>
         )}
         <Card>

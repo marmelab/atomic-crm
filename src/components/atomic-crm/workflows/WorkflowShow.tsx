@@ -3,17 +3,32 @@ import { Link, useNavigate } from "react-router";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Separator } from "@/components/ui/separator";
-import { Edit, Trash2, Power, PowerOff } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
+import {
+  Edit,
+  Trash2,
+  Power,
+  PowerOff,
+  Zap,
+  ArrowRight,
+  Clock,
+  CheckCircle2,
+  XCircle,
+} from "lucide-react";
 import { ShowBase } from "ra-core";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { cn } from "@/lib/utils";
 
 import type { Workflow, WorkflowExecution } from "../types";
 import {
   triggerResourceLabels,
   triggerEventLabels,
-  actionTypeLabels,
+  triggerResourceIcons,
+  triggerResourceColors,
+  actionTypeIcons,
   describeWorkflow,
+  describeConditions,
+  describeAction,
 } from "./workflowTypes";
 import { MobileBackButton } from "../misc/MobileBackButton";
 
@@ -40,19 +55,173 @@ const WorkflowShowContent = () => {
   if (isPending || !record) return null;
 
   return (
-    <div className="mt-4 px-4 md:px-0 max-w-2xl">
+    <div className="mt-4 px-4 md:px-0 max-w-2xl space-y-4">
       {isMobile && (
-        <div className="mb-3">
+        <div>
           <MobileBackButton />
         </div>
       )}
-      <WorkflowDetailCard record={record} />
+
+      {/* Header card */}
+      <WorkflowHeader record={record} />
+
+      {/* Visual flow card */}
+      <WorkflowFlowCard record={record} />
+
+      {/* Actions */}
+      <WorkflowActions record={record} />
+
+      {/* Execution history */}
       <WorkflowExecutionHistory executions={executions} />
     </div>
   );
 };
 
-const WorkflowDetailCard = ({ record }: { record: Workflow }) => {
+// ─── Header ──────────────────────────────────────────────────────────────────
+
+const WorkflowHeader = ({ record }: { record: Workflow }) => {
+  const [update] = useUpdate();
+  const isMobile = useIsMobile();
+
+  const handleToggle = (checked: boolean) => {
+    update("workflows", {
+      id: record.id,
+      data: { is_active: checked },
+      previousData: record,
+    });
+  };
+
+  return (
+    <Card>
+      <CardContent className="pt-5">
+        <div className="flex items-start justify-between gap-3">
+          <div className="min-w-0 flex-1">
+            <h1 className="text-lg font-semibold leading-tight">
+              {record.name}
+            </h1>
+            {record.description && (
+              <p className="text-sm text-muted-foreground mt-1">
+                {record.description}
+              </p>
+            )}
+          </div>
+          {isMobile ? (
+            <div className="flex items-center gap-2 shrink-0 pt-0.5">
+              <span className="text-xs text-muted-foreground">
+                {record.is_active ? "Attivo" : "Off"}
+              </span>
+              <Switch
+                checked={record.is_active}
+                onCheckedChange={handleToggle}
+                aria-label="Attiva/Disattiva"
+              />
+            </div>
+          ) : (
+            <Badge
+              variant={record.is_active ? "default" : "secondary"}
+              className="shrink-0"
+            >
+              {record.is_active ? "Attivo" : "Disattivato"}
+            </Badge>
+          )}
+        </div>
+
+        {/* Natural language summary */}
+        <div className="mt-3 rounded-md bg-muted/50 p-3 text-sm flex items-start gap-2">
+          <Zap className="h-4 w-4 text-primary shrink-0 mt-0.5" />
+          <span>
+            {describeWorkflow(
+              record.trigger_resource,
+              record.trigger_event,
+              record.trigger_conditions,
+              record.actions,
+            )}
+          </span>
+        </div>
+      </CardContent>
+    </Card>
+  );
+};
+
+// ─── Visual flow ─────────────────────────────────────────────────────────────
+
+const WorkflowFlowCard = ({ record }: { record: Workflow }) => {
+  const TriggerIcon =
+    triggerResourceIcons[record.trigger_resource] ?? Zap;
+  const triggerColor =
+    triggerResourceColors[record.trigger_resource] ?? "";
+  const conditionText = describeConditions(
+    record.trigger_resource,
+    record.trigger_conditions,
+  );
+
+  return (
+    <Card>
+      <CardContent className="pt-5 space-y-4">
+        {/* TRIGGER section */}
+        <div>
+          <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-2">
+            Quando succede
+          </p>
+          <div className="rounded-xl border bg-background p-3">
+            <div className="flex items-center gap-3">
+              <div
+                className={cn("shrink-0 rounded-lg p-2", triggerColor)}
+              >
+                <TriggerIcon className="h-4 w-4" />
+              </div>
+              <div className="min-w-0 flex-1">
+                <p className="text-sm font-medium">
+                  {triggerResourceLabels[record.trigger_resource]}
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  {triggerEventLabels[record.trigger_event]}
+                  {conditionText ? ` ${conditionText}` : ""}
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Arrow connector */}
+        <div className="flex justify-center">
+          <ArrowRight className="h-5 w-5 text-muted-foreground/40 rotate-90" />
+        </div>
+
+        {/* ACTION section */}
+        <div>
+          <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-2">
+            Allora fai
+          </p>
+          <div className="space-y-2">
+            {record.actions?.map((action, i) => {
+              const ActionIcon = actionTypeIcons[action.type] ?? Zap;
+              return (
+                <div
+                  key={i}
+                  className="rounded-xl border bg-background p-3"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="shrink-0 rounded-lg p-2 bg-muted">
+                      <ActionIcon className="h-4 w-4 text-muted-foreground" />
+                    </div>
+                    <p className="text-sm font-medium min-w-0 flex-1">
+                      {describeAction(action)}
+                    </p>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
+};
+
+// ─── Action buttons ──────────────────────────────────────────────────────────
+
+const WorkflowActions = ({ record }: { record: Workflow }) => {
   const [update] = useUpdate();
   const [deleteOne] = useDelete();
   const navigate = useNavigate();
@@ -72,119 +241,31 @@ const WorkflowDetailCard = ({ record }: { record: Workflow }) => {
   };
 
   return (
-    <Card>
-      <CardHeader>
-        <div className="flex items-start justify-between gap-4">
-          <div>
-            <CardTitle className="text-lg">{record.name}</CardTitle>
-            {record.description && (
-              <p className="text-sm text-muted-foreground mt-1">
-                {record.description}
-              </p>
-            )}
-          </div>
-          <Badge variant={record.is_active ? "default" : "secondary"}>
-            {record.is_active ? "Attivo" : "Disattivato"}
-          </Badge>
-        </div>
-      </CardHeader>
-
-      <CardContent className="space-y-4">
-        <div className="rounded-md bg-muted/50 p-3 text-sm">
-          {describeWorkflow(
-            record.trigger_resource,
-            record.trigger_event,
-            record.trigger_conditions,
-            record.actions,
-          )}
-        </div>
-
-        <Separator />
-
-        <WorkflowTriggerDetails record={record} />
-        <WorkflowActionsList actions={record.actions} />
-
-        <Separator />
-
-        <div className="flex gap-2 flex-wrap">
-          <Button variant="outline" size="sm" onClick={toggleActive}>
-            {record.is_active ? (
-              <>
-                <PowerOff className="h-4 w-4 mr-1" /> Disattiva
-              </>
-            ) : (
-              <>
-                <Power className="h-4 w-4 mr-1" /> Attiva
-              </>
-            )}
-          </Button>
-          <Button variant="outline" size="sm" asChild>
-            <Link to={`/workflows/${record.id}`}>
-              <Edit className="h-4 w-4 mr-1" /> Modifica
-            </Link>
-          </Button>
-          <Button variant="destructive" size="sm" onClick={handleDelete}>
-            <Trash2 className="h-4 w-4 mr-1" /> Elimina
-          </Button>
-        </div>
-      </CardContent>
-    </Card>
+    <div className="flex gap-2 flex-wrap">
+      <Button variant="outline" size="sm" onClick={toggleActive}>
+        {record.is_active ? (
+          <>
+            <PowerOff className="h-4 w-4 mr-1" /> Disattiva
+          </>
+        ) : (
+          <>
+            <Power className="h-4 w-4 mr-1" /> Attiva
+          </>
+        )}
+      </Button>
+      <Button variant="outline" size="sm" asChild>
+        <Link to={`/workflows/${record.id}`}>
+          <Edit className="h-4 w-4 mr-1" /> Modifica
+        </Link>
+      </Button>
+      <Button variant="destructive" size="sm" onClick={handleDelete}>
+        <Trash2 className="h-4 w-4 mr-1" /> Elimina
+      </Button>
+    </div>
   );
 };
 
-const WorkflowTriggerDetails = ({ record }: { record: Workflow }) => (
-  <>
-    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
-      <div>
-        <span className="text-muted-foreground">Risorsa trigger</span>
-        <p className="font-medium">
-          {triggerResourceLabels[record.trigger_resource]}
-        </p>
-      </div>
-      <div>
-        <span className="text-muted-foreground">Evento trigger</span>
-        <p className="font-medium">
-          {triggerEventLabels[record.trigger_event]}
-        </p>
-      </div>
-    </div>
-    {record.trigger_conditions &&
-      Object.keys(record.trigger_conditions).length > 0 && (
-        <div className="text-sm">
-          <span className="text-muted-foreground">Condizioni</span>
-          <pre className="mt-1 rounded bg-muted p-2 text-xs overflow-x-auto">
-            {JSON.stringify(record.trigger_conditions, null, 2)}
-          </pre>
-        </div>
-      )}
-  </>
-);
-
-const WorkflowActionsList = ({
-  actions,
-}: {
-  actions: Workflow["actions"];
-}) => (
-  <div className="text-sm">
-    <span className="text-muted-foreground">
-      Azioni ({actions?.length ?? 0})
-    </span>
-    <div className="mt-1 space-y-1">
-      {actions?.map((action, i) => (
-        <div key={i} className="rounded bg-muted p-2 text-xs">
-          <span className="font-medium">
-            {actionTypeLabels[action.type] ?? action.type}
-          </span>
-          {action.data && Object.keys(action.data).length > 0 && (
-            <pre className="mt-1 overflow-x-auto">
-              {JSON.stringify(action.data, null, 2)}
-            </pre>
-          )}
-        </div>
-      ))}
-    </div>
-  </div>
-);
+// ─── Execution history ───────────────────────────────────────────────────────
 
 const WorkflowExecutionHistory = ({
   executions,
@@ -194,39 +275,49 @@ const WorkflowExecutionHistory = ({
   if (!executions?.length) return null;
 
   return (
-    <Card className="mt-4">
+    <Card>
       <CardHeader>
-        <CardTitle className="text-sm">Ultime esecuzioni</CardTitle>
+        <CardTitle className="text-sm flex items-center gap-2">
+          <Clock className="h-4 w-4" />
+          Ultime esecuzioni
+        </CardTitle>
       </CardHeader>
       <CardContent>
         <div className="space-y-2">
           {executions.map((exec) => (
-            <div
-              key={exec.id}
-              className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 rounded bg-muted/50 p-2 text-xs"
-            >
-              <div className="flex items-center gap-2">
-                <Badge
-                  variant={
-                    exec.execution_status === "completed"
-                      ? "default"
-                      : "destructive"
-                  }
-                  className="text-xs"
-                >
-                  {exec.execution_status}
-                </Badge>
-                <span className="text-muted-foreground">
-                  {exec.trigger_resource} #{exec.trigger_record_id}
-                </span>
-              </div>
-              <span className="text-muted-foreground">
-                {new Date(exec.executed_at).toLocaleString("it-IT")}
-              </span>
-            </div>
+            <ExecutionRow key={exec.id} exec={exec} />
           ))}
         </div>
       </CardContent>
     </Card>
+  );
+};
+
+const ExecutionRow = ({ exec }: { exec: WorkflowExecution }) => {
+  const isOk = exec.execution_status === "completed";
+
+  return (
+    <div className="flex items-center gap-3 rounded-lg bg-muted/50 p-3 text-sm">
+      {isOk ? (
+        <CheckCircle2 className="h-4 w-4 text-green-600 shrink-0" />
+      ) : (
+        <XCircle className="h-4 w-4 text-destructive shrink-0" />
+      )}
+      <div className="min-w-0 flex-1">
+        <p className="font-medium truncate">
+          {triggerResourceLabels[exec.trigger_resource] ??
+            exec.trigger_resource}
+        </p>
+        <p className="text-xs text-muted-foreground">
+          {new Date(exec.executed_at).toLocaleString("it-IT")}
+        </p>
+      </div>
+      <Badge
+        variant={isOk ? "default" : "destructive"}
+        className="shrink-0 text-xs"
+      >
+        {isOk ? "OK" : "Errore"}
+      </Badge>
+    </div>
   );
 };

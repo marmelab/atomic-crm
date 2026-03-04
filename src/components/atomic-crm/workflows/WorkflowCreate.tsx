@@ -5,6 +5,7 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { WorkflowInputs } from "./WorkflowInputs";
 import { FormToolbar } from "../layout/FormToolbar";
 import { MobileBackButton } from "../misc/MobileBackButton";
+import { MobilePageTitle } from "../layout/MobilePageTitle";
 import { workflowTransform } from "./workflowTransform";
 
 export const WorkflowCreate = () => {
@@ -23,8 +24,9 @@ export const WorkflowCreate = () => {
             }}
           >
             {isMobile && (
-              <div className="mb-3">
+              <div className="mb-3 space-y-2">
                 <MobileBackButton />
+                <MobilePageTitle title="Nuova automazione" />
               </div>
             )}
             <Card>

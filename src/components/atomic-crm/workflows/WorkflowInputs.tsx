@@ -4,22 +4,30 @@ import { SelectInput } from "@/components/admin/select-input";
 import { BooleanInput } from "@/components/admin/boolean-input";
 import { Separator } from "@/components/ui/separator";
 import { useWatch } from "react-hook-form";
+import { ArrowRight, Zap } from "lucide-react";
 import {
   triggerResourceChoices,
   triggerEventChoices,
   actionTypeChoices,
+  statusChoicesForResource,
 } from "./workflowTypes";
 
 export const WorkflowInputs = () => {
+  const triggerResource = useWatch({ name: "trigger_resource" });
+  const triggerEvent = useWatch({ name: "trigger_event" });
   const actionType = useWatch({ name: "action_type" });
+
+  const showStatusCondition =
+    triggerEvent === "status_changed" &&
+    statusChoicesForResource[triggerResource]?.length > 0;
 
   return (
     <div className="flex flex-col gap-4">
       <TextInput
         source="name"
-        label="Nome workflow"
+        label="Nome automazione"
         validate={required()}
-        helperText={false}
+        helperText="Un nome che ti aiuti a riconoscerla"
       />
 
       <TextInput
@@ -32,49 +40,60 @@ export const WorkflowInputs = () => {
 
       <Separator />
 
-      <h3 className="text-sm font-semibold text-muted-foreground">Trigger</h3>
+      {/* TRIGGER section */}
+      <div className="flex items-center gap-2">
+        <Zap className="h-4 w-4 text-primary" />
+        <h3 className="text-sm font-semibold">Quando succede questo...</h3>
+      </div>
 
       <SelectInput
         source="trigger_resource"
-        label="Risorsa"
+        label="Cosa monitorare"
         choices={triggerResourceChoices}
         optionText="label"
         optionValue="value"
         validate={required()}
-        helperText="Quando questa risorsa..."
+        helperText={false}
       />
 
       <SelectInput
         source="trigger_event"
-        label="Evento"
+        label="Quale evento"
         choices={triggerEventChoices}
         optionText="label"
         optionValue="value"
         validate={required()}
-        helperText="...subisce questo evento..."
+        helperText={false}
       />
 
-      <TextInput
-        source="trigger_conditions_json"
-        label="Condizioni (JSON)"
-        multiline
-        rows={2}
-        helperText='Opzionale. Es: {"status": "accettato"}'
-        defaultValue="{}"
-      />
+      {/* Smart condition: status dropdown instead of raw JSON */}
+      {showStatusCondition && (
+        <SelectInput
+          source="condition_status"
+          label="Quale stato"
+          choices={statusChoicesForResource[triggerResource]}
+          optionText="label"
+          optionValue="value"
+          helperText="Se vuoto, si attiva per qualsiasi cambio stato"
+        />
+      )}
 
       <Separator />
 
-      <h3 className="text-sm font-semibold text-muted-foreground">Azione</h3>
+      {/* Arrow connector */}
+      <div className="flex items-center gap-2">
+        <ArrowRight className="h-4 w-4 text-primary" />
+        <h3 className="text-sm font-semibold">...allora fai questo</h3>
+      </div>
 
       <SelectInput
         source="action_type"
-        label="Tipo azione"
+        label="Azione da eseguire"
         choices={actionTypeChoices}
         optionText="label"
         optionValue="value"
         validate={required()}
-        helperText="...esegui questa azione"
+        helperText={false}
       />
 
       {actionType === "create_task" && (
@@ -83,19 +102,19 @@ export const WorkflowInputs = () => {
             source="action_task_text"
             label="Testo del promemoria"
             validate={required()}
-            helperText={false}
+            helperText="Cosa deve ricordarti"
           />
           <TextInput
             source="action_task_due_days"
             label="Giorni per scadenza"
             defaultValue="3"
-            helperText="Quanti giorni da oggi per la scadenza"
+            helperText="Entro quanti giorni"
           />
         </>
       )}
 
       {actionType === "create_project" && (
-        <p className="text-sm text-muted-foreground">
+        <p className="text-sm text-muted-foreground rounded-md bg-muted/50 p-3">
           Il progetto verrà creato automaticamente dal preventivo con nome,
           cliente, budget e date.
         </p>
@@ -122,7 +141,7 @@ export const WorkflowInputs = () => {
 
       <BooleanInput
         source="is_active"
-        label="Attivo"
+        label="Attiva subito"
         defaultValue={true}
       />
     </div>

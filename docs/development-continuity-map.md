@@ -29,6 +29,14 @@ Quando tocchi il modulo workflow o le risorse trigger-abili, verificare:
 - `types.ts` (Workflow, WorkflowExecution)
 - migration `20260304140000_workflow_automation.sql`
 
+**UX mobile (2026-03-04):** La lista mobile usa card con icone colorate per
+risorsa trigger, flusso visivo trigger→azione, Switch toggle inline. La Show
+page ha Switch toggle, flow card con icone e execution history con
+CheckCircle/XCircle. I form Create/Edit hanno `MobilePageTitle`. Il form
+Inputs usa un dropdown "Quale stato" smart al posto del campo JSON grezzo per
+le condizioni di cambio stato. Le costanti visive (icone, colori) vivono in
+`workflowTypes.ts`.
+
 ## Update 2026-03-04 — Mandatory Sweep Addendum
 
 Le feature "module registry + scadenzario + tassabilita' + bozza fattura"
