@@ -53,7 +53,7 @@ export const ServiceCreate = () => {
                 {launcherBanner}
               </div>
             ) : null}
-            <Card>
+            <Card className="max-w-full overflow-hidden">
               <CardContent>
                 <ServiceInputs />
                 <FormToolbar />

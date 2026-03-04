@@ -1,6 +1,22 @@
-import { RotateCcw, Save } from "lucide-react";
+import {
+  RotateCcw,
+  Save,
+  ArrowRight,
+  Building2,
+  Tag,
+  Briefcase,
+  Receipt,
+  Bell,
+  FileText,
+  Zap,
+  Bot,
+  Palette,
+  Shield,
+  Car,
+} from "lucide-react";
+import { Link } from "react-router";
 import { EditBase, Form, useInput, useNotify } from "ra-core";
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useFormContext } from "react-hook-form";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -8,6 +24,7 @@ import { ArrayInput } from "@/components/admin/array-input";
 import { NumberInput } from "@/components/admin/number-input";
 import { SimpleFormIterator } from "@/components/admin/simple-form-iterator";
 import { TextInput } from "@/components/admin/text-input";
+import { cn } from "@/lib/utils";
 
 import ImageEditorField from "../misc/ImageEditorField";
 import {
@@ -21,18 +38,100 @@ import { BusinessProfileSettingsSection } from "./BusinessProfileSettingsSection
 import { FiscalSettingsSection } from "./FiscalSettingsSection";
 import { TagsSettingsSection } from "./TagsSettingsSection";
 
-const SECTIONS = [
-  { id: "profilo-aziendale", label: "Profilo Aziendale" },
-  { id: "branding", label: "Marchio" },
-  { id: "autenticazione", label: "Autenticazione" },
-  { id: "tags", label: "Etichette" },
-  { id: "quote-types", label: "Tipi preventivo" },
-  { id: "service-types", label: "Tipi servizio" },
-  { id: "operativita", label: "Operatività" },
-  { id: "notes", label: "Note" },
-  { id: "tasks", label: "Attività" },
-  { id: "ai", label: "AI" },
-  { id: "fiscale", label: "Fiscale" },
+type Section = {
+  id: string;
+  label: string;
+  icon: React.ComponentType<{ className?: string }>;
+  color: string;
+};
+type Category = {
+  id: string;
+  label: string;
+  color: string;
+  sections: Section[];
+};
+
+const CATEGORIES: Category[] = [
+  {
+    id: "azienda",
+    label: "Azienda",
+    color: "text-blue-600",
+    sections: [
+      {
+        id: "profilo-aziendale",
+        label: "Profilo Aziendale",
+        icon: Building2,
+        color: "text-blue-600",
+      },
+      {
+        id: "branding",
+        label: "Marchio",
+        icon: Palette,
+        color: "text-purple-600",
+      },
+      {
+        id: "autenticazione",
+        label: "Autenticazione",
+        icon: Shield,
+        color: "text-green-600",
+      },
+    ],
+  },
+  {
+    id: "catalogo",
+    label: "Catalogo",
+    color: "text-orange-600",
+    sections: [
+      { id: "tags", label: "Etichette", icon: Tag, color: "text-orange-600" },
+      {
+        id: "quote-types",
+        label: "Tipi preventivo",
+        icon: FileText,
+        color: "text-amber-600",
+      },
+      {
+        id: "service-types",
+        label: "Tipi servizio",
+        icon: Briefcase,
+        color: "text-yellow-600",
+      },
+    ],
+  },
+  {
+    id: "operativo",
+    label: "Operativo",
+    color: "text-cyan-600",
+    sections: [
+      {
+        id: "operativita",
+        label: "Operatività",
+        icon: Car,
+        color: "text-cyan-600",
+      },
+      { id: "notes", label: "Note", icon: FileText, color: "text-teal-600" },
+      { id: "tasks", label: "Attività", icon: Bell, color: "text-emerald-600" },
+      {
+        id: "automazioni",
+        label: "Automazioni",
+        icon: Zap,
+        color: "text-yellow-500",
+      },
+    ],
+  },
+  {
+    id: "avanzate",
+    label: "Avanzate",
+    color: "text-violet-600",
+    sections: [
+      { id: "ai", label: "AI", icon: Bot, color: "text-violet-600" },
+      {
+        id: "fiscale",
+        label: "Fiscale",
+        icon: Receipt,
+        color: "text-rose-600",
+      },
+    ],
+  },
 ];
 
 const transformFormValues = (data: Record<string, any>) => ({
@@ -53,8 +152,7 @@ const transformFormValues = (data: Record<string, any>) => ({
     aiConfig: data.aiConfig,
     businessProfile: data.businessProfile,
     googleWorkplaceDomain: data.googleWorkplaceDomain,
-    disableEmailPasswordAuthentication:
-      data.disableEmailPasswordAuthentication,
+    disableEmailPasswordAuthentication: data.disableEmailPasswordAuthentication,
   } as ConfigurationContextValue,
 });
 
@@ -138,27 +236,88 @@ const SettingsFormFields = () => {
     reset,
     formState: { isSubmitting },
   } = useFormContext();
+  const [activeSection, setActiveSection] =
+    useState<string>("profilo-aziendale");
+
+  // Track visible section using IntersectionObserver
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            setActiveSection(entry.target.id);
+          }
+        });
+      },
+      { rootMargin: "-20% 0px -60% 0px", threshold: 0 },
+    );
+
+    CATEGORIES.forEach((cat) =>
+      cat.sections.forEach((section) => {
+        const element = document.getElementById(section.id);
+        if (element) observer.observe(element);
+      }),
+    );
+
+    return () => observer.disconnect();
+  }, []);
+
+  const scrollToSection = (id: string) => {
+    const element = document.getElementById(id);
+    if (element) {
+      element.scrollIntoView({ behavior: "smooth", block: "start" });
+      setActiveSection(id);
+    }
+  };
 
   return (
     <div className="flex gap-8 mt-4 pb-20">
-      {/* Left navigation */}
-      <nav className="hidden md:block w-48 shrink-0">
-        <div className="sticky top-4 space-y-1">
-          <h1 className="text-2xl font-semibold px-3 mb-2">Impostazioni</h1>
-          {SECTIONS.map((section) => (
-            <button
-              key={section.id}
-              type="button"
-              onClick={() => {
-                document
-                  .getElementById(section.id)
-                  ?.scrollIntoView({ behavior: "smooth" });
-              }}
-              className="block w-full text-left px-3 py-1 text-sm rounded-md hover:text-foreground hover:bg-muted transition-colors"
-            >
-              {section.label}
-            </button>
-          ))}
+      {/* Left navigation - Professional structured menu */}
+      <nav className="hidden md:block w-56 shrink-0">
+        <div className="sticky top-4">
+          <h1 className="text-xl font-semibold px-3 mb-4">Impostazioni</h1>
+          <div className="space-y-4">
+            {CATEGORIES.map((category) => (
+              <div key={category.id}>
+                <h3
+                  className={cn(
+                    "px-3 text-xs font-semibold uppercase tracking-wider mb-1",
+                    category.color,
+                  )}
+                >
+                  {category.label}
+                </h3>
+                <ul className="space-y-0.5">
+                  {category.sections.map((section) => {
+                    const Icon = section.icon;
+                    const isActive = activeSection === section.id;
+                    return (
+                      <li key={section.id}>
+                        <button
+                          type="button"
+                          onClick={() => scrollToSection(section.id)}
+                          className={cn(
+                            "w-full flex items-center gap-2 px-3 py-2 text-sm rounded-md transition-all",
+                            isActive
+                              ? "bg-primary/10 text-primary font-medium shadow-sm"
+                              : "text-muted-foreground hover:text-foreground hover:bg-muted",
+                          )}
+                        >
+                          <Icon
+                            className={cn(
+                              "h-4 w-4 shrink-0",
+                              isActive ? section.color : "opacity-60",
+                            )}
+                          />
+                          <span>{section.label}</span>
+                        </button>
+                      </li>
+                    );
+                  })}
+                </ul>
+              </div>
+            ))}
+          </div>
         </div>
       </nav>
 
@@ -337,6 +496,26 @@ const SettingsFormFields = () => {
                 <TextInput source="label" label={false} />
               </SimpleFormIterator>
             </ArrayInput>
+          </CardContent>
+        </Card>
+
+        {/* Automazioni */}
+        <Card id="automazioni">
+          <CardContent className="space-y-4">
+            <h2 className="text-xl font-semibold text-muted-foreground">
+              Automazioni
+            </h2>
+            <p className="text-sm text-muted-foreground">
+              Crea regole automatiche che collegano eventi del CRM (nuovi
+              pagamenti, preventivi accettati, progetti avviati) a azioni
+              (creazione task, notifiche, aggiornamenti).
+            </p>
+            <Button asChild variant="outline">
+              <Link to="/workflows">
+                Gestisci automazioni
+                <ArrowRight className="ml-2 h-4 w-4" />
+              </Link>
+            </Button>
           </CardContent>
         </Card>
 

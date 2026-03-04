@@ -8,6 +8,24 @@ prodotto.
 
 Last updated: 2026-03-04
 
+## Update 2026-03-04 (e) — Settings Page Redesign
+
+### UI Navigation Refactor
+
+- `src/components/atomic-crm/settings/SettingsPage.tsx`:
+  - Ristrutturata navigazione laterale con categorie colorate
+  - Aggiunte icone specifiche per ogni sezione
+  - Implementato tracking sezione attiva durante lo scroll
+  - Categorie: Azienda (blu), Catalogo (arancio), Operativo (cyan), Avanzate (viola)
+  - Aggiunta sezione "Automazioni" con link a /workflows
+
+### Mobile Layout Fixes
+
+- `src/components/atomic-crm/services/ServiceCreate.tsx` & `ServiceEdit.tsx`:
+  - Aggiunto `max-w-full overflow-hidden` al Card per prevenire overflow su mobile
+- `src/components/admin/autocomplete-input.tsx`:
+  - Aggiunto `truncate` al testo selezionato per prevenire overflow con nomi lunghi
+
 ## Update 2026-03-04 (d) — Expenses check constraint fix
 
 - Migration `20260304124801_fix_expenses_check_and_services_updated_at.sql`:

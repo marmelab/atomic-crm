@@ -25,7 +25,7 @@ const ServiceEditContent = () => {
             <MobileBackButton />
           </div>
         )}
-        <Card>
+        <Card className="max-w-full overflow-hidden">
           <CardContent>
             <ServiceInputs />
             <FormToolbar />
