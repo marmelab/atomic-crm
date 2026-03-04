@@ -223,22 +223,42 @@ const hasTaskCreationIntent = (normalizedQuestion: string) =>
     "bozza",
   ]);
 
-const hasInvoiceDraftIntent = (normalizedQuestion: string) =>
-  includesAny(normalizedQuestion, [
+const hasInvoiceDraftIntent = (normalizedQuestion: string) => {
+  const mentionsFattura = includesAny(normalizedQuestion, [
     "bozza fattura",
     "bozza di fattura",
     "fattura",
     "aruba",
     "prefattura",
-  ]) &&
-  includesAny(normalizedQuestion, [
-    "crea",
-    "genera",
-    "prepar",
-    "compila",
-    "bozza",
-    "aiut",
   ]);
+
+  if (!mentionsFattura) return false;
+
+  // Explicit action verb → always trigger
+  if (
+    includesAny(normalizedQuestion, [
+      "crea",
+      "genera",
+      "prepar",
+      "compila",
+      "bozza",
+      "aiut",
+    ])
+  )
+    return true;
+
+  // Directional "fattura per/di/del..." → intent to generate for a specific entity
+  return includesAny(normalizedQuestion, [
+    "fattura per ",
+    "fattura di ",
+    "fattura del ",
+    "fattura della ",
+    "fattura dai ",
+    "fattura dei ",
+    "fattura delle ",
+    "fattura dal ",
+  ]);
+};
 
 const hasTravelEstimationIntent = (normalizedQuestion: string) =>
   includesAny(normalizedQuestion, [
@@ -2171,14 +2191,6 @@ export const buildUnifiedCrmSuggestedActions = ({
     "quotes",
     getString(firstQuote?.quoteId),
   );
-  const quoteInvoiceDraftHref = buildShowHrefWithSearch(
-    routePrefix,
-    "quotes",
-    getString(firstQuote?.quoteId),
-    {
-      invoiceDraft: "true",
-    },
-  );
   const quoteCreatePaymentHref = canCreatePaymentFromQuoteStatus(
     getString(firstQuote?.status),
   )
@@ -2211,14 +2223,6 @@ export const buildUnifiedCrmSuggestedActions = ({
     "projects",
     getString(firstProject?.projectId),
   );
-  const projectInvoiceDraftHref = buildShowHrefWithSearch(
-    routePrefix,
-    "projects",
-    getString(firstProject?.projectId),
-    {
-      invoiceDraft: "true",
-    },
-  );
   const projectQuickPaymentHref = buildShowHrefWithSearch(
     routePrefix,
     "projects",
@@ -2244,14 +2248,6 @@ export const buildUnifiedCrmSuggestedActions = ({
     routePrefix,
     "clients",
     getString(firstClient?.clientId),
-  );
-  const clientInvoiceDraftHref = buildShowHrefWithSearch(
-    routePrefix,
-    "clients",
-    getString(firstClient?.clientId),
-    {
-      invoiceDraft: "true",
-    },
   );
   const contactHref = buildShowHref(
     routePrefix,
@@ -2324,53 +2320,96 @@ export const buildUnifiedCrmSuggestedActions = ({
           },
     );
   } else if (invoiceDraftIntent) {
-    const invoiceDraftPrimary = quoteInvoiceDraftHref
-      ? {
-          id: "open-quote-for-invoice-draft",
-          kind: "approved_action" as const,
-          resource: "quotes" as const,
-          capabilityActionId: "generate_invoice_draft" as const,
-          label: "Apri il preventivo e genera la bozza fattura",
-          description:
-            "Nella scheda preventivo trovi il bottone per generare una bozza fattura interna da usare come riferimento Aruba.",
-          href: quoteInvoiceDraftHref,
-        }
-      : projectInvoiceDraftHref
+    // Context-aware entity matching: find the specific client/project mentioned
+    const matchedClient = pickClientFromQuestion({
+      normalizedQuestion,
+      context,
+    });
+    const matchedProject = pickProjectFromQuestion({
+      normalizedQuestion,
+      context,
+    });
+    const matchedClientId = matchedClient
+      ? getString(matchedClient.clientId)
+      : null;
+    const matchedProjectId = matchedProject
+      ? getString(matchedProject.projectId)
+      : null;
+
+    // Find relevant surfaces scoped to the matched entity
+    const draftQuote = matchedClientId
+      ? openQuotes.find((q) => getString(q.clientId) === matchedClientId)
+      : matchedProjectId
+        ? openQuotes.find((q) => getString(q.projectId) === matchedProjectId)
+        : firstQuote;
+    const draftProjectRecord = matchedProjectId
+      ? matchedProject
+      : matchedClientId
+        ? activeProjects.find(
+            (p) => getString(p.clientId) === matchedClientId,
+          )
+        : firstProject;
+    const draftClientRecord = matchedClient ?? firstClient;
+
+    const draftQuoteHref = buildShowHrefWithSearch(
+      routePrefix,
+      "quotes",
+      getString(draftQuote?.quoteId),
+      { invoiceDraft: "true" },
+    );
+    const draftProjectHref = buildShowHrefWithSearch(
+      routePrefix,
+      "projects",
+      getString(draftProjectRecord?.projectId),
+      { invoiceDraft: "true" },
+    );
+    const draftClientHref = buildShowHrefWithSearch(
+      routePrefix,
+      "clients",
+      getString(draftClientRecord?.clientId),
+      { invoiceDraft: "true" },
+    );
+
+    // Show ALL available invoice draft surfaces (not a single fixed cascade)
+    pushSuggestion(
+      draftQuoteHref
+        ? {
+            id: "open-quote-for-invoice-draft",
+            kind: "approved_action" as const,
+            resource: "quotes" as const,
+            capabilityActionId: "generate_invoice_draft" as const,
+            label: "Genera bozza fattura dal preventivo",
+            description:
+              "Nella scheda preventivo trovi il bottone per generare una bozza fattura interna da usare come riferimento Aruba.",
+            href: draftQuoteHref,
+          }
+        : null,
+    );
+    pushSuggestion(
+      draftProjectHref
         ? {
             id: "open-project-for-invoice-draft",
             kind: "approved_action" as const,
             resource: "projects" as const,
             capabilityActionId: "generate_invoice_draft" as const,
-            label: "Apri il progetto e genera la bozza fattura",
+            label: "Genera bozza fattura dal progetto",
             description:
               "Nella scheda progetto trovi il bottone per generare una bozza fattura interna.",
-            href: projectInvoiceDraftHref,
+            href: draftProjectHref,
           }
-        : clientInvoiceDraftHref
-          ? {
-              id: "open-client-for-invoice-draft",
-              kind: "approved_action" as const,
-              resource: "clients" as const,
-              capabilityActionId: "generate_invoice_draft" as const,
-              label: "Apri il cliente e genera la bozza fattura",
-              description:
-                "Nella scheda cliente puoi generare la bozza fattura dai servizi non ancora fatturati.",
-              href: clientInvoiceDraftHref,
-            }
-          : null;
-
-    pushSuggestion(invoiceDraftPrimary);
+        : null,
+    );
     pushSuggestion(
-      clientHref
+      draftClientHref
         ? {
-            id: "open-client-from-invoice-draft-context",
-            kind: "show",
-            resource: "clients",
-            capabilityActionId: "follow_unified_crm_handoff",
-            label: "Apri il cliente collegato",
+            id: "open-client-for-invoice-draft",
+            kind: "approved_action" as const,
+            resource: "clients" as const,
+            capabilityActionId: "generate_invoice_draft" as const,
+            label: "Genera bozza fattura dal cliente",
             description:
-              "Controlla i dati anagrafici e fiscali cliente prima di esportare il PDF della bozza.",
-            href: clientHref,
+              "Nella scheda cliente puoi generare la bozza fattura da tutti i servizi non ancora fatturati.",
+            href: draftClientHref,
           }
         : null,
     );

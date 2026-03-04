@@ -27,6 +27,10 @@ export const buildInvoiceDraftFromService = ({
   client: Client;
   defaultKmRate?: number;
 }): InvoiceDraftInput => {
+  const isAlreadyInvoiced =
+    typeof service.invoice_ref === "string" &&
+    service.invoice_ref.trim().length > 0;
+
   const netValue = calculateServiceNetValue(service);
   const kmValue = calculateKmReimbursement({
     kmDistance: service.km_distance,
@@ -34,24 +38,26 @@ export const buildInvoiceDraftFromService = ({
     defaultKmRate,
   });
 
-  const lineItems = [
-    netValue > 0
-      ? {
-          description: `${prettifyServiceType(service.service_type)} del ${formatServiceDate(service.service_date)}`,
-          quantity: 1,
-          unitPrice: netValue,
-        }
-      : null,
-    kmValue > 0
-      ? {
-          description: `Rimborso chilometrico (${service.km_distance} km)`,
-          quantity: 1,
-          unitPrice: kmValue,
-        }
-      : null,
-  ].filter((lineItem): lineItem is NonNullable<typeof lineItem> =>
-    Boolean(lineItem),
-  );
+  const lineItems = isAlreadyInvoiced
+    ? []
+    : [
+        netValue > 0
+          ? {
+              description: `${prettifyServiceType(service.service_type)} del ${formatServiceDate(service.service_date)}`,
+              quantity: 1,
+              unitPrice: netValue,
+            }
+          : null,
+        kmValue > 0
+          ? {
+              description: `Rimborso chilometrico (${service.km_distance} km)`,
+              quantity: 1,
+              unitPrice: kmValue,
+            }
+          : null,
+      ].filter((lineItem): lineItem is NonNullable<typeof lineItem> =>
+        Boolean(lineItem),
+      );
 
   return {
     client,

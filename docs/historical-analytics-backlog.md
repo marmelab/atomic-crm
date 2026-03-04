@@ -24,9 +24,19 @@ Deliverable chiusi:
   - default config-driven su servizi/preventivi
   - tassabilita' pagamento derivata
   - flat services inclusi nel modello fiscale
+- fix semantica pagamenti nei builder invoice draft:
+  - deduzione solo pagamenti `status === "ricevuto"`
+  - inversione segno rimborsi
+  - exclusione servizi gia' fatturati (`invoice_ref`)
+  - return `lineItems: []` se totale esigibile <= 0
+  - `hasInvoiceDraftCollectableAmount()` come check unificato
+  - Show page caricate con `useGetList<Payment>` per dati reali
+  - 9 test unitari aggiunti (3 per quote, 3 per project, 3 per client)
 
 Backlog immediato residuo:
 
+- chat AI: rispondere a "quanto mi deve X?" usando i builder o un read-context
+  esteso con importi esigibili per cliente/progetto
 - aggiungere smoke E2E dedicati per:
   - navigazione module-registry desktop/mobile
   - scadenzario dashboard

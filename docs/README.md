@@ -1,6 +1,6 @@
 # Documentation Map
 
-Last updated: 2026-03-02
+Last updated: 2026-03-04
 
 ## Purpose
 
@@ -30,7 +30,8 @@ categorie:
   - poi `Fatture/contabilità interna - diego caltabiano/` come arricchimento
     del caso Diego/Gustare
   - poi portale Aruba Fatturazione Elettronica per date di incasso esatte
-    (codificate in `ARUBA_PORTAL_TRUTH` dentro `scripts/local-truth-data.mjs`)
+    (originariamente codificate in `ARUBA_PORTAL_TRUTH`; ora consolidate
+    nella migration snapshot `20260302170000_domain_data_snapshot.sql`)
 - fixture o bootstrap hardcoded di dominio sono solo debito tecnico
   temporaneo, non una seconda fonte di verita'
 - se il comportamento e' gia spedito:

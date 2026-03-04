@@ -9,7 +9,7 @@ import { Phone, Mail, MapPin, FileText, Euro } from "lucide-react";
 import { Link, useLocation } from "react-router";
 import { useIsMobile } from "@/hooks/use-mobile";
 
-import type { Client, Project, Service } from "../types";
+import type { Client, Payment, Project, Service } from "../types";
 import { ClientTypeBadge } from "./ClientListContent";
 import { clientSourceLabels } from "./clientTypes";
 import {
@@ -27,6 +27,8 @@ import { buildPaymentCreatePathFromClient } from "../payments/paymentLinking";
 import { ClientContactsSection } from "../contacts/ClientContactsSection";
 import { InvoiceDraftDialog } from "../invoicing/InvoiceDraftDialog";
 import { buildInvoiceDraftFromClient } from "../invoicing/buildInvoiceDraftFromClient";
+import { hasInvoiceDraftCollectableAmount } from "../invoicing/invoiceDraftTypes";
+import { useConfigurationContext } from "../root/ConfigurationContext";
 
 export const ClientShow = () => (
   <ShowBase>
@@ -96,6 +98,7 @@ const ClientShowContent = () => {
 const ClientHeader = ({ record }: { record: Client }) => {
   const [invoiceDraftOpen, setInvoiceDraftOpen] = useState(false);
   const location = useLocation();
+  const { operationalConfig } = useConfigurationContext();
   const { data: services = [] } = useGetList<Service>("services", {
     pagination: { page: 1, perPage: 1000 },
     sort: { field: "service_date", order: "DESC" },
@@ -106,22 +109,27 @@ const ClientHeader = ({ record }: { record: Client }) => {
     sort: { field: "name", order: "ASC" },
     filter: { "client_id@eq": String(record.id) },
   });
+  const { data: clientPayments = [] } = useGetList<Payment>("payments", {
+    pagination: { page: 1, perPage: 1000 },
+    sort: { field: "payment_date", order: "DESC" },
+    filter: { "client_id@eq": String(record.id) },
+  });
 
   const invoiceDraft = buildInvoiceDraftFromClient({
     client: record,
     services,
     projects,
+    payments: clientPayments,
+    defaultKmRate: operationalConfig.defaultKmRate,
   });
+  const hasCollectableAmount = hasInvoiceDraftCollectableAmount(invoiceDraft);
 
   useEffect(() => {
     const searchParams = new URLSearchParams(location.search);
-    if (
-      searchParams.get("invoiceDraft") === "true" &&
-      invoiceDraft.lineItems.length > 0
-    ) {
+    if (searchParams.get("invoiceDraft") === "true" && hasCollectableAmount) {
       setInvoiceDraftOpen(true);
     }
-  }, [invoiceDraft.lineItems.length, location.search]);
+  }, [hasCollectableAmount, location.search]);
 
   return (
     <div className="flex flex-col gap-3">
@@ -147,7 +155,7 @@ const ClientHeader = ({ record }: { record: Client }) => {
             Nuovo pagamento
           </Link>
         </Button>
-        {invoiceDraft.lineItems.length > 0 ? (
+        {hasCollectableAmount ? (
           <Button
             type="button"
             size="sm"
@@ -163,7 +171,7 @@ const ClientHeader = ({ record }: { record: Client }) => {
       <InvoiceDraftDialog
         open={invoiceDraftOpen}
         onOpenChange={setInvoiceDraftOpen}
-        draft={invoiceDraft.lineItems.length > 0 ? invoiceDraft : null}
+        draft={hasCollectableAmount ? invoiceDraft : null}
       />
     </div>
   );

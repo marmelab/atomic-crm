@@ -90,7 +90,11 @@ Aggiornamenti principali:
 
 ### Bozza fattura interna (no write DB)
 
-Nuovo modulo condiviso in `src/components/atomic-crm/invoicing/`:
+Scopo operativo: rispondere alla domanda "quanto mi deve ancora questo
+cliente/progetto/preventivo?" e generare un PDF di supporto da inviare alla
+controparte come simulazione fattura. Non e' una fattura reale.
+
+Modulo condiviso in `src/components/atomic-crm/invoicing/`:
 
 - builders puri da service/project/client/quote
 - dialog unico `InvoiceDraftDialog`
@@ -98,21 +102,90 @@ Nuovo modulo condiviso in `src/components/atomic-crm/invoicing/`:
 - nessuna scrittura DB: output solo di supporto operativo per compilazione
   Aruba
 
-Entry point UI aggiunti in:
+Semantica di calcolo dei builders:
 
-- `ServiceShow`
-- `ProjectShow`
-- `ClientShow`
-- `QuoteShow`
+- ogni builder somma il valore netto dei servizi non ancora fatturati
+  (esclusi quelli con `invoice_ref` valorizzato)
+- i km reimbursement vengono aggregati come voce separata; il calcolo usa
+  `calculateKmReimbursement()` che applica `defaultKmRate` dalla config quando
+  il servizio ha `km_rate` NULL — ogni Show page e `ClientFinancialSummary`
+  leggono `operationalConfig.defaultKmRate` da `useConfigurationContext()` e lo
+  passano esplicitamente ai builder; **non usare** `km_distance * km_rate`
+  inline (bug storico: NULL → 0)
+- vengono sottratti **solo** i pagamenti con `status === "ricevuto"` — i
+  pagamenti `in_attesa` o `scaduto` non riducono il dovuto
+- i rimborsi (`payment_type === "rimborso"`) hanno segno invertito nella
+  deduzione
+- se il totale esigibile e' <= 0, il builder restituisce `lineItems: []`
+  (nessun importo da richiedere)
+
+Tipo condiviso: `DraftPayment = Pick<Payment, "amount" | "payment_type" |
+"status">`
+
+Helper unificato: `hasInvoiceDraftCollectableAmount(draft)` — usato da tutte
+le pagine Show per decidere se mostrare il pulsante "Genera bozza fattura".
+Un draft non-null con `lineItems: []` non mostra il pulsante.
+
+Entry point UI:
+
+- `ServiceShow` — draft singolo servizio (escluso se gia' fatturato)
+- `ProjectShow` — aggrega servizi progetto non fatturati + km + deduce
+  pagamenti ricevuti del progetto
+- `ClientShow` — aggrega tutti i servizi non fatturati del cliente + km +
+  deduce tutti i pagamenti ricevuti del cliente
+- `QuoteShow` — usa le voci del preventivo (`quote_items`) + deduce
+  pagamenti ricevuti collegati al preventivo
+
+Ogni Show page carica i pagamenti collegati tramite `useGetList<Payment>` con
+il filtro appropriato (`client_id@eq`, `project_id@eq`, `quote_id@eq`).
 
 ### Test strategy aggiornata
 
 Guardrail test ampliati con:
 
-- test unitari per i 4 builder invoice draft
+- test unitari per i 4 builder invoice draft, inclusi:
+  - filtro `status === "ricevuto"` (non deduce `in_attesa`/`scaduto`)
+  - inversione segno rimborsi
+  - copertura completa → `lineItems: []`
+  - esclusione servizi gia' fatturati (`invoice_ref`)
 - test unitari helper scadenzario (ordinamento/filtro pagamenti/task)
 - estensioni a test di semantica, fiscal model, configuration merge e
   read-context AI per i nuovi invarianti di tassabilita'/scadenze
+
+### Fix coerenza dashboard e AI (post module-registry)
+
+Calcoli dashboard corretti:
+
+- **DSO inclusivo flat services**: pagamenti senza `project_id` ora usano la
+  data del servizio flat piu' vecchio del cliente come riferimento
+  (`clientEarliestFlatService` in `fiscalModel.ts`)
+- **Margini inclusivi spese generali**: spese senza `project_id` ora rientrano
+  nella categoria `"__general"` (Spese generali) invece di essere ignorate
+- **Revenue operativo inclusivo flat services**: servizi senza `project_id` ora
+  rientrano nella categoria `"__flat"` (Servizi diretti) nel dashboard annuale
+  e nel conteggio `topClientRevenue`
+- **KPI labels chiariti**: "netto sconti, non incassi" → "tutto il lavoro
+  svolto" nel dashboard operativo; label fiscali chiarite con "(solo tassabile)"
+
+AI read-context esteso:
+
+- `clientFinancials`: aggregato per cliente con totalFees, totalPaid,
+  balanceDue, hasUninvoicedServices — permette alla chat di rispondere a
+  "quanto mi deve Diego?" con importi reali
+- tutti i limiti di slicing rimossi: clienti, contatti, preventivi, progetti,
+  pagamenti, task, spese e servizi flat sono esposti senza cap numerico
+- `clientLevelServices` senza limite (era slice 10)
+
+AI intent parsing e handoff:
+
+- `hasInvoiceDraftIntent` ammorbidito: "fattura per Diego" ora funziona senza
+  verbo d'azione esplicito grazie a pattern direzionali (per/di/del/della...)
+- handoff fattura context-aware: usa `pickClientFromQuestion` e
+  `pickProjectFromQuestion` per trovare l'entita' menzionata dall'utente
+- suggestedActions fattura multi-opzione: mostra tutte le superfici disponibili
+  (preventivo, progetto, cliente) come scelte separate
+- system prompt aggiornato: stile conciso (elenchi puntati, dritto al punto),
+  istruzioni `clientFinancials`, formato Risposta/Dettaglio/Note
 
 ## Current Direction
 

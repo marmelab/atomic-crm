@@ -21,6 +21,7 @@ import {
 } from "@/lib/semantics/crmSemanticRegistry";
 import { InvoiceDraftDialog } from "../invoicing/InvoiceDraftDialog";
 import { buildInvoiceDraftFromService } from "../invoicing/buildInvoiceDraftFromService";
+import { hasInvoiceDraftCollectableAmount } from "../invoicing/invoiceDraftTypes";
 
 const eur = (n: number) =>
   n.toLocaleString("it-IT", { minimumFractionDigits: 2 });
@@ -94,13 +95,14 @@ const ServiceHeader = ({ record }: { record: Service }) => {
         defaultKmRate: operationalConfig.defaultKmRate,
       })
     : null;
+  const hasCollectableAmount = hasInvoiceDraftCollectableAmount(invoiceDraft);
 
   useEffect(() => {
     const searchParams = new URLSearchParams(location.search);
-    if (searchParams.get("invoiceDraft") === "true" && invoiceDraft) {
+    if (searchParams.get("invoiceDraft") === "true" && hasCollectableAmount) {
       setInvoiceDraftOpen(true);
     }
-  }, [invoiceDraft, location.search]);
+  }, [hasCollectableAmount, location.search]);
 
   const serviceLabel =
     serviceTypeChoices.find((t) => t.value === record.service_type)?.label ??
@@ -147,7 +149,7 @@ const ServiceHeader = ({ record }: { record: Service }) => {
         </div>
       </div>
       <div className="flex gap-2">
-        {invoiceDraft ? (
+        {hasCollectableAmount ? (
           <Button
             type="button"
             variant="outline"
@@ -163,7 +165,7 @@ const ServiceHeader = ({ record }: { record: Service }) => {
       <InvoiceDraftDialog
         open={invoiceDraftOpen}
         onOpenChange={setInvoiceDraftOpen}
-        draft={invoiceDraft}
+        draft={hasCollectableAmount ? invoiceDraft : null}
       />
     </div>
   );

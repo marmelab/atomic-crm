@@ -151,11 +151,18 @@ point anche da:
 - `ClientShow`
 - `ProjectShow`
 
-Il flusso:
+Il flusso risponde alla domanda "quanto mi deve ancora questo
+cliente/progetto?" e genera un PDF di supporto.
 
-- non crea nuove relazioni dominio tra clienti/progetti/referenti
+Semantica:
+
+- aggrega servizi non fatturati (senza `invoice_ref`) + km reimbursement
+- deduce solo pagamenti `status === "ricevuto"` (non `in_attesa`/`scaduto`)
+- rimborsi (`payment_type === "rimborso"`) hanno segno invertito
+- `ClientShow` e `ProjectShow` caricano i pagamenti con `useGetList<Payment>`
+- il pulsante "Genera bozza fattura" compare solo se
+  `hasInvoiceDraftCollectableAmount()` ritorna true
 - non scrive su DB (solo anteprima/download PDF)
-- usa i servizi gia' collegati a cliente/progetto per costruire linee bozza
 
 Impatto architetturale:
 

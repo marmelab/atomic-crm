@@ -147,6 +147,7 @@ const categoryLabels: Record<string, string> = {
   wedding: "Wedding",
   evento_privato: "Evento privato",
   sviluppo_web: "Sviluppo web",
+  __general: "Spese generali",
 };
 
 const getExpenseAmount = (expense: Expense) => {
@@ -246,6 +247,7 @@ export const buildFiscalModel = ({
   const categoryExpenses = new Map<string, number>();
   const clientRevenue = new Map<string, number>();
   const projectEarliestService = new Map<string, Date>();
+  const clientEarliestFlatService = new Map<string, Date>();
   const defaultTaxProfile = fiscalConfig.taxProfiles[0];
   let fatturatoTotaleYtd = 0;
 
@@ -282,6 +284,10 @@ export const buildFiscalModel = ({
           clientId,
           (clientRevenue.get(clientId) ?? 0) + revenue,
         );
+        const existingFlat = clientEarliestFlatService.get(clientId);
+        if (!existingFlat || date < existingFlat) {
+          clientEarliestFlatService.set(clientId, date);
+        }
       }
 
       continue;
@@ -315,11 +321,17 @@ export const buildFiscalModel = ({
     if (Number.isNaN(date.valueOf()) || date.getFullYear() !== currentYear)
       continue;
     if (expense.expense_type === "credito_ricevuto") continue; // credits reduce expenses
-    if (!expense.project_id) continue;
+    const amount = getExpenseAmount(expense);
+    if (!expense.project_id) {
+      categoryExpenses.set(
+        "__general",
+        (categoryExpenses.get("__general") ?? 0) + amount,
+      );
+      continue;
+    }
     const project = projectById.get(String(expense.project_id));
     if (!project) continue;
     const cat = project.category;
-    const amount = getExpenseAmount(expense);
     categoryExpenses.set(cat, (categoryExpenses.get(cat) ?? 0) + amount);
   }
 
@@ -436,12 +448,11 @@ export const buildFiscalModel = ({
   const dsoValues: number[] = [];
   for (const payment of yearPayments) {
     if (payment.status !== "ricevuto" || !payment.payment_date) continue;
-    if (!payment.project_id) continue;
     const payDate = new Date(payment.payment_date);
     if (Number.isNaN(payDate.valueOf())) continue;
-    const earliestService = projectEarliestService.get(
-      String(payment.project_id),
-    );
+    const earliestService = payment.project_id
+      ? projectEarliestService.get(String(payment.project_id))
+      : clientEarliestFlatService.get(String(payment.client_id));
     if (!earliestService) continue;
     const days = diffDays(earliestService, payDate);
     if (days >= 0) dsoValues.push(days);

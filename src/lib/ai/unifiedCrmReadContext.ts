@@ -167,6 +167,68 @@ const buildProjectFinancialSummaries = ({
   return summaries;
 };
 
+const buildClientFinancialSummaries = ({
+  services,
+  payments,
+  clientById,
+}: {
+  services: Service[];
+  payments: Payment[];
+  clientById: Map<string, Client>;
+}) => {
+  const totals = new Map<
+    string,
+    {
+      totalFees: number;
+      totalPaid: number;
+      uninvoicedServices: number;
+    }
+  >();
+
+  const ensure = (clientId: string) => {
+    if (!totals.has(clientId)) {
+      totals.set(clientId, {
+        totalFees: 0,
+        totalPaid: 0,
+        uninvoicedServices: 0,
+      });
+    }
+    return totals.get(clientId)!;
+  };
+
+  for (const service of services) {
+    if (!service.client_id) continue;
+    const clientId = String(service.client_id);
+    const t = ensure(clientId);
+    t.totalFees += calculateServiceNetValue(service);
+    if (!service.invoice_ref || service.invoice_ref.trim().length === 0) {
+      t.uninvoicedServices += 1;
+    }
+  }
+
+  for (const payment of payments) {
+    if (payment.status !== "ricevuto" || !payment.client_id) continue;
+    const clientId = String(payment.client_id);
+    const t = ensure(clientId);
+    t.totalPaid +=
+      payment.payment_type === "rimborso"
+        ? -Number(payment.amount ?? 0)
+        : Number(payment.amount ?? 0);
+  }
+
+  return Array.from(totals.entries())
+    .map(([clientId, t]) => ({
+      clientId,
+      clientName: clientById.get(clientId)?.name ?? "Cliente",
+      totalFees: t.totalFees,
+      totalPaid: t.totalPaid,
+      balanceDue: t.totalFees - t.totalPaid,
+      hasUninvoicedServices: t.uninvoicedServices > 0,
+    }))
+    .filter((c) => c.totalFees !== 0 || c.totalPaid !== 0)
+    .sort((a, b) => b.balanceDue - a.balanceDue);
+};
+
 const getClientName = (
   clientById: Map<string, Client>,
   clientId?: Client["id"] | null,
@@ -383,6 +445,14 @@ export type UnifiedCrmReadContext = {
       isTaxable: boolean;
       serviceDate: string;
       notes: string | null;
+    }>;
+    clientFinancials: Array<{
+      clientId: string;
+      clientName: string;
+      totalFees: number;
+      totalPaid: number;
+      balanceDue: number;
+      hasUninvoicedServices: boolean;
     }>;
   };
   caveats: string[];
@@ -695,7 +765,7 @@ export const buildUnifiedCrmReadContext = ({
         pendingPaymentsAmount,
         expensesAmount,
       },
-      recentClients: recentClients.slice(0, 5).map((client) => ({
+      recentClients: recentClients.map((client) => ({
         clientId: String(client.id),
         clientName: getClientBillingDisplayName(client) ?? client.name,
         operationalName: client.name ?? null,
@@ -711,14 +781,14 @@ export const buildUnifiedCrmReadContext = ({
         activeProjects: getClientActiveProjects(String(client.id)),
         createdAt: client.created_at,
       })),
-      recentContacts: recentContacts.slice(0, 5).map((contact) => ({
+      recentContacts: recentContacts.map((contact) => ({
         ...buildSnapshotContactReference(contact),
         clientId: contact.client_id ? String(contact.client_id) : null,
         clientName: getClientName(clientById, contact.client_id ?? null),
         linkedProjects: getContactLinkedProjects(String(contact.id)),
         updatedAt: contact.updated_at ?? contact.created_at,
       })),
-      openQuotes: openQuotes.slice(0, 5).map((quote) => {
+      openQuotes: openQuotes.map((quote) => {
         const paymentSummary = buildQuotePaymentsSummary({
           quoteAmount: Number(quote.amount ?? 0),
           payments: paymentsByQuoteId.get(String(quote.id)) ?? [],
@@ -739,7 +809,7 @@ export const buildUnifiedCrmReadContext = ({
           createdAt: quote.created_at,
         };
       }),
-      activeProjects: activeProjects.slice(0, 5).map((project) => {
+      activeProjects: activeProjects.map((project) => {
         const projectFinancials =
           projectFinancialsById.get(String(project.id)) ?? {
             totalServices: 0,
@@ -767,7 +837,7 @@ export const buildUnifiedCrmReadContext = ({
           contacts: getProjectContacts(String(project.id)),
         };
       }),
-      pendingPayments: pendingPayments.slice(0, 20).map((payment) => ({
+      pendingPayments: pendingPayments.map((payment) => ({
         paymentId: String(payment.id),
         quoteId: payment.quote_id ? String(payment.quote_id) : null,
         clientId: payment.client_id ? String(payment.client_id) : null,
@@ -780,7 +850,7 @@ export const buildUnifiedCrmReadContext = ({
         paymentDate: payment.payment_date ?? null,
         isTaxable: getPaymentTaxable(payment),
       })),
-      overduePayments: overduePayments.slice(0, 20).map((payment) => ({
+      overduePayments: overduePayments.map((payment) => ({
         paymentId: String(payment.id),
         quoteId: payment.quote_id ? String(payment.quote_id) : null,
         clientId: payment.client_id ? String(payment.client_id) : null,
@@ -796,7 +866,7 @@ export const buildUnifiedCrmReadContext = ({
           ? Math.abs(diffDays(new Date(payment.payment_date), today))
           : null,
       })),
-      upcomingTasks: upcomingTasks.slice(0, 20).map((task) => ({
+      upcomingTasks: upcomingTasks.map((task) => ({
         taskId: String(task.id),
         clientId: task.client_id ? String(task.client_id) : null,
         clientName: getClientName(clientById, task.client_id ?? null),
@@ -806,7 +876,7 @@ export const buildUnifiedCrmReadContext = ({
         allDay: task.all_day,
         daysUntilDue: diffDays(today, new Date(task.due_date)),
       })),
-      overdueTasks: overdueTasks.slice(0, 20).map((task) => ({
+      overdueTasks: overdueTasks.map((task) => ({
         taskId: String(task.id),
         clientId: task.client_id ? String(task.client_id) : null,
         clientName: getClientName(clientById, task.client_id ?? null),
@@ -816,7 +886,7 @@ export const buildUnifiedCrmReadContext = ({
         allDay: task.all_day,
         daysOverdue: Math.abs(diffDays(new Date(task.due_date), today)),
       })),
-      recentExpenses: recentExpenses.slice(0, 5).map((expense) => ({
+      recentExpenses: recentExpenses.map((expense) => ({
         expenseId: String(expense.id),
         clientId: expense.client_id ? String(expense.client_id) : null,
         projectId: expense.project_id ? String(expense.project_id) : null,
@@ -831,7 +901,6 @@ export const buildUnifiedCrmReadContext = ({
       })),
       clientLevelServices: services
         .filter((s) => !s.project_id && s.client_id)
-        .slice(0, 10)
         .map((s) => ({
           serviceId: String(s.id),
           clientId: s.client_id ? String(s.client_id) : null,
@@ -842,6 +911,11 @@ export const buildUnifiedCrmReadContext = ({
           serviceDate: s.service_date,
           notes: s.notes ?? null,
         })),
+      clientFinancials: buildClientFinancialSummaries({
+        services,
+        payments,
+        clientById,
+      }),
     },
     caveats: [
       "Questo snapshot e' read-only: nessuna scrittura nel CRM parte da questo contesto o dalle risposte AI che lo usano senza una conferma esplicita in un workflow dedicato.",

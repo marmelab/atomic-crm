@@ -59,3 +59,7 @@ export const computeInvoiceDraftTotals = (
     totalAmount: taxableAmount + stampDuty,
   };
 };
+
+export const hasInvoiceDraftCollectableAmount = (
+  draft: Pick<InvoiceDraftInput, "lineItems"> | null | undefined,
+) => computeInvoiceDraftTotals(draft?.lineItems ?? []).totalAmount > 0;

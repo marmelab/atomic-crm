@@ -27,12 +27,41 @@ Nuovi elementi rilevanti per handoff AI/analytics:
 - modulo headless `invoicing` dichiarato nel registry per rendere esplicita la
   capacita' "bozza fattura interna" senza creare una nuova CRUD resource
 
+Bozza fattura — semantica "quanto mi deve ancora?":
+
+- i 4 builder (service/project/client/quote) ora deducono solo pagamenti
+  `status === "ricevuto"` dal totale esigibile
+- pagamenti `in_attesa` o `scaduto` non riducono il dovuto
+- rimborsi (`payment_type === "rimborso"`) hanno segno invertito
+- servizi con `invoice_ref` vengono esclusi (gia' fatturati)
+- se il totale esigibile e' <= 0, il draft restituisce `lineItems: []`
+- `hasInvoiceDraftCollectableAmount()` e' il check unificato nelle Show page
+- ogni Show page carica i propri pagamenti con `useGetList<Payment>`
+- 9 test unitari aggiunti per coprire i casi edge
+
 Nota tassabilita':
 
 - il flag resta atomico su `services.is_taxable`
 - `quotes.is_taxable` e' ora persistito e usato come fallback semantico
 - i pagamenti leggono tassabilita' derivata (`isPaymentTaxable`) invece di un
   campo dedicato
+
+Read-context AI esteso:
+
+- `clientFinancials` aggiunto allo snapshot: aggregato per cliente con
+  totalFees, totalPaid, balanceDue, hasUninvoicedServices
+- tutti i limiti di slicing rimossi: l'AI vede l'intero dataset senza cap
+- la chat puo' ora rispondere a "quanto mi deve X?" con importi reali
+- system prompt Edge Function aggiornato: stile conciso, istruzioni
+  `clientFinancials`, formato risposta Risposta/Dettaglio/Note,
+  `max_output_tokens` da 900 a 1200
+- intent "bozza fattura" ammorbidito: accetta anche "fattura per X" senza
+  verbo d'azione esplicito
+- entity matching context-aware: `pickClientFromQuestion` e
+  `pickProjectFromQuestion` usati nell'handoff fattura per trovare l'entita'
+  menzionata dall'utente
+- suggestedActions fattura mostra TUTTE le superfici disponibili (preventivo,
+  progetto, cliente) invece di una cascata fissa single-option
 
 ## Goal
 

@@ -65,11 +65,11 @@ export const DashboardFiscalKpis = ({
           </div>
           <div className="space-y-0.5 text-xs text-muted-foreground">
             <p>
-              Fatturato tassabile:{" "}
+              Fatturato (solo tassabile):{" "}
               {formatCurrencyPrecise(fiscalKpis.fatturatoLordoYtd)}
             </p>
             <p>
-              Fatturato totale:{" "}
+              Fatturato totale (incl. non tassabile):{" "}
               {formatCurrencyPrecise(fiscalKpis.fatturatoTotaleYtd)}
             </p>
             {fiscalKpis.fatturatoNonTassabileYtd > 0 ? (

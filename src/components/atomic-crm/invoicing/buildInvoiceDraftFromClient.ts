@@ -3,10 +3,11 @@ import {
   calculateServiceNetValue,
 } from "@/lib/semantics/crmSemanticRegistry";
 
-import type { Client, Project, Service } from "../types";
-import type {
-  InvoiceDraftInput,
-  InvoiceDraftLineItem,
+import type { Client, Payment, Project, Service } from "../types";
+import {
+  getInvoiceDraftLineTotal,
+  type InvoiceDraftInput,
+  type InvoiceDraftLineItem,
 } from "./invoiceDraftTypes";
 
 const PROJECTLESS_KEY = "__client_level__";
@@ -25,15 +26,22 @@ const getProjectLabel = ({
   return projectsById.get(projectId)?.name ?? "Progetto";
 };
 
+type DraftPayment = Pick<Payment, "amount" | "payment_type" | "status">;
+
+const getSignedPaymentAmount = (payment: DraftPayment) =>
+  payment.payment_type === "rimborso" ? -payment.amount : payment.amount;
+
 export const buildInvoiceDraftFromClient = ({
   client,
   services,
   projects,
+  payments = [],
   defaultKmRate = 0.19,
 }: {
   client: Client;
   services: Service[];
   projects: Project[];
+  payments?: DraftPayment[];
   defaultKmRate?: number;
 }): InvoiceDraftInput => {
   const projectsById = new Map(
@@ -93,9 +101,26 @@ export const buildInvoiceDraftFromClient = ({
     }
   });
 
+  const receivedTotal = payments
+    .filter((p) => p.status === "ricevuto")
+    .reduce((sum, p) => sum + getSignedPaymentAmount(p), 0);
+
+  if (receivedTotal !== 0) {
+    lineItems.push({
+      description: "Pagamenti gia ricevuti",
+      quantity: 1,
+      unitPrice: -receivedTotal,
+    });
+  }
+
+  const collectableAmount = lineItems.reduce(
+    (sum, li) => sum + getInvoiceDraftLineTotal(li),
+    0,
+  );
+
   return {
     client,
-    lineItems,
+    lineItems: collectableAmount > 0 ? lineItems : [],
     source: {
       kind: "client",
       id: client.id,

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import type { Client, Quote } from "../types";
+import type { Client, Payment, Quote } from "../types";
 import { buildInvoiceDraftFromQuote } from "./buildInvoiceDraftFromQuote";
 
 const baseClient: Client = {
@@ -62,5 +62,61 @@ describe("buildInvoiceDraftFromQuote", () => {
         unitPrice: 750,
       },
     ]);
+  });
+
+  it("subtracts only received payments from collectable amount", () => {
+    const payments: Pick<Payment, "amount" | "payment_type" | "status">[] = [
+      { amount: 400, payment_type: "acconto", status: "ricevuto" },
+      { amount: 300, payment_type: "saldo", status: "in_attesa" },
+      { amount: 200, payment_type: "acconto", status: "scaduto" },
+    ];
+
+    const draft = buildInvoiceDraftFromQuote({
+      client: baseClient,
+      quote: buildQuote({ amount: 1200 }),
+      payments,
+    });
+
+    const paymentLine = draft.lineItems.find(
+      (li) => li.unitPrice < 0,
+    );
+    expect(paymentLine).toEqual({
+      description: "Pagamenti gia ricevuti",
+      quantity: 1,
+      unitPrice: -400,
+    });
+  });
+
+  it("returns empty lineItems when received payments cover the full amount", () => {
+    const payments: Pick<Payment, "amount" | "payment_type" | "status">[] = [
+      { amount: 1200, payment_type: "saldo", status: "ricevuto" },
+    ];
+
+    const draft = buildInvoiceDraftFromQuote({
+      client: baseClient,
+      quote: buildQuote({ amount: 1200 }),
+      payments,
+    });
+
+    expect(draft.lineItems).toEqual([]);
+  });
+
+  it("handles refund payments correctly (sign inversion)", () => {
+    const payments: Pick<Payment, "amount" | "payment_type" | "status">[] = [
+      { amount: 500, payment_type: "acconto", status: "ricevuto" },
+      { amount: 100, payment_type: "rimborso", status: "ricevuto" },
+    ];
+
+    const draft = buildInvoiceDraftFromQuote({
+      client: baseClient,
+      quote: buildQuote({ amount: 1200 }),
+      payments,
+    });
+
+    const paymentLine = draft.lineItems.find(
+      (li) => li.unitPrice < 0,
+    );
+    // Net received = 500 - 100 = 400
+    expect(paymentLine?.unitPrice).toBe(-400);
   });
 });

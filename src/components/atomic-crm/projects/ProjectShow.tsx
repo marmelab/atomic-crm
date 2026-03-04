@@ -9,7 +9,7 @@ import { Calendar, Wallet, User, Euro, Car, Hash } from "lucide-react";
 import { Link, useLocation } from "react-router";
 import { useIsMobile } from "@/hooks/use-mobile";
 
-import type { Project, Service } from "../types";
+import type { Payment, Project, Service } from "../types";
 import { ProjectCategoryBadge, ProjectStatusBadge } from "./ProjectListContent";
 import { projectTvShowLabels } from "./projectTypes";
 import { QuickEpisodeDialog } from "./QuickEpisodeDialog";
@@ -21,6 +21,8 @@ import { getUnifiedAiHandoffContextFromSearch } from "../payments/paymentLinking
 import { ProjectContactsSection } from "../contacts/ProjectContactsSection";
 import { InvoiceDraftDialog } from "../invoicing/InvoiceDraftDialog";
 import { buildInvoiceDraftFromProject } from "../invoicing/buildInvoiceDraftFromProject";
+import { hasInvoiceDraftCollectableAmount } from "../invoicing/invoiceDraftTypes";
+import { useConfigurationContext } from "../root/ConfigurationContext";
 
 export const ProjectShow = () => (
   <ShowBase>
@@ -83,10 +85,16 @@ const ProjectShowContent = () => {
 const ProjectHeader = ({ record }: { record: Project }) => {
   const [invoiceDraftOpen, setInvoiceDraftOpen] = useState(false);
   const location = useLocation();
+  const { operationalConfig } = useConfigurationContext();
   const { data: client } = useGetOne("clients", { id: record.client_id });
   const { data: services = [] } = useGetList<Service>("services", {
     pagination: { page: 1, perPage: 1000 },
     sort: { field: "service_date", order: "DESC" },
+    filter: { "project_id@eq": String(record.id) },
+  });
+  const { data: projectPayments = [] } = useGetList<Payment>("payments", {
+    pagination: { page: 1, perPage: 1000 },
+    sort: { field: "payment_date", order: "DESC" },
     filter: { "project_id@eq": String(record.id) },
   });
   const invoiceDraft = client
@@ -94,15 +102,18 @@ const ProjectHeader = ({ record }: { record: Project }) => {
         project: record,
         client,
         services,
+        payments: projectPayments,
+        defaultKmRate: operationalConfig.defaultKmRate,
       })
     : null;
+  const hasCollectableAmount = hasInvoiceDraftCollectableAmount(invoiceDraft);
 
   useEffect(() => {
     const searchParams = new URLSearchParams(location.search);
-    if (searchParams.get("invoiceDraft") === "true" && invoiceDraft) {
+    if (searchParams.get("invoiceDraft") === "true" && hasCollectableAmount) {
       setInvoiceDraftOpen(true);
     }
-  }, [invoiceDraft, location.search]);
+  }, [hasCollectableAmount, location.search]);
 
   return (
     <div className="flex flex-col gap-3">
@@ -131,7 +142,7 @@ const ProjectHeader = ({ record }: { record: Project }) => {
         {record.category === "produzione_tv" && (
           <QuickEpisodeDialog record={record} />
         )}
-        {invoiceDraft ? (
+        {hasCollectableAmount ? (
           <Button
             type="button"
             size="sm"
@@ -148,7 +159,7 @@ const ProjectHeader = ({ record }: { record: Project }) => {
       <InvoiceDraftDialog
         open={invoiceDraftOpen}
         onOpenChange={setInvoiceDraftOpen}
-        draft={invoiceDraft}
+        draft={hasCollectableAmount ? invoiceDraft : null}
       />
     </div>
   );

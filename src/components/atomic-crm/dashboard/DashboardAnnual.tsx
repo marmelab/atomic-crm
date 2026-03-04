@@ -249,8 +249,8 @@ const AnnualReadingGuide = ({
         </Button>
       </div>
       <p className="text-muted-foreground">
-        Qui vedi il valore del lavoro dell'anno scelto al netto degli sconti,
-        non gli incassi.
+        Qui vedi tutto il lavoro svolto nell'anno scelto, inclusi servizi
+        diretti (senza progetto). Non sono gli incassi.
       </p>
       <p className="text-muted-foreground">
         {isCurrentYear

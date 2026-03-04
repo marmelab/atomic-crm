@@ -21,7 +21,7 @@ import {
 export const DashboardKpiCards = ({
   kpis,
   meta,
-  year,
+  year: _year,
   compact = false,
 }: {
   kpis: DashboardKpis;
@@ -42,7 +42,7 @@ export const DashboardKpiCards = ({
         footer={
           <div className="space-y-1">
             <div className="text-xs text-muted-foreground">
-              Rif. {meta.monthlyReferenceLabel} · netto sconti, non incassi
+              Rif. {meta.monthlyReferenceLabel} · tutto il lavoro svolto
             </div>
             <div className="flex items-center justify-between gap-2 text-xs text-muted-foreground">
               <span>
@@ -66,7 +66,7 @@ export const DashboardKpiCards = ({
         title="Valore del lavoro dell'anno"
         value={formatCurrency(kpis.annualRevenue)}
         icon={<Wallet className="h-4 w-4" />}
-        subtitle={`${meta.operationsPeriodLabel} · netto sconti, non incassi`}
+        subtitle={`${meta.operationsPeriodLabel} · tutto il lavoro svolto`}
       />
       <KpiCard
         title="Pagamenti da ricevere"

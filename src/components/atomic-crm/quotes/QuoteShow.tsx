@@ -1,6 +1,12 @@
 import { format, isValid } from "date-fns";
 import { FileDown } from "lucide-react";
-import { ShowBase, useGetOne, useRecordContext, useRedirect } from "ra-core";
+import {
+  ShowBase,
+  useGetList,
+  useGetOne,
+  useRecordContext,
+  useRedirect,
+} from "ra-core";
 import { useEffect, useState } from "react";
 import { Link, useLocation } from "react-router";
 import { DeleteButton } from "@/components/admin/delete-button";
@@ -15,7 +21,7 @@ import {
 } from "@/components/ui/dialog";
 import { Separator } from "@/components/ui/separator";
 
-import type { Quote } from "../types";
+import type { Payment, Quote } from "../types";
 import { useConfigurationContext } from "../root/ConfigurationContext";
 import { CreateProjectFromQuoteDialog } from "./CreateProjectFromQuoteDialog";
 import { quoteStatusLabels } from "./quotesTypes";
@@ -31,6 +37,7 @@ import {
 import { SendQuoteStatusEmailDialog } from "./SendQuoteStatusEmailDialog";
 import { InvoiceDraftDialog } from "../invoicing/InvoiceDraftDialog";
 import { buildInvoiceDraftFromQuote } from "../invoicing/buildInvoiceDraftFromQuote";
+import { hasInvoiceDraftCollectableAmount } from "../invoicing/invoiceDraftTypes";
 
 export const QuoteShow = ({ open, id }: { open: boolean; id?: string }) => {
   const redirect = useRedirect();
@@ -81,13 +88,33 @@ const QuoteShowContent = () => {
     },
   );
 
+  const { data: linkedPayments = [] } = useGetList<Payment>(
+    "payments",
+    {
+      filter: { "quote_id@eq": record?.id },
+      sort: { field: "payment_date", order: "DESC" },
+      pagination: { page: 1, perPage: 100 },
+    },
+    { enabled: !!record?.id },
+  );
+
+  const invoiceDraft =
+    record && client
+      ? buildInvoiceDraftFromQuote({
+          quote: record,
+          client,
+          payments: linkedPayments,
+        })
+      : null;
+  const hasCollectableAmount = hasInvoiceDraftCollectableAmount(invoiceDraft);
+
   useEffect(() => {
     if (!record || !client) return;
     const searchParams = new URLSearchParams(location.search);
-    if (searchParams.get("invoiceDraft") === "true") {
+    if (searchParams.get("invoiceDraft") === "true" && hasCollectableAmount) {
       setInvoiceDraftOpen(true);
     }
-  }, [client, location.search, record]);
+  }, [client, location.search, record, hasCollectableAmount]);
 
   if (!record) return null;
 
@@ -96,12 +123,6 @@ const QuoteShowContent = () => {
     quoteServiceTypes.find((t) => t.value === record.service_type)?.label ??
     record.service_type;
   const quoteItems = sanitizeQuoteItems(record.quote_items);
-  const invoiceDraft = client
-    ? buildInvoiceDraftFromQuote({
-        quote: record,
-        client,
-      })
-    : null;
 
   const handleDownloadPDF = async () => {
     setPdfLoading(true);
@@ -148,7 +169,7 @@ const QuoteShowContent = () => {
               </Link>
             </Button>
           ) : null}
-          {invoiceDraft ? (
+          {hasCollectableAmount ? (
             <Button
               type="button"
               variant="outline"
@@ -290,7 +311,7 @@ const QuoteShowContent = () => {
       <InvoiceDraftDialog
         open={invoiceDraftOpen}
         onOpenChange={setInvoiceDraftOpen}
-        draft={invoiceDraft}
+        draft={hasCollectableAmount ? invoiceDraft : null}
       />
     </div>
   );

@@ -2,6 +2,8 @@ import { useGetList } from "ra-core";
 import { Euro, TrendingUp, TrendingDown, Car } from "lucide-react";
 
 import type { Client, Expense, Payment, Service } from "../types";
+import { useConfigurationContext } from "../root/ConfigurationContext";
+import { calculateKmReimbursement } from "@/lib/semantics/crmSemanticRegistry";
 
 const eur = (n: number) =>
   n.toLocaleString("it-IT", {
@@ -24,6 +26,7 @@ const toNum = (v: unknown) => {
 };
 
 export const ClientFinancialSummary = ({ record }: { record: Client }) => {
+  const { operationalConfig } = useConfigurationContext();
   const { data: financials, isPending: fp } = useGetList<ProjectFinancialRow>(
     "project_financials",
     {
@@ -83,7 +86,13 @@ export const ClientFinancialSummary = ({ record }: { record: Client }) => {
     ) ?? 0;
   const directKmCost =
     clientServices?.reduce(
-      (s, svc) => s + toNum(svc.km_distance) * toNum(svc.km_rate),
+      (s, svc) =>
+        s +
+        calculateKmReimbursement({
+          kmDistance: svc.km_distance,
+          kmRate: svc.km_rate,
+          defaultKmRate: operationalConfig.defaultKmRate,
+        }),
       0,
     ) ?? 0;
 

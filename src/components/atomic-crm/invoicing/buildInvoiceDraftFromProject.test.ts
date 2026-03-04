@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import type { Client, Project, Service } from "../types";
+import type { Client, Payment, Project, Service } from "../types";
 import { buildInvoiceDraftFromProject } from "./buildInvoiceDraftFromProject";
 
 const baseClient: Client = {
@@ -115,5 +115,59 @@ describe("buildInvoiceDraftFromProject", () => {
       quantity: 1,
       unitPrice: 3,
     });
+  });
+
+  it("excludes services that already have an invoice_ref", () => {
+    const draft = buildInvoiceDraftFromProject({
+      project: baseProject,
+      client: baseClient,
+      services: [
+        buildService("s1", { fee_shooting: 300 }),
+        buildService("s2", {
+          fee_shooting: 500,
+          invoice_ref: "FPA-001",
+          service_date: "2026-01-12T12:00:00.000Z",
+        }),
+      ],
+    });
+
+    expect(draft.lineItems).toHaveLength(1);
+    expect(draft.lineItems[0].unitPrice).toBe(300);
+  });
+
+  it("subtracts only received payments from collectable amount", () => {
+    const payments: Pick<Payment, "amount" | "payment_type" | "status">[] = [
+      { amount: 50, payment_type: "acconto", status: "ricevuto" },
+      { amount: 200, payment_type: "saldo", status: "in_attesa" },
+    ];
+
+    const draft = buildInvoiceDraftFromProject({
+      project: baseProject,
+      client: baseClient,
+      services: [buildService("s1", { fee_shooting: 300 })],
+      payments,
+    });
+
+    const paymentLine = draft.lineItems.find((li) => li.unitPrice < 0);
+    expect(paymentLine).toEqual({
+      description: "Pagamenti gia ricevuti",
+      quantity: 1,
+      unitPrice: -50,
+    });
+  });
+
+  it("returns empty lineItems when received payments cover everything", () => {
+    const payments: Pick<Payment, "amount" | "payment_type" | "status">[] = [
+      { amount: 100, payment_type: "saldo", status: "ricevuto" },
+    ];
+
+    const draft = buildInvoiceDraftFromProject({
+      project: baseProject,
+      client: baseClient,
+      services: [buildService("s1", { fee_shooting: 100 })],
+      payments,
+    });
+
+    expect(draft.lineItems).toEqual([]);
   });
 });

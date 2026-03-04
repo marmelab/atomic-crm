@@ -170,6 +170,7 @@ export const projectCategoryLabels: Record<string, string> = {
   wedding: "Wedding",
   evento_privato: "Evento privato",
   sviluppo_web: "Sviluppo web",
+  __flat: "Servizi diretti",
 };
 
 const quotePipelineOrder = [
@@ -295,15 +296,6 @@ const isCurrentYear = (value?: string, year = new Date().getFullYear()) => {
   return date.getFullYear() === year;
 };
 
-const getSortedMonthStarts = (count: number, referenceDate?: Date) => {
-  const ref = referenceDate ?? new Date();
-  const items: Date[] = [];
-  for (let i = count - 1; i >= 0; i -= 1) {
-    items.push(new Date(ref.getFullYear(), ref.getMonth() - i, 1));
-  }
-  return items;
-};
-
 export const buildDashboardModel = ({
   payments,
   quotes,
@@ -377,7 +369,6 @@ export const buildDashboardModel = ({
     }
 
     const project = operationsProjectById.get(String(service.project_id));
-    if (!project) continue;
 
     const revenue = getServiceNetRevenue(service);
     const key = monthKey(serviceDate);
@@ -391,10 +382,8 @@ export const buildDashboardModel = ({
     bucket.kmCost += toNumber(service.km_distance) * toNumber(service.km_rate);
     monthlyTotals.set(key, bucket);
 
-    categoryTotals.set(
-      project.category,
-      (categoryTotals.get(project.category) ?? 0) + revenue,
-    );
+    const cat = project ? project.category : "__flat";
+    categoryTotals.set(cat, (categoryTotals.get(cat) ?? 0) + revenue);
   }
 
   if (isSelectedCurrentYear) {
@@ -587,8 +576,12 @@ export const buildDashboardModel = ({
     if (serviceDate.getFullYear() !== selectedYear) continue;
     if (isSelectedCurrentYear && toStartOfDay(serviceDate) > today) continue;
     const project = projectById.get(String(service.project_id));
-    if (!project) continue;
-    const clientId = String(project.client_id);
+    const clientId = project
+      ? String(project.client_id)
+      : service.client_id
+        ? String(service.client_id)
+        : null;
+    if (!clientId) continue;
     topClientRevenue.set(
       clientId,
       (topClientRevenue.get(clientId) ?? 0) + getServiceNetRevenue(service),

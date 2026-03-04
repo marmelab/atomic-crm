@@ -61,6 +61,33 @@ Quando tocchi la bozza fattura, controllare sempre:
   - `unifiedCrmAssistant.ts`
   - `supabase/functions/_shared/unifiedCrmAnswer.ts`
 
+Invarianti semantici (non violare):
+
+- i builder deducono solo pagamenti con `status === "ricevuto"`
+- i rimborsi (`payment_type === "rimborso"`) hanno segno invertito
+- servizi con `invoice_ref` valorizzato vengono esclusi dal calcolo
+- se `collectableAmount <= 0` il builder restituisce `lineItems: []`
+- `hasInvoiceDraftCollectableAmount()` e' il check unificato usato dalle Show
+  page per decidere se mostrare il pulsante e passare il draft al dialog
+- ogni Show page carica i pagamenti con `useGetList<Payment>` e li passa al
+  builder — non si basa piu' sul default `payments = []`
+- il calcolo km usa `calculateKmReimbursement()` con `defaultKmRate` dalla
+  config; ogni Show page e `ClientFinancialSummary` leggono
+  `operationalConfig.defaultKmRate` da `useConfigurationContext()` e lo passano
+  esplicitamente — non usare `km_distance * km_rate` inline (bug: NULL → 0)
+- servizi flat (senza `project_id`) entrano nel revenue dashboard come
+  categoria `"__flat"` e nel DSO fiscale via `clientEarliestFlatService`
+- spese senza `project_id` entrano nei margini come `"__general"`
+- AI read-context non ha piu' limiti di slicing: tutto il dataset e' esposto
+- `clientFinancials` nell'AI snapshot aggrega per cliente (totalFees,
+  totalPaid, balanceDue)
+- intent "bozza fattura" (`hasInvoiceDraftIntent`) accetta anche pattern
+  direzionali come "fattura per X" senza richiedere verbo d'azione
+- handoff fattura usa `pickClientFromQuestion` + `pickProjectFromQuestion` per
+  trovare l'entita' specifica menzionata dall'utente e generare href mirati
+- le suggestedActions fattura mostrano TUTTE le superfici disponibili
+  (preventivo, progetto, cliente) come opzioni separate, non cascata singola
+
 Nota: il flusso bozza fattura e' client-side e non deve introdurre scritture DB.
 
 ## Goal
