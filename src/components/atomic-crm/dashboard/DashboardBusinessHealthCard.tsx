@@ -157,13 +157,8 @@ export const DashboardBusinessHealthCard = ({
                 </span>
                 <div className="space-y-1.5">
                   {health.marginPerCategory.map((cat) => (
-                    <div
-                      key={cat.category}
-                      className="flex items-center gap-2"
-                    >
-                      <span className="text-xs w-24 truncate">
-                        {cat.label}
-                      </span>
+                    <div key={cat.category} className="flex items-center gap-2">
+                      <span className="text-xs w-24 truncate">{cat.label}</span>
                       <Progress
                         value={Math.max(0, Math.min(100, cat.margin))}
                         className="h-1.5 flex-1"

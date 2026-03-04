@@ -381,9 +381,7 @@ const QuotePDFDocument = ({
           {businessProfile.fiscalCode
             ? ` · CF ${businessProfile.fiscalCode}`
             : ""}
-          {businessProfile.address
-            ? ` · ${businessProfile.address}`
-            : ""}
+          {businessProfile.address ? ` · ${businessProfile.address}` : ""}
           {businessProfile.email ? ` · ${businessProfile.email}` : ""}
         </Text>
       </View>

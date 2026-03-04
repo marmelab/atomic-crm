@@ -49,9 +49,9 @@ const ProjectListLayout = () => {
       <MobilePageTitle title="Progetti" />
       {!isMobile && (
         <div className="flex justify-end mb-4">
-          <ToggleGroup 
-            type="single" 
-            value={viewMode} 
+          <ToggleGroup
+            type="single"
+            value={viewMode}
             onValueChange={(v) => v && setViewMode(v as "list" | "kanban")}
           >
             <ToggleGroupItem value="list" aria-label="Vista lista">

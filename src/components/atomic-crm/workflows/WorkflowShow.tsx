@@ -146,10 +146,8 @@ const WorkflowHeader = ({ record }: { record: Workflow }) => {
 // ─── Visual flow ─────────────────────────────────────────────────────────────
 
 const WorkflowFlowCard = ({ record }: { record: Workflow }) => {
-  const TriggerIcon =
-    triggerResourceIcons[record.trigger_resource] ?? Zap;
-  const triggerColor =
-    triggerResourceColors[record.trigger_resource] ?? "";
+  const TriggerIcon = triggerResourceIcons[record.trigger_resource] ?? Zap;
+  const triggerColor = triggerResourceColors[record.trigger_resource] ?? "";
   const conditionText = describeConditions(
     record.trigger_resource,
     record.trigger_conditions,
@@ -165,9 +163,7 @@ const WorkflowFlowCard = ({ record }: { record: Workflow }) => {
           </p>
           <div className="rounded-xl border bg-background p-3">
             <div className="flex items-center gap-3">
-              <div
-                className={cn("shrink-0 rounded-lg p-2", triggerColor)}
-              >
+              <div className={cn("shrink-0 rounded-lg p-2", triggerColor)}>
                 <TriggerIcon className="h-4 w-4" />
               </div>
               <div className="min-w-0 flex-1">
@@ -197,10 +193,7 @@ const WorkflowFlowCard = ({ record }: { record: Workflow }) => {
             {record.actions?.map((action, i) => {
               const ActionIcon = actionTypeIcons[action.type] ?? Zap;
               return (
-                <div
-                  key={i}
-                  className="rounded-xl border bg-background p-3"
-                >
+                <div key={i} className="rounded-xl border bg-background p-3">
                   <div className="flex items-center gap-3">
                     <div className="shrink-0 rounded-lg p-2 bg-muted">
                       <ActionIcon className="h-4 w-4 text-muted-foreground" />

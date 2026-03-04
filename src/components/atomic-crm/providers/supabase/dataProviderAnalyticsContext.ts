@@ -1,4 +1,11 @@
-import type { Client, Expense, Payment, Project, Quote, Service } from "../../types";
+import type {
+  Client,
+  Expense,
+  Payment,
+  Project,
+  Quote,
+  Service,
+} from "../../types";
 import { buildDashboardModel } from "../../dashboard/dashboardModel";
 import {
   buildDashboardHistoryModel,

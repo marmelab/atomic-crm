@@ -135,5 +135,4 @@ describe("buildInvoiceDraftFromClient", () => {
 
     expect(draft.lineItems).toEqual([]);
   });
-
 });

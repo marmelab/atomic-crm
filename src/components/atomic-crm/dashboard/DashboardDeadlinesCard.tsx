@@ -86,15 +86,20 @@ export const DashboardDeadlinesCard = ({
             <CalendarClock className="h-4 w-4" />
             Scadenze fiscali stimate
           </CardTitle>
-          {onGenerateTasks && <GenerateButton
-            onGenerate={onGenerateTasks}
-            existingCount={existingTasksCount ?? 0}
-          />}
+          {onGenerateTasks && (
+            <GenerateButton
+              onGenerate={onGenerateTasks}
+              existingCount={existingTasksCount ?? 0}
+            />
+          )}
         </div>
       </CardHeader>
       <CardContent className="space-y-3">
         {highPriority.map((deadline) => (
-          <DeadlineRow key={deadline.date + deadline.label} deadline={deadline} />
+          <DeadlineRow
+            key={deadline.date + deadline.label}
+            deadline={deadline}
+          />
         ))}
 
         {lowPriority.length > 0 && (
@@ -172,11 +177,7 @@ const DeadlineRow = ({ deadline }: { deadline: FiscalDeadline }) => {
 
 // ── Low-priority section (bolli, dichiarazione) ────────────────────
 
-const LowPrioritySection = ({
-  deadlines,
-}: {
-  deadlines: FiscalDeadline[];
-}) => {
+const LowPrioritySection = ({ deadlines }: { deadlines: FiscalDeadline[] }) => {
   const [expanded, setExpanded] = useState(false);
 
   const futureCount = deadlines.filter((d) => !d.isPast).length;
@@ -265,9 +266,7 @@ const GenerateButton = ({
         </AlertDialogHeader>
         <AlertDialogFooter>
           <AlertDialogCancel>Annulla</AlertDialogCancel>
-          <AlertDialogAction onClick={onGenerate}>
-            Rigenera
-          </AlertDialogAction>
+          <AlertDialogAction onClick={onGenerate}>Rigenera</AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>

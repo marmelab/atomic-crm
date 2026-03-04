@@ -24,7 +24,11 @@ import {
 } from "@/lib/semantics/crmSemanticRegistry";
 import { buildCrmCapabilityRegistry } from "@/lib/semantics/crmCapabilityRegistry";
 import { extractEdgeFunctionErrorMessage } from "./edgeFunctionError";
-import { LARGE_PAGE, type BaseProvider, type InvokeEdgeFunction } from "./dataProviderTypes";
+import {
+  LARGE_PAGE,
+  type BaseProvider,
+  type InvokeEdgeFunction,
+} from "./dataProviderTypes";
 
 export const buildAiProviderMethods = (deps: {
   baseDataProvider: BaseProvider;
@@ -94,9 +98,8 @@ export const buildAiProviderMethods = (deps: {
       ]);
 
       const config =
-        (configuration.data?.config as
-          | ConfigurationContextValue
-          | undefined) ?? {};
+        (configuration.data?.config as ConfigurationContextValue | undefined) ??
+        {};
 
       return buildUnifiedCrmReadContext({
         clients: clientsResponse.data,
@@ -133,9 +136,7 @@ export const buildAiProviderMethods = (deps: {
       const trimmedQuestion = question.trim();
 
       if (!trimmedQuestion) {
-        throw new Error(
-          "Scrivi una domanda prima di inviare la richiesta.",
-        );
+        throw new Error("Scrivi una domanda prima di inviare la richiesta.");
       }
 
       const model = await deps.getConfiguredHistoricalAnalysisModel();

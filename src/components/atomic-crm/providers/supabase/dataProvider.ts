@@ -241,9 +241,7 @@ export type CrmDataProvider = typeof dataProviderWithCustomMethods;
 
 // --- Workflow trigger callbacks ---
 
-const buildWorkflowCallbacks = (
-  resources: string[],
-): ResourceCallbacks[] =>
+const buildWorkflowCallbacks = (resources: string[]): ResourceCallbacks[] =>
   resources.map((resource) => ({
     resource,
     afterCreate: async (params: any) => {

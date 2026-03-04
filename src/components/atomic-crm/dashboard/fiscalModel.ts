@@ -220,7 +220,10 @@ export const buildFiscalModel = ({
     if (payment.status !== "ricevuto") continue;
     if (!payment.payment_date) continue;
     const payDate = new Date(payment.payment_date);
-    if (Number.isNaN(payDate.valueOf()) || payDate.getFullYear() !== currentYear)
+    if (
+      Number.isNaN(payDate.valueOf()) ||
+      payDate.getFullYear() !== currentYear
+    )
       continue;
 
     // Rimborsi al cliente riducono la base imponibile
@@ -240,10 +243,7 @@ export const buildFiscalModel = ({
         isTaxable = false;
       } else if (payment.project_id) {
         const proj = projectById.get(String(payment.project_id));
-        if (
-          proj &&
-          taxDefaults.nonTaxableCategories?.includes(proj.category)
-        ) {
+        if (proj && taxDefaults.nonTaxableCategories?.includes(proj.category)) {
           isTaxable = false;
         }
       }

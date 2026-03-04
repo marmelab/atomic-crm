@@ -168,8 +168,7 @@ export const describeWorkflow = (
   conditions: Record<string, unknown>,
   actions: { type: string; data?: Record<string, unknown> }[],
 ): string => {
-  const resource =
-    triggerResourceSingular[triggerResource] || triggerResource;
+  const resource = triggerResourceSingular[triggerResource] || triggerResource;
   const verb = triggerEventVerbs[triggerEvent] || triggerEvent;
   const conditionStr = describeConditions(triggerResource, conditions);
   const conditionPart = conditionStr ? ` ${conditionStr}` : "";

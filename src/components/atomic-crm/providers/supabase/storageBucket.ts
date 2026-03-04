@@ -12,7 +12,12 @@ export const processConfigLogo = async (logo: any): Promise<string> => {
 
 export const uploadInvoiceImportFile = async (
   file: File,
-): Promise<{ path: string; name: string; mimeType: string; sizeBytes: number }> => {
+): Promise<{
+  path: string;
+  name: string;
+  mimeType: string;
+  sizeBytes: number;
+}> => {
   const fileParts = file.name.split(".");
   const fileExt = fileParts.length > 1 ? `.${file.name.split(".").pop()}` : "";
   const filePath = `ai-invoice-imports/${crypto.randomUUID()}${fileExt}`;

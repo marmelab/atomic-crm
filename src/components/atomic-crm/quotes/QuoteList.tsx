@@ -113,14 +113,14 @@ const QuoteLayout = () => {
     <>
       <MobilePageTitle title="Preventivi" />
       <div className="w-full">
-      <QuoteListContent />
-      <QuoteCreate open={!!matchCreate} />
-      <QuoteEdit
-        open={!!matchEdit && !matchCreate && !matchShow}
-        id={matchEdit?.params.id}
-      />
-      <QuoteShow open={!!matchShow} id={matchShow?.params.id} />
-    </div>
+        <QuoteListContent />
+        <QuoteCreate open={!!matchCreate} />
+        <QuoteEdit
+          open={!!matchEdit && !matchCreate && !matchShow}
+          id={matchEdit?.params.id}
+        />
+        <QuoteShow open={!!matchShow} id={matchShow?.params.id} />
+      </div>
     </>
   );
 };

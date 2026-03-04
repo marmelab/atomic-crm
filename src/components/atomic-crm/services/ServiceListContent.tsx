@@ -9,15 +9,14 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { useIsMobile } from "@/hooks/use-mobile";
-import type {
-  LucideIcon} from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 import {
   Video,
   Scissors,
   Camera,
   Mic,
   FileText,
-  Briefcase
+  Briefcase,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 

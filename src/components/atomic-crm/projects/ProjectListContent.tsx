@@ -10,15 +10,14 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { useIsMobile } from "@/hooks/use-mobile";
-import type {
-  LucideIcon} from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 import {
   Tv,
   Sparkles,
   Heart,
   PartyPopper,
   Globe,
-  FolderOpen
+  FolderOpen,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 

@@ -43,11 +43,11 @@ const PaymentListLayout = () => {
     <>
       <MobilePageTitle title="Pagamenti" />
       <div className="mt-4 flex flex-col md:flex-row md:gap-8">
-      <PaymentListFilter />
-      <div className="w-full flex flex-col gap-4">
-        <PaymentListContent />
+        <PaymentListFilter />
+        <div className="w-full flex flex-col gap-4">
+          <PaymentListContent />
+        </div>
       </div>
-    </div>
     </>
   );
 };

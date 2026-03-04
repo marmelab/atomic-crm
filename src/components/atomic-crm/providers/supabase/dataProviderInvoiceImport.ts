@@ -1,8 +1,4 @@
-import type {
-  Client,
-  Contact,
-  Project,
-} from "../../types";
+import type { Client, Contact, Project } from "../../types";
 import type {
   GenerateInvoiceImportDraftRequest,
   InvoiceImportConfirmation,
@@ -13,7 +9,11 @@ import type {
 import { buildInvoiceImportWorkspace } from "@/lib/ai/invoiceImportProvider";
 import { extractEdgeFunctionErrorMessage } from "./edgeFunctionError";
 import { uploadInvoiceImportFile } from "./storageBucket";
-import { LARGE_PAGE, type BaseProvider, type InvokeEdgeFunction } from "./dataProviderTypes";
+import {
+  LARGE_PAGE,
+  type BaseProvider,
+  type InvokeEdgeFunction,
+} from "./dataProviderTypes";
 
 export const buildInvoiceImportProviderMethods = (deps: {
   baseDataProvider: BaseProvider;

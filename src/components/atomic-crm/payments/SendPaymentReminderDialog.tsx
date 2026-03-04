@@ -112,9 +112,12 @@ export const SendPaymentReminderDialog = ({
       });
     },
     onSuccess: () => {
-      notify("Reminder pagamento inviato. Riceverai conferma via email e WhatsApp.", {
-        type: "success",
-      });
+      notify(
+        "Reminder pagamento inviato. Riceverai conferma via email e WhatsApp.",
+        {
+          type: "success",
+        },
+      );
       setOpen(false);
     },
     onError: (error: Error) => {
@@ -139,13 +142,12 @@ export const SendPaymentReminderDialog = ({
   const project = context?.project ?? null;
   const clientEmail = client?.email;
 
-  const daysOverdue =
-    payment?.payment_date
-      ? Math.max(
-          1,
-          Math.abs(diffDays(new Date(payment.payment_date), new Date())),
-        )
-      : 0;
+  const daysOverdue = payment?.payment_date
+    ? Math.max(
+        1,
+        Math.abs(diffDays(new Date(payment.payment_date), new Date())),
+      )
+    : 0;
 
   const preview =
     payment && client

@@ -1,12 +1,7 @@
 import { useListContext, useUpdate, useCreatePath } from "ra-core";
 import { Link } from "react-router";
 import { useState } from "react";
-import { 
-  Briefcase, 
-  Calendar, 
-  MoreHorizontal,
-  Plus
-} from "lucide-react";
+import { Briefcase, Calendar, MoreHorizontal, Plus } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -22,10 +17,26 @@ import { formatCurrency } from "../dashboard/dashboardFormatters";
 import { formatDateRange } from "../misc/formatDateRange";
 
 const columns: { id: Project["status"]; label: string; color: string }[] = [
-  { id: "in_corso", label: "In Corso", color: "bg-green-50 dark:bg-green-950/30" },
-  { id: "in_pausa", label: "In Pausa", color: "bg-yellow-50 dark:bg-yellow-950/30" },
-  { id: "completato", label: "Completati", color: "bg-gray-50 dark:bg-gray-950/30" },
-  { id: "cancellato", label: "Cancellati", color: "bg-red-50 dark:bg-red-950/30" },
+  {
+    id: "in_corso",
+    label: "In Corso",
+    color: "bg-green-50 dark:bg-green-950/30",
+  },
+  {
+    id: "in_pausa",
+    label: "In Pausa",
+    color: "bg-yellow-50 dark:bg-yellow-950/30",
+  },
+  {
+    id: "completato",
+    label: "Completati",
+    color: "bg-gray-50 dark:bg-gray-950/30",
+  },
+  {
+    id: "cancellato",
+    label: "Cancellati",
+    color: "bg-red-50 dark:bg-red-950/30",
+  },
 ];
 
 export const ProjectKanbanView = () => {
@@ -35,10 +46,13 @@ export const ProjectKanbanView = () => {
 
   if (isPending || !data) return null;
 
-  const projectsByStatus = columns.reduce((acc, col) => {
-    acc[col.id] = data.filter((p) => p.status === col.id);
-    return acc;
-  }, {} as Record<Project["status"], Project[]>);
+  const projectsByStatus = columns.reduce(
+    (acc, col) => {
+      acc[col.id] = data.filter((p) => p.status === col.id);
+      return acc;
+    },
+    {} as Record<Project["status"], Project[]>,
+  );
 
   const handleDragStart = (projectId: string) => {
     setDraggingId(projectId);
@@ -50,13 +64,13 @@ export const ProjectKanbanView = () => {
 
   const handleDrop = (status: Project["status"]) => {
     if (!draggingId) return;
-    
+
     const project = data.find((p) => p.id === draggingId);
     if (project && project.status !== status) {
-      update("projects", { 
-        id: draggingId, 
-        data: { status }, 
-        previousData: project 
+      update("projects", {
+        id: draggingId,
+        data: { status },
+        previousData: project,
       });
     }
     setDraggingId(null);
@@ -96,7 +110,7 @@ const KanbanColumn = ({
   const [isOver, setIsOver] = useState(false);
 
   return (
-    <div 
+    <div
       className={`shrink-0 w-80 ${column.color} rounded-lg p-3 transition-all ${
         isOver ? "ring-2 ring-primary ring-offset-2" : ""
       }`}
@@ -147,10 +161,14 @@ interface KanbanCardProps {
 
 const KanbanCard = ({ project, onDragStart, onDragEnd }: KanbanCardProps) => {
   const createPath = useCreatePath();
-  const link = createPath({ resource: "projects", type: "show", id: project.id });
+  const link = createPath({
+    resource: "projects",
+    type: "show",
+    id: project.id,
+  });
 
   return (
-    <Card 
+    <Card
       className="cursor-move hover:shadow-md transition-shadow bg-white dark:bg-gray-900"
       draggable
       onDragStart={onDragStart}
@@ -158,12 +176,19 @@ const KanbanCard = ({ project, onDragStart, onDragEnd }: KanbanCardProps) => {
     >
       <CardContent className="p-3">
         <div className="flex items-start justify-between gap-2">
-          <Link to={link} className="font-medium text-sm hover:underline line-clamp-2 flex-1">
+          <Link
+            to={link}
+            className="font-medium text-sm hover:underline line-clamp-2 flex-1"
+          >
             {project.name}
           </Link>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon" className="h-6 w-6 -mr-2 -mt-2">
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-6 w-6 -mr-2 -mt-2"
+              >
                 <MoreHorizontal className="h-3 w-3" />
               </Button>
             </DropdownMenuTrigger>
@@ -192,7 +217,11 @@ const KanbanCard = ({ project, onDragStart, onDragEnd }: KanbanCardProps) => {
             {project.start_date && (
               <div className="flex items-center gap-1">
                 <Calendar className="h-3 w-3" />
-                {formatDateRange(project.start_date, project.end_date, project.all_day)}
+                {formatDateRange(
+                  project.start_date,
+                  project.end_date,
+                  project.all_day,
+                )}
               </div>
             )}
             {project.budget && (

@@ -2,15 +2,14 @@ import { Draggable } from "@hello-pangea/dnd";
 import { useGetOne, useRedirect } from "ra-core";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import type {
-  LucideIcon} from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 import {
   Video,
   Scissors,
   Camera,
   Mic,
   FileText,
-  Briefcase
+  Briefcase,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 

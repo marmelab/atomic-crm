@@ -400,9 +400,17 @@ export interface BusinessProfile {
 }
 
 // Workflow Automation Types
-export type WorkflowTriggerResource = "projects" | "quotes" | "payments" | "client_tasks";
+export type WorkflowTriggerResource =
+  | "projects"
+  | "quotes"
+  | "payments"
+  | "client_tasks";
 export type WorkflowTriggerEvent = "created" | "updated" | "status_changed";
-export type WorkflowActionType = "create_task" | "create_project" | "update_field" | "send_email";
+export type WorkflowActionType =
+  | "create_task"
+  | "create_project"
+  | "update_field"
+  | "send_email";
 
 export interface WorkflowAction {
   type: WorkflowActionType;

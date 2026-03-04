@@ -93,11 +93,11 @@ const ServiceListLayout = () => {
     <>
       <MobilePageTitle title="Registro Lavori" />
       <div className="mt-4 flex flex-col md:flex-row md:gap-8">
-      <ServiceListFilter />
-      <div className="w-full flex flex-col gap-4">
-        <ServiceListContent />
+        <ServiceListFilter />
+        <div className="w-full flex flex-col gap-4">
+          <ServiceListContent />
+        </div>
       </div>
-    </div>
     </>
   );
 };

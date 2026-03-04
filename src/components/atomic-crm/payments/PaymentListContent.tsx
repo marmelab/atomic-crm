@@ -10,15 +10,8 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { useIsMobile } from "@/hooks/use-mobile";
-import type {
-  LucideIcon} from "lucide-react";
-import {
-  Wallet,
-  CheckCircle,
-  Clock,
-  AlertCircle,
-  Euro
-} from "lucide-react";
+import type { LucideIcon } from "lucide-react";
+import { Wallet, CheckCircle, Clock, AlertCircle, Euro } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 import type { Payment } from "../types";

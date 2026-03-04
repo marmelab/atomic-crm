@@ -117,10 +117,8 @@ const WorkflowMobileCard = ({ workflow }: { workflow: Workflow }) => {
     id: workflow.id,
   });
 
-  const TriggerIcon =
-    triggerResourceIcons[workflow.trigger_resource] ?? Zap;
-  const triggerColor =
-    triggerResourceColors[workflow.trigger_resource] ?? "";
+  const TriggerIcon = triggerResourceIcons[workflow.trigger_resource] ?? Zap;
+  const triggerColor = triggerResourceColors[workflow.trigger_resource] ?? "";
   const firstAction = workflow.actions?.[0];
   const ActionIcon = firstAction
     ? (actionTypeIcons[firstAction.type] ?? Zap)
@@ -140,9 +138,7 @@ const WorkflowMobileCard = ({ workflow }: { workflow: Workflow }) => {
     >
       {/* Header: Name + Toggle */}
       <div className="flex items-start justify-between gap-3 px-4 pt-3.5 pb-1">
-        <p className="font-semibold text-sm leading-snug">
-          {workflow.name}
-        </p>
+        <p className="font-semibold text-sm leading-snug">{workflow.name}</p>
         {/* Stop click from navigating when toggling */}
         <div
           onClick={(e) => e.preventDefault()}
@@ -156,16 +152,13 @@ const WorkflowMobileCard = ({ workflow }: { workflow: Workflow }) => {
       <div className="px-4 pb-3.5 space-y-2">
         {/* Trigger row */}
         <div className="flex items-center gap-2.5">
-          <div
-            className={cn("shrink-0 rounded-lg p-1.5", triggerColor)}
-          >
+          <div className={cn("shrink-0 rounded-lg p-1.5", triggerColor)}>
             <TriggerIcon className="h-4 w-4" />
           </div>
           <p className="text-xs text-muted-foreground">
             <span className="font-medium text-foreground">
               {triggerResourceLabels[workflow.trigger_resource]}
-            </span>
-            {" "}
+            </span>{" "}
             {triggerEventLabels[workflow.trigger_event]?.toLowerCase()}
             {conditionStr ? ` ${conditionStr}` : ""}
           </p>
@@ -187,13 +180,12 @@ const WorkflowMobileCard = ({ workflow }: { workflow: Workflow }) => {
                 ? (actionTypeLabels[firstAction.type] ?? firstAction.type)
                 : "Nessuna azione"}
             </span>
-            {firstAction?.type === "create_task" &&
-              firstAction.data?.text && (
-                <>
-                  {" — "}
-                  {String(firstAction.data.text)}
-                </>
-              )}
+            {firstAction?.type === "create_task" && firstAction.data?.text && (
+              <>
+                {" — "}
+                {String(firstAction.data.text)}
+              </>
+            )}
           </p>
         </div>
       </div>

@@ -77,9 +77,7 @@ describe("buildInvoiceDraftFromQuote", () => {
       payments,
     });
 
-    const paymentLine = draft.lineItems.find(
-      (li) => li.unitPrice < 0,
-    );
+    const paymentLine = draft.lineItems.find((li) => li.unitPrice < 0);
     expect(paymentLine).toEqual({
       description: "Pagamenti gia ricevuti",
       quantity: 1,
@@ -113,9 +111,7 @@ describe("buildInvoiceDraftFromQuote", () => {
       payments,
     });
 
-    const paymentLine = draft.lineItems.find(
-      (li) => li.unitPrice < 0,
-    );
+    const paymentLine = draft.lineItems.find((li) => li.unitPrice < 0);
     // Net received = 500 - 100 = 400
     expect(paymentLine?.unitPrice).toBe(-400);
   });

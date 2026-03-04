@@ -50,11 +50,11 @@ const ExpenseListLayout = () => {
     <>
       <MobilePageTitle title="Spese" />
       <div className="mt-4 flex flex-col md:flex-row md:gap-8">
-      <ExpenseListFilter />
-      <div className="w-full flex flex-col gap-4">
-        <ExpenseListContent />
+        <ExpenseListFilter />
+        <div className="w-full flex flex-col gap-4">
+          <ExpenseListContent />
+        </div>
       </div>
-    </div>
     </>
   );
 };
