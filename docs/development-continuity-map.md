@@ -173,15 +173,13 @@ Per lo sviluppo locale supportato:
   dipendere da UUID catturati dal remoto o da stato preesistente
 - il dominio locale e' gestito con una migration snapshot statica:
   - `supabase/migrations/20260302170000_domain_data_snapshot.sql`
-  - contiene TRUNCATE + INSERT di tutto il dominio al momento dello snapshot
-  - sostituisce i vecchi script dinamici `local-truth-data.mjs`,
-    `bootstrap-local-truth.mjs` e il test `local-truth-data.test.mjs`
-    che sono stati rimossi dal repo il 2026-03-02
-  - `npx supabase db reset` + `npm run local:admin:bootstrap` e' sufficiente
-    per ripristinare esattamente il dataset corrente
-- se il dominio cambia in modo significativo:
-  - creare una nuova migration snapshot aggiornata
-  - non reintrodurre script dinamici o seed paralleli
+  - dal 2026-03-04 contiene solo TRUNCATE + INSERT dei 6 settings di config
+  - nessun dato di dominio pre-caricato: il DB riparte vuoto per debug flussi
+  - dati storici (2023-2025) archiviati in `Fatture/`
+  - `npx supabase db reset` + `npm run local:admin:bootstrap` ripristina
+    un ambiente pulito con solo config e admin
+- se servono dati di test strutturati, crearli dall'UI o con migration dedicate
+- non reintrodurre script dinamici o seed paralleli
 - non reintrodurre script E2E o seed con dati dominio hardcoded come seconda
   fonte di verita'
 
@@ -551,6 +549,30 @@ In piu', per i moduli del `Mandatory Product Sweep`, annotare sempre anche:
 
 Non trattare mai il solo `git push` come deploy completo se hai toccato
 `supabase/functions/**`.
+
+## Changelog — Sessione 2026-03-04 (clean slate per debug)
+
+### Cosa è cambiato
+
+- Migration snapshot `20260302170000_domain_data_snapshot.sql` svuotata:
+  rimossi tutti i dati di dominio (17 clienti, 12 progetti, 94 servizi, ecc.)
+- Mantenuti solo i 6 record `settings` (km_rate, currency, fee defaults)
+- DB locale riparte vuoto per verificare flussi e calcoli con dati controllati
+- Dati storici (2023-2025) restano archiviati in `Fatture/`
+
+### Perché è cambiato
+
+- Troppi dati storici rendevano impossibile debuggare calcoli e KPI
+- Tutto il fatturato passato e' gia' stato pagato e archiviato come fatture reali
+- Serve un ambiente pulito per verificare che il sistema funziona
+
+### File/moduli correlati
+
+- `supabase/migrations/20260302170000_domain_data_snapshot.sql`
+- `docs/architecture.md` (aggiornato)
+- `docs/development-continuity-map.md` (questo file)
+
+---
 
 ## Changelog — Sessione 2026-03-02 (snapshot dominio)
 

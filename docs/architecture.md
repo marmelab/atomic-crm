@@ -189,26 +189,25 @@ AI intent parsing e handoff:
 
 ## Current Direction
 
-Il dominio locale e' gestito con una migration snapshot statica aggiornata
-al 2026-03-02:
+Il dominio locale e' gestito con una migration snapshot statica:
 
 - `supabase/migrations/20260302170000_domain_data_snapshot.sql`
 
-Questo file contiene TRUNCATE + INSERT di tutto il dominio (17 clienti, 12
-progetti, 94 servizi, 45 pagamenti, 85 spese, 40 documenti finanziari, 33
-movimenti cassa, allocazioni) ed e' la fonte di verita' operativa per il
-ripristino locale.
+Dal 2026-03-04 la snapshot contiene solo TRUNCATE + INSERT dei settings di
+configurazione (6 record: km_rate, currency, fee defaults). Nessun dato di
+dominio (clienti, progetti, servizi, ecc.) viene pre-caricato.
 
-Il vecchio sistema di rebuild dinamico (`local-truth-data.mjs`,
-`bootstrap-local-truth.mjs`, `local-truth-data.test.mjs`) e' stato rimosso
-il 2026-03-02 per evitare derive tra dato reale e script di ricostruzione.
+I dati storici (2023-2025) sono archiviati nella cartella `Fatture/` e non
+servono piu' nel database locale. Il database locale serve ora come ambiente
+pulito per verificare che i flussi e i calcoli funzionino correttamente
+inserendo dati dall'interfaccia CRM.
 
 Regole operative:
 
 - `npx supabase db reset` + `npm run local:admin:bootstrap` ripristina
-  esattamente il dataset corrente senza altri passi
-- quando il dominio cambia in modo significativo, creare una nuova migration
-  snapshot e rimuovere la precedente (o lasciarla se serve per audit)
+  un database vuoto con solo config e admin, pronto per inserimento dati
+- quando servono dati di test strutturati, crearli dall'UI o con migration
+  dedicate
 - non reintrodurre script dinamici di rebuild come seconda fonte di verita'
 - fixture hardcoded di dominio usate per smoke o E2E non sono una base
   architetturale accettabile
@@ -239,8 +238,8 @@ Stato attuale della separazione:
   - `cash_movements`
   - `financial_document_cash_allocations`
   - `financial_documents_summary`
-- la foundation DB e' ora completamente popolata tramite la migration snapshot
-  `20260302170000_domain_data_snapshot.sql`
+- la foundation DB (tabelle, vincoli, viste) e' pronta; i dati vanno inseriti
+  dall'interfaccia CRM o con migration dedicate
 - `financial_documents` ora distingue anche le note di credito:
   - `customer_credit_note`
   - `supplier_credit_note`
@@ -318,11 +317,11 @@ fragilita' semantica.
 | Lint | Guardrail operativo via ESLint + pre-commit | workflow locale |
 | Deploy Vercel | gestionale-rosario.vercel.app | sessione 5 |
 | Supabase locale | Supportato su porte isolate `5532x`; il bootstrap da zero deve restare replayable con `npx supabase start` | 2026-03-01 |
-| Financial semantics foundation | Tabelle `financial_documents`, `cash_movements` e allocazioni completamente popolate. `project_financials` usa `financial_foundation` come base primaria. Dataset consolidato nella migration snapshot `20260302170000_domain_data_snapshot.sql`. Riconciliazione Aruba verificata (Δ totale +€2,19 su €46.713,79 = 0,00%). | 2026-03-02 |
+| Financial semantics foundation | Tabelle `financial_documents`, `cash_movements` e allocazioni pronte (schema + viste). `project_financials` usa `financial_foundation` come base primaria. La snapshot locale e' stata svuotata il 2026-03-04 per debug dei flussi; i dati storici restano in `Fatture/`. | 2026-03-04 |
 | Admin locale post-reset | Automatizzato via script bootstrap idempotente dopo `make start` / `npx supabase db reset` | 2026-03-01 |
 | Smoke E2E locale | Supportato via Playwright sul runtime reale locale, ma deve restare subordinato al rebuild del dominio da fonti reali | 2026-03-02 |
 | Auth email/password locale | Abilitato solo nel runtime locale per bootstrap admin e smoke browser; non riflette automaticamente il remoto | 2026-03-01 |
-| Rebuild locale del dominio | **Snapshot statico** dal 2026-03-02: `npx supabase db reset` + `npm run local:admin:bootstrap` ripristinano esattamente il dataset (17 clienti, 12 progetti, 94 servizi, 45 pagamenti, 85 spese). Il vecchio sistema di rebuild dinamico da `Fatture/` e' stato rimosso. | 2026-03-02 |
+| Rebuild locale del dominio | **Snapshot vuota** dal 2026-03-04: `npx supabase db reset` + `npm run local:admin:bootstrap` ripristinano un DB con solo settings e admin. I dati di dominio vanno inseriti dall'UI per debug e verifica flussi. Dati storici archiviati in `Fatture/`. | 2026-03-04 |
 
 ### Cose ancora da verificare manualmente
 
@@ -486,7 +485,7 @@ Semantica operativa attuale di `project_financials`:
 | `20260302104422_services_optional_client_id.sql` | Aggiunge `client_id` opzionale a `services` (come `expenses`): servizi senza progetto possono essere legati direttamente al cliente |
 | `20260302143000_add_historical_billing_rounding_credits.sql` | Inserisce crediti di arrotondamento storico su 3 progetti Gustare (€7,32 Gustare Sicilia, €0,10 Borghi Marinari, €2,00 Carratois) come `credito_ricevuto` in `expenses` |
 | `20260302160000_add_iphone_credit_payment.sql` | Inserisce il pagamento `rimborso_spese` di €250 in attesa (iPhone: accordo iniziale €500, rivalutato a €250, Diego deve €250 a Rosario) collegato a Borghi Marinari |
-| `20260302170000_domain_data_snapshot.sql` | **Snapshot completo del dominio al 2026-03-02.** TRUNCATE + INSERT di tutte le tabelle operative. Sostituisce il sistema di rebuild dinamico. `npx supabase db reset` ripristina esattamente questo dataset. |
+| `20260302170000_domain_data_snapshot.sql` | **Snapshot pulita (solo settings).** TRUNCATE di tutte le tabelle operative + INSERT dei 6 record di configurazione. Svuotata il 2026-03-04 per debug dei flussi di calcolo. |
 
 ## Moduli Frontend
 
