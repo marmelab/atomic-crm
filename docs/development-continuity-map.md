@@ -200,6 +200,21 @@ Quando tocchi dashboard annuale o task/payment deadline logic, controllare:
 - provider Supabase (orchestratore + moduli feature pertinenti)
 - `supabase/functions/_shared/unifiedCrmAnswer.ts`
 
+**Fiscal Deadline Automated Check (pg_cron):**
+
+- `supabase/functions/_shared/fiscalDeadlineCalculation.ts` (calcolo scadenze Deno-compatible)
+- `supabase/functions/fiscal_deadline_check/index.ts` (Edge Function schedulata)
+- `supabase/migrations/20260304184909_fiscal_deadline_cron.sql` (pg_cron + pg_net + Vault)
+- `supabase/seed.sql` (Vault secrets locali: project_url, service_role_key)
+
+**Invarianti scadenzario automatico:**
+
+- il calcolo server-side rispecchia la stessa logica di `fiscalDeadlines.ts`
+- i task vengono deduplicati per tipo + data (non si creano duplicati)
+- le notifiche partono solo per scadenze entro 7 giorni
+- i task vengono creati per scadenze entro 30 giorni
+- il cron gira alle 07:00 UTC (08:00 CET / 09:00 CEST) ogni giorno
+
 ### Tassabilita'
 
 Quando tocchi `is_taxable`, controllare in blocco:

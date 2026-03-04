@@ -33,6 +33,39 @@ Regola pratica:
 - se una modifica e' solo strutturale/read-only, `Impostazioni` non va toccata
   ma la motivazione va lasciata nei docs di continuita'
 
+## Update 2026-03-04 (d) — Fiscal Deadline Automated Reminders
+
+### Architettura
+
+Check giornaliero schedulato via `pg_cron` + `pg_net` che invoca la Edge Function
+`fiscal_deadline_check`. La funzione:
+
+1. Legge la fiscal config dalla tabella `configuration` (JSONB)
+2. Legge i pagamenti ricevuti nell'anno per calcolare il fatturato YTD
+3. Calcola le scadenze fiscali (stessa logica del client-side `fiscalDeadlines.ts`)
+4. Crea `client_tasks` per le scadenze entro 30 giorni (con deduplicazione)
+5. Manda notifica email + WhatsApp per le scadenze entro 7 giorni
+
+### File coinvolti
+
+- `supabase/functions/_shared/fiscalDeadlineCalculation.ts` — calcolo scadenze (port Deno)
+- `supabase/functions/fiscal_deadline_check/index.ts` — Edge Function principale
+- `supabase/migrations/20260304184909_fiscal_deadline_cron.sql` — pg_cron + pg_net + schedule
+- `supabase/seed.sql` — Vault secrets per ambiente locale
+
+### Dipendenze
+
+- Estensioni: `pg_cron`, `pg_net`, Vault (gia' disponibile in Supabase hosted)
+- Secrets in Vault: `project_url`, `service_role_key` (per invocare la Edge Function)
+- `internalNotifications.ts` riusato per email + WhatsApp best-effort
+
+### Scadenze coperte (regime forfettario)
+
+- **30 giugno**: Saldo + 1° Acconto (F24 + INPS) — high priority
+- **30 novembre**: 2° Acconto (F24 + INPS) — high priority
+- **31 maggio, 30 settembre, 30 novembre, 28 febbraio**: Bollo trimestrale — low priority
+- **31 ottobre**: Dichiarazione dei redditi — low priority
+
 ## Update 2026-03-04 (c) — Realtime, Payment Reminders, Internal Notifications
 
 ### Supabase Realtime

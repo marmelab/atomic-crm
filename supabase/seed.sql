@@ -101,3 +101,13 @@ INSERT INTO favicons_excluded_domains (domain) VALUES
     ('bigpond.net.au'),
     ('online.de'),
     ('apple.com');
+
+-- Vault secrets for pg_cron → Edge Function invocation (local dev only)
+select vault.create_secret('http://api.supabase.internal:8000', 'project_url');
+select vault.create_secret(
+  coalesce(
+    current_setting('app.settings.service_role_key', true),
+    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImV4cCI6MTk4MzgxMjk5Nn0.EGIM96RAZx35lJzdJsyH-qQwv8Hdp7fsn3W0YpN81IU'
+  ),
+  'service_role_key'
+);
