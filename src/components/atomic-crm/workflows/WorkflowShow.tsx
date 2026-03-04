@@ -14,6 +14,8 @@ import {
   Clock,
   CheckCircle2,
   XCircle,
+  Mail,
+  MessageCircle,
 } from "lucide-react";
 import { ShowBase } from "ra-core";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -192,11 +194,19 @@ const WorkflowFlowCard = ({ record }: { record: Workflow }) => {
           <div className="space-y-2">
             {record.actions?.map((action, i) => {
               const ActionIcon = actionTypeIcons[action.type] ?? Zap;
+              const isDualChannel = action.type === "send_notification";
               return (
                 <div key={i} className="rounded-xl border bg-background p-3">
                   <div className="flex items-center gap-3">
                     <div className="shrink-0 rounded-lg p-2 bg-muted">
-                      <ActionIcon className="h-4 w-4 text-muted-foreground" />
+                      {isDualChannel ? (
+                        <div className="flex items-center gap-1">
+                          <Mail className="h-3.5 w-3.5 text-muted-foreground" />
+                          <MessageCircle className="h-3.5 w-3.5 text-green-600" />
+                        </div>
+                      ) : (
+                        <ActionIcon className="h-4 w-4 text-muted-foreground" />
+                      )}
                     </div>
                     <p className="text-sm font-medium min-w-0 flex-1">
                       {describeAction(action)}

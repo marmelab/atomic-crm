@@ -13,6 +13,10 @@ import type {
   PaymentReminderEmailSendRequest,
   PaymentReminderEmailSendResponse,
 } from "@/lib/communications/paymentReminderEmailTypes";
+import type {
+  WorkflowNotifyPayload,
+  WorkflowNotifyResponse,
+} from "@/lib/communications/workflowNotifyTypes";
 import { extractEdgeFunctionErrorMessage } from "./edgeFunctionError";
 import type { BaseProvider, InvokeEdgeFunction } from "./dataProviderTypes";
 
@@ -156,6 +160,29 @@ export const buildCommunicationsProviderMethods = (deps: {
           await extractEdgeFunctionErrorMessage(
             error,
             "Impossibile inviare il reminder di pagamento",
+          ),
+        );
+      }
+
+      return data.data;
+    },
+
+    async executeWorkflowNotify(
+      payload: WorkflowNotifyPayload,
+    ): Promise<WorkflowNotifyResponse> {
+      const { data, error } = await deps.invokeEdgeFunction<{
+        data: WorkflowNotifyResponse;
+      }>("workflow_notify", {
+        method: "POST",
+        body: payload,
+      });
+
+      if (!data || error) {
+        console.error("executeWorkflowNotify.error", error);
+        throw new Error(
+          await extractEdgeFunctionErrorMessage(
+            error,
+            "Impossibile eseguire la notifica workflow",
           ),
         );
       }

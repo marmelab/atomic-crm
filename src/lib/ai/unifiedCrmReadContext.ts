@@ -26,7 +26,14 @@ import type {
   Project,
   Quote,
   Service,
+  Workflow,
 } from "@/components/atomic-crm/types";
+import {
+  triggerResourceLabels,
+  triggerEventLabels,
+  describeConditions,
+  describeAction,
+} from "@/components/atomic-crm/workflows/workflowTypes";
 import type { CrmCapabilityRegistry } from "@/lib/semantics/crmCapabilityRegistry";
 import {
   calculateServiceNetValue,
@@ -125,6 +132,7 @@ export const buildUnifiedCrmReadContext = ({
   payments,
   expenses,
   tasks = [],
+  workflows = [],
   semanticRegistry,
   capabilityRegistry,
   generatedAt = new Date().toISOString(),
@@ -138,6 +146,7 @@ export const buildUnifiedCrmReadContext = ({
   payments: Payment[];
   expenses: Expense[];
   tasks?: ClientTask[];
+  workflows?: Workflow[];
   semanticRegistry: CrmSemanticRegistry;
   capabilityRegistry: CrmCapabilityRegistry;
   generatedAt?: string;
@@ -423,6 +432,20 @@ export const buildUnifiedCrmReadContext = ({
           isTaxable: s.is_taxable !== false, serviceDate: s.service_date, notes: s.notes ?? null,
         })),
       clientFinancials: buildClientFinancialSummaries({ services, payments, clientById }),
+      activeWorkflows: workflows
+        .filter((wf) => wf.is_active)
+        .map((wf) => ({
+          workflowId: String(wf.id),
+          name: wf.name,
+          description: wf.description ?? null,
+          triggerResource: wf.trigger_resource,
+          triggerResourceLabel: triggerResourceLabels[wf.trigger_resource] ?? wf.trigger_resource,
+          triggerEvent: wf.trigger_event,
+          triggerEventLabel: triggerEventLabels[wf.trigger_event] ?? wf.trigger_event,
+          conditionsSummary: describeConditions(wf.trigger_resource, wf.trigger_conditions),
+          actionsSummary: wf.actions.map((a) => describeAction(a)).join("; "),
+          isActive: true,
+        })),
     },
     caveats: [
       "Questo snapshot e' read-only: nessuna scrittura nel CRM parte da questo contesto o dalle risposte AI che lo usano senza una conferma esplicita in un workflow dedicato.",

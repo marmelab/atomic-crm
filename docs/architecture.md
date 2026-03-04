@@ -118,6 +118,16 @@ UI: List, Create, Edit, Show con execution history.
 List ha mobile card view (niente tabelle su telefono).
 Show ha griglia responsive e pre-block con overflow.
 Navigazione: menu "Altro" mobile, non nella header desktop.
+WorkflowCreate supporta precompilazione via search params (name, trigger_resource, trigger_event, action_type, etc.).
+
+Integrazione AI Chat:
+
+- Le automazioni attive sono incluse nella snapshot `UnifiedCrmReadContext` come `activeWorkflows`
+- Il modulo `workflows` e' registrato nel module registry con metadati AI
+- Il capability registry dichiara `workflow_create` e `workflow_show` come azioni approvate
+- Il semantic registry include la regola `workflowAutomations`
+- Le istruzioni AI nell'Edge Function guidano l'LLM a verificare se un'automazione equivalente esiste gia prima di suggerirne una nuova
+- Il rule engine aggiunge handoff strutturati quando l'intent riguarda automazioni
 
 ## Update 2026-03-04
 

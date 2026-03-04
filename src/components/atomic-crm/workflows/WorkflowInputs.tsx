@@ -16,6 +16,9 @@ export const WorkflowInputs = () => {
   const triggerResource = useWatch({ name: "trigger_resource" });
   const triggerEvent = useWatch({ name: "trigger_event" });
   const actionType = useWatch({ name: "action_type" });
+  const emailRecipientType = useWatch({
+    name: "action_email_recipient_type",
+  });
 
   const showStatusCondition =
     triggerEvent === "status_changed" &&
@@ -134,6 +137,63 @@ export const WorkflowInputs = () => {
             validate={required()}
             helperText={false}
           />
+        </>
+      )}
+
+      {actionType === "send_email" && (
+        <>
+          <SelectInput
+            source="action_email_recipient_type"
+            label="Destinatario"
+            choices={[
+              { value: "client_email", label: "Email del cliente" },
+              { value: "custom", label: "Email personalizzata" },
+            ]}
+            optionText="label"
+            optionValue="value"
+            defaultValue="client_email"
+            validate={required()}
+            helperText="A chi inviare la mail"
+          />
+          {emailRecipientType === "custom" && (
+            <TextInput
+              source="action_email_custom_address"
+              label="Indirizzo email"
+              validate={required()}
+              helperText="Indirizzo destinatario"
+            />
+          )}
+          <TextInput
+            source="action_email_subject"
+            label="Oggetto"
+            validate={required()}
+            helperText="Puoi usare {nome_cliente}, {risorsa}, {stato}"
+          />
+          <TextInput
+            source="action_email_body"
+            label="Testo email"
+            multiline
+            rows={4}
+            validate={required()}
+            helperText="Testo in chiaro. Placeholder: {nome_cliente}, {importo}, {data}"
+          />
+        </>
+      )}
+
+      {actionType === "send_notification" && (
+        <>
+          <TextInput
+            source="action_notification_message"
+            label="Messaggio notifica"
+            multiline
+            rows={3}
+            validate={required()}
+            helperText="Placeholder: {nome_cliente}, {risorsa}, {stato}, {importo}, {data}"
+          />
+          <p className="text-sm text-muted-foreground rounded-md bg-muted/50 p-3">
+            La notifica viene inviata via email e WhatsApp (best-effort, se
+            configurati).
+          </p>
         </>
       )}
 

@@ -194,6 +194,18 @@ export type UnifiedCrmReadContext = {
       balanceDue: number;
       hasUninvoicedServices: boolean;
     }>;
+    activeWorkflows: Array<{
+      workflowId: string;
+      name: string;
+      description: string | null;
+      triggerResource: string;
+      triggerResourceLabel: string;
+      triggerEvent: string;
+      triggerEventLabel: string;
+      conditionsSummary: string | null;
+      actionsSummary: string;
+      isActive: boolean;
+    }>;
   };
   caveats: string[];
 };

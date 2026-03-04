@@ -29,6 +29,18 @@ const flattenAction = (actions?: WorkflowAction[]) => {
       first.type === "update_field" ? String(d.field ?? "") : "",
     action_field_value:
       first.type === "update_field" ? String(d.value ?? "") : "",
+    action_email_recipient_type:
+      first.type === "send_email"
+        ? String(d.recipient_type ?? "client_email")
+        : "client_email",
+    action_email_custom_address:
+      first.type === "send_email" ? String(d.custom_email ?? "") : "",
+    action_email_subject:
+      first.type === "send_email" ? String(d.subject ?? "") : "",
+    action_email_body:
+      first.type === "send_email" ? String(d.body ?? "") : "",
+    action_notification_message:
+      first.type === "send_notification" ? String(d.message ?? "") : "",
   };
 };
 

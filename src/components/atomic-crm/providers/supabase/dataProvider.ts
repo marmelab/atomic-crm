@@ -315,7 +315,16 @@ const lifeCycleCallbacks: ResourceCallbacks[] = [
     },
   },
   // --- Workflow triggers ---
-  ...buildWorkflowCallbacks(["projects", "quotes", "payments", "client_tasks"]),
+  ...buildWorkflowCallbacks([
+    "clients",
+    "contacts",
+    "projects",
+    "quotes",
+    "services",
+    "payments",
+    "expenses",
+    "client_tasks",
+  ]),
 ];
 
 export const dataProvider = withLifecycleCallbacks(

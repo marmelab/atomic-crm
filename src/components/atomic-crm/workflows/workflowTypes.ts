@@ -1,10 +1,16 @@
 import {
+  Briefcase,
   FolderOpen,
   FileText,
   Banknote,
   Bell,
   ClipboardList,
   PenLine,
+  Mail,
+  MessageCircle,
+  Receipt,
+  User,
+  Users,
   type LucideIcon,
 } from "lucide-react";
 import type { WorkflowAction } from "../types";
@@ -12,18 +18,30 @@ import type { WorkflowAction } from "../types";
 // ─── Icons & Colors ─────────────────────────────────────────────────────────
 
 export const triggerResourceIcons: Record<string, LucideIcon> = {
+  clients: User,
+  contacts: Users,
   projects: FolderOpen,
   quotes: FileText,
+  services: Briefcase,
   payments: Banknote,
+  expenses: Receipt,
   client_tasks: Bell,
 };
 
 export const triggerResourceColors: Record<string, string> = {
+  clients:
+    "text-sky-600 bg-sky-100/80 dark:text-sky-400 dark:bg-sky-950",
+  contacts:
+    "text-indigo-600 bg-indigo-100/80 dark:text-indigo-400 dark:bg-indigo-950",
   projects: "text-blue-600 bg-blue-100/80 dark:text-blue-400 dark:bg-blue-950",
   quotes:
     "text-amber-600 bg-amber-100/80 dark:text-amber-400 dark:bg-amber-950",
+  services:
+    "text-cyan-600 bg-cyan-100/80 dark:text-cyan-400 dark:bg-cyan-950",
   payments:
     "text-emerald-600 bg-emerald-100/80 dark:text-emerald-400 dark:bg-emerald-950",
+  expenses:
+    "text-rose-600 bg-rose-100/80 dark:text-rose-400 dark:bg-rose-950",
   client_tasks:
     "text-violet-600 bg-violet-100/80 dark:text-violet-400 dark:bg-violet-950",
 };
@@ -32,22 +50,32 @@ export const actionTypeIcons: Record<string, LucideIcon> = {
   create_task: Bell,
   create_project: ClipboardList,
   update_field: PenLine,
+  send_email: Mail,
+  send_notification: MessageCircle,
 };
 
 // ─── Labels ──────────────────────────────────────────────────────────────────
 
 export const triggerResourceLabels: Record<string, string> = {
+  clients: "Clienti",
+  contacts: "Referenti",
   projects: "Progetti",
   quotes: "Preventivi",
+  services: "Servizi",
   payments: "Pagamenti",
+  expenses: "Spese",
   client_tasks: "Promemoria",
 };
 
 /** Singular forms for sentence building */
 const triggerResourceSingular: Record<string, string> = {
+  clients: "un cliente",
+  contacts: "un referente",
   projects: "un progetto",
   quotes: "un preventivo",
+  services: "un servizio",
   payments: "un pagamento",
+  expenses: "una spesa",
   client_tasks: "un promemoria",
 };
 
@@ -68,6 +96,8 @@ export const actionTypeLabels: Record<string, string> = {
   create_task: "Crea promemoria",
   create_project: "Crea progetto",
   update_field: "Aggiorna campo",
+  send_email: "Invia email",
+  send_notification: "Notifica interna",
 };
 
 // ─── Status choices per resource (for smart condition builder) ────────────────
@@ -156,6 +186,15 @@ export const describeAction = (action: WorkflowAction): string => {
       return "Crea un nuovo progetto dal preventivo";
     case "update_field":
       return `Imposta ${d.field ?? "campo"} = ${d.value ?? "valore"}`;
+    case "send_email": {
+      const recipient =
+        d.recipient_type === "custom"
+          ? (d.custom_email as string) ?? "email personalizzata"
+          : "email cliente";
+      return `Invia email a ${recipient}: "${d.subject ?? ""}"`;
+    }
+    case "send_notification":
+      return `Notifica interna: "${d.message ?? ""}"`;
     default:
       return actionTypeLabels[action.type] ?? action.type;
   }

@@ -8,6 +8,7 @@ import type {
   Project,
   Quote,
   Service,
+  Workflow,
 } from "../../types";
 import type { ConfigurationContextValue } from "../../root/ConfigurationContext";
 import {
@@ -48,6 +49,7 @@ export const buildAiProviderMethods = (deps: {
         paymentsResponse,
         expensesResponse,
         tasksResponse,
+        workflowsResponse,
       ] = await Promise.all([
         deps.baseDataProvider.getOne("configuration", { id: 1 }),
         deps.baseDataProvider.getList<Client>("clients", {
@@ -95,6 +97,11 @@ export const buildAiProviderMethods = (deps: {
           sort: { field: "due_date", order: "ASC" },
           filter: { "done_date@is": null },
         }),
+        deps.baseDataProvider.getList<Workflow>("workflows", {
+          pagination: LARGE_PAGE,
+          sort: { field: "created_at", order: "ASC" },
+          filter: { "is_active@eq": true },
+        }),
       ]);
 
       const config =
@@ -111,6 +118,7 @@ export const buildAiProviderMethods = (deps: {
         payments: paymentsResponse.data,
         expenses: expensesResponse.data,
         tasks: tasksResponse.data,
+        workflows: workflowsResponse.data,
         semanticRegistry: buildCrmSemanticRegistry(config),
         capabilityRegistry: buildCrmCapabilityRegistry(),
       });

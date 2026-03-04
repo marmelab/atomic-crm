@@ -394,6 +394,25 @@ export const buildCrmCapabilityRegistry = (): CrmCapabilityRegistry => ({
       sideEffects: ["valida batch lato server", "crea record CRM", "rollback completo se un record fallisce"],
     },
     {
+      id: "workflow_create",
+      label: "Crea nuova automazione dalla chat AI",
+      description:
+        "Dalla chat AI unificata apre `workflows/create` precompilando trigger, evento, condizioni e azione in base al contesto della conversazione. L'AI deve prima verificare che non esista gia un'automazione equivalente tra le activeWorkflows della snapshot e deve precompilare i campi coerentemente con lo scopo che l'utente vuole ottenere.",
+      sourceFile: "src/components/atomic-crm/workflows/WorkflowCreate.tsx",
+      actsOn: ["workflows"],
+      requiredFields: ["trigger_resource", "trigger_event", "action_type"],
+      sideEffects: ["precompila il form automazione via search params"],
+    },
+    {
+      id: "workflow_show",
+      label: "Mostra dettaglio automazione esistente",
+      description:
+        "Dalla chat AI naviga alla pagina dettaglio di un'automazione gia esistente quando il contesto la richiede, ad esempio se l'utente chiede di un'automazione attiva sullo stesso trigger.",
+      sourceFile: "src/components/atomic-crm/workflows/WorkflowShow.tsx",
+      actsOn: ["workflows"],
+      requiredFields: ["workflow_id"],
+    },
+    {
       id: "quote_drag_change_status",
       label: "Sposta preventivo tra stati",
       description:

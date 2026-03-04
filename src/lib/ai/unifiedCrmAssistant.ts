@@ -30,7 +30,8 @@ export type UnifiedCrmSuggestedAction = {
     | "projects"
     | "services"
     | "payments"
-    | "expenses";
+    | "expenses"
+    | "workflows";
   label: string;
   description: string;
   href: string;
@@ -46,6 +47,8 @@ export type UnifiedCrmSuggestedAction = {
     | "expense_create_km"
     | "task_create"
     | "generate_invoice_draft"
+    | "workflow_create"
+    | "workflow_show"
     | "follow_unified_crm_handoff";
 };
 

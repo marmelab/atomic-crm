@@ -135,11 +135,25 @@ Quando tocchi il modulo workflow o le risorse trigger-abili, verificare:
 - `supabase/functions/_shared/workflowTemplatePlaceholders.ts` (risoluzione placeholder)
 - migration `20260304140000_workflow_automation.sql`
 
+**Integrazione AI Chat:**
+
+- `unifiedCrmReadContextTypes.ts` (`activeWorkflows` nel tipo snapshot)
+- `unifiedCrmReadContext.ts` (builder che include workflows attivi con label e descrizioni)
+- `dataProviderAi.ts` (fetch workflows nella snapshot)
+- `crmCapabilityRegistry.ts` (`workflow_create`, `workflow_show` actions)
+- `crmSemanticRegistry.ts` (regola `workflowAutomations`)
+- `unifiedCrmAssistant.ts` (`workflows` nella resource union, capability action IDs)
+- `supabase/functions/unified_crm_answer/index.ts` (istruzioni AI + intent detection)
+- `supabase/functions/_shared/unifiedCrmAnswer.ts` (branch `focusWorkflows` nei suggestedActions)
+- `WorkflowCreate.tsx` (precompilazione via search params per handoff AI)
+
 **Invarianti:**
 
 - `send_email` e `send_notification` passano per Edge Function `workflow_notify`
 - i placeholder sono risolti server-side, non nel client
 - `send_notification` usa `notifyOwner()` (email + WhatsApp best-effort)
+- l'AI verifica se un'automazione equivalente esiste gia prima di suggerirne una nuova
+- i campi precompilati nel handoff `workflow_create` sono coerenti con lo scopo del contesto
 
 **UX mobile (2026-03-04):** La lista mobile usa card con icone colorate per
 risorsa trigger, flusso visivo trigger→azione, Switch toggle inline. La Show

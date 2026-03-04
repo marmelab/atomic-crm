@@ -336,6 +336,18 @@ export const crmModules: CrmModuleDefinition[] = [
         createMenu: false,
       },
     },
+    ai: {
+      label: "Automazioni",
+      description:
+        "Regole di automazione che eseguono azioni (promemoria, email, notifiche, creazione progetto) quando un evento CRM avviene su progetti, preventivi, pagamenti o promemoria.",
+      routePatterns: [
+        "/#/workflows",
+        "/#/workflows/create",
+        "/#/workflows/:id/show",
+        "/#/workflows/:id",
+      ],
+      supportedViews: ["list", "show", "create", "edit"],
+    },
   },
   {
     resource: "workflow_executions",

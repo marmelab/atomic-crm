@@ -2108,6 +2108,17 @@ export const buildUnifiedCrmSuggestedActions = ({
     "email",
     "linkedin",
   ]);
+  const focusWorkflows = includesAny(normalizedQuestion, [
+    "automaz",
+    "workflow",
+    "quando succede",
+    "automatica",
+    "automatico",
+    "regola",
+    "trigger",
+    "notifica automat",
+    "email automat",
+  ]);
   const focusClients = includesAny(normalizedQuestion, [
     "client",
     "anagraf",
@@ -2728,6 +2739,51 @@ export const buildUnifiedCrmSuggestedActions = ({
             href: buildListHref(routePrefix, "projects"),
           },
     );
+  } else if (focusWorkflows) {
+    const activeWorkflows = getObjectArray(snapshot.activeWorkflows);
+    pushSuggestion({
+      id: "workflow-create-handoff",
+      kind: "approved_action",
+      resource: "workflows",
+      capabilityActionId: "workflow_create",
+      label: "Crea nuova automazione",
+      description:
+        "Apre il form automazioni per creare una nuova regola automatica.",
+      href: buildCreateHref(routePrefix, "workflows", {}),
+    });
+    if (activeWorkflows.length > 0) {
+      const firstWorkflow = activeWorkflows[0];
+      pushSuggestion(
+        buildShowHref(
+          routePrefix,
+          "workflows",
+          getString(firstWorkflow?.workflowId),
+        )
+          ? {
+              id: "open-first-active-workflow",
+              kind: "show",
+              resource: "workflows",
+              capabilityActionId: "workflow_show",
+              label: "Apri automazione attiva",
+              description: `Vedi dettaglio: ${getString(firstWorkflow?.name) || "automazione"}`,
+              href: buildShowHref(
+                routePrefix,
+                "workflows",
+                getString(firstWorkflow?.workflowId),
+              ),
+            }
+          : null,
+      );
+    }
+    pushSuggestion({
+      id: "open-workflows-list",
+      kind: "list",
+      resource: "workflows",
+      label: "Apri tutte le automazioni",
+      description:
+        "Controlla la lista completa delle automazioni attive e inattive.",
+      href: buildListHref(routePrefix, "workflows"),
+    });
   } else if (focusContacts) {
     pushSuggestion(
       contactHref

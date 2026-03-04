@@ -98,6 +98,10 @@ export type CrmSemanticRegistry = {
       confirmationRule: string;
       meaning: string;
     };
+    workflowAutomations: {
+      scope: string;
+      meaning: string;
+    };
   };
 };
 
@@ -371,6 +375,11 @@ export const buildCrmSemanticRegistry = (
         freshnessField: "generatedAt",
         meaning:
           "Il contesto CRM-wide del launcher unificato e' una snapshot read-only dei moduli core; sia la snapshot sia le risposte AI che la usano restano di sola lettura, gli handoff successivi possono solo puntare a route o azioni gia approvate, una recommendation primaria puo comparire solo se costruita deterministicamente dal sistema, e gli href di handoff possono trasportare solo prefills/search params gia supportati dalle superfici esistenti. Dentro quella snapshot i clienti recenti devono esporre anche il profilo fiscale essenziale e i recapiti di fatturazione principali gia presenti nel CRM, i referenti recenti devono esporre recapiti e cliente/progetti collegati, e i progetti attivi devono riportare i referenti associati con priorita' ai contatti primari. Quando esistono relazioni strutturate cliente-progetto-referente, quelle relazioni devono avere priorita' interpretativa rispetto a note libere o inferenze sul testo. Le superfici di arrivo possono poi calcolare o ricevere solo suggerimenti deterministici locali, come il residuo ancora non collegato di un preventivo, i financials aggregati di un progetto attivo derivati da servizi, spese e pagamenti ricevuti, oppure una stima tratta km ottenuta da un servizio routing esterno ma sempre correggibile prima della scrittura. Ogni futura scrittura deve passare da un workflow dedicato con conferma esplicita.",
+      },
+      workflowAutomations: {
+        scope: "workflows (activeWorkflows nella snapshot)",
+        meaning:
+          "Le automazioni attive nel CRM sono visibili nella snapshot come activeWorkflows. Quando l'utente chiede qualcosa che potrebbe essere automatizzato, l'AI deve prima verificare se esiste gia un'automazione equivalente: se si, la segnala e propone handoff al dettaglio; se no, puo suggerire di crearne una con handoff precompilato a workflows/create. I campi precompilati devono essere coerenti con lo scopo descritto dall'utente nel contesto della conversazione.",
       },
       unifiedAiWriteDraft: {
         approvedResource: "payments",

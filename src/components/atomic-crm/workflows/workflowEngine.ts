@@ -1,5 +1,6 @@
 import type { DataProvider, Identifier } from "ra-core";
 import type { Workflow, WorkflowAction } from "../types";
+import type { CrmDataProvider } from "../providers/supabase/dataProvider";
 
 /**
  * Lightweight workflow engine that runs client-side.
@@ -93,7 +94,12 @@ async function executeWorkflow(
 
   try {
     for (const action of actions) {
-      const result = await executeAction(dataProvider, action, record);
+      const result = await executeAction(
+        dataProvider,
+        action,
+        record,
+        workflow.trigger_resource,
+      );
       results.push(result);
     }
 
@@ -125,6 +131,7 @@ async function executeAction(
   dataProvider: DataProvider,
   action: WorkflowAction,
   triggerRecord: Record<string, unknown>,
+  triggerResource: string,
 ): Promise<Record<string, unknown>> {
   switch (action.type) {
     case "create_task":
@@ -133,6 +140,15 @@ async function executeAction(
       return createProject(dataProvider, action.data, triggerRecord);
     case "update_field":
       return updateField(dataProvider, action.data, triggerRecord);
+    case "send_email":
+      return sendEmail(dataProvider, action.data, triggerRecord, triggerResource);
+    case "send_notification":
+      return sendNotification(
+        dataProvider,
+        action.data,
+        triggerRecord,
+        triggerResource,
+      );
     default:
       return { skipped: true, reason: `Unknown action type: ${action.type}` };
   }
@@ -222,6 +238,45 @@ async function updateField(
       on_record: triggerRecord.id,
     },
   };
+}
+
+async function sendEmail(
+  dataProvider: DataProvider,
+  actionData: Record<string, unknown>,
+  triggerRecord: Record<string, unknown>,
+  triggerResource: string,
+): Promise<Record<string, unknown>> {
+  const crm = dataProvider as unknown as CrmDataProvider;
+  const result = await crm.executeWorkflowNotify({
+    channel: "email_external",
+    recipient_type:
+      (actionData.recipient_type as "client_email" | "custom") ??
+      "client_email",
+    custom_email: actionData.custom_email
+      ? String(actionData.custom_email)
+      : undefined,
+    subject: String(actionData.subject ?? ""),
+    body: String(actionData.body ?? ""),
+    trigger_resource: triggerResource,
+    trigger_record_id: String(triggerRecord.id ?? ""),
+  });
+  return { sent: "email", ...result };
+}
+
+async function sendNotification(
+  dataProvider: DataProvider,
+  actionData: Record<string, unknown>,
+  triggerRecord: Record<string, unknown>,
+  triggerResource: string,
+): Promise<Record<string, unknown>> {
+  const crm = dataProvider as unknown as CrmDataProvider;
+  const result = await crm.executeWorkflowNotify({
+    channel: "notify_owner",
+    message: String(actionData.message ?? ""),
+    trigger_resource: triggerResource,
+    trigger_record_id: String(triggerRecord.id ?? ""),
+  });
+  return { sent: "notification", ...result };
 }
 
 async function logExecution(

@@ -39,6 +39,23 @@ export const workflowTransform = (data: Record<string, unknown>) => {
         value: data.action_field_value ?? "",
       },
     });
+  } else if (actionType === "send_email") {
+    actions.push({
+      type: "send_email",
+      data: {
+        recipient_type: data.action_email_recipient_type ?? "client_email",
+        custom_email: data.action_email_custom_address ?? "",
+        subject: data.action_email_subject ?? "",
+        body: data.action_email_body ?? "",
+      },
+    });
+  } else if (actionType === "send_notification") {
+    actions.push({
+      type: "send_notification",
+      data: {
+        message: data.action_notification_message ?? "",
+      },
+    });
   }
 
   // Return clean record for the DB
