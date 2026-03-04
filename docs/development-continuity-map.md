@@ -8,6 +8,18 @@ prodotto.
 
 Last updated: 2026-03-04
 
+## Update 2026-03-04 (f) — Header Navigation with Colored Icons
+
+### UI Header Refactor
+
+- `src/components/atomic-crm/layout/Header.tsx`:
+  - Aggiunte icone colorate per ogni voce di menu
+  - Palette: Bacheca (sky), Clienti (blue), Referenti (cyan), Progetti (amber), 
+    Registro Lavori (indigo), Preventivi (violet), Pagamenti (green), 
+    Spese (orange), Promemoria (rose)
+  - Evidenziazione attiva con border-primary e background
+  - Hover effect con colore icona che si attiva
+
 ## Update 2026-03-04 (e) — Settings Page Redesign
 
 ### UI Navigation Refactor
