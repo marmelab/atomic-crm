@@ -7,7 +7,7 @@ BEGIN
   EXECUTE $url_sql$
     -- SQL triggers cannot read Edge Function env vars directly. Resolve the
     -- function URL from request context, and keep a local Docker fallback.
-    CREATE OR REPLACE FUNCTION public.note_attachments_webhook_url()
+    CREATE OR REPLACE FUNCTION public.get_note_attachments_function_url()
     RETURNS text
     LANGUAGE plpgsql
     AS $function$
@@ -89,7 +89,7 @@ BEGIN
       );
 
       PERFORM net.http_post(
-        url := public.note_attachments_webhook_url(),
+        url := public.get_note_attachments_function_url(),
         body := payload,
         params := '{}'::jsonb,
         headers := jsonb_build_object(

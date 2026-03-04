@@ -13,7 +13,7 @@ Atomic CRM comes with a CLI utility to create a backend instance on [supabase.co
 make supabase-remote-init
 ```
 
-The script will ask you for the Supabase instance name, create the database, apply the migrations, and set up the secrets needed by the edge functions. Finally, it will create a `.env.production.local` file with your remote Supabase configuration.
+The script will ask you for the Supabase instance name, create the database, apply the migrations and deploy the edge functions. Finally, it will create a `.env.production.local` file with your remote Supabase configuration.
 
 The script cannot yet automate the configuration of the required SMTP provider on your Supabase instance. To do that, please follow the instructions detailed in the [Email Provider Setup](#email-provider-setup) section.
 
@@ -33,10 +33,10 @@ Now, link the local project to the Supabase instance. You'll be asked to enter t
 npx supabase link --project-ref ********************
 ```
 
-Set up secrets for the Supabase instance (follow this [guide](https://supabase.com/docs/guides/api/api-keys#where-to-find-keys) to find your publishable and secret keys):
+Set up secrets for the Supabase instance (follow this [guide](https://supabase.com/docs/guides/api/api-keys#where-to-find-keys) to find your publishable key):
 
 ```sh
-npx supabase secrets set SB_PUBLISHABLE_KEY=<publishable_key> SB_SECRET_KEY=<secret_key>
+npx supabase secrets set SB_PUBLISHABLE_KEY=<publishable_key>
 ```
 
 Then, apply the migrations and deploy the edge functions:
