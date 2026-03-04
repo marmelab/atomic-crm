@@ -14,7 +14,7 @@ import { Switch } from "@/components/ui/switch";
 import { List } from "@/components/admin/list";
 import { CreateButton } from "@/components/admin/create-button";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { ArrowRight, Plus, Zap } from "lucide-react";
+import { ArrowRight, Zap } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 import { MobilePageTitle } from "../layout/MobilePageTitle";
@@ -42,7 +42,7 @@ export const WorkflowList = () => (
 );
 
 const WorkflowListActions = () => (
-  <TopToolbar className="hidden md:flex">
+  <TopToolbar className="px-4 md:px-0">
     <CreateButton />
   </TopToolbar>
 );
@@ -106,22 +106,8 @@ const MobileWorkflowList = ({ data }: { data: Workflow[] }) => (
     {data.map((workflow) => (
       <WorkflowMobileCard key={workflow.id} workflow={workflow} />
     ))}
-    <MobileCreateButton />
   </div>
 );
-
-const MobileCreateButton = () => {
-  const createPath = useCreatePath();
-  return (
-    <Link
-      to={createPath({ resource: "workflows", type: "create" })}
-      className="flex items-center justify-center gap-2 rounded-xl border-2 border-dashed border-muted-foreground/25 py-4 text-sm font-medium text-muted-foreground hover:border-primary/40 hover:text-primary transition-colors"
-    >
-      <Plus className="h-4 w-4" />
-      Nuova automazione
-    </Link>
-  );
-};
 
 const WorkflowMobileCard = ({ workflow }: { workflow: Workflow }) => {
   const createPath = useCreatePath();
