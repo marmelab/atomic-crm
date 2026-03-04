@@ -33,10 +33,10 @@ Now, link the local project to the Supabase instance. You'll be asked to enter t
 npx supabase link --project-ref ********************
 ```
 
-Set up secrets for the Supabase instance (follow this [guide](https://supabase.com/docs/guides/api/api-keys#where-to-find-keys) to find your publishable and secret keys):
+Set up secrets for the Supabase instance (follow this [guide](https://supabase.com/docs/guides/api/api-keys#where-to-find-keys) to find your publishable key):
 
 ```sh
-npx supabase secrets set SB_PUBLISHABLE_KEY=<publishable_key> SB_SECRET_KEY=<secret_key>
+npx supabase secrets set SB_PUBLISHABLE_KEY=<publishable_key>
 ```
 
 Then, apply the migrations and deploy the edge functions:
@@ -74,6 +74,7 @@ Using a remote Supabase instance can be interesting if you deploy from your comp
 In order to support [the invitations workflow](../../users/user-management#adding-users) and the default email/password authentication (including password reset), Atomic CRM needs to be able to send emails from your Supabase instance.
 
 By default, Supabase provides a simple SMTP server for all projects. But this server imposes a few important restrictions and is not meant for production use:
+
 - It can only send messages to pre-authorized addresses
 - It imposes significant rate-limits
 - There is no SLA guarantee on message delivery or uptime
@@ -126,7 +127,7 @@ If you want more information on how to customize email templates, check the [Cus
 
 ## Frequently Asked Questions
 
-**I have a *Security Definer View* error in *Security Advisor***
+**I have a _Security Definer View_ error in _Security Advisor_**
 
 This warning informs you that the `init_state` state view is public and can be called by everybody.
 
