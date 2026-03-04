@@ -230,7 +230,7 @@ describe("buildAnalyticsContext", () => {
     expect(context.series.yearlyRevenue.at(-1)?.isYtd).toBe(true);
     expect(context.qualityFlags).toContain("partial_current_year");
     expect(context.caveats).toContain(
-      "Tutti i valori sono compensi per competenza, non incassi.",
+      "Tutti i valori storici sono compensi per competenza (data lavoro), non incassi. La simulazione fiscale annuale usa invece il principio di cassa (data incasso).",
     );
     expect(context.caveats).toContain(
       "2026 è trattato come YTD al 28/02/2026.",

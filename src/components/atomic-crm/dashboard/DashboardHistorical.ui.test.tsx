@@ -1,10 +1,24 @@
 // @vitest-environment jsdom
 
 import "@/setupTests";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 
 import type { DashboardHistoryModel } from "./dashboardHistoryModel";
+
+const renderWithQueryClient = (component: React.ReactNode) => {
+  const queryClient = new QueryClient({
+    defaultOptions: {
+      queries: { retry: false },
+      mutations: { retry: false },
+    },
+  });
+
+  return render(
+    <QueryClientProvider client={queryClient}>{component}</QueryClientProvider>,
+  );
+};
 
 const mockUseHistoricalDashboardData = vi.fn();
 
@@ -146,7 +160,7 @@ describe("DashboardHistorical", () => {
       },
     });
 
-    render(<DashboardHistorical />);
+    renderWithQueryClient(<DashboardHistorical />);
 
     expect(
       screen.getByText("Impossibile caricare lo storico aziendale."),
@@ -168,7 +182,7 @@ describe("DashboardHistorical", () => {
       },
     });
 
-    render(<DashboardHistorical />);
+    renderWithQueryClient(<DashboardHistorical />);
 
     expect(
       screen.getByText(
@@ -198,7 +212,7 @@ describe("DashboardHistorical", () => {
       },
     });
 
-    render(<DashboardHistorical />);
+    renderWithQueryClient(<DashboardHistorical />);
 
     expect(screen.getByText("Tradotto in semplice")).toBeInTheDocument();
     expect(
