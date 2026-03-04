@@ -48,3 +48,9 @@ public/r/
 .env*.local
 playwright-report/
 test-results/
+
+# Temporary / generated assets
+/app/
+/screenshots/
+/scripts/
+*.png
