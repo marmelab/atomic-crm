@@ -9,11 +9,13 @@ export type FiscalModel = {
 };
 
 export type FiscalKpis = {
-  /** Somma compensi netti (fee_shooting + fee_editing + fee_other - discount) anno corrente. */
+  /** Incassi tassabili ricevuti nell'anno (principio di cassa, regime forfettario).
+   *  Somma dei pagamenti con status="ricevuto" e payment_date nell'anno,
+   *  mappati alle categorie ATECO tramite progetto. */
   fatturatoLordoYtd: number;
-  /** Somma compensi netti complessivi anno corrente, inclusi servizi non tassabili. */
+  /** Incassi totali ricevuti nell'anno, inclusi pagamenti non tassabili (principio di cassa). */
   fatturatoTotaleYtd: number;
-  /** Quota non tassabile del fatturato operativo dell'anno. */
+  /** Quota non tassabile degli incassi dell'anno. */
   fatturatoNonTassabileYtd: number;
   /** SUM(fatturato_categoria × coefficiente_ATECO / 100). */
   redditoLordoForfettario: number;

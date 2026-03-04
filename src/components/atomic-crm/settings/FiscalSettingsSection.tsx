@@ -201,8 +201,9 @@ const TaxabilityDefaultsInputs = () => {
         Default tassabilità servizi
       </h3>
       <p className="text-sm text-muted-foreground">
-        Queste regole impostano automaticamente il default del flag "Tassabile"
-        nei nuovi servizi. Il valore resta sempre modificabile manualmente.
+        Queste regole impostano il default del flag &quot;Tassabile&quot; nei
+        nuovi servizi e determinano quali incassi entrano nella base fiscale
+        (principio di cassa). Il valore resta modificabile manualmente.
       </p>
 
       <div className="space-y-2">

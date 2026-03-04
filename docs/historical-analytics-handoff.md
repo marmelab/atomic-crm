@@ -8,6 +8,17 @@ prodotto senza incrociarlo con `docs/README.md` e i documenti `canonical`.
 
 Last updated: 2026-03-04
 
+## Update 2026-03-04 (fiscal cash-basis fix)
+
+- `buildFiscalModel` ora calcola la base imponibile sugli incassi ricevuti
+  (principio di cassa, L. 190/2014) invece che sui compensi per competenza
+- le metriche operative (margini, DSO, concentrazione clienti) restano su
+  base competenza (servizi erogati)
+- `buildAnalyticsContext` include caveat esplicito sulla differenza
+  competenza/cassa per evitare confusione nell'AI chat
+- etichette UI aggiornate: "Fatturato" → "Incassato" dove si riferisce
+  alla base fiscale
+
 ## Update 2026-03-04
 
 Nuovi elementi rilevanti per handoff AI/analytics:

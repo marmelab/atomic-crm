@@ -335,9 +335,9 @@ export const buildCrmSemanticRegistry = (
       },
       paymentTaxability: {
         derivation:
-          "project services with is_taxable OR quote.is_taxable OR default true",
+          "display: project services is_taxable OR quote.is_taxable OR default true; fiscal model: taxabilityDefaults config (nonTaxableCategories, nonTaxableClientIds)",
         meaning:
-          "La tassabilita' del pagamento e' derivata: se il progetto ha servizi, basta un servizio tassabile per rendere l'incasso fiscalmente rilevante; senza servizi si usa il flag del preventivo, altrimenti default tassabile.",
+          "Per la visualizzazione individuale, la tassabilita' e' derivata dai servizi/preventivi collegati. Per il calcolo fiscale annuale (principio di cassa), la tassabilita' e' derivata dalla config taxabilityDefaults.",
       },
       travelReimbursement: {
         formula: "km_distance * km_rate",

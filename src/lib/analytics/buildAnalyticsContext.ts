@@ -61,7 +61,7 @@ export const buildAnalyticsContext = (
   const yoyDefinition = getAnalyticsMetricDefinition("yoy_closed_years")!;
   const caveats: string[] = [];
 
-  pushCaveat(caveats, "Tutti i valori sono compensi per competenza, non incassi.");
+  pushCaveat(caveats, "Tutti i valori storici sono compensi per competenza (data lavoro), non incassi. La simulazione fiscale annuale usa invece il principio di cassa (data incasso).");
   pushCaveat(
     caveats,
     `${model.meta.currentYear} è trattato come YTD al ${model.meta.asOfDateLabel}.`,

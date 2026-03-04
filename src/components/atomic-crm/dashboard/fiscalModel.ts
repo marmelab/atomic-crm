@@ -10,7 +10,6 @@ import type {
 import {
   calculateKmReimbursement,
   calculateServiceNetValue,
-  calculateTaxableServiceNetValue,
 } from "@/lib/semantics/crmSemanticRegistry";
 import { buildDeadlines, toStartOfDay, diffDays } from "./fiscalDeadlines";
 import type {
@@ -154,16 +153,16 @@ export const buildFiscalModel = ({
     }
   }
 
-  // ── Revenue by category (current year) ────────────────────────────
+  // ── Operational revenue by category (competence basis) ────────────
+  // Used for margins, DSO, and operational health KPIs.
+  // NOT used for fiscal base — see cash-basis section below.
 
   const categoryRevenue = new Map<string, number>();
-  const taxableCategoryRevenue = new Map<string, number>();
   const categoryExpenses = new Map<string, number>();
   const clientRevenue = new Map<string, number>();
   const projectEarliestService = new Map<string, Date>();
   const clientEarliestFlatService = new Map<string, Date>();
   const defaultTaxProfile = fiscalConfig.taxProfiles[0];
-  let fatturatoTotaleYtd = 0;
 
   for (const service of services) {
     if (!service.service_date) continue;
@@ -175,23 +174,8 @@ export const buildFiscalModel = ({
       : null;
 
     const revenue = calculateServiceNetValue(service);
-    const taxableRevenue = calculateTaxableServiceNetValue(service);
-    fatturatoTotaleYtd += revenue;
 
     if (!project) {
-      const fallbackCategoryKey = defaultTaxProfile
-        ? `__flat_services_${defaultTaxProfile.atecoCode}`
-        : "__flat_services_unclassified";
-
-      if (defaultTaxProfile) {
-        categoryToProfile.set(fallbackCategoryKey, defaultTaxProfile);
-      }
-
-      taxableCategoryRevenue.set(
-        fallbackCategoryKey,
-        (taxableCategoryRevenue.get(fallbackCategoryKey) ?? 0) + taxableRevenue,
-      );
-
       if (service.client_id) {
         const clientId = String(service.client_id);
         clientRevenue.set(
@@ -203,7 +187,6 @@ export const buildFiscalModel = ({
           clientEarliestFlatService.set(clientId, date);
         }
       }
-
       continue;
     }
 
@@ -211,10 +194,6 @@ export const buildFiscalModel = ({
     categoryRevenue.set(
       category,
       (categoryRevenue.get(category) ?? 0) + revenue,
-    );
-    taxableCategoryRevenue.set(
-      category,
-      (taxableCategoryRevenue.get(category) ?? 0) + taxableRevenue,
     );
 
     const clientId = String(project.client_id);
@@ -225,6 +204,77 @@ export const buildFiscalModel = ({
     if (!existing || date < existing) {
       projectEarliestService.set(projectId, date);
     }
+  }
+
+  // ── Cash-basis fiscal revenue (current year) ────────────────────
+  // Regime forfettario: la base imponibile è la somma degli INCASSI
+  // effettivamente ricevuti nell'anno (principio di cassa), NON il
+  // fatturato emesso o i servizi erogati (principio di competenza).
+  // Rif. normativo: Art. 1 commi 54-89, L. 190/2014.
+
+  const taxableCashRevenue = new Map<string, number>();
+  let fatturatoTotaleYtd = 0;
+  const taxDefaults = fiscalConfig.taxabilityDefaults;
+
+  for (const payment of payments) {
+    if (payment.status !== "ricevuto") continue;
+    if (!payment.payment_date) continue;
+    const payDate = new Date(payment.payment_date);
+    if (Number.isNaN(payDate.valueOf()) || payDate.getFullYear() !== currentYear)
+      continue;
+
+    // Rimborsi al cliente riducono la base imponibile
+    const isRefund = payment.payment_type === "rimborso";
+    const amount = isRefund
+      ? -toNumber(payment.amount)
+      : toNumber(payment.amount);
+
+    fatturatoTotaleYtd += amount;
+
+    // Check non-taxable via config defaults
+    let isTaxable = true;
+    if (taxDefaults) {
+      if (
+        taxDefaults.nonTaxableClientIds?.includes(String(payment.client_id))
+      ) {
+        isTaxable = false;
+      } else if (payment.project_id) {
+        const proj = projectById.get(String(payment.project_id));
+        if (
+          proj &&
+          taxDefaults.nonTaxableCategories?.includes(proj.category)
+        ) {
+          isTaxable = false;
+        }
+      }
+    }
+
+    if (!isTaxable) continue;
+
+    // Map payment to ATECO category via project
+    const project = payment.project_id
+      ? projectById.get(String(payment.project_id))
+      : null;
+
+    if (!project) {
+      const fallbackKey = defaultTaxProfile
+        ? `__flat_payments_${defaultTaxProfile.atecoCode}`
+        : "__flat_payments_unclassified";
+      if (defaultTaxProfile) {
+        categoryToProfile.set(fallbackKey, defaultTaxProfile);
+      }
+      taxableCashRevenue.set(
+        fallbackKey,
+        (taxableCashRevenue.get(fallbackKey) ?? 0) + amount,
+      );
+      continue;
+    }
+
+    const category = project.category;
+    taxableCashRevenue.set(
+      category,
+      (taxableCashRevenue.get(category) ?? 0) + amount,
+    );
   }
 
   // ── Expenses by category (current year) ───────────────────────────
@@ -261,7 +311,7 @@ export const buildFiscalModel = ({
     { fatturato: number; redditoForfettario: number }
   >();
 
-  for (const [cat, revenue] of taxableCategoryRevenue) {
+  for (const [cat, revenue] of taxableCashRevenue) {
     fatturatoLordoYtd += revenue;
     const profile = categoryToProfile.get(cat);
     if (profile) {

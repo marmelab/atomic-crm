@@ -17,6 +17,13 @@
 
 ## ⚡ Auto-Triggers — Quando vedo queste situazioni, AGISCO diversamente
 
+### Trigger 0: Modello fiscale = CASSA, non competenza
+
+**Situazione**: Vedo calcolo base imponibile forfettaria
+**Azione automatica**: Verificare che usi `payments` (status=ricevuto, payment_date) e NON `services` (service_date)
+**Perché**: Regime forfettario = principio di cassa. Art. 1 commi 54-89, L. 190/2014. I servizi restano per metriche operative (margini, DSO, concentrazione).
+**Fonte**: Sessione 2026-03-04, fix in `fiscalModel.ts`
+
 ### Trigger 1: `useEffect` + `formState`
 **Situazione**: Vedo `formState` nelle dipendenze di un `useEffect`  
 **Azione automatica**: Rimuoverlo immediatamente, usare `getFieldState("field")` senza secondo parametro  

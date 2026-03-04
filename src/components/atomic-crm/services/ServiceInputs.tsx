@@ -132,7 +132,7 @@ const ServiceIdentityInputs = () => {
 
 const ServiceFeeInputs = () => {
   const { fiscalConfig } = useConfigurationContext();
-  const { setValue, getFieldState, formState } = useFormContext();
+  const { setValue, getFieldState } = useFormContext();
   const projectId = toIdString(useWatch({ name: "project_id" }));
   const clientId = toIdString(useWatch({ name: "client_id" }));
   const recordId = toIdString(useWatch({ name: "id" }));
@@ -155,7 +155,9 @@ const ServiceFeeInputs = () => {
       return;
     }
 
-    const isDirty = getFieldState("is_taxable", formState).isDirty;
+    // Use formState directly from getFieldState to avoid dependency cycles
+    // formState object changes reference on every render
+    const isDirty = getFieldState("is_taxable").isDirty;
     if (isDirty || currentIsTaxable === suggestedTaxable) {
       return;
     }
@@ -167,11 +169,10 @@ const ServiceFeeInputs = () => {
     });
   }, [
     currentIsTaxable,
-    formState,
-    getFieldState,
     recordId,
     setValue,
     suggestedTaxable,
+    // Intentionally NOT depending on formState/getFieldState to avoid cycles
   ]);
 
   return (
@@ -209,7 +210,7 @@ const ServiceFeeInputs = () => {
         source="is_taxable"
         label="Tassabile"
         defaultValue={suggestedTaxable}
-        helperText="Togli la spunta solo se questo servizio non deve entrare nella base fiscale."
+        helperText="Togli la spunta se gli incassi per questo servizio non devono entrare nella base fiscale."
       />
       <ServiceTotals />
     </div>

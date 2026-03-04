@@ -8,6 +8,36 @@ prodotto.
 
 Last updated: 2026-03-04
 
+## Update 2026-03-04 (c) — Realtime, Payment Reminders, Internal Notifications
+
+### Supabase Realtime
+
+Quando tocchi hook di data fetching nella dashboard, verificare:
+
+- `src/hooks/useRealtimeInvalidation.ts` (hook condiviso)
+- `DashboardAnnual.tsx` (REALTIME_TABLES constant + hook)
+- `DashboardHistorical.tsx` (REALTIME_TABLES + EXTRA_QUERY_KEYS + hook)
+
+### Payment reminder email
+
+Quando tocchi pagamenti, comunicazioni email o lo scadenzario, verificare:
+
+- `src/lib/communications/paymentReminderEmail.ts` (template builder)
+- `src/lib/communications/paymentReminderEmailTypes.ts` (tipi)
+- `src/components/atomic-crm/payments/SendPaymentReminderDialog.tsx` (dialog)
+- `src/components/atomic-crm/dashboard/DashboardDeadlineTracker.tsx` (pulsante)
+- `dataProviderCommunications.ts` (metodi getPaymentReminderContext, sendPaymentReminder)
+- `supabase/functions/payment_reminder_send/` (Edge Function)
+- `supabase/functions/_shared/paymentReminderSend.ts` (validazione)
+
+### Internal notifications
+
+Quando tocchi notifiche interne o CallMeBot, verificare:
+
+- `supabase/functions/_shared/internalNotifications.ts` (modulo shared)
+- env vars: `CALLMEBOT_PHONE`, `CALLMEBOT_APIKEY`, `SMTP_*`
+- `payment_reminder_send` (consumer del modulo)
+
 ## Update 2026-03-04 (b) — Kanban, Workflow
 
 ### Kanban progetti
@@ -80,7 +110,7 @@ Quando tocchi `is_taxable`, controllare in blocco:
 - form servizi/preventivi (`ServiceInputs`, `QuoteInputs`, `QuoteCreate`)
 - show/list di preventivi e pagamenti (`QuoteShow`, `QuoteCard`, `PaymentShow`)
 - semantica AI (`crmSemanticRegistry`, `unifiedCrmReadContext`)
-- modello fiscale dashboard (`fiscalModel`, `DashboardFiscalKpis`)
+- modello fiscale dashboard (`fiscalModel` — principio di cassa, `DashboardFiscalKpis`)
 - settings fiscali (`FiscalSettingsSection`)
 
 ### Bozza fattura interna
@@ -410,7 +440,7 @@ Controllare sempre:
 - card AI e non-AI collegate
 - modelli e hook dati:
   - `dashboardModel.ts` (+ `dashboardModelTypes.ts`, `dashboardFormatters.ts`)
-  - `fiscalModel.ts` (+ `fiscalModelTypes.ts`, `fiscalDeadlines.ts`)
+  - `fiscalModel.ts` (principio di cassa) (+ `fiscalModelTypes.ts`, `fiscalDeadlines.ts`)
   - `dashboardHistoryModel.ts`
   - `useDashboardData.ts`
   - `useHistoricalDashboardData.ts`

@@ -25,7 +25,7 @@ export const DashboardAtecoChart = ({
     return (
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">Fatturato per ATECO</CardTitle>
+          <CardTitle className="text-base">Incassato per ATECO</CardTitle>
           <p className="text-xs text-muted-foreground">Anno {year}</p>
         </CardHeader>
         <CardContent className="text-sm text-muted-foreground py-6 text-center">
@@ -37,14 +37,14 @@ export const DashboardAtecoChart = ({
 
   const chartData = data.map((point) => ({
     name: `${point.atecoCode} (${point.coefficiente}%)`,
-    Fatturato: Math.round(point.fatturato),
+    Incassato: Math.round(point.fatturato),
     "Reddito forfettario": Math.round(point.redditoForfettario),
   }));
 
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-base">Fatturato per ATECO</CardTitle>
+        <CardTitle className="text-base">Incassato per ATECO</CardTitle>
         <p className="text-xs text-muted-foreground">Anno {year}</p>
       </CardHeader>
       <CardContent>
