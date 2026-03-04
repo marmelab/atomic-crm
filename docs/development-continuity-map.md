@@ -36,7 +36,10 @@ CheckCircle/XCircle. I form Create/Edit hanno `MobilePageTitle`. Il form
 Inputs usa un dropdown "Quale stato" smart al posto del campo JSON grezzo per
 le condizioni di cambio stato. Le costanti visive (icone, colori) vivono in
 `workflowTypes.ts`. Il `MobilePageTitle` va sempre dentro un container con
-`px-4` per evitare che resti attaccato al margine sinistro.
+`px-4` per evitare che resti attaccato al margine sinistro. Su mobile il
+`TopToolbar` Crea e' nascosto (`hidden md:flex`) perche' le card includono
+gia' un bottone inline "Nuova automazione". Il flusso trigger→azione nella
+card e' verticale per evitare troncamenti su schermi stretti.
 
 ## Update 2026-03-04 — Mandatory Sweep Addendum
 

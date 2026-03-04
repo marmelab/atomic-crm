@@ -14,7 +14,7 @@ import { Switch } from "@/components/ui/switch";
 import { List } from "@/components/admin/list";
 import { CreateButton } from "@/components/admin/create-button";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { ChevronRight, ArrowRight, Plus, Zap } from "lucide-react";
+import { ArrowRight, Plus, Zap } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 import { MobilePageTitle } from "../layout/MobilePageTitle";
@@ -42,7 +42,7 @@ export const WorkflowList = () => (
 );
 
 const WorkflowListActions = () => (
-  <TopToolbar>
+  <TopToolbar className="hidden md:flex">
     <CreateButton />
   </TopToolbar>
 );
@@ -145,75 +145,73 @@ const WorkflowMobileCard = ({ workflow }: { workflow: Workflow }) => {
   );
 
   return (
-    <div
+    <Link
+      to={link}
       className={cn(
-        "rounded-xl border bg-card shadow-sm transition-colors",
+        "block rounded-xl border bg-card shadow-sm transition-colors",
         !workflow.is_active && "opacity-60",
       )}
     >
       {/* Header: Name + Toggle */}
-      <div className="flex items-center justify-between gap-3 px-4 pt-3.5 pb-2">
-        <Link
-          to={link}
-          className="flex-1 min-w-0 font-semibold text-sm truncate"
-        >
+      <div className="flex items-start justify-between gap-3 px-4 pt-3.5 pb-1">
+        <p className="font-semibold text-sm leading-snug">
           {workflow.name}
-        </Link>
-        <WorkflowToggle workflow={workflow} />
+        </p>
+        {/* Stop click from navigating when toggling */}
+        <div
+          onClick={(e) => e.preventDefault()}
+          onKeyDown={(e) => e.stopPropagation()}
+        >
+          <WorkflowToggle workflow={workflow} />
+        </div>
       </div>
 
-      {/* Visual flow: Trigger → Action */}
-      <Link to={link} className="block px-4 pb-3.5">
+      {/* Visual flow: vertical Trigger → Action */}
+      <div className="px-4 pb-3.5 space-y-2">
+        {/* Trigger row */}
         <div className="flex items-center gap-2.5">
-          {/* Trigger */}
-          <div className="flex items-center gap-2 flex-1 min-w-0">
-            <div
-              className={cn(
-                "shrink-0 rounded-lg p-1.5",
-                triggerColor,
-              )}
-            >
-              <TriggerIcon className="h-4 w-4" />
-            </div>
-            <div className="min-w-0 flex-1">
-              <p className="text-xs font-medium truncate">
-                {triggerResourceLabels[workflow.trigger_resource]}
-              </p>
-              <p className="text-[11px] text-muted-foreground truncate">
-                {triggerEventLabels[workflow.trigger_event]}
-                {conditionStr ? ` ${conditionStr}` : ""}
-              </p>
-            </div>
+          <div
+            className={cn("shrink-0 rounded-lg p-1.5", triggerColor)}
+          >
+            <TriggerIcon className="h-4 w-4" />
           </div>
-
-          {/* Arrow */}
-          <ArrowRight className="h-3.5 w-3.5 text-muted-foreground/50 shrink-0" />
-
-          {/* Action */}
-          <div className="flex items-center gap-2 flex-1 min-w-0">
-            <div className="shrink-0 rounded-lg p-1.5 bg-muted">
-              <ActionIcon className="h-4 w-4 text-muted-foreground" />
-            </div>
-            <div className="min-w-0 flex-1">
-              <p className="text-xs font-medium truncate">
-                {firstAction
-                  ? (actionTypeLabels[firstAction.type] ?? firstAction.type)
-                  : "Nessuna azione"}
-              </p>
-              {firstAction?.type === "create_task" &&
-                firstAction.data?.text && (
-                  <p className="text-[11px] text-muted-foreground truncate">
-                    {String(firstAction.data.text)}
-                  </p>
-                )}
-            </div>
-          </div>
-
-          {/* Chevron */}
-          <ChevronRight className="h-4 w-4 text-muted-foreground/40 shrink-0" />
+          <p className="text-xs text-muted-foreground">
+            <span className="font-medium text-foreground">
+              {triggerResourceLabels[workflow.trigger_resource]}
+            </span>
+            {" "}
+            {triggerEventLabels[workflow.trigger_event]?.toLowerCase()}
+            {conditionStr ? ` ${conditionStr}` : ""}
+          </p>
         </div>
-      </Link>
-    </div>
+
+        {/* Arrow */}
+        <div className="pl-3">
+          <ArrowRight className="h-3.5 w-3.5 text-muted-foreground/40 rotate-90" />
+        </div>
+
+        {/* Action row */}
+        <div className="flex items-center gap-2.5">
+          <div className="shrink-0 rounded-lg p-1.5 bg-muted">
+            <ActionIcon className="h-4 w-4 text-muted-foreground" />
+          </div>
+          <p className="text-xs text-muted-foreground">
+            <span className="font-medium text-foreground">
+              {firstAction
+                ? (actionTypeLabels[firstAction.type] ?? firstAction.type)
+                : "Nessuna azione"}
+            </span>
+            {firstAction?.type === "create_task" &&
+              firstAction.data?.text && (
+                <>
+                  {" — "}
+                  {String(firstAction.data.text)}
+                </>
+              )}
+          </p>
+        </div>
+      </div>
+    </Link>
   );
 };
 
