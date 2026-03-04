@@ -8,6 +8,17 @@ prodotto.
 
 Last updated: 2026-03-04
 
+## Update 2026-03-04 (h) — Client List Visual Enhancement
+
+### UI Client List Refactor
+
+- `src/components/atomic-crm/clients/ClientListContent.tsx`:
+  - Aggiunte icone colorate per ogni tipo cliente accanto al nome
+  - Icona in cerchio con colore di sfondo coerente con il tipo
+  - Badge tipo cliente con icona e colori migliorati
+  - Palette: Produzione TV (blu), Azienda Locale (verde), Wedding (rosa),
+    Evento (ambra), Web (viola)
+
 ## Update 2026-03-04 (g) — Header Fix: matchCurrentPath uses HEADER_ITEMS
 
 ### Bug Fix

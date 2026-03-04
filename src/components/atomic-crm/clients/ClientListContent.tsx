@@ -10,6 +10,17 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { useIsMobile } from "@/hooks/use-mobile";
+import type {
+  LucideIcon} from "lucide-react";
+import {
+  Building2,
+  Store,
+  Heart,
+  PartyPopper,
+  Globe,
+  User
+} from "lucide-react";
+import { cn } from "@/lib/utils";
 
 import type { Client } from "../types";
 import {
@@ -63,33 +74,40 @@ export const ClientListContent = () => {
             className="cursor-pointer hover:bg-muted/50"
           >
             <TableCell>
-              <div className="space-y-1.5">
-                <Link
-                  to={createPath({
-                    resource: "clients",
-                    type: "show",
-                    id: client.id,
-                  })}
-                  className="font-medium text-primary hover:underline"
-                >
-                  {client.name}
-                </Link>
-                {getClientDistinctBillingName(client) ? (
-                  <p className="text-xs text-muted-foreground">
-                    Fatturazione: {getClientDistinctBillingName(client)}
-                  </p>
-                ) : null}
-                <div className="flex flex-wrap gap-1">
-                  {getClientBillingIdentityLines(client).map((line) => (
-                    <Badge key={line} variant="outline" className="text-[11px]">
-                      {line}
-                    </Badge>
-                  ))}
-                  {client.billing_city ? (
-                    <Badge variant="outline" className="text-[11px]">
-                      {client.billing_city}
-                    </Badge>
+              <div className="flex items-start gap-3">
+                <ClientIconAvatar type={client.client_type} />
+                <div className="space-y-1.5 min-w-0">
+                  <Link
+                    to={createPath({
+                      resource: "clients",
+                      type: "show",
+                      id: client.id,
+                    })}
+                    className="font-medium text-primary hover:underline block"
+                  >
+                    {client.name}
+                  </Link>
+                  {getClientDistinctBillingName(client) ? (
+                    <p className="text-xs text-muted-foreground">
+                      Fatturazione: {getClientDistinctBillingName(client)}
+                    </p>
                   ) : null}
+                  <div className="flex flex-wrap gap-1">
+                    {getClientBillingIdentityLines(client).map((line) => (
+                      <Badge
+                        key={line}
+                        variant="outline"
+                        className="text-[11px]"
+                      >
+                        {line}
+                      </Badge>
+                    ))}
+                    {client.billing_city ? (
+                      <Badge variant="outline" className="text-[11px]">
+                        {client.billing_city}
+                      </Badge>
+                    ) : null}
+                  </div>
                 </div>
               </div>
             </TableCell>
@@ -138,20 +156,69 @@ const ClientMobileCard = ({
   </Link>
 );
 
-const clientTypeBadgeColors: Record<string, string> = {
-  produzione_tv:
-    "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200",
-  azienda_locale:
-    "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200",
-  privato_wedding:
-    "bg-pink-100 text-pink-800 dark:bg-pink-900 dark:text-pink-200",
-  privato_evento:
-    "bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200",
-  web: "bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200",
+const clientTypeConfig: Record<
+  string,
+  { icon: LucideIcon; color: string; bg: string }
+> = {
+  produzione_tv: {
+    icon: Building2,
+    color: "text-blue-600",
+    bg: "bg-blue-50 border-blue-200",
+  },
+  azienda_locale: {
+    icon: Store,
+    color: "text-green-600",
+    bg: "bg-green-50 border-green-200",
+  },
+  privato_wedding: {
+    icon: Heart,
+    color: "text-rose-600",
+    bg: "bg-rose-50 border-rose-200",
+  },
+  privato_evento: {
+    icon: PartyPopper,
+    color: "text-amber-600",
+    bg: "bg-amber-50 border-amber-200",
+  },
+  web: {
+    icon: Globe,
+    color: "text-violet-600",
+    bg: "bg-violet-50 border-violet-200",
+  },
 };
 
-export const ClientTypeBadge = ({ type }: { type: string }) => (
-  <Badge variant="outline" className={clientTypeBadgeColors[type] ?? ""}>
-    {clientTypeLabels[type] ?? type}
-  </Badge>
-);
+export const ClientTypeBadge = ({ type }: { type: string }) => {
+  const config = clientTypeConfig[type];
+  if (!config) {
+    return <Badge variant="outline">{clientTypeLabels[type] ?? type}</Badge>;
+  }
+  const Icon = config.icon;
+  return (
+    <Badge
+      variant="outline"
+      className={cn("inline-flex items-center gap-1.5 px-2 py-0.5", config.bg)}
+    >
+      <Icon className={cn("h-3 w-3", config.color)} />
+      <span className={config.color}>{clientTypeLabels[type] ?? type}</span>
+    </Badge>
+  );
+};
+
+/* ---- Client Icon Avatar ---- */
+const ClientIconAvatar = ({ type }: { type: string }) => {
+  const config = clientTypeConfig[type];
+  const Icon = config?.icon ?? User;
+  const colorClass = config?.color ?? "text-gray-500";
+  const bgClass = config?.bg ?? "bg-gray-50 border-gray-200";
+
+  return (
+    <div
+      className={cn(
+        "flex-shrink-0 w-10 h-10 rounded-lg border flex items-center justify-center",
+        bgClass,
+      )}
+    >
+      <Icon className={cn("h-5 w-5", colorClass)} />
+    </div>
+  );
+};

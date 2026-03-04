@@ -7,6 +7,16 @@
 nel contesto AI.
 
 Data: 2026-03-01
+Ultimo aggiornamento: 2026-03-04
+
+## UI Update — Lista Clienti con Icone Colorate
+
+La lista clienti (`ClientListContent`) è stata arricchita visivamente con:
+- Icone colorate per tipo cliente accanto al nome (cerchio con sfondo)
+- Badge tipo cliente con icona e colori coerenti
+- Tipi: Produzione TV (blu), Azienda Locale (verde), Wedding (rosa), 
+  Evento (ambra), Web (viola)
+- Scopo: migliorare la scanability visiva e la distinzione tra tipologie
 
 ## Decisione
 
