@@ -8,6 +8,12 @@ prodotto.
 
 Last updated: 2026-03-04
 
+## Update 2026-03-04 (d) — Expenses check constraint fix
+
+- Migration `20260304124801_fix_expenses_check_and_services_updated_at.sql`:
+  - corregge check constraint su `expenses` per permettere valori validi
+  - aggiunge trigger `updated_at` su tabella `services`
+
 ## Update 2026-03-04 (c) — Realtime, Payment Reminders, Internal Notifications
 
 ### Supabase Realtime

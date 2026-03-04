@@ -15,10 +15,24 @@ Questo file e' intenzionalmente complementare, non parallelo.
 - se c'e' conflitto:
   - vince `AGENTS.md`
 
-## Session Memory — LEGGERE SEMPRE PRIMA DI TUTTO
+## 🔥 Rituale di Inizio Sessione — ESEGUIRE SEMPRE
+
+**Questo blocco è un comando. Devo eseguirlo ALL'INIZIO di ogni sessione.**
+
+```
+LEGGI: .claude/learning.md
+↓
+APPLICA: Tutti i trigger attivi nella sezione "⚡ Auto-Triggers"
+↓
+RICORDA: Se scopro una nuova lezione, aggiorno learning.md PRIMA di chiudere
+```
+
+---
+
+## Session Memory — Leggere dopo il rituale
 
 Claude Code ha una directory di memoria persistente tra sessioni.
-All'inizio di ogni sessione, PRIMA di qualsiasi altra azione:
+Dopo il rituale di inizio sessione:
 
 1. Leggere `memory/MEMORY.md` (caricato automaticamente nel contesto)
 2. Se il task tocca un'area specifica, leggere i file tematici collegati:
@@ -27,7 +41,22 @@ All'inizio di ogni sessione, PRIMA di qualsiasi altra azione:
    - `memory/calendar-spot-research.md` — ricerca calendario spot/early
 3. NON ripetere lavoro gia' fatto: la memoria contiene decisioni, pattern e
    stato dei task in corso
-4. Se impari qualcosa di nuovo e stabile, aggiornare i file di memoria
+
+### Regola OBBLIGATORIA — Aggiornamento Learning Log
+
+**PRIMA di chiudere una sessione in cui ho imparato qualcosa di nuovo**:
+
+1. Aggiungere una entry a `.claude/learning.md` con:
+   - Data della sessione
+   - Categoria (Bug Pattern, Architettura, Workflow, etc.)
+   - Descrizione del problema/pattern
+   - Soluzione corretta (con code snippet)
+   - File coinvolti
+   - Come prevenirlo in futuro
+
+2. La entry deve essere aggiunta in cima al file, sotto la sessione più recente.
+
+**Questo mi costringe a diventare più intelligente ad ogni sessione.**
 
 ## Autonomia decisionale
 
