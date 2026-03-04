@@ -65,6 +65,9 @@ jobs:
 
             - name: 🔎 Test
               run: make test-ci
+              env:
+                  VITE_SUPABASE_URL: http://localhost:54321
+                  VITE_SB_PUBLISHABLE_KEY: dummy-key-for-ci
 
 
     build:
