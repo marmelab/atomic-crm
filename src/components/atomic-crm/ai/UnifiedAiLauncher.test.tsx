@@ -342,9 +342,7 @@ describe("UnifiedAiLauncher", () => {
 
     expect(await screen.findByText("Chat AI")).toBeInTheDocument();
     expect(
-      screen.getByRole("button", {
-        name: "Dammi un riepilogo operativo rapido del CRM.",
-      }),
+      screen.getByText("Dammi un riepilogo operativo rapido del CRM."),
     ).toBeInTheDocument();
     const composer = screen.getByTestId("unified-crm-composer");
     const composerMenuButton = within(composer).getByRole("button", {
@@ -440,9 +438,10 @@ describe("UnifiedAiLauncher", () => {
       screen.getByRole("button", { name: "Apri chat AI unificata" }),
     );
 
-    const suggestionButton = await screen.findByRole("button", {
-      name: "Dammi un riepilogo operativo rapido del CRM.",
-    });
+    const suggestionText = await screen.findByText(
+      "Dammi un riepilogo operativo rapido del CRM.",
+    );
+    const suggestionButton = suggestionText.closest("button")!;
 
     await waitFor(() => expect(suggestionButton).toBeEnabled());
 
@@ -615,9 +614,10 @@ describe("UnifiedAiLauncher", () => {
       screen.getByRole("button", { name: "Apri chat AI unificata" }),
     );
 
-    const firstSuggestion = await screen.findByRole("button", {
-      name: "Dammi un riepilogo operativo rapido del CRM.",
-    });
+    const firstSuggestionText = await screen.findByText(
+      "Dammi un riepilogo operativo rapido del CRM.",
+    );
+    const firstSuggestion = firstSuggestionText.closest("button")!;
     await waitFor(() => expect(firstSuggestion).toBeEnabled());
 
     fireEvent.click(firstSuggestion);
@@ -655,9 +655,7 @@ describe("UnifiedAiLauncher", () => {
 
     expect(screen.queryByTestId("unified-crm-answer")).not.toBeInTheDocument();
     expect(
-      screen.getByRole("button", {
-        name: "Dammi un riepilogo operativo rapido del CRM.",
-      }),
+      screen.getByText("Dammi un riepilogo operativo rapido del CRM."),
     ).toBeInTheDocument();
   });
 

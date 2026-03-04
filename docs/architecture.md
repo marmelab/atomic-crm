@@ -39,6 +39,10 @@ Aggiunto bottone copia (icona Copy) nell'header della chat AI, a sinistra del
 bottone "Nuova". Copia l'intero `answerMarkdown` negli appunti con feedback
 visivo (icona Check per 2 secondi). Visibile solo quando c'è una risposta.
 
+Test aggiornati: le suggestion card ora includono un titolo categoria inline,
+quindi i test usano `findByText` + `.closest("button")` invece di
+`getByRole("button", { name })` per selezionare una suggestion.
+
 ## Update 2026-03-04 (i) — Rotating Suggestion Cards in AI Chat
 
 L'empty state della chat AI ora mostra 8 card suggerimento divise per categoria
