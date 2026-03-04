@@ -1,10 +1,19 @@
-import { ShowBase, useGetList, useGetOne, useShowContext } from "ra-core";
+import {
+  ShowBase,
+  useGetList,
+  useGetOne,
+  useRecordContext,
+  useResourceContext,
+  useShowContext,
+  useCreatePath,
+} from "ra-core";
 import { Badge } from "@/components/ui/badge";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { EditButton } from "@/components/admin/edit-button";
 import { DeleteButton } from "@/components/admin/delete-button";
-import { Calendar, User, FileText } from "lucide-react";
+import { Calendar, CheckCircle, Mail, User, FileText } from "lucide-react";
 import { Link } from "react-router";
 import { useIsMobile } from "@/hooks/use-mobile";
 
@@ -13,6 +22,7 @@ import { PaymentStatusBadge } from "./PaymentListContent";
 import { paymentTypeLabels } from "./paymentTypes";
 import { ErrorMessage } from "../misc/ErrorMessage";
 import { MobileBackButton } from "../misc/MobileBackButton";
+import { SendPaymentReminderDialog } from "./SendPaymentReminderDialog";
 import { isPaymentTaxable } from "@/lib/semantics/crmSemanticRegistry";
 
 const eur = (n: number) =>
@@ -23,6 +33,50 @@ export const PaymentShow = () => (
     <PaymentShowContent />
   </ShowBase>
 );
+
+const PaymentActions = ({
+  record,
+  notReceived,
+}: {
+  record: Payment;
+  notReceived: boolean;
+}) => {
+  const resource = useResourceContext();
+  const rec = useRecordContext();
+  const createPath = useCreatePath();
+  const editLink = createPath({
+    resource,
+    type: "edit",
+    id: rec?.id,
+  });
+
+  return (
+    <div className="flex flex-wrap gap-2">
+      {notReceived && (
+        <>
+          <Link
+            className={buttonVariants({ variant: "default" })}
+            to={editLink}
+          >
+            <CheckCircle />
+            Registra pagamento
+          </Link>
+          <SendPaymentReminderDialog
+            paymentId={record.id}
+            trigger={
+              <Button size="sm" variant="outline" className="gap-2">
+                <Mail className="size-4" />
+                Invia sollecito
+              </Button>
+            }
+          />
+        </>
+      )}
+      <EditButton />
+      <DeleteButton redirect="list" />
+    </div>
+  );
+};
 
 const PaymentShowContent = () => {
   const { record, isPending, error } = useShowContext<Payment>();
@@ -70,6 +124,8 @@ const PaymentShowContent = () => {
     projectServices: projectServices ?? [],
     quote,
   });
+
+  const notReceived = record.status !== "ricevuto";
 
   return (
     <div className="mt-4 mb-28 md:mb-2 flex flex-col md:flex-row gap-4 md:gap-8 px-4 md:px-0">
@@ -136,10 +192,10 @@ const PaymentShowContent = () => {
                   )}
                 </div>
               </div>
-              <div className="flex gap-2">
-                <EditButton />
-                <DeleteButton redirect="list" />
-              </div>
+              <PaymentActions
+                record={record}
+                notReceived={notReceived}
+              />
             </div>
             {record.notes && (
               <>

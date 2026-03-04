@@ -96,10 +96,16 @@ Quando tocchi pagamenti, comunicazioni email o lo scadenzario, verificare:
 - `src/lib/communications/paymentReminderEmail.ts` (template builder)
 - `src/lib/communications/paymentReminderEmailTypes.ts` (tipi)
 - `src/components/atomic-crm/payments/SendPaymentReminderDialog.tsx` (dialog)
+- `src/components/atomic-crm/payments/PaymentShow.tsx` (bottoni "Registra pagamento" e "Invia sollecito")
 - `src/components/atomic-crm/dashboard/DashboardDeadlineTracker.tsx` (pulsante)
 - `dataProviderCommunications.ts` (metodi getPaymentReminderContext, sendPaymentReminder)
 - `supabase/functions/payment_reminder_send/` (Edge Function)
 - `supabase/functions/_shared/paymentReminderSend.ts` (validazione)
+
+`PaymentShow` mostra due azioni extra quando status != `ricevuto`:
+
+- **Registra pagamento** (link a Edit, variant primary)
+- **Invia sollecito** (apre `SendPaymentReminderDialog`)
 
 ### Internal notifications
 
