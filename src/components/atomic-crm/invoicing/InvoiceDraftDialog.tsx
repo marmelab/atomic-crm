@@ -21,6 +21,7 @@ import {
   formatClientBillingAddress,
   getClientBillingDisplayName,
 } from "../clients/clientBilling";
+import { useConfigurationContext } from "../root/ConfigurationContext";
 
 const formatAmount = (value: number) =>
   value.toLocaleString("it-IT", {
@@ -40,6 +41,7 @@ export const InvoiceDraftDialog = ({
   onOpenChange: (open: boolean) => void;
   draft: InvoiceDraftInput | null;
 }) => {
+  const { businessProfile } = useConfigurationContext();
   const [isDownloading, setIsDownloading] = useState(false);
 
   const lineItems = useMemo(
@@ -165,7 +167,10 @@ export const InvoiceDraftDialog = ({
             onClick={async () => {
               setIsDownloading(true);
               try {
-                await downloadInvoiceDraftPdf({ draft });
+                await downloadInvoiceDraftPdf({
+                  draft,
+                  issuer: businessProfile,
+                });
               } finally {
                 setIsDownloading(false);
               }

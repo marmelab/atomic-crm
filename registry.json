@@ -764,11 +764,19 @@
           "type": "registry:component"
         },
         {
+          "path": "src/components/atomic-crm/dashboard/dashboardModelTypes.ts",
+          "type": "registry:component"
+        },
+        {
           "path": "src/components/atomic-crm/dashboard/dashboardModel.ts",
           "type": "registry:component"
         },
         {
           "path": "src/components/atomic-crm/dashboard/dashboardHistoryModel.ts",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/dashboard/dashboardFormatters.ts",
           "type": "registry:component"
         },
         {

@@ -9,7 +9,7 @@ import {
 } from "@react-pdf/renderer";
 import { format, isValid } from "date-fns";
 import { it } from "date-fns/locale";
-import type { Quote, Client, QuoteItem } from "../types";
+import type { BusinessProfile, Quote, Client, QuoteItem } from "../types";
 import {
   formatClientBillingAddress,
   getClientBillingDisplayName,
@@ -18,17 +18,7 @@ import {
 import { formatDateLong } from "../misc/formatDateRange";
 import { getQuoteItemLineTotal, sanitizeQuoteItems } from "./quoteItems";
 
-// ── Business info (customize here) ────────────────────────────────
 const LOGO_URL = "/logos/logo_rosario_furnari.png";
-
-const BUSINESS = {
-  name: "Rosario Furnari",
-  tagline: "Videomaker · Fotografo · Web Developer",
-  address: "Catania, Italia",
-  email: "rosariodavide.furnari@gmail.com",
-  phone: "",
-  piva: "",
-} as const;
 
 // ── Styles ────────────────────────────────────────────────────────
 const colors = {
@@ -231,6 +221,7 @@ interface QuotePDFProps {
   serviceLabel: string;
   statusLabel: string;
   quoteItems?: QuoteItem[];
+  businessProfile: BusinessProfile;
 }
 
 const QuotePDFDocument = ({
@@ -238,6 +229,7 @@ const QuotePDFDocument = ({
   client,
   serviceLabel,
   statusLabel,
+  businessProfile,
 }: QuotePDFProps) => (
   <Document>
     <Page size="A4" style={styles.page}>
@@ -246,16 +238,16 @@ const QuotePDFDocument = ({
         <View style={styles.headerLeft}>
           <Image style={styles.logo} src={LOGO_URL} />
           <View>
-            <Text style={styles.brandName}>{BUSINESS.name}</Text>
-            <Text style={styles.brandTagline}>{BUSINESS.tagline}</Text>
-            {BUSINESS.address && (
-              <Text style={styles.brandDetail}>{BUSINESS.address}</Text>
+            <Text style={styles.brandName}>{businessProfile.name}</Text>
+            <Text style={styles.brandTagline}>{businessProfile.tagline}</Text>
+            {businessProfile.address && (
+              <Text style={styles.brandDetail}>{businessProfile.address}</Text>
             )}
-            {BUSINESS.email && (
-              <Text style={styles.brandDetail}>{BUSINESS.email}</Text>
+            {businessProfile.email && (
+              <Text style={styles.brandDetail}>{businessProfile.email}</Text>
             )}
-            {BUSINESS.phone && (
-              <Text style={styles.brandDetail}>{BUSINESS.phone}</Text>
+            {businessProfile.phone && (
+              <Text style={styles.brandDetail}>{businessProfile.phone}</Text>
             )}
           </View>
         </View>
@@ -382,10 +374,17 @@ const QuotePDFDocument = ({
       <View style={styles.footer}>
         <View style={styles.footerDivider} />
         <Text style={styles.footerText}>
-          {BUSINESS.name}
-          {BUSINESS.piva ? ` · P.IVA ${BUSINESS.piva}` : ""}
-          {BUSINESS.address ? ` · ${BUSINESS.address}` : ""}
-          {BUSINESS.email ? ` · ${BUSINESS.email}` : ""}
+          {businessProfile.name}
+          {businessProfile.vatNumber
+            ? ` · P.IVA ${businessProfile.vatNumber}`
+            : ""}
+          {businessProfile.fiscalCode
+            ? ` · CF ${businessProfile.fiscalCode}`
+            : ""}
+          {businessProfile.address
+            ? ` · ${businessProfile.address}`
+            : ""}
+          {businessProfile.email ? ` · ${businessProfile.email}` : ""}
         </Text>
       </View>
     </Page>

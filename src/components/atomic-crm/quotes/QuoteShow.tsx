@@ -65,7 +65,7 @@ export const QuoteShow = ({ open, id }: { open: boolean; id?: string }) => {
 const QuoteShowContent = () => {
   const record = useRecordContext<Quote>();
   const location = useLocation();
-  const { quoteServiceTypes } = useConfigurationContext();
+  const { quoteServiceTypes, businessProfile } = useConfigurationContext();
   const [pdfLoading, setPdfLoading] = useState(false);
   const [invoiceDraftOpen, setInvoiceDraftOpen] = useState(false);
 
@@ -133,6 +133,7 @@ const QuoteShowContent = () => {
         serviceLabel,
         statusLabel,
         quoteItems,
+        businessProfile,
       });
     } finally {
       setPdfLoading(false);

@@ -385,6 +385,9 @@ acconto_ricevuto → in_lavorazione → completato → saldato → rifiutato / p
 - `aiConfig.historicalAnalysisModel`: modello condiviso per Storico, Annuale e
   chat AI unificata read-only
 - `aiConfig.invoiceExtractionModel`: modello dedicato all'import documenti
+- `businessProfile.*`: dati emittente (nome, P.IVA, CF, indirizzo, email,
+  telefono, tagline) usati nei PDF di preventivi e bozze fattura interna;
+  editabili da Settings > Profilo Aziendale
 
 ### Views
 

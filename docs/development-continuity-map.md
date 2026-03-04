@@ -63,14 +63,15 @@ Quando tocchi la bozza fattura, controllare sempre:
 
 Invarianti semantici (non violare):
 
-- i builder deducono solo pagamenti con `status === "ricevuto"`
-- i rimborsi (`payment_type === "rimborso"`) hanno segno invertito
+- il builder da **preventivo** (`buildInvoiceDraftFromQuote`) sottrae i
+  pagamenti ricevuti collegati al preventivo — corretto perche' copre la
+  differenza residua dello stesso oggetto commerciale
+- il builder da **cliente** (`buildInvoiceDraftFromClient`) **non** sottrae
+  pagamenti: elenca solo servizi senza `invoice_ref` con i loro importi;
+  i pagamenti ricevuti coprono fatture gia' emesse e non vanno nettati qui
 - servizi con `invoice_ref` valorizzato vengono esclusi dal calcolo
-- se `collectableAmount <= 0` il builder restituisce `lineItems: []`
 - `hasInvoiceDraftCollectableAmount()` e' il check unificato usato dalle Show
   page per decidere se mostrare il pulsante e passare il draft al dialog
-- ogni Show page carica i pagamenti con `useGetList<Payment>` e li passa al
-  builder — non si basa piu' sul default `payments = []`
 - il calcolo km usa `calculateKmReimbursement()` con `defaultKmRate` dalla
   config; ogni Show page e `ClientFinancialSummary` leggono
   `operationalConfig.defaultKmRate` da `useConfigurationContext()` e lo passano
@@ -87,6 +88,10 @@ Invarianti semantici (non violare):
   trovare l'entita' specifica menzionata dall'utente e generare href mirati
 - le suggestedActions fattura mostrano TUTTE le superfici disponibili
   (preventivo, progetto, cliente) come opzioni separate, non cascata singola
+
+- i PDF (bozza fattura e preventivo) usano `businessProfile` dalla
+  configurazione — non costanti hardcoded; `InvoiceDraftDialog` passa
+  `businessProfile` come `issuer`, `QuoteShow` lo passa a `downloadQuotePDF`
 
 Nota: il flusso bozza fattura e' client-side e non deve introdurre scritture DB.
 

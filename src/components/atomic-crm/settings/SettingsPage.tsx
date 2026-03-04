@@ -17,10 +17,12 @@ import {
 } from "../root/ConfigurationContext";
 import { defaultConfiguration } from "../root/defaultConfiguration";
 import { AISettingsSection } from "./AISettingsSection";
+import { BusinessProfileSettingsSection } from "./BusinessProfileSettingsSection";
 import { FiscalSettingsSection } from "./FiscalSettingsSection";
 import { TagsSettingsSection } from "./TagsSettingsSection";
 
 const SECTIONS = [
+  { id: "profilo-aziendale", label: "Profilo Aziendale" },
   { id: "branding", label: "Marchio" },
   { id: "tags", label: "Etichette" },
   { id: "quote-types", label: "Tipi preventivo" },
@@ -48,6 +50,7 @@ const transformFormValues = (data: Record<string, any>) => ({
     },
     fiscalConfig: data.fiscalConfig,
     aiConfig: data.aiConfig,
+    businessProfile: data.businessProfile,
   } as ConfigurationContextValue,
 });
 
@@ -111,6 +114,7 @@ const SettingsForm = () => {
       operationalConfig: config.operationalConfig,
       fiscalConfig: config.fiscalConfig,
       aiConfig: config.aiConfig,
+      businessProfile: config.businessProfile,
     }),
     [config],
   );
@@ -153,6 +157,16 @@ const SettingsFormFields = () => {
 
       {/* Main content */}
       <div className="flex-1 min-w-0 max-w-2xl space-y-6">
+        {/* Business Profile */}
+        <Card id="profilo-aziendale">
+          <CardContent className="space-y-4">
+            <h2 className="text-xl font-semibold text-muted-foreground">
+              Profilo Aziendale
+            </h2>
+            <BusinessProfileSettingsSection />
+          </CardContent>
+        </Card>
+
         {/* Branding */}
         <Card id="branding">
           <CardContent className="space-y-4">
