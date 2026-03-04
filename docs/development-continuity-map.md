@@ -127,8 +127,19 @@ Quando tocchi il modulo workflow o le risorse trigger-abili, verificare:
 - `src/components/atomic-crm/workflows/` (List, Create, Edit, Show, engine)
 - `moduleRegistry.ts` (registrazione `workflows` e `workflow_executions`)
 - `dataProvider.ts` (lifecycle callbacks `buildWorkflowCallbacks`)
-- `types.ts` (Workflow, WorkflowExecution)
+- `dataProviderCommunications.ts` (`executeWorkflowNotify`)
+- `types.ts` (Workflow, WorkflowExecution, WorkflowActionType)
+- `src/lib/communications/workflowNotifyTypes.ts` (payload/response client-side)
+- `supabase/functions/workflow_notify/` (Edge Function)
+- `supabase/functions/_shared/workflowNotifyTypes.ts` (validazione server-side)
+- `supabase/functions/_shared/workflowTemplatePlaceholders.ts` (risoluzione placeholder)
 - migration `20260304140000_workflow_automation.sql`
+
+**Invarianti:**
+
+- `send_email` e `send_notification` passano per Edge Function `workflow_notify`
+- i placeholder sono risolti server-side, non nel client
+- `send_notification` usa `notifyOwner()` (email + WhatsApp best-effort)
 
 **UX mobile (2026-03-04):** La lista mobile usa card con icone colorate per
 risorsa trigger, flusso visivo trigger→azione, Switch toggle inline. La Show
@@ -140,7 +151,9 @@ le condizioni di cambio stato. Le costanti visive (icone, colori) vivono in
 `px-4` per evitare che resti attaccato al margine sinistro. Il `TopToolbar`
 ha `px-4 md:px-0` per allineare il bottone Crea ai margini del contenuto su
 mobile. Il flusso trigger→azione nella card e' verticale per evitare
-troncamenti su schermi stretti.
+troncamenti su schermi stretti. I bottoni azione (Attiva/Modifica/Elimina)
+sono allineati a destra; su mobile Modifica e Elimina mostrano solo icona
+(`size="icon"`), Attiva/Disattiva mantiene il testo per esteso.
 
 ## Update 2026-03-04 — Mandatory Sweep Addendum
 

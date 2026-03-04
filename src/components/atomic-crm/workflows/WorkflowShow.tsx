@@ -218,6 +218,7 @@ const WorkflowActions = ({ record }: { record: Workflow }) => {
   const [update] = useUpdate();
   const [deleteOne] = useDelete();
   const navigate = useNavigate();
+  const isMobile = useIsMobile();
 
   const toggleActive = () => {
     update("workflows", {
@@ -234,7 +235,7 @@ const WorkflowActions = ({ record }: { record: Workflow }) => {
   };
 
   return (
-    <div className="flex gap-2 flex-wrap">
+    <div className="flex gap-2 flex-wrap justify-end">
       <Button variant="outline" size="sm" onClick={toggleActive}>
         {record.is_active ? (
           <>
@@ -246,13 +247,19 @@ const WorkflowActions = ({ record }: { record: Workflow }) => {
           </>
         )}
       </Button>
-      <Button variant="outline" size="sm" asChild>
+      <Button variant="outline" size={isMobile ? "icon" : "sm"} asChild>
         <Link to={`/workflows/${record.id}`}>
-          <Edit className="h-4 w-4 mr-1" /> Modifica
+          <Edit className="h-4 w-4" />
+          {!isMobile && <span className="ml-1">Modifica</span>}
         </Link>
       </Button>
-      <Button variant="destructive" size="sm" onClick={handleDelete}>
-        <Trash2 className="h-4 w-4 mr-1" /> Elimina
+      <Button
+        variant="destructive"
+        size={isMobile ? "icon" : "sm"}
+        onClick={handleDelete}
+      >
+        <Trash2 className="h-4 w-4" />
+        {!isMobile && <span className="ml-1">Elimina</span>}
       </Button>
     </div>
   );
