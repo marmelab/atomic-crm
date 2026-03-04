@@ -152,6 +152,10 @@
           "type": "registry:component"
         },
         {
+          "path": "src/components/atomic-crm/settings/BusinessProfileSettingsSection.tsx",
+          "type": "registry:component"
+        },
+        {
           "path": "src/components/atomic-crm/settings/AISettingsSection.tsx",
           "type": "registry:component"
         },
@@ -316,11 +320,47 @@
           "type": "registry:component"
         },
         {
+          "path": "src/components/atomic-crm/providers/supabase/storageBucket.ts",
+          "type": "registry:component"
+        },
+        {
           "path": "src/components/atomic-crm/providers/supabase/index.ts",
           "type": "registry:component"
         },
         {
           "path": "src/components/atomic-crm/providers/supabase/edgeFunctions.ts",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/providers/supabase/edgeFunctionError.ts",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/providers/supabase/dataProviderTypes.ts",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/providers/supabase/dataProviderTravel.ts",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/providers/supabase/dataProviderInvoiceImport.ts",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/providers/supabase/dataProviderCommunications.ts",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/providers/supabase/dataProviderAnalyticsContext.ts",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/providers/supabase/dataProviderAnalytics.ts",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/providers/supabase/dataProviderAi.ts",
           "type": "registry:component"
         },
         {

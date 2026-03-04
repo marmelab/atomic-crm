@@ -1,4 +1,9 @@
-import type { AIConfig, FiscalConfig, OperationalConfig } from "../types";
+import type {
+  AIConfig,
+  BusinessProfile,
+  FiscalConfig,
+  OperationalConfig,
+} from "../types";
 import type { ConfigurationContextValue } from "./ConfigurationContext";
 import { defaultHistoricalAnalysisModel } from "@/lib/analytics/historicalAnalysis";
 import { defaultInvoiceExtractionModel } from "@/lib/ai/invoiceExtractionModel";
@@ -139,6 +144,16 @@ export const defaultOperationalConfig: OperationalConfig = {
   defaultKmRate: 0.19,
 };
 
+export const defaultBusinessProfile: BusinessProfile = {
+  name: "Rosario Furnari",
+  tagline: "Videomaker · Fotografo · Web Developer",
+  vatNumber: "01309870861",
+  fiscalCode: "FRNRRD87A11G580E",
+  address: "Via Calabria 13, 94019 Valguarnera Caropepe EN",
+  email: "rosariodavide.furnari@gmail.com",
+  phone: "3286183554",
+};
+
 export const defaultConfiguration: ConfigurationContextValue = {
   noteStatuses: defaultNoteStatuses,
   taskTypes: defaultTaskTypes,
@@ -150,4 +165,5 @@ export const defaultConfiguration: ConfigurationContextValue = {
   fiscalConfig: defaultFiscalConfig,
   aiConfig: defaultAIConfig,
   operationalConfig: defaultOperationalConfig,
+  businessProfile: defaultBusinessProfile,
 };

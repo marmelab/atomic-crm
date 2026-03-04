@@ -127,20 +127,34 @@ export const DashboardHistoricalCategoryMixChart = ({
   );
 };
 
-const HistoricalCategoryMixTooltip = ({ active, payload, label }: any) => {
+interface RechartsPayloadEntry {
+  dataKey: string;
+  name: string;
+  value: number;
+  payload: HistoricalCategoryMixPoint & Record<string, number>;
+}
+
+const HistoricalCategoryMixTooltip = ({
+  active,
+  payload,
+  label,
+}: {
+  active?: boolean;
+  payload?: RechartsPayloadEntry[];
+  label?: string;
+}) => {
   if (!active || !payload?.length) return null;
-  const point = payload[0]?.payload as HistoricalCategoryMixPoint &
-    Record<string, number>;
+  const point = payload[0]?.payload;
 
   const rows = payload
-    .filter((item: any) => (item?.value as number) > 0)
-    .sort((a: any, b: any) => (b?.value as number) - (a?.value as number));
+    .filter((item) => item.value > 0)
+    .sort((a, b) => b.value - a.value);
 
   return (
     <div className="rounded-lg border bg-background px-3 py-2 shadow-sm min-w-[220px]">
       <p className="text-xs text-muted-foreground mb-2">{label}</p>
       <div className="space-y-1.5">
-        {rows.map((item: any) => (
+        {rows.map((item) => (
           <div
             key={item.dataKey}
             className="flex items-center justify-between gap-3 text-xs"

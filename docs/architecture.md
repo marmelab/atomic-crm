@@ -398,6 +398,29 @@ PK esplicite nel dataProvider:
 - `monthly_revenue` → PK composita `month + category`
 - `project_financials` → PK `project_id`
 
+### Struttura modulare del dataProvider Supabase
+
+Il provider Supabase e' organizzato in moduli feature nel path
+`src/components/atomic-crm/providers/supabase/`:
+
+| File | Responsabilita' |
+|------|-----------------|
+| `dataProvider.ts` | Orchestratore: setup, env, auth/sales/config, assembly moduli, lifecycle callbacks |
+| `dataProviderAnalytics.ts` | 9 metodi analytics (summary, answer, context getters) |
+| `dataProviderAnalyticsContext.ts` | 3 context builder per storico, cash inflow, annuale |
+| `dataProviderAi.ts` | CRM read context, semantic registry, domanda unificata |
+| `dataProviderInvoiceImport.ts` | Workspace, upload file, genera/conferma draft import |
+| `dataProviderCommunications.ts` | Email context preventivo, invio email |
+| `dataProviderTravel.ts` | Stima tratta, suggerisci luoghi |
+| `dataProviderTypes.ts` | Tipi condivisi: InvokeEdgeFunction, BaseProvider, LARGE_PAGE |
+| `storageBucket.ts` | Upload attachments, logo config, file import fatture |
+| `edgeFunctionError.ts` | Helper estrazione errore da Edge Function |
+
+Ogni modulo feature esporta una factory `buildXxxProviderMethods(deps)` che
+riceve le dipendenze condivise (baseDataProvider, invokeEdgeFunction, config
+getters). L'orchestratore assembla tutto con object spread e il tipo
+`CrmDataProvider` resta invariato per i consumer.
+
 Semantica operativa attuale di `project_financials`:
 
 - `payment_semantics_basis = financial_foundation`

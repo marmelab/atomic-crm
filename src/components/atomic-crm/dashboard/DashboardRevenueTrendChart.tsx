@@ -21,7 +21,7 @@ export const DashboardRevenueTrendChart = ({
   data,
   meta,
   qualityFlags,
-  year,
+  year: _year,
   isCurrentYear,
 }: {
   data: RevenueTrendPoint[];
@@ -89,9 +89,17 @@ export const DashboardRevenueTrendChart = ({
   </Card>
 );
 
-const RevenueTooltip = ({ active, payload, label }: any) => {
+const RevenueTooltip = ({
+  active,
+  payload,
+  label,
+}: {
+  active?: boolean;
+  payload?: Array<{ payload: RevenueTrendPoint }>;
+  label?: string;
+}) => {
   if (!active || !payload?.length) return null;
-  const point = payload[0]?.payload as RevenueTrendPoint;
+  const point = payload[0]?.payload;
 
   return (
     <div className="rounded-lg border bg-background px-3 py-2 shadow-sm">

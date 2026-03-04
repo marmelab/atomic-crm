@@ -93,9 +93,15 @@ export const DashboardPipelineCard = ({
   );
 };
 
-const PipelineTooltip = ({ active, payload }: any) => {
+const PipelineTooltip = ({
+  active,
+  payload,
+}: {
+  active?: boolean;
+  payload?: Array<{ payload: QuotePipelinePoint }>;
+}) => {
   if (!active || !payload?.length) return null;
-  const item = payload[0]?.payload as QuotePipelinePoint;
+  const item = payload[0]?.payload;
 
   return (
     <div className="rounded-lg border bg-background px-3 py-2 shadow-sm">

@@ -388,3 +388,13 @@ export interface AIConfig {
 export interface OperationalConfig {
   defaultKmRate: number;
 }
+
+export interface BusinessProfile {
+  name: string;
+  tagline: string;
+  vatNumber: string;
+  fiscalCode: string;
+  address: string;
+  email: string;
+  phone: string;
+}

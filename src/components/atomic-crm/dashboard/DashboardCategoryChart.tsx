@@ -22,7 +22,7 @@ const colors = ["#0ea5e9", "#14b8a6", "#f59e0b", "#ef4444", "#8b5cf6"];
 export const DashboardCategoryChart = ({
   data,
   meta,
-  year,
+  year: _year,
 }: {
   data: CategoryBreakdownPoint[];
   meta: DashboardMeta;
@@ -87,9 +87,15 @@ export const DashboardCategoryChart = ({
   </Card>
 );
 
-const CategoryTooltip = ({ active, payload }: any) => {
+const CategoryTooltip = ({
+  active,
+  payload,
+}: {
+  active?: boolean;
+  payload?: Array<{ payload: CategoryBreakdownPoint }>;
+}) => {
   if (!active || !payload?.length) return null;
-  const item = payload[0]?.payload as CategoryBreakdownPoint;
+  const item = payload[0]?.payload;
 
   return (
     <div className="rounded-lg border bg-background px-3 py-2 shadow-sm">

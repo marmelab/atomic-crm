@@ -3,6 +3,7 @@ import { useStore } from "ra-core";
 
 import type {
   AIConfig,
+  BusinessProfile,
   FiscalConfig,
   LabeledValue,
   NoteStatus,
@@ -25,12 +26,14 @@ export interface ConfigurationContextValue {
   fiscalConfig?: FiscalConfig;
   aiConfig?: AIConfig;
   operationalConfig?: OperationalConfig;
+  businessProfile?: BusinessProfile;
 }
 
 type PartialConfigurationContextValue = Partial<ConfigurationContextValue> & {
   fiscalConfig?: Partial<FiscalConfig>;
   aiConfig?: Partial<AIConfig>;
   operationalConfig?: Partial<OperationalConfig>;
+  businessProfile?: Partial<BusinessProfile>;
 };
 
 export const mergeConfigurationWithDefaults = (
@@ -53,6 +56,10 @@ export const mergeConfigurationWithDefaults = (
   operationalConfig: {
     ...defaultConfiguration.operationalConfig,
     ...config?.operationalConfig,
+  },
+  businessProfile: {
+    ...defaultConfiguration.businessProfile,
+    ...config?.businessProfile,
   },
 });
 

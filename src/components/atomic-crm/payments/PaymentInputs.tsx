@@ -232,6 +232,7 @@ const PaymentDetailInputs = () => (
       label="Stato"
       choices={paymentStatusChoices}
       defaultValue="in_attesa"
+      validate={required()}
       helperText={false}
     />
     <TextInput source="notes" label="Note" multiline helperText={false} />

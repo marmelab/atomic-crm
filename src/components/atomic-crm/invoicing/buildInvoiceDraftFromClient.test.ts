@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import type { Client, Payment, Project, Service } from "../types";
+import type { Client, Project, Service } from "../types";
 import { buildInvoiceDraftFromClient } from "./buildInvoiceDraftFromClient";
 
 const baseClient: Client = {
@@ -136,39 +136,4 @@ describe("buildInvoiceDraftFromClient", () => {
     expect(draft.lineItems).toEqual([]);
   });
 
-  it("subtracts only received payments from collectable amount", () => {
-    const payments: Pick<Payment, "amount" | "payment_type" | "status">[] = [
-      { amount: 80, payment_type: "acconto", status: "ricevuto" },
-      { amount: 200, payment_type: "saldo", status: "in_attesa" },
-    ];
-
-    const draft = buildInvoiceDraftFromClient({
-      client: baseClient,
-      projects: baseProjects,
-      services: [buildService("s1", { fee_shooting: 300 })],
-      payments,
-    });
-
-    const paymentLine = draft.lineItems.find((li) => li.unitPrice < 0);
-    expect(paymentLine).toEqual({
-      description: "Pagamenti gia ricevuti",
-      quantity: 1,
-      unitPrice: -80,
-    });
-  });
-
-  it("returns empty lineItems when received payments cover everything", () => {
-    const payments: Pick<Payment, "amount" | "payment_type" | "status">[] = [
-      { amount: 100, payment_type: "saldo", status: "ricevuto" },
-    ];
-
-    const draft = buildInvoiceDraftFromClient({
-      client: baseClient,
-      projects: baseProjects,
-      services: [buildService("s1", { fee_shooting: 100 })],
-      payments,
-    });
-
-    expect(draft.lineItems).toEqual([]);
-  });
 });

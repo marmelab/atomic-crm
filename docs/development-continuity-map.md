@@ -32,7 +32,7 @@ Quando tocchi dashboard annuale o task/payment deadline logic, controllare:
 - `payments/PaymentOverdueBadge.tsx`
 - `tasks/TasksList.tsx` (handoff task_create)
 - `src/lib/ai/unifiedCrmReadContext.ts`
-- `src/components/atomic-crm/providers/supabase/dataProvider.ts`
+- provider Supabase (orchestratore + moduli feature pertinenti)
 - `supabase/functions/_shared/unifiedCrmAnswer.ts`
 
 ### Tassabilita'
@@ -408,7 +408,9 @@ Aggiornare sempre:
 
 - `supabase/migrations/**`
 - `src/components/atomic-crm/types.ts`
-- `src/components/atomic-crm/providers/supabase/dataProvider.ts`
+- `src/components/atomic-crm/providers/supabase/dataProvider.ts` (orchestratore)
+- moduli feature del provider se la modifica tocca analytics, AI, import, comms
+  o travel (vedi `docs/architecture.md` sezione "Struttura modulare")
 - `src/components/atomic-crm/providers/fakerest/dataProvider.ts`
 - `src/components/atomic-crm/providers/fakerest/dataGenerator/index.ts`
 - `src/components/atomic-crm/providers/fakerest/dataGenerator/types.ts`

@@ -78,9 +78,15 @@ export const DashboardHistoricalRevenueChart = ({
   </Card>
 );
 
-const HistoricalRevenueTooltip = ({ active, payload }: any) => {
+const HistoricalRevenueTooltip = ({
+  active,
+  payload,
+}: {
+  active?: boolean;
+  payload?: Array<{ payload: HistoricalRevenuePoint }>;
+}) => {
   if (!active || !payload?.length) return null;
-  const point = payload[0]?.payload as HistoricalRevenuePoint;
+  const point = payload[0]?.payload;
 
   return (
     <div className="rounded-lg border bg-background px-3 py-2 shadow-sm">
