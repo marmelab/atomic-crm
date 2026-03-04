@@ -33,6 +33,11 @@ Regola pratica:
 - se una modifica e' solo strutturale/read-only, `Impostazioni` non va toccata
   ma la motivazione va lasciata nei docs di continuita'
 
+## Update 2026-03-04 (h) — PaymentDraftCard aria-label
+
+Aggiunto `aria-label` ai `<select>` di tipo e stato in `PaymentDraftCard.tsx`
+per accessibilita'. Nessun cambiamento funzionale.
+
 ## Update 2026-03-04 (g) — Split unifiedCrmAnswer.ts (3110 → 6 files)
 
 `supabase/functions/_shared/unifiedCrmAnswer.ts` (3110 righe) splittato per

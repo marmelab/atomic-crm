@@ -99,6 +99,7 @@ export const PaymentDraftCard = ({
           <Label htmlFor="payment-draft-type">Tipo</Label>
           <select
             id="payment-draft-type"
+            aria-label="Tipo"
             className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm"
             value={draft.paymentType}
             onChange={(event) =>
@@ -140,6 +141,7 @@ export const PaymentDraftCard = ({
           <Label htmlFor="payment-draft-status">Stato</Label>
           <select
             id="payment-draft-status"
+            aria-label="Stato"
             className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm"
             value={draft.status}
             onChange={(event) =>
