@@ -18,7 +18,9 @@ test("workflow list page loads and shows seeded workflows", async ({
   await expect(page).toHaveURL(/\/workflows$/);
 
   // The migration seeds 3 workflows
-  await expect(page.getByText("Preventivo accettato → Crea progetto")).toBeVisible();
+  await expect(
+    page.getByText("Preventivo accettato → Crea progetto"),
+  ).toBeVisible();
   await expect(
     page.getByText("Progetto avviato → Task di briefing"),
   ).toBeVisible();
@@ -43,7 +45,9 @@ test("workflow show page displays details", async ({ page }) => {
   await expect(page).toHaveURL(/\/workflows\/.*\/show$/);
 
   // Should show workflow details
-  await expect(page.getByText("Preventivo accettato → Crea progetto")).toBeVisible();
+  await expect(
+    page.getByText("Preventivo accettato → Crea progetto"),
+  ).toBeVisible();
 
   // Should show trigger details (scoped to main content to avoid nav "Preventivi" link)
   const mainContent = page.locator("#main-content");

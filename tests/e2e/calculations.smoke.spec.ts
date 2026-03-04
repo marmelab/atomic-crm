@@ -1,6 +1,6 @@
 /**
  * Test E2E per verificare i calcoli finanziari
- * 
+ *
  * Questi test usano dati controllati e verificano che:
  * - I totali siano corretti
  * - I pagamenti siano calcolati correttamente
@@ -22,12 +22,12 @@ test.describe("Financial Calculations", () => {
 
     // Verifica calcoli in dashboard
     await expect(page.getByText("Valore del lavoro dell'anno")).toBeVisible();
-    
+
     // Aspetta che i dati siano caricati
     await page.waitForTimeout(1000);
-    
+
     // Verifica che il valore del lavoro contenga 6500 (con possibili separatori)
-    const dashboardText = await page.textContent('main');
+    const dashboardText = await page.textContent("main");
     expect(dashboardText).toMatch(/6[.,]?500/); // 6500, 6.500, 6,500
   });
 
@@ -44,7 +44,7 @@ test.describe("Financial Calculations", () => {
 
     // Verifica riepilogo finanziario
     await expect(page.getByText("Riepilogo finanziario")).toBeVisible();
-    
+
     // Compensi: 6500€
     await expect(page.getByText("6500,00 €").first()).toBeVisible();
 
@@ -69,7 +69,9 @@ test.describe("Financial Calculations", () => {
     await page.getByRole("button", { name: "Genera bozza fattura" }).click();
 
     // Verifica dialog
-    await expect(page.getByRole("heading", { name: "Bozza fattura" })).toBeVisible();
+    await expect(
+      page.getByRole("heading", { name: "Bozza fattura" }),
+    ).toBeVisible();
 
     // Totale atteso: 3328,50€ (6500 + 28,50 km - 3200 pagati)
     await expect(page.getByText("3328,50 €").first()).toBeVisible();

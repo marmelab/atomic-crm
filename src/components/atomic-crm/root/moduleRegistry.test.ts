@@ -19,7 +19,7 @@ afterEach(() => {
 
 describe("moduleRegistry", () => {
   it("returns enabled modules and keeps headless modules out of header navigation", () => {
-    expect(getEnabledModules()).toHaveLength(13);
+    expect(getEnabledModules()).toHaveLength(15);
 
     const desktopHeaderResources = getDesktopHeaderModules().map(
       (module) => module.resource,

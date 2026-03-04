@@ -61,9 +61,7 @@ test("kanban view shows project cards with correct details", async ({
   await expect(page.getByText(/Budget:/)).toBeVisible();
 });
 
-test("mobile: kanban toggle is not shown, only list view", async ({
-  page,
-}) => {
+test("mobile: kanban toggle is not shown, only list view", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await loginAsLocalAdmin(page);
 

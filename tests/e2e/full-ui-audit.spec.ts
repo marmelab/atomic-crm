@@ -11,14 +11,18 @@ test.describe("Full UI Audit", () => {
     await loginAsLocalAdmin(page);
     await expect(page.getByText("Valore del lavoro dell'anno")).toBeVisible();
     // Verifica che ci sia un importo in euro nella dashboard
-    await expect(page.locator("text=/\\d+[.,]?\\d*\\s*€/").first()).toBeVisible();
+    await expect(
+      page.locator("text=/\\d+[.,]?\\d*\\s*€/").first(),
+    ).toBeVisible();
   });
 
   test("Clients CRUD works end-to-end", async ({ page }) => {
     await loginAsLocalAdmin(page);
     await page.goto("#/clients");
-    await expect(page.getByRole("columnheader", { name: "Nome" })).toBeVisible();
-    
+    await expect(
+      page.getByRole("columnheader", { name: "Nome" }),
+    ).toBeVisible();
+
     await page.getByRole("link", { name: "Crea" }).click();
     await page.getByLabel("Nome / Ragione sociale").fill("Cliente Audit");
     await page.getByLabel("Tipo cliente").click();
@@ -36,6 +40,8 @@ test.describe("Full UI Audit", () => {
   test("Settings page loads", async ({ page }) => {
     await loginAsLocalAdmin(page);
     await page.goto("#/settings");
-    await expect(page.getByRole("heading", { name: "Profilo Aziendale" })).toBeVisible();
+    await expect(
+      page.getByRole("heading", { name: "Profilo Aziendale" }),
+    ).toBeVisible();
   });
 });

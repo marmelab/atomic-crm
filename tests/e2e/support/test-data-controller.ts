@@ -1,6 +1,6 @@
 /**
  * Test Data Controller
- * 
+ *
  * Gestisce dati di test deterministici e isolati.
  * NON usa dati storici (Diego/Gustare) ma crea entità fresh per ogni test.
  */
@@ -64,7 +64,7 @@ SET session_replication_role = DEFAULT;
       {
         stdio: "pipe",
         timeout: 30000,
-      }
+      },
     );
   } catch (error) {
     console.warn("[test-data-controller] SQL reset warning:", error);
@@ -196,12 +196,18 @@ SELECT
         stdio: "pipe",
         encoding: "utf-8",
         timeout: 10000,
-      }
+      },
     );
-    console.warn("[test-data-controller] Calculations verified:", result.trim());
+    console.warn(
+      "[test-data-controller] Calculations verified:",
+      result.trim(),
+    );
     return true;
   } catch (error) {
-    console.warn("[test-data-controller] Calculation verification failed:", error);
+    console.warn(
+      "[test-data-controller] Calculation verification failed:",
+      error,
+    );
     return false;
   }
 };

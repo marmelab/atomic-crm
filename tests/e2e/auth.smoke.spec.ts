@@ -30,7 +30,7 @@ test("local admin can sign in and access dashboard and clients", async ({
   await expect(
     page.getByRole("link", { name: "Crea", exact: true }),
   ).toBeVisible();
-  
+
   // Verifica che il cliente di test sia visibile
   await expect(page.getByText("Test Client")).toBeVisible();
 });
