@@ -24,6 +24,7 @@ import { TagsSettingsSection } from "./TagsSettingsSection";
 const SECTIONS = [
   { id: "profilo-aziendale", label: "Profilo Aziendale" },
   { id: "branding", label: "Marchio" },
+  { id: "autenticazione", label: "Autenticazione" },
   { id: "tags", label: "Etichette" },
   { id: "quote-types", label: "Tipi preventivo" },
   { id: "service-types", label: "Tipi servizio" },
@@ -51,6 +52,9 @@ const transformFormValues = (data: Record<string, any>) => ({
     fiscalConfig: data.fiscalConfig,
     aiConfig: data.aiConfig,
     businessProfile: data.businessProfile,
+    googleWorkplaceDomain: data.googleWorkplaceDomain,
+    disableEmailPasswordAuthentication:
+      data.disableEmailPasswordAuthentication,
   } as ConfigurationContextValue,
 });
 
@@ -115,6 +119,9 @@ const SettingsForm = () => {
       fiscalConfig: config.fiscalConfig,
       aiConfig: config.aiConfig,
       businessProfile: config.businessProfile,
+      googleWorkplaceDomain: config.googleWorkplaceDomain,
+      disableEmailPasswordAuthentication:
+        config.disableEmailPasswordAuthentication,
     }),
     [config],
   );
@@ -200,6 +207,23 @@ const SettingsFormFields = () => {
                 />
               </div>
             </div>
+          </CardContent>
+        </Card>
+
+        {/* Authentication */}
+        <Card id="autenticazione">
+          <CardContent className="space-y-4">
+            <h2 className="text-xl font-semibold text-muted-foreground">
+              Autenticazione
+            </h2>
+            <p className="text-sm text-muted-foreground">
+              Configurazione SSO con Google Workspace (opzionale).
+            </p>
+            <TextInput
+              source="googleWorkplaceDomain"
+              label="Dominio Google Workspace"
+              helperText="Es: example.com - lascia vuoto per disabilitare SSO"
+            />
           </CardContent>
         </Card>
 

@@ -34,7 +34,7 @@ export const QuoteInputs = () => {
     | QuoteItem[]
     | undefined;
   const allDay = useWatch({ name: "all_day" }) ?? true;
-  const { setValue, getFieldState, formState } = useFormContext();
+  const { setValue, getFieldState } = useFormContext();
   const { quoteServiceTypes, fiscalConfig } = useConfigurationContext();
   const { data: selectedProject } = useGetOne<Project>(
     "projects",
@@ -86,7 +86,9 @@ export const QuoteInputs = () => {
       return;
     }
 
-    const isDirty = getFieldState("is_taxable", formState).isDirty;
+    // Use formState directly from getFieldState to avoid dependency cycles
+    // formState object changes reference on every render
+    const isDirty = getFieldState("is_taxable").isDirty;
     if (isDirty || currentTaxable === suggestedTaxable) {
       return;
     }
@@ -98,11 +100,10 @@ export const QuoteInputs = () => {
     });
   }, [
     currentTaxable,
-    formState,
-    getFieldState,
     recordId,
     setValue,
     suggestedTaxable,
+    // Intentionally NOT depending on formState/getFieldState to avoid cycles
   ]);
 
   return (

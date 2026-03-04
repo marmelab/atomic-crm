@@ -10,6 +10,7 @@ import type { Client, Expense, Project } from "../types";
 import { ExpenseListContent } from "./ExpenseListContent";
 import { ExpenseListFilter, ExpenseMobileFilter } from "./ExpenseListFilter";
 import { TopToolbar } from "../layout/TopToolbar";
+import { MobilePageTitle } from "../layout/MobilePageTitle";
 import { expenseTypeLabels } from "./expenseTypes";
 import { calculateKmReimbursement } from "@/lib/semantics/crmSemanticRegistry";
 import { useConfigurationContext } from "../root/ConfigurationContext";
@@ -46,12 +47,15 @@ const ExpenseListLayout = () => {
   }
 
   return (
-    <div className="mt-4 flex flex-col md:flex-row md:gap-8">
+    <>
+      <MobilePageTitle title="Spese" />
+      <div className="mt-4 flex flex-col md:flex-row md:gap-8">
       <ExpenseListFilter />
       <div className="w-full flex flex-col gap-4">
         <ExpenseListContent />
       </div>
     </div>
+    </>
   );
 };
 

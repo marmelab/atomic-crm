@@ -9,6 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 import type { Client, ClientTask, Payment } from "../types";
 import { paymentStatusLabels } from "../payments/paymentTypes";
+import { SendPaymentReminderDialog } from "../payments/SendPaymentReminderDialog";
 
 const LARGE_PAGE = { page: 1, perPage: 1000 };
 
@@ -254,9 +255,12 @@ export const DashboardDeadlineTracker = () => {
                     type: "show",
                     id: payment.id,
                   })}
-                  actionLabel="Segna come incassato"
+                  actionLabel="Incassato"
                   onAction={() => markPaymentAsReceived(payment)}
                   disabled={isUpdating}
+                  secondaryAction={
+                    <SendPaymentReminderDialog paymentId={payment.id} />
+                  }
                 />
               );
             })
@@ -359,6 +363,7 @@ const ActionRow = ({
   actionLabel,
   onAction,
   disabled,
+  secondaryAction,
 }: {
   title: string;
   subtitle: string;
@@ -366,6 +371,7 @@ const ActionRow = ({
   actionLabel: string;
   onAction: () => void;
   disabled: boolean;
+  secondaryAction?: ReactNode;
 }) => (
   <div className="flex items-start gap-3 justify-between">
     <div className="min-w-0">
@@ -374,16 +380,19 @@ const ActionRow = ({
       </Link>
       <p className="text-xs text-muted-foreground">{subtitle}</p>
     </div>
-    <Button
-      type="button"
-      size="sm"
-      variant="outline"
-      className="shrink-0"
-      onClick={onAction}
-      disabled={disabled}
-    >
-      {actionLabel}
-    </Button>
+    <div className="flex items-center gap-1.5 shrink-0">
+      {secondaryAction}
+      <Button
+        type="button"
+        size="sm"
+        variant="outline"
+        className="shrink-0"
+        onClick={onAction}
+        disabled={disabled}
+      >
+        {actionLabel}
+      </Button>
+    </div>
   </div>
 );
 

@@ -21,6 +21,7 @@ import { QuoteListContent } from "./QuoteListContent";
 import { QuoteShow } from "./QuoteShow";
 import { quoteStatusLabels } from "./quotesTypes";
 import { buildNameSearchFilter } from "../misc/referenceSearch";
+import { MobilePageTitle } from "../layout/MobilePageTitle";
 
 const QuoteList = () => {
   const { quoteServiceTypes } = useConfigurationContext();
@@ -109,7 +110,9 @@ const QuoteLayout = () => {
   if (!data?.length && !hasFilters && !matchCreate) return <QuoteEmpty />;
 
   return (
-    <div className="w-full">
+    <>
+      <MobilePageTitle title="Preventivi" />
+      <div className="w-full">
       <QuoteListContent />
       <QuoteCreate open={!!matchCreate} />
       <QuoteEdit
@@ -118,6 +121,7 @@ const QuoteLayout = () => {
       />
       <QuoteShow open={!!matchShow} id={matchShow?.params.id} />
     </div>
+    </>
   );
 };
 

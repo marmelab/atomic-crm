@@ -548,6 +548,10 @@
           "type": "registry:component"
         },
         {
+          "path": "src/components/atomic-crm/payments/SendPaymentReminderDialog.tsx",
+          "type": "registry:component"
+        },
+        {
           "path": "src/components/atomic-crm/payments/PaymentShow.tsx",
           "type": "registry:component"
         },

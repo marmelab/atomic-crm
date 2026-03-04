@@ -10,6 +10,7 @@ import type { Client, Payment, Project } from "../types";
 import { PaymentListContent } from "./PaymentListContent";
 import { PaymentListFilter, PaymentMobileFilter } from "./PaymentListFilter";
 import { TopToolbar } from "../layout/TopToolbar";
+import { MobilePageTitle } from "../layout/MobilePageTitle";
 import { paymentTypeLabels, paymentStatusLabels } from "./paymentTypes";
 
 export const PaymentList = () => (
@@ -39,12 +40,15 @@ const PaymentListLayout = () => {
   }
 
   return (
-    <div className="mt-4 flex flex-col md:flex-row md:gap-8">
+    <>
+      <MobilePageTitle title="Pagamenti" />
+      <div className="mt-4 flex flex-col md:flex-row md:gap-8">
       <PaymentListFilter />
       <div className="w-full flex flex-col gap-4">
         <PaymentListContent />
       </div>
     </div>
+    </>
   );
 };
 

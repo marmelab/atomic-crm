@@ -1,4 +1,4 @@
-import { DeleteButton } from "@/components/admin";
+import { DeleteButton } from "@/components/admin/delete-button";
 import { SaveButton } from "@/components/admin/form";
 import {
   Sheet,

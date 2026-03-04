@@ -33,6 +33,50 @@ Regola pratica:
 - se una modifica e' solo strutturale/read-only, `Impostazioni` non va toccata
   ma la motivazione va lasciata nei docs di continuita'
 
+## Update 2026-03-04 (c) — Realtime, Payment Reminders, Internal Notifications
+
+### Supabase Realtime
+
+Hook `useRealtimeInvalidation` sottoscrive `postgres_changes` su tabelle
+specifiche e invalida la cache React Query corrispondente.
+
+Integrato in:
+
+- `DashboardAnnual`: payments, services, projects, quotes, expenses, clients, client_tasks
+- `DashboardHistorical`: payments, services, projects, clients, analytics views + custom query key `historical-cash-inflow-context`
+
+File: `src/hooks/useRealtimeInvalidation.ts`
+
+### Payment Reminder Email (con review)
+
+Flusso:
+
+1. Dashboard deadline tracker mostra pulsante "Reminder" per pagamenti scaduti
+2. Click apre `SendPaymentReminderDialog` con anteprima email
+3. Utente rivede, aggiunge messaggio opzionale, conferma
+4. Edge Function `payment_reminder_send` invia email al cliente via SMTP
+5. Dopo invio, `notifyOwner()` invia conferma al proprietario via email + WhatsApp
+
+File principali:
+
+- `src/lib/communications/paymentReminderEmail.ts` — template builder
+- `src/lib/communications/paymentReminderEmailTypes.ts` — tipi
+- `src/components/atomic-crm/payments/SendPaymentReminderDialog.tsx` — dialog review
+- `supabase/functions/payment_reminder_send/index.ts` — Edge Function
+- `supabase/functions/_shared/paymentReminderSend.ts` — validazione payload
+
+### Internal Notifications (Email + WhatsApp CallMeBot)
+
+Modulo shared `supabase/functions/_shared/internalNotifications.ts`:
+
+- `sendInternalEmail(subject, text)` — SMTP verso `SMTP_USER` (owner)
+- `sendWhatsApp(message)` — GET a `api.callmebot.com/whatsapp.php`
+- `notifyOwner(subject, message)` — chiama entrambi, best-effort
+
+Env vars: `CALLMEBOT_PHONE`, `CALLMEBOT_APIKEY` (gia' in `.env`)
+
+Usato da `payment_reminder_send`, riusabile per future automazioni.
+
 ## Update 2026-03-04 (b) — Kanban, Workflow
 
 ### Kanban Project View
@@ -113,12 +157,17 @@ Aggiornamenti principali:
 - migration `quotes.is_taxable` (`BOOLEAN NOT NULL DEFAULT true`)
 - default automatico `is_taxable` su servizi e preventivi guidato da
   `fiscalConfig.taxabilityDefaults`
-- tassabilita' pagamento derivata via semantica (`isPaymentTaxable`)
-- modello fiscale con supporto flat services senza progetto (fallback al primo
-  profilo ATECO configurato)
+- tassabilita' pagamento derivata via config (`taxabilityDefaults`)
+- modello fiscale basato su principio di CASSA (incassi ricevuti nell'anno),
+  non su competenza (servizi erogati). La base imponibile forfettaria e' la
+  somma dei pagamenti con `status='ricevuto'` e `payment_date` nell'anno,
+  mappati a categorie ATECO tramite il progetto collegato. Supporta flat
+  payments senza progetto (fallback al primo profilo ATECO configurato).
+- metriche operative (margini, DSO, concentrazione clienti) restano basate
+  sui servizi (competenza) per coerenza con la salute business
 - KPI fiscali estesi:
-  - `fatturatoTotaleYtd`
-  - `fatturatoNonTassabileYtd`
+  - `fatturatoTotaleYtd` (incassato totale)
+  - `fatturatoNonTassabileYtd` (incassato non tassabile)
 
 ### Bozza fattura interna (no write DB)
 
@@ -669,7 +718,7 @@ src/components/atomic-crm/dashboard/
 ├── dashboardModelTypes.ts              # Tipi dashboard estratti (DashboardModel, KPIs, drilldowns, alerts)
 ├── dashboardFormatters.ts              # Formatters (currency, date, category labels)
 ├── dashboardHistoryModel.ts            # Aggregazioni storiche e quality flags
-├── fiscalModel.ts                      # Logica pura calcoli fiscali regime forfettario
+├── fiscalModel.ts                      # Logica pura calcoli fiscali regime forfettario (principio di cassa)
 ├── fiscalModelTypes.ts                 # Tipi fiscali estratti (FiscalModel, FiscalKpis, deadlines, health)
 ├── fiscalDeadlines.ts                  # buildDeadlines (F24/INPS high-priority + bolli/dichiarazione low-priority)
 ├── useGenerateFiscalTasks.ts           # Hook: genera client_tasks dai deadline fiscali calcolati

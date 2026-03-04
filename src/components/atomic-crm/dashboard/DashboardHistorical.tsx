@@ -5,6 +5,8 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
+import { useRealtimeInvalidation } from "@/hooks/useRealtimeInvalidation";
+
 import { DashboardLoading } from "./DashboardLoading";
 import { DashboardHistoricalCategoryMixChart } from "./DashboardHistoricalCategoryMixChart";
 import { DashboardHistoricalAiSummaryCard } from "./DashboardHistoricalAiSummaryCard";
@@ -15,7 +17,20 @@ import { DashboardHistoricalRevenueChart } from "./DashboardHistoricalRevenueCha
 import { DashboardHistoricalTopClientsCard } from "./DashboardHistoricalTopClientsCard";
 import { useHistoricalDashboardData } from "./useHistoricalDashboardData";
 
+const REALTIME_TABLES = [
+  "payments",
+  "services",
+  "projects",
+  "clients",
+  "analytics_yearly_competence_revenue",
+  "analytics_yearly_competence_revenue_by_category",
+  "analytics_client_lifetime_competence_revenue",
+];
+
+const EXTRA_QUERY_KEYS = [["historical-cash-inflow-context"]];
+
 export const DashboardHistorical = () => {
+  useRealtimeInvalidation(REALTIME_TABLES, EXTRA_QUERY_KEYS);
   const [readingGuideDismissed, setReadingGuideDismissed] = useStore<boolean>(
     "dashboard.readingGuide.dismissed",
     false,
@@ -108,8 +123,9 @@ const HistoricalReadingGuide = ({ onDismiss }: { onDismiss: () => void }) => (
     </div>
     <div className="mt-2 space-y-2 text-xs text-muted-foreground">
       <p>
-        Qui non stai guardando i soldi già entrati in banca: stai guardando il
-        valore del lavoro attribuito a ogni anno.
+        Qui stai guardando il valore del lavoro attribuito a ogni anno
+        (competenza), non gli incassi effettivi. La dashboard annuale invece
+        calcola le tasse sugli incassi reali (cassa).
       </p>
       <p>
         L'anno in corso è parziale: contiamo solo quello che risulta fino a

@@ -16,6 +16,7 @@ import { useIsMobile } from "@/hooks/use-mobile";
 
 import type { Client, Contact } from "../types";
 import { TopToolbar } from "../layout/TopToolbar";
+import { MobilePageTitle } from "../layout/MobilePageTitle";
 import { ErrorMessage } from "../misc/ErrorMessage";
 import {
   compareContactsForClientContext,
@@ -78,16 +79,21 @@ const ContactListLayout = () => {
 
   if (data.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center py-16 text-center">
-        <p className="text-muted-foreground mb-4">Nessun referente</p>
-        <CreateButton />
-      </div>
+      <>
+        <MobilePageTitle title="Referenti" />
+        <div className="flex flex-col items-center justify-center py-16 text-center">
+          <p className="text-muted-foreground mb-4">Nessun referente</p>
+          <CreateButton />
+        </div>
+      </>
     );
   }
 
   if (isMobile) {
     return (
-      <div className="mt-4 flex flex-col divide-y px-4">
+      <>
+        <MobilePageTitle title="Referenti" />
+        <div className="mt-4 flex flex-col divide-y px-4">
         {sortedContacts.map((contact) => (
           <ContactMobileCard
             key={contact.id}
@@ -100,11 +106,14 @@ const ContactListLayout = () => {
           />
         ))}
       </div>
+      </>
     );
   }
 
   return (
-    <div className="mt-4">
+    <>
+      <MobilePageTitle title="Referenti" />
+      <div className="mt-4">
       <Table>
         <TableHeader>
           <TableRow>
@@ -134,6 +143,7 @@ const ContactListLayout = () => {
         </TableBody>
       </Table>
     </div>
+    </>
   );
 };
 

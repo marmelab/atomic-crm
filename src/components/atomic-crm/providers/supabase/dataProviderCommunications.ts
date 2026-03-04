@@ -9,6 +9,10 @@ import type {
   QuoteStatusEmailSendRequest,
   QuoteStatusEmailSendResponse,
 } from "@/lib/communications/quoteStatusEmailTemplates";
+import type {
+  PaymentReminderEmailSendRequest,
+  PaymentReminderEmailSendResponse,
+} from "@/lib/communications/paymentReminderEmailTypes";
 import { extractEdgeFunctionErrorMessage } from "./edgeFunctionError";
 import type { BaseProvider, InvokeEdgeFunction } from "./dataProviderTypes";
 
@@ -102,6 +106,56 @@ export const buildCommunicationsProviderMethods = (deps: {
           await extractEdgeFunctionErrorMessage(
             error,
             "Impossibile inviare la mail cliente del preventivo",
+          ),
+        );
+      }
+
+      return data.data;
+    },
+
+    async getPaymentReminderContext(paymentId: Identifier) {
+      const paymentResponse = await deps.baseDataProvider.getOne<Payment>(
+        "payments",
+        { id: paymentId },
+      );
+      const payment = paymentResponse.data;
+
+      const [clientResponse, projectResponse] = await Promise.all([
+        payment.client_id
+          ? deps.baseDataProvider.getOne<Client>("clients", {
+              id: payment.client_id,
+            })
+          : Promise.resolve({ data: null }),
+        payment.project_id
+          ? deps.baseDataProvider.getOne<Project>("projects", {
+              id: payment.project_id,
+            })
+          : Promise.resolve({ data: null }),
+      ]);
+
+      return {
+        payment,
+        client: clientResponse.data,
+        project: projectResponse.data,
+      };
+    },
+
+    async sendPaymentReminder(
+      request: PaymentReminderEmailSendRequest,
+    ): Promise<PaymentReminderEmailSendResponse> {
+      const { data, error } = await deps.invokeEdgeFunction<{
+        data: PaymentReminderEmailSendResponse;
+      }>("payment_reminder_send", {
+        method: "POST",
+        body: request,
+      });
+
+      if (!data || error) {
+        console.error("sendPaymentReminder.error", error);
+        throw new Error(
+          await extractEdgeFunctionErrorMessage(
+            error,
+            "Impossibile inviare il reminder di pagamento",
           ),
         );
       }

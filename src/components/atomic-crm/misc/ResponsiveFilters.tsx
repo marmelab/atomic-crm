@@ -1,5 +1,5 @@
 import { FilterLiveForm, useListContext } from "ra-core";
-import { SearchInput, type SearchInputProps } from "@/components/admin";
+import { SearchInput, type SearchInputProps } from "@/components/admin/search-input";
 import {
   Sheet,
   SheetClose,

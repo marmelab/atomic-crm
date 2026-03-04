@@ -1,4 +1,5 @@
-import { DeleteButton, ReferenceField } from "@/components/admin";
+import { DeleteButton } from "@/components/admin/delete-button";
+import { ReferenceField } from "@/components/admin/reference-field";
 import { type Identifier, RecordRepresentation } from "ra-core";
 import { EditSheet } from "../misc/EditSheet";
 import type { Client, ClientTask } from "../types";

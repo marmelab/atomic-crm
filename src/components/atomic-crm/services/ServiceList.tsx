@@ -11,6 +11,7 @@ import type { Project, Service } from "../types";
 import { ServiceListContent } from "./ServiceListContent";
 import { ServiceListFilter, ServiceMobileFilter } from "./ServiceListFilter";
 import { TopToolbar } from "../layout/TopToolbar";
+import { MobilePageTitle } from "../layout/MobilePageTitle";
 import { useConfigurationContext } from "../root/ConfigurationContext";
 import {
   calculateKmReimbursement,
@@ -89,12 +90,15 @@ const ServiceListLayout = () => {
   }
 
   return (
-    <div className="mt-4 flex flex-col md:flex-row md:gap-8">
+    <>
+      <MobilePageTitle title="Registro Lavori" />
+      <div className="mt-4 flex flex-col md:flex-row md:gap-8">
       <ServiceListFilter />
       <div className="w-full flex flex-col gap-4">
         <ServiceListContent />
       </div>
     </div>
+    </>
   );
 };
 
