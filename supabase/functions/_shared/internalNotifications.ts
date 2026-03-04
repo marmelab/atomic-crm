@@ -28,8 +28,7 @@ const isSmtpConfigured = () =>
 const callmebotPhone = Deno.env.get("CALLMEBOT_PHONE") ?? "";
 const callmebotApikey = Deno.env.get("CALLMEBOT_APIKEY") ?? "";
 
-const isCallMeBotConfigured = () =>
-  Boolean(callmebotPhone && callmebotApikey);
+const isCallMeBotConfigured = () => Boolean(callmebotPhone && callmebotApikey);
 
 // ── Public API ───────────────────────────────────────────────────────
 
@@ -101,7 +100,10 @@ export async function sendWhatsApp(
 export async function notifyOwner(
   subject: string,
   message: string,
-): Promise<{ email: { ok: boolean; error?: string }; whatsapp: { ok: boolean; error?: string } }> {
+): Promise<{
+  email: { ok: boolean; error?: string };
+  whatsapp: { ok: boolean; error?: string };
+}> {
   const [email, whatsapp] = await Promise.all([
     sendInternalEmail(subject, message),
     sendWhatsApp(message),

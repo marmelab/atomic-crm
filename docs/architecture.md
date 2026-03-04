@@ -101,8 +101,18 @@ Engine client-side:
 
 - `workflowEngine.ts`: intercetta afterCreate/afterUpdate via lifecycle callbacks
 - anti-loop: flag `_executing` impedisce trigger ricorsivi
-- azioni supportate: `create_task`, `create_project`, `update_field`
+- azioni supportate: `create_task`, `create_project`, `update_field`, `send_email`, `send_notification`
+- `send_email`: invia email a destinatario (client_email o custom) via Edge Function `workflow_notify`
+- `send_notification`: notifica interna al proprietario (email + WhatsApp CallMeBot) via `workflow_notify`
+- template con placeholder: `{nome_cliente}`, `{risorsa}`, `{stato}`, `{importo}`, `{data}` — risolti server-side
 - logging automatico in `workflow_executions`
+
+Edge Function: `supabase/functions/workflow_notify/index.ts`
+
+- riceve `channel` (`email_external` | `notify_owner`), `trigger_resource`, `trigger_record_id`
+- risolve placeholder dal record e dal client via `supabaseAdmin`
+- dispatch a SMTP (email esterna) o `notifyOwner()` (dual-channel interno)
+- shared: `workflowNotifyTypes.ts`, `workflowTemplatePlaceholders.ts`
 
 UI: List, Create, Edit, Show con execution history.
 List ha mobile card view (niente tabelle su telefono).
