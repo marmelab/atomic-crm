@@ -5,11 +5,16 @@ import { ExportButton } from "@/components/admin/export-button";
 import { List } from "@/components/admin/list";
 import { SortButton } from "@/components/admin/sort-button";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { useState } from "react";
+import { LayoutGrid, List as ListIcon } from "lucide-react";
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 
 import type { Client, Project } from "../types";
 import { ProjectListContent } from "./ProjectListContent";
 import { ProjectListFilter, ProjectMobileFilter } from "./ProjectListFilter";
 import { TopToolbar } from "../layout/TopToolbar";
+import { MobilePageTitle } from "../layout/MobilePageTitle";
+import { ProjectKanbanView } from "./ProjectKanbanView";
 
 export const ProjectList = () => (
   <List
@@ -25,7 +30,9 @@ export const ProjectList = () => (
 
 const ProjectListLayout = () => {
   const { data, isPending, filterValues } = useListContext();
+  const [viewMode, setViewMode] = useState<"list" | "kanban">("list");
   const hasFilters = filterValues && Object.keys(filterValues).length > 0;
+  const isMobile = useIsMobile();
 
   if (isPending) return null;
   if (!data?.length && !hasFilters) {
@@ -38,12 +45,35 @@ const ProjectListLayout = () => {
   }
 
   return (
-    <div className="mt-4 flex flex-col md:flex-row md:gap-8">
-      <ProjectListFilter />
-      <div className="w-full flex flex-col gap-4">
-        <ProjectListContent />
-      </div>
-    </div>
+    <>
+      <MobilePageTitle title="Progetti" />
+      {!isMobile && (
+        <div className="flex justify-end mb-4">
+          <ToggleGroup 
+            type="single" 
+            value={viewMode} 
+            onValueChange={(v) => v && setViewMode(v as "list" | "kanban")}
+          >
+            <ToggleGroupItem value="list" aria-label="Vista lista">
+              <ListIcon className="h-4 w-4" />
+            </ToggleGroupItem>
+            <ToggleGroupItem value="kanban" aria-label="Vista kanban">
+              <LayoutGrid className="h-4 w-4" />
+            </ToggleGroupItem>
+          </ToggleGroup>
+        </div>
+      )}
+      {viewMode === "kanban" && !isMobile ? (
+        <ProjectKanbanView />
+      ) : (
+        <div className="mt-4 flex flex-col md:flex-row md:gap-8">
+          <ProjectListFilter />
+          <div className="w-full flex flex-col gap-4">
+            <ProjectListContent />
+          </div>
+        </div>
+      )}
+    </>
   );
 };
 

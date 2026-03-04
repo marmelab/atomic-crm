@@ -19,6 +19,7 @@ import {
   normalizeContactForSave,
   normalizeProjectContactForSave,
 } from "../../contacts/contactRecord";
+import { checkAndRunWorkflows } from "../../workflows/workflowEngine";
 import type { ConfigurationContextValue } from "../../root/ConfigurationContext";
 import { getIsInitialized } from "./authProvider";
 import { getEdgeFunctionAuthorizationHeaders } from "./edgeFunctions";
@@ -238,6 +239,36 @@ const dataProviderWithCustomMethods = {
 
 export type CrmDataProvider = typeof dataProviderWithCustomMethods;
 
+// --- Workflow trigger callbacks ---
+
+const buildWorkflowCallbacks = (
+  resources: string[],
+): ResourceCallbacks[] =>
+  resources.map((resource) => ({
+    resource,
+    afterCreate: async (params: any) => {
+      checkAndRunWorkflows(dataProviderWithCustomMethods, {
+        resource,
+        event: "created",
+        record: params.data,
+      });
+      return params;
+    },
+    afterUpdate: async (params: any) => {
+      const event =
+        params.previousData?.status !== params.data?.status
+          ? "status_changed"
+          : "updated";
+      checkAndRunWorkflows(dataProviderWithCustomMethods, {
+        resource,
+        event,
+        record: params.data,
+        previousData: params.previousData,
+      });
+      return params;
+    },
+  }));
+
 // --- Lifecycle callbacks ---
 
 const lifeCycleCallbacks: ResourceCallbacks[] = [
@@ -285,6 +316,8 @@ const lifeCycleCallbacks: ResourceCallbacks[] = [
       return data;
     },
   },
+  // --- Workflow triggers ---
+  ...buildWorkflowCallbacks(["projects", "quotes", "payments", "client_tasks"]),
 ];
 
 export const dataProvider = withLifecycleCallbacks(

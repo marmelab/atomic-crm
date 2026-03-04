@@ -178,7 +178,7 @@ export type Payment = {
   client_id: Identifier;
   project_id?: Identifier | null;
   quote_id?: Identifier | null;
-  payment_date?: string;
+  payment_date: string;
   payment_type:
     | "acconto"
     | "saldo"
@@ -398,3 +398,36 @@ export interface BusinessProfile {
   email: string;
   phone: string;
 }
+
+// Workflow Automation Types
+export type WorkflowTriggerResource = "projects" | "quotes" | "payments" | "client_tasks";
+export type WorkflowTriggerEvent = "created" | "updated" | "status_changed";
+export type WorkflowActionType = "create_task" | "create_project" | "update_field" | "send_email";
+
+export interface WorkflowAction {
+  type: WorkflowActionType;
+  data: Record<string, unknown>;
+}
+
+export type Workflow = {
+  name: string;
+  description?: string;
+  is_active: boolean;
+  trigger_resource: WorkflowTriggerResource;
+  trigger_event: WorkflowTriggerEvent;
+  trigger_conditions: Record<string, unknown>;
+  actions: WorkflowAction[];
+  created_at: string;
+  updated_at: string;
+} & Pick<RaRecord, "id">;
+
+export type WorkflowExecution = {
+  workflow_id: Identifier;
+  trigger_resource: string;
+  trigger_record_id: string;
+  trigger_event: string;
+  execution_status: "pending" | "running" | "completed" | "failed";
+  execution_result?: Record<string, unknown>;
+  error_message?: string;
+  executed_at: string;
+} & Pick<RaRecord, "id">;

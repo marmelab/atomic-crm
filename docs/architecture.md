@@ -33,6 +33,48 @@ Regola pratica:
 - se una modifica e' solo strutturale/read-only, `Impostazioni` non va toccata
   ma la motivazione va lasciata nei docs di continuita'
 
+## Update 2026-03-04 (b) — Kanban, Workflow, Proposal
+
+### Kanban Project View
+
+La lista progetti ora supporta toggle lista/kanban (solo desktop).
+Il Kanban mostra 4 colonne per stato: in_corso, in_pausa, completato,
+cancellato. Drag-and-drop nativo HTML5 cambia lo stato del progetto.
+
+File: `src/components/atomic-crm/projects/ProjectKanbanView.tsx`
+
+### Workflow Automation
+
+Nuovo modulo `workflows` registrato nel module registry.
+
+DB:
+
+- tabella `workflows` (trigger_resource, trigger_event, trigger_conditions JSONB, actions JSONB)
+- tabella `workflow_executions` (log esecuzione per debug)
+- 3 workflow pre-seeded (preventivo accettato, progetto avviato, pagamento ricevuto)
+
+Engine client-side:
+
+- `workflowEngine.ts`: intercetta afterCreate/afterUpdate via lifecycle callbacks
+- anti-loop: flag `_executing` impedisce trigger ricorsivi
+- azioni supportate: `create_task`, `create_project`, `update_field`
+- logging automatico in `workflow_executions`
+
+UI: List, Create, Edit, Show con execution history.
+Navigazione: menu "Altro" mobile, non nella header desktop.
+
+### Proposal & Contract (DB-only)
+
+Campi aggiunti alla tabella `quotes`:
+
+- `scope_of_work` (TEXT)
+- `terms_and_conditions` (TEXT)
+- `deliverables` (TEXT)
+- `validity_days` (INTEGER DEFAULT 30)
+- `contract_accepted_at` (TIMESTAMPTZ)
+
+UI e PDF non ancora aggiornati (prossimo step).
+
 ## Update 2026-03-04
 
 ### Module Registry come fonte unica dei moduli CRM
@@ -350,10 +392,12 @@ Nota di continuita':
 | contacts | Referenti / persone collegate ai clienti | auth.uid() IS NOT NULL | nome/cognome, `contact_role` strutturato, `title` libero, `is_primary_for_client`, email/telefoni JSONB, background, tags, FK `client_id`, timestamps |
 | project_contacts | Join referenti-progetti | auth.uid() IS NOT NULL | FK `project_id`, FK `contact_id`, `is_primary` con unicita' per progetto, timestamps |
 | projects | Progetti/programmi | auth.uid() IS NOT NULL | cliente, categoria, `tv_show`, stato, range date, budget, note, timestamps |
-| services | Registro lavori (cuore) | auth.uid() IS NOT NULL | FK progetto, date/range, tipo servizio, tassabilita', fee, km, `invoice_ref`, note |
-| quotes | Preventivi + pipeline Kanban | auth.uid() IS NOT NULL | cliente/progetto, tipo servizio, range evento, importo, stato, `quote_items`, note |
+| services | Registro lavori (cuore) | auth.uid() IS NOT NULL | FK progetto, date/range, tipo servizio, tassabilita', fee, km, `invoice_ref`, note, `updated_at` |
+| quotes | Preventivi + pipeline Kanban + proposta/contratto | auth.uid() IS NOT NULL | cliente/progetto, tipo servizio, range evento, importo, stato, `quote_items`, `scope_of_work`, `terms_and_conditions`, `deliverables`, `validity_days`, `contract_accepted_at`, note |
+| workflows | Automazioni trigger-based | auth.uid() IS NOT NULL | nome, trigger (resource/event/conditions JSONB), actions JSONB, is_active, timestamps |
+| workflow_executions | Log esecuzioni workflow | auth.uid() IS NOT NULL | FK workflow, trigger info, status, result JSONB, error, timestamp |
 | payments | Tracking pagamenti | auth.uid() IS NOT NULL | cliente/progetto/preventivo, data, tipo, importo, metodo, `invoice_ref`, stato, note |
-| expenses | Spese e km | auth.uid() IS NOT NULL | cliente/progetto, data, tipo spesa, km/importo, markup, descrizione, `invoice_ref` |
+| expenses | Spese e km | auth.uid() IS NOT NULL | cliente/progetto, data, tipo spesa (`spostamento_km`, `acquisto_materiale`, `noleggio`, `altro`, `credito_ricevuto`), km/importo, markup, descrizione, `invoice_ref` |
 | client_tasks | Promemoria (opzionalmente legati a un cliente) | auth.uid() IS NOT NULL | testo, tipo, data scadenza, `all_day`, completamento, FK cliente opzionale |
 | client_notes | Note clienti (con allegati) | auth.uid() IS NOT NULL | FK cliente obbligatoria, testo, data, allegati, timestamps |
 | settings | Configurazione | auth.uid() IS NOT NULL | record `config` persistito per branding, tipi, AI, fiscale, operativita' |
@@ -387,6 +431,11 @@ acconto_ricevuto → in_lavorazione → completato → saldato → rifiutato / p
 - `businessProfile.*`: dati emittente (nome, P.IVA, CF, indirizzo, email,
   telefono, tagline) usati nei PDF di preventivi e bozze fattura interna;
   editabili da Settings > Profilo Aziendale
+- `googleWorkplaceDomain`: dominio Google Workspace per SSO (opzionale);
+  editabile da Settings > Autenticazione; se non impostato, il login SSO
+  non viene mostrato
+- `disableEmailPasswordAuthentication`: disabilita login email/password
+  (default false); utile quando si usa solo SSO aziendale
 
 ### Views
 

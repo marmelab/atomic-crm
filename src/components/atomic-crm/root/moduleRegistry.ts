@@ -8,6 +8,7 @@ import {
   Receipt,
   User,
   Users,
+  Workflow,
 } from "lucide-react";
 import type { ComponentType } from "react";
 import type { RaRecord } from "ra-core";
@@ -22,6 +23,7 @@ import services from "../services";
 import { PaymentOverdueBadge } from "../payments/PaymentOverdueBadge";
 import { MobileTasksList } from "../tasks/MobileTasksList";
 import { TasksList } from "../tasks/TasksList";
+import * as workflows from "../workflows";
 
 export type CrmModuleDefinition = {
   resource: string;
@@ -308,6 +310,49 @@ export const crmModules: CrmModuleDefinition[] = [
       routePatterns: ["/#/client_tasks"],
       supportedViews: ["list"],
     },
+  },
+  {
+    resource: "workflows",
+    label: "Automazioni",
+    icon: Workflow,
+    path: "/workflows",
+    components: {
+      list: workflows.WorkflowList,
+      show: workflows.WorkflowShow,
+      edit: workflows.WorkflowEdit,
+      create: workflows.WorkflowCreate,
+      recordRepresentation: (record: unknown) => {
+        const typedRecord = record as RaRecord & { name?: string };
+        return typedRecord?.name ?? "Workflow";
+      },
+    },
+    nav: {
+      desktop: { header: false, headerOrder: 0 },
+      mobile: {
+        bottomBar: false,
+        bottomBarOrder: 0,
+        altroMenu: true,
+        altroMenuOrder: 70,
+        createMenu: false,
+      },
+    },
+  },
+  {
+    resource: "workflow_executions",
+    label: "Esecuzioni workflow",
+    path: "/workflow_executions",
+    components: {},
+    nav: {
+      desktop: { header: false, headerOrder: 0 },
+      mobile: {
+        bottomBar: false,
+        bottomBarOrder: 0,
+        altroMenu: false,
+        altroMenuOrder: 0,
+        createMenu: false,
+      },
+    },
+    headless: true,
   },
   {
     resource: "invoicing",

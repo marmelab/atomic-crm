@@ -63,6 +63,13 @@ La scelta adottata mantiene:
   - relazioni strutturate progetto -> referenti
   - relazioni strutturate referente -> progetti
 
+## Update 2026-03-04 — Kanban Project View
+
+La lista progetti ha ora un toggle lista/kanban (solo desktop). Il kanban mostra
+4 colonne per status con drag-and-drop che aggiorna lo stato del progetto.
+Non impatta direttamente i referenti ma cambia la superficie di navigazione
+progetti.
+
 ## Mappa impatto continuita'
 
 Quando cambia questo dominio, non basta aggiornare solo i componenti UI

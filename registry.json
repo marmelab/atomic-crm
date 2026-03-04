@@ -36,6 +36,42 @@
           "type": "registry:component"
         },
         {
+          "path": "src/components/atomic-crm/workflows/workflowTypes.ts",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/workflows/workflowTransform.ts",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/workflows/workflowEngine.ts",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/workflows/index.ts",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/workflows/WorkflowShow.tsx",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/workflows/WorkflowList.tsx",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/workflows/WorkflowInputs.tsx",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/workflows/WorkflowEdit.tsx",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/workflows/WorkflowCreate.tsx",
+          "type": "registry:component"
+        },
+        {
           "path": "src/components/atomic-crm/travel/TravelRouteCalculatorDialog.tsx",
           "type": "registry:component"
         },
@@ -484,6 +520,10 @@
           "type": "registry:component"
         },
         {
+          "path": "src/components/atomic-crm/projects/ProjectKanbanView.tsx",
+          "type": "registry:component"
+        },
+        {
           "path": "src/components/atomic-crm/projects/ProjectInputs.tsx",
           "type": "registry:component"
         },
@@ -645,6 +685,10 @@
         },
         {
           "path": "src/components/atomic-crm/layout/TopToolbar.tsx",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/layout/MobilePageTitle.tsx",
           "type": "registry:component"
         },
         {
