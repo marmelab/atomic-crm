@@ -1,9 +1,10 @@
 import { expect, test } from "@playwright/test";
 
-import { ensureLocalE2eState, loginAsLocalAdmin } from "./support/auth";
+import { loginAsLocalAdmin } from "./support/auth";
+import { resetAndSeedTestData } from "./support/test-data-controller";
 
-test.beforeAll(() => {
-  ensureLocalE2eState();
+test.beforeEach(() => {
+  resetAndSeedTestData();
 });
 
 test("local admin can sign in and access dashboard and clients", async ({
@@ -29,6 +30,9 @@ test("local admin can sign in and access dashboard and clients", async ({
   await expect(
     page.getByRole("link", { name: "Crea", exact: true }),
   ).toBeVisible();
+  
+  // Verifica che il cliente di test sia visibile
+  await expect(page.getByText("Test Client")).toBeVisible();
 });
 
 test("dashboard keeps selected mode and reading guide dismissal after navigation", async ({
@@ -36,8 +40,9 @@ test("dashboard keeps selected mode and reading guide dismissal after navigation
 }) => {
   await loginAsLocalAdmin(page);
 
+  // Testo attuale della guida
   const annualGuideText = page.getByText(
-    "Qui vedi il valore del lavoro dell'anno scelto al netto degli sconti, non gli incassi.",
+    "Qui vedi tutto il lavoro svolto nell'anno scelto, inclusi servizi diretti",
   );
   await expect(annualGuideText).toBeVisible();
 

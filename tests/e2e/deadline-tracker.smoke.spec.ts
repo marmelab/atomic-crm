@@ -1,12 +1,13 @@
 import { expect, test } from "@playwright/test";
 
-import { ensureLocalE2eState, loginAsLocalAdmin } from "./support/auth";
+import { loginAsLocalAdmin } from "./support/auth";
+import { resetAndSeedTestData } from "./support/test-data-controller";
 
-test.beforeAll(() => {
-  ensureLocalE2eState();
+test.beforeEach(() => {
+  resetAndSeedTestData();
 });
 
-test("annual dashboard renders the operational deadline tracker", async ({
+test("annual dashboard renders the operational deadline tracker with test data", async ({
   page,
 }) => {
   await loginAsLocalAdmin(page);
@@ -24,11 +25,9 @@ test("annual dashboard renders the operational deadline tracker", async ({
     page.getByText("Promemoria in scadenza", { exact: true }),
   ).toBeVisible();
 
+  // Con i dati di test, ci deve essere almeno 1 pagamento scaduto (500€)
   const markAsReceivedButtons = page.getByRole("button", {
     name: "Segna come incassato",
   });
-
-  if ((await markAsReceivedButtons.count()) > 0) {
-    await expect(markAsReceivedButtons.first()).toBeVisible();
-  }
+  await expect(markAsReceivedButtons.first()).toBeVisible();
 });

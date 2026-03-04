@@ -1,9 +1,10 @@
 import { expect, test } from "@playwright/test";
 
-import { ensureLocalE2eState, loginAsLocalAdmin } from "./support/auth";
+import { loginAsLocalAdmin } from "./support/auth";
+import { resetAndSeedTestData } from "./support/test-data-controller";
 
-test.beforeAll(() => {
-  ensureLocalE2eState();
+test.beforeEach(() => {
+  resetAndSeedTestData();
 });
 
 test("desktop navigation exposes all core modules from registry", async ({
