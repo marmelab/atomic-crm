@@ -8,6 +8,15 @@ prodotto.
 
 Last updated: 2026-03-04
 
+## Update 2026-03-04 (g) — Header Fix: matchCurrentPath uses HEADER_ITEMS
+
+### Bug Fix
+
+- `src/components/atomic-crm/layout/Header.tsx`:
+  - Fix runtime error: `getDesktopHeaderModules is not defined`
+  - Update `matchCurrentPath` function to use `HEADER_ITEMS` constant
+  - Remove unused import from moduleRegistry
+
 ## Update 2026-03-04 (f) — Header Navigation with Colored Icons
 
 ### UI Header Refactor

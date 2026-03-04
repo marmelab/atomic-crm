@@ -1,5 +1,4 @@
-import type {
-  LucideIcon} from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 import {
   Settings,
   User,
@@ -11,7 +10,7 @@ import {
   FileText,
   CreditCard,
   Receipt,
-  ListTodo
+  ListTodo,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { CanAccess, useUserMenu } from "ra-core";
@@ -81,12 +80,12 @@ const matchCurrentPath = (pathname: string) => {
     return "/";
   }
 
-  for (const module of getDesktopHeaderModules()) {
+  for (const item of HEADER_ITEMS) {
     if (
-      matchPath(`${module.path}/*`, pathname) ||
-      matchPath(module.path, pathname)
+      matchPath(`${item.path}/*`, pathname) ||
+      matchPath(item.path, pathname)
     ) {
-      return module.path;
+      return item.path;
     }
   }
 
