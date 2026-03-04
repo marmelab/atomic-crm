@@ -671,7 +671,8 @@ src/components/atomic-crm/dashboard/
 ├── dashboardHistoryModel.ts            # Aggregazioni storiche e quality flags
 ├── fiscalModel.ts                      # Logica pura calcoli fiscali regime forfettario
 ├── fiscalModelTypes.ts                 # Tipi fiscali estratti (FiscalModel, FiscalKpis, deadlines, health)
-├── fiscalDeadlines.ts                  # buildDeadlines + date helpers (toStartOfDay, diffDays)
+├── fiscalDeadlines.ts                  # buildDeadlines (F24/INPS high-priority + bolli/dichiarazione low-priority)
+├── useGenerateFiscalTasks.ts           # Hook: genera client_tasks dai deadline fiscali calcolati
 ├── DashboardAnnual.tsx                 # Vista Annuale con guida lettura, AI card e simulazione fiscale
 ├── DashboardHistorical.tsx             # Vista Storico con guida, KPI, cash inflow e AI card
 ├── DashboardAnnualAiSummaryCard.tsx    # AI guidata sul contesto annual_operations
@@ -681,7 +682,7 @@ src/components/atomic-crm/dashboard/
 ├── DashboardKpiCards.tsx               # 4 KPI cards fatturato/pagamenti
 ├── DashboardFiscalKpis.tsx             # 4 KPI cards fiscali (netto, tasse, accantonamento, tetto)
 ├── DashboardAtecoChart.tsx             # Bar chart orizzontale fatturato vs reddito per ATECO
-├── DashboardDeadlinesCard.tsx          # Scadenze fiscali con countdown ed espansione dettagli
+├── DashboardDeadlinesCard.tsx          # Scadenze fiscali: high-priority prominenti, low-priority collassate, bottone genera promemoria
 ├── DashboardBusinessHealthCard.tsx     # Salute aziendale (conversione, DSO, concentrazione, margini)
 ├── DashboardRevenueTrendChart.tsx      # Line chart (12 mesi)
 ├── DashboardCategoryChart.tsx          # Bar chart per categoria

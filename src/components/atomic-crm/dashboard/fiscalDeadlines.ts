@@ -91,6 +91,7 @@ export const buildDeadlines = ({
     totalAmount: juneTotalAmount,
     isPast: juneDate < today,
     daysUntil: diffDays(today, juneDate),
+    priority: "high",
   });
 
   // November 30 deadline
@@ -123,7 +124,65 @@ export const buildDeadlines = ({
     totalAmount: novTotalAmount,
     isPast: novDate < today,
     daysUntil: diffDays(today, novDate),
+    priority: "high",
+  });
+
+  deadlines.push(...buildLowPriorityDeadlines(currentYear, today));
+
+  // Sort: future first by date, then past by date descending
+  deadlines.sort((a, b) => {
+    if (a.isPast !== b.isPast) return a.isPast ? 1 : -1;
+    if (!a.isPast) return a.date.localeCompare(b.date);
+    return b.date.localeCompare(a.date);
   });
 
   return deadlines;
+};
+
+// ── Low-priority deadlines (bollo, dichiarazione) ───────────────────
+
+const buildLowPriorityDeadlines = (
+  currentYear: number,
+  today: Date,
+): FiscalDeadline[] => {
+  const result: FiscalDeadline[] = [];
+
+  // Bollo trimestrale sulle fatture elettroniche
+  const bolloQuarters: Array<{ date: Date; label: string }> = [
+    { date: new Date(currentYear, 4, 31), label: "Bollo Q1 (gen-mar)" },
+    { date: new Date(currentYear, 8, 30), label: "Bollo Q2 (apr-giu)" },
+    { date: new Date(currentYear, 10, 30), label: "Bollo Q3 (lug-set)" },
+    { date: new Date(currentYear + 1, 1, 28), label: "Bollo Q4 (ott-dic)" },
+  ];
+
+  for (const bq of bolloQuarters) {
+    result.push({
+      date: toLocalISODate(bq.date),
+      label: bq.label,
+      items: [
+        {
+          description: `Imposta di bollo fatture elettroniche — ${bq.label}`,
+          amount: 0,
+        },
+      ],
+      totalAmount: 0,
+      isPast: bq.date < today,
+      daysUntil: diffDays(today, bq.date),
+      priority: "low",
+    });
+  }
+
+  // Dichiarazione dei redditi (Modello Redditi PF) — October 31
+  const dichDate = new Date(currentYear, 9, 31);
+  result.push({
+    date: toLocalISODate(dichDate),
+    label: "Dichiarazione dei redditi",
+    items: [{ description: "Invio telematico Modello Redditi PF", amount: 0 }],
+    totalAmount: 0,
+    isPast: dichDate < today,
+    daysUntil: diffDays(today, dichDate),
+    priority: "low",
+  });
+
+  return result;
 };

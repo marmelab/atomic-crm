@@ -27,7 +27,14 @@ export const defaultTaskTypes = [
   { value: "meeting", label: "Riunione" },
   { value: "follow-up", label: "Follow-up" },
   { value: "reminder", label: "Promemoria" },
+  { value: "f24", label: "F24" },
+  { value: "inps", label: "INPS" },
+  { value: "dichiarazione", label: "Dichiarazione" },
+  { value: "bollo", label: "Bollo" },
 ];
+
+/** Task type values used for auto-generated fiscal deadlines. */
+export const fiscalTaskTypes = ["f24", "inps", "dichiarazione", "bollo"];
 
 export const defaultQuoteServiceTypes = [
   {
@@ -166,4 +173,7 @@ export const defaultConfiguration: ConfigurationContextValue = {
   aiConfig: defaultAIConfig,
   operationalConfig: defaultOperationalConfig,
   businessProfile: defaultBusinessProfile,
+  // Auth settings - undefined means use environment default
+  googleWorkplaceDomain: undefined,
+  disableEmailPasswordAuthentication: false,
 };

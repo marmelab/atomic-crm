@@ -55,6 +55,8 @@ export type FiscalDeadline = {
   totalAmount: number;
   isPast: boolean;
   daysUntil: number;
+  /** high = F24/INPS (prominent), low = bollo/dichiarazione (muted) */
+  priority: "high" | "low";
 };
 
 export type DeadlineItem = {

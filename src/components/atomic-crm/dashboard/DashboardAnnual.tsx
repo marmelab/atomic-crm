@@ -14,6 +14,8 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 
+import { useRealtimeInvalidation } from "@/hooks/useRealtimeInvalidation";
+
 import { Welcome } from "./Welcome";
 import { DashboardAlertsCard } from "./DashboardAlertsCard";
 import { DashboardAnnualAiSummaryCard } from "./DashboardAnnualAiSummaryCard";
@@ -29,10 +31,22 @@ import { DashboardPipelineCard } from "./DashboardPipelineCard";
 import { DashboardRevenueTrendChart } from "./DashboardRevenueTrendChart";
 import { DashboardTopClientsCard } from "./DashboardTopClientsCard";
 import { useDashboardData } from "./useDashboardData";
+import { useGenerateFiscalTasks } from "./useGenerateFiscalTasks";
 
 const currentYear = new Date().getFullYear();
 
+const REALTIME_TABLES = [
+  "payments",
+  "services",
+  "projects",
+  "quotes",
+  "expenses",
+  "clients",
+  "client_tasks",
+];
+
 export const DashboardAnnual = () => {
+  useRealtimeInvalidation(REALTIME_TABLES);
   const [selectedYear, setSelectedYear] = useState(currentYear);
   const [readingGuideDismissed, setReadingGuideDismissed] = useStore<boolean>(
     "dashboard.readingGuide.dismissed",
@@ -40,6 +54,12 @@ export const DashboardAnnual = () => {
   );
   const { data, isPending, error, refetch } = useDashboardData(selectedYear);
   const isCurrentYear = data?.isCurrentYear ?? selectedYear === currentYear;
+
+  const { generate: generateFiscalTasks, existingCount: fiscalTasksCount } =
+    useGenerateFiscalTasks({
+      deadlines: data?.fiscal?.deadlines ?? [],
+      year: selectedYear,
+    });
 
   if (isPending || !data) {
     if (error) {
@@ -162,6 +182,8 @@ export const DashboardAnnual = () => {
               <DashboardDeadlinesCard
                 deadlines={data.fiscal.deadlines}
                 isFirstYear={data.fiscal.deadlines.length === 0}
+                onGenerateTasks={generateFiscalTasks}
+                existingTasksCount={fiscalTasksCount}
               />
             )}
           </div>

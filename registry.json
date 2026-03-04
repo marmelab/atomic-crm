@@ -800,6 +800,10 @@
           "type": "registry:component"
         },
         {
+          "path": "src/components/atomic-crm/dashboard/useGenerateFiscalTasks.ts",
+          "type": "registry:component"
+        },
+        {
           "path": "src/components/atomic-crm/dashboard/useDashboardData.ts",
           "type": "registry:component"
         },
@@ -1093,6 +1097,10 @@
         },
         {
           "path": "src/hooks/user-menu-context.tsx",
+          "type": "registry:hook"
+        },
+        {
+          "path": "src/hooks/useRealtimeInvalidation.ts",
           "type": "registry:hook"
         },
         {

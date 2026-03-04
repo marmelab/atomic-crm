@@ -1,7 +1,24 @@
 import { useState } from "react";
-import { CalendarClock, ChevronDown, ChevronUp } from "lucide-react";
+import {
+  CalendarClock,
+  ChevronDown,
+  ChevronUp,
+  ListChecks,
+} from "lucide-react";
 
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 import { formatCurrencyPrecise } from "./dashboardModel";
@@ -10,9 +27,13 @@ import type { FiscalDeadline } from "./fiscalModel";
 export const DashboardDeadlinesCard = ({
   deadlines,
   isFirstYear,
+  onGenerateTasks,
+  existingTasksCount,
 }: {
   deadlines: FiscalDeadline[];
   isFirstYear: boolean;
+  onGenerateTasks?: () => void;
+  existingTasksCount?: number;
 }) => {
   if (isFirstYear) {
     return (
@@ -38,10 +59,10 @@ export const DashboardDeadlinesCard = ({
     );
   }
 
-  const futureDeadlines = deadlines.filter((d) => !d.isPast);
-  const pastDeadlines = deadlines.filter((d) => d.isPast);
+  const highPriority = deadlines.filter((d) => d.priority === "high");
+  const lowPriority = deadlines.filter((d) => d.priority === "low");
 
-  if (futureDeadlines.length === 0 && pastDeadlines.length === 0) {
+  if (highPriority.length === 0 && lowPriority.length === 0) {
     return (
       <Card>
         <CardHeader>
@@ -60,22 +81,31 @@ export const DashboardDeadlinesCard = ({
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-base flex items-center gap-2">
-          <CalendarClock className="h-4 w-4" />
-          Scadenze fiscali stimate
-        </CardTitle>
+        <div className="flex items-center justify-between">
+          <CardTitle className="text-base flex items-center gap-2">
+            <CalendarClock className="h-4 w-4" />
+            Scadenze fiscali stimate
+          </CardTitle>
+          {onGenerateTasks && <GenerateButton
+            onGenerate={onGenerateTasks}
+            existingCount={existingTasksCount ?? 0}
+          />}
+        </div>
       </CardHeader>
       <CardContent className="space-y-3">
-        {futureDeadlines.map((deadline) => (
-          <DeadlineRow key={deadline.date} deadline={deadline} />
+        {highPriority.map((deadline) => (
+          <DeadlineRow key={deadline.date + deadline.label} deadline={deadline} />
         ))}
-        {pastDeadlines.map((deadline) => (
-          <DeadlineRow key={deadline.date} deadline={deadline} />
-        ))}
+
+        {lowPriority.length > 0 && (
+          <LowPrioritySection deadlines={lowPriority} />
+        )}
       </CardContent>
     </Card>
   );
 };
+
+// ── High-priority deadline row (F24/INPS) ──────────────────────────
 
 const DeadlineRow = ({ deadline }: { deadline: FiscalDeadline }) => {
   const [expanded, setExpanded] = useState(false);
@@ -137,5 +167,109 @@ const DeadlineRow = ({ deadline }: { deadline: FiscalDeadline }) => {
         </div>
       )}
     </div>
+  );
+};
+
+// ── Low-priority section (bolli, dichiarazione) ────────────────────
+
+const LowPrioritySection = ({
+  deadlines,
+}: {
+  deadlines: FiscalDeadline[];
+}) => {
+  const [expanded, setExpanded] = useState(false);
+
+  const futureCount = deadlines.filter((d) => !d.isPast).length;
+
+  return (
+    <div className="pt-1">
+      <button
+        type="button"
+        className="flex items-center gap-2 text-xs text-muted-foreground hover:text-foreground transition-colors"
+        onClick={() => setExpanded(!expanded)}
+      >
+        {expanded ? (
+          <ChevronUp className="h-3 w-3" />
+        ) : (
+          <ChevronDown className="h-3 w-3" />
+        )}
+        <span>
+          Altre scadenze{futureCount > 0 ? ` (${futureCount} in arrivo)` : ""}
+        </span>
+      </button>
+      {expanded && (
+        <div className="mt-2 space-y-1">
+          {deadlines.map((d) => (
+            <div
+              key={d.date + d.label}
+              className={`flex items-center justify-between text-xs px-2 py-1.5 rounded ${d.isPast ? "opacity-40" : "text-muted-foreground"}`}
+            >
+              <span>
+                {new Date(d.date + "T00:00:00").toLocaleDateString("it-IT", {
+                  day: "2-digit",
+                  month: "short",
+                })}{" "}
+                — {d.label}
+              </span>
+              {!d.isPast && (
+                <Badge variant="secondary" className="text-[10px] px-1.5 py-0">
+                  {d.daysUntil}g
+                </Badge>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
+
+// ── Generate tasks button with confirmation ────────────────────────
+
+const GenerateButton = ({
+  onGenerate,
+  existingCount,
+}: {
+  onGenerate: () => void;
+  existingCount: number;
+}) => {
+  if (existingCount === 0) {
+    return (
+      <Button
+        variant="outline"
+        size="sm"
+        className="gap-1.5 text-xs"
+        onClick={onGenerate}
+      >
+        <ListChecks className="h-3.5 w-3.5" />
+        Genera promemoria
+      </Button>
+    );
+  }
+
+  return (
+    <AlertDialog>
+      <AlertDialogTrigger asChild>
+        <Button variant="outline" size="sm" className="gap-1.5 text-xs">
+          <ListChecks className="h-3.5 w-3.5" />
+          Rigenera promemoria
+        </Button>
+      </AlertDialogTrigger>
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>Rigenerare le scadenze fiscali?</AlertDialogTitle>
+          <AlertDialogDescription>
+            Esistono già {existingCount} promemoria fiscali per quest'anno. La
+            rigenerazione li sostituirà con le scadenze calcolate aggiornate.
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel>Annulla</AlertDialogCancel>
+          <AlertDialogAction onClick={onGenerate}>
+            Rigenera
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
   );
 };

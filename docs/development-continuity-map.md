@@ -62,6 +62,10 @@ Quando tocchi dashboard annuale o task/payment deadline logic, controllare:
 
 - `DashboardAnnual.tsx`
 - `DashboardDeadlineTracker.tsx`
+- `DashboardDeadlinesCard.tsx` (gerarchia visuale high/low priority)
+- `fiscalDeadlines.ts` (buildDeadlines + buildLowPriorityDeadlines)
+- `useGenerateFiscalTasks.ts` (genera client_tasks dai deadline fiscali)
+- `defaultConfiguration.ts` (fiscalTaskTypes: f24, inps, dichiarazione, bollo)
 - `payments/PaymentOverdueBadge.tsx`
 - `tasks/TasksList.tsx` (handoff task_create)
 - `src/lib/ai/unifiedCrmReadContext.ts`
