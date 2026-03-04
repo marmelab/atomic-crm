@@ -1,5 +1,5 @@
 import { BarChart3, CalendarRange } from "lucide-react";
-import { useState } from "react";
+import { useStore } from "ra-core";
 
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 
@@ -10,7 +10,7 @@ type DashboardMode = "annual" | "historical";
 
 export const Dashboard = () => {
   const allowHistorical = import.meta.env.VITE_IS_DEMO !== "true";
-  const [mode, setMode] = useState<DashboardMode>("annual");
+  const [mode, setMode] = useStore<DashboardMode>("dashboard.mode", "annual");
 
   if (!allowHistorical) {
     return <DashboardAnnual />;

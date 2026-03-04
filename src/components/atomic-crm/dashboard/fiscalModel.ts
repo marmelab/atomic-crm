@@ -26,6 +26,10 @@ export type FiscalModel = {
 export type FiscalKpis = {
   /** Somma compensi netti (fee_shooting + fee_editing + fee_other - discount) anno corrente. */
   fatturatoLordoYtd: number;
+  /** Somma compensi netti complessivi anno corrente, inclusi servizi non tassabili. */
+  fatturatoTotaleYtd: number;
+  /** Quota non tassabile del fatturato operativo dell'anno. */
+  fatturatoNonTassabileYtd: number;
   /** SUM(fatturato_categoria × coefficiente_ATECO / 100). */
   redditoLordoForfettario: number;
   /** reddito_lordo × aliquota_INPS / 100. */
@@ -190,7 +194,7 @@ export const buildFiscalModel = ({
   payments,
   quotes,
   projects,
-  clients,
+  clients: _clients,
   fiscalConfig,
   year,
 }: {
@@ -223,7 +227,6 @@ export const buildFiscalModel = ({
   );
 
   const projectById = new Map(projects.map((p) => [String(p.id), p]));
-  const clientById = new Map(clients.map((c) => [String(c.id), c]));
 
   // Build category → ATECO profile mapping
   const categoryToProfile = new Map<
@@ -243,32 +246,64 @@ export const buildFiscalModel = ({
   const categoryExpenses = new Map<string, number>();
   const clientRevenue = new Map<string, number>();
   const projectEarliestService = new Map<string, Date>();
+  const defaultTaxProfile = fiscalConfig.taxProfiles[0];
+  let fatturatoTotaleYtd = 0;
 
   for (const service of services) {
     if (!service.service_date) continue;
     const date = new Date(service.service_date);
     if (Number.isNaN(date.valueOf()) || date.getFullYear() !== currentYear)
       continue;
-    const project = projectById.get(String(service.project_id));
-    if (!project) continue;
+    const project = service.project_id
+      ? projectById.get(String(service.project_id))
+      : null;
 
     const revenue = calculateServiceNetValue(service);
     const taxableRevenue = calculateTaxableServiceNetValue(service);
-    const cat = project.category;
-    categoryRevenue.set(cat, (categoryRevenue.get(cat) ?? 0) + revenue);
+    fatturatoTotaleYtd += revenue;
+
+    if (!project) {
+      const fallbackCategoryKey = defaultTaxProfile
+        ? `__flat_services_${defaultTaxProfile.atecoCode}`
+        : "__flat_services_unclassified";
+
+      if (defaultTaxProfile) {
+        categoryToProfile.set(fallbackCategoryKey, defaultTaxProfile);
+      }
+
+      taxableCategoryRevenue.set(
+        fallbackCategoryKey,
+        (taxableCategoryRevenue.get(fallbackCategoryKey) ?? 0) + taxableRevenue,
+      );
+
+      if (service.client_id) {
+        const clientId = String(service.client_id);
+        clientRevenue.set(
+          clientId,
+          (clientRevenue.get(clientId) ?? 0) + revenue,
+        );
+      }
+
+      continue;
+    }
+
+    const category = project.category;
+    categoryRevenue.set(
+      category,
+      (categoryRevenue.get(category) ?? 0) + revenue,
+    );
     taxableCategoryRevenue.set(
-      cat,
-      (taxableCategoryRevenue.get(cat) ?? 0) + taxableRevenue,
+      category,
+      (taxableCategoryRevenue.get(category) ?? 0) + taxableRevenue,
     );
 
     const clientId = String(project.client_id);
     clientRevenue.set(clientId, (clientRevenue.get(clientId) ?? 0) + revenue);
 
-    // Track earliest service date per project (for DSO)
-    const projId = String(service.project_id);
-    const existing = projectEarliestService.get(projId);
+    const projectId = String(service.project_id);
+    const existing = projectEarliestService.get(projectId);
     if (!existing || date < existing) {
-      projectEarliestService.set(projId, date);
+      projectEarliestService.set(projectId, date);
     }
   }
 
@@ -336,6 +371,10 @@ export const buildFiscalModel = ({
   const distanzaDalTetto = tettoFatturato - fatturatoLordoYtd;
   const percentualeUtilizzoTetto =
     tettoFatturato > 0 ? (fatturatoLordoYtd / tettoFatturato) * 100 : 0;
+  const fatturatoNonTassabileYtd = Math.max(
+    0,
+    fatturatoTotaleYtd - fatturatoLordoYtd,
+  );
 
   // ── ATECO breakdown ───────────────────────────────────────────────
 
@@ -462,6 +501,8 @@ export const buildFiscalModel = ({
   return {
     fiscalKpis: {
       fatturatoLordoYtd,
+      fatturatoTotaleYtd,
+      fatturatoNonTassabileYtd,
       redditoLordoForfettario,
       stimaInpsAnnuale,
       redditoImponibile,

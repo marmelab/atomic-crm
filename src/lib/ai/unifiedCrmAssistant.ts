@@ -25,6 +25,7 @@ export type UnifiedCrmSuggestedAction = {
     | "dashboard"
     | "clients"
     | "contacts"
+    | "client_tasks"
     | "quotes"
     | "projects"
     | "services"
@@ -43,6 +44,8 @@ export type UnifiedCrmSuggestedAction = {
     | "project_quick_payment"
     | "expense_create"
     | "expense_create_km"
+    | "task_create"
+    | "generate_invoice_draft"
     | "follow_unified_crm_handoff";
 };
 

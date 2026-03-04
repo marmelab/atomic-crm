@@ -124,6 +124,10 @@ export const defaultFiscalConfig: FiscalConfig = {
   aliquotaINPS: 26.07,
   tettoFatturato: 85000,
   annoInizioAttivita: 2023,
+  taxabilityDefaults: {
+    nonTaxableCategories: [],
+    nonTaxableClientIds: [],
+  },
 };
 
 export const defaultAIConfig: AIConfig = {

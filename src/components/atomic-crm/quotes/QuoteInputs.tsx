@@ -20,17 +20,22 @@ import { computeQuoteItemsTotal, hasQuoteItems } from "./quoteItems";
 import { quoteStatuses } from "./quotesTypes";
 import { toOptionalIdentifier } from "./quoteProjectLinking";
 
+const toIdString = (value: unknown) =>
+  value == null || value === "" ? null : String(value);
+
 export const QuoteInputs = () => {
   const status = useWatch({ name: "status" });
   const clientId = useWatch({ name: "client_id" });
   const projectId = useWatch({ name: "project_id" });
   const amount = useWatch({ name: "amount" });
+  const recordId = toIdString(useWatch({ name: "id" }));
+  const currentTaxable = useWatch({ name: "is_taxable" });
   const quoteItems = useWatch({ name: "quote_items" }) as
     | QuoteItem[]
     | undefined;
   const allDay = useWatch({ name: "all_day" }) ?? true;
-  const { setValue } = useFormContext();
-  const { quoteServiceTypes } = useConfigurationContext();
+  const { setValue, getFieldState, formState } = useFormContext();
+  const { quoteServiceTypes, fiscalConfig } = useConfigurationContext();
   const { data: selectedProject } = useGetOne<Project>(
     "projects",
     {
@@ -44,6 +49,16 @@ export const QuoteInputs = () => {
   const DateComponent = allDay ? DateInput : DateTimeInput;
   const itemizedQuote = hasQuoteItems(quoteItems);
   const itemizedAmount = computeQuoteItemsTotal(quoteItems);
+  const selectedClientId = toIdString(clientId);
+  const taxabilityDefaults = fiscalConfig?.taxabilityDefaults;
+  const suggestedTaxable =
+    selectedProject &&
+    taxabilityDefaults?.nonTaxableCategories?.includes(selectedProject.category)
+      ? false
+      : selectedClientId &&
+          taxabilityDefaults?.nonTaxableClientIds?.includes(selectedClientId)
+        ? false
+        : true;
 
   useEffect(() => {
     if (!selectedProject) return;
@@ -65,6 +80,30 @@ export const QuoteInputs = () => {
       shouldValidate: true,
     });
   }, [amount, itemizedAmount, itemizedQuote, setValue]);
+
+  useEffect(() => {
+    if (recordId) {
+      return;
+    }
+
+    const isDirty = getFieldState("is_taxable", formState).isDirty;
+    if (isDirty || currentTaxable === suggestedTaxable) {
+      return;
+    }
+
+    setValue("is_taxable", suggestedTaxable, {
+      shouldDirty: false,
+      shouldValidate: false,
+      shouldTouch: false,
+    });
+  }, [
+    currentTaxable,
+    formState,
+    getFieldState,
+    recordId,
+    setValue,
+    suggestedTaxable,
+  ]);
 
   return (
     <div className="flex flex-col gap-4">
@@ -179,6 +218,13 @@ export const QuoteInputs = () => {
             ? "Calcolato automaticamente dalle voci del preventivo."
             : false
         }
+      />
+
+      <BooleanInput
+        source="is_taxable"
+        label="Tassabile"
+        defaultValue={suggestedTaxable}
+        helperText="Disattiva solo se il lavoro non deve contribuire alla base fiscale."
       />
 
       <Separator />

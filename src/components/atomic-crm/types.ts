@@ -314,6 +314,7 @@ export type Quote = {
   rejection_reason?: string;
   notes?: string;
   quote_items?: QuoteItem[];
+  is_taxable: boolean;
   index: number;
   created_at: string;
   updated_at: string;
@@ -360,6 +361,11 @@ export interface FiscalTaxProfile {
   linkedCategories: string[];
 }
 
+export interface TaxabilityDefaultsConfig {
+  nonTaxableCategories: string[];
+  nonTaxableClientIds: string[];
+}
+
 /** Complete fiscal configuration stored in Settings.
  *  All fields configurable from UI and persisted to DB via configuration JSONB. */
 export interface FiscalConfig {
@@ -367,6 +373,7 @@ export interface FiscalConfig {
   aliquotaINPS: number; // 26.07
   tettoFatturato: number; // 85000
   annoInizioAttivita: number; // 2023
+  taxabilityDefaults?: TaxabilityDefaultsConfig;
   /** Override manuale dell'aliquota sostitutiva.
    *  Se undefined/null → calcolo automatico: 5% primi 5 anni, 15% dal 6°.
    *  Se valorizzato → usa questo valore (per casistiche particolari). */

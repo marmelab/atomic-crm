@@ -1,8 +1,8 @@
 import { format, isValid } from "date-fns";
 import { FileDown } from "lucide-react";
 import { ShowBase, useGetOne, useRecordContext, useRedirect } from "ra-core";
-import { useState } from "react";
-import { Link } from "react-router";
+import { useEffect, useState } from "react";
+import { Link, useLocation } from "react-router";
 import { DeleteButton } from "@/components/admin/delete-button";
 import { EditButton } from "@/components/admin/edit-button";
 import { Badge } from "@/components/ui/badge";
@@ -29,6 +29,8 @@ import {
   canCreatePaymentFromQuote,
 } from "../payments/paymentLinking";
 import { SendQuoteStatusEmailDialog } from "./SendQuoteStatusEmailDialog";
+import { InvoiceDraftDialog } from "../invoicing/InvoiceDraftDialog";
+import { buildInvoiceDraftFromQuote } from "../invoicing/buildInvoiceDraftFromQuote";
 
 export const QuoteShow = ({ open, id }: { open: boolean; id?: string }) => {
   const redirect = useRedirect();
@@ -55,8 +57,10 @@ export const QuoteShow = ({ open, id }: { open: boolean; id?: string }) => {
 
 const QuoteShowContent = () => {
   const record = useRecordContext<Quote>();
+  const location = useLocation();
   const { quoteServiceTypes } = useConfigurationContext();
   const [pdfLoading, setPdfLoading] = useState(false);
+  const [invoiceDraftOpen, setInvoiceDraftOpen] = useState(false);
 
   const { data: client } = useGetOne(
     "clients",
@@ -77,6 +81,14 @@ const QuoteShowContent = () => {
     },
   );
 
+  useEffect(() => {
+    if (!record || !client) return;
+    const searchParams = new URLSearchParams(location.search);
+    if (searchParams.get("invoiceDraft") === "true") {
+      setInvoiceDraftOpen(true);
+    }
+  }, [client, location.search, record]);
+
   if (!record) return null;
 
   const statusLabel = quoteStatusLabels[record.status] ?? record.status;
@@ -84,6 +96,12 @@ const QuoteShowContent = () => {
     quoteServiceTypes.find((t) => t.value === record.service_type)?.label ??
     record.service_type;
   const quoteItems = sanitizeQuoteItems(record.quote_items);
+  const invoiceDraft = client
+    ? buildInvoiceDraftFromQuote({
+        quote: record,
+        client,
+      })
+    : null;
 
   const handleDownloadPDF = async () => {
     setPdfLoading(true);
@@ -130,6 +148,16 @@ const QuoteShowContent = () => {
               </Link>
             </Button>
           ) : null}
+          {invoiceDraft ? (
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => setInvoiceDraftOpen(true)}
+            >
+              Genera bozza fattura
+            </Button>
+          ) : null}
           <SendQuoteStatusEmailDialog quote={record} />
           <EditButton />
           <DeleteButton />
@@ -155,6 +183,13 @@ const QuoteShowContent = () => {
         <InfoField label="Tipo servizio" value={serviceLabel} />
         <InfoField label="Stato">
           <Badge variant="secondary">{statusLabel}</Badge>
+        </InfoField>
+        <InfoField label="Tassabilità">
+          <Badge
+            variant={record.is_taxable === false ? "secondary" : "outline"}
+          >
+            {record.is_taxable === false ? "Non tassabile" : "Tassabile"}
+          </Badge>
         </InfoField>
         <InfoField
           label="Importo"
@@ -251,6 +286,12 @@ const QuoteShowContent = () => {
           </div>
         </>
       )}
+
+      <InvoiceDraftDialog
+        open={invoiceDraftOpen}
+        onOpenChange={setInvoiceDraftOpen}
+        draft={invoiceDraft}
+      />
     </div>
   );
 };

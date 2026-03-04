@@ -4,8 +4,10 @@ import {
   ChevronRight,
   RefreshCw,
   Settings,
+  X,
 } from "lucide-react";
 import { useState } from "react";
+import { useStore } from "ra-core";
 import { Link } from "react-router-dom";
 
 import { Badge } from "@/components/ui/badge";
@@ -18,6 +20,7 @@ import { DashboardAnnualAiSummaryCard } from "./DashboardAnnualAiSummaryCard";
 import { DashboardAtecoChart } from "./DashboardAtecoChart";
 import { DashboardBusinessHealthCard } from "./DashboardBusinessHealthCard";
 import { DashboardCategoryChart } from "./DashboardCategoryChart";
+import { DashboardDeadlineTracker } from "./DashboardDeadlineTracker";
 import { DashboardDeadlinesCard } from "./DashboardDeadlinesCard";
 import { DashboardFiscalKpis } from "./DashboardFiscalKpis";
 import { DashboardKpiCards } from "./DashboardKpiCards";
@@ -31,6 +34,10 @@ const currentYear = new Date().getFullYear();
 
 export const DashboardAnnual = () => {
   const [selectedYear, setSelectedYear] = useState(currentYear);
+  const [readingGuideDismissed, setReadingGuideDismissed] = useStore<boolean>(
+    "dashboard.readingGuide.dismissed",
+    false,
+  );
   const { data, isPending, error, refetch } = useDashboardData(selectedYear);
   const isCurrentYear = data?.isCurrentYear ?? selectedYear === currentYear;
 
@@ -52,11 +59,24 @@ export const DashboardAnnual = () => {
         isCurrentYear={isCurrentYear}
       />
 
-      <AnnualReadingGuide
-        year={data.selectedYear}
-        isCurrentYear={data.isCurrentYear}
-        asOfDateLabel={data.meta.asOfDateLabel}
-      />
+      {readingGuideDismissed ? (
+        <div>
+          <Button
+            variant="link"
+            className="h-auto px-0 text-xs"
+            onClick={() => setReadingGuideDismissed(false)}
+          >
+            Come leggere Annuale
+          </Button>
+        </div>
+      ) : (
+        <AnnualReadingGuide
+          year={data.selectedYear}
+          isCurrentYear={data.isCurrentYear}
+          asOfDateLabel={data.meta.asOfDateLabel}
+          onDismiss={() => setReadingGuideDismissed(true)}
+        />
+      )}
 
       <DashboardKpiCards
         kpis={data.kpis}
@@ -90,6 +110,8 @@ export const DashboardAnnual = () => {
         </div>
         {isCurrentYear && <DashboardAlertsCard alerts={data.alerts} />}
       </div>
+
+      {isCurrentYear ? <DashboardDeadlineTracker /> : null}
 
       {data.fiscal ? (
         <>
@@ -204,14 +226,28 @@ const AnnualReadingGuide = ({
   year,
   isCurrentYear,
   asOfDateLabel,
+  onDismiss,
 }: {
   year: number;
   isCurrentYear: boolean;
   asOfDateLabel: string;
+  onDismiss: () => void;
 }) => (
   <Card className="gap-0">
     <CardContent className="px-4 py-4 space-y-2 text-sm">
-      <p className="font-medium">Come leggere Annuale</p>
+      <div className="flex items-start justify-between gap-3">
+        <p className="font-medium">Come leggere Annuale</p>
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon"
+          className="h-6 w-6 text-muted-foreground"
+          onClick={onDismiss}
+          aria-label="Chiudi guida lettura annuale"
+        >
+          <X className="h-4 w-4" />
+        </Button>
+      </div>
       <p className="text-muted-foreground">
         Qui vedi il valore del lavoro dell'anno scelto al netto degli sconti,
         non gli incassi.

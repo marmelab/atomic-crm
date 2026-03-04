@@ -89,6 +89,7 @@ export const QuoteCreate = ({ open }: { open: boolean }) => {
               status: "primo_contatto",
               all_day: true,
               quote_items: [],
+              is_taxable: true,
             }}
           >
             <QuoteInputs />

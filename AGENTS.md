@@ -73,6 +73,73 @@ Regola attuale per migration e bootstrap:
   - modifiche Edge Functions -> commit/push + deploy Supabase separato
   - modifiche miste -> entrambe le cose
 
+## Frontend Import Rules
+
+- Form inputs (`TextInput`, `SelectInput`, `BooleanInput`, etc.) da `@/components/admin/`, MAI da shadcn/ui
+- Pure UI (`Card`, `Button`, `Badge`, `Separator`, etc.) da `@/components/ui/`
+- Config SEMPRE da `useConfigurationContext()`, mai hardcoded
+- Mobile: usare `useIsMobile()` per branching, `CreateSheet`/`EditSheet` per sub-resources
+- Data fetching standard: ra-core hooks (`useListContext`, `useGetList`, `useGetOne`, `useShowContext`)
+- Data fetching custom: metodo nel dataProvider, chiamato via `useQuery`/`useMutation` + `useDataProvider<CrmDataProvider>()`
+
+## Backend Implementation Rules
+
+### Smallest Correct Layer
+
+frontend/provider only -> database migration/view -> Edge Function
+Non salire di layer se non necessario.
+
+### New Table/View Checklist
+
+1. Migration in `supabase/migrations/`
+2. Chiavi, vincoli, indici
+3. RLS abilitata
+4. Policy esplicite (`auth.uid() IS NOT NULL` per business tables)
+5. `created_at` e `updated_at` dove serve
+6. Aggiornare provider Supabase + `types.ts` + docs
+
+### Provider-First Rule
+
+Non creare client Supabase custom se il dataProvider esistente basta.
+Preferire metodi espliciti nel provider.
+
+## Mandatory Surface Sweep
+
+Quando si modifica un modulo con sweep obbligatorio (`projects`, `services`, `quotes`, `payments`, `expenses`, `tasks`, dashboard, AI), verificare TUTTE queste aree:
+
+1. list/index
+2. create
+3. edit
+4. show/detail
+5. filters (desktop + mobile)
+6. dialogs/sheets/modals collegati
+7. linking helpers e persistenza
+8. provider e queries/mutations
+9. Edge Functions o server layer
+10. semantic registry + capability registry (se AI-read)
+11. continuity docs
+12. Settings (solo se config-driven)
+
+## Pre-commit Continuity Rules
+
+Il pre-commit hook esegue `npm run continuity:check` che BLOCCA i commit se:
+
+- Codice prodotto (`src/`, `supabase/`) cambia senza almeno 1 doc in `docs/`
+- Schema/type/provider/CRM.tsx cambia senza `architecture.md` + `development-continuity-map.md`
+- AI/dashboard/semantics cambia senza `historical-analytics-handoff.md` + `historical-analytics-backlog.md` + `architecture.md`
+- Clienti/contatti/progetti cambia senza `contacts-client-project-architecture.md` + `architecture.md`
+- `defaultConfiguration` o `ConfigurationContext` cambia senza Settings UI o doc explanation
+
+Test files (`*.test.ts`, `*.spec.tsx`) sono esenti.
+
+## Test Naming Convention
+
+- Unit test: `foo.test.ts` nella stessa directory del file testato
+- E2E smoke: `tests/e2e/feature-name.smoke.spec.ts`
+- Fixture inline, mai fixture condivise di dominio (SYSTEM-FIRST RULE)
+- Ogni builder/funzione pura -> test unitario
+- Ogni flusso business-critical -> E2E smoke
+
 ## Project Overview
 
 Gestionale Rosario Furnari is a heavily customized fork of Atomic CRM built with

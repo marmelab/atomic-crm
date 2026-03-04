@@ -1,4 +1,5 @@
-import { required, minValue } from "ra-core";
+import { minValue, required, useGetOne } from "ra-core";
+import { useEffect } from "react";
 import { useFormContext, useWatch } from "react-hook-form";
 import { Separator } from "@/components/ui/separator";
 import { TextInput } from "@/components/admin/text-input";
@@ -14,7 +15,37 @@ import { calculateKmReimbursement } from "@/lib/semantics/crmSemanticRegistry";
 import { useConfigurationContext } from "../root/ConfigurationContext";
 import { buildNameSearchFilter } from "../misc/referenceSearch";
 import { TravelRouteCalculatorDialog } from "../travel/TravelRouteCalculatorDialog";
+import type { Project } from "../types";
 import { ServiceTotals } from "./ServiceTotals";
+
+const toIdString = (value: unknown) =>
+  value == null || value === "" ? null : String(value);
+
+const getSuggestedServiceTaxable = ({
+  projectCategory,
+  clientId,
+  defaults,
+}: {
+  projectCategory?: string | null;
+  clientId?: string | null;
+  defaults?: {
+    nonTaxableCategories?: string[];
+    nonTaxableClientIds?: string[];
+  };
+}) => {
+  if (
+    projectCategory &&
+    defaults?.nonTaxableCategories?.includes(projectCategory)
+  ) {
+    return false;
+  }
+
+  if (clientId && defaults?.nonTaxableClientIds?.includes(clientId)) {
+    return false;
+  }
+
+  return true;
+};
 
 export const ServiceInputs = () => {
   return (
@@ -99,46 +130,91 @@ const ServiceIdentityInputs = () => {
   );
 };
 
-const ServiceFeeInputs = () => (
-  <div className="flex flex-col gap-4">
-    <h6 className="text-lg font-semibold">Compensi</h6>
-    <NumberInput
-      source="fee_shooting"
-      label="Compenso riprese (EUR)"
-      defaultValue={0}
-      validate={minValue(0)}
-      helperText={false}
-    />
-    <NumberInput
-      source="fee_editing"
-      label="Compenso montaggio (EUR)"
-      defaultValue={0}
-      validate={minValue(0)}
-      helperText={false}
-    />
-    <NumberInput
-      source="fee_other"
-      label="Compenso altro (EUR)"
-      defaultValue={0}
-      validate={minValue(0)}
-      helperText={false}
-    />
-    <NumberInput
-      source="discount"
-      label="Sconto (EUR)"
-      defaultValue={0}
-      validate={minValue(0)}
-      helperText={false}
-    />
-    <BooleanInput
-      source="is_taxable"
-      label="Tassabile"
-      defaultValue={true}
-      helperText="Togli la spunta solo se questo servizio non deve entrare nella base fiscale."
-    />
-    <ServiceTotals />
-  </div>
-);
+const ServiceFeeInputs = () => {
+  const { fiscalConfig } = useConfigurationContext();
+  const { setValue, getFieldState, formState } = useFormContext();
+  const projectId = toIdString(useWatch({ name: "project_id" }));
+  const clientId = toIdString(useWatch({ name: "client_id" }));
+  const recordId = toIdString(useWatch({ name: "id" }));
+  const currentIsTaxable = useWatch({ name: "is_taxable" });
+
+  const { data: selectedProject } = useGetOne<Project>(
+    "projects",
+    { id: projectId ?? undefined },
+    { enabled: !!projectId },
+  );
+
+  const suggestedTaxable = getSuggestedServiceTaxable({
+    projectCategory: selectedProject?.category,
+    clientId,
+    defaults: fiscalConfig?.taxabilityDefaults,
+  });
+
+  useEffect(() => {
+    if (recordId) {
+      return;
+    }
+
+    const isDirty = getFieldState("is_taxable", formState).isDirty;
+    if (isDirty || currentIsTaxable === suggestedTaxable) {
+      return;
+    }
+
+    setValue("is_taxable", suggestedTaxable, {
+      shouldDirty: false,
+      shouldTouch: false,
+      shouldValidate: false,
+    });
+  }, [
+    currentIsTaxable,
+    formState,
+    getFieldState,
+    recordId,
+    setValue,
+    suggestedTaxable,
+  ]);
+
+  return (
+    <div className="flex flex-col gap-4">
+      <h6 className="text-lg font-semibold">Compensi</h6>
+      <NumberInput
+        source="fee_shooting"
+        label="Compenso riprese (EUR)"
+        defaultValue={0}
+        validate={minValue(0)}
+        helperText={false}
+      />
+      <NumberInput
+        source="fee_editing"
+        label="Compenso montaggio (EUR)"
+        defaultValue={0}
+        validate={minValue(0)}
+        helperText={false}
+      />
+      <NumberInput
+        source="fee_other"
+        label="Compenso altro (EUR)"
+        defaultValue={0}
+        validate={minValue(0)}
+        helperText={false}
+      />
+      <NumberInput
+        source="discount"
+        label="Sconto (EUR)"
+        defaultValue={0}
+        validate={minValue(0)}
+        helperText={false}
+      />
+      <BooleanInput
+        source="is_taxable"
+        label="Tassabile"
+        defaultValue={suggestedTaxable}
+        helperText="Togli la spunta solo se questo servizio non deve entrare nella base fiscale."
+      />
+      <ServiceTotals />
+    </div>
+  );
+};
 
 const ServiceKmInputs = () => {
   const { operationalConfig } = useConfigurationContext();

@@ -50,29 +50,31 @@ const ContactListActions = () => {
 };
 
 const ContactListLayout = () => {
-  const { data, isPending, error } = useListContext<Contact>();
+  const { data: rawData, isPending, error } = useListContext<Contact>();
   const createPath = useCreatePath();
   const isMobile = useIsMobile();
+  const data = Array.isArray(rawData) ? rawData : Object.values(rawData ?? {});
   const clientIds = [
-    ...new Set(data?.map((contact) => contact.client_id).filter(Boolean)),
+    ...new Set(data.map((contact) => contact.client_id).filter(Boolean)),
   ];
   const { data: clients } = useGetMany<Client>(
     "clients",
     { ids: clientIds as string[] },
-    { enabled: clientIds.length > 0 },
+    { enabled: !isPending && clientIds.length > 0 },
   );
-  const clientById = new Map(
-    (clients ?? []).map((client) => [String(client.id), client.name]),
-  );
-  const sortedContacts = [...data].sort(compareContactsForClientContext);
 
   if (error) {
     return <ErrorMessage />;
   }
 
-  if (isPending || !data) {
+  if (isPending) {
     return null;
   }
+
+  const clientById = new Map(
+    (clients ?? []).map((client) => [String(client.id), client.name]),
+  );
+  const sortedContacts = [...data].sort(compareContactsForClientContext);
 
   if (data.length === 0) {
     return (

@@ -1,4 +1,6 @@
-import { ShowBase, useShowContext, useGetOne } from "ra-core";
+import { ShowBase, useGetList, useGetOne, useShowContext } from "ra-core";
+import { useEffect, useState } from "react";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { EditButton } from "@/components/admin/edit-button";
@@ -7,7 +9,7 @@ import { Calendar, Wallet, User, Euro, Car, Hash } from "lucide-react";
 import { Link, useLocation } from "react-router";
 import { useIsMobile } from "@/hooks/use-mobile";
 
-import type { Project } from "../types";
+import type { Project, Service } from "../types";
 import { ProjectCategoryBadge, ProjectStatusBadge } from "./ProjectListContent";
 import { projectTvShowLabels } from "./projectTypes";
 import { QuickEpisodeDialog } from "./QuickEpisodeDialog";
@@ -17,6 +19,8 @@ import { MobileBackButton } from "../misc/MobileBackButton";
 import { formatDateRange } from "../misc/formatDateRange";
 import { getUnifiedAiHandoffContextFromSearch } from "../payments/paymentLinking";
 import { ProjectContactsSection } from "../contacts/ProjectContactsSection";
+import { InvoiceDraftDialog } from "../invoicing/InvoiceDraftDialog";
+import { buildInvoiceDraftFromProject } from "../invoicing/buildInvoiceDraftFromProject";
 
 export const ProjectShow = () => (
   <ShowBase>
@@ -77,7 +81,28 @@ const ProjectShowContent = () => {
 };
 
 const ProjectHeader = ({ record }: { record: Project }) => {
+  const [invoiceDraftOpen, setInvoiceDraftOpen] = useState(false);
+  const location = useLocation();
   const { data: client } = useGetOne("clients", { id: record.client_id });
+  const { data: services = [] } = useGetList<Service>("services", {
+    pagination: { page: 1, perPage: 1000 },
+    sort: { field: "service_date", order: "DESC" },
+    filter: { "project_id@eq": String(record.id) },
+  });
+  const invoiceDraft = client
+    ? buildInvoiceDraftFromProject({
+        project: record,
+        client,
+        services,
+      })
+    : null;
+
+  useEffect(() => {
+    const searchParams = new URLSearchParams(location.search);
+    if (searchParams.get("invoiceDraft") === "true" && invoiceDraft) {
+      setInvoiceDraftOpen(true);
+    }
+  }, [invoiceDraft, location.search]);
 
   return (
     <div className="flex flex-col gap-3">
@@ -106,10 +131,25 @@ const ProjectHeader = ({ record }: { record: Project }) => {
         {record.category === "produzione_tv" && (
           <QuickEpisodeDialog record={record} />
         )}
+        {invoiceDraft ? (
+          <Button
+            type="button"
+            size="sm"
+            variant="outline"
+            onClick={() => setInvoiceDraftOpen(true)}
+          >
+            Genera bozza fattura
+          </Button>
+        ) : null}
         <QuickPaymentDialog record={record} />
         <EditButton />
         <DeleteButton redirect="list" />
       </div>
+      <InvoiceDraftDialog
+        open={invoiceDraftOpen}
+        onOpenChange={setInvoiceDraftOpen}
+        draft={invoiceDraft}
+      />
     </div>
   );
 };

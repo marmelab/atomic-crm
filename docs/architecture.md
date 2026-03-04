@@ -33,6 +33,87 @@ Regola pratica:
 - se una modifica e' solo strutturale/read-only, `Impostazioni` non va toccata
   ma la motivazione va lasciata nei docs di continuita'
 
+## Update 2026-03-04
+
+### Module Registry come fonte unica dei moduli CRM
+
+La registrazione dei moduli e' ora centralizzata in:
+
+- `src/components/atomic-crm/root/moduleRegistry.ts`
+
+Il registry governa:
+
+- resource name, route, componenti CRUD/mobile
+- visibilita' e ordine nav desktop/mobile
+- visibilita' nel menu create mobile (`navigate` vs `sheet`)
+- identita' AI della risorsa
+- badge opzionali per la navigazione (es. pagamenti scaduti)
+- moduli headless abilitabili/disabilitabili senza rimuovere codice
+
+Desktop header, mobile bottom bar, menu "Altro", create menu e `CRM.tsx`
+leggono ora la stessa definizione, senza liste hardcoded duplicate.
+
+### Modulo headless invoicing
+
+Il modulo cross-cutting `invoicing` e' registrato come headless con identita'
+AI esplicita. Non espone Resource page, ma rende conoscibile al layer AI il
+flusso "bozza fattura interna" da servizio/progetto/cliente/preventivo.
+
+### Scadenzario operativo e read-context AI
+
+La dashboard annuale include una card `DashboardDeadlineTracker` con:
+
+- pagamenti scaduti
+- pagamenti in scadenza (7 giorni)
+- promemoria in scadenza (7 giorni)
+
+Il read-context AI (`buildUnifiedCrmReadContext`) include ora anche:
+
+- `overduePayments`
+- `upcomingTasks`
+- `overdueTasks`
+- `pendingPayments[].isTaxable` derivato semanticamente
+
+### Tassabilita' coerente
+
+Aggiornamenti principali:
+
+- migration `quotes.is_taxable` (`BOOLEAN NOT NULL DEFAULT true`)
+- default automatico `is_taxable` su servizi e preventivi guidato da
+  `fiscalConfig.taxabilityDefaults`
+- tassabilita' pagamento derivata via semantica (`isPaymentTaxable`)
+- modello fiscale con supporto flat services senza progetto (fallback al primo
+  profilo ATECO configurato)
+- KPI fiscali estesi:
+  - `fatturatoTotaleYtd`
+  - `fatturatoNonTassabileYtd`
+
+### Bozza fattura interna (no write DB)
+
+Nuovo modulo condiviso in `src/components/atomic-crm/invoicing/`:
+
+- builders puri da service/project/client/quote
+- dialog unico `InvoiceDraftDialog`
+- generazione PDF con watermark "BOZZA - NON VALIDA AI FINI FISCALI"
+- nessuna scrittura DB: output solo di supporto operativo per compilazione
+  Aruba
+
+Entry point UI aggiunti in:
+
+- `ServiceShow`
+- `ProjectShow`
+- `ClientShow`
+- `QuoteShow`
+
+### Test strategy aggiornata
+
+Guardrail test ampliati con:
+
+- test unitari per i 4 builder invoice draft
+- test unitari helper scadenzario (ordinamento/filtro pagamenti/task)
+- estensioni a test di semantica, fiscal model, configuration merge e
+  read-context AI per i nuovi invarianti di tassabilita'/scadenze
+
 ## Current Direction
 
 Il dominio locale e' gestito con una migration snapshot statica aggiornata

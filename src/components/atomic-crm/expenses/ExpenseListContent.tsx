@@ -9,6 +9,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { Badge } from "@/components/ui/badge";
 
 import type { Expense } from "../types";
 import { expenseTypeLabels } from "./expenseTypes";
@@ -119,7 +120,13 @@ const ExpenseMobileCard = ({
           {new Date(expense.expense_date).toLocaleDateString("it-IT")}
         </span>
         <span className="text-xs text-muted-foreground">
-          {expenseTypeLabels[expense.expense_type] ?? expense.expense_type}
+          {expense.expense_type === "credito_ricevuto" ? (
+            <Badge variant="secondary" className="text-green-700">
+              Credito
+            </Badge>
+          ) : (
+            (expenseTypeLabels[expense.expense_type] ?? expense.expense_type)
+          )}
         </span>
       </div>
       <span className="text-sm font-medium">{project?.name ?? ""}</span>
@@ -127,7 +134,13 @@ const ExpenseMobileCard = ({
         <span className="text-xs text-muted-foreground truncate mr-2">
           {expense.description ?? ""}
         </span>
-        <span className="text-sm font-semibold tabular-nums">
+        <span
+          className={`text-sm font-semibold tabular-nums ${
+            expense.expense_type === "credito_ricevuto"
+              ? "text-green-600 dark:text-green-400"
+              : ""
+          }`}
+        >
           EUR {eur(total)}
         </span>
       </div>
@@ -172,7 +185,13 @@ const ExpenseRow = ({
         </Link>
       </TableCell>
       <TableCell className="text-sm">
-        {expenseTypeLabels[expense.expense_type] ?? expense.expense_type}
+        {expense.expense_type === "credito_ricevuto" ? (
+          <Badge variant="secondary" className="text-green-700">
+            Credito
+          </Badge>
+        ) : (
+          (expenseTypeLabels[expense.expense_type] ?? expense.expense_type)
+        )}
       </TableCell>
       <TableCell className="text-sm text-muted-foreground hidden md:table-cell">
         {client?.name ?? ""}
@@ -183,7 +202,13 @@ const ExpenseRow = ({
       <TableCell className="text-right text-sm hidden md:table-cell">
         {expense.km_distance || "--"}
       </TableCell>
-      <TableCell className="text-right text-sm font-medium">
+      <TableCell
+        className={`text-right text-sm font-medium ${
+          expense.expense_type === "credito_ricevuto"
+            ? "text-green-600 dark:text-green-400"
+            : ""
+        }`}
+      >
         {eur(total)}
       </TableCell>
       <TableCell className="text-sm text-muted-foreground hidden lg:table-cell">

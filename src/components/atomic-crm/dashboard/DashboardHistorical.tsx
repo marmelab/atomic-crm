@@ -1,4 +1,5 @@
-import { AlertTriangle, RefreshCw } from "lucide-react";
+import { AlertTriangle, RefreshCw, X } from "lucide-react";
+import { useStore } from "ra-core";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -15,6 +16,10 @@ import { DashboardHistoricalTopClientsCard } from "./DashboardHistoricalTopClien
 import { useHistoricalDashboardData } from "./useHistoricalDashboardData";
 
 export const DashboardHistorical = () => {
+  const [readingGuideDismissed, setReadingGuideDismissed] = useStore<boolean>(
+    "dashboard.readingGuide.dismissed",
+    false,
+  );
   const { data, isPending, error, refetch, sectionState } =
     useHistoricalDashboardData();
 
@@ -40,7 +45,21 @@ export const DashboardHistorical = () => {
 
   return (
     <div className="space-y-6">
-      <HistoricalReadingGuide />
+      {readingGuideDismissed ? (
+        <div>
+          <Button
+            variant="link"
+            className="h-auto px-0 text-xs"
+            onClick={() => setReadingGuideDismissed(false)}
+          >
+            Come leggere Storico
+          </Button>
+        </div>
+      ) : (
+        <HistoricalReadingGuide
+          onDismiss={() => setReadingGuideDismissed(true)}
+        />
+      )}
 
       <DashboardHistoricalKpis model={data} />
 
@@ -72,9 +91,21 @@ export const DashboardHistorical = () => {
   );
 };
 
-const HistoricalReadingGuide = () => (
+const HistoricalReadingGuide = ({ onDismiss }: { onDismiss: () => void }) => (
   <div className="rounded-xl border bg-card px-4 py-3">
-    <p className="text-sm font-medium">Tradotto in semplice</p>
+    <div className="mb-2 flex items-start justify-between gap-3">
+      <p className="text-sm font-medium">Tradotto in semplice</p>
+      <Button
+        type="button"
+        variant="ghost"
+        size="icon"
+        className="h-6 w-6 text-muted-foreground"
+        onClick={onDismiss}
+        aria-label="Chiudi guida lettura storico"
+      >
+        <X className="h-4 w-4" />
+      </Button>
+    </div>
     <div className="mt-2 space-y-2 text-xs text-muted-foreground">
       <p>
         Qui non stai guardando i soldi già entrati in banca: stai guardando il

@@ -1,4 +1,5 @@
-import { ShowBase, useShowContext, useGetOne } from "ra-core";
+import { ShowBase, useGetList, useGetOne, useShowContext } from "ra-core";
+import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { EditButton } from "@/components/admin/edit-button";
@@ -12,6 +13,7 @@ import { PaymentStatusBadge } from "./PaymentListContent";
 import { paymentTypeLabels } from "./paymentTypes";
 import { ErrorMessage } from "../misc/ErrorMessage";
 import { MobileBackButton } from "../misc/MobileBackButton";
+import { isPaymentTaxable } from "@/lib/semantics/crmSemanticRegistry";
 
 const eur = (n: number) =>
   n.toLocaleString("it-IT", { minimumFractionDigits: 2 });
@@ -47,11 +49,27 @@ const PaymentShowContent = () => {
       enabled: !!record?.quote_id,
     },
   );
+  const { data: projectServices } = useGetList(
+    "services",
+    {
+      pagination: { page: 1, perPage: 1000 },
+      sort: { field: "service_date", order: "DESC" },
+      filter: record?.project_id
+        ? { "project_id@eq": String(record.project_id) }
+        : {},
+    },
+    { enabled: !!record?.project_id },
+  );
 
   const isMobile = useIsMobile();
 
   if (error) return <ErrorMessage />;
   if (isPending || !record) return null;
+
+  const paymentTaxable = isPaymentTaxable(record, {
+    projectServices: projectServices ?? [],
+    quote,
+  });
 
   return (
     <div className="mt-4 mb-28 md:mb-2 flex flex-col md:flex-row gap-4 md:gap-8 px-4 md:px-0">
@@ -71,6 +89,12 @@ const PaymentShowContent = () => {
                 </h2>
                 <div className="flex items-center gap-3 mt-1 text-sm text-muted-foreground flex-wrap">
                   <PaymentStatusBadge status={record.status} />
+                  <Badge
+                    variant={paymentTaxable ? "outline" : "secondary"}
+                    className={paymentTaxable ? "" : "text-amber-700"}
+                  >
+                    {paymentTaxable ? "Tassabile" : "Non tassabile"}
+                  </Badge>
                   {record.payment_date && (
                     <span className="flex items-center gap-1">
                       <Calendar className="size-3" />

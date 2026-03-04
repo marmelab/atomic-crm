@@ -1,40 +1,40 @@
 import {
+  type AuthProvider,
   type CoreAdminProps,
   CustomRoutes,
   localStorageStore,
   Resource,
-  type AuthProvider,
 } from "ra-core";
 import { useEffect, useMemo } from "react";
 import { Route } from "react-router";
 import { QueryClient } from "@tanstack/react-query";
-import { PersistQueryClientProvider } from "@tanstack/react-query-persist-client";
 import { createAsyncStoragePersister } from "@tanstack/query-async-storage-persister";
-import { Admin } from "@/components/admin/admin";
-import { ForgotPasswordPage } from "@/components/supabase/forgot-password-page";
-import { SetPasswordPage } from "@/components/supabase/set-password-page";
-import { OAuthConsentPage } from "@/components/supabase/oauth-consent-page";
+import { PersistQueryClientProvider } from "@tanstack/react-query-persist-client";
 
-import clients from "../clients";
-import contacts from "../contacts";
-import projects from "../projects";
-import services from "../services";
-import payments from "../payments";
-import expenses from "../expenses";
-import quotes from "../quotes";
+import { Admin } from "@/components/admin/admin";
+import { useIsMobile } from "@/hooks/use-mobile";
+import { ForgotPasswordPage } from "@/components/supabase/forgot-password-page";
+import { OAuthConsentPage } from "@/components/supabase/oauth-consent-page";
+import { SetPasswordPage } from "@/components/supabase/set-password-page";
+
 import { Dashboard } from "../dashboard/Dashboard";
 import { MobileDashboard } from "../dashboard/MobileDashboard";
-import { Layout } from "../layout/Layout";
 import { MobileLayout } from "../layout/MobileLayout";
-import { SignupPage } from "../login/SignupPage";
+import { Layout } from "../layout/Layout";
 import { ConfirmationRequired } from "../login/ConfirmationRequired";
+import { SignupPage } from "../login/SignupPage";
+import { StartPage } from "../login/StartPage";
+import {
+  authProvider as defaultAuthProvider,
+  dataProvider as defaultDataProvider,
+} from "../providers/supabase";
+import type { CrmDataProvider } from "../providers/types";
 import { ProfilePage } from "../settings/ProfilePage";
 import { SettingsPage } from "../settings/SettingsPage";
 import {
-  CONFIGURATION_STORE_KEY,
   type ConfigurationContextValue,
+  CONFIGURATION_STORE_KEY,
 } from "./ConfigurationContext";
-import type { CrmDataProvider } from "../providers/types";
 import {
   defaultDarkModeLogo,
   defaultLightModeLogo,
@@ -43,14 +43,7 @@ import {
   defaultTitle,
 } from "./defaultConfiguration";
 import { i18nProvider } from "./i18nProvider";
-import { StartPage } from "../login/StartPage.tsx";
-import { useIsMobile } from "@/hooks/use-mobile.ts";
-import { MobileTasksList } from "../tasks/MobileTasksList.tsx";
-import { TasksList } from "../tasks/TasksList.tsx";
-import {
-  authProvider as defaultAuthProvider,
-  dataProvider as defaultDataProvider,
-} from "../providers/supabase";
+import { getEnabledModules } from "./moduleRegistry";
 
 const defaultStore = localStorageStore(undefined, "CRM");
 
@@ -107,7 +100,7 @@ export const CRM = ({
   const wrappedAuthProvider = useMemo<AuthProvider>(
     () => ({
       ...authProvider,
-      login: async (params: any) => {
+      login: async (params: unknown) => {
         const result = await authProvider.login(params);
         try {
           const config = await dataProvider.getConfiguration();
@@ -119,7 +112,7 @@ export const CRM = ({
         }
         return result;
       },
-      handleCallback: async (params: any) => {
+      handleCallback: async (params: unknown) => {
         if (!authProvider.handleCallback) {
           throw new Error(
             "handleCallback is not implemented in the authProvider",
@@ -136,7 +129,7 @@ export const CRM = ({
         }
         return result;
       },
-      logout: async (params: any) => {
+      logout: async (params: unknown) => {
         try {
           store.removeItem(CONFIGURATION_STORE_KEY);
         } catch {
@@ -164,42 +157,51 @@ export const CRM = ({
   );
 };
 
-const DesktopAdmin = (props: CoreAdminProps) => {
-  return (
-    <Admin layout={Layout} dashboard={Dashboard} {...props}>
-      <CustomRoutes noLayout>
-        <Route path={SignupPage.path} element={<SignupPage />} />
-        <Route
-          path={ConfirmationRequired.path}
-          element={<ConfirmationRequired />}
-        />
-        <Route path={SetPasswordPage.path} element={<SetPasswordPage />} />
-        <Route
-          path={ForgotPasswordPage.path}
-          element={<ForgotPasswordPage />}
-        />
-        <Route path={OAuthConsentPage.path} element={<OAuthConsentPage />} />
-      </CustomRoutes>
+const renderCrmResources = (isMobile: boolean) =>
+  getEnabledModules().map((module) => {
+    const list = isMobile
+      ? (module.components.mobileList ?? module.components.list)
+      : module.components.list;
 
-      <CustomRoutes>
-        <Route path={ProfilePage.path} element={<ProfilePage />} />
-        <Route path={SettingsPage.path} element={<SettingsPage />} />
-      </CustomRoutes>
-      <Resource name="clients" {...clients} />
-      <Resource name="contacts" {...contacts} />
-      <Resource name="projects" {...projects} />
-      <Resource name="services" {...services} />
-      <Resource name="payments" {...payments} />
-      <Resource name="expenses" {...expenses} />
-      <Resource name="quotes" {...quotes} />
-      <Resource name="client_tasks" list={TasksList} />
-      <Resource name="client_notes" />
-      <Resource name="project_contacts" />
-      <Resource name="sales" />
-      <Resource name="tags" />
-    </Admin>
-  );
-};
+    return (
+      <Resource
+        key={module.resource}
+        name={module.resource}
+        list={list}
+        show={module.components.show}
+        edit={module.components.edit}
+        create={module.components.create}
+        recordRepresentation={
+          module.components.recordRepresentation as
+            | string
+            | ((record: unknown) => string)
+            | undefined
+        }
+      />
+    );
+  });
+
+const DesktopAdmin = (props: CoreAdminProps) => (
+  <Admin layout={Layout} dashboard={Dashboard} {...props}>
+    <CustomRoutes noLayout>
+      <Route path={SignupPage.path} element={<SignupPage />} />
+      <Route
+        path={ConfirmationRequired.path}
+        element={<ConfirmationRequired />}
+      />
+      <Route path={SetPasswordPage.path} element={<SetPasswordPage />} />
+      <Route path={ForgotPasswordPage.path} element={<ForgotPasswordPage />} />
+      <Route path={OAuthConsentPage.path} element={<OAuthConsentPage />} />
+    </CustomRoutes>
+
+    <CustomRoutes>
+      <Route path={ProfilePage.path} element={<ProfilePage />} />
+      <Route path={SettingsPage.path} element={<SettingsPage />} />
+    </CustomRoutes>
+
+    {renderCrmResources(false)}
+  </Admin>
+);
 
 const MobileAdmin = (props: CoreAdminProps) => {
   const queryClient = new QueryClient({
@@ -213,6 +215,7 @@ const MobileAdmin = (props: CoreAdminProps) => {
       },
     },
   });
+
   const asyncStoragePersister = createAsyncStoragePersister({
     storage: localStorage,
   });
@@ -241,22 +244,13 @@ const MobileAdmin = (props: CoreAdminProps) => {
           />
           <Route path={OAuthConsentPage.path} element={<OAuthConsentPage />} />
         </CustomRoutes>
+
         <CustomRoutes>
           <Route path={ProfilePage.path} element={<ProfilePage />} />
           <Route path={SettingsPage.path} element={<SettingsPage />} />
         </CustomRoutes>
-        <Resource name="clients" {...clients} />
-        <Resource name="contacts" {...contacts} />
-        <Resource name="projects" {...projects} />
-        <Resource name="services" {...services} />
-        <Resource name="quotes" {...quotes} />
-        <Resource name="payments" {...payments} />
-        <Resource name="expenses" {...expenses} />
-        <Resource name="client_tasks" list={MobileTasksList} />
-        <Resource name="client_notes" />
-        <Resource name="project_contacts" />
-        <Resource name="sales" />
-        <Resource name="tags" />
+
+        {renderCrmResources(true)}
       </Admin>
     </PersistQueryClientProvider>
   );

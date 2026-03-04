@@ -7,6 +7,7 @@ import {
   type ResourceCallbacks,
 } from "ra-core";
 import type {
+  ClientTask,
   Contact,
   Client,
   Expense,
@@ -280,6 +281,7 @@ const getUnifiedCrmReadContextFromResources =
       servicesResponse,
       paymentsResponse,
       expensesResponse,
+      tasksResponse,
     ] = await Promise.all([
       baseDataProvider.getOne("configuration", { id: 1 }),
       baseDataProvider.getList<Client>("clients", {
@@ -322,6 +324,11 @@ const getUnifiedCrmReadContextFromResources =
         sort: { field: "expense_date", order: "DESC" },
         filter: {},
       }),
+      baseDataProvider.getList<ClientTask>("client_tasks", {
+        pagination: LARGE_PAGE,
+        sort: { field: "due_date", order: "ASC" },
+        filter: { "done_date@is": null },
+      }),
     ]);
 
     const config =
@@ -337,6 +344,7 @@ const getUnifiedCrmReadContextFromResources =
       services: servicesResponse.data,
       payments: paymentsResponse.data,
       expenses: expensesResponse.data,
+      tasks: tasksResponse.data,
       semanticRegistry: buildCrmSemanticRegistry(config),
       capabilityRegistry: buildCrmCapabilityRegistry(),
     });

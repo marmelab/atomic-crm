@@ -1,11 +1,13 @@
 import { ShowBase, useShowContext, useGetOne } from "ra-core";
+import { useEffect, useState } from "react";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { EditButton } from "@/components/admin/edit-button";
 import { DeleteButton } from "@/components/admin/delete-button";
 import { Calendar, MapPin, FileText } from "lucide-react";
-import { Link } from "react-router";
+import { Link, useLocation } from "react-router";
 import { useIsMobile } from "@/hooks/use-mobile";
 
 import type { Service } from "../types";
@@ -17,6 +19,8 @@ import {
   calculateKmReimbursement,
   calculateServiceNetValue,
 } from "@/lib/semantics/crmSemanticRegistry";
+import { InvoiceDraftDialog } from "../invoicing/InvoiceDraftDialog";
+import { buildInvoiceDraftFromService } from "../invoicing/buildInvoiceDraftFromService";
 
 const eur = (n: number) =>
   n.toLocaleString("it-IT", { minimumFractionDigits: 2 });
@@ -70,12 +74,34 @@ const ServiceShowContent = () => {
 };
 
 const ServiceHeader = ({ record }: { record: Service }) => {
+  const [invoiceDraftOpen, setInvoiceDraftOpen] = useState(false);
+  const location = useLocation();
   const { data: project } = useGetOne(
     "projects",
     { id: record.project_id! },
     { enabled: !!record.project_id },
   );
-  const { serviceTypeChoices } = useConfigurationContext();
+  const { serviceTypeChoices, operationalConfig } = useConfigurationContext();
+  const { data: client } = useGetOne(
+    "clients",
+    { id: record.client_id ?? project?.client_id },
+    { enabled: !!record.client_id || !!project?.client_id },
+  );
+  const invoiceDraft = client
+    ? buildInvoiceDraftFromService({
+        service: record,
+        client,
+        defaultKmRate: operationalConfig.defaultKmRate,
+      })
+    : null;
+
+  useEffect(() => {
+    const searchParams = new URLSearchParams(location.search);
+    if (searchParams.get("invoiceDraft") === "true" && invoiceDraft) {
+      setInvoiceDraftOpen(true);
+    }
+  }, [invoiceDraft, location.search]);
+
   const serviceLabel =
     serviceTypeChoices.find((t) => t.value === record.service_type)?.label ??
     record.service_type;
@@ -121,9 +147,24 @@ const ServiceHeader = ({ record }: { record: Service }) => {
         </div>
       </div>
       <div className="flex gap-2">
+        {invoiceDraft ? (
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() => setInvoiceDraftOpen(true)}
+          >
+            Genera bozza fattura
+          </Button>
+        ) : null}
         <EditButton />
         <DeleteButton redirect="list" />
       </div>
+      <InvoiceDraftDialog
+        open={invoiceDraftOpen}
+        onOpenChange={setInvoiceDraftOpen}
+        draft={invoiceDraft}
+      />
     </div>
   );
 };

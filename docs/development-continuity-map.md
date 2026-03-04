@@ -6,7 +6,62 @@ obbligatoria delle superfici collegate.
 **Quando usarlo:** ogni volta che una modifica tocca comportamento reale del
 prodotto.
 
-Last updated: 2026-03-02
+Last updated: 2026-03-04
+
+## Update 2026-03-04 — Mandatory Sweep Addendum
+
+Le feature "module registry + scadenzario + tassabilita' + bozza fattura"
+introducono sweep aggiuntive obbligatorie.
+
+### Module registry
+
+Quando tocchi nav/resource wiring, controllare sempre:
+
+- `src/components/atomic-crm/root/moduleRegistry.ts`
+- `src/components/atomic-crm/root/CRM.tsx`
+- `src/components/atomic-crm/layout/Header.tsx`
+- `src/components/atomic-crm/layout/MobileNavigation.tsx`
+- `src/lib/semantics/crmCapabilityRegistry.ts` (resources AI derivati)
+
+### Scadenzario
+
+Quando tocchi dashboard annuale o task/payment deadline logic, controllare:
+
+- `DashboardAnnual.tsx`
+- `DashboardDeadlineTracker.tsx`
+- `payments/PaymentOverdueBadge.tsx`
+- `tasks/TasksList.tsx` (handoff task_create)
+- `src/lib/ai/unifiedCrmReadContext.ts`
+- `src/components/atomic-crm/providers/supabase/dataProvider.ts`
+- `supabase/functions/_shared/unifiedCrmAnswer.ts`
+
+### Tassabilita'
+
+Quando tocchi `is_taxable`, controllare in blocco:
+
+- migration e tipi (`supabase/migrations/**`, `types.ts`)
+- form servizi/preventivi (`ServiceInputs`, `QuoteInputs`, `QuoteCreate`)
+- show/list di preventivi e pagamenti (`QuoteShow`, `QuoteCard`, `PaymentShow`)
+- semantica AI (`crmSemanticRegistry`, `unifiedCrmReadContext`)
+- modello fiscale dashboard (`fiscalModel`, `DashboardFiscalKpis`)
+- settings fiscali (`FiscalSettingsSection`)
+
+### Bozza fattura interna
+
+Quando tocchi la bozza fattura, controllare sempre:
+
+- `src/components/atomic-crm/invoicing/**` (dialog, PDF, builders)
+- entry point show:
+  - `ServiceShow`
+  - `ProjectShow`
+  - `ClientShow`
+  - `QuoteShow`
+- capability/action AI:
+  - `crmCapabilityRegistry.ts`
+  - `unifiedCrmAssistant.ts`
+  - `supabase/functions/_shared/unifiedCrmAnswer.ts`
+
+Nota: il flusso bozza fattura e' client-side e non deve introdurre scritture DB.
 
 ## Goal
 

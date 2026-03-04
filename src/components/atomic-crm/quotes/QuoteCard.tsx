@@ -1,6 +1,7 @@
 import { Draggable } from "@hello-pangea/dnd";
 import { useGetOne, useRedirect } from "ra-core";
 import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 
 import type { Quote } from "../types";
 import { useConfigurationContext } from "../root/ConfigurationContext";
@@ -98,6 +99,14 @@ const QuoteCardContent = ({
               currency: "EUR",
             })}
           </p>
+          <div className="mt-2">
+            <Badge
+              variant={quote.is_taxable === false ? "secondary" : "outline"}
+              className="text-[10px]"
+            >
+              {quote.is_taxable === false ? "Non tassabile" : "Tassabile"}
+            </Badge>
+          </div>
         </CardContent>
       </Card>
     </div>

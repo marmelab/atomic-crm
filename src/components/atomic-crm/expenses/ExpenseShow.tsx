@@ -1,5 +1,6 @@
 import { ShowBase, useShowContext, useGetOne } from "ra-core";
 import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { EditButton } from "@/components/admin/edit-button";
 import { DeleteButton } from "@/components/admin/delete-button";
@@ -71,6 +72,13 @@ const ExpenseShowContent = () => {
                 <h2 className="text-2xl font-bold">
                   {expenseTypeLabels[record.expense_type]} — EUR {eur(total)}
                 </h2>
+                {record.expense_type === "credito_ricevuto" ? (
+                  <div className="mt-2">
+                    <Badge variant="secondary" className="text-green-700">
+                      Credito ricevuto
+                    </Badge>
+                  </div>
+                ) : null}
                 <div className="flex items-center gap-3 mt-1 text-sm text-muted-foreground flex-wrap">
                   <span className="flex items-center gap-1">
                     <Calendar className="size-3" />

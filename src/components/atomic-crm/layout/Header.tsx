@@ -1,37 +1,37 @@
 import { Settings, User } from "lucide-react";
 import { CanAccess, useUserMenu } from "ra-core";
 import { Link, matchPath, useLocation } from "react-router";
+import type { ComponentType } from "react";
+
 import { RefreshButton } from "@/components/admin/refresh-button";
 import { ThemeModeToggle } from "@/components/admin/theme-mode-toggle";
 import { UserMenu } from "@/components/admin/user-menu";
 import { DropdownMenuItem } from "@/components/ui/dropdown-menu";
 
 import { useConfigurationContext } from "../root/ConfigurationContext";
+import { getDesktopHeaderModules } from "../root/moduleRegistry";
+
+const matchCurrentPath = (pathname: string) => {
+  if (matchPath("/", pathname)) {
+    return "/";
+  }
+
+  for (const module of getDesktopHeaderModules()) {
+    if (
+      matchPath(`${module.path}/*`, pathname) ||
+      matchPath(module.path, pathname)
+    ) {
+      return module.path;
+    }
+  }
+
+  return false;
+};
 
 const Header = () => {
   const { darkModeLogo, lightModeLogo, title } = useConfigurationContext();
   const location = useLocation();
-
-  let currentPath: string | boolean = "/";
-  if (matchPath("/", location.pathname)) {
-    currentPath = "/";
-  } else if (matchPath("/clients/*", location.pathname)) {
-    currentPath = "/clients";
-  } else if (matchPath("/projects/*", location.pathname)) {
-    currentPath = "/projects";
-  } else if (matchPath("/services/*", location.pathname)) {
-    currentPath = "/services";
-  } else if (matchPath("/quotes/*", location.pathname)) {
-    currentPath = "/quotes";
-  } else if (matchPath("/payments/*", location.pathname)) {
-    currentPath = "/payments";
-  } else if (matchPath("/expenses/*", location.pathname)) {
-    currentPath = "/expenses";
-  } else if (matchPath("/client_tasks/*", location.pathname)) {
-    currentPath = "/client_tasks";
-  } else {
-    currentPath = false;
-  }
+  const currentPath = matchCurrentPath(location.pathname);
 
   return (
     <>
@@ -55,6 +55,7 @@ const Header = () => {
                 />
                 <h1 className="text-xl font-semibold">{title}</h1>
               </Link>
+
               <div>
                 <nav className="flex">
                   <NavigationTab
@@ -62,43 +63,18 @@ const Header = () => {
                     to="/"
                     isActive={currentPath === "/"}
                   />
-                  <NavigationTab
-                    label="Clienti"
-                    to="/clients"
-                    isActive={currentPath === "/clients"}
-                  />
-                  <NavigationTab
-                    label="Progetti"
-                    to="/projects"
-                    isActive={currentPath === "/projects"}
-                  />
-                  <NavigationTab
-                    label="Registro Lavori"
-                    to="/services"
-                    isActive={currentPath === "/services"}
-                  />
-                  <NavigationTab
-                    label="Preventivi"
-                    to="/quotes"
-                    isActive={currentPath === "/quotes"}
-                  />
-                  <NavigationTab
-                    label="Pagamenti"
-                    to="/payments"
-                    isActive={currentPath === "/payments"}
-                  />
-                  <NavigationTab
-                    label="Spese"
-                    to="/expenses"
-                    isActive={currentPath === "/expenses"}
-                  />
-                  <NavigationTab
-                    label="Promemoria"
-                    to="/client_tasks"
-                    isActive={currentPath === "/client_tasks"}
-                  />
+                  {getDesktopHeaderModules().map((module) => (
+                    <NavigationTab
+                      key={module.resource}
+                      label={module.label}
+                      to={module.path}
+                      isActive={currentPath === module.path}
+                      BadgeComponent={module.badge}
+                    />
+                  ))}
                 </nav>
               </div>
+
               <div className="flex items-center">
                 <ThemeModeToggle />
                 <RefreshButton />
@@ -121,10 +97,12 @@ const NavigationTab = ({
   label,
   to,
   isActive,
+  BadgeComponent,
 }: {
   label: string;
   to: string;
   isActive: boolean;
+  BadgeComponent?: ComponentType;
 }) => (
   <Link
     to={to}
@@ -134,7 +112,10 @@ const NavigationTab = ({
         : "text-secondary-foreground/70 border-transparent hover:text-secondary-foreground/80"
     }`}
   >
-    {label}
+    <span className="inline-flex items-center">
+      {label}
+      {BadgeComponent ? <BadgeComponent /> : null}
+    </span>
   </Link>
 );
 
@@ -143,6 +124,7 @@ const ProfileMenu = () => {
   if (!userMenuContext) {
     throw new Error("<ProfileMenu> must be used inside <UserMenu>");
   }
+
   return (
     <DropdownMenuItem asChild onClick={userMenuContext.onClose}>
       <Link to="/profile" className="flex items-center gap-2">
@@ -158,6 +140,7 @@ const SettingsMenu = () => {
   if (!userMenuContext) {
     throw new Error("<SettingsMenu> must be used inside <UserMenu>");
   }
+
   return (
     <DropdownMenuItem asChild onClick={userMenuContext.onClose}>
       <Link to="/settings" className="flex items-center gap-2">

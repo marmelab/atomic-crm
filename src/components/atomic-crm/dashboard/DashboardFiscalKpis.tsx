@@ -63,6 +63,22 @@ export const DashboardFiscalKpis = ({
             </Badge>
             <span>{reliabilityLabel}</span>
           </div>
+          <div className="space-y-0.5 text-xs text-muted-foreground">
+            <p>
+              Fatturato tassabile:{" "}
+              {formatCurrencyPrecise(fiscalKpis.fatturatoLordoYtd)}
+            </p>
+            <p>
+              Fatturato totale:{" "}
+              {formatCurrencyPrecise(fiscalKpis.fatturatoTotaleYtd)}
+            </p>
+            {fiscalKpis.fatturatoNonTassabileYtd > 0 ? (
+              <p className="text-amber-700 dark:text-amber-400">
+                {formatCurrencyPrecise(fiscalKpis.fatturatoNonTassabileYtd)} non
+                tassabile
+              </p>
+            ) : null}
+          </div>
         </CardContent>
       </Card>
 

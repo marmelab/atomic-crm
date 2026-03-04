@@ -40,6 +40,13 @@ describe("crmCapabilityRegistry", () => {
       ),
     ).toBe(true);
     expect(
+      registry.resources.some(
+        (resource) =>
+          resource.resource === "invoicing" &&
+          resource.supportedViews.length === 0,
+      ),
+    ).toBe(true);
+    expect(
       registry.dialogs.some(
         (dialog) => dialog.id === "create_project_from_quote_dialog",
       ),

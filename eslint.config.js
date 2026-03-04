@@ -38,6 +38,17 @@ export default tseslint.config(
         "warn",
         { allowConstantExport: true },
       ],
+      "max-lines": [
+        "warn",
+        { max: 300, skipBlankLines: true, skipComments: true },
+      ],
+      "max-lines-per-function": [
+        "warn",
+        { max: 80, skipBlankLines: true, skipComments: true },
+      ],
+      complexity: ["warn", 15],
+      "max-depth": ["warn", 4],
+      "max-params": ["warn", 4],
       "@typescript-eslint/no-unused-vars": [
         "error",
         {
@@ -59,6 +70,8 @@ export default tseslint.config(
     rules: {
       "@typescript-eslint/no-explicit-any": "error",
       "@typescript-eslint/consistent-type-imports": "off",
+      "max-lines": "off",
+      "max-lines-per-function": "off",
     },
   },
   {
@@ -66,6 +79,26 @@ export default tseslint.config(
     rules: {
       "react-refresh/only-export-components": "off",
       "@typescript-eslint/consistent-type-imports": "off",
+      "max-lines": "off",
+      "max-lines-per-function": "off",
+    },
+  },
+  {
+    files: ["**/*.test.{ts,tsx}", "**/*.spec.{ts,tsx}"],
+    rules: {
+      "max-lines": [
+        "warn",
+        { max: 500, skipBlankLines: true, skipComments: true },
+      ],
+      "max-lines-per-function": "off",
+    },
+  },
+  {
+    files: ["supabase/migrations/**", "scripts/**"],
+    rules: {
+      "max-lines": "off",
+      "max-lines-per-function": "off",
+      complexity: "off",
     },
   },
   storybook.configs["flat/recommended"],

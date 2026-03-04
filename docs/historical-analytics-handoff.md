@@ -6,7 +6,33 @@ lavoro senza riaprire decisioni gia prese.
 **Quando NON usarlo da solo:** per dedurre architettura canonica o stato
 prodotto senza incrociarlo con `docs/README.md` e i documenti `canonical`.
 
-Last updated: 2026-03-02
+Last updated: 2026-03-04
+
+## Update 2026-03-04
+
+Nuovi elementi rilevanti per handoff AI/analytics:
+
+- read-context CRM esteso con:
+  - `overduePayments`
+  - `upcomingTasks`
+  - `overdueTasks`
+  - `pendingPayments[].isTaxable`
+- nuovo scadenzario operativo in dashboard annuale (`DashboardDeadlineTracker`)
+- nuovo capability action id:
+  - `task_create`
+  - `generate_invoice_draft`
+- rule engine unified answer aggiornato con handoff task/invoice draft
+- registry moduli centralizzato (`moduleRegistry`) con risorse AI derivate in
+  `crmCapabilityRegistry`
+- modulo headless `invoicing` dichiarato nel registry per rendere esplicita la
+  capacita' "bozza fattura interna" senza creare una nuova CRUD resource
+
+Nota tassabilita':
+
+- il flag resta atomico su `services.is_taxable`
+- `quotes.is_taxable` e' ora persistito e usato come fallback semantico
+- i pagamenti leggono tassabilita' derivata (`isPaymentTaxable`) invece di un
+  campo dedicato
 
 ## Goal
 

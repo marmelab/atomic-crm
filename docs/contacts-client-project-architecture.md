@@ -142,3 +142,26 @@ relazione cliente `ASSOCIAZIONE CULTURALE GUSTARE SICILIA` -> referente
 
 `ClientFinancialSummary.tsx` ha ricevuto solo una correzione di formattazione
 Prettier (whitespace). Nessun cambiamento funzionale al modello clienti/progetti.
+
+## Nota manutenzione 2026-03-04
+
+E' stato aggiunto un flusso cross-cutting "bozza fattura interna" con entry
+point anche da:
+
+- `ClientShow`
+- `ProjectShow`
+
+Il flusso:
+
+- non crea nuove relazioni dominio tra clienti/progetti/referenti
+- non scrive su DB (solo anteprima/download PDF)
+- usa i servizi gia' collegati a cliente/progetto per costruire linee bozza
+
+Impatto architetturale:
+
+- nessuna nuova tabella o join nel dominio referenti
+- nessuna modifica a `contacts` / `project_contacts`
+- continuita' garantita mantenendo il boundary:
+  - `clients` = controparte fiscale
+  - `contacts` = persone referenti
+  - invoicing draft = tool operativo interno separato dal modello relazionale

@@ -1,14 +1,15 @@
-import { ShowBase, useShowContext } from "ra-core";
+import { ShowBase, useGetList, useShowContext } from "ra-core";
+import { useEffect, useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { EditButton } from "@/components/admin/edit-button";
 import { DeleteButton } from "@/components/admin/delete-button";
 import { Phone, Mail, MapPin, FileText, Euro } from "lucide-react";
-import { Link } from "react-router";
+import { Link, useLocation } from "react-router";
 import { useIsMobile } from "@/hooks/use-mobile";
 
-import type { Client } from "../types";
+import type { Client, Project, Service } from "../types";
 import { ClientTypeBadge } from "./ClientListContent";
 import { clientSourceLabels } from "./clientTypes";
 import {
@@ -24,6 +25,8 @@ import { ErrorMessage } from "../misc/ErrorMessage";
 import { MobileBackButton } from "../misc/MobileBackButton";
 import { buildPaymentCreatePathFromClient } from "../payments/paymentLinking";
 import { ClientContactsSection } from "../contacts/ClientContactsSection";
+import { InvoiceDraftDialog } from "../invoicing/InvoiceDraftDialog";
+import { buildInvoiceDraftFromClient } from "../invoicing/buildInvoiceDraftFromClient";
 
 export const ClientShow = () => (
   <ShowBase>
@@ -90,35 +93,81 @@ const ClientShowContent = () => {
   );
 };
 
-const ClientHeader = ({ record }: { record: Client }) => (
-  <div className="flex flex-col gap-3">
-    <div>
-      <h2 className="text-2xl font-bold">{record.name}</h2>
-      <div className="flex items-center gap-2 mt-1">
-        <ClientTypeBadge type={record.client_type} />
-        {record.source && (
-          <span className="text-sm text-muted-foreground">
-            {clientSourceLabels[record.source]}
-          </span>
-        )}
+const ClientHeader = ({ record }: { record: Client }) => {
+  const [invoiceDraftOpen, setInvoiceDraftOpen] = useState(false);
+  const location = useLocation();
+  const { data: services = [] } = useGetList<Service>("services", {
+    pagination: { page: 1, perPage: 1000 },
+    sort: { field: "service_date", order: "DESC" },
+    filter: { "client_id@eq": String(record.id) },
+  });
+  const { data: projects = [] } = useGetList<Project>("projects", {
+    pagination: { page: 1, perPage: 1000 },
+    sort: { field: "name", order: "ASC" },
+    filter: { "client_id@eq": String(record.id) },
+  });
+
+  const invoiceDraft = buildInvoiceDraftFromClient({
+    client: record,
+    services,
+    projects,
+  });
+
+  useEffect(() => {
+    const searchParams = new URLSearchParams(location.search);
+    if (
+      searchParams.get("invoiceDraft") === "true" &&
+      invoiceDraft.lineItems.length > 0
+    ) {
+      setInvoiceDraftOpen(true);
+    }
+  }, [invoiceDraft.lineItems.length, location.search]);
+
+  return (
+    <div className="flex flex-col gap-3">
+      <div>
+        <h2 className="text-2xl font-bold">{record.name}</h2>
+        <div className="flex items-center gap-2 mt-1">
+          <ClientTypeBadge type={record.client_type} />
+          {record.source && (
+            <span className="text-sm text-muted-foreground">
+              {clientSourceLabels[record.source]}
+            </span>
+          )}
+        </div>
       </div>
+      <div className="flex gap-2 overflow-x-auto pb-1 -mb-1">
+        <Button asChild size="sm" variant="outline">
+          <Link
+            to={buildPaymentCreatePathFromClient({
+              client: { client_id: record.id },
+            })}
+          >
+            <Euro className="mr-1 size-4" />
+            Nuovo pagamento
+          </Link>
+        </Button>
+        {invoiceDraft.lineItems.length > 0 ? (
+          <Button
+            type="button"
+            size="sm"
+            variant="outline"
+            onClick={() => setInvoiceDraftOpen(true)}
+          >
+            Genera bozza fattura
+          </Button>
+        ) : null}
+        <EditButton />
+        <DeleteButton redirect="list" />
+      </div>
+      <InvoiceDraftDialog
+        open={invoiceDraftOpen}
+        onOpenChange={setInvoiceDraftOpen}
+        draft={invoiceDraft.lineItems.length > 0 ? invoiceDraft : null}
+      />
     </div>
-    <div className="flex gap-2 overflow-x-auto pb-1 -mb-1">
-      <Button asChild size="sm" variant="outline">
-        <Link
-          to={buildPaymentCreatePathFromClient({
-            client: { client_id: record.id },
-          })}
-        >
-          <Euro className="mr-1 size-4" />
-          Nuovo pagamento
-        </Link>
-      </Button>
-      <EditButton />
-      <DeleteButton redirect="list" />
-    </div>
-  </div>
-);
+  );
+};
 
 const ClientDetails = ({ record }: { record: Client }) => (
   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

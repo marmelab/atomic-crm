@@ -17,6 +17,7 @@ import {
   isContactPrimaryForClient,
 } from "@/components/atomic-crm/contacts/contactRecord";
 import type {
+  ClientTask,
   Client,
   Contact,
   Expense,
@@ -30,6 +31,7 @@ import type { CrmCapabilityRegistry } from "@/lib/semantics/crmCapabilityRegistr
 import {
   calculateKmReimbursement,
   calculateServiceNetValue,
+  isPaymentTaxable,
   type CrmSemanticRegistry,
 } from "@/lib/semantics/crmSemanticRegistry";
 
@@ -48,6 +50,16 @@ const toDateValue = (value?: string | null) => {
 
   const date = new Date(value);
   return Number.isNaN(date.valueOf()) ? Number.NEGATIVE_INFINITY : date.valueOf();
+};
+
+const toStartOfDay = (date: Date) =>
+  new Date(date.getFullYear(), date.getMonth(), date.getDate());
+
+const diffDays = (from: Date, to: Date) => {
+  const msPerDay = 1000 * 60 * 60 * 24;
+  return Math.floor(
+    (toStartOfDay(to).valueOf() - toStartOfDay(from).valueOf()) / msPerDay,
+  );
 };
 
 const formatDateTimeLabel = (value: string) => {
@@ -225,6 +237,9 @@ export type UnifiedCrmReadContext = {
       openQuotes: number;
       activeProjects: number;
       pendingPayments: number;
+      overduePayments: number;
+      upcomingTasks: number;
+      overdueTasks: number;
       expenses: number;
     };
     totals: {
@@ -311,6 +326,41 @@ export type UnifiedCrmReadContext = {
       status: string;
       statusLabel: string;
       paymentDate: string | null;
+      isTaxable: boolean;
+    }>;
+    overduePayments: Array<{
+      paymentId: string;
+      quoteId: string | null;
+      clientId: string | null;
+      projectId: string | null;
+      clientName: string | null;
+      projectName: string | null;
+      amount: number;
+      status: string;
+      statusLabel: string;
+      paymentDate: string | null;
+      isTaxable: boolean;
+      daysOverdue: number | null;
+    }>;
+    upcomingTasks: Array<{
+      taskId: string;
+      clientId: string | null;
+      clientName: string | null;
+      text: string;
+      type: string;
+      dueDate: string;
+      allDay: boolean;
+      daysUntilDue: number;
+    }>;
+    overdueTasks: Array<{
+      taskId: string;
+      clientId: string | null;
+      clientName: string | null;
+      text: string;
+      type: string;
+      dueDate: string;
+      allDay: boolean;
+      daysOverdue: number;
     }>;
     recentExpenses: Array<{
       expenseId: string;
@@ -347,6 +397,7 @@ export const buildUnifiedCrmReadContext = ({
   services,
   payments,
   expenses,
+  tasks = [],
   semanticRegistry,
   capabilityRegistry,
   generatedAt = new Date().toISOString(),
@@ -359,6 +410,7 @@ export const buildUnifiedCrmReadContext = ({
   services: Service[];
   payments: Payment[];
   expenses: Expense[];
+  tasks?: ClientTask[];
   semanticRegistry: CrmSemanticRegistry;
   capabilityRegistry: CrmCapabilityRegistry;
   generatedAt?: string;
@@ -370,6 +422,7 @@ export const buildUnifiedCrmReadContext = ({
   const contactById = new Map(
     contacts.map((contact) => [String(contact.id), contact]),
   );
+  const quoteById = new Map(quotes.map((quote) => [String(quote.id), quote]));
   const projectFinancialsById = buildProjectFinancialSummaries({
     projects,
     services,
@@ -377,10 +430,22 @@ export const buildUnifiedCrmReadContext = ({
     expenses,
   });
   const paymentsByQuoteId = new Map<string, Payment[]>();
+  const servicesByProjectId = new Map<string, Service[]>();
   const contactsByClientId = new Map<string, Contact[]>();
   const projectContactsByProjectId = new Map<string, ProjectContact[]>();
   const projectContactsByContactId = new Map<string, ProjectContact[]>();
   const activeProjectsByClientId = new Map<string, Project[]>();
+
+  services.forEach((service) => {
+    if (!service.project_id) {
+      return;
+    }
+
+    const projectId = String(service.project_id);
+    const current = servicesByProjectId.get(projectId) ?? [];
+    current.push(service);
+    servicesByProjectId.set(projectId, current);
+  });
 
   payments.forEach((payment) => {
     if (!payment.quote_id) {
@@ -443,6 +508,10 @@ export const buildUnifiedCrmReadContext = ({
     projectContactsByContactId.set(contactId, currentContactRows);
   });
 
+  const today = toStartOfDay(new Date());
+  const nextWeek = new Date(today);
+  nextWeek.setDate(nextWeek.getDate() + 7);
+
   const pendingPayments = payments
     .filter(
       (payment) =>
@@ -453,6 +522,23 @@ export const buildUnifiedCrmReadContext = ({
         toDateValue(left.payment_date ?? left.created_at) -
         toDateValue(right.payment_date ?? right.created_at),
     );
+  const overduePayments = pendingPayments.filter((payment) => {
+    if (payment.status !== "in_attesa" || !payment.payment_date) {
+      return false;
+    }
+
+    return toStartOfDay(new Date(payment.payment_date)) < today;
+  });
+  const incompleteTasks = tasks
+    .filter((task) => !task.done_date)
+    .sort((left, right) => toDateValue(left.due_date) - toDateValue(right.due_date));
+  const upcomingTasks = incompleteTasks.filter((task) => {
+    const dueDate = toStartOfDay(new Date(task.due_date));
+    return dueDate >= today && dueDate <= nextWeek;
+  });
+  const overdueTasks = incompleteTasks.filter(
+    (task) => toStartOfDay(new Date(task.due_date)) < today,
+  );
   const recentExpenses = [...expenses].sort(
     (left, right) => toDateValue(right.expense_date) - toDateValue(left.expense_date),
   );
@@ -571,6 +657,14 @@ export const buildUnifiedCrmReadContext = ({
       })
       .slice(0, 4);
 
+  const getPaymentTaxable = (payment: Payment) =>
+    isPaymentTaxable(payment, {
+      projectServices: payment.project_id
+        ? (servicesByProjectId.get(String(payment.project_id)) ?? [])
+        : [],
+      quote: payment.quote_id ? quoteById.get(String(payment.quote_id)) : null,
+    });
+
   return {
     meta: {
       generatedAt,
@@ -591,6 +685,9 @@ export const buildUnifiedCrmReadContext = ({
         openQuotes: openQuotes.length,
         activeProjects: activeProjects.length,
         pendingPayments: pendingPayments.length,
+        overduePayments: overduePayments.length,
+        upcomingTasks: upcomingTasks.length,
+        overdueTasks: overdueTasks.length,
         expenses: expenses.length,
       },
       totals: {
@@ -681,6 +778,43 @@ export const buildUnifiedCrmReadContext = ({
         status: payment.status,
         statusLabel: paymentStatusLabels[payment.status] ?? payment.status,
         paymentDate: payment.payment_date ?? null,
+        isTaxable: getPaymentTaxable(payment),
+      })),
+      overduePayments: overduePayments.slice(0, 20).map((payment) => ({
+        paymentId: String(payment.id),
+        quoteId: payment.quote_id ? String(payment.quote_id) : null,
+        clientId: payment.client_id ? String(payment.client_id) : null,
+        projectId: payment.project_id ? String(payment.project_id) : null,
+        clientName: getClientName(clientById, payment.client_id),
+        projectName: getProjectName(projectById, payment.project_id ?? null),
+        amount: Number(payment.amount ?? 0),
+        status: payment.status,
+        statusLabel: paymentStatusLabels[payment.status] ?? payment.status,
+        paymentDate: payment.payment_date ?? null,
+        isTaxable: getPaymentTaxable(payment),
+        daysOverdue: payment.payment_date
+          ? Math.abs(diffDays(new Date(payment.payment_date), today))
+          : null,
+      })),
+      upcomingTasks: upcomingTasks.slice(0, 20).map((task) => ({
+        taskId: String(task.id),
+        clientId: task.client_id ? String(task.client_id) : null,
+        clientName: getClientName(clientById, task.client_id ?? null),
+        text: task.text,
+        type: task.type,
+        dueDate: task.due_date,
+        allDay: task.all_day,
+        daysUntilDue: diffDays(today, new Date(task.due_date)),
+      })),
+      overdueTasks: overdueTasks.slice(0, 20).map((task) => ({
+        taskId: String(task.id),
+        clientId: task.client_id ? String(task.client_id) : null,
+        clientName: getClientName(clientById, task.client_id ?? null),
+        text: task.text,
+        type: task.type,
+        dueDate: task.due_date,
+        allDay: task.all_day,
+        daysOverdue: Math.abs(diffDays(new Date(task.due_date), today)),
       })),
       recentExpenses: recentExpenses.slice(0, 5).map((expense) => ({
         expenseId: String(expense.id),

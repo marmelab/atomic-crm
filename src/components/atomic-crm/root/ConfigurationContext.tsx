@@ -41,6 +41,10 @@ export const mergeConfigurationWithDefaults = (
   fiscalConfig: {
     ...defaultConfiguration.fiscalConfig,
     ...config?.fiscalConfig,
+    taxabilityDefaults: {
+      ...defaultConfiguration.fiscalConfig.taxabilityDefaults,
+      ...config?.fiscalConfig?.taxabilityDefaults,
+    },
   },
   aiConfig: {
     ...defaultConfiguration.aiConfig,

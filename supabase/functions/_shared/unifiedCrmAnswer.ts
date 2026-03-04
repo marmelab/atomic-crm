@@ -9,6 +9,7 @@ export type UnifiedCrmSuggestedAction = {
     | "dashboard"
     | "clients"
     | "contacts"
+    | "client_tasks"
     | "quotes"
     | "projects"
     | "services"
@@ -27,6 +28,8 @@ export type UnifiedCrmSuggestedAction = {
     | "project_quick_payment"
     | "expense_create"
     | "expense_create_km"
+    | "task_create"
+    | "generate_invoice_draft"
     | "follow_unified_crm_handoff";
 };
 
@@ -193,6 +196,48 @@ const hasExpenseCreationIntent = (normalizedQuestion: string) =>
     "precompilat",
     "prepar",
     "bozza",
+  ]);
+
+const hasTaskIntent = (normalizedQuestion: string) =>
+  includesAny(normalizedQuestion, [
+    "promemori",
+    "ricordam",
+    "follow up",
+    "follow-up",
+    "attivit",
+    "todo",
+    "to do",
+    "scadenz",
+  ]);
+
+const hasTaskCreationIntent = (normalizedQuestion: string) =>
+  hasTaskIntent(normalizedQuestion) &&
+  includesAny(normalizedQuestion, [
+    "crea",
+    "aggiung",
+    "inser",
+    "prepar",
+    "imposta",
+    "segn",
+    "nuov",
+    "bozza",
+  ]);
+
+const hasInvoiceDraftIntent = (normalizedQuestion: string) =>
+  includesAny(normalizedQuestion, [
+    "bozza fattura",
+    "bozza di fattura",
+    "fattura",
+    "aruba",
+    "prefattura",
+  ]) &&
+  includesAny(normalizedQuestion, [
+    "crea",
+    "genera",
+    "prepar",
+    "compila",
+    "bozza",
+    "aiut",
   ]);
 
 const hasTravelEstimationIntent = (normalizedQuestion: string) =>
@@ -1764,6 +1809,14 @@ const buildRecommendedReason = ({
     return "Consigliata perche apre il form spese gia precompilato con la tratta km calcolata e lascia comunque l'ultima correzione all'utente.";
   }
 
+  if (suggestion.capabilityActionId === "task_create") {
+    return "Consigliata perche porta direttamente nel modulo Promemoria gia approvato per registrare follow-up e scadenze operative.";
+  }
+
+  if (suggestion.capabilityActionId === "generate_invoice_draft") {
+    return "Consigliata perche apre una superficie gia approvata del CRM dove puoi generare la bozza fattura senza produrre documenti fiscali ufficiali.";
+  }
+
   if (focusPayments && suggestion.resource === "quotes") {
     return "Consigliata perche prima di agire conviene verificare il preventivo collegato al pagamento pendente principale.";
   }
@@ -2022,6 +2075,9 @@ export const buildUnifiedCrmSuggestedActions = ({
     "nolegg",
   ]);
   const expenseCreationIntent = hasExpenseCreationIntent(normalizedQuestion);
+  const focusTasks = hasTaskIntent(normalizedQuestion);
+  const taskCreationIntent = hasTaskCreationIntent(normalizedQuestion);
+  const invoiceDraftIntent = hasInvoiceDraftIntent(normalizedQuestion);
   const focusContacts = includesAny(normalizedQuestion, [
     "referent",
     "contatt",
@@ -2042,6 +2098,8 @@ export const buildUnifiedCrmSuggestedActions = ({
   const preferPaymentAction =
     (focusPayments || focusQuotes || focusProjects || focusClients) &&
     !expenseCreationIntent &&
+    !taskCreationIntent &&
+    !invoiceDraftIntent &&
     includesAny(normalizedQuestion, [
       "registr",
       "aggiung",
@@ -2073,6 +2131,7 @@ export const buildUnifiedCrmSuggestedActions = ({
       !focusQuotes &&
       !focusProjects &&
       !focusExpenses &&
+      !focusTasks &&
       !focusContacts &&
       !focusClients);
   const inferredPaymentType = inferPreferredPaymentType(normalizedQuestion);
@@ -2112,6 +2171,14 @@ export const buildUnifiedCrmSuggestedActions = ({
     "quotes",
     getString(firstQuote?.quoteId),
   );
+  const quoteInvoiceDraftHref = buildShowHrefWithSearch(
+    routePrefix,
+    "quotes",
+    getString(firstQuote?.quoteId),
+    {
+      invoiceDraft: "true",
+    },
+  );
   const quoteCreatePaymentHref = canCreatePaymentFromQuoteStatus(
     getString(firstQuote?.status),
   )
@@ -2144,6 +2211,14 @@ export const buildUnifiedCrmSuggestedActions = ({
     "projects",
     getString(firstProject?.projectId),
   );
+  const projectInvoiceDraftHref = buildShowHrefWithSearch(
+    routePrefix,
+    "projects",
+    getString(firstProject?.projectId),
+    {
+      invoiceDraft: "true",
+    },
+  );
   const projectQuickPaymentHref = buildShowHrefWithSearch(
     routePrefix,
     "projects",
@@ -2169,6 +2244,14 @@ export const buildUnifiedCrmSuggestedActions = ({
     routePrefix,
     "clients",
     getString(firstClient?.clientId),
+  );
+  const clientInvoiceDraftHref = buildShowHrefWithSearch(
+    routePrefix,
+    "clients",
+    getString(firstClient?.clientId),
+    {
+      invoiceDraft: "true",
+    },
   );
   const contactHref = buildShowHref(
     routePrefix,
@@ -2239,6 +2322,57 @@ export const buildUnifiedCrmSuggestedActions = ({
               "Usa la dashboard come quadro generale prima di aprire un record specifico.",
             href: routePrefix,
           },
+    );
+  } else if (invoiceDraftIntent) {
+    const invoiceDraftPrimary = quoteInvoiceDraftHref
+      ? {
+          id: "open-quote-for-invoice-draft",
+          kind: "approved_action" as const,
+          resource: "quotes" as const,
+          capabilityActionId: "generate_invoice_draft" as const,
+          label: "Apri il preventivo e genera la bozza fattura",
+          description:
+            "Nella scheda preventivo trovi il bottone per generare una bozza fattura interna da usare come riferimento Aruba.",
+          href: quoteInvoiceDraftHref,
+        }
+      : projectInvoiceDraftHref
+        ? {
+            id: "open-project-for-invoice-draft",
+            kind: "approved_action" as const,
+            resource: "projects" as const,
+            capabilityActionId: "generate_invoice_draft" as const,
+            label: "Apri il progetto e genera la bozza fattura",
+            description:
+              "Nella scheda progetto trovi il bottone per generare una bozza fattura interna.",
+            href: projectInvoiceDraftHref,
+          }
+        : clientInvoiceDraftHref
+          ? {
+              id: "open-client-for-invoice-draft",
+              kind: "approved_action" as const,
+              resource: "clients" as const,
+              capabilityActionId: "generate_invoice_draft" as const,
+              label: "Apri il cliente e genera la bozza fattura",
+              description:
+                "Nella scheda cliente puoi generare la bozza fattura dai servizi non ancora fatturati.",
+              href: clientInvoiceDraftHref,
+            }
+          : null;
+
+    pushSuggestion(invoiceDraftPrimary);
+    pushSuggestion(
+      clientHref
+        ? {
+            id: "open-client-from-invoice-draft-context",
+            kind: "show",
+            resource: "clients",
+            capabilityActionId: "follow_unified_crm_handoff",
+            label: "Apri il cliente collegato",
+            description:
+              "Controlla i dati anagrafici e fiscali cliente prima di esportare il PDF della bozza.",
+            href: clientHref,
+          }
+        : null,
     );
   } else if (preferProjectQuickPaymentLanding) {
     const projectShowSuggestion = projectHref
@@ -2437,6 +2571,31 @@ export const buildUnifiedCrmSuggestedActions = ({
               "Controlla la lista completa dei preventivi per vedere pipeline e stati.",
             href: buildListHref(routePrefix, "quotes"),
           },
+    );
+  } else if (taskCreationIntent || focusTasks) {
+    pushSuggestion({
+      id: "task-create-handoff",
+      kind: "approved_action",
+      resource: "client_tasks",
+      capabilityActionId: "task_create",
+      label: "Apri Promemoria e crea un follow-up",
+      description:
+        "Vai nel modulo Promemoria per registrare subito l'attività con scadenza.",
+      href: `${buildListHref(routePrefix, "client_tasks")}?launcher_source=unified_ai_launcher&launcher_action=task_create`,
+    });
+    pushSuggestion(
+      clientHref
+        ? {
+            id: "open-first-client-from-task-context",
+            kind: "show",
+            resource: "clients",
+            capabilityActionId: "follow_unified_crm_handoff",
+            label: "Apri il cliente collegato",
+            description:
+              "Controlla il cliente principale dello snapshot prima di confermare il promemoria.",
+            href: clientHref,
+          }
+        : null,
     );
   } else if (focusExpenses || expenseCreationIntent) {
     pushSuggestion(

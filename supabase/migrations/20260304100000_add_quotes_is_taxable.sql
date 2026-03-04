@@ -1,0 +1,2 @@
+ALTER TABLE public.quotes
+ADD COLUMN IF NOT EXISTS is_taxable BOOLEAN NOT NULL DEFAULT true;

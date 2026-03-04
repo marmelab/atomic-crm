@@ -5,6 +5,7 @@ import {
   calculateKmReimbursement,
   calculateTaxableServiceNetValue,
   getDefaultKmRate,
+  isPaymentTaxable,
 } from "./crmSemanticRegistry";
 
 describe("crmSemanticRegistry", () => {
@@ -148,5 +149,46 @@ describe("crmSemanticRegistry", () => {
         is_taxable: false,
       }),
     ).toBe(0);
+  });
+
+  it("derives payment taxability from project services or quote fallback", () => {
+    expect(
+      isPaymentTaxable(
+        { project_id: 1, quote_id: null },
+        {
+          projectServices: [{ is_taxable: false }, { is_taxable: true }],
+          quote: { is_taxable: false },
+        },
+      ),
+    ).toBe(true);
+
+    expect(
+      isPaymentTaxable(
+        { project_id: 1, quote_id: null },
+        {
+          projectServices: [{ is_taxable: false }],
+        },
+      ),
+    ).toBe(false);
+
+    expect(
+      isPaymentTaxable(
+        { project_id: null, quote_id: "q-1" },
+        {
+          projectServices: [],
+          quote: { is_taxable: false },
+        },
+      ),
+    ).toBe(false);
+
+    expect(
+      isPaymentTaxable(
+        { project_id: null, quote_id: null },
+        {
+          projectServices: [],
+          quote: null,
+        },
+      ),
+    ).toBe(true);
   });
 });

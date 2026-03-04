@@ -1,4 +1,5 @@
 import { useTheme } from "@/components/admin/use-theme";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -10,25 +11,19 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { cn } from "@/lib/utils";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
-  Briefcase,
-  CreditCard,
-  FileText,
-  FolderOpen,
   Home,
-  ListTodo,
   LogOut,
   Moon,
   Plus,
-  Receipt,
   Settings,
   Smartphone,
   Sun,
   User,
-  Users,
   Wrench,
+  type LucideIcon,
 } from "lucide-react";
+import { useState, type ComponentType } from "react";
 import { Translate, useAuthProvider, useGetIdentity, useLogout } from "ra-core";
 import {
   Link,
@@ -37,26 +32,43 @@ import {
   useMatch,
   useNavigate,
 } from "react-router";
+
+import {
+  getMobileAltroModules,
+  getMobileBottomBarModules,
+  getMobileCreateModules,
+} from "../root/moduleRegistry";
 import { TaskCreateSheet } from "../tasks/TaskCreateSheet";
-import { useState } from "react";
+
+const matchCurrentPath = (pathname: string) => {
+  if (matchPath("/", pathname)) {
+    return "/";
+  }
+
+  for (const module of getMobileBottomBarModules()) {
+    if (
+      matchPath(`${module.path}/*`, pathname) ||
+      matchPath(module.path, pathname)
+    ) {
+      return module.path;
+    }
+  }
+
+  return false;
+};
+
+const createMenuLabelByResource: Record<string, string> = {
+  expenses: "Spesa",
+  services: "Lavoro",
+  payments: "Pagamento",
+  client_tasks: "Promemoria",
+};
 
 export const MobileNavigation = () => {
   const location = useLocation();
+  const currentPath = matchCurrentPath(location.pathname);
 
-  let currentPath: string | boolean = "/";
-  if (matchPath("/", location.pathname)) {
-    currentPath = "/";
-  } else if (matchPath("/clients/*", location.pathname)) {
-    currentPath = "/clients";
-  } else if (matchPath("/client_tasks/*", location.pathname)) {
-    currentPath = "/client_tasks";
-  } else {
-    currentPath = false;
-  }
-
-  // Check if the app is running as a PWA (standalone mode)
   const isPwa = window.matchMedia("(display-mode: standalone)").matches;
-  // Check if it's iOS on the web
   const isWebiOS = /iPad|iPod|iPhone/.test(window.navigator.userAgent);
 
   return (
@@ -70,28 +82,26 @@ export const MobileNavigation = () => {
       }}
     >
       <div className="flex justify-center">
-        <>
+        <NavigationButton
+          href="/"
+          Icon={Home}
+          label="Inizio"
+          isActive={currentPath === "/"}
+        />
+
+        {getMobileBottomBarModules().map((module) => (
           <NavigationButton
-            href="/"
-            Icon={Home}
-            label="Inizio"
-            isActive={currentPath === "/"}
+            key={module.resource}
+            href={module.path}
+            Icon={module.icon ?? Home}
+            label={module.label}
+            isActive={currentPath === module.path}
+            BadgeComponent={module.badge}
           />
-          <NavigationButton
-            href="/clients"
-            Icon={Users}
-            label="Clienti"
-            isActive={currentPath === "/clients"}
-          />
-          <CreateButton />
-          <NavigationButton
-            href="/client_tasks"
-            Icon={ListTodo}
-            label="Promemoria"
-            isActive={currentPath === "/client_tasks"}
-          />
-          <SettingsButton />
-        </>
+        ))}
+
+        <CreateButton />
+        <SettingsButton />
       </div>
     </nav>
   );
@@ -102,29 +112,38 @@ const NavigationButton = ({
   Icon,
   label,
   isActive,
+  BadgeComponent,
 }: {
   href: string;
-  Icon: React.ComponentType<React.SVGProps<SVGSVGElement>>;
+  Icon: LucideIcon;
   label: string;
   isActive: boolean;
+  BadgeComponent?: ComponentType;
 }) => (
   <Button
     asChild
     variant="ghost"
     className={cn(
-      "flex-col gap-1 h-auto py-2 px-1 rounded-md w-16",
+      "relative flex-col gap-1 h-auto py-2 px-1 rounded-md w-16",
       isActive ? null : "text-muted-foreground",
     )}
   >
     <Link to={href}>
       <Icon className="size-6" />
-      <span className="text-[0.6rem] font-medium">{label}</span>
+      <span className="text-[0.6rem] font-medium text-center leading-tight">
+        {label}
+      </span>
+      {BadgeComponent ? (
+        <span className="absolute -top-1 right-0">
+          <BadgeComponent />
+        </span>
+      ) : null}
     </Link>
   </Button>
 );
 
 const CreateButton = () => {
-  const client_id = useMatch("/clients/:id/*")?.params.id;
+  const clientId = useMatch("/clients/:id/*")?.params.id;
   const [taskCreateOpen, setTaskCreateOpen] = useState(false);
   const navigate = useNavigate();
 
@@ -133,8 +152,9 @@ const CreateButton = () => {
       <TaskCreateSheet
         open={taskCreateOpen}
         onOpenChange={setTaskCreateOpen}
-        client_id={client_id}
+        client_id={clientId}
       />
+
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <Button
@@ -147,32 +167,25 @@ const CreateButton = () => {
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent>
-          <DropdownMenuItem
-            className="h-12 px-4 text-base"
-            onSelect={() => navigate("/expenses/create")}
-          >
-            Spesa
-          </DropdownMenuItem>
-          <DropdownMenuItem
-            className="h-12 px-4 text-base"
-            onSelect={() => navigate("/services/create")}
-          >
-            Lavoro
-          </DropdownMenuItem>
-          <DropdownMenuItem
-            className="h-12 px-4 text-base"
-            onSelect={() => navigate("/payments/create")}
-          >
-            Pagamento
-          </DropdownMenuItem>
-          <DropdownMenuItem
-            className="h-12 px-4 text-base"
-            onSelect={() => {
-              setTaskCreateOpen(true);
-            }}
-          >
-            Promemoria
-          </DropdownMenuItem>
+          {getMobileCreateModules().map((module) => (
+            <DropdownMenuItem
+              key={module.resource}
+              className="h-12 px-4 text-base"
+              onSelect={() => {
+                if (
+                  module.nav.mobile.createMenuAction === "sheet" &&
+                  module.resource === "client_tasks"
+                ) {
+                  setTaskCreateOpen(true);
+                  return;
+                }
+
+                navigate(`${module.path}/create`);
+              }}
+            >
+              {createMenuLabelByResource[module.resource] ?? module.label}
+            </DropdownMenuItem>
+          ))}
         </DropdownMenuContent>
       </DropdownMenu>
     </>
@@ -183,7 +196,9 @@ const SettingsButton = () => {
   const authProvider = useAuthProvider();
   const { data: identity } = useGetIdentity();
   const logout = useLogout();
+
   if (!authProvider) return null;
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -195,6 +210,7 @@ const SettingsButton = () => {
           <span className="text-[0.6rem] font-medium">Altro</span>
         </Button>
       </DropdownMenuTrigger>
+
       <DropdownMenuContent align="end" side="top" className="w-56">
         <DropdownMenuLabel className="font-normal h-12 px-4">
           <div className="flex items-center gap-3 h-full">
@@ -207,52 +223,45 @@ const SettingsButton = () => {
             </p>
           </div>
         </DropdownMenuLabel>
+
         <DropdownMenuSeparator />
-        <DropdownMenuItem asChild className="h-12 px-4 text-base">
-          <Link to="/projects">
-            <FolderOpen className="size-5" />
-            Progetti
-          </Link>
-        </DropdownMenuItem>
-        <DropdownMenuItem asChild className="h-12 px-4 text-base">
-          <Link to="/services">
-            <Briefcase className="size-5" />
-            Registro Lavori
-          </Link>
-        </DropdownMenuItem>
-        <DropdownMenuItem asChild className="h-12 px-4 text-base">
-          <Link to="/quotes">
-            <FileText className="size-5" />
-            Preventivi
-          </Link>
-        </DropdownMenuItem>
-        <DropdownMenuItem asChild className="h-12 px-4 text-base">
-          <Link to="/payments">
-            <CreditCard className="size-5" />
-            Pagamenti
-          </Link>
-        </DropdownMenuItem>
-        <DropdownMenuItem asChild className="h-12 px-4 text-base">
-          <Link to="/expenses">
-            <Receipt className="size-5" />
-            Spese
-          </Link>
-        </DropdownMenuItem>
+
+        {getMobileAltroModules().map((module) => {
+          const Icon = module.icon ?? Home;
+
+          return (
+            <DropdownMenuItem
+              key={module.resource}
+              asChild
+              className="h-12 px-4 text-base"
+            >
+              <Link to={module.path}>
+                <Icon className="size-5" />
+                {module.label}
+              </Link>
+            </DropdownMenuItem>
+          );
+        })}
+
         <DropdownMenuSeparator />
+
         <DropdownMenuItem asChild className="h-12 px-4 text-base">
           <Link to="/profile">
             <User className="size-5" />
             Profilo
           </Link>
         </DropdownMenuItem>
+
         <DropdownMenuItem asChild className="h-12 px-4 text-base">
           <Link to="/settings">
             <Wrench className="size-5" />
             Impostazioni
           </Link>
         </DropdownMenuItem>
+
         <ThemeMenu />
         <DropdownMenuSeparator />
+
         <DropdownMenuItem
           onClick={() => logout()}
           className="cursor-pointer h-12 px-4 text-base"
@@ -267,6 +276,7 @@ const SettingsButton = () => {
 
 const ThemeMenu = () => {
   const { theme, setTheme } = useTheme();
+
   return (
     <div className="px-3 py-2">
       <ToggleGroup

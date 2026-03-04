@@ -212,6 +212,10 @@
           "type": "registry:component"
         },
         {
+          "path": "src/components/atomic-crm/root/moduleRegistry.ts",
+          "type": "registry:component"
+        },
+        {
           "path": "src/components/atomic-crm/root/i18nProvider.tsx",
           "type": "registry:component"
         },
@@ -468,6 +472,10 @@
           "type": "registry:component"
         },
         {
+          "path": "src/components/atomic-crm/payments/PaymentOverdueBadge.tsx",
+          "type": "registry:component"
+        },
+        {
           "path": "src/components/atomic-crm/payments/PaymentListFilter.tsx",
           "type": "registry:component"
         },
@@ -628,6 +636,34 @@
           "type": "registry:component"
         },
         {
+          "path": "src/components/atomic-crm/invoicing/invoiceDraftTypes.ts",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/invoicing/invoiceDraftPdf.tsx",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/invoicing/buildInvoiceDraftFromService.ts",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/invoicing/buildInvoiceDraftFromQuote.ts",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/invoicing/buildInvoiceDraftFromProject.ts",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/invoicing/buildInvoiceDraftFromClient.ts",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/invoicing/InvoiceDraftDialog.tsx",
+          "type": "registry:component"
+        },
+        {
           "path": "src/components/atomic-crm/filters/FilterCategory.tsx",
           "type": "registry:component"
         },
@@ -769,6 +805,10 @@
         },
         {
           "path": "src/components/atomic-crm/dashboard/DashboardDeadlinesCard.tsx",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/dashboard/DashboardDeadlineTracker.tsx",
           "type": "registry:component"
         },
         {

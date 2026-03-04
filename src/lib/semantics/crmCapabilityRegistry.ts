@@ -1,4 +1,5 @@
 import { quoteStatusEmailTemplateDefinitions } from "@/lib/communications/quoteStatusEmailTemplates";
+import { getAiResourceModules } from "@/components/atomic-crm/root/moduleRegistry";
 
 export type CrmCapabilityRegistry = {
   routing: {
@@ -67,102 +68,13 @@ export const buildCrmCapabilityRegistry = (): CrmCapabilityRegistry => ({
     meaning:
       "Nel runtime locale e nelle route principali del CRM si usa hash routing; gli smoke e i deep link devono rispettarlo.",
   },
-  resources: [
-    {
-      resource: "clients",
-      label: "Clienti",
-      description: "Anagrafica clienti e punto di partenza per lavoro o incassi semplici.",
-      routePatterns: [
-        "/#/clients",
-        "/#/clients/create",
-        "/#/clients/:id",
-        "/#/clients/:id/show",
-      ],
-      supportedViews: ["list", "show", "create", "edit"],
-    },
-    {
-      resource: "contacts",
-      label: "Referenti",
-      description:
-        "Persone collegate ai clienti e, tramite project_contacts, ai progetti operativi.",
-      routePatterns: [
-        "/#/contacts",
-        "/#/contacts/create",
-        "/#/contacts/:id",
-        "/#/contacts/:id/show",
-      ],
-      supportedViews: ["list", "show", "create", "edit"],
-    },
-    {
-      resource: "quotes",
-      label: "Preventivi",
-      description:
-        "Pipeline commerciale, importi proposti, stati, PDF e link a progetto/pagamento.",
-      routePatterns: [
-        "/#/quotes",
-        "/#/quotes/create",
-        "/#/quotes/:id",
-        "/#/quotes/:id/show",
-      ],
-      supportedViews: ["list", "show", "create", "edit"],
-    },
-    {
-      resource: "projects",
-      label: "Progetti",
-      description: "Contenitore operativo dei lavori strutturati.",
-      routePatterns: [
-        "/#/projects",
-        "/#/projects/create",
-        "/#/projects/:id",
-        "/#/projects/:id/show",
-      ],
-      supportedViews: ["list", "show", "create", "edit"],
-    },
-    {
-      resource: "services",
-      label: "Servizi",
-      description: "Registro lavori con compensi, km, tassabilita' e date operative.",
-      routePatterns: [
-        "/#/services",
-        "/#/services/create",
-        "/#/services/:id",
-        "/#/services/:id/show",
-      ],
-      supportedViews: ["list", "show", "create", "edit"],
-    },
-    {
-      resource: "payments",
-      label: "Pagamenti",
-      description: "Incassi ricevuti o attesi collegati a cliente, progetto o preventivo.",
-      routePatterns: [
-        "/#/payments",
-        "/#/payments/create",
-        "/#/payments/:id",
-        "/#/payments/:id/show",
-      ],
-      supportedViews: ["list", "show", "create", "edit"],
-    },
-    {
-      resource: "expenses",
-      label: "Spese",
-      description:
-        "Spese operative e rimborsi km collegati a clienti o progetti.",
-      routePatterns: [
-        "/#/expenses",
-        "/#/expenses/create",
-        "/#/expenses/:id",
-        "/#/expenses/:id/show",
-      ],
-      supportedViews: ["list", "show", "create", "edit"],
-    },
-    {
-      resource: "client_tasks",
-      label: "Promemoria",
-      description: "Attivita' e follow-up rapidi collegati ai clienti.",
-      routePatterns: ["/#/client_tasks"],
-      supportedViews: ["list"],
-    },
-  ],
+  resources: getAiResourceModules().map((module) => ({
+    resource: module.resource,
+    label: module.ai.label,
+    description: module.ai.description,
+    routePatterns: module.ai.routePatterns,
+    supportedViews: module.ai.supportedViews,
+  })),
   pages: [
     {
       id: "dashboard",
@@ -399,6 +311,16 @@ export const buildCrmCapabilityRegistry = (): CrmCapabilityRegistry => ({
       sideEffects: ["precompila il form spese via search params supportati"],
     },
     {
+      id: "task_create",
+      label: "Registra promemoria dalla chat unificata",
+      description:
+        "Dalla chat AI unificata apre il modulo Promemoria con handoff guidato per creare follow-up e scadenze operative sul cliente corretto.",
+      sourceFile: "src/components/atomic-crm/tasks/TasksList.tsx",
+      actsOn: ["client_tasks", "clients"],
+      requiredFields: ["text", "due_date"],
+      sideEffects: ["apre TaskCreateSheet dal modulo promemoria"],
+    },
+    {
       id: "service_create",
       label: "Registra servizio generico dalla chat unificata",
       description:
@@ -407,6 +329,15 @@ export const buildCrmCapabilityRegistry = (): CrmCapabilityRegistry => ({
       actsOn: ["services", "projects"],
       requiredFields: ["project_id", "service_date"],
       sideEffects: ["precompila il form servizi via search params supportati"],
+    },
+    {
+      id: "generate_invoice_draft",
+      label: "Genera bozza fattura interna",
+      description:
+        "Apre una superficie operativa gia approvata (servizio, progetto, cliente o preventivo) dove il bottone dedicato genera la bozza fattura PDF come riferimento interno per compilare Aruba, senza scritture DB.",
+      sourceFile: "src/components/atomic-crm/invoicing/InvoiceDraftDialog.tsx",
+      actsOn: ["services", "projects", "clients", "quotes"],
+      requiredFields: ["client_id", "line_items"],
     },
     {
       id: "suggest_travel_locations",

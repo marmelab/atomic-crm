@@ -129,4 +129,43 @@ describe("buildFiscalModel", () => {
     ]);
     expect(model.businessHealth.clientConcentration).toBeCloseTo(90, 5);
   });
+
+  it("includes flat taxable services and excludes flat non-taxable services from fiscal revenue", () => {
+    const clients: Client[] = [baseClient({ id: 1, name: "Cliente Flat" })];
+
+    const services: Service[] = [
+      baseService({
+        id: 101,
+        project_id: null,
+        client_id: 1,
+        fee_shooting: 500,
+        is_taxable: true,
+      }),
+      baseService({
+        id: 102,
+        project_id: null,
+        client_id: 1,
+        fee_shooting: 300,
+        is_taxable: false,
+      }),
+    ];
+
+    const model = buildFiscalModel({
+      services,
+      expenses: [] satisfies Expense[],
+      payments: [] satisfies Payment[],
+      quotes: [] satisfies Quote[],
+      projects: [] satisfies Project[],
+      clients,
+      fiscalConfig,
+      year: 2026,
+    });
+
+    expect(model.fiscalKpis.fatturatoTotaleYtd).toBe(800);
+    expect(model.fiscalKpis.fatturatoLordoYtd).toBe(500);
+    expect(model.fiscalKpis.fatturatoNonTassabileYtd).toBe(300);
+    expect(
+      model.warnings.some((warning) => warning.type === "unclassified_revenue"),
+    ).toBe(false);
+  });
 });

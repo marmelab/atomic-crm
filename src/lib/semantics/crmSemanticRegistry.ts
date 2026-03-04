@@ -15,7 +15,7 @@ import {
 import { quoteStatuses } from "@/components/atomic-crm/quotes/quotesTypes";
 import type { ConfigurationContextValue } from "@/components/atomic-crm/root/ConfigurationContext";
 import { defaultConfiguration } from "@/components/atomic-crm/root/defaultConfiguration";
-import type { Service } from "@/components/atomic-crm/types";
+import type { Payment, Quote, Service } from "@/components/atomic-crm/types";
 
 export type SemanticDictionaryItem = {
   value: string;
@@ -62,6 +62,10 @@ export type CrmSemanticRegistry = {
     serviceNetValue: {
       formula: string;
       taxableFlagField: "is_taxable";
+      meaning: string;
+    };
+    paymentTaxability: {
+      derivation: string;
       meaning: string;
     };
     travelReimbursement: {
@@ -155,6 +159,24 @@ export const calculateTaxableServiceNetValue = (
     "fee_shooting" | "fee_editing" | "fee_other" | "discount" | "is_taxable"
   >,
 ) => (service.is_taxable === false ? 0 : calculateServiceNetValue(service));
+
+export const isPaymentTaxable = (
+  _payment: Pick<Payment, "project_id" | "quote_id">,
+  context: {
+    projectServices: Array<Pick<Service, "is_taxable">>;
+    quote?: Pick<Quote, "is_taxable"> | null;
+  },
+) => {
+  if (context.projectServices.length > 0) {
+    return context.projectServices.some((service) => service.is_taxable !== false);
+  }
+
+  if (context.quote) {
+    return context.quote.is_taxable !== false;
+  }
+
+  return true;
+};
 
 export const buildCrmSemanticRegistry = (
   config?: Partial<ConfigurationContextValue>,
@@ -310,6 +332,12 @@ export const buildCrmSemanticRegistry = (
         taxableFlagField: "is_taxable",
         meaning:
           "Il valore operativo del servizio nasce dai compensi netti; il flag is_taxable decide se quel valore entra anche nella base fiscale.",
+      },
+      paymentTaxability: {
+        derivation:
+          "project services with is_taxable OR quote.is_taxable OR default true",
+        meaning:
+          "La tassabilita' del pagamento e' derivata: se il progetto ha servizi, basta un servizio tassabile per rendere l'incasso fiscalmente rilevante; senza servizi si usa il flag del preventivo, altrimenti default tassabile.",
       },
       travelReimbursement: {
         formula: "km_distance * km_rate",

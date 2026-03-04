@@ -9,11 +9,17 @@ test.beforeAll(() => {
 test("client show exposes the linked Diego contact", async ({ page }) => {
   await loginAsLocalAdmin(page);
 
-  await page.getByRole("link", { name: "Clienti" }).click();
-  await expect(page).toHaveURL(/\/clients$/);
-
+  await page.getByRole("link", { name: "Progetti", exact: true }).click();
+  await expect(page).toHaveURL(/\/projects$/);
   await page
-    .getByRole("link", { name: "ASSOCIAZIONE CULTURALE GUSTARE SICILIA" })
+    .getByRole("link", { name: "Bella tra i Fornelli", exact: true })
+    .click();
+  await expect(page).toHaveURL(/\/projects\/.+\/show$/);
+  await page
+    .getByRole("link", {
+      name: "ASSOCIAZIONE CULTURALE GUSTARE SICILIA",
+      exact: true,
+    })
     .click();
 
   await expect(page).toHaveURL(/\/clients\/.+\/show$/);
@@ -22,7 +28,9 @@ test("client show exposes the linked Diego contact", async ({ page }) => {
       name: "ASSOCIAZIONE CULTURALE GUSTARE SICILIA",
     }),
   ).toBeVisible();
-  await expect(page.getByText("Referenti")).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: "Referenti", exact: true }),
+  ).toBeVisible();
   await expect(
     page.getByRole("link", { name: "Diego Caltabiano", exact: true }),
   ).toBeVisible();

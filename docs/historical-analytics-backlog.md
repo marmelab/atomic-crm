@@ -6,7 +6,32 @@
 incrociarlo con `docs/README.md`, `docs/architecture.md` e i documenti
 `canonical`.
 
-Last updated: 2026-03-02
+Last updated: 2026-03-04
+
+## Update 2026-03-04
+
+Slice completata: `module-registry + taxability + deadlines + invoice-draft`.
+
+Deliverable chiusi:
+
+- registry moduli unificato con nav desktop/mobile e risorse AI derivate
+- contatti visibili in nav desktop e menu mobile "Altro"
+- scadenzario operativo annuale con azioni rapide
+- capability AI aggiuntive: `task_create`, `generate_invoice_draft`
+- bozza fattura interna multi-entry point (service/project/client/quote)
+- tassabilita' coerente:
+  - `quotes.is_taxable`
+  - default config-driven su servizi/preventivi
+  - tassabilita' pagamento derivata
+  - flat services inclusi nel modello fiscale
+
+Backlog immediato residuo:
+
+- aggiungere smoke E2E dedicati per:
+  - navigazione module-registry desktop/mobile
+  - scadenzario dashboard
+  - invoice draft end-to-end sui 4 entry point
+- deploy remoto Edge Function `unified_crm_answer` dopo merge/push del ramo
 
 Archivio storico opzionale, da leggere solo se serve piu' contesto:
 
