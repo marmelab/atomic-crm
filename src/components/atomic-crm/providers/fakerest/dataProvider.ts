@@ -390,7 +390,16 @@ export const dataProvider = withLifecycleCallbacks(
     } satisfies ResourceCallbacks<Sale>,
     {
       resource: "contacts",
-      beforeCreate: async (params, dataProvider) => {
+      beforeCreate: async (createParams, dataProvider) => {
+        const params = {
+          ...createParams,
+          data: {
+            ...createParams.data,
+            first_seen:
+              createParams.data.first_seen ?? new Date().toISOString(),
+            last_seen: createParams.data.last_seen ?? new Date().toISOString(),
+          },
+        };
         const newParams = await processContactAvatar(params);
         return fetchAndUpdateCompanyData(newParams, dataProvider);
       },
@@ -559,7 +568,7 @@ export const dataProvider = withLifecycleCallbacks(
       beforeSave: async (params) => preserveAttachmentMimeType(params),
     } satisfies ResourceCallbacks<DealNote>,
   ],
-);
+) as CrmDataProvider;
 
 /**
  * Convert a `File` object returned by the upload input into a base 64 string.

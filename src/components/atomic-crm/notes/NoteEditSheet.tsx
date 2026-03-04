@@ -38,7 +38,7 @@ export const NoteEditSheet = ({
           source={foreignKeyMapping["contacts"]}
           reference="contacts"
           render={({ referenceRecord }) => (
-            <h1 className="text-xl font-semibold">
+            <h1 className="text-xl font-semibold truncate pr-10">
               Edit Note
               {referenceRecord ? (
                 <>

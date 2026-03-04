@@ -38,9 +38,9 @@ export const NoteShowPage = () => {
       />
       <MobileHeader>
         <MobileBackButton to={`/contacts/${contactId}/show`} />
-        <div className="flex flex-1">
-          <Link to={`/contacts/${contactId}/show`}>
-            <h1 className="text-xl font-semibold">
+        <div className="flex flex-1 min-w-0">
+          <Link to={`/contacts/${contactId}/show`} className="flex-1 min-w-0">
+            <h1 className="truncate text-xl font-semibold">
               Note for{" "}
               <ReferenceField
                 record={note}
