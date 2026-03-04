@@ -33,6 +33,25 @@ Regola pratica:
 - se una modifica e' solo strutturale/read-only, `Impostazioni` non va toccata
   ma la motivazione va lasciata nei docs di continuita'
 
+## Update 2026-03-04 (i) — Rotating Suggestion Cards in AI Chat
+
+L'empty state della chat AI ora mostra 8 card suggerimento divise per categoria
+con rotazione sfalsata. Ogni 4 secondi 2 card (di categorie diverse) cambiano
+domanda con un fade-in animato.
+
+File nuovi:
+
+- `src/lib/ai/suggestedQuestionCategories.ts` — 8 categorie × 3 domande (pool)
+- `src/hooks/useRotatingSuggestions.ts` — hook di rotazione con coda shuffled
+- `src/components/atomic-crm/ai/SuggestionCards.tsx` — componente presentazionale
+
+Categorie: Panoramica, Clienti e referenti, Preventivi, Progetti e servizi,
+Pagamenti e fatture, Spese e trasferte, Promemoria, Automazioni.
+
+`unifiedCrmSuggestedQuestions` in `unifiedCrmAssistant.ts` ora derivato dal
+pool categorizzato per backward compatibility. `UnifiedCrmAnswerPanel.tsx`
+ridotto da 527 a 472 righe estraendo le suggestion cards.
+
 ## Update 2026-03-04 (h) — PaymentDraftCard aria-label
 
 Aggiunto `aria-label` ai `<select>` di tipo e stato in `PaymentDraftCard.tsx`

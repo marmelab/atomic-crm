@@ -1064,6 +1064,10 @@
           "type": "registry:component"
         },
         {
+          "path": "src/components/atomic-crm/ai/SuggestionCards.tsx",
+          "type": "registry:component"
+        },
+        {
           "path": "src/components/atomic-crm/ai/PaymentDraftCard.tsx",
           "type": "registry:component"
         },
@@ -1101,6 +1105,10 @@
         },
         {
           "path": "src/hooks/user-menu-context.tsx",
+          "type": "registry:hook"
+        },
+        {
+          "path": "src/hooks/useRotatingSuggestions.ts",
           "type": "registry:hook"
         },
         {

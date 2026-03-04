@@ -28,7 +28,6 @@ import {
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import {
-  unifiedCrmSuggestedQuestions,
   unifiedCrmQuestionMaxLength,
   type UnifiedCrmAnswer,
   type UnifiedCrmConversationTurn,
@@ -37,6 +36,7 @@ import {
 import type { UnifiedCrmReadContext } from "@/lib/ai/unifiedCrmReadContext";
 
 import { PaymentDraftCard } from "./PaymentDraftCard";
+import { SuggestionCards } from "./SuggestionCards";
 import { Markdown } from "../misc/Markdown";
 import type { CrmDataProvider } from "../providers/types";
 
@@ -257,24 +257,10 @@ export const UnifiedCrmAnswerPanel = ({
           className="flex-1 min-h-0 space-y-3 overflow-y-auto overflow-x-hidden overscroll-y-contain px-3 py-3 [touch-action:pan-y] [webkit-overflow-scrolling:touch]"
         >
           {!hasConversation ? (
-            <div className="flex h-full flex-col items-center justify-end gap-4 pb-2">
-              <p className="text-center text-sm text-muted-foreground">
-                Fai una domanda operativa o usa un suggerimento rapido.
-              </p>
-              <div className="grid w-full grid-cols-2 gap-2">
-                {unifiedCrmSuggestedQuestions.map((suggestion) => (
-                  <button
-                    key={suggestion}
-                    type="button"
-                    disabled={!context || isPending}
-                    onClick={() => submitQuestion(suggestion)}
-                    className="rounded-xl border bg-background p-3 text-left text-xs leading-snug text-muted-foreground transition-colors hover:bg-muted/50 disabled:opacity-50"
-                  >
-                    {suggestion}
-                  </button>
-                ))}
-              </div>
-            </div>
+            <SuggestionCards
+              disabled={!context || isPending}
+              onSelect={submitQuestion}
+            />
           ) : null}
 
           {isPending ? (

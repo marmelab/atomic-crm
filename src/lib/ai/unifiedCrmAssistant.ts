@@ -3,13 +3,10 @@ import { defaultHistoricalAnalysisModel } from "@/lib/analytics/historicalAnalys
 export const defaultUnifiedCrmAnswerModel = defaultHistoricalAnalysisModel;
 export const unifiedCrmQuestionMaxLength = 1200;
 
-export const unifiedCrmSuggestedQuestions = [
-  "Dammi un riepilogo operativo rapido del CRM.",
-  "Dove vedi attenzione immediata tra preventivi e pagamenti?",
-  "Cosa raccontano clienti e progetti piu recenti?",
-  "Quali referenti seguono clienti e progetti piu recenti?",
-  "Che cosa emerge dalle spese recenti?",
-] as const;
+import { suggestionCategories } from "./suggestedQuestionCategories";
+
+export const unifiedCrmSuggestedQuestions: readonly string[] =
+  suggestionCategories.flatMap((c) => c.questions);
 
 export type UnifiedCrmConversationTurn = {
   question: string;
