@@ -26,7 +26,7 @@ import fs from "node:fs";
   await waitForProjectToBeReady({ projectRef });
 
   // This also ensures the project is ready
-  const { publishableKey, secretKey } = await fetchApiKeys({
+  const { publishableKey } = await fetchApiKeys({
     projectRef,
   });
 
@@ -42,7 +42,6 @@ import fs from "node:fs";
   await setupSupabaseSecrets({
     projectRef,
     publishableKey,
-    secretKey,
   });
 
   await persistSupabaseEnv({
@@ -237,7 +236,6 @@ async function setupDatabase({ databasePassword }) {
 
 async function fetchApiKeys({ projectRef }) {
   let publishableKey = "";
-  let secretKey = "";
   try {
     const { stdout, exitCode } = await execa(
       "npx",
@@ -273,14 +271,6 @@ async function fetchApiKeys({ projectRef }) {
           (key) => key.type === "publishable",
         )?.api_key;
       }
-
-      // Prioritize the default secret key, but any secret key will work.
-      secretKey = jsonOutput.find(
-        (key) => key.type === "secret" && key.name === "default",
-      )?.api_key;
-      if (!secretKey) {
-        secretKey = jsonOutput.find((key) => key.type === "secret")?.api_key;
-      }
     }
   } catch (e) {
     console.error("Failed to fetch API keys");
@@ -288,15 +278,15 @@ async function fetchApiKeys({ projectRef }) {
     throw e;
   }
 
-  if (publishableKey === "" || secretKey === "") {
+  if (publishableKey === "") {
     await sleep(1000);
     return fetchApiKeys({ projectRef });
   }
 
-  return { publishableKey, secretKey };
+  return { publishableKey };
 }
 
-async function setupSupabaseSecrets({ projectRef, publishableKey, secretKey }) {
+async function setupSupabaseSecrets({ projectRef, publishableKey }) {
   await execa(
     "npx",
     [
@@ -304,7 +294,6 @@ async function setupSupabaseSecrets({ projectRef, publishableKey, secretKey }) {
       "secrets",
       "set",
       `SB_PUBLISHABLE_KEY=${publishableKey}`,
-      `SB_SECRET_KEY=${secretKey}`,
       "--project-ref",
       projectRef,
     ],
