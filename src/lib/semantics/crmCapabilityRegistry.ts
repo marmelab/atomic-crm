@@ -53,6 +53,13 @@ export type CrmCapabilityRegistry = {
       requiredEnvKeys: string[];
       rules: string[];
     };
+    fiscalDeadlineReminders: {
+      provider: "pg_cron + Edge Function";
+      description: string;
+      schedule: string;
+      taskTypes: string[];
+      rules: string[];
+    };
   };
   integrationChecklist: Array<{
     id: string;
@@ -413,6 +420,15 @@ export const buildCrmCapabilityRegistry = (): CrmCapabilityRegistry => ({
       requiredFields: ["workflow_id"],
     },
     {
+      id: "workflow_edit",
+      label: "Modifica automazione esistente",
+      description:
+        "Dalla chat AI naviga alla pagina di modifica di un'automazione gia esistente per aggiornare trigger, condizioni o azioni.",
+      sourceFile: "src/components/atomic-crm/workflows/WorkflowEdit.tsx",
+      actsOn: ["workflows"],
+      requiredFields: ["workflow_id"],
+    },
+    {
       id: "quote_drag_change_status",
       label: "Sposta preventivo tra stati",
       description:
@@ -524,6 +540,19 @@ export const buildCrmCapabilityRegistry = (): CrmCapabilityRegistry => ({
       rules: [
         "Usare CallMeBot solo per notifiche interne, non per messaggi cliente.",
         "Usare il canale solo per eventi ad alta priorita' che richiedono attenzione rapida.",
+      ],
+    },
+    fiscalDeadlineReminders: {
+      provider: "pg_cron + Edge Function",
+      description:
+        "Sistema automatico di promemoria scadenze fiscali regime forfettario: calcola deadlines da pagamenti ricevuti e config fiscale, crea task e invia notifiche.",
+      schedule: "ogni giorno alle 07:00 UTC",
+      taskTypes: ["f24", "inps", "bollo", "dichiarazione"],
+      rules: [
+        "I task fiscali sono deduplicati per tipo+data — non vengono ricreati se gia esistenti.",
+        "Le notifiche (email + WhatsApp) partono solo per scadenze entro 7 giorni.",
+        "I task vengono creati per scadenze entro 30 giorni.",
+        "Il primo anno di attivita non genera scadenze (nessun saldo/acconto precedente).",
       ],
     },
   },

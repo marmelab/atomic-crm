@@ -14,7 +14,8 @@ export type UnifiedCrmSuggestedAction = {
     | "projects"
     | "services"
     | "payments"
-    | "expenses";
+    | "expenses"
+    | "workflows";
   label: string;
   description: string;
   href: string;
@@ -30,7 +31,9 @@ export type UnifiedCrmSuggestedAction = {
     | "expense_create_km"
     | "task_create"
     | "generate_invoice_draft"
-    | "follow_unified_crm_handoff";
+    | "follow_unified_crm_handoff"
+    | "workflow_create"
+    | "workflow_show";
 };
 
 export type UnifiedCrmPaymentDraft = {
@@ -2108,6 +2111,21 @@ export const buildUnifiedCrmSuggestedActions = ({
     "email",
     "linkedin",
   ]);
+  const focusFiscalDeadlines = includesAny(normalizedQuestion, [
+    "scadenz",
+    "f24",
+    "inps",
+    "contribut",
+    "dichiaraz",
+    "redditi",
+    "acconto",
+    "saldo imposta",
+    "bollo fattur",
+    "regime forfett",
+    "tasse",
+    "fiscale",
+    "fiscali",
+  ]);
   const focusWorkflows = includesAny(normalizedQuestion, [
     "automaz",
     "workflow",
@@ -2164,7 +2182,9 @@ export const buildUnifiedCrmSuggestedActions = ({
       !focusExpenses &&
       !focusTasks &&
       !focusContacts &&
-      !focusClients);
+      !focusClients &&
+      !focusFiscalDeadlines &&
+      !focusWorkflows);
   const inferredPaymentType = inferPreferredPaymentType(normalizedQuestion);
   const launcherCreatePaymentContext = {
     launcher_source: "unified_ai_launcher",
@@ -2753,12 +2773,13 @@ export const buildUnifiedCrmSuggestedActions = ({
     });
     if (activeWorkflows.length > 0) {
       const firstWorkflow = activeWorkflows[0];
+      const firstWorkflowHref = buildShowHref(
+        routePrefix,
+        "workflows",
+        getString(firstWorkflow?.workflowId),
+      );
       pushSuggestion(
-        buildShowHref(
-          routePrefix,
-          "workflows",
-          getString(firstWorkflow?.workflowId),
-        )
+        firstWorkflowHref
           ? {
               id: "open-first-active-workflow",
               kind: "show",
@@ -2766,11 +2787,7 @@ export const buildUnifiedCrmSuggestedActions = ({
               capabilityActionId: "workflow_show",
               label: "Apri automazione attiva",
               description: `Vedi dettaglio: ${getString(firstWorkflow?.name) || "automazione"}`,
-              href: buildShowHref(
-                routePrefix,
-                "workflows",
-                getString(firstWorkflow?.workflowId),
-              ),
+              href: firstWorkflowHref,
             }
           : null,
       );
@@ -2783,6 +2800,38 @@ export const buildUnifiedCrmSuggestedActions = ({
       description:
         "Controlla la lista completa delle automazioni attive e inattive.",
       href: buildListHref(routePrefix, "workflows"),
+    });
+  } else if (focusFiscalDeadlines) {
+    // Fiscal deadline questions → route to tasks list filtered by fiscal types + dashboard
+    pushSuggestion({
+      id: "open-tasks-fiscal",
+      kind: "list",
+      resource: "client_tasks",
+      capabilityActionId: "follow_unified_crm_handoff",
+      label: "Apri promemoria fiscali",
+      description:
+        "Vai alla lista promemoria per vedere le scadenze fiscali (F24, INPS, bollo, dichiarazione) create automaticamente dal sistema.",
+      href: buildListHref(routePrefix, "client_tasks"),
+    });
+    pushSuggestion({
+      id: "open-dashboard-fiscal",
+      kind: "page",
+      resource: "dashboard",
+      capabilityActionId: "follow_unified_crm_handoff",
+      label: "Apri dashboard fiscale",
+      description:
+        "Controlla il riepilogo fiscale annuale nella dashboard con stime imposte e scadenze.",
+      href: `${routePrefix}`,
+    });
+    pushSuggestion({
+      id: "open-settings-fiscal",
+      kind: "page",
+      resource: "dashboard",
+      capabilityActionId: "follow_unified_crm_handoff",
+      label: "Apri configurazione fiscale",
+      description:
+        "Verifica o modifica la configurazione fiscale (ATECO, aliquota INPS, anno inizio attivita).",
+      href: `${routePrefix}settings`,
     });
   } else if (focusContacts) {
     pushSuggestion(

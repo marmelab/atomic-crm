@@ -33,6 +33,32 @@ Regola pratica:
 - se una modifica e' solo strutturale/read-only, `Impostazioni` non va toccata
   ma la motivazione va lasciata nei docs di continuita'
 
+## Update 2026-03-04 (e) — AI Semantic Audit & Fiscal Deadline Awareness
+
+### Correzioni
+
+Audit completo della coerenza semantica AI dopo l'aggiunta di workflow automations
+e fiscal deadline reminders. Gap trovati e corretti:
+
+1. **Backend type union** (`unifiedCrmAnswer.ts`): aggiunto `"workflows"` alla
+   resource union e `"workflow_create"`, `"workflow_show"` alla capabilityActionId
+   union — prima il codice emetteva valori non dichiarati nel tipo
+2. **Fiscal deadline AI awareness**: aggiunta regola `fiscalDeadlineReminders` alla
+   semantic registry, `fiscalDeadlineReminders` al capability registry communications,
+   intent detection per keywords fiscali (F24, INPS, scadenze, contributi, ecc.)
+   nel rule engine, branch routing dedicato, istruzioni nel system prompt AI
+3. **workflow_edit**: aggiunta action nel capability registry
+4. **expenseTypes**: aggiunto dizionario mancante alla semantic registry
+5. **client_tasks.due_date**: aggiunto campo date mancante alla semantic registry
+
+### Invarianti
+
+- Il tipo `UnifiedCrmSuggestedAction` in `unifiedCrmAnswer.ts` deve restare
+  allineato con il corrispondente tipo in `unifiedCrmAssistant.ts` (frontend)
+- Ogni nuovo intent nel rule engine deve avere un'esclusione nel `genericSummary`
+- Ogni nuova feature backend automatica deve essere documentata sia nella semantic
+  registry (regola) sia nel capability registry (communications)
+
 ## Update 2026-03-04 (d) — Fiscal Deadline Automated Reminders
 
 ### Architettura

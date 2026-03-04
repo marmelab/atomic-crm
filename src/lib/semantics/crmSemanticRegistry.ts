@@ -2,6 +2,7 @@ import {
   clientSourceChoices,
   clientTypeChoices,
 } from "@/components/atomic-crm/clients/clientTypes";
+import { expenseTypeChoices } from "@/components/atomic-crm/expenses/expenseTypes";
 import {
   paymentMethodChoices,
   paymentStatusChoices,
@@ -37,6 +38,7 @@ export type CrmSemanticRegistry = {
     paymentTypes: SemanticDictionaryItem[];
     paymentMethods: SemanticDictionaryItem[];
     paymentStatuses: SemanticDictionaryItem[];
+    expenseTypes: SemanticDictionaryItem[];
   };
   fields: {
     descriptions: Array<{
@@ -52,7 +54,13 @@ export type CrmSemanticRegistry = {
       meaning: string;
     }>;
     dates: Array<{
-      resource: "clients" | "quotes" | "payments" | "services" | "expenses";
+      resource:
+        | "clients"
+        | "quotes"
+        | "payments"
+        | "services"
+        | "expenses"
+        | "client_tasks";
       field: string;
       label: string;
       meaning: string;
@@ -100,6 +108,11 @@ export type CrmSemanticRegistry = {
     };
     workflowAutomations: {
       scope: string;
+      meaning: string;
+    };
+    fiscalDeadlineReminders: {
+      scope: string;
+      cronSchedule: string;
       meaning: string;
     };
   };
@@ -200,6 +213,7 @@ export const buildCrmSemanticRegistry = (
       paymentTypes: mapFixedChoices(paymentTypeChoices),
       paymentMethods: mapFixedChoices(paymentMethodChoices),
       paymentStatuses: mapFixedChoices(paymentStatusChoices),
+      expenseTypes: mapFixedChoices(expenseTypeChoices),
     },
     fields: {
       descriptions: [
@@ -328,6 +342,13 @@ export const buildCrmSemanticRegistry = (
           label: "Data spesa",
           meaning: "Quando la spesa o il credito si riferiscono davvero.",
         },
+        {
+          resource: "client_tasks",
+          field: "due_date",
+          label: "Data scadenza promemoria",
+          meaning:
+            "Entro quando il promemoria va completato; per i task fiscali automatici indica la scadenza fiscale effettiva.",
+        },
       ],
     },
     rules: {
@@ -380,6 +401,12 @@ export const buildCrmSemanticRegistry = (
         scope: "workflows (activeWorkflows nella snapshot)",
         meaning:
           "Le automazioni attive nel CRM sono visibili nella snapshot come activeWorkflows. Quando l'utente chiede qualcosa che potrebbe essere automatizzato, l'AI deve prima verificare se esiste gia un'automazione equivalente: se si, la segnala e propone handoff al dettaglio; se no, puo suggerire di crearne una con handoff precompilato a workflows/create. I campi precompilati devono essere coerenti con lo scopo descritto dall'utente nel contesto della conversazione.",
+      },
+      fiscalDeadlineReminders: {
+        scope: "client_tasks (tipo f24, inps, bollo, dichiarazione)",
+        cronSchedule: "ogni giorno alle 07:00 UTC (08:00 CET / 09:00 CEST)",
+        meaning:
+          "Un cron job automatico (pg_cron + Edge Function fiscal_deadline_check) calcola le scadenze fiscali del regime forfettario partendo dai pagamenti ricevuti nell'anno corrente e dalla configurazione fiscale (ATECO, aliquota INPS, anno inizio attivita). Crea automaticamente promemoria (task di tipo f24, inps, bollo, dichiarazione) per le scadenze entro 30 giorni e invia notifiche interne (email + WhatsApp) per quelle entro 7 giorni. Le scadenze principali sono: 30 giugno (saldo + 1° acconto), 30 novembre (2° acconto), bolli trimestrali e dichiarazione redditi (31 ottobre). I task fiscali sono deduplicati per tipo e data — non vengono ricreati se gia esistenti.",
       },
       unifiedAiWriteDraft: {
         approvedResource: "payments",

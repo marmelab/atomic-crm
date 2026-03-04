@@ -140,11 +140,11 @@ Quando tocchi il modulo workflow o le risorse trigger-abili, verificare:
 - `unifiedCrmReadContextTypes.ts` (`activeWorkflows` nel tipo snapshot)
 - `unifiedCrmReadContext.ts` (builder che include workflows attivi con label e descrizioni)
 - `dataProviderAi.ts` (fetch workflows nella snapshot)
-- `crmCapabilityRegistry.ts` (`workflow_create`, `workflow_show` actions)
+- `crmCapabilityRegistry.ts` (`workflow_create`, `workflow_show`, `workflow_edit` actions)
 - `crmSemanticRegistry.ts` (regola `workflowAutomations`)
 - `unifiedCrmAssistant.ts` (`workflows` nella resource union, capability action IDs)
 - `supabase/functions/unified_crm_answer/index.ts` (istruzioni AI + intent detection)
-- `supabase/functions/_shared/unifiedCrmAnswer.ts` (branch `focusWorkflows` nei suggestedActions)
+- `supabase/functions/_shared/unifiedCrmAnswer.ts` (type union `workflows`, branch `focusWorkflows` e `focusFiscalDeadlines` nei suggestedActions)
 - `WorkflowCreate.tsx` (precompilazione via search params per handoff AI)
 
 **Invarianti:**
@@ -154,6 +154,7 @@ Quando tocchi il modulo workflow o le risorse trigger-abili, verificare:
 - `send_notification` usa `notifyOwner()` (email + WhatsApp best-effort)
 - l'AI verifica se un'automazione equivalente esiste gia prima di suggerirne una nuova
 - i campi precompilati nel handoff `workflow_create` sono coerenti con lo scopo del contesto
+- il tipo `UnifiedCrmSuggestedAction` in `unifiedCrmAnswer.ts` deve includere `"workflows"` nella resource union e `"workflow_create"`, `"workflow_show"` nella capabilityActionId union
 
 **UX mobile (2026-03-04):** La lista mobile usa card con icone colorate per
 risorsa trigger, flusso visivo trigger→azione, Switch toggle inline. La Show
@@ -214,6 +215,7 @@ Quando tocchi dashboard annuale o task/payment deadline logic, controllare:
 - le notifiche partono solo per scadenze entro 7 giorni
 - i task vengono creati per scadenze entro 30 giorni
 - il cron gira alle 07:00 UTC (08:00 CET / 09:00 CEST) ogni giorno
+- la chat AI conosce il sistema fiscal deadline: regola `fiscalDeadlineReminders` in semantic registry, `fiscalDeadlineReminders` in capability registry, intent detection `focusFiscalDeadlines` nel rule engine, menzione nelle istruzioni system prompt
 
 ### Tassabilita'
 
