@@ -16,6 +16,7 @@ import { cn } from "@/lib/utils";
 import type { Quote } from "../types";
 import { useConfigurationContext } from "../root/ConfigurationContext";
 import { formatDateRange } from "../misc/formatDateRange";
+import { QuoteCardActions } from "./QuoteCardActions";
 
 export const QuoteCard = ({
   quote,
@@ -101,12 +102,13 @@ const QuoteCardContent = ({
 
   return (
     <div
-      className="cursor-pointer"
+      className="cursor-pointer group relative"
       {...provided?.draggableProps}
       {...provided?.dragHandleProps}
       ref={provided?.innerRef}
       onClick={handleClick}
     >
+      <QuoteCardActions quote={quote} />
       <Card
         className={`py-3 transition-all duration-200 ${
           snapshot?.isDragging

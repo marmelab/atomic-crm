@@ -1,4 +1,6 @@
 import { useQueryClient } from "@tanstack/react-query";
+import { Eye, EyeOff } from "lucide-react";
+import { lazy, Suspense, useState } from "react";
 import {
   Form,
   useDataProvider,
@@ -9,6 +11,7 @@ import {
 import { Create } from "@/components/admin/create";
 import { SaveButton } from "@/components/admin/form";
 import { FormToolbar } from "@/components/admin/simple-form";
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -20,10 +23,15 @@ import type { Quote } from "../types";
 import { QuoteInputs } from "./QuoteInputs";
 import { transformQuoteFormData } from "./quoteItems";
 
+const QuotePDFPreview = lazy(() =>
+  import("./QuotePDFPreview").then((m) => ({ default: m.QuotePDFPreview })),
+);
+
 export const QuoteCreate = ({ open }: { open: boolean }) => {
   const redirect = useRedirect();
   const dataProvider = useDataProvider();
   const { data: allQuotes } = useListContext<Quote>();
+  const [showPreview, setShowPreview] = useState(false);
 
   const handleClose = () => {
     redirect("/quotes");
@@ -36,7 +44,6 @@ export const QuoteCreate = ({ open }: { open: boolean }) => {
       redirect("/quotes");
       return;
     }
-    // increase the index of all quotes in the same status as the new quote
     const quotes = allQuotes.filter(
       (q: Quote) => q.status === quote.status && q.id !== quote.id,
     );
@@ -73,8 +80,27 @@ export const QuoteCreate = ({ open }: { open: boolean }) => {
 
   return (
     <Dialog open={open} onOpenChange={() => handleClose()}>
-      <DialogContent className="lg:max-w-4xl overflow-y-auto max-h-9/10 top-1/20 translate-y-0">
-        <DialogTitle>Nuovo preventivo</DialogTitle>
+      <DialogContent
+        className={`${showPreview ? "lg:max-w-7xl" : "lg:max-w-4xl"} overflow-y-auto max-h-9/10 top-1/20 translate-y-0`}
+      >
+        <DialogTitle>
+          <div className="flex items-center justify-between pr-8">
+            <span>Nuovo preventivo</span>
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={() => setShowPreview((v) => !v)}
+            >
+              {showPreview ? (
+                <EyeOff className="h-4 w-4 mr-1" />
+              ) : (
+                <Eye className="h-4 w-4 mr-1" />
+              )}
+              {showPreview ? "Nascondi anteprima" : "Anteprima"}
+            </Button>
+          </div>
+        </DialogTitle>
         <DialogDescription className="sr-only">
           Compila i campi per creare un nuovo preventivo
         </DialogDescription>
@@ -92,7 +118,24 @@ export const QuoteCreate = ({ open }: { open: boolean }) => {
               is_taxable: true,
             }}
           >
-            <QuoteInputs />
+            <div className={showPreview ? "flex gap-6" : ""}>
+              <div className={showPreview ? "w-[55%]" : ""}>
+                <QuoteInputs />
+              </div>
+              {showPreview && (
+                <div className="w-[45%]">
+                  <Suspense
+                    fallback={
+                      <div className="h-[500px] rounded-md border bg-muted/30 flex items-center justify-center text-muted-foreground text-sm">
+                        Caricamento anteprima...
+                      </div>
+                    }
+                  >
+                    <QuotePDFPreview />
+                  </Suspense>
+                </div>
+              )}
+            </div>
             <FormToolbar>
               <SaveButton />
             </FormToolbar>

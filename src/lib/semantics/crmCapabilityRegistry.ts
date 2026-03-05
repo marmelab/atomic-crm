@@ -154,6 +154,22 @@ export const buildCrmCapabilityRegistry = (): CrmCapabilityRegistry => ({
       actsOn: ["quotes", "projects"],
     },
     {
+      id: "create_service_from_quote_dialog",
+      label: "Registra servizio dal preventivo",
+      description: "Converte un preventivo accettato in servizio con mapping tipo e fee, opzionalmente creando anche il progetto.",
+      sourceFile: "src/components/atomic-crm/quotes/CreateServiceFromQuoteDialog.tsx",
+      entryPoints: ["quote_show_dialog"],
+      actsOn: ["quotes", "services", "projects"],
+    },
+    {
+      id: "quick_client_create_dialog",
+      label: "Creazione rapida cliente",
+      description: "Dialog standalone per creare un cliente con campi essenziali, riusabile da qualsiasi punto del CRM.",
+      sourceFile: "src/components/atomic-crm/clients/QuickClientCreateDialog.tsx",
+      entryPoints: ["quote_show_dialog"],
+      actsOn: ["clients", "quotes"],
+    },
+    {
       id: "quick_episode_dialog",
       label: "Registra puntata",
       description:
@@ -445,6 +461,25 @@ export const buildCrmCapabilityRegistry = (): CrmCapabilityRegistry => ({
       sourceFile: "src/components/atomic-crm/quotes/QuoteShow.tsx",
       actsOn: ["quotes"],
       requiredFields: ["description", "amount", "client_id"],
+    },
+    {
+      id: "quote_create_service",
+      label: "Registra servizio dal preventivo",
+      description:
+        "Converte un preventivo accettato in servizio operativo con mapping tipo, date e fee pre-compilati.",
+      sourceFile: "src/components/atomic-crm/quotes/CreateServiceFromQuoteDialog.tsx",
+      actsOn: ["quotes", "services", "projects"],
+      requiredFields: ["client_id", "status", "amount"],
+      sideEffects: ["crea servizio", "opzionalmente crea progetto e collega quote.project_id"],
+    },
+    {
+      id: "quote_pdf_preview",
+      label: "Anteprima PDF preventivo realtime",
+      description:
+        "Mostra un'anteprima PDF live nel form Create/Edit che si aggiorna mentre l'utente compila i campi.",
+      sourceFile: "src/components/atomic-crm/quotes/QuotePDFPreview.tsx",
+      actsOn: ["quotes"],
+      requiredFields: [],
     },
     {
       id: "quote_create_project",

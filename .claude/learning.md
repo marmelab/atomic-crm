@@ -66,7 +66,7 @@
 
 ---
 
-### Trigger 6: Forfettario ≠ regime ordinario
+### Trigger 6: Forfettario ≠ regime ordinario (NO deduzioni singole)
 **Situazione**: Propongo feature fiscali (deducibilità, IVA, costi deducibili)
 **Azione automatica**: FERMARMI e verificare se ha senso nel regime forfettario
 **Perché**: Nel forfettario le spese NON si deducono individualmente — il coefficiente di redditività le assorbe forfettariamente. No IVA, no deduzioni singole.
@@ -74,7 +74,7 @@
 
 ---
 
-### Trigger 6: Edge Function modificata
+### Trigger 7: Edge Function modificata
 **Situazione**: Tocco codice in `supabase/functions/`
 **Azione automatica**: Ricordare che `git push` NON basta, serve `npx supabase functions deploy`
 **Perché**: Altrimenti resta la vecchia versione in produzione
@@ -82,7 +82,7 @@
 
 ---
 
-### Trigger 8: Nuova Edge Function creata
+### Trigger 8: Nuova Edge Function creata (config.toml!)
 
 **Situazione**: Creo una NUOVA Edge Function in `supabase/functions/`
 **Azione automatica**: AGGIUNGERE IMMEDIATAMENTE la entry in `supabase/config.toml`:
@@ -98,7 +98,20 @@ verify_jwt = false
 
 ---
 
-### Trigger 7: Migration SQL nuova
+### Trigger 9: Aggiorno development-continuity-map.md
+
+**Situazione**: Aggiungo un nuovo `## Update`, una nuova Structural Section o un nuovo Changelog
+**Azione automatica**: Aggiornare la **Navigation Map** in cima al file:
+1. Nuovo Update → riga in "Recent Updates" (più recente in alto), con sotto-link `###` se presenti
+2. Nuova Structural Section → riga in "Structural Sections"
+3. Nuovo Changelog/Log → riga in "Changelogs & Logs"
+4. Aggiornare `Last updated:` in riga 9
+**Perché**: Senza aggiornare l'indice, il documento da 1100+ righe torna innavigabile
+**Fonte**: Sessione 2026-03-05
+
+---
+
+### Trigger 10: Migration SQL nuova
 **Situazione**: Creo `supabase/migrations/YYYYMMDDHHMMSS_*.sql`  
 **Azione automatica**: Verificare che includa:  
 - [ ] `IF EXISTS` / `IF NOT EXISTS` per replayability  

@@ -280,6 +280,10 @@
           "type": "registry:component"
         },
         {
+          "path": "src/components/atomic-crm/quotes/quoteServiceLinking.ts",
+          "type": "registry:component"
+        },
+        {
           "path": "src/components/atomic-crm/quotes/quoteProjectLinking.ts",
           "type": "registry:component"
         },
@@ -300,11 +304,23 @@
           "type": "registry:component"
         },
         {
+          "path": "src/components/atomic-crm/quotes/QuoteShowSections.tsx",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/quotes/QuoteShowActions.tsx",
+          "type": "registry:component"
+        },
+        {
           "path": "src/components/atomic-crm/quotes/QuoteShow.tsx",
           "type": "registry:component"
         },
         {
           "path": "src/components/atomic-crm/quotes/QuotePaymentsSection.tsx",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/quotes/QuotePDFPreview.tsx",
           "type": "registry:component"
         },
         {
@@ -340,11 +356,35 @@
           "type": "registry:component"
         },
         {
+          "path": "src/components/atomic-crm/quotes/QuoteCardActions.tsx",
+          "type": "registry:component"
+        },
+        {
           "path": "src/components/atomic-crm/quotes/QuoteCard.tsx",
           "type": "registry:component"
         },
         {
+          "path": "src/components/atomic-crm/quotes/CreateServiceFromQuoteDialog.tsx",
+          "type": "registry:component"
+        },
+        {
           "path": "src/components/atomic-crm/quotes/CreateProjectFromQuoteDialog.tsx",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/quotes/inputs/QuoteStatusInputs.tsx",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/quotes/inputs/QuoteNotesInputs.tsx",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/quotes/inputs/QuoteItemsInputs.tsx",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/quotes/inputs/QuoteIdentityInputs.tsx",
           "type": "registry:component"
         },
         {
@@ -1005,6 +1045,10 @@
         },
         {
           "path": "src/components/atomic-crm/clients/clientBilling.ts",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/clients/QuickClientCreateDialog.tsx",
           "type": "registry:component"
         },
         {

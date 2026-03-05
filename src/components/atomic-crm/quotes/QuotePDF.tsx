@@ -215,7 +215,7 @@ const fmtQuoteId = (id: string) => {
 };
 
 // ── PDF Document ──────────────────────────────────────────────────
-interface QuotePDFProps {
+export interface QuotePDFProps {
   quote: Quote;
   client?: Client;
   serviceLabel: string;
@@ -224,7 +224,7 @@ interface QuotePDFProps {
   businessProfile: BusinessProfile;
 }
 
-const QuotePDFDocument = ({
+export const QuotePDFDocument = ({
   quote,
   client,
   serviceLabel,

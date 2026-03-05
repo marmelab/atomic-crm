@@ -734,7 +734,7 @@ Semantica operativa attuale di `project_financials`:
 | **Referenti** | `contacts/` | CRUD + ruoli strutturati + relazioni cliente/progetto + primary flags | Completo |
 | **Progetti** | `projects/` | CRUD + quick flows collegati | Completo |
 | **Registro Lavori** | `services/` | CRUD (Table) | Completo |
-| **Preventivi** | `quotes/` | Kanban + dialog + PDF + mail cliente | Completo |
+| **Preventivi** | `quotes/` | Kanban + dialog + PDF preview/download + mail cliente + quote→service + quick client | Completo |
 | **Pagamenti** | `payments/` | CRUD + handoff commerciali | Completo |
 | **Spese** | `expenses/` | CRUD + km/travel flows | Completo |
 | **Promemoria** | `tasks/` | Lista con filtri temporali | Completo |

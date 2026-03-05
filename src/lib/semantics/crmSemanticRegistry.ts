@@ -106,6 +106,17 @@ export type CrmSemanticRegistry = {
       confirmationRule: string;
       meaning: string;
     };
+    quoteToServiceConversion: {
+      typeMapping: string;
+      feeDistribution: string;
+      eligibleStatuses: string;
+      meaning: string;
+    };
+    quickClientCreate: {
+      requiredFields: string;
+      optionalFields: string;
+      meaning: string;
+    };
     workflowAutomations: {
       scope: string;
       meaning: string;
@@ -414,6 +425,19 @@ export const buildCrmSemanticRegistry = (
         cronSchedule: "ogni giorno alle 07:00 UTC (08:00 CET / 09:00 CEST)",
         meaning:
           "Un cron job automatico (pg_cron + Edge Function fiscal_deadline_check) calcola le scadenze fiscali del regime forfettario partendo dai pagamenti ricevuti nell'anno corrente e dalla configurazione fiscale (ATECO, aliquota INPS, anno inizio attivita). Crea automaticamente promemoria (task di tipo f24, inps, bollo, dichiarazione) per le scadenze entro 30 giorni e invia notifiche interne (email + WhatsApp) per quelle entro 7 giorni. Le scadenze principali sono: 30 giugno (saldo + 1° acconto), 30 novembre (2° acconto), bolli trimestrali e dichiarazione redditi (31 ottobre). I task fiscali sono deduplicati per tipo e data — non vengono ricreati se gia esistenti.",
+      },
+      quoteToServiceConversion: {
+        typeMapping: "wedding→riprese_montaggio, spot→riprese_montaggio, fotografia→fotografia, sito_web→sviluppo_web, produzione_tv→riprese, altro→altro",
+        feeDistribution: "amount→fee_other (default); l'utente distribuisce tra fee_shooting, fee_editing, fee_other nel dialog",
+        eligibleStatuses: "accettato, acconto_ricevuto, in_lavorazione, completato, saldato",
+        meaning:
+          "La conversione quote→service mappa i tipi commerciali del preventivo ai tipi operativi del servizio e pre-compila le date e il compenso totale come fee_other, lasciando all'utente la distribuzione tra le voci compenso prima del salvataggio.",
+      },
+      quickClientCreate: {
+        requiredFields: "name, email",
+        optionalFields: "phone, billing_name",
+        meaning:
+          "Permette la creazione rapida di un cliente con i campi minimi necessari per abilitare l'invio email dal preventivo, senza richiedere il profilo completo.",
       },
       unifiedAiWriteDraft: {
         approvedResource: "payments",

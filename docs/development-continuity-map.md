@@ -8,6 +8,105 @@ prodotto.
 
 Last updated: 2026-03-05
 
+---
+
+## Navigation Map
+
+### Recent Updates (cronologico, più recente in alto)
+
+- [2026-03-05 (h)](#update-2026-03-05-h--quote-module-enhancement) — Quote module enhancement: sectioned form, PDF preview, card actions, quote→service, QuoteShow UX, quick client, AI registry
+- [2026-03-05 (g)](#update-2026-03-05-g--persist-travel-route-on-services--exhaustive-invoice-draft) — Persist travel route + exhaustive invoice draft
+- [2026-03-05 (f)](#update-2026-03-05-f--gemini-multi-row-extraction-fix) — Gemini multi-row extraction fix
+- [2026-03-05 (e)](#update-2026-03-05-e--gemini-extraction-prompt-notes-per-servizi) — Gemini extraction: notes per servizi
+- [2026-03-05 (d)](#update-2026-03-05-d--ai-semantic-coherence-for-service-description) — AI semantic coherence for service description
+- [2026-03-05 (c)](#update-2026-03-05-c--project-level-services-in-ai-snapshot) — Project-level services in AI snapshot
+- [2026-03-05 (b)](#update-2026-03-05-b--service-description-filter--ai-snapshot-type-fix) — Service description filter + AI snapshot type fix
+- [2026-03-05](#update-2026-03-05--service-description-field) — Service description field
+- [2026-03-04 (h)](#update-2026-03-04-h--colored-icons-across-all-list-views) — Colored icons + client list visual
+- [2026-03-04 (g)](#update-2026-03-04-g--header-fix-matchcurrentpath-uses-header_items) — Header fix: matchCurrentPath
+- [2026-03-04 (f)](#update-2026-03-04-f--header-navigation-with-colored-icons) — Header navigation with colored icons
+- [2026-03-04 (e)](#update-2026-03-04-e--settings-page-redesign) — Settings page redesign
+- [2026-03-04 (d)](#update-2026-03-04-d--expenses-check-constraint-fix) — Expenses check constraint fix
+- [2026-03-04 (c)](#update-2026-03-04-c--realtime-payment-reminders-internal-notifications) — Realtime, payment reminders, internal notifications
+  - [Supabase Realtime](#supabase-realtime) · [Payment reminder email](#payment-reminder-email) · [Internal notifications](#internal-notifications)
+- [2026-03-04 (b)](#update-2026-03-04-b--kanban-workflow) — Kanban, workflow automations
+  - [Kanban progetti](#kanban-progetti) · [Workflow automation](#workflow-automation)
+- [2026-03-04](#update-2026-03-04--mandatory-sweep-addendum) — Mandatory sweep addendum
+  - [Module registry](#module-registry) · [Scadenzario](#scadenzario) · [Tassabilità](#tassabilita) · [Bozza fattura interna](#bozza-fattura-interna)
+
+### Structural Sections (reference stabile)
+
+- [Goal](#goal) — Obiettivo del documento
+- [Current Execution Order](#current-execution-order) — Ordine esecuzione corrente
+- [Automation](#automation) — Automazioni e guardrail
+- [Local Runtime Rule](#local-runtime-rule) — Regole runtime locale
+- [Reading Order For A New Chat](#reading-order-for-a-new-chat) — Ordine lettura per nuova sessione
+- [Source Of Truth By Area](#source-of-truth-by-area) — Fonte di verità per area
+- [Current Priority Debt](#current-priority-debt) — Debito tecnico prioritario
+- [Full Surface Sweep Rule](#full-surface-sweep-rule) — Regola sweep completa
+- [Mandatory Product Sweep](#mandatory-product-sweep) — Sweep obbligatoria per modulo
+  - [Progetti](#progetti) · [Registro lavori](#registro-lavori) · [Preventivi](#preventivi) · [Pagamenti](#pagamenti) · [Spese](#spese) · [Promemoria](#promemoria)
+  - [Import documenti](#import-documenti) · [Bacheca annuale e storica](#bacheca-annuale-e-storica) · [Chat AI unificata](#chat-ai-unificata)
+  - [1. Dominio/DB](#1-se-cambia-il-dominio-o-una-relazione-db) · [2. Cliente/referente/progetto](#2-se-cambia-il-modello-clientereferenteprogetto) · [3. Regola configurabile](#3-se-cambia-una-regola-configurabile-o-un-default-modificabile-da-utente)
+  - [4. Quando Settings NON va aggiornata](#4-quando-settings-non-va-aggiornata) · [5. Chat AI](#5-se-cambia-la-chat-ai-unificata) · [6. Import fatture](#6-se-cambia-limport-fatturericevute)
+- [Minimal Closure Note](#minimal-closure-note-for-every-shipped-change) — Note di chiusura
+- [Deploy Continuity](#deploy-continuity) — Regole deploy
+
+### Changelogs & Logs (archivio storico)
+
+- [Changelog 2026-03-04 (clean slate)](#changelog--sessione-2026-03-04-clean-slate-per-debug)
+- [Changelog 2026-03-02 (snapshot dominio)](#changelog--sessione-2026-03-02-snapshot-dominio)
+- [Nota manutenzione 2026-03-02](#nota-manutenzione-2026-03-02-fix-ci)
+- [Testing Session Log 2026-03-04](#testing-session-log-2026-03-04--e2e-complete-validation)
+- [AI Semantic UI Upgrade 2026-03-04](#ai-semantic-ui-upgrade-2026-03-04--pareto-principle-applied)
+
+---
+
+## Update 2026-03-05 (h) — Quote module enhancement
+
+Enhancement completo del modulo preventivi con 6 feature additive e modulari:
+
+**Step 1 — Sezioni form con layout a 2 colonne:**
+
+- `QuoteInputs.tsx` → orchestratore leggero (~95 righe) con useEffect
+- 4 sotto-componenti in `quotes/inputs/`: QuoteIdentityInputs, QuoteItemsInputs, QuoteStatusInputs, QuoteNotesInputs
+- Heading colorati per sezione (blue=Identità, emerald=Voci, amber=Stato, slate=Note)
+- Layout `flex-col md:flex-row` con Separator verticale su desktop
+
+**Step 2 — Preview PDF realtime:**
+
+- `QuotePDFPreview.tsx`: PDFViewer live con useDeferredValue per debounce
+- `QuotePDF.tsx`: QuotePDFDocument e QuotePDFProps ora exported
+- QuoteCreate/QuoteEdit: toggle "Anteprima" con layout 55/45, dialog si allarga a max-w-7xl
+- Lazy-loaded con Suspense
+
+**Step 3 — Icone card Kanban:**
+
+- `QuoteCardActions.tsx`: icone Eye (preview Popover con BlobProvider) e FileDown (download)
+- Visibili su group-hover, stopPropagation per non aprire QuoteShow
+
+**Step 4 — Conversione Quote → Service:**
+
+- `quoteServiceLinking.ts`: mapping tipi (wedding→riprese_montaggio, ecc.), eligibility, draft builder
+- `CreateServiceFromQuoteDialog.tsx`: form pre-compilato con fee breakdown, opzionale creazione progetto
+- Pattern identico a CreateProjectFromQuoteDialog
+
+**Step 5 — UX QuoteShow ristrutturata:**
+
+- `QuoteShowActions.tsx`: gerarchia azioni (primarie: PDF+Email, secondarie: servizio+progetto+pagamento+fattura, terziarie: dropdown edit/delete)
+- `QuoteShowSections.tsx`: sezioni estratte per concern
+- `QuickClientCreateDialog.tsx` (in clients/): dialog standalone per creazione rapida cliente con link opzionale a quote
+- Warning "Email mancante" con trigger creazione cliente
+
+**Step 6 — AI registry:**
+
+- `crmCapabilityRegistry.ts`: +2 actions (quote_create_service, quote_pdf_preview), +2 dialogs (create_service_from_quote_dialog, quick_client_create_dialog)
+- `crmSemanticRegistry.ts`: +2 regole (quoteToServiceConversion, quickClientCreate) con type mapping e fee distribution
+
+**Verifica:** typecheck 0 errori, build success, lint solo warnings pre-esistenti (max-lines)
+
+---
+
 ## Update 2026-03-05 (g) — Persist travel route on services + exhaustive invoice draft
 
 - Migration `20260305093131_add_service_travel_fields.sql`: aggiunge
