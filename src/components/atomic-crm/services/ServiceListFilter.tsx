@@ -34,6 +34,7 @@ import {
   ChevronsUpDown,
   X,
   Filter,
+  AlignLeft,
 } from "lucide-react";
 
 import type { Project, Service } from "../types";
@@ -138,6 +139,16 @@ const ServiceFilterContent = () => {
     }
   };
 
+  const handleDescriptionChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    if (value) {
+      setFilters({ ...filterValues, "description@ilike": `%${value}%` });
+    } else {
+      const { "description@ilike": _, ...rest } = filterValues;
+      setFilters(rest);
+    }
+  };
+
   return (
     <div className="flex flex-col gap-6">
       <div className="relative">
@@ -151,6 +162,20 @@ const ServiceFilterContent = () => {
           onChange={handleSearchChange}
         />
       </div>
+
+      <FilterSection
+        icon={<AlignLeft className="size-4" />}
+        label="Descrizione"
+      >
+        <Input
+          placeholder="Cerca nella descrizione..."
+          value={
+            (filterValues["description@ilike"] as string)?.replace(/%/g, "") ??
+            ""
+          }
+          onChange={handleDescriptionChange}
+        />
+      </FilterSection>
 
       {projects && projects.length > 0 && (
         <FilterSection

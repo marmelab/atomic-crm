@@ -181,6 +181,7 @@ export type UnifiedCrmReadContext = {
       clientId: string | null;
       clientName: string | null;
       serviceType: string;
+      description: string | null;
       amount: number;
       isTaxable: boolean;
       serviceDate: string;

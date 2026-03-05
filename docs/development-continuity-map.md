@@ -8,6 +8,12 @@ prodotto.
 
 Last updated: 2026-03-05
 
+## Update 2026-03-05 (b) — Service description filter + AI snapshot type fix
+
+- `ServiceListFilter.tsx`: aggiunto filtro ilike per description
+- `unifiedCrmReadContextTypes.ts`: aggiunto campo `description` mancante nel
+  tipo `clientLevelServices` (il runtime lo passava già)
+
 ## Update 2026-03-05 — Service description field
 
 - Migration `20260305080215_add_service_description.sql`: aggiunge colonna
