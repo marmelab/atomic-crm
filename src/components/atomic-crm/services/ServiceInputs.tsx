@@ -291,6 +291,7 @@ const ServiceKmInputs = () => {
 const ServiceExtraInputs = () => (
   <div className="flex flex-col gap-4">
     <h6 className="text-lg font-semibold">Dettagli</h6>
+    <TextInput source="description" label="Descrizione" helperText={false} />
     <TextInput source="location" label="Localit&agrave;" helperText={false} />
     <TextInput source="invoice_ref" label="Rif. Fattura" helperText={false} />
     <TextInput source="notes" label="Note" multiline helperText={false} />

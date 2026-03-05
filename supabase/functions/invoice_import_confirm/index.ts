@@ -301,6 +301,7 @@ const confirmInvoiceImportDraft = async ({
               all_day: record.allDay ?? true,
               is_taxable: record.isTaxable ?? true,
               service_type: record.serviceType ?? "altro",
+              description: record.description ?? null,
               fee_shooting: feeShooting,
               fee_editing: feeEditing,
               fee_other: feeOther,

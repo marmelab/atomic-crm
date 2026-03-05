@@ -162,6 +162,7 @@ export type Service = {
     | "fotografia"
     | "sviluppo_web"
     | "altro";
+  description?: string;
   fee_shooting: number;
   fee_editing: number;
   fee_other: number;

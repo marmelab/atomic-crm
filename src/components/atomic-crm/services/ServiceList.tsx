@@ -41,6 +41,7 @@ export const ServiceList = () => {
         tutto_il_giorno: s.all_day ? "Sì" : "No",
         progetto: s.project_id ? (projects[s.project_id]?.name ?? "") : "",
         tipo: typeLabels[s.service_type] ?? s.service_type,
+        descrizione: s.description ?? "",
         tassabile: s.is_taxable === false ? "No" : "Sì",
         riprese: s.fee_shooting,
         montaggio: s.fee_editing,

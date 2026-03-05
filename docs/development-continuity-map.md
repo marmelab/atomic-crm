@@ -6,7 +6,21 @@ obbligatoria delle superfici collegate.
 **Quando usarlo:** ogni volta che una modifica tocca comportamento reale del
 prodotto.
 
-Last updated: 2026-03-04
+Last updated: 2026-03-05
+
+## Update 2026-03-05 — Service description field
+
+- Migration `20260305080215_add_service_description.sql`: aggiunge colonna
+  `description TEXT` alla tabella `services`
+- `types.ts`: aggiunto campo `description?: string` al type Service
+- Superfici CRUD aggiornate: ServiceInputs (form), ServiceShow (sottotitolo),
+  ServiceListContent (colonna desktop + mobile card), ServiceList (CSV export)
+- `serviceLinking.ts`: description nei search params handoff AI
+- `buildInvoiceDraftFromService.ts`: description nel line item e source label
+- `unifiedCrmReadContext.ts`: description nella snapshot AI
+- `crmSemanticRegistry.ts`: field entry services.description
+- Import documenti: campo description nel draft editor, INSERT confirm, prompt Gemini
+- Non impatta views DB (project_financials, monthly_revenue, analytics_*)
 
 ## Update 2026-03-04 (h) — Client List Visual Enhancement
 

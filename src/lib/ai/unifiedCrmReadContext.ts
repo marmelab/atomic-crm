@@ -428,7 +428,7 @@ export const buildUnifiedCrmReadContext = ({
         .map((s) => ({
           serviceId: String(s.id), clientId: s.client_id ? String(s.client_id) : null,
           clientName: getClientName(clientById, s.client_id ?? null),
-          serviceType: s.service_type, amount: calculateServiceNetValue(s),
+          serviceType: s.service_type, description: s.description ?? null, amount: calculateServiceNetValue(s),
           isTaxable: s.is_taxable !== false, serviceDate: s.service_date, notes: s.notes ?? null,
         })),
       clientFinancials: buildClientFinancialSummaries({ services, payments, clientById }),

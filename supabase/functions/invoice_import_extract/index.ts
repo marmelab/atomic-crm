@@ -56,6 +56,7 @@ Regole di mapping obbligatorie:
 - usa \`resource = "payments"\` se il documento rappresenta soldi che il CRM deve incassare da un cliente (fattura emessa, ricevuta incasso)
 - usa \`resource = "expenses"\` se il documento rappresenta una spesa, fattura fornitore o costo sostenuto
 - usa \`resource = "services"\` se il documento e' un riepilogo di lavori/servizi/prestazioni eseguite (es. elenco spot, schede lavoro, notule di prestazione). In questo caso:
+  - \`description\`: breve titolo/nome del servizio se leggibile dal documento (es. "SPOT GS 2026", "Servizio fotografico matrimonio Rossi")
   - valorizza \`serviceType\` tra: "riprese", "montaggio", "riprese_montaggio", "fotografia", "sviluppo_web", "altro"
   - valorizza \`isTaxable\` (true se tassabile, false se esente/fuori campo)
   - valorizza \`location\` con la localita' del servizio se leggibile

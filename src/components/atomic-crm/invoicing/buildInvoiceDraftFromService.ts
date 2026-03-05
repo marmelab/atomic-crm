@@ -43,7 +43,9 @@ export const buildInvoiceDraftFromService = ({
     : [
         netValue > 0
           ? {
-              description: `${prettifyServiceType(service.service_type)} del ${formatServiceDate(service.service_date)}`,
+              description: service.description
+                ? `${service.description} — ${prettifyServiceType(service.service_type)} del ${formatServiceDate(service.service_date)}`
+                : `${prettifyServiceType(service.service_type)} del ${formatServiceDate(service.service_date)}`,
               quantity: 1,
               unitPrice: netValue,
             }
@@ -66,7 +68,9 @@ export const buildInvoiceDraftFromService = ({
     source: {
       kind: "service",
       id: service.id,
-      label: `${prettifyServiceType(service.service_type)} · ${formatServiceDate(service.service_date)}`,
+      label: service.description
+        ? `${service.description} · ${formatServiceDate(service.service_date)}`
+        : `${prettifyServiceType(service.service_type)} · ${formatServiceDate(service.service_date)}`,
     },
   };
 };

@@ -294,6 +294,13 @@ export const buildCrmSemanticRegistry = (
         },
         {
           resource: "services",
+          field: "description",
+          label: "Descrizione servizio",
+          meaning:
+            "Titolo o nome breve del servizio svolto, distinto dalle note operative.",
+        },
+        {
+          resource: "services",
           field: "notes",
           label: "Note servizio",
           meaning: "Annotazioni operative del lavoro svolto o da ricordare.",

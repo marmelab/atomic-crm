@@ -388,6 +388,15 @@ export const InvoiceImportDraftEditor = ({
                 </>
               ) : record.resource === "services" ? (
                 <>
+                  <Field label="Descrizione servizio" className="md:col-span-2">
+                    <Input
+                      value={record.description ?? ""}
+                      onChange={(event) =>
+                        onChange(index, { description: event.target.value })
+                      }
+                    />
+                  </Field>
+
                   <Field label="Tipo servizio">
                     <SelectField
                       value={record.serviceType ?? "altro"}

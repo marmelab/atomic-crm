@@ -99,6 +99,7 @@ export const ServiceListContent = () => {
           <TableHead className="w-24">Data</TableHead>
           <TableHead>Progetto</TableHead>
           <TableHead>Tipo</TableHead>
+          <TableHead className="hidden lg:table-cell">Descrizione</TableHead>
           <TableHead className="text-right hidden md:table-cell">
             Riprese
           </TableHead>
@@ -167,7 +168,9 @@ const ServiceMobileCard = ({
         </span>
         <span className="text-xs text-muted-foreground">{typeLabel}</span>
       </div>
-      <span className="text-sm font-medium">{project?.name ?? ""}</span>
+      <span className="text-sm font-medium">
+        {service.description || project?.name || ""}
+      </span>
       <div className="flex items-center justify-between">
         {service.location ? (
           <span className="text-xs text-muted-foreground">
@@ -216,6 +219,9 @@ const ServiceRow = ({ service, link }: { service: Service; link: string }) => {
               ?.label ?? service.service_type}
           </span>
         </div>
+      </TableCell>
+      <TableCell className="text-sm text-muted-foreground hidden lg:table-cell">
+        {service.description ?? ""}
       </TableCell>
       <TableCell className="text-right text-sm hidden md:table-cell">
         {eur(service.fee_shooting)}

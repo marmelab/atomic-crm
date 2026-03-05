@@ -8,6 +8,7 @@ type ServiceCreateDefaults = Partial<
     | "project_id"
     | "service_date"
     | "service_type"
+    | "description"
     | "km_distance"
     | "km_rate"
     | "location"
@@ -83,6 +84,11 @@ export const getServiceCreateDefaultsFromSearch = (
     defaults.service_type = serviceType;
   }
 
+  const description = getOptionalText(searchParams.get("description"));
+  if (description) {
+    defaults.description = description;
+  }
+
   const kmDistance = getOptionalNumber(searchParams.get("km_distance"));
   if (kmDistance != null) {
     defaults.km_distance = kmDistance;
@@ -148,6 +154,7 @@ export const buildServiceCreatePathFromProject = ({
   project_id,
   service_date,
   service_type,
+  description,
   km_distance,
   km_rate,
   location,
@@ -156,6 +163,7 @@ export const buildServiceCreatePathFromProject = ({
   project_id?: Identifier | null;
   service_date?: string | null;
   service_type?: Service["service_type"] | null;
+  description?: string | null;
   km_distance?: number | null;
   km_rate?: number | null;
   location?: string | null;
@@ -176,6 +184,10 @@ export const buildServiceCreatePathFromProject = ({
 
   if (service_type) {
     searchParams.set("service_type", service_type);
+  }
+
+  if (description) {
+    searchParams.set("description", description);
   }
 
   if (km_distance != null && Number.isFinite(km_distance)) {

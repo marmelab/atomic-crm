@@ -6,7 +6,14 @@ lavoro senza riaprire decisioni gia prese.
 **Quando NON usarlo da solo:** per dedurre architettura canonica o stato
 prodotto senza incrociarlo con `docs/README.md` e i documenti `canonical`.
 
-Last updated: 2026-03-04
+Last updated: 2026-03-05
+
+## Update 2026-03-05 (service description field)
+
+- Aggiunto campo `description` al modello servizi (migration, type, tutte le
+  superfici CRUD, import documenti, AI context, bozza fattura)
+- Il campo e' opzionale, testuale, distinto da `notes` (annotazioni operative)
+- Non impatta views analytics ne' calcoli fiscali
 
 ## Update 2026-03-04 (fiscal cash-basis fix)
 
