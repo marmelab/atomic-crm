@@ -333,14 +333,11 @@ const InvoiceDraftPdfDocument = ({
           <View style={styles.infoBlock}>
             <Text style={styles.infoLabel}>Dati documento</Text>
             <Text style={styles.infoText}>
+              Data: {draft.invoiceDate ?? todayIsoDate()}
+            </Text>
+            <Text style={styles.infoText}>
               Origine: {draft.source.kind} - {draft.source.label}
             </Text>
-            {issuer.vatNumber && (
-              <Text style={styles.infoText}>P.IVA {issuer.vatNumber}</Text>
-            )}
-            {issuer.fiscalCode && (
-              <Text style={styles.infoText}>CF {issuer.fiscalCode}</Text>
-            )}
           </View>
         </View>
 

@@ -14,6 +14,7 @@ Last updated: 2026-03-05
 
 ### Recent Updates (cronologico, più recente in alto)
 
+- [2026-03-05 (k)](#update-2026-03-05-k--quote-kanban-inp-optimization) — Quote Kanban INP optimization (~600ms → sub-200ms)
 - [2026-03-05 (j)](#update-2026-03-05-j--formazione-quote-service-type) — Add "Formazione" quote service type
 - [2026-03-05 (i)](#update-2026-03-05-i--quote-pdf-bugfix) — Fix missing quoteItems destructuring in QuotePDFDocument
 - [2026-03-05 (h)](#update-2026-03-05-h--quote-module-enhancement) — Quote module enhancement: sectioned form, PDF preview, card actions, quote→service, QuoteShow UX, quick client, AI registry
@@ -61,6 +62,22 @@ Last updated: 2026-03-05
 - [Nota manutenzione 2026-03-02](#nota-manutenzione-2026-03-02-fix-ci)
 - [Testing Session Log 2026-03-04](#testing-session-log-2026-03-04--e2e-complete-validation)
 - [AI Semantic UI Upgrade 2026-03-04](#ai-semantic-ui-upgrade-2026-03-04--pareto-principle-applied)
+
+---
+
+## Update 2026-03-05 (k) — Quote Kanban INP optimization
+
+Performance optimization for the Quotes Kanban board (INP ~600ms → sub-200ms target).
+
+**Changes:**
+
+- `QuoteCardActions.tsx`: removed duplicate `useGetOne("clients")` — receives `client` as prop from `QuoteCardContent`; `@react-pdf/renderer` fully lazy-loaded via `QuoteCardPDFPreview.tsx` (code-split) and dynamic `import("./QuotePDF")` for download
+- `QuoteCardPDFPreview.tsx` (new): extracted BlobProvider preview into a separate chunk loaded only on popover open
+- `QuoteCard.tsx`: wrapped in `React.memo`; consolidated icon/color maps into single `serviceTypeStyles` lookup; `transition-all` → `transition-shadow` to avoid layout reflow
+- `QuoteColumn.tsx`: wrapped in `React.memo`; `useMemo` on `totalAmount` formatting
+- `QuoteListContent.tsx`: `useCallback` on `onDragEnd`; moved hook before early return to satisfy rules-of-hooks
+
+**No behavioral changes.** No new config, no schema changes, no AI/dashboard impact.
 
 ---
 

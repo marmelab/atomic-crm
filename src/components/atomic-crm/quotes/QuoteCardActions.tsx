@@ -1,7 +1,5 @@
-import { useState } from "react";
-import { useGetOne } from "ra-core";
+import { lazy, Suspense, useState } from "react";
 import { Eye, FileDown } from "lucide-react";
-import { BlobProvider } from "@react-pdf/renderer";
 import { Button } from "@/components/ui/button";
 import {
   Popover,
@@ -12,20 +10,28 @@ import {
 import { useConfigurationContext } from "../root/ConfigurationContext";
 import type { Client, Quote } from "../types";
 import { sanitizeQuoteItems } from "./quoteItems";
-import { QuotePDFDocument } from "./QuotePDF";
 import { quoteStatusLabels } from "./quotesTypes";
-import { downloadQuotePDF } from "./QuotePDF";
+import type { QuotePDFProps } from "./QuotePDF";
 
-export const QuoteCardActions = ({ quote }: { quote: Quote }) => {
+const LazyQuoteCardPDFPreview = lazy(
+  () => import("./QuoteCardPDFPreview"),
+);
+
+const lazyDownloadQuotePDF = async (props: QuotePDFProps) => {
+  const { downloadQuotePDF } = await import("./QuotePDF");
+  return downloadQuotePDF(props);
+};
+
+export const QuoteCardActions = ({
+  quote,
+  client,
+}: {
+  quote: Quote;
+  client?: Client;
+}) => {
   const [previewOpen, setPreviewOpen] = useState(false);
   const [downloading, setDownloading] = useState(false);
   const { quoteServiceTypes, businessProfile } = useConfigurationContext();
-
-  const { data: client } = useGetOne<Client>(
-    "clients",
-    { id: quote.client_id },
-    { enabled: !!quote.client_id },
-  );
 
   const serviceLabel =
     quoteServiceTypes.find((t) => t.value === quote.service_type)?.label ??
@@ -46,7 +52,7 @@ export const QuoteCardActions = ({ quote }: { quote: Quote }) => {
     e.stopPropagation();
     setDownloading(true);
     try {
-      await downloadQuotePDF(pdfProps);
+      await lazyDownloadQuotePDF(pdfProps);
     } finally {
       setDownloading(false);
     }
@@ -79,25 +85,15 @@ export const QuoteCardActions = ({ quote }: { quote: Quote }) => {
           onClick={(e) => e.stopPropagation()}
         >
           {previewOpen && (
-            <BlobProvider document={<QuotePDFDocument {...pdfProps} />}>
-              {({ url, loading }) =>
-                loading ? (
-                  <div className="h-[400px] flex items-center justify-center text-sm text-muted-foreground">
-                    Generazione anteprima...
-                  </div>
-                ) : url ? (
-                  <iframe
-                    src={url}
-                    className="w-full h-[400px] rounded border-0"
-                    title="Anteprima PDF"
-                  />
-                ) : (
-                  <div className="h-[400px] flex items-center justify-center text-sm text-muted-foreground">
-                    Errore generazione PDF
-                  </div>
-                )
+            <Suspense
+              fallback={
+                <div className="h-100 flex items-center justify-center text-sm text-muted-foreground">
+                  Caricamento...
+                </div>
               }
-            </BlobProvider>
+            >
+              <LazyQuoteCardPDFPreview {...pdfProps} />
+            </Suspense>
           )}
         </PopoverContent>
       </Popover>

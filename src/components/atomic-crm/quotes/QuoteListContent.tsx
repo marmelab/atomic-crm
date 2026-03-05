@@ -1,7 +1,7 @@
 import { DragDropContext, type OnDragEndResponder } from "@hello-pangea/dnd";
 import isEqual from "lodash/isEqual";
 import { useDataProvider, useListContext, type DataProvider } from "ra-core";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 import type { Quote } from "../types";
 import { QuoteColumn } from "./QuoteColumn";
@@ -29,51 +29,56 @@ export const QuoteListContent = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [unorderedQuotes]);
 
+  const onDragEnd: OnDragEndResponder = useCallback(
+    (result) => {
+      const { destination, source } = result;
+
+      if (!destination) return;
+
+      // Block drag into "rifiutato" — must edit the quote to set rejection_reason
+      if (
+        destination.droppableId === "rifiutato" &&
+        source.droppableId !== "rifiutato"
+      ) {
+        return;
+      }
+
+      if (
+        destination.droppableId === source.droppableId &&
+        destination.index === source.index
+      ) {
+        return;
+      }
+
+      const sourceStatus = source.droppableId;
+      const destinationStatus = destination.droppableId;
+      const sourceQuote = quotesByStatus[sourceStatus][source.index]!;
+      const destinationQuote = quotesByStatus[destinationStatus][
+        destination.index
+      ] ?? {
+        status: destinationStatus,
+        index: undefined,
+      };
+
+      setQuotesByStatus(
+        updateQuoteStatusLocal(
+          sourceQuote,
+          { status: sourceStatus, index: source.index },
+          { status: destinationStatus, index: destination.index },
+          quotesByStatus,
+        ),
+      );
+
+      updateQuoteStatus(sourceQuote, destinationQuote, dataProvider).then(
+        () => {
+          refetch();
+        },
+      );
+    },
+    [quotesByStatus, dataProvider, refetch],
+  );
+
   if (isPending) return null;
-
-  const onDragEnd: OnDragEndResponder = (result) => {
-    const { destination, source } = result;
-
-    if (!destination) return;
-
-    // Block drag into "rifiutato" — must edit the quote to set rejection_reason
-    if (
-      destination.droppableId === "rifiutato" &&
-      source.droppableId !== "rifiutato"
-    ) {
-      return;
-    }
-
-    if (
-      destination.droppableId === source.droppableId &&
-      destination.index === source.index
-    ) {
-      return;
-    }
-
-    const sourceStatus = source.droppableId;
-    const destinationStatus = destination.droppableId;
-    const sourceQuote = quotesByStatus[sourceStatus][source.index]!;
-    const destinationQuote = quotesByStatus[destinationStatus][
-      destination.index
-    ] ?? {
-      status: destinationStatus,
-      index: undefined,
-    };
-
-    setQuotesByStatus(
-      updateQuoteStatusLocal(
-        sourceQuote,
-        { status: sourceStatus, index: source.index },
-        { status: destinationStatus, index: destination.index },
-        quotesByStatus,
-      ),
-    );
-
-    updateQuoteStatus(sourceQuote, destinationQuote, dataProvider).then(() => {
-      refetch();
-    });
-  };
 
   return (
     <DragDropContext onDragEnd={onDragEnd}>
