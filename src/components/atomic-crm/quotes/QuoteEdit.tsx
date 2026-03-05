@@ -45,7 +45,7 @@ export const QuoteEdit = ({ open, id }: { open: boolean; id?: string }) => {
   return (
     <Dialog open={open} onOpenChange={() => handleClose()}>
       <DialogContent
-        className={`${desktopPreview ? "lg:max-w-7xl" : "lg:max-w-4xl"} p-4 max-h-9/10 top-1/20 translate-y-0 ${desktopPreview ? "overflow-hidden" : "overflow-y-auto"}`}
+        className={`${desktopPreview ? "lg:max-w-7xl" : "lg:max-w-4xl"} p-4 max-h-9/10 top-1/20 translate-y-0 max-sm:h-dvh max-sm:max-h-dvh max-sm:top-0 max-sm:rounded-none max-sm:border-0 ${desktopPreview ? "overflow-hidden" : "overflow-y-auto"}`}
       >
         <DialogDescription className="sr-only">
           Modifica i campi del preventivo
@@ -177,11 +177,13 @@ function EditHeader() {
 
   return (
     <DialogTitle className="pb-0">
-      <div className="flex justify-between items-start mb-8">
-        <h2 className="text-2xl font-semibold">Modifica preventivo</h2>
-        <div className="flex gap-2 pr-12">
-          <DeleteButton />
-          <Button asChild variant="outline" className="h-9">
+      <div className="flex flex-col gap-3 sm:flex-row sm:justify-between sm:items-start mb-4 sm:mb-8">
+        <h2 className="text-xl sm:text-2xl font-semibold">
+          Modifica preventivo
+        </h2>
+        <div className="flex gap-2">
+          <DeleteButton variant="outline" size="sm" />
+          <Button asChild variant="outline" size="sm">
             <Link to={`/quotes/${quote.id}/show`}>Torna al preventivo</Link>
           </Button>
         </div>
