@@ -14,6 +14,7 @@ Last updated: 2026-03-05
 
 ### Recent Updates (cronologico, più recente in alto)
 
+- [2026-03-05 (n)](#update-2026-03-05-n--quote-kanban-full-width) — Quote Kanban full-width desktop breakout
 - [2026-03-05 (m)](#update-2026-03-05-m--quote-list-mobile-responsive) — Quote list mobile responsive (tabs + cards + search + filters)
 - [2026-03-05 (l)](#update-2026-03-05-l--pdf-preview-sticky-desktop--fullscreen-mobile) — PDF preview: sticky desktop + fullscreen mobile
 - [2026-03-05 (k)](#update-2026-03-05-k--quote-kanban-inp-optimization) — Quote Kanban INP optimization (~600ms → sub-200ms)
@@ -64,6 +65,15 @@ Last updated: 2026-03-05
 - [Nota manutenzione 2026-03-02](#nota-manutenzione-2026-03-02-fix-ci)
 - [Testing Session Log 2026-03-04](#testing-session-log-2026-03-04--e2e-complete-validation)
 - [AI Semantic UI Upgrade 2026-03-04](#ai-semantic-ui-upgrade-2026-03-04--pareto-principle-applied)
+
+---
+
+## Update 2026-03-05 (n) — Quote Kanban full-width
+
+Desktop Kanban board breaks out of `max-w-screen-xl` layout container using
+`ml-[calc(50%-50vw)] w-screen` so all 10 status columns fit without horizontal
+scrolling on most screens. Only affects `QuoteListContent.tsx`; no Layout
+changes, no impact on other pages.
 
 ---
 

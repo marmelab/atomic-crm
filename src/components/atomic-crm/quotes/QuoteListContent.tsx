@@ -90,7 +90,7 @@ const QuoteKanbanBoard = () => {
 
   return (
     <DragDropContext onDragEnd={onDragEnd}>
-      <div className="flex gap-2 overflow-x-auto pb-4">
+      <div className="ml-[calc(50%-50vw)] w-screen flex gap-1.5 overflow-x-auto pb-4 px-4">
         {quoteStatuses.map((status) => (
           <QuoteColumn
             status={status.value}
