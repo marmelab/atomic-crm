@@ -14,6 +14,7 @@ Last updated: 2026-03-05
 
 ### Recent Updates (cronologico, più recente in alto)
 
+- [2026-03-05 (j)](#update-2026-03-05-j--formazione-quote-service-type) — Add "Formazione" quote service type
 - [2026-03-05 (i)](#update-2026-03-05-i--quote-pdf-bugfix) — Fix missing quoteItems destructuring in QuotePDFDocument
 - [2026-03-05 (h)](#update-2026-03-05-h--quote-module-enhancement) — Quote module enhancement: sectioned form, PDF preview, card actions, quote→service, QuoteShow UX, quick client, AI registry
 - [2026-03-05 (g)](#update-2026-03-05-g--persist-travel-route-on-services--exhaustive-invoice-draft) — Persist travel route + exhaustive invoice draft
@@ -60,6 +61,15 @@ Last updated: 2026-03-05
 - [Nota manutenzione 2026-03-02](#nota-manutenzione-2026-03-02-fix-ci)
 - [Testing Session Log 2026-03-04](#testing-session-log-2026-03-04--e2e-complete-validation)
 - [AI Semantic UI Upgrade 2026-03-04](#ai-semantic-ui-upgrade-2026-03-04--pareto-principle-applied)
+
+---
+
+## Update 2026-03-05 (j) — Formazione quote service type
+
+Added "Formazione" (`formazione`) to `defaultQuoteServiceTypes` for training/workshop quotes.
+Also added mapping in `quoteServiceLinking.ts` (`formazione → altro`).
+
+**Files**: `defaultConfiguration.ts`, `quoteServiceLinking.ts`
 
 ---
 

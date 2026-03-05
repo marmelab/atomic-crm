@@ -82,6 +82,11 @@ export const defaultQuoteServiceTypes = [
     label: "Sito Web",
     description: "Preventivo per sviluppo web o consegna di sito.",
   },
+  {
+    value: "formazione",
+    label: "Formazione",
+    description: "Preventivo per corsi, workshop o attività formative.",
+  },
 ];
 
 export const defaultServiceTypeChoices = [

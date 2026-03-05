@@ -10,6 +10,7 @@ const quoteToServiceTypeMap: Record<string, Service["service_type"]> = {
   fotografia: "fotografia",
   sito_web: "sviluppo_web",
   produzione_tv: "riprese",
+  formazione: "altro",
   altro: "altro",
 };
 
