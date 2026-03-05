@@ -738,7 +738,7 @@ Semantica operativa attuale di `project_financials`:
 | **Referenti** | `contacts/` | CRUD + ruoli strutturati + relazioni cliente/progetto + primary flags | Completo |
 | **Progetti** | `projects/` | CRUD + quick flows collegati | Completo |
 | **Registro Lavori** | `services/` | CRUD (Table) | Completo |
-| **Preventivi** | `quotes/` | Kanban + dialog + PDF preview/download + mail cliente + quote→service + quick client | Completo |
+| **Preventivi** | `quotes/` | Kanban desktop + mobile tabs/cards + dialog + PDF preview/download + mail cliente + quote→service + quick client + full-text search (description, notes) | Completo |
 | **Pagamenti** | `payments/` | CRUD + handoff commerciali | Completo |
 | **Spese** | `expenses/` | CRUD + km/travel flows | Completo |
 | **Promemoria** | `tasks/` | Lista con filtri temporali | Completo |
@@ -1033,7 +1033,7 @@ FiscalConfig, FiscalTaxProfile             ← Fiscale
 /services/create     → Crea lavoro
 /services/:id        → Modifica lavoro
 /services/:id/show   → Dettaglio servizio
-/quotes              → Pipeline preventivi (Kanban 10 stati)
+/quotes              → Pipeline preventivi (Kanban 10 stati desktop, tabs + cards mobile)
 /quotes/create       → Crea preventivo in dialog
 /quotes/:id          → Modifica preventivo in dialog
 /quotes/:id/show     → Dettaglio preventivo in dialog

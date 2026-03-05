@@ -1,6 +1,8 @@
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useListContext, type Exporter } from "ra-core";
 import { downloadCSVItalian } from "@/lib/downloadCsvItalian";
 import { matchPath, useLocation } from "react-router";
+import { Search, X } from "lucide-react";
 import { AutocompleteInput } from "@/components/admin/autocomplete-input";
 import { CreateButton } from "@/components/admin/create-button";
 import { ExportButton } from "@/components/admin/export-button";
@@ -8,8 +10,13 @@ import { FilterButton } from "@/components/admin/filter-form";
 import { List } from "@/components/admin/list";
 import { ReferenceInput } from "@/components/admin/reference-input";
 import { SearchInput } from "@/components/admin/search-input";
+import { TextInput } from "@/components/admin/text-input";
 import { DateInput } from "@/components/admin/date-input";
 import { SelectInput } from "@/components/admin/select-input";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { useIsMobile } from "@/hooks/use-mobile";
+import { cn } from "@/lib/utils";
 
 import type { Client, Project, Quote } from "../types";
 import { useConfigurationContext } from "../root/ConfigurationContext";
@@ -25,9 +32,14 @@ import { MobilePageTitle } from "../layout/MobilePageTitle";
 
 const QuoteList = () => {
   const { quoteServiceTypes } = useConfigurationContext();
+  const isMobile = useIsMobile();
 
   const quoteFilters = [
-    <SearchInput source="q" alwaysOn />,
+    isMobile ? (
+      <TextInput source="q" label="Ricerca" />
+    ) : (
+      <SearchInput source="q" alwaysOn />
+    ),
     <ReferenceInput source="client_id" reference="clients">
       <AutocompleteInput
         label={false}
@@ -125,12 +137,119 @@ const QuoteLayout = () => {
   );
 };
 
-const QuoteActions = () => (
-  <TopToolbar>
-    <FilterButton />
-    <ExportButton />
-    <CreateButton label="Nuovo Preventivo" />
-  </TopToolbar>
-);
+const QuoteActions = () => {
+  const isMobile = useIsMobile();
+
+  if (isMobile) {
+    return (
+      <TopToolbar className="w-full justify-between">
+        <MobileSearchInput />
+        <div className="flex items-center gap-1">
+          <FilterButton label="" />
+          <ExportButton label="" />
+          <CreateButton label="Nuovo" />
+        </div>
+      </TopToolbar>
+    );
+  }
+
+  return (
+    <TopToolbar>
+      <FilterButton />
+      <ExportButton />
+      <CreateButton label="Nuovo Preventivo" />
+    </TopToolbar>
+  );
+};
+
+const SEARCH_DEBOUNCE_MS = 300;
+
+const MobileSearchInput = () => {
+  const { filterValues, setFilters } = useListContext();
+  const [open, setOpen] = useState(false);
+  const [value, setValue] = useState(filterValues?.q ?? "");
+  const debounceRef = useRef<ReturnType<typeof setTimeout>>();
+
+  const applyFilter = useCallback(
+    (v: string) => {
+      setFilters({ ...filterValues, q: v || undefined }, undefined, true);
+    },
+    [filterValues, setFilters],
+  );
+
+  const handleChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      const v = e.target.value;
+      setValue(v);
+      clearTimeout(debounceRef.current);
+      debounceRef.current = setTimeout(() => applyFilter(v), SEARCH_DEBOUNCE_MS);
+    },
+    [applyFilter],
+  );
+
+  useEffect(() => () => clearTimeout(debounceRef.current), []);
+
+  const handleClear = useCallback(() => {
+    setValue("");
+    clearTimeout(debounceRef.current);
+    applyFilter("");
+    setOpen(false);
+  }, [applyFilter]);
+
+  const hasActiveSearch = !!filterValues?.q;
+
+  return (
+    <>
+      <Button
+        variant="outline"
+        size="icon"
+        className={cn("h-9 w-9", hasActiveSearch && "border-primary text-primary")}
+        onClick={() => {
+          setValue(filterValues?.q ?? "");
+          setOpen(true);
+        }}
+      >
+        <Search className="h-4 w-4" />
+      </Button>
+
+      {open && (
+        <>
+          <div
+            className="fixed inset-0 z-40"
+            onClick={() => setOpen(false)}
+          />
+          <div className="fixed top-0 left-0 right-0 z-50 bg-background border-b shadow-lg px-4 py-3 flex items-center gap-2">
+            <Search className="h-4 w-4 shrink-0 text-muted-foreground" />
+            <Input
+              autoFocus
+              value={value}
+              onChange={handleChange}
+              placeholder="Cerca preventivi…"
+              className="h-9 flex-1 text-sm border-0 shadow-none focus-visible:ring-0"
+            />
+            {value && (
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-7 w-7 shrink-0"
+                onClick={handleClear}
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            )}
+            <Button
+              variant="ghost"
+              size="sm"
+              className="shrink-0 text-muted-foreground"
+              onClick={() => setOpen(false)}
+            >
+              Chiudi
+            </Button>
+          </div>
+        </>
+      )}
+    </>
+  );
+};
 
 export default QuoteList;

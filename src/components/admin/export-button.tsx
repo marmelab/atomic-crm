@@ -102,7 +102,7 @@ export const ExportButton = (props: ExportButtonProps) => {
       className={className}
     >
       {icon}
-      <Translate i18nKey={label}>Export</Translate>
+      {label ? <Translate i18nKey={label}>Export</Translate> : null}
     </Button>
   );
 };

@@ -314,6 +314,26 @@ const lifeCycleCallbacks: ResourceCallbacks[] = [
       return data;
     },
   },
+  {
+    resource: "quotes",
+    beforeGetList: async (params) => {
+      const q = params.filter?.q;
+      if (q) {
+        const { q: _removed, ...rest } = params.filter;
+        return {
+          ...params,
+          filter: {
+            ...rest,
+            "@or": {
+              "description@ilike": q,
+              "notes@ilike": q,
+            },
+          },
+        };
+      }
+      return params;
+    },
+  },
   // --- Workflow triggers ---
   ...buildWorkflowCallbacks([
     "clients",

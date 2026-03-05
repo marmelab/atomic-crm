@@ -140,7 +140,7 @@ const StyledForm = (props: React.FormHTMLAttributes<HTMLFormElement>) => {
     <form
       {...props}
       className={cn(
-        "flex flex-row justify-start items-end gap-x-2 gap-y-3 pointer-events-none flex-wrap",
+        "flex flex-row justify-start items-end gap-x-2 gap-y-3 pointer-events-none flex-wrap max-sm:px-4 max-sm:flex-col max-sm:items-stretch",
         "[&_.form-helper-text]:hidden",
         props.className,
       )}
@@ -174,7 +174,7 @@ export const FilterFormInput = (inProps: FilterFormInputProps) => {
     <div
       data-source={filterElement.props.source}
       className={cn(
-        "filter-field flex flex-row pointer-events-auto gap-2 relative",
+        "filter-field flex flex-row pointer-events-auto gap-2 relative max-sm:w-full",
         className,
       )}
     >
@@ -228,6 +228,7 @@ export const FilterButton = (props: FilterButtonProps) => {
     disableSaveQuery,
     size,
     variant = "outline",
+    label,
     ...rest
   } = props;
   const filters = useFilterContext() || filtersProp;
@@ -338,7 +339,7 @@ export const FilterButton = (props: FilterButtonProps) => {
             aria-haspopup="true"
           >
             <Filter className="h-4 w-4" />
-            {translate("ra.action.add_filter")}
+            {label !== "" && translate("ra.action.add_filter")}
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="start" className="w-56">
@@ -444,6 +445,7 @@ export interface FilterButtonProps extends HtmlHTMLAttributes<HTMLDivElement> {
   className?: string;
   disableSaveQuery?: boolean;
   filters?: ReactNode[];
+  label?: string;
   resource?: string;
   variant?:
     | "default"

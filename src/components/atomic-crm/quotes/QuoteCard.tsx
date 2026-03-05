@@ -3,21 +3,20 @@ import { Draggable } from "@hello-pangea/dnd";
 import { useGetOne, useRedirect } from "ra-core";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import type { LucideIcon } from "lucide-react";
-import {
-  Video,
-  Scissors,
-  Camera,
-  Mic,
-  FileText,
-  Briefcase,
-} from "lucide-react";
 import { cn } from "@/lib/utils";
 
 import type { Client, Quote } from "../types";
 import { useConfigurationContext } from "../root/ConfigurationContext";
 import { formatDateRange } from "../misc/formatDateRange";
 import { QuoteCardActions } from "./QuoteCardActions";
+import {
+  serviceTypeStyles,
+  defaultServiceTypeStyle,
+} from "./quoteServiceStyles";
+import {
+  quoteStatusStyles,
+  defaultQuoteStatusStyle,
+} from "./quotesTypes";
 
 export const QuoteCard = memo(
   ({ quote, index }: { quote: Quote; index: number }) => {
@@ -38,19 +37,6 @@ export const QuoteCard = memo(
 );
 QuoteCard.displayName = "QuoteCard";
 
-const serviceTypeStyles: Record<
-  string,
-  { icon: LucideIcon; text: string; bg: string }
-> = {
-  riprese: { icon: Video, text: "text-blue-600", bg: "bg-blue-50" },
-  montaggio: { icon: Scissors, text: "text-purple-600", bg: "bg-purple-50" },
-  fotografia: { icon: Camera, text: "text-pink-600", bg: "bg-pink-50" },
-  audio: { icon: Mic, text: "text-amber-600", bg: "bg-amber-50" },
-  documentazione: { icon: FileText, text: "text-green-600", bg: "bg-green-50" },
-  altro: { icon: Briefcase, text: "text-slate-600", bg: "bg-slate-50" },
-};
-
-const defaultStyle = serviceTypeStyles.altro;
 
 const QuoteCardContent = ({
   provided,
@@ -69,7 +55,8 @@ const QuoteCardContent = ({
     { enabled: !!quote.client_id },
   );
 
-  const style = serviceTypeStyles[quote.service_type] ?? defaultStyle;
+  const style = serviceTypeStyles[quote.service_type] ?? defaultServiceTypeStyle;
+  const statusStyle = quoteStatusStyles[quote.status] ?? defaultQuoteStatusStyle;
   const Icon = style.icon;
 
   const serviceLabel =
@@ -110,7 +97,8 @@ const QuoteCardContent = ({
       <QuoteCardActions quote={quote} client={client} />
       <Card
         className={cn(
-          "py-3 transition-shadow duration-200",
+          "py-3 transition-shadow duration-200 border-l-3",
+          statusStyle.border,
           snapshot?.isDragging
             ? "opacity-90 rotate-1 shadow-lg"
             : "shadow-sm hover:shadow-md",

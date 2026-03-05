@@ -2,13 +2,21 @@ import { DragDropContext, type OnDragEndResponder } from "@hello-pangea/dnd";
 import isEqual from "lodash/isEqual";
 import { useDataProvider, useListContext, type DataProvider } from "ra-core";
 import { useCallback, useEffect, useState } from "react";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 import type { Quote } from "../types";
 import { QuoteColumn } from "./QuoteColumn";
+import { QuoteMobileList } from "./QuoteMobileList";
 import { quoteStatuses } from "./quotesTypes";
 import { getQuotesByStatus, type QuotesByStatus } from "./stages";
 
 export const QuoteListContent = () => {
+  const isMobile = useIsMobile();
+  if (isMobile) return <QuoteMobileList />;
+  return <QuoteKanbanBoard />;
+};
+
+const QuoteKanbanBoard = () => {
   const { data: unorderedQuotes, isPending, refetch } = useListContext<Quote>();
   const dataProvider = useDataProvider();
 

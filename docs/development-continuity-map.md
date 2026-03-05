@@ -14,6 +14,7 @@ Last updated: 2026-03-05
 
 ### Recent Updates (cronologico, più recente in alto)
 
+- [2026-03-05 (m)](#update-2026-03-05-m--quote-list-mobile-responsive) — Quote list mobile responsive (tabs + cards + search + filters)
 - [2026-03-05 (l)](#update-2026-03-05-l--pdf-preview-sticky-desktop--fullscreen-mobile) — PDF preview: sticky desktop + fullscreen mobile
 - [2026-03-05 (k)](#update-2026-03-05-k--quote-kanban-inp-optimization) — Quote Kanban INP optimization (~600ms → sub-200ms)
 - [2026-03-05 (j)](#update-2026-03-05-j--formazione-quote-service-type) — Add "Formazione" quote service type
@@ -63,6 +64,26 @@ Last updated: 2026-03-05
 - [Nota manutenzione 2026-03-02](#nota-manutenzione-2026-03-02-fix-ci)
 - [Testing Session Log 2026-03-04](#testing-session-log-2026-03-04--e2e-complete-validation)
 - [AI Semantic UI Upgrade 2026-03-04](#ai-semantic-ui-upgrade-2026-03-04--pareto-principle-applied)
+
+---
+
+## Update 2026-03-05 (m) — Quote list mobile responsive
+
+Replaced the unusable Kanban board on mobile with a mobile-optimized view.
+
+**Mobile changes (desktop Kanban unchanged):**
+
+- **QuoteMobileList**: scrollable status tabs + vertical card list, grouped by status with count and EUR total per tab
+- **QuoteMobileCard**: read-only card with service icon, description, client, amount, status badge; tap → QuoteShow
+- **QuoteListContent**: `useIsMobile()` branch — mobile renders `QuoteMobileList`, desktop renders Kanban board
+- **MobileSearchInput**: icon button in toolbar → overlay search bar with live debounced filtering (300ms)
+- **Full-text search fix**: `beforeGetList` callback in dataProvider converts `q` filter to `or(description.ilike, notes.ilike)` — was broken before (column `quotes.q` does not exist)
+- **Shared components improved**: ExportButton/FilterButton support `label=""` for icon-only; autocomplete dropdown `min-w-62.5` + `max-sm:max-w-[calc(100vw-2rem)]`; filter form `flex-col` on mobile with full-width inputs
+
+**New files**: `QuoteMobileList.tsx`, `QuoteMobileCard.tsx`, `quoteServiceStyles.ts`
+**Modified**: `QuoteList.tsx`, `QuoteListContent.tsx`, `QuoteCard.tsx`, `QuoteColumn.tsx`, `quotesTypes.ts`, `dataProvider.ts`, `list.tsx`, `filter-form.tsx`, `export-button.tsx`, `autocomplete-input.tsx`, `MobilePageTitle.tsx`
+
+**No schema/config/AI changes.** UI/UX only + dataProvider filter fix.
 
 ---
 

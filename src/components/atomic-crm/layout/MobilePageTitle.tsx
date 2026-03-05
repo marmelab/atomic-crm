@@ -4,7 +4,7 @@
  * Hidden on desktop (md and up) where the breadcrumb shows the page name.
  */
 export const MobilePageTitle = ({ title }: { title: string }) => (
-  <h1 className="text-xl font-semibold tracking-tight md:hidden mb-2">
+  <h1 className="text-xl font-semibold tracking-tight md:hidden mb-2 px-4">
     {title}
   </h1>
 );
