@@ -37,6 +37,7 @@ In a terminal, after [linking your Supabase project](../supabase-configuration#a
 npx supabase secrets set POSTMARK_WEBHOOK_USER=<user>
 npx supabase secrets set POSTMARK_WEBHOOK_PASSWORD=<password>
 npx supabase secrets set POSTMARK_WEBHOOK_AUTHORIZED_IPS=<comma-separated list of IPs>
+npx supabase secrets set POSTMARK_INBOUND_EMAIL=<your-postmark-inbound-email> # Optional, only needed if you want to to be able to transfer mail directly to the CRM
 ```
 
 These commands will push the secrets to your remote Supabase project.
@@ -49,6 +50,7 @@ If you are using this repository's GitHub Actions to automatically deploy to you
 POSTMARK_WEBHOOK_USER=<user>
 POSTMARK_WEBHOOK_PASSWORD=<password>
 POSTMARK_WEBHOOK_AUTHORIZED_IPS=<comma-separated list of IPs>
+POSTMARK_INBOUND_EMAIL=<your-postmark-inbound-email> # Optional, only needed if you want to to be able to transfer mail directly to the CRM
 ```
 
 ## Application Configuration

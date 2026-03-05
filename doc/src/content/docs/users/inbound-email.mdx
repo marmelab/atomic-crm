@@ -15,9 +15,12 @@ Send of forward emails to Atomic CRM's inbound email address to automatically ad
 
 ![Inbound Email Address](../../images/inbound-email.jpg)
 
-When you write to a contact in your email client, add the inbound email address in the **Bcc** field. PPostmark will receive a copy of your email, and forward it to Atomic CRM. Atomic CRM uses the sender's email address to identify the user, and the recipient's email address to identify the contact. If the contact does not yet exist, Atomic CRM creates it using the email's domain as company name. The content of the email is added as a note to the contact.
+When you write to a contact in your email client, add the inbound email address in the **Bcc** field. Postmark will receive a copy of your email, and forward it to Atomic CRM. Atomic CRM uses the sender's email address to identify the user, and the recipient's email address to identify the contact. If the contact does not yet exist, Atomic CRM creates it using the email's domain as company name. The content of the email is added as a note to the contact.
 
 **Tip**: Use the **Bcc** field to send emails to Atomic CRM without notifying the recipients.
+
+You can also forward existing emails to the inbound email address to add them as notes to the corresponding contacts.
+Atomic CRM will extract the original sender and recipient from the email content to identify the contact and user.
 
 ## Example
 
@@ -45,4 +48,33 @@ Meeting with Kim Hegmann
 
 Hi Kim,
 I would like to schedule a meeting with you next week. Please let me know your availability.
+```
+
+Consider another email that you forward to the inbound email address directly:
+
+```txt
+From: Jane Doe <jane.doe@marmelab.com>
+To: xxxxxxx@inbound.postmarkapp.com
+Subject: Fwd: I will not be able to attend the meeting
+
+---------- Forwarded message ----------
+From: Kim Hegmann <kim.hegmann@acme.com>
+To: Jane Doe <jane.doe@marmelab.com>
+Subject: I will not be able to attend the meeting
+
+Hi Jane,
+I am sorry but I will not be able to attend the meeting we scheduled.
+Can we reschedule it for the week after?
+```
+
+When receiving this email, Atomic CRM will:
+- Identify the _Kim Hegmann_ contact based on the original sender's email address
+- Add a note to the _Kim Hegmann_ contact with the following content:
+
+```txt
+I will not be able to attend the meeting
+
+Hi Jane,
+I am sorry but I will not be able to attend the meeting we scheduled.
+Can we reschedule it for the week after?
 ```
