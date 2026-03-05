@@ -13,6 +13,9 @@ di tutte le fatture o l'anagrafica clienti completa. Per quello usare
 **Analizzato:** 2026-02-25
 **Stato:** Dati estratti e VALIDATI con Rosario
 
+**Nota 2026-03-05:** il prompt Gemini per l'estrazione servizi ora include
+istruzione esplicita per il campo `notes` (annotazioni operative dal documento).
+
 **Aggiornato:** con risposte di Rosario + nuove tariffe 2025/2026
 
 ---

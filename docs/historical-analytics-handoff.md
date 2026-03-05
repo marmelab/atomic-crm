@@ -8,6 +8,11 @@ prodotto senza incrociarlo con `docs/README.md` e i documenti `canonical`.
 
 Last updated: 2026-03-05
 
+## Update 2026-03-05 (Gemini extraction prompt: notes per servizi)
+
+- Prompt Gemini per import servizi ora include istruzione esplicita per `notes`
+- Lo schema JSON lo supportava già, mancava solo la guida nel prompt
+
 ## Update 2026-03-05 (AI semantic coherence for service description)
 
 - Intent parsing ora estrae `description` dalla domanda utente (testo tra

@@ -8,6 +8,13 @@ prodotto.
 
 Last updated: 2026-03-05
 
+## Update 2026-03-05 (e) — Gemini extraction prompt: notes per servizi
+
+- `invoice_import_extract/index.ts`: aggiunta istruzione esplicita per estrarre
+  `notes` dai servizi (annotazioni operative leggibili nel documento)
+- Prima il prompt non lo chiedeva, quindi note come "Inclusa selezione e invio
+  immagini" venivano ignorate nell'estrazione
+
 ## Update 2026-03-05 (d) — AI semantic coherence for service description
 
 - `unifiedCrmAnswerTypes.ts`: aggiunto `description` a

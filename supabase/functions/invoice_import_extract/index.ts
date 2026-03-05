@@ -66,6 +66,7 @@ Regole di mapping obbligatorie:
   - \`allDay\` true se e' una giornata intera, null se non deducibile
   - \`discount\` se il documento indica uno sconto, altrimenti null
   - \`kmDistance\` e \`kmRate\` se il documento indica km di trasferta, altrimenti null
+  - \`notes\`: annotazioni operative o dettagli aggiuntivi leggibili dal documento (es. "Inclusa selezione e invio immagini"), null se assente o generico ("—")
   - se il documento elenca piu' servizi distinti, crea un record per ciascuno
 - non inventare mai clienti o progetti nuovi
 - puoi valorizzare \`clientId\` o \`projectId\` solo usando questi ID esatti del CRM
