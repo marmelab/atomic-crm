@@ -786,13 +786,21 @@ L'ordine corretto resta:
   dinamica sul `<Select>` Radix — causa remount completo. Il bug
   radix-ui/primitives#3135 è gestito con una guardia nel `handleChange` che
   ignora `onValueChange("")` spurie.
-- `AutocompleteInput` (`src/components/admin/autocomplete-input.tsx`): il
-  `setFilters` alla chiusura del Popover è wrappato in `startTransition` per
-  non bloccare la paint.
+- `AutocompleteInput` (`src/components/admin/autocomplete-input.tsx`):
+  - Il `setFilters` alla chiusura del Popover è wrappato in `startTransition`
+    per non bloccare la paint.
+  - La selezione di un valore chiude il Popover prima (frame 1) e aggiorna il
+    form state in un `setTimeout(0)` separato (frame 2). Questo evita che
+    l'unmount del Command tree e la cascata `useWatch` finiscano nello stesso
+    long task.
 - Nelle cascate `useEffect` che chiamano `setValue` programmaticamente (es.
   auto-sync `client_id` da progetto, auto-calcolo importo), NON usare
   `shouldValidate: true` — la validazione al submit basta e risparmiare cicli
   di render.
+- I sub-component dei form complessi (es. `QuoteItemsInputs`,
+  `QuoteNotesInputs`, `QuoteStatusInputs`) sono wrappati in `React.memo` per
+  evitare re-render a cascata dal parent che osserva campi diversi tramite
+  `useWatch`.
 
 ### Struttura moduli CRUD
 

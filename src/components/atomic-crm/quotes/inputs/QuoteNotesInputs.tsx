@@ -1,7 +1,8 @@
+import { memo } from "react";
 import { TextInput } from "@/components/admin/text-input";
 import { StickyNote } from "lucide-react";
 
-export const QuoteNotesInputs = () => (
+export const QuoteNotesInputs = memo(() => (
   <div className="flex flex-col gap-4">
     <div className="flex items-center gap-2 mb-1">
       <StickyNote className="h-4 w-4 text-slate-500" />
@@ -24,4 +25,4 @@ export const QuoteNotesInputs = () => (
       helperText={false}
     />
   </div>
-);
+));

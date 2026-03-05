@@ -1,3 +1,4 @@
+import { memo } from "react";
 import { required, minValue } from "ra-core";
 import { useWatch } from "react-hook-form";
 import { ArrayInput } from "@/components/admin/array-input";
@@ -9,7 +10,7 @@ import { ListChecks } from "lucide-react";
 import type { QuoteItem } from "../../types";
 import { hasQuoteItems } from "../quoteItems";
 
-export const QuoteItemsInputs = () => {
+export const QuoteItemsInputs = memo(() => {
   const quoteItems = useWatch({ name: "quote_items" }) as
     | QuoteItem[]
     | undefined;
@@ -68,4 +69,4 @@ export const QuoteItemsInputs = () => {
       />
     </div>
   );
-};
+});

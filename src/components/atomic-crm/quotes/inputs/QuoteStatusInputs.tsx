@@ -1,3 +1,4 @@
+import { memo } from "react";
 import { required } from "ra-core";
 import { useWatch } from "react-hook-form";
 import { SelectInput } from "@/components/admin/select-input";
@@ -8,11 +9,11 @@ import { Activity } from "lucide-react";
 
 import { quoteStatuses } from "../quotesTypes";
 
-export const QuoteStatusInputs = ({
+export const QuoteStatusInputs = memo(function QuoteStatusInputs({
   suggestedTaxable,
 }: {
   suggestedTaxable: boolean;
-}) => {
+}) {
   const status = useWatch({ name: "status" });
 
   return (
@@ -93,4 +94,4 @@ export const QuoteStatusInputs = ({
       )}
     </div>
   );
-};
+});

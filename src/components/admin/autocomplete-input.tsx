@@ -153,30 +153,27 @@ export const AutocompleteInput = (
 
   const handleChange = useCallback(
     (choice: any) => {
-      if (field.value === getChoiceValue(choice) && !isRequired) {
-        field.onChange("");
-        setFilterValue("");
-        if (isFromReference) {
-          startTransition(() => {
-            setFilters(filterToQuery(""));
-          });
-        }
+      const value = getChoiceValue(choice);
+
+      if (field.value === value && !isRequired) {
+        // Deselect: close popover first, then clear field in next task
         setOpen(false);
+        setTimeout(() => {
+          field.onChange("");
+          setFilterValue("");
+        }, 0);
         return;
       }
-      field.onChange(getChoiceValue(choice));
+
+      // Close popover immediately for visual feedback, then update form
+      // state in a separate macrotask so the browser can paint the popover
+      // close (+ Command tree unmount) before the form cascade fires.
       setOpen(false);
+      setTimeout(() => {
+        field.onChange(value);
+      }, 0);
     },
-    [
-      field,
-      getChoiceValue,
-      isRequired,
-      setFilterValue,
-      isFromReference,
-      setFilters,
-      filterToQuery,
-      setOpen,
-    ],
+    [field, getChoiceValue, isRequired, setFilterValue, setOpen],
   );
 
   const {
