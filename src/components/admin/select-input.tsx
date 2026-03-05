@@ -182,6 +182,12 @@ export const SelectInput = (props: SelectInputProps) => {
 
   const handleChange = useCallback(
     async (value: string) => {
+      // Guard against Radix spurious onValueChange("") when the controlled
+      // value changes programmatically. Without this, we'd need a dynamic key
+      // on <Select> that forces a full remount (bad for INP).
+      // See: https://github.com/radix-ui/primitives/issues/3135
+      if (value === "" && emptyValue !== "") return;
+
       if (value === emptyValue) {
         field.onChange(emptyValue);
       } else {
@@ -208,6 +214,14 @@ export const SelectInput = (props: SelectInputProps) => {
     handleChange,
     optionText,
   });
+
+  const handleReset = useCallback(
+    (e: React.MouseEvent<HTMLDivElement>) => {
+      e.stopPropagation();
+      field.onChange(emptyValue);
+    },
+    [field, emptyValue],
+  );
 
   if (isPending) {
     return (
@@ -247,12 +261,6 @@ export const SelectInput = (props: SelectInputProps) => {
     finalChoices = [...finalChoices, createItem];
   }
 
-  // Handle reset functionality
-  const handleReset = (e: React.MouseEvent<HTMLDivElement>) => {
-    e.stopPropagation();
-    field.onChange(emptyValue);
-  };
-
   return (
     <>
       <FormField
@@ -273,11 +281,6 @@ export const SelectInput = (props: SelectInputProps) => {
         )}
         <div className="relative">
           <Select
-            //FIXME https://github.com/radix-ui/primitives/issues/3135
-            // Setting a key based on the value fixes an issue where onValueChange
-            // was called with an empty string when the controlled value was changed.
-            // See: https://github.com/radix-ui/primitives/issues/3135#issuecomment-2916908248
-            key={`select:${field.value?.toString() ?? emptyValue}`}
             value={field.value?.toString() || emptyValue}
             onValueChange={handleChangeWithCreateSupport}
           >
