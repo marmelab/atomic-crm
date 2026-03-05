@@ -321,7 +321,10 @@ Modulo condiviso in `src/components/atomic-crm/invoicing/`:
 
 - builders puri da service/project/client/quote
 - dialog unico `InvoiceDraftDialog`
-- generazione PDF con watermark "BOZZA - NON VALIDA AI FINI FISCALI"
+- generazione PDF con watermark "BOZZA - NON VALIDA AI FINI FISCALI"; layout
+  e palette colori allineati al PDF preventivo (header con logo, accent
+  `#e94560`, tabella con header scuro, totale accent, note in box light,
+  footer centrato)
 - nessuna scrittura DB: output solo di supporto operativo per compilazione
   Aruba
 

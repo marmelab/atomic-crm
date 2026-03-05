@@ -1,5 +1,6 @@
 import {
   Document,
+  Image,
   Page,
   StyleSheet,
   Text,
@@ -21,22 +22,36 @@ import {
 
 export type InvoiceDraftIssuer = {
   name: string;
+  tagline?: string;
   vatNumber?: string;
   fiscalCode?: string;
   address?: string;
   email?: string;
+  phone?: string;
 };
 
 const defaultIssuer: InvoiceDraftIssuer = {
   name: "Rosario Furnari",
 };
 
+const LOGO_URL = "/logos/logo_rosario_furnari.png";
+
+// ── Colors (same palette as QuotePDF) ──────────────────────────────
+const colors = {
+  primary: "#1a1a2e",
+  accent: "#e94560",
+  muted: "#64748b",
+  light: "#f1f5f9",
+  white: "#ffffff",
+  border: "#e2e8f0",
+};
+
 const styles = StyleSheet.create({
   page: {
-    padding: 28,
-    fontSize: 10,
-    lineHeight: 1.35,
     fontFamily: "Helvetica",
+    fontSize: 10,
+    padding: 40,
+    color: colors.primary,
     position: "relative",
   },
   watermark: {
@@ -49,88 +64,183 @@ const styles = StyleSheet.create({
     color: "#dddddd",
     transform: "rotate(-20deg)",
   },
-  heading: {
-    fontSize: 16,
-    fontWeight: 700,
-    marginBottom: 8,
-  },
-  row: {
+  // Header
+  header: {
     flexDirection: "row",
     justifyContent: "space-between",
-    gap: 16,
+    marginBottom: 30,
   },
-  col: {
-    flex: 1,
-    gap: 2,
+  headerLeft: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
   },
-  label: {
+  logo: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+  },
+  brandName: {
+    fontSize: 22,
+    fontFamily: "Helvetica-Bold",
+    color: colors.primary,
+  },
+  brandTagline: {
     fontSize: 9,
-    color: "#666666",
+    color: colors.muted,
+    marginTop: 2,
   },
-  value: {
+  brandDetail: {
+    fontSize: 8,
+    color: colors.muted,
+    marginTop: 1,
+  },
+  docLabel: {
+    fontSize: 28,
+    fontFamily: "Helvetica-Bold",
+    color: colors.accent,
+    textAlign: "right" as const,
+  },
+  docSubLabel: {
+    fontSize: 9,
+    color: colors.muted,
+    textAlign: "right" as const,
+    marginTop: 4,
+  },
+  // Divider
+  divider: {
+    height: 2,
+    backgroundColor: colors.accent,
+    marginBottom: 24,
+  },
+  // Two-column info
+  infoRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginBottom: 24,
+  },
+  infoBlock: {
+    width: "48%",
+  },
+  infoLabel: {
+    fontSize: 8,
+    fontFamily: "Helvetica-Bold",
+    color: colors.muted,
+    textTransform: "uppercase" as const,
+    letterSpacing: 1,
+    marginBottom: 6,
+  },
+  infoText: {
     fontSize: 10,
+    lineHeight: 1.5,
   },
-  section: {
-    marginTop: 14,
-    gap: 6,
+  infoBold: {
+    fontSize: 10,
+    fontFamily: "Helvetica-Bold",
+    lineHeight: 1.5,
+  },
+  // Table
+  table: {
+    marginTop: 8,
+    marginBottom: 24,
   },
   tableHeader: {
     flexDirection: "row",
-    borderBottomWidth: 1,
-    borderBottomColor: "#cccccc",
-    paddingBottom: 4,
+    backgroundColor: colors.primary,
+    padding: 8,
+    borderTopLeftRadius: 4,
+    borderTopRightRadius: 4,
+  },
+  tableHeaderText: {
+    color: colors.white,
     fontSize: 9,
-    color: "#666666",
+    fontFamily: "Helvetica-Bold",
+    textTransform: "uppercase" as const,
+    letterSpacing: 0.5,
   },
   tableRow: {
     flexDirection: "row",
+    padding: 10,
     borderBottomWidth: 1,
-    borderBottomColor: "#efefef",
-    paddingVertical: 5,
+    borderBottomColor: colors.border,
     alignItems: "center",
   },
-  cDescription: {
-    flex: 5,
-    paddingRight: 8,
-  },
-  cQty: {
-    flex: 1,
-    textAlign: "right",
-  },
-  cUnit: {
-    flex: 2,
-    textAlign: "right",
-  },
-  cTotal: {
-    flex: 2,
-    textAlign: "right",
-  },
-  totals: {
-    marginTop: 10,
-    gap: 3,
-    alignItems: "flex-end",
-  },
+  cDescription: { width: "50%" },
+  cQty: { width: "12%", textAlign: "right" as const },
+  cUnit: { width: "19%", textAlign: "right" as const },
+  cTotal: { width: "19%", textAlign: "right" as const },
+  // Total
   totalRow: {
     flexDirection: "row",
+    justifyContent: "flex-end",
+    marginTop: 4,
+    paddingTop: 12,
+    paddingRight: 10,
     gap: 16,
   },
   totalLabel: {
-    minWidth: 120,
-    textAlign: "right",
-    color: "#555555",
+    fontSize: 12,
+    fontFamily: "Helvetica-Bold",
+    color: colors.primary,
   },
-  totalValue: {
-    minWidth: 90,
-    textAlign: "right",
+  totalAmount: {
+    fontSize: 14,
+    fontFamily: "Helvetica-Bold",
+    color: colors.accent,
   },
-  totalHighlight: {
-    fontWeight: 700,
-    fontSize: 11,
+  subtotalRow: {
+    flexDirection: "row",
+    justifyContent: "flex-end",
+    paddingRight: 10,
+    gap: 16,
+    marginTop: 2,
   },
-  note: {
-    marginTop: 12,
+  subtotalLabel: {
+    fontSize: 10,
+    color: colors.muted,
+    textAlign: "right" as const,
+  },
+  subtotalValue: {
+    fontSize: 10,
+    textAlign: "right" as const,
+  },
+  // Notes section
+  notesSection: {
+    marginTop: 20,
+    padding: 12,
+    backgroundColor: colors.light,
+    borderRadius: 4,
+  },
+  notesTitle: {
     fontSize: 9,
-    color: "#555555",
+    fontFamily: "Helvetica-Bold",
+    color: colors.muted,
+    textTransform: "uppercase" as const,
+    letterSpacing: 1,
+    marginBottom: 6,
+  },
+  notesText: {
+    fontSize: 9,
+    lineHeight: 1.6,
+    color: colors.primary,
+  },
+  // Footer
+  footer: {
+    position: "absolute",
+    bottom: 30,
+    left: 40,
+    right: 40,
+  },
+  footerDivider: {
+    height: 1,
+    backgroundColor: colors.border,
+    marginBottom: 8,
+  },
+  footerText: {
+    fontSize: 7,
+    color: colors.muted,
+    textAlign: "center" as const,
+    lineHeight: 1.6,
   },
 });
 
@@ -169,56 +279,76 @@ const InvoiceDraftPdfDocument = ({
       <Page size="A4" style={styles.page}>
         <Text style={styles.watermark}>BOZZA - NON VALIDA AI FINI FISCALI</Text>
 
-        <Text style={styles.heading}>Bozza fattura interna</Text>
-
-        <View style={styles.row}>
-          <View style={styles.col}>
-            <Text style={styles.label}>Emittente</Text>
-            <Text style={styles.value}>{issuer.name}</Text>
-            {issuer.vatNumber ? (
-              <Text style={styles.value}>P.IVA {issuer.vatNumber}</Text>
-            ) : null}
-            {issuer.fiscalCode ? (
-              <Text style={styles.value}>CF {issuer.fiscalCode}</Text>
-            ) : null}
-            {issuer.address ? (
-              <Text style={styles.value}>{issuer.address}</Text>
-            ) : null}
-            {issuer.email ? (
-              <Text style={styles.value}>{issuer.email}</Text>
-            ) : null}
+        {/* Header */}
+        <View style={styles.header}>
+          <View style={styles.headerLeft}>
+            <Image style={styles.logo} src={LOGO_URL} />
+            <View>
+              <Text style={styles.brandName}>{issuer.name}</Text>
+              {issuer.tagline && (
+                <Text style={styles.brandTagline}>{issuer.tagline}</Text>
+              )}
+              {issuer.address && (
+                <Text style={styles.brandDetail}>{issuer.address}</Text>
+              )}
+              {issuer.email && (
+                <Text style={styles.brandDetail}>{issuer.email}</Text>
+              )}
+              {issuer.phone && (
+                <Text style={styles.brandDetail}>{issuer.phone}</Text>
+              )}
+            </View>
           </View>
-
-          <View style={styles.col}>
-            <Text style={styles.label}>Cliente</Text>
-            <Text style={styles.value}>{clientName}</Text>
-            {clientAddress ? (
-              <Text style={styles.value}>{clientAddress}</Text>
-            ) : null}
-            {clientFiscalLines(draft.client).map((line) => (
-              <Text key={line} style={styles.value}>
-                {line}
-              </Text>
-            ))}
-          </View>
-
-          <View style={styles.col}>
-            <Text style={styles.label}>Dati documento</Text>
-            <Text style={styles.value}>
+          <View>
+            <Text style={styles.docLabel}>BOZZA</Text>
+            <Text style={styles.docSubLabel}>FATTURA</Text>
+            <Text style={styles.docSubLabel}>
               Data: {draft.invoiceDate ?? todayIsoDate()}
-            </Text>
-            <Text style={styles.value}>
-              Origine: {draft.source.kind} - {draft.source.label}
             </Text>
           </View>
         </View>
 
-        <View style={styles.section}>
+        <View style={styles.divider} />
+
+        {/* Client & Document info */}
+        <View style={styles.infoRow}>
+          <View style={styles.infoBlock}>
+            <Text style={styles.infoLabel}>Cliente</Text>
+            <Text style={styles.infoBold}>{clientName}</Text>
+            {clientAddress ? (
+              <Text style={styles.infoText}>{clientAddress}</Text>
+            ) : null}
+            {clientFiscalLines(draft.client).map((line) => (
+              <Text key={line} style={styles.infoText}>
+                {line}
+              </Text>
+            ))}
+          </View>
+          <View style={styles.infoBlock}>
+            <Text style={styles.infoLabel}>Dati documento</Text>
+            <Text style={styles.infoText}>
+              Origine: {draft.source.kind} - {draft.source.label}
+            </Text>
+            {issuer.vatNumber && (
+              <Text style={styles.infoText}>P.IVA {issuer.vatNumber}</Text>
+            )}
+            {issuer.fiscalCode && (
+              <Text style={styles.infoText}>CF {issuer.fiscalCode}</Text>
+            )}
+          </View>
+        </View>
+
+        {/* Line items table */}
+        <View style={styles.table}>
           <View style={styles.tableHeader}>
-            <Text style={styles.cDescription}>Descrizione</Text>
-            <Text style={styles.cQty}>Q.ta</Text>
-            <Text style={styles.cUnit}>Prezzo unitario</Text>
-            <Text style={styles.cTotal}>Totale</Text>
+            <Text style={[styles.tableHeaderText, styles.cDescription]}>
+              Descrizione
+            </Text>
+            <Text style={[styles.tableHeaderText, styles.cQty]}>Q.tà</Text>
+            <Text style={[styles.tableHeaderText, styles.cUnit]}>
+              Prezzo unit.
+            </Text>
+            <Text style={[styles.tableHeaderText, styles.cTotal]}>Totale</Text>
           </View>
 
           {lineItems.map((lineItem, index) => (
@@ -226,49 +356,66 @@ const InvoiceDraftPdfDocument = ({
               key={`${lineItem.description}-${index}`}
               style={styles.tableRow}
             >
-              <Text style={styles.cDescription}>{lineItem.description}</Text>
-              <Text style={styles.cQty}>{lineItem.quantity}</Text>
-              <Text style={styles.cUnit}>
+              <Text style={[{ fontSize: 10 }, styles.cDescription]}>
+                {lineItem.description}
+              </Text>
+              <Text style={[{ fontSize: 10 }, styles.cQty]}>
+                {lineItem.quantity}
+              </Text>
+              <Text style={[{ fontSize: 10 }, styles.cUnit]}>
                 {formatAmount(lineItem.unitPrice)}
               </Text>
-              <Text style={styles.cTotal}>
+              <Text style={[{ fontSize: 10 }, styles.cTotal]}>
                 {formatAmount(getInvoiceDraftLineTotal(lineItem))}
               </Text>
             </View>
           ))}
         </View>
 
-        <View style={styles.totals}>
-          <View style={styles.totalRow}>
-            <Text style={styles.totalLabel}>Totale imponibile</Text>
-            <Text style={styles.totalValue}>
-              {formatAmount(totals.taxableAmount)}
+        {/* Totals */}
+        <View style={styles.subtotalRow}>
+          <Text style={styles.subtotalLabel}>Totale imponibile</Text>
+          <Text style={styles.subtotalValue}>
+            {formatAmount(totals.taxableAmount)}
+          </Text>
+        </View>
+        {totals.stampDuty > 0 ? (
+          <View style={styles.subtotalRow}>
+            <Text style={styles.subtotalLabel}>Bollo</Text>
+            <Text style={styles.subtotalValue}>
+              {formatAmount(totals.stampDuty)}
             </Text>
           </View>
-          {totals.stampDuty > 0 ? (
-            <View style={styles.totalRow}>
-              <Text style={styles.totalLabel}>Bollo</Text>
-              <Text style={styles.totalValue}>
-                {formatAmount(totals.stampDuty)}
-              </Text>
-            </View>
-          ) : null}
-          <View style={styles.totalRow}>
-            <Text style={[styles.totalLabel, styles.totalHighlight]}>
-              Totale documento
-            </Text>
-            <Text style={[styles.totalValue, styles.totalHighlight]}>
-              {formatAmount(totals.totalAmount)}
-            </Text>
-          </View>
+        ) : null}
+        <View style={styles.totalRow}>
+          <Text style={styles.totalLabel}>TOTALE</Text>
+          <Text style={styles.totalAmount}>
+            {formatAmount(totals.totalAmount)}
+          </Text>
         </View>
 
-        <Text style={styles.note}>
-          Operazione effettuata ai sensi dell'art. 1 commi 54-89 L. 190/2014
-        </Text>
-        {draft.notes ? (
-          <Text style={styles.note}>Note: {draft.notes}</Text>
-        ) : null}
+        {/* Notes */}
+        <View style={styles.notesSection}>
+          <Text style={styles.notesTitle}>Note</Text>
+          <Text style={styles.notesText}>
+            Operazione effettuata ai sensi dell'art. 1 commi 54-89 L. 190/2014
+          </Text>
+          {draft.notes ? (
+            <Text style={styles.notesText}>{draft.notes}</Text>
+          ) : null}
+        </View>
+
+        {/* Footer */}
+        <View style={styles.footer}>
+          <View style={styles.footerDivider} />
+          <Text style={styles.footerText}>
+            {issuer.name}
+            {issuer.vatNumber ? ` · P.IVA ${issuer.vatNumber}` : ""}
+            {issuer.fiscalCode ? ` · CF ${issuer.fiscalCode}` : ""}
+            {issuer.address ? ` · ${issuer.address}` : ""}
+            {issuer.email ? ` · ${issuer.email}` : ""}
+          </Text>
+        </View>
       </Page>
     </Document>
   );
