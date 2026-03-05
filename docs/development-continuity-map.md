@@ -151,9 +151,14 @@ Enhancement completo del modulo preventivi con 6 feature additive e modulari:
 **Step 5 — UX QuoteShow ristrutturata:**
 
 - `QuoteShowActions.tsx`: gerarchia azioni (primarie: PDF+Email, secondarie: servizio+progetto+pagamento+fattura, terziarie: dropdown edit/delete)
+- Desktop: tutti i bottoni visibili inclusi Modifica e Elimina
+- Mobile: PDF + email/client come bottoni primari, resto nel dropdown con icone native e separatori
 - `QuoteShowSections.tsx`: sezioni estratte per concern
-- `QuickClientCreateDialog.tsx` (in clients/): dialog standalone per creazione rapida cliente con link opzionale a quote
-- Warning "Email mancante" con trigger creazione cliente
+- `QuickClientCreateDialog.tsx` (in clients/): dialog standalone per creazione rapida cliente con link opzionale a quote (usato quando nessun client collegato)
+- `QuickClientEmailDialog.tsx` (in clients/): dialog inline per aggiungere email a un cliente esistente senza email (usato quando client esiste ma manca email)
+- Logica "Email mancante": client con email → invio email, client senza email → QuickClientEmailDialog, nessun client → QuickClientCreateDialog
+- `QuoteShow` dialog: fullscreen su mobile (`max-sm:h-dvh`), titolo e azioni stacked verticalmente
+- `CreateServiceFromQuoteDialog` e `CreateProjectFromQuoteDialog`: aggiunto prop `trigger` opzionale per trigger custom
 
 **Step 6 — AI registry:**
 

@@ -1052,6 +1052,10 @@
           "type": "registry:component"
         },
         {
+          "path": "src/components/atomic-crm/clients/QuickClientEmailDialog.tsx",
+          "type": "registry:component"
+        },
+        {
           "path": "src/components/atomic-crm/clients/QuickClientCreateDialog.tsx",
           "type": "registry:component"
         },

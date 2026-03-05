@@ -193,3 +193,15 @@ Impatto architetturale:
   - `clients` = controparte fiscale
   - `contacts` = persone referenti
   - invoicing draft = tool operativo interno separato dal modello relazionale
+
+## Nota manutenzione 2026-03-05
+
+Aggiunto `QuickClientEmailDialog` (`clients/QuickClientEmailDialog.tsx`):
+dialog inline per aggiungere l'email a un cliente esistente che ne e' privo.
+
+Usato in `QuoteShowActions` quando il preventivo ha un client_id valido ma
+`client.email` e' null/vuoto. Non modifica il dominio relazionale
+(contacts/project_contacts): aggiorna solo il campo `email` sulla tabella
+`clients` via `useUpdate`.
+
+Impatto architetturale: nessuno — nessuna nuova tabella, join o relazione.

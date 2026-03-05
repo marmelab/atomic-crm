@@ -27,6 +27,7 @@ import { buildProjectDraftFromQuote } from "./quoteProjectLinking";
 type CreateServiceFromQuoteDialogProps = {
   client?: Client;
   quote: Quote;
+  trigger?: React.ReactNode;
 };
 
 type ServiceFormState = {
@@ -86,6 +87,7 @@ const getDefaultState = (
 export const CreateServiceFromQuoteDialog = ({
   client,
   quote,
+  trigger,
 }: CreateServiceFromQuoteDialogProps) => {
   const [open, setOpen] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -214,10 +216,12 @@ export const CreateServiceFromQuoteDialog = ({
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button size="sm" variant="outline" className="gap-2">
-          <Wrench className="h-4 w-4" />
-          Registra servizio
-        </Button>
+        {trigger ?? (
+          <Button size="sm" variant="outline" className="gap-2">
+            <Wrench className="h-4 w-4" />
+            Registra servizio
+          </Button>
+        )}
       </DialogTrigger>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>

@@ -33,7 +33,7 @@ export const QuoteShow = ({ open, id }: { open: boolean; id?: string }) => {
 
   return (
     <Dialog open={open} onOpenChange={(open) => !open && handleClose()}>
-      <DialogContent className="lg:max-w-4xl p-4 overflow-y-auto max-h-9/10 top-1/20 translate-y-0">
+      <DialogContent className="lg:max-w-4xl p-4 overflow-y-auto max-h-9/10 top-1/20 translate-y-0 max-sm:h-dvh max-sm:max-h-dvh max-sm:top-0 max-sm:rounded-none max-sm:border-0">
         <DialogTitle className="sr-only">Dettaglio preventivo</DialogTitle>
         <DialogDescription className="sr-only">
           Visualizzazione dettaglio preventivo
@@ -115,8 +115,8 @@ const QuoteShowContent = () => {
 
   return (
     <div className="space-y-2">
-      <div className="flex justify-between items-start mb-8">
-        <h2 className="text-2xl font-semibold">
+      <div className="flex flex-col gap-3 sm:flex-row sm:justify-between sm:items-start mb-4 sm:mb-8">
+        <h2 className="text-xl sm:text-2xl font-semibold">
           {record.description || "Preventivo"}
         </h2>
         <QuoteShowActions
