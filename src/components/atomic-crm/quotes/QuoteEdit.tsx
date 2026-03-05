@@ -7,7 +7,7 @@ import {
   useRecordContext,
   useRedirect,
 } from "ra-core";
-import { Link, useNavigate } from "react-router";
+import { useNavigate } from "react-router";
 import { CancelButton } from "@/components/admin/cancel-button";
 import { DeleteButton } from "@/components/admin/delete-button";
 import { SaveButton } from "@/components/admin/form";
@@ -68,7 +68,7 @@ export const QuoteEdit = ({ open, id }: { open: boolean; id?: string }) => {
               },
             }}
           >
-            <EditHeader isMobile={isMobile} />
+            <EditHeader />
             <Form>
               {desktopPreview ? (
                 <div className="flex gap-6 h-[calc(90vh-10rem)]">
@@ -78,20 +78,21 @@ export const QuoteEdit = ({ open, id }: { open: boolean; id?: string }) => {
                       role="toolbar"
                       className="sticky flex pt-4 bottom-0 bg-linear-to-b from-transparent to-card to-10% flex-row justify-between items-center"
                     >
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        className="border-blue-500 text-blue-600 hover:bg-blue-50 dark:text-blue-400 dark:hover:bg-blue-950"
-                        onClick={() => setShowPreview(false)}
-                      >
-                        <EyeOff className="h-4 w-4 mr-1" />
-                        Nascondi anteprima
-                      </Button>
+                      <CancelButton />
                       <div className="flex gap-2">
-                        <CancelButton />
-                        <SaveButton />
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          className="border-blue-500 text-blue-600 hover:bg-blue-50 dark:text-blue-400 dark:hover:bg-blue-950"
+                          onClick={() => setShowPreview(false)}
+                        >
+                          <EyeOff className="h-4 w-4 mr-1" />
+                          Nascondi anteprima
+                        </Button>
+                        <DeleteButton variant="outline" size="sm" />
                       </div>
+                      <SaveButton />
                     </div>
                   </div>
                   <div className="w-[45%] h-full">
@@ -119,26 +120,27 @@ export const QuoteEdit = ({ open, id }: { open: boolean; id?: string }) => {
                       role="toolbar"
                       className="sticky flex pt-4 bottom-0 bg-linear-to-b from-transparent to-card to-10% flex-row justify-between items-center"
                     >
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        className="border-blue-500 text-blue-600 hover:bg-blue-50 dark:text-blue-400 dark:hover:bg-blue-950"
-                        onClick={() => setShowPreview((v) => !v)}
-                      >
-                        {showPreview ? (
-                          <EyeOff className="h-4 w-4 mr-1" />
-                        ) : (
-                          <Eye className="h-4 w-4 mr-1" />
-                        )}
-                        {showPreview
-                          ? "Nascondi anteprima"
-                          : "Anteprima"}
-                      </Button>
+                      <CancelButton />
                       <div className="flex gap-2">
-                        <CancelButton />
-                        <SaveButton />
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          className="border-blue-500 text-blue-600 hover:bg-blue-50 dark:text-blue-400 dark:hover:bg-blue-950"
+                          onClick={() => setShowPreview((v) => !v)}
+                        >
+                          {showPreview ? (
+                            <EyeOff className="h-4 w-4 mr-1" />
+                          ) : (
+                            <Eye className="h-4 w-4 mr-1" />
+                          )}
+                          {showPreview
+                            ? "Nascondi anteprima"
+                            : "Anteprima"}
+                        </Button>
+                        <DeleteButton variant="outline" size="sm" />
                       </div>
+                      <SaveButton />
                     </div>
                   )}
                 </>
@@ -180,7 +182,7 @@ function MobilePreviewOverlay({ onClose }: { onClose: () => void }) {
   );
 }
 
-function EditHeader({ isMobile }: { isMobile: boolean }) {
+function EditHeader() {
   const quote = useRecordContext<Quote>();
   if (!quote) return null;
 
@@ -190,16 +192,6 @@ function EditHeader({ isMobile }: { isMobile: boolean }) {
         <h2 className="text-xl sm:text-2xl font-semibold">
           Modifica preventivo
         </h2>
-        {!isMobile && (
-          <div className="flex gap-2">
-            <DeleteButton variant="outline" size="sm" />
-            <Button asChild variant="outline" size="sm">
-              <Link to={`/quotes/${quote.id}/show`}>
-                Torna al preventivo
-              </Link>
-            </Button>
-          </div>
-        )}
       </div>
     </DialogTitle>
   );
@@ -216,8 +208,17 @@ function MobileToolbar({
   return (
     <div
       role="toolbar"
-      className="sticky flex pt-4 pb-20 bottom-0 bg-linear-to-b from-transparent to-card to-10% flex-row justify-between items-center gap-2"
+      className="sticky flex py-3 bottom-0 bg-linear-to-b from-transparent to-card to-10% flex-row justify-between items-center gap-2"
     >
+      <Button
+        type="button"
+        variant="ghost"
+        size="sm"
+        onClick={() => navigate(-1)}
+      >
+        <ArrowLeft className="h-4 w-4" />
+        Indietro
+      </Button>
       <div className="flex gap-2">
         <Button
           type="button"
@@ -239,17 +240,7 @@ function MobileToolbar({
           className="text-destructive! border-destructive! hover:bg-destructive/10!"
         />
       </div>
-      <div className="flex gap-2">
-        <Button
-          type="button"
-          variant="ghost"
-          size="icon"
-          onClick={() => navigate(-1)}
-        >
-          <ArrowLeft className="h-4 w-4" />
-        </Button>
-        <SaveButton />
-      </div>
+      <SaveButton />
     </div>
   );
 }
