@@ -325,7 +325,7 @@ Modulo condiviso in `src/components/atomic-crm/invoicing/`:
   e palette colori allineati al PDF preventivo (header con logo, accent
   `#e94560`, tabella con header scuro, totale accent, note in box light,
   footer centrato); colonne totali con larghezze fisse per allineamento
-  a destra
+  a destra; P.IVA e CF emittente visibili nell'header (non solo footer)
 - nessuna scrittura DB: output solo di supporto operativo per compilazione
   Aruba
 

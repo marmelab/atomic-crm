@@ -303,14 +303,21 @@ const InvoiceDraftPdfDocument = ({
               {issuer.phone && (
                 <Text style={styles.brandDetail}>{issuer.phone}</Text>
               )}
+              {issuer.vatNumber && (
+                <Text style={styles.brandDetail}>
+                  P.IVA {issuer.vatNumber}
+                </Text>
+              )}
+              {issuer.fiscalCode && (
+                <Text style={styles.brandDetail}>
+                  CF {issuer.fiscalCode}
+                </Text>
+              )}
             </View>
           </View>
           <View>
             <Text style={styles.docLabel}>BOZZA</Text>
             <Text style={styles.docSubLabel}>FATTURA</Text>
-            <Text style={styles.docSubLabel}>
-              Data: {draft.invoiceDate ?? todayIsoDate()}
-            </Text>
           </View>
         </View>
 
@@ -332,11 +339,11 @@ const InvoiceDraftPdfDocument = ({
           </View>
           <View style={styles.infoBlock}>
             <Text style={styles.infoLabel}>Dati documento</Text>
-            <Text style={styles.infoText}>
+            <Text style={styles.infoBold}>
               Data: {draft.invoiceDate ?? todayIsoDate()}
             </Text>
             <Text style={styles.infoText}>
-              Origine: {draft.source.kind} - {draft.source.label}
+              Rif.: {draft.source.label}
             </Text>
           </View>
         </View>
