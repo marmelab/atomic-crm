@@ -68,7 +68,7 @@ export const QuoteEdit = ({ open, id }: { open: boolean; id?: string }) => {
               },
             }}
           >
-            <EditHeader />
+            <EditHeader isMobile={isMobile} />
             <Form>
               {desktopPreview ? (
                 <div className="flex gap-6 h-[calc(90vh-10rem)]">
@@ -111,24 +111,37 @@ export const QuoteEdit = ({ open, id }: { open: boolean; id?: string }) => {
                   <QuoteInputs />
                   <div
                     role="toolbar"
-                    className="sticky flex pt-4 pb-20 md:pb-0 bottom-0 bg-linear-to-b from-transparent to-card to-10% flex-row justify-between items-center"
+                    className="sticky flex pt-4 pb-20 md:pb-0 bottom-0 bg-linear-to-b from-transparent to-card to-10% flex-row justify-between items-center gap-2"
                   >
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      className="border-blue-500 text-blue-600 hover:bg-blue-50 dark:text-blue-400 dark:hover:bg-blue-950"
-                      onClick={() => setShowPreview((v) => !v)}
-                    >
-                      {showPreview ? (
-                        <EyeOff className="h-4 w-4 mr-1" />
-                      ) : (
-                        <Eye className="h-4 w-4 mr-1" />
-                      )}
-                      {showPreview ? "Nascondi anteprima" : "Anteprima"}
-                    </Button>
                     <div className="flex gap-2">
-                      <CancelButton />
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        className="border-blue-500 text-blue-600 hover:bg-blue-50 dark:text-blue-400 dark:hover:bg-blue-950 max-sm:[&>svg~*]:hidden max-sm:px-2"
+                        onClick={() => setShowPreview((v) => !v)}
+                      >
+                        {showPreview ? (
+                          <EyeOff className="h-4 w-4" />
+                        ) : (
+                          <Eye className="h-4 w-4" />
+                        )}
+                        <span>
+                          {showPreview
+                            ? "Nascondi anteprima"
+                            : "Anteprima"}
+                        </span>
+                      </Button>
+                      {isMobile && (
+                        <DeleteButton
+                          variant="outline"
+                          size="sm"
+                          className="max-sm:[&>svg~*]:hidden max-sm:px-2 text-destructive! border-destructive! hover:bg-destructive/10!"
+                        />
+                      )}
+                    </div>
+                    <div className="flex gap-2">
+                      <CancelButton className="cursor-pointer max-sm:[&>svg~*]:hidden max-sm:px-2" />
                       <SaveButton />
                     </div>
                   </div>
@@ -171,22 +184,26 @@ function MobilePreviewOverlay({ onClose }: { onClose: () => void }) {
   );
 }
 
-function EditHeader() {
+function EditHeader({ isMobile }: { isMobile: boolean }) {
   const quote = useRecordContext<Quote>();
   if (!quote) return null;
 
   return (
     <DialogTitle className="pb-0">
-      <div className="flex flex-col gap-3 sm:flex-row sm:justify-between sm:items-start mb-4 sm:mb-8">
+      <div className="flex justify-between items-start mb-4 sm:mb-8">
         <h2 className="text-xl sm:text-2xl font-semibold">
           Modifica preventivo
         </h2>
-        <div className="flex gap-2">
-          <DeleteButton variant="outline" size="sm" />
-          <Button asChild variant="outline" size="sm">
-            <Link to={`/quotes/${quote.id}/show`}>Torna al preventivo</Link>
-          </Button>
-        </div>
+        {!isMobile && (
+          <div className="flex gap-2">
+            <DeleteButton variant="outline" size="sm" />
+            <Button asChild variant="outline" size="sm">
+              <Link to={`/quotes/${quote.id}/show`}>
+                Torna al preventivo
+              </Link>
+            </Button>
+          </div>
+        )}
       </div>
     </DialogTitle>
   );
