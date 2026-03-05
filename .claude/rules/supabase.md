@@ -88,6 +88,21 @@ Per ogni nuova tabella o view reale:
 - non spostare logica semplice nel backend se puo' restare deterministica nel
   provider o nel DB
 
+### REGOLA CRITICA — config.toml per nuove Edge Functions
+
+Quando si crea una NUOVA Edge Function, aggiungere SUBITO la entry in
+`supabase/config.toml`:
+
+```toml
+[functions.nome_funzione]
+verify_jwt = false
+```
+
+Tutte le funzioni di questo progetto gestiscono l'auth internamente con JWKS
+(`_shared/authentication.ts`). Se manca la entry, il gateway Supabase (Kong)
+blocca il JWT PRIMA che la funzione possa gestirlo → 401 "Invalid JWT"
+sistematico. Non e' un errore intermittente: fallisce OGNI chiamata.
+
 ## Environment Variables
 
 Frontend:

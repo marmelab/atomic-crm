@@ -177,9 +177,19 @@ verify_jwt = false
 verify_jwt = false
 [functions.invoice_import_extract]
 verify_jwt = false
+[functions.invoice_import_confirm]
+verify_jwt = false
 [functions.unified_crm_answer]
 verify_jwt = false
 [functions.travel_route_estimate]
 verify_jwt = false
 [functions.travel_location_suggest]
+verify_jwt = false
+[functions.fiscal_deadline_check]
+verify_jwt = false
+[functions.workflow_notify]
+verify_jwt = false
+[functions.payment_reminder_send]
+verify_jwt = false
+[functions.postmark]
 verify_jwt = false

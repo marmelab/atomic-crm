@@ -8,6 +8,21 @@ prodotto.
 
 Last updated: 2026-03-05
 
+## Update 2026-03-05 (g) — Persist travel route on services + exhaustive invoice draft
+
+- Migration `20260305093131_add_service_travel_fields.sql`: aggiunge
+  `travel_origin`, `travel_destination`, `trip_mode` alla tabella `services`
+- `types.ts`: 3 campi opzionali sul type Service
+- `ServiceInputs.tsx`: il callback `onApply` del TravelRouteCalculatorDialog
+  ora persiste origine, destinazione e tipo tratta nel form
+- `buildInvoiceDraftFromService.ts`: descrizioni line item esaustive
+  - Riga servizio: `"{description} · {ServiceType} del {date range} · {location}"`
+  - Riga km: `"Rimborso chilometrico · {origin} – {destination} [A/R] · {km} × €{rate}/km"`
+  - Backward compatible: parti omesse quando i campi sono vuoti
+- `supabase/config.toml`: aggiunto `verify_jwt = false` per
+  `invoice_import_confirm` e altre 4 Edge Functions mancanti (fix bug "Invalid JWT")
+- 12 test unitari per buildInvoiceDraftFromService
+
 ## Update 2026-03-05 (f) — Gemini multi-row extraction fix
 
 - `invoice_import_extract/index.ts`: rafforzato il prompt Gemini per documenti

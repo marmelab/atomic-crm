@@ -75,10 +75,26 @@
 ---
 
 ### Trigger 6: Edge Function modificata
-**Situazione**: Tocco codice in `supabase/functions/`  
-**Azione automatica**: Ricordare che `git push` NON basta, serve `npx supabase functions deploy`  
-**Perché**: Altrimenti resta la vecchia versione in produzione  
+**Situazione**: Tocco codice in `supabase/functions/`
+**Azione automatica**: Ricordare che `git push` NON basta, serve `npx supabase functions deploy`
+**Perché**: Altrimenti resta la vecchia versione in produzione
 **Check**: Comunicare esplicitamente all'utente il dual-deploy necessario
+
+---
+
+### Trigger 8: Nuova Edge Function creata
+
+**Situazione**: Creo una NUOVA Edge Function in `supabase/functions/`
+**Azione automatica**: AGGIUNGERE IMMEDIATAMENTE la entry in `supabase/config.toml`:
+
+```toml
+[functions.nome_funzione]
+verify_jwt = false
+```
+**Perché**: Tutte le Edge Functions di questo progetto gestiscono l'auth internamente con JWKS (`_shared/authentication.ts`). Se manca la entry in `config.toml`, il gateway Supabase (Kong) applica il default `verify_jwt = true` e BLOCCA il JWT prima che la funzione possa gestirlo → errore "Invalid JWT" sistematico su OGNI chiamata.
+**Bug reale**: `invoice_import_confirm` ha dato 401 "Invalid JWT" su OGNI chiamata per settimane perché mancava dal `config.toml`. La funzione extract (stessa auth) funzionava perché era nel config.
+**Check obbligatorio**: Dopo aver creato la funzione, verificare che `grep "functions.nome_funzione" supabase/config.toml` trovi la entry. Se no, aggiungerla.
+**Fonte**: Sessione 2026-03-05, bug in produzione
 
 ---
 

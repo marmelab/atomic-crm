@@ -246,6 +246,16 @@ const ServiceKmInputs = () => {
               shouldDirty: true,
             });
 
+            setValue("travel_origin", estimate.originLabel, {
+              shouldDirty: true,
+            });
+            setValue("travel_destination", estimate.destinationLabel, {
+              shouldDirty: true,
+            });
+            setValue("trip_mode", estimate.tripMode, {
+              shouldDirty: true,
+            });
+
             const currentLocation = getValues("location");
             if (
               typeof currentLocation !== "string" ||

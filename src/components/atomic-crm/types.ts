@@ -169,6 +169,9 @@ export type Service = {
   discount: number;
   km_distance: number;
   km_rate: number;
+  travel_origin?: string | null;
+  travel_destination?: string | null;
+  trip_mode?: "one_way" | "round_trip" | null;
   location?: string;
   invoice_ref?: string;
   notes?: string;
