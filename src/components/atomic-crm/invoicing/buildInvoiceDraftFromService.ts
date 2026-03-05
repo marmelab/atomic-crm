@@ -17,7 +17,7 @@ const prettifyServiceType = (value: string) =>
  * Pattern: "{description} · {ServiceType} del {date range} · {location}"
  * Parts are omitted when the underlying field is empty/null.
  */
-const buildServiceLineDescription = (service: Service): string => {
+export const buildServiceLineDescription = (service: Service): string => {
   const parts: string[] = [];
 
   const serviceType = prettifyServiceType(service.service_type);
@@ -58,7 +58,7 @@ const formatKmRate = (rate: number) =>
  *   "Rimborso chilometrico · Catania – Agrigento A/R · 200 km × €0,40/km"
  *   "Rimborso chilometrico · 120 km × €0,19/km"  (no route data)
  */
-const buildKmLineDescription = (
+export const buildKmLineDescription = (
   service: Service,
   defaultKmRate: number,
 ): string => {

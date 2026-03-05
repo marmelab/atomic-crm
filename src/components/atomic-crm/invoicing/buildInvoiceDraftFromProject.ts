@@ -9,55 +9,10 @@ import type {
   InvoiceDraftLineItem,
 } from "./invoiceDraftTypes";
 import { getInvoiceDraftLineTotal } from "./invoiceDraftTypes";
-
-const prettifyServiceType = (value: string) =>
-  value.replaceAll("_", " ").replace(/\b\w/g, (char) => char.toUpperCase());
-
-const formatServiceDate = (value: string) => {
-  const date = new Date(value);
-  if (Number.isNaN(date.valueOf())) {
-    return value;
-  }
-
-  return date.toLocaleDateString("it-IT");
-};
-
-const buildGroupedProjectLineItems = (
-  services: Service[],
-): InvoiceDraftLineItem[] => {
-  const servicesByType = new Map<string, Service[]>();
-
-  services.forEach((service) => {
-    const current = servicesByType.get(service.service_type) ?? [];
-    current.push(service);
-    servicesByType.set(service.service_type, current);
-  });
-
-  return Array.from(servicesByType.entries()).flatMap(
-    ([serviceType, typeServices]) => {
-      const totalByType = typeServices.reduce(
-        (sum, service) => sum + calculateServiceNetValue(service),
-        0,
-      );
-
-      if (typeServices.length > 5) {
-        return [
-          {
-            description: `${prettifyServiceType(serviceType)} (${typeServices.length} interventi)`,
-            quantity: 1,
-            unitPrice: totalByType,
-          },
-        ];
-      }
-
-      return typeServices.map((service) => ({
-        description: `${prettifyServiceType(service.service_type)} del ${formatServiceDate(service.service_date)}`,
-        quantity: 1,
-        unitPrice: calculateServiceNetValue(service),
-      }));
-    },
-  );
-};
+import {
+  buildServiceLineDescription,
+  buildKmLineDescription,
+} from "./buildInvoiceDraftFromService";
 
 type DraftPayment = Pick<Payment, "amount" | "payment_type" | "status">;
 
@@ -89,28 +44,35 @@ export const buildInvoiceDraftFromProject = ({
         new Date(right.service_date).valueOf(),
     );
 
-  const lineItems = buildGroupedProjectLineItems(projectServices).filter(
-    (lineItem) => lineItem.unitPrice !== 0,
-  );
+  const lineItems: InvoiceDraftLineItem[] = projectServices.flatMap(
+    (service) => {
+      const items: InvoiceDraftLineItem[] = [];
 
-  const kmTotal = projectServices.reduce(
-    (sum, service) =>
-      sum +
-      calculateKmReimbursement({
+      const netValue = calculateServiceNetValue(service);
+      if (netValue > 0) {
+        items.push({
+          description: buildServiceLineDescription(service),
+          quantity: 1,
+          unitPrice: netValue,
+        });
+      }
+
+      const kmValue = calculateKmReimbursement({
         kmDistance: service.km_distance,
         kmRate: service.km_rate,
         defaultKmRate,
-      }),
-    0,
-  );
+      });
+      if (kmValue > 0) {
+        items.push({
+          description: buildKmLineDescription(service, defaultKmRate),
+          quantity: 1,
+          unitPrice: kmValue,
+        });
+      }
 
-  if (kmTotal > 0) {
-    lineItems.push({
-      description: "Rimborsi chilometrici progetto",
-      quantity: 1,
-      unitPrice: kmTotal,
-    });
-  }
+      return items;
+    },
+  );
 
   const receivedTotal = payments
     .filter((p) => p.status === "ricevuto")

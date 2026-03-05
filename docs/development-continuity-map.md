@@ -21,7 +21,12 @@ Last updated: 2026-03-05
   - Backward compatible: parti omesse quando i campi sono vuoti
 - `supabase/config.toml`: aggiunto `verify_jwt = false` per
   `invoice_import_confirm` e altre 4 Edge Functions mancanti (fix bug "Invalid JWT")
-- 12 test unitari per buildInvoiceDraftFromService
+- `buildInvoiceDraftFromProject.ts`: allineato — ogni servizio ha la sua riga
+  dettagliata (non piu' raggruppamento per tipo) + riga km per servizio
+- `buildInvoiceDraftFromClient.ts`: allineato — per-service detail con prefisso
+  progetto al posto di righe aggregate "Servizi" / "Rimborsi chilometrici"
+- `buildServiceLineDescription` e `buildKmLineDescription` esportati per riuso
+- 25 test unitari totali sui 4 builder invoice draft
 
 ## Update 2026-03-05 (f) — Gemini multi-row extraction fix
 

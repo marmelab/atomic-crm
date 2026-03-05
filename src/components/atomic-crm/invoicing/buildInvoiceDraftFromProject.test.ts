@@ -68,7 +68,7 @@ describe("buildInvoiceDraftFromProject", () => {
     );
   });
 
-  it("groups same-type services when there are more than five", () => {
+  it("lists each service individually even when many share the same type", () => {
     const draft = buildInvoiceDraftFromProject({
       project: baseProject,
       client: baseClient,
@@ -81,16 +81,12 @@ describe("buildInvoiceDraftFromProject", () => {
       ),
     });
 
-    expect(draft.lineItems).toEqual([
-      {
-        description: "Riprese (6 interventi)",
-        quantity: 1,
-        unitPrice: 600,
-      },
-    ]);
+    expect(draft.lineItems).toHaveLength(6);
+    expect(draft.lineItems[0].description).toBe("Riprese del 10/01/2026");
+    expect(draft.lineItems[5].description).toBe("Riprese del 15/01/2026");
   });
 
-  it("adds an aggregated km reimbursement line for project services", () => {
+  it("adds per-service km reimbursement lines", () => {
     const draft = buildInvoiceDraftFromProject({
       project: baseProject,
       client: baseClient,
@@ -109,11 +105,17 @@ describe("buildInvoiceDraftFromProject", () => {
       ],
     });
 
-    expect(draft.lineItems).toHaveLength(3);
-    expect(draft.lineItems[2]).toEqual({
-      description: "Rimborsi chilometrici progetto",
+    // s1: service line + km line, s2: service line + km line, s3 excluded (different project)
+    expect(draft.lineItems).toHaveLength(4);
+    expect(draft.lineItems[1]).toEqual({
+      description: "Rimborso chilometrico · 10 km × €0,20/km",
       quantity: 1,
-      unitPrice: 3,
+      unitPrice: 2,
+    });
+    expect(draft.lineItems[3]).toEqual({
+      description: "Rimborso chilometrico · 5 km × €0,20/km",
+      quantity: 1,
+      unitPrice: 1,
     });
   });
 

@@ -8,6 +8,10 @@ import {
   type InvoiceDraftInput,
   type InvoiceDraftLineItem,
 } from "./invoiceDraftTypes";
+import {
+  buildServiceLineDescription,
+  buildKmLineDescription,
+} from "./buildInvoiceDraftFromService";
 
 const PROJECTLESS_KEY = "__client_level__";
 
@@ -60,37 +64,36 @@ export const buildInvoiceDraftFromClient = ({
 
   grouped.forEach((groupServices, projectId) => {
     const projectLabel = getProjectLabel({ projectId, projectsById });
-    const netTotal = groupServices.reduce(
-      (sum, service) => sum + calculateServiceNetValue(service),
-      0,
+
+    const sorted = [...groupServices].sort(
+      (a, b) =>
+        new Date(a.service_date).valueOf() -
+        new Date(b.service_date).valueOf(),
     );
 
-    if (netTotal !== 0) {
-      lineItems.push({
-        description: `${projectLabel} · Servizi`,
-        quantity: 1,
-        unitPrice: netTotal,
-      });
-    }
+    sorted.forEach((service) => {
+      const netValue = calculateServiceNetValue(service);
+      if (netValue > 0) {
+        lineItems.push({
+          description: `${projectLabel} · ${buildServiceLineDescription(service)}`,
+          quantity: 1,
+          unitPrice: netValue,
+        });
+      }
 
-    const kmTotal = groupServices.reduce(
-      (sum, service) =>
-        sum +
-        calculateKmReimbursement({
-          kmDistance: service.km_distance,
-          kmRate: service.km_rate,
-          defaultKmRate,
-        }),
-      0,
-    );
-
-    if (kmTotal > 0) {
-      lineItems.push({
-        description: `${projectLabel} · Rimborsi chilometrici`,
-        quantity: 1,
-        unitPrice: kmTotal,
+      const kmValue = calculateKmReimbursement({
+        kmDistance: service.km_distance,
+        kmRate: service.km_rate,
+        defaultKmRate,
       });
-    }
+      if (kmValue > 0) {
+        lineItems.push({
+          description: `${projectLabel} · ${buildKmLineDescription(service, defaultKmRate)}`,
+          quantity: 1,
+          unitPrice: kmValue,
+        });
+      }
+    });
   });
 
   return {

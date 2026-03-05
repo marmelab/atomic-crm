@@ -93,22 +93,22 @@ describe("buildInvoiceDraftFromClient", () => {
     expect(draft.lineItems).toEqual(
       expect.arrayContaining([
         {
-          description: "Progetto 1 · Servizi",
+          description: "Progetto 1 · Riprese del 10/01/2026",
           quantity: 1,
           unitPrice: 100,
         },
         {
-          description: "Progetto 2 · Servizi",
+          description: "Progetto 2 · Riprese del 10/01/2026",
           quantity: 1,
           unitPrice: 200,
         },
         {
-          description: "Progetto 2 · Rimborsi chilometrici",
+          description: "Progetto 2 · Rimborso chilometrico · 10 km × €0,20/km",
           quantity: 1,
           unitPrice: 2,
         },
         {
-          description: "Servizi senza progetto · Servizi",
+          description: "Servizi senza progetto · Riprese del 10/01/2026",
           quantity: 1,
           unitPrice: 50,
         },
