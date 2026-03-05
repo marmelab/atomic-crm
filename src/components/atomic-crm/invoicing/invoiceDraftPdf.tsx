@@ -179,14 +179,18 @@ const styles = StyleSheet.create({
     gap: 16,
   },
   totalLabel: {
+    width: 120,
     fontSize: 12,
     fontFamily: "Helvetica-Bold",
     color: colors.primary,
+    textAlign: "right" as const,
   },
   totalAmount: {
+    width: 80,
     fontSize: 14,
     fontFamily: "Helvetica-Bold",
     color: colors.accent,
+    textAlign: "right" as const,
   },
   subtotalRow: {
     flexDirection: "row",
@@ -196,11 +200,13 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   subtotalLabel: {
+    width: 120,
     fontSize: 10,
     color: colors.muted,
     textAlign: "right" as const,
   },
   subtotalValue: {
+    width: 80,
     fontSize: 10,
     textAlign: "right" as const,
   },

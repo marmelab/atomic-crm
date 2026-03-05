@@ -324,7 +324,8 @@ Modulo condiviso in `src/components/atomic-crm/invoicing/`:
 - generazione PDF con watermark "BOZZA - NON VALIDA AI FINI FISCALI"; layout
   e palette colori allineati al PDF preventivo (header con logo, accent
   `#e94560`, tabella con header scuro, totale accent, note in box light,
-  footer centrato)
+  footer centrato); colonne totali con larghezze fisse per allineamento
+  a destra
 - nessuna scrittura DB: output solo di supporto operativo per compilazione
   Aruba
 

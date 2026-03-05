@@ -356,6 +356,10 @@
           "type": "registry:component"
         },
         {
+          "path": "src/components/atomic-crm/quotes/QuoteCardPDFPreview.tsx",
+          "type": "registry:component"
+        },
+        {
           "path": "src/components/atomic-crm/quotes/QuoteCardActions.tsx",
           "type": "registry:component"
         },
