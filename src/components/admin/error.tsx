@@ -34,68 +34,42 @@ export const Error = (props: InternalErrorProps & {}) => {
         : String(error ?? "Errore sconosciuto");
 
   return (
-    <div className="flex flex-col items-center md:p-16 gap-5" {...rest}>
-      <h1 className="flex items-center text-3xl mt-5 mb-5 gap-3" role="alert">
-        <CircleAlert className="w-2em h-2em" />
+    <div
+      className="flex flex-col items-center px-4 py-8 md:p-16 gap-5"
+      {...rest}
+    >
+      <h1
+        className="flex items-center text-2xl md:text-3xl mt-2 md:mt-5 mb-3 md:mb-5 gap-3"
+        role="alert"
+      >
+        <CircleAlert className="w-6 h-6 md:w-8 md:h-8 shrink-0" />
         <Translate i18nKey="ra.page.error" />
       </h1>
-      <div>
+      <div className="text-sm md:text-base text-center">
         <Translate i18nKey="ra.message.error" />
       </div>
-      {process.env.NODE_ENV !== "production" && (
-        <>
-          <Accordion
-            type="multiple"
-            className="mt-1 p-2 bg-secondary w-full lg:w-150"
-          >
-            <AccordionItem value="error">
-              <AccordionTrigger className="py-2">
-                <Translate i18nKey={errorMessage}>{errorMessage}</Translate>
-              </AccordionTrigger>
-              <AccordionContent className="whitespace-pre-wrap pt-1">
-                <pre className="text-xls">{errorInfo?.componentStack}</pre>
-              </AccordionContent>
-            </AccordionItem>
-          </Accordion>
+      <Accordion
+        type="multiple"
+        className="mt-1 p-2 bg-secondary w-full lg:w-150"
+      >
+        <AccordionItem value="error">
+          <AccordionTrigger className="py-2 text-left text-sm">
+            <Translate i18nKey={errorMessage}>{errorMessage}</Translate>
+          </AccordionTrigger>
+          <AccordionContent className="whitespace-pre-wrap pt-1 overflow-x-auto">
+            {errorInfo?.componentStack && (
+              <pre className="text-xs">{errorInfo.componentStack}</pre>
+            )}
+          </AccordionContent>
+        </AccordionItem>
+      </Accordion>
 
-          <p className="text-center ">
-            Hai bisogno di aiuto con questo errore? Prova quanto segue:
-          </p>
-          <div>
-            <ul className="list-disc">
-              <li>
-                Consulta la{" "}
-                <a
-                  className="text-primary underline-offset-4 hover:underline"
-                  href="https://marmelab.com/shadcn-admin-kit/docs"
-                >
-                  documentazione shadcn-admin-kit
-                </a>
-              </li>
-              <li>
-                Cerca su{" "}
-                <a
-                  className="text-primary underline-offset-4 hover:underline"
-                  href="https://stackoverflow.com/questions/tagged/shadcn-admin-kit"
-                >
-                  StackOverflow
-                </a>{" "}
-                risposte della community
-              </li>
-              <li>
-                Ottieni aiuto dal team core tramite{" "}
-                <a
-                  className="text-primary underline-offset-4 hover:underline"
-                  href="https://marmelab.com/shadcn-admin-kit/"
-                >
-                  Shadcn Enterprise Edition
-                </a>
-              </li>
-            </ul>
-          </div>
-        </>
-      )}
-      <div className="mt-8">
+      <p className="text-center text-sm text-muted-foreground">
+        Prova a ricaricare la pagina o a tornare indietro.
+        <br />
+        Se il problema persiste, contatta l&apos;amministratore.
+      </p>
+      <div className="mt-4 md:mt-8">
         <Button onClick={goBack}>
           <History />
           <Translate i18nKey="ra.action.back" />

@@ -280,6 +280,10 @@
           "type": "registry:component"
         },
         {
+          "path": "src/components/atomic-crm/quotes/quoteServiceStyles.ts",
+          "type": "registry:component"
+        },
+        {
           "path": "src/components/atomic-crm/quotes/quoteServiceLinking.ts",
           "type": "registry:component"
         },
@@ -325,6 +329,14 @@
         },
         {
           "path": "src/components/atomic-crm/quotes/QuotePDF.tsx",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/quotes/QuoteMobileList.tsx",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/quotes/QuoteMobileCard.tsx",
           "type": "registry:component"
         },
         {
