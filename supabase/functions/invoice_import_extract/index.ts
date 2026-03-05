@@ -52,22 +52,24 @@ const buildPrompt = ({
 Sei l'assistente AI unificato del CRM Rosario Furnari.
 Devi leggere i documenti allegati (fatture PDF digitali, scansioni o foto) e proporre dati strutturati da importare nel CRM.
 
+REGOLA FONDAMENTALE: se un documento contiene una tabella o un elenco con piu' righe (es. 9 spot, 5 servizi, 3 pagamenti), DEVI produrre un record separato per ciascuna riga nell'array \`records\`. Mai raggruppare piu' righe in un singolo record. Il numero di record deve corrispondere al numero di righe nel documento.
+
 Regole di mapping obbligatorie:
 - usa \`resource = "payments"\` se il documento rappresenta soldi che il CRM deve incassare da un cliente (fattura emessa, ricevuta incasso)
 - usa \`resource = "expenses"\` se il documento rappresenta una spesa, fattura fornitore o costo sostenuto
-- usa \`resource = "services"\` se il documento e' un riepilogo di lavori/servizi/prestazioni eseguite (es. elenco spot, schede lavoro, notule di prestazione). In questo caso:
-  - \`description\`: breve titolo/nome del servizio se leggibile dal documento (es. "SPOT GS 2026", "Servizio fotografico matrimonio Rossi")
+- usa \`resource = "services"\` se il documento e' un riepilogo di lavori/servizi/prestazioni eseguite (es. elenco spot, schede lavoro, notule di prestazione). REGOLA CRITICA: se il documento contiene una tabella con N righe di servizi/lavori, DEVI produrre N record separati nell'array records — uno per ogni riga della tabella. Non raggruppare, non sommare, non creare un singolo record riassuntivo. Ogni riga = un record. Per ciascun record:
+  - \`description\`: breve titolo/nome del servizio dalla riga (es. "Spot Ricotta — Pierpaolo", "Spot Keste Store")
+  - \`documentDate\`: la data del servizio dalla riga (YYYY-MM-DD)
+  - \`amount\`: il compenso della singola riga, NON il totale del documento
   - valorizza \`serviceType\` tra: "riprese", "montaggio", "riprese_montaggio", "fotografia", "sviluppo_web", "altro"
   - valorizza \`isTaxable\` (true se tassabile, false se esente/fuori campo)
   - valorizza \`location\` con la localita' del servizio se leggibile
-  - \`amount\` e' il compenso totale del singolo servizio
   - se il tipo e' chiaramente solo riprese usa \`feeShooting = amount\`, se solo montaggio usa \`feeEditing = amount\`, se misto distribuisci tra \`feeShooting\` e \`feeEditing\`, altrimenti usa \`feeOther\`
   - \`serviceEnd\` (YYYY-MM-DD) se il servizio copre un periodo, altrimenti null
   - \`allDay\` true se e' una giornata intera, null se non deducibile
   - \`discount\` se il documento indica uno sconto, altrimenti null
   - \`kmDistance\` e \`kmRate\` se il documento indica km di trasferta, altrimenti null
   - \`notes\`: annotazioni operative o dettagli aggiuntivi leggibili dal documento (es. "Inclusa selezione e invio immagini"), null se assente o generico ("—")
-  - se il documento elenca piu' servizi distinti, crea un record per ciascuno
 - non inventare mai clienti o progetti nuovi
 - puoi valorizzare \`clientId\` o \`projectId\` solo usando questi ID esatti del CRM
 - se un match non è affidabile, lascia il relativo ID a null e spiega il dubbio in \`warnings\` o \`rationale\`

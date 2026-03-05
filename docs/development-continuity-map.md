@@ -8,6 +8,15 @@ prodotto.
 
 Last updated: 2026-03-05
 
+## Update 2026-03-05 (f) — Gemini multi-row extraction fix
+
+- `invoice_import_extract/index.ts`: rafforzato il prompt Gemini per documenti
+  tabulari multi-riga (es. elenco spot). Regola fondamentale in cima +
+  istruzione critica nella sezione services: ogni riga della tabella = un
+  record separato, mai raggruppare in un singolo record riassuntivo
+- description ora usa il titolo dalla riga, non dal documento intero
+- documentDate e amount sono per singola riga
+
 ## Update 2026-03-05 (e) — Gemini extraction prompt: notes per servizi
 
 - `invoice_import_extract/index.ts`: aggiunta istruzione esplicita per estrarre

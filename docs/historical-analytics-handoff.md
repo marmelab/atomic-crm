@@ -8,6 +8,11 @@ prodotto senza incrociarlo con `docs/README.md` e i documenti `canonical`.
 
 Last updated: 2026-03-05
 
+## Update 2026-03-05 (Gemini multi-row extraction fix)
+
+- Prompt rinforzato: documenti tabulari con N righe devono produrre N record
+  separati. Gemini tendeva a raggruppare in un singolo record riassuntivo
+
 ## Update 2026-03-05 (Gemini extraction prompt: notes per servizi)
 
 - Prompt Gemini per import servizi ora include istruzione esplicita per `notes`

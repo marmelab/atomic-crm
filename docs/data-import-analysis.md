@@ -14,7 +14,9 @@ di tutte le fatture o l'anagrafica clienti completa. Per quello usare
 **Stato:** Dati estratti e VALIDATI con Rosario
 
 **Nota 2026-03-05:** il prompt Gemini per l'estrazione servizi ora include
-istruzione esplicita per il campo `notes` (annotazioni operative dal documento).
+istruzione esplicita per il campo `notes` (annotazioni operative dal documento)
+e regola critica per documenti tabulari multi-riga: ogni riga = un record
+separato (testato su SPOT GS 2026.pdf con 9 servizi).
 
 **Aggiornato:** con risposte di Rosario + nuove tariffe 2025/2026
 
