@@ -82,8 +82,8 @@ export const AiInvoiceImportView = ({
           <p className="text-sm font-medium">Importa fatture e ricevute</p>
           <p className="text-sm text-muted-foreground">
             Carica PDF, scansioni o foto. L&apos;AI prepara una bozza
-            strutturata per incassi o spese, che puoi correggere prima della
-            conferma.
+            strutturata per incassi, spese o servizi, che puoi correggere
+            prima della conferma.
           </p>
         </div>
       </div>
@@ -267,8 +267,13 @@ export const AiInvoiceImportView = ({
         <ul className="mt-2 list-disc space-y-1 pl-5">
           {confirmation.created.map((item) => (
             <li key={`${item.resource}-${item.id}`}>
-              {item.resource === "payments" ? "Pagamento" : "Spesa"} creat
-              {item.resource === "payments" ? "o" : "a"} con ID{" "}
+              {item.resource === "payments"
+                ? "Pagamento"
+                : item.resource === "services"
+                  ? "Servizio"
+                  : "Spesa"}{" "}
+              creat
+              {item.resource === "expenses" ? "a" : "o"} con ID{" "}
               {String(item.id)}
               {item.invoiceRef ? ` · rif. ${item.invoiceRef}` : ""}
             </li>

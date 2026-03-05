@@ -117,7 +117,8 @@ The approved execution policy is now explicit:
   - not approved
 
 Today the only shipped AI-assisted write flow is invoice import, and it still
-requires explicit confirmation before creating `payments` or `expenses`.
+requires explicit confirmation before creating `payments`, `expenses`, or
+`services`.
 
 ## Non-Negotiable Rules
 

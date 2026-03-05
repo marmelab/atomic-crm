@@ -14,7 +14,15 @@ const expenseTypes = new Set([
   "credito_ricevuto",
   "altro",
 ]);
-const resources = new Set(["payments", "expenses"]);
+const serviceTypes = new Set([
+  "riprese",
+  "montaggio",
+  "riprese_montaggio",
+  "fotografia",
+  "sviluppo_web",
+  "altro",
+]);
+const resources = new Set(["payments", "expenses", "services"]);
 const confidences = new Set(["high", "medium", "low"]);
 const documentTypes = new Set([
   "customer_invoice",
@@ -56,7 +64,7 @@ export const invoiceImportResponseJsonSchema = {
           },
           resource: {
             type: "string",
-            enum: ["payments", "expenses"],
+            enum: ["payments", "expenses", "services"],
           },
           confidence: {
             type: "string",
@@ -123,6 +131,28 @@ export const invoiceImportResponseJsonSchema = {
             ],
           },
           description: { type: ["string", "null"] },
+          serviceType: {
+            type: ["string", "null"],
+            enum: [
+              "riprese",
+              "montaggio",
+              "riprese_montaggio",
+              "fotografia",
+              "sviluppo_web",
+              "altro",
+              null,
+            ],
+          },
+          isTaxable: { type: ["boolean", "null"] },
+          feeShooting: { type: ["number", "null"] },
+          feeEditing: { type: ["number", "null"] },
+          feeOther: { type: ["number", "null"] },
+          serviceEnd: { type: ["string", "null"] },
+          allDay: { type: ["boolean", "null"] },
+          discount: { type: ["number", "null"] },
+          kmDistance: { type: ["number", "null"] },
+          kmRate: { type: ["number", "null"] },
+          location: { type: ["string", "null"] },
         },
         required: ["sourceFileNames", "resource", "confidence", "documentType"],
       },
@@ -303,6 +333,40 @@ export const parseInvoiceImportModelResponse = ({
       expenseType: normalizeOptionalEnum(record.expenseType, expenseTypes),
       description:
         typeof record.description === "string" ? record.description : null,
+      serviceType: normalizeOptionalEnum(record.serviceType, serviceTypes),
+      isTaxable:
+        typeof record.isTaxable === "boolean" ? record.isTaxable : null,
+      feeShooting:
+        typeof record.feeShooting === "number" &&
+        Number.isFinite(record.feeShooting)
+          ? record.feeShooting
+          : null,
+      feeEditing:
+        typeof record.feeEditing === "number" &&
+        Number.isFinite(record.feeEditing)
+          ? record.feeEditing
+          : null,
+      feeOther:
+        typeof record.feeOther === "number" && Number.isFinite(record.feeOther)
+          ? record.feeOther
+          : null,
+      serviceEnd:
+        typeof record.serviceEnd === "string" ? record.serviceEnd : null,
+      allDay: typeof record.allDay === "boolean" ? record.allDay : null,
+      discount:
+        typeof record.discount === "number" && Number.isFinite(record.discount)
+          ? record.discount
+          : null,
+      kmDistance:
+        typeof record.kmDistance === "number" &&
+        Number.isFinite(record.kmDistance)
+          ? record.kmDistance
+          : null,
+      kmRate:
+        typeof record.kmRate === "number" && Number.isFinite(record.kmRate)
+          ? record.kmRate
+          : null,
+      location: typeof record.location === "string" ? record.location : null,
     })),
   };
 };

@@ -14,7 +14,15 @@ const expenseTypes = new Set([
   "credito_ricevuto",
   "altro",
 ]);
-const resources = new Set(["payments", "expenses"]);
+const serviceTypes = new Set([
+  "riprese",
+  "montaggio",
+  "riprese_montaggio",
+  "fotografia",
+  "sviluppo_web",
+  "altro",
+]);
+const resources = new Set(["payments", "expenses", "services"]);
 const confidences = new Set(["high", "medium", "low"]);
 const documentTypes = new Set([
   "customer_invoice",
@@ -61,7 +69,7 @@ const normalizeOptionalNumber = (value: unknown) => {
 export type InvoiceImportConfirmRecord = {
   id: string;
   sourceFileNames: string[];
-  resource: "payments" | "expenses";
+  resource: "payments" | "expenses" | "services";
   confidence: "high" | "medium" | "low";
   documentType: "customer_invoice" | "supplier_invoice" | "receipt" | "unknown";
   rationale?: string | null;
@@ -102,6 +110,24 @@ export type InvoiceImportConfirmRecord = {
     | "altro"
     | null;
   description?: string | null;
+  serviceType?:
+    | "riprese"
+    | "montaggio"
+    | "riprese_montaggio"
+    | "fotografia"
+    | "sviluppo_web"
+    | "altro"
+    | null;
+  isTaxable?: boolean | null;
+  feeShooting?: number | null;
+  feeEditing?: number | null;
+  feeOther?: number | null;
+  serviceEnd?: string | null;
+  allDay?: boolean | null;
+  discount?: number | null;
+  kmDistance?: number | null;
+  kmRate?: number | null;
+  location?: string | null;
 };
 
 export type InvoiceImportConfirmDraft = {
@@ -140,6 +166,7 @@ export const normalizeInvoiceImportConfirmRecord = (
       (normalizeOptionalEnum(normalizedRecord.resource, resources) as
         | "payments"
         | "expenses"
+        | "services"
         | null) ?? "expenses",
     confidence:
       (normalizeOptionalEnum(normalizedRecord.confidence, confidences) as
@@ -212,6 +239,31 @@ export const normalizeInvoiceImportConfirmRecord = (
         | "altro"
         | null) ?? "acquisto_materiale",
     description: normalizeOptionalString(normalizedRecord.description),
+    serviceType:
+      (normalizeOptionalEnum(normalizedRecord.serviceType, serviceTypes) as
+        | "riprese"
+        | "montaggio"
+        | "riprese_montaggio"
+        | "fotografia"
+        | "sviluppo_web"
+        | "altro"
+        | null) ?? "altro",
+    isTaxable:
+      typeof normalizedRecord.isTaxable === "boolean"
+        ? normalizedRecord.isTaxable
+        : true,
+    feeShooting: normalizeOptionalNumber(normalizedRecord.feeShooting) ?? 0,
+    feeEditing: normalizeOptionalNumber(normalizedRecord.feeEditing) ?? 0,
+    feeOther: normalizeOptionalNumber(normalizedRecord.feeOther) ?? 0,
+    serviceEnd: normalizeOptionalString(normalizedRecord.serviceEnd),
+    allDay:
+      typeof normalizedRecord.allDay === "boolean"
+        ? normalizedRecord.allDay
+        : true,
+    discount: normalizeOptionalNumber(normalizedRecord.discount) ?? 0,
+    kmDistance: normalizeOptionalNumber(normalizedRecord.kmDistance) ?? 0,
+    kmRate: normalizeOptionalNumber(normalizedRecord.kmRate) ?? 0,
+    location: normalizeOptionalString(normalizedRecord.location),
   };
 };
 
@@ -280,6 +332,19 @@ export const getInvoiceImportConfirmValidationErrors = (
 
   if (record.resource === "expenses" && !record.expenseType) {
     errors.push("tipo spesa");
+  }
+
+  if (record.resource === "services") {
+    if (!record.serviceType) {
+      errors.push("tipo servizio");
+    }
+    const totalFee =
+      (record.feeShooting ?? 0) +
+      (record.feeEditing ?? 0) +
+      (record.feeOther ?? 0);
+    if (totalFee <= 0 && (record.amount == null || record.amount <= 0)) {
+      errors.push("almeno un compenso");
+    }
   }
 
   if (workspace && record.clientId) {

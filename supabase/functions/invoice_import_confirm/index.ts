@@ -122,6 +122,82 @@ const ensureNoDuplicateExpense = async ({
   }
 };
 
+/**
+ * Resolve service fees: use explicit fees from the record when available,
+ * otherwise fall back to splitting the total amount based on service type.
+ */
+const resolveServiceFees = (
+  record: InvoiceImportConfirmRecord,
+): { feeShooting: number; feeEditing: number; feeOther: number } => {
+  const explicit = {
+    feeShooting: record.feeShooting ?? 0,
+    feeEditing: record.feeEditing ?? 0,
+    feeOther: record.feeOther ?? 0,
+  };
+  const explicitTotal =
+    explicit.feeShooting + explicit.feeEditing + explicit.feeOther;
+
+  if (explicitTotal > 0) {
+    return explicit;
+  }
+
+  // Fallback: split amount by service type
+  const amount = Number(record.amount ?? 0);
+  const serviceType = record.serviceType ?? "altro";
+
+  switch (serviceType) {
+    case "riprese":
+      return { feeShooting: amount, feeEditing: 0, feeOther: 0 };
+    case "montaggio":
+      return { feeShooting: 0, feeEditing: amount, feeOther: 0 };
+    case "riprese_montaggio":
+      return {
+        feeShooting: Math.round((amount / 2) * 100) / 100,
+        feeEditing: Math.round((amount / 2) * 100) / 100,
+        feeOther: 0,
+      };
+    default:
+      return { feeShooting: 0, feeEditing: 0, feeOther: amount };
+  }
+};
+
+const ensureNoDuplicateService = async ({
+  trx,
+  record,
+}: {
+  trx: any;
+  record: InvoiceImportConfirmRecord;
+}) => {
+  if (!record.documentDate) {
+    return;
+  }
+
+  const { feeShooting, feeEditing, feeOther } = resolveServiceFees(record);
+
+  const existing = await trx
+    .selectFrom("services")
+    .select(["id"])
+    .where("service_date", "=", record.documentDate)
+    .where("service_type", "=", record.serviceType ?? "altro")
+    .where("fee_shooting", "=", feeShooting)
+    .where("fee_editing", "=", feeEditing)
+    .where("fee_other", "=", feeOther)
+    .where(
+      sql<boolean>`project_id is not distinct from ${record.projectId ?? null}`,
+    )
+    .where(
+      sql<boolean>`client_id is not distinct from ${record.clientId ?? null}`,
+    )
+    .executeTakeFirst();
+
+  if (existing) {
+    throw new InvoiceImportConfirmError(
+      409,
+      `Esiste gia un servizio identico per la data ${record.documentDate}.`,
+    );
+  }
+};
+
 const confirmInvoiceImportDraft = async ({
   req,
   userId,
@@ -154,7 +230,7 @@ const confirmInvoiceImportDraft = async ({
 
       const workspace = await getWorkspace(trx);
       const created: Array<{
-        resource: "payments" | "expenses";
+        resource: "payments" | "expenses" | "services";
         id: string;
         invoiceRef?: string | null;
         amount?: number | null;
@@ -203,6 +279,48 @@ const confirmInvoiceImportDraft = async ({
           created.push({
             resource: "payments",
             id: insertedPayment.id,
+            invoiceRef: record.invoiceRef ?? null,
+            amount: record.amount,
+          });
+          continue;
+        }
+
+        if (record.resource === "services") {
+          await ensureNoDuplicateService({ trx, record });
+
+          const { feeShooting, feeEditing, feeOther } =
+            resolveServiceFees(record);
+
+          const insertedService = await trx
+            .insertInto("services")
+            .values({
+              client_id: record.clientId ?? null,
+              project_id: record.projectId ?? null,
+              service_date: record.documentDate!,
+              service_end: record.serviceEnd ?? null,
+              all_day: record.allDay ?? true,
+              is_taxable: record.isTaxable ?? true,
+              service_type: record.serviceType ?? "altro",
+              fee_shooting: feeShooting,
+              fee_editing: feeEditing,
+              fee_other: feeOther,
+              discount: record.discount ?? 0,
+              km_distance: record.kmDistance ?? 0,
+              km_rate: record.kmRate ?? 0,
+              location: record.location ?? null,
+              invoice_ref: record.invoiceRef ?? null,
+              notes:
+                buildInvoiceImportConfirmNotes({
+                  record,
+                  model: payloadResult.data.draft.model,
+                }) || null,
+            })
+            .returning(["id"])
+            .executeTakeFirstOrThrow();
+
+          created.push({
+            resource: "services",
+            id: insertedService.id,
             invoiceRef: record.invoiceRef ?? null,
             amount: record.amount,
           });

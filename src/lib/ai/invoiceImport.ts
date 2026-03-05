@@ -6,6 +6,7 @@ import type {
   Expense,
   Payment,
   Project,
+  Service,
 } from "@/components/atomic-crm/types";
 import { getContactDisplayName } from "@/components/atomic-crm/contacts/contactRecord";
 
@@ -55,7 +56,7 @@ export type InvoiceImportBillingProfileDraft = {
 export type InvoiceImportRecordDraft = {
   id: string;
   sourceFileNames: string[];
-  resource: "payments" | "expenses";
+  resource: "payments" | "expenses" | "services";
   confidence: "high" | "medium" | "low";
   documentType: "customer_invoice" | "supplier_invoice" | "receipt" | "unknown";
   rationale?: string | null;
@@ -73,6 +74,17 @@ export type InvoiceImportRecordDraft = {
   paymentStatus?: Payment["status"] | null;
   expenseType?: Expense["expense_type"] | null;
   description?: string | null;
+  serviceType?: Service["service_type"] | null;
+  isTaxable?: boolean | null;
+  feeShooting?: number | null;
+  feeEditing?: number | null;
+  feeOther?: number | null;
+  serviceEnd?: string | null;
+  allDay?: boolean | null;
+  discount?: number | null;
+  kmDistance?: number | null;
+  kmRate?: number | null;
+  location?: string | null;
 } & InvoiceImportBillingProfileDraft;
 
 export type InvoiceImportDraft = {
@@ -91,7 +103,7 @@ export type GenerateInvoiceImportDraftRequest = {
 
 export type InvoiceImportConfirmation = {
   created: Array<{
-    resource: "payments" | "expenses";
+    resource: "payments" | "expenses" | "services";
     id: Identifier;
     invoiceRef?: string | null;
     amount?: number | null;
@@ -133,6 +145,29 @@ const defaultExpenseDraft: Pick<InvoiceImportRecordDraft, "expenseType"> = {
   expenseType: "acquisto_materiale",
 };
 
+const defaultServiceDraft: Pick<
+  InvoiceImportRecordDraft,
+  | "serviceType"
+  | "isTaxable"
+  | "feeShooting"
+  | "feeEditing"
+  | "feeOther"
+  | "allDay"
+  | "discount"
+  | "kmDistance"
+  | "kmRate"
+> = {
+  serviceType: "altro",
+  isTaxable: true,
+  feeShooting: 0,
+  feeEditing: 0,
+  feeOther: 0,
+  allDay: true,
+  discount: 0,
+  kmDistance: 0,
+  kmRate: 0,
+};
+
 export const normalizeInvoiceImportRecord = (
   record: InvoiceImportRecordDraft,
 ): InvoiceImportRecordDraft => {
@@ -148,6 +183,7 @@ export const normalizeInvoiceImportRecord = (
   return {
     ...defaultPaymentDraft,
     ...defaultExpenseDraft,
+    ...defaultServiceDraft,
     ...record,
     sourceFileNames: record.sourceFileNames ?? [],
     confidence: record.confidence ?? "medium",
@@ -204,6 +240,19 @@ export const getInvoiceImportRecordValidationErrors = (
 
   if (normalized.resource === "expenses" && !normalized.expenseType) {
     errors.push("tipo spesa");
+  }
+
+  if (normalized.resource === "services") {
+    if (!normalized.serviceType) {
+      errors.push("tipo servizio");
+    }
+    const totalFee =
+      (normalized.feeShooting ?? 0) +
+      (normalized.feeEditing ?? 0) +
+      (normalized.feeOther ?? 0);
+    if (totalFee <= 0 && (normalized.amount == null || normalized.amount <= 0)) {
+      errors.push("almeno un compenso");
+    }
   }
 
   if (workspace) {

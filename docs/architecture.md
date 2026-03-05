@@ -641,7 +641,7 @@ Il provider Supabase e' organizzato in moduli feature nel path
 | `dataProviderAnalytics.ts` | 9 metodi analytics (summary, answer, context getters) |
 | `dataProviderAnalyticsContext.ts` | 3 context builder per storico, cash inflow, annuale |
 | `dataProviderAi.ts` | CRM read context, semantic registry, domanda unificata |
-| `dataProviderInvoiceImport.ts` | Workspace, upload file, genera/conferma draft import |
+| `dataProviderInvoiceImport.ts` | Workspace, upload file, genera/conferma draft import (payments, expenses, services) |
 | `dataProviderCommunications.ts` | Email context preventivo, invio email |
 | `dataProviderTravel.ts` | Stima tratta, suggerisci luoghi |
 | `dataProviderTypes.ts` | Tipi condivisi: InvokeEdgeFunction, BaseProvider, LARGE_PAGE |

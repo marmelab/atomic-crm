@@ -696,12 +696,20 @@ Aggiornare anche `Settings -> AI` solo se cambia:
 
 ### 6. Se cambia l'import fatture/ricevute
 
+L'import documenti AI supporta 3 resource types: `payments`, `expenses`,
+`services`. Per i servizi il mapping fee segue il service_type (riprese →
+fee_shooting, montaggio → fee_editing, riprese_montaggio → split 50/50, altro →
+fee_other).
+
 Aggiornare sempre:
 
 - `src/lib/ai/invoiceImport.ts`
 - `src/lib/ai/invoiceImportProvider.ts`
+- `supabase/functions/_shared/invoiceImportExtract.ts`
+- `supabase/functions/_shared/invoiceImportConfirm.ts`
 - `supabase/functions/invoice_import_extract/**`
 - `supabase/functions/invoice_import_confirm/**`
+- `src/components/atomic-crm/ai/InvoiceImportDraftEditor.tsx`
 - `src/lib/semantics/crmSemanticRegistry.ts`
 - `docs/data-import-analysis.md`
 

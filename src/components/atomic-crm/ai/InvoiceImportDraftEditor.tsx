@@ -13,12 +13,14 @@ import {
   type InvoiceImportRecordDraft,
   type InvoiceImportWorkspace,
 } from "@/lib/ai/invoiceImport";
+import { TravelRouteCalculatorDialog } from "../travel/TravelRouteCalculatorDialog";
 import {
   expenseTypeChoices,
   expenseTypeLabels,
 } from "../expenses/expenseTypes";
 import { buildClientCreatePathFromInvoiceDraft } from "../clients/clientLinking";
 import { getClientInvoiceWorkspaceLabel } from "../clients/clientBilling";
+import { useConfigurationContext } from "../root/ConfigurationContext";
 import {
   paymentMethodChoices,
   paymentStatusChoices,
@@ -37,6 +39,7 @@ const confidenceTone: Record<
 const resourceLabels = {
   payments: "Pagamento",
   expenses: "Spesa",
+  services: "Servizio",
 };
 
 const hasBillingProfileDraft = (record: InvoiceImportRecordDraft) =>
@@ -98,6 +101,8 @@ export const InvoiceImportDraftEditor = ({
   onChange: (index: number, patch: Partial<InvoiceImportRecordDraft>) => void;
   onRemove: (index: number) => void;
 }) => {
+  const { serviceTypeChoices, operationalConfig } = useConfigurationContext();
+
   return (
     <div className="space-y-4">
       {draft.records.map((record, index) => {
@@ -156,12 +161,13 @@ export const InvoiceImportDraftEditor = ({
                   value={record.resource}
                   onChange={(value) =>
                     onChange(index, {
-                      resource: value as "payments" | "expenses",
+                      resource: value as "payments" | "expenses" | "services",
                     })
                   }
                 >
                   <option value="payments">Pagamento</option>
                   <option value="expenses">Spesa</option>
+                  <option value="services">Servizio</option>
                 </SelectField>
               </Field>
 
@@ -279,6 +285,7 @@ export const InvoiceImportDraftEditor = ({
 
               {!record.clientId &&
               (record.resource === "payments" ||
+                record.resource === "services" ||
                 hasBillingProfileDraft(record) ||
                 record.counterpartyName) ? (
                 <div className="md:col-span-2">
@@ -378,6 +385,198 @@ export const InvoiceImportDraftEditor = ({
                       ))}
                     </SelectField>
                   </Field>
+                </>
+              ) : record.resource === "services" ? (
+                <>
+                  <Field label="Tipo servizio">
+                    <SelectField
+                      value={record.serviceType ?? "altro"}
+                      onChange={(value) =>
+                        onChange(index, {
+                          serviceType:
+                            value as InvoiceImportRecordDraft["serviceType"],
+                        })
+                      }
+                    >
+                      {serviceTypeChoices.map((choice) => (
+                        <option key={choice.value} value={choice.value}>
+                          {choice.label}
+                        </option>
+                      ))}
+                    </SelectField>
+                  </Field>
+
+                  <Field label="Tassabile">
+                    <SelectField
+                      value={
+                        record.isTaxable == null || record.isTaxable
+                          ? "true"
+                          : "false"
+                      }
+                      onChange={(value) =>
+                        onChange(index, { isTaxable: value === "true" })
+                      }
+                    >
+                      <option value="true">Si</option>
+                      <option value="false">No</option>
+                    </SelectField>
+                  </Field>
+
+                  <Field label="Fee riprese">
+                    <Input
+                      type="number"
+                      min="0"
+                      step="0.01"
+                      value={record.feeShooting ?? 0}
+                      onChange={(event) =>
+                        onChange(index, {
+                          feeShooting:
+                            event.target.value === ""
+                              ? 0
+                              : Number(event.target.value),
+                        })
+                      }
+                    />
+                  </Field>
+
+                  <Field label="Fee montaggio">
+                    <Input
+                      type="number"
+                      min="0"
+                      step="0.01"
+                      value={record.feeEditing ?? 0}
+                      onChange={(event) =>
+                        onChange(index, {
+                          feeEditing:
+                            event.target.value === ""
+                              ? 0
+                              : Number(event.target.value),
+                        })
+                      }
+                    />
+                  </Field>
+
+                  <Field label="Fee altro">
+                    <Input
+                      type="number"
+                      min="0"
+                      step="0.01"
+                      value={record.feeOther ?? 0}
+                      onChange={(event) =>
+                        onChange(index, {
+                          feeOther:
+                            event.target.value === ""
+                              ? 0
+                              : Number(event.target.value),
+                        })
+                      }
+                    />
+                  </Field>
+
+                  <Field label="Sconto">
+                    <Input
+                      type="number"
+                      min="0"
+                      step="0.01"
+                      value={record.discount ?? 0}
+                      onChange={(event) =>
+                        onChange(index, {
+                          discount:
+                            event.target.value === ""
+                              ? 0
+                              : Number(event.target.value),
+                        })
+                      }
+                    />
+                  </Field>
+
+                  <Field label="Data fine servizio">
+                    <Input
+                      type="date"
+                      value={record.serviceEnd ?? ""}
+                      onChange={(event) =>
+                        onChange(index, {
+                          serviceEnd: event.target.value || null,
+                        })
+                      }
+                    />
+                  </Field>
+
+                  <Field label="Giornata intera">
+                    <SelectField
+                      value={
+                        record.allDay == null || record.allDay
+                          ? "true"
+                          : "false"
+                      }
+                      onChange={(value) =>
+                        onChange(index, { allDay: value === "true" })
+                      }
+                    >
+                      <option value="true">Si</option>
+                      <option value="false">No</option>
+                    </SelectField>
+                  </Field>
+
+                  <Field label="Localita'" className="md:col-span-2">
+                    <Input
+                      value={record.location ?? ""}
+                      onChange={(event) =>
+                        onChange(index, { location: event.target.value })
+                      }
+                    />
+                  </Field>
+
+                  <Field label="Km trasferta">
+                    <Input
+                      type="number"
+                      min="0"
+                      step="0.1"
+                      value={record.kmDistance ?? 0}
+                      onChange={(event) =>
+                        onChange(index, {
+                          kmDistance:
+                            event.target.value === ""
+                              ? 0
+                              : Number(event.target.value),
+                        })
+                      }
+                    />
+                  </Field>
+
+                  <Field label="Tariffa km">
+                    <Input
+                      type="number"
+                      min="0"
+                      step="0.01"
+                      value={
+                        record.kmRate ?? operationalConfig.defaultKmRate ?? 0
+                      }
+                      onChange={(event) =>
+                        onChange(index, {
+                          kmRate:
+                            event.target.value === ""
+                              ? 0
+                              : Number(event.target.value),
+                        })
+                      }
+                    />
+                  </Field>
+
+                  <div className="md:col-span-2">
+                    <TravelRouteCalculatorDialog
+                      defaultKmRate={operationalConfig.defaultKmRate ?? 0}
+                      currentKmRate={record.kmRate}
+                      initialDestination={record.location ?? undefined}
+                      onApply={(estimate) =>
+                        onChange(index, {
+                          kmDistance: estimate.totalDistanceKm,
+                          kmRate: estimate.kmRate ?? undefined,
+                          location: estimate.generatedLocation || undefined,
+                        })
+                      }
+                    />
+                  </div>
                 </>
               ) : (
                 <>
