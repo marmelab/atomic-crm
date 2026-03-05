@@ -17,7 +17,12 @@ import {
 import { Loader2, Save } from "lucide-react";
 import * as LabelPrimitive from "@radix-ui/react-label";
 import { Slot } from "@radix-ui/react-slot";
-import { FormProvider, useFormContext, useFormState } from "react-hook-form";
+import {
+  FormProvider,
+  get,
+  useFormContext,
+  useFormState,
+} from "react-hook-form";
 import type { UseMutationOptions } from "@tanstack/react-query";
 import { cn } from "@/lib/utils";
 import { Label } from "@/components/ui/label";
@@ -41,10 +46,11 @@ const useFormField = () => {
   // every field wrapper to ALL form state changes, causing O(n²) re-renders.
   const { errors, dirtyFields, touchedFields } = useFormState({ name });
 
-  const error = errors?.[name];
+  // Use get() for dot-notation paths (e.g. "quote_items.0.description")
+  const error = get(errors, name);
   const invalid = !!error;
-  const isDirty = !!dirtyFields?.[name];
-  const isTouched = !!touchedFields?.[name];
+  const isDirty = !!get(dirtyFields, name);
+  const isTouched = !!get(touchedFields, name);
 
   return useMemo(
     () => ({
