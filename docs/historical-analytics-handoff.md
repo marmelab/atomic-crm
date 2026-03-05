@@ -8,6 +8,16 @@ prodotto senza incrociarlo con `docs/README.md` e i documenti `canonical`.
 
 Last updated: 2026-03-05
 
+## Update 2026-03-05 (AI semantic coherence for service description)
+
+- Intent parsing ora estrae `description` dalla domanda utente (testo tra
+  virgolette o dopo "titolo:/descrizione:/oggetto:")
+- Handoff service_create e project_quick_episode passano description nei
+  search params del form
+- Prompt AI aggiornato: istruzioni esplicite sui servizi per progetto e
+  sulla distinzione description (titolo breve) vs notes (annotazioni operative)
+- Capability registry e caveats snapshot aggiornati
+
 ## Update 2026-03-05 (project-level services in AI snapshot)
 
 - La snapshot AI ora espone i singoli servizi dentro ogni progetto attivo

@@ -103,6 +103,7 @@ export type ParsedUnifiedCrmProjectQuickEpisodeQuestion = {
     | "sviluppo_web"
     | "altro"
     | null;
+  description: string | null;
   notes: string | null;
   isRoundTrip: boolean;
   travelRoute: UnifiedCrmTravelRouteCandidate | null;

@@ -8,6 +8,22 @@ prodotto.
 
 Last updated: 2026-03-05
 
+## Update 2026-03-05 (d) — AI semantic coherence for service description
+
+- `unifiedCrmAnswerTypes.ts`: aggiunto `description` a
+  `ParsedUnifiedCrmProjectQuickEpisodeQuestion`
+- `unifiedCrmAnswerIntents.ts`: aggiunto
+  `inferProjectQuickEpisodeDescription()` — cattura testo tra virgolette o
+  dopo "titolo:/descrizione:/oggetto:" nella domanda utente
+- `unifiedCrmAnswerCreateFlows.ts`: `buildServiceCreateHref` e flow TV ora
+  passano `description` nei search params; markdown risposta menziona la
+  descrizione estratta
+- `unified_crm_answer/index.ts`: prompt aggiornato con istruzioni sui servizi
+  per progetto e sulla distinzione description (titolo) vs notes (operativo)
+- `crmCapabilityRegistry.ts`: aggiornata descrizione `service_create` per
+  includere `description` come campo precompilabile
+- `unifiedCrmReadContext.ts`: aggiunto caveat su description vs notes
+
 ## Update 2026-03-05 (c) — Project-level services in AI snapshot
 
 - `unifiedCrmReadContextTypes.ts`: aggiunto array `services` dentro

@@ -546,6 +546,30 @@ export const inferProjectQuickEpisodeServiceType = (
   return null;
 };
 
+export const inferProjectQuickEpisodeDescription = (
+  question: string,
+) => {
+  const compactQuestion = question.replace(/\s+/g, " ").trim();
+
+  // Quoted text — e.g. "registra riprese per 'SPOT GS 2026'"
+  const quotedMatch = compactQuestion.match(
+    /[""''«](.{3,60})[""''»]/,
+  );
+  if (quotedMatch?.[1]) {
+    return quotedMatch[1].trim();
+  }
+
+  // Explicit label after "titolo:" or "descrizione:" — e.g. "descrizione: Video promo"
+  const labelMatch = compactQuestion.match(
+    /\b(?:titolo|descrizione|oggetto)\s*[:\-–]\s*(.{3,60})(?=\s*(?:[,;.]|$))/i,
+  );
+  if (labelMatch?.[1]) {
+    return labelMatch[1].trim();
+  }
+
+  return null;
+};
+
 export const inferProjectQuickEpisodeNotes = (question: string) => {
   const compactQuestion = question.replace(/\s+/g, " ").trim();
   const interviewMatch = compactQuestion.match(

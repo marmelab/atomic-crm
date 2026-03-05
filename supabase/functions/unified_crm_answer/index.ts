@@ -52,7 +52,7 @@ Il contesto e una snapshot CRM-wide con:
 - clienti recenti
 - referenti recenti e loro recapiti principali
 - preventivi aperti
-- progetti attivi con relazioni cliente/referente gia strutturate
+- progetti attivi con relazioni cliente/referente gia strutturate e i singoli servizi per progetto (max 20 per progetto, ordinati per data). Ogni servizio ha: description (titolo breve, es. "SPOT GS 2026"), serviceType, amount, serviceDate e notes (annotazioni operative). Usa description per identificare il servizio e notes per dettagli operativi — sono campi distinti
 - pagamenti pendenti e scaduti
 - spese recenti
 - servizi client-level (senza progetto, collegati direttamente al cliente — es. conguagli, crediti, compensi extra non legati a un progetto)

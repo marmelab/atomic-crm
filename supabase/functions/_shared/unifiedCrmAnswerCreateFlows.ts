@@ -33,6 +33,7 @@ import {
   inferDateFromQuestion,
   inferExpenseDescriptionFromQuestion,
   inferExpenseTypeFromQuestion,
+  inferProjectQuickEpisodeDescription,
   inferProjectQuickEpisodeNotes,
   inferProjectQuickEpisodeRequestedLabel,
   inferProjectQuickEpisodeServiceType,
@@ -275,6 +276,7 @@ export const parseUnifiedCrmProjectQuickEpisodeQuestion = ({
       getBusinessTimezone(context),
     ),
     serviceType: inferProjectQuickEpisodeServiceType(normalizedQuestion),
+    description: inferProjectQuickEpisodeDescription(question),
     notes: inferProjectQuickEpisodeNotes(question),
     isRoundTrip: includesAny(normalizedQuestion, [
       "andata e ritorno",
@@ -321,6 +323,7 @@ export const buildProjectQuickEpisodeHref = ({
       client_id: parsedQuestion.clientId,
       service_date: parsedQuestion.serviceDate,
       service_type: parsedQuestion.serviceType,
+      description: parsedQuestion.description,
       km_distance:
         estimate != null ? String(estimate.totalDistanceKm) : undefined,
       km_rate: estimate?.kmRate != null ? String(estimate.kmRate) : undefined,
@@ -368,6 +371,11 @@ export const buildUnifiedCrmProjectQuickEpisodeAnswerMarkdown = ({
     "",
     "## Dati usati",
     `- Nello snapshot c'e' un progetto attivo compatibile: ${parsedQuestion.projectName}.`,
+    ...(parsedQuestion.description
+      ? [
+          `- Dalla richiesta ho estratto la descrizione del servizio "${parsedQuestion.description}".`,
+        ]
+      : []),
     ...(parsedQuestion.notes
       ? [
           `- Dalla richiesta ho estratto la nota operativa "${parsedQuestion.notes}".`,
@@ -478,6 +486,7 @@ export const buildServiceCreateHref = ({
     project_id: parsedQuestion.projectId,
     service_date: parsedQuestion.serviceDate,
     service_type: parsedQuestion.serviceType,
+    description: parsedQuestion.description,
     km_distance: estimate != null ? String(estimate.totalDistanceKm) : null,
     km_rate: estimate?.kmRate != null ? String(estimate.kmRate) : null,
     location:
@@ -517,6 +526,11 @@ export const buildUnifiedCrmServiceCreateAnswerMarkdown = ({
     "",
     "## Dati usati",
     `- Nello snapshot c'e' un progetto attivo compatibile: ${parsedQuestion.projectName}.`,
+    ...(parsedQuestion.description
+      ? [
+          `- Dalla richiesta ho estratto la descrizione del servizio "${parsedQuestion.description}".`,
+        ]
+      : []),
     ...(parsedQuestion.notes
       ? [
           `- Dalla richiesta ho estratto la nota operativa "${parsedQuestion.notes}".`,

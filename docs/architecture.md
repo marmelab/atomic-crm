@@ -404,6 +404,10 @@ AI read-context esteso:
 
 AI intent parsing e handoff:
 
+- `inferProjectQuickEpisodeDescription`: estrae un titolo breve del servizio
+  dalla domanda utente (testo tra virgolette o dopo "titolo:/descrizione:")
+- il prompt AI include istruzioni esplicite sulla distinzione description
+  (titolo identificativo) vs notes (annotazioni operative)
 - `hasInvoiceDraftIntent` ammorbidito: "fattura per Diego" ora funziona senza
   verbo d'azione esplicito grazie a pattern direzionali (per/di/del/della...)
 - handoff fattura context-aware: usa `pickClientFromQuestion` e

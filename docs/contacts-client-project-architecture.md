@@ -74,6 +74,8 @@ La scelta adottata mantiene:
   - relazioni strutturate progetto -> referenti
   - relazioni strutturate referente -> progetti
   - servizi individuali per progetto (max 20 per progetto, con description)
+  - intent parsing per description servizio (titolo breve) nella domanda utente
+  - prompt AI con guida semantica description vs notes
 
 ## Update 2026-03-04 — Kanban Project View
 

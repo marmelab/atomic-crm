@@ -331,7 +331,7 @@ export const buildCrmCapabilityRegistry = (): CrmCapabilityRegistry => ({
       id: "service_create",
       label: "Registra servizio generico dalla chat unificata",
       description:
-        "Dalla chat AI unificata apre `services/create` gia precompilato sul progetto corretto con data, tipo servizio, chilometri, localita' e note emerse dalla richiesta, senza creare un workflow separato.",
+        "Dalla chat AI unificata apre `services/create` gia precompilato sul progetto corretto con descrizione (titolo breve del servizio), data, tipo servizio, chilometri, localita' e note emerse dalla richiesta, senza creare un workflow separato.",
       sourceFile: "src/components/atomic-crm/services/ServiceCreate.tsx",
       actsOn: ["services", "projects"],
       requiredFields: ["project_id", "service_date"],
