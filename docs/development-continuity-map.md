@@ -14,6 +14,7 @@ Last updated: 2026-03-05
 
 ### Recent Updates (cronologico, più recente in alto)
 
+- [2026-03-05 (l)](#update-2026-03-05-l--sticky-pdf-preview-in-quote-form) — Sticky PDF preview in quote form
 - [2026-03-05 (k)](#update-2026-03-05-k--quote-kanban-inp-optimization) — Quote Kanban INP optimization (~600ms → sub-200ms)
 - [2026-03-05 (j)](#update-2026-03-05-j--formazione-quote-service-type) — Add "Formazione" quote service type
 - [2026-03-05 (i)](#update-2026-03-05-i--quote-pdf-bugfix) — Fix missing quoteItems destructuring in QuotePDFDocument
@@ -62,6 +63,16 @@ Last updated: 2026-03-05
 - [Nota manutenzione 2026-03-02](#nota-manutenzione-2026-03-02-fix-ci)
 - [Testing Session Log 2026-03-04](#testing-session-log-2026-03-04--e2e-complete-validation)
 - [AI Semantic UI Upgrade 2026-03-04](#ai-semantic-ui-upgrade-2026-03-04--pareto-principle-applied)
+
+---
+
+## Update 2026-03-05 (l) — Sticky PDF preview in quote form
+
+PDF preview panel in QuoteEdit and QuoteCreate now uses `sticky top-0 self-start` so it stays visible while scrolling the form to add quote items.
+
+**Files**: `QuoteEdit.tsx`, `QuoteCreate.tsx`
+
+**No behavioral changes.** CSS-only fix. No new config, no schema changes.
 
 ---
 

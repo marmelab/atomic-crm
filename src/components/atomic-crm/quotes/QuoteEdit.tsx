@@ -73,7 +73,7 @@ export const QuoteEdit = ({ open, id }: { open: boolean; id?: string }) => {
                   <QuoteInputs />
                 </div>
                 {showPreview && (
-                  <div className="w-[45%]">
+                  <div className="w-[45%] sticky top-0 self-start">
                     <Suspense
                       fallback={
                         <div className="h-[500px] rounded-md border bg-muted/30 flex items-center justify-center text-muted-foreground text-sm">
