@@ -159,7 +159,7 @@ Enhancement completo del modulo preventivi con 6 feature additive e modulari:
 - Logica "Email mancante": client con email → invio email, client senza email → QuickClientEmailDialog, nessun client → QuickClientCreateDialog
 - `QuoteShow` dialog: fullscreen su mobile (`max-sm:h-dvh`), titolo e azioni stacked verticalmente
 - `CreateServiceFromQuoteDialog` e `CreateProjectFromQuoteDialog`: aggiunto prop `trigger` opzionale per trigger custom
-- `QuoteEdit` dialog: fullscreen su mobile, header solo titolo su mobile (Elimina spostato nella toolbar), toolbar mobile: icone per Anteprima/Elimina/Annulla + Salva con testo
+- `QuoteEdit` dialog: fullscreen su mobile, header solo titolo su mobile (bottoni azioni spostati nella toolbar). `MobileToolbar` dedicata: icone per Anteprima/Elimina/Indietro + Salva con testo. CancelButton globale usa ArrowLeft al posto di CircleX
 
 **Step 6 — AI registry:**
 

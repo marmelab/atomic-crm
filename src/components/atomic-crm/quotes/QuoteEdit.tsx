@@ -1,4 +1,4 @@
-import { Eye, EyeOff, X } from "lucide-react";
+import { ArrowLeft, Eye, EyeOff, X } from "lucide-react";
 import { lazy, Suspense, useState } from "react";
 import {
   EditBase,
@@ -7,7 +7,7 @@ import {
   useRecordContext,
   useRedirect,
 } from "ra-core";
-import { Link } from "react-router";
+import { Link, useNavigate } from "react-router";
 import { CancelButton } from "@/components/admin/cancel-button";
 import { DeleteButton } from "@/components/admin/delete-button";
 import { SaveButton } from "@/components/admin/form";
@@ -109,42 +109,38 @@ export const QuoteEdit = ({ open, id }: { open: boolean; id?: string }) => {
               ) : (
                 <>
                   <QuoteInputs />
-                  <div
-                    role="toolbar"
-                    className="sticky flex pt-4 pb-20 md:pb-0 bottom-0 bg-linear-to-b from-transparent to-card to-10% flex-row justify-between items-center gap-2"
-                  >
-                    <div className="flex gap-2">
+                  {isMobile ? (
+                    <MobileToolbar
+                      showPreview={showPreview}
+                      onTogglePreview={() => setShowPreview((v) => !v)}
+                    />
+                  ) : (
+                    <div
+                      role="toolbar"
+                      className="sticky flex pt-4 bottom-0 bg-linear-to-b from-transparent to-card to-10% flex-row justify-between items-center"
+                    >
                       <Button
                         type="button"
                         variant="outline"
                         size="sm"
-                        className="border-blue-500 text-blue-600 hover:bg-blue-50 dark:text-blue-400 dark:hover:bg-blue-950 max-sm:[&>svg~*]:hidden max-sm:px-2"
+                        className="border-blue-500 text-blue-600 hover:bg-blue-50 dark:text-blue-400 dark:hover:bg-blue-950"
                         onClick={() => setShowPreview((v) => !v)}
                       >
                         {showPreview ? (
-                          <EyeOff className="h-4 w-4" />
+                          <EyeOff className="h-4 w-4 mr-1" />
                         ) : (
-                          <Eye className="h-4 w-4" />
+                          <Eye className="h-4 w-4 mr-1" />
                         )}
-                        <span>
-                          {showPreview
-                            ? "Nascondi anteprima"
-                            : "Anteprima"}
-                        </span>
+                        {showPreview
+                          ? "Nascondi anteprima"
+                          : "Anteprima"}
                       </Button>
-                      {isMobile && (
-                        <DeleteButton
-                          variant="outline"
-                          size="sm"
-                          className="max-sm:[&>svg~*]:hidden max-sm:px-2 text-destructive! border-destructive! hover:bg-destructive/10!"
-                        />
-                      )}
+                      <div className="flex gap-2">
+                        <CancelButton />
+                        <SaveButton />
+                      </div>
                     </div>
-                    <div className="flex gap-2">
-                      <CancelButton className="cursor-pointer max-sm:[&>svg~*]:hidden max-sm:px-2" />
-                      <SaveButton />
-                    </div>
-                  </div>
+                  )}
                 </>
               )}
               {showPreview && isMobile && (
@@ -206,5 +202,54 @@ function EditHeader({ isMobile }: { isMobile: boolean }) {
         )}
       </div>
     </DialogTitle>
+  );
+}
+
+function MobileToolbar({
+  showPreview,
+  onTogglePreview,
+}: {
+  showPreview: boolean;
+  onTogglePreview: () => void;
+}) {
+  const navigate = useNavigate();
+  return (
+    <div
+      role="toolbar"
+      className="sticky flex pt-4 pb-20 bottom-0 bg-linear-to-b from-transparent to-card to-10% flex-row justify-between items-center gap-2"
+    >
+      <div className="flex gap-2">
+        <Button
+          type="button"
+          variant="outline"
+          size="icon"
+          className="border-blue-500 text-blue-600 hover:bg-blue-50 dark:text-blue-400 dark:hover:bg-blue-950"
+          onClick={onTogglePreview}
+        >
+          {showPreview ? (
+            <EyeOff className="h-4 w-4" />
+          ) : (
+            <Eye className="h-4 w-4" />
+          )}
+        </Button>
+        <DeleteButton
+          variant="outline"
+          size="icon"
+          label=" "
+          className="text-destructive! border-destructive! hover:bg-destructive/10!"
+        />
+      </div>
+      <div className="flex gap-2">
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon"
+          onClick={() => navigate(-1)}
+        >
+          <ArrowLeft className="h-4 w-4" />
+        </Button>
+        <SaveButton />
+      </div>
+    </div>
   );
 }
