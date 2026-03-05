@@ -1,4 +1,4 @@
-import { CircleX } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import { Translate } from "ra-core";
 import { useNavigate } from "react-router";
 
@@ -39,7 +39,7 @@ export function CancelButton(props: React.ComponentProps<"button">) {
       className="cursor-pointer"
       {...props}
     >
-      <CircleX />
+      <ArrowLeft />
       <Translate i18nKey="ra.action.cancel">Cancel</Translate>
     </Button>
   );
