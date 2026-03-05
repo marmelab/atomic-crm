@@ -1,5 +1,5 @@
 import { useQueryClient } from "@tanstack/react-query";
-import { Eye, EyeOff } from "lucide-react";
+import { Eye, EyeOff, X } from "lucide-react";
 import { lazy, Suspense, useState } from "react";
 import {
   Form,
@@ -18,6 +18,7 @@ import {
   DialogDescription,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 import type { Quote } from "../types";
 import { QuoteInputs } from "./QuoteInputs";
@@ -32,6 +33,7 @@ export const QuoteCreate = ({ open }: { open: boolean }) => {
   const dataProvider = useDataProvider();
   const { data: allQuotes } = useListContext<Quote>();
   const [showPreview, setShowPreview] = useState(false);
+  const isMobile = useIsMobile();
 
   const handleClose = () => {
     redirect("/quotes");
@@ -81,26 +83,9 @@ export const QuoteCreate = ({ open }: { open: boolean }) => {
   return (
     <Dialog open={open} onOpenChange={() => handleClose()}>
       <DialogContent
-        className={`${showPreview ? "lg:max-w-7xl" : "lg:max-w-4xl"} overflow-y-auto max-h-9/10 top-1/20 translate-y-0`}
+        className={`${showPreview && !isMobile ? "lg:max-w-7xl" : "lg:max-w-4xl"} max-h-9/10 top-1/20 translate-y-0 ${showPreview && !isMobile ? "overflow-hidden" : "overflow-y-auto"}`}
       >
-        <DialogTitle>
-          <div className="flex items-center justify-between pr-8">
-            <span>Nuovo preventivo</span>
-            <Button
-              type="button"
-              variant="ghost"
-              size="sm"
-              onClick={() => setShowPreview((v) => !v)}
-            >
-              {showPreview ? (
-                <EyeOff className="h-4 w-4 mr-1" />
-              ) : (
-                <Eye className="h-4 w-4 mr-1" />
-              )}
-              {showPreview ? "Nascondi anteprima" : "Anteprima"}
-            </Button>
-          </div>
-        </DialogTitle>
+        <DialogTitle>Nuovo preventivo</DialogTitle>
         <DialogDescription className="sr-only">
           Compila i campi per creare un nuovo preventivo
         </DialogDescription>
@@ -118,15 +103,30 @@ export const QuoteCreate = ({ open }: { open: boolean }) => {
               is_taxable: true,
             }}
           >
-            <div className={showPreview ? "flex gap-6" : ""}>
-              <div className={showPreview ? "w-[55%]" : ""}>
-                <QuoteInputs />
-              </div>
-              {showPreview && (
-                <div className="w-[45%] sticky top-0 self-start">
+            {showPreview && !isMobile ? (
+              <div className="flex gap-6 h-[calc(90vh-10rem)]">
+                <div className="w-[55%] overflow-y-auto pr-2">
+                  <QuoteInputs />
+                  <FormToolbar>
+                    <div className="flex justify-between items-center">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        className="border-blue-500 text-blue-600 hover:bg-blue-50 dark:text-blue-400 dark:hover:bg-blue-950"
+                        onClick={() => setShowPreview(false)}
+                      >
+                        <EyeOff className="h-4 w-4 mr-1" />
+                        Nascondi anteprima
+                      </Button>
+                      <SaveButton />
+                    </div>
+                  </FormToolbar>
+                </div>
+                <div className="w-[45%] h-full">
                   <Suspense
                     fallback={
-                      <div className="h-[500px] rounded-md border bg-muted/30 flex items-center justify-center text-muted-foreground text-sm">
+                      <div className="h-full rounded-md border bg-muted/30 flex items-center justify-center text-muted-foreground text-sm">
                         Caricamento anteprima...
                       </div>
                     }
@@ -134,11 +134,53 @@ export const QuoteCreate = ({ open }: { open: boolean }) => {
                     <QuotePDFPreview />
                   </Suspense>
                 </div>
-              )}
-            </div>
-            <FormToolbar>
-              <SaveButton />
-            </FormToolbar>
+              </div>
+            ) : (
+              <>
+                <QuoteInputs />
+                <FormToolbar>
+                  <div className="flex justify-between items-center">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      className="border-blue-500 text-blue-600 hover:bg-blue-50 dark:text-blue-400 dark:hover:bg-blue-950"
+                      onClick={() => setShowPreview((v) => !v)}
+                    >
+                      <Eye className="h-4 w-4 mr-1" />
+                      Anteprima
+                    </Button>
+                    <SaveButton />
+                  </div>
+                </FormToolbar>
+              </>
+            )}
+            {showPreview && isMobile && (
+              <div className="fixed inset-0 z-50 bg-background flex flex-col">
+                <div className="flex items-center justify-between p-4 border-b">
+                  <h3 className="font-semibold">Anteprima preventivo</h3>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => setShowPreview(false)}
+                  >
+                    <X className="h-5 w-5" />
+                  </Button>
+                </div>
+                <div className="flex-1 min-h-0 p-4">
+                  <Suspense
+                    fallback={
+                      <div className="h-full rounded-md border bg-muted/30 flex items-center justify-center text-muted-foreground text-sm">
+                        Caricamento anteprima...
+                      </div>
+                    }
+                  >
+                    <QuotePDFPreview />
+                  </Suspense>
+                </div>
+              </div>
+            )}
           </Form>
         </Create>
       </DialogContent>

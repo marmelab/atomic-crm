@@ -14,7 +14,7 @@ Last updated: 2026-03-05
 
 ### Recent Updates (cronologico, più recente in alto)
 
-- [2026-03-05 (l)](#update-2026-03-05-l--sticky-pdf-preview-in-quote-form) — Sticky PDF preview in quote form
+- [2026-03-05 (l)](#update-2026-03-05-l--pdf-preview-sticky-desktop--fullscreen-mobile) — PDF preview: sticky desktop + fullscreen mobile
 - [2026-03-05 (k)](#update-2026-03-05-k--quote-kanban-inp-optimization) — Quote Kanban INP optimization (~600ms → sub-200ms)
 - [2026-03-05 (j)](#update-2026-03-05-j--formazione-quote-service-type) — Add "Formazione" quote service type
 - [2026-03-05 (i)](#update-2026-03-05-i--quote-pdf-bugfix) — Fix missing quoteItems destructuring in QuotePDFDocument
@@ -66,13 +66,18 @@ Last updated: 2026-03-05
 
 ---
 
-## Update 2026-03-05 (l) — Sticky PDF preview in quote form
+## Update 2026-03-05 (l) — PDF preview: sticky desktop + fullscreen mobile
 
-PDF preview panel in QuoteEdit and QuoteCreate now uses `sticky top-0 self-start` so it stays visible while scrolling the form to add quote items.
+Reworked the PDF preview in QuoteEdit and QuoteCreate:
 
-**Files**: `QuoteEdit.tsx`, `QuoteCreate.tsx`
+- **Desktop**: dialog switches to `overflow-hidden` when preview is active; form column scrolls independently (`overflow-y-auto`) while preview stays fixed at full height
+- **Mobile** (`useIsMobile()`): preview opens as a fullscreen overlay (`fixed inset-0 z-50`) with a close button instead of side-by-side layout
+- **Preview toggle** moved from dialog header to form toolbar (left-aligned, blue outline button with `Eye`/`EyeOff` icon), consistent in both Create and Edit
+- `QuotePDFPreview.tsx` unchanged (sizing controlled by parent)
 
-**No behavioral changes.** CSS-only fix. No new config, no schema changes.
+**Files**: `QuoteEdit.tsx`, `QuoteCreate.tsx`, `QuotePDFPreview.tsx`
+
+**No schema/config/AI changes.** UX-only.
 
 ---
 
