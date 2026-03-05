@@ -181,22 +181,26 @@ export const SelectInput = (props: SelectInputProps) => {
   );
 
   const handleChange = useCallback(
-    async (value: string) => {
+    (value: string) => {
       // Guard against Radix spurious onValueChange("") when the controlled
       // value changes programmatically. Without this, we'd need a dynamic key
       // on <Select> that forces a full remount (bad for INP).
       // See: https://github.com/radix-ui/primitives/issues/3135
       if (value === "" && emptyValue !== "") return;
 
-      if (value === emptyValue) {
-        field.onChange(emptyValue);
-      } else {
-        // Find the choice by value and pass it to field.onChange
-        const choice = allChoices?.find(
-          (choice) => getChoiceValue(choice) === value,
-        );
-        field.onChange(choice ? getChoiceValue(choice) : value);
-      }
+      // Defer form state update to a separate macrotask so the browser can
+      // paint the Select close before the form cascade fires (same pattern
+      // as AutocompleteInput).
+      setTimeout(() => {
+        if (value === emptyValue) {
+          field.onChange(emptyValue);
+        } else {
+          const choice = allChoices?.find(
+            (c) => getChoiceValue(c) === value,
+          );
+          field.onChange(choice ? getChoiceValue(choice) : value);
+        }
+      }, 0);
     },
     [field, getChoiceValue, emptyValue, allChoices],
   );

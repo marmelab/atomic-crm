@@ -142,13 +142,16 @@ export const AutocompleteInput = (
   );
 
   const handleOpenChange = useEvent((isOpen: boolean) => {
-    setOpen(isOpen);
-    // Reset the filter when the popover is closed (low priority — don't block INP)
-    if (!isOpen) {
-      startTransition(() => {
+    // Both open and close are wrapped in startTransition:
+    // - Open: the Command tree mount is heavy; deferring lets the browser
+    //   paint the trigger press feedback before mounting items.
+    // - Close: the filter reset triggers a data provider call.
+    startTransition(() => {
+      setOpen(isOpen);
+      if (!isOpen) {
         setFilters(filterToQuery(""));
-      });
-    }
+      }
+    });
   });
 
   const handleChange = useCallback(
