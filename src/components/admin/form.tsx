@@ -35,19 +35,28 @@ const FormItemContext = createContext<FormItemContextValue>(
 );
 
 const useFormField = () => {
-  const { getFieldState, formState } = useFormContext();
   const { id, name } = useContext(FormItemContext);
+  // Subscribe only to this specific field's state, NOT the entire formState.
+  // The old pattern (destructuring formState from useFormContext) subscribes
+  // every field wrapper to ALL form state changes, causing O(n²) re-renders.
+  const { errors, dirtyFields, touchedFields } = useFormState({ name });
 
-  const fieldState = getFieldState(name, formState);
+  const error = errors?.[name];
+  const invalid = !!error;
+  const isDirty = !!dirtyFields?.[name];
+  const isTouched = !!touchedFields?.[name];
 
   return useMemo(
     () => ({
       formItemId: id,
       formDescriptionId: `${id}-description`,
       formMessageId: `${id}-message`,
-      ...fieldState,
+      invalid,
+      isDirty,
+      isTouched,
+      error,
     }),
-    [id, fieldState],
+    [id, invalid, isDirty, isTouched, error],
   );
 };
 
