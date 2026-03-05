@@ -229,6 +229,7 @@ export const QuotePDFDocument = ({
   client,
   serviceLabel,
   statusLabel,
+  quoteItems,
   businessProfile,
 }: QuotePDFProps) => (
   <Document>
