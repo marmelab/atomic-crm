@@ -52,7 +52,6 @@ export const QuoteInputs = () => {
     }
     setValue("client_id", selectedProject.client_id, {
       shouldDirty: true,
-      shouldValidate: true,
     });
   }, [clientId, selectedProject, setValue]);
 
@@ -62,7 +61,6 @@ export const QuoteInputs = () => {
     if (Number(amount ?? 0) === itemizedAmount) return;
     setValue("amount", itemizedAmount, {
       shouldDirty: true,
-      shouldValidate: true,
     });
   }, [amount, itemizedAmount, itemizedQuote, setValue]);
 

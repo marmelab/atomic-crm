@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import * as React from "react";
-import { useCallback } from "react";
+import { useCallback, startTransition } from "react";
 import { Check, ChevronsUpDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -143,9 +143,11 @@ export const AutocompleteInput = (
 
   const handleOpenChange = useEvent((isOpen: boolean) => {
     setOpen(isOpen);
-    // Reset the filter when the popover is closed
+    // Reset the filter when the popover is closed (low priority — don't block INP)
     if (!isOpen) {
-      setFilters(filterToQuery(""));
+      startTransition(() => {
+        setFilters(filterToQuery(""));
+      });
     }
   });
 
@@ -155,7 +157,9 @@ export const AutocompleteInput = (
         field.onChange("");
         setFilterValue("");
         if (isFromReference) {
-          setFilters(filterToQuery(""));
+          startTransition(() => {
+            setFilters(filterToQuery(""));
+          });
         }
         setOpen(false);
         return;

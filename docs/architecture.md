@@ -780,6 +780,20 @@ L'ordine corretto resta:
 4. referente noto collegato a un cliente
 5. nome libero della controparte solo come ultimo fallback
 
+### INP / Performance dei form input
+
+- `SelectInput` (`src/components/admin/select-input.tsx`): NON usare key
+  dinamica sul `<Select>` Radix — causa remount completo. Il bug
+  radix-ui/primitives#3135 è gestito con una guardia nel `handleChange` che
+  ignora `onValueChange("")` spurie.
+- `AutocompleteInput` (`src/components/admin/autocomplete-input.tsx`): il
+  `setFilters` alla chiusura del Popover è wrappato in `startTransition` per
+  non bloccare la paint.
+- Nelle cascate `useEffect` che chiamano `setValue` programmaticamente (es.
+  auto-sync `client_id` da progetto, auto-calcolo importo), NON usare
+  `shouldValidate: true` — la validazione al submit basta e risparmiare cicli
+  di render.
+
 ### Struttura moduli CRUD
 
 Pattern base valido per i moduli CRUD classici (`clients`, `contacts`,
