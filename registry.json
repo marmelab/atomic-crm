@@ -24,7 +24,13 @@
         "papaparse@^5.5.3",
         "ra-supabase-core@^3.5.1",
         "ra-supabase-language-english@^3.5.0",
-        "zod@^4.0.5"
+        "zod@^4.0.5",
+        "@tanstack/query-async-storage-persister@^5.90.22",
+        "@tanstack/react-query-persist-client@^5.90.22",
+        "dompurify@^3.3.1",
+        "marked@^17.0.1",
+        "@streamparser/json-whatwg@^0.0.22",
+        "mime@^4.1.0"
       ],
       "files": [
         {
@@ -822,6 +828,10 @@
         {
           "path": "src/hooks/simple-form-iterator-context.tsx",
           "type": "registry:hook"
+        },
+        {
+          "path": "src/lib/toSlug.ts",
+          "type": "registry:lib"
         }
       ]
     }
