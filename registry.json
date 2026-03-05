@@ -1052,6 +1052,10 @@
           "type": "registry:component"
         },
         {
+          "path": "src/components/atomic-crm/ai/invoiceImportDraftHelpers.ts",
+          "type": "registry:component"
+        },
+        {
           "path": "src/components/atomic-crm/ai/UnifiedCrmReadSnapshot.tsx",
           "type": "registry:component"
         },
@@ -1072,7 +1076,27 @@
           "type": "registry:component"
         },
         {
+          "path": "src/components/atomic-crm/ai/InvoiceImportDraftServiceSection.tsx",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/ai/InvoiceImportDraftPrimitives.tsx",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/ai/InvoiceImportDraftPaymentSection.tsx",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/ai/InvoiceImportDraftExpenseSection.tsx",
+          "type": "registry:component"
+        },
+        {
           "path": "src/components/atomic-crm/ai/InvoiceImportDraftEditor.tsx",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/ai/InvoiceImportDraftBillingSection.tsx",
           "type": "registry:component"
         },
         {

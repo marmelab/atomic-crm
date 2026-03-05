@@ -8,6 +8,17 @@ prodotto senza incrociarlo con `docs/README.md` e i documenti `canonical`.
 
 Last updated: 2026-03-05
 
+## Update 2026-03-05 (Invoice import draft editor sectioned layout)
+
+- UI bozza import documenti riorganizzata per sezioni visive: Documento,
+  Collegamento CRM, dettagli resource-specific, Anagrafica fiscale
+  (collapsible), Note
+- File splittato per concern: InvoiceImportDraftEditor (orchestratore) +
+  InvoiceImportDraftPrimitives (Field/Section/CollapsibleSection) +
+  sezioni per resource (Service, Payment, Expense) + BillingSection +
+  invoiceImportDraftHelpers (costanti)
+- Nessun cambio funzionale, solo UX e manutenibilita'
+
 ## Update 2026-03-05 (Gemini multi-row extraction fix)
 
 - Prompt rinforzato: documenti tabulari con N righe devono produrre N record
