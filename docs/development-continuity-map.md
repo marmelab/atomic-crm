@@ -8,6 +8,16 @@ prodotto.
 
 Last updated: 2026-03-05
 
+## Update 2026-03-05 (c) — Project-level services in AI snapshot
+
+- `unifiedCrmReadContextTypes.ts`: aggiunto array `services` dentro
+  `activeProjects` con serviceId, serviceType, description, amount, isTaxable,
+  serviceDate, notes
+- `unifiedCrmReadContext.ts`: popola `services` per ogni progetto attivo
+  (ultimi 20 per progetto, ordinati per data desc)
+- Prima di questo update la chat AI vedeva solo totali aggregati per progetto,
+  ora può leggere i singoli servizi
+
 ## Update 2026-03-05 (b) — Service description filter + AI snapshot type fix
 
 - `ServiceListFilter.tsx`: aggiunto filtro ilike per description

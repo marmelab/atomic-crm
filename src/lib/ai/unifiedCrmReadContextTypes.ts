@@ -116,6 +116,15 @@ export type UnifiedCrmReadContext = {
           isPrimary: boolean;
         }
       >;
+      services: Array<{
+        serviceId: string;
+        serviceType: string;
+        description: string | null;
+        amount: number;
+        isTaxable: boolean;
+        serviceDate: string;
+        notes: string | null;
+      }>;
     }>;
     pendingPayments: Array<{
       paymentId: string;

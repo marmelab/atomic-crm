@@ -8,6 +8,13 @@ prodotto senza incrociarlo con `docs/README.md` e i documenti `canonical`.
 
 Last updated: 2026-03-05
 
+## Update 2026-03-05 (project-level services in AI snapshot)
+
+- La snapshot AI ora espone i singoli servizi dentro ogni progetto attivo
+  (array `services` in `activeProjects`, max 20 per progetto)
+- Prima erano visibili solo totali aggregati (totalServices, totalFees)
+- Il filtro per description e' stato aggiunto anche a ServiceListFilter
+
 ## Update 2026-03-05 (service description field)
 
 - Aggiunto campo `description` al modello servizi (migration, type, tutte le

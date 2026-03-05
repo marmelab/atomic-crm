@@ -398,6 +398,9 @@ AI read-context esteso:
 - tutti i limiti di slicing rimossi: clienti, contatti, preventivi, progetti,
   pagamenti, task, spese e servizi flat sono esposti senza cap numerico
 - `clientLevelServices` senza limite (era slice 10)
+- `activeProjects[].services`: array di servizi individuali per progetto
+  (max 20 per progetto, ordinati per data desc) — prima erano solo totali
+  aggregati (totalServices, totalFees)
 
 AI intent parsing e handoff:
 

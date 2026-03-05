@@ -385,6 +385,18 @@ export const buildUnifiedCrmReadContext = ({
           totalServices: pf.totalServices, totalFees: pf.totalFees, totalExpenses: pf.totalExpenses,
           totalPaid: pf.totalPaid, balanceDue: pf.balanceDue,
           contacts: getProjectContacts(String(project.id)),
+          services: (servicesByProjectId.get(String(project.id)) ?? [])
+            .sort((left, right) => toDateValue(right.service_date) - toDateValue(left.service_date))
+            .slice(0, 20)
+            .map((s) => ({
+              serviceId: String(s.id),
+              serviceType: s.service_type,
+              description: s.description ?? null,
+              amount: calculateServiceNetValue(s),
+              isTaxable: s.is_taxable !== false,
+              serviceDate: s.service_date,
+              notes: s.notes ?? null,
+            })),
         };
       }),
       pendingPayments: pendingPayments.map((payment) => ({

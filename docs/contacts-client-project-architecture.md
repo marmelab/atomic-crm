@@ -73,6 +73,7 @@ La scelta adottata mantiene:
   - relazioni strutturate cliente -> referenti
   - relazioni strutturate progetto -> referenti
   - relazioni strutturate referente -> progetti
+  - servizi individuali per progetto (max 20 per progetto, con description)
 
 ## Update 2026-03-04 — Kanban Project View
 
