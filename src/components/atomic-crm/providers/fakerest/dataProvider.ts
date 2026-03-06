@@ -25,16 +25,17 @@ import { getCompanyAvatar } from "../commons/getCompanyAvatar";
 import { getContactAvatar } from "../commons/getContactAvatar";
 import { mergeContacts } from "../commons/mergeContacts";
 import type { CrmDataProvider } from "../types";
-import { authProvider, USER_STORAGE_KEY } from "./authProvider";
+import {
+  authProvider as defaultAuthProvider,
+  USER_STORAGE_KEY,
+} from "./authProvider";
 import generateData from "./dataGenerator";
+import type { Db } from "./dataGenerator/types";
 import { withSupabaseFilterAdapter } from "./internal/supabaseAdapter";
-
-const baseDataProvider = fakeRestDataProvider(generateData(), true, 300);
 
 const TASK_MARKED_AS_DONE = "TASK_MARKED_AS_DONE";
 const TASK_MARKED_AS_UNDONE = "TASK_MARKED_AS_UNDONE";
 const TASK_DONE_NOT_CHANGED = "TASK_DONE_NOT_CHANGED";
-let taskUpdateType = TASK_DONE_NOT_CHANGED;
 
 const processCompanyLogo = async (params: any) => {
   let logo = params.data.logo;
@@ -111,156 +112,10 @@ async function fetchAndUpdateCompanyData(
   return { ...params, data: newData };
 }
 
-const dataProviderWithCustomMethod: CrmDataProvider = {
-  ...baseDataProvider,
-  unarchiveDeal: async (deal: Deal) => {
-    // get all deals where stage is the same as the deal to unarchive
-    const { data: deals } = await baseDataProvider.getList<Deal>("deals", {
-      filter: { stage: deal.stage },
-      pagination: { page: 1, perPage: 1000 },
-      sort: { field: "index", order: "ASC" },
-    });
-
-    // set index for each deal starting from 1, if the deal to unarchive is found, set its index to the last one
-    const updatedDeals = deals.map((d, index) => ({
-      ...d,
-      index: d.id === deal.id ? 0 : index + 1,
-      archived_at: d.id === deal.id ? null : d.archived_at,
-    }));
-
-    return await Promise.all(
-      updatedDeals.map((updatedDeal) =>
-        dataProvider.update("deals", {
-          id: updatedDeal.id,
-          data: updatedDeal,
-          previousData: deals.find((d) => d.id === updatedDeal.id),
-        }),
-      ),
-    );
-  },
-  // We simulate a remote endpoint that is in charge of returning activity log
-  getActivityLog: async (companyId?: Identifier) => {
-    return getActivityLog(dataProvider, companyId);
-  },
-  signUp: async ({
-    email,
-    password,
-    first_name,
-    last_name,
-  }: SignUpData): Promise<{ id: string; email: string; password: string }> => {
-    const user = await baseDataProvider.create("sales", {
-      data: {
-        email,
-        first_name,
-        last_name,
-      },
-    });
-
-    return {
-      ...user.data,
-      password,
-    };
-  },
-  salesCreate: async ({ ...data }: SalesFormData): Promise<Sale> => {
-    const response = await dataProvider.create("sales", {
-      data: {
-        ...data,
-        password: "new_password",
-      },
-    });
-
-    return response.data;
-  },
-  salesUpdate: async (
-    id: Identifier,
-    data: Partial<Omit<SalesFormData, "password">>,
-  ): Promise<Sale> => {
-    const { data: previousData } = await dataProvider.getOne<Sale>("sales", {
-      id,
-    });
-
-    if (!previousData) {
-      throw new Error("User not found");
-    }
-
-    const { data: sale } = await dataProvider.update<Sale>("sales", {
-      id,
-      data,
-      previousData,
-    });
-    return { ...sale, user_id: sale.id.toString() };
-  },
-  isInitialized: async (): Promise<boolean> => {
-    const sales = await dataProvider.getList<Sale>("sales", {
-      filter: {},
-      pagination: { page: 1, perPage: 1 },
-      sort: { field: "id", order: "ASC" },
-    });
-    if (sales.data.length === 0) {
-      return false;
-    }
-    return true;
-  },
-  updatePassword: async (id: Identifier): Promise<true> => {
-    const currentUser = await authProvider.getIdentity?.();
-    if (!currentUser) {
-      throw new Error("User not found");
-    }
-    const { data: previousData } = await dataProvider.getOne<Sale>("sales", {
-      id: currentUser.id,
-    });
-
-    if (!previousData) {
-      throw new Error("User not found");
-    }
-
-    await dataProvider.update("sales", {
-      id,
-      data: {
-        password: "demo_newPassword",
-      },
-      previousData,
-    });
-
-    return true;
-  },
-  mergeContacts: async (sourceId: Identifier, targetId: Identifier) => {
-    return mergeContacts(sourceId, targetId, baseDataProvider);
-  },
-  getConfiguration: async (): Promise<ConfigurationContextValue> => {
-    const { data } = await baseDataProvider.getOne("configuration", { id: 1 });
-    return (data?.config as ConfigurationContextValue) ?? {};
-  },
-  updateConfiguration: async (
-    config: ConfigurationContextValue,
-  ): Promise<ConfigurationContextValue> => {
-    const { data: prev } = await baseDataProvider.getOne("configuration", {
-      id: 1,
-    });
-    await baseDataProvider.update("configuration", {
-      id: 1,
-      data: { config },
-      previousData: prev,
-    });
-    return config;
-  },
-};
-
-async function updateCompany(
-  companyId: Identifier,
-  updateFn: (company: Company) => Partial<Company>,
-) {
-  const { data: company } = await dataProvider.getOne<Company>("companies", {
-    id: companyId,
-  });
-
-  return await dataProvider.update("companies", {
-    id: companyId,
-    data: {
-      ...updateFn(company),
-    },
-    previousData: company,
-  });
+export interface CreateFakeRestDataProviderOptions {
+  db?: Db;
+  latency?: number;
+  authProvider?: Pick<typeof defaultAuthProvider, "getIdentity">;
 }
 
 const processConfigLogo = async (logo: any): Promise<string> => {
@@ -283,9 +138,176 @@ const preserveAttachmentMimeType = <
   })),
 });
 
-export const dataProvider = withLifecycleCallbacks(
-  withSupabaseFilterAdapter(dataProviderWithCustomMethod),
-  [
+export const createDataProvider = ({
+  db = generateData(),
+  latency = 300,
+  authProvider,
+}: CreateFakeRestDataProviderOptions = {}): CrmDataProvider => {
+  const baseDataProvider = fakeRestDataProvider(db, true, latency);
+  let taskUpdateType = TASK_DONE_NOT_CHANGED;
+  let dataProvider: CrmDataProvider;
+  const getIdentity = async () =>
+    authProvider?.getIdentity?.() ?? defaultAuthProvider.getIdentity?.();
+
+  const updateCompany = async (
+    companyId: Identifier,
+    updateFn: (company: Company) => Partial<Company>,
+  ) => {
+    const { data: company } = await dataProvider.getOne<Company>("companies", {
+      id: companyId,
+    });
+
+    return await dataProvider.update("companies", {
+      id: companyId,
+      data: {
+        ...updateFn(company),
+      },
+      previousData: company,
+    });
+  };
+
+  const dataProviderWithCustomMethod: CrmDataProvider = {
+    ...baseDataProvider,
+    unarchiveDeal: async (deal: Deal) => {
+      // get all deals where stage is the same as the deal to unarchive
+      const { data: deals } = await baseDataProvider.getList<Deal>("deals", {
+        filter: { stage: deal.stage },
+        pagination: { page: 1, perPage: 1000 },
+        sort: { field: "index", order: "ASC" },
+      });
+
+      // set index for each deal starting from 1, if the deal to unarchive is found, set its index to the last one
+      const updatedDeals = deals.map((d, index) => ({
+        ...d,
+        index: d.id === deal.id ? 0 : index + 1,
+        archived_at: d.id === deal.id ? null : d.archived_at,
+      }));
+
+      return await Promise.all(
+        updatedDeals.map((updatedDeal) =>
+          dataProvider.update("deals", {
+            id: updatedDeal.id,
+            data: updatedDeal,
+            previousData: deals.find((d) => d.id === updatedDeal.id),
+          }),
+        ),
+      );
+    },
+    // We simulate a remote endpoint that is in charge of returning activity log
+    getActivityLog: async (companyId?: Identifier) => {
+      return getActivityLog(dataProvider, companyId);
+    },
+    signUp: async ({
+      email,
+      password,
+      first_name,
+      last_name,
+    }: SignUpData): Promise<{
+      id: string;
+      email: string;
+      password: string;
+    }> => {
+      const user = await baseDataProvider.create("sales", {
+        data: {
+          email,
+          first_name,
+          last_name,
+        },
+      });
+
+      return {
+        ...user.data,
+        password,
+      };
+    },
+    salesCreate: async ({ ...data }: SalesFormData): Promise<Sale> => {
+      const response = await dataProvider.create("sales", {
+        data: {
+          ...data,
+          password: "new_password",
+        },
+      });
+
+      return response.data;
+    },
+    salesUpdate: async (
+      id: Identifier,
+      data: Partial<Omit<SalesFormData, "password">>,
+    ): Promise<Sale> => {
+      const { data: previousData } = await dataProvider.getOne<Sale>("sales", {
+        id,
+      });
+
+      if (!previousData) {
+        throw new Error("User not found");
+      }
+
+      const { data: sale } = await dataProvider.update<Sale>("sales", {
+        id,
+        data,
+        previousData,
+      });
+      return { ...sale, user_id: sale.id.toString() };
+    },
+    isInitialized: async (): Promise<boolean> => {
+      const sales = await dataProvider.getList<Sale>("sales", {
+        filter: {},
+        pagination: { page: 1, perPage: 1 },
+        sort: { field: "id", order: "ASC" },
+      });
+      if (sales.data.length === 0) {
+        return false;
+      }
+      return true;
+    },
+    updatePassword: async (id: Identifier): Promise<true> => {
+      const currentUser = await getIdentity();
+      if (!currentUser) {
+        throw new Error("User not found");
+      }
+      const { data: previousData } = await dataProvider.getOne<Sale>("sales", {
+        id: currentUser.id,
+      });
+
+      if (!previousData) {
+        throw new Error("User not found");
+      }
+
+      await dataProvider.update("sales", {
+        id,
+        data: {
+          password: "demo_newPassword",
+        },
+        previousData,
+      });
+
+      return true;
+    },
+    mergeContacts: async (sourceId: Identifier, targetId: Identifier) => {
+      return mergeContacts(sourceId, targetId, baseDataProvider);
+    },
+    getConfiguration: async (): Promise<ConfigurationContextValue> => {
+      const { data } = await baseDataProvider.getOne("configuration", { id: 1 });
+      return (data?.config as ConfigurationContextValue) ?? {};
+    },
+    updateConfiguration: async (
+      config: ConfigurationContextValue,
+    ): Promise<ConfigurationContextValue> => {
+      const { data: prev } = await baseDataProvider.getOne("configuration", {
+        id: 1,
+      });
+      await baseDataProvider.update("configuration", {
+        id: 1,
+        data: { config },
+        previousData: prev,
+      });
+      return config;
+    },
+  };
+
+  dataProvider = withLifecycleCallbacks(
+    withSupabaseFilterAdapter(dataProviderWithCustomMethod),
+    [
     {
       resource: "configuration",
       beforeUpdate: async (params) => {
@@ -310,7 +332,7 @@ export const dataProvider = withLifecycleCallbacks(
       afterSave: async (data) => {
         // Since the current user is stored in localStorage in fakerest authProvider
         // we need to update it to keep information up to date in the UI
-        const currentUser = await authProvider.getIdentity?.();
+        const currentUser = await getIdentity();
         if (currentUser?.id === data.id) {
           localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(data));
         }
@@ -567,8 +589,13 @@ export const dataProvider = withLifecycleCallbacks(
       resource: "deal_notes",
       beforeSave: async (params) => preserveAttachmentMimeType(params),
     } satisfies ResourceCallbacks<DealNote>,
-  ],
-) as CrmDataProvider;
+    ],
+  ) as CrmDataProvider;
+
+  return dataProvider;
+};
+
+export const dataProvider = createDataProvider();
 
 /**
  * Convert a `File` object returned by the upload input into a base 64 string.
