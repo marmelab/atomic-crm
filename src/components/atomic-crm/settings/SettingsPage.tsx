@@ -273,7 +273,7 @@ const SettingsFormFields = () => {
   };
 
   return (
-    <div className="flex gap-8 mt-4 pb-20">
+    <div className="flex gap-8 mt-4 pb-40 md:pb-20">
       {/* Left navigation - Professional structured menu */}
       <nav className="hidden md:block w-56 shrink-0">
         <div className="sticky top-4">

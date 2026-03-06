@@ -76,7 +76,7 @@ const ContactShowContent = () => {
         <CardContent>
           <div className="flex flex-col gap-3">
             <div>
-              <h2 className="text-2xl font-bold">
+              <h2 className="text-xl md:text-2xl font-bold">
                 {getContactDisplayName(record)}
               </h2>
               <div className="mt-2 flex flex-wrap items-center gap-2">

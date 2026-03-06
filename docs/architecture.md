@@ -21,7 +21,7 @@ Stato del documento:
 - 2026-03-06: Prettier formatting sweep (38 files, whitespace only, no logic changes)
 - 2026-03-06: Google Calendar integration — auto-sync services to calendar via Service Account
 - 2026-03-06: Fix import path in dataProviderGoogleCalendar (edgeFunctionError)
-- 2026-03-06: Fix ServiceShow + ExpenseShow mobile layout (flex-col, remove flex-1 wrapper)
+- 2026-03-06: Comprehensive mobile layout audit — fix all Create/Edit/Show pages (flex-col, mb-28, responsive titles, Settings bottom padding)
 
 ## Continuita'
 

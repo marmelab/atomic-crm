@@ -11,7 +11,7 @@ export const ProjectCreate = () => {
 
   return (
     <CreateBase redirect="show">
-      <div className="mt-4 flex px-4 md:px-0">
+      <div className="mt-4 mb-28 md:mb-2 flex flex-col px-4 md:px-0">
         <div className="flex-1">
           <Form defaultValues={{ all_day: true }}>
             {isMobile && (
