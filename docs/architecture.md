@@ -342,7 +342,8 @@ Semantica di calcolo dei builders:
   il servizio ha `km_rate` NULL — ogni Show page e `ClientFinancialSummary`
   leggono `operationalConfig.defaultKmRate` da `useConfigurationContext()` e lo
   passano esplicitamente ai builder; **non usare** `km_distance * km_rate`
-  inline (bug storico: NULL → 0)
+  inline (bug storico: NULL → 0). `TravelRouteCalculatorDialog.toRateValue`
+  also treats `km_rate === 0` as unset and falls back to `defaultKmRate`
 - vengono sottratti **solo** i pagamenti con `status === "ricevuto"` — i
   pagamenti `in_attesa` o `scaduto` non riducono il dovuto
 - i rimborsi (`payment_type === "rimborso"`) hanno segno invertito nella

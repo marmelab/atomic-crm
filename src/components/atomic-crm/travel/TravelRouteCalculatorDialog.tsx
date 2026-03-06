@@ -45,7 +45,8 @@ const toRateValue = (
 ) => {
   if (value === "" || value == null) return fallback;
   const nextValue = Number(value);
-  return Number.isFinite(nextValue) ? nextValue : fallback;
+  if (!Number.isFinite(nextValue) || nextValue === 0) return fallback;
+  return nextValue;
 };
 
 const roundCurrency = (value: number) => Number(value.toFixed(2));
