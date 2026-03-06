@@ -16,8 +16,8 @@ Last updated: 2026-03-05
   Env var: `GOOGLE_MAPS_API_KEY` (replaces `OPENROUTESERVICE_API_KEY` and
   `OPENROUTESERVICE_BASE_URL`). Fixes POI routing failures (e.g. Centro
   Sicilia Misterbianco) and global mis-geocoding.
-- Draft editor section headers now use colored dots for visual navigation
-  (slate, indigo, blue, emerald, amber, violet)
+- Draft editor section headers now use colored dots AND colored text labels
+  for clear visual navigation (slate, indigo, blue, emerald, amber, violet)
 - `invoice_import_confirm` dedup now includes `description` in the service
   uniqueness check (fixes false duplicate rejection for same-date same-fee
   services with different descriptions)

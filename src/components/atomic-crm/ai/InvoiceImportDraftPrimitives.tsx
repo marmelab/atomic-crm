@@ -13,13 +13,22 @@ export type SectionColor =
   | "amber"
   | "violet";
 
-const sectionColorClasses: Record<SectionColor, string> = {
+const sectionDotClasses: Record<SectionColor, string> = {
   slate: "bg-slate-400",
   indigo: "bg-indigo-500",
   blue: "bg-blue-500",
   emerald: "bg-emerald-500",
   amber: "bg-amber-500",
   violet: "bg-violet-500",
+};
+
+const sectionTextClasses: Record<SectionColor, string> = {
+  slate: "text-slate-500",
+  indigo: "text-indigo-600",
+  blue: "text-blue-600",
+  emerald: "text-emerald-600",
+  amber: "text-amber-600",
+  violet: "text-violet-600",
 };
 
 export const Field = ({
@@ -58,7 +67,7 @@ export const SelectField = ({
 const SectionDot = ({ color }: { color?: SectionColor }) =>
   color ? (
     <span
-      className={cn("size-2 shrink-0 rounded-full", sectionColorClasses[color])}
+      className={cn("size-2.5 shrink-0 rounded-full", sectionDotClasses[color])}
     />
   ) : null;
 
@@ -74,7 +83,12 @@ export const Section = ({
   <div className="space-y-3">
     <div className="flex items-center gap-2">
       <SectionDot color={color} />
-      <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+      <span
+        className={cn(
+          "text-xs font-semibold uppercase tracking-wide",
+          color ? sectionTextClasses[color] : "text-muted-foreground",
+        )}
+      >
         {title}
       </span>
       <Separator className="flex-1" />
@@ -108,7 +122,12 @@ export const CollapsibleSection = ({
           <ChevronRight className="size-3.5 text-muted-foreground" />
         )}
         <SectionDot color={color} />
-        <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+        <span
+          className={cn(
+            "text-xs font-semibold uppercase tracking-wide",
+            color ? sectionTextClasses[color] : "text-muted-foreground",
+          )}
+        >
           {title}
         </span>
         <Separator className="flex-1" />
