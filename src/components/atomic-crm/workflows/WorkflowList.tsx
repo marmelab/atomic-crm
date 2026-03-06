@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { useListContext, useCreatePath, useUpdate } from "ra-core";
 import { Link } from "react-router";
 import {
@@ -195,10 +194,8 @@ const WorkflowMobileCard = ({ workflow }: { workflow: Workflow }) => {
 
 const WorkflowToggle = ({ workflow }: { workflow: Workflow }) => {
   const [update] = useUpdate();
-  const [optimistic, setOptimistic] = useState(workflow.is_active);
 
   const handleToggle = (checked: boolean) => {
-    setOptimistic(checked);
     update(
       "workflows",
       {
@@ -206,15 +203,13 @@ const WorkflowToggle = ({ workflow }: { workflow: Workflow }) => {
         data: { is_active: checked },
         previousData: workflow,
       },
-      {
-        onError: () => setOptimistic(!checked),
-      },
+      { mutationMode: "optimistic" },
     );
   };
 
   return (
     <Switch
-      checked={optimistic}
+      checked={workflow.is_active}
       onCheckedChange={handleToggle}
       aria-label={`${workflow.is_active ? "Disattiva" : "Attiva"} ${workflow.name}`}
       onClick={(e) => e.stopPropagation()}

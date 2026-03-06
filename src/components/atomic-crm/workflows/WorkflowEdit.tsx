@@ -50,11 +50,8 @@ const WorkflowEditContent = () => {
 
   const defaultValues = {
     ...record,
-    trigger_conditions_json: JSON.stringify(
-      record.trigger_conditions ?? {},
-      null,
-      2,
-    ),
+    condition_status:
+      (record.trigger_conditions?.status as string) ?? undefined,
     ...flattenAction(record.actions),
   };
 

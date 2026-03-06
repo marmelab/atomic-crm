@@ -5,13 +5,10 @@ import type { WorkflowAction } from "../types";
  * expected by the DB (trigger_conditions as JSONB, actions as JSONB array).
  */
 export const workflowTransform = (data: Record<string, unknown>) => {
-  // Parse trigger conditions
-  let triggerConditions: Record<string, unknown> = {};
-  try {
-    const raw = String(data.trigger_conditions_json ?? "{}");
-    triggerConditions = JSON.parse(raw);
-  } catch {
-    triggerConditions = {};
+  // Build trigger conditions from the smart UI fields
+  const triggerConditions: Record<string, unknown> = {};
+  if (data.condition_status) {
+    triggerConditions.status = data.condition_status;
   }
 
   // Build actions array from flat form fields

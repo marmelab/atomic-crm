@@ -1,7 +1,7 @@
 import { CreateBase, Form } from "ra-core";
 import { Card, CardContent } from "@/components/ui/card";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { useSearchParams } from "react-router-dom";
+import { useSearchParams } from "react-router";
 
 import { WorkflowInputs } from "./WorkflowInputs";
 import { FormToolbar } from "../layout/FormToolbar";
@@ -14,7 +14,6 @@ const useWorkflowDefaultValues = () => {
   const defaults: Record<string, unknown> = {
     is_active: true,
     trigger_event: "status_changed",
-    trigger_conditions_json: "{}",
     action_type: "create_task",
   };
 

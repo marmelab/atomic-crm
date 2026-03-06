@@ -230,12 +230,13 @@ DB:
 - tabella `workflows` (trigger_resource, trigger_event, trigger_conditions JSONB, actions JSONB)
 - tabella `workflow_executions` (log esecuzione per debug)
 - 3 workflow pre-seeded (preventivo accettato, progetto avviato, pagamento ricevuto)
+- `trigger_resource` CHECK: tutte e 8 le risorse CRM (clients, contacts, projects, quotes, services, payments, expenses, client_tasks) — migration `20260306160426`
 
 Engine client-side:
 
 - `workflowEngine.ts`: intercetta afterCreate/afterUpdate via lifecycle callbacks
 - anti-loop: flag `_executing` impedisce trigger ricorsivi
-- azioni supportate: `create_task`, `create_project`, `update_field`, `send_email`, `send_notification`
+- azioni supportate: `create_task`, `create_project`, `update_field` (esegue `dataProvider.update` reale), `send_email`, `send_notification`
 - `send_email`: invia email a destinatario (client_email o custom) via Edge Function `workflow_notify`
 - `send_notification`: notifica interna al proprietario (email + WhatsApp CallMeBot) via `workflow_notify`
 - template con placeholder: `{nome_cliente}`, `{risorsa}`, `{stato}`, `{importo}`, `{data}` — risolti server-side

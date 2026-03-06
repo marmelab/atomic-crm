@@ -139,7 +139,12 @@ async function executeAction(
     case "create_project":
       return createProject(dataProvider, action.data, triggerRecord);
     case "update_field":
-      return updateField(dataProvider, action.data, triggerRecord);
+      return updateField(
+        dataProvider,
+        action.data,
+        triggerRecord,
+        triggerResource,
+      );
     case "send_email":
       return sendEmail(
         dataProvider,
@@ -168,8 +173,7 @@ async function createTask(
   const dueDate = new Date();
   dueDate.setDate(dueDate.getDate() + dueDays);
 
-  const clientId =
-    triggerRecord.client_id ?? (triggerRecord as any).client_id ?? null;
+  const clientId = triggerRecord.client_id ?? null;
 
   const { data } = await dataProvider.create("client_tasks", {
     data: {
@@ -229,20 +233,25 @@ async function createProject(
 }
 
 async function updateField(
-  _dataProvider: DataProvider,
+  dataProvider: DataProvider,
   actionData: Record<string, unknown>,
   triggerRecord: Record<string, unknown>,
+  triggerResource: string,
 ): Promise<Record<string, unknown>> {
-  // This is a no-op placeholder — field updates on the trigger record itself
-  // would require knowing the resource, which is available in the workflow.
-  // For now we just return info about what would be updated.
-  return {
-    would_update: {
-      field: actionData.field,
-      value: actionData.value,
-      on_record: triggerRecord.id,
-    },
-  };
+  const field = String(actionData.field ?? "");
+  const value = actionData.value;
+
+  if (!field || !triggerRecord.id) {
+    return { skipped: true, reason: "Missing field name or record id" };
+  }
+
+  await dataProvider.update(triggerResource, {
+    id: triggerRecord.id as Identifier,
+    data: { [field]: value },
+    previousData: triggerRecord,
+  });
+
+  return { updated: triggerResource, id: triggerRecord.id, field, value };
 }
 
 async function sendEmail(

@@ -553,6 +553,7 @@ Quando tocchi il modulo workflow o le risorse trigger-abili, verificare:
 - `supabase/functions/_shared/workflowNotifyTypes.ts` (validazione server-side)
 - `supabase/functions/_shared/workflowTemplatePlaceholders.ts` (risoluzione placeholder)
 - migration `20260304140000_workflow_automation.sql`
+- migration `20260306160426_workflow_expand_trigger_resources.sql` (CHECK constraint espanso a 8 risorse)
 
 **Integrazione AI Chat:**
 
