@@ -278,7 +278,7 @@ viene automaticamente sincronizzato.
 ### Flusso
 
 1. Lifecycle callback `afterCreate`/`afterUpdate`/`afterDelete` su `services`
-2. Fire-and-forget: chiama `syncServiceToCalendar()` nel dataProvider
+2. Awaited: chiama `syncServiceToCalendar()` nel dataProvider e mergia il risultato nel record
 3. Edge Function `google_calendar_sync` riceve action + service_id
 4. Legge il servizio + client + project dal DB
 5. Crea/aggiorna/elimina evento su Calendar API v3
@@ -301,7 +301,7 @@ viene automaticamente sincronizzato.
 
 ### Formato evento
 
-- Titolo: `{TipoServizio} — {Cliente} — {Progetto}`
+- Titolo: `{Progetto} — {TipoServizio} — {Cliente}` (progetto in evidenza)
 - Luogo: `location` o `travel_destination`
 - Descrizione: description + link al servizio
 - All-day: usa `date` fields (end esclusivo)

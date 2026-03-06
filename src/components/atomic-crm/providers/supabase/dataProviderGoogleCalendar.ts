@@ -8,6 +8,7 @@ type InvokeEdgeFunction = <T>(
 interface CalendarSyncResult {
   data: {
     google_event_id?: string;
+    google_event_link?: string;
     deleted?: string;
     message?: string;
   };

@@ -339,31 +339,42 @@ const lifeCycleCallbacks: ResourceCallbacks[] = [
       return params;
     },
   },
-  // --- Google Calendar sync (fire-and-forget) ---
+  // --- Google Calendar sync (awaited so the UI gets back google_event_link) ---
   {
     resource: "services",
     afterCreate: async (params: any) => {
-      dataProviderWithCustomMethods
-        .syncServiceToCalendar("create", params.data.id)
-        .catch((e: unknown) =>
-          console.warn("Calendar sync (create) failed:", e),
+      try {
+        const result = await dataProviderWithCustomMethods.syncServiceToCalendar(
+          "create",
+          params.data.id,
         );
+        if (result) Object.assign(params.data, result);
+      } catch (e) {
+        console.warn("Calendar sync (create) failed:", e);
+      }
       return params;
     },
     afterUpdate: async (params: any) => {
-      dataProviderWithCustomMethods
-        .syncServiceToCalendar("update", params.data.id)
-        .catch((e: unknown) =>
-          console.warn("Calendar sync (update) failed:", e),
+      try {
+        const result = await dataProviderWithCustomMethods.syncServiceToCalendar(
+          "update",
+          params.data.id,
         );
+        if (result) Object.assign(params.data, result);
+      } catch (e) {
+        console.warn("Calendar sync (update) failed:", e);
+      }
       return params;
     },
     afterDelete: async (params: any) => {
-      dataProviderWithCustomMethods
-        .syncServiceToCalendar("delete", params.id)
-        .catch((e: unknown) =>
-          console.warn("Calendar sync (delete) failed:", e),
+      try {
+        await dataProviderWithCustomMethods.syncServiceToCalendar(
+          "delete",
+          params.id,
         );
+      } catch (e) {
+        console.warn("Calendar sync (delete) failed:", e);
+      }
       return params;
     },
   },

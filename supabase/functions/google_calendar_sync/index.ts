@@ -50,9 +50,10 @@ function buildCalendarEvent(
 ) {
   const typeLabel =
     SERVICE_TYPE_LABELS[service.service_type] ?? service.service_type;
-  const parts = [typeLabel];
-  if (clientName) parts.push(clientName);
+  const parts: string[] = [];
   if (projectName) parts.push(projectName);
+  parts.push(typeLabel);
+  if (clientName) parts.push(clientName);
   const summary = parts.join(" — ");
 
   const eventLocation =
