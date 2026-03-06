@@ -14,6 +14,7 @@ Last updated: 2026-03-06
 
 ### Recent Updates (cronologico, più recente in alto)
 
+- [2026-03-06 (c)](#update-2026-03-06-c--trigger-fix-for-projectless-services--clientfinancialsummary-simplification) — Trigger fix for projectless services + ClientFinancialSummary simplification
 - [2026-03-06 (b)](#update-2026-03-06-b--auto-km-expenses-from-services) — Auto-create km expenses from services via DB trigger
 - [2026-03-06](#update-2026-03-06--travel-origin-prop-fix) — Pass defaultTravelOrigin to all TravelRouteCalculatorDialog call sites
 - [2026-03-05 (n)](#update-2026-03-05-n--quote-kanban-full-width) — Quote Kanban full-width desktop breakout
@@ -67,6 +68,22 @@ Last updated: 2026-03-06
 - [Nota manutenzione 2026-03-02](#nota-manutenzione-2026-03-02-fix-ci)
 - [Testing Session Log 2026-03-04](#testing-session-log-2026-03-04--e2e-complete-validation)
 - [AI Semantic UI Upgrade 2026-03-04](#ai-semantic-ui-upgrade-2026-03-04--pareto-principle-applied)
+
+---
+
+## Update 2026-03-06 (c) — Trigger fix for projectless services + ClientFinancialSummary simplification
+
+Fix: `sync_service_km_expense` trigger silently failed for flat services
+(no project_id) because the INSERT...SELECT joined on projects. Fixed with
+COALESCE to resolve client_id from service or project.
+
+`ClientFinancialSummary` simplified: removed dual-path km calculation
+(services + filtered expenses). Now reads ALL expenses via `getExpenseAmount()`
+helper, matching the project_financials view formula. No more `useConfigurationContext`
+dependency for km rate.
+
+**Files:** migration `20260306071030`, `ClientFinancialSummary.tsx`,
+`contacts-client-project-architecture.md`
 
 ---
 

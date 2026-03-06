@@ -2,7 +2,6 @@ import { useGetList } from "ra-core";
 import { Euro, TrendingUp, TrendingDown, Car } from "lucide-react";
 
 import type { Client, Expense, Payment, Service } from "../types";
-import { useConfigurationContext } from "../root/ConfigurationContext";
 import { calculateKmReimbursement } from "@/lib/semantics/crmSemanticRegistry";
 
 const eur = (n: number) =>
@@ -12,21 +11,30 @@ const eur = (n: number) =>
     minimumFractionDigits: 2,
   });
 
-type ProjectFinancialRow = {
-  project_id: string;
-  project_name: string;
-  total_fees: number | string;
-  total_km: number | string;
-  total_km_cost: number | string;
-};
-
 const toNum = (v: unknown) => {
   const n = Number(v);
   return Number.isFinite(n) ? n : 0;
 };
 
+/** Compute the financial amount of an expense using the same CASE logic as
+ *  the project_financials view (single source of truth). */
+const getExpenseAmount = (e: Expense): number => {
+  if (e.expense_type === "credito_ricevuto") return -toNum(e.amount);
+  if (e.expense_type === "spostamento_km")
+    return calculateKmReimbursement({
+      kmDistance: e.km_distance,
+      kmRate: e.km_rate,
+    });
+  return toNum(e.amount) * (1 + toNum(e.markup_percent) / 100);
+};
+
+type ProjectFinancialRow = {
+  project_id: string;
+  project_name: string;
+  total_fees: number | string;
+};
+
 export const ClientFinancialSummary = ({ record }: { record: Client }) => {
-  const { operationalConfig } = useConfigurationContext();
   const { data: financials, isPending: fp } = useGetList<ProjectFinancialRow>(
     "project_financials",
     {
@@ -40,12 +48,13 @@ export const ClientFinancialSummary = ({ record }: { record: Client }) => {
     pagination: { page: 1, perPage: 100 },
   });
 
+  // All expenses for this client (including auto-created km expenses from trigger)
   const { data: expenses, isPending: ep } = useGetList<Expense>("expenses", {
     filter: { "client_id@eq": record.id },
     pagination: { page: 1, perPage: 500 },
   });
 
-  // Services linked directly to the client without a project (flat services)
+  // Flat services (no project) — fees only, km expenses handled by trigger
   const { data: clientServices, isPending: sp } = useGetList<Service>(
     "services",
     {
@@ -67,13 +76,9 @@ export const ClientFinancialSummary = ({ record }: { record: Client }) => {
     );
   }
 
-  // Fees from project-linked services (via project_financials view)
+  // Fees: project-linked (from view) + flat services (manual sum)
   const projectFees =
     financials?.reduce((s, f) => s + toNum(f.total_fees), 0) ?? 0;
-  const projectKmCost =
-    financials?.reduce((s, f) => s + toNum(f.total_km_cost), 0) ?? 0;
-
-  // Fees from projectless services (flat services linked directly to client)
   const directFees =
     clientServices?.reduce(
       (s, svc) =>
@@ -84,31 +89,14 @@ export const ClientFinancialSummary = ({ record }: { record: Client }) => {
         toNum(svc.discount),
       0,
     ) ?? 0;
-  const directKmCost =
-    clientServices?.reduce(
-      (s, svc) =>
-        s +
-        calculateKmReimbursement({
-          kmDistance: svc.km_distance,
-          kmRate: svc.km_rate,
-          defaultKmRate: operationalConfig.defaultKmRate,
-        }),
-      0,
-    ) ?? 0;
-
   const totalFees = projectFees + directFees;
-  const totalKmCost = projectKmCost + directKmCost;
 
-  // Non-km expenses: credits subtract, others add (with markup)
+  // Expenses: single source — ALL expenses including auto-created km from trigger
   const totalExpenses =
-    expenses
-      ?.filter((e) => e.expense_type !== "spostamento_km")
-      .reduce((s, e) => {
-        if (e.expense_type === "credito_ricevuto") return s - toNum(e.amount);
-        return s + toNum(e.amount) * (1 + toNum(e.markup_percent) / 100);
-      }, 0) ?? 0;
+    expenses?.reduce((s, e) => s + getExpenseAmount(e), 0) ?? 0;
 
-  const totalOwed = totalFees + totalKmCost + totalExpenses;
+  const totalOwed = totalFees + totalExpenses;
+
   // Rimborsi subtract from total paid
   const totalPaid =
     payments?.reduce((s, p) => {
@@ -126,9 +114,8 @@ export const ClientFinancialSummary = ({ record }: { record: Client }) => {
       />
       <MetricCard
         icon={<Car className="size-4" />}
-        label="Rimborso km"
-        value={eur(totalKmCost)}
-        sub={totalExpenses !== 0 ? `+ spese ${eur(totalExpenses)}` : undefined}
+        label="Spese"
+        value={eur(totalExpenses)}
       />
       <MetricCard
         icon={<TrendingUp className="size-4" />}

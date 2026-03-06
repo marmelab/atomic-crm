@@ -172,6 +172,16 @@ point anche da:
 - `ClientShow`
 - `ProjectShow`
 
+## Nota manutenzione 2026-03-06
+
+`ClientFinancialSummary.tsx` semplificato: rimosso il doppio path che
+calcolava km dai servizi e filtrava `spostamento_km` dalle spese. Ora usa una
+singola fonte (tutte le spese, incluse le auto-create dal trigger
+`sync_service_km_expense`), allineandosi alla stessa formula di
+`project_financials.expense_view`. Rimossa dipendenza da
+`useConfigurationContext` (non più necessaria) e i campi `total_km`,
+`total_km_cost` dal tipo `ProjectFinancialRow`.
+
 Il flusso risponde alla domanda "quanto mi deve ancora questo
 cliente/progetto?" e genera un PDF di supporto.
 
