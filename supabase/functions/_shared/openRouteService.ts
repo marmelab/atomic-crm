@@ -33,6 +33,10 @@ const getErrorMessage = async (response: Response) => {
   }
 };
 
+// Geographic focus on Sicily (Enna province center) to bias results toward the
+// user's operating area.  boundary.country restricts to Italy entirely.
+const SICILY_FOCUS = { lat: "37.56", lon: "14.27" } as const;
+
 export const geocodeOpenRouteLocation = async ({
   apiKey,
   baseUrl,
@@ -46,6 +50,9 @@ export const geocodeOpenRouteLocation = async ({
   url.searchParams.set("api_key", apiKey);
   url.searchParams.set("text", text);
   url.searchParams.set("size", "1");
+  url.searchParams.set("boundary.country", "IT");
+  url.searchParams.set("focus.point.lat", SICILY_FOCUS.lat);
+  url.searchParams.set("focus.point.lon", SICILY_FOCUS.lon);
 
   const response = await fetch(url);
 
@@ -101,6 +108,9 @@ export const searchOpenRouteLocations = async ({
     "size",
     String(Math.max(1, Math.min(10, Math.trunc(size) || 5))),
   );
+  url.searchParams.set("boundary.country", "IT");
+  url.searchParams.set("focus.point.lat", SICILY_FOCUS.lat);
+  url.searchParams.set("focus.point.lon", SICILY_FOCUS.lon);
 
   const response = await fetch(url);
 
