@@ -94,7 +94,10 @@ async function createMissingTasks(
 
   const allPayloads: FiscalTaskPayload[] = buildTaskPayloads(upcomingDeadlines);
   const newPayloads = allPayloads.filter(
-    (task) => !existingSignatures.has(`${task.type}::${task.due_date.substring(0, 10)}`),
+    (task) =>
+      !existingSignatures.has(
+        `${task.type}::${task.due_date.substring(0, 10)}`,
+      ),
   );
 
   let created = 0;
@@ -134,23 +137,48 @@ async function runFiscalDeadlineCheck(): Promise<CheckResult> {
 
   const fiscalConfig = await loadFiscalConfig();
   if (!fiscalConfig) {
-    return { deadlinesFound: 0, tasksCreated: 0, notificationSent: false, details: "No fiscal configuration found — skipping" };
+    return {
+      deadlinesFound: 0,
+      tasksCreated: 0,
+      notificationSent: false,
+      details: "No fiscal configuration found — skipping",
+    };
   }
 
   const { payments, projects } = await loadYearData(currentYear);
-  const estimates = computeFiscalEstimates({ config: fiscalConfig, payments, projects, currentYear });
+  const estimates = computeFiscalEstimates({
+    config: fiscalConfig,
+    payments,
+    projects,
+    currentYear,
+  });
 
   const deadlines = buildFiscalDeadlines({
-    ...estimates, annoInizioAttivita: fiscalConfig.annoInizioAttivita, currentYear, today,
+    ...estimates,
+    annoInizioAttivita: fiscalConfig.annoInizioAttivita,
+    currentYear,
+    today,
   });
 
   if (deadlines.length === 0) {
-    return { deadlinesFound: 0, tasksCreated: 0, notificationSent: false, details: "First year of activity — no deadlines to generate" };
+    return {
+      deadlinesFound: 0,
+      tasksCreated: 0,
+      notificationSent: false,
+      details: "First year of activity — no deadlines to generate",
+    };
   }
 
-  const upcoming = deadlines.filter((d) => !d.isPast && d.daysUntil <= TASK_REMINDER_DAYS);
+  const upcoming = deadlines.filter(
+    (d) => !d.isPast && d.daysUntil <= TASK_REMINDER_DAYS,
+  );
   if (upcoming.length === 0) {
-    return { deadlinesFound: deadlines.length, tasksCreated: 0, notificationSent: false, details: `${deadlines.length} deadlines found, none within ${TASK_REMINDER_DAYS} days` };
+    return {
+      deadlinesFound: deadlines.length,
+      tasksCreated: 0,
+      notificationSent: false,
+      details: `${deadlines.length} deadlines found, none within ${TASK_REMINDER_DAYS} days`,
+    };
   }
 
   const { created, needed } = await createMissingTasks(upcoming, currentYear);

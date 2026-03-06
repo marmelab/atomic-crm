@@ -192,10 +192,7 @@ const PaymentShowContent = () => {
                   )}
                 </div>
               </div>
-              <PaymentActions
-                record={record}
-                notReceived={notReceived}
-              />
+              <PaymentActions record={record} notReceived={notReceived} />
             </div>
             {record.notes && (
               <>

@@ -13,6 +13,10 @@ Stato del documento:
   primaria della verita' operativa se entrano in conflitto con codice o
   migration attuali
 
+## Changelog
+
+- 2026-03-06: Prettier formatting sweep (38 files, whitespace only, no logic changes)
+
 ## Continuita'
 
 Per riprendere correttamente il progetto in una nuova chat o sessione, i file

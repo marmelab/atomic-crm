@@ -126,9 +126,10 @@ export const UnifiedAiLauncher = () => {
       setConfirmation(result);
       const skippedCount = result.skipped?.length ?? 0;
       const createdCount = result.created.length;
-      const message = skippedCount > 0
-        ? `Import completato: ${createdCount} creati, ${skippedCount} saltati (duplicati).`
-        : `Import completato: ${createdCount} record creati.`;
+      const message =
+        skippedCount > 0
+          ? `Import completato: ${createdCount} creati, ${skippedCount} saltati (duplicati).`
+          : `Import completato: ${createdCount} record creati.`;
       notify(message, { type: skippedCount > 0 ? "warning" : "success" });
     },
     onError: (error: Error) => {

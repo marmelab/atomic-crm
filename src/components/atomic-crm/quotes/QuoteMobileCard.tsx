@@ -25,8 +25,10 @@ export const QuoteMobileCard = ({ quote }: { quote: Quote }) => {
     { enabled: !!quote.client_id },
   );
 
-  const style = serviceTypeStyles[quote.service_type] ?? defaultServiceTypeStyle;
-  const statusStyle = quoteStatusStyles[quote.status] ?? defaultQuoteStatusStyle;
+  const style =
+    serviceTypeStyles[quote.service_type] ?? defaultServiceTypeStyle;
+  const statusStyle =
+    quoteStatusStyles[quote.status] ?? defaultQuoteStatusStyle;
   const Icon = style.icon;
 
   const serviceLabel =
@@ -53,13 +55,9 @@ export const QuoteMobileCard = ({ quote }: { quote: Quote }) => {
       type="button"
       className="flex items-start gap-3 px-4 py-3 w-full text-left active:bg-muted/50"
       onClick={() =>
-        redirect(
-          `/quotes/${quote.id}/show`,
-          undefined,
-          undefined,
-          undefined,
-          { _scrollToTop: false },
-        )
+        redirect(`/quotes/${quote.id}/show`, undefined, undefined, undefined, {
+          _scrollToTop: false,
+        })
       }
     >
       <div

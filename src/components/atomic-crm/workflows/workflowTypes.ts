@@ -29,19 +29,16 @@ export const triggerResourceIcons: Record<string, LucideIcon> = {
 };
 
 export const triggerResourceColors: Record<string, string> = {
-  clients:
-    "text-sky-600 bg-sky-100/80 dark:text-sky-400 dark:bg-sky-950",
+  clients: "text-sky-600 bg-sky-100/80 dark:text-sky-400 dark:bg-sky-950",
   contacts:
     "text-indigo-600 bg-indigo-100/80 dark:text-indigo-400 dark:bg-indigo-950",
   projects: "text-blue-600 bg-blue-100/80 dark:text-blue-400 dark:bg-blue-950",
   quotes:
     "text-amber-600 bg-amber-100/80 dark:text-amber-400 dark:bg-amber-950",
-  services:
-    "text-cyan-600 bg-cyan-100/80 dark:text-cyan-400 dark:bg-cyan-950",
+  services: "text-cyan-600 bg-cyan-100/80 dark:text-cyan-400 dark:bg-cyan-950",
   payments:
     "text-emerald-600 bg-emerald-100/80 dark:text-emerald-400 dark:bg-emerald-950",
-  expenses:
-    "text-rose-600 bg-rose-100/80 dark:text-rose-400 dark:bg-rose-950",
+  expenses: "text-rose-600 bg-rose-100/80 dark:text-rose-400 dark:bg-rose-950",
   client_tasks:
     "text-violet-600 bg-violet-100/80 dark:text-violet-400 dark:bg-violet-950",
 };
@@ -189,7 +186,7 @@ export const describeAction = (action: WorkflowAction): string => {
     case "send_email": {
       const recipient =
         d.recipient_type === "custom"
-          ? (d.custom_email as string) ?? "email personalizzata"
+          ? ((d.custom_email as string) ?? "email personalizzata")
           : "email cliente";
       return `Invia email a ${recipient}: "${d.subject ?? ""}"`;
     }

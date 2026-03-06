@@ -134,9 +134,7 @@ export const QuoteEdit = ({ open, id }: { open: boolean; id?: string }) => {
                           ) : (
                             <Eye className="h-4 w-4 mr-1" />
                           )}
-                          {showPreview
-                            ? "Nascondi anteprima"
-                            : "Anteprima"}
+                          {showPreview ? "Nascondi anteprima" : "Anteprima"}
                         </Button>
                         <DeleteButton variant="outline" size="sm" />
                       </div>
@@ -146,9 +144,7 @@ export const QuoteEdit = ({ open, id }: { open: boolean; id?: string }) => {
                 </>
               )}
               {showPreview && isMobile && (
-                <MobilePreviewOverlay
-                  onClose={() => setShowPreview(false)}
-                />
+                <MobilePreviewOverlay onClose={() => setShowPreview(false)} />
               )}
             </Form>
           </EditBase>

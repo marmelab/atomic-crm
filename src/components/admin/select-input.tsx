@@ -195,9 +195,7 @@ export const SelectInput = (props: SelectInputProps) => {
         if (value === emptyValue) {
           field.onChange(emptyValue);
         } else {
-          const choice = allChoices?.find(
-            (c) => getChoiceValue(c) === value,
-          );
+          const choice = allChoices?.find((c) => getChoiceValue(c) === value);
           field.onChange(choice ? getChoiceValue(choice) : value);
         }
       }, 0);

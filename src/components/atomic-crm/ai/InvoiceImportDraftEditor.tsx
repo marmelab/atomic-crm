@@ -134,7 +134,13 @@ export const InvoiceImportDraftEditor = ({
                 />
               </Field>
 
-              <Field label={record.resource === "services" ? "Data servizio" : "Data documento"}>
+              <Field
+                label={
+                  record.resource === "services"
+                    ? "Data servizio"
+                    : "Data documento"
+                }
+              >
                 <Input
                   type="date"
                   value={record.documentDate ?? ""}

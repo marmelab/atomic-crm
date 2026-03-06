@@ -126,7 +126,7 @@ export const computeFiscalEstimates = ({
 
   for (const payment of yearPayments) {
     const category = payment.project_id
-      ? projectCategoryMap.get(payment.project_id) ?? null
+      ? (projectCategoryMap.get(payment.project_id) ?? null)
       : null;
 
     // Find matching ATECO profile by category
@@ -192,26 +192,59 @@ const buildHighPriorityDeadlines = (
 
   // June 30
   const juneItems: DeadlineItem[] = [
-    { description: "Saldo Imposta Sostitutiva anno precedente", amount: stimaImpostaAnnuale },
-    { description: "Saldo INPS anno precedente (20%)", amount: stimaInpsAnnuale * 0.2 },
+    {
+      description: "Saldo Imposta Sostitutiva anno precedente",
+      amount: stimaImpostaAnnuale,
+    },
+    {
+      description: "Saldo INPS anno precedente (20%)",
+      amount: stimaInpsAnnuale * 0.2,
+    },
   ];
   if (hasDoubleAcconto) {
-    juneItems.push({ description: "1° Acconto Imposta Sostitutiva (50%)", amount: stimaImpostaAnnuale * 0.5 });
+    juneItems.push({
+      description: "1° Acconto Imposta Sostitutiva (50%)",
+      amount: stimaImpostaAnnuale * 0.5,
+    });
   }
-  juneItems.push({ description: "1° Acconto INPS Gestione Separata (40%)", amount: stimaInpsAnnuale * 0.4 });
+  juneItems.push({
+    description: "1° Acconto INPS Gestione Separata (40%)",
+    amount: stimaInpsAnnuale * 0.4,
+  });
 
   // November 30
   const novItems: DeadlineItem[] = [];
   if (hasDoubleAcconto) {
-    novItems.push({ description: "2° Acconto Imposta Sostitutiva (50%)", amount: stimaImpostaAnnuale * 0.5 });
+    novItems.push({
+      description: "2° Acconto Imposta Sostitutiva (50%)",
+      amount: stimaImpostaAnnuale * 0.5,
+    });
   } else if (hasSingleAcconto) {
-    novItems.push({ description: "Acconto Unico Imposta Sostitutiva (100%)", amount: stimaImpostaAnnuale });
+    novItems.push({
+      description: "Acconto Unico Imposta Sostitutiva (100%)",
+      amount: stimaImpostaAnnuale,
+    });
   }
-  novItems.push({ description: "2° Acconto INPS Gestione Separata (40%)", amount: stimaInpsAnnuale * 0.4 });
+  novItems.push({
+    description: "2° Acconto INPS Gestione Separata (40%)",
+    amount: stimaInpsAnnuale * 0.4,
+  });
 
   return [
-    makeDeadline({ date: new Date(currentYear, 5, 30), label: "Saldo + 1° Acconto", items: juneItems, priority: "high", today }),
-    makeDeadline({ date: new Date(currentYear, 10, 30), label: "2° Acconto", items: novItems, priority: "high", today }),
+    makeDeadline({
+      date: new Date(currentYear, 5, 30),
+      label: "Saldo + 1° Acconto",
+      items: juneItems,
+      priority: "high",
+      today,
+    }),
+    makeDeadline({
+      date: new Date(currentYear, 10, 30),
+      label: "2° Acconto",
+      items: novItems,
+      priority: "high",
+      today,
+    }),
   ];
 };
 
@@ -230,7 +263,12 @@ const buildLowPriorityDeadlines = (
     makeDeadline({
       date: bq.date,
       label: bq.label,
-      items: [{ description: `Imposta di bollo fatture elettroniche — ${bq.label}`, amount: 0 }],
+      items: [
+        {
+          description: `Imposta di bollo fatture elettroniche — ${bq.label}`,
+          amount: 0,
+        },
+      ],
       priority: "low",
       today,
     }),
@@ -240,7 +278,9 @@ const buildLowPriorityDeadlines = (
     makeDeadline({
       date: new Date(currentYear, 9, 31),
       label: "Dichiarazione dei redditi",
-      items: [{ description: "Invio telematico Modello Redditi PF", amount: 0 }],
+      items: [
+        { description: "Invio telematico Modello Redditi PF", amount: 0 },
+      ],
       priority: "low",
       today,
     }),
@@ -265,7 +305,12 @@ export const buildFiscalDeadlines = ({
   if (annoInizioAttivita === currentYear) return [];
 
   return [
-    ...buildHighPriorityDeadlines(stimaImpostaAnnuale, stimaInpsAnnuale, currentYear, today),
+    ...buildHighPriorityDeadlines(
+      stimaImpostaAnnuale,
+      stimaInpsAnnuale,
+      currentYear,
+      today,
+    ),
     ...buildLowPriorityDeadlines(currentYear, today),
   ];
 };
@@ -313,10 +358,7 @@ export const buildTaskPayloads = (
 export const buildDeadlineNotificationMessage = (
   upcomingDeadlines: FiscalDeadline[],
 ): string => {
-  const lines: string[] = [
-    "📋 Scadenze fiscali in arrivo:",
-    "",
-  ];
+  const lines: string[] = ["📋 Scadenze fiscali in arrivo:", ""];
 
   for (const d of upcomingDeadlines) {
     const dateFormatted = new Date(d.date + "T00:00:00").toLocaleDateString(

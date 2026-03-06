@@ -170,8 +170,7 @@ const MobileActions = ({
   const createPath = useCreatePath();
   const editLink = createPath({ resource, type: "edit", id: record?.id });
 
-  const hasContextualItems =
-    !!project || showPayment || hasCollectableAmount;
+  const hasContextualItems = !!project || showPayment || hasCollectableAmount;
 
   return (
     <div className="flex gap-2 flex-wrap items-center">

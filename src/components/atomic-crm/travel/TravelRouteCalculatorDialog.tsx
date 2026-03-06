@@ -245,7 +245,13 @@ export const TravelRouteCalculatorDialog = ({
     setKmRate(toRateValue(currentKmRate, defaultKmRate));
     setEstimate(null);
     setActiveAutocompleteField(null);
-  }, [open, defaultTravelOrigin, initialDestination, currentKmRate, defaultKmRate]);
+  }, [
+    open,
+    defaultTravelOrigin,
+    initialDestination,
+    currentKmRate,
+    defaultKmRate,
+  ]);
 
   const normalizedKmRate = toRateValue(kmRate, defaultKmRate);
   const displayEstimate = useMemo(() => {

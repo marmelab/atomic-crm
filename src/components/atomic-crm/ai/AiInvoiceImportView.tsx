@@ -82,8 +82,8 @@ export const AiInvoiceImportView = ({
           <p className="text-sm font-medium">Importa fatture e ricevute</p>
           <p className="text-sm text-muted-foreground">
             Carica PDF, scansioni o foto. L&apos;AI prepara una bozza
-            strutturata per incassi, spese o servizi, che puoi correggere
-            prima della conferma.
+            strutturata per incassi, spese o servizi, che puoi correggere prima
+            della conferma.
           </p>
         </div>
       </div>

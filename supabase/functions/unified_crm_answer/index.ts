@@ -213,9 +213,7 @@ async function answerUnifiedCrmQuestion(
           JSON.stringify({
             data: {
               question,
-              model: travelEstimateResult
-                ? "google-maps"
-                : "crm_rule_engine",
+              model: travelEstimateResult ? "google-maps" : "crm_rule_engine",
               generatedAt: new Date().toISOString(),
               answerMarkdown: buildUnifiedCrmServiceCreateAnswerMarkdown({
                 parsedQuestion: quickEpisodeQuestion,
@@ -241,9 +239,7 @@ async function answerUnifiedCrmQuestion(
         JSON.stringify({
           data: {
             question,
-            model: travelEstimateResult
-              ? "google-maps"
-              : "crm_rule_engine",
+            model: travelEstimateResult ? "google-maps" : "crm_rule_engine",
             generatedAt: new Date().toISOString(),
             answerMarkdown: buildUnifiedCrmProjectQuickEpisodeAnswerMarkdown({
               parsedQuestion: quickEpisodeQuestion,

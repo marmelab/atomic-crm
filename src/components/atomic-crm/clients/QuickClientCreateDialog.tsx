@@ -130,7 +130,8 @@ export const QuickClientCreateDialog = ({
         <DialogHeader>
           <DialogTitle>Creazione rapida cliente</DialogTitle>
           <DialogDescription>
-            Inserisci i dati essenziali. Potrai completare il profilo in seguito.
+            Inserisci i dati essenziali. Potrai completare il profilo in
+            seguito.
           </DialogDescription>
         </DialogHeader>
 

@@ -546,15 +546,11 @@ export const inferProjectQuickEpisodeServiceType = (
   return null;
 };
 
-export const inferProjectQuickEpisodeDescription = (
-  question: string,
-) => {
+export const inferProjectQuickEpisodeDescription = (question: string) => {
   const compactQuestion = question.replace(/\s+/g, " ").trim();
 
   // Quoted text — e.g. "registra riprese per 'SPOT GS 2026'"
-  const quotedMatch = compactQuestion.match(
-    /[""''«](.{3,60})[""''»]/,
-  );
+  const quotedMatch = compactQuestion.match(/[""''«](.{3,60})[""''»]/);
   if (quotedMatch?.[1]) {
     return quotedMatch[1].trim();
   }
@@ -701,9 +697,7 @@ export const inferAmountFromQuestion = (question: string) => {
 export const inferPreferredPaymentType = (
   normalizedQuestion: string,
 ): DraftPaymentType | null => {
-  if (
-    includesAny(normalizedQuestion, ["rimborso spese", "rimborso", "spes"])
-  ) {
+  if (includesAny(normalizedQuestion, ["rimborso spese", "rimborso", "spes"])) {
     return "rimborso_spese";
   }
 

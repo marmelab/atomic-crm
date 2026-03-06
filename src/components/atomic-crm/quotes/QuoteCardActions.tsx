@@ -13,9 +13,7 @@ import { sanitizeQuoteItems } from "./quoteItems";
 import { quoteStatusLabels } from "./quotesTypes";
 import type { QuotePDFProps } from "./QuotePDF";
 
-const LazyQuoteCardPDFPreview = lazy(
-  () => import("./QuoteCardPDFPreview"),
-);
+const LazyQuoteCardPDFPreview = lazy(() => import("./QuoteCardPDFPreview"));
 
 const lazyDownloadQuotePDF = async (props: QuotePDFProps) => {
   const { downloadQuotePDF } = await import("./QuotePDF");

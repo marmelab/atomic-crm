@@ -36,8 +36,7 @@ export const InvoiceImportDraftPaymentSection = ({
         value={record.paymentMethod ?? "bonifico"}
         onChange={(value) =>
           onChange({
-            paymentMethod:
-              value as InvoiceImportRecordDraft["paymentMethod"],
+            paymentMethod: value as InvoiceImportRecordDraft["paymentMethod"],
           })
         }
       >
@@ -54,8 +53,7 @@ export const InvoiceImportDraftPaymentSection = ({
         value={record.paymentStatus ?? "in_attesa"}
         onChange={(value) =>
           onChange({
-            paymentStatus:
-              value as InvoiceImportRecordDraft["paymentStatus"],
+            paymentStatus: value as InvoiceImportRecordDraft["paymentStatus"],
           })
         }
       >

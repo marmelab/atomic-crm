@@ -8,6 +8,12 @@ prodotto senza incrociarlo con `docs/README.md` e i documenti `canonical`.
 
 Last updated: 2026-03-06
 
+## Update 2026-03-06 (prettier formatting sweep)
+
+- Ran `prettier --write` on 38 files across `src/` and `supabase/functions/`
+  to fix CI formatting warnings. No logic or behavior changes — whitespace
+  and trailing-comma normalization only.
+
 ## Update 2026-03-06 (expanded expense types)
 
 - Added 3 new expense types: `pedaggio_autostradale`, `vitto_alloggio`,

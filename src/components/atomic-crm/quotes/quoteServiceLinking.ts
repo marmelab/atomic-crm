@@ -22,9 +22,8 @@ export const quoteStatusesEligibleForServiceCreation = new Set([
   "saldato",
 ]);
 
-export const canCreateServiceFromQuote = (
-  quote: Pick<Quote, "status">,
-) => quoteStatusesEligibleForServiceCreation.has(quote.status);
+export const canCreateServiceFromQuote = (quote: Pick<Quote, "status">) =>
+  quoteStatusesEligibleForServiceCreation.has(quote.status);
 
 export type ServiceDraftFromQuote = Pick<
   Service,
@@ -40,9 +39,7 @@ export type ServiceDraftFromQuote = Pick<
   | "km_distance"
   | "km_rate"
 > &
-  Partial<
-    Pick<Service, "project_id" | "client_id" | "description" | "notes">
-  >;
+  Partial<Pick<Service, "project_id" | "client_id" | "description" | "notes">>;
 
 export const getSuggestedServiceTypeFromQuote = (
   quoteServiceType?: string,

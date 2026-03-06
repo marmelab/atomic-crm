@@ -77,7 +77,11 @@ const QuoteShowContent = () => {
 
   const invoiceDraft =
     record && client
-      ? buildInvoiceDraftFromQuote({ quote: record, client, payments: linkedPayments })
+      ? buildInvoiceDraftFromQuote({
+          quote: record,
+          client,
+          payments: linkedPayments,
+        })
       : null;
   const hasCollectable = hasInvoiceDraftCollectableAmount(invoiceDraft);
 

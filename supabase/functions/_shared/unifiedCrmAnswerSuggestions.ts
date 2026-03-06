@@ -3,9 +3,7 @@ import type {
   UnifiedCrmPaymentDraft,
   UnifiedCrmSuggestedAction,
 } from "./unifiedCrmAnswerTypes.ts";
-import {
-  unifiedCrmAnswerMaxQuestionLength,
-} from "./unifiedCrmAnswerTypes.ts";
+import { unifiedCrmAnswerMaxQuestionLength } from "./unifiedCrmAnswerTypes.ts";
 import {
   buildCreateHref,
   buildListHref,
@@ -637,9 +635,7 @@ export const buildUnifiedCrmSuggestedActions = ({
     const draftProjectRecord = matchedProjectId
       ? matchedProject
       : matchedClientId
-        ? activeProjects.find(
-            (p) => getString(p.clientId) === matchedClientId,
-          )
+        ? activeProjects.find((p) => getString(p.clientId) === matchedClientId)
         : firstProject;
     const draftClientRecord = matchedClient ?? firstClient;
 

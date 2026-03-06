@@ -37,8 +37,7 @@ const flattenAction = (actions?: WorkflowAction[]) => {
       first.type === "send_email" ? String(d.custom_email ?? "") : "",
     action_email_subject:
       first.type === "send_email" ? String(d.subject ?? "") : "",
-    action_email_body:
-      first.type === "send_email" ? String(d.body ?? "") : "",
+    action_email_body: first.type === "send_email" ? String(d.body ?? "") : "",
     action_notification_message:
       first.type === "send_notification" ? String(d.message ?? "") : "",
   };

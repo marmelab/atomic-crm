@@ -67,8 +67,7 @@ export const buildInvoiceDraftFromClient = ({
 
     const sorted = [...groupServices].sort(
       (a, b) =>
-        new Date(a.service_date).valueOf() -
-        new Date(b.service_date).valueOf(),
+        new Date(a.service_date).valueOf() - new Date(b.service_date).valueOf(),
     );
 
     sorted.forEach((service) => {

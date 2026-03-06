@@ -66,9 +66,7 @@ export const buildKmLineDescription = (
 
   if (service.travel_origin?.trim() && service.travel_destination?.trim()) {
     const route = `${service.travel_origin.trim()} – ${service.travel_destination.trim()}`;
-    parts.push(
-      service.trip_mode === "round_trip" ? `${route} A/R` : route,
-    );
+    parts.push(service.trip_mode === "round_trip" ? `${route} A/R` : route);
   }
 
   const effectiveRate = service.km_rate || defaultKmRate;

@@ -13,10 +13,7 @@ import {
   serviceTypeStyles,
   defaultServiceTypeStyle,
 } from "./quoteServiceStyles";
-import {
-  quoteStatusStyles,
-  defaultQuoteStatusStyle,
-} from "./quotesTypes";
+import { quoteStatusStyles, defaultQuoteStatusStyle } from "./quotesTypes";
 
 export const QuoteCard = memo(
   ({ quote, index }: { quote: Quote; index: number }) => {
@@ -37,7 +34,6 @@ export const QuoteCard = memo(
 );
 QuoteCard.displayName = "QuoteCard";
 
-
 const QuoteCardContent = ({
   provided,
   snapshot,
@@ -55,8 +51,10 @@ const QuoteCardContent = ({
     { enabled: !!quote.client_id },
   );
 
-  const style = serviceTypeStyles[quote.service_type] ?? defaultServiceTypeStyle;
-  const statusStyle = quoteStatusStyles[quote.status] ?? defaultQuoteStatusStyle;
+  const style =
+    serviceTypeStyles[quote.service_type] ?? defaultServiceTypeStyle;
+  const statusStyle =
+    quoteStatusStyles[quote.status] ?? defaultQuoteStatusStyle;
   const Icon = style.icon;
 
   const serviceLabel =
@@ -85,13 +83,9 @@ const QuoteCardContent = ({
       {...provided?.dragHandleProps}
       ref={provided?.innerRef}
       onClick={() =>
-        redirect(
-          `/quotes/${quote.id}/show`,
-          undefined,
-          undefined,
-          undefined,
-          { _scrollToTop: false },
-        )
+        redirect(`/quotes/${quote.id}/show`, undefined, undefined, undefined, {
+          _scrollToTop: false,
+        })
       }
     >
       <QuoteCardActions quote={quote} client={client} />

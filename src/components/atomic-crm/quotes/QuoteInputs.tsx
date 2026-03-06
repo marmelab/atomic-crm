@@ -92,7 +92,10 @@ export const QuoteInputs = () => {
       </div>
 
       {/* Vertical separator on desktop */}
-      <Separator orientation="vertical" className="hidden md:block self-stretch" />
+      <Separator
+        orientation="vertical"
+        className="hidden md:block self-stretch"
+      />
 
       {/* Right column: Status + Notes */}
       <div className="flex-1 flex flex-col gap-6">

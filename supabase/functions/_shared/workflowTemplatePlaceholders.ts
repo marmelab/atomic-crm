@@ -58,9 +58,8 @@ export function resolveTemplatePlaceholders(
     "{risorsa}": resourceLabels[ctx.resource] ?? ctx.resource,
     "{stato}": String(ctx.record.status ?? ""),
     "{nome_progetto}": String(ctx.record.name ?? ""),
-    "{importo}": ctx.record.amount != null
-      ? formatCurrency(ctx.record.amount)
-      : "",
+    "{importo}":
+      ctx.record.amount != null ? formatCurrency(ctx.record.amount) : "",
     "{data}": formatDate(),
   };
 

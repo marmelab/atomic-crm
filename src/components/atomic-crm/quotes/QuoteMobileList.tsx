@@ -128,7 +128,9 @@ const TabChip = ({
     onClick={onClick}
   >
     {statusStyle && !active && (
-      <span className={cn("h-1.5 w-1.5 rounded-full shrink-0", statusStyle.dot)} />
+      <span
+        className={cn("h-1.5 w-1.5 rounded-full shrink-0", statusStyle.dot)}
+      />
     )}
     {label}
   </Button>

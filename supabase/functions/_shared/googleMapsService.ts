@@ -156,9 +156,7 @@ export const searchOpenRouteLocations = async ({
     }),
   );
 
-  return results.filter(
-    (r): r is OpenRouteLocationSuggestion => r !== null,
-  );
+  return results.filter((r): r is OpenRouteLocationSuggestion => r !== null);
 };
 
 // ---------------------------------------------------------------------------

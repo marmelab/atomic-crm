@@ -20,7 +20,9 @@ export const QuoteStatusInputs = memo(function QuoteStatusInputs({
     <div className="flex flex-col gap-4">
       <div className="flex items-center gap-2 mb-1">
         <Activity className="h-4 w-4 text-amber-500" />
-        <h6 className="text-sm font-semibold text-amber-700">Stato e fiscalità</h6>
+        <h6 className="text-sm font-semibold text-amber-700">
+          Stato e fiscalità
+        </h6>
       </div>
 
       <BooleanInput

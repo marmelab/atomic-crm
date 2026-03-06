@@ -171,9 +171,7 @@ export const InvoiceImportDraftServiceSection = ({
           onChange={(event) =>
             onChange({
               kmRate:
-                event.target.value === ""
-                  ? null
-                  : Number(event.target.value),
+                event.target.value === "" ? null : Number(event.target.value),
             })
           }
         />

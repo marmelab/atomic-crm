@@ -57,10 +57,17 @@ async function fetchTriggerContext(resource: string, recordId: string) {
 
 async function handleEmailExternal(
   payload: WorkflowNotifyPayload,
-  ctx: { record: Record<string, unknown>; client: Record<string, unknown> | null },
+  ctx: {
+    record: Record<string, unknown>;
+    client: Record<string, unknown> | null;
+  },
 ) {
   if (!isSmtpConfigured()) {
-    return { channel: "email_external", ok: false, detail: { error: "SMTP not configured" } };
+    return {
+      channel: "email_external",
+      ok: false,
+      detail: { error: "SMTP not configured" },
+    };
   }
 
   const templateCtx = {
@@ -69,7 +76,10 @@ async function handleEmailExternal(
     resource: payload.trigger_resource,
   };
 
-  const subject = resolveTemplatePlaceholders(payload.subject ?? "", templateCtx);
+  const subject = resolveTemplatePlaceholders(
+    payload.subject ?? "",
+    templateCtx,
+  );
   const body = resolveTemplatePlaceholders(payload.body ?? "", templateCtx);
 
   // Resolve recipient
@@ -118,7 +128,10 @@ async function handleEmailExternal(
 
 async function handleNotifyOwner(
   payload: WorkflowNotifyPayload,
-  ctx: { record: Record<string, unknown>; client: Record<string, unknown> | null },
+  ctx: {
+    record: Record<string, unknown>;
+    client: Record<string, unknown> | null;
+  },
 ) {
   const templateCtx = {
     client: ctx.client,
@@ -126,7 +139,10 @@ async function handleNotifyOwner(
     resource: payload.trigger_resource,
   };
 
-  const message = resolveTemplatePlaceholders(payload.message ?? "", templateCtx);
+  const message = resolveTemplatePlaceholders(
+    payload.message ?? "",
+    templateCtx,
+  );
   const subject = `Automazione: ${message.slice(0, 80)}`;
 
   const result = await notifyOwner(subject, message);
@@ -169,7 +185,10 @@ async function handleRequest(req: Request, currentUserSale: unknown) {
     });
   } catch (error) {
     console.error("workflow_notify.error", { error, payload });
-    return createErrorResponse(500, "Errore nell'invio della notifica workflow");
+    return createErrorResponse(
+      500,
+      "Errore nell'invio della notifica workflow",
+    );
   }
 }
 

@@ -50,9 +50,7 @@ export const QuoteShowSections = ({
           <Badge variant="secondary">{statusLabel}</Badge>
         </InfoField>
         <InfoField label="Tassabilità">
-          <Badge
-            variant={quote.is_taxable === false ? "secondary" : "outline"}
-          >
+          <Badge variant={quote.is_taxable === false ? "secondary" : "outline"}>
             {quote.is_taxable === false ? "Non tassabile" : "Tassabile"}
           </Badge>
         </InfoField>

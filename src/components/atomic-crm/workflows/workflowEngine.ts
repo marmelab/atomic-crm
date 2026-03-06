@@ -141,7 +141,12 @@ async function executeAction(
     case "update_field":
       return updateField(dataProvider, action.data, triggerRecord);
     case "send_email":
-      return sendEmail(dataProvider, action.data, triggerRecord, triggerResource);
+      return sendEmail(
+        dataProvider,
+        action.data,
+        triggerRecord,
+        triggerResource,
+      );
     case "send_notification":
       return sendNotification(
         dataProvider,

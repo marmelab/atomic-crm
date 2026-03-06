@@ -20,7 +20,9 @@ export const QuoteItemsInputs = memo(() => {
     <div className="flex flex-col gap-4">
       <div className="flex items-center gap-2 mb-1">
         <ListChecks className="h-4 w-4 text-emerald-500" />
-        <h6 className="text-sm font-semibold text-emerald-700">Voci e importo</h6>
+        <h6 className="text-sm font-semibold text-emerald-700">
+          Voci e importo
+        </h6>
       </div>
 
       <ArrayInput

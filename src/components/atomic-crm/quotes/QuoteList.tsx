@@ -182,7 +182,10 @@ const MobileSearchInput = () => {
       const v = e.target.value;
       setValue(v);
       clearTimeout(debounceRef.current);
-      debounceRef.current = setTimeout(() => applyFilter(v), SEARCH_DEBOUNCE_MS);
+      debounceRef.current = setTimeout(
+        () => applyFilter(v),
+        SEARCH_DEBOUNCE_MS,
+      );
     },
     [applyFilter],
   );
@@ -203,7 +206,10 @@ const MobileSearchInput = () => {
       <Button
         variant="outline"
         size="icon"
-        className={cn("h-9 w-9", hasActiveSearch && "border-primary text-primary")}
+        className={cn(
+          "h-9 w-9",
+          hasActiveSearch && "border-primary text-primary",
+        )}
         onClick={() => {
           setValue(filterValues?.q ?? "");
           setOpen(true);
@@ -214,10 +220,7 @@ const MobileSearchInput = () => {
 
       {open && (
         <>
-          <div
-            className="fixed inset-0 z-40"
-            onClick={() => setOpen(false)}
-          />
+          <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} />
           <div className="fixed top-0 left-0 right-0 z-50 bg-background border-b shadow-lg px-4 py-3 flex items-center gap-2">
             <Search className="h-4 w-4 shrink-0 text-muted-foreground" />
             <Input

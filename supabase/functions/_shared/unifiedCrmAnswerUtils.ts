@@ -17,9 +17,7 @@ export const italianMonthNumbers: Record<string, number> = {
   dicembre: 12,
 };
 
-export const isObject = (
-  value: unknown,
-): value is Record<string, unknown> =>
+export const isObject = (value: unknown): value is Record<string, unknown> =>
   typeof value === "object" && value !== null;
 
 export const normalizeText = (value: string) =>
@@ -213,8 +211,6 @@ export const projectNameStopwords = new Set([
 export const tokenizeProjectName = (value: string) =>
   normalizeText(value)
     .split(/[^a-z0-9]+/i)
-    .filter(
-      (token) => token.length >= 3 && !projectNameStopwords.has(token),
-    );
+    .filter((token) => token.length >= 3 && !projectNameStopwords.has(token));
 
 export const tokenizeClientName = tokenizeProjectName;
