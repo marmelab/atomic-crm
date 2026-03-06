@@ -332,9 +332,13 @@ export const QuickEpisodeForm = ({
                   }
                 >
                   <option value="acquisto_materiale">Acquisto materiale</option>
-                  <option value="abbonamento_software">Abbonamento software</option>
+                  <option value="abbonamento_software">
+                    Abbonamento software
+                  </option>
                   <option value="noleggio">Noleggio</option>
-                  <option value="pedaggio_autostradale">Pedaggio autostradale</option>
+                  <option value="pedaggio_autostradale">
+                    Pedaggio autostradale
+                  </option>
                   <option value="vitto_alloggio">Vitto e alloggio</option>
                   <option value="altro">Altro</option>
                 </select>

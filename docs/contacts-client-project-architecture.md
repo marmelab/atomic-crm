@@ -7,7 +7,7 @@
 nel contesto AI.
 
 Data: 2026-03-01
-Ultimo aggiornamento: 2026-03-04
+Ultimo aggiornamento: 2026-03-06
 
 ## UI Update — Liste Clienti, Referenti e Progetti con Icone Colorate
 

@@ -13,6 +13,8 @@ Last updated: 2026-03-06
 - Added 3 new expense types: `pedaggio_autostradale`, `vitto_alloggio`,
   `abbonamento_software` — supports importing tolls, meals, software
   subscriptions via AI document import.
+- Test `UnifiedAiLauncher.test.tsx` updated to use regex matcher for the
+  confirmation text which now includes record count suffix.
 - Updated across full stack: `types.ts` union, `expenseTypes.ts` choices/labels,
   `expenseLinking.ts` Set, `QuickEpisodeForm.tsx` select + persistence switch,
   `invoiceImportExtract.ts` (Set + JSON schema + AI prompt), `invoiceImportConfirm.ts`

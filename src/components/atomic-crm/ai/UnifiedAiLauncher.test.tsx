@@ -739,7 +739,7 @@ describe("UnifiedAiLauncher", () => {
     await waitFor(() =>
       expect(confirmInvoiceImportDraft).toHaveBeenCalledTimes(1),
     );
-    expect(await screen.findByText("Import completato")).toBeInTheDocument();
+    expect(await screen.findByText(/Import completato/)).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole("button", { name: "Close" }));
 
@@ -756,7 +756,7 @@ describe("UnifiedAiLauncher", () => {
     );
 
     expect(screen.queryByText("Bozza pronta")).not.toBeInTheDocument();
-    expect(screen.queryByText("Import completato")).not.toBeInTheDocument();
+    expect(screen.queryByText(/Import completato/)).not.toBeInTheDocument();
     expect(
       screen.getByRole("button", { name: "Analizza documenti" }),
     ).toBeDisabled();
