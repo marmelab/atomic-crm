@@ -57,19 +57,9 @@ export const buildQuickEpisodeExpenseCreateData = ({
   data: EpisodeFormData;
 }): Array<Omit<Expense, "id" | "created_at">> => {
   const payloads: Array<Omit<Expense, "id" | "created_at">> = [];
-  const location = trimOptionalText(data.location);
 
-  if (Number(data.km_distance) > 0) {
-    payloads.push({
-      project_id: record.id,
-      client_id: record.client_id,
-      expense_date: data.service_date,
-      expense_type: "spostamento_km",
-      km_distance: Number(data.km_distance),
-      km_rate: Number(data.km_rate),
-      description: location ? `Spostamento - ${location}` : "Spostamento",
-    });
-  }
+  // km expenses are auto-created by the DB trigger on services (sync_service_km_expense)
+  // so we only build extra (non-km) expenses here.
 
   data.extra_expenses
     .filter((expense) => Number(expense.amount) > 0)

@@ -113,6 +113,23 @@ Non salire di layer se non necessario.
 Non creare client Supabase custom se il dataProvider esistente basta.
 Preferire metodi espliciti nel provider.
 
+### Enum/Choice Consistency Rule — CRITICA
+
+Quando si aggiunge un nuovo valore a un enum o a una lista di scelte (es.
+`expense_type`, `service_type`, `payment_type`, `status`), aggiornare SEMPRE
+tutte queste superfici:
+
+1. **CHECK constraint** nel DB (migration)
+2. **TypeScript type** in `types.ts`
+3. **Choices/labels** nel modulo UI (es. `expenseTypes.ts`)
+4. **Views** che contengono CASE/switch su quel campo
+5. **AI registry** se il campo e' esposto alla semantica
+6. **Edge Functions** se usano validazione o switch su quel campo
+7. **Test** con fixture che usano quel campo
+
+Se anche UNA sola superficie resta disallineata, il DB rifiuta l'insert oppure
+la UI mostra un tipo senza label. Verificare PRIMA di committare.
+
 ## Mandatory Surface Sweep
 
 Quando si modifica un modulo con sweep obbligatorio (`projects`, `services`, `quotes`, `payments`, `expenses`, `tasks`, dashboard, AI), verificare TUTTE queste aree:

@@ -287,6 +287,7 @@ export type FinancialDocumentCashAllocation = {
 export type Expense = {
   project_id?: Identifier | null;
   client_id?: Identifier | null;
+  source_service_id?: Identifier | null;
   expense_date: string;
   expense_type:
     | "spostamento_km"

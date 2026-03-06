@@ -146,11 +146,10 @@ VALUES
   ('Progetto avviato → Task di briefing', 'Quando un progetto passa a in_corso, crea un task di briefing iniziale', 'projects', 'status_changed', '{"status": "in_corso"}', '[{"type": "create_task", "data": {"text": "Briefing iniziale con cliente", "due_days": 2}}]'::jsonb),
   ('Pagamento ricevuto → Task ringraziamento', 'Quando ricevi un pagamento, crea task per inviare ricevuta e ringraziare', 'payments', 'created', '{}', '[{"type": "create_task", "data": {"text": "Invia ricevuta e ringrazia cliente", "due_days": 1}}]'::jsonb);
 
--- Inserisce spese test
+-- Inserisce spese test (solo non-km; le spese km sono auto-create dal trigger sync_service_km_expense)
 INSERT INTO expenses (id, project_id, client_id, expense_date, expense_type, km_distance, km_rate, amount, markup_percent, description, created_at)
 VALUES
-  ('${randomUUID()}', '${entities.projectId}', '${entities.clientId}', '2026-01-18', 'acquisto_materiale', NULL, 0.19, 500, 25, 'Materiale', NOW()),
-  ('${randomUUID()}', '${entities.projectId}', '${entities.clientId}', '2026-01-20', 'spostamento_km', 100, 0.19, NULL, 0, 'Km', NOW());
+  ('${randomUUID()}', '${entities.projectId}', '${entities.clientId}', '2026-01-18', 'acquisto_materiale', NULL, 0.19, 500, 25, 'Materiale', NOW());
 `;
 
   // Esegui SQL via stdin (avoid shell double-quote issues with JSON values)

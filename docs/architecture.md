@@ -15,6 +15,7 @@ Stato del documento:
 
 ## Changelog
 
+- 2026-03-06: Auto-create km expenses from services via DB trigger (sync_service_km_expense)
 - 2026-03-06: Prettier formatting sweep (38 files, whitespace only, no logic changes)
 
 ## Continuita'
@@ -594,7 +595,7 @@ Nota di continuita':
 | workflows | Automazioni trigger-based | auth.uid() IS NOT NULL | nome, trigger (resource/event/conditions JSONB), actions JSONB, is_active, timestamps |
 | workflow_executions | Log esecuzioni workflow | auth.uid() IS NOT NULL | FK workflow, trigger info, status, result JSONB, error, timestamp |
 | payments | Tracking pagamenti | auth.uid() IS NOT NULL | cliente/progetto/preventivo, data, tipo, importo, metodo, `invoice_ref`, stato, note |
-| expenses | Spese e km | auth.uid() IS NOT NULL | cliente/progetto, data, tipo spesa (`spostamento_km`, `pedaggio_autostradale`, `vitto_alloggio`, `acquisto_materiale`, `abbonamento_software`, `noleggio`, `credito_ricevuto`, `altro`), km/importo, markup, descrizione, `invoice_ref` |
+| expenses | Spese e km | auth.uid() IS NOT NULL | cliente/progetto, data, tipo spesa (`spostamento_km`, `pedaggio_autostradale`, `vitto_alloggio`, `acquisto_materiale`, `abbonamento_software`, `noleggio`, `credito_ricevuto`, `altro`), km/importo, markup, descrizione, `invoice_ref`, `source_service_id` (FK→services, auto-create trigger) |
 | client_tasks | Promemoria (opzionalmente legati a un cliente) | auth.uid() IS NOT NULL | testo, tipo, data scadenza, `all_day`, completamento, FK cliente opzionale |
 | client_notes | Note clienti (con allegati) | auth.uid() IS NOT NULL | FK cliente obbligatoria, testo, data, allegati, timestamps |
 | settings | Configurazione | auth.uid() IS NOT NULL | record `config` persistito per branding, tipi, AI, fiscale, operativita' |

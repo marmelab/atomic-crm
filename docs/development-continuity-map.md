@@ -14,6 +14,7 @@ Last updated: 2026-03-06
 
 ### Recent Updates (cronologico, più recente in alto)
 
+- [2026-03-06 (b)](#update-2026-03-06-b--auto-km-expenses-from-services) — Auto-create km expenses from services via DB trigger
 - [2026-03-06](#update-2026-03-06--travel-origin-prop-fix) — Pass defaultTravelOrigin to all TravelRouteCalculatorDialog call sites
 - [2026-03-05 (n)](#update-2026-03-05-n--quote-kanban-full-width) — Quote Kanban full-width desktop breakout
 - [2026-03-05 (m)](#update-2026-03-05-m--quote-list-mobile-responsive) — Quote list mobile responsive (tabs + cards + search + filters)
@@ -66,6 +67,44 @@ Last updated: 2026-03-06
 - [Nota manutenzione 2026-03-02](#nota-manutenzione-2026-03-02-fix-ci)
 - [Testing Session Log 2026-03-04](#testing-session-log-2026-03-04--e2e-complete-validation)
 - [AI Semantic UI Upgrade 2026-03-04](#ai-semantic-ui-upgrade-2026-03-04--pareto-principle-applied)
+
+---
+
+## Update 2026-03-06 (b) — Auto km expenses from services
+
+DB trigger `sync_service_km_expense` auto-creates/updates/deletes a
+`spostamento_km` expense whenever a service has `km_distance > 0`. This is a
+system invariant (not a user workflow) that ensures km costs always flow into
+`project_financials.total_expenses` and `balance_due`.
+
+**Schema changes:**
+
+- `expenses.source_service_id` (uuid, UNIQUE, FK→services ON DELETE CASCADE)
+- `expenses.km_distance` changed from integer to numeric(10,2)
+- `expenses_expense_type_check` constraint updated (added `pedaggio_autostradale`, `vitto_alloggio`, `abbonamento_software`)
+- Trigger `trg_service_km_expense` on services AFTER INSERT/UPDATE/DELETE
+
+**Invariant:** every service with km produces exactly one linked expense via
+`source_service_id`. The `quickEpisodePersistence` no longer creates km
+expenses manually (trigger handles it). Invoice import also relies on the
+trigger for km expense creation.
+
+**Audit of financial surfaces (all safe, no double-counting):**
+
+- `project_financials` view: `balance_due = fees + expenses - paid` (unchanged, expenses now include auto-km)
+- `ClientFinancialSummary`: filters out `spostamento_km` from expenses, reads km from services — no overlap
+- Dashboard annual/historical: read km only from services, not expenses
+- Fiscal model: reads expenses (including auto-km), does not re-sum service km
+- AI context: reads raw data, correct
+- monthly_revenue / analytics views: services only
+
+**Files changed:**
+
+- `supabase/migrations/20260306064536_fix_km_cost_in_balance_due.sql` — transitional view fix
+- `supabase/migrations/20260306065425_auto_km_expense_from_service.sql` — trigger, backfill, constraint fix
+- `src/components/atomic-crm/types.ts` — added `source_service_id`
+- `src/components/atomic-crm/projects/quickEpisodePersistence.ts` — removed manual km expense creation
+- `tests/e2e/support/test-data-controller.ts` — removed duplicate km expense seed
 
 ---
 

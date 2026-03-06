@@ -17,6 +17,21 @@
 
 ## ⚡ Auto-Triggers — Quando vedo queste situazioni, AGISCO diversamente
 
+### Trigger: Enum/Choice = aggiorna TUTTE le superfici
+
+**Situazione**: Aggiungo un nuovo valore a un enum (expense_type, service_type, status, ecc.)
+**Azione automatica**: Aggiornare CHECK constraint DB, types.ts, UI choices/labels, views con CASE, AI registry, Edge Functions, test
+**Perché**: Il commit a33d903 ha aggiunto 3 expense types nel frontend ma NON nel CHECK constraint DB → INSERT bloccati. Scoperto solo mesi dopo.
+**Regola promossa in**: `AGENTS.md` → "Enum/Choice Consistency Rule"
+**Fonte**: Sessione 2026-03-06
+
+### Trigger: km su servizi = spesa auto-creata dal trigger DB
+
+**Situazione**: Creo/modifico codice che inserisce servizi con km_distance > 0
+**Azione automatica**: NON creare manualmente una spesa spostamento_km — il trigger `sync_service_km_expense` la crea automaticamente via `source_service_id`
+**Perché**: Doppio conteggio se si crea la spesa sia manualmente che via trigger. quickEpisodePersistence e invoice_import NON devono creare spese km.
+**Fonte**: Sessione 2026-03-06
+
 ### Trigger 0: Modello fiscale = CASSA, non competenza
 
 **Situazione**: Vedo calcolo base imponibile forfettaria

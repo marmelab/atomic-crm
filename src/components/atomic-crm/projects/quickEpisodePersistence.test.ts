@@ -66,22 +66,13 @@ describe("quickEpisodePersistence", () => {
     });
   });
 
-  it("builds km and extra expense payloads linked to the same client and project", () => {
+  it("builds only extra (non-km) expense payloads — km expenses are auto-created by DB trigger", () => {
     expect(
       buildQuickEpisodeExpenseCreateData({
         record,
         data,
       }),
     ).toEqual([
-      {
-        project_id: "project-tv-1",
-        client_id: "client-1",
-        expense_date: "2026-02-22",
-        expense_type: "spostamento_km",
-        km_distance: 144.24,
-        km_rate: 0.19,
-        description: "Spostamento - Acireale",
-      },
       {
         project_id: "project-tv-1",
         client_id: "client-1",
