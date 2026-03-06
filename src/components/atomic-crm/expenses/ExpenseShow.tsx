@@ -58,20 +58,19 @@ const ExpenseShowContent = () => {
   const total = computeTotal(record, operationalConfig.defaultKmRate);
 
   return (
-    <div className="mt-4 mb-28 md:mb-2 flex gap-8 px-4 md:px-0">
-      <div className="flex-1">
-        {isMobile && (
-          <div className="mb-3">
-            <MobileBackButton />
-          </div>
-        )}
-        <Card>
-          <CardContent>
-            <div className="flex flex-col gap-3">
-              <div>
-                <h2 className="text-2xl font-bold">
-                  {expenseTypeLabels[record.expense_type]} — EUR {eur(total)}
-                </h2>
+    <div className="mt-4 mb-28 md:mb-2 flex flex-col gap-6 px-4 md:px-0">
+      {isMobile && (
+        <div className="mb-3">
+          <MobileBackButton />
+        </div>
+      )}
+      <Card>
+        <CardContent>
+          <div className="flex flex-col gap-3">
+            <div>
+              <h2 className="text-xl md:text-2xl font-bold">
+                {expenseTypeLabels[record.expense_type]} — EUR {eur(total)}
+              </h2>
                 {record.expense_type === "credito_ricevuto" ? (
                   <div className="mt-2">
                     <Badge variant="secondary" className="text-green-700">
@@ -111,9 +110,8 @@ const ExpenseShowContent = () => {
               total={total}
               defaultKmRate={operationalConfig.defaultKmRate}
             />
-          </CardContent>
-        </Card>
-      </div>
+        </CardContent>
+      </Card>
     </div>
   );
 };
