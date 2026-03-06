@@ -108,6 +108,12 @@ export type InvoiceImportConfirmation = {
     invoiceRef?: string | null;
     amount?: number | null;
   }>;
+  skipped?: Array<{
+    resource: "payments" | "expenses" | "services";
+    reason: string;
+    description?: string | null;
+    amount?: number | null;
+  }>;
 };
 
 const normalizeNameComparable = (value?: string | null) => {

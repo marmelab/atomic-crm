@@ -262,23 +262,44 @@ export const AiInvoiceImportView = ({
     ) : null}
 
     {confirmation ? (
-      <div className="rounded-2xl border border-emerald-300 bg-emerald-50 px-4 py-4 text-sm text-emerald-900">
-        <p className="font-medium">Import completato</p>
-        <ul className="mt-2 list-disc space-y-1 pl-5">
-          {confirmation.created.map((item) => (
-            <li key={`${item.resource}-${item.id}`}>
-              {item.resource === "payments"
-                ? "Pagamento"
-                : item.resource === "services"
-                  ? "Servizio"
-                  : "Spesa"}{" "}
-              creat
-              {item.resource === "expenses" ? "a" : "o"} con ID{" "}
-              {String(item.id)}
-              {item.invoiceRef ? ` · rif. ${item.invoiceRef}` : ""}
-            </li>
-          ))}
-        </ul>
+      <div className="space-y-3">
+        {confirmation.created.length > 0 ? (
+          <div className="rounded-2xl border border-emerald-300 bg-emerald-50 px-4 py-4 text-sm text-emerald-900">
+            <p className="font-medium">
+              Import completato — {confirmation.created.length} record creati
+            </p>
+            <ul className="mt-2 list-disc space-y-1 pl-5">
+              {confirmation.created.map((item) => (
+                <li key={`${item.resource}-${item.id}`}>
+                  {item.resource === "payments"
+                    ? "Pagamento"
+                    : item.resource === "services"
+                      ? "Servizio"
+                      : "Spesa"}{" "}
+                  creat
+                  {item.resource === "expenses" ? "a" : "o"} con ID{" "}
+                  {String(item.id)}
+                  {item.invoiceRef ? ` · rif. ${item.invoiceRef}` : ""}
+                </li>
+              ))}
+            </ul>
+          </div>
+        ) : null}
+        {confirmation.skipped?.length ? (
+          <div className="rounded-2xl border border-amber-300 bg-amber-50 px-4 py-4 text-sm text-amber-900">
+            <p className="font-medium">
+              {confirmation.skipped.length} record saltati (gia presenti)
+            </p>
+            <ul className="mt-2 list-disc space-y-1 pl-5">
+              {confirmation.skipped.map((item, i) => (
+                <li key={`skipped-${i}`}>
+                  {item.description ?? item.reason}
+                  {item.amount != null ? ` · €${item.amount}` : ""}
+                </li>
+              ))}
+            </ul>
+          </div>
+        ) : null}
       </div>
     ) : null}
   </div>

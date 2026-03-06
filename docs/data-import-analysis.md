@@ -25,6 +25,12 @@ fiscale collapsible, Note) e splittato per concern in moduli dedicati.
 diversi con stessa data e stessi importi (es. due spot diversi nello stesso
 giorno a €312). `km_distance` migrato a `numeric(10,2)` per distanze decimali.
 
+**Nota 2026-03-06 (duplicate skip):** la conferma import ora **salta i duplicati**
+invece di bloccare l'intero batch con 409. Se un record esiste gia nel DB
+(match su stessi campi chiave), viene aggiunto a `skipped[]` nella risposta e
+gli altri record vengono importati normalmente. Il frontend mostra un riepilogo
+separato per record creati (verde) e saltati (ambra).
+
 **Aggiornato:** con risposte di Rosario + nuove tariffe 2025/2026
 
 ---

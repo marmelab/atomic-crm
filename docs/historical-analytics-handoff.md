@@ -6,7 +6,18 @@ lavoro senza riaprire decisioni gia prese.
 **Quando NON usarlo da solo:** per dedurre architettura canonica o stato
 prodotto senza incrociarlo con `docs/README.md` e i documenti `canonical`.
 
-Last updated: 2026-03-05
+Last updated: 2026-03-06
+
+## Update 2026-03-06 (duplicate skip on import confirm)
+
+- `invoice_import_confirm` now **skips duplicates** instead of failing the
+  entire batch with 409. Duplicate records are returned in `skipped[]` and
+  the remaining records are imported normally.
+- Frontend shows separate summaries: green for created, amber for skipped.
+- `InvoiceImportConfirmation` type extended with optional `skipped` array.
+- Edge Functions `travel_route_estimate` and `travel_location_suggest`
+  deployed to remote after Google Maps migration (were still running old
+  OpenRouteService code remotely).
 
 ## Update 2026-03-06 (Google Maps migration + invoice import fixes)
 

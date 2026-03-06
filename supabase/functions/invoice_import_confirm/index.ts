@@ -53,7 +53,7 @@ const ensureRecordIsConfirmable = ({
   }
 };
 
-const ensureNoDuplicatePayment = async ({
+const checkDuplicatePayment = async ({
   trx,
   record,
   paymentDate,
@@ -61,9 +61,9 @@ const ensureNoDuplicatePayment = async ({
   trx: any;
   record: InvoiceImportConfirmRecord;
   paymentDate: string;
-}) => {
+}): Promise<boolean> => {
   if (!record.invoiceRef || !record.clientId) {
-    return;
+    return false;
   }
 
   const existing = await trx
@@ -80,23 +80,18 @@ const ensureNoDuplicatePayment = async ({
     .where(sql<boolean>`invoice_ref is not distinct from ${record.invoiceRef}`)
     .executeTakeFirst();
 
-  if (existing) {
-    throw new InvoiceImportConfirmError(
-      409,
-      `Esiste gia un pagamento identico per il riferimento ${record.invoiceRef}.`,
-    );
-  }
+  return !!existing;
 };
 
-const ensureNoDuplicateExpense = async ({
+const checkDuplicateExpense = async ({
   trx,
   record,
 }: {
   trx: any;
   record: InvoiceImportConfirmRecord;
-}) => {
+}): Promise<boolean> => {
   if (!record.invoiceRef) {
-    return;
+    return false;
   }
 
   const existing = await trx
@@ -114,12 +109,7 @@ const ensureNoDuplicateExpense = async ({
     .where(sql<boolean>`invoice_ref is not distinct from ${record.invoiceRef}`)
     .executeTakeFirst();
 
-  if (existing) {
-    throw new InvoiceImportConfirmError(
-      409,
-      `Esiste gia una spesa identica per il riferimento ${record.invoiceRef}.`,
-    );
-  }
+  return !!existing;
 };
 
 /**
@@ -161,15 +151,15 @@ const resolveServiceFees = (
   }
 };
 
-const ensureNoDuplicateService = async ({
+const checkDuplicateService = async ({
   trx,
   record,
 }: {
   trx: any;
   record: InvoiceImportConfirmRecord;
-}) => {
+}): Promise<boolean> => {
   if (!record.documentDate) {
-    return;
+    return false;
   }
 
   const { feeShooting, feeEditing, feeOther } = resolveServiceFees(record);
@@ -193,12 +183,7 @@ const ensureNoDuplicateService = async ({
     )
     .executeTakeFirst();
 
-  if (existing) {
-    throw new InvoiceImportConfirmError(
-      409,
-      `Esiste gia un servizio identico per la data ${record.documentDate}.`,
-    );
-  }
+  return !!existing;
 };
 
 const confirmInvoiceImportDraft = async ({
@@ -232,12 +217,22 @@ const confirmInvoiceImportDraft = async ({
       );
 
       const workspace = await getWorkspace(trx);
-      const created: Array<{
+
+      type CreatedRecord = {
         resource: "payments" | "expenses" | "services";
         id: string;
         invoiceRef?: string | null;
         amount?: number | null;
-      }> = [];
+      };
+      type SkippedRecord = {
+        resource: "payments" | "expenses" | "services";
+        reason: string;
+        description?: string | null;
+        amount?: number | null;
+      };
+
+      const created: CreatedRecord[] = [];
+      const skipped: SkippedRecord[] = [];
 
       for (const record of payloadResult.data.draft.records) {
         ensureRecordIsConfirmable({ record, workspace });
@@ -252,11 +247,21 @@ const confirmInvoiceImportDraft = async ({
             );
           }
 
-          await ensureNoDuplicatePayment({
+          const isDuplicate = await checkDuplicatePayment({
             trx,
             record,
             paymentDate,
           });
+
+          if (isDuplicate) {
+            skipped.push({
+              resource: "payments",
+              reason: `Pagamento gia presente per ${record.invoiceRef ?? paymentDate}`,
+              description: record.description,
+              amount: record.amount,
+            });
+            continue;
+          }
 
           const insertedPayment = await trx
             .insertInto("payments")
@@ -289,7 +294,17 @@ const confirmInvoiceImportDraft = async ({
         }
 
         if (record.resource === "services") {
-          await ensureNoDuplicateService({ trx, record });
+          const isDuplicate = await checkDuplicateService({ trx, record });
+
+          if (isDuplicate) {
+            skipped.push({
+              resource: "services",
+              reason: `Servizio gia presente per ${record.documentDate}`,
+              description: record.description,
+              amount: record.amount,
+            });
+            continue;
+          }
 
           const { feeShooting, feeEditing, feeOther } =
             resolveServiceFees(record);
@@ -331,7 +346,17 @@ const confirmInvoiceImportDraft = async ({
           continue;
         }
 
-        await ensureNoDuplicateExpense({ trx, record });
+        const isDuplicate = await checkDuplicateExpense({ trx, record });
+
+        if (isDuplicate) {
+          skipped.push({
+            resource: "expenses",
+            reason: `Spesa gia presente per ${record.invoiceRef ?? record.documentDate}`,
+            description: record.description,
+            amount: record.amount,
+          });
+          continue;
+        }
 
         const insertedExpense = await trx
           .insertInto("expenses")
@@ -362,7 +387,7 @@ const confirmInvoiceImportDraft = async ({
         });
       }
 
-      return { created };
+      return { created, skipped };
     });
 
     return new Response(JSON.stringify({ data: result }), {
