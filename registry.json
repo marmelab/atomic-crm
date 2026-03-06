@@ -78,6 +78,10 @@
           "type": "registry:component"
         },
         {
+          "path": "src/components/atomic-crm/tasks/TaskCreateSheet.stories.tsx",
+          "type": "registry:component"
+        },
+        {
           "path": "src/components/atomic-crm/tasks/Task.tsx",
           "type": "registry:component"
         },
@@ -671,6 +675,10 @@
         },
         {
           "path": "src/components/atomic-crm/contacts/ContactList.tsx",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/contacts/ContactList.stories.tsx",
           "type": "registry:component"
         },
         {
