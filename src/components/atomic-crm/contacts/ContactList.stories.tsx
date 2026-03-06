@@ -52,7 +52,9 @@ export const SuccessDesktop: Story = {
   render: () => (
     <CrmStoryProvider
       resource="contacts"
-      scenarioOptions={{ db: createCrmDb({ contacts: successContacts as any }) }}
+      scenarioOptions={{
+        db: createCrmDb({ contacts: successContacts as any }),
+      }}
     >
       <DesktopContactListHarness />
     </CrmStoryProvider>

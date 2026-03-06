@@ -1,3 +1,4 @@
+/* eslint-disable react-refresh/only-export-components */
 import { Notification } from "@/components/admin/notification";
 import { ThemeProvider } from "@/components/admin/theme-provider";
 import { ContactList } from "@/components/atomic-crm/contacts/ContactList";
@@ -199,7 +200,10 @@ export const createCrmScenario = ({
       return baseDataProvider.getList(resource, params);
     },
   } as ReturnType<typeof createDataProvider>;
-  const store = localStorageStore(undefined, `CRM_TEST_${scenarioCount += 1}`);
+  const store = localStorageStore(
+    undefined,
+    `CRM_TEST_${(scenarioCount += 1)}`,
+  );
   store.setItem(CONFIGURATION_STORE_KEY, defaultConfiguration);
 
   return {

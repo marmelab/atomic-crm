@@ -62,7 +62,9 @@ describe("Contact list integration", () => {
 
     expect(await screen.findByText("Ada Lovelace")).toBeVisible();
     expect(screen.getByText("Grace Hopper")).toBeVisible();
-    expect(screen.queryByRole("heading", { name: "No contacts found" })).toBeNull();
+    expect(
+      screen.queryByRole("heading", { name: "No contacts found" }),
+    ).toBeNull();
   });
 
   it("renders a loading skeleton for the desktop list content", async () => {
@@ -124,9 +126,7 @@ describe("Contact list integration", () => {
       </CrmTestProvider>,
     );
 
-    await user.click(
-      await screen.findByRole("button", { name: /retry/i }),
-    );
+    await user.click(await screen.findByRole("button", { name: /retry/i }));
 
     expect(await screen.findByText("Grace Hopper")).toBeVisible();
     expect(screen.queryByText("Error loading contacts")).toBeNull();
