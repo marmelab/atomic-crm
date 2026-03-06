@@ -8,6 +8,17 @@ prodotto senza incrociarlo con `docs/README.md` e i documenti `canonical`.
 
 Last updated: 2026-03-05
 
+## Update 2026-03-06 (Invoice import confirm fixes)
+
+- `invoice_import_confirm` dedup now includes `description` in the service
+  uniqueness check (fixes false duplicate rejection for same-date same-fee
+  services with different descriptions)
+- `services.km_distance` migrated from `integer` to `numeric(10,2)` to
+  support decimal distances from the travel route calculator
+- Numeric input fields in draft editor use `value ?? ""` (not `?? 0`) to
+  allow manual editing
+- Travel route calculator dialog km rate input fixed with same pattern
+
 ## Update 2026-03-05 (Invoice import draft editor sectioned layout)
 
 - UI bozza import documenti riorganizzata per sezioni visive: Documento,

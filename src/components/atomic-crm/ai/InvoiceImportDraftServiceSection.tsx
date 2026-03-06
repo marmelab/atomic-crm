@@ -80,11 +80,11 @@ export const InvoiceImportDraftServiceSection = ({
           type="number"
           min="0"
           step="0.01"
-          value={record.feeShooting ?? 0}
+          value={record.feeShooting ?? ""}
           onChange={(event) =>
             onChange({
               feeShooting:
-                event.target.value === "" ? 0 : Number(event.target.value),
+                event.target.value === "" ? null : Number(event.target.value),
             })
           }
         />
@@ -95,11 +95,11 @@ export const InvoiceImportDraftServiceSection = ({
           type="number"
           min="0"
           step="0.01"
-          value={record.feeEditing ?? 0}
+          value={record.feeEditing ?? ""}
           onChange={(event) =>
             onChange({
               feeEditing:
-                event.target.value === "" ? 0 : Number(event.target.value),
+                event.target.value === "" ? null : Number(event.target.value),
             })
           }
         />
@@ -110,11 +110,11 @@ export const InvoiceImportDraftServiceSection = ({
           type="number"
           min="0"
           step="0.01"
-          value={record.feeOther ?? 0}
+          value={record.feeOther ?? ""}
           onChange={(event) =>
             onChange({
               feeOther:
-                event.target.value === "" ? 0 : Number(event.target.value),
+                event.target.value === "" ? null : Number(event.target.value),
             })
           }
         />
@@ -125,11 +125,11 @@ export const InvoiceImportDraftServiceSection = ({
           type="number"
           min="0"
           step="0.01"
-          value={record.discount ?? 0}
+          value={record.discount ?? ""}
           onChange={(event) =>
             onChange({
               discount:
-                event.target.value === "" ? 0 : Number(event.target.value),
+                event.target.value === "" ? null : Number(event.target.value),
             })
           }
         />
@@ -149,11 +149,11 @@ export const InvoiceImportDraftServiceSection = ({
           type="number"
           min="0"
           step="0.1"
-          value={record.kmDistance ?? 0}
+          value={record.kmDistance ?? ""}
           onChange={(event) =>
             onChange({
               kmDistance:
-                event.target.value === "" ? 0 : Number(event.target.value),
+                event.target.value === "" ? null : Number(event.target.value),
             })
           }
         />
@@ -168,7 +168,9 @@ export const InvoiceImportDraftServiceSection = ({
           onChange={(event) =>
             onChange({
               kmRate:
-                event.target.value === "" ? 0 : Number(event.target.value),
+                event.target.value === ""
+                  ? null
+                  : Number(event.target.value),
             })
           }
         />

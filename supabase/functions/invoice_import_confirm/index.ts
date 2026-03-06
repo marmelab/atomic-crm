@@ -183,6 +183,9 @@ const ensureNoDuplicateService = async ({
     .where("fee_editing", "=", feeEditing)
     .where("fee_other", "=", feeOther)
     .where(
+      sql<boolean>`description is not distinct from ${record.description ?? null}`,
+    )
+    .where(
       sql<boolean>`project_id is not distinct from ${record.projectId ?? null}`,
     )
     .where(

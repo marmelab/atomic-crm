@@ -584,7 +584,7 @@ Nota di continuita':
 | contacts | Referenti / persone collegate ai clienti | auth.uid() IS NOT NULL | nome/cognome, `contact_role` strutturato, `title` libero, `is_primary_for_client`, email/telefoni JSONB, background, tags, FK `client_id`, timestamps |
 | project_contacts | Join referenti-progetti | auth.uid() IS NOT NULL | FK `project_id`, FK `contact_id`, `is_primary` con unicita' per progetto, timestamps |
 | projects | Progetti/programmi | auth.uid() IS NOT NULL | cliente, categoria, `tv_show`, stato, range date, budget, note, timestamps |
-| services | Registro lavori (cuore) | auth.uid() IS NOT NULL | FK progetto, date/range, tipo servizio, `description`, tassabilita', fee, km, `travel_origin`/`travel_destination`/`trip_mode`, `invoice_ref`, note, `updated_at` |
+| services | Registro lavori (cuore) | auth.uid() IS NOT NULL | FK progetto, date/range, tipo servizio, `description`, tassabilita', fee, km (`km_distance` numeric(10,2)), `travel_origin`/`travel_destination`/`trip_mode`, `invoice_ref`, note, `updated_at` |
 | quotes | Preventivi + pipeline Kanban | auth.uid() IS NOT NULL | cliente/progetto, tipo servizio, range evento, importo, stato, `quote_items`, note |
 | workflows | Automazioni trigger-based | auth.uid() IS NOT NULL | nome, trigger (resource/event/conditions JSONB), actions JSONB, is_active, timestamps |
 | workflow_executions | Log esecuzioni workflow | auth.uid() IS NOT NULL | FK workflow, trigger info, status, result JSONB, error, timestamp |
@@ -783,6 +783,21 @@ L'ordine corretto resta:
 3. denominazione fiscale
 4. referente noto collegato a un cliente
 5. nome libero della controparte solo come ultimo fallback
+
+Edge Functions coinvolte:
+
+- `invoice_import_extract` — estrazione AI da PDF/immagini, produce draft
+- `invoice_import_confirm` — conferma draft e inserimento nel DB; la dedup
+  servizi confronta `project_id + service_date + fee_shooting + fee_editing +
+  fee_other + description` (la `description` e' necessaria per distinguere
+  servizi diversi con stessa data e stessi importi)
+
+Note tecniche:
+
+- `services.km_distance` e' `numeric(10,2)` per supportare distanze decimali
+  dal calcolatore tratte (es. 212.47 km)
+- i campi numerici nell'editor draft usano `value ?? ""` (mai `?? 0`) per
+  permettere la modifica manuale dei valori
 
 ### INP / Performance dei form input
 

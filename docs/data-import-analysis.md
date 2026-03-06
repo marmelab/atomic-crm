@@ -20,6 +20,11 @@ separato (testato su SPOT GS 2026.pdf con 9 servizi). L'editor bozza e' stato
 riorganizzato in sezioni visive (Documento, CRM, dettagli resource, Anagrafica
 fiscale collapsible, Note) e splittato per concern in moduli dedicati.
 
+**Nota 2026-03-06:** la dedup servizi in `invoice_import_confirm` ora include
+`description` nella chiave di confronto, necessario per distinguere servizi
+diversi con stessa data e stessi importi (es. due spot diversi nello stesso
+giorno a €312). `km_distance` migrato a `numeric(10,2)` per distanze decimali.
+
 **Aggiornato:** con risposte di Rosario + nuove tariffe 2025/2026
 
 ---

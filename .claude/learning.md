@@ -32,6 +32,24 @@
 
 ---
 
+### Trigger 2a: Input numerici React — MAI `?? 0` con `"" → 0`
+**Situazione**: Vedo `<Input type="number" value={field ?? 0}` o `onChange: "" → 0`
+**Azione automatica**: Cambiare in `value={field ?? ""}` e `onChange: "" → null`
+**Perché**: L'utente non può MAI cancellare il campo — resta bloccato su `0`
+**Fonte**: Sessione 2026-03-06, fix in `InvoiceImportDraftServiceSection.tsx` e `TravelRouteCalculatorDialog.tsx`
+
+### Trigger 2b: Edge Function + schema change = RIAVVIARE runtime
+**Situazione**: Dopo migration che cambia tipo colonna o aggiunge colonna
+**Azione automatica**: `docker restart supabase_edge_runtime_gestionale-rosario`
+**Perché**: L'edge runtime compila il codice e prepara le query con i tipi della sessione. Senza restart usa lo schema vecchio.
+**Fonte**: Sessione 2026-03-06, km_distance integer→numeric bloccava invoice_import_confirm
+
+### Trigger 2c: Deduplica servizi — includere SEMPRE description
+**Situazione**: Vedo query di deduplicazione servizi in `invoice_import_confirm`
+**Azione automatica**: Verificare che `description` sia nel WHERE
+**Perché**: Spot diversi nella stessa data con stesse fee (es. 2 spot Gustare €312) vengono visti come duplicati senza description
+**Fonte**: Sessione 2026-03-06, fix in `invoice_import_confirm/index.ts`
+
 ### Trigger 2: Import da `@/components/admin`
 **Situazione**: Vedo un import dal barrel file  
 **Azione automatica**: Split in import specifici dal file sorgente  

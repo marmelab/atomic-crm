@@ -38,7 +38,11 @@ type TravelRouteCalculatorDialogProps = {
   onApply: (estimate: TravelRouteEstimate) => void;
 };
 
-const toRateValue = (value: number | null | undefined, fallback: number) => {
+const toRateValue = (
+  value: number | "" | null | undefined,
+  fallback: number,
+) => {
+  if (value === "" || value == null) return fallback;
   const nextValue = Number(value);
   return Number.isFinite(nextValue) ? nextValue : fallback;
 };
@@ -219,7 +223,7 @@ export const TravelRouteCalculatorDialog = ({
   const [origin, setOrigin] = useState("");
   const [destination, setDestination] = useState(initialDestination ?? "");
   const [tripMode, setTripMode] = useState<TravelRouteTripMode>("round_trip");
-  const [kmRate, setKmRate] = useState(
+  const [kmRate, setKmRate] = useState<number | "">(
     toRateValue(currentKmRate, defaultKmRate),
   );
   const [estimate, setEstimate] = useState<TravelRouteEstimate | null>(null);
@@ -472,7 +476,11 @@ export const TravelRouteCalculatorDialog = ({
                   min="0"
                   value={kmRate}
                   onChange={(event) => {
-                    setKmRate(Number(event.target.value));
+                    setKmRate(
+                      event.target.value === ""
+                        ? ""
+                        : Number(event.target.value),
+                    );
                   }}
                 />
                 <p className="text-xs text-muted-foreground">
