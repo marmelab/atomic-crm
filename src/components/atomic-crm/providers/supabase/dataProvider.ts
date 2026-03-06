@@ -32,6 +32,7 @@ import { buildAiProviderMethods } from "./dataProviderAi";
 import { buildInvoiceImportProviderMethods } from "./dataProviderInvoiceImport";
 import { buildCommunicationsProviderMethods } from "./dataProviderCommunications";
 import { buildTravelProviderMethods } from "./dataProviderTravel";
+import { buildGoogleCalendarProviderMethods } from "./dataProviderGoogleCalendar";
 
 if (import.meta.env.VITE_SUPABASE_URL === undefined) {
   throw new Error("Please set the VITE_SUPABASE_URL environment variable");
@@ -114,6 +115,9 @@ const commsMethods = buildCommunicationsProviderMethods({
 const travelMethods = buildTravelProviderMethods({
   invokeEdgeFunction: invokeAuthenticatedEdgeFunction,
 });
+const googleCalendarMethods = buildGoogleCalendarProviderMethods({
+  invokeEdgeFunction: invokeAuthenticatedEdgeFunction,
+});
 
 // --- Core provider: auth, sales, config + assembled feature methods ---
 
@@ -124,6 +128,7 @@ const dataProviderWithCustomMethods = {
   ...invoiceImportMethods,
   ...commsMethods,
   ...travelMethods,
+  ...googleCalendarMethods,
 
   async signUp({ email, password, first_name, last_name }: SignUpData) {
     const response = await supabase.auth.signUp({
@@ -331,6 +336,34 @@ const lifeCycleCallbacks: ResourceCallbacks[] = [
           },
         };
       }
+      return params;
+    },
+  },
+  // --- Google Calendar sync (fire-and-forget) ---
+  {
+    resource: "services",
+    afterCreate: async (params: any) => {
+      dataProviderWithCustomMethods
+        .syncServiceToCalendar("create", params.data.id)
+        .catch((e: unknown) =>
+          console.warn("Calendar sync (create) failed:", e),
+        );
+      return params;
+    },
+    afterUpdate: async (params: any) => {
+      dataProviderWithCustomMethods
+        .syncServiceToCalendar("update", params.data.id)
+        .catch((e: unknown) =>
+          console.warn("Calendar sync (update) failed:", e),
+        );
+      return params;
+    },
+    afterDelete: async (params: any) => {
+      dataProviderWithCustomMethods
+        .syncServiceToCalendar("delete", params.id)
+        .catch((e: unknown) =>
+          console.warn("Calendar sync (delete) failed:", e),
+        );
       return params;
     },
   },

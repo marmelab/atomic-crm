@@ -193,3 +193,5 @@ verify_jwt = false
 verify_jwt = false
 [functions.postmark]
 verify_jwt = false
+[functions.google_calendar_sync]
+verify_jwt = false

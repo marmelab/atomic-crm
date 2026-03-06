@@ -6,7 +6,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { EditButton } from "@/components/admin/edit-button";
 import { DeleteButton } from "@/components/admin/delete-button";
-import { Calendar, MapPin, FileText } from "lucide-react";
+import { Calendar, MapPin, FileText, ExternalLink } from "lucide-react";
 import { Link, useLocation } from "react-router";
 import { useIsMobile } from "@/hooks/use-mobile";
 
@@ -150,6 +150,17 @@ const ServiceHeader = ({ record }: { record: Service }) => {
               <FileText className="size-3" />
               {record.invoice_ref}
             </span>
+          )}
+          {record.google_event_link && (
+            <a
+              href={record.google_event_link}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-1 text-primary hover:underline"
+            >
+              <ExternalLink className="size-3" />
+              Google Calendar
+            </a>
           )}
         </div>
       </div>

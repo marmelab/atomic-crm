@@ -14,6 +14,7 @@ Last updated: 2026-03-06
 
 ### Recent Updates (cronologico, più recente in alto)
 
+- [2026-03-06 (e)](#update-2026-03-06-e--google-calendar-integration) — Google Calendar sync for services
 - [2026-03-06 (d)](#update-2026-03-06-d--fiscal-model-rimborso_spese-fix--payment-reminder-guard) — Fiscal model rimborso_spese fix + payment reminder guard
 - [2026-03-06 (c)](#update-2026-03-06-c--trigger-fix-for-projectless-services--clientfinancialsummary-simplification) — Trigger fix for projectless services + ClientFinancialSummary simplification
 - [2026-03-06 (b)](#update-2026-03-06-b--auto-km-expenses-from-services) — Auto-create km expenses from services via DB trigger
@@ -97,6 +98,40 @@ tipo `rimborso` (rimborso che noi facciamo al cliente — non ha senso sollecita
 - `src/components/atomic-crm/dashboard/fiscalModel.ts`
 - `src/lib/communications/paymentReminderEmail.ts`
 - `src/components/atomic-crm/payments/PaymentShow.tsx`
+
+---
+
+## Update 2026-03-06 (e) — Google Calendar Integration
+
+Sync unidirezionale Gestionale → Google Calendar per i servizi.
+Quando un servizio viene creato, modificato o eliminato, l'evento
+corrispondente su Google Calendar viene automaticamente sincronizzato
+via Service Account (no OAuth, no consent screen).
+
+**File nuovi:**
+
+- `supabase/functions/_shared/googleCalendarAuth.ts` — JWT signing + token cache
+- `supabase/functions/google_calendar_sync/index.ts` — Edge Function (create/update/delete)
+- `src/components/atomic-crm/providers/supabase/dataProviderGoogleCalendar.ts` — provider method
+
+**File toccati:**
+
+- `supabase/migrations/20260306081619_google_calendar_sync.sql` — `google_event_id` + `google_event_link` su services
+- `supabase/config.toml` — registrazione Edge Function
+- `src/components/atomic-crm/types.ts` — campi Calendar sul tipo Service
+- `src/components/atomic-crm/providers/supabase/dataProvider.ts` — lifecycle callbacks fire-and-forget + import modulo
+- `src/components/atomic-crm/services/ServiceShow.tsx` — link cliccabile a Google Calendar
+- `supabase/functions/.env.example` — template secrets Calendar
+- `.gitignore` — protegge cartella chiavi
+
+**Superfici collegate (sweep):**
+
+- ServiceShow: link evento ✓
+- dataProvider: lifecycle callbacks ✓
+- types.ts: campi aggiornati ✓
+- Edge Function: registrata in config.toml ✓
+- Secrets remoti: impostati ✓
+- Migration: pushata al remoto ✓
 
 ---
 

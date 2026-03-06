@@ -440,6 +440,10 @@
           "type": "registry:component"
         },
         {
+          "path": "src/components/atomic-crm/providers/supabase/dataProviderGoogleCalendar.ts",
+          "type": "registry:component"
+        },
+        {
           "path": "src/components/atomic-crm/providers/supabase/dataProviderCommunications.ts",
           "type": "registry:component"
         },

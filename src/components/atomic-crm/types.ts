@@ -174,6 +174,8 @@ export type Service = {
   trip_mode?: "one_way" | "round_trip" | null;
   location?: string;
   invoice_ref?: string;
+  google_event_id?: string | null;
+  google_event_link?: string | null;
   notes?: string;
   created_at: string;
 } & Pick<RaRecord, "id">;

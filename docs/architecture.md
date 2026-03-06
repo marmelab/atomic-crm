@@ -19,6 +19,7 @@ Stato del documento:
 - 2026-03-06: Payment reminder: import labels from single source, hide sollecito for rimborso payments
 - 2026-03-06: Auto-create km expenses from services via DB trigger (sync_service_km_expense)
 - 2026-03-06: Prettier formatting sweep (38 files, whitespace only, no logic changes)
+- 2026-03-06: Google Calendar integration — auto-sync services to calendar via Service Account
 
 ## Continuita'
 
@@ -257,6 +258,53 @@ Integrazione AI Chat:
 - Il semantic registry include la regola `workflowAutomations`
 - Le istruzioni AI nell'Edge Function guidano l'LLM a verificare se un'automazione equivalente esiste gia prima di suggerirne una nuova
 - Il rule engine aggiunge handoff strutturati quando l'intent riguarda automazioni
+
+## Update 2026-03-06 (b) — Google Calendar Integration
+
+### Overview
+
+Sync unidirezionale Gestionale → Google Calendar. Quando un servizio viene
+creato, modificato o eliminato, l'evento corrispondente su Google Calendar
+viene automaticamente sincronizzato.
+
+### Autenticazione
+
+- **Service Account** Google (no OAuth, no consent screen)
+- Il calendario dell'utente e' condiviso con l'email del service account
+- JWT firmato localmente → scambiato per access token via Google OAuth2
+- Token cached in memoria nell'Edge Function (refresh automatico)
+
+### Flusso
+
+1. Lifecycle callback `afterCreate`/`afterUpdate`/`afterDelete` su `services`
+2. Fire-and-forget: chiama `syncServiceToCalendar()` nel dataProvider
+3. Edge Function `google_calendar_sync` riceve action + service_id
+4. Legge il servizio + client + project dal DB
+5. Crea/aggiorna/elimina evento su Calendar API v3
+6. Salva `google_event_id` + `google_event_link` sul record servizio
+
+### File coinvolti
+
+- `supabase/functions/_shared/googleCalendarAuth.ts` — JWT signing + token cache
+- `supabase/functions/google_calendar_sync/index.ts` — Edge Function
+- `src/components/atomic-crm/providers/supabase/dataProviderGoogleCalendar.ts` — provider method
+- `src/components/atomic-crm/providers/supabase/dataProvider.ts` — lifecycle callbacks
+- `src/components/atomic-crm/services/ServiceShow.tsx` — link cliccabile
+- `src/components/atomic-crm/types.ts` — campi `google_event_id`, `google_event_link`
+
+### Secrets remoti
+
+- `GOOGLE_CALENDAR_CLIENT_EMAIL`
+- `GOOGLE_CALENDAR_PRIVATE_KEY`
+- `GOOGLE_CALENDAR_ID`
+
+### Formato evento
+
+- Titolo: `{TipoServizio} — {Cliente} — {Progetto}`
+- Luogo: `location` o `travel_destination`
+- Descrizione: description + link al servizio
+- All-day: usa `date` fields (end esclusivo)
+- Timed: default 09:00–18:00 Europe/Rome
 
 ## Update 2026-03-04
 
@@ -562,6 +610,7 @@ fragilita' semantica.
 | Financial semantics foundation | Tabelle `financial_documents`, `cash_movements` e allocazioni pronte (schema + viste). `project_financials` usa `financial_foundation` come base primaria. La snapshot locale e' stata svuotata il 2026-03-04 per debug dei flussi; i dati storici restano in `Fatture/`. | 2026-03-04 |
 | Admin locale post-reset | Automatizzato via script bootstrap idempotente dopo `make start` / `npx supabase db reset` | 2026-03-01 |
 | Smoke E2E locale | Supportato via Playwright sul runtime reale locale, ma deve restare subordinato al rebuild del dominio da fonti reali | 2026-03-02 |
+| Google Calendar sync | Unidirezionale Gestionale→Calendar via Service Account + Edge Function `google_calendar_sync`. Campi `google_event_id` e `google_event_link` su `services`. Link cliccabile in ServiceShow. | 2026-03-06 |
 | Auth email/password locale | Abilitato solo nel runtime locale per bootstrap admin e smoke browser; non riflette automaticamente il remoto | 2026-03-01 |
 | Rebuild locale del dominio | **Snapshot vuota** dal 2026-03-04: `npx supabase db reset` + `npm run local:admin:bootstrap` ripristinano un DB con solo settings e admin. I dati di dominio vanno inseriti dall'UI per debug e verifica flussi. Dati storici archiviati in `Fatture/`. | 2026-03-04 |
 
