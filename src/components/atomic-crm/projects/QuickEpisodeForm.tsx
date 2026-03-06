@@ -86,6 +86,7 @@ const createExtraExpense = (
 
 interface Props {
   defaults: EpisodeFormDefaults;
+  defaultTravelOrigin?: string;
   saving: boolean;
   onSubmit: (data: EpisodeFormData) => void;
   onCancel: () => void;
@@ -93,6 +94,7 @@ interface Props {
 
 export const QuickEpisodeForm = ({
   defaults,
+  defaultTravelOrigin,
   saving,
   onSubmit,
   onCancel,
@@ -228,6 +230,7 @@ export const QuickEpisodeForm = ({
         <div className="sm:col-span-2 flex justify-end">
           <TravelRouteCalculatorDialog
             defaultKmRate={defaults.km_rate}
+            defaultTravelOrigin={defaultTravelOrigin}
             currentKmRate={kmRate}
             initialDestination={location}
             onApply={(estimate) => {

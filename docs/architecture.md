@@ -613,7 +613,7 @@ acconto_ricevuto → in_lavorazione → completato → saldato → rifiutato / p
 - `quoteServiceTypes`
 - `serviceTypeChoices`
 - `operationalConfig.defaultKmRate`
-- `operationalConfig.defaultTravelOrigin`
+- `operationalConfig.defaultTravelOrigin` — threaded to all `TravelRouteCalculatorDialog` call sites (services, expenses, invoice import, quick episode)
 - `fiscalConfig.taxProfiles`
 - `fiscalConfig.aliquotaINPS`
 - `fiscalConfig.tettoFatturato`

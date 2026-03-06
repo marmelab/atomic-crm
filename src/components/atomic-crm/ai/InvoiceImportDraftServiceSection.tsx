@@ -8,11 +8,13 @@ export const InvoiceImportDraftServiceSection = ({
   record,
   serviceTypeChoices,
   defaultKmRate,
+  defaultTravelOrigin,
   onChange,
 }: {
   record: InvoiceImportRecordDraft;
   serviceTypeChoices: LabeledValue[];
   defaultKmRate: number;
+  defaultTravelOrigin?: string;
   onChange: (patch: Partial<InvoiceImportRecordDraft>) => void;
 }) => (
   <>
@@ -180,6 +182,7 @@ export const InvoiceImportDraftServiceSection = ({
       <div className="md:col-span-2">
         <TravelRouteCalculatorDialog
           defaultKmRate={defaultKmRate}
+          defaultTravelOrigin={defaultTravelOrigin}
           currentKmRate={record.kmRate}
           initialDestination={record.location ?? undefined}
           onApply={(estimate) =>

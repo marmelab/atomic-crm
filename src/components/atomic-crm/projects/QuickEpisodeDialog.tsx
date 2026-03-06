@@ -163,6 +163,7 @@ export const QuickEpisodeDialog = ({ record }: QuickEpisodeDialogProps) => {
         ) : null}
         <QuickEpisodeForm
           defaults={defaults}
+          defaultTravelOrigin={operationalConfig.defaultTravelOrigin}
           saving={saving}
           onSubmit={handleSubmit}
           onCancel={() => setOpen(false)}

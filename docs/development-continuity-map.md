@@ -6,7 +6,7 @@ obbligatoria delle superfici collegate.
 **Quando usarlo:** ogni volta che una modifica tocca comportamento reale del
 prodotto.
 
-Last updated: 2026-03-05
+Last updated: 2026-03-06
 
 ---
 
@@ -14,6 +14,7 @@ Last updated: 2026-03-05
 
 ### Recent Updates (cronologico, più recente in alto)
 
+- [2026-03-06](#update-2026-03-06--travel-origin-prop-fix) — Pass defaultTravelOrigin to all TravelRouteCalculatorDialog call sites
 - [2026-03-05 (n)](#update-2026-03-05-n--quote-kanban-full-width) — Quote Kanban full-width desktop breakout
 - [2026-03-05 (m)](#update-2026-03-05-m--quote-list-mobile-responsive) — Quote list mobile responsive (tabs + cards + search + filters)
 - [2026-03-05 (l)](#update-2026-03-05-l--pdf-preview-sticky-desktop--fullscreen-mobile) — PDF preview: sticky desktop + fullscreen mobile
@@ -65,6 +66,23 @@ Last updated: 2026-03-05
 - [Nota manutenzione 2026-03-02](#nota-manutenzione-2026-03-02-fix-ci)
 - [Testing Session Log 2026-03-04](#testing-session-log-2026-03-04--e2e-complete-validation)
 - [AI Semantic UI Upgrade 2026-03-04](#ai-semantic-ui-upgrade-2026-03-04--pareto-principle-applied)
+
+---
+
+## Update 2026-03-06 — Travel origin prop fix
+
+Bug fix: the `TravelRouteCalculatorDialog` in the invoice import draft editor
+and the quick episode form was missing the `defaultTravelOrigin` prop from
+`operationalConfig`, so the origin field was always empty on open.
+
+**Files changed:**
+
+- `src/components/atomic-crm/ai/InvoiceImportDraftServiceSection.tsx` — accept and forward prop
+- `src/components/atomic-crm/ai/InvoiceImportDraftEditor.tsx` — pass `operationalConfig.defaultTravelOrigin`
+- `src/components/atomic-crm/projects/QuickEpisodeForm.tsx` — accept and forward prop
+- `src/components/atomic-crm/projects/QuickEpisodeDialog.tsx` — pass `operationalConfig.defaultTravelOrigin`
+
+**No architectural impact.** Pure prop-threading fix; no new config, no schema change.
 
 ---
 

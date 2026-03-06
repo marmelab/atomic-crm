@@ -8,6 +8,13 @@ prodotto senza incrociarlo con `docs/README.md` e i documenti `canonical`.
 
 Last updated: 2026-03-06
 
+## Update 2026-03-06 (travel origin prop fix)
+
+- `TravelRouteCalculatorDialog` in invoice import draft and quick episode form
+  now receives `defaultTravelOrigin` from `operationalConfig`, matching the
+  existing behavior in `ServiceInputs` and `ExpenseInputs`.
+- Pure prop-threading fix, no backend or schema change.
+
 ## Update 2026-03-06 (duplicate skip on import confirm)
 
 - `invoice_import_confirm` now **skips duplicates** instead of failing the
