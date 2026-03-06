@@ -25,6 +25,13 @@ fiscale collapsible, Note) e splittato per concern in moduli dedicati.
 diversi con stessa data e stessi importi (es. due spot diversi nello stesso
 giorno a €312). `km_distance` migrato a `numeric(10,2)` per distanze decimali.
 
+**Nota 2026-03-06 (service date per row):** il prompt Gemini ora istruisce
+esplicitamente di usare la data REALE di svolgimento di ciascun servizio dalla
+riga della tabella, non la data di emissione/intestazione del documento.
+L'editor bozza mostra "Data servizio" (non "Data documento") per i record di
+tipo servizio, e il campo descrizione e' enfatizzato visivamente (`font-semibold
+text-base`) per facilitare l'identificazione del singolo servizio nella bozza.
+
 **Nota 2026-03-06 (duplicate skip):** la conferma import ora **salta i duplicati**
 invece di bloccare l'intero batch con 409. Se un record esiste gia nel DB
 (match su stessi campi chiave), viene aggiunto a `skipped[]` nella risposta e

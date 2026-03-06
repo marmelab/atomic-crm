@@ -21,6 +21,7 @@ export const InvoiceImportDraftServiceSection = ({
         <Input
           value={record.description ?? ""}
           onChange={(event) => onChange({ description: event.target.value })}
+          className="text-base font-semibold"
         />
       </Field>
 

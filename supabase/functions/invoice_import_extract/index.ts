@@ -59,7 +59,7 @@ Regole di mapping obbligatorie:
 - usa \`resource = "expenses"\` se il documento rappresenta una spesa, fattura fornitore o costo sostenuto
 - usa \`resource = "services"\` se il documento e' un riepilogo di lavori/servizi/prestazioni eseguite (es. elenco spot, schede lavoro, notule di prestazione). REGOLA CRITICA: se il documento contiene una tabella con N righe di servizi/lavori, DEVI produrre N record separati nell'array records — uno per ogni riga della tabella. Non raggruppare, non sommare, non creare un singolo record riassuntivo. Ogni riga = un record. Per ciascun record:
   - \`description\`: breve titolo/nome del servizio dalla riga (es. "Spot Ricotta — Pierpaolo", "Spot Keste Store")
-  - \`documentDate\`: la data del servizio dalla riga (YYYY-MM-DD)
+  - \`documentDate\`: la data REALE in cui il servizio e' stato svolto (YYYY-MM-DD), letta dalla riga della tabella. ATTENZIONE: NON usare la data di emissione/intestazione del documento; ogni servizio ha la propria data di svolgimento nella tabella e quella e' il valore corretto per \`documentDate\`
   - \`amount\`: il compenso della singola riga, NON il totale del documento
   - valorizza \`serviceType\` tra: "riprese", "montaggio", "riprese_montaggio", "fotografia", "sviluppo_web", "altro"
   - valorizza \`isTaxable\` (true se tassabile, false se esente/fuori campo)

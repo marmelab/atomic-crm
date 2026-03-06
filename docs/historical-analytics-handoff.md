@@ -19,6 +19,15 @@ Last updated: 2026-03-06
   deployed to remote after Google Maps migration (were still running old
   OpenRouteService code remotely).
 
+## Update 2026-03-06 (invoice import: per-row service dates + description emphasis)
+
+- AI extraction prompt now **explicitly enforces** using the actual service date
+  from each table row, not the document emission/header date
+- Draft editor label changes dynamically: "Data servizio" for service records,
+  "Data documento" for payments/expenses
+- Service description field is visually emphasized (`font-semibold text-base`)
+  to help identify individual services in the draft
+
 ## Update 2026-03-06 (Google Maps migration + invoice import fixes)
 
 - **Google Maps migration**: replaced OpenRouteService with Google Maps APIs
