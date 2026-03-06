@@ -111,11 +111,11 @@ const ServiceHeader = ({ record }: { record: Service }) => {
   return (
     <div className="flex flex-col gap-3">
       <div>
-        <h2 className="text-2xl font-bold">{serviceLabel}</h2>
+        <h2 className="text-2xl font-bold">
+          {record.description || serviceLabel}
+        </h2>
         {record.description ? (
-          <p className="text-base text-muted-foreground">
-            {record.description}
-          </p>
+          <p className="text-base text-muted-foreground">{serviceLabel}</p>
         ) : null}
         <div className="flex items-center gap-3 mt-1 text-sm text-muted-foreground flex-wrap">
           <Badge
