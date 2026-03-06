@@ -16,8 +16,11 @@ start-supabase-functions: ## start the supabase Functions watcher
 supabase-migrate-database: ## apply the migrations to the database
 	npx supabase migration up
 
-supabase-reset-database: ## reset (and clear!) the database
-	npx supabase db reset
+supabase-reset-database: ## reset (and clear!) the database, load production domain data
+	npx supabase db reset || true
+	@sleep 3
+	@echo "Loading domain data snapshot..."
+	psql postgresql://postgres:postgres@127.0.0.1:55322/postgres < supabase/seed_domain_data.sql
 	npm run local:admin:bootstrap
 
 start-app: ## start the app locally

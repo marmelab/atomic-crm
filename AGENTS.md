@@ -56,9 +56,15 @@
 
 Regola attuale per il locale:
 
-- il rebuild del dominio locale parte da dati reali importati da
-  `Fatture/`
-- per Diego/Gustare, i dettagli non presenti nelle fatture vanno letti da
+- il rebuild del dominio locale parte da `supabase/seed_domain_data.sql`,
+  un dump dei dati reali del DB remoto di produzione
+- `make supabase-reset-database` esegue: reset schema, load domain seed,
+  bootstrap admin
+- per aggiornare il seed: `npx supabase db dump --data-only` dal remoto,
+  estrarre le tabelle public e rigenerare `seed_domain_data.sql`
+- `Fatture/` e' la fonte storica XML delle fatture emesse/ricevute;
+  NON viene piu' usata per il rebuild locale
+- per Diego/Gustare, i dettagli storici non presenti nelle fatture vanno letti da
   `Fatture/contabilità interna - diego caltabiano/`
 - non reintrodurre bootstrap fixture di dominio come seconda fonte di verita'
 
@@ -408,10 +414,9 @@ FakeRest/demo is not a supported local workflow anymore.
   locale autenticabile
 - nel runtime locale il provider email/password Supabase e' abilitato per
   permettere bootstrap admin e smoke E2E; non e' una regola del remoto
-- `make start`, `make supabase-reset-database` e `make test-e2e` si appoggiano
-  al rebuild locale del dominio basato su:
-  - `Fatture/`
-  - `Fatture/contabilità interna - diego caltabiano/`
+- `make supabase-reset-database` esegue: reset schema (migration), load
+  domain seed da `supabase/seed_domain_data.sql` (dump del DB remoto),
+  bootstrap admin locale
 - i browser smoke devono leggere e scrivere sul dataset locale ricostruito,
   non su fixture dominio hardcoded
 - default admin locale:
