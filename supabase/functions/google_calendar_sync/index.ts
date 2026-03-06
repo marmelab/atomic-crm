@@ -50,22 +50,17 @@ function buildCalendarEvent(
 ) {
   const typeLabel =
     SERVICE_TYPE_LABELS[service.service_type] ?? service.service_type;
-  const mainLabel = service.description || typeLabel;
   const parts: string[] = [];
   if (projectName) parts.push(projectName);
-  parts.push(mainLabel);
-  if (service.description) parts.push(typeLabel);
-  if (clientName) parts.push(clientName);
+  parts.push(service.description || typeLabel);
   const summary = parts.join(" — ");
 
   const eventLocation =
     service.location || service.travel_destination || undefined;
 
-  const descriptionLines: string[] = [];
-  if (service.description) descriptionLines.push(service.description);
-  descriptionLines.push(
-    `\nGestionale: servizio #${service.id}`,
-  );
+  const descriptionLines: string[] = [typeLabel];
+  if (clientName) descriptionLines.push(clientName);
+  descriptionLines.push(`\nGestionale: servizio #${service.id}`);
 
   // Date handling: all_day → date fields, otherwise dateTime
   // DB may return ISO timestamps like "2023-03-21T00:00:00+00:00", extract date part

@@ -301,9 +301,9 @@ viene automaticamente sincronizzato.
 
 ### Formato evento
 
-- Titolo: `{Progetto} — {Descrizione} — {TipoServizio} — {Cliente}` (descrizione come label principale se presente; altrimenti tipo servizio)
+- Titolo: `{Progetto} — {Descrizione}` (se no descrizione, usa tipo servizio)
 - Luogo: `location` o `travel_destination`
-- Descrizione: description + link al servizio
+- Note evento: tipo servizio, cliente, link gestionale
 - All-day: usa `date` fields (end esclusivo)
 - Timed: default 09:00–18:00 Europe/Rome
 
