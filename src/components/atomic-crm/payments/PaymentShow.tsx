@@ -37,9 +37,11 @@ export const PaymentShow = () => (
 const PaymentActions = ({
   record,
   notReceived,
+  canSendReminder,
 }: {
   record: Payment;
   notReceived: boolean;
+  canSendReminder: boolean;
 }) => {
   const resource = useResourceContext();
   const rec = useRecordContext();
@@ -53,24 +55,24 @@ const PaymentActions = ({
   return (
     <div className="flex flex-wrap gap-2">
       {notReceived && (
-        <>
-          <Link
-            className={buttonVariants({ variant: "default" })}
-            to={editLink}
-          >
-            <CheckCircle />
-            Registra pagamento
-          </Link>
-          <SendPaymentReminderDialog
-            paymentId={record.id}
-            trigger={
-              <Button size="sm" variant="outline" className="gap-2">
-                <Mail className="size-4" />
-                Invia sollecito
-              </Button>
-            }
-          />
-        </>
+        <Link
+          className={buttonVariants({ variant: "default" })}
+          to={editLink}
+        >
+          <CheckCircle />
+          Registra pagamento
+        </Link>
+      )}
+      {canSendReminder && (
+        <SendPaymentReminderDialog
+          paymentId={record.id}
+          trigger={
+            <Button size="sm" variant="outline" className="gap-2">
+              <Mail className="size-4" />
+              Invia sollecito
+            </Button>
+          }
+        />
       )}
       <EditButton />
       <DeleteButton redirect="list" />
@@ -126,6 +128,8 @@ const PaymentShowContent = () => {
   });
 
   const notReceived = record.status !== "ricevuto";
+  const canSendReminder =
+    notReceived && record.payment_type !== "rimborso";
 
   return (
     <div className="mt-4 mb-28 md:mb-2 flex flex-col md:flex-row gap-4 md:gap-8 px-4 md:px-0">
@@ -192,7 +196,7 @@ const PaymentShowContent = () => {
                   )}
                 </div>
               </div>
-              <PaymentActions record={record} notReceived={notReceived} />
+              <PaymentActions record={record} notReceived={notReceived} canSendReminder={canSendReminder} />
             </div>
             {record.notes && (
               <>

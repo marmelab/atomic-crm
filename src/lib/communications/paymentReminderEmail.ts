@@ -1,5 +1,6 @@
 import { renderHtml, renderText } from "./quoteStatusEmailRenderers";
 import type { PaymentReminderEmailInput } from "./paymentReminderEmailTypes";
+import { paymentTypeLabels } from "@/components/atomic-crm/payments/paymentTypes";
 
 const formatCurrency = (value: number) =>
   value.toLocaleString("it-IT", {
@@ -16,13 +17,6 @@ const formatDate = (value: string) => {
     month: "long",
     year: "numeric",
   });
-};
-
-const paymentTypeLabels: Record<string, string> = {
-  acconto: "Acconto",
-  saldo: "Saldo",
-  parziale: "Parziale",
-  rimborso_spese: "Rimborso spese",
 };
 
 export const buildPaymentReminderEmail = (input: PaymentReminderEmailInput) => {

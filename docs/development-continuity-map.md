@@ -14,6 +14,7 @@ Last updated: 2026-03-06
 
 ### Recent Updates (cronologico, più recente in alto)
 
+- [2026-03-06 (d)](#update-2026-03-06-d--fiscal-model-rimborso_spese-fix--payment-reminder-guard) — Fiscal model rimborso_spese fix + payment reminder guard
 - [2026-03-06 (c)](#update-2026-03-06-c--trigger-fix-for-projectless-services--clientfinancialsummary-simplification) — Trigger fix for projectless services + ClientFinancialSummary simplification
 - [2026-03-06 (b)](#update-2026-03-06-b--auto-km-expenses-from-services) — Auto-create km expenses from services via DB trigger
 - [2026-03-06](#update-2026-03-06--travel-origin-prop-fix) — Pass defaultTravelOrigin to all TravelRouteCalculatorDialog call sites
@@ -68,6 +69,34 @@ Last updated: 2026-03-06
 - [Nota manutenzione 2026-03-02](#nota-manutenzione-2026-03-02-fix-ci)
 - [Testing Session Log 2026-03-04](#testing-session-log-2026-03-04--e2e-complete-validation)
 - [AI Semantic UI Upgrade 2026-03-04](#ai-semantic-ui-upgrade-2026-03-04--pareto-principle-applied)
+
+---
+
+## Update 2026-03-06 (d) — Fiscal model rimborso_spese fix + payment reminder guard
+
+**Problema 1 (critico):** `rimborso_spese` (cliente rimborsa spese sostenute)
+veniva contato come reddito imponibile nel fiscal model. È un incasso reale ma
+NON è compenso professionale → va escluso dalla base imponibile.
+
+**Fix:** `fiscalModel.ts` — aggiunto `isExpenseReimbursement` check che salta
+`taxableCashRevenue` per `rimborso_spese` (resta in `fatturatoTotaleYtd`).
+
+**Problema 2:** `paymentReminderEmail.ts` aveva un dizionario locale
+`paymentTypeLabels` duplicato e incompleto (mancava `rimborso`).
+
+**Fix:** Importa `paymentTypeLabels` da `paymentTypes.ts` (single source).
+
+**Problema 3:** Il pulsante "Invia sollecito" appariva anche per pagamenti di
+tipo `rimborso` (rimborso che noi facciamo al cliente — non ha senso sollecitare).
+
+**Fix:** `PaymentShow.tsx` — nuova variabile `canSendReminder` che esclude
+`rimborso` dal pulsante sollecito.
+
+**File toccati:**
+
+- `src/components/atomic-crm/dashboard/fiscalModel.ts`
+- `src/lib/communications/paymentReminderEmail.ts`
+- `src/components/atomic-crm/payments/PaymentShow.tsx`
 
 ---
 
