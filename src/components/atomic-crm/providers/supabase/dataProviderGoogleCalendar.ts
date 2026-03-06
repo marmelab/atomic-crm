@@ -1,4 +1,4 @@
-import { extractEdgeFunctionErrorMessage } from "./edgeFunctions";
+import { extractEdgeFunctionErrorMessage } from "./edgeFunctionError";
 
 type InvokeEdgeFunction = <T>(
   functionName: string,
