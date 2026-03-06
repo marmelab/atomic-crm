@@ -802,7 +802,8 @@ Note tecniche:
   Autocomplete) dal 2026-03-06, in sostituzione di OpenRouteService. Il modulo
   condiviso e' `supabase/functions/_shared/googleMapsService.ts`. Env var:
   `GOOGLE_MAPS_API_KEY` (locale in `supabase/functions/.env`, remoto come
-  Supabase secret)
+  Supabase secret). Geocoding usa `components=country:IT` (filtro rigido) +
+  `region=it` (bias); Places Autocomplete usa `includedRegionCodes: ["it"]`
 
 ### INP / Performance dei form input
 

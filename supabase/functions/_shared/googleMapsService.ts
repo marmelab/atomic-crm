@@ -43,6 +43,7 @@ export const geocodeOpenRouteLocation = async ({
 }): Promise<OpenRouteResolvedLocation> => {
   const url = new URL("https://maps.googleapis.com/maps/api/geocode/json");
   url.searchParams.set("address", text);
+  url.searchParams.set("components", "country:IT");
   url.searchParams.set("region", "it");
   url.searchParams.set("language", "it");
   url.searchParams.set("key", apiKey);
