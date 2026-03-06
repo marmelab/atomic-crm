@@ -23,7 +23,7 @@ Stato del documento:
 - 2026-03-06: Fix import path in dataProviderGoogleCalendar (edgeFunctionError)
 - 2026-03-06: Comprehensive mobile layout audit — fix all Create/Edit/Show pages (flex-col, mb-28, responsive titles, Settings bottom padding, PDF preview overflow, button wrapping)
 - 2026-03-06: Fix mobile FAB clearance on all List pages (spacer in ListView), Dashboard, and TasksList
-- 2026-03-06: Update ExpenseListContent icons and colors for new expense types
+- 2026-03-06: Update ExpenseListContent icons and colors for new expense types; fix Highway→Route icon (Highway not exported by lucide-react)
 
 ## Continuita'
 

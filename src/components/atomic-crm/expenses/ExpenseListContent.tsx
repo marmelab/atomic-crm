@@ -17,7 +17,7 @@ import {
   ArrowLeftRight,
   Receipt,
   Utensils,
-  Highway,
+  Route,
   MonitorSmartphone,
   Package,
 } from "lucide-react";
@@ -34,7 +34,7 @@ const eur = (n: number) =>
 
 const expenseTypeIcons: Record<string, LucideIcon> = {
   spostamento_km: Car,
-  pedaggio_autostradale: Highway,
+  pedaggio_autostradale: Route,
   vitto_alloggio: Utensils,
   acquisto_materiale: ShoppingCart,
   abbonamento_software: MonitorSmartphone,
