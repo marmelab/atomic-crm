@@ -168,7 +168,7 @@ export const QuoteCreate = ({ open }: { open: boolean }) => {
                     <X className="h-5 w-5" />
                   </Button>
                 </div>
-                <div className="flex-1 min-h-0 p-4">
+                <div className="flex-1 min-h-0 p-4 overflow-auto">
                   <Suspense
                     fallback={
                       <div className="h-full rounded-md border bg-muted/30 flex items-center justify-center text-muted-foreground text-sm">
@@ -176,7 +176,9 @@ export const QuoteCreate = ({ open }: { open: boolean }) => {
                       </div>
                     }
                   >
-                    <QuotePDFPreview />
+                    <div className="w-full h-full max-w-full overflow-hidden">
+                      <QuotePDFPreview />
+                    </div>
                   </Suspense>
                 </div>
               </div>

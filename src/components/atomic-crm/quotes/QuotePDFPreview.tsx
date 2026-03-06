@@ -84,7 +84,7 @@ export const QuotePDFPreview = () => {
   const sanitizedItems = sanitizeQuoteItems(deferredQuote.quote_items);
 
   return (
-    <div className="h-full min-h-[500px] rounded-md border bg-muted/30">
+    <div className="h-full min-h-[500px] max-w-full overflow-hidden rounded-md border bg-muted/30">
       <PDFViewer
         width="100%"
         height="100%"

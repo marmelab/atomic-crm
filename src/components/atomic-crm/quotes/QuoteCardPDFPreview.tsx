@@ -9,11 +9,13 @@ const QuoteCardPDFPreview = (props: QuotePDFProps) => (
           Generazione anteprima...
         </div>
       ) : url ? (
-        <iframe
-          src={url}
-          className="w-full h-100 rounded border-0"
-          title="Anteprima PDF"
-        />
+        <div className="max-w-full overflow-hidden">
+          <iframe
+            src={url}
+            className="w-full h-100 rounded border-0"
+            title="Anteprima PDF"
+          />
+        </div>
       ) : (
         <div className="h-100 flex items-center justify-center text-sm text-muted-foreground">
           Errore generazione PDF
