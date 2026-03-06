@@ -303,7 +303,7 @@ viene automaticamente sincronizzato.
 
 - Titolo: `{Progetto} — {Descrizione}` (se no descrizione, usa tipo servizio)
 - Luogo: `location` o `travel_destination`
-- Note evento: tipo servizio, cliente, link gestionale
+- Note evento: tipo servizio, cliente, URL cliccabile al servizio nel gestionale
 - All-day: usa `date` fields (end esclusivo)
 - Timed: default 09:00–18:00 Europe/Rome
 

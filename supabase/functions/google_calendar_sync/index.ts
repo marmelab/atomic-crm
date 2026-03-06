@@ -58,9 +58,10 @@ function buildCalendarEvent(
   const eventLocation =
     service.location || service.travel_destination || undefined;
 
+  const serviceUrl = `https://gestionale-rosario.vercel.app/#/services/${service.id}/show`;
   const descriptionLines: string[] = [typeLabel];
   if (clientName) descriptionLines.push(clientName);
-  descriptionLines.push(`\nGestionale: servizio #${service.id}`);
+  descriptionLines.push(`\nApri nel Gestionale:\n${serviceUrl}`);
 
   // Date handling: all_day → date fields, otherwise dateTime
   // DB may return ISO timestamps like "2023-03-21T00:00:00+00:00", extract date part
