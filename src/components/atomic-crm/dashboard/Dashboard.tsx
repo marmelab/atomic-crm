@@ -17,7 +17,7 @@ export const Dashboard = () => {
   }
 
   return (
-    <div className="space-y-6 mt-1">
+    <div className="space-y-6 mt-1 mb-28 md:mb-2">
       <div className="space-y-2">
         <ToggleGroup
           type="single"

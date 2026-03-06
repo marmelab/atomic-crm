@@ -159,6 +159,8 @@ export const ListView = <RecordType extends RaRecord = RaRecord>(
 
         <div className={cn("my-2", props.className)}>{children}</div>
         {pagination}
+        {/* Spacer for mobile FAB / bottom nav clearance */}
+        <div className="h-28 md:h-0" />
       </FilterContext.Provider>
     </>
   );

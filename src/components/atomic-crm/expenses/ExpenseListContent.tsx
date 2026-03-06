@@ -14,9 +14,12 @@ import type { LucideIcon } from "lucide-react";
 import {
   Car,
   ShoppingCart,
-  Users,
   ArrowLeftRight,
   Receipt,
+  Utensils,
+  Highway,
+  MonitorSmartphone,
+  Package,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -31,18 +34,24 @@ const eur = (n: number) =>
 
 const expenseTypeIcons: Record<string, LucideIcon> = {
   spostamento_km: Car,
-  materiale: ShoppingCart,
-  personale: Users,
-  altro: Receipt,
+  pedaggio_autostradale: Highway,
+  vitto_alloggio: Utensils,
+  acquisto_materiale: ShoppingCart,
+  abbonamento_software: MonitorSmartphone,
+  noleggio: Package,
   credito_ricevuto: ArrowLeftRight,
+  altro: Receipt,
 };
 
 const expenseTypeColors: Record<string, string> = {
   spostamento_km: "text-amber-600 bg-amber-50 border-amber-200",
-  materiale: "text-blue-600 bg-blue-50 border-blue-200",
-  personale: "text-purple-600 bg-purple-50 border-purple-200",
-  altro: "text-slate-600 bg-slate-50 border-slate-200",
+  pedaggio_autostradale: "text-orange-600 bg-orange-50 border-orange-200",
+  vitto_alloggio: "text-rose-600 bg-rose-50 border-rose-200",
+  acquisto_materiale: "text-blue-600 bg-blue-50 border-blue-200",
+  abbonamento_software: "text-violet-600 bg-violet-50 border-violet-200",
+  noleggio: "text-cyan-600 bg-cyan-50 border-cyan-200",
   credito_ricevuto: "text-green-600 bg-green-50 border-green-200",
+  altro: "text-slate-600 bg-slate-50 border-slate-200",
 };
 
 const ExpenseIconAvatar = ({ type }: { type: string }) => {
@@ -159,21 +168,20 @@ const ExpenseMobileCard = ({
       to={link}
       className="flex flex-col gap-1 px-1 py-3 active:bg-muted/50"
     >
-      <div className="flex items-center justify-between">
-        <span className="text-xs text-muted-foreground">
-          {new Date(expense.expense_date).toLocaleDateString("it-IT")}
-        </span>
-        <span className="text-xs text-muted-foreground">
-          {expense.expense_type === "credito_ricevuto" ? (
-            <Badge variant="secondary" className="text-green-700">
-              Credito
-            </Badge>
-          ) : (
-            (expenseTypeLabels[expense.expense_type] ?? expense.expense_type)
-          )}
-        </span>
+      <div className="flex items-center gap-3">
+        <ExpenseIconAvatar type={expense.expense_type} />
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center justify-between">
+            <span className="text-sm font-medium truncate">
+              {expenseTypeLabels[expense.expense_type] ?? expense.expense_type}
+            </span>
+            <span className="text-xs text-muted-foreground">
+              {new Date(expense.expense_date).toLocaleDateString("it-IT")}
+            </span>
+          </div>
+          <span className="text-xs text-muted-foreground">{project?.name ?? ""}</span>
+        </div>
       </div>
-      <span className="text-sm font-medium">{project?.name ?? ""}</span>
       <div className="flex items-center justify-between">
         <span className="text-xs text-muted-foreground truncate mr-2">
           {expense.description ?? ""}

@@ -29,7 +29,7 @@ export const TasksList = () => {
   };
 
   return (
-    <div className="max-w-3xl mx-auto mt-4">
+    <div className="max-w-3xl mx-auto mt-4 mb-28 md:mb-2">
       <TaskCreateSheet
         open={taskCreateOpen}
         onOpenChange={handleTaskCreateOpenChange}
