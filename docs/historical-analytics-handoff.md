@@ -8,6 +8,20 @@ prodotto senza incrociarlo con `docs/README.md` e i documenti `canonical`.
 
 Last updated: 2026-03-06
 
+## Update 2026-03-06 (expanded expense types)
+
+- Added 3 new expense types: `pedaggio_autostradale`, `vitto_alloggio`,
+  `abbonamento_software` — supports importing tolls, meals, software
+  subscriptions via AI document import.
+- Updated across full stack: `types.ts` union, `expenseTypes.ts` choices/labels,
+  `expenseLinking.ts` Set, `QuickEpisodeForm.tsx` select + persistence switch,
+  `invoiceImportExtract.ts` (Set + JSON schema + AI prompt), `invoiceImportConfirm.ts`
+  (Set + type union + normalization cast).
+- NOT made configurable from Settings (user decision: too complex).
+- Business logic in `ExpenseListContent`, `ExpenseShow`, `fiscalModel`,
+  `ClientFinancialSummary` uses `spostamento_km` / `credito_ricevuto` checks
+  only — new types fall through to standard amount computation correctly.
+
 ## Update 2026-03-06 (travel origin prop fix)
 
 - `TravelRouteCalculatorDialog` in invoice import draft and quick episode form

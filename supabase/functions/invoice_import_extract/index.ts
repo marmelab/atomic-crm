@@ -77,7 +77,16 @@ Regole di mapping obbligatorie:
 - usa EUR come currency quando non c'e' una valuta diversa esplicita
 - per i pagamenti, se non è chiaro che il denaro sia già entrato usa \`paymentStatus = "in_attesa"\`
 - per i pagamenti, usa di default \`paymentType = "saldo"\` salvo segnali chiari di acconto/parziale/rimborso
-- per le spese, usa di default \`expenseType = "acquisto_materiale"\` salvo segnali chiari diversi
+- per le spese, valorizza \`expenseType\` scegliendo tra:
+  - "spostamento_km": rimborso chilometrico per trasferta
+  - "pedaggio_autostradale": caselli, Telepass, pedaggi autostradali
+  - "vitto_alloggio": pranzo, cena, hotel, pernottamento, ristorante, bar
+  - "acquisto_materiale": hard disk, cavi, accessori, attrezzatura comprata
+  - "abbonamento_software": Claude, Adobe, hosting, domini, SaaS, licenze software ricorrenti
+  - "noleggio": noleggio attrezzatura (droni, luci, auto)
+  - "credito_ricevuto": bene o sconto ricevuto dal cliente
+  - "altro": se nessuna delle precedenti e' adatta
+  Se non e' chiaro, usa "acquisto_materiale" come default
 - \`documentDate\` e \`dueDate\` devono essere in formato YYYY-MM-DD se leggibili
 - quando il documento contiene un'anagrafica fiscale leggibile, valorizza anche:
   - \`billingName\`

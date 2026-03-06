@@ -4,6 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { TravelRouteCalculatorDialog } from "../travel/TravelRouteCalculatorDialog";
+import type { Expense } from "../types";
 
 export interface FeeDefaults {
   fee_shooting: number;
@@ -68,7 +69,7 @@ export interface EpisodeFormData {
 }
 
 export interface EpisodeExtraExpenseFormData {
-  expense_type: "acquisto_materiale" | "noleggio" | "altro";
+  expense_type: Expense["expense_type"];
   amount: number;
   markup_percent: number;
   description: string;
@@ -330,9 +331,12 @@ export const QuickEpisodeForm = ({
                     })
                   }
                 >
-                  <option value="altro">Altro</option>
                   <option value="acquisto_materiale">Acquisto materiale</option>
+                  <option value="abbonamento_software">Abbonamento software</option>
                   <option value="noleggio">Noleggio</option>
+                  <option value="pedaggio_autostradale">Pedaggio autostradale</option>
+                  <option value="vitto_alloggio">Vitto e alloggio</option>
+                  <option value="altro">Altro</option>
                 </select>
               </div>
               <div>

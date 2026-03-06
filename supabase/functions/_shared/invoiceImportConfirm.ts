@@ -9,7 +9,10 @@ const paymentMethods = new Set(["bonifico", "contanti", "paypal", "altro"]);
 const paymentStatuses = new Set(["ricevuto", "in_attesa", "scaduto"]);
 const expenseTypes = new Set([
   "spostamento_km",
+  "pedaggio_autostradale",
+  "vitto_alloggio",
   "acquisto_materiale",
+  "abbonamento_software",
   "noleggio",
   "credito_ricevuto",
   "altro",
@@ -104,7 +107,10 @@ export type InvoiceImportConfirmRecord = {
   paymentStatus?: "ricevuto" | "in_attesa" | "scaduto" | null;
   expenseType?:
     | "spostamento_km"
+    | "pedaggio_autostradale"
+    | "vitto_alloggio"
     | "acquisto_materiale"
+    | "abbonamento_software"
     | "noleggio"
     | "credito_ricevuto"
     | "altro"
@@ -233,7 +239,10 @@ export const normalizeInvoiceImportConfirmRecord = (
     expenseType:
       (normalizeOptionalEnum(normalizedRecord.expenseType, expenseTypes) as
         | "spostamento_km"
+        | "pedaggio_autostradale"
+        | "vitto_alloggio"
         | "acquisto_materiale"
+        | "abbonamento_software"
         | "noleggio"
         | "credito_ricevuto"
         | "altro"

@@ -16,6 +16,12 @@ const getDefaultExtraExpenseDescription = (
       return "Acquisto materiale";
     case "noleggio":
       return "Noleggio";
+    case "pedaggio_autostradale":
+      return "Pedaggio autostradale";
+    case "vitto_alloggio":
+      return "Vitto e alloggio";
+    case "abbonamento_software":
+      return "Abbonamento software";
     default:
       return "Spesa extra";
   }

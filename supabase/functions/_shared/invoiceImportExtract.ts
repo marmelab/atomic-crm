@@ -9,7 +9,10 @@ const paymentMethods = new Set(["bonifico", "contanti", "paypal", "altro"]);
 const paymentStatuses = new Set(["ricevuto", "in_attesa", "scaduto"]);
 const expenseTypes = new Set([
   "spostamento_km",
+  "pedaggio_autostradale",
+  "vitto_alloggio",
   "acquisto_materiale",
+  "abbonamento_software",
   "noleggio",
   "credito_ricevuto",
   "altro",
@@ -123,7 +126,10 @@ export const invoiceImportResponseJsonSchema = {
             type: ["string", "null"],
             enum: [
               "spostamento_km",
+              "pedaggio_autostradale",
+              "vitto_alloggio",
               "acquisto_materiale",
+              "abbonamento_software",
               "noleggio",
               "credito_ricevuto",
               "altro",

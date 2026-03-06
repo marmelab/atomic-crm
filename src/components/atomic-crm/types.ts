@@ -290,7 +290,10 @@ export type Expense = {
   expense_date: string;
   expense_type:
     | "spostamento_km"
+    | "pedaggio_autostradale"
+    | "vitto_alloggio"
     | "acquisto_materiale"
+    | "abbonamento_software"
     | "noleggio"
     | "altro"
     | "credito_ricevuto";

@@ -44,7 +44,10 @@ const getOptionalNumber = (value?: string | null) => {
 
 const expenseTypes = new Set<Expense["expense_type"]>([
   "spostamento_km",
+  "pedaggio_autostradale",
+  "vitto_alloggio",
   "acquisto_materiale",
+  "abbonamento_software",
   "noleggio",
   "credito_ricevuto",
   "altro",
