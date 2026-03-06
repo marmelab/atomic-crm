@@ -741,19 +741,18 @@ describe("UnifiedAiLauncher", () => {
     );
     expect(await screen.findByText(/Import completato/)).toBeInTheDocument();
 
+    // Close and reopen — import state and active view should be preserved
     fireEvent.click(screen.getByRole("button", { name: "Close" }));
 
     fireEvent.click(
       screen.getByRole("button", { name: "Apri chat AI unificata" }),
     );
-    fireEvent.pointerDown(
-      await screen.findByRole("button", { name: "Apri altre viste AI" }),
-    );
-    fireEvent.click(
-      await screen.findByRole("menuitem", {
-        name: "Importa fatture e ricevute",
-      }),
-    );
+
+    // Already on import view (activeView preserved), state is still there
+    expect(await screen.findByText(/Import completato/)).toBeInTheDocument();
+
+    // "Nuova" button resets the import workspace
+    fireEvent.click(screen.getByRole("button", { name: "Nuovo import" }));
 
     expect(screen.queryByText("Bozza pronta")).not.toBeInTheDocument();
     expect(screen.queryByText(/Import completato/)).not.toBeInTheDocument();

@@ -21,6 +21,8 @@ export const AiLauncherHeader = ({
   onViewChange,
   canResetChat,
   onResetChat,
+  canResetImport,
+  onResetImport,
   canCopyAnswer,
   answerMarkdown,
 }: {
@@ -28,6 +30,8 @@ export const AiLauncherHeader = ({
   onViewChange: (view: UnifiedAiLauncherView) => void;
   canResetChat?: boolean;
   onResetChat?: () => void;
+  canResetImport?: boolean;
+  onResetImport?: () => void;
   canCopyAnswer?: boolean;
   answerMarkdown?: string;
 }) => {
@@ -91,6 +95,21 @@ export const AiLauncherHeader = ({
             <ArrowLeft className="size-4" />
           </Button>
           <SheetTitle>{viewTitles[activeView]}</SheetTitle>
+          {canResetImport ? (
+            <div className="ml-auto">
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                className="h-8 gap-1 px-2 text-xs"
+                onClick={onResetImport}
+                aria-label="Nuovo import"
+              >
+                <RotateCcw className="size-3.5" />
+                Nuova
+              </Button>
+            </div>
+          ) : null}
         </div>
       )}
       <SheetDescription className="sr-only">

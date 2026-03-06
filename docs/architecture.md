@@ -45,6 +45,19 @@ Regola pratica:
 - se una modifica e' solo strutturale/read-only, `Impostazioni` non va toccata
   ma la motivazione va lasciata nei docs di continuita'
 
+## Update 2026-03-06 — Preserve Import Draft State on Sheet Close
+
+Lo sheet AI Launcher ora preserva lo stato della vista import (file, bozze,
+conferme) e la vista attiva quando viene chiuso e riaperto, identico al
+comportamento gia' esistente per la chat AI libera. Un bottone "Nuova"
+nell'header della vista import (stesso pattern del bottone "Nuova" nella chat)
+permette il reset esplicito del workspace.
+
+File coinvolti:
+- `AiLauncherHeader.tsx` — aggiunto bottone "Nuova" per la vista import
+- `UnifiedAiLauncher.tsx` — rimosso `resetImportWorkspace()` da `onOpenChange`,
+  preservato `activeView` alla chiusura
+
 ## Update 2026-03-04 (j) — Copy Answer Button in AI Chat Header
 
 Aggiunto bottone copia (icona Copy) nell'header della chat AI, a sinistra del

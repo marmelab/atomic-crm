@@ -169,6 +169,11 @@ export const UnifiedAiLauncher = () => {
     chatConversationHistory.length > 0 ||
     chatQuestion.trim().length > 0 ||
     chatPaymentDraft !== null;
+  const canResetImport =
+    selectedFiles.length > 0 ||
+    draft !== null ||
+    confirmation !== null ||
+    submittedFiles.length > 0;
 
   const resetChat = () => {
     setChatQuestion("");
@@ -249,13 +254,7 @@ export const UnifiedAiLauncher = () => {
   return (
     <Sheet
       open={open}
-      onOpenChange={(nextOpen) => {
-        setOpen(nextOpen);
-        setActiveView("chat");
-        if (!nextOpen) {
-          resetImportWorkspace();
-        }
-      }}
+      onOpenChange={setOpen}
     >
       <SheetTrigger asChild>
         <Button
@@ -287,6 +286,8 @@ export const UnifiedAiLauncher = () => {
           onViewChange={setActiveView}
           canResetChat={activeView === "chat" && canResetChat}
           onResetChat={resetChat}
+          canResetImport={activeView === "import" && canResetImport}
+          onResetImport={resetImportWorkspace}
           canCopyAnswer={activeView === "chat" && chatAnswer !== null}
           answerMarkdown={chatAnswer?.answerMarkdown}
         />
