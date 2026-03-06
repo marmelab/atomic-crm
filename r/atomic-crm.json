@@ -11,7 +11,13 @@
     "papaparse@^5.5.3",
     "ra-supabase-core@^3.5.1",
     "ra-supabase-language-english@^3.5.0",
-    "zod@^4.0.5"
+    "zod@^4.0.5",
+    "@tanstack/query-async-storage-persister@^5.90.22",
+    "@tanstack/react-query-persist-client@^5.90.22",
+    "dompurify@^3.3.1",
+    "marked@^17.0.1",
+    "@streamparser/json-whatwg@^0.0.22",
+    "mime@^4.1.0"
   ],
   "registryDependencies": [
     "item",
@@ -1016,6 +1022,11 @@
       "path": "src/hooks/simple-form-iterator-context.tsx",
       "content": "/* eslint-disable @typescript-eslint/no-explicit-any */\nimport { createContext, useContext } from \"react\";\n\n/**\n * A React context that provides access to a SimpleFormIterator data (the total number of items) and mutators (add, reorder and remove).\n * Useful to create custom array input iterators.\n * @deprecated Use SimpleFormIteratorContext from `ra-core` once available.\n * @see {SimpleFormIterator}\n * @see {ArrayInput}\n */\nexport const SimpleFormIteratorContext = createContext<\n  SimpleFormIteratorContextValue | undefined\n>(undefined);\n\n/**\n * @deprecated Use SimpleFormIteratorContextValue from `ra-core` once available.\n */\nexport type SimpleFormIteratorContextValue = {\n  add: (item?: any) => void;\n  remove: (index: number) => void;\n  reOrder: (index: number, newIndex: number) => void;\n  source: string;\n  total: number;\n};\n\n/**\n * @deprecated Use useSimpleFormIterator from `ra-core` once available.\n */\nexport const useSimpleFormIterator = () => {\n  const context = useContext(SimpleFormIteratorContext);\n  if (!context) {\n    throw new Error(\n      \"useSimpleFormIterator must be used inside a SimpleFormIterator\",\n    );\n  }\n  return context;\n};\n\n/**\n * A React context that provides access to a SimpleFormIterator item meta (its index and the total number of items) and mutators (reorder and remove this remove).\n * Useful to create custom array input iterators.\n * @deprecated Use SimpleFormIteratorItemContext from `ra-core` once available.\n * @see {SimpleFormIterator}\n * @see {ArrayInput}\n */\nexport const SimpleFormIteratorItemContext = createContext<\n  SimpleFormIteratorItemContextValue | undefined\n>(undefined);\n\n/**\n * @deprecated Use SimpleFormIteratorItemContextValue from `ra-core` once available.\n */\nexport type SimpleFormIteratorItemContextValue = {\n  index: number;\n  total: number;\n  remove: () => void;\n  reOrder: (newIndex: number) => void;\n};\n\n/**\n * @deprecated Use useSimpleFormIteratorItem from `ra-core` once available.\n */\nexport const useSimpleFormIteratorItem = () => {\n  const context = useContext(SimpleFormIteratorItemContext);\n  if (!context) {\n    throw new Error(\n      \"useSimpleFormIteratorItem must be used inside a SimpleFormIteratorItem\",\n    );\n  }\n  return context;\n};\n",
       "type": "registry:hook"
+    },
+    {
+      "path": "src/lib/toSlug.ts",
+      "content": "/**\n * Derive a stable slug value from a display label.\n * e.g. \"Communication Services\" → \"communication-services\"\n *\n * Must stay in sync with the SQL equivalent in\n * supabase/migrations/20260211194545_app_configuration.sql\n */\nexport const toSlug = (label: string): string =>\n  label\n    .toLowerCase()\n    .replace(/[^a-z0-9]+/g, \"-\")\n    .replace(/^-|-$/g, \"\");\n",
+      "type": "registry:lib"
     }
   ],
   "type": "registry:block"
