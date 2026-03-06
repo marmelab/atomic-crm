@@ -391,6 +391,7 @@ export interface AIConfig {
 
 export interface OperationalConfig {
   defaultKmRate: number;
+  defaultTravelOrigin?: string;
 }
 
 export interface BusinessProfile {

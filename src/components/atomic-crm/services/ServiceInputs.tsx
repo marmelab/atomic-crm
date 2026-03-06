@@ -236,6 +236,7 @@ const ServiceKmInputs = () => {
         <h6 className="text-lg font-semibold">Spostamento</h6>
         <TravelRouteCalculatorDialog
           defaultKmRate={defaultKmRate}
+          defaultTravelOrigin={operationalConfig.defaultTravelOrigin}
           currentKmRate={kmRate}
           initialDestination={typeof location === "string" ? location : ""}
           onApply={(estimate) => {

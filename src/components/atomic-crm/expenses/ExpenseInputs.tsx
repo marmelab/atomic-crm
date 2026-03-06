@@ -117,6 +117,7 @@ const KmSection = () => {
       <div className="flex justify-end">
         <TravelRouteCalculatorDialog
           defaultKmRate={defaultKmRate}
+          defaultTravelOrigin={operationalConfig.defaultTravelOrigin}
           currentKmRate={kmRate}
           onApply={(estimate) => {
             setValue("km_distance", estimate.totalDistanceKm, {

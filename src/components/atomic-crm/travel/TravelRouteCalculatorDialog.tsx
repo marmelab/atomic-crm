@@ -32,6 +32,7 @@ import type { CrmDataProvider } from "../providers/types";
 
 type TravelRouteCalculatorDialogProps = {
   defaultKmRate: number;
+  defaultTravelOrigin?: string;
   currentKmRate?: number | null;
   initialDestination?: string;
   triggerLabel?: string;
@@ -212,6 +213,7 @@ const TravelLocationAutocompleteField = ({
 
 export const TravelRouteCalculatorDialog = ({
   defaultKmRate,
+  defaultTravelOrigin,
   currentKmRate,
   initialDestination,
   triggerLabel = "Calcola tratta",
@@ -237,13 +239,13 @@ export const TravelRouteCalculatorDialog = ({
       return;
     }
 
-    setOrigin("");
+    setOrigin(defaultTravelOrigin ?? "");
     setDestination(initialDestination ?? "");
     setTripMode("round_trip");
     setKmRate(toRateValue(currentKmRate, defaultKmRate));
     setEstimate(null);
     setActiveAutocompleteField(null);
-  }, [open, initialDestination, currentKmRate, defaultKmRate]);
+  }, [open, defaultTravelOrigin, initialDestination, currentKmRate, defaultKmRate]);
 
   const normalizedKmRate = toRateValue(kmRate, defaultKmRate);
   const displayEstimate = useMemo(() => {

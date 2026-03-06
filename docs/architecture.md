@@ -613,6 +613,7 @@ acconto_ricevuto → in_lavorazione → completato → saldato → rifiutato / p
 - `quoteServiceTypes`
 - `serviceTypeChoices`
 - `operationalConfig.defaultKmRate`
+- `operationalConfig.defaultTravelOrigin`
 - `fiscalConfig.taxProfiles`
 - `fiscalConfig.aliquotaINPS`
 - `fiscalConfig.tettoFatturato`

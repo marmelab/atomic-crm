@@ -147,6 +147,8 @@ const transformFormValues = (data: Record<string, any>) => ({
       defaultKmRate:
         Number(data.operationalConfig?.defaultKmRate) ||
         defaultConfiguration.operationalConfig.defaultKmRate,
+      defaultTravelOrigin:
+        data.operationalConfig?.defaultTravelOrigin?.trim() || undefined,
     },
     fiscalConfig: data.fiscalConfig,
     aiConfig: data.aiConfig,
@@ -464,6 +466,11 @@ const SettingsFormFields = () => {
               source="operationalConfig.defaultKmRate"
               label="Tariffa km predefinita (EUR)"
               helperText="Usata come valore iniziale per rimborso km in servizi e spese."
+            />
+            <TextInput
+              source="operationalConfig.defaultTravelOrigin"
+              label="Luogo di partenza predefinito"
+              helperText="Precompilato nel calcolatore tratte km (es. Valguarnera Caropepe (EN), Via Calabria 13)."
             />
           </CardContent>
         </Card>

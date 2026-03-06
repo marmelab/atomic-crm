@@ -154,6 +154,7 @@ export const defaultAIConfig: AIConfig = {
 
 export const defaultOperationalConfig: OperationalConfig = {
   defaultKmRate: 0.19,
+  defaultTravelOrigin: "Valguarnera Caropepe (EN), Via Calabria 13",
 };
 
 export const defaultBusinessProfile: BusinessProfile = {
