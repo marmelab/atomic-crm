@@ -48,28 +48,26 @@ const ServiceShowContent = () => {
   });
 
   return (
-    <div className="mt-4 mb-28 md:mb-2 flex gap-4 md:gap-8 px-4 md:px-0 max-w-full overflow-hidden">
-      <div className="flex-1 min-w-0">
-        {isMobile && (
-          <div className="mb-3">
-            <MobileBackButton />
+    <div className="mt-4 mb-28 md:mb-2 flex flex-col gap-6 px-4 md:px-0">
+      {isMobile && (
+        <div className="mb-3">
+          <MobileBackButton />
+        </div>
+      )}
+      <Card>
+        <CardContent>
+          <ServiceHeader record={record} />
+          <Separator className="my-4" />
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <ServiceFees record={record} total={total} />
+            <ServiceKmDetails
+              record={record}
+              defaultKmRate={operationalConfig.defaultKmRate}
+              kmReimbursement={kmReimbursement}
+            />
           </div>
-        )}
-        <Card>
-          <CardContent>
-            <ServiceHeader record={record} />
-            <Separator className="my-4" />
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <ServiceFees record={record} total={total} />
-              <ServiceKmDetails
-                record={record}
-                defaultKmRate={operationalConfig.defaultKmRate}
-                kmReimbursement={kmReimbursement}
-              />
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+        </CardContent>
+      </Card>
     </div>
   );
 };
