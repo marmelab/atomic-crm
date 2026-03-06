@@ -9,10 +9,7 @@ import {
 } from "../_shared/travelRouteSuggest.ts";
 import { createErrorResponse } from "../_shared/utils.ts";
 
-const openRouteServiceApiKey = Deno.env.get("OPENROUTESERVICE_API_KEY") ?? "";
-const openRouteServiceBaseUrl =
-  Deno.env.get("OPENROUTESERVICE_BASE_URL") ??
-  "https://api.openrouteservice.org";
+const googleMapsApiKey = Deno.env.get("GOOGLE_MAPS_API_KEY") ?? "";
 
 async function handleTravelLocationSuggest(
   req: Request,
@@ -22,10 +19,10 @@ async function handleTravelLocationSuggest(
     return createErrorResponse(401, "Unauthorized");
   }
 
-  if (!openRouteServiceApiKey) {
+  if (!googleMapsApiKey) {
     return createErrorResponse(
       500,
-      "OPENROUTESERVICE_API_KEY non configurata nelle Edge Functions",
+      "GOOGLE_MAPS_API_KEY non configurata nelle Edge Functions",
     );
   }
 
@@ -41,8 +38,8 @@ async function handleTravelLocationSuggest(
 
   try {
     const suggestions = await suggestTravelRouteLocations({
-      apiKey: openRouteServiceApiKey,
-      baseUrl: openRouteServiceBaseUrl,
+      apiKey: googleMapsApiKey,
+      baseUrl: "",
       payload: validation.data,
     });
 

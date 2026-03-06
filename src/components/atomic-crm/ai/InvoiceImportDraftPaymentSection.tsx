@@ -13,7 +13,7 @@ export const InvoiceImportDraftPaymentSection = ({
   record: InvoiceImportRecordDraft;
   onChange: (patch: Partial<InvoiceImportRecordDraft>) => void;
 }) => (
-  <Section title="Dettagli pagamento">
+  <Section title="Dettagli pagamento" color="blue">
     <Field label="Tipo">
       <SelectField
         value={record.paymentType ?? "saldo"}

@@ -1,4 +1,4 @@
-import { searchOpenRouteLocations } from "./openRouteService.ts";
+import { searchOpenRouteLocations } from "./googleMapsService.ts";
 
 export type TravelRouteSuggestPayload = {
   query: string;

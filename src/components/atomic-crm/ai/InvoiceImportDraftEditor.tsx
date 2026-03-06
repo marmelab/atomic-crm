@@ -92,7 +92,7 @@ export const InvoiceImportDraftEditor = ({
             ) : null}
 
             {/* ── Documento ── */}
-            <Section title="Documento">
+            <Section title="Documento" color="slate">
               <Field label="Tipo record">
                 <SelectField
                   value={record.resource}
@@ -165,7 +165,7 @@ export const InvoiceImportDraftEditor = ({
             </Section>
 
             {/* ── Collegamento CRM ── */}
-            <Section title="Collegamento CRM">
+            <Section title="Collegamento CRM" color="indigo">
               <Field label="Cliente">
                 <SelectField
                   value={String(record.clientId ?? "")}
@@ -271,7 +271,7 @@ export const InvoiceImportDraftEditor = ({
             />
 
             {/* ── Note ── */}
-            <Section title="Note">
+            <Section title="Note" color="slate">
               <Field label="Note import" className="md:col-span-2">
                 <Textarea
                   value={record.notes ?? ""}

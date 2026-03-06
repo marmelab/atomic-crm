@@ -798,9 +798,11 @@ Note tecniche:
   dal calcolatore tratte (es. 212.47 km)
 - i campi numerici nell'editor draft usano `value ?? ""` (mai `?? 0`) per
   permettere la modifica manuale dei valori
-- il geocoding OpenRouteService usa `boundary.country=IT` e `focus.point`
-  centrato sulla Sicilia (Enna, 37.56/14.27) per evitare match con localita'
-  omonime fuori Italia
+- il geocoding e routing usano Google Maps APIs (Geocoding, Routes v2, Places
+  Autocomplete) dal 2026-03-06, in sostituzione di OpenRouteService. Il modulo
+  condiviso e' `supabase/functions/_shared/googleMapsService.ts`. Env var:
+  `GOOGLE_MAPS_API_KEY` (locale in `supabase/functions/.env`, remoto come
+  Supabase secret)
 
 ### INP / Performance dei form input
 

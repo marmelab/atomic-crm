@@ -1,7 +1,7 @@
 import {
   geocodeOpenRouteLocation,
   getOpenRouteDrivingSummary,
-} from "./openRouteService.ts";
+} from "./googleMapsService.ts";
 
 export type TravelRouteEstimatePayload = {
   origin: string;

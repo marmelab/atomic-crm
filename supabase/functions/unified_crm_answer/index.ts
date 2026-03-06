@@ -7,7 +7,7 @@ import { getUserSale } from "../_shared/getUserSale.ts";
 import {
   geocodeOpenRouteLocation,
   getOpenRouteDrivingSummary,
-} from "../_shared/openRouteService.ts";
+} from "../_shared/googleMapsService.ts";
 import {
   buildUnifiedCrmExpenseCreateAnswerMarkdown,
   buildUnifiedCrmExpenseCreateSuggestedActions,
@@ -32,10 +32,7 @@ const defaultAnalysisModel = "gpt-5.2";
 const allowedModels = new Set(["gpt-5.2", "gpt-5-mini", "gpt-5-nano"]);
 
 const openaiApiKey = Deno.env.get("OPENAI_API_KEY") ?? "";
-const openRouteServiceApiKey = Deno.env.get("OPENROUTESERVICE_API_KEY") ?? "";
-const openRouteServiceBaseUrl =
-  Deno.env.get("OPENROUTESERVICE_BASE_URL") ??
-  "https://api.openrouteservice.org";
+const googleMapsApiKey = Deno.env.get("GOOGLE_MAPS_API_KEY") ?? "";
 
 const openai = new OpenAI({
   apiKey: openaiApiKey,
@@ -105,7 +102,7 @@ const resolveTravelEstimate = async ({
   context: Record<string, unknown>;
   travelQuestions: ParsedUnifiedCrmTravelExpenseQuestion[];
 }) => {
-  if (!openRouteServiceApiKey) {
+  if (!googleMapsApiKey) {
     return null;
   }
 
@@ -113,19 +110,19 @@ const resolveTravelEstimate = async ({
     try {
       const [origin, destination] = await Promise.all([
         geocodeOpenRouteLocation({
-          apiKey: openRouteServiceApiKey,
-          baseUrl: openRouteServiceBaseUrl,
+          apiKey: googleMapsApiKey,
+
           text: travelQuestion.origin,
         }),
         geocodeOpenRouteLocation({
-          apiKey: openRouteServiceApiKey,
-          baseUrl: openRouteServiceBaseUrl,
+          apiKey: googleMapsApiKey,
+
           text: travelQuestion.destination,
         }),
       ]);
       const route = await getOpenRouteDrivingSummary({
-        apiKey: openRouteServiceApiKey,
-        baseUrl: openRouteServiceBaseUrl,
+        apiKey: googleMapsApiKey,
+
         coordinates: [
           [origin.longitude, origin.latitude],
           [destination.longitude, destination.latitude],
@@ -217,7 +214,7 @@ async function answerUnifiedCrmQuestion(
             data: {
               question,
               model: travelEstimateResult
-                ? "openrouteservice"
+                ? "google-maps"
                 : "crm_rule_engine",
               generatedAt: new Date().toISOString(),
               answerMarkdown: buildUnifiedCrmServiceCreateAnswerMarkdown({
@@ -245,7 +242,7 @@ async function answerUnifiedCrmQuestion(
           data: {
             question,
             model: travelEstimateResult
-              ? "openrouteservice"
+              ? "google-maps"
               : "crm_rule_engine",
             generatedAt: new Date().toISOString(),
             answerMarkdown: buildUnifiedCrmProjectQuickEpisodeAnswerMarkdown({
@@ -274,10 +271,10 @@ async function answerUnifiedCrmQuestion(
       });
 
     if (travelExpenseQuestions.length > 0) {
-      if (!openRouteServiceApiKey) {
+      if (!googleMapsApiKey) {
         return createErrorResponse(
           500,
-          "OPENROUTESERVICE_API_KEY non configurata nelle Edge Functions",
+          "GOOGLE_MAPS_API_KEY non configurata nelle Edge Functions",
         );
       }
 
@@ -291,7 +288,7 @@ async function answerUnifiedCrmQuestion(
           JSON.stringify({
             data: {
               question,
-              model: "openrouteservice",
+              model: "google-maps",
               generatedAt: new Date().toISOString(),
               answerMarkdown: buildUnifiedCrmTravelExpenseAnswerMarkdown({
                 estimate: travelEstimateResult.estimate,

@@ -16,7 +16,7 @@ export const InvoiceImportDraftServiceSection = ({
   onChange: (patch: Partial<InvoiceImportRecordDraft>) => void;
 }) => (
   <>
-    <Section title="Servizio">
+    <Section title="Servizio" color="blue">
       <Field label="Descrizione" className="md:col-span-2">
         <Input
           value={record.description ?? ""}
@@ -74,7 +74,7 @@ export const InvoiceImportDraftServiceSection = ({
       </Field>
     </Section>
 
-    <Section title="Compensi">
+    <Section title="Compensi" color="emerald">
       <Field label="Fee riprese">
         <Input
           type="number"
@@ -136,7 +136,7 @@ export const InvoiceImportDraftServiceSection = ({
       </Field>
     </Section>
 
-    <Section title="Trasferta">
+    <Section title="Trasferta" color="amber">
       <Field label="Localita'" className="md:col-span-2">
         <Input
           value={record.location ?? ""}

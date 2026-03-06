@@ -12,6 +12,7 @@ export const InvoiceImportDraftBillingSection = ({
 }) => (
   <CollapsibleSection
     title="Anagrafica fiscale"
+    color="violet"
     defaultOpen={hasBillingProfileDraft(record)}
   >
     <Field label="Denominazione fiscale">

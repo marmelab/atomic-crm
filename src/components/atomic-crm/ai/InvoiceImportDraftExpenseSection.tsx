@@ -13,7 +13,7 @@ export const InvoiceImportDraftExpenseSection = ({
   record: InvoiceImportRecordDraft;
   onChange: (patch: Partial<InvoiceImportRecordDraft>) => void;
 }) => (
-  <Section title="Dettagli spesa">
+  <Section title="Dettagli spesa" color="blue">
     <Field label="Tipo spesa">
       <SelectField
         value={record.expenseType ?? "acquisto_materiale"}

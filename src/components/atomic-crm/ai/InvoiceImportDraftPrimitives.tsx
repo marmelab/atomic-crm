@@ -5,6 +5,23 @@ import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
 
+export type SectionColor =
+  | "slate"
+  | "indigo"
+  | "blue"
+  | "emerald"
+  | "amber"
+  | "violet";
+
+const sectionColorClasses: Record<SectionColor, string> = {
+  slate: "bg-slate-400",
+  indigo: "bg-indigo-500",
+  blue: "bg-blue-500",
+  emerald: "bg-emerald-500",
+  amber: "bg-amber-500",
+  violet: "bg-violet-500",
+};
+
 export const Field = ({
   label,
   children,
@@ -38,15 +55,25 @@ export const SelectField = ({
   </select>
 );
 
+const SectionDot = ({ color }: { color?: SectionColor }) =>
+  color ? (
+    <span
+      className={cn("size-2 shrink-0 rounded-full", sectionColorClasses[color])}
+    />
+  ) : null;
+
 export const Section = ({
   title,
+  color,
   children,
 }: {
   title: string;
+  color?: SectionColor;
   children: React.ReactNode;
 }) => (
   <div className="space-y-3">
     <div className="flex items-center gap-2">
+      <SectionDot color={color} />
       <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
         {title}
       </span>
@@ -58,10 +85,12 @@ export const Section = ({
 
 export const CollapsibleSection = ({
   title,
+  color,
   defaultOpen,
   children,
 }: {
   title: string;
+  color?: SectionColor;
   defaultOpen?: boolean;
   children: React.ReactNode;
 }) => {
@@ -78,6 +107,7 @@ export const CollapsibleSection = ({
         ) : (
           <ChevronRight className="size-3.5 text-muted-foreground" />
         )}
+        <SectionDot color={color} />
         <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
           {title}
         </span>
