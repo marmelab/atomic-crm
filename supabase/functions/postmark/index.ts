@@ -17,7 +17,7 @@ import { supabaseAdmin } from "../_shared/supabaseAdmin.ts";
 
 const webhookUser = Deno.env.get("POSTMARK_WEBHOOK_USER");
 const webhookPassword = Deno.env.get("POSTMARK_WEBHOOK_PASSWORD");
-const INBOUND_EMAIL = Deno.env.get("POSTMARK_INBOUND_EMAIL");
+const INBOUND_EMAIL = Deno.env.get("VITE_INBOUND_EMAIL");
 if (!webhookUser || !webhookPassword) {
   throw new Error(
     "Missing POSTMARK_WEBHOOK_USER or POSTMARK_WEBHOOK_PASSWORD env variable",
