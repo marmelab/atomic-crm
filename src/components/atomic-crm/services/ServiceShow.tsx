@@ -48,8 +48,8 @@ const ServiceShowContent = () => {
   });
 
   return (
-    <div className="mt-4 mb-28 md:mb-2 flex gap-4 md:gap-8 px-4 md:px-0">
-      <div className="flex-1">
+    <div className="mt-4 mb-28 md:mb-2 flex gap-4 md:gap-8 px-4 md:px-0 max-w-full overflow-hidden">
+      <div className="flex-1 min-w-0">
         {isMobile && (
           <div className="mb-3">
             <MobileBackButton />
@@ -111,7 +111,7 @@ const ServiceHeader = ({ record }: { record: Service }) => {
   return (
     <div className="flex flex-col gap-3">
       <div>
-        <h2 className="text-2xl font-bold">
+        <h2 className="text-xl md:text-2xl font-bold wrap-break-word">
           {record.description || serviceLabel}
         </h2>
         {record.description ? (
@@ -140,9 +140,9 @@ const ServiceHeader = ({ record }: { record: Service }) => {
             </Link>
           )}
           {record.location && (
-            <span className="flex items-center gap-1">
-              <MapPin className="size-3" />
-              {record.location}
+            <span className="flex items-center gap-1 min-w-0">
+              <MapPin className="size-3 shrink-0" />
+              <span className="truncate">{record.location}</span>
             </span>
           )}
           {record.invoice_ref && (
