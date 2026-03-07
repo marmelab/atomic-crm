@@ -132,7 +132,7 @@ const PaymentMobileCard = ({
         </span>
         <PaymentStatusBadge status={payment.status} />
       </div>
-      <span className="text-sm font-medium">{client?.name ?? ""}</span>
+      <span className="text-base font-bold">{client?.name ?? ""}</span>
       <div className="flex items-center justify-between">
         <span className="text-xs text-muted-foreground">
           {paymentTypeLabels[payment.payment_type] ?? payment.payment_type}

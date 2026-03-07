@@ -97,7 +97,7 @@ const ProjectMobileCard = ({
       to={link}
       className="flex flex-col gap-1 px-1 py-3 active:bg-muted/50"
     >
-      <span className="text-sm font-medium">{project.name}</span>
+      <span className="text-base font-bold">{project.name}</span>
       <div className="flex items-center justify-between">
         <span className="text-xs text-muted-foreground">
           {client?.name ?? ""}

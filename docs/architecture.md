@@ -264,6 +264,7 @@ Edge Function: `supabase/functions/workflow_notify/index.ts`
 
 UI: List, Create, Edit, Show con execution history.
 List ha mobile card view (niente tabelle su telefono).
+Titolo principale card mobile: `text-base font-bold` su tutti i moduli.
 Show ha griglia responsive e pre-block con overflow.
 Navigazione: menu "Altro" mobile, non nella header desktop.
 WorkflowCreate supporta precompilazione via search params (name, trigger_resource, trigger_event, action_type, etc.).

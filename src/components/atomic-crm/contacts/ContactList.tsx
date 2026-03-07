@@ -272,7 +272,7 @@ const ContactMobileCard = ({
       to={link}
       className="flex flex-col gap-1 px-1 py-3 active:bg-muted/50"
     >
-      <span className="text-sm font-medium">
+      <span className="text-base font-bold">
         {getContactDisplayName(contact)}
       </span>
       <div className="flex flex-wrap gap-1">

@@ -172,7 +172,7 @@ const ExpenseMobileCard = ({
         <ExpenseIconAvatar type={expense.expense_type} />
         <div className="flex-1 min-w-0">
           <div className="flex items-center justify-between">
-            <span className="text-sm font-medium truncate">
+            <span className="text-base font-bold truncate">
               {expenseTypeLabels[expense.expense_type] ?? expense.expense_type}
             </span>
             <span className="text-xs text-muted-foreground">

@@ -138,7 +138,7 @@ const ClientMobileCard = ({
   link: string;
 }) => (
   <Link to={link} className="flex flex-col gap-1 px-1 py-3 active:bg-muted/50">
-    <span className="text-sm font-medium">{client.name}</span>
+    <span className="text-base font-bold">{client.name}</span>
     <div className="flex items-center gap-2">
       <ClientTypeBadge type={client.client_type} />
       {client.billing_city && (

@@ -215,3 +215,7 @@ Usato in `QuoteShowActions` quando il preventivo ha un client_id valido ma
 `clients` via `useUpdate`.
 
 Impatto architetturale: nessuno — nessuna nuova tabella, join o relazione.
+
+## Mobile Card Style
+
+Titolo principale nelle card mobile lista: `text-base font-bold` (clients, contacts, projects).

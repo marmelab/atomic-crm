@@ -168,7 +168,7 @@ const ServiceMobileCard = ({
         </span>
         <span className="text-xs text-muted-foreground">{typeLabel}</span>
       </div>
-      <span className="text-sm font-medium">
+      <span className="text-base font-bold">
         {service.description || project?.name || ""}
       </span>
       <div className="flex items-center justify-between">

@@ -70,7 +70,7 @@ export const QuoteMobileCard = ({ quote }: { quote: Quote }) => {
       </div>
 
       <div className="flex-1 min-w-0">
-        <p className="text-sm font-medium truncate">
+        <p className="text-base font-bold truncate">
           {quote.description || "Preventivo"}
         </p>
         {client && (
