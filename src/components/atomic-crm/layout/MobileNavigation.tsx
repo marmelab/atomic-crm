@@ -40,17 +40,14 @@ import {
 } from "../root/moduleRegistry";
 import { TaskCreateSheet } from "../tasks/TaskCreateSheet";
 
-/** Colors for the "Altro" dropdown menu items (mobile only) */
-const altroMenuColors: Record<string, string> = {
-  contacts: "#3b82f6", // blue
-  projects: "#8b5cf6", // purple
-  services: "#f59e0b", // amber
-  quotes: "#06b6d4", // cyan
-  payments: "#22c55e", // green
-  expenses: "#ef4444", // red
-  _profile: "#6b7280", // gray
-  _settings: "#6b7280", // gray
-  _logout: "#dc2626", // red
+/** Icon colors for the "Altro" dropdown — aligned with desktop Header */
+const altroMenuIconColor: Record<string, string> = {
+  contacts: "text-cyan-500",
+  projects: "text-amber-500",
+  services: "text-indigo-500",
+  quotes: "text-violet-500",
+  payments: "text-green-500",
+  expenses: "text-orange-500",
 };
 
 const matchCurrentPath = (pathname: string) => {
@@ -241,7 +238,7 @@ const SettingsButton = () => {
 
         {getMobileAltroModules().map((module) => {
           const Icon = module.icon ?? Home;
-          const color = altroMenuColors[module.resource];
+          const iconColor = altroMenuIconColor[module.resource];
 
           return (
             <DropdownMenuItem
@@ -250,13 +247,8 @@ const SettingsButton = () => {
               className="h-14 px-4 text-lg gap-3"
             >
               <Link to={module.path}>
-                <Icon
-                  className="size-6"
-                  style={color ? { color } : undefined}
-                />
-                <span style={color ? { color } : undefined}>
-                  {module.label}
-                </span>
+                <Icon className={cn("size-6", iconColor)} />
+                {module.label}
               </Link>
             </DropdownMenuItem>
           );
@@ -266,23 +258,15 @@ const SettingsButton = () => {
 
         <DropdownMenuItem asChild className="h-14 px-4 text-lg gap-3">
           <Link to="/profile">
-            <User
-              className="size-6"
-              style={{ color: altroMenuColors._profile }}
-            />
-            <span style={{ color: altroMenuColors._profile }}>Profilo</span>
+            <User className="size-6 text-muted-foreground" />
+            Profilo
           </Link>
         </DropdownMenuItem>
 
         <DropdownMenuItem asChild className="h-14 px-4 text-lg gap-3">
           <Link to="/settings">
-            <Wrench
-              className="size-6"
-              style={{ color: altroMenuColors._settings }}
-            />
-            <span style={{ color: altroMenuColors._settings }}>
-              Impostazioni
-            </span>
+            <Wrench className="size-6 text-muted-foreground" />
+            Impostazioni
           </Link>
         </DropdownMenuItem>
 
@@ -291,8 +275,7 @@ const SettingsButton = () => {
 
         <DropdownMenuItem
           onClick={() => logout()}
-          className="cursor-pointer h-14 px-4 text-lg gap-3"
-          style={{ color: altroMenuColors._logout }}
+          className="cursor-pointer h-14 px-4 text-lg gap-3 text-destructive"
         >
           <LogOut className="size-6" />
           <Translate i18nKey="ra.auth.logout">Log out</Translate>

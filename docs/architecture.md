@@ -1029,18 +1029,18 @@ Menu utente (dropdown): Profilo | Impostazioni
 
 Mobile: Inizio | Clienti | [+] | Promemoria | Altro
 
-Nel menu `Altro` mobile (voci colorate per distinguibilità, testo `text-lg`):
+Nel menu `Altro` mobile (icone colorate come desktop Header, testo `text-lg`):
 
-- Referenti (blu)
-- Progetti (viola)
-- Registro Lavori (ambra)
-- Preventivi (ciano)
-- Pagamenti (verde)
-- Spese (rosso)
-- Profilo (grigio)
-- Impostazioni (grigio)
+- Referenti (`text-cyan-500`)
+- Progetti (`text-amber-500`)
+- Registro Lavori (`text-indigo-500`)
+- Preventivi (`text-violet-500`)
+- Pagamenti (`text-green-500`)
+- Spese (`text-orange-500`)
+- Profilo (`text-muted-foreground`)
+- Impostazioni (`text-muted-foreground`)
 - toggle tema `sistema / chiaro / scuro`
-- logout (rosso)
+- logout (`text-destructive`)
 
 Automazioni: rimossa dal menu `Altro`, accessibile da Impostazioni.
 
