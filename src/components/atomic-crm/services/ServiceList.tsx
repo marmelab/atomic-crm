@@ -6,6 +6,7 @@ import { ExportButton } from "@/components/admin/export-button";
 import { List } from "@/components/admin/list";
 import { SortButton } from "@/components/admin/sort-button";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { useColumnVisibility } from "@/hooks/useColumnVisibility";
 
 import type { Project, Service } from "../types";
 import { ServiceListContent } from "./ServiceListContent";
@@ -17,6 +18,11 @@ import {
   calculateKmReimbursement,
   calculateServiceNetValue,
 } from "@/lib/semantics/crmSemanticRegistry";
+import {
+  SERVICE_COLUMNS,
+  filterExportRow,
+} from "../misc/columnDefinitions";
+import { ColumnVisibilityButton } from "../misc/ColumnVisibilityButton";
 
 export const ServiceList = () => {
   const { serviceTypeChoices, operationalConfig } = useConfigurationContext();
@@ -24,6 +30,10 @@ export const ServiceList = () => {
     serviceTypeChoices.map((t) => [t.value, t.label]),
   );
   const defaultKmRate = operationalConfig.defaultKmRate;
+  const { visibleKeys, columns, toggleColumn } = useColumnVisibility(
+    "services",
+    SERVICE_COLUMNS,
+  );
 
   const exporter: Exporter<Service> = useCallback(
     async (records, fetchRelatedRecords) => {
@@ -35,38 +45,51 @@ export const ServiceList = () => {
             "projects",
           )
         : {};
-      const rows = records.map((s) => ({
-        data_inizio: s.service_date,
-        data_fine: s.service_end ?? "",
-        tutto_il_giorno: s.all_day ? "Sì" : "No",
-        progetto: s.project_id ? (projects[s.project_id]?.name ?? "") : "",
-        tipo: typeLabels[s.service_type] ?? s.service_type,
-        descrizione: s.description ?? "",
-        tassabile: s.is_taxable === false ? "No" : "Sì",
-        riprese: s.fee_shooting,
-        montaggio: s.fee_editing,
-        altro: s.fee_other,
-        sconto: s.discount,
-        totale: calculateServiceNetValue(s),
-        km: s.km_distance,
-        rimborso_km: calculateKmReimbursement({
-          kmDistance: s.km_distance,
-          kmRate: s.km_rate,
-          defaultKmRate,
-        }),
-        localita: s.location ?? "",
-        rif_fattura: s.invoice_ref ?? "",
-        note: s.notes ?? "",
-      }));
+      const rows = records.map((s) =>
+        filterExportRow(
+          {
+            data_inizio: s.service_date,
+            data_fine: s.service_end ?? "",
+            tutto_il_giorno: s.all_day ? "Sì" : "No",
+            progetto: s.project_id ? (projects[s.project_id]?.name ?? "") : "",
+            tipo: typeLabels[s.service_type] ?? s.service_type,
+            descrizione: s.description ?? "",
+            tassabile: s.is_taxable === false ? "No" : "Sì",
+            riprese: s.fee_shooting,
+            montaggio: s.fee_editing,
+            altro: s.fee_other,
+            sconto: s.discount,
+            totale: calculateServiceNetValue(s),
+            km: s.km_distance,
+            rimborso_km: calculateKmReimbursement({
+              kmDistance: s.km_distance,
+              kmRate: s.km_rate,
+              defaultKmRate,
+            }),
+            localita: s.location ?? "",
+            rif_fattura: s.invoice_ref ?? "",
+            note: s.notes ?? "",
+          },
+          visibleKeys,
+          columns,
+        ),
+      );
       downloadCSVItalian(rows, "registro_lavori");
     },
-    [defaultKmRate, typeLabels],
+    [defaultKmRate, typeLabels, visibleKeys, columns],
   );
 
   return (
     <List
       title={false}
-      actions={<ServiceListActions exporter={exporter} />}
+      actions={
+        <ServiceListActions
+          exporter={exporter}
+          columns={columns}
+          visibleKeys={visibleKeys}
+          toggleColumn={toggleColumn}
+        />
+      }
       perPage={50}
       sort={{ field: "service_date", order: "DESC" }}
       exporter={exporter}
@@ -103,12 +126,27 @@ const ServiceListLayout = () => {
   );
 };
 
-const ServiceListActions = ({ exporter }: { exporter: Exporter<Service> }) => {
+const ServiceListActions = ({
+  exporter,
+  columns,
+  visibleKeys,
+  toggleColumn,
+}: {
+  exporter: Exporter<Service>;
+  columns: typeof SERVICE_COLUMNS;
+  visibleKeys: string[];
+  toggleColumn: (key: string) => void;
+}) => {
   const isMobile = useIsMobile();
   return (
     <TopToolbar className={isMobile ? "justify-center" : undefined}>
       {isMobile && <ServiceMobileFilter />}
       <SortButton fields={["service_date", "created_at"]} />
+      <ColumnVisibilityButton
+        columns={columns}
+        visibleKeys={visibleKeys}
+        toggleColumn={toggleColumn}
+      />
       <ExportButton exporter={exporter} />
       <CreateButton />
     </TopToolbar>

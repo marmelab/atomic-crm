@@ -28,6 +28,14 @@ import { expenseTypeLabels } from "./expenseTypes";
 import { ErrorMessage } from "../misc/ErrorMessage";
 import { calculateKmReimbursement } from "@/lib/semantics/crmSemanticRegistry";
 import { useConfigurationContext } from "../root/ConfigurationContext";
+import {
+  ListSelectAllCheckbox,
+  ListRowCheckbox,
+  MobileSelectableCard,
+  ListBulkToolbar,
+} from "../misc/ListBulkSelection";
+import { useColumnVisibility } from "@/hooks/useColumnVisibility";
+import { EXPENSE_COLUMNS } from "../misc/columnDefinitions";
 
 const eur = (n: number) =>
   n ? n.toLocaleString("it-IT", { minimumFractionDigits: 2 }) : "--";
@@ -92,57 +100,68 @@ export const ExpenseListContent = () => {
   const { operationalConfig } = useConfigurationContext();
   const createPath = useCreatePath();
   const isMobile = useIsMobile();
+  const { cv } = useColumnVisibility("expenses", EXPENSE_COLUMNS);
 
   if (error) return <ErrorMessage />;
   if (isPending || !data) return null;
 
   if (isMobile) {
     return (
-      <div className="flex flex-col divide-y px-4">
-        {data.map((expense) => (
-          <ExpenseMobileCard
-            key={expense.id}
-            expense={expense}
-            defaultKmRate={operationalConfig.defaultKmRate}
-            link={createPath({
-              resource: "expenses",
-              type: "show",
-              id: expense.id,
-            })}
-          />
-        ))}
-      </div>
+      <>
+        <div className="flex flex-col divide-y px-2">
+          {data.map((expense) => (
+            <MobileSelectableCard key={expense.id} id={expense.id}>
+              <ExpenseMobileCard
+                expense={expense}
+                defaultKmRate={operationalConfig.defaultKmRate}
+                link={createPath({
+                  resource: "expenses",
+                  type: "show",
+                  id: expense.id,
+                })}
+              />
+            </MobileSelectableCard>
+          ))}
+        </div>
+        <ListBulkToolbar allowDelete />
+      </>
     );
   }
 
   return (
-    <Table>
-      <TableHeader>
-        <TableRow>
-          <TableHead>Data</TableHead>
-          <TableHead>Tipo</TableHead>
-          <TableHead className="hidden md:table-cell">Cliente</TableHead>
-          <TableHead>Progetto</TableHead>
-          <TableHead className="text-right hidden md:table-cell">Km</TableHead>
-          <TableHead className="text-right">Totale EUR</TableHead>
-          <TableHead className="hidden lg:table-cell">Descrizione</TableHead>
-        </TableRow>
-      </TableHeader>
-      <TableBody>
-        {data.map((expense) => (
-          <ExpenseRow
-            key={expense.id}
-            defaultKmRate={operationalConfig.defaultKmRate}
-            expense={expense}
-            link={createPath({
-              resource: "expenses",
-              type: "show",
-              id: expense.id,
-            })}
-          />
-        ))}
-      </TableBody>
-    </Table>
+    <>
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead className="w-10">
+              <ListSelectAllCheckbox />
+            </TableHead>
+            <TableHead className={cv("date")}>Data</TableHead>
+            <TableHead className={cv("type")}>Tipo</TableHead>
+            <TableHead className={cv("client", "hidden md:table-cell")}>Cliente</TableHead>
+            <TableHead className={cv("project")}>Progetto</TableHead>
+            <TableHead className={cv("km", "text-right hidden md:table-cell")}>Km</TableHead>
+            <TableHead className={cv("total", "text-right")}>Totale EUR</TableHead>
+            <TableHead className={cv("description", "hidden lg:table-cell")}>Descrizione</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {data.map((expense) => (
+            <ExpenseRow
+              key={expense.id}
+              defaultKmRate={operationalConfig.defaultKmRate}
+              expense={expense}
+              link={createPath({
+                resource: "expenses",
+                type: "show",
+                id: expense.id,
+              })}
+            />
+          ))}
+        </TableBody>
+      </Table>
+      <ListBulkToolbar allowDelete />
+    </>
   );
 };
 
@@ -209,6 +228,7 @@ const ExpenseRow = ({
   link: string;
   defaultKmRate: number;
 }) => {
+  const { cv } = useColumnVisibility("expenses", EXPENSE_COLUMNS);
   const { data: project } = useGetOne(
     "projects",
     {
@@ -231,12 +251,15 @@ const ExpenseRow = ({
 
   return (
     <TableRow className="cursor-pointer hover:bg-muted/50">
-      <TableCell className="text-sm">
+      <TableCell className="w-10">
+        <ListRowCheckbox id={expense.id} />
+      </TableCell>
+      <TableCell className={cv("date", "text-sm")}>
         <Link to={link} className="text-primary hover:underline">
           {new Date(expense.expense_date).toLocaleDateString("it-IT")}
         </Link>
       </TableCell>
-      <TableCell className="text-sm">
+      <TableCell className={cv("type", "text-sm")}>
         <div className="flex items-center gap-2">
           <ExpenseIconAvatar type={expense.expense_type} />
           {expense.expense_type === "credito_ricevuto" ? (
@@ -250,25 +273,28 @@ const ExpenseRow = ({
           )}
         </div>
       </TableCell>
-      <TableCell className="text-sm text-muted-foreground hidden md:table-cell">
+      <TableCell className={cv("client", "text-sm text-muted-foreground hidden md:table-cell")}>
         {client?.name ?? ""}
       </TableCell>
-      <TableCell className="text-sm text-muted-foreground">
+      <TableCell className={cv("project", "text-sm text-muted-foreground")}>
         {project?.name ?? ""}
       </TableCell>
-      <TableCell className="text-right text-sm hidden md:table-cell">
+      <TableCell className={cv("km", "text-right text-sm hidden md:table-cell")}>
         {expense.km_distance || "--"}
       </TableCell>
       <TableCell
-        className={`text-right text-sm font-medium ${
-          expense.expense_type === "credito_ricevuto"
-            ? "text-green-600 dark:text-green-400"
-            : ""
-        }`}
+        className={cv(
+          "total",
+          `text-right text-sm font-medium ${
+            expense.expense_type === "credito_ricevuto"
+              ? "text-green-600 dark:text-green-400"
+              : ""
+          }`,
+        )}
       >
         {eur(total)}
       </TableCell>
-      <TableCell className="text-sm text-muted-foreground hidden lg:table-cell">
+      <TableCell className={cv("description", "text-sm text-muted-foreground hidden lg:table-cell")}>
         {expense.description ?? ""}
       </TableCell>
     </TableRow>

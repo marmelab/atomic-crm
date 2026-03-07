@@ -15,6 +15,7 @@ Stato del documento:
 
 ## Changelog
 
+- 2026-03-07: Bulk selection + column visibility across all 6 CRM lists (clients, contacts, projects, services, payments, expenses)
 - 2026-03-06: Fix rimborso_spese incorrectly counted as taxable income in fiscal model
 - 2026-03-06: Payment reminder: import labels from single source, hide sollecito for rimborso payments
 - 2026-03-06: Auto-create km expenses from services via DB trigger (sync_service_km_expense)

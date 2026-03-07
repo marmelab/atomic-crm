@@ -672,6 +672,10 @@
           "type": "registry:component"
         },
         {
+          "path": "src/components/atomic-crm/misc/columnDefinitions.ts",
+          "type": "registry:component"
+        },
+        {
           "path": "src/components/atomic-crm/misc/Status.tsx",
           "type": "registry:component"
         },
@@ -689,6 +693,10 @@
         },
         {
           "path": "src/components/atomic-crm/misc/Markdown.tsx",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/misc/ListBulkSelection.tsx",
           "type": "registry:component"
         },
         {
@@ -713,6 +721,10 @@
         },
         {
           "path": "src/components/atomic-crm/misc/CreateSheet.tsx",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/misc/ColumnVisibilityButton.tsx",
           "type": "registry:component"
         },
         {
@@ -1205,6 +1217,10 @@
         },
         {
           "path": "src/hooks/useRealtimeInvalidation.ts",
+          "type": "registry:hook"
+        },
+        {
+          "path": "src/hooks/useColumnVisibility.ts",
           "type": "registry:hook"
         },
         {

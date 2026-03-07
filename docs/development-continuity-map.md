@@ -14,6 +14,7 @@ Last updated: 2026-03-06
 
 ### Recent Updates (cronologico, più recente in alto)
 
+- [2026-03-07](#update-2026-03-07--bulk-selection--column-visibility) — Bulk selection + column visibility across all CRM lists
 - [2026-03-06 (e)](#update-2026-03-06-e--google-calendar-integration) — Google Calendar sync for services
 - [2026-03-06 (d)](#update-2026-03-06-d--fiscal-model-rimborso_spese-fix--payment-reminder-guard) — Fiscal model rimborso_spese fix + payment reminder guard
 - [2026-03-06 (c)](#update-2026-03-06-c--trigger-fix-for-projectless-services--clientfinancialsummary-simplification) — Trigger fix for projectless services + ClientFinancialSummary simplification
@@ -98,6 +99,51 @@ tipo `rimborso` (rimborso che noi facciamo al cliente — non ha senso sollecita
 - `src/components/atomic-crm/dashboard/fiscalModel.ts`
 - `src/lib/communications/paymentReminderEmail.ts`
 - `src/components/atomic-crm/payments/PaymentShow.tsx`
+
+---
+
+## Update 2026-03-07 — Bulk selection + column visibility
+
+Aggiunta selezione massiva e visibilità colonne a tutte e 6 le liste CRM.
+
+### Bulk selection
+
+- Checkbox "seleziona tutto" nell'header della tabella desktop
+- Checkbox per riga nella tabella desktop
+- `MobileSelectableCard` wrapper per le card mobile (checkbox senza rompere Link)
+- Toolbar sticky in basso con conteggio, export selezione e delete (dove permesso)
+- Componenti condivisi in `ListBulkSelection.tsx`
+
+### Column visibility
+
+- Bottone `ColumnVisibilityButton` (icona Columns3) nella toolbar di ogni lista
+- Popover con checkbox per ogni colonna definita
+- Preferenze salvate su DB nella tabella `settings` (chiave `list_columns:{resource}`)
+- Hook `useColumnVisibility` con React Query (`staleTime: Infinity`, optimistic updates)
+- Pattern `cv(key, baseClass?)`: ritorna `baseClass` se visibile, `"hidden"` se nascosta
+- Funziona con classi responsive (es. `"hidden lg:table-cell"` → override con `"hidden"`)
+- Export filtrato: `filterExportRow()` esporta solo le colonne visibili
+
+### File creati
+
+- `src/components/atomic-crm/misc/ListBulkSelection.tsx`
+- `src/components/atomic-crm/misc/columnDefinitions.ts`
+- `src/components/atomic-crm/misc/ColumnVisibilityButton.tsx`
+- `src/hooks/useColumnVisibility.ts`
+
+### File modificati
+
+- `src/components/atomic-crm/providers/supabase/dataProvider.ts` — metodi `getColumnPreferences` / `setColumnPreferences`
+- `src/components/atomic-crm/clients/ClientList.tsx` + `ClientListContent.tsx`
+- `src/components/atomic-crm/contacts/ContactList.tsx` (layout inline, no ListContent separato)
+- `src/components/atomic-crm/projects/ProjectList.tsx` + `ProjectListContent.tsx`
+- `src/components/atomic-crm/services/ServiceList.tsx` + `ServiceListContent.tsx`
+- `src/components/atomic-crm/payments/PaymentList.tsx` + `PaymentListContent.tsx`
+- `src/components/atomic-crm/expenses/ExpenseList.tsx` + `ExpenseListContent.tsx`
+
+### Liste escluse da bulk actions
+
+- Quotes (Kanban), Tasks (raggruppati per data), Workflows (amministrativi)
 
 ---
 

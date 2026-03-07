@@ -17,6 +17,14 @@ import { cn } from "@/lib/utils";
 import type { Payment } from "../types";
 import { paymentTypeLabels, paymentStatusLabels } from "./paymentTypes";
 import { ErrorMessage } from "../misc/ErrorMessage";
+import {
+  ListSelectAllCheckbox,
+  ListRowCheckbox,
+  MobileSelectableCard,
+  ListBulkToolbar,
+} from "../misc/ListBulkSelection";
+import { useColumnVisibility } from "@/hooks/useColumnVisibility";
+import { PAYMENT_COLUMNS } from "../misc/columnDefinitions";
 
 const eur = (n: number) =>
   n.toLocaleString("it-IT", { minimumFractionDigits: 2 });
@@ -56,56 +64,67 @@ export const PaymentListContent = () => {
   const { data, isPending, error } = useListContext<Payment>();
   const createPath = useCreatePath();
   const isMobile = useIsMobile();
+  const { cv } = useColumnVisibility("payments", PAYMENT_COLUMNS);
 
   if (error) return <ErrorMessage />;
   if (isPending || !data) return null;
 
   if (isMobile) {
     return (
-      <div className="flex flex-col divide-y px-4">
-        {data.map((payment) => (
-          <PaymentMobileCard
-            key={payment.id}
-            payment={payment}
-            link={createPath({
-              resource: "payments",
-              type: "show",
-              id: payment.id,
-            })}
-          />
-        ))}
-      </div>
+      <>
+        <div className="flex flex-col divide-y px-2">
+          {data.map((payment) => (
+            <MobileSelectableCard key={payment.id} id={payment.id}>
+              <PaymentMobileCard
+                payment={payment}
+                link={createPath({
+                  resource: "payments",
+                  type: "show",
+                  id: payment.id,
+                })}
+              />
+            </MobileSelectableCard>
+          ))}
+        </div>
+        <ListBulkToolbar allowDelete />
+      </>
     );
   }
 
   return (
-    <Table>
-      <TableHeader>
-        <TableRow>
-          <TableHead>Data</TableHead>
-          <TableHead>Cliente</TableHead>
-          <TableHead className="hidden lg:table-cell">Progetto</TableHead>
-          <TableHead className="hidden xl:table-cell">Preventivo</TableHead>
-          <TableHead>Tipo</TableHead>
-          <TableHead className="text-right">Importo</TableHead>
-          <TableHead className="hidden md:table-cell">Rif. Fattura</TableHead>
-          <TableHead>Stato</TableHead>
-        </TableRow>
-      </TableHeader>
-      <TableBody>
-        {data.map((payment) => (
-          <PaymentRow
-            key={payment.id}
-            payment={payment}
-            link={createPath({
-              resource: "payments",
-              type: "show",
-              id: payment.id,
-            })}
-          />
-        ))}
-      </TableBody>
-    </Table>
+    <>
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead className="w-10">
+              <ListSelectAllCheckbox />
+            </TableHead>
+            <TableHead className={cv("date")}>Data</TableHead>
+            <TableHead className={cv("client")}>Cliente</TableHead>
+            <TableHead className={cv("project", "hidden lg:table-cell")}>Progetto</TableHead>
+            <TableHead className={cv("quote", "hidden xl:table-cell")}>Preventivo</TableHead>
+            <TableHead className={cv("type")}>Tipo</TableHead>
+            <TableHead className={cv("amount", "text-right")}>Importo</TableHead>
+            <TableHead className={cv("invoice_ref", "hidden md:table-cell")}>Rif. Fattura</TableHead>
+            <TableHead className={cv("status")}>Stato</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {data.map((payment) => (
+            <PaymentRow
+              key={payment.id}
+              payment={payment}
+              link={createPath({
+                resource: "payments",
+                type: "show",
+                id: payment.id,
+              })}
+            />
+          ))}
+        </TableBody>
+      </Table>
+      <ListBulkToolbar allowDelete />
+    </>
   );
 };
 
@@ -147,6 +166,7 @@ const PaymentMobileCard = ({
 
 /* ---- Desktop table row ---- */
 const PaymentRow = ({ payment, link }: { payment: Payment; link: string }) => {
+  const { cv } = useColumnVisibility("payments", PAYMENT_COLUMNS);
   const { data: client } = useGetOne("clients", { id: payment.client_id });
   const { data: project } = useGetOne(
     "projects",
@@ -169,23 +189,26 @@ const PaymentRow = ({ payment, link }: { payment: Payment; link: string }) => {
 
   return (
     <TableRow className="cursor-pointer hover:bg-muted/50">
-      <TableCell className="text-sm">
+      <TableCell className="w-10">
+        <ListRowCheckbox id={payment.id} />
+      </TableCell>
+      <TableCell className={cv("date", "text-sm")}>
         <Link to={link} className="text-primary hover:underline">
           {payment.payment_date
             ? new Date(payment.payment_date).toLocaleDateString("it-IT")
             : "--"}
         </Link>
       </TableCell>
-      <TableCell className="text-sm text-muted-foreground">
+      <TableCell className={cv("client", "text-sm text-muted-foreground")}>
         {client?.name ?? ""}
       </TableCell>
-      <TableCell className="hidden lg:table-cell text-sm text-muted-foreground">
+      <TableCell className={cv("project", "hidden lg:table-cell text-sm text-muted-foreground")}>
         {project?.name ?? ""}
       </TableCell>
-      <TableCell className="hidden xl:table-cell text-sm text-muted-foreground">
+      <TableCell className={cv("quote", "hidden xl:table-cell text-sm text-muted-foreground")}>
         {quote?.description ?? ""}
       </TableCell>
-      <TableCell className="text-sm">
+      <TableCell className={cv("type", "text-sm")}>
         <div className="flex items-center gap-2">
           <PaymentIconAvatar type={payment.payment_type} />
           <span>
@@ -193,13 +216,13 @@ const PaymentRow = ({ payment, link }: { payment: Payment; link: string }) => {
           </span>
         </div>
       </TableCell>
-      <TableCell className="text-right text-sm font-medium">
+      <TableCell className={cv("amount", "text-right text-sm font-medium")}>
         EUR {eur(payment.amount)}
       </TableCell>
-      <TableCell className="hidden md:table-cell text-sm text-muted-foreground">
+      <TableCell className={cv("invoice_ref", "hidden md:table-cell text-sm text-muted-foreground")}>
         {payment.invoice_ref ?? ""}
       </TableCell>
-      <TableCell>
+      <TableCell className={cv("status")}>
         <PaymentStatusBadge status={payment.status} />
       </TableCell>
     </TableRow>

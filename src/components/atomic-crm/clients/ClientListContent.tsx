@@ -20,6 +20,8 @@ import {
   User,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useColumnVisibility } from "@/hooks/useColumnVisibility";
+import { CLIENT_COLUMNS } from "../misc/columnDefinitions";
 
 import type { Client } from "../types";
 import {
@@ -28,104 +30,124 @@ import {
 } from "./clientBilling";
 import { clientTypeLabels, clientSourceLabels } from "./clientTypes";
 import { ErrorMessage } from "../misc/ErrorMessage";
+import {
+  ListSelectAllCheckbox,
+  ListRowCheckbox,
+  MobileSelectableCard,
+  ListBulkToolbar,
+} from "../misc/ListBulkSelection";
 
 export const ClientListContent = () => {
   const { data, isPending, error } = useListContext<Client>();
   const createPath = useCreatePath();
   const isMobile = useIsMobile();
+  const { cv } = useColumnVisibility("clients", CLIENT_COLUMNS);
 
   if (error) return <ErrorMessage />;
   if (isPending || !data) return null;
 
   if (isMobile) {
     return (
-      <div className="flex flex-col divide-y px-4">
-        {data.map((client) => (
-          <ClientMobileCard
-            key={client.id}
-            client={client}
-            link={createPath({
-              resource: "clients",
-              type: "show",
-              id: client.id,
-            })}
-          />
-        ))}
-      </div>
+      <>
+        <div className="flex flex-col divide-y px-2">
+          {data.map((client) => (
+            <MobileSelectableCard key={client.id} id={client.id}>
+              <ClientMobileCard
+                client={client}
+                link={createPath({
+                  resource: "clients",
+                  type: "show",
+                  id: client.id,
+                })}
+              />
+            </MobileSelectableCard>
+          ))}
+        </div>
+        <ListBulkToolbar />
+      </>
     );
   }
 
   return (
-    <Table>
-      <TableHeader>
-        <TableRow>
-          <TableHead>Nome / Ragione sociale</TableHead>
-          <TableHead>Tipo</TableHead>
-          <TableHead className="hidden md:table-cell">Telefono</TableHead>
-          <TableHead className="hidden md:table-cell">Email</TableHead>
-          <TableHead className="hidden lg:table-cell">Fonte</TableHead>
-        </TableRow>
-      </TableHeader>
-      <TableBody>
-        {data.map((client) => (
-          <TableRow
-            key={client.id}
-            className="cursor-pointer hover:bg-muted/50"
-          >
-            <TableCell>
-              <div className="flex items-start gap-3">
-                <ClientIconAvatar type={client.client_type} />
-                <div className="space-y-1.5 min-w-0">
-                  <Link
-                    to={createPath({
-                      resource: "clients",
-                      type: "show",
-                      id: client.id,
-                    })}
-                    className="font-medium text-primary hover:underline block"
-                  >
-                    {client.name}
-                  </Link>
-                  {getClientDistinctBillingName(client) ? (
-                    <p className="text-xs text-muted-foreground">
-                      Fatturazione: {getClientDistinctBillingName(client)}
-                    </p>
-                  ) : null}
-                  <div className="flex flex-wrap gap-1">
-                    {getClientBillingIdentityLines(client).map((line) => (
-                      <Badge
-                        key={line}
-                        variant="outline"
-                        className="text-[11px]"
-                      >
-                        {line}
-                      </Badge>
-                    ))}
-                    {client.billing_city ? (
-                      <Badge variant="outline" className="text-[11px]">
-                        {client.billing_city}
-                      </Badge>
+    <>
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead className="w-10">
+              <ListSelectAllCheckbox />
+            </TableHead>
+            <TableHead className={cv("name")}>Nome / Ragione sociale</TableHead>
+            <TableHead className={cv("type")}>Tipo</TableHead>
+            <TableHead className={cv("phone", "hidden md:table-cell")}>Telefono</TableHead>
+            <TableHead className={cv("email", "hidden md:table-cell")}>Email</TableHead>
+            <TableHead className={cv("source", "hidden lg:table-cell")}>Fonte</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {data.map((client) => (
+            <TableRow
+              key={client.id}
+              className="cursor-pointer hover:bg-muted/50"
+            >
+              <TableCell className="w-10">
+                <ListRowCheckbox id={client.id} />
+              </TableCell>
+              <TableCell className={cv("name")}>
+                <div className="flex items-start gap-3">
+                  <ClientIconAvatar type={client.client_type} />
+                  <div className="space-y-1.5 min-w-0">
+                    <Link
+                      to={createPath({
+                        resource: "clients",
+                        type: "show",
+                        id: client.id,
+                      })}
+                      className="font-medium text-primary hover:underline block"
+                    >
+                      {client.name}
+                    </Link>
+                    {getClientDistinctBillingName(client) ? (
+                      <p className="text-xs text-muted-foreground">
+                        Fatturazione: {getClientDistinctBillingName(client)}
+                      </p>
                     ) : null}
+                    <div className="flex flex-wrap gap-1">
+                      {getClientBillingIdentityLines(client).map((line) => (
+                        <Badge
+                          key={line}
+                          variant="outline"
+                          className="text-[11px]"
+                        >
+                          {line}
+                        </Badge>
+                      ))}
+                      {client.billing_city ? (
+                        <Badge variant="outline" className="text-[11px]">
+                          {client.billing_city}
+                        </Badge>
+                      ) : null}
+                    </div>
                   </div>
                 </div>
-              </div>
-            </TableCell>
-            <TableCell>
-              <ClientTypeBadge type={client.client_type} />
-            </TableCell>
-            <TableCell className="hidden md:table-cell text-muted-foreground">
-              {client.phone}
-            </TableCell>
-            <TableCell className="hidden md:table-cell text-muted-foreground">
-              {client.email}
-            </TableCell>
-            <TableCell className="hidden lg:table-cell text-muted-foreground text-sm">
-              {client.source ? clientSourceLabels[client.source] : ""}
-            </TableCell>
-          </TableRow>
-        ))}
-      </TableBody>
-    </Table>
+              </TableCell>
+              <TableCell className={cv("type")}>
+                <ClientTypeBadge type={client.client_type} />
+              </TableCell>
+              <TableCell className={cv("phone", "hidden md:table-cell text-muted-foreground")}>
+                {client.phone}
+              </TableCell>
+              <TableCell className={cv("email", "hidden md:table-cell text-muted-foreground")}>
+                {client.email}
+              </TableCell>
+              <TableCell className={cv("source", "hidden lg:table-cell text-muted-foreground text-sm")}>
+                {client.source ? clientSourceLabels[client.source] : ""}
+              </TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+      <ListBulkToolbar />
+    </>
   );
 };
 

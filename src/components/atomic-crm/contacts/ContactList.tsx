@@ -17,10 +17,20 @@ import type { LucideIcon } from "lucide-react";
 import { User, Crown, Briefcase, Euro } from "lucide-react";
 import { cn } from "@/lib/utils";
 
+import { useColumnVisibility } from "@/hooks/useColumnVisibility";
+
 import type { Client, Contact } from "../types";
 import { TopToolbar } from "../layout/TopToolbar";
 import { MobilePageTitle } from "../layout/MobilePageTitle";
 import { ErrorMessage } from "../misc/ErrorMessage";
+import { CONTACT_COLUMNS } from "../misc/columnDefinitions";
+import { ColumnVisibilityButton } from "../misc/ColumnVisibilityButton";
+import {
+  ListSelectAllCheckbox,
+  ListRowCheckbox,
+  MobileSelectableCard,
+  ListBulkToolbar,
+} from "../misc/ListBulkSelection";
 import {
   compareContactsForClientContext,
   getContactDisplayName,
@@ -31,29 +41,59 @@ import {
   isContactPrimaryForClient,
 } from "./contactRecord";
 
-export const ContactList = () => (
-  <List
-    title={false}
-    actions={<ContactListActions />}
-    perPage={25}
-    sort={{ field: "updated_at", order: "DESC" }}
-  >
-    <ContactListLayout />
-  </List>
-);
+export const ContactList = () => {
+  const { cv, columns, visibleKeys, toggleColumn } = useColumnVisibility(
+    "contacts",
+    CONTACT_COLUMNS,
+  );
 
-const ContactListActions = () => {
+  return (
+    <List
+      title={false}
+      actions={
+        <ContactListActions
+          columns={columns}
+          visibleKeys={visibleKeys}
+          toggleColumn={toggleColumn}
+        />
+      }
+      perPage={25}
+      sort={{ field: "updated_at", order: "DESC" }}
+    >
+      <ContactListLayout cv={cv} />
+    </List>
+  );
+};
+
+const ContactListActions = ({
+  columns,
+  visibleKeys,
+  toggleColumn,
+}: {
+  columns: typeof CONTACT_COLUMNS;
+  visibleKeys: string[];
+  toggleColumn: (key: string) => void;
+}) => {
   const isMobile = useIsMobile();
 
   return (
     <TopToolbar className={isMobile ? "justify-center" : undefined}>
       <SortButton fields={["last_name", "first_name", "updated_at"]} />
+      <ColumnVisibilityButton
+        columns={columns}
+        visibleKeys={visibleKeys}
+        toggleColumn={toggleColumn}
+      />
       <CreateButton />
     </TopToolbar>
   );
 };
 
-const ContactListLayout = () => {
+const ContactListLayout = ({
+  cv,
+}: {
+  cv: (key: string, extra?: string) => string | undefined;
+}) => {
   const { data: rawData, isPending, error } = useListContext<Contact>();
   const createPath = useCreatePath();
   const isMobile = useIsMobile();
@@ -96,19 +136,21 @@ const ContactListLayout = () => {
     return (
       <>
         <MobilePageTitle title="Referenti" />
-        <div className="mt-4 flex flex-col divide-y px-4">
+        <div className="mt-4 flex flex-col divide-y px-2">
           {sortedContacts.map((contact) => (
-            <ContactMobileCard
-              key={contact.id}
-              contact={contact}
-              link={createPath({
-                resource: "contacts",
-                type: "show",
-                id: contact.id,
-              })}
-            />
+            <MobileSelectableCard key={contact.id} id={contact.id}>
+              <ContactMobileCard
+                contact={contact}
+                link={createPath({
+                  resource: "contacts",
+                  type: "show",
+                  id: contact.id,
+                })}
+              />
+            </MobileSelectableCard>
           ))}
         </div>
+        <ListBulkToolbar />
       </>
     );
   }
@@ -120,10 +162,13 @@ const ContactListLayout = () => {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Referente</TableHead>
-              <TableHead>Ruolo</TableHead>
-              <TableHead className="hidden md:table-cell">Contatti</TableHead>
-              <TableHead className="hidden lg:table-cell">Cliente</TableHead>
+              <TableHead className="w-10">
+                <ListSelectAllCheckbox />
+              </TableHead>
+              <TableHead className={cv("name")}>Referente</TableHead>
+              <TableHead className={cv("role")}>Ruolo</TableHead>
+              <TableHead className={cv("contacts_info", "hidden md:table-cell")}>Contatti</TableHead>
+              <TableHead className={cv("client", "hidden lg:table-cell")}>Cliente</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -141,11 +186,13 @@ const ContactListLayout = () => {
                   type: "show",
                   id: contact.id,
                 })}
+                cv={cv}
               />
             ))}
           </TableBody>
         </Table>
       </div>
+      <ListBulkToolbar />
     </>
   );
 };
@@ -198,10 +245,12 @@ const ContactRow = ({
   contact,
   clientName,
   link,
+  cv,
 }: {
   contact: Contact;
   clientName?: string | null;
   link: string;
+  cv: (key: string, extra?: string) => string | undefined;
 }) => {
   const primaryEmail = getContactPrimaryEmail(contact);
   const primaryPhone = getContactPrimaryPhone(contact);
@@ -210,7 +259,10 @@ const ContactRow = ({
 
   return (
     <TableRow className="cursor-pointer hover:bg-muted/50">
-      <TableCell>
+      <TableCell className="w-10">
+        <ListRowCheckbox id={contact.id} />
+      </TableCell>
+      <TableCell className={cv("name")}>
         <div className="flex items-start gap-3">
           <ContactIconAvatar role={resolvedRole} />
           <div className="space-y-1.5 min-w-0">
@@ -245,13 +297,13 @@ const ContactRow = ({
           </div>
         </div>
       </TableCell>
-      <TableCell className="text-muted-foreground">
+      <TableCell className={cv("role", "text-muted-foreground")}>
         {[roleLabel, contact.title].filter(Boolean).join(" · ")}
       </TableCell>
-      <TableCell className="hidden md:table-cell text-muted-foreground">
+      <TableCell className={cv("contacts_info", "hidden md:table-cell text-muted-foreground")}>
         {[primaryEmail, primaryPhone].filter(Boolean).join(" · ")}
       </TableCell>
-      <TableCell className="hidden lg:table-cell text-muted-foreground">
+      <TableCell className={cv("client", "hidden lg:table-cell text-muted-foreground")}>
         {clientName ?? ""}
       </TableCell>
     </TableRow>

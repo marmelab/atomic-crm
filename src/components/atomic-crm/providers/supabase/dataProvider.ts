@@ -226,6 +226,27 @@ const dataProviderWithCustomMethods = {
   async isInitialized() {
     return getIsInitialized();
   },
+  async getColumnPreferences(resource: string): Promise<string[] | null> {
+    const { data } = await supabase
+      .from("settings")
+      .select("value")
+      .eq("key", `list_columns:${resource}`)
+      .single();
+    return data ? JSON.parse(data.value) : null;
+  },
+  async setColumnPreferences(
+    resource: string,
+    columns: string[],
+  ): Promise<void> {
+    await supabase.from("settings").upsert(
+      {
+        key: `list_columns:${resource}`,
+        value: JSON.stringify(columns),
+        updated_at: new Date().toISOString(),
+      },
+      { onConflict: "key" },
+    );
+  },
   async getConfiguration(): Promise<ConfigurationContextValue> {
     const { data } = await baseDataProvider.getOne("configuration", { id: 1 });
     return (data?.config as ConfigurationContextValue) ?? {};

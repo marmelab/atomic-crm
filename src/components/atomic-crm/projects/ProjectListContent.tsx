@@ -10,6 +10,7 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { useColumnVisibility } from "@/hooks/useColumnVisibility";
 import type { LucideIcon } from "lucide-react";
 import {
   Tv,
@@ -22,63 +23,81 @@ import {
 import { cn } from "@/lib/utils";
 
 import type { Project } from "../types";
+import { PROJECT_COLUMNS } from "../misc/columnDefinitions";
 import {
   projectCategoryLabels,
   projectStatusLabels,
   projectTvShowLabels,
 } from "./projectTypes";
 import { formatDateRange } from "../misc/formatDateRange";
+import {
+  ListSelectAllCheckbox,
+  ListRowCheckbox,
+  MobileSelectableCard,
+  ListBulkToolbar,
+} from "../misc/ListBulkSelection";
 
 export const ProjectListContent = () => {
   const { data, isPending } = useListContext<Project>();
   const createPath = useCreatePath();
   const isMobile = useIsMobile();
+  const { cv } = useColumnVisibility("projects", PROJECT_COLUMNS);
 
   if (isPending || !data) return null;
 
   if (isMobile) {
     return (
-      <div className="flex flex-col divide-y px-4">
-        {data.map((project) => (
-          <ProjectMobileCard
-            key={project.id}
-            project={project}
-            link={createPath({
-              resource: "projects",
-              type: "show",
-              id: project.id,
-            })}
-          />
-        ))}
-      </div>
+      <>
+        <div className="flex flex-col divide-y px-2">
+          {data.map((project) => (
+            <MobileSelectableCard key={project.id} id={project.id}>
+              <ProjectMobileCard
+                project={project}
+                link={createPath({
+                  resource: "projects",
+                  type: "show",
+                  id: project.id,
+                })}
+              />
+            </MobileSelectableCard>
+          ))}
+        </div>
+        <ListBulkToolbar />
+      </>
     );
   }
 
   return (
-    <Table>
-      <TableHeader>
-        <TableRow>
-          <TableHead>Nome progetto</TableHead>
-          <TableHead>Cliente</TableHead>
-          <TableHead>Categoria</TableHead>
-          <TableHead className="hidden md:table-cell">Stato</TableHead>
-          <TableHead className="hidden lg:table-cell">Periodo</TableHead>
-        </TableRow>
-      </TableHeader>
-      <TableBody>
-        {data.map((project) => (
-          <ProjectRow
-            key={project.id}
-            project={project}
-            link={createPath({
-              resource: "projects",
-              type: "show",
-              id: project.id,
-            })}
-          />
-        ))}
-      </TableBody>
-    </Table>
+    <>
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead className="w-10">
+              <ListSelectAllCheckbox />
+            </TableHead>
+            <TableHead className={cv("name")}>Nome progetto</TableHead>
+            <TableHead className={cv("client")}>Cliente</TableHead>
+            <TableHead className={cv("category")}>Categoria</TableHead>
+            <TableHead className={cv("status", "hidden md:table-cell")}>Stato</TableHead>
+            <TableHead className={cv("period", "hidden lg:table-cell")}>Periodo</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {data.map((project) => (
+            <ProjectRow
+              key={project.id}
+              project={project}
+              link={createPath({
+                resource: "projects",
+                type: "show",
+                id: project.id,
+              })}
+            />
+          ))}
+        </TableBody>
+      </Table>
+      <ListBulkToolbar />
+    </>
   );
 };
 
@@ -118,11 +137,15 @@ const ProjectMobileCard = ({
 
 /* ---- Desktop table row ---- */
 const ProjectRow = ({ project, link }: { project: Project; link: string }) => {
+  const { cv } = useColumnVisibility("projects", PROJECT_COLUMNS);
   const { data: client } = useGetOne("clients", { id: project.client_id });
 
   return (
     <TableRow className="cursor-pointer hover:bg-muted/50">
-      <TableCell>
+      <TableCell className="w-10">
+        <ListRowCheckbox id={project.id} />
+      </TableCell>
+      <TableCell className={cv("name")}>
         <div className="flex items-start gap-3">
           <ProjectIconAvatar category={project.category} />
           <div className="min-w-0">
@@ -140,16 +163,16 @@ const ProjectRow = ({ project, link }: { project: Project; link: string }) => {
           </div>
         </div>
       </TableCell>
-      <TableCell className="text-muted-foreground">
+      <TableCell className={cv("client", "text-muted-foreground")}>
         {client?.name ?? ""}
       </TableCell>
-      <TableCell>
+      <TableCell className={cv("category")}>
         <ProjectCategoryBadge category={project.category} />
       </TableCell>
-      <TableCell className="hidden md:table-cell">
+      <TableCell className={cv("status", "hidden md:table-cell")}>
         <ProjectStatusBadge status={project.status} />
       </TableCell>
-      <TableCell className="hidden lg:table-cell text-muted-foreground text-sm">
+      <TableCell className={cv("period", "hidden lg:table-cell text-muted-foreground text-sm")}>
         {formatDateRange(project.start_date, project.end_date, project.all_day)}
       </TableCell>
     </TableRow>
