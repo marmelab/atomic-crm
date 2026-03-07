@@ -31,6 +31,7 @@ export type CrmModuleDefinition = {
   resource: string;
   label: string;
   icon?: LucideIcon;
+  iconColor?: string;
   path: string;
   components: {
     list?: ComponentType;
@@ -74,6 +75,7 @@ export const crmModules: CrmModuleDefinition[] = [
     resource: "clients",
     label: "Clienti",
     icon: Users,
+    iconColor: "text-blue-500",
     path: "/clients",
     components: toResourceComponents(clients),
     nav: {
@@ -103,6 +105,7 @@ export const crmModules: CrmModuleDefinition[] = [
     resource: "contacts",
     label: "Referenti",
     icon: User,
+    iconColor: "text-cyan-500",
     path: "/contacts",
     components: toResourceComponents(contacts),
     nav: {
@@ -132,6 +135,7 @@ export const crmModules: CrmModuleDefinition[] = [
     resource: "projects",
     label: "Progetti",
     icon: FolderOpen,
+    iconColor: "text-amber-500",
     path: "/projects",
     components: toResourceComponents(projects),
     nav: {
@@ -161,6 +165,7 @@ export const crmModules: CrmModuleDefinition[] = [
     resource: "services",
     label: "Registro Lavori",
     icon: Briefcase,
+    iconColor: "text-indigo-500",
     path: "/services",
     components: toResourceComponents(services),
     nav: {
@@ -192,6 +197,7 @@ export const crmModules: CrmModuleDefinition[] = [
     resource: "quotes",
     label: "Preventivi",
     icon: FileText,
+    iconColor: "text-violet-500",
     path: "/quotes",
     components: toResourceComponents(quotes),
     nav: {
@@ -221,6 +227,7 @@ export const crmModules: CrmModuleDefinition[] = [
     resource: "payments",
     label: "Pagamenti",
     icon: CreditCard,
+    iconColor: "text-green-500",
     path: "/payments",
     components: toResourceComponents(payments),
     nav: {
@@ -253,6 +260,7 @@ export const crmModules: CrmModuleDefinition[] = [
     resource: "expenses",
     label: "Spese",
     icon: Receipt,
+    iconColor: "text-orange-500",
     path: "/expenses",
     components: toResourceComponents(expenses),
     nav: {
@@ -284,6 +292,7 @@ export const crmModules: CrmModuleDefinition[] = [
     resource: "suppliers",
     label: "Fornitori",
     icon: Building2,
+    iconColor: "text-indigo-500",
     path: "/suppliers",
     components: toResourceComponents(suppliers),
     nav: {
@@ -313,6 +322,7 @@ export const crmModules: CrmModuleDefinition[] = [
     resource: "client_tasks",
     label: "Promemoria",
     icon: ListTodo,
+    iconColor: "text-rose-500",
     path: "/client_tasks",
     components: {
       list: TasksList,

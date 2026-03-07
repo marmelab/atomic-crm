@@ -15,7 +15,7 @@ Stato del documento:
 
 ## Changelog
 
-- 2026-03-07: Suppliers module promoted to desktop header nav (after Clienti, headerOrder 15)
+- 2026-03-07: Desktop Header and mobile Altro menu now driven by moduleRegistry (iconColor field); no more hardcoded HEADER_ITEMS
 - 2026-03-07: Suppliers module — new `suppliers` table, FK `supplier_id` on `expenses`, CRUD module, AI semantic registry, invoice import match/create
 - 2026-03-07: Bulk selection + column visibility across all 6 CRM lists (clients, contacts, projects, services, payments, expenses)
 - 2026-03-06: Fix rimborso_spese incorrectly counted as taxable income in fiscal model

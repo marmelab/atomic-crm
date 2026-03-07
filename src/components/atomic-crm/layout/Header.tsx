@@ -1,17 +1,4 @@
-import type { LucideIcon } from "lucide-react";
-import {
-  Settings,
-  User,
-  LayoutDashboard,
-  Users,
-  UserCircle,
-  FolderOpen,
-  Briefcase,
-  FileText,
-  CreditCard,
-  Receipt,
-  ListTodo,
-} from "lucide-react";
+import { LayoutDashboard, Settings, User, type LucideIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { CanAccess, useUserMenu } from "ra-core";
 import { Link, matchPath, useLocation } from "react-router";
@@ -22,70 +9,19 @@ import { UserMenu } from "@/components/admin/user-menu";
 import { DropdownMenuItem } from "@/components/ui/dropdown-menu";
 
 import { useConfigurationContext } from "../root/ConfigurationContext";
-
-const HEADER_ITEMS: {
-  path: string;
-  label: string;
-  icon: LucideIcon;
-  color: string;
-}[] = [
-  { path: "/", label: "Bacheca", icon: LayoutDashboard, color: "text-sky-500" },
-  { path: "/clients", label: "Clienti", icon: Users, color: "text-blue-500" },
-  {
-    path: "/contacts",
-    label: "Referenti",
-    icon: UserCircle,
-    color: "text-cyan-500",
-  },
-  {
-    path: "/projects",
-    label: "Progetti",
-    icon: FolderOpen,
-    color: "text-amber-500",
-  },
-  {
-    path: "/services",
-    label: "Registro Lavori",
-    icon: Briefcase,
-    color: "text-indigo-500",
-  },
-  {
-    path: "/quotes",
-    label: "Preventivi",
-    icon: FileText,
-    color: "text-violet-500",
-  },
-  {
-    path: "/payments",
-    label: "Pagamenti",
-    icon: CreditCard,
-    color: "text-green-500",
-  },
-  {
-    path: "/expenses",
-    label: "Spese",
-    icon: Receipt,
-    color: "text-orange-500",
-  },
-  {
-    path: "/client_tasks",
-    label: "Promemoria",
-    icon: ListTodo,
-    color: "text-rose-500",
-  },
-];
+import { getDesktopHeaderModules } from "../root/moduleRegistry";
 
 const matchCurrentPath = (pathname: string) => {
   if (matchPath("/", pathname)) {
     return "/";
   }
 
-  for (const item of HEADER_ITEMS) {
+  for (const module of getDesktopHeaderModules()) {
     if (
-      matchPath(`${item.path}/*`, pathname) ||
-      matchPath(item.path, pathname)
+      matchPath(`${module.path}/*`, pathname) ||
+      matchPath(module.path, pathname)
     ) {
-      return item.path;
+      return module.path;
     }
   }
 
@@ -122,14 +58,21 @@ const Header = () => {
 
               <div>
                 <nav className="flex">
-                  {HEADER_ITEMS.map((item) => (
+                  <NavigationTab
+                    label="Bacheca"
+                    to="/"
+                    icon={LayoutDashboard}
+                    iconColor="text-sky-500"
+                    isActive={currentPath === "/"}
+                  />
+                  {getDesktopHeaderModules().map((module) => (
                     <NavigationTab
-                      key={item.path}
-                      label={item.label}
-                      to={item.path}
-                      icon={item.icon}
-                      iconColor={item.color}
-                      isActive={currentPath === item.path}
+                      key={module.path}
+                      label={module.label}
+                      to={module.path}
+                      icon={module.icon ?? LayoutDashboard}
+                      iconColor={module.iconColor ?? "text-muted-foreground"}
+                      isActive={currentPath === module.path}
                     />
                   ))}
                 </nav>

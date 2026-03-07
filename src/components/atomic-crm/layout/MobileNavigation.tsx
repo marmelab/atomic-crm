@@ -40,15 +40,6 @@ import {
 } from "../root/moduleRegistry";
 import { TaskCreateSheet } from "../tasks/TaskCreateSheet";
 
-/** Icon colors for the "Altro" dropdown — aligned with desktop Header */
-const altroMenuIconColor: Record<string, string> = {
-  contacts: "text-cyan-500",
-  projects: "text-amber-500",
-  services: "text-indigo-500",
-  quotes: "text-violet-500",
-  payments: "text-green-500",
-  expenses: "text-orange-500",
-};
 
 const matchCurrentPath = (pathname: string) => {
   if (matchPath("/", pathname)) {
@@ -238,7 +229,7 @@ const SettingsButton = () => {
 
         {getMobileAltroModules().map((module) => {
           const Icon = module.icon ?? Home;
-          const iconColor = altroMenuIconColor[module.resource];
+          const iconColor = module.iconColor;
 
           return (
             <DropdownMenuItem
