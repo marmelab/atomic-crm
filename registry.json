@@ -42,11 +42,19 @@
           "type": "registry:component"
         },
         {
-          "path": "src/components/atomic-crm/tasks/taskFilters.ts",
+          "path": "src/components/atomic-crm/tasks/tasksPredicate.ts",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/tasks/TasksListFilter.tsx",
           "type": "registry:component"
         },
         {
           "path": "src/components/atomic-crm/tasks/TasksListContent.tsx",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/tasks/TasksListByDueDate.tsx",
           "type": "registry:component"
         },
         {
@@ -310,6 +318,10 @@
           "type": "registry:component"
         },
         {
+          "path": "src/components/atomic-crm/notes/useAddInfinitePagination.ts",
+          "type": "registry:component"
+        },
+        {
           "path": "src/components/atomic-crm/notes/index.ts",
           "type": "registry:component"
         },
@@ -567,14 +579,6 @@
         },
         {
           "path": "src/components/atomic-crm/dashboard/Welcome.tsx",
-          "type": "registry:component"
-        },
-        {
-          "path": "src/components/atomic-crm/dashboard/TasksListFilter.tsx",
-          "type": "registry:component"
-        },
-        {
-          "path": "src/components/atomic-crm/dashboard/TasksListEmpty.tsx",
           "type": "registry:component"
         },
         {
