@@ -152,11 +152,19 @@
           "type": "registry:component"
         },
         {
+          "path": "src/components/atomic-crm/suppliers/supplierListFilters.ts",
+          "type": "registry:component"
+        },
+        {
           "path": "src/components/atomic-crm/suppliers/index.tsx",
           "type": "registry:component"
         },
         {
           "path": "src/components/atomic-crm/suppliers/SupplierShow.tsx",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/suppliers/SupplierListFilter.tsx",
           "type": "registry:component"
         },
         {

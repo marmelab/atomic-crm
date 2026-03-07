@@ -25,6 +25,10 @@ import {
   MobileSelectableCard,
   ListBulkToolbar,
 } from "../misc/ListBulkSelection";
+import {
+  SupplierListFilter,
+  SupplierMobileFilter,
+} from "./SupplierListFilter";
 
 export const SupplierList = () => (
   <List
@@ -41,6 +45,7 @@ const SupplierListActions = () => {
   const isMobile = useIsMobile();
   return (
     <TopToolbar className={isMobile ? "justify-center" : undefined}>
+      {isMobile && <SupplierMobileFilter />}
       <SortButton fields={["name", "created_at"]} />
       <CreateButton />
     </TopToolbar>
@@ -92,7 +97,9 @@ const SupplierListLayout = () => {
   return (
     <>
       <MobilePageTitle title="Fornitori" />
-      <div className="mt-4">
+      <div className="mt-4 flex flex-col md:flex-row md:gap-8">
+        <SupplierListFilter />
+        <div className="w-full flex flex-col gap-4">
         <Table>
           <TableHeader>
             <TableRow>
@@ -119,6 +126,7 @@ const SupplierListLayout = () => {
             ))}
           </TableBody>
         </Table>
+        </div>
       </div>
       <ListBulkToolbar allowDelete />
     </>
