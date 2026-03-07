@@ -7,10 +7,10 @@ import { memo, useMemo } from "react";
 import type { Deal } from "../types";
 
 const multiplier = {
-  opportunity: 0.2,
-  "proposal-sent": 0.5,
-  "in-negociation": 0.8,
-  delayed: 0.3,
+  lead: 0.1,
+  qualified: 0.3,
+  "follow-up": 0.5,
+  trial: 0.8,
 };
 
 const threeMonthsAgo = new Date(
@@ -50,20 +50,20 @@ export const DealsChart = memo(() => {
       return {
         date: format(month, "MMM"),
         won: dealsByMonth[month]
-          .filter((deal: Deal) => deal.stage === "won")
+          .filter((deal: Deal) => deal.stage === "closed-won")
           .reduce((acc: number, deal: Deal) => {
             acc += deal.amount;
             return acc;
           }, 0),
         pending: dealsByMonth[month]
-          .filter((deal: Deal) => !["won", "lost"].includes(deal.stage))
+          .filter((deal: Deal) => ["lead", "qualified", "follow-up", "trial"].includes(deal.stage))
           .reduce((acc: number, deal: Deal) => {
             // @ts-expect-error - multiplier type issue
             acc += deal.amount * multiplier[deal.stage];
             return acc;
           }, 0),
         lost: dealsByMonth[month]
-          .filter((deal: Deal) => deal.stage === "lost")
+          .filter((deal: Deal) => ["perdu", "trial-failed", "declined"].includes(deal.stage))
           .reduce((acc: number, deal: Deal) => {
             acc -= deal.amount;
             return acc;
