@@ -16,6 +16,7 @@ import {
   isDueToday,
   isDueTomorrow,
   isOverdue,
+  isRecentlyDone,
 } from "./tasksPredicate";
 
 export const TasksListByDueDate = ({
@@ -47,7 +48,8 @@ export const TasksListByDueDate = ({
   const showContact = filterByContact == null;
 
   const ongoingTasks = useMemo(
-    () => tasks?.filter((task) => !isDone(task)) || [],
+    () =>
+      tasks?.filter((task) => !isDone(task) || isRecentlyDone(task)) || [],
     [tasks],
   );
 
