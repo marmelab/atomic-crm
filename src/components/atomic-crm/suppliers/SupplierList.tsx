@@ -53,42 +53,38 @@ const SupplierListActions = () => {
 };
 
 const SupplierListLayout = () => {
-  const { data, isPending, error, filterValues } =
-    useListContext<Supplier>();
+  const { data, isPending, error } = useListContext<Supplier>();
   const createPath = useCreatePath();
   const isMobile = useIsMobile();
-  const hasFilters = filterValues && Object.keys(filterValues).length > 0;
 
   if (error) return <ErrorMessage />;
   if (isPending) return null;
-
-  if (!data?.length && !hasFilters) {
-    return (
-      <div className="flex flex-col items-center justify-center py-16 text-center">
-        <p className="text-muted-foreground mb-4">Nessun fornitore</p>
-        <CreateButton />
-      </div>
-    );
-  }
 
   if (isMobile) {
     return (
       <>
         <MobilePageTitle title="Fornitori" />
-        <div className="mt-4 flex flex-col divide-y px-2">
-          {data.map((supplier) => (
-            <MobileSelectableCard key={supplier.id} id={supplier.id}>
-              <SupplierMobileCard
-                supplier={supplier}
-                link={createPath({
-                  resource: "suppliers",
-                  type: "show",
-                  id: supplier.id,
-                })}
-              />
-            </MobileSelectableCard>
-          ))}
-        </div>
+        {data.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-16 text-center">
+            <p className="text-muted-foreground mb-4">Nessun fornitore</p>
+            <CreateButton />
+          </div>
+        ) : (
+          <div className="mt-4 flex flex-col divide-y px-2">
+            {data.map((supplier) => (
+              <MobileSelectableCard key={supplier.id} id={supplier.id}>
+                <SupplierMobileCard
+                  supplier={supplier}
+                  link={createPath({
+                    resource: "suppliers",
+                    type: "show",
+                    id: supplier.id,
+                  })}
+                />
+              </MobileSelectableCard>
+            ))}
+          </div>
+        )}
         <ListBulkToolbar allowDelete />
       </>
     );
@@ -100,32 +96,45 @@ const SupplierListLayout = () => {
       <div className="mt-4 flex flex-col md:flex-row md:gap-8">
         <SupplierListFilter />
         <div className="w-full flex flex-col gap-4">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead className="w-10">
-                <ListSelectAllCheckbox />
-              </TableHead>
-              <TableHead>Nome</TableHead>
-              <TableHead className="hidden md:table-cell">P.IVA</TableHead>
-              <TableHead className="hidden md:table-cell">Telefono</TableHead>
-              <TableHead className="hidden lg:table-cell">Email</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {data.map((supplier) => (
-              <SupplierRow
-                key={supplier.id}
-                supplier={supplier}
-                link={createPath({
-                  resource: "suppliers",
-                  type: "show",
-                  id: supplier.id,
-                })}
-              />
-            ))}
-          </TableBody>
-        </Table>
+          {data.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-16 text-center">
+              <p className="text-muted-foreground mb-4">Nessun fornitore</p>
+              <CreateButton />
+            </div>
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="w-10">
+                    <ListSelectAllCheckbox />
+                  </TableHead>
+                  <TableHead>Nome</TableHead>
+                  <TableHead className="hidden md:table-cell">
+                    P.IVA
+                  </TableHead>
+                  <TableHead className="hidden md:table-cell">
+                    Telefono
+                  </TableHead>
+                  <TableHead className="hidden lg:table-cell">
+                    Email
+                  </TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {data.map((supplier) => (
+                  <SupplierRow
+                    key={supplier.id}
+                    supplier={supplier}
+                    link={createPath({
+                      resource: "suppliers",
+                      type: "show",
+                      id: supplier.id,
+                    })}
+                  />
+                ))}
+              </TableBody>
+            </Table>
+          )}
         </div>
       </div>
       <ListBulkToolbar allowDelete />
