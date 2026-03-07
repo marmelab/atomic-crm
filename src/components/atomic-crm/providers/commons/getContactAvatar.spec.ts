@@ -2,11 +2,12 @@ import { fetchWithTimeout } from "../../misc/fetchWithTimeout";
 import type { Contact, EmailAndType } from "../../types";
 import { getContactAvatar, hash } from "./getContactAvatar";
 
-vi.mock("../../misc/fetchWithTimeout", () => ({
-  fetchWithTimeout: vi.fn(),
-}));
-
 describe("getContactAvatar", () => {
+  beforeAll(() => {
+    vi.mock("../../misc/fetchWithTimeout", () => ({
+      fetchWithTimeout: vi.fn(),
+    }));
+  });
   afterAll(() => {
     vi.resetAllMocks();
   });
