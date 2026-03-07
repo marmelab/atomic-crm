@@ -15,6 +15,7 @@ Stato del documento:
 
 ## Changelog
 
+- 2026-03-07: Fix column preferences 406 — use maybeSingle() instead of single() for settings query
 - 2026-03-07: Desktop Header and mobile Altro menu now driven by moduleRegistry (iconColor field); no more hardcoded HEADER_ITEMS
 - 2026-03-07: Suppliers module — new `suppliers` table, FK `supplier_id` on `expenses`, CRUD module, AI semantic registry, invoice import match/create
 - 2026-03-07: Bulk selection + column visibility across all 6 CRM lists (clients, contacts, projects, services, payments, expenses)

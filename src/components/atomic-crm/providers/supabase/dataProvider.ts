@@ -231,7 +231,7 @@ const dataProviderWithCustomMethods = {
       .from("settings")
       .select("value")
       .eq("key", `list_columns:${resource}`)
-      .single();
+      .maybeSingle();
     return data ? JSON.parse(data.value) : null;
   },
   async setColumnPreferences(
