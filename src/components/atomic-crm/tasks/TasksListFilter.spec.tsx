@@ -21,6 +21,12 @@ const createTask = (id: number, dueDate: Date, doneDate?: Date) => ({
 const Wrapper = ({ children }: { children: React.ReactNode }) => (
   <CoreAdminContext
     dataProvider={fakeDataProvider({ tasks: [], contacts: [], sales: [] })}
+    i18nProvider={{
+      translate: (key, options) =>
+        typeof options?._ === "string" ? options._ : key,
+      changeLocale: () => Promise.resolve(),
+      getLocale: () => "en",
+    }}
   >
     {children}
   </CoreAdminContext>
