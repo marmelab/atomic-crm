@@ -27,6 +27,7 @@ describe("moduleRegistry", () => {
 
     expect(desktopHeaderResources).toEqual([
       "clients",
+      "suppliers",
       "contacts",
       "projects",
       "services",
@@ -41,7 +42,6 @@ describe("moduleRegistry", () => {
     expect(desktopHeaderResources).not.toContain("sales");
     expect(desktopHeaderResources).not.toContain("tags");
     expect(desktopHeaderResources).not.toContain("invoicing");
-    expect(desktopHeaderResources).not.toContain("suppliers");
   });
 
   it("returns mobile bottom modules and AI resources from the registry", () => {

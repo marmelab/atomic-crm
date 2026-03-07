@@ -287,7 +287,7 @@ export const crmModules: CrmModuleDefinition[] = [
     path: "/suppliers",
     components: toResourceComponents(suppliers),
     nav: {
-      desktop: { header: false, headerOrder: 0 },
+      desktop: { header: true, headerOrder: 15 },
       mobile: {
         bottomBar: false,
         bottomBarOrder: 0,
