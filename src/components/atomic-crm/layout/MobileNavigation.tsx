@@ -70,7 +70,7 @@ export const MobileNavigation = () => {
           <NavigationButton
             href="/"
             Icon={Home}
-            label="Home"
+            label="Accueil"
             isActive={currentPath === "/"}
           />
           <NavigationButton
@@ -83,7 +83,7 @@ export const MobileNavigation = () => {
           <NavigationButton
             href="/tasks"
             Icon={ListTodo}
-            label="Tasks"
+            label="Tâches"
             isActive={currentPath === "/tasks"}
           />
           <SettingsButton />
@@ -175,7 +175,7 @@ const CreateButton = () => {
               setTaskCreateOpen(true);
             }}
           >
-            Task
+            Tâche
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
@@ -196,7 +196,7 @@ const SettingsButton = () => {
           className="flex-col gap-1 h-auto py-2 px-1 rounded-md w-16 text-muted-foreground"
         >
           <Settings className="size-6" />
-          <span className="text-[0.6rem] font-medium">Settings</span>
+          <span className="text-[0.6rem] font-medium">Réglages</span>
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent>

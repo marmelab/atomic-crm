@@ -33,7 +33,7 @@ const DealInfoInputs = () => {
     <div className="flex flex-col gap-4 flex-1">
       <TextInput
         source="name"
-        label="Deal name"
+        label="Nom de l'opportunité"
         validate={required()}
         helperText={false}
       />
@@ -45,14 +45,14 @@ const DealInfoInputs = () => {
 const DealLinkedToInputs = () => {
   return (
     <div className="flex flex-col gap-4 flex-1">
-      <h3 className="text-base font-medium">Linked to</h3>
+      <h3 className="text-base font-medium">Lié à</h3>
       <ReferenceInput source="company_id" reference="companies">
         <AutocompleteCompanyInput validate={required()} />
       </ReferenceInput>
 
       <ReferenceArrayInput source="contact_ids" reference="contacts_summary">
         <AutocompleteArrayInput
-          label="Contacts"
+          label="Contacts associés"
           optionText={contactOptionText}
           helperText={false}
         />
@@ -65,11 +65,11 @@ const DealMiscInputs = () => {
   const { dealStages, dealCategories } = useConfigurationContext();
   return (
     <div className="flex flex-col gap-4 flex-1">
-      <h3 className="text-base font-medium">Misc</h3>
+      <h3 className="text-base font-medium">Divers</h3>
 
       <SelectInput
         source="category"
-        label="Category"
+        label="Catégorie"
         choices={dealCategories}
         optionText="label"
         optionValue="value"

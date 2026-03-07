@@ -38,7 +38,7 @@ export const NoteInputs = ({
         label={false}
         multiline
         helperText={false}
-        placeholder="Add a note"
+        placeholder="Ajouter une note…"
         rows={6}
       />
 
@@ -48,7 +48,7 @@ export const NoteInputs = ({
           reference={reference}
         >
           <AutocompleteInput
-            label={reference === "contacts" ? "Contact" : "Deal"}
+            label={reference === "contacts" ? "Contact" : "Opportunité"}
             optionText={
               reference === "contacts" ? contactOptionText : undefined
             }
@@ -70,10 +70,10 @@ export const NoteInputs = ({
             }}
             className="text-sm text-muted-foreground underline hover:no-underline p-0 h-auto cursor-pointer"
           >
-            Show options
+            Options avancées
           </Button>
           <span className="text-sm text-muted-foreground">
-            (attach files, or change details)
+            (joindre un fichier ou modifier les détails)
           </span>
         </div>
       )}

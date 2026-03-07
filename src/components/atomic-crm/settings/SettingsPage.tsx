@@ -20,11 +20,11 @@ import {
 import { defaultConfiguration } from "../root/defaultConfiguration";
 
 const SECTIONS = [
-  { id: "branding", label: "Branding" },
-  { id: "companies", label: "Companies" },
-  { id: "deals", label: "Deals" },
+  { id: "branding", label: "Personnalisation" },
+  { id: "companies", label: "Sociétés" },
+  { id: "deals", label: "Opportunités" },
   { id: "notes", label: "Notes" },
-  { id: "tasks", label: "Tasks" },
+  { id: "tasks", label: "Tâches" },
 ];
 
 /** Ensure every item in a { value, label } array has a value (slug from label). */
@@ -100,10 +100,10 @@ export const SettingsPage = () => {
       mutationOptions={{
         onSuccess: (data: any) => {
           updateConfiguration(data.config);
-          notify("Configuration saved successfully");
+          notify("Configuration enregistrée");
         },
         onError: () => {
-          notify("Failed to save configuration", { type: "error" });
+          notify("Erreur lors de l'enregistrement", { type: "error" });
         },
       }}
     >
@@ -171,7 +171,7 @@ const SettingsFormFields = () => {
       {/* Left navigation */}
       <nav className="hidden md:block w-48 shrink-0">
         <div className="sticky top-4 space-y-1">
-          <h1 className="text-2xl font-semibold px-3 mb-2">Settings</h1>
+          <h1 className="text-2xl font-semibold px-3 mb-2">Paramètres</h1>
           {SECTIONS.map((section) => (
             <button
               key={section.id}
@@ -195,12 +195,12 @@ const SettingsFormFields = () => {
         <Card id="branding">
           <CardContent className="space-y-4">
             <h2 className="text-xl font-semibold text-muted-foreground">
-              Branding
+              Personnalisation
             </h2>
-            <TextInput source="title" label="App Title" />
+            <TextInput source="title" label="Titre de l'application" />
             <div className="flex gap-8">
               <div className="flex flex-col items-center gap-1">
-                <p className="text-sm text-muted-foreground">Light Mode Logo</p>
+                <p className="text-sm text-muted-foreground">Logo (mode clair)</p>
                 <ImageEditorField
                   source="lightModeLogo"
                   width={100}
@@ -210,7 +210,7 @@ const SettingsFormFields = () => {
                 />
               </div>
               <div className="flex flex-col items-center gap-1">
-                <p className="text-sm text-muted-foreground">Dark Mode Logo</p>
+                <p className="text-sm text-muted-foreground">Logo (mode sombre)</p>
                 <ImageEditorField
                   source="darkModeLogo"
                   width={100}
@@ -227,10 +227,10 @@ const SettingsFormFields = () => {
         <Card id="companies">
           <CardContent className="space-y-4">
             <h2 className="text-xl font-semibold text-muted-foreground">
-              Companies
+              Sociétés
             </h2>
             <h3 className="text-lg font-medium text-muted-foreground">
-              Sectors
+              Secteurs
             </h3>
             <ArrayInput
               source="companySectors"
@@ -248,10 +248,10 @@ const SettingsFormFields = () => {
         <Card id="deals">
           <CardContent className="space-y-4">
             <h2 className="text-xl font-semibold text-muted-foreground">
-              Deals
+              Opportunités
             </h2>
             <h3 className="text-lg font-medium text-muted-foreground">
-              Stages
+              Étapes
             </h3>
             <ArrayInput
               source="dealStages"
@@ -267,11 +267,11 @@ const SettingsFormFields = () => {
             <Separator />
 
             <h3 className="text-lg font-medium text-muted-foreground">
-              Pipeline Statuses
+              Statuts pipeline
             </h3>
             <p className="text-sm text-muted-foreground">
-              Select which deal stages count as &quot;pipeline&quot; (completed)
-              deals.
+              Sélectionnez les étapes considérées comme &quot;gagnées&quot; dans
+              le pipeline.
             </p>
             <div className="flex flex-wrap gap-2">
               {dealStages?.map(
@@ -309,7 +309,7 @@ const SettingsFormFields = () => {
             <Separator />
 
             <h3 className="text-lg font-medium text-muted-foreground">
-              Categories
+              Catégories
             </h3>
             <ArrayInput
               source="dealCategories"
@@ -331,7 +331,7 @@ const SettingsFormFields = () => {
               Notes
             </h2>
             <h3 className="text-lg font-medium text-muted-foreground">
-              Statuses
+              Statuts
             </h3>
             <ArrayInput source="noteStatuses" label={false} helperText={false}>
               <SimpleFormIterator inline disableReordering disableClear>
@@ -346,7 +346,7 @@ const SettingsFormFields = () => {
         <Card id="tasks">
           <CardContent className="space-y-4">
             <h2 className="text-xl font-semibold text-muted-foreground">
-              Tasks
+              Tâches
             </h2>
             <h3 className="text-lg font-medium text-muted-foreground">Types</h3>
             <ArrayInput source="taskTypes" label={false} helperText={false}>
@@ -377,7 +377,7 @@ const SettingsFormFields = () => {
               }
             >
               <RotateCcw className="h-4 w-4 mr-1" />
-              Reset to Defaults
+              Réinitialiser
             </Button>
             <div className="flex gap-2">
               <Button
@@ -385,11 +385,11 @@ const SettingsFormFields = () => {
                 variant="outline"
                 onClick={() => window.history.back()}
               >
-                Cancel
+                Annuler
               </Button>
               <Button type="submit" disabled={isSubmitting}>
                 <Save className="h-4 w-4 mr-1" />
-                {isSubmitting ? "Saving..." : "Save"}
+                {isSubmitting ? "Enregistrement…" : "Enregistrer"}
               </Button>
             </div>
           </div>

@@ -51,7 +51,7 @@ const Header = () => {
               <div>
                 <nav className="flex">
                   <NavigationTab
-                    label="Dashboard"
+                    label="Tableau de bord"
                     to="/"
                     isActive={currentPath === "/"}
                   />
@@ -61,12 +61,12 @@ const Header = () => {
                     isActive={currentPath === "/contacts"}
                   />
                   <NavigationTab
-                    label="Companies"
+                    label="Sociétés"
                     to="/companies"
                     isActive={currentPath === "/companies"}
                   />
                   <NavigationTab
-                    label="Deals"
+                    label="Opportunités"
                     to="/deals"
                     isActive={currentPath === "/deals"}
                   />
@@ -123,7 +123,7 @@ const UsersMenu = () => {
   return (
     <DropdownMenuItem asChild onClick={userMenuContext.onClose}>
       <Link to="/sales" className="flex items-center gap-2">
-        <Users /> Users
+        <Users /> Utilisateurs
       </Link>
     </DropdownMenuItem>
   );
@@ -138,7 +138,7 @@ const ProfileMenu = () => {
     <DropdownMenuItem asChild onClick={userMenuContext.onClose}>
       <Link to="/profile" className="flex items-center gap-2">
         <User />
-        Profile
+        Profil
       </Link>
     </DropdownMenuItem>
   );
@@ -152,7 +152,7 @@ const SettingsMenu = () => {
   return (
     <DropdownMenuItem asChild onClick={userMenuContext.onClose}>
       <Link to="/settings" className="flex items-center gap-2">
-        <Settings /> Settings
+        <Settings /> Paramètres
       </Link>
     </DropdownMenuItem>
   );
@@ -166,7 +166,7 @@ const ImportFromJsonMenuItem = () => {
   return (
     <DropdownMenuItem asChild onClick={userMenuContext.onClose}>
       <Link to={ImportPage.path} className="flex items-center gap-2">
-        <Import /> Import data
+        <Import /> Importer
       </Link>
     </DropdownMenuItem>
   );

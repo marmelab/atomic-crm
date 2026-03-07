@@ -45,7 +45,7 @@ export const ContactInputs = () => {
 const ContactIdentityInputs = () => {
   return (
     <div className="flex flex-col gap-4">
-      <h6 className="text-lg font-semibold">Identity</h6>
+      <h6 className="text-lg font-semibold">Identité</h6>
       <RadioButtonGroupInput
         label={false}
         row
@@ -65,7 +65,7 @@ const ContactIdentityInputs = () => {
 const ContactPositionInputs = () => {
   return (
     <div className="flex flex-col gap-4">
-      <h6 className="text-lg font-semibold">Position</h6>
+      <h6 className="text-lg font-semibold">Poste</h6>
       <TextInput source="title" helperText={false} />
       <ReferenceInput source="company_id" reference="companies" perPage={10}>
         <AutocompleteCompanyInput />
@@ -105,10 +105,10 @@ const ContactPersonalInformationInputs = () => {
 
   return (
     <div className="flex flex-col gap-4">
-      <h6 className="text-lg font-semibold">Personal info</h6>
+      <h6 className="text-lg font-semibold">Infos personnelles</h6>
       <ArrayInput
         source="email_jsonb"
-        label="Email addresses"
+        label="Adresses email"
         helperText={false}
       >
         <SimpleFormIterator
@@ -122,7 +122,7 @@ const ContactPersonalInformationInputs = () => {
             className="w-full"
             helperText={false}
             label={false}
-            placeholder="Email"
+            placeholder="Email…"
             validate={email()}
             onPaste={handleEmailPaste}
             onBlur={handleEmailBlur}
@@ -138,7 +138,7 @@ const ContactPersonalInformationInputs = () => {
           />
         </SimpleFormIterator>
       </ArrayInput>
-      <ArrayInput source="phone_jsonb" label="Phone numbers" helperText={false}>
+      <ArrayInput source="phone_jsonb" label="Téléphones" helperText={false}>
         <SimpleFormIterator
           inline
           disableReordering
@@ -150,7 +150,7 @@ const ContactPersonalInformationInputs = () => {
             className="w-full"
             helperText={false}
             label={false}
-            placeholder="Phone number"
+            placeholder="Téléphone…"
           />
           <SelectInput
             source="type"
@@ -165,7 +165,7 @@ const ContactPersonalInformationInputs = () => {
       </ArrayInput>
       <TextInput
         source="linkedin_url"
-        label="Linkedin URL"
+        label="URL LinkedIn"
         helperText={false}
         validate={isLinkedinUrl}
       />
@@ -178,10 +178,10 @@ const personalInfoTypes = [{ id: "Work" }, { id: "Home" }, { id: "Other" }];
 const ContactMiscInputs = () => {
   return (
     <div className="flex flex-col gap-4">
-      <h6 className="text-lg font-semibold">Misc</h6>
+      <h6 className="text-lg font-semibold">Divers</h6>
       <TextInput
         source="background"
-        label="Background info (bio, how you met, etc)"
+        label="Notes contextuelles (bio, contexte de rencontre…)"
         multiline
         helperText={false}
       />
@@ -196,7 +196,7 @@ const ContactMiscInputs = () => {
       >
         <SelectInput
           helperText={false}
-          label="Account manager"
+          label="Responsable commercial"
           optionText={saleOptionRenderer}
           validate={required()}
         />
