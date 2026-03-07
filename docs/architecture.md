@@ -15,6 +15,7 @@ Stato del documento:
 
 ## Changelog
 
+- 2026-03-08: Cloudinary Upload Widget — interactive square crop (1:1) for avatar mode (logos, contact photos)
 - 2026-03-08: Cloudinary media fields on Suppliers (logo) — form input, show page, semantic registry
 - 2026-03-08: Cloudinary media fields on Clients (logo), Contacts (photo), Payments (proof), Expenses (proof) — form inputs, show pages, AI snapshot + semantic registry
 - 2026-03-07: Remove `notes` text field from clients/suppliers UI — keep only `client_notes` chronological log

@@ -16,6 +16,10 @@ export interface UseCloudinaryUploadOptions {
   resourceType?: "image" | "video" | "raw" | "auto";
   /** Max file size in bytes. */
   maxFileSize?: number;
+  /** Enable interactive cropping before upload. */
+  cropping?: boolean;
+  /** Crop aspect ratio (e.g. 1 for square). Only used when cropping is true. */
+  croppingAspectRatio?: number;
   /** Called with the asset ref after a successful upload. */
   onUpload: (asset: CloudinaryAssetRef) => void;
 }
@@ -32,6 +36,8 @@ export function useCloudinaryUpload({
   folder,
   resourceType = "auto",
   maxFileSize,
+  cropping = false,
+  croppingAspectRatio,
   onUpload,
 }: UseCloudinaryUploadOptions) {
   const widgetRef = useRef<ReturnType<
@@ -69,7 +75,10 @@ export function useCloudinaryUpload({
         ],
         multiple: false,
         showAdvancedOptions: false,
-        cropping: false,
+        cropping,
+        ...(cropping && croppingAspectRatio != null
+          ? { croppingAspectRatio }
+          : {}),
         styles: {
           palette: {
             window: "#FFFFFF",
@@ -108,7 +117,7 @@ export function useCloudinaryUpload({
 
     widgetRef.current = widget;
     widget.open();
-  }, [uploadPreset, folder, resourceType, maxFileSize, onUpload]);
+  }, [uploadPreset, folder, resourceType, maxFileSize, cropping, croppingAspectRatio, onUpload]);
 
   return { open };
 }

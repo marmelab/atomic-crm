@@ -43,6 +43,8 @@ export function CloudinaryUploadInput({
   const { open: openUpload } = useCloudinaryUpload({
     uploadPreset,
     folder,
+    cropping: mode === "avatar",
+    croppingAspectRatio: mode === "avatar" ? 1 : undefined,
     onUpload: handleSelect,
   });
 
