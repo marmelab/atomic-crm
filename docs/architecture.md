@@ -15,6 +15,7 @@ Stato del documento:
 
 ## Changelog
 
+- 2026-03-07: Supplier reminders — `client_tasks.supplier_id` FK, SupplierTasksSection in SupplierShow, AddTask supports supplier context
 - 2026-03-07: Contacts can link to suppliers via `supplier_id` FK; SupplierShow shows referents section; ContactShow/ContactInputs support supplier link
 - 2026-03-07: Suppliers `tags bigint[]` column; generic `TagsListEdit` component replaces hardcoded `ClientTagsListEdit`
 - 2026-03-07: Moved Aruba S.p.A. and CAPIZZI FABIO STEFANO from clients to suppliers (data-only, zero dependencies)

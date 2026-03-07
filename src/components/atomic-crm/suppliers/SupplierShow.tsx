@@ -12,6 +12,7 @@ import { ErrorMessage } from "../misc/ErrorMessage";
 import { MobileBackButton } from "../misc/MobileBackButton";
 import { TagsListEdit } from "../tags/TagsListEdit";
 import { SupplierContactsSection } from "../contacts/SupplierContactsSection";
+import { SupplierTasksSection } from "./SupplierTasksSection";
 import { expenseTypeLabels } from "../expenses/expenseTypes";
 
 const eur = (n: number) =>
@@ -142,6 +143,12 @@ const SupplierShowContent = () => {
       <Card>
         <CardContent>
           <SupplierContactsSection />
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardContent>
+          <SupplierTasksSection />
         </CardContent>
       </Card>
 

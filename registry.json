@@ -164,6 +164,10 @@
           "type": "registry:component"
         },
         {
+          "path": "src/components/atomic-crm/suppliers/SupplierTasksSection.tsx",
+          "type": "registry:component"
+        },
+        {
           "path": "src/components/atomic-crm/suppliers/SupplierShow.tsx",
           "type": "registry:component"
         },

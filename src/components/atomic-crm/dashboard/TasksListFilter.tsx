@@ -13,10 +13,12 @@ export const TasksListFilter = ({
   title,
   filter,
   filterByClient,
+  filterBySupplier,
 }: {
   title: string;
   filter: any;
   filterByClient?: Identifier;
+  filterBySupplier?: Identifier;
 }) => {
   const isMobile = useIsMobile();
 
@@ -30,6 +32,7 @@ export const TasksListFilter = ({
     filter: {
       ...filter,
       ...(filterByClient != null ? { client_id: filterByClient } : {}),
+      ...(filterBySupplier != null ? { supplier_id: filterBySupplier } : {}),
     },
   });
 
@@ -49,7 +52,9 @@ export const TasksListFilter = ({
       </p>
       <ResourceContextProvider value="client_tasks">
         <ListContextProvider value={listContext}>
-          <TasksIterator showClient={filterByClient == null} />
+          <TasksIterator
+            showClient={filterByClient == null && filterBySupplier == null}
+          />
         </ListContextProvider>
       </ResourceContextProvider>
       {total > listContext.perPage && (

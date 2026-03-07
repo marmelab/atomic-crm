@@ -81,6 +81,7 @@ export type Client = {
 
 export type ClientTask = {
   client_id?: Identifier | null;
+  supplier_id?: Identifier | null;
   text: string;
   type: string;
   due_date: string;

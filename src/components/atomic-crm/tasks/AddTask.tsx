@@ -28,14 +28,16 @@ import { TaskFormContent } from "./TaskFormContent";
 
 export const AddTask = ({
   selectClient,
+  context = "client",
   display = "chip",
 }: {
   selectClient?: boolean;
+  context?: "client" | "supplier";
   display?: "chip" | "icon";
 }) => {
   const { identity } = useGetIdentity();
   const notify = useNotify();
-  const client = useRecordContext();
+  const parentRecord = useRecordContext();
   const [open, setOpen] = useState(false);
   const handleOpen = () => {
     setOpen(true);
@@ -47,6 +49,24 @@ export const AddTask = ({
   };
 
   if (!identity) return null;
+
+  const defaultRecord =
+    context === "supplier"
+      ? {
+          type: "none",
+          all_day: true,
+          supplier_id: parentRecord?.id ?? null,
+          due_date: new Date().toISOString().slice(0, 10),
+        }
+      : {
+          type: "none",
+          all_day: true,
+          client_id: parentRecord?.id ?? null,
+          due_date: new Date().toISOString().slice(0, 10),
+        };
+
+  const representationResource =
+    context === "supplier" ? "suppliers" : "clients";
 
   return (
     <>
@@ -82,12 +102,7 @@ export const AddTask = ({
 
       <CreateBase
         resource="client_tasks"
-        record={{
-          type: "none",
-          all_day: true,
-          client_id: client?.id ?? null,
-          due_date: new Date().toISOString().slice(0, 10),
-        }}
+        record={defaultRecord}
         transform={(data) => {
           if (data.all_day) {
             const dueDate = new Date(data.due_date);
@@ -103,9 +118,14 @@ export const AddTask = ({
             <Form className="flex flex-col gap-4">
               <DialogHeader>
                 <DialogTitle>
-                  {!selectClient ? "Crea promemoria per " : "Crea promemoria"}
+                  {!selectClient
+                    ? "Crea promemoria per "
+                    : "Crea promemoria"}
                   {!selectClient && (
-                    <RecordRepresentation record={client} resource="clients" />
+                    <RecordRepresentation
+                      record={parentRecord}
+                      resource={representationResource}
+                    />
                   )}
                 </DialogTitle>
               </DialogHeader>
