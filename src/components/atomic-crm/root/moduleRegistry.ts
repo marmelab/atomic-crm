@@ -331,8 +331,8 @@ export const crmModules: CrmModuleDefinition[] = [
       mobile: {
         bottomBar: false,
         bottomBarOrder: 0,
-        altroMenu: true,
-        altroMenuOrder: 70,
+        altroMenu: false,
+        altroMenuOrder: 0,
         createMenu: false,
       },
     },

@@ -1029,17 +1029,20 @@ Menu utente (dropdown): Profilo | Impostazioni
 
 Mobile: Inizio | Clienti | [+] | Promemoria | Altro
 
-Nel menu `Altro` mobile:
+Nel menu `Altro` mobile (voci colorate per distinguibilità, testo `text-lg`):
 
-- Profilo
-- Progetti
-- Registro Lavori
-- Preventivi
-- Pagamenti
-- Spese
-- Impostazioni
+- Referenti (blu)
+- Progetti (viola)
+- Registro Lavori (ambra)
+- Preventivi (ciano)
+- Pagamenti (verde)
+- Spese (rosso)
+- Profilo (grigio)
+- Impostazioni (grigio)
 - toggle tema `sistema / chiaro / scuro`
-- logout
+- logout (rosso)
+
+Automazioni: rimossa dal menu `Altro`, accessibile da Impostazioni.
 
 ## Risorse registrate in CRM.tsx
 
