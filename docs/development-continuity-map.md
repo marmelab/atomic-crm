@@ -14,6 +14,7 @@ Last updated: 2026-03-06
 
 ### Recent Updates (cronologico, più recente in alto)
 
+- [2026-03-07 (b)](#update-2026-03-07-b--cloudinary-media-integration) — Cloudinary media infrastructure (SDK, widgets, hooks, component)
 - [2026-03-07](#update-2026-03-07--bulk-selection--column-visibility) — Bulk selection + column visibility across all CRM lists
 - [2026-03-06 (e)](#update-2026-03-06-e--google-calendar-integration) — Google Calendar sync for services
 - [2026-03-06 (d)](#update-2026-03-06-d--fiscal-model-rimborso_spese-fix--payment-reminder-guard) — Fiscal model rimborso_spese fix + payment reminder guard
@@ -99,6 +100,36 @@ tipo `rimborso` (rimborso che noi facciamo al cliente — non ha senso sollecita
 - `src/components/atomic-crm/dashboard/fiscalModel.ts`
 - `src/lib/communications/paymentReminderEmail.ts`
 - `src/components/atomic-crm/payments/PaymentShow.tsx`
+
+---
+
+## Update 2026-03-07 (b) — Cloudinary media integration
+
+Infrastruttura Cloudinary per gestione media (upload, browse, selezione asset).
+Nessun modulo CRM la usa ancora — è pronta per integrazioni future (portfolio
+clienti, allegati servizi, documenti, preventivi).
+
+### Componenti creati
+
+- `src/lib/cloudinary/cloudinaryConfig.ts` — istanza Cloudinary SDK
+- `src/lib/cloudinary/cloudinaryTypes.ts` — tipi TS + `Window` augmentation
+- `src/lib/cloudinary/index.ts` — barrel export
+- `src/hooks/useCloudinaryUpload.ts` — hook per Upload Widget
+- `src/hooks/useCloudinaryMediaLibrary.ts` — hook per Media Library Widget
+- `src/components/atomic-crm/cloudinary/CloudinaryMediaButton.tsx` — dropdown "Carica nuovo" / "Libreria media"
+
+### Configurazione
+
+- Upload Preset: `Gestionale` (unsigned, creato nella dashboard Cloudinary)
+- Cloud name: `dsmhshc2b`
+- Widget scripts caricati async in `index.html`
+- Env frontend: `VITE_CLOUDINARY_CLOUD_NAME`, `VITE_CLOUDINARY_API_KEY`
+- Secret server: `CLOUDINARY_URL` in Edge Functions `.env` + remote Supabase secret
+
+### Superfici collegate (NON ancora toccate)
+
+Nessuna — questa è solo infrastruttura. Quando verrà integrata in un modulo
+CRM, seguire la sweep obbligatoria del modulo corrispondente.
 
 ---
 

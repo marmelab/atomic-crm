@@ -24,6 +24,8 @@
     "prepare": "husky"
   },
   "dependencies": {
+    "@cloudinary/react": "^1.14.4",
+    "@cloudinary/url-gen": "^1.22.0",
     "@google/genai": "^1.43.0",
     "@hello-pangea/dnd": "^18.0.1",
     "@nivo/bar": "^0.99.0",

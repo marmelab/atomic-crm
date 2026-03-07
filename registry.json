@@ -1104,6 +1104,10 @@
           "type": "registry:component"
         },
         {
+          "path": "src/components/atomic-crm/cloudinary/CloudinaryMediaButton.tsx",
+          "type": "registry:component"
+        },
+        {
           "path": "src/components/atomic-crm/clients/index.tsx",
           "type": "registry:component"
         },
@@ -1265,6 +1269,14 @@
         },
         {
           "path": "src/hooks/useColumnVisibility.ts",
+          "type": "registry:hook"
+        },
+        {
+          "path": "src/hooks/useCloudinaryUpload.ts",
+          "type": "registry:hook"
+        },
+        {
+          "path": "src/hooks/useCloudinaryMediaLibrary.ts",
           "type": "registry:hook"
         },
         {

@@ -15,6 +15,7 @@ Stato del documento:
 
 ## Changelog
 
+- 2026-03-07: Cloudinary integration — SDK, Upload Widget, Media Library Widget, hooks and reusable CloudinaryMediaButton component
 - 2026-03-07: Supplier reminders — `client_tasks.supplier_id` FK, SupplierTasksSection in SupplierShow, AddTask supports supplier context
 - 2026-03-07: Contacts can link to suppliers via `supplier_id` FK; SupplierShow shows referents section; ContactShow/ContactInputs support supplier link
 - 2026-03-07: Suppliers `tags bigint[]` column; generic `TagsListEdit` component replaces hardcoded `ClientTagsListEdit`
@@ -640,6 +641,7 @@ fragilita' semantica.
 | Admin locale post-reset | Automatizzato via script bootstrap idempotente dopo `make start` / `npx supabase db reset` | 2026-03-01 |
 | Smoke E2E locale | Supportato via Playwright sul runtime reale locale, ma deve restare subordinato al rebuild del dominio da fonti reali | 2026-03-02 |
 | Google Calendar sync | Unidirezionale Gestionale→Calendar via Service Account + Edge Function `google_calendar_sync`. Campi `google_event_id` e `google_event_link` su `services`. Link cliccabile in ServiceShow. | 2026-03-06 |
+| Cloudinary media | SDK (`@cloudinary/url-gen` + `@cloudinary/react`), Upload Widget e Media Library Widget (script async in index.html). Config in `src/lib/cloudinary/`, hooks `useCloudinaryUpload` e `useCloudinaryMediaLibrary`, componente `CloudinaryMediaButton`. Upload preset: `Gestionale`. Cloud: `dsmhshc2b`. Env frontend: `VITE_CLOUDINARY_CLOUD_NAME`, `VITE_CLOUDINARY_API_KEY`. Secret server: `CLOUDINARY_URL`. | 2026-03-07 |
 | Auth email/password locale | Abilitato solo nel runtime locale per bootstrap admin e smoke browser; non riflette automaticamente il remoto | 2026-03-01 |
 | Rebuild locale del dominio | **Snapshot vuota** dal 2026-03-04: `npx supabase db reset` + `npm run local:admin:bootstrap` ripristinano un DB con solo settings e admin. I dati di dominio vanno inseriti dall'UI per debug e verifica flussi. Dati storici archiviati in `Fatture/`. | 2026-03-04 |
 
