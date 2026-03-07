@@ -1,4 +1,5 @@
 import path from "node:path";
+import { playwright } from "@vitest/browser-playwright";
 import react from "@vitejs/plugin-react";
 import { defineConfig } from "vitest/config";
 
@@ -10,8 +11,8 @@ export default defineConfig({
     exclude: ["**/node_modules/**", "doc/**"],
     setupFiles: ["./src/test/setup.integration.ts"],
     browser: {
+      provider: playwright(),
       enabled: true,
-      provider: "playwright",
       headless: true,
       instances: [{ browser: "chromium" }],
     },
