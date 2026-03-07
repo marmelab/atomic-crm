@@ -1,7 +1,6 @@
 import { required } from "ra-core";
 import { SelectInput } from "@/components/admin/select-input";
 import { TextInput } from "@/components/admin/text-input";
-import { Separator } from "@/components/ui/separator";
 
 const supplierExpenseTypeChoices = [
   { id: "spostamento_km", name: "Spostamento Km" },
@@ -87,11 +86,5 @@ export const SupplierInputs = () => (
       </div>
     </div>
 
-    <Separator />
-
-    <div className="max-w-md space-y-4">
-      <h3 className="text-lg font-semibold">Note</h3>
-      <TextInput source="notes" label="Note" helperText={false} multiline />
-    </div>
   </div>
 );

@@ -15,6 +15,7 @@ Stato del documento:
 
 ## Changelog
 
+- 2026-03-07: Remove `notes` text field from clients/suppliers UI — keep only `client_notes` chronological log
 - 2026-03-07: Cloudinary integration — SDK, Upload Widget, Media Library Widget, hooks and reusable CloudinaryMediaButton component
 - 2026-03-07: Supplier reminders — `client_tasks.supplier_id` FK, SupplierTasksSection in SupplierShow, AddTask supports supplier context
 - 2026-03-07: Contacts can link to suppliers via `supplier_id` FK; SupplierShow shows referents section; ContactShow/ContactInputs support supplier link

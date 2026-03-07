@@ -212,14 +212,6 @@ const ClientDetails = ({ record }: { record: Client }) => (
         />
       ))}
     </div>
-    {record.notes ? (
-      <div className="space-y-3 md:col-span-2">
-        <h6 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
-          Note generali
-        </h6>
-        <p className="text-sm whitespace-pre-wrap">{record.notes}</p>
-      </div>
-    ) : null}
   </div>
 );
 

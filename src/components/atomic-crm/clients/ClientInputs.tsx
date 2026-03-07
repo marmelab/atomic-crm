@@ -130,11 +130,5 @@ const ClientDetailInputs = () => (
       choices={clientSourceChoices}
       helperText={false}
     />
-    <TextInput
-      source="notes"
-      label="Note generali"
-      multiline
-      helperText={false}
-    />
   </div>
 );

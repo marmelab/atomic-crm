@@ -128,14 +128,6 @@ const SupplierShowContent = () => {
               )}
             </div>
 
-            {record.notes && (
-              <div className="space-y-3 md:col-span-2">
-                <h6 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
-                  Note
-                </h6>
-                <p className="text-sm whitespace-pre-wrap">{record.notes}</p>
-              </div>
-            )}
           </div>
         </CardContent>
       </Card>
