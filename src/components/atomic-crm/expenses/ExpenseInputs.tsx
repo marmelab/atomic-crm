@@ -68,6 +68,14 @@ const ExpenseIdentityInputs = () => (
         filterToQuery={buildNameSearchFilter}
       />
     </ReferenceInput>
+    <ReferenceInput source="supplier_id" reference="suppliers">
+      <AutocompleteInput
+        label="Fornitore"
+        optionText="name"
+        helperText={false}
+        filterToQuery={buildNameSearchFilter}
+      />
+    </ReferenceInput>
   </div>
 );
 

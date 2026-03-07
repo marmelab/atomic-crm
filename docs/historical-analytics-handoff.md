@@ -6,7 +6,17 @@ lavoro senza riaprire decisioni gia prese.
 **Quando NON usarlo da solo:** per dedurre architettura canonica o stato
 prodotto senza incrociarlo con `docs/README.md` e i documenti `canonical`.
 
-Last updated: 2026-03-06
+Last updated: 2026-03-07
+
+## Update 2026-03-07 (suppliers module + import supplier resolution)
+
+- New `suppliers` table with full billing profile, CRUD module, and FK on
+  `expenses.supplier_id` (nullable).
+- `invoice_import_confirm` now resolves or creates a supplier when importing
+  supplier invoices: matches by VAT number, then by name, then creates.
+  `supplier_id` is saved on the expense within the same Kysely transaction.
+- Semantic registry updated: `supplierAnagraficaResource: "suppliers"`, AI
+  scope includes suppliers.
 
 ## Update 2026-03-06 (prettier formatting sweep)
 

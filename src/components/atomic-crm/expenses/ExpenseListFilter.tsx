@@ -30,13 +30,14 @@ import {
   Receipt,
   FolderOpen,
   User,
+  Building2,
   Calendar,
   ChevronsUpDown,
   X,
   Filter,
 } from "lucide-react";
 
-import type { Client, Project } from "../types";
+import type { Client, Project, Supplier } from "../types";
 import { DateRangeFilter } from "../filters/DateRangeFilter";
 import { expenseTypeChoices } from "./expenseTypes";
 
@@ -107,6 +108,7 @@ const ExpenseFilterContent = () => {
   const { filterValues, setFilters } = useListFilterContext();
   const [clientOpen, setClientOpen] = useState(false);
   const [projectOpen, setProjectOpen] = useState(false);
+  const [supplierOpen, setSupplierOpen] = useState(false);
 
   const { data: clients } = useGetList<Client>("clients", {
     pagination: { page: 1, perPage: 200 },
@@ -114,6 +116,11 @@ const ExpenseFilterContent = () => {
   });
 
   const { data: projects } = useGetList<Project>("projects", {
+    pagination: { page: 1, perPage: 200 },
+    sort: { field: "name", order: "ASC" },
+  });
+
+  const { data: suppliers } = useGetList<Supplier>("suppliers", {
     pagination: { page: 1, perPage: 200 },
     sort: { field: "name", order: "ASC" },
   });
@@ -214,6 +221,67 @@ const ExpenseFilterContent = () => {
                           }}
                         >
                           {c.name}
+                        </CommandItem>
+                      ))}
+                    </CommandGroup>
+                  </CommandList>
+                </Command>
+              </PopoverContent>
+            </Popover>
+          </div>
+        </FilterSection>
+      )}
+
+      {suppliers && suppliers.length > 0 && (
+        <FilterSection icon={<Building2 className="size-4" />} label="Fornitore">
+          <div className="w-full">
+            <Popover open={supplierOpen} onOpenChange={setSupplierOpen}>
+              <PopoverTrigger asChild>
+                <button
+                  type="button"
+                  aria-label="Filtra per fornitore"
+                  className="flex h-9 w-full items-center justify-between rounded-md border border-input bg-transparent px-3 py-1 text-sm"
+                >
+                  <span className="truncate">
+                    {filterValues["supplier_id@eq"]
+                      ? (suppliers.find(
+                          (s) => String(s.id) === filterValues["supplier_id@eq"],
+                        )?.name ?? "Tutti")
+                      : "Tutti"}
+                  </span>
+                  {filterValues["supplier_id@eq"] ? (
+                    <X
+                      className="size-3.5 shrink-0 opacity-50 hover:opacity-100"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        const { "supplier_id@eq": _, ...rest } = filterValues;
+                        setFilters(rest);
+                      }}
+                    />
+                  ) : (
+                    <ChevronsUpDown className="size-3.5 shrink-0 opacity-50" />
+                  )}
+                </button>
+              </PopoverTrigger>
+              <PopoverContent className="w-52 p-0" align="start">
+                <Command>
+                  <CommandInput placeholder="Cerca fornitore..." />
+                  <CommandList>
+                    <CommandEmpty>Nessun fornitore</CommandEmpty>
+                    <CommandGroup>
+                      {suppliers.map((s) => (
+                        <CommandItem
+                          key={String(s.id)}
+                          value={s.name}
+                          onSelect={() => {
+                            setFilters({
+                              ...filterValues,
+                              "supplier_id@eq": String(s.id),
+                            });
+                            setSupplierOpen(false);
+                          }}
+                        >
+                          {s.name}
                         </CommandItem>
                       ))}
                     </CommandGroup>

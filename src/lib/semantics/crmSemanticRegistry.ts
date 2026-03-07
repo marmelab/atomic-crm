@@ -403,6 +403,7 @@ export const buildCrmSemanticRegistry = (
       invoiceImport: {
         customerInvoiceResource: "payments",
         supplierInvoiceResource: "expenses",
+        supplierAnagraficaResource: "suppliers",
         confirmationRule:
           "nessuna scrittura nel CRM prima della conferma esplicita utente",
         meaning:
@@ -410,7 +411,7 @@ export const buildCrmSemanticRegistry = (
       },
       unifiedAiReadContext: {
         scope:
-          "clients + contacts + project_contacts + quotes + projects + payments + expenses",
+          "clients + contacts + project_contacts + quotes + projects + payments + expenses + suppliers",
         freshnessField: "generatedAt",
         meaning:
           "Il contesto CRM-wide del launcher unificato e' una snapshot read-only dei moduli core; sia la snapshot sia le risposte AI che la usano restano di sola lettura, gli handoff successivi possono solo puntare a route o azioni gia approvate, una recommendation primaria puo comparire solo se costruita deterministicamente dal sistema, e gli href di handoff possono trasportare solo prefills/search params gia supportati dalle superfici esistenti. Dentro quella snapshot i clienti recenti devono esporre anche il profilo fiscale essenziale e i recapiti di fatturazione principali gia presenti nel CRM, i referenti recenti devono esporre recapiti e cliente/progetti collegati, e i progetti attivi devono riportare i referenti associati con priorita' ai contatti primari. Quando esistono relazioni strutturate cliente-progetto-referente, quelle relazioni devono avere priorita' interpretativa rispetto a note libere o inferenze sul testo. Le superfici di arrivo possono poi calcolare o ricevere solo suggerimenti deterministici locali, come il residuo ancora non collegato di un preventivo, i financials aggregati di un progetto attivo derivati da servizi, spese e pagamenti ricevuti, oppure una stima tratta km ottenuta da un servizio routing esterno ma sempre correggibile prima della scrittura. Ogni futura scrittura deve passare da un workflow dedicato con conferma esplicita.",

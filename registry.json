@@ -152,6 +152,30 @@
           "type": "registry:component"
         },
         {
+          "path": "src/components/atomic-crm/suppliers/index.tsx",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/suppliers/SupplierShow.tsx",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/suppliers/SupplierList.tsx",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/suppliers/SupplierInputs.tsx",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/suppliers/SupplierEdit.tsx",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/suppliers/SupplierCreate.tsx",
+          "type": "registry:component"
+        },
+        {
           "path": "src/components/atomic-crm/simple-list/SimpleListLoading.tsx",
           "type": "registry:component"
         },

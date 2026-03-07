@@ -1,5 +1,6 @@
 import {
   Briefcase,
+  Building2,
   CreditCard,
   FileText,
   FolderOpen,
@@ -20,6 +21,7 @@ import payments from "../payments";
 import projects from "../projects";
 import quotes from "../quotes";
 import services from "../services";
+import suppliers from "../suppliers";
 import { PaymentOverdueBadge } from "../payments/PaymentOverdueBadge";
 import { MobileTasksList } from "../tasks/MobileTasksList";
 import { TasksList } from "../tasks/TasksList";
@@ -274,6 +276,35 @@ export const crmModules: CrmModuleDefinition[] = [
         "/#/expenses/create",
         "/#/expenses/:id",
         "/#/expenses/:id/show",
+      ],
+      supportedViews: ["list", "show", "create", "edit"],
+    },
+  },
+  {
+    resource: "suppliers",
+    label: "Fornitori",
+    icon: Building2,
+    path: "/suppliers",
+    components: toResourceComponents(suppliers),
+    nav: {
+      desktop: { header: false, headerOrder: 0 },
+      mobile: {
+        bottomBar: false,
+        bottomBarOrder: 0,
+        altroMenu: true,
+        altroMenuOrder: 65,
+        createMenu: false,
+      },
+    },
+    ai: {
+      label: "Fornitori",
+      description:
+        "Anagrafica fornitori con dati fiscali e di fatturazione, collegati alle spese per tracciare la controparte.",
+      routePatterns: [
+        "/#/suppliers",
+        "/#/suppliers/create",
+        "/#/suppliers/:id",
+        "/#/suppliers/:id/show",
       ],
       supportedViews: ["list", "show", "create", "edit"],
     },

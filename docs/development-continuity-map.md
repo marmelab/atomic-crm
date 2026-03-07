@@ -57,7 +57,7 @@ Last updated: 2026-03-06
 - [Current Priority Debt](#current-priority-debt) — Debito tecnico prioritario
 - [Full Surface Sweep Rule](#full-surface-sweep-rule) — Regola sweep completa
 - [Mandatory Product Sweep](#mandatory-product-sweep) — Sweep obbligatoria per modulo
-  - [Progetti](#progetti) · [Registro lavori](#registro-lavori) · [Preventivi](#preventivi) · [Pagamenti](#pagamenti) · [Spese](#spese) · [Promemoria](#promemoria)
+  - [Progetti](#progetti) · [Registro lavori](#registro-lavori) · [Preventivi](#preventivi) · [Pagamenti](#pagamenti) · [Spese](#spese) · [Fornitori](#fornitori) · [Promemoria](#promemoria)
   - [Import documenti](#import-documenti) · [Bacheca annuale e storica](#bacheca-annuale-e-storica) · [Chat AI unificata](#chat-ai-unificata)
   - [1. Dominio/DB](#1-se-cambia-il-dominio-o-una-relazione-db) · [2. Cliente/referente/progetto](#2-se-cambia-il-modello-clientereferenteprogetto) · [3. Regola configurabile](#3-se-cambia-una-regola-configurabile-o-un-default-modificabile-da-utente)
   - [4. Quando Settings NON va aggiornata](#4-quando-settings-non-va-aggiornata) · [5. Chat AI](#5-se-cambia-la-chat-ai-unificata) · [6. Import fatture](#6-se-cambia-limport-fatturericevute)
@@ -980,6 +980,18 @@ Controllare sempre:
   - `travel_route_estimate`
   - `travel_location_suggest`
   - semantiche km/rimborso
+
+### Fornitori
+
+Controllare sempre:
+
+- `src/components/atomic-crm/suppliers/**`
+- `SupplierList`, `SupplierCreate`, `SupplierEdit`, `SupplierShow`
+- FK `supplier_id` su `expenses`: input, colonna lista, filtro, show, export CSV
+- `expenseLinking.ts` (linking supplier)
+- `supabase/functions/invoice_import_confirm/**` (match/create supplier da counterparty)
+- semantic registry (`supplierAnagraficaResource`)
+- `moduleRegistry` (altroMenu entry)
 
 ### Promemoria
 

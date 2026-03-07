@@ -8,7 +8,7 @@ import { SortButton } from "@/components/admin/sort-button";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useColumnVisibility } from "@/hooks/useColumnVisibility";
 
-import type { Client, Expense, Project } from "../types";
+import type { Client, Expense, Project, Supplier } from "../types";
 import { ExpenseListContent } from "./ExpenseListContent";
 import { ExpenseListFilter, ExpenseMobileFilter } from "./ExpenseListFilter";
 import { TopToolbar } from "../layout/TopToolbar";
@@ -42,11 +42,19 @@ export const ExpenseList = () => {
         "project_id",
         "projects",
       );
+      const supplierRecords = await fetchRelatedRecords<Supplier>(
+        records,
+        "supplier_id",
+        "suppliers",
+      );
       const rows = records.map((e) =>
         filterExportRow(
           {
             data: e.expense_date,
             cliente: e.client_id ? (clients[e.client_id]?.name ?? "") : "",
+            fornitore: e.supplier_id
+              ? (supplierRecords[e.supplier_id]?.name ?? "")
+              : "",
             progetto: e.project_id
               ? (projects[e.project_id]?.name ?? "")
               : "",

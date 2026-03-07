@@ -19,7 +19,7 @@ afterEach(() => {
 
 describe("moduleRegistry", () => {
   it("returns enabled modules and keeps headless modules out of header navigation", () => {
-    expect(getEnabledModules()).toHaveLength(15);
+    expect(getEnabledModules()).toHaveLength(16);
 
     const desktopHeaderResources = getDesktopHeaderModules().map(
       (module) => module.resource,
@@ -41,6 +41,7 @@ describe("moduleRegistry", () => {
     expect(desktopHeaderResources).not.toContain("sales");
     expect(desktopHeaderResources).not.toContain("tags");
     expect(desktopHeaderResources).not.toContain("invoicing");
+    expect(desktopHeaderResources).not.toContain("suppliers");
   });
 
   it("returns mobile bottom modules and AI resources from the registry", () => {

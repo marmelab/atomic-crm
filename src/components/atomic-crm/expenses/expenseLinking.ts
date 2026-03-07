@@ -7,6 +7,7 @@ type ExpenseCreateDefaults = Partial<
     Expense,
     | "project_id"
     | "client_id"
+    | "supplier_id"
     | "expense_type"
     | "expense_date"
     | "km_distance"
@@ -78,6 +79,11 @@ export const getExpenseCreateDefaultsFromSearch = (
   const projectId = toOptionalIdentifier(searchParams.get("project_id"));
   if (projectId) {
     defaults.project_id = projectId;
+  }
+
+  const supplierId = toOptionalIdentifier(searchParams.get("supplier_id"));
+  if (supplierId) {
+    defaults.supplier_id = supplierId;
   }
 
   const expenseType = getOptionalExpenseType(searchParams.get("expense_type"));

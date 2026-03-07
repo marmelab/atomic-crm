@@ -139,6 +139,7 @@ export const ExpenseListContent = () => {
             <TableHead className={cv("date")}>Data</TableHead>
             <TableHead className={cv("type")}>Tipo</TableHead>
             <TableHead className={cv("client", "hidden md:table-cell")}>Cliente</TableHead>
+            <TableHead className={cv("supplier", "hidden md:table-cell")}>Fornitore</TableHead>
             <TableHead className={cv("project")}>Progetto</TableHead>
             <TableHead className={cv("km", "text-right hidden md:table-cell")}>Km</TableHead>
             <TableHead className={cv("total", "text-right")}>Totale EUR</TableHead>
@@ -247,6 +248,15 @@ const ExpenseRow = ({
       enabled: !!expense.client_id,
     },
   );
+  const { data: supplier } = useGetOne(
+    "suppliers",
+    {
+      id: expense.supplier_id ?? undefined,
+    },
+    {
+      enabled: !!expense.supplier_id,
+    },
+  );
   const total = computeTotal(expense, defaultKmRate);
 
   return (
@@ -275,6 +285,9 @@ const ExpenseRow = ({
       </TableCell>
       <TableCell className={cv("client", "text-sm text-muted-foreground hidden md:table-cell")}>
         {client?.name ?? ""}
+      </TableCell>
+      <TableCell className={cv("supplier", "text-sm text-muted-foreground hidden md:table-cell")}>
+        {supplier?.name ?? ""}
       </TableCell>
       <TableCell className={cv("project", "text-sm text-muted-foreground")}>
         {project?.name ?? ""}

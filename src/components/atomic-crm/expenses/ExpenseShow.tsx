@@ -50,6 +50,15 @@ const ExpenseShowContent = () => {
       enabled: !!record?.project_id,
     },
   );
+  const { data: supplier } = useGetOne(
+    "suppliers",
+    {
+      id: record?.supplier_id,
+    },
+    {
+      enabled: !!record?.supplier_id,
+    },
+  );
   const isMobile = useIsMobile();
 
   if (error) return <ErrorMessage />;
@@ -89,6 +98,14 @@ const ExpenseShowContent = () => {
                       className="text-primary hover:underline"
                     >
                       {project.name}
+                    </Link>
+                  )}
+                  {supplier && (
+                    <Link
+                      to={`/suppliers/${record.supplier_id}/show`}
+                      className="text-primary hover:underline"
+                    >
+                      {supplier.name}
                     </Link>
                   )}
                   {record.invoice_ref && (

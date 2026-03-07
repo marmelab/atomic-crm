@@ -19,6 +19,7 @@ export const EXPENSE_COLUMNS: ColumnDef[] = [
   { key: "date", label: "Data", exportKey: "data" },
   { key: "type", label: "Tipo", exportKey: "tipo" },
   { key: "client", label: "Cliente", exportKey: "cliente" },
+  { key: "supplier", label: "Fornitore", exportKey: "fornitore" },
   { key: "project", label: "Progetto", exportKey: "progetto" },
   { key: "km", label: "Km", exportKey: "km" },
   { key: "total", label: "Totale", exportKey: "totale" },

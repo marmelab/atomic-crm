@@ -286,9 +286,30 @@ export type FinancialDocumentCashAllocation = {
   updated_at: string;
 } & Pick<RaRecord, "id">;
 
+export type Supplier = {
+  name: string;
+  vat_number?: string;
+  fiscal_code?: string;
+  phone?: string;
+  email?: string;
+  address?: string;
+  billing_address_street?: string;
+  billing_address_number?: string;
+  billing_postal_code?: string;
+  billing_city?: string;
+  billing_province?: string;
+  billing_country?: string;
+  billing_sdi_code?: string;
+  billing_pec?: string;
+  notes?: string;
+  created_at: string;
+  updated_at: string;
+} & Pick<RaRecord, "id">;
+
 export type Expense = {
   project_id?: Identifier | null;
   client_id?: Identifier | null;
+  supplier_id?: Identifier | null;
   source_service_id?: Identifier | null;
   expense_date: string;
   expense_type:

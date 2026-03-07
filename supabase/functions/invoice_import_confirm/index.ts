@@ -186,6 +186,65 @@ const checkDuplicateService = async ({
   return !!existing;
 };
 
+/**
+ * Resolve an existing supplier by VAT number or name, or create a new one.
+ * Returns the supplier id or null if no counterparty info is available.
+ */
+const resolveOrCreateSupplier = async ({
+  trx,
+  record,
+}: {
+  trx: any;
+  record: InvoiceImportConfirmRecord;
+}): Promise<string | null> => {
+  // counterpartyName holds the supplier name; vatNumber/fiscalCode etc.
+  // are the document-level fields that also describe the counterparty.
+  const vatNumber = record.vatNumber?.trim() || null;
+  const name = record.counterpartyName?.trim() || null;
+
+  if (!vatNumber && !name) return null;
+
+  // 1. Match by VAT number (most reliable)
+  if (vatNumber) {
+    const byVat = await trx
+      .selectFrom("suppliers")
+      .select(["id"])
+      .where("vat_number", "=", vatNumber)
+      .executeTakeFirst();
+    if (byVat) return byVat.id;
+  }
+
+  // 2. Match by exact name (case-insensitive)
+  if (name) {
+    const byName = await trx
+      .selectFrom("suppliers")
+      .select(["id"])
+      .where(sql<boolean>`lower(name) = lower(${name})`)
+      .executeTakeFirst();
+    if (byName) return byName.id;
+  }
+
+  // 3. Create new supplier from document counterparty fields
+  const inserted = await trx
+    .insertInto("suppliers")
+    .values({
+      name: name ?? vatNumber!,
+      vat_number: vatNumber,
+      fiscal_code: record.fiscalCode?.trim() || null,
+      billing_address_street: record.billingAddressStreet?.trim() || null,
+      billing_city: record.billingCity?.trim() || null,
+      billing_postal_code: record.billingPostalCode?.trim() || null,
+      billing_province: record.billingProvince?.trim() || null,
+      billing_country: record.billingCountry?.trim() || "IT",
+      billing_sdi_code: record.billingSdiCode?.trim() || null,
+      billing_pec: record.billingPec?.trim() || null,
+    })
+    .returning(["id"])
+    .executeTakeFirstOrThrow();
+
+  return inserted.id;
+};
+
 const confirmInvoiceImportDraft = async ({
   req,
   userId,
@@ -358,11 +417,15 @@ const confirmInvoiceImportDraft = async ({
           continue;
         }
 
+        // Resolve or create supplier from counterparty info
+        const supplierId = await resolveOrCreateSupplier({ trx, record });
+
         const insertedExpense = await trx
           .insertInto("expenses")
           .values({
             client_id: record.clientId ?? null,
             project_id: record.projectId ?? null,
+            supplier_id: supplierId,
             expense_date: record.documentDate!,
             expense_type: record.expenseType ?? "acquisto_materiale",
             amount: Number(record.amount),

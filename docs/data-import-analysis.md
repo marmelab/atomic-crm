@@ -32,6 +32,14 @@ L'editor bozza mostra "Data servizio" (non "Data documento") per i record di
 tipo servizio, e il campo descrizione e' enfatizzato visivamente (`font-semibold
 text-base`) per facilitare l'identificazione del singolo servizio nella bozza.
 
+**Nota 2026-03-07 (supplier resolution):** `invoice_import_confirm` ora risolve
+automaticamente il fornitore per le expense importate. La funzione
+`resolveOrCreateSupplier` matcha per P.IVA, poi per nome (case-insensitive), e
+se non trova corrispondenze crea un nuovo record in `suppliers` con l'anagrafica
+fiscale estratta dal documento. Il `supplier_id` viene salvato sulla expense.
+Tutto avviene nella stessa transazione Kysely (rollback sicuro). Se non ci sono
+dati counterparty, `supplier_id` resta null (backward-compatible).
+
 **Nota 2026-03-06 (duplicate skip):** la conferma import ora **salta i duplicati**
 invece di bloccare l'intero batch con 409. Se un record esiste gia nel DB
 (match su stessi campi chiave), viene aggiunto a `skipped[]` nella risposta e
