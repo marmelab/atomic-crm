@@ -15,7 +15,7 @@ import { Badge } from "@/components/ui/badge";
 import { useIsMobile } from "@/hooks/use-mobile";
 import type { LucideIcon } from "lucide-react";
 import { User, Crown, Briefcase, Euro } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { ListAvatar } from "../misc/ListAvatar";
 
 import { useColumnVisibility } from "@/hooks/useColumnVisibility";
 
@@ -223,21 +223,21 @@ const roleConfig: Record<
   },
 };
 
-const ContactIconAvatar = ({ role }: { role: string }) => {
+const ContactIconAvatar = ({
+  role,
+  imageUrl,
+}: {
+  role: string;
+  imageUrl?: string | null;
+}) => {
   const config = roleConfig[role];
-  const Icon = config?.icon ?? User;
-  const colorClass = config?.color ?? "text-slate-500";
-  const bgClass = config?.bg ?? "bg-slate-50 border-slate-200";
-
   return (
-    <div
-      className={cn(
-        "flex-shrink-0 w-10 h-10 rounded-lg border flex items-center justify-center",
-        bgClass,
-      )}
-    >
-      <Icon className={cn("h-5 w-5", colorClass)} />
-    </div>
+    <ListAvatar
+      imageUrl={imageUrl}
+      icon={config?.icon ?? User}
+      iconColor={config?.color ?? "text-slate-500"}
+      bgClass={config?.bg ?? "bg-slate-50 border-slate-200"}
+    />
   );
 };
 
@@ -264,7 +264,7 @@ const ContactRow = ({
       </TableCell>
       <TableCell className={cv("name")}>
         <div className="flex items-start gap-3">
-          <ContactIconAvatar role={resolvedRole} />
+          <ContactIconAvatar role={resolvedRole} imageUrl={contact.photo_url} />
           <div className="space-y-1.5 min-w-0">
             <Link
               to={link}

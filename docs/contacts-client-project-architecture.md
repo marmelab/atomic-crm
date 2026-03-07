@@ -7,7 +7,7 @@
 nel contesto AI.
 
 Data: 2026-03-01
-Ultimo aggiornamento: 2026-03-06
+Ultimo aggiornamento: 2026-03-08
 
 ## UI Update — Liste Clienti, Referenti e Progetti con Icone Colorate
 
@@ -18,6 +18,11 @@ Le liste sono state arricchite visivamente con icone colorate coerenti:
 - **Progetti** (`ProjectListContent`): Icone per categoria (TV, Sparkles, Heart, PartyPopper, Globe)
 
 Scopo: migliorare la scanability visiva e la distinzione tra tipologie/categorie.
+
+Dal 2026-03-08, le icone nelle liste clienti, referenti e fornitori vengono
+sostituite dall'avatar Cloudinary quando `logo_url` (clienti/fornitori) o
+`photo_url` (referenti) è presente. Il componente `ListAvatar` gestisce il
+fallback automatico all'icona originale quando nessuna immagine è caricata.
 
 ## Decisione
 

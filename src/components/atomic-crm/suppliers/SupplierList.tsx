@@ -13,7 +13,7 @@ import {
 } from "@/components/ui/table";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Building2 } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { ListAvatar } from "../misc/ListAvatar";
 
 import type { Supplier } from "../types";
 import { TopToolbar } from "../layout/TopToolbar";
@@ -142,15 +142,13 @@ const SupplierListLayout = () => {
   );
 };
 
-const SupplierIconAvatar = () => (
-  <div
-    className={cn(
-      "flex-shrink-0 w-9 h-9 rounded-lg border flex items-center justify-center",
-      "bg-indigo-50 border-indigo-200",
-    )}
-  >
-    <Building2 className="h-4 w-4 text-indigo-600" />
-  </div>
+const SupplierIconAvatar = ({ imageUrl }: { imageUrl?: string | null }) => (
+  <ListAvatar
+    imageUrl={imageUrl}
+    icon={Building2}
+    iconColor="text-indigo-600"
+    bgClass="bg-indigo-50 border-indigo-200"
+  />
 );
 
 const SupplierRow = ({
@@ -166,7 +164,7 @@ const SupplierRow = ({
     </TableCell>
     <TableCell>
       <div className="flex items-center gap-3">
-        <SupplierIconAvatar />
+        <SupplierIconAvatar imageUrl={supplier.logo_url} />
         <Link to={link} className="font-medium text-primary hover:underline">
           {supplier.name}
         </Link>
@@ -193,7 +191,7 @@ const SupplierMobileCard = ({
 }) => (
   <Link to={link} className="flex flex-col gap-1 px-1 py-3 active:bg-muted/50">
     <div className="flex items-center gap-3">
-      <SupplierIconAvatar />
+      <SupplierIconAvatar imageUrl={supplier.logo_url} />
       <div className="flex-1 min-w-0">
         <span className="text-base font-bold truncate block">
           {supplier.name}

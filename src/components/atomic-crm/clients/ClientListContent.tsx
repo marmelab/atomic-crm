@@ -24,6 +24,7 @@ import { useColumnVisibility } from "@/hooks/useColumnVisibility";
 import { CLIENT_COLUMNS } from "../misc/columnDefinitions";
 
 import type { Client } from "../types";
+import { ListAvatar } from "../misc/ListAvatar";
 import {
   getClientDistinctBillingName,
   getClientBillingIdentityLines,
@@ -94,7 +95,7 @@ export const ClientListContent = () => {
               </TableCell>
               <TableCell className={cv("name")}>
                 <div className="flex items-start gap-3">
-                  <ClientIconAvatar type={client.client_type} />
+                  <ClientIconAvatar type={client.client_type} imageUrl={client.logo_url} />
                   <div className="space-y-1.5 min-w-0">
                     <Link
                       to={createPath({
@@ -226,20 +227,20 @@ export const ClientTypeBadge = ({ type }: { type: string }) => {
 };
 
 /* ---- Client Icon Avatar ---- */
-const ClientIconAvatar = ({ type }: { type: string }) => {
+const ClientIconAvatar = ({
+  type,
+  imageUrl,
+}: {
+  type: string;
+  imageUrl?: string | null;
+}) => {
   const config = clientTypeConfig[type];
-  const Icon = config?.icon ?? User;
-  const colorClass = config?.color ?? "text-gray-500";
-  const bgClass = config?.bg ?? "bg-gray-50 border-gray-200";
-
   return (
-    <div
-      className={cn(
-        "flex-shrink-0 w-10 h-10 rounded-lg border flex items-center justify-center",
-        bgClass,
-      )}
-    >
-      <Icon className={cn("h-5 w-5", colorClass)} />
-    </div>
+    <ListAvatar
+      imageUrl={imageUrl}
+      icon={config?.icon ?? User}
+      iconColor={config?.color ?? "text-gray-500"}
+      bgClass={config?.bg ?? "bg-gray-50 border-gray-200"}
+    />
   );
 };
