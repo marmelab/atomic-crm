@@ -104,9 +104,19 @@ export function useCloudinaryUpload({
         }
         if (result.event === "success") {
           const info = result.info;
+          let url = info.secure_url;
+
+          // Apply crop coordinates to the URL when the user cropped
+          const cropCoords = info.coordinates?.custom?.[0];
+          if (cropCoords && url.includes("/upload/")) {
+            const [x, y, w, h] = cropCoords;
+            const cropTransform = `c_crop,x_${x},y_${y},w_${w},h_${h}`;
+            url = url.replace("/upload/", `/upload/${cropTransform}/`);
+          }
+
           onUpload({
             public_id: info.public_id,
-            secure_url: info.secure_url,
+            secure_url: url,
             resource_type: info.resource_type === "auto" ? "raw" : info.resource_type,
             format: info.format,
             original_filename: info.original_filename,

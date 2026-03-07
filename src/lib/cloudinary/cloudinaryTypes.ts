@@ -11,6 +11,9 @@ export interface CloudinaryUploadResult {
   original_filename: string;
   asset_id: string;
   created_at: string;
+  coordinates?: {
+    custom?: [number, number, number, number][];
+  };
 }
 
 /** Asset selected from the Media Library Widget. */
