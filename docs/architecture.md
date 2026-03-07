@@ -805,6 +805,7 @@ Semantica operativa attuale di `project_financials`:
 | `20260302143000_add_historical_billing_rounding_credits.sql` | Inserisce crediti di arrotondamento storico su 3 progetti Gustare (€7,32 Gustare Sicilia, €0,10 Borghi Marinari, €2,00 Carratois) come `credito_ricevuto` in `expenses` |
 | `20260302160000_add_iphone_credit_payment.sql` | Inserisce il pagamento `rimborso_spese` di €250 in attesa (iPhone: accordo iniziale €500, rivalutato a €250, Diego deve €250 a Rosario) collegato a Borghi Marinari |
 | `20260302170000_domain_data_snapshot.sql` | **Snapshot pulita (solo settings).** TRUNCATE di tutte le tabelle operative + INSERT dei 6 record di configurazione. Svuotata il 2026-03-04 per debug dei flussi di calcolo. |
+| `20260307200325_round_monetary_fields_in_project_financials.sql` | Aggiunge `ROUND(..., 2)` a tutti i campi monetari aggregati nella view `project_financials` (total_fees, total_km_cost, total_expenses, total_paid_legacy, balance_due) per eliminare decimali spurii da floating point |
 
 ## Moduli Frontend
 

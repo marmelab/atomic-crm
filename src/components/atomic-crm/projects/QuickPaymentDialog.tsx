@@ -31,6 +31,8 @@ const toNum = (v: unknown) => {
   return Number.isFinite(n) ? n : 0;
 };
 
+const round2 = (n: number) => Math.round(n * 100) / 100;
+
 const getSuggestedAmount = (
   type: string,
   totals: { fees: number; expenses: number; paid: number },
@@ -38,13 +40,13 @@ const getSuggestedAmount = (
   const balance = totals.fees + totals.expenses - totals.paid;
   switch (type) {
     case "rimborso_spese":
-      return totals.expenses;
+      return round2(totals.expenses);
     case "acconto":
-      return totals.fees;
+      return round2(totals.fees);
     case "saldo":
-      return Math.max(balance, 0);
+      return round2(Math.max(balance, 0));
     default:
-      return Math.max(balance, 0);
+      return round2(Math.max(balance, 0));
   }
 };
 
