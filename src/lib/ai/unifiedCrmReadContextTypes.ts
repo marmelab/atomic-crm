@@ -10,6 +10,7 @@ export type SnapshotContactReference = {
   isPrimaryForClient: boolean;
   email: string | null;
   phone: string | null;
+  photoUrl: string | null;
 };
 
 export type SnapshotProjectReference = {
@@ -61,6 +62,7 @@ export type UnifiedCrmReadContext = {
       billingCity: string | null;
       billingSdiCode: string | null;
       billingPec: string | null;
+      logoUrl: string | null;
       contacts: SnapshotContactReference[];
       activeProjects: SnapshotProjectReference[];
       createdAt: string;
@@ -138,6 +140,7 @@ export type UnifiedCrmReadContext = {
       statusLabel: string;
       paymentDate: string | null;
       isTaxable: boolean;
+      proofUrl: string | null;
     }>;
     overduePayments: Array<{
       paymentId: string;
@@ -151,6 +154,7 @@ export type UnifiedCrmReadContext = {
       statusLabel: string;
       paymentDate: string | null;
       isTaxable: boolean;
+      proofUrl: string | null;
       daysOverdue: number | null;
     }>;
     upcomingTasks: Array<{
@@ -184,6 +188,7 @@ export type UnifiedCrmReadContext = {
       expenseTypeLabel: string;
       expenseDate: string;
       description: string | null;
+      proofUrl: string | null;
     }>;
     clientLevelServices: Array<{
       serviceId: string;

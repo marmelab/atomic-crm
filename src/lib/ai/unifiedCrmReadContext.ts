@@ -117,6 +117,7 @@ const buildSnapshotContactReference = (
     isPrimaryForClient: isContactPrimaryForClient(contact),
     email: getContactPrimaryEmail(contact),
     phone: getContactPrimaryPhone(contact),
+    photoUrl: contact.photo_url ?? null,
   };
 };
 
@@ -352,6 +353,7 @@ export const buildUnifiedCrmReadContext = ({
         billingCity: client.billing_city ?? null,
         billingSdiCode: client.billing_sdi_code ?? null,
         billingPec: client.billing_pec ?? null,
+        logoUrl: client.logo_url ?? null,
         contacts: getClientContacts(String(client.id)),
         activeProjects: getClientActiveProjects(String(client.id)),
         createdAt: client.created_at,
@@ -405,6 +407,7 @@ export const buildUnifiedCrmReadContext = ({
         clientName: getClientName(clientById, payment.client_id), projectName: getProjectName(projectById, payment.project_id ?? null),
         amount: Number(payment.amount ?? 0), status: payment.status, statusLabel: paymentStatusLabels[payment.status] ?? payment.status,
         paymentDate: payment.payment_date ?? null, isTaxable: getPaymentTaxable(payment),
+        proofUrl: payment.proof_url ?? null,
       })),
       overduePayments: overduePayments.map((payment) => ({
         paymentId: String(payment.id), quoteId: payment.quote_id ? String(payment.quote_id) : null,
@@ -412,6 +415,7 @@ export const buildUnifiedCrmReadContext = ({
         clientName: getClientName(clientById, payment.client_id), projectName: getProjectName(projectById, payment.project_id ?? null),
         amount: Number(payment.amount ?? 0), status: payment.status, statusLabel: paymentStatusLabels[payment.status] ?? payment.status,
         paymentDate: payment.payment_date ?? null, isTaxable: getPaymentTaxable(payment),
+        proofUrl: payment.proof_url ?? null,
         daysOverdue: payment.payment_date ? Math.abs(diffDays(new Date(payment.payment_date), today)) : null,
       })),
       upcomingTasks: upcomingTasks.map((task) => ({
@@ -434,6 +438,7 @@ export const buildUnifiedCrmReadContext = ({
         amount: Number(expense.amount ?? 0), expenseType: expense.expense_type,
         expenseTypeLabel: expenseTypeLabels[expense.expense_type] ?? expense.expense_type,
         expenseDate: expense.expense_date, description: expense.description ?? null,
+        proofUrl: expense.proof_url ?? null,
       })),
       clientLevelServices: services
         .filter((s) => !s.project_id && s.client_id)

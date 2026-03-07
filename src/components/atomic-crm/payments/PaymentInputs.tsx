@@ -12,6 +12,7 @@ import { NumberInput } from "@/components/admin/number-input";
 import { DateInput } from "@/components/admin/date-input";
 
 import type { Project, Quote } from "../types";
+import { CloudinaryUploadInput } from "../cloudinary/CloudinaryUploadInput";
 import { quoteStatusLabels } from "../quotes/quotesTypes";
 import {
   paymentTypeChoices,
@@ -236,6 +237,12 @@ const PaymentDetailInputs = () => (
       helperText={false}
     />
     <TextInput source="notes" label="Note" multiline helperText={false} />
+    <CloudinaryUploadInput
+      source="proof_url"
+      label="Prova di pagamento"
+      folder="crm/payments"
+      mode="proof"
+    />
   </div>
 );
 

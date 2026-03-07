@@ -4,7 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { EditButton } from "@/components/admin/edit-button";
 import { DeleteButton } from "@/components/admin/delete-button";
-import { Calendar, FileText } from "lucide-react";
+import { Calendar, FileText, Image } from "lucide-react";
 import { Link } from "react-router";
 import { calculateKmReimbursement } from "@/lib/semantics/crmSemanticRegistry";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -14,6 +14,7 @@ import { expenseTypeLabels } from "./expenseTypes";
 import { ErrorMessage } from "../misc/ErrorMessage";
 import { useConfigurationContext } from "../root/ConfigurationContext";
 import { MobileBackButton } from "../misc/MobileBackButton";
+import { CloudinaryImageField } from "../cloudinary/CloudinaryImageField";
 
 const eur = (n: number) =>
   n.toLocaleString("it-IT", { minimumFractionDigits: 2 });
@@ -127,6 +128,22 @@ const ExpenseShowContent = () => {
               total={total}
               defaultKmRate={operationalConfig.defaultKmRate}
             />
+            {record.proof_url && (
+              <>
+                <Separator className="my-4" />
+                <div className="space-y-2">
+                  <h6 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide flex items-center gap-1.5">
+                    <Image className="size-3.5" />
+                    Ricevuta / Documento
+                  </h6>
+                  <CloudinaryImageField
+                    url={record.proof_url}
+                    alt="Ricevuta"
+                    mode="proof"
+                  />
+                </div>
+              </>
+            )}
         </CardContent>
       </Card>
     </div>

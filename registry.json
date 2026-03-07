@@ -1104,7 +1104,15 @@
           "type": "registry:component"
         },
         {
+          "path": "src/components/atomic-crm/cloudinary/CloudinaryUploadInput.tsx",
+          "type": "registry:component"
+        },
+        {
           "path": "src/components/atomic-crm/cloudinary/CloudinaryMediaButton.tsx",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/cloudinary/CloudinaryImageField.tsx",
           "type": "registry:component"
         },
         {

@@ -73,6 +73,7 @@ export type Client = {
   billing_sdi_code?: string;
   billing_pec?: string;
   source?: "instagram" | "facebook" | "passaparola" | "google" | "altro" | null;
+  logo_url?: string | null;
   notes?: string;
   tags: Identifier[];
   created_at: string;
@@ -111,6 +112,7 @@ export type Contact = {
   email_jsonb: ContactEmail[];
   phone_jsonb: ContactPhone[];
   linkedin_url?: string | null;
+  photo_url?: string | null;
   background?: string | null;
   tags: Identifier[];
   created_at: string;
@@ -197,6 +199,7 @@ export type Payment = {
   method?: "bonifico" | "contanti" | "paypal" | "altro" | null;
   invoice_ref?: string;
   status: "ricevuto" | "in_attesa" | "scaduto";
+  proof_url?: string | null;
   notes?: string;
   created_at: string;
 } & Pick<RaRecord, "id">;
@@ -331,6 +334,7 @@ export type Expense = {
   markup_percent?: number;
   description?: string;
   invoice_ref?: string;
+  proof_url?: string | null;
   created_at: string;
 } & Pick<RaRecord, "id">;
 

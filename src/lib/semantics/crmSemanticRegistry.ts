@@ -322,6 +322,34 @@ export const buildCrmSemanticRegistry = (
           label: "Descrizione spesa",
           meaning: "Spiega cosa rappresenta la spesa o il credito registrato.",
         },
+        {
+          resource: "clients",
+          field: "logo_url",
+          label: "Logo cliente",
+          meaning:
+            "URL Cloudinary del logo o immagine del cliente, visibile nella scheda cliente come avatar.",
+        },
+        {
+          resource: "contacts",
+          field: "photo_url",
+          label: "Foto referente",
+          meaning:
+            "URL Cloudinary della foto del referente, visibile nella scheda contatto come avatar.",
+        },
+        {
+          resource: "payments",
+          field: "proof_url",
+          label: "Prova di pagamento",
+          meaning:
+            "URL Cloudinary dello screenshot o documento che certifica il pagamento (es. ricevuta bonifico).",
+        },
+        {
+          resource: "expenses",
+          field: "proof_url",
+          label: "Ricevuta / Documento spesa",
+          meaning:
+            "URL Cloudinary della ricevuta o documento associato alla spesa registrata.",
+        },
       ],
       dates: [
         {

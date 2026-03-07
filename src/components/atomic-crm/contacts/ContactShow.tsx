@@ -17,6 +17,7 @@ import { Link } from "react-router";
 import { useIsMobile } from "@/hooks/use-mobile";
 
 import type { Contact, Project, ProjectContact } from "../types";
+import { CloudinaryImageField } from "../cloudinary/CloudinaryImageField";
 import { ErrorMessage } from "../misc/ErrorMessage";
 import { MobileBackButton } from "../misc/MobileBackButton";
 import {
@@ -80,7 +81,15 @@ const ContactShowContent = () => {
       <Card>
         <CardContent>
           <div className="flex flex-col gap-3">
-            <div>
+            <div className="flex items-center gap-3">
+              {record.photo_url && (
+                <CloudinaryImageField
+                  url={record.photo_url}
+                  alt={getContactDisplayName(record)}
+                  mode="avatar"
+                />
+              )}
+              <div>
               <h2 className="text-xl md:text-2xl font-bold">
                 {getContactDisplayName(record)}
               </h2>
@@ -100,6 +109,7 @@ const ContactShowContent = () => {
                   <span>{record.title}</span>
                 </div>
               ) : null}
+            </div>
             </div>
             <div className="flex gap-2 overflow-x-auto pb-1 -mb-1">
               <EditButton />

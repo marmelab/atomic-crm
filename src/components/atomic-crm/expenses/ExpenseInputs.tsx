@@ -14,6 +14,7 @@ import { expenseTypeChoices, expenseTypeDescriptions } from "./expenseTypes";
 import { buildNameSearchFilter } from "../misc/referenceSearch";
 import { TravelRouteCalculatorDialog } from "../travel/TravelRouteCalculatorDialog";
 import { useConfigurationContext } from "../root/ConfigurationContext";
+import { CloudinaryUploadInput } from "../cloudinary/CloudinaryUploadInput";
 
 export const ExpenseInputs = () => {
   return (
@@ -114,6 +115,12 @@ const ExpenseAmountInputs = () => {
       {isCredit ? <CreditSection /> : isKm ? <KmSection /> : <AmountSection />}
       <TextInput source="description" label="Descrizione" helperText={false} />
       <TextInput source="invoice_ref" label="Rif. Fattura" helperText={false} />
+      <CloudinaryUploadInput
+        source="proof_url"
+        label="Ricevuta / Documento"
+        folder="crm/expenses"
+        mode="proof"
+      />
     </div>
   );
 };

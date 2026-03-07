@@ -13,7 +13,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { EditButton } from "@/components/admin/edit-button";
 import { DeleteButton } from "@/components/admin/delete-button";
-import { Calendar, CheckCircle, Mail, User, FileText } from "lucide-react";
+import { Calendar, CheckCircle, Mail, User, FileText, Image } from "lucide-react";
 import { Link } from "react-router";
 import { useIsMobile } from "@/hooks/use-mobile";
 
@@ -24,6 +24,7 @@ import { ErrorMessage } from "../misc/ErrorMessage";
 import { MobileBackButton } from "../misc/MobileBackButton";
 import { SendPaymentReminderDialog } from "./SendPaymentReminderDialog";
 import { isPaymentTaxable } from "@/lib/semantics/crmSemanticRegistry";
+import { CloudinaryImageField } from "../cloudinary/CloudinaryImageField";
 
 const eur = (n: number) =>
   n.toLocaleString("it-IT", { minimumFractionDigits: 2 });
@@ -206,6 +207,22 @@ const PaymentShowContent = () => {
                     Note
                   </h6>
                   <p className="text-sm whitespace-pre-wrap">{record.notes}</p>
+                </div>
+              </>
+            )}
+            {record.proof_url && (
+              <>
+                <Separator className="my-4" />
+                <div className="space-y-2">
+                  <h6 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide flex items-center gap-1.5">
+                    <Image className="size-3.5" />
+                    Prova di pagamento
+                  </h6>
+                  <CloudinaryImageField
+                    url={record.proof_url}
+                    alt="Prova di pagamento"
+                    mode="proof"
+                  />
                 </div>
               </>
             )}

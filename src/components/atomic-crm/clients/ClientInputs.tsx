@@ -5,6 +5,7 @@ import { SelectInput } from "@/components/admin/select-input";
 
 import type { Client } from "../types";
 import { clientTypeChoices, clientSourceChoices } from "./clientTypes";
+import { CloudinaryUploadInput } from "../cloudinary/CloudinaryUploadInput";
 
 export const ClientInputs = () => {
   return (
@@ -129,6 +130,12 @@ const ClientDetailInputs = () => (
       label="Fonte acquisizione"
       choices={clientSourceChoices}
       helperText={false}
+    />
+    <CloudinaryUploadInput
+      source="logo_url"
+      label="Logo cliente"
+      folder="crm/clients"
+      mode="avatar"
     />
   </div>
 );

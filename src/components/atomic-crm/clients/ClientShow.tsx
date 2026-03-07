@@ -29,6 +29,7 @@ import { InvoiceDraftDialog } from "../invoicing/InvoiceDraftDialog";
 import { buildInvoiceDraftFromClient } from "../invoicing/buildInvoiceDraftFromClient";
 import { hasInvoiceDraftCollectableAmount } from "../invoicing/invoiceDraftTypes";
 import { useConfigurationContext } from "../root/ConfigurationContext";
+import { CloudinaryImageField } from "../cloudinary/CloudinaryImageField";
 
 export const ClientShow = () => (
   <ShowBase>
@@ -126,7 +127,15 @@ const ClientHeader = ({ record }: { record: Client }) => {
 
   return (
     <div className="flex flex-col gap-3">
-      <div>
+      <div className="flex items-center gap-3">
+        {record.logo_url && (
+          <CloudinaryImageField
+            url={record.logo_url}
+            alt={record.name}
+            mode="avatar"
+          />
+        )}
+        <div>
         <h2 className="text-2xl font-bold">{record.name}</h2>
         <div className="flex items-center gap-2 mt-1">
           <ClientTypeBadge type={record.client_type} />
@@ -135,6 +144,7 @@ const ClientHeader = ({ record }: { record: Client }) => {
               {clientSourceLabels[record.source]}
             </span>
           )}
+        </div>
         </div>
       </div>
       <div className="flex gap-2 overflow-x-auto pb-1 -mb-1">

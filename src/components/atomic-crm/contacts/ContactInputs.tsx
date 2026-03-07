@@ -8,6 +8,7 @@ import { AutocompleteInput } from "@/components/admin/autocomplete-input";
 import { Separator } from "@/components/ui/separator";
 
 import { contactRoleChoices } from "./contactRecord";
+import { CloudinaryUploadInput } from "../cloudinary/CloudinaryUploadInput";
 
 const personalInfoTypeChoices = [
   { id: "Work", name: "Lavoro" },
@@ -122,6 +123,12 @@ export const ContactInputs = () => (
     <div className="grid gap-6 md:grid-cols-2">
       <div className="space-y-4">
         <h3 className="text-lg font-semibold">Profilo</h3>
+        <CloudinaryUploadInput
+          source="photo_url"
+          label="Foto"
+          folder="crm/contacts"
+          mode="avatar"
+        />
         <TextInput
           source="linkedin_url"
           label="URL LinkedIn"
