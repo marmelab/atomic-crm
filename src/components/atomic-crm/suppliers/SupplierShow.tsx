@@ -3,7 +3,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { EditButton } from "@/components/admin/edit-button";
 import { DeleteButton } from "@/components/admin/delete-button";
-import { Building2, Mail, Phone, FileText, Receipt } from "lucide-react";
+import { Building2, Mail, Phone, FileText, Receipt, Tag } from "lucide-react";
 import { Link } from "react-router";
 import { useIsMobile } from "@/hooks/use-mobile";
 
@@ -76,6 +76,16 @@ const SupplierShowContent = () => {
                 <InfoRow
                   icon={<Building2 className="size-4" />}
                   value={record.address}
+                />
+              )}
+              {record.default_expense_type && (
+                <InfoRow
+                  icon={<Tag className="size-4" />}
+                  label="Tipo spesa"
+                  value={
+                    expenseTypeLabels[record.default_expense_type] ??
+                    record.default_expense_type
+                  }
                 />
               )}
             </div>

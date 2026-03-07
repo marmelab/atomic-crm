@@ -1,4 +1,5 @@
-import { required, minValue } from "ra-core";
+import { required, minValue, useGetOne } from "ra-core";
+import { useEffect } from "react";
 import { useFormContext, useWatch } from "react-hook-form";
 import { Separator } from "@/components/ui/separator";
 import { TextInput } from "@/components/admin/text-input";
@@ -33,51 +34,72 @@ export const ExpenseInputs = () => {
   );
 };
 
-const ExpenseIdentityInputs = () => (
-  <div className="flex flex-col gap-4">
-    <h6 className="text-lg font-semibold">Spesa</h6>
-    <DateInput
-      source="expense_date"
-      label="Data"
-      validate={required()}
-      helperText={false}
-    />
-    <SelectInput
-      source="expense_type"
-      label="Tipo"
-      choices={expenseTypeChoices}
-      optionText={(choice: { id: string; name: string }) => (
-        <span title={expenseTypeDescriptions[choice.id]}>{choice.name}</span>
-      )}
-      validate={required()}
-      helperText={false}
-    />
-    <ReferenceInput source="project_id" reference="projects">
-      <AutocompleteInput
-        label="Progetto"
-        optionText="name"
+const ExpenseIdentityInputs = () => {
+  const supplierId = useWatch({ name: "supplier_id" });
+  const { setValue, getValues } = useFormContext();
+
+  const { data: supplier } = useGetOne(
+    "suppliers",
+    { id: supplierId },
+    { enabled: !!supplierId },
+  );
+
+  useEffect(() => {
+    if (!supplier?.default_expense_type) return;
+    const current = getValues("expense_type");
+    if (!current) {
+      setValue("expense_type", supplier.default_expense_type, {
+        shouldDirty: true,
+      });
+    }
+  }, [supplier, setValue, getValues]);
+
+  return (
+    <div className="flex flex-col gap-4">
+      <h6 className="text-lg font-semibold">Spesa</h6>
+      <DateInput
+        source="expense_date"
+        label="Data"
+        validate={required()}
         helperText={false}
-        filterToQuery={buildNameSearchFilter}
       />
-    </ReferenceInput>
-    <ReferenceInput source="client_id" reference="clients">
-      <AutocompleteInput
-        label="Cliente"
-        optionText="name"
+      <SelectInput
+        source="expense_type"
+        label="Tipo"
+        choices={expenseTypeChoices}
+        optionText={(choice: { id: string; name: string }) => (
+          <span title={expenseTypeDescriptions[choice.id]}>{choice.name}</span>
+        )}
+        validate={required()}
         helperText={false}
-        filterToQuery={buildNameSearchFilter}
       />
-    </ReferenceInput>
-    <ReferenceInput source="supplier_id" reference="suppliers">
-      <AutocompleteInput
-        label="Fornitore"
-        optionText="name"
-        helperText={false}
-        filterToQuery={buildNameSearchFilter}
-      />
-    </ReferenceInput>
-  </div>
-);
+      <ReferenceInput source="project_id" reference="projects">
+        <AutocompleteInput
+          label="Progetto"
+          optionText="name"
+          helperText={false}
+          filterToQuery={buildNameSearchFilter}
+        />
+      </ReferenceInput>
+      <ReferenceInput source="client_id" reference="clients">
+        <AutocompleteInput
+          label="Cliente"
+          optionText="name"
+          helperText={false}
+          filterToQuery={buildNameSearchFilter}
+        />
+      </ReferenceInput>
+      <ReferenceInput source="supplier_id" reference="suppliers">
+        <AutocompleteInput
+          label="Fornitore"
+          optionText="name"
+          helperText={false}
+          filterToQuery={buildNameSearchFilter}
+        />
+      </ReferenceInput>
+    </div>
+  );
+};
 
 const ExpenseAmountInputs = () => {
   const expenseType = useWatch({ name: "expense_type" });

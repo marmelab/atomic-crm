@@ -301,6 +301,7 @@ export type Supplier = {
   billing_country?: string;
   billing_sdi_code?: string;
   billing_pec?: string;
+  default_expense_type?: string | null;
   notes?: string;
   created_at: string;
   updated_at: string;

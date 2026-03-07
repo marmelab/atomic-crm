@@ -15,6 +15,7 @@ Stato del documento:
 
 ## Changelog
 
+- 2026-03-07: Suppliers `default_expense_type` — auto-fills expense type when selecting a supplier in expense form (credito_ricevuto excluded)
 - 2026-03-07: Suppliers list filters (desktop sidebar always visible + mobile sheet): name, email, VAT, fiscal code, city
 - 2026-03-07: Fix column preferences 406 — use maybeSingle() instead of single() for settings query
 - 2026-03-07: Desktop Header and mobile Altro menu now driven by moduleRegistry (iconColor field); no more hardcoded HEADER_ITEMS
