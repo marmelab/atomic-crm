@@ -1,6 +1,7 @@
 import { useFormContext, useWatch } from "react-hook-form";
-import { Upload, ImageIcon } from "lucide-react";
+import { Upload, ImageIcon, Eraser } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { CLOUDINARY_CLOUD_NAME } from "@/lib/cloudinary/cloudinaryConfig";
 import { useCloudinaryUpload } from "@/hooks/useCloudinaryUpload";
 import { useCloudinaryMediaLibrary } from "@/hooks/useCloudinaryMediaLibrary";
 import { CloudinaryImageField } from "./CloudinaryImageField";
@@ -59,6 +60,18 @@ export function CloudinaryUploadInput({
     setValue(source, null, { shouldDirty: true, shouldValidate: true });
   };
 
+  const canRemoveBg =
+    mode === "avatar" &&
+    currentUrl &&
+    currentUrl.includes(`res.cloudinary.com/${CLOUDINARY_CLOUD_NAME}`) &&
+    !currentUrl.includes("e_background_removal");
+
+  const handleRemoveBg = () => {
+    if (!currentUrl) return;
+    const newUrl = currentUrl.replace("/upload/", "/upload/e_background_removal/");
+    setValue(source, newUrl, { shouldDirty: true, shouldValidate: true });
+  };
+
   return (
     <div className="space-y-2">
       <label className="text-sm font-medium text-muted-foreground">
@@ -72,6 +85,17 @@ export function CloudinaryUploadInput({
             mode={mode}
             onRemove={handleRemove}
           />
+          {canRemoveBg && (
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={handleRemoveBg}
+            >
+              <Eraser className="mr-1.5 size-3.5" />
+              Rimuovi sfondo
+            </Button>
+          )}
         </div>
       ) : (
         <div className="flex gap-2">
