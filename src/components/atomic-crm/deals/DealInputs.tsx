@@ -1,4 +1,4 @@
-import { required } from "ra-core";
+import { required, useTranslate } from "ra-core";
 import { AutocompleteArrayInput } from "@/components/admin/autocomplete-array-input";
 import { ReferenceArrayInput } from "@/components/admin/reference-array-input";
 import { ReferenceInput } from "@/components/admin/reference-input";
@@ -33,26 +33,38 @@ const DealInfoInputs = () => {
     <div className="flex flex-col gap-4 flex-1">
       <TextInput
         source="name"
-        label="Deal name"
+        label="resources.deals.fields.name"
         validate={required()}
         helperText={false}
       />
-      <TextInput source="description" multiline rows={3} helperText={false} />
+      <TextInput
+        source="description"
+        label="resources.deals.fields.description"
+        multiline
+        rows={3}
+        helperText={false}
+      />
     </div>
   );
 };
 
 const DealLinkedToInputs = () => {
+  const translate = useTranslate();
   return (
     <div className="flex flex-col gap-4 flex-1">
-      <h3 className="text-base font-medium">Linked to</h3>
+      <h3 className="text-base font-medium">
+        {translate("crm.deals.inputs.linked_to", { _: "Linked to" })}
+      </h3>
       <ReferenceInput source="company_id" reference="companies">
-        <AutocompleteCompanyInput validate={required()} />
+        <AutocompleteCompanyInput
+          label="resources.deals.fields.company_id"
+          validate={required()}
+        />
       </ReferenceInput>
 
       <ReferenceArrayInput source="contact_ids" reference="contacts_summary">
         <AutocompleteArrayInput
-          label="Contacts"
+          label="resources.deals.fields.contact_ids"
           optionText={contactOptionText}
           helperText={false}
         />
@@ -63,13 +75,16 @@ const DealLinkedToInputs = () => {
 
 const DealMiscInputs = () => {
   const { dealStages, dealCategories } = useConfigurationContext();
+  const translate = useTranslate();
   return (
     <div className="flex flex-col gap-4 flex-1">
-      <h3 className="text-base font-medium">Misc</h3>
+      <h3 className="text-base font-medium">
+        {translate("crm.common.misc", { _: "Misc" })}
+      </h3>
 
       <SelectInput
         source="category"
-        label="Category"
+        label="resources.deals.fields.category"
         choices={dealCategories}
         optionText="label"
         optionValue="value"
@@ -77,6 +92,7 @@ const DealMiscInputs = () => {
       />
       <NumberInput
         source="amount"
+        label="resources.deals.fields.amount"
         defaultValue={0}
         helperText={false}
         validate={required()}
@@ -84,11 +100,13 @@ const DealMiscInputs = () => {
       <DateInput
         validate={required()}
         source="expected_closing_date"
+        label="resources.deals.fields.expected_closing_date"
         helperText={false}
         defaultValue={new Date().toISOString().split("T")[0]}
       />
       <SelectInput
         source="stage"
+        label="resources.deals.fields.stage"
         choices={dealStages}
         optionText="label"
         optionValue="value"

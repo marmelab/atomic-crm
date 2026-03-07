@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useFormContext } from "react-hook-form";
+import { required, useTranslate } from "ra-core";
 import { TextInput } from "@/components/admin/text-input";
 import { FileInput } from "@/components/admin/file-input";
 import { SelectInput } from "@/components/admin/select-input";
@@ -13,7 +14,6 @@ import { getCurrentDate } from "./utils";
 import { AttachmentField } from "./AttachmentField";
 import { foreignKeyMapping } from "./foreignKeyMapping";
 import { AutocompleteInput, ReferenceInput } from "@/components/admin";
-import { required } from "ra-core";
 import { contactOptionText } from "../misc/ContactOption";
 import { useIsMobile } from "@/hooks/use-mobile";
 
@@ -29,6 +29,7 @@ export const NoteInputs = ({
   const isMobile = useIsMobile();
   const { noteStatuses } = useConfigurationContext();
   const { setValue } = useFormContext();
+  const translate = useTranslate();
   const [displayMore, setDisplayMore] = useState(false);
 
   return (
@@ -38,7 +39,9 @@ export const NoteInputs = ({
         label={false}
         multiline
         helperText={false}
-        placeholder="Add a note"
+        placeholder={translate("crm.notes.inputs.add_note", {
+          _: "Add a note",
+        })}
         rows={6}
       />
 
@@ -48,7 +51,15 @@ export const NoteInputs = ({
           reference={reference}
         >
           <AutocompleteInput
-            label={reference === "contacts" ? "Contact" : "Deal"}
+            label={
+              reference === "contacts"
+                ? translate("resources.notes.fields.contact_id", {
+                    _: "Contact",
+                  })
+                : translate("resources.notes.fields.deal_id", {
+                    _: "Deal",
+                  })
+            }
             optionText={
               reference === "contacts" ? contactOptionText : undefined
             }
@@ -70,10 +81,14 @@ export const NoteInputs = ({
             }}
             className="text-sm text-muted-foreground underline hover:no-underline p-0 h-auto cursor-pointer"
           >
-            Show options
+            {translate("crm.notes.inputs.show_options", {
+              _: "Show options",
+            })}
           </Button>
           <span className="text-sm text-muted-foreground">
-            (attach files, or change details)
+            {translate("crm.notes.inputs.options_hint", {
+              _: "(attach files, or change details)",
+            })}
           </span>
         </div>
       )}
@@ -89,6 +104,7 @@ export const NoteInputs = ({
           {showStatus && (
             <SelectInput
               source="status"
+              label="resources.notes.fields.status"
               choices={noteStatuses.map((status) => ({
                 id: status.value,
                 name: status.label,
@@ -101,13 +117,17 @@ export const NoteInputs = ({
           )}
           <DateTimeInput
             source="date"
-            label="Date"
+            label="resources.notes.fields.date"
             helperText={false}
             className="text-primary"
             defaultValue={getCurrentDate()}
           />
         </div>
-        <FileInput source="attachments" multiple>
+        <FileInput
+          source="attachments"
+          label="resources.notes.fields.attachments"
+          multiple
+        >
           <AttachmentField source="src" title="title" target="_blank" />
         </FileInput>
       </div>

@@ -1,4 +1,4 @@
-import { useGetList } from "ra-core";
+import { useGetList, useTranslate } from "ra-core";
 import { matchPath, useLocation, Link } from "react-router";
 import type { ReactNode } from "react";
 import { CreateButton } from "@/components/admin/create-button";
@@ -9,6 +9,7 @@ import type { Contact } from "../types";
 import { DealCreate } from "./DealCreate";
 
 export const DealEmpty = ({ children }: { children?: ReactNode }) => {
+  const translate = useTranslate();
   const location = useLocation();
   const matchCreate = matchPath("/deals/create", location.pathname);
   const appbarHeight = useAppBarHeight();
@@ -30,31 +31,46 @@ export const DealEmpty = ({ children }: { children?: ReactNode }) => {
         height: `calc(100dvh - ${appbarHeight}px)`,
       }}
     >
-      <img src="./img/empty.svg" alt="No deals found" />
+      <img
+        src="./img/empty.svg"
+        alt={translate("crm.deals.empty.title", { _: "No deals found" })}
+      />
       {contacts && contacts.length > 0 ? (
         <>
           <div className="flex flex-col items-center gap-0">
-            <h3 className="text-lg font-bold">No deals found</h3>
+            <h3 className="text-lg font-bold">
+              {translate("crm.deals.empty.title", { _: "No deals found" })}
+            </h3>
             <p className="text-sm text-center text-muted-foreground mb-4">
-              It seems your deal list is empty.
+              {translate("crm.deals.empty.description", {
+                _: "It seems your deal list is empty.",
+              })}
             </p>
           </div>
           <div className="flex space-x-8">
-            <CreateButton label="Create deal" />
+            <CreateButton label="crm.deals.action.create" />
           </div>
           <DealCreate open={!!matchCreate} />
           {children}
         </>
       ) : (
         <div className="flex flex-col items-center gap-0">
-          <h3 className="text-lg font-bold">No deals found</h3>
+          <h3 className="text-lg font-bold">
+            {translate("crm.deals.empty.title", { _: "No deals found" })}
+          </h3>
           <p className="text-sm text-center text-muted-foreground mb-4">
-            It seems your contact list is empty.
+            {translate("crm.contacts.empty.description", {
+              _: "It seems your contact list is empty.",
+            })}
             <br />
             <Link to="/contacts/create" className="hover:underline">
-              Add your first contact
+              {translate("crm.contacts.action.add_first", {
+                _: "Add your first contact",
+              })}
             </Link>{" "}
-            before creating a deal.
+            {translate("crm.deals.empty.before_create", {
+              _: "before creating a deal.",
+            })}
           </p>
         </div>
       )}

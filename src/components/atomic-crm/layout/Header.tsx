@@ -1,5 +1,5 @@
 import { Import, Settings, User, Users } from "lucide-react";
-import { CanAccess, useUserMenu } from "ra-core";
+import { CanAccess, useTranslate, useUserMenu } from "ra-core";
 import { Link, matchPath, useLocation } from "react-router";
 import { RefreshButton } from "@/components/admin/refresh-button";
 import { ThemeModeToggle } from "@/components/admin/theme-mode-toggle";
@@ -12,6 +12,7 @@ import { ImportPage } from "../misc/ImportPage";
 const Header = () => {
   const { darkModeLogo, lightModeLogo, title } = useConfigurationContext();
   const location = useLocation();
+  const translate = useTranslate();
 
   let currentPath: string | boolean = "/";
   if (matchPath("/", location.pathname)) {
@@ -51,22 +52,31 @@ const Header = () => {
               <div>
                 <nav className="flex">
                   <NavigationTab
-                    label="Dashboard"
+                    label={translate("ra.page.dashboard", { _: "Dashboard" })}
                     to="/"
                     isActive={currentPath === "/"}
                   />
                   <NavigationTab
-                    label="Contacts"
+                    label={translate("crm.contacts.name", {
+                      smart_count: 2,
+                      _: "Contacts",
+                    })}
                     to="/contacts"
                     isActive={currentPath === "/contacts"}
                   />
                   <NavigationTab
-                    label="Companies"
+                    label={translate("crm.companies.name", {
+                      smart_count: 2,
+                      _: "Companies",
+                    })}
                     to="/companies"
                     isActive={currentPath === "/companies"}
                   />
                   <NavigationTab
-                    label="Deals"
+                    label={translate("crm.deals.name", {
+                      smart_count: 2,
+                      _: "Deals",
+                    })}
                     to="/deals"
                     isActive={currentPath === "/deals"}
                   />
@@ -116,6 +126,7 @@ const NavigationTab = ({
 );
 
 const UsersMenu = () => {
+  const translate = useTranslate();
   const userMenuContext = useUserMenu();
   if (!userMenuContext) {
     throw new Error("<UsersMenu> must be used inside <UserMenu?");
@@ -123,13 +134,15 @@ const UsersMenu = () => {
   return (
     <DropdownMenuItem asChild onClick={userMenuContext.onClose}>
       <Link to="/sales" className="flex items-center gap-2">
-        <Users /> Users
+        <Users />
+        {translate("crm.sales.name", { smart_count: 2, _: "Users" })}
       </Link>
     </DropdownMenuItem>
   );
 };
 
 const ProfileMenu = () => {
+  const translate = useTranslate();
   const userMenuContext = useUserMenu();
   if (!userMenuContext) {
     throw new Error("<ProfileMenu> must be used inside <UserMenu?");
@@ -138,13 +151,14 @@ const ProfileMenu = () => {
     <DropdownMenuItem asChild onClick={userMenuContext.onClose}>
       <Link to="/profile" className="flex items-center gap-2">
         <User />
-        Profile
+        {translate("crm.profile.title", { _: "Profile" })}
       </Link>
     </DropdownMenuItem>
   );
 };
 
 const SettingsMenu = () => {
+  const translate = useTranslate();
   const userMenuContext = useUserMenu();
   if (!userMenuContext) {
     throw new Error("<SettingsMenu> must be used inside <UserMenu>");
@@ -152,13 +166,15 @@ const SettingsMenu = () => {
   return (
     <DropdownMenuItem asChild onClick={userMenuContext.onClose}>
       <Link to="/settings" className="flex items-center gap-2">
-        <Settings /> Settings
+        <Settings />
+        {translate("crm.settings.title", { _: "Settings" })}
       </Link>
     </DropdownMenuItem>
   );
 };
 
 const ImportFromJsonMenuItem = () => {
+  const translate = useTranslate();
   const userMenuContext = useUserMenu();
   if (!userMenuContext) {
     throw new Error("<ImportFromJsonMenuItem> must be used inside <UserMenu>");
@@ -166,7 +182,8 @@ const ImportFromJsonMenuItem = () => {
   return (
     <DropdownMenuItem asChild onClick={userMenuContext.onClose}>
       <Link to={ImportPage.path} className="flex items-center gap-2">
-        <Import /> Import data
+        <Import />
+        {translate("crm.header.import_data", { _: "Import data" })}
       </Link>
     </DropdownMenuItem>
   );

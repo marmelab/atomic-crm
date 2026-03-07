@@ -1,4 +1,4 @@
-import { useCreate } from "ra-core";
+import { useCreate, useTranslate } from "ra-core";
 
 import type { Tag } from "../types";
 import { TagDialog } from "./TagDialog";
@@ -15,6 +15,7 @@ export function TagCreateModal({
   onSuccess,
 }: TagCreateModalProps) {
   const [create] = useCreate<Tag>();
+  const translate = useTranslate();
 
   const handleCreateTag = async (data: Pick<Tag, "name" | "color">) => {
     await create(
@@ -31,7 +32,9 @@ export function TagCreateModal({
   return (
     <TagDialog
       open={open}
-      title="Create a new tag"
+      title={translate("crm.tags.dialog.create_title", {
+        _: "Create a new tag",
+      })}
       onClose={onClose}
       onSubmit={handleCreateTag}
     />

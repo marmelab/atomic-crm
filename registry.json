@@ -134,6 +134,10 @@
           "type": "registry:component"
         },
         {
+          "path": "src/components/atomic-crm/settings/validateItemsInUse.ts",
+          "type": "registry:component"
+        },
+        {
           "path": "src/components/atomic-crm/settings/SettingsPage.tsx",
           "type": "registry:component"
         },
@@ -171,6 +175,14 @@
         },
         {
           "path": "src/components/atomic-crm/root/i18nProvider.tsx",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/root/frenchCrmMessages.ts",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/root/englishCrmMessages.ts",
           "type": "registry:component"
         },
         {
@@ -303,10 +315,6 @@
         },
         {
           "path": "src/components/atomic-crm/providers/commons/canAccess.ts",
-          "type": "registry:component"
-        },
-        {
-          "path": "src/components/atomic-crm/providers/commons/attachments.ts",
           "type": "registry:component"
         },
         {
@@ -626,6 +634,14 @@
           "type": "registry:component"
         },
         {
+          "path": "src/components/atomic-crm/contacts/getTranslatedPersonalInfoTypeLabel.ts",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/contacts/getTranslatedContactGenderLabel.ts",
+          "type": "registry:component"
+        },
+        {
           "path": "src/components/atomic-crm/contacts/exportToVCard.ts",
           "type": "registry:component"
         },
@@ -719,6 +735,10 @@
         },
         {
           "path": "src/components/atomic-crm/companies/index.ts",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/companies/getTranslatedCompanySizeLabel.ts",
           "type": "registry:component"
         },
         {

@@ -1,14 +1,16 @@
-import { useCreate, useGetIdentity, useNotify } from "ra-core";
+import { useCreate, useGetIdentity, useNotify, useTranslate } from "ra-core";
 import { AutocompleteInput } from "@/components/admin/autocomplete-input";
 import type { InputProps } from "ra-core";
 import { useIsMobile } from "@/hooks/use-mobile";
 
 export const AutocompleteCompanyInput = ({
   validate,
-}: Pick<InputProps, "validate">) => {
+  label,
+}: Pick<InputProps, "validate" | "label">) => {
   const [create] = useCreate();
   const { identity } = useGetIdentity();
   const notify = useNotify();
+  const translate = useTranslate();
   const handleCreateCompany = async (name?: string) => {
     if (!name) return;
     try {
@@ -25,8 +27,11 @@ export const AutocompleteCompanyInput = ({
       );
       return newCompany;
     } catch {
-      notify("An error occurred while creating the company", {
+      notify("crm.companies.autocomplete.create_error", {
         type: "error",
+        messageArgs: {
+          _: "An error occurred while creating the company",
+        },
       });
     }
   };
@@ -34,11 +39,16 @@ export const AutocompleteCompanyInput = ({
 
   return (
     <AutocompleteInput
+      label={label}
       optionText="name"
       helperText={false}
       onCreate={handleCreateCompany}
-      createItemLabel="Create %{item}"
-      createLabel="Start typing to create a new company"
+      createItemLabel={translate("crm.companies.autocomplete.create_item", {
+        _: "Create %{item}",
+      })}
+      createLabel={translate("crm.companies.autocomplete.create_label", {
+        _: "Start typing to create a new company",
+      })}
       validate={validate}
       modal={isMobile}
     />

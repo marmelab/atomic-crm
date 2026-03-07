@@ -1,4 +1,4 @@
-import { useGetIdentity, useListContext } from "ra-core";
+import { useGetIdentity, useListContext, useTranslate } from "ra-core";
 import { matchPath, useLocation } from "react-router";
 import { AutocompleteInput } from "@/components/admin/autocomplete-input";
 import { CreateButton } from "@/components/admin/create-button";
@@ -18,25 +18,40 @@ import { DealEmpty } from "./DealEmpty";
 import { DealListContent } from "./DealListContent";
 import { DealShow } from "./DealShow";
 import { OnlyMineInput } from "./OnlyMineInput";
+import { WrapperField } from "@/components/admin/wrapper-field";
 
 const DealList = () => {
   const { identity } = useGetIdentity();
   const { dealCategories } = useConfigurationContext();
+  const translate = useTranslate();
 
   if (!identity) return null;
 
   const dealFilters = [
     <SearchInput source="q" alwaysOn />,
     <ReferenceInput source="company_id" reference="companies">
-      <AutocompleteInput label={false} placeholder="Company" />
+      <AutocompleteInput
+        label={false}
+        placeholder={translate("crm.deals.filters.company", { _: "Company" })}
+      />
     </ReferenceInput>,
-    <SelectInput
+    <WrapperField
       source="category"
-      emptyText="Category"
-      choices={dealCategories}
-      optionText="label"
-      optionValue="value"
-    />,
+      label={translate("resources.deals.fields.category", {
+        _: "Category",
+      })}
+    >
+      <SelectInput
+        source="category"
+        label={false}
+        emptyText={translate("resources.deals.fields.category", {
+          _: "Category",
+        })}
+        choices={dealCategories}
+        optionText="label"
+        optionValue="value"
+      />
+    </WrapperField>,
     <OnlyMineInput source="sales_id" alwaysOn />,
   ];
 
@@ -90,7 +105,7 @@ const DealActions = () => (
   <TopToolbar>
     <FilterButton />
     <ExportButton />
-    <CreateButton label="New Deal" />
+    <CreateButton label="crm.deals.action.new" />
   </TopToolbar>
 );
 

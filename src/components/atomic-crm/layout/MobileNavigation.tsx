@@ -19,9 +19,16 @@ import {
   Settings,
   Smartphone,
   Sun,
+  User,
   Users,
 } from "lucide-react";
-import { Translate, useAuthProvider, useGetIdentity, useLogout } from "ra-core";
+import {
+  Translate,
+  useAuthProvider,
+  useGetIdentity,
+  useLogout,
+  useTranslate,
+} from "ra-core";
 import { Link, matchPath, useLocation, useMatch } from "react-router";
 import { ContactCreateSheet } from "../contacts/ContactCreateSheet";
 import { useState } from "react";
@@ -30,6 +37,7 @@ import { TaskCreateSheet } from "../tasks/TaskCreateSheet";
 
 export const MobileNavigation = () => {
   const location = useLocation();
+  const translate = useTranslate();
 
   let currentPath: string | boolean = "/";
   if (matchPath("/", location.pathname)) {
@@ -53,7 +61,7 @@ export const MobileNavigation = () => {
 
   return (
     <nav
-      aria-label="CRM navigation"
+      aria-label={translate("crm.navigation.label", { _: "CRM navigation" })}
       className="fixed bottom-0 left-0 right-0 z-50 bg-secondary h-14"
       style={{
         // iOS bug: even though viewport is set correctly, the bottom safe area inset is not accounted for
@@ -70,20 +78,26 @@ export const MobileNavigation = () => {
           <NavigationButton
             href="/"
             Icon={Home}
-            label="Home"
+            label={translate("ra.page.dashboard", { _: "Home" })}
             isActive={currentPath === "/"}
           />
           <NavigationButton
             href="/contacts"
             Icon={Users}
-            label="Contacts"
+            label={translate("crm.contacts.name", {
+              smart_count: 2,
+              _: "Contacts",
+            })}
             isActive={currentPath === "/contacts"}
           />
           <CreateButton />
           <NavigationButton
             href="/tasks"
             Icon={ListTodo}
-            label="Tasks"
+            label={translate("crm.tasks.name", {
+              smart_count: 2,
+              _: "Tasks",
+            })}
             isActive={currentPath === "/tasks"}
           />
           <SettingsButton />
@@ -120,6 +134,7 @@ const NavigationButton = ({
 );
 
 const CreateButton = () => {
+  const translate = useTranslate();
   const contact_id = useMatch("/contacts/:id/*")?.params.id;
   const [contactCreateOpen, setContactCreateOpen] = useState(false);
   const [noteCreateOpen, setNoteCreateOpen] = useState(false);
@@ -147,7 +162,7 @@ const CreateButton = () => {
             variant="default"
             size="icon"
             className="h-16 w-16 rounded-full -mt-3"
-            aria-label="Create"
+            aria-label={translate("ra.action.create", { _: "Create" })}
           >
             <Plus className="size-10" />
           </Button>
@@ -159,7 +174,7 @@ const CreateButton = () => {
               setContactCreateOpen(true);
             }}
           >
-            Contact
+            {translate("crm.contacts.forcedCaseName", { _: "Contact" })}
           </DropdownMenuItem>
           <DropdownMenuItem
             className="h-12 px-4 text-base"
@@ -167,7 +182,7 @@ const CreateButton = () => {
               setNoteCreateOpen(true);
             }}
           >
-            Note
+            {translate("crm.notes.forcedCaseName", { _: "Note" })}
           </DropdownMenuItem>
           <DropdownMenuItem
             className="h-12 px-4 text-base"
@@ -175,7 +190,7 @@ const CreateButton = () => {
               setTaskCreateOpen(true);
             }}
           >
-            Task
+            {translate("crm.tasks.forcedCaseName", { _: "Task" })}
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
@@ -184,6 +199,7 @@ const CreateButton = () => {
 };
 
 const SettingsButton = () => {
+  const translate = useTranslate();
   const authProvider = useAuthProvider();
   const { data: identity } = useGetIdentity();
   const logout = useLogout();
@@ -196,7 +212,9 @@ const SettingsButton = () => {
           className="flex-col gap-1 h-auto py-2 px-1 rounded-md w-16 text-muted-foreground"
         >
           <Settings className="size-6" />
-          <span className="text-[0.6rem] font-medium">Settings</span>
+          <span className="text-[0.6rem] font-medium">
+            {translate("crm.settings.title", { _: "Settings" })}
+          </span>
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent>
@@ -207,6 +225,16 @@ const SettingsButton = () => {
             </p>
           </div>
         </DropdownMenuLabel>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem
+          asChild
+          className="cursor-pointer h-12 px-4 text-base"
+        >
+          <Link to="/profile" className="flex items-center gap-2">
+            <User />
+            {translate("crm.profile.title", { _: "Profile" })}
+          </Link>
+        </DropdownMenuItem>
         <DropdownMenuSeparator />
         <ThemeMenu />
         <DropdownMenuSeparator />
@@ -223,6 +251,7 @@ const SettingsButton = () => {
 };
 
 const ThemeMenu = () => {
+  const translate = useTranslate();
   const { theme, setTheme } = useTheme();
   return (
     <div className="px-3 py-2">
@@ -238,23 +267,33 @@ const ThemeMenu = () => {
       >
         <ToggleGroupItem
           value="system"
-          aria-label="System theme"
+          aria-label={translate("crm.theme.system", { _: "System theme" })}
           className="px-3"
         >
           <Smartphone className="size-5 mx-2" />
-          <span className="sr-only">System</span>
+          <span className="sr-only">
+            {translate("crm.theme.system_short", { _: "System" })}
+          </span>
         </ToggleGroupItem>
         <ToggleGroupItem
           value="light"
-          aria-label="Light theme"
+          aria-label={translate("crm.theme.light", { _: "Light theme" })}
           className="px-3"
         >
           <Sun className="size-5 mx-2" />
-          <span className="sr-only">Light</span>
+          <span className="sr-only">
+            {translate("crm.theme.light_short", { _: "Light" })}
+          </span>
         </ToggleGroupItem>
-        <ToggleGroupItem value="dark" aria-label="Dark theme" className="px-3">
+        <ToggleGroupItem
+          value="dark"
+          aria-label={translate("crm.theme.dark", { _: "Dark theme" })}
+          className="px-3"
+        >
           <Moon className="size-5 mx-2" />
-          <span className="sr-only">Dark</span>
+          <span className="sr-only">
+            {translate("crm.theme.dark_short", { _: "Dark" })}
+          </span>
         </ToggleGroupItem>
       </ToggleGroup>
     </div>

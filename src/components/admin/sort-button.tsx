@@ -62,6 +62,35 @@ const SortButtonComponent = (props: SortButtonProps) => {
   const isMobile = useIsMobile();
   const [open, setOpen] = React.useState(false);
 
+  const getFieldLabel = React.useCallback(
+    (field: string) => {
+      if (resource) {
+        const resourceCandidates = [resource];
+        if (resource.endsWith("_summary")) {
+          resourceCandidates.push(resource.replace(/_summary$/, ""));
+        }
+
+        for (const resourceName of resourceCandidates) {
+          const fieldLabel = translate(`crm.${resourceName}.fields.${field}`, {
+            _: "",
+          });
+          if (fieldLabel) return fieldLabel;
+
+          const inputLabel = translate(`crm.${resourceName}.inputs.${field}`, {
+            _: "",
+          });
+          if (inputLabel) return inputLabel;
+        }
+      }
+
+      return translateLabel({
+        resource,
+        source: field,
+      });
+    },
+    [resource, translate, translateLabel],
+  );
+
   const handleChangeSort = (field: string) => {
     setSort({
       field,
@@ -70,10 +99,7 @@ const SortButtonComponent = (props: SortButtonProps) => {
     setOpen(false);
   };
 
-  const fieldLabel = translateLabel({
-    resource,
-    source: sort.field,
-  });
+  const fieldLabel = getFieldLabel(sort.field);
   const buttonLabel = translate(label, {
     field: fieldLabel,
     field_lower_first:
@@ -118,10 +144,7 @@ const SortButtonComponent = (props: SortButtonProps) => {
       <DropdownMenuContent align="start">
         {fields.map((field) => (
           <DropdownMenuItem key={field} onClick={() => handleChangeSort(field)}>
-            {translateLabel({
-              resource,
-              source: field,
-            })}{" "}
+            {getFieldLabel(field)}{" "}
             {translate(
               `ra.sort.${
                 sort.field === field ? inverseOrder(sort.order) : "ASC"

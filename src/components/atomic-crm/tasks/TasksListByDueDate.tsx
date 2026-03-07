@@ -4,6 +4,7 @@ import {
   useGetIdentity,
   useGetList,
   useTimeout,
+  useTranslate,
 } from "ra-core";
 import { useIsMobile } from "@/hooks/use-mobile";
 
@@ -30,6 +31,7 @@ export const TasksListByDueDate = ({
 }) => {
   const { identity } = useGetIdentity();
   const isMobile = useIsMobile();
+  const translate = useTranslate();
 
   const { data: tasks, isPending } = useGetList(
     "tasks",
@@ -101,33 +103,33 @@ export const TasksListByDueDate = ({
     <div className="flex flex-col gap-4">
       <TaskListFilter
         tasks={overdueTasks}
-        title="Overdue"
+        title={translate("crm.tasks.filters.overdue", { _: "Overdue" })}
         showContact={showContact}
         isMobile={isMobile}
       />
       <TaskListFilter
         tasks={dueTodayTasks}
-        title="Today"
+        title={translate("crm.tasks.filters.today", { _: "Today" })}
         showContact={showContact}
         isMobile={isMobile}
       />
       <TaskListFilter
         tasks={dueTomorrowTasks}
-        title="Tomorrow"
+        title={translate("crm.tasks.filters.tomorrow", { _: "Tomorrow" })}
         showContact={showContact}
         isMobile={isMobile}
       />
       {(!filterByContact || (filterByContact && isBeforeFriday())) && (
         <TaskListFilter
           tasks={dueThisWeekTasks}
-          title="This week"
+          title={translate("crm.tasks.filters.this_week", { _: "This week" })}
           showContact={showContact}
           isMobile={isMobile}
         />
       )}
       <TaskListFilter
         tasks={dueLaterTasks}
-        title="Later"
+        title={translate("crm.tasks.filters.later", { _: "Later" })}
         showContact={showContact}
         isMobile={isMobile}
       />

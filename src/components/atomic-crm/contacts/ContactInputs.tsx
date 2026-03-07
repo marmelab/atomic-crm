@@ -1,4 +1,4 @@
-import { email, required } from "ra-core";
+import { email, required, useTranslate } from "ra-core";
 import type { FocusEvent, ClipboardEventHandler } from "react";
 import { useFormContext } from "react-hook-form";
 import { Separator } from "@/components/ui/separator";
@@ -16,6 +16,8 @@ import { contactGender } from "./contactGender";
 import type { Sale } from "../types";
 import { Avatar } from "./Avatar";
 import { AutocompleteCompanyInput } from "../companies/AutocompleteCompanyInput.tsx";
+import { getTranslatedContactGenderLabel } from "./getTranslatedContactGenderLabel";
+import { getTranslatedPersonalInfoTypeLabel } from "./getTranslatedPersonalInfoTypeLabel";
 
 export const ContactInputs = () => {
   const isMobile = useIsMobile();
@@ -43,39 +45,77 @@ export const ContactInputs = () => {
 };
 
 const ContactIdentityInputs = () => {
+  const translate = useTranslate();
   return (
     <div className="flex flex-col gap-4">
-      <h6 className="text-lg font-semibold">Identity</h6>
+      <h6 className="text-lg font-semibold">
+        {translate("crm.contacts.inputs.identity", { _: "Identity" })}
+      </h6>
       <RadioButtonGroupInput
         label={false}
         row
         source="gender"
         choices={contactGender}
         helperText={false}
-        optionText="label"
+        optionText={(choice) =>
+          getTranslatedContactGenderLabel(choice, translate)
+        }
+        translateChoice={false}
         optionValue="value"
         defaultValue={contactGender[0].value}
       />
-      <TextInput source="first_name" validate={required()} helperText={false} />
-      <TextInput source="last_name" validate={required()} helperText={false} />
+      <TextInput
+        source="first_name"
+        label="resources.contacts.fields.first_name"
+        validate={required()}
+        helperText={false}
+      />
+      <TextInput
+        source="last_name"
+        label="resources.contacts.fields.last_name"
+        validate={required()}
+        helperText={false}
+      />
     </div>
   );
 };
 
 const ContactPositionInputs = () => {
+  const translate = useTranslate();
   return (
     <div className="flex flex-col gap-4">
-      <h6 className="text-lg font-semibold">Position</h6>
-      <TextInput source="title" helperText={false} />
+      <h6 className="text-lg font-semibold">
+        {translate("crm.contacts.inputs.position", { _: "Position" })}
+      </h6>
+      <TextInput
+        source="title"
+        label="resources.contacts.fields.title"
+        helperText={false}
+      />
       <ReferenceInput source="company_id" reference="companies" perPage={10}>
-        <AutocompleteCompanyInput />
+        <AutocompleteCompanyInput label="resources.contacts.fields.company_id" />
       </ReferenceInput>
     </div>
   );
 };
 
 const ContactPersonalInformationInputs = () => {
+  const translate = useTranslate();
   const { getValues, setValue } = useFormContext();
+  const personalInfoTypes = [
+    {
+      id: "Work",
+      name: getTranslatedPersonalInfoTypeLabel("Work", translate),
+    },
+    {
+      id: "Home",
+      name: getTranslatedPersonalInfoTypeLabel("Home", translate),
+    },
+    {
+      id: "Other",
+      name: getTranslatedPersonalInfoTypeLabel("Other", translate),
+    },
+  ];
 
   // set first and last name based on email
   const handleEmailChange = (email: string) => {
@@ -105,10 +145,12 @@ const ContactPersonalInformationInputs = () => {
 
   return (
     <div className="flex flex-col gap-4">
-      <h6 className="text-lg font-semibold">Personal info</h6>
+      <h6 className="text-lg font-semibold">
+        {translate("crm.contacts.inputs.personal_info", { _: "Personal info" })}
+      </h6>
       <ArrayInput
         source="email_jsonb"
-        label="Email addresses"
+        label="resources.contacts.fields.email_jsonb"
         helperText={false}
       >
         <SimpleFormIterator
@@ -122,7 +164,9 @@ const ContactPersonalInformationInputs = () => {
             className="w-full"
             helperText={false}
             label={false}
-            placeholder="Email"
+            placeholder={translate("resources.contacts.fields.email", {
+              _: "Email",
+            })}
             validate={email()}
             onPaste={handleEmailPaste}
             onBlur={handleEmailBlur}
@@ -131,14 +175,18 @@ const ContactPersonalInformationInputs = () => {
             source="type"
             helperText={false}
             label={false}
-            optionText="id"
+            optionText="name"
             choices={personalInfoTypes}
             defaultValue="Work"
             className="w-24 min-w-24"
           />
         </SimpleFormIterator>
       </ArrayInput>
-      <ArrayInput source="phone_jsonb" label="Phone numbers" helperText={false}>
+      <ArrayInput
+        source="phone_jsonb"
+        label="resources.contacts.fields.phone_jsonb"
+        helperText={false}
+      >
         <SimpleFormIterator
           inline
           disableReordering
@@ -150,13 +198,15 @@ const ContactPersonalInformationInputs = () => {
             className="w-full"
             helperText={false}
             label={false}
-            placeholder="Phone number"
+            placeholder={translate("resources.contacts.fields.phone_number", {
+              _: "Phone number",
+            })}
           />
           <SelectInput
             source="type"
             helperText={false}
             label={false}
-            optionText="id"
+            optionText="name"
             choices={personalInfoTypes}
             defaultValue="Work"
             className="w-24 min-w-24"
@@ -165,7 +215,7 @@ const ContactPersonalInformationInputs = () => {
       </ArrayInput>
       <TextInput
         source="linkedin_url"
-        label="Linkedin URL"
+        label="resources.contacts.fields.linkedin_url"
         helperText={false}
         validate={isLinkedinUrl}
       />
@@ -173,19 +223,24 @@ const ContactPersonalInformationInputs = () => {
   );
 };
 
-const personalInfoTypes = [{ id: "Work" }, { id: "Home" }, { id: "Other" }];
-
 const ContactMiscInputs = () => {
+  const translate = useTranslate();
   return (
     <div className="flex flex-col gap-4">
-      <h6 className="text-lg font-semibold">Misc</h6>
+      <h6 className="text-lg font-semibold">
+        {translate("crm.common.misc", { _: "Misc" })}
+      </h6>
       <TextInput
         source="background"
-        label="Background info (bio, how you met, etc)"
+        label="resources.contacts.fields.background"
         multiline
         helperText={false}
       />
-      <BooleanInput source="has_newsletter" helperText={false} />
+      <BooleanInput
+        source="has_newsletter"
+        label="resources.contacts.fields.has_newsletter"
+        helperText={false}
+      />
       <ReferenceInput
         reference="sales"
         source="sales_id"
@@ -196,7 +251,7 @@ const ContactMiscInputs = () => {
       >
         <SelectInput
           helperText={false}
-          label="Account manager"
+          label="resources.contacts.fields.sales_id"
           optionText={saleOptionRenderer}
           validate={required()}
         />

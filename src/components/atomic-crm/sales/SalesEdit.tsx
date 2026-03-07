@@ -5,6 +5,7 @@ import {
   useNotify,
   useRecordContext,
   useRedirect,
+  useTranslate,
 } from "ra-core";
 import type { SubmitHandler } from "react-hook-form";
 import { SimpleForm } from "@/components/admin/simple-form";
@@ -31,21 +32,35 @@ export function SalesEdit() {
   const dataProvider = useDataProvider<CrmDataProvider>();
   const notify = useNotify();
   const redirect = useRedirect();
+  const translate = useTranslate();
 
   const { mutate } = useMutation({
     mutationKey: ["signup"],
     mutationFn: async (data: SalesFormData) => {
       if (!record) {
-        throw new Error("Record not found");
+        throw new Error(
+          translate("crm.sales.edit.record_not_found", {
+            _: "Record not found",
+          }),
+        );
       }
       return dataProvider.salesUpdate(record.id, data);
     },
     onSuccess: () => {
       redirect("/sales");
-      notify("User updated successfully");
+      notify("crm.sales.edit.success", {
+        messageArgs: {
+          _: "User updated successfully",
+        },
+      });
     },
     onError: () => {
-      notify("An error occurred. Please try again.");
+      notify("crm.sales.edit.error", {
+        type: "error",
+        messageArgs: {
+          _: "An error occurred. Please try again.",
+        },
+      });
     },
   });
 
@@ -73,10 +88,14 @@ export function SalesEdit() {
 
 const SaleEditTitle = () => {
   const record = useRecordContext<Sale>();
+  const translate = useTranslate();
   if (!record) return null;
   return (
     <h2 className="text-lg font-semibold mb-4">
-      Edit {record?.first_name} {record?.last_name}
+      {translate("crm.sales.edit.title", {
+        name: `${record.first_name} ${record.last_name}`,
+        _: `Edit ${record.first_name} ${record.last_name}`,
+      })}
     </h2>
   );
 };
