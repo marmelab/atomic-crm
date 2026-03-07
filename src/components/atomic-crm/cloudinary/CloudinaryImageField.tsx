@@ -69,6 +69,14 @@ function getOptimizedUrl(url: string, mode: string): string {
     proof: "w_800,q_auto,f_auto",
   };
   const t = transforms[mode] ?? transforms.thumbnail;
+
+  // Find where the version/public_id starts (v followed by digits)
+  const versionMatch = afterUpload.match(/^(.*?)(v\d+\/.*)$/);
+  if (versionMatch) {
+    const [, existingTransforms, rest] = versionMatch;
+    // Chain: existing transforms first (e.g. c_crop), then display transform
+    return `${cloudBase}${existingTransforms}${t}/${rest}`;
+  }
   return `${cloudBase}${t}/${afterUpload}`;
 }
 

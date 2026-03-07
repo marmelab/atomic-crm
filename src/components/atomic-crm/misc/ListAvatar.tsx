@@ -49,5 +49,13 @@ function getAvatarUrl(url: string): string {
   const cloudBase = `https://res.cloudinary.com/${CLOUDINARY_CLOUD_NAME}/image/upload/`;
   if (!url.includes(cloudBase)) return url;
   const afterUpload = url.split("/upload/").slice(1).join("/upload/");
-  return `${cloudBase}w_80,h_80,c_fill,g_auto,r_8,q_auto,f_auto/${afterUpload}`;
+  const displayTransform = "w_80,h_80,c_fill,g_auto,r_8,q_auto,f_auto";
+
+  // Preserve existing transforms (e.g. c_crop) before the display transform
+  const versionMatch = afterUpload.match(/^(.*?)(v\d+\/.*)$/);
+  if (versionMatch) {
+    const [, existingTransforms, rest] = versionMatch;
+    return `${cloudBase}${existingTransforms}${displayTransform}/${rest}`;
+  }
+  return `${cloudBase}${displayTransform}/${afterUpload}`;
 }
