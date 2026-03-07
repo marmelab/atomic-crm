@@ -350,6 +350,13 @@ export const buildCrmSemanticRegistry = (
           meaning:
             "URL Cloudinary della ricevuta o documento associato alla spesa registrata.",
         },
+        {
+          resource: "suppliers",
+          field: "logo_url",
+          label: "Logo fornitore",
+          meaning:
+            "URL Cloudinary del logo o immagine del fornitore, visibile nella scheda fornitore come avatar.",
+        },
       ],
       dates: [
         {

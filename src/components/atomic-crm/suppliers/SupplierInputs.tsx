@@ -1,6 +1,7 @@
 import { required } from "ra-core";
 import { SelectInput } from "@/components/admin/select-input";
 import { TextInput } from "@/components/admin/text-input";
+import { CloudinaryUploadInput } from "../cloudinary/CloudinaryUploadInput";
 
 const supplierExpenseTypeChoices = [
   { id: "spostamento_km", name: "Spostamento Km" },
@@ -14,6 +15,13 @@ const supplierExpenseTypeChoices = [
 
 export const SupplierInputs = () => (
   <div className="flex flex-col gap-6 p-1">
+    <CloudinaryUploadInput
+      source="logo_url"
+      label="Logo fornitore"
+      folder="crm/suppliers"
+      mode="avatar"
+    />
+
     <div className="grid gap-6 md:grid-cols-2">
       <div className="space-y-4">
         <h3 className="text-lg font-semibold">Anagrafica</h3>

@@ -4,6 +4,7 @@ import { Separator } from "@/components/ui/separator";
 import { EditButton } from "@/components/admin/edit-button";
 import { DeleteButton } from "@/components/admin/delete-button";
 import { Building2, Mail, Phone, FileText, Receipt, Tag } from "lucide-react";
+import { CloudinaryImageField } from "../cloudinary/CloudinaryImageField";
 import { Link } from "react-router";
 import { useIsMobile } from "@/hooks/use-mobile";
 
@@ -42,13 +43,22 @@ const SupplierShowContent = () => {
       <Card>
         <CardContent>
           <div className="flex flex-col gap-3">
-            <div>
+            <div className="flex items-center gap-3">
+              {record.logo_url && (
+                <CloudinaryImageField
+                  url={record.logo_url}
+                  alt={record.name}
+                  mode="avatar"
+                />
+              )}
+              <div>
               <h2 className="text-xl md:text-2xl font-bold">{record.name}</h2>
               {record.vat_number && (
                 <p className="text-sm text-muted-foreground mt-1">
                   P.IVA: {record.vat_number}
                 </p>
               )}
+              </div>
             </div>
             <TagsListEdit resource="suppliers" />
             <div className="flex flex-wrap gap-2">

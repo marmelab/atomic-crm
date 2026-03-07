@@ -14,7 +14,7 @@ Last updated: 2026-03-06
 
 ### Recent Updates (cronologico, più recente in alto)
 
-- [2026-03-08](#update-2026-03-08--cloudinary-module-integration--ai-support) — Cloudinary media fields on Clients, Contacts, Payments, Expenses + AI snapshot
+- [2026-03-08](#update-2026-03-08--cloudinary-module-integration--ai-support) — Cloudinary media fields on Clients, Contacts, Payments, Expenses, Suppliers + AI snapshot
 - [2026-03-07 (b)](#update-2026-03-07-b--cloudinary-media-integration) — Cloudinary media infrastructure (SDK, widgets, hooks, component)
 - [2026-03-07](#update-2026-03-07--bulk-selection--column-visibility) — Bulk selection + column visibility across all CRM lists
 - [2026-03-06 (e)](#update-2026-03-06-e--google-calendar-integration) — Google Calendar sync for services
@@ -142,6 +142,7 @@ Integrazione campi media Cloudinary nei moduli CRM e nel contesto AI.
 
 - `20260307225415_add_media_fields.sql`: aggiunge `logo_url` (clients),
   `photo_url` (contacts), `proof_url` (payments, expenses) — tutti TEXT nullable.
+- `20260307231434_add_logo_url_to_suppliers.sql`: aggiunge `logo_url` (suppliers) — TEXT nullable.
 
 ### Componenti UI creati
 
@@ -156,18 +157,19 @@ Integrazione campi media Cloudinary nei moduli CRM e nel contesto AI.
 | Contacts | `photo_url` | `ContactInputs` | `ContactShow` (header avatar)    | avatar |
 | Payments | `proof_url` | `PaymentInputs` | `PaymentShow` (sezione dedicata) | proof  |
 | Expenses | `proof_url` | `ExpenseInputs` | `ExpenseShow` (sezione dedicata) | proof  |
+| Suppliers| `logo_url`  | `SupplierInputs`| `SupplierShow` (header avatar)   | avatar |
 
 ### AI integration
 
 - `unifiedCrmReadContextTypes.ts`: aggiunto `logoUrl` a recentClients, `photoUrl` a SnapshotContactReference, `proofUrl` a pending/overduePayments e recentExpenses
 - `unifiedCrmReadContext.ts`: snapshot building popola i nuovi campi
-- `crmSemanticRegistry.ts`: field descriptions per `logo_url`, `photo_url`, `proof_url` (clients, contacts, payments, expenses)
+- `crmSemanticRegistry.ts`: field descriptions per `logo_url`, `photo_url`, `proof_url` (clients, contacts, payments, expenses, suppliers)
 - Edge Function `unified_crm_answer`: nessuna modifica necessaria — i campi passano automaticamente nella snapshot
 
 ### Superfici collegate
 
 - `types.ts`: aggiornato con i nuovi campi opzionali
-- Suppliers: NON toccati (nessun campo media richiesto per ora)
+- Suppliers: `logo_url` aggiunto — migration, tipo, form, show, semantic registry
 - Dashboard/Settings: nessun impatto
 
 ---

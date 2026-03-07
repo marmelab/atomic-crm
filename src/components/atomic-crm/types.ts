@@ -307,6 +307,7 @@ export type Supplier = {
   billing_sdi_code?: string;
   billing_pec?: string;
   default_expense_type?: string | null;
+  logo_url?: string | null;
   notes?: string;
   tags: Identifier[];
   created_at: string;
