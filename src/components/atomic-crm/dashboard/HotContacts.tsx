@@ -37,7 +37,7 @@ export const HotContacts = () => {
           <Users className="text-muted-foreground w-6 h-6" />
         </div>
         <h2 className="text-xl font-semibold text-muted-foreground">
-          Hot Contacts
+          Contacts chauds
         </h2>
         <TooltipProvider>
           <Tooltip>
@@ -53,7 +53,7 @@ export const HotContacts = () => {
                 </Link>
               </Button>
             </TooltipTrigger>
-            <TooltipContent>Create contact</TooltipContent>
+            <TooltipContent>Créer un contact</TooltipContent>
           </Tooltip>
         </TooltipProvider>
       </div>
@@ -77,11 +77,11 @@ export const HotContacts = () => {
           empty={
             <div className="p-4">
               <p className="text-sm mb-4">
-                Contacts with a "hot" status will appear here.
+                Les contacts avec le statut &quot;Chaud&quot; apparaissent ici.
               </p>
               <p className="text-sm">
-                Change the status of a contact by adding a note to that contact
-                and clicking on "show options".
+                Changez le statut via &quot;Options avancées&quot; lors de
+                l&apos;ajout d&apos;une note.
               </p>
             </div>
           }

@@ -12,7 +12,7 @@ export const TasksList = () => {
           <CheckSquare className="text-muted-foreground w-6 h-6" />
         </div>
         <h2 className="text-xl font-semibold text-muted-foreground flex-1">
-          Upcoming Tasks
+          Tâches à venir
         </h2>
         <AddTask display="icon" selectContact />
       </div>

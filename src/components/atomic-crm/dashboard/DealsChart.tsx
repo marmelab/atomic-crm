@@ -90,7 +90,7 @@ export const DealsChart = memo(() => {
           <DollarSign className="text-muted-foreground w-6 h-6" />
         </div>
         <h2 className="text-xl font-semibold text-muted-foreground">
-          Upcoming Deal Revenue
+          Revenus prévisionnels
         </h2>
       </div>
       <div className="h-[400px]">
@@ -177,7 +177,7 @@ export const DealsChart = memo(() => {
                 value: 0,
                 lineStyle: { strokeOpacity: 0 },
                 textStyle: { fill: "#2ebca6" },
-                legend: "Won",
+                legend: "Gagné",
                 legendPosition: "top-left",
                 legendOrientation: "vertical",
               },
@@ -189,7 +189,7 @@ export const DealsChart = memo(() => {
                   strokeWidth: 1,
                 },
                 textStyle: { fill: "#e25c3b" },
-                legend: "Lost",
+                legend: "Perdu",
                 legendPosition: "bottom-left",
                 legendOrientation: "vertical",
               },
