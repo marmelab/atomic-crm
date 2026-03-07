@@ -138,7 +138,7 @@ la UI mostra un tipo senza label. Verificare PRIMA di committare.
 
 ## Mandatory Surface Sweep
 
-Quando si modifica un modulo con sweep obbligatorio (`projects`, `services`, `quotes`, `payments`, `expenses`, `tasks`, dashboard, AI), verificare TUTTE queste aree:
+Quando si modifica un modulo con sweep obbligatorio (`projects`, `services`, `quotes`, `payments`, `expenses`, `suppliers`, `tasks`, dashboard, AI), verificare TUTTE queste aree:
 
 1. list/index
 2. create
@@ -187,6 +187,7 @@ The active product surface includes:
 - quotes
 - payments
 - expenses
+- suppliers
 - reminders
 - annual and historical dashboards
 - unified AI chat and document import
@@ -263,6 +264,7 @@ src/
 │   │   ├── contacts/       # Referents linked to clients/projects
 │   │   ├── dashboard/      # Annual and historical dashboards
 │   │   ├── expenses/       # Expenses and km flows
+│   │   ├── suppliers/      # Supplier registry
 │   │   ├── layout/         # App layout components
 │   │   ├── login/          # Authentication pages
 │   │   ├── payments/       # Payment tracking

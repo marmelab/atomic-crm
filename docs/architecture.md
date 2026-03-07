@@ -15,6 +15,9 @@ Stato del documento:
 
 ## Changelog
 
+- 2026-03-07: Contacts can link to suppliers via `supplier_id` FK; SupplierShow shows referents section; ContactShow/ContactInputs support supplier link
+- 2026-03-07: Suppliers `tags bigint[]` column; generic `TagsListEdit` component replaces hardcoded `ClientTagsListEdit`
+- 2026-03-07: Moved Aruba S.p.A. and CAPIZZI FABIO STEFANO from clients to suppliers (data-only, zero dependencies)
 - 2026-03-07: Suppliers `default_expense_type` — auto-fills expense type when selecting a supplier in expense form (credito_ricevuto excluded)
 - 2026-03-07: Suppliers list filters (desktop sidebar always visible + mobile sheet): name, email, VAT, fiscal code, city
 - 2026-03-07: Fix column preferences 406 — use maybeSingle() instead of single() for settings query

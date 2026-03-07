@@ -10,6 +10,8 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import type { Expense, Supplier } from "../types";
 import { ErrorMessage } from "../misc/ErrorMessage";
 import { MobileBackButton } from "../misc/MobileBackButton";
+import { TagsListEdit } from "../tags/TagsListEdit";
+import { SupplierContactsSection } from "../contacts/SupplierContactsSection";
 import { expenseTypeLabels } from "../expenses/expenseTypes";
 
 const eur = (n: number) =>
@@ -47,6 +49,7 @@ const SupplierShowContent = () => {
                 </p>
               )}
             </div>
+            <TagsListEdit resource="suppliers" />
             <div className="flex flex-wrap gap-2">
               <EditButton />
               <DeleteButton redirect="list" />
@@ -133,6 +136,12 @@ const SupplierShowContent = () => {
               </div>
             )}
           </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardContent>
+          <SupplierContactsSection />
         </CardContent>
       </Card>
 

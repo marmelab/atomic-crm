@@ -124,6 +124,10 @@
           "type": "registry:component"
         },
         {
+          "path": "src/components/atomic-crm/tags/TagsListEdit.tsx",
+          "type": "registry:component"
+        },
+        {
           "path": "src/components/atomic-crm/tags/TagEditModal.tsx",
           "type": "registry:component"
         },
@@ -1061,6 +1065,10 @@
         },
         {
           "path": "src/components/atomic-crm/contacts/contactLinking.ts",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/contacts/SupplierContactsSection.tsx",
           "type": "registry:component"
         },
         {

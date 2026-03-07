@@ -47,6 +47,13 @@ export const ContactInputs = () => (
           label="Referente principale per il cliente"
           helperText="Usalo quando questa è la persona di riferimento principale per quel cliente."
         />
+        <ReferenceInput
+          source="supplier_id"
+          reference="suppliers"
+          sort={{ field: "name", order: "ASC" }}
+        >
+          <AutocompleteInput label="Fornitore collegato" optionText="name" />
+        </ReferenceInput>
       </div>
 
       <div className="space-y-4">

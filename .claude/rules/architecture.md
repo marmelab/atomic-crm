@@ -22,6 +22,7 @@ Le resource vive del CRM includono almeno:
 - `quotes`
 - `payments`
 - `expenses`
+- `suppliers`
 - `tasks` / `client_tasks`
 
 Ogni nuova resource deve allinearsi ai pattern locali gia presenti, non ai

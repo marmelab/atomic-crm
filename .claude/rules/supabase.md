@@ -47,6 +47,7 @@ Le tabelle operative principali sono:
 - `quotes`
 - `payments`
 - `expenses`
+- `suppliers`
 - `client_tasks`
 - `client_notes`
 - `settings`

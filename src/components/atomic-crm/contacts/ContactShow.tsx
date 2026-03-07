@@ -41,6 +41,11 @@ const ContactShowContent = () => {
     { id: record?.client_id as string },
     { enabled: !!record?.client_id },
   );
+  const { data: supplier } = useGetOne(
+    "suppliers",
+    { id: record?.supplier_id as string },
+    { enabled: !!record?.supplier_id },
+  );
   const projectLinksQuery = useGetList<ProjectContact>(
     "project_contacts",
     {
@@ -139,6 +144,14 @@ const ContactShowContent = () => {
                   label="Cliente"
                   value={client.name}
                   to={`/clients/${record.client_id}/show`}
+                />
+              ) : null}
+              {supplier ? (
+                <InfoRow
+                  icon={<Building2 className="size-4" />}
+                  label="Fornitore"
+                  value={supplier.name}
+                  to={`/suppliers/${record.supplier_id}/show`}
                 />
               ) : null}
               {roleLabel ? (

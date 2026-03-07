@@ -106,6 +106,7 @@ export type Contact = {
   contact_role?: ContactRole | null;
   is_primary_for_client?: boolean | null;
   client_id?: Identifier | null;
+  supplier_id?: Identifier | null;
   email_jsonb: ContactEmail[];
   phone_jsonb: ContactPhone[];
   linkedin_url?: string | null;
@@ -303,6 +304,7 @@ export type Supplier = {
   billing_pec?: string;
   default_expense_type?: string | null;
   notes?: string;
+  tags: Identifier[];
   created_at: string;
   updated_at: string;
 } & Pick<RaRecord, "id">;
