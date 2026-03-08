@@ -20,43 +20,34 @@ import { getQuoteItemLineTotal, sanitizeQuoteItems } from "./quoteItems";
 
 const LOGO_URL = "/logos/logo_rosario_furnari.png";
 
-// ── Styles ────────────────────────────────────────────────────────
+// ── Palette — Slate & Gold Minimal ────────────────────────────────
 const colors = {
-  primary: "#0f172a", // slate-900 — deep, authoritative
-  accent: "#1e3a5f", // navy — strong, professional impact
-  accentSoft: "#f0f4f8", // light blue-grey tint
-  highlight: "#0d9488", // teal-600 — modern, fresh accent
-  highlightSoft: "#f0fdfa", // teal-50
-  muted: "#64748b", // slate-500
-  light: "#f8fafc", // slate-50
-  white: "#ffffff",
-  border: "#cbd5e1", // slate-300 — slightly more visible
+  ivory: "#F5F2EC", // warm ivory background
+  gold: "#D1B280", // muted gold — accents, lines, totals
+  slate: "#72675A", // warm slate — secondary text, separators
+  charcoal: "#3B3F46", // soft charcoal — primary text
+  heading: "#15181C", // near-black — headings only
+  light: "#EDE9E3", // ivory darker — alt rows
+  white: "#FFFFFF",
 };
 
 const styles = StyleSheet.create({
   page: {
     fontFamily: "Helvetica",
     fontSize: 10,
-    paddingTop: 0,
-    paddingBottom: 60,
-    paddingHorizontal: 0,
-    color: colors.primary,
+    padding: 0,
+    paddingBottom: 56,
+    backgroundColor: colors.white,
+    color: colors.charcoal,
   },
-  // Top accent band
-  topBand: {
-    height: 5,
-    backgroundColor: colors.accent,
-  },
-  content: {
-    paddingHorizontal: 44,
-    paddingTop: 28,
-  },
-  // Header
+  // ── Header ─────────────────────────────────────────────────────
   header: {
+    paddingHorizontal: 48,
+    paddingTop: 40,
+    paddingBottom: 20,
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "flex-start",
-    marginBottom: 28,
   },
   headerLeft: {
     flexDirection: "row",
@@ -64,50 +55,61 @@ const styles = StyleSheet.create({
     gap: 14,
   },
   logo: {
-    width: 52,
-    height: 52,
-    borderRadius: 26,
+    width: 48,
+    height: 48,
+    borderRadius: 24,
   },
   brandName: {
     fontSize: 22,
     fontFamily: "Helvetica-Bold",
-    color: colors.accent,
+    color: colors.heading,
     letterSpacing: 0.5,
   },
   brandTagline: {
-    fontSize: 8,
-    color: colors.highlight,
-    marginTop: 4,
-    letterSpacing: 1.2,
+    fontSize: 7.5,
+    color: colors.slate,
+    marginTop: 3,
+    letterSpacing: 1.5,
     textTransform: "uppercase" as const,
-  },
-  brandDetail: {
-    fontSize: 8,
-    color: colors.muted,
-    marginTop: 1.5,
   },
   headerRight: {
     alignItems: "flex-end" as const,
   },
   quoteLabel: {
-    fontSize: 24,
+    fontSize: 26,
     fontFamily: "Helvetica-Bold",
-    color: colors.accent,
+    color: colors.heading,
     letterSpacing: 1,
   },
   quoteNumber: {
-    fontSize: 9,
-    color: colors.muted,
+    fontSize: 8.5,
+    color: colors.slate,
     textAlign: "right" as const,
     marginTop: 4,
   },
-  // Divider
-  divider: {
-    height: 2,
-    backgroundColor: colors.accent,
-    marginBottom: 24,
+  // ── Gold line ──────────────────────────────────────────────────
+  goldLine: {
+    height: 1.5,
+    backgroundColor: colors.gold,
+    marginHorizontal: 48,
   },
-  // Two-column info
+  // ── Details bar ────────────────────────────────────────────────
+  detailsBar: {
+    paddingVertical: 8,
+    paddingHorizontal: 48,
+  },
+  detailsBarText: {
+    fontSize: 7,
+    color: colors.slate,
+    textAlign: "center" as const,
+    letterSpacing: 0.3,
+  },
+  // ── Content ────────────────────────────────────────────────────
+  content: {
+    paddingHorizontal: 48,
+    paddingTop: 16,
+  },
+  // ── Info columns ───────────────────────────────────────────────
   infoRow: {
     flexDirection: "row",
     justifyContent: "space-between",
@@ -117,75 +119,66 @@ const styles = StyleSheet.create({
     width: "48%",
   },
   infoLabel: {
-    fontSize: 7.5,
+    fontSize: 7,
     fontFamily: "Helvetica-Bold",
-    color: colors.highlight,
+    color: colors.gold,
     textTransform: "uppercase" as const,
     letterSpacing: 1.5,
-    marginBottom: 7,
+    marginBottom: 6,
   },
   infoText: {
     fontSize: 9.5,
     lineHeight: 1.6,
-    color: colors.primary,
+    color: colors.charcoal,
   },
   infoBold: {
     fontSize: 10,
     fontFamily: "Helvetica-Bold",
     lineHeight: 1.6,
-    color: colors.primary,
+    color: colors.heading,
   },
-  // Details table
+  // ── Table ──────────────────────────────────────────────────────
   table: {
-    marginTop: 4,
-    marginBottom: 8,
+    marginBottom: 0,
   },
   tableHeader: {
     flexDirection: "row",
-    backgroundColor: colors.accent,
-    paddingVertical: 10,
-    paddingHorizontal: 12,
-    borderTopLeftRadius: 3,
-    borderTopRightRadius: 3,
+    borderBottomWidth: 1.5,
+    borderBottomColor: colors.gold,
+    paddingBottom: 8,
+    marginBottom: 0,
   },
   tableHeaderText: {
-    color: colors.white,
-    fontSize: 8,
+    color: colors.slate,
+    fontSize: 7.5,
     fontFamily: "Helvetica-Bold",
     textTransform: "uppercase" as const,
-    letterSpacing: 0.8,
+    letterSpacing: 1,
   },
   tableRow: {
     flexDirection: "row",
     paddingVertical: 10,
-    paddingHorizontal: 12,
     borderBottomWidth: 0.5,
-    borderBottomColor: colors.border,
+    borderBottomColor: colors.light,
   },
-  tableRowAlt: {
-    backgroundColor: colors.light,
-  },
+  tableRowAlt: {},
   colDesc: { width: "55%" },
   colType: { width: "25%" },
   colAmount: { width: "20%", textAlign: "right" as const },
-  // Total
-  totalContainer: {
-    marginTop: 4,
-    paddingTop: 14,
-    paddingBottom: 14,
-    paddingHorizontal: 12,
-    backgroundColor: colors.highlightSoft,
-    borderRadius: 4,
-    borderLeftWidth: 4,
-    borderLeftColor: colors.highlight,
+  // ── Total ──────────────────────────────────────────────────────
+  totalRow: {
     flexDirection: "row",
     justifyContent: "flex-end",
     alignItems: "center",
+    marginTop: 4,
+    paddingTop: 12,
+    borderTopWidth: 1.5,
+    borderTopColor: colors.gold,
   },
   totalLabel: {
-    fontSize: 12,
+    fontSize: 11,
     fontFamily: "Helvetica-Bold",
-    color: colors.primary,
+    color: colors.slate,
     textTransform: "uppercase" as const,
     letterSpacing: 1.5,
     marginRight: 20,
@@ -193,22 +186,19 @@ const styles = StyleSheet.create({
   totalAmount: {
     fontSize: 22,
     fontFamily: "Helvetica-Bold",
-    color: colors.accent,
-    letterSpacing: 0.5,
+    color: colors.heading,
   },
-  // Notes section
+  // ── Notes ──────────────────────────────────────────────────────
   notesSection: {
-    marginTop: 24,
-    padding: 14,
-    backgroundColor: colors.accentSoft,
-    borderRadius: 4,
-    borderLeftWidth: 3,
-    borderLeftColor: colors.highlight,
+    marginTop: 28,
+    paddingTop: 12,
+    borderTopWidth: 0.5,
+    borderTopColor: colors.light,
   },
   notesTitle: {
-    fontSize: 8,
+    fontSize: 7,
     fontFamily: "Helvetica-Bold",
-    color: colors.highlight,
+    color: colors.gold,
     textTransform: "uppercase" as const,
     letterSpacing: 1,
     marginBottom: 6,
@@ -216,24 +206,25 @@ const styles = StyleSheet.create({
   notesText: {
     fontSize: 9,
     lineHeight: 1.7,
-    color: colors.primary,
+    color: colors.charcoal,
   },
-  // Footer
+  // ── Footer ─────────────────────────────────────────────────────
   footer: {
     position: "absolute",
-    bottom: 24,
+    bottom: 20,
     left: 0,
     right: 0,
-    paddingHorizontal: 44,
+    paddingHorizontal: 48,
   },
-  footerDivider: {
-    height: 0.5,
-    backgroundColor: colors.border,
+  footerLine: {
+    height: 1,
+    backgroundColor: colors.gold,
     marginBottom: 8,
+    opacity: 0.4,
   },
   footerText: {
     fontSize: 7,
-    color: colors.muted,
+    color: colors.slate,
     textAlign: "center" as const,
     lineHeight: 1.6,
   },
@@ -274,69 +265,51 @@ export const QuotePDFDocument = ({
 }: QuotePDFProps) => {
   const items = sanitizeQuoteItems(quoteItems ?? quote.quote_items);
 
+  const detailsParts = [
+    businessProfile.address,
+    businessProfile.email,
+    businessProfile.phone,
+    businessProfile.vatNumber ? `P.IVA ${businessProfile.vatNumber}` : "",
+    businessProfile.fiscalCode ? `CF ${businessProfile.fiscalCode}` : "",
+    businessProfile.sdiCode ? `SDI ${businessProfile.sdiCode}` : "",
+    businessProfile.iban ? `IBAN ${businessProfile.iban}` : "",
+  ].filter(Boolean);
+
   return (
     <Document>
       <Page size="A4" style={styles.page}>
-        {/* Top accent band */}
-        <View style={styles.topBand} />
-
-        <View style={styles.content}>
-          {/* Header */}
-          <View style={styles.header}>
-            <View style={styles.headerLeft}>
-              <Image style={styles.logo} src={LOGO_URL} />
-              <View>
-                <Text style={styles.brandName}>{businessProfile.name}</Text>
-                <Text style={styles.brandTagline}>
-                  {businessProfile.tagline}
-                </Text>
-                {businessProfile.address && (
-                  <Text style={styles.brandDetail}>
-                    {businessProfile.address}
-                  </Text>
-                )}
-                {businessProfile.email && (
-                  <Text style={styles.brandDetail}>
-                    {businessProfile.email}
-                  </Text>
-                )}
-                {businessProfile.phone && (
-                  <Text style={styles.brandDetail}>
-                    {businessProfile.phone}
-                  </Text>
-                )}
-                {businessProfile.vatNumber && (
-                  <Text style={styles.brandDetail}>
-                    P.IVA {businessProfile.vatNumber}
-                    {businessProfile.fiscalCode
-                      ? ` · CF ${businessProfile.fiscalCode}`
-                      : ""}
-                  </Text>
-                )}
-                {businessProfile.sdiCode && (
-                  <Text style={styles.brandDetail}>
-                    SDI {businessProfile.sdiCode}
-                  </Text>
-                )}
-                {businessProfile.iban && (
-                  <Text style={styles.brandDetail}>
-                    IBAN {businessProfile.iban}
-                  </Text>
-                )}
-              </View>
-            </View>
-            <View style={styles.headerRight}>
-              <Text style={styles.quoteLabel}>Preventivo</Text>
-              <Text style={styles.quoteNumber}>
-                {fmtQuoteId(String(quote.id))}
+        {/* ── Header ──────────────────────────────────────────── */}
+        <View style={styles.header}>
+          <View style={styles.headerLeft}>
+            <Image style={styles.logo} src={LOGO_URL} />
+            <View>
+              <Text style={styles.brandName}>{businessProfile.name}</Text>
+              <Text style={styles.brandTagline}>
+                {businessProfile.tagline}
               </Text>
-              <Text style={styles.quoteNumber}>Stato: {statusLabel}</Text>
             </View>
           </View>
+          <View style={styles.headerRight}>
+            <Text style={styles.quoteLabel}>Preventivo</Text>
+            <Text style={styles.quoteNumber}>
+              {fmtQuoteId(String(quote.id))}
+            </Text>
+            <Text style={styles.quoteNumber}>Stato: {statusLabel}</Text>
+          </View>
+        </View>
 
-          <View style={styles.divider} />
+        {/* ── Gold line ───────────────────────────────────────── */}
+        <View style={styles.goldLine} />
 
-          {/* Client & Dates */}
+        {/* ── Business details ────────────────────────────────── */}
+        <View style={styles.detailsBar}>
+          <Text style={styles.detailsBarText}>
+            {detailsParts.join("  ·  ")}
+          </Text>
+        </View>
+
+        {/* ── Body ────────────────────────────────────────────── */}
+        <View style={styles.content}>
           <View style={styles.infoRow}>
             <View style={styles.infoBlock}>
               <Text style={styles.infoLabel}>Cliente</Text>
@@ -388,7 +361,7 @@ export const QuotePDFDocument = ({
             </View>
           </View>
 
-          {/* Service table */}
+          {/* Table */}
           <View style={styles.table}>
             <View style={styles.tableHeader}>
               <Text style={[styles.tableHeaderText, styles.colDesc]}>
@@ -404,16 +377,13 @@ export const QuotePDFDocument = ({
             {items.length > 0 ? (
               items.map((item, index) => (
                 <View
-                  style={[
-                    styles.tableRow,
-                    index % 2 === 1 ? styles.tableRowAlt : {},
-                  ]}
+                  style={[styles.tableRow, index % 2 === 1 ? styles.tableRowAlt : {}]}
                   key={`${item.description}-${index}`}
                 >
                   <Text style={[{ fontSize: 9.5 }, styles.colDesc]}>
                     {item.description}
                   </Text>
-                  <Text style={[{ fontSize: 9.5 }, styles.colType]}>
+                  <Text style={[{ fontSize: 9.5, color: colors.slate }, styles.colType]}>
                     {serviceLabel} · {item.quantity} ×{" "}
                     {fmtCurrency(item.unit_price)}
                   </Text>
@@ -432,7 +402,7 @@ export const QuotePDFDocument = ({
                 <Text style={[{ fontSize: 9.5 }, styles.colDesc]}>
                   {quote.description || "Servizio professionale"}
                 </Text>
-                <Text style={[{ fontSize: 9.5 }, styles.colType]}>
+                <Text style={[{ fontSize: 9.5, color: colors.slate }, styles.colType]}>
                   {serviceLabel}
                 </Text>
                 <Text
@@ -448,9 +418,11 @@ export const QuotePDFDocument = ({
           </View>
 
           {/* Total */}
-          <View style={styles.totalContainer}>
+          <View style={styles.totalRow}>
             <Text style={styles.totalLabel}>Totale</Text>
-            <Text style={styles.totalAmount}>{fmtCurrency(quote.amount)}</Text>
+            <Text style={styles.totalAmount}>
+              {fmtCurrency(quote.amount)}
+            </Text>
           </View>
 
           {/* Notes */}
@@ -464,7 +436,7 @@ export const QuotePDFDocument = ({
 
         {/* Footer */}
         <View style={styles.footer}>
-          <View style={styles.footerDivider} />
+          <View style={styles.footerLine} />
           <Text style={styles.footerText}>
             {businessProfile.name}
             {businessProfile.vatNumber
@@ -473,9 +445,7 @@ export const QuotePDFDocument = ({
             {businessProfile.sdiCode
               ? ` · SDI ${businessProfile.sdiCode}`
               : ""}
-            {businessProfile.iban
-              ? ` · IBAN ${businessProfile.iban}`
-              : ""}
+            {businessProfile.iban ? ` · IBAN ${businessProfile.iban}` : ""}
           </Text>
         </View>
       </Page>
