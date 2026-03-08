@@ -42,7 +42,6 @@ export const CompanyInputs = () => {
         <div className="flex flex-col gap-8 flex-1">
           <CompanyAddressInputs />
           <CompanyAdditionalInformationInputs />
-          <CompanyAccountManagerInput />
         </div>
       </div>
     </div>
@@ -155,17 +154,6 @@ const CompanyAdditionalInformationInputs = () => {
           />
         </SimpleFormIterator>
       </ArrayInput>
-    </div>
-  );
-};
-
-const CompanyAccountManagerInput = () => {
-  const translate = useTranslate();
-  return (
-    <div className="flex flex-col gap-4">
-      <h6 className="text-lg font-semibold">
-        {translate("crm.common.account_manager", { _: "Account manager" })}
-      </h6>
       <ReferenceInput
         source="sales_id"
         reference="sales"
