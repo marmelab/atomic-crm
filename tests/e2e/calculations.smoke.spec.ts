@@ -48,14 +48,14 @@ test.describe("Financial Calculations", () => {
     // Compensi: 6500€
     await expect(page.getByText("6500,00 €").first()).toBeVisible();
 
-    // Spese: 644€ (500+25% + 100*0.19)
-    await expect(page.getByText("644,00 €").first()).toBeVisible();
+    // Spese: 653,50€ (500*1.25 materiale + 100*0.19 km S1 + 50*0.19 km S2)
+    await expect(page.getByText("653,50 €").first()).toBeVisible();
 
     // Pagato: 3200€ (3500 - 300 rimborso)
     await expect(page.getByText("3200,00 €").first()).toBeVisible();
 
-    // Da incassare: 3944€ (7144 - 3200)
-    await expect(page.getByText("3944,00 €").first()).toBeVisible();
+    // Da incassare: 3953,50€ (6500 + 653,50 - 3200)
+    await expect(page.getByText("3953,50 €").first()).toBeVisible();
   });
 
   test("invoice draft calculation is correct", async ({ page }) => {

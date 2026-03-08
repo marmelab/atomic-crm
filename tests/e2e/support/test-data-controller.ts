@@ -149,7 +149,9 @@ VALUES
 -- Inserisce spese test (solo non-km; le spese km sono auto-create dal trigger sync_service_km_expense)
 INSERT INTO expenses (id, project_id, client_id, expense_date, expense_type, km_distance, km_rate, amount, markup_percent, description, created_at)
 VALUES
-  ('${randomUUID()}', '${entities.projectId}', '${entities.clientId}', '2026-01-18', 'acquisto_materiale', NULL, 0.19, 500, 25, 'Materiale', NOW());
+  ('${randomUUID()}', '${entities.projectId}', '${entities.clientId}', '2026-01-18', 'acquisto_materiale', NULL, 0.19, 500, 25, 'Materiale', NOW()),
+  ('${randomUUID()}', NULL, '${entities.clientId}', '2026-02-05', 'abbonamento_software', NULL, 0.19, 30, 0, 'Adobe CC', NOW()),
+  ('${randomUUID()}', NULL, '${entities.clientId}', '2026-01-10', 'credito_ricevuto', NULL, 0.19, 999, 0, 'Credito fornitore (escluso da spese)', NOW());
 `;
 
   // Esegui SQL via stdin (avoid shell double-quote issues with JSON values)
