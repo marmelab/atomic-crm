@@ -15,6 +15,7 @@ Stato del documento:
 
 ## Changelog
 
+- 2026-03-08: AI chat robustness — conversation history per-turn cap (3000 chars answer, 1200 chars question) in normalizeConversationHistory; 30s timeout with Promise.race on Edge Function call in provider; user-friendly timeout error message.
 - 2026-03-08: Invoice import prompt hardening — 3 Pareto rules added: (1) classification by P.IVA ownership (cedente=titolare → payments, else → expenses); (2) always use net/imponibile amounts, not gross; (3) match clients by VAT/CF first, name second, null if uncertain. Reduces misclassification, wrong amounts, and failed client matches.
 - 2026-03-08: unified_crm_answer Edge Function split — extracted prompt.ts (instructions + missing key markdown), helpers.ts (buildCrmFlowResponse + resolveTravelEstimate), handleCreateFlows() for rule engine branching. index.ts reduced from 460 to 290 lines, answerUnifiedCrmQuestion complexity reduced.
 - 2026-03-08: AI chat suggestion cards redesign — replaced rotating 2×4 grid with category chips + question list layout (Navy & Petrolio palette). 9 Pareto-optimized categories ordered by daily usage frequency: Panoramica, Fatturazione, Incassi, Lavoro svolto, Spese e km, Preventivi, Clienti, Promemoria, Automazioni. Fatturazione promoted to dedicated category. Removed unused useRotatingSuggestions hook.

@@ -157,7 +157,7 @@ export const buildAiProviderMethods = (deps: {
 
       const model = await deps.getConfiguredHistoricalAnalysisModel();
 
-      const { data, error } = await deps.invokeEdgeFunction<{
+      const edgeFunctionCall = deps.invokeEdgeFunction<{
         data: UnifiedCrmAnswer;
       }>("unified_crm_answer", {
         method: "POST",
@@ -168,6 +168,21 @@ export const buildAiProviderMethods = (deps: {
           conversationHistory,
         },
       });
+
+      const timeoutMs = 30_000;
+      const timeout = new Promise<never>((_, reject) => {
+        setTimeout(
+          () =>
+            reject(
+              new Error(
+                "La risposta AI sta impiegando troppo tempo. Riprova con una domanda più breve.",
+              ),
+            ),
+          timeoutMs,
+        );
+      });
+
+      const { data, error } = await Promise.race([edgeFunctionCall, timeout]);
 
       if (!data || error) {
         console.error("askUnifiedCrmQuestion.error", error);

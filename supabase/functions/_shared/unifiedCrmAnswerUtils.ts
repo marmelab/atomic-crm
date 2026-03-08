@@ -138,11 +138,14 @@ export const normalizeConversationHistory = (
     return [];
   }
 
+  const maxAnswerLength = 3000;
+
   return value
     .filter(isObject)
     .map((item) => ({
-      question: getString(item.question)?.trim() ?? "",
-      answerMarkdown: getString(item.answerMarkdown)?.trim() ?? "",
+      question: getString(item.question)?.trim().slice(0, 1200) ?? "",
+      answerMarkdown:
+        getString(item.answerMarkdown)?.trim().slice(0, maxAnswerLength) ?? "",
       generatedAt: getString(item.generatedAt)?.trim() ?? "",
       model: getString(item.model)?.trim() ?? "",
     }))
