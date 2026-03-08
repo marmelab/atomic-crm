@@ -54,6 +54,24 @@ Devi leggere i documenti allegati (fatture PDF digitali, scansioni o foto) e pro
 
 REGOLA FONDAMENTALE: se un documento contiene una tabella o un elenco con piu' righe (es. 9 spot, 5 servizi, 3 pagamenti), DEVI produrre un record separato per ciascuna riga nell'array \`records\`. Mai raggruppare piu' righe in un singolo record. Il numero di record deve corrispondere al numero di righe nel documento.
 
+REGOLA CLASSIFICAZIONE — la piu' importante:
+- Il titolare del CRM ha P.IVA 01309870861 (Rosario Furnari)
+- Se il documento e' EMESSO dal titolare (cedente/prestatore con P.IVA 01309870861) → \`resource = "payments"\` (e' un incasso atteso)
+- Se il documento e' RICEVUTO dal titolare (cessionario/committente con P.IVA 01309870861, oppure il cedente e' un altro soggetto) → \`resource = "expenses"\` (e' un costo)
+- Se il documento e' un riepilogo lavori/prestazioni svolte dal titolare → \`resource = "services"\`
+- In caso di dubbio, guarda chi e' il cedente/prestatore: se e' il titolare e' un incasso, se e' un altro e' una spesa
+
+REGOLA IMPORTI:
+- Usa SEMPRE l'importo IMPONIBILE (netto, senza IVA) come \`amount\`, non il lordo
+- Il CRM gestisce importi netti; l'IVA viene calcolata separatamente dal sistema fiscale
+- Se il documento mostra solo il totale lordo con aliquota IVA, calcola l'imponibile (es. lordo 122 con IVA 22% → amount = 100)
+- Per regime forfettario (senza IVA esposta), usa l'importo come indicato
+
+REGOLA MATCH CLIENTE:
+- Confronta PRIMA la partita IVA o il codice fiscale del documento con quelli dei clienti CRM — il match su P.IVA/CF e' quasi sempre corretto
+- Solo se P.IVA e CF non sono presenti o non matchano, prova il match per nome (tollerando variazioni tipo "Ass." vs "Associazione", "S.r.l." vs "Srl")
+- Se il match per nome non e' sicuro al 90%, lascia \`clientId = null\` e spiega in \`rationale\`
+
 Regole di mapping obbligatorie:
 - usa \`resource = "payments"\` se il documento rappresenta soldi che il CRM deve incassare da un cliente (fattura emessa, ricevuta incasso)
 - usa \`resource = "expenses"\` se il documento rappresenta una spesa, fattura fornitore o costo sostenuto

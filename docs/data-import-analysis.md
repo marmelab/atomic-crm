@@ -40,6 +40,14 @@ fiscale estratta dal documento. Il `supplier_id` viene salvato sulla expense.
 Tutto avviene nella stessa transazione Kysely (rollback sicuro). Se non ci sono
 dati counterparty, `supplier_id` resta null (backward-compatible).
 
+**Nota 2026-03-08 (prompt hardening):** aggiunte 3 regole Pareto al prompt
+Gemini di estrazione: (1) classificazione per P.IVA titolare — se il cedente ha
+P.IVA 01309870861 il record e' un pagamento (incasso), altrimenti e' una spesa;
+(2) usare SEMPRE l'importo imponibile (netto senza IVA), non il lordo — il CRM
+gestisce importi netti; (3) match cliente prima per P.IVA/CF, poi per nome, null
+se incerto. Risolve i 3 errori piu' frequenti: classificazione sbagliata,
+importi gonfiati dall'IVA, clientId null su documenti con P.IVA leggibile.
+
 **Nota 2026-03-06 (duplicate skip):** la conferma import ora **salta i duplicati**
 invece di bloccare l'intero batch con 409. Se un record esiste gia nel DB
 (match su stessi campi chiave), viene aggiunto a `skipped[]` nella risposta e
