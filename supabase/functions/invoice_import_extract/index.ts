@@ -49,6 +49,8 @@ const buildPrompt = ({
   projects: Array<{ id: string; name: string; client_id: string }>;
 }) =>
   `
+Data odierna: ${new Date().toISOString().slice(0, 10)}.
+
 Sei l'assistente AI unificato del CRM Rosario Furnari.
 Devi leggere i documenti allegati (fatture PDF digitali, scansioni o foto) e proporre dati strutturati da importare nel CRM.
 

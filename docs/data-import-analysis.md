@@ -13,6 +13,7 @@ di tutte le fatture o l'anagrafica clienti completa. Per quello usare
 **Analizzato:** 2026-02-25
 **Stato:** Dati estratti e VALIDATI con Rosario
 **Ultimo aggiornamento UI:** 2026-03-08 — AiInvoiceImportView refactored con componenti condivisi (AiStatusCallout, AiDraftSummaryBar)
+**Ultimo aggiornamento EF:** 2026-03-08 — Aggiunta data odierna nel prompt per evitare falsi warning "data nel futuro"
 
 **Nota 2026-03-05:** il prompt Gemini per l'estrazione servizi ora include
 istruzione esplicita per il campo `notes` (annotazioni operative dal documento)
