@@ -8,6 +8,16 @@ prodotto senza incrociarlo con `docs/README.md` e i documenti `canonical`.
 
 Last updated: 2026-03-08
 
+## Update 2026-03-08 (e) — Dashboard card reorder for consequential flow
+
+Reordered `DashboardAnnual.tsx` layout. Alerts, deadline tracker, and cash flow
+card moved from below trend charts to immediately after KPI cards. Follows
+"urgencies first, analysis second" pattern (benchmarked against HoneyBook and
+FreshBooks). No logic or data changes — layout only.
+
+New order: net availability → KPIs → alerts/deadlines/cash flow →
+trend/categories → pipeline/clients → fiscal simulation → AI summary.
+
 ## Update 2026-03-08 (d) — Dashboard Pareto features (net availability, tax tracking, cash flow, YoY)
 
 Four high-impact features added to the annual dashboard following Pareto analysis:

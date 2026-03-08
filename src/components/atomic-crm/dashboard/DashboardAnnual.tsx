@@ -121,6 +121,16 @@ export const DashboardAnnual = () => {
         year={data.selectedYear}
       />
 
+      {isCurrentYear && (
+        <>
+          <DashboardAlertsCard alerts={data.alerts} />
+          <DashboardDeadlineTracker />
+          {data.cashFlowForecast && (
+            <DashboardCashFlowCard forecast={data.cashFlowForecast} />
+          )}
+        </>
+      )}
+
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
         <DashboardRevenueTrendChart
           data={data.revenueTrend}
@@ -137,25 +147,13 @@ export const DashboardAnnual = () => {
       </div>
 
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 items-start">
-        <div className="grid grid-cols-1 gap-6">
-          <DashboardPipelineCard data={data.quotePipeline} />
-          <DashboardTopClientsCard
-            data={data.topClients}
-            meta={data.meta}
-            year={data.selectedYear}
-          />
-        </div>
-        {isCurrentYear && (
-          <div className="grid grid-cols-1 gap-6">
-            <DashboardAlertsCard alerts={data.alerts} />
-            {data.cashFlowForecast && (
-              <DashboardCashFlowCard forecast={data.cashFlowForecast} />
-            )}
-          </div>
-        )}
+        <DashboardPipelineCard data={data.quotePipeline} />
+        <DashboardTopClientsCard
+          data={data.topClients}
+          meta={data.meta}
+          year={data.selectedYear}
+        />
       </div>
-
-      {isCurrentYear ? <DashboardDeadlineTracker /> : null}
 
       {data.fiscal ? (
         <>

@@ -14,6 +14,7 @@ Last updated: 2026-03-08
 
 ### Recent Updates (cronologico, più recente in alto)
 
+- [2026-03-08 (f)](#update-2026-03-08-f--dashboard-card-reorder) — Dashboard annual: reorder cards for consequential flow
 - [2026-03-08 (e)](#update-2026-03-08-e--dashboard-pareto-features) — Dashboard Pareto features: net availability, tax tracking, cash flow, YoY
 - [2026-03-08 (d)](#update-2026-03-08-d--ai-annual-expense-context--dashboard-alert-links--e2e-real-ai-tests) — AI annual expense context + dashboard alert links + E2E real AI tests
 - [2026-03-08 (c)](#update-2026-03-08-c--service-type-icons--project-view-persistence) — Service type icons + project view persistence
@@ -77,6 +78,25 @@ Last updated: 2026-03-08
 - [Nota manutenzione 2026-03-02](#nota-manutenzione-2026-03-02-fix-ci)
 - [Testing Session Log 2026-03-04](#testing-session-log-2026-03-04--e2e-complete-validation)
 - [AI Semantic UI Upgrade 2026-03-04](#ai-semantic-ui-upgrade-2026-03-04--pareto-principle-applied)
+
+---
+
+## Update 2026-03-08 (f) — Dashboard card reorder
+
+**Cosa è cambiato**
+
+- Reordered annual dashboard cards in `DashboardAnnual.tsx` for consequential
+  flow: alerts, deadline tracker and cash flow now appear right after KPI cards
+  (before trend charts and pipeline).
+- Follows "urgencies first, analysis second" pattern validated against HoneyBook
+  and FreshBooks dashboard layouts.
+- Pipeline and Top Clients now in a simple 2-col grid (no longer nested with
+  alerts).
+
+**Ordine nuovo**: Net availability → KPIs → Alerts/Deadlines/Cash flow →
+Trend/Categories → Pipeline/Clients → Fiscal → AI summary.
+
+**File toccati**: `DashboardAnnual.tsx` (layout only, no logic changes).
 
 ---
 
