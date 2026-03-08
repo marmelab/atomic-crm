@@ -8,6 +8,13 @@ prodotto senza incrociarlo con `docs/README.md` e i documenti `canonical`.
 
 Last updated: 2026-03-08
 
+## Update 2026-03-08 (m) — Mobile AI card: top position + collapsible suggestions
+
+Moved `DashboardAnnualAiSummaryCard` above KPI cards in `MobileDashboard`
+(matching desktop order). Added `compact` prop: when set, suggested questions
+are collapsed by default behind a "Suggerimenti" toggle. Mobile shows only
+"Spiegami l'anno" button + free question input by default.
+
 ## Update 2026-03-08 (l) — Fix fiscal data missing on mobile dashboard
 
 **Bug:** MobileDashboard passed `DashboardKpiCards` without `fiscalKpis` and

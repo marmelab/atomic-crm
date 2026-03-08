@@ -131,6 +131,7 @@ const MobileAnnualDashboard = () => {
           <ChevronRight className="h-4 w-4" />
         </Button>
       </div>
+      <DashboardAnnualAiSummaryCard year={data.selectedYear} compact />
       <DashboardKpiCards
         kpis={data.kpis}
         meta={data.meta}
@@ -139,7 +140,6 @@ const MobileAnnualDashboard = () => {
         taxesPaid={totalTaxesPaid}
         compact
       />
-      <DashboardAnnualAiSummaryCard year={data.selectedYear} />
       {data.fiscal && <MobileFiscalKpis fiscal={data.fiscal} />}
     </div>
   );

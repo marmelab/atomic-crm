@@ -1,6 +1,8 @@
 import { useMutation } from "@tanstack/react-query";
 import {
   Bot,
+  ChevronDown,
+  ChevronUp,
   Download,
   Lightbulb,
   RefreshCw,
@@ -57,7 +59,13 @@ const storeVisualMode = (v: boolean) => {
   }
 };
 
-export const DashboardAnnualAiSummaryCard = ({ year }: { year: number }) => {
+export const DashboardAnnualAiSummaryCard = ({
+  year,
+  compact,
+}: {
+  year: number;
+  compact?: boolean;
+}) => {
   const dataProvider = useDataProvider<CrmDataProvider>();
   const notify = useNotify();
   const { aiConfig } = useConfigurationContext();
@@ -120,6 +128,7 @@ export const DashboardAnnualAiSummaryCard = ({ year }: { year: number }) => {
     isCurrentYear,
   });
   const isLoading = isSummaryPending || isAnswerPending;
+  const [suggestionsOpen, setSuggestionsOpen] = useState(!compact);
 
   useEffect(() => {
     setQuestion("");
@@ -196,33 +205,51 @@ export const DashboardAnnualAiSummaryCard = ({ year }: { year: number }) => {
           Spiegami l'anno {year}
         </Button>
 
-        {/* ── Suggested questions — priority 1 bigger, priority 2 smaller ── */}
+        {/* ── Suggested questions — collapsible in compact mode ── */}
         <div className="space-y-1.5">
-          <div className="grid grid-cols-2 gap-1.5">
-            {suggestedQuestions
-              .filter((s) => s.priority === 1)
-              .map((s) => (
-                <QuestionChip
-                  key={s.label}
-                  suggestion={s}
-                  disabled={isLoading}
-                  onClick={() => submitQuestion(s.question)}
-                />
-              ))}
-          </div>
-          <div className="flex flex-wrap gap-1.5">
-            {suggestedQuestions
-              .filter((s) => s.priority === 2)
-              .map((s) => (
-                <QuestionChip
-                  key={s.label}
-                  suggestion={s}
-                  disabled={isLoading}
-                  onClick={() => submitQuestion(s.question)}
-                  small
-                />
-              ))}
-          </div>
+          {compact && (
+            <button
+              type="button"
+              onClick={() => setSuggestionsOpen((v) => !v)}
+              className="flex items-center gap-1 text-xs text-muted-foreground font-medium hover:text-foreground transition-colors"
+            >
+              {suggestionsOpen ? (
+                <ChevronUp className="h-3.5 w-3.5" />
+              ) : (
+                <ChevronDown className="h-3.5 w-3.5" />
+              )}
+              Suggerimenti
+            </button>
+          )}
+          {suggestionsOpen && (
+            <>
+              <div className="grid grid-cols-2 gap-1.5">
+                {suggestedQuestions
+                  .filter((s) => s.priority === 1)
+                  .map((s) => (
+                    <QuestionChip
+                      key={s.label}
+                      suggestion={s}
+                      disabled={isLoading}
+                      onClick={() => submitQuestion(s.question)}
+                    />
+                  ))}
+              </div>
+              <div className="flex flex-wrap gap-1.5">
+                {suggestedQuestions
+                  .filter((s) => s.priority === 2)
+                  .map((s) => (
+                    <QuestionChip
+                      key={s.label}
+                      suggestion={s}
+                      disabled={isLoading}
+                      onClick={() => submitQuestion(s.question)}
+                      small
+                    />
+                  ))}
+              </div>
+            </>
+          )}
         </div>
 
         {/* ── Free question input ── */}
