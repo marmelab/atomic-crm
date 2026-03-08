@@ -8,6 +8,8 @@ export type QuoteStatusEmailSendPayload = {
   quoteId?: string | number | null;
   automatic?: boolean;
   hasNonTaxableServices?: boolean | null;
+  pdfBase64?: string | null;
+  pdfFilename?: string | null;
 };
 
 export const validateQuoteStatusEmailSendPayload = (

@@ -8,8 +8,6 @@ import type {
 
 // ── Helpers ───────────────────────────────────────────────────────────
 
-const DEFAULT_BUSINESS_NAME = "Rosario Furnari";
-
 export const formatCurrency = (value?: number | null) =>
   Number(value ?? 0).toLocaleString("it-IT", {
     style: "currency",
@@ -28,10 +26,6 @@ export const buildSummaryRows = (input: BuildQuoteStatusEmailInput) => {
     {
       label: "Stato",
       value: quoteStatusLabels[input.quote.status] ?? input.quote.status,
-    },
-    {
-      label: "Importo",
-      value: formatCurrency(input.quote.amount),
     },
   ];
 
@@ -52,17 +46,6 @@ export const buildSummaryRows = (input: BuildQuoteStatusEmailInput) => {
     rows.push({ label: "Progetto", value: input.projectName });
   }
 
-  if (input.amountPaid != null) {
-    rows.push({
-      label: "Gia' registrato",
-      value: formatCurrency(input.amountPaid),
-    });
-  }
-
-  if (input.amountDue != null) {
-    rows.push({ label: "Residuo", value: formatCurrency(input.amountDue) });
-  }
-
   return rows;
 };
 
@@ -74,13 +57,14 @@ export const buildStatusCopy = (
 ): {
   subject: string;
   previewText: string;
+  headline: string;
   intro: string;
   sections: EmailSection[];
+  ctaLabel?: string;
   ctaUrl?: string;
 } => {
   const clientName = input.client?.name?.trim() || "cliente";
   const quoteTitle = input.quote.description?.trim() || "Preventivo";
-  const businessName = input.businessName?.trim() || DEFAULT_BUSINESS_NAME;
   const amountPaid = formatCurrency(
     input.amountPaid ?? input.paymentAmount ?? input.quote.amount,
   );
@@ -90,57 +74,63 @@ export const buildStatusCopy = (
     case "preventivo_inviato":
       return {
         subject: `${quoteTitle} - preventivo inviato`,
-        previewText: "Ti ho inviato il preventivo con i dettagli principali.",
-        intro: `Ciao ${clientName}, ti invio il preventivo aggiornato. Qui sotto trovi il riepilogo essenziale e il prossimo passo.`,
+        previewText: "Ecco la tua proposta con tutti i dettagli.",
+        headline: "Ecco la tua proposta",
+        intro: `Ciao ${clientName}, ti invio il preventivo con tutti i dettagli. Trovi il documento completo in allegato.`,
         sections: [
           {
-            title: "Cosa aspettarti adesso",
-            body: "Puoi rivedere i dettagli, l'importo e le date previste. Se vuoi confermare o fare domande, puoi rispondere a questa mail.",
+            title: "Prossimo passo",
+            body: "Puoi rivedere i dettagli e l'importo nel PDF allegato. Se vuoi confermare o fare domande, rispondi a questa mail.",
           },
         ],
+        ctaLabel: definition.ctaLabel,
         ctaUrl: input.publicQuoteUrl ?? undefined,
       };
     case "in_trattativa":
       return {
-        subject: `${quoteTitle} - aggiornamento sulla trattativa`,
-        previewText: "Il preventivo e' in revisione o confronto.",
-        intro: `Ciao ${clientName}, sto aggiornando il preventivo e lo tengo in stato di trattativa per allineare bene dettagli, tempi o condizioni.`,
+        subject: `${quoteTitle} - aggiornamento`,
+        previewText: "Aggiornamento sulla tua proposta.",
+        headline: "Aggiornamento sulla tua proposta",
+        intro: `Ciao ${clientName}, sto lavorando sugli ultimi dettagli del preventivo.`,
         sections: [
           {
-            title: "Perche' ricevi questa mail",
+            title: "Nota",
             body:
               input.customMessage?.trim() ||
-              "Sto lavorando sugli ultimi punti aperti prima della conferma finale. Se vuoi aggiungere una nota o un chiarimento, puoi rispondere direttamente.",
+              "Sto definendo gli ultimi punti prima della conferma finale. Se vuoi aggiungere qualcosa, rispondi direttamente.",
           },
         ],
+        ctaLabel: definition.ctaLabel,
         ctaUrl: input.publicQuoteUrl ?? undefined,
       };
     case "accettato":
       return {
-        subject: `${quoteTitle} - conferma ricevuta`,
-        previewText: "Il preventivo risulta confermato.",
-        intro: `Ciao ${clientName}, ho registrato la conferma del preventivo. Da questo momento il lavoro entra nel flusso operativo.`,
+        subject: `${quoteTitle} - confermato`,
+        previewText: "Il tuo progetto e' confermato!",
+        headline: "Il tuo progetto e' confermato!",
+        intro: `Ciao ${clientName}, ho registrato la conferma. Da questo momento il lavoro entra nel vivo.`,
         sections: [
           {
             title: "Prossimo passo",
             body:
               input.projectName?.trim()
-                ? `Il lavoro e' ora collegato al progetto "${input.projectName}".`
-                : "Ti aggiornero' man mano che il lavoro passa alle fasi operative.",
+                ? `Il lavoro e' ora collegato al progetto "${input.projectName}". Ti aggiorno sui prossimi passi.`
+                : "Ti aggiorno man mano che il lavoro procede.",
           },
         ],
       };
     case "acconto_ricevuto":
       return {
         subject: `${quoteTitle} - acconto registrato`,
-        previewText: "Il primo pagamento risulta registrato correttamente.",
-        intro: `Ciao ${clientName}, ho registrato l'acconto relativo al preventivo.`,
+        previewText: "Il tuo acconto e' stato registrato.",
+        headline: "Acconto registrato, ci siamo!",
+        intro: `Ciao ${clientName}, ho registrato il pagamento. Grazie!`,
         sections: [
           {
-            title: "Riepilogo pagamento",
+            title: "Riepilogo",
             body:
               input.amountDue != null
-                ? `Importo registrato: ${amountPaid}. Residuo ancora aperto: ${amountDue}.`
+                ? `Importo registrato: ${amountPaid}. Residuo: ${amountDue}.`
                 : `Importo registrato: ${amountPaid}.`,
           },
         ],
@@ -148,28 +138,30 @@ export const buildStatusCopy = (
     case "in_lavorazione":
       return {
         subject: `${quoteTitle} - lavoro avviato`,
-        previewText: "Il lavoro e' ufficialmente in lavorazione.",
-        intro: `Ciao ${clientName}, il lavoro collegato al preventivo e' partito e risulta ora in lavorazione.`,
+        previewText: "Il lavoro e' partito!",
+        headline: "Il lavoro e' partito!",
+        intro: `Ciao ${clientName}, il lavoro e' ufficialmente iniziato.`,
         sections: [
           {
-            title: "Stato operativo",
+            title: "Stato",
             body:
               input.customMessage?.trim() ||
-              "Se dovesse servire un aggiornamento puntuale su tempi o consegne, puoi rispondere a questa mail.",
+              "Se hai bisogno di un aggiornamento su tempi o consegne, rispondi a questa mail.",
           },
         ],
       };
     case "completato":
       return {
         subject: `${quoteTitle} - lavoro completato`,
-        previewText: "Il lavoro risulta completato.",
-        intro: `Ciao ${clientName}, ti confermo che il lavoro legato al preventivo risulta completato.`,
+        previewText: "Il lavoro e' completato!",
+        headline: "Lavoro completato!",
+        intro: `Ciao ${clientName}, il lavoro e' finito.`,
         sections: [
           {
-            title: "Chiusura operativa",
+            title: "Chiusura",
             body:
-              input.amountDue != null
-                ? `Il lavoro e' chiuso dal punto di vista operativo. Residuo economico ancora aperto: ${amountDue}.`
+              input.amountDue != null && Number(input.amountDue) > 0
+                ? `Il lavoro e' chiuso. Residuo ancora aperto: ${amountDue}.`
                 : "Il lavoro e' chiuso dal punto di vista operativo.",
           },
           ...(input.customMessage?.trim()
@@ -179,20 +171,22 @@ export const buildStatusCopy = (
       };
     case "saldato":
       return {
-        subject: `${quoteTitle} - saldo completato`,
-        previewText: "Il preventivo risulta completamente saldato.",
-        intro: `Ciao ${clientName}, il preventivo risulta ora completamente saldato.`,
+        subject: `${quoteTitle} - tutto in ordine`,
+        previewText: "Il preventivo e' completamente saldato.",
+        headline: "Tutto in ordine, grazie!",
+        intro: `Ciao ${clientName}, il preventivo e' completamente saldato.`,
         sections: [
           {
-            title: "Chiusura amministrativa",
-            body: `Totale registrato: ${amountPaid}. Grazie per la collaborazione.`,
+            title: "Chiusura",
+            body: `Totale registrato: ${amountPaid}. Grazie per la collaborazione!`,
           },
         ],
       };
     case "rifiutato":
       return {
         subject: `${quoteTitle} - chiusura preventivo`,
-        previewText: "Mail di chiusura da usare solo manualmente.",
+        previewText: "Chiusura del preventivo.",
+        headline: "Grazie per aver valutato la proposta",
         intro: `Ciao ${clientName}, chiudo il preventivo nel gestionale.`,
         sections: [
           {
@@ -200,21 +194,22 @@ export const buildStatusCopy = (
             body:
               input.customMessage?.trim() ||
               input.quote.rejection_reason?.trim() ||
-              "Ti ringrazio per il confronto. Se in futuro vorrai riaprire il discorso, possiamo ripartire da qui.",
+              "Ti ringrazio per il confronto. Se in futuro vorrai riaprire il discorso, ripartiamo da qui.",
           },
         ],
       };
     default:
       return {
         subject: `${quoteTitle} - aggiornamento stato`,
-        previewText: `Aggiornamento stato: ${definition.statusLabel}.`,
-        intro: `Ciao ${clientName}, il preventivo e' stato aggiornato in stato "${definition.statusLabel}".`,
+        previewText: `Aggiornamento: ${definition.statusLabel}.`,
+        headline: `Aggiornamento: ${definition.statusLabel}`,
+        intro: `Ciao ${clientName}, il preventivo e' stato aggiornato.`,
         sections: [
           {
             title: "Aggiornamento",
             body:
               input.customMessage?.trim() ||
-              `Questo messaggio conferma l'aggiornamento dello stato nel CRM di ${businessName}.`,
+              "Questo messaggio conferma l'aggiornamento dello stato.",
           },
         ],
       };

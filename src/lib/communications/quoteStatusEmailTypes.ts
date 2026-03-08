@@ -37,6 +37,7 @@ export type BuildQuoteStatusEmailInput = {
   supportEmail?: string | null;
   customMessage?: string | null;
   hasNonTaxableServices?: boolean | null;
+  hasPdfAttachment?: boolean;
 };
 
 export type BuiltQuoteStatusEmailTemplate =
@@ -61,6 +62,8 @@ export type QuoteStatusEmailSendRequest = {
   quoteId?: string | number | null;
   automatic?: boolean;
   hasNonTaxableServices?: boolean | null;
+  pdfBase64?: string | null;
+  pdfFilename?: string | null;
 };
 
 export type QuoteStatusEmailSendResponse = {

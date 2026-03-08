@@ -23,8 +23,11 @@ import {
 } from "@/lib/communications/quoteStatusEmailContext";
 import { getQuoteStatusEmailTemplateDefinition } from "@/lib/communications/quoteStatusEmailTemplates";
 
+import { useConfigurationContext } from "../root/ConfigurationContext";
 import type { CrmDataProvider } from "../providers/types";
-import type { Quote } from "../types";
+import type { Client, Quote } from "../types";
+import { quoteStatusLabels } from "./quotesTypes";
+import { generateQuotePdfBase64 } from "./QuotePDF";
 
 const missingFieldLabels: Record<string, string> = {
   client_name: "nome cliente",
@@ -65,6 +68,7 @@ export const SendQuoteStatusEmailDialog = ({
   const definition = getQuoteStatusEmailTemplateDefinition(quote.status);
   const dataProvider = useDataProvider<CrmDataProvider>();
   const notify = useNotify();
+  const { quoteServiceTypes, businessProfile } = useConfigurationContext();
   const [open, setOpen] = useState(false);
   const [customMessage, setCustomMessage] = useState("");
   const [toOverride, setToOverride] = useState("");
@@ -97,7 +101,7 @@ export const SendQuoteStatusEmailDialog = ({
     error: sendError,
   } = useMutation({
     mutationKey: ["quote-status-email-send", quote.id],
-    mutationFn: ({
+    mutationFn: async ({
       context: emailContext,
       customMessage: nextCustomMessage,
     }: {
@@ -106,10 +110,38 @@ export const SendQuoteStatusEmailDialog = ({
     }) => {
       const template = buildQuoteStatusEmailTemplateFromContext(emailContext, {
         customMessage: nextCustomMessage.trim() || null,
+        hasPdfAttachment: true,
       });
 
       const recipientEmail =
         toOverride.trim() || emailContext.client?.email || "";
+
+      // Generate PDF for attachment
+      const fullQuote = (
+        await dataProvider.getOne<Quote>("quotes", { id: emailContext.quoteId })
+      ).data;
+      const fullClient = emailContext.clientId
+        ? (
+            await dataProvider.getOne<Client>("clients", {
+              id: emailContext.clientId,
+            })
+          ).data
+        : undefined;
+
+      const serviceLabel =
+        quoteServiceTypes.find((st) => st.value === fullQuote.service_type)
+          ?.label ?? fullQuote.service_type;
+      const statusLabel =
+        quoteStatusLabels[fullQuote.status] ?? fullQuote.status;
+
+      const pdfData = await generateQuotePdfBase64({
+        quote: fullQuote,
+        client: fullClient,
+        serviceLabel,
+        statusLabel,
+        quoteItems: fullQuote.quote_items,
+        businessProfile,
+      });
 
       return dataProvider.sendQuoteStatusEmail({
         to: recipientEmail,
@@ -121,6 +153,8 @@ export const SendQuoteStatusEmailDialog = ({
         quoteId: emailContext.quoteId,
         automatic: false,
         hasNonTaxableServices: emailContext.hasNonTaxableServices,
+        pdfBase64: pdfData.base64,
+        pdfFilename: pdfData.filename,
       });
     },
     onSuccess: () => {
@@ -158,6 +192,7 @@ export const SendQuoteStatusEmailDialog = ({
   const template = context
     ? buildQuoteStatusEmailTemplateFromContext(context, {
         customMessage: customMessage.trim() || null,
+        hasPdfAttachment: true,
       })
     : null;
   const missingFields =
@@ -177,8 +212,8 @@ export const SendQuoteStatusEmailDialog = ({
         <DialogHeader>
           <DialogTitle>Invia mail cliente</DialogTitle>
           <DialogDescription>
-            La mail riusa il template condiviso dello stato attuale del
-            preventivo e parte solo su tua conferma via Gmail SMTP.
+            La mail include il preventivo PDF in allegato e parte solo su tua
+            conferma via Gmail SMTP.
           </DialogDescription>
         </DialogHeader>
 
@@ -292,7 +327,7 @@ export const SendQuoteStatusEmailDialog = ({
                 ) : (
                   <Send className="h-4 w-4" />
                 )}
-                Invia con Gmail
+                {isSendPending ? "Invio in corso..." : "Invia con Gmail"}
               </Button>
             </div>
           </div>

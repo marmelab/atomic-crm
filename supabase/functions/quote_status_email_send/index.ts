@@ -54,6 +54,19 @@ async function sendQuoteStatusEmail(req: Request, currentUserSale: unknown) {
       },
     });
 
+    // Build attachments from PDF base64 if provided
+    const attachments =
+      payload.pdfBase64 && payload.pdfFilename
+        ? [
+            {
+              filename: payload.pdfFilename,
+              content: payload.pdfBase64,
+              encoding: "base64" as const,
+              contentType: "application/pdf",
+            },
+          ]
+        : [];
+
     const info = await transporter.sendMail({
       from: `${smtpFromName} <${smtpUser}>`,
       replyTo: smtpUser,
@@ -61,6 +74,7 @@ async function sendQuoteStatusEmail(req: Request, currentUserSale: unknown) {
       subject: payload.subject?.trim(),
       html: payload.html,
       text: payload.text,
+      attachments,
       headers: {
         "X-Quote-Template": payload.templateId?.trim() ?? "",
         "X-Quote-Status": payload.status?.trim() ?? "",

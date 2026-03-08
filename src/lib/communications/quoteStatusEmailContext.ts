@@ -51,7 +51,7 @@ export type QuoteStatusEmailContext = Omit<
 
 type QuoteStatusEmailTemplateOverrides = Pick<
   BuildQuoteStatusEmailInput,
-  "customMessage" | "publicQuoteUrl" | "supportEmail"
+  "customMessage" | "publicQuoteUrl" | "supportEmail" | "hasPdfAttachment"
 >;
 
 const getSignedPaymentAmount = (

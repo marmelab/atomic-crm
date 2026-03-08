@@ -390,16 +390,38 @@ export const QuotePDFDocument = ({
   </Document>
 );
 
+// ── Filename helper ───────────────────────────────────────────────
+export const getQuotePdfFilename = (props: QuotePDFProps) => {
+  const clientName = props.client?.name?.replace(/\s+/g, "_") ?? "cliente";
+  return `Preventivo_${clientName}_${fmtQuoteId(String(props.quote.id))}.pdf`;
+};
+
 // ── Download helper ───────────────────────────────────────────────
 export const downloadQuotePDF = async (props: QuotePDFProps) => {
   const blob = await pdf(<QuotePDFDocument {...props} />).toBlob();
   const url = URL.createObjectURL(blob);
   const link = document.createElement("a");
   link.href = url;
-  const clientName = props.client?.name?.replace(/\s+/g, "_") ?? "cliente";
-  link.download = `Preventivo_${clientName}_${fmtQuoteId(String(props.quote.id))}.pdf`;
+  link.download = getQuotePdfFilename(props);
   document.body.appendChild(link);
   link.click();
   document.body.removeChild(link);
   URL.revokeObjectURL(url);
+};
+
+// ── Base64 helper (for email attachment) ──────────────────────────
+export const generateQuotePdfBase64 = async (
+  props: QuotePDFProps,
+): Promise<{ base64: string; filename: string }> => {
+  const blob = await pdf(<QuotePDFDocument {...props} />).toBlob();
+  const arrayBuffer = await blob.arrayBuffer();
+  const bytes = new Uint8Array(arrayBuffer);
+  let binary = "";
+  for (const byte of bytes) {
+    binary += String.fromCharCode(byte);
+  }
+  return {
+    base64: btoa(binary),
+    filename: getQuotePdfFilename(props),
+  };
 };

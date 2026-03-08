@@ -7,6 +7,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const getQuoteStatusEmailContext = vi.fn();
 const sendQuoteStatusEmail = vi.fn();
+const getOne = vi.fn();
 const notify = vi.fn();
 
 vi.mock("ra-core", async () => {
@@ -16,10 +17,33 @@ vi.mock("ra-core", async () => {
     useDataProvider: () => ({
       getQuoteStatusEmailContext,
       sendQuoteStatusEmail,
+      getOne,
     }),
     useNotify: () => notify,
   };
 });
+
+vi.mock("../root/ConfigurationContext", () => ({
+  useConfigurationContext: () => ({
+    quoteServiceTypes: [{ value: "wedding", label: "Wedding" }],
+    businessProfile: {
+      name: "Rosario Furnari",
+      tagline: "Fotografia · Video · Web",
+      vatNumber: "05928...",
+      fiscalCode: "FRN...",
+      address: "Via Test 1",
+      email: "test@example.com",
+      phone: "123456789",
+    },
+  }),
+}));
+
+vi.mock("./QuotePDF", () => ({
+  generateQuotePdfBase64: vi.fn().mockResolvedValue({
+    base64: "dGVzdA==",
+    filename: "Preventivo_Maria_Rossi_PRV-QUOTE1AB.pdf",
+  }),
+}));
 
 import { SendQuoteStatusEmailDialog } from "./SendQuoteStatusEmailDialog";
 
@@ -42,10 +66,43 @@ describe("SendQuoteStatusEmailDialog", () => {
   beforeEach(() => {
     getQuoteStatusEmailContext.mockReset();
     sendQuoteStatusEmail.mockReset();
+    getOne.mockReset();
     notify.mockReset();
+
+    // Default mock for getOne (full quote and client for PDF generation)
+    getOne.mockImplementation((resource: string) => {
+      if (resource === "quotes") {
+        return Promise.resolve({
+          data: {
+            id: "quote-1",
+            status: "accettato",
+            description: "Wedding completo",
+            amount: 1800,
+            service_type: "wedding",
+            all_day: true,
+            quote_items: [],
+            created_at: "2026-01-15",
+            updated_at: "2026-01-15",
+            client_id: "client-1",
+            is_taxable: true,
+            index: 1,
+          },
+        });
+      }
+      if (resource === "clients") {
+        return Promise.resolve({
+          data: {
+            id: "client-1",
+            name: "Maria Rossi",
+            email: "maria@example.com",
+          },
+        });
+      }
+      return Promise.resolve({ data: null });
+    });
   });
 
-  it("loads the shared draft, renders the preview, and sends through the provider", async () => {
+  it("loads the shared draft, renders the preview, and sends with PDF attachment", async () => {
     getQuoteStatusEmailContext.mockResolvedValue({
       quoteId: "quote-1",
       clientId: "client-1",
@@ -107,6 +164,8 @@ describe("SendQuoteStatusEmailDialog", () => {
           status: "accettato",
           templateId: "quote-status.accettato",
           automatic: false,
+          pdfBase64: "dGVzdA==",
+          pdfFilename: "Preventivo_Maria_Rossi_PRV-QUOTE1AB.pdf",
         }),
       ),
     );

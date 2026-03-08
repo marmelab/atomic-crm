@@ -1,7 +1,11 @@
 import type { EmailSection } from "./quoteStatusEmailTypes";
 
 // Re-export copy builders for backward compatibility
-export { buildSummaryRows, buildStatusCopy, formatCurrency } from "./quoteStatusEmailCopy";
+export {
+  buildSummaryRows,
+  buildStatusCopy,
+  formatCurrency,
+} from "./quoteStatusEmailCopy";
 
 // ── Helpers ───────────────────────────────────────────────────────────
 
@@ -18,35 +22,134 @@ const toParagraphs = (value: string) =>
     .map((line) => line.trim())
     .filter(Boolean);
 
-// ── HTML renderer ─────────────────────────────────────────────────────
+// ── Status color map (hex equivalents of Tailwind palette) ───────────
+
+export type StatusColorScheme = {
+  accent: string;
+  accentLight: string;
+  accentText: string;
+};
+
+const statusColors: Record<string, StatusColorScheme> = {
+  primo_contatto: {
+    accent: "#94a3b8",
+    accentLight: "#f1f5f9",
+    accentText: "#334155",
+  },
+  preventivo_inviato: {
+    accent: "#3b82f6",
+    accentLight: "#eff6ff",
+    accentText: "#1e40af",
+  },
+  in_trattativa: {
+    accent: "#f59e0b",
+    accentLight: "#fffbeb",
+    accentText: "#92400e",
+  },
+  accettato: {
+    accent: "#22c55e",
+    accentLight: "#f0fdf4",
+    accentText: "#166534",
+  },
+  acconto_ricevuto: {
+    accent: "#14b8a6",
+    accentLight: "#f0fdfa",
+    accentText: "#115e59",
+  },
+  in_lavorazione: {
+    accent: "#8b5cf6",
+    accentLight: "#f5f3ff",
+    accentText: "#5b21b6",
+  },
+  completato: {
+    accent: "#0ea5e9",
+    accentLight: "#f0f9ff",
+    accentText: "#075985",
+  },
+  saldato: {
+    accent: "#10b981",
+    accentLight: "#ecfdf5",
+    accentText: "#065f46",
+  },
+  rifiutato: {
+    accent: "#f87171",
+    accentLight: "#fef2f2",
+    accentText: "#991b1b",
+  },
+  perso: {
+    accent: "#a8a29e",
+    accentLight: "#fafaf9",
+    accentText: "#57534e",
+  },
+};
+
+const defaultColors: StatusColorScheme = {
+  accent: "#3b82f6",
+  accentLight: "#eff6ff",
+  accentText: "#1e40af",
+};
+
+export const getStatusColors = (status: string): StatusColorScheme =>
+  statusColors[status] ?? defaultColors;
+
+// ── Logo URL ─────────────────────────────────────────────────────────
+
+const LOGO_URL =
+  "https://gestionale-rosario.vercel.app/logos/logo_rosario_furnari-96.png";
+
+// ── HTML renderer — Bambino + Neuro design ───────────────────────────
 
 export const renderHtml = ({
   businessName,
   previewText,
   subject,
+  headline,
   intro,
   summaryRows,
   sections,
   ctaLabel,
   ctaUrl,
   supportEmail,
+  status,
+  amount,
+  amountPaid,
+  hasPdfAttachment,
 }: {
   businessName: string;
   previewText: string;
   subject: string;
+  headline: string;
   intro: string;
   summaryRows: Array<{ label: string; value: string }>;
   sections: EmailSection[];
   ctaLabel?: string;
   ctaUrl?: string;
   supportEmail?: string | null;
+  status: string;
+  amount?: number | null;
+  amountPaid?: number | null;
+  hasPdfAttachment?: boolean;
 }) => {
+  const colors = getStatusColors(status);
+  const totalAmount = Number(amount ?? 0);
+  const paidAmount = Number(amountPaid ?? 0);
+  const progressPercent =
+    totalAmount > 0 ? Math.min(100, Math.round((paidAmount / totalAmount) * 100)) : 0;
+  const showProgress = totalAmount > 0;
+
+  const fmtAmount = (value: number) =>
+    value.toLocaleString("it-IT", {
+      style: "currency",
+      currency: "EUR",
+      minimumFractionDigits: 2,
+    });
+
   const summaryHtml = summaryRows
     .map(
       (row) => `
         <tr>
-          <td style="padding:8px 0;color:#64748b;font-size:13px;">${escapeHtml(row.label)}</td>
-          <td style="padding:8px 0;color:#0f172a;font-size:13px;font-weight:600;text-align:right;">${escapeHtml(row.value)}</td>
+          <td style="padding:6px 0;color:#64748b;font-size:13px;">${escapeHtml(row.label)}</td>
+          <td style="padding:6px 0;color:#0f172a;font-size:13px;font-weight:600;text-align:right;">${escapeHtml(row.value)}</td>
         </tr>`,
     )
     .join("");
@@ -54,12 +157,11 @@ export const renderHtml = ({
   const sectionsHtml = sections
     .map(
       (section) => `
-        <div style="margin-top:20px;">
-          <p style="margin:0 0 6px;font-size:13px;font-weight:700;color:#0f172a;">${escapeHtml(section.title)}</p>
+        <div style="margin-top:16px;">
           ${toParagraphs(section.body)
             .map(
               (paragraph) =>
-                `<p style="margin:0 0 10px;font-size:14px;line-height:1.6;color:#334155;">${escapeHtml(paragraph)}</p>`,
+                `<p style="margin:0 0 8px;font-size:14px;line-height:1.6;color:#334155;">${escapeHtml(paragraph)}</p>`,
             )
             .join("")}
         </div>`,
@@ -68,16 +170,20 @@ export const renderHtml = ({
 
   const ctaHtml =
     ctaLabel && ctaUrl
-      ? `<div style="margin-top:24px;">
-          <a href="${escapeHtml(ctaUrl)}" style="display:inline-block;background:#0f172a;color:#ffffff;text-decoration:none;padding:12px 18px;border-radius:8px;font-size:14px;font-weight:700;">${escapeHtml(ctaLabel)}</a>
+      ? `<div style="text-align:center;margin-top:24px;">
+          <a href="${escapeHtml(ctaUrl)}" style="display:inline-block;background:${colors.accent};color:#ffffff;text-decoration:none;padding:14px 28px;border-radius:8px;font-size:15px;font-weight:700;letter-spacing:0.02em;">${escapeHtml(ctaLabel)}</a>
         </div>`
       : "";
 
+  const pdfIndicatorHtml = hasPdfAttachment
+    ? `<div style="margin-top:20px;padding:12px 16px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;text-align:center;">
+        <span style="font-size:13px;color:#64748b;">&#128206; Preventivo PDF completo in allegato</span>
+      </div>`
+    : "";
+
   const footerHtml = supportEmail
-    ? `<p style="margin:24px 0 0;font-size:12px;line-height:1.6;color:#64748b;">Se ti serve un chiarimento puoi rispondere a questa mail o scrivere a ${escapeHtml(
-        supportEmail,
-      )}.</p>`
-    : `<p style="margin:24px 0 0;font-size:12px;line-height:1.6;color:#64748b;">Se ti serve un chiarimento puoi rispondere a questa mail.</p>`;
+    ? `Per chiarimenti puoi rispondere a questa mail o scrivere a <a href="mailto:${escapeHtml(supportEmail)}" style="color:${colors.accent};text-decoration:none;">${escapeHtml(supportEmail)}</a>.`
+    : "Per chiarimenti puoi rispondere direttamente a questa mail.";
 
   return `<!doctype html>
 <html lang="it">
@@ -86,28 +192,80 @@ export const renderHtml = ({
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>${escapeHtml(subject)}</title>
   </head>
-  <body style="margin:0;padding:24px;background:#f8fafc;font-family:Arial,sans-serif;">
+  <body style="margin:0;padding:0;background:#f1f5f9;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Arial,sans-serif;">
     <div style="display:none;max-height:0;overflow:hidden;opacity:0;">${escapeHtml(previewText)}</div>
-    <div style="max-width:640px;margin:0 auto;background:#ffffff;border:1px solid #e2e8f0;border-radius:16px;overflow:hidden;">
-      <div style="padding:24px 24px 16px;background:#0f172a;color:#ffffff;">
-        <p style="margin:0 0 6px;font-size:12px;letter-spacing:0.08em;text-transform:uppercase;color:#cbd5e1;">Aggiornamento preventivo</p>
-        <h1 style="margin:0;font-size:24px;line-height:1.3;">${escapeHtml(subject)}</h1>
-        <p style="margin:10px 0 0;font-size:14px;line-height:1.6;color:#cbd5e1;">${escapeHtml(businessName)}</p>
-      </div>
-      <div style="padding:24px;">
-        ${toParagraphs(intro)
-          .map(
-            (paragraph) =>
-              `<p style="margin:0 0 12px;font-size:15px;line-height:1.7;color:#334155;">${escapeHtml(paragraph)}</p>`,
-          )
-          .join("")}
-        <div style="margin-top:20px;padding:16px;border:1px solid #e2e8f0;border-radius:12px;background:#f8fafc;">
-          <table style="width:100%;border-collapse:collapse;">${summaryHtml}</table>
+    <div style="max-width:600px;margin:0 auto;padding:24px 16px;">
+
+      <!--[if mso]><table role="presentation" width="600" align="center" cellpadding="0" cellspacing="0"><tr><td><![endif]-->
+      <div style="background:#ffffff;border-radius:16px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,0.08);">
+
+        <!-- Logo + Brand -->
+        <div style="padding:28px 32px 20px;text-align:center;">
+          <img src="${LOGO_URL}" alt="${escapeHtml(businessName)}" width="56" height="56" style="border-radius:50%;display:inline-block;" />
+          <p style="margin:12px 0 0;font-size:18px;font-weight:700;color:#0f172a;letter-spacing:-0.01em;">${escapeHtml(businessName)}</p>
         </div>
-        ${sectionsHtml}
-        ${ctaHtml}
-        ${footerHtml}
+
+        <!-- Status color band -->
+        <div style="height:4px;background:${colors.accent};"></div>
+
+        <!-- Headline -->
+        <div style="padding:28px 32px 0;text-align:center;">
+          <h1 style="margin:0;font-size:22px;font-weight:700;color:#0f172a;line-height:1.3;">${escapeHtml(headline)}</h1>
+        </div>
+
+        <!-- Main content -->
+        <div style="padding:20px 32px 0;">
+
+          <!-- Intro -->
+          ${toParagraphs(intro)
+            .map(
+              (paragraph) =>
+                `<p style="margin:0 0 10px;font-size:15px;line-height:1.7;color:#334155;">${escapeHtml(paragraph)}</p>`,
+            )
+            .join("")}
+
+          ${
+            showProgress
+              ? `<!-- Amount hero block -->
+          <div style="margin-top:20px;padding:24px;background:${colors.accentLight};border-radius:12px;text-align:center;">
+            <p style="margin:0;font-size:32px;font-weight:800;color:${colors.accentText};letter-spacing:-0.02em;">${fmtAmount(totalAmount)}</p>
+            ${
+              paidAmount > 0
+                ? `<!-- Progress bar -->
+            <div style="margin:16px auto 0;max-width:280px;">
+              <div style="background:#e2e8f0;border-radius:999px;height:8px;overflow:hidden;">
+                <div style="background:${colors.accent};height:8px;border-radius:999px;width:${progressPercent}%;"></div>
+              </div>
+              <div style="margin-top:8px;display:flex;justify-content:space-between;">
+                <span style="font-size:12px;color:${colors.accentText};font-weight:600;">Pagato ${fmtAmount(paidAmount)}</span>
+                <span style="font-size:12px;color:#64748b;">${progressPercent}%</span>
+              </div>
+            </div>`
+                : ""
+            }
+          </div>`
+              : ""
+          }
+
+          <!-- Summary table -->
+          <div style="margin-top:20px;">
+            <table style="width:100%;border-collapse:collapse;">${summaryHtml}</table>
+          </div>
+
+          ${sectionsHtml}
+          ${ctaHtml}
+          ${pdfIndicatorHtml}
+        </div>
+
+        <!-- Footer -->
+        <div style="padding:24px 32px;margin-top:20px;border-top:1px solid #e2e8f0;">
+          <p style="margin:0 0 8px;font-size:12px;line-height:1.6;color:#94a3b8;text-align:center;">${footerHtml}</p>
+          <p style="margin:0;font-size:11px;color:#cbd5e1;text-align:center;">${escapeHtml(businessName)}</p>
+        </div>
+
       </div>
+      <!--[if mso]></td></tr></table><![endif]-->
+
     </div>
   </body>
 </html>`;
@@ -118,37 +276,38 @@ export const renderHtml = ({
 export const renderText = ({
   businessName,
   subject,
+  headline,
   intro,
   summaryRows,
   sections,
   ctaLabel,
   ctaUrl,
   supportEmail,
+  hasPdfAttachment,
 }: {
   businessName: string;
   subject: string;
+  headline?: string;
   intro: string;
   summaryRows: Array<{ label: string; value: string }>;
   sections: EmailSection[];
   ctaLabel?: string;
   ctaUrl?: string;
   supportEmail?: string | null;
+  hasPdfAttachment?: boolean;
 }) =>
   [
     businessName,
-    subject,
+    "",
+    headline ?? subject,
     "",
     ...toParagraphs(intro),
     "",
-    "Riepilogo",
     ...summaryRows.map((row) => `- ${row.label}: ${row.value}`),
     "",
-    ...sections.flatMap((section) => [
-      section.title,
-      ...toParagraphs(section.body),
-      "",
-    ]),
+    ...sections.flatMap((section) => [...toParagraphs(section.body), ""]),
     ...(ctaLabel && ctaUrl ? [`${ctaLabel}: ${ctaUrl}`, ""] : []),
+    ...(hasPdfAttachment ? ["Preventivo PDF completo in allegato.", ""] : []),
     supportEmail
       ? `Per chiarimenti puoi rispondere a questa mail o scrivere a ${supportEmail}.`
       : "Per chiarimenti puoi rispondere a questa mail.",
