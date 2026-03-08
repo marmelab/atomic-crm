@@ -15,6 +15,7 @@ Stato del documento:
 
 ## Changelog
 
+- 2026-03-09: fix(settings/mobile): Save button hidden behind MobileNavigation (z-50); added z-60 + bottom-14 on mobile. fix(ai/invoice-draft): when user mentions "preventivo" but no open quotes exist in context, parser now returns null (delegates to AI model) instead of misleading fallback to unrelated client surface.
 - 2026-03-08: Mobile dashboard data parity fix — added useRealtimeInvalidation to MobileAnnualDashboard (was missing, causing stale data from persistent localStorage cache). Added staleTime: 2min to mobile QueryClient to force refetch when data is stale. Fixes expenses showing 0 on mobile while desktop showed correct values.
 - 2026-03-08: AI shared components — AiStatusCallout (4 tones: success/warning/info/error, Navy & Petrolio for info), AiDraftSummaryBar (Bambino-style resource summary with Banknote/Receipt/Wrench icons and semantic colors), PaymentDraftCard upgraded with Navy & Petrolio palette + hero amount. AiInvoiceImportView refactored to use shared components replacing hardcoded callout/confirmation boxes. File upload hint shows limits inline (6 files, 20 MB each). Current date injected in extraction prompt to prevent false future-date warnings.
 - 2026-03-08: unified_crm_answer robustness — removed `reasoning.effort` parameter (caused empty outputs), compacted JSON context, `max_output_tokens` bumped to 2000, improved error logging. Suggestion engine: payment keywords expanded in focusPayments patterns, quote suggestions scoped to focusQuotes-only in genericSummary path.

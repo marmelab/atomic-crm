@@ -928,6 +928,10 @@ export const parseUnifiedCrmInvoiceDraftQuestion = ({
         financials: getClientFinancials(context, quoteClientId),
       };
     }
+
+    // User explicitly asked about a quote but none matched — bail out to AI
+    // instead of falling through to project/client which would be misleading
+    if (mentionsQuote) return null;
   }
 
   // Project surface

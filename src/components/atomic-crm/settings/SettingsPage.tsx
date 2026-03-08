@@ -545,8 +545,8 @@ const SettingsFormFields = () => {
         </Card>
       </div>
 
-      {/* Sticky save button */}
-      <div className="fixed bottom-0 left-0 right-0 border-t bg-background p-4">
+      {/* Sticky save button — z-60 to stay above MobileNavigation (z-50) */}
+      <div className="fixed bottom-14 md:bottom-0 left-0 right-0 z-60 border-t bg-background p-4">
         <div className="max-w-screen-xl mx-auto flex gap-8 px-4">
           <div className="hidden md:block w-48 shrink-0" />
           <div className="flex-1 min-w-0 max-w-2xl flex justify-between">
