@@ -42,6 +42,8 @@
 | **Workflow** | WF-6  | Commit codice → docs+memoria NELLO STESSO commit |
 | **UI**       | UI-7  | Componente desktop con props → verificare mobile |
 | **UI**       | UI-8  | Nuova superficie AI → pattern card unificata     |
+| **Backend**  | BE-5  | EF env vars → stop+start, NON restart             |
+| **Backend**  | BE-6  | Reload remoto → TRUNCATE prima di load             |
 
 ---
 
@@ -165,6 +167,18 @@ verify_jwt = false
 **Quando**: vedo query di deduplicazione in `invoice_import_confirm`
 **Fare**: verificare che `description` sia nel WHERE
 **Perché**: spot diversi stessa data/fee (es. 2 spot Gustare €312) visti come duplicati senza description
+
+### BE-5: EF env vars → stop+start, NON docker restart
+
+**Quando**: aggiungo/modifico variabili in `supabase/functions/.env`
+**Fare**: `npx supabase stop --no-backup && npx supabase start` — MAI solo `docker restart`
+**Perché**: `docker restart` riavvia il container con le STESSE env vars dell'avvio originale. Solo `supabase stop+start` rilegge `functions/.env` e le passa al container.
+
+### BE-6: Reload dati remoti → TRUNCATE prima di load
+
+**Quando**: dopo `supabase start` o `supabase db reset` devo caricare dati remoti
+**Fare**: TRUNCATE tutte le tabelle (auth + public + storage) con `session_replication_role = replica` PRIMA di `psql -f dump.sql`
+**Perché**: la migration `20260302170000_domain_data_snapshot.sql` carica dati che collidono col dump remoto → errori "duplicate key". Sequenza: truncate → load dump → `npm run local:admin:bootstrap`
 
 ---
 

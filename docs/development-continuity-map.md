@@ -14,6 +14,7 @@ Last updated: 2026-03-08
 
 ### Recent Updates (cronologico, più recente in alto)
 
+- [2026-03-08 (i)](#update-2026-03-08-i--quote-email-editable-recipient) — Quote email: editable recipient field
 - [2026-03-08 (h)](#update-2026-03-08-h--dashboard-visual-redesign) — Dashboard visual redesign: accent colors, collapsible breakdown, card reorder
 - [2026-03-08 (g)](#update-2026-03-08-g--expense-ownclient-split) — Expense own/client split in dashboard + form UX
 - [2026-03-08 (f)](#update-2026-03-08-f--dashboard-card-reorder) — Dashboard annual: reorder cards for consequential flow
@@ -80,6 +81,23 @@ Last updated: 2026-03-08
 - [Nota manutenzione 2026-03-02](#nota-manutenzione-2026-03-02-fix-ci)
 - [Testing Session Log 2026-03-04](#testing-session-log-2026-03-04--e2e-complete-validation)
 - [AI Semantic UI Upgrade 2026-03-04](#ai-semantic-ui-upgrade-2026-03-04--pareto-principle-applied)
+
+---
+
+## Update 2026-03-08 (i) — Quote email editable recipient
+
+**Cosa è cambiato**
+
+- `SendQuoteStatusEmailDialog`: il campo "A" (destinatario) è ora un `<Input>` editabile
+- Di default mostra `client.email`, ma l'utente può sovrascriverlo
+- Utile per test (invio a sé stessi) e per invio a contatti alternativi
+- Override resettato alla chiusura del dialog
+
+**File toccati**
+
+- `src/components/atomic-crm/quotes/SendQuoteStatusEmailDialog.tsx`
+
+**Nessun impatto architetturale** — l'Edge Function `quote_status_email_send` riceve il `to` dal frontend come prima, senza modifiche backend.
 
 ---
 

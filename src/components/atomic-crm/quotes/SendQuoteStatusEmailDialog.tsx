@@ -6,6 +6,7 @@ import { useDataProvider, useNotify } from "ra-core";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import {
   Dialog,
   DialogContent,
@@ -66,6 +67,7 @@ export const SendQuoteStatusEmailDialog = ({
   const notify = useNotify();
   const [open, setOpen] = useState(false);
   const [customMessage, setCustomMessage] = useState("");
+  const [toOverride, setToOverride] = useState("");
 
   const {
     data: context,
@@ -106,8 +108,11 @@ export const SendQuoteStatusEmailDialog = ({
         customMessage: nextCustomMessage.trim() || null,
       });
 
+      const recipientEmail =
+        toOverride.trim() || emailContext.client?.email || "";
+
       return dataProvider.sendQuoteStatusEmail({
-        to: emailContext.client?.email ?? "",
+        to: recipientEmail,
         subject: template.subject,
         html: template.html,
         text: template.text,
@@ -137,6 +142,7 @@ export const SendQuoteStatusEmailDialog = ({
   useEffect(() => {
     if (!open) {
       setCustomMessage("");
+      setToOverride("");
       resetContext();
       resetSend();
       return;
@@ -206,10 +212,20 @@ export const SendQuoteStatusEmailDialog = ({
 
             <div className="grid gap-3 md:grid-cols-2">
               <div className="rounded-md border bg-muted/30 px-3 py-3">
-                <p className="text-xs text-muted-foreground">A</p>
-                <p className="text-sm font-medium">
-                  {context.client?.email || "Email cliente mancante"}
-                </p>
+                <Label
+                  htmlFor={`quote-status-email-to-${quote.id}`}
+                  className="text-xs text-muted-foreground"
+                >
+                  A
+                </Label>
+                <Input
+                  id={`quote-status-email-to-${quote.id}`}
+                  type="email"
+                  value={toOverride || context.client?.email || ""}
+                  onChange={(e) => setToOverride(e.target.value)}
+                  placeholder="Email destinatario"
+                  className="mt-1 h-8 text-sm font-medium"
+                />
               </div>
               <div className="rounded-md border bg-muted/30 px-3 py-3">
                 <p className="text-xs text-muted-foreground">Oggetto</p>
