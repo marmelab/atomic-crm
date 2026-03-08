@@ -8,6 +8,15 @@ prodotto senza incrociarlo con `docs/README.md` e i documenti `canonical`.
 
 Last updated: 2026-03-08
 
+## Update 2026-03-08 (k) — Mobile responsive dashboard pass
+
+Comprehensive mobile pass on all dashboard cards: responsive text sizes
+(text-lg/sm:text-xl), reduced padding on narrow screens, min-w-0 + truncate
+to prevent overflow, smaller icons on mobile. Fixed KPI grid from xl:grid-cols-4
+to xl:grid-cols-5 (matching NetAvailability col-span-5). Made "Configura Fiscale"
+a clickable link to Settings. AiBlockRenderer blocks (metrics, bar-chart,
+comparison, breakdown, trend) all use responsive sizing.
+
 ## Update 2026-03-08 (j) — PDF export for AI results
 
 Added zero-dependency PDF export to the AI result area. A "PDF" button clones

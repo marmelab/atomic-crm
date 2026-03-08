@@ -1,4 +1,5 @@
 import { Banknote, Receipt, Landmark } from "lucide-react";
+import { Link } from "react-router-dom";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
@@ -42,46 +43,46 @@ export const DashboardNetAvailabilityCard = ({
       </CardHeader>
       <CardContent className="px-4 space-y-3">
         {/* ── Three-column breakdown ── */}
-        <div className="grid grid-cols-[1fr_auto_1fr_auto_1fr] gap-0">
+        <div className="grid grid-cols-[1fr_auto_1fr_auto_1fr] gap-0 items-start">
           {/* Incassato */}
-          <div className="pr-3 space-y-1 text-center">
-            <div className="flex items-center justify-center gap-1.5 text-emerald-600 dark:text-emerald-400">
-              <Banknote className="h-4 w-4" />
-              <span className="text-xs font-semibold uppercase tracking-wide">
+          <div className="pr-2 sm:pr-3 space-y-1 text-center min-w-0">
+            <div className="flex items-center justify-center gap-1 text-emerald-600 dark:text-emerald-400">
+              <Banknote className="h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0" />
+              <span className="text-[10px] sm:text-xs font-semibold uppercase tracking-wide">
                 Incassato
               </span>
             </div>
-            <div className="text-xl font-bold text-emerald-700 dark:text-emerald-300 tabular-nums">
+            <div className="text-lg sm:text-xl font-bold text-emerald-700 dark:text-emerald-300 tabular-nums">
               {formatCurrencyPrecise(cashReceived)}
             </div>
           </div>
 
-          <Separator orientation="vertical" />
+          <Separator orientation="vertical" className="self-stretch" />
 
           {/* Spese */}
-          <div className="px-3 space-y-1 text-center">
-            <div className="flex items-center justify-center gap-1.5 text-red-600 dark:text-red-400">
-              <Receipt className="h-4 w-4" />
-              <span className="text-xs font-semibold uppercase tracking-wide">
+          <div className="px-2 sm:px-3 space-y-1 text-center min-w-0">
+            <div className="flex items-center justify-center gap-1 text-red-600 dark:text-red-400">
+              <Receipt className="h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0" />
+              <span className="text-[10px] sm:text-xs font-semibold uppercase tracking-wide">
                 Spese
               </span>
             </div>
-            <div className="text-xl font-bold text-red-700 dark:text-red-300 tabular-nums">
+            <div className="text-lg sm:text-xl font-bold text-red-700 dark:text-red-300 tabular-nums">
               {formatCurrencyPrecise(expenses)}
             </div>
           </div>
 
-          <Separator orientation="vertical" />
+          <Separator orientation="vertical" className="self-stretch" />
 
           {/* Tasse */}
-          <div className="pl-3 space-y-1 text-center">
-            <div className="flex items-center justify-center gap-1.5 text-red-600 dark:text-red-400">
-              <Landmark className="h-4 w-4" />
-              <span className="text-xs font-semibold uppercase tracking-wide">
+          <div className="pl-2 sm:pl-3 space-y-1 text-center min-w-0">
+            <div className="flex items-center justify-center gap-1 text-red-600 dark:text-red-400">
+              <Landmark className="h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0" />
+              <span className="text-[10px] sm:text-xs font-semibold uppercase tracking-wide">
                 Tasse
               </span>
             </div>
-            <div className="text-xl font-bold text-red-700 dark:text-red-300 tabular-nums">
+            <div className="text-lg sm:text-xl font-bold text-red-700 dark:text-red-300 tabular-nums">
               {hasFiscalData ? formatCurrencyPrecise(taxRemaining) : "—"}
             </div>
             {hasFiscalData && taxesPaid > 0 && (
@@ -90,9 +91,12 @@ export const DashboardNetAvailabilityCard = ({
               </p>
             )}
             {!hasFiscalData && (
-              <p className="text-[11px] text-amber-600 dark:text-amber-400">
+              <Link
+                to="/settings"
+                className="text-[11px] text-amber-600 dark:text-amber-400 underline underline-offset-2"
+              >
                 Configura Fiscale
-              </p>
+              </Link>
             )}
           </div>
         </div>

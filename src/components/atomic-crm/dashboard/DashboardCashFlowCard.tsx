@@ -28,14 +28,14 @@ export const DashboardCashFlowCard = ({
         {/* ── Two-column: Entrate vs Uscite ── */}
         <div className="grid grid-cols-[1fr_auto_1fr] gap-0">
           {/* LEFT — Entrate */}
-          <div className="pr-3 space-y-1">
-            <div className="flex items-center gap-1.5 text-emerald-600 dark:text-emerald-400">
-              <ArrowDownRight className="h-4 w-4" />
-              <span className="text-xs font-semibold uppercase tracking-wide">
+          <div className="pr-2 sm:pr-3 space-y-1 min-w-0">
+            <div className="flex items-center gap-1 text-emerald-600 dark:text-emerald-400">
+              <ArrowDownRight className="h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0" />
+              <span className="text-[10px] sm:text-xs font-semibold uppercase tracking-wide">
                 Entrano
               </span>
             </div>
-            <div className="text-xl font-bold text-emerald-700 dark:text-emerald-300 tabular-nums">
+            <div className="text-lg sm:text-xl font-bold text-emerald-700 dark:text-emerald-300 tabular-nums">
               {formatCurrencyPrecise(forecast.inflowsTotal)}
             </div>
             <FlowList
@@ -48,14 +48,14 @@ export const DashboardCashFlowCard = ({
           <Separator orientation="vertical" className="mx-0" />
 
           {/* RIGHT — Uscite */}
-          <div className="pl-3 space-y-1">
-            <div className="flex items-center gap-1.5 text-red-600 dark:text-red-400">
-              <ArrowUpRight className="h-4 w-4" />
-              <span className="text-xs font-semibold uppercase tracking-wide">
+          <div className="pl-2 sm:pl-3 space-y-1 min-w-0">
+            <div className="flex items-center gap-1 text-red-600 dark:text-red-400">
+              <ArrowUpRight className="h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0" />
+              <span className="text-[10px] sm:text-xs font-semibold uppercase tracking-wide">
                 Escono
               </span>
             </div>
-            <div className="text-xl font-bold text-red-700 dark:text-red-300 tabular-nums">
+            <div className="text-lg sm:text-xl font-bold text-red-700 dark:text-red-300 tabular-nums">
               {formatCurrencyPrecise(forecast.outflowsTotal)}
             </div>
             <FlowList

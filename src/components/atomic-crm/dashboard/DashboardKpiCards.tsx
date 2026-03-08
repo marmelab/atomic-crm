@@ -33,7 +33,7 @@ export const DashboardKpiCards = ({
   fiscalKpis?: FiscalKpis | null;
   taxesPaid?: number;
 }) => (
-  <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+  <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-5 gap-4">
     <DashboardNetAvailabilityCard
       kpis={kpis}
       fiscalKpis={fiscalKpis}
@@ -175,15 +175,15 @@ const OpenQuotesCard = ({ kpis }: { kpis: DashboardKpis }) => (
     </CardHeader>
     <CardContent className="px-4 space-y-2">
       <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-0">
-        <div className="text-center">
-          <div className="text-2xl font-bold text-sky-700 dark:text-sky-300">
+        <div className="text-center min-w-0">
+          <div className="text-xl sm:text-2xl font-bold text-sky-700 dark:text-sky-300">
             {kpis.openQuotesCount}
           </div>
           <p className="text-[11px] text-muted-foreground">aperti</p>
         </div>
         <Separator orientation="vertical" className="h-8" />
-        <div className="text-center">
-          <div className="text-2xl font-bold text-sky-700 dark:text-sky-300 tabular-nums">
+        <div className="text-center min-w-0">
+          <div className="text-xl sm:text-2xl font-bold text-sky-700 dark:text-sky-300 tabular-nums">
             {formatCompactCurrency(kpis.openQuotesAmount)}
           </div>
           <p className="text-[11px] text-muted-foreground">valore</p>

@@ -166,10 +166,12 @@ function MetricsBlock({
   return (
     <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
       {items.map((item, i) => (
-        <div key={i} className="rounded-md border px-3 py-2 text-center">
-          <p className="text-xs text-muted-foreground">{item.label}</p>
+        <div key={i} className="rounded-md border px-2 py-2 text-center min-w-0">
+          <p className="text-[11px] text-muted-foreground leading-tight truncate">
+            {item.label}
+          </p>
           <p
-            className={`text-lg font-bold ${colorMap[item.color ?? "sky"]}`}
+            className={`text-base sm:text-lg font-bold truncate ${colorMap[item.color ?? "sky"]}`}
           >
             {item.value}
           </p>
@@ -215,17 +217,17 @@ function BarChartBlock({
           const pct = Math.round((item.value / maxValue) * 100);
           const color = item.color ?? "sky";
           return (
-            <div key={i} className="flex items-center gap-2">
-              <span className="text-xs text-muted-foreground w-28 truncate text-right shrink-0">
+            <div key={i} className="flex items-center gap-1.5 sm:gap-2">
+              <span className="text-[11px] sm:text-xs text-muted-foreground w-20 sm:w-28 truncate text-right shrink-0">
                 {item.label}
               </span>
-              <div className="flex-1 h-5 rounded bg-muted/40 overflow-hidden">
+              <div className="flex-1 h-4 sm:h-5 rounded bg-muted/40 overflow-hidden">
                 <div
                   className={`h-full rounded ${bgColorMap[color]}`}
                   style={{ width: `${pct}%` }}
                 />
               </div>
-              <span className="text-xs font-medium w-16 text-right shrink-0">
+              <span className="text-[11px] sm:text-xs font-medium w-12 sm:w-16 text-right shrink-0">
                 {formatNumber(item.value)}
               </span>
             </div>
@@ -284,10 +286,10 @@ function TrendBlock({
       {label && (
         <p className="text-sm font-semibold mb-2">{label}</p>
       )}
-      <ResponsiveContainer width="100%" height={180}>
+      <ResponsiveContainer width="100%" height={160}>
         <LineChart
           data={points}
-          margin={{ top: 8, right: 12, left: 4, bottom: 4 }}
+          margin={{ top: 8, right: 8, left: 0, bottom: 4 }}
         >
           <CartesianGrid
             strokeDasharray="3 3"
@@ -298,13 +300,13 @@ function TrendBlock({
             dataKey="label"
             tickLine={false}
             axisLine={false}
-            fontSize={11}
+            fontSize={10}
           />
           <YAxis
             tickLine={false}
             axisLine={false}
-            width={52}
-            fontSize={11}
+            width={44}
+            fontSize={10}
             tickFormatter={(v) => `${formatNumber(v as number)} ${suffix}`}
           />
           <Tooltip
@@ -360,20 +362,26 @@ function ComparisonBlock({
         : "text-gray-500";
 
   return (
-    <div className="flex items-center gap-3 rounded-md border px-3 py-2">
-      <div className="flex-1 text-center">
-        <p className="text-xs text-muted-foreground">{left.label}</p>
-        <p className="text-lg font-bold">{left.value}</p>
+    <div className="flex items-center gap-2 sm:gap-3 rounded-md border px-2 sm:px-3 py-2">
+      <div className="flex-1 text-center min-w-0">
+        <p className="text-[11px] sm:text-xs text-muted-foreground truncate">
+          {left.label}
+        </p>
+        <p className="text-base sm:text-lg font-bold truncate">{left.value}</p>
       </div>
-      <div className="flex flex-col items-center gap-0.5">
+      <div className="flex flex-col items-center gap-0.5 shrink-0">
         <DeltaIcon className={`h-4 w-4 ${deltaColor}`} />
         {delta && (
-          <span className={`text-xs font-medium ${deltaColor}`}>{delta}</span>
+          <span className={`text-[11px] sm:text-xs font-medium ${deltaColor}`}>
+            {delta}
+          </span>
         )}
       </div>
-      <div className="flex-1 text-center">
-        <p className="text-xs text-muted-foreground">{right.label}</p>
-        <p className="text-lg font-bold">{right.value}</p>
+      <div className="flex-1 text-center min-w-0">
+        <p className="text-[11px] sm:text-xs text-muted-foreground truncate">
+          {right.label}
+        </p>
+        <p className="text-base sm:text-lg font-bold truncate">{right.value}</p>
       </div>
     </div>
   );
@@ -410,13 +418,17 @@ function BreakdownBlock({
           const pct = Math.round((item.value / total) * 100);
           const color = item.color ?? defaultColors[i % defaultColors.length];
           return (
-            <div key={i} className="flex items-center gap-2">
+            <div key={i} className="flex items-center gap-1.5 sm:gap-2">
               <span
                 className={`h-3 w-3 rounded-full shrink-0 ${bgColorMap[color]}`}
               />
-              <span className="text-sm flex-1 truncate">{item.label}</span>
-              <span className="text-xs text-muted-foreground">{pct}%</span>
-              <span className="text-sm font-medium w-16 text-right">
+              <span className="text-sm flex-1 truncate min-w-0">
+                {item.label}
+              </span>
+              <span className="text-[11px] sm:text-xs text-muted-foreground shrink-0">
+                {pct}%
+              </span>
+              <span className="text-sm font-medium w-12 sm:w-16 text-right shrink-0">
                 {formatNumber(item.value)}
               </span>
             </div>
