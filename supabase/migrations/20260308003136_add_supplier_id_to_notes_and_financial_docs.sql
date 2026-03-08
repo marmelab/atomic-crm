@@ -7,8 +7,15 @@ ALTER TABLE public.client_notes
   ALTER COLUMN client_id DROP NOT NULL;
 
 -- Add check: at least one of client_id or supplier_id must be set
-ALTER TABLE public.client_notes
-  ADD CONSTRAINT client_notes_owner_check CHECK (client_id IS NOT NULL OR supplier_id IS NOT NULL);
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_constraint WHERE conname = 'client_notes_owner_check'
+  ) THEN
+    ALTER TABLE public.client_notes
+      ADD CONSTRAINT client_notes_owner_check CHECK (client_id IS NOT NULL OR supplier_id IS NOT NULL);
+  END IF;
+END $$;
 
 -- Allow financial documents to be linked to a supplier
 ALTER TABLE public.financial_documents
