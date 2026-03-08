@@ -16,6 +16,7 @@ Stato del documento:
 ## Changelog
 
 - 2026-03-08: Cloudinary — fix crop coordinates applied to saved URL (widget returns original + coordinates, now injected as c_crop transform)
+- 2026-03-08: Cloudinary Upload Widget — all available sources enabled (local, url, camera, image_search, google_drive, dropbox, unsplash, shutterstock, gettyimages, istock)
 - 2026-03-08: Cloudinary URL transform ordering fix — crop transforms (c_crop) preserved before display transforms to avoid 400 errors
 - 2026-03-08: Cloudinary — ListAvatar component shows logo/photo in list rows with icon fallback (clients, contacts, suppliers)
 - 2026-03-08: Cloudinary — on-demand AI background removal for avatar uploads (via URL transform, requires addon active on preset)
