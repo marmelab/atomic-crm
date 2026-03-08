@@ -1,258 +1,224 @@
 # Claude Auto-Correction System
 
-> **Questo file NON è documentazione**. È il mio sistema di apprendimento automatico.
-> Ogni entry è un trigger che mi costringe a comportarmi diversamente.
+> **Questo file NON è documentazione**. È il mio sistema di apprendimento
+> automatico. Ogni entry è un trigger che mi costringe a comportarmi
+> diversamente.
 
 ---
 
-## 🚨 RITUALE — Da eseguire all'inizio di OGNI sessione
+## Rituale di sessione
 
-1. ✅ Ho letto questo file? Se no, leggerlo ORA
-2. ✅ Ho applicato i trigger alla situazione attuale?
-3. ✅ Ricordo: se imparo qualcosa di nuovo, aggiorno questo file PRIMA di chiudere
-
-**Se salti questo rituale, ripeterai errori già commessi.**
+1. Leggo questo file all'inizio di ogni sessione
+2. Applico i trigger alla situazione attuale
+3. Se imparo qualcosa di nuovo, aggiorno PRIMA di chiudere
 
 ---
 
-## ⚡ Auto-Triggers — Quando vedo queste situazioni, AGISCO diversamente
+## Indice trigger per categoria
 
-### Trigger: Nuova lista desktop = colonne ridimensionabili
-
-**Situazione**: Creo/modifico un componente `*ListContent.tsx` con tabella desktop
-**Azione automatica**: Usare `useResizableColumns(resource)` + `ResizableHead` + `tableLayout: "fixed"`
-**Perché**: Tutte le liste del CRM supportano resize colonne con persistenza localStorage
-**Fonte**: Sessione 2026-03-08
-
-### Trigger: Nuovo filtro entità = usare FilterPopover
-
-**Situazione**: Aggiungo un filtro dropdown per entità (client, project, supplier, ecc.)
-**Azione automatica**: Usare `FilterPopover` da `filters/FilterHelpers.tsx`, NON duplicare Popover+Command inline
-**Perché**: 6 moduli filtro usavano lo stesso pattern Popover duplicato. Ora c'è il componente generico.
-**Fonte**: Sessione 2026-03-08
-
-### Trigger: CI Prettier fail su file nuovi creati da subagent
-
-**Situazione**: File creati da subagent (Agent tool) non passano prettier in CI
-**Azione automatica**: Dopo commit di subagent, eseguire `npx prettier --check` sui file nuovi e fixare PRIMA del push
-**Perché**: lint-staged formatta solo i file staged, ma i subagent possono creare file con formatting diverso dal progetto
-**Fonte**: Sessione 2026-03-08, 4 file nuovi non formattati
-
-### Trigger: Destrutturazione parametri funzione = verificare completezza
-
-**Situazione**: Aggiungo un nuovo parametro opzionale a una funzione con destructuring
-**Azione automatica**: Verificare che il parametro sia presente ANCHE nella destrutturazione, non solo nel tipo
-**Perché**: `buildUnifiedCrmReadContext` aveva `suppliers?: Supplier[]` nel tipo ma mancava nella destrutturazione → ReferenceError
-**Fonte**: Sessione 2026-03-08, bug pre-esistente scoperto in CI
-
-### Trigger: Enum/Choice = aggiorna TUTTE le superfici
-
-**Situazione**: Aggiungo un nuovo valore a un enum (expense_type, service_type, status, ecc.)
-**Azione automatica**: Aggiornare CHECK constraint DB, types.ts, UI choices/labels, views con CASE, AI registry, Edge Functions, test
-**Perché**: Il commit a33d903 ha aggiunto 3 expense types nel frontend ma NON nel CHECK constraint DB → INSERT bloccati. Scoperto solo mesi dopo.
-**Regola promossa in**: `AGENTS.md` → "Enum/Choice Consistency Rule"
-**Fonte**: Sessione 2026-03-06
-
-### Trigger: km su servizi = spesa auto-creata dal trigger DB
-
-**Situazione**: Creo/modifico codice che inserisce servizi con km_distance > 0
-**Azione automatica**: NON creare manualmente una spesa spostamento_km — il trigger `sync_service_km_expense` la crea automaticamente via `source_service_id`
-**Perché**: Doppio conteggio se si crea la spesa sia manualmente che via trigger. quickEpisodePersistence e invoice_import NON devono creare spese km.
-**Fonte**: Sessione 2026-03-06
-
-### Trigger 0: Modello fiscale = CASSA, non competenza
-
-**Situazione**: Vedo calcolo base imponibile forfettaria
-**Azione automatica**: Verificare che usi `payments` (status=ricevuto, payment_date) e NON `services` (service_date)
-**Perché**: Regime forfettario = principio di cassa. Art. 1 commi 54-89, L. 190/2014. I servizi restano per metriche operative (margini, DSO, concentrazione).
-**Fonte**: Sessione 2026-03-04, fix in `fiscalModel.ts`
-
-### Trigger 1: `useEffect` + `formState`
-**Situazione**: Vedo `formState` nelle dipendenze di un `useEffect`  
-**Azione automatica**: Rimuoverlo immediatamente, usare `getFieldState("field")` senza secondo parametro  
-**Perché**: Ciclo infinito garantito — `formState` cambia ad ogni render  
-**Fonte**: Sessione 2026-03-04, fix in `ServiceInputs.tsx` e `QuoteInputs.tsx`
+| Cat.         | ID    | Trigger                                   |
+| ------------ | ----- | ----------------------------------------- |
+| **UI**       | UI-1  | Nuova lista desktop → resizable columns   |
+| **UI**       | UI-2  | Nuovo filtro entità → FilterPopover       |
+| **UI**       | UI-3  | Nuova pagina lista → MobilePageTitle      |
+| **UI**       | UI-4  | Input numerici → MAI `?? 0`               |
+| **UI**       | UI-5  | useEffect + formState → ciclo infinito    |
+| **UI**       | UI-6  | Import `@/components/admin` → no barrel   |
+| **DB**       | DB-1  | Enum/Choice → aggiorna TUTTE le superfici |
+| **DB**       | DB-2  | Nuova migration → checklist replayability |
+| **DB**       | DB-3  | km servizi → spesa auto da trigger DB     |
+| **Backend**  | BE-1  | Edge Function modificata → deploy manuale |
+| **Backend**  | BE-2  | Nuova Edge Function → config.toml!       |
+| **Backend**  | BE-3  | Schema change → riavviare edge runtime    |
+| **Backend**  | BE-4  | Deduplica servizi → includere description |
+| **Dominio**  | DOM-1 | Fiscale = CASSA, non competenza           |
+| **Dominio**  | DOM-2 | Forfettario ≠ regime ordinario            |
+| **Config**   | CFG-1 | Nuova configurazione → 3 file obbligatori |
+| **Workflow** | WF-1  | Aggiorno continuity-map → aggiorna indice |
+| **Workflow** | WF-2  | CI prettier fail su file da subagent      |
+| **Workflow** | WF-3  | Destructuring param → verificare completo |
+| **Workflow** | WF-4  | Aggiorno file sistema → sweep incrociata  |
 
 ---
 
-### Trigger 2a: Input numerici React — MAI `?? 0` con `"" → 0`
-**Situazione**: Vedo `<Input type="number" value={field ?? 0}` o `onChange: "" → 0`
-**Azione automatica**: Cambiare in `value={field ?? ""}` e `onChange: "" → null`
-**Perché**: L'utente non può MAI cancellare il campo — resta bloccato su `0`
-**Fonte**: Sessione 2026-03-06, fix in `InvoiceImportDraftServiceSection.tsx` e `TravelRouteCalculatorDialog.tsx`
+## UI Triggers
 
-### Trigger 2b: Edge Function + schema change = RIAVVIARE runtime
-**Situazione**: Dopo migration che cambia tipo colonna o aggiunge colonna
-**Azione automatica**: `docker restart supabase_edge_runtime_gestionale-rosario`
-**Perché**: L'edge runtime compila il codice e prepara le query con i tipi della sessione. Senza restart usa lo schema vecchio.
-**Fonte**: Sessione 2026-03-06, km_distance integer→numeric bloccava invoice_import_confirm
+### UI-1: Nuova lista desktop = colonne ridimensionabili
 
-### Trigger 2c: Deduplica servizi — includere SEMPRE description
-**Situazione**: Vedo query di deduplicazione servizi in `invoice_import_confirm`
-**Azione automatica**: Verificare che `description` sia nel WHERE
-**Perché**: Spot diversi nella stessa data con stesse fee (es. 2 spot Gustare €312) vengono visti come duplicati senza description
-**Fonte**: Sessione 2026-03-06, fix in `invoice_import_confirm/index.ts`
+**Quando**: creo/modifico `*ListContent.tsx` con tabella desktop
+**Fare**: `useResizableColumns(resource)` + `ResizableHead` + `tableLayout: "fixed"`
+**Perché**: tutte le liste CRM supportano resize con localStorage persistence
 
-### Trigger 2: Import da `@/components/admin`
-**Situazione**: Vedo un import dal barrel file  
-**Azione automatica**: Split in import specifici dal file sorgente  
-**Perché**: Convenzione progetto — previene bundle bloat e circular deps  
-**Esempio**: `import { X } from "@/components/admin"` → `import { X } from "@/components/admin/x"`
+### UI-2: Nuovo filtro entità = usare FilterPopover
 
----
+**Quando**: aggiungo filtro dropdown per entità (client, project, supplier...)
+**Fare**: `FilterPopover` da `filters/FilterHelpers.tsx`, NON duplicare Popover inline
+**Perché**: 6 moduli usavano lo stesso Popover duplicato, ora c'è il generico
 
-### Trigger 3: Nuova pagina lista senza `MobilePageTitle`
-**Situazione**: Creo/modifico un componente `*List.tsx`  
-**Azione automatica**: Aggiungere `<MobilePageTitle title="..." />` come primo figlio  
-**Perché**: Su mobile non c'è breadcrumb, utente non sa dove è  
-**Check**: Cerco `title={false}` nella lista → devo aggiungere MobilePageTitle
+### UI-3: Nuova pagina lista → MobilePageTitle
 
----
+**Quando**: creo/modifico un componente `*List.tsx`
+**Fare**: aggiungere `<MobilePageTitle title="..." />` come primo figlio
+**Perché**: su mobile non c'è breadcrumb, utente non sa dove è
+**Check**: cerco `title={false}` nella lista → devo aggiungere MobilePageTitle
 
-### Trigger 4: CHECK constraint vs TypeScript type
-**Situazione**: Modifico un enum/tipo che ha corrispondente DB column  
-**Azione automatica**: Verificare migration SQL esista per aggiornare CHECK constraint  
-**Perché**: Altrimenti l'inserimento fallisce silenziosamente o con errore cryptico  
-**Esempio**: `expense_type` ha 5 valori nel tipo ma 4 nel DB CHECK
+### UI-4: Input numerici React — MAI `?? 0`
 
----
+**Quando**: vedo `<Input type="number" value={field ?? 0}` o `onChange: "" → 0`
+**Fare**: `value={field ?? ""}` e `onChange: "" → null`
+**Perché**: l'utente non riesce a cancellare il campo
 
-### Trigger 5: Nuova configurazione
-**Situazione**: Aggiungo un campo a `ConfigurationContextValue`
-**Azione automatica**:
-1. Aggiungere a `defaultConfiguration.ts`
-2. Aggiungere sezione in `SettingsPage.tsx`
-3. Aggiornare `docs/architecture.md` sezione Settings
-**Perché**: Se manca uno di questi, la config non funziona o non è editabile
+### UI-5: useEffect + formState = ciclo infinito
+
+**Quando**: vedo `formState` nelle dipendenze di un `useEffect`
+**Fare**: rimuoverlo, usare `getFieldState("field")` senza secondo parametro
+**Perché**: `formState` cambia ad ogni render → loop infinito garantito
+
+### UI-6: Import da `@/components/admin` → no barrel
+
+**Quando**: vedo import dal barrel file
+**Fare**: split in import specifici (`@/components/admin/x`)
+**Perché**: previene bundle bloat e circular deps
+**Eccezione**: se l'import specifico non esiste (es. `SaveButton` è in `form.tsx`), usare il barrel solo per quello
 
 ---
 
-### Trigger 6: Forfettario ≠ regime ordinario (NO deduzioni singole)
-**Situazione**: Propongo feature fiscali (deducibilità, IVA, costi deducibili)
-**Azione automatica**: FERMARMI e verificare se ha senso nel regime forfettario
-**Perché**: Nel forfettario le spese NON si deducono individualmente — il coefficiente di redditività le assorbe forfettariamente. No IVA, no deduzioni singole.
-**Fonte**: Sessione 2026-03-04, errore nel suggerire "deducibilità spese con %"
+## DB Triggers
+
+### DB-1: Enum/Choice = aggiorna TUTTE le superfici
+
+**Quando**: aggiungo un valore a un enum (expense_type, service_type, status...)
+**Fare**: aggiornare CHECK constraint DB, types.ts, UI choices/labels, views con CASE, AI registry, Edge Functions, test
+**Perché**: commit a33d903 aggiunse 3 expense types nel frontend ma NON nel CHECK → INSERT bloccati per settimane
+
+### DB-2: Nuova migration SQL → checklist
+
+**Quando**: creo `supabase/migrations/YYYYMMDDHHMMSS_*.sql`
+**Fare**: verificare:
+- `IF EXISTS` / `IF NOT EXISTS` per replayability
+- RLS policies se tabella nuova
+- Indici su FK
+- Trigger `updated_at` se serve
+
+### DB-3: km su servizi = spesa auto dal trigger DB
+
+**Quando**: codice che inserisce servizi con km_distance > 0
+**Fare**: NON creare manualmente spesa spostamento_km — il trigger `sync_service_km_expense` la crea via `source_service_id`
+**Perché**: doppio conteggio. `quickEpisodePersistence` e `invoice_import` NON devono creare spese km
 
 ---
 
-### Trigger 7: Edge Function modificata
-**Situazione**: Tocco codice in `supabase/functions/`
-**Azione automatica**: Ricordare che `git push` NON basta, serve `npx supabase functions deploy`
-**Perché**: Altrimenti resta la vecchia versione in produzione
-**Check**: Comunicare esplicitamente all'utente il dual-deploy necessario
+## Backend Triggers
 
----
+### BE-1: Edge Function modificata → deploy manuale
 
-### Trigger 8: Nuova Edge Function creata (config.toml!)
+**Quando**: tocco codice in `supabase/functions/`
+**Fare**: ricordare che `git push` NON basta, serve `npx supabase functions deploy`
+**Perché**: altrimenti resta la vecchia versione in produzione
 
-**Situazione**: Creo una NUOVA Edge Function in `supabase/functions/`
-**Azione automatica**: AGGIUNGERE IMMEDIATAMENTE la entry in `supabase/config.toml`:
+### BE-2: Nuova Edge Function → config.toml!
 
+**Quando**: creo una NUOVA Edge Function
+**Fare**: aggiungere IMMEDIATAMENTE in `supabase/config.toml`:
 ```toml
 [functions.nome_funzione]
 verify_jwt = false
 ```
-**Perché**: Tutte le Edge Functions di questo progetto gestiscono l'auth internamente con JWKS (`_shared/authentication.ts`). Se manca la entry in `config.toml`, il gateway Supabase (Kong) applica il default `verify_jwt = true` e BLOCCA il JWT prima che la funzione possa gestirlo → errore "Invalid JWT" sistematico su OGNI chiamata.
-**Bug reale**: `invoice_import_confirm` ha dato 401 "Invalid JWT" su OGNI chiamata per settimane perché mancava dal `config.toml`. La funzione extract (stessa auth) funzionava perché era nel config.
-**Check obbligatorio**: Dopo aver creato la funzione, verificare che `grep "functions.nome_funzione" supabase/config.toml` trovi la entry. Se no, aggiungerla.
-**Fonte**: Sessione 2026-03-05, bug in produzione
+**Perché**: l'auth è gestita internamente da `_shared/authentication.ts`. Senza la entry, Kong blocca il JWT → 401 sistematico su OGNI chiamata.
+**Bug reale**: `invoice_import_confirm` ha dato 401 per settimane.
+**Check**: `grep "functions.nome_funzione" supabase/config.toml`
+
+### BE-3: Schema change → riavviare edge runtime
+
+**Quando**: dopo migration che cambia tipo colonna o aggiunge colonna
+**Fare**: `docker restart supabase_edge_runtime_gestionale-rosario`
+**Perché**: l'edge runtime usa lo schema della sessione, senza restart usa il vecchio
+
+### BE-4: Deduplica servizi → includere description
+
+**Quando**: vedo query di deduplicazione in `invoice_import_confirm`
+**Fare**: verificare che `description` sia nel WHERE
+**Perché**: spot diversi stessa data/fee (es. 2 spot Gustare €312) visti come duplicati senza description
 
 ---
 
-### Trigger 9: Aggiorno development-continuity-map.md
+## Dominio Triggers
 
-**Situazione**: Aggiungo un nuovo `## Update`, una nuova Structural Section o un nuovo Changelog
-**Azione automatica**: Aggiornare la **Navigation Map** in cima al file:
-1. Nuovo Update → riga in "Recent Updates" (più recente in alto), con sotto-link `###` se presenti
-2. Nuova Structural Section → riga in "Structural Sections"
-3. Nuovo Changelog/Log → riga in "Changelogs & Logs"
-4. Aggiornare `Last updated:` in riga 9
-**Perché**: Senza aggiornare l'indice, il documento da 1100+ righe torna innavigabile
-**Fonte**: Sessione 2026-03-05
+### DOM-1: Modello fiscale = CASSA, non competenza
 
----
+**Quando**: vedo calcolo base imponibile forfettaria
+**Fare**: verificare che usi `payments` (status=ricevuto, payment_date), NON `services` (service_date)
+**Perché**: regime forfettario = principio di cassa (Art. 1 commi 54-89, L. 190/2014)
 
-### Trigger 10: Migration SQL nuova
-**Situazione**: Creo `supabase/migrations/YYYYMMDDHHMMSS_*.sql`  
-**Azione automatica**: Verificare che includa:  
-- [ ] `IF EXISTS` / `IF NOT EXISTS` per replayability  
-- [ ] RLS policies se tabella nuova  
-- [ ] Indici su FK  
-- [ ] Trigger `updated_at` se serve  
-**Perché**: Migration deve essere replayable da zero senza errori
+### DOM-2: Forfettario ≠ regime ordinario
+
+**Quando**: propongo feature fiscali (deducibilità, IVA, costi deducibili)
+**Fare**: FERMARMI e verificare se ha senso nel forfettario
+**Perché**: nel forfettario le spese NON si deducono individualmente — il coefficiente di redditività le assorbe. No IVA, no deduzioni singole.
 
 ---
 
-## 🔄 Pattern di Auto-Verifica
+## Config Triggers
 
-Prima di dire "fatto", controllo automaticamente:
+### CFG-1: Nuova configurazione → 3 file obbligatori
 
-### Per ogni fix:
-```
-npm run typecheck  → 0 errori?
-npm run lint       → 0 errori?
-npm run build      → build success?
-```
-Se uno fallisce → NON ho finito, continuo.
-
-### Per ogni modifica DB:
-```
-La migration è nell'ultimo file .sql?
-Ho aggiornato types.ts se ho cambiato schema?
-Ho verificato che i tipi TypeScript matchino il DB?
-```
-
-### Per ogni modifica UI lista:
-```
-Ho aggiunto MobilePageTitle per mobile?
-I filtri funzionano su mobile (Sheet pattern)?
-Ho verificato su entrambi i breakpoint?
-```
+**Quando**: aggiungo un campo a `ConfigurationContextValue`
+**Fare**:
+1. `defaultConfiguration.ts`
+2. `SettingsPage.tsx`
+3. `docs/architecture.md` sezione Settings
 
 ---
 
-## 🧠 Lezioni di Contesto (NON in AGENTS.md)
+## Workflow Triggers
 
-### Lesson: Import ciclici con `@/components/admin`
-**Quando l'ho scoperto**: Sessione 2026-03-04  
-**Cosa è successo**: Ho cambiato import in `EditSheet.tsx` e build è fallita perché `save-button` non esiste come file separato  
-**Correzione**: Alcuni componenti (come `SaveButton`) sono in `form.tsx`, non hanno file dedicato  
-**Regola**: Se import specifico fallisce → tornare al barrel SOLO per quel componente, non per tutti
+### WF-1: Aggiorno development-continuity-map.md → aggiorna indice
 
-### Lesson: `is_taxable` era già presente in `Quote`
-**Quando l'ho scoperto**: Sessione 2026-03-04  
-**Cosa è successo**: Ho segnalato "manca is_taxable in Quote" ma era già a riga 317  
-**Correzione**: Leggere il file COMPLETAMENTE prima di segnalare mancanze  
-**Regola**: `grep` non basta, serve leggere il contesto
+**Quando**: aggiungo `## Update`, Structural Section o Changelog
+**Fare**: aggiornare Navigation Map in cima + `Last updated:`
+**Perché**: senza indice, il documento da 1100+ righe è innavigabile
 
-### Lesson: `ContactList.tsx` ha 3 return paths diversi
-**Quando l'ho scoperto**: Sessione 2026-03-04  
-**Cosa è successo**: Ho applicato lo stesso pattern degli altri List ma `ContactList` ha logica mobile/desktop/empty diversa  
-**Correzione**: Non tutte le liste sono uguali — alcune hanno branching complesso  
-**Regola**: Leggere la struttura del componente prima di applicare pattern
+### WF-2: CI prettier fail su file da subagent
+
+**Quando**: file creati da Agent tool non passano prettier in CI
+**Fare**: `npx prettier --check` sui file nuovi PRIMA del push
+**Perché**: lint-staged formatta solo i file staged, i subagent possono avere formatting diverso
+
+### WF-3: Destructuring param → verificare completezza
+
+**Quando**: aggiungo parametro opzionale a funzione con destructuring
+**Fare**: verificare che sia presente ANCHE nella destrutturazione, non solo nel tipo
+**Perché**: `buildUnifiedCrmReadContext` aveva `suppliers?` nel tipo ma mancava nella destrutturazione → ReferenceError
+
+### WF-4: Aggiorno file di sistema → sweep incrociata OBBLIGATORIA
+
+**Quando**: modifico uno qualsiasi tra: `memory/*.md`, `.claude/learning.md`, `CLAUDE.md`, `.claude/rules/*.md`
+**Fare**: PRIMA di dichiarare "fatto", verificare che TUTTI gli altri file di sistema siano coerenti:
+- Riferimenti a file: esistono ancora? path corretto?
+- Formati descritti nelle istruzioni: corrispondono al formato reale del file?
+- Liste/elenchi (tabelle, schema, Edge Functions): sono aggiornati?
+- Niente overlap: stessa informazione in un solo posto
+**Perché**: aggiornare un file alla volta senza sweep causa disallineamenti a catena che l'utente scopre dopo ripetuti "è tutto ok?" → "no, c'è un altro problema"
 
 ---
 
-## 📝 Template per Nuove Lezioni
+## Checklist di auto-verifica (prima di dire "fatto")
 
-Quando imparo qualcosa che mi ha sorpreso:
+**Ogni fix**: `typecheck` + `lint` + `build` → tutti 0 errori?
+**Ogni modifica DB**: migration creata? types.ts aggiornato? tipi TS = DB?
+**Ogni modifica UI lista**: MobilePageTitle? Filtri mobile (Sheet)? ResizableHead?
+
+---
+
+## Template per nuovi trigger
 
 ```markdown
-### Lesson: [Breve descrizione]
-**Quando l'ho scoperto**: YYYY-MM-DD  
-**Cosa è successo**: [Il problema/sorpresa]  
-**Correzione**: [Come ho risolto]  
-**Regola**: [Pattern di auto-correzione per il futuro]
-**Trigger**: [Cosa guardare per attivare questa lezione]
+### XX-N: [Breve descrizione]
+
+**Quando**: [situazione che attiva il trigger]
+**Fare**: [azione automatica]
+**Perché**: [conseguenza se non si fa]
 ```
-
----
-
-## 🔁 Obblighi di Sessione
-
-**ALL'INIZIO**: Leggo questo file → applico i trigger automaticamente  
-**DURANTE**: Quando attivo un trigger, agisco immediatamente senza aspettare l'errore  
-**ALLA FINE**: Se ho imparato una nuova lezione, aggiungo subito una entry qui  
 
 ---
 

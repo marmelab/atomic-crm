@@ -35,6 +35,11 @@ Per i moduli CRUD classici il pattern base resta:
 ```text
 src/components/atomic-crm/[module]/
 ├── [Module]List.tsx
+├── [Module]ListContent.tsx     # tabella desktop + branching mobile
+├── [Module]ListFilter.tsx      # filtri sidebar + mobile Sheet
+├── [Module]MobileCard.tsx      # card mobile (estratta da ListContent)
+├── [Module]Row.tsx             # riga desktop (se logica complessa)
+├── [module]ListHelpers.tsx     # formatters, icons, colors condivisi
 ├── [Module]Create.tsx
 ├── [Module]Edit.tsx
 ├── [Module]Show.tsx
@@ -42,11 +47,15 @@ src/components/atomic-crm/[module]/
 └── index.tsx
 ```
 
+Non tutti i file sono obbligatori — MobileCard, Row e ListHelpers si creano
+solo quando ListContent supera 300 righe.
+
 Eccezioni legittime:
 
 - `quotes` ha anche superfici Kanban, PDF e dialog dedicati
 - `dashboard` e `ai` non seguono il pattern CRUD classico
 - moduli con dialog/sheet/linking richiedono sweep aggiuntiva
+- filtri generici in `filters/FilterHelpers.tsx` (FilterSection, FilterBadge, FilterPopover)
 
 ## Configuration Rule
 

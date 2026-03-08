@@ -12,6 +12,8 @@
 - se `AGENTS.md` e `CLAUDE.md` entrano in conflitto, vince `AGENTS.md`
 - `.claude/learning.md` raccoglie lezioni operative tra sessioni; ogni agente
   deve aggiornarla se scopre un pattern nuovo o un errore significativo
+- i trigger in `learning.md` usano ID per categoria (`UI-N`, `DB-N`, `BE-N`,
+  `DOM-N`, `CFG-N`, `WF-N`) e formato `Quando` / `Fare` / `Perché`
 
 ## COMMUNICATION CONVENTION
 

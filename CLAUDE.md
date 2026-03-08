@@ -36,9 +36,9 @@ Dopo il rituale di inizio sessione:
 
 1. Leggere `memory/MEMORY.md` (caricato automaticamente nel contesto)
 2. Se il task tocca un'area specifica, leggere i file tematici collegati:
+   - `memory/architecture-modules.md` — dettagli architetturali per modulo
    - `memory/refactoring-patterns.md` — pattern di split e refactoring
    - `memory/local-truth-patterns.md` — rebuild locale e riconciliazione
-   - `memory/calendar-spot-research.md` — ricerca calendario spot/early
 3. NON ripetere lavoro gia' fatto: la memoria contiene decisioni, pattern e
    stato dei task in corso
 
@@ -46,17 +46,11 @@ Dopo il rituale di inizio sessione:
 
 **PRIMA di chiudere una sessione in cui ho imparato qualcosa di nuovo**:
 
-1. Aggiungere una entry a `.claude/learning.md` con:
-   - Data della sessione
-   - Categoria (Bug Pattern, Architettura, Workflow, etc.)
-   - Descrizione del problema/pattern
-   - Soluzione corretta (con code snippet)
-   - File coinvolti
-   - Come prevenirlo in futuro
-
-2. La entry deve essere aggiunta in cima al file, sotto la sessione più recente.
-
-**Questo mi costringe a diventare più intelligente ad ogni sessione.**
+1. Aggiungere un trigger a `.claude/learning.md` con:
+   - ID categoria (`UI-N`, `DB-N`, `BE-N`, `DOM-N`, `CFG-N`, `WF-N`)
+   - Formato: `Quando` / `Fare` / `Perché` (3 righe)
+2. Aggiungere la riga corrispondente nella tabella indice in cima al file
+3. Se il trigger non rientra in nessuna categoria, crearne una nuova
 
 ## Autonomia decisionale
 

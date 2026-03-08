@@ -50,17 +50,27 @@ Le tabelle operative principali sono:
 - `suppliers`
 - `client_tasks`
 - `client_notes`
+- `financial_documents`
+- `cash_movements`
+- `workflows`
 - `settings`
 - `keep_alive`
 
-Le viste e le funzioni operative principali includono anche:
+Le viste operative principali:
 
 - `project_financials`
 - `monthly_revenue`
+- `financial_documents_summary`
 - viste `analytics_*`
+
+Le Edge Functions operative principali:
+
 - `invoice_import_extract`
 - `invoice_import_confirm`
 - `unified_crm_answer`
+- `google_calendar_sync`
+- `workflow_notify`
+- `fiscal_deadline_check`
 
 ## New Table / View Checklist
 
