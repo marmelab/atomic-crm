@@ -22,9 +22,9 @@ test.describe("Annual Dashboard", () => {
     await loginAsLocalAdmin(page);
 
     // Wait for dashboard to load KPI data
-    await expect(
-      page.getByText("Valore del lavoro dell'anno"),
-    ).toBeVisible({ timeout: 15000 });
+    await expect(page.getByText("Valore del lavoro dell'anno")).toBeVisible({
+      timeout: 15000,
+    });
 
     // Annual work value: 3 services totaling 6500€
     // (2000+1000+0)+(0+2000+0)+(1000+500+0) = 6500
@@ -44,9 +44,7 @@ test.describe("Annual Dashboard", () => {
     ).toBeVisible();
   });
 
-  test("alert rows have clickable links to detail pages", async ({
-    page,
-  }) => {
+  test("alert rows have clickable links to detail pages", async ({ page }) => {
     await loginAsLocalAdmin(page);
 
     // Wait for alerts card to render
@@ -59,12 +57,8 @@ test.describe("Annual Dashboard", () => {
     await expect(alertSection.getByText("Scaduto").first()).toBeVisible();
 
     // Find action links near payment/service alerts
-    const paymentLinks = page.locator(
-      'a[href*="/payments/"][href*="/show"]',
-    );
-    const serviceLinks = page.locator(
-      'a[href*="/services/"][href*="/show"]',
-    );
+    const paymentLinks = page.locator('a[href*="/payments/"][href*="/show"]');
+    const serviceLinks = page.locator('a[href*="/services/"][href*="/show"]');
 
     // At least one payment or service link should exist in alerts
     const totalLinks =
@@ -85,9 +79,9 @@ test.describe("Annual Dashboard", () => {
     await loginAsLocalAdmin(page);
 
     // Wait for the new card to render
-    await expect(
-      page.getByText("Disponibilità netta stimata"),
-    ).toBeVisible({ timeout: 15000 });
+    await expect(page.getByText("Disponibilità netta stimata")).toBeVisible({
+      timeout: 15000,
+    });
 
     // Verify breakdown lines are visible
     await expect(page.getByText("Incassato netto:").first()).toBeVisible();
@@ -100,9 +94,9 @@ test.describe("Annual Dashboard", () => {
     await loginAsLocalAdmin(page);
 
     // Wait for the cash flow card
-    await expect(
-      page.getByText("Cash flow prossimi 30 giorni"),
-    ).toBeVisible({ timeout: 15000 });
+    await expect(page.getByText("Cash flow prossimi 30 giorni")).toBeVisible({
+      timeout: 15000,
+    });
 
     // Should show inflow/outflow sections
     await expect(page.getByText("Entrate attese").first()).toBeVisible();

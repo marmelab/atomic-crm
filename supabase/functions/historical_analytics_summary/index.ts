@@ -110,12 +110,9 @@ async function createHistoricalAnalyticsSummary(
           summaryMarkdown: outputText,
         };
 
-    return new Response(
-      JSON.stringify({ data }),
-      {
-        headers: { "Content-Type": "application/json", ...corsHeaders },
-      },
-    );
+    return new Response(JSON.stringify({ data }), {
+      headers: { "Content-Type": "application/json", ...corsHeaders },
+    });
   } catch (error) {
     console.error("historical_analytics_summary.error", error);
     return createErrorResponse(

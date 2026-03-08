@@ -111,12 +111,9 @@ async function createHistoricalCashInflowSummary(
           summaryMarkdown: outputText,
         };
 
-    return new Response(
-      JSON.stringify({ data }),
-      {
-        headers: { "Content-Type": "application/json", ...corsHeaders },
-      },
-    );
+    return new Response(JSON.stringify({ data }), {
+      headers: { "Content-Type": "application/json", ...corsHeaders },
+    });
   } catch (error) {
     console.error("historical_cash_inflow_summary.error", error);
     return createErrorResponse(

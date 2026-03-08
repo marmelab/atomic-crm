@@ -61,9 +61,9 @@ test.describe("AI Annual Real Response", () => {
     await explainButton.click();
 
     // Wait for the AI response to appear (real API call, may take time)
-    await expect(
-      page.getByText("In breve", { exact: false }),
-    ).toBeVisible({ timeout: 60000 });
+    await expect(page.getByText("In breve", { exact: false })).toBeVisible({
+      timeout: 60000,
+    });
 
     // ────────────────────────────────────────────────
     // VERIFY: Request context had correct expense data
@@ -93,9 +93,7 @@ test.describe("AI Annual Real Response", () => {
       value: number;
       basis: string;
     }>;
-    const expenseMetric = metrics.find(
-      (m) => m.id === "annual_expenses_total",
-    );
+    const expenseMetric = metrics.find((m) => m.id === "annual_expenses_total");
     expect(expenseMetric).toBeDefined();
     expect(expenseMetric!.value).toBeGreaterThan(0);
     expect(expenseMetric!.basis).toBe("cost");
@@ -134,9 +132,7 @@ test.describe("AI Annual Real Response", () => {
 
     // Must NOT treat zero quotes as automatic problem
     if (text.includes("preventivi")) {
-      expect(text).not.toMatch(
-        /problema|critico|alarm|emergenz|preoccupant/,
-      );
+      expect(text).not.toMatch(/problema|critico|alarm|emergenz|preoccupant/);
     }
 
     // Log the response for manual inspection
@@ -180,9 +176,9 @@ test.describe("AI Annual Real Response", () => {
     await askButton.click();
 
     // Wait for answer (real API call)
-    await expect(
-      page.getByText("Domanda:", { exact: false }),
-    ).toBeVisible({ timeout: 60000 });
+    await expect(page.getByText("Domanda:", { exact: false })).toBeVisible({
+      timeout: 60000,
+    });
 
     expect(aiAnswerMarkdown).not.toBeNull();
     const text = aiAnswerMarkdown!.toLowerCase();

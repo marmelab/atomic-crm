@@ -123,12 +123,9 @@ async function answerHistoricalCashInflowQuestion(
           answerMarkdown: outputText,
         };
 
-    return new Response(
-      JSON.stringify({ data }),
-      {
-        headers: { "Content-Type": "application/json", ...corsHeaders },
-      },
-    );
+    return new Response(JSON.stringify({ data }), {
+      headers: { "Content-Type": "application/json", ...corsHeaders },
+    });
   } catch (error) {
     console.error("historical_cash_inflow_answer.error", error);
     return createErrorResponse(

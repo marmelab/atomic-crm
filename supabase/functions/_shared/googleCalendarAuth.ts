@@ -17,8 +17,9 @@ export async function getGoogleAccessToken(): Promise<string> {
   }
 
   const clientEmail = Deno.env.get("GOOGLE_CALENDAR_CLIENT_EMAIL") ?? "";
-  const privateKeyPem = (Deno.env.get("GOOGLE_CALENDAR_PRIVATE_KEY") ?? "")
-    .replace(/\\n/g, "\n");
+  const privateKeyPem = (
+    Deno.env.get("GOOGLE_CALENDAR_PRIVATE_KEY") ?? ""
+  ).replace(/\\n/g, "\n");
 
   const privateKey = await jose.importPKCS8(privateKeyPem, "RS256");
 

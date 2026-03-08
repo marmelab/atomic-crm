@@ -1,10 +1,6 @@
 import { useCallback } from "react";
 import { useDataProvider } from "ra-core";
-import {
-  useQuery,
-  useMutation,
-  useQueryClient,
-} from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import type { ColumnDef } from "@/components/atomic-crm/misc/columnDefinitions";
 import type { CrmDataProvider } from "@/components/atomic-crm/providers/supabase/dataProvider";
 
@@ -19,10 +15,7 @@ import type { CrmDataProvider } from "@/components/atomic-crm/providers/supabase
  * - `toggleColumn(key)` — toggle a column on/off
  * - `cv(key, baseClass?)` — className helper: returns baseClass when visible, "hidden" when not
  */
-export function useColumnVisibility(
-  resource: string,
-  columns: ColumnDef[],
-) {
+export function useColumnVisibility(resource: string, columns: ColumnDef[]) {
   const dataProvider = useDataProvider<CrmDataProvider>();
   const queryClient = useQueryClient();
   const queryKey = ["column-preferences", resource];

@@ -137,7 +137,10 @@ function ResizableHead({
         "text-foreground h-10 px-2 text-left align-middle font-medium whitespace-nowrap relative group/resize [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]",
         className
       )}
-      style={{ ...style, ...(width ? { width, minWidth: width, maxWidth: width } : {}) }}
+      style={{
+        ...style,
+        ...(width ? { width, minWidth: width, maxWidth: width } : {}),
+      }}
       {...props}
     >
       {children}

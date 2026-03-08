@@ -1,7 +1,5 @@
 import { useCallback, useEffect, useRef } from "react";
-import {
-  CLOUDINARY_CLOUD_NAME,
-} from "@/lib/cloudinary/cloudinaryConfig";
+import { CLOUDINARY_CLOUD_NAME } from "@/lib/cloudinary/cloudinaryConfig";
 import type {
   CloudinaryAssetRef,
   CloudinaryUploadResult,
@@ -101,7 +99,10 @@ export function useCloudinaryUpload({
           },
         },
       },
-      (error: Error | null, result: { event: string; info: CloudinaryUploadResult }) => {
+      (
+        error: Error | null,
+        result: { event: string; info: CloudinaryUploadResult },
+      ) => {
         if (error) {
           console.error("Cloudinary upload error:", error);
           return;
@@ -121,7 +122,8 @@ export function useCloudinaryUpload({
           onUpload({
             public_id: info.public_id,
             secure_url: url,
-            resource_type: info.resource_type === "auto" ? "raw" : info.resource_type,
+            resource_type:
+              info.resource_type === "auto" ? "raw" : info.resource_type,
             format: info.format,
             original_filename: info.original_filename,
           });
@@ -131,7 +133,15 @@ export function useCloudinaryUpload({
 
     widgetRef.current = widget;
     widget.open();
-  }, [uploadPreset, folder, resourceType, maxFileSize, cropping, croppingAspectRatio, onUpload]);
+  }, [
+    uploadPreset,
+    folder,
+    resourceType,
+    maxFileSize,
+    cropping,
+    croppingAspectRatio,
+    onUpload,
+  ]);
 
   return { open };
 }

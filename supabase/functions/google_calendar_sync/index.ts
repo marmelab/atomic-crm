@@ -265,10 +265,7 @@ async function handleRequest(req: Request) {
   }
 
   if (!CALENDAR_ID) {
-    return createErrorResponse(
-      500,
-      "GOOGLE_CALENDAR_ID is not configured",
-    );
+    return createErrorResponse(500, "GOOGLE_CALENDAR_ID is not configured");
   }
 
   try {

@@ -35,10 +35,7 @@ export const buildAnnualOperationsAiGuidance = ({
   const isCurrentYear = context.meta?.isCurrentYear === true;
   const asOfDateLabel = context.meta?.asOfDateLabel ?? "data indicata";
   const annualWorkValue = getMetricValue(context, "annual_work_value");
-  const annualExpensesTotal = getMetricValue(
-    context,
-    "annual_expenses_total",
-  );
+  const annualExpensesTotal = getMetricValue(context, "annual_expenses_total");
   const pendingPaymentsTotal = getMetricValue(
     context,
     "pending_payments_total",

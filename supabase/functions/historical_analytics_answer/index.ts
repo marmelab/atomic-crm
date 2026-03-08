@@ -122,12 +122,9 @@ async function answerHistoricalAnalyticsQuestion(
           answerMarkdown: outputText,
         };
 
-    return new Response(
-      JSON.stringify({ data }),
-      {
-        headers: { "Content-Type": "application/json", ...corsHeaders },
-      },
-    );
+    return new Response(JSON.stringify({ data }), {
+      headers: { "Content-Type": "application/json", ...corsHeaders },
+    });
   } catch (error) {
     console.error("historical_analytics_answer.error", error);
     return createErrorResponse(
