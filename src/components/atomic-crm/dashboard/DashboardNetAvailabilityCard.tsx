@@ -24,6 +24,7 @@ export const DashboardNetAvailabilityCard = ({
 }) => {
   const cashReceived = kpis.cashReceivedNet;
   const expenses = kpis.annualExpensesTotal;
+  const { ownExpenses, clientExpenses } = kpis;
   const taxEstimate = fiscalKpis
     ? fiscalKpis.stimaInpsAnnuale + fiscalKpis.stimaImpostaAnnuale
     : 0;
@@ -46,7 +47,19 @@ export const DashboardNetAvailabilityCard = ({
         </div>
         <div className="space-y-0.5 text-xs text-muted-foreground">
           <p>Incassato netto: {formatCurrencyPrecise(cashReceived)}</p>
-          <p>Spese operative: &minus;{formatCurrencyPrecise(expenses)}</p>
+          <p>
+            Spese proprie: &minus;{formatCurrencyPrecise(ownExpenses)}
+          </p>
+          {clientExpenses > 0 && (
+            <p className="text-amber-600 dark:text-amber-400">
+              Spese su lavori: &minus;
+              {formatCurrencyPrecise(clientExpenses)}
+              <span className="text-muted-foreground">
+                {" "}
+                (rimborsate dal cliente)
+              </span>
+            </p>
+          )}
           {hasFiscalData ? (
             <>
               <p>

@@ -60,6 +60,10 @@ export type DashboardKpis = {
   monthlyKmCost: number;
   annualExpensesTotal: number;
   annualExpensesCount: number;
+  /** Expenses NOT linked to any project — true own costs. */
+  ownExpenses: number;
+  /** Expenses linked to a project — typically reimbursed by the client. */
+  clientExpenses: number;
   expensesByType: ExpenseByTypePoint[];
   /** Total cash received (ricevuto, no rimborso) minus refunds — cash basis. */
   cashReceivedNet: number;

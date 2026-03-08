@@ -28,6 +28,12 @@ export type AnnualOperationsContext = {
     total: number;
     formattedTotal: string;
     count: number;
+    /** Expenses not linked to any project — true own costs. */
+    ownExpenses: number;
+    formattedOwnExpenses: string;
+    /** Expenses linked to a project — typically reimbursed by the client. */
+    clientExpenses: number;
+    formattedClientExpenses: string;
     byType: Array<{
       expenseType: string;
       label: string;
@@ -169,7 +175,7 @@ export const buildAnnualOperationsContext = (
   );
   pushCaveat(
     caveats,
-    "Le spese escludono i crediti ricevuti e includono il rimborso km calcolato.",
+    "Le spese escludono i crediti ricevuti e includono il rimborso km calcolato. Le spese su lavori (con progetto o servizio collegato) sono tipicamente rimborsate dal cliente; le spese proprie (senza progetto ne servizio) sono costi reali.",
   );
   if (model.isCurrentYear) {
     pushCaveat(
@@ -302,6 +308,10 @@ export const buildAnnualOperationsContext = (
       total: model.kpis.annualExpensesTotal,
       formattedTotal: formatCurrency(model.kpis.annualExpensesTotal),
       count: model.kpis.annualExpensesCount,
+      ownExpenses: model.kpis.ownExpenses,
+      formattedOwnExpenses: formatCurrency(model.kpis.ownExpenses),
+      clientExpenses: model.kpis.clientExpenses,
+      formattedClientExpenses: formatCurrency(model.kpis.clientExpenses),
       byType: model.kpis.expensesByType.map((point) => ({
         expenseType: point.expenseType,
         label: point.label,

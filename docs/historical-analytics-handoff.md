@@ -8,6 +8,27 @@ prodotto senza incrociarlo con `docs/README.md` e i documenti `canonical`.
 
 Last updated: 2026-03-08
 
+## Update 2026-03-08 (f) — Expense own/client split in dashboard + form hint
+
+Split `annualExpensesTotal` into `ownExpenses` (no project, no source service)
+and `clientExpenses` (linked to project or auto-generated from service). The
+discriminant is `project_id || source_service_id`: if either exists, the expense
+is client-reimbursable; otherwise it's a true own cost.
+
+Surfaces touched:
+
+1. `dashboardModelTypes.ts`: added `ownExpenses`, `clientExpenses` to `DashboardKpis`
+2. `dashboardModel.ts`: aggregation loop splits by `project_id || source_service_id`
+3. `DashboardNetAvailabilityCard.tsx`: shows "Spese proprie" and "Spese su lavori
+   (rimborsate dal cliente)" as two separate lines
+4. `ExpenseInputs.tsx`: orange warning hint when creating/editing an expense
+   without project or source service — reminds user it will count as own cost
+5. `buildAnnualOperationsContext.ts`: AI context includes `ownExpenses`,
+   `clientExpenses` with formatted values; caveat updated
+6. Test: new unit test covers own/client split including `source_service_id` case
+
+No DB migration needed — uses existing `project_id` and `source_service_id` fields.
+
 ## Update 2026-03-08 (e) — Dashboard card reorder for consequential flow
 
 Reordered `DashboardAnnual.tsx` layout. Alerts, deadline tracker, and cash flow

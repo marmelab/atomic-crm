@@ -1,3 +1,4 @@
+import { AlertTriangle } from "lucide-react";
 import { required, minValue, useGetOne } from "ra-core";
 import { useEffect } from "react";
 import { useFormContext, useWatch } from "react-hook-form";
@@ -37,6 +38,8 @@ export const ExpenseInputs = () => {
 
 const ExpenseIdentityInputs = () => {
   const supplierId = useWatch({ name: "supplier_id" });
+  const projectId = useWatch({ name: "project_id" });
+  const sourceServiceId = useWatch({ name: "source_service_id" });
   const { setValue, getValues } = useFormContext();
 
   const { data: supplier } = useGetOne(
@@ -82,6 +85,13 @@ const ExpenseIdentityInputs = () => {
           filterToQuery={buildNameSearchFilter}
         />
       </ReferenceInput>
+      {!projectId && !sourceServiceId && (
+        <div className="flex items-center gap-2 rounded-md bg-amber-50 px-3 py-2 text-xs text-amber-700 dark:bg-amber-950/30 dark:text-amber-400">
+          <AlertTriangle className="h-3.5 w-3.5 shrink-0" />
+          Senza progetto o servizio collegato, questa spesa sarà contata come
+          costo proprio nella dashboard.
+        </div>
+      )}
       <ReferenceInput source="client_id" reference="clients">
         <AutocompleteInput
           label="Cliente"

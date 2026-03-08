@@ -622,6 +622,79 @@ describe("buildDashboardModel annual semantics", () => {
     expect(model.cashFlowForecast).toBeNull();
   });
 
+  it("splits expenses into ownExpenses (no project) and clientExpenses (with project)", () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2025-06-01T09:00:00.000Z"));
+
+    const model = buildDashboardModel({
+      payments: [],
+      quotes: [],
+      services: [baseService({ fee_shooting: 2000 })],
+      projects: [baseProject()],
+      clients: [baseClient()],
+      expenses: [
+        // Own expense — no project
+        baseExpense({
+          id: 1,
+          expense_type: "abbonamento_software",
+          amount: 120,
+          expense_date: "2025-01-10T00:00:00.000Z",
+        }),
+        // Client expense — linked to project
+        baseExpense({
+          id: 2,
+          expense_type: "spostamento_km",
+          km_distance: 80,
+          km_rate: 0.19,
+          project_id: 1,
+          client_id: 1,
+          expense_date: "2025-02-05T00:00:00.000Z",
+        }),
+        // Another own expense
+        baseExpense({
+          id: 3,
+          expense_type: "acquisto_materiale",
+          amount: 50,
+          expense_date: "2025-03-01T00:00:00.000Z",
+        }),
+        // Client expense — linked to project
+        baseExpense({
+          id: 4,
+          expense_type: "pedaggio_autostradale",
+          amount: 25,
+          project_id: 1,
+          client_id: 1,
+          expense_date: "2025-03-10T00:00:00.000Z",
+        }),
+        // Client expense — linked to service (no project, auto-km from trigger)
+        baseExpense({
+          id: 6,
+          expense_type: "spostamento_km",
+          km_distance: 50,
+          km_rate: 0.19,
+          source_service_id: 99,
+          expense_date: "2025-04-05T00:00:00.000Z",
+        }),
+        // Credit — excluded from both
+        baseExpense({
+          id: 5,
+          expense_type: "credito_ricevuto",
+          amount: 999,
+          expense_date: "2025-04-01T00:00:00.000Z",
+        }),
+      ],
+      year: 2025,
+    });
+
+    // ownExpenses = 120 + 50 = 170
+    expect(model.kpis.ownExpenses).toBe(170);
+    // clientExpenses = (80 * 0.19) + 25 + (50 * 0.19) = 15.2 + 25 + 9.5 = 49.7
+    expect(model.kpis.clientExpenses).toBeCloseTo(49.7);
+    // total = own + client
+    expect(model.kpis.annualExpensesTotal).toBeCloseTo(219.7);
+    expect(model.kpis.annualExpensesCount).toBe(5);
+  });
+
   it("returns zero expenses when none exist in the selected year", () => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date("2025-06-01T09:00:00.000Z"));
@@ -638,6 +711,8 @@ describe("buildDashboardModel annual semantics", () => {
 
     expect(model.kpis.annualExpensesTotal).toBe(0);
     expect(model.kpis.annualExpensesCount).toBe(0);
+    expect(model.kpis.ownExpenses).toBe(0);
+    expect(model.kpis.clientExpenses).toBe(0);
     expect(model.kpis.expensesByType).toEqual([]);
   });
 });

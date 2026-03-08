@@ -554,6 +554,8 @@ export const buildDashboardModel = ({
   >();
   let annualExpensesTotal = 0;
   let annualExpensesCount = 0;
+  let ownExpenses = 0;
+  let clientExpenses = 0;
 
   for (const expense of expenses) {
     if (!expense.expense_date) continue;
@@ -564,6 +566,11 @@ export const buildDashboardModel = ({
     const amount = getExpenseAmount(expense);
     annualExpensesTotal += amount;
     annualExpensesCount += 1;
+    if (expense.project_id || expense.source_service_id) {
+      clientExpenses += amount;
+    } else {
+      ownExpenses += amount;
+    }
     const bucket = expenseTypeBuckets.get(expense.expense_type) ?? {
       amount: 0,
       count: 0,
@@ -676,6 +683,8 @@ export const buildDashboardModel = ({
       monthlyKmCost: currentMonthTotals.kmCost,
       annualExpensesTotal,
       annualExpensesCount,
+      ownExpenses,
+      clientExpenses,
       expensesByType,
       cashReceivedNet,
       yoy,

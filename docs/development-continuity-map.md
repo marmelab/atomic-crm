@@ -14,6 +14,7 @@ Last updated: 2026-03-08
 
 ### Recent Updates (cronologico, più recente in alto)
 
+- [2026-03-08 (g)](#update-2026-03-08-g--expense-ownclient-split) — Expense own/client split in dashboard + form hint
 - [2026-03-08 (f)](#update-2026-03-08-f--dashboard-card-reorder) — Dashboard annual: reorder cards for consequential flow
 - [2026-03-08 (e)](#update-2026-03-08-e--dashboard-pareto-features) — Dashboard Pareto features: net availability, tax tracking, cash flow, YoY
 - [2026-03-08 (d)](#update-2026-03-08-d--ai-annual-expense-context--dashboard-alert-links--e2e-real-ai-tests) — AI annual expense context + dashboard alert links + E2E real AI tests
@@ -78,6 +79,26 @@ Last updated: 2026-03-08
 - [Nota manutenzione 2026-03-02](#nota-manutenzione-2026-03-02-fix-ci)
 - [Testing Session Log 2026-03-04](#testing-session-log-2026-03-04--e2e-complete-validation)
 - [AI Semantic UI Upgrade 2026-03-04](#ai-semantic-ui-upgrade-2026-03-04--pareto-principle-applied)
+
+---
+
+## Update 2026-03-08 (g) — Expense own/client split
+
+**Cosa è cambiato**
+
+- Split `annualExpensesTotal` into `ownExpenses` and `clientExpenses` using
+  existing `project_id || source_service_id` as discriminant.
+- `DashboardNetAvailabilityCard` shows two lines: "Spese proprie" and
+  "Spese su lavori (rimborsate dal cliente)".
+- `ExpenseInputs` shows orange warning when creating expense without project
+  or source service.
+- AI context updated with split values and updated caveat.
+- New unit test covers all cases including `source_service_id` without project.
+
+**File toccati**: `dashboardModelTypes.ts`, `dashboardModel.ts`,
+`DashboardNetAvailabilityCard.tsx`, `ExpenseInputs.tsx`,
+`buildAnnualOperationsContext.ts`, `buildAnnualOperationsContext.test.ts`,
+`dashboardAnnualModel.test.ts`.
 
 ---
 
