@@ -38,6 +38,32 @@ Comunicazione iniziale:
 - chiedere invece solo quando c'e' ambiguita' rischiosa, impatto distruttivo o
   tradeoff architetturale non deducibile dal repo
 
+## COMMIT GATE — OBBLIGATORIO, NON NEGOZIABILE
+
+PRIMA di eseguire `git commit` su codice prodotto, verificare SEMPRE:
+
+1. `docs/` — il pre-commit hook lo blocca se mancano, ma includerli nello
+   STESSO commit, non in un commit separato dopo
+2. `memory/*.md` — aggiornare se il cambiamento tocca architettura, moduli,
+   pattern o convenzioni. Includerli nello STESSO commit
+3. `.claude/learning.md` — aggiornare se e' emerso un pattern nuovo o un
+   errore significativo. Includerli nello STESSO commit
+
+Se il commit contiene codice prodotto e i docs/memoria vanno aggiornati,
+devono essere TUTTI nello stesso `git add` + `git commit`. MAI fare prima il
+commit di codice e poi un commit separato "docs: align...". Questo e' il
+pattern sbagliato che causa disallineamenti.
+
+Sequenza corretta:
+```
+codice → test → docs + memoria → git add TUTTO → git commit UNICO
+```
+
+Sequenza VIETATA:
+```
+codice → git add codice → git commit → "ah si, i docs" → git commit docs
+```
+
 ## CORE LOOP
 
 Dopo ogni lavoro non banale:
