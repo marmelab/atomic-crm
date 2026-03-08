@@ -27,7 +27,7 @@ export const TaskEditSheet = ({
             <h1 className="text-xl font-semibold truncate pr-10">
               {referenceRecord ? (
                 <>
-                  {translate("crm.tasks.sheet.edit_for", {
+                  {translate("resources.tasks.sheet.edit_for", {
                     _: "Edit task for",
                   })}{" "}
                   <RecordRepresentation
@@ -36,7 +36,7 @@ export const TaskEditSheet = ({
                   />
                 </>
               ) : (
-                translate("crm.tasks.sheet.edit", { _: "Edit task" })
+                translate("resources.tasks.sheet.edit", { _: "Edit task" })
               )}
             </h1>
           )}

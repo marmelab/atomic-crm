@@ -26,10 +26,10 @@ export const ContactTasksList = () => {
           />
           <div className="flex flex-col items-center justify-center py-8 text-center">
             <p className="text-muted-foreground mb-4">
-              {translate("crm.tasks.empty", { _: "No tasks yet" })}
+              {translate("resources.tasks.empty", { _: "No tasks yet" })}
             </p>
             <Button variant="outline" onClick={() => setTaskCreateOpen(true)}>
-              {translate("crm.tasks.action.add", { _: "Add task" })}
+              {translate("resources.tasks.action.add", { _: "Add task" })}
             </Button>
           </div>
         </>

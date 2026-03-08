@@ -9,11 +9,19 @@ export const contactGenderDefaultLabels: Record<string, string> = {
 };
 
 export const contactGender: ContactGender[] = [
-  { value: "male", label: "crm.contacts.inputs.genders.male", icon: Mars },
-  { value: "female", label: "crm.contacts.inputs.genders.female", icon: Venus },
+  {
+    value: "male",
+    label: "resources.contacts.inputs.genders.male",
+    icon: Mars,
+  },
+  {
+    value: "female",
+    label: "resources.contacts.inputs.genders.female",
+    icon: Venus,
+  },
   {
     value: "nonbinary",
-    label: "crm.contacts.inputs.genders.nonbinary",
+    label: "resources.contacts.inputs.genders.nonbinary",
     icon: NonBinary,
   },
 ];

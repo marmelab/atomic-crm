@@ -31,7 +31,7 @@ export const CompanyCreate = () => {
                 >
                   <CancelButton />
                   <SaveButton
-                    label={translate("crm.companies.action.create", {
+                    label={translate("resources.companies.action.create", {
                       _: "Create Company",
                     })}
                   />

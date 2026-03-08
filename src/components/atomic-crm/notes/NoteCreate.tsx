@@ -89,7 +89,7 @@ const NoteCreateButton = ({
       },
       previousData: record,
     });
-    notify("crm.notes.added", {
+    notify("resources.notes.added", {
       messageArgs: {
         _: "Note added",
       },
@@ -100,7 +100,9 @@ const NoteCreateButton = ({
     <div className="flex justify-end">
       <SaveButton
         type="button"
-        label={translate("crm.notes.action.add_this", { _: "Add this note" })}
+        label={translate("resources.notes.action.add_this", {
+          _: "Add this note",
+        })}
         transform={(data) => ({
           ...data,
           [foreignKeyMapping[reference]]: record.id,
@@ -111,7 +113,7 @@ const NoteCreateButton = ({
           onSuccess: handleSuccess,
         }}
       >
-        {translate("crm.notes.action.add_this", { _: "Add this note" })}
+        {translate("resources.notes.action.add_this", { _: "Add this note" })}
       </SaveButton>
     </div>
   );

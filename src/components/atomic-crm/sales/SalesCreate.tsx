@@ -20,7 +20,7 @@ export function SalesCreate() {
       return dataProvider.salesCreate(data);
     },
     onSuccess: () => {
-      notify("crm.sales.create.success", {
+      notify("resources.sales.create.success", {
         messageArgs: {
           _: "User created. They will soon receive an email to set their password.",
         },
@@ -30,7 +30,7 @@ export function SalesCreate() {
     onError: (error) => {
       notify(
         error.message ||
-          translate("crm.sales.create.error", {
+          translate("resources.sales.create.error", {
             _: "An error occurred while creating the user.",
           }),
         {
@@ -48,7 +48,9 @@ export function SalesCreate() {
       <Card>
         <CardHeader>
           <CardTitle>
-            {translate("crm.sales.create.title", { _: "Create a new user" })}
+            {translate("resources.sales.create.title", {
+              _: "Create a new user",
+            })}
           </CardTitle>
         </CardHeader>
         <CardContent>

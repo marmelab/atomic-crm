@@ -29,7 +29,7 @@ export const ContactPersonalInfo = () => {
 
       {record.has_newsletter && (
         <p className="pl-6 py-1 text-sm text-muted-foreground">
-          {translate("crm.contacts.inputs.subscribed_newsletter", {
+          {translate("resources.contacts.inputs.subscribed_newsletter", {
             _: "Subscribed to newsletter",
           })}
         </p>

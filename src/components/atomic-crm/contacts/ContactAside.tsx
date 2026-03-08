@@ -24,13 +24,13 @@ export const ContactAside = ({ link = "edit" }: { link?: "edit" | "show" }) => {
       <div className="mb-4 -ml-1">
         {link === "edit" ? (
           <EditButton
-            label={translate("crm.contacts.action.edit", {
+            label={translate("resources.contacts.action.edit", {
               _: "Edit contact",
             })}
           />
         ) : (
           <ShowButton
-            label={translate("crm.contacts.action.show", {
+            label={translate("resources.contacts.action.show", {
               _: "Show contact",
             })}
           />
@@ -38,7 +38,7 @@ export const ContactAside = ({ link = "edit" }: { link?: "edit" | "show" }) => {
       </div>
 
       <AsideSection
-        title={translate("crm.contacts.inputs.personal_info", {
+        title={translate("resources.contacts.inputs.personal_info", {
           _: "Personal info",
         })}
       >
@@ -46,7 +46,7 @@ export const ContactAside = ({ link = "edit" }: { link?: "edit" | "show" }) => {
       </AsideSection>
 
       <AsideSection
-        title={translate("crm.contacts.inputs.background_info_short", {
+        title={translate("resources.contacts.inputs.background_info_short", {
           _: "Background info",
         })}
       >
@@ -54,13 +54,16 @@ export const ContactAside = ({ link = "edit" }: { link?: "edit" | "show" }) => {
       </AsideSection>
 
       <AsideSection
-        title={translate("crm.tags.name", { smart_count: 2, _: "Tags" })}
+        title={translate("resources.tags.name", { smart_count: 2, _: "Tags" })}
       >
         <TagsListEdit />
       </AsideSection>
 
       <AsideSection
-        title={translate("crm.tasks.name", { smart_count: 2, _: "Tasks" })}
+        title={translate("resources.tasks.name", {
+          smart_count: 2,
+          _: "Tasks",
+        })}
       >
         <ReferenceManyField
           target="contact_id"

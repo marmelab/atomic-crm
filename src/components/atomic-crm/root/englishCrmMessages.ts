@@ -2,6 +2,7 @@ export const englishCrmMessages = {
   resources: {
     companies: {
       name: "Company |||| Companies",
+      forcedCaseName: "Company",
       fields: {
         name: "Company name",
         website: "Website",
@@ -22,125 +23,6 @@ export const englishCrmMessages = {
         context_links: "Context links",
         sales_id: "Account manager",
       },
-    },
-    contacts: {
-      name: "Contact |||| Contacts",
-      fields: {
-        first_name: "First name",
-        last_name: "Last name",
-        last_seen: "Last seen",
-        title: "Title",
-        company_id: "Company",
-        email_jsonb: "Email addresses",
-        email: "Email",
-        phone_jsonb: "Phone numbers",
-        phone_number: "Phone number",
-        linkedin_url: "LinkedIn URL",
-        background: "Background info (bio, how you met, etc)",
-        has_newsletter: "Has newsletter",
-        sales_id: "Account manager",
-      },
-    },
-    deals: {
-      name: "Deal |||| Deals",
-      fields: {
-        name: "Name",
-        description: "Description",
-        company_id: "Company",
-        contact_ids: "Contacts",
-        category: "Category",
-        amount: "Budget",
-        expected_closing_date: "Expected closing date",
-        stage: "Stage",
-      },
-    },
-    notes: {
-      name: "Note |||| Notes",
-      fields: {
-        status: "Status",
-        date: "Date",
-        attachments: "Attachments",
-        contact_id: "Contact",
-        deal_id: "Deal",
-      },
-    },
-    sales: {
-      name: "User |||| Users",
-      fields: {
-        first_name: "First name",
-        last_name: "Last name",
-        email: "Email",
-        administrator: "Admin",
-        disabled: "Disabled",
-      },
-    },
-    tasks: {
-      name: "Task |||| Tasks",
-      fields: {
-        text: "Description",
-        due_date: "Due date",
-        type: "Type",
-        contact_id: "Contact",
-        due_short: "due",
-      },
-    },
-  },
-  crm: {
-    auth: {
-      confirmation_required:
-        "Please follow the link we just sent you by email to confirm your account.",
-      recovery_email_sent:
-        "If you're a registered user, you should receive a password recovery email shortly.",
-      sign_in_failed: "Failed to log in.",
-      sign_in_google_workspace: "Sign in with Google Workplace",
-      signup: {
-        create_account: "Create account",
-        create_first_user:
-          "Create the first user account to complete the setup.",
-        creating: "Creating...",
-        initial_user_created: "Initial user successfully created",
-      },
-      welcome_title: "Welcome to Atomic CRM",
-    },
-    common: {
-      activity: "Activity",
-      added: "added",
-      ago: "ago",
-      by: "By",
-      details: "Details",
-      errors: "errors",
-      invalid_date: "Invalid date",
-      last_activity: "last activity",
-      load_more: "Load more",
-      misc: "Misc",
-      on: "on",
-      past: "Past",
-      read_more: "Read more",
-      regarding: "Re:",
-      retry: "Retry",
-      show_less: "Show less",
-      with: "with",
-      account_manager: "Account manager",
-      at: "at",
-      copied: "Copied!",
-      copy: "Copy",
-      loading: "Loading...",
-      me: "Me",
-      task_count: "task |||| tasks",
-    },
-    activity: {
-      you: "You",
-      added_company: "added company",
-      added_contact: "added",
-      added_note_about: "added a note about",
-      added_note_about_self: "added a note about",
-      added_note_about_deal: "added a note about deal",
-      added_note_about_deal_self: "added a note about deal",
-      added_deal: "added deal",
-      to: "to",
-      load_more: "Load more activity",
-    },
-    companies: {
       empty: {
         description: "It seems your company list is empty.",
         title: "No companies found",
@@ -151,8 +33,6 @@ export const englishCrmMessages = {
         contact: "Contact",
         context: "Context",
       },
-      name: "Company |||| Companies",
-      forcedCaseName: "Company",
       action: {
         create: "Create Company",
         edit: "Edit company",
@@ -193,6 +73,23 @@ export const englishCrmMessages = {
       },
     },
     contacts: {
+      name: "Contact |||| Contacts",
+      forcedCaseName: "Contact",
+      fields: {
+        first_name: "First name",
+        last_name: "Last name",
+        last_seen: "Last seen",
+        title: "Title",
+        company_id: "Company",
+        email_jsonb: "Email addresses",
+        email: "Email",
+        phone_jsonb: "Phone numbers",
+        phone_number: "Phone number",
+        linkedin_url: "LinkedIn URL",
+        background: "Background info (bio, how you met, etc)",
+        has_newsletter: "Has newsletter",
+        sales_id: "Account manager",
+      },
       action: {
         add: "Add contact",
         add_first: "Add your first contact",
@@ -273,8 +170,6 @@ export const englishCrmMessages = {
         warning_title: "Warning: Destructive Operation",
         what_will_be_merged: "What will be merged:",
       },
-      name: "Contact |||| Contacts",
-      forcedCaseName: "Contact",
       filters: {
         before_last_month: "Before last month",
         before_this_month: "Before this month",
@@ -295,20 +190,18 @@ export const englishCrmMessages = {
         title: "Hot Contacts",
       },
     },
-    dashboard: {
-      deals_chart: "Upcoming Deal Revenue",
-      deals_pipeline: "Deals Pipeline",
-      latest_activity: "Latest Activity",
-      latest_activity_error: "Error loading latest activity",
-      latest_notes: "My Latest Notes",
-      stepper: {
-        install: "Install Atomic CRM",
-        progress: "%{step}/3 done",
-        whats_next: "What's next?",
-      },
-      upcoming_tasks: "Upcoming Tasks",
-    },
     deals: {
+      name: "Deal |||| Deals",
+      fields: {
+        name: "Name",
+        description: "Description",
+        company_id: "Company",
+        contact_ids: "Contacts",
+        category: "Category",
+        amount: "Budget",
+        expected_closing_date: "Expected closing date",
+        stage: "Stage",
+      },
       action: {
         back_to_deal: "Back to deal",
         create: "Create deal",
@@ -334,7 +227,6 @@ export const englishCrmMessages = {
         success: "Deal unarchived",
       },
       updated: "Deal updated",
-      name: "Deal |||| Deals",
       empty: {
         before_create: "before creating a deal.",
         description: "It seems your deal list is empty.",
@@ -347,6 +239,199 @@ export const englishCrmMessages = {
         lost: "Lost",
         won: "Won",
       },
+    },
+    notes: {
+      name: "Note |||| Notes",
+      forcedCaseName: "Note",
+      fields: {
+        status: "Status",
+        date: "Date",
+        attachments: "Attachments",
+        contact_id: "Contact",
+        deal_id: "Deal",
+      },
+      action: {
+        add: "Add note",
+        add_first: "Add your first note",
+        delete: "Delete note",
+        edit: "Edit note",
+        update: "Update note",
+        add_this: "Add this note",
+      },
+      sheet: {
+        create: "Create note",
+        create_for: "Create note for",
+        edit: "Edit note",
+        edit_for: "Edit note for",
+      },
+      deleted: "Note deleted",
+      empty: "No notes yet",
+      feed: {
+        added: "added a note",
+      },
+      list: {
+        error_loading: "Error loading notes",
+      },
+      note_for: "Note for",
+      stepper: {
+        hint: "Go to a contact page and add a note",
+      },
+      added: "Note added",
+      inputs: {
+        add_note: "Add a note",
+        options_hint: "(attach files, or change details)",
+        show_options: "Show options",
+      },
+    },
+    sales: {
+      name: "User |||| Users",
+      fields: {
+        first_name: "First name",
+        last_name: "Last name",
+        email: "Email",
+        administrator: "Admin",
+        disabled: "Disabled",
+      },
+      create: {
+        error: "An error occurred while creating the user.",
+        success:
+          "User created. They will soon receive an email to set their password.",
+        title: "Create a new user",
+      },
+      edit: {
+        error: "An error occurred. Please try again.",
+        record_not_found: "Record not found",
+        success: "User updated successfully",
+        title: "Edit %{name}",
+      },
+      action: {
+        new: "New user",
+      },
+    },
+    tasks: {
+      name: "Task |||| Tasks",
+      forcedCaseName: "Task",
+      fields: {
+        text: "Description",
+        due_date: "Due date",
+        type: "Type",
+        contact_id: "Contact",
+        due_short: "due",
+      },
+      action: {
+        add: "Add task",
+        create: "Create task",
+        edit: "Edit task",
+      },
+      actions: {
+        postpone_next_week: "Postpone to next week",
+        postpone_tomorrow: "Postpone to tomorrow",
+        title: "task actions",
+      },
+      added: "Task added",
+      deleted: "Task deleted successfully",
+      dialog: {
+        create: "Create task",
+        create_for: "Create task for",
+      },
+      sheet: {
+        edit: "Edit task",
+        edit_for: "Edit task for",
+      },
+      empty: "No tasks yet",
+      empty_list_hint: "Tasks added to your contacts will appear here.",
+      filters: {
+        later: "Later",
+        overdue: "Overdue",
+        this_week: "This week",
+        today: "Today",
+        tomorrow: "Tomorrow",
+        with_pending: "With pending tasks",
+      },
+      updated: "Task updated",
+    },
+    tags: {
+      name: "Tag |||| Tags",
+      action: {
+        add: "Add tag",
+        create_new: "Create new tag",
+      },
+      dialog: {
+        color: "Color",
+        create_title: "Create a new tag",
+        edit_title: "Edit tag",
+        name_label: "Tag name",
+        name_placeholder: "Enter tag name",
+      },
+    },
+  },
+  crm: {
+    auth: {
+      confirmation_required:
+        "Please follow the link we just sent you by email to confirm your account.",
+      recovery_email_sent:
+        "If you're a registered user, you should receive a password recovery email shortly.",
+      sign_in_failed: "Failed to log in.",
+      sign_in_google_workspace: "Sign in with Google Workplace",
+      signup: {
+        create_account: "Create account",
+        create_first_user:
+          "Create the first user account to complete the setup.",
+        creating: "Creating...",
+        initial_user_created: "Initial user successfully created",
+      },
+      welcome_title: "Welcome to Atomic CRM",
+    },
+    common: {
+      activity: "Activity",
+      added: "added",
+      ago: "ago",
+      by: "By",
+      details: "Details",
+      errors: "errors",
+      invalid_date: "Invalid date",
+      last_activity: "last activity",
+      load_more: "Load more",
+      misc: "Misc",
+      on: "on",
+      past: "Past",
+      read_more: "Read more",
+      regarding: "Re:",
+      retry: "Retry",
+      show_less: "Show less",
+      with: "with",
+      account_manager: "Account manager",
+      at: "at",
+      copied: "Copied!",
+      copy: "Copy",
+      loading: "Loading...",
+      me: "Me",
+      task_count: "task |||| tasks",
+    },
+    activity: {
+      you: "You",
+      added_company: "added company",
+      added_contact: "added",
+      added_note_about: "added a note about",
+      added_note_about_self: "added a note about",
+      added_note_about_deal: "added a note about deal",
+      added_note_about_deal_self: "added a note about deal",
+      added_deal: "added deal",
+      to: "to",
+      load_more: "Load more activity",
+    },
+    dashboard: {
+      deals_chart: "Upcoming Deal Revenue",
+      deals_pipeline: "Deals Pipeline",
+      latest_activity: "Latest Activity",
+      latest_activity_error: "Error loading latest activity",
+      latest_notes: "My Latest Notes",
+      stepper: {
+        install: "Install Atomic CRM",
+        progress: "%{step}/3 done",
+        whats_next: "What's next?",
+      },
+      upcoming_tasks: "Upcoming Tasks",
     },
     header: {
       import_data: "Import data",
@@ -385,60 +470,6 @@ export const englishCrmMessages = {
       },
       title: "Import Data",
     },
-    notes: {
-      action: {
-        add: "Add note",
-        add_first: "Add your first note",
-        delete: "Delete note",
-        edit: "Edit note",
-        update: "Update note",
-        add_this: "Add this note",
-      },
-      sheet: {
-        create: "Create note",
-        create_for: "Create note for",
-        edit: "Edit note",
-        edit_for: "Edit note for",
-      },
-      deleted: "Note deleted",
-      empty: "No notes yet",
-      feed: {
-        added: "added a note",
-      },
-      list: {
-        error_loading: "Error loading notes",
-      },
-      note_for: "Note for",
-      stepper: {
-        hint: "Go to a contact page and add a note",
-      },
-      name: "Note |||| Notes",
-      forcedCaseName: "Note",
-      added: "Note added",
-      inputs: {
-        add_note: "Add a note",
-        options_hint: "(attach files, or change details)",
-        show_options: "Show options",
-      },
-    },
-    sales: {
-      create: {
-        error: "An error occurred while creating the user.",
-        success:
-          "User created. They will soon receive an email to set their password.",
-        title: "Create a new user",
-      },
-      edit: {
-        error: "An error occurred. Please try again.",
-        record_not_found: "Record not found",
-        success: "User updated successfully",
-        title: "Edit %{name}",
-      },
-      name: "User |||| Users",
-      action: {
-        new: "New user",
-      },
-    },
     settings: {
       companies: {
         sectors: "Sectors",
@@ -471,47 +502,12 @@ export const englishCrmMessages = {
         duplicate: "Duplicate %{display_name}: %{items}",
         in_use:
           "Cannot remove %{display_name} that are still used by deals: %{items}",
-        validating: "Validating…",
+        validating: "Validating\u2026",
         entities: {
           categories: "categories",
           stages: "stages",
         },
       },
-    },
-    tasks: {
-      action: {
-        add: "Add task",
-        create: "Create task",
-        edit: "Edit task",
-      },
-      actions: {
-        postpone_next_week: "Postpone to next week",
-        postpone_tomorrow: "Postpone to tomorrow",
-        title: "task actions",
-      },
-      added: "Task added",
-      deleted: "Task deleted successfully",
-      dialog: {
-        create: "Create task",
-        create_for: "Create task for",
-      },
-      sheet: {
-        edit: "Edit task",
-        edit_for: "Edit task for",
-      },
-      empty: "No tasks yet",
-      empty_list_hint: "Tasks added to your contacts will appear here.",
-      filters: {
-        later: "Later",
-        overdue: "Overdue",
-        this_week: "This week",
-        today: "Today",
-        tomorrow: "Tomorrow",
-        with_pending: "With pending tasks",
-      },
-      updated: "Task updated",
-      name: "Task |||| Tasks",
-      forcedCaseName: "Task",
     },
     theme: {
       dark: "Dark theme",
@@ -525,20 +521,6 @@ export const englishCrmMessages = {
     language: "Language",
     navigation: {
       label: "CRM navigation",
-    },
-    tags: {
-      name: "Tag |||| Tags",
-      action: {
-        add: "Add tag",
-        create_new: "Create new tag",
-      },
-      dialog: {
-        color: "Color",
-        create_title: "Create a new tag",
-        edit_title: "Edit tag",
-        name_label: "Tag name",
-        name_placeholder: "Enter tag name",
-      },
     },
     profile: {
       inbound: {

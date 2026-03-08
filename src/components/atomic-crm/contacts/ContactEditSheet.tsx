@@ -20,7 +20,7 @@ export const ContactEditSheet = ({
       id={contactId}
       title={
         <h1 className="text-xl font-semibold truncate pr-10">
-          {translate("crm.contacts.action.edit", { _: "Edit contact" })}{" "}
+          {translate("resources.contacts.action.edit", { _: "Edit contact" })}{" "}
           <RecordRepresentation />
         </h1>
       }

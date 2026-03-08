@@ -50,7 +50,9 @@ const CompanyListActions = () => {
       <SortButton fields={["name", "created_at", "nb_contacts"]} />
       <ExportButton />
       <CreateButton
-        label={translate("crm.companies.action.new", { _: "New Company" })}
+        label={translate("resources.companies.action.new", {
+          _: "New Company",
+        })}
       />
     </TopToolbar>
   );

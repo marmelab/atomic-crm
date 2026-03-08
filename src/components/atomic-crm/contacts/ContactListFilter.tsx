@@ -29,20 +29,20 @@ export const ContactListFilter = () => {
   return (
     <ResponsiveFilters
       searchInput={{
-        placeholder: translate("crm.contacts.filters.search", {
+        placeholder: translate("resources.contacts.filters.search", {
           _: "Search name, company...",
         }),
       }}
     >
       <FilterCategory
-        label={translate("crm.contacts.filters.last_activity", {
+        label={translate("resources.contacts.filters.last_activity", {
           _: "Last activity",
         })}
         icon={<Clock />}
       >
         <ToggleFilterButton
           className="w-auto md:w-full justify-between h-10 md:h-8"
-          label={translate("crm.contacts.filters.today", { _: "Today" })}
+          label={translate("resources.contacts.filters.today", { _: "Today" })}
           value={{
             "last_seen@gte": endOfYesterday().toISOString(),
             "last_seen@lte": undefined,
@@ -51,7 +51,7 @@ export const ContactListFilter = () => {
         />
         <ToggleFilterButton
           className="w-auto md:w-full justify-between h-10 md:h-8"
-          label={translate("crm.contacts.filters.this_week", {
+          label={translate("resources.contacts.filters.this_week", {
             _: "This week",
           })}
           value={{
@@ -62,7 +62,7 @@ export const ContactListFilter = () => {
         />
         <ToggleFilterButton
           className="w-auto md:w-full justify-between h-10 md:h-8"
-          label={translate("crm.contacts.filters.before_this_week", {
+          label={translate("resources.contacts.filters.before_this_week", {
             _: "Before this week",
           })}
           value={{
@@ -73,7 +73,7 @@ export const ContactListFilter = () => {
         />
         <ToggleFilterButton
           className="w-auto md:w-full justify-between h-10 md:h-8"
-          label={translate("crm.contacts.filters.before_this_month", {
+          label={translate("resources.contacts.filters.before_this_month", {
             _: "Before this month",
           })}
           value={{
@@ -84,7 +84,7 @@ export const ContactListFilter = () => {
         />
         <ToggleFilterButton
           className="w-auto md:w-full justify-between h-10 md:h-8"
-          label={translate("crm.contacts.filters.before_last_month", {
+          label={translate("resources.contacts.filters.before_last_month", {
             _: "Before last month",
           })}
           value={{
@@ -99,7 +99,7 @@ export const ContactListFilter = () => {
       </FilterCategory>
 
       <FilterCategory
-        label={translate("crm.contacts.filters.status", { _: "Status" })}
+        label={translate("resources.contacts.filters.status", { _: "Status" })}
         icon={<TrendingUp />}
       >
         {noteStatuses.map((status) => (
@@ -118,7 +118,7 @@ export const ContactListFilter = () => {
       </FilterCategory>
 
       <FilterCategory
-        label={translate("crm.contacts.filters.tags", { _: "Tags" })}
+        label={translate("resources.contacts.filters.tags", { _: "Tags" })}
         icon={<Tag />}
       >
         {data &&
@@ -145,11 +145,14 @@ export const ContactListFilter = () => {
 
       <FilterCategory
         icon={<CheckSquare />}
-        label={translate("crm.tasks.name", { smart_count: 2, _: "Tasks" })}
+        label={translate("resources.tasks.name", {
+          smart_count: 2,
+          _: "Tasks",
+        })}
       >
         <ToggleFilterButton
           className="w-full justify-between h-10 md:h-8"
-          label={translate("crm.tasks.filters.with_pending", {
+          label={translate("resources.tasks.filters.with_pending", {
             _: "With pending tasks",
           })}
           value={{ "nb_tasks@gt": 0 }}
@@ -195,7 +198,7 @@ export const ContactListFilterSummary = () => {
     <div className="flex flex-wrap items-start mb-4 gap-1">
       <ActiveFilterButton
         className="w-auto justify-between h-8"
-        label={translate("crm.contacts.filters.today", { _: "Today" })}
+        label={translate("resources.contacts.filters.today", { _: "Today" })}
         value={{
           "last_seen@gte": endOfYesterday().toISOString(),
           "last_seen@lte": undefined,
@@ -203,7 +206,9 @@ export const ContactListFilterSummary = () => {
       />
       <ActiveFilterButton
         className="w-auto justify-between h-8"
-        label={translate("crm.contacts.filters.this_week", { _: "This week" })}
+        label={translate("resources.contacts.filters.this_week", {
+          _: "This week",
+        })}
         value={{
           "last_seen@gte": startOfWeek(new Date()).toISOString(),
           "last_seen@lte": undefined,
@@ -211,7 +216,7 @@ export const ContactListFilterSummary = () => {
       />
       <ActiveFilterButton
         className="w-auto justify-between h-8"
-        label={translate("crm.contacts.filters.before_this_week", {
+        label={translate("resources.contacts.filters.before_this_week", {
           _: "Before this week",
         })}
         value={{
@@ -221,7 +226,7 @@ export const ContactListFilterSummary = () => {
       />
       <ActiveFilterButton
         className="w-auto justify-between h-8"
-        label={translate("crm.contacts.filters.before_this_month", {
+        label={translate("resources.contacts.filters.before_this_month", {
           _: "Before this month",
         })}
         value={{
@@ -231,7 +236,7 @@ export const ContactListFilterSummary = () => {
       />
       <ActiveFilterButton
         className="w-auto justify-between h-8"
-        label={translate("crm.contacts.filters.before_last_month", {
+        label={translate("resources.contacts.filters.before_last_month", {
           _: "Before last month",
         })}
         value={{
@@ -275,7 +280,7 @@ export const ContactListFilterSummary = () => {
 
       <ActiveFilterButton
         className="w-auto justify-between h-8"
-        label={translate("crm.tasks.filters.with_pending", {
+        label={translate("resources.tasks.filters.with_pending", {
           _: "With pending tasks",
         })}
         value={{ "nb_tasks@gt": 0 }}
@@ -283,7 +288,7 @@ export const ContactListFilterSummary = () => {
 
       <ActiveFilterButton
         className="w-auto justify-between h-8"
-        label={translate("crm.contacts.filters.managed_by_me", {
+        label={translate("resources.contacts.filters.managed_by_me", {
           _: "Managed by me",
         })}
         value={{ sales_id: identity?.id }}

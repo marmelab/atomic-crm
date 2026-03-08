@@ -17,7 +17,7 @@ export const ContactCreateSheet = ({
   return (
     <CreateSheet
       resource="contacts"
-      title={translate("crm.contacts.action.new", { _: "New Contact" })}
+      title={translate("resources.contacts.action.new", { _: "New Contact" })}
       defaultValues={{ sales_id: identity?.id }}
       transform={(data: Contact) => ({
         ...data,

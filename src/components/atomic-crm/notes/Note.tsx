@@ -59,7 +59,7 @@ export const Note = ({
   const [deleteNote] = useDelete(resource, undefined, {
     mutationMode: "undoable",
     onSuccess: () => {
-      notify("crm.notes.deleted", {
+      notify("resources.notes.deleted", {
         type: "info",
         undoable: true,
         messageArgs: {
@@ -115,7 +115,7 @@ export const Note = ({
           >
             <WithRecord render={(record) => <SaleName sale={record} />} />
           </ReferenceField>{" "}
-          {translate("crm.notes.feed.added", { _: "added a note" })}{" "}
+          {translate("resources.notes.feed.added", { _: "added a note" })}{" "}
           {showStatus && note.status && (
             <Status className="ml-2" status={note.status} />
           )}
@@ -134,7 +134,9 @@ export const Note = ({
                 </Button>
               </TooltipTrigger>
               <TooltipContent>
-                <p>{translate("crm.notes.action.edit", { _: "Edit note" })}</p>
+                <p>
+                  {translate("resources.notes.action.edit", { _: "Edit note" })}
+                </p>
               </TooltipContent>
             </Tooltip>
           </TooltipProvider>
@@ -152,7 +154,9 @@ export const Note = ({
               </TooltipTrigger>
               <TooltipContent>
                 <p>
-                  {translate("crm.notes.action.delete", { _: "Delete note" })}
+                  {translate("resources.notes.action.delete", {
+                    _: "Delete note",
+                  })}
                 </p>
               </TooltipContent>
             </Tooltip>
@@ -182,7 +186,7 @@ export const Note = ({
               className="flex items-center gap-2 cursor-pointer"
             >
               <Save className="w-4 h-4" />
-              {translate("crm.notes.action.update", { _: "Update note" })}
+              {translate("resources.notes.action.update", { _: "Update note" })}
             </Button>
           </div>
         </Form>

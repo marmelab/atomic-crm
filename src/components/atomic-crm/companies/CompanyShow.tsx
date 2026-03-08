@@ -63,7 +63,7 @@ const CompanyShowContentMobile = () => {
         <div className="flex flex-1">
           <Link to="/">
             <h1 className="text-xl font-semibold">
-              {translate("crm.companies.forcedCaseName", {
+              {translate("resources.companies.forcedCaseName", {
                 _: "Company",
               })}
             </h1>
@@ -126,22 +126,24 @@ const CompanyShowContent = () => {
                 <TabsTrigger value="contacts">
                   {record.nb_contacts
                     ? record.nb_contacts === 1
-                      ? translate("crm.companies.contacts.one", {
+                      ? translate("resources.companies.contacts.one", {
                           _: "1 Contact",
                         })
-                      : translate("crm.companies.contacts.many", {
+                      : translate("resources.companies.contacts.many", {
                           smart_count: record.nb_contacts,
                           _: `${record.nb_contacts} Contacts`,
                         })
-                    : translate("crm.companies.contacts.none", {
+                    : translate("resources.companies.contacts.none", {
                         _: "No Contacts",
                       })}
                 </TabsTrigger>
                 {record.nb_deals ? (
                   <TabsTrigger value="deals">
                     {record.nb_deals === 1
-                      ? translate("crm.companies.deals.one", { _: "1 deal" })
-                      : translate("crm.companies.deals.many", {
+                      ? translate("resources.companies.deals.one", {
+                          _: "1 deal",
+                        })
+                      : translate("resources.companies.deals.many", {
                           smart_count: record.nb_deals,
                           _: `${record.nb_deals} deals`,
                         })}
@@ -269,7 +271,7 @@ const CreateRelatedContactButton = () => {
         className="flex items-center gap-2"
       >
         <UserPlus className="h-4 w-4" />
-        {translate("crm.contacts.action.add", { _: "Add contact" })}
+        {translate("resources.contacts.action.add", { _: "Add contact" })}
       </RouterLink>
     </Button>
   );

@@ -9,11 +9,11 @@ const defaultCompanySizeLabels: Record<number, string> = {
 };
 
 const companySizeTranslationKeys: Record<number, string> = {
-  1: "crm.companies.sizes.one_employee",
-  10: "crm.companies.sizes.two_to_nine_employees",
-  50: "crm.companies.sizes.ten_to_forty_nine_employees",
-  250: "crm.companies.sizes.fifty_to_two_hundred_forty_nine_employees",
-  500: "crm.companies.sizes.two_hundred_fifty_or_more_employees",
+  1: "resources.companies.sizes.one_employee",
+  10: "resources.companies.sizes.two_to_nine_employees",
+  50: "resources.companies.sizes.ten_to_forty_nine_employees",
+  250: "resources.companies.sizes.fifty_to_two_hundred_forty_nine_employees",
+  500: "resources.companies.sizes.two_hundred_fifty_or_more_employees",
 };
 
 export const getTranslatedCompanySizeLabel = (

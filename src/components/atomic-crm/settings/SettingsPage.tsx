@@ -34,12 +34,12 @@ const SECTIONS = [
   },
   {
     id: "companies",
-    label: "crm.companies.name",
+    label: "resources.companies.name",
     fallback: "Companies",
   },
-  { id: "deals", label: "crm.deals.name", fallback: "Deals" },
-  { id: "notes", label: "crm.notes.name", fallback: "Notes" },
-  { id: "tasks", label: "crm.tasks.name", fallback: "Tasks" },
+  { id: "deals", label: "resources.deals.name", fallback: "Deals" },
+  { id: "notes", label: "resources.notes.name", fallback: "Notes" },
+  { id: "tasks", label: "resources.tasks.name", fallback: "Tasks" },
 ];
 
 /** Ensure every item in a { value, label } array has a value (slug from label). */
@@ -268,7 +268,7 @@ const SettingsFormFields = () => {
         <Card id="companies">
           <CardContent className="space-y-4">
             <h2 className="text-xl font-semibold text-muted-foreground">
-              {translate("crm.companies.name", {
+              {translate("resources.companies.name", {
                 smart_count: 2,
                 _: "Companies",
               })}
@@ -292,7 +292,7 @@ const SettingsFormFields = () => {
         <Card id="deals">
           <CardContent className="space-y-4">
             <h2 className="text-xl font-semibold text-muted-foreground">
-              {translate("crm.deals.name", {
+              {translate("resources.deals.name", {
                 smart_count: 2,
                 _: "Deals",
               })}
@@ -378,7 +378,7 @@ const SettingsFormFields = () => {
         <Card id="notes">
           <CardContent className="space-y-4">
             <h2 className="text-xl font-semibold text-muted-foreground">
-              {translate("crm.notes.name", {
+              {translate("resources.notes.name", {
                 smart_count: 2,
                 _: "Notes",
               })}
@@ -399,7 +399,7 @@ const SettingsFormFields = () => {
         <Card id="tasks">
           <CardContent className="space-y-4">
             <h2 className="text-xl font-semibold text-muted-foreground">
-              {translate("crm.tasks.name", {
+              {translate("resources.tasks.name", {
                 smart_count: 2,
                 _: "Tasks",
               })}

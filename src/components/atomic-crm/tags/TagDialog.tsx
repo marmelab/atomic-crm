@@ -73,22 +73,27 @@ export function TagDialog({
           <div className="space-y-4 py-4">
             <div className="space-y-2">
               <Label htmlFor="tag-name">
-                {translate("crm.tags.dialog.name_label", { _: "Tag name" })}
+                {translate("resources.tags.dialog.name_label", {
+                  _: "Tag name",
+                })}
               </Label>
               <Input
                 id="tag-name"
                 autoFocus
                 value={newTagName}
                 onChange={handleNewTagNameChange}
-                placeholder={translate("crm.tags.dialog.name_placeholder", {
-                  _: "Enter tag name",
-                })}
+                placeholder={translate(
+                  "resources.tags.dialog.name_placeholder",
+                  {
+                    _: "Enter tag name",
+                  },
+                )}
               />
             </div>
 
             <div className="space-y-2">
               <Label>
-                {translate("crm.tags.dialog.color", { _: "Color" })}
+                {translate("resources.tags.dialog.color", { _: "Color" })}
               </Label>
               <div className="flex flex-wrap">
                 {colors.map((color) => (

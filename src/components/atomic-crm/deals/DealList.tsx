@@ -32,7 +32,9 @@ const DealList = () => {
     <ReferenceInput source="company_id" reference="companies">
       <AutocompleteInput
         label={false}
-        placeholder={translate("crm.deals.filters.company", { _: "Company" })}
+        placeholder={translate("resources.deals.filters.company", {
+          _: "Company",
+        })}
       />
     </ReferenceInput>,
     <WrapperField
@@ -105,7 +107,7 @@ const DealActions = () => (
   <TopToolbar>
     <FilterButton />
     <ExportButton />
-    <CreateButton label="crm.deals.action.new" />
+    <CreateButton label="resources.deals.action.new" />
   </TopToolbar>
 );
 

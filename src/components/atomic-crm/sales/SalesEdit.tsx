@@ -39,7 +39,7 @@ export function SalesEdit() {
     mutationFn: async (data: SalesFormData) => {
       if (!record) {
         throw new Error(
-          translate("crm.sales.edit.record_not_found", {
+          translate("resources.sales.edit.record_not_found", {
             _: "Record not found",
           }),
         );
@@ -48,14 +48,14 @@ export function SalesEdit() {
     },
     onSuccess: () => {
       redirect("/sales");
-      notify("crm.sales.edit.success", {
+      notify("resources.sales.edit.success", {
         messageArgs: {
           _: "User updated successfully",
         },
       });
     },
     onError: () => {
-      notify("crm.sales.edit.error", {
+      notify("resources.sales.edit.error", {
         type: "error",
         messageArgs: {
           _: "An error occurred. Please try again.",
@@ -92,7 +92,7 @@ const SaleEditTitle = () => {
   if (!record) return null;
   return (
     <h2 className="text-lg font-semibold mb-4">
-      {translate("crm.sales.edit.title", {
+      {translate("resources.sales.edit.title", {
         name: `${record.first_name} ${record.last_name}`,
         _: `Edit ${record.first_name} ${record.last_name}`,
       })}

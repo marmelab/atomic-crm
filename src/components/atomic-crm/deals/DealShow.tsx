@@ -200,7 +200,7 @@ const ArchivedTitle = () => {
   return (
     <div className="bg-orange-500 px-6 py-4">
       <h3 className="text-lg font-bold text-white">
-        {translate("crm.deals.archived.title", { _: "Archived Deal" })}
+        {translate("resources.deals.archived.title", { _: "Archived Deal" })}
       </h3>
     </div>
   );
@@ -223,7 +223,7 @@ const ArchiveButton = ({ record }: { record: Deal }) => {
       {
         onSuccess: () => {
           redirect("list", "deals");
-          notify("crm.deals.archived.success", {
+          notify("resources.deals.archived.success", {
             type: "info",
             undoable: false,
             messageArgs: { _: "Deal archived" },
@@ -231,7 +231,7 @@ const ArchiveButton = ({ record }: { record: Deal }) => {
           refresh();
         },
         onError: () => {
-          notify("crm.deals.archived.error", {
+          notify("resources.deals.archived.error", {
             type: "error",
             messageArgs: { _: "Error: deal not archived" },
           });
@@ -248,7 +248,7 @@ const ArchiveButton = ({ record }: { record: Deal }) => {
       className="flex items-center gap-2 h-9"
     >
       <Archive className="w-4 h-4" />
-      {translate("crm.deals.archived.action", { _: "Archive" })}
+      {translate("resources.deals.archived.action", { _: "Archive" })}
     </Button>
   );
 };
@@ -264,7 +264,7 @@ const UnarchiveButton = ({ record }: { record: Deal }) => {
     mutationFn: () => dataProvider.unarchiveDeal(record),
     onSuccess: () => {
       redirect("list", "deals");
-      notify("crm.deals.unarchived.success", {
+      notify("resources.deals.unarchived.success", {
         type: "info",
         undoable: false,
         messageArgs: { _: "Deal unarchived" },
@@ -272,7 +272,7 @@ const UnarchiveButton = ({ record }: { record: Deal }) => {
       refresh();
     },
     onError: () => {
-      notify("crm.deals.unarchived.error", {
+      notify("resources.deals.unarchived.error", {
         type: "error",
         messageArgs: { _: "Error: deal not unarchived" },
       });
@@ -291,7 +291,7 @@ const UnarchiveButton = ({ record }: { record: Deal }) => {
       className="flex items-center gap-2 h-9"
     >
       <ArchiveRestore className="w-4 h-4" />
-      {translate("crm.deals.unarchived.action", {
+      {translate("resources.deals.unarchived.action", {
         _: "Send back to the board",
       })}
     </Button>

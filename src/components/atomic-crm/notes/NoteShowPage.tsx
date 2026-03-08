@@ -47,7 +47,7 @@ export const NoteShowPage = () => {
         <div className="flex flex-1 min-w-0">
           <Link to={`/contacts/${contactId}/show`} className="flex-1 min-w-0">
             <h1 className="truncate text-xl font-semibold">
-              {translate("crm.notes.note_for", { _: "Note for" })}{" "}
+              {translate("resources.notes.note_for", { _: "Note for" })}{" "}
               <ReferenceField
                 record={note}
                 resource="contact_notes"
@@ -69,7 +69,7 @@ export const NoteShowPage = () => {
         >
           <Pencil className="size-5" />
           <span className="sr-only">
-            {translate("crm.notes.action.edit", { _: "Edit note" })}
+            {translate("resources.notes.action.edit", { _: "Edit note" })}
           </span>
         </Button>
       </MobileHeader>

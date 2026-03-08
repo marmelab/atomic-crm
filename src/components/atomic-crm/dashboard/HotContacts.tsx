@@ -38,7 +38,7 @@ export const HotContacts = () => {
           <Users className="text-muted-foreground w-6 h-6" />
         </div>
         <h2 className="text-xl font-semibold text-muted-foreground">
-          {translate("crm.contacts.hot.title", { _: "Hot Contacts" })}
+          {translate("resources.contacts.hot.title", { _: "Hot Contacts" })}
         </h2>
         <TooltipProvider>
           <Tooltip>
@@ -55,7 +55,9 @@ export const HotContacts = () => {
               </Button>
             </TooltipTrigger>
             <TooltipContent>
-              {translate("crm.contacts.hot.create", { _: "Create contact" })}
+              {translate("resources.contacts.hot.create", {
+                _: "Create contact",
+              })}
             </TooltipContent>
           </Tooltip>
         </TooltipProvider>
@@ -81,12 +83,12 @@ export const HotContacts = () => {
           empty={
             <div className="p-4">
               <p className="text-sm mb-4">
-                {translate("crm.contacts.hot.empty_hint", {
+                {translate("resources.contacts.hot.empty_hint", {
                   _: 'Contacts with a "hot" status will appear here.',
                 })}
               </p>
               <p className="text-sm">
-                {translate("crm.contacts.hot.empty_change_status", {
+                {translate("resources.contacts.hot.empty_change_status", {
                   _: 'Change the status of a contact by adding a note to that contact and clicking on "show options".',
                 })}
               </p>

@@ -40,7 +40,7 @@ export const ContactImportButton = () => {
         className="flex items-center gap-2 cursor-pointer"
       >
         <Upload />{" "}
-        {translate("crm.contacts.import.button", { _: "Import CSV" })}
+        {translate("resources.contacts.import.button", { _: "Import CSV" })}
       </Button>
       <ContactImportDialog open={modalOpen} onClose={handleCloseModal} />
     </>
@@ -111,18 +111,20 @@ export function ContactImportDialog({
                 <Alert>
                   <AlertDescription className="flex flex-row gap-4">
                     <Loader2 className="h-5 w-5 animate-spin" />
-                    {translate("crm.contacts.import.running", {
+                    {translate("resources.contacts.import.running", {
                       _: "The import is running, please do not close this tab.",
                     })}
                   </AlertDescription>
                 </Alert>
 
                 <div className="text-sm">
-                  {translate("crm.contacts.import.imported", { _: "Imported" })}{" "}
+                  {translate("resources.contacts.import.imported", {
+                    _: "Imported",
+                  })}{" "}
                   <strong>
                     {importer.importCount} / {importer.rowCount}
                   </strong>{" "}
-                  {translate("crm.contacts.import.contacts_label", {
+                  {translate("resources.contacts.import.contacts_label", {
                     smart_count: 2,
                     _: "contacts",
                   })}
@@ -132,7 +134,7 @@ export function ContactImportDialog({
                   {importer.remainingTime !== null && (
                     <>
                       {" "}
-                      {translate("crm.contacts.import.remaining_time", {
+                      {translate("resources.contacts.import.remaining_time", {
                         _: "Estimated remaining time:",
                       })}{" "}
                       <strong>
@@ -143,7 +145,7 @@ export function ContactImportDialog({
                         onClick={handleReset}
                         className="text-red-600 underline hover:text-red-800"
                       >
-                        {translate("crm.contacts.import.stop", {
+                        {translate("resources.contacts.import.stop", {
                           _: "Stop import",
                         })}
                       </button>
@@ -156,7 +158,7 @@ export function ContactImportDialog({
             {importer.state === "error" && (
               <Alert variant="destructive">
                 <AlertDescription>
-                  {translate("crm.contacts.import.error", {
+                  {translate("resources.contacts.import.error", {
                     _: "Failed to import this file, please make sure your provided a valid CSV file.",
                   })}
                 </AlertDescription>
@@ -166,7 +168,7 @@ export function ContactImportDialog({
             {importer.state === "complete" && (
               <Alert>
                 <AlertDescription>
-                  {translate("crm.contacts.import.complete", {
+                  {translate("resources.contacts.import.complete", {
                     importCount: importer.importCount,
                     errorCount: importer.errorCount,
                     _: `Contacts import complete. Imported ${importer.importCount} contacts, with ${importer.errorCount} errors`,
@@ -179,7 +181,7 @@ export function ContactImportDialog({
               <>
                 <Alert>
                   <AlertDescription className="flex flex-col gap-4">
-                    {translate("crm.contacts.import.sample_hint", {
+                    {translate("resources.contacts.import.sample_hint", {
                       _: "Here is a sample CSV file you can use as a template",
                     })}
                     <Button asChild variant="outline" size="sm">
@@ -187,9 +189,12 @@ export function ContactImportDialog({
                         to={SAMPLE_URL}
                         download={"crm_contacts_sample.csv"}
                       >
-                        {translate("crm.contacts.import.sample_download", {
-                          _: "Download CSV sample",
-                        })}
+                        {translate(
+                          "resources.contacts.import.sample_download",
+                          {
+                            _: "Download CSV sample",
+                          },
+                        )}
                       </Link>
                     </Button>{" "}
                   </AlertDescription>
@@ -197,7 +202,7 @@ export function ContactImportDialog({
 
                 <FileInput
                   source="csv"
-                  label="crm.contacts.import.csv_file"
+                  label="resources.contacts.import.csv_file"
                   accept={{ "text/csv": [".csv"] }}
                   onChange={handleFileChange}
                 >

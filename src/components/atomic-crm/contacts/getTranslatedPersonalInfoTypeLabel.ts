@@ -11,7 +11,7 @@ export const getTranslatedPersonalInfoTypeLabel = (
   translate: TranslateFn,
 ) =>
   translate(
-    `crm.contacts.inputs.personal_info_types.${personalInfoTypeMap[type] ?? type.toLowerCase()}`,
+    `resources.contacts.inputs.personal_info_types.${personalInfoTypeMap[type] ?? type.toLowerCase()}`,
     {
       _: type,
     },

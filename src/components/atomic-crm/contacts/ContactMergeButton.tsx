@@ -40,7 +40,7 @@ export const ContactMergeButton = () => {
         onClick={() => setMergeDialogOpen(true)}
       >
         <Merge className="w-4 h-4" />
-        {translate("crm.contacts.merge.action", {
+        {translate("resources.contacts.merge.action", {
           _: "Merge with another contact",
         })}
       </Button>
@@ -130,7 +130,7 @@ const ContactMergeDialog = ({ open, onClose }: ContactMergeDialogProps) => {
 
   const handleMerge = async () => {
     if (!winnerId || !loserContact) {
-      notify("crm.contacts.merge.select_target", {
+      notify("resources.contacts.merge.select_target", {
         type: "warning",
         messageArgs: {
           _: "Please select a contact to merge with",
@@ -143,7 +143,7 @@ const ContactMergeDialog = ({ open, onClose }: ContactMergeDialogProps) => {
       setIsMerging(true);
       await mutateAsync();
       setIsMerging(false);
-      notify("crm.contacts.merge.success", {
+      notify("resources.contacts.merge.success", {
         type: "success",
         messageArgs: {
           _: "Contacts merged successfully",
@@ -153,7 +153,7 @@ const ContactMergeDialog = ({ open, onClose }: ContactMergeDialogProps) => {
       onClose();
     } catch (error) {
       setIsMerging(false);
-      notify("crm.contacts.merge.error", {
+      notify("resources.contacts.merge.error", {
         type: "error",
         messageArgs: {
           _: "Failed to merge contacts",
@@ -170,10 +170,12 @@ const ContactMergeDialog = ({ open, onClose }: ContactMergeDialogProps) => {
       <DialogContent className="md:min-w-lg max-w-2xl">
         <DialogHeader>
           <DialogTitle>
-            {translate("crm.contacts.merge.title", { _: "Merge Contact" })}
+            {translate("resources.contacts.merge.title", {
+              _: "Merge Contact",
+            })}
           </DialogTitle>
           <DialogDescription>
-            {translate("crm.contacts.merge.description", {
+            {translate("resources.contacts.merge.description", {
               _: "Merge this contact with another one.",
             })}
           </DialogDescription>
@@ -182,7 +184,7 @@ const ContactMergeDialog = ({ open, onClose }: ContactMergeDialogProps) => {
         <div className="space-y-4">
           <div className="p-4 bg-primary/5 rounded-lg border border-primary/20">
             <p className="font-medium text-sm">
-              {translate("crm.contacts.merge.current_contact", {
+              {translate("resources.contacts.merge.current_contact", {
                 _: "Current Contact (will be deleted)",
               })}
             </p>
@@ -193,7 +195,7 @@ const ContactMergeDialog = ({ open, onClose }: ContactMergeDialogProps) => {
             </div>
 
             <p className="font-medium text-sm mb-2">
-              {translate("crm.contacts.merge.target_contact", {
+              {translate("resources.contacts.merge.target_contact", {
                 _: "Target Contact (will be kept)",
               })}
             </p>
@@ -219,7 +221,7 @@ const ContactMergeDialog = ({ open, onClose }: ContactMergeDialogProps) => {
             <>
               <div className="space-y-2">
                 <p className="font-medium text-sm">
-                  {translate("crm.contacts.merge.what_will_be_merged", {
+                  {translate("resources.contacts.merge.what_will_be_merged", {
                     _: "What will be merged:",
                   })}
                 </p>
@@ -262,9 +264,12 @@ const ContactMergeDialog = ({ open, onClose }: ContactMergeDialogProps) => {
                     !loserContact.email_jsonb?.length &&
                     !loserContact.phone_jsonb?.length && (
                       <li className="text-muted-foreground/60">
-                        {translate("crm.contacts.merge.no_additional_data", {
-                          _: "No additional data to merge",
-                        })}
+                        {translate(
+                          "resources.contacts.merge.no_additional_data",
+                          {
+                            _: "No additional data to merge",
+                          },
+                        )}
                       </li>
                     )}
                 </ul>
@@ -272,12 +277,12 @@ const ContactMergeDialog = ({ open, onClose }: ContactMergeDialogProps) => {
               <Alert variant="destructive">
                 <AlertTriangle className="h-4 w-4" />
                 <AlertTitle>
-                  {translate("crm.contacts.merge.warning_title", {
+                  {translate("resources.contacts.merge.warning_title", {
                     _: "Warning: Destructive Operation",
                   })}
                 </AlertTitle>
                 <AlertDescription>
-                  {translate("crm.contacts.merge.warning_description", {
+                  {translate("resources.contacts.merge.warning_description", {
                     _: "All data will be transferred to the second contact. This action cannot be undone.",
                   })}
                 </AlertDescription>
@@ -294,8 +299,10 @@ const ContactMergeDialog = ({ open, onClose }: ContactMergeDialogProps) => {
           <Button onClick={handleMerge} disabled={!winnerId || isMerging}>
             <Merge />
             {isMerging
-              ? translate("crm.contacts.merge.merging", { _: "Merging..." })
-              : translate("crm.contacts.merge.confirm", {
+              ? translate("resources.contacts.merge.merging", {
+                  _: "Merging...",
+                })
+              : translate("resources.contacts.merge.confirm", {
                   _: "Merge Contacts",
                 })}
           </Button>

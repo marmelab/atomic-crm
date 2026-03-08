@@ -84,7 +84,7 @@ export const MobileNavigation = () => {
           <NavigationButton
             href="/contacts"
             Icon={Users}
-            label={translate("crm.contacts.name", {
+            label={translate("resources.contacts.name", {
               smart_count: 2,
               _: "Contacts",
             })}
@@ -94,7 +94,7 @@ export const MobileNavigation = () => {
           <NavigationButton
             href="/tasks"
             Icon={ListTodo}
-            label={translate("crm.tasks.name", {
+            label={translate("resources.tasks.name", {
               smart_count: 2,
               _: "Tasks",
             })}
@@ -174,7 +174,7 @@ const CreateButton = () => {
               setContactCreateOpen(true);
             }}
           >
-            {translate("crm.contacts.forcedCaseName", { _: "Contact" })}
+            {translate("resources.contacts.forcedCaseName", { _: "Contact" })}
           </DropdownMenuItem>
           <DropdownMenuItem
             className="h-12 px-4 text-base"
@@ -182,7 +182,7 @@ const CreateButton = () => {
               setNoteCreateOpen(true);
             }}
           >
-            {translate("crm.notes.forcedCaseName", { _: "Note" })}
+            {translate("resources.notes.forcedCaseName", { _: "Note" })}
           </DropdownMenuItem>
           <DropdownMenuItem
             className="h-12 px-4 text-base"
@@ -190,7 +190,7 @@ const CreateButton = () => {
               setTaskCreateOpen(true);
             }}
           >
-            {translate("crm.tasks.forcedCaseName", { _: "Task" })}
+            {translate("resources.tasks.forcedCaseName", { _: "Task" })}
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>

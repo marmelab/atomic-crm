@@ -36,7 +36,7 @@ export const DealEdit = ({ open, id }: { open: boolean; id?: string }) => {
             mutationMode="pessimistic"
             mutationOptions={{
               onSuccess: () => {
-                notify("crm.deals.updated", {
+                notify("resources.deals.updated", {
                   messageArgs: { _: "Deal updated" },
                 });
                 redirect(`/deals/${id}/show`, undefined, undefined, undefined, {
@@ -72,7 +72,7 @@ function EditHeader() {
             <CompanyAvatar />
           </ReferenceField>
           <h2 className="text-2xl font-semibold">
-            {translate("crm.deals.edit.title", {
+            {translate("resources.deals.edit.title", {
               _: `Edit ${deal.name} deal`,
               name: deal.name,
             })}
@@ -82,7 +82,7 @@ function EditHeader() {
           <DeleteButton />
           <Button asChild variant="outline" className="h-9">
             <Link to={`/deals/${deal.id}/show`}>
-              {translate("crm.deals.action.back_to_deal", {
+              {translate("resources.deals.action.back_to_deal", {
                 _: "Back to deal",
               })}
             </Link>

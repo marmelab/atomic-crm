@@ -95,7 +95,7 @@ const Deal = ({ note }: any) => {
   const translate = useTranslate();
   return (
     <>
-      {translate("crm.deals.forcedCaseName", { _: "Deal" })}{" "}
+      {translate("resources.deals.forcedCaseName", { _: "Deal" })}{" "}
       <ReferenceField
         record={note}
         source="deal_id"
@@ -112,7 +112,7 @@ const Contact = ({ note }: any) => {
   const translate = useTranslate();
   return (
     <>
-      {translate("crm.contacts.forcedCaseName", { _: "Contact" })}{" "}
+      {translate("resources.contacts.forcedCaseName", { _: "Contact" })}{" "}
       <ReferenceField<ContactNote, Contact>
         record={note}
         source="contact_id"

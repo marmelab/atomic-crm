@@ -50,7 +50,7 @@ export const Task = ({
     redirect: false,
     mutationOptions: {
       onSuccess() {
-        notify("crm.tasks.deleted", {
+        notify("resources.tasks.deleted", {
           undoable: true,
           messageArgs: {
             _: "Task deleted successfully",
@@ -156,7 +156,7 @@ export const Task = ({
               variant="ghost"
               size="icon"
               className="h-5 pr-0! size-8 cursor-pointer"
-              aria-label={translate("crm.tasks.actions.title", {
+              aria-label={translate("resources.tasks.actions.title", {
                 _: "task actions",
               })}
             >
@@ -178,7 +178,7 @@ export const Task = ({
                 });
               }}
             >
-              {translate("crm.tasks.actions.postpone_tomorrow", {
+              {translate("resources.tasks.actions.postpone_tomorrow", {
                 _: "Postpone to tomorrow",
               })}
             </DropdownMenuItem>
@@ -196,7 +196,7 @@ export const Task = ({
                 });
               }}
             >
-              {translate("crm.tasks.actions.postpone_next_week", {
+              {translate("resources.tasks.actions.postpone_next_week", {
                 _: "Postpone to next week",
               })}
             </DropdownMenuItem>

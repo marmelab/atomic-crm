@@ -53,12 +53,14 @@ export const DealArchivedList = () => {
         onClick={() => setOpenDialog(true)}
         className="my-4"
       >
-        {translate("crm.deals.archived.view", { _: "View archived deals" })}
+        {translate("resources.deals.archived.view", {
+          _: "View archived deals",
+        })}
       </Button>
       <Dialog open={openDialog} onOpenChange={() => setOpenDialog(false)}>
         <DialogContent className="lg:max-w-4xl overflow-y-auto max-h-9/10 top-1/20 translate-y-0">
           <DialogTitle>
-            {translate("crm.deals.archived.list_title", {
+            {translate("resources.deals.archived.list_title", {
               _: "Archived Deals",
             })}
           </DialogTitle>

@@ -50,7 +50,7 @@ export const TaskCreateSheet = ({
       data: { last_seen: new Date().toISOString() },
       previousData: contact,
     });
-    notify("crm.tasks.added", {
+    notify("resources.tasks.added", {
       messageArgs: { _: "Task added" },
     });
     // No redirect, only close the sheet
@@ -63,10 +63,10 @@ export const TaskCreateSheet = ({
       title={
         <h1 className="text-xl font-semibold truncate pr-10">
           {!selectContact
-            ? translate("crm.tasks.dialog.create_for", {
+            ? translate("resources.tasks.dialog.create_for", {
                 _: "Create task for",
               })
-            : translate("crm.tasks.dialog.create", { _: "Create task" })}
+            : translate("resources.tasks.dialog.create", { _: "Create task" })}
           {!selectContact && (
             <>
               {" "}

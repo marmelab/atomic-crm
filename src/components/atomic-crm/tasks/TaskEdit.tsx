@@ -38,7 +38,7 @@ export const TaskEdit = ({
           mutationOptions={{
             onSuccess: () => {
               close();
-              notify("crm.tasks.updated", {
+              notify("resources.tasks.updated", {
                 type: "info",
                 undoable: true,
                 messageArgs: {
@@ -53,7 +53,7 @@ export const TaskEdit = ({
             <Form className="flex flex-col gap-4">
               <DialogHeader>
                 <DialogTitle>
-                  {translate("crm.tasks.action.edit", { _: "Edit task" })}
+                  {translate("resources.tasks.action.edit", { _: "Edit task" })}
                 </DialogTitle>
               </DialogHeader>
               <TaskFormContent />
@@ -62,7 +62,7 @@ export const TaskEdit = ({
                   mutationOptions={{
                     onSuccess: () => {
                       close();
-                      notify("crm.tasks.deleted", {
+                      notify("resources.tasks.deleted", {
                         type: "info",
                         undoable: true,
                         messageArgs: {

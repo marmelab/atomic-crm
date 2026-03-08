@@ -40,13 +40,13 @@ describe("i18nProvider", () => {
   it("translates recently added fr crm keys", async () => {
     await i18nProvider.changeLocale("fr");
 
-    expect(i18nProvider.translate("crm.deals.empty.title")).toBe(
+    expect(i18nProvider.translate("resources.deals.empty.title")).toBe(
       "Aucune affaire trouvée",
     );
-    expect(i18nProvider.translate("crm.companies.filters.only_mine")).toBe(
-      "Seulement les entreprises que je gère",
-    );
-    expect(i18nProvider.translate("crm.companies.contacts.none")).toBe(
+    expect(
+      i18nProvider.translate("resources.companies.filters.only_mine"),
+    ).toBe("Seulement les entreprises que je gère");
+    expect(i18nProvider.translate("resources.companies.contacts.none")).toBe(
       "Aucun contact",
     );
   });

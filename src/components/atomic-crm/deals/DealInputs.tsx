@@ -42,7 +42,7 @@ const DealLinkedToInputs = () => {
   return (
     <div className="flex flex-col gap-4 flex-1">
       <h3 className="text-base font-medium">
-        {translate("crm.deals.inputs.linked_to", { _: "Linked to" })}
+        {translate("resources.deals.inputs.linked_to", { _: "Linked to" })}
       </h3>
       <ReferenceInput source="company_id" reference="companies">
         <AutocompleteCompanyInput

@@ -79,7 +79,7 @@ export const DashboardStepper = ({
 
                 <div className="flex flex-col gap-4">
                   <h4 className="font-bold">
-                    {translate("crm.contacts.action.add_first", {
+                    {translate("resources.contacts.action.add_first", {
                       _: "Add your first contact",
                     })}
                   </h4>
@@ -92,14 +92,14 @@ export const DashboardStepper = ({
                         variant="outline"
                       >
                         <Plus className="h-4 w-4" />
-                        {translate("crm.contacts.action.new", {
+                        {translate("resources.contacts.action.new", {
                           _: "New Contact",
                         })}
                       </Button>
                     ) : (
                       <>
                         <CreateButton
-                          label="crm.contacts.action.new"
+                          label="resources.contacts.action.new"
                           resource="contacts"
                         />
                         <ContactImportButton />
@@ -112,12 +112,12 @@ export const DashboardStepper = ({
                 <Circle className="text-muted-foreground w-5 h-5 mt-1 shrink-0" />
                 <div className="flex flex-col gap-4">
                   <h4 className="font-bold">
-                    {translate("crm.notes.action.add_first", {
+                    {translate("resources.notes.action.add_first", {
                       _: "Add your first note",
                     })}
                   </h4>
                   <p>
-                    {translate("crm.notes.stepper.hint", {
+                    {translate("resources.notes.stepper.hint", {
                       _: "Go to a contact page and add a note",
                     })}
                   </p>
@@ -128,12 +128,16 @@ export const DashboardStepper = ({
                       className="w-[100px] gap-2"
                     >
                       <Plus className="h-4 w-4" />
-                      {translate("crm.notes.action.add", { _: "Add note" })}
+                      {translate("resources.notes.action.add", {
+                        _: "Add note",
+                      })}
                     </Button>
                   ) : (
                     <Button asChild disabled={step < 2} className="w-[100px]">
                       <Link to={`/contacts/${contactId}/show`}>
-                        {translate("crm.notes.action.add", { _: "Add note" })}
+                        {translate("resources.notes.action.add", {
+                          _: "Add note",
+                        })}
                       </Link>
                     </Button>
                   )}

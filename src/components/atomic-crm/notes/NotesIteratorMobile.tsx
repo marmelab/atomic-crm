@@ -52,7 +52,7 @@ export const NotesIteratorMobile = ({
     return (
       <div className="p-4">
         <div className="text-center text-muted-foreground mb-4">
-          {translate("crm.notes.list.error_loading", {
+          {translate("resources.notes.list.error_loading", {
             _: "Error loading notes",
           })}
         </div>

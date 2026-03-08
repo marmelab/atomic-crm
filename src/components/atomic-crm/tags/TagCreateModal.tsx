@@ -32,7 +32,7 @@ export function TagCreateModal({
   return (
     <TagDialog
       open={open}
-      title={translate("crm.tags.dialog.create_title", {
+      title={translate("resources.tags.dialog.create_title", {
         _: "Create a new tag",
       })}
       onClose={onClose}

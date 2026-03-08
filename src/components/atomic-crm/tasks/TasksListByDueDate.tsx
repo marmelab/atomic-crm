@@ -103,33 +103,35 @@ export const TasksListByDueDate = ({
     <div className="flex flex-col gap-4">
       <TaskListFilter
         tasks={overdueTasks}
-        title={translate("crm.tasks.filters.overdue", { _: "Overdue" })}
+        title={translate("resources.tasks.filters.overdue", { _: "Overdue" })}
         showContact={showContact}
         isMobile={isMobile}
       />
       <TaskListFilter
         tasks={dueTodayTasks}
-        title={translate("crm.tasks.filters.today", { _: "Today" })}
+        title={translate("resources.tasks.filters.today", { _: "Today" })}
         showContact={showContact}
         isMobile={isMobile}
       />
       <TaskListFilter
         tasks={dueTomorrowTasks}
-        title={translate("crm.tasks.filters.tomorrow", { _: "Tomorrow" })}
+        title={translate("resources.tasks.filters.tomorrow", { _: "Tomorrow" })}
         showContact={showContact}
         isMobile={isMobile}
       />
       {(!filterByContact || (filterByContact && isBeforeFriday())) && (
         <TaskListFilter
           tasks={dueThisWeekTasks}
-          title={translate("crm.tasks.filters.this_week", { _: "This week" })}
+          title={translate("resources.tasks.filters.this_week", {
+            _: "This week",
+          })}
           showContact={showContact}
           isMobile={isMobile}
         />
       )}
       <TaskListFilter
         tasks={dueLaterTasks}
-        title={translate("crm.tasks.filters.later", { _: "Later" })}
+        title={translate("resources.tasks.filters.later", { _: "Later" })}
         showContact={showContact}
         isMobile={isMobile}
       />

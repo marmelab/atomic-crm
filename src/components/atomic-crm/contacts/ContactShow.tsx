@@ -135,7 +135,7 @@ const ContactShowContentMobile = () => {
         <Tabs defaultValue="notes" className="w-full">
           <TabsList className="grid w-full grid-cols-3 h-10">
             <TabsTrigger value="notes">
-              {translate("crm.notes.name", {
+              {translate("resources.notes.name", {
                 smart_count: 2,
                 _: "Notes",
               })}
@@ -146,7 +146,7 @@ const ContactShowContentMobile = () => {
                 reference="tasks"
                 filter={{ "done_date@is": null }}
               />{" "}
-              {translate("crm.tasks.name", {
+              {translate("resources.tasks.name", {
                 smart_count: 2,
                 _: "Tasks",
               })}
@@ -164,13 +164,13 @@ const ContactShowContentMobile = () => {
               empty={
                 <div className="flex flex-col items-center justify-center py-8 text-center">
                   <p className="text-muted-foreground mb-4">
-                    {translate("crm.notes.empty", { _: "No notes yet" })}
+                    {translate("resources.notes.empty", { _: "No notes yet" })}
                   </p>
                   <Button
                     variant="outline"
                     onClick={() => setNoteCreateOpen(true)}
                   >
-                    {translate("crm.notes.action.add", { _: "Add note" })}
+                    {translate("resources.notes.action.add", { _: "Add note" })}
                   </Button>
                 </div>
               }
@@ -198,7 +198,7 @@ const ContactShowContentMobile = () => {
             <div className="space-y-6">
               <div>
                 <h3 className="text-lg font-semibold">
-                  {translate("crm.contacts.inputs.personal_info", {
+                  {translate("resources.contacts.inputs.personal_info", {
                     _: "Personal info",
                   })}
                 </h3>
@@ -209,9 +209,12 @@ const ContactShowContentMobile = () => {
               </div>
               <div>
                 <h3 className="text-lg font-semibold">
-                  {translate("crm.contacts.inputs.background_info_short", {
-                    _: "Background info",
-                  })}
+                  {translate(
+                    "resources.contacts.inputs.background_info_short",
+                    {
+                      _: "Background info",
+                    },
+                  )}
                 </h3>
                 <Separator />
                 <div className="mt-3">
@@ -220,7 +223,7 @@ const ContactShowContentMobile = () => {
               </div>
               <div>
                 <h3 className="text-lg font-semibold">
-                  {translate("crm.tags.name", {
+                  {translate("resources.tags.name", {
                     smart_count: 2,
                     _: "Tags",
                   })}

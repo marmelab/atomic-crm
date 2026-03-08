@@ -27,7 +27,7 @@ export const AutocompleteCompanyInput = ({
       );
       return newCompany;
     } catch {
-      notify("crm.companies.autocomplete.create_error", {
+      notify("resources.companies.autocomplete.create_error", {
         type: "error",
         messageArgs: {
           _: "An error occurred while creating the company",
@@ -43,10 +43,13 @@ export const AutocompleteCompanyInput = ({
       optionText="name"
       helperText={false}
       onCreate={handleCreateCompany}
-      createItemLabel={translate("crm.companies.autocomplete.create_item", {
-        _: "Create %{item}",
-      })}
-      createLabel={translate("crm.companies.autocomplete.create_label", {
+      createItemLabel={translate(
+        "resources.companies.autocomplete.create_item",
+        {
+          _: "Create %{item}",
+        },
+      )}
+      createLabel={translate("resources.companies.autocomplete.create_label", {
         _: "Start typing to create a new company",
       })}
       validate={validate}

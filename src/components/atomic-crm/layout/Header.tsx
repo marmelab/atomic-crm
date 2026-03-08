@@ -57,7 +57,7 @@ const Header = () => {
                     isActive={currentPath === "/"}
                   />
                   <NavigationTab
-                    label={translate("crm.contacts.name", {
+                    label={translate("resources.contacts.name", {
                       smart_count: 2,
                       _: "Contacts",
                     })}
@@ -65,7 +65,7 @@ const Header = () => {
                     isActive={currentPath === "/contacts"}
                   />
                   <NavigationTab
-                    label={translate("crm.companies.name", {
+                    label={translate("resources.companies.name", {
                       smart_count: 2,
                       _: "Companies",
                     })}
@@ -73,7 +73,7 @@ const Header = () => {
                     isActive={currentPath === "/companies"}
                   />
                   <NavigationTab
-                    label={translate("crm.deals.name", {
+                    label={translate("resources.deals.name", {
                       smart_count: 2,
                       _: "Deals",
                     })}
@@ -135,7 +135,7 @@ const UsersMenu = () => {
     <DropdownMenuItem asChild onClick={userMenuContext.onClose}>
       <Link to="/sales" className="flex items-center gap-2">
         <Users />
-        {translate("crm.sales.name", { smart_count: 2, _: "Users" })}
+        {translate("resources.sales.name", { smart_count: 2, _: "Users" })}
       </Link>
     </DropdownMenuItem>
   );

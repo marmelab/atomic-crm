@@ -25,16 +25,18 @@ export const ContactEmpty = () => {
       >
         <img
           src="./img/empty.svg"
-          alt={translate("crm.contacts.empty.title", {
+          alt={translate("resources.contacts.empty.title", {
             _: "No contacts found",
           })}
         />
         <div className="flex flex-col gap-0 items-center">
           <h6 className="text-lg font-bold">
-            {translate("crm.contacts.empty.title", { _: "No contacts found" })}
+            {translate("resources.contacts.empty.title", {
+              _: "No contacts found",
+            })}
           </h6>
           <p className="text-sm text-muted-foreground text-center mb-4">
-            {translate("crm.contacts.empty.description", {
+            {translate("resources.contacts.empty.description", {
               _: "It seems your contact list is empty.",
             })}
           </p>
@@ -47,11 +49,11 @@ export const ContactEmpty = () => {
               className="gap-2"
             >
               <Plus className="h-4 w-4" />
-              {translate("crm.contacts.action.new", { _: "New Contact" })}
+              {translate("resources.contacts.action.new", { _: "New Contact" })}
             </Button>
           ) : (
             <>
-              <CreateButton label="crm.contacts.action.new" />
+              <CreateButton label="resources.contacts.action.new" />
               <ContactImportButton />
             </>
           )}

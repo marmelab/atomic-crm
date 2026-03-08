@@ -14,7 +14,7 @@ const SalesListActions = () => {
     <TopToolbar>
       <ExportButton />
       <CreateButton
-        label={translate("crm.sales.action.new", { _: "New user" })}
+        label={translate("resources.sales.action.new", { _: "New user" })}
       />
     </TopToolbar>
   );
@@ -52,7 +52,7 @@ export function SalesList() {
   const translate = useTranslate();
   return (
     <List
-      title={translate("crm.sales.name", { smart_count: 2, _: "Users" })}
+      title={translate("resources.sales.name", { smart_count: 2, _: "Users" })}
       filters={filters}
       actions={<SalesListActions />}
       sort={{ field: "first_name", order: "ASC" }}

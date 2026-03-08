@@ -4,6 +4,7 @@ export const frenchCrmMessages = {
   resources: {
     companies: {
       name: "Entreprise |||| Entreprises",
+      forcedCaseName: "Entreprise",
       fields: {
         name: "Nom de l'entreprise",
         website: "Site web",
@@ -24,9 +25,59 @@ export const frenchCrmMessages = {
         context_links: "URLs de contexte",
         sales_id: "Responsable de compte",
       },
+      empty: {
+        description: "Il semble que la liste de vos entreprises soit vide.",
+        title: "Aucune entreprise trouvée",
+      },
+      inputs: {
+        additional_information: "Informations Complémentaires",
+        address: "Adresse",
+        contact: "Contact",
+        context: "Contexte",
+      },
+      action: {
+        create: "Créer une entreprise",
+        edit: "Modifier l'entreprise",
+        new: "Nouvelle entreprise",
+        show: "Afficher l'entreprise",
+      },
+      contacts: {
+        many: "%{smart_count} contacts",
+        none: "Aucun contact",
+        one: "1 contact",
+      },
+      deals: {
+        many: "%{smart_count} affaires",
+        one: "1 affaire",
+      },
+      aside: {
+        additional_info: "Informations supplémentaires",
+        company_info: "Informations de l'entreprise",
+        context: "Contexte",
+        main_address: "Adresse principale",
+      },
+      filters: {
+        only_mine: "Seulement les entreprises que je gère",
+        sector: "Secteur",
+        size: "Taille",
+      },
+      sizes: {
+        one_employee: "1 employé",
+        two_to_nine_employees: "2-9 employés",
+        ten_to_forty_nine_employees: "10-49 employés",
+        fifty_to_two_hundred_forty_nine_employees: "50-249 employés",
+        two_hundred_fifty_or_more_employees: "250 employés ou plus",
+      },
+      autocomplete: {
+        create_error:
+          "Une erreur s'est produite lors de la création de l'entreprise",
+        create_item: "Créer %{item}",
+        create_label: "Commencez à taper pour créer une nouvelle entreprise",
+      },
     },
     contacts: {
       name: "Contact |||| Contacts",
+      forcedCaseName: "Contact",
       fields: {
         first_name: "Prénom",
         last_name: "Nom",
@@ -42,6 +93,106 @@ export const frenchCrmMessages = {
         has_newsletter: "Abonné à la newsletter",
         sales_id: "Responsable de compte",
       },
+      action: {
+        add: "Ajouter un contact",
+        add_first: "Ajoutez votre premier contact",
+        edit: "Modifier le contact",
+        export_vcard: "Exporter en vCard",
+        new: "Nouveau contact",
+        show: "Afficher le contact",
+      },
+      background: {
+        last_activity_on: "Dernière activité le %{date}",
+        added_on: "Ajouté le",
+        followed_by: "Suivi par",
+      },
+      empty: {
+        description: "Il semble que votre liste de contacts soit vide.",
+        title: "Aucun contact trouvé",
+      },
+      import: {
+        button: "Importer un fichier CSV",
+        complete:
+          "Import des contacts terminé. %{importCount} contacts importés, %{errorCount} erreurs",
+        error:
+          "Échec de l'importation de ce fichier. Veuillez vous assurer que vous avez fourni un fichier CSV valide.",
+        imported: "Importé",
+        remaining_time: "Temps restant estimé :",
+        running: "L'import est en cours, merci de ne pas fermer cet onglet.",
+        sample_download: "Télécharger un exemple CSV",
+        sample_hint:
+          "Voici un exemple de fichier CSV que vous pouvez utiliser comme modèle",
+        stop: "Arrêter l'importation",
+        csv_file: "Fichier CSV",
+        contacts_label: "contact |||| contacts",
+      },
+      inputs: {
+        background_info_short: "Informations complémentaires",
+        first_name: "Prénom",
+        last_name: "Nom",
+        email: "E-mail",
+        identity: "Identité",
+        personal_info: "Informations personnelles",
+        phone_number: "Numéro de téléphone",
+        position: "Poste",
+        title: "Titre",
+        company: "Entreprise",
+        email_addresses: "Adresses e-mail",
+        phone_numbers: "Numéros de téléphone",
+        linkedin_url: "URL LinkedIn",
+        background_info: "(bio, comment vous vous êtes rencontrés, etc.)",
+        has_newsletter: "Abonné à la newsletter",
+        subscribed_newsletter: "Abonné à la newsletter",
+        genders: {
+          male: "Monsieur",
+          female: "Madame",
+          nonbinary: "Indéterminé",
+        },
+        personal_info_types: {
+          work: "Pro",
+          home: "Perso",
+          other: "Autre",
+        },
+      },
+      list: {
+        error_loading: "Erreur lors du chargement des contacts",
+      },
+      merge: {
+        action: "Fusionner avec un autre contact",
+        confirm: "Fusionner les contacts",
+        current_contact: "Contact actuel (sera supprimé)",
+        description: "Fusionnez ce contact avec un autre.",
+        error: "Échec de la fusion des contacts",
+        merging: "Fusion...",
+        no_additional_data: "Aucune donnée supplémentaire à fusionner",
+        select_target: "Veuillez sélectionner un contact avec lequel fusionner",
+        success: "Contacts fusionnés avec succès",
+        target_contact: "Contact cible (sera conservé)",
+        title: "Fusionner les contacts",
+        warning_description:
+          "Toutes les données seront transférées au deuxième contact. Cette action ne peut pas être annulée.",
+        warning_title: "Avertissement : opération destructrice",
+        what_will_be_merged: "Ce qui sera fusionné :",
+      },
+      filters: {
+        before_last_month: "Avant le mois dernier",
+        before_this_month: "Avant ce mois-ci",
+        before_this_week: "Avant cette semaine",
+        last_activity: "Dernière activité",
+        managed_by_me: "Géré par moi",
+        search: "Rechercher nom, entreprise...",
+        status: "Statut",
+        tags: "Étiquettes",
+        this_week: "Cette semaine",
+        today: "Aujourd'hui",
+      },
+      hot: {
+        create: "Créer un contact",
+        empty_change_status:
+          'Changez le statut d\'un contact en ajoutant une note à ce contact et en cliquant sur "afficher les options".',
+        empty_hint: 'Les contacts avec un statut "chaud" apparaîtront ici.',
+        title: "Contacts chauds",
+      },
     },
     deals: {
       name: "Affaire |||| Affaires",
@@ -55,15 +206,85 @@ export const frenchCrmMessages = {
         expected_closing_date: "Date de clôture prévue",
         stage: "Étape",
       },
+      action: {
+        back_to_deal: "Retour à l'affaire",
+        create: "Créer une affaire",
+        new: "Nouvelle affaire",
+      },
+      archived: {
+        action: "Archiver",
+        error: "Erreur : affaire non archivée",
+        list_title: "Affaires archivées",
+        success: "Affaire archivée",
+        title: "Affaire archivée",
+        view: "Afficher les affaires archivées",
+      },
+      edit: {
+        title: "Modifier l'affaire %{name}",
+      },
+      inputs: {
+        linked_to: "Lié à",
+      },
+      unarchived: {
+        action: "Renvoyer au tableau",
+        error: "Erreur : affaire non désarchivée",
+        success: "Affaire désarchivée",
+      },
+      updated: "Affaire mise à jour",
+      empty: {
+        before_create: "avant de créer une affaire.",
+        description: "Il semble que votre liste d'affaires soit vide.",
+        title: "Aucune affaire trouvée",
+      },
+      filters: {
+        company: "Entreprise",
+      },
+      stage: {
+        lost: "Perdu",
+        won: "Gagné",
+      },
     },
     notes: {
       name: "Note |||| Notes",
+      forcedCaseName: "Note",
       fields: {
         status: "Statut",
         date: "Date",
         attachments: "Pièces jointes",
         contact_id: "Contact",
         deal_id: "Affaire",
+      },
+      action: {
+        add: "Ajouter une note",
+        add_first: "Ajoutez votre première note",
+        delete: "Supprimer la note",
+        edit: "Modifier la note",
+        update: "Mettre à jour la note",
+        add_this: "Ajouter cette note",
+      },
+      sheet: {
+        create: "Créer une note",
+        create_for: "Créer une note pour",
+        edit: "Modifier la note",
+        edit_for: "Modifier la note pour",
+      },
+      deleted: "Note supprimée",
+      empty: "Aucune note pour l'instant",
+      feed: {
+        added: "a ajouté une note",
+      },
+      list: {
+        error_loading: "Erreur lors du chargement des notes",
+      },
+      note_for: "Note pour",
+      stepper: {
+        hint: "Accédez à une page de contact et ajoutez une note",
+      },
+      added: "Note ajoutée",
+      inputs: {
+        add_note: "Ajouter une note",
+        options_hint: "(joindre des fichiers ou modifier les détails)",
+        show_options: "Afficher les options",
       },
     },
     sales: {
@@ -75,15 +296,77 @@ export const frenchCrmMessages = {
         administrator: "Admin",
         disabled: "Désactivé",
       },
+      create: {
+        error:
+          "Une erreur s'est produite lors de la création de l'utilisateur.",
+        success:
+          "Utilisateur créé. Ils recevront prochainement un email pour définir leur mot de passe.",
+        title: "Créer un nouvel utilisateur",
+      },
+      edit: {
+        error: "Une erreur s'est produite. Veuillez réessayer.",
+        record_not_found: "Enregistrement introuvable",
+        success: "Utilisateur mis à jour avec succès",
+        title: "Modifier %{name}",
+      },
+      action: {
+        new: "Nouvel utilisateur",
+      },
     },
     tasks: {
       name: "Tâche |||| Tâches",
+      forcedCaseName: "Tâche",
       fields: {
         text: "Description",
         due_date: "Date d'échéance",
         type: "Type",
         contact_id: "Contact",
         due_short: "échéance",
+      },
+      action: {
+        add: "Ajouter une tâche",
+        create: "Créer une tâche",
+        edit: "Modifier la tâche",
+      },
+      actions: {
+        postpone_next_week: "Reporté à la semaine prochaine",
+        postpone_tomorrow: "Reporter à demain",
+        title: "Actions de tâche",
+      },
+      added: "Tâche ajoutée",
+      deleted: "Tâche supprimée avec succès",
+      dialog: {
+        create: "Créer une tâche",
+        create_for: "Créer une tâche pour",
+      },
+      sheet: {
+        edit: "Modifier la tâche",
+        edit_for: "Modifier la tâche pour",
+      },
+      empty: "Aucune tâche pour l'instant",
+      empty_list_hint: "Les tâches ajoutées à vos contacts apparaîtront ici.",
+      filters: {
+        later: "Plus tard",
+        overdue: "En retard",
+        this_week: "Cette semaine",
+        today: "Aujourd'hui",
+        tomorrow: "Demain",
+        with_pending: "Avec des tâches en attente",
+      },
+      updated: "Tâche mise à jour",
+    },
+    tags: {
+      name: "Étiquette |||| Étiquettes",
+      action: {
+        add: "Ajouter une étiquette",
+        create_new: "Créer une nouvelle étiquette",
+      },
+      dialog: {
+        color: "Couleur",
+        create_title: "Créer une nouvelle étiquette",
+        edit_title: "Modifier l'étiquette",
+        name_label: "Nom de l'étiquette",
+        name_placeholder: "Saisir le nom de l'étiquette",
       },
     },
   },
@@ -142,163 +425,6 @@ export const frenchCrmMessages = {
       to: "à",
       load_more: "Charger plus d'activité",
     },
-    companies: {
-      empty: {
-        description: "Il semble que la liste de vos entreprises soit vide.",
-        title: "Aucune entreprise trouvée",
-      },
-      inputs: {
-        additional_information: "Informations Complémentaires",
-        address: "Adresse",
-        contact: "Contact",
-        context: "Contexte",
-      },
-      name: "Entreprise |||| Entreprises",
-      forcedCaseName: "Entreprise",
-      action: {
-        create: "Créer une entreprise",
-        edit: "Modifier l'entreprise",
-        new: "Nouvelle entreprise",
-        show: "Afficher l'entreprise",
-      },
-      contacts: {
-        many: "%{smart_count} contacts",
-        none: "Aucun contact",
-        one: "1 contact",
-      },
-      deals: {
-        many: "%{smart_count} affaires",
-        one: "1 affaire",
-      },
-      aside: {
-        additional_info: "Informations supplémentaires",
-        company_info: "Informations de l'entreprise",
-        context: "Contexte",
-        main_address: "Adresse principale",
-      },
-      filters: {
-        only_mine: "Seulement les entreprises que je gère",
-        sector: "Secteur",
-        size: "Taille",
-      },
-      sizes: {
-        one_employee: "1 employé",
-        two_to_nine_employees: "2-9 employés",
-        ten_to_forty_nine_employees: "10-49 employés",
-        fifty_to_two_hundred_forty_nine_employees: "50-249 employés",
-        two_hundred_fifty_or_more_employees: "250 employés ou plus",
-      },
-      autocomplete: {
-        create_error:
-          "Une erreur s'est produite lors de la création de l'entreprise",
-        create_item: "Créer %{item}",
-        create_label: "Commencez à taper pour créer une nouvelle entreprise",
-      },
-    },
-    contacts: {
-      action: {
-        add: "Ajouter un contact",
-        add_first: "Ajoutez votre premier contact",
-        edit: "Modifier le contact",
-        export_vcard: "Exporter en vCard",
-        new: "Nouveau contact",
-        show: "Afficher le contact",
-      },
-      background: {
-        last_activity_on: "Dernière activité le %{date}",
-        added_on: "Ajouté le",
-        followed_by: "Suivi par",
-      },
-      empty: {
-        description: "Il semble que votre liste de contacts soit vide.",
-        title: "Aucun contact trouvé",
-      },
-      import: {
-        button: "Importer un fichier CSV",
-        complete:
-          "Import des contacts terminé. %{importCount} contacts importés, %{errorCount} erreurs",
-        error:
-          "Échec de l'importation de ce fichier. Veuillez vous assurer que vous avez fourni un fichier CSV valide.",
-        imported: "Importé",
-        remaining_time: "Temps restant estimé :",
-        running: "L'import est en cours, merci de ne pas fermer cet onglet.",
-        sample_download: "Télécharger un exemple CSV",
-        sample_hint:
-          "Voici un exemple de fichier CSV que vous pouvez utiliser comme modèle",
-        stop: "Arrêter l'importation",
-        csv_file: "Fichier CSV",
-        contacts_label: "contact |||| contacts",
-      },
-      inputs: {
-        background_info_short: "Informations complémentaires",
-        first_name: "Prénom",
-        last_name: "Nom",
-        email: "E-mail",
-        identity: "Identité",
-        personal_info: "Informations personnelles",
-        phone_number: "Numéro de téléphone",
-        position: "Poste",
-        title: "Titre",
-        company: "Entreprise",
-        email_addresses: "Adresses e-mail",
-        phone_numbers: "Numéros de téléphone",
-        linkedin_url: "URL LinkedIn",
-        background_info: "(bio, comment vous vous êtes rencontrés, etc.)",
-        has_newsletter: "Abonné à la newsletter",
-        subscribed_newsletter: "Abonné à la newsletter",
-        genders: {
-          male: "Monsieur",
-          female: "Madame",
-          nonbinary: "Indéterminé",
-        },
-        personal_info_types: {
-          work: "Pro",
-          home: "Perso",
-          other: "Autre",
-        },
-      },
-      list: {
-        error_loading: "Erreur lors du chargement des contacts",
-      },
-      merge: {
-        action: "Fusionner avec un autre contact",
-        confirm: "Fusionner les contacts",
-        current_contact: "Contact actuel (sera supprimé)",
-        description: "Fusionnez ce contact avec un autre.",
-        error: "Échec de la fusion des contacts",
-        merging: "Fusion...",
-        no_additional_data: "Aucune donnée supplémentaire à fusionner",
-        select_target: "Veuillez sélectionner un contact avec lequel fusionner",
-        success: "Contacts fusionnés avec succès",
-        target_contact: "Contact cible (sera conservé)",
-        title: "Fusionner les contacts",
-        warning_description:
-          "Toutes les données seront transférées au deuxième contact. Cette action ne peut pas être annulée.",
-        warning_title: "Avertissement : opération destructrice",
-        what_will_be_merged: "Ce qui sera fusionné :",
-      },
-      name: "Contact |||| Contacts",
-      forcedCaseName: "Contact",
-      filters: {
-        before_last_month: "Avant le mois dernier",
-        before_this_month: "Avant ce mois-ci",
-        before_this_week: "Avant cette semaine",
-        last_activity: "Dernière activité",
-        managed_by_me: "Géré par moi",
-        search: "Rechercher nom, entreprise...",
-        status: "Statut",
-        tags: "Étiquettes",
-        this_week: "Cette semaine",
-        today: "Aujourd'hui",
-      },
-      hot: {
-        create: "Créer un contact",
-        empty_change_status:
-          'Changez le statut d\'un contact en ajoutant une note à ce contact et en cliquant sur "afficher les options".',
-        empty_hint: 'Les contacts avec un statut "chaud" apparaîtront ici.',
-        title: "Contacts chauds",
-      },
-    },
     dashboard: {
       deals_chart: "Revenus des affaires à venir",
       deals_pipeline: "Pipeline des affaires",
@@ -312,46 +438,6 @@ export const frenchCrmMessages = {
         whats_next: "Et ensuite ?",
       },
       upcoming_tasks: "Tâches à venir",
-    },
-    deals: {
-      action: {
-        back_to_deal: "Retour à l'affaire",
-        create: "Créer une affaire",
-        new: "Nouvelle affaire",
-      },
-      archived: {
-        action: "Archiver",
-        error: "Erreur : affaire non archivée",
-        list_title: "Affaires archivées",
-        success: "Affaire archivée",
-        title: "Affaire archivée",
-        view: "Afficher les affaires archivées",
-      },
-      edit: {
-        title: "Modifier l'affaire %{name}",
-      },
-      inputs: {
-        linked_to: "Lié à",
-      },
-      unarchived: {
-        action: "Renvoyer au tableau",
-        error: "Erreur : affaire non désarchivée",
-        success: "Affaire désarchivée",
-      },
-      updated: "Affaire mise à jour",
-      name: "Affaire |||| Affaires",
-      empty: {
-        before_create: "avant de créer une affaire.",
-        description: "Il semble que votre liste d'affaires soit vide.",
-        title: "Aucune affaire trouvée",
-      },
-      filters: {
-        company: "Entreprise",
-      },
-      stage: {
-        lost: "Perdu",
-        won: "Gagné",
-      },
     },
     header: {
       import_data: "Importer des données",
@@ -377,7 +463,7 @@ export const frenchCrmMessages = {
         description_1:
           "Vous pouvez importer des ventes, des entreprises, des contacts, des entreprises, des notes et des tâches.",
         description_2:
-          "Les données doivent se trouver dans un fichier JSON correspondant à l'exemple suivant :",
+          "Les données doivent se trouver dans un fichier JSON correspondant à l'exemple suivant :",
       },
       status: {
         all_success: "Tous les enregistrements ont été importés avec succès.",
@@ -389,61 +475,6 @@ export const frenchCrmMessages = {
         table_caption: "Statut d'importation",
       },
       title: "Importer des données",
-    },
-    notes: {
-      action: {
-        add: "Ajouter une note",
-        add_first: "Ajoutez votre première note",
-        delete: "Supprimer la note",
-        edit: "Modifier la note",
-        update: "Mettre à jour la note",
-        add_this: "Ajouter cette note",
-      },
-      sheet: {
-        create: "Créer une note",
-        create_for: "Créer une note pour",
-        edit: "Modifier la note",
-        edit_for: "Modifier la note pour",
-      },
-      deleted: "Note supprimée",
-      empty: "Aucune note pour l'instant",
-      feed: {
-        added: "a ajouté une note",
-      },
-      list: {
-        error_loading: "Erreur lors du chargement des notes",
-      },
-      note_for: "Note pour",
-      stepper: {
-        hint: "Accédez à une page de contact et ajoutez une note",
-      },
-      name: "Note |||| Notes",
-      forcedCaseName: "Note",
-      added: "Note ajoutée",
-      inputs: {
-        add_note: "Ajouter une note",
-        options_hint: "(joindre des fichiers ou modifier les détails)",
-        show_options: "Afficher les options",
-      },
-    },
-    sales: {
-      create: {
-        error:
-          "Une erreur s'est produite lors de la création de l'utilisateur.",
-        success:
-          "Utilisateur créé. Ils recevront prochainement un email pour définir leur mot de passe.",
-        title: "Créer un nouvel utilisateur",
-      },
-      edit: {
-        error: "Une erreur s'est produite. Veuillez réessayer.",
-        record_not_found: "Enregistrement introuvable",
-        success: "Utilisateur mis à jour avec succès",
-        title: "Modifier %{name}",
-      },
-      name: "Utilisateur |||| Utilisateurs",
-      action: {
-        new: "Nouvel utilisateur",
-      },
     },
     settings: {
       companies: {
@@ -477,47 +508,12 @@ export const frenchCrmMessages = {
         duplicate: "%{display_name} en double : %{items}",
         in_use:
           "Impossible de supprimer %{display_name} encore utilisés par des affaires : %{items}",
-        validating: "Validation…",
+        validating: "Validation\u2026",
         entities: {
           categories: "catégories",
           stages: "étapes",
         },
       },
-    },
-    tasks: {
-      action: {
-        add: "Ajouter une tâche",
-        create: "Créer une tâche",
-        edit: "Modifier la tâche",
-      },
-      actions: {
-        postpone_next_week: "Reporté à la semaine prochaine",
-        postpone_tomorrow: "Reporter à demain",
-        title: "Actions de tâche",
-      },
-      added: "Tâche ajoutée",
-      deleted: "Tâche supprimée avec succès",
-      dialog: {
-        create: "Créer une tâche",
-        create_for: "Créer une tâche pour",
-      },
-      sheet: {
-        edit: "Modifier la tâche",
-        edit_for: "Modifier la tâche pour",
-      },
-      empty: "Aucune tâche pour l'instant",
-      empty_list_hint: "Les tâches ajoutées à vos contacts apparaîtront ici.",
-      filters: {
-        later: "Plus tard",
-        overdue: "En retard",
-        this_week: "Cette semaine",
-        today: "Aujourd'hui",
-        tomorrow: "Demain",
-        with_pending: "Avec des tâches en attente",
-      },
-      updated: "Tâche mise à jour",
-      name: "Tâche |||| Tâches",
-      forcedCaseName: "Tâche",
     },
     theme: {
       dark: "Thème sombre",
@@ -531,20 +527,6 @@ export const frenchCrmMessages = {
     language: "Langue",
     navigation: {
       label: "Navigation CRM",
-    },
-    tags: {
-      name: "Étiquette |||| Étiquettes",
-      action: {
-        add: "Ajouter une étiquette",
-        create_new: "Créer une nouvelle étiquette",
-      },
-      dialog: {
-        color: "Couleur",
-        create_title: "Créer une nouvelle étiquette",
-        edit_title: "Modifier l'étiquette",
-        name_label: "Nom de l'étiquette",
-        name_placeholder: "Saisir le nom de l'étiquette",
-      },
     },
     profile: {
       inbound: {

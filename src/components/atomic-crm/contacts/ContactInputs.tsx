@@ -49,7 +49,7 @@ const ContactIdentityInputs = () => {
   return (
     <div className="flex flex-col gap-4">
       <h6 className="text-lg font-semibold">
-        {translate("crm.contacts.inputs.identity", { _: "Identity" })}
+        {translate("resources.contacts.inputs.identity", { _: "Identity" })}
       </h6>
       <RadioButtonGroupInput
         label={false}
@@ -75,7 +75,7 @@ const ContactPositionInputs = () => {
   return (
     <div className="flex flex-col gap-4">
       <h6 className="text-lg font-semibold">
-        {translate("crm.contacts.inputs.position", { _: "Position" })}
+        {translate("resources.contacts.inputs.position", { _: "Position" })}
       </h6>
       <TextInput source="title" helperText={false} />
       <ReferenceInput source="company_id" reference="companies" perPage={10}>
@@ -132,7 +132,9 @@ const ContactPersonalInformationInputs = () => {
   return (
     <div className="flex flex-col gap-4">
       <h6 className="text-lg font-semibold">
-        {translate("crm.contacts.inputs.personal_info", { _: "Personal info" })}
+        {translate("resources.contacts.inputs.personal_info", {
+          _: "Personal info",
+        })}
       </h6>
       <ArrayInput source="email_jsonb" helperText={false}>
         <SimpleFormIterator

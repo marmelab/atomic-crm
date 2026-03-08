@@ -25,7 +25,7 @@ export const OnlyMineInput = (_: { alwaysOn: boolean; source: string }) => {
           onCheckedChange={handleChange}
         />
         <Label htmlFor="only-mine">
-          {translate("crm.companies.filters.only_mine", {
+          {translate("resources.companies.filters.only_mine", {
             _: "Only companies I manage",
           })}
         </Label>

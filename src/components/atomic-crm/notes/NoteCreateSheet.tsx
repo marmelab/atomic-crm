@@ -53,7 +53,7 @@ export const NoteCreateSheet = ({
       data: { last_seen: new Date().toISOString(), status: data.status },
       previousData: contact,
     });
-    notify("crm.notes.added", {
+    notify("resources.notes.added", {
       messageArgs: {
         _: "Note added",
       },
@@ -68,10 +68,10 @@ export const NoteCreateSheet = ({
       title={
         <h1 className="text-xl font-semibold truncate pr-10">
           {!selectContact
-            ? translate("crm.notes.sheet.create_for", {
+            ? translate("resources.notes.sheet.create_for", {
                 _: "Create note for",
               })
-            : translate("crm.notes.sheet.create", { _: "Create note" })}
+            : translate("resources.notes.sheet.create", { _: "Create note" })}
           {!selectContact && (
             <>
               {" "}

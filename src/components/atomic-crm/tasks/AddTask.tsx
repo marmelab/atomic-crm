@@ -60,7 +60,7 @@ export const AddTask = ({
       previousData: contact.data,
     });
 
-    notify("crm.tasks.added", {
+    notify("resources.tasks.added", {
       messageArgs: { _: "Task added" },
     });
   };
@@ -83,7 +83,7 @@ export const AddTask = ({
               </Button>
             </TooltipTrigger>
             <TooltipContent>
-              {translate("crm.tasks.action.create", { _: "Create task" })}
+              {translate("resources.tasks.action.create", { _: "Create task" })}
             </TooltipContent>
           </Tooltip>
         </TooltipProvider>
@@ -96,7 +96,7 @@ export const AddTask = ({
             size="sm"
           >
             <Plus className="w-4 h-4" />
-            {translate("crm.tasks.action.add", { _: "Add task" })}
+            {translate("resources.tasks.action.add", { _: "Add task" })}
           </Button>
         </div>
       )}
@@ -117,10 +117,10 @@ export const AddTask = ({
               <DialogHeader>
                 <DialogTitle>
                   {!selectContact
-                    ? translate("crm.tasks.dialog.create_for", {
+                    ? translate("resources.tasks.dialog.create_for", {
                         _: "Create task for",
                       })
-                    : translate("crm.tasks.dialog.create", {
+                    : translate("resources.tasks.dialog.create", {
                         _: "Create task",
                       })}
                   {!selectContact && (

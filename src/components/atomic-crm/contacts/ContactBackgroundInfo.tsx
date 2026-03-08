@@ -38,7 +38,9 @@ export const ContactBackgroundInfo = () => {
       />
       <div className="text-muted-foreground md:py-0.5">
         <span className="text-sm">
-          {translate("crm.contacts.background.added_on", { _: "Added on" })}
+          {translate("resources.contacts.background.added_on", {
+            _: "Added on",
+          })}
         </span>{" "}
         <DateField
           source="first_seen"
@@ -49,7 +51,7 @@ export const ContactBackgroundInfo = () => {
 
       <div className="text-muted-foreground md:py-0.5">
         <span className="text-sm">
-          {translate("crm.contacts.background.last_activity_on", {
+          {translate("resources.contacts.background.last_activity_on", {
             date: formattedLastSeen,
             _: `Last activity on ${formattedLastSeen}`,
           })}
@@ -57,7 +59,7 @@ export const ContactBackgroundInfo = () => {
       </div>
 
       <div className="inline-flex text-muted-foreground text-sm md:py-0.5">
-        {translate("crm.contacts.background.followed_by", {
+        {translate("resources.contacts.background.followed_by", {
           _: "Followed by",
         })}
         &nbsp;

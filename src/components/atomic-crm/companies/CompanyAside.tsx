@@ -30,13 +30,13 @@ export const CompanyAside = ({ link = "edit" }: CompanyAsideProps) => {
       <div className="flex flex-row space-x-1">
         {link === "edit" ? (
           <EditButton
-            label={translate("crm.companies.action.edit", {
+            label={translate("resources.companies.action.edit", {
               _: "Edit company",
             })}
           />
         ) : (
           <ShowButton
-            label={translate("crm.companies.action.show", {
+            label={translate("resources.companies.action.show", {
               _: "Show company",
             })}
           />
@@ -71,7 +71,7 @@ export const CompanyInfo = ({ record }: { record: Company }) => {
 
   return (
     <AsideSection
-      title={translate("crm.companies.aside.company_info", {
+      title={translate("resources.companies.aside.company_info", {
         _: "Company info",
       })}
     >
@@ -128,7 +128,7 @@ export const ContextInfo = ({ record }: { record: Company }) => {
 
   return (
     <AsideSection
-      title={translate("crm.companies.aside.context", { _: "Context" })}
+      title={translate("resources.companies.aside.context", { _: "Context" })}
     >
       {sectorLabel && (
         <span>
@@ -173,7 +173,7 @@ export const AddressInfo = ({ record }: { record: Company }) => {
 
   return (
     <AsideSection
-      title={translate("crm.companies.aside.main_address", {
+      title={translate("resources.companies.aside.main_address", {
         _: "Main address",
       })}
       noGap
@@ -204,7 +204,7 @@ export const AdditionalInfo = ({ record }: { record: Company }) => {
 
   return (
     <AsideSection
-      title={translate("crm.companies.aside.additional_info", {
+      title={translate("resources.companies.aside.additional_info", {
         _: "Additional info",
       })}
     >
@@ -231,7 +231,7 @@ export const AdditionalInfo = ({ record }: { record: Company }) => {
       )}
       {record.sales_id !== null && (
         <div className="inline-flex text-sm text-muted-foreground mb-1">
-          {translate("crm.contacts.background.followed_by", {
+          {translate("resources.contacts.background.followed_by", {
             _: "Followed by",
           })}
           &nbsp;
@@ -242,7 +242,9 @@ export const AdditionalInfo = ({ record }: { record: Company }) => {
       )}
       {record.created_at && (
         <p className="text-sm text-muted-foreground mb-1">
-          {translate("crm.contacts.background.added_on", { _: "Added on" })}{" "}
+          {translate("resources.contacts.background.added_on", {
+            _: "Added on",
+          })}{" "}
           <DateField
             source="created_at"
             record={record}

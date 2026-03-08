@@ -54,7 +54,7 @@ export const CompanyCard = (props: { record?: Company }) => {
               <DollarSign className="w-4 h-4 text-muted-foreground" />
               <span className="text-sm font-medium">{record.nb_deals}</span>
               <span className="text-xs text-muted-foreground">
-                {translate("crm.deals.name", {
+                {translate("resources.deals.name", {
                   smart_count: record.nb_deals,
                   _: "Deal |||| Deals",
                 })}

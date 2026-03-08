@@ -88,7 +88,9 @@ export const ContactListContent = () => {
       {contacts.length === 0 && (
         <div className="p-4">
           <div className="text-muted-foreground">
-            {translate("crm.contacts.empty.title", { _: "No contacts found" })}
+            {translate("resources.contacts.empty.title", {
+              _: "No contacts found",
+            })}
           </div>
         </div>
       )}
@@ -207,7 +209,7 @@ export const ContactListContentMobile = () => {
     return (
       <div className="p-4">
         <div className="text-center text-muted-foreground mb-4">
-          {translate("crm.contacts.list.error_loading", {
+          {translate("resources.contacts.list.error_loading", {
             _: "Error loading contacts",
           })}
         </div>
@@ -235,7 +237,9 @@ export const ContactListContentMobile = () => {
       {contacts.length === 0 && (
         <div className="p-4">
           <div className="text-muted-foreground">
-            {translate("crm.contacts.empty.title", { _: "No contacts found" })}
+            {translate("resources.contacts.empty.title", {
+              _: "No contacts found",
+            })}
           </div>
         </div>
       )}
