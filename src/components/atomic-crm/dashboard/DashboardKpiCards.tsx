@@ -17,6 +17,7 @@ import {
   type DashboardMeta,
   type DashboardKpis,
 } from "./dashboardModel";
+import { DashboardYoyBadge } from "./DashboardYoyBadge";
 
 export const DashboardKpiCards = ({
   kpis,
@@ -66,7 +67,20 @@ export const DashboardKpiCards = ({
         title="Valore del lavoro dell'anno"
         value={formatCurrency(kpis.annualRevenue)}
         icon={<Wallet className="h-4 w-4" />}
-        subtitle={`${meta.operationsPeriodLabel} · tutto il lavoro svolto`}
+        footer={
+          <div className="space-y-1">
+            <p className="text-xs text-muted-foreground">
+              {meta.operationsPeriodLabel} &middot; tutto il lavoro svolto
+            </p>
+            {kpis.yoy && (
+              <DashboardYoyBadge
+                deltaPct={kpis.yoy.annualRevenueDeltaPct}
+                previousYear={kpis.yoy.previousYear}
+                compact={compact}
+              />
+            )}
+          </div>
+        }
       />
       <KpiCard
         title="Pagamenti da ricevere"

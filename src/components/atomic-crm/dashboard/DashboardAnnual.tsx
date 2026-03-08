@@ -21,16 +21,19 @@ import { DashboardAlertsCard } from "./DashboardAlertsCard";
 import { DashboardAnnualAiSummaryCard } from "./DashboardAnnualAiSummaryCard";
 import { DashboardAtecoChart } from "./DashboardAtecoChart";
 import { DashboardBusinessHealthCard } from "./DashboardBusinessHealthCard";
+import { DashboardCashFlowCard } from "./DashboardCashFlowCard";
 import { DashboardCategoryChart } from "./DashboardCategoryChart";
 import { DashboardDeadlineTracker } from "./DashboardDeadlineTracker";
 import { DashboardDeadlinesCard } from "./DashboardDeadlinesCard";
 import { DashboardFiscalKpis } from "./DashboardFiscalKpis";
 import { DashboardKpiCards } from "./DashboardKpiCards";
 import { DashboardLoading } from "./DashboardLoading";
+import { DashboardNetAvailabilityCard } from "./DashboardNetAvailabilityCard";
 import { DashboardPipelineCard } from "./DashboardPipelineCard";
 import { DashboardRevenueTrendChart } from "./DashboardRevenueTrendChart";
 import { DashboardTopClientsCard } from "./DashboardTopClientsCard";
 import { useDashboardData } from "./useDashboardData";
+import { useFiscalPaymentTracking } from "./useFiscalPaymentTracking";
 import { useGenerateFiscalTasks } from "./useGenerateFiscalTasks";
 
 const currentYear = new Date().getFullYear();
@@ -60,6 +63,13 @@ export const DashboardAnnual = () => {
       deadlines: data?.fiscal?.deadlines ?? [],
       year: selectedYear,
     });
+
+  const {
+    markAsPaid,
+    clearPayment,
+    getPayment,
+    totalPaid: totalTaxesPaid,
+  } = useFiscalPaymentTracking(selectedYear);
 
   if (isPending || !data) {
     if (error) {
@@ -98,6 +108,13 @@ export const DashboardAnnual = () => {
         />
       )}
 
+      <DashboardNetAvailabilityCard
+        kpis={data.kpis}
+        fiscalKpis={data.fiscal?.fiscalKpis ?? null}
+        meta={data.meta}
+        taxesPaid={totalTaxesPaid}
+      />
+
       <DashboardKpiCards
         kpis={data.kpis}
         meta={data.meta}
@@ -128,7 +145,14 @@ export const DashboardAnnual = () => {
             year={data.selectedYear}
           />
         </div>
-        {isCurrentYear && <DashboardAlertsCard alerts={data.alerts} />}
+        {isCurrentYear && (
+          <div className="grid grid-cols-1 gap-6">
+            <DashboardAlertsCard alerts={data.alerts} />
+            {data.cashFlowForecast && (
+              <DashboardCashFlowCard forecast={data.cashFlowForecast} />
+            )}
+          </div>
+        )}
       </div>
 
       {isCurrentYear ? <DashboardDeadlineTracker /> : null}
@@ -184,6 +208,15 @@ export const DashboardAnnual = () => {
                 isFirstYear={data.fiscal.deadlines.length === 0}
                 onGenerateTasks={generateFiscalTasks}
                 existingTasksCount={fiscalTasksCount}
+                getPayment={getPayment}
+                onMarkPaid={(deadline) =>
+                  markAsPaid(
+                    deadline,
+                    deadline.totalAmount,
+                    new Date().toISOString().slice(0, 10),
+                  )
+                }
+                onClearPayment={clearPayment}
               />
             )}
           </div>

@@ -8,6 +8,29 @@ incrociarlo con `docs/README.md`, `docs/architecture.md` e i documenti
 
 Last updated: 2026-03-08
 
+## Update 2026-03-08 (b)
+
+Slice completata: `Dashboard Pareto features — net availability, tax tracking, cash flow, YoY`.
+
+Deliverable chiusi:
+
+- KPI "Disponibilità netta stimata" (cassa − spese − tasse residue)
+- Tracking pagamenti fiscali con persistenza localStorage (useStore)
+- Previsione cash flow 30 giorni (entrate pagamenti + uscite scadenze fiscali)
+- Confronto YoY stesso periodo su revenue, cassa, spese con badge delta
+- AI context esteso con `cash_received_net` metric e sezione `yearOverYear`
+- Edge Functions aggiornate con istruzioni AI per nuovi dati
+
+Nuovi file: `DashboardNetAvailabilityCard`, `DashboardCashFlowCard`,
+`DashboardYoyBadge`, `useFiscalPaymentTracking`.
+
+Test: 5 unit test + 3 E2E smoke test.
+
+Backlog immediato residuo:
+
+- deploy Edge Functions `annual_operations_summary`, `annual_operations_answer`
+- validazione E2E smoke su stack locale
+
 ## Update 2026-03-08
 
 Slice completata: `AI annual expense context + dashboard UX + E2E validation`.

@@ -79,6 +79,80 @@ test.describe("Annual Dashboard", () => {
     }
   });
 
+  test("Net availability card shows incassato minus spese minus tasse", async ({
+    page,
+  }) => {
+    await loginAsLocalAdmin(page);
+
+    // Wait for the new card to render
+    await expect(
+      page.getByText("Disponibilità netta stimata"),
+    ).toBeVisible({ timeout: 15000 });
+
+    // Verify breakdown lines are visible
+    await expect(page.getByText("Incassato netto:").first()).toBeVisible();
+    await expect(page.getByText("Spese operative:").first()).toBeVisible();
+  });
+
+  test("Cash flow forecast card is visible for current year", async ({
+    page,
+  }) => {
+    await loginAsLocalAdmin(page);
+
+    // Wait for the cash flow card
+    await expect(
+      page.getByText("Cash flow prossimi 30 giorni"),
+    ).toBeVisible({ timeout: 15000 });
+
+    // Should show inflow/outflow sections
+    await expect(page.getByText("Entrate attese").first()).toBeVisible();
+    await expect(page.getByText("Uscite previste").first()).toBeVisible();
+  });
+
+  test("AI context includes cash_received_net and yearOverYear", async ({
+    page,
+  }) => {
+    let requestPayload: string | null = null;
+    await page.route(
+      "**/functions/v1/annual_operations_summary",
+      async (route) => {
+        requestPayload = route.request().postData();
+        await route.fulfill({
+          status: 200,
+          contentType: "application/json",
+          body: JSON.stringify({
+            data: {
+              summaryMarkdown: "Mock: contesto verificato con nuovi KPI.",
+              model: "mock-model",
+              generatedAt: new Date().toISOString(),
+            },
+          }),
+        });
+      },
+    );
+
+    await loginAsLocalAdmin(page);
+    const explainButton = page.getByRole("button", {
+      name: /spiegami annuale/i,
+    });
+    await expect(explainButton).toBeVisible({ timeout: 15000 });
+    await explainButton.click();
+
+    await expect(
+      page.getByText("contesto verificato con nuovi KPI", { exact: false }),
+    ).toBeVisible({ timeout: 10000 });
+
+    expect(requestPayload).not.toBeNull();
+    const payload = JSON.parse(requestPayload!);
+
+    // cash_received_net metric should be present
+    const cashMetric = payload.context.metrics.find(
+      (m: { id: string }) => m.id === "cash_received_net",
+    );
+    expect(cashMetric).toBeDefined();
+    expect(cashMetric.value).toBeGreaterThanOrEqual(0);
+  });
+
   test("AI spiegami l'anno card is present with expense context", async ({
     page,
   }) => {

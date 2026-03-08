@@ -457,6 +457,171 @@ describe("buildDashboardModel annual semantics", () => {
     ]);
   });
 
+  it("computes cashReceivedNet from received payments minus refunds", () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-06-01T09:00:00.000Z"));
+
+    const model = buildDashboardModel({
+      payments: [
+        basePayment({
+          id: 1,
+          amount: 3000,
+          status: "ricevuto",
+          payment_date: "2026-01-15T00:00:00.000Z",
+        }),
+        basePayment({
+          id: 2,
+          amount: 500,
+          status: "ricevuto",
+          payment_type: "rimborso",
+          payment_date: "2026-02-10T00:00:00.000Z",
+        }),
+        basePayment({
+          id: 3,
+          amount: 2000,
+          status: "in_attesa",
+          payment_date: "2026-03-10T00:00:00.000Z",
+        }),
+      ],
+      quotes: [],
+      services: [],
+      projects: [],
+      clients: [baseClient()],
+      expenses: [],
+      year: 2026,
+    });
+
+    // 3000 received - 500 refund = 2500; in_attesa excluded
+    expect(model.kpis.cashReceivedNet).toBe(2500);
+  });
+
+  it("builds year-over-year comparison when previous year has data", () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-03-15T09:00:00.000Z"));
+
+    const model = buildDashboardModel({
+      payments: [
+        basePayment({
+          id: 1,
+          amount: 5000,
+          status: "ricevuto",
+          payment_date: "2025-02-10T00:00:00.000Z",
+        }),
+        basePayment({
+          id: 2,
+          amount: 3000,
+          status: "ricevuto",
+          payment_date: "2026-01-15T00:00:00.000Z",
+        }),
+      ],
+      quotes: [],
+      services: [
+        baseService({
+          id: 1,
+          service_date: "2025-01-10T10:00:00.000Z",
+          fee_shooting: 8000,
+        }),
+        baseService({
+          id: 2,
+          service_date: "2026-02-10T10:00:00.000Z",
+          fee_shooting: 6000,
+        }),
+      ],
+      projects: [baseProject()],
+      clients: [baseClient()],
+      expenses: [],
+      year: 2026,
+    });
+
+    expect(model.kpis.yoy).not.toBeNull();
+    expect(model.kpis.yoy!.previousYear).toBe(2025);
+    expect(model.kpis.yoy!.annualRevenue).toBe(8000);
+    expect(model.kpis.yoy!.cashReceivedNet).toBe(5000);
+    // Current revenue 6000 vs prev 8000 = -25%
+    expect(model.kpis.yoy!.annualRevenueDeltaPct).toBeCloseTo(-25);
+    // Current cash 3000 vs prev 5000 = -40%
+    expect(model.kpis.yoy!.cashReceivedNetDeltaPct).toBeCloseTo(-40);
+  });
+
+  it("returns null YoY when previous year has no data", () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-06-01T09:00:00.000Z"));
+
+    const model = buildDashboardModel({
+      payments: [],
+      quotes: [],
+      services: [
+        baseService({
+          service_date: "2026-01-10T10:00:00.000Z",
+          fee_shooting: 5000,
+        }),
+      ],
+      projects: [baseProject()],
+      clients: [baseClient()],
+      expenses: [],
+      year: 2026,
+    });
+
+    expect(model.kpis.yoy).toBeNull();
+  });
+
+  it("builds cash flow forecast for current year with pending payments", () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-03-01T09:00:00.000Z"));
+
+    const model = buildDashboardModel({
+      payments: [
+        basePayment({
+          id: 1,
+          amount: 2000,
+          status: "in_attesa",
+          payment_date: "2026-03-15T00:00:00.000Z",
+        }),
+        basePayment({
+          id: 2,
+          amount: 500,
+          status: "in_attesa",
+          payment_date: "2026-03-25T00:00:00.000Z",
+        }),
+        // Beyond 30-day horizon
+        basePayment({
+          id: 3,
+          amount: 9999,
+          status: "in_attesa",
+          payment_date: "2026-05-01T00:00:00.000Z",
+        }),
+      ],
+      quotes: [],
+      services: [],
+      projects: [],
+      clients: [baseClient()],
+      expenses: [],
+      year: 2026,
+    });
+
+    expect(model.cashFlowForecast).not.toBeNull();
+    expect(model.cashFlowForecast!.inflowsTotal).toBe(2500);
+    expect(model.cashFlowForecast!.inflows).toHaveLength(2);
+    expect(model.cashFlowForecast!.horizonDays).toBe(30);
+  });
+
+  it("returns null cash flow forecast for past years", () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-06-01T09:00:00.000Z"));
+
+    const model = buildDashboardModel({
+      payments: [],
+      quotes: [],
+      services: [],
+      projects: [],
+      clients: [],
+      expenses: [],
+      year: 2025,
+    });
+
+    expect(model.cashFlowForecast).toBeNull();
+  });
+
   it("returns zero expenses when none exist in the selected year", () => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date("2025-06-01T09:00:00.000Z"));

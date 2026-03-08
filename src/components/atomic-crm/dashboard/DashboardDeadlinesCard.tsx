@@ -1,9 +1,11 @@
 import { useState } from "react";
 import {
   CalendarClock,
+  Check,
   ChevronDown,
   ChevronUp,
   ListChecks,
+  Undo2,
 } from "lucide-react";
 
 import {
@@ -23,17 +25,24 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 import { formatCurrencyPrecise } from "./dashboardModel";
 import type { FiscalDeadline } from "./fiscalModel";
+import type { FiscalPaymentRecord } from "./useFiscalPaymentTracking";
 
 export const DashboardDeadlinesCard = ({
   deadlines,
   isFirstYear,
   onGenerateTasks,
   existingTasksCount,
+  getPayment,
+  onMarkPaid,
+  onClearPayment,
 }: {
   deadlines: FiscalDeadline[];
   isFirstYear: boolean;
   onGenerateTasks?: () => void;
   existingTasksCount?: number;
+  getPayment?: (deadline: FiscalDeadline) => FiscalPaymentRecord | null;
+  onMarkPaid?: (deadline: FiscalDeadline) => void;
+  onClearPayment?: (deadline: FiscalDeadline) => void;
 }) => {
   if (isFirstYear) {
     return (
@@ -47,10 +56,10 @@ export const DashboardDeadlinesCard = ({
         <CardContent>
           <div className="rounded-md bg-muted p-4 text-sm text-muted-foreground">
             <p className="font-medium text-foreground mb-1">
-              Primo anno di attività
+              Primo anno di attivit&agrave;
             </p>
             <p>
-              Nessun acconto dovuto quest'anno. Accantonare circa il 30% del
+              Nessun acconto dovuto quest&apos;anno. Accantonare circa il 30% del
               fatturato per il saldo di giugno del prossimo anno.
             </p>
           </div>
@@ -99,6 +108,11 @@ export const DashboardDeadlinesCard = ({
           <DeadlineRow
             key={deadline.date + deadline.label}
             deadline={deadline}
+            payment={getPayment?.(deadline) ?? null}
+            onMarkPaid={onMarkPaid ? () => onMarkPaid(deadline) : undefined}
+            onClearPayment={
+              onClearPayment ? () => onClearPayment(deadline) : undefined
+            }
           />
         ))}
 
@@ -112,22 +126,37 @@ export const DashboardDeadlinesCard = ({
 
 // ── High-priority deadline row (F24/INPS) ──────────────────────────
 
-const DeadlineRow = ({ deadline }: { deadline: FiscalDeadline }) => {
+const DeadlineRow = ({
+  deadline,
+  payment,
+  onMarkPaid,
+  onClearPayment,
+}: {
+  deadline: FiscalDeadline;
+  payment: FiscalPaymentRecord | null;
+  onMarkPaid?: () => void;
+  onClearPayment?: () => void;
+}) => {
   const [expanded, setExpanded] = useState(false);
+  const isPaid = payment != null;
 
-  const urgencyVariant = deadline.isPast
-    ? "secondary"
-    : deadline.daysUntil <= 30
-      ? "destructive"
-      : deadline.daysUntil <= 90
-        ? "outline"
-        : "secondary";
+  const urgencyVariant = isPaid
+    ? ("success" as const)
+    : deadline.isPast
+      ? "secondary"
+      : deadline.daysUntil <= 30
+        ? "destructive"
+        : deadline.daysUntil <= 90
+          ? "outline"
+          : "secondary";
 
-  const countdownText = deadline.isPast
-    ? "Passata"
-    : deadline.daysUntil === 0
-      ? "Oggi"
-      : `${deadline.daysUntil}g`;
+  const countdownText = isPaid
+    ? "Pagato"
+    : deadline.isPast
+      ? "Passata"
+      : deadline.daysUntil === 0
+        ? "Oggi"
+        : `${deadline.daysUntil}g`;
 
   const formattedDate = new Date(
     deadline.date + "T00:00:00",
@@ -138,7 +167,13 @@ const DeadlineRow = ({ deadline }: { deadline: FiscalDeadline }) => {
 
   return (
     <div
-      className={`rounded-md border p-3 space-y-2 ${deadline.isPast ? "opacity-50" : ""}`}
+      className={`rounded-md border p-3 space-y-2 ${
+        isPaid
+          ? "border-emerald-200 bg-emerald-50/50 dark:border-emerald-800 dark:bg-emerald-950/20"
+          : deadline.isPast
+            ? "opacity-50"
+            : ""
+      }`}
     >
       <button
         type="button"
@@ -148,7 +183,7 @@ const DeadlineRow = ({ deadline }: { deadline: FiscalDeadline }) => {
         <div className="flex items-center gap-2 text-sm">
           <Badge variant={urgencyVariant}>{countdownText}</Badge>
           <span className="font-medium">{formattedDate}</span>
-          <span className="text-muted-foreground">— {deadline.label}</span>
+          <span className="text-muted-foreground">&mdash; {deadline.label}</span>
         </div>
         <div className="flex items-center gap-2">
           <span className="font-semibold text-sm">
@@ -171,13 +206,62 @@ const DeadlineRow = ({ deadline }: { deadline: FiscalDeadline }) => {
           ))}
         </div>
       )}
+      {expanded && deadline.priority === "high" && deadline.totalAmount > 0 && (
+        <div className="flex items-center gap-2 pt-1">
+          {isPaid ? (
+            <>
+              <Badge variant="success" className="gap-1 text-[10px]">
+                <Check className="h-3 w-3" />
+                Pagato {formatCurrencyPrecise(payment.paidAmount)} il{" "}
+                {new Date(payment.paidDate + "T00:00:00").toLocaleDateString(
+                  "it-IT",
+                  { day: "2-digit", month: "short" },
+                )}
+              </Badge>
+              {onClearPayment && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-6 gap-1 text-[10px] text-muted-foreground"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onClearPayment();
+                  }}
+                >
+                  <Undo2 className="h-3 w-3" />
+                  Annulla
+                </Button>
+              )}
+            </>
+          ) : (
+            onMarkPaid && (
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-6 gap-1 text-[10px]"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onMarkPaid();
+                }}
+              >
+                <Check className="h-3 w-3" />
+                Segna come pagato
+              </Button>
+            )
+          )}
+        </div>
+      )}
     </div>
   );
 };
 
 // ── Low-priority section (bolli, dichiarazione) ────────────────────
 
-const LowPrioritySection = ({ deadlines }: { deadlines: FiscalDeadline[] }) => {
+const LowPrioritySection = ({
+  deadlines,
+}: {
+  deadlines: FiscalDeadline[];
+}) => {
   const [expanded, setExpanded] = useState(false);
 
   const futureCount = deadlines.filter((d) => !d.isPast).length;
@@ -210,7 +294,7 @@ const LowPrioritySection = ({ deadlines }: { deadlines: FiscalDeadline[] }) => {
                   day: "2-digit",
                   month: "short",
                 })}{" "}
-                — {d.label}
+                &mdash; {d.label}
               </span>
               {!d.isPast && (
                 <Badge variant="secondary" className="text-[10px] px-1.5 py-0">
@@ -260,8 +344,9 @@ const GenerateButton = ({
         <AlertDialogHeader>
           <AlertDialogTitle>Rigenerare le scadenze fiscali?</AlertDialogTitle>
           <AlertDialogDescription>
-            Esistono già {existingCount} promemoria fiscali per quest'anno. La
-            rigenerazione li sostituirà con le scadenze calcolate aggiornate.
+            Esistono gi&agrave; {existingCount} promemoria fiscali per
+            quest&apos;anno. La rigenerazione li sostituir&agrave; con le
+            scadenze calcolate aggiornate.
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>

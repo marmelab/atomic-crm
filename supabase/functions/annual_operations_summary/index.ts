@@ -42,6 +42,8 @@ Non suggerire dati mancanti o registrazioni mancanti se il contesto non lo prova
 Per anni chiusi, evita formule come "quest'anno", "oggi", "in questo momento" e "futuro".
 Per anni chiusi, non parlare della situazione attuale dell'azienda: resta nel perimetro dell'anno selezionato.
 Evita frasi assolute come "tutto arriva da", "nessuno", "il punto piu debole e" se il contesto non lo dimostra in modo diretto.
+Se il contesto include "cash_received_net", usalo: e l'incassato reale (cassa), diverso dal valore del lavoro (competenza).
+Se il contesto include "yearOverYear", usalo per confrontare con l'anno precedente allo stesso periodo. Indica la variazione percentuale e commenta se significativa.
 Non citare mai codici interni come "partial_current_year".
 Scrivi in markdown semplice, con queste sezioni:
 

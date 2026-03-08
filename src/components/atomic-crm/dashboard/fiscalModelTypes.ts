@@ -59,6 +59,10 @@ export type FiscalDeadline = {
   daysUntil: number;
   /** high = F24/INPS (prominent), low = bollo/dichiarazione (muted) */
   priority: "high" | "low";
+  /** Amount actually paid (user-tracked). Null means not yet recorded. */
+  paidAmount: number | null;
+  /** Date when payment was made (ISO string). */
+  paidDate: string | null;
 };
 
 export type DeadlineItem = {

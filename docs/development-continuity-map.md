@@ -14,6 +14,7 @@ Last updated: 2026-03-08
 
 ### Recent Updates (cronologico, più recente in alto)
 
+- [2026-03-08 (e)](#update-2026-03-08-e--dashboard-pareto-features) — Dashboard Pareto features: net availability, tax tracking, cash flow, YoY
 - [2026-03-08 (d)](#update-2026-03-08-d--ai-annual-expense-context--dashboard-alert-links--e2e-real-ai-tests) — AI annual expense context + dashboard alert links + E2E real AI tests
 - [2026-03-08 (c)](#update-2026-03-08-c--service-type-icons--project-view-persistence) — Service type icons + project view persistence
 - [2026-03-08 (b)](#update-2026-03-08-b--resizable-columns--client-filter--filterhelpers-refactor) — Resizable columns on all lists + client filter on services + FilterHelpers refactor
@@ -76,6 +77,55 @@ Last updated: 2026-03-08
 - [Nota manutenzione 2026-03-02](#nota-manutenzione-2026-03-02-fix-ci)
 - [Testing Session Log 2026-03-04](#testing-session-log-2026-03-04--e2e-complete-validation)
 - [AI Semantic UI Upgrade 2026-03-04](#ai-semantic-ui-upgrade-2026-03-04--pareto-principle-applied)
+
+---
+
+## Update 2026-03-08 (e) — Dashboard Pareto features
+
+### Cosa è cambiato
+
+- **KPI Disponibilità netta stimata** (`DashboardNetAvailabilityCard`): mostra
+  cassa ricevuta − spese operative − tasse residue stimate. Usa dati fiscali
+  (`stimaInpsAnnuale + stimaImpostaAnnuale`) e sottrae pagamenti tracciati.
+- **Tracking pagamenti fiscali** (`useFiscalPaymentTracking`): persistenza
+  localStorage via `useStore` (ra-core). Chiave per deadline
+  `YYYY-MM-DD::label`. `DashboardDeadlinesCard` mostra "Segna come pagato" /
+  "Pagato ✓" con stile verde.
+- **Cash flow forecast 30 giorni** (`DashboardCashFlowCard`): combina entrate
+  attese (pagamenti pendenti) con uscite previste (scadenze fiscali).
+  Post-processato dopo build del modello fiscale. Tipo `CashFlowForecast`.
+- **Confronto YoY** (`DashboardYoyBadge`): confronto stesso periodo su revenue,
+  cassa netta, spese. `buildYearOverYear` calcola valori anno precedente fino
+  allo stesso mese; delta riempiti in post-processing. Badge su KPI card
+  "Valore del lavoro dell'anno".
+- AI context: metrica `cash_received_net` e sezione `yearOverYear` in
+  `buildAnnualOperationsContext`. Edge Functions aggiornate.
+- `FiscalDeadline` esteso con `paidAmount` / `paidDate` nullable.
+- `DashboardModel.cashFlowForecast` e `DashboardKpis.yoy` nuovi campi.
+
+### File nuovi
+
+- `DashboardNetAvailabilityCard.tsx`
+- `DashboardCashFlowCard.tsx`
+- `DashboardYoyBadge.tsx`
+- `useFiscalPaymentTracking.ts`
+
+### Superfici collegate toccate
+
+- `dashboardModel.ts` — `cashReceivedNet`, `buildYearOverYear`,
+  `buildCashFlowForecast`, post-processing block
+- `dashboardModelTypes.ts` — `YearOverYearComparison`, `CashFlowForecast`,
+  `CashFlowItem`, `cashReceivedNet`, `yoy` in `DashboardKpis`
+- `fiscalModelTypes.ts` — `paidAmount`, `paidDate` su `FiscalDeadline`
+- `fiscalDeadlines.ts` — init `paidAmount: null, paidDate: null`
+- `DashboardAnnual.tsx` — layout con nuove card e hook
+- `DashboardDeadlinesCard.tsx` — payment tracking UI
+- `DashboardKpiCards.tsx` — YoY badge
+- `buildAnnualOperationsContext.ts` — `cash_received_net` + `yearOverYear`
+- `annual_operations_summary/index.ts` — AI instructions
+- `annual_operations_answer/index.ts` — AI instructions
+- `dashboardAnnualModel.test.ts` — 5 nuovi unit test
+- `dashboard-annual.smoke.spec.ts` — 3 nuovi E2E smoke test
 
 ---
 

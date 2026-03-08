@@ -18,6 +18,7 @@ export type DashboardModel = {
   topClients: TopClientPoint[];
   drilldowns: DashboardDrilldowns;
   alerts: DashboardAlerts;
+  cashFlowForecast: CashFlowForecast | null;
   fiscal: FiscalModel | null;
   qualityFlags: AnnualQualityFlag[];
   selectedYear: number;
@@ -60,6 +61,23 @@ export type DashboardKpis = {
   annualExpensesTotal: number;
   annualExpensesCount: number;
   expensesByType: ExpenseByTypePoint[];
+  /** Total cash received (ricevuto, no rimborso) minus refunds — cash basis. */
+  cashReceivedNet: number;
+  /** YoY: same metric values for the same period of the previous year. */
+  yoy: YearOverYearComparison | null;
+};
+
+export type YearOverYearComparison = {
+  previousYear: number;
+  /** Revenue (competence) up to the same month of the previous year. */
+  annualRevenue: number;
+  annualRevenueDeltaPct: number | null;
+  /** Cash received net up to the same month of the previous year. */
+  cashReceivedNet: number;
+  cashReceivedNetDeltaPct: number | null;
+  /** Expenses up to the same month of the previous year. */
+  annualExpensesTotal: number;
+  annualExpensesTotalDeltaPct: number | null;
 };
 
 export type RevenueTrendPoint = {
@@ -91,6 +109,26 @@ export type TopClientPoint = {
 export type DashboardDrilldowns = {
   pendingPayments: PendingPaymentDrilldown[];
   openQuotes: OpenQuoteDrilldown[];
+};
+
+export type CashFlowForecast = {
+  /** Horizon in days (default 30). */
+  horizonDays: number;
+  /** Expected inflows: pending payments due within horizon. */
+  inflows: CashFlowItem[];
+  inflowsTotal: number;
+  /** Expected outflows: fiscal deadlines within horizon. */
+  outflows: CashFlowItem[];
+  outflowsTotal: number;
+  /** inflows - outflows. */
+  netFlow: number;
+};
+
+export type CashFlowItem = {
+  label: string;
+  amount: number;
+  date: string;
+  type: "payment" | "fiscal_deadline";
 };
 
 export type DashboardAlerts = {

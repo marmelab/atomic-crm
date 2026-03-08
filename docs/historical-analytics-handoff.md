@@ -8,6 +8,42 @@ prodotto senza incrociarlo con `docs/README.md` e i documenti `canonical`.
 
 Last updated: 2026-03-08
 
+## Update 2026-03-08 (d) — Dashboard Pareto features (net availability, tax tracking, cash flow, YoY)
+
+Four high-impact features added to the annual dashboard following Pareto analysis:
+
+1. **Net Availability KPI** (`DashboardNetAvailabilityCard`): shows
+   `cash_received_net − expenses − estimated_taxes_remaining` with full
+   breakdown. Uses `fiscalKpis.stimaInpsAnnuale + stimaImpostaAnnuale` for tax
+   estimate and subtracts user-tracked payments via `useFiscalPaymentTracking`.
+
+2. **Fiscal payment tracking** (`useFiscalPaymentTracking`): localStorage-based
+   persistence via `useStore` (ra-core). Tracks paid amount and date per
+   deadline key (`YYYY-MM-DD::label`). `DashboardDeadlinesCard` now shows
+   "Segna come pagato" / "Pagato ✓" with green visual feedback.
+   `FiscalDeadline` type extended with `paidAmount` / `paidDate` nullable fields.
+
+3. **30-day cash flow forecast** (`DashboardCashFlowCard`): combines pending
+   payment inflows (from dashboard alerts) with fiscal deadline outflows.
+   Post-processed after fiscal model build to inject deadline amounts.
+   `CashFlowForecast` type with `inflows`, `outflows`, `netFlow`.
+
+4. **Year-over-year comparison** (`DashboardYoyBadge`): same-period comparison
+   on revenue, cash received, expenses. `buildYearOverYear` computes previous
+   year values up to same month; deltas filled in post-processing. Badge shows
+   on "Valore del lavoro dell'anno" KPI card.
+
+AI context updated: `cash_received_net` metric and `yearOverYear` section in
+`buildAnnualOperationsContext`. Edge Functions updated with AI instructions.
+
+New files:
+- `DashboardNetAvailabilityCard.tsx`
+- `DashboardCashFlowCard.tsx`
+- `DashboardYoyBadge.tsx`
+- `useFiscalPaymentTracking.ts`
+
+Tests: 5 new unit tests + 3 new E2E smoke tests.
+
 ## Update 2026-03-08 (c) — Expense data in AI annual context
 
 - `DashboardModel` now aggregates expenses by type for the selected year:

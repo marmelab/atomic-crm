@@ -22,12 +22,15 @@ export type {
   DashboardMeta,
   AnnualQualityFlag,
   DashboardKpis,
+  YearOverYearComparison,
   ExpenseByTypePoint,
   RevenueTrendPoint,
   CategoryBreakdownPoint,
   QuotePipelinePoint,
   TopClientPoint,
   DashboardDrilldowns,
+  CashFlowForecast,
+  CashFlowItem,
   DashboardAlerts,
   PendingPaymentDrilldown,
   OpenQuoteDrilldown,
@@ -48,6 +51,9 @@ export {
 
 import type {
   AnnualQualityFlag,
+  CashFlowForecast,
+  CashFlowItem,
+  DashboardModel,
   ExpenseByTypePoint,
   PaymentAlert,
   PendingPaymentDrilldown,
@@ -55,6 +61,7 @@ import type {
   QuotePipelinePoint,
   UpcomingServiceAlert,
   UnansweredQuoteAlert,
+  YearOverYearComparison,
 } from "./dashboardModelTypes";
 import { expenseTypeLabels } from "../expenses/expenseTypes";
 
@@ -304,6 +311,13 @@ export const buildDashboardModel = ({
     (sum, payment) => sum + toNumber(payment.amount),
     0,
   );
+
+  // Cash received net: total received (non-refund) minus refunds
+  const cashReceivedNet = yearPayments.reduce((sum, payment) => {
+    if (payment.status !== "ricevuto") return sum;
+    const amount = toNumber(payment.amount);
+    return payment.payment_type === "rimborso" ? sum - amount : sum + amount;
+  }, 0);
 
   const openQuotes = yearQuotes.filter(
     (quote) => !quoteClosedForOpenKpi.has(quote.status),
@@ -570,6 +584,22 @@ export const buildDashboardModel = ({
     }))
     .sort((a, b) => b.amount - a.amount);
 
+  // ── Year-over-year comparison (same period of previous year) ─────────
+  const yoy = buildYearOverYear({
+    selectedYear,
+    referenceMonth: lastVisibleMonthIndex,
+    payments,
+    services,
+    expenses,
+    projects: operationsProjectById,
+    isSelectedCurrentYear,
+  });
+
+  // ── Cash flow forecast (next 30 days, current year only) ───────────
+  const cashFlowForecast = isSelectedCurrentYear
+    ? buildCashFlowForecast({ pendingPayments, today })
+    : null;
+
   const fiscal = fiscalConfig
     ? buildFiscalModel({
         services,
@@ -582,6 +612,37 @@ export const buildDashboardModel = ({
         year: selectedYear,
       })
     : null;
+
+  // Post-processing: fill YoY delta percentages now that we have current KPIs
+  if (yoy) {
+    const deltaPct = (current: number, previous: number) =>
+      previous > 0 ? ((current - previous) / previous) * 100 : null;
+    yoy.annualRevenueDeltaPct = deltaPct(annualRevenue, yoy.annualRevenue);
+    yoy.cashReceivedNetDeltaPct = deltaPct(cashReceivedNet, yoy.cashReceivedNet);
+    yoy.annualExpensesTotalDeltaPct = deltaPct(
+      annualExpensesTotal,
+      yoy.annualExpensesTotal,
+    );
+  }
+
+  // Post-processing: inject fiscal deadline outflows into cash flow forecast
+  if (cashFlowForecast && fiscal) {
+    const horizon = addDays(today, cashFlowForecast.horizonDays);
+    for (const deadline of fiscal.deadlines) {
+      if (deadline.isPast || deadline.totalAmount === 0) continue;
+      const deadlineDate = new Date(deadline.date);
+      if (deadlineDate > horizon) continue;
+      cashFlowForecast.outflows.push({
+        label: deadline.label,
+        amount: deadline.totalAmount,
+        date: deadline.date,
+        type: "fiscal_deadline",
+      });
+      cashFlowForecast.outflowsTotal += deadline.totalAmount;
+    }
+    cashFlowForecast.netFlow =
+      cashFlowForecast.inflowsTotal - cashFlowForecast.outflowsTotal;
+  }
 
   const periodStartLabel = monthLabelShort(new Date(selectedYear, 0, 1));
   const periodEndLabel = monthLabelShort(
@@ -616,6 +677,8 @@ export const buildDashboardModel = ({
       annualExpensesTotal,
       annualExpensesCount,
       expensesByType,
+      cashReceivedNet,
+      yoy,
     },
     revenueTrend,
     categoryBreakdown,
@@ -630,9 +693,124 @@ export const buildDashboardModel = ({
       upcomingServices,
       unansweredQuotes,
     },
+    cashFlowForecast,
     fiscal,
     qualityFlags,
     selectedYear,
     isCurrentYear: isSelectedCurrentYear,
+  } satisfies DashboardModel;
+};
+
+// ── Year-over-year comparison builder ────────────────────────────────
+
+const buildYearOverYear = ({
+  selectedYear,
+  referenceMonth,
+  payments,
+  services,
+  expenses,
+  projects: _projects,
+  isSelectedCurrentYear,
+}: {
+  selectedYear: number;
+  referenceMonth: number;
+  payments: Payment[];
+  services: Service[];
+  expenses: Expense[];
+  projects: Map<string, Project>;
+  isSelectedCurrentYear: boolean;
+}): YearOverYearComparison | null => {
+  const prevYear = selectedYear - 1;
+  // For current year we compare up to same month; for past years compare full year
+  const maxMonth = isSelectedCurrentYear ? referenceMonth : 11;
+
+  const isInPeriod = (dateStr: string | undefined, year: number) => {
+    if (!dateStr) return false;
+    const date = new Date(dateStr);
+    if (Number.isNaN(date.valueOf())) return false;
+    return date.getFullYear() === year && date.getMonth() <= maxMonth;
+  };
+
+  // Previous year revenue (competence)
+  let prevRevenue = 0;
+  for (const service of services) {
+    if (!isInPeriod(service.service_date, prevYear)) continue;
+    prevRevenue += getServiceNetRevenue(service);
+  }
+
+  // Previous year cash received net
+  let prevCashNet = 0;
+  for (const payment of payments) {
+    const dateStr = payment.payment_date ?? payment.created_at;
+    if (!isInPeriod(dateStr, prevYear)) continue;
+    if (payment.status !== "ricevuto") continue;
+    const amount = toNumber(payment.amount);
+    prevCashNet +=
+      payment.payment_type === "rimborso" ? -amount : amount;
+  }
+
+  // Previous year expenses
+  let prevExpenses = 0;
+  for (const expense of expenses) {
+    if (!isInPeriod(expense.expense_date, prevYear)) continue;
+    if (expense.expense_type === "credito_ricevuto") continue;
+    prevExpenses += getExpenseAmount(expense);
+  }
+
+  // If no data at all for previous year, return null
+  if (prevRevenue === 0 && prevCashNet === 0 && prevExpenses === 0) {
+    return null;
+  }
+
+  return {
+    previousYear: prevYear,
+    annualRevenue: prevRevenue,
+    annualRevenueDeltaPct: null, // filled by caller from kpis
+    cashReceivedNet: prevCashNet,
+    cashReceivedNetDeltaPct: null,
+    annualExpensesTotal: prevExpenses,
+    annualExpensesTotalDeltaPct: null,
+  };
+};
+
+// ── Cash flow forecast builder (30-day horizon) ──────────────────────
+
+const buildCashFlowForecast = ({
+  pendingPayments,
+  today,
+}: {
+  pendingPayments: Payment[];
+  today: Date;
+}): CashFlowForecast => {
+  const horizonDays = 30;
+  const horizon = addDays(today, horizonDays);
+  const inflows: CashFlowItem[] = [];
+  const outflows: CashFlowItem[] = [];
+
+  // Inflows: pending payments with a date within 30 days
+  for (const payment of pendingPayments) {
+    if (!payment.payment_date) continue;
+    const date = new Date(payment.payment_date);
+    if (Number.isNaN(date.valueOf())) continue;
+    if (date < today || date > horizon) continue;
+    inflows.push({
+      label: `Pagamento ${payment.notes || payment.payment_type || ""}`.trim(),
+      amount: toNumber(payment.amount),
+      date: payment.payment_date,
+      type: "payment",
+    });
+  }
+
+  // Outflows from fiscal deadlines are added by the caller after fiscal model is built
+  const inflowsTotal = inflows.reduce((s, i) => s + i.amount, 0);
+  const outflowsTotal = outflows.reduce((s, i) => s + i.amount, 0);
+
+  return {
+    horizonDays,
+    inflows,
+    inflowsTotal,
+    outflows,
+    outflowsTotal,
+    netFlow: inflowsTotal - outflowsTotal,
   };
 };

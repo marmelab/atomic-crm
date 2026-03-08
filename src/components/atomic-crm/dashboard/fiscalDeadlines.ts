@@ -92,6 +92,8 @@ export const buildDeadlines = ({
     isPast: juneDate < today,
     daysUntil: diffDays(today, juneDate),
     priority: "high",
+    paidAmount: null,
+    paidDate: null,
   });
 
   // November 30 deadline
@@ -125,6 +127,8 @@ export const buildDeadlines = ({
     isPast: novDate < today,
     daysUntil: diffDays(today, novDate),
     priority: "high",
+    paidAmount: null,
+    paidDate: null,
   });
 
   deadlines.push(...buildLowPriorityDeadlines(currentYear, today));
@@ -169,6 +173,8 @@ const buildLowPriorityDeadlines = (
       isPast: bq.date < today,
       daysUntil: diffDays(today, bq.date),
       priority: "low",
+      paidAmount: null,
+      paidDate: null,
     });
   }
 

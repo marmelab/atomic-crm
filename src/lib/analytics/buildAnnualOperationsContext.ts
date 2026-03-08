@@ -81,6 +81,15 @@ export type AnnualOperationsContext = {
       quoteItemsCount: number;
     }>;
   };
+  yearOverYear: {
+    previousYear: number;
+    annualRevenue: number;
+    annualRevenueDeltaPct: number | null;
+    cashReceivedNet: number;
+    cashReceivedNetDeltaPct: number | null;
+    annualExpensesTotal: number;
+    annualExpensesTotalDeltaPct: number | null;
+  } | null;
   qualityFlags: AnnualQualityFlag[];
   caveats: string[];
 };
@@ -181,6 +190,13 @@ export const buildAnnualOperationsContext = (
     );
   }
 
+  if (model.kpis.yoy) {
+    pushCaveat(
+      caveats,
+      `Il confronto anno su anno compara ${model.meta.selectedYear} con ${model.kpis.yoy.previousYear} allo stesso periodo (fino a ${model.meta.monthlyReferenceLabel}).`,
+    );
+  }
+
   if (model.qualityFlags.includes("future_services_excluded")) {
     pushCaveat(
       caveats,
@@ -272,6 +288,15 @@ export const buildAnnualOperationsContext = (
         basis: "cost",
         subtitle: `${model.kpis.annualExpensesCount} spese registrate, esclusi crediti ricevuti`,
       },
+      {
+        id: "cash_received_net",
+        label: "Incassato netto (cassa)",
+        value: model.kpis.cashReceivedNet,
+        formattedValue: formatCurrency(model.kpis.cashReceivedNet),
+        unit: "currency",
+        basis: "cash_expected",
+        subtitle: "Pagamenti ricevuti meno rimborsi emessi",
+      },
     ],
     expenses: {
       total: model.kpis.annualExpensesTotal,
@@ -308,6 +333,18 @@ export const buildAnnualOperationsContext = (
       ),
       openQuotes: model.drilldowns.openQuotes.map(serializeOpenQuote),
     },
+    yearOverYear: model.kpis.yoy
+      ? {
+          previousYear: model.kpis.yoy.previousYear,
+          annualRevenue: model.kpis.yoy.annualRevenue,
+          annualRevenueDeltaPct: model.kpis.yoy.annualRevenueDeltaPct,
+          cashReceivedNet: model.kpis.yoy.cashReceivedNet,
+          cashReceivedNetDeltaPct: model.kpis.yoy.cashReceivedNetDeltaPct,
+          annualExpensesTotal: model.kpis.yoy.annualExpensesTotal,
+          annualExpensesTotalDeltaPct:
+            model.kpis.yoy.annualExpensesTotalDeltaPct,
+        }
+      : null,
     qualityFlags: model.qualityFlags,
     caveats,
   };

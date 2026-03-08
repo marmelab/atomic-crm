@@ -948,6 +948,10 @@
           "type": "registry:component"
         },
         {
+          "path": "src/components/atomic-crm/dashboard/useFiscalPaymentTracking.ts",
+          "type": "registry:component"
+        },
+        {
           "path": "src/components/atomic-crm/dashboard/useDashboardData.ts",
           "type": "registry:component"
         },
@@ -996,6 +1000,10 @@
           "type": "registry:component"
         },
         {
+          "path": "src/components/atomic-crm/dashboard/DashboardYoyBadge.tsx",
+          "type": "registry:component"
+        },
+        {
           "path": "src/components/atomic-crm/dashboard/DashboardTopClientsCard.tsx",
           "type": "registry:component"
         },
@@ -1005,6 +1013,10 @@
         },
         {
           "path": "src/components/atomic-crm/dashboard/DashboardPipelineCard.tsx",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/dashboard/DashboardNetAvailabilityCard.tsx",
           "type": "registry:component"
         },
         {
@@ -1061,6 +1073,10 @@
         },
         {
           "path": "src/components/atomic-crm/dashboard/DashboardCategoryChart.tsx",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/dashboard/DashboardCashFlowCard.tsx",
           "type": "registry:component"
         },
         {
