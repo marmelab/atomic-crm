@@ -17,15 +17,18 @@ function Table({ className, ...props }: React.ComponentProps<"table">) {
   )
 }
 
-function TableHeader({ className, ...props }: React.ComponentProps<"thead">) {
-  return (
-    <thead
-      data-slot="table-header"
-      className={cn("[&_tr]:border-b", className)}
-      {...props}
-    />
-  )
-}
+const TableHeader = React.forwardRef<
+  HTMLTableSectionElement,
+  React.ComponentProps<"thead">
+>(({ className, ...props }, ref) => (
+  <thead
+    ref={ref}
+    data-slot="table-header"
+    className={cn("[&_tr]:border-b", className)}
+    {...props}
+  />
+))
+TableHeader.displayName = "TableHeader"
 
 function TableBody({ className, ...props }: React.ComponentProps<"tbody">) {
   return (
@@ -81,7 +84,7 @@ function TableCell({ className, ...props }: React.ComponentProps<"td">) {
     <td
       data-slot="table-cell"
       className={cn(
-        "p-2 align-middle whitespace-nowrap [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]",
+        "p-2 align-middle whitespace-nowrap overflow-hidden text-ellipsis [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]",
         className
       )}
       {...props}
@@ -102,6 +105,52 @@ function TableCaption({
   )
 }
 
+type ResizableHeadProps = React.ComponentProps<"th"> & {
+  colKey: string
+  width?: number
+  onResizeStart: (colKey: string, startX: number, startWidth: number) => void
+}
+
+function ResizableHead({
+  colKey,
+  width,
+  onResizeStart,
+  className,
+  children,
+  style,
+  ...props
+}: ResizableHeadProps) {
+  const thRef = React.useRef<HTMLTableCellElement>(null)
+
+  const handleMouseDown = (e: React.MouseEvent) => {
+    e.preventDefault()
+    const currentWidth = width ?? thRef.current?.offsetWidth ?? 100
+    onResizeStart(colKey, e.clientX, currentWidth)
+  }
+
+  return (
+    <th
+      ref={thRef}
+      data-slot="table-head"
+      data-col-key={colKey}
+      className={cn(
+        "text-foreground h-10 px-2 text-left align-middle font-medium whitespace-nowrap relative group/resize [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]",
+        className
+      )}
+      style={{ ...style, ...(width ? { width, minWidth: width, maxWidth: width } : {}) }}
+      {...props}
+    >
+      {children}
+      <span
+        onMouseDown={handleMouseDown}
+        className="absolute right-0 top-0 h-full w-1 cursor-col-resize bg-transparent hover:bg-border group-hover/resize:bg-border/50"
+        role="separator"
+        aria-orientation="vertical"
+      />
+    </th>
+  )
+}
+
 export {
   Table,
   TableHeader,
@@ -111,4 +160,5 @@ export {
   TableRow,
   TableCell,
   TableCaption,
+  ResizableHead,
 }

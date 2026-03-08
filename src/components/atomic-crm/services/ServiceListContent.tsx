@@ -1,4 +1,5 @@
-import { useListContext, useCreatePath, useGetOne } from "ra-core";
+import { useMemo } from "react";
+import { useListContext, useCreatePath, useGetOne, useGetList } from "ra-core";
 import { Link } from "react-router";
 import {
   Table,
@@ -7,6 +8,7 @@ import {
   TableHead,
   TableHeader,
   TableRow,
+  ResizableHead,
 } from "@/components/ui/table";
 import { useIsMobile } from "@/hooks/use-mobile";
 import type { LucideIcon } from "lucide-react";
@@ -20,7 +22,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-import type { Service } from "../types";
+import type { Client, Service } from "../types";
 import { useConfigurationContext } from "../root/ConfigurationContext";
 import { ErrorMessage } from "../misc/ErrorMessage";
 import { formatDateRange } from "../misc/formatDateRange";
@@ -32,7 +34,9 @@ import {
   ListBulkToolbar,
 } from "../misc/ListBulkSelection";
 import { useColumnVisibility } from "@/hooks/useColumnVisibility";
+import { useResizableColumns } from "@/hooks/useResizableColumns";
 import { SERVICE_COLUMNS } from "../misc/columnDefinitions";
+import { ServiceMobileCard } from "./ServiceMobileCard";
 
 const eur = (n: number) =>
   n ? n.toLocaleString("it-IT", { minimumFractionDigits: 2 }) : "--";
@@ -79,6 +83,17 @@ export const ServiceListContent = () => {
   const createPath = useCreatePath();
   const isMobile = useIsMobile();
   const { cv } = useColumnVisibility("services", SERVICE_COLUMNS);
+  const resize = useResizableColumns("services");
+
+  const { data: clients } = useGetList<Client>("clients", {
+    pagination: { page: 1, perPage: 200 },
+    sort: { field: "name", order: "ASC" },
+  });
+  const clientMap = useMemo(() => {
+    const map = new Map<string, string>();
+    clients?.forEach((c) => map.set(String(c.id), c.name));
+    return map;
+  }, [clients]);
 
   if (error) return <ErrorMessage />;
   if (isPending || !data) return null;
@@ -107,38 +122,14 @@ export const ServiceListContent = () => {
 
   return (
     <>
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead className="w-10">
-              <ListSelectAllCheckbox />
-            </TableHead>
-            <TableHead className={cv("date", "w-24")}>Data</TableHead>
-            <TableHead className={cv("project")}>Progetto</TableHead>
-            <TableHead className={cv("type")}>Tipo</TableHead>
-            <TableHead className={cv("description", "hidden lg:table-cell")}>Descrizione</TableHead>
-            <TableHead className={cv("fee_shooting", "text-right hidden md:table-cell")}>
-              Riprese
-            </TableHead>
-            <TableHead className={cv("fee_editing", "text-right hidden md:table-cell")}>
-              Montaggio
-            </TableHead>
-            <TableHead className={cv("fee_other", "text-right hidden lg:table-cell")}>
-              Altro
-            </TableHead>
-            <TableHead className={cv("total", "text-right")}>Totale</TableHead>
-            <TableHead className={cv("km", "text-right hidden lg:table-cell")}>Km</TableHead>
-            <TableHead className={cv("taxable", "hidden xl:table-cell")}>Fiscale</TableHead>
-            <TableHead className={cv("location", "hidden xl:table-cell")}>
-              Localit&agrave;
-            </TableHead>
-          </TableRow>
-        </TableHeader>
+      <Table style={{ tableLayout: "fixed" }}>
+        <ServiceTableHeader cv={cv} resize={resize} />
         <TableBody>
           {data.map((service) => (
             <ServiceRow
               key={service.id}
               service={service}
+              clientMap={clientMap}
               link={createPath({
                 resource: "services",
                 type: "show",
@@ -153,61 +144,50 @@ export const ServiceListContent = () => {
   );
 };
 
-/* ---- Mobile card ---- */
-const ServiceMobileCard = ({
-  service,
-  link,
-}: {
-  service: Service;
-  link: string;
-}) => {
-  const { data: project } = useGetOne(
-    "projects",
-    { id: service.project_id! },
-    { enabled: !!service.project_id },
-  );
-  const { serviceTypeChoices } = useConfigurationContext();
-  const total = calculateServiceNetValue(service);
-  const typeLabel =
-    serviceTypeChoices.find((t) => t.value === service.service_type)?.label ??
-    service.service_type;
+type ResizeApi = ReturnType<typeof useResizableColumns>;
+type CvFn = (key: string, extra?: string) => string | undefined;
 
+const ServiceTableHeader = ({
+  cv,
+  resize,
+}: {
+  cv: CvFn;
+  resize: ResizeApi;
+}) => {
+  const { getWidth, onResizeStart, headerRef } = resize;
   return (
-    <Link
-      to={link}
-      className="flex flex-col gap-1 px-1 py-3 active:bg-muted/50"
-    >
-      <div className="flex items-center justify-between">
-        <span className="text-xs text-muted-foreground">
-          {formatDateRange(
-            service.service_date,
-            service.service_end,
-            service.all_day,
-          )}
-        </span>
-        <span className="text-xs text-muted-foreground">{typeLabel}</span>
-      </div>
-      <span className="text-base font-bold">
-        {service.description || project?.name || ""}
-      </span>
-      <div className="flex items-center justify-between">
-        {service.location ? (
-          <span className="text-xs text-muted-foreground">
-            {service.location}
-          </span>
-        ) : (
-          <span />
-        )}
-        <span className="text-sm font-semibold tabular-nums">
-          EUR {eur(total)}
-        </span>
-      </div>
-    </Link>
+    <TableHeader ref={headerRef}>
+      <TableRow>
+        <TableHead className="w-10">
+          <ListSelectAllCheckbox />
+        </TableHead>
+        <ResizableHead colKey="date" width={getWidth("date")} onResizeStart={onResizeStart} className={cv("date")}>Data</ResizableHead>
+        <ResizableHead colKey="client" width={getWidth("client")} onResizeStart={onResizeStart} className={cv("client")}>Cliente</ResizableHead>
+        <ResizableHead colKey="project" width={getWidth("project")} onResizeStart={onResizeStart} className={cv("project")}>Progetto</ResizableHead>
+        <ResizableHead colKey="type" width={getWidth("type")} onResizeStart={onResizeStart} className={cv("type")}>Tipo</ResizableHead>
+        <ResizableHead colKey="description" width={getWidth("description")} onResizeStart={onResizeStart} className={cv("description", "hidden lg:table-cell")}>Descrizione</ResizableHead>
+        <ResizableHead colKey="fee_shooting" width={getWidth("fee_shooting")} onResizeStart={onResizeStart} className={cv("fee_shooting", "text-right hidden md:table-cell")}>Riprese</ResizableHead>
+        <ResizableHead colKey="fee_editing" width={getWidth("fee_editing")} onResizeStart={onResizeStart} className={cv("fee_editing", "text-right hidden md:table-cell")}>Montaggio</ResizableHead>
+        <ResizableHead colKey="fee_other" width={getWidth("fee_other")} onResizeStart={onResizeStart} className={cv("fee_other", "text-right hidden lg:table-cell")}>Altro</ResizableHead>
+        <ResizableHead colKey="total" width={getWidth("total")} onResizeStart={onResizeStart} className={cv("total", "text-right")}>Totale</ResizableHead>
+        <ResizableHead colKey="km" width={getWidth("km")} onResizeStart={onResizeStart} className={cv("km", "text-right hidden lg:table-cell")}>Km</ResizableHead>
+        <ResizableHead colKey="taxable" width={getWidth("taxable")} onResizeStart={onResizeStart} className={cv("taxable", "hidden xl:table-cell")}>Fiscale</ResizableHead>
+        <ResizableHead colKey="location" width={getWidth("location")} onResizeStart={onResizeStart} className={cv("location", "hidden xl:table-cell")}>Localit&agrave;</ResizableHead>
+      </TableRow>
+    </TableHeader>
   );
 };
 
 /* ---- Desktop table row ---- */
-const ServiceRow = ({ service, link }: { service: Service; link: string }) => {
+const ServiceRow = ({
+  service,
+  link,
+  clientMap,
+}: {
+  service: Service;
+  link: string;
+  clientMap: Map<string, string>;
+}) => {
   const { cv } = useColumnVisibility("services", SERVICE_COLUMNS);
   const { data: project } = useGetOne(
     "projects",
@@ -230,6 +210,9 @@ const ServiceRow = ({ service, link }: { service: Service; link: string }) => {
             service.all_day,
           )}
         </Link>
+      </TableCell>
+      <TableCell className={cv("client", "text-sm text-muted-foreground")}>
+        {service.client_id ? (clientMap.get(String(service.client_id)) ?? "") : ""}
       </TableCell>
       <TableCell className={cv("project", "text-sm text-muted-foreground")}>
         {project?.name ?? ""}

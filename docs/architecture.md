@@ -15,6 +15,7 @@ Stato del documento:
 
 ## Changelog
 
+- 2026-03-08: Resizable columns on all list pages (useResizableColumns hook + ResizableHead component, localStorage persistence). Client filter added to services list. FilterHelpers refactor (FilterPopover generic component replaces duplicated Popover blocks across 6 filter files)
 - 2026-03-08: AI layer fully aligned with suppliers — snapshot includes recentSuppliers, supplierFinancials, supplier refs on expenses/tasks/contacts; semantic registry, capability registry, Edge Function instructions updated
 - 2026-03-08: Supplier financial section — SupplierFinancialSummary (debiti/crediti), SupplierFinancialDocsCard (storico documenti), financial_documents_summary view updated with supplier_id + LEFT JOIN
 - 2026-03-08: Supplier notes — SupplierNotesSection using `client_notes.supplier_id`, migration makes client_id nullable with CHECK constraint

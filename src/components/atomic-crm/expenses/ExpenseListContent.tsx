@@ -7,26 +7,14 @@ import {
   TableHead,
   TableHeader,
   TableRow,
+  ResizableHead,
 } from "@/components/ui/table";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Badge } from "@/components/ui/badge";
-import type { LucideIcon } from "lucide-react";
-import {
-  Car,
-  ShoppingCart,
-  ArrowLeftRight,
-  Receipt,
-  Utensils,
-  Route,
-  MonitorSmartphone,
-  Package,
-} from "lucide-react";
-import { cn } from "@/lib/utils";
 
 import type { Expense } from "../types";
 import { expenseTypeLabels } from "./expenseTypes";
 import { ErrorMessage } from "../misc/ErrorMessage";
-import { calculateKmReimbursement } from "@/lib/semantics/crmSemanticRegistry";
 import { useConfigurationContext } from "../root/ConfigurationContext";
 import {
   ListSelectAllCheckbox,
@@ -35,65 +23,10 @@ import {
   ListBulkToolbar,
 } from "../misc/ListBulkSelection";
 import { useColumnVisibility } from "@/hooks/useColumnVisibility";
+import { useResizableColumns } from "@/hooks/useResizableColumns";
 import { EXPENSE_COLUMNS } from "../misc/columnDefinitions";
-
-const eur = (n: number) =>
-  n ? n.toLocaleString("it-IT", { minimumFractionDigits: 2 }) : "--";
-
-const expenseTypeIcons: Record<string, LucideIcon> = {
-  spostamento_km: Car,
-  pedaggio_autostradale: Route,
-  vitto_alloggio: Utensils,
-  acquisto_materiale: ShoppingCart,
-  abbonamento_software: MonitorSmartphone,
-  noleggio: Package,
-  credito_ricevuto: ArrowLeftRight,
-  altro: Receipt,
-};
-
-const expenseTypeColors: Record<string, string> = {
-  spostamento_km: "text-amber-600 bg-amber-50 border-amber-200",
-  pedaggio_autostradale: "text-orange-600 bg-orange-50 border-orange-200",
-  vitto_alloggio: "text-rose-600 bg-rose-50 border-rose-200",
-  acquisto_materiale: "text-blue-600 bg-blue-50 border-blue-200",
-  abbonamento_software: "text-violet-600 bg-violet-50 border-violet-200",
-  noleggio: "text-cyan-600 bg-cyan-50 border-cyan-200",
-  credito_ricevuto: "text-green-600 bg-green-50 border-green-200",
-  altro: "text-slate-600 bg-slate-50 border-slate-200",
-};
-
-const ExpenseIconAvatar = ({ type }: { type: string }) => {
-  const Icon = expenseTypeIcons[type] ?? Receipt;
-  const colorClass = expenseTypeColors[type]?.split(" ")[0] ?? "text-slate-600";
-  const bgClass =
-    expenseTypeColors[type]?.split(" ").slice(1).join(" ") ??
-    "bg-slate-50 border-slate-200";
-
-  return (
-    <div
-      className={cn(
-        "flex-shrink-0 w-9 h-9 rounded-lg border flex items-center justify-center",
-        bgClass,
-      )}
-    >
-      <Icon className={cn("h-4 w-4", colorClass)} />
-    </div>
-  );
-};
-
-const computeTotal = (e: Expense, defaultKmRate: number) => {
-  if (e.expense_type === "credito_ricevuto") {
-    return -(e.amount ?? 0);
-  }
-  if (e.expense_type === "spostamento_km") {
-    return calculateKmReimbursement({
-      kmDistance: e.km_distance,
-      kmRate: e.km_rate,
-      defaultKmRate,
-    });
-  }
-  return (e.amount ?? 0) * (1 + (e.markup_percent ?? 0) / 100);
-};
+import { ExpenseIconAvatar, computeTotal, eur } from "./expenseListHelpers";
+import { ExpenseMobileCard } from "./ExpenseMobileCard";
 
 export const ExpenseListContent = () => {
   const { data, isPending, error } = useListContext<Expense>();
@@ -101,6 +34,7 @@ export const ExpenseListContent = () => {
   const createPath = useCreatePath();
   const isMobile = useIsMobile();
   const { cv } = useColumnVisibility("expenses", EXPENSE_COLUMNS);
+  const { getWidth, onResizeStart, headerRef } = useResizableColumns("expenses");
 
   if (error) return <ErrorMessage />;
   if (isPending || !data) return null;
@@ -130,20 +64,20 @@ export const ExpenseListContent = () => {
 
   return (
     <>
-      <Table>
-        <TableHeader>
+      <Table style={{ tableLayout: "fixed" }}>
+        <TableHeader ref={headerRef}>
           <TableRow>
             <TableHead className="w-10">
               <ListSelectAllCheckbox />
             </TableHead>
-            <TableHead className={cv("date")}>Data</TableHead>
-            <TableHead className={cv("type")}>Tipo</TableHead>
-            <TableHead className={cv("client", "hidden md:table-cell")}>Cliente</TableHead>
-            <TableHead className={cv("supplier", "hidden md:table-cell")}>Fornitore</TableHead>
-            <TableHead className={cv("project")}>Progetto</TableHead>
-            <TableHead className={cv("km", "text-right hidden md:table-cell")}>Km</TableHead>
-            <TableHead className={cv("total", "text-right")}>Totale EUR</TableHead>
-            <TableHead className={cv("description", "hidden lg:table-cell")}>Descrizione</TableHead>
+            <ResizableHead colKey="date" width={getWidth("date")} onResizeStart={onResizeStart} className={cv("date")}>Data</ResizableHead>
+            <ResizableHead colKey="type" width={getWidth("type")} onResizeStart={onResizeStart} className={cv("type")}>Tipo</ResizableHead>
+            <ResizableHead colKey="client" width={getWidth("client")} onResizeStart={onResizeStart} className={cv("client", "hidden md:table-cell")}>Cliente</ResizableHead>
+            <ResizableHead colKey="supplier" width={getWidth("supplier")} onResizeStart={onResizeStart} className={cv("supplier", "hidden md:table-cell")}>Fornitore</ResizableHead>
+            <ResizableHead colKey="project" width={getWidth("project")} onResizeStart={onResizeStart} className={cv("project")}>Progetto</ResizableHead>
+            <ResizableHead colKey="km" width={getWidth("km")} onResizeStart={onResizeStart} className={cv("km", "text-right hidden md:table-cell")}>Km</ResizableHead>
+            <ResizableHead colKey="total" width={getWidth("total")} onResizeStart={onResizeStart} className={cv("total", "text-right")}>Totale EUR</ResizableHead>
+            <ResizableHead colKey="description" width={getWidth("description")} onResizeStart={onResizeStart} className={cv("description", "hidden lg:table-cell")}>Descrizione</ResizableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -163,60 +97,6 @@ export const ExpenseListContent = () => {
       </Table>
       <ListBulkToolbar allowDelete />
     </>
-  );
-};
-
-/* ---- Mobile card ---- */
-const ExpenseMobileCard = ({
-  expense,
-  link,
-  defaultKmRate,
-}: {
-  expense: Expense;
-  link: string;
-  defaultKmRate: number;
-}) => {
-  const { data: project } = useGetOne(
-    "projects",
-    { id: expense.project_id ?? undefined },
-    { enabled: !!expense.project_id },
-  );
-  const total = computeTotal(expense, defaultKmRate);
-
-  return (
-    <Link
-      to={link}
-      className="flex flex-col gap-1 px-1 py-3 active:bg-muted/50"
-    >
-      <div className="flex items-center gap-3">
-        <ExpenseIconAvatar type={expense.expense_type} />
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center justify-between">
-            <span className="text-base font-bold truncate">
-              {expenseTypeLabels[expense.expense_type] ?? expense.expense_type}
-            </span>
-            <span className="text-xs text-muted-foreground">
-              {new Date(expense.expense_date).toLocaleDateString("it-IT")}
-            </span>
-          </div>
-          <span className="text-xs text-muted-foreground">{project?.name ?? ""}</span>
-        </div>
-      </div>
-      <div className="flex items-center justify-between">
-        <span className="text-xs text-muted-foreground truncate mr-2">
-          {expense.description ?? ""}
-        </span>
-        <span
-          className={`text-sm font-semibold tabular-nums ${
-            expense.expense_type === "credito_ricevuto"
-              ? "text-green-600 dark:text-green-400"
-              : ""
-          }`}
-        >
-          EUR {eur(total)}
-        </span>
-      </div>
-    </Link>
   );
 };
 

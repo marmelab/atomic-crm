@@ -264,6 +264,10 @@
           "type": "registry:component"
         },
         {
+          "path": "src/components/atomic-crm/services/ServiceMobileCard.tsx",
+          "type": "registry:component"
+        },
+        {
           "path": "src/components/atomic-crm/services/ServiceListFilter.tsx",
           "type": "registry:component"
         },
@@ -876,6 +880,10 @@
           "type": "registry:component"
         },
         {
+          "path": "src/components/atomic-crm/filters/FilterHelpers.tsx",
+          "type": "registry:component"
+        },
+        {
           "path": "src/components/atomic-crm/filters/FilterCategory.tsx",
           "type": "registry:component"
         },
@@ -892,11 +900,19 @@
           "type": "registry:component"
         },
         {
+          "path": "src/components/atomic-crm/expenses/expenseListHelpers.tsx",
+          "type": "registry:component"
+        },
+        {
           "path": "src/components/atomic-crm/expenses/expenseLinking.ts",
           "type": "registry:component"
         },
         {
           "path": "src/components/atomic-crm/expenses/ExpenseShow.tsx",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/expenses/ExpenseMobileCard.tsx",
           "type": "registry:component"
         },
         {
@@ -1093,6 +1109,14 @@
         },
         {
           "path": "src/components/atomic-crm/contacts/ContactShow.tsx",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/contacts/ContactRow.tsx",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/contacts/ContactMobileCard.tsx",
           "type": "registry:component"
         },
         {

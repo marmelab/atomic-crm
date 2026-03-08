@@ -14,6 +14,7 @@ Last updated: 2026-03-06
 
 ### Recent Updates (cronologico, più recente in alto)
 
+- [2026-03-08 (b)](#update-2026-03-08-b--resizable-columns--client-filter--filterhelpers-refactor) — Resizable columns on all lists + client filter on services + FilterHelpers refactor
 - [2026-03-08](#update-2026-03-08--cloudinary-module-integration--ai-support) — Cloudinary media fields on Clients, Contacts, Payments, Expenses, Suppliers + AI snapshot
 - [2026-03-07 (b)](#update-2026-03-07-b--cloudinary-media-integration) — Cloudinary media infrastructure (SDK, widgets, hooks, component)
 - [2026-03-07](#update-2026-03-07--bulk-selection--column-visibility) — Bulk selection + column visibility across all CRM lists
@@ -131,6 +132,48 @@ clienti, allegati servizi, documenti, preventivi).
 
 Nessuna — questa è solo infrastruttura. Vedi update 2026-03-08 per
 l'integrazione nei moduli CRM.
+
+---
+
+## Update 2026-03-08 (b) — Resizable columns + client filter + FilterHelpers refactor
+
+Colonne ridimensionabili con il mouse su tutte le pagine lista del CRM. Filtro
+cliente aggiunto alla lista servizi. Refactor filtri con componente generico
+`FilterPopover`.
+
+### Nuovi file
+
+- `src/hooks/useResizableColumns.ts` — hook per colonne ridimensionabili con
+  persistenza localStorage
+- `src/components/ui/table.tsx` — `ResizableHead` component con drag handle
+- `src/components/atomic-crm/filters/FilterHelpers.tsx` — `FilterSection`,
+  `FilterBadge`, `FilterPopover` generici (estratti da filtri duplicati)
+- `src/components/atomic-crm/services/ServiceMobileCard.tsx` — card mobile
+  estratta da ServiceListContent
+- `src/components/atomic-crm/contacts/ContactMobileCard.tsx` — card mobile
+  estratta da ContactList
+- `src/components/atomic-crm/contacts/ContactRow.tsx` — riga desktop estratta
+- `src/components/atomic-crm/expenses/ExpenseMobileCard.tsx` — card mobile
+  estratta da ExpenseListContent
+- `src/components/atomic-crm/expenses/expenseListHelpers.tsx` — helper estratti
+
+### Liste con colonne ridimensionabili
+
+Tutte le liste CRUD desktop ora usano `useResizableColumns` + `ResizableHead`:
+clients, contacts, projects, services, payments, expenses, suppliers, workflows.
+
+### Filtro cliente su servizi
+
+- `ServiceListFilter.tsx`: aggiunto `FilterPopover` per `client_id@eq`
+- `ServiceListContent.tsx`: aggiunta colonna "Cliente" dopo "Data" con
+  `useGetList<Client>` → `clientMap`
+- `columnDefinitions.ts`: aggiunto `client` a `SERVICE_COLUMNS`
+
+### Refactor filtri
+
+I filtri di 6 moduli (services, clients, projects, payments, expenses,
+suppliers) ora usano `FilterPopover` generico invece di Popover inline
+duplicati. Riduzione ~30% LOC nei file filtro.
 
 ---
 

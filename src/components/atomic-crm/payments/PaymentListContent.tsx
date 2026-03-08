@@ -7,6 +7,7 @@ import {
   TableHead,
   TableHeader,
   TableRow,
+  ResizableHead,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -24,6 +25,7 @@ import {
   ListBulkToolbar,
 } from "../misc/ListBulkSelection";
 import { useColumnVisibility } from "@/hooks/useColumnVisibility";
+import { useResizableColumns } from "@/hooks/useResizableColumns";
 import { PAYMENT_COLUMNS } from "../misc/columnDefinitions";
 
 const eur = (n: number) =>
@@ -65,6 +67,7 @@ export const PaymentListContent = () => {
   const createPath = useCreatePath();
   const isMobile = useIsMobile();
   const { cv } = useColumnVisibility("payments", PAYMENT_COLUMNS);
+  const { getWidth, onResizeStart, headerRef } = useResizableColumns("payments");
 
   if (error) return <ErrorMessage />;
   if (isPending || !data) return null;
@@ -93,20 +96,20 @@ export const PaymentListContent = () => {
 
   return (
     <>
-      <Table>
-        <TableHeader>
+      <Table style={{ tableLayout: "fixed" }}>
+        <TableHeader ref={headerRef}>
           <TableRow>
             <TableHead className="w-10">
               <ListSelectAllCheckbox />
             </TableHead>
-            <TableHead className={cv("date")}>Data</TableHead>
-            <TableHead className={cv("client")}>Cliente</TableHead>
-            <TableHead className={cv("project", "hidden lg:table-cell")}>Progetto</TableHead>
-            <TableHead className={cv("quote", "hidden xl:table-cell")}>Preventivo</TableHead>
-            <TableHead className={cv("type")}>Tipo</TableHead>
-            <TableHead className={cv("amount", "text-right")}>Importo</TableHead>
-            <TableHead className={cv("invoice_ref", "hidden md:table-cell")}>Rif. Fattura</TableHead>
-            <TableHead className={cv("status")}>Stato</TableHead>
+            <ResizableHead colKey="date" width={getWidth("date")} onResizeStart={onResizeStart} className={cv("date")}>Data</ResizableHead>
+            <ResizableHead colKey="client" width={getWidth("client")} onResizeStart={onResizeStart} className={cv("client")}>Cliente</ResizableHead>
+            <ResizableHead colKey="project" width={getWidth("project")} onResizeStart={onResizeStart} className={cv("project", "hidden lg:table-cell")}>Progetto</ResizableHead>
+            <ResizableHead colKey="quote" width={getWidth("quote")} onResizeStart={onResizeStart} className={cv("quote", "hidden xl:table-cell")}>Preventivo</ResizableHead>
+            <ResizableHead colKey="type" width={getWidth("type")} onResizeStart={onResizeStart} className={cv("type")}>Tipo</ResizableHead>
+            <ResizableHead colKey="amount" width={getWidth("amount")} onResizeStart={onResizeStart} className={cv("amount", "text-right")}>Importo</ResizableHead>
+            <ResizableHead colKey="invoice_ref" width={getWidth("invoice_ref")} onResizeStart={onResizeStart} className={cv("invoice_ref", "hidden md:table-cell")}>Rif. Fattura</ResizableHead>
+            <ResizableHead colKey="status" width={getWidth("status")} onResizeStart={onResizeStart} className={cv("status")}>Stato</ResizableHead>
           </TableRow>
         </TableHeader>
         <TableBody>

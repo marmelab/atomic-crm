@@ -7,10 +7,12 @@ import {
   TableHead,
   TableHeader,
   TableRow,
+  ResizableHead,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useColumnVisibility } from "@/hooks/useColumnVisibility";
+import { useResizableColumns } from "@/hooks/useResizableColumns";
 import type { LucideIcon } from "lucide-react";
 import {
   Tv,
@@ -42,6 +44,7 @@ export const ProjectListContent = () => {
   const createPath = useCreatePath();
   const isMobile = useIsMobile();
   const { cv } = useColumnVisibility("projects", PROJECT_COLUMNS);
+  const { getWidth, onResizeStart, headerRef } = useResizableColumns("projects");
 
   if (isPending || !data) return null;
 
@@ -69,17 +72,17 @@ export const ProjectListContent = () => {
 
   return (
     <>
-      <Table>
-        <TableHeader>
+      <Table style={{ tableLayout: "fixed" }}>
+        <TableHeader ref={headerRef}>
           <TableRow>
             <TableHead className="w-10">
               <ListSelectAllCheckbox />
             </TableHead>
-            <TableHead className={cv("name")}>Nome progetto</TableHead>
-            <TableHead className={cv("client")}>Cliente</TableHead>
-            <TableHead className={cv("category")}>Categoria</TableHead>
-            <TableHead className={cv("status", "hidden md:table-cell")}>Stato</TableHead>
-            <TableHead className={cv("period", "hidden lg:table-cell")}>Periodo</TableHead>
+            <ResizableHead colKey="name" width={getWidth("name")} onResizeStart={onResizeStart} className={cv("name")}>Nome progetto</ResizableHead>
+            <ResizableHead colKey="client" width={getWidth("client")} onResizeStart={onResizeStart} className={cv("client")}>Cliente</ResizableHead>
+            <ResizableHead colKey="category" width={getWidth("category")} onResizeStart={onResizeStart} className={cv("category")}>Categoria</ResizableHead>
+            <ResizableHead colKey="status" width={getWidth("status")} onResizeStart={onResizeStart} className={cv("status", "hidden md:table-cell")}>Stato</ResizableHead>
+            <ResizableHead colKey="period" width={getWidth("period")} onResizeStart={onResizeStart} className={cv("period", "hidden lg:table-cell")}>Periodo</ResizableHead>
           </TableRow>
         </TableHeader>
         <TableBody>

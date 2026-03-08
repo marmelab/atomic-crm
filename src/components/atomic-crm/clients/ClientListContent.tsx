@@ -7,6 +7,7 @@ import {
   TableHead,
   TableHeader,
   TableRow,
+  ResizableHead,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -21,6 +22,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useColumnVisibility } from "@/hooks/useColumnVisibility";
+import { useResizableColumns } from "@/hooks/useResizableColumns";
 import { CLIENT_COLUMNS } from "../misc/columnDefinitions";
 
 import type { Client } from "../types";
@@ -43,6 +45,7 @@ export const ClientListContent = () => {
   const createPath = useCreatePath();
   const isMobile = useIsMobile();
   const { cv } = useColumnVisibility("clients", CLIENT_COLUMNS);
+  const resize = useResizableColumns("clients");
 
   if (error) return <ErrorMessage />;
   if (isPending || !data) return null;
@@ -55,11 +58,7 @@ export const ClientListContent = () => {
             <MobileSelectableCard key={client.id} id={client.id}>
               <ClientMobileCard
                 client={client}
-                link={createPath({
-                  resource: "clients",
-                  type: "show",
-                  id: client.id,
-                })}
+                link={createPath({ resource: "clients", type: "show", id: client.id })}
               />
             </MobileSelectableCard>
           ))}
@@ -69,81 +68,23 @@ export const ClientListContent = () => {
     );
   }
 
+  const { getWidth, onResizeStart, headerRef } = resize;
   return (
     <>
-      <Table>
-        <TableHeader>
+      <Table style={{ tableLayout: "fixed" }}>
+        <TableHeader ref={headerRef}>
           <TableRow>
-            <TableHead className="w-10">
-              <ListSelectAllCheckbox />
-            </TableHead>
-            <TableHead className={cv("name")}>Nome / Ragione sociale</TableHead>
-            <TableHead className={cv("type")}>Tipo</TableHead>
-            <TableHead className={cv("phone", "hidden md:table-cell")}>Telefono</TableHead>
-            <TableHead className={cv("email", "hidden md:table-cell")}>Email</TableHead>
-            <TableHead className={cv("source", "hidden lg:table-cell")}>Fonte</TableHead>
+            <TableHead className="w-10"><ListSelectAllCheckbox /></TableHead>
+            <ResizableHead colKey="name" width={getWidth("name")} onResizeStart={onResizeStart} className={cv("name")}>Nome / Ragione sociale</ResizableHead>
+            <ResizableHead colKey="type" width={getWidth("type")} onResizeStart={onResizeStart} className={cv("type")}>Tipo</ResizableHead>
+            <ResizableHead colKey="phone" width={getWidth("phone")} onResizeStart={onResizeStart} className={cv("phone", "hidden md:table-cell")}>Telefono</ResizableHead>
+            <ResizableHead colKey="email" width={getWidth("email")} onResizeStart={onResizeStart} className={cv("email", "hidden md:table-cell")}>Email</ResizableHead>
+            <ResizableHead colKey="source" width={getWidth("source")} onResizeStart={onResizeStart} className={cv("source", "hidden lg:table-cell")}>Fonte</ResizableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
           {data.map((client) => (
-            <TableRow
-              key={client.id}
-              className="cursor-pointer hover:bg-muted/50"
-            >
-              <TableCell className="w-10">
-                <ListRowCheckbox id={client.id} />
-              </TableCell>
-              <TableCell className={cv("name")}>
-                <div className="flex items-start gap-3">
-                  <ClientIconAvatar type={client.client_type} imageUrl={client.logo_url} />
-                  <div className="space-y-1.5 min-w-0">
-                    <Link
-                      to={createPath({
-                        resource: "clients",
-                        type: "show",
-                        id: client.id,
-                      })}
-                      className="font-medium text-primary hover:underline block"
-                    >
-                      {client.name}
-                    </Link>
-                    {getClientDistinctBillingName(client) ? (
-                      <p className="text-xs text-muted-foreground">
-                        Fatturazione: {getClientDistinctBillingName(client)}
-                      </p>
-                    ) : null}
-                    <div className="flex flex-wrap gap-1">
-                      {getClientBillingIdentityLines(client).map((line) => (
-                        <Badge
-                          key={line}
-                          variant="outline"
-                          className="text-[11px]"
-                        >
-                          {line}
-                        </Badge>
-                      ))}
-                      {client.billing_city ? (
-                        <Badge variant="outline" className="text-[11px]">
-                          {client.billing_city}
-                        </Badge>
-                      ) : null}
-                    </div>
-                  </div>
-                </div>
-              </TableCell>
-              <TableCell className={cv("type")}>
-                <ClientTypeBadge type={client.client_type} />
-              </TableCell>
-              <TableCell className={cv("phone", "hidden md:table-cell text-muted-foreground")}>
-                {client.phone}
-              </TableCell>
-              <TableCell className={cv("email", "hidden md:table-cell text-muted-foreground")}>
-                {client.email}
-              </TableCell>
-              <TableCell className={cv("source", "hidden lg:table-cell text-muted-foreground text-sm")}>
-                {client.source ? clientSourceLabels[client.source] : ""}
-              </TableCell>
-            </TableRow>
+            <ClientRow key={client.id} client={client} cv={cv} createPath={createPath} />
           ))}
         </TableBody>
       </Table>
@@ -151,6 +92,56 @@ export const ClientListContent = () => {
     </>
   );
 };
+
+const ClientRow = ({
+  client,
+  cv,
+  createPath,
+}: {
+  client: Client;
+  cv: (key: string, extra?: string) => string | undefined;
+  createPath: ReturnType<typeof useCreatePath>;
+}) => (
+  <TableRow className="cursor-pointer hover:bg-muted/50">
+    <TableCell className="w-10">
+      <ListRowCheckbox id={client.id} />
+    </TableCell>
+    <TableCell className={cv("name")}>
+      <div className="flex items-start gap-3">
+        <ClientIconAvatar type={client.client_type} imageUrl={client.logo_url} />
+        <div className="space-y-1.5 min-w-0">
+          <Link
+            to={createPath({ resource: "clients", type: "show", id: client.id })}
+            className="font-medium text-primary hover:underline block"
+          >
+            {client.name}
+          </Link>
+          {getClientDistinctBillingName(client) ? (
+            <p className="text-xs text-muted-foreground">
+              Fatturazione: {getClientDistinctBillingName(client)}
+            </p>
+          ) : null}
+          <div className="flex flex-wrap gap-1">
+            {getClientBillingIdentityLines(client).map((line) => (
+              <Badge key={line} variant="outline" className="text-[11px]">{line}</Badge>
+            ))}
+            {client.billing_city ? (
+              <Badge variant="outline" className="text-[11px]">{client.billing_city}</Badge>
+            ) : null}
+          </div>
+        </div>
+      </div>
+    </TableCell>
+    <TableCell className={cv("type")}>
+      <ClientTypeBadge type={client.client_type} />
+    </TableCell>
+    <TableCell className={cv("phone", "hidden md:table-cell text-muted-foreground")}>{client.phone}</TableCell>
+    <TableCell className={cv("email", "hidden md:table-cell text-muted-foreground")}>{client.email}</TableCell>
+    <TableCell className={cv("source", "hidden lg:table-cell text-muted-foreground text-sm")}>
+      {client.source ? clientSourceLabels[client.source] : ""}
+    </TableCell>
+  </TableRow>
+);
 
 /* ---- Mobile card ---- */
 const ClientMobileCard = ({

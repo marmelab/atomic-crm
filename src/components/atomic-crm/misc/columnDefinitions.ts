@@ -28,6 +28,7 @@ export const EXPENSE_COLUMNS: ColumnDef[] = [
 
 export const SERVICE_COLUMNS: ColumnDef[] = [
   { key: "date", label: "Data", exportKey: "data_inizio" },
+  { key: "client", label: "Cliente", exportKey: "cliente" },
   { key: "project", label: "Progetto", exportKey: "progetto" },
   { key: "type", label: "Tipo", exportKey: "tipo" },
   { key: "description", label: "Descrizione", exportKey: "descrizione" },

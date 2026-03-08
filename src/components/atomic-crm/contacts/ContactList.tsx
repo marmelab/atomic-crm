@@ -2,22 +2,18 @@ import { CreateButton } from "@/components/admin/create-button";
 import { List } from "@/components/admin/list";
 import { SortButton } from "@/components/admin/sort-button";
 import { useCreatePath, useGetMany, useListContext } from "ra-core";
-import { Link } from "react-router";
 import {
   Table,
   TableBody,
-  TableCell,
   TableHead,
   TableHeader,
   TableRow,
+  ResizableHead,
 } from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
 import { useIsMobile } from "@/hooks/use-mobile";
-import type { LucideIcon } from "lucide-react";
-import { User, Crown, Briefcase, Euro } from "lucide-react";
-import { ListAvatar } from "../misc/ListAvatar";
 
 import { useColumnVisibility } from "@/hooks/useColumnVisibility";
+import { useResizableColumns } from "@/hooks/useResizableColumns";
 
 import type { Client, Contact } from "../types";
 import { TopToolbar } from "../layout/TopToolbar";
@@ -27,19 +23,12 @@ import { CONTACT_COLUMNS } from "../misc/columnDefinitions";
 import { ColumnVisibilityButton } from "../misc/ColumnVisibilityButton";
 import {
   ListSelectAllCheckbox,
-  ListRowCheckbox,
   MobileSelectableCard,
   ListBulkToolbar,
 } from "../misc/ListBulkSelection";
-import {
-  compareContactsForClientContext,
-  getContactDisplayName,
-  getContactPrimaryEmail,
-  getContactPrimaryPhone,
-  getContactResolvedRole,
-  getContactRoleLabel,
-  isContactPrimaryForClient,
-} from "./contactRecord";
+import { compareContactsForClientContext } from "./contactRecord";
+import { ContactMobileCard } from "./ContactMobileCard";
+import { ContactRow } from "./ContactRow";
 
 export const ContactList = () => {
   const { cv, columns, visibleKeys, toggleColumn } = useColumnVisibility(
@@ -97,6 +86,7 @@ const ContactListLayout = ({
   const { data: rawData, isPending, error } = useListContext<Contact>();
   const createPath = useCreatePath();
   const isMobile = useIsMobile();
+  const { getWidth, onResizeStart, headerRef } = useResizableColumns("contacts");
   const data = Array.isArray(rawData) ? rawData : Object.values(rawData ?? {});
   const clientIds = [
     ...new Set(data.map((contact) => contact.client_id).filter(Boolean)),
@@ -159,16 +149,16 @@ const ContactListLayout = ({
     <>
       <MobilePageTitle title="Referenti" />
       <div className="mt-4">
-        <Table>
-          <TableHeader>
+        <Table style={{ tableLayout: "fixed" }}>
+          <TableHeader ref={headerRef}>
             <TableRow>
               <TableHead className="w-10">
                 <ListSelectAllCheckbox />
               </TableHead>
-              <TableHead className={cv("name")}>Referente</TableHead>
-              <TableHead className={cv("role")}>Ruolo</TableHead>
-              <TableHead className={cv("contacts_info", "hidden md:table-cell")}>Contatti</TableHead>
-              <TableHead className={cv("client", "hidden lg:table-cell")}>Cliente</TableHead>
+              <ResizableHead colKey="name" width={getWidth("name")} onResizeStart={onResizeStart} className={cv("name")}>Referente</ResizableHead>
+              <ResizableHead colKey="role" width={getWidth("role")} onResizeStart={onResizeStart} className={cv("role")}>Ruolo</ResizableHead>
+              <ResizableHead colKey="contacts_info" width={getWidth("contacts_info")} onResizeStart={onResizeStart} className={cv("contacts_info", "hidden md:table-cell")}>Contatti</ResizableHead>
+              <ResizableHead colKey="client" width={getWidth("client")} onResizeStart={onResizeStart} className={cv("client", "hidden lg:table-cell")}>Cliente</ResizableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -194,166 +184,5 @@ const ContactListLayout = ({
       </div>
       <ListBulkToolbar />
     </>
-  );
-};
-
-const roleConfig: Record<
-  string,
-  { icon: LucideIcon; color: string; bg: string }
-> = {
-  amministrativo: {
-    icon: Crown,
-    color: "text-amber-600",
-    bg: "bg-amber-50 border-amber-200",
-  },
-  operativo: {
-    icon: Briefcase,
-    color: "text-blue-600",
-    bg: "bg-blue-50 border-blue-200",
-  },
-  fatturazione: {
-    icon: Euro,
-    color: "text-green-600",
-    bg: "bg-green-50 border-green-200",
-  },
-  referente: {
-    icon: User,
-    color: "text-slate-600",
-    bg: "bg-slate-50 border-slate-200",
-  },
-};
-
-const ContactIconAvatar = ({
-  role,
-  imageUrl,
-}: {
-  role: string;
-  imageUrl?: string | null;
-}) => {
-  const config = roleConfig[role];
-  return (
-    <ListAvatar
-      imageUrl={imageUrl}
-      icon={config?.icon ?? User}
-      iconColor={config?.color ?? "text-slate-500"}
-      bgClass={config?.bg ?? "bg-slate-50 border-slate-200"}
-    />
-  );
-};
-
-const ContactRow = ({
-  contact,
-  clientName,
-  link,
-  cv,
-}: {
-  contact: Contact;
-  clientName?: string | null;
-  link: string;
-  cv: (key: string, extra?: string) => string | undefined;
-}) => {
-  const primaryEmail = getContactPrimaryEmail(contact);
-  const primaryPhone = getContactPrimaryPhone(contact);
-  const resolvedRole = getContactResolvedRole(contact);
-  const roleLabel = getContactRoleLabel(resolvedRole);
-
-  return (
-    <TableRow className="cursor-pointer hover:bg-muted/50">
-      <TableCell className="w-10">
-        <ListRowCheckbox id={contact.id} />
-      </TableCell>
-      <TableCell className={cv("name")}>
-        <div className="flex items-start gap-3">
-          <ContactIconAvatar role={resolvedRole} imageUrl={contact.photo_url} />
-          <div className="space-y-1.5 min-w-0">
-            <Link
-              to={link}
-              className="font-medium text-primary hover:underline block"
-            >
-              {getContactDisplayName(contact)}
-            </Link>
-            <div className="flex flex-wrap gap-1">
-              {isContactPrimaryForClient(contact) ? (
-                <Badge variant="secondary" className="text-[11px]">
-                  Principale
-                </Badge>
-              ) : null}
-              {roleLabel ? (
-                <Badge variant="outline" className="text-[11px]">
-                  {roleLabel}
-                </Badge>
-              ) : null}
-              {primaryEmail ? (
-                <Badge variant="outline" className="text-[11px]">
-                  {primaryEmail}
-                </Badge>
-              ) : null}
-              {primaryPhone ? (
-                <Badge variant="outline" className="text-[11px]">
-                  {primaryPhone}
-                </Badge>
-              ) : null}
-            </div>
-          </div>
-        </div>
-      </TableCell>
-      <TableCell className={cv("role", "text-muted-foreground")}>
-        {[roleLabel, contact.title].filter(Boolean).join(" · ")}
-      </TableCell>
-      <TableCell className={cv("contacts_info", "hidden md:table-cell text-muted-foreground")}>
-        {[primaryEmail, primaryPhone].filter(Boolean).join(" · ")}
-      </TableCell>
-      <TableCell className={cv("client", "hidden lg:table-cell text-muted-foreground")}>
-        {clientName ?? ""}
-      </TableCell>
-    </TableRow>
-  );
-};
-
-const ContactMobileCard = ({
-  contact,
-  link,
-}: {
-  contact: Contact;
-  link: string;
-}) => {
-  const roleLabel = getContactRoleLabel(getContactResolvedRole(contact));
-
-  return (
-    <Link
-      to={link}
-      className="flex flex-col gap-1 px-1 py-3 active:bg-muted/50"
-    >
-      <span className="text-base font-bold">
-        {getContactDisplayName(contact)}
-      </span>
-      <div className="flex flex-wrap gap-1">
-        {isContactPrimaryForClient(contact) ? (
-          <Badge variant="secondary" className="text-[11px]">
-            Principale
-          </Badge>
-        ) : null}
-        {roleLabel ? (
-          <Badge variant="outline" className="text-[11px]">
-            {roleLabel}
-          </Badge>
-        ) : null}
-      </div>
-      {[
-        contact.title,
-        getContactPrimaryEmail(contact),
-        getContactPrimaryPhone(contact),
-      ].filter(Boolean).length > 0 ? (
-        <span className="text-xs text-muted-foreground">
-          {[
-            contact.title,
-            getContactPrimaryEmail(contact),
-            getContactPrimaryPhone(contact),
-          ]
-            .filter(Boolean)
-            .join(" · ")}
-        </span>
-      ) : null}
-    </Link>
   );
 };

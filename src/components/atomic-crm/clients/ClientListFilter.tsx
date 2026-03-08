@@ -25,6 +25,7 @@ import {
   getClientTextFilterValue,
   patchClientTextFilter,
 } from "./clientListFilters";
+import { FilterSection, FilterBadge } from "../filters/FilterHelpers";
 
 /* ---- Desktop sidebar ---- */
 export const ClientListFilter = () => (
@@ -211,39 +212,3 @@ const ClientFilterContent = () => {
   );
 };
 
-/* ---- Helpers ---- */
-const FilterSection = ({
-  icon,
-  label,
-  children,
-}: {
-  icon: React.ReactNode;
-  label: string;
-  children: React.ReactNode;
-}) => (
-  <div>
-    <div className="flex items-center gap-2 mb-2 text-sm font-medium text-muted-foreground">
-      {icon}
-      {label}
-    </div>
-    <div className="flex flex-wrap gap-1.5">{children}</div>
-  </div>
-);
-
-const FilterBadge = ({
-  label,
-  isActive,
-  onToggle,
-}: {
-  label: string;
-  isActive: boolean;
-  onToggle: () => void;
-}) => (
-  <Badge
-    variant={isActive ? "default" : "outline"}
-    className="cursor-pointer"
-    onClick={onToggle}
-  >
-    {label}
-  </Badge>
-);

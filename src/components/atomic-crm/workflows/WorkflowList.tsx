@@ -4,15 +4,16 @@ import {
   Table,
   TableBody,
   TableCell,
-  TableHead,
   TableHeader,
   TableRow,
+  ResizableHead,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { List } from "@/components/admin/list";
 import { CreateButton } from "@/components/admin/create-button";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { useResizableColumns } from "@/hooks/useResizableColumns";
 import { ArrowRight, Zap } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -49,6 +50,7 @@ const WorkflowListActions = () => (
 const WorkflowListLayout = () => {
   const { data, isPending } = useListContext<Workflow>();
   const isMobile = useIsMobile();
+  const { getWidth, onResizeStart, headerRef } = useResizableColumns("workflows");
 
   if (isPending || !data) return null;
 
@@ -73,13 +75,13 @@ const WorkflowListLayout = () => {
         <MobileWorkflowList data={data} />
       ) : (
         <div className="mt-4">
-          <Table>
-            <TableHeader>
+          <Table style={{ tableLayout: "fixed" }}>
+            <TableHeader ref={headerRef}>
               <TableRow>
-                <TableHead>Nome</TableHead>
-                <TableHead>Trigger</TableHead>
-                <TableHead>Azioni</TableHead>
-                <TableHead>Stato</TableHead>
+                <ResizableHead colKey="name" width={getWidth("name")} onResizeStart={onResizeStart}>Nome</ResizableHead>
+                <ResizableHead colKey="trigger" width={getWidth("trigger")} onResizeStart={onResizeStart}>Trigger</ResizableHead>
+                <ResizableHead colKey="actions" width={getWidth("actions")} onResizeStart={onResizeStart}>Azioni</ResizableHead>
+                <ResizableHead colKey="status" width={getWidth("status")} onResizeStart={onResizeStart}>Stato</ResizableHead>
               </TableRow>
             </TableHeader>
             <TableBody>

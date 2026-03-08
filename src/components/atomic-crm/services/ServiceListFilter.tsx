@@ -1,20 +1,7 @@
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 import { useListFilterContext, useGetList } from "ra-core";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
-import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-  CommandList,
-} from "@/components/ui/command";
 import {
   Sheet,
   SheetClose,
@@ -31,14 +18,18 @@ import {
   FolderOpen,
   FileText,
   Calendar,
-  ChevronsUpDown,
-  X,
   Filter,
   AlignLeft,
+  Building2,
 } from "lucide-react";
 
-import type { Project, Service } from "../types";
+import type { Client, Project, Service } from "../types";
 import { DateRangeFilter } from "../filters/DateRangeFilter";
+import {
+  FilterSection,
+  FilterBadge,
+  FilterPopover,
+} from "../filters/FilterHelpers";
 import { useConfigurationContext } from "../root/ConfigurationContext";
 
 /* ---- Desktop sidebar ---- */
@@ -106,9 +97,12 @@ export const ServiceMobileFilter = () => {
 /* ---- Shared filter content ---- */
 const ServiceFilterContent = () => {
   const { filterValues, setFilters } = useListFilterContext();
-  const [projectOpen, setProjectOpen] = useState(false);
-  const [invoiceOpen, setInvoiceOpen] = useState(false);
   const { serviceTypeChoices } = useConfigurationContext();
+
+  const { data: clients } = useGetList<Client>("clients", {
+    pagination: { page: 1, perPage: 200 },
+    sort: { field: "name", order: "ASC" },
+  });
 
   const { data: projects } = useGetList<Project>("projects", {
     pagination: { page: 1, perPage: 200 },
@@ -126,7 +120,9 @@ const ServiceFilterContent = () => {
     allServices.forEach((s) => {
       if (s.invoice_ref) refs.add(s.invoice_ref);
     });
-    return Array.from(refs).sort();
+    return Array.from(refs)
+      .sort()
+      .map((r) => ({ id: r, name: r }));
   }, [allServices]);
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -177,67 +173,37 @@ const ServiceFilterContent = () => {
         />
       </FilterSection>
 
+      {clients && clients.length > 0 && (
+        <FilterSection
+          icon={<Building2 className="size-4" />}
+          label="Cliente"
+        >
+          <FilterPopover
+            items={clients}
+            filterKey="client_id@eq"
+            filterValues={filterValues}
+            setFilters={setFilters}
+            placeholder="Cerca cliente..."
+            emptyLabel="Nessun cliente"
+            ariaLabel="Filtra per cliente"
+          />
+        </FilterSection>
+      )}
+
       {projects && projects.length > 0 && (
         <FilterSection
           icon={<FolderOpen className="size-4" />}
           label="Progetto"
         >
-          <div className="w-full">
-            <Popover open={projectOpen} onOpenChange={setProjectOpen}>
-              <PopoverTrigger asChild>
-                <button
-                  type="button"
-                  aria-label="Filtra per progetto"
-                  className="flex h-9 w-full items-center justify-between rounded-md border border-input bg-transparent px-3 py-1 text-sm"
-                >
-                  <span className="truncate">
-                    {filterValues["project_id@eq"]
-                      ? (projects.find(
-                          (p) => String(p.id) === filterValues["project_id@eq"],
-                        )?.name ?? "Tutti")
-                      : "Tutti"}
-                  </span>
-                  {filterValues["project_id@eq"] ? (
-                    <X
-                      className="size-3.5 shrink-0 opacity-50 hover:opacity-100"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        const { "project_id@eq": _, ...rest } = filterValues;
-                        setFilters(rest);
-                      }}
-                    />
-                  ) : (
-                    <ChevronsUpDown className="size-3.5 shrink-0 opacity-50" />
-                  )}
-                </button>
-              </PopoverTrigger>
-              <PopoverContent className="w-52 p-0" align="start">
-                <Command>
-                  <CommandInput placeholder="Cerca progetto..." />
-                  <CommandList>
-                    <CommandEmpty>Nessun progetto</CommandEmpty>
-                    <CommandGroup>
-                      {projects.map((p) => (
-                        <CommandItem
-                          key={String(p.id)}
-                          value={p.name}
-                          onSelect={() => {
-                            setFilters({
-                              ...filterValues,
-                              "project_id@eq": String(p.id),
-                            });
-                            setProjectOpen(false);
-                          }}
-                        >
-                          {p.name}
-                        </CommandItem>
-                      ))}
-                    </CommandGroup>
-                  </CommandList>
-                </Command>
-              </PopoverContent>
-            </Popover>
-          </div>
+          <FilterPopover
+            items={projects}
+            filterKey="project_id@eq"
+            filterValues={filterValues}
+            setFilters={setFilters}
+            placeholder="Cerca progetto..."
+            emptyLabel="Nessun progetto"
+            ariaLabel="Filtra per progetto"
+          />
         </FilterSection>
       )}
 
@@ -270,58 +236,16 @@ const ServiceFilterContent = () => {
           icon={<FileText className="size-4" />}
           label="Rif. Fattura"
         >
-          <div className="w-full">
-            <Popover open={invoiceOpen} onOpenChange={setInvoiceOpen}>
-              <PopoverTrigger asChild>
-                <button
-                  type="button"
-                  aria-label="Filtra per fattura"
-                  className="flex h-9 w-full items-center justify-between rounded-md border border-input bg-transparent px-3 py-1 text-sm"
-                >
-                  <span className="truncate">
-                    {(filterValues["invoice_ref@eq"] as string) ?? "Tutte"}
-                  </span>
-                  {filterValues["invoice_ref@eq"] ? (
-                    <X
-                      className="size-3.5 shrink-0 opacity-50 hover:opacity-100"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        const { "invoice_ref@eq": _, ...rest } = filterValues;
-                        setFilters(rest);
-                      }}
-                    />
-                  ) : (
-                    <ChevronsUpDown className="size-3.5 shrink-0 opacity-50" />
-                  )}
-                </button>
-              </PopoverTrigger>
-              <PopoverContent className="w-52 p-0" align="start">
-                <Command>
-                  <CommandInput placeholder="Cerca fattura..." />
-                  <CommandList>
-                    <CommandEmpty>Nessuna fattura</CommandEmpty>
-                    <CommandGroup>
-                      {invoiceRefs.map((ref) => (
-                        <CommandItem
-                          key={ref}
-                          value={ref}
-                          onSelect={() => {
-                            setFilters({
-                              ...filterValues,
-                              "invoice_ref@eq": ref,
-                            });
-                            setInvoiceOpen(false);
-                          }}
-                        >
-                          {ref}
-                        </CommandItem>
-                      ))}
-                    </CommandGroup>
-                  </CommandList>
-                </Command>
-              </PopoverContent>
-            </Popover>
-          </div>
+          <FilterPopover
+            items={invoiceRefs}
+            filterKey="invoice_ref@eq"
+            filterValues={filterValues}
+            setFilters={setFilters}
+            placeholder="Cerca fattura..."
+            emptyLabel="Nessuna fattura"
+            allLabel="Tutte"
+            ariaLabel="Filtra per fattura"
+          />
         </FilterSection>
       )}
 
@@ -336,40 +260,3 @@ const ServiceFilterContent = () => {
     </div>
   );
 };
-
-/* ---- Helpers ---- */
-const FilterSection = ({
-  icon,
-  label,
-  children,
-}: {
-  icon: React.ReactNode;
-  label: string;
-  children: React.ReactNode;
-}) => (
-  <div>
-    <div className="flex items-center gap-2 mb-2 text-sm font-medium text-muted-foreground">
-      {icon}
-      {label}
-    </div>
-    <div className="flex flex-wrap gap-1.5">{children}</div>
-  </div>
-);
-
-const FilterBadge = ({
-  label,
-  isActive,
-  onToggle,
-}: {
-  label: string;
-  isActive: boolean;
-  onToggle: () => void;
-}) => (
-  <Badge
-    variant={isActive ? "default" : "outline"}
-    className="cursor-pointer"
-    onClick={onToggle}
-  >
-    {label}
-  </Badge>
-);
