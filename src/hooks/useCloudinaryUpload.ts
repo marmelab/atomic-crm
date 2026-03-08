@@ -70,7 +70,6 @@ export function useCloudinaryUpload({
           "local",
           "url",
           "camera",
-          "image_search",
           "google_drive",
           "dropbox",
           "unsplash",
