@@ -4,10 +4,8 @@ import {
   ChevronRight,
   RefreshCw,
   Settings,
-  X,
 } from "lucide-react";
 import { useState } from "react";
-import { useStore } from "ra-core";
 import { Link } from "react-router-dom";
 
 import { Badge } from "@/components/ui/badge";
@@ -49,10 +47,6 @@ const REALTIME_TABLES = [
 export const DashboardAnnual = () => {
   useRealtimeInvalidation(REALTIME_TABLES);
   const [selectedYear, setSelectedYear] = useState(currentYear);
-  const [readingGuideDismissed, setReadingGuideDismissed] = useStore<boolean>(
-    "dashboard.readingGuide.dismissed",
-    false,
-  );
   const { data, isPending, error, refetch } = useDashboardData(selectedYear);
   const isCurrentYear = data?.isCurrentYear ?? selectedYear === currentYear;
 
@@ -87,24 +81,11 @@ export const DashboardAnnual = () => {
         isCurrentYear={isCurrentYear}
       />
 
-      {readingGuideDismissed ? (
-        <div>
-          <Button
-            variant="link"
-            className="h-auto px-0 text-xs"
-            onClick={() => setReadingGuideDismissed(false)}
-          >
-            Come leggere Annuale
-          </Button>
-        </div>
-      ) : (
-        <AnnualReadingGuide
-          year={data.selectedYear}
-          isCurrentYear={data.isCurrentYear}
-          asOfDateLabel={data.meta.asOfDateLabel}
-          onDismiss={() => setReadingGuideDismissed(true)}
-        />
-      )}
+      <p className="text-sm text-muted-foreground -mt-3">
+        {isCurrentYear
+          ? `Lavoro svolto al ${data.meta.asOfDateLabel}`
+          : `Riepilogo ${data.selectedYear}`}
+      </p>
 
       <DashboardKpiCards
         kpis={data.kpis}
@@ -263,50 +244,6 @@ const YearSelector = ({
       <ChevronRight className="h-4 w-4" />
     </Button>
   </div>
-);
-
-const AnnualReadingGuide = ({
-  year,
-  isCurrentYear,
-  asOfDateLabel,
-  onDismiss,
-}: {
-  year: number;
-  isCurrentYear: boolean;
-  asOfDateLabel: string;
-  onDismiss: () => void;
-}) => (
-  <Card className="gap-0">
-    <CardContent className="px-4 py-4 space-y-2 text-sm">
-      <div className="flex items-start justify-between gap-3">
-        <p className="font-medium">Come leggere Annuale</p>
-        <Button
-          type="button"
-          variant="ghost"
-          size="icon"
-          className="h-6 w-6 text-muted-foreground"
-          onClick={onDismiss}
-          aria-label="Chiudi guida lettura annuale"
-        >
-          <X className="h-4 w-4" />
-        </Button>
-      </div>
-      <p className="text-muted-foreground">
-        Qui vedi tutto il lavoro svolto nell'anno scelto, inclusi servizi
-        diretti (senza progetto). Non sono gli incassi.
-      </p>
-      <p className="text-muted-foreground">
-        {isCurrentYear
-          ? `${year} è letto finora al ${asOfDateLabel}: i servizi futuri dell'anno sono esclusi dai totali operativi.`
-          : `${year} viene letto sull'intero anno, da gennaio a dicembre.`}
-      </p>
-      <p className="text-muted-foreground">
-        Pagamenti da ricevere e preventivi aperti hanno un significato diverso:
-        i primi sono incassi attesi, i secondi sono opportunità ancora da
-        chiudere. Il blocco fiscale sotto è una simulazione.
-      </p>
-    </CardContent>
-  </Card>
 );
 
 const DashboardAnnualError = ({ onRetry }: { onRetry: () => void }) => (

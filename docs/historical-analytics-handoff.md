@@ -50,7 +50,13 @@ Replaced generic questions with actionable ones. 10 questions per year variant
 include YoY comparison, net income, client cultivation, margin analysis,
 pipeline, seasonality, receivables, concentration risk.
 
-**File toccati**: 14 dashboard files + `annualAnalysis.ts` + `AGENTS.md`.
+Also removed the "Come leggere Annuale" reading guide card (`AnnualReadingGuide`
++ `useStore` dismiss state) — replaced by a single inline subtitle under the
+year selector ("Lavoro svolto al DD/MM/YYYY" or "Riepilogo YYYY"). AI card
+tests updated to match new UI (prominent button + color-coded chips).
+
+**File toccati**: 14 dashboard files + `annualAnalysis.ts` + `AGENTS.md` +
+test file.
 
 ## Update 2026-03-08 (g) — Dashboard visual redesign + card standardization
 

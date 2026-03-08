@@ -53,31 +53,22 @@ describe("DashboardAnnualAiSummaryCard", () => {
     notify.mockReset();
   });
 
-  it("renders annual summary action, guardrail, and suggested questions", () => {
+  it("renders primary summary button and suggested question chips", () => {
     renderCard();
 
-    expect(screen.getByText("AI: spiegami l'anno 2025")).toBeInTheDocument();
     expect(
-      screen.getByText(
-        "Legge la parte operativa dell'anno scelto: valore del lavoro, clienti, categorie, spese, margine lordo, pagamenti da ricevere e preventivi aperti. Non include il simulatore fiscale ne gli alert di oggi.",
-      ),
+      screen.getByRole("button", { name: /Spiegami l'anno 2025/ }),
     ).toBeInTheDocument();
-    expect(
-      screen.getByRole("button", { name: "Cosa ha trainato il 2025?" }),
-    ).toBeInTheDocument();
-    expect(
-      screen.getByText(
-        "L'AI risponde usando solo i numeri operativi di Annuale. Se una cosa non e dimostrabile, te lo dice chiaramente e non tratta uno zero come un problema automatico.",
-      ),
-    ).toBeInTheDocument();
-    expect(
-      screen.getByRole("button", { name: "Chiedi all'AI" }),
-    ).toBeDisabled();
+    expect(screen.getByText("Com'è andato?")).toBeInTheDocument();
+    expect(screen.getByText("Quanto ho guadagnato?")).toBeInTheDocument();
+    expect(screen.getByText("Chi ha portato valore?")).toBeInTheDocument();
+    expect(screen.getByText("Dove ho speso troppo?")).toBeInTheDocument();
   });
 
-  it("asks a suggested annual question and renders the answer", async () => {
+  it("asks a suggested question and renders the answer", async () => {
+    const questionText = `Com'è andato il 2025 rispetto al 2024? Confronta ricavi, clienti, margini.`;
     askAnnualOperationsQuestion.mockResolvedValue({
-      question: "Cosa ha trainato il 2025?",
+      question: questionText,
       model: "gpt-5.2",
       generatedAt: "2026-02-28T07:00:00.000Z",
       answerMarkdown:
@@ -86,16 +77,12 @@ describe("DashboardAnnualAiSummaryCard", () => {
 
     renderCard();
 
-    fireEvent.click(
-      screen.getByRole("button", {
-        name: "Cosa ha trainato il 2025?",
-      }),
-    );
+    fireEvent.click(screen.getByText("Com'è andato?"));
 
     await waitFor(() =>
       expect(askAnnualOperationsQuestion).toHaveBeenCalledWith(
         2025,
-        "Cosa ha trainato il 2025?",
+        questionText,
       ),
     );
     expect(
@@ -115,7 +102,9 @@ describe("DashboardAnnualAiSummaryCard", () => {
 
     renderCard();
 
-    fireEvent.click(screen.getByRole("button", { name: "Spiegami Annuale" }));
+    fireEvent.click(
+      screen.getByRole("button", { name: /Spiegami l'anno 2025/ }),
+    );
 
     await waitFor(() =>
       expect(generateAnnualOperationsAnalyticsSummary).toHaveBeenCalledWith(
