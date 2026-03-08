@@ -6,7 +6,7 @@ obbligatoria delle superfici collegate.
 **Quando usarlo:** ogni volta che una modifica tocca comportamento reale del
 prodotto.
 
-Last updated: 2026-03-08
+Last updated: 2026-03-08 (palette iteration on QuotePDF — navy+teal)
 
 ---
 

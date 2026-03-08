@@ -22,14 +22,15 @@ const LOGO_URL = "/logos/logo_rosario_furnari.png";
 
 // ── Styles ────────────────────────────────────────────────────────
 const colors = {
-  primary: "#1e293b", // slate-800 — solid, readable
-  accent: "#334155", // slate-700 — understated, versatile
-  accentSoft: "#f1f5f9", // slate-100 — subtle tint
-  gold: "#92400e", // amber-800 — warm but serious for totals
+  primary: "#0f172a", // slate-900 — deep, authoritative
+  accent: "#1e3a5f", // navy — strong, professional impact
+  accentSoft: "#f0f4f8", // light blue-grey tint
+  highlight: "#0d9488", // teal-600 — modern, fresh accent
+  highlightSoft: "#f0fdfa", // teal-50
   muted: "#64748b", // slate-500
   light: "#f8fafc", // slate-50
   white: "#ffffff",
-  border: "#e2e8f0", // slate-200
+  border: "#cbd5e1", // slate-300 — slightly more visible
 };
 
 const styles = StyleSheet.create({
@@ -43,7 +44,7 @@ const styles = StyleSheet.create({
   },
   // Top accent band
   topBand: {
-    height: 6,
+    height: 5,
     backgroundColor: colors.accent,
   },
   content: {
@@ -68,16 +69,16 @@ const styles = StyleSheet.create({
     borderRadius: 26,
   },
   brandName: {
-    fontSize: 20,
+    fontSize: 22,
     fontFamily: "Helvetica-Bold",
-    color: colors.primary,
-    letterSpacing: 0.3,
+    color: colors.accent,
+    letterSpacing: 0.5,
   },
   brandTagline: {
-    fontSize: 8.5,
-    color: colors.accent,
-    marginTop: 3,
-    letterSpacing: 0.8,
+    fontSize: 8,
+    color: colors.highlight,
+    marginTop: 4,
+    letterSpacing: 1.2,
     textTransform: "uppercase" as const,
   },
   brandDetail: {
@@ -89,11 +90,10 @@ const styles = StyleSheet.create({
     alignItems: "flex-end" as const,
   },
   quoteLabel: {
-    fontSize: 11,
+    fontSize: 24,
     fontFamily: "Helvetica-Bold",
     color: colors.accent,
-    textTransform: "uppercase" as const,
-    letterSpacing: 2.5,
+    letterSpacing: 1,
   },
   quoteNumber: {
     fontSize: 9,
@@ -103,8 +103,8 @@ const styles = StyleSheet.create({
   },
   // Divider
   divider: {
-    height: 1,
-    backgroundColor: colors.border,
+    height: 2,
+    backgroundColor: colors.accent,
     marginBottom: 24,
   },
   // Two-column info
@@ -119,9 +119,9 @@ const styles = StyleSheet.create({
   infoLabel: {
     fontSize: 7.5,
     fontFamily: "Helvetica-Bold",
-    color: colors.accent,
+    color: colors.highlight,
     textTransform: "uppercase" as const,
-    letterSpacing: 1.2,
+    letterSpacing: 1.5,
     marginBottom: 7,
   },
   infoText: {
@@ -142,14 +142,14 @@ const styles = StyleSheet.create({
   },
   tableHeader: {
     flexDirection: "row",
-    backgroundColor: colors.accentSoft,
+    backgroundColor: colors.accent,
     paddingVertical: 10,
     paddingHorizontal: 12,
-    borderBottomWidth: 1.5,
-    borderBottomColor: colors.accent,
+    borderTopLeftRadius: 3,
+    borderTopRightRadius: 3,
   },
   tableHeaderText: {
-    color: colors.accent,
+    color: colors.white,
     fontSize: 8,
     fontFamily: "Helvetica-Bold",
     textTransform: "uppercase" as const,
@@ -170,43 +170,45 @@ const styles = StyleSheet.create({
   colAmount: { width: "20%", textAlign: "right" as const },
   // Total
   totalContainer: {
-    marginTop: 8,
-    paddingTop: 16,
-    paddingBottom: 12,
+    marginTop: 4,
+    paddingTop: 14,
+    paddingBottom: 14,
     paddingHorizontal: 12,
-    backgroundColor: colors.accentSoft,
+    backgroundColor: colors.highlightSoft,
     borderRadius: 4,
+    borderLeftWidth: 4,
+    borderLeftColor: colors.highlight,
     flexDirection: "row",
     justifyContent: "flex-end",
     alignItems: "center",
   },
   totalLabel: {
-    fontSize: 11,
+    fontSize: 12,
     fontFamily: "Helvetica-Bold",
-    color: colors.muted,
+    color: colors.primary,
     textTransform: "uppercase" as const,
-    letterSpacing: 1,
+    letterSpacing: 1.5,
     marginRight: 20,
   },
   totalAmount: {
-    fontSize: 18,
+    fontSize: 22,
     fontFamily: "Helvetica-Bold",
-    color: colors.gold,
+    color: colors.accent,
     letterSpacing: 0.5,
   },
   // Notes section
   notesSection: {
     marginTop: 24,
     padding: 14,
-    backgroundColor: colors.light,
+    backgroundColor: colors.accentSoft,
     borderRadius: 4,
     borderLeftWidth: 3,
-    borderLeftColor: colors.accent,
+    borderLeftColor: colors.highlight,
   },
   notesTitle: {
     fontSize: 8,
     fontFamily: "Helvetica-Bold",
-    color: colors.accent,
+    color: colors.highlight,
     textTransform: "uppercase" as const,
     letterSpacing: 1,
     marginBottom: 6,
