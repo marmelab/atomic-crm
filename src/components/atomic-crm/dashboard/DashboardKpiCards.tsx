@@ -41,7 +41,7 @@ export const DashboardKpiCards = ({
     delta == null ? null : delta > 0 ? "up" : delta < 0 ? "down" : "flat";
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+    <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-5 gap-4">
       <DashboardNetAvailabilityCard
         kpis={kpis}
         fiscalKpis={fiscalKpis}
@@ -53,69 +53,54 @@ export const DashboardKpiCards = ({
         value={formatCurrency(kpis.pendingPaymentsTotal)}
         icon={<Clock3 className="h-4 w-4" />}
         accent="amber"
-        subtitle={`${kpis.pendingPaymentsCount} pagamenti attesi: incassi, non lavoro svolto`}
+        detail={`${kpis.pendingPaymentsCount} pagamenti attesi`}
+        badge="Incassi attesi · non lavoro svolto"
       />
       <KpiCard
         title="Valore del lavoro del mese"
         value={formatCurrency(kpis.monthlyRevenue)}
         icon={<Euro className="h-4 w-4" />}
         accent="blue"
-        footer={
-          <div className="space-y-1">
-            <div className="text-xs text-muted-foreground">
-              Rif. {meta.monthlyReferenceLabel} · tutto il lavoro svolto
-            </div>
-            <div className="flex items-center justify-between gap-2 text-xs text-muted-foreground">
-              <span>
-                Km mese: {Math.round(kpis.monthlyKm)} (
-                {formatCompactCurrency(kpis.monthlyKmCost)})
-              </span>
-              {deltaDirection ? (
-                <DeltaBadge
-                  direction={deltaDirection}
-                  value={delta}
-                  compact={compact}
-                />
-              ) : (
-                <Badge variant="secondary">N/D</Badge>
-              )}
-            </div>
+        detail={
+          <div className="space-y-0.5">
+            <p>
+              Km: {Math.round(kpis.monthlyKm)} (
+              {formatCompactCurrency(kpis.monthlyKmCost)})
+            </p>
+            {deltaDirection ? (
+              <DeltaBadge
+                direction={deltaDirection}
+                value={delta}
+                compact={compact}
+              />
+            ) : null}
           </div>
         }
+        badge={`Rif. ${meta.monthlyReferenceLabel}`}
       />
       <KpiCard
         title="Valore del lavoro dell'anno"
         value={formatCurrency(kpis.annualRevenue)}
         icon={<Wallet className="h-4 w-4" />}
         accent="indigo"
-        footer={
-          <div className="space-y-1">
-            <p className="text-xs text-muted-foreground">
-              {meta.operationsPeriodLabel} &middot; tutto il lavoro svolto
-            </p>
-            {kpis.yoy && (
-              <DashboardYoyBadge
-                deltaPct={kpis.yoy.annualRevenueDeltaPct}
-                previousYear={kpis.yoy.previousYear}
-                compact={compact}
-              />
-            )}
-          </div>
+        detail={
+          kpis.yoy ? (
+            <DashboardYoyBadge
+              deltaPct={kpis.yoy.annualRevenueDeltaPct}
+              previousYear={kpis.yoy.previousYear}
+              compact={compact}
+            />
+          ) : null
         }
+        badge={meta.operationsPeriodLabel}
       />
       <KpiCard
         title="Preventivi aperti"
         value={`${kpis.openQuotesCount}`}
         icon={<FileText className="h-4 w-4" />}
         accent="sky"
-        footer={
-          <div className="space-y-1 text-xs text-muted-foreground">
-            <div>
-              Valore aperto: {formatCurrencyPrecise(kpis.openQuotesAmount)}
-            </div>
-            <div>Pipeline potenziale, non ricavo già acquisito</div>
-          </div>
-        }
+        detail={`Valore: ${formatCurrencyPrecise(kpis.openQuotesAmount)}`}
+        badge="Pipeline potenziale"
       />
     </div>
   );
@@ -153,15 +138,15 @@ const KpiCard = ({
   title,
   value,
   icon,
-  subtitle,
-  footer,
+  detail,
+  badge,
   accent,
 }: {
   title: string;
   value: string;
   icon: React.ReactNode;
-  subtitle?: string;
-  footer?: React.ReactNode;
+  detail?: React.ReactNode;
+  badge?: string;
   accent?: KpiAccent;
 }) => {
   const style = accent ? accentStyles[accent] : null;
@@ -178,10 +163,14 @@ const KpiCard = ({
         >
           {value}
         </div>
-        {footer ??
-          (subtitle ? (
-            <p className="text-xs text-muted-foreground">{subtitle}</p>
-          ) : null)}
+        {detail && (
+          <div className="text-xs text-muted-foreground">{detail}</div>
+        )}
+        {badge && (
+          <Badge variant="outline" className="text-[10px] bg-white dark:bg-background">
+            {badge}
+          </Badge>
+        )}
       </CardContent>
     </Card>
   );

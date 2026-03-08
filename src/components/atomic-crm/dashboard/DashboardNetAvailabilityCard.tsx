@@ -95,7 +95,7 @@ export const DashboardNetAvailabilityCard = ({
             </p>
           </div>
         </details>
-        <Badge variant="secondary" className="text-[10px]">
+        <Badge variant="outline" className="text-[10px] bg-white dark:bg-background">
           {meta.isCurrentYear ? "Provvisorio" : meta.selectedYear.toString()}{" "}
           &middot; cassa &minus; spese &minus; tasse
         </Badge>

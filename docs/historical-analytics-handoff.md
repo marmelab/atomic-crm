@@ -8,9 +8,9 @@ prodotto senza incrociarlo con `docs/README.md` e i documenti `canonical`.
 
 Last updated: 2026-03-08
 
-## Update 2026-03-08 (g) — Dashboard visual redesign + card reorder
+## Update 2026-03-08 (g) — Dashboard visual redesign + card standardization
 
-Redesigned KPI cards with color-coded accent system and restructured layout:
+Redesigned KPI cards with color-coded accent system and standardized structure:
 
 1. `DashboardNetAvailabilityCard`: dynamic green/red border+bg based on sign,
    collapsible breakdown table with `<details>`, big number on top + small
@@ -20,6 +20,10 @@ Redesigned KPI cards with color-coded accent system and restructured layout:
 3. NetAvailability card moved inside KpiCards grid (same size as other cards)
 4. Card order: NetAvailability → Payments → Month → Year → Quotes
    (cash → urgencies → production → perspective)
+5. 5-column grid on desktop (`xl:grid-cols-5`) — all cards in one row
+6. Standardized card structure: title → big colored number → detail text → white
+   outline badge at bottom (consistent across all KPI cards)
+7. White badges: `variant="outline"` with `bg-white dark:bg-background`
 
 **File toccati**: `DashboardNetAvailabilityCard.tsx`, `DashboardKpiCards.tsx`,
 `DashboardAnnual.tsx`.
