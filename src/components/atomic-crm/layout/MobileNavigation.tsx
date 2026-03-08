@@ -8,6 +8,13 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { cn } from "@/lib/utils";
 import {
@@ -26,6 +33,8 @@ import {
   Translate,
   useAuthProvider,
   useGetIdentity,
+  useLocaleState,
+  useLocales,
   useLogout,
   useTranslate,
 } from "ra-core";
@@ -198,6 +207,36 @@ const CreateButton = () => {
   );
 };
 
+const LanguageMenu = () => {
+  const translate = useTranslate();
+  const locales = useLocales();
+  const [locale, setLocale] = useLocaleState();
+
+  if (locales.length <= 1) {
+    return null;
+  }
+
+  return (
+    <div className="px-3 py-2">
+      <p className="text-xs text-muted-foreground mb-1">
+        {translate("crm.language", { _: "Language" })}
+      </p>
+      <Select value={locale} onValueChange={setLocale}>
+        <SelectTrigger className="w-full">
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent>
+          {locales.map((language) => (
+            <SelectItem key={language.locale} value={language.locale}>
+              {language.name}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+    </div>
+  );
+};
+
 const SettingsButton = () => {
   const translate = useTranslate();
   const authProvider = useAuthProvider();
@@ -237,6 +276,7 @@ const SettingsButton = () => {
         </DropdownMenuItem>
         <DropdownMenuSeparator />
         <ThemeMenu />
+        <LanguageMenu />
         <DropdownMenuSeparator />
         <DropdownMenuItem
           onClick={() => logout()}
