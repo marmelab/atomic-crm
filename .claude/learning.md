@@ -38,6 +38,7 @@
 | **Workflow** | WF-2  | CI prettier fail su file da subagent      |
 | **Workflow** | WF-3  | Destructuring param → verificare completo |
 | **Workflow** | WF-4  | Aggiorno file sistema → sweep incrociata  |
+| **Workflow** | WF-5  | E2E test → valida sistema, non adattare   |
 
 ---
 
@@ -196,6 +197,12 @@ verify_jwt = false
 **Fare**: PRIMA di dichiarare "fatto", verificare che TUTTI gli altri file di sistema siano coerenti:
 - Riferimenti a file: esistono ancora? path corretto?
 - Formati descritti nelle istruzioni: corrispondono al formato reale del file?
+
+### WF-5: E2E test → validano il sistema, non si adattano
+
+**Quando**: un E2E test fallisce dopo un mio cambiamento
+**Fare**: verificare PRIMA se il sistema produce il valore corretto (query DB, screenshot). Se sì, il test era sbagliato — correggi il test. Se no, il mio codice ha un bug — correggi il codice.
+**Perché**: i test servono a verificare il sistema corretto. Adattare i test per farli passare senza capire la causa nasconde bug reali (es. calculations.smoke aspettava 644€ ma il sistema produceva correttamente 653,50€ da sempre).
 - Liste/elenchi (tabelle, schema, Edge Functions): sono aggiornati?
 - Niente overlap: stessa informazione in un solo posto
 **Perché**: aggiornare un file alla volta senza sweep causa disallineamenti a catena che l'utente scopre dopo ripetuti "è tutto ok?" → "no, c'è un altro problema"

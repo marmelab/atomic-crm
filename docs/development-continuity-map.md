@@ -6,7 +6,7 @@ obbligatoria delle superfici collegate.
 **Quando usarlo:** ogni volta che una modifica tocca comportamento reale del
 prodotto.
 
-Last updated: 2026-03-06
+Last updated: 2026-03-08
 
 ---
 
@@ -14,6 +14,8 @@ Last updated: 2026-03-06
 
 ### Recent Updates (cronologico, più recente in alto)
 
+- [2026-03-08 (d)](#update-2026-03-08-d--ai-annual-expense-context--dashboard-alert-links--e2e-real-ai-tests) — AI annual expense context + dashboard alert links + E2E real AI tests
+- [2026-03-08 (c)](#update-2026-03-08-c--service-type-icons--project-view-persistence) — Service type icons + project view persistence
 - [2026-03-08 (b)](#update-2026-03-08-b--resizable-columns--client-filter--filterhelpers-refactor) — Resizable columns on all lists + client filter on services + FilterHelpers refactor
 - [2026-03-08](#update-2026-03-08--cloudinary-module-integration--ai-support) — Cloudinary media fields on Clients, Contacts, Payments, Expenses, Suppliers + AI snapshot
 - [2026-03-07 (b)](#update-2026-03-07-b--cloudinary-media-integration) — Cloudinary media infrastructure (SDK, widgets, hooks, component)
@@ -74,6 +76,57 @@ Last updated: 2026-03-06
 - [Nota manutenzione 2026-03-02](#nota-manutenzione-2026-03-02-fix-ci)
 - [Testing Session Log 2026-03-04](#testing-session-log-2026-03-04--e2e-complete-validation)
 - [AI Semantic UI Upgrade 2026-03-04](#ai-semantic-ui-upgrade-2026-03-04--pareto-principle-applied)
+
+---
+
+## Update 2026-03-08 (d) — AI annual expense context + dashboard alert links + E2E real AI tests
+
+### Cosa è cambiato
+
+- `DashboardModel` aggrega spese per tipo nell'anno selezionato: esclude
+  `credito_ricevuto`, calcola rimborso km da `km_rate` salvato nel DB, espone
+  `annualExpensesTotal`, `annualExpensesCount`, `expensesByType`.
+- `buildAnnualOperationsContext` serializza sezione `expenses` (total,
+  formattedTotal, count, byType) e metrica `annual_expenses_total` con
+  `basis: "cost"`.
+- Edge Functions `annual_operations_summary` e `annual_operations_answer`
+  aggiornate con definizioni spese/margine e guidance anno provvisorio.
+  `max_output_tokens` da 900 a 1500.
+- `annualOperationsAiGuidance` aggiunge guardrail dinamiche: zero-spese non è
+  problema automatico, caveat anno corrente provvisorio, riconoscimento domande
+  su spese/margini (stem matching per spese/speso/spesa + costi/costo/margine),
+  reframe domande spese con qualificatore temporale.
+- `DashboardAlertsCard`: icona link discreta (ExternalLink) su ogni riga alert
+  per navigare alla pagina dettaglio servizio/preventivo.
+
+### E2E tests creati
+
+- `dashboard-annual.smoke.spec.ts` (4 test): KPI dashboard, alert links
+  cliccabili, card AI presente con menzione spese, payload AI con expense data
+  e esclusione credito_ricevuto (mock).
+- `ai-annual-real.spec.ts` (2 test): chiamata REALE alla Edge Function, verifica
+  che la AI produca calcolo margine corretto (6500-683.50=5816.50), dica
+  "provvisorio", non confonda con reddito fiscale, non tratti zeri come problemi.
+- Fix bug pre-esistente in `calculations.smoke.spec.ts`: aspettava 644€ spese
+  ma il sistema produce correttamente 653,50€ (mancava km servizio 2).
+
+### Superfici toccate
+
+- `src/components/atomic-crm/dashboard/` (model, types, fiscal, alerts card, AI card)
+- `src/lib/analytics/buildAnnualOperationsContext.ts`
+- `supabase/functions/_shared/annualOperationsAiGuidance.ts`
+- `supabase/functions/annual_operations_summary/index.ts`
+- `supabase/functions/annual_operations_answer/index.ts`
+- `tests/e2e/` (3 nuovi file test, 1 fix, seed arricchito)
+
+---
+
+## Update 2026-03-08 (c) — Service type icons + project view persistence
+
+- Icone servizio: `riprese_montaggio` → Clapperboard/indigo,
+  `sviluppo_web` → Code/teal. Tutti i `defaultServiceTypeChoices` ora hanno
+  icona+colore dedicati.
+- Progetti: scelta lista/kanban salvata in localStorage (`projects.viewMode`).
 
 ---
 

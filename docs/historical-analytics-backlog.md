@@ -6,7 +6,34 @@
 incrociarlo con `docs/README.md`, `docs/architecture.md` e i documenti
 `canonical`.
 
-Last updated: 2026-03-04
+Last updated: 2026-03-08
+
+## Update 2026-03-08
+
+Slice completata: `AI annual expense context + dashboard UX + E2E validation`.
+
+Deliverable chiusi:
+
+- AI "spiegami l'anno" ora include spese operative: totale, breakdown per tipo,
+  metrica `annual_expenses_total`, margine lordo operativo (lavoro - spese)
+- Guardrail AI: zero-spese non è problema automatico, anno corrente = provvisorio,
+  reddito fiscale esplicitamente fuori scope, stem matching per domande su
+  spese/margini, reframe domande spese con qualificatore temporale
+- Dashboard alert: icona link discreta per navigare al dettaglio servizio/pagamento
+- Icone servizio dedicate: `riprese_montaggio` (Clapperboard), `sviluppo_web` (Code)
+- Persistenza scelta lista/kanban su progetti (localStorage)
+- Edge Functions deployate: `annual_operations_summary`, `annual_operations_answer`
+
+E2E test aggiunti (6 nuovi):
+
+- `dashboard-annual.smoke.spec.ts` (4 test mock): KPI, alert links, card AI, payload
+- `ai-annual-real.spec.ts` (2 test reali): verifica calcolo margine e prudenza AI
+- Fix bug pre-esistente `calculations.smoke`: spese 644→653,50€ (mancava km S2)
+- Seed arricchito con `abbonamento_software` + `credito_ricevuto` per validazione
+
+Backlog immediato residuo:
+
+- nessun blocco critico; la AI annuale è ora testata end-to-end con dati reali
 
 ## Update 2026-03-04
 
