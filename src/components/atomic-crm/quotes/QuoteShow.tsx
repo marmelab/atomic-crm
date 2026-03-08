@@ -120,7 +120,7 @@ const QuoteShowContent = () => {
   return (
     <div className="space-y-2">
       <div className="flex flex-col gap-3 sm:flex-row sm:justify-between sm:items-start mb-4 sm:mb-8">
-        <h2 className="text-xl sm:text-2xl font-semibold">
+        <h2 className="text-xl sm:text-2xl font-bold text-[#2C3E50]">
           {record.description || "Preventivo"}
         </h2>
         <QuoteShowActions

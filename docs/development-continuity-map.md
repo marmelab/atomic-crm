@@ -6,7 +6,7 @@ obbligatoria delle superfici collegate.
 **Quando usarlo:** ogni volta che una modifica tocca comportamento reale del
 prodotto.
 
-Last updated: 2026-03-08 (QuotePDF Navy & Petrolio redesign + email color alignment)
+Last updated: 2026-03-08 (Navy & Petrolio: PDF, email, quote show dialog, email send dialog)
 
 ---
 

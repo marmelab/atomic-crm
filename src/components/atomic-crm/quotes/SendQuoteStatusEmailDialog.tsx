@@ -210,7 +210,9 @@ export const SendQuoteStatusEmailDialog = ({
       </DialogTrigger>
       <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Invia mail cliente</DialogTitle>
+          <DialogTitle className="text-lg font-bold text-[#2C3E50]">
+            Invia mail cliente
+          </DialogTitle>
           <DialogDescription>
             La mail include il preventivo PDF in allegato e parte solo su tua
             conferma via Gmail SMTP.
@@ -246,10 +248,10 @@ export const SendQuoteStatusEmailDialog = ({
             </div>
 
             <div className="grid gap-3 md:grid-cols-2">
-              <div className="rounded-md border bg-muted/30 px-3 py-3">
+              <div className="rounded-lg border border-l-[3px] border-l-[#2C3E50] bg-white px-3 py-3">
                 <Label
                   htmlFor={`quote-status-email-to-${quote.id}`}
-                  className="text-xs text-muted-foreground"
+                  className="text-xs font-bold uppercase tracking-wider text-[#2C3E50]"
                 >
                   A
                 </Label>
@@ -262,8 +264,10 @@ export const SendQuoteStatusEmailDialog = ({
                   className="mt-1 h-8 text-sm font-medium"
                 />
               </div>
-              <div className="rounded-md border bg-muted/30 px-3 py-3">
-                <p className="text-xs text-muted-foreground">Oggetto</p>
+              <div className="rounded-lg border border-l-[3px] border-l-[#456B6B] bg-white px-3 py-3">
+                <p className="text-xs font-bold uppercase tracking-wider text-[#456B6B]">
+                  Oggetto
+                </p>
                 <p className="text-sm font-medium">{template.subject}</p>
               </div>
             </div>
@@ -302,8 +306,10 @@ export const SendQuoteStatusEmailDialog = ({
             </div>
 
             <div className="space-y-2">
-              <p className="text-sm font-medium">Anteprima testo</p>
-              <div className="rounded-md border bg-muted/20 px-4 py-4 text-sm whitespace-pre-wrap leading-6">
+              <p className="text-xs font-bold uppercase tracking-wider text-[#2C3E50]">
+                Anteprima testo
+              </p>
+              <div className="rounded-lg border bg-[#E8EDF2]/50 px-4 py-4 text-sm whitespace-pre-wrap leading-6">
                 {template.text}
               </div>
             </div>
@@ -320,7 +326,7 @@ export const SendQuoteStatusEmailDialog = ({
               <Button
                 onClick={() => sendEmail({ context, customMessage })}
                 disabled={isSendPending || !template.canSend}
-                className="gap-2"
+                className="gap-2 bg-[#2C3E50] hover:bg-[#1a2a38]"
               >
                 {isSendPending ? (
                   <Loader2 className="h-4 w-4 animate-spin" />
