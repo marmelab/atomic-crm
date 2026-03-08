@@ -1,9 +1,9 @@
 import { Pencil } from "lucide-react";
 import {
   RecordRepresentation,
+  useGetIdentity,
   useGetOne,
   useTranslate,
-  WithRecord,
 } from "ra-core";
 import { useState } from "react";
 import { Link, useParams } from "react-router";
@@ -16,10 +16,10 @@ import { Markdown } from "../misc/Markdown";
 import { MobileBackButton } from "../misc/MobileBackButton";
 import { RelativeDate } from "../misc/RelativeDate";
 import { Status } from "../misc/Status";
-import { SaleName } from "../sales/SaleName";
 import type { ContactNote } from "../types";
 import { NoteAttachments } from "./NoteAttachments";
 import { NoteEditSheet } from "./NoteEditSheet";
+import { useGetSalesName } from "../sales/useGetSalesName";
 
 export const NoteShowPage = () => {
   const translate = useTranslate();
@@ -31,6 +31,11 @@ export const NoteShowPage = () => {
 
   const { data: note, isPending } = useGetOne<ContactNote>("contact_notes", {
     id: noteId!,
+  });
+  const { identity } = useGetIdentity();
+  const isCurrentUser = note?.sales_id === identity?.id;
+  const salesName = useGetSalesName(note?.sales_id, {
+    enabled: note && !isCurrentUser,
   });
 
   if (isPending || !note) return null;
@@ -77,16 +82,12 @@ export const NoteShowPage = () => {
         <div className="mb-4">
           <div className="flex items-center space-x-2 w-full text-sm text-muted-foreground">
             <span>
-              {translate("crm.common.by", { _: "By" })}{" "}
-              <ReferenceField
-                record={note}
-                resource="contact_notes"
-                source="sales_id"
-                reference="sales"
-                link={false}
-              >
-                <WithRecord render={(record) => <SaleName sale={record} />} />
-              </ReferenceField>
+              {translate(
+                isCurrentUser
+                  ? "resources.notes.you_added"
+                  : "resources.notes.author_added",
+                { name: salesName },
+              )}{" "}
             </span>
             {note.status && <Status status={note.status} />}
             <div className="flex-1" />

@@ -60,7 +60,7 @@ export type Company = {
   zipcode: string;
   city: string;
   state_abbr: string;
-  sales_id?: Identifier | null;
+  sales_id?: Identifier;
   created_at: string;
   description: string;
   revenue: string;
@@ -94,7 +94,7 @@ export type Contact = {
   has_newsletter: boolean;
   tags: Identifier[];
   gender: string;
-  sales_id?: Identifier | null;
+  sales_id?: Identifier;
   status: string;
   background: string;
   phone_jsonb: PhoneNumberAndType[];

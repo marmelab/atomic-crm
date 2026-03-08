@@ -150,6 +150,10 @@
           "type": "registry:component"
         },
         {
+          "path": "src/components/atomic-crm/sales/useGetSalesName.ts",
+          "type": "registry:component"
+        },
+        {
           "path": "src/components/atomic-crm/sales/index.ts",
           "type": "registry:component"
         },
@@ -167,10 +171,6 @@
         },
         {
           "path": "src/components/atomic-crm/sales/SalesCreate.tsx",
-          "type": "registry:component"
-        },
-        {
-          "path": "src/components/atomic-crm/sales/SaleName.tsx",
           "type": "registry:component"
         },
         {

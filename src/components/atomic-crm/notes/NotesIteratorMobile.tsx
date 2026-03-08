@@ -1,12 +1,11 @@
 import type { Identifier } from "ra-core";
 import {
   InfinitePaginationContext,
+  useGetIdentity,
   useTimeout,
   useTranslate,
-  WithRecord,
 } from "ra-core";
 import { Link } from "react-router";
-import { ReferenceField } from "@/components/admin/reference-field";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -14,7 +13,7 @@ import { RotateCcw } from "lucide-react";
 
 import { RelativeDate } from "../misc/RelativeDate";
 import { Status } from "../misc/Status";
-import { SaleName } from "../sales/SaleName";
+import { useGetSalesName } from "../sales/useGetSalesName";
 import type { ContactNote } from "../types";
 import { InfinitePagination } from "../misc/InfinitePagination";
 import { useAddInfinitePagination } from "./useAddInfinitePagination";
@@ -97,6 +96,11 @@ export const NoteMobile = ({
   showStatus?: boolean;
 }) => {
   const translate = useTranslate();
+  const { identity } = useGetIdentity();
+  const isCurrentUser = note.sales_id === identity?.id;
+  const salesName = useGetSalesName(note.sales_id, {
+    enabled: !isCurrentUser,
+  });
 
   return (
     <Link
@@ -105,16 +109,12 @@ export const NoteMobile = ({
     >
       <div className="flex items-center space-x-2 w-full">
         <div className="inline-flex h-full items-center text-sm text-muted-foreground">
-          {translate("crm.common.by", { _: "By" })}{" "}
-          <ReferenceField
-            record={note}
-            resource="contact_notes"
-            source="sales_id"
-            reference="sales"
-            link={false}
-          >
-            <WithRecord render={(record) => <SaleName sale={record} />} />
-          </ReferenceField>
+          {translate(
+            isCurrentUser
+              ? "resources.notes.you_added"
+              : "resources.notes.author_added",
+            { name: salesName },
+          )}{" "}
           {showStatus && note.status && (
             <Status className="ml-2" status={note.status} />
           )}

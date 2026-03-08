@@ -5,7 +5,7 @@ import { TextField } from "@/components/admin/text-field";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Avatar } from "../contacts/Avatar";
 import { RelativeDate } from "../misc/RelativeDate";
-import { SaleName } from "../sales/SaleName";
+import { useGetSalesName } from "../sales/useGetSalesName";
 import type { ActivityContactNoteCreated, Contact } from "../types";
 import { useActivityLogContext } from "./ActivityLogContext";
 import { ActivityLogNote } from "./ActivityLogNote";
@@ -28,6 +28,9 @@ export function ActivityLogContactNoteCreated({
   const { identity } = useGetIdentity();
   const { contactNote } = activity;
   const isCurrentUser = activity.sales_id === identity?.id;
+  const salesName = useGetSalesName(activity.sales_id, {
+    enabled: !isCurrentUser,
+  });
   const link = isMobile
     ? `/contacts/${contactNote.contact_id}/notes/${contactNote.id}`
     : `/contacts/${contactNote.contact_id}/show`;
@@ -44,20 +47,11 @@ export function ActivityLogContactNoteCreated({
           </ReferenceField>
 
           <span className="text-muted-foreground text-sm flex-grow">
-            <ReferenceField
-              source="sales_id"
-              reference="sales"
-              record={activity}
-            >
-              <SaleName />
-            </ReferenceField>{" "}
             {translate(
               isCurrentUser
-                ? "crm.activity.added_note_about_self"
-                : "crm.activity.added_note_about",
-              {
-                _: "added a note about",
-              },
+                ? "crm.activity.you_added_note"
+                : "crm.activity.added_note",
+              { name: salesName },
             )}{" "}
             <ReferenceField
               source="contact_id"

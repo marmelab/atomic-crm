@@ -1,8 +1,7 @@
 import { Globe, Linkedin, Phone } from "lucide-react";
-import { useRecordContext, useTranslate } from "ra-core";
+import { useGetIdentity, useRecordContext, useTranslate } from "ra-core";
 import { EditButton } from "@/components/admin/edit-button";
 import { DeleteButton } from "@/components/admin/delete-button";
-import { ReferenceField } from "@/components/admin/reference-field";
 import { ShowButton } from "@/components/admin/show-button";
 import { TextField } from "@/components/admin/text-field";
 import { DateField } from "@/components/admin/date-field";
@@ -11,10 +10,10 @@ import { SelectField } from "@/components/admin/select-field";
 
 import { AsideSection } from "../misc/AsideSection";
 import { useConfigurationContext } from "../root/ConfigurationContext";
-import { SaleName } from "../sales/SaleName";
 import type { Company } from "../types";
 import { getTranslatedCompanySizeLabel } from "./getTranslatedCompanySizeLabel";
 import { sizes } from "./sizes";
+import { useGetSalesName } from "../sales/useGetSalesName";
 
 interface CompanyAsideProps {
   link?: string;
@@ -189,6 +188,11 @@ export const AddressInfo = ({ record }: { record: Company }) => {
 
 export const AdditionalInfo = ({ record }: { record: Company }) => {
   const translate = useTranslate();
+  const { identity } = useGetIdentity();
+  const isCurrentUser = record.sales_id === identity?.id;
+  const salesName = useGetSalesName(record.sales_id, {
+    enabled: !isCurrentUser,
+  });
   if (
     !record.created_at &&
     !record.sales_id &&
@@ -231,13 +235,12 @@ export const AdditionalInfo = ({ record }: { record: Company }) => {
       )}
       {record.sales_id !== null && (
         <div className="inline-flex text-sm text-muted-foreground mb-1">
-          {translate("resources.contacts.background.followed_by", {
-            _: "Followed by",
-          })}
-          &nbsp;
-          <ReferenceField source="sales_id" reference="sales" record={record}>
-            <SaleName />
-          </ReferenceField>
+          {translate(
+            isCurrentUser
+              ? "resources.contacts.background.followed_by_you"
+              : "resources.contacts.background.followed_by",
+            { name: salesName },
+          )}
         </div>
       )}
       {record.created_at && (

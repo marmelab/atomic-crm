@@ -2,11 +2,11 @@ import { CircleX, Edit, Save, Trash2 } from "lucide-react";
 import {
   Form,
   useDelete,
+  useGetIdentity,
   useNotify,
   useResourceContext,
   useTranslate,
   useUpdate,
-  WithRecord,
 } from "ra-core";
 import { useEffect, useRef, useState } from "react";
 import type { FieldValues, SubmitHandler } from "react-hook-form";
@@ -24,10 +24,10 @@ import { CompanyAvatar } from "../companies/CompanyAvatar";
 import { Markdown } from "../misc/Markdown";
 import { RelativeDate } from "../misc/RelativeDate";
 import { Status } from "../misc/Status";
-import { SaleName } from "../sales/SaleName";
 import type { ContactNote, DealNote } from "../types";
 import { NoteAttachments } from "./NoteAttachments";
 import { NoteInputs } from "./NoteInputs";
+import { useGetSalesName } from "../sales/useGetSalesName";
 
 export const Note = ({
   showStatus,
@@ -45,6 +45,11 @@ export const Note = ({
   const resource = useResourceContext();
   const notify = useNotify();
   const translate = useTranslate();
+  const { identity } = useGetIdentity();
+  const isCurrentUser = note.sales_id === identity?.id;
+  const salesName = useGetSalesName(note.sales_id, {
+    enabled: !isCurrentUser,
+  });
 
   // Detect if content is truncated
   useEffect(() => {
@@ -106,16 +111,12 @@ export const Note = ({
           <CompanyAvatar width={20} height={20} />
         </ReferenceField>
         <div className="inline-flex h-full items-center text-sm text-muted-foreground">
-          <ReferenceField
-            record={note}
-            resource={resource}
-            source="sales_id"
-            reference="sales"
-            link={false}
-          >
-            <WithRecord render={(record) => <SaleName sale={record} />} />
-          </ReferenceField>{" "}
-          {translate("resources.notes.feed.added", { _: "added a note" })}{" "}
+          {translate(
+            isCurrentUser
+              ? "resources.notes.you_added"
+              : "resources.notes.author_added",
+            { name: salesName },
+          )}{" "}
           {showStatus && note.status && (
             <Status className="ml-2" status={note.status} />
           )}

@@ -1,19 +1,24 @@
 import {
+  useGetIdentity,
   useLocaleState,
   useRecordContext,
   useTranslate,
   WithRecord,
 } from "ra-core";
-import { ReferenceField } from "@/components/admin/reference-field";
 import { TextField } from "@/components/admin/text-field";
 import { DateField } from "@/components/admin/date-field";
-import { SaleName } from "../sales/SaleName";
+import { useGetSalesName } from "../sales/useGetSalesName";
 import type { Contact } from "../types";
 
 export const ContactBackgroundInfo = () => {
   const record = useRecordContext<Contact>();
   const translate = useTranslate();
   const [locale = "en"] = useLocaleState();
+  const { identity } = useGetIdentity();
+  const isCurrentUser = record?.sales_id === identity?.id;
+  const salesName = useGetSalesName(record?.sales_id, {
+    enabled: !isCurrentUser,
+  });
 
   if (!record) return null;
 
@@ -59,13 +64,12 @@ export const ContactBackgroundInfo = () => {
       </div>
 
       <div className="inline-flex text-muted-foreground text-sm md:py-0.5">
-        {translate("resources.contacts.background.followed_by", {
-          _: "Followed by",
-        })}
-        &nbsp;
-        <ReferenceField source="sales_id" reference="sales">
-          <SaleName />
-        </ReferenceField>
+        {translate(
+          isCurrentUser
+            ? "resources.contacts.background.followed_by_you"
+            : "resources.contacts.background.followed_by",
+          { name: salesName },
+        )}
       </div>
     </div>
   );
