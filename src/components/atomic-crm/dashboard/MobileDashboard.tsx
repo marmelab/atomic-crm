@@ -25,6 +25,7 @@ import { Welcome } from "./Welcome";
 import { DashboardKpiCards } from "./DashboardKpiCards";
 import { MobileDashboardLoading } from "./DashboardLoading";
 import { useDashboardData } from "./useDashboardData";
+import { useFiscalPaymentTracking } from "./useFiscalPaymentTracking";
 
 const Wrapper = ({ children }: { children: React.ReactNode }) => {
   return <MobileContent>{children}</MobileContent>;
@@ -83,6 +84,7 @@ const MobileAnnualDashboard = () => {
   const { data, isPending, error, refetch } = useDashboardData(selectedYear);
   const isCurrentYear = data?.isCurrentYear ?? selectedYear === currentYear;
   const showLoading = useTimeout(800);
+  const { totalPaid: totalTaxesPaid } = useFiscalPaymentTracking(selectedYear);
 
   if ((isPending || !data) && !error) {
     return showLoading ? <MobileDashboardLoading /> : null;
@@ -133,6 +135,8 @@ const MobileAnnualDashboard = () => {
         kpis={data.kpis}
         meta={data.meta}
         year={data.selectedYear}
+        fiscalKpis={data.fiscal?.fiscalKpis ?? null}
+        taxesPaid={totalTaxesPaid}
         compact
       />
       <DashboardAnnualAiSummaryCard year={data.selectedYear} />

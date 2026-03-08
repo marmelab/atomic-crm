@@ -8,6 +8,20 @@ prodotto senza incrociarlo con `docs/README.md` e i documenti `canonical`.
 
 Last updated: 2026-03-08
 
+## Update 2026-03-08 (l) — Fix fiscal data missing on mobile dashboard
+
+**Bug:** MobileDashboard passed `DashboardKpiCards` without `fiscalKpis` and
+`taxesPaid` props → `DashboardNetAvailabilityCard` always showed "—" for TASSE
+on mobile, even when fiscal is fully configured in the DB.
+
+**Root cause:** `MobileDashboard.tsx` line 132-137 called `<DashboardKpiCards>`
+with only `kpis`, `meta`, `year`, `compact` — missing `fiscalKpis` and
+`taxesPaid`. The desktop `DashboardAnnual.tsx` correctly passed both.
+
+**Fix:** Added `useFiscalPaymentTracking(selectedYear)` hook call and passed
+`fiscalKpis={data.fiscal?.fiscalKpis ?? null}` + `taxesPaid={totalTaxesPaid}`
+to `DashboardKpiCards` in `MobileAnnualDashboard`.
+
 ## Update 2026-03-08 (k) — Mobile responsive dashboard pass
 
 Comprehensive mobile pass on all dashboard cards: responsive text sizes
