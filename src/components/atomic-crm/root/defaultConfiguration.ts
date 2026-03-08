@@ -164,9 +164,18 @@ export const defaultBusinessProfile: BusinessProfile = {
   fiscalCode: "FRNRRD87A11G580E",
   sdiCode: "KRRH6B9",
   iban: "IT60X0538716900000003593997",
+  bankName: "BPER Banca",
+  bic: "BPMOIT22XXX",
   address: "Via Calabria 13, 94019 Valguarnera Caropepe EN",
+  addressStreet: "Via Calabria",
+  addressNumber: "13",
+  addressPostalCode: "94019",
+  addressCity: "Valguarnera Caropepe",
+  addressProvince: "EN",
+  addressCountry: "IT",
   email: "rosariodavide.furnari@gmail.com",
   phone: "3286183554",
+  beneficiaryName: "Rosario Davide Furnari",
 };
 
 export const defaultConfiguration: ConfigurationContextValue = {

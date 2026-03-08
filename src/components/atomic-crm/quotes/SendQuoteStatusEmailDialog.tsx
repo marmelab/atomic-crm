@@ -208,7 +208,7 @@ export const SendQuoteStatusEmailDialog = ({
           Invia mail cliente
         </Button>
       </DialogTrigger>
-      <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto max-sm:h-dvh max-sm:max-h-dvh max-sm:top-0 max-sm:translate-y-0 max-sm:rounded-none max-sm:border-0">
         <DialogHeader>
           <DialogTitle className="text-lg font-bold text-[#2C3E50]">
             Invia mail cliente

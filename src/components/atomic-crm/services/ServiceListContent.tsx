@@ -302,12 +302,30 @@ const ServiceRow = ({
         </Link>
       </TableCell>
       <TableCell className={cv("client", "text-sm text-muted-foreground")}>
-        {service.client_id
-          ? (clientMap.get(String(service.client_id)) ?? "")
-          : ""}
+        {service.client_id ? (
+          <Link
+            to={`/clients/${service.client_id}/show`}
+            className="text-primary hover:underline"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {clientMap.get(String(service.client_id)) ?? ""}
+          </Link>
+        ) : (
+          ""
+        )}
       </TableCell>
       <TableCell className={cv("project", "text-sm text-muted-foreground")}>
-        {project?.name ?? ""}
+        {project ? (
+          <Link
+            to={`/projects/${project.id}/show`}
+            className="text-primary hover:underline"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {project.name}
+          </Link>
+        ) : (
+          ""
+        )}
       </TableCell>
       <TableCell className={cv("type", "text-sm")}>
         <div className="flex items-center gap-2">

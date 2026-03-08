@@ -28,7 +28,7 @@
 | **DB**       | DB-2  | Nuova migration → checklist replayability |
 | **DB**       | DB-3  | km servizi → spesa auto da trigger DB     |
 | **Backend**  | BE-1  | Edge Function modificata → deploy manuale |
-| **Backend**  | BE-2  | Nuova Edge Function → config.toml!       |
+| **Backend**  | BE-2  | Nuova Edge Function → config.toml!        |
 | **Backend**  | BE-3  | Schema change → riavviare edge runtime    |
 | **Backend**  | BE-4  | Deduplica servizi → includere description |
 | **Dominio**  | DOM-1 | Fiscale = CASSA, non competenza           |
@@ -39,12 +39,14 @@
 | **Workflow** | WF-3  | Destructuring param → verificare completo |
 | **Workflow** | WF-4  | Aggiorno file sistema → sweep incrociata  |
 | **Workflow** | WF-5  | E2E test → valida sistema, non adattare   |
-| **Workflow** | WF-6  | Commit codice → docs+memoria NELLO STESSO commit |
-| **UI**       | UI-7  | Componente desktop con props → verificare mobile |
-| **UI**       | UI-8  | Nuova superficie AI → pattern card unificata     |
-| **Backend**  | BE-5  | EF env vars → stop+start, NON restart             |
-| **Backend**  | BE-6  | Reload remoto → TRUNCATE prima di load             |
-| **Workflow** | WF-7  | Dopo push → controlla CI autonomamente             |
+| **Workflow** | WF-6  | Commit codice → docs+memoria STESSO       |
+| **UI**       | UI-7  | Desktop props → verificare mobile         |
+| **UI**       | UI-8  | Nuova superficie AI → card unificata      |
+| **Backend**  | BE-5  | EF env vars → stop+start NON restart      |
+| **Backend**  | BE-6  | Reload remoto → TRUNCATE prima load       |
+| **Workflow** | WF-7  | Dopo push → controlla CI autonomo         |
+| **Dominio**  | DOM-3 | FatturaPA XML → schema XSD + Aruba        |
+| **Config**   | CFG-2 | BusinessProfile → merge defaults safe     |
 
 ---
 

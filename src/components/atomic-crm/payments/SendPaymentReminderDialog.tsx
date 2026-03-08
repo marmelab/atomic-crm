@@ -176,7 +176,7 @@ export const SendPaymentReminderDialog = ({
       </DialogTrigger>
       <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Invia reminder pagamento</DialogTitle>
+          <DialogTitle className="text-lg font-bold text-[#2C3E50]">Invia reminder pagamento</DialogTitle>
           <DialogDescription>
             Rivedi il contenuto della mail prima di inviarla. Dopo l'invio
             riceverai una notifica email e WhatsApp di conferma.
@@ -200,34 +200,34 @@ export const SendPaymentReminderDialog = ({
         {payment && preview ? (
           <div className="space-y-4">
             <div className="grid gap-3 md:grid-cols-2">
-              <div className="rounded-md border bg-muted/30 px-3 py-3">
-                <p className="text-xs text-muted-foreground">A</p>
+              <div className="rounded-lg border border-l-[3px] border-l-[#2C3E50] bg-white px-3 py-3">
+                <p className="text-xs font-bold uppercase tracking-wider text-[#2C3E50]">A</p>
                 <p className="text-sm font-medium">
                   {clientEmail || "Email cliente mancante"}
                 </p>
               </div>
-              <div className="rounded-md border bg-muted/30 px-3 py-3">
-                <p className="text-xs text-muted-foreground">Oggetto</p>
+              <div className="rounded-lg border border-l-[3px] border-l-[#456B6B] bg-white px-3 py-3">
+                <p className="text-xs font-bold uppercase tracking-wider text-[#456B6B]">Oggetto</p>
                 <p className="text-sm font-medium">{preview.subject}</p>
               </div>
             </div>
 
             <div className="grid gap-3 md:grid-cols-3">
-              <div className="rounded-md border bg-muted/30 px-3 py-3">
-                <p className="text-xs text-muted-foreground">Importo</p>
+              <div className="rounded-lg border border-l-[3px] border-l-[#2C3E50] bg-white px-3 py-3">
+                <p className="text-xs font-bold uppercase tracking-wider text-[#2C3E50]">Importo</p>
                 <p className="text-sm font-semibold">
                   {formatCurrency(Number(payment.amount ?? 0))}
                 </p>
               </div>
-              <div className="rounded-md border bg-muted/30 px-3 py-3">
-                <p className="text-xs text-muted-foreground">Tipo</p>
+              <div className="rounded-lg border border-l-[3px] border-l-[#456B6B] bg-white px-3 py-3">
+                <p className="text-xs font-bold uppercase tracking-wider text-[#456B6B]">Tipo</p>
                 <p className="text-sm font-medium">
                   {paymentTypeLabels[payment.payment_type] ??
                     payment.payment_type}
                 </p>
               </div>
-              <div className="rounded-md border bg-muted/30 px-3 py-3">
-                <p className="text-xs text-muted-foreground">Ritardo</p>
+              <div className="rounded-lg border border-l-[3px] border-l-[#2C3E50] bg-white px-3 py-3">
+                <p className="text-xs font-bold uppercase tracking-wider text-[#2C3E50]">Ritardo</p>
                 <p className="text-sm font-medium">
                   {daysOverdue} {daysOverdue === 1 ? "giorno" : "giorni"}
                 </p>
@@ -263,8 +263,8 @@ export const SendPaymentReminderDialog = ({
             </div>
 
             <div className="space-y-2">
-              <p className="text-sm font-medium">Anteprima testo</p>
-              <div className="rounded-md border bg-muted/20 px-4 py-4 text-sm whitespace-pre-wrap leading-6">
+              <p className="text-xs font-bold uppercase tracking-wider text-[#2C3E50]">Anteprima testo</p>
+              <div className="rounded-lg border bg-[#E8EDF2]/50 px-4 py-4 text-sm whitespace-pre-wrap leading-6">
                 {preview.text}
               </div>
             </div>
@@ -288,7 +288,7 @@ export const SendPaymentReminderDialog = ({
                   })
                 }
                 disabled={isSendPending || !clientEmail}
-                className="gap-2"
+                className="gap-2 bg-[#2C3E50] hover:bg-[#1a2a38]"
               >
                 {isSendPending ? (
                   <Loader2 className="h-4 w-4 animate-spin" />

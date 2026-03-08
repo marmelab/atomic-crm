@@ -441,9 +441,21 @@ export interface BusinessProfile {
   fiscalCode: string;
   sdiCode: string;
   iban: string;
+  bankName: string;
+  bic: string;
+  /** Display-only legacy field (used in PDF/modal). */
   address: string;
+  /** Structured address fields for FatturaPA XML generation. */
+  addressStreet: string;
+  addressNumber: string;
+  addressPostalCode: string;
+  addressCity: string;
+  addressProvince: string;
+  addressCountry: string;
   email: string;
   phone: string;
+  /** Full name of the payment beneficiary (for FatturaPA XML). */
+  beneficiaryName: string;
 }
 
 // Workflow Automation Types

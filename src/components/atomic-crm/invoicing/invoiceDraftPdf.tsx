@@ -25,6 +25,10 @@ export type InvoiceDraftIssuer = {
   tagline?: string;
   vatNumber?: string;
   fiscalCode?: string;
+  sdiCode?: string;
+  iban?: string;
+  bankName?: string;
+  bic?: string;
   address?: string;
   email?: string;
   phone?: string;
@@ -36,237 +40,231 @@ const defaultIssuer: InvoiceDraftIssuer = {
 
 const LOGO_URL = "/logos/logo_rosario_furnari.png";
 
-// ── Colors (same palette as QuotePDF) ──────────────────────────────
-const colors = {
-  primary: "#1a1a2e",
-  accent: "#e94560",
-  muted: "#64748b",
-  light: "#f1f5f9",
-  white: "#ffffff",
-  border: "#e2e8f0",
+// ── Palette — Navy & Petrolio (aligned with QuotePDF) ──────────────
+const c = {
+  ink: "#1C1C1E",
+  body: "#3A3A3C",
+  mid: "#8E8E93",
+  rule: "#D1D1D6",
+  navy: "#2C3E50",
+  navyLight: "#E8EDF2",
+  petrol: "#456B6B",
+  white: "#FFFFFF",
 };
+
+const PX = 48;
+
+const microLabel = {
+  fontSize: 7,
+  color: c.mid,
+  textTransform: "uppercase" as const,
+  letterSpacing: 1,
+  marginBottom: 3,
+} as const;
+
+const boldVal = {
+  fontSize: 9,
+  fontFamily: "Helvetica-Bold",
+  color: c.ink,
+} as const;
 
 const styles = StyleSheet.create({
   page: {
     fontFamily: "Helvetica",
     fontSize: 10,
-    padding: 40,
-    color: colors.primary,
-    position: "relative",
+    padding: 0,
+    paddingBottom: 60,
+    backgroundColor: c.white,
+    color: c.body,
   },
-  watermark: {
-    position: "absolute",
-    top: "42%",
-    left: "10%",
-    right: "10%",
-    textAlign: "center",
-    fontSize: 28,
-    color: "#dddddd",
-    transform: "rotate(-20deg)",
-  },
-  // Header
   header: {
+    paddingHorizontal: PX,
+    paddingTop: 32,
+    paddingBottom: 20,
     flexDirection: "row",
     justifyContent: "space-between",
-    marginBottom: 30,
+    alignItems: "flex-start",
   },
-  headerLeft: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 12,
-  },
-  logo: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-  },
+  headerLeft: { flexDirection: "row", alignItems: "center", gap: 16 },
+  logo: { width: 52, height: 52, borderRadius: 26 },
   brandName: {
     fontSize: 22,
     fontFamily: "Helvetica-Bold",
-    color: colors.primary,
+    color: c.ink,
+    letterSpacing: 0.3,
   },
   brandTagline: {
-    fontSize: 9,
-    color: colors.muted,
-    marginTop: 2,
-  },
-  brandDetail: {
-    fontSize: 8,
-    color: colors.muted,
-    marginTop: 1,
-  },
-  docLabel: {
-    fontSize: 28,
-    fontFamily: "Helvetica-Bold",
-    color: colors.accent,
-    textAlign: "right" as const,
-  },
-  docSubLabel: {
-    fontSize: 9,
-    color: colors.muted,
-    textAlign: "right" as const,
+    fontSize: 7,
+    color: c.mid,
     marginTop: 4,
+    letterSpacing: 2,
+    textTransform: "uppercase" as const,
   },
-  // Divider
-  divider: {
-    height: 2,
-    backgroundColor: colors.accent,
-    marginBottom: 24,
+  headerRight: { alignItems: "flex-end" as const },
+  badge: {
+    paddingVertical: 3,
+    paddingHorizontal: 10,
+    borderRadius: 4,
+    alignSelf: "flex-end" as const,
   },
-  // Two-column info
+  accentLine: {
+    height: 2.5,
+    backgroundColor: c.navy,
+    marginHorizontal: PX,
+    borderRadius: 1,
+  },
+  body: { paddingHorizontal: PX, paddingTop: 14 },
   infoRow: {
     flexDirection: "row",
     justifyContent: "space-between",
-    marginBottom: 24,
+    marginBottom: 14,
+    gap: 12,
   },
-  infoBlock: {
+  infoCard: {
     width: "48%",
+    padding: 10,
+    borderRadius: 10,
+    borderWidth: 0.5,
+    borderColor: c.rule,
+    borderLeftWidth: 3,
+    borderLeftColor: c.navy,
   },
   infoLabel: {
-    fontSize: 8,
+    fontSize: 7,
     fontFamily: "Helvetica-Bold",
-    color: colors.muted,
+    color: c.navy,
     textTransform: "uppercase" as const,
-    letterSpacing: 1,
-    marginBottom: 6,
+    letterSpacing: 2,
+    marginBottom: 5,
   },
-  infoText: {
-    fontSize: 10,
-    lineHeight: 1.5,
-  },
-  infoBold: {
-    fontSize: 10,
-    fontFamily: "Helvetica-Bold",
-    lineHeight: 1.5,
-  },
-  // Table
-  table: {
-    marginTop: 8,
-    marginBottom: 24,
-  },
-  tableHeader: {
-    flexDirection: "row",
-    backgroundColor: colors.primary,
-    padding: 8,
-    borderTopLeftRadius: 4,
-    borderTopRightRadius: 4,
-  },
-  tableHeaderText: {
-    color: colors.white,
-    fontSize: 9,
-    fontFamily: "Helvetica-Bold",
-    textTransform: "uppercase" as const,
-    letterSpacing: 0.5,
-  },
-  tableRow: {
-    flexDirection: "row",
-    padding: 10,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
-    alignItems: "center",
-  },
-  cDescription: { width: "50%" },
-  cQty: { width: "12%", textAlign: "right" as const },
-  cUnit: { width: "19%", textAlign: "right" as const },
-  cTotal: { width: "19%", textAlign: "right" as const },
-  // Total
-  totalRow: {
-    flexDirection: "row",
-    justifyContent: "flex-end",
-    marginTop: 4,
-    paddingTop: 12,
-    paddingRight: 10,
-    gap: 16,
-  },
-  totalLabel: {
-    width: 120,
+  infoName: {
     fontSize: 12,
     fontFamily: "Helvetica-Bold",
-    color: colors.primary,
-    textAlign: "right" as const,
+    color: c.ink,
+    lineHeight: 1.5,
   },
-  totalAmount: {
-    width: 80,
-    fontSize: 14,
+  infoText: { fontSize: 9, lineHeight: 1.6, color: c.body },
+  sectionHeading: {
+    fontSize: 8,
     fontFamily: "Helvetica-Bold",
-    color: colors.accent,
-    textAlign: "right" as const,
+    color: c.navy,
+    textTransform: "uppercase" as const,
+    letterSpacing: 2,
+    marginBottom: 6,
+    marginTop: 14,
   },
-  subtotalRow: {
+  table: {
+    borderWidth: 0.5,
+    borderColor: c.rule,
+    borderRadius: 10,
+    overflow: "hidden",
+  },
+  tHead: {
+    flexDirection: "row",
+    paddingVertical: 7,
+    paddingHorizontal: 10,
+    backgroundColor: c.navyLight,
+    borderBottomWidth: 1,
+    borderBottomColor: c.navy,
+  },
+  th: {
+    color: c.navy,
+    fontSize: 7,
+    fontFamily: "Helvetica-Bold",
+    textTransform: "uppercase" as const,
+    letterSpacing: 1.5,
+  },
+  tRow: {
+    flexDirection: "row",
+    paddingVertical: 7,
+    paddingHorizontal: 10,
+    borderBottomWidth: 0.5,
+    borderBottomColor: c.rule,
+    alignItems: "center",
+  },
+  cNr: { width: "6%", textAlign: "center" as const },
+  cDesc: { width: "40%" },
+  cQty: { width: "10%", textAlign: "center" as const },
+  cPrice: { width: "16%", textAlign: "right" as const },
+  cAmt: { width: "16%", textAlign: "right" as const },
+  cIva: { width: "12%", textAlign: "center" as const },
+  card: {
+    padding: 10,
+    borderRadius: 10,
+    borderWidth: 0.5,
+    borderColor: c.rule,
+    borderLeftWidth: 3,
+    borderLeftColor: c.navy,
+    marginBottom: 10,
+  },
+  totalHero: {
+    marginTop: 8,
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    backgroundColor: c.navyLight,
+    borderRadius: 8,
     flexDirection: "row",
     justifyContent: "flex-end",
-    paddingRight: 10,
+    alignItems: "center",
     gap: 16,
-    marginTop: 2,
   },
-  subtotalLabel: {
-    width: 120,
-    fontSize: 10,
-    color: colors.muted,
-    textAlign: "right" as const,
+  noteCard: {
+    marginTop: 10,
+    padding: 10,
+    borderRadius: 10,
+    borderWidth: 0.5,
+    borderColor: c.rule,
+    borderLeftWidth: 3,
+    borderLeftColor: c.petrol,
   },
-  subtotalValue: {
-    width: 80,
-    fontSize: 10,
-    textAlign: "right" as const,
-  },
-  // Notes section
-  notesSection: {
-    marginTop: 20,
-    padding: 12,
-    backgroundColor: colors.light,
-    borderRadius: 4,
-  },
-  notesTitle: {
-    fontSize: 9,
+  noteTitle: {
+    fontSize: 7,
     fontFamily: "Helvetica-Bold",
-    color: colors.muted,
+    color: c.petrol,
     textTransform: "uppercase" as const,
-    letterSpacing: 1,
+    letterSpacing: 2,
     marginBottom: 6,
   },
-  notesText: {
-    fontSize: 9,
-    lineHeight: 1.6,
-    color: colors.primary,
-  },
-  // Footer
+  noteText: { fontSize: 9, lineHeight: 1.6, color: c.body },
   footer: {
     position: "absolute",
-    bottom: 30,
-    left: 40,
-    right: 40,
+    bottom: 16,
+    left: 0,
+    right: 0,
+    paddingHorizontal: PX,
   },
-  footerDivider: {
-    height: 1,
-    backgroundColor: colors.border,
-    marginBottom: 8,
-  },
+  footerLine: { height: 1, backgroundColor: c.rule, marginBottom: 8 },
   footerText: {
-    fontSize: 7,
-    color: colors.muted,
+    fontSize: 6.5,
+    color: c.mid,
     textAlign: "center" as const,
     lineHeight: 1.6,
   },
 });
 
-const formatAmount = (value: number) =>
-  value.toLocaleString("it-IT", {
+const fmt = (v: number) =>
+  v.toLocaleString("it-IT", {
     style: "currency",
     currency: "EUR",
     minimumFractionDigits: 2,
   });
 
-const todayIsoDate = () => new Date().toISOString().slice(0, 10);
+const todayIso = () => new Date().toISOString().slice(0, 10);
 
 const clientFiscalLines = (client: Client) =>
   [
     client.vat_number ? `P.IVA ${client.vat_number}` : null,
-    client.fiscal_code ? `CF ${client.fiscal_code}` : null,
-    client.billing_sdi_code ? `SDI ${client.billing_sdi_code}` : null,
-    client.billing_pec ? `PEC ${client.billing_pec}` : null,
-  ].filter((line): line is string => Boolean(line));
+    client.fiscal_code ? `C.F.: ${client.fiscal_code}` : null,
+    client.billing_sdi_code
+      ? `Codice destinatario: ${client.billing_sdi_code}`
+      : null,
+    client.billing_pec ? `PEC: ${client.billing_pec}` : null,
+  ].filter((l): l is string => Boolean(l));
 
+const STAMP_DUTY_DESC =
+  "Imposta di bollo assolta in modo virtuale ai sensi dell'art. 15 del D.P.R. 642/1972 e del DM 17/06/2014";
+
+// ── PDF Document ──────────────────────────────────────────────────
 const InvoiceDraftPdfDocument = ({
   draft,
   issuer,
@@ -274,151 +272,221 @@ const InvoiceDraftPdfDocument = ({
   draft: InvoiceDraftInput;
   issuer: InvoiceDraftIssuer;
 }) => {
-  const lineItems = normalizeInvoiceDraftLineItems(draft.lineItems);
-  const totals = computeInvoiceDraftTotals(lineItems);
+  const lines = normalizeInvoiceDraftLineItems(draft.lineItems);
+  const totals = computeInvoiceDraftTotals(lines);
   const clientName =
     getClientBillingDisplayName(draft.client) ?? draft.client.name;
-  const clientAddress = formatClientBillingAddress(draft.client);
+  const clientAddr = formatClientBillingAddress(draft.client);
+  const hasStamp = totals.stampDuty > 0;
 
   return (
     <Document>
       <Page size="A4" style={styles.page}>
-        <Text style={styles.watermark}>BOZZA - NON VALIDA AI FINI FISCALI</Text>
-
-        {/* Header */}
+        {/* ── Header ──────────────────────────────────────────── */}
         <View style={styles.header}>
           <View style={styles.headerLeft}>
             <Image style={styles.logo} src={LOGO_URL} />
             <View>
               <Text style={styles.brandName}>{issuer.name}</Text>
-              {issuer.tagline && (
+              {issuer.tagline ? (
                 <Text style={styles.brandTagline}>{issuer.tagline}</Text>
-              )}
-              {issuer.address && (
-                <Text style={styles.brandDetail}>{issuer.address}</Text>
-              )}
-              {issuer.email && (
-                <Text style={styles.brandDetail}>{issuer.email}</Text>
-              )}
-              {issuer.phone && (
-                <Text style={styles.brandDetail}>{issuer.phone}</Text>
-              )}
-              {issuer.vatNumber && (
-                <Text style={styles.brandDetail}>P.IVA {issuer.vatNumber}</Text>
-              )}
-              {issuer.fiscalCode && (
-                <Text style={styles.brandDetail}>CF {issuer.fiscalCode}</Text>
-              )}
+              ) : null}
             </View>
           </View>
-          <View>
-            <Text style={styles.docLabel}>BOZZA</Text>
-            <Text style={styles.docSubLabel}>FATTURA</Text>
+          <View style={styles.headerRight}>
+            <View style={[styles.badge, { backgroundColor: c.navyLight }]}>
+              <Text style={{ fontSize: 9, fontFamily: "Helvetica-Bold", color: c.navy, letterSpacing: 2, textTransform: "uppercase" as const }}>
+                Fattura
+              </Text>
+            </View>
+            <View style={[styles.badge, { backgroundColor: "#FEF2F2", marginTop: 6 }]}>
+              <Text style={{ fontSize: 7.5, fontFamily: "Helvetica-Bold", color: "#B91C1C", letterSpacing: 1, textTransform: "uppercase" as const }}>
+                Bozza
+              </Text>
+            </View>
+            <Text style={{ fontSize: 8, color: c.mid, marginTop: 4, textAlign: "right" as const }}>
+              Data: {draft.invoiceDate ?? todayIso()}
+            </Text>
           </View>
         </View>
 
-        <View style={styles.divider} />
+        <View style={styles.accentLine} />
 
-        {/* Client & Document info */}
-        <View style={styles.infoRow}>
-          <View style={styles.infoBlock}>
-            <Text style={styles.infoLabel}>Cliente</Text>
-            <Text style={styles.infoBold}>{clientName}</Text>
-            {clientAddress ? (
-              <Text style={styles.infoText}>{clientAddress}</Text>
-            ) : null}
-            {clientFiscalLines(draft.client).map((line) => (
-              <Text key={line} style={styles.infoText}>
-                {line}
-              </Text>
+        <View style={styles.body}>
+          {/* ── FORNITORE | CLIENTE ────────────────────────── */}
+          <View style={styles.infoRow}>
+            <View style={styles.infoCard}>
+              <Text style={styles.infoLabel}>Fornitore</Text>
+              <Text style={styles.infoName}>{issuer.name}</Text>
+              {issuer.vatNumber ? <Text style={styles.infoText}>P.IVA: IT{issuer.vatNumber}</Text> : null}
+              {issuer.fiscalCode ? <Text style={styles.infoText}>C.F.: {issuer.fiscalCode}</Text> : null}
+              {issuer.address ? <Text style={styles.infoText}>{issuer.address}</Text> : null}
+              {issuer.phone ? <Text style={styles.infoText}>Telefono: {issuer.phone}</Text> : null}
+              {issuer.email ? <Text style={styles.infoText}>{issuer.email}</Text> : null}
+            </View>
+            <View style={[styles.infoCard, { borderLeftColor: c.petrol }]}>
+              <Text style={[styles.infoLabel, { color: c.petrol }]}>Cliente</Text>
+              <Text style={styles.infoName}>{clientName}</Text>
+              {clientAddr ? <Text style={styles.infoText}>{clientAddr}</Text> : null}
+              {clientFiscalLines(draft.client).map((line) => (
+                <Text key={line} style={styles.infoText}>{line}</Text>
+              ))}
+            </View>
+          </View>
+
+          {/* ── PRODOTTI E SERVIZI ─────────────────────────── */}
+          <Text style={styles.sectionHeading}>Prodotti e servizi</Text>
+          <View style={styles.table}>
+            <View style={styles.tHead}>
+              <Text style={[styles.th, styles.cNr]}>Nr</Text>
+              <Text style={[styles.th, styles.cDesc]}>Descrizione</Text>
+              <Text style={[styles.th, styles.cQty]}>Q.tà</Text>
+              <Text style={[styles.th, styles.cPrice]}>Prezzo</Text>
+              <Text style={[styles.th, styles.cAmt]}>Importo</Text>
+              <Text style={[styles.th, styles.cIva]}>IVA</Text>
+            </View>
+            {lines.map((li, i) => (
+              <View key={`${li.description}-${i}`} style={styles.tRow}>
+                <Text style={[{ fontSize: 9 }, styles.cNr]}>{i + 1}</Text>
+                <Text style={[{ fontSize: 10 }, styles.cDesc]}>{li.description}</Text>
+                <Text style={[{ fontSize: 9 }, styles.cQty]}>{li.quantity}</Text>
+                <Text style={[{ fontSize: 9 }, styles.cPrice]}>{fmt(li.unitPrice)}</Text>
+                <Text style={[boldVal, styles.cAmt]}>{fmt(getInvoiceDraftLineTotal(li))}</Text>
+                <Text style={[{ fontSize: 8, color: c.mid }, styles.cIva]}>0% N2.2</Text>
+              </View>
             ))}
-          </View>
-          <View style={styles.infoBlock}>
-            <Text style={styles.infoLabel}>Dati documento</Text>
-            <Text style={styles.infoBold}>
-              Data: {draft.invoiceDate ?? todayIsoDate()}
-            </Text>
-            <Text style={styles.infoText}>Rif.: {draft.source.label}</Text>
-          </View>
-        </View>
-
-        {/* Line items table */}
-        <View style={styles.table}>
-          <View style={styles.tableHeader}>
-            <Text style={[styles.tableHeaderText, styles.cDescription]}>
-              Descrizione
-            </Text>
-            <Text style={[styles.tableHeaderText, styles.cQty]}>Q.tà</Text>
-            <Text style={[styles.tableHeaderText, styles.cUnit]}>
-              Prezzo unit.
-            </Text>
-            <Text style={[styles.tableHeaderText, styles.cTotal]}>Totale</Text>
+            {hasStamp ? (
+              <View style={styles.tRow}>
+                <Text style={[{ fontSize: 9 }, styles.cNr]}>{lines.length + 1}</Text>
+                <Text style={[{ fontSize: 9 }, styles.cDesc]}>{STAMP_DUTY_DESC}</Text>
+                <Text style={[{ fontSize: 9 }, styles.cQty]}>1</Text>
+                <Text style={[{ fontSize: 9 }, styles.cPrice]}>{fmt(totals.stampDuty)}</Text>
+                <Text style={[boldVal, styles.cAmt]}>{fmt(totals.stampDuty)}</Text>
+                <Text style={[{ fontSize: 8, color: c.mid }, styles.cIva]}>0% N2.2</Text>
+              </View>
+            ) : null}
           </View>
 
-          {lineItems.map((lineItem, index) => (
-            <View
-              key={`${lineItem.description}-${index}`}
-              style={styles.tableRow}
-            >
-              <Text style={[{ fontSize: 10 }, styles.cDescription]}>
-                {lineItem.description}
-              </Text>
-              <Text style={[{ fontSize: 10 }, styles.cQty]}>
-                {lineItem.quantity}
-              </Text>
-              <Text style={[{ fontSize: 10 }, styles.cUnit]}>
-                {formatAmount(lineItem.unitPrice)}
-              </Text>
-              <Text style={[{ fontSize: 10 }, styles.cTotal]}>
-                {formatAmount(getInvoiceDraftLineTotal(lineItem))}
-              </Text>
+          {/* ── METODO DI PAGAMENTO ───────────────────────── */}
+          <Text style={styles.sectionHeading}>Metodo di pagamento</Text>
+          <View style={styles.card}>
+            <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
+              <View style={{ width: "25%" }}>
+                <Text style={microLabel}>Modalità</Text>
+                <Text style={boldVal}>Bonifico</Text>
+              </View>
+              {issuer.bankName ? (
+                <View style={{ width: "22%" }}>
+                  <Text style={microLabel}>Banca</Text>
+                  <Text style={boldVal}>{issuer.bankName}</Text>
+                </View>
+              ) : null}
+              {issuer.bic ? (
+                <View style={{ width: "22%" }}>
+                  <Text style={microLabel}>BIC/SWIFT</Text>
+                  <Text style={boldVal}>{issuer.bic}</Text>
+                </View>
+              ) : null}
+              <View style={{ width: "25%", alignItems: "flex-end" as const }}>
+                <Text style={microLabel}>Importo</Text>
+                <Text style={boldVal}>{fmt(totals.totalAmount)}</Text>
+              </View>
             </View>
-          ))}
-        </View>
+            {issuer.iban ? (
+              <View style={{ marginTop: 6 }}>
+                <Text style={microLabel}>IBAN</Text>
+                <Text style={{ fontSize: 10, fontFamily: "Helvetica-Bold", color: c.ink, letterSpacing: 0.5 }}>
+                  {issuer.iban}
+                </Text>
+              </View>
+            ) : null}
+          </View>
 
-        {/* Totals */}
-        <View style={styles.subtotalRow}>
-          <Text style={styles.subtotalLabel}>Totale imponibile</Text>
-          <Text style={styles.subtotalValue}>
-            {formatAmount(totals.taxableAmount)}
-          </Text>
-        </View>
-        {totals.stampDuty > 0 ? (
-          <View style={styles.subtotalRow}>
-            <Text style={styles.subtotalLabel}>Bollo</Text>
-            <Text style={styles.subtotalValue}>
-              {formatAmount(totals.stampDuty)}
+          {/* ── REGIME FISCALE ─────────────────────────────── */}
+          <Text style={styles.sectionHeading}>Regime fiscale</Text>
+          <View style={[styles.card, { borderLeftColor: c.petrol }]}>
+            <Text style={{ ...boldVal, marginBottom: 3 }}>RF19 — Regime forfettario</Text>
+            <Text style={styles.noteText}>
+              Operazione senza applicazione dell'IVA ai sensi dell'art. 1 co.
+              54-89 della legge n. 190/2014 così come modificato dalla legge n.
+              208/2015 e dalla legge n. 145/2018
             </Text>
           </View>
-        ) : null}
-        <View style={styles.totalRow}>
-          <Text style={styles.totalLabel}>TOTALE</Text>
-          <Text style={styles.totalAmount}>
-            {formatAmount(totals.totalAmount)}
-          </Text>
-        </View>
 
-        {/* Notes */}
-        <View style={styles.notesSection}>
-          <Text style={styles.notesTitle}>Note</Text>
-          <Text style={styles.notesText}>
-            Operazione effettuata ai sensi dell'art. 1 commi 54-89 L. 190/2014
-          </Text>
+          {/* ── RIEPILOGO IVA + CALCOLO ───────────────────── */}
+          <Text style={styles.sectionHeading}>Riepilogo IVA e calcolo fattura</Text>
+          <View style={{ flexDirection: "row", gap: 12, marginBottom: 6 }}>
+            {/* Left: IVA summary */}
+            <View style={{ width: "48%", borderWidth: 0.5, borderColor: c.rule, borderRadius: 10, overflow: "hidden" }}>
+              <View style={{ flexDirection: "row", backgroundColor: c.navyLight, paddingVertical: 5, paddingHorizontal: 8, borderBottomWidth: 0.5, borderBottomColor: c.navy }}>
+                {["IVA", "NATURA", "IMPONIBILE", "IMPOSTA"].map((h, i) => (
+                  <Text key={h} style={{ fontSize: 7, fontFamily: "Helvetica-Bold", color: c.navy, letterSpacing: 1, width: i < 2 ? "18%" : "32%", textAlign: i >= 2 ? ("right" as const) : ("left" as const) }}>
+                    {h}
+                  </Text>
+                ))}
+              </View>
+              <View style={{ flexDirection: "row", paddingVertical: 6, paddingHorizontal: 8 }}>
+                <Text style={{ fontSize: 9, width: "18%" }}>0%</Text>
+                <Text style={{ fontSize: 9, width: "18%" }}>N2.2</Text>
+                <Text style={{ fontSize: 9, width: "32%", textAlign: "right" as const }}>{fmt(totals.totalAmount)}</Text>
+                <Text style={{ fontSize: 9, width: "32%", textAlign: "right" as const }}>{fmt(0)}</Text>
+              </View>
+            </View>
+            {/* Right: Calculation */}
+            <View style={{ width: "48%" }}>
+              {[
+                ["Importo prodotti/servizi", fmt(totals.totalAmount)],
+                ["Totale non soggetto IVA (N2)", fmt(totals.totalAmount)],
+                ["Totale IVA", fmt(0)],
+              ].map(([label, val]) => (
+                <View key={label} style={{ flexDirection: "row", justifyContent: "space-between", marginBottom: 3 }}>
+                  <Text style={{ fontSize: 9, color: c.mid }}>{label}</Text>
+                  <Text style={{ fontSize: 9 }}>{val}</Text>
+                </View>
+              ))}
+              <View style={{ flexDirection: "row", justifyContent: "space-between", marginBottom: 3 }}>
+                <Text style={boldVal}>Totale documento</Text>
+                <Text style={boldVal}>{fmt(totals.totalAmount)}</Text>
+              </View>
+            </View>
+          </View>
+
+          {/* ── NETTO A PAGARE ─────────────────────────────── */}
+          <View style={styles.totalHero}>
+            <Text style={{ fontSize: 9, fontFamily: "Helvetica-Bold", color: c.navy, textTransform: "uppercase" as const, letterSpacing: 2 }}>
+              Netto a pagare
+            </Text>
+            <Text style={{ fontSize: 22, fontFamily: "Helvetica-Bold", color: c.ink, letterSpacing: -0.3 }}>
+              {fmt(totals.totalAmount)}
+            </Text>
+          </View>
+
+          {/* ── CAUSALE ───────────────────────────────────── */}
+          <View style={styles.noteCard}>
+            <Text style={styles.noteTitle}>Causale</Text>
+            <Text style={styles.noteText}>
+              Operazione non soggetta a ritenuta alla fonte a titolo di acconto
+              ai sensi dell'articolo 1, comma 67, l. n. 190 del 2014 e
+              successive modificazioni
+            </Text>
+          </View>
+
+          {/* ── NOTE ──────────────────────────────────────── */}
           {draft.notes ? (
-            <Text style={styles.notesText}>{draft.notes}</Text>
+            <View style={[styles.noteCard, { marginTop: 8 }]}>
+              <Text style={styles.noteTitle}>Note</Text>
+              <Text style={styles.noteText}>{draft.notes}</Text>
+            </View>
           ) : null}
+
+          <Text style={{ fontSize: 8, color: c.mid, marginTop: 10, textAlign: "right" as const }}>
+            Rif.: {draft.source.kind} — {draft.source.label}
+          </Text>
         </View>
 
-        {/* Footer */}
+        {/* ── Footer ──────────────────────────────────────────── */}
         <View style={styles.footer}>
-          <View style={styles.footerDivider} />
-          <Text style={styles.footerText}>
-            {issuer.name}
-            {issuer.vatNumber ? ` · P.IVA ${issuer.vatNumber}` : ""}
-            {issuer.fiscalCode ? ` · CF ${issuer.fiscalCode}` : ""}
-            {issuer.address ? ` · ${issuer.address}` : ""}
-            {issuer.email ? ` · ${issuer.email}` : ""}
-          </Text>
+          <View style={styles.footerLine} />
         </View>
       </Page>
     </Document>

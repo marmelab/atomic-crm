@@ -27,11 +27,11 @@ export const QuoteShowSections = ({
   return (
     <div className="space-y-2">
       {/* Details grid */}
-      <div className="mx-4 rounded-lg border border-l-[3px] border-l-[#2C3E50] p-4">
+      <div className="sm:mx-4 rounded-lg border border-l-[3px] border-l-[#2C3E50] p-3 sm:p-4">
         <p className="mb-3 text-xs font-bold uppercase tracking-wider text-[#2C3E50]">
           Dettagli
         </p>
-        <div className="flex flex-wrap gap-8">
+        <div className="flex flex-wrap gap-4 sm:gap-8">
           <InfoField label="Cliente" value={client?.name} />
           <InfoField label="Progetto collegato">
             {project ? (
@@ -71,11 +71,11 @@ export const QuoteShowSections = ({
       </div>
 
       {/* Dates */}
-      <div className="mx-4 mt-3 rounded-lg border border-l-[3px] border-l-[#456B6B] p-4">
+      <div className="sm:mx-4 mt-3 rounded-lg border border-l-[3px] border-l-[#456B6B] p-3 sm:p-4">
         <p className="mb-3 text-xs font-bold uppercase tracking-wider text-[#456B6B]">
           Date
         </p>
-        <div className="flex flex-wrap gap-8">
+        <div className="flex flex-wrap gap-4 sm:gap-8">
         {quote.event_start && (
           <InfoField
             label="Evento"
@@ -106,7 +106,7 @@ export const QuoteShowSections = ({
 
       {/* Quote items table */}
       {quoteItems.length > 0 && (
-        <div className="mx-4 mt-3 space-y-3">
+        <div className="sm:mx-4 mt-3 space-y-3">
           <p className="text-xs font-bold uppercase tracking-wider text-[#2C3E50]">
             Voci preventivo
           </p>
@@ -150,7 +150,7 @@ export const QuoteShowSections = ({
 
       {/* Rejection reason */}
       {quote.rejection_reason && (
-        <div className="mx-4 mt-3 rounded-lg border border-l-[3px] border-l-red-400 p-4">
+        <div className="sm:mx-4 mt-3 rounded-lg border border-l-[3px] border-l-red-400 p-3 sm:p-4">
           <p className="mb-2 text-xs font-bold uppercase tracking-wider text-red-600">
             Motivo rifiuto
           </p>
@@ -160,7 +160,7 @@ export const QuoteShowSections = ({
 
       {/* Notes */}
       {quote.notes && (
-        <div className="mx-4 mt-3 rounded-lg border border-l-[3px] border-l-[#456B6B] p-4 whitespace-pre-line">
+        <div className="sm:mx-4 mt-3 rounded-lg border border-l-[3px] border-l-[#456B6B] p-3 sm:p-4 whitespace-pre-line">
           <p className="mb-2 text-xs font-bold uppercase tracking-wider text-[#456B6B]">
             Note
           </p>

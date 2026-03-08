@@ -115,28 +115,14 @@ const styles = StyleSheet.create({
     textTransform: "uppercase" as const,
   },
 
-  // ── Accent line ────────────────────────────────────────────────
-  accentLine: {
-    height: 2.5,
-    backgroundColor: c.navy,
-    marginHorizontal: PX,
-    borderRadius: 1,
-  },
-
-  // (business details moved to footer)
-
-  // ── Content ────────────────────────────────────────────────────
-  content: {
-    paddingHorizontal: PX,
-    paddingTop: 14,
-  },
-
   // ── Info cards ─────────────────────────────────────────────────
   infoRow: {
     flexDirection: "row",
     justifyContent: "space-between",
     marginBottom: 18,
     gap: 12,
+    paddingHorizontal: PX,
+    paddingTop: 14,
   },
   infoCard: {
     width: "48%",
@@ -175,6 +161,7 @@ const styles = StyleSheet.create({
     borderColor: c.rule,
     borderRadius: 10,
     overflow: "hidden",
+    marginHorizontal: PX,
   },
   tableHeader: {
     flexDirection: "row",
@@ -206,6 +193,7 @@ const styles = StyleSheet.create({
   // ── Total hero (email-inspired) ─────────────────────────────────
   totalHero: {
     marginTop: 8,
+    marginHorizontal: PX,
     paddingVertical: 10,
     paddingHorizontal: 16,
     backgroundColor: c.navyLight,
@@ -232,6 +220,7 @@ const styles = StyleSheet.create({
   // ── Notes ──────────────────────────────────────────────────────
   notesSection: {
     marginTop: 14,
+    marginHorizontal: PX,
     padding: 10,
     backgroundColor: c.white,
     borderRadius: 10,
@@ -376,7 +365,6 @@ export const QuotePDFDocument = ({
         </View>
 
         {/* ── Body ────────────────────────────────────────────── */}
-        <View style={styles.content}>
           <View style={styles.infoRow}>
             <View style={styles.infoCard}>
               <Text style={styles.infoLabel}>Cliente</Text>
@@ -510,7 +498,6 @@ export const QuotePDFDocument = ({
               <Text style={styles.notesText}>{quote.notes}</Text>
             </View>
           )}
-        </View>
 
         {/* ── Footer ──────────────────────────────────────────── */}
         <View style={styles.footer}>

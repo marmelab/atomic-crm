@@ -2,7 +2,6 @@ import { useGetList } from "ra-core";
 import { Link } from "react-router";
 
 import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
 
 import { PaymentStatusBadge } from "../payments/PaymentListContent";
 import { paymentTypeLabels } from "../payments/paymentTypes";
@@ -81,12 +80,10 @@ export const QuotePaymentsSection = ({
   );
 
   return (
-    <>
-      <Separator className="my-4 mx-4" />
-      <div className="mx-4 space-y-4">
+      <div className="sm:mx-4 rounded-lg border border-l-[3px] border-l-[#2C3E50] p-3 sm:p-4 space-y-4">
         <div className="space-y-2">
           <div className="flex flex-wrap items-center gap-2">
-            <span className="text-xs text-muted-foreground tracking-wide">
+            <span className="text-xs font-bold uppercase tracking-wider text-[#2C3E50]">
               Pagamenti collegati
             </span>
             {!isPending && !error ? (
@@ -119,7 +116,6 @@ export const QuotePaymentsSection = ({
           <QuotePaymentsLoadedState quote={quote} payments={data} />
         )}
       </div>
-    </>
   );
 };
 

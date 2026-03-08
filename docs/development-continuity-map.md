@@ -6,7 +6,7 @@ obbligatoria delle superfici collegate.
 **Quando usarlo:** ogni volta che una modifica tocca comportamento reale del
 prodotto.
 
-Last updated: 2026-03-08 (Navy & Petrolio: PDF, email, quote show dialog, email send dialog)
+Last updated: 2026-03-08 (FatturaPA XML generation + structured BusinessProfile address)
 
 ---
 
@@ -14,6 +14,8 @@ Last updated: 2026-03-08 (Navy & Petrolio: PDF, email, quote show dialog, email 
 
 ### Recent Updates (cronologico, più recente in alto)
 
+- [2026-03-08 (n)](#update-2026-03-08-n--fatturapa-xml-generation) — FatturaPA XML generation from invoice draft
+- [2026-03-08 (m)](#update-2026-03-08-m--invoice-draft-commercial-structure--navy-petrolio--services-navigation) — Invoice draft: commercial structure + Navy & Petrolio + services navigation
 - [2026-03-08 (l)](#update-2026-03-08-l--quote-pdf-navy-petrolio-redesign--email-color-alignment) — Quote PDF: Navy & Petrolio redesign + email color alignment
 - [2026-03-08 (k)](#update-2026-03-08-k--quote-pdf-visual-redesign--business-profile-fields) — Quote PDF: visual redesign + business profile fields
 - [2026-03-08 (j)](#update-2026-03-08-j--quote-email-bambino-redesign--pdf-attachment) — Quote email: Bambino+Neuro redesign + PDF attachment
@@ -84,6 +86,79 @@ Last updated: 2026-03-08 (Navy & Petrolio: PDF, email, quote show dialog, email 
 - [Nota manutenzione 2026-03-02](#nota-manutenzione-2026-03-02-fix-ci)
 - [Testing Session Log 2026-03-04](#testing-session-log-2026-03-04--e2e-complete-validation)
 - [AI Semantic UI Upgrade 2026-03-04](#ai-semantic-ui-upgrade-2026-03-04--pareto-principle-applied)
+
+---
+
+## Update 2026-03-08 (n) — FatturaPA XML generation
+
+**Cosa è cambiato**
+
+- Generazione XML FatturaPA v1.2.3 (FPR12) conforme allo schema XSD dell'Agenzia delle Entrate
+  - Struttura allineata a fattura reale Aruba: Header (DatiTrasmissione, CedentePrestatore RF19, CessionarioCommittente) + Body (DatiGenerali TD01, DatiBeniServizi con IVA 0% N2.2, DatiPagamento MP05 bonifico)
+  - IdTrasmittente hardcoded al CF di Aruba PEC (01879020517) — Aruba lo corregge comunque ma è più pulito
+  - CodiceDestinatario dal billing_sdi_code del cliente, fallback "0000000" + PECDestinatario
+  - Causale e RiferimentoNormativo standard per regime forfettario
+  - Bollo NON incluso nell'XML (gestito da Aruba), ma resta visibile nel PDF/modale per il cliente
+- `BusinessProfile` esteso con indirizzo strutturato per XML: `addressStreet`, `addressNumber`, `addressPostalCode`, `addressCity`, `addressProvince`, `addressCountry`, `beneficiaryName`
+- Settings UI: sezione "Indirizzo strutturato" con griglia 2 colonne + campo beneficiario
+- Modale bozza fattura: input "Numero fattura" (obbligatorio per XML) + bottone "XML" (Petrolio) accanto a "PDF" (Navy)
+- Download XML: naming `IT{CF}_{sourceId}.xml`
+
+**File toccati**
+
+- `src/components/atomic-crm/invoicing/invoiceDraftXml.ts` — nuovo, XML builder + download
+- `src/components/atomic-crm/invoicing/InvoiceDraftDialog.tsx` — input numero fattura + bottone XML
+- `src/components/atomic-crm/types.ts` — 7 nuovi campi in BusinessProfile
+- `src/components/atomic-crm/root/defaultConfiguration.ts` — valori default strutturati
+- `src/components/atomic-crm/settings/BusinessProfileSettingsSection.tsx` — griglia indirizzo + beneficiario
+
+**Superfici verificate**
+
+- 10 consumer di businessProfile — tutti via `useConfigurationContext()` con merge defaults, zero rotture
+- `mergeConfigurationWithDefaults` fa spread: nuovi campi hanno valori default automatici
+- TypeScript check zero errori
+
+---
+
+## Update 2026-03-08 (m) — Invoice draft: commercial structure + Navy & Petrolio + services navigation
+
+**Cosa è cambiato**
+
+- Riscrittura completa `invoiceDraftPdf.tsx` con struttura commerciale allineata a Fattura Elettronica Aruba:
+  - Sezione Fornitore (P.IVA con prefisso IT) e Cliente (codice destinatario, PEC)
+  - Tabella prodotti 6 colonne (Nr, Descrizione, Q.tà, Prezzo, Importo, IVA 0% N2.2)
+  - Bollo virtuale come riga tabella
+  - Metodo di pagamento (Modalità, Banca, BIC/SWIFT, IBAN, Importo)
+  - Regime fiscale RF19 con dicitura completa
+  - Riepilogo IVA + Calcolo fattura (dual-column)
+  - Netto a pagare hero
+  - Causale (ritenuta alla fonte)
+- `InvoiceDraftDialog.tsx` modale allineato alla stessa struttura commerciale:
+  - Card Fornitore (dati emittente) al posto di card Origine
+  - Card Cliente con dati fiscali (P.IVA, CF, codice destinatario)
+  - Tabella 6 colonne con IVA e riga bollo
+  - Riepilogo IVA + Netto a pagare
+  - Sezione pagamento con dati bancari
+  - Regime fiscale RF19
+- `SendPaymentReminderDialog.tsx` allineato a palette Navy & Petrolio
+- `BusinessProfile` esteso con `bankName` e `bic` (tipo, default, Settings UI)
+- `ServiceListContent.tsx`: nomi cliente e progetto cliccabili con `<Link>` + `stopPropagation`
+
+**File toccati**
+
+- `src/components/atomic-crm/invoicing/invoiceDraftPdf.tsx` — riscrittura completa
+- `src/components/atomic-crm/invoicing/InvoiceDraftDialog.tsx` — struttura commerciale + Navy & Petrolio
+- `src/components/atomic-crm/payments/SendPaymentReminderDialog.tsx` — palette Navy & Petrolio
+- `src/components/atomic-crm/types.ts` — `bankName`, `bic` in `BusinessProfile`
+- `src/components/atomic-crm/root/defaultConfiguration.ts` — valori default bankName, bic
+- `src/components/atomic-crm/settings/BusinessProfileSettingsSection.tsx` — input Banca e BIC
+- `src/components/atomic-crm/services/ServiceListContent.tsx` — link navigazione cliente/progetto
+
+**Superfici verificate**
+
+- 4 consumer di `InvoiceDraftDialog` (QuoteShow, ClientShow, ServiceShow, ProjectShow) — stesso componente
+- `transformFormValues` in SettingsPage passa `businessProfile` as-is — nuovi campi automaticamente inclusi
+- TypeScript check zero errori
 
 ---
 
