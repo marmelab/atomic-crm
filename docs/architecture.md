@@ -15,6 +15,7 @@ Stato del documento:
 
 ## Changelog
 
+- 2026-03-08: Mobile dashboard data parity fix — added useRealtimeInvalidation to MobileAnnualDashboard (was missing, causing stale data from persistent localStorage cache). Added staleTime: 2min to mobile QueryClient to force refetch when data is stale. Fixes expenses showing 0 on mobile while desktop showed correct values.
 - 2026-03-08: AI shared components — AiStatusCallout (4 tones: success/warning/info/error, Navy & Petrolio for info), AiDraftSummaryBar (Bambino-style resource summary with Banknote/Receipt/Wrench icons and semantic colors), PaymentDraftCard upgraded with Navy & Petrolio palette + hero amount. AiInvoiceImportView refactored to use shared components replacing hardcoded callout/confirmation boxes. File upload hint shows limits inline (6 files, 20 MB each). Current date injected in extraction prompt to prevent false future-date warnings.
 - 2026-03-08: AI chat robustness — conversation history per-turn cap (3000 chars answer, 1200 chars question) in normalizeConversationHistory; 30s timeout with Promise.race on Edge Function call in provider; user-friendly timeout error message.
 - 2026-03-08: Invoice import prompt hardening — 3 Pareto rules added: (1) classification by P.IVA ownership (cedente=titolare → payments, else → expenses); (2) always use net/imponibile amounts, not gross; (3) match clients by VAT/CF first, name second, null if uncertain. Reduces misclassification, wrong amounts, and failed client matches.

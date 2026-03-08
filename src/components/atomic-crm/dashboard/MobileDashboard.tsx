@@ -16,6 +16,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 
+import { useRealtimeInvalidation } from "@/hooks/useRealtimeInvalidation";
+
 import { MobileContent } from "../layout/MobileContent";
 import { DashboardHistorical } from "./DashboardHistorical";
 import { DashboardAnnualAiSummaryCard } from "./DashboardAnnualAiSummaryCard";
@@ -79,7 +81,18 @@ export const MobileDashboard = () => {
 
 const currentYear = new Date().getFullYear();
 
+const REALTIME_TABLES = [
+  "payments",
+  "services",
+  "projects",
+  "quotes",
+  "expenses",
+  "clients",
+  "client_tasks",
+];
+
 const MobileAnnualDashboard = () => {
+  useRealtimeInvalidation(REALTIME_TABLES);
   const [selectedYear, setSelectedYear] = useState(currentYear);
   const { data, isPending, error, refetch } = useDashboardData(selectedYear);
   const isCurrentYear = data?.isCurrentYear ?? selectedYear === currentYear;
