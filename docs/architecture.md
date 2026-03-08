@@ -15,6 +15,7 @@ Stato del documento:
 
 ## Changelog
 
+- 2026-03-08: unified_crm_answer Edge Function split — extracted prompt.ts (instructions + missing key markdown), helpers.ts (buildCrmFlowResponse + resolveTravelEstimate), handleCreateFlows() for rule engine branching. index.ts reduced from 460 to 290 lines, answerUnifiedCrmQuestion complexity reduced.
 - 2026-03-08: AI chat suggestion cards redesign — replaced rotating 2×4 grid with category chips + question list layout (Navy & Petrolio palette). 9 Pareto-optimized categories ordered by daily usage frequency: Panoramica, Fatturazione, Incassi, Lavoro svolto, Spese e km, Preventivi, Clienti, Promemoria, Automazioni. Fatturazione promoted to dedicated category. Removed unused useRotatingSuggestions hook.
 - 2026-03-08: AI invoice draft create flow — dedicated create flow in unified_crm_answer for invoice generation via chat. parseUnifiedCrmInvoiceDraftQuestion() detects "fattura/aruba/bozza fattura" intent, resolves entity (quote > project > client) from snapshot with entity matching, builds rich markdown with financial summary (totalFees, totalPaid, balanceDue, uninvoicedServices), provides up to 3 handoff actions to Show pages with ?invoiceDraft=true. Registered in Edge Function before generic suggestion fallback.
 - 2026-03-08: Migration idempotency fix — `20260308003136` constraint creation wrapped in DO block for safe remote replay (no functional change)
