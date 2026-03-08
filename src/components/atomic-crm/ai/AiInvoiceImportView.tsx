@@ -131,7 +131,7 @@ export const AiInvoiceImportView = ({
             onChange={onFileSelection}
           />
           <p className="text-xs text-muted-foreground">
-            Supportati: PDF digitali, scansioni e foto con layout variabili.
+            PDF, scansioni e foto · max 6 file · max 20 MB ciascuno
           </p>
         </div>
 
