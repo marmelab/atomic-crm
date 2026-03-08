@@ -80,7 +80,17 @@ export const ProjectList = () => {
 
 const ProjectListLayout = () => {
   const { data, isPending, filterValues } = useListContext();
-  const [viewMode, setViewMode] = useState<"list" | "kanban">("list");
+  const [viewMode, setViewMode] = useState<"list" | "kanban">(
+    () =>
+      (localStorage.getItem("projects.viewMode") as "list" | "kanban") ||
+      "list",
+  );
+  const handleViewMode = (v: string) => {
+    if (!v) return;
+    const mode = v as "list" | "kanban";
+    setViewMode(mode);
+    localStorage.setItem("projects.viewMode", mode);
+  };
   const hasFilters = filterValues && Object.keys(filterValues).length > 0;
   const isMobile = useIsMobile();
 
@@ -102,7 +112,7 @@ const ProjectListLayout = () => {
           <ToggleGroup
             type="single"
             value={viewMode}
-            onValueChange={(v) => v && setViewMode(v as "list" | "kanban")}
+            onValueChange={handleViewMode}
           >
             <ToggleGroupItem value="list" aria-label="Vista lista">
               <ListIcon className="h-4 w-4" />

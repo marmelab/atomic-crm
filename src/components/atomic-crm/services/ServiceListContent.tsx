@@ -19,6 +19,8 @@ import {
   Mic,
   FileText,
   Briefcase,
+  Clapperboard,
+  Code,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -44,7 +46,9 @@ const eur = (n: number) =>
 const serviceTypeIcons: Record<string, LucideIcon> = {
   riprese: Video,
   montaggio: Scissors,
+  riprese_montaggio: Clapperboard,
   fotografia: Camera,
+  sviluppo_web: Code,
   audio: Mic,
   documentazione: FileText,
   altro: Briefcase,
@@ -53,7 +57,9 @@ const serviceTypeIcons: Record<string, LucideIcon> = {
 const serviceTypeColors: Record<string, string> = {
   riprese: "text-blue-600 bg-blue-50 border-blue-200",
   montaggio: "text-purple-600 bg-purple-50 border-purple-200",
+  riprese_montaggio: "text-indigo-600 bg-indigo-50 border-indigo-200",
   fotografia: "text-pink-600 bg-pink-50 border-pink-200",
+  sviluppo_web: "text-teal-600 bg-teal-50 border-teal-200",
   audio: "text-amber-600 bg-amber-50 border-amber-200",
   documentazione: "text-green-600 bg-green-50 border-green-200",
   altro: "text-slate-600 bg-slate-50 border-slate-200",

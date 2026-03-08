@@ -15,6 +15,8 @@ Stato del documento:
 
 ## Changelog
 
+- 2026-03-08: Service type icons — added dedicated icons for riprese_montaggio (Clapperboard/indigo) and sviluppo_web (Code/teal); all defaultServiceTypeChoices now have a matching icon+color entry
+- 2026-03-08: Projects view mode (list/kanban) persisted in localStorage
 - 2026-03-08: Resizable columns on all list pages (useResizableColumns hook + ResizableHead component, localStorage persistence). Client filter added to services list. FilterHelpers refactor (FilterPopover generic component replaces duplicated Popover blocks across 6 filter files)
 - 2026-03-08: AI layer fully aligned with suppliers — snapshot includes recentSuppliers, supplierFinancials, supplier refs on expenses/tasks/contacts; semantic registry, capability registry, Edge Function instructions updated
 - 2026-03-08: Supplier financial section — SupplierFinancialSummary (debiti/crediti), SupplierFinancialDocsCard (storico documenti), financial_documents_summary view updated with supplier_id + LEFT JOIN
