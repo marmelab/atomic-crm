@@ -115,13 +115,14 @@ export const DashboardAnnual = () => {
         taxesPaid={totalTaxesPaid}
       />
 
+      {isCurrentYear && data.cashFlowForecast && (
+        <DashboardCashFlowCard forecast={data.cashFlowForecast} />
+      )}
+
       {isCurrentYear && (
         <>
           <DashboardAlertsCard alerts={data.alerts} />
           <DashboardDeadlineTracker />
-          {data.cashFlowForecast && (
-            <DashboardCashFlowCard forecast={data.cashFlowForecast} />
-          )}
         </>
       )}
 

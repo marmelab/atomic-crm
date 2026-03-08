@@ -52,6 +52,18 @@ Surfaces touched:
 No DB migration needed — uses existing `project_id`, `source_service_id` and
 `client_id` fields.
 
+## Update 2026-03-08 (f) — CashFlowCard visual redesign
+
+Redesigned `DashboardCashFlowCard` for better visual hierarchy:
+- Accent-colored left border (emerald/red) based on positive/negative net flow
+- Flow details now collapsible via `<details>` element (was always-expanded)
+- Each flow item shows date via `formatShortDate`
+- Summary badge always visible (was only on negative flow)
+- Removed internal `FlowSection` component — inlined into collapsible markup
+- Card moved before alerts/deadlines in `DashboardAnnual.tsx` layout
+
+No logic or data changes — visual/UX only.
+
 ## Update 2026-03-08 (e) — Dashboard card reorder for consequential flow
 
 Reordered `DashboardAnnual.tsx` layout. Alerts, deadline tracker, and cash flow
