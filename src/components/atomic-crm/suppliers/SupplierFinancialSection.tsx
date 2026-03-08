@@ -112,7 +112,9 @@ const SummaryTile = ({
 }) => (
   <div className="rounded-lg border px-3 py-2">
     <p className="text-xs text-muted-foreground">{label}</p>
-    <p className={`text-sm font-semibold ${highlight ? "text-destructive" : ""}`}>
+    <p
+      className={`text-sm font-semibold ${highlight ? "text-destructive" : ""}`}
+    >
       {value}
     </p>
   </div>
@@ -166,7 +168,9 @@ export const SupplierFinancialDocsCard = ({
                 </span>
               </div>
               <div className="flex items-center gap-2">
-                <Badge variant={statusVariant[doc.settlement_status] ?? "outline"}>
+                <Badge
+                  variant={statusVariant[doc.settlement_status] ?? "outline"}
+                >
                   {statusLabels[doc.settlement_status] ?? doc.settlement_status}
                 </Badge>
                 <span className="text-sm font-medium whitespace-nowrap">

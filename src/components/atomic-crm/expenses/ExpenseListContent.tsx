@@ -34,7 +34,8 @@ export const ExpenseListContent = () => {
   const createPath = useCreatePath();
   const isMobile = useIsMobile();
   const { cv } = useColumnVisibility("expenses", EXPENSE_COLUMNS);
-  const { getWidth, onResizeStart, headerRef } = useResizableColumns("expenses");
+  const { getWidth, onResizeStart, headerRef } =
+    useResizableColumns("expenses");
 
   if (error) return <ErrorMessage />;
   if (isPending || !data) return null;
@@ -70,14 +71,70 @@ export const ExpenseListContent = () => {
             <TableHead className="w-10">
               <ListSelectAllCheckbox />
             </TableHead>
-            <ResizableHead colKey="date" width={getWidth("date")} onResizeStart={onResizeStart} className={cv("date")}>Data</ResizableHead>
-            <ResizableHead colKey="type" width={getWidth("type")} onResizeStart={onResizeStart} className={cv("type")}>Tipo</ResizableHead>
-            <ResizableHead colKey="client" width={getWidth("client")} onResizeStart={onResizeStart} className={cv("client", "hidden md:table-cell")}>Cliente</ResizableHead>
-            <ResizableHead colKey="supplier" width={getWidth("supplier")} onResizeStart={onResizeStart} className={cv("supplier", "hidden md:table-cell")}>Fornitore</ResizableHead>
-            <ResizableHead colKey="project" width={getWidth("project")} onResizeStart={onResizeStart} className={cv("project")}>Progetto</ResizableHead>
-            <ResizableHead colKey="km" width={getWidth("km")} onResizeStart={onResizeStart} className={cv("km", "text-right hidden md:table-cell")}>Km</ResizableHead>
-            <ResizableHead colKey="total" width={getWidth("total")} onResizeStart={onResizeStart} className={cv("total", "text-right")}>Totale EUR</ResizableHead>
-            <ResizableHead colKey="description" width={getWidth("description")} onResizeStart={onResizeStart} className={cv("description", "hidden lg:table-cell")}>Descrizione</ResizableHead>
+            <ResizableHead
+              colKey="date"
+              width={getWidth("date")}
+              onResizeStart={onResizeStart}
+              className={cv("date")}
+            >
+              Data
+            </ResizableHead>
+            <ResizableHead
+              colKey="type"
+              width={getWidth("type")}
+              onResizeStart={onResizeStart}
+              className={cv("type")}
+            >
+              Tipo
+            </ResizableHead>
+            <ResizableHead
+              colKey="client"
+              width={getWidth("client")}
+              onResizeStart={onResizeStart}
+              className={cv("client", "hidden md:table-cell")}
+            >
+              Cliente
+            </ResizableHead>
+            <ResizableHead
+              colKey="supplier"
+              width={getWidth("supplier")}
+              onResizeStart={onResizeStart}
+              className={cv("supplier", "hidden md:table-cell")}
+            >
+              Fornitore
+            </ResizableHead>
+            <ResizableHead
+              colKey="project"
+              width={getWidth("project")}
+              onResizeStart={onResizeStart}
+              className={cv("project")}
+            >
+              Progetto
+            </ResizableHead>
+            <ResizableHead
+              colKey="km"
+              width={getWidth("km")}
+              onResizeStart={onResizeStart}
+              className={cv("km", "text-right hidden md:table-cell")}
+            >
+              Km
+            </ResizableHead>
+            <ResizableHead
+              colKey="total"
+              width={getWidth("total")}
+              onResizeStart={onResizeStart}
+              className={cv("total", "text-right")}
+            >
+              Totale EUR
+            </ResizableHead>
+            <ResizableHead
+              colKey="description"
+              width={getWidth("description")}
+              onResizeStart={onResizeStart}
+              className={cv("description", "hidden lg:table-cell")}
+            >
+              Descrizione
+            </ResizableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -163,16 +220,28 @@ const ExpenseRow = ({
           )}
         </div>
       </TableCell>
-      <TableCell className={cv("client", "text-sm text-muted-foreground hidden md:table-cell")}>
+      <TableCell
+        className={cv(
+          "client",
+          "text-sm text-muted-foreground hidden md:table-cell",
+        )}
+      >
         {client?.name ?? ""}
       </TableCell>
-      <TableCell className={cv("supplier", "text-sm text-muted-foreground hidden md:table-cell")}>
+      <TableCell
+        className={cv(
+          "supplier",
+          "text-sm text-muted-foreground hidden md:table-cell",
+        )}
+      >
         {supplier?.name ?? ""}
       </TableCell>
       <TableCell className={cv("project", "text-sm text-muted-foreground")}>
         {project?.name ?? ""}
       </TableCell>
-      <TableCell className={cv("km", "text-right text-sm hidden md:table-cell")}>
+      <TableCell
+        className={cv("km", "text-right text-sm hidden md:table-cell")}
+      >
         {expense.km_distance || "--"}
       </TableCell>
       <TableCell
@@ -187,7 +256,12 @@ const ExpenseRow = ({
       >
         {eur(total)}
       </TableCell>
-      <TableCell className={cv("description", "text-sm text-muted-foreground hidden lg:table-cell")}>
+      <TableCell
+        className={cv(
+          "description",
+          "text-sm text-muted-foreground hidden lg:table-cell",
+        )}
+      >
         {expense.description ?? ""}
       </TableCell>
     </TableRow>

@@ -27,10 +27,7 @@ import {
   MobileSelectableCard,
   ListBulkToolbar,
 } from "../misc/ListBulkSelection";
-import {
-  SupplierListFilter,
-  SupplierMobileFilter,
-} from "./SupplierListFilter";
+import { SupplierListFilter, SupplierMobileFilter } from "./SupplierListFilter";
 
 export const SupplierList = () => (
   <List
@@ -64,9 +61,7 @@ const SupplierListLayout = () => {
   if (isPending) return null;
 
   if (isMobile) {
-    return (
-      <SupplierMobileList data={data} createPath={createPath} />
-    );
+    return <SupplierMobileList data={data} createPath={createPath} />;
   }
 
   return (
@@ -78,7 +73,11 @@ const SupplierListLayout = () => {
           {data.length === 0 ? (
             <SupplierEmptyState />
           ) : (
-            <SupplierDesktopTable data={data} createPath={createPath} resize={resize} />
+            <SupplierDesktopTable
+              data={data}
+              createPath={createPath}
+              resize={resize}
+            />
           )}
         </div>
       </div>
@@ -142,10 +141,37 @@ const SupplierDesktopTable = ({
           <TableHead className="w-10">
             <ListSelectAllCheckbox />
           </TableHead>
-          <ResizableHead colKey="name" width={getWidth("name")} onResizeStart={onResizeStart}>Nome</ResizableHead>
-          <ResizableHead colKey="vat" width={getWidth("vat")} onResizeStart={onResizeStart} className="hidden md:table-cell">P.IVA</ResizableHead>
-          <ResizableHead colKey="phone" width={getWidth("phone")} onResizeStart={onResizeStart} className="hidden md:table-cell">Telefono</ResizableHead>
-          <ResizableHead colKey="email" width={getWidth("email")} onResizeStart={onResizeStart} className="hidden lg:table-cell">Email</ResizableHead>
+          <ResizableHead
+            colKey="name"
+            width={getWidth("name")}
+            onResizeStart={onResizeStart}
+          >
+            Nome
+          </ResizableHead>
+          <ResizableHead
+            colKey="vat"
+            width={getWidth("vat")}
+            onResizeStart={onResizeStart}
+            className="hidden md:table-cell"
+          >
+            P.IVA
+          </ResizableHead>
+          <ResizableHead
+            colKey="phone"
+            width={getWidth("phone")}
+            onResizeStart={onResizeStart}
+            className="hidden md:table-cell"
+          >
+            Telefono
+          </ResizableHead>
+          <ResizableHead
+            colKey="email"
+            width={getWidth("email")}
+            onResizeStart={onResizeStart}
+            className="hidden lg:table-cell"
+          >
+            Email
+          </ResizableHead>
         </TableRow>
       </TableHeader>
       <TableBody>

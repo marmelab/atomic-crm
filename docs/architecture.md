@@ -7,7 +7,7 @@ di fotografo, videomaker e web developer. Single-user, interfaccia italiana.
 
 Stato del documento:
 
-- `canonical`
+- `canonical` — ultimo aggiornamento: 2026-03-08
 - descrive la fotografia implementativa ad alto livello
 - le vecchie "sessioni" citate nel file sono indizi storici, non la fonte
   primaria della verita' operativa se entrano in conflitto con codice o

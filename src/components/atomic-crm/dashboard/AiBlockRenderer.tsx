@@ -132,13 +132,7 @@ function TextBlock({ content }: { content: string }) {
   return <p className="text-sm leading-relaxed">{content}</p>;
 }
 
-function CalloutBlock({
-  tone,
-  content,
-}: {
-  tone: string;
-  content: string;
-}) {
+function CalloutBlock({ tone, content }: { tone: string; content: string }) {
   return (
     <div
       className={`flex gap-2 rounded-md border px-3 py-2 text-sm ${calloutStyles[tone] ?? calloutStyles.info}`}
@@ -166,7 +160,10 @@ function MetricsBlock({
   return (
     <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
       {items.map((item, i) => (
-        <div key={i} className="rounded-md border px-2 py-2 text-center min-w-0">
+        <div
+          key={i}
+          className="rounded-md border px-2 py-2 text-center min-w-0"
+        >
           <p className="text-[11px] text-muted-foreground leading-tight truncate">
             {item.label}
           </p>
@@ -184,9 +181,7 @@ function MetricsBlock({
 function ListBlock({ title, items }: { title?: string; items: string[] }) {
   return (
     <div>
-      {title && (
-        <p className="text-sm font-semibold mb-1">{title}</p>
-      )}
+      {title && <p className="text-sm font-semibold mb-1">{title}</p>}
       <ul className="list-disc pl-5 space-y-0.5">
         {items.map((item, i) => (
           <li key={i} className="text-sm">
@@ -209,9 +204,7 @@ function BarChartBlock({
 
   return (
     <div>
-      {title && (
-        <p className="text-sm font-semibold mb-2">{title}</p>
-      )}
+      {title && <p className="text-sm font-semibold mb-2">{title}</p>}
       <div className="space-y-1.5">
         {items.map((item, i) => {
           const pct = Math.round((item.value / maxValue) * 100);
@@ -249,7 +242,8 @@ function ProgressBlock({
   total: number;
   color?: AiBlockColor;
 }) {
-  const pct = total > 0 ? Math.min(Math.round((current / total) * 100), 100) : 0;
+  const pct =
+    total > 0 ? Math.min(Math.round((current / total) * 100), 100) : 0;
   const barColor = color ?? "emerald";
 
   return (
@@ -283,9 +277,7 @@ function TrendBlock({
 
   return (
     <div>
-      {label && (
-        <p className="text-sm font-semibold mb-2">{label}</p>
-      )}
+      {label && <p className="text-sm font-semibold mb-2">{label}</p>}
       <ResponsiveContainer width="100%" height={160}>
         <LineChart
           data={points}
@@ -410,9 +402,7 @@ function BreakdownBlock({
 
   return (
     <div>
-      {title && (
-        <p className="text-sm font-semibold mb-2">{title}</p>
-      )}
+      {title && <p className="text-sm font-semibold mb-2">{title}</p>}
       <div className="space-y-1.5">
         {items.map((item, i) => {
           const pct = Math.round((item.value / total) * 100);

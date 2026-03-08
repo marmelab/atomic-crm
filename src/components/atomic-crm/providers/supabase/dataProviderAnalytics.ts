@@ -45,9 +45,9 @@ export const buildAnalyticsProviderMethods = (deps: {
     ): Promise<AnnualOperationsContext> {
       return annualContext(year);
     },
-    async generateHistoricalAnalyticsSummary(
-      options?: { visualMode?: boolean },
-    ): Promise<HistoricalAnalyticsSummary | HistoricalVisualSummary> {
+    async generateHistoricalAnalyticsSummary(options?: {
+      visualMode?: boolean;
+    }): Promise<HistoricalAnalyticsSummary | HistoricalVisualSummary> {
       const [context, model] = await Promise.all([
         historicalContext(),
         deps.getConfiguredHistoricalAnalysisModel(),
@@ -72,9 +72,9 @@ export const buildAnalyticsProviderMethods = (deps: {
 
       return data.data;
     },
-    async generateHistoricalCashInflowSummary(
-      options?: { visualMode?: boolean },
-    ): Promise<HistoricalAnalyticsSummary | HistoricalVisualSummary> {
+    async generateHistoricalCashInflowSummary(options?: {
+      visualMode?: boolean;
+    }): Promise<HistoricalAnalyticsSummary | HistoricalVisualSummary> {
       const [context, model] = await Promise.all([
         cashInflowContext(),
         deps.getConfiguredHistoricalAnalysisModel(),
@@ -102,7 +102,9 @@ export const buildAnalyticsProviderMethods = (deps: {
     async generateAnnualOperationsAnalyticsSummary(
       year: number,
       options?: { visualMode?: boolean },
-    ): Promise<AnnualOperationsAnalyticsSummary | AnnualOperationsVisualSummary> {
+    ): Promise<
+      AnnualOperationsAnalyticsSummary | AnnualOperationsVisualSummary
+    > {
       const [context, model] = await Promise.all([
         annualContext(year),
         deps.getConfiguredHistoricalAnalysisModel(),

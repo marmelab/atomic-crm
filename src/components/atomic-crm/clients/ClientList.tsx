@@ -14,10 +14,7 @@ import { ClientListContent } from "./ClientListContent";
 import { ClientListFilter, ClientMobileFilter } from "./ClientListFilter";
 import { TopToolbar } from "../layout/TopToolbar";
 import { MobilePageTitle } from "../layout/MobilePageTitle";
-import {
-  CLIENT_COLUMNS,
-  filterExportRow,
-} from "../misc/columnDefinitions";
+import { CLIENT_COLUMNS, filterExportRow } from "../misc/columnDefinitions";
 import { ColumnVisibilityButton } from "../misc/ColumnVisibilityButton";
 
 export const ClientList = () => {
@@ -41,8 +38,7 @@ export const ClientList = () => {
             partita_iva: client.vat_number ?? "",
             codice_fiscale: client.fiscal_code ?? "",
             via_fatturazione: client.billing_address_street ?? "",
-            numero_civico_fatturazione:
-              client.billing_address_number ?? "",
+            numero_civico_fatturazione: client.billing_address_number ?? "",
             cap_fatturazione: client.billing_postal_code ?? "",
             comune_fatturazione: client.billing_city ?? "",
             provincia_fatturazione: client.billing_province ?? "",

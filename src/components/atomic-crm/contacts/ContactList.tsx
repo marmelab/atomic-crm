@@ -86,7 +86,8 @@ const ContactListLayout = ({
   const { data: rawData, isPending, error } = useListContext<Contact>();
   const createPath = useCreatePath();
   const isMobile = useIsMobile();
-  const { getWidth, onResizeStart, headerRef } = useResizableColumns("contacts");
+  const { getWidth, onResizeStart, headerRef } =
+    useResizableColumns("contacts");
   const data = Array.isArray(rawData) ? rawData : Object.values(rawData ?? {});
   const clientIds = [
     ...new Set(data.map((contact) => contact.client_id).filter(Boolean)),
@@ -155,10 +156,38 @@ const ContactListLayout = ({
               <TableHead className="w-10">
                 <ListSelectAllCheckbox />
               </TableHead>
-              <ResizableHead colKey="name" width={getWidth("name")} onResizeStart={onResizeStart} className={cv("name")}>Referente</ResizableHead>
-              <ResizableHead colKey="role" width={getWidth("role")} onResizeStart={onResizeStart} className={cv("role")}>Ruolo</ResizableHead>
-              <ResizableHead colKey="contacts_info" width={getWidth("contacts_info")} onResizeStart={onResizeStart} className={cv("contacts_info", "hidden md:table-cell")}>Contatti</ResizableHead>
-              <ResizableHead colKey="client" width={getWidth("client")} onResizeStart={onResizeStart} className={cv("client", "hidden lg:table-cell")}>Cliente</ResizableHead>
+              <ResizableHead
+                colKey="name"
+                width={getWidth("name")}
+                onResizeStart={onResizeStart}
+                className={cv("name")}
+              >
+                Referente
+              </ResizableHead>
+              <ResizableHead
+                colKey="role"
+                width={getWidth("role")}
+                onResizeStart={onResizeStart}
+                className={cv("role")}
+              >
+                Ruolo
+              </ResizableHead>
+              <ResizableHead
+                colKey="contacts_info"
+                width={getWidth("contacts_info")}
+                onResizeStart={onResizeStart}
+                className={cv("contacts_info", "hidden md:table-cell")}
+              >
+                Contatti
+              </ResizableHead>
+              <ResizableHead
+                colKey="client"
+                width={getWidth("client")}
+                onResizeStart={onResizeStart}
+                className={cv("client", "hidden lg:table-cell")}
+              >
+                Cliente
+              </ResizableHead>
             </TableRow>
           </TableHeader>
           <TableBody>

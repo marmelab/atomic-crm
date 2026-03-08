@@ -142,4 +142,3 @@ const SupplierFilterContent = () => {
     </div>
   );
 };
-

@@ -26,11 +26,7 @@ const REALTIME_TABLES = [
 
 const EXTRA_QUERY_KEYS = [["historical-cash-inflow-context"]];
 
-export const DashboardHistorical = ({
-  compact,
-}: {
-  compact?: boolean;
-}) => {
+export const DashboardHistorical = ({ compact }: { compact?: boolean }) => {
   useRealtimeInvalidation(REALTIME_TABLES, EXTRA_QUERY_KEYS);
   const { data, isPending, error, refetch, sectionState } =
     useHistoricalDashboardData();

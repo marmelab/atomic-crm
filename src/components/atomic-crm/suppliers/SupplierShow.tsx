@@ -57,12 +57,12 @@ const SupplierShowContent = () => {
                 />
               )}
               <div>
-              <h2 className="text-xl md:text-2xl font-bold">{record.name}</h2>
-              {record.vat_number && (
-                <p className="text-sm text-muted-foreground mt-1">
-                  P.IVA: {record.vat_number}
-                </p>
-              )}
+                <h2 className="text-xl md:text-2xl font-bold">{record.name}</h2>
+                {record.vat_number && (
+                  <p className="text-sm text-muted-foreground mt-1">
+                    P.IVA: {record.vat_number}
+                  </p>
+                )}
               </div>
             </div>
             <TagsListEdit resource="suppliers" />
@@ -142,7 +142,6 @@ const SupplierShowContent = () => {
                 />
               )}
             </div>
-
           </div>
         </CardContent>
       </Card>

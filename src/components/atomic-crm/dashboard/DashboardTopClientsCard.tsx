@@ -1,10 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 
-import {
-  formatCompactCurrency,
-  type TopClientPoint,
-} from "./dashboardModel";
+import { formatCompactCurrency, type TopClientPoint } from "./dashboardModel";
 
 export const DashboardTopClientsCard = ({
   data,

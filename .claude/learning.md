@@ -44,6 +44,7 @@
 | **UI**       | UI-8  | Nuova superficie AI → pattern card unificata     |
 | **Backend**  | BE-5  | EF env vars → stop+start, NON restart             |
 | **Backend**  | BE-6  | Reload remoto → TRUNCATE prima di load             |
+| **Workflow** | WF-7  | Dopo push → controlla CI autonomamente             |
 
 ---
 
@@ -179,6 +180,12 @@ verify_jwt = false
 **Quando**: dopo `supabase start` o `supabase db reset` devo caricare dati remoti
 **Fare**: TRUNCATE tutte le tabelle (auth + public + storage) con `session_replication_role = replica` PRIMA di `psql -f dump.sql`
 **Perché**: la migration `20260302170000_domain_data_snapshot.sql` carica dati che collidono col dump remoto → errori "duplicate key". Sequenza: truncate → load dump → `npm run local:admin:bootstrap`
+
+### WF-7: Dopo push → controlla CI autonomamente
+
+**Quando**: ho appena fatto `git push`
+**Fare**: SEMPRE controllare il CI con `gh run list --limit 1` + `gh run view <id> --log-failed` SENZA aspettare che l'utente mandi screenshot. Se fallisce, fixare e re-pushare autonomamente.
+**Perché**: l'utente non deve fare da intermediario tra me e il CI. Devo controllare i log da solo, ogni volta, subito dopo il push.
 
 ---
 

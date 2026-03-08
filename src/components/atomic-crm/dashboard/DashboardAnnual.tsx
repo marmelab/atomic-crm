@@ -101,9 +101,7 @@ export const DashboardAnnual = () => {
         <DashboardCashFlowCard forecast={data.cashFlowForecast} />
       )}
 
-      {isCurrentYear && (
-        <DashboardDeadlineTracker alerts={data.alerts} />
-      )}
+      {isCurrentYear && <DashboardDeadlineTracker alerts={data.alerts} />}
 
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
         <DashboardRevenueTrendChart
@@ -212,7 +210,6 @@ export const DashboardAnnual = () => {
           </CardContent>
         </Card>
       )}
-
     </div>
   );
 };

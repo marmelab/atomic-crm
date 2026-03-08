@@ -68,7 +68,10 @@ export function CloudinaryUploadInput({
 
   const handleRemoveBg = () => {
     if (!currentUrl) return;
-    const newUrl = currentUrl.replace("/upload/", "/upload/e_background_removal/");
+    const newUrl = currentUrl.replace(
+      "/upload/",
+      "/upload/e_background_removal/",
+    );
     setValue(source, newUrl, { shouldDirty: true, shouldValidate: true });
   };
 
@@ -99,7 +102,12 @@ export function CloudinaryUploadInput({
         </div>
       ) : (
         <div className="flex gap-2">
-          <Button type="button" variant="outline" size="sm" onClick={openUpload}>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={openUpload}
+          >
             <Upload className="mr-1.5 size-3.5" />
             Carica
           </Button>

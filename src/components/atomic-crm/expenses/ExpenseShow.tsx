@@ -81,69 +81,69 @@ const ExpenseShowContent = () => {
               <h2 className="text-xl md:text-2xl font-bold">
                 {expenseTypeLabels[record.expense_type]} — EUR {eur(total)}
               </h2>
-                {record.expense_type === "credito_ricevuto" ? (
-                  <div className="mt-2">
-                    <Badge variant="secondary" className="text-green-700">
-                      Credito ricevuto
-                    </Badge>
-                  </div>
-                ) : null}
-                <div className="flex items-center gap-3 mt-1 text-sm text-muted-foreground flex-wrap">
-                  <span className="flex items-center gap-1">
-                    <Calendar className="size-3" />
-                    {new Date(record.expense_date).toLocaleDateString("it-IT")}
-                  </span>
-                  {project && (
-                    <Link
-                      to={`/projects/${record.project_id}/show`}
-                      className="text-primary hover:underline"
-                    >
-                      {project.name}
-                    </Link>
-                  )}
-                  {supplier && (
-                    <Link
-                      to={`/suppliers/${record.supplier_id}/show`}
-                      className="text-primary hover:underline"
-                    >
-                      {supplier.name}
-                    </Link>
-                  )}
-                  {record.invoice_ref && (
-                    <span className="flex items-center gap-1">
-                      <FileText className="size-3" />
-                      {record.invoice_ref}
-                    </span>
-                  )}
+              {record.expense_type === "credito_ricevuto" ? (
+                <div className="mt-2">
+                  <Badge variant="secondary" className="text-green-700">
+                    Credito ricevuto
+                  </Badge>
                 </div>
-              </div>
-              <div className="flex flex-wrap gap-2">
-                <EditButton />
-                <DeleteButton redirect="list" />
+              ) : null}
+              <div className="flex items-center gap-3 mt-1 text-sm text-muted-foreground flex-wrap">
+                <span className="flex items-center gap-1">
+                  <Calendar className="size-3" />
+                  {new Date(record.expense_date).toLocaleDateString("it-IT")}
+                </span>
+                {project && (
+                  <Link
+                    to={`/projects/${record.project_id}/show`}
+                    className="text-primary hover:underline"
+                  >
+                    {project.name}
+                  </Link>
+                )}
+                {supplier && (
+                  <Link
+                    to={`/suppliers/${record.supplier_id}/show`}
+                    className="text-primary hover:underline"
+                  >
+                    {supplier.name}
+                  </Link>
+                )}
+                {record.invoice_ref && (
+                  <span className="flex items-center gap-1">
+                    <FileText className="size-3" />
+                    {record.invoice_ref}
+                  </span>
+                )}
               </div>
             </div>
-            <Separator className="my-4" />
-            <ExpenseDetails
-              record={record}
-              total={total}
-              defaultKmRate={operationalConfig.defaultKmRate}
-            />
-            {record.proof_url && (
-              <>
-                <Separator className="my-4" />
-                <div className="space-y-2">
-                  <h6 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide flex items-center gap-1.5">
-                    <Image className="size-3.5" />
-                    Ricevuta / Documento
-                  </h6>
-                  <CloudinaryImageField
-                    url={record.proof_url}
-                    alt="Ricevuta"
-                    mode="proof"
-                  />
-                </div>
-              </>
-            )}
+            <div className="flex flex-wrap gap-2">
+              <EditButton />
+              <DeleteButton redirect="list" />
+            </div>
+          </div>
+          <Separator className="my-4" />
+          <ExpenseDetails
+            record={record}
+            total={total}
+            defaultKmRate={operationalConfig.defaultKmRate}
+          />
+          {record.proof_url && (
+            <>
+              <Separator className="my-4" />
+              <div className="space-y-2">
+                <h6 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide flex items-center gap-1.5">
+                  <Image className="size-3.5" />
+                  Ricevuta / Documento
+                </h6>
+                <CloudinaryImageField
+                  url={record.proof_url}
+                  alt="Ricevuta"
+                  mode="proof"
+                />
+              </div>
+            </>
+          )}
         </CardContent>
       </Card>
     </div>

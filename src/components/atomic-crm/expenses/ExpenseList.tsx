@@ -16,10 +16,7 @@ import { MobilePageTitle } from "../layout/MobilePageTitle";
 import { expenseTypeLabels } from "./expenseTypes";
 import { calculateKmReimbursement } from "@/lib/semantics/crmSemanticRegistry";
 import { useConfigurationContext } from "../root/ConfigurationContext";
-import {
-  EXPENSE_COLUMNS,
-  filterExportRow,
-} from "../misc/columnDefinitions";
+import { EXPENSE_COLUMNS, filterExportRow } from "../misc/columnDefinitions";
 import { ColumnVisibilityButton } from "../misc/ColumnVisibilityButton";
 
 export const ExpenseList = () => {
@@ -55,9 +52,7 @@ export const ExpenseList = () => {
             fornitore: e.supplier_id
               ? (supplierRecords[e.supplier_id]?.name ?? "")
               : "",
-            progetto: e.project_id
-              ? (projects[e.project_id]?.name ?? "")
-              : "",
+            progetto: e.project_id ? (projects[e.project_id]?.name ?? "") : "",
             tipo: expenseTypeLabels[e.expense_type] ?? e.expense_type,
             km: e.km_distance ?? "",
             tariffa_km: e.km_rate ?? "",
@@ -163,4 +158,3 @@ const computeTotal = (e: Expense, defaultKmRate: number) => {
   }
   return (e.amount ?? 0) * (1 + (e.markup_percent ?? 0) / 100);
 };
-

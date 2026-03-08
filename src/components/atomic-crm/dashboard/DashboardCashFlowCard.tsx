@@ -58,10 +58,7 @@ export const DashboardCashFlowCard = ({
             <div className="text-lg sm:text-xl font-bold text-red-700 dark:text-red-300 tabular-nums">
               {formatCurrencyPrecise(forecast.outflowsTotal)}
             </div>
-            <FlowList
-              items={forecast.outflows}
-              emptyLabel="Nessuna scadenza"
-            />
+            <FlowList items={forecast.outflows} emptyLabel="Nessuna scadenza" />
           </div>
         </div>
 

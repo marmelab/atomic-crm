@@ -211,4 +211,3 @@ const ClientFilterContent = () => {
     </div>
   );
 };
-

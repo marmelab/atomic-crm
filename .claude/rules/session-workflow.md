@@ -64,6 +64,23 @@ Sequenza VIETATA:
 codice → git add codice → git commit → "ah si, i docs" → git commit docs
 ```
 
+## POST-PUSH CI CHECK — OBBLIGATORIO
+
+Dopo OGNI `git push`, controllare AUTONOMAMENTE il CI:
+
+```
+git push
+↓
+gh run list --limit 1 --json databaseId -q '.[0].databaseId'
+↓
+gh run view <id> --log-failed
+↓
+se fallisce: fixare e re-pushare SENZA aspettare l'utente
+```
+
+NON aspettare che l'utente mandi screenshot dei fallimenti CI.
+L'utente NON deve fare da intermediario tra me e GitHub Actions.
+
 ## CORE LOOP
 
 Dopo ogni lavoro non banale:

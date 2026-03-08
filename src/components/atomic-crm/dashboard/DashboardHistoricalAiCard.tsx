@@ -228,9 +228,7 @@ export const DashboardHistoricalAiCard = ({
           ) : (
             <Sparkles className="h-4 w-4" />
           )}
-          {scope === "incassi"
-            ? "Spiegami gli incassi"
-            : "Spiegami lo storico"}
+          {scope === "incassi" ? "Spiegami gli incassi" : "Spiegami lo storico"}
         </Button>
 
         {/* ── Suggested questions — collapsible in compact mode ── */}
@@ -312,7 +310,10 @@ export const DashboardHistoricalAiCard = ({
 
         {/* ── Result ── */}
         {latestResult && (
-          <div ref={resultRef} className="rounded-md border px-4 py-3 space-y-2">
+          <div
+            ref={resultRef}
+            className="rounded-md border px-4 py-3 space-y-2"
+          >
             <div className="flex items-center justify-between">
               <p className="text-xs text-muted-foreground font-medium">
                 {latestResult.label}
@@ -353,14 +354,8 @@ function resolveLatestResult({
   answer,
   summary,
 }: {
-  answer:
-    | HistoricalAnalyticsAnswer
-    | HistoricalVisualAnswer
-    | undefined;
-  summary:
-    | HistoricalAnalyticsSummary
-    | HistoricalVisualSummary
-    | undefined;
+  answer: HistoricalAnalyticsAnswer | HistoricalVisualAnswer | undefined;
+  summary: HistoricalAnalyticsSummary | HistoricalVisualSummary | undefined;
 }): LatestResult {
   if (answer) {
     if (isVisualAnswer(answer)) {

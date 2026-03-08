@@ -103,9 +103,7 @@ describe("DashboardHistoricalCashInflowCard", () => {
 
     renderCard();
 
-    expect(
-      await screen.findByText("Incassi ricevuti"),
-    ).toBeInTheDocument();
+    expect(await screen.findByText("Incassi ricevuti")).toBeInTheDocument();
     expect(await screen.findByText("23.986 €")).toBeInTheDocument();
     // Latest closed year value appears in both the summary and the bar list
     expect(await screen.findByText("Totale storico")).toBeInTheDocument();
@@ -162,8 +160,6 @@ describe("DashboardHistoricalCashInflowCard", () => {
     await waitFor(() =>
       expect(getHistoricalCashInflowContext).toHaveBeenCalledTimes(2),
     );
-    expect(
-      await screen.findByText("Incassi ricevuti"),
-    ).toBeInTheDocument();
+    expect(await screen.findByText("Incassi ricevuti")).toBeInTheDocument();
   });
 });

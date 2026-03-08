@@ -90,26 +90,26 @@ const ContactShowContent = () => {
                 />
               )}
               <div>
-              <h2 className="text-xl md:text-2xl font-bold">
-                {getContactDisplayName(record)}
-              </h2>
-              <div className="mt-2 flex flex-wrap items-center gap-2">
-                {isContactPrimaryForClient(record) ? (
-                  <Badge variant="secondary">
-                    Referente principale cliente
-                  </Badge>
-                ) : null}
-                {roleLabel ? (
-                  <Badge variant="outline">{roleLabel}</Badge>
+                <h2 className="text-xl md:text-2xl font-bold">
+                  {getContactDisplayName(record)}
+                </h2>
+                <div className="mt-2 flex flex-wrap items-center gap-2">
+                  {isContactPrimaryForClient(record) ? (
+                    <Badge variant="secondary">
+                      Referente principale cliente
+                    </Badge>
+                  ) : null}
+                  {roleLabel ? (
+                    <Badge variant="outline">{roleLabel}</Badge>
+                  ) : null}
+                </div>
+                {record.title ? (
+                  <div className="mt-2 flex items-center gap-2 text-sm text-muted-foreground">
+                    <Briefcase className="size-4" />
+                    <span>{record.title}</span>
+                  </div>
                 ) : null}
               </div>
-              {record.title ? (
-                <div className="mt-2 flex items-center gap-2 text-sm text-muted-foreground">
-                  <Briefcase className="size-4" />
-                  <span>{record.title}</span>
-                </div>
-              ) : null}
-            </div>
             </div>
             <div className="flex gap-2 overflow-x-auto pb-1 -mb-1">
               <EditButton />

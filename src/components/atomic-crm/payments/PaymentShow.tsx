@@ -13,7 +13,14 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { EditButton } from "@/components/admin/edit-button";
 import { DeleteButton } from "@/components/admin/delete-button";
-import { Calendar, CheckCircle, Mail, User, FileText, Image } from "lucide-react";
+import {
+  Calendar,
+  CheckCircle,
+  Mail,
+  User,
+  FileText,
+  Image,
+} from "lucide-react";
 import { Link } from "react-router";
 import { useIsMobile } from "@/hooks/use-mobile";
 
@@ -56,10 +63,7 @@ const PaymentActions = ({
   return (
     <div className="flex flex-wrap gap-2">
       {notReceived && (
-        <Link
-          className={buttonVariants({ variant: "default" })}
-          to={editLink}
-        >
+        <Link className={buttonVariants({ variant: "default" })} to={editLink}>
           <CheckCircle />
           Registra pagamento
         </Link>
@@ -129,8 +133,7 @@ const PaymentShowContent = () => {
   });
 
   const notReceived = record.status !== "ricevuto";
-  const canSendReminder =
-    notReceived && record.payment_type !== "rimborso";
+  const canSendReminder = notReceived && record.payment_type !== "rimborso";
 
   return (
     <div className="mt-4 mb-28 md:mb-2 flex flex-col md:flex-row gap-4 md:gap-8 px-4 md:px-0">
@@ -197,7 +200,11 @@ const PaymentShowContent = () => {
                   )}
                 </div>
               </div>
-              <PaymentActions record={record} notReceived={notReceived} canSendReminder={canSendReminder} />
+              <PaymentActions
+                record={record}
+                notReceived={notReceived}
+                canSendReminder={canSendReminder}
+              />
             </div>
             {record.notes && (
               <>

@@ -93,8 +93,7 @@ export const DashboardAnnualAiSummaryCard = ({
       }),
     onError: (mutationError: Error) => {
       notify(
-        mutationError.message ||
-          "Impossibile generare l'analisi AI di Annuale",
+        mutationError.message || "Impossibile generare l'analisi AI di Annuale",
         { type: "error" },
       );
     },
@@ -288,7 +287,10 @@ export const DashboardAnnualAiSummaryCard = ({
 
         {/* ── Result ── */}
         {latestResult && (
-          <div ref={resultRef} className="rounded-md border px-4 py-3 space-y-2">
+          <div
+            ref={resultRef}
+            className="rounded-md border px-4 py-3 space-y-2"
+          >
             <div className="flex items-center justify-between">
               <p className="text-xs text-muted-foreground font-medium">
                 {latestResult.label}

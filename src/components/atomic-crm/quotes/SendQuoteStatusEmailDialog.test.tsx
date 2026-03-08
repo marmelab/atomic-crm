@@ -84,7 +84,9 @@ describe("SendQuoteStatusEmailDialog", () => {
       expect(getQuoteStatusEmailContext).toHaveBeenCalledWith("quote-1"),
     );
 
-    expect(await screen.findByDisplayValue("maria@example.com")).toBeInTheDocument();
+    expect(
+      await screen.findByDisplayValue("maria@example.com"),
+    ).toBeInTheDocument();
     expect(
       screen.getByText(
         "Template consigliato per questo stato, ma l'invio resta sempre manuale.",

@@ -78,13 +78,7 @@ export const DashboardAlertsCard = ({
   </Card>
 );
 
-const AlertLink = ({
-  resource,
-  id,
-}: {
-  resource: string;
-  id: string;
-}) => {
+const AlertLink = ({ resource, id }: { resource: string; id: string }) => {
   const createPath = useCreatePath();
   return (
     <Link
@@ -160,7 +154,11 @@ const ServiceAlertRow = ({
       <p className="font-medium">
         {service.allDay
           ? formatDayMonth(service.serviceDate)
-          : formatDateRange(service.serviceDate, service.serviceEnd, false)}{" "}
+          : formatDateRange(
+              service.serviceDate,
+              service.serviceEnd,
+              false,
+            )}{" "}
         · {service.projectName}
       </p>
       <p className="text-xs text-muted-foreground">

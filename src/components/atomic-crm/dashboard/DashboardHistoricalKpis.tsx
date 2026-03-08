@@ -99,9 +99,7 @@ export const DashboardHistoricalKpis = ({
           <div className="flex items-start gap-3">
             <YoYIconBadge yoy={kpis.yoyClosedYears} />
             <div className="min-w-0">
-              <p className="text-xs text-muted-foreground truncate">
-                Crescita
-              </p>
+              <p className="text-xs text-muted-foreground truncate">Crescita</p>
               <p
                 className={`text-lg sm:text-2xl font-bold tabular-nums ${getYoYColor(kpis.yoyClosedYears)}`}
               >
@@ -121,8 +119,7 @@ export const DashboardHistoricalKpis = ({
 
 const getYoYColor = (yoy: HistoricalYoY) => {
   if (!yoy.isComparable || yoy.valuePct == null) return "text-muted-foreground";
-  if (yoy.valuePct > 0)
-    return "text-emerald-700 dark:text-emerald-300";
+  if (yoy.valuePct > 0) return "text-emerald-700 dark:text-emerald-300";
   if (yoy.valuePct < 0) return "text-red-700 dark:text-red-300";
   return "text-muted-foreground";
 };

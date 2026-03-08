@@ -40,7 +40,6 @@ import {
 } from "../root/moduleRegistry";
 import { TaskCreateSheet } from "../tasks/TaskCreateSheet";
 
-
 const matchCurrentPath = (pathname: string) => {
   if (matchPath("/", pathname)) {
     return "/";

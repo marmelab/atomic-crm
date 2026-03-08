@@ -21,22 +21,18 @@ export const buildGoogleCalendarProviderMethods = (deps: {
     action: "create" | "update" | "delete",
     serviceId: string,
   ) => {
-    const { data, error } =
-      await deps.invokeEdgeFunction<CalendarSyncResult>(
-        "google_calendar_sync",
-        {
-          method: "POST",
-          body: { action, service_id: serviceId },
-        },
-      );
+    const { data, error } = await deps.invokeEdgeFunction<CalendarSyncResult>(
+      "google_calendar_sync",
+      {
+        method: "POST",
+        body: { action, service_id: serviceId },
+      },
+    );
 
     if (!data || error) {
       console.error("syncServiceToCalendar.error", error);
       throw new Error(
-        await extractEdgeFunctionErrorMessage(
-          error,
-          "Calendar sync failed",
-        ),
+        await extractEdgeFunctionErrorMessage(error, "Calendar sync failed"),
       );
     }
 

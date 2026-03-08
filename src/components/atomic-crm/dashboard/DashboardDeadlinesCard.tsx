@@ -59,8 +59,8 @@ export const DashboardDeadlinesCard = ({
               Primo anno di attivit&agrave;
             </p>
             <p>
-              Nessun acconto dovuto quest&apos;anno. Accantonare circa il 30% del
-              fatturato per il saldo di giugno del prossimo anno.
+              Nessun acconto dovuto quest&apos;anno. Accantonare circa il 30%
+              del fatturato per il saldo di giugno del prossimo anno.
             </p>
           </div>
         </CardContent>
@@ -191,7 +191,9 @@ const DeadlineRow = ({
         <div className="flex items-center gap-2 text-sm">
           <Badge variant={urgencyVariant}>{countdownText}</Badge>
           <span className="font-medium">{formattedDate}</span>
-          <span className="text-muted-foreground">&mdash; {deadline.label}</span>
+          <span className="text-muted-foreground">
+            &mdash; {deadline.label}
+          </span>
         </div>
         <div className="flex items-center gap-2">
           <span className="font-semibold text-sm">
@@ -265,11 +267,7 @@ const DeadlineRow = ({
 
 // ── Low-priority section (bolli, dichiarazione) ────────────────────
 
-const LowPrioritySection = ({
-  deadlines,
-}: {
-  deadlines: FiscalDeadline[];
-}) => {
+const LowPrioritySection = ({ deadlines }: { deadlines: FiscalDeadline[] }) => {
   const [expanded, setExpanded] = useState(false);
 
   const futureCount = deadlines.filter((d) => !d.isPast).length;

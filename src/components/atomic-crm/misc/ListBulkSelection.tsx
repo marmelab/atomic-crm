@@ -13,8 +13,10 @@ import { cn } from "@/lib/utils";
 export const ListSelectAllCheckbox = () => {
   const { data, selectedIds, onSelect, onUnselectItems } = useListContext();
   const allIds = data?.map((r) => r.id) ?? [];
-  const allSelected = allIds.length > 0 && allIds.every((id) => selectedIds.includes(id));
-  const someSelected = !allSelected && allIds.some((id) => selectedIds.includes(id));
+  const allSelected =
+    allIds.length > 0 && allIds.every((id) => selectedIds.includes(id));
+  const someSelected =
+    !allSelected && allIds.some((id) => selectedIds.includes(id));
 
   return (
     <Checkbox

@@ -625,7 +625,10 @@ export const buildDashboardModel = ({
     const deltaPct = (current: number, previous: number) =>
       previous > 0 ? ((current - previous) / previous) * 100 : null;
     yoy.annualRevenueDeltaPct = deltaPct(annualRevenue, yoy.annualRevenue);
-    yoy.cashReceivedNetDeltaPct = deltaPct(cashReceivedNet, yoy.cashReceivedNet);
+    yoy.cashReceivedNetDeltaPct = deltaPct(
+      cashReceivedNet,
+      yoy.cashReceivedNet,
+    );
     yoy.annualExpensesTotalDeltaPct = deltaPct(
       annualExpensesTotal,
       yoy.annualExpensesTotal,
@@ -754,8 +757,7 @@ const buildYearOverYear = ({
     if (!isInPeriod(dateStr, prevYear)) continue;
     if (payment.status !== "ricevuto") continue;
     const amount = toNumber(payment.amount);
-    prevCashNet +=
-      payment.payment_type === "rimborso" ? -amount : amount;
+    prevCashNet += payment.payment_type === "rimborso" ? -amount : amount;
   }
 
   // Previous year expenses

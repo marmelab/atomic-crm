@@ -14,10 +14,7 @@ import { PaymentListFilter, PaymentMobileFilter } from "./PaymentListFilter";
 import { TopToolbar } from "../layout/TopToolbar";
 import { MobilePageTitle } from "../layout/MobilePageTitle";
 import { paymentTypeLabels, paymentStatusLabels } from "./paymentTypes";
-import {
-  PAYMENT_COLUMNS,
-  filterExportRow,
-} from "../misc/columnDefinitions";
+import { PAYMENT_COLUMNS, filterExportRow } from "../misc/columnDefinitions";
 import { ColumnVisibilityButton } from "../misc/ColumnVisibilityButton";
 
 export const PaymentList = () => {
@@ -43,9 +40,7 @@ export const PaymentList = () => {
           {
             data: p.payment_date ?? "",
             cliente: clients[p.client_id]?.name ?? "",
-            progetto: p.project_id
-              ? (projects[p.project_id]?.name ?? "")
-              : "",
+            progetto: p.project_id ? (projects[p.project_id]?.name ?? "") : "",
             tipo: paymentTypeLabels[p.payment_type] ?? p.payment_type,
             importo: p.amount,
             rif_fattura: p.invoice_ref ?? "",

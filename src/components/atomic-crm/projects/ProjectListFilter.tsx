@@ -245,4 +245,3 @@ const ProjectFilterContent = () => {
     </div>
   );
 };
-

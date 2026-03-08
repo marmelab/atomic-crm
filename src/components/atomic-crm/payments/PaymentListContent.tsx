@@ -67,7 +67,8 @@ export const PaymentListContent = () => {
   const createPath = useCreatePath();
   const isMobile = useIsMobile();
   const { cv } = useColumnVisibility("payments", PAYMENT_COLUMNS);
-  const { getWidth, onResizeStart, headerRef } = useResizableColumns("payments");
+  const { getWidth, onResizeStart, headerRef } =
+    useResizableColumns("payments");
 
   if (error) return <ErrorMessage />;
   if (isPending || !data) return null;
@@ -102,14 +103,70 @@ export const PaymentListContent = () => {
             <TableHead className="w-10">
               <ListSelectAllCheckbox />
             </TableHead>
-            <ResizableHead colKey="date" width={getWidth("date")} onResizeStart={onResizeStart} className={cv("date")}>Data</ResizableHead>
-            <ResizableHead colKey="client" width={getWidth("client")} onResizeStart={onResizeStart} className={cv("client")}>Cliente</ResizableHead>
-            <ResizableHead colKey="project" width={getWidth("project")} onResizeStart={onResizeStart} className={cv("project", "hidden lg:table-cell")}>Progetto</ResizableHead>
-            <ResizableHead colKey="quote" width={getWidth("quote")} onResizeStart={onResizeStart} className={cv("quote", "hidden xl:table-cell")}>Preventivo</ResizableHead>
-            <ResizableHead colKey="type" width={getWidth("type")} onResizeStart={onResizeStart} className={cv("type")}>Tipo</ResizableHead>
-            <ResizableHead colKey="amount" width={getWidth("amount")} onResizeStart={onResizeStart} className={cv("amount", "text-right")}>Importo</ResizableHead>
-            <ResizableHead colKey="invoice_ref" width={getWidth("invoice_ref")} onResizeStart={onResizeStart} className={cv("invoice_ref", "hidden md:table-cell")}>Rif. Fattura</ResizableHead>
-            <ResizableHead colKey="status" width={getWidth("status")} onResizeStart={onResizeStart} className={cv("status")}>Stato</ResizableHead>
+            <ResizableHead
+              colKey="date"
+              width={getWidth("date")}
+              onResizeStart={onResizeStart}
+              className={cv("date")}
+            >
+              Data
+            </ResizableHead>
+            <ResizableHead
+              colKey="client"
+              width={getWidth("client")}
+              onResizeStart={onResizeStart}
+              className={cv("client")}
+            >
+              Cliente
+            </ResizableHead>
+            <ResizableHead
+              colKey="project"
+              width={getWidth("project")}
+              onResizeStart={onResizeStart}
+              className={cv("project", "hidden lg:table-cell")}
+            >
+              Progetto
+            </ResizableHead>
+            <ResizableHead
+              colKey="quote"
+              width={getWidth("quote")}
+              onResizeStart={onResizeStart}
+              className={cv("quote", "hidden xl:table-cell")}
+            >
+              Preventivo
+            </ResizableHead>
+            <ResizableHead
+              colKey="type"
+              width={getWidth("type")}
+              onResizeStart={onResizeStart}
+              className={cv("type")}
+            >
+              Tipo
+            </ResizableHead>
+            <ResizableHead
+              colKey="amount"
+              width={getWidth("amount")}
+              onResizeStart={onResizeStart}
+              className={cv("amount", "text-right")}
+            >
+              Importo
+            </ResizableHead>
+            <ResizableHead
+              colKey="invoice_ref"
+              width={getWidth("invoice_ref")}
+              onResizeStart={onResizeStart}
+              className={cv("invoice_ref", "hidden md:table-cell")}
+            >
+              Rif. Fattura
+            </ResizableHead>
+            <ResizableHead
+              colKey="status"
+              width={getWidth("status")}
+              onResizeStart={onResizeStart}
+              className={cv("status")}
+            >
+              Stato
+            </ResizableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -205,10 +262,20 @@ const PaymentRow = ({ payment, link }: { payment: Payment; link: string }) => {
       <TableCell className={cv("client", "text-sm text-muted-foreground")}>
         {client?.name ?? ""}
       </TableCell>
-      <TableCell className={cv("project", "hidden lg:table-cell text-sm text-muted-foreground")}>
+      <TableCell
+        className={cv(
+          "project",
+          "hidden lg:table-cell text-sm text-muted-foreground",
+        )}
+      >
         {project?.name ?? ""}
       </TableCell>
-      <TableCell className={cv("quote", "hidden xl:table-cell text-sm text-muted-foreground")}>
+      <TableCell
+        className={cv(
+          "quote",
+          "hidden xl:table-cell text-sm text-muted-foreground",
+        )}
+      >
         {quote?.description ?? ""}
       </TableCell>
       <TableCell className={cv("type", "text-sm")}>
@@ -222,7 +289,12 @@ const PaymentRow = ({ payment, link }: { payment: Payment; link: string }) => {
       <TableCell className={cv("amount", "text-right text-sm font-medium")}>
         EUR {eur(payment.amount)}
       </TableCell>
-      <TableCell className={cv("invoice_ref", "hidden md:table-cell text-sm text-muted-foreground")}>
+      <TableCell
+        className={cv(
+          "invoice_ref",
+          "hidden md:table-cell text-sm text-muted-foreground",
+        )}
+      >
         {payment.invoice_ref ?? ""}
       </TableCell>
       <TableCell className={cv("status")}>

@@ -234,7 +234,10 @@ const ExpenseFilterContent = () => {
       )}
 
       {suppliers && suppliers.length > 0 && (
-        <FilterSection icon={<Building2 className="size-4" />} label="Fornitore">
+        <FilterSection
+          icon={<Building2 className="size-4" />}
+          label="Fornitore"
+        >
           <div className="w-full">
             <Popover open={supplierOpen} onOpenChange={setSupplierOpen}>
               <PopoverTrigger asChild>
@@ -246,7 +249,8 @@ const ExpenseFilterContent = () => {
                   <span className="truncate">
                     {filterValues["supplier_id@eq"]
                       ? (suppliers.find(
-                          (s) => String(s.id) === filterValues["supplier_id@eq"],
+                          (s) =>
+                            String(s.id) === filterValues["supplier_id@eq"],
                         )?.name ?? "Tutti")
                       : "Tutti"}
                   </span>
@@ -369,4 +373,3 @@ const ExpenseFilterContent = () => {
     </div>
   );
 };
-

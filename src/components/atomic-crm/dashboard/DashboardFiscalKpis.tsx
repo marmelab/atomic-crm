@@ -27,8 +27,7 @@ export const DashboardFiscalKpis = ({
     warnings.some(
       (w) => w.type === "ceiling_exceeded" || w.type === "ceiling_critical",
     );
-  const totalTax =
-    fiscalKpis.stimaInpsAnnuale + fiscalKpis.stimaImpostaAnnuale;
+  const totalTax = fiscalKpis.stimaInpsAnnuale + fiscalKpis.stimaImpostaAnnuale;
   const netPct = Math.round(fiscalKpis.percentualeNetto);
   const ceilingPct = Math.round(fiscalKpis.percentualeUtilizzoTetto);
 
@@ -57,7 +56,9 @@ export const DashboardFiscalKpis = ({
             {fiscalKpis.fatturatoNonTassabileYtd > 0 && (
               <span className="text-amber-600 dark:text-amber-400">
                 {" "}
-                (+{formatCurrencyPrecise(fiscalKpis.fatturatoNonTassabileYtd)}{" "}
+                (+{formatCurrencyPrecise(
+                  fiscalKpis.fatturatoNonTassabileYtd,
+                )}{" "}
                 non tassabile)
               </span>
             )}

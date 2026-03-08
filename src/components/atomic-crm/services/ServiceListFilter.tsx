@@ -174,10 +174,7 @@ const ServiceFilterContent = () => {
       </FilterSection>
 
       {clients && clients.length > 0 && (
-        <FilterSection
-          icon={<Building2 className="size-4" />}
-          label="Cliente"
-        >
+        <FilterSection icon={<Building2 className="size-4" />} label="Cliente">
           <FilterPopover
             items={clients}
             filterKey="client_id@eq"

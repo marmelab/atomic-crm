@@ -50,7 +50,8 @@ const WorkflowListActions = () => (
 const WorkflowListLayout = () => {
   const { data, isPending } = useListContext<Workflow>();
   const isMobile = useIsMobile();
-  const { getWidth, onResizeStart, headerRef } = useResizableColumns("workflows");
+  const { getWidth, onResizeStart, headerRef } =
+    useResizableColumns("workflows");
 
   if (isPending || !data) return null;
 
@@ -78,10 +79,34 @@ const WorkflowListLayout = () => {
           <Table style={{ tableLayout: "fixed" }}>
             <TableHeader ref={headerRef}>
               <TableRow>
-                <ResizableHead colKey="name" width={getWidth("name")} onResizeStart={onResizeStart}>Nome</ResizableHead>
-                <ResizableHead colKey="trigger" width={getWidth("trigger")} onResizeStart={onResizeStart}>Trigger</ResizableHead>
-                <ResizableHead colKey="actions" width={getWidth("actions")} onResizeStart={onResizeStart}>Azioni</ResizableHead>
-                <ResizableHead colKey="status" width={getWidth("status")} onResizeStart={onResizeStart}>Stato</ResizableHead>
+                <ResizableHead
+                  colKey="name"
+                  width={getWidth("name")}
+                  onResizeStart={onResizeStart}
+                >
+                  Nome
+                </ResizableHead>
+                <ResizableHead
+                  colKey="trigger"
+                  width={getWidth("trigger")}
+                  onResizeStart={onResizeStart}
+                >
+                  Trigger
+                </ResizableHead>
+                <ResizableHead
+                  colKey="actions"
+                  width={getWidth("actions")}
+                  onResizeStart={onResizeStart}
+                >
+                  Azioni
+                </ResizableHead>
+                <ResizableHead
+                  colKey="status"
+                  width={getWidth("status")}
+                  onResizeStart={onResizeStart}
+                >
+                  Stato
+                </ResizableHead>
               </TableRow>
             </TableHeader>
             <TableBody>

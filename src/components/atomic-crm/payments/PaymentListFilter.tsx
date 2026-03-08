@@ -276,4 +276,3 @@ const PaymentFilterContent = () => {
     </div>
   );
 };
-

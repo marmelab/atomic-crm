@@ -136,15 +136,15 @@ const ClientHeader = ({ record }: { record: Client }) => {
           />
         )}
         <div>
-        <h2 className="text-2xl font-bold">{record.name}</h2>
-        <div className="flex items-center gap-2 mt-1">
-          <ClientTypeBadge type={record.client_type} />
-          {record.source && (
-            <span className="text-sm text-muted-foreground">
-              {clientSourceLabels[record.source]}
-            </span>
-          )}
-        </div>
+          <h2 className="text-2xl font-bold">{record.name}</h2>
+          <div className="flex items-center gap-2 mt-1">
+            <ClientTypeBadge type={record.client_type} />
+            {record.source && (
+              <span className="text-sm text-muted-foreground">
+                {clientSourceLabels[record.source]}
+              </span>
+            )}
+          </div>
         </div>
       </div>
       <div className="flex gap-2 overflow-x-auto pb-1 -mb-1">

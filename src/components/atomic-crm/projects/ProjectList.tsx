@@ -16,10 +16,7 @@ import { ProjectListFilter, ProjectMobileFilter } from "./ProjectListFilter";
 import { TopToolbar } from "../layout/TopToolbar";
 import { MobilePageTitle } from "../layout/MobilePageTitle";
 import { ProjectKanbanView } from "./ProjectKanbanView";
-import {
-  PROJECT_COLUMNS,
-  filterExportRow,
-} from "../misc/columnDefinitions";
+import { PROJECT_COLUMNS, filterExportRow } from "../misc/columnDefinitions";
 import { ColumnVisibilityButton } from "../misc/ColumnVisibilityButton";
 
 export const ProjectList = () => {

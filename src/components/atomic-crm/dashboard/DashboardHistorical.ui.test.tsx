@@ -55,9 +55,7 @@ vi.mock("./DashboardHistoricalCashInflowCard", () => ({
 }));
 
 vi.mock("./DashboardHistoricalAiCard", () => ({
-  DashboardHistoricalAiCard: () => (
-    <div data-testid="historical-ai-card" />
-  ),
+  DashboardHistoricalAiCard: () => <div data-testid="historical-ai-card" />,
 }));
 
 import { DashboardHistorical } from "./DashboardHistorical";
@@ -209,9 +207,7 @@ describe("DashboardHistorical", () => {
     renderWithQueryClient(<DashboardHistorical />);
 
     // Subtitle inline replaces old reading guide
-    expect(
-      screen.getByText(/Valore del lavoro dal/),
-    ).toBeInTheDocument();
+    expect(screen.getByText(/Valore del lavoro dal/)).toBeInTheDocument();
 
     // Unified AI card (replaces 2 separate AI cards)
     expect(screen.getByTestId("historical-ai-card")).toBeInTheDocument();
@@ -221,9 +217,7 @@ describe("DashboardHistorical", () => {
     expect(
       screen.getByTestId("historical-cash-inflow-card"),
     ).toBeInTheDocument();
-    expect(
-      screen.getByTestId("historical-revenue-chart"),
-    ).toBeInTheDocument();
+    expect(screen.getByTestId("historical-revenue-chart")).toBeInTheDocument();
     expect(
       screen.getByTestId("historical-category-mix-chart"),
     ).toBeInTheDocument();

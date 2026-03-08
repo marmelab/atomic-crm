@@ -18,10 +18,7 @@ import {
   calculateKmReimbursement,
   calculateServiceNetValue,
 } from "@/lib/semantics/crmSemanticRegistry";
-import {
-  SERVICE_COLUMNS,
-  filterExportRow,
-} from "../misc/columnDefinitions";
+import { SERVICE_COLUMNS, filterExportRow } from "../misc/columnDefinitions";
 import { ColumnVisibilityButton } from "../misc/ColumnVisibilityButton";
 
 export const ServiceList = () => {

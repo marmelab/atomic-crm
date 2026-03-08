@@ -44,7 +44,8 @@ export const ProjectListContent = () => {
   const createPath = useCreatePath();
   const isMobile = useIsMobile();
   const { cv } = useColumnVisibility("projects", PROJECT_COLUMNS);
-  const { getWidth, onResizeStart, headerRef } = useResizableColumns("projects");
+  const { getWidth, onResizeStart, headerRef } =
+    useResizableColumns("projects");
 
   if (isPending || !data) return null;
 
@@ -78,11 +79,46 @@ export const ProjectListContent = () => {
             <TableHead className="w-10">
               <ListSelectAllCheckbox />
             </TableHead>
-            <ResizableHead colKey="name" width={getWidth("name")} onResizeStart={onResizeStart} className={cv("name")}>Nome progetto</ResizableHead>
-            <ResizableHead colKey="client" width={getWidth("client")} onResizeStart={onResizeStart} className={cv("client")}>Cliente</ResizableHead>
-            <ResizableHead colKey="category" width={getWidth("category")} onResizeStart={onResizeStart} className={cv("category")}>Categoria</ResizableHead>
-            <ResizableHead colKey="status" width={getWidth("status")} onResizeStart={onResizeStart} className={cv("status", "hidden md:table-cell")}>Stato</ResizableHead>
-            <ResizableHead colKey="period" width={getWidth("period")} onResizeStart={onResizeStart} className={cv("period", "hidden lg:table-cell")}>Periodo</ResizableHead>
+            <ResizableHead
+              colKey="name"
+              width={getWidth("name")}
+              onResizeStart={onResizeStart}
+              className={cv("name")}
+            >
+              Nome progetto
+            </ResizableHead>
+            <ResizableHead
+              colKey="client"
+              width={getWidth("client")}
+              onResizeStart={onResizeStart}
+              className={cv("client")}
+            >
+              Cliente
+            </ResizableHead>
+            <ResizableHead
+              colKey="category"
+              width={getWidth("category")}
+              onResizeStart={onResizeStart}
+              className={cv("category")}
+            >
+              Categoria
+            </ResizableHead>
+            <ResizableHead
+              colKey="status"
+              width={getWidth("status")}
+              onResizeStart={onResizeStart}
+              className={cv("status", "hidden md:table-cell")}
+            >
+              Stato
+            </ResizableHead>
+            <ResizableHead
+              colKey="period"
+              width={getWidth("period")}
+              onResizeStart={onResizeStart}
+              className={cv("period", "hidden lg:table-cell")}
+            >
+              Periodo
+            </ResizableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -175,7 +211,12 @@ const ProjectRow = ({ project, link }: { project: Project; link: string }) => {
       <TableCell className={cv("status", "hidden md:table-cell")}>
         <ProjectStatusBadge status={project.status} />
       </TableCell>
-      <TableCell className={cv("period", "hidden lg:table-cell text-muted-foreground text-sm")}>
+      <TableCell
+        className={cv(
+          "period",
+          "hidden lg:table-cell text-muted-foreground text-sm",
+        )}
+      >
         {formatDateRange(project.start_date, project.end_date, project.all_day)}
       </TableCell>
     </TableRow>

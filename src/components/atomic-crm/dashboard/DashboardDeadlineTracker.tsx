@@ -11,10 +11,7 @@ import type { Client, ClientTask, Payment } from "../types";
 import { paymentStatusLabels } from "../payments/paymentTypes";
 import { SendPaymentReminderDialog } from "../payments/SendPaymentReminderDialog";
 import { formatDateRange } from "../misc/formatDateRange";
-import {
-  formatCompactCurrency,
-  type DashboardAlerts,
-} from "./dashboardModel";
+import { formatCompactCurrency, type DashboardAlerts } from "./dashboardModel";
 
 const LARGE_PAGE = { page: 1, perPage: 1000 };
 
@@ -231,7 +228,9 @@ export const DashboardDeadlineTracker = ({
   return (
     <Card className="gap-3 py-4">
       <CardHeader className="px-4 pb-0">
-        <CardTitle className="text-base font-semibold">Cosa devi fare</CardTitle>
+        <CardTitle className="text-base font-semibold">
+          Cosa devi fare
+        </CardTitle>
       </CardHeader>
       <CardContent className="px-4 space-y-3">
         {totalItems === 0 ? (
@@ -257,11 +256,7 @@ export const DashboardDeadlineTracker = ({
                 color="amber"
               />
               <Separator orientation="vertical" />
-              <CounterColumn
-                count={otherCount}
-                label="Da fare"
-                color="blue"
-              />
+              <CounterColumn count={otherCount} label="Da fare" color="blue" />
             </div>
 
             {/* ── Flat action list ── */}
@@ -270,9 +265,7 @@ export const DashboardDeadlineTracker = ({
                 const days = payment.payment_date
                   ? Math.max(
                       1,
-                      Math.abs(
-                        diffDays(new Date(payment.payment_date), today),
-                      ),
+                      Math.abs(diffDays(new Date(payment.payment_date), today)),
                     )
                   : null;
 
@@ -381,10 +374,7 @@ const dotClasses: Record<DotColor, string> = {
   blue: "bg-blue-500",
 };
 
-const counterColors: Record<
-  DotColor,
-  { count: string; label: string }
-> = {
+const counterColors: Record<DotColor, { count: string; label: string }> = {
   red: {
     count: "text-red-700 dark:text-red-300",
     label: "text-red-600 dark:text-red-400",
@@ -450,11 +440,12 @@ const ActionRow = ({
   secondaryAction?: ReactNode;
 }) => (
   <div className="flex items-center gap-2">
-    <span
-      className={`shrink-0 h-2 w-2 rounded-full ${dotClasses[dot]}`}
-    />
+    <span className={`shrink-0 h-2 w-2 rounded-full ${dotClasses[dot]}`} />
     <div className="min-w-0 flex-1">
-      <Link to={link} className="text-sm font-medium hover:underline truncate block">
+      <Link
+        to={link}
+        className="text-sm font-medium hover:underline truncate block"
+      >
         {title}
       </Link>
       <p className="text-xs text-muted-foreground truncate">{subtitle}</p>

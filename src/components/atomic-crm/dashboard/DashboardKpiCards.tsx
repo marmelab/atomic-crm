@@ -170,7 +170,9 @@ const AnnualRevenueCard = ({
 const OpenQuotesCard = ({ kpis }: { kpis: DashboardKpis }) => (
   <Card className="gap-3 py-4">
     <CardHeader className="px-4 pb-0 flex flex-row items-center justify-between space-y-0 gap-2">
-      <CardTitle className="text-base font-semibold">Preventivi aperti</CardTitle>
+      <CardTitle className="text-base font-semibold">
+        Preventivi aperti
+      </CardTitle>
       <FileText className="h-4 w-4 text-sky-600 dark:text-sky-400" />
     </CardHeader>
     <CardContent className="px-4 space-y-2">

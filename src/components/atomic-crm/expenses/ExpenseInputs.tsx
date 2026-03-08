@@ -49,11 +49,7 @@ const ExpenseIdentityInputs = () => {
   const [ownExpense, setOwnExpense] = useState(!hasLink);
 
   const clearLinkFields = useCallback(() => {
-    for (const field of [
-      "project_id",
-      "client_id",
-      "supplier_id",
-    ] as const) {
+    for (const field of ["project_id", "client_id", "supplier_id"] as const) {
       if (getValues(field)) {
         setValue(field, null, { shouldDirty: true });
       }

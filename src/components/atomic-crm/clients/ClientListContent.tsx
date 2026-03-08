@@ -58,7 +58,11 @@ export const ClientListContent = () => {
             <MobileSelectableCard key={client.id} id={client.id}>
               <ClientMobileCard
                 client={client}
-                link={createPath({ resource: "clients", type: "show", id: client.id })}
+                link={createPath({
+                  resource: "clients",
+                  type: "show",
+                  id: client.id,
+                })}
               />
             </MobileSelectableCard>
           ))}
@@ -74,17 +78,59 @@ export const ClientListContent = () => {
       <Table style={{ tableLayout: "fixed" }}>
         <TableHeader ref={headerRef}>
           <TableRow>
-            <TableHead className="w-10"><ListSelectAllCheckbox /></TableHead>
-            <ResizableHead colKey="name" width={getWidth("name")} onResizeStart={onResizeStart} className={cv("name")}>Nome / Ragione sociale</ResizableHead>
-            <ResizableHead colKey="type" width={getWidth("type")} onResizeStart={onResizeStart} className={cv("type")}>Tipo</ResizableHead>
-            <ResizableHead colKey="phone" width={getWidth("phone")} onResizeStart={onResizeStart} className={cv("phone", "hidden md:table-cell")}>Telefono</ResizableHead>
-            <ResizableHead colKey="email" width={getWidth("email")} onResizeStart={onResizeStart} className={cv("email", "hidden md:table-cell")}>Email</ResizableHead>
-            <ResizableHead colKey="source" width={getWidth("source")} onResizeStart={onResizeStart} className={cv("source", "hidden lg:table-cell")}>Fonte</ResizableHead>
+            <TableHead className="w-10">
+              <ListSelectAllCheckbox />
+            </TableHead>
+            <ResizableHead
+              colKey="name"
+              width={getWidth("name")}
+              onResizeStart={onResizeStart}
+              className={cv("name")}
+            >
+              Nome / Ragione sociale
+            </ResizableHead>
+            <ResizableHead
+              colKey="type"
+              width={getWidth("type")}
+              onResizeStart={onResizeStart}
+              className={cv("type")}
+            >
+              Tipo
+            </ResizableHead>
+            <ResizableHead
+              colKey="phone"
+              width={getWidth("phone")}
+              onResizeStart={onResizeStart}
+              className={cv("phone", "hidden md:table-cell")}
+            >
+              Telefono
+            </ResizableHead>
+            <ResizableHead
+              colKey="email"
+              width={getWidth("email")}
+              onResizeStart={onResizeStart}
+              className={cv("email", "hidden md:table-cell")}
+            >
+              Email
+            </ResizableHead>
+            <ResizableHead
+              colKey="source"
+              width={getWidth("source")}
+              onResizeStart={onResizeStart}
+              className={cv("source", "hidden lg:table-cell")}
+            >
+              Fonte
+            </ResizableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
           {data.map((client) => (
-            <ClientRow key={client.id} client={client} cv={cv} createPath={createPath} />
+            <ClientRow
+              key={client.id}
+              client={client}
+              cv={cv}
+              createPath={createPath}
+            />
           ))}
         </TableBody>
       </Table>
@@ -108,10 +154,17 @@ const ClientRow = ({
     </TableCell>
     <TableCell className={cv("name")}>
       <div className="flex items-start gap-3">
-        <ClientIconAvatar type={client.client_type} imageUrl={client.logo_url} />
+        <ClientIconAvatar
+          type={client.client_type}
+          imageUrl={client.logo_url}
+        />
         <div className="space-y-1.5 min-w-0">
           <Link
-            to={createPath({ resource: "clients", type: "show", id: client.id })}
+            to={createPath({
+              resource: "clients",
+              type: "show",
+              id: client.id,
+            })}
             className="font-medium text-primary hover:underline block"
           >
             {client.name}
@@ -123,10 +176,14 @@ const ClientRow = ({
           ) : null}
           <div className="flex flex-wrap gap-1">
             {getClientBillingIdentityLines(client).map((line) => (
-              <Badge key={line} variant="outline" className="text-[11px]">{line}</Badge>
+              <Badge key={line} variant="outline" className="text-[11px]">
+                {line}
+              </Badge>
             ))}
             {client.billing_city ? (
-              <Badge variant="outline" className="text-[11px]">{client.billing_city}</Badge>
+              <Badge variant="outline" className="text-[11px]">
+                {client.billing_city}
+              </Badge>
             ) : null}
           </div>
         </div>
@@ -135,9 +192,22 @@ const ClientRow = ({
     <TableCell className={cv("type")}>
       <ClientTypeBadge type={client.client_type} />
     </TableCell>
-    <TableCell className={cv("phone", "hidden md:table-cell text-muted-foreground")}>{client.phone}</TableCell>
-    <TableCell className={cv("email", "hidden md:table-cell text-muted-foreground")}>{client.email}</TableCell>
-    <TableCell className={cv("source", "hidden lg:table-cell text-muted-foreground text-sm")}>
+    <TableCell
+      className={cv("phone", "hidden md:table-cell text-muted-foreground")}
+    >
+      {client.phone}
+    </TableCell>
+    <TableCell
+      className={cv("email", "hidden md:table-cell text-muted-foreground")}
+    >
+      {client.email}
+    </TableCell>
+    <TableCell
+      className={cv(
+        "source",
+        "hidden lg:table-cell text-muted-foreground text-sm",
+      )}
+    >
       {client.source ? clientSourceLabels[client.source] : ""}
     </TableCell>
   </TableRow>

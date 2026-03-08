@@ -67,11 +67,7 @@ export const SupplierInputs = () => (
             label="CAP"
             helperText={false}
           />
-          <TextInput
-            source="billing_city"
-            label="Città"
-            helperText={false}
-          />
+          <TextInput source="billing_city" label="Città" helperText={false} />
         </div>
         <div className="grid grid-cols-2 gap-4">
           <TextInput
@@ -93,6 +89,5 @@ export const SupplierInputs = () => (
         <TextInput source="billing_pec" label="PEC" helperText={false} />
       </div>
     </div>
-
   </div>
 );

@@ -252,10 +252,7 @@ export const UnifiedAiLauncher = () => {
   }, [workspace]);
 
   return (
-    <Sheet
-      open={open}
-      onOpenChange={setOpen}
-    >
+    <Sheet open={open} onOpenChange={setOpen}>
       <SheetTrigger asChild>
         <Button
           type="button"

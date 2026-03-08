@@ -366,10 +366,11 @@ const lifeCycleCallbacks: ResourceCallbacks[] = [
     resource: "services",
     afterCreate: async (params: any) => {
       try {
-        const result = await dataProviderWithCustomMethods.syncServiceToCalendar(
-          "create",
-          params.data.id,
-        );
+        const result =
+          await dataProviderWithCustomMethods.syncServiceToCalendar(
+            "create",
+            params.data.id,
+          );
         if (result) Object.assign(params.data, result);
       } catch (e) {
         console.warn("Calendar sync (create) failed:", e);
@@ -378,10 +379,11 @@ const lifeCycleCallbacks: ResourceCallbacks[] = [
     },
     afterUpdate: async (params: any) => {
       try {
-        const result = await dataProviderWithCustomMethods.syncServiceToCalendar(
-          "update",
-          params.data.id,
-        );
+        const result =
+          await dataProviderWithCustomMethods.syncServiceToCalendar(
+            "update",
+            params.data.id,
+          );
         if (result) Object.assign(params.data, result);
       } catch (e) {
         console.warn("Calendar sync (update) failed:", e);

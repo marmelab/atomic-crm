@@ -167,18 +167,102 @@ const ServiceTableHeader = ({
         <TableHead className="w-10">
           <ListSelectAllCheckbox />
         </TableHead>
-        <ResizableHead colKey="date" width={getWidth("date")} onResizeStart={onResizeStart} className={cv("date")}>Data</ResizableHead>
-        <ResizableHead colKey="client" width={getWidth("client")} onResizeStart={onResizeStart} className={cv("client")}>Cliente</ResizableHead>
-        <ResizableHead colKey="project" width={getWidth("project")} onResizeStart={onResizeStart} className={cv("project")}>Progetto</ResizableHead>
-        <ResizableHead colKey="type" width={getWidth("type")} onResizeStart={onResizeStart} className={cv("type")}>Tipo</ResizableHead>
-        <ResizableHead colKey="description" width={getWidth("description")} onResizeStart={onResizeStart} className={cv("description", "hidden lg:table-cell")}>Descrizione</ResizableHead>
-        <ResizableHead colKey="fee_shooting" width={getWidth("fee_shooting")} onResizeStart={onResizeStart} className={cv("fee_shooting", "text-right hidden md:table-cell")}>Riprese</ResizableHead>
-        <ResizableHead colKey="fee_editing" width={getWidth("fee_editing")} onResizeStart={onResizeStart} className={cv("fee_editing", "text-right hidden md:table-cell")}>Montaggio</ResizableHead>
-        <ResizableHead colKey="fee_other" width={getWidth("fee_other")} onResizeStart={onResizeStart} className={cv("fee_other", "text-right hidden lg:table-cell")}>Altro</ResizableHead>
-        <ResizableHead colKey="total" width={getWidth("total")} onResizeStart={onResizeStart} className={cv("total", "text-right")}>Totale</ResizableHead>
-        <ResizableHead colKey="km" width={getWidth("km")} onResizeStart={onResizeStart} className={cv("km", "text-right hidden lg:table-cell")}>Km</ResizableHead>
-        <ResizableHead colKey="taxable" width={getWidth("taxable")} onResizeStart={onResizeStart} className={cv("taxable", "hidden xl:table-cell")}>Fiscale</ResizableHead>
-        <ResizableHead colKey="location" width={getWidth("location")} onResizeStart={onResizeStart} className={cv("location", "hidden xl:table-cell")}>Localit&agrave;</ResizableHead>
+        <ResizableHead
+          colKey="date"
+          width={getWidth("date")}
+          onResizeStart={onResizeStart}
+          className={cv("date")}
+        >
+          Data
+        </ResizableHead>
+        <ResizableHead
+          colKey="client"
+          width={getWidth("client")}
+          onResizeStart={onResizeStart}
+          className={cv("client")}
+        >
+          Cliente
+        </ResizableHead>
+        <ResizableHead
+          colKey="project"
+          width={getWidth("project")}
+          onResizeStart={onResizeStart}
+          className={cv("project")}
+        >
+          Progetto
+        </ResizableHead>
+        <ResizableHead
+          colKey="type"
+          width={getWidth("type")}
+          onResizeStart={onResizeStart}
+          className={cv("type")}
+        >
+          Tipo
+        </ResizableHead>
+        <ResizableHead
+          colKey="description"
+          width={getWidth("description")}
+          onResizeStart={onResizeStart}
+          className={cv("description", "hidden lg:table-cell")}
+        >
+          Descrizione
+        </ResizableHead>
+        <ResizableHead
+          colKey="fee_shooting"
+          width={getWidth("fee_shooting")}
+          onResizeStart={onResizeStart}
+          className={cv("fee_shooting", "text-right hidden md:table-cell")}
+        >
+          Riprese
+        </ResizableHead>
+        <ResizableHead
+          colKey="fee_editing"
+          width={getWidth("fee_editing")}
+          onResizeStart={onResizeStart}
+          className={cv("fee_editing", "text-right hidden md:table-cell")}
+        >
+          Montaggio
+        </ResizableHead>
+        <ResizableHead
+          colKey="fee_other"
+          width={getWidth("fee_other")}
+          onResizeStart={onResizeStart}
+          className={cv("fee_other", "text-right hidden lg:table-cell")}
+        >
+          Altro
+        </ResizableHead>
+        <ResizableHead
+          colKey="total"
+          width={getWidth("total")}
+          onResizeStart={onResizeStart}
+          className={cv("total", "text-right")}
+        >
+          Totale
+        </ResizableHead>
+        <ResizableHead
+          colKey="km"
+          width={getWidth("km")}
+          onResizeStart={onResizeStart}
+          className={cv("km", "text-right hidden lg:table-cell")}
+        >
+          Km
+        </ResizableHead>
+        <ResizableHead
+          colKey="taxable"
+          width={getWidth("taxable")}
+          onResizeStart={onResizeStart}
+          className={cv("taxable", "hidden xl:table-cell")}
+        >
+          Fiscale
+        </ResizableHead>
+        <ResizableHead
+          colKey="location"
+          width={getWidth("location")}
+          onResizeStart={onResizeStart}
+          className={cv("location", "hidden xl:table-cell")}
+        >
+          Localit&agrave;
+        </ResizableHead>
       </TableRow>
     </TableHeader>
   );
@@ -218,7 +302,9 @@ const ServiceRow = ({
         </Link>
       </TableCell>
       <TableCell className={cv("client", "text-sm text-muted-foreground")}>
-        {service.client_id ? (clientMap.get(String(service.client_id)) ?? "") : ""}
+        {service.client_id
+          ? (clientMap.get(String(service.client_id)) ?? "")
+          : ""}
       </TableCell>
       <TableCell className={cv("project", "text-sm text-muted-foreground")}>
         {project?.name ?? ""}
@@ -232,28 +318,49 @@ const ServiceRow = ({
           </span>
         </div>
       </TableCell>
-      <TableCell className={cv("description", "text-sm text-muted-foreground hidden lg:table-cell")}>
+      <TableCell
+        className={cv(
+          "description",
+          "text-sm text-muted-foreground hidden lg:table-cell",
+        )}
+      >
         {service.description ?? ""}
       </TableCell>
-      <TableCell className={cv("fee_shooting", "text-right text-sm hidden md:table-cell")}>
+      <TableCell
+        className={cv(
+          "fee_shooting",
+          "text-right text-sm hidden md:table-cell",
+        )}
+      >
         {eur(service.fee_shooting)}
       </TableCell>
-      <TableCell className={cv("fee_editing", "text-right text-sm hidden md:table-cell")}>
+      <TableCell
+        className={cv("fee_editing", "text-right text-sm hidden md:table-cell")}
+      >
         {eur(service.fee_editing)}
       </TableCell>
-      <TableCell className={cv("fee_other", "text-right text-sm hidden lg:table-cell")}>
+      <TableCell
+        className={cv("fee_other", "text-right text-sm hidden lg:table-cell")}
+      >
         {eur(service.fee_other)}
       </TableCell>
       <TableCell className={cv("total", "text-right text-sm font-medium")}>
         {eur(total)}
       </TableCell>
-      <TableCell className={cv("km", "text-right text-sm hidden lg:table-cell")}>
+      <TableCell
+        className={cv("km", "text-right text-sm hidden lg:table-cell")}
+      >
         {service.km_distance || "--"}
       </TableCell>
       <TableCell className={cv("taxable", "text-sm hidden xl:table-cell")}>
         {service.is_taxable === false ? "Non tassabile" : "Tassabile"}
       </TableCell>
-      <TableCell className={cv("location", "text-sm text-muted-foreground hidden xl:table-cell")}>
+      <TableCell
+        className={cv(
+          "location",
+          "text-sm text-muted-foreground hidden xl:table-cell",
+        )}
+      >
         {service.location ?? ""}
       </TableCell>
     </TableRow>

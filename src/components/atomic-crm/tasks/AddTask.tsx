@@ -118,9 +118,7 @@ export const AddTask = ({
             <Form className="flex flex-col gap-4">
               <DialogHeader>
                 <DialogTitle>
-                  {!selectClient
-                    ? "Crea promemoria per "
-                    : "Crea promemoria"}
+                  {!selectClient ? "Crea promemoria per " : "Crea promemoria"}
                   {!selectClient && (
                     <RecordRepresentation
                       record={parentRecord}
