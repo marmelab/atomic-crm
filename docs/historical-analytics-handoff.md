@@ -21,8 +21,9 @@ examples (with/without charts), mental delimiter pattern, text block length cap
 frontend renders
 each block with dedicated React components using the design system colors.
 
-When the toggle is off (default), everything works exactly as before — no changes
-to the existing markdown pipeline.
+Visual mode is now the default for new users (localStorage fallback changed from
+false to true). The AI card has been promoted to the top of the annual dashboard,
+above KPI cards, as the primary entry point.
 
 ### Implementation
 

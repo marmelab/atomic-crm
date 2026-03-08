@@ -87,6 +87,8 @@ export const DashboardAnnual = () => {
           : `Riepilogo ${data.selectedYear}`}
       </p>
 
+      <DashboardAnnualAiSummaryCard year={data.selectedYear} />
+
       <DashboardKpiCards
         kpis={data.kpis}
         meta={data.meta}
@@ -211,7 +213,6 @@ export const DashboardAnnual = () => {
         </Card>
       )}
 
-      <DashboardAnnualAiSummaryCard year={data.selectedYear} />
     </div>
   );
 };

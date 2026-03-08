@@ -36,9 +36,10 @@ const isVisualAnswer = (
 const VISUAL_MODE_KEY = "annual-ai-visual-mode";
 const getStoredVisualMode = () => {
   try {
-    return localStorage.getItem(VISUAL_MODE_KEY) === "true";
+    const stored = localStorage.getItem(VISUAL_MODE_KEY);
+    return stored === null ? true : stored === "true";
   } catch {
-    return false;
+    return true;
   }
 };
 const storeVisualMode = (v: boolean) => {

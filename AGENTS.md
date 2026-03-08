@@ -129,6 +129,45 @@ Pattern di riferimento nel codebase:
   barra risultato
 - `DashboardKpiCards` — card singole con delta inline e progress bar
 
+## AI Visual Blocks Pattern — "Vista smart"
+
+Le risposte AI del CRM possono essere renderizzate come blocchi visivi
+strutturati invece di markdown. Il pattern e' opt-in per l'utente e replicabile
+su qualsiasi superficie AI del prodotto.
+
+Documentazione completa: `docs/ai-visual-blocks-pattern.md` (canonical)
+
+### Principio
+
+L'AI risponde con un array JSON di blocchi tipizzati (`AiBlock[]`). Il frontend
+li renderizza con `<AiBlockRenderer>`, garantendo coerenza visiva col design
+system. L'utente attiva la modalita' con un toggle "Vista smart" (localStorage).
+Quando il toggle e' spento, il flusso markdown resta immutato.
+
+### Checklist per replicare su una nuova superficie
+
+1. **Provider**: aggiungere `options?: { visualMode?: boolean }` al metodo,
+   passare `visualMode` nel body della Edge Function
+2. **Edge Function**: importare `visualModeInstructions` da
+   `_shared/visualModePrompt.ts`, estrarre `visualMode` dal body, switchare
+   instructions, parsare JSON se `isVisual`, alzare `max_output_tokens` a 2500
+3. **Componente**: aggiungere toggle con stesso pattern (localStorage key
+   diversa), type guard con `"blocks" in d`, rendering condizionale
+   `<AiBlockRenderer>` vs `<Markdown>`
+4. **Tipi**: usare `AiBlock[]` per i blocchi, creare tipo response specifico
+5. **Test**: aggiornare mock per includere `{ visualMode: false }`
+
+### File condivisi — NON duplicare
+
+- `src/components/atomic-crm/dashboard/AiBlockRenderer.tsx` — renderer
+- `supabase/functions/_shared/visualModePrompt.ts` — prompt AI
+- `src/lib/analytics/annualAnalysis.ts` — `AiBlock` union type, `AiBlockColor`
+
+### Implementazione attuale
+
+Attivo su: dashboard annuale (`DashboardAnnualAiSummaryCard`)
+Prossime superfici pianificate: storico, pagine di dettaglio
+
 ## Frontend Import Rules
 
 - Form inputs (`TextInput`, `SelectInput`, `BooleanInput`, etc.) da `@/components/admin/`, MAI da shadcn/ui
