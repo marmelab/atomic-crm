@@ -335,6 +335,12 @@ export const buildUnifiedCrmSuggestedActions = ({
     "sollecit",
     "deve ancora pag",
     "in attesa",
+    "deve",
+    "soldi",
+    "chi mi deve",
+    "quanto mi deve",
+    "debit",
+    "credit",
   ]);
   const focusQuotes = includesAny(normalizedQuestion, [
     "preventiv",
@@ -560,33 +566,36 @@ export const buildUnifiedCrmSuggestedActions = ({
     : null;
 
   if (genericSummary) {
-    pushSuggestion(
-      quoteHref
-        ? {
-            id: "open-first-open-quote",
-            kind: "show",
-            resource: "quotes",
-            label: "Apri il preventivo aperto piu rilevante",
-            description:
-              "Vai al dettaglio del primo preventivo aperto nello snapshot corrente.",
-            href: quoteHref,
-          }
-        : null,
-    );
-    pushSuggestion(
-      quoteCreatePaymentHref
-        ? {
-            id: "quote-create-payment-handoff",
-            kind: "approved_action",
-            resource: "payments",
-            capabilityActionId: "quote_create_payment",
-            label: "Registra un pagamento dal preventivo",
-            description:
-              "Apre il form pagamenti gia precompilato dal preventivo aperto principale.",
-            href: quoteCreatePaymentHref,
-          }
-        : null,
-    );
+    // Only show quote-related suggestions when the question is about quotes
+    if (focusQuotes) {
+      pushSuggestion(
+        quoteHref
+          ? {
+              id: "open-first-open-quote",
+              kind: "show",
+              resource: "quotes",
+              label: "Apri il preventivo aperto piu rilevante",
+              description:
+                "Vai al dettaglio del primo preventivo aperto nello snapshot corrente.",
+              href: quoteHref,
+            }
+          : null,
+      );
+      pushSuggestion(
+        quoteCreatePaymentHref
+          ? {
+              id: "quote-create-payment-handoff",
+              kind: "approved_action",
+              resource: "payments",
+              capabilityActionId: "quote_create_payment",
+              label: "Registra un pagamento dal preventivo",
+              description:
+                "Apre il form pagamenti gia precompilato dal preventivo aperto principale.",
+              href: quoteCreatePaymentHref,
+            }
+          : null,
+      );
+    }
     pushSuggestion(
       clientCreatePaymentHref
         ? {
@@ -1259,6 +1268,12 @@ export const buildUnifiedCrmPaymentDraftFromContext = ({
     "sollecit",
     "deve ancora pag",
     "in attesa",
+    "deve",
+    "soldi",
+    "chi mi deve",
+    "quanto mi deve",
+    "debit",
+    "credit",
   ]);
   const focusQuotes = includesAny(normalizedQuestion, [
     "preventiv",

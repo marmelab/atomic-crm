@@ -227,6 +227,8 @@ async function answerUnifiedCrmQuestion(
       });
     }
 
+    const contextJson = JSON.stringify(context);
+
     const response = await openai.responses.create({
       model: selectedModel,
       instructions: unifiedCrmInstructions,
@@ -239,19 +241,22 @@ async function answerUnifiedCrmQuestion(
             )}\n\n`
           : "") +
         `Domanda dell'utente:\n${question}\n\n` +
-        `Contesto CRM unificato read-only:\n${JSON.stringify(context, null, 2)}`,
-      reasoning: {
-        effort: "medium",
-      },
-      max_output_tokens: 1200,
+        `Contesto CRM unificato read-only:\n${contextJson}`,
+      max_output_tokens: 2000,
     });
 
-    const answerMarkdown = response.output_text?.trim();
+    const answerMarkdown = response.output_text?.trim() ?? "";
 
     if (!answerMarkdown) {
+      console.error("unified_crm_answer.empty_output", {
+        status: response.status,
+        model: response.model,
+        outputLength: response.output?.length ?? 0,
+        contextLength: contextJson.length,
+      });
       return createErrorResponse(
         502,
-        "OpenAI ha restituito una risposta vuota",
+        "OpenAI ha restituito una risposta vuota. Riprova tra qualche secondo.",
       );
     }
 

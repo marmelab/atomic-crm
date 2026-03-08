@@ -8,6 +8,11 @@ incrociarlo con `docs/README.md`, `docs/architecture.md` e i documenti
 
 Last updated: 2026-03-08
 
+## Update 2026-03-08 (d) — unified_crm_answer robustness + suggestion scoping
+
+- `unified_crm_answer`: removed `reasoning.effort` (caused empty outputs), compact JSON context, `max_output_tokens` 1500→2000, better error logging.
+- `unifiedCrmAnswerSuggestions.ts`: payment-related keywords added to `focusPayments` patterns; quote suggestions in `genericSummary` path now gated behind `focusQuotes`.
+
 ## Update 2026-03-08 (c) — Historical dashboard Bambino redesign
 
 Slice completata: `Historical dashboard "Approccio Bambino" — unified AI card, Vista smart, KPI redesign, CashInflow redesign`.

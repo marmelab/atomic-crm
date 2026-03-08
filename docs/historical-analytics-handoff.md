@@ -6,7 +6,17 @@ lavoro senza riaprire decisioni gia prese.
 **Quando NON usarlo da solo:** per dedurre architettura canonica o stato
 prodotto senza incrociarlo con `docs/README.md` e i documenti `canonical`.
 
-Last updated: 2026-03-08 (invoice import UX: file limits hint, current date in prompt)
+Last updated: 2026-03-08 (unified_crm_answer robustness + suggestion keyword fix)
+
+## Update 2026-03-08 (p) — unified_crm_answer robustness + suggestion scoping
+
+- `unified_crm_answer/index.ts`: removed `reasoning: { effort: "medium" }` parameter
+  (caused empty AI outputs), compacted JSON context payload, bumped
+  `max_output_tokens` 1500→2000, improved error logging with response body.
+- `unifiedCrmAnswerSuggestions.ts`: expanded `focusPayments` keyword patterns
+  with payment-related terms ("deve", "soldi", "chi mi deve", "quanto mi deve",
+  "debit", "credit"). In `genericSummary` path, quote-related suggested actions
+  now gated behind `focusQuotes` flag (previously always shown).
 
 ## Update 2026-03-08 (o) — Historical dashboard "Approccio Bambino" redesign
 
