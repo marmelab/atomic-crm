@@ -6,7 +6,7 @@ lavoro senza riaprire decisioni gia prese.
 **Quando NON usarlo da solo:** per dedurre architettura canonica o stato
 prodotto senza incrociarlo con `docs/README.md` e i documenti `canonical`.
 
-Last updated: 2026-03-08 (invoice import prompt hardening — 3 Pareto rules for classification, amounts, client matching)
+Last updated: 2026-03-08 (AI shared components — AiStatusCallout, AiDraftSummaryBar, PaymentDraftCard Navy & Petrolio upgrade)
 
 ## Update 2026-03-08 (o) — Historical dashboard "Approccio Bambino" redesign
 

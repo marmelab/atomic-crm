@@ -12,6 +12,7 @@ di tutte le fatture o l'anagrafica clienti completa. Per quello usare
 `Rosario Furnari - Servizi per Diego Caltabiano - DAL 27 10 24 AL 07 04 25.numbers`
 **Analizzato:** 2026-02-25
 **Stato:** Dati estratti e VALIDATI con Rosario
+**Ultimo aggiornamento UI:** 2026-03-08 — AiInvoiceImportView refactored con componenti condivisi (AiStatusCallout, AiDraftSummaryBar)
 
 **Nota 2026-03-05:** il prompt Gemini per l'estrazione servizi ora include
 istruzione esplicita per il campo `notes` (annotazioni operative dal documento)

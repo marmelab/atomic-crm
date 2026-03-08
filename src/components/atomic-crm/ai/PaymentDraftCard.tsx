@@ -78,19 +78,43 @@ export const PaymentDraftCard = ({
       : new Set(["acconto", "saldo", "parziale"]);
 
   return (
-    <div className="space-y-3 rounded-lg border border-dashed bg-muted/20 px-3 py-3">
-      <div className="space-y-1">
-        <p className="text-sm font-medium">Bozza pagamento proposta</p>
-        <p className="text-xs text-muted-foreground">{draft.explanation}</p>
+    <div className="space-y-3 rounded-2xl border border-[#2C3E50]/20 bg-[#E8EDF2] px-4 py-4 dark:bg-[#2C3E50]/20">
+      <div className="flex items-start justify-between gap-3">
+        <div className="space-y-1">
+          <p className="text-sm font-medium text-[#2C3E50] dark:text-[#E8EDF2]">
+            Bozza pagamento proposta
+          </p>
+          <p className="text-xs text-[#2C3E50]/70 dark:text-[#E8EDF2]/70">
+            {draft.explanation}
+          </p>
+        </div>
+        <p className="text-xl font-bold text-emerald-600 dark:text-emerald-400">
+          {formatCurrency(normalizedAmount)}
+        </p>
       </div>
 
-      <div className="flex flex-wrap gap-2 text-xs text-muted-foreground">
-        <Badge variant="outline">Cliente {draft.clientId}</Badge>
+      <div className="flex flex-wrap gap-2 text-xs">
+        <Badge
+          variant="outline"
+          className="border-[#2C3E50]/30 text-[#2C3E50] dark:text-[#E8EDF2]"
+        >
+          Cliente {draft.clientId}
+        </Badge>
         {draft.quoteId ? (
-          <Badge variant="outline">Preventivo {draft.quoteId}</Badge>
+          <Badge
+            variant="outline"
+            className="border-[#2C3E50]/30 text-[#2C3E50] dark:text-[#E8EDF2]"
+          >
+            Preventivo {draft.quoteId}
+          </Badge>
         ) : null}
         {draft.projectId ? (
-          <Badge variant="outline">Progetto {draft.projectId}</Badge>
+          <Badge
+            variant="outline"
+            className="border-[#2C3E50]/30 text-[#2C3E50] dark:text-[#E8EDF2]"
+          >
+            Progetto {draft.projectId}
+          </Badge>
         ) : null}
       </div>
 

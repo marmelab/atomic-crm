@@ -1292,11 +1292,19 @@
           "type": "registry:component"
         },
         {
+          "path": "src/components/atomic-crm/ai/AiStatusCallout.tsx",
+          "type": "registry:component"
+        },
+        {
           "path": "src/components/atomic-crm/ai/AiLauncherHeader.tsx",
           "type": "registry:component"
         },
         {
           "path": "src/components/atomic-crm/ai/AiInvoiceImportView.tsx",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/ai/AiDraftSummaryBar.tsx",
           "type": "registry:component"
         },
         {

@@ -3,7 +3,6 @@ import {
   FileUp,
   Loader2,
   SendHorizontal,
-  TriangleAlert,
 } from "lucide-react";
 import type { ChangeEventHandler, RefObject } from "react";
 
@@ -17,7 +16,37 @@ import type {
   InvoiceImportWorkspace,
 } from "@/lib/ai/invoiceImport";
 
+import { AiDraftSummaryBar } from "./AiDraftSummaryBar";
+import { AiStatusCallout } from "./AiStatusCallout";
 import { InvoiceImportDraftEditor } from "./InvoiceImportDraftEditor";
+
+const buildDraftSummaryGroups = (draft: InvoiceImportDraft) => {
+  const groupMap: Record<
+    string,
+    { resource: string; label: string; count: number; total: number }
+  > = {};
+
+  for (const record of draft.records) {
+    const resource = record.resource ?? "expenses";
+    if (!groupMap[resource]) {
+      groupMap[resource] = {
+        resource,
+        label:
+          resource === "payments"
+            ? "incassi"
+            : resource === "services"
+              ? "servizi"
+              : "spese",
+        count: 0,
+        total: 0,
+      };
+    }
+    groupMap[resource].count += 1;
+    groupMap[resource].total += Number(record.amount) || 0;
+  }
+
+  return Object.values(groupMap);
+};
 
 const formatGeneratedAt = (value: string) => {
   const date = new Date(value);
@@ -195,17 +224,13 @@ export const AiInvoiceImportView = ({
             </div>
 
             {draft.warnings.length > 0 ? (
-              <div className="rounded-xl border border-amber-300 bg-amber-50 px-3 py-2 text-sm text-amber-900">
-                <div className="mb-1 flex items-center gap-2 font-medium">
-                  <TriangleAlert className="size-4" />
-                  Controlli richiesti
-                </div>
+              <AiStatusCallout tone="warning" title="Controlli richiesti">
                 <ul className="list-disc space-y-1 pl-5">
                   {draft.warnings.map((warning) => (
                     <li key={warning}>{warning}</li>
                   ))}
                 </ul>
-              </div>
+              </AiStatusCallout>
             ) : null}
           </div>
         </div>
@@ -220,6 +245,11 @@ export const AiInvoiceImportView = ({
 
     {draft && workspace ? (
       <>
+        <AiDraftSummaryBar
+          groups={buildDraftSummaryGroups(draft)}
+          totalRecords={draft.records.length}
+        />
+
         <InvoiceImportDraftEditor
           draft={draft}
           workspace={workspace}
@@ -264,11 +294,11 @@ export const AiInvoiceImportView = ({
     {confirmation ? (
       <div className="space-y-3">
         {confirmation.created.length > 0 ? (
-          <div className="rounded-2xl border border-emerald-300 bg-emerald-50 px-4 py-4 text-sm text-emerald-900">
-            <p className="font-medium">
-              Import completato — {confirmation.created.length} record creati
-            </p>
-            <ul className="mt-2 list-disc space-y-1 pl-5">
+          <AiStatusCallout
+            tone="success"
+            title={`Import completato — ${confirmation.created.length} record creati`}
+          >
+            <ul className="list-disc space-y-1 pl-5">
               {confirmation.created.map((item) => (
                 <li key={`${item.resource}-${item.id}`}>
                   {item.resource === "payments"
@@ -283,14 +313,14 @@ export const AiInvoiceImportView = ({
                 </li>
               ))}
             </ul>
-          </div>
+          </AiStatusCallout>
         ) : null}
         {confirmation.skipped?.length ? (
-          <div className="rounded-2xl border border-amber-300 bg-amber-50 px-4 py-4 text-sm text-amber-900">
-            <p className="font-medium">
-              {confirmation.skipped.length} record saltati (gia presenti)
-            </p>
-            <ul className="mt-2 list-disc space-y-1 pl-5">
+          <AiStatusCallout
+            tone="warning"
+            title={`${confirmation.skipped.length} record saltati (gia presenti)`}
+          >
+            <ul className="list-disc space-y-1 pl-5">
               {confirmation.skipped.map((item, i) => (
                 <li key={`skipped-${i}`}>
                   {item.description ?? item.reason}
@@ -298,7 +328,7 @@ export const AiInvoiceImportView = ({
                 </li>
               ))}
             </ul>
-          </div>
+          </AiStatusCallout>
         ) : null}
       </div>
     ) : null}
