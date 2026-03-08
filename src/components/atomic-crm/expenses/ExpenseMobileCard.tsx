@@ -37,7 +37,9 @@ export const ExpenseMobileCard = ({
               {new Date(expense.expense_date).toLocaleDateString("it-IT")}
             </span>
           </div>
-          <span className="text-xs text-muted-foreground">{project?.name ?? ""}</span>
+          <span className="text-xs text-muted-foreground">
+            {project?.name ?? ""}
+          </span>
         </div>
       </div>
       <div className="flex items-center justify-between">

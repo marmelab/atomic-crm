@@ -95,7 +95,6 @@ export function useResizableColumns(resource: string) {
     if (hasNew) {
       setWidths((prev) => ({ ...prev, ...initial }));
     }
-     
   }, []);
 
   const resetWidths = useCallback(() => {

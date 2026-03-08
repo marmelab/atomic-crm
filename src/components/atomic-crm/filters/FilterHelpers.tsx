@@ -115,7 +115,10 @@ export const FilterPopover = <T extends { id: unknown; name?: string }>({
                     key={String(item.id)}
                     value={getLabel(item)}
                     onSelect={() => {
-                      setFilters({ ...filterValues, [filterKey]: String(item.id) });
+                      setFilters({
+                        ...filterValues,
+                        [filterKey]: String(item.id),
+                      });
                       setOpen(false);
                     }}
                   >

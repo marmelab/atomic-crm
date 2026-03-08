@@ -82,6 +82,13 @@ La scelta adottata mantiene:
   - intent parsing per description servizio (titolo breve) nella domanda utente
   - prompt AI con guida semantica description vs notes
 
+## Update 2026-03-08 — ContactRow extraction + suppliers destructuring fix
+
+- `ContactRow` extracted from `ContactList.tsx` into separate file (code split
+  for max-lines compliance). No behavioral change.
+- `buildUnifiedCrmReadContext`: added missing `suppliers` destructuring param
+  (was causing ReferenceError when building AI snapshot).
+
 ## Update 2026-03-04 — Kanban Project View
 
 La lista progetti ha ora un toggle lista/kanban (solo desktop). Il kanban mostra

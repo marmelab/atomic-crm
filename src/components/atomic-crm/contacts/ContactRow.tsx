@@ -1,17 +1,12 @@
 import { Link } from "react-router";
-import {
-  TableCell,
-  TableRow,
-} from "@/components/ui/table";
+import { TableCell, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import type { LucideIcon } from "lucide-react";
 import { User, Crown, Briefcase, Euro } from "lucide-react";
 import { ListAvatar } from "../misc/ListAvatar";
 
 import type { Contact } from "../types";
-import {
-  ListRowCheckbox,
-} from "../misc/ListBulkSelection";
+import { ListRowCheckbox } from "../misc/ListBulkSelection";
 import {
   getContactDisplayName,
   getContactPrimaryEmail,
@@ -124,10 +119,17 @@ export const ContactRow = ({
       <TableCell className={cv("role", "text-muted-foreground")}>
         {[roleLabel, contact.title].filter(Boolean).join(" · ")}
       </TableCell>
-      <TableCell className={cv("contacts_info", "hidden md:table-cell text-muted-foreground")}>
+      <TableCell
+        className={cv(
+          "contacts_info",
+          "hidden md:table-cell text-muted-foreground",
+        )}
+      >
         {[primaryEmail, primaryPhone].filter(Boolean).join(" · ")}
       </TableCell>
-      <TableCell className={cv("client", "hidden lg:table-cell text-muted-foreground")}>
+      <TableCell
+        className={cv("client", "hidden lg:table-cell text-muted-foreground")}
+      >
         {clientName ?? ""}
       </TableCell>
     </TableRow>

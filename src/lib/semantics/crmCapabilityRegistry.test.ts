@@ -82,7 +82,7 @@ describe("crmCapabilityRegistry", () => {
     expect(
       registry.actions.find((action) => action.id === "read_unified_crm_context")
         ?.description,
-    ).toContain("recapiti di fatturazione");
+    ).toContain("fornitori");
     expect(
       registry.actions.some((action) => action.id === "ask_unified_crm_question"),
     ).toBe(true);

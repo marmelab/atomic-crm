@@ -142,6 +142,7 @@ export const buildUnifiedCrmReadContext = ({
   services,
   payments,
   expenses,
+  suppliers = [],
   tasks = [],
   workflows = [],
   semanticRegistry,

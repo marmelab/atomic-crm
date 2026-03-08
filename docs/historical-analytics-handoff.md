@@ -8,6 +8,12 @@ prodotto senza incrociarlo con `docs/README.md` e i documenti `canonical`.
 
 Last updated: 2026-03-08
 
+## Update 2026-03-08 (b) — Fix: suppliers destructuring in snapshot builder
+
+- `buildUnifiedCrmReadContext` was missing `suppliers` in the destructured
+  params — caused ReferenceError at runtime. Added default `suppliers = []`.
+- Capability registry test assertion updated to match current description text.
+
 ## Update 2026-03-08 (AI layer fully aligned with suppliers)
 
 - AI snapshot now includes `recentSuppliers` (name, VAT, fiscal code, email,
