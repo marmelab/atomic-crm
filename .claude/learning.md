@@ -17,6 +17,34 @@
 
 ## ⚡ Auto-Triggers — Quando vedo queste situazioni, AGISCO diversamente
 
+### Trigger: Nuova lista desktop = colonne ridimensionabili
+
+**Situazione**: Creo/modifico un componente `*ListContent.tsx` con tabella desktop
+**Azione automatica**: Usare `useResizableColumns(resource)` + `ResizableHead` + `tableLayout: "fixed"`
+**Perché**: Tutte le liste del CRM supportano resize colonne con persistenza localStorage
+**Fonte**: Sessione 2026-03-08
+
+### Trigger: Nuovo filtro entità = usare FilterPopover
+
+**Situazione**: Aggiungo un filtro dropdown per entità (client, project, supplier, ecc.)
+**Azione automatica**: Usare `FilterPopover` da `filters/FilterHelpers.tsx`, NON duplicare Popover+Command inline
+**Perché**: 6 moduli filtro usavano lo stesso pattern Popover duplicato. Ora c'è il componente generico.
+**Fonte**: Sessione 2026-03-08
+
+### Trigger: CI Prettier fail su file nuovi creati da subagent
+
+**Situazione**: File creati da subagent (Agent tool) non passano prettier in CI
+**Azione automatica**: Dopo commit di subagent, eseguire `npx prettier --check` sui file nuovi e fixare PRIMA del push
+**Perché**: lint-staged formatta solo i file staged, ma i subagent possono creare file con formatting diverso dal progetto
+**Fonte**: Sessione 2026-03-08, 4 file nuovi non formattati
+
+### Trigger: Destrutturazione parametri funzione = verificare completezza
+
+**Situazione**: Aggiungo un nuovo parametro opzionale a una funzione con destructuring
+**Azione automatica**: Verificare che il parametro sia presente ANCHE nella destrutturazione, non solo nel tipo
+**Perché**: `buildUnifiedCrmReadContext` aveva `suppliers?: Supplier[]` nel tipo ma mancava nella destrutturazione → ReferenceError
+**Fonte**: Sessione 2026-03-08, bug pre-esistente scoperto in CI
+
 ### Trigger: Enum/Choice = aggiorna TUTTE le superfici
 
 **Situazione**: Aggiungo un nuovo valore a un enum (expense_type, service_type, status, ecc.)
