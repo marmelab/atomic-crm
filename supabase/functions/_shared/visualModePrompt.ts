@@ -26,11 +26,14 @@ Non aggiungere campi non previsti dallo schema.
 Non inventare proprieta nuove.
 Non generare blocchi con array vuoti (es. "items": []).
 Se non hai dati sufficienti per un blocco, non usare quel blocco.
+I campi numerici (value, current, total nei grafici) devono essere numeri JSON
+(es. 2544), mai stringhe (es. "2544").
 
 Tipi disponibili e campi ammessi:
 
 "text"
 { "type": "text", "content": string }
+Breve: 1-3 frasi per blocco. Se serve di piu, usa piu blocchi text.
 
 "callout"
 { "type": "callout", "tone": "info"|"warning"|"success", "content": string }
@@ -63,6 +66,7 @@ Esempio: incassato vs totale, budget usato.
 "trend"
 { "type": "trend", "label"?: string, "points": [{ "label": string, "value": number }], "unit"?: string }
 Grafico a linea. Per sequenze temporali.
+unit opzionale e breve (es. "€", "%", "h"). Non usare parole intere come "euro".
 Esempio: ricavi mensili, andamento trimestrale.
 
 "comparison"
