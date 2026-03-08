@@ -1324,10 +1324,6 @@
           "type": "registry:hook"
         },
         {
-          "path": "src/hooks/useRotatingSuggestions.ts",
-          "type": "registry:hook"
-        },
-        {
           "path": "src/hooks/useResizableColumns.ts",
           "type": "registry:hook"
         },

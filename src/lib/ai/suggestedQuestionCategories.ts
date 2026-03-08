@@ -9,22 +9,50 @@ export const suggestionCategories: SuggestionCategory[] = [
     key: "overview",
     title: "Panoramica",
     questions: [
-      "Dammi un riepilogo operativo rapido del CRM.",
-      "Dove vedi attenzione immediata tra preventivi e pagamenti?",
       "Come sta andando il business questo mese?",
+      "Dove devo intervenire subito tra preventivi e pagamenti?",
+      "Dammi un riepilogo operativo rapido del CRM.",
     ],
   },
   {
-    key: "clients_contacts",
-    title: "Clienti e referenti",
+    key: "invoicing",
+    title: "Fatturazione",
     questions: [
-      "Cosa raccontano clienti e progetti più recenti?",
-      "Quali referenti seguono clienti e progetti più recenti?",
-      "Mostrami il profilo fiscale dei clienti attivi.",
+      "Devo fatturare, aiutami a scegliere da dove partire.",
+      "Fattura per il preventivo più recente.",
+      "Preparami la fattura dal progetto attivo.",
+      "Genera una bozza fattura dal preventivo accettato.",
     ],
   },
   {
-    key: "quotes_commercial",
+    key: "payments",
+    title: "Incassi",
+    questions: [
+      "Chi mi deve dei soldi e quanto?",
+      "Prepara un pagamento dal preventivo più rilevante.",
+      "Registra un incasso dal progetto attivo.",
+    ],
+  },
+  {
+    key: "work_log",
+    title: "Lavoro svolto",
+    questions: [
+      "Registra una puntata oggi per il progetto attivo.",
+      "Registra un nuovo servizio sul progetto più recente.",
+      "Quali progetti attivi hanno servizi non fatturati?",
+    ],
+  },
+  {
+    key: "expenses_travel",
+    title: "Spese e km",
+    questions: [
+      "Calcola la tratta km Valguarnera–Catania andata e ritorno.",
+      "Registra una spesa di noleggio per il progetto attivo.",
+      "Che cosa emerge dalle spese recenti?",
+    ],
+  },
+  {
+    key: "quotes",
     title: "Preventivi",
     questions: [
       "Ci sono preventivi aperti che richiedono attenzione?",
@@ -33,30 +61,12 @@ export const suggestionCategories: SuggestionCategory[] = [
     ],
   },
   {
-    key: "projects_services",
-    title: "Progetti e servizi",
+    key: "clients_contacts",
+    title: "Clienti",
     questions: [
-      "Quali progetti attivi hanno servizi non fatturati?",
-      "Registra un nuovo servizio sul progetto più recente.",
-      "Registra una puntata oggi per il progetto attivo.",
-    ],
-  },
-  {
-    key: "payments_invoices",
-    title: "Pagamenti e fatture",
-    questions: [
-      "Chi mi deve dei soldi e quanto?",
-      "Prepara un pagamento dal preventivo più rilevante.",
-      "Genera la bozza fattura per il cliente con servizi non fatturati.",
-    ],
-  },
-  {
-    key: "expenses_travel",
-    title: "Spese e trasferte",
-    questions: [
-      "Che cosa emerge dalle spese recenti?",
-      "Calcola la tratta km Valguarnera–Catania andata e ritorno.",
-      "Registra una spesa di noleggio per il progetto attivo.",
+      "Cosa raccontano clienti e progetti più recenti?",
+      "Quali referenti seguono i progetti attivi?",
+      "Mostrami il profilo fiscale dei clienti attivi.",
     ],
   },
   {
