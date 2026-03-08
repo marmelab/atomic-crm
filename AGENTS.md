@@ -129,6 +129,20 @@ Pattern di riferimento nel codebase:
   barra risultato
 - `DashboardKpiCards` — card singole con delta inline e progress bar
 
+### REGOLA CRITICA — Parita' Desktop / Mobile per dati finanziari
+
+Ogni componente condiviso che riceve props con dati finanziari (fiscalKpis,
+taxesPaid, cashFlow, ecc.) DEVE ricevere gli stessi props da TUTTI i consumer:
+`DashboardAnnual` (desktop) E `MobileDashboard` (mobile).
+
+Quando si aggiunge un nuovo prop finanziario a un componente condiviso:
+
+1. Cercare TUTTI i consumer con `grep -r "ComponentName" src/ --include="*.tsx"`
+2. Verificare che il prop sia passato in OGNI chiamata
+3. Se il mobile non lo passa, il dato finanziario sara' SBAGLIATO su cellulare
+
+Dati finanziari errati = rischio critico. MAI ignorabile.
+
 ## AI Visual Blocks Pattern — "Vista smart"
 
 Le risposte AI del CRM possono essere renderizzate come blocchi visivi
@@ -236,6 +250,7 @@ Quando si modifica un modulo con sweep obbligatorio (`projects`, `services`, `qu
 10. semantic registry + capability registry (se AI-read)
 11. continuity docs
 12. Settings (solo se config-driven)
+13. **MobileDashboard** (se dashboard): stessi props finanziari del desktop
 
 ## Pre-commit Continuity Rules
 

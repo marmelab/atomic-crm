@@ -40,6 +40,7 @@
 | **Workflow** | WF-4  | Aggiorno file sistema → sweep incrociata  |
 | **Workflow** | WF-5  | E2E test → valida sistema, non adattare   |
 | **Workflow** | WF-6  | Commit codice → docs+memoria NELLO STESSO commit |
+| **UI**       | UI-7  | Componente desktop con props → verificare mobile |
 
 ---
 
@@ -82,6 +83,13 @@
 **Fare**: split in import specifici (`@/components/admin/x`)
 **Perché**: previene bundle bloat e circular deps
 **Eccezione**: se l'import specifico non esiste (es. `SaveButton` è in `form.tsx`), usare il barrel solo per quello
+
+### UI-7: Componente desktop con props → verificare SEMPRE il mobile
+
+**Quando**: passo nuovi props a un componente condiviso (es. `DashboardKpiCards`, qualsiasi card/widget riusato)
+**Fare**: cercare TUTTE le chiamate di quel componente nel codebase (`Grep`) e verificare che i nuovi props siano passati anche da `MobileDashboard`, `Mobile*`, e qualsiasi altro consumer
+**Perché**: `MobileDashboard` chiamava `DashboardKpiCards` senza `fiscalKpis` e `taxesPaid` → TASSE mostrava "—" su mobile con dati finanziari SBAGLIATI. Dati finanziari errati = rischio critico per l'utente. MAI lasciare un consumer senza i props necessari.
+**Check**: `grep -r "ComponentName" src/ --include="*.tsx"` per trovare tutti i consumer
 
 ---
 
