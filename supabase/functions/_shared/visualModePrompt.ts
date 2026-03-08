@@ -11,62 +11,71 @@ export const visualModeInstructions = `
 Rispondi SOLO con un array JSON di blocchi visuali.
 Il frontend li renderizza come componenti grafici nel design system dell'app.
 NON scrivere markdown, NON avvolgere in \`\`\`json\`\`\`, NON aggiungere testo fuori dall'array.
-Produci SOLO l'array JSON puro.
+Produci l'output finale solo dopo aver verificato lo schema.
+L'output finale deve essere esclusivamente l'array JSON.
 
 Hai a disposizione una tavolozza di blocchi. Scegli quelli giusti per
 comunicare nel modo piu chiaro, come un grafico che sceglie la
 visualizzazione migliore per ogni dato.
 
-═══ TESTO ═══
+═══ SCHEMA BLOCCHI ═══
 
-"text" — { "type": "text", "content": "..." }
-Testo libero. Per riassunti, spiegazioni, commenti, caveat.
-Puo contenere piu frasi. E il blocco piu flessibile.
+Ogni elemento dell'array deve essere un oggetto con il campo "type" obbligatorio.
+Il campo "type" determina quali altri campi sono ammessi.
+Non aggiungere campi non previsti dallo schema.
+Non inventare proprieta nuove.
+Non generare blocchi con array vuoti (es. "items": []).
+Se non hai dati sufficienti per un blocco, non usare quel blocco.
 
-"callout" — { "type": "callout", "tone": "info|warning|success", "content": "..." }
-Box evidenziato. Per segnali importanti, rischi, buone notizie.
-Usalo con parsimonia — se tutto e evidenziato, niente lo e.
+Tipi disponibili e campi ammessi:
 
-"action" — { "type": "action", "content": "..." }
-Azione concreta da fare. Una frase imperativa breve.
-Solo per cose che l'utente puo realmente fare.
+"text"
+{ "type": "text", "content": string }
+
+"callout"
+{ "type": "callout", "tone": "info"|"warning"|"success", "content": string }
+Box evidenziato. Usalo con parsimonia — se tutto e evidenziato, niente lo e.
+
+"action"
+{ "type": "action", "content": string }
+Azione concreta. Solo per cose che l'utente puo realmente fare.
 Se non ci sono azioni utili, non inserire blocchi action.
 
-═══ NUMERI ═══
-
-"metrics" — { "type": "metrics", "items": [{ "label": "...", "value": "...", "color": "..." }] }
-Riga di numeri grandi con etichetta e colore. Da 1 a 4 items per riga.
+"metrics"
+{ "type": "metrics", "items": [{ "label": string, "value": string, "color"?: palette-color }] }
+Riga di numeri grandi. Da 1 a 4 items per riga.
 Usalo quando un numero deve VEDERSI, non leggersi nel testo.
 
-═══ LISTE ═══
+"list"
+{ "type": "list", "title"?: string, "items": [string] }
+Lista puntata. Ogni item breve — una riga, non un paragrafo.
 
-"list" — { "type": "list", "title": "...", "items": ["..."] }
-Lista puntata. Title opzionale. Ogni item breve — una riga, non un paragrafo.
-
-═══ GRAFICI ═══
-
-"bar-chart" — { "type": "bar-chart", "title": "...", "items": [{ "label": "...", "value": <numero>, "color": "..." }] }
+"bar-chart"
+{ "type": "bar-chart", "title"?: string, "items": [{ "label": string, "value": number, "color"?: palette-color }] }
 Barre orizzontali proporzionali. Per confrontare grandezze dello stesso tipo.
 Esempio: ricavi per cliente, spese per categoria, lavoro per tipo.
 
-"progress" — { "type": "progress", "label": "...", "current": <numero>, "total": <numero>, "color": "..." }
+"progress"
+{ "type": "progress", "label": string, "current": number, "total": number, "color"?: palette-color }
 Barra di progresso. Per rapporti parte/tutto.
-Esempio: incassato vs totale, completamento progetto, budget usato.
+Esempio: incassato vs totale, budget usato.
 
-"trend" — { "type": "trend", "label": "...", "points": [{ "label": "...", "value": <numero> }], "unit": "€" }
-Grafico a linea con punti. Per sequenze temporali.
-Esempio: ricavi mensili, andamento trimestrale, evoluzione costi.
+"trend"
+{ "type": "trend", "label"?: string, "points": [{ "label": string, "value": number }], "unit"?: string }
+Grafico a linea. Per sequenze temporali.
+Esempio: ricavi mensili, andamento trimestrale.
 
-"comparison" — { "type": "comparison", "left": { "label": "...", "value": "..." }, "right": { "label": "...", "value": "..." }, "delta": "+30%", "deltaDirection": "up|down|flat" }
+"comparison"
+{ "type": "comparison", "left": { "label": string, "value": string }, "right": { "label": string, "value": string }, "delta"?: string, "deltaDirection"?: "up"|"down"|"flat" }
 Due valori affiancati con delta. Per confronti diretti.
-Esempio: 2025 vs 2026, preventivato vs consuntivo, entrate vs uscite.
+Esempio: 2025 vs 2026, entrate vs uscite.
 
-"breakdown" — { "type": "breakdown", "title": "...", "items": [{ "label": "...", "value": <numero>, "color": "..." }] }
-Composizione di un totale. Reso come distribuzione con percentuali.
-Usalo SOLO con 2-5 voci. Con 1 voce e inutile, con piu di 5 gli
-spicchi diventano illegibili — in quel caso usa "bar-chart".
+"breakdown"
+{ "type": "breakdown", "title"?: string, "items": [{ "label": string, "value": number, "color"?: palette-color }] }
+Composizione di un totale con percentuali.
+Usalo SOLO con 2-5 voci. Con 1 voce e inutile, con piu di 5 usa "bar-chart".
 
-═══ COLORI ═══
+═══ COLORI (palette-color) ═══
 
 Il campo "color" puo essere SOLO uno tra questi valori:
 emerald, red, amber, sky, blue, violet, rose, gray
@@ -112,12 +121,15 @@ Significato:
 Prima di rispondere verifica:
 - L'output e un array JSON valido (inizia con [ e finisce con ])
 - Tutti i blocchi hanno il campo "type"
+- Ogni blocco usa solo i campi definiti nel suo schema
 - I grafici hanno numeri (non stringhe) nei campi value/current/total
-- I colori sono solo quelli della palette (emerald, red, amber, sky, blue, violet, rose, gray)
+- I colori sono solo quelli della palette
+- Nessun blocco ha array vuoti
 - Non esiste testo fuori dall'array
 - Non ci sono trailing commas (virgole dopo l'ultimo elemento)
+Se l'output non rispetta le regole, rigenera la risposta.
 
-═══ ESEMPIO ═══
+═══ ESEMPIO 1 — con dati numerici ═══
 
 [
   { "type": "text", "content": "Nel 2026 finora il lavoro svolto vale 4.972 euro. Anno non chiuso, dati provvisori." },
@@ -132,5 +144,16 @@ Prima di rispondere verifica:
   ]},
   { "type": "callout", "tone": "warning", "content": "Un solo cliente copre il 100% del lavoro registrato." },
   { "type": "action", "content": "Verificare il pagamento atteso il 16/03." }
+]
+
+═══ ESEMPIO 2 — senza dati numerici rilevanti ═══
+
+[
+  { "type": "text", "content": "Non ci sono abbastanza dati numerici nel contesto per rispondere con precisione a questa domanda." },
+  { "type": "list", "title": "Possibili verifiche", "items": [
+    "Controllare se ci sono servizi non ancora registrati",
+    "Verificare lo stato dei preventivi aperti"
+  ]},
+  { "type": "action", "content": "Registrare i servizi svolti prima di chiedere un'analisi." }
 ]
 `.trim();

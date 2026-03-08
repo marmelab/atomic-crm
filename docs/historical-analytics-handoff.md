@@ -12,9 +12,11 @@ Last updated: 2026-03-08
 
 Added opt-in "Vista smart" toggle to the annual AI card. When active, the AI
 responds with structured JSON blocks (text, metrics, bar-chart, trend, progress,
-comparison, breakdown, callout, action) instead of markdown. Prompt refined with
-external review: block count guidance (2-6), short labels (1-4 words), trailing
-comma validation, concrete JSON example, anti-hallucination guards. The frontend renders
+comparison, breakdown, callout, action) instead of markdown. Prompt iteratively
+refined with external review: explicit JSON schema per block type, anti-extra-field
+and anti-empty-array rules, self-correction instruction, block count guidance
+(2-6), short labels (1-4 words), trailing comma validation, two concrete JSON
+examples (with/without charts), mental delimiter pattern. The frontend renders
 each block with dedicated React components using the design system colors.
 
 When the toggle is off (default), everything works exactly as before — no changes
