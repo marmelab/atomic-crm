@@ -15,6 +15,7 @@ Stato del documento:
 
 ## Changelog
 
+- 2026-03-08: AI layer fully aligned with suppliers — snapshot includes recentSuppliers, supplierFinancials, supplier refs on expenses/tasks/contacts; semantic registry, capability registry, Edge Function instructions updated
 - 2026-03-08: Supplier financial section — SupplierFinancialSummary (debiti/crediti), SupplierFinancialDocsCard (storico documenti), financial_documents_summary view updated with supplier_id + LEFT JOIN
 - 2026-03-08: Supplier notes — SupplierNotesSection using `client_notes.supplier_id`, migration makes client_id nullable with CHECK constraint
 - 2026-03-08: Cloudinary — fix crop coordinates applied to saved URL (widget returns original + coordinates, now injected as c_crop transform)

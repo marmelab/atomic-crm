@@ -36,6 +36,7 @@ export type UnifiedCrmReadContext = {
     counts: {
       clients: number;
       contacts: number;
+      suppliers: number;
       quotes: number;
       openQuotes: number;
       activeProjects: number;
@@ -78,6 +79,8 @@ export type UnifiedCrmReadContext = {
       phone: string | null;
       clientId: string | null;
       clientName: string | null;
+      supplierId: string | null;
+      supplierName: string | null;
       linkedProjects: Array<
         SnapshotProjectReference & {
           isPrimary: boolean;
@@ -161,6 +164,8 @@ export type UnifiedCrmReadContext = {
       taskId: string;
       clientId: string | null;
       clientName: string | null;
+      supplierId: string | null;
+      supplierName: string | null;
       text: string;
       type: string;
       dueDate: string;
@@ -171,6 +176,8 @@ export type UnifiedCrmReadContext = {
       taskId: string;
       clientId: string | null;
       clientName: string | null;
+      supplierId: string | null;
+      supplierName: string | null;
       text: string;
       type: string;
       dueDate: string;
@@ -181,8 +188,10 @@ export type UnifiedCrmReadContext = {
       expenseId: string;
       clientId: string | null;
       projectId: string | null;
+      supplierId: string | null;
       clientName: string | null;
       projectName: string | null;
+      supplierName: string | null;
       amount: number;
       expenseType: string;
       expenseTypeLabel: string;
@@ -201,6 +210,18 @@ export type UnifiedCrmReadContext = {
       serviceDate: string;
       notes: string | null;
     }>;
+    recentSuppliers: Array<{
+      supplierId: string;
+      supplierName: string;
+      vatNumber: string | null;
+      fiscalCode: string | null;
+      email: string | null;
+      phone: string | null;
+      defaultExpenseType: string | null;
+      defaultExpenseTypeLabel: string | null;
+      logoUrl: string | null;
+      createdAt: string;
+    }>;
     clientFinancials: Array<{
       clientId: string;
       clientName: string;
@@ -208,6 +229,12 @@ export type UnifiedCrmReadContext = {
       totalPaid: number;
       balanceDue: number;
       hasUninvoicedServices: boolean;
+    }>;
+    supplierFinancials: Array<{
+      supplierId: string;
+      supplierName: string;
+      totalExpenses: number;
+      expenseCount: number;
     }>;
     activeWorkflows: Array<{
       workflowId: string;

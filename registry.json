@@ -1284,6 +1284,10 @@
           "type": "registry:hook"
         },
         {
+          "path": "src/hooks/useResizableColumns.ts",
+          "type": "registry:hook"
+        },
+        {
           "path": "src/hooks/useRealtimeInvalidation.ts",
           "type": "registry:hook"
         },

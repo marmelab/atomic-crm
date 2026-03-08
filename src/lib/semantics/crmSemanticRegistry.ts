@@ -48,7 +48,8 @@ export type CrmSemanticRegistry = {
         | "quotes"
         | "payments"
         | "services"
-        | "expenses";
+        | "expenses"
+        | "suppliers";
       field: string;
       label: string;
       meaning: string;
@@ -356,6 +357,34 @@ export const buildCrmSemanticRegistry = (
           label: "Logo fornitore",
           meaning:
             "URL Cloudinary del logo o immagine del fornitore, visibile nella scheda fornitore come avatar.",
+        },
+        {
+          resource: "suppliers",
+          field: "name",
+          label: "Nome fornitore",
+          meaning:
+            "Ragione sociale o nome operativo del fornitore, usato come identificativo principale.",
+        },
+        {
+          resource: "suppliers",
+          field: "vat_number",
+          label: "P.IVA fornitore",
+          meaning:
+            "Identificativo IVA del fornitore, usato per deduplicazione nell'import fatture.",
+        },
+        {
+          resource: "suppliers",
+          field: "default_expense_type",
+          label: "Tipo spesa predefinito",
+          meaning:
+            "Tipo spesa auto-compilato quando si seleziona questo fornitore nel form spese (escluso credito_ricevuto).",
+        },
+        {
+          resource: "expenses",
+          field: "supplier_id",
+          label: "Fornitore collegato",
+          meaning:
+            "FK opzionale verso il fornitore che ha emesso la fattura o a cui si riferisce la spesa.",
         },
       ],
       dates: [

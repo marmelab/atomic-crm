@@ -6,7 +6,31 @@ lavoro senza riaprire decisioni gia prese.
 **Quando NON usarlo da solo:** per dedurre architettura canonica o stato
 prodotto senza incrociarlo con `docs/README.md` e i documenti `canonical`.
 
-Last updated: 2026-03-07
+Last updated: 2026-03-08
+
+## Update 2026-03-08 (AI layer fully aligned with suppliers)
+
+- AI snapshot now includes `recentSuppliers` (name, VAT, fiscal code, email,
+  phone, default expense type, logo), `supplierFinancials` (totalExpenses,
+  expenseCount per supplier).
+- `recentExpenses` now expose `supplierId` and `supplierName` for the linked
+  supplier.
+- `upcomingTasks` and `overdueTasks` now expose `supplierId` and
+  `supplierName` for supplier-linked reminders.
+- `recentContacts` now expose `supplierId` and `supplierName` for contacts
+  linked to suppliers.
+- Semantic registry: added field descriptions for `suppliers.name`,
+  `suppliers.vat_number`, `suppliers.default_expense_type`,
+  `expenses.supplier_id`.
+- Capability registry: `read_unified_crm_context` and
+  `ask_unified_crm_question` now list `suppliers` in `actsOn`.
+- Edge Function `unified_crm_answer` instructions updated to describe supplier
+  data in the snapshot and guide AI on supplier-related questions.
+- `client_notes.supplier_id` FK + SupplierNotesSection in SupplierShow.
+- `financial_documents.supplier_id` FK + SupplierFinancialDocsCard +
+  SupplierFinancialSummary in SupplierShow.
+- `financial_documents_summary` view updated with `supplier_id`,
+  `supplier_name`, LEFT JOIN on clients.
 
 ## Update 2026-03-07 (suppliers module + import supplier resolution)
 

@@ -3,6 +3,7 @@ import type {
   Expense,
   Payment,
   Service,
+  Supplier,
 } from "@/components/atomic-crm/types";
 import {
   calculateKmReimbursement,
@@ -167,4 +168,35 @@ export const buildClientFinancialSummaries = ({
     }))
     .filter((c) => c.totalFees !== 0 || c.totalPaid !== 0)
     .sort((a, b) => b.balanceDue - a.balanceDue);
+};
+
+// ── Supplier financial summaries ─────────────────────────────────────
+
+export const buildSupplierFinancialSummaries = ({
+  expenses,
+  supplierById,
+}: {
+  expenses: Expense[];
+  supplierById: Map<string, Supplier>;
+}) => {
+  const totals = new Map<string, { totalExpenses: number; expenseCount: number }>();
+
+  for (const expense of expenses) {
+    if (!expense.supplier_id) continue;
+    const supplierId = String(expense.supplier_id);
+    const current = totals.get(supplierId) ?? { totalExpenses: 0, expenseCount: 0 };
+    current.totalExpenses += getExpenseOperationalAmount(expense);
+    current.expenseCount += 1;
+    totals.set(supplierId, current);
+  }
+
+  return Array.from(totals.entries())
+    .map(([supplierId, t]) => ({
+      supplierId,
+      supplierName: supplierById.get(supplierId)?.name ?? "Fornitore",
+      totalExpenses: t.totalExpenses,
+      expenseCount: t.expenseCount,
+    }))
+    .filter((s) => s.totalExpenses !== 0)
+    .sort((a, b) => b.totalExpenses - a.totalExpenses);
 };

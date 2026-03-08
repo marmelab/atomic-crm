@@ -26,6 +26,7 @@ import type {
   Project,
   Quote,
   Service,
+  Supplier,
   Workflow,
 } from "@/components/atomic-crm/types";
 import {
@@ -43,6 +44,7 @@ import {
 import {
   buildProjectFinancialSummaries,
   buildClientFinancialSummaries,
+  buildSupplierFinancialSummaries,
 } from "./unifiedCrmFinancialSummaries";
 import type {
   SnapshotContactReference,
@@ -104,6 +106,14 @@ const getProjectName = (
     ? projectById.get(String(projectId))?.name ?? "Progetto non trovato"
     : null;
 
+const getSupplierName = (
+  supplierById: Map<string, Supplier>,
+  supplierId?: Supplier["id"] | null,
+) =>
+  supplierId
+    ? supplierById.get(String(supplierId))?.name ?? "Fornitore non trovato"
+    : null;
+
 const buildSnapshotContactReference = (
   contact: Contact,
 ): SnapshotContactReference => {
@@ -146,13 +156,16 @@ export const buildUnifiedCrmReadContext = ({
   services: Service[];
   payments: Payment[];
   expenses: Expense[];
+  suppliers?: Supplier[];
   tasks?: ClientTask[];
   workflows?: Workflow[];
   semanticRegistry: CrmSemanticRegistry;
   capabilityRegistry: CrmCapabilityRegistry;
   generatedAt?: string;
 }): UnifiedCrmReadContext => {
+  const allSuppliers = suppliers ?? [];
   const clientById = new Map(clients.map((client) => [String(client.id), client]));
+  const supplierById = new Map(allSuppliers.map((s) => [String(s.id), s]));
   const projectById = new Map(
     projects.map((project) => [String(project.id), project]),
   );
@@ -334,7 +347,7 @@ export const buildUnifiedCrmReadContext = ({
     registries: { semantic: semanticRegistry, capability: capabilityRegistry },
     snapshot: {
       counts: {
-        clients: clients.length, contacts: contacts.length, quotes: quotes.length,
+        clients: clients.length, contacts: contacts.length, suppliers: allSuppliers.length, quotes: quotes.length,
         openQuotes: openQuotes.length, activeProjects: activeProjects.length,
         pendingPayments: pendingPayments.length, overduePayments: overduePayments.length,
         upcomingTasks: upcomingTasks.length, overdueTasks: overdueTasks.length,
@@ -362,6 +375,8 @@ export const buildUnifiedCrmReadContext = ({
         ...buildSnapshotContactReference(contact),
         clientId: contact.client_id ? String(contact.client_id) : null,
         clientName: getClientName(clientById, contact.client_id ?? null),
+        supplierId: contact.supplier_id ? String(contact.supplier_id) : null,
+        supplierName: getSupplierName(supplierById, contact.supplier_id ?? null),
         linkedProjects: getContactLinkedProjects(String(contact.id)),
         updatedAt: contact.updated_at ?? contact.created_at,
       })),
@@ -421,20 +436,26 @@ export const buildUnifiedCrmReadContext = ({
       upcomingTasks: upcomingTasks.map((task) => ({
         taskId: String(task.id), clientId: task.client_id ? String(task.client_id) : null,
         clientName: getClientName(clientById, task.client_id ?? null),
+        supplierId: task.supplier_id ? String(task.supplier_id) : null,
+        supplierName: getSupplierName(supplierById, task.supplier_id ?? null),
         text: task.text, type: task.type, dueDate: task.due_date, allDay: task.all_day,
         daysUntilDue: diffDays(today, new Date(task.due_date)),
       })),
       overdueTasks: overdueTasks.map((task) => ({
         taskId: String(task.id), clientId: task.client_id ? String(task.client_id) : null,
         clientName: getClientName(clientById, task.client_id ?? null),
+        supplierId: task.supplier_id ? String(task.supplier_id) : null,
+        supplierName: getSupplierName(supplierById, task.supplier_id ?? null),
         text: task.text, type: task.type, dueDate: task.due_date, allDay: task.all_day,
         daysOverdue: Math.abs(diffDays(new Date(task.due_date), today)),
       })),
       recentExpenses: recentExpenses.map((expense) => ({
         expenseId: String(expense.id), clientId: expense.client_id ? String(expense.client_id) : null,
         projectId: expense.project_id ? String(expense.project_id) : null,
+        supplierId: expense.supplier_id ? String(expense.supplier_id) : null,
         clientName: getClientName(clientById, expense.client_id ?? null),
         projectName: getProjectName(projectById, expense.project_id ?? null),
+        supplierName: getSupplierName(supplierById, expense.supplier_id ?? null),
         amount: Number(expense.amount ?? 0), expenseType: expense.expense_type,
         expenseTypeLabel: expenseTypeLabels[expense.expense_type] ?? expense.expense_type,
         expenseDate: expense.expense_date, description: expense.description ?? null,
@@ -448,7 +469,24 @@ export const buildUnifiedCrmReadContext = ({
           serviceType: s.service_type, description: s.description ?? null, amount: calculateServiceNetValue(s),
           isTaxable: s.is_taxable !== false, serviceDate: s.service_date, notes: s.notes ?? null,
         })),
+      recentSuppliers: [...allSuppliers]
+        .sort((a, b) => toDateValue(b.created_at) - toDateValue(a.created_at))
+        .map((s) => ({
+          supplierId: String(s.id),
+          supplierName: s.name,
+          vatNumber: s.vat_number ?? null,
+          fiscalCode: s.fiscal_code ?? null,
+          email: s.email ?? null,
+          phone: s.phone ?? null,
+          defaultExpenseType: s.default_expense_type ?? null,
+          defaultExpenseTypeLabel: s.default_expense_type
+            ? (expenseTypeLabels[s.default_expense_type] ?? s.default_expense_type)
+            : null,
+          logoUrl: s.logo_url ?? null,
+          createdAt: s.created_at,
+        })),
       clientFinancials: buildClientFinancialSummaries({ services, payments, clientById }),
+      supplierFinancials: buildSupplierFinancialSummaries({ expenses, supplierById }),
       activeWorkflows: workflows
         .filter((wf) => wf.is_active)
         .map((wf) => ({
