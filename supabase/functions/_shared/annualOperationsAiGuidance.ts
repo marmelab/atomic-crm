@@ -35,6 +35,10 @@ export const buildAnnualOperationsAiGuidance = ({
   const isCurrentYear = context.meta?.isCurrentYear === true;
   const asOfDateLabel = context.meta?.asOfDateLabel ?? "data indicata";
   const annualWorkValue = getMetricValue(context, "annual_work_value");
+  const annualExpensesTotal = getMetricValue(
+    context,
+    "annual_expenses_total",
+  );
   const pendingPaymentsTotal = getMetricValue(
     context,
     "pending_payments_total",
@@ -64,6 +68,18 @@ export const buildAnnualOperationsAiGuidance = ({
       ? 'Nella sezione "Cosa controllare adesso", se non emerge un allarme vero dai dati, puoi dire che non emerge un controllo urgente dal solo perimetro osservato.'
       : 'Nella sezione "Cosa controllare adesso", proponi controlli solo se davvero supportati dai dati o richiesti dalla domanda.',
   ];
+
+  if (annualExpensesTotal === 0) {
+    lines.push(
+      `Se le spese operative sono 0, limita la frase a "nel perimetro del ${selectedYear} non risultano spese registrate". Non chiamarlo problema automatico.`,
+    );
+  }
+
+  if (isCurrentYear && annualExpensesTotal != null && annualExpensesTotal > 0) {
+    lines.push(
+      `Le spese e il margine lordo del ${selectedYear} sono provvisori perche l'anno non e chiuso. Presentali come stime parziali, non come risultato definitivo.`,
+    );
+  }
 
   if (pendingPaymentsTotal === 0) {
     lines.push(
@@ -135,6 +151,22 @@ export const buildAnnualOperationsAiGuidance = ({
     );
   }
 
+  if (
+    normalizedQuestion.includes("spes") ||
+    normalizedQuestion.includes("costi") ||
+    normalizedQuestion.includes("costo") ||
+    normalizedQuestion.includes("margine")
+  ) {
+    lines.push(
+      "Se la domanda riguarda spese o margini, usa la sezione expenses del contesto. Distingui il margine lordo operativo (lavoro - spese) dal reddito fiscale (che dipende da regime e aliquote, fuori da questo contesto).",
+    );
+    if (isCurrentYear) {
+      lines.push(
+        `Per il ${selectedYear} in corso, spese e margini sono provvisori: dillo esplicitamente.`,
+      );
+    }
+  }
+
   return lines.map((line) => `- ${line}`).join("\n");
 };
 
@@ -172,6 +204,18 @@ export const reframeAnnualOperationsQuestion = ({
     normalizedQuestion.includes("da chi risulta")
   ) {
     return `A quali clienti risulta associato il valore del lavoro nei dati registrati per il ${selectedYear}? Usa formule prudenti come "nei dati registrati per il ${selectedYear}" e non fare affermazioni assolute sull'intera azienda.`;
+  }
+
+  if (
+    normalizedQuestion.includes("spes") ||
+    normalizedQuestion.includes("costi") ||
+    normalizedQuestion.includes("costo") ||
+    normalizedQuestion.includes("margine")
+  ) {
+    const timeQualifier = isCurrentYear
+      ? `finora nel ${selectedYear} (dati provvisori, anno non chiuso)`
+      : `nei dati registrati per il ${selectedYear}`;
+    return `Qual e il quadro delle spese operative e del margine lordo ${timeQualifier}? Usa la sezione expenses del contesto. Distingui il margine lordo operativo dal reddito fiscale. Non confondere spese operative con tasse o contributi.`;
   }
 
   return question.trim();

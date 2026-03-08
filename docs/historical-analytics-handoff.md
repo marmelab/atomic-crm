@@ -8,6 +8,27 @@ prodotto senza incrociarlo con `docs/README.md` e i documenti `canonical`.
 
 Last updated: 2026-03-08
 
+## Update 2026-03-08 (c) — Expense data in AI annual context
+
+- `DashboardModel` now aggregates expenses by type for the selected year:
+  excludes `credito_ricevuto`, computes km reimbursement from DB-saved
+  `km_rate`, exposes `annualExpensesTotal`, `annualExpensesCount`,
+  `expensesByType` KPIs.
+- `buildAnnualOperationsContext` serializes an `expenses` section (total,
+  formattedTotal, count, byType) and adds `annual_expenses_total` metric
+  with `basis: "cost"`.
+- Edge Functions (`annual_operations_summary`, `annual_operations_answer`)
+  updated with expense/margin definitions and provisional-year guidance.
+  `max_output_tokens` bumped 900→1500.
+- `annualOperationsAiGuidance` adds dynamic guardrails: zero-expenses not
+  automatic problem, current-year provisional caveat, expense/margin question
+  detection (stem matching for spese/speso/spesa + costi/costo/margine),
+  and `reframeAnnualOperationsQuestion` for expense questions with time
+  qualifier.
+- `DashboardAlertsCard`: discrete action links (ExternalLink icon) on each
+  alert row navigate to service/quote detail page.
+- 15 new unit tests across 4 test files.
+
 ## Update 2026-03-08 (b) — Fix: suppliers destructuring in snapshot builder
 
 - `buildUnifiedCrmReadContext` was missing `suppliers` in the destructured

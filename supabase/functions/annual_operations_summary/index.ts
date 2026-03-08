@@ -28,6 +28,13 @@ Distingui sempre:
 - "valore del lavoro" = lavoro svolto nell'anno, non incassi
 - "pagamenti da ricevere" = soldi attesi, non lavoro gia svolto
 - "preventivi aperti" = opportunita potenziali, non ricavi gia acquisiti
+- "spese operative" = costi sostenuti nell'anno (esclusi crediti ricevuti), incluso rimborso km calcolato
+Se il contesto include la sezione "expenses", usala per dare il quadro completo:
+- totale spese e breakdown per tipo
+- margine lordo operativo = valore del lavoro - spese operative
+Il margine lordo operativo e un indicatore approssimativo, non e il reddito fiscale.
+Non confondere mai le spese operative con le tasse o i contributi (che restano fuori da questo contesto).
+Se l'anno non e ancora chiuso, spese e margini sono stime provvisorie: dillo esplicitamente, non presentarli come dati definitivi.
 Se l'anno scelto e l'anno in corso, ricordati che e letto solo fino alla data indicata.
 Se un confronto non e dimostrabile, dillo chiaramente.
 Non trasformare mai un valore a 0 in un problema automatico.
@@ -91,7 +98,7 @@ async function createAnnualOperationsSummary(
       reasoning: {
         effort: "medium",
       },
-      max_output_tokens: 900,
+      max_output_tokens: 1500,
     });
 
     const summaryMarkdown = response.output_text?.trim();

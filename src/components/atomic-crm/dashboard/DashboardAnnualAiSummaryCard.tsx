@@ -112,9 +112,10 @@ export const DashboardAnnualAiSummaryCard = ({ year }: { year: number }) => {
           <Badge variant="outline">{selectedModel}</Badge>
         </div>
         <p className="text-xs text-muted-foreground">
-          Legge solo la parte operativa dell'anno scelto: valore del lavoro,
-          clienti, categorie, pagamenti da ricevere e preventivi aperti. Non
-          include il simulatore fiscale ne gli alert di oggi.
+          Legge la parte operativa dell'anno scelto: valore del lavoro,
+          clienti, categorie, spese, margine lordo, pagamenti da ricevere e
+          preventivi aperti. Non include il simulatore fiscale ne gli alert di
+          oggi.
         </p>
       </CardHeader>
 

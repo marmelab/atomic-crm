@@ -3,6 +3,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { buildDashboardModel } from "@/components/atomic-crm/dashboard/dashboardModel";
 import type {
   Client,
+  Expense,
   Payment,
   Project,
   Quote,
@@ -72,6 +73,15 @@ const basePayment = (overrides: Partial<Payment> = {}): Payment => ({
   ...overrides,
 });
 
+const baseExpense = (overrides: Partial<Expense> = {}): Expense => ({
+  id: 1,
+  expense_date: "2026-01-15T00:00:00.000Z",
+  expense_type: "acquisto_materiale",
+  amount: 0,
+  created_at: "2026-01-01T00:00:00.000Z",
+  ...overrides,
+});
+
 afterEach(() => {
   vi.useRealTimers();
 });
@@ -111,6 +121,98 @@ describe("buildAnnualOperationsContext", () => {
     expect(context.caveats).toContain(
       "Questo contesto AI riguarda solo la parte operativa dell'anno: alert del giorno e simulazione fiscale restano fuori.",
     );
+  });
+
+  it("serializes expenses with totals, breakdown by type, and current-year caveat", () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-02-28T09:00:00.000Z"));
+
+    const model = buildDashboardModel({
+      payments: [],
+      quotes: [],
+      services: [baseService({ fee_shooting: 3000 })],
+      projects: [baseProject()],
+      clients: [baseClient()],
+      expenses: [
+        baseExpense({
+          id: 1,
+          expense_type: "acquisto_materiale",
+          amount: 200,
+          expense_date: "2026-01-20T00:00:00.000Z",
+        }),
+        baseExpense({
+          id: 2,
+          expense_type: "abbonamento_software",
+          amount: 50,
+          expense_date: "2026-02-10T00:00:00.000Z",
+        }),
+        baseExpense({
+          id: 3,
+          expense_type: "credito_ricevuto",
+          amount: 999,
+          expense_date: "2026-01-25T00:00:00.000Z",
+        }),
+      ],
+      year: 2026,
+    });
+
+    const context = buildAnnualOperationsContext(model);
+
+    expect(context.expenses.total).toBe(250);
+    expect(context.expenses.count).toBe(2);
+    expect(context.expenses.byType).toEqual([
+      {
+        expenseType: "acquisto_materiale",
+        label: "Acquisto materiale",
+        amount: 200,
+        count: 1,
+      },
+      {
+        expenseType: "abbonamento_software",
+        label: "Abbonamento software",
+        amount: 50,
+        count: 1,
+      },
+    ]);
+
+    const expenseMetric = context.metrics.find(
+      (m) => m.id === "annual_expenses_total",
+    );
+    expect(expenseMetric).toMatchObject({
+      value: 250,
+      basis: "cost",
+    });
+
+    expect(context.caveats).toContain(
+      "Le spese escludono i crediti ricevuti e includono il rimborso km calcolato.",
+    );
+    expect(
+      context.caveats.some((c) => c.includes("stime provvisorie")),
+    ).toBe(true);
+  });
+
+  it("serializes empty expenses without current-year provisional caveat for closed years", () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-06-01T09:00:00.000Z"));
+
+    const model = buildDashboardModel({
+      payments: [],
+      quotes: [],
+      services: [],
+      projects: [],
+      clients: [],
+      expenses: [],
+      year: 2025,
+    });
+
+    const context = buildAnnualOperationsContext(model);
+
+    expect(context.expenses.total).toBe(0);
+    expect(context.expenses.count).toBe(0);
+    expect(context.expenses.byType).toEqual([]);
+    expect(
+      context.caveats.some((c) => c.includes("stime provvisorie")),
+    ).toBe(false);
   });
 
   it("includes drilldowns for pending payments and open quotes", () => {

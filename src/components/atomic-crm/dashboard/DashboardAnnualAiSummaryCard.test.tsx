@@ -59,7 +59,7 @@ describe("DashboardAnnualAiSummaryCard", () => {
     expect(screen.getByText("AI: spiegami l'anno 2025")).toBeInTheDocument();
     expect(
       screen.getByText(
-        "Legge solo la parte operativa dell'anno scelto: valore del lavoro, clienti, categorie, pagamenti da ricevere e preventivi aperti. Non include il simulatore fiscale ne gli alert di oggi.",
+        "Legge la parte operativa dell'anno scelto: valore del lavoro, clienti, categorie, spese, margine lordo, pagamenti da ricevere e preventivi aperti. Non include il simulatore fiscale ne gli alert di oggi.",
       ),
     ).toBeInTheDocument();
     expect(

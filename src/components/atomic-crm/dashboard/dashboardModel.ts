@@ -12,7 +12,7 @@ import type {
 } from "../types";
 import { sanitizeQuoteItems } from "../quotes/quoteItems";
 import { quoteStatusLabels } from "../quotes/quotesTypes";
-import { buildFiscalModel } from "./fiscalModel";
+import { buildFiscalModel, getExpenseAmount } from "./fiscalModel";
 import { getCategoryLabel } from "./dashboardFormatters";
 
 // Re-export types and formatters so existing consumer imports keep working.
@@ -22,6 +22,7 @@ export type {
   DashboardMeta,
   AnnualQualityFlag,
   DashboardKpis,
+  ExpenseByTypePoint,
   RevenueTrendPoint,
   CategoryBreakdownPoint,
   QuotePipelinePoint,
@@ -47,6 +48,7 @@ export {
 
 import type {
   AnnualQualityFlag,
+  ExpenseByTypePoint,
   PaymentAlert,
   PendingPaymentDrilldown,
   OpenQuoteDrilldown,
@@ -54,6 +56,7 @@ import type {
   UpcomingServiceAlert,
   UnansweredQuoteAlert,
 } from "./dashboardModelTypes";
+import { expenseTypeLabels } from "../expenses/expenseTypes";
 
 const quotePipelineOrder = [
   "primo_contatto",
@@ -530,6 +533,43 @@ export const buildDashboardModel = ({
     .sort((a, b) => b.daysWaiting - a.daysWaiting)
     .slice(0, 6);
 
+  // ── Expense aggregation (year-filtered, excluding credits) ─────────
+  const expenseTypeBuckets = new Map<
+    string,
+    { amount: number; count: number }
+  >();
+  let annualExpensesTotal = 0;
+  let annualExpensesCount = 0;
+
+  for (const expense of expenses) {
+    if (!expense.expense_date) continue;
+    const date = new Date(expense.expense_date);
+    if (Number.isNaN(date.valueOf()) || date.getFullYear() !== selectedYear)
+      continue;
+    if (expense.expense_type === "credito_ricevuto") continue;
+    const amount = getExpenseAmount(expense);
+    annualExpensesTotal += amount;
+    annualExpensesCount += 1;
+    const bucket = expenseTypeBuckets.get(expense.expense_type) ?? {
+      amount: 0,
+      count: 0,
+    };
+    bucket.amount += amount;
+    bucket.count += 1;
+    expenseTypeBuckets.set(expense.expense_type, bucket);
+  }
+
+  const expensesByType: ExpenseByTypePoint[] = Array.from(
+    expenseTypeBuckets.entries(),
+  )
+    .map(([type, data]) => ({
+      expenseType: type,
+      label: expenseTypeLabels[type] ?? type,
+      amount: data.amount,
+      count: data.count,
+    }))
+    .sort((a, b) => b.amount - a.amount);
+
   const fiscal = fiscalConfig
     ? buildFiscalModel({
         services,
@@ -573,6 +613,9 @@ export const buildDashboardModel = ({
       openQuotesAmount,
       monthlyKm: currentMonthTotals.totalKm,
       monthlyKmCost: currentMonthTotals.kmCost,
+      annualExpensesTotal,
+      annualExpensesCount,
+      expensesByType,
     },
     revenueTrend,
     categoryBreakdown,

@@ -20,10 +20,21 @@ export type AnnualOperationsContext = {
     value: number | null;
     formattedValue: string;
     unit: "currency" | "count" | "percent";
-    basis: "work_value" | "cash_expected" | "pipeline_potential";
+    basis: "work_value" | "cash_expected" | "pipeline_potential" | "cost";
     subtitle: string;
     warningCode?: string;
   }>;
+  expenses: {
+    total: number;
+    formattedTotal: string;
+    count: number;
+    byType: Array<{
+      expenseType: string;
+      label: string;
+      amount: number;
+      count: number;
+    }>;
+  };
   series: {
     revenueTrend: Array<{
       monthKey: string;
@@ -147,6 +158,16 @@ export const buildAnnualOperationsContext = (
     caveats,
     "Questo contesto AI riguarda solo la parte operativa dell'anno: alert del giorno e simulazione fiscale restano fuori.",
   );
+  pushCaveat(
+    caveats,
+    "Le spese escludono i crediti ricevuti e includono il rimborso km calcolato.",
+  );
+  if (model.isCurrentYear) {
+    pushCaveat(
+      caveats,
+      `Spese e margini del ${model.selectedYear} sono parziali (fino al ${model.meta.asOfDateLabel}): sono stime provvisorie, non dati definitivi.`,
+    );
+  }
 
   if (model.isCurrentYear) {
     pushCaveat(
@@ -242,7 +263,27 @@ export const buildAnnualOperationsContext = (
         basis: "pipeline_potential",
         subtitle: "Opportunita ancora da chiudere",
       },
+      {
+        id: "annual_expenses_total",
+        label: "Spese operative dell'anno",
+        value: model.kpis.annualExpensesTotal,
+        formattedValue: formatCurrency(model.kpis.annualExpensesTotal),
+        unit: "currency",
+        basis: "cost",
+        subtitle: `${model.kpis.annualExpensesCount} spese registrate, esclusi crediti ricevuti`,
+      },
     ],
+    expenses: {
+      total: model.kpis.annualExpensesTotal,
+      formattedTotal: formatCurrency(model.kpis.annualExpensesTotal),
+      count: model.kpis.annualExpensesCount,
+      byType: model.kpis.expensesByType.map((point) => ({
+        expenseType: point.expenseType,
+        label: point.label,
+        amount: point.amount,
+        count: point.count,
+      })),
+    },
     series: {
       revenueTrend: model.revenueTrend.map((point) => ({
         monthKey: point.monthKey,

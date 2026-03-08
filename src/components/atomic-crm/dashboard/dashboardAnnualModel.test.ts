@@ -72,6 +72,15 @@ const basePayment = (overrides: Partial<Payment> = {}): Payment => ({
   ...overrides,
 });
 
+const baseExpense = (overrides: Partial<Expense> = {}): Expense => ({
+  id: 1,
+  expense_date: "2025-01-15T00:00:00.000Z",
+  expense_type: "acquisto_materiale",
+  amount: 0,
+  created_at: "2025-01-01T00:00:00.000Z",
+  ...overrides,
+});
+
 const fiscalConfig: FiscalConfig = {
   taxProfiles: [
     {
@@ -382,5 +391,88 @@ describe("buildDashboardModel annual semantics", () => {
         quoteItemsCount: 2,
       },
     ]);
+  });
+
+  it("aggregates expenses by type, excludes credits, and computes km reimbursement", () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2025-06-01T09:00:00.000Z"));
+
+    const model = buildDashboardModel({
+      payments: [],
+      quotes: [],
+      services: [baseService({ fee_shooting: 2000 })],
+      projects: [baseProject()],
+      clients: [baseClient()],
+      expenses: [
+        baseExpense({
+          id: 1,
+          expense_type: "acquisto_materiale",
+          amount: 150,
+          expense_date: "2025-02-10T00:00:00.000Z",
+        }),
+        baseExpense({
+          id: 2,
+          expense_type: "acquisto_materiale",
+          amount: 50,
+          expense_date: "2025-03-10T00:00:00.000Z",
+        }),
+        baseExpense({
+          id: 3,
+          expense_type: "spostamento_km",
+          km_distance: 100,
+          km_rate: 0.19,
+          expense_date: "2025-01-20T00:00:00.000Z",
+        }),
+        baseExpense({
+          id: 4,
+          expense_type: "credito_ricevuto",
+          amount: 500,
+          expense_date: "2025-04-01T00:00:00.000Z",
+        }),
+        baseExpense({
+          id: 5,
+          expense_type: "vitto_alloggio",
+          amount: 80,
+          expense_date: "2024-12-15T00:00:00.000Z",
+        }),
+      ],
+      year: 2025,
+    });
+
+    expect(model.kpis.annualExpensesTotal).toBeCloseTo(219);
+    expect(model.kpis.annualExpensesCount).toBe(3);
+    expect(model.kpis.expensesByType).toEqual([
+      {
+        expenseType: "acquisto_materiale",
+        label: "Acquisto materiale",
+        amount: 200,
+        count: 2,
+      },
+      {
+        expenseType: "spostamento_km",
+        label: "Spostamento Km",
+        amount: 19,
+        count: 1,
+      },
+    ]);
+  });
+
+  it("returns zero expenses when none exist in the selected year", () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2025-06-01T09:00:00.000Z"));
+
+    const model = buildDashboardModel({
+      payments: [],
+      quotes: [],
+      services: [],
+      projects: [],
+      clients: [],
+      expenses: [],
+      year: 2025,
+    });
+
+    expect(model.kpis.annualExpensesTotal).toBe(0);
+    expect(model.kpis.annualExpensesCount).toBe(0);
+    expect(model.kpis.expensesByType).toEqual([]);
   });
 });

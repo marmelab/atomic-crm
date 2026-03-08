@@ -15,6 +15,8 @@ Stato del documento:
 
 ## Changelog
 
+- 2026-03-08: Dashboard alert action links — each alert row in DashboardAlertsCard now has a discrete icon linking to the service/quote detail page
+- 2026-03-08: AI annual context enriched with expenses — DashboardModel aggregates expenses by type (excludes crediti, computes km reimbursement), buildAnnualOperationsContext serializes expenses section, Edge Functions updated with expense/margin AI instructions, annualOperationsAiGuidance adds dynamic guardrails for zero-expenses and provisional estimates
 - 2026-03-08: Service type icons — added dedicated icons for riprese_montaggio (Clapperboard/indigo) and sviluppo_web (Code/teal); all defaultServiceTypeChoices now have a matching icon+color entry
 - 2026-03-08: Projects view mode (list/kanban) persisted in localStorage
 - 2026-03-08: Resizable columns on all list pages (useResizableColumns hook + ResizableHead component, localStorage persistence). Client filter added to services list. FilterHelpers refactor (FilterPopover generic component replaces duplicated Popover blocks across 6 filter files)

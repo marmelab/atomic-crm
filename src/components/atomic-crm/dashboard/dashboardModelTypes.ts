@@ -39,6 +39,13 @@ export type AnnualQualityFlag =
   | "alerts_current_snapshot"
   | "fiscal_simulation";
 
+export type ExpenseByTypePoint = {
+  expenseType: string;
+  label: string;
+  amount: number;
+  count: number;
+};
+
 export type DashboardKpis = {
   monthlyRevenue: number;
   previousMonthRevenue: number;
@@ -50,6 +57,9 @@ export type DashboardKpis = {
   openQuotesAmount: number;
   monthlyKm: number;
   monthlyKmCost: number;
+  annualExpensesTotal: number;
+  annualExpensesCount: number;
+  expensesByType: ExpenseByTypePoint[];
 };
 
 export type RevenueTrendPoint = {

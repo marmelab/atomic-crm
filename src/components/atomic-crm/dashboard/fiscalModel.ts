@@ -81,7 +81,7 @@ const categoryLabels: Record<string, string> = {
   __general: "Spese generali",
 };
 
-const getExpenseAmount = (expense: Expense) => {
+export const getExpenseAmount = (expense: Expense) => {
   if (expense.expense_type === "spostamento_km") {
     return calculateKmReimbursement({
       kmDistance: expense.km_distance,
