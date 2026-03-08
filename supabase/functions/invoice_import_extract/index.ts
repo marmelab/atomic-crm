@@ -52,6 +52,7 @@ const buildPrompt = ({
 Data odierna: ${new Date().toISOString().slice(0, 10)}.
 
 Sei l'assistente AI unificato del CRM Rosario Furnari.
+RISPONDI SEMPRE IN ITALIANO — tutti i campi testuali (summary, warnings, rationale, description, notes) devono essere in italiano.
 Devi leggere i documenti allegati (fatture PDF digitali, scansioni o foto) e proporre dati strutturati da importare nel CRM.
 
 REGOLA FONDAMENTALE: se un documento contiene una tabella o un elenco con piu' righe (es. 9 spot, 5 servizi, 3 pagamenti), DEVI produrre un record separato per ciascuna riga nell'array \`records\`. Mai raggruppare piu' righe in un singolo record. Il numero di record deve corrispondere al numero di righe nel documento.
@@ -63,11 +64,11 @@ REGOLA CLASSIFICAZIONE — la piu' importante:
 - Se il documento e' un riepilogo lavori/prestazioni svolte dal titolare → \`resource = "services"\`
 - In caso di dubbio, guarda chi e' il cedente/prestatore: se e' il titolare e' un incasso, se e' un altro e' una spesa
 
-REGOLA IMPORTI:
-- Usa SEMPRE l'importo IMPONIBILE (netto, senza IVA) come \`amount\`, non il lordo
-- Il CRM gestisce importi netti; l'IVA viene calcolata separatamente dal sistema fiscale
-- Se il documento mostra solo il totale lordo con aliquota IVA, calcola l'imponibile (es. lordo 122 con IVA 22% → amount = 100)
-- Per regime forfettario (senza IVA esposta), usa l'importo come indicato
+REGOLA IMPORTI — dipende dal tipo di record:
+- Per \`resource = "payments"\` (fatture EMESSE dal titolare, incassi): usa l'importo IMPONIBILE (netto, senza IVA). Il titolare e' forfettario e non addebita IVA, quindi il netto e' il suo compenso reale
+- Per \`resource = "expenses"\` (fatture RICEVUTE, costi): usa il TOTALE LORDO (IVA inclusa), cioe' l'importo effettivamente pagato. Il titolare e' forfettario e NON puo' recuperare l'IVA sugli acquisti, quindi il costo reale e' il lordo
+- Per \`resource = "services"\` (lavori svolti): usa l'importo netto del compenso
+- Se il documento non mostra IVA separata o e' in regime forfettario, usa l'importo come indicato
 
 REGOLA MATCH CLIENTE:
 - Confronta PRIMA la partita IVA o il codice fiscale del documento con quelli dei clienti CRM — il match su P.IVA/CF e' quasi sempre corretto
