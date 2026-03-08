@@ -730,9 +730,9 @@ acconto_ricevuto → in_lavorazione → completato → saldato → rifiutato / p
 - `aiConfig.historicalAnalysisModel`: modello condiviso per Storico, Annuale e
   chat AI unificata read-only
 - `aiConfig.invoiceExtractionModel`: modello dedicato all'import documenti
-- `businessProfile.*`: dati emittente (nome, P.IVA, CF, indirizzo, email,
-  telefono, tagline) usati nei PDF di preventivi e bozze fattura interna;
-  editabili da Settings > Profilo Aziendale
+- `businessProfile.*`: dati emittente (nome, P.IVA, CF, codice univoco SDI,
+  IBAN, indirizzo, email, telefono, tagline) usati nei PDF di preventivi e
+  bozze fattura interna; editabili da Settings > Profilo Aziendale
 - `googleWorkplaceDomain`: dominio Google Workspace per SSO (opzionale);
   editabile da Settings > Autenticazione; se non impostato, il login SSO
   non viene mostrato

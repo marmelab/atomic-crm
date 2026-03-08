@@ -162,6 +162,8 @@ export const defaultBusinessProfile: BusinessProfile = {
   tagline: "Videomaker · Fotografo · Web Developer",
   vatNumber: "01309870861",
   fiscalCode: "FRNRRD87A11G580E",
+  sdiCode: "KRRH6B9",
+  iban: "IT60X0538716900000003593997",
   address: "Via Calabria 13, 94019 Valguarnera Caropepe EN",
   email: "rosariodavide.furnari@gmail.com",
   phone: "3286183554",

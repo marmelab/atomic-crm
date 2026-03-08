@@ -439,6 +439,8 @@ export interface BusinessProfile {
   tagline: string;
   vatNumber: string;
   fiscalCode: string;
+  sdiCode: string;
+  iban: string;
   address: string;
   email: string;
   phone: string;

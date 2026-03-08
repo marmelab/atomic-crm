@@ -303,6 +303,24 @@ export const QuotePDFDocument = ({
                     {businessProfile.phone}
                   </Text>
                 )}
+                {businessProfile.vatNumber && (
+                  <Text style={styles.brandDetail}>
+                    P.IVA {businessProfile.vatNumber}
+                    {businessProfile.fiscalCode
+                      ? ` · CF ${businessProfile.fiscalCode}`
+                      : ""}
+                  </Text>
+                )}
+                {businessProfile.sdiCode && (
+                  <Text style={styles.brandDetail}>
+                    SDI {businessProfile.sdiCode}
+                  </Text>
+                )}
+                {businessProfile.iban && (
+                  <Text style={styles.brandDetail}>
+                    IBAN {businessProfile.iban}
+                  </Text>
+                )}
               </View>
             </View>
             <View style={styles.headerRight}>
@@ -450,11 +468,12 @@ export const QuotePDFDocument = ({
             {businessProfile.vatNumber
               ? ` · P.IVA ${businessProfile.vatNumber}`
               : ""}
-            {businessProfile.fiscalCode
-              ? ` · CF ${businessProfile.fiscalCode}`
+            {businessProfile.sdiCode
+              ? ` · SDI ${businessProfile.sdiCode}`
               : ""}
-            {businessProfile.address ? ` · ${businessProfile.address}` : ""}
-            {businessProfile.email ? ` · ${businessProfile.email}` : ""}
+            {businessProfile.iban
+              ? ` · IBAN ${businessProfile.iban}`
+              : ""}
           </Text>
         </View>
       </Page>

@@ -9,6 +9,8 @@ export const BusinessProfileSettingsSection = () => (
     <TextInput source="businessProfile.tagline" label="Sottotitolo" />
     <TextInput source="businessProfile.vatNumber" label="P.IVA" />
     <TextInput source="businessProfile.fiscalCode" label="Codice Fiscale" />
+    <TextInput source="businessProfile.sdiCode" label="Codice Univoco (SDI)" />
+    <TextInput source="businessProfile.iban" label="IBAN" />
     <TextInput source="businessProfile.address" label="Indirizzo" />
     <TextInput source="businessProfile.email" label="Email" />
     <TextInput source="businessProfile.phone" label="Telefono" />
