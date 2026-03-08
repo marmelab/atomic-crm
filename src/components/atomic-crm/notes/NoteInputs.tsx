@@ -32,6 +32,9 @@ export const NoteInputs = ({
   const translate = useTranslate();
   const [displayMore, setDisplayMore] = useState(false);
 
+  // We manually define the input labels because the default ones
+  // would use the resource from the context, which is either "contact_notes" or "deal_notes",
+  // but we want it to be "notes" regardless of the context
   return (
     <div className="space-y-2">
       <TextInput
@@ -53,12 +56,8 @@ export const NoteInputs = ({
           <AutocompleteInput
             label={
               reference === "contacts"
-                ? translate("resources.notes.fields.contact_id", {
-                    _: "Contact",
-                  })
-                : translate("resources.notes.fields.deal_id", {
-                    _: "Deal",
-                  })
+                ? "resources.notes.fields.contact_id"
+                : "resources.notes.fields.deal_id"
             }
             optionText={
               reference === "contacts" ? contactOptionText : undefined

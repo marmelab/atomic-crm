@@ -64,18 +64,8 @@ const ContactIdentityInputs = () => {
         optionValue="value"
         defaultValue={contactGender[0].value}
       />
-      <TextInput
-        source="first_name"
-        label="resources.contacts.fields.first_name"
-        validate={required()}
-        helperText={false}
-      />
-      <TextInput
-        source="last_name"
-        label="resources.contacts.fields.last_name"
-        validate={required()}
-        helperText={false}
-      />
+      <TextInput source="first_name" validate={required()} helperText={false} />
+      <TextInput source="last_name" validate={required()} helperText={false} />
     </div>
   );
 };
@@ -87,11 +77,7 @@ const ContactPositionInputs = () => {
       <h6 className="text-lg font-semibold">
         {translate("crm.contacts.inputs.position", { _: "Position" })}
       </h6>
-      <TextInput
-        source="title"
-        label="resources.contacts.fields.title"
-        helperText={false}
-      />
+      <TextInput source="title" helperText={false} />
       <ReferenceInput source="company_id" reference="companies" perPage={10}>
         <AutocompleteCompanyInput label="resources.contacts.fields.company_id" />
       </ReferenceInput>
@@ -148,11 +134,7 @@ const ContactPersonalInformationInputs = () => {
       <h6 className="text-lg font-semibold">
         {translate("crm.contacts.inputs.personal_info", { _: "Personal info" })}
       </h6>
-      <ArrayInput
-        source="email_jsonb"
-        label="resources.contacts.fields.email_jsonb"
-        helperText={false}
-      >
+      <ArrayInput source="email_jsonb" helperText={false}>
         <SimpleFormIterator
           inline
           disableReordering
@@ -182,11 +164,7 @@ const ContactPersonalInformationInputs = () => {
           />
         </SimpleFormIterator>
       </ArrayInput>
-      <ArrayInput
-        source="phone_jsonb"
-        label="resources.contacts.fields.phone_jsonb"
-        helperText={false}
-      >
+      <ArrayInput source="phone_jsonb" helperText={false}>
         <SimpleFormIterator
           inline
           disableReordering
@@ -215,7 +193,6 @@ const ContactPersonalInformationInputs = () => {
       </ArrayInput>
       <TextInput
         source="linkedin_url"
-        label="resources.contacts.fields.linkedin_url"
         helperText={false}
         validate={isLinkedinUrl}
       />
@@ -230,17 +207,8 @@ const ContactMiscInputs = () => {
       <h6 className="text-lg font-semibold">
         {translate("crm.common.misc", { _: "Misc" })}
       </h6>
-      <TextInput
-        source="background"
-        label="resources.contacts.fields.background"
-        multiline
-        helperText={false}
-      />
-      <BooleanInput
-        source="has_newsletter"
-        label="resources.contacts.fields.has_newsletter"
-        helperText={false}
-      />
+      <TextInput source="background" multiline helperText={false} />
+      <BooleanInput source="has_newsletter" helperText={false} />
       <ReferenceInput
         reference="sales"
         source="sales_id"
@@ -251,7 +219,6 @@ const ContactMiscInputs = () => {
       >
         <SelectInput
           helperText={false}
-          label="resources.contacts.fields.sales_id"
           optionText={saleOptionRenderer}
           validate={required()}
         />

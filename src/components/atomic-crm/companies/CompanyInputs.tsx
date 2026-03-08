@@ -67,7 +67,6 @@ const CompanyDisplayInputs = () => {
         className="w-full h-fit"
         validate={required()}
         helperText={false}
-        label="resources.companies.fields.name"
         placeholder={translate("resources.companies.fields.name", {
           _: "Company name",
         })}
@@ -83,23 +82,13 @@ const CompanyContactInputs = () => {
       <h6 className="text-lg font-semibold">
         {translate("crm.companies.inputs.contact", { _: "Contact" })}
       </h6>
-      <TextInput
-        source="website"
-        label="resources.companies.fields.website"
-        helperText={false}
-        validate={isUrl}
-      />
+      <TextInput source="website" helperText={false} validate={isUrl} />
       <TextInput
         source="linkedin_url"
-        label="resources.companies.fields.linkedin_url"
         helperText={false}
         validate={isLinkedinUrl}
       />
-      <TextInput
-        source="phone_number"
-        label="resources.companies.fields.phone_number"
-        helperText={false}
-      />
+      <TextInput source="phone_number" helperText={false} />
     </div>
   );
 };
@@ -118,28 +107,14 @@ const CompanyContextInputs = () => {
       </h6>
       <SelectInput
         source="sector"
-        label="resources.companies.fields.sector"
         choices={companySectors}
         optionText="label"
         optionValue="value"
         helperText={false}
       />
-      <SelectInput
-        source="size"
-        label="resources.companies.fields.size"
-        choices={translatedSizes}
-        helperText={false}
-      />
-      <TextInput
-        source="revenue"
-        label="resources.companies.fields.revenue"
-        helperText={false}
-      />
-      <TextInput
-        source="tax_identifier"
-        label="resources.companies.fields.tax_identifier"
-        helperText={false}
-      />
+      <SelectInput source="size" choices={translatedSizes} helperText={false} />
+      <TextInput source="revenue" helperText={false} />
+      <TextInput source="tax_identifier" helperText={false} />
     </div>
   );
 };
@@ -151,31 +126,11 @@ const CompanyAddressInputs = () => {
       <h6 className="text-lg font-semibold">
         {translate("crm.companies.inputs.address", { _: "Address" })}
       </h6>
-      <TextInput
-        source="address"
-        label="resources.companies.fields.address"
-        helperText={false}
-      />
-      <TextInput
-        source="city"
-        label="resources.companies.fields.city"
-        helperText={false}
-      />
-      <TextInput
-        source="zipcode"
-        label="resources.companies.fields.zipcode"
-        helperText={false}
-      />
-      <TextInput
-        source="state_abbr"
-        label="resources.companies.fields.state_abbr"
-        helperText={false}
-      />
-      <TextInput
-        source="country"
-        label="resources.companies.fields.country"
-        helperText={false}
-      />
+      <TextInput source="address" helperText={false} />
+      <TextInput source="city" helperText={false} />
+      <TextInput source="zipcode" helperText={false} />
+      <TextInput source="state_abbr" helperText={false} />
+      <TextInput source="country" helperText={false} />
     </div>
   );
 };
@@ -189,17 +144,8 @@ const CompanyAdditionalInformationInputs = () => {
           _: "Additional information",
         })}
       </h6>
-      <TextInput
-        source="description"
-        label="resources.companies.fields.description"
-        multiline
-        helperText={false}
-      />
-      <ArrayInput
-        source="context_links"
-        label="resources.companies.fields.context_links"
-        helperText={false}
-      >
+      <TextInput source="description" multiline helperText={false} />
+      <ArrayInput source="context_links" helperText={false}>
         <SimpleFormIterator disableReordering fullWidth getItemLabel={false}>
           <TextInput
             source=""
@@ -227,11 +173,7 @@ const CompanyAccountManagerInput = () => {
           "disabled@neq": true,
         }}
       >
-        <SelectInput
-          label="resources.companies.fields.sales_id"
-          helperText={false}
-          optionText={saleOptionRenderer}
-        />
+        <SelectInput helperText={false} optionText={saleOptionRenderer} />
       </ReferenceInput>
     </div>
   );
