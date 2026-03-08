@@ -8,6 +8,14 @@ prodotto senza incrociarlo con `docs/README.md` e i documenti `canonical`.
 
 Last updated: 2026-03-08
 
+## Update 2026-03-08 (j) — PDF export for AI results
+
+Added zero-dependency PDF export to the AI result area. A "PDF" button clones
+the result DOM into a temporary portal (`[data-print-portal]`), triggers
+`window.print()`, and removes the portal. Global `@media print` rules in
+`index.css` hide everything except the portal and force print colors. The
+pattern is reusable on any future AI surface.
+
 ## Update 2026-03-08 (i) — AI visual mode ("Vista smart")
 
 Added opt-in "Vista smart" toggle to the annual AI card. When active, the AI

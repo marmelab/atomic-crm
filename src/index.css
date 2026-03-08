@@ -181,6 +181,32 @@ input[type="time"] {
   }
 }
 
+/* ── Print: isolate [data-print-area] and hide everything else ── */
+@media print {
+  /* Hide everything by default */
+  body > *:not([data-print-portal]) {
+    display: none !important;
+  }
+
+  /* The portal with cloned content */
+  [data-print-portal] {
+    display: block !important;
+    position: static !important;
+    padding: 1.5rem;
+  }
+
+  /* Force light colors for print */
+  [data-print-portal] * {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  /* Hide browser header/footer margins */
+  @page {
+    margin: 1cm;
+  }
+}
+
 @keyframes suggestion-fade-in {
   from {
     opacity: 0;

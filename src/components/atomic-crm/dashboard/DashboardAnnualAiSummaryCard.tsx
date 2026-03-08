@@ -1,6 +1,13 @@
 import { useMutation } from "@tanstack/react-query";
-import { Bot, Lightbulb, RefreshCw, Send, Sparkles } from "lucide-react";
-import { useEffect, useState } from "react";
+import {
+  Bot,
+  Download,
+  Lightbulb,
+  RefreshCw,
+  Send,
+  Sparkles,
+} from "lucide-react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useDataProvider, useNotify } from "ra-core";
 
 import { AiBlockRenderer } from "./AiBlockRenderer";
@@ -127,6 +134,22 @@ export const DashboardAnnualAiSummaryCard = ({ year }: { year: number }) => {
     askQuestion(trimmed);
   };
 
+  const resultRef = useRef<HTMLDivElement>(null);
+
+  const printResult = useCallback(() => {
+    const node = resultRef.current;
+    if (!node) return;
+
+    const portal = document.createElement("div");
+    portal.setAttribute("data-print-portal", "");
+    portal.innerHTML = node.innerHTML;
+    document.body.appendChild(portal);
+
+    window.print();
+
+    document.body.removeChild(portal);
+  }, []);
+
   // Resolve latest result — visual blocks or markdown
   const latestResult = resolveLatestResult({ answer, summary });
 
@@ -234,10 +257,21 @@ export const DashboardAnnualAiSummaryCard = ({ year }: { year: number }) => {
 
         {/* ── Result ── */}
         {latestResult && (
-          <div className="rounded-md border px-4 py-3 space-y-2">
-            <p className="text-xs text-muted-foreground font-medium">
-              {latestResult.label}
-            </p>
+          <div ref={resultRef} className="rounded-md border px-4 py-3 space-y-2">
+            <div className="flex items-center justify-between">
+              <p className="text-xs text-muted-foreground font-medium">
+                {latestResult.label}
+              </p>
+              <button
+                type="button"
+                onClick={printResult}
+                className="flex items-center gap-1 rounded-md px-2 py-1 text-xs text-muted-foreground hover:bg-muted/50 transition-colors"
+                title="Esporta come PDF"
+              >
+                <Download className="h-3.5 w-3.5" />
+                PDF
+              </button>
+            </div>
             {latestResult.blocks ? (
               <AiBlockRenderer blocks={latestResult.blocks} />
             ) : (

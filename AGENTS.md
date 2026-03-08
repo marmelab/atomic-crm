@@ -155,17 +155,22 @@ Quando il toggle e' spento, il flusso markdown resta immutato.
    diversa), type guard con `"blocks" in d`, rendering condizionale
    `<AiBlockRenderer>` vs `<Markdown>`
 4. **Tipi**: usare `AiBlock[]` per i blocchi, creare tipo response specifico
-5. **Test**: aggiornare mock per includere `{ visualMode: false }`
+5. **Test**: aggiornare mock per includere `{ visualMode: true }`
+6. **PDF export**: aggiungere bottone con pattern `printResult` (clone DOM →
+   portal `[data-print-portal]` → `window.print()` → cleanup). Il CSS
+   `@media print` in `index.css` e' gia' pronto, zero dipendenze.
 
 ### File condivisi — NON duplicare
 
 - `src/components/atomic-crm/dashboard/AiBlockRenderer.tsx` — renderer
 - `supabase/functions/_shared/visualModePrompt.ts` — prompt AI
 - `src/lib/analytics/annualAnalysis.ts` — `AiBlock` union type, `AiBlockColor`
+- `src/index.css` — regole `@media print` per export PDF
 
 ### Implementazione attuale
 
 Attivo su: dashboard annuale (`DashboardAnnualAiSummaryCard`)
+Default: Vista smart attiva, card AI in cima alla dashboard (prima delle KPI)
 Prossime superfici pianificate: storico, pagine di dettaglio
 
 ## Frontend Import Rules
