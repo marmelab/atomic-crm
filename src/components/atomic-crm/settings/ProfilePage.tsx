@@ -18,6 +18,13 @@ import { TextInput } from "@/components/admin/text-input";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
@@ -181,8 +188,10 @@ const ProfileForm = ({
               onSave={handleAvatarUpdate}
               linkPosition="right"
             />
-            <TextRender source="first_name" isEditMode={isEditMode} />
-            <TextRender source="last_name" isEditMode={isEditMode} />
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <TextRender source="first_name" isEditMode={isEditMode} />
+              <TextRender source="last_name" isEditMode={isEditMode} />
+            </div>
             <TextRender source="email" isEditMode={isEditMode} />
             <LanguageSelector />
           </div>
@@ -196,7 +205,7 @@ const ProfileForm = ({
                   onClick={handleClickOpenPasswordChange}
                 >
                   {translate("crm.profile.password.change", {
-                    _: "Change password",
+                    _: "Reset password",
                   })}
                 </Button>
               </>
@@ -259,21 +268,21 @@ const LanguageSelector = () => {
 
   return (
     <div className="space-y-2">
-      <p className="text-sm font-medium text-muted-foreground">
+      <p className="text-xs text-muted-foreground">
         {translate("crm.language", { _: "Language" })}
       </p>
-      <div className="flex flex-wrap gap-2">
-        {locales.map((language) => (
-          <Button
-            key={language.locale}
-            type="button"
-            variant={locale === language.locale ? "default" : "outline"}
-            onClick={() => setLocale(language.locale)}
-          >
-            {language.name}
-          </Button>
-        ))}
-      </div>
+      <Select value={locale} onValueChange={setLocale}>
+        <SelectTrigger className="w-full">
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent>
+          {locales.map((language) => (
+            <SelectItem key={language.locale} value={language.locale}>
+              {language.name}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
     </div>
   );
 };
@@ -281,16 +290,25 @@ const LanguageSelector = () => {
 const TextRender = ({
   source,
   isEditMode,
+  className,
 }: {
   source: string;
   isEditMode: boolean;
+  className?: string;
 }) => {
   const label = `resources.sales.fields.${source}`;
   if (isEditMode) {
-    return <TextInput source={source} label={label} helperText={false} />;
+    return (
+      <TextInput
+        source={source}
+        label={label}
+        helperText={false}
+        className={className}
+      />
+    );
   }
   return (
-    <div className="m-2">
+    <div className={className}>
       <RecordField source={source} label={label} />
     </div>
   );
