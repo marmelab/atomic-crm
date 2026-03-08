@@ -8,6 +8,22 @@ prodotto senza incrociarlo con `docs/README.md` e i documenti `canonical`.
 
 Last updated: 2026-03-08
 
+## Update 2026-03-08 (g) — Dashboard visual redesign + card reorder
+
+Redesigned KPI cards with color-coded accent system and restructured layout:
+
+1. `DashboardNetAvailabilityCard`: dynamic green/red border+bg based on sign,
+   collapsible breakdown table with `<details>`, big number on top + small
+   total at bottom of table
+2. `DashboardKpiCards`: accent color system (border-l-4 + colored icon + colored
+   value) — blue (month), indigo (year), amber (payments), sky (quotes)
+3. NetAvailability card moved inside KpiCards grid (same size as other cards)
+4. Card order: NetAvailability → Payments → Month → Year → Quotes
+   (cash → urgencies → production → perspective)
+
+**File toccati**: `DashboardNetAvailabilityCard.tsx`, `DashboardKpiCards.tsx`,
+`DashboardAnnual.tsx`.
+
 ## Update 2026-03-08 (f) — Expense own/client split in dashboard + form UX
 
 Split `annualExpensesTotal` into `ownExpenses` (no project, no service, no

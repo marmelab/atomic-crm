@@ -14,6 +14,7 @@ Last updated: 2026-03-08
 
 ### Recent Updates (cronologico, più recente in alto)
 
+- [2026-03-08 (h)](#update-2026-03-08-h--dashboard-visual-redesign) — Dashboard visual redesign: accent colors, collapsible breakdown, card reorder
 - [2026-03-08 (g)](#update-2026-03-08-g--expense-ownclient-split) — Expense own/client split in dashboard + form UX
 - [2026-03-08 (f)](#update-2026-03-08-f--dashboard-card-reorder) — Dashboard annual: reorder cards for consequential flow
 - [2026-03-08 (e)](#update-2026-03-08-e--dashboard-pareto-features) — Dashboard Pareto features: net availability, tax tracking, cash flow, YoY
@@ -79,6 +80,23 @@ Last updated: 2026-03-08
 - [Nota manutenzione 2026-03-02](#nota-manutenzione-2026-03-02-fix-ci)
 - [Testing Session Log 2026-03-04](#testing-session-log-2026-03-04--e2e-complete-validation)
 - [AI Semantic UI Upgrade 2026-03-04](#ai-semantic-ui-upgrade-2026-03-04--pareto-principle-applied)
+
+---
+
+## Update 2026-03-08 (h) — Dashboard visual redesign
+
+**Cosa è cambiato**
+
+- KPI cards: accent color system with `border-l-4`, colored icon and value
+  text — blue (month), indigo (year), amber (payments), sky (quotes).
+- NetAvailability card: dynamic green/red based on sign, collapsible breakdown
+  table via `<details>`, big number on top + small total closing the table.
+- NetAvailability moved inside KpiCards grid (same size as other cards).
+- Card order: NetAvailability → Payments → Month → Year → Quotes
+  (cash → urgencies → production → perspective).
+
+**File toccati**: `DashboardNetAvailabilityCard.tsx`, `DashboardKpiCards.tsx`,
+`DashboardAnnual.tsx`.
 
 ---
 

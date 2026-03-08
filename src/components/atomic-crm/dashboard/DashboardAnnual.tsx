@@ -28,7 +28,6 @@ import { DashboardDeadlinesCard } from "./DashboardDeadlinesCard";
 import { DashboardFiscalKpis } from "./DashboardFiscalKpis";
 import { DashboardKpiCards } from "./DashboardKpiCards";
 import { DashboardLoading } from "./DashboardLoading";
-import { DashboardNetAvailabilityCard } from "./DashboardNetAvailabilityCard";
 import { DashboardPipelineCard } from "./DashboardPipelineCard";
 import { DashboardRevenueTrendChart } from "./DashboardRevenueTrendChart";
 import { DashboardTopClientsCard } from "./DashboardTopClientsCard";
@@ -108,17 +107,12 @@ export const DashboardAnnual = () => {
         />
       )}
 
-      <DashboardNetAvailabilityCard
-        kpis={data.kpis}
-        fiscalKpis={data.fiscal?.fiscalKpis ?? null}
-        meta={data.meta}
-        taxesPaid={totalTaxesPaid}
-      />
-
       <DashboardKpiCards
         kpis={data.kpis}
         meta={data.meta}
         year={data.selectedYear}
+        fiscalKpis={data.fiscal?.fiscalKpis ?? null}
+        taxesPaid={totalTaxesPaid}
       />
 
       {isCurrentYear && (
