@@ -9,6 +9,7 @@ import { AuthMiddleware, UserMiddleware } from "../_shared/authentication.ts";
 import { corsHeaders, OptionsMiddleware } from "../_shared/cors.ts";
 import { getUserSale } from "../_shared/getUserSale.ts";
 import { createErrorResponse } from "../_shared/utils.ts";
+import { visualModeInstructions } from "../_shared/visualModePrompt.ts";
 
 const defaultAnalysisModel = "gpt-5.2";
 const allowedModels = new Set(["gpt-5.2", "gpt-5-mini", "gpt-5-nano"]);
@@ -20,7 +21,7 @@ const openai = new OpenAI({
   apiKey: openaiApiKey,
 });
 
-const instructions = `
+const baseInstructions = `
 Sei un analista che parla con il titolare del gestionale Rosario Furnari.
 Usa solo il contesto JSON fornito e la domanda dell'utente.
 Non inventare dati mancanti.
@@ -50,6 +51,9 @@ Se il contesto include "cash_received_net", usalo: e l'incassato reale (cassa), 
 Se il contesto include "yearOverYear", usalo per confrontare con l'anno precedente allo stesso periodo. Indica la variazione percentuale e commenta se significativa.
 Se la "Interpretazione corretta della domanda" corregge una domanda originale ambigua, segui sempre l'interpretazione corretta.
 Non citare mai codici interni come "partial_current_year".
+`.trim();
+
+const markdownOutputInstructions = `
 Rispondi in markdown semplice, con queste sezioni:
 
 ## Risposta breve
@@ -77,7 +81,7 @@ async function answerAnnualOperationsQuestion(
     return createErrorResponse(401, "Unauthorized");
   }
 
-  const { context, question, model } = await req.json();
+  const { context, question, model, visualMode } = await req.json();
 
   if (!context) {
     return createErrorResponse(400, "Missing annual operations context");
@@ -95,6 +99,7 @@ async function answerAnnualOperationsQuestion(
     );
   }
 
+  const isVisual = visualMode === true;
   const selectedModel =
     typeof model === "string" && allowedModels.has(model)
       ? model
@@ -109,6 +114,10 @@ async function answerAnnualOperationsQuestion(
     question: trimmedQuestion,
   });
 
+  const instructions = isVisual
+    ? `${baseInstructions}\n\n${visualModeInstructions}`
+    : `${baseInstructions}\n\n${markdownOutputInstructions}`;
+
   try {
     const response = await openai.responses.create({
       model: selectedModel,
@@ -121,27 +130,34 @@ async function answerAnnualOperationsQuestion(
       reasoning: {
         effort: "medium",
       },
-      max_output_tokens: 1500,
+      max_output_tokens: isVisual ? 2500 : 1500,
     });
 
-    const answerMarkdown = response.output_text?.trim();
+    const outputText = response.output_text?.trim();
 
-    if (!answerMarkdown) {
+    if (!outputText) {
       return createErrorResponse(
         502,
         "OpenAI ha restituito una risposta vuota",
       );
     }
 
-    return new Response(
-      JSON.stringify({
-        data: {
+    const data = isVisual
+      ? {
           question: trimmedQuestion,
           model: selectedModel,
           generatedAt: new Date().toISOString(),
-          answerMarkdown,
-        },
-      }),
+          blocks: JSON.parse(outputText),
+        }
+      : {
+          question: trimmedQuestion,
+          model: selectedModel,
+          generatedAt: new Date().toISOString(),
+          answerMarkdown: outputText,
+        };
+
+    return new Response(
+      JSON.stringify({ data }),
       {
         headers: { "Content-Type": "application/json", ...corsHeaders },
       },

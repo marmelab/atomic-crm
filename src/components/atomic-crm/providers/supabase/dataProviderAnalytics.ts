@@ -4,6 +4,8 @@ import { type HistoricalCashInflowContext } from "@/lib/analytics/buildHistorica
 import {
   type AnnualOperationsAnalyticsAnswer,
   type AnnualOperationsAnalyticsSummary,
+  type AnnualOperationsVisualAnswer,
+  type AnnualOperationsVisualSummary,
 } from "@/lib/analytics/annualAnalysis";
 import {
   type HistoricalAnalyticsAnswer,
@@ -93,17 +95,18 @@ export const buildAnalyticsProviderMethods = (deps: {
     },
     async generateAnnualOperationsAnalyticsSummary(
       year: number,
-    ): Promise<AnnualOperationsAnalyticsSummary> {
+      options?: { visualMode?: boolean },
+    ): Promise<AnnualOperationsAnalyticsSummary | AnnualOperationsVisualSummary> {
       const [context, model] = await Promise.all([
         annualContext(year),
         deps.getConfiguredHistoricalAnalysisModel(),
       ]);
 
       const { data, error } = await deps.invokeEdgeFunction<{
-        data: AnnualOperationsAnalyticsSummary;
+        data: AnnualOperationsAnalyticsSummary | AnnualOperationsVisualSummary;
       }>("annual_operations_summary", {
         method: "POST",
-        body: { context, model },
+        body: { context, model, visualMode: options?.visualMode ?? false },
       });
 
       if (!data || error) {
@@ -185,7 +188,8 @@ export const buildAnalyticsProviderMethods = (deps: {
     async askAnnualOperationsQuestion(
       year: number,
       question: string,
-    ): Promise<AnnualOperationsAnalyticsAnswer> {
+      options?: { visualMode?: boolean },
+    ): Promise<AnnualOperationsAnalyticsAnswer | AnnualOperationsVisualAnswer> {
       const trimmedQuestion = question.trim();
       if (!trimmedQuestion) {
         throw new Error("Scrivi una domanda prima di inviare la richiesta.");
@@ -197,10 +201,15 @@ export const buildAnalyticsProviderMethods = (deps: {
       ]);
 
       const { data, error } = await deps.invokeEdgeFunction<{
-        data: AnnualOperationsAnalyticsAnswer;
+        data: AnnualOperationsAnalyticsAnswer | AnnualOperationsVisualAnswer;
       }>("annual_operations_answer", {
         method: "POST",
-        body: { context, question: trimmedQuestion, model },
+        body: {
+          context,
+          question: trimmedQuestion,
+          model,
+          visualMode: options?.visualMode ?? false,
+        },
       });
 
       if (!data || error) {

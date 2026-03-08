@@ -1104,6 +1104,10 @@
           "type": "registry:component"
         },
         {
+          "path": "src/components/atomic-crm/dashboard/AiBlockRenderer.tsx",
+          "type": "registry:component"
+        },
+        {
           "path": "src/components/atomic-crm/contacts/index.tsx",
           "type": "registry:component"
         },

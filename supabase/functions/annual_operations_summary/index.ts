@@ -6,6 +6,7 @@ import { AuthMiddleware, UserMiddleware } from "../_shared/authentication.ts";
 import { corsHeaders, OptionsMiddleware } from "../_shared/cors.ts";
 import { getUserSale } from "../_shared/getUserSale.ts";
 import { createErrorResponse } from "../_shared/utils.ts";
+import { visualModeInstructions } from "../_shared/visualModePrompt.ts";
 
 const defaultAnalysisModel = "gpt-5.2";
 const allowedModels = new Set(["gpt-5.2", "gpt-5-mini", "gpt-5-nano"]);
@@ -16,7 +17,7 @@ const openai = new OpenAI({
   apiKey: openaiApiKey,
 });
 
-const instructions = `
+const baseInstructions = `
 Sei un analista che parla con il titolare del gestionale Rosario Furnari.
 Usa solo il contesto JSON fornito.
 Non inventare dati mancanti.
@@ -45,6 +46,9 @@ Evita frasi assolute come "tutto arriva da", "nessuno", "il punto piu debole e" 
 Se il contesto include "cash_received_net", usalo: e l'incassato reale (cassa), diverso dal valore del lavoro (competenza).
 Se il contesto include "yearOverYear", usalo per confrontare con l'anno precedente allo stesso periodo. Indica la variazione percentuale e commenta se significativa.
 Non citare mai codici interni come "partial_current_year".
+`.trim();
+
+const markdownOutputInstructions = `
 Scrivi in markdown semplice, con queste sezioni:
 
 ## In breve
@@ -75,12 +79,13 @@ async function createAnnualOperationsSummary(
     return createErrorResponse(401, "Unauthorized");
   }
 
-  const { context, model } = await req.json();
+  const { context, model, visualMode } = await req.json();
 
   if (!context) {
     return createErrorResponse(400, "Missing annual operations context");
   }
 
+  const isVisual = visualMode === true;
   const selectedModel =
     typeof model === "string" && allowedModels.has(model)
       ? model
@@ -89,6 +94,10 @@ async function createAnnualOperationsSummary(
     mode: "summary",
     context,
   });
+
+  const instructions = isVisual
+    ? `${baseInstructions}\n\n${visualModeInstructions}`
+    : `${baseInstructions}\n\n${markdownOutputInstructions}`;
 
   try {
     const response = await openai.responses.create({
@@ -100,26 +109,32 @@ async function createAnnualOperationsSummary(
       reasoning: {
         effort: "medium",
       },
-      max_output_tokens: 1500,
+      max_output_tokens: isVisual ? 2500 : 1500,
     });
 
-    const summaryMarkdown = response.output_text?.trim();
+    const outputText = response.output_text?.trim();
 
-    if (!summaryMarkdown) {
+    if (!outputText) {
       return createErrorResponse(
         502,
         "OpenAI ha restituito una risposta vuota",
       );
     }
 
-    return new Response(
-      JSON.stringify({
-        data: {
+    const data = isVisual
+      ? {
           model: selectedModel,
           generatedAt: new Date().toISOString(),
-          summaryMarkdown,
-        },
-      }),
+          blocks: JSON.parse(outputText),
+        }
+      : {
+          model: selectedModel,
+          generatedAt: new Date().toISOString(),
+          summaryMarkdown: outputText,
+        };
+
+    return new Response(
+      JSON.stringify({ data }),
       {
         headers: { "Content-Type": "application/json", ...corsHeaders },
       },

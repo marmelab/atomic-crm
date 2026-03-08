@@ -83,6 +83,7 @@ describe("DashboardAnnualAiSummaryCard", () => {
       expect(askAnnualOperationsQuestion).toHaveBeenCalledWith(
         2025,
         questionText,
+        { visualMode: false },
       ),
     );
     expect(
@@ -109,6 +110,7 @@ describe("DashboardAnnualAiSummaryCard", () => {
     await waitFor(() =>
       expect(generateAnnualOperationsAnalyticsSummary).toHaveBeenCalledWith(
         2025,
+        { visualMode: false },
       ),
     );
     expect(

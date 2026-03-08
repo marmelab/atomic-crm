@@ -8,6 +8,36 @@ prodotto senza incrociarlo con `docs/README.md` e i documenti `canonical`.
 
 Last updated: 2026-03-08
 
+## Update 2026-03-08 (i) — AI visual mode ("Vista smart")
+
+Added opt-in "Vista smart" toggle to the annual AI card. When active, the AI
+responds with structured JSON blocks (text, metrics, bar-chart, trend, progress,
+comparison, breakdown, callout, action) instead of markdown. The frontend renders
+each block with dedicated React components using the design system colors.
+
+When the toggle is off (default), everything works exactly as before — no changes
+to the existing markdown pipeline.
+
+### Implementation
+
+- **Types**: `AiBlock` union type + `AnnualOperationsVisualSummary` /
+  `AnnualOperationsVisualAnswer` in `annualAnalysis.ts`
+- **Renderer**: `AiBlockRenderer.tsx` — maps 10 block types to React components
+  (CSS bars, Recharts LineChart for trend, proportional breakdown with >5 fallback)
+- **Edge Functions**: both `annual_operations_summary` and `annual_operations_answer`
+  accept `visualMode: boolean`; when true, append visual block instructions to the
+  AI prompt and return `{ blocks: AiBlock[] }` instead of `{ summaryMarkdown }` /
+  `{ answerMarkdown }`
+- **Shared prompt**: `_shared/visualModePrompt.ts` — 10 block types, 8 colors,
+  composition rules
+- **Provider**: `generateAnnualOperationsAnalyticsSummary(year, { visualMode })`,
+  `askAnnualOperationsQuestion(year, question, { visualMode })`
+- **Toggle**: pill button with Lightbulb icon in card header, persisted in
+  localStorage
+
+**Edge Functions touched**: `annual_operations_summary`, `annual_operations_answer`
+→ deploy required.
+
 ## Update 2026-03-08 (h) — Full dashboard "Approccio Bambino" redesign
 
 Complete visual overhaul of the annual dashboard. Design principle: every card

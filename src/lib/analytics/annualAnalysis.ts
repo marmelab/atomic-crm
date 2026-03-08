@@ -134,3 +134,72 @@ export type AnnualOperationsAnalyticsAnswer = {
   generatedAt: string;
   answerMarkdown: string;
 };
+
+// ── Visual mode (AI block rendering) ──
+
+export type AiBlockColor =
+  | "emerald"
+  | "red"
+  | "amber"
+  | "sky"
+  | "gray"
+  | "blue"
+  | "violet"
+  | "rose";
+
+export type AiBlock =
+  | { type: "text"; content: string }
+  | {
+      type: "callout";
+      tone: "info" | "warning" | "success";
+      content: string;
+    }
+  | { type: "action"; content: string }
+  | {
+      type: "metrics";
+      items: { label: string; value: string; color?: AiBlockColor }[];
+    }
+  | { type: "list"; title?: string; items: string[] }
+  | {
+      type: "bar-chart";
+      title?: string;
+      items: { label: string; value: number; color?: AiBlockColor }[];
+    }
+  | {
+      type: "progress";
+      label: string;
+      current: number;
+      total: number;
+      color?: AiBlockColor;
+    }
+  | {
+      type: "trend";
+      label?: string;
+      points: { label: string; value: number }[];
+      unit?: string;
+    }
+  | {
+      type: "comparison";
+      left: { label: string; value: string };
+      right: { label: string; value: string };
+      delta?: string;
+      deltaDirection?: "up" | "down" | "flat";
+    }
+  | {
+      type: "breakdown";
+      title?: string;
+      items: { label: string; value: number; color?: AiBlockColor }[];
+    };
+
+export type AnnualOperationsVisualSummary = {
+  model: string;
+  generatedAt: string;
+  blocks: AiBlock[];
+};
+
+export type AnnualOperationsVisualAnswer = {
+  question: string;
+  model: string;
+  generatedAt: string;
+  blocks: AiBlock[];
+};
