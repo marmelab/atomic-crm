@@ -8,6 +8,12 @@ prodotto senza incrociarlo con `docs/README.md` e i documenti `canonical`.
 
 Last updated: 2026-03-08
 
+## Update 2026-03-08 (n) — Fix PDF export for mobile (afterprint)
+
+`window.print()` is async on iOS Safari — the old code removed the print portal
+immediately after calling it, before the print renderer captured the content.
+Fixed by deferring cleanup to the `afterprint` event listener.
+
 ## Update 2026-03-08 (m) — Mobile AI card: top position + collapsible suggestions
 
 Moved `DashboardAnnualAiSummaryCard` above KPI cards in `MobileDashboard`

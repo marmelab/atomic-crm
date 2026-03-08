@@ -154,9 +154,13 @@ export const DashboardAnnualAiSummaryCard = ({
     portal.innerHTML = node.innerHTML;
     document.body.appendChild(portal);
 
-    window.print();
+    const cleanup = () => {
+      portal.remove();
+      window.removeEventListener("afterprint", cleanup);
+    };
+    window.addEventListener("afterprint", cleanup);
 
-    document.body.removeChild(portal);
+    window.print();
   }, []);
 
   // Resolve latest result — visual blocks or markdown
