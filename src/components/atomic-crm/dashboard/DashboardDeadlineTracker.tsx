@@ -1,15 +1,20 @@
-import { AlertTriangle, CalendarClock, CheckCircle2 } from "lucide-react";
+import { CheckCircle2 } from "lucide-react";
 import { useMemo, type ReactNode } from "react";
 import { useCreatePath, useGetList, useUpdate, type Identifier } from "ra-core";
 import { Link } from "react-router";
 
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
 
 import type { Client, ClientTask, Payment } from "../types";
 import { paymentStatusLabels } from "../payments/paymentTypes";
 import { SendPaymentReminderDialog } from "../payments/SendPaymentReminderDialog";
+import { formatDateRange } from "../misc/formatDateRange";
+import {
+  formatCompactCurrency,
+  type DashboardAlerts,
+} from "./dashboardModel";
 
 const LARGE_PAGE = { page: 1, perPage: 1000 };
 
@@ -34,11 +39,7 @@ const formatShortDate = (value?: string | null) => {
   if (!value) return "--";
   const date = new Date(value);
   if (Number.isNaN(date.valueOf())) return "--";
-
-  return date.toLocaleDateString("it-IT", {
-    day: "2-digit",
-    month: "2-digit",
-  });
+  return date.toLocaleDateString("it-IT", { day: "2-digit", month: "2-digit" });
 };
 
 const formatAmount = (value: number) =>
@@ -68,12 +69,10 @@ export const getOverduePaymentsForDeadlineTracker = ({
       if (!payment.payment_date) {
         return payment.status === "scaduto";
       }
-
       const paymentDate = toStartOfDay(new Date(payment.payment_date));
       if (Number.isNaN(paymentDate.valueOf())) {
         return payment.status === "scaduto";
       }
-
       return payment.status === "scaduto" || paymentDate < today;
     })
     .sort(
@@ -96,12 +95,10 @@ export const getDueSoonPaymentsForDeadlineTracker = ({
       if (payment.status !== "in_attesa" || !payment.payment_date) {
         return false;
       }
-
       const paymentDate = toStartOfDay(new Date(payment.payment_date));
       if (Number.isNaN(paymentDate.valueOf())) {
         return false;
       }
-
       return paymentDate >= today && paymentDate <= limitDate;
     })
     .sort(
@@ -121,14 +118,9 @@ export const getUpcomingTasksForDeadlineTracker = ({
 }) =>
   tasks
     .filter((task) => {
-      if (task.done_date) {
-        return false;
-      }
-
+      if (task.done_date) return false;
       const dueDate = toStartOfDay(new Date(task.due_date));
-      if (Number.isNaN(dueDate.valueOf())) {
-        return false;
-      }
+      if (Number.isNaN(dueDate.valueOf())) return false;
       return dueDate >= today && dueDate <= limitDate;
     })
     .sort(
@@ -136,7 +128,13 @@ export const getUpcomingTasksForDeadlineTracker = ({
         new Date(left.due_date).valueOf() - new Date(right.due_date).valueOf(),
     );
 
-export const DashboardDeadlineTracker = () => {
+// ── Unified card: "Cosa devi fare" ──────────────────────────
+
+export const DashboardDeadlineTracker = ({
+  alerts,
+}: {
+  alerts: DashboardAlerts;
+}) => {
   const today = toStartOfDay(new Date());
   const limitDate = new Date(today);
   limitDate.setDate(limitDate.getDate() + 7);
@@ -204,9 +202,7 @@ export const DashboardDeadlineTracker = () => {
   const markTaskAsDone = (task: ClientTask) => {
     update("client_tasks", {
       id: task.id,
-      data: {
-        done_date: new Date().toISOString(),
-      },
+      data: { done_date: new Date().toISOString() },
       previousData: task,
     });
   };
@@ -215,148 +211,227 @@ export const DashboardDeadlineTracker = () => {
     return null;
   }
 
+  // Counts for the 3-column header
+  const overdueTotal = overduePayments.reduce(
+    (sum, p) => sum + Number(p.amount ?? 0),
+    0,
+  );
+  const dueSoonTotal = dueSoonPayments.reduce(
+    (sum, p) => sum + Number(p.amount ?? 0),
+    0,
+  );
+  const otherCount =
+    upcomingTasks.length +
+    alerts.upcomingServices.length +
+    alerts.unansweredQuotes.length;
+
+  const totalItems =
+    overduePayments.length + dueSoonPayments.length + otherCount;
+
   return (
-    <Card className="gap-0">
-      <CardHeader className="px-4 pb-3">
-        <CardTitle className="text-base flex items-center gap-2">
-          <CalendarClock className="h-4 w-4" />
-          Scadenzario operativo
-        </CardTitle>
-        <p className="text-xs text-muted-foreground">
-          Pagamenti e promemoria da tenere sotto controllo nei prossimi giorni.
-        </p>
+    <Card className="gap-3 py-4">
+      <CardHeader className="px-4 pb-0">
+        <CardTitle className="text-base font-semibold">Cosa devi fare</CardTitle>
       </CardHeader>
+      <CardContent className="px-4 space-y-3">
+        {totalItems === 0 ? (
+          <div className="flex items-center justify-center gap-2 rounded-md py-4 bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-200 text-sm font-bold">
+            <CheckCircle2 className="h-4 w-4" />
+            Tutto in ordine
+          </div>
+        ) : (
+          <>
+            {/* ── 3-column counters ── */}
+            <div className="grid grid-cols-[1fr_auto_1fr_auto_1fr] gap-0">
+              <CounterColumn
+                count={overduePayments.length}
+                label="Scaduti"
+                amount={overdueTotal}
+                color="red"
+              />
+              <Separator orientation="vertical" />
+              <CounterColumn
+                count={dueSoonPayments.length}
+                label="Prossimi 7g"
+                amount={dueSoonTotal}
+                color="amber"
+              />
+              <Separator orientation="vertical" />
+              <CounterColumn
+                count={otherCount}
+                label="Da fare"
+                color="blue"
+              />
+            </div>
 
-      <CardContent className="px-4 pb-4 space-y-5">
-        <Section
-          title="Pagamenti scaduti"
-          count={overduePayments.length}
-          variant="destructive"
-          icon={<AlertTriangle className="h-4 w-4" />}
-        >
-          {overduePayments.length === 0 ? (
-            <EmptyText text="Nessun pagamento scaduto." />
-          ) : (
-            overduePayments.map((payment) => {
-              const days = payment.payment_date
-                ? Math.max(
-                    1,
-                    Math.abs(diffDays(new Date(payment.payment_date), today)),
-                  )
-                : null;
+            {/* ── Flat action list ── */}
+            <div className="space-y-1.5">
+              {overduePayments.map((payment) => {
+                const days = payment.payment_date
+                  ? Math.max(
+                      1,
+                      Math.abs(
+                        diffDays(new Date(payment.payment_date), today),
+                      ),
+                    )
+                  : null;
 
-              return (
+                return (
+                  <ActionRow
+                    key={`op-${payment.id}`}
+                    dot="red"
+                    title={getClientName(clientsById, payment.client_id)}
+                    subtitle={`${formatAmount(Number(payment.amount ?? 0))} · ${paymentStatusLabels[payment.status] ?? payment.status}${days ? ` · ${days}g fa` : ""}`}
+                    link={createPath({
+                      resource: "payments",
+                      type: "show",
+                      id: payment.id,
+                    })}
+                    actionLabel="Incassato"
+                    onAction={() => markPaymentAsReceived(payment)}
+                    disabled={isUpdating}
+                    secondaryAction={
+                      <SendPaymentReminderDialog paymentId={payment.id} />
+                    }
+                  />
+                );
+              })}
+
+              {dueSoonPayments.map((payment) => {
+                const daysUntil = payment.payment_date
+                  ? diffDays(today, new Date(payment.payment_date))
+                  : null;
+
+                return (
+                  <ActionRow
+                    key={`ds-${payment.id}`}
+                    dot="amber"
+                    title={getClientName(clientsById, payment.client_id)}
+                    subtitle={`${formatAmount(Number(payment.amount ?? 0))} · ${formatShortDate(payment.payment_date)}${daysUntil != null ? ` · tra ${daysUntil}g` : ""}`}
+                    link={createPath({
+                      resource: "payments",
+                      type: "show",
+                      id: payment.id,
+                    })}
+                    actionLabel="Incassato"
+                    onAction={() => markPaymentAsReceived(payment)}
+                    disabled={isUpdating}
+                  />
+                );
+              })}
+
+              {upcomingTasks.map((task) => {
+                const daysUntil = diffDays(today, new Date(task.due_date));
+                return (
+                  <ActionRow
+                    key={`tk-${task.id}`}
+                    dot="blue"
+                    title={task.text}
+                    subtitle={`${getClientName(clientsById, task.client_id)} · ${formatShortDate(task.due_date)}${daysUntil >= 0 ? ` · tra ${daysUntil}g` : ""}`}
+                    link="/client_tasks"
+                    actionLabel="Fatto"
+                    onAction={() => markTaskAsDone(task)}
+                    disabled={isUpdating}
+                  />
+                );
+              })}
+
+              {alerts.upcomingServices.map((service) => (
                 <ActionRow
-                  key={String(payment.id)}
-                  title={getClientName(clientsById, payment.client_id)}
-                  subtitle={`${formatAmount(Number(payment.amount ?? 0))} · ${paymentStatusLabels[payment.status] ?? payment.status}${days ? ` · ${days}g` : ""}`}
+                  key={`sv-${service.id}`}
+                  dot="blue"
+                  title={`${service.projectName} · ${prettifyServiceType(service.serviceType)}`}
+                  subtitle={`${service.clientName} · ${service.allDay ? formatShortDate(service.serviceDate) : formatDateRange(service.serviceDate, service.serviceEnd, false)}${service.daysAhead === 0 ? " · oggi" : ` · tra ${service.daysAhead}g`}`}
                   link={createPath({
-                    resource: "payments",
+                    resource: "services",
                     type: "show",
-                    id: payment.id,
+                    id: service.id,
                   })}
-                  actionLabel="Incassato"
-                  onAction={() => markPaymentAsReceived(payment)}
-                  disabled={isUpdating}
-                  secondaryAction={
-                    <SendPaymentReminderDialog paymentId={payment.id} />
-                  }
                 />
-              );
-            })
-          )}
-        </Section>
+              ))}
 
-        <Section
-          title="Pagamenti in scadenza"
-          count={dueSoonPayments.length}
-          variant="warning"
-          icon={<CalendarClock className="h-4 w-4" />}
-        >
-          {dueSoonPayments.length === 0 ? (
-            <EmptyText text="Nessun pagamento in scadenza entro 7 giorni." />
-          ) : (
-            dueSoonPayments.map((payment) => {
-              const daysUntil = payment.payment_date
-                ? diffDays(today, new Date(payment.payment_date))
-                : null;
-
-              return (
+              {alerts.unansweredQuotes.map((quote) => (
                 <ActionRow
-                  key={String(payment.id)}
-                  title={getClientName(clientsById, payment.client_id)}
-                  subtitle={`${formatAmount(Number(payment.amount ?? 0))} · scade ${formatShortDate(payment.payment_date)}${daysUntil != null ? ` · ${daysUntil}g` : ""}`}
+                  key={`qt-${quote.id}`}
+                  dot="blue"
+                  title={`${quote.clientName} · ${quote.description}`}
+                  subtitle={`${formatCompactCurrency(quote.amount)} · inviato ${formatShortDate(quote.sentDate)} · ${quote.daysWaiting}g senza risposta`}
                   link={createPath({
-                    resource: "payments",
+                    resource: "quotes",
                     type: "show",
-                    id: payment.id,
+                    id: quote.id,
                   })}
-                  actionLabel="Segna come incassato"
-                  onAction={() => markPaymentAsReceived(payment)}
-                  disabled={isUpdating}
                 />
-              );
-            })
-          )}
-        </Section>
-
-        <Section
-          title="Promemoria in scadenza"
-          count={upcomingTasks.length}
-          variant="outline"
-          icon={<CheckCircle2 className="h-4 w-4" />}
-        >
-          {upcomingTasks.length === 0 ? (
-            <EmptyText text="Nessun promemoria in scadenza entro 7 giorni." />
-          ) : (
-            upcomingTasks.map((task) => {
-              const daysUntil = diffDays(today, new Date(task.due_date));
-
-              return (
-                <ActionRow
-                  key={String(task.id)}
-                  title={task.text}
-                  subtitle={`${getClientName(clientsById, task.client_id)} · scade ${formatShortDate(task.due_date)}${daysUntil >= 0 ? ` · ${daysUntil}g` : ""}`}
-                  link="/client_tasks"
-                  actionLabel="Segna come fatto"
-                  onAction={() => markTaskAsDone(task)}
-                  disabled={isUpdating}
-                />
-              );
-            })
-          )}
-        </Section>
+              ))}
+            </div>
+          </>
+        )}
       </CardContent>
     </Card>
   );
 };
 
-const Section = ({
-  title,
+// ── Sub-components ───────────────────────────────────────────
+
+type DotColor = "red" | "amber" | "blue";
+
+const dotClasses: Record<DotColor, string> = {
+  red: "bg-red-500",
+  amber: "bg-amber-500",
+  blue: "bg-blue-500",
+};
+
+const counterColors: Record<
+  DotColor,
+  { count: string; label: string }
+> = {
+  red: {
+    count: "text-red-700 dark:text-red-300",
+    label: "text-red-600 dark:text-red-400",
+  },
+  amber: {
+    count: "text-amber-700 dark:text-amber-300",
+    label: "text-amber-600 dark:text-amber-400",
+  },
+  blue: {
+    count: "text-blue-700 dark:text-blue-300",
+    label: "text-blue-600 dark:text-blue-400",
+  },
+};
+
+const CounterColumn = ({
   count,
-  variant,
-  icon,
-  children,
+  label,
+  amount,
+  color,
 }: {
-  title: string;
   count: number;
-  variant: "destructive" | "warning" | "outline";
-  icon: ReactNode;
-  children: ReactNode;
-}) => (
-  <section className="space-y-2">
-    <div className="flex items-center gap-2">
-      <span className="text-muted-foreground">{icon}</span>
-      <p className="text-sm font-medium flex-1">{title}</p>
-      {count > 0 ? <Badge variant={variant}>{count}</Badge> : null}
+  label: string;
+  amount?: number;
+  color: DotColor;
+}) => {
+  const colors = counterColors[color];
+  return (
+    <div className="text-center space-y-0.5 px-2">
+      <div className={`text-2xl font-bold tabular-nums ${colors.count}`}>
+        {count}
+      </div>
+      <div
+        className={`text-xs font-semibold uppercase tracking-wide ${colors.label}`}
+      >
+        {label}
+      </div>
+      {amount != null && amount > 0 && (
+        <div className="text-[11px] text-muted-foreground tabular-nums">
+          {formatAmount(amount)}
+        </div>
+      )}
     </div>
-    <div className="space-y-2 rounded-lg border bg-muted/20 p-3">
-      {children}
-    </div>
-  </section>
-);
+  );
+};
 
 const ActionRow = ({
+  dot,
   title,
   subtitle,
   link,
@@ -365,37 +440,44 @@ const ActionRow = ({
   disabled,
   secondaryAction,
 }: {
+  dot: DotColor;
   title: string;
   subtitle: string;
   link: string;
-  actionLabel: string;
-  onAction: () => void;
-  disabled: boolean;
+  actionLabel?: string;
+  onAction?: () => void;
+  disabled?: boolean;
   secondaryAction?: ReactNode;
 }) => (
-  <div className="flex items-start gap-3 justify-between">
-    <div className="min-w-0">
-      <Link to={link} className="text-sm font-medium hover:underline">
+  <div className="flex items-center gap-2">
+    <span
+      className={`shrink-0 h-2 w-2 rounded-full ${dotClasses[dot]}`}
+    />
+    <div className="min-w-0 flex-1">
+      <Link to={link} className="text-sm font-medium hover:underline truncate block">
         {title}
       </Link>
-      <p className="text-xs text-muted-foreground">{subtitle}</p>
+      <p className="text-xs text-muted-foreground truncate">{subtitle}</p>
     </div>
-    <div className="flex items-center gap-1.5 shrink-0">
-      {secondaryAction}
-      <Button
-        type="button"
-        size="sm"
-        variant="outline"
-        className="shrink-0"
-        onClick={onAction}
-        disabled={disabled}
-      >
-        {actionLabel}
-      </Button>
-    </div>
+    {(onAction || secondaryAction) && (
+      <div className="flex items-center gap-1.5 shrink-0">
+        {secondaryAction}
+        {onAction && actionLabel && (
+          <Button
+            type="button"
+            size="sm"
+            variant="outline"
+            className="shrink-0"
+            onClick={onAction}
+            disabled={disabled}
+          >
+            {actionLabel}
+          </Button>
+        )}
+      </div>
+    )}
   </div>
 );
 
-const EmptyText = ({ text }: { text: string }) => (
-  <p className="text-xs text-muted-foreground">{text}</p>
-);
+const prettifyServiceType = (value: string) =>
+  value.replaceAll("_", " ").replace(/\b\w/g, (c) => c.toUpperCase());

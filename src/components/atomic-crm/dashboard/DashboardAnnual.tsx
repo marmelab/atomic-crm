@@ -17,7 +17,6 @@ import { Card, CardContent } from "@/components/ui/card";
 import { useRealtimeInvalidation } from "@/hooks/useRealtimeInvalidation";
 
 import { Welcome } from "./Welcome";
-import { DashboardAlertsCard } from "./DashboardAlertsCard";
 import { DashboardAnnualAiSummaryCard } from "./DashboardAnnualAiSummaryCard";
 import { DashboardAtecoChart } from "./DashboardAtecoChart";
 import { DashboardBusinessHealthCard } from "./DashboardBusinessHealthCard";
@@ -120,10 +119,7 @@ export const DashboardAnnual = () => {
       )}
 
       {isCurrentYear && (
-        <>
-          <DashboardAlertsCard alerts={data.alerts} />
-          <DashboardDeadlineTracker />
-        </>
+        <DashboardDeadlineTracker alerts={data.alerts} />
       )}
 
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
@@ -145,7 +141,6 @@ export const DashboardAnnual = () => {
         <DashboardPipelineCard data={data.quotePipeline} />
         <DashboardTopClientsCard
           data={data.topClients}
-          meta={data.meta}
           year={data.selectedYear}
         />
       </div>

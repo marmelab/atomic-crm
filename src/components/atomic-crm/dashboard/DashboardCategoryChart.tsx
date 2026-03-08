@@ -30,7 +30,7 @@ export const DashboardCategoryChart = ({
 }) => (
   <Card className="gap-0">
     <CardHeader className="px-4 pb-3">
-      <CardTitle className="text-base">Categorie nell'anno</CardTitle>
+      <CardTitle className="text-base font-semibold">Categorie</CardTitle>
       <p className="text-xs text-muted-foreground">
         {meta.operationsPeriodLabel} · valore del lavoro netto sconti
       </p>

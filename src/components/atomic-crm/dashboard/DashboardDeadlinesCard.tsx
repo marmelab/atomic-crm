@@ -70,6 +70,8 @@ export const DashboardDeadlinesCard = ({
 
   const highPriority = deadlines.filter((d) => d.priority === "high");
   const lowPriority = deadlines.filter((d) => d.priority === "low");
+  const futureHigh = highPriority.filter((d) => !d.isPast);
+  const totalDue = futureHigh.reduce((sum, d) => sum + d.totalAmount, 0);
 
   if (highPriority.length === 0 && lowPriority.length === 0) {
     return (
@@ -104,6 +106,12 @@ export const DashboardDeadlinesCard = ({
         </div>
       </CardHeader>
       <CardContent className="space-y-3">
+        {futureHigh.length > 0 && (
+          <div className="flex items-center justify-center gap-2 rounded-md py-2 text-sm font-bold bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-200">
+            {futureHigh.length} scadenz{futureHigh.length === 1 ? "a" : "e"} ·{" "}
+            {formatCurrencyPrecise(totalDue)} da versare
+          </div>
+        )}
         {highPriority.map((deadline) => (
           <DeadlineRow
             key={deadline.date + deadline.label}

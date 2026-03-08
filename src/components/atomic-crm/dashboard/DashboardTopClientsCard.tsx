@@ -3,17 +3,14 @@ import { Progress } from "@/components/ui/progress";
 
 import {
   formatCompactCurrency,
-  type DashboardMeta,
   type TopClientPoint,
 } from "./dashboardModel";
 
 export const DashboardTopClientsCard = ({
   data,
-  meta,
   year,
 }: {
   data: TopClientPoint[];
-  meta: DashboardMeta;
   year: number;
 }) => {
   const maxRevenue = data[0]?.revenue ?? 0;
@@ -21,12 +18,9 @@ export const DashboardTopClientsCard = ({
   return (
     <Card className="gap-0">
       <CardHeader className="px-4 pb-3">
-        <CardTitle className="text-base">
-          Clienti principali dell'anno
+        <CardTitle className="text-base font-semibold">
+          Clienti principali
         </CardTitle>
-        <p className="text-xs text-muted-foreground">
-          {meta.operationsPeriodLabel} · valore del lavoro netto sconti
-        </p>
       </CardHeader>
       <CardContent className="px-4 pb-4">
         {!data.length ? (

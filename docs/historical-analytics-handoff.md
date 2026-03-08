@@ -8,22 +8,55 @@ prodotto senza incrociarlo con `docs/README.md` e i documenti `canonical`.
 
 Last updated: 2026-03-08
 
+## Update 2026-03-08 (h) — Full dashboard "Approccio Bambino" redesign
+
+Complete visual overhaul of the annual dashboard. Design principle: every card
+must be understandable in 2 seconds without reading badges, tooltips, or
+collapsible sections. Semantic colors: emerald=money you have, red=money going
+out, amber=money waiting/attention, sky=informational.
+
+Design rules codified in `AGENTS.md` section "Dashboard & KPI Card Design —
+Approccio Bambino" (8 principles).
+
+### Cards redesigned
+
+1. **DashboardCashFlowCard**: two-column layout (Entrano | Escono) with
+   FlowList + result bar ("Restano X" / "Mancano X")
+2. **DashboardNetAvailabilityCard**: three-column layout (Incassato | Spese |
+   Tasse) with result bar, full grid width
+3. **DashboardKpiCards**: 4-col grid, four cards (PendingPayments,
+   MonthlyRevenue, AnnualRevenue, OpenQuotes) with inline DeltaArrow, progress
+   bars, two-column separators
+4. **DashboardDeadlineTracker**: unified "Cosa devi fare" merging old
+   AlertsCard + DeadlineTracker — three counters (Scaduti | Prossimi 7g | Da
+   fare) + flat action list with colored dots
+5. **DashboardDeadlinesCard**: summary bar "N scadenze · €X" at top
+6. **DashboardFiscalKpis**: four cards (Netto | Tasse | Accantona | Tetto)
+   with semantic colors + inline progress bars
+7. **DashboardBusinessHealthCard**: always-visible 4-column layout + margin
+   per category (removed collapsible)
+8. **DashboardPipelineCard**: two-column summary counters at top
+9. **DashboardTopClientsCard**: simplified title
+10. **DashboardRevenueTrendChart**: title "Andamento del lavoro"
+11. **DashboardCategoryChart**: title "Categorie"
+12. **DashboardAnnualAiSummaryCard**: prominent "Spiegami l'anno" button
+    (sky, full-width, lg) + color-coded suggested question chips with priority
+    hierarchy (priority 1 = big grid, priority 2 = small flex-wrap)
+
+### AI suggested questions
+
+Replaced generic questions with actionable ones. 10 questions per year variant
+(current vs past), each with semantic color and visual priority. Questions
+include YoY comparison, net income, client cultivation, margin analysis,
+pipeline, seasonality, receivables, concentration risk.
+
+**File toccati**: 14 dashboard files + `annualAnalysis.ts` + `AGENTS.md`.
+
 ## Update 2026-03-08 (g) — Dashboard visual redesign + card standardization
 
-Redesigned KPI cards with color-coded accent system and standardized structure:
+(Superseded by update (h) above — kept for historical reference.)
 
-1. `DashboardNetAvailabilityCard`: dynamic green/red border+bg based on sign,
-   collapsible breakdown table with `<details>`, big number on top + small
-   total at bottom of table
-2. `DashboardKpiCards`: accent color system (border-l-4 + colored icon + colored
-   value) — blue (month), indigo (year), amber (payments), sky (quotes)
-3. NetAvailability card moved inside KpiCards grid (same size as other cards)
-4. Card order: NetAvailability → Payments → Month → Year → Quotes
-   (cash → urgencies → production → perspective)
-5. 5-column grid on desktop (`xl:grid-cols-5`) — all cards in one row
-6. Standardized card structure: title → big colored number → detail text → white
-   outline badge at bottom (consistent across all KPI cards)
-7. White badges: `variant="outline"` with `bg-white dark:bg-background`
+Redesigned KPI cards with color-coded accent system and standardized structure.
 
 **File toccati**: `DashboardNetAvailabilityCard.tsx`, `DashboardKpiCards.tsx`,
 `DashboardAnnual.tsx`.

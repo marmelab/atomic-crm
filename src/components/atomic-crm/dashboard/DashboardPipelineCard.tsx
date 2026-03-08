@@ -10,6 +10,7 @@ import {
 } from "recharts";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
 
 import {
   formatCompactCurrency,
@@ -31,16 +32,33 @@ export const DashboardPipelineCard = ({
   data: QuotePipelinePoint[];
 }) => {
   const chartData = data.filter((item) => item.count > 0);
+  const totalCount = data.reduce((sum, d) => sum + d.count, 0);
+  const totalAmount = data.reduce((sum, d) => sum + d.amount, 0);
 
   return (
     <Card className="gap-0">
       <CardHeader className="px-4 pb-3">
-        <CardTitle className="text-base">Pipeline preventivi</CardTitle>
-        <p className="text-xs text-muted-foreground">
-          Opportunità dell'anno selezionato per stato
-        </p>
+        <CardTitle className="text-base font-semibold">
+          Pipeline preventivi
+        </CardTitle>
       </CardHeader>
-      <CardContent className="px-2 pb-2">
+      <CardContent className="px-4 pb-2 space-y-3">
+        {/* Summary counters */}
+        <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-0">
+          <div className="text-center">
+            <div className="text-xl font-bold text-sky-700 dark:text-sky-300">
+              {totalCount}
+            </div>
+            <p className="text-[11px] text-muted-foreground">preventivi</p>
+          </div>
+          <Separator orientation="vertical" className="h-8" />
+          <div className="text-center">
+            <div className="text-xl font-bold text-sky-700 dark:text-sky-300 tabular-nums">
+              {formatCompactCurrency(totalAmount)}
+            </div>
+            <p className="text-[11px] text-muted-foreground">valore totale</p>
+          </div>
+        </div>
         {!chartData.length ? (
           <div className="h-[280px] flex items-center justify-center text-sm text-muted-foreground">
             Nessun preventivo disponibile

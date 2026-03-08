@@ -91,6 +91,44 @@ Regola attuale per migration e bootstrap:
   - modifiche Edge Functions -> commit/push + deploy Supabase separato
   - modifiche miste -> entrambe le cose
 
+## Dashboard & KPI Card Design — "Approccio Bambino"
+
+Le card informative (KPI, cash flow, riepilogo) devono essere leggibili da un
+bambino. Un utente deve capire il messaggio in 2 secondi senza leggere badge,
+tooltip o collapsible.
+
+Principi:
+
+1. **Layout spaziale, non testuale**: dividere lo spazio in colonne per
+   contrapporre concetti (entrate vs uscite, count vs valore). Usare
+   `Separator orientation="vertical"` per dividere visivamente.
+2. **Un numero grande per concetto**: ogni colonna ha un importo/count in
+   `text-2xl font-bold` con colore semantico (emerald = soldi che hai,
+   red = soldi che escono, amber = soldi che aspetti).
+3. **Barra risultato**: sotto le colonne, una riga colorata con sfondo pieno
+   (emerald o red) che dice il risultato in linguaggio naturale
+   ("Ti restano X" / "Mancano X" / "Restano X").
+4. **Niente dettagli nascosti**: se un dato va nascosto in un `<details>`,
+   probabilmente non serve nella card. La card mostra solo l'essenziale;
+   i drill-down vivono nelle pagine di dettaglio.
+5. **Niente badge esplicativi**: i badge tipo "Incassi attesi · non lavoro
+   svolto" sono footnote che un bambino non legge. Se il titolo e il layout
+   non bastano a spiegare, il design e' sbagliato.
+6. **Delta inline, non badge**: le variazioni % (mese precedente, YoY) vanno
+   come freccia colorata accanto al numero, non come badge separato.
+7. **Progress bar per rapporti**: quando c'e' un rapporto parte/tutto
+   (incassato vs totale), usare una barra di progresso, non due numeri
+   separati.
+8. **Etichette corte e dirette**: "Entrano" / "Escono" / "Da incassare" /
+   "Lavoro del mese", non "Valore del lavoro svolto nel mese corrente".
+
+Pattern di riferimento nel codebase:
+
+- `DashboardCashFlowCard` — 2 colonne (Entrano | Escono) + barra risultato
+- `DashboardNetAvailabilityCard` — 3 colonne (Incassato | Spese | Tasse) +
+  barra risultato
+- `DashboardKpiCards` — card singole con delta inline e progress bar
+
 ## Frontend Import Rules
 
 - Form inputs (`TextInput`, `SelectInput`, `BooleanInput`, etc.) da `@/components/admin/`, MAI da shadcn/ui

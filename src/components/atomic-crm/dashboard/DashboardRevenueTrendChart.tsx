@@ -32,8 +32,8 @@ export const DashboardRevenueTrendChart = ({
 }) => (
   <Card className="gap-0">
     <CardHeader className="px-4 pb-3">
-      <CardTitle className="text-base">
-        Andamento del lavoro nell'anno
+      <CardTitle className="text-base font-semibold">
+        Andamento del lavoro
       </CardTitle>
       <p className="text-xs text-muted-foreground">
         {isCurrentYear
