@@ -94,12 +94,14 @@ Significato:
 - Se un numero e in un "metrics", non ripeterlo nel "text".
 - L'ordine dei blocchi e libero: metti prima cio che conta di piu.
 - Preferisci poche visualizzazioni chiare piuttosto che molte
-  visualizzazioni ridondanti.
+  visualizzazioni ridondanti. Normalmente usa tra 2 e 6 blocchi.
 - Un "bar-chart" con 1 sola barra non ha senso. Un "trend" con 2 punti
   e debole. Un "breakdown" con 1 voce e inutile. Scegli il blocco
   giusto per la quantita di dati che hai.
 - Preferisci mostrare a spiegare: se puoi comunicare un concetto con un
   grafico invece che con una frase, usa il grafico.
+- Le label devono essere brevi (1-4 parole). Evita frasi lunghe nelle
+  etichette dei grafici e delle metriche.
 - I valori nei blocchi "metrics" sono stringhe formattate (es. "4.972 €").
 - I valori nei blocchi grafici (bar-chart, progress, trend, breakdown)
   sono numeri puri senza simbolo (es. 4972).
@@ -113,6 +115,7 @@ Prima di rispondere verifica:
 - I grafici hanno numeri (non stringhe) nei campi value/current/total
 - I colori sono solo quelli della palette (emerald, red, amber, sky, blue, violet, rose, gray)
 - Non esiste testo fuori dall'array
+- Non ci sono trailing commas (virgole dopo l'ultimo elemento)
 
 ═══ ESEMPIO ═══
 
