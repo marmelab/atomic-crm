@@ -675,6 +675,14 @@ describe("buildDashboardModel annual semantics", () => {
           source_service_id: 99,
           expense_date: "2025-04-05T00:00:00.000Z",
         }),
+        // Client expense — only client_id, no project, no service
+        baseExpense({
+          id: 7,
+          expense_type: "vitto_alloggio",
+          amount: 30,
+          client_id: 1,
+          expense_date: "2025-04-15T00:00:00.000Z",
+        }),
         // Credit — excluded from both
         baseExpense({
           id: 5,
@@ -688,11 +696,11 @@ describe("buildDashboardModel annual semantics", () => {
 
     // ownExpenses = 120 + 50 = 170
     expect(model.kpis.ownExpenses).toBe(170);
-    // clientExpenses = (80 * 0.19) + 25 + (50 * 0.19) = 15.2 + 25 + 9.5 = 49.7
-    expect(model.kpis.clientExpenses).toBeCloseTo(49.7);
+    // clientExpenses = (80 * 0.19) + 25 + (50 * 0.19) + 30 = 15.2 + 25 + 9.5 + 30 = 79.7
+    expect(model.kpis.clientExpenses).toBeCloseTo(79.7);
     // total = own + client
-    expect(model.kpis.annualExpensesTotal).toBeCloseTo(219.7);
-    expect(model.kpis.annualExpensesCount).toBe(5);
+    expect(model.kpis.annualExpensesTotal).toBeCloseTo(249.7);
+    expect(model.kpis.annualExpensesCount).toBe(6);
   });
 
   it("returns zero expenses when none exist in the selected year", () => {

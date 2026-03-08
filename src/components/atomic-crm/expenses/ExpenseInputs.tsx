@@ -1,8 +1,10 @@
 import { AlertTriangle } from "lucide-react";
 import { required, minValue, useGetOne } from "ra-core";
-import { useEffect } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useFormContext, useWatch } from "react-hook-form";
+import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
+import { Switch } from "@/components/ui/switch";
 import { TextInput } from "@/components/admin/text-input";
 import { AutocompleteInput } from "@/components/admin/autocomplete-input";
 import { SelectInput } from "@/components/admin/select-input";
@@ -39,8 +41,32 @@ export const ExpenseInputs = () => {
 const ExpenseIdentityInputs = () => {
   const supplierId = useWatch({ name: "supplier_id" });
   const projectId = useWatch({ name: "project_id" });
+  const clientId = useWatch({ name: "client_id" });
   const sourceServiceId = useWatch({ name: "source_service_id" });
   const { setValue, getValues } = useFormContext();
+
+  const hasLink = !!(projectId || sourceServiceId || clientId || supplierId);
+  const [ownExpense, setOwnExpense] = useState(!hasLink);
+
+  const clearLinkFields = useCallback(() => {
+    for (const field of [
+      "project_id",
+      "client_id",
+      "supplier_id",
+    ] as const) {
+      if (getValues(field)) {
+        setValue(field, null, { shouldDirty: true });
+      }
+    }
+  }, [setValue, getValues]);
+
+  const handleOwnExpenseToggle = useCallback(
+    (checked: boolean) => {
+      setOwnExpense(checked);
+      if (checked) clearLinkFields();
+    },
+    [clearLinkFields],
+  );
 
   const { data: supplier } = useGetOne(
     "suppliers",
@@ -57,6 +83,11 @@ const ExpenseIdentityInputs = () => {
       });
     }
   }, [supplier, setValue, getValues]);
+
+  // Turn off the toggle when the user manually links a project/client
+  useEffect(() => {
+    if (hasLink && ownExpense) setOwnExpense(false);
+  }, [hasLink, ownExpense]);
 
   return (
     <div className="flex flex-col gap-4">
@@ -77,37 +108,57 @@ const ExpenseIdentityInputs = () => {
         validate={required()}
         helperText={false}
       />
-      <ReferenceInput source="project_id" reference="projects">
-        <AutocompleteInput
-          label="Progetto"
-          optionText="name"
-          helperText={false}
-          filterToQuery={buildNameSearchFilter}
+      <div className="flex items-center gap-2 py-1">
+        <Switch
+          id="own-expense-toggle"
+          checked={ownExpense}
+          onCheckedChange={handleOwnExpenseToggle}
         />
-      </ReferenceInput>
-      {!projectId && !sourceServiceId && (
-        <div className="flex items-center gap-2 rounded-md bg-amber-50 px-3 py-2 text-xs text-amber-700 dark:bg-amber-950/30 dark:text-amber-400">
-          <AlertTriangle className="h-3.5 w-3.5 shrink-0" />
-          Senza progetto o servizio collegato, questa spesa sarà contata come
-          costo proprio nella dashboard.
+        <Label
+          htmlFor="own-expense-toggle"
+          className="text-sm font-medium cursor-pointer select-none"
+        >
+          Spesa a mio carico
+        </Label>
+      </div>
+      {ownExpense ? (
+        <div className="flex items-center gap-2 rounded-md bg-blue-50 px-3 py-2 text-xs text-blue-700 dark:bg-blue-950/30 dark:text-blue-400">
+          Costo proprio — non collegato a lavori o clienti.
         </div>
+      ) : (
+        <>
+          <ReferenceInput source="project_id" reference="projects">
+            <AutocompleteInput
+              label="Progetto"
+              optionText="name"
+              helperText={false}
+              filterToQuery={buildNameSearchFilter}
+            />
+          </ReferenceInput>
+          {!projectId && !sourceServiceId && !clientId && (
+            <div className="flex items-center gap-2 rounded-md bg-amber-50 px-3 py-2 text-xs text-amber-700 dark:bg-amber-950/30 dark:text-amber-400">
+              <AlertTriangle className="h-3.5 w-3.5 shrink-0" />
+              Senza collegamento, sara contata come costo proprio.
+            </div>
+          )}
+          <ReferenceInput source="client_id" reference="clients">
+            <AutocompleteInput
+              label="Cliente"
+              optionText="name"
+              helperText={false}
+              filterToQuery={buildNameSearchFilter}
+            />
+          </ReferenceInput>
+          <ReferenceInput source="supplier_id" reference="suppliers">
+            <AutocompleteInput
+              label="Fornitore"
+              optionText="name"
+              helperText={false}
+              filterToQuery={buildNameSearchFilter}
+            />
+          </ReferenceInput>
+        </>
       )}
-      <ReferenceInput source="client_id" reference="clients">
-        <AutocompleteInput
-          label="Cliente"
-          optionText="name"
-          helperText={false}
-          filterToQuery={buildNameSearchFilter}
-        />
-      </ReferenceInput>
-      <ReferenceInput source="supplier_id" reference="suppliers">
-        <AutocompleteInput
-          label="Fornitore"
-          optionText="name"
-          helperText={false}
-          filterToQuery={buildNameSearchFilter}
-        />
-      </ReferenceInput>
     </div>
   );
 };

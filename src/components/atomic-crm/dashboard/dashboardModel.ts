@@ -566,7 +566,7 @@ export const buildDashboardModel = ({
     const amount = getExpenseAmount(expense);
     annualExpensesTotal += amount;
     annualExpensesCount += 1;
-    if (expense.project_id || expense.source_service_id) {
+    if (expense.project_id || expense.source_service_id || expense.client_id) {
       clientExpenses += amount;
     } else {
       ownExpenses += amount;

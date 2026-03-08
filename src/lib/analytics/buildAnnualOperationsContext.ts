@@ -175,7 +175,7 @@ export const buildAnnualOperationsContext = (
   );
   pushCaveat(
     caveats,
-    "Le spese escludono i crediti ricevuti e includono il rimborso km calcolato. Le spese su lavori (con progetto o servizio collegato) sono tipicamente rimborsate dal cliente; le spese proprie (senza progetto ne servizio) sono costi reali.",
+    "Le spese escludono i crediti ricevuti e includono il rimborso km calcolato. Le spese su lavori (con progetto, cliente o servizio collegato) sono tipicamente rimborsate dal cliente; le spese proprie (senza nessun collegamento) sono costi reali.",
   );
   if (model.isCurrentYear) {
     pushCaveat(

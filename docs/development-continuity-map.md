@@ -14,7 +14,7 @@ Last updated: 2026-03-08
 
 ### Recent Updates (cronologico, più recente in alto)
 
-- [2026-03-08 (g)](#update-2026-03-08-g--expense-ownclient-split) — Expense own/client split in dashboard + form hint
+- [2026-03-08 (g)](#update-2026-03-08-g--expense-ownclient-split) — Expense own/client split in dashboard + form UX
 - [2026-03-08 (f)](#update-2026-03-08-f--dashboard-card-reorder) — Dashboard annual: reorder cards for consequential flow
 - [2026-03-08 (e)](#update-2026-03-08-e--dashboard-pareto-features) — Dashboard Pareto features: net availability, tax tracking, cash flow, YoY
 - [2026-03-08 (d)](#update-2026-03-08-d--ai-annual-expense-context--dashboard-alert-links--e2e-real-ai-tests) — AI annual expense context + dashboard alert links + E2E real AI tests
@@ -87,13 +87,14 @@ Last updated: 2026-03-08
 **Cosa è cambiato**
 
 - Split `annualExpensesTotal` into `ownExpenses` and `clientExpenses` using
-  existing `project_id || source_service_id` as discriminant.
+  existing `project_id || source_service_id || client_id` as discriminant.
 - `DashboardNetAvailabilityCard` shows two lines: "Spese proprie" and
   "Spese su lavori (rimborsate dal cliente)".
-- `ExpenseInputs` shows orange warning when creating expense without project
-  or source service.
+- `ExpenseInputs`: "Spesa a mio carico" Switch toggle — hides Progetto,
+  Cliente, Fornitore fields and clears their values when on. Orange warning
+  still shown when toggle is off but no links are set.
 - AI context updated with split values and updated caveat.
-- New unit test covers all cases including `source_service_id` without project.
+- New unit test covers all cases including `source_service_id` and `client_id`.
 
 **File toccati**: `dashboardModelTypes.ts`, `dashboardModel.ts`,
 `DashboardNetAvailabilityCard.tsx`, `ExpenseInputs.tsx`,
