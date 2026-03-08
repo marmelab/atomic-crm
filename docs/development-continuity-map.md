@@ -6,7 +6,7 @@ obbligatoria delle superfici collegate.
 **Quando usarlo:** ogni volta che una modifica tocca comportamento reale del
 prodotto.
 
-Last updated: 2026-03-08 (QuotePDF minimal premium — Slate & Gold palette)
+Last updated: 2026-03-08 (QuotePDF Navy & Petrolio redesign + email color alignment)
 
 ---
 
@@ -14,6 +14,7 @@ Last updated: 2026-03-08 (QuotePDF minimal premium — Slate & Gold palette)
 
 ### Recent Updates (cronologico, più recente in alto)
 
+- [2026-03-08 (l)](#update-2026-03-08-l--quote-pdf-navy-petrolio-redesign--email-color-alignment) — Quote PDF: Navy & Petrolio redesign + email color alignment
 - [2026-03-08 (k)](#update-2026-03-08-k--quote-pdf-visual-redesign--business-profile-fields) — Quote PDF: visual redesign + business profile fields
 - [2026-03-08 (j)](#update-2026-03-08-j--quote-email-bambino-redesign--pdf-attachment) — Quote email: Bambino+Neuro redesign + PDF attachment
 - [2026-03-08 (i)](#update-2026-03-08-i--quote-email-editable-recipient) — Quote email: editable recipient field
@@ -83,6 +84,23 @@ Last updated: 2026-03-08 (QuotePDF minimal premium — Slate & Gold palette)
 - [Nota manutenzione 2026-03-02](#nota-manutenzione-2026-03-02-fix-ci)
 - [Testing Session Log 2026-03-04](#testing-session-log-2026-03-04--e2e-complete-validation)
 - [AI Semantic UI Upgrade 2026-03-04](#ai-semantic-ui-upgrade-2026-03-04--pareto-principle-applied)
+
+---
+
+## Update 2026-03-08 (l) — Quote PDF Navy & Petrolio redesign + email color alignment
+
+**Cosa è cambiato**
+
+- Redesign completo del PDF preventivo con palette Navy (`#1B2A4A`) & Petrolio (`#2A7B88`)
+- Layout card-based: header con banda colore, sezioni con bordi arrotondati e sfondo leggero
+- Badge tipo documento e badge stato preventivo nel header
+- Footer strutturato con dati aziendali (P.IVA, CF, SDI, IBAN)
+- Allineati i colori strutturali delle email preventivo (`quoteStatusEmailRenderers.ts`) alla stessa palette Navy & Petrolio per coerenza visiva cross-canale
+
+**File toccati**
+
+- `src/components/atomic-crm/quotes/QuotePDF.tsx` — redesign completo palette, layout, badge
+- `src/lib/communications/quoteStatusEmailRenderers.ts` — colori strutturali allineati a Navy & Petrolio
 
 ---
 

@@ -20,215 +20,286 @@ import { getQuoteItemLineTotal, sanitizeQuoteItems } from "./quoteItems";
 
 const LOGO_URL = "/logos/logo_rosario_furnari.png";
 
-// ── Palette — Slate & Gold Minimal ────────────────────────────────
-const colors = {
-  ivory: "#F5F2EC", // warm ivory background
-  gold: "#D1B280", // muted gold — accents, lines, totals
-  slate: "#72675A", // warm slate — secondary text, separators
-  charcoal: "#3B3F46", // soft charcoal — primary text
-  heading: "#15181C", // near-black — headings only
-  light: "#EDE9E3", // ivory darker — alt rows
+// ── Palette — Navy & Petrolio ─────────────────────────────────────
+const c = {
+  ink: "#1C1C1E", // near-black — headings, primary text
+  body: "#3A3A3C", // dark gray — body text
+  mid: "#8E8E93", // medium gray — labels, secondary
+  rule: "#D1D1D6", // light gray — table lines
+  faint: "#F2F2F7", // very light — neutral background
+  navy: "#2C3E50", // dark blue-gray — primary accent
+  navyLight: "#E8EDF2", // navy wash — tinted backgrounds
+  petrol: "#456B6B", // deep teal — secondary accent
   white: "#FFFFFF",
 };
+
+const PX = 48; // page horizontal padding
 
 const styles = StyleSheet.create({
   page: {
     fontFamily: "Helvetica",
     fontSize: 10,
     padding: 0,
-    paddingBottom: 56,
-    backgroundColor: colors.white,
-    color: colors.charcoal,
+    paddingBottom: 60,
+    backgroundColor: c.white,
+    color: c.body,
   },
+
   // ── Header ─────────────────────────────────────────────────────
   header: {
-    paddingHorizontal: 48,
-    paddingTop: 40,
+    paddingHorizontal: PX,
+    paddingTop: 32,
     paddingBottom: 20,
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "flex-start",
+    backgroundColor: c.white,
   },
   headerLeft: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 14,
+    gap: 16,
   },
   logo: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
+    width: 52,
+    height: 52,
+    borderRadius: 26,
   },
   brandName: {
     fontSize: 22,
     fontFamily: "Helvetica-Bold",
-    color: colors.heading,
-    letterSpacing: 0.5,
+    color: c.ink,
+    letterSpacing: 0.3,
   },
   brandTagline: {
-    fontSize: 7.5,
-    color: colors.slate,
-    marginTop: 3,
-    letterSpacing: 1.5,
+    fontSize: 7,
+    color: c.mid,
+    marginTop: 4,
+    letterSpacing: 2,
     textTransform: "uppercase" as const,
   },
   headerRight: {
     alignItems: "flex-end" as const,
   },
-  quoteLabel: {
-    fontSize: 26,
+  docTypeBadge: {
+    paddingVertical: 3,
+    paddingHorizontal: 10,
+    borderRadius: 4,
+    backgroundColor: "#FEF2F2",
+    alignSelf: "flex-end" as const,
+  },
+  docTypeText: {
+    fontSize: 9,
     fontFamily: "Helvetica-Bold",
-    color: colors.heading,
+    color: "#B91C1C",
+    letterSpacing: 2,
+    textTransform: "uppercase" as const,
+  },
+  docNumber: {
+    fontSize: 20,
+    fontFamily: "Helvetica-Bold",
+    color: c.ink,
+    marginTop: 2,
+  },
+  docStatusBadge: {
+    marginTop: 6,
+    paddingVertical: 3,
+    paddingHorizontal: 10,
+    borderRadius: 4,
+    alignSelf: "flex-end" as const,
+  },
+  docStatusText: {
+    fontSize: 7.5,
+    fontFamily: "Helvetica-Bold",
     letterSpacing: 1,
+    textTransform: "uppercase" as const,
   },
-  quoteNumber: {
-    fontSize: 8.5,
-    color: colors.slate,
-    textAlign: "right" as const,
-    marginTop: 4,
+
+  // ── Accent line ────────────────────────────────────────────────
+  accentLine: {
+    height: 2.5,
+    backgroundColor: c.navy,
+    marginHorizontal: PX,
+    borderRadius: 1,
   },
-  // ── Gold line ──────────────────────────────────────────────────
-  goldLine: {
-    height: 1.5,
-    backgroundColor: colors.gold,
-    marginHorizontal: 48,
-  },
-  // ── Details bar ────────────────────────────────────────────────
-  detailsBar: {
-    paddingVertical: 8,
-    paddingHorizontal: 48,
-  },
-  detailsBarText: {
-    fontSize: 7,
-    color: colors.slate,
-    textAlign: "center" as const,
-    letterSpacing: 0.3,
-  },
+
+  // (business details moved to footer)
+
   // ── Content ────────────────────────────────────────────────────
   content: {
-    paddingHorizontal: 48,
-    paddingTop: 16,
+    paddingHorizontal: PX,
+    paddingTop: 14,
   },
-  // ── Info columns ───────────────────────────────────────────────
+
+  // ── Info cards ─────────────────────────────────────────────────
   infoRow: {
     flexDirection: "row",
     justifyContent: "space-between",
-    marginBottom: 28,
+    marginBottom: 18,
+    gap: 12,
   },
-  infoBlock: {
+  infoCard: {
     width: "48%",
+    padding: 10,
+    backgroundColor: c.white,
+    borderRadius: 10,
+    borderWidth: 0.5,
+    borderColor: c.rule,
+    borderLeftWidth: 3,
+    borderLeftColor: c.navy,
   },
   infoLabel: {
     fontSize: 7,
     fontFamily: "Helvetica-Bold",
-    color: colors.gold,
+    color: c.navy,
     textTransform: "uppercase" as const,
-    letterSpacing: 1.5,
-    marginBottom: 6,
+    letterSpacing: 2,
+    marginBottom: 5,
+  },
+  infoName: {
+    fontSize: 13,
+    fontFamily: "Helvetica-Bold",
+    color: c.ink,
+    lineHeight: 1.5,
   },
   infoText: {
-    fontSize: 9.5,
-    lineHeight: 1.6,
-    color: colors.charcoal,
-  },
-  infoBold: {
     fontSize: 10,
-    fontFamily: "Helvetica-Bold",
-    lineHeight: 1.6,
-    color: colors.heading,
+    lineHeight: 1.7,
+    color: c.body,
   },
+
   // ── Table ──────────────────────────────────────────────────────
   table: {
     marginBottom: 0,
+    borderWidth: 0.5,
+    borderColor: c.rule,
+    borderRadius: 10,
+    overflow: "hidden",
   },
   tableHeader: {
     flexDirection: "row",
-    borderBottomWidth: 1.5,
-    borderBottomColor: colors.gold,
-    paddingBottom: 8,
+    paddingVertical: 8,
+    paddingHorizontal: 10,
     marginBottom: 0,
+    backgroundColor: c.navyLight,
+    borderBottomWidth: 1,
+    borderBottomColor: c.navy,
   },
   tableHeaderText: {
-    color: colors.slate,
-    fontSize: 7.5,
+    color: c.navy,
+    fontSize: 8,
     fontFamily: "Helvetica-Bold",
     textTransform: "uppercase" as const,
-    letterSpacing: 1,
+    letterSpacing: 1.5,
   },
   tableRow: {
     flexDirection: "row",
-    paddingVertical: 10,
+    paddingVertical: 8,
+    paddingHorizontal: 10,
     borderBottomWidth: 0.5,
-    borderBottomColor: colors.light,
+    borderBottomColor: c.rule,
   },
-  tableRowAlt: {},
-  colDesc: { width: "55%" },
-  colType: { width: "25%" },
-  colAmount: { width: "20%", textAlign: "right" as const },
-  // ── Total ──────────────────────────────────────────────────────
-  totalRow: {
+  colDesc: { width: "50%" },
+  colType: { width: "28%" },
+  colAmount: { width: "22%", textAlign: "right" as const },
+
+  // ── Total hero (email-inspired) ─────────────────────────────────
+  totalHero: {
+    marginTop: 8,
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    backgroundColor: c.navyLight,
+    borderRadius: 8,
     flexDirection: "row",
     justifyContent: "flex-end",
     alignItems: "center",
-    marginTop: 4,
-    paddingTop: 12,
-    borderTopWidth: 1.5,
-    borderTopColor: colors.gold,
+    gap: 16,
   },
   totalLabel: {
-    fontSize: 11,
+    fontSize: 9,
     fontFamily: "Helvetica-Bold",
-    color: colors.slate,
+    color: c.navy,
     textTransform: "uppercase" as const,
-    letterSpacing: 1.5,
-    marginRight: 20,
+    letterSpacing: 2,
   },
   totalAmount: {
-    fontSize: 22,
+    fontSize: 24,
     fontFamily: "Helvetica-Bold",
-    color: colors.heading,
+    color: c.ink,
+    letterSpacing: -0.3,
   },
+
   // ── Notes ──────────────────────────────────────────────────────
   notesSection: {
-    marginTop: 28,
-    paddingTop: 12,
-    borderTopWidth: 0.5,
-    borderTopColor: colors.light,
+    marginTop: 14,
+    padding: 10,
+    backgroundColor: c.white,
+    borderRadius: 10,
+    borderWidth: 0.5,
+    borderColor: c.rule,
+    borderLeftWidth: 3,
+    borderLeftColor: c.petrol,
   },
   notesTitle: {
     fontSize: 7,
     fontFamily: "Helvetica-Bold",
-    color: colors.gold,
+    color: c.petrol,
     textTransform: "uppercase" as const,
-    letterSpacing: 1,
+    letterSpacing: 2,
     marginBottom: 6,
   },
   notesText: {
-    fontSize: 9,
+    fontSize: 10,
     lineHeight: 1.7,
-    color: colors.charcoal,
+    color: c.body,
   },
+
   // ── Footer ─────────────────────────────────────────────────────
   footer: {
     position: "absolute",
-    bottom: 20,
+    bottom: 16,
     left: 0,
     right: 0,
-    paddingHorizontal: 48,
+    paddingHorizontal: PX,
   },
   footerLine: {
     height: 1,
-    backgroundColor: colors.gold,
-    marginBottom: 8,
-    opacity: 0.4,
+    backgroundColor: c.rule,
+    marginBottom: 10,
   },
-  footerText: {
-    fontSize: 7,
-    color: colors.slate,
-    textAlign: "center" as const,
-    lineHeight: 1.6,
+  footerRow: {
+    flexDirection: "row",
+    justifyContent: "center",
+    gap: 6,
+    marginBottom: 3,
+  },
+  footerItem: {
+    fontSize: 6.5,
+    color: c.mid,
+  },
+  footerSep: {
+    fontSize: 6.5,
+    color: c.rule,
   },
 });
+
+// ── Status colors (aligned with email templates) ─────────────────
+const statusColors: Record<string, { bg: string; text: string }> = {
+  primo_contatto: { bg: "#f1f5f9", text: "#334155" },
+  preventivo_inviato: { bg: "#eff6ff", text: "#1e40af" },
+  in_trattativa: { bg: "#fffbeb", text: "#92400e" },
+  accettato: { bg: "#f0fdf4", text: "#166534" },
+  acconto_ricevuto: { bg: "#f0fdfa", text: "#115e59" },
+  in_lavorazione: { bg: "#f5f3ff", text: "#5b21b6" },
+  completato: { bg: "#f0f9ff", text: "#075985" },
+  saldato: { bg: "#ecfdf5", text: "#065f46" },
+  rifiutato: { bg: "#fef2f2", text: "#991b1b" },
+  perso: { bg: "#fafaf9", text: "#57534e" },
+};
+const defaultStatusColor = { bg: "#f1f5f9", text: "#334155" };
+
+const getStatusColor = (status?: string) =>
+  (status && statusColors[status]) || defaultStatusColor;
 
 // ── Helpers ───────────────────────────────────────────────────────
 const fmtDate = (d?: string) => {
@@ -265,16 +336,6 @@ export const QuotePDFDocument = ({
 }: QuotePDFProps) => {
   const items = sanitizeQuoteItems(quoteItems ?? quote.quote_items);
 
-  const detailsParts = [
-    businessProfile.address,
-    businessProfile.email,
-    businessProfile.phone,
-    businessProfile.vatNumber ? `P.IVA ${businessProfile.vatNumber}` : "",
-    businessProfile.fiscalCode ? `CF ${businessProfile.fiscalCode}` : "",
-    businessProfile.sdiCode ? `SDI ${businessProfile.sdiCode}` : "",
-    businessProfile.iban ? `IBAN ${businessProfile.iban}` : "",
-  ].filter(Boolean);
-
   return (
     <Document>
       <Page size="A4" style={styles.page}>
@@ -290,30 +351,36 @@ export const QuotePDFDocument = ({
             </View>
           </View>
           <View style={styles.headerRight}>
-            <Text style={styles.quoteLabel}>Preventivo</Text>
-            <Text style={styles.quoteNumber}>
+            <View style={styles.docTypeBadge}>
+              <Text style={styles.docTypeText}>Preventivo</Text>
+            </View>
+            <Text style={styles.docNumber}>
               {fmtQuoteId(String(quote.id))}
             </Text>
-            <Text style={styles.quoteNumber}>Stato: {statusLabel}</Text>
+            <View
+              style={[
+                styles.docStatusBadge,
+                { backgroundColor: getStatusColor(quote.status).bg },
+              ]}
+            >
+              <Text
+                style={[
+                  styles.docStatusText,
+                  { color: getStatusColor(quote.status).text },
+                ]}
+              >
+                {statusLabel}
+              </Text>
+            </View>
           </View>
-        </View>
-
-        {/* ── Gold line ───────────────────────────────────────── */}
-        <View style={styles.goldLine} />
-
-        {/* ── Business details ────────────────────────────────── */}
-        <View style={styles.detailsBar}>
-          <Text style={styles.detailsBarText}>
-            {detailsParts.join("  ·  ")}
-          </Text>
         </View>
 
         {/* ── Body ────────────────────────────────────────────── */}
         <View style={styles.content}>
           <View style={styles.infoRow}>
-            <View style={styles.infoBlock}>
+            <View style={styles.infoCard}>
               <Text style={styles.infoLabel}>Cliente</Text>
-              <Text style={styles.infoBold}>
+              <Text style={styles.infoName}>
                 {getClientBillingDisplayName(client) ?? client?.name ?? "—"}
               </Text>
               {formatClientBillingAddress(client) && (
@@ -333,8 +400,15 @@ export const QuotePDFDocument = ({
                 </Text>
               ))}
             </View>
-            <View style={styles.infoBlock}>
-              <Text style={styles.infoLabel}>Date</Text>
+            <View
+              style={[
+                styles.infoCard,
+                { borderLeftColor: c.petrol },
+              ]}
+            >
+              <Text style={[styles.infoLabel, { color: c.petrol }]}>
+                Date
+              </Text>
               <Text style={styles.infoText}>
                 Emissione: {fmtDate(quote.created_at)}
               </Text>
@@ -361,7 +435,7 @@ export const QuotePDFDocument = ({
             </View>
           </View>
 
-          {/* Table */}
+          {/* ── Table ─────────────────────────────────────────── */}
           <View style={styles.table}>
             <View style={styles.tableHeader}>
               <Text style={[styles.tableHeaderText, styles.colDesc]}>
@@ -377,19 +451,21 @@ export const QuotePDFDocument = ({
             {items.length > 0 ? (
               items.map((item, index) => (
                 <View
-                  style={[styles.tableRow, index % 2 === 1 ? styles.tableRowAlt : {}]}
+                  style={styles.tableRow}
                   key={`${item.description}-${index}`}
                 >
-                  <Text style={[{ fontSize: 9.5 }, styles.colDesc]}>
+                  <Text style={[{ fontSize: 11 }, styles.colDesc]}>
                     {item.description}
                   </Text>
-                  <Text style={[{ fontSize: 9.5, color: colors.slate }, styles.colType]}>
+                  <Text
+                    style={[{ fontSize: 10, color: c.mid }, styles.colType]}
+                  >
                     {serviceLabel} · {item.quantity} ×{" "}
                     {fmtCurrency(item.unit_price)}
                   </Text>
                   <Text
                     style={[
-                      { fontSize: 9.5, fontFamily: "Helvetica-Bold" },
+                      { fontSize: 11, fontFamily: "Helvetica-Bold" },
                       styles.colAmount,
                     ]}
                   >
@@ -399,15 +475,17 @@ export const QuotePDFDocument = ({
               ))
             ) : (
               <View style={styles.tableRow}>
-                <Text style={[{ fontSize: 9.5 }, styles.colDesc]}>
+                <Text style={[{ fontSize: 11 }, styles.colDesc]}>
                   {quote.description || "Servizio professionale"}
                 </Text>
-                <Text style={[{ fontSize: 9.5, color: colors.slate }, styles.colType]}>
+                <Text
+                  style={[{ fontSize: 10, color: c.mid }, styles.colType]}
+                >
                   {serviceLabel}
                 </Text>
                 <Text
                   style={[
-                    { fontSize: 9.5, fontFamily: "Helvetica-Bold" },
+                    { fontSize: 11, fontFamily: "Helvetica-Bold" },
                     styles.colAmount,
                   ]}
                 >
@@ -417,15 +495,15 @@ export const QuotePDFDocument = ({
             )}
           </View>
 
-          {/* Total */}
-          <View style={styles.totalRow}>
+          {/* ── Total hero — come l'email ────────────────────── */}
+          <View style={styles.totalHero}>
             <Text style={styles.totalLabel}>Totale</Text>
             <Text style={styles.totalAmount}>
               {fmtCurrency(quote.amount)}
             </Text>
           </View>
 
-          {/* Notes */}
+          {/* ── Notes ─────────────────────────────────────────── */}
           {quote.notes && (
             <View style={styles.notesSection}>
               <Text style={styles.notesTitle}>Note</Text>
@@ -434,19 +512,46 @@ export const QuotePDFDocument = ({
           )}
         </View>
 
-        {/* Footer */}
+        {/* ── Footer ──────────────────────────────────────────── */}
         <View style={styles.footer}>
           <View style={styles.footerLine} />
-          <Text style={styles.footerText}>
-            {businessProfile.name}
-            {businessProfile.vatNumber
-              ? ` · P.IVA ${businessProfile.vatNumber}`
-              : ""}
-            {businessProfile.sdiCode
-              ? ` · SDI ${businessProfile.sdiCode}`
-              : ""}
-            {businessProfile.iban ? ` · IBAN ${businessProfile.iban}` : ""}
-          </Text>
+          <View style={styles.footerRow}>
+            {[
+              businessProfile.address,
+              businessProfile.email,
+              businessProfile.phone,
+            ]
+              .filter(Boolean)
+              .map((item, i, arr) => (
+                <Text key={item} style={styles.footerItem}>
+                  {item}
+                  {i < arr.length - 1 ? "  ·  " : ""}
+                </Text>
+              ))}
+          </View>
+          <View style={styles.footerRow}>
+            {[
+              businessProfile.vatNumber
+                ? `P.IVA ${businessProfile.vatNumber}`
+                : "",
+              businessProfile.fiscalCode
+                ? `CF ${businessProfile.fiscalCode}`
+                : "",
+              businessProfile.sdiCode
+                ? `SDI ${businessProfile.sdiCode}`
+                : "",
+              businessProfile.iban
+                ? `IBAN ${businessProfile.iban}`
+                : "",
+            ]
+              .filter(Boolean)
+              .map((item, i, arr) => (
+                <Text key={item} style={styles.footerItem}>
+                  {item}
+                  {i < arr.length - 1 ? "  ·  " : ""}
+                </Text>
+              ))}
+          </View>
         </View>
       </Page>
     </Document>

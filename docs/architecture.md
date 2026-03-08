@@ -427,10 +427,12 @@ Modulo condiviso in `src/components/atomic-crm/invoicing/`:
 - builders puri da service/project/client/quote
 - dialog unico `InvoiceDraftDialog`
 - generazione PDF con watermark "BOZZA - NON VALIDA AI FINI FISCALI"; layout
-  e palette colori allineati al PDF preventivo (header con logo, accent
-  `#e94560`, tabella con header scuro, totale accent, note in box light,
-  footer centrato); colonne totali con larghezze fisse per allineamento
-  a destra; P.IVA e CF emittente visibili nell'header (non solo footer)
+  e palette colori allineati al PDF preventivo; colonne totali con larghezze
+  fisse per allineamento a destra; P.IVA e CF emittente visibili nell'header
+  (non solo footer)
+- identità visiva condivisa: PDF preventivo e email preventivo usano la palette
+  Navy (`#1B2A4A`) & Petrolio (`#2A7B88`) con layout card-based; la bozza
+  fattura segue lo stesso stile per coerenza cross-canale
 - nessuna scrittura DB: output solo di supporto operativo per compilazione
   Aruba
 

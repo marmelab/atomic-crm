@@ -97,6 +97,18 @@ export const getStatusColors = (status: string): StatusColorScheme =>
 const LOGO_URL =
   "https://gestionale-rosario.vercel.app/logos/logo_rosario_furnari-96.png";
 
+// ── Structural colors — Navy & Petrolio (aligned with PDF) ───────────
+const sc = {
+  ink: "#1C1C1E",
+  body: "#3A3A3C",
+  mid: "#8E8E93",
+  rule: "#D1D1D6",
+  faint: "#F2F2F7",
+  navy: "#2C3E50",
+  navyLight: "#E8EDF2",
+  white: "#FFFFFF",
+};
+
 // ── HTML renderer — Bambino + Neuro design ───────────────────────────
 
 export const renderHtml = ({
@@ -148,8 +160,8 @@ export const renderHtml = ({
     .map(
       (row) => `
         <tr>
-          <td style="padding:6px 0;color:#64748b;font-size:13px;">${escapeHtml(row.label)}</td>
-          <td style="padding:6px 0;color:#0f172a;font-size:13px;font-weight:600;text-align:right;">${escapeHtml(row.value)}</td>
+          <td style="padding:6px 0;color:${sc.mid};font-size:13px;">${escapeHtml(row.label)}</td>
+          <td style="padding:6px 0;color:${sc.ink};font-size:13px;font-weight:600;text-align:right;">${escapeHtml(row.value)}</td>
         </tr>`,
     )
     .join("");
@@ -161,7 +173,7 @@ export const renderHtml = ({
           ${toParagraphs(section.body)
             .map(
               (paragraph) =>
-                `<p style="margin:0 0 8px;font-size:14px;line-height:1.6;color:#334155;">${escapeHtml(paragraph)}</p>`,
+                `<p style="margin:0 0 8px;font-size:14px;line-height:1.6;color:${sc.body};">${escapeHtml(paragraph)}</p>`,
             )
             .join("")}
         </div>`,
@@ -176,13 +188,13 @@ export const renderHtml = ({
       : "";
 
   const pdfIndicatorHtml = hasPdfAttachment
-    ? `<div style="margin-top:20px;padding:12px 16px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;text-align:center;">
-        <span style="font-size:13px;color:#64748b;">&#128206; Preventivo PDF completo in allegato</span>
+    ? `<div style="margin-top:20px;padding:12px 16px;background:${sc.faint};border:1px solid ${sc.rule};border-radius:8px;text-align:center;">
+        <span style="font-size:13px;color:${sc.mid};">&#128206; Preventivo PDF completo in allegato</span>
       </div>`
     : "";
 
   const footerHtml = supportEmail
-    ? `Per chiarimenti puoi rispondere a questa mail o scrivere a <a href="mailto:${escapeHtml(supportEmail)}" style="color:${colors.accent};text-decoration:none;">${escapeHtml(supportEmail)}</a>.`
+    ? `Per chiarimenti puoi rispondere a questa mail o scrivere a <a href="mailto:${escapeHtml(supportEmail)}" style="color:${sc.navy};text-decoration:none;font-weight:600;">${escapeHtml(supportEmail)}</a>.`
     : "Per chiarimenti puoi rispondere direttamente a questa mail.";
 
   return `<!doctype html>
@@ -192,17 +204,17 @@ export const renderHtml = ({
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>${escapeHtml(subject)}</title>
   </head>
-  <body style="margin:0;padding:0;background:#f1f5f9;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Arial,sans-serif;">
+  <body style="margin:0;padding:0;background:${sc.navyLight};font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Arial,sans-serif;">
     <div style="display:none;max-height:0;overflow:hidden;opacity:0;">${escapeHtml(previewText)}</div>
     <div style="max-width:600px;margin:0 auto;padding:24px 16px;">
 
       <!--[if mso]><table role="presentation" width="600" align="center" cellpadding="0" cellspacing="0"><tr><td><![endif]-->
-      <div style="background:#ffffff;border-radius:16px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,0.08);">
+      <div style="background:${sc.white};border-radius:16px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,0.08);">
 
         <!-- Logo + Brand -->
         <div style="padding:28px 32px 20px;text-align:center;">
           <img src="${LOGO_URL}" alt="${escapeHtml(businessName)}" width="56" height="56" style="border-radius:50%;display:inline-block;" />
-          <p style="margin:12px 0 0;font-size:18px;font-weight:700;color:#0f172a;letter-spacing:-0.01em;">${escapeHtml(businessName)}</p>
+          <p style="margin:12px 0 0;font-size:18px;font-weight:700;color:${sc.ink};letter-spacing:-0.01em;">${escapeHtml(businessName)}</p>
         </div>
 
         <!-- Status color band -->
@@ -210,7 +222,7 @@ export const renderHtml = ({
 
         <!-- Headline -->
         <div style="padding:28px 32px 0;text-align:center;">
-          <h1 style="margin:0;font-size:22px;font-weight:700;color:#0f172a;line-height:1.3;">${escapeHtml(headline)}</h1>
+          <h1 style="margin:0;font-size:22px;font-weight:700;color:${sc.ink};line-height:1.3;">${escapeHtml(headline)}</h1>
         </div>
 
         <!-- Main content -->
@@ -220,7 +232,7 @@ export const renderHtml = ({
           ${toParagraphs(intro)
             .map(
               (paragraph) =>
-                `<p style="margin:0 0 10px;font-size:15px;line-height:1.7;color:#334155;">${escapeHtml(paragraph)}</p>`,
+                `<p style="margin:0 0 10px;font-size:15px;line-height:1.7;color:${sc.body};">${escapeHtml(paragraph)}</p>`,
             )
             .join("")}
 
@@ -233,12 +245,12 @@ export const renderHtml = ({
               paidAmount > 0
                 ? `<!-- Progress bar -->
             <div style="margin:16px auto 0;max-width:280px;">
-              <div style="background:#e2e8f0;border-radius:999px;height:8px;overflow:hidden;">
+              <div style="background:${sc.rule};border-radius:999px;height:8px;overflow:hidden;">
                 <div style="background:${colors.accent};height:8px;border-radius:999px;width:${progressPercent}%;"></div>
               </div>
               <div style="margin-top:8px;display:flex;justify-content:space-between;">
                 <span style="font-size:12px;color:${colors.accentText};font-weight:600;">Pagato ${fmtAmount(paidAmount)}</span>
-                <span style="font-size:12px;color:#64748b;">${progressPercent}%</span>
+                <span style="font-size:12px;color:${sc.mid};">${progressPercent}%</span>
               </div>
             </div>`
                 : ""
@@ -258,9 +270,9 @@ export const renderHtml = ({
         </div>
 
         <!-- Footer -->
-        <div style="padding:24px 32px;margin-top:20px;border-top:1px solid #e2e8f0;">
-          <p style="margin:0 0 8px;font-size:12px;line-height:1.6;color:#94a3b8;text-align:center;">${footerHtml}</p>
-          <p style="margin:0;font-size:11px;color:#cbd5e1;text-align:center;">${escapeHtml(businessName)}</p>
+        <div style="padding:24px 32px;margin-top:20px;border-top:1px solid ${sc.rule};">
+          <p style="margin:0 0 8px;font-size:12px;line-height:1.6;color:${sc.mid};text-align:center;">${footerHtml}</p>
+          <p style="margin:0;font-size:11px;color:${sc.rule};text-align:center;">${escapeHtml(businessName)}</p>
         </div>
 
       </div>
