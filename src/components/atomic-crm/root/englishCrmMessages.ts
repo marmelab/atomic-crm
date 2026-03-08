@@ -174,25 +174,6 @@ export const englishCrmMessages = {
         context: "Context",
         main_address: "Main address",
       },
-      fields: {
-        name: "Company name",
-        website: "Website",
-        linkedin_url: "LinkedIn URL",
-        phone_number: "Phone number",
-        created_at: "Created at",
-        nb_contacts: "Number of contacts",
-        revenue: "Revenue",
-        sector: "Sector",
-        size: "Size",
-        tax_identifier: "Tax Identifier",
-        address: "Address",
-        city: "City",
-        zipcode: "Zip code",
-        state_abbr: "State",
-        country: "Country",
-        description: "Description",
-        context_links: "Context links",
-      },
       filters: {
         only_mine: "Only companies I manage",
         sector: "Sector",
@@ -275,11 +256,6 @@ export const englishCrmMessages = {
       list: {
         error_loading: "Error loading contacts",
       },
-      fields: {
-        first_name: "First name",
-        last_name: "Last name",
-        last_seen: "Last seen",
-      },
       merge: {
         action: "Merge with another contact",
         confirm: "Merge Contacts",
@@ -331,16 +307,6 @@ export const englishCrmMessages = {
         whats_next: "What's next?",
       },
       upcoming_tasks: "Upcoming Tasks",
-      welcome: {
-        paragraph_1:
-          "is a template designed to help you quickly build your own CRM.",
-        paragraph_2:
-          "This demo runs on a mock API, so you can explore and modify the data. It resets on reload. The full version uses Supabase for the backend.",
-        paragraph_3:
-          ", Atomic CRM is fully open-source. You can find the code at",
-        powered_by: "Powered by",
-        title: "Your CRM Starter Kit",
-      },
     },
     deals: {
       action: {
@@ -359,18 +325,8 @@ export const englishCrmMessages = {
       edit: {
         title: "Edit %{name} deal",
       },
-      fields: {
-        budget: "Budget",
-        category: "Category",
-        expected_closing_date: "Expected closing date",
-        stage: "Stage",
-        description: "Description",
-      },
       inputs: {
         linked_to: "Linked to",
-        name: "Deal name",
-        contacts: "Contacts",
-        category: "Category",
       },
       unarchived: {
         action: "Send back to the board",
@@ -487,13 +443,6 @@ export const englishCrmMessages = {
       action: {
         new: "New user",
       },
-      fields: {
-        first_name: "First name",
-        last_name: "Last name",
-        email: "Email",
-        admin: "Admin",
-        disabled: "Disabled",
-      },
     },
     settings: {
       companies: {
@@ -557,12 +506,6 @@ export const englishCrmMessages = {
       },
       empty: "No tasks yet",
       empty_list_hint: "Tasks added to your contacts will appear here.",
-      fields: {
-        due: "due",
-        due_date: "Due date",
-        description: "Description",
-        type: "Type",
-      },
       filters: {
         later: "Later",
         overdue: "Overdue",

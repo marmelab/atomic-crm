@@ -176,25 +176,6 @@ export const frenchCrmMessages = {
         context: "Contexte",
         main_address: "Adresse principale",
       },
-      fields: {
-        name: "Nom de l'entreprise",
-        website: "Site web",
-        linkedin_url: "LinkedIn",
-        phone_number: "Numéro de téléphone",
-        created_at: "Date de création",
-        nb_contacts: "Nombre de contacts",
-        revenue: "Chiffre d'affaires",
-        sector: "Secteur",
-        size: "Taille",
-        tax_identifier: "Identifiant fiscal",
-        address: "Adresse",
-        city: "Ville",
-        zipcode: "Code postal",
-        state_abbr: "État",
-        country: "Pays",
-        description: "Description",
-        context_links: "URLs de contexte",
-      },
       filters: {
         only_mine: "Seulement les entreprises que je gère",
         sector: "Secteur",
@@ -279,11 +260,6 @@ export const frenchCrmMessages = {
       list: {
         error_loading: "Erreur lors du chargement des contacts",
       },
-      fields: {
-        first_name: "Prénom",
-        last_name: "Nom",
-        last_seen: "Dernière activité",
-      },
       merge: {
         action: "Fusionner avec un autre contact",
         confirm: "Fusionner les contacts",
@@ -336,16 +312,6 @@ export const frenchCrmMessages = {
         whats_next: "Et ensuite ?",
       },
       upcoming_tasks: "Tâches à venir",
-      welcome: {
-        paragraph_1:
-          "est un modèle conçu pour vous aider à créer rapidement votre propre CRM.",
-        paragraph_2:
-          "Cette démo s'exécute sur une API fictive, vous pouvez donc explorer et modifier les données. Il se réinitialise au rechargement. La version complète utilise Supabase pour le backend.",
-        paragraph_3:
-          ", Atomic CRM est entièrement open source. Vous pouvez trouver le code sur",
-        powered_by: "Alimenté par",
-        title: "Votre kit de démarrage CRM",
-      },
     },
     deals: {
       action: {
@@ -483,13 +449,6 @@ export const frenchCrmMessages = {
       action: {
         new: "Nouvel utilisateur",
       },
-      fields: {
-        first_name: "Prénom",
-        last_name: "Nom",
-        email: "E-mail",
-        admin: "Admin",
-        disabled: "Désactivé",
-      },
     },
     settings: {
       companies: {
@@ -553,12 +512,6 @@ export const frenchCrmMessages = {
       },
       empty: "Aucune tâche pour l'instant",
       empty_list_hint: "Les tâches ajoutées à vos contacts apparaîtront ici.",
-      fields: {
-        due: "échéance",
-        due_date: "Date d'échéance",
-        description: "Description",
-        type: "Type",
-      },
       filters: {
         later: "Plus tard",
         overdue: "En retard",
