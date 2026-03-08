@@ -172,6 +172,10 @@
           "type": "registry:component"
         },
         {
+          "path": "src/components/atomic-crm/suppliers/SupplierNotesSection.tsx",
+          "type": "registry:component"
+        },
+        {
           "path": "src/components/atomic-crm/suppliers/SupplierListFilter.tsx",
           "type": "registry:component"
         },
@@ -181,6 +185,10 @@
         },
         {
           "path": "src/components/atomic-crm/suppliers/SupplierInputs.tsx",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/suppliers/SupplierFinancialSection.tsx",
           "type": "registry:component"
         },
         {

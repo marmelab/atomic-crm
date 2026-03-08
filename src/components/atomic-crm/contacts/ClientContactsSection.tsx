@@ -2,6 +2,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useGetList, useGetMany, useShowContext } from "ra-core";
 import { Link } from "react-router";
+import { Mail, Phone, FolderOpen } from "lucide-react";
 
 import type { Client, Project, ProjectContact, Contact } from "../types";
 import { buildContactCreatePath } from "./contactLinking";
@@ -79,7 +80,7 @@ export const ClientContactsSection = () => {
           Nessun referente associato a questo cliente.
         </p>
       ) : (
-        <div className="space-y-2">
+        <div className="divide-y">
           {sortedContacts.map((contact) => {
             const linkedProjectNames = relevantProjectLinks
               .filter((link) => String(link.contact_id) === String(contact.id))
@@ -93,51 +94,54 @@ export const ClientContactsSection = () => {
             const roleLabel = getContactRoleLabel(
               getContactResolvedRole(contact),
             );
+            const email = getContactPrimaryEmail(contact);
+            const phone = getContactPrimaryPhone(contact);
 
             return (
-              <div
-                key={contact.id}
-                className="rounded-lg border px-3 py-3 text-sm"
-              >
-                <div className="flex items-start justify-between gap-3">
-                  <div className="space-y-1">
-                    <Link
-                      to={`/contacts/${contact.id}/show`}
-                      className="font-medium text-primary hover:underline"
-                    >
-                      {getContactDisplayName(contact)}
-                    </Link>
-                    <div className="flex flex-wrap gap-1">
-                      {isContactPrimaryForClient(contact) ? (
-                        <Badge variant="secondary" className="text-[11px]">
-                          Principale cliente
-                        </Badge>
-                      ) : null}
-                      {roleLabel ? (
-                        <Badge variant="outline" className="text-[11px]">
-                          {roleLabel}
-                        </Badge>
-                      ) : null}
-                    </div>
-                    {contact.title ? (
-                      <p className="text-muted-foreground">{contact.title}</p>
-                    ) : null}
-                    {[
-                      getContactPrimaryEmail(contact),
-                      getContactPrimaryPhone(contact),
-                    ]
-                      .filter(Boolean)
-                      .map((value) => (
-                        <p key={value} className="text-muted-foreground">
-                          {value}
-                        </p>
-                      ))}
-                    {linkedProjectNames.length > 0 ? (
-                      <p className="text-xs text-muted-foreground">
-                        Progetti: {linkedProjectNames.join(" · ")}
-                      </p>
-                    ) : null}
-                  </div>
+              <div key={contact.id} className="py-3 first:pt-0 last:pb-0">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <Link
+                    to={`/contacts/${contact.id}/show`}
+                    className="text-sm font-medium text-primary hover:underline"
+                  >
+                    {getContactDisplayName(contact)}
+                  </Link>
+                  {isContactPrimaryForClient(contact) && (
+                    <Badge variant="secondary" className="text-[11px]">
+                      Principale
+                    </Badge>
+                  )}
+                  {roleLabel && (
+                    <Badge variant="outline" className="text-[11px]">
+                      {roleLabel}
+                    </Badge>
+                  )}
+                  {contact.title && (
+                    <span className="text-xs text-muted-foreground">
+                      — {contact.title}
+                    </span>
+                  )}
+                </div>
+
+                <div className="mt-1.5 flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">
+                  {email && (
+                    <span className="inline-flex items-center gap-1">
+                      <Mail className="size-3" />
+                      {email}
+                    </span>
+                  )}
+                  {phone && (
+                    <span className="inline-flex items-center gap-1">
+                      <Phone className="size-3" />
+                      {phone}
+                    </span>
+                  )}
+                  {linkedProjectNames.length > 0 && (
+                    <span className="inline-flex items-center gap-1">
+                      <FolderOpen className="size-3" />
+                      {linkedProjectNames.join(" · ")}
+                    </span>
+                  )}
                 </div>
               </div>
             );

@@ -14,6 +14,11 @@ import { MobileBackButton } from "../misc/MobileBackButton";
 import { TagsListEdit } from "../tags/TagsListEdit";
 import { SupplierContactsSection } from "../contacts/SupplierContactsSection";
 import { SupplierTasksSection } from "./SupplierTasksSection";
+import { SupplierNotesSection } from "./SupplierNotesSection";
+import {
+  SupplierFinancialSummary,
+  SupplierFinancialDocsCard,
+} from "./SupplierFinancialSection";
 import { expenseTypeLabels } from "../expenses/expenseTypes";
 
 const eur = (n: number) =>
@@ -155,6 +160,22 @@ const SupplierShowContent = () => {
       </Card>
 
       {record.id && <SupplierExpensesCard supplierId={String(record.id)} />}
+
+      <Card>
+        <CardContent>
+          <SupplierNotesSection />
+        </CardContent>
+      </Card>
+
+      {record.id && (
+        <Card>
+          <CardContent>
+            <SupplierFinancialSummary supplierId={String(record.id)} />
+            <Separator className="my-4" />
+            <SupplierFinancialDocsCard supplierId={String(record.id)} />
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 };

@@ -59,7 +59,8 @@ const baseDataProvider = supabaseDataProvider({
     ])
     .set("analytics_client_lifetime_competence_revenue", ["client_id"])
     .set("monthly_revenue", ["month", "category"])
-    .set("project_financials", ["project_id"]),
+    .set("project_financials", ["project_id"])
+    .set("financial_documents_summary", ["id"]),
 });
 
 const invokeAuthenticatedEdgeFunction = async <T>(

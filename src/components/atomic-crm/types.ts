@@ -93,7 +93,8 @@ export type ClientTask = {
 } & Pick<RaRecord, "id">;
 
 export type ClientNote = {
-  client_id: Identifier;
+  client_id?: Identifier | null;
+  supplier_id?: Identifier | null;
   text: string;
   date: string;
   attachments?: AttachmentNote[];
@@ -205,7 +206,8 @@ export type Payment = {
 } & Pick<RaRecord, "id">;
 
 export type FinancialDocument = {
-  client_id: Identifier;
+  client_id?: Identifier | null;
+  supplier_id?: Identifier | null;
   direction: "inbound" | "outbound";
   xml_document_code?: string | null;
   document_type:
@@ -229,8 +231,10 @@ export type FinancialDocument = {
 } & Pick<RaRecord, "id">;
 
 export type FinancialDocumentSummary = {
-  client_id: Identifier;
-  client_name: string;
+  client_id?: Identifier | null;
+  supplier_id?: Identifier | null;
+  client_name?: string | null;
+  supplier_name?: string | null;
   direction: "inbound" | "outbound";
   xml_document_code?: string | null;
   document_type:

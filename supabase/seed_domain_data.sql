@@ -24,6 +24,7 @@ TRUNCATE
   public.cash_movements,
   public.financial_documents,
   public.projects,
+  public.suppliers,
   public.clients,
   public.tags,
   public.sales,
@@ -66,7 +67,15 @@ aa549ec7-067d-4371-8cf8-c1eccc630957	ASSOCIAZIONE CULTURALE GUSTARE SICILIA	prod
 9564999a-6b36-4217-9b57-9b30983a70ff	CAMERA A SUD EVENTI	azienda_locale	\N	\N	\N	\N	\N	\N	2026-03-04 15:29:15.01818+00	2026-03-04 15:29:15.01818+00	{}	CAMERA A SUD EVENTI	01317860862	91067240860	VIA NICOTERA, 33	\N	94019	VALGUARNERA CAROPEPE	EN	IT	\N	\N
 745f2bf7-c3e2-4297-b8c0-04a4759fdb4b	Aruba S.p.A.	azienda_locale	\N	\N	\N	\N	\N	\N	2026-03-04 15:29:15.01818+00	2026-03-04 15:29:15.01818+00	{}	Aruba S.p.A.	01573850516	04552920482	Via San Clemente 53	\N	24036	Ponte San Pietro	BG	IT	\N	\N
 819af8b7-8aa6-4607-8d1d-18c9a4d19e69	CAPIZZI FABIO STEFANO	azienda_locale	\N	\N	\N	\N	\N	\N	2026-03-04 15:29:15.01818+00	2026-03-04 15:29:15.01818+00	{}	CAPIZZI FABIO STEFANO	01156030866	CPZFST77E20C351Z	VIA MADDALENA I	53	94010	CALASCIBETTA	EN	IT	\N	\N
-8a371be7-a123-4ee0-9960-33176b4c7bb0	DHL EXPRESS (ITALY) S.R.L.	azienda_locale	\N	\N	\N	\N	\N	\N	2026-03-04 15:29:15.01818+00	2026-03-04 15:29:15.01818+00	{}	DHL EXPRESS (ITALY) S.R.L.	04209680158	04209680158	Via Lombardia 2/A	\N	20068	Peschiera Borromeo	MI	IT	\N	\N
+\.
+
+
+--
+-- Data for Name: suppliers; Type: TABLE DATA; Schema: public; Owner: -
+--
+
+COPY public.suppliers (id, name, vat_number, fiscal_code, phone, email, address, billing_address_street, billing_address_number, billing_postal_code, billing_city, billing_province, billing_country, billing_sdi_code, billing_pec, notes, created_at, updated_at, default_expense_type, tags, logo_url) FROM stdin;
+8a371be7-a123-4ee0-9960-33176b4c7bb0	DHL EXPRESS (ITALY) S.R.L.	04209680158	04209680158	\N	\N	\N	Via Lombardia 2/A	\N	20068	Peschiera Borromeo	MI	IT	\N	\N	\N	2026-03-04 15:29:15.01818+00	2026-03-04 15:29:15.01818+00	\N	{}	\N
 \.
 
 

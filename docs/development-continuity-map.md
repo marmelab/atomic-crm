@@ -1064,6 +1064,9 @@ Controllare sempre:
 - `supabase/functions/invoice_import_confirm/**` (match/create supplier da counterparty)
 - semantic registry (`supplierAnagraficaResource`)
 - `moduleRegistry` (altroMenu entry)
+- `SupplierNotesSection` (note cronologiche via `client_notes.supplier_id`)
+- `SupplierFinancialSection` (summary debiti/crediti + storico documenti fiscali)
+- `financial_documents_summary` view (include `supplier_id`, LEFT JOIN clients)
 
 ### Promemoria
 
