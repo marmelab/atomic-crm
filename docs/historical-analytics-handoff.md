@@ -2732,3 +2732,5 @@ dopo il blocco fiscale. Nessun cambiamento funzionale all'AI o al flusso analyti
 `supabase/functions/unified_crm_answer/index.ts` ha ricevuto solo una
 correzione di formattazione Prettier (whitespace). Nessun cambiamento
 funzionale all'AI o al flusso analytics.
+
+- 2026-03-08: unified_crm_answer reasoning re-enabled at effort 'low' — medium exhausted token budget with full CRM snapshot

@@ -242,6 +242,9 @@ async function answerUnifiedCrmQuestion(
           : "") +
         `Domanda dell'utente:\n${question}\n\n` +
         `Contesto CRM unificato read-only:\n${contextJson}`,
+      reasoning: {
+        effort: "low",
+      },
       max_output_tokens: 2000,
     });
 

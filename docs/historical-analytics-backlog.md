@@ -1716,3 +1716,5 @@ These rules must remain true in all future work:
 - The AI must consume semantic context, not raw tables.
 - `supabase/functions/.env` must stay untracked; commit only
   `supabase/functions/.env.example` with placeholders.
+
+- 2026-03-08: reasoning effort downgraded to 'low' in unified_crm_answer (other EFs keep 'medium' — smaller context)

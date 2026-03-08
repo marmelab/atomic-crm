@@ -1200,3 +1200,5 @@ FiscalConfig, FiscalTaxProfile             ← Fiscale
 /settings            → Impostazioni (Marchio, Etichette, Tipi preventivo, Tipi servizio, Operatività, Note, Attività, AI, Fiscale)
 /profile             → Profilo utente
 ```
+
+- unified_crm_answer: reasoning re-enabled with effort 'low' (medium caused empty outputs due to large CRM context)
