@@ -143,6 +143,24 @@ Quando si aggiunge un nuovo prop finanziario a un componente condiviso:
 
 Dati finanziari errati = rischio critico. MAI ignorabile.
 
+### Pattern — Compact collapsible per mobile
+
+Quando un componente ha contenuti secondari che su desktop vanno bene visibili
+ma su mobile occupano troppo spazio, usare il pattern `compact`:
+
+1. Aggiungere prop `compact?: boolean` al componente
+2. Su mobile passare `compact` (da `MobileDashboard`)
+3. In `compact` mode, wrappare i contenuti secondari in un toggle collassabile:
+   - di default chiuso (`useState(!compact)`)
+   - label breve + `ChevronDown`/`ChevronUp`
+   - i contenuti primari (CTA principale, input libero) restano sempre visibili
+
+Riferimento: `DashboardAnnualAiSummaryCard` — "Spiegami l'anno" + input libero
+sempre visibili, suggerimenti dietro toggle "Suggerimenti".
+
+Replicare questo pattern ogni volta che un componente condiviso desktop/mobile
+ha sezioni che su cellulare distraggono dall'azione principale.
+
 ## AI Visual Blocks Pattern — "Vista smart"
 
 Le risposte AI del CRM possono essere renderizzate come blocchi visivi
