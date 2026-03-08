@@ -1,17 +1,12 @@
 import { useQuery } from "@tanstack/react-query";
+import { Banknote } from "lucide-react";
 
 import type { CrmDataProvider } from "../providers/types";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
+import { Separator } from "@/components/ui/separator";
 import { useDataProvider } from "ra-core";
-
-const formatAsOfDate = (value: string) => {
-  const date = new Date(value);
-  if (Number.isNaN(date.valueOf())) return value;
-  return date.toLocaleDateString("it-IT");
-};
 
 const formatCurrency = (value: number) =>
   value.toLocaleString("it-IT", {
@@ -19,9 +14,6 @@ const formatCurrency = (value: number) =>
     currency: "EUR",
     maximumFractionDigits: 0,
   });
-
-const formatCountLabel = (value: number, singular: string, plural: string) =>
-  `${value} ${value === 1 ? singular : plural}`;
 
 export const DashboardHistoricalCashInflowCard = () => {
   const dataProvider = useDataProvider<CrmDataProvider>();
@@ -34,19 +26,15 @@ export const DashboardHistoricalCashInflowCard = () => {
     return (
       <Card className="gap-0">
         <CardHeader className="px-4 pb-3">
-          <CardTitle className="text-base">
-            Incassi ricevuti nel tempo
-          </CardTitle>
+          <CardTitle className="text-base">Incassi ricevuti</CardTitle>
         </CardHeader>
         <CardContent className="px-4 pb-4 space-y-3">
           <p className="text-sm text-muted-foreground">
             Impossibile caricare gli incassi storici.
           </p>
-          <div className="flex justify-end">
-            <Button variant="outline" size="sm" onClick={() => void refetch()}>
-              Riprova
-            </Button>
-          </div>
+          <Button variant="outline" size="sm" onClick={() => void refetch()}>
+            Riprova
+          </Button>
         </CardContent>
       </Card>
     );
@@ -56,12 +44,10 @@ export const DashboardHistoricalCashInflowCard = () => {
     return (
       <Card className="gap-0">
         <CardHeader className="px-4 pb-3">
-          <CardTitle className="text-base">
-            Incassi ricevuti nel tempo
-          </CardTitle>
+          <CardTitle className="text-base">Incassi ricevuti</CardTitle>
         </CardHeader>
         <CardContent className="px-4 py-10 text-center text-sm text-muted-foreground">
-          Caricamento incassi storici...
+          Caricamento...
         </CardContent>
       </Card>
     );
@@ -71,18 +57,11 @@ export const DashboardHistoricalCashInflowCard = () => {
     return (
       <Card className="gap-0">
         <CardHeader className="px-4 pb-3">
-          <CardTitle className="text-base">
-            Incassi ricevuti nel tempo
-          </CardTitle>
-          <p className="text-xs text-muted-foreground">
-            Qui guardi solo soldi già entrati, letti per data pagamento. Questo
-            blocco resta separato dal valore del lavoro.
-          </p>
+          <CardTitle className="text-base">Incassi ricevuti</CardTitle>
         </CardHeader>
         <CardContent className="px-4 pb-4">
           <p className="text-sm text-muted-foreground">
-            Nessun incasso storico disponibile fino al{" "}
-            {formatAsOfDate(data.meta.asOfDate)}.
+            Nessun incasso storico registrato.
           </p>
         </CardContent>
       </Card>
@@ -104,75 +83,43 @@ export const DashboardHistoricalCashInflowCard = () => {
   return (
     <Card className="gap-0">
       <CardHeader className="px-4 pb-3">
-        <CardTitle className="text-base">Incassi ricevuti nel tempo</CardTitle>
-        <p className="text-xs text-muted-foreground">
-          Qui guardi solo soldi già entrati, letti per data pagamento. Questo
-          blocco resta separato dal valore del lavoro.
-        </p>
+        <CardTitle className="text-base flex items-center gap-2">
+          <Banknote className="h-4 w-4" />
+          Incassi ricevuti
+        </CardTitle>
       </CardHeader>
       <CardContent className="px-4 pb-4 space-y-4">
-        <div className="flex flex-wrap gap-2">
-          <Badge variant="outline">Conta soldi entrati</Badge>
-          <Badge variant="outline">
-            Foto al {formatAsOfDate(data.meta.asOfDate)}
-          </Badge>
-          {visibleRows.some((row) => row.isYtd) ? (
-            <Badge variant="outline">{data.meta.currentYear} finora</Badge>
-          ) : null}
-        </div>
-
-        <div className="grid gap-3 md:grid-cols-2">
-          <div className="rounded-lg border bg-card px-4 py-3">
-            <p className="text-xs text-muted-foreground">
-              {totalMetric?.label ?? "Incassi storici totali"}
-            </p>
-            <p className="mt-1 text-xl font-semibold">
+        {/* Two-column summary — Bambino style */}
+        <div className="flex items-stretch gap-0">
+          <div className="flex-1 text-center py-2">
+            <p className="text-xs text-muted-foreground">Totale storico</p>
+            <p className="text-xl sm:text-2xl font-bold text-emerald-700 dark:text-emerald-300 tabular-nums">
               {totalMetric?.formattedValue ?? "N/D"}
             </p>
-            <p className="mt-1 text-xs text-muted-foreground">
-              {totalMetric?.subtitle ??
-                "Somma degli incassi ricevuti fino alla foto attuale."}
-            </p>
           </div>
-
-          <div className="rounded-lg border bg-card px-4 py-3">
+          <Separator orientation="vertical" className="mx-2" />
+          <div className="flex-1 text-center py-2">
             <p className="text-xs text-muted-foreground">
-              {latestClosedMetric?.label ?? "Ultimo anno chiuso incassato"}
+              {latestClosedMetric?.comparisonLabel ?? "Ultimo anno"}
             </p>
-            <p className="mt-1 text-xl font-semibold">
+            <p className="text-xl sm:text-2xl font-bold text-amber-700 dark:text-amber-300 tabular-nums">
               {latestClosedMetric?.formattedValue ?? "N/D"}
-            </p>
-            <p className="mt-1 text-xs text-muted-foreground">
-              {latestClosedMetric?.comparisonLabel
-                ? `Qui guardi solo il ${latestClosedMetric.comparisonLabel}, ultimo anno chiuso disponibile.`
-                : "Non esiste ancora un anno chiuso con incassi nella serie."}
             </p>
           </div>
         </div>
 
-        <div className="space-y-3">
-          <div className="space-y-1">
-            <p className="text-sm font-medium">
-              Come si distribuiscono gli incassi
-            </p>
-            <p className="text-xs text-muted-foreground">
-              Ultimi anni disponibili, senza confonderli con i compensi.
-            </p>
-          </div>
+        <Separator />
 
+        {/* Yearly bars */}
+        <div className="space-y-3">
           {visibleRows.map((row) => (
-            <div key={row.year} className="space-y-1.5">
+            <div key={row.year} className="space-y-1">
               <div className="flex items-center justify-between gap-3 text-sm">
-                <div className="flex items-center gap-2 min-w-0">
-                  <span className="font-medium">
-                    {row.year}
-                    {row.isYtd ? " finora" : ""}
-                  </span>
-                  {row.isYtd ? (
-                    <Badge variant="secondary">parziale</Badge>
-                  ) : null}
-                </div>
-                <span className="text-muted-foreground whitespace-nowrap">
+                <span className="font-medium">
+                  {row.year}
+                  {row.isYtd ? " finora" : ""}
+                </span>
+                <span className="font-semibold tabular-nums whitespace-nowrap">
                   {formatCurrency(row.cashInflow)}
                 </span>
               </div>
@@ -181,21 +128,12 @@ export const DashboardHistoricalCashInflowCard = () => {
                   maxCashInflow > 0 ? (row.cashInflow / maxCashInflow) * 100 : 0
                 }
               />
-              <p className="text-xs text-muted-foreground">
-                {formatCountLabel(
-                  row.paymentsCount,
-                  "pagamento ricevuto",
-                  "pagamenti ricevuti",
-                )}{" "}
-                · {formatCountLabel(row.projectsCount, "progetto", "progetti")}{" "}
-                · {formatCountLabel(row.clientsCount, "cliente", "clienti")}
+              <p className="text-[11px] text-muted-foreground">
+                {row.paymentsCount} pag. · {row.projectsCount} prog. ·{" "}
+                {row.clientsCount} cl.
               </p>
             </div>
           ))}
-        </div>
-
-        <div className="rounded-md bg-muted px-3 py-2 text-xs text-muted-foreground">
-          {data.caveats[0]}
         </div>
       </CardContent>
     </Card>

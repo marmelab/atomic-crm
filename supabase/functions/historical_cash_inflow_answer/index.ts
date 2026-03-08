@@ -5,6 +5,7 @@ import { UserMiddleware } from "../_shared/authentication.ts";
 import { corsHeaders, OptionsMiddleware } from "../_shared/cors.ts";
 import { getUserSale } from "../_shared/getUserSale.ts";
 import { createErrorResponse } from "../_shared/utils.ts";
+import { visualModeInstructions } from "../_shared/visualModePrompt.ts";
 
 const defaultHistoricalAnalysisModel = "gpt-5.2";
 const allowedModels = new Set(["gpt-5.2", "gpt-5-mini", "gpt-5-nano"]);
@@ -16,7 +17,7 @@ const openai = new OpenAI({
   apiKey: openaiApiKey,
 });
 
-const instructions = `
+const baseInstructions = `
 Sei un analista che parla con il titolare del gestionale Rosario Furnari.
 Usa solo il contesto JSON fornito e la domanda dell'utente.
 Qui stai leggendo incassi ricevuti, non valore del lavoro per competenza.
@@ -30,6 +31,9 @@ Preferisci:
 - "soldi già ricevuti" invece di "cash inflow"
 - "incassi" invece di "competenza" o "fatturato" se il contesto non lo dimostra
 Non citare mai codici interni.
+`.trim();
+
+const markdownOutputInstructions = `
 Rispondi in markdown semplice, con queste sezioni:
 
 ## Risposta breve
@@ -57,7 +61,7 @@ async function answerHistoricalCashInflowQuestion(
     return createErrorResponse(401, "Unauthorized");
   }
 
-  const { context, question, model } = await req.json();
+  const { context, question, model, visualMode } = await req.json();
 
   if (!context) {
     return createErrorResponse(400, "Missing historical cash inflow context");
@@ -80,6 +84,11 @@ async function answerHistoricalCashInflowQuestion(
       ? model
       : defaultHistoricalAnalysisModel;
 
+  const isVisual = visualMode === true;
+  const instructions = isVisual
+    ? `${baseInstructions}\n\n${visualModeInstructions}`
+    : `${baseInstructions}\n\n${markdownOutputInstructions}`;
+
   try {
     const response = await openai.responses.create({
       model: selectedModel,
@@ -88,27 +97,34 @@ async function answerHistoricalCashInflowQuestion(
       reasoning: {
         effort: "medium",
       },
-      max_output_tokens: 900,
+      max_output_tokens: isVisual ? 2500 : 900,
     });
 
-    const answerMarkdown = response.output_text?.trim();
+    const outputText = response.output_text?.trim();
 
-    if (!answerMarkdown) {
+    if (!outputText) {
       return createErrorResponse(
         502,
         "OpenAI ha restituito una risposta vuota",
       );
     }
 
-    return new Response(
-      JSON.stringify({
-        data: {
+    const data = isVisual
+      ? {
           question: trimmedQuestion,
           model: selectedModel,
           generatedAt: new Date().toISOString(),
-          answerMarkdown,
-        },
-      }),
+          blocks: JSON.parse(outputText),
+        }
+      : {
+          question: trimmedQuestion,
+          model: selectedModel,
+          generatedAt: new Date().toISOString(),
+          answerMarkdown: outputText,
+        };
+
+    return new Response(
+      JSON.stringify({ data }),
       {
         headers: { "Content-Type": "application/json", ...corsHeaders },
       },

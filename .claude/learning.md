@@ -41,6 +41,7 @@
 | **Workflow** | WF-5  | E2E test → valida sistema, non adattare   |
 | **Workflow** | WF-6  | Commit codice → docs+memoria NELLO STESSO commit |
 | **UI**       | UI-7  | Componente desktop con props → verificare mobile |
+| **UI**       | UI-8  | Nuova superficie AI → pattern card unificata     |
 
 ---
 
@@ -90,6 +91,21 @@
 **Fare**: cercare TUTTE le chiamate di quel componente nel codebase (`Grep`) e verificare che i nuovi props siano passati anche da `MobileDashboard`, `Mobile*`, e qualsiasi altro consumer
 **Perché**: `MobileDashboard` chiamava `DashboardKpiCards` senza `fiscalKpis` e `taxesPaid` → TASSE mostrava "—" su mobile con dati finanziari SBAGLIATI. Dati finanziari errati = rischio critico per l'utente. MAI lasciare un consumer senza i props necessari.
 **Check**: `grep -r "ComponentName" src/ --include="*.tsx"` per trovare tutti i consumer
+
+### UI-8: Nuova superficie AI → pattern card unificata
+
+**Quando**: aggiungo AI a una nuova sezione del prodotto (es. storico, dettaglio)
+**Fare**: replicare il pattern `DashboardHistoricalAiCard` / `DashboardAnnualAiSummaryCard`:
+
+1. Vista smart toggle (localStorage key unica)
+2. Suggerimenti colorate con `HistoricalSuggestedQuestion` (color + priority + scope)
+3. Input libero + Enter submit
+4. PDF export via afterprint (`[data-print-portal]`)
+5. Compact mode per mobile (collapsible suggestions)
+6. Provider con `{ visualMode }` option
+7. Edge Function con `visualModeInstructions` condivise
+
+**Perché**: la checklist in AGENTS.md ("AI Visual Blocks Pattern") ha 6 step — questo trigger aggiunge i dettagli UI mancanti (suggerimenti colorate, compact mode, scope selector)
 
 ---
 

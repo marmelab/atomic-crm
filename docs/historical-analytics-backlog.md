@@ -8,6 +8,28 @@ incrociarlo con `docs/README.md`, `docs/architecture.md` e i documenti
 
 Last updated: 2026-03-08
 
+## Update 2026-03-08 (c) — Historical dashboard Bambino redesign
+
+Slice completata: `Historical dashboard "Approccio Bambino" — unified AI card, Vista smart, KPI redesign, CashInflow redesign`.
+
+Deliverable chiusi:
+
+- Unified `DashboardHistoricalAiCard` con scope selector (storico/incassi), Vista smart, suggested questions colorate, PDF export, compact mobile
+- KPI cards Bambino con icon badge colorate e numeri grandi
+- Cash Inflow Card Bambino con 2 colonne + progress bars
+- Provider: 4 metodi storici con `{ visualMode }` option
+- 4 Edge Functions aggiornate con visualMode support
+- Tipi: `HistoricalVisualSummary`, `HistoricalVisualAnswer`, `HistoricalSuggestedQuestion`
+- Eliminati 4 file obsoleti (2 componenti + 2 test)
+- Layout storico semplificato, inline subtitle, AI card in cima
+
+Test: 58 file pass, typecheck clean.
+
+Backlog immediato residuo:
+
+- deploy Edge Functions `historical_analytics_summary`, `historical_analytics_answer`, `historical_cash_inflow_summary`, `historical_cash_inflow_answer`
+- validazione visuale su stack locale
+
 ## Update 2026-03-08 (b)
 
 Slice completata: `Dashboard Pareto features — net availability, tax tracking, cash flow, YoY`.

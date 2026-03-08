@@ -54,15 +54,9 @@ vi.mock("./DashboardHistoricalCashInflowCard", () => ({
   ),
 }));
 
-vi.mock("./DashboardHistoricalAiSummaryCard", () => ({
-  DashboardHistoricalAiSummaryCard: () => (
-    <div data-testid="historical-ai-summary-card" />
-  ),
-}));
-
-vi.mock("./DashboardHistoricalCashInflowAiCard", () => ({
-  DashboardHistoricalCashInflowAiCard: () => (
-    <div data-testid="historical-cash-inflow-ai-card" />
+vi.mock("./DashboardHistoricalAiCard", () => ({
+  DashboardHistoricalAiCard: () => (
+    <div data-testid="historical-ai-card" />
   ),
 }));
 
@@ -191,7 +185,7 @@ describe("DashboardHistorical", () => {
     ).toBeInTheDocument();
   });
 
-  it("renders contextual YoY warnings when closed years are insufficient", () => {
+  it("renders all dashboard sections with unified AI card", () => {
     mockUseHistoricalDashboardData.mockReturnValue({
       data: makeModel({
         qualityFlags: ["insufficient_closed_years"],
@@ -214,28 +208,27 @@ describe("DashboardHistorical", () => {
 
     renderWithQueryClient(<DashboardHistorical />);
 
-    expect(screen.getByText("Tradotto in semplice")).toBeInTheDocument();
+    // Subtitle inline replaces old reading guide
     expect(
-      screen.getByText("Spiegazione semplice dei numeri"),
+      screen.getByText(/Valore del lavoro dal/),
     ).toBeInTheDocument();
-    expect(
-      screen.getByText(
-        "La crescita va letta solo tra anni completi: 2025 vs anno precedente.",
-      ),
-    ).toBeInTheDocument();
-    expect(
-      screen.getByText(
-        "Per misurare la crescita tra un anno e l'altro servono almeno due anni completi.",
-      ),
-    ).toBeInTheDocument();
+
+    // Unified AI card (replaces 2 separate AI cards)
+    expect(screen.getByTestId("historical-ai-card")).toBeInTheDocument();
+
+    // All section cards present
+    expect(screen.getByTestId("historical-kpis")).toBeInTheDocument();
     expect(
       screen.getByTestId("historical-cash-inflow-card"),
     ).toBeInTheDocument();
     expect(
-      screen.getByTestId("historical-ai-summary-card"),
+      screen.getByTestId("historical-revenue-chart"),
     ).toBeInTheDocument();
     expect(
-      screen.getByTestId("historical-cash-inflow-ai-card"),
+      screen.getByTestId("historical-category-mix-chart"),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByTestId("historical-top-clients-card"),
     ).toBeInTheDocument();
   });
 });

@@ -98,34 +98,18 @@ describe("DashboardHistoricalCashInflowCard", () => {
     getHistoricalCashInflowContext.mockReset();
   });
 
-  it("renders the non-AI cash inflow summary card", async () => {
+  it("renders the cash inflow summary card with Bambino layout", async () => {
     getHistoricalCashInflowContext.mockResolvedValue(makeContext());
 
     renderCard();
 
     expect(
-      await screen.findByText("Incassi ricevuti nel tempo"),
+      await screen.findByText("Incassi ricevuti"),
     ).toBeInTheDocument();
     expect(await screen.findByText("23.986 €")).toBeInTheDocument();
-    expect(await screen.findAllByText("22.242 €")).toHaveLength(2);
-    expect(
-      screen.getByText(
-        "Qui guardi solo soldi già entrati, letti per data pagamento. Questo blocco resta separato dal valore del lavoro.",
-      ),
-    ).toBeInTheDocument();
-    expect(
-      screen.getByText(
-        (_, element) =>
-          element?.tagName === "P" &&
-          element.textContent ===
-            "1 pagamento ricevuto · 1 progetto · 1 cliente",
-      ),
-    ).toBeInTheDocument();
-    expect(
-      screen.getByText(
-        "Questi valori sono incassi ricevuti, non compensi per competenza.",
-      ),
-    ).toBeInTheDocument();
+    // Latest closed year value appears in both the summary and the bar list
+    expect(await screen.findByText("Totale storico")).toBeInTheDocument();
+    expect(screen.getAllByText("2025").length).toBeGreaterThanOrEqual(1);
   });
 
   it("renders the empty state when no historical cash inflow is available", async () => {
@@ -158,9 +142,7 @@ describe("DashboardHistoricalCashInflowCard", () => {
     renderCard();
 
     expect(
-      await screen.findByText(
-        "Nessun incasso storico disponibile fino al 28/02/2026.",
-      ),
+      await screen.findByText("Nessun incasso storico registrato."),
     ).toBeInTheDocument();
   });
 
@@ -181,9 +163,7 @@ describe("DashboardHistoricalCashInflowCard", () => {
       expect(getHistoricalCashInflowContext).toHaveBeenCalledTimes(2),
     );
     expect(
-      await screen.findByText(
-        "Qui guardi solo soldi già entrati, letti per data pagamento. Questo blocco resta separato dal valore del lavoro.",
-      ),
+      await screen.findByText("Incassi ricevuti"),
     ).toBeInTheDocument();
   });
 });

@@ -8,6 +8,41 @@ prodotto senza incrociarlo con `docs/README.md` e i documenti `canonical`.
 
 Last updated: 2026-03-08
 
+## Update 2026-03-08 (o) — Historical dashboard "Approccio Bambino" redesign
+
+Complete visual overhaul of the historical dashboard to match the annual dashboard
+level. Applied the same "Approccio Bambino" design (readable in 2 seconds, semantic
+colors, big numbers, no verbose subtitles).
+
+### Changes
+
+- **Unified AI card**: `DashboardHistoricalAiCard` replaces the two old separate
+  cards (`DashboardHistoricalAiSummaryCard` + `DashboardHistoricalCashInflowAiCard`).
+  Single card with scope selector (storico/incassi), Vista smart toggle, color-coded
+  suggested questions (14 questions with priority 1/2, scoped by storico/incassi),
+  free text input, PDF export via afterprint pattern. Compact mode for mobile with
+  collapsible suggestions.
+- **KPI cards Bambino**: 4-card grid with colored icon badges (sky=Lavoro totale,
+  emerald=Anno migliore, amber=Ultimo anno, dynamic=Crescita YoY). Big numbers,
+  short labels, inline comparison footer.
+- **Cash Inflow Card Bambino**: 2-column summary (Totale storico | Ultimo anno) with
+  Separator vertical, yearly progress bars with abbreviated labels.
+- **Layout**: inline subtitle in DashboardHistorical, AI card at top, simplified grid.
+- **Provider**: all 4 historical methods accept `{ visualMode?: boolean }`.
+- **Edge Functions**: all 4 historical EFs (summary, answer, cash_inflow_summary,
+  cash_inflow_answer) updated with visualMode support using shared
+  `visualModePrompt.ts`.
+- **Types**: `HistoricalVisualSummary`, `HistoricalVisualAnswer`,
+  `HistoricalSuggestedQuestion` with color/priority/scope.
+- **Deleted**: `DashboardHistoricalAiSummaryCard.tsx` + test,
+  `DashboardHistoricalCashInflowAiCard.tsx` + test (replaced by unified card).
+- **Mobile**: `DashboardHistorical compact` prop passed from MobileDashboard.
+
+### Deploy required
+
+Edge Functions: `historical_analytics_summary`, `historical_analytics_answer`,
+`historical_cash_inflow_summary`, `historical_cash_inflow_answer`.
+
 ## Update 2026-03-08 (n) — Fix PDF export for mobile (afterprint)
 
 `window.print()` is async on iOS Safari — the old code removed the print portal

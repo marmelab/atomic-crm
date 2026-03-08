@@ -10,6 +10,8 @@ import {
 import {
   type HistoricalAnalyticsAnswer,
   type HistoricalAnalyticsSummary,
+  type HistoricalVisualAnswer,
+  type HistoricalVisualSummary,
 } from "@/lib/analytics/historicalAnalysis";
 import { extractEdgeFunctionErrorMessage } from "./edgeFunctionError";
 import type { BaseProvider, InvokeEdgeFunction } from "./dataProviderTypes";
@@ -43,17 +45,19 @@ export const buildAnalyticsProviderMethods = (deps: {
     ): Promise<AnnualOperationsContext> {
       return annualContext(year);
     },
-    async generateHistoricalAnalyticsSummary(): Promise<HistoricalAnalyticsSummary> {
+    async generateHistoricalAnalyticsSummary(
+      options?: { visualMode?: boolean },
+    ): Promise<HistoricalAnalyticsSummary | HistoricalVisualSummary> {
       const [context, model] = await Promise.all([
         historicalContext(),
         deps.getConfiguredHistoricalAnalysisModel(),
       ]);
 
       const { data, error } = await deps.invokeEdgeFunction<{
-        data: HistoricalAnalyticsSummary;
+        data: HistoricalAnalyticsSummary | HistoricalVisualSummary;
       }>("historical_analytics_summary", {
         method: "POST",
-        body: { context, model },
+        body: { context, model, visualMode: options?.visualMode ?? false },
       });
 
       if (!data || error) {
@@ -68,17 +72,19 @@ export const buildAnalyticsProviderMethods = (deps: {
 
       return data.data;
     },
-    async generateHistoricalCashInflowSummary(): Promise<HistoricalAnalyticsSummary> {
+    async generateHistoricalCashInflowSummary(
+      options?: { visualMode?: boolean },
+    ): Promise<HistoricalAnalyticsSummary | HistoricalVisualSummary> {
       const [context, model] = await Promise.all([
         cashInflowContext(),
         deps.getConfiguredHistoricalAnalysisModel(),
       ]);
 
       const { data, error } = await deps.invokeEdgeFunction<{
-        data: HistoricalAnalyticsSummary;
+        data: HistoricalAnalyticsSummary | HistoricalVisualSummary;
       }>("historical_cash_inflow_summary", {
         method: "POST",
-        body: { context, model },
+        body: { context, model, visualMode: options?.visualMode ?? false },
       });
 
       if (!data || error) {
@@ -123,7 +129,8 @@ export const buildAnalyticsProviderMethods = (deps: {
     },
     async askHistoricalAnalyticsQuestion(
       question: string,
-    ): Promise<HistoricalAnalyticsAnswer> {
+      options?: { visualMode?: boolean },
+    ): Promise<HistoricalAnalyticsAnswer | HistoricalVisualAnswer> {
       const trimmedQuestion = question.trim();
       if (!trimmedQuestion) {
         throw new Error("Scrivi una domanda prima di inviare la richiesta.");
@@ -135,10 +142,15 @@ export const buildAnalyticsProviderMethods = (deps: {
       ]);
 
       const { data, error } = await deps.invokeEdgeFunction<{
-        data: HistoricalAnalyticsAnswer;
+        data: HistoricalAnalyticsAnswer | HistoricalVisualAnswer;
       }>("historical_analytics_answer", {
         method: "POST",
-        body: { context, question: trimmedQuestion, model },
+        body: {
+          context,
+          question: trimmedQuestion,
+          model,
+          visualMode: options?.visualMode ?? false,
+        },
       });
 
       if (!data || error) {
@@ -155,7 +167,8 @@ export const buildAnalyticsProviderMethods = (deps: {
     },
     async askHistoricalCashInflowQuestion(
       question: string,
-    ): Promise<HistoricalAnalyticsAnswer> {
+      options?: { visualMode?: boolean },
+    ): Promise<HistoricalAnalyticsAnswer | HistoricalVisualAnswer> {
       const trimmedQuestion = question.trim();
       if (!trimmedQuestion) {
         throw new Error("Scrivi una domanda prima di inviare la richiesta.");
@@ -167,10 +180,15 @@ export const buildAnalyticsProviderMethods = (deps: {
       ]);
 
       const { data, error } = await deps.invokeEdgeFunction<{
-        data: HistoricalAnalyticsAnswer;
+        data: HistoricalAnalyticsAnswer | HistoricalVisualAnswer;
       }>("historical_cash_inflow_answer", {
         method: "POST",
-        body: { context, question: trimmedQuestion, model },
+        body: {
+          context,
+          question: trimmedQuestion,
+          model,
+          visualMode: options?.visualMode ?? false,
+        },
       });
 
       if (!data || error) {

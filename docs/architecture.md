@@ -15,6 +15,7 @@ Stato del documento:
 
 ## Changelog
 
+- 2026-03-08: Historical dashboard "Approccio Bambino" redesign — unified DashboardHistoricalAiCard (replaces 2 old AI cards) with Vista smart, scope selector (storico/incassi), color-coded suggested questions, PDF export, compact mobile mode. KPI cards and CashInflowCard redesigned with Bambino layout (semantic colors, big numbers, icon badges). Deleted: DashboardHistoricalAiSummaryCard, DashboardHistoricalCashInflowAiCard. Edge Functions: all 4 historical EFs updated with visualMode support.
 - 2026-03-08: AI visual mode ("Vista smart") — opt-in toggle on annual AI card. When active, Edge Functions return structured JSON blocks (text, metrics, bar-chart, trend, progress, comparison, breakdown, callout, action) rendered by AiBlockRenderer.tsx. Provider methods accept `{ visualMode }` option. Toggle persisted in localStorage. Shared prompt in `_shared/visualModePrompt.ts`.
 - 2026-03-08: Dashboard Pareto features — 4 new dashboard capabilities: (1) DashboardNetAvailabilityCard showing cash-received minus expenses minus taxes; (2) fiscal deadline payment tracking via useFiscalPaymentTracking (localStorage persistence); (3) DashboardCashFlowCard with 30-day inflow/outflow forecast combining pending payments and fiscal deadlines; (4) Year-over-year comparison (YearOverYearComparison type + DashboardYoyBadge) on KPI cards; AI context enriched with cash_received_net metric and yearOverYear section; Edge Function prompts updated
 - 2026-03-08: Dashboard alert action links — each alert row in DashboardAlertsCard now has a discrete icon linking to the service/quote detail page
@@ -1029,11 +1030,10 @@ src/components/atomic-crm/dashboard/
 ├── fiscalDeadlines.ts                  # buildDeadlines (F24/INPS high-priority + bolli/dichiarazione low-priority)
 ├── useGenerateFiscalTasks.ts           # Hook: genera client_tasks dai deadline fiscali calcolati
 ├── DashboardAnnual.tsx                 # Vista Annuale con guida lettura, AI card e simulazione fiscale
-├── DashboardHistorical.tsx             # Vista Storico con guida, KPI, cash inflow e AI card
+├── DashboardHistorical.tsx             # Vista Storico con AI card unificata, KPI Bambino, cash inflow
+├── DashboardHistoricalAiCard.tsx       # AI unificata storico: Vista smart, scope storico/incassi, PDF, compact
 ├── DashboardAnnualAiSummaryCard.tsx    # AI guidata sul contesto annual_operations
-├── DashboardHistoricalAiSummaryCard.tsx # AI guidata sul contesto storico
-├── DashboardHistoricalCashInflowAiCard.tsx # AI dedicata agli incassi storici
-├── DashboardHistoricalCashInflowCard.tsx # Vista non-AI degli incassi storici
+├── DashboardHistoricalCashInflowCard.tsx # Incassi storici con layout Bambino (2 colonne + progress bars)
 ├── DashboardKpiCards.tsx               # 4 KPI cards fatturato/pagamenti
 ├── DashboardFiscalKpis.tsx             # 4 KPI cards fiscali (netto, tasse, accantonamento, tetto)
 ├── DashboardAtecoChart.tsx             # Bar chart orizzontale fatturato vs reddito per ATECO

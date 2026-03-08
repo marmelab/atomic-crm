@@ -1048,11 +1048,7 @@
           "type": "registry:component"
         },
         {
-          "path": "src/components/atomic-crm/dashboard/DashboardHistoricalCashInflowAiCard.tsx",
-          "type": "registry:component"
-        },
-        {
-          "path": "src/components/atomic-crm/dashboard/DashboardHistoricalAiSummaryCard.tsx",
+          "path": "src/components/atomic-crm/dashboard/DashboardHistoricalAiCard.tsx",
           "type": "registry:component"
         },
         {

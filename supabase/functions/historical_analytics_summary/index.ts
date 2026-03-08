@@ -5,6 +5,7 @@ import { AuthMiddleware, UserMiddleware } from "../_shared/authentication.ts";
 import { corsHeaders, OptionsMiddleware } from "../_shared/cors.ts";
 import { getUserSale } from "../_shared/getUserSale.ts";
 import { createErrorResponse } from "../_shared/utils.ts";
+import { visualModeInstructions } from "../_shared/visualModePrompt.ts";
 
 const defaultHistoricalAnalysisModel = "gpt-5.2";
 const allowedModels = new Set(["gpt-5.2", "gpt-5-mini", "gpt-5-nano"]);
@@ -15,7 +16,7 @@ const openai = new OpenAI({
   apiKey: openaiApiKey,
 });
 
-const instructions = `
+const baseInstructions = `
 Sei un analista che parla con il titolare del gestionale Rosario Furnari.
 Usa solo il contesto JSON fornito.
 Non inventare dati mancanti.
@@ -28,6 +29,9 @@ Preferisci:
 - "crescita rispetto all'anno prima" invece di "YoY"
 - "valore del lavoro attribuito a quell'anno" invece di "competenza"
 Non citare mai codici interni come "partial_current_year".
+`.trim();
+
+const markdownOutputInstructions = `
 Scrivi in markdown semplice, con queste sezioni:
 
 ## In breve
@@ -58,7 +62,7 @@ async function createHistoricalAnalyticsSummary(
     return createErrorResponse(401, "Unauthorized");
   }
 
-  const { context, model } = await req.json();
+  const { context, model, visualMode } = await req.json();
 
   if (!context) {
     return createErrorResponse(400, "Missing analytics context");
@@ -69,6 +73,11 @@ async function createHistoricalAnalyticsSummary(
       ? model
       : defaultHistoricalAnalysisModel;
 
+  const isVisual = visualMode === true;
+  const instructions = isVisual
+    ? `${baseInstructions}\n\n${visualModeInstructions}`
+    : `${baseInstructions}\n\n${markdownOutputInstructions}`;
+
   try {
     const response = await openai.responses.create({
       model: selectedModel,
@@ -77,26 +86,32 @@ async function createHistoricalAnalyticsSummary(
       reasoning: {
         effort: "medium",
       },
-      max_output_tokens: 900,
+      max_output_tokens: isVisual ? 2500 : 900,
     });
 
-    const summaryMarkdown = response.output_text?.trim();
+    const outputText = response.output_text?.trim();
 
-    if (!summaryMarkdown) {
+    if (!outputText) {
       return createErrorResponse(
         502,
         "OpenAI ha restituito una risposta vuota",
       );
     }
 
-    return new Response(
-      JSON.stringify({
-        data: {
+    const data = isVisual
+      ? {
           model: selectedModel,
           generatedAt: new Date().toISOString(),
-          summaryMarkdown,
-        },
-      }),
+          blocks: JSON.parse(outputText),
+        }
+      : {
+          model: selectedModel,
+          generatedAt: new Date().toISOString(),
+          summaryMarkdown: outputText,
+        };
+
+    return new Response(
+      JSON.stringify({ data }),
       {
         headers: { "Content-Type": "application/json", ...corsHeaders },
       },

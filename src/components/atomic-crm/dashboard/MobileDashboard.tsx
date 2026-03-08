@@ -68,7 +68,7 @@ export const MobileDashboard = () => {
         ) : null}
 
         {allowHistorical && mode === "historical" ? (
-          <DashboardHistorical />
+          <DashboardHistorical compact />
         ) : (
           <MobileAnnualDashboard />
         )}

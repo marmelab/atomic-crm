@@ -3,11 +3,12 @@ import {
   ArrowUpRight,
   CalendarRange,
   CircleDollarSign,
+  Minus,
   Trophy,
 } from "lucide-react";
 
-import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
 
 import { formatCurrency } from "./dashboardModel";
 import type {
@@ -19,114 +20,133 @@ export const DashboardHistoricalKpis = ({
   model,
 }: {
   model: DashboardHistoryModel;
-}) => (
-  <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
-    <HistoricalKpiCard
-      title="Valore totale del lavoro"
-      value={formatCurrency(model.kpis.totalHistoricalRevenue)}
-      icon={<CircleDollarSign className="h-4 w-4" />}
-      subtitle={`Valore del lavoro attribuito a questi anni fino al ${model.meta.asOfDateLabel}.`}
-    />
-    <HistoricalKpiCard
-      title="Anno migliore"
-      value={
-        model.kpis.bestClosedYear.revenue == null
-          ? "N/D"
-          : formatCurrency(model.kpis.bestClosedYear.revenue)
-      }
-      icon={<Trophy className="h-4 w-4" />}
-      subtitle={
-        model.kpis.bestClosedYear.year == null
-          ? "Servono almeno due anni completi per capire quale sia il migliore."
-          : `Tra gli anni completi, il migliore è il ${model.kpis.bestClosedYear.year}.`
-      }
-    />
-    <HistoricalKpiCard
-      title="Ultimo anno completo"
-      value={
-        model.kpis.latestClosedYearRevenue.revenue == null
-          ? "N/D"
-          : formatCurrency(model.kpis.latestClosedYearRevenue.revenue)
-      }
-      icon={<CalendarRange className="h-4 w-4" />}
-      subtitle={
-        model.kpis.latestClosedYearRevenue.year == null
-          ? "Non c'è ancora un anno completo disponibile."
-          : `Qui vedi il ${model.kpis.latestClosedYearRevenue.year}, l'ultimo anno completo disponibile.`
-      }
-    />
-    <HistoricalKpiCard
-      title="Crescita rispetto all'anno prima"
-      value={model.kpis.yoyClosedYears.formattedValue}
-      icon={<YoYIcon yoy={model.kpis.yoyClosedYears} />}
-      footer={<YoYFooter yoy={model.kpis.yoyClosedYears} />}
-    />
-  </div>
-);
-
-const HistoricalKpiCard = ({
-  title,
-  value,
-  icon,
-  subtitle,
-  footer,
-}: {
-  title: string;
-  value: string;
-  icon: React.ReactNode;
-  subtitle?: string;
-  footer?: React.ReactNode;
-}) => (
-  <Card className="gap-3 py-4">
-    <CardHeader className="px-4 pb-0 flex flex-row items-center justify-between space-y-0 gap-2">
-      <CardTitle className="text-sm font-medium">{title}</CardTitle>
-      <div className="text-muted-foreground">{icon}</div>
-    </CardHeader>
-    <CardContent className="px-4 space-y-2">
-      <div className="text-2xl font-semibold tracking-tight">{value}</div>
-      {footer ??
-        (subtitle ? (
-          <p className="text-xs text-muted-foreground">{subtitle}</p>
-        ) : null)}
-    </CardContent>
-  </Card>
-);
-
-const YoYFooter = ({ yoy }: { yoy: HistoricalYoY }) => {
-  if (!yoy.isComparable) {
-    return (
-      <div className="flex items-center justify-between gap-2 text-xs text-muted-foreground">
-        <span>{yoy.comparisonLabel}</span>
-        <Badge variant="secondary">N/D</Badge>
-      </div>
-    );
-  }
-
-  const variant =
-    yoy.valuePct == null
-      ? "secondary"
-      : yoy.valuePct > 0
-        ? "success"
-        : yoy.valuePct < 0
-          ? "destructive"
-          : "secondary";
+}) => {
+  const { kpis, meta } = model;
 
   return (
-    <div className="flex items-center justify-between gap-2 text-xs text-muted-foreground">
-      <span>{yoy.comparisonLabel}</span>
-      <Badge variant={variant}>{yoy.formattedValue}</Badge>
+    <div className="grid grid-cols-2 xl:grid-cols-4 gap-4">
+      {/* Total historical revenue */}
+      <Card className="gap-0 py-3">
+        <CardContent className="px-4 flex items-start gap-3">
+          <div className="rounded-md bg-sky-100 p-2 dark:bg-sky-950">
+            <CircleDollarSign className="h-4 w-4 text-sky-600 dark:text-sky-400" />
+          </div>
+          <div className="min-w-0">
+            <p className="text-xs text-muted-foreground truncate">
+              Lavoro totale
+            </p>
+            <p className="text-lg sm:text-2xl font-bold text-sky-700 dark:text-sky-300 tabular-nums">
+              {formatCurrency(kpis.totalHistoricalRevenue)}
+            </p>
+            <p className="text-[11px] text-muted-foreground">
+              al {meta.asOfDateLabel}
+            </p>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Best closed year */}
+      <Card className="gap-0 py-3">
+        <CardContent className="px-4 flex items-start gap-3">
+          <div className="rounded-md bg-emerald-100 p-2 dark:bg-emerald-950">
+            <Trophy className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
+          </div>
+          <div className="min-w-0">
+            <p className="text-xs text-muted-foreground truncate">
+              Anno migliore
+            </p>
+            <p className="text-lg sm:text-2xl font-bold text-emerald-700 dark:text-emerald-300 tabular-nums">
+              {kpis.bestClosedYear.revenue == null
+                ? "N/D"
+                : formatCurrency(kpis.bestClosedYear.revenue)}
+            </p>
+            {kpis.bestClosedYear.year != null && (
+              <p className="text-[11px] text-muted-foreground">
+                {kpis.bestClosedYear.year}
+              </p>
+            )}
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Latest closed year */}
+      <Card className="gap-0 py-3">
+        <CardContent className="px-4 flex items-start gap-3">
+          <div className="rounded-md bg-amber-100 p-2 dark:bg-amber-950">
+            <CalendarRange className="h-4 w-4 text-amber-600 dark:text-amber-400" />
+          </div>
+          <div className="min-w-0">
+            <p className="text-xs text-muted-foreground truncate">
+              Ultimo anno
+            </p>
+            <p className="text-lg sm:text-2xl font-bold text-amber-700 dark:text-amber-300 tabular-nums">
+              {kpis.latestClosedYearRevenue.revenue == null
+                ? "N/D"
+                : formatCurrency(kpis.latestClosedYearRevenue.revenue)}
+            </p>
+            {kpis.latestClosedYearRevenue.year != null && (
+              <p className="text-[11px] text-muted-foreground">
+                {kpis.latestClosedYearRevenue.year}
+              </p>
+            )}
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* YoY growth */}
+      <Card className="gap-0 py-3">
+        <CardContent className="px-4 space-y-2">
+          <div className="flex items-start gap-3">
+            <YoYIconBadge yoy={kpis.yoyClosedYears} />
+            <div className="min-w-0">
+              <p className="text-xs text-muted-foreground truncate">
+                Crescita
+              </p>
+              <p
+                className={`text-lg sm:text-2xl font-bold tabular-nums ${getYoYColor(kpis.yoyClosedYears)}`}
+              >
+                {kpis.yoyClosedYears.formattedValue}
+              </p>
+            </div>
+          </div>
+          <Separator />
+          <p className="text-[11px] text-muted-foreground">
+            {kpis.yoyClosedYears.comparisonLabel}
+          </p>
+        </CardContent>
+      </Card>
     </div>
   );
 };
 
-const YoYIcon = ({ yoy }: { yoy: HistoricalYoY }) => {
+const getYoYColor = (yoy: HistoricalYoY) => {
+  if (!yoy.isComparable || yoy.valuePct == null) return "text-muted-foreground";
+  if (yoy.valuePct > 0)
+    return "text-emerald-700 dark:text-emerald-300";
+  if (yoy.valuePct < 0) return "text-red-700 dark:text-red-300";
+  return "text-muted-foreground";
+};
+
+const YoYIconBadge = ({ yoy }: { yoy: HistoricalYoY }) => {
   if (!yoy.isComparable || yoy.valuePct == null || yoy.valuePct === 0) {
-    return <CalendarRange className="h-4 w-4" />;
+    return (
+      <div className="rounded-md bg-muted p-2">
+        <Minus className="h-4 w-4 text-muted-foreground" />
+      </div>
+    );
   }
 
-  return yoy.valuePct > 0 ? (
-    <ArrowUpRight className="h-4 w-4" />
-  ) : (
-    <ArrowDownRight className="h-4 w-4" />
+  if (yoy.valuePct > 0) {
+    return (
+      <div className="rounded-md bg-emerald-100 p-2 dark:bg-emerald-950">
+        <ArrowUpRight className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
+      </div>
+    );
+  }
+
+  return (
+    <div className="rounded-md bg-red-100 p-2 dark:bg-red-950">
+      <ArrowDownRight className="h-4 w-4 text-red-600 dark:text-red-400" />
+    </div>
   );
 };
