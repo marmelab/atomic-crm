@@ -11,6 +11,8 @@ import {
 import {
   buildUnifiedCrmExpenseCreateAnswerMarkdown,
   buildUnifiedCrmExpenseCreateSuggestedActions,
+  buildUnifiedCrmInvoiceDraftAnswerMarkdown,
+  buildUnifiedCrmInvoiceDraftSuggestedActions,
   buildUnifiedCrmProjectQuickEpisodeAnswerMarkdown,
   buildUnifiedCrmProjectQuickEpisodeSuggestedActions,
   buildUnifiedCrmPaymentDraftFromContext,
@@ -22,6 +24,7 @@ import {
   buildUnifiedCrmTravelExpenseSuggestedActions,
   buildUnifiedCrmSuggestedActions,
   parseUnifiedCrmExpenseCreateQuestion,
+  parseUnifiedCrmInvoiceDraftQuestion,
   parseUnifiedCrmProjectQuickEpisodeQuestion,
   type ParsedUnifiedCrmTravelExpenseQuestion,
   validateUnifiedCrmAnswerPayload,
@@ -319,6 +322,34 @@ async function answerUnifiedCrmQuestion(
             suggestedActions: buildUnifiedCrmExpenseCreateSuggestedActions({
               context,
               parsedQuestion: genericExpenseQuestion,
+            }),
+            paymentDraft: null,
+          },
+        }),
+        {
+          headers: { "Content-Type": "application/json", ...corsHeaders },
+        },
+      );
+    }
+
+    const invoiceDraftQuestion = parseUnifiedCrmInvoiceDraftQuestion({
+      question,
+      context,
+    });
+
+    if (invoiceDraftQuestion) {
+      return new Response(
+        JSON.stringify({
+          data: {
+            question,
+            model: "crm_rule_engine",
+            generatedAt: new Date().toISOString(),
+            answerMarkdown: buildUnifiedCrmInvoiceDraftAnswerMarkdown({
+              parsedQuestion: invoiceDraftQuestion,
+            }),
+            suggestedActions: buildUnifiedCrmInvoiceDraftSuggestedActions({
+              context,
+              parsedQuestion: invoiceDraftQuestion,
             }),
             paymentDraft: null,
           },

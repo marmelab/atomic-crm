@@ -1,5 +1,6 @@
 import type {
   ParsedUnifiedCrmExpenseCreateQuestion,
+  ParsedUnifiedCrmInvoiceDraftQuestion,
   ParsedUnifiedCrmProjectQuickEpisodeQuestion,
   ParsedUnifiedCrmTravelExpenseQuestion,
   UnifiedCrmSuggestedAction,
@@ -14,9 +15,12 @@ import {
   formatNumber,
   getBusinessTimezone,
   getDefaultKmRate,
+  getNumber,
+  getObjectArray,
   getRoutePrefix,
   getString,
   includesAny,
+  isObject,
   normalizeText,
 } from "./unifiedCrmAnswerUtils.ts";
 import {
@@ -26,6 +30,7 @@ import {
   getProjectQuickEpisodeServiceTypeLabel,
   hasExpenseCreationIntent,
   hasExpenseIntent,
+  hasInvoiceDraftIntent,
   hasTravelEstimationIntent,
   hasTravelIntent,
   hasProjectQuickEpisodeIntent,
@@ -835,4 +840,328 @@ export const buildUnifiedCrmExpenseCreateSuggestedActions = ({
           ]
         : []),
   ];
+};
+
+// ---------------------------------------------------------------------------
+// Invoice draft flow
+// ---------------------------------------------------------------------------
+
+const getClientFinancials = (
+  context: Record<string, unknown>,
+  clientId: string,
+) => {
+  const snapshot = isObject(context.snapshot) ? context.snapshot : null;
+  const financials = getObjectArray(snapshot?.clientFinancials);
+  const match = financials.find((f) => getString(f.clientId) === clientId);
+
+  if (!match) return null;
+
+  const totalFees = getNumber(match.totalFees) ?? 0;
+  const totalPaid = getNumber(match.totalPaid) ?? 0;
+  const balanceDue = getNumber(match.balanceDue) ?? totalFees - totalPaid;
+
+  return {
+    totalFees,
+    totalPaid,
+    balanceDue,
+    hasUninvoicedServices: match.hasUninvoicedServices === true,
+  };
+};
+
+export const parseUnifiedCrmInvoiceDraftQuestion = ({
+  question,
+  context,
+}: {
+  question: string;
+  context: Record<string, unknown>;
+}): ParsedUnifiedCrmInvoiceDraftQuestion | null => {
+  const normalizedQuestion = normalizeText(question);
+
+  if (!hasInvoiceDraftIntent(normalizedQuestion)) return null;
+
+  const snapshot = isObject(context.snapshot) ? context.snapshot : {};
+  const openQuotes = getObjectArray(snapshot.openQuotes);
+  const activeProjects = getObjectArray(snapshot.activeProjects);
+  const recentClients = getObjectArray(snapshot.recentClients);
+
+  const matchedClient = pickClientFromQuestion({
+    normalizedQuestion,
+    context,
+  });
+  const matchedProject = pickProjectFromQuestion({
+    normalizedQuestion,
+    context,
+  });
+
+  const matchedClientId = getString(matchedClient?.clientId);
+  const matchedProjectId = getString(matchedProject?.projectId);
+
+  // Mention of "preventivo" → prefer quote surface
+  const mentionsQuote = includesAny(normalizedQuestion, [
+    "preventiv",
+    "offert",
+  ]);
+
+  // Try to find the best surface in order: quote > project > client
+  if (mentionsQuote || (!matchedProjectId && !matchedClientId)) {
+    const quote = matchedClientId
+      ? openQuotes.find((q) => getString(q.clientId) === matchedClientId)
+      : matchedProjectId
+        ? openQuotes.find((q) => getString(q.projectId) === matchedProjectId)
+        : openQuotes[0];
+    const quoteId = getString(quote?.quoteId);
+    const quoteClientId = getString(quote?.clientId) ?? matchedClientId ?? null;
+    const quoteClientName =
+      getString(quote?.clientName) ??
+      getString(matchedClient?.clientName) ??
+      "Cliente";
+
+    if (quoteId && quoteClientId) {
+      return {
+        surface: "quote",
+        recordId: quoteId,
+        entityLabel:
+          getString(quote?.description) ??
+          `Preventivo ${getString(quote?.quoteNumber) ?? ""}`.trim(),
+        clientName: quoteClientName,
+        clientId: quoteClientId,
+        financials: getClientFinancials(context, quoteClientId),
+      };
+    }
+  }
+
+  // Project surface
+  const projectRecord = matchedProjectId
+    ? matchedProject
+    : matchedClientId
+      ? activeProjects.find((p) => getString(p.clientId) === matchedClientId)
+      : activeProjects[0];
+  const projectId = getString(projectRecord?.projectId);
+  const projectClientId =
+    getString(projectRecord?.clientId) ?? matchedClientId ?? null;
+  const projectClientName =
+    getString(
+      recentClients.find((c) => getString(c.clientId) === projectClientId)
+        ?.clientName,
+    ) ??
+    getString(matchedClient?.clientName) ??
+    "Cliente";
+
+  if (projectId && projectClientId) {
+    return {
+      surface: "project",
+      recordId: projectId,
+      entityLabel: getString(projectRecord?.projectName) ?? "Progetto",
+      clientName: projectClientName,
+      clientId: projectClientId,
+      financials: getClientFinancials(context, projectClientId),
+    };
+  }
+
+  // Client surface (fallback)
+  const clientRecord = matchedClient ?? recentClients[0];
+  const clientId = getString(clientRecord?.clientId);
+  const clientName = getString(clientRecord?.clientName) ?? "Cliente";
+
+  if (clientId) {
+    return {
+      surface: "client",
+      recordId: clientId,
+      entityLabel: clientName,
+      clientName,
+      clientId,
+      financials: getClientFinancials(context, clientId),
+    };
+  }
+
+  return null;
+};
+
+export const buildUnifiedCrmInvoiceDraftAnswerMarkdown = ({
+  parsedQuestion,
+}: {
+  parsedQuestion: ParsedUnifiedCrmInvoiceDraftQuestion;
+}) => {
+  const { surface, entityLabel, financials } = parsedQuestion;
+
+  const surfaceLabel =
+    surface === "quote"
+      ? "preventivo"
+      : surface === "project"
+        ? "progetto"
+        : "cliente";
+
+  const lines: string[] = [
+    "## Risposta",
+    "",
+    `Ti apro la scheda ${surfaceLabel} **${entityLabel}** con la bozza fattura gia pronta.`,
+    `La bozza e un riferimento interno per compilare la fattura su Aruba — nessuna scrittura nel DB.`,
+    "",
+  ];
+
+  if (financials) {
+    lines.push("## Dettaglio finanziario");
+    lines.push("");
+    lines.push(
+      `- **Lavoro totale**: ${formatNumber(financials.totalFees)} EUR`,
+    );
+    lines.push(`- **Gia pagato**: ${formatNumber(financials.totalPaid)} EUR`);
+
+    if (financials.balanceDue > 0) {
+      lines.push(
+        `- **Da incassare**: ${formatNumber(financials.balanceDue)} EUR`,
+      );
+    }
+
+    if (financials.hasUninvoicedServices) {
+      lines.push("- Ci sono servizi non ancora fatturati.");
+    } else {
+      lines.push("- Tutti i servizi risultano gia fatturati.");
+    }
+
+    lines.push("");
+  }
+
+  lines.push("## Note");
+  lines.push("");
+  lines.push(
+    `- Nella scheda ${surfaceLabel} trovi il bottone **Bozza fattura** per generare PDF e XML FatturaPA.`,
+  );
+  lines.push(
+    "- Il PDF e la bozza commerciale, l'XML e pronto per il caricamento su Aruba.",
+  );
+  lines.push(
+    "- Per l'XML serve inserire il numero fattura nel campo dedicato.",
+  );
+
+  if (surface === "client" && financials?.hasUninvoicedServices) {
+    lines.push(
+      "- La bozza dal cliente aggrega TUTTI i servizi non fatturati — controlla che sia quello che vuoi.",
+    );
+  }
+
+  return lines.join("\n").trim();
+};
+
+export const buildUnifiedCrmInvoiceDraftSuggestedActions = ({
+  context,
+  parsedQuestion,
+}: {
+  context: Record<string, unknown>;
+  parsedQuestion: ParsedUnifiedCrmInvoiceDraftQuestion;
+}): UnifiedCrmSuggestedAction[] => {
+  const routePrefix = getRoutePrefix(context);
+  const { surface, recordId, entityLabel, clientId } = parsedQuestion;
+
+  const resourceMap = {
+    quote: "quotes",
+    project: "projects",
+    client: "clients",
+  } as const;
+
+  const surfaceLabelMap = {
+    quote: "preventivo",
+    project: "progetto",
+    client: "cliente",
+  } as const;
+
+  const primaryHref = buildShowHrefWithSearch(
+    routePrefix,
+    resourceMap[surface],
+    recordId,
+    { invoiceDraft: "true" },
+  );
+
+  const suggestions: UnifiedCrmSuggestedAction[] = [];
+
+  if (primaryHref) {
+    suggestions.push({
+      id: `invoice-draft-${surface}-handoff`,
+      kind: "approved_action",
+      resource: resourceMap[surface],
+      capabilityActionId: "generate_invoice_draft",
+      label: `Genera bozza fattura da ${surfaceLabelMap[surface]}`,
+      description: `Apre ${entityLabel} con il dialog bozza fattura gia visibile — da li puoi scaricare PDF e XML.`,
+      href: primaryHref,
+      recommended: true,
+      recommendationReason: `Consigliata perche apre direttamente la bozza fattura dalla superficie piu pertinente (${surfaceLabelMap[surface]}).`,
+    });
+  }
+
+  // Secondary: the other surfaces if available
+  const snapshot = isObject(context.snapshot) ? context.snapshot : {};
+  const activeProjects = getObjectArray(snapshot.activeProjects);
+  const openQuotes = getObjectArray(snapshot.openQuotes);
+
+  if (surface !== "client") {
+    const clientHref = buildShowHrefWithSearch(
+      routePrefix,
+      "clients",
+      clientId,
+      { invoiceDraft: "true" },
+    );
+
+    if (clientHref) {
+      suggestions.push({
+        id: "invoice-draft-client-fallback",
+        kind: "approved_action",
+        resource: "clients",
+        capabilityActionId: "generate_invoice_draft",
+        label: "Bozza fattura dal cliente",
+        description:
+          "Aggrega tutti i servizi non fatturati del cliente in un'unica bozza.",
+        href: clientHref,
+      });
+    }
+  }
+
+  if (surface !== "project") {
+    const project = activeProjects.find(
+      (p) => getString(p.clientId) === clientId,
+    );
+    const projectHref = buildShowHrefWithSearch(
+      routePrefix,
+      "projects",
+      getString(project?.projectId),
+      { invoiceDraft: "true" },
+    );
+
+    if (projectHref) {
+      suggestions.push({
+        id: "invoice-draft-project-fallback",
+        kind: "approved_action",
+        resource: "projects",
+        capabilityActionId: "generate_invoice_draft",
+        label: "Bozza fattura dal progetto",
+        description:
+          "Genera la bozza solo dai servizi del progetto attivo collegato.",
+        href: projectHref,
+      });
+    }
+  }
+
+  if (surface !== "quote") {
+    const quote = openQuotes.find((q) => getString(q.clientId) === clientId);
+    const quoteHref = buildShowHrefWithSearch(
+      routePrefix,
+      "quotes",
+      getString(quote?.quoteId),
+      { invoiceDraft: "true" },
+    );
+
+    if (quoteHref) {
+      suggestions.push({
+        id: "invoice-draft-quote-fallback",
+        kind: "approved_action",
+        resource: "quotes",
+        capabilityActionId: "generate_invoice_draft",
+        label: "Bozza fattura dal preventivo",
+        description:
+          "Genera la bozza dall'importo del preventivo, al netto dei pagamenti ricevuti.",
+        href: quoteHref,
+      });
+    }
+  }
+
+  return suggestions.slice(0, 3);
 };

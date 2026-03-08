@@ -110,6 +110,26 @@ export type ParsedUnifiedCrmProjectQuickEpisodeQuestion = {
   travelRouteCandidates: UnifiedCrmTravelRouteCandidate[];
 };
 
+export type ParsedUnifiedCrmInvoiceDraftQuestion = {
+  /** Which Show page to land on: quote, project, or client. */
+  surface: "quote" | "project" | "client";
+  /** Record id for the chosen surface. */
+  recordId: string;
+  /** Human-readable label for the matched entity. */
+  entityLabel: string;
+  /** Client name (always resolved). */
+  clientName: string;
+  /** Client id. */
+  clientId: string;
+  /** Financial summary from snapshot (null if not available). */
+  financials: {
+    totalFees: number;
+    totalPaid: number;
+    balanceDue: number;
+    hasUninvoicedServices: boolean;
+  } | null;
+};
+
 export type ParsedUnifiedCrmExpenseCreateQuestion = {
   clientId: string;
   projectId: string | null;
