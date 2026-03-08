@@ -273,7 +273,7 @@ const SettingsFormFields = () => {
   };
 
   return (
-    <div className="flex gap-8 mt-4 pb-40 md:pb-20">
+    <div className="flex gap-8 mt-4 pb-6 md:pb-20">
       {/* Left navigation - Professional structured menu */}
       <nav className="hidden md:block w-56 shrink-0">
         <div className="sticky top-4">
@@ -545,9 +545,9 @@ const SettingsFormFields = () => {
         </Card>
       </div>
 
-      {/* Sticky save button — z-60 to stay above MobileNavigation (z-50) */}
-      <div className="fixed bottom-14 md:bottom-0 left-0 right-0 z-60 border-t bg-background p-4">
-        <div className="max-w-screen-xl mx-auto flex gap-8 px-4">
+      {/* Save bar — fixed on desktop, inline on mobile to avoid MobileNavigation overlap */}
+      <div className="md:fixed md:bottom-0 md:left-0 md:right-0 md:z-60 border-t bg-background p-4 mb-16 md:mb-0">
+        <div className="max-w-screen-xl mx-auto flex gap-8 px-4 md:px-4">
           <div className="hidden md:block w-48 shrink-0" />
           <div className="flex-1 min-w-0 max-w-2xl flex justify-between">
             <Button
