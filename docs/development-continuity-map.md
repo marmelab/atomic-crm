@@ -14,6 +14,7 @@ Last updated: 2026-03-08
 
 ### Recent Updates (cronologico, più recente in alto)
 
+- [2026-03-08 (k)](#update-2026-03-08-k--quote-pdf-visual-redesign) — Quote PDF: visual redesign (neutral palette, premium layout)
 - [2026-03-08 (j)](#update-2026-03-08-j--quote-email-bambino-redesign--pdf-attachment) — Quote email: Bambino+Neuro redesign + PDF attachment
 - [2026-03-08 (i)](#update-2026-03-08-i--quote-email-editable-recipient) — Quote email: editable recipient field
 - [2026-03-08 (h)](#update-2026-03-08-h--dashboard-visual-redesign) — Dashboard visual redesign: accent colors, collapsible breakdown, card reorder
@@ -82,6 +83,22 @@ Last updated: 2026-03-08
 - [Nota manutenzione 2026-03-02](#nota-manutenzione-2026-03-02-fix-ci)
 - [Testing Session Log 2026-03-04](#testing-session-log-2026-03-04--e2e-complete-validation)
 - [AI Semantic UI Upgrade 2026-03-04](#ai-semantic-ui-upgrade-2026-03-04--pareto-principle-applied)
+
+---
+
+## Update 2026-03-08 (k) — Quote PDF visual redesign
+
+**Cosa è cambiato**
+
+- Redesign visivo completo del PDF preventivo (`QuotePDF.tsx`)
+- Palette neutra slate/amber: elegante per wedding e corporate
+- Layout: top accent band, header arioso, tabella con righe alternate e header
+  leggero, totale con sfondo tenue e importo amber, note con accent bar laterale
+- Zero cambi all'interfaccia `QuotePDFProps` — preview real-time invariata
+
+**File toccati**
+
+- `src/components/atomic-crm/quotes/QuotePDF.tsx` — colori, stili, layout JSX
 
 ---
 
