@@ -24,11 +24,13 @@ export const addNoteToContact = async ({
     .eq("email", salesEmail)
     .neq("disabled", true)
     .maybeSingle();
-  if (fetchSalesError)
+
+  if (fetchSalesError) {
     return new Response(
       `Could not fetch sales from database, email: ${salesEmail}`,
       { status: 500 },
     );
+  }
   if (!sales) {
     // Return a 403 to let Postmark know that it's no use to retry this request
     // https://postmarkapp.com/developer/webhooks/inbound-webhook#errors-and-retries
@@ -45,11 +47,12 @@ export const addNoteToContact = async ({
       .select("*")
       .contains("email_jsonb", JSON.stringify([{ email }]))
       .maybeSingle();
-  if (fetchContactError)
+  if (fetchContactError) {
     return new Response(
       `Could not fetch contact from database, email: ${email}`,
       { status: 500 },
     );
+  }
 
   // deno-lint-ignore no-explicit-any
   let contact: any = undefined;
@@ -65,11 +68,12 @@ export const addNoteToContact = async ({
         .select("*")
         .eq("name", domain)
         .maybeSingle();
-    if (fetchCompanyError)
+    if (fetchCompanyError) {
       return new Response(
         `Could not fetch companies from database, name: ${domain}`,
         { status: 500 },
       );
+    }
 
     // deno-lint-ignore no-explicit-any
     let company: any = undefined;
@@ -81,11 +85,12 @@ export const addNoteToContact = async ({
           .from("companies")
           .insert({ name: domain, sales_id: sales.id })
           .select();
-      if (createCompanyError)
+      if (createCompanyError) {
         return new Response(
           `Could not create company in database, name: ${domain}`,
           { status: 500 },
         );
+      }
       company = newCompanies[0];
     }
 
@@ -103,11 +108,12 @@ export const addNoteToContact = async ({
         tags: [],
       })
       .select();
-    if (createContactError || !newContacts[0])
+    if (createContactError || !newContacts[0]) {
       return new Response(
         `Could not create contact in database, email: ${email}`,
         { status: 500 },
       );
+    }
     contact = newContacts[0];
   }
 
@@ -120,11 +126,12 @@ export const addNoteToContact = async ({
       sales_id: sales.id,
       attachments,
     });
-  if (createNoteError)
+  if (createNoteError) {
     return new Response(
       `Could not add note to contact ${email}, sales ${salesEmail}`,
       { status: 500 },
     );
+  }
 
   await supabaseAdmin
     .from("contacts")
