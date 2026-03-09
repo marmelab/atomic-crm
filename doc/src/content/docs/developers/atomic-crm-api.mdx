@@ -68,49 +68,51 @@ And here is the list of all the atomic crm specific endpoints:
 
 - `GET /rest/v1/companies`: to get the list of companies.
 - `POST /rest/v1/companies`: to create a new company.
-- `GET /rest/v1/companies?id=eq.{id}`: to get a company by id.
+- `GET /rest/v1/companies?id=eq.{id}`: to get companies[*](#get-one-note) by id
 - `PATCH /rest/v1/companies/?id=eq.{id}`: to update a company by id
 - `DELETE /rest/v1/companies?id=eq.{id}`: to delete a company by id
-
+<br />
 - `GET /rest/v1/contacts_summary`: to get the list of contacts with their company name and number of tasks.
-
+<br />
 - `GET /rest/v1/configuration`: to get the configuration of the CRM, including the custom fields.
-
+<br />
 - `GET /rest/v1/contacts`: to get the list of contacts.
 - `POST /rest/v1/contacts`: to create a new contact.
-- `GET /rest/v1/contacts?id=eq.{id}`: to get a contact by id.
+- `GET /rest/v1/contacts?id=eq.{id}`: to get contacts[*](#get-one-note) by id
 - `PATCH /rest/v1/contacts?id=eq.{id}`: to update a contact by id
 - `DELETE /rest/v1/contacts?id=eq.{id}`: to delete a contact by id.
-
+<br />
 - `GET /rest/v1/tasks`: to get the list of tasks.
 - `POST /rest/v1/tasks`: to create a new task.
-- `GET /rest/v1/tasks?id=eq.{id}`: to get a task by id.
+- `GET /rest/v1/tasks?id=eq.{id}`: to get tasks[*](#get-one-note) by id
 - `PATCH /rest/v1/tasks?id=eq.{id}`: to update a task by id
 - `DELETE /rest/v1/tasks?id=eq.{id}`: to delete a task by id
-
-
+<br />
 - `GET /rest/v1/companies_summary`: to get the list of companies with the number of contacts and tasks.
-
+<br />
 - `GET /rest/v1/deals`: to get the list of deals.
 - `POST /rest/v1/deals`: to create a new deal.
-- `GET /rest/v1/deals?id=eq.{id}`: to get a deal by id.
+- `GET /rest/v1/deals?id=eq.{id}`: to get deals[*](#get-one-note) by id
 - `PATCH /rest/v1/deals?id=eq.{id}`: to update a deal by id
 - `DELETE /rest/v1/deals?id=eq.{id}`: to delete a deal by id
-
+<br />
 - `GET /rest/v1/deal_notes`: to get the list of deal notes.
 - `POST /rest/v1/deal_notes`: to create a new deal note.
-- `GET /rest/v1/deal_notes?id=eq.{id}`: to get a deal note by id.
+- `GET /rest/v1/deal_notes?id=eq.{id}`: to get deal notes[*](#get-one-note) by id
 - `PATCH /rest/v1/deal_notes?id=eq.{id}`: to update a deal note by id
 - `DELETE /rest/v1/deal_notes?id=eq.{id}`: to delete a deal note by id
-
+<br />
 - `GET /rest/v1/contact_notes`: to get the list of contact notes.
 - `POST /rest/v1/contact_notes`: to create a new contact note.
-- `GET /rest/v1/contact_notes?id=eq.{id}`: to get a contact note by id.
+- `GET /rest/v1/contact_notes?id=eq.{id}`: to get contact notes[*](#get-one-note) by id
 - `PATCH /rest/v1/contact_notes?id=eq.{id}`: to update a contact note by id
 - `DELETE /rest/v1/contact_notes?id=eq.{id}`: to delete a contact note by id
 
-Supabase use Postgrest so the route supports all the query parameters supported by Postgrest.
+>  <a id="get-one-note"></a>
+>  All GET query in Postgrest will always returns a list of items by default. To have the query returns a single item directly, you can add the Accept header with the value `Accept: application/vnd.pgrst.object+json` to your request.
 
+
+Supabase use Postgrest so the route supports all the query parameters supported by Postgrest.
 To filter the list of contacts by status, you can use the following query:
 
 ```
