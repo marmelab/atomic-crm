@@ -38,7 +38,7 @@ ALTER FUNCTION public.handle_contact_saved()
 SET search_path TO '';
 
 -- get_avatar_for_email: needs to be recreated with qualified names
--- (http_get -> extensions.http_get, get_domain_favicon -> public.get_domain_favicon)
+-- (http_get -> extensions.http_get, digest -> extensions.digest, get_domain_favicon -> public.get_domain_favicon)
 DROP FUNCTION IF EXISTS public.get_avatar_for_email(text);
 
 CREATE FUNCTION public.get_avatar_for_email(email text)
@@ -55,7 +55,7 @@ declare domain_status int8;
 
 begin
     -- Try to fetch a gravatar image
-    email_hash = encode(digest(email, 'sha256'), 'hex');
+    email_hash = encode(extensions.digest(email, 'sha256'), 'hex');
     gravatar_url = concat('https://www.gravatar.com/avatar/', email_hash, '?d=404');
 
     select status from extensions.http_get(gravatar_url) into gravatar_status;
