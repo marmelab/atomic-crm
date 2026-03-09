@@ -1,4 +1,5 @@
 import { formatRelative } from "date-fns";
+import { fr } from "date-fns/locale";
 import { difference, union } from "lodash";
 import {
   type Identifier,
@@ -149,8 +150,8 @@ const ContactItemContent = ({
               className="text-sm text-muted-foreground"
               title={contact.last_seen}
             >
-              {"last activity "}
-              {formatRelative(contact.last_seen, now)}{" "}
+              {"dernière activité "}
+              {formatRelative(contact.last_seen, now, { locale: fr })}{" "}
               <Status status={contact.status} />
             </div>
           </div>

@@ -5,8 +5,10 @@ import { supabaseAdmin } from "../_shared/supabaseAdmin.ts";
 import { AuthMiddleware, UserMiddleware } from "../_shared/authentication.ts";
 
 async function updatePassword(user: any) {
+  const siteUrl = Deno.env.get("SITE_URL") ?? "https://crm.nosho.cc";
   const { data, error } = await supabaseAdmin.auth.resetPasswordForEmail(
     user.email,
+    { redirectTo: `${siteUrl}/auth-callback` },
   );
 
   if (!data || error) {

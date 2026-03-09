@@ -125,7 +125,7 @@ const ContactMergeDialog = ({ open, onClose }: ContactMergeDialogProps) => {
 
   const handleMerge = async () => {
     if (!winnerId || !loserContact) {
-      notify("Please select a contact to merge with", { type: "warning" });
+      notify("Veuillez sélectionner un contact à fusionner", { type: "warning" });
       return;
     }
 
@@ -133,12 +133,12 @@ const ContactMergeDialog = ({ open, onClose }: ContactMergeDialogProps) => {
       setIsMerging(true);
       await mutateAsync();
       setIsMerging(false);
-      notify("Contacts merged successfully", { type: "success" });
+      notify("Contacts fusionnés avec succès", { type: "success" });
       redirect(`/contacts/${winnerId}/show`);
       onClose();
     } catch (error) {
       setIsMerging(false);
-      notify("Failed to merge contacts", { type: "error" });
+      notify("Échec de la fusion des contacts", { type: "error" });
       console.error("Merge failed:", error);
     }
   };
@@ -254,7 +254,7 @@ const ContactMergeDialog = ({ open, onClose }: ContactMergeDialogProps) => {
           </Button>
           <Button onClick={handleMerge} disabled={!winnerId || isMerging}>
             <Merge />
-            {isMerging ? "Merging..." : "Merge Contacts"}
+            {isMerging ? "Fusion en cours..." : "Fusionner les contacts"}
           </Button>
         </DialogFooter>
       </DialogContent>

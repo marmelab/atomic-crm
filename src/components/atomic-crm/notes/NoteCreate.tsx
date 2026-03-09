@@ -87,14 +87,14 @@ const NoteCreateButton = ({
       },
       previousData: record,
     });
-    notify("Note added");
+    notify("Note ajoutée");
   };
 
   return (
     <div className="flex justify-end">
       <SaveButton
         type="button"
-        label="Add this note"
+        label="Ajouter cette note"
         transform={(data) => ({
           ...data,
           [foreignKeyMapping[reference]]: record.id,
@@ -105,7 +105,7 @@ const NoteCreateButton = ({
           onSuccess: handleSuccess,
         }}
       >
-        Add this note
+        Ajouter cette note
       </SaveButton>
     </div>
   );

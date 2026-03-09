@@ -117,7 +117,7 @@ export const TagsListEdit = () => {
               className="h-9 md:h-6 cursor-pointer"
             >
               <Plus className="w-4 h-4 md:w-3 md:h-3 mr-1" />
-              Add tag
+              Ajouter une étiquette
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent>

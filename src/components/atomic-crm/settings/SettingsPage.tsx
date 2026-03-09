@@ -55,7 +55,7 @@ export const validateItemsInUse = (
     return `Duplicate ${displayName}: ${[...duplicates].join(", ")}`;
   }
   // Check that no in-use value was removed (skip if deals haven't loaded)
-  if (!deals) return "Validating…";
+  if (!deals) return "Validation…";
   const values = new Set(slugs);
   const inUse = [
     ...new Set(

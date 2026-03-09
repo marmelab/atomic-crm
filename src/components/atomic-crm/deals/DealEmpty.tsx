@@ -30,7 +30,7 @@ export const DealEmpty = ({ children }: { children?: ReactNode }) => {
         height: `calc(100dvh - ${appbarHeight}px)`,
       }}
     >
-      <img src="./img/empty.svg" alt="No deals found" />
+      <img src="./img/empty.svg" alt="Aucune opportunité" />
       {contacts && contacts.length > 0 ? (
         <>
           <div className="flex flex-col items-center gap-0">
@@ -40,7 +40,7 @@ export const DealEmpty = ({ children }: { children?: ReactNode }) => {
             </p>
           </div>
           <div className="flex space-x-8">
-            <CreateButton label="Create deal" />
+            <CreateButton label="Créer une opportunité" />
           </div>
           <DealCreate open={!!matchCreate} />
           {children}

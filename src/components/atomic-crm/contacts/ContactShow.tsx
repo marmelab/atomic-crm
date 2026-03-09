@@ -187,7 +187,7 @@ const ContactShowContentMobile = () => {
                 </div>
               </div>
               <div>
-                <h3 className="text-lg font-semibold">Tags</h3>
+                <h3 className="text-lg font-semibold">Étiquettes</h3>
                 <Separator />
                 <div className="mt-3">
                   <TagsListEdit />

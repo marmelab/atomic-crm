@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { formatDistance } from "date-fns";
+import { fr } from "date-fns/locale";
 import { UserPlus } from "lucide-react";
 import {
   RecordContextProvider,
@@ -119,7 +120,7 @@ const CompanyShowContent = () => {
                     ? record.nb_contacts === 1
                       ? "1 Contact"
                       : `${record.nb_contacts} Contacts`
-                    : "No Contacts"}
+                    : "Aucun contact"}
                 </TabsTrigger>
                 {record.nb_deals ? (
                   <TabsTrigger value="deals">
@@ -217,7 +218,7 @@ const ContactsIterator = () => {
               {contact.last_seen && (
                 <div className="text-right">
                   <div className="text-sm text-muted-foreground">
-                    last activity {formatDistance(contact.last_seen, now)} ago{" "}
+                    il y a {formatDistance(contact.last_seen, now, { locale: fr })}{" "}
                     <Status status={contact.status} />
                   </div>
                 </div>
@@ -279,7 +280,7 @@ const DealsIterator = () => {
               </div>
               <div className="text-right">
                 <div className="text-sm text-muted-foreground">
-                  last activity {formatDistance(deal.updated_at, now)} ago{" "}
+                  il y a {formatDistance(deal.updated_at, now, { locale: fr })}{" "}
                 </div>
               </div>
             </RouterLink>

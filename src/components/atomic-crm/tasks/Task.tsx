@@ -44,7 +44,7 @@ export const Task = ({
     redirect: false,
     mutationOptions: {
       onSuccess() {
-        notify("Task deleted successfully", { undoable: true });
+        notify("Tâche supprimée", { undoable: true });
       },
     },
   });

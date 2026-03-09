@@ -93,7 +93,7 @@ const DealShowContent = () => {
                 <span className="text-sm">
                   {isValid(new Date(record.expected_closing_date))
                     ? formatISODateString(record.expected_closing_date)
-                    : "Invalid date"}
+                    : "Date invalide"}
                 </span>
                 {new Date(record.expected_closing_date) < new Date() ? (
                   <Badge variant="destructive">Past</Badge>
@@ -202,11 +202,11 @@ const ArchiveButton = ({ record }: { record: Deal }) => {
       {
         onSuccess: () => {
           redirect("list", "deals");
-          notify("Deal archived", { type: "info", undoable: false });
+          notify("Opportunité archivée", { type: "info", undoable: false });
           refresh();
         },
         onError: () => {
-          notify("Error: deal not archived", { type: "error" });
+          notify("Erreur : opportunité non archivée", { type: "error" });
         },
       },
     );
@@ -235,14 +235,14 @@ const UnarchiveButton = ({ record }: { record: Deal }) => {
     mutationFn: () => dataProvider.unarchiveDeal(record),
     onSuccess: () => {
       redirect("list", "deals");
-      notify("Deal unarchived", {
+      notify("Opportunité désarchivée", {
         type: "info",
         undoable: false,
       });
       refresh();
     },
     onError: () => {
-      notify("Error: deal not unarchived", { type: "error" });
+      notify("Erreur : opportunité non désarchivée", { type: "error" });
     },
   });
 
