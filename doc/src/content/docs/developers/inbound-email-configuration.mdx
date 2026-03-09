@@ -61,6 +61,11 @@ Store the Postmark inbound email address in a `.env` file at the root of the pro
 VITE_INBOUND_EMAIL=xxxxxxxxxxx@inbound.postmarkapp.com
 ```
 
+:::tip
+You need to provide `VITE_INBOUND_EMAIL` at two places: as a Supabase Secret ([Supabase Setup](#supabase-setup)), and in the `.env` file used by the Vite app (this section).
+This is necessary because it is used both client-side, to display the Inbound Email in the Atomic CRM app, and server-side (by the Edge Function) to detect when an email is forwarded to Atomic CRM.
+:::
+
 ## Testing locally
 
 To test inbound email features locally, you will need to do the following:

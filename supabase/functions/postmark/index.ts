@@ -258,6 +258,8 @@ const checkBody = (json: any) => {
             }
         ]
       }'
+
+      
   To trigger the email forwarding feature, you can change the "To" and "ToFull" fields to have the INBOUND_EMAIL, and add an email address that is neither a sales nor the INBOUND_EMAIL, for example:
   curl -i --location --request POST 'http://127.0.0.1:54321/functions/v1/postmark' \
     --header 'Content-Type: application/json' \
@@ -289,8 +291,8 @@ const checkBody = (json: any) => {
       "ReplyTo": "",
       "MailboxHash": "",
       "Date": "Thu, 5 Mar 2026 10:41:26 +0100",
-      "TextBody": "---------- Forwarded message ---------\nFrom : Postmarkapp Support <original.recipient@company.com>\nDate: Fri, 1 Aug 2014 16:45:32 -04:00\nSubject: Test for forwarding mail\nTo: Postmarkapp Support <support@postmarkapp.com>\n\n\nThe transferred message body\n",
-      "HtmlBody": "<div dir=\"ltr\"><br><br><div class=\"gmail_quote gmail_quote_container\"><div dir=\"ltr\" class=\"gmail_attr\">---------- Forwarded message ---------<br>From: <strong class=\"gmail_sendername\" dir=\"auto\">Postmarkapp Support</strong> <span dir=\"auto\">&lt;<a href=\"mailto:original.recipient@company.com\">original.recipient@company.com</a>&gt;</span><br>Date: Fri, 1 Aug 2014 16:45:32 -04:00<br>Subject: Test for forwarding mail<br>To: Postmarkapp Support &lt;<a href=\"mailto:support@postmarkapp.com\">support@postmarkapp.com</a>&gt;<br></div><br><br><div dir=\"ltr\">The transferred message body</div>\n</div></div>\n",
+      "TextBody": "---------- Forwarded message ---------\nFrom : Original Recipient <original.recipient@company.com>\nDate: Fri, 1 Aug 2014 16:45:32 -04:00\nSubject: Test for forwarding mail\nTo: Postmarkapp Support <support@postmarkapp.com>\n\n\nThe transferred message body\n",
+      "HtmlBody": "<div dir=\"ltr\"><br><br><div class=\"gmail_quote gmail_quote_container\"><div dir=\"ltr\" class=\"gmail_attr\">---------- Forwarded message ---------<br>From: <strong class=\"gmail_sendername\" dir=\"auto\">Original Recipient</strong> <span dir=\"auto\">&lt;<a href=\"mailto:original.recipient@company.com\">original.recipient@company.com</a>&gt;</span><br>Date: Fri, 1 Aug 2014 16:45:32 -04:00<br>Subject: Test for forwarding mail<br>To: Postmarkapp Support &lt;<a href=\"mailto:support@postmarkapp.com\">support@postmarkapp.com</a>&gt;<br></div><br><br><div dir=\"ltr\">The transferred message body</div>\n</div></div>\n",
       "StrippedTextReply": "",
       "Tag": "",
       "Headers": [
