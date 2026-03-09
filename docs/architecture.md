@@ -1213,3 +1213,5 @@ FiscalConfig, FiscalTaxProfile             ← Fiscale
 - SettingsPage: compact collapsible headers (text-sm, py-2.5, h-4 icons)
 
 - SettingsPage: Card py-0 gap-0 override for compact collapsible sections
+
+- SettingsPage: mobile save bar compact (abbreviated labels, size sm, no overflow)

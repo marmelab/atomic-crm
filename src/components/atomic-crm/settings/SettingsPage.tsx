@@ -615,13 +615,14 @@ const SettingsFormFields = () => {
       </div>
 
       {/* Save bar — fixed on desktop, inline on mobile to avoid MobileNavigation overlap */}
-      <div className="md:fixed md:bottom-0 md:left-0 md:right-0 md:z-60 border-t bg-background p-4 mb-16 md:mb-0">
-        <div className="max-w-screen-xl mx-auto flex gap-8 px-4 md:px-4">
+      <div className="md:fixed md:bottom-0 md:left-0 md:right-0 md:z-60 border-t bg-background p-3 md:p-4 mb-16 md:mb-0">
+        <div className="max-w-screen-xl mx-auto flex gap-8 px-0 md:px-4">
           <div className="hidden md:block w-48 shrink-0" />
-          <div className="flex-1 min-w-0 max-w-2xl flex justify-between">
+          <div className="flex-1 min-w-0 max-w-2xl flex items-center justify-between gap-2">
             <Button
               type="button"
               variant="ghost"
+              size="sm"
               onClick={() =>
                 reset({
                   ...defaultConfiguration,
@@ -632,20 +633,22 @@ const SettingsFormFields = () => {
                 })
               }
             >
-              <RotateCcw className="h-4 w-4 mr-1" />
-              Ripristina Predefiniti
+              <RotateCcw className="h-4 w-4 md:mr-1" />
+              <span className="hidden md:inline">Ripristina Predefiniti</span>
+              <span className="md:hidden">Ripristina</span>
             </Button>
             <div className="flex gap-2">
               <Button
                 type="button"
                 variant="outline"
+                size="sm"
                 onClick={() => window.history.back()}
               >
                 Annulla
               </Button>
-              <Button type="submit" disabled={isSubmitting}>
+              <Button type="submit" size="sm" disabled={isSubmitting}>
                 <Save className="h-4 w-4 mr-1" />
-                {isSubmitting ? "Salvataggio..." : "Salva"}
+                {isSubmitting ? "..." : "Salva"}
               </Button>
             </div>
           </div>
