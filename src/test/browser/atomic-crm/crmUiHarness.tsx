@@ -37,7 +37,7 @@ const listPerPage = 25;
 
 let scenarioCount = 0;
 
-const wait = (ms: number) =>
+const wait = async (ms: number) =>
   new Promise((resolve) => {
     window.setTimeout(resolve, ms);
   });
