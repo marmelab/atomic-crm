@@ -12,7 +12,7 @@ See the [Supabase documentation](https://supabase.com/docs/guides/api) for more 
 
 To call the API, you need to pass an `apikey` in the headers of your requests. The API key is the API key of your Supabase project, you can find it in the Supabase dashboard in the settings section.
 
-![Supabase API key](../../images/supabaseApikey.png)
+![Supabase API key](../../images/supabaseApiKey.png)
 
 You have two types of API keys in Supabase: the publishable API key, and the secret API key. You should use the publishable API key to call the API from your frontend or from any client side code, as it has limited permissions and does not allow to bypass RLS policies.
 You should never use the secret API key in client side code, as it gives full access to your database and can be easily extracted from your code.
@@ -162,9 +162,9 @@ async function addMessageAsNoteToContact({
 
   // Step 2: Find the contact by email
   const contactsResponse = await fetch(
-    `https://<instance_url>/rest/v1/contacts_summary?email_fts=ilike.${
+    `https://<instance_url>/rest/v1/contacts_summary?email_fts=ilike.*${
       encodeURIComponent(message.email)
-    }`,
+    }*`,
     {
       headers: {
         apikey,
