@@ -84,7 +84,7 @@ const ContactShowContentMobile = () => {
           onClick={() => setEditOpen(true)}
         >
           <Pencil className="size-5" />
-          <span className="sr-only">Edit record</span>
+          <span className="sr-only">Modifier</span>
         </Button>
       </MobileHeader>
       <MobileContent>
@@ -131,9 +131,9 @@ const ContactShowContentMobile = () => {
                 reference="tasks"
                 filter={{ "done_date@is": null }}
               />{" "}
-              Tasks
+              Tâches
             </TabsTrigger>
-            <TabsTrigger value="details">Details</TabsTrigger>
+            <TabsTrigger value="details">Détails</TabsTrigger>
           </TabsList>
 
           <TabsContent value="notes" className="mt-2">
@@ -143,7 +143,7 @@ const ContactShowContentMobile = () => {
               sort={{ field: "date", order: "DESC" }}
               empty={
                 <div className="flex flex-col items-center justify-center py-8 text-center">
-                  <p className="text-muted-foreground mb-4">No notes yet</p>
+                  <p className="text-muted-foreground mb-4">Aucune note pour l'instant</p>
                   <Button
                     variant="outline"
                     onClick={() => setNoteCreateOpen(true)}
@@ -173,14 +173,14 @@ const ContactShowContentMobile = () => {
           <TabsContent value="details" className="mt-4">
             <div className="space-y-6">
               <div>
-                <h3 className="text-lg font-semibold">Personal info</h3>
+                <h3 className="text-lg font-semibold">Infos personnelles</h3>
                 <Separator />
                 <div className="mt-3">
                   <ContactPersonalInfo />
                 </div>
               </div>
               <div>
-                <h3 className="text-lg font-semibold">Background info</h3>
+                <h3 className="text-lg font-semibold">Contexte</h3>
                 <Separator />
                 <div className="mt-3">
                   <ContactBackgroundInfo />

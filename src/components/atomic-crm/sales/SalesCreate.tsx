@@ -20,12 +20,12 @@ export function SalesCreate() {
     },
     onSuccess: () => {
       notify(
-        "User created. They will soon receive an email to set their password.",
+        "Utilisateur créé. Il recevra bientôt un email pour définir son mot de passe.",
       );
       redirect("/sales");
     },
     onError: (error) => {
-      notify(error.message || "An error occurred while creating the user.", {
+      notify(error.message || "Une erreur est survenue lors de la création de l'utilisateur.", {
         type: "error",
       });
     },
@@ -38,7 +38,7 @@ export function SalesCreate() {
     <div className="max-w-lg w-full mx-auto mt-8">
       <Card>
         <CardHeader>
-          <CardTitle>Create a new user</CardTitle>
+          <CardTitle>Créer un utilisateur</CardTitle>
         </CardHeader>
         <CardContent>
           <SimpleForm onSubmit={onSubmit as SubmitHandler<any>}>

@@ -11,7 +11,7 @@ import { TopToolbar } from "../layout/TopToolbar";
 const SalesListActions = () => (
   <TopToolbar>
     <ExportButton />
-    <CreateButton label="New user" />
+    <CreateButton label="Nouvel utilisateur" />
   </TopToolbar>
 );
 
@@ -45,7 +45,7 @@ const OptionsField = (_props: { label?: string | boolean }) => {
 export function SalesList() {
   return (
     <List
-      title="Users"
+      title="Utilisateurs"
       filters={filters}
       actions={<SalesListActions />}
       sort={{ field: "first_name", order: "ASC" }}
