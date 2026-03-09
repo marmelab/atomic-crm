@@ -1215,3 +1215,5 @@ FiscalConfig, FiscalTaxProfile             ← Fiscale
 - SettingsPage: Card py-0 gap-0 override for compact collapsible sections
 
 - SettingsPage: mobile save bar compact (abbreviated labels, size sm, no overflow)
+
+<!-- Settings: save bar auto-hides on scroll down, shows on scroll up (sticky + scroll listener) -->

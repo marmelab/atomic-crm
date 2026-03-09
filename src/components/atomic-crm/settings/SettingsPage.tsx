@@ -265,6 +265,30 @@ const SettingsFormFields = () => {
     return () => observer.disconnect();
   }, []);
 
+  // Show save bar when scrolling up, hide when scrolling down
+  const [saveBarVisible, setSaveBarVisible] = useState(true);
+  useEffect(() => {
+    // MobileContent uses overflow-y-auto on #main-content, so scroll events
+    // fire on that container, not on window. We listen to both.
+    const scrollContainer =
+      document.getElementById("main-content") ?? window;
+    let lastScrollY = 0;
+    const getScrollY = () =>
+      scrollContainer instanceof HTMLElement
+        ? scrollContainer.scrollTop
+        : window.scrollY;
+    const handleScroll = () => {
+      const currentScrollY = getScrollY();
+      setSaveBarVisible(currentScrollY < lastScrollY || currentScrollY < 50);
+      lastScrollY = currentScrollY;
+    };
+    scrollContainer.addEventListener("scroll", handleScroll, {
+      passive: true,
+    });
+    return () =>
+      scrollContainer.removeEventListener("scroll", handleScroll);
+  }, []);
+
   const [openSections, setOpenSections] = useState<Set<string>>(new Set());
 
   const toggleSection = useCallback((id: string) => {
@@ -614,11 +638,16 @@ const SettingsFormFields = () => {
         </CollapsibleSection>
       </div>
 
-      {/* Save bar — fixed on desktop, inline on mobile to avoid MobileNavigation overlap */}
-      <div className="md:fixed md:bottom-0 md:left-0 md:right-0 md:z-60 border-t bg-background p-3 md:p-4 mb-16 md:mb-0">
+      {/* Save bar — sticky at bottom, auto-hide on scroll down */}
+      <div className={cn(
+        "sticky bottom-0 z-60 border-t bg-background p-3 md:p-4 transition-all duration-300",
+        saveBarVisible
+          ? "opacity-100 translate-y-0"
+          : "opacity-0 translate-y-4 pointer-events-none"
+      )}>
         <div className="max-w-screen-xl mx-auto flex gap-8 px-0 md:px-4">
           <div className="hidden md:block w-48 shrink-0" />
-          <div className="flex-1 min-w-0 max-w-2xl flex items-center justify-between gap-2">
+          <div className="flex-1 min-w-0 max-w-2xl flex flex-wrap items-center justify-between gap-2">
             <Button
               type="button"
               variant="ghost"
@@ -633,9 +662,8 @@ const SettingsFormFields = () => {
                 })
               }
             >
-              <RotateCcw className="h-4 w-4 md:mr-1" />
-              <span className="hidden md:inline">Ripristina Predefiniti</span>
-              <span className="md:hidden">Ripristina</span>
+              <RotateCcw className="h-4 w-4 mr-1" />
+              Ripristina Predefiniti
             </Button>
             <div className="flex gap-2">
               <Button
