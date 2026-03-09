@@ -673,15 +673,15 @@ const CollapsibleSection = ({
   onToggle: () => void;
   children: React.ReactNode;
 }) => (
-  <Card id={id}>
+  <Card id={id} className="py-0 gap-0">
     <button
       type="button"
       onClick={onToggle}
-      className="w-full flex items-center justify-between px-4 py-2.5 text-left"
+      className="w-full flex items-center justify-between px-4 py-3 text-left"
     >
       <div className="flex items-center gap-2">
-        {Icon && <Icon className={cn("h-4 w-4", color ?? "text-muted-foreground")} />}
-        <h2 className="text-sm font-semibold text-muted-foreground">{title}</h2>
+        {Icon && <Icon className={cn("h-5 w-5", color ?? "text-muted-foreground")} />}
+        <h2 className="text-base font-semibold text-muted-foreground">{title}</h2>
       </div>
       <ChevronDown
         className={cn(
@@ -697,7 +697,7 @@ const CollapsibleSection = ({
       )}
     >
       <div className="overflow-hidden">
-        <CardContent className="space-y-4 pt-0">{children}</CardContent>
+        <CardContent className="space-y-4 pb-4">{children}</CardContent>
       </div>
     </div>
   </Card>
