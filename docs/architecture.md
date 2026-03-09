@@ -1205,3 +1205,5 @@ FiscalConfig, FiscalTaxProfile             ← Fiscale
 - unified_crm_answer: reasoning re-enabled with effort 'low' (medium caused empty outputs due to large CRM context)
 
 - QuotePDFPreview: mobile overlay now uses BlobProvider + native iframe instead of PDFViewer canvas (enables pinch-to-zoom)
+
+- SettingsPage: mobile sticky category tab bar (Azienda/Catalogo/Operativo/Avanzate) for quick navigation, reuses existing IntersectionObserver

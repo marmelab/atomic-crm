@@ -272,9 +272,36 @@ const SettingsFormFields = () => {
     }
   };
 
+  const activeCategoryId =
+    CATEGORIES.find((cat) =>
+      cat.sections.some((s) => s.id === activeSection),
+    )?.id ?? CATEGORIES[0].id;
+
   return (
-    <div className="flex gap-8 mt-4 pb-6 md:pb-20">
-      {/* Left navigation - Professional structured menu */}
+    <div className="flex flex-col md:flex-row gap-0 md:gap-8 mt-0 md:mt-4 pb-6 md:pb-20">
+      {/* Mobile tab bar — sticky horizontal categories */}
+      <nav className="md:hidden sticky top-0 z-40 bg-background border-b">
+        <h1 className="text-lg font-semibold px-4 pt-3 pb-1">Impostazioni</h1>
+        <div className="flex overflow-x-auto gap-1 px-4 pb-2">
+          {CATEGORIES.map((category) => (
+            <button
+              key={category.id}
+              type="button"
+              onClick={() => scrollToSection(category.sections[0].id)}
+              className={cn(
+                "shrink-0 px-3 py-1.5 text-sm font-medium rounded-full transition-all",
+                activeCategoryId === category.id
+                  ? "bg-primary text-primary-foreground shadow-sm"
+                  : "text-muted-foreground bg-muted/50",
+              )}
+            >
+              {category.label}
+            </button>
+          ))}
+        </div>
+      </nav>
+
+      {/* Left navigation - Professional structured menu (desktop) */}
       <nav className="hidden md:block w-56 shrink-0">
         <div className="sticky top-4">
           <h1 className="text-xl font-semibold px-3 mb-4">Impostazioni</h1>
@@ -324,7 +351,7 @@ const SettingsFormFields = () => {
       </nav>
 
       {/* Main content */}
-      <div className="flex-1 min-w-0 max-w-2xl space-y-6">
+      <div className="flex-1 min-w-0 max-w-2xl space-y-6 px-4 md:px-0">
         {/* Business Profile */}
         <Card id="profilo-aziendale">
           <CardContent className="space-y-4">
