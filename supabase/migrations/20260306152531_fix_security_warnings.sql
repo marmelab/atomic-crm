@@ -24,27 +24,27 @@ left join
 group by
     co.id, c.name;
 
--- Ensure all functions have search_path set to empty
+-- Ensure all functions have search_path set to prevent search path injection attacks
 
--- Functions that already use qualified names can be simply altered
+-- Functions that already use qualified names can be simply altered to use public search_path
 
 ALTER FUNCTION public.get_note_attachments_function_url()
-SET search_path TO '';
+SET search_path TO 'public';
 
 ALTER FUNCTION public.get_user_id_by_email(text)
-SET search_path TO '';
+SET search_path TO 'public';
 
 ALTER FUNCTION public.handle_contact_saved()
-SET search_path TO '';
+SET search_path TO 'public';
 
--- get_avatar_for_email: needs to be recreated with qualified names
--- (http_get -> extensions.http_get, digest -> extensions.digest, get_domain_favicon -> public.get_domain_favicon)
+-- get_avatar_for_email: set search_path='public' and qualify extension calls
+-- (http_get -> extensions.http_get, digest -> extensions.digest)
 DROP FUNCTION IF EXISTS public.get_avatar_for_email(text);
 
 CREATE FUNCTION public.get_avatar_for_email(email text)
 RETURNS text
 LANGUAGE plpgsql
-SET search_path TO ''
+SET search_path TO 'public'
 AS $function$
 declare email_hash text;
 declare gravatar_url text;
@@ -66,26 +66,25 @@ begin
 
     -- Fallback to email's domain favicon if not excluded
     email_domain = split_part(email, '@', 2);
-    return public.get_domain_favicon(email_domain);
+    return get_domain_favicon(email_domain);
 exception
     when others then
         return 'ERROR';
 end;
 $function$;
 
--- get_domain_favicon: needs to be recreated with qualified names
--- (favicons_excluded_domains -> public.favicons_excluded_domains)
+-- get_domain_favicon: set search_path='public' (no changes to table references needed)
 DROP FUNCTION IF EXISTS public.get_domain_favicon(text);
 
 CREATE FUNCTION public.get_domain_favicon(domain_name text)
 RETURNS text
 LANGUAGE plpgsql
-SET search_path TO ''
+SET search_path TO 'public'
 AS $function$
 declare domain_status int8;
 
 begin
-    if exists (select from public.favicons_excluded_domains as fav where fav.domain = domain_name) then
+    if exists (select from favicons_excluded_domains as fav where fav.domain = domain_name) then
         return null;
     end if;
 
@@ -96,8 +95,7 @@ begin
 end;
 $function$;
 
--- handle_company_saved: needs to be recreated with qualified names
--- (get_domain_favicon -> public.get_domain_favicon)
+-- handle_company_saved: set search_path='public' (no changes to function calls needed)
 -- Drop the trigger first, then the function
 DROP TRIGGER IF EXISTS company_saved ON public.companies;
 DROP FUNCTION IF EXISTS public.handle_company_saved();
@@ -105,7 +103,7 @@ DROP FUNCTION IF EXISTS public.handle_company_saved();
 CREATE FUNCTION public.handle_company_saved()
 RETURNS trigger
 LANGUAGE plpgsql
-SET search_path TO ''
+SET search_path TO 'public'
 AS $function$
 declare company_logo text;
 
@@ -114,7 +112,7 @@ begin
         return new;
     end if;
 
-    company_logo = public.get_domain_favicon(new.website);
+    company_logo = get_domain_favicon(new.website);
     if company_logo is null then
         return new;
     end if;
@@ -127,8 +125,7 @@ $function$;
 -- Recreate the trigger
 CREATE TRIGGER company_saved BEFORE INSERT OR UPDATE ON public.companies FOR EACH ROW EXECUTE FUNCTION public.handle_company_saved();
 
--- set_sales_id_default: needs to be recreated with qualified names
--- (sales -> public.sales)
+-- set_sales_id_default: set search_path='public' (no changes to table references needed)
 -- Drop all triggers that depend on this function first
 DROP TRIGGER IF EXISTS set_task_sales_id_trigger ON public.tasks;
 DROP TRIGGER IF EXISTS set_contact_sales_id_trigger ON public.contacts;
@@ -142,11 +139,11 @@ DROP FUNCTION IF EXISTS public.set_sales_id_default();
 CREATE FUNCTION public.set_sales_id_default()
 RETURNS TRIGGER
 LANGUAGE plpgsql
-SET search_path TO ''
+SET search_path TO 'public'
 AS $$
 BEGIN
   IF NEW.sales_id IS NULL THEN
-    SELECT id INTO NEW.sales_id FROM public.sales WHERE user_id = auth.uid();
+    SELECT id INTO NEW.sales_id FROM sales WHERE user_id = auth.uid();
   END IF;
   RETURN NEW;
 END;
@@ -183,19 +180,18 @@ BEFORE INSERT ON public.deal_notes
 FOR EACH ROW
 EXECUTE FUNCTION public.set_sales_id_default();
 
--- merge_contacts: needs to be recreated with qualified names
--- (contacts, tasks, contact_notes, deals -> public.contacts, public.tasks, public.contact_notes, public.deals)
+-- merge_contacts: set search_path='public' (no changes to table references needed)
 DROP FUNCTION IF EXISTS public.merge_contacts(bigint, bigint);
 
 CREATE FUNCTION public.merge_contacts(loser_id bigint, winner_id bigint)
 RETURNS bigint
 LANGUAGE plpgsql
 SECURITY INVOKER
-SET search_path TO ''
+SET search_path TO 'public'
 AS $$
 DECLARE
-  winner_contact public.contacts%ROWTYPE;
-  loser_contact public.contacts%ROWTYPE;
+  winner_contact contacts%ROWTYPE;
+  loser_contact contacts%ROWTYPE;
   deal_record RECORD;
   merged_emails jsonb;
   merged_phones jsonb;
@@ -208,26 +204,26 @@ DECLARE
   phone_map jsonb;
 BEGIN
   -- Fetch both contacts
-  SELECT * INTO winner_contact FROM public.contacts WHERE id = winner_id;
-  SELECT * INTO loser_contact FROM public.contacts WHERE id = loser_id;
+  SELECT * INTO winner_contact FROM contacts WHERE id = winner_id;
+  SELECT * INTO loser_contact FROM contacts WHERE id = loser_id;
 
   IF winner_contact IS NULL OR loser_contact IS NULL THEN
     RAISE EXCEPTION 'Contact not found';
   END IF;
 
   -- 1. Reassign tasks from loser to winner
-  UPDATE public.tasks SET contact_id = winner_id WHERE contact_id = loser_id;
+  UPDATE tasks SET contact_id = winner_id WHERE contact_id = loser_id;
 
   -- 2. Reassign contact notes from loser to winner
-  UPDATE public.contact_notes SET contact_id = winner_id WHERE contact_id = loser_id;
+  UPDATE contact_notes SET contact_id = winner_id WHERE contact_id = loser_id;
 
   -- 3. Update deals - replace loser with winner in contact_ids array
   FOR deal_record IN
     SELECT id, contact_ids
-    FROM public.deals
+    FROM deals
     WHERE contact_ids @> ARRAY[loser_id]
   LOOP
-    UPDATE public.deals
+    UPDATE deals
     SET contact_ids = (
       SELECT ARRAY(
         SELECT DISTINCT unnest(
@@ -316,7 +312,7 @@ BEGIN
   );
 
   -- 5. Update winner with merged data
-  UPDATE public.contacts SET
+  UPDATE contacts SET
     avatar = COALESCE(winner_contact.avatar, loser_contact.avatar),
     gender = COALESCE(winner_contact.gender, loser_contact.gender),
     first_name = COALESCE(winner_contact.first_name, loser_contact.first_name),
@@ -335,7 +331,7 @@ BEGIN
   WHERE id = winner_id;
 
   -- 6. Delete loser contact
-  DELETE FROM public.contacts WHERE id = loser_id;
+  DELETE FROM contacts WHERE id = loser_id;
 
   RETURN winner_id;
 END;
