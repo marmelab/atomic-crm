@@ -1219,3 +1219,4 @@ FiscalConfig, FiscalTaxProfile             ← Fiscale
 <!-- Settings: save bar auto-hides on scroll down, shows on scroll up (sticky + scroll listener) -->
 <!-- Settings save bar: sticky on mobile (overflow container), fixed on desktop -->
 <!-- Settings save bar: always visible on desktop, auto-hide on mobile -->
+<!-- Settings: removed Authentication/SSO section (single-user, not needed) -->

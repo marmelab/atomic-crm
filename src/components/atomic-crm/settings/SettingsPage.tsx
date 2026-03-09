@@ -12,7 +12,7 @@ import {
   Zap,
   Bot,
   Palette,
-  Shield,
+
   Car,
 } from "lucide-react";
 import { Link } from "react-router";
@@ -69,12 +69,6 @@ const CATEGORIES: Category[] = [
         label: "Marchio",
         icon: Palette,
         color: "text-purple-600",
-      },
-      {
-        id: "autenticazione",
-        label: "Autenticazione",
-        icon: Shield,
-        color: "text-green-600",
       },
     ],
   },
@@ -442,24 +436,6 @@ const SettingsFormFields = () => {
           </div>
         </CollapsibleSection>
 
-        {/* Authentication */}
-        <CollapsibleSection
-          id="autenticazione"
-          title="Autenticazione"
-          icon={Shield}
-          color="text-green-600"
-          isOpen={openSections.has("autenticazione")}
-          onToggle={() => toggleSection("autenticazione")}
-        >
-          <p className="text-sm text-muted-foreground">
-            Configurazione SSO con Google Workspace (opzionale).
-          </p>
-          <TextInput
-            source="googleWorkplaceDomain"
-            label="Dominio Google Workspace"
-            helperText="Es: example.com - lascia vuoto per disabilitare SSO"
-          />
-        </CollapsibleSection>
 
         {/* Tags */}
         <CollapsibleSection
