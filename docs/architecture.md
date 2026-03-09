@@ -1209,3 +1209,5 @@ FiscalConfig, FiscalTaxProfile             ← Fiscale
 - SettingsPage: mobile sticky category tab bar (Azienda/Catalogo/Operativo/Avanzate) for quick navigation, reuses existing IntersectionObserver
 
 - SettingsPage: all 11 sections now collapsible (closed by default), sidebar/tab navigation auto-opens target section
+
+- SettingsPage: compact collapsible headers (text-sm, py-2.5, h-4 icons)

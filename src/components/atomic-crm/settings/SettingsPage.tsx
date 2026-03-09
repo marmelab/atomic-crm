@@ -677,15 +677,15 @@ const CollapsibleSection = ({
     <button
       type="button"
       onClick={onToggle}
-      className="w-full flex items-center justify-between px-6 py-4 text-left"
+      className="w-full flex items-center justify-between px-4 py-2.5 text-left"
     >
       <div className="flex items-center gap-2">
-        {Icon && <Icon className={cn("h-5 w-5", color ?? "text-muted-foreground")} />}
-        <h2 className="text-xl font-semibold text-muted-foreground">{title}</h2>
+        {Icon && <Icon className={cn("h-4 w-4", color ?? "text-muted-foreground")} />}
+        <h2 className="text-sm font-semibold text-muted-foreground">{title}</h2>
       </div>
       <ChevronDown
         className={cn(
-          "h-5 w-5 text-muted-foreground transition-transform duration-200",
+          "h-4 w-4 text-muted-foreground transition-transform duration-200",
           isOpen && "rotate-180",
         )}
       />
