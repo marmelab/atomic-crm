@@ -26,7 +26,6 @@ export default defineConfig({
       "doc/**",
       "src/**/*.integration.test.{ts,tsx}",
     ],
-    setupFiles: ["./src/test/setup.unit.ts"],
   },
   resolve: {
     preserveSymlinks: true,
