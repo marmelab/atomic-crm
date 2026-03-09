@@ -1,6 +1,5 @@
-import { render, screen, waitFor, within } from "@testing-library/react";
-import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
+import { render } from "vitest-browser-react";
 
 import {
   buildContact,
@@ -42,53 +41,49 @@ describe("TaskCreateSheet integration", () => {
         ] as any,
       }),
     });
-    const user = userEvent.setup();
 
-    render(
+    const screen = await render(
       <CrmTestProvider scenario={scenario}>
         <OpenTaskCreateSheetHarness />
       </CrmTestProvider>,
     );
 
-    await user.type(
-      await screen.findByLabelText(/description/i),
-      "Follow up about onboarding",
-    );
+    await screen
+      .getByLabelText(/description/i)
+      .fill("Follow up about onboarding");
 
-    const [contactInput, typeInput] = await screen.findAllByRole("combobox");
+    const [contactInput, typeInput] = screen.getByRole("combobox").all();
 
-    await user.click(contactInput);
-    await user.click(await screen.findByText("Grace Hopper"));
+    await contactInput.click();
+    await screen.getByText("Grace Hopper").click();
 
-    await user.click(typeInput);
-    const typeOptions = await screen.findByRole("listbox");
-    await user.click(within(typeOptions).getByText("Call"));
+    await typeInput.click();
+    const typeOptions = screen.getByRole("listbox");
+    await typeOptions.getByText("Call").click();
 
     const dueDateInput = screen.getByLabelText(/due date/i);
-    await user.clear(dueDateInput);
-    await user.type(dueDateInput, "2026-03-06T12:30");
+    await dueDateInput.clear();
+    await dueDateInput.fill("2026-03-06T12:30");
 
-    await user.click(screen.getByRole("button", { name: /^save$/i }));
+    await screen.getByRole("button", { name: /^save$/i }).click();
 
-    expect(await screen.findByText("Task added")).toBeInTheDocument();
+    await expect.element(screen.getByText("Task added")).toBeInTheDocument();
 
-    await waitFor(() => {
-      expect(screen.queryByText("Create Task")).toBeNull();
-    });
+    await expect
+      .element(screen.getByText("Create Task"))
+      .not.toBeInTheDocument();
 
-    await waitFor(() => {
-      return expect(
-        scenario.dataProvider
-          .getList("tasks", {
-            filter: {},
-            pagination: { page: 1, perPage: 10 },
-            sort: { field: "id", order: "ASC" },
-          })
-          .then(({ data }) =>
-            data.some((task) => task.text === "Follow up about onboarding"),
-          ),
-      ).resolves.toBe(true);
-    });
+    await expect
+      .poll(async () => {
+        const { data } = await scenario.dataProvider.getList("tasks", {
+          filter: {},
+          pagination: { page: 1, perPage: 10 },
+          sort: { field: "id", order: "ASC" },
+        });
+
+        return data.some((task) => task.text === "Follow up about onboarding");
+      })
+      .toBe(true);
 
     const tasks = await scenario.dataProvider.getList("tasks", {
       filter: {},

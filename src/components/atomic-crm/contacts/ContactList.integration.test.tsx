@@ -1,6 +1,5 @@
-import { render, screen, waitFor } from "@testing-library/react";
-import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
+import { render } from "vitest-browser-react";
 
 import {
   buildContact,
@@ -18,18 +17,18 @@ describe("Contact list integration", () => {
       db: createCrmDb(),
     });
 
-    render(
+    const screen = await render(
       <CrmTestProvider resource="contacts" scenario={scenario}>
         <DesktopContactListHarness />
       </CrmTestProvider>,
     );
 
-    expect(
-      await screen.findByRole("heading", { name: "No contacts found" }),
-    ).toBeInTheDocument();
-    expect(
-      screen.getByText("It seems your contact list is empty."),
-    ).toBeVisible();
+    await expect
+      .element(screen.getByRole("heading", { name: "No contacts found" }))
+      .toBeInTheDocument();
+    await expect
+      .element(screen.getByText("It seems your contact list is empty."))
+      .toBeVisible();
   });
 
   it("renders contacts in the desktop success state", async () => {
@@ -54,17 +53,17 @@ describe("Contact list integration", () => {
       }),
     });
 
-    render(
+    const screen = await render(
       <CrmTestProvider resource="contacts" scenario={scenario}>
         <DesktopContactListHarness />
       </CrmTestProvider>,
     );
 
-    expect(await screen.findByText("Ada Lovelace")).toBeVisible();
-    expect(screen.getByText("Grace Hopper")).toBeVisible();
-    expect(
-      screen.queryByRole("heading", { name: "No contacts found" }),
-    ).toBeNull();
+    await expect.element(screen.getByText("Ada Lovelace")).toBeVisible();
+    await expect.element(screen.getByText("Grace Hopper")).toBeVisible();
+    await expect
+      .element(screen.getByRole("heading", { name: "No contacts found" }))
+      .not.toBeInTheDocument();
   });
 
   it("renders a loading skeleton for the desktop list content", async () => {
@@ -75,15 +74,15 @@ describe("Contact list integration", () => {
       getListDelays: { contacts: 5_000 },
     });
 
-    const { container } = render(
+    const screen = await render(
       <CrmTestProvider resource="contacts" scenario={scenario}>
         <DesktopContactListContentHarness />
       </CrmTestProvider>,
     );
 
-    await waitFor(() => {
-      expect(container.querySelector('[data-slot="skeleton"]')).not.toBeNull();
-    });
+    await expect
+      .poll(() => screen.container.querySelector('[data-slot="skeleton"]'))
+      .not.toBeNull();
   });
 
   it("renders the mobile error state when loading contacts fails", async () => {
@@ -94,18 +93,21 @@ describe("Contact list integration", () => {
       failGetListOnce: { contacts: "Error loading contacts" },
     });
 
-    render(
+    const screen = await render(
       <CrmTestProvider resource="contacts" scenario={scenario}>
         <MobileContactListContentHarness />
       </CrmTestProvider>,
     );
 
-    expect(await screen.findByText("Error loading contacts")).toBeVisible();
-    expect(screen.getByRole("button", { name: /retry/i })).toBeVisible();
+    await expect
+      .element(screen.getByText("Error loading contacts"))
+      .toBeVisible();
+    await expect
+      .element(screen.getByRole("button", { name: /retry/i }))
+      .toBeVisible();
   });
 
   it("retries successfully in the mobile error state", async () => {
-    const user = userEvent.setup();
     const scenario = createCrmScenario({
       db: createCrmDb({
         contacts: [
@@ -120,15 +122,17 @@ describe("Contact list integration", () => {
       failGetListOnce: { contacts: "Error loading contacts" },
     });
 
-    render(
+    const screen = await render(
       <CrmTestProvider resource="contacts" scenario={scenario}>
         <MobileContactListContentHarness />
       </CrmTestProvider>,
     );
 
-    await user.click(await screen.findByRole("button", { name: /retry/i }));
+    await screen.getByRole("button", { name: /retry/i }).click();
 
-    expect(await screen.findByText("Grace Hopper")).toBeVisible();
-    expect(screen.queryByText("Error loading contacts")).toBeNull();
+    await expect.element(screen.getByText("Grace Hopper")).toBeVisible();
+    await expect
+      .element(screen.getByText("Error loading contacts"))
+      .not.toBeInTheDocument();
   });
 });
