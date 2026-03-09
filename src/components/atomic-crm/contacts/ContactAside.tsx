@@ -22,25 +22,25 @@ export const ContactAside = ({ link = "edit" }: { link?: "edit" | "show" }) => {
     <div className="hidden sm:block w-92 min-w-92 text-sm">
       <div className="mb-4 -ml-1">
         {link === "edit" ? (
-          <EditButton label="Edit Contact" />
+          <EditButton label="Modifier le contact" />
         ) : (
-          <ShowButton label="Show Contact" />
+          <ShowButton label="Voir le contact" />
         )}
       </div>
 
-      <AsideSection title="Personal info">
+      <AsideSection title="Informations personnelles">
         <ContactPersonalInfo />
       </AsideSection>
 
-      <AsideSection title="Background info">
+      <AsideSection title="Informations contextuelles">
         <ContactBackgroundInfo />
       </AsideSection>
 
-      <AsideSection title="Tags">
+      <AsideSection title="Étiquettes">
         <TagsListEdit />
       </AsideSection>
 
-      <AsideSection title="Tasks">
+      <AsideSection title="Tâches">
         <ReferenceManyField
           target="contact_id"
           reference="tasks"

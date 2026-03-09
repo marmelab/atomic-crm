@@ -62,7 +62,7 @@ const CompanyDisplayInputs = () => {
         className="w-full h-fit"
         validate={required()}
         helperText={false}
-        placeholder="Company name"
+        placeholder="Nom de l'entreprise"
       />
     </div>
   );
@@ -87,7 +87,7 @@ const CompanyContextInputs = () => {
   const { companySectors } = useConfigurationContext();
   return (
     <div className="flex flex-col gap-4">
-      <h6 className="text-lg font-semibold">Context</h6>
+      <h6 className="text-lg font-semibold">Contexte</h6>
       <SelectInput
         source="sector"
         choices={companySectors}
@@ -105,7 +105,7 @@ const CompanyContextInputs = () => {
 const CompanyAddressInputs = () => {
   return (
     <div className="flex flex-col gap-4">
-      <h6 className="text-lg font-semibold">Address</h6>
+      <h6 className="text-lg font-semibold">Adresse</h6>
       <TextInput source="address" helperText={false} />
       <TextInput source="city" helperText={false} />
       <TextInput source="zipcode" helperText={false} />
@@ -118,7 +118,7 @@ const CompanyAddressInputs = () => {
 const CompanyAdditionalInformationInputs = () => {
   return (
     <div className="flex flex-col gap-4">
-      <h6 className="text-lg font-semibold">Additional information</h6>
+      <h6 className="text-lg font-semibold">Informations complémentaires</h6>
       <TextInput source="description" multiline helperText={false} />
       <ArrayInput source="context_links" helperText={false}>
         <SimpleFormIterator disableReordering fullWidth getItemLabel={false}>
@@ -137,7 +137,7 @@ const CompanyAdditionalInformationInputs = () => {
 const CompanyAccountManagerInput = () => {
   return (
     <div className="flex flex-col gap-4">
-      <h6 className="text-lg font-semibold">Account manager</h6>
+      <h6 className="text-lg font-semibold">Responsable de compte</h6>
       <ReferenceInput
         source="sales_id"
         reference="sales"
@@ -146,7 +146,7 @@ const CompanyAccountManagerInput = () => {
         }}
       >
         <SelectInput
-          label="Account manager"
+          label="Responsable de compte"
           helperText={false}
           optionText={saleOptionRenderer}
         />

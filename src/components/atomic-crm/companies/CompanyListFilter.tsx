@@ -16,7 +16,7 @@ export const CompanyListFilter = () => {
         <SearchInput source="q" />
       </FilterLiveForm>
 
-      <FilterCategory icon={<Building className="h-4 w-4" />} label="Size">
+      <FilterCategory icon={<Building className="h-4 w-4" />} label="Taille">
         {sizes.map((size) => (
           <ToggleFilterButton
             className="w-full justify-between"
@@ -27,7 +27,7 @@ export const CompanyListFilter = () => {
         ))}
       </FilterCategory>
 
-      <FilterCategory icon={<Truck className="h-4 w-4" />} label="Sector">
+      <FilterCategory icon={<Truck className="h-4 w-4" />} label="Secteur">
         {companySectors.map((sector) => (
           <ToggleFilterButton
             className="w-full justify-between"
@@ -40,11 +40,11 @@ export const CompanyListFilter = () => {
 
       <FilterCategory
         icon={<Users className="h-4 w-4" />}
-        label="Account Manager"
+        label="Responsable"
       >
         <ToggleFilterButton
           className="w-full justify-between"
-          label={"Me"}
+          label={"Moi"}
           value={{ sales_id: identity?.id }}
         />
       </FilterCategory>

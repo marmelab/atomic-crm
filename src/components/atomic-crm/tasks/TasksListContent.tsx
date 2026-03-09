@@ -6,13 +6,13 @@ export const TasksListContent = () => {
   return (
     <div className="flex flex-col gap-4">
       <TasksListEmpty />
-      <TasksListFilter title="Overdue" filter={taskFilters.overdue} />
-      <TasksListFilter title="Today" filter={taskFilters.today} />
-      <TasksListFilter title="Tomorrow" filter={taskFilters.tomorrow} />
+      <TasksListFilter title="En retard" filter={taskFilters.overdue} />
+      <TasksListFilter title="Aujourd'hui" filter={taskFilters.today} />
+      <TasksListFilter title="Demain" filter={taskFilters.tomorrow} />
       {isBeforeFriday && (
-        <TasksListFilter title="This week" filter={taskFilters.thisWeek} />
+        <TasksListFilter title="Cette semaine" filter={taskFilters.thisWeek} />
       )}
-      <TasksListFilter title="Later" filter={taskFilters.later} />
+      <TasksListFilter title="Plus tard" filter={taskFilters.later} />
     </div>
   );
 };

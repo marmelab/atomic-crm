@@ -70,7 +70,7 @@ export const TasksListFilter = ({
             }}
             className="text-sm underline hover:no-underline"
           >
-            Load more
+            Charger plus
           </a>
         </div>
       )}

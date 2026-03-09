@@ -70,18 +70,18 @@ export function TagDialog({
 
           <div className="space-y-4 py-4">
             <div className="space-y-2">
-              <Label htmlFor="tag-name">Tag name</Label>
+              <Label htmlFor="tag-name">Nom de l'étiquette</Label>
               <Input
                 id="tag-name"
                 autoFocus
                 value={newTagName}
                 onChange={handleNewTagNameChange}
-                placeholder="Enter tag name"
+                placeholder="Nom de l'étiquette"
               />
             </div>
 
             <div className="space-y-2">
-              <Label>Color</Label>
+              <Label>Couleur</Label>
               <div className="flex flex-wrap">
                 {colors.map((color) => (
                   <RoundButton
@@ -108,7 +108,7 @@ export function TagDialog({
               )}
             >
               <SaveIcon />
-              Save
+              Enregistrer
             </Button>
           </div>
         </form>
