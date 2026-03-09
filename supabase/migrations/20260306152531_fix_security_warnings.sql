@@ -1,30 +1,18 @@
--- Recreate the contacts_summary view with security_invoker enabled
+-- This migration allows to resolve several security warnings raised by the Supabase Advisor:
+-- * Security Definer View
+-- * Function Search Path Mutable
+-- * Extension in Public
 
+-- Recreate the contacts_summary view with security_invoker enabled
 drop view contacts_summary;
 
 create view contacts_summary
 with (security_invoker=on)
 as
 select 
-    co.id,
-    co.first_name,
-    co.last_name,
-    co.gender,
-    co.title,
-    co.email_jsonb,
+    co.*,
     jsonb_path_query_array(co.email_jsonb, '$[*].email')::text as email_fts,
-    co.phone_jsonb,
     jsonb_path_query_array(co.phone_jsonb, '$[*].number')::text as phone_fts,
-    co.background,
-    co.avatar,
-    co.first_seen,
-    co.last_seen,
-    co.has_newsletter,
-    co.status,
-    co.tags,
-    co.company_id,
-    co.sales_id,
-    co.linkedin_url,
     c.name as company_name,
     count(distinct t.id) as nb_tasks
 from
@@ -50,6 +38,7 @@ ALTER FUNCTION public.handle_contact_saved()
 SET search_path TO '';
 
 -- get_avatar_for_email: needs to be recreated with qualified names
+-- (http_get -> extensions.http_get, get_domain_favicon -> public.get_domain_favicon)
 DROP FUNCTION IF EXISTS public.get_avatar_for_email(text);
 
 CREATE FUNCTION public.get_avatar_for_email(email text)
@@ -85,6 +74,7 @@ end;
 $function$;
 
 -- get_domain_favicon: needs to be recreated with qualified names
+-- (favicons_excluded_domains -> public.favicons_excluded_domains)
 DROP FUNCTION IF EXISTS public.get_domain_favicon(text);
 
 CREATE FUNCTION public.get_domain_favicon(domain_name text)
@@ -107,6 +97,7 @@ end;
 $function$;
 
 -- handle_company_saved: needs to be recreated with qualified names
+-- (get_domain_favicon -> public.get_domain_favicon)
 -- Drop the trigger first, then the function
 DROP TRIGGER IF EXISTS company_saved ON public.companies;
 DROP FUNCTION IF EXISTS public.handle_company_saved();
@@ -137,6 +128,7 @@ $function$;
 CREATE TRIGGER company_saved BEFORE INSERT OR UPDATE ON public.companies FOR EACH ROW EXECUTE FUNCTION public.handle_company_saved();
 
 -- set_sales_id_default: needs to be recreated with qualified names
+-- (sales -> public.sales)
 -- Drop all triggers that depend on this function first
 DROP TRIGGER IF EXISTS set_task_sales_id_trigger ON public.tasks;
 DROP TRIGGER IF EXISTS set_contact_sales_id_trigger ON public.contacts;
@@ -192,6 +184,7 @@ FOR EACH ROW
 EXECUTE FUNCTION public.set_sales_id_default();
 
 -- merge_contacts: needs to be recreated with qualified names
+-- (contacts, tasks, contact_notes, deals -> public.contacts, public.tasks, public.contact_notes, public.deals)
 DROP FUNCTION IF EXISTS public.merge_contacts(bigint, bigint);
 
 CREATE FUNCTION public.merge_contacts(loser_id bigint, winner_id bigint)
