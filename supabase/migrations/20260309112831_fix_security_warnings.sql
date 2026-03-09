@@ -14,7 +14,7 @@ select
     jsonb_path_query_array(co.email_jsonb, '$[*].email')::text as email_fts,
     jsonb_path_query_array(co.phone_jsonb, '$[*].number')::text as phone_fts,
     c.name as company_name,
-    count(distinct t.id) as nb_tasks
+    count(distinct t.id) filter (where t.done_date is null) as nb_tasks
 from
     contacts co
 left join
