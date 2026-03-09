@@ -1,7 +1,7 @@
 import { useDeferredValue, useMemo } from "react";
 import { useGetOne } from "ra-core";
 import { useWatch } from "react-hook-form";
-import { PDFViewer } from "@react-pdf/renderer";
+import { BlobProvider, PDFViewer } from "@react-pdf/renderer";
 
 import { useConfigurationContext } from "../root/ConfigurationContext";
 import type { Client, QuoteItem } from "../types";
@@ -9,7 +9,7 @@ import { sanitizeQuoteItems } from "./quoteItems";
 import { QuotePDFDocument } from "./QuotePDF";
 import { quoteStatusLabels } from "./quotesTypes";
 
-export const QuotePDFPreview = () => {
+function useQuoteFormPDFProps() {
   const clientId = useWatch({ name: "client_id" });
   const description = useWatch({ name: "description" });
   const amount = useWatch({ name: "amount" });
@@ -83,6 +83,13 @@ export const QuotePDFPreview = () => {
   const deferredClient = useDeferredValue(client);
   const sanitizedItems = sanitizeQuoteItems(deferredQuote.quote_items);
 
+  return { deferredQuote, deferredClient, serviceLabel, statusLabel, sanitizedItems, businessProfile };
+}
+
+export const QuotePDFPreview = () => {
+  const { deferredQuote, deferredClient, serviceLabel, statusLabel, sanitizedItems, businessProfile } =
+    useQuoteFormPDFProps();
+
   return (
     <div className="h-full min-h-[500px] max-w-full overflow-hidden rounded-md border bg-muted/30">
       <PDFViewer
@@ -101,5 +108,43 @@ export const QuotePDFPreview = () => {
         />
       </PDFViewer>
     </div>
+  );
+};
+
+export const MobilePDFPreview = () => {
+  const { deferredQuote, deferredClient, serviceLabel, statusLabel, sanitizedItems, businessProfile } =
+    useQuoteFormPDFProps();
+
+  return (
+    <BlobProvider
+      document={
+        <QuotePDFDocument
+          quote={deferredQuote}
+          client={deferredClient}
+          serviceLabel={serviceLabel}
+          statusLabel={statusLabel}
+          quoteItems={sanitizedItems}
+          businessProfile={businessProfile}
+        />
+      }
+    >
+      {({ url, loading }) =>
+        loading ? (
+          <div className="h-full flex items-center justify-center text-sm text-muted-foreground">
+            Generazione anteprima...
+          </div>
+        ) : url ? (
+          <iframe
+            src={url}
+            className="w-full h-full border-0"
+            title="Anteprima PDF"
+          />
+        ) : (
+          <div className="h-full flex items-center justify-center text-sm text-muted-foreground">
+            Errore generazione PDF
+          </div>
+        )
+      }
+    </BlobProvider>
   );
 };

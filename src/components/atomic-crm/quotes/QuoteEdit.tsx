@@ -27,6 +27,9 @@ import { transformQuoteFormData } from "./quoteItems";
 const QuotePDFPreview = lazy(() =>
   import("./QuotePDFPreview").then((m) => ({ default: m.QuotePDFPreview })),
 );
+const MobilePDFPreview = lazy(() =>
+  import("./QuotePDFPreview").then((m) => ({ default: m.MobilePDFPreview })),
+);
 
 export const QuoteEdit = ({ open, id }: { open: boolean; id?: string }) => {
   const redirect = useRedirect();
@@ -163,17 +166,15 @@ function MobilePreviewOverlay({ onClose }: { onClose: () => void }) {
           <X className="h-5 w-5" />
         </Button>
       </div>
-      <div className="flex-1 min-h-0 p-4 overflow-auto">
+      <div className="flex-1 min-h-0">
         <Suspense
           fallback={
-            <div className="h-full rounded-md border bg-muted/30 flex items-center justify-center text-muted-foreground text-sm">
-              Caricamento anteprima...
+            <div className="h-full flex items-center justify-center text-muted-foreground text-sm">
+              Generazione anteprima...
             </div>
           }
         >
-          <div className="w-full h-full max-w-full overflow-hidden">
-            <QuotePDFPreview />
-          </div>
+          <MobilePDFPreview />
         </Suspense>
       </div>
     </div>
