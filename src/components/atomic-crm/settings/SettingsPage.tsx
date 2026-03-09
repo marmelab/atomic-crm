@@ -1,4 +1,5 @@
 import {
+  ChevronDown,
   RotateCcw,
   Save,
   ArrowRight,
@@ -16,7 +17,7 @@ import {
 } from "lucide-react";
 import { Link } from "react-router";
 import { EditBase, Form, useInput, useNotify } from "ra-core";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useFormContext } from "react-hook-form";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -264,12 +265,27 @@ const SettingsFormFields = () => {
     return () => observer.disconnect();
   }, []);
 
+  const [openSections, setOpenSections] = useState<Set<string>>(new Set());
+
+  const toggleSection = useCallback((id: string) => {
+    setOpenSections((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }, []);
+
   const scrollToSection = (id: string) => {
-    const element = document.getElementById(id);
-    if (element) {
-      element.scrollIntoView({ behavior: "smooth", block: "start" });
-      setActiveSection(id);
-    }
+    setOpenSections((prev) => new Set(prev).add(id));
+    // Small delay so the section expands before scrolling
+    requestAnimationFrame(() => {
+      const element = document.getElementById(id);
+      if (element) {
+        element.scrollIntoView({ behavior: "smooth", block: "start" });
+        setActiveSection(id);
+      }
+    });
   };
 
   const activeCategoryId =
@@ -351,225 +367,251 @@ const SettingsFormFields = () => {
       </nav>
 
       {/* Main content */}
-      <div className="flex-1 min-w-0 max-w-2xl space-y-6 px-4 md:px-0">
+      <div className="flex-1 min-w-0 max-w-2xl space-y-3 px-4 md:px-0">
         {/* Business Profile */}
-        <Card id="profilo-aziendale">
-          <CardContent className="space-y-4">
-            <h2 className="text-xl font-semibold text-muted-foreground">
-              Profilo Aziendale
-            </h2>
-            <BusinessProfileSettingsSection />
-          </CardContent>
-        </Card>
+        <CollapsibleSection
+          id="profilo-aziendale"
+          title="Profilo Aziendale"
+          icon={Building2}
+          color="text-blue-600"
+          isOpen={openSections.has("profilo-aziendale")}
+          onToggle={() => toggleSection("profilo-aziendale")}
+        >
+          <BusinessProfileSettingsSection />
+        </CollapsibleSection>
 
         {/* Branding */}
-        <Card id="branding">
-          <CardContent className="space-y-4">
-            <h2 className="text-xl font-semibold text-muted-foreground">
-              Marchio
-            </h2>
-            <TextInput source="title" label="Titolo App" />
-            <div className="flex gap-8">
-              <div className="flex flex-col items-center gap-1">
-                <p className="text-sm text-muted-foreground">
-                  Logo Modalità Chiara
-                </p>
-                <ImageEditorField
-                  source="lightModeLogo"
-                  width={100}
-                  height={100}
-                  linkPosition="bottom"
-                  backgroundImageColor="#f5f5f5"
-                />
-              </div>
-              <div className="flex flex-col items-center gap-1">
-                <p className="text-sm text-muted-foreground">
-                  Logo Modalità Scura
-                </p>
-                <ImageEditorField
-                  source="darkModeLogo"
-                  width={100}
-                  height={100}
-                  linkPosition="bottom"
-                  backgroundImageColor="#1a1a1a"
-                />
-              </div>
+        <CollapsibleSection
+          id="branding"
+          title="Marchio"
+          icon={Palette}
+          color="text-purple-600"
+          isOpen={openSections.has("branding")}
+          onToggle={() => toggleSection("branding")}
+        >
+          <TextInput source="title" label="Titolo App" />
+          <div className="flex gap-8">
+            <div className="flex flex-col items-center gap-1">
+              <p className="text-sm text-muted-foreground">
+                Logo Modalità Chiara
+              </p>
+              <ImageEditorField
+                source="lightModeLogo"
+                width={100}
+                height={100}
+                linkPosition="bottom"
+                backgroundImageColor="#f5f5f5"
+              />
             </div>
-          </CardContent>
-        </Card>
+            <div className="flex flex-col items-center gap-1">
+              <p className="text-sm text-muted-foreground">
+                Logo Modalità Scura
+              </p>
+              <ImageEditorField
+                source="darkModeLogo"
+                width={100}
+                height={100}
+                linkPosition="bottom"
+                backgroundImageColor="#1a1a1a"
+              />
+            </div>
+          </div>
+        </CollapsibleSection>
 
         {/* Authentication */}
-        <Card id="autenticazione">
-          <CardContent className="space-y-4">
-            <h2 className="text-xl font-semibold text-muted-foreground">
-              Autenticazione
-            </h2>
-            <p className="text-sm text-muted-foreground">
-              Configurazione SSO con Google Workspace (opzionale).
-            </p>
-            <TextInput
-              source="googleWorkplaceDomain"
-              label="Dominio Google Workspace"
-              helperText="Es: example.com - lascia vuoto per disabilitare SSO"
-            />
-          </CardContent>
-        </Card>
+        <CollapsibleSection
+          id="autenticazione"
+          title="Autenticazione"
+          icon={Shield}
+          color="text-green-600"
+          isOpen={openSections.has("autenticazione")}
+          onToggle={() => toggleSection("autenticazione")}
+        >
+          <p className="text-sm text-muted-foreground">
+            Configurazione SSO con Google Workspace (opzionale).
+          </p>
+          <TextInput
+            source="googleWorkplaceDomain"
+            label="Dominio Google Workspace"
+            helperText="Es: example.com - lascia vuoto per disabilitare SSO"
+          />
+        </CollapsibleSection>
 
         {/* Tags */}
-        <Card id="tags">
-          <CardContent className="space-y-4">
-            <h2 className="text-xl font-semibold text-muted-foreground">
-              Etichette
-            </h2>
-            <TagsSettingsSection />
-          </CardContent>
-        </Card>
+        <CollapsibleSection
+          id="tags"
+          title="Etichette"
+          icon={Tag}
+          color="text-orange-600"
+          isOpen={openSections.has("tags")}
+          onToggle={() => toggleSection("tags")}
+        >
+          <TagsSettingsSection />
+        </CollapsibleSection>
 
         {/* Quote service types */}
-        <Card id="quote-types">
-          <CardContent className="space-y-4">
-            <h2 className="text-xl font-semibold text-muted-foreground">
-              Tipi preventivo
-            </h2>
-            <p className="text-sm text-muted-foreground">
-              Categorie di lavoro proposte al cliente (es. Wedding, Produzione
-              TV, Spot).
-            </p>
-            <ArrayInput
-              source="quoteServiceTypes"
-              label={false}
-              helperText={false}
-            >
-              <SimpleFormIterator disableReordering disableClear>
-                <TextInput source="label" label={false} />
-                <TextInput
-                  source="description"
-                  label={false}
-                  multiline
-                  helperText="Spiega quando usare questo tipo nei preventivi."
-                />
-              </SimpleFormIterator>
-            </ArrayInput>
-          </CardContent>
-        </Card>
+        <CollapsibleSection
+          id="quote-types"
+          title="Tipi preventivo"
+          icon={FileText}
+          color="text-amber-600"
+          isOpen={openSections.has("quote-types")}
+          onToggle={() => toggleSection("quote-types")}
+        >
+          <p className="text-sm text-muted-foreground">
+            Categorie di lavoro proposte al cliente (es. Wedding, Produzione
+            TV, Spot).
+          </p>
+          <ArrayInput
+            source="quoteServiceTypes"
+            label={false}
+            helperText={false}
+          >
+            <SimpleFormIterator disableReordering disableClear>
+              <TextInput source="label" label={false} />
+              <TextInput
+                source="description"
+                label={false}
+                multiline
+                helperText="Spiega quando usare questo tipo nei preventivi."
+              />
+            </SimpleFormIterator>
+          </ArrayInput>
+        </CollapsibleSection>
 
         {/* Service type choices */}
-        <Card id="service-types">
-          <CardContent className="space-y-4">
-            <h2 className="text-xl font-semibold text-muted-foreground">
-              Tipi servizio
-            </h2>
-            <p className="text-sm text-muted-foreground">
-              Tipi di prestazione nel registro lavori (es. Riprese, Montaggio,
-              Fotografia).
-            </p>
-            <ArrayInput
-              source="serviceTypeChoices"
-              label={false}
-              helperText={false}
-            >
-              <SimpleFormIterator disableReordering disableClear>
-                <TextInput source="label" label={false} />
-                <TextInput
-                  source="description"
-                  label={false}
-                  multiline
-                  helperText="Spiega quando questo tipo va usato nel registro lavori."
-                />
-              </SimpleFormIterator>
-            </ArrayInput>
-          </CardContent>
-        </Card>
+        <CollapsibleSection
+          id="service-types"
+          title="Tipi servizio"
+          icon={Briefcase}
+          color="text-yellow-600"
+          isOpen={openSections.has("service-types")}
+          onToggle={() => toggleSection("service-types")}
+        >
+          <p className="text-sm text-muted-foreground">
+            Tipi di prestazione nel registro lavori (es. Riprese, Montaggio,
+            Fotografia).
+          </p>
+          <ArrayInput
+            source="serviceTypeChoices"
+            label={false}
+            helperText={false}
+          >
+            <SimpleFormIterator disableReordering disableClear>
+              <TextInput source="label" label={false} />
+              <TextInput
+                source="description"
+                label={false}
+                multiline
+                helperText="Spiega quando questo tipo va usato nel registro lavori."
+              />
+            </SimpleFormIterator>
+          </ArrayInput>
+        </CollapsibleSection>
 
-        <Card id="operativita">
-          <CardContent className="space-y-4">
-            <h2 className="text-xl font-semibold text-muted-foreground">
-              Operatività
-            </h2>
-            <p className="text-sm text-muted-foreground">
-              Regole base condivise da servizi, spese e future automazioni AI.
-            </p>
-            <NumberInput
-              source="operationalConfig.defaultKmRate"
-              label="Tariffa km predefinita (EUR)"
-              helperText="Usata come valore iniziale per rimborso km in servizi e spese."
-            />
-            <TextInput
-              source="operationalConfig.defaultTravelOrigin"
-              label="Luogo di partenza predefinito"
-              helperText="Precompilato nel calcolatore tratte km (es. Valguarnera Caropepe (EN), Via Calabria 13)."
-            />
-          </CardContent>
-        </Card>
+        <CollapsibleSection
+          id="operativita"
+          title="Operatività"
+          icon={Car}
+          color="text-cyan-600"
+          isOpen={openSections.has("operativita")}
+          onToggle={() => toggleSection("operativita")}
+        >
+          <p className="text-sm text-muted-foreground">
+            Regole base condivise da servizi, spese e future automazioni AI.
+          </p>
+          <NumberInput
+            source="operationalConfig.defaultKmRate"
+            label="Tariffa km predefinita (EUR)"
+            helperText="Usata come valore iniziale per rimborso km in servizi e spese."
+          />
+          <TextInput
+            source="operationalConfig.defaultTravelOrigin"
+            label="Luogo di partenza predefinito"
+            helperText="Precompilato nel calcolatore tratte km (es. Valguarnera Caropepe (EN), Via Calabria 13)."
+          />
+        </CollapsibleSection>
 
         {/* Notes */}
-        <Card id="notes">
-          <CardContent className="space-y-4">
-            <h2 className="text-xl font-semibold text-muted-foreground">
-              Note
-            </h2>
-            <h3 className="text-lg font-medium text-muted-foreground">Stati</h3>
-            <ArrayInput source="noteStatuses" label={false} helperText={false}>
-              <SimpleFormIterator inline disableReordering disableClear>
-                <TextInput source="label" label={false} className="flex-1" />
-                <ColorInput source="color" />
-              </SimpleFormIterator>
-            </ArrayInput>
-          </CardContent>
-        </Card>
+        <CollapsibleSection
+          id="notes"
+          title="Note"
+          icon={FileText}
+          color="text-teal-600"
+          isOpen={openSections.has("notes")}
+          onToggle={() => toggleSection("notes")}
+        >
+          <h3 className="text-lg font-medium text-muted-foreground">Stati</h3>
+          <ArrayInput source="noteStatuses" label={false} helperText={false}>
+            <SimpleFormIterator inline disableReordering disableClear>
+              <TextInput source="label" label={false} className="flex-1" />
+              <ColorInput source="color" />
+            </SimpleFormIterator>
+          </ArrayInput>
+        </CollapsibleSection>
 
         {/* Tasks */}
-        <Card id="tasks">
-          <CardContent className="space-y-4">
-            <h2 className="text-xl font-semibold text-muted-foreground">
-              Attività
-            </h2>
-            <h3 className="text-lg font-medium text-muted-foreground">Tipi</h3>
-            <ArrayInput source="taskTypes" label={false} helperText={false}>
-              <SimpleFormIterator disableReordering disableClear>
-                <TextInput source="label" label={false} />
-              </SimpleFormIterator>
-            </ArrayInput>
-          </CardContent>
-        </Card>
+        <CollapsibleSection
+          id="tasks"
+          title="Attività"
+          icon={Bell}
+          color="text-emerald-600"
+          isOpen={openSections.has("tasks")}
+          onToggle={() => toggleSection("tasks")}
+        >
+          <h3 className="text-lg font-medium text-muted-foreground">Tipi</h3>
+          <ArrayInput source="taskTypes" label={false} helperText={false}>
+            <SimpleFormIterator disableReordering disableClear>
+              <TextInput source="label" label={false} />
+            </SimpleFormIterator>
+          </ArrayInput>
+        </CollapsibleSection>
 
         {/* Automazioni */}
-        <Card id="automazioni">
-          <CardContent className="space-y-4">
-            <h2 className="text-xl font-semibold text-muted-foreground">
-              Automazioni
-            </h2>
-            <p className="text-sm text-muted-foreground">
-              Crea regole automatiche che collegano eventi del CRM (nuovi
-              pagamenti, preventivi accettati, progetti avviati) a azioni
-              (creazione task, notifiche, aggiornamenti).
-            </p>
-            <Button asChild variant="outline">
-              <Link to="/workflows">
-                Gestisci automazioni
-                <ArrowRight className="ml-2 h-4 w-4" />
-              </Link>
-            </Button>
-          </CardContent>
-        </Card>
+        <CollapsibleSection
+          id="automazioni"
+          title="Automazioni"
+          icon={Zap}
+          color="text-yellow-500"
+          isOpen={openSections.has("automazioni")}
+          onToggle={() => toggleSection("automazioni")}
+        >
+          <p className="text-sm text-muted-foreground">
+            Crea regole automatiche che collegano eventi del CRM (nuovi
+            pagamenti, preventivi accettati, progetti avviati) a azioni
+            (creazione task, notifiche, aggiornamenti).
+          </p>
+          <Button asChild variant="outline">
+            <Link to="/workflows">
+              Gestisci automazioni
+              <ArrowRight className="ml-2 h-4 w-4" />
+            </Link>
+          </Button>
+        </CollapsibleSection>
 
         {/* AI */}
-        <Card id="ai">
-          <CardContent className="space-y-4">
-            <h2 className="text-xl font-semibold text-muted-foreground">AI</h2>
-            <AISettingsSection />
-          </CardContent>
-        </Card>
+        <CollapsibleSection
+          id="ai"
+          title="AI"
+          icon={Bot}
+          color="text-violet-600"
+          isOpen={openSections.has("ai")}
+          onToggle={() => toggleSection("ai")}
+        >
+          <AISettingsSection />
+        </CollapsibleSection>
 
         {/* Fiscal */}
-        <Card id="fiscale">
-          <CardContent className="space-y-4">
-            <h2 className="text-xl font-semibold text-muted-foreground">
-              Fiscale
-            </h2>
-            <FiscalSettingsSection />
-          </CardContent>
-        </Card>
+        <CollapsibleSection
+          id="fiscale"
+          title="Fiscale"
+          icon={Receipt}
+          color="text-rose-600"
+          isOpen={openSections.has("fiscale")}
+          onToggle={() => toggleSection("fiscale")}
+        >
+          <FiscalSettingsSection />
+        </CollapsibleSection>
       </div>
 
       {/* Save bar — fixed on desktop, inline on mobile to avoid MobileNavigation overlap */}
@@ -612,6 +654,54 @@ const SettingsFormFields = () => {
     </div>
   );
 };
+
+/** A collapsible settings section card. */
+const CollapsibleSection = ({
+  id,
+  title,
+  icon: Icon,
+  color,
+  isOpen,
+  onToggle,
+  children,
+}: {
+  id: string;
+  title: string;
+  icon?: React.ComponentType<{ className?: string }>;
+  color?: string;
+  isOpen: boolean;
+  onToggle: () => void;
+  children: React.ReactNode;
+}) => (
+  <Card id={id}>
+    <button
+      type="button"
+      onClick={onToggle}
+      className="w-full flex items-center justify-between px-6 py-4 text-left"
+    >
+      <div className="flex items-center gap-2">
+        {Icon && <Icon className={cn("h-5 w-5", color ?? "text-muted-foreground")} />}
+        <h2 className="text-xl font-semibold text-muted-foreground">{title}</h2>
+      </div>
+      <ChevronDown
+        className={cn(
+          "h-5 w-5 text-muted-foreground transition-transform duration-200",
+          isOpen && "rotate-180",
+        )}
+      />
+    </button>
+    <div
+      className={cn(
+        "grid transition-[grid-template-rows] duration-200",
+        isOpen ? "grid-rows-[1fr]" : "grid-rows-[0fr]",
+      )}
+    >
+      <div className="overflow-hidden">
+        <CardContent className="space-y-4 pt-0">{children}</CardContent>
+      </div>
+    </div>
+  </Card>
+);
 
 /** A minimal color picker input compatible with ra-core's useInput. */
 const ColorInput = ({ source }: { source: string }) => {

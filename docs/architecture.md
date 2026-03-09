@@ -1207,3 +1207,5 @@ FiscalConfig, FiscalTaxProfile             ← Fiscale
 - QuotePDFPreview: mobile overlay now uses BlobProvider + native iframe instead of PDFViewer canvas (enables pinch-to-zoom)
 
 - SettingsPage: mobile sticky category tab bar (Azienda/Catalogo/Operativo/Avanzate) for quick navigation, reuses existing IntersectionObserver
+
+- SettingsPage: all 11 sections now collapsible (closed by default), sidebar/tab navigation auto-opens target section
