@@ -638,9 +638,9 @@ const SettingsFormFields = () => {
         </CollapsibleSection>
       </div>
 
-      {/* Save bar — sticky at bottom, auto-hide on scroll down */}
+      {/* Save bar — sticky on mobile (inside overflow container), fixed on desktop */}
       <div className={cn(
-        "sticky bottom-0 z-60 border-t bg-background p-3 md:p-4 transition-all duration-300",
+        "sticky bottom-0 md:fixed md:bottom-0 md:left-0 md:right-0 z-60 border-t bg-background p-3 md:p-4 transition-all duration-300",
         saveBarVisible
           ? "opacity-100 translate-y-0"
           : "opacity-0 translate-y-4 pointer-events-none"

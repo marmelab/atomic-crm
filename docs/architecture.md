@@ -1217,3 +1217,4 @@ FiscalConfig, FiscalTaxProfile             ← Fiscale
 - SettingsPage: mobile save bar compact (abbreviated labels, size sm, no overflow)
 
 <!-- Settings: save bar auto-hides on scroll down, shows on scroll up (sticky + scroll listener) -->
+<!-- Settings save bar: sticky on mobile (overflow container), fixed on desktop -->
