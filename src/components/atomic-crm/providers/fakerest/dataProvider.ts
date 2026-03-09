@@ -455,7 +455,7 @@ export const dataProvider = withLifecycleCallbacks(
         return params;
       },
       afterUpdate: async (result, dataProvider) => {
-        // update the contact: if the task is done, decrement the nb tasks, otherwise increment it
+        // update the contact: if the task state has changed, decrement the nb of tasks if done else increment it
         const { contact_id } = result.data;
         const { data: contact } = await dataProvider.getOne("contacts", {
           id: contact_id,
