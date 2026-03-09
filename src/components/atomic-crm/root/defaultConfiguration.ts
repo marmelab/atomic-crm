@@ -3,20 +3,20 @@ import type { ConfigurationContextValue } from "./ConfigurationContext";
 export const defaultDarkModeLogo = "./logos/logo_atomic_crm_dark.svg";
 export const defaultLightModeLogo = "./logos/logo_atomic_crm_light.svg";
 
-export const defaultTitle = "Atomic CRM";
+export const defaultTitle = "Nosho CRM";
 
 export const defaultCompanySectors = [
-  { value: "communication-services", label: "Services comm." },
-  { value: "consumer-discretionary", label: "Distrib. sélective" },
-  { value: "consumer-staples", label: "Biens de conso." },
-  { value: "energy", label: "Énergie" },
-  { value: "financials", label: "Finance" },
-  { value: "health-care", label: "Santé" },
-  { value: "industrials", label: "Industrie" },
-  { value: "information-technology", label: "Tech. info." },
-  { value: "materials", label: "Matériaux" },
-  { value: "real-estate", label: "Immobilier" },
-  { value: "utilities", label: "Services publics" },
+  { value: "cabinet-liberal", label: "Cabinet libéral" },
+  { value: "dentiste-orthodontiste", label: "Dentiste / Orthodontiste" },
+  { value: "hopital-clinique", label: "Hôpital / Clinique" },
+  { value: "radiologie-imagerie", label: "Radiologie / Imagerie" },
+  { value: "centre-sante", label: "Centre de santé" },
+  { value: "groupement-sante", label: "Groupement de santé" },
+  { value: "editeur-logiciel", label: "Éditeur de logiciel" },
+  { value: "integrateur-esn", label: "Intégrateur / ESN" },
+  { value: "pharmacie", label: "Pharmacie" },
+  { value: "centre-esthetique", label: "Centre esthétique" },
+  { value: "autre", label: "Autre" },
 ];
 
 export const defaultDealStages = [

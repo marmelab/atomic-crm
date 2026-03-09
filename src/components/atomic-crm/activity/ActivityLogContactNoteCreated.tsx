@@ -48,7 +48,7 @@ export function ActivityLogContactNoteCreated({
             >
               <SaleName />
             </ReferenceField>{" "}
-            added a note about{" "}
+            a ajouté une note à propos de{" "}
             <ReferenceField
               source="contact_id"
               reference="contacts"

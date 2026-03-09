@@ -26,7 +26,7 @@ export function ActivityLogDealCreated({
           <ReferenceField source="sales_id" reference="sales" record={activity}>
             <SaleName />
           </ReferenceField>{" "}
-          added deal{" "}
+          a ajouté l'opportunité{" "}
           {isMobile ? (
             deal.name
           ) : (
@@ -34,7 +34,7 @@ export function ActivityLogDealCreated({
           )}{" "}
           {context !== "company" && (
             <>
-              to{" "}
+              chez{" "}
               <ReferenceField
                 source="company_id"
                 reference="companies"

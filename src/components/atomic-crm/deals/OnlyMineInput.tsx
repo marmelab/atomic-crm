@@ -23,7 +23,7 @@ export const OnlyMineInput = (_: { alwaysOn: boolean; source: string }) => {
           checked={typeof filterValues.sales_id !== "undefined"}
           onCheckedChange={handleChange}
         />
-        <Label htmlFor="only-mine">Only companies I manage</Label>
+        <Label htmlFor="only-mine">Uniquement mes opportunités</Label>
       </div>
     </div>
   );

@@ -151,8 +151,11 @@ async function inviteUser(req: Request, currentUserSale: any) {
       console.error("Error inviting user: undefined user");
       return createErrorResponse(500, "Internal Server Error");
     }
+    const siteUrl = Deno.env.get("SITE_URL") ?? "https://crm.nosho.cc";
     const { error: emailError } =
-      await supabaseAdmin.auth.admin.inviteUserByEmail(email);
+      await supabaseAdmin.auth.admin.inviteUserByEmail(email, {
+        redirectTo: `${siteUrl}/auth-callback`,
+      });
 
     if (emailError) {
       console.error(`Error inviting user, email_error=${emailError}`);

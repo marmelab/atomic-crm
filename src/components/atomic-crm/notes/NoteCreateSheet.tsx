@@ -51,7 +51,7 @@ export const NoteCreateSheet = ({
       data: { last_seen: new Date().toISOString(), status: data.status },
       previousData: contact,
     });
-    notify("Note added");
+    notify("Note ajoutée");
     redirect("show", "contacts", referenceRecordId);
     onOpenChange(false);
   };
@@ -61,7 +61,7 @@ export const NoteCreateSheet = ({
       resource="contact_notes"
       title={
         <h1 className="text-xl font-semibold truncate pr-10">
-          {!selectContact ? "Create Note for " : "Create Note"}
+          {!selectContact ? "Nouvelle note pour " : "Nouvelle note"}
           {!selectContact && (
             <RecordRepresentation record={contact} resource="contacts" />
           )}

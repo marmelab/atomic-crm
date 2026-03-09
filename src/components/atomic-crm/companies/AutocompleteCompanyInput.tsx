@@ -25,7 +25,7 @@ export const AutocompleteCompanyInput = ({
       );
       return newCompany;
     } catch {
-      notify("An error occurred while creating the company", {
+      notify("Erreur lors de la création de la société", {
         type: "error",
       });
     }
@@ -37,8 +37,8 @@ export const AutocompleteCompanyInput = ({
       optionText="name"
       helperText={false}
       onCreate={handleCreateCompany}
-      createItemLabel="Create %{item}"
-      createLabel="Start typing to create a new company"
+      createItemLabel="Créer %{item}"
+      createLabel="Tapez pour créer une nouvelle société"
       validate={validate}
       modal={isMobile}
     />

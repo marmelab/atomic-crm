@@ -25,7 +25,7 @@ export function ActivityLogCompanyCreated({
           <ReferenceField source="sales_id" reference="sales" record={activity}>
             <SaleName />
           </ReferenceField>{" "}
-          added company{" "}
+          a ajouté la société{" "}
           <Link to={`/companies/${company.id}/show`}>{company.name}</Link>
           {context === "all" && (
             <>

@@ -57,7 +57,7 @@ export const Note = ({
   const [deleteNote] = useDelete(resource, undefined, {
     mutationMode: "undoable",
     onSuccess: () => {
-      notify("Note deleted", { type: "info", undoable: true });
+      notify("Note supprimée", { type: "info", undoable: true });
     },
   });
 
@@ -107,7 +107,7 @@ export const Note = ({
           >
             <WithRecord render={(record) => <SaleName sale={record} />} />
           </ReferenceField>{" "}
-          added a note{" "}
+          a ajouté une note{" "}
           {showStatus && note.status && (
             <Status className="ml-2" status={note.status} />
           )}
@@ -126,7 +126,7 @@ export const Note = ({
                 </Button>
               </TooltipTrigger>
               <TooltipContent>
-                <p>Edit note</p>
+                <p>Modifier</p>
               </TooltipContent>
             </Tooltip>
           </TooltipProvider>
@@ -143,7 +143,7 @@ export const Note = ({
                 </Button>
               </TooltipTrigger>
               <TooltipContent>
-                <p>Delete note</p>
+                <p>Supprimer</p>
               </TooltipContent>
             </Tooltip>
           </TooltipProvider>
@@ -164,7 +164,7 @@ export const Note = ({
               className="cursor-pointer"
             >
               <CircleX className="w-4 h-4" />
-              Cancel
+              Annuler
             </Button>
             <Button
               type="submit"
@@ -172,7 +172,7 @@ export const Note = ({
               className="flex items-center gap-2 cursor-pointer"
             >
               <Save className="w-4 h-4" />
-              Update note
+              Enregistrer
             </Button>
           </div>
         </Form>
@@ -199,7 +199,7 @@ export const Note = ({
               }}
               className="text-primary text-sm mt-1 underline hover:no-underline cursor-pointer"
             >
-              {isExpanded ? "Show less" : "Read more"}
+              {isExpanded ? "Réduire" : "Lire plus"}
             </button>
           )}
 
