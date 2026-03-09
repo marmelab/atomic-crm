@@ -46,10 +46,10 @@ export const ProfilePage = () => {
       refetchIdentity();
       refetchUser();
       setEditMode(false);
-      notify("Your profile has been updated");
+      notify("Profil mis à jour");
     },
     onError: (_) => {
-      notify("An error occurred. Please try again", {
+      notify("Une erreur est survenue. Veuillez réessayer", {
         type: "error",
       });
     },
@@ -92,7 +92,7 @@ const ProfileForm = ({
       return dataProvider.updatePassword(identity.id);
     },
     onSuccess: () => {
-      notify("A reset password email has been sent to your email address");
+      notify("Un email de réinitialisation a été envoyé à votre adresse email");
     },
     onError: (e) => {
       notify(`${e}`, {
@@ -111,10 +111,10 @@ const ProfileForm = ({
     },
     onSuccess: () => {
       refetch();
-      notify("Your profile has been updated");
+      notify("Profil mis à jour");
     },
     onError: () => {
-      notify("An error occurred. Please try again.");
+      notify("Une erreur est survenue. Veuillez réessayer.");
     },
   });
   if (!identity) return null;
@@ -157,7 +157,7 @@ const ProfileForm = ({
                   type="button"
                   onClick={handleClickOpenPasswordChange}
                 >
-                  Change password
+                  Changer le mot de passe
                 </Button>
               </>
             )}
@@ -169,7 +169,7 @@ const ProfileForm = ({
               className="flex items-center"
             >
               {isEditMode ? <CircleX /> : <Pencil />}
-              {isEditMode ? "Cancel" : "Edit"}
+              {isEditMode ? "Annuler" : "Modifier"}
             </Button>
 
             {isEditMode && (
@@ -189,10 +189,10 @@ const ProfileForm = ({
                 Inbound email
               </h2>
               <p className="text-sm text-muted-foreground">
-                You can start sending emails to your server's inbound email
-                address, e.g. by adding it to the
-                <b> Cc: </b> field. Atomic CRM will process the emails and add
-                notes to the corresponding contacts.
+                Vous pouvez envoyer des emails à l'adresse email entrante du serveur,
+                par exemple en l'ajoutant dans le champ
+                <b> Cc: </b> Atomic CRM traitera les emails et ajoutera
+                des notes aux contacts correspondants.
               </p>
               <CopyPaste />
             </div>
@@ -246,7 +246,7 @@ const CopyPaste = () => {
           </Button>
         </TooltipTrigger>
         <TooltipContent>
-          <p>{copied ? "Copied!" : "Copy"}</p>
+          <p>{copied ? "Copié !" : "Copier"}</p>
         </TooltipContent>
       </Tooltip>
     </TooltipProvider>
