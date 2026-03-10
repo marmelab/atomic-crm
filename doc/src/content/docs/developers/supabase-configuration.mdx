@@ -79,7 +79,11 @@ By default, Supabase provides a simple SMTP server for all projects. But this se
 - It imposes significant rate-limits
 - There is no SLA guarantee on message delivery or uptime
 
-For this reason, it is recommended to use a [custom SMTP provider](https://supabase.com/docs/guides/auth/auth-smtp#how-to-set-up-a-custom-smtp-server).
+Besides, it doesn't allow you to customize the sender name, so all messages will be sent from `Supabase Auth` (see the [next section](#example-configuration-with-postmark) if you want to change that).
+
+![Example email from Supabase Auth with default sender name](../../images/email-default-sender-name.png)
+
+For all these reasons, it is recommended to use a [custom SMTP provider](https://supabase.com/docs/guides/auth/auth-smtp#how-to-set-up-a-custom-smtp-server).
 
 A non-exhaustive list of services that work with Supabase Auth is:
 
@@ -95,6 +99,64 @@ Once you've set up your account with an email sending service, head to the [Auth
 Once you save these settings, your project's Auth server will send messages to all addresses. To protect the reputation of your newly set up service a low rate-limit of 30 messages per hour is imposed. To adjust this to an acceptable value for your use case head to the [Rate Limits configuration page](https://supabase.com/dashboard/project/_/auth/rate-limits).
 
 **Note:** Alternatively, you can also [set up an authentication hook](https://supabase.com/docs/guides/auth/auth-hooks/send-email-hook) to send the emails yourself.
+
+### Example Configuration With Postmark
+
+This section will walk you through the configuration of **Postmark** as a **custom SMTP provider** for **Supabase Auth**. This will notably allow you to customize the sender name of the authentication emails.
+
+![Example email with custom sender name](../../images/email-custom-sender-name.png)
+
+:::note
+While the the [Inbound Email](../../users/inbound-email) feature requires using Postmark, Supabase Auth can work with any SMTP provider. But this guide assumes you are using Postmark as your SMTP provider too, since it's the recommended provider for both features.
+:::
+
+**Step 1: Create a Postmark account and get your SMTP credentials**
+
+You can use an existing Postmark account or [create a new one](https://account.postmarkapp.com/sign_up). The free tier allows you to send or receive up to 100 emails per month.
+
+In your Server **Settings**, make sure **SMTP** is **enabled**.
+
+![Enable SMTP in Postmark](../../images/postmark-smtp-enabled.png)
+
+Then, go to the **API Tokens** tab, and copy the **Server API token**.
+
+![Copy Server API token in Postmark](../../images/postmark-api-token.png)
+
+**Step 2 (optional): Add new Domain or Signature**
+
+If you are using Postmark in **Test Mode**, by default, it will only allow you to send emails from domains or email addresses that have been registered as **Sender Signatures** in your Postmark account. You can either add a new Sender Signature for the email address you want to send from, or add a new Domain if you want to send from any email address of that domain.
+
+![Add Sender Signature or Domain in Postmark](../../images/postmark-sender-signatures.png)
+
+**Step 3: Configure Supabase Auth to use Postmark as a custom SMTP provider**
+
+Go to the [Authentication settings page](https://supabase.com/dashboard/project/_/auth/smtp) of your Supabase project, and enable **Custom SMTP** with the following configuration:
+
+| Field                     | Value                                                                   |
+| ------------------------- | ----------------------------------------------------------------------- |
+| Sender email address      | The email address you want to send from (e.g. `atomic-crm@company.com`) |
+| Sender name               | The sender name you want to display in the emails (e.g. `Atomic CRM`)   |
+| Host                      | `smtp.postmarkapp.com`                                                  |
+| Port number               | `587`                                                                   |
+| Minimum interval per user | You can keep the default value (60 seconds)                             |
+| Username                  | Use the Server API token you copied in Step 1 as the username           |
+| Password                  | Use the Server API token you copied in Step 1 as the password           |
+
+:::tip
+Check out the [Postmark documentation](https://postmarkapp.com/developer/user-guide/send-email-with-smtp) for alternative SMTP settings.
+:::
+
+:::tip
+Use the `Sender name` field to customize the sender name of the authentication emails. It will override the default name set in Postmark if you have one.
+:::
+
+![Configure custom SMTP in Supabase Auth](../../images/supabase-smtp-config.png)
+
+**Step 4: Make sure everything is working**
+
+You can for instance click the "Forgot your password?" link on the login page to trigger a password reset email. If you receive the email with the correct sender name, then everything is working correctly!
+
+![Example email with custom sender name](../../images/email-custom-sender-name.png)
 
 ## Setting The Login Callback
 
