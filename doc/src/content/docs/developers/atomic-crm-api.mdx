@@ -32,7 +32,7 @@ curl -X POST 'https://<instance_url>/auth/v1/token?grant_type=password' \
   }'
 ```
 
-See the [Supabase documentation on self hosting auth](https://supabase.com/docs/reference/self-hosting-auth/password-based-signup-with-either-email-or-phone) for more details.
+See the [Supabase documentation on self hosting auth](https://supabase.com/docs/reference/self-hosting-auth) for more details on how to setup your own auth mechanism in its entirety.
 
 You then need to pass the JWT token in the `Authorization` header of your requests, with the `Bearer` scheme.
 
