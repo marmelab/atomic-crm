@@ -1,0 +1,290 @@
+// @vitest-environment node
+import { describe, it, expect, vi, beforeEach } from "vitest";
+import {
+  getOrCreateCompanyFromDomain,
+  getOrCreateContactFromEmailInfo,
+} from "./addNoteToContact";
+
+const mockFrom = vi.hoisted(() => vi.fn());
+
+vi.mock("../_shared/supabaseAdmin.ts", () => ({
+  supabaseAdmin: {
+    from: (...args: unknown[]) => mockFrom(...args),
+  },
+}));
+
+beforeEach(() => {
+  vi.clearAllMocks();
+});
+
+describe("addNoteToContact", () => {
+  describe("getOrCreateCompanyFromDomain", () => {
+    it("returns the existing company when it already exists in the database", async () => {
+      const existingCompany = { id: 1, name: "acme.com", sales_id: 42 };
+      mockFrom.mockReturnValue({
+        select: () => ({
+          eq: () => ({
+            maybeSingle: () =>
+              Promise.resolve({ data: existingCompany, error: null }),
+          }),
+        }),
+      });
+
+      const result = await getOrCreateCompanyFromDomain("acme.com", 42);
+
+      expect(result).toEqual(existingCompany);
+      expect(mockFrom).toHaveBeenCalledWith("companies");
+    });
+
+    it("throws when fetching the company fails", async () => {
+      mockFrom.mockReturnValue({
+        select: () => ({
+          eq: () => ({
+            maybeSingle: () =>
+              Promise.resolve({ data: null, error: { message: "DB error" } }),
+          }),
+        }),
+      });
+
+      await expect(
+        getOrCreateCompanyFromDomain("acme.com", 42),
+      ).rejects.toThrow(
+        "Could not fetch companies from database, name: acme.com, error: DB error",
+      );
+    });
+
+    it("returns null for a known mail provider domain without creating a company", async () => {
+      mockFrom.mockReturnValue({
+        select: () => ({
+          eq: () => ({
+            maybeSingle: () => Promise.resolve({ data: null, error: null }),
+          }),
+        }),
+      });
+
+      const result = await getOrCreateCompanyFromDomain("gmail.com", 42);
+
+      expect(result).toBeNull();
+      // insert should never be called
+      expect(mockFrom).toHaveBeenCalledTimes(1);
+    });
+
+    it("creates and returns a new company when it does not exist and domain is not a mail provider", async () => {
+      const newCompany = { id: 2, name: "acme.com", sales_id: 42 };
+      mockFrom
+        .mockReturnValueOnce({
+          // first call: fetch
+          select: () => ({
+            eq: () => ({
+              maybeSingle: () => Promise.resolve({ data: null, error: null }),
+            }),
+          }),
+        })
+        .mockReturnValueOnce({
+          // second call: insert
+          insert: () => ({
+            select: () => Promise.resolve({ data: [newCompany], error: null }),
+          }),
+        });
+
+      const result = await getOrCreateCompanyFromDomain("acme.com", 42);
+
+      expect(result).toEqual(newCompany);
+      expect(mockFrom).toHaveBeenCalledTimes(2);
+      expect(mockFrom).toHaveBeenNthCalledWith(2, "companies");
+    });
+
+    it("throws when creating the company fails", async () => {
+      mockFrom
+        .mockReturnValueOnce({
+          select: () => ({
+            eq: () => ({
+              maybeSingle: () => Promise.resolve({ data: null, error: null }),
+            }),
+          }),
+        })
+        .mockReturnValueOnce({
+          insert: () => ({
+            select: () =>
+              Promise.resolve({
+                data: null,
+                error: { message: "Insert failed" },
+              }),
+          }),
+        });
+
+      await expect(
+        getOrCreateCompanyFromDomain("acme.com", 42),
+      ).rejects.toThrow(
+        "Could not create company in database, name: acme.com, error: Insert failed",
+      );
+    });
+  });
+
+  describe("getOrCreateContactFromEmailInfo", () => {
+    const contactParams = {
+      email: "alice@acme.com",
+      firstName: "Alice",
+      lastName: "Smith",
+      salesId: 42,
+      domain: "acme.com",
+    };
+
+    it("returns the existing contact when it already exists in the database", async () => {
+      const existingContact = {
+        id: 10,
+        first_name: "Alice",
+        last_name: "Smith",
+      };
+      mockFrom.mockReturnValue({
+        select: () => ({
+          contains: () => ({
+            maybeSingle: () =>
+              Promise.resolve({ data: existingContact, error: null }),
+          }),
+        }),
+      });
+
+      const result = await getOrCreateContactFromEmailInfo(contactParams);
+
+      expect(result).toEqual(existingContact);
+      expect(mockFrom).toHaveBeenCalledWith("contacts");
+    });
+
+    it("throws when fetching the contact fails", async () => {
+      mockFrom.mockReturnValue({
+        select: () => ({
+          contains: () => ({
+            maybeSingle: () =>
+              Promise.resolve({ data: null, error: { message: "DB error" } }),
+          }),
+        }),
+      });
+
+      await expect(
+        getOrCreateContactFromEmailInfo(contactParams),
+      ).rejects.toThrow(
+        "Could not fetch contact from database, email: alice@acme.com, error: DB error",
+      );
+    });
+
+    it("creates and returns a new contact with the associated company", async () => {
+      const newContact = {
+        id: 11,
+        first_name: "Alice",
+        last_name: "Smith",
+        company_id: 1,
+      };
+      const existingCompany = { id: 1, name: "acme.com", sales_id: 42 };
+
+      mockFrom
+        .mockReturnValueOnce({
+          // 1st call: fetch contact → not found
+          select: () => ({
+            contains: () => ({
+              maybeSingle: () => Promise.resolve({ data: null, error: null }),
+            }),
+          }),
+        })
+        .mockReturnValueOnce({
+          // 2nd call: fetch company → found
+          select: () => ({
+            eq: () => ({
+              maybeSingle: () =>
+                Promise.resolve({ data: existingCompany, error: null }),
+            }),
+          }),
+        })
+        .mockReturnValueOnce({
+          // 3rd call: insert contact
+          insert: () => ({
+            select: () => Promise.resolve({ data: [newContact], error: null }),
+          }),
+        });
+
+      const result = await getOrCreateContactFromEmailInfo(contactParams);
+
+      expect(result).toEqual(newContact);
+      expect(mockFrom).toHaveBeenCalledTimes(3);
+    });
+
+    it("creates a contact with null company_id when domain is a mail provider", async () => {
+      const newContact = {
+        id: 12,
+        first_name: "Alice",
+        last_name: "Smith",
+        company_id: null,
+      };
+
+      mockFrom
+        .mockReturnValueOnce({
+          // 1st call: fetch contact → not found
+          select: () => ({
+            contains: () => ({
+              maybeSingle: () => Promise.resolve({ data: null, error: null }),
+            }),
+          }),
+        })
+        .mockReturnValueOnce({
+          // 2nd call: fetch company (gmail.com) → not found (mail providers are never created)
+          select: () => ({
+            eq: () => ({
+              maybeSingle: () => Promise.resolve({ data: null, error: null }),
+            }),
+          }),
+        })
+        .mockReturnValueOnce({
+          // 3rd call: insert contact (with null company_id)
+          insert: () => ({
+            select: () => Promise.resolve({ data: [newContact], error: null }),
+          }),
+        });
+
+      const result = await getOrCreateContactFromEmailInfo({
+        ...contactParams,
+        email: "alice@gmail.com",
+        domain: "gmail.com",
+      });
+
+      expect(result).toEqual(newContact);
+      // Only 3 froms: contacts fetch, companies fetch, contacts insert (no company insert for mail provider)
+      expect(mockFrom).toHaveBeenCalledTimes(3);
+    });
+
+    it("throws when creating the contact fails", async () => {
+      const existingCompany = { id: 1, name: "acme.com", sales_id: 42 };
+
+      mockFrom
+        .mockReturnValueOnce({
+          select: () => ({
+            contains: () => ({
+              maybeSingle: () => Promise.resolve({ data: null, error: null }),
+            }),
+          }),
+        })
+        .mockReturnValueOnce({
+          select: () => ({
+            eq: () => ({
+              maybeSingle: () =>
+                Promise.resolve({ data: existingCompany, error: null }),
+            }),
+          }),
+        })
+        .mockReturnValueOnce({
+          insert: () => ({
+            select: () =>
+              Promise.resolve({
+                data: null,
+                error: { message: "Insert failed" },
+              }),
+          }),
+        });
+
+      await expect(
+        getOrCreateContactFromEmailInfo(contactParams),
+      ).rejects.toThrow(
+        "Could not create contact in database, email: alice@acme.com, error: Insert failed",
+      );
+    });
+  });
+});
