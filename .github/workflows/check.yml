@@ -66,8 +66,11 @@ jobs:
             - name: 🎭 Install Playwright browsers
               run: npx playwright install chromium chromium-headless-shell
 
-            - name: 🔎 Test
-              run: make test-ci
+            - name: 🔎 Unit Tests
+              run: CI=1 npm test -- --run
+
+            - name: 🔎 Integration Tests
+              run: CI=1 npm run test:integration -- --run
 
 
     build:
