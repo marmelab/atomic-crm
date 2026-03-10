@@ -21,6 +21,11 @@ export default defineConfig({
         },
       },
     },
+    exclude: [
+      "**/node_modules/**",
+      "doc/**",
+      "src/**/*.integration.test.{ts,tsx}",
+    ],
   },
   resolve: {
     preserveSymlinks: true,

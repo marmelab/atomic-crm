@@ -44,7 +44,7 @@ describe("TaskListFilter", () => {
         wrapper: Wrapper,
       },
     );
-    await expect(screen.getByText("Today")).toBeInTheDocument();
+    await expect.element(screen.getByText("Today")).toBeInTheDocument();
   });
 
   it("does not show Load more when tasks fit in one page", async () => {
@@ -55,7 +55,7 @@ describe("TaskListFilter", () => {
         wrapper: Wrapper,
       },
     );
-    await expect(screen.getByText("Load more")).not.toBeInTheDocument();
+    await expect.element(screen.getByText("Load more")).not.toBeInTheDocument();
   });
 
   it("shows Load more when tasks exceed page size", async () => {
@@ -66,7 +66,7 @@ describe("TaskListFilter", () => {
         wrapper: Wrapper,
       },
     );
-    await expect(screen.getByText("Load more")).toBeInTheDocument();
+    await expect.element(screen.getByText("Load more")).toBeInTheDocument();
   });
 
   it("Load more increases visible page size", async () => {
@@ -86,6 +86,6 @@ describe("TaskListFilter", () => {
     // check the number of rendered tasks after clicking Load more
     await expect(screen.getByText(/Task \d+/)).toHaveLength(8);
     // After clicking, all 8 tasks fit in one page (5 + 10 = 15), so Load more disappears
-    await expect(screen.getByText("Load more")).not.toBeInTheDocument();
+    await expect.element(screen.getByText("Load more")).not.toBeInTheDocument();
   });
 });
