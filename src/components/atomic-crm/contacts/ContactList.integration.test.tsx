@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { render } from "vitest-browser-react";
 
 import {
@@ -86,53 +86,67 @@ describe("Contact list integration", () => {
   });
 
   it("renders the mobile error state when loading contacts fails", async () => {
-    const scenario = createCrmScenario({
-      db: createCrmDb({
-        contacts: [buildContact()] as any,
-      }),
-      failGetListOnce: { contacts: "Error loading contacts" },
-    });
+    const consoleError = vi
+      .spyOn(console, "error")
+      .mockImplementation(() => {});
+    try {
+      const scenario = createCrmScenario({
+        db: createCrmDb({
+          contacts: [buildContact()] as any,
+        }),
+        failGetListOnce: { contacts: "Error loading contacts" },
+      });
 
-    const screen = await render(
-      <CrmTestProvider resource="contacts" scenario={scenario}>
-        <MobileContactListContentHarness />
-      </CrmTestProvider>,
-    );
+      const screen = await render(
+        <CrmTestProvider resource="contacts" scenario={scenario}>
+          <MobileContactListContentHarness />
+        </CrmTestProvider>,
+      );
 
-    await expect
-      .element(screen.getByText("Error loading contacts"))
-      .toBeVisible();
-    await expect
-      .element(screen.getByRole("button", { name: /retry/i }))
-      .toBeVisible();
+      await expect
+        .element(screen.getByText("Error loading contacts"))
+        .toBeVisible();
+      await expect
+        .element(screen.getByRole("button", { name: /retry/i }))
+        .toBeVisible();
+    } finally {
+      consoleError.mockRestore();
+    }
   });
 
   it("retries successfully in the mobile error state", async () => {
-    const scenario = createCrmScenario({
-      db: createCrmDb({
-        contacts: [
-          buildContact({
-            first_name: "Grace",
-            id: 2,
-            last_name: "Hopper",
-            title: "Rear Admiral",
-          }),
-        ] as any,
-      }),
-      failGetListOnce: { contacts: "Error loading contacts" },
-    });
+    const consoleError = vi
+      .spyOn(console, "error")
+      .mockImplementation(() => {});
+    try {
+      const scenario = createCrmScenario({
+        db: createCrmDb({
+          contacts: [
+            buildContact({
+              first_name: "Grace",
+              id: 2,
+              last_name: "Hopper",
+              title: "Rear Admiral",
+            }),
+          ] as any,
+        }),
+        failGetListOnce: { contacts: "Error loading contacts" },
+      });
 
-    const screen = await render(
-      <CrmTestProvider resource="contacts" scenario={scenario}>
-        <MobileContactListContentHarness />
-      </CrmTestProvider>,
-    );
+      const screen = await render(
+        <CrmTestProvider resource="contacts" scenario={scenario}>
+          <MobileContactListContentHarness />
+        </CrmTestProvider>,
+      );
 
-    await screen.getByRole("button", { name: /retry/i }).click();
+      await screen.getByRole("button", { name: /retry/i }).click();
 
-    await expect.element(screen.getByText("Grace Hopper")).toBeVisible();
-    await expect
-      .element(screen.getByText("Error loading contacts"))
-      .not.toBeInTheDocument();
+      await expect.element(screen.getByText("Grace Hopper")).toBeVisible();
+      await expect
+        .element(screen.getByText("Error loading contacts"))
+        .not.toBeInTheDocument();
+    } finally {
+      consoleError.mockRestore();
+    }
   });
 });
