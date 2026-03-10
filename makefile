@@ -60,6 +60,12 @@ test-functions:
 test-integration:
 	npm run test:integration
 
+test-e2e:
+	npx playwright test --ui
+
+test-e2e-ci:
+	CI=1 npx playwright test
+
 lint:
 	npm run lint
 	npm run prettier
