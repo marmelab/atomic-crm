@@ -5,6 +5,16 @@ import { defineConfig } from "vitest/config";
 
 export default defineConfig({
   plugins: [react()],
+  optimizeDeps: {
+    include: [
+      "faker/locale/en",
+      "faker/locale/en_US",
+      "jsonexport/dist",
+      "lodash",
+      "papaparse",
+      "ra-supabase-language-english",
+    ],
+  },
   test: {
     globals: true,
     include: ["src/**/*.integration.test.{ts,tsx}"],
