@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { useFormContext } from "react-hook-form";
 import { TextInput } from "@/components/admin/text-input";
 import { FileInput } from "@/components/admin/file-input";
 import { SelectInput } from "@/components/admin/select-input";
@@ -28,7 +27,6 @@ export const NoteInputs = ({
 }) => {
   const isMobile = useIsMobile();
   const { noteStatuses } = useConfigurationContext();
-  const { setValue } = useFormContext();
   const [displayMore, setDisplayMore] = useState(false);
 
   return (
@@ -66,7 +64,6 @@ export const NoteInputs = ({
             size="sm"
             onClick={() => {
               setDisplayMore(!displayMore);
-              setValue("date", getCurrentDate());
             }}
             className="text-sm text-muted-foreground underline hover:no-underline p-0 h-auto cursor-pointer"
           >
