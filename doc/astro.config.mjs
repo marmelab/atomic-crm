@@ -98,6 +98,11 @@ export default defineConfig({
           label: "Developers Documentation",
           autogenerate: { directory: "developers" },
         },
+        {
+          label: "What's New",
+          link: "https://github.com/marmelab/atomic-crm/releases",
+          attrs: { target: "_blank" },
+        },
       ],
     }),
   ],
