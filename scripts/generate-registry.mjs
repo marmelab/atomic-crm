@@ -9,12 +9,21 @@ const basePath = "src";
 const atomicCrmComponentsPath = path.join(basePath, "components", "atomic-crm");
 const supabaseComponentsPath = path.join(basePath, "components", "supabase");
 const hooksPath = path.join(basePath, "hooks");
+const libPath = path.join(basePath, "lib");
 
 const excludedHooks = [
   "filter-context.tsx",
   "saved-queries.tsx",
   "use-mobile.ts",
   "useSupportCreateSuggestion.tsx",
+];
+
+const excludedLibFiles = [
+  "field.type.ts",
+  "genericMemo.ts",
+  "i18nProvider.ts",
+  "sanitizeInputRestProps.ts",
+  "utils.ts",
 ];
 
 const testFilePattern = "**/*.{test,spec}.*";
@@ -29,6 +38,9 @@ const supabaseComponents = globSync(
 );
 const hooks = globSync(path.join(hooksPath, "**", "*.ts*")).filter((hook) => {
   return !excludedHooks.includes(path.basename(hook));
+});
+const libFiles = globSync(path.join(libPath, "**", "*.ts*")).filter((file) => {
+  return !excludedLibFiles.includes(path.basename(file));
 });
 
 const registryContent = JSON.parse(fs.readFileSync(registryPath, "utf-8"));
@@ -50,6 +62,12 @@ const files = [
     return {
       path,
       type: "registry:hook",
+    };
+  }),
+  ...libFiles.map((path) => {
+    return {
+      path,
+      type: "registry:lib",
     };
   }),
 ];

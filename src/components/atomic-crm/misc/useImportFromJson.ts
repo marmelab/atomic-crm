@@ -11,6 +11,8 @@ import mime from "mime/lite";
 import type { CrmDataProvider } from "../providers/types";
 import type { RAFile, Tag } from "../types";
 import { colors } from "../tags/colors";
+import { useConfigurationContext } from "../root/ConfigurationContext";
+import { contactGender } from "../contacts/contactGender";
 
 export type ImportFromJsonStats = {
   sales: number;
@@ -95,6 +97,7 @@ export const useImportFromJson = (): [
   const { data: currentSale } = useGetIdentity();
   const dataProvider = useDataProvider<CrmDataProvider>();
   const refresh = useRefresh();
+  const { companySectors } = useConfigurationContext();
   const [state, setState] = useState<ImportFromJsonState>({
     status: "idle",
     error: null,
@@ -222,6 +225,27 @@ export const useImportFromJson = (): [
         return;
       }
       try {
+        // Validate sector against configuration
+        const sector = dataToImport.sector?.trim();
+        if (sector && !companySectors.some((s) => s.value === sector)) {
+          setState((old) => ({
+            ...old,
+            status: "importing",
+            error: null,
+            failedImports: {
+              ...old.failedImports,
+              companies: [
+                ...old.failedImports.companies,
+                {
+                  ...(dataToImport as any),
+                  error: `Invalid sector "${sector}". Must be one of: ${companySectors.map((s) => s.value).join(", ")}`,
+                },
+              ],
+            },
+          }));
+          return;
+        }
+
         const { data } = await dataProvider.create("companies", {
           data: {
             name: dataToImport.name.trim(),
@@ -231,6 +255,18 @@ export const useImportFromJson = (): [
             address: dataToImport.address?.trim(),
             zipcode: dataToImport.zipcode?.trim(),
             state_abbr: dataToImport.state_abbr?.trim(),
+            sector: sector || undefined,
+            size: dataToImport.size
+              ? mapSizeToCategory(dataToImport.size)
+              : undefined,
+            linkedin_url: dataToImport.linkedin_url?.trim(),
+            website: dataToImport.website?.trim(),
+            phone_number: dataToImport.phone_number?.trim(),
+            revenue: dataToImport.revenue?.trim(),
+            tax_identifier: dataToImport.tax_identifier?.trim(),
+            context_links: Array.isArray(dataToImport.context_links)
+              ? dataToImport.context_links
+              : undefined,
             sales_id: dataToImport.sales_id
               ? idsMaps.sales[dataToImport.sales_id]
               : currentSale.id,
@@ -286,6 +322,27 @@ export const useImportFromJson = (): [
       }
 
       try {
+        // Validate gender against valid values
+        const gender = dataToImport.gender?.trim();
+        if (gender && !contactGender.some((g) => g.value === gender)) {
+          setState((old) => ({
+            ...old,
+            status: "importing",
+            error: null,
+            failedImports: {
+              ...old.failedImports,
+              contacts: [
+                ...old.failedImports.contacts,
+                {
+                  ...(dataToImport as any),
+                  error: `Invalid gender "${gender}". Must be one of: ${contactGender.map((g) => g.value).join(", ")}`,
+                },
+              ],
+            },
+          }));
+          return;
+        }
+
         let tagsIds: Array<Identifier> = [];
         if (dataToImport.tags && Array.isArray(dataToImport.tags)) {
           tagsIds = await Promise.all(
@@ -312,6 +369,8 @@ export const useImportFromJson = (): [
             title: dataToImport.title?.trim(),
             background: dataToImport.background?.trim(),
             linkedin_url: dataToImport.linkedin_url?.trim(),
+            gender: gender || undefined,
+            has_newsletter: !!dataToImport.has_newsletter,
             company_id: dataToImport.company_id
               ? idsMaps.companies[dataToImport.company_id]
               : undefined,
@@ -662,8 +721,16 @@ type CompanyImport = {
   address?: string;
   zipcode?: string;
   state_abbr?: string;
-  created_at: string;
-  updated_at: string;
+  sector?: string;
+  size?: number;
+  linkedin_url?: string;
+  website?: string;
+  phone_number?: string;
+  revenue?: string;
+  tax_identifier?: string;
+  context_links?: string[];
+  created_at?: string;
+  updated_at?: string;
 };
 
 const isCompany = (data: any): data is CompanyImport =>
@@ -683,11 +750,13 @@ type ContactImport = {
   background?: string;
   linkedin_url?: string;
   avatar?: string;
+  gender?: string;
+  has_newsletter?: boolean;
   emails: Array<{ email: string; type: string }>;
   phones: Array<{ number: string; type: string }>;
   tags: Array<string>;
-  created_at: string;
-  updated_at: string;
+  created_at?: string;
+  updated_at?: string;
 };
 
 const isContact = (data: any): data is ContactImport =>
@@ -702,8 +771,8 @@ type NoteImport = {
   text: string;
   date: string;
   attachments: Array<{ url: string; name: string }>;
-  created_at: string;
-  updated_at: string;
+  created_at?: string;
+  updated_at?: string;
 };
 
 const isNote = (data: any): data is NoteImport =>
@@ -721,8 +790,8 @@ type TaskImport = {
   text: string;
   due_date?: string;
   done_date?: string;
-  created_at: string;
-  updated_at: string;
+  created_at?: string;
+  updated_at?: string;
 };
 
 const isTask = (data: any): data is TaskImport =>
@@ -732,3 +801,15 @@ const isTask = (data: any): data is TaskImport =>
   data.sales_id != null &&
   data.contact_id != null &&
   data.text != null;
+
+/**
+ * Maps a company size number to the appropriate size category.
+ * Categories: 1, 10, 50, 250, 500
+ */
+const mapSizeToCategory = (size: number): 1 | 10 | 50 | 250 | 500 => {
+  if (size === 1) return 1;
+  if (size < 10) return 10;
+  if (size < 50) return 50;
+  if (size < 250) return 250;
+  return 500;
+};

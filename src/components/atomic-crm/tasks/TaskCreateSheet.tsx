@@ -57,7 +57,7 @@ export const TaskCreateSheet = ({
     <CreateSheet
       resource="tasks"
       title={
-        <h1 className="text-xl font-semibold">
+        <h1 className="text-xl font-semibold truncate pr-10">
           {!selectContact ? "Create Task for " : "Create Task"}
           {!selectContact && (
             <RecordRepresentation record={contact} resource="contacts" />
@@ -68,16 +68,8 @@ export const TaskCreateSheet = ({
       record={{
         type: "None",
         contact_id,
-        due_date: new Date().toISOString().slice(0, 10),
+        due_date: new Date().toISOString(),
         sales_id: identity.id,
-      }}
-      transform={(data) => {
-        const dueDate = new Date(data.due_date);
-        dueDate.setHours(0, 0, 0, 0);
-        return {
-          ...data,
-          due_date: dueDate.toISOString(),
-        };
       }}
       mutationOptions={{
         onSuccess: handleSuccess,

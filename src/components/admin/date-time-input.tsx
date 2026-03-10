@@ -189,7 +189,7 @@ export const DateTimeInput = ({
           className={clsx(
             "ra-input",
             `ra-input-${source}`,
-            "[color-scheme:light] dark:[color-scheme:dark] relative [&::-webkit-calendar-picker-indicator]:cursor-pointer [&::-webkit-calendar-picker-indicator]:absolute [&::-webkit-calendar-picker-indicator]:right-3 [&::-webkit-calendar-picker-indicator]:opacity-100",
+            "scheme-light dark:scheme-dark relative [&::-webkit-calendar-picker-indicator]:cursor-pointer [&::-webkit-calendar-picker-indicator]:absolute [&::-webkit-calendar-picker-indicator]:right-3 [&::-webkit-calendar-picker-indicator]:opacity-100 appearance-none",
             className,
           )}
           disabled={disabled || readOnly}

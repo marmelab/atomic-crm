@@ -18,7 +18,7 @@ export const ContactEditSheet = ({
       resource="contacts"
       id={contactId}
       title={
-        <h1 className="text-xl font-semibold">
+        <h1 className="text-xl font-semibold truncate pr-10">
           Edit <RecordRepresentation />
         </h1>
       }

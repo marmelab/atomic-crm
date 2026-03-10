@@ -47,6 +47,7 @@ export async function getContactAvatar(
   for (const { email } of record.email_jsonb) {
     // Step 1: Try to get Gravatar image
     const gravatarUrl = await getGravatarUrl(email);
+
     try {
       const gravatarResponse = await fetch(gravatarUrl);
       if (gravatarResponse.ok) {

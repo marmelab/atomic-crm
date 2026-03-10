@@ -157,6 +157,8 @@ s3_secret_key = "env(S3_SECRET_KEY)"
 
 [functions.merge_contacts]
 verify_jwt = false
+[functions.delete_note_attachments]
+verify_jwt = false
 [functions.postmark]
 verify_jwt = false
 [functions.update_password]

@@ -63,6 +63,9 @@ jobs:
             - name: 📥 Download deps
               run: npm ci
 
+            - name: 🎭 Install Playwright browsers
+              run: npx playwright install chromium chromium-headless-shell
+
             - name: 🔎 Test
               run: make test-ci
 
