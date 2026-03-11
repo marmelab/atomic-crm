@@ -92,7 +92,7 @@ export const NoteInputs = ({
                 value: status.value,
               }))}
               optionText={optionRenderer}
-              defaultValue={"warm"}
+              defaultValue="cold"
               helperText={false}
             />
           )}
