@@ -1,4 +1,4 @@
-import { required, useRecordContext } from "ra-core";
+import { required, useRecordContext, useTranslate } from "ra-core";
 import { ReferenceInput } from "@/components/admin/reference-input";
 import { TextInput } from "@/components/admin/text-input";
 import { SelectInput } from "@/components/admin/select-input";
@@ -46,6 +46,7 @@ export const CompanyInputs = () => {
 };
 
 const CompanyDisplayInputs = () => {
+  const translate = useTranslate();
   const record = useRecordContext<Company>();
   return (
     <div className="flex gap-4 flex-1 flex-row">
@@ -62,16 +63,21 @@ const CompanyDisplayInputs = () => {
         className="w-full h-fit"
         validate={required()}
         helperText={false}
-        placeholder="Company name"
+        placeholder={translate("crm.companies.form.company_name_placeholder", {
+          _: "Company name",
+        })}
       />
     </div>
   );
 };
 
 const CompanyContactInputs = () => {
+  const translate = useTranslate();
   return (
     <div className="flex flex-col gap-4">
-      <h6 className="text-lg font-semibold">Contact</h6>
+      <h6 className="text-lg font-semibold">
+        {translate("crm.companies.form.contact_section", { _: "Contact" })}
+      </h6>
       <TextInput source="website" helperText={false} validate={isUrl} />
       <TextInput
         source="linkedin_url"
@@ -84,10 +90,13 @@ const CompanyContactInputs = () => {
 };
 
 const CompanyContextInputs = () => {
+  const translate = useTranslate();
   const { companySectors } = useConfigurationContext();
   return (
     <div className="flex flex-col gap-4">
-      <h6 className="text-lg font-semibold">Context</h6>
+      <h6 className="text-lg font-semibold">
+        {translate("crm.companies.form.context_section", { _: "Context" })}
+      </h6>
       <SelectInput
         source="sector"
         choices={companySectors}
@@ -103,9 +112,12 @@ const CompanyContextInputs = () => {
 };
 
 const CompanyAddressInputs = () => {
+  const translate = useTranslate();
   return (
     <div className="flex flex-col gap-4">
-      <h6 className="text-lg font-semibold">Address</h6>
+      <h6 className="text-lg font-semibold">
+        {translate("crm.companies.form.address_section", { _: "Address" })}
+      </h6>
       <TextInput source="address" helperText={false} />
       <TextInput source="city" helperText={false} />
       <TextInput source="zipcode" helperText={false} />
@@ -116,9 +128,14 @@ const CompanyAddressInputs = () => {
 };
 
 const CompanyAdditionalInformationInputs = () => {
+  const translate = useTranslate();
   return (
     <div className="flex flex-col gap-4">
-      <h6 className="text-lg font-semibold">Additional information</h6>
+      <h6 className="text-lg font-semibold">
+        {translate("crm.companies.form.additional_information_section", {
+          _: "Additional information",
+        })}
+      </h6>
       <TextInput source="description" multiline helperText={false} />
       <ArrayInput source="context_links" helperText={false}>
         <SimpleFormIterator disableReordering fullWidth getItemLabel={false}>
@@ -135,9 +152,14 @@ const CompanyAdditionalInformationInputs = () => {
 };
 
 const CompanyAccountManagerInput = () => {
+  const translate = useTranslate();
   return (
     <div className="flex flex-col gap-4">
-      <h6 className="text-lg font-semibold">Account manager</h6>
+      <h6 className="text-lg font-semibold">
+        {translate("crm.companies.form.account_manager_section", {
+          _: "Account manager",
+        })}
+      </h6>
       <ReferenceInput
         source="sales_id"
         reference="sales"
@@ -146,7 +168,9 @@ const CompanyAccountManagerInput = () => {
         }}
       >
         <SelectInput
-          label="Account manager"
+          label={translate("crm.companies.form.account_manager_label", {
+            _: "Account manager",
+          })}
           helperText={false}
           optionText={saleOptionRenderer}
         />

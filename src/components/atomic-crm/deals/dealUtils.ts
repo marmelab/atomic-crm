@@ -27,16 +27,29 @@ function ucFirst(str: string): string {
   return str.charAt(0).toUpperCase() + str.slice(1);
 }
 
-const isoDateStringRegex = /^\d{4}-\d{2}-\d{2}$/;
+const isoDatePrefixRegex = /^(\d{4})-(\d{2})-(\d{2})(?:$|[T\s].*)/;
+const invalidDateError = "Invalid date format. Expected YYYY-MM-DD.";
 
 export function formatISODateString(dateString: string) {
-  if (!isoDateStringRegex.test(dateString)) {
-    throw new Error("Invalid date format. Expected YYYY-MM-DD.");
+  const matches = dateString.match(isoDatePrefixRegex);
+  if (!matches) {
+    throw new Error(invalidDateError);
   }
+
   // Some browsers will consider a date in the format YYYY-MM-DD as UTC, which can cause off-by-one-day issues depending on the user's timezone.
   // To avoid this, we can parse the date components manually and create a date object in the local timezone.
-  const [year, month, day] = dateString.split("-").map(Number);
+  const year = Number(matches[1]);
+  const month = Number(matches[2]);
+  const day = Number(matches[3]);
   const date = new Date(year, month - 1, day);
+  const isExactDate =
+    date.getFullYear() === year &&
+    date.getMonth() === month - 1 &&
+    date.getDate() === day;
+
+  if (!isExactDate) {
+    throw new Error(invalidDateError);
+  }
 
   return format(date, "PP");
 }

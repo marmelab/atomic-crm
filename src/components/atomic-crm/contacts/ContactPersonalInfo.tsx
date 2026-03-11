@@ -1,4 +1,4 @@
-import { useRecordContext, WithRecord } from "ra-core";
+import { useRecordContext, useTranslate, WithRecord } from "ra-core";
 import { ArrayField } from "@/components/admin/array-field";
 import { SingleFieldList } from "@/components/admin/single-field-list";
 import { TextField } from "@/components/admin/text-field";
@@ -9,6 +9,7 @@ import { contactGender } from "./contactGender";
 import type { Contact } from "../types";
 
 export const ContactPersonalInfo = () => {
+  const translate = useTranslate();
   const record = useRecordContext<Contact>();
 
   if (!record) return null;
@@ -26,7 +27,9 @@ export const ContactPersonalInfo = () => {
 
       {record.has_newsletter && (
         <p className="pl-6 py-1 text-sm text-muted-foreground">
-          Subscribed to newsletter
+          {translate("crm.contacts.show.subscribed_to_newsletter", {
+            _: "Subscribed to newsletter",
+          })}
         </p>
       )}
 

@@ -1,4 +1,4 @@
-import { useRecordContext } from "ra-core";
+import { useRecordContext, useTranslate } from "ra-core";
 import { EditButton } from "@/components/admin/edit-button";
 import { DeleteButton } from "@/components/admin";
 import { ReferenceManyField } from "@/components/admin/reference-many-field";
@@ -15,6 +15,7 @@ import { ContactMergeButton } from "./ContactMergeButton";
 import { ExportVCardButton } from "./ExportVCardButton";
 
 export const ContactAside = ({ link = "edit" }: { link?: "edit" | "show" }) => {
+  const translate = useTranslate();
   const record = useRecordContext<Contact>();
 
   if (!record) return null;
@@ -22,25 +23,48 @@ export const ContactAside = ({ link = "edit" }: { link?: "edit" | "show" }) => {
     <div className="hidden sm:block w-92 min-w-92 text-sm">
       <div className="mb-4 -ml-1">
         {link === "edit" ? (
-          <EditButton label="Edit Contact" />
+          <EditButton
+            label={translate("crm.contacts.show.edit_contact", {
+              _: "Edit Contact",
+            })}
+          />
         ) : (
-          <ShowButton label="Show Contact" />
+          <ShowButton
+            label={translate("crm.contacts.show.show_contact", {
+              _: "Show Contact",
+            })}
+          />
         )}
       </div>
 
-      <AsideSection title="Personal info">
+      <AsideSection
+        title={translate("crm.contacts.sections.personal_info", {
+          _: "Personal info",
+        })}
+      >
         <ContactPersonalInfo />
       </AsideSection>
 
-      <AsideSection title="Background info">
+      <AsideSection
+        title={translate("crm.contacts.show.background_info", {
+          _: "Background info",
+        })}
+      >
         <ContactBackgroundInfo />
       </AsideSection>
 
-      <AsideSection title="Tags">
+      <AsideSection
+        title={translate("resources.contacts.fields.tags", { _: "Tags" })}
+      >
         <TagsListEdit />
       </AsideSection>
 
-      <AsideSection title="Tasks">
+      <AsideSection
+        title={translate("resources.tasks.name", {
+          smart_count: 2,
+          _: "Tasks",
+        })}
+      >
         <ReferenceManyField
           target="contact_id"
           reference="tasks"

@@ -4,6 +4,7 @@ import {
   useDelete,
   useNotify,
   useResourceContext,
+  useTranslate,
   useUpdate,
   WithRecord,
 } from "ra-core";
@@ -43,6 +44,7 @@ export const Note = ({
   const contentRef = useRef<HTMLDivElement>(null);
   const resource = useResourceContext();
   const notify = useNotify();
+  const translate = useTranslate();
 
   // Detect if content is truncated
   useEffect(() => {
@@ -57,7 +59,11 @@ export const Note = ({
   const [deleteNote] = useDelete(resource, undefined, {
     mutationMode: "undoable",
     onSuccess: () => {
-      notify("Note deleted", { type: "info", undoable: true });
+      notify("crm.notes.notifications.deleted", {
+        type: "info",
+        undoable: true,
+        messageArgs: { _: "Note deleted" },
+      });
     },
   });
 
@@ -107,7 +113,7 @@ export const Note = ({
           >
             <WithRecord render={(record) => <SaleName sale={record} />} />
           </ReferenceField>{" "}
-          added a note{" "}
+          {translate("crm.notes.added_a_note", { _: "added a note" })}{" "}
           {showStatus && note.status && (
             <Status className="ml-2" status={note.status} />
           )}
@@ -126,7 +132,7 @@ export const Note = ({
                 </Button>
               </TooltipTrigger>
               <TooltipContent>
-                <p>Edit note</p>
+                <p>{translate("crm.notes.edit_note", { _: "Edit note" })}</p>
               </TooltipContent>
             </Tooltip>
           </TooltipProvider>
@@ -143,7 +149,9 @@ export const Note = ({
                 </Button>
               </TooltipTrigger>
               <TooltipContent>
-                <p>Delete note</p>
+                <p>
+                  {translate("crm.notes.delete_note", { _: "Delete note" })}
+                </p>
               </TooltipContent>
             </Tooltip>
           </TooltipProvider>
@@ -164,7 +172,7 @@ export const Note = ({
               className="cursor-pointer"
             >
               <CircleX className="w-4 h-4" />
-              Cancel
+              {translate("ra.action.cancel", { _: "Cancel" })}
             </Button>
             <Button
               type="submit"
@@ -172,7 +180,7 @@ export const Note = ({
               className="flex items-center gap-2 cursor-pointer"
             >
               <Save className="w-4 h-4" />
-              Update note
+              {translate("crm.notes.update_note", { _: "Update note" })}
             </Button>
           </div>
         </Form>
@@ -199,7 +207,9 @@ export const Note = ({
               }}
               className="text-primary text-sm mt-1 underline hover:no-underline cursor-pointer"
             >
-              {isExpanded ? "Show less" : "Read more"}
+              {isExpanded
+                ? translate("crm.notes.show_less", { _: "Show less" })
+                : translate("crm.notes.read_more", { _: "Read more" })}
             </button>
           )}
 

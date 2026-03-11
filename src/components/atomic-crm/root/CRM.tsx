@@ -51,7 +51,7 @@ import {
 import { i18nProvider } from "./i18nProvider";
 import { StartPage } from "../login/StartPage.tsx";
 import { useIsMobile } from "@/hooks/use-mobile.ts";
-import { MobileTasksList } from "../tasks/MobileTasksList.tsx";
+import { MobileMyTasksPage, MyTasksPage } from "../tasks/MyTasksPage.tsx";
 import { ContactListMobile } from "../contacts/ContactList.tsx";
 import { ContactShow } from "../contacts/ContactShow.tsx";
 import { CompanyShow } from "../companies/CompanyShow.tsx";
@@ -241,6 +241,8 @@ const DesktopAdmin = (props: CoreAdminProps) => {
         <Route path={ProfilePage.path} element={<ProfilePage />} />
         <Route path={SettingsPage.path} element={<SettingsPage />} />
         <Route path={ImportPage.path} element={<ImportPage />} />
+        <Route path={MyTasksPage.path} element={<MyTasksPage />} />
+        <Route path="/tasks" element={<MyTasksPage />} />
       </CustomRoutes>
       <Resource name="deals" {...deals} />
       <Resource name="contacts" {...contacts} />
@@ -294,6 +296,10 @@ const MobileAdmin = (props: CoreAdminProps) => {
           />
           <Route path={OAuthConsentPage.path} element={<OAuthConsentPage />} />
         </CustomRoutes>
+        <CustomRoutes>
+          <Route path={MyTasksPage.path} element={<MobileMyTasksPage />} />
+          <Route path="/tasks" element={<MobileMyTasksPage />} />
+        </CustomRoutes>
         <Resource
           name="contacts"
           list={ContactListMobile}
@@ -303,7 +309,7 @@ const MobileAdmin = (props: CoreAdminProps) => {
           <Route path=":id/notes/:noteId" element={<NoteShowPage />} />
         </Resource>
         <Resource name="companies" show={CompanyShow} />
-        <Resource name="tasks" list={MobileTasksList} />
+        <Resource name="tasks" />
       </Admin>
     </PersistQueryClientProvider>
   );

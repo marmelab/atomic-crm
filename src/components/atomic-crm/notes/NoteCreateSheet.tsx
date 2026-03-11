@@ -6,6 +6,7 @@ import {
   useGetOne,
   useNotify,
   useRedirect,
+  useTranslate,
   useUpdate,
 } from "ra-core";
 import { CreateSheet } from "../misc/CreateSheet";
@@ -36,6 +37,7 @@ export const NoteCreateSheet = ({
   const dataProvider = useDataProvider();
   const notify = useNotify();
   const redirect = useRedirect();
+  const translate = useTranslate();
 
   if (!identity) return null;
 
@@ -51,7 +53,9 @@ export const NoteCreateSheet = ({
       data: { last_seen: new Date().toISOString(), status: data.status },
       previousData: contact,
     });
-    notify("Note added");
+    notify("crm.notes.notifications.added", {
+      messageArgs: { _: "Note added" },
+    });
     redirect("show", "contacts", referenceRecordId);
     onOpenChange(false);
   };
@@ -61,7 +65,10 @@ export const NoteCreateSheet = ({
       resource="contact_notes"
       title={
         <h1 className="text-xl font-semibold truncate pr-10">
-          {!selectContact ? "Create Note for " : "Create Note"}
+          {!selectContact
+            ? translate("crm.notes.create_note_for", { _: "Create Note for" })
+            : translate("crm.notes.create_note", { _: "Create Note" })}
+          {!selectContact && " "}
           {!selectContact && (
             <RecordRepresentation record={contact} resource="contacts" />
           )}

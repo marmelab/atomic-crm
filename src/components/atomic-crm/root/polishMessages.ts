@@ -42,6 +42,7 @@ export const polishMessages: TranslationMessages = {
       move_up: "Przesuń w górę",
       move_down: "Przesuń w dół",
       open: "Otwórz",
+      load_more: "Pokaż więcej",
       toggle_theme: "Przełącz tryb jasny/ciemny",
       select_columns: "Kolumny",
       update_application: "Przeładuj aplikację",
@@ -70,14 +71,12 @@ export const polishMessages: TranslationMessages = {
       file: {
         upload_several:
           "Upuść pliki, aby je przesłać, lub kliknij, aby wybrać.",
-        upload_single:
-          "Upuść plik, aby go przesłać, lub kliknij, aby wybrać.",
+        upload_single: "Upuść plik, aby go przesłać, lub kliknij, aby wybrać.",
       },
       image: {
         upload_several:
           "Upuść obrazy, aby je przesłać, lub kliknij, aby wybrać.",
-        upload_single:
-          "Upuść obraz, aby go przesłać, lub kliknij, aby wybrać.",
+        upload_single: "Upuść obraz, aby go przesłać, lub kliknij, aby wybrać.",
       },
       references: {
         all_missing: "Nie udało się odnaleźć danych powiązanych rekordów.",
@@ -118,7 +117,8 @@ export const polishMessages: TranslationMessages = {
       unsaved_changes:
         "Część zmian nie została zapisana. Czy na pewno chcesz je porzucić?",
       yes: "Tak",
-      placeholder_data_warning: "Problem z siecią: odświeżenie danych nie powiodło się.",
+      placeholder_data_warning:
+        "Problem z siecią: odświeżenie danych nie powiodło się.",
     },
     navigation: {
       clear_filters: "Wyczyść filtry",
@@ -192,7 +192,7 @@ export const polishMessages: TranslationMessages = {
       new_label: "Zapisz bieżące zapytanie...",
       new_dialog_title: "Zapisz bieżące zapytanie jako",
       remove_label: "Usuń zapisane zapytanie",
-      remove_label_with_name: "Usuń zapytanie \"%{name}\"",
+      remove_label_with_name: 'Usuń zapytanie "%{name}"',
       remove_dialog_title: "Usunąć zapisane zapytanie?",
       remove_message:
         "Czy na pewno chcesz usunąć ten element z listy zapisanych zapytań?",
@@ -245,7 +245,8 @@ export const polishMessages: TranslationMessages = {
     },
     reset_password: {
       forgot_password: "Nie pamiętasz hasła?",
-      forgot_password_details: "Podaj email, a wyślemy instrukcję resetu hasła.",
+      forgot_password_details:
+        "Podaj email, a wyślemy instrukcję resetu hasła.",
     },
     set_password: {
       new_password: "Ustaw nowe hasło",
@@ -471,6 +472,23 @@ export const polishMessages: TranslationMessages = {
         with_pending_tasks: "Z oczekującymi zadaniami",
         managed_by_me: "Prowadzone przeze mnie",
       },
+      show: {
+        edit_contact: "Edytuj kontakt",
+        show_contact: "Pokaż kontakt",
+        edit_record: "Edytuj rekord",
+        details: "Szczegóły",
+        background_info: "Informacje dodatkowe",
+        followed_by: "Prowadzony przez",
+        added_on: "Dodano",
+        last_activity_on: "Ostatnia aktywność",
+        last_activity_prefix: "ostatnia aktywność",
+        ago: "temu",
+        at_company: "w",
+        no_notes: "Brak notatek",
+        no_tasks: "Brak zadań",
+        add_note: "Dodaj notatkę",
+        subscribed_to_newsletter: "Subskrybuje newsletter",
+      },
       new_contact: "Nowy kontakt",
       empty: {
         title: "Nie znaleziono kontaktów",
@@ -509,6 +527,28 @@ export const polishMessages: TranslationMessages = {
     companies: {
       new_company: "Nowa firma",
       create_company: "Utwórz firmę",
+      form: {
+        company_name_placeholder: "Nazwa firmy",
+        contact_section: "Kontakt",
+        context_section: "Kontekst",
+        address_section: "Adres",
+        additional_information_section: "Dodatkowe informacje",
+        account_manager_section: "Opiekun",
+        account_manager_label: "Opiekun",
+      },
+      aside: {
+        edit_company: "Edytuj firmę",
+        show_company: "Pokaż firmę",
+        company_info: "Informacje o firmie",
+        main_address: "Adres główny",
+        additional_info: "Dodatkowe informacje",
+        followed_by: "Prowadzona przez",
+        added_on: "Dodano",
+      },
+      show: {
+        no_contacts: "Brak kontaktów",
+        add_contact: "Dodaj kontakt",
+      },
       empty: {
         title: "Nie znaleziono firm",
         description: "Wygląda na to, że lista firm jest pusta.",
@@ -516,12 +556,19 @@ export const polishMessages: TranslationMessages = {
     },
     deals: {
       new_deal: "Nowa szansa",
+      filters: {
+        only_companies_i_manage: "Tylko firmy, które prowadzę",
+      },
       stage: {
         won: "Wygrane",
         lost: "Przegrane",
       },
     },
     tasks: {
+      my_tasks: "Moje zadania",
+      my_tasks_short: "Moje",
+      active: "Do zrobienia",
+      archived: "Archiwum",
       add: "Dodaj zadanie",
       create: "Utwórz zadanie",
       create_new: "Utwórz nowe zadanie",
@@ -529,17 +576,43 @@ export const polishMessages: TranslationMessages = {
       due_prefix: "termin",
       re: "dot.",
       actions: "akcje zadania",
+      archive: "Archiwizuj",
+      restore: "Przywróć",
       postpone_tomorrow: "Przełóż na jutro",
       postpone_next_week: "Przełóż na przyszły tydzień",
       filter: {
         overdue: "Zaległe",
         tomorrow: "Jutro",
         later: "Później",
+        archived: "Zarchiwizowane",
       },
       empty: "Zadania dodane do kontaktów pojawią się tutaj.",
+      empty_archived: "Brak zarchiwizowanych zadań.",
       notifications: {
         added: "Dodano zadanie",
         deleted: "Zadanie usunięto",
+        archived: "Zadanie zarchiwizowano",
+        restored: "Zadanie przywrócono",
+      },
+    },
+    notes: {
+      add_note_placeholder: "Dodaj notatkę",
+      add_this_note: "Dodaj tę notatkę",
+      create_note: "Utwórz notatkę",
+      create_note_for: "Utwórz notatkę dla",
+      show_options: "Pokaż opcje",
+      show_options_hint: "(dodaj załączniki lub zmień szczegóły)",
+      added_a_note: "dodał(a) notatkę",
+      edit_note: "Edytuj notatkę",
+      delete_note: "Usuń notatkę",
+      update_note: "Zaktualizuj notatkę",
+      show_less: "Pokaż mniej",
+      read_more: "Czytaj więcej",
+      error_loading: "Błąd podczas ładowania notatek",
+      by: "Autor:",
+      notifications: {
+        added: "Dodano notatkę",
+        deleted: "Usunięto notatkę",
       },
     },
     activity: {
@@ -582,7 +655,8 @@ export const polishMessages: TranslationMessages = {
     },
     signup: {
       title: "Witamy w Atomic CRM",
-      subtitle: "Utwórz pierwsze konto użytkownika, aby dokończyć konfigurację.",
+      subtitle:
+        "Utwórz pierwsze konto użytkownika, aby dokończyć konfigurację.",
       create_account: "Utwórz konto",
       creating: "Tworzenie...",
       created_and_logged_in: "Początkowy użytkownik został utworzony",
@@ -613,6 +687,15 @@ export const polishMessages: TranslationMessages = {
         saved: "Konfiguracja została zapisana",
         save_failed: "Nie udało się zapisać konfiguracji",
       },
+    },
+    tags: {
+      add_tag: "Dodaj tag",
+      create_new_tag: "Utwórz nowy tag",
+      edit_tag: "Edytuj tag",
+      enter_tag_name: "Wpisz nazwę tagu",
+    },
+    common: {
+      you: "Ty",
     },
   },
 };

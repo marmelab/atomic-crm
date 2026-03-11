@@ -6,6 +6,7 @@ import {
   useNotify,
   useRecordContext,
   useResourceContext,
+  useTranslate,
   useUpdate,
   type Identifier,
   type RaRecord,
@@ -53,6 +54,7 @@ const NoteCreateButton = ({
   record: RaRecord<Identifier>;
 }) => {
   const [update] = useUpdate();
+  const translate = useTranslate();
   const notify = useNotify();
   const { identity } = useGetIdentity();
   const { reset } = useFormContext();
@@ -87,14 +89,16 @@ const NoteCreateButton = ({
       },
       previousData: record,
     });
-    notify("Note added");
+    notify("crm.notes.notifications.added", {
+      messageArgs: { _: "Note added" },
+    });
   };
 
   return (
     <div className="flex justify-end">
       <SaveButton
         type="button"
-        label="Add this note"
+        label={translate("crm.notes.add_this_note", { _: "Add this note" })}
         transform={(data) => ({
           ...data,
           [foreignKeyMapping[reference]]: record.id,
@@ -105,7 +109,7 @@ const NoteCreateButton = ({
           onSuccess: handleSuccess,
         }}
       >
-        Add this note
+        {translate("crm.notes.add_this_note", { _: "Add this note" })}
       </SaveButton>
     </div>
   );

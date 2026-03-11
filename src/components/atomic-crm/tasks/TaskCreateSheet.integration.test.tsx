@@ -39,6 +39,28 @@ describe("TaskCreateSheet integration", () => {
             type: "email",
           },
         ] as any,
+        sales: [
+          {
+            id: 0,
+            user_id: "0",
+            first_name: "Jane",
+            last_name: "Doe",
+            email: "janedoe@atomic.dev",
+            password: "demo",
+            administrator: true,
+            disabled: false,
+          },
+          {
+            id: 2,
+            user_id: "2",
+            first_name: "Alan",
+            last_name: "Turing",
+            email: "alan.turing@atomic.dev",
+            password: "demo",
+            administrator: false,
+            disabled: false,
+          },
+        ] as any,
       }),
     });
 
@@ -52,7 +74,8 @@ describe("TaskCreateSheet integration", () => {
       .getByLabelText(/description/i)
       .fill("Follow up about onboarding");
 
-    const [contactInput, typeInput] = screen.getByRole("combobox").all();
+    const [contactInput, typeInput, assigneeInput] =
+      screen.getByRole("combobox").all();
 
     await contactInput.click();
     await screen.getByText("Grace Hopper").click();
@@ -60,6 +83,9 @@ describe("TaskCreateSheet integration", () => {
     await typeInput.click();
     const typeOptions = screen.getByRole("listbox");
     await typeOptions.getByText("Call").click();
+
+    await assigneeInput.click();
+    await screen.getByText("Alan Turing").click();
 
     const dueDateInput = screen.getByLabelText(/due date/i);
     await dueDateInput.clear();
@@ -96,6 +122,7 @@ describe("TaskCreateSheet integration", () => {
 
     expect(createdTask).toMatchObject({
       contact_id: 2,
+      sales_id: 2,
       text: "Follow up about onboarding",
       type: "call",
     });

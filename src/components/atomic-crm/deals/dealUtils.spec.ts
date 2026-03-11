@@ -19,6 +19,12 @@ describe("formatISODateString", () => {
     expect(formattedDate).toBe("Jun 15, 2024");
   });
 
+  it("formats an ISO datetime string correctly", () => {
+    const isoDatetime = "2024-06-15T22:10:00.000Z";
+    const formattedDate = formatISODateString(isoDatetime);
+    expect(formattedDate).toBe("Jun 15, 2024");
+  });
+
   it("should not shift the date regardless of timezone", async () => {
     // Uses CDP (Emulation.setTimezoneOverride) to actually change the browser's
     // timezone at runtime so we can catch regressions where someone replaces the
@@ -47,6 +53,13 @@ describe("formatISODateString", () => {
 
   it("throw for a date string with wrong format", () => {
     const invalidDate = "15-06-2024";
+    expect(() => formatISODateString(invalidDate)).toThrow(
+      "Invalid date format. Expected YYYY-MM-DD.",
+    );
+  });
+
+  it("throw for a non-existing calendar date", () => {
+    const invalidDate = "2024-02-30";
     expect(() => formatISODateString(invalidDate)).toThrow(
       "Invalid date format. Expected YYYY-MM-DD.",
     );

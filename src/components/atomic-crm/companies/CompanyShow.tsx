@@ -11,6 +11,7 @@ import {
   useListContext,
   useRecordContext,
   useShowContext,
+  useTranslate,
 } from "ra-core";
 import {
   Link,
@@ -51,6 +52,7 @@ export const CompanyShow = () => {
 };
 
 const CompanyShowContentMobile = () => {
+  const translate = useTranslate();
   const { record, isPending } = useShowContext<Company>();
   if (isPending || !record) return null;
 
@@ -60,7 +62,12 @@ const CompanyShowContentMobile = () => {
         <MobileBackButton to="/" />
         <div className="flex flex-1">
           <Link to="/">
-            <h1 className="text-xl font-semibold">Company</h1>
+            <h1 className="text-xl font-semibold">
+              {translate("resources.companies.name", {
+                smart_count: 1,
+                _: "Company",
+              })}
+            </h1>
           </Link>
         </div>
       </MobileHeader>
@@ -84,6 +91,7 @@ const CompanyShowContentMobile = () => {
 };
 
 const CompanyShowContent = () => {
+  const translate = useTranslate();
   const { record, isPending } = useShowContext<Company>();
   const navigate = useNavigate();
 
@@ -113,19 +121,27 @@ const CompanyShowContent = () => {
             </div>
             <Tabs defaultValue={currentTab} onValueChange={handleTabChange}>
               <TabsList className="grid w-full grid-cols-3">
-                <TabsTrigger value="activity">Activity</TabsTrigger>
+                <TabsTrigger value="activity">
+                  {translate("crm.dashboard.latest_activity", {
+                    _: "Activity",
+                  })}
+                </TabsTrigger>
                 <TabsTrigger value="contacts">
                   {record.nb_contacts
-                    ? record.nb_contacts === 1
-                      ? "1 Contact"
-                      : `${record.nb_contacts} Contacts`
-                    : "No Contacts"}
+                    ? translate("resources.contacts.name", {
+                        smart_count: record.nb_contacts,
+                        _: "1 Contact |||| %{smart_count} Contacts",
+                      })
+                    : translate("crm.companies.show.no_contacts", {
+                        _: "No Contacts",
+                      })}
                 </TabsTrigger>
                 {record.nb_deals ? (
                   <TabsTrigger value="deals">
-                    {record.nb_deals === 1
-                      ? "1 deal"
-                      : `${record.nb_deals} deals`}
+                    {translate("resources.deals.name", {
+                      smart_count: record.nb_deals,
+                      _: "1 deal |||| %{smart_count} deals",
+                    })}
                   </TabsTrigger>
                 ) : null}
               </TabsList>
@@ -180,6 +196,7 @@ const CompanyShowContent = () => {
 };
 
 const ContactsIterator = () => {
+  const translate = useTranslate();
   const location = useLocation();
   const { data: contacts, error, isPending } = useListContext<Contact>();
 
@@ -206,9 +223,13 @@ const ContactsIterator = () => {
                 <div className="text-sm text-muted-foreground">
                   {contact.title}
                   {contact.nb_tasks
-                    ? ` - ${contact.nb_tasks} task${
-                        contact.nb_tasks > 1 ? "s" : ""
-                      }`
+                    ? ` - ${contact.nb_tasks} ${translate(
+                        "resources.tasks.name",
+                        {
+                          smart_count: contact.nb_tasks,
+                          _: "task |||| tasks",
+                        },
+                      )}`
                     : ""}
                   &nbsp; &nbsp;
                   <TagsList />
@@ -217,7 +238,11 @@ const ContactsIterator = () => {
               {contact.last_seen && (
                 <div className="text-right">
                   <div className="text-sm text-muted-foreground">
-                    last activity {formatDistance(contact.last_seen, now)} ago{" "}
+                    {translate("crm.contacts.show.last_activity_prefix", {
+                      _: "last activity",
+                    })}{" "}
+                    {formatDistance(contact.last_seen, now)}{" "}
+                    {translate("crm.contacts.show.ago", { _: "ago" })}{" "}
                     <Status status={contact.status} />
                   </div>
                 </div>
@@ -231,6 +256,7 @@ const ContactsIterator = () => {
 };
 
 const CreateRelatedContactButton = () => {
+  const translate = useTranslate();
   const company = useRecordContext<Company>();
   return (
     <Button variant="outline" asChild size="sm" className="h-9">
@@ -240,13 +266,14 @@ const CreateRelatedContactButton = () => {
         className="flex items-center gap-2"
       >
         <UserPlus className="h-4 w-4" />
-        Add contact
+        {translate("crm.companies.show.add_contact", { _: "Add contact" })}
       </RouterLink>
     </Button>
   );
 };
 
 const DealsIterator = () => {
+  const translate = useTranslate();
   const { data: deals, error, isPending } = useListContext<Deal>();
   const { dealStages, dealCategories } = useConfigurationContext();
   if (isPending || error) return null;
@@ -279,7 +306,11 @@ const DealsIterator = () => {
               </div>
               <div className="text-right">
                 <div className="text-sm text-muted-foreground">
-                  last activity {formatDistance(deal.updated_at, now)} ago{" "}
+                  {translate("crm.contacts.show.last_activity_prefix", {
+                    _: "last activity",
+                  })}{" "}
+                  {formatDistance(deal.updated_at, now)}{" "}
+                  {translate("crm.contacts.show.ago", { _: "ago" })}
                 </div>
               </div>
             </RouterLink>
