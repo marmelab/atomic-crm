@@ -1,10 +1,9 @@
 import { render } from "vitest-browser-react";
-import { Form } from "ra-core";
+import { CoreAdminContext, Form } from "ra-core";
+import fakeDataProvider from "ra-data-fakerest";
 
 import { NoteInputs } from "./NoteInputs";
 import { defaultConfiguration } from "../root/defaultConfiguration";
-import { MemoryRouter } from "react-router";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
 vi.mock("../root/ConfigurationContext", () => ({
   useConfigurationContext: () => defaultConfiguration,
@@ -15,14 +14,34 @@ vi.mock("@/hooks/use-mobile", () => ({
   useIsMobile: mockIsMobile,
 }));
 
-const queryClient = new QueryClient();
+const testI18nProvider = {
+  translate: (key: string) =>
+    (
+      {
+        "resources.notes.inputs.add_note": "Add a note",
+        "resources.notes.inputs.show_options": "Show options",
+        "resources.notes.fields.date": "Date",
+        "resources.notes.fields.attachments": "Attachments",
+        "resources.notes.fields.status": "Status",
+        "resources.notes.fields.contact_id": "Contact",
+        "resources.notes.fields.deal_id": "Deal",
+      } as Record<string, string>
+    )[key] ?? key,
+  changeLocale: () => Promise.resolve(),
+  getLocale: () => "en",
+};
+
+const dataProvider = fakeDataProvider({
+  notes: [],
+  contacts: [],
+  deals: [],
+  sales: [],
+});
 
 const Wrapper = ({ children }: { children: React.ReactNode }) => (
-  <QueryClientProvider client={queryClient}>
-    <MemoryRouter>
-      <Form>{children}</Form>
-    </MemoryRouter>
-  </QueryClientProvider>
+  <CoreAdminContext dataProvider={dataProvider} i18nProvider={testI18nProvider}>
+    <Form>{children}</Form>
+  </CoreAdminContext>
 );
 
 beforeEach(() => {
@@ -148,17 +167,18 @@ describe("NoteInputs", () => {
   it("should use the note date instead of the current date when it is set", async () => {
     const screen = await render(<NoteInputs />, {
       wrapper: ({ children }) => (
-        <QueryClientProvider client={queryClient}>
-          <MemoryRouter>
-            <Form
-              defaultValues={{
-                date: "2024-01-01T12:00",
-              }}
-            >
-              {children}
-            </Form>
-          </MemoryRouter>
-        </QueryClientProvider>
+        <CoreAdminContext
+          dataProvider={dataProvider}
+          i18nProvider={testI18nProvider}
+        >
+          <Form
+            defaultValues={{
+              date: "2024-01-01T12:00",
+            }}
+          >
+            {children}
+          </Form>
+        </CoreAdminContext>
       ),
     });
 
