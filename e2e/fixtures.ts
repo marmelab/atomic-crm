@@ -22,7 +22,6 @@ const TABLES = [
 ];
 
 async function resetDb() {
-  console.log("Resetting database...");
   for (const table of TABLES) {
     // Supabase client delete need a where clause to get executed, so we use one that will match on all rows (id is not null)
     await adminSupabase.from(table).delete().not("id", "is", null);
@@ -30,15 +29,172 @@ async function resetDb() {
 
   // Delete all auth users (cascades to sales via DB trigger)
   const { data } = await adminSupabase.auth.admin.listUsers();
-  console.log("auth users", { data });
   await Promise.all(
     data.users.map((user) => adminSupabase.auth.admin.deleteUser(user.id)),
   );
-
-  console.log("Database reset success");
 }
 
-export const test = base.extend<{ resetDb: void }>({
+async function createUser({
+  email,
+  password,
+}: {
+  email: string;
+  password: string;
+}) {
+  const { data, error } = await adminSupabase.auth.admin.createUser({
+    email,
+    password,
+    email_confirm: true,
+  });
+
+  if (error) {
+    throw new Error(`Failed to create user: ${error.message}`);
+  }
+
+  return data.user;
+}
+
+async function createSales({
+  first_name,
+  last_name,
+  email,
+  password,
+}: {
+  first_name: string;
+  last_name: string;
+  email: string;
+  password: string;
+}) {
+  const { data: userData, error: userError } =
+    await adminSupabase.auth.admin.createUser({
+      email,
+      password,
+      email_confirm: true,
+    });
+
+  if (userError) {
+    throw new Error(`Failed to create sales: ${userError.message}`);
+  }
+
+  const { data, error } = await adminSupabase
+    .from("sales")
+    .update({ first_name, last_name, administrator: false })
+    .eq("user_id", userData.user?.id)
+    .select()
+    .single();
+
+  if (error) {
+    throw new Error(`Failed to create sales: ${error.message}`);
+  }
+
+  return data;
+}
+
+async function createNotes({
+  contactId,
+  salesId,
+  notes,
+}: {
+  contactId: string | number;
+  salesId: string | number;
+  notes: {
+    text: string;
+    date?: string;
+    status?: "cold" | "warm" | "hot";
+  }[];
+}) {
+  if (notes.length === 0) return;
+
+  const { error } = await adminSupabase.from("contact_notes").insert(
+    notes.map(({ text, date, status = "cold" }) => ({
+      contact_id: contactId,
+      sales_id: salesId,
+      text,
+      date,
+      status,
+    })),
+  );
+
+  if (error) {
+    throw new Error(`Failed to create notes: ${error.message}`);
+  }
+}
+
+async function createCompany({ name }: { name: string }) {
+  const { data, error } = await adminSupabase
+    .from("companies")
+    .insert({ name })
+    .select("id")
+    .single();
+
+  if (error) {
+    throw new Error(`Failed to create company: ${error.message}`);
+  }
+
+  return data;
+}
+
+async function createContact({
+  first_name,
+  last_name,
+  title = "",
+  company_id = null,
+  sales_id,
+  notes = [],
+}: {
+  first_name: string;
+  last_name: string;
+  title?: string;
+  company_id?: string | number | null;
+  sales_id: string | number;
+  notes?: {
+    text: string;
+    date?: string;
+    status?: "cold" | "warm" | "hot";
+  }[];
+}) {
+  const { data, error } = await adminSupabase
+    .from("contacts")
+    .insert({
+      first_name,
+      last_name,
+      title,
+      company_id,
+      sales_id,
+      first_seen: new Date().toISOString(),
+      last_seen: new Date().toISOString(),
+      has_newsletter: false,
+      tags: [],
+      gender: "unknown",
+      status: "cold",
+      background: "",
+      email_jsonb: [],
+      phone_jsonb: [],
+    })
+    .select("id")
+    .single();
+
+  if (error) {
+    throw new Error(`Failed to create contact: ${error.message}`);
+  }
+
+  await createNotes({
+    contactId: data.id,
+    salesId: sales_id,
+    notes,
+  });
+
+  return data;
+}
+
+export const test = base.extend<{
+  resetDb: void;
+  createUser: typeof createUser;
+  createSales: typeof createSales;
+  createCompany: typeof createCompany;
+  createContact: typeof createContact;
+  createNotes: typeof createNotes;
+}>({
   resetDb: [
     // The first argument to a Playwright fixture function must use object destructuring ({}) — _ is not allowed.
     // Playwright uses this to statically analyze which fixtures are requested.
@@ -49,6 +205,26 @@ export const test = base.extend<{ resetDb: void }>({
     },
     { auto: true },
   ],
+  // eslint-disable-next-line no-empty-pattern
+  createUser: async ({}, cb) => {
+    await cb(createUser);
+  },
+  // eslint-disable-next-line no-empty-pattern
+  createSales: async ({}, cb) => {
+    await cb(createSales);
+  },
+  // eslint-disable-next-line no-empty-pattern
+  createCompany: async ({}, cb) => {
+    await cb(createCompany);
+  },
+  // eslint-disable-next-line no-empty-pattern
+  createContact: async ({}, cb) => {
+    await cb(createContact);
+  },
+  // eslint-disable-next-line no-empty-pattern
+  createNotes: async ({}, cb) => {
+    await cb(createNotes);
+  },
 });
 
 export { expect };
