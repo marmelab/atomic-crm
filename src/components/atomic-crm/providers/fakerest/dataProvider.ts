@@ -25,16 +25,17 @@ import { getCompanyAvatar } from "../commons/getCompanyAvatar";
 import { getContactAvatar } from "../commons/getContactAvatar";
 import { mergeContacts } from "../commons/mergeContacts";
 import type { CrmDataProvider } from "../types";
-import { authProvider, USER_STORAGE_KEY } from "./authProvider";
+import {
+  authProvider as defaultAuthProvider,
+  USER_STORAGE_KEY,
+} from "./authProvider";
 import generateData from "./dataGenerator";
+import type { Db } from "./dataGenerator/types";
 import { withSupabaseFilterAdapter } from "./internal/supabaseAdapter";
-
-const baseDataProvider = fakeRestDataProvider(generateData(), true, 300);
 
 const TASK_MARKED_AS_DONE = "TASK_MARKED_AS_DONE";
 const TASK_MARKED_AS_UNDONE = "TASK_MARKED_AS_UNDONE";
 const TASK_DONE_NOT_CHANGED = "TASK_DONE_NOT_CHANGED";
-let taskUpdateType = TASK_DONE_NOT_CHANGED;
 
 const processCompanyLogo = async (params: any) => {
   let logo = params.data.logo;
@@ -111,156 +112,10 @@ async function fetchAndUpdateCompanyData(
   return { ...params, data: newData };
 }
 
-const dataProviderWithCustomMethod: CrmDataProvider = {
-  ...baseDataProvider,
-  unarchiveDeal: async (deal: Deal) => {
-    // get all deals where stage is the same as the deal to unarchive
-    const { data: deals } = await baseDataProvider.getList<Deal>("deals", {
-      filter: { stage: deal.stage },
-      pagination: { page: 1, perPage: 1000 },
-      sort: { field: "index", order: "ASC" },
-    });
-
-    // set index for each deal starting from 1, if the deal to unarchive is found, set its index to the last one
-    const updatedDeals = deals.map((d, index) => ({
-      ...d,
-      index: d.id === deal.id ? 0 : index + 1,
-      archived_at: d.id === deal.id ? null : d.archived_at,
-    }));
-
-    return await Promise.all(
-      updatedDeals.map((updatedDeal) =>
-        dataProvider.update("deals", {
-          id: updatedDeal.id,
-          data: updatedDeal,
-          previousData: deals.find((d) => d.id === updatedDeal.id),
-        }),
-      ),
-    );
-  },
-  // We simulate a remote endpoint that is in charge of returning activity log
-  getActivityLog: async (companyId?: Identifier) => {
-    return getActivityLog(dataProvider, companyId);
-  },
-  signUp: async ({
-    email,
-    password,
-    first_name,
-    last_name,
-  }: SignUpData): Promise<{ id: string; email: string; password: string }> => {
-    const user = await baseDataProvider.create("sales", {
-      data: {
-        email,
-        first_name,
-        last_name,
-      },
-    });
-
-    return {
-      ...user.data,
-      password,
-    };
-  },
-  salesCreate: async ({ ...data }: SalesFormData): Promise<Sale> => {
-    const response = await dataProvider.create("sales", {
-      data: {
-        ...data,
-        password: "new_password",
-      },
-    });
-
-    return response.data;
-  },
-  salesUpdate: async (
-    id: Identifier,
-    data: Partial<Omit<SalesFormData, "password">>,
-  ): Promise<Sale> => {
-    const { data: previousData } = await dataProvider.getOne<Sale>("sales", {
-      id,
-    });
-
-    if (!previousData) {
-      throw new Error("User not found");
-    }
-
-    const { data: sale } = await dataProvider.update<Sale>("sales", {
-      id,
-      data,
-      previousData,
-    });
-    return { ...sale, user_id: sale.id.toString() };
-  },
-  isInitialized: async (): Promise<boolean> => {
-    const sales = await dataProvider.getList<Sale>("sales", {
-      filter: {},
-      pagination: { page: 1, perPage: 1 },
-      sort: { field: "id", order: "ASC" },
-    });
-    if (sales.data.length === 0) {
-      return false;
-    }
-    return true;
-  },
-  updatePassword: async (id: Identifier): Promise<true> => {
-    const currentUser = await authProvider.getIdentity?.();
-    if (!currentUser) {
-      throw new Error("User not found");
-    }
-    const { data: previousData } = await dataProvider.getOne<Sale>("sales", {
-      id: currentUser.id,
-    });
-
-    if (!previousData) {
-      throw new Error("User not found");
-    }
-
-    await dataProvider.update("sales", {
-      id,
-      data: {
-        password: "demo_newPassword",
-      },
-      previousData,
-    });
-
-    return true;
-  },
-  mergeContacts: async (sourceId: Identifier, targetId: Identifier) => {
-    return mergeContacts(sourceId, targetId, baseDataProvider);
-  },
-  getConfiguration: async (): Promise<ConfigurationContextValue> => {
-    const { data } = await baseDataProvider.getOne("configuration", { id: 1 });
-    return (data?.config as ConfigurationContextValue) ?? {};
-  },
-  updateConfiguration: async (
-    config: ConfigurationContextValue,
-  ): Promise<ConfigurationContextValue> => {
-    const { data: prev } = await baseDataProvider.getOne("configuration", {
-      id: 1,
-    });
-    await baseDataProvider.update("configuration", {
-      id: 1,
-      data: { config },
-      previousData: prev,
-    });
-    return config;
-  },
-};
-
-async function updateCompany(
-  companyId: Identifier,
-  updateFn: (company: Company) => Partial<Company>,
-) {
-  const { data: company } = await dataProvider.getOne<Company>("companies", {
-    id: companyId,
-  });
-
-  return await dataProvider.update("companies", {
-    id: companyId,
-    data: {
-      ...updateFn(company),
-    },
-    previousData: company,
-  });
+export interface CreateFakeRestDataProviderOptions {
+  db?: Db;
+  latency?: number;
+  authProvider?: Pick<typeof defaultAuthProvider, "getIdentity">;
 }
 
 const processConfigLogo = async (logo: any): Promise<string> => {
@@ -283,292 +138,468 @@ const preserveAttachmentMimeType = <
   })),
 });
 
-export const dataProvider = withLifecycleCallbacks(
-  withSupabaseFilterAdapter(dataProviderWithCustomMethod),
-  [
-    {
-      resource: "configuration",
-      beforeUpdate: async (params) => {
-        const config = params.data.config;
-        if (config) {
-          config.lightModeLogo = await processConfigLogo(config.lightModeLogo);
-          config.darkModeLogo = await processConfigLogo(config.darkModeLogo);
-        }
-        return params;
+export const createDataProvider = ({
+  db = generateData(),
+  latency = 300,
+  authProvider,
+}: CreateFakeRestDataProviderOptions = {}): CrmDataProvider => {
+  const baseDataProvider = fakeRestDataProvider(db, true, latency);
+  let taskUpdateType = TASK_DONE_NOT_CHANGED;
+  const getIdentity = async () =>
+    authProvider?.getIdentity?.() ?? defaultAuthProvider.getIdentity?.();
+
+  const updateCompany = async (
+    companyId: Identifier,
+    updateFn: (company: Company) => Partial<Company>,
+  ) => {
+    const { data: company } = await dataProvider.getOne<Company>("companies", {
+      id: companyId,
+    });
+
+    return await dataProvider.update("companies", {
+      id: companyId,
+      data: {
+        ...updateFn(company),
       },
+      previousData: company,
+    });
+  };
+
+  const dataProviderWithCustomMethod: CrmDataProvider = {
+    ...baseDataProvider,
+    unarchiveDeal: async (deal: Deal) => {
+      // get all deals where stage is the same as the deal to unarchive
+      const { data: deals } = await baseDataProvider.getList<Deal>("deals", {
+        filter: { stage: deal.stage },
+        pagination: { page: 1, perPage: 1000 },
+        sort: { field: "index", order: "ASC" },
+      });
+
+      // set index for each deal starting from 1, if the deal to unarchive is found, set its index to the last one
+      const updatedDeals = deals.map((d, index) => ({
+        ...d,
+        index: d.id === deal.id ? 0 : index + 1,
+        archived_at: d.id === deal.id ? null : d.archived_at,
+      }));
+
+      return await Promise.all(
+        updatedDeals.map((updatedDeal) =>
+          dataProvider.update("deals", {
+            id: updatedDeal.id,
+            data: updatedDeal,
+            previousData: deals.find((d) => d.id === updatedDeal.id),
+          }),
+        ),
+      );
     },
-    {
-      resource: "sales",
-      beforeCreate: async (params) => {
-        const { data } = params;
-        // If administrator role is not set, we simply set it to false
-        if (data.administrator == null) {
-          data.administrator = false;
-        }
-        return params;
+    // We simulate a remote endpoint that is in charge of returning activity log
+    getActivityLog: async (companyId?: Identifier) => {
+      return getActivityLog(dataProvider, companyId);
+    },
+    signUp: async ({
+      email,
+      password,
+      first_name,
+      last_name,
+    }: SignUpData): Promise<{
+      id: string;
+      email: string;
+      password: string;
+    }> => {
+      const user = await baseDataProvider.create("sales", {
+        data: {
+          email,
+          first_name,
+          last_name,
+        },
+      });
+
+      return {
+        ...user.data,
+        password,
+      };
+    },
+    salesCreate: async ({ ...data }: SalesFormData): Promise<Sale> => {
+      const response = await dataProvider.create("sales", {
+        data: {
+          ...data,
+          password: "new_password",
+        },
+      });
+
+      return response.data;
+    },
+    salesUpdate: async (
+      id: Identifier,
+      data: Partial<Omit<SalesFormData, "password">>,
+    ): Promise<Sale> => {
+      const { data: previousData } = await dataProvider.getOne<Sale>("sales", {
+        id,
+      });
+
+      if (!previousData) {
+        throw new Error("User not found");
+      }
+
+      const { data: sale } = await dataProvider.update<Sale>("sales", {
+        id,
+        data,
+        previousData,
+      });
+      return { ...sale, user_id: sale.id.toString() };
+    },
+    isInitialized: async (): Promise<boolean> => {
+      const sales = await dataProvider.getList<Sale>("sales", {
+        filter: {},
+        pagination: { page: 1, perPage: 1 },
+        sort: { field: "id", order: "ASC" },
+      });
+      if (sales.data.length === 0) {
+        return false;
+      }
+      return true;
+    },
+    updatePassword: async (id: Identifier): Promise<true> => {
+      const currentUser = await getIdentity();
+      if (!currentUser) {
+        throw new Error("User not found");
+      }
+      const { data: previousData } = await dataProvider.getOne<Sale>("sales", {
+        id: currentUser.id,
+      });
+
+      if (!previousData) {
+        throw new Error("User not found");
+      }
+
+      await dataProvider.update("sales", {
+        id,
+        data: {
+          password: "demo_newPassword",
+        },
+        previousData,
+      });
+
+      return true;
+    },
+    mergeContacts: async (sourceId: Identifier, targetId: Identifier) => {
+      return mergeContacts(sourceId, targetId, baseDataProvider);
+    },
+    getConfiguration: async (): Promise<ConfigurationContextValue> => {
+      const { data } = await baseDataProvider.getOne("configuration", {
+        id: 1,
+      });
+      return (data?.config as ConfigurationContextValue) ?? {};
+    },
+    updateConfiguration: async (
+      config: ConfigurationContextValue,
+    ): Promise<ConfigurationContextValue> => {
+      const { data: prev } = await baseDataProvider.getOne("configuration", {
+        id: 1,
+      });
+      await baseDataProvider.update("configuration", {
+        id: 1,
+        data: { config },
+        previousData: prev,
+      });
+      return config;
+    },
+  };
+
+  const dataProvider = withLifecycleCallbacks(
+    withSupabaseFilterAdapter(dataProviderWithCustomMethod),
+    [
+      {
+        resource: "configuration",
+        beforeUpdate: async (params) => {
+          const config = params.data.config;
+          if (config) {
+            config.lightModeLogo = await processConfigLogo(
+              config.lightModeLogo,
+            );
+            config.darkModeLogo = await processConfigLogo(config.darkModeLogo);
+          }
+          return params;
+        },
       },
-      afterSave: async (data) => {
-        // Since the current user is stored in localStorage in fakerest authProvider
-        // we need to update it to keep information up to date in the UI
-        const currentUser = await authProvider.getIdentity?.();
-        if (currentUser?.id === data.id) {
-          localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(data));
-        }
-        return data;
-      },
-      beforeDelete: async (params) => {
-        if (params.meta?.identity?.id == null) {
-          throw new Error("Identity MUST be set in meta");
-        }
+      {
+        resource: "sales",
+        beforeCreate: async (params) => {
+          const { data } = params;
+          // If administrator role is not set, we simply set it to false
+          if (data.administrator == null) {
+            data.administrator = false;
+          }
+          return params;
+        },
+        afterSave: async (data) => {
+          // Since the current user is stored in localStorage in fakerest authProvider
+          // we need to update it to keep information up to date in the UI
+          const currentUser = await getIdentity();
+          if (currentUser?.id === data.id) {
+            localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(data));
+          }
+          return data;
+        },
+        beforeDelete: async (params) => {
+          if (params.meta?.identity?.id == null) {
+            throw new Error("Identity MUST be set in meta");
+          }
 
-        const newSaleId = params.meta.identity.id as Identifier;
+          const newSaleId = params.meta.identity.id as Identifier;
 
-        const [companies, contacts, contactNotes, deals] = await Promise.all([
-          dataProvider.getList("companies", {
-            filter: { sales_id: params.id },
-            pagination: {
-              page: 1,
-              perPage: 10_000,
-            },
-            sort: { field: "id", order: "ASC" },
-          }),
-          dataProvider.getList("contacts", {
-            filter: { sales_id: params.id },
-            pagination: {
-              page: 1,
-              perPage: 10_000,
-            },
-            sort: { field: "id", order: "ASC" },
-          }),
-          dataProvider.getList("contact_notes", {
-            filter: { sales_id: params.id },
-            pagination: {
-              page: 1,
-              perPage: 10_000,
-            },
-            sort: { field: "id", order: "ASC" },
-          }),
-          dataProvider.getList("deals", {
-            filter: { sales_id: params.id },
-            pagination: {
-              page: 1,
-              perPage: 10_000,
-            },
-            sort: { field: "id", order: "ASC" },
-          }),
-        ]);
+          const [companies, contacts, contactNotes, deals] = await Promise.all([
+            dataProvider.getList("companies", {
+              filter: { sales_id: params.id },
+              pagination: {
+                page: 1,
+                perPage: 10_000,
+              },
+              sort: { field: "id", order: "ASC" },
+            }),
+            dataProvider.getList("contacts", {
+              filter: { sales_id: params.id },
+              pagination: {
+                page: 1,
+                perPage: 10_000,
+              },
+              sort: { field: "id", order: "ASC" },
+            }),
+            dataProvider.getList("contact_notes", {
+              filter: { sales_id: params.id },
+              pagination: {
+                page: 1,
+                perPage: 10_000,
+              },
+              sort: { field: "id", order: "ASC" },
+            }),
+            dataProvider.getList("deals", {
+              filter: { sales_id: params.id },
+              pagination: {
+                page: 1,
+                perPage: 10_000,
+              },
+              sort: { field: "id", order: "ASC" },
+            }),
+          ]);
 
-        await Promise.all([
-          dataProvider.updateMany("companies", {
-            ids: companies.data.map((company) => company.id),
+          await Promise.all([
+            dataProvider.updateMany("companies", {
+              ids: companies.data.map((company) => company.id),
+              data: {
+                sales_id: newSaleId,
+              },
+            }),
+            dataProvider.updateMany("contacts", {
+              ids: contacts.data.map((company) => company.id),
+              data: {
+                sales_id: newSaleId,
+              },
+            }),
+            dataProvider.updateMany("contact_notes", {
+              ids: contactNotes.data.map((company) => company.id),
+              data: {
+                sales_id: newSaleId,
+              },
+            }),
+            dataProvider.updateMany("deals", {
+              ids: deals.data.map((company) => company.id),
+              data: {
+                sales_id: newSaleId,
+              },
+            }),
+          ]);
+
+          return params;
+        },
+      } satisfies ResourceCallbacks<Sale>,
+      {
+        resource: "contacts",
+        beforeCreate: async (createParams, dataProvider) => {
+          const params = {
+            ...createParams,
             data: {
-              sales_id: newSaleId,
+              ...createParams.data,
+              first_seen:
+                createParams.data.first_seen ?? new Date().toISOString(),
+              last_seen:
+                createParams.data.last_seen ?? new Date().toISOString(),
             },
-          }),
-          dataProvider.updateMany("contacts", {
-            ids: contacts.data.map((company) => company.id),
-            data: {
-              sales_id: newSaleId,
-            },
-          }),
-          dataProvider.updateMany("contact_notes", {
-            ids: contactNotes.data.map((company) => company.id),
-            data: {
-              sales_id: newSaleId,
-            },
-          }),
-          dataProvider.updateMany("deals", {
-            ids: deals.data.map((company) => company.id),
-            data: {
-              sales_id: newSaleId,
-            },
-          }),
-        ]);
+          };
+          const newParams = await processContactAvatar(params);
+          return fetchAndUpdateCompanyData(newParams, dataProvider);
+        },
+        afterCreate: async (result) => {
+          if (result.data.company_id != null) {
+            await updateCompany(result.data.company_id, (company) => ({
+              nb_contacts: (company.nb_contacts ?? 0) + 1,
+            }));
+          }
 
-        return params;
-      },
-    } satisfies ResourceCallbacks<Sale>,
-    {
-      resource: "contacts",
-      beforeCreate: async (createParams, dataProvider) => {
-        const params = {
-          ...createParams,
-          data: {
-            ...createParams.data,
-            first_seen:
-              createParams.data.first_seen ?? new Date().toISOString(),
-            last_seen: createParams.data.last_seen ?? new Date().toISOString(),
-          },
-        };
-        const newParams = await processContactAvatar(params);
-        return fetchAndUpdateCompanyData(newParams, dataProvider);
-      },
-      afterCreate: async (result) => {
-        if (result.data.company_id != null) {
-          await updateCompany(result.data.company_id, (company) => ({
-            nb_contacts: (company.nb_contacts ?? 0) + 1,
-          }));
-        }
+          return result;
+        },
+        beforeUpdate: async (params) => {
+          const newParams = await processContactAvatar(params);
+          return fetchAndUpdateCompanyData(newParams, dataProvider);
+        },
+        afterDelete: async (result) => {
+          if (result.data.company_id != null) {
+            await updateCompany(result.data.company_id, (company) => ({
+              nb_contacts: (company.nb_contacts ?? 1) - 1,
+            }));
+          }
 
-        return result;
-      },
-      beforeUpdate: async (params) => {
-        const newParams = await processContactAvatar(params);
-        return fetchAndUpdateCompanyData(newParams, dataProvider);
-      },
-      afterDelete: async (result) => {
-        if (result.data.company_id != null) {
-          await updateCompany(result.data.company_id, (company) => ({
-            nb_contacts: (company.nb_contacts ?? 1) - 1,
-          }));
-        }
-
-        return result;
-      },
-    } satisfies ResourceCallbacks<Contact>,
-    {
-      resource: "tasks",
-      afterCreate: async (result, dataProvider) => {
-        // update the task count in the related contact
-        const { contact_id } = result.data;
-        const { data: contact } = await dataProvider.getOne("contacts", {
-          id: contact_id,
-        });
-        await dataProvider.update("contacts", {
-          id: contact_id,
-          data: {
-            nb_tasks: (contact.nb_tasks ?? 0) + 1,
-          },
-          previousData: contact,
-        });
-        return result;
-      },
-      beforeUpdate: async (params) => {
-        const { data, previousData } = params;
-        if (previousData.done_date !== data.done_date) {
-          taskUpdateType = data.done_date
-            ? TASK_MARKED_AS_DONE
-            : TASK_MARKED_AS_UNDONE;
-        } else {
-          taskUpdateType = TASK_DONE_NOT_CHANGED;
-        }
-        return params;
-      },
-      afterUpdate: async (result, dataProvider) => {
-        // update the contact: if the task is done, decrement the nb tasks, otherwise increment it
-        const { contact_id } = result.data;
-        const { data: contact } = await dataProvider.getOne("contacts", {
-          id: contact_id,
-        });
-        if (taskUpdateType !== TASK_DONE_NOT_CHANGED) {
+          return result;
+        },
+      } satisfies ResourceCallbacks<Contact>,
+      {
+        resource: "tasks",
+        afterCreate: async (result, dataProvider) => {
+          // update the task count in the related contact
+          const { contact_id } = result.data;
+          const { data: contact } = await dataProvider.getOne("contacts", {
+            id: contact_id,
+          });
           await dataProvider.update("contacts", {
             id: contact_id,
             data: {
-              nb_tasks:
-                taskUpdateType === TASK_MARKED_AS_DONE
-                  ? (contact.nb_tasks ?? 0) - 1
-                  : (contact.nb_tasks ?? 0) + 1,
+              nb_tasks: (contact.nb_tasks ?? 0) + 1,
             },
             previousData: contact,
           });
-        }
-        return result;
-      },
-      afterDelete: async (result, dataProvider) => {
-        // update the task count in the related contact
-        const { contact_id } = result.data;
-        const { data: contact } = await dataProvider.getOne("contacts", {
-          id: contact_id,
-        });
-        await dataProvider.update("contacts", {
-          id: contact_id,
-          data: {
-            nb_tasks: (contact.nb_tasks ?? 0) - 1,
-          },
-          previousData: contact,
-        });
-        return result;
-      },
-    } satisfies ResourceCallbacks<Task>,
-    {
-      resource: "companies",
-      beforeCreate: async (params) => {
-        const createParams = await processCompanyLogo(params);
+          return result;
+        },
+        beforeUpdate: async (params) => {
+          const { data, previousData } = params;
+          if (previousData.done_date !== data.done_date) {
+            taskUpdateType = data.done_date
+              ? TASK_MARKED_AS_DONE
+              : TASK_MARKED_AS_UNDONE;
+          } else {
+            taskUpdateType = TASK_DONE_NOT_CHANGED;
+          }
+          return params;
+        },
+        afterUpdate: async (result, dataProvider) => {
+          // update the contact: if the task is done, decrement the nb tasks, otherwise increment it
+          const { contact_id } = result.data;
+          const { data: contact } = await dataProvider.getOne("contacts", {
+            id: contact_id,
+          });
+          if (taskUpdateType !== TASK_DONE_NOT_CHANGED) {
+            await dataProvider.update("contacts", {
+              id: contact_id,
+              data: {
+                nb_tasks:
+                  taskUpdateType === TASK_MARKED_AS_DONE
+                    ? (contact.nb_tasks ?? 0) - 1
+                    : (contact.nb_tasks ?? 0) + 1,
+              },
+              previousData: contact,
+            });
+          }
+          return result;
+        },
+        afterDelete: async (result, dataProvider) => {
+          // update the task count in the related contact
+          const { contact_id } = result.data;
+          const { data: contact } = await dataProvider.getOne("contacts", {
+            id: contact_id,
+          });
+          await dataProvider.update("contacts", {
+            id: contact_id,
+            data: {
+              nb_tasks: (contact.nb_tasks ?? 0) - 1,
+            },
+            previousData: contact,
+          });
+          return result;
+        },
+      } satisfies ResourceCallbacks<Task>,
+      {
+        resource: "companies",
+        beforeCreate: async (params) => {
+          const createParams = await processCompanyLogo(params);
 
-        return {
-          ...createParams,
-          data: {
-            ...createParams.data,
-            created_at: new Date().toISOString(),
-          },
-        };
-      },
-      beforeUpdate: async (params) => {
-        return await processCompanyLogo(params);
-      },
-      afterUpdate: async (result, dataProvider) => {
-        // get all contacts of the company and for each contact, update the company_name
-        const { id, name } = result.data;
-        const { data: contacts } = await dataProvider.getList("contacts", {
-          filter: { company_id: id },
-          pagination: { page: 1, perPage: 1000 },
-          sort: { field: "id", order: "ASC" },
-        });
+          return {
+            ...createParams,
+            data: {
+              ...createParams.data,
+              created_at: new Date().toISOString(),
+            },
+          };
+        },
+        beforeUpdate: async (params) => {
+          return await processCompanyLogo(params);
+        },
+        afterUpdate: async (result, dataProvider) => {
+          // get all contacts of the company and for each contact, update the company_name
+          const { id, name } = result.data;
+          const { data: contacts } = await dataProvider.getList("contacts", {
+            filter: { company_id: id },
+            pagination: { page: 1, perPage: 1000 },
+            sort: { field: "id", order: "ASC" },
+          });
 
-        const contactIds = contacts.map((contact) => contact.id);
-        await dataProvider.updateMany("contacts", {
-          ids: contactIds,
-          data: { company_name: name },
-        });
-        return result;
-      },
-    } satisfies ResourceCallbacks<Company>,
-    {
-      resource: "deals",
-      beforeCreate: async (params) => {
-        return {
-          ...params,
-          data: {
-            ...params.data,
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString(),
-          },
-        };
-      },
-      afterCreate: async (result) => {
-        await updateCompany(result.data.company_id, (company) => ({
-          nb_deals: (company.nb_deals ?? 0) + 1,
-        }));
+          const contactIds = contacts.map((contact) => contact.id);
+          await dataProvider.updateMany("contacts", {
+            ids: contactIds,
+            data: { company_name: name },
+          });
+          return result;
+        },
+      } satisfies ResourceCallbacks<Company>,
+      {
+        resource: "deals",
+        beforeCreate: async (params) => {
+          return {
+            ...params,
+            data: {
+              ...params.data,
+              created_at: new Date().toISOString(),
+              updated_at: new Date().toISOString(),
+            },
+          };
+        },
+        afterCreate: async (result) => {
+          await updateCompany(result.data.company_id, (company) => ({
+            nb_deals: (company.nb_deals ?? 0) + 1,
+          }));
 
-        return result;
-      },
-      beforeUpdate: async (params) => {
-        return {
-          ...params,
-          data: {
-            ...params.data,
-            updated_at: new Date().toISOString(),
-          },
-        };
-      },
-      afterDelete: async (result) => {
-        await updateCompany(result.data.company_id, (company) => ({
-          nb_deals: (company.nb_deals ?? 1) - 1,
-        }));
+          return result;
+        },
+        beforeUpdate: async (params) => {
+          return {
+            ...params,
+            data: {
+              ...params.data,
+              updated_at: new Date().toISOString(),
+            },
+          };
+        },
+        afterDelete: async (result) => {
+          await updateCompany(result.data.company_id, (company) => ({
+            nb_deals: (company.nb_deals ?? 1) - 1,
+          }));
 
-        return result;
-      },
-    } satisfies ResourceCallbacks<Deal>,
-    {
-      resource: "contact_notes",
-      beforeSave: async (params) => preserveAttachmentMimeType(params),
-    } satisfies ResourceCallbacks<ContactNote>,
-    {
-      resource: "deal_notes",
-      beforeSave: async (params) => preserveAttachmentMimeType(params),
-    } satisfies ResourceCallbacks<DealNote>,
-  ],
-) as CrmDataProvider;
+          return result;
+        },
+      } satisfies ResourceCallbacks<Deal>,
+      {
+        resource: "contact_notes",
+        beforeSave: async (params) => preserveAttachmentMimeType(params),
+      } satisfies ResourceCallbacks<ContactNote>,
+      {
+        resource: "deal_notes",
+        beforeSave: async (params) => preserveAttachmentMimeType(params),
+      } satisfies ResourceCallbacks<DealNote>,
+    ],
+  ) as CrmDataProvider;
+
+  return dataProvider;
+};
+
+export const dataProvider = createDataProvider();
 
 /**
  * Convert a `File` object returned by the upload input into a base 64 string.

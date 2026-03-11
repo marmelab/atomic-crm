@@ -24,7 +24,13 @@
         "papaparse@^5.5.3",
         "ra-supabase-core@^3.5.1",
         "ra-supabase-language-english@^3.5.0",
-        "zod@^4.0.5"
+        "zod@^4.0.5",
+        "@tanstack/query-async-storage-persister@^5.90.22",
+        "@tanstack/react-query-persist-client@^5.90.22",
+        "dompurify@^3.3.1",
+        "marked@^17.0.1",
+        "@streamparser/json-whatwg@^0.0.22",
+        "mime@^4.1.0"
       ],
       "files": [
         {
@@ -36,11 +42,19 @@
           "type": "registry:component"
         },
         {
-          "path": "src/components/atomic-crm/tasks/taskFilters.ts",
+          "path": "src/components/atomic-crm/tasks/tasksPredicate.ts",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/tasks/TasksListFilter.tsx",
           "type": "registry:component"
         },
         {
           "path": "src/components/atomic-crm/tasks/TasksListContent.tsx",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/tasks/TasksListByDueDate.tsx",
           "type": "registry:component"
         },
         {
@@ -61,6 +75,10 @@
         },
         {
           "path": "src/components/atomic-crm/tasks/TaskCreateSheet.tsx",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/tasks/TaskCreateSheet.stories.tsx",
           "type": "registry:component"
         },
         {
@@ -292,11 +310,19 @@
           "type": "registry:component"
         },
         {
+          "path": "src/components/atomic-crm/providers/commons/attachments.ts",
+          "type": "registry:component"
+        },
+        {
           "path": "src/components/atomic-crm/providers/commons/activity.ts",
           "type": "registry:component"
         },
         {
           "path": "src/components/atomic-crm/notes/utils.ts",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/notes/useAddInfinitePagination.ts",
           "type": "registry:component"
         },
         {
@@ -560,14 +586,6 @@
           "type": "registry:component"
         },
         {
-          "path": "src/components/atomic-crm/dashboard/TasksListFilter.tsx",
-          "type": "registry:component"
-        },
-        {
-          "path": "src/components/atomic-crm/dashboard/TasksListEmpty.tsx",
-          "type": "registry:component"
-        },
-        {
           "path": "src/components/atomic-crm/dashboard/TasksList.tsx",
           "type": "registry:component"
         },
@@ -657,6 +675,10 @@
         },
         {
           "path": "src/components/atomic-crm/contacts/ContactList.tsx",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/contacts/ContactList.stories.tsx",
           "type": "registry:component"
         },
         {
@@ -818,6 +840,10 @@
         {
           "path": "src/hooks/simple-form-iterator-context.tsx",
           "type": "registry:hook"
+        },
+        {
+          "path": "src/lib/toSlug.ts",
+          "type": "registry:lib"
         }
       ]
     }

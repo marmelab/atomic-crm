@@ -1,7 +1,7 @@
-import { isAfter } from "date-fns";
 import { useListContext } from "ra-core";
 
 import { Task } from "./Task";
+import { isDone, isRecentlyDone } from "./tasksPredicate";
 
 export const TasksIterator = ({
   showContact,
@@ -14,11 +14,7 @@ export const TasksIterator = ({
   if (isPending || error || data.length === 0) return null;
 
   // Keep only tasks that are not done or done less than 5 minutes ago
-  const tasks = data.filter(
-    (task) =>
-      !task.done_date ||
-      isAfter(new Date(task.done_date), new Date(Date.now() - 5 * 60 * 1000)),
-  );
+  const tasks = data.filter((task) => !isDone(task) || isRecentlyDone(task));
 
   return (
     <div className={`space-y-4 md:space-y-2 ${className || ""}`}>

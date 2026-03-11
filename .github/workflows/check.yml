@@ -63,8 +63,14 @@ jobs:
             - name: 📥 Download deps
               run: npm ci
 
-            - name: 🔎 Test
-              run: make test-ci
+            - name: 🎭 Install Playwright browsers
+              run: npx playwright install chromium chromium-headless-shell
+
+            - name: 🔎 Unit Tests
+              run: CI=1 npm test -- --run
+
+            - name: 🔎 Integration Tests
+              run: CI=1 npm run test:integration -- --run
 
 
     build:

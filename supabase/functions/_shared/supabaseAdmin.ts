@@ -3,7 +3,9 @@ import { createClient } from "jsr:@supabase/supabase-js@2";
 
 export const supabaseAdmin: SupabaseClient = createClient(
   Deno.env.get("SUPABASE_URL") ?? "",
-  Deno.env.get("SB_SECRET_KEY") ?? "",
+  // TODO - When Supabase finally provides the project's secret key to the functions, we'll need to use it here instead of the service role key.
+  // See https://supabase.com/docs/guides/functions/auth#get-api-details
+  Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "",
   {
     auth: {
       autoRefreshToken: false,
