@@ -154,6 +154,29 @@ const dataProviderWithCustomMethods = {
 
     return updatedData.data;
   },
+  async salesDelete(id: Identifier) {
+    const { data, error } = await supabase.functions.invoke<{ data: Sale }>(
+      "users",
+      {
+        method: "DELETE",
+        body: { sales_id: id },
+      },
+    );
+
+    if (error) {
+      console.error("salesDelete.error", error);
+      const errorDetails = await (async () => {
+        try {
+          return (await error?.context?.json()) ?? {};
+        } catch {
+          return {};
+        }
+      })();
+      throw new Error(errorDetails?.message || "Failed to delete the user");
+    }
+
+    return data?.data ?? ({ id } as any);
+  },
   async updatePassword(id: Identifier) {
     const { data: passwordUpdated, error } =
       await supabase.functions.invoke<boolean>("update_password", {
