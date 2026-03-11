@@ -410,6 +410,10 @@
           "type": "registry:component"
         },
         {
+          "path": "src/components/atomic-crm/misc/formatRelativeTime.ts",
+          "type": "registry:component"
+        },
+        {
           "path": "src/components/atomic-crm/misc/fetchWithTimeout.ts",
           "type": "registry:component"
         },
