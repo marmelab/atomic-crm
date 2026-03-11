@@ -39,3 +39,4 @@ public/r/
 
 !supabase/functions/.env
 .claude/settings.local.json
+DATA/
