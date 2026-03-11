@@ -68,10 +68,8 @@ export const NoteCreateSheet = ({
       title={
         <h1 className="text-xl font-semibold truncate pr-10">
           {!selectContact
-            ? translate("resources.notes.sheet.create_for", {
-                _: "Create note for",
-              })
-            : translate("resources.notes.sheet.create", { _: "Create note" })}
+            ? translate("resources.notes.sheet.create_for")
+            : translate("resources.notes.sheet.create")}
           {!selectContact && (
             <>
               {" "}

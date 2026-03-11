@@ -73,9 +73,7 @@ export function TagDialog({
           <div className="space-y-4 py-4">
             <div className="space-y-2">
               <Label htmlFor="tag-name">
-                {translate("resources.tags.dialog.name_label", {
-                  _: "Tag name",
-                })}
+                {translate("resources.tags.dialog.name_label")}
               </Label>
               <Input
                 id="tag-name"
@@ -84,17 +82,12 @@ export function TagDialog({
                 onChange={handleNewTagNameChange}
                 placeholder={translate(
                   "resources.tags.dialog.name_placeholder",
-                  {
-                    _: "Enter tag name",
-                  },
                 )}
               />
             </div>
 
             <div className="space-y-2">
-              <Label>
-                {translate("resources.tags.dialog.color", { _: "Color" })}
-              </Label>
+              <Label>{translate("resources.tags.dialog.color")}</Label>
               <div className="flex flex-wrap">
                 {colors.map((color) => (
                   <RoundButton
@@ -121,7 +114,7 @@ export function TagDialog({
               )}
             >
               <SaveIcon />
-              {translate("ra.action.save", { _: "Save" })}
+              {translate("ra.action.save")}
             </Button>
           </div>
         </form>

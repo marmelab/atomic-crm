@@ -19,7 +19,7 @@ const ContactOptionRender = () => {
           {record.title}
           {record.title &&
             record.company_name &&
-            ` ${translate("crm.common.at", { _: "at" })} `}
+            ` ${translate("crm.common.at")} `}
           {record.company_name}
         </span>
       </div>

@@ -113,7 +113,7 @@ const NoteCreateButton = ({
           onSuccess: handleSuccess,
         }}
       >
-        {translate("resources.notes.action.add_this", { _: "Add this note" })}
+        {translate("resources.notes.action.add_this")}
       </SaveButton>
     </div>
   );

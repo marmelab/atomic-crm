@@ -103,35 +103,33 @@ export const TasksListByDueDate = ({
     <div className="flex flex-col gap-4">
       <TaskListFilter
         tasks={overdueTasks}
-        title={translate("resources.tasks.filters.overdue", { _: "Overdue" })}
+        title={translate("resources.tasks.filters.overdue")}
         showContact={showContact}
         isMobile={isMobile}
       />
       <TaskListFilter
         tasks={dueTodayTasks}
-        title={translate("resources.tasks.filters.today", { _: "Today" })}
+        title={translate("resources.tasks.filters.today")}
         showContact={showContact}
         isMobile={isMobile}
       />
       <TaskListFilter
         tasks={dueTomorrowTasks}
-        title={translate("resources.tasks.filters.tomorrow", { _: "Tomorrow" })}
+        title={translate("resources.tasks.filters.tomorrow")}
         showContact={showContact}
         isMobile={isMobile}
       />
       {(!filterByContact || (filterByContact && isBeforeFriday())) && (
         <TaskListFilter
           tasks={dueThisWeekTasks}
-          title={translate("resources.tasks.filters.this_week", {
-            _: "This week",
-          })}
+          title={translate("resources.tasks.filters.this_week")}
           showContact={showContact}
           isMobile={isMobile}
         />
       )}
       <TaskListFilter
         tasks={dueLaterTasks}
-        title={translate("resources.tasks.filters.later", { _: "Later" })}
+        title={translate("resources.tasks.filters.later")}
         showContact={showContact}
         isMobile={isMobile}
       />

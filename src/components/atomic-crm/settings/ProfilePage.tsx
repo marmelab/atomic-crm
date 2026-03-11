@@ -177,7 +177,7 @@ const ProfileForm = ({
         <CardContent>
           <div className="mb-4 flex flex-row justify-between">
             <h2 className="text-xl font-semibold text-muted-foreground">
-              {translate("crm.profile.title", { _: "Profile" })}
+              {translate("crm.profile.title")}
             </h2>
           </div>
 
@@ -204,9 +204,7 @@ const ProfileForm = ({
                   type="button"
                   onClick={handleClickOpenPasswordChange}
                 >
-                  {translate("crm.profile.password.change", {
-                    _: "Reset password",
-                  })}
+                  {translate("crm.profile.password.change")}
                 </Button>
               </>
             )}
@@ -219,14 +217,14 @@ const ProfileForm = ({
             >
               {isEditMode ? <CircleX /> : <Pencil />}
               {isEditMode
-                ? translate("ra.action.cancel", { _: "Cancel" })
-                : translate("ra.action.edit", { _: "Edit" })}
+                ? translate("ra.action.cancel")
+                : translate("ra.action.edit")}
             </Button>
 
             {isEditMode && (
               <Button type="submit" disabled={!isDirty} variant="outline">
                 <Save />
-                {translate("ra.action.save", { _: "Save" })}
+                {translate("ra.action.save")}
               </Button>
             )}
           </div>
@@ -237,7 +235,7 @@ const ProfileForm = ({
           <CardContent>
             <div className="space-y-4 justify-between">
               <h2 className="text-xl font-semibold text-muted-foreground">
-                {translate("crm.profile.inbound.title", { _: "Inbound email" })}
+                {translate("crm.profile.inbound.title")}
               </h2>
               <p className="text-sm text-muted-foreground">
                 {translate("crm.profile.inbound.description_prefix", {
@@ -269,7 +267,7 @@ const LanguageSelector = () => {
   return (
     <div className="space-y-2">
       <p className="text-xs text-muted-foreground">
-        {translate("crm.language", { _: "Language" })}
+        {translate("crm.language")}
       </p>
       <Select value={locale} onValueChange={setLocale}>
         <SelectTrigger className="w-full">
@@ -343,8 +341,8 @@ const CopyPaste = () => {
         <TooltipContent>
           <p>
             {copied
-              ? translate("crm.common.copied", { _: "Copied!" })
-              : translate("crm.common.copy", { _: "Copy" })}
+              ? translate("crm.common.copied")
+              : translate("crm.common.copy")}
           </p>
         </TooltipContent>
       </Tooltip>

@@ -294,7 +294,7 @@ const ContactMergeDialog = ({ open, onClose }: ContactMergeDialogProps) => {
         <DialogFooter>
           <Button variant="ghost" onClick={onClose} disabled={isMerging}>
             <CircleX />
-            {translate("ra.action.cancel", { _: "Cancel" })}
+            {translate("ra.action.cancel")}
           </Button>
           <Button onClick={handleMerge} disabled={!winnerId || isMerging}>
             <Merge />

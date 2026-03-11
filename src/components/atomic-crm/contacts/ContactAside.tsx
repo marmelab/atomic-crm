@@ -23,47 +23,32 @@ export const ContactAside = ({ link = "edit" }: { link?: "edit" | "show" }) => {
     <div className="hidden sm:block w-92 min-w-92 text-sm">
       <div className="mb-4 -ml-1">
         {link === "edit" ? (
-          <EditButton
-            label={translate("resources.contacts.action.edit", {
-              _: "Edit contact",
-            })}
-          />
+          <EditButton label="resources.contacts.action.edit" />
         ) : (
-          <ShowButton
-            label={translate("resources.contacts.action.show", {
-              _: "Show contact",
-            })}
-          />
+          <ShowButton label="resources.contacts.action.show" />
         )}
       </div>
 
       <AsideSection
-        title={translate("resources.contacts.inputs.personal_info", {
-          _: "Personal info",
-        })}
+        title={translate("resources.contacts.field_categories.personal_info")}
       >
         <ContactPersonalInfo />
       </AsideSection>
 
       <AsideSection
-        title={translate("resources.contacts.inputs.background_info_short", {
-          _: "Background info",
-        })}
+        title={translate("resources.contacts.field_categories.background_info")}
       >
         <ContactBackgroundInfo />
       </AsideSection>
 
       <AsideSection
-        title={translate("resources.tags.name", { smart_count: 2, _: "Tags" })}
+        title={translate("resources.tags.name", { smart_count: 2 })}
       >
         <TagsListEdit />
       </AsideSection>
 
       <AsideSection
-        title={translate("resources.tasks.name", {
-          smart_count: 2,
-          _: "Tasks",
-        })}
+        title={translate("resources.tasks.name", { smart_count: 2 })}
       >
         <ReferenceManyField
           target="contact_id"

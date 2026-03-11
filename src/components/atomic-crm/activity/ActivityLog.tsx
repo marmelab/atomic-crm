@@ -59,7 +59,7 @@ export function ActivityLog({
             }}
           >
             <RotateCcw />
-            {translate("crm.common.retry", { _: "Retry" })}
+            {translate("crm.common.retry")}
           </Button>
         </div>
       </div>

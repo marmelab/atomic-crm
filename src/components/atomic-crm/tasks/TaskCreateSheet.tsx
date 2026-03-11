@@ -63,10 +63,8 @@ export const TaskCreateSheet = ({
       title={
         <h1 className="text-xl font-semibold truncate pr-10">
           {!selectContact
-            ? translate("resources.tasks.dialog.create_for", {
-                _: "Create task for",
-              })
-            : translate("resources.tasks.dialog.create", { _: "Create task" })}
+            ? translate("resources.tasks.dialog.create_for")
+            : translate("resources.tasks.dialog.create")}
           {!selectContact && (
             <>
               {" "}

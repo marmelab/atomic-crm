@@ -25,20 +25,14 @@ export const ContactEmpty = () => {
       >
         <img
           src="./img/empty.svg"
-          alt={translate("resources.contacts.empty.title", {
-            _: "No contacts found",
-          })}
+          alt={translate("resources.contacts.empty.title")}
         />
         <div className="flex flex-col gap-0 items-center">
           <h6 className="text-lg font-bold">
-            {translate("resources.contacts.empty.title", {
-              _: "No contacts found",
-            })}
+            {translate("resources.contacts.empty.title")}
           </h6>
           <p className="text-sm text-muted-foreground text-center mb-4">
-            {translate("resources.contacts.empty.description", {
-              _: "It seems your contact list is empty.",
-            })}
+            {translate("resources.contacts.empty.description")}
           </p>
         </div>
         <div className="flex flex-row gap-2">
@@ -49,7 +43,7 @@ export const ContactEmpty = () => {
               className="gap-2"
             >
               <Plus className="h-4 w-4" />
-              {translate("resources.contacts.action.new", { _: "New Contact" })}
+              {translate("resources.contacts.action.new")}
             </Button>
           ) : (
             <>

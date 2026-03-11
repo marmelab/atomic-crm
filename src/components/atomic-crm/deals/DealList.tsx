@@ -32,23 +32,14 @@ const DealList = () => {
     <ReferenceInput source="company_id" reference="companies">
       <AutocompleteInput
         label={false}
-        placeholder={translate("resources.deals.filters.company", {
-          _: "Company",
-        })}
+        placeholder={translate("resources.deals.fields.company_id")}
       />
     </ReferenceInput>,
-    <WrapperField
-      source="category"
-      label={translate("resources.deals.fields.category", {
-        _: "Category",
-      })}
-    >
+    <WrapperField source="category" label="resources.deals.fields.category">
       <SelectInput
         source="category"
         label={false}
-        emptyText={translate("resources.deals.fields.category", {
-          _: "Category",
-        })}
+        emptyText="resources.deals.fields.category"
         choices={dealCategories}
         optionText="label"
         optionValue="value"

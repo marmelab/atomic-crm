@@ -42,7 +42,7 @@ export function ActivityLogContactCreated({
               {activity.company_id != null && (
                 <>
                   {" "}
-                  {translate("crm.activity.to", { _: "to" })}{" "}
+                  {translate("crm.activity.to")}{" "}
                   <ReferenceField
                     source="company_id"
                     reference="companies"

@@ -34,7 +34,7 @@ export function TagEditModal({
   return (
     <TagDialog
       open={open}
-      title={translate("resources.tags.dialog.edit_title", { _: "Edit tag" })}
+      title={translate("resources.tags.dialog.edit_title")}
       onClose={onClose}
       onSubmit={handleEditTag}
       tag={tag}

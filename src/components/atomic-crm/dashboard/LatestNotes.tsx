@@ -54,7 +54,7 @@ export const LatestNotes = () => {
           <FileText className="text-muted-foreground w-6 h-6" />
         </div>
         <h2 className="text-xl font-semibold text-muted-foreground">
-          {translate("crm.dashboard.latest_notes", { _: "My Latest Notes" })}
+          {translate("crm.dashboard.latest_notes")}
         </h2>
       </div>
       <Card>
@@ -66,14 +66,14 @@ export const LatestNotes = () => {
               className="mb-8"
             >
               <div className="text-sm text-muted-foreground">
-                {translate("crm.common.on", { _: "on" })}{" "}
+                {translate("crm.common.on")}{" "}
                 {note.type === "dealNote" ? (
                   <Deal note={note} />
                 ) : (
                   <Contact note={note} />
                 )}
                 {", "}
-                {translate("crm.common.added", { _: "added" })}{" "}
+                {translate("crm.common.added")}{" "}
                 {formatDistance(note.date, new Date(), {
                   addSuffix: true,
                 })}
@@ -95,7 +95,7 @@ const Deal = ({ note }: any) => {
   const translate = useTranslate();
   return (
     <>
-      {translate("resources.deals.forcedCaseName", { _: "Deal" })}{" "}
+      {translate("resources.deals.forcedCaseName")}{" "}
       <ReferenceField
         record={note}
         source="deal_id"
@@ -112,7 +112,7 @@ const Contact = ({ note }: any) => {
   const translate = useTranslate();
   return (
     <>
-      {translate("resources.contacts.forcedCaseName", { _: "Contact" })}{" "}
+      {translate("resources.contacts.forcedCaseName")}{" "}
       <ReferenceField<ContactNote, Contact>
         record={note}
         source="contact_id"

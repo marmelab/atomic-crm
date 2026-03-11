@@ -53,7 +53,7 @@ export const DealsPipeline = () => {
           className="text-xl font-semibold text-muted-foreground hover:underline"
           to="/deals"
         >
-          {translate("crm.dashboard.deals_pipeline", { _: "Deals Pipeline" })}
+          {translate("crm.dashboard.deals_pipeline")}
         </Link>
       </div>
       <Card>

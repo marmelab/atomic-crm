@@ -200,7 +200,7 @@ const SettingsFormFields = () => {
       <nav className="hidden md:block w-48 shrink-0">
         <div className="sticky top-4 space-y-1">
           <h1 className="text-2xl font-semibold px-3 mb-2">
-            {translate("crm.settings.title", { _: "Settings" })}
+            {translate("crm.settings.title")}
           </h1>
           {SECTIONS.map((section) => (
             <button
@@ -228,15 +228,13 @@ const SettingsFormFields = () => {
         <Card id="branding">
           <CardContent className="space-y-4">
             <h2 className="text-xl font-semibold text-muted-foreground">
-              {translate("crm.settings.sections.branding", { _: "Branding" })}
+              {translate("crm.settings.sections.branding")}
             </h2>
             <TextInput source="title" label="crm.settings.app_title" />
             <div className="flex gap-8">
               <div className="flex flex-col items-center gap-1">
                 <p className="text-sm text-muted-foreground">
-                  {translate("crm.settings.light_mode_logo", {
-                    _: "Light Mode Logo",
-                  })}
+                  {translate("crm.settings.light_mode_logo")}
                 </p>
                 <ImageEditorField
                   source="lightModeLogo"
@@ -248,9 +246,7 @@ const SettingsFormFields = () => {
               </div>
               <div className="flex flex-col items-center gap-1">
                 <p className="text-sm text-muted-foreground">
-                  {translate("crm.settings.dark_mode_logo", {
-                    _: "Dark Mode Logo",
-                  })}
+                  {translate("crm.settings.dark_mode_logo")}
                 </p>
                 <ImageEditorField
                   source="darkModeLogo"
@@ -270,11 +266,10 @@ const SettingsFormFields = () => {
             <h2 className="text-xl font-semibold text-muted-foreground">
               {translate("resources.companies.name", {
                 smart_count: 2,
-                _: "Companies",
               })}
             </h2>
             <h3 className="text-lg font-medium text-muted-foreground">
-              {translate("crm.settings.companies.sectors", { _: "Sectors" })}
+              {translate("crm.settings.companies.sectors")}
             </h3>
             <ArrayInput
               source="companySectors"
@@ -294,11 +289,10 @@ const SettingsFormFields = () => {
             <h2 className="text-xl font-semibold text-muted-foreground">
               {translate("resources.deals.name", {
                 smart_count: 2,
-                _: "Deals",
               })}
             </h2>
             <h3 className="text-lg font-medium text-muted-foreground">
-              {translate("crm.settings.deals.stages", { _: "Stages" })}
+              {translate("crm.settings.deals.stages")}
             </h3>
             <ArrayInput
               source="dealStages"
@@ -359,7 +353,7 @@ const SettingsFormFields = () => {
             <Separator />
 
             <h3 className="text-lg font-medium text-muted-foreground">
-              {translate("crm.settings.deals.categories", { _: "Categories" })}
+              {translate("crm.settings.deals.categories")}
             </h3>
             <ArrayInput
               source="dealCategories"
@@ -380,11 +374,10 @@ const SettingsFormFields = () => {
             <h2 className="text-xl font-semibold text-muted-foreground">
               {translate("resources.notes.name", {
                 smart_count: 2,
-                _: "Notes",
               })}
             </h2>
             <h3 className="text-lg font-medium text-muted-foreground">
-              {translate("crm.settings.notes.statuses", { _: "Statuses" })}
+              {translate("crm.settings.notes.statuses")}
             </h3>
             <ArrayInput source="noteStatuses" label={false} helperText={false}>
               <SimpleFormIterator inline disableReordering disableClear>
@@ -401,11 +394,10 @@ const SettingsFormFields = () => {
             <h2 className="text-xl font-semibold text-muted-foreground">
               {translate("resources.tasks.name", {
                 smart_count: 2,
-                _: "Tasks",
               })}
             </h2>
             <h3 className="text-lg font-medium text-muted-foreground">
-              {translate("crm.settings.tasks.types", { _: "Types" })}
+              {translate("crm.settings.tasks.types")}
             </h3>
             <ArrayInput source="taskTypes" label={false} helperText={false}>
               <SimpleFormIterator disableReordering disableClear>
@@ -435,9 +427,7 @@ const SettingsFormFields = () => {
               }
             >
               <RotateCcw className="h-4 w-4 mr-1" />
-              {translate("crm.settings.reset_defaults", {
-                _: "Reset to Defaults",
-              })}
+              {translate("crm.settings.reset_defaults")}
             </Button>
             <div className="flex gap-2">
               <Button
@@ -445,13 +435,13 @@ const SettingsFormFields = () => {
                 variant="outline"
                 onClick={() => window.history.back()}
               >
-                {translate("ra.action.cancel", { _: "Cancel" })}
+                {translate("ra.action.cancel")}
               </Button>
               <Button type="submit" disabled={isSubmitting}>
                 <Save className="h-4 w-4 mr-1" />
                 {isSubmitting
-                  ? translate("crm.settings.saving", { _: "Saving..." })
-                  : translate("ra.action.save", { _: "Save" })}
+                  ? translate("crm.settings.saving")
+                  : translate("ra.action.save")}
               </Button>
             </div>
           </div>

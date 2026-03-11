@@ -133,7 +133,7 @@ const ContactItemContent = ({
               {contact.title}
               {contact.title &&
                 contact.company_id != null &&
-                ` ${translate("crm.common.at", { _: "at" })} `}
+                ` ${translate("crm.common.at")} `}
               {contact.company_id != null && (
                 <ReferenceField
                   source="company_id"
@@ -146,7 +146,6 @@ const ContactItemContent = ({
               {contact.nb_tasks
                 ? ` - ${contact.nb_tasks} ${translate("crm.common.task_count", {
                     smart_count: contact.nb_tasks,
-                    _: contact.nb_tasks > 1 ? "tasks" : "task",
                   })}`
                 : ""}
               &nbsp;&nbsp;
@@ -160,7 +159,7 @@ const ContactItemContent = ({
               className="text-sm text-muted-foreground"
               title={contact.last_seen}
             >
-              {`${translate("crm.common.last_activity", { _: "last activity" })} `}
+              {`${translate("crm.common.last_activity")} `}
               <RelativeDate date={contact.last_seen} />{" "}
               <Status status={contact.status} />
             </div>
@@ -209,9 +208,7 @@ export const ContactListContentMobile = () => {
     return (
       <div className="p-4">
         <div className="text-center text-muted-foreground mb-4">
-          {translate("resources.contacts.list.error_loading", {
-            _: "Error loading contacts",
-          })}
+          {translate("resources.contacts.list.error_loading")}
         </div>
         <div className="text-center mt-2">
           <Button
@@ -220,7 +217,7 @@ export const ContactListContentMobile = () => {
             }}
           >
             <RotateCcw />
-            {translate("crm.common.retry", { _: "Retry" })}
+            {translate("crm.common.retry")}
           </Button>
         </div>
       </div>
@@ -237,9 +234,7 @@ export const ContactListContentMobile = () => {
       {contacts.length === 0 && (
         <div className="p-4">
           <div className="text-muted-foreground">
-            {translate("resources.contacts.empty.title", {
-              _: "No contacts found",
-            })}
+            {translate("resources.contacts.empty.title")}
           </div>
         </div>
       )}
@@ -269,7 +264,7 @@ const ContactItemContentMobile = ({ contact }: { contact: Contact }) => {
                 {contact.title}
                 {contact.title &&
                   contact.company_id != null &&
-                  ` ${translate("crm.common.at", { _: "at" })} `}
+                  ` ${translate("crm.common.at")} `}
                 {contact.company_id != null && (
                   <ReferenceField
                     source="company_id"
@@ -285,7 +280,6 @@ const ContactItemContentMobile = ({ contact }: { contact: Contact }) => {
                   {contact.nb_tasks}{" "}
                   {translate("crm.common.task_count", {
                     smart_count: contact.nb_tasks,
-                    _: contact.nb_tasks > 1 ? "tasks" : "task",
                   })}
                 </span>
               ) : null}

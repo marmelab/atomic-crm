@@ -53,7 +53,7 @@ export const TaskEdit = ({
             <Form className="flex flex-col gap-4">
               <DialogHeader>
                 <DialogTitle>
-                  {translate("resources.tasks.action.edit", { _: "Edit task" })}
+                  {translate("resources.tasks.action.edit")}
                 </DialogTitle>
               </DialogHeader>
               <TaskFormContent />

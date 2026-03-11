@@ -32,9 +32,7 @@ export const ImportPage = () => {
     <div className="max-w-2xl mx-auto mt-8">
       <Card>
         <CardHeader>
-          <CardTitle>
-            {translate("crm.import.title", { _: "Import Data" })}
-          </CardTitle>
+          <CardTitle>{translate("crm.import.title")}</CardTitle>
         </CardHeader>
         <CardContent>
           {importState.status === "idle" ? (
@@ -137,9 +135,7 @@ const ImportFromJsonForm = ({
       <FileField source="src" title="title" />
     </FileInput>
     <div className="flex justify-end mt-4">
-      <Button type="submit">
-        {translate("crm.import.action.import", { _: "Import" })}
-      </Button>
+      <Button type="submit">{translate("crm.import.action.import")}</Button>
     </div>
   </Form>
 );
@@ -173,7 +169,7 @@ const ImportFromJsonSuccess = ({
 }) => (
   <>
     <p className="mb-4 text-sm">
-      {translate("crm.import.status.complete", { _: "Import complete." })}{" "}
+      {translate("crm.import.status.complete")}{" "}
       {hasFailedImports(importState.failedImports) ? (
         <>
           <span className="text-destructive">
@@ -277,16 +273,16 @@ const ImportStats = ({
   return (
     <Table>
       <TableCaption className="sr-only">
-        {translate("crm.import.status.table_caption", { _: "Import status" })}
+        {translate("crm.import.status.table_caption")}
       </TableCaption>
       <TableHeader>
         <TableRow>
           <TableHead className="w-25"></TableHead>
           <TableHead className="text-right">
-            {translate("crm.import.status.imported", { _: "Imported" })}
+            {translate("crm.import.status.imported")}
           </TableHead>
           <TableHead className="text-right">
-            {translate("crm.import.status.failed", { _: "Failed" })}
+            {translate("crm.import.status.failed")}
           </TableHead>
         </TableRow>
       </TableHeader>

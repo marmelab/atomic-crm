@@ -123,7 +123,7 @@ export const Task = ({
               {task.text}
             </div>
             <div className="text-sm text-muted-foreground">
-              {translate("resources.tasks.fields.due_short", { _: "due" })}
+              {translate("resources.tasks.fields.due_short")}
               &nbsp;
               <DateField source="due_date" record={task} showDate showTime />
               {showContact && (
@@ -138,7 +138,7 @@ export const Task = ({
                     return (
                       <>
                         {" "}
-                        ({translate("crm.common.regarding", { _: "Re:" })}&nbsp;
+                        ({translate("crm.common.regarding")}&nbsp;
                         {referenceRecord?.first_name}{" "}
                         {referenceRecord?.last_name})
                       </>
@@ -156,9 +156,7 @@ export const Task = ({
               variant="ghost"
               size="icon"
               className="h-5 pr-0! size-8 cursor-pointer"
-              aria-label={translate("resources.tasks.actions.title", {
-                _: "task actions",
-              })}
+              aria-label={translate("resources.tasks.actions.title")}
             >
               <MoreVertical className="size-5 md:size-4" />
             </Button>
@@ -178,9 +176,7 @@ export const Task = ({
                 });
               }}
             >
-              {translate("resources.tasks.actions.postpone_tomorrow", {
-                _: "Postpone to tomorrow",
-              })}
+              {translate("resources.tasks.actions.postpone_tomorrow")}
             </DropdownMenuItem>
             <DropdownMenuItem
               className="cursor-pointer h-12 md:h-8 px-4 md:px-2 text-base md:text-sm"
@@ -196,21 +192,19 @@ export const Task = ({
                 });
               }}
             >
-              {translate("resources.tasks.actions.postpone_next_week", {
-                _: "Postpone to next week",
-              })}
+              {translate("resources.tasks.actions.postpone_next_week")}
             </DropdownMenuItem>
             <DropdownMenuItem
               className="cursor-pointer h-12 md:h-8 px-4 md:px-2 text-base md:text-sm"
               onClick={handleEdit}
             >
-              {translate("ra.action.edit", { _: "Edit" })}
+              {translate("ra.action.edit")}
             </DropdownMenuItem>
             <DropdownMenuItem
               className="cursor-pointer h-12 md:h-8 px-4 md:px-2 text-base md:text-sm"
               onClick={handleDelete}
             >
-              {translate("ra.action.delete", { _: "Delete" })}
+              {translate("ra.action.delete")}
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

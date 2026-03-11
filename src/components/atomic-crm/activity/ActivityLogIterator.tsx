@@ -50,7 +50,7 @@ export function ActivityLogIterator({
           }}
           className="flex w-full justify-center text-sm underline hover:no-underline"
         >
-          {translate("crm.activity.load_more", { _: "Load more activity" })}
+          {translate("crm.activity.load_more")}
         </a>
       )}
     </div>

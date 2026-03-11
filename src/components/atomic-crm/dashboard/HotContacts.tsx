@@ -38,7 +38,7 @@ export const HotContacts = () => {
           <Users className="text-muted-foreground w-6 h-6" />
         </div>
         <h2 className="text-xl font-semibold text-muted-foreground">
-          {translate("resources.contacts.hot.title", { _: "Hot Contacts" })}
+          {translate("resources.contacts.hot.title")}
         </h2>
         <TooltipProvider>
           <Tooltip>
@@ -75,7 +75,7 @@ export const HotContacts = () => {
           }
           secondaryText={(contact) => (
             <>
-              {contact.title} {translate("crm.common.at", { _: "at" })}{" "}
+              {contact.title} {translate("crm.common.at")}{" "}
               {contact.company_name}
             </>
           )}

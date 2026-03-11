@@ -3,12 +3,12 @@ import { SortButton } from "@/components/admin/sort-button";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { formatDistance } from "date-fns";
 import { UserPlus } from "lucide-react";
 import {
   RecordContextProvider,
   ShowBase,
   useListContext,
+  useLocaleState,
   useRecordContext,
   useShowContext,
   useTranslate,
@@ -27,6 +27,7 @@ import { Avatar } from "../contacts/Avatar";
 import { TagsList } from "../contacts/TagsList";
 import { findDealLabel } from "../deals/deal";
 import { MobileContent } from "../layout/MobileContent";
+import { formatRelativeTime } from "../misc/formatRelativeTime";
 import MobileHeader from "../layout/MobileHeader";
 import { MobileBackButton } from "../misc/MobileBackButton";
 import { Status } from "../misc/Status";
@@ -63,9 +64,7 @@ const CompanyShowContentMobile = () => {
         <div className="flex flex-1">
           <Link to="/">
             <h1 className="text-xl font-semibold">
-              {translate("resources.companies.forcedCaseName", {
-                _: "Company",
-              })}
+              {translate("resources.companies.forcedCaseName")}
             </h1>
           </Link>
         </div>
@@ -121,23 +120,19 @@ const CompanyShowContent = () => {
             <Tabs defaultValue={currentTab} onValueChange={handleTabChange}>
               <TabsList className="grid w-full grid-cols-3">
                 <TabsTrigger value="activity">
-                  {translate("crm.common.activity", { _: "Activity" })}
+                  {translate("crm.common.activity")}
                 </TabsTrigger>
                 <TabsTrigger value="contacts">
                   {record.nb_contacts === 0
-                    ? translate("resources.companies.no_contacts", {
-                        _: "No Contacts",
-                      })
+                    ? translate("resources.companies.no_contacts")
                     : translate("resources.companies.nb_contacts", {
                         smart_count: record.nb_contacts,
-                        _: `${record.nb_contacts} Contacts`,
                       })}
                 </TabsTrigger>
                 {record.nb_deals ? (
                   <TabsTrigger value="deals">
                     {translate("resources.companies.nb_deals", {
                       smart_count: record.nb_deals,
-                      _: `${record.nb_deals} deals`,
                     })}
                   </TabsTrigger>
                 ) : null}
@@ -194,12 +189,12 @@ const CompanyShowContent = () => {
 
 const ContactsIterator = () => {
   const translate = useTranslate();
+  const [locale = "en"] = useLocaleState();
   const location = useLocation();
   const { data: contacts, error, isPending } = useListContext<Contact>();
 
   if (isPending || error) return null;
 
-  const now = Date.now();
   return (
     <div className="pt-0">
       {contacts.map((contact) => (
@@ -224,7 +219,6 @@ const ContactsIterator = () => {
                         "crm.common.task_count",
                         {
                           smart_count: contact.nb_tasks,
-                          _: contact.nb_tasks > 1 ? "tasks" : "task",
                         },
                       )}`
                     : ""}
@@ -235,11 +229,8 @@ const ContactsIterator = () => {
               {contact.last_seen && (
                 <div className="text-right">
                   <div className="text-sm text-muted-foreground">
-                    {translate("crm.common.last_activity", {
-                      _: "last activity",
-                    })}{" "}
-                    {formatDistance(contact.last_seen, now)}{" "}
-                    {translate("crm.common.ago", { _: "ago" })}{" "}
+                    {translate("crm.common.last_activity")}{" "}
+                    {formatRelativeTime(contact.last_seen, locale)}{" "}
                     <Status status={contact.status} />
                   </div>
                 </div>
@@ -263,7 +254,7 @@ const CreateRelatedContactButton = () => {
         className="flex items-center gap-2"
       >
         <UserPlus className="h-4 w-4" />
-        {translate("resources.contacts.action.add", { _: "Add contact" })}
+        {translate("resources.contacts.action.add")}
       </RouterLink>
     </Button>
   );
@@ -271,11 +262,10 @@ const CreateRelatedContactButton = () => {
 
 const DealsIterator = () => {
   const translate = useTranslate();
+  const [locale = "en"] = useLocaleState();
   const { data: deals, error, isPending } = useListContext<Deal>();
   const { dealStages, dealCategories } = useConfigurationContext();
   if (isPending || error) return null;
-
-  const now = Date.now();
   return (
     <div>
       <div>
@@ -303,11 +293,8 @@ const DealsIterator = () => {
               </div>
               <div className="text-right">
                 <div className="text-sm text-muted-foreground">
-                  {translate("crm.common.last_activity", {
-                    _: "last activity",
-                  })}{" "}
-                  {formatDistance(deal.updated_at, now)}{" "}
-                  {translate("crm.common.ago", { _: "ago" })}{" "}
+                  {translate("crm.common.last_activity")}{" "}
+                  {formatRelativeTime(deal.updated_at, locale)}{" "}
                 </div>
               </div>
             </RouterLink>

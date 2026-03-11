@@ -90,9 +90,7 @@ const ContactShowContentMobile = () => {
           onClick={() => setEditOpen(true)}
         >
           <Pencil className="size-5" />
-          <span className="sr-only">
-            {translate("ra.action.edit", { _: "Edit record" })}
-          </span>
+          <span className="sr-only">{translate("ra.action.edit")}</span>
         </Button>
       </MobileHeader>
       <MobileContent>
@@ -107,7 +105,7 @@ const ContactShowContentMobile = () => {
                 {record.title}
                 {record.title &&
                   record.company_id != null &&
-                  ` ${translate("crm.common.at", { _: "at" })} `}
+                  ` ${translate("crm.common.at")} `}
                 {record.company_id != null && (
                   <ReferenceField
                     source="company_id"
@@ -135,10 +133,7 @@ const ContactShowContentMobile = () => {
         <Tabs defaultValue="notes" className="w-full">
           <TabsList className="grid w-full grid-cols-3 h-10">
             <TabsTrigger value="notes">
-              {translate("resources.notes.name", {
-                smart_count: 2,
-                _: "Notes",
-              })}
+              {translate("resources.notes.name", { smart_count: 2 })}
             </TabsTrigger>
             <TabsTrigger value="tasks">
               <ReferenceManyCount
@@ -146,13 +141,10 @@ const ContactShowContentMobile = () => {
                 reference="tasks"
                 filter={{ "done_date@is": null }}
               />{" "}
-              {translate("resources.tasks.name", {
-                smart_count: 2,
-                _: "Tasks",
-              })}
+              {translate("resources.tasks.name", { smart_count: 2 })}
             </TabsTrigger>
             <TabsTrigger value="details">
-              {translate("crm.common.details", { _: "Details" })}
+              {translate("crm.common.details")}
             </TabsTrigger>
           </TabsList>
 
@@ -164,13 +156,13 @@ const ContactShowContentMobile = () => {
               empty={
                 <div className="flex flex-col items-center justify-center py-8 text-center">
                   <p className="text-muted-foreground mb-4">
-                    {translate("resources.notes.empty", { _: "No notes yet" })}
+                    {translate("resources.notes.empty")}
                   </p>
                   <Button
                     variant="outline"
                     onClick={() => setNoteCreateOpen(true)}
                   >
-                    {translate("resources.notes.action.add", { _: "Add note" })}
+                    {translate("resources.notes.action.add")}
                   </Button>
                 </div>
               }
@@ -198,9 +190,9 @@ const ContactShowContentMobile = () => {
             <div className="space-y-6">
               <div>
                 <h3 className="text-lg font-semibold">
-                  {translate("resources.contacts.inputs.personal_info", {
-                    _: "Personal info",
-                  })}
+                  {translate(
+                    "resources.contacts.field_categories.personal_info",
+                  )}
                 </h3>
                 <Separator />
                 <div className="mt-3">
@@ -210,10 +202,7 @@ const ContactShowContentMobile = () => {
               <div>
                 <h3 className="text-lg font-semibold">
                   {translate(
-                    "resources.contacts.inputs.background_info_short",
-                    {
-                      _: "Background info",
-                    },
+                    "resources.contacts.field_categories.background_info",
                   )}
                 </h3>
                 <Separator />
@@ -223,10 +212,7 @@ const ContactShowContentMobile = () => {
               </div>
               <div>
                 <h3 className="text-lg font-semibold">
-                  {translate("resources.tags.name", {
-                    smart_count: 2,
-                    _: "Tags",
-                  })}
+                  {translate("resources.tags.name", { smart_count: 2 })}
                 </h3>
                 <Separator />
                 <div className="mt-3">
@@ -261,7 +247,7 @@ const ContactShowContent = () => {
                   {record.title}
                   {record.title &&
                     record.company_id != null &&
-                    ` ${translate("crm.common.at", { _: "at" })} `}
+                    ` ${translate("crm.common.at")} `}
                   {record.company_id != null && (
                     <ReferenceField
                       source="company_id"

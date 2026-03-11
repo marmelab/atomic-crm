@@ -49,7 +49,7 @@ const ContactIdentityInputs = () => {
   return (
     <div className="flex flex-col gap-4">
       <h6 className="text-lg font-semibold">
-        {translate("resources.contacts.inputs.identity", { _: "Identity" })}
+        {translate("resources.contacts.field_categories.identity")}
       </h6>
       <RadioButtonGroupInput
         label={false}
@@ -75,7 +75,7 @@ const ContactPositionInputs = () => {
   return (
     <div className="flex flex-col gap-4">
       <h6 className="text-lg font-semibold">
-        {translate("resources.contacts.inputs.position", { _: "Position" })}
+        {translate("resources.contacts.field_categories.position")}
       </h6>
       <TextInput source="title" helperText={false} />
       <ReferenceInput source="company_id" reference="companies" perPage={10}>
@@ -132,9 +132,7 @@ const ContactPersonalInformationInputs = () => {
   return (
     <div className="flex flex-col gap-4">
       <h6 className="text-lg font-semibold">
-        {translate("resources.contacts.inputs.personal_info", {
-          _: "Personal info",
-        })}
+        {translate("resources.contacts.field_categories.personal_info")}
       </h6>
       <ArrayInput source="email_jsonb" helperText={false}>
         <SimpleFormIterator
@@ -148,9 +146,7 @@ const ContactPersonalInformationInputs = () => {
             className="w-full"
             helperText={false}
             label={false}
-            placeholder={translate("resources.contacts.fields.email", {
-              _: "Email",
-            })}
+            placeholder={translate("resources.contacts.fields.email")}
             validate={email()}
             onPaste={handleEmailPaste}
             onBlur={handleEmailBlur}
@@ -178,9 +174,7 @@ const ContactPersonalInformationInputs = () => {
             className="w-full"
             helperText={false}
             label={false}
-            placeholder={translate("resources.contacts.fields.phone_number", {
-              _: "Phone number",
-            })}
+            placeholder={translate("resources.contacts.fields.phone_number")}
           />
           <SelectInput
             source="type"
@@ -206,9 +200,7 @@ const ContactMiscInputs = () => {
   const translate = useTranslate();
   return (
     <div className="flex flex-col gap-4">
-      <h6 className="text-lg font-semibold">
-        {translate("crm.common.misc", { _: "Misc" })}
-      </h6>
+      <h6 className="text-lg font-semibold">{translate("crm.common.misc")}</h6>
       <TextInput source="background" multiline helperText={false} />
       <BooleanInput source="has_newsletter" helperText={false} />
       <ReferenceInput

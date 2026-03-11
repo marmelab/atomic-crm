@@ -42,7 +42,7 @@ export function ActivityLogDealCreated({
           )}{" "}
           {context !== "company" && (
             <>
-              {translate("crm.activity.to", { _: "to" })}{" "}
+              {translate("crm.activity.to")}{" "}
               <ReferenceField
                 source="company_id"
                 reference="companies"

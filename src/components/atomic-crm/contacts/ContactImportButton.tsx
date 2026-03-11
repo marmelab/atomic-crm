@@ -39,8 +39,7 @@ export const ContactImportButton = () => {
         onClick={handleOpenModal}
         className="flex items-center gap-2 cursor-pointer"
       >
-        <Upload />{" "}
-        {translate("resources.contacts.import.button", { _: "Import CSV" })}
+        <Upload /> {translate("resources.contacts.import.button")}
       </Button>
       <ContactImportDialog open={modalOpen} onClose={handleCloseModal} />
     </>
@@ -100,9 +99,7 @@ export function ContactImportDialog({
       <DialogContent className="max-w-2xl">
         <Form className="flex flex-col gap-4">
           <DialogHeader>
-            <DialogTitle>
-              {translate("crm.import.action.import", { _: "Import" })}
-            </DialogTitle>
+            <DialogTitle>{translate("crm.import.action.import")}</DialogTitle>
           </DialogHeader>
 
           <div className="flex flex-col space-y-2">
@@ -128,9 +125,9 @@ export function ContactImportDialog({
                     smart_count: 2,
                     _: "contacts",
                   })}
-                  , {translate("crm.common.with", { _: "with" })}{" "}
+                  , {translate("crm.common.with")}{" "}
                   <strong>{importer.errorCount}</strong>{" "}
-                  {translate("crm.common.errors", { _: "errors" })}.
+                  {translate("crm.common.errors")}.
                   {importer.remainingTime !== null && (
                     <>
                       {" "}
@@ -217,7 +214,7 @@ export function ContactImportDialog({
           <FormToolbar>
             {importer.state === "idle" ? (
               <Button onClick={startImport} disabled={!file}>
-                {translate("crm.import.action.import", { _: "Import" })}
+                {translate("crm.import.action.import")}
               </Button>
             ) : (
               <Button
@@ -225,7 +222,7 @@ export function ContactImportDialog({
                 onClick={handleClose}
                 disabled={importer.state === "running"}
               >
-                {translate("ra.action.close", { _: "Close" })}
+                {translate("ra.action.close")}
               </Button>
             )}
           </FormToolbar>

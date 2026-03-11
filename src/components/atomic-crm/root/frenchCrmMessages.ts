@@ -61,6 +61,12 @@ export const frenchCrmMessages = {
     contacts: {
       name: "Contact |||| Contacts",
       forcedCaseName: "Contact",
+      field_categories: {
+        background_info: "Informations complémentaires",
+        identity: "Identité",
+        personal_info: "Informations personnelles",
+        position: "Poste",
+      },
       fields: {
         first_name: "Prénom",
         last_name: "Nom",
@@ -111,20 +117,16 @@ export const frenchCrmMessages = {
         contacts_label: "contact |||| contacts",
       },
       inputs: {
-        background_info_short: "Informations complémentaires",
         genders: {
           male: "Monsieur",
           female: "Madame",
           nonbinary: "Indéterminé",
         },
-        identity: "Identité",
-        personal_info: "Informations personnelles",
         personal_info_types: {
           work: "Pro",
           home: "Perso",
           other: "Autre",
         },
-        position: "Poste",
       },
       list: {
         error_loading: "Erreur lors du chargement des contacts",
@@ -207,9 +209,6 @@ export const frenchCrmMessages = {
         before_create: "avant de créer une affaire.",
         description: "Il semble que votre liste d'affaires soit vide.",
         title: "Aucune affaire trouvée",
-      },
-      filters: {
-        company: "Entreprise",
       },
       stage: {
         lost: "Perdu",
@@ -361,7 +360,6 @@ export const frenchCrmMessages = {
     common: {
       activity: "Activité",
       added: "ajoutée",
-      ago: "il y a",
       details: "Détails",
       errors: "erreurs",
       invalid_date: "Date invalide",

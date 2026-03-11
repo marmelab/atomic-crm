@@ -74,7 +74,7 @@ const ImageEditorField = (props: ImageEditorFieldProps) => {
             onClick={() => setIsDialogOpen(true)}
             className="text-xs underline hover:no-underline cursor-pointer text-center"
           >
-            {translate("crm.image_editor.change", { _: "Change" })}
+            {translate("crm.image_editor.change")}
           </button>
         )}
       </div>
@@ -187,10 +187,10 @@ const ImageEditorDialog = (props: ImageEditorDialogProps) => {
 
         <DialogFooter className="flex justify-between w-full">
           <Button type="button" onClick={updateImage}>
-            {translate("crm.image_editor.update_image", { _: "Update Image" })}
+            {translate("crm.image_editor.update_image")}
           </Button>
           <Button type="button" variant="destructive" onClick={deleteImage}>
-            {translate("ra.action.delete", { _: "Delete" })}
+            {translate("ra.action.delete")}
           </Button>
         </DialogFooter>
       </DialogContent>

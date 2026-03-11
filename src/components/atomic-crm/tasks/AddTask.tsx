@@ -83,7 +83,7 @@ export const AddTask = ({
               </Button>
             </TooltipTrigger>
             <TooltipContent>
-              {translate("resources.tasks.action.create", { _: "Create task" })}
+              {translate("resources.tasks.action.create")}
             </TooltipContent>
           </Tooltip>
         </TooltipProvider>
@@ -96,7 +96,7 @@ export const AddTask = ({
             size="sm"
           >
             <Plus className="w-4 h-4" />
-            {translate("resources.tasks.action.add", { _: "Add task" })}
+            {translate("resources.tasks.action.add")}
           </Button>
         </div>
       )}
@@ -117,12 +117,8 @@ export const AddTask = ({
               <DialogHeader>
                 <DialogTitle>
                   {!selectContact
-                    ? translate("resources.tasks.dialog.create_for", {
-                        _: "Create task for",
-                      })
-                    : translate("resources.tasks.dialog.create", {
-                        _: "Create task",
-                      })}
+                    ? translate("resources.tasks.dialog.create_for")
+                    : translate("resources.tasks.dialog.create")}
                   {!selectContact && (
                     <>
                       {" "}

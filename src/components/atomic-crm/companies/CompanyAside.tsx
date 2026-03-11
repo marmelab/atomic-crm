@@ -133,19 +133,18 @@ export const ContextInfo = ({ record }: { record: Company }) => {
     >
       {sectorLabel && (
         <span>
-          {translate("resources.companies.fields.sector", { _: "Sector" })}:{" "}
-          {sectorLabel}
+          {translate("resources.companies.fields.sector")}: {sectorLabel}
         </span>
       )}
       {record.size && (
         <span>
-          {translate("resources.companies.fields.size", { _: "Size" })}:{" "}
+          {translate("resources.companies.fields.size")}:{" "}
           <SelectField source="size" choices={translatedSizes} />
         </span>
       )}
       {record.revenue && (
         <span>
-          {translate("resources.companies.fields.revenue", { _: "Revenue" })}:{" "}
+          {translate("resources.companies.fields.revenue")}:{" "}
           <TextField source="revenue" />
         </span>
       )}

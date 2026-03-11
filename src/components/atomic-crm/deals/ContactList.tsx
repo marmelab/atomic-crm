@@ -23,7 +23,7 @@ export const ContactList = () => {
               {contact.title}
               {contact.title &&
                 contact.company_name &&
-                ` ${translate("crm.common.at", { _: "at" })} `}
+                ` ${translate("crm.common.at")} `}
               {contact.company_name}
             </span>
           </div>

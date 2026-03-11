@@ -62,7 +62,7 @@ export const NotesIteratorMobile = ({
             }}
           >
             <RotateCcw />
-            {translate("crm.common.retry", { _: "Retry" })}
+            {translate("crm.common.retry")}
           </Button>
         </div>
       </div>

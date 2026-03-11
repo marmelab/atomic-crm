@@ -13,9 +13,7 @@ const SalesListActions = () => {
   return (
     <TopToolbar>
       <ExportButton />
-      <CreateButton
-        label={translate("resources.sales.action.new", { _: "New user" })}
-      />
+      <CreateButton label="resources.sales.action.new" />
     </TopToolbar>
   );
 };
@@ -33,7 +31,7 @@ const OptionsField = (_props: { label?: string | boolean }) => {
           variant="outline"
           className="border-blue-300 dark:border-blue-700"
         >
-          {translate("resources.sales.fields.administrator", { _: "Admin" })}
+          {translate("resources.sales.fields.administrator")}
         </Badge>
       )}
       {record.disabled && (
@@ -41,7 +39,7 @@ const OptionsField = (_props: { label?: string | boolean }) => {
           variant="outline"
           className="border-orange-300 dark:border-orange-700"
         >
-          {translate("resources.sales.fields.disabled", { _: "Disabled" })}
+          {translate("resources.sales.fields.disabled")}
         </Badge>
       )}
     </div>
@@ -52,7 +50,7 @@ export function SalesList() {
   const translate = useTranslate();
   return (
     <List
-      title={translate("resources.sales.name", { smart_count: 2, _: "Users" })}
+      title={translate("resources.sales.name", { smart_count: 2 })}
       filters={filters}
       actions={<SalesListActions />}
       sort={{ field: "first_name", order: "ASC" }}

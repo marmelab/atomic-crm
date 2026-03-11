@@ -135,9 +135,7 @@ export const Note = ({
                 </Button>
               </TooltipTrigger>
               <TooltipContent>
-                <p>
-                  {translate("resources.notes.action.edit", { _: "Edit note" })}
-                </p>
+                <p>{translate("resources.notes.action.edit")}</p>
               </TooltipContent>
             </Tooltip>
           </TooltipProvider>
@@ -154,11 +152,7 @@ export const Note = ({
                 </Button>
               </TooltipTrigger>
               <TooltipContent>
-                <p>
-                  {translate("resources.notes.action.delete", {
-                    _: "Delete note",
-                  })}
-                </p>
+                <p>{translate("resources.notes.action.delete")}</p>
               </TooltipContent>
             </Tooltip>
           </TooltipProvider>
@@ -179,7 +173,7 @@ export const Note = ({
               className="cursor-pointer"
             >
               <CircleX className="w-4 h-4" />
-              {translate("ra.action.cancel", { _: "Cancel" })}
+              {translate("ra.action.cancel")}
             </Button>
             <Button
               type="submit"
@@ -187,7 +181,7 @@ export const Note = ({
               className="flex items-center gap-2 cursor-pointer"
             >
               <Save className="w-4 h-4" />
-              {translate("resources.notes.action.update", { _: "Update note" })}
+              {translate("resources.notes.action.update")}
             </Button>
           </div>
         </Form>
@@ -215,8 +209,8 @@ export const Note = ({
               className="text-primary text-sm mt-1 underline hover:no-underline cursor-pointer"
             >
               {isExpanded
-                ? translate("crm.common.show_less", { _: "Show less" })
-                : translate("crm.common.read_more", { _: "Read more" })}
+                ? translate("crm.common.show_less")
+                : translate("crm.common.read_more")}
             </button>
           )}
 

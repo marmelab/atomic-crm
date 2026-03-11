@@ -43,16 +43,14 @@ export const NoteEditSheet = ({
             <h1 className="text-xl font-semibold truncate pr-10">
               {referenceRecord ? (
                 <>
-                  {translate("resources.notes.sheet.edit_for", {
-                    _: "Edit note for",
-                  })}{" "}
+                  {translate("resources.notes.sheet.edit_for")}{" "}
                   <RecordRepresentation
                     record={referenceRecord}
                     resource="contacts"
                   />
                 </>
               ) : (
-                translate("resources.notes.sheet.edit", { _: "Edit note" })
+                translate("resources.notes.sheet.edit")
               )}
             </h1>
           )}

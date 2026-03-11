@@ -52,14 +52,13 @@ const Header = () => {
               <div>
                 <nav className="flex">
                   <NavigationTab
-                    label={translate("ra.page.dashboard", { _: "Dashboard" })}
+                    label={translate("ra.page.dashboard")}
                     to="/"
                     isActive={currentPath === "/"}
                   />
                   <NavigationTab
                     label={translate("resources.contacts.name", {
                       smart_count: 2,
-                      _: "Contacts",
                     })}
                     to="/contacts"
                     isActive={currentPath === "/contacts"}
@@ -67,7 +66,6 @@ const Header = () => {
                   <NavigationTab
                     label={translate("resources.companies.name", {
                       smart_count: 2,
-                      _: "Companies",
                     })}
                     to="/companies"
                     isActive={currentPath === "/companies"}
@@ -75,7 +73,6 @@ const Header = () => {
                   <NavigationTab
                     label={translate("resources.deals.name", {
                       smart_count: 2,
-                      _: "Deals",
                     })}
                     to="/deals"
                     isActive={currentPath === "/deals"}
@@ -135,7 +132,7 @@ const UsersMenu = () => {
     <DropdownMenuItem asChild onClick={userMenuContext.onClose}>
       <Link to="/sales" className="flex items-center gap-2">
         <Users />
-        {translate("resources.sales.name", { smart_count: 2, _: "Users" })}
+        {translate("resources.sales.name", { smart_count: 2 })}
       </Link>
     </DropdownMenuItem>
   );
@@ -151,7 +148,7 @@ const ProfileMenu = () => {
     <DropdownMenuItem asChild onClick={userMenuContext.onClose}>
       <Link to="/profile" className="flex items-center gap-2">
         <User />
-        {translate("crm.profile.title", { _: "Profile" })}
+        {translate("crm.profile.title")}
       </Link>
     </DropdownMenuItem>
   );
@@ -167,7 +164,7 @@ const SettingsMenu = () => {
     <DropdownMenuItem asChild onClick={userMenuContext.onClose}>
       <Link to="/settings" className="flex items-center gap-2">
         <Settings />
-        {translate("crm.settings.title", { _: "Settings" })}
+        {translate("crm.settings.title")}
       </Link>
     </DropdownMenuItem>
   );
@@ -183,7 +180,7 @@ const ImportFromJsonMenuItem = () => {
     <DropdownMenuItem asChild onClick={userMenuContext.onClose}>
       <Link to={ImportPage.path} className="flex items-center gap-2">
         <Import />
-        {translate("crm.header.import_data", { _: "Import data" })}
+        {translate("crm.header.import_data")}
       </Link>
     </DropdownMenuItem>
   );

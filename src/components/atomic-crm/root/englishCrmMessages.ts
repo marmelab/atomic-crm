@@ -58,6 +58,12 @@ export const englishCrmMessages = {
     contacts: {
       name: "Contact |||| Contacts",
       forcedCaseName: "Contact",
+      field_categories: {
+        background_info: "Background info",
+        identity: "Identity",
+        personal_info: "Personal info",
+        position: "Position",
+      },
       fields: {
         first_name: "First name",
         last_name: "Last name",
@@ -107,20 +113,16 @@ export const englishCrmMessages = {
         contacts_label: "contact |||| contacts",
       },
       inputs: {
-        background_info_short: "Background info",
         genders: {
           male: "He/Him",
           female: "She/Her",
           nonbinary: "They/Them",
         },
-        identity: "Identity",
-        personal_info: "Personal info",
         personal_info_types: {
           work: "Work",
           home: "Home",
           other: "Other",
         },
-        position: "Position",
       },
       list: {
         error_loading: "Error loading contacts",
@@ -203,9 +205,6 @@ export const englishCrmMessages = {
         before_create: "before creating a deal.",
         description: "It seems your deal list is empty.",
         title: "No deals found",
-      },
-      filters: {
-        company: "Company",
       },
       stage: {
         lost: "Lost",
@@ -356,7 +355,6 @@ export const englishCrmMessages = {
     common: {
       activity: "Activity",
       added: "added",
-      ago: "ago",
       details: "Details",
       errors: "errors",
       invalid_date: "Invalid date",

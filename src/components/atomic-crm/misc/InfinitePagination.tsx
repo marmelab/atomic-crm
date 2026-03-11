@@ -95,7 +95,7 @@ export const InfinitePagination = ({
           </ItemMedia>
           <ItemContent>
             <ItemTitle className="line-clamp-1">
-              {translate("crm.common.loading", { _: "Loading..." })}
+              {translate("crm.common.loading")}
             </ItemTitle>
           </ItemContent>
         </Item>

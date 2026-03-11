@@ -33,20 +33,16 @@ export const DealEmpty = ({ children }: { children?: ReactNode }) => {
     >
       <img
         src="./img/empty.svg"
-        alt={translate("resources.deals.empty.title", { _: "No deals found" })}
+        alt={translate("resources.deals.empty.title")}
       />
       {contacts && contacts.length > 0 ? (
         <>
           <div className="flex flex-col items-center gap-0">
             <h3 className="text-lg font-bold">
-              {translate("resources.deals.empty.title", {
-                _: "No deals found",
-              })}
+              {translate("resources.deals.empty.title")}
             </h3>
             <p className="text-sm text-center text-muted-foreground mb-4">
-              {translate("resources.deals.empty.description", {
-                _: "It seems your deal list is empty.",
-              })}
+              {translate("resources.deals.empty.description")}
             </p>
           </div>
           <div className="flex space-x-8">
@@ -58,21 +54,15 @@ export const DealEmpty = ({ children }: { children?: ReactNode }) => {
       ) : (
         <div className="flex flex-col items-center gap-0">
           <h3 className="text-lg font-bold">
-            {translate("resources.deals.empty.title", { _: "No deals found" })}
+            {translate("resources.deals.empty.title")}
           </h3>
           <p className="text-sm text-center text-muted-foreground mb-4">
-            {translate("resources.contacts.empty.description", {
-              _: "It seems your contact list is empty.",
-            })}
+            {translate("resources.contacts.empty.description")}
             <br />
             <Link to="/contacts/create" className="hover:underline">
-              {translate("resources.contacts.action.add_first", {
-                _: "Add your first contact",
-              })}
+              {translate("resources.contacts.action.add_first")}
             </Link>{" "}
-            {translate("resources.deals.empty.before_create", {
-              _: "before creating a deal.",
-            })}
+            {translate("resources.deals.empty.before_create")}
           </p>
         </div>
       )}

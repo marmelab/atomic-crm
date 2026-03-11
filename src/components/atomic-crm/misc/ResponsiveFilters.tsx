@@ -62,7 +62,7 @@ export const ResponsiveFilters = ({
               variant="ghost"
               size="icon"
               className="relative size-9"
-              aria-label={translate("ra.action.add_filter", { _: "Filter" })}
+              aria-label={translate("ra.action.add_filter")}
             >
               <Filter className="size-5" />
               {activeFiltersCount > 0 && (
@@ -79,7 +79,7 @@ export const ResponsiveFilters = ({
             <SheetHeader className="-p-4">
               <SheetTitle>
                 <h1 className="text-xl font-semibold">
-                  {translate("ra.action.add_filter", { _: "Filters" })}
+                  {translate("ra.action.add_filter")}
                 </h1>
               </SheetTitle>
             </SheetHeader>
@@ -103,7 +103,7 @@ export const ResponsiveFilters = ({
                 </SheetClose>
                 <SheetClose asChild>
                   <Button className="flex-1">
-                    {translate("ra.action.confirm", { _: "Apply" })}
+                    {translate("ra.action.confirm")}
                   </Button>
                 </SheetClose>
               </div>

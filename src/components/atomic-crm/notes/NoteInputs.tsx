@@ -42,9 +42,7 @@ export const NoteInputs = ({
         label={false}
         multiline
         helperText={false}
-        placeholder={translate("resources.notes.inputs.add_note", {
-          _: "Add a note",
-        })}
+        placeholder={translate("resources.notes.inputs.add_note")}
         rows={6}
       />
 
@@ -80,14 +78,10 @@ export const NoteInputs = ({
             }}
             className="text-sm text-muted-foreground underline hover:no-underline p-0 h-auto cursor-pointer"
           >
-            {translate("resources.notes.inputs.show_options", {
-              _: "Show options",
-            })}
+            {translate("resources.notes.inputs.show_options")}
           </Button>
           <span className="text-sm text-muted-foreground">
-            {translate("resources.notes.inputs.options_hint", {
-              _: "(attach files, or change details)",
-            })}
+            {translate("resources.notes.inputs.options_hint")}
           </span>
         </div>
       )}

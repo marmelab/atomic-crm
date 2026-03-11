@@ -89,21 +89,17 @@ const DealShowContent = () => {
           <div className="flex gap-8 m-4">
             <div className="flex flex-col mr-10">
               <span className="text-xs text-muted-foreground tracking-wide">
-                {translate("resources.deals.fields.expected_closing_date", {
-                  _: "Expected closing date",
-                })}
+                {translate("resources.deals.fields.expected_closing_date")}
               </span>
               <div className="flex items-center gap-2">
                 <span className="text-sm">
                   {isValid(new Date(record.expected_closing_date))
                     ? formatISODateString(record.expected_closing_date)
-                    : translate("crm.common.invalid_date", {
-                        _: "Invalid date",
-                      })}
+                    : translate("crm.common.invalid_date")}
                 </span>
                 {new Date(record.expected_closing_date) < new Date() ? (
                   <Badge variant="destructive">
-                    {translate("crm.common.past", { _: "Past" })}
+                    {translate("crm.common.past")}
                   </Badge>
                 ) : null}
               </div>
@@ -111,7 +107,7 @@ const DealShowContent = () => {
 
             <div className="flex flex-col mr-10">
               <span className="text-xs text-muted-foreground tracking-wide">
-                {translate("resources.deals.fields.amount", { _: "Budget" })}
+                {translate("resources.deals.fields.amount")}
               </span>
               <span className="text-sm">
                 {record.amount.toLocaleString("en-US", {
@@ -127,9 +123,7 @@ const DealShowContent = () => {
             {record.category && (
               <div className="flex flex-col mr-10">
                 <span className="text-xs text-muted-foreground tracking-wide">
-                  {translate("resources.deals.fields.category", {
-                    _: "Category",
-                  })}
+                  {translate("resources.deals.fields.category")}
                 </span>
                 <span className="text-sm">
                   {dealCategories.find((c) => c.value === record.category)
@@ -140,7 +134,7 @@ const DealShowContent = () => {
 
             <div className="flex flex-col mr-10">
               <span className="text-xs text-muted-foreground tracking-wide">
-                {translate("resources.deals.fields.stage", { _: "Stage" })}
+                {translate("resources.deals.fields.stage")}
               </span>
               <span className="text-sm">
                 {findDealLabel(dealStages, record.stage, translate)}
@@ -152,10 +146,7 @@ const DealShowContent = () => {
             <div className="m-4">
               <div className="flex flex-col min-h-12 mr-10">
                 <span className="text-xs text-muted-foreground tracking-wide">
-                  {translate("resources.deals.fields.contact_ids", {
-                    smart_count: 2,
-                    _: "Contacts",
-                  })}
+                  {translate("resources.deals.fields.contact_ids")}
                 </span>
                 <ReferenceArrayField
                   source="contact_ids"
@@ -170,9 +161,7 @@ const DealShowContent = () => {
           {record.description && (
             <div className="m-4 whitespace-pre-line">
               <span className="text-xs text-muted-foreground tracking-wide">
-                {translate("resources.deals.fields.description", {
-                  _: "Description",
-                })}
+                {translate("resources.deals.fields.description")}
               </span>
               <p className="text-sm leading-6">{record.description}</p>
             </div>
@@ -200,7 +189,7 @@ const ArchivedTitle = () => {
   return (
     <div className="bg-orange-500 px-6 py-4">
       <h3 className="text-lg font-bold text-white">
-        {translate("resources.deals.archived.title", { _: "Archived Deal" })}
+        {translate("resources.deals.archived.title")}
       </h3>
     </div>
   );
@@ -248,7 +237,7 @@ const ArchiveButton = ({ record }: { record: Deal }) => {
       className="flex items-center gap-2 h-9"
     >
       <Archive className="w-4 h-4" />
-      {translate("resources.deals.archived.action", { _: "Archive" })}
+      {translate("resources.deals.archived.action")}
     </Button>
   );
 };
@@ -291,9 +280,7 @@ const UnarchiveButton = ({ record }: { record: Deal }) => {
       className="flex items-center gap-2 h-9"
     >
       <ArchiveRestore className="w-4 h-4" />
-      {translate("resources.deals.unarchived.action", {
-        _: "Send back to the board",
-      })}
+      {translate("resources.deals.unarchived.action")}
     </Button>
   );
 };

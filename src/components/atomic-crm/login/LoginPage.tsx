@@ -103,7 +103,7 @@ export const LoginPage = (props: { redirectTo?: string }) => {
           <div className="w-full space-y-6 lg:mx-auto lg:w-[350px]">
             <div className="text-center">
               <h1 className="text-2xl font-semibold tracking-tight">
-                {translate("ra.auth.sign_in", { _: "Sign in" })}
+                {translate("ra.auth.sign_in")}
               </h1>
             </div>
             {disableEmailPasswordAuthentication ? null : (
@@ -126,7 +126,7 @@ export const LoginPage = (props: { redirectTo?: string }) => {
                     className="cursor-pointer"
                     disabled={loading}
                   >
-                    {translate("ra.auth.sign_in", { _: "Sign in" })}
+                    {translate("ra.auth.sign_in")}
                   </Button>
                 </div>
               </Form>

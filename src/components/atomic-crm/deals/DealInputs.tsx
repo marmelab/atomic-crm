@@ -42,7 +42,7 @@ const DealLinkedToInputs = () => {
   return (
     <div className="flex flex-col gap-4 flex-1">
       <h3 className="text-base font-medium">
-        {translate("resources.deals.inputs.linked_to", { _: "Linked to" })}
+        {translate("resources.deals.inputs.linked_to")}
       </h3>
       <ReferenceInput source="company_id" reference="companies">
         <AutocompleteCompanyInput
@@ -67,9 +67,7 @@ const DealMiscInputs = () => {
   const translate = useTranslate();
   return (
     <div className="flex flex-col gap-4 flex-1">
-      <h3 className="text-base font-medium">
-        {translate("crm.common.misc", { _: "Misc" })}
-      </h3>
+      <h3 className="text-base font-medium">{translate("crm.common.misc")}</h3>
 
       <SelectInput
         source="category"

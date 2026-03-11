@@ -56,7 +56,7 @@ export const CompanyListFilter = () => {
       >
         <ToggleFilterButton
           className="w-full justify-between"
-          label={translate("crm.common.me", { _: "Me" })}
+          label={translate("crm.common.me")}
           value={{ sales_id: identity?.id }}
         />
       </FilterCategory>
