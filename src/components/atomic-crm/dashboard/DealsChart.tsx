@@ -4,6 +4,8 @@ import { DollarSign } from "lucide-react";
 import { useGetList, useTranslate } from "ra-core";
 import { memo, useMemo } from "react";
 
+import { findDealLabel } from "../deals/deal";
+import { useConfigurationContext } from "../root/ConfigurationContext";
 import type { Deal } from "../types";
 
 const multiplier = {
@@ -22,9 +24,12 @@ const CURRENCY = "USD";
 
 export const DealsChart = memo(() => {
   const translate = useTranslate();
+  const { dealStages } = useConfigurationContext();
   const acceptedLanguages = navigator
     ? navigator.languages || [navigator.language]
     : [DEFAULT_LOCALE];
+  const wonLabel = findDealLabel(dealStages, "won") ?? "Won";
+  const lostLabel = findDealLabel(dealStages, "lost") ?? "Lost";
 
   const { data, isPending } = useGetList<Deal>("deals", {
     pagination: { perPage: 100, page: 1 },
@@ -180,7 +185,7 @@ export const DealsChart = memo(() => {
                 value: 0,
                 lineStyle: { strokeOpacity: 0 },
                 textStyle: { fill: "#2ebca6" },
-                legend: translate("resources.deals.stage.won"),
+                legend: wonLabel,
                 legendPosition: "top-left",
                 legendOrientation: "vertical",
               },
@@ -192,7 +197,7 @@ export const DealsChart = memo(() => {
                   strokeWidth: 1,
                 },
                 textStyle: { fill: "#e25c3b" },
-                legend: translate("resources.deals.stage.lost"),
+                legend: lostLabel,
                 legendPosition: "bottom-left",
                 legendOrientation: "vertical",
               },
