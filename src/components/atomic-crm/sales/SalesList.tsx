@@ -9,7 +9,6 @@ import { Badge } from "@/components/ui/badge";
 import { TopToolbar } from "../layout/TopToolbar";
 
 const SalesListActions = () => {
-  const translate = useTranslate();
   return (
     <TopToolbar>
       <ExportButton />
