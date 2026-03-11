@@ -17,7 +17,7 @@ vi.mock("@/hooks/use-mobile", () => ({
 const testI18nProvider = {
   translate: (key: string) =>
     (
-      {
+      ({
         "resources.notes.inputs.add_note": "Add a note",
         "resources.notes.inputs.show_options": "Show options",
         "resources.notes.fields.date": "Date",
@@ -25,7 +25,7 @@ const testI18nProvider = {
         "resources.notes.fields.status": "Status",
         "resources.notes.fields.contact_id": "Contact",
         "resources.notes.fields.deal_id": "Deal",
-      } as Record<string, string>
+      }) as Record<string, string>
     )[key] ?? key,
   changeLocale: () => Promise.resolve(),
   getLocale: () => "en",
