@@ -1,6 +1,6 @@
 import { test, expect } from "./fixtures";
 
-test("user onboarding", async ({ page }) => {
+test("user onboarding", async ({ page, isMobile }) => {
   await page.goto("http://localhost:5175/");
 
   // Expect a title "to contain" a substring.
@@ -60,31 +60,38 @@ test("user onboarding", async ({ page }) => {
 
   await page.getByRole("button", { name: "Save" }).click();
 
-  await page.waitForURL("**/contacts/*");
   await page.waitForLoadState("networkidle");
 
-  await expect(page.getByText("Jane Smith")).toBeVisible();
+  await expect(page.locator(isMobile ? "h2" : "h5")).toHaveText("Jane Smith");
   await expect(page.getByText("CEO at Smith Corp")).toBeVisible();
 
-  await page.getByRole("link", { name: "Dashboard" }).click();
+  await page
+    .getByRole("link", { name: isMobile ? "Home" : "Dashboard" })
+    .click();
   await page.waitForLoadState("networkidle");
 
   await expect(page.getByText("2/3 done")).toBeVisible();
 
-  await page.getByRole("link", { name: "Add note" }).click();
+  await page.getByRole("button", { name: "Add note" }).click();
 
   await page.waitForLoadState("networkidle");
 
   await page.getByPlaceholder("Add a note").fill("This is a note about Jane.");
-  await page.getByRole("button", { name: "Add this note" }).click();
+  await page
+    .getByRole("button", { name: isMobile ? "Save" : "Add this note" })
+    .click();
 
   await expect(page.getByText("Element created")).toBeVisible();
   await page.waitForLoadState("networkidle");
 
-  await expect(page.getByText("You added a note")).toBeVisible();
+  await expect(
+    page.getByText(isMobile ? "By you" : "You added a note"),
+  ).toBeVisible();
   await expect(page.getByText("This is a note about Jane.")).toBeVisible();
 
-  await page.getByRole("link", { name: "Dashboard" }).click();
+  await page
+    .getByRole("link", { name: isMobile ? "Home" : "Dashboard" })
+    .click();
 
   await page.waitForLoadState("networkidle");
 

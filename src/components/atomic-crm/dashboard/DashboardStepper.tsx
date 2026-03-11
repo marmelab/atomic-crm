@@ -100,7 +100,9 @@ export const DashboardStepper = ({
                     </Button>
                   ) : (
                     <Button asChild disabled={step < 2} className="w-[100px]">
-                      <Link to={`/contacts/${contactId}/show`}>Add note</Link>
+                      <Link role="button" to={`/contacts/${contactId}/show`}>
+                        Add note
+                      </Link>
                     </Button>
                   )}
                 </div>
