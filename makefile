@@ -22,7 +22,7 @@ start-app: ## start the app locally
 	npm run dev
 
 start-app-e2e: ## start the app pointing to the e2e supabase instance
-	npx vite --force --mode e2e &
+	npx vite --port 5175 --force --mode e2e &
 
 stop-app-e2e:
 	kill $$(lsof -t -i:5175)
