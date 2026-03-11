@@ -96,6 +96,8 @@ export const frenchCrmMessages = {
         followed_by: "Suivi par %{name}",
         followed_by_you: "Suivi par vous",
       },
+      position_at: "%{title} chez",
+      position_at_company: "%{title} chez %{company}",
       empty: {
         description: "Il semble que votre liste de contacts soit vide.",
         title: "Aucun contact trouvé",
@@ -206,10 +208,6 @@ export const frenchCrmMessages = {
         before_create: "avant de créer une affaire.",
         description: "Il semble que votre liste d'affaires soit vide.",
         title: "Aucune affaire trouvée",
-      },
-      stage: {
-        lost: "Perdu",
-        won: "Gagné",
       },
     },
     notes: {
@@ -363,7 +361,6 @@ export const frenchCrmMessages = {
       last_activity: "dernière activité",
       load_more: "Charger plus",
       misc: "Divers",
-      on: "sur",
       past: "Passé",
       read_more: "En savoir plus",
       regarding: "Concernant:",
@@ -371,7 +368,6 @@ export const frenchCrmMessages = {
       show_less: "Afficher moins",
       task_count: "tâche |||| tâches",
       with: "avec",
-      at: "chez",
       copied: "Copié !",
       copy: "Copier",
       loading: "Chargement...",
@@ -388,6 +384,7 @@ export const frenchCrmMessages = {
       you_added_note_about_deal: "Vous avez ajouté une note sur l'affaire",
       added_deal: "%{name} a ajouté l'affaire",
       you_added_deal: "Vous avez ajouté l'affaire",
+      at_company: "chez",
       to: "à",
       load_more: "Charger plus d'activité",
     },
@@ -398,6 +395,7 @@ export const frenchCrmMessages = {
       latest_activity_error:
         "Erreur lors du chargement de la dernière activité",
       latest_notes: "Mes dernières notes",
+      latest_notes_added_ago: "ajouté %{timeAgo}",
       stepper: {
         install: "Installer Atomic CRM",
         progress: "%{step}/3 terminé",
@@ -496,10 +494,8 @@ export const frenchCrmMessages = {
     },
     profile: {
       inbound: {
-        description_prefix:
-          "Vous pouvez commencer à envoyer des e-mails vers l'adresse de réception de votre serveur, par exemple en l'ajoutant au champ",
-        description_suffix:
-          "champ. Atomic CRM traitera les e-mails et ajoutera des notes aux contacts correspondants.",
+        description:
+          "Vous pouvez commencer à envoyer des e-mails vers l'adresse de réception de votre serveur, par exemple en l'ajoutant au champ %{field}. Atomic CRM traitera les e-mails et ajoutera des notes aux contacts correspondants.",
         title: "E-mail entrant",
       },
       password: {

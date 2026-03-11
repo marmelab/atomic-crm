@@ -11,7 +11,7 @@ import { DEFAULT_USER } from "@/components/atomic-crm/providers/fakerest/authPro
 import type { Db } from "@/components/atomic-crm/providers/fakerest/dataGenerator/types";
 import { CONFIGURATION_STORE_KEY } from "@/components/atomic-crm/root/ConfigurationContext";
 import { defaultConfiguration } from "@/components/atomic-crm/root/defaultConfiguration";
-import { i18nProvider } from "@/components/atomic-crm/root/i18nProvider";
+import { i18nProvider } from "@/components/atomic-crm/providers/commons/i18nProvider";
 import { TaskCreateSheet } from "@/components/atomic-crm/tasks/TaskCreateSheet";
 import type {
   Company,

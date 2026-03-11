@@ -93,6 +93,8 @@ export const englishCrmMessages = {
         followed_by: "Followed by %{name}",
         followed_by_you: "Followed by you",
       },
+      position_at: "%{title} at",
+      position_at_company: "%{title} at %{company}",
       empty: {
         description: "It seems your contact list is empty.",
         title: "No contacts found",
@@ -202,10 +204,6 @@ export const englishCrmMessages = {
         before_create: "before creating a deal.",
         description: "It seems your deal list is empty.",
         title: "No deals found",
-      },
-      stage: {
-        lost: "Lost",
-        won: "Won",
       },
     },
     notes: {
@@ -358,14 +356,12 @@ export const englishCrmMessages = {
       last_activity: "last activity",
       load_more: "Load more",
       misc: "Misc",
-      on: "on",
       past: "Past",
       read_more: "Read more",
       regarding: "Re:",
       retry: "Retry",
       show_less: "Show less",
       with: "with",
-      at: "at",
       copied: "Copied!",
       copy: "Copy",
       loading: "Loading...",
@@ -383,6 +379,7 @@ export const englishCrmMessages = {
       you_added_note_about_deal: "You added a note about deal",
       added_deal: "%{name} added deal",
       you_added_deal: "You added deal",
+      at_company: "at",
       to: "to",
       load_more: "Load more activity",
     },
@@ -392,6 +389,7 @@ export const englishCrmMessages = {
       latest_activity: "Latest Activity",
       latest_activity_error: "Error loading latest activity",
       latest_notes: "My Latest Notes",
+      latest_notes_added_ago: "added %{timeAgo}",
       stepper: {
         install: "Install Atomic CRM",
         progress: "%{step}/3 done",
@@ -490,10 +488,8 @@ export const englishCrmMessages = {
     },
     profile: {
       inbound: {
-        description_prefix:
-          "You can start sending emails to your server's inbound email address, e.g. by adding it to the",
-        description_suffix:
-          "field. Atomic CRM will process the emails and add notes to the corresponding contacts.",
+        description:
+          "You can start sending emails to your server's inbound email address, e.g. by adding it to the %{field} field. Atomic CRM will process the emails and add notes to the corresponding contacts.",
         title: "Inbound email",
       },
       password: {
