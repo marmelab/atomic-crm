@@ -1,4 +1,10 @@
-import { ListContextProvider, ResourceContextProvider, useList } from "ra-core";
+import {
+  ListContextProvider,
+  ResourceContextProvider,
+  useList,
+  useTranslate,
+} from "ra-core";
+import { Button } from "@/components/ui/button";
 
 import { TasksIterator } from "./TasksIterator";
 
@@ -7,6 +13,8 @@ type TaskListProps = {
   title: string;
   showContact?: boolean;
   isMobile: boolean;
+  includeDoneTasks?: boolean;
+  showAsArchived?: boolean;
 };
 
 export const TaskListFilter = ({
@@ -14,7 +22,10 @@ export const TaskListFilter = ({
   title,
   showContact,
   isMobile,
+  includeDoneTasks = false,
+  showAsArchived = false,
 }: TaskListProps) => {
+  const translate = useTranslate();
   const listContext = useList({
     data: tasks,
     resource: "tasks",
@@ -27,26 +38,34 @@ export const TaskListFilter = ({
 
   return (
     <div className="flex flex-col gap-2">
-      <p className="text-xs uppercase tracking-wider text-muted-foreground font-medium mb-2">
-        {title}
-      </p>
+      <div className="flex items-center justify-between mb-2">
+        <p className="text-xs uppercase tracking-wider text-muted-foreground font-medium">
+          {title}
+        </p>
+        <span className="text-xs text-muted-foreground">{total}</span>
+      </div>
       <ResourceContextProvider value="tasks">
         <ListContextProvider value={listContext}>
-          <TasksIterator showContact={showContact} />
+          <TasksIterator
+            showContact={showContact}
+            includeDoneTasks={includeDoneTasks}
+            showAsArchived={showAsArchived}
+          />
         </ListContextProvider>
       </ResourceContextProvider>
       {total > listContext.perPage && (
         <div className="flex justify-center">
-          <a
-            href="#"
-            onClick={(e) => {
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            onClick={() => {
               listContext.setPerPage(listContext.perPage + 10);
-              e.preventDefault();
             }}
-            className="text-sm underline hover:no-underline"
+            className="text-sm"
           >
-            Load more
-          </a>
+            {translate("crm.load_more", { _: "Load more" })}
+          </Button>
         </div>
       )}
     </div>

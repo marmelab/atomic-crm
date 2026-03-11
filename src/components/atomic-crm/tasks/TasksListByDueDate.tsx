@@ -4,83 +4,102 @@ import {
   useGetIdentity,
   useGetList,
   useTimeout,
+  useTranslate,
 } from "ra-core";
 import { useIsMobile } from "@/hooks/use-mobile";
 
 import { TaskListFilter } from "./TasksListFilter";
 import {
   isBeforeFriday,
-  isDone,
   isDueLater,
   isDueThisWeek,
   isDueToday,
   isDueTomorrow,
   isOverdue,
-  isRecentlyDone,
 } from "./tasksPredicate";
+import {
+  filterTasksByView,
+  getTasksFilter,
+  type TasksListView,
+} from "./tasksListView";
 
 export const TasksListByDueDate = ({
   filterByContact,
+  view = "active",
+  keepRecentlyDone = true,
   emptyPlaceholder,
   pendingPlaceholder,
 }: {
   filterByContact?: Identifier;
+  view?: TasksListView;
+  keepRecentlyDone?: boolean;
   emptyPlaceholder?: React.ReactNode;
   pendingPlaceholder?: React.ReactNode;
 }) => {
   const { identity } = useGetIdentity();
+  const translate = useTranslate();
   const isMobile = useIsMobile();
+
+  const filter = getTasksFilter({
+    filterByContact,
+    identityId: identity?.id,
+  });
 
   const { data: tasks, isPending } = useGetList(
     "tasks",
     {
       pagination: { page: 1, perPage: 1000 },
-      sort: { field: "due_date", order: "ASC" },
-      filter: {
-        ...(filterByContact != null
-          ? { contact_id: filterByContact }
-          : { sales_id: identity?.id }),
-      },
+      sort:
+        view === "archived"
+          ? { field: "done_date", order: "DESC" }
+          : { field: "due_date", order: "ASC" },
+      filter,
     },
-    { enabled: filterByContact != null ? true : !!identity },
+    { enabled: filterByContact != null ? true : !!identity?.id },
   );
 
   const showContact = filterByContact == null;
 
-  const ongoingTasks = useMemo(
-    () => tasks?.filter((task) => !isDone(task) || isRecentlyDone(task)) || [],
-    [tasks],
+  const tasksInCurrentView = useMemo(
+    () =>
+      filterTasksByView(tasks || [], {
+        view,
+        keepRecentlyDone,
+      }),
+    [tasks, view, keepRecentlyDone],
   );
 
   const overdueTasks = useMemo(
     () =>
-      ongoingTasks?.filter((task) => {
+      tasksInCurrentView?.filter((task) => {
         return isOverdue(task.due_date);
       }) || [],
-    [ongoingTasks],
+    [tasksInCurrentView],
   );
 
   const dueTodayTasks = useMemo(
     () =>
-      ongoingTasks?.filter((task) => {
+      tasksInCurrentView?.filter((task) => {
         return isDueToday(task.due_date);
       }) || [],
-    [ongoingTasks],
+    [tasksInCurrentView],
   );
 
   const dueTomorrowTasks = useMemo(
-    () => ongoingTasks?.filter((task) => isDueTomorrow(task.due_date)) || [],
-    [ongoingTasks],
+    () =>
+      tasksInCurrentView?.filter((task) => isDueTomorrow(task.due_date)) || [],
+    [tasksInCurrentView],
   );
 
   const dueThisWeekTasks = useMemo(
-    () => ongoingTasks?.filter((task) => isDueThisWeek(task.due_date)) || [],
-    [ongoingTasks],
+    () =>
+      tasksInCurrentView?.filter((task) => isDueThisWeek(task.due_date)) || [],
+    [tasksInCurrentView],
   );
 
   const dueLaterTasks = useMemo(
-    () => ongoingTasks?.filter((task) => isDueLater(task.due_date)) || [],
-    [ongoingTasks],
+    () => tasksInCurrentView?.filter((task) => isDueLater(task.due_date)) || [],
+    [tasksInCurrentView],
   );
 
   const oneSecondHasPassed = useTimeout(1000);
@@ -93,41 +112,54 @@ export const TasksListByDueDate = ({
     return null;
   }
 
-  if (!ongoingTasks.length) {
+  if (!tasksInCurrentView.length) {
     return emptyPlaceholder ?? null;
+  }
+
+  if (view === "archived") {
+    return (
+      <TaskListFilter
+        tasks={tasksInCurrentView}
+        title={translate("crm.tasks.filter.archived", { _: "Archived" })}
+        showContact={showContact}
+        isMobile={isMobile}
+        includeDoneTasks
+        showAsArchived
+      />
+    );
   }
 
   return (
     <div className="flex flex-col gap-4">
       <TaskListFilter
         tasks={overdueTasks}
-        title="Overdue"
+        title={translate("crm.tasks.filter.overdue", { _: "Overdue" })}
         showContact={showContact}
         isMobile={isMobile}
       />
       <TaskListFilter
         tasks={dueTodayTasks}
-        title="Today"
+        title={translate("crm.filters.today", { _: "Today" })}
         showContact={showContact}
         isMobile={isMobile}
       />
       <TaskListFilter
         tasks={dueTomorrowTasks}
-        title="Tomorrow"
+        title={translate("crm.tasks.filter.tomorrow", { _: "Tomorrow" })}
         showContact={showContact}
         isMobile={isMobile}
       />
       {(!filterByContact || (filterByContact && isBeforeFriday())) && (
         <TaskListFilter
           tasks={dueThisWeekTasks}
-          title="This week"
+          title={translate("crm.filters.this_week", { _: "This week" })}
           showContact={showContact}
           isMobile={isMobile}
         />
       )}
       <TaskListFilter
         tasks={dueLaterTasks}
-        title="Later"
+        title={translate("crm.tasks.filter.later", { _: "Later" })}
         showContact={showContact}
         isMobile={isMobile}
       />
