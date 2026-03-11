@@ -29,10 +29,10 @@ export const frenchCrmMessages = {
         description: "Il semble que la liste de vos entreprises soit vide.",
         title: "Aucune entreprise trouvée",
       },
-      inputs: {
-        additional_information: "Informations Complémentaires",
-        address: "Adresse",
+      field_categories: {
         contact: "Contact",
+        additional_info: "Informations supplémentaires",
+        address: "Adresse",
         context: "Contexte",
       },
       action: {
@@ -41,26 +41,9 @@ export const frenchCrmMessages = {
         new: "Nouvelle entreprise",
         show: "Afficher l'entreprise",
       },
-      contacts: {
-        many: "%{smart_count} contacts",
-        none: "Aucun contact",
-        one: "1 contact",
-      },
-      deals: {
-        many: "%{smart_count} affaires",
-        one: "1 affaire",
-      },
-      aside: {
-        additional_info: "Informations supplémentaires",
-        company_info: "Informations de l'entreprise",
-        context: "Contexte",
-        main_address: "Adresse principale",
-      },
-      filters: {
-        only_mine: "Seulement les entreprises que je gère",
-        sector: "Secteur",
-        size: "Taille",
-      },
+      no_contacts: "Aucun contact",
+      nb_contacts: "%{smart_count} contact |||| %{smart_count} contacts",
+      nb_deals: "%{smart_count} affaire |||| %{smart_count} affaires",
       sizes: {
         one_employee: "1 employé",
         two_to_nine_employees: "2-9 employés",
@@ -393,7 +376,6 @@ export const frenchCrmMessages = {
       show_less: "Afficher moins",
       task_count: "tâche |||| tâches",
       with: "avec",
-      account_manager: "Responsable de compte",
       at: "chez",
       copied: "Copié !",
       copy: "Copier",

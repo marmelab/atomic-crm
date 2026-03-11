@@ -27,10 +27,10 @@ export const englishCrmMessages = {
         description: "It seems your company list is empty.",
         title: "No companies found",
       },
-      inputs: {
-        additional_information: "Additional information",
-        address: "Address",
+      field_categories: {
         contact: "Contact",
+        additional_info: "Additional information",
+        address: "Address",
         context: "Context",
       },
       action: {
@@ -39,26 +39,9 @@ export const englishCrmMessages = {
         new: "New Company",
         show: "Show company",
       },
-      contacts: {
-        many: "%{smart_count} Contacts",
-        none: "No Contacts",
-        one: "1 Contact",
-      },
-      deals: {
-        many: "%{smart_count} deals",
-        one: "1 deal",
-      },
-      aside: {
-        additional_info: "Additional info",
-        company_info: "Company info",
-        context: "Context",
-        main_address: "Main address",
-      },
-      filters: {
-        only_mine: "Only companies I manage",
-        sector: "Sector",
-        size: "Size",
-      },
+      no_contacts: "No contact",
+      nb_contacts: "%{smart_count} contact |||| %{smart_count} contacts",
+      nb_deals: "%{smart_count} deal |||| %{smart_count} deals",
       sizes: {
         one_employee: "1 employee",
         two_to_nine_employees: "2-9 employees",
@@ -387,7 +370,6 @@ export const englishCrmMessages = {
       retry: "Retry",
       show_less: "Show less",
       with: "with",
-      account_manager: "Account manager",
       at: "at",
       copied: "Copied!",
       copy: "Copy",

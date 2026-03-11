@@ -70,7 +70,7 @@ export const CompanyInfo = ({ record }: { record: Company }) => {
 
   return (
     <AsideSection
-      title={translate("resources.companies.aside.company_info", {
+      title={translate("resources.companies.field_categories.contact", {
         _: "Company info",
       })}
     >
@@ -127,7 +127,9 @@ export const ContextInfo = ({ record }: { record: Company }) => {
 
   return (
     <AsideSection
-      title={translate("resources.companies.aside.context", { _: "Context" })}
+      title={translate("resources.companies.field_categories.context", {
+        _: "Context",
+      })}
     >
       {sectorLabel && (
         <span>
@@ -172,7 +174,7 @@ export const AddressInfo = ({ record }: { record: Company }) => {
 
   return (
     <AsideSection
-      title={translate("resources.companies.aside.main_address", {
+      title={translate("resources.companies.field_categories.address", {
         _: "Main address",
       })}
       noGap
@@ -208,7 +210,7 @@ export const AdditionalInfo = ({ record }: { record: Company }) => {
 
   return (
     <AsideSection
-      title={translate("resources.companies.aside.additional_info", {
+      title={translate("resources.companies.field_categories.additional_info", {
         _: "Additional info",
       })}
     >

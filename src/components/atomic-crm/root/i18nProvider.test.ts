@@ -43,12 +43,6 @@ describe("i18nProvider", () => {
     expect(i18nProvider.translate("resources.deals.empty.title")).toBe(
       "Aucune affaire trouvée",
     );
-    expect(
-      i18nProvider.translate("resources.companies.filters.only_mine"),
-    ).toBe("Seulement les entreprises que je gère");
-    expect(i18nProvider.translate("resources.companies.contacts.none")).toBe(
-      "Aucun contact",
-    );
   });
 
   it("uses browser french locale when available", () => {

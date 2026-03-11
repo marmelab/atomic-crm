@@ -79,7 +79,9 @@ const CompanyContactInputs = () => {
   return (
     <div className="flex flex-col gap-4">
       <h6 className="text-lg font-semibold">
-        {translate("resources.companies.inputs.contact", { _: "Contact" })}
+        {translate("resources.companies.field_categories.contact", {
+          _: "Company info",
+        })}
       </h6>
       <TextInput source="website" helperText={false} validate={isUrl} />
       <TextInput
@@ -102,7 +104,9 @@ const CompanyContextInputs = () => {
   return (
     <div className="flex flex-col gap-4">
       <h6 className="text-lg font-semibold">
-        {translate("resources.companies.inputs.context", { _: "Context" })}
+        {translate("resources.companies.field_categories.context", {
+          _: "Context",
+        })}
       </h6>
       <SelectInput
         source="sector"
@@ -123,7 +127,9 @@ const CompanyAddressInputs = () => {
   return (
     <div className="flex flex-col gap-4">
       <h6 className="text-lg font-semibold">
-        {translate("resources.companies.inputs.address", { _: "Address" })}
+        {translate("resources.companies.field_categories.address", {
+          _: "Address",
+        })}
       </h6>
       <TextInput source="address" helperText={false} />
       <TextInput source="city" helperText={false} />
@@ -139,7 +145,7 @@ const CompanyAdditionalInformationInputs = () => {
   return (
     <div className="flex flex-col gap-4">
       <h6 className="text-lg font-semibold">
-        {translate("resources.companies.inputs.additional_information", {
+        {translate("resources.companies.field_categories.additional_info", {
           _: "Additional information",
         })}
       </h6>

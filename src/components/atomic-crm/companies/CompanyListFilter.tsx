@@ -24,7 +24,7 @@ export const CompanyListFilter = () => {
 
       <FilterCategory
         icon={<Building className="h-4 w-4" />}
-        label={translate("resources.companies.filters.size", { _: "Size" })}
+        label="resources.companies.fields.size"
       >
         {translatedSizes.map((size) => (
           <ToggleFilterButton
@@ -38,7 +38,7 @@ export const CompanyListFilter = () => {
 
       <FilterCategory
         icon={<Truck className="h-4 w-4" />}
-        label={translate("resources.companies.filters.sector", { _: "Sector" })}
+        label="resources.companies.fields.sector"
       >
         {companySectors.map((sector) => (
           <ToggleFilterButton
@@ -52,9 +52,7 @@ export const CompanyListFilter = () => {
 
       <FilterCategory
         icon={<Users className="h-4 w-4" />}
-        label={translate("crm.common.account_manager", {
-          _: "Account manager",
-        })}
+        label="resources.companies.fields.sales_id"
       >
         <ToggleFilterButton
           className="w-full justify-between"

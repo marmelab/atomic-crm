@@ -124,29 +124,21 @@ const CompanyShowContent = () => {
                   {translate("crm.common.activity", { _: "Activity" })}
                 </TabsTrigger>
                 <TabsTrigger value="contacts">
-                  {record.nb_contacts
-                    ? record.nb_contacts === 1
-                      ? translate("resources.companies.contacts.one", {
-                          _: "1 Contact",
-                        })
-                      : translate("resources.companies.contacts.many", {
-                          smart_count: record.nb_contacts,
-                          _: `${record.nb_contacts} Contacts`,
-                        })
-                    : translate("resources.companies.contacts.none", {
+                  {record.nb_contacts === 0
+                    ? translate("resources.companies.no_contacts", {
                         _: "No Contacts",
+                      })
+                    : translate("resources.companies.nb_contacts", {
+                        smart_count: record.nb_contacts,
+                        _: `${record.nb_contacts} Contacts`,
                       })}
                 </TabsTrigger>
                 {record.nb_deals ? (
                   <TabsTrigger value="deals">
-                    {record.nb_deals === 1
-                      ? translate("resources.companies.deals.one", {
-                          _: "1 deal",
-                        })
-                      : translate("resources.companies.deals.many", {
-                          smart_count: record.nb_deals,
-                          _: `${record.nb_deals} deals`,
-                        })}
+                    {translate("resources.companies.nb_deals", {
+                      smart_count: record.nb_deals,
+                      _: `${record.nb_deals} deals`,
+                    })}
                   </TabsTrigger>
                 ) : null}
               </TabsList>

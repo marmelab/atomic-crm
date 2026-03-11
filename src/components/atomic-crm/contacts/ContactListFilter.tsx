@@ -162,9 +162,7 @@ export const ContactListFilter = () => {
 
       <FilterCategory
         icon={<Users />}
-        label={translate("crm.common.account_manager", {
-          _: "Account manager",
-        })}
+        label="resources.contacts.fields.sales_id"
       >
         <ToggleFilterButton
           className="w-full justify-between h-10 md:h-8"
