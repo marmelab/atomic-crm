@@ -1,6 +1,6 @@
 import { endOfYesterday, startOfMonth, startOfWeek, subMonths } from "date-fns";
 import { CheckSquare, Clock, Tag, TrendingUp, Users } from "lucide-react";
-import { useGetIdentity, useGetList, useListContext } from "ra-core";
+import { useGetList, useListContext } from "ra-core";
 import { ToggleFilterButton } from "@/components/admin/toggle-filter-button";
 import { Badge } from "@/components/ui/badge";
 
@@ -11,13 +11,25 @@ import { ResponsiveFilters } from "../misc/ResponsiveFilters";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { ActiveFilterButton } from "../misc/ActiveFilterButton";
 
+const getSaleDisplayName = (sale: { id: unknown; first_name: string; last_name: string }, allSales: { id: unknown; first_name: string }[]) => {
+  const hasDuplicate = allSales.some(s => s.first_name === sale.first_name && s.id !== sale.id);
+  if (hasDuplicate) {
+    return `${sale.first_name} ${sale.last_name?.charAt(0)}.`;
+  }
+  return sale.first_name;
+};
+
 export const ContactListFilter = () => {
   const { noteStatuses } = useConfigurationContext();
   const isMobile = useIsMobile();
-  const { identity } = useGetIdentity();
   const { data } = useGetList("tags", {
     pagination: { page: 1, perPage: 10 },
     sort: { field: "name", order: "ASC" },
+  });
+  const { data: salesData } = useGetList("sales", {
+    pagination: { page: 1, perPage: 100 },
+    sort: { field: "first_name", order: "ASC" },
+    filter: { "disabled@neq": true },
   });
 
   return (
@@ -122,12 +134,15 @@ export const ContactListFilter = () => {
       </FilterCategory>
 
       <FilterCategory icon={<Users />} label="Responsable">
-        <ToggleFilterButton
-          className="w-full justify-between h-10 md:h-8"
-          label={"Moi"}
-          value={{ sales_id: identity?.id }}
-          size={isMobile ? "lg" : undefined}
-        />
+        {salesData?.map((sale) => (
+          <ToggleFilterButton
+            key={sale.id}
+            className="w-full justify-between h-10 md:h-8"
+            label={getSaleDisplayName(sale, salesData)}
+            value={{ sales_id: sale.id }}
+            size={isMobile ? "lg" : undefined}
+          />
+        ))}
       </FilterCategory>
     </ResponsiveFilters>
   );
@@ -135,10 +150,14 @@ export const ContactListFilter = () => {
 
 export const ContactListFilterSummary = () => {
   const { noteStatuses } = useConfigurationContext();
-  const { identity } = useGetIdentity();
   const { data } = useGetList("tags", {
     pagination: { page: 1, perPage: 10 },
     sort: { field: "name", order: "ASC" },
+  });
+  const { data: salesData } = useGetList("sales", {
+    pagination: { page: 1, perPage: 100 },
+    sort: { field: "first_name", order: "ASC" },
+    filter: { "disabled@neq": true },
   });
   const { filterValues } = useListContext();
   const hasFilters = !!Object.entries(filterValues || {}).filter(
@@ -231,11 +250,14 @@ export const ContactListFilterSummary = () => {
         value={{ "nb_tasks@gt": 0 }}
       />
 
-      <ActiveFilterButton
-        className="w-auto justify-between h-8"
-        label={"Géré par moi"}
-        value={{ sales_id: identity?.id }}
-      />
+      {salesData?.map((sale) => (
+        <ActiveFilterButton
+          key={sale.id}
+          className="w-auto justify-between h-8"
+          label={getSaleDisplayName(sale, salesData)}
+          value={{ sales_id: sale.id }}
+        />
+      ))}
     </div>
   );
 };
