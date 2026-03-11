@@ -16,11 +16,12 @@ const ContactOptionRender = () => {
           {record.first_name} {record.last_name}
         </span>
         <span className="text-xs text-muted-foreground">
-          {record.title}
-          {record.title &&
-            record.company_name &&
-            ` ${translate("crm.common.at")} `}
-          {record.company_name}
+          {record.title && record.company_name
+            ? translate("resources.contacts.position_at_company", {
+                title: record.title,
+                company: record.company_name,
+              })
+            : record.title || record.company_name}
         </span>
       </div>
     </div>

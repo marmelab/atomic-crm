@@ -102,10 +102,11 @@ const ContactShowContentMobile = () => {
                 <RecordRepresentation />
               </h2>
               <div className="text-sm text-muted-foreground">
-                {record.title}
-                {record.title &&
-                  record.company_id != null &&
-                  ` ${translate("crm.common.at")} `}
+                {record.title && record.company_id != null
+                  ? `${translate("resources.contacts.position_at", {
+                      title: record.title,
+                    })} `
+                  : record.title}
                 {record.company_id != null && (
                   <ReferenceField
                     source="company_id"
@@ -244,10 +245,11 @@ const ContactShowContent = () => {
                   <RecordRepresentation />
                 </h5>
                 <div className="inline-flex text-sm text-muted-foreground">
-                  {record.title}
-                  {record.title &&
-                    record.company_id != null &&
-                    ` ${translate("crm.common.at")} `}
+                  {record.title && record.company_id != null
+                    ? `${translate("resources.contacts.position_at", {
+                        title: record.title,
+                      })} `
+                    : record.title}
                   {record.company_id != null && (
                     <ReferenceField
                       source="company_id"

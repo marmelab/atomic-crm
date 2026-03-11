@@ -66,16 +66,16 @@ export const LatestNotes = () => {
               className="mb-8"
             >
               <div className="text-sm text-muted-foreground">
-                {translate("crm.common.on")}{" "}
                 {note.type === "dealNote" ? (
                   <Deal note={note} />
                 ) : (
                   <Contact note={note} />
                 )}
                 {", "}
-                {translate("crm.common.added")}{" "}
-                {formatDistance(note.date, new Date(), {
-                  addSuffix: true,
+                {translate("crm.dashboard.latest_notes_added_ago", {
+                  timeAgo: formatDistance(note.date, new Date(), {
+                    addSuffix: true,
+                  }),
                 })}
               </div>
               <div>

@@ -60,7 +60,7 @@ export function ActivityLogDealNoteCreated({
             {context !== "company" && (
               <>
                 {" "}
-                {translate("crm.common.at")}{" "}
+                {translate("crm.activity.at_company")}{" "}
                 <ReferenceField
                   source="deal_id"
                   reference="deals"

@@ -20,11 +20,12 @@ export const ContactList = () => {
               {contact.first_name} {contact.last_name}
             </RouterLink>
             <span className="text-xs text-muted-foreground">
-              {contact.title}
-              {contact.title &&
-                contact.company_name &&
-                ` ${translate("crm.common.at")} `}
-              {contact.company_name}
+              {contact.title && contact.company_name
+                ? translate("resources.contacts.position_at_company", {
+                    title: contact.title,
+                    company: contact.company_name,
+                  })
+                : contact.title || contact.company_name}
             </span>
           </div>
         </div>

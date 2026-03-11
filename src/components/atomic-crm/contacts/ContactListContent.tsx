@@ -130,10 +130,11 @@ const ContactItemContent = ({
           </div>
           {contact.title || contact.company_id != null || contact.nb_tasks ? (
             <div className="text-sm text-muted-foreground">
-              {contact.title}
-              {contact.title &&
-                contact.company_id != null &&
-                ` ${translate("crm.common.at")} `}
+              {contact.title && contact.company_id != null
+                ? `${translate("resources.contacts.position_at", {
+                    title: contact.title,
+                  })} `
+                : contact.title}
               {contact.company_id != null && (
                 <ReferenceField
                   source="company_id"
@@ -261,10 +262,11 @@ const ContactItemContentMobile = ({ contact }: { contact: Contact }) => {
           <div className="text-sm text-muted-foreground">
             <div className="flex flex-col gap-1">
               <span>
-                {contact.title}
-                {contact.title &&
-                  contact.company_id != null &&
-                  ` ${translate("crm.common.at")} `}
+                {contact.title && contact.company_id != null
+                  ? `${translate("resources.contacts.position_at", {
+                      title: contact.title,
+                    })} `
+                  : contact.title}
                 {contact.company_id != null && (
                   <ReferenceField
                     source="company_id"
