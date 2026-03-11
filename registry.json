@@ -178,18 +178,6 @@
           "type": "registry:component"
         },
         {
-          "path": "src/components/atomic-crm/root/i18nProvider.tsx",
-          "type": "registry:component"
-        },
-        {
-          "path": "src/components/atomic-crm/root/frenchCrmMessages.ts",
-          "type": "registry:component"
-        },
-        {
-          "path": "src/components/atomic-crm/root/englishCrmMessages.ts",
-          "type": "registry:component"
-        },
-        {
           "path": "src/components/atomic-crm/root/defaultConfiguration.ts",
           "type": "registry:component"
         },
@@ -310,11 +298,23 @@
           "type": "registry:component"
         },
         {
+          "path": "src/components/atomic-crm/providers/commons/i18nProvider.ts",
+          "type": "registry:component"
+        },
+        {
           "path": "src/components/atomic-crm/providers/commons/getContactAvatar.ts",
           "type": "registry:component"
         },
         {
           "path": "src/components/atomic-crm/providers/commons/getCompanyAvatar.ts",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/providers/commons/frenchCrmMessages.ts",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/providers/commons/englishCrmMessages.ts",
           "type": "registry:component"
         },
         {
