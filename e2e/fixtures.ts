@@ -187,6 +187,25 @@ async function createContact({
   return data;
 }
 
+const getMenuMethod = ({
+  page,
+  isMobile,
+}: {
+  page: any;
+  isMobile: boolean;
+}) => ({
+  goToDashboard: async () => {
+    await page
+      .getByRole("link", { name: isMobile ? "Home" : "Dashboard" })
+      .click();
+    await page.waitForLoadState("networkidle");
+  },
+  goToContacts: async () => {
+    await page.getByRole("link", { name: "Contacts" }).click();
+    await page.waitForLoadState("networkidle");
+  },
+});
+
 export const test = base.extend<{
   resetDb: void;
   createUser: typeof createUser;
@@ -194,6 +213,7 @@ export const test = base.extend<{
   createCompany: typeof createCompany;
   createContact: typeof createContact;
   createNotes: typeof createNotes;
+  menu: ReturnType<typeof getMenuMethod>;
 }>({
   resetDb: [
     // The first argument to a Playwright fixture function must use object destructuring ({}) — _ is not allowed.
@@ -224,6 +244,9 @@ export const test = base.extend<{
   // eslint-disable-next-line no-empty-pattern
   createNotes: async ({}, cb) => {
     await cb(createNotes);
+  },
+  menu: async ({ page, isMobile }, cb) => {
+    await cb(getMenuMethod({ page, isMobile }));
   },
 });
 

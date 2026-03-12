@@ -38,7 +38,7 @@ test.describe("user adding a task", () => {
       company_id: company.id,
     });
   });
-  test("user adding a task", async ({ page, isMobile }) => {
+  test("user adding a task", async ({ page, isMobile, menu }) => {
     await page.goto("http://localhost:5175/");
     await page.getByLabel("Email").fill("john@doe.com");
     await page.getByLabel("Password").fill("password");
@@ -47,7 +47,7 @@ test.describe("user adding a task", () => {
     await expect(page).toHaveTitle(/Atomic CRM/);
     await expect(page.getByText("Latest Activity")).toBeVisible();
 
-    await page.getByRole("link", { name: "Contacts" }).click();
+    await menu.goToContacts();
     await page.waitForLoadState("networkidle");
 
     await page.getByText("Jane Smith").click();
@@ -86,7 +86,7 @@ test.describe("user adding a task", () => {
       await expect(page.getByText("Tasks").locator("..")).toHaveText(
         /Follow up with Jane/,
       );
-      await page.getByRole("link", { name: "Dashboard" }).click();
+      await menu.goToDashboard();
 
       await expect(page.getByText("Upcoming Tasks")).toBeVisible();
       await expect(
