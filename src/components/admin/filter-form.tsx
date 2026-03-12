@@ -373,7 +373,6 @@ export const FilterButton = (props: FilterButtonProps) => {
               >
                 <BookmarkMinus className="h-4 w-4 mr-2" />
                 {translate("ra.saved_queries.remove_label_with_name", {
-                  _: 'Remove query "%{name}"',
                   name: savedQuery.label,
                 })}
               </DropdownMenuItem>
@@ -404,9 +403,7 @@ export const FilterButton = (props: FilterButtonProps) => {
           {hasFilterValues && !hasSavedCurrentQuery && !disableSaveQuery && (
             <DropdownMenuItem onClick={showAddSavedQueryDialog}>
               <BookmarkPlus className="h-4 w-4 mr-2" />
-              {translate("ra.saved_queries.new_label", {
-                _: "Save current query...",
-              })}
+              {translate("ra.saved_queries.new_label")}
             </DropdownMenuItem>
           )}
           {hasFilterValues && (
@@ -417,9 +414,7 @@ export const FilterButton = (props: FilterButtonProps) => {
               }}
             >
               <X className="h-4 w-4 mr-2" />
-              {translate("ra.action.remove_all_filters", {
-                _: "Remove all filters",
-              })}
+              {translate("ra.action.remove_all_filters")}
             </DropdownMenuItem>
           )}
         </DropdownMenuContent>

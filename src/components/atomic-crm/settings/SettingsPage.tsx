@@ -74,18 +74,11 @@ export const SettingsPage = () => {
       mutationOptions={{
         onSuccess: (data: any) => {
           updateConfiguration(data.config);
-          notify("crm.settings.saved", {
-            messageArgs: {
-              _: "Configuration saved successfully",
-            },
-          });
+          notify("crm.settings.saved");
         },
         onError: () => {
           notify("crm.settings.save_error", {
             type: "error",
-            messageArgs: {
-              _: "Failed to save configuration",
-            },
           });
         },
       }}
@@ -133,13 +126,9 @@ const SettingsFormFields = () => {
 
   const dealStages = watch("dealStages");
   const dealPipelineStatuses: string[] = watch("dealPipelineStatuses") ?? [];
-  const stageDisplayName = translate(
-    "crm.settings.validation.entities.stages",
-    { _: "stages" },
-  );
+  const stageDisplayName = translate("crm.settings.validation.entities.stages");
   const categoryDisplayName = translate(
     "crm.settings.validation.entities.categories",
-    { _: "categories" },
   );
 
   const { data: deals } = useGetList("deals", {
@@ -153,19 +142,13 @@ const SettingsFormFields = () => {
           translate("crm.settings.validation.duplicate", {
             display_name: displayName,
             items: duplicates.join(", "),
-            _: `Duplicate ${displayName}: ${duplicates.join(", ")}`,
           }),
         inUse: (displayName, inUse) =>
           translate("crm.settings.validation.in_use", {
             display_name: displayName,
             items: inUse.join(", "),
-            _:
-              `Cannot remove ${displayName} that are still used by deals: ` +
-              inUse.join(", "),
           }),
-        validating: translate("crm.settings.validation.validating", {
-          _: "Validating…",
-        }),
+        validating: translate("crm.settings.validation.validating"),
       }),
     [deals, stageDisplayName, translate],
   );
@@ -177,19 +160,13 @@ const SettingsFormFields = () => {
           translate("crm.settings.validation.duplicate", {
             display_name: displayName,
             items: duplicates.join(", "),
-            _: `Duplicate ${displayName}: ${duplicates.join(", ")}`,
           }),
         inUse: (displayName, inUse) =>
           translate("crm.settings.validation.in_use", {
             display_name: displayName,
             items: inUse.join(", "),
-            _:
-              `Cannot remove ${displayName} that are still used by deals: ` +
-              inUse.join(", "),
           }),
-        validating: translate("crm.settings.validation.validating", {
-          _: "Validating…",
-        }),
+        validating: translate("crm.settings.validation.validating"),
       }),
     [categoryDisplayName, deals, translate],
   );
@@ -213,10 +190,7 @@ const SettingsFormFields = () => {
               }}
               className="block w-full text-left px-3 py-1 text-sm rounded-md hover:text-foreground hover:bg-muted transition-colors"
             >
-              {translate(section.label, {
-                _: section.fallback,
-                smart_count: 2,
-              })}
+              {translate(section.label, { smart_count: 2 })}
             </button>
           ))}
         </div>
@@ -308,14 +282,10 @@ const SettingsFormFields = () => {
             <Separator />
 
             <h3 className="text-lg font-medium text-muted-foreground">
-              {translate("crm.settings.deals.pipeline_statuses", {
-                _: "Pipeline Statuses",
-              })}
+              {translate("crm.settings.deals.pipeline_statuses")}
             </h3>
             <p className="text-sm text-muted-foreground">
-              {translate("crm.settings.deals.pipeline_help", {
-                _: 'Select which deal stages count as "pipeline" (completed) deals.',
-              })}
+              {translate("crm.settings.deals.pipeline_help")}
             </p>
             <div className="flex flex-wrap gap-2">
               {dealStages?.map(
