@@ -1,4 +1,4 @@
-import { commands } from "@vitest/browser/context";
+import { commands } from "vitest/browser";
 
 import { formatISODateString } from "./dealUtils";
 
