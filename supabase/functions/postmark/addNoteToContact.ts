@@ -133,13 +133,36 @@ export const addNoteToContact = async ({
     );
   }
 
-  const contact = await getOrCreateContactFromEmailInfo({
+  const { contact, error } = await getOrCreateContactFromEmailInfo({
     email,
     firstName,
     lastName,
     salesId: sales.id,
     domain,
-  });
+  })
+    .then((contact) => ({
+      contact,
+    }))
+    .catch((error) => {
+      return {
+        error,
+      };
+    });
+
+  if (error) {
+    console.error(
+      "Error in getOrCreateContactFromEmailInfo for email:",
+      email,
+      "sales:",
+      salesEmail,
+      "error:",
+      error,
+    );
+    return new Response(
+      `Could not get or create contact from database, email: ${email}, sales: ${salesEmail}`,
+      { status: 500 },
+    );
+  }
 
   // Add note to contact
   const { error: createNoteError } = await supabaseAdmin
