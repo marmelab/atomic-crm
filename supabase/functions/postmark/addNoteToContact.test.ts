@@ -14,11 +14,13 @@ vi.mock("../_shared/supabaseAdmin.ts", () => ({
   },
 }));
 
-beforeEach(() => {
-  vi.clearAllMocks();
-});
-
 describe("addNoteToContact", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+  afterAll(() => {
+    vi.resetAllMocks();
+  });
   describe("getOrCreateCompanyFromDomain", () => {
     it("returns the existing company when it already exists in the database", async () => {
       const existingCompany = { id: 1, name: "acme.com", sales_id: 42 };

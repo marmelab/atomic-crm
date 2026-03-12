@@ -24,13 +24,16 @@ const Wrapper = ({ children }: { children: React.ReactNode }) => (
     </MemoryRouter>
   </QueryClientProvider>
 );
-
-beforeEach(() => {
-  vi.clearAllMocks();
-  mockIsMobile.mockReturnValue(false);
-});
-
 describe("NoteInputs", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockIsMobile.mockReturnValue(false);
+  });
+
+  afterAll(() => {
+    vi.resetAllMocks();
+  });
+
   it("renders the note textarea", async () => {
     const screen = await render(<NoteInputs />, {
       wrapper: Wrapper,
