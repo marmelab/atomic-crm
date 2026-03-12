@@ -9,12 +9,14 @@ export const TasksIterator = ({
   includeDoneTasks = false,
   showAsArchived = false,
   showStatus = false,
+  maxTextLength,
 }: {
   showContact?: boolean;
   className?: string;
   includeDoneTasks?: boolean;
   showAsArchived?: boolean;
   showStatus?: boolean;
+  maxTextLength?: number;
 }) => {
   const { data, error, isPending } = useListContext();
   if (isPending || error || data.length === 0) return null;
@@ -32,6 +34,7 @@ export const TasksIterator = ({
           showContact={showContact}
           showAsArchived={showAsArchived}
           showStatus={showStatus}
+          maxTextLength={maxTextLength}
           key={task.id}
         />
       ))}

@@ -576,6 +576,8 @@ export const polishMessages: TranslationMessages = {
       create_for: "Utwórz nowe zadanie dla ",
       due_prefix: "termin",
       re: "dot.",
+      expand: "Pokaż więcej",
+      collapse: "Zwiń",
       actions: "akcje zadania",
       archive: "Archiwizuj",
       restore: "Przywróć",

@@ -67,6 +67,7 @@ export const TasksKanban = ({
   showStatus = false,
   emptyPlaceholder,
   pendingPlaceholder,
+  maxTextLength,
 }: {
   filterByContact?: Identifier;
   filterByAssigner?: Identifier;
@@ -77,6 +78,7 @@ export const TasksKanban = ({
   showStatus?: boolean;
   emptyPlaceholder?: React.ReactNode;
   pendingPlaceholder?: React.ReactNode;
+  maxTextLength?: number;
 }) => {
   const { identity } = useGetIdentity();
   const translate = useTranslate();
@@ -341,6 +343,7 @@ export const TasksKanban = ({
                               openOnCardClick
                               showCheckbox={false}
                               strikeDoneText={false}
+                              maxTextLength={maxTextLength}
                             />
                           </div>
                         )}

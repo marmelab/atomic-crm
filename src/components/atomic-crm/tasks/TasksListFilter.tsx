@@ -16,6 +16,7 @@ type TaskListProps = {
   includeDoneTasks?: boolean;
   showAsArchived?: boolean;
   showStatus?: boolean;
+  maxTextLength?: number;
 };
 
 export const TaskListFilter = ({
@@ -26,6 +27,7 @@ export const TaskListFilter = ({
   includeDoneTasks = false,
   showAsArchived = false,
   showStatus = false,
+  maxTextLength,
 }: TaskListProps) => {
   const translate = useTranslate();
   const listContext = useList({
@@ -53,6 +55,7 @@ export const TaskListFilter = ({
             includeDoneTasks={includeDoneTasks}
             showAsArchived={showAsArchived}
             showStatus={showStatus}
+            maxTextLength={maxTextLength}
           />
         </ListContextProvider>
       </ResourceContextProvider>

@@ -54,6 +54,7 @@ export const Task = ({
   openOnCardClick = false,
   showCheckbox = true,
   strikeDoneText = true,
+  maxTextLength,
 }: {
   task: TData;
   showContact?: boolean;
@@ -62,6 +63,7 @@ export const Task = ({
   openOnCardClick?: boolean;
   showCheckbox?: boolean;
   strikeDoneText?: boolean;
+  maxTextLength?: number;
 }) => {
   const isMobile = useIsMobile();
   const { taskTypes } = useConfigurationContext();
@@ -73,6 +75,7 @@ export const Task = ({
   const workflowStatus = getTaskWorkflowStatus(task);
 
   const [openEdit, setOpenEdit] = useState(false);
+  const [isTextExpanded, setIsTextExpanded] = useState(false);
 
   const handleCloseEdit = () => {
     setOpenEdit(false);
@@ -162,6 +165,16 @@ export const Task = ({
     }
   };
 
+  const hasTextLimit = maxTextLength != null && maxTextLength > 0;
+  const shouldTruncate =
+    hasTextLimit &&
+    !isTextExpanded &&
+    typeof task.text === "string" &&
+    task.text.length > maxTextLength;
+  const displayedText = shouldTruncate
+    ? `${task.text.slice(0, maxTextLength).trimEnd()}...`
+    : task.text;
+
   return (
     <>
       <div
@@ -198,8 +211,24 @@ export const Task = ({
                   &nbsp;
                 </>
               )}
-              {task.text}
+              {displayedText}
             </div>
+            {hasTextLimit &&
+              typeof task.text === "string" &&
+              task.text.length > maxTextLength && (
+                <button
+                  type="button"
+                  className="mt-1 text-xs text-primary hover:underline"
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    setIsTextExpanded((current) => !current);
+                  }}
+                >
+                  {isTextExpanded
+                    ? translate("crm.tasks.collapse", { _: "Collapse" })
+                    : translate("crm.tasks.expand", { _: "Show more" })}
+                </button>
+              )}
             <div className="text-sm text-muted-foreground mt-1 flex flex-wrap items-center gap-2">
               {showStatus && (
                 <Badge

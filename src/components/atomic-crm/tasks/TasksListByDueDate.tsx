@@ -35,6 +35,7 @@ export const TasksListByDueDate = ({
   groupByDueDateInAllView = false,
   emptyPlaceholder,
   pendingPlaceholder,
+  maxTextLength,
 }: {
   filterByContact?: Identifier;
   filterByAssigner?: Identifier;
@@ -46,6 +47,7 @@ export const TasksListByDueDate = ({
   groupByDueDateInAllView?: boolean;
   emptyPlaceholder?: React.ReactNode;
   pendingPlaceholder?: React.ReactNode;
+  maxTextLength?: number;
 }) => {
   const { identity } = useGetIdentity();
   const translate = useTranslate();
@@ -145,6 +147,7 @@ export const TasksListByDueDate = ({
         includeDoneTasks
         showAsArchived
         showStatus={showStatus}
+        maxTextLength={maxTextLength}
       />
     );
   }
@@ -160,6 +163,7 @@ export const TasksListByDueDate = ({
             isMobile={isMobile}
             showStatus={showStatus}
             includeDoneTasks={includeDoneTasks}
+            maxTextLength={maxTextLength}
           />
           <TaskListFilter
             tasks={dueTodayTasks}
@@ -168,6 +172,7 @@ export const TasksListByDueDate = ({
             isMobile={isMobile}
             showStatus={showStatus}
             includeDoneTasks={includeDoneTasks}
+            maxTextLength={maxTextLength}
           />
           <TaskListFilter
             tasks={dueTomorrowTasks}
@@ -176,6 +181,7 @@ export const TasksListByDueDate = ({
             isMobile={isMobile}
             showStatus={showStatus}
             includeDoneTasks={includeDoneTasks}
+            maxTextLength={maxTextLength}
           />
           {(!filterByContact || (filterByContact && isBeforeFriday())) && (
             <TaskListFilter
@@ -185,6 +191,7 @@ export const TasksListByDueDate = ({
               isMobile={isMobile}
               showStatus={showStatus}
               includeDoneTasks={includeDoneTasks}
+              maxTextLength={maxTextLength}
             />
           )}
           <TaskListFilter
@@ -194,6 +201,7 @@ export const TasksListByDueDate = ({
             isMobile={isMobile}
             showStatus={showStatus}
             includeDoneTasks={includeDoneTasks}
+            maxTextLength={maxTextLength}
           />
         </div>
       );
@@ -207,6 +215,7 @@ export const TasksListByDueDate = ({
         isMobile={isMobile}
         includeDoneTasks={includeDoneTasks}
         showStatus={showStatus}
+        maxTextLength={maxTextLength}
       />
     );
   }
@@ -220,6 +229,7 @@ export const TasksListByDueDate = ({
         isMobile={isMobile}
         showStatus={showStatus}
         includeDoneTasks={includeDoneTasks}
+        maxTextLength={maxTextLength}
       />
       <TaskListFilter
         tasks={dueTodayTasks}
@@ -228,6 +238,7 @@ export const TasksListByDueDate = ({
         isMobile={isMobile}
         showStatus={showStatus}
         includeDoneTasks={includeDoneTasks}
+        maxTextLength={maxTextLength}
       />
       <TaskListFilter
         tasks={dueTomorrowTasks}
@@ -236,6 +247,7 @@ export const TasksListByDueDate = ({
         isMobile={isMobile}
         showStatus={showStatus}
         includeDoneTasks={includeDoneTasks}
+        maxTextLength={maxTextLength}
       />
       {(!filterByContact || (filterByContact && isBeforeFriday())) && (
         <TaskListFilter
@@ -245,6 +257,7 @@ export const TasksListByDueDate = ({
           isMobile={isMobile}
           showStatus={showStatus}
           includeDoneTasks={includeDoneTasks}
+          maxTextLength={maxTextLength}
         />
       )}
       <TaskListFilter
@@ -254,6 +267,7 @@ export const TasksListByDueDate = ({
         isMobile={isMobile}
         showStatus={showStatus}
         includeDoneTasks={includeDoneTasks}
+        maxTextLength={maxTextLength}
       />
     </div>
   );

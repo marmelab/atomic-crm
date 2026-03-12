@@ -15,6 +15,7 @@ import { isOverdue } from "./tasksPredicate";
 import { getTaskWorkflowStatus } from "./taskWorkflowStatus";
 
 const TASKS_VIEW_STORAGE_KEY = "crm.tasks.display-mode";
+const TASK_PREVIEW_MAX_CHARS = 220;
 
 export const MyTasksPage = () => {
   const translate = useTranslate();
@@ -165,6 +166,7 @@ const MyTasksContent = () => {
             includeDoneTasks
             groupByDueDateInAllView
             showStatus
+            maxTextLength={TASK_PREVIEW_MAX_CHARS}
             emptyPlaceholder={
               <p className="text-sm">
                 {translate("crm.tasks.empty", {
@@ -177,6 +179,7 @@ const MyTasksContent = () => {
           <TasksKanban
             view="all"
             groupBy="status"
+            maxTextLength={TASK_PREVIEW_MAX_CHARS}
             emptyPlaceholder={
               <p className="text-sm">
                 {translate("crm.tasks.empty", {
@@ -191,6 +194,7 @@ const MyTasksContent = () => {
         {displayMode === "list" ? (
           <TasksListByDueDate
             view="archived"
+            maxTextLength={TASK_PREVIEW_MAX_CHARS}
             emptyPlaceholder={
               <p className="text-sm text-muted-foreground">
                 {translate("crm.tasks.empty_archived", {
@@ -202,6 +206,7 @@ const MyTasksContent = () => {
         ) : (
           <TasksKanban
             view="archived"
+            maxTextLength={TASK_PREVIEW_MAX_CHARS}
             emptyPlaceholder={
               <p className="text-sm text-muted-foreground">
                 {translate("crm.tasks.empty_archived", {
@@ -219,6 +224,7 @@ const MyTasksContent = () => {
             scope="assigner"
             filterByAssigner={identity?.id}
             showStatus
+            maxTextLength={TASK_PREVIEW_MAX_CHARS}
             emptyPlaceholder={
               <p className="text-sm text-muted-foreground">
                 {translate("crm.tasks.empty_assigned", {
@@ -233,6 +239,7 @@ const MyTasksContent = () => {
             scope="assigner"
             filterByAssigner={identity?.id}
             showStatus
+            maxTextLength={TASK_PREVIEW_MAX_CHARS}
             emptyPlaceholder={
               <p className="text-sm text-muted-foreground">
                 {translate("crm.tasks.empty_assigned", {
