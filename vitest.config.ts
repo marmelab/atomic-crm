@@ -26,7 +26,16 @@ export default defineConfig({
       "doc/**",
       "src/**/*.integration.test.{ts,tsx}",
       "supabase/**",
+      "e2e/**/*.spec.{ts,tsx}",
     ],
+    server: {
+      deps: {
+        external: [/playwright/],
+      },
+    },
+  },
+  optimizeDeps: {
+    exclude: ["playwright", "playwright-core"],
   },
   resolve: {
     preserveSymlinks: true,
