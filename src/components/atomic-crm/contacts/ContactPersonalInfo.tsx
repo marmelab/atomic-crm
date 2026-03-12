@@ -1,9 +1,10 @@
+import { useState } from "react";
 import { useRecordContext, useTranslate, WithRecord } from "ra-core";
 import { ArrayField } from "@/components/admin/array-field";
 import { SingleFieldList } from "@/components/admin/single-field-list";
 import { TextField } from "@/components/admin/text-field";
 import { EmailField } from "@/components/admin/email-field";
-import { Mail, Phone, Linkedin } from "lucide-react";
+import { Mail, Phone, Linkedin, Check } from "lucide-react";
 import type { ReactNode } from "react";
 import {
   contactGender,
@@ -22,10 +23,7 @@ export const ContactPersonalInfo = () => {
     <div>
       <ArrayField source="email_jsonb">
         <SingleFieldList className="flex-col gap-y-0">
-          <PersonalInfoRow
-            icon={<Mail className="w-4 h-4 text-muted-foreground" />}
-            primary={<EmailField source="email" />}
-          />
+          <EmailRow />
         </SingleFieldList>
       </ArrayField>
 
@@ -81,6 +79,41 @@ export const ContactPersonalInfo = () => {
         })
         .filter(Boolean)}
     </div>
+  );
+};
+
+const EmailRow = () => {
+  const record = useRecordContext<{ email: string }>();
+  const translate = useTranslate();
+  const [copied, setCopied] = useState(false);
+
+  if (!record) return null;
+
+  const handleCopy = () => {
+    navigator.clipboard.writeText(record.email).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    });
+  };
+
+  return (
+    <PersonalInfoRow
+      icon={
+        <button
+          type="button"
+          onClick={handleCopy}
+          title={translate("crm.common.copy")}
+          className="text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
+        >
+          {copied ? (
+            <Check className="w-4 h-4 text-green-500" />
+          ) : (
+            <Mail className="w-4 h-4" />
+          )}
+        </button>
+      }
+      primary={<EmailField source="email" />}
+    />
   );
 };
 
