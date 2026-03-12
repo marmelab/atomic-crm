@@ -57,6 +57,8 @@ stop-supabase-e2e: ## stop the e2e supabase instance
 
 start-e2e: start-supabase-e2e start-app-e2e ## start the stack in e2e mode (fresh supabase instance + app pointing to it)
 
+start-e2e-ci: start-supabase-e2e start-app-e2e-ci ## start the stack in e2e mode in CI (fresh supabase instance + built app pointing to it)
+
 stop-e2e: stop-supabase-e2e stop-app-e2e ## stop the stack in e2e mode
 
 build: ## build the app
@@ -94,7 +96,7 @@ test-integration:
 test-e2e: start-e2e
 	npx playwright test --ui
 
-test-e2e-ci: start-supabase-e2e start-app-e2e-ci
+test-e2e-ci: start-e2e-ci
 	npx wait-on http-get://localhost:54341/auth/v1/health http-get://localhost:5175
 	npx playwright test
 
