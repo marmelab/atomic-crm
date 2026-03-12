@@ -1,6 +1,5 @@
 import { useGetIdentity, useGetList, useTranslate } from "ra-core";
 import { useEffect, useMemo, useState } from "react";
-import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -28,9 +27,7 @@ export const MyTasksPage = () => {
         </h1>
         <AddTask display="icon" selectContact />
       </div>
-      <Card className="p-4">
-        <MyTasksContent />
-      </Card>
+      <MyTasksContent />
     </div>
   );
 };

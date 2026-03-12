@@ -55,6 +55,7 @@ export const Task = ({
   showCheckbox = true,
   strikeDoneText = true,
   maxTextLength,
+  cardVariant = "default",
 }: {
   task: TData;
   showContact?: boolean;
@@ -64,6 +65,7 @@ export const Task = ({
   showCheckbox?: boolean;
   strikeDoneText?: boolean;
   maxTextLength?: number;
+  cardVariant?: "default" | "kanban";
 }) => {
   const isMobile = useIsMobile();
   const { taskTypes } = useConfigurationContext();
@@ -174,13 +176,19 @@ export const Task = ({
   const displayedText = shouldTruncate
     ? `${task.text.slice(0, maxTextLength).trimEnd()}...`
     : task.text;
+  const isKanbanCard = cardVariant === "kanban";
+  const cardClassName = isKanbanCard
+    ? `rounded-2xl border border-border/60 px-3 py-3 transition-all duration-200 ${
+        isArchivedTask ? "bg-muted/40" : "bg-card shadow-sm hover:shadow-md"
+      } ${openOnCardClick ? "cursor-pointer" : ""}`
+    : `rounded-lg border px-3 py-2 transition-colors ${
+        isArchivedTask ? "bg-muted/40" : "bg-background hover:bg-muted/20"
+      } ${openOnCardClick ? "cursor-pointer" : ""}`;
 
   return (
     <>
       <div
-        className={`flex items-start justify-between gap-2 rounded-lg border px-3 py-2 transition-colors ${
-          isArchivedTask ? "bg-muted/40" : "bg-background hover:bg-muted/20"
-        } ${openOnCardClick ? "cursor-pointer" : ""}`}
+        className={`flex items-start justify-between gap-2 ${cardClassName}`}
       >
         <div
           className="flex items-start gap-2 flex-1"
@@ -250,11 +258,18 @@ export const Task = ({
                       : translate("crm.tasks.status.todo", { _: "To do" })}
                 </Badge>
               )}
-              {dueBadge && (
-                <Badge variant="outline" className={dueBadge.className}>
-                  {dueBadge.label}
-                </Badge>
-              )}
+              {dueBadge &&
+                (isKanbanCard ? (
+                  <span
+                    className={`text-xs font-medium ${getDueTextClass(task.due_date)}`}
+                  >
+                    {dueBadge.label}
+                  </span>
+                ) : (
+                  <Badge variant="outline" className={dueBadge.className}>
+                    {dueBadge.label}
+                  </Badge>
+                ))}
               {task.due_date && (
                 <>
                   <span>{translate("crm.tasks.due_prefix", { _: "due" })}</span>
@@ -485,4 +500,20 @@ const getDueBadgeLabel = (
   }
 
   return null;
+};
+
+const getDueTextClass = (dueDate: string | undefined) => {
+  if (!dueDate) {
+    return "text-muted-foreground";
+  }
+
+  if (isOverdue(dueDate)) {
+    return "text-destructive";
+  }
+
+  if (isDueToday(dueDate)) {
+    return "text-amber-700 dark:text-amber-400";
+  }
+
+  return "text-muted-foreground";
 };

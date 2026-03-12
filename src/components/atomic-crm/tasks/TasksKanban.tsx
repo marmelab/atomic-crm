@@ -297,27 +297,27 @@ export const TasksKanban = ({
           });
       }}
     >
-      <div className="flex gap-4 overflow-x-auto pb-2">
+      <div className="flex gap-6 overflow-x-auto pb-4">
         {columns.map((column) => {
           const columnTasks = localTasksByColumn[column.id] || [];
           return (
             <div
               key={column.id}
-              className="min-w-[320px] max-w-[420px] flex-1 flex flex-col gap-2"
+              className="min-w-[300px] max-w-[380px] flex-1 pb-8"
             >
-              <div className="flex items-center justify-between px-1">
-                <h3 className="text-sm font-semibold">{column.label}</h3>
-                <span className="text-xs text-muted-foreground">
+              <div className="flex flex-col items-center">
+                <h3 className="text-base font-medium">{column.label}</h3>
+                <p className="text-sm text-muted-foreground">
                   {columnTasks.length}
-                </span>
+                </p>
               </div>
               <Droppable droppableId={column.id}>
                 {(provided, snapshot) => (
                   <div
                     ref={provided.innerRef}
                     {...provided.droppableProps}
-                    className={`rounded-xl border p-2 min-h-28 space-y-2 ${
-                      snapshot.isDraggingOver ? "bg-muted/50" : "bg-muted/20"
+                    className={`mt-2 flex min-h-28 flex-col gap-2 rounded-2xl p-1 transition-colors ${
+                      snapshot.isDraggingOver ? "bg-muted/60" : "bg-transparent"
                     }`}
                   >
                     {columnTasks.map((task, index) => (
@@ -331,7 +331,7 @@ export const TasksKanban = ({
                             ref={draggableProvided.innerRef}
                             {...draggableProvided.draggableProps}
                             {...draggableProvided.dragHandleProps}
-                            className={`will-change-transform ${
+                            className={`will-change-transform transition-transform ${
                               draggableSnapshot.isDragging ? "rotate-1" : ""
                             }`}
                           >
@@ -344,6 +344,7 @@ export const TasksKanban = ({
                               showCheckbox={false}
                               strikeDoneText={false}
                               maxTextLength={maxTextLength}
+                              cardVariant="kanban"
                             />
                           </div>
                         )}
