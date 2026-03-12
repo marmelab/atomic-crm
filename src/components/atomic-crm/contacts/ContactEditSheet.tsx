@@ -1,4 +1,4 @@
-import { RecordRepresentation, useTranslate, type Identifier } from "ra-core";
+import type { Identifier } from "ra-core";
 import { EditSheet } from "../misc/EditSheet";
 import { ContactInputs } from "./ContactInputs";
 
@@ -13,16 +13,10 @@ export const ContactEditSheet = ({
   onOpenChange,
   contactId,
 }: ContactEditSheetProps) => {
-  const translate = useTranslate();
   return (
     <EditSheet
       resource="contacts"
       id={contactId}
-      title={
-        <h1 className="text-xl font-semibold truncate pr-10">
-          {translate("resources.contacts.action.edit")} <RecordRepresentation />
-        </h1>
-      }
       open={open}
       onOpenChange={onOpenChange}
     >

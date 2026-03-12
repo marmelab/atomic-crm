@@ -410,10 +410,6 @@
           "type": "registry:component"
         },
         {
-          "path": "src/components/atomic-crm/misc/formatRelativeTime.ts",
-          "type": "registry:component"
-        },
-        {
           "path": "src/components/atomic-crm/misc/fetchWithTimeout.ts",
           "type": "registry:component"
         },
@@ -546,10 +542,6 @@
           "type": "registry:component"
         },
         {
-          "path": "src/components/atomic-crm/deals/deal.ts",
-          "type": "registry:component"
-        },
-        {
           "path": "src/components/atomic-crm/deals/OnlyMineInput.tsx",
           "type": "registry:component"
         },
@@ -643,14 +635,6 @@
         },
         {
           "path": "src/components/atomic-crm/contacts/index.tsx",
-          "type": "registry:component"
-        },
-        {
-          "path": "src/components/atomic-crm/contacts/getTranslatedPersonalInfoTypeLabel.ts",
-          "type": "registry:component"
-        },
-        {
-          "path": "src/components/atomic-crm/contacts/getTranslatedContactGenderLabel.ts",
           "type": "registry:component"
         },
         {
