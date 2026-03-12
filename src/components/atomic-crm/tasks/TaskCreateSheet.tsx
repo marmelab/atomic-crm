@@ -10,6 +10,7 @@ import {
 import { CreateSheet } from "../misc/CreateSheet";
 import { foreignKeyMapping } from "../notes/foreignKeyMapping";
 import { TaskFormContent } from "./TaskFormContent";
+import { useQueryClient } from "@tanstack/react-query";
 
 export interface TaskCreateSheetProps {
   open: boolean;
@@ -32,6 +33,7 @@ export const TaskCreateSheet = ({
   );
   const [update] = useUpdate();
   const dataProvider = useDataProvider();
+  const queryClient = useQueryClient();
   const notify = useNotify();
 
   if (!identity) return null;
@@ -43,11 +45,15 @@ export const TaskCreateSheet = ({
       id: referenceRecordId,
     });
     if (!contact) return;
-    update("contacts", {
+    await update("contacts", {
       id: referenceRecordId as unknown as Identifier,
       data: { last_seen: new Date().toISOString() },
       previousData: contact,
     });
+    queryClient.invalidateQueries({
+      queryKey: ["contacts", "getOne"],
+    });
+
     notify("Task added");
     // No redirect, only close the sheet
     onOpenChange(false);

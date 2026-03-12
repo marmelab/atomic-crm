@@ -25,7 +25,16 @@ export default defineConfig({
       "**/node_modules/**",
       "doc/**",
       "src/**/*.integration.test.{ts,tsx}",
+      "e2e/**/*.spec.{ts,tsx}",
     ],
+    server: {
+      deps: {
+        external: [/playwright/],
+      },
+    },
+  },
+  optimizeDeps: {
+    exclude: ["playwright", "playwright-core"],
   },
   resolve: {
     preserveSymlinks: true,
