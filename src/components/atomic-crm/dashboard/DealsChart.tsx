@@ -1,6 +1,11 @@
 import { ResponsiveBar } from "@nivo/bar";
-import { format, startOfMonth } from "date-fns";
-import { DollarSign } from "lucide-react";
+import {
+  addMonths,
+  format,
+  parseISO,
+  startOfMonth,
+  subMonths,
+} from "date-fns";
 import { useGetList } from "ra-core";
 import { memo, useMemo } from "react";
 
@@ -13,12 +18,11 @@ const multiplier = {
   trial: 0.8,
 };
 
-const threeMonthsAgo = new Date(
-  new Date().setMonth(new Date().getMonth() - 6),
-).toISOString();
+const DEFAULT_LOCALE = "fr-FR";
+const CURRENCY = "EUR";
 
-const DEFAULT_LOCALE = "en-US";
-const CURRENCY = "USD";
+// Range: 2 months ago → 10 months ahead
+const rangeStart = subMonths(new Date(), 2).toISOString();
 
 export const DealsChart = memo(() => {
   const acceptedLanguages = navigator
@@ -26,55 +30,72 @@ export const DealsChart = memo(() => {
     : [DEFAULT_LOCALE];
 
   const { data, isPending } = useGetList<Deal>("deals", {
-    pagination: { perPage: 100, page: 1 },
+    pagination: { perPage: 500, page: 1 },
     sort: {
-      field: "created_at",
+      field: "expected_closing_date",
       order: "ASC",
     },
     filter: {
-      "created_at@gte": threeMonthsAgo,
+      "expected_closing_date@gte": rangeStart.split("T")[0],
     },
   });
+
   const months = useMemo(() => {
     if (!data) return [];
-    const dealsByMonth = data.reduce((acc, deal) => {
-      const month = startOfMonth(deal.created_at ?? new Date()).toISOString();
-      if (!acc[month]) {
-        acc[month] = [];
-      }
-      acc[month].push(deal);
-      return acc;
-    }, {} as any);
 
-    const amountByMonth = Object.keys(dealsByMonth).map((month) => {
-      return {
-        date: format(month, "MMM"),
-        won: dealsByMonth[month]
-          .filter((deal: Deal) => deal.stage === "closed-won")
-          .reduce((acc: number, deal: Deal) => {
-            acc += deal.amount;
-            return acc;
-          }, 0),
-        pending: dealsByMonth[month]
-          .filter((deal: Deal) => ["lead", "qualified", "follow-up", "trial"].includes(deal.stage))
-          .reduce((acc: number, deal: Deal) => {
-            // @ts-expect-error - multiplier type issue
-            acc += deal.amount * multiplier[deal.stage];
-            return acc;
-          }, 0),
-        lost: dealsByMonth[month]
-          .filter((deal: Deal) => ["perdu", "trial-failed", "declined"].includes(deal.stage))
-          .reduce((acc: number, deal: Deal) => {
-            acc -= deal.amount;
-            return acc;
-          }, 0),
-      };
+    // Build a map of all months in the range (2 months ago → 10 months ahead)
+    const now = new Date();
+    const monthKeys: string[] = [];
+    for (let i = -2; i <= 10; i++) {
+      monthKeys.push(
+        startOfMonth(addMonths(now, i)).toISOString(),
+      );
+    }
+
+    const dealsByMonth: Record<string, Deal[]> = {};
+    monthKeys.forEach((k) => {
+      dealsByMonth[k] = [];
     });
 
-    return amountByMonth;
+    data.forEach((deal) => {
+      // Won deals: group by trial_start_date if available, else expected_closing_date
+      const isWon = deal.stage === "closed-won";
+      const dateStr = isWon && deal.trial_start_date
+        ? deal.trial_start_date
+        : deal.expected_closing_date;
+
+      if (!dateStr) return;
+      const monthKey = startOfMonth(parseISO(dateStr)).toISOString();
+      if (!dealsByMonth[monthKey]) return; // outside range
+      dealsByMonth[monthKey].push(deal);
+    });
+
+    return monthKeys.map((month) => {
+      const deals = dealsByMonth[month];
+      return {
+        date: format(parseISO(month), "MMM yy"),
+        won: deals
+          .filter((d) => d.stage === "closed-won")
+          .reduce((acc, d) => acc + d.amount, 0),
+        pending: deals
+          .filter((d) =>
+            ["lead", "qualified", "follow-up", "trial"].includes(d.stage),
+          )
+          .reduce((acc, d) => {
+            // @ts-expect-error - multiplier type issue
+            return acc + d.amount * multiplier[d.stage];
+          }, 0),
+        lost: deals
+          .filter((d) =>
+            ["perdu", "trial-failed", "declined"].includes(d.stage),
+          )
+          .reduce((acc, d) => acc - d.amount, 0),
+      };
+    });
   }, [data]);
 
-  if (isPending) return null; // FIXME return skeleton instead
+  if (isPending) return null;
+
   const range = months.reduce(
     (acc, month) => {
       acc.min = Math.min(acc.min, month.lost);
@@ -83,11 +104,12 @@ export const DealsChart = memo(() => {
     },
     { min: 0, max: 0 },
   );
+
   return (
     <div className="flex flex-col">
       <div className="flex items-center mb-4">
-        <div className="mr-3 flex">
-          <DollarSign className="text-muted-foreground w-6 h-6" />
+        <div className="mr-3 flex items-center justify-center w-6 h-6 text-muted-foreground font-semibold text-lg leading-none">
+          €
         </div>
         <h2 className="text-xl font-semibold text-muted-foreground">
           Revenus prévisionnels
@@ -103,8 +125,8 @@ export const DealsChart = memo(() => {
           padding={0.3}
           valueScale={{
             type: "linear",
-            min: range.min * 1.2,
-            max: range.max * 1.2,
+            min: range.min < 0 ? range.min * 1.2 : -1000,
+            max: range.max > 0 ? range.max * 1.2 : 1000,
           }}
           indexScale={{ type: "band", round: true }}
           enableGridX={true}

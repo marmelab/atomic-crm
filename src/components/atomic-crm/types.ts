@@ -123,6 +123,7 @@ export type Deal = {
   updated_at: string;
   archived_at?: string;
   expected_closing_date: string;
+  trial_start_date?: string;
   sales_id: Identifier;
   index: number;
 } & Pick<RaRecord, "id">;

@@ -87,6 +87,11 @@ const DealMiscInputs = () => {
         helperText={false}
         defaultValue={new Date().toISOString().split("T")[0]}
       />
+      <DateInput
+        source="trial_start_date"
+        label="Début du trial"
+        helperText={false}
+      />
       <SelectInput
         source="stage"
         choices={dealStages}
