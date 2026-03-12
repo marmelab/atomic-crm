@@ -76,7 +76,7 @@ export default App;
 
 ## Languages (i18n)
 
-Atomic CRM language configuration is managed in `src/components/atomic-crm/root/i18nProvider.tsx`.
+Atomic CRM language configuration is managed in `src/components/atomic-crm/providers/i18nProvider.tsx`.
 
 By default, this repository ships with two locales:
 
@@ -91,23 +91,14 @@ The `i18nProvider` defines:
 
 The language switcher appears in the Profile page when more than one locale is configured.
 
-### Configure Active Languages
+### Adding a New Language
 
-Edit `src/components/atomic-crm/root/i18nProvider.tsx` and update:
-
-- the `getInitialLocale` resolver if you want custom startup behavior
-- the `availableLocales` array
-- the locale resolver function (`locale => ...`)
-
-### Add A New Language
-
-1. Add or create the message catalog for the new locale.
-2. Merge it with existing base messages in `i18nProvider.tsx`.
-3. Register the locale in `availableLocales`.
-4. Add app-specific keys (for example in a `crm.*` namespace) when needed.
+1. Add or create the message catalog for the new locale. Use the English messages catalog as a base.
+2. Merge it with base messages (Shadcn Admin Kit comes with [35 languages integrations](https://marmelab.com/ra-core/translationlocales/))
+2. Edit `src/components/atomic-crm/providers/i18nProvider.tsx` and add the locale to `availableLocales`.
 5. Start the app, switch locale from the Profile page, and verify fallback behavior.
 
-### Type-Check Message Catalogs
+### Type-Checking Message Catalogs
 
 For in-repo locales (like `fr`), use strict typing so missing keys fail at compile time:
 

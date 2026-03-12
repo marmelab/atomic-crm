@@ -28,22 +28,20 @@ export function ThemeModeToggle() {
         <Button variant="ghost" size="icon" className="hidden sm:inline-flex">
           <Sun className="h-[1.2rem] w-[1.2rem] rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
           <Moon className="absolute h-[1.2rem] w-[1.2rem] rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
-          <span className="sr-only">
-            {translate("crm.theme.toggle", { _: "Toggle theme" })}
-          </span>
+          <span className="sr-only">{translate("ra.action.toggle_theme")}</span>
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
         <DropdownMenuItem onClick={() => setTheme("light")}>
-          {translate("crm.theme.light_short", { _: "Light" })}
+          {translate("crm.theme.light", { _: "Light" })}
           <Check className={cn("ml-auto", theme !== "light" && "hidden")} />
         </DropdownMenuItem>
         <DropdownMenuItem onClick={() => setTheme("dark")}>
-          {translate("crm.theme.dark_short", { _: "Dark" })}
+          {translate("crm.theme.dark", { _: "Dark" })}
           <Check className={cn("ml-auto", theme !== "dark" && "hidden")} />
         </DropdownMenuItem>
         <DropdownMenuItem onClick={() => setTheme("system")}>
-          {translate("crm.theme.system_short", { _: "System" })}
+          {translate("crm.theme.system", { _: "System" })}
           <Check className={cn("ml-auto", theme !== "system" && "hidden")} />
         </DropdownMenuItem>
       </DropdownMenuContent>

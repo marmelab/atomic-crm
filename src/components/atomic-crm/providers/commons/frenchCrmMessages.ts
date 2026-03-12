@@ -480,13 +480,9 @@ export const frenchCrmMessages = {
       },
     },
     theme: {
-      dark: "Thème sombre",
-      dark_short: "Sombre",
-      light: "Thème clair",
-      light_short: "Clair",
-      system: "Thème système",
-      system_short: "Système",
-      toggle: "Changer de thème",
+      dark: "Sombre",
+      light: "Clair",
+      system: "Système",
     },
     language: "Langue",
     navigation: {

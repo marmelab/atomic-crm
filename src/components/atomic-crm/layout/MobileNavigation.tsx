@@ -307,7 +307,7 @@ const ThemeMenu = () => {
           className="px-3"
         >
           <Smartphone className="size-5 mx-2" />
-          <span className="sr-only">{translate("crm.theme.system_short")}</span>
+          <span className="sr-only">{translate("crm.theme.system")}</span>
         </ToggleGroupItem>
         <ToggleGroupItem
           value="light"
@@ -315,7 +315,7 @@ const ThemeMenu = () => {
           className="px-3"
         >
           <Sun className="size-5 mx-2" />
-          <span className="sr-only">{translate("crm.theme.light_short")}</span>
+          <span className="sr-only">{translate("crm.theme.light")}</span>
         </ToggleGroupItem>
         <ToggleGroupItem
           value="dark"
@@ -323,7 +323,7 @@ const ThemeMenu = () => {
           className="px-3"
         >
           <Moon className="size-5 mx-2" />
-          <span className="sr-only">{translate("crm.theme.dark_short")}</span>
+          <span className="sr-only">{translate("crm.theme.dark")}</span>
         </ToggleGroupItem>
       </ToggleGroup>
     </div>

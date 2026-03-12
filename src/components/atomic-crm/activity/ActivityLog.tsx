@@ -2,7 +2,8 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useQuery } from "@tanstack/react-query";
-import { type Identifier, useDataProvider, useTranslate } from "ra-core";
+import type { Identifier } from "ra-core";
+import { useDataProvider, useTranslate } from "ra-core";
 import { RotateCcw } from "lucide-react";
 
 import type { CrmDataProvider } from "../providers/types";

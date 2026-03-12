@@ -474,13 +474,9 @@ export const englishCrmMessages = {
       },
     },
     theme: {
-      dark: "Dark theme",
-      dark_short: "Dark",
-      light: "Light theme",
-      light_short: "Light",
-      system: "System theme",
-      system_short: "System",
-      toggle: "Toggle theme",
+      dark: "Dark",
+      light: "Light",
+      system: "System",
     },
     language: "Language",
     navigation: {

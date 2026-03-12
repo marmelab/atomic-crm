@@ -1,3 +1,5 @@
+import type { ReactNode } from "react";
+import type { InputProps } from "ra-core";
 import { useGetIdentity, useListContext, useTranslate } from "ra-core";
 import { matchPath, useLocation } from "react-router";
 import { AutocompleteInput } from "@/components/admin/autocomplete-input";
@@ -18,7 +20,6 @@ import { DealEmpty } from "./DealEmpty";
 import { DealListContent } from "./DealListContent";
 import { DealShow } from "./DealShow";
 import { OnlyMineInput } from "./OnlyMineInput";
-import { WrapperField } from "@/components/admin/wrapper-field";
 
 const DealList = () => {
   const { identity } = useGetIdentity();
@@ -101,5 +102,13 @@ const DealActions = () => (
     <CreateButton label="resources.deals.action.new" />
   </TopToolbar>
 );
+
+/**
+ *
+ * Used so that label of filters can be inferred for the select display,
+ * but not be displayed when showing the input.
+ */
+const WrapperField = ({ children }: InputProps & { children: ReactNode }) =>
+  children;
 
 export default DealList;
