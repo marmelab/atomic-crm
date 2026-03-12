@@ -27,6 +27,9 @@ start-app-e2e: ## start the app pointing to the e2e supabase instance
 stop-app-e2e:
 	kill $$(lsof -t -i:5175)
 
+start-app-e2e-ci: build-e2e ## start the app pointing to the e2e supabase instance in CI mode (no open, no watch)
+	npx serve -l 5175 -L -s dist &
+
 start: start-supabase start-app ## start the stack locally
 
 start-demo: ## start the app locally in demo mode
@@ -59,6 +62,9 @@ stop-e2e: stop-supabase-e2e stop-app-e2e ## stop the stack in e2e mode
 build: ## build the app
 	npm run build
 
+build-e2e: ## build the app in e2e mode (with the e2e supabase config)
+	npm run build:e2e
+
 build-demo: ## build the app in demo mode
 	npm run build:demo
 
@@ -87,6 +93,10 @@ test-integration:
 
 test-e2e: start-e2e
 	npx playwright test --ui
+
+test-e2e-ci: start-supabase-e2e start-app-e2e-ci
+	npx wait-on http-get://localhost:54341/auth/v1/health http-get://localhost:5175
+	npx playwright test
 
 lint:
 	npm run lint

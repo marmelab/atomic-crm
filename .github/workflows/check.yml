@@ -74,6 +74,26 @@ jobs:
             - name: 🔎 Integration Tests
               run: CI=1 npm run test:integration -- --run
 
+    e2e-test:
+      timeout-minutes: 10
+      runs-on: ubuntu-latest
+      steps:
+      - name: 📥 Checkout repo
+        uses: actions/checkout@v4
+
+      - name: ⚙️ Setup node
+        uses: actions/setup-node@v4
+        with:
+            node-version: 20
+            cache: npm
+      - name: Install dependencies
+        run: npm ci
+      - name: Install Playwright Browsers
+        run: npx playwright install --with-deps
+      - name: Install wait-on and serve
+        run: npm install -g wait-on serve
+      - name: Run Playwright tests
+        run: make test-e2e-ci
 
     build:
         name: 🔨 Build
