@@ -1,6 +1,6 @@
 import { test, expect } from "./fixtures";
 
-test("user onboarding", async ({ page, isMobile }) => {
+test("user onboarding", async ({ page, isMobile, menu }) => {
   await page.goto("http://localhost:5175/");
 
   // Expect a title "to contain" a substring.
@@ -65,9 +65,7 @@ test("user onboarding", async ({ page, isMobile }) => {
   await expect(page.locator(isMobile ? "h2" : "h5")).toHaveText("Jane Smith");
   await expect(page.getByText("CEO at Smith Corp")).toBeVisible();
 
-  await page
-    .getByRole("link", { name: isMobile ? "Home" : "Dashboard" })
-    .click();
+  await menu.goToDashboard();
   await page.waitForLoadState("networkidle");
 
   await expect(page.getByText("2/3 done")).toBeVisible();
@@ -89,9 +87,7 @@ test("user onboarding", async ({ page, isMobile }) => {
   ).toBeVisible();
   await expect(page.getByText("This is a note about Jane.")).toBeVisible();
 
-  await page
-    .getByRole("link", { name: isMobile ? "Home" : "Dashboard" })
-    .click();
+  await menu.goToDashboard();
 
   await page.waitForLoadState("networkidle");
 
