@@ -67,7 +67,9 @@ const DealMiscInputs = () => {
   const translate = useTranslate();
   return (
     <div className="flex flex-col gap-4 flex-1">
-      <h3 className="text-base font-medium">{translate("crm.common.misc")}</h3>
+      <h3 className="text-base font-medium">
+        {translate("resources.deals.field_categories.misc")}
+      </h3>
 
       <SelectInput
         source="category"

@@ -25,11 +25,11 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { ActivityLog } from "../activity/ActivityLog";
 import { Avatar } from "../contacts/Avatar";
 import { TagsList } from "../contacts/TagsList";
-import { findDealLabel } from "../deals/deal";
+import { findDealLabel } from "../deals/dealUtils";
 import { MobileContent } from "../layout/MobileContent";
-import { formatRelativeTime } from "../misc/formatRelativeTime";
 import MobileHeader from "../layout/MobileHeader";
 import { MobileBackButton } from "../misc/MobileBackButton";
+import { formatRelativeDate } from "../misc/RelativeDate";
 import { Status } from "../misc/Status";
 import { useConfigurationContext } from "../root/ConfigurationContext";
 import type { Company, Contact, Deal } from "../types";
@@ -215,12 +215,9 @@ const ContactsIterator = () => {
                 <div className="text-sm text-muted-foreground">
                   {contact.title}
                   {contact.nb_tasks
-                    ? ` - ${contact.nb_tasks} ${translate(
-                        "crm.common.task_count",
-                        {
-                          smart_count: contact.nb_tasks,
-                        },
-                      )}`
+                    ? ` - ${translate("crm.common.task_count", {
+                        smart_count: contact.nb_tasks,
+                      })}`
                     : ""}
                   &nbsp; &nbsp;
                   <TagsList />
@@ -229,8 +226,9 @@ const ContactsIterator = () => {
               {contact.last_seen && (
                 <div className="text-right">
                   <div className="text-sm text-muted-foreground">
-                    {translate("crm.common.last_activity")}{" "}
-                    {formatRelativeTime(contact.last_seen, locale)}{" "}
+                    {translate("crm.common.last_activity_with_date", {
+                      date: formatRelativeDate(contact.last_seen, locale),
+                    })}{" "}
                     <Status status={contact.status} />
                   </div>
                 </div>
@@ -278,7 +276,7 @@ const DealsIterator = () => {
               <div className="flex-1 min-w-0">
                 <div className="font-medium">{deal.name}</div>
                 <div className="text-sm text-muted-foreground">
-                  {findDealLabel(dealStages, deal.stage, translate)},{" "}
+                  {findDealLabel(dealStages, deal.stage)},{" "}
                   {deal.amount.toLocaleString("en-US", {
                     notation: "compact",
                     style: "currency",
@@ -293,8 +291,9 @@ const DealsIterator = () => {
               </div>
               <div className="text-right">
                 <div className="text-sm text-muted-foreground">
-                  {translate("crm.common.last_activity")}{" "}
-                  {formatRelativeTime(deal.updated_at, locale)}{" "}
+                  {translate("crm.common.last_activity_with_date", {
+                    date: formatRelativeDate(deal.updated_at, locale),
+                  })}{" "}
                 </div>
               </div>
             </RouterLink>

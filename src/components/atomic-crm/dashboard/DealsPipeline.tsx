@@ -6,7 +6,7 @@ import { Card } from "@/components/ui/card";
 
 import { SimpleList } from "../simple-list/SimpleList";
 import { CompanyAvatar } from "../companies/CompanyAvatar";
-import { findDealLabel } from "../deals/deal";
+import { findDealLabel } from "../deals/dealUtils";
 import { useConfigurationContext } from "../root/ConfigurationContext";
 import type { Deal } from "../types";
 
@@ -71,7 +71,7 @@ export const DealsPipeline = () => {
               currency: "USD",
               currencyDisplay: "narrowSymbol",
               minimumSignificantDigits: 3,
-            })} , ${findDealLabel(dealStages, deal.stage, translate)}`
+            })} , ${findDealLabel(dealStages, deal.stage)}`
           }
           leftAvatar={(deal) => (
             <ReferenceField

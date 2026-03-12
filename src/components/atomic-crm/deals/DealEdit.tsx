@@ -1,6 +1,7 @@
 import {
   EditBase,
   Form,
+  useEditContext,
   useNotify,
   useRecordContext,
   useRedirect,
@@ -36,9 +37,7 @@ export const DealEdit = ({ open, id }: { open: boolean; id?: string }) => {
             mutationMode="pessimistic"
             mutationOptions={{
               onSuccess: () => {
-                notify("resources.deals.updated", {
-                  messageArgs: { _: "Deal updated" },
-                });
+                notify("resources.deals.updated", {});
                 redirect(`/deals/${id}/show`, undefined, undefined, undefined, {
                   _scrollToTop: false,
                 });
@@ -59,6 +58,7 @@ export const DealEdit = ({ open, id }: { open: boolean; id?: string }) => {
 
 function EditHeader() {
   const translate = useTranslate();
+  const { defaultTitle } = useEditContext<Deal>();
   const deal = useRecordContext<Deal>();
   if (!deal) {
     return null;
@@ -71,20 +71,13 @@ function EditHeader() {
           <ReferenceField source="company_id" reference="companies" link="show">
             <CompanyAvatar />
           </ReferenceField>
-          <h2 className="text-2xl font-semibold">
-            {translate("resources.deals.edit.title", {
-              _: `Edit ${deal.name} deal`,
-              name: deal.name,
-            })}
-          </h2>
+          <h2 className="text-2xl font-semibold">{defaultTitle}</h2>
         </div>
         <div className="flex gap-2 pr-12">
           <DeleteButton />
           <Button asChild variant="outline" className="h-9">
             <Link to={`/deals/${deal.id}/show`}>
-              {translate("resources.deals.action.back_to_deal", {
-                _: "Back to deal",
-              })}
+              {translate("resources.deals.action.back_to_deal")}
             </Link>
           </Button>
         </div>

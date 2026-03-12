@@ -52,9 +52,6 @@ export const Task = ({
       onSuccess() {
         notify("resources.tasks.deleted", {
           undoable: true,
-          messageArgs: {
-            _: "Task deleted successfully",
-          },
         });
       },
     },
@@ -135,12 +132,13 @@ export const Task = ({
                   className="inline text-sm text-muted-foreground"
                   render={({ referenceRecord }) => {
                     if (!referenceRecord) return null;
+                    const name = `${referenceRecord.first_name} ${referenceRecord.last_name}`;
                     return (
                       <>
                         {" "}
-                        ({translate("crm.common.regarding")}&nbsp;
-                        {referenceRecord?.first_name}{" "}
-                        {referenceRecord?.last_name})
+                        {translate("resources.tasks.regarding_contact", {
+                          name,
+                        })}
                       </>
                     );
                   }}

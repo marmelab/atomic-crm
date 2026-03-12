@@ -4,6 +4,7 @@ import {
   RecordContextProvider,
   RecordRepresentation,
   useListContext,
+  useLocaleState,
   useTimeout,
   useTranslate,
 } from "ra-core";
@@ -17,7 +18,7 @@ import { Button } from "@/components/ui/button";
 import { RotateCcw } from "lucide-react";
 
 import { Status } from "../misc/Status";
-import { RelativeDate } from "../misc/RelativeDate";
+import { formatRelativeDate } from "../misc/RelativeDate";
 import type { Contact } from "../types";
 import { Avatar } from "./Avatar";
 import { TagsList } from "./TagsList";
@@ -88,9 +89,7 @@ export const ContactListContent = () => {
       {contacts.length === 0 && (
         <div className="p-4">
           <div className="text-muted-foreground">
-            {translate("resources.contacts.empty.title", {
-              _: "No contacts found",
-            })}
+            {translate("resources.contacts.empty.title", {})}
           </div>
         </div>
       )}
@@ -106,7 +105,11 @@ const ContactItemContent = ({
   handleToggleItem: (id: Identifier, event: MouseEvent) => void;
 }) => {
   const translate = useTranslate();
+  const [locale = "en"] = useLocaleState();
   const { selectedIds } = useListContext<Contact>();
+  const lastActivity = contact.last_seen
+    ? formatRelativeDate(contact.last_seen, locale)
+    : null;
 
   return (
     <div className="flex flex-row items-center pl-2 pr-4 py-2 hover:bg-muted transition-colors first:rounded-t-xl last:rounded-b-xl">
@@ -145,7 +148,7 @@ const ContactItemContent = ({
                 </ReferenceField>
               )}
               {contact.nb_tasks
-                ? ` - ${contact.nb_tasks} ${translate("crm.common.task_count", {
+                ? ` - ${translate("crm.common.task_count", {
                     smart_count: contact.nb_tasks,
                   })}`
                 : ""}
@@ -160,8 +163,9 @@ const ContactItemContent = ({
               className="text-sm text-muted-foreground"
               title={contact.last_seen}
             >
-              {`${translate("crm.common.last_activity")} `}
-              <RelativeDate date={contact.last_seen} />{" "}
+              {translate("crm.common.last_activity_with_date", {
+                date: lastActivity,
+              })}{" "}
               <Status status={contact.status} />
             </div>
           </div>
@@ -279,7 +283,6 @@ const ContactItemContentMobile = ({ contact }: { contact: Contact }) => {
               </span>
               {contact.nb_tasks ? (
                 <span>
-                  {contact.nb_tasks}{" "}
                   {translate("crm.common.task_count", {
                     smart_count: contact.nb_tasks,
                   })}

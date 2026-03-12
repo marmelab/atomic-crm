@@ -39,6 +39,9 @@ export const englishCrmMessages = {
         new: "New Company",
         show: "Show company",
       },
+      added_on: "Added on %{date}",
+      followed_by: "Followed by %{name}",
+      followed_by_you: "Followed by you",
       no_contacts: "No contact",
       nb_contacts: "%{smart_count} contact |||| %{smart_count} contacts",
       nb_deals: "%{smart_count} deal |||| %{smart_count} deals",
@@ -61,6 +64,7 @@ export const englishCrmMessages = {
       field_categories: {
         background_info: "Background info",
         identity: "Identity",
+        misc: "Misc",
         personal_info: "Personal info",
         position: "Position",
       },
@@ -82,6 +86,7 @@ export const englishCrmMessages = {
       action: {
         add: "Add contact",
         add_first: "Add your first contact",
+        create: "Create contact",
         edit: "Edit contact",
         export_vcard: "Export to vCard",
         new: "New Contact",
@@ -89,7 +94,7 @@ export const englishCrmMessages = {
       },
       background: {
         last_activity_on: "Last activity on %{date}",
-        added_on: "Added on",
+        added_on: "Added on %{date}",
         followed_by: "Followed by %{name}",
         followed_by_you: "Followed by you",
       },
@@ -100,9 +105,12 @@ export const englishCrmMessages = {
         title: "No contacts found",
       },
       import: {
+        title: "Import contacts",
         button: "Import CSV",
         complete:
           "Contacts import complete. Imported %{importCount} contacts, with %{errorCount} errors",
+        progress:
+          "Imported %{importCount} / %{rowCount} contacts, with %{errorCount} errors.",
         error:
           "Failed to import this file, please make sure your provided a valid CSV file.",
         imported: "Imported",
@@ -156,7 +164,6 @@ export const englishCrmMessages = {
         today: "Today",
       },
       hot: {
-        create: "Create contact",
         empty_change_status:
           'Change the status of a contact by adding a note to that contact and clicking on "show options".',
         empty_hint: 'Contacts with a "hot" status will appear here.',
@@ -180,6 +187,9 @@ export const englishCrmMessages = {
         create: "Create deal",
         new: "New Deal",
       },
+      field_categories: {
+        misc: "Misc",
+      },
       archived: {
         action: "Archive",
         error: "Error: deal not archived",
@@ -187,9 +197,6 @@ export const englishCrmMessages = {
         success: "Deal archived",
         title: "Archived Deal",
         view: "View archived deals",
-      },
-      edit: {
-        title: "Edit %{name} deal",
       },
       inputs: {
         linked_to: "Linked to",
@@ -205,6 +212,7 @@ export const englishCrmMessages = {
         description: "It seems your deal list is empty.",
         title: "No deals found",
       },
+      invalid_date: "Invalid date",
     },
     notes: {
       name: "Note |||| Notes",
@@ -237,7 +245,7 @@ export const englishCrmMessages = {
       list: {
         error_loading: "Error loading notes",
       },
-      note_for: "Note for",
+      note_for_contact: "Note for %{name}",
       stepper: {
         hint: "Go to a contact page and add a note",
       },
@@ -313,13 +321,14 @@ export const englishCrmMessages = {
         tomorrow: "Tomorrow",
         with_pending: "With pending tasks",
       },
+      regarding_contact: "(Re: %{name})",
       updated: "Task updated",
     },
     tags: {
       name: "Tag |||| Tags",
       action: {
         add: "Add tag",
-        create_new: "Create new tag",
+        create: "Create new tag",
       },
       dialog: {
         color: "Color",
@@ -351,22 +360,18 @@ export const englishCrmMessages = {
       activity: "Activity",
       added: "added",
       details: "Details",
-      errors: "errors",
-      invalid_date: "Invalid date",
-      last_activity: "last activity",
+      last_activity_with_date: "last activity %{date}",
       load_more: "Load more",
       misc: "Misc",
       past: "Past",
       read_more: "Read more",
-      regarding: "Re:",
       retry: "Retry",
       show_less: "Show less",
-      with: "with",
       copied: "Copied!",
       copy: "Copy",
       loading: "Loading...",
       me: "Me",
-      task_count: "task |||| tasks",
+      task_count: "%{smart_count} task |||| %{smart_count} tasks",
     },
     activity: {
       added_company: "%{name} added company",
@@ -390,6 +395,16 @@ export const englishCrmMessages = {
       latest_activity_error: "Error loading latest activity",
       latest_notes: "My Latest Notes",
       latest_notes_added_ago: "added %{timeAgo}",
+      welcome: {
+        paragraph_1:
+          "is a template designed to help you quickly build your own CRM.",
+        paragraph_2:
+          "This demo runs on a mock API, so you can explore and modify the data. It resets on reload. The full version uses Supabase for the backend.",
+        paragraph_3:
+          "Atomic CRM is fully open-source. You can find the code at",
+        powered_by: "Powered by",
+        title: "Your CRM Starter Kit",
+      },
       stepper: {
         install: "Install Atomic CRM",
         progress: "%{step}/3 done",

@@ -146,9 +146,7 @@ export const TagsListEdit = () => {
                 className="w-full justify-start p-0 cursor-pointer text-base md:text-sm"
               >
                 <Edit className="w-4 h-4 md:w-3 md:h-3 mr-2" />
-                {translate("resources.tags.action.create_new", {
-                  _: "Create new tag",
-                })}
+                {translate("resources.tags.action.create")}
               </Button>
             </DropdownMenuItem>
           </DropdownMenuContent>

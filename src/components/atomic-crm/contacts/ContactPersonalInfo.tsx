@@ -5,9 +5,11 @@ import { TextField } from "@/components/admin/text-field";
 import { EmailField } from "@/components/admin/email-field";
 import { Mail, Phone, Linkedin } from "lucide-react";
 import type { ReactNode } from "react";
-import { contactGender } from "./contactGender";
-import { getTranslatedContactGenderLabel } from "./getTranslatedContactGenderLabel";
-import { getTranslatedPersonalInfoTypeLabel } from "./getTranslatedPersonalInfoTypeLabel";
+import {
+  contactGender,
+  translateContactGenderLabel,
+  translatePersonalInfoTypeLabel,
+} from "./contactGender";
 import type { Contact } from "../types";
 
 export const ContactPersonalInfo = () => {
@@ -69,7 +71,7 @@ export const ContactPersonalInfo = () => {
                 }
                 primary={
                   <div>
-                    {getTranslatedContactGenderLabel(genderOption, translate)}
+                    {translateContactGenderLabel(genderOption, translate)}
                   </div>
                 }
               />
@@ -103,7 +105,7 @@ const PersonalInfoRow = ({
             render={(row) =>
               row.type !== "Other" && (
                 <span className="text-muted-foreground">
-                  {getTranslatedPersonalInfoTypeLabel(row.type, translate)}
+                  {translatePersonalInfoTypeLabel(row.type, translate)}
                 </span>
               )
             }

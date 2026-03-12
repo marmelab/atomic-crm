@@ -6,7 +6,7 @@ import {
   WithRecord,
 } from "ra-core";
 import { TextField } from "@/components/admin/text-field";
-import { DateField } from "@/components/admin/date-field";
+import { formatLocalizedDate } from "../misc/RelativeDate";
 import { useGetSalesName } from "../sales/useGetSalesName";
 import type { Contact } from "../types";
 
@@ -23,12 +23,9 @@ export const ContactBackgroundInfo = () => {
   if (!record) return null;
 
   const formattedLastSeen = record.last_seen
-    ? new Intl.DateTimeFormat(locale, {
-        year: "numeric",
-        month: "long",
-        day: "numeric",
-      }).format(new Date(record.last_seen))
+    ? formatLocalizedDate(record.last_seen, locale)
     : "";
+  const formattedFirstSeen = formatLocalizedDate(record.first_seen, locale);
 
   return (
     <div>
@@ -44,21 +41,15 @@ export const ContactBackgroundInfo = () => {
       <div className="text-muted-foreground md:py-0.5">
         <span className="text-sm">
           {translate("resources.contacts.background.added_on", {
-            _: "Added on",
+            date: formattedFirstSeen,
           })}
         </span>{" "}
-        <DateField
-          source="first_seen"
-          options={{ year: "numeric", month: "long", day: "numeric" }}
-          className="text-sm"
-        />
       </div>
 
       <div className="text-muted-foreground md:py-0.5">
         <span className="text-sm">
           {translate("resources.contacts.background.last_activity_on", {
             date: formattedLastSeen,
-            _: `Last activity on ${formattedLastSeen}`,
           })}
         </span>
       </div>

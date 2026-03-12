@@ -55,9 +55,7 @@ export const HotContacts = () => {
               </Button>
             </TooltipTrigger>
             <TooltipContent>
-              {translate("resources.contacts.hot.create", {
-                _: "Create contact",
-              })}
+              {translate("resources.contacts.action.create")}
             </TooltipContent>
           </Tooltip>
         </TooltipProvider>
@@ -87,14 +85,10 @@ export const HotContacts = () => {
           empty={
             <div className="p-4">
               <p className="text-sm mb-4">
-                {translate("resources.contacts.hot.empty_hint", {
-                  _: 'Contacts with a "hot" status will appear here.',
-                })}
+                {translate("resources.contacts.hot.empty_hint")}
               </p>
               <p className="text-sm">
-                {translate("resources.contacts.hot.empty_change_status", {
-                  _: 'Change the status of a contact by adding a note to that contact and clicking on "show options".',
-                })}
+                {translate("resources.contacts.hot.empty_change_status")}
               </p>
             </div>
           }

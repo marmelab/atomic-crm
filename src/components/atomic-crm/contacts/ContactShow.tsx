@@ -2,11 +2,11 @@ import { useState } from "react";
 import {
   RecordRepresentation,
   ShowBase,
+  useReferenceManyFieldController,
   useShowContext,
   useTranslate,
 } from "ra-core";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { ReferenceManyCount } from "@/components/admin/reference-many-count";
 import { ReferenceField } from "@/components/admin/reference-field";
 import { ReferenceManyField } from "@/components/admin/reference-many-field";
 import { TextField } from "@/components/admin/text-field";
@@ -54,7 +54,7 @@ export const ContactShow = () => {
 
 const ContactShowContentMobile = () => {
   const translate = useTranslate();
-  const { record, isPending } = useShowContext<Contact>();
+  const { defaultTitle, record, isPending } = useShowContext<Contact>();
   const [noteCreateOpen, setNoteCreateOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
   if (isPending || !record) return null;
@@ -77,9 +77,7 @@ const ContactShowContentMobile = () => {
         <MobileBackButton />
         <div className="flex flex-1 min-w-0">
           <Link to="/contacts" className="flex-1 min-w-0">
-            <h1 className="truncate text-xl font-semibold">
-              <RecordRepresentation />
-            </h1>
+            <h1 className="truncate text-xl font-semibold">{defaultTitle}</h1>
           </Link>
         </div>
         <Button
@@ -137,12 +135,7 @@ const ContactShowContentMobile = () => {
               {translate("resources.notes.name", { smart_count: 2 })}
             </TabsTrigger>
             <TabsTrigger value="tasks">
-              <ReferenceManyCount
-                target="contact_id"
-                reference="tasks"
-                filter={{ "done_date@is": null }}
-              />{" "}
-              {translate("resources.tasks.name", { smart_count: 2 })}
+              <PendingTasksTabLabel />
             </TabsTrigger>
             <TabsTrigger value="details">
               {translate("crm.common.details")}
@@ -226,6 +219,20 @@ const ContactShowContentMobile = () => {
       </MobileContent>
     </>
   );
+};
+
+const PendingTasksTabLabel = () => {
+  const translate = useTranslate();
+  const { total = 0 } = useReferenceManyFieldController<Contact>({
+    filter: { "done_date@is": null },
+    page: 1,
+    perPage: 1,
+    reference: "tasks",
+    source: "id",
+    target: "contact_id",
+  });
+
+  return translate("crm.common.task_count", { smart_count: total });
 };
 
 const ContactShowContent = () => {

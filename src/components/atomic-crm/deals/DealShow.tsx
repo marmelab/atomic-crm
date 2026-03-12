@@ -27,8 +27,7 @@ import { NotesIterator } from "../notes/NotesIterator";
 import { useConfigurationContext } from "../root/ConfigurationContext";
 import type { Deal } from "../types";
 import { ContactList } from "./ContactList";
-import { findDealLabel } from "./deal";
-import { formatISODateString } from "./dealUtils";
+import { findDealLabel, formatISODateString } from "./dealUtils";
 
 export const DealShow = ({ open, id }: { open: boolean; id?: string }) => {
   const redirect = useRedirect();
@@ -95,7 +94,7 @@ const DealShowContent = () => {
                 <span className="text-sm">
                   {isValid(new Date(record.expected_closing_date))
                     ? formatISODateString(record.expected_closing_date)
-                    : translate("crm.common.invalid_date")}
+                    : translate("resources.deals.invalid_date")}
                 </span>
                 {new Date(record.expected_closing_date) < new Date() ? (
                   <Badge variant="destructive">
@@ -137,7 +136,7 @@ const DealShowContent = () => {
                 {translate("resources.deals.fields.stage")}
               </span>
               <span className="text-sm">
-                {findDealLabel(dealStages, record.stage, translate)}
+                {findDealLabel(dealStages, record.stage)}
               </span>
             </div>
           </div>
@@ -215,14 +214,12 @@ const ArchiveButton = ({ record }: { record: Deal }) => {
           notify("resources.deals.archived.success", {
             type: "info",
             undoable: false,
-            messageArgs: { _: "Deal archived" },
           });
           refresh();
         },
         onError: () => {
           notify("resources.deals.archived.error", {
             type: "error",
-            messageArgs: { _: "Error: deal not archived" },
           });
         },
       },
@@ -256,14 +253,12 @@ const UnarchiveButton = ({ record }: { record: Deal }) => {
       notify("resources.deals.unarchived.success", {
         type: "info",
         undoable: false,
-        messageArgs: { _: "Deal unarchived" },
       });
       refresh();
     },
     onError: () => {
       notify("resources.deals.unarchived.error", {
         type: "error",
-        messageArgs: { _: "Error: deal not unarchived" },
       });
     },
   });

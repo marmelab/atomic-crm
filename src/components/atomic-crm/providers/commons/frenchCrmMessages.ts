@@ -41,6 +41,9 @@ export const frenchCrmMessages = {
         new: "Nouvelle entreprise",
         show: "Afficher l'entreprise",
       },
+      added_on: "Ajoutée le %{date}",
+      followed_by: "Suivie par %{name}",
+      followed_by_you: "Suivie par vous",
       no_contacts: "Aucun contact",
       nb_contacts: "%{smart_count} contact |||| %{smart_count} contacts",
       nb_deals: "%{smart_count} affaire |||| %{smart_count} affaires",
@@ -64,6 +67,7 @@ export const frenchCrmMessages = {
       field_categories: {
         background_info: "Informations complémentaires",
         identity: "Identité",
+        misc: "Divers",
         personal_info: "Informations personnelles",
         position: "Poste",
       },
@@ -85,6 +89,7 @@ export const frenchCrmMessages = {
       action: {
         add: "Ajouter un contact",
         add_first: "Ajoutez votre premier contact",
+        create: "Créer un contact",
         edit: "Modifier le contact",
         export_vcard: "Exporter en vCard",
         new: "Nouveau contact",
@@ -92,7 +97,7 @@ export const frenchCrmMessages = {
       },
       background: {
         last_activity_on: "Dernière activité le %{date}",
-        added_on: "Ajouté le",
+        added_on: "Ajouté le %{date}",
         followed_by: "Suivi par %{name}",
         followed_by_you: "Suivi par vous",
       },
@@ -103,9 +108,12 @@ export const frenchCrmMessages = {
         title: "Aucun contact trouvé",
       },
       import: {
+        title: "Importer des contacts",
         button: "Importer un fichier CSV",
         complete:
           "Import des contacts terminé. %{importCount} contacts importés, %{errorCount} erreurs",
+        progress:
+          "%{importCount} / %{rowCount} contacts importés, avec %{errorCount} erreurs.",
         error:
           "Échec de l'importation de ce fichier. Veuillez vous assurer que vous avez fourni un fichier CSV valide.",
         imported: "Importé",
@@ -160,7 +168,6 @@ export const frenchCrmMessages = {
         today: "Aujourd'hui",
       },
       hot: {
-        create: "Créer un contact",
         empty_change_status:
           'Changez le statut d\'un contact en ajoutant une note à ce contact et en cliquant sur "afficher les options".',
         empty_hint: 'Les contacts avec un statut "chaud" apparaîtront ici.',
@@ -184,6 +191,9 @@ export const frenchCrmMessages = {
         create: "Créer une affaire",
         new: "Nouvelle affaire",
       },
+      field_categories: {
+        misc: "Divers",
+      },
       archived: {
         action: "Archiver",
         error: "Erreur : affaire non archivée",
@@ -191,9 +201,6 @@ export const frenchCrmMessages = {
         success: "Affaire archivée",
         title: "Affaire archivée",
         view: "Afficher les affaires archivées",
-      },
-      edit: {
-        title: "Modifier l'affaire %{name}",
       },
       inputs: {
         linked_to: "Lié à",
@@ -209,6 +216,7 @@ export const frenchCrmMessages = {
         description: "Il semble que votre liste d'affaires soit vide.",
         title: "Aucune affaire trouvée",
       },
+      invalid_date: "Date invalide",
     },
     notes: {
       name: "Note |||| Notes",
@@ -241,7 +249,7 @@ export const frenchCrmMessages = {
       list: {
         error_loading: "Erreur lors du chargement des notes",
       },
-      note_for: "Note pour",
+      note_for_contact: "Note pour %{name}",
       stepper: {
         hint: "Accédez à une page de contact et ajoutez une note",
       },
@@ -318,13 +326,14 @@ export const frenchCrmMessages = {
         tomorrow: "Demain",
         with_pending: "Avec des tâches en attente",
       },
+      regarding_contact: "(Concernant : %{name})",
       updated: "Tâche mise à jour",
     },
     tags: {
       name: "Étiquette |||| Étiquettes",
       action: {
         add: "Ajouter une étiquette",
-        create_new: "Créer une nouvelle étiquette",
+        create: "Créer une nouvelle étiquette",
       },
       dialog: {
         color: "Couleur",
@@ -356,18 +365,14 @@ export const frenchCrmMessages = {
       activity: "Activité",
       added: "ajoutée",
       details: "Détails",
-      errors: "erreurs",
-      invalid_date: "Date invalide",
-      last_activity: "dernière activité",
+      last_activity_with_date: "dernière activité %{date}",
       load_more: "Charger plus",
       misc: "Divers",
       past: "Passé",
       read_more: "En savoir plus",
-      regarding: "Concernant:",
       retry: "Réessayer",
       show_less: "Afficher moins",
-      task_count: "tâche |||| tâches",
-      with: "avec",
+      task_count: "%{smart_count} tâche |||| %{smart_count} tâches",
       copied: "Copié !",
       copy: "Copier",
       loading: "Chargement...",
@@ -396,6 +401,16 @@ export const frenchCrmMessages = {
         "Erreur lors du chargement de la dernière activité",
       latest_notes: "Mes dernières notes",
       latest_notes_added_ago: "ajouté %{timeAgo}",
+      welcome: {
+        paragraph_1:
+          "est un template conçu pour vous aider à créer rapidement votre propre CRM.",
+        paragraph_2:
+          "Cette démo fonctionne avec une API mockée, afin que vous puissiez explorer et modifier les données. Elle se réinitialise au rechargement. La version complète utilise Supabase comme backend.",
+        paragraph_3:
+          "Atomic CRM est entièrement open source. Vous pouvez retrouver le code sur",
+        powered_by: "Propulsé par",
+        title: "Votre kit de démarrage CRM",
+      },
       stepper: {
         install: "Installer Atomic CRM",
         progress: "%{step}/3 terminé",

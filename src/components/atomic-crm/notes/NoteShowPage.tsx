@@ -1,5 +1,6 @@
 import { Pencil } from "lucide-react";
 import {
+  useGetRecordRepresentation,
   RecordRepresentation,
   useGetIdentity,
   useGetOne,
@@ -28,6 +29,7 @@ export const NoteShowPage = () => {
     noteId: string;
   }>();
   const [editOpen, setEditOpen] = useState(false);
+  const getContactRepresentation = useGetRecordRepresentation("contacts");
 
   const { data: note, isPending } = useGetOne<ContactNote>("contact_notes", {
     id: noteId!,
@@ -52,13 +54,19 @@ export const NoteShowPage = () => {
         <div className="flex flex-1 min-w-0">
           <Link to={`/contacts/${contactId}/show`} className="flex-1 min-w-0">
             <h1 className="truncate text-xl font-semibold">
-              {translate("resources.notes.note_for")}{" "}
               <ReferenceField
                 record={note}
                 resource="contact_notes"
                 source="contact_id"
                 reference="contacts"
                 link={false}
+                render={({ referenceRecord }) =>
+                  referenceRecord
+                    ? translate("resources.notes.note_for_contact", {
+                        name: getContactRepresentation(referenceRecord),
+                      })
+                    : null
+                }
               >
                 <RecordRepresentation resource="contacts" />
               </ReferenceField>

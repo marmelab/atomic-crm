@@ -12,12 +12,14 @@ import { ArrayInput } from "@/components/admin/array-input";
 import { SimpleFormIterator } from "@/components/admin/simple-form-iterator";
 
 import { isLinkedinUrl } from "../misc/isLinkedInUrl";
-import { contactGender } from "./contactGender";
+import {
+  contactGender,
+  translateContactGenderLabel,
+  translatePersonalInfoTypeLabel,
+} from "./contactGender";
 import type { Sale } from "../types";
 import { Avatar } from "./Avatar";
 import { AutocompleteCompanyInput } from "../companies/AutocompleteCompanyInput.tsx";
-import { getTranslatedContactGenderLabel } from "./getTranslatedContactGenderLabel";
-import { getTranslatedPersonalInfoTypeLabel } from "./getTranslatedPersonalInfoTypeLabel";
 
 export const ContactInputs = () => {
   const isMobile = useIsMobile();
@@ -57,9 +59,7 @@ const ContactIdentityInputs = () => {
         source="gender"
         choices={contactGender}
         helperText={false}
-        optionText={(choice) =>
-          getTranslatedContactGenderLabel(choice, translate)
-        }
+        optionText={(choice) => translateContactGenderLabel(choice, translate)}
         translateChoice={false}
         optionValue="value"
         defaultValue={contactGender[0].value}
@@ -91,15 +91,15 @@ const ContactPersonalInformationInputs = () => {
   const personalInfoTypes = [
     {
       id: "Work",
-      name: getTranslatedPersonalInfoTypeLabel("Work", translate),
+      name: translatePersonalInfoTypeLabel("Work", translate),
     },
     {
       id: "Home",
-      name: getTranslatedPersonalInfoTypeLabel("Home", translate),
+      name: translatePersonalInfoTypeLabel("Home", translate),
     },
     {
       id: "Other",
-      name: getTranslatedPersonalInfoTypeLabel("Other", translate),
+      name: translatePersonalInfoTypeLabel("Other", translate),
     },
   ];
 
@@ -200,7 +200,9 @@ const ContactMiscInputs = () => {
   const translate = useTranslate();
   return (
     <div className="flex flex-col gap-4">
-      <h6 className="text-lg font-semibold">{translate("crm.common.misc")}</h6>
+      <h6 className="text-lg font-semibold">
+        {translate("resources.contacts.field_categories.misc")}
+      </h6>
       <TextInput source="background" multiline helperText={false} />
       <BooleanInput source="has_newsletter" helperText={false} />
       <ReferenceInput
