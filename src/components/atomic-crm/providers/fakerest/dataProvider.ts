@@ -231,7 +231,7 @@ export const createDataProvider = ({
     },
     salesUpdate: async (
       id: Identifier,
-      data: Partial<Omit<SalesFormData, "password">>,
+      data: Partial<SalesFormData>,
     ): Promise<Sale> => {
       const { data: previousData } = await dataProvider.getOne<Sale>("sales", {
         id,
@@ -454,6 +454,17 @@ export const createDataProvider = ({
       } satisfies ResourceCallbacks<Contact>,
       {
         resource: "tasks",
+        beforeCreate: async (params) => {
+          const identity = await getIdentity();
+          return {
+            ...params,
+            data: {
+              ...params.data,
+              assigned_by_id: params.data.assigned_by_id ?? identity?.id,
+              workflow_status: params.data.workflow_status ?? "todo",
+            },
+          };
+        },
         afterCreate: async (result, dataProvider) => {
           // update the task count in the related contact
           const { contact_id } = result.data;

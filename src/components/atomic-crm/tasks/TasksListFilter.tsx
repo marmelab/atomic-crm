@@ -15,6 +15,7 @@ type TaskListProps = {
   isMobile: boolean;
   includeDoneTasks?: boolean;
   showAsArchived?: boolean;
+  showStatus?: boolean;
 };
 
 export const TaskListFilter = ({
@@ -24,6 +25,7 @@ export const TaskListFilter = ({
   isMobile,
   includeDoneTasks = false,
   showAsArchived = false,
+  showStatus = false,
 }: TaskListProps) => {
   const translate = useTranslate();
   const listContext = useList({
@@ -50,6 +52,7 @@ export const TaskListFilter = ({
             showContact={showContact}
             includeDoneTasks={includeDoneTasks}
             showAsArchived={showAsArchived}
+            showStatus={showStatus}
           />
         </ListContextProvider>
       </ResourceContextProvider>

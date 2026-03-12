@@ -7,17 +7,24 @@ type TaskWithDates = {
   done_date: string | null;
 };
 
-export type TasksListView = "active" | "archived";
+export type TasksListView = "active" | "archived" | "all";
+export type TasksListScope = "assignee" | "assigner";
 
 export const getTasksFilter = ({
   filterByContact,
   identityId,
+  scope = "assignee",
 }: {
   filterByContact?: Identifier;
   identityId?: Identifier;
+  scope?: TasksListScope;
 }) => {
   if (filterByContact != null) {
     return { contact_id: filterByContact };
+  }
+
+  if (scope === "assigner") {
+    return { assigned_by_id: identityId };
   }
 
   return { sales_id: identityId };
@@ -33,6 +40,10 @@ export const filterTasksByView = (
     keepRecentlyDone: boolean;
   },
 ) => {
+  if (view === "all") {
+    return tasks;
+  }
+
   if (view === "archived") {
     return tasks.filter((task) => isDone(task));
   }

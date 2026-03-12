@@ -565,8 +565,9 @@ export const polishMessages: TranslationMessages = {
       },
     },
     tasks: {
-      my_tasks: "Moje zadania",
-      my_tasks_short: "Moje",
+      my_tasks: "Zadania",
+      my_tasks_short: "Zadania",
+      assigned_by_me: "Zlecone przeze mnie",
       active: "Do zrobienia",
       archived: "Archiwum",
       add: "Dodaj zadanie",
@@ -585,9 +586,25 @@ export const polishMessages: TranslationMessages = {
         tomorrow: "Jutro",
         later: "Później",
         archived: "Zarchiwizowane",
+        all: "Wszystkie",
       },
       empty: "Zadania dodane do kontaktów pojawią się tutaj.",
       empty_archived: "Brak zarchiwizowanych zadań.",
+      empty_assigned: "Brak zadań zleconych przez Ciebie.",
+      status: {
+        todo: "Do zrobienia",
+        in_progress: "W trakcie",
+        done: "Zrealizowane",
+      },
+      view: {
+        list: "Lista",
+        kanban: "Kanban",
+      },
+      kanban: {
+        unassigned: "Nieprzypisane",
+        done: "Zrobione",
+        empty_column: "Brak zadań w tej kolumnie.",
+      },
       notifications: {
         added: "Dodano zadanie",
         deleted: "Zadanie usunięto",

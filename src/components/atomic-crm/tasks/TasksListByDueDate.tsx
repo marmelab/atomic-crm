@@ -20,19 +20,30 @@ import {
 import {
   filterTasksByView,
   getTasksFilter,
+  type TasksListScope,
   type TasksListView,
 } from "./tasksListView";
 
 export const TasksListByDueDate = ({
   filterByContact,
+  filterByAssigner,
+  scope = "assignee",
   view = "active",
   keepRecentlyDone = true,
+  showStatus = false,
+  includeDoneTasks = false,
+  groupByDueDateInAllView = false,
   emptyPlaceholder,
   pendingPlaceholder,
 }: {
   filterByContact?: Identifier;
+  filterByAssigner?: Identifier;
+  scope?: TasksListScope;
   view?: TasksListView;
   keepRecentlyDone?: boolean;
+  showStatus?: boolean;
+  includeDoneTasks?: boolean;
+  groupByDueDateInAllView?: boolean;
   emptyPlaceholder?: React.ReactNode;
   pendingPlaceholder?: React.ReactNode;
 }) => {
@@ -42,7 +53,8 @@ export const TasksListByDueDate = ({
 
   const filter = getTasksFilter({
     filterByContact,
-    identityId: identity?.id,
+    identityId: filterByAssigner ?? identity?.id,
+    scope,
   });
 
   const { data: tasks, isPending } = useGetList(
@@ -55,7 +67,14 @@ export const TasksListByDueDate = ({
           : { field: "due_date", order: "ASC" },
       filter,
     },
-    { enabled: filterByContact != null ? true : !!identity?.id },
+    {
+      enabled:
+        filterByContact != null
+          ? true
+          : filterByAssigner != null
+            ? true
+            : !!identity?.id,
+    },
   );
 
   const showContact = filterByContact == null;
@@ -125,6 +144,69 @@ export const TasksListByDueDate = ({
         isMobile={isMobile}
         includeDoneTasks
         showAsArchived
+        showStatus={showStatus}
+      />
+    );
+  }
+
+  if (view === "all") {
+    if (groupByDueDateInAllView) {
+      return (
+        <div className="flex flex-col gap-4">
+          <TaskListFilter
+            tasks={overdueTasks}
+            title={translate("crm.tasks.filter.overdue", { _: "Overdue" })}
+            showContact={showContact}
+            isMobile={isMobile}
+            showStatus={showStatus}
+            includeDoneTasks={includeDoneTasks}
+          />
+          <TaskListFilter
+            tasks={dueTodayTasks}
+            title={translate("crm.filters.today", { _: "Today" })}
+            showContact={showContact}
+            isMobile={isMobile}
+            showStatus={showStatus}
+            includeDoneTasks={includeDoneTasks}
+          />
+          <TaskListFilter
+            tasks={dueTomorrowTasks}
+            title={translate("crm.tasks.filter.tomorrow", { _: "Tomorrow" })}
+            showContact={showContact}
+            isMobile={isMobile}
+            showStatus={showStatus}
+            includeDoneTasks={includeDoneTasks}
+          />
+          {(!filterByContact || (filterByContact && isBeforeFriday())) && (
+            <TaskListFilter
+              tasks={dueThisWeekTasks}
+              title={translate("crm.filters.this_week", { _: "This week" })}
+              showContact={showContact}
+              isMobile={isMobile}
+              showStatus={showStatus}
+              includeDoneTasks={includeDoneTasks}
+            />
+          )}
+          <TaskListFilter
+            tasks={dueLaterTasks}
+            title={translate("crm.tasks.filter.later", { _: "Later" })}
+            showContact={showContact}
+            isMobile={isMobile}
+            showStatus={showStatus}
+            includeDoneTasks={includeDoneTasks}
+          />
+        </div>
+      );
+    }
+
+    return (
+      <TaskListFilter
+        tasks={tasksInCurrentView}
+        title={translate("crm.tasks.filter.all", { _: "All" })}
+        showContact={showContact}
+        isMobile={isMobile}
+        includeDoneTasks={includeDoneTasks}
+        showStatus={showStatus}
       />
     );
   }
@@ -136,18 +218,24 @@ export const TasksListByDueDate = ({
         title={translate("crm.tasks.filter.overdue", { _: "Overdue" })}
         showContact={showContact}
         isMobile={isMobile}
+        showStatus={showStatus}
+        includeDoneTasks={includeDoneTasks}
       />
       <TaskListFilter
         tasks={dueTodayTasks}
         title={translate("crm.filters.today", { _: "Today" })}
         showContact={showContact}
         isMobile={isMobile}
+        showStatus={showStatus}
+        includeDoneTasks={includeDoneTasks}
       />
       <TaskListFilter
         tasks={dueTomorrowTasks}
         title={translate("crm.tasks.filter.tomorrow", { _: "Tomorrow" })}
         showContact={showContact}
         isMobile={isMobile}
+        showStatus={showStatus}
+        includeDoneTasks={includeDoneTasks}
       />
       {(!filterByContact || (filterByContact && isBeforeFriday())) && (
         <TaskListFilter
@@ -155,6 +243,8 @@ export const TasksListByDueDate = ({
           title={translate("crm.filters.this_week", { _: "This week" })}
           showContact={showContact}
           isMobile={isMobile}
+          showStatus={showStatus}
+          includeDoneTasks={includeDoneTasks}
         />
       )}
       <TaskListFilter
@@ -162,6 +252,8 @@ export const TasksListByDueDate = ({
         title={translate("crm.tasks.filter.later", { _: "Later" })}
         showContact={showContact}
         isMobile={isMobile}
+        showStatus={showStatus}
+        includeDoneTasks={includeDoneTasks}
       />
     </div>
   );

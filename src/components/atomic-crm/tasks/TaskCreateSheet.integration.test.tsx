@@ -74,8 +74,9 @@ describe("TaskCreateSheet integration", () => {
       .getByLabelText(/description/i)
       .fill("Follow up about onboarding");
 
-    const [contactInput, typeInput, assigneeInput] =
-      screen.getByRole("combobox").all();
+    const [contactInput, typeInput, assigneeInput] = screen
+      .getByRole("combobox")
+      .all();
 
     await contactInput.click();
     await screen.getByText("Grace Hopper").click();
@@ -121,10 +122,12 @@ describe("TaskCreateSheet integration", () => {
     );
 
     expect(createdTask).toMatchObject({
+      assigned_by_id: 0,
       contact_id: 2,
       sales_id: 2,
       text: "Follow up about onboarding",
       type: "call",
+      workflow_status: "todo",
     });
     expect(tasks.data).toHaveLength(2);
 

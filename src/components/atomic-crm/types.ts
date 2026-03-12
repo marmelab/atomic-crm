@@ -151,6 +151,8 @@ export type Task = {
   due_date: string;
   done_date?: string | null;
   sales_id?: Identifier;
+  assigned_by_id?: Identifier | null;
+  workflow_status?: "todo" | "in_progress" | "done";
 } & Pick<RaRecord, "id">;
 
 export type ActivityCompanyCreated = {

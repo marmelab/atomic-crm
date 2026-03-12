@@ -60,7 +60,9 @@ export const AddTask = ({
       previousData: contact.data,
     });
 
-    notify("crm.tasks.notifications.added", { messageArgs: { _: "Task added" } });
+    notify("crm.tasks.notifications.added", {
+      messageArgs: { _: "Task added" },
+    });
   };
 
   if (!identity) return null;
@@ -106,6 +108,8 @@ export const AddTask = ({
           contact_id: contact?.id,
           due_date: new Date().toISOString(),
           sales_id: identity.id,
+          assigned_by_id: identity.id,
+          workflow_status: "todo",
         }}
         mutationOptions={{ onSuccess: handleSuccess }}
       >

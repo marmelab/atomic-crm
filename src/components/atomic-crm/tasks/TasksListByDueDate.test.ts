@@ -3,8 +3,14 @@ import { describe, expect, it } from "vitest";
 import { filterTasksByView, getTasksFilter } from "./tasksListView";
 
 describe("TasksListByDueDate helpers", () => {
-  it("filters my tasks by assignee (sales_id)", () => {
+  it("filters tasks by assignee (sales_id)", () => {
     expect(getTasksFilter({ identityId: 7 })).toEqual({ sales_id: 7 });
+  });
+
+  it("filters tasks assigned by me (assigned_by_id)", () => {
+    expect(getTasksFilter({ identityId: 7, scope: "assigner" })).toEqual({
+      assigned_by_id: 7,
+    });
   });
 
   it("filters contact tasks by contact_id", () => {
@@ -52,5 +58,20 @@ describe("TasksListByDueDate helpers", () => {
         keepRecentlyDone: false,
       }),
     ).toEqual([doneTask]);
+  });
+
+  it("keeps all tasks in all view", () => {
+    const openTask = { due_date: "2026-03-10T10:00:00.000Z", done_date: null };
+    const doneTask = {
+      due_date: "2026-03-10T10:00:00.000Z",
+      done_date: new Date().toISOString(),
+    };
+
+    expect(
+      filterTasksByView([openTask, doneTask], {
+        view: "all",
+        keepRecentlyDone: false,
+      }),
+    ).toEqual([openTask, doneTask]);
   });
 });

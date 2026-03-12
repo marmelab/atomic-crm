@@ -242,7 +242,7 @@ const DesktopAdmin = (props: CoreAdminProps) => {
         <Route path={SettingsPage.path} element={<SettingsPage />} />
         <Route path={ImportPage.path} element={<ImportPage />} />
         <Route path={MyTasksPage.path} element={<MyTasksPage />} />
-        <Route path="/tasks" element={<MyTasksPage />} />
+        <Route path="/my-tasks" element={<MyTasksPage />} />
       </CustomRoutes>
       <Resource name="deals" {...deals} />
       <Resource name="contacts" {...contacts} />
@@ -298,7 +298,7 @@ const MobileAdmin = (props: CoreAdminProps) => {
         </CustomRoutes>
         <CustomRoutes>
           <Route path={MyTasksPage.path} element={<MobileMyTasksPage />} />
-          <Route path="/tasks" element={<MobileMyTasksPage />} />
+          <Route path="/my-tasks" element={<MobileMyTasksPage />} />
         </CustomRoutes>
         <Resource
           name="contacts"

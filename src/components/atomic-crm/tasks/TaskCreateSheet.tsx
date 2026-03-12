@@ -70,6 +70,8 @@ export const TaskCreateSheet = ({
         contact_id,
         due_date: new Date().toISOString(),
         sales_id: identity.id,
+        assigned_by_id: identity.id,
+        workflow_status: "todo",
       }}
       mutationOptions={{
         onSuccess: handleSuccess,

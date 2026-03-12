@@ -25,7 +25,7 @@ const Header = () => {
     matchPath("/my-tasks/*", location.pathname) ||
     matchPath("/tasks/*", location.pathname)
   ) {
-    currentPath = "/my-tasks";
+    currentPath = "/tasks";
   } else if (matchPath("/deals/*", location.pathname)) {
     currentPath = "/deals";
   } else {
@@ -79,10 +79,10 @@ const Header = () => {
                   />
                   <NavigationTab
                     label={translate("crm.tasks.my_tasks", {
-                      _: "My tasks",
+                      _: "Tasks",
                     })}
-                    to="/my-tasks"
-                    isActive={currentPath === "/my-tasks"}
+                    to="/tasks"
+                    isActive={currentPath === "/tasks"}
                   />
                   <NavigationTab
                     label={translate("resources.deals.name", {

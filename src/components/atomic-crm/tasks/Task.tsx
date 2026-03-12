@@ -40,15 +40,28 @@ import {
   isDueTomorrow,
   isOverdue,
 } from "./tasksPredicate";
+import {
+  getTaskCompletionPatch,
+  getTaskWorkflowStatus,
+  type TaskWorkflowStatus,
+} from "./taskWorkflowStatus";
 
 export const Task = ({
   task,
   showContact,
   showAsArchived = false,
+  showStatus = false,
+  openOnCardClick = false,
+  showCheckbox = true,
+  strikeDoneText = true,
 }: {
   task: TData;
   showContact?: boolean;
   showAsArchived?: boolean;
+  showStatus?: boolean;
+  openOnCardClick?: boolean;
+  showCheckbox?: boolean;
+  strikeDoneText?: boolean;
 }) => {
   const isMobile = useIsMobile();
   const { taskTypes } = useConfigurationContext();
@@ -57,6 +70,7 @@ export const Task = ({
   const queryClient = useQueryClient();
   const dueBadge = getDueBadgeLabel(task.due_date, translate);
   const isArchivedTask = showAsArchived || !!task.done_date;
+  const workflowStatus = getTaskWorkflowStatus(task);
 
   const [openEdit, setOpenEdit] = useState(false);
 
@@ -84,11 +98,18 @@ export const Task = ({
   };
 
   const handleCheck = () => () => {
+    const isDone = workflowStatus === "done";
     update("tasks", {
       id: task.id,
-      data: {
-        done_date: task.done_date ? null : new Date().toISOString(),
-      },
+      data: getTaskCompletionPatch(isDone ? "todo" : "done", task.done_date),
+      previousData: task,
+    });
+  };
+
+  const handleWorkflowStatusChange = (nextStatus: TaskWorkflowStatus) => () => {
+    update("tasks", {
+      id: task.id,
+      data: getTaskCompletionPatch(nextStatus, task.done_date),
       previousData: task,
     });
   };
@@ -96,9 +117,7 @@ export const Task = ({
   const handleArchive = () => {
     update("tasks", {
       id: task.id,
-      data: {
-        done_date: task.done_date ?? new Date().toISOString(),
-      },
+      data: getTaskCompletionPatch("done", task.done_date),
       previousData: task,
     });
     notify("crm.tasks.notifications.archived", {
@@ -109,9 +128,7 @@ export const Task = ({
   const handleRestore = () => {
     update("tasks", {
       id: task.id,
-      data: {
-        done_date: null,
-      },
+      data: getTaskCompletionPatch("todo", task.done_date),
       previousData: task,
     });
     notify("crm.tasks.notifications.restored", {
@@ -121,12 +138,13 @@ export const Task = ({
 
   useEffect(() => {
     // We do not want to invalidate the query when a tack is checked or unchecked
-    const hasOnlyDoneDateUpdate =
+    const hasOnlyTaskStateUpdate =
       variables?.data != null &&
-      Object.keys(variables.data).length === 1 &&
-      "done_date" in variables.data;
+      Object.keys(variables.data).every((key) =>
+        ["done_date", "workflow_status"].includes(key),
+      );
 
-    if (isUpdatePending || !isSuccess || hasOnlyDoneDateUpdate) {
+    if (isUpdatePending || !isSuccess || hasOnlyTaskStateUpdate) {
       return;
     }
 
@@ -134,27 +152,43 @@ export const Task = ({
   }, [queryClient, isUpdatePending, isSuccess, variables]);
 
   const labelId = `checkbox-list-label-${task.id}`;
+  const handleCardClick = () => {
+    if (openOnCardClick) {
+      handleEdit();
+      return;
+    }
+    if (showCheckbox && isMobile && !showAsArchived) {
+      handleCheck()();
+    }
+  };
 
   return (
     <>
       <div
         className={`flex items-start justify-between gap-2 rounded-lg border px-3 py-2 transition-colors ${
           isArchivedTask ? "bg-muted/40" : "bg-background hover:bg-muted/20"
-        }`}
+        } ${openOnCardClick ? "cursor-pointer" : ""}`}
       >
         <div
           className="flex items-start gap-2 flex-1"
-          onClick={isMobile && !showAsArchived ? handleCheck() : undefined}
+          onClick={handleCardClick}
         >
-          <Checkbox
-            id={labelId}
-            checked={!!task.done_date}
-            onCheckedChange={handleCheck()}
-            disabled={isUpdatePending || showAsArchived}
-            className="mt-1"
-          />
-          <div className={`flex-grow ${task.done_date ? "line-through" : ""}`}>
-            <div className="text-sm leading-5">
+          {showCheckbox && (
+            <Checkbox
+              id={labelId}
+              checked={!!task.done_date}
+              onCheckedChange={handleCheck()}
+              disabled={isUpdatePending || showAsArchived}
+              className="mt-1"
+              onClick={(event) => event.stopPropagation()}
+            />
+          )}
+          <div
+            className={`flex-grow ${
+              strikeDoneText && workflowStatus === "done" ? "line-through" : ""
+            }`}
+          >
+            <div className="text-sm leading-5 whitespace-pre-wrap break-words [overflow-wrap:anywhere]">
               {task.type && task.type !== "none" && (
                 <>
                   <span className="font-semibold text-sm">
@@ -167,6 +201,26 @@ export const Task = ({
               {task.text}
             </div>
             <div className="text-sm text-muted-foreground mt-1 flex flex-wrap items-center gap-2">
+              {showStatus && (
+                <Badge
+                  variant="outline"
+                  className={
+                    workflowStatus === "done"
+                      ? "border-emerald-200 text-emerald-700"
+                      : workflowStatus === "in_progress"
+                        ? "border-sky-200 text-sky-700"
+                        : "border-amber-200 text-amber-700"
+                  }
+                >
+                  {workflowStatus === "done"
+                    ? translate("crm.tasks.status.done", { _: "Done" })
+                    : workflowStatus === "in_progress"
+                      ? translate("crm.tasks.status.in_progress", {
+                          _: "In progress",
+                        })
+                      : translate("crm.tasks.status.todo", { _: "To do" })}
+                </Badge>
+              )}
               {dueBadge && (
                 <Badge variant="outline" className={dueBadge.className}>
                   {dueBadge.label}
@@ -189,7 +243,7 @@ export const Task = ({
                   reference="sales"
                   record={task}
                   link={false}
-                  className="inline text-sm text-muted-foreground"
+                  className="inline text-sm text-muted-foreground break-words [overflow-wrap:anywhere]"
                   render={({ referenceRecord }) => {
                     const sale = referenceRecord as Sale | undefined;
                     if (!sale) return null;
@@ -211,7 +265,7 @@ export const Task = ({
                   reference="contacts"
                   record={task}
                   link="show"
-                  className="inline text-sm text-muted-foreground"
+                  className="inline text-sm text-muted-foreground break-words [overflow-wrap:anywhere]"
                   render={({ referenceRecord }) => {
                     if (!referenceRecord) return null;
                     return (
@@ -238,11 +292,36 @@ export const Task = ({
               aria-label={translate("crm.tasks.actions", {
                 _: "task actions",
               })}
+              onClick={(event) => event.stopPropagation()}
             >
               <MoreVertical className="size-5 md:size-4" />
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
+            {!showAsArchived && (
+              <>
+                <DropdownMenuItem
+                  className="cursor-pointer h-12 md:h-8 px-4 md:px-2 text-base md:text-sm"
+                  onClick={handleWorkflowStatusChange("todo")}
+                >
+                  {translate("crm.tasks.status.todo", { _: "To do" })}
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  className="cursor-pointer h-12 md:h-8 px-4 md:px-2 text-base md:text-sm"
+                  onClick={handleWorkflowStatusChange("in_progress")}
+                >
+                  {translate("crm.tasks.status.in_progress", {
+                    _: "In progress",
+                  })}
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  className="cursor-pointer h-12 md:h-8 px-4 md:px-2 text-base md:text-sm"
+                  onClick={handleWorkflowStatusChange("done")}
+                >
+                  {translate("crm.tasks.status.done", { _: "Done" })}
+                </DropdownMenuItem>
+              </>
+            )}
             {!isArchivedTask && (
               <DropdownMenuItem
                 className="cursor-pointer h-12 md:h-8 px-4 md:px-2 text-base md:text-sm"
