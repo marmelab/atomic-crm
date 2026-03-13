@@ -248,6 +248,7 @@ export const frenchCrmMessages = {
       empty: "Aucune note pour l'instant",
       author_added: "%{name} a ajouté une note",
       you_added: "Vous avez ajouté une note",
+      you: 'Vous',
       list: {
         error_loading: "Erreur lors du chargement des notes",
       },
