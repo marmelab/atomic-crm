@@ -244,7 +244,7 @@ export const englishCrmMessages = {
       empty: "No notes yet",
       author_added: "%{name} added a note",
       you_added: "You added a note",
-      me: 'Me',
+      me: "Me",
       list: {
         error_loading: "Error loading notes",
       },
@@ -465,6 +465,7 @@ export const englishCrmMessages = {
       tasks: {
         types: "Types",
       },
+      preferences: "Preferences",
       title: "Settings",
       app_title: "App Title",
       sections: {
@@ -483,6 +484,7 @@ export const englishCrmMessages = {
     },
     theme: {
       dark: "Dark",
+      label: "Theme",
       light: "Light",
       system: "System",
     },

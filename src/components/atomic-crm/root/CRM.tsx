@@ -30,6 +30,7 @@ import {
   dataProvider as defaultDataProvider,
 } from "../providers/supabase";
 import sales from "../sales";
+import { SettingsPageMobile } from "../settings/SettingsPageMobile";
 import { ProfilePage } from "../settings/ProfilePage";
 import { SettingsPage } from "../settings/SettingsPage";
 import {
@@ -293,6 +294,12 @@ const MobileAdmin = (props: CoreAdminProps) => {
             element={<ForgotPasswordPage />}
           />
           <Route path={OAuthConsentPage.path} element={<OAuthConsentPage />} />
+        </CustomRoutes>
+        <CustomRoutes>
+          <Route
+            path={SettingsPageMobile.path}
+            element={<SettingsPageMobile />}
+          />
         </CustomRoutes>
         <Resource
           name="contacts"

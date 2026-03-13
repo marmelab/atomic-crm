@@ -248,7 +248,7 @@ export const frenchCrmMessages = {
       empty: "Aucune note pour l'instant",
       author_added: "%{name} a ajouté une note",
       you_added: "Vous avez ajouté une note",
-      me: 'Moi',
+      me: "Moi",
       list: {
         error_loading: "Erreur lors du chargement des notes",
       },
@@ -471,6 +471,7 @@ export const frenchCrmMessages = {
       tasks: {
         types: "Types",
       },
+      preferences: "Préférences",
       title: "Paramètres",
       app_title: "Titre de l'application",
       sections: {
@@ -489,6 +490,7 @@ export const frenchCrmMessages = {
     },
     theme: {
       dark: "Sombre",
+      label: "Thème",
       light: "Clair",
       system: "Système",
     },
