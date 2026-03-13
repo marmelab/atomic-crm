@@ -83,3 +83,55 @@ using (
   or sales_id = current_sales_id()
 );
 
+-- Contacts: restrict by sales_id, admins can see all
+drop policy if exists "Enable insert for authenticated users only" on public.contacts;
+drop policy if exists "Enable read access for authenticated users" on public.contacts;
+drop policy if exists "Enable update for authenticated users only" on public.contacts;
+drop policy if exists "Contact Delete Policy" on public.contacts;
+
+create policy "Contacts insert own"
+on public.contacts
+as permissive
+for insert
+to authenticated
+with check (
+  current_sales_is_admin()
+  or sales_id = current_sales_id()
+  or sales_id is null
+);
+
+create policy "Contacts select scoped"
+on public.contacts
+as permissive
+for select
+to authenticated
+using (
+  current_sales_is_admin()
+  or sales_id = current_sales_id()
+);
+
+create policy "Contacts update own"
+on public.contacts
+as permissive
+for update
+to authenticated
+using (
+  current_sales_is_admin()
+  or sales_id = current_sales_id()
+)
+with check (
+  current_sales_is_admin()
+  or sales_id = current_sales_id()
+);
+
+create policy "Contacts delete own"
+on public.contacts
+as permissive
+for delete
+to authenticated
+using (
+  current_sales_is_admin()
+  or sales_id = current_sales_id()
+);
+
+
