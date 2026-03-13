@@ -124,9 +124,13 @@ export const CRM = ({
   disableTelemetry,
   ...rest
 }: CRMProps) => {
+  const telemetryDisabled =
+    disableTelemetry ??
+    import.meta.env.VITE_ATOMIC_CRM_DISABLE_TELEMETRY === "true";
+
   useEffect(() => {
     if (
-      disableTelemetry ||
+      telemetryDisabled ||
       process.env.NODE_ENV !== "production" ||
       typeof window === "undefined" ||
       typeof window.location === "undefined" ||
@@ -136,7 +140,7 @@ export const CRM = ({
     }
     const img = new Image();
     img.src = `https://atomic-crm-telemetry.marmelab.com/atomic-crm-telemetry?domain=${window.location.hostname}`;
-  }, [disableTelemetry]);
+  }, [telemetryDisabled]);
 
   // Seed the store with CRM prop values if not already stored
   // (backwards compatibility for prop-based config)
