@@ -134,4 +134,56 @@ using (
   or sales_id = current_sales_id()
 );
 
+-- Deals: restrict by sales_id, admins can see all
+drop policy if exists "Enable insert for authenticated users only" on public.deals;
+drop policy if exists "Enable read access for authenticated users" on public.deals;
+drop policy if exists "Enable update for authenticated users only" on public.deals;
+drop policy if exists "Deals Delete Policy" on public.deals;
+
+create policy "Deals insert own"
+on public.deals
+as permissive
+for insert
+to authenticated
+with check (
+  current_sales_is_admin()
+  or sales_id = current_sales_id()
+  or sales_id is null
+);
+
+create policy "Deals select scoped"
+on public.deals
+as permissive
+for select
+to authenticated
+using (
+  current_sales_is_admin()
+  or sales_id = current_sales_id()
+);
+
+create policy "Deals update own"
+on public.deals
+as permissive
+for update
+to authenticated
+using (
+  current_sales_is_admin()
+  or sales_id = current_sales_id()
+)
+with check (
+  current_sales_is_admin()
+  or sales_id = current_sales_id()
+);
+
+create policy "Deals delete own"
+on public.deals
+as permissive
+for delete
+to authenticated
+using (
+  current_sales_is_admin()
+  or sales_id = current_sales_id()
+);
+
+
 
