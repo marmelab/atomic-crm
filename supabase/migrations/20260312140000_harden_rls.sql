@@ -439,6 +439,11 @@ with check (
   or user_id = auth.uid()
 );
 
+-- Tags: keep global but drop extra delete/update policies to minimise surface
+drop policy if exists "Enable delete for authenticated users only" on public.tags;
+drop policy if exists "Enable update for authenticated users only" on public.tags;
+
+
 
 
 
