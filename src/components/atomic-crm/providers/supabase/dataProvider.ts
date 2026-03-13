@@ -16,7 +16,7 @@ import type {
   SignUpData,
 } from "../../types";
 import type { ConfigurationContextValue } from "../../root/ConfigurationContext";
-import { getActivityLog } from "../commons/activity";
+import { getActivityLogFromView } from "../commons/activity";
 import { ATTACHMENTS_BUCKET } from "../commons/attachments";
 import { getIsInitialized } from "./authProvider";
 import { supabase } from "./supabase";
@@ -171,32 +171,19 @@ const dataProviderWithCustomMethods = {
     return passwordUpdated;
   },
   async unarchiveDeal(deal: Deal) {
-    // get all deals where stage is the same as the deal to unarchive
-    const { data: deals } = await baseDataProvider.getList<Deal>("deals", {
-      filter: { stage: deal.stage },
-      pagination: { page: 1, perPage: 1000 },
-      sort: { field: "index", order: "ASC" },
+    const { error } = await supabase.rpc("unarchive_deal", {
+      p_deal_id: deal.id,
     });
 
-    // set index for each deal starting from 1, if the deal to unarchive is found, set its index to the last one
-    const updatedDeals = deals.map((d, index) => ({
-      ...d,
-      index: d.id === deal.id ? 0 : index + 1,
-      archived_at: d.id === deal.id ? null : d.archived_at,
-    }));
+    if (error) {
+      console.error("unarchive_deal.error", error);
+      throw new Error("Failed to unarchive deal");
+    }
 
-    return await Promise.all(
-      updatedDeals.map((updatedDeal) =>
-        baseDataProvider.update("deals", {
-          id: updatedDeal.id,
-          data: updatedDeal,
-          previousData: deals.find((d) => d.id === updatedDeal.id),
-        }),
-      ),
-    );
+    return baseDataProvider.getOne<Deal>("deals", { id: deal.id });
   },
   async getActivityLog(companyId?: Identifier) {
-    return getActivityLog(baseDataProvider, companyId);
+    return getActivityLogFromView(baseDataProvider, companyId);
   },
   async isInitialized() {
     return getIsInitialized();
