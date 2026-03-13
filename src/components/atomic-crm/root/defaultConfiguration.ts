@@ -23,6 +23,7 @@ export const defaultDealStages = [
   { value: "lead", label: "Lead" },
   { value: "qualified", label: "Qualifié" },
   { value: "follow-up", label: "Suivi" },
+  { value: "rdv-prix", label: "Rendez-vous prix" },
   { value: "trial", label: "Essai" },
   { value: "closed-won", label: "Gagné" },
   { value: "perdu", label: "Perdu" },
@@ -38,11 +39,33 @@ export const defaultDealPipelineStatuses = [
 ];
 
 export const defaultDealCategories = [
-  { value: "other", label: "Autre" },
-  { value: "copywriting", label: "Rédaction" },
-  { value: "print-project", label: "Impression" },
-  { value: "ui-design", label: "Design UI" },
-  { value: "website-design", label: "Site web" },
+  { value: "angiologue", label: "Angiologue" },
+  { value: "api", label: "API" },
+  { value: "cardiologue", label: "Cardiologue" },
+  { value: "centre-dentaire", label: "Centre dentaire" },
+  { value: "centre-esthetique", label: "Centre esthétique" },
+  { value: "chirurgien", label: "Chirurgien" },
+  { value: "dentiste", label: "Dentiste" },
+  { value: "dermatologue", label: "Dermatologue" },
+  { value: "entreprise", label: "Entreprise" },
+  { value: "esthetique", label: "Esthétique" },
+  { value: "groupement", label: "Groupement" },
+  { value: "hopital", label: "Hôpital" },
+  { value: "institut", label: "Institut" },
+  { value: "maison-de-sante", label: "Maison de santé" },
+  { value: "medecin", label: "Médecin" },
+  { value: "nephrologue", label: "Néphrologue" },
+  { value: "ophtalmo", label: "Ophtalmo" },
+  { value: "orthodontiste", label: "Orthodontiste" },
+  { value: "pediatre", label: "Pédiatre" },
+  { value: "radiologie", label: "Radiologie" },
+];
+
+export const defaultCompanyTypes = [
+  { value: "investisseur", label: "Investisseur" },
+  { value: "partenaire", label: "Partenaire" },
+  { value: "client", label: "Client" },
+  { value: "prospect", label: "Prospect" },
 ];
 
 export const defaultNoteStatuses = [
@@ -66,6 +89,7 @@ export const defaultTaskTypes = [
 
 export const defaultConfiguration: ConfigurationContextValue = {
   companySectors: defaultCompanySectors,
+  companyTypes: defaultCompanyTypes,
   dealCategories: defaultDealCategories,
   dealPipelineStatuses: defaultDealPipelineStatuses,
   dealStages: defaultDealStages,
