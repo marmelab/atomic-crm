@@ -410,6 +410,36 @@ using (
   )
 );
 
+-- Sales: restrict to own row, admins can see all
+drop policy if exists "Enable insert for authenticated users only" on public.sales;
+drop policy if exists "Enable update for authenticated users only" on public.sales;
+drop policy if exists "Enable read access for authenticated users" on public.sales;
+
+create policy "Sales select scoped"
+on public.sales
+as permissive
+for select
+to authenticated
+using (
+  current_sales_is_admin()
+  or user_id = auth.uid()
+);
+
+create policy "Sales update self"
+on public.sales
+as permissive
+for update
+to authenticated
+using (
+  current_sales_is_admin()
+  or user_id = auth.uid()
+)
+with check (
+  current_sales_is_admin()
+  or user_id = auth.uid()
+);
+
+
 
 
 
