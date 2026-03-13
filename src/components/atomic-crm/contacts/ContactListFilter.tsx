@@ -105,7 +105,7 @@ export const ContactListFilter = () => {
         ))}
       </FilterCategory>
 
-      <FilterCategory label="resources.tags.name" icon={<Tag />}>
+      <FilterCategory label="resources.contacts.filters.tags" icon={<Tag />}>
         {data &&
           data.map((record) => (
             <ToggleFilterButton
@@ -128,7 +128,10 @@ export const ContactListFilter = () => {
           ))}
       </FilterCategory>
 
-      <FilterCategory icon={<CheckSquare />} label="resources.tasks.name">
+      <FilterCategory
+        icon={<CheckSquare />}
+        label="resources.contacts.filters.tasks"
+      >
         <ToggleFilterButton
           className="w-full justify-between h-10 md:h-8"
           label="resources.tasks.filters.with_pending"

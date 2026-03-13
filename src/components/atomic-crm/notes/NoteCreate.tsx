@@ -100,9 +100,7 @@ const NoteCreateButton = ({
     <div className="flex justify-end">
       <SaveButton
         type="button"
-        label={translate("resources.notes.action.add_this", {
-          _: "Add this note",
-        })}
+        label={translate("resources.notes.action.add_this")}
         transform={(data) => ({
           ...data,
           [foreignKeyMapping[reference]]: record.id,
@@ -112,9 +110,7 @@ const NoteCreateButton = ({
         mutationOptions={{
           onSuccess: handleSuccess,
         }}
-      >
-        {translate("resources.notes.action.add_this")}
-      </SaveButton>
+      />
     </div>
   );
 };

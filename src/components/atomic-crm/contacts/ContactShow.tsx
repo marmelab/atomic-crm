@@ -2,7 +2,6 @@ import { useState } from "react";
 import {
   RecordRepresentation,
   ShowBase,
-  useReferenceManyFieldController,
   useShowContext,
   useTranslate,
 } from "ra-core";
@@ -135,7 +134,9 @@ const ContactShowContentMobile = () => {
               {translate("resources.notes.name", { smart_count: 2 })}
             </TabsTrigger>
             <TabsTrigger value="tasks">
-              <PendingTasksTabLabel />
+              {translate("crm.common.task_count", {
+                smart_count: record.nb_tasks,
+              })}
             </TabsTrigger>
             <TabsTrigger value="details">
               {translate("crm.common.details")}
@@ -219,20 +220,6 @@ const ContactShowContentMobile = () => {
       </MobileContent>
     </>
   );
-};
-
-const PendingTasksTabLabel = () => {
-  const translate = useTranslate();
-  const { total = 0 } = useReferenceManyFieldController<Contact>({
-    filter: { "done_date@is": null },
-    page: 1,
-    perPage: 1,
-    reference: "tasks",
-    source: "id",
-    target: "contact_id",
-  });
-
-  return translate("crm.common.task_count", { smart_count: total });
 };
 
 const ContactShowContent = () => {

@@ -27,6 +27,7 @@ export const TaskFormContent = ({
       {selectContact && (
         <ReferenceInput source="contact_id" reference="contacts_summary">
           <AutocompleteInput
+            label="resources.tasks.fields.contact_id"
             optionText={contactOptionText}
             helperText={false}
             validate={required()}

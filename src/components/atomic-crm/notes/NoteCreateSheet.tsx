@@ -1,9 +1,9 @@
 import {
   type Identifier,
-  RecordRepresentation,
   useDataProvider,
   useGetIdentity,
   useGetOne,
+  useGetRecordRepresentation,
   useNotify,
   useRedirect,
   useTranslate,
@@ -38,6 +38,7 @@ export const NoteCreateSheet = ({
   const notify = useNotify();
   const redirect = useRedirect();
   const translate = useTranslate();
+  const getContactRepresentation = useGetRecordRepresentation("contacts");
 
   if (!identity) return null;
 
@@ -68,14 +69,10 @@ export const NoteCreateSheet = ({
       title={
         <h1 className="text-xl font-semibold truncate pr-10">
           {!selectContact
-            ? translate("resources.notes.sheet.create_for")
+            ? translate("resources.notes.sheet.create_for", {
+                name: getContactRepresentation(contact!),
+              })
             : translate("resources.notes.sheet.create")}
-          {!selectContact && (
-            <>
-              {" "}
-              <RecordRepresentation record={contact} resource="contacts" />
-            </>
-          )}
         </h1>
       }
       redirect={false}

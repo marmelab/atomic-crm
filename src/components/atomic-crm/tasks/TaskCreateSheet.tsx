@@ -1,9 +1,9 @@
 import {
   type Identifier,
-  RecordRepresentation,
   useDataProvider,
   useGetIdentity,
   useGetOne,
+  useGetRecordRepresentation,
   useNotify,
   useTranslate,
   useUpdate,
@@ -25,6 +25,7 @@ export const TaskCreateSheet = ({
 }: TaskCreateSheetProps) => {
   const { identity } = useGetIdentity();
   const translate = useTranslate();
+  const getContactRepresentation = useGetRecordRepresentation("contacts");
 
   const selectContact = contact_id == null;
   const { data: contact } = useGetOne(
@@ -50,9 +51,7 @@ export const TaskCreateSheet = ({
       data: { last_seen: new Date().toISOString() },
       previousData: contact,
     });
-    notify("resources.tasks.added", {
-      messageArgs: { _: "Task added" },
-    });
+    notify("resources.tasks.added");
     // No redirect, only close the sheet
     onOpenChange(false);
   };
@@ -63,14 +62,10 @@ export const TaskCreateSheet = ({
       title={
         <h1 className="text-xl font-semibold truncate pr-10">
           {!selectContact
-            ? translate("resources.tasks.dialog.create_for")
+            ? translate("resources.tasks.dialog.create_for", {
+                name: getContactRepresentation(contact!),
+              })
             : translate("resources.tasks.dialog.create")}
-          {!selectContact && (
-            <>
-              {" "}
-              <RecordRepresentation record={contact} resource="contacts" />
-            </>
-          )}
         </h1>
       }
       redirect={false}

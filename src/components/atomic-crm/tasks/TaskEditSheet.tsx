@@ -1,5 +1,6 @@
 import { DeleteButton, ReferenceField } from "@/components/admin";
-import { type Identifier, RecordRepresentation, useTranslate } from "ra-core";
+import type { Identifier } from "ra-core";
+import { useGetRecordRepresentation, useTranslate } from "ra-core";
 import { EditSheet } from "../misc/EditSheet";
 import { TaskFormContent } from "./TaskFormContent";
 
@@ -15,6 +16,7 @@ export const TaskEditSheet = ({
   taskId,
 }: TaskEditSheetProps) => {
   const translate = useTranslate();
+  const getContactRepresentation = useGetRecordRepresentation("contacts");
   return (
     <EditSheet
       resource="tasks"
@@ -25,17 +27,11 @@ export const TaskEditSheet = ({
           reference="contacts"
           render={({ referenceRecord }) => (
             <h1 className="text-xl font-semibold truncate pr-10">
-              {referenceRecord ? (
-                <>
-                  {translate("resources.tasks.sheet.edit_for")}{" "}
-                  <RecordRepresentation
-                    record={referenceRecord}
-                    resource="contacts"
-                  />
-                </>
-              ) : (
-                translate("resources.tasks.sheet.edit")
-              )}
+              {referenceRecord
+                ? translate("resources.tasks.sheet.edit_for", {
+                    name: getContactRepresentation(referenceRecord),
+                  })
+                : translate("resources.tasks.sheet.edit")}
             </h1>
           )}
         />

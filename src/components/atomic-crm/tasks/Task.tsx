@@ -2,6 +2,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { MoreVertical } from "lucide-react";
 import {
   useDeleteWithUndoController,
+  useGetRecordRepresentation,
   useNotify,
   useTranslate,
   useUpdate,
@@ -36,6 +37,7 @@ export const Task = ({
   const notify = useNotify();
   const translate = useTranslate();
   const queryClient = useQueryClient();
+  const getContactRepresentation = useGetRecordRepresentation("contacts");
 
   const [openEdit, setOpenEdit] = useState(false);
 
@@ -132,12 +134,11 @@ export const Task = ({
                   className="inline text-sm text-muted-foreground"
                   render={({ referenceRecord }) => {
                     if (!referenceRecord) return null;
-                    const name = `${referenceRecord.first_name} ${referenceRecord.last_name}`;
                     return (
                       <>
                         {" "}
                         {translate("resources.tasks.regarding_contact", {
-                          name,
+                          name: getContactRepresentation(referenceRecord),
                         })}
                       </>
                     );

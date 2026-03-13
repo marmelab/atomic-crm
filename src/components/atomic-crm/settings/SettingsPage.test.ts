@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import type { RaRecord } from "ra-core";
-import { validateItemsInUse } from "./validateItemsInUse";
+import { validateItemsInUse } from "./SettingsPage";
 
 describe("validateItemsInUse", () => {
   const deals: RaRecord[] = [

@@ -8,14 +8,12 @@ import { Badge } from "@/components/ui/badge";
 
 import { TopToolbar } from "../layout/TopToolbar";
 
-const SalesListActions = () => {
-  return (
-    <TopToolbar>
-      <ExportButton />
-      <CreateButton label="resources.sales.action.new" />
-    </TopToolbar>
-  );
-};
+const SalesListActions = () => (
+  <TopToolbar>
+    <ExportButton />
+    <CreateButton label="resources.sales.action.new" />
+  </TopToolbar>
+);
 
 const filters = [<SearchInput source="q" alwaysOn />];
 
@@ -46,24 +44,16 @@ const OptionsField = (_props: { label?: string | boolean }) => {
 };
 
 export function SalesList() {
-  const translate = useTranslate();
   return (
     <List
-      title={translate("resources.sales.name", { smart_count: 2 })}
       filters={filters}
       actions={<SalesListActions />}
       sort={{ field: "first_name", order: "ASC" }}
     >
       <DataTable>
-        <DataTable.Col
-          source="first_name"
-          label="resources.sales.fields.first_name"
-        />
-        <DataTable.Col
-          source="last_name"
-          label="resources.sales.fields.last_name"
-        />
-        <DataTable.Col source="email" label="resources.sales.fields.email" />
+        <DataTable.Col source="first_name" />
+        <DataTable.Col source="last_name" />
+        <DataTable.Col source="email" />
         <DataTable.Col label={false}>
           <OptionsField />
         </DataTable.Col>

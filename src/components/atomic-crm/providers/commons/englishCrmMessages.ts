@@ -162,6 +162,8 @@ export const englishCrmMessages = {
         search: "Search name, company...",
         this_week: "This week",
         today: "Today",
+        tags: "Tags",
+        tasks: "Tasks",
       },
       hot: {
         empty_change_status:
@@ -234,9 +236,9 @@ export const englishCrmMessages = {
       },
       sheet: {
         create: "Create note",
-        create_for: "Create note for",
+        create_for: "Create note for %{name}",
         edit: "Edit note",
-        edit_for: "Edit note for",
+        edit_for: "Edit note for %{name}",
       },
       deleted: "Note deleted",
       empty: "No notes yet",
@@ -305,11 +307,11 @@ export const englishCrmMessages = {
       deleted: "Task deleted successfully",
       dialog: {
         create: "Create task",
-        create_for: "Create task for",
+        create_for: "Create task for %{name}",
       },
       sheet: {
         edit: "Edit task",
-        edit_for: "Edit task for",
+        edit_for: "Edit task for %{name}",
       },
       empty: "No tasks yet",
       empty_list_hint: "Tasks added to your contacts will appear here.",
@@ -395,16 +397,6 @@ export const englishCrmMessages = {
       latest_activity_error: "Error loading latest activity",
       latest_notes: "My Latest Notes",
       latest_notes_added_ago: "added %{timeAgo}",
-      welcome: {
-        paragraph_1:
-          "is a template designed to help you quickly build your own CRM.",
-        paragraph_2:
-          "This demo runs on a mock API, so you can explore and modify the data. It resets on reload. The full version uses Supabase for the backend.",
-        paragraph_3:
-          "Atomic CRM is fully open-source. You can find the code at",
-        powered_by: "Powered by",
-        title: "Your CRM Starter Kit",
-      },
       stepper: {
         install: "Install Atomic CRM",
         progress: "%{step}/3 done",

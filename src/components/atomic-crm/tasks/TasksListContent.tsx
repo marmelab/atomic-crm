@@ -8,9 +8,7 @@ export const TasksListContent = () => {
       <TasksListByDueDate
         emptyPlaceholder={
           <p className="text-sm">
-            {translate("resources.tasks.empty_list_hint", {
-              _: "Tasks added to your contacts will appear here.",
-            })}
+            {translate("resources.tasks.empty_list_hint")}
           </p>
         }
       />

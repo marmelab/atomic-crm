@@ -2,9 +2,9 @@ import { Plus } from "lucide-react";
 import {
   CreateBase,
   Form,
-  RecordRepresentation,
   useDataProvider,
   useGetIdentity,
+  useGetRecordRepresentation,
   useNotify,
   useRecordContext,
   useTranslate,
@@ -46,6 +46,7 @@ export const AddTask = ({
   const handleOpen = () => {
     setOpen(true);
   };
+  const getContactRepresentation = useGetRecordRepresentation("contacts");
 
   const handleSuccess = async (data: any) => {
     setOpen(false);
@@ -60,9 +61,7 @@ export const AddTask = ({
       previousData: contact.data,
     });
 
-    notify("resources.tasks.added", {
-      messageArgs: { _: "Task added" },
-    });
+    notify("resources.tasks.added");
   };
 
   if (!identity) return null;
@@ -117,17 +116,10 @@ export const AddTask = ({
               <DialogHeader>
                 <DialogTitle>
                   {!selectContact
-                    ? translate("resources.tasks.dialog.create_for")
+                    ? translate("resources.tasks.dialog.create_for", {
+                        name: getContactRepresentation(contact!),
+                      })
                     : translate("resources.tasks.dialog.create")}
-                  {!selectContact && (
-                    <>
-                      {" "}
-                      <RecordRepresentation
-                        record={contact}
-                        resource="contacts"
-                      />
-                    </>
-                  )}
                 </DialogTitle>
               </DialogHeader>
               <TaskFormContent selectContact={selectContact} />

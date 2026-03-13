@@ -166,6 +166,8 @@ export const frenchCrmMessages = {
         search: "Rechercher nom, entreprise...",
         this_week: "Cette semaine",
         today: "Aujourd'hui",
+        tags: "Étiquettes",
+        tasks: "Tâches",
       },
       hot: {
         empty_change_status:
@@ -238,9 +240,9 @@ export const frenchCrmMessages = {
       },
       sheet: {
         create: "Créer une note",
-        create_for: "Créer une note pour",
+        create_for: "Créer une note pour %{name}",
         edit: "Modifier la note",
-        edit_for: "Modifier la note pour",
+        edit_for: "Modifier la note pour %{name}",
       },
       deleted: "Note supprimée",
       empty: "Aucune note pour l'instant",
@@ -310,11 +312,11 @@ export const frenchCrmMessages = {
       deleted: "Tâche supprimée avec succès",
       dialog: {
         create: "Créer une tâche",
-        create_for: "Créer une tâche pour",
+        create_for: "Créer une tâche pour %{name}",
       },
       sheet: {
         edit: "Modifier la tâche",
-        edit_for: "Modifier la tâche pour",
+        edit_for: "Modifier la tâche pour %{name}",
       },
       empty: "Aucune tâche pour l'instant",
       empty_list_hint: "Les tâches ajoutées à vos contacts apparaîtront ici.",
@@ -401,16 +403,6 @@ export const frenchCrmMessages = {
         "Erreur lors du chargement de la dernière activité",
       latest_notes: "Mes dernières notes",
       latest_notes_added_ago: "ajouté %{timeAgo}",
-      welcome: {
-        paragraph_1:
-          "est un template conçu pour vous aider à créer rapidement votre propre CRM.",
-        paragraph_2:
-          "Cette démo fonctionne avec une API mockée, afin que vous puissiez explorer et modifier les données. Elle se réinitialise au rechargement. La version complète utilise Supabase comme backend.",
-        paragraph_3:
-          "Atomic CRM est entièrement open source. Vous pouvez retrouver le code sur",
-        powered_by: "Propulsé par",
-        title: "Votre kit de démarrage CRM",
-      },
       stepper: {
         install: "Installer Atomic CRM",
         progress: "%{step}/3 terminé",

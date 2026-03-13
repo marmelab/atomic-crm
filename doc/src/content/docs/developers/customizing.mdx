@@ -89,16 +89,16 @@ The `i18nProvider` defines:
 - the list of available locales (`availableLocales`)
 - how messages are resolved for each locale
 
-Relative date rendering is handled by `src/components/atomic-crm/misc/RelativeDate.tsx`. If you add a new locale, also update that file to load the matching `date-fns` locale so relative dates keep working in the UI.
-
 The language switcher appears in the Profile page when more than one locale is configured.
 
 ### Adding a New Language
 
-1. Add or create the message catalog for the new locale. Use the English messages catalog as a base.
-2. Merge it with base messages (Shadcn Admin Kit comes with [35 languages integrations](https://marmelab.com/ra-core/translationlocales/))
-2. Edit `src/components/atomic-crm/providers/commons/i18nProvider.ts` and add the locale to the provider.
-5. Start the app, switch locale from the Profile page, and verify fallback behavior.
+1. Import a translation package for the base messages (Shadcn Admin Kit comes with [35 languages integrations](https://marmelab.com/ra-core/translationlocales/))
+2. Create a message catalog for the CRM messages. Use the English messages catalog as a base (`src/components/atomic-crm/providers/commons/englishCrmMessages.ts`).
+3. Merge these two translation files using the `mergeTranslations` utility
+4. Edit `src/components/atomic-crm/providers/commons/i18nProvider.ts` and add a new locale with the merged messages to the provider.
+5. Import the new locale for date formatting in `src/components/atomic-crm/misc/RelativeDate.tsx`.
+6. Start the app, switch locale from the Profile page, and verify that the new locale is working as expected.
 
 ### Type-Checking Message Catalogs
 

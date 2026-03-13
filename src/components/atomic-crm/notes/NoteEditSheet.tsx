@@ -1,8 +1,8 @@
 import { DeleteButton, ReferenceField } from "@/components/admin";
 import {
   type Identifier,
-  RecordRepresentation,
   useCreatePath,
+  useGetRecordRepresentation,
   useTranslate,
   WithRecord,
 } from "ra-core";
@@ -30,6 +30,7 @@ export const NoteEditSheet = ({
       id: record ? record[foreignKeyMapping["contacts"]] : undefined,
     });
   };
+  const getContactRepresentation = useGetRecordRepresentation("contacts");
 
   return (
     <EditSheet
@@ -41,17 +42,11 @@ export const NoteEditSheet = ({
           reference="contacts"
           render={({ referenceRecord }) => (
             <h1 className="text-xl font-semibold truncate pr-10">
-              {referenceRecord ? (
-                <>
-                  {translate("resources.notes.sheet.edit_for")}{" "}
-                  <RecordRepresentation
-                    record={referenceRecord}
-                    resource="contacts"
-                  />
-                </>
-              ) : (
-                translate("resources.notes.sheet.edit")
-              )}
+              {referenceRecord
+                ? translate("resources.notes.sheet.edit_for", {
+                    name: getContactRepresentation(referenceRecord),
+                  })
+                : translate("resources.notes.sheet.edit")}
             </h1>
           )}
         />

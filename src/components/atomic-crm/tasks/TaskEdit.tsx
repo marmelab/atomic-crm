@@ -41,9 +41,6 @@ export const TaskEdit = ({
               notify("resources.tasks.updated", {
                 type: "info",
                 undoable: true,
-                messageArgs: {
-                  _: "Task updated",
-                },
               });
             },
           }}
@@ -65,9 +62,6 @@ export const TaskEdit = ({
                       notify("resources.tasks.deleted", {
                         type: "info",
                         undoable: true,
-                        messageArgs: {
-                          _: "Task deleted",
-                        },
                       });
                     },
                   }}
