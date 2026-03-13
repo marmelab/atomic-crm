@@ -244,7 +244,7 @@ export const englishCrmMessages = {
       empty: "No notes yet",
       author_added: "%{name} added a note",
       you_added: "You added a note",
-      me: 'Me',
+      me: "Me",
       list: {
         error_loading: "Error loading notes",
       },
@@ -480,6 +480,20 @@ export const englishCrmMessages = {
           stages: "stages",
         },
       },
+    },
+    welcome: {
+      title: "Your CRM Starter Kit",
+      description:
+        "is a template designed to help you quickly build your own CRM.",
+      demo_description:
+        "This demo runs on a mock API, so you can explore and modify the data. It resets on reload. The full version uses Supabase for the backend.",
+      powered_by: "Powered by",
+      open_source_suffix:
+        ", Atomic CRM is fully open-source. You can find the code at",
+    },
+    deals_chart: {
+      won: "Won",
+      lost: "Lost",
     },
     theme: {
       dark: "Dark",

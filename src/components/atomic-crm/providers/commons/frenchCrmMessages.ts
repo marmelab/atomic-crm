@@ -248,7 +248,7 @@ export const frenchCrmMessages = {
       empty: "Aucune note pour l'instant",
       author_added: "%{name} a ajouté une note",
       you_added: "Vous avez ajouté une note",
-      me: 'Moi',
+      me: "Moi",
       list: {
         error_loading: "Erreur lors du chargement des notes",
       },
@@ -486,6 +486,20 @@ export const frenchCrmMessages = {
           stages: "étapes",
         },
       },
+    },
+    welcome: {
+      title: "Votre kit de démarrage CRM",
+      description:
+        "est un modèle conçu pour vous aider à construire rapidement votre propre CRM.",
+      demo_description:
+        "Cette démo fonctionne sur une API fictive, vous pouvez explorer et modifier les données. Elles se réinitialisent au rechargement. La version complète utilise Supabase pour le backend.",
+      powered_by: "Propulsé par",
+      open_source_suffix:
+        ", Atomic CRM est entièrement open-source. Vous pouvez trouver le code sur",
+    },
+    deals_chart: {
+      won: "Gagnées",
+      lost: "Perdues",
     },
     theme: {
       dark: "Sombre",

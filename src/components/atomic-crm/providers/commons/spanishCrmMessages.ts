@@ -485,6 +485,20 @@ export const spanishCrmMessages = {
         },
       },
     },
+    welcome: {
+      title: "Tu kit de inicio CRM",
+      description:
+        "es una plantilla diseñada para ayudarte a construir rápidamente tu propio CRM.",
+      demo_description:
+        "Esta demo funciona con una API simulada, puedes explorar y modificar los datos. Se reinician al recargar. La versión completa usa Supabase como backend.",
+      powered_by: "Desarrollado con",
+      open_source_suffix:
+        ", Atomic CRM es completamente open-source. Puedes encontrar el código en",
+    },
+    deals_chart: {
+      won: "Ganadas",
+      lost: "Perdidas",
+    },
     theme: {
       dark: "Oscuro",
       light: "Claro",
