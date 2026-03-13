@@ -16,7 +16,7 @@ import type {
   SignUpData,
 } from "../../types";
 import type { ConfigurationContextValue } from "../../root/ConfigurationContext";
-import { getActivityLog } from "../commons/activity";
+import { getActivityLogFromView } from "../commons/activity";
 import { ATTACHMENTS_BUCKET } from "../commons/attachments";
 import { getIsInitialized } from "./authProvider";
 import { supabase } from "./supabase";
@@ -183,7 +183,7 @@ const dataProviderWithCustomMethods = {
     return baseDataProvider.getOne<Deal>("deals", { id: deal.id });
   },
   async getActivityLog(companyId?: Identifier) {
-    return getActivityLog(baseDataProvider, companyId);
+    return getActivityLogFromView(baseDataProvider, companyId);
   },
   async isInitialized() {
     return getIsInitialized();
