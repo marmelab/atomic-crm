@@ -260,6 +260,82 @@ using (
   )
 );
 
+-- Contact notes: restrict by related contact.sales_id, admins can see all
+drop policy if exists "Enable insert for authenticated users only" on public."contactNotes";
+drop policy if exists "Enable read access for authenticated users" on public."contactNotes";
+drop policy if exists "Contact Notes Delete Policy" on public."contactNotes";
+drop policy if exists "Contact Notes Update policy" on public."contactNotes";
+
+create policy "ContactNotes insert via contact"
+on public."contactNotes"
+as permissive
+for insert
+to authenticated
+with check (
+  current_sales_is_admin()
+  or exists (
+    select 1
+    from public.contacts c
+    where c.id = contact_id
+      and c.sales_id = current_sales_id()
+  )
+);
+
+create policy "ContactNotes select scoped"
+on public."contactNotes"
+as permissive
+for select
+to authenticated
+using (
+  current_sales_is_admin()
+  or exists (
+    select 1
+    from public.contacts c
+    where c.id = contact_id
+      and c.sales_id = current_sales_id()
+  )
+);
+
+create policy "ContactNotes update scoped"
+on public."contactNotes"
+as permissive
+for update
+to authenticated
+using (
+  current_sales_is_admin()
+  or exists (
+    select 1
+    from public.contacts c
+    where c.id = contact_id
+      and c.sales_id = current_sales_id()
+  )
+)
+with check (
+  current_sales_is_admin()
+  or exists (
+    select 1
+    from public.contacts c
+    where c.id = contact_id
+      and c.sales_id = current_sales_id()
+  )
+);
+
+create policy "ContactNotes delete scoped"
+on public."contactNotes"
+as permissive
+for delete
+to authenticated
+using (
+  current_sales_is_admin()
+  or exists (
+    select 1
+    from public.contacts c
+    where c.id = contact_id
+      and c.sales_id = current_sales_id()
+  )
+);
+
+
 
 
 
