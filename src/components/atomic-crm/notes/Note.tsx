@@ -100,68 +100,21 @@ export const Note = ({
     );
   };
 
-  const content = (
+  return (
     <div
       onMouseEnter={() => setHover(true)}
       onMouseLeave={() => setHover(false)}
       className="mb-4"
     >
-      <div className="flex items-center space-x-4 w-full">
-        <ReferenceField source="company_id" reference="companies" link="show">
-          <CompanyAvatar width={20} height={20} />
-        </ReferenceField>
-        <div className="inline-flex h-full items-center text-sm text-muted-foreground">
-          {translate(
-            isCurrentUser
-              ? "resources.notes.you_added"
-              : "resources.notes.author_added",
-            { name: salesName },
-          )}{" "}
-          {showStatus && note.status && (
-            <Status className="ml-2" status={note.status} />
-          )}
-        </div>
-        <span className={`${isHover ? "visible" : "invisible"}`}>
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={handleEnterEditMode}
-                  className="p-1 h-auto cursor-pointer"
-                >
-                  <Edit className="w-4 h-4" />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>{translate("resources.notes.action.edit")}</p>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={handleDelete}
-                  className="p-1 h-auto cursor-pointer"
-                >
-                  <Trash2 className="w-4 h-4" />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>{translate("resources.notes.action.delete")}</p>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
-        </span>
-        <div className="flex-1"></div>
-        <span className="text-sm text-muted-foreground">
-          <RelativeDate date={note.date} />
-        </span>
-      </div>
+      <NoteHeader
+        note={note}
+        showStatus={showStatus}
+        isHover={isHover}
+        isCurrentUser={isCurrentUser}
+        salesName={salesName}
+        onEdit={handleEnterEditMode}
+        onDelete={handleDelete}
+      />
       {isEditing ? (
         <Form onSubmit={handleNoteUpdate} record={note} className="mt-1">
           <NoteInputs showStatus={showStatus} />
@@ -186,39 +139,147 @@ export const Note = ({
           </div>
         </Form>
       ) : (
-        <div className="pt-2 text-sm max-w-150">
-          {note.text && (
-            <div
-              ref={contentRef}
-              className={cn(
-                "overflow-hidden transition-[max-height] duration-300 ease-in-out",
-                isExpanded ? "max-h-[5000px]" : "max-h-46",
-              )}
-            >
-              <Markdown className="[&_p]:leading-5 [&_p]:my-4 [&_p:first-child]:mt-0 [&_p:last-child]:mb-0 [&_blockquote]:border-l-2 [&_blockquote]:pl-3 [&_blockquote]:my-2 [&_blockquote]:text-muted-foreground [&_a]:text-primary [&_a]:underline [&_a:hover]:no-underline [&_ul]:list-disc [&_ul]:list-inside [&_ol]:list-decimal [&_ol]:list-inside">
-                {note.text}
-              </Markdown>
-            </div>
-          )}
-          {isTruncated && (
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                setExpanded(!isExpanded);
-              }}
-              className="text-primary text-sm mt-1 underline hover:no-underline cursor-pointer"
-            >
-              {isExpanded
-                ? translate("crm.common.show_less")
-                : translate("crm.common.read_more")}
-            </button>
-          )}
-
-          {note.attachments && <NoteAttachments note={note} />}
-        </div>
+        <NoteBody
+          note={note}
+          isExpanded={isExpanded}
+          isTruncated={isTruncated}
+          translate={translate}
+          contentRef={contentRef}
+          onToggleExpanded={() => setExpanded(!isExpanded)}
+        />
       )}
     </div>
   );
-
-  return content;
 };
+
+type NoteHeaderProps = {
+  note: DealNote | ContactNote;
+  showStatus?: boolean;
+  isHover: boolean;
+  isCurrentUser: boolean;
+  salesName: string | undefined;
+  onEdit: () => void;
+  onDelete: () => void;
+};
+
+const NoteHeader = ({
+  note,
+  showStatus,
+  isHover,
+  isCurrentUser,
+  salesName,
+  onEdit,
+  onDelete,
+}: NoteHeaderProps) => {
+  const translate = useTranslate();
+
+  return (
+    <div className="flex items-center space-x-4 w-full">
+      <ReferenceField source="company_id" reference="companies" link="show">
+        <CompanyAvatar width={20} height={20} />
+      </ReferenceField>
+      <div className="inline-flex h-full items-center text-sm text-muted-foreground">
+        {translate(
+          isCurrentUser
+            ? "resources.notes.you_added"
+            : "resources.notes.author_added",
+          { name: salesName },
+        )}{" "}
+        {showStatus && note.status && (
+          <Status className="ml-2" status={note.status} />
+        )}
+      </div>
+      <span className={`${isHover ? "visible" : "invisible"}`}>
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={onEdit}
+                className="p-1 h-auto cursor-pointer"
+              >
+                <Edit className="w-4 h-4" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>{translate("resources.notes.action.edit")}</p>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={onDelete}
+                className="p-1 h-auto cursor-pointer"
+              >
+                <Trash2 className="w-4 h-4" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>{translate("resources.notes.action.delete")}</p>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+      </span>
+      <div className="flex-1" />
+      <span className="text-sm text-muted-foreground">
+        <RelativeDate date={note.date} />
+      </span>
+    </div>
+  );
+};
+
+type NoteBodyProps = {
+  note: DealNote | ContactNote;
+  isExpanded: boolean;
+  isTruncated: boolean;
+  translate: ReturnType<typeof useTranslate>;
+  contentRef: React.RefObject<HTMLDivElement>;
+  onToggleExpanded: () => void;
+};
+
+const NoteBody = ({
+  note,
+  isExpanded,
+  isTruncated,
+  translate,
+  contentRef,
+  onToggleExpanded,
+}: NoteBodyProps) => (
+  <div className="pt-2 text-sm max-w-150">
+    {note.text && (
+      <div
+        ref={contentRef}
+        className={cn(
+          "overflow-hidden transition-[max-height] duration-300 ease-in-out",
+          isExpanded ? "max-h-[5000px]" : "max-h-46",
+        )}
+      >
+        <Markdown className="[&_p]:leading-5 [&_p]:my-4 [&_p:first-child]:mt-0 [&_p:last-child]:mb-0 [&_blockquote]:border-l-2 [&_blockquote]:pl-3 [&_blockquote]:my-2 [&_blockquote]:text-muted-foreground [&_a]:text-primary [&_a]:underline [&_a:hover]:no-underline [&_ul]:list-disc [&_ul]:list-inside [&_ol]:list-decimal [&_ol]:list-inside">
+          {note.text}
+        </Markdown>
+      </div>
+    )}
+    {isTruncated && (
+      <button
+        type="button"
+        onClick={(e) => {
+          e.stopPropagation();
+          onToggleExpanded();
+        }}
+        className="text-primary text-sm mt-1 underline hover:no-underline cursor-pointer"
+        aria-expanded={isExpanded}
+      >
+        {isExpanded
+          ? translate("crm.common.show_less")
+          : translate("crm.common.read_more")}
+      </button>
+    )}
+
+    {note.attachments && <NoteAttachments note={note} />}
+  </div>
+);
