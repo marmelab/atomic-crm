@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useRecordContext } from "ra-core";
+import { useRecordContext, useTranslate } from "ra-core";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 
@@ -9,6 +9,7 @@ import type { Contact } from "../types";
 
 export const ContactTasksList = () => {
   const record = useRecordContext<Contact>();
+  const translate = useTranslate();
   const [taskCreateOpen, setTaskCreateOpen] = useState(false);
 
   if (!record) return null;
@@ -24,9 +25,11 @@ export const ContactTasksList = () => {
             contact_id={record.id}
           />
           <div className="flex flex-col items-center justify-center py-8 text-center">
-            <p className="text-muted-foreground mb-4">No tasks yet</p>
+            <p className="text-muted-foreground mb-4">
+              {translate("resources.tasks.empty")}
+            </p>
             <Button variant="outline" onClick={() => setTaskCreateOpen(true)}>
-              Add task
+              {translate("resources.tasks.action.add")}
             </Button>
           </div>
         </>

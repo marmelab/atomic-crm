@@ -1,5 +1,6 @@
 import { SaveIcon } from "lucide-react";
 import { useEffect, useState, type ChangeEvent, type FormEvent } from "react";
+import { useTranslate } from "ra-core";
 import { Button, buttonVariants } from "@/components/ui/button";
 import {
   Dialog,
@@ -30,6 +31,7 @@ export function TagDialog({
   onClose,
   onSubmit,
 }: TagDialogProps) {
+  const translate = useTranslate();
   const [newTagName, setNewTagName] = useState("");
   const [newTagColor, setNewTagColor] = useState(colors[0]);
   const [disabled, setDisabled] = useState(false);
@@ -70,18 +72,22 @@ export function TagDialog({
 
           <div className="space-y-4 py-4">
             <div className="space-y-2">
-              <Label htmlFor="tag-name">Tag name</Label>
+              <Label htmlFor="tag-name">
+                {translate("resources.tags.dialog.name_label")}
+              </Label>
               <Input
                 id="tag-name"
                 autoFocus
                 value={newTagName}
                 onChange={handleNewTagNameChange}
-                placeholder="Enter tag name"
+                placeholder={translate(
+                  "resources.tags.dialog.name_placeholder",
+                )}
               />
             </div>
 
             <div className="space-y-2">
-              <Label>Color</Label>
+              <Label>{translate("resources.tags.dialog.color")}</Label>
               <div className="flex flex-wrap">
                 {colors.map((color) => (
                   <RoundButton
@@ -108,7 +114,7 @@ export function TagDialog({
               )}
             >
               <SaveIcon />
-              Save
+              {translate("ra.action.save")}
             </Button>
           </div>
         </form>

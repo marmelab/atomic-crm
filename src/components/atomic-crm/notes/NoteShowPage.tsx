@@ -1,5 +1,11 @@
 import { Pencil } from "lucide-react";
-import { RecordRepresentation, useGetOne, WithRecord } from "ra-core";
+import {
+  useGetRecordRepresentation,
+  RecordRepresentation,
+  useGetIdentity,
+  useGetOne,
+  useTranslate,
+} from "ra-core";
 import { useState } from "react";
 import { Link, useParams } from "react-router";
 import { ReferenceField } from "@/components/admin/reference-field";
@@ -11,20 +17,27 @@ import { Markdown } from "../misc/Markdown";
 import { MobileBackButton } from "../misc/MobileBackButton";
 import { RelativeDate } from "../misc/RelativeDate";
 import { Status } from "../misc/Status";
-import { SaleName } from "../sales/SaleName";
 import type { ContactNote } from "../types";
 import { NoteAttachments } from "./NoteAttachments";
 import { NoteEditSheet } from "./NoteEditSheet";
+import { useGetSalesName } from "../sales/useGetSalesName";
 
 export const NoteShowPage = () => {
+  const translate = useTranslate();
   const { id: contactId, noteId } = useParams<{
     id: string;
     noteId: string;
   }>();
   const [editOpen, setEditOpen] = useState(false);
+  const getContactRepresentation = useGetRecordRepresentation("contacts");
 
   const { data: note, isPending } = useGetOne<ContactNote>("contact_notes", {
     id: noteId!,
+  });
+  const { identity } = useGetIdentity();
+  const isCurrentUser = note?.sales_id === identity?.id;
+  const salesName = useGetSalesName(note?.sales_id, {
+    enabled: note && !isCurrentUser,
   });
 
   if (isPending || !note) return null;
@@ -41,13 +54,19 @@ export const NoteShowPage = () => {
         <div className="flex flex-1 min-w-0">
           <Link to={`/contacts/${contactId}/show`} className="flex-1 min-w-0">
             <h1 className="truncate text-xl font-semibold">
-              Note for{" "}
               <ReferenceField
                 record={note}
                 resource="contact_notes"
                 source="contact_id"
                 reference="contacts"
                 link={false}
+                render={({ referenceRecord }) =>
+                  referenceRecord
+                    ? translate("resources.notes.note_for_contact", {
+                        name: getContactRepresentation(referenceRecord),
+                      })
+                    : null
+                }
               >
                 <RecordRepresentation resource="contacts" />
               </ReferenceField>
@@ -62,23 +81,21 @@ export const NoteShowPage = () => {
           onClick={() => setEditOpen(true)}
         >
           <Pencil className="size-5" />
-          <span className="sr-only">Edit note</span>
+          <span className="sr-only">
+            {translate("resources.notes.action.edit")}
+          </span>
         </Button>
       </MobileHeader>
       <MobileContent>
         <div className="mb-4">
           <div className="flex items-center space-x-2 w-full text-sm text-muted-foreground">
             <span>
-              By{" "}
-              <ReferenceField
-                record={note}
-                resource="contact_notes"
-                source="sales_id"
-                reference="sales"
-                link={false}
-              >
-                <WithRecord render={(record) => <SaleName sale={record} />} />
-              </ReferenceField>
+              {translate(
+                isCurrentUser
+                  ? "resources.notes.you_added"
+                  : "resources.notes.author_added",
+                { name: salesName },
+              )}{" "}
             </span>
             {note.status && <Status status={note.status} />}
             <div className="flex-1" />

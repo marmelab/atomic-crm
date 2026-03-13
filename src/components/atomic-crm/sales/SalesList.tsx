@@ -1,4 +1,4 @@
-import { useRecordContext } from "ra-core";
+import { useRecordContext, useTranslate } from "ra-core";
 import { CreateButton } from "@/components/admin/create-button";
 import { DataTable } from "@/components/admin/data-table";
 import { ExportButton } from "@/components/admin/export-button";
@@ -11,7 +11,7 @@ import { TopToolbar } from "../layout/TopToolbar";
 const SalesListActions = () => (
   <TopToolbar>
     <ExportButton />
-    <CreateButton label="New user" />
+    <CreateButton label="resources.sales.action.new" />
   </TopToolbar>
 );
 
@@ -19,6 +19,7 @@ const filters = [<SearchInput source="q" alwaysOn />];
 
 const OptionsField = (_props: { label?: string | boolean }) => {
   const record = useRecordContext();
+  const translate = useTranslate();
   if (!record) return null;
   return (
     <div className="flex flex-row gap-1">
@@ -27,7 +28,7 @@ const OptionsField = (_props: { label?: string | boolean }) => {
           variant="outline"
           className="border-blue-300 dark:border-blue-700"
         >
-          Admin
+          {translate("resources.sales.fields.administrator")}
         </Badge>
       )}
       {record.disabled && (
@@ -35,7 +36,7 @@ const OptionsField = (_props: { label?: string | boolean }) => {
           variant="outline"
           className="border-orange-300 dark:border-orange-700"
         >
-          Disabled
+          {translate("resources.sales.fields.disabled")}
         </Badge>
       )}
     </div>
@@ -45,7 +46,6 @@ const OptionsField = (_props: { label?: string | boolean }) => {
 export function SalesList() {
   return (
     <List
-      title="Users"
       filters={filters}
       actions={<SalesListActions />}
       sort={{ field: "first_name", order: "ASC" }}

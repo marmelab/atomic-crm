@@ -1,9 +1,11 @@
 import { ResponsiveBar } from "@nivo/bar";
 import { format, startOfMonth } from "date-fns";
 import { DollarSign } from "lucide-react";
-import { useGetList } from "ra-core";
+import { useGetList, useTranslate } from "ra-core";
 import { memo, useMemo } from "react";
 
+import { findDealLabel } from "../deals/dealUtils";
+import { useConfigurationContext } from "../root/ConfigurationContext";
 import type { Deal } from "../types";
 
 const multiplier = {
@@ -21,9 +23,13 @@ const DEFAULT_LOCALE = "en-US";
 const CURRENCY = "USD";
 
 export const DealsChart = memo(() => {
+  const translate = useTranslate();
+  const { dealStages } = useConfigurationContext();
   const acceptedLanguages = navigator
     ? navigator.languages || [navigator.language]
     : [DEFAULT_LOCALE];
+  const wonLabel = findDealLabel(dealStages, "won") ?? "Won";
+  const lostLabel = findDealLabel(dealStages, "lost") ?? "Lost";
 
   const { data, isPending } = useGetList<Deal>("deals", {
     pagination: { perPage: 100, page: 1 },
@@ -90,7 +96,7 @@ export const DealsChart = memo(() => {
           <DollarSign className="text-muted-foreground w-6 h-6" />
         </div>
         <h2 className="text-xl font-semibold text-muted-foreground">
-          Upcoming Deal Revenue
+          {translate("crm.dashboard.deals_chart")}
         </h2>
       </div>
       <div className="h-[400px]">
@@ -177,7 +183,7 @@ export const DealsChart = memo(() => {
                 value: 0,
                 lineStyle: { strokeOpacity: 0 },
                 textStyle: { fill: "#2ebca6" },
-                legend: "Won",
+                legend: wonLabel,
                 legendPosition: "top-left",
                 legendOrientation: "vertical",
               },
@@ -189,7 +195,7 @@ export const DealsChart = memo(() => {
                   strokeWidth: 1,
                 },
                 textStyle: { fill: "#e25c3b" },
-                legend: "Lost",
+                legend: lostLabel,
                 legendPosition: "bottom-left",
                 legendOrientation: "vertical",
               },

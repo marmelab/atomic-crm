@@ -1,14 +1,31 @@
-import { useRecordContext, WithRecord } from "ra-core";
-import { ReferenceField } from "@/components/admin/reference-field";
+import {
+  useGetIdentity,
+  useLocaleState,
+  useRecordContext,
+  useTranslate,
+  WithRecord,
+} from "ra-core";
 import { TextField } from "@/components/admin/text-field";
-import { DateField } from "@/components/admin/date-field";
-import { SaleName } from "../sales/SaleName";
+import { formatLocalizedDate } from "../misc/RelativeDate";
+import { useGetSalesName } from "../sales/useGetSalesName";
 import type { Contact } from "../types";
 
 export const ContactBackgroundInfo = () => {
   const record = useRecordContext<Contact>();
+  const translate = useTranslate();
+  const [locale = "en"] = useLocaleState();
+  const { identity } = useGetIdentity();
+  const isCurrentUser = record?.sales_id === identity?.id;
+  const salesName = useGetSalesName(record?.sales_id, {
+    enabled: !isCurrentUser,
+  });
 
   if (!record) return null;
+
+  const formattedLastSeen = record.last_seen
+    ? formatLocalizedDate(record.last_seen, locale)
+    : "";
+  const formattedFirstSeen = formatLocalizedDate(record.first_seen, locale);
 
   return (
     <div>
@@ -22,28 +39,28 @@ export const ContactBackgroundInfo = () => {
         }
       />
       <div className="text-muted-foreground md:py-0.5">
-        <span className="text-sm">Added on</span>{" "}
-        <DateField
-          source="first_seen"
-          options={{ year: "numeric", month: "long", day: "numeric" }}
-          className="text-sm"
-        />
+        <span className="text-sm">
+          {translate("resources.contacts.background.added_on", {
+            date: formattedFirstSeen,
+          })}
+        </span>{" "}
       </div>
 
       <div className="text-muted-foreground md:py-0.5">
-        <span className="text-sm">Last activity on</span>{" "}
-        <DateField
-          source="last_seen"
-          options={{ year: "numeric", month: "long", day: "numeric" }}
-          className="text-sm"
-        />
+        <span className="text-sm">
+          {translate("resources.contacts.background.last_activity_on", {
+            date: formattedLastSeen,
+          })}
+        </span>
       </div>
 
       <div className="inline-flex text-muted-foreground text-sm md:py-0.5">
-        Followed by&nbsp;
-        <ReferenceField source="sales_id" reference="sales">
-          <SaleName />
-        </ReferenceField>
+        {translate(
+          isCurrentUser
+            ? "resources.contacts.background.followed_by_you"
+            : "resources.contacts.background.followed_by",
+          { name: salesName },
+        )}
       </div>
     </div>
   );

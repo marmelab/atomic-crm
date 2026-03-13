@@ -1,4 +1,9 @@
-import { ListContextProvider, ResourceContextProvider, useList } from "ra-core";
+import {
+  ListContextProvider,
+  ResourceContextProvider,
+  useList,
+  useTranslate,
+} from "ra-core";
 
 import { TasksIterator } from "./TasksIterator";
 
@@ -15,6 +20,7 @@ export const TaskListFilter = ({
   showContact,
   isMobile,
 }: TaskListProps) => {
+  const translate = useTranslate();
   const listContext = useList({
     data: tasks,
     resource: "tasks",
@@ -45,7 +51,7 @@ export const TaskListFilter = ({
             }}
             className="text-sm underline hover:no-underline"
           >
-            Load more
+            {translate("crm.common.load_more")}
           </a>
         </div>
       )}

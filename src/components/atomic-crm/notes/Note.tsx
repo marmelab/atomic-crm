@@ -2,10 +2,11 @@ import { CircleX, Edit, Save, Trash2 } from "lucide-react";
 import {
   Form,
   useDelete,
+  useGetIdentity,
   useNotify,
   useResourceContext,
+  useTranslate,
   useUpdate,
-  WithRecord,
 } from "ra-core";
 import { useEffect, useRef, useState } from "react";
 import type { FieldValues, SubmitHandler } from "react-hook-form";
@@ -23,10 +24,10 @@ import { CompanyAvatar } from "../companies/CompanyAvatar";
 import { Markdown } from "../misc/Markdown";
 import { RelativeDate } from "../misc/RelativeDate";
 import { Status } from "../misc/Status";
-import { SaleName } from "../sales/SaleName";
 import type { ContactNote, DealNote } from "../types";
 import { NoteAttachments } from "./NoteAttachments";
 import { NoteInputs } from "./NoteInputs";
+import { useGetSalesName } from "../sales/useGetSalesName";
 
 export const Note = ({
   showStatus,
@@ -43,6 +44,12 @@ export const Note = ({
   const contentRef = useRef<HTMLDivElement>(null);
   const resource = useResourceContext();
   const notify = useNotify();
+  const translate = useTranslate();
+  const { identity } = useGetIdentity();
+  const isCurrentUser = note.sales_id === identity?.id;
+  const salesName = useGetSalesName(note.sales_id, {
+    enabled: !isCurrentUser,
+  });
 
   // Detect if content is truncated
   useEffect(() => {
@@ -57,7 +64,13 @@ export const Note = ({
   const [deleteNote] = useDelete(resource, undefined, {
     mutationMode: "undoable",
     onSuccess: () => {
-      notify("Note deleted", { type: "info", undoable: true });
+      notify("resources.notes.deleted", {
+        type: "info",
+        undoable: true,
+        messageArgs: {
+          _: "Note deleted",
+        },
+      });
     },
   });
 
@@ -98,16 +111,12 @@ export const Note = ({
           <CompanyAvatar width={20} height={20} />
         </ReferenceField>
         <div className="inline-flex h-full items-center text-sm text-muted-foreground">
-          <ReferenceField
-            record={note}
-            resource={resource}
-            source="sales_id"
-            reference="sales"
-            link={false}
-          >
-            <WithRecord render={(record) => <SaleName sale={record} />} />
-          </ReferenceField>{" "}
-          added a note{" "}
+          {translate(
+            isCurrentUser
+              ? "resources.notes.you_added"
+              : "resources.notes.author_added",
+            { name: salesName },
+          )}{" "}
           {showStatus && note.status && (
             <Status className="ml-2" status={note.status} />
           )}
@@ -126,7 +135,7 @@ export const Note = ({
                 </Button>
               </TooltipTrigger>
               <TooltipContent>
-                <p>Edit note</p>
+                <p>{translate("resources.notes.action.edit")}</p>
               </TooltipContent>
             </Tooltip>
           </TooltipProvider>
@@ -143,7 +152,7 @@ export const Note = ({
                 </Button>
               </TooltipTrigger>
               <TooltipContent>
-                <p>Delete note</p>
+                <p>{translate("resources.notes.action.delete")}</p>
               </TooltipContent>
             </Tooltip>
           </TooltipProvider>
@@ -164,7 +173,7 @@ export const Note = ({
               className="cursor-pointer"
             >
               <CircleX className="w-4 h-4" />
-              Cancel
+              {translate("ra.action.cancel")}
             </Button>
             <Button
               type="submit"
@@ -172,7 +181,7 @@ export const Note = ({
               className="flex items-center gap-2 cursor-pointer"
             >
               <Save className="w-4 h-4" />
-              Update note
+              {translate("resources.notes.action.update")}
             </Button>
           </div>
         </Form>
@@ -199,7 +208,9 @@ export const Note = ({
               }}
               className="text-primary text-sm mt-1 underline hover:no-underline cursor-pointer"
             >
-              {isExpanded ? "Show less" : "Read more"}
+              {isExpanded
+                ? translate("crm.common.show_less")
+                : translate("crm.common.read_more")}
             </button>
           )}
 

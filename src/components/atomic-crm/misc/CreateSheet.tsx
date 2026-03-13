@@ -147,7 +147,7 @@ export const CreateSheet = ({
               <div className="flex w-full gap-4">
                 <SheetClose asChild>
                   <Button variant="ghost" className="flex-1">
-                    Close
+                    {translate("ra.action.close")}
                   </Button>
                 </SheetClose>
                 <SaveButton className="flex-1" />

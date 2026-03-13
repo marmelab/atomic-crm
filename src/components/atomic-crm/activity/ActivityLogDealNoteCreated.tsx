@@ -1,9 +1,9 @@
-import type { RaRecord } from "ra-core";
+import { type RaRecord, useGetIdentity, useTranslate } from "ra-core";
 
 import { ReferenceField } from "@/components/admin/reference-field";
 import { CompanyAvatar } from "../companies/CompanyAvatar";
 import { RelativeDate } from "../misc/RelativeDate";
-import { SaleName } from "../sales/SaleName";
+import { useGetSalesName } from "../sales/useGetSalesName";
 import type { ActivityDealNoteCreated } from "../types";
 import { useActivityLogContext } from "./ActivityLogContext";
 import { ActivityLogNote } from "./ActivityLogNote";
@@ -18,7 +18,13 @@ export function ActivityLogDealNoteCreated({
 }: ActivityLogDealNoteCreatedProps) {
   const context = useActivityLogContext();
   const isMobile = useIsMobile();
+  const translate = useTranslate();
+  const { identity } = useGetIdentity();
   const { dealNote } = activity;
+  const isCurrentUser = activity.sales_id === identity?.id;
+  const salesName = useGetSalesName(activity.sales_id, {
+    enabled: !isCurrentUser,
+  });
   return (
     <ActivityLogNote
       header={
@@ -39,15 +45,12 @@ export function ActivityLogDealNoteCreated({
           </ReferenceField>
 
           <span className="text-muted-foreground text-sm flex-grow">
-            <ReferenceField
-              source="sales_id"
-              reference="sales"
-              record={activity}
-              link={false}
-            >
-              <SaleName />
-            </ReferenceField>{" "}
-            added a note about deal{" "}
+            {translate(
+              isCurrentUser
+                ? "crm.activity.you_added_note_about_deal"
+                : "crm.activity.added_note_about_deal",
+              { name: salesName },
+            )}{" "}
             <ReferenceField
               source="deal_id"
               reference="deals"
@@ -57,7 +60,7 @@ export function ActivityLogDealNoteCreated({
             {context !== "company" && (
               <>
                 {" "}
-                at{" "}
+                {translate("crm.activity.at_company")}{" "}
                 <ReferenceField
                   source="deal_id"
                   reference="deals"

@@ -1,6 +1,16 @@
 import { format } from "date-fns";
 
-export function getRelativeTimeString(dateString: string): string {
+import type { DealStage } from "../types";
+
+export const findDealLabel = (dealStages: DealStage[], dealValue: string) => {
+  const dealStage = dealStages.find((stage) => stage.value === dealValue);
+  return dealStage?.label;
+};
+
+export function getRelativeTimeString(
+  dateString: string,
+  locale = "en",
+): string {
   const date = new Date(dateString);
   date.setHours(0, 0, 0, 0);
 
@@ -12,14 +22,14 @@ export function getRelativeTimeString(dateString: string): string {
 
   // Check if the date is more than one week old
   if (Math.abs(unitDiff) > 7) {
-    return new Intl.DateTimeFormat(undefined, {
+    return new Intl.DateTimeFormat(locale, {
       day: "numeric",
       month: "long",
     }).format(date);
   }
 
   // Intl.RelativeTimeFormat for dates within the last week
-  const rtf = new Intl.RelativeTimeFormat(undefined, { numeric: "auto" });
+  const rtf = new Intl.RelativeTimeFormat(locale, { numeric: "auto" });
   return ucFirst(rtf.format(unitDiff, "day"));
 }
 

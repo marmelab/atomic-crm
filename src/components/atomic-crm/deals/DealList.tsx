@@ -1,4 +1,6 @@
-import { useGetIdentity, useListContext } from "ra-core";
+import type { ReactNode } from "react";
+import type { InputProps } from "ra-core";
+import { useGetIdentity, useListContext, useTranslate } from "ra-core";
 import { matchPath, useLocation } from "react-router";
 import { AutocompleteInput } from "@/components/admin/autocomplete-input";
 import { CreateButton } from "@/components/admin/create-button";
@@ -22,21 +24,28 @@ import { OnlyMineInput } from "./OnlyMineInput";
 const DealList = () => {
   const { identity } = useGetIdentity();
   const { dealCategories } = useConfigurationContext();
+  const translate = useTranslate();
 
   if (!identity) return null;
 
   const dealFilters = [
     <SearchInput source="q" alwaysOn />,
     <ReferenceInput source="company_id" reference="companies">
-      <AutocompleteInput label={false} placeholder="Company" />
+      <AutocompleteInput
+        label={false}
+        placeholder={translate("resources.deals.fields.company_id")}
+      />
     </ReferenceInput>,
-    <SelectInput
-      source="category"
-      emptyText="Category"
-      choices={dealCategories}
-      optionText="label"
-      optionValue="value"
-    />,
+    <WrapperField source="category" label="resources.deals.fields.category">
+      <SelectInput
+        source="category"
+        label={false}
+        emptyText="resources.deals.fields.category"
+        choices={dealCategories}
+        optionText="label"
+        optionValue="value"
+      />
+    </WrapperField>,
     <OnlyMineInput source="sales_id" alwaysOn />,
   ];
 
@@ -90,8 +99,16 @@ const DealActions = () => (
   <TopToolbar>
     <FilterButton />
     <ExportButton />
-    <CreateButton label="New Deal" />
+    <CreateButton label="resources.deals.action.new" />
   </TopToolbar>
 );
+
+/**
+ *
+ * Used so that label of filters can be inferred for the select display,
+ * but not be displayed when showing the input.
+ */
+const WrapperField = ({ children }: InputProps & { children: ReactNode }) =>
+  children;
 
 export default DealList;

@@ -1,5 +1,10 @@
 import { useState } from "react";
-import { RecordRepresentation, ShowBase, useShowContext } from "ra-core";
+import {
+  RecordRepresentation,
+  ShowBase,
+  useShowContext,
+  useTranslate,
+} from "ra-core";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { ReferenceField } from "@/components/admin/reference-field";
 import { ReferenceManyField } from "@/components/admin/reference-many-field";
@@ -47,7 +52,8 @@ export const ContactShow = () => {
 };
 
 const ContactShowContentMobile = () => {
-  const { record, isPending } = useShowContext<Contact>();
+  const translate = useTranslate();
+  const { defaultTitle, record, isPending } = useShowContext<Contact>();
   const [noteCreateOpen, setNoteCreateOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
   if (isPending || !record) return null;
@@ -70,9 +76,7 @@ const ContactShowContentMobile = () => {
         <MobileBackButton />
         <div className="flex flex-1 min-w-0">
           <Link to="/contacts" className="flex-1 min-w-0">
-            <h1 className="truncate text-xl font-semibold">
-              <RecordRepresentation />
-            </h1>
+            <h1 className="truncate text-xl font-semibold">{defaultTitle}</h1>
           </Link>
         </div>
         <Button
@@ -83,7 +87,7 @@ const ContactShowContentMobile = () => {
           onClick={() => setEditOpen(true)}
         >
           <Pencil className="size-5" />
-          <span className="sr-only">Edit record</span>
+          <span className="sr-only">{translate("ra.action.edit")}</span>
         </Button>
       </MobileHeader>
       <MobileContent>
@@ -95,8 +99,11 @@ const ContactShowContentMobile = () => {
                 <RecordRepresentation />
               </h2>
               <div className="text-sm text-muted-foreground">
-                {record.title}
-                {record.title && record.company_id != null && " at "}
+                {record.title && record.company_id != null
+                  ? `${translate("resources.contacts.position_at", {
+                      title: record.title,
+                    })} `
+                  : record.title}
                 {record.company_id != null && (
                   <ReferenceField
                     source="company_id"
@@ -123,11 +130,17 @@ const ContactShowContentMobile = () => {
 
         <Tabs defaultValue="notes" className="w-full">
           <TabsList className="grid w-full grid-cols-3 h-10">
-            <TabsTrigger value="notes">Notes</TabsTrigger>
-            <TabsTrigger value="tasks">
-              {`${record.nb_tasks ?? 0} Tasks`}
+            <TabsTrigger value="notes">
+              {translate("resources.notes.name", { smart_count: 2 })}
             </TabsTrigger>
-            <TabsTrigger value="details">Details</TabsTrigger>
+            <TabsTrigger value="tasks">
+              {translate("crm.common.task_count", {
+                smart_count: record.nb_tasks,
+              })}
+            </TabsTrigger>
+            <TabsTrigger value="details">
+              {translate("crm.common.details")}
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="notes" className="mt-2">
@@ -137,12 +150,14 @@ const ContactShowContentMobile = () => {
               sort={{ field: "date", order: "DESC" }}
               empty={
                 <div className="flex flex-col items-center justify-center py-8 text-center">
-                  <p className="text-muted-foreground mb-4">No notes yet</p>
+                  <p className="text-muted-foreground mb-4">
+                    {translate("resources.notes.empty")}
+                  </p>
                   <Button
                     variant="outline"
                     onClick={() => setNoteCreateOpen(true)}
                   >
-                    Add note
+                    {translate("resources.notes.action.add")}
                   </Button>
                 </div>
               }
@@ -169,21 +184,31 @@ const ContactShowContentMobile = () => {
           <TabsContent value="details" className="mt-4">
             <div className="space-y-6">
               <div>
-                <h3 className="text-lg font-semibold">Personal info</h3>
+                <h3 className="text-lg font-semibold">
+                  {translate(
+                    "resources.contacts.field_categories.personal_info",
+                  )}
+                </h3>
                 <Separator />
                 <div className="mt-3">
                   <ContactPersonalInfo />
                 </div>
               </div>
               <div>
-                <h3 className="text-lg font-semibold">Background info</h3>
+                <h3 className="text-lg font-semibold">
+                  {translate(
+                    "resources.contacts.field_categories.background_info",
+                  )}
+                </h3>
                 <Separator />
                 <div className="mt-3">
                   <ContactBackgroundInfo />
                 </div>
               </div>
               <div>
-                <h3 className="text-lg font-semibold">Tags</h3>
+                <h3 className="text-lg font-semibold">
+                  {translate("resources.tags.name", { smart_count: 2 })}
+                </h3>
                 <Separator />
                 <div className="mt-3">
                   <TagsListEdit />
@@ -198,6 +223,7 @@ const ContactShowContentMobile = () => {
 };
 
 const ContactShowContent = () => {
+  const translate = useTranslate();
   const { record, isPending } = useShowContext<Contact>();
   if (isPending || !record) return null;
 
@@ -213,8 +239,11 @@ const ContactShowContent = () => {
                   <RecordRepresentation />
                 </h5>
                 <div className="inline-flex text-sm text-muted-foreground">
-                  {record.title}
-                  {record.title && record.company_id != null && " at "}
+                  {record.title && record.company_id != null
+                    ? `${translate("resources.contacts.position_at", {
+                        title: record.title,
+                      })} `
+                    : record.title}
                   {record.company_id != null && (
                     <ReferenceField
                       source="company_id"

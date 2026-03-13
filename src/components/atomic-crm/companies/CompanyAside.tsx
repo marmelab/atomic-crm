@@ -1,19 +1,24 @@
 import { Globe, Linkedin, Phone } from "lucide-react";
-import { useRecordContext } from "ra-core";
+import {
+  useGetIdentity,
+  useLocaleState,
+  useRecordContext,
+  useTranslate,
+} from "ra-core";
 import { EditButton } from "@/components/admin/edit-button";
 import { DeleteButton } from "@/components/admin/delete-button";
-import { ReferenceField } from "@/components/admin/reference-field";
 import { ShowButton } from "@/components/admin/show-button";
 import { TextField } from "@/components/admin/text-field";
-import { DateField } from "@/components/admin/date-field";
 import { UrlField } from "@/components/admin/url-field";
 import { SelectField } from "@/components/admin/select-field";
 
+import { formatLocalizedDate } from "../misc/RelativeDate";
 import { AsideSection } from "../misc/AsideSection";
 import { useConfigurationContext } from "../root/ConfigurationContext";
-import { SaleName } from "../sales/SaleName";
 import type { Company } from "../types";
+import { getTranslatedCompanySizeLabel } from "./getTranslatedCompanySizeLabel";
 import { sizes } from "./sizes";
+import { useGetSalesName } from "../sales/useGetSalesName";
 
 interface CompanyAsideProps {
   link?: string;
@@ -21,15 +26,16 @@ interface CompanyAsideProps {
 
 export const CompanyAside = ({ link = "edit" }: CompanyAsideProps) => {
   const record = useRecordContext<Company>();
+  const translate = useTranslate();
   if (!record) return null;
 
   return (
     <div className="hidden sm:block w-92 min-w-92 space-y-4">
       <div className="flex flex-row space-x-1">
         {link === "edit" ? (
-          <EditButton label="Edit Company" />
+          <EditButton label={translate("resources.companies.action.edit")} />
         ) : (
-          <ShowButton label="Show Company" />
+          <ShowButton label={translate("resources.companies.action.show")} />
         )}
       </div>
 
@@ -54,12 +60,15 @@ export const CompanyAside = ({ link = "edit" }: CompanyAsideProps) => {
 };
 
 export const CompanyInfo = ({ record }: { record: Company }) => {
+  const translate = useTranslate();
   if (!record.website && !record.linkedin_url && !record.phone_number) {
     return null;
   }
 
   return (
-    <AsideSection title="Company Info">
+    <AsideSection
+      title={translate("resources.companies.field_categories.contact")}
+    >
       {record.website && (
         <div className="flex flex-row items-center gap-1 min-h-[24px]">
           <Globe className="w-4 h-4" />
@@ -99,30 +108,43 @@ export const CompanyInfo = ({ record }: { record: Company }) => {
 
 export const ContextInfo = ({ record }: { record: Company }) => {
   const { companySectors } = useConfigurationContext();
+  const translate = useTranslate();
   if (!record.revenue && !record.id) {
     return null;
   }
 
-  const sectorLabel = companySectors.find(
-    (s) => s.value === record.sector,
-  )?.label;
+  const sector = companySectors.find((s) => s.value === record.sector);
+  const sectorLabel = sector?.label;
+  const translatedSizes = sizes.map((size) => ({
+    ...size,
+    name: getTranslatedCompanySizeLabel(size, translate),
+  }));
 
   return (
-    <AsideSection title="Context">
-      {sectorLabel && <span>Sector: {sectorLabel}</span>}
+    <AsideSection
+      title={translate("resources.companies.field_categories.context")}
+    >
+      {sectorLabel && (
+        <span>
+          {translate("resources.companies.fields.sector")}: {sectorLabel}
+        </span>
+      )}
       {record.size && (
         <span>
-          Size: <SelectField source="size" choices={sizes} />
+          {translate("resources.companies.fields.size")}:{" "}
+          <SelectField source="size" choices={translatedSizes} />
         </span>
       )}
       {record.revenue && (
         <span>
-          Revenue: <TextField source="revenue" />
+          {translate("resources.companies.fields.revenue")}:{" "}
+          <TextField source="revenue" />
         </span>
       )}
       {record.tax_identifier && (
         <span>
-          Tax Identifier: <TextField source="tax_identifier" />
+          {translate("resources.companies.fields.tax_identifier", {})}
+          : <TextField source="tax_identifier" />
         </span>
       )}
     </AsideSection>
@@ -130,6 +152,7 @@ export const ContextInfo = ({ record }: { record: Company }) => {
 };
 
 export const AddressInfo = ({ record }: { record: Company }) => {
+  const translate = useTranslate();
   if (
     !record.address &&
     !record.city &&
@@ -140,7 +163,10 @@ export const AddressInfo = ({ record }: { record: Company }) => {
   }
 
   return (
-    <AsideSection title="Main Address" noGap>
+    <AsideSection
+      title={translate("resources.companies.field_categories.address")}
+      noGap
+    >
       <TextField source="address" />
       <TextField source="city" />
       <TextField source="zipcode" />
@@ -151,6 +177,13 @@ export const AddressInfo = ({ record }: { record: Company }) => {
 };
 
 export const AdditionalInfo = ({ record }: { record: Company }) => {
+  const translate = useTranslate();
+  const [locale = "en"] = useLocaleState();
+  const { identity } = useGetIdentity();
+  const isCurrentUser = record.sales_id === identity?.id;
+  const salesName = useGetSalesName(record.sales_id, {
+    enabled: !isCurrentUser,
+  });
   if (
     !record.created_at &&
     !record.sales_id &&
@@ -165,7 +198,9 @@ export const AdditionalInfo = ({ record }: { record: Company }) => {
   };
 
   return (
-    <AsideSection title="Additional Info">
+    <AsideSection
+      title={translate("resources.companies.field_categories.additional_info")}
+    >
       {record.description && (
         <p className="text-sm  mb-1">{record.description}</p>
       )}
@@ -189,24 +224,19 @@ export const AdditionalInfo = ({ record }: { record: Company }) => {
       )}
       {record.sales_id !== null && (
         <div className="inline-flex text-sm text-muted-foreground mb-1">
-          Followed by&nbsp;
-          <ReferenceField source="sales_id" reference="sales" record={record}>
-            <SaleName />
-          </ReferenceField>
+          {translate(
+            isCurrentUser
+              ? "resources.companies.followed_by_you"
+              : "resources.companies.followed_by",
+            { name: salesName },
+          )}
         </div>
       )}
       {record.created_at && (
         <p className="text-sm text-muted-foreground mb-1">
-          Added on{" "}
-          <DateField
-            source="created_at"
-            record={record}
-            options={{
-              year: "numeric",
-              month: "long",
-              day: "numeric",
-            }}
-          />
+          {translate("resources.companies.added_on", {
+            date: formatLocalizedDate(record.created_at, locale),
+          })}{" "}
         </p>
       )}
     </AsideSection>

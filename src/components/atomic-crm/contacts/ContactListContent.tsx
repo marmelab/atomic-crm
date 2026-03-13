@@ -1,11 +1,12 @@
-import { formatRelative } from "date-fns";
 import { difference, union } from "lodash";
 import {
   type Identifier,
   RecordContextProvider,
   RecordRepresentation,
   useListContext,
+  useLocaleState,
   useTimeout,
+  useTranslate,
 } from "ra-core";
 import { type MouseEvent, useCallback, useRef } from "react";
 import { Link } from "react-router";
@@ -17,11 +18,13 @@ import { Button } from "@/components/ui/button";
 import { RotateCcw } from "lucide-react";
 
 import { Status } from "../misc/Status";
+import { formatRelativeDate } from "../misc/RelativeDate";
 import type { Contact } from "../types";
 import { Avatar } from "./Avatar";
 import { TagsList } from "./TagsList";
 
 export const ContactListContent = () => {
+  const translate = useTranslate();
   const {
     data: contacts,
     error,
@@ -85,7 +88,9 @@ export const ContactListContent = () => {
 
       {contacts.length === 0 && (
         <div className="p-4">
-          <div className="text-muted-foreground">No contacts found</div>
+          <div className="text-muted-foreground">
+            {translate("resources.contacts.empty.title", {})}
+          </div>
         </div>
       )}
     </div>
@@ -99,8 +104,12 @@ const ContactItemContent = ({
   contact: Contact;
   handleToggleItem: (id: Identifier, event: MouseEvent) => void;
 }) => {
+  const translate = useTranslate();
+  const [locale = "en"] = useLocaleState();
   const { selectedIds } = useListContext<Contact>();
-  const now = Date.now();
+  const lastActivity = contact.last_seen
+    ? formatRelativeDate(contact.last_seen, locale)
+    : null;
 
   return (
     <div className="flex flex-row items-center pl-2 pr-4 py-2 hover:bg-muted transition-colors first:rounded-t-xl last:rounded-b-xl">
@@ -124,8 +133,11 @@ const ContactItemContent = ({
           </div>
           {contact.title || contact.company_id != null || contact.nb_tasks ? (
             <div className="text-sm text-muted-foreground">
-              {contact.title}
-              {contact.title && contact.company_id != null && " at "}
+              {contact.title && contact.company_id != null
+                ? `${translate("resources.contacts.position_at", {
+                    title: contact.title,
+                  })} `
+                : contact.title}
               {contact.company_id != null && (
                 <ReferenceField
                   source="company_id"
@@ -136,7 +148,9 @@ const ContactItemContent = ({
                 </ReferenceField>
               )}
               {contact.nb_tasks
-                ? ` - ${contact.nb_tasks} task${contact.nb_tasks > 1 ? "s" : ""}`
+                ? ` - ${translate("crm.common.task_count", {
+                    smart_count: contact.nb_tasks,
+                  })}`
                 : ""}
               &nbsp;&nbsp;
               <TagsList />
@@ -149,8 +163,9 @@ const ContactItemContent = ({
               className="text-sm text-muted-foreground"
               title={contact.last_seen}
             >
-              {"last activity "}
-              {formatRelative(contact.last_seen, now)}{" "}
+              {translate("crm.common.last_activity_with_date", {
+                date: lastActivity,
+              })}{" "}
               <Status status={contact.status} />
             </div>
           </div>
@@ -161,6 +176,7 @@ const ContactItemContent = ({
 };
 
 export const ContactListContentMobile = () => {
+  const translate = useTranslate();
   const {
     data: contacts,
     error,
@@ -197,7 +213,7 @@ export const ContactListContentMobile = () => {
     return (
       <div className="p-4">
         <div className="text-center text-muted-foreground mb-4">
-          Error loading contacts
+          {translate("resources.contacts.list.error_loading")}
         </div>
         <div className="text-center mt-2">
           <Button
@@ -206,7 +222,7 @@ export const ContactListContentMobile = () => {
             }}
           >
             <RotateCcw />
-            Retry
+            {translate("crm.common.retry")}
           </Button>
         </div>
       </div>
@@ -222,50 +238,60 @@ export const ContactListContentMobile = () => {
       ))}
       {contacts.length === 0 && (
         <div className="p-4">
-          <div className="text-muted-foreground">No contacts found</div>
+          <div className="text-muted-foreground">
+            {translate("resources.contacts.empty.title")}
+          </div>
         </div>
       )}
     </div>
   );
 };
 
-const ContactItemContentMobile = ({ contact }: { contact: Contact }) => (
-  <Link
-    to={`/contacts/${contact.id}/show`}
-    className="flex flex-row gap-4 items-center py-2 hover:bg-muted transition-colors"
-  >
-    <Avatar />
-    <div className="flex flex-col grow justify-between">
-      <div className="flex-1 min-w-0">
-        <div className="flex justify-between">
-          <div className="font-medium">
-            <RecordRepresentation />
+const ContactItemContentMobile = ({ contact }: { contact: Contact }) => {
+  const translate = useTranslate();
+  return (
+    <Link
+      to={`/contacts/${contact.id}/show`}
+      className="flex flex-row gap-4 items-center py-2 hover:bg-muted transition-colors"
+    >
+      <Avatar />
+      <div className="flex flex-col grow justify-between">
+        <div className="flex-1 min-w-0">
+          <div className="flex justify-between">
+            <div className="font-medium">
+              <RecordRepresentation />
+            </div>
+            <Status status={contact.status} />
           </div>
-          <Status status={contact.status} />
-        </div>
-        <div className="text-sm text-muted-foreground">
-          <div className="flex flex-col gap-1">
-            <span>
-              {contact.title}
-              {contact.title && contact.company_id != null && " at "}
-              {contact.company_id != null && (
-                <ReferenceField
-                  source="company_id"
-                  reference="companies"
-                  link={false}
-                >
-                  <TextField source="name" />
-                </ReferenceField>
-              )}
-            </span>
-            {contact.nb_tasks ? (
+          <div className="text-sm text-muted-foreground">
+            <div className="flex flex-col gap-1">
               <span>
-                {contact.nb_tasks} task{contact.nb_tasks > 1 ? "s" : ""}
+                {contact.title && contact.company_id != null
+                  ? `${translate("resources.contacts.position_at", {
+                      title: contact.title,
+                    })} `
+                  : contact.title}
+                {contact.company_id != null && (
+                  <ReferenceField
+                    source="company_id"
+                    reference="companies"
+                    link={false}
+                  >
+                    <TextField source="name" />
+                  </ReferenceField>
+                )}
               </span>
-            ) : null}
+              {contact.nb_tasks ? (
+                <span>
+                  {translate("crm.common.task_count", {
+                    smart_count: contact.nb_tasks,
+                  })}
+                </span>
+              ) : null}
+            </div>
           </div>
         </div>
       </div>
-    </div>
-  </Link>
-);
+    </Link>
+  );
+};

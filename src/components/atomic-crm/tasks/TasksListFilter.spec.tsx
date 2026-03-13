@@ -21,6 +21,19 @@ const createTask = (id: number, dueDate: Date, doneDate?: Date) => ({
 const Wrapper = ({ children }: { children: React.ReactNode }) => (
   <CoreAdminContext
     dataProvider={fakeDataProvider({ tasks: [], contacts: [], sales: [] })}
+    i18nProvider={{
+      translate: (key, options) => {
+        if (typeof options?._ === "string") {
+          return options._;
+        }
+        if (key === "crm.common.load_more") {
+          return "Load more";
+        }
+        return key;
+      },
+      changeLocale: () => Promise.resolve(),
+      getLocale: () => "en",
+    }}
   >
     {children}
   </CoreAdminContext>
@@ -71,21 +84,19 @@ describe("TaskListFilter", () => {
 
   it("Load more increases visible page size", async () => {
     const tasks = Array.from({ length: 8 }, (_, i) => createTask(i + 1, today));
-    const screen = await render(
+    const { container, getByText } = await render(
       <TaskListFilter tasks={tasks} title="Today" isMobile={false} />,
       {
         wrapper: Wrapper,
       },
     );
 
-    expect(screen.getByText(/Task \d+/)).toHaveLength(5);
-    const loadMore = screen.getByText("Load more");
+    expect(container.textContent?.match(/Task \d+/g) ?? []).toHaveLength(5);
+    const loadMore = getByText("Load more");
 
     await loadMore.click();
 
-    // check the number of rendered tasks after clicking Load more
-    await expect(screen.getByText(/Task \d+/)).toHaveLength(8);
-    // After clicking, all 8 tasks fit in one page (5 + 10 = 15), so Load more disappears
-    await expect.element(screen.getByText("Load more")).not.toBeInTheDocument();
+    expect(container.textContent?.match(/Task \d+/g) ?? []).toHaveLength(8);
+    expect(container.textContent).not.toContain("Load more");
   });
 });

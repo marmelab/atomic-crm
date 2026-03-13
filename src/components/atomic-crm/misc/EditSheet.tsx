@@ -10,6 +10,7 @@ import {
 import {
   EditBase,
   Form,
+  useEditContext,
   useNotify,
   useRedirect,
   useResourceContext,
@@ -84,7 +85,7 @@ export const EditSheet = ({
   children,
   open,
   onOpenChange,
-  title = "Edit",
+  title,
   redirect: redirectTo = "show",
   mutationOptions,
   mutationMode = "undoable",
@@ -143,11 +144,7 @@ export const EditSheet = ({
           >
             <SheetHeader className="border-b">
               <SheetTitle>
-                {typeof title === "string" ? (
-                  <span className="text-xl font-semibold">{title}</span>
-                ) : (
-                  title
-                )}
+                <EditSheetTitle title={title} />
               </SheetTitle>
             </SheetHeader>
 
@@ -165,5 +162,24 @@ export const EditSheet = ({
         </EditBase>
       </SheetContent>
     </Sheet>
+  );
+};
+
+const EditSheetTitle = ({ title }: { title?: ReactNode | string | false }) => {
+  const { defaultTitle } = useEditContext();
+
+  if (title === false) {
+    return null;
+  }
+
+  const resolvedTitle = title === undefined ? defaultTitle : title;
+  if (resolvedTitle == null) {
+    return null;
+  }
+
+  return typeof resolvedTitle === "string" ? (
+    <span className="text-xl font-semibold">{resolvedTitle}</span>
+  ) : (
+    resolvedTitle
   );
 };

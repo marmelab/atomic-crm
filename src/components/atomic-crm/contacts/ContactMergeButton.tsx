@@ -9,6 +9,7 @@ import {
   Form,
   useNotify,
   useRedirect,
+  useTranslate,
 } from "ra-core";
 import type { Identifier } from "ra-core";
 import { useMutation } from "@tanstack/react-query";
@@ -28,6 +29,7 @@ import type { Contact } from "../types";
 import { contactOptionText } from "../misc/ContactOption";
 
 export const ContactMergeButton = () => {
+  const translate = useTranslate();
   const [mergeDialogOpen, setMergeDialogOpen] = useState(false);
   return (
     <>
@@ -38,7 +40,9 @@ export const ContactMergeButton = () => {
         onClick={() => setMergeDialogOpen(true)}
       >
         <Merge className="w-4 h-4" />
-        Merge with another contact
+        {translate("resources.contacts.merge.action", {
+          _: "Merge with another contact",
+        })}
       </Button>
       <ContactMergeDialog
         open={mergeDialogOpen}
@@ -57,6 +61,7 @@ const ContactMergeDialog = ({ open, onClose }: ContactMergeDialogProps) => {
   const loserContact = useRecordContext<Contact>();
   const notify = useNotify();
   const redirect = useRedirect();
+  const translate = useTranslate();
   const dataProvider = useDataProvider();
   const [winnerId, setWinnerId] = useState<Identifier | null>(null);
   const [suggestedWinnerId, setSuggestedWinnerId] = useState<Identifier | null>(
@@ -125,7 +130,12 @@ const ContactMergeDialog = ({ open, onClose }: ContactMergeDialogProps) => {
 
   const handleMerge = async () => {
     if (!winnerId || !loserContact) {
-      notify("Please select a contact to merge with", { type: "warning" });
+      notify("resources.contacts.merge.select_target", {
+        type: "warning",
+        messageArgs: {
+          _: "Please select a contact to merge with",
+        },
+      });
       return;
     }
 
@@ -133,12 +143,22 @@ const ContactMergeDialog = ({ open, onClose }: ContactMergeDialogProps) => {
       setIsMerging(true);
       await mutateAsync();
       setIsMerging(false);
-      notify("Contacts merged successfully", { type: "success" });
+      notify("resources.contacts.merge.success", {
+        type: "success",
+        messageArgs: {
+          _: "Contacts merged successfully",
+        },
+      });
       redirect(`/contacts/${winnerId}/show`);
       onClose();
     } catch (error) {
       setIsMerging(false);
-      notify("Failed to merge contacts", { type: "error" });
+      notify("resources.contacts.merge.error", {
+        type: "error",
+        messageArgs: {
+          _: "Failed to merge contacts",
+        },
+      });
       console.error("Merge failed:", error);
     }
   };
@@ -149,16 +169,24 @@ const ContactMergeDialog = ({ open, onClose }: ContactMergeDialogProps) => {
     <Dialog open={open} onOpenChange={onClose}>
       <DialogContent className="md:min-w-lg max-w-2xl">
         <DialogHeader>
-          <DialogTitle>Merge Contact</DialogTitle>
+          <DialogTitle>
+            {translate("resources.contacts.merge.title", {
+              _: "Merge Contact",
+            })}
+          </DialogTitle>
           <DialogDescription>
-            Merge this contact with another one.
+            {translate("resources.contacts.merge.description", {
+              _: "Merge this contact with another one.",
+            })}
           </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4">
           <div className="p-4 bg-primary/5 rounded-lg border border-primary/20">
             <p className="font-medium text-sm">
-              Current Contact (will be deleted)
+              {translate("resources.contacts.merge.current_contact", {
+                _: "Current Contact (will be deleted)",
+              })}
             </p>
             <div className="font-medium text-sm mt-4">{contactOptionText}</div>
 
@@ -167,7 +195,9 @@ const ContactMergeDialog = ({ open, onClose }: ContactMergeDialogProps) => {
             </div>
 
             <p className="font-medium text-sm mb-2">
-              Target Contact (will be kept)
+              {translate("resources.contacts.merge.target_contact", {
+                _: "Target Contact (will be kept)",
+              })}
             </p>
             <Form>
               <ReferenceInput
@@ -190,7 +220,11 @@ const ContactMergeDialog = ({ open, onClose }: ContactMergeDialogProps) => {
           {winnerId && (
             <>
               <div className="space-y-2">
-                <p className="font-medium text-sm">What will be merged:</p>
+                <p className="font-medium text-sm">
+                  {translate("resources.contacts.merge.what_will_be_merged", {
+                    _: "What will be merged:",
+                  })}
+                </p>
                 <ul className="text-sm text-muted-foreground space-y-1 ml-4">
                   {notesCount != null && notesCount > 0 && (
                     <li>
@@ -230,17 +264,27 @@ const ContactMergeDialog = ({ open, onClose }: ContactMergeDialogProps) => {
                     !loserContact.email_jsonb?.length &&
                     !loserContact.phone_jsonb?.length && (
                       <li className="text-muted-foreground/60">
-                        No additional data to merge
+                        {translate(
+                          "resources.contacts.merge.no_additional_data",
+                          {
+                            _: "No additional data to merge",
+                          },
+                        )}
                       </li>
                     )}
                 </ul>
               </div>
               <Alert variant="destructive">
                 <AlertTriangle className="h-4 w-4" />
-                <AlertTitle>Warning: Destructive Operation</AlertTitle>
+                <AlertTitle>
+                  {translate("resources.contacts.merge.warning_title", {
+                    _: "Warning: Destructive Operation",
+                  })}
+                </AlertTitle>
                 <AlertDescription>
-                  All data will be transferred to the second contact. This
-                  action cannot be undone.
+                  {translate("resources.contacts.merge.warning_description", {
+                    _: "All data will be transferred to the second contact. This action cannot be undone.",
+                  })}
                 </AlertDescription>
               </Alert>
             </>
@@ -250,11 +294,17 @@ const ContactMergeDialog = ({ open, onClose }: ContactMergeDialogProps) => {
         <DialogFooter>
           <Button variant="ghost" onClick={onClose} disabled={isMerging}>
             <CircleX />
-            Cancel
+            {translate("ra.action.cancel")}
           </Button>
           <Button onClick={handleMerge} disabled={!winnerId || isMerging}>
             <Merge />
-            {isMerging ? "Merging..." : "Merge Contacts"}
+            {isMerging
+              ? translate("resources.contacts.merge.merging", {
+                  _: "Merging...",
+                })
+              : translate("resources.contacts.merge.confirm", {
+                  _: "Merge Contacts",
+                })}
           </Button>
         </DialogFooter>
       </DialogContent>

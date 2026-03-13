@@ -1,4 +1,4 @@
-import { useRecordContext } from "ra-core";
+import { useRecordContext, useTranslate } from "ra-core";
 
 import { Avatar } from "../contacts/Avatar";
 import type { Contact } from "../types";
@@ -6,6 +6,7 @@ import type { Contact } from "../types";
 // eslint-disable-next-line react-refresh/only-export-components
 const ContactOptionRender = () => {
   const record: Contact | undefined = useRecordContext();
+  const translate = useTranslate();
   if (!record) return null;
   return (
     <div className="flex flex-row gap-4 items-center justify-start whitespace-normal text-left">
@@ -15,9 +16,12 @@ const ContactOptionRender = () => {
           {record.first_name} {record.last_name}
         </span>
         <span className="text-xs text-muted-foreground">
-          {record.title}
-          {record.title && record.company_name && " at "}
-          {record.company_name}
+          {record.title && record.company_name
+            ? translate("resources.contacts.position_at_company", {
+                title: record.title,
+                company: record.company_name,
+              })
+            : record.title || record.company_name}
         </span>
       </div>
     </div>

@@ -1,5 +1,5 @@
 import { Plus, Users } from "lucide-react";
-import { useGetIdentity, useGetList } from "ra-core";
+import { useGetIdentity, useGetList, useTranslate } from "ra-core";
 import { Link } from "react-router";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -16,6 +16,7 @@ import type { Contact } from "../types";
 
 export const HotContacts = () => {
   const { identity } = useGetIdentity();
+  const translate = useTranslate();
   const {
     data: contactData,
     total: contactTotal,
@@ -37,7 +38,7 @@ export const HotContacts = () => {
           <Users className="text-muted-foreground w-6 h-6" />
         </div>
         <h2 className="text-xl font-semibold text-muted-foreground">
-          Hot Contacts
+          {translate("resources.contacts.hot.title")}
         </h2>
         <TooltipProvider>
           <Tooltip>
@@ -53,7 +54,9 @@ export const HotContacts = () => {
                 </Link>
               </Button>
             </TooltipTrigger>
-            <TooltipContent>Create contact</TooltipContent>
+            <TooltipContent>
+              {translate("resources.contacts.action.create")}
+            </TooltipContent>
           </Tooltip>
         </TooltipProvider>
       </div>
@@ -70,18 +73,22 @@ export const HotContacts = () => {
           }
           secondaryText={(contact) => (
             <>
-              {contact.title} at {contact.company_name}
+              {contact.title && contact.company_name
+                ? translate("resources.contacts.position_at_company", {
+                    title: contact.title,
+                    company: contact.company_name,
+                  })
+                : contact.title || contact.company_name}
             </>
           )}
           leftAvatar={(contact) => <Avatar record={contact} />}
           empty={
             <div className="p-4">
               <p className="text-sm mb-4">
-                Contacts with a "hot" status will appear here.
+                {translate("resources.contacts.hot.empty_hint")}
               </p>
               <p className="text-sm">
-                Change the status of a contact by adding a note to that contact
-                and clicking on "show options".
+                {translate("resources.contacts.hot.empty_change_status")}
               </p>
             </div>
           }

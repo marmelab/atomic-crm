@@ -8,6 +8,7 @@ import {
   useRecordContext,
   useRedirect,
   useRefresh,
+  useTranslate,
   useUpdate,
 } from "ra-core";
 import { DeleteButton } from "@/components/admin/delete-button";
@@ -26,8 +27,7 @@ import { NotesIterator } from "../notes/NotesIterator";
 import { useConfigurationContext } from "../root/ConfigurationContext";
 import type { Deal } from "../types";
 import { ContactList } from "./ContactList";
-import { findDealLabel } from "./deal";
-import { formatISODateString } from "./dealUtils";
+import { findDealLabel, formatISODateString } from "./dealUtils";
 
 export const DealShow = ({ open, id }: { open: boolean; id?: string }) => {
   const redirect = useRedirect();
@@ -49,6 +49,7 @@ export const DealShow = ({ open, id }: { open: boolean; id?: string }) => {
 };
 
 const DealShowContent = () => {
+  const translate = useTranslate();
   const { dealStages, dealCategories } = useConfigurationContext();
   const record = useRecordContext<Deal>();
   if (!record) return null;
@@ -87,23 +88,25 @@ const DealShowContent = () => {
           <div className="flex gap-8 m-4">
             <div className="flex flex-col mr-10">
               <span className="text-xs text-muted-foreground tracking-wide">
-                Expected closing date
+                {translate("resources.deals.fields.expected_closing_date")}
               </span>
               <div className="flex items-center gap-2">
                 <span className="text-sm">
                   {isValid(new Date(record.expected_closing_date))
                     ? formatISODateString(record.expected_closing_date)
-                    : "Invalid date"}
+                    : translate("resources.deals.invalid_date")}
                 </span>
                 {new Date(record.expected_closing_date) < new Date() ? (
-                  <Badge variant="destructive">Past</Badge>
+                  <Badge variant="destructive">
+                    {translate("crm.common.past")}
+                  </Badge>
                 ) : null}
               </div>
             </div>
 
             <div className="flex flex-col mr-10">
               <span className="text-xs text-muted-foreground tracking-wide">
-                Budget
+                {translate("resources.deals.fields.amount")}
               </span>
               <span className="text-sm">
                 {record.amount.toLocaleString("en-US", {
@@ -119,7 +122,7 @@ const DealShowContent = () => {
             {record.category && (
               <div className="flex flex-col mr-10">
                 <span className="text-xs text-muted-foreground tracking-wide">
-                  Category
+                  {translate("resources.deals.fields.category")}
                 </span>
                 <span className="text-sm">
                   {dealCategories.find((c) => c.value === record.category)
@@ -130,7 +133,7 @@ const DealShowContent = () => {
 
             <div className="flex flex-col mr-10">
               <span className="text-xs text-muted-foreground tracking-wide">
-                Stage
+                {translate("resources.deals.fields.stage")}
               </span>
               <span className="text-sm">
                 {findDealLabel(dealStages, record.stage)}
@@ -142,7 +145,7 @@ const DealShowContent = () => {
             <div className="m-4">
               <div className="flex flex-col min-h-12 mr-10">
                 <span className="text-xs text-muted-foreground tracking-wide">
-                  Contacts
+                  {translate("resources.deals.fields.contact_ids")}
                 </span>
                 <ReferenceArrayField
                   source="contact_ids"
@@ -157,7 +160,7 @@ const DealShowContent = () => {
           {record.description && (
             <div className="m-4 whitespace-pre-line">
               <span className="text-xs text-muted-foreground tracking-wide">
-                Description
+                {translate("resources.deals.fields.description")}
               </span>
               <p className="text-sm leading-6">{record.description}</p>
             </div>
@@ -180,13 +183,19 @@ const DealShowContent = () => {
   );
 };
 
-const ArchivedTitle = () => (
-  <div className="bg-orange-500 px-6 py-4">
-    <h3 className="text-lg font-bold text-white">Archived Deal</h3>
-  </div>
-);
+const ArchivedTitle = () => {
+  const translate = useTranslate();
+  return (
+    <div className="bg-orange-500 px-6 py-4">
+      <h3 className="text-lg font-bold text-white">
+        {translate("resources.deals.archived.title")}
+      </h3>
+    </div>
+  );
+};
 
 const ArchiveButton = ({ record }: { record: Deal }) => {
+  const translate = useTranslate();
   const [update] = useUpdate();
   const redirect = useRedirect();
   const notify = useNotify();
@@ -202,11 +211,16 @@ const ArchiveButton = ({ record }: { record: Deal }) => {
       {
         onSuccess: () => {
           redirect("list", "deals");
-          notify("Deal archived", { type: "info", undoable: false });
+          notify("resources.deals.archived.success", {
+            type: "info",
+            undoable: false,
+          });
           refresh();
         },
         onError: () => {
-          notify("Error: deal not archived", { type: "error" });
+          notify("resources.deals.archived.error", {
+            type: "error",
+          });
         },
       },
     );
@@ -220,12 +234,13 @@ const ArchiveButton = ({ record }: { record: Deal }) => {
       className="flex items-center gap-2 h-9"
     >
       <Archive className="w-4 h-4" />
-      Archive
+      {translate("resources.deals.archived.action")}
     </Button>
   );
 };
 
 const UnarchiveButton = ({ record }: { record: Deal }) => {
+  const translate = useTranslate();
   const dataProvider = useDataProvider();
   const redirect = useRedirect();
   const notify = useNotify();
@@ -235,14 +250,16 @@ const UnarchiveButton = ({ record }: { record: Deal }) => {
     mutationFn: () => dataProvider.unarchiveDeal(record),
     onSuccess: () => {
       redirect("list", "deals");
-      notify("Deal unarchived", {
+      notify("resources.deals.unarchived.success", {
         type: "info",
         undoable: false,
       });
       refresh();
     },
     onError: () => {
-      notify("Error: deal not unarchived", { type: "error" });
+      notify("resources.deals.unarchived.error", {
+        type: "error",
+      });
     },
   });
 
@@ -258,7 +275,7 @@ const UnarchiveButton = ({ record }: { record: Deal }) => {
       className="flex items-center gap-2 h-9"
     >
       <ArchiveRestore className="w-4 h-4" />
-      Send back to the board
+      {translate("resources.deals.unarchived.action")}
     </Button>
   );
 };

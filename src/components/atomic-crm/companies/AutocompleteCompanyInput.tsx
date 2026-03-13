@@ -5,7 +5,8 @@ import { useIsMobile } from "@/hooks/use-mobile";
 
 export const AutocompleteCompanyInput = ({
   validate,
-}: Pick<InputProps, "validate">) => {
+  label,
+}: Pick<InputProps, "validate" | "label">) => {
   const [create] = useCreate();
   const { identity } = useGetIdentity();
   const notify = useNotify();
@@ -25,8 +26,11 @@ export const AutocompleteCompanyInput = ({
       );
       return newCompany;
     } catch {
-      notify("An error occurred while creating the company", {
+      notify("resources.companies.autocomplete.create_error", {
         type: "error",
+        messageArgs: {
+          _: "An error occurred while creating the company",
+        },
       });
     }
   };
@@ -34,11 +38,12 @@ export const AutocompleteCompanyInput = ({
 
   return (
     <AutocompleteInput
+      label={label}
       optionText="name"
       helperText={false}
       onCreate={handleCreateCompany}
-      createItemLabel="Create %{item}"
-      createLabel="Start typing to create a new company"
+      createItemLabel="resources.companies.autocomplete.create_item"
+      createLabel="resources.companies.autocomplete.create_label"
       validate={validate}
       modal={isMobile}
     />

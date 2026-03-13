@@ -1,6 +1,12 @@
 import { useQueryClient } from "@tanstack/react-query";
 import { MoreVertical } from "lucide-react";
-import { useDeleteWithUndoController, useNotify, useUpdate } from "ra-core";
+import {
+  useDeleteWithUndoController,
+  useGetRecordRepresentation,
+  useNotify,
+  useTranslate,
+  useUpdate,
+} from "ra-core";
 import { useEffect, useState } from "react";
 import { ReferenceField } from "@/components/admin/reference-field";
 import { DateField } from "@/components/admin/date-field";
@@ -29,7 +35,9 @@ export const Task = ({
   const isMobile = useIsMobile();
   const { taskTypes } = useConfigurationContext();
   const notify = useNotify();
+  const translate = useTranslate();
   const queryClient = useQueryClient();
+  const getContactRepresentation = useGetRecordRepresentation("contacts");
 
   const [openEdit, setOpenEdit] = useState(false);
 
@@ -44,7 +52,9 @@ export const Task = ({
     redirect: false,
     mutationOptions: {
       onSuccess() {
-        notify("Task deleted successfully", { undoable: true });
+        notify("resources.tasks.deleted", {
+          undoable: true,
+        });
       },
     },
   });
@@ -97,8 +107,14 @@ export const Task = ({
               {task.type && task.type !== "none" && (
                 <>
                   <span className="font-semibold text-sm">
-                    {taskTypes.find((t) => t.value === task.type)?.label ??
-                      task.type}
+                    {(() => {
+                      const matchedTaskType = taskTypes.find(
+                        (taskType) => taskType.value === task.type,
+                      );
+                      return matchedTaskType
+                        ? matchedTaskType.label
+                        : task.type;
+                    })()}
                   </span>
                   &nbsp;
                 </>
@@ -106,7 +122,8 @@ export const Task = ({
               {task.text}
             </div>
             <div className="text-sm text-muted-foreground">
-              due&nbsp;
+              {translate("resources.tasks.fields.due_short")}
+              &nbsp;
               <DateField source="due_date" record={task} showDate showTime />
               {showContact && (
                 <ReferenceField<TData, Contact>
@@ -120,9 +137,9 @@ export const Task = ({
                     return (
                       <>
                         {" "}
-                        (Re:&nbsp;
-                        {referenceRecord?.first_name}{" "}
-                        {referenceRecord?.last_name})
+                        {translate("resources.tasks.regarding_contact", {
+                          name: getContactRepresentation(referenceRecord),
+                        })}
                       </>
                     );
                   }}
@@ -138,7 +155,7 @@ export const Task = ({
               variant="ghost"
               size="icon"
               className="h-5 pr-0! size-8 cursor-pointer"
-              aria-label="task actions"
+              aria-label={translate("resources.tasks.actions.title")}
             >
               <MoreVertical className="size-5 md:size-4" />
             </Button>
@@ -158,7 +175,7 @@ export const Task = ({
                 });
               }}
             >
-              Postpone to tomorrow
+              {translate("resources.tasks.actions.postpone_tomorrow")}
             </DropdownMenuItem>
             <DropdownMenuItem
               className="cursor-pointer h-12 md:h-8 px-4 md:px-2 text-base md:text-sm"
@@ -174,19 +191,19 @@ export const Task = ({
                 });
               }}
             >
-              Postpone to next week
+              {translate("resources.tasks.actions.postpone_next_week")}
             </DropdownMenuItem>
             <DropdownMenuItem
               className="cursor-pointer h-12 md:h-8 px-4 md:px-2 text-base md:text-sm"
               onClick={handleEdit}
             >
-              Edit
+              {translate("ra.action.edit")}
             </DropdownMenuItem>
             <DropdownMenuItem
               className="cursor-pointer h-12 md:h-8 px-4 md:px-2 text-base md:text-sm"
               onClick={handleDelete}
             >
-              Delete
+              {translate("ra.action.delete")}
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

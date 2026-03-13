@@ -1,6 +1,6 @@
 import { formatDistance } from "date-fns";
 import { FileText } from "lucide-react";
-import { useGetIdentity, useGetList } from "ra-core";
+import { useGetIdentity, useGetList, useTranslate } from "ra-core";
 import { ReferenceField } from "@/components/admin/reference-field";
 import { TextField } from "@/components/admin/text-field";
 import { Card, CardContent } from "@/components/ui/card";
@@ -9,6 +9,7 @@ import type { Contact, ContactNote } from "../types";
 
 export const LatestNotes = () => {
   const { identity } = useGetIdentity();
+  const translate = useTranslate();
   const { data: contactNotesData, isPending: contactNotesLoading } = useGetList(
     "contact_notes",
     {
@@ -53,7 +54,7 @@ export const LatestNotes = () => {
           <FileText className="text-muted-foreground w-6 h-6" />
         </div>
         <h2 className="text-xl font-semibold text-muted-foreground">
-          My Latest Notes
+          {translate("crm.dashboard.latest_notes")}
         </h2>
       </div>
       <Card>
@@ -65,15 +66,16 @@ export const LatestNotes = () => {
               className="mb-8"
             >
               <div className="text-sm text-muted-foreground">
-                on{" "}
                 {note.type === "dealNote" ? (
                   <Deal note={note} />
                 ) : (
                   <Contact note={note} />
                 )}
-                , added{" "}
-                {formatDistance(note.date, new Date(), {
-                  addSuffix: true,
+                {", "}
+                {translate("crm.dashboard.latest_notes_added_ago", {
+                  timeAgo: formatDistance(note.date, new Date(), {
+                    addSuffix: true,
+                  }),
                 })}
               </div>
               <div>
@@ -89,28 +91,34 @@ export const LatestNotes = () => {
   );
 };
 
-const Deal = ({ note }: any) => (
-  <>
-    Deal{" "}
-    <ReferenceField
-      record={note}
-      source="deal_id"
-      reference="deals"
-      link="show"
-    >
-      <TextField source="name" />
-    </ReferenceField>
-  </>
-);
+const Deal = ({ note }: any) => {
+  const translate = useTranslate();
+  return (
+    <>
+      {translate("resources.deals.forcedCaseName")}{" "}
+      <ReferenceField
+        record={note}
+        source="deal_id"
+        reference="deals"
+        link="show"
+      >
+        <TextField source="name" />
+      </ReferenceField>
+    </>
+  );
+};
 
-const Contact = ({ note }: any) => (
-  <>
-    Contact{" "}
-    <ReferenceField<ContactNote, Contact>
-      record={note}
-      source="contact_id"
-      reference="contacts"
-      link="show"
-    />
-  </>
-);
+const Contact = ({ note }: any) => {
+  const translate = useTranslate();
+  return (
+    <>
+      {translate("resources.contacts.forcedCaseName")}{" "}
+      <ReferenceField<ContactNote, Contact>
+        record={note}
+        source="contact_id"
+        reference="contacts"
+        link="show"
+      />
+    </>
+  );
+};

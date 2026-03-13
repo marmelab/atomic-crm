@@ -3,14 +3,15 @@ import { SortButton } from "@/components/admin/sort-button";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { formatDistance } from "date-fns";
 import { UserPlus } from "lucide-react";
 import {
   RecordContextProvider,
   ShowBase,
   useListContext,
+  useLocaleState,
   useRecordContext,
   useShowContext,
+  useTranslate,
 } from "ra-core";
 import {
   Link,
@@ -24,10 +25,11 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { ActivityLog } from "../activity/ActivityLog";
 import { Avatar } from "../contacts/Avatar";
 import { TagsList } from "../contacts/TagsList";
-import { findDealLabel } from "../deals/deal";
+import { findDealLabel } from "../deals/dealUtils";
 import { MobileContent } from "../layout/MobileContent";
 import MobileHeader from "../layout/MobileHeader";
 import { MobileBackButton } from "../misc/MobileBackButton";
+import { formatRelativeDate } from "../misc/RelativeDate";
 import { Status } from "../misc/Status";
 import { useConfigurationContext } from "../root/ConfigurationContext";
 import type { Company, Contact, Deal } from "../types";
@@ -51,6 +53,7 @@ export const CompanyShow = () => {
 };
 
 const CompanyShowContentMobile = () => {
+  const translate = useTranslate();
   const { record, isPending } = useShowContext<Company>();
   if (isPending || !record) return null;
 
@@ -60,7 +63,9 @@ const CompanyShowContentMobile = () => {
         <MobileBackButton to="/" />
         <div className="flex flex-1">
           <Link to="/">
-            <h1 className="text-xl font-semibold">Company</h1>
+            <h1 className="text-xl font-semibold">
+              {translate("resources.companies.forcedCaseName")}
+            </h1>
           </Link>
         </div>
       </MobileHeader>
@@ -84,6 +89,7 @@ const CompanyShowContentMobile = () => {
 };
 
 const CompanyShowContent = () => {
+  const translate = useTranslate();
   const { record, isPending } = useShowContext<Company>();
   const navigate = useNavigate();
 
@@ -113,19 +119,21 @@ const CompanyShowContent = () => {
             </div>
             <Tabs defaultValue={currentTab} onValueChange={handleTabChange}>
               <TabsList className="grid w-full grid-cols-3">
-                <TabsTrigger value="activity">Activity</TabsTrigger>
+                <TabsTrigger value="activity">
+                  {translate("crm.common.activity")}
+                </TabsTrigger>
                 <TabsTrigger value="contacts">
-                  {record.nb_contacts
-                    ? record.nb_contacts === 1
-                      ? "1 Contact"
-                      : `${record.nb_contacts} Contacts`
-                    : "No Contacts"}
+                  {record.nb_contacts === 0
+                    ? translate("resources.companies.no_contacts")
+                    : translate("resources.companies.nb_contacts", {
+                        smart_count: record.nb_contacts,
+                      })}
                 </TabsTrigger>
                 {record.nb_deals ? (
                   <TabsTrigger value="deals">
-                    {record.nb_deals === 1
-                      ? "1 deal"
-                      : `${record.nb_deals} deals`}
+                    {translate("resources.companies.nb_deals", {
+                      smart_count: record.nb_deals,
+                    })}
                   </TabsTrigger>
                 ) : null}
               </TabsList>
@@ -180,12 +188,13 @@ const CompanyShowContent = () => {
 };
 
 const ContactsIterator = () => {
+  const translate = useTranslate();
+  const [locale = "en"] = useLocaleState();
   const location = useLocation();
   const { data: contacts, error, isPending } = useListContext<Contact>();
 
   if (isPending || error) return null;
 
-  const now = Date.now();
   return (
     <div className="pt-0">
       {contacts.map((contact) => (
@@ -206,9 +215,9 @@ const ContactsIterator = () => {
                 <div className="text-sm text-muted-foreground">
                   {contact.title}
                   {contact.nb_tasks
-                    ? ` - ${contact.nb_tasks} task${
-                        contact.nb_tasks > 1 ? "s" : ""
-                      }`
+                    ? ` - ${translate("crm.common.task_count", {
+                        smart_count: contact.nb_tasks,
+                      })}`
                     : ""}
                   &nbsp; &nbsp;
                   <TagsList />
@@ -217,7 +226,9 @@ const ContactsIterator = () => {
               {contact.last_seen && (
                 <div className="text-right">
                   <div className="text-sm text-muted-foreground">
-                    last activity {formatDistance(contact.last_seen, now)} ago{" "}
+                    {translate("crm.common.last_activity_with_date", {
+                      date: formatRelativeDate(contact.last_seen, locale),
+                    })}{" "}
                     <Status status={contact.status} />
                   </div>
                 </div>
@@ -231,6 +242,7 @@ const ContactsIterator = () => {
 };
 
 const CreateRelatedContactButton = () => {
+  const translate = useTranslate();
   const company = useRecordContext<Company>();
   return (
     <Button variant="outline" asChild size="sm" className="h-9">
@@ -240,18 +252,18 @@ const CreateRelatedContactButton = () => {
         className="flex items-center gap-2"
       >
         <UserPlus className="h-4 w-4" />
-        Add contact
+        {translate("resources.contacts.action.add")}
       </RouterLink>
     </Button>
   );
 };
 
 const DealsIterator = () => {
+  const translate = useTranslate();
+  const [locale = "en"] = useLocaleState();
   const { data: deals, error, isPending } = useListContext<Deal>();
   const { dealStages, dealCategories } = useConfigurationContext();
   if (isPending || error) return null;
-
-  const now = Date.now();
   return (
     <div>
       <div>
@@ -279,7 +291,9 @@ const DealsIterator = () => {
               </div>
               <div className="text-right">
                 <div className="text-sm text-muted-foreground">
-                  last activity {formatDistance(deal.updated_at, now)} ago{" "}
+                  {translate("crm.common.last_activity_with_date", {
+                    date: formatRelativeDate(deal.updated_at, locale),
+                  })}{" "}
                 </div>
               </div>
             </RouterLink>
