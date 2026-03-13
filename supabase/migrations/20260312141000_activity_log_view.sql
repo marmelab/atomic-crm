@@ -54,7 +54,7 @@ select
   null::jsonb as deal,
   null::jsonb as "dealNote",
   cn.date as date
-from public."contactNotes" cn
+from public.contact_notes cn
 join public.contacts co on co.id = cn.contact_id
 
 union all
@@ -89,7 +89,7 @@ select
   null::jsonb as deal,
   to_jsonb(dn) as "dealNote",
   dn.date as date
-from public."dealNotes" dn
+from public.deal_notes dn
 join public.deals de on de.id = dn.deal_id;
 
 
