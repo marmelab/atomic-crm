@@ -1,4 +1,5 @@
 import { format } from "date-fns";
+import { enUS, es, fr } from "date-fns/locale";
 
 import type { DealStage } from "../types";
 
@@ -39,7 +40,10 @@ function ucFirst(str: string): string {
 
 const isoDateStringRegex = /^\d{4}-\d{2}-\d{2}$/;
 
-export function formatISODateString(dateString: string) {
+const getDateFnsLocale = (locale: string) =>
+  locale.startsWith("fr") ? fr : locale.startsWith("es") ? es : enUS;
+
+export function formatISODateString(dateString: string, locale = "en") {
   if (!isoDateStringRegex.test(dateString)) {
     throw new Error("Invalid date format. Expected YYYY-MM-DD.");
   }
@@ -48,5 +52,5 @@ export function formatISODateString(dateString: string) {
   const [year, month, day] = dateString.split("-").map(Number);
   const date = new Date(year, month - 1, day);
 
-  return format(date, "PP");
+  return format(date, "PP", { locale: getDateFnsLocale(locale) });
 }

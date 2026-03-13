@@ -4,6 +4,7 @@ import { Archive, ArchiveRestore } from "lucide-react";
 import {
   ShowBase,
   useDataProvider,
+  useLocaleState,
   useNotify,
   useRecordContext,
   useRedirect,
@@ -50,6 +51,7 @@ export const DealShow = ({ open, id }: { open: boolean; id?: string }) => {
 
 const DealShowContent = () => {
   const translate = useTranslate();
+  const [locale = "en"] = useLocaleState();
   const { dealStages, dealCategories } = useConfigurationContext();
   const record = useRecordContext<Deal>();
   if (!record) return null;
@@ -93,7 +95,7 @@ const DealShowContent = () => {
               <div className="flex items-center gap-2">
                 <span className="text-sm">
                   {isValid(new Date(record.expected_closing_date))
-                    ? formatISODateString(record.expected_closing_date)
+                    ? formatISODateString(record.expected_closing_date, locale)
                     : translate("resources.deals.invalid_date")}
                 </span>
                 {new Date(record.expected_closing_date) < new Date() ? (
@@ -109,7 +111,7 @@ const DealShowContent = () => {
                 {translate("resources.deals.fields.amount")}
               </span>
               <span className="text-sm">
-                {record.amount.toLocaleString("en-US", {
+                {record.amount.toLocaleString(locale, {
                   notation: "compact",
                   style: "currency",
                   currency: "USD",
