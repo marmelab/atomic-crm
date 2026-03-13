@@ -237,7 +237,7 @@ type NoteBodyProps = {
   note: DealNote | ContactNote;
   isExpanded: boolean;
   isTruncated: boolean;
-  translate: ReturnType<typeof useTranslate>;
+  translate: (key: string, options?: any) => string;
   contentRef: React.RefObject<HTMLDivElement>;
   onToggleExpanded: () => void;
 };
