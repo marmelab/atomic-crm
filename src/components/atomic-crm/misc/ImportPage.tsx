@@ -86,7 +86,7 @@ const ImportFromJsonIdle = ({
           download="import-sample.json"
           href={sampleFile}
         >
-          sample.json
+          {translate("crm.import.idle.sample_link", { _: "sample.json" })}
         </a>
       </p>
     </div>
@@ -289,7 +289,12 @@ const ImportStats = ({
       <TableBody>
         {data.map((record) => (
           <TableRow key={record.entity}>
-            <TableCell className="font-medium">{record.entity}</TableCell>
+            <TableCell className="font-medium">
+              {translate(`resources.${record.entity}.name`, {
+                smart_count: 2,
+                _: record.entity,
+              })}
+            </TableCell>
             <TableCell className="text-right text-success">
               {record.imported}
             </TableCell>

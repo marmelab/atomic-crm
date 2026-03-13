@@ -75,6 +75,7 @@
     "ra-i18n-polyglot": "^5.14.2",
     "ra-language-english": "^5.14.2",
     "ra-language-french": "^5.14.2",
+    "ra-language-spanish": "^1.0.0",
     "ra-supabase-core": "^3.5.2",
     "ra-supabase-language-english": "^3.5.0",
     "ra-supabase-language-french": "^3.5.0",

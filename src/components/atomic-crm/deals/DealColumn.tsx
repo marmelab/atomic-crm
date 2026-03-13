@@ -1,4 +1,5 @@
 import { Droppable } from "@hello-pangea/dnd";
+import { useLocaleState } from "ra-core";
 
 import { useConfigurationContext } from "../root/ConfigurationContext";
 import type { Deal } from "../types";
@@ -12,6 +13,7 @@ export const DealColumn = ({
   stage: string;
   deals: Deal[];
 }) => {
+  const [locale = "en"] = useLocaleState();
   const totalAmount = deals.reduce((sum, deal) => sum + deal.amount, 0);
   const { dealStages } = useConfigurationContext();
   return (
@@ -21,7 +23,7 @@ export const DealColumn = ({
           {findDealLabel(dealStages, stage)}
         </h3>
         <p className="text-sm text-muted-foreground">
-          {totalAmount.toLocaleString("en-US", {
+          {totalAmount.toLocaleString(locale, {
             notation: "compact",
             style: "currency",
             currency: "USD",
