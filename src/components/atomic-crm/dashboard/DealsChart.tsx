@@ -1,12 +1,16 @@
 import { ResponsiveBar } from "@nivo/bar";
 import { format, startOfMonth } from "date-fns";
+import { enUS, es, fr } from "date-fns/locale";
 import { DollarSign } from "lucide-react";
-import { useGetList, useTranslate } from "ra-core";
+import { useGetList, useLocaleState, useTranslate } from "ra-core";
 import { memo, useMemo } from "react";
 
 import { findDealLabel } from "../deals/dealUtils";
 import { useConfigurationContext } from "../root/ConfigurationContext";
 import type { Deal } from "../types";
+
+const getDateFnsLocale = (locale: string) =>
+  locale.startsWith("fr") ? fr : locale.startsWith("es") ? es : enUS;
 
 const multiplier = {
   opportunity: 0.2,
@@ -19,17 +23,17 @@ const threeMonthsAgo = new Date(
   new Date().setMonth(new Date().getMonth() - 6),
 ).toISOString();
 
-const DEFAULT_LOCALE = "en-US";
 const CURRENCY = "USD";
 
 export const DealsChart = memo(() => {
   const translate = useTranslate();
+  const [locale = "en"] = useLocaleState();
   const { dealStages } = useConfigurationContext();
-  const acceptedLanguages = navigator
-    ? navigator.languages || [navigator.language]
-    : [DEFAULT_LOCALE];
-  const wonLabel = findDealLabel(dealStages, "won") ?? "Won";
-  const lostLabel = findDealLabel(dealStages, "lost") ?? "Lost";
+  const dateFnsLocale = getDateFnsLocale(locale);
+  const wonLabel =
+    findDealLabel(dealStages, "won") ?? translate("crm.deals_chart.won");
+  const lostLabel =
+    findDealLabel(dealStages, "lost") ?? translate("crm.deals_chart.lost");
 
   const { data, isPending } = useGetList<Deal>("deals", {
     pagination: { perPage: 100, page: 1 },
@@ -54,7 +58,7 @@ export const DealsChart = memo(() => {
 
     const amountByMonth = Object.keys(dealsByMonth).map((month) => {
       return {
-        date: format(month, "MMM"),
+        date: format(month, "MMM", { locale: dateFnsLocale }),
         won: dealsByMonth[month]
           .filter((deal: Deal) => deal.stage === "won")
           .reduce((acc: number, deal: Deal) => {
@@ -119,7 +123,7 @@ export const DealsChart = memo(() => {
           tooltip={({ value, indexValue }) => (
             <div className="p-2 bg-secondary rounded shadow inline-flex items-center gap-1 text-secondary-foreground">
               <strong>{indexValue}: </strong>&nbsp;{value > 0 ? "+" : ""}
-              {value.toLocaleString(acceptedLanguages.at(0) ?? DEFAULT_LOCALE, {
+              {value.toLocaleString(locale, {
                 style: "currency",
                 currency: CURRENCY,
               })}
