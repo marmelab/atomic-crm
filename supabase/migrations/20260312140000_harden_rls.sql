@@ -335,6 +335,82 @@ using (
   )
 );
 
+-- Deal notes: restrict by related deal.sales_id, admins can see all
+drop policy if exists "Enable insert for authenticated users only" on public."dealNotes";
+drop policy if exists "Enable read access for authenticated users" on public."dealNotes";
+drop policy if exists "Deal Notes Delete Policy" on public."dealNotes";
+drop policy if exists "Deal Notes Update Policy" on public."dealNotes";
+
+create policy "DealNotes insert via deal"
+on public."dealNotes"
+as permissive
+for insert
+to authenticated
+with check (
+  current_sales_is_admin()
+  or exists (
+    select 1
+    from public.deals d
+    where d.id = deal_id
+      and d.sales_id = current_sales_id()
+  )
+);
+
+create policy "DealNotes select scoped"
+on public."dealNotes"
+as permissive
+for select
+to authenticated
+using (
+  current_sales_is_admin()
+  or exists (
+    select 1
+    from public.deals d
+    where d.id = deal_id
+      and d.sales_id = current_sales_id()
+  )
+);
+
+create policy "DealNotes update scoped"
+on public."dealNotes"
+as permissive
+for update
+to authenticated
+using (
+  current_sales_is_admin()
+  or exists (
+    select 1
+    from public.deals d
+    where d.id = deal_id
+      and d.sales_id = current_sales_id()
+  )
+)
+with check (
+  current_sales_is_admin()
+  or exists (
+    select 1
+    from public.deals d
+    where d.id = deal_id
+      and d.sales_id = current_sales_id()
+  )
+);
+
+create policy "DealNotes delete scoped"
+on public."dealNotes"
+as permissive
+for delete
+to authenticated
+using (
+  current_sales_is_admin()
+  or exists (
+    select 1
+    from public.deals d
+    where d.id = deal_id
+      and d.sales_id = current_sales_id()
+  )
+);
+
+
 
 
 
