@@ -167,6 +167,20 @@ export const createDataProvider = ({
 
   const dataProviderWithCustomMethod: CrmDataProvider = {
     ...baseDataProvider,
+    async getList(resource: string, params: any) {
+      if (resource === "activity_log") {
+        const { filter = {}, pagination } = params;
+        const all = await getActivityLog(
+          withSupabaseFilterAdapter(baseDataProvider),
+          filter.company_id,
+          filter.sales_id,
+        );
+        const { page, perPage } = pagination;
+        const start = (page - 1) * perPage;
+        return { data: all.slice(start, start + perPage), total: all.length };
+      }
+      return baseDataProvider.getList(resource, params);
+    },
     unarchiveDeal: async (deal: Deal) => {
       // get all deals where stage is the same as the deal to unarchive
       const { data: deals } = await baseDataProvider.getList<Deal>("deals", {
@@ -191,10 +205,6 @@ export const createDataProvider = ({
           }),
         ),
       );
-    },
-    // We simulate a remote endpoint that is in charge of returning activity log
-    getActivityLog: async (companyId?: Identifier) => {
-      return getActivityLog(dataProvider, companyId);
     },
     signUp: async ({
       email,
