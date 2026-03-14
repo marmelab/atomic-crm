@@ -16,7 +16,6 @@ import type {
   SignUpData,
 } from "../../types";
 import type { ConfigurationContextValue } from "../../root/ConfigurationContext";
-import { getActivityLog } from "../commons/activity";
 import { ATTACHMENTS_BUCKET } from "../commons/attachments";
 import { getIsInitialized } from "./authProvider";
 import { supabase } from "./supabase";
@@ -61,6 +60,23 @@ const dataProviderWithCustomMethods = {
     }
     if (resource === "contacts") {
       return baseDataProvider.getList("contacts_summary", params);
+    }
+    if (resource === "activity_log") {
+      const { data, total } = await baseDataProvider.getList(
+        "activity_log",
+        params,
+      );
+      // Rename snake_case view columns to camelCase to match Activity type
+      return {
+        data: data.map((row: any) => ({
+          ...row,
+          contactNote: row.contact_note ?? undefined,
+          dealNote: row.deal_note ?? undefined,
+          contact_note: undefined,
+          deal_note: undefined,
+        })),
+        total,
+      };
     }
 
     return baseDataProvider.getList(resource, params);
@@ -194,9 +210,6 @@ const dataProviderWithCustomMethods = {
         }),
       ),
     );
-  },
-  async getActivityLog(companyId?: Identifier) {
-    return getActivityLog(baseDataProvider, companyId);
   },
   async isInitialized() {
     return getIsInitialized();
