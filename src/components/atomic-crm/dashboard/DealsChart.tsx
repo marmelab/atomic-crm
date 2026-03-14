@@ -1,6 +1,6 @@
 import { ResponsiveBar } from "@nivo/bar";
 import { format, startOfMonth } from "date-fns";
-import { DollarSign } from "lucide-react";
+import { TrendingUp } from "lucide-react";
 import { useGetList, useTranslate } from "ra-core";
 import { memo, useMemo } from "react";
 
@@ -20,11 +20,10 @@ const threeMonthsAgo = new Date(
 ).toISOString();
 
 const DEFAULT_LOCALE = "en-US";
-const CURRENCY = "USD";
 
 export const DealsChart = memo(() => {
   const translate = useTranslate();
-  const { dealStages } = useConfigurationContext();
+  const { dealStages, currency } = useConfigurationContext();
   const acceptedLanguages = navigator
     ? navigator.languages || [navigator.language]
     : [DEFAULT_LOCALE];
@@ -93,7 +92,7 @@ export const DealsChart = memo(() => {
     <div className="flex flex-col">
       <div className="flex items-center mb-4">
         <div className="mr-3 flex">
-          <DollarSign className="text-muted-foreground w-6 h-6" />
+          <TrendingUp className="text-muted-foreground w-6 h-6" />
         </div>
         <h2 className="text-xl font-semibold text-muted-foreground">
           {translate("crm.dashboard.deals_chart")}
@@ -121,7 +120,7 @@ export const DealsChart = memo(() => {
               <strong>{indexValue}: </strong>&nbsp;{value > 0 ? "+" : ""}
               {value.toLocaleString(acceptedLanguages.at(0) ?? DEFAULT_LOCALE, {
                 style: "currency",
-                currency: CURRENCY,
+                currency,
               })}
             </div>
           )}

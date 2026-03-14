@@ -3,6 +3,8 @@ import type { ConfigurationContextValue } from "./ConfigurationContext";
 export const defaultDarkModeLogo = "./logos/logo_atomic_crm_dark.svg";
 export const defaultLightModeLogo = "./logos/logo_atomic_crm_light.svg";
 
+export const defaultCurrency = "USD";
+
 export const defaultTitle = "Atomic CRM";
 
 export const defaultCompanySectors = [
@@ -59,6 +61,7 @@ export const defaultTaskTypes = [
 
 export const defaultConfiguration: ConfigurationContextValue = {
   companySectors: defaultCompanySectors,
+  currency: defaultCurrency,
   dealCategories: defaultDealCategories,
   dealPipelineStatuses: defaultDealPipelineStatuses,
   dealStages: defaultDealStages,

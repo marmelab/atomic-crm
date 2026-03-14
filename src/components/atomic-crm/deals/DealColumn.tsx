@@ -13,7 +13,7 @@ export const DealColumn = ({
   deals: Deal[];
 }) => {
   const totalAmount = deals.reduce((sum, deal) => sum + deal.amount, 0);
-  const { dealStages } = useConfigurationContext();
+  const { dealStages, currency } = useConfigurationContext();
   return (
     <div className="flex-1 pb-8">
       <div className="flex flex-col items-center">
@@ -24,7 +24,7 @@ export const DealColumn = ({
           {totalAmount.toLocaleString("en-US", {
             notation: "compact",
             style: "currency",
-            currency: "USD",
+            currency,
             currencyDisplay: "narrowSymbol",
             minimumSignificantDigits: 3,
           })}

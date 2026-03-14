@@ -262,7 +262,7 @@ const DealsIterator = () => {
   const translate = useTranslate();
   const [locale = "en"] = useLocaleState();
   const { data: deals, error, isPending } = useListContext<Deal>();
-  const { dealStages, dealCategories } = useConfigurationContext();
+  const { dealStages, dealCategories, currency } = useConfigurationContext();
   if (isPending || error) return null;
   return (
     <div>
@@ -280,7 +280,7 @@ const DealsIterator = () => {
                   {deal.amount.toLocaleString("en-US", {
                     notation: "compact",
                     style: "currency",
-                    currency: "USD",
+                    currency,
                     currencyDisplay: "narrowSymbol",
                     minimumSignificantDigits: 3,
                   })}

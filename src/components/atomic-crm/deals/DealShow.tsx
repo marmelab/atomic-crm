@@ -50,7 +50,7 @@ export const DealShow = ({ open, id }: { open: boolean; id?: string }) => {
 
 const DealShowContent = () => {
   const translate = useTranslate();
-  const { dealStages, dealCategories } = useConfigurationContext();
+  const { dealStages, dealCategories, currency } = useConfigurationContext();
   const record = useRecordContext<Deal>();
   if (!record) return null;
 
@@ -112,7 +112,7 @@ const DealShowContent = () => {
                 {record.amount.toLocaleString("en-US", {
                   notation: "compact",
                   style: "currency",
-                  currency: "USD",
+                  currency,
                   currencyDisplay: "narrowSymbol",
                   minimumSignificantDigits: 3,
                 })}
