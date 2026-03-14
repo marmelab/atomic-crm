@@ -45,7 +45,7 @@ jobs:
                   prettier: true
                   prettier_args: "--config ./.prettierrc.json \"**/*.{js,json,ts,tsx,css,md,html}\""
 
-    test:
+    test-app:
         name: 🔎 Test
         runs-on: ubuntu-latest
         timeout-minutes: 10
@@ -66,8 +66,10 @@ jobs:
             - name: 🎭 Install Playwright browsers
               run: npx playwright install chromium chromium-headless-shell
 
-            - name: 🔎 Unit Tests
-              run: CI=1 npm test -- --run
+            - name: 🔎 Unit Tests on App
+              run: CI=1 npm run test:unit:app -- --run
+            - name: 🔎 Unit Tests on Supabase functions
+              run: CI=1 npm run test:unit:functions -- --run
 
             - name: 🔎 Integration Tests
               run: CI=1 npm run test:integration -- --run

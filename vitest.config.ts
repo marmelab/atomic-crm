@@ -25,6 +25,7 @@ export default defineConfig({
       "**/node_modules/**",
       "doc/**",
       "src/**/*.integration.test.{ts,tsx}",
+      "supabase/**",
     ],
   },
   resolve: {

@@ -51,11 +51,14 @@ supabase-deploy:
 	npx supabase db push
 	npx supabase functions deploy
 
-test:
-	npm test
+test-app:
+	npm run test:unit:app
 
-test-ci:
-	CI=1 npm test
+test-functions:
+	npm run test:unit:functions
+
+test-integration:
+	npm run test:integration
 
 lint:
 	npm run lint
