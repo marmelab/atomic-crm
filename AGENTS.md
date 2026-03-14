@@ -30,11 +30,13 @@ make build            # Build production bundle (runs tsc + vite build)
 
 ### Database Management
 
+The database schema is defined declaratively in `supabase/schemas/` (source of truth). Never edit `supabase/migrations/` directly. Function definitions in `02_functions.sql` must use the exact `pg_dump` format (run `npx supabase db dump --local --schema public`) to avoid phantom diffs.
+
 ```bash
-npx supabase migration new <name>  # Create new migration
-npx supabase migration up          # Apply migrations locally
-npx supabase db push               # Push migrations to remote
-npx supabase db reset              # Reset local database (destructive)
+npx supabase db diff --local -f <name>  # Generate migration from schema changes
+npx supabase migration up --local       # Apply migrations locally
+npx supabase db push                    # Push migrations to remote
+npx supabase db reset --local           # Reset local database (destructive)
 ```
 
 ### Registry (Shadcn Components)
@@ -90,7 +92,8 @@ src/
 
 supabase/
 ├── functions/              # Edge functions (user management, inbound email)
-└── migrations/             # Database migrations
+├── migrations/             # Database migrations (auto-generated, do not edit directly)
+└── schemas/                # Declarative schema (source of truth for DB structure)
 ```
 
 ### Key Architecture Patterns
@@ -121,7 +124,7 @@ Complex queries are handled via database views to simplify frontend code and red
 
 #### Database Triggers
 
-User data syncs between Supabase's `auth.users` table and the CRM's `sales` table via triggers (see `supabase/migrations/20240730075425_init_triggers.sql`).
+User data syncs between Supabase's `auth.users` table and the CRM's `sales` table via triggers (see `supabase/schemas/04_triggers.sql`).
 
 #### Edge Functions
 
@@ -154,13 +157,15 @@ The project uses TypeScript path aliases configured in `tsconfig.json` and `comp
 ### Adding Custom Fields
 
 When modifying contact or company data structures:
-1. Create a migration: `npx supabase migration new <name>`
-2. Update the sample CSV: `src/components/atomic-crm/contacts/contacts_export.csv`
-3. Update the import function: `src/components/atomic-crm/contacts/useContactImport.tsx`
-4. If using FakeRest, update data generators in `src/components/atomic-crm/providers/fakerest/dataGenerator/`
-5. Don't forget to update the views
-6. Don't forget the export functions
-7. Don't forget the contact merge logic
+1. Edit the relevant schema file in `supabase/schemas/` (table in `01_tables.sql`, views in `03_views.sql`, etc.)
+2. Generate a migration: `npx supabase db diff --local -f <name>`
+3. Apply it: `npx supabase migration up --local`
+4. Update the sample CSV: `src/components/atomic-crm/contacts/contacts_export.csv`
+5. Update the import function: `src/components/atomic-crm/contacts/useContactImport.tsx`
+6. If using FakeRest, update data generators in `src/components/atomic-crm/providers/fakerest/dataGenerator/`
+7. Don't forget to update the related view (`contacts_summary`, `companies_summary`) in `03_views.sql`
+8. Don't forget the export functions
+9. Don't forget the contact merge logic
 
 ### Running with Test Data
 

@@ -3,45 +3,97 @@ title: Migrations
 description: This document explains how to create and manage database migrations in Atomic CRM.
 ---
 
-While customizing the CRM, you will probably need to update the database schema. You can do this using [Supabase migrations](https://supabase.com/docs/reference/cli/supabase-migration-new).
+Atomic CRM uses [declarative database schemas](https://supabase.com/docs/guides/local-development/declarative-database-schemas) to manage its database structure. The schema is defined in `.sql` files under `supabase/schemas/`, and migrations are auto-generated from those files.
 
-## Creating Migrations Locally
+## Schema Files
 
-You can create a new migration locally using the following command:
+The `supabase/schemas/` directory contains the **source of truth** for the database structure:
+
+| File | Contents |
+|------|----------|
+| `01_tables.sql` | Tables, foreign keys, indexes, extensions |
+| `02_functions.sql` | All PL/pgSQL functions |
+| `03_views.sql` | Views (`contacts_summary`, `companies_summary`, `activity_log`, `init_state`) |
+| `04_triggers.sql` | All triggers (public tables + auth.users) |
+| `05_policies.sql` | Row Level Security policies |
+| `06_grants.sql` | Grants and default privileges |
+| `07_storage.sql` | Storage bucket policies |
+
+Files are numbered to control load order (tables must exist before functions that reference them).
+
+:::caution
+Never edit migration files in `supabase/migrations/` directly. They are auto-generated from the schema files and should be treated as build artifacts.
+:::
+
+## Working With a Local Database
+
+When developing locally with `make start`, Supabase runs a local PostgreSQL instance. There are two ways to make schema changes locally.
+
+### Option A: Edit Schema Files
+
+1. **Edit the relevant schema file** in `supabase/schemas/`. For example, to add a column to the `contacts` table, edit `01_tables.sql`.
+
+2. **Generate a migration** from your changes:
 
 ```sh
-npx supabase migration new <migration_name>
+npx supabase db diff --local -f <migration_name>
 ```
 
-This will create a new migration file in the `supabase/migrations` directory. You can then update this file with the necessary changes to the database schema.
+This compares the schema files against the local database and generates a migration file in `supabase/migrations/`.
 
-Then, apply the migrations locally using the following command:
+3. **Apply the migration** locally:
 
 ```sh
-npx supabase migration up
+npx supabase migration up --local
 ```
 
-When you are ready to apply the migrations to the remote Supabase instance, push the migrations using the following command:
+4. **Verify** the diff is clean (no remaining differences):
+
+```sh
+npx supabase db diff --local
+```
+
+This should output "No schema changes found".
+
+### Option B: Use Supabase Studio
+
+You can modify the schema using the local Supabase Dashboard (Studio) at http://localhost:54323/. When working on a local database, Studio automatically creates a migration for each change you make.
+
+After making your changes in Studio, update the relevant schema files in `supabase/schemas/` to match, so they remain the source of truth. You can inspect the current state with:
+
+```sh
+npx supabase db dump --local --schema public
+```
+
+## Working With a Remote Database
+
+To apply schema changes to the remote (hosted) Supabase database, push the migrations generated locally:
 
 ```sh
 npx supabase db push
 ```
 
-## Alternative: Creating Migrations Remotely
+This applies any pending migrations from `supabase/migrations/` to the remote database.
 
-You can also change the schema using the Supabase Dashboard.
-
-When it's done, generate a new migration file based on the new schema using the following command:
+If you make schema changes directly on the remote database via the hosted Supabase Studio, those changes won't be reflected in the local schema files or migration history. To re-sync, pull the remote schema and update your local files:
 
 ```sh
-npx supabase db diff | npx supabase migration new <migration_name>
+npx supabase db pull
 ```
 
-Then, apply the migrations locally using the following command:
+This generates a new migration matching the remote state. Then update the relevant schema files in `supabase/schemas/` to match.
+
+## Editing Functions
+
+Function definitions in `02_functions.sql` must use the exact format that PostgreSQL stores internally (quoted identifiers, specific indentation). Otherwise, `db diff` will show phantom changes on every run.
+
+After editing a function, if `db diff` shows an unexpected `CREATE OR REPLACE FUNCTION` in its output, run:
 
 ```sh
-npx supabase migration up
+npx supabase db dump --local --schema public
 ```
+
+Then copy the function's exact format from the dump output into `02_functions.sql`.
 
 ## Updating The Import Feature
 
