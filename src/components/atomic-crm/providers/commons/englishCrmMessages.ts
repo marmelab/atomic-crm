@@ -465,6 +465,7 @@ export const englishCrmMessages = {
       tasks: {
         types: "Types",
       },
+      preferences: "Preferences",
       title: "Settings",
       app_title: "App Title",
       sections: {
@@ -483,6 +484,7 @@ export const englishCrmMessages = {
     },
     theme: {
       dark: "Dark",
+      label: "Theme",
       light: "Light",
       system: "System",
     },

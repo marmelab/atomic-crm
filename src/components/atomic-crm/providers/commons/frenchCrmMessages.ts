@@ -471,6 +471,7 @@ export const frenchCrmMessages = {
       tasks: {
         types: "Types",
       },
+      preferences: "Préférences",
       title: "Paramètres",
       app_title: "Titre de l'application",
       sections: {
@@ -489,6 +490,7 @@ export const frenchCrmMessages = {
     },
     theme: {
       dark: "Sombre",
+      label: "Thème",
       light: "Clair",
       system: "Système",
     },
