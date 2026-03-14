@@ -17,7 +17,8 @@ import type { Deal } from "../types";
 export const DealsPipeline = () => {
   const translate = useTranslate();
   const { identity } = useGetIdentity();
-  const { dealStages, dealPipelineStatuses } = useConfigurationContext();
+  const { dealStages, dealPipelineStatuses, currency } =
+    useConfigurationContext();
   const { data, total, isPending } = useGetList<Deal>(
     "deals",
     {
@@ -68,7 +69,7 @@ export const DealsPipeline = () => {
             `${deal.amount.toLocaleString("en-US", {
               notation: "compact",
               style: "currency",
-              currency: "USD",
+              currency,
               currencyDisplay: "narrowSymbol",
               minimumSignificantDigits: 3,
             })} , ${findDealLabel(dealStages, deal.stage)}`

@@ -30,7 +30,7 @@ export const DealCardContent = ({
   snapshot?: any;
   deal: Deal;
 }) => {
-  const { dealCategories } = useConfigurationContext();
+  const { dealCategories, currency } = useConfigurationContext();
   const redirect = useRedirect();
   const handleClick = () => {
     redirect(`/deals/${deal.id}/show`, undefined, undefined, undefined, {
@@ -79,7 +79,7 @@ export const DealCardContent = ({
                 options={{
                   notation: "compact",
                   style: "currency",
-                  currency: "USD",
+                  currency,
                   currencyDisplay: "narrowSymbol",
                   minimumSignificantDigits: 3,
                 }}

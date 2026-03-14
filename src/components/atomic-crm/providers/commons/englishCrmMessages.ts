@@ -449,6 +449,7 @@ export const englishCrmMessages = {
       dark_mode_logo: "Dark Mode Logo",
       deals: {
         categories: "Categories",
+        currency: "Currency",
         pipeline_help:
           "Select which deal stages should count as pipeline deals.",
         pipeline_statuses: "Pipeline Statuses",

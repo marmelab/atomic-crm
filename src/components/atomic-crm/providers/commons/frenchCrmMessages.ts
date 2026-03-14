@@ -455,6 +455,7 @@ export const frenchCrmMessages = {
       dark_mode_logo: "Logo du mode sombre",
       deals: {
         categories: "Catégories",
+        currency: "Devise",
         pipeline_help:
           "Sélectionnez les étapes d'affaire à considérer comme des affaires dans le pipeline.",
         pipeline_statuses: "Statuts des pipelines",

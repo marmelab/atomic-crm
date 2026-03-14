@@ -16,6 +16,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { toSlug } from "@/lib/toSlug";
 import { ArrayInput } from "@/components/admin/array-input";
+import { AutocompleteInput } from "@/components/admin/autocomplete-input";
 import { SimpleFormIterator } from "@/components/admin/simple-form-iterator";
 import { TextInput } from "@/components/admin/text-input";
 
@@ -102,11 +103,25 @@ export const validateItemsInUse = (
   return undefined;
 };
 
+const getCurrencyChoices = () => {
+  const displayNames = new Intl.DisplayNames(
+    typeof navigator !== "undefined"
+      ? (navigator.languages as string[])
+      : ["en"],
+    { type: "currency" },
+  );
+  return Intl.supportedValuesOf("currency").map((code) => ({
+    id: code,
+    name: `${code} – ${displayNames.of(code)}`,
+  }));
+};
+
 const transformFormValues = (data: Record<string, any>) => ({
   config: {
     title: data.title,
     lightModeLogo: data.lightModeLogo,
     darkModeLogo: data.darkModeLogo,
+    currency: data.currency,
     companySectors: ensureValues(data.companySectors),
     dealCategories: ensureValues(data.dealCategories),
     taskTypes: ensureValues(data.taskTypes),
@@ -154,6 +169,7 @@ const SettingsForm = () => {
       title: config.title,
       lightModeLogo: { src: config.lightModeLogo },
       darkModeLogo: { src: config.darkModeLogo },
+      currency: config.currency,
       companySectors: config.companySectors,
       dealCategories: config.dealCategories,
       taskTypes: config.taskTypes,
@@ -173,6 +189,7 @@ const SettingsForm = () => {
 
 const SettingsFormFields = () => {
   const translate = useTranslate();
+  const currencyChoices = useMemo(() => getCurrencyChoices(), []);
   const {
     watch,
     setValue,
@@ -321,6 +338,19 @@ const SettingsFormFields = () => {
                 smart_count: 2,
               })}
             </h2>
+            <h3 className="text-lg font-medium text-muted-foreground">
+              {translate("crm.settings.deals.currency")}
+            </h3>
+            <AutocompleteInput
+              source="currency"
+              label={false}
+              choices={currencyChoices}
+              inputText={(choice) => choice?.id}
+              modal
+            />
+
+            <Separator />
+
             <h3 className="text-lg font-medium text-muted-foreground">
               {translate("crm.settings.deals.stages")}
             </h3>
