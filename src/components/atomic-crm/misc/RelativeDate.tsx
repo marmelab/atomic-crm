@@ -25,6 +25,13 @@ import { useLocaleState } from "ra-core";
 const getDateFnsLocale = (locale: string) =>
   locale.startsWith("fr") ? fr : enUS;
 
+export const formatLocalizedDate = (date: string, locale = "en") =>
+  new Intl.DateTimeFormat(locale, {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  }).format(new Date(date));
+
 export const formatRelativeDate = (date: string, locale = "en") => {
   const dateObj = new Date(date);
   const now = new Date();
