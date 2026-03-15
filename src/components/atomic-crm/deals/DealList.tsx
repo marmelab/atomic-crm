@@ -21,7 +21,7 @@ import { OnlyMineInput } from "./OnlyMineInput";
 
 const DealList = () => {
   const { identity } = useGetIdentity();
-  const { dealCategories } = useConfigurationContext();
+  const { dealCategories, companyTypes } = useConfigurationContext();
 
   if (!identity) return null;
 
@@ -34,6 +34,14 @@ const DealList = () => {
       source="category"
       emptyText="Catégorie"
       choices={dealCategories}
+      optionText="label"
+      optionValue="value"
+    />,
+    <SelectInput
+      source="company_type"
+      label="Type de société"
+      emptyText="Tous les types"
+      choices={companyTypes}
       optionText="label"
       optionValue="value"
     />,
