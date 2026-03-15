@@ -32,6 +32,7 @@ export const DealEdit = ({ open, id }: { open: boolean; id?: string }) => {
         {id ? (
           <EditBase
             id={id}
+            resource="deals"
             mutationMode="pessimistic"
             mutationOptions={{
               onSuccess: () => {
