@@ -41,6 +41,8 @@
     "@radix-ui/react-toggle": "^1.1.10",
     "@radix-ui/react-toggle-group": "^1.1.11",
     "@radix-ui/react-tooltip": "^1.2.8",
+    "@sentry/react": "^10.43.0",
+    "@sentry/vite-plugin": "^5.1.1",
     "@streamparser/json-whatwg": "^0.0.22",
     "@tailwindcss/vite": "^4.1.18",
     "@tanstack/query-async-storage-persister": "^5.90.22",

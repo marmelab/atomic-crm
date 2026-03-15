@@ -84,10 +84,18 @@ const CompanyContactInputs = () => {
 };
 
 const CompanyContextInputs = () => {
-  const { companySectors } = useConfigurationContext();
+  const { companySectors, companyTypes } = useConfigurationContext();
   return (
     <div className="flex flex-col gap-4">
       <h6 className="text-lg font-semibold">Contexte</h6>
+      <SelectInput
+        source="type"
+        label="Type"
+        choices={companyTypes}
+        optionText="label"
+        optionValue="value"
+        helperText={false}
+      />
       <SelectInput
         source="sector"
         choices={companySectors}
