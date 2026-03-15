@@ -130,66 +130,69 @@ def create_tabs(dashboard_id):
 # ============================================================================
 
 QUERIES = {
-    # --- Tab 1: KPIs ---
+    # --- Tab 1: KPIs (inline SQL, no views required) ---
     "kpi_active_deals": {
         "name": "Deals actifs",
-        "sql": "SELECT active_deals FROM analytics_kpis",
+        "sql": "SELECT COUNT(*) FILTER (WHERE stage NOT IN ('closed-won','perdu','trial-failed','declined') AND archived_at IS NULL) AS active_deals FROM deals",
         "display": "scalar",
     },
     "kpi_pipeline_value": {
         "name": "Pipeline actif (€)",
-        "sql": "SELECT active_pipeline_value / 100.0 FROM analytics_kpis",
+        "sql": "SELECT SUM(COALESCE(amount,0)) FILTER (WHERE stage NOT IN ('closed-won','perdu','trial-failed','declined') AND archived_at IS NULL) / 100.0 AS pipeline_eur FROM deals",
         "display": "scalar",
         "viz": {"number_style": "currency", "currency": "EUR"},
     },
     "kpi_weighted_pipeline": {
         "name": "Pipeline pondéré (€)",
-        "sql": "SELECT weighted_pipeline_value / 100.0 FROM analytics_kpis",
+        "sql": "SELECT SUM(COALESCE(amount,0) * CASE stage WHEN 'lead' THEN 0.10 WHEN 'qualified' THEN 0.30 WHEN 'follow-up' THEN 0.50 WHEN 'rdv-prix' THEN 0.70 WHEN 'trial' THEN 0.80 ELSE 0 END) FILTER (WHERE stage NOT IN ('closed-won','perdu','trial-failed','declined') AND archived_at IS NULL) / 100.0 AS weighted_pipeline_eur FROM deals",
         "display": "scalar",
         "viz": {"number_style": "currency", "currency": "EUR"},
     },
     "kpi_revenue_month": {
         "name": "Revenue ce mois (€)",
-        "sql": "SELECT revenue_this_month / 100.0 FROM analytics_kpis",
+        "sql": "SELECT SUM(COALESCE(amount,0)) FILTER (WHERE stage = 'closed-won' AND updated_at >= DATE_TRUNC('month', NOW())) / 100.0 AS revenue_month_eur FROM deals",
         "display": "scalar",
         "viz": {"number_style": "currency", "currency": "EUR"},
     },
     "kpi_revenue_quarter": {
         "name": "Revenue ce trimestre (€)",
-        "sql": "SELECT revenue_this_quarter / 100.0 FROM analytics_kpis",
+        "sql": "SELECT SUM(COALESCE(amount,0)) FILTER (WHERE stage = 'closed-won' AND updated_at >= DATE_TRUNC('quarter', NOW())) / 100.0 AS revenue_quarter_eur FROM deals",
         "display": "scalar",
         "viz": {"number_style": "currency", "currency": "EUR"},
     },
     "kpi_win_rate": {
         "name": "Win rate global",
-        "sql": "SELECT global_win_rate_pct FROM analytics_kpis",
+        "sql": "SELECT CASE WHEN COUNT(*) FILTER (WHERE stage IN ('closed-won','perdu','trial-failed','declined')) > 0 THEN ROUND(100.0 * COUNT(*) FILTER (WHERE stage = 'closed-won') / COUNT(*) FILTER (WHERE stage IN ('closed-won','perdu','trial-failed','declined')), 1) ELSE NULL END AS win_rate_pct FROM deals",
         "display": "scalar",
         "viz": {"number_suffix": "%"},
     },
     "kpi_avg_deal": {
         "name": "Deal moyen gagné (€)",
-        "sql": "SELECT avg_won_deal_size / 100.0 FROM analytics_kpis",
+        "sql": "SELECT AVG(COALESCE(amount,0)) FILTER (WHERE stage = 'closed-won' AND amount > 0) / 100.0 AS avg_deal_eur FROM deals",
         "display": "scalar",
         "viz": {"number_style": "currency", "currency": "EUR"},
     },
     "kpi_cycle": {
         "name": "Cycle de vente moyen (jours)",
-        "sql": "SELECT ROUND(avg_sales_cycle_days) FROM analytics_kpis",
+        "sql": "SELECT ROUND(AVG(EXTRACT(DAY FROM (updated_at - created_at))) FILTER (WHERE stage = 'closed-won')) AS avg_cycle_days FROM deals",
         "display": "scalar",
         "viz": {"number_suffix": " jours"},
     },
     "kpi_new_deals": {
         "name": "Nouveaux deals ce mois",
-        "sql": "SELECT new_deals_this_month FROM analytics_kpis",
+        "sql": "SELECT COUNT(*) FILTER (WHERE created_at >= DATE_TRUNC('month', NOW())) AS new_deals FROM deals",
         "display": "scalar",
     },
 
     # --- Tab 2: Pipeline & Funnel ---
     "pipeline_by_stage": {
         "name": "Pipeline par stage",
-        "sql": """SELECT stage, nb_active_deals, total_amount / 100.0 AS total_eur
-FROM analytics_pipeline_by_stage
-WHERE nb_active_deals > 0
+        "sql": """SELECT stage,
+    COUNT(*) FILTER (WHERE archived_at IS NULL AND stage NOT IN ('closed-won','perdu','trial-failed','declined')) AS nb_active_deals,
+    SUM(COALESCE(amount,0)) / 100.0 AS total_eur
+FROM deals
+GROUP BY stage
+HAVING COUNT(*) FILTER (WHERE archived_at IS NULL AND stage NOT IN ('closed-won','perdu','trial-failed','declined')) > 0
 ORDER BY CASE stage
     WHEN 'lead' THEN 1 WHEN 'qualified' THEN 2 WHEN 'follow-up' THEN 3
     WHEN 'rdv-prix' THEN 4 WHEN 'trial' THEN 5 ELSE 6
@@ -204,9 +207,20 @@ END""",
     },
     "conversion_funnel": {
         "name": "Funnel de conversion",
-        "sql": """SELECT stage, nb_deals_reached, ROUND(conversion_rate_pct, 1) AS conversion_pct
-FROM analytics_conversion_funnel
-ORDER BY stage_num""",
+        "sql": """WITH stage_order AS (
+    SELECT unnest(ARRAY['lead','qualified','follow-up','rdv-prix','trial','closed-won']) AS stage,
+           generate_series(1,6) AS stage_num
+), deal_max_stage AS (
+    SELECT d.id, d.stage, so.stage_num, d.amount
+    FROM deals d JOIN stage_order so ON d.stage = so.stage
+    UNION ALL
+    SELECT d.id, d.stage, CASE d.stage WHEN 'perdu' THEN 2 WHEN 'trial-failed' THEN 5 WHEN 'declined' THEN 4 ELSE 1 END, d.amount
+    FROM deals d WHERE d.stage IN ('perdu','trial-failed','declined')
+)
+SELECT so.stage, COUNT(DISTINCT dms.id) FILTER (WHERE dms.stage_num >= so.stage_num) AS nb_deals_reached
+FROM stage_order so LEFT JOIN deal_max_stage dms ON TRUE
+GROUP BY so.stage, so.stage_num
+ORDER BY so.stage_num""",
         "display": "funnel",
         "viz": {
             "funnel.dimension": "stage",
@@ -215,41 +229,51 @@ ORDER BY stage_num""",
     },
     "pipeline_detail": {
         "name": "Pipeline détaillé (deals actifs)",
-        "sql": """SELECT deal_name, company_name, stage,
-       amount / 100.0 AS montant_eur,
-       weighted_amount / 100.0 AS pondéré_eur,
-       deal_age_days AS age_jours,
-       sales_name AS commercial
-FROM analytics_pipeline_overview
-WHERE deal_status = 'active'
-ORDER BY weighted_amount DESC""",
+        "sql": """SELECT d.name AS deal_name, c.name AS company_name, d.stage,
+    d.amount / 100.0 AS montant_eur,
+    COALESCE(d.amount,0) * CASE d.stage
+        WHEN 'lead' THEN 0.10 WHEN 'qualified' THEN 0.30 WHEN 'follow-up' THEN 0.50
+        WHEN 'rdv-prix' THEN 0.70 WHEN 'trial' THEN 0.80 WHEN 'closed-won' THEN 1.00 ELSE 0
+    END / 100.0 AS pondere_eur,
+    EXTRACT(DAY FROM (NOW() - d.created_at)) AS age_jours,
+    s.first_name || ' ' || s.last_name AS commercial
+FROM deals d
+LEFT JOIN companies c ON d.company_id = c.id
+LEFT JOIN sales s ON d.sales_id = s.id
+WHERE d.stage NOT IN ('closed-won','perdu','trial-failed','declined') AND d.archived_at IS NULL
+ORDER BY COALESCE(d.amount,0) * CASE d.stage
+    WHEN 'lead' THEN 0.10 WHEN 'qualified' THEN 0.30 WHEN 'follow-up' THEN 0.50
+    WHEN 'rdv-prix' THEN 0.70 WHEN 'trial' THEN 0.80 ELSE 0 END DESC""",
         "display": "table",
     },
     "revenue_forecast": {
         "name": "Forecast revenus",
-        "sql": """SELECT TO_CHAR(forecast_month, 'YYYY-MM') AS mois,
-       stage,
-       weighted_amount / 100.0 AS montant_pondéré_eur
-FROM analytics_revenue_forecast
-WHERE forecast_month >= DATE_TRUNC('month', NOW())
-ORDER BY forecast_month, stage""",
+        "sql": """SELECT TO_CHAR(DATE_TRUNC('month', COALESCE(d.expected_closing_date::timestamp, d.created_at + INTERVAL '90 days')), 'YYYY-MM') AS mois,
+    d.stage,
+    SUM(COALESCE(d.amount,0) * CASE d.stage
+        WHEN 'lead' THEN 0.10 WHEN 'qualified' THEN 0.30 WHEN 'follow-up' THEN 0.50
+        WHEN 'rdv-prix' THEN 0.70 WHEN 'trial' THEN 0.80 ELSE 0
+    END) / 100.0 AS montant_pondere_eur
+FROM deals d
+WHERE d.stage NOT IN ('closed-won','perdu','trial-failed','declined') AND d.archived_at IS NULL
+    AND COALESCE(d.expected_closing_date::timestamp, d.created_at + INTERVAL '90 days') >= DATE_TRUNC('month', NOW())
+GROUP BY 1, d.stage ORDER BY 1, d.stage""",
         "display": "bar",
         "viz": {
             "graph.dimensions": ["mois"],
-            "graph.metrics": ["montant_pondéré_eur"],
+            "graph.metrics": ["montant_pondere_eur"],
             "stackable.stack_type": "stacked",
-            "series_settings": {},
         },
     },
 
     # --- Tab 3: Revenus & Segments ---
     "monthly_revenue": {
         "name": "Revenus mensuels",
-        "sql": """SELECT TO_CHAR(revenue_month, 'YYYY-MM') AS mois,
-       total_revenue / 100.0 AS revenue_eur,
-       nb_deals_won
-FROM analytics_monthly_revenue
-ORDER BY revenue_month""",
+        "sql": """SELECT TO_CHAR(DATE_TRUNC('month', COALESCE(d.trial_start_date::timestamp, d.expected_closing_date::timestamp, d.updated_at)), 'YYYY-MM') AS mois,
+    SUM(COALESCE(d.amount,0)) / 100.0 AS revenue_eur,
+    COUNT(*) AS nb_deals_won
+FROM deals d WHERE d.stage = 'closed-won'
+GROUP BY 1 ORDER BY 1""",
         "display": "line",
         "viz": {
             "graph.dimensions": ["mois"],
@@ -259,28 +283,32 @@ ORDER BY revenue_month""",
     },
     "revenue_by_category": {
         "name": "Revenue par catégorie",
-        "sql": """SELECT category AS catégorie,
-       revenue_won / 100.0 AS revenue_eur,
-       nb_deals_won,
-       win_rate_pct
-FROM analytics_revenue_by_category
-WHERE revenue_won > 0
-ORDER BY revenue_won DESC""",
+        "sql": """SELECT COALESCE(d.category, 'non-categorise') AS categorie,
+    SUM(COALESCE(d.amount,0)) FILTER (WHERE d.stage = 'closed-won') / 100.0 AS revenue_eur,
+    COUNT(*) FILTER (WHERE d.stage = 'closed-won') AS nb_deals_won,
+    CASE WHEN COUNT(*) FILTER (WHERE d.stage IN ('closed-won','perdu','trial-failed','declined')) > 0
+        THEN ROUND(100.0 * COUNT(*) FILTER (WHERE d.stage = 'closed-won') / COUNT(*) FILTER (WHERE d.stage IN ('closed-won','perdu','trial-failed','declined')),1)
+        ELSE NULL END AS win_rate_pct
+FROM deals d GROUP BY 1
+HAVING SUM(COALESCE(d.amount,0)) FILTER (WHERE d.stage = 'closed-won') > 0
+ORDER BY revenue_eur DESC""",
         "display": "bar",
         "viz": {
-            "graph.dimensions": ["catégorie"],
+            "graph.dimensions": ["categorie"],
             "graph.metrics": ["revenue_eur"],
         },
     },
     "revenue_by_sector": {
         "name": "Revenue par secteur",
-        "sql": """SELECT sector AS secteur,
-       revenue_won / 100.0 AS revenue_eur,
-       nb_companies AS entreprises,
-       win_rate_pct
-FROM analytics_revenue_by_sector
-WHERE revenue_won > 0
-ORDER BY revenue_won DESC""",
+        "sql": """SELECT COALESCE(c.sector, 'inconnu') AS secteur,
+    SUM(COALESCE(d.amount,0)) FILTER (WHERE d.stage = 'closed-won') / 100.0 AS revenue_eur,
+    COUNT(DISTINCT c.id) AS entreprises,
+    CASE WHEN COUNT(d.id) FILTER (WHERE d.stage IN ('closed-won','perdu','trial-failed','declined')) > 0
+        THEN ROUND(100.0 * COUNT(d.id) FILTER (WHERE d.stage = 'closed-won') / COUNT(d.id) FILTER (WHERE d.stage IN ('closed-won','perdu','trial-failed','declined')),1)
+        ELSE NULL END AS win_rate_pct
+FROM companies c LEFT JOIN deals d ON d.company_id = c.id
+GROUP BY 1 HAVING SUM(COALESCE(d.amount,0)) FILTER (WHERE d.stage = 'closed-won') > 0
+ORDER BY revenue_eur DESC""",
         "display": "bar",
         "viz": {
             "graph.dimensions": ["secteur"],
@@ -289,12 +317,18 @@ ORDER BY revenue_won DESC""",
     },
     "by_company_size": {
         "name": "Performance par taille d'entreprise",
-        "sql": """SELECT company_size_label AS taille,
-       revenue_won / 100.0 AS revenue_eur,
-       nb_deals_won AS deals_gagnés,
-       win_rate_pct
-FROM analytics_by_company_size
-ORDER BY company_size_num NULLS LAST""",
+        "sql": """SELECT CASE c.size
+        WHEN 1 THEN '1 - Solo' WHEN 10 THEN '2-10 - Petit cabinet'
+        WHEN 50 THEN '11-50 - Cabinet moyen' WHEN 250 THEN '51-250 - Centre / Clinique'
+        WHEN 500 THEN '250+ - Hopital / Groupe' ELSE 'Non renseigne'
+    END AS taille,
+    SUM(COALESCE(d.amount,0)) FILTER (WHERE d.stage = 'closed-won') / 100.0 AS revenue_eur,
+    COUNT(DISTINCT d.id) FILTER (WHERE d.stage = 'closed-won') AS deals_gagnes,
+    CASE WHEN COUNT(DISTINCT d.id) FILTER (WHERE d.stage IN ('closed-won','perdu','trial-failed','declined')) > 0
+        THEN ROUND(100.0 * COUNT(DISTINCT d.id) FILTER (WHERE d.stage = 'closed-won') / COUNT(DISTINCT d.id) FILTER (WHERE d.stage IN ('closed-won','perdu','trial-failed','declined')),1)
+        ELSE NULL END AS win_rate_pct
+FROM companies c LEFT JOIN deals d ON d.company_id = c.id
+GROUP BY c.size ORDER BY c.size NULLS LAST""",
         "display": "bar",
         "viz": {
             "graph.dimensions": ["taille"],
@@ -303,16 +337,15 @@ ORDER BY company_size_num NULLS LAST""",
     },
     "deals_timeline": {
         "name": "Timeline des deals",
-        "sql": """SELECT TO_CHAR(month, 'YYYY-MM') AS mois,
-       nb_won AS gagnés,
-       nb_lost AS perdus,
-       nb_still_active AS actifs
-FROM analytics_deals_timeline
-ORDER BY month""",
+        "sql": """SELECT TO_CHAR(DATE_TRUNC('month', d.created_at), 'YYYY-MM') AS mois,
+    COUNT(*) FILTER (WHERE d.stage = 'closed-won') AS gagnes,
+    COUNT(*) FILTER (WHERE d.stage IN ('perdu','trial-failed','declined')) AS perdus,
+    COUNT(*) FILTER (WHERE d.stage NOT IN ('closed-won','perdu','trial-failed','declined') AND d.archived_at IS NULL) AS actifs
+FROM deals d GROUP BY 1 ORDER BY 1""",
         "display": "area",
         "viz": {
             "graph.dimensions": ["mois"],
-            "graph.metrics": ["gagnés", "perdus", "actifs"],
+            "graph.metrics": ["gagnes", "perdus", "actifs"],
             "stackable.stack_type": "stacked",
         },
     },
@@ -320,28 +353,31 @@ ORDER BY month""",
     # --- Tab 4: Performance commerciale ---
     "sales_performance": {
         "name": "Scorecard commerciaux",
-        "sql": """SELECT sales_name AS commercial,
-       nb_deals_won AS deals_gagnés,
-       revenue_won / 100.0 AS revenue_eur,
-       win_rate_pct,
-       ROUND(avg_sales_cycle_days) AS cycle_jours,
-       pipeline_value / 100.0 AS pipeline_eur,
-       nb_deals_active AS deals_actifs,
-       tasks_pending AS tâches_en_cours,
-       tasks_overdue AS tâches_en_retard
-FROM analytics_sales_performance
-ORDER BY revenue_won DESC NULLS LAST""",
+        "sql": """SELECT s.first_name || ' ' || s.last_name AS commercial,
+    COUNT(DISTINCT d.id) FILTER (WHERE d.stage = 'closed-won') AS deals_gagnes,
+    SUM(COALESCE(d.amount,0)) FILTER (WHERE d.stage = 'closed-won') / 100.0 AS revenue_eur,
+    CASE WHEN COUNT(DISTINCT d.id) FILTER (WHERE d.stage IN ('closed-won','perdu','trial-failed','declined')) > 0
+        THEN ROUND(100.0 * COUNT(DISTINCT d.id) FILTER (WHERE d.stage = 'closed-won') / COUNT(DISTINCT d.id) FILTER (WHERE d.stage IN ('closed-won','perdu','trial-failed','declined')),1)
+        ELSE NULL END AS win_rate_pct,
+    ROUND(AVG(EXTRACT(DAY FROM (COALESCE(d.archived_at, d.updated_at) - d.created_at))) FILTER (WHERE d.stage = 'closed-won')) AS cycle_jours,
+    SUM(COALESCE(d.amount,0)) FILTER (WHERE d.stage NOT IN ('closed-won','perdu','trial-failed','declined')) / 100.0 AS pipeline_eur,
+    COUNT(DISTINCT d.id) FILTER (WHERE d.stage NOT IN ('closed-won','perdu','trial-failed','declined')) AS deals_actifs
+FROM sales s LEFT JOIN deals d ON d.sales_id = s.id
+WHERE s.disabled = FALSE
+GROUP BY s.id, s.first_name, s.last_name
+ORDER BY revenue_eur DESC NULLS LAST""",
         "display": "table",
     },
     "activity_weekly": {
         "name": "Activité par semaine",
-        "sql": """SELECT TO_CHAR(week, 'YYYY-WW') AS semaine,
-       activity_type AS type_activité,
-       nb_activities,
-       sales_name AS commercial
-FROM analytics_activity
-WHERE week >= NOW() - INTERVAL '3 months'
-ORDER BY week DESC""",
+        "sql": """SELECT TO_CHAR(week, 'YYYY-WW') AS semaine, activity_type AS type_activite, SUM(nb) AS nb_activities
+FROM (
+    SELECT DATE_TRUNC('week', cn.date) AS week, 'note_contact' AS activity_type, COUNT(*) AS nb FROM contact_notes cn GROUP BY 1
+    UNION ALL SELECT DATE_TRUNC('week', dn.date), 'note_deal', COUNT(*) FROM deal_notes dn GROUP BY 1
+    UNION ALL SELECT DATE_TRUNC('week', t.done_date), 'task_done', COUNT(*) FROM tasks t WHERE t.done_date IS NOT NULL GROUP BY 1
+    UNION ALL SELECT DATE_TRUNC('week', d.created_at), 'deal_created', COUNT(*) FROM deals d GROUP BY 1
+) sub WHERE week >= NOW() - INTERVAL '3 months' AND week IS NOT NULL
+GROUP BY 1, 2 ORDER BY 1 DESC""",
         "display": "line",
         "viz": {
             "graph.dimensions": ["semaine"],
@@ -351,60 +387,56 @@ ORDER BY week DESC""",
     },
     "win_loss": {
         "name": "Analyse Win/Loss",
-        "sql": """SELECT deal_name, outcome AS résultat,
-       company_name AS entreprise,
-       category AS catégorie,
-       amount / 100.0 AS montant_eur,
-       cycle_days AS durée_jours,
-       sales_name AS commercial,
-       company_sector AS secteur
-FROM analytics_win_loss
-ORDER BY updated_at DESC""",
+        "sql": """SELECT d.name AS deal_name,
+    CASE WHEN d.stage = 'closed-won' THEN 'won' ELSE 'lost' END AS resultat,
+    c.name AS entreprise, d.category AS categorie,
+    d.amount / 100.0 AS montant_eur,
+    EXTRACT(DAY FROM (d.updated_at - d.created_at)) AS duree_jours,
+    s.first_name || ' ' || s.last_name AS commercial, c.sector AS secteur
+FROM deals d LEFT JOIN companies c ON d.company_id = c.id LEFT JOIN sales s ON d.sales_id = s.id
+WHERE d.stage IN ('closed-won','perdu','trial-failed','declined')
+ORDER BY d.updated_at DESC""",
         "display": "table",
     },
 
     # --- Tab 5: Essais & Engagement ---
     "trials": {
         "name": "Suivi des essais",
-        "sql": """SELECT deal_name, company_name AS entreprise,
-       trial_start_date AS début_essai,
-       trial_duration_days AS durée_jours,
-       trial_outcome AS résultat,
-       amount / 100.0 AS montant_eur,
-       sales_name AS commercial
-FROM analytics_trials
-ORDER BY trial_start_date DESC NULLS LAST""",
+        "sql": """SELECT d.name AS deal_name, c.name AS entreprise, d.trial_start_date AS debut_essai,
+    CASE WHEN d.trial_start_date IS NOT NULL AND d.stage = 'closed-won'
+        THEN EXTRACT(DAY FROM (d.updated_at - d.trial_start_date::timestamp))
+        WHEN d.trial_start_date IS NOT NULL AND d.stage = 'trial'
+        THEN EXTRACT(DAY FROM (NOW() - d.trial_start_date::timestamp))
+        ELSE NULL END AS duree_jours,
+    CASE WHEN d.stage = 'trial' THEN 'en_cours' WHEN d.stage = 'closed-won' THEN 'converti'
+        WHEN d.stage = 'trial-failed' THEN 'echec' ELSE 'autre' END AS resultat,
+    d.amount / 100.0 AS montant_eur, s.first_name || ' ' || s.last_name AS commercial
+FROM deals d LEFT JOIN companies c ON d.company_id = c.id LEFT JOIN sales s ON d.sales_id = s.id
+WHERE d.stage IN ('trial','closed-won','trial-failed') OR d.trial_start_date IS NOT NULL
+ORDER BY d.trial_start_date DESC NULLS LAST""",
         "display": "table",
     },
     "trial_kpi_conversion": {
         "name": "Taux conversion essais",
-        "sql": """SELECT
-    COUNT(*) FILTER (WHERE trial_outcome = 'converti') AS convertis,
-    COUNT(*) FILTER (WHERE trial_outcome = 'echec') AS échecs,
-    COUNT(*) FILTER (WHERE trial_outcome = 'en_cours') AS en_cours,
-    CASE WHEN COUNT(*) FILTER (WHERE trial_outcome IN ('converti','echec')) > 0
-        THEN ROUND(100.0 * COUNT(*) FILTER (WHERE trial_outcome = 'converti')
-            / COUNT(*) FILTER (WHERE trial_outcome IN ('converti','echec')), 1)
-        ELSE NULL
-    END AS taux_conversion_pct
-FROM analytics_trials""",
+        "sql": """SELECT CASE WHEN COUNT(*) FILTER (WHERE stage IN ('closed-won','trial-failed')) > 0
+    THEN ROUND(100.0 * COUNT(*) FILTER (WHERE stage = 'closed-won') / COUNT(*) FILTER (WHERE stage IN ('closed-won','trial-failed')),1)
+    ELSE NULL END AS taux_conversion_pct
+FROM deals WHERE stage IN ('trial','closed-won','trial-failed') OR trial_start_date IS NOT NULL""",
         "display": "scalar",
         "viz": {"number_suffix": "%"},
     },
     "contacts_engagement": {
         "name": "Engagement contacts par cohorte",
-        "sql": """SELECT TO_CHAR(cohort_month, 'YYYY-MM') AS cohorte,
-       SUM(nb_hot) AS chauds,
-       SUM(nb_warm) AS tièdes,
-       SUM(nb_cold) AS froids,
-       SUM(nb_signed) AS signés
-FROM analytics_contacts_engagement
-GROUP BY cohort_month
-ORDER BY cohort_month""",
+        "sql": """SELECT TO_CHAR(DATE_TRUNC('month', co.first_seen), 'YYYY-MM') AS cohorte,
+    COUNT(*) FILTER (WHERE co.status = 'hot') AS chauds,
+    COUNT(*) FILTER (WHERE co.status = 'warm') AS tiedes,
+    COUNT(*) FILTER (WHERE co.status = 'cold') AS froids,
+    COUNT(*) FILTER (WHERE co.status = 'in-contract') AS signes
+FROM contacts co GROUP BY 1 ORDER BY 1""",
         "display": "bar",
         "viz": {
             "graph.dimensions": ["cohorte"],
-            "graph.metrics": ["chauds", "tièdes", "froids", "signés"],
+            "graph.metrics": ["chauds", "tiedes", "froids", "signes"],
             "stackable.stack_type": "stacked",
         },
     },
