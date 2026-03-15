@@ -29,7 +29,10 @@ function ucFirst(str: string): string {
 
 const isoDateStringRegex = /^\d{4}-\d{2}-\d{2}$/;
 
-export function formatISODateString(dateString: string) {
+export function formatISODateString(dateString: string | null | undefined) {
+  if (!dateString) {
+    return "–";
+  }
   // Handle both YYYY-MM-DD and full ISO timestamps (e.g. 2025-03-15T00:00:00.000Z)
   const normalizedDate = dateString.split("T")[0];
   if (!isoDateStringRegex.test(normalizedDate)) {

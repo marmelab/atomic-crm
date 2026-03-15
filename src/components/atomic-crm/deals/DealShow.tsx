@@ -91,11 +91,13 @@ const DealShowContent = () => {
               </span>
               <div className="flex items-center gap-2">
                 <span className="text-sm">
-                  {isValid(new Date(record.expected_closing_date))
+                  {record.expected_closing_date &&
+                  isValid(new Date(record.expected_closing_date))
                     ? formatISODateString(record.expected_closing_date)
-                    : "Date invalide"}
+                    : "–"}
                 </span>
-                {new Date(record.expected_closing_date) < new Date() ? (
+                {record.expected_closing_date &&
+                new Date(record.expected_closing_date) < new Date() ? (
                   <Badge variant="destructive">Past</Badge>
                 ) : null}
               </div>
