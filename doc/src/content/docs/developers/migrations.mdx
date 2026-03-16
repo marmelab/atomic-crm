@@ -22,7 +22,7 @@ The `supabase/schemas/` directory contains the **source of truth** for the datab
 Files are numbered to control load order (tables must exist before functions that reference them).
 
 :::caution
-Never edit migration files in `supabase/migrations/` directly. They are auto-generated from the schema files and should be treated as build artifacts.
+Migration files in `supabase/migrations/` are auto-generated from the schema files. In most cases, you should not edit them directly. However, there are exceptions: for example, `db diff` may generate a DROP + CREATE for a column rename instead of an ALTER TABLE RENAME. In such cases, manually edit the migration to use the correct statement, while keeping it coherent with the schema files.
 :::
 
 ## Working With a Local Database
@@ -41,13 +41,15 @@ npx supabase db diff --local -f <migration_name>
 
 This compares the schema files against the local database and generates a migration file in `supabase/migrations/`.
 
-3. **Apply the migration** locally:
+3. **Review the generated migration** in `supabase/migrations/`. In most cases it will be correct, but sometimes you may need to adjust it. For example, if you renamed a column, `db diff` may generate a DROP + CREATE instead of an `ALTER TABLE ... RENAME COLUMN`. Edit the migration file to use the correct statement, while keeping it coherent with the schema file.
+
+4. **Apply the migration** locally:
 
 ```sh
 npx supabase migration up --local
 ```
 
-4. **Verify** the diff is clean (no remaining differences):
+5. **Verify** the diff is clean (no remaining differences):
 
 ```sh
 npx supabase db diff --local

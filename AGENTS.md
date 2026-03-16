@@ -30,7 +30,7 @@ make build            # Build production bundle (runs tsc + vite build)
 
 ### Database Management
 
-The database schema is defined declaratively in `supabase/schemas/` (source of truth). Never edit `supabase/migrations/` directly. Function definitions in `02_functions.sql` must use the exact `pg_dump` format (run `npx supabase db dump --local --schema public`) to avoid phantom diffs.
+The database schema is defined declaratively in `supabase/schemas/` (source of truth). Migrations in `supabase/migrations/` are auto-generated and should generally not be edited directly — but sometimes manual adjustment is needed (e.g., replacing a DROP+CREATE with an ALTER TABLE RENAME for column renames). Function definitions in `02_functions.sql` must use the exact `pg_dump` format (run `npx supabase db dump --local --schema public`) to avoid phantom diffs.
 
 ```bash
 npx supabase db diff --local -f <name>  # Generate migration from schema changes
