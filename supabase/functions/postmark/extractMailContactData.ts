@@ -1,3 +1,5 @@
+const capitalize = (str: string) => str.charAt(0).toUpperCase() + str.slice(1);
+
 /**
  * Extracts the first name, last name, email, and domain from a mail contact.
  *
@@ -36,6 +38,11 @@ export const extractMailContactData = (
       firstName = parts[0];
       lastName = parts.slice(1).join(" ");
     }
-    return { firstName, lastName, email: contact.Email, domain };
+    return {
+      firstName: capitalize(firstName),
+      lastName: capitalize(lastName),
+      email: contact.Email,
+      domain,
+    };
   });
 };
