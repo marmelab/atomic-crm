@@ -99,22 +99,12 @@ export const LoginPage = (props: { redirectTo?: string }) => {
 
           {/* Hero text */}
           <div className="space-y-5">
-            <p
-              className="text-xs font-semibold tracking-[0.2em] uppercase"
-              style={{ color: "#FF9B54" }}
-            >
-              CRM Commercial
-            </p>
             <h1 className="text-3xl xl:text-4xl font-bold text-gray-900 leading-tight">
               Gérez vos clients,{" "}
               <span style={{ color: "#FF9B54" }}>
                 développez votre chiffre d'affaires.
               </span>
             </h1>
-            <p className="text-gray-500 text-base leading-relaxed">
-              Nosho CRM centralise vos contacts, opportunités et activités pour que votre
-              équipe commerciale soit toujours au top.
-            </p>
 
             {/* Feature cards */}
             <div className="grid grid-cols-2 gap-3 pt-1">
@@ -144,7 +134,7 @@ export const LoginPage = (props: { redirectTo?: string }) => {
           </div>
 
           {/* Footer */}
-          <p className="text-xs text-gray-400">
+          <p className="text-xs text-gray-400 mt-auto pt-16">
             © {new Date().getFullYear()} Nosho · Tous droits réservés
           </p>
         </div>
