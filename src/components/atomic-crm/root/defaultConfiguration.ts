@@ -1,7 +1,7 @@
 import type { ConfigurationContextValue } from "./ConfigurationContext";
 
-export const defaultDarkModeLogo = "./logos/logo_atomic_crm_dark.svg";
-export const defaultLightModeLogo = "./logos/logo_atomic_crm_light.svg";
+export const defaultDarkModeLogo = "./appIcon/512.png";
+export const defaultLightModeLogo = "./appIcon/512.png";
 
 export const defaultTitle = "Nosho CRM";
 
