@@ -66,3 +66,7 @@ CREATE VIEW contacts_summary
   LEFT JOIN tasks t    ON co.id = t.contact_id
   LEFT JOIN companies c ON co.company_id = c.id
   GROUP BY co.id, c.name;
+
+-- Re-apply grants lost when views were dropped and recreated
+GRANT SELECT ON contacts_summary  TO authenticated, anon;
+GRANT SELECT ON companies_summary TO authenticated, anon;

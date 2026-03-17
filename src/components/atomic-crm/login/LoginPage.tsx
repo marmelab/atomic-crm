@@ -84,7 +84,7 @@ export const LoginPage = (props: { redirectTo?: string }) => {
       <div className="relative z-10 grid w-full max-w-[1100px] mx-auto px-6 lg:grid-cols-2 lg:gap-16 min-h-screen lg:min-h-0 lg:items-center">
 
         {/* ── Panneau gauche ── */}
-        <div className="hidden lg:flex flex-col justify-between py-16 pr-8">
+        <div className="hidden lg:flex flex-col py-16 pr-8">
           {/* Logo */}
           <div className="flex items-center gap-3">
             <img
@@ -98,7 +98,7 @@ export const LoginPage = (props: { redirectTo?: string }) => {
           </div>
 
           {/* Hero text */}
-          <div className="space-y-5">
+          <div className="space-y-5 mt-16">
             <h1 className="text-3xl xl:text-4xl font-bold text-gray-900 leading-tight">
               Gérez vos clients,{" "}
               <span style={{ color: "#FF9B54" }}>

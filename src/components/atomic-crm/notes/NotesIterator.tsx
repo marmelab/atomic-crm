@@ -1,5 +1,5 @@
 import { useListContext } from "ra-core";
-import { Fragment } from "react";
+import { Fragment, useMemo } from "react";
 import { Separator } from "@/components/ui/separator";
 
 import { Note } from "./Note";
@@ -13,21 +13,32 @@ export const NotesIterator = ({
   showStatus?: boolean;
 }) => {
   const { data, error, isPending } = useListContext();
+
+  // Always show most recent note first
+  const sortedData = useMemo(
+    () =>
+      data
+        ? [...data].sort(
+            (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime(),
+          )
+        : [],
+    [data],
+  );
+
   if (isPending || error) return null;
   return (
     <div className="mt-4">
       <NoteCreate reference={reference} showStatus={showStatus} />
-      {data && (
+      {sortedData.length > 0 && (
         <div className="mt-4 space-y-4">
-          {data.map((note, index) => (
-            <Fragment key={index}>
+          {sortedData.map((note, index) => (
+            <Fragment key={note.id ?? index}>
               <Note
                 note={note}
-                isLast={index === data.length - 1}
-                key={index}
+                isLast={index === sortedData.length - 1}
                 showStatus={showStatus}
               />
-              {index < data.length - 1 && <Separator />}
+              {index < sortedData.length - 1 && <Separator />}
             </Fragment>
           ))}
         </div>
