@@ -18,6 +18,24 @@ export const DealListContent = () => {
     getDealsByStage([], dealStages),
   );
 
+  // All stages visible by default
+  const [visibleStages, setVisibleStages] = useState<Set<string>>(
+    () => new Set(dealStages.map((s) => s.value)),
+  );
+
+  const toggleStage = (stageValue: string) => {
+    setVisibleStages((prev) => {
+      const next = new Set(prev);
+      if (next.has(stageValue)) {
+        if (next.size === 1) return prev; // keep at least one visible
+        next.delete(stageValue);
+      } else {
+        next.add(stageValue);
+      }
+      return next;
+    });
+  };
+
   useEffect(() => {
     if (unorderedDeals) {
       const newDealsByStage = getDealsByStage(unorderedDeals, dealStages);
@@ -70,18 +88,67 @@ export const DealListContent = () => {
     });
   };
 
+  const visibleDealStages = dealStages.filter((s) =>
+    visibleStages.has(s.value),
+  );
+
   return (
-    <DragDropContext onDragEnd={onDragEnd}>
-      <div className="flex gap-4">
-        {dealStages.map((stage) => (
-          <DealColumn
-            stage={stage.value}
-            deals={dealsByStage[stage.value]}
-            key={stage.value}
-          />
-        ))}
+    <div className="flex flex-col gap-4">
+      {/* Stage filter toggles */}
+      <div className="flex flex-wrap gap-2 pb-1">
+        {dealStages.map((stage) => {
+          const isVisible = visibleStages.has(stage.value);
+          const count = dealsByStage[stage.value]?.length ?? 0;
+          return (
+            <button
+              key={stage.value}
+              onClick={() => toggleStage(stage.value)}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-all border ${
+                isVisible
+                  ? "bg-[var(--nosho-orange)]/10 border-[var(--nosho-orange)]/40 text-[var(--nosho-orange-dark)]"
+                  : "bg-muted/50 border-border text-muted-foreground/50 line-through"
+              }`}
+            >
+              <span>{stage.label}</span>
+              {count > 0 && (
+                <span
+                  className={`rounded-full px-1.5 py-0.5 text-[10px] font-semibold ${
+                    isVisible
+                      ? "bg-[var(--nosho-orange)]/20 text-[var(--nosho-orange-dark)]"
+                      : "bg-muted text-muted-foreground/50"
+                  }`}
+                >
+                  {count}
+                </span>
+              )}
+            </button>
+          );
+        })}
+        {visibleStages.size < dealStages.length && (
+          <button
+            onClick={() =>
+              setVisibleStages(new Set(dealStages.map((s) => s.value)))
+            }
+            className="px-3 py-1.5 rounded-full text-xs font-medium text-[var(--nosho-green-dark)] bg-[var(--nosho-green)]/10 border border-[var(--nosho-green)]/30 transition-all hover:bg-[var(--nosho-green)]/20"
+          >
+            Tout afficher
+          </button>
+        )}
       </div>
-    </DragDropContext>
+
+      {/* Kanban columns */}
+      <DragDropContext onDragEnd={onDragEnd}>
+        <div className="flex gap-4 overflow-x-auto pb-4">
+          {visibleDealStages.map((stage) => (
+            <DealColumn
+              stage={stage.value}
+              deals={dealsByStage[stage.value]}
+              key={stage.value}
+            />
+          ))}
+        </div>
+      </DragDropContext>
+    </div>
   );
 };
 

@@ -22,7 +22,7 @@ export const Layout = ({ children }: { children: ReactNode }) => {
   return (
     <>
       <Header />
-      <main className="max-w-screen-xl mx-auto pt-4 px-4" id="main-content">
+      <main className="w-full pt-4 px-[50px]" id="main-content">
         <SentryErrorBoundary>
           <ErrorBoundary FallbackComponent={Error}>
             <Suspense

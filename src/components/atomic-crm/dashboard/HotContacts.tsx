@@ -33,10 +33,10 @@ export const HotContacts = () => {
   return (
     <div className="flex flex-col gap-2">
       <div className="flex items-center">
-        <div className="mr-3 flex">
-          <Users className="text-muted-foreground w-6 h-6" />
+        <div className="mr-3 flex items-center justify-center w-7 h-7 rounded-lg bg-[var(--nosho-orange)]/10">
+          <Users className="text-[var(--nosho-orange)] w-4 h-4" />
         </div>
-        <h2 className="text-xl font-semibold text-muted-foreground">
+        <h2 className="text-base font-semibold text-muted-foreground flex-1">
           Contacts chauds
         </h2>
         <TooltipProvider>
@@ -45,11 +45,11 @@ export const HotContacts = () => {
               <Button
                 variant="ghost"
                 size="sm"
-                className="ml-auto text-muted-foreground"
+                className="text-muted-foreground hover:text-foreground"
                 asChild
               >
                 <Link to="/contacts/create">
-                  <Plus className="w-4 h-4 text-primary" />
+                  <Plus className="w-4 h-4" />
                 </Link>
               </Button>
             </TooltipTrigger>
@@ -57,7 +57,7 @@ export const HotContacts = () => {
           </Tooltip>
         </TooltipProvider>
       </div>
-      <Card className="py-0">
+      <Card className="py-0 shadow-sm border-border/50">
         <SimpleList<Contact>
           linkType="show"
           data={contactData}
