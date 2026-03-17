@@ -383,32 +383,50 @@ export const dataProvider = withLifecycleCallbacks(
   lifeCycleCallbacks,
 ) as CrmDataProvider;
 
+/**
+ * Normalize a search query: strip diacritics (accents) and trim whitespace.
+ * "Clément" → "Clement", "léa" → "lea"
+ */
+const normalizeSearchQuery = (q: string): string =>
+  q
+    .normalize("NFD")
+    .replace(/\p{Diacritic}/gu, "")
+    .trim();
+
 const applyFullTextSearch = (columns: string[]) => (params: GetListParams) => {
   if (!params.filter?.q) {
     return params;
   }
   const { q, ...filter } = params.filter;
+  const normalizedQ = normalizeSearchQuery(q);
+
+  // Build OR conditions for a given query term
+  const buildConditions = (term: string) =>
+    columns.reduce(
+      (acc, column) => {
+        if (column === "email") return { ...acc, [`email_fts@ilike`]: term };
+        if (column === "phone") return { ...acc, [`phone_fts@ilike`]: term };
+        // Also search on the _search generated column (unaccented, stored in DB)
+        return {
+          ...acc,
+          [`${column}@ilike`]: term,
+          [`${column}_search@ilike`]: term,
+        };
+      },
+      {} as Record<string, string>,
+    );
+
+  // If query has accents, search with both original and normalized terms
+  const orConditions =
+    normalizedQ !== q
+      ? { ...buildConditions(q), ...buildConditions(normalizedQ) }
+      : buildConditions(normalizedQ);
+
   return {
     ...params,
     filter: {
       ...filter,
-      "@or": columns.reduce((acc, column) => {
-        if (column === "email")
-          return {
-            ...acc,
-            [`email_fts@ilike`]: q,
-          };
-        if (column === "phone")
-          return {
-            ...acc,
-            [`phone_fts@ilike`]: q,
-          };
-        else
-          return {
-            ...acc,
-            [`${column}@ilike`]: q,
-          };
-      }, {}),
+      "@or": orConditions,
     },
   };
 };
