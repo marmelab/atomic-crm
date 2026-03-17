@@ -105,10 +105,10 @@ const NavigationTab = ({
 }) => (
   <Link
     to={to}
-    className={`px-6 py-3 text-sm font-medium transition-colors border-b-2 ${
+    className={`px-6 py-3.5 text-sm font-medium transition-all duration-200 border-b-[2.5px] ${
       isActive
-        ? "text-secondary-foreground border-secondary-foreground"
-        : "text-secondary-foreground/70 border-transparent hover:text-secondary-foreground/80"
+        ? "text-secondary-foreground border-[var(--nosho-green)]"
+        : "text-secondary-foreground/60 border-transparent hover:text-secondary-foreground/80 hover:border-secondary-foreground/20"
     }`}
   >
     {label}

@@ -9,6 +9,8 @@ import {
 import { useGetList } from "ra-core";
 import { memo, useMemo } from "react";
 
+import { Card } from "@/components/ui/card";
+
 import type { Deal } from "../types";
 
 const multiplier = {
@@ -106,23 +108,40 @@ export const DealsChart = memo(() => {
   );
 
   return (
-    <div className="flex flex-col">
-      <div className="flex items-center mb-4">
-        <div className="mr-3 flex items-center justify-center w-6 h-6 text-muted-foreground font-semibold text-lg leading-none">
-          €
+    <Card className="p-5 shadow-sm border-border/50">
+      <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center gap-2">
+          <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-muted/60">
+            <span className="text-muted-foreground font-semibold text-base">€</span>
+          </div>
+          <h2 className="text-base font-semibold text-foreground">
+            Revenus prévisionnels
+          </h2>
         </div>
-        <h2 className="text-xl font-semibold text-muted-foreground">
-          Revenus prévisionnels
-        </h2>
+        <div className="flex items-center gap-4 text-xs text-muted-foreground">
+          <span className="flex items-center gap-1.5">
+            <span className="w-2.5 h-2.5 rounded-full bg-[var(--nosho-green)]" />
+            Gagné
+          </span>
+          <span className="flex items-center gap-1.5">
+            <span className="w-2.5 h-2.5 rounded-full bg-[var(--nosho-teal)]/50" />
+            En cours
+          </span>
+          <span className="flex items-center gap-1.5">
+            <span className="w-2.5 h-2.5 rounded-full bg-[var(--nosho-orange)]" />
+            Perdu
+          </span>
+        </div>
       </div>
-      <div className="h-[400px]">
+      <div className="h-[350px]">
         <ResponsiveBar
           data={months}
           indexBy="date"
           keys={["won", "pending", "lost"]}
-          colors={["#61cdbb", "#97e3d5", "#e25c3b"]}
-          margin={{ top: 30, right: 50, bottom: 30, left: 0 }}
-          padding={0.3}
+          colors={["#92B592", "#4AA69680", "#FF9B54"]}
+          margin={{ top: 20, right: 50, bottom: 30, left: 0 }}
+          padding={0.35}
+          borderRadius={4}
           valueScale={{
             type: "linear",
             min: range.min < 0 ? range.min * 1.2 : -1000,
@@ -197,8 +216,11 @@ export const DealsChart = memo(() => {
               {
                 axis: "y",
                 value: 0,
-                lineStyle: { strokeOpacity: 0 },
-                textStyle: { fill: "#2ebca6" },
+                lineStyle: {
+                  stroke: "var(--color-border)",
+                  strokeWidth: 1,
+                },
+                textStyle: { fill: "var(--nosho-green)" },
                 legend: "Gagné",
                 legendPosition: "top-left",
                 legendOrientation: "vertical",
@@ -206,11 +228,8 @@ export const DealsChart = memo(() => {
               {
                 axis: "y",
                 value: 0,
-                lineStyle: {
-                  stroke: "#f47560",
-                  strokeWidth: 1,
-                },
-                textStyle: { fill: "#e25c3b" },
+                lineStyle: { strokeOpacity: 0 },
+                textStyle: { fill: "var(--nosho-orange)" },
                 legend: "Perdu",
                 legendPosition: "bottom-left",
                 legendOrientation: "vertical",
@@ -219,6 +238,6 @@ export const DealsChart = memo(() => {
           }
         />
       </div>
-    </div>
+    </Card>
   );
 });

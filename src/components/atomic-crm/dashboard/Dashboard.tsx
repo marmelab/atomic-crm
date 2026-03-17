@@ -1,10 +1,13 @@
 import { useGetList } from "ra-core";
 
 import type { Contact, ContactNote } from "../types";
+import { ActiveDeals } from "./ActiveDeals";
 import { DashboardActivityLog } from "./DashboardActivityLog";
 import { DashboardStepper } from "./DashboardStepper";
 import { DealsChart } from "./DealsChart";
 import { HotContacts } from "./HotContacts";
+import { KPICards } from "./KPICards";
+import { NoshoAIAssist } from "./NoshoAIAssist";
 import { TasksList } from "./TasksList";
 import { Welcome } from "./Welcome";
 
@@ -44,22 +47,37 @@ export const Dashboard = () => {
   }
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-12 gap-6 mt-1">
-      <div className="md:col-span-3">
-        <div className="flex flex-col gap-4">
-          {import.meta.env.VITE_IS_DEMO === "true" ? <Welcome /> : null}
-          <HotContacts />
-        </div>
-      </div>
-      <div className="md:col-span-6">
-        <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-5 mt-1 pb-6">
+      {/* Welcome banner (demo only) */}
+      {import.meta.env.VITE_IS_DEMO === "true" ? <Welcome /> : null}
+
+      {/* Row 1: KPI Cards */}
+      <KPICards />
+
+      {/* Row 2: Revenue Chart + Tasks */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
+        <div className="lg:col-span-8">
           {totalDeal ? <DealsChart /> : null}
-          <DashboardActivityLog />
+        </div>
+        <div className="lg:col-span-4">
+          <TasksList />
         </div>
       </div>
 
-      <div className="md:col-span-3">
-        <TasksList />
+      {/* Row 3: Hot Contacts + Active Deals + Activity */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-5">
+        <div className="lg:col-span-3">
+          <div className="flex flex-col gap-5">
+            <HotContacts />
+            <NoshoAIAssist />
+          </div>
+        </div>
+        <div className="lg:col-span-4">
+          <ActiveDeals />
+        </div>
+        <div className="lg:col-span-5">
+          <DashboardActivityLog />
+        </div>
       </div>
     </div>
   );
