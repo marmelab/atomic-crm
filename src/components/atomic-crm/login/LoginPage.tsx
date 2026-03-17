@@ -64,66 +64,60 @@ export const LoginPage = (props: { redirectTo?: string }) => {
   };
 
   return (
-    <div className="min-h-screen flex bg-[#faf9f7]">
+    <div className="min-h-screen flex items-center justify-center bg-[#faf9f7]">
       {/* Blobs de fond globaux */}
       <div className="fixed inset-0 pointer-events-none overflow-hidden">
         <div
-          className="absolute -top-32 -left-32 w-[500px] h-[500px] rounded-full opacity-40"
+          className="absolute -top-24 -left-24 w-[380px] h-[380px] rounded-full opacity-40"
           style={{ background: "radial-gradient(circle, #FF9B54 0%, transparent 70%)" }}
         />
         <div
-          className="absolute top-1/2 -right-48 w-[400px] h-[400px] rounded-full opacity-20"
+          className="absolute top-1/2 -right-32 w-[300px] h-[300px] rounded-full opacity-20"
           style={{ background: "radial-gradient(circle, #92B592 0%, transparent 70%)" }}
         />
         <div
-          className="absolute -bottom-24 left-1/3 w-[300px] h-[300px] rounded-full opacity-15"
+          className="absolute -bottom-16 left-1/3 w-[220px] h-[220px] rounded-full opacity-15"
           style={{ background: "radial-gradient(circle, #FF9B54 0%, transparent 70%)" }}
         />
       </div>
 
-      <div className="relative z-10 grid w-full lg:grid-cols-2">
+      <div className="relative z-10 grid w-full max-w-[1100px] mx-auto px-6 lg:grid-cols-2 lg:gap-16 min-h-screen lg:min-h-0 lg:items-center">
 
         {/* ── Panneau gauche ── */}
-        <div className="hidden lg:flex flex-col justify-between p-12 xl:p-16">
+        <div className="hidden lg:flex flex-col justify-between py-16 pr-8">
           {/* Logo */}
           <div className="flex items-center gap-3">
-            <div
-              className="w-10 h-10 rounded-xl flex items-center justify-center shadow-md flex-shrink-0"
-              style={{ backgroundColor: "#FF9B54" }}
-            >
-              <img
-                src="/appIcon/40.png"
-                alt="Nosho"
-                className="w-7 h-7 object-contain"
-                style={{ filter: "brightness(0) invert(1)" }}
-              />
-            </div>
+            <img
+              src="/appIcon/40.png"
+              alt="Nosho"
+              className="w-10 h-10 rounded-xl shadow-sm flex-shrink-0 object-cover"
+            />
             <span className="text-lg font-semibold text-gray-900 tracking-tight">
               {title}
             </span>
           </div>
 
           {/* Hero text */}
-          <div className="space-y-8">
+          <div className="space-y-5">
             <p
               className="text-xs font-semibold tracking-[0.2em] uppercase"
               style={{ color: "#FF9B54" }}
             >
               CRM Commercial
             </p>
-            <h1 className="text-4xl xl:text-5xl font-bold text-gray-900 leading-tight">
+            <h1 className="text-3xl xl:text-4xl font-bold text-gray-900 leading-tight">
               Gérez vos clients,{" "}
               <span style={{ color: "#FF9B54" }}>
                 développez votre chiffre d'affaires.
               </span>
             </h1>
-            <p className="text-gray-500 text-lg leading-relaxed max-w-md">
+            <p className="text-gray-500 text-base leading-relaxed">
               Nosho CRM centralise vos contacts, opportunités et activités pour que votre
               équipe commerciale soit toujours au top.
             </p>
 
             {/* Feature cards */}
-            <div className="grid grid-cols-2 gap-4 pt-2">
+            <div className="grid grid-cols-2 gap-3 pt-1">
               {[
                 {
                   icon: "🎯",
@@ -138,12 +132,12 @@ export const LoginPage = (props: { redirectTo?: string }) => {
               ].map((f) => (
                 <div
                   key={f.title}
-                  className="rounded-2xl p-5 border border-gray-100 shadow-sm"
+                  className="rounded-xl p-4 border border-gray-100 shadow-sm"
                   style={{ backgroundColor: "rgba(255,255,255,0.8)", backdropFilter: "blur(8px)" }}
                 >
-                  <span className="text-2xl">{f.icon}</span>
-                  <p className="mt-2 font-semibold text-gray-900 text-sm">{f.title}</p>
-                  <p className="mt-1 text-gray-500 text-xs leading-relaxed">{f.desc}</p>
+                  <span className="text-xl">{f.icon}</span>
+                  <p className="mt-1.5 font-semibold text-gray-900 text-sm">{f.title}</p>
+                  <p className="mt-0.5 text-gray-500 text-xs leading-relaxed">{f.desc}</p>
                 </div>
               ))}
             </div>
@@ -156,7 +150,7 @@ export const LoginPage = (props: { redirectTo?: string }) => {
         </div>
 
         {/* ── Panneau droit (formulaire) ── */}
-        <div className="flex flex-col justify-center items-center w-full p-6 lg:p-12">
+        <div className="flex flex-col justify-center items-center w-full py-16 lg:pl-8">
           {/* Logo mobile */}
           <div className="flex lg:hidden items-center gap-2 mb-10">
             <div
