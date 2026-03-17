@@ -48,3 +48,21 @@ ALTER TABLE deals
     GENERATED ALWAYS AS (lower(immutable_unaccent(coalesce(description, '')))) STORED;
 
 CREATE INDEX IF NOT EXISTS idx_deals_name_search ON deals (name_search);
+
+-- ── Recreate contacts_summary to expose _search columns ──────────────────────
+-- The view used explicit column selection — we switch to co.* to automatically
+-- expose all columns (including the newly added *_search generated columns).
+DROP VIEW IF EXISTS contacts_summary;
+CREATE VIEW contacts_summary
+  WITH (security_invoker = on)
+  AS
+  SELECT
+    co.*,
+    c.name AS company_name,
+    jsonb_path_query_array(co.email_jsonb, '$[*].email')::text AS email_fts,
+    jsonb_path_query_array(co.phone_jsonb, '$[*].number')::text AS phone_fts,
+    count(DISTINCT t.id) AS nb_tasks
+  FROM contacts co
+  LEFT JOIN tasks t ON co.id = t.contact_id
+  LEFT JOIN companies c ON co.company_id = c.id
+  GROUP BY co.id, c.name;
