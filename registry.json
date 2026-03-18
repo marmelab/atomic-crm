@@ -654,6 +654,10 @@
           "type": "registry:component"
         },
         {
+          "path": "src/components/atomic-crm/contacts/cleanupContact.ts",
+          "type": "registry:component"
+        },
+        {
           "path": "src/components/atomic-crm/contacts/TagsListEdit.tsx",
           "type": "registry:component"
         },
