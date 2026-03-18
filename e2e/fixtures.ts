@@ -120,10 +120,16 @@ async function createNotes({
   }
 }
 
-async function createCompany({ name }: { name: string }) {
+async function createCompany({
+  name,
+  salesId,
+}: {
+  name: string;
+  salesId: string | number;
+}) {
   const { data, error } = await adminSupabase
     .from("companies")
-    .insert({ name })
+    .insert({ name, sales_id: salesId })
     .select("id")
     .single();
 
@@ -187,17 +193,9 @@ async function createContact({
   return data;
 }
 
-const getMenuMethod = ({
-  page,
-  isMobile,
-}: {
-  page: any;
-  isMobile: boolean;
-}) => ({
+const getMenuMethod = ({ page }: { page: any; isMobile: boolean }) => ({
   goToDashboard: async () => {
-    await page
-      .getByRole("link", { name: isMobile ? "Home" : "Dashboard" })
-      .click();
+    await page.getByRole("link", { name: "Dashboard" }).click();
     await page.waitForLoadState("networkidle");
   },
   goToContacts: async () => {

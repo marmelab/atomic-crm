@@ -11,6 +11,7 @@ test.describe("user adding a task", () => {
 
     const company = await createCompany({
       name: "Smith Corp",
+      salesId: sales.id,
     });
 
     await createContact({
@@ -75,8 +76,8 @@ test.describe("user adding a task", () => {
     ).not.toBeVisible();
 
     if (isMobile) {
-      await expect(page.getByText("1 Tasks")).toBeVisible();
-      await page.getByText("1 Tasks").click();
+      await expect(page.getByText("1 task")).toBeVisible();
+      await page.getByText("1 task").click();
 
       await expect(page.getByText("Follow up with Jane")).toBeVisible();
       await expect(page.getByText("due 4/11/2026, 9:00:00 PM")).toBeVisible();

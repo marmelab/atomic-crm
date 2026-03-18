@@ -46,6 +46,7 @@ start-supabase-e2e: ## start a separate supabase instance for e2e (fresh DB ever
 	mkdir -p .supabase-e2e/supabase
 	cp supabase/config.e2e.toml .supabase-e2e/supabase/config.toml
 	cp -r supabase/migrations .supabase-e2e/supabase/migrations
+	cp -r supabase/schemas .supabase-e2e/supabase/schemas
 	cp -r supabase/functions .supabase-e2e/supabase/functions
 	cp -r supabase/templates .supabase-e2e/supabase/templates
 	cp supabase/seed.sql .supabase-e2e/supabase/seed.sql

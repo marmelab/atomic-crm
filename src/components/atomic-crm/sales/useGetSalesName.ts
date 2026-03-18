@@ -11,6 +11,7 @@ export const useGetSalesName = (
     { ids: id !== null ? [id] : undefined },
     { enabled },
   );
+
   return data
     ? `${data[0].first_name} ${data[0].last_name}`
     : error

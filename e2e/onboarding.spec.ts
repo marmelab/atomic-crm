@@ -26,7 +26,7 @@ test("user onboarding", async ({ page, isMobile, menu }) => {
   await page.getByLabel("Last name").fill("Smith");
   await page.getByLabel("Title").fill("CEO");
   await page.getByLabel("Company").click();
-  await page.getByPlaceholder("Search...").fill("Smith Corp");
+  await page.getByPlaceholder("Search").fill("Smith Corp");
   await page.getByText("Create Smith Corp").click();
   await page
     .getByRole("group", { name: "Email addresses" })
@@ -80,10 +80,11 @@ test("user onboarding", async ({ page, isMobile, menu }) => {
     .click();
 
   await expect(page.getByText("Element created")).toBeVisible();
+  await expect(page.getByText("Element created")).toBeHidden();
   await page.waitForLoadState("networkidle");
 
   await expect(
-    page.getByText(isMobile ? "By you" : "You added a note"),
+    page.getByText(isMobile ? "Me" : "You added a note", { exact: false }),
   ).toBeVisible();
   await expect(page.getByText("This is a note about Jane.")).toBeVisible();
 
