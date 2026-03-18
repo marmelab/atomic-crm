@@ -15,6 +15,8 @@ export const ContactCreate = () => {
         first_seen: new Date().toISOString(),
         last_seen: new Date().toISOString(),
         tags: [],
+        phone_jsonb: data.phone_jsonb?.filter((p) => p.number !== null) || [],
+        email_jsonb: data.email_jsonb?.filter((e) => e.email !== null) || [],
       })}
     >
       <div className="mt-2 flex lg:mr-72">
