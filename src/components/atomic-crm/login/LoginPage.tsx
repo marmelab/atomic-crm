@@ -81,7 +81,7 @@ export const LoginPage = (props: { redirectTo?: string }) => {
         />
       </div>
 
-      <div className="relative z-10 grid w-full max-w-[1100px] mx-auto px-6 lg:grid-cols-2 lg:gap-16 min-h-screen lg:min-h-0 lg:items-center">
+      <div className="relative z-10 grid w-full max-w-[950px] mx-auto px-6 lg:grid-cols-2 lg:gap-12 min-h-screen lg:min-h-0 lg:items-center">
 
         {/* ── Panneau gauche ── */}
         <div className="hidden lg:flex flex-col py-16 pr-8">
