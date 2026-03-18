@@ -39,7 +39,7 @@ test.describe("user adding a task", () => {
       company_id: company.id,
     });
   });
-  test("user adding a task", async ({ page, isMobile, menu }) => {
+  test("user adding a task", async ({ page, isMobile, menu, dismissToast }) => {
     await page.goto("http://localhost:5175/");
     await page.getByLabel("Email").fill("john@doe.com");
     await page.getByLabel("Password").fill("password");
@@ -67,13 +67,7 @@ test.describe("user adding a task", () => {
 
     await page.getByRole("button", { name: "Save" }).click();
 
-    await expect(
-      page.getByText(
-        isMobile
-          ? "Create Task for Jane Smith"
-          : "Create a new task for Jane Smith",
-      ),
-    ).not.toBeVisible();
+    await dismissToast("Task added");
 
     if (isMobile) {
       await expect(page.getByText("1 task")).toBeVisible();

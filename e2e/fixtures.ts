@@ -1,4 +1,4 @@
-import { test as base, expect } from "@playwright/test";
+import { test as base, expect, type Page } from "@playwright/test";
 import { createClient } from "@supabase/supabase-js";
 
 const adminSupabase = createClient(
@@ -193,7 +193,7 @@ async function createContact({
   return data;
 }
 
-const getMenuMethod = ({ page }: { page: any; isMobile: boolean }) => ({
+const getMenuMethod = ({ page }: { page: Page; isMobile: boolean }) => ({
   goToDashboard: async () => {
     await page.getByRole("link", { name: "Dashboard" }).click();
     await page.waitForLoadState("networkidle");
@@ -204,6 +204,13 @@ const getMenuMethod = ({ page }: { page: any; isMobile: boolean }) => ({
   },
 });
 
+const dismissToast = async (page: Page, content: string) => {
+  await expect(page.getByText(content)).toBeVisible();
+  await page.getByLabel("Close toast").click();
+  // Since we are in optimistic UI, dismissing the toast trigger the request to the api linked to the toast message
+  await page.waitForLoadState("networkidle");
+};
+
 export const test = base.extend<{
   resetDb: void;
   createUser: typeof createUser;
@@ -212,6 +219,7 @@ export const test = base.extend<{
   createContact: typeof createContact;
   createNotes: typeof createNotes;
   menu: ReturnType<typeof getMenuMethod>;
+  dismissToast: (content: string) => Promise<void>;
 }>({
   resetDb: [
     // The first argument to a Playwright fixture function must use object destructuring ({}) — _ is not allowed.
@@ -245,6 +253,9 @@ export const test = base.extend<{
   },
   menu: async ({ page, isMobile }, cb) => {
     await cb(getMenuMethod({ page, isMobile }));
+  },
+  dismissToast: async ({ page }, cb) => {
+    await cb((content: string) => dismissToast(page, content));
   },
 });
 
