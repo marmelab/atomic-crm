@@ -1,88 +1,104 @@
-# Atomic CRM
+# Nosho CRM
 
-A full-featured CRM built with React, shadcn-admin-kit, and Supabase.
+Un CRM complet et moderne construit avec React 19, shadcn/ui, et Supabase.
 
-<https://github.com/user-attachments/assets/0d7554b5-49ef-41c6-bcc9-a76214fc5c99>
-
-Atomic CRM is free and open-source. You can test it online at <https://marmelab.com/atomic-crm-demo>.
+> Fork de [Atomic CRM](https://github.com/marmelab/atomic-crm) par Marmelab, adapté et personnalisé pour Nosho.
 
 ## Features
 
-- 📇 **Organize Contacts**: Keep all your contacts in one easily accessible place.
-- ⏰ **Create Tasks & Set Reminders**: Never miss a follow-up or deadline.
-- 📝 **Take Notes**: Capture important details and insights effortlessly.
-- ✉️ **Capture Emails**: CC Atomic CRM to automatically save communications as notes.
-- 📊 **Manage Deals**: Visualize and track your sales pipeline in a Kanban board.
-- 🔄 **Import & Export Data**: Easily transfer contacts in and out of the system.
-- 🔐 **Control Access**: Log in with Google, Azure, Keycloak, and Auth0.
-- 📜 **Track Activity History**: View all interactions in aggregated activity logs.
-- 🔗 **Integrate via API**: Connect seamlessly with other systems using our API.
-- 🛠️ **Customize Everything**: Add custom fields, change the theme, and replace any component to fit your needs.
+- 📇 **Contacts & Sociétés** — Gestion centralisée de vos contacts et entreprises
+- 📊 **Pipeline Kanban** — Visualisez et pilotez vos opportunités en drag & drop
+- ⚡ **Alertes Slack temps réel** — Notifications instantanées à chaque nouveau deal (PostgreSQL triggers)
+- 📝 **Notes & Activités** — Historique complet des interactions
+- 🔄 **Import & Export** — CSV, données facilement transférables
+- 🔐 **Authentification** — Email/mot de passe + Google SSO
+- 🌍 **Multilingue** — Français & Anglais
+- 🎨 **Thème personnalisé** — Design Nosho avec dark mode
 
-## Installation
+## Tech Stack
 
-To run this project locally, you will need the following tools installed on your computer:
+### Core
 
-- Make
-- Node 22 LTS
-- Docker (required by Supabase)
+| Technologie | Version | Rôle |
+|---|---|---|
+| React | 19.1 | Framework UI |
+| TypeScript | 5.8 | Typage statique |
+| Vite | 7.3 | Bundler & dev server |
+| React Router | 7.13 | Navigation SPA |
 
-Fork the [`marmelab/atomic-crm`](https://github.com/marmelab/atomic-crm) repository to your user/organization, then clone it locally:
+### UI & Design System
+
+| Technologie | Version | Rôle |
+|---|---|---|
+| Tailwind CSS | 4.1 | Utility-first CSS |
+| shadcn/ui | 3.5 | Composants UI (36 installés) |
+| Radix UI | — | Primitives accessibles (18 packages) |
+| Lucide React | 0.542 | Bibliothèque d'icônes |
+| class-variance-authority | 0.7 | Variants de composants |
+
+### Data & Backend
+
+| Technologie | Version | Rôle |
+|---|---|---|
+| Supabase | — | Backend-as-a-Service (Auth, DB, Storage) |
+| React Admin (ra-core) | 5.14 | Framework CRUD/admin |
+| TanStack React Query | 5.90 | Cache & data fetching |
+| React Hook Form | 7.71 | Gestion de formulaires |
+| Zod | 4.1 | Validation de schémas |
+
+### Visualisation & UX
+
+| Technologie | Version | Rôle |
+|---|---|---|
+| Nivo | 0.99 | Graphiques (barres) |
+| @hello-pangea/dnd | 18.0 | Drag & drop (pipeline Kanban) |
+| cmdk | 1.1 | Command palette (⌘K) |
+| Sonner | 2.0 | Toasts / notifications |
+| Vaul | 1.1 | Drawer mobile |
+
+### Monitoring & Qualité
+
+| Technologie | Version | Rôle |
+|---|---|---|
+| Sentry | 10.43 | Error tracking production |
+| Vitest | 3.2 | Tests unitaires |
+| ESLint | 9.22 | Linting |
+| Prettier | 3.6 | Formatting |
+| Husky | 9.1 | Git hooks (pre-commit) |
+
+### Utilitaires
+
+| Technologie | Rôle |
+|---|---|
+| Lodash | Utilitaires JS |
+| PapaParse | Parsing CSV |
+| Marked | Markdown → HTML |
+| DOMPurify | Sanitisation HTML (XSS) |
+| next-themes | Thème clair/sombre |
+
+## Déploiement
+
+| Élément | Service |
+|---|---|
+| **Hébergement** | Coolify Cloud + Scaleway |
+| **Base de données** | Supabase (PostgreSQL) |
+| **CI/CD** | GitHub → Coolify (auto-deploy sur push) |
+| **Monitoring** | Sentry |
+| **Notifications** | Slack (via PostgreSQL triggers) |
+
+## Installation locale
+
+Prérequis : Node 22 LTS, Docker
 
 ```sh
-git clone https://github.com/[username]/atomic-crm.git
+git clone https://github.com/nosho-org/nosho-crm.git
+cd nosho-crm
+npm install
+npm run dev
 ```
 
-Install dependencies:
-
-```sh
-cd atomic-crm
-make install
-```
-
-This will install the dependencies for the frontend and the backend, including a local Supabase instance.
-
-Once your app is configured, start the app locally with the following command:
-
-```sh
-make start
-```
-
-This will start the Vite dev server for the frontend, the local Supabase instance for the API, and a Postgres database (thanks to Docker).
-
-You can then access the app via [http://localhost:5173/](http://localhost:5173/). You will be prompted to create the first user.
-
-If you need debug the backend, you can access the following services:
-
-- Supabase dashboard: [http://localhost:54323/](http://localhost:54323/)
-- REST API: [http://127.0.0.1:54321](http://127.0.0.1:54321)
-- Attachments storage: [http://localhost:54323/project/default/storage/buckets/attachments](http://localhost:54323/project/default/storage/buckets/attachments)
-- Inbucket email testing service: [http://localhost:54324/](http://localhost:54324/)
-
-## Documentation
-
-The user and developer documentation for this project is available [in the `doc/` directory](./doc/). You can also read it online at [https://marmelab.com/atomic-crm/doc/](https://marmelab.com/atomic-crm/doc/).
-
-## Testing Changes
-
-This project contains unit tests. Run them with the following command:
-
-```sh
-make test
-```
-
-You can add your own unit tests powered by Jest anywhere in the `src` directory. The test files should be named `*.test.tsx` or `*.test.ts`.
-
-## Registry
-
-Atomic CRM components are published as a Shadcn Registry file:
-
-- The `registry.json` file is automatically generated by the `scripts/generate-registry.mjs` script as a pre-commit hook.
-- The `http://marmelab.com/atomic-crm/r/atomic-crm.json` file is automatically published by the CI/CD pipeline
-
-> [!WARNING]  
-> If the `registry.json` misses some changes you made, you MUST update the `scripts/generate-registry.mjs` to include those changes.
+L'app est accessible sur [http://localhost:5173](http://localhost:5173).
 
 ## License
 
-This project is licensed under the MIT License, courtesy of [Marmelab](https://marmelab.com). See the [LICENSE.md](./LICENSE.md) file for details.
+Ce projet est sous licence MIT, basé sur [Atomic CRM](https://github.com/marmelab/atomic-crm) par [Marmelab](https://marmelab.com).
