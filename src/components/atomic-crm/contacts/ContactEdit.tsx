@@ -1,5 +1,5 @@
 import { Card, CardContent } from "@/components/ui/card";
-import { EditBase, Form, useEditContext } from "ra-core";
+import { EditBase, Form, useEditContext, type MutationMode } from "ra-core";
 
 import type { Contact } from "../types";
 import { ContactAside } from "./ContactAside";
@@ -11,8 +11,16 @@ import {
   defaultPhoneJsonb,
 } from "./cleanupContact";
 
-export const ContactEdit = () => (
-  <EditBase redirect="show" transform={cleanupContactForEdit}>
+export const ContactEdit = ({
+  mutationMode,
+}: {
+  mutationMode?: MutationMode;
+}) => (
+  <EditBase
+    redirect="show"
+    transform={cleanupContactForEdit}
+    mutationMode={mutationMode}
+  >
     <ContactEditContent />
   </EditBase>
 );
