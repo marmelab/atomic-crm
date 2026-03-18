@@ -393,6 +393,26 @@ const normalizeSearchQuery = (q: string): string =>
     .replace(/\p{Diacritic}/gu, "")
     .trim();
 
+/**
+ * Columns that have a corresponding `_search` generated column in the DB
+ * (lowercase + unaccented). Only these get the extra `_search@ilike` filter.
+ */
+const SEARCHABLE_COLUMNS = new Set([
+  // companies
+  "name",
+  "city",
+  "state_abbr",
+  // contacts
+  "first_name",
+  "last_name",
+  "title",
+  "background",
+  "company_name",
+  // deals
+  "category",
+  "description",
+]);
+
 const applyFullTextSearch = (columns: string[]) => (params: GetListParams) => {
   if (!params.filter?.q) {
     return params;
@@ -406,12 +426,15 @@ const applyFullTextSearch = (columns: string[]) => (params: GetListParams) => {
       (acc, column) => {
         if (column === "email") return { ...acc, [`email_fts@ilike`]: term };
         if (column === "phone") return { ...acc, [`phone_fts@ilike`]: term };
-        // Also search on the _search generated column (unaccented, stored in DB)
-        return {
+        const conditions: Record<string, string> = {
           ...acc,
           [`${column}@ilike`]: term,
-          [`${column}_search@ilike`]: term,
         };
+        // Only add _search filter for columns that have a generated _search column
+        if (SEARCHABLE_COLUMNS.has(column)) {
+          conditions[`${column}_search@ilike`] = term;
+        }
+        return conditions;
       },
       {} as Record<string, string>,
     );
