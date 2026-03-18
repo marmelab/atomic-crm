@@ -226,3 +226,146 @@ export interface ContactGender {
   label: string;
   icon: ComponentType<{ className?: string }>;
 }
+
+// --- Band CRM Types ---
+
+/**
+ * Venue - Physical performance location
+ * Separate from Company (which is the hiring entity)
+ */
+export type Venue = {
+  name: string;
+  address?: string;
+  city?: string;
+  postcode?: string;
+  country?: string;
+  capacity?: number;
+  stage_size?: string;
+  parking_info?: string;
+  load_in_notes?: string;
+  contact_name?: string;
+  contact_phone?: string;
+  contact_email?: string;
+  website?: string;
+  notes?: string;
+  created_at?: string;
+  updated_at?: string;
+} & Pick<RaRecord, "id">;
+
+/**
+ * Gig - Extends Deal with band-specific fields
+ * Includes venue reference and performance details
+ */
+export type Gig = Deal & {
+  venue_id?: Identifier;
+  // Joined from deals_summary view
+  venue_name?: string;
+  venue_city?: string;
+  venue_address?: string;
+  // Gig-specific fields
+  performance_date?: string;
+  start_time?: string;
+  end_time?: string;
+  set_count?: number;
+  fee?: number;
+  deposit?: number;
+  deposit_paid?: boolean;
+  travel_expenses?: number;
+  quote_sent_at?: string;
+  invoice_sent_at?: string;
+};
+
+/**
+ * GigMember - Band member assigned to a specific gig
+ */
+export type GigMember = {
+  gig_id: Identifier;
+  sales_id: Identifier;
+  role?: string;
+  confirmed: boolean;
+  created_at?: string;
+  // Joined fields
+  sales_name?: string;
+  sales_email?: string;
+} & Pick<RaRecord, "id">;
+
+/**
+ * Song - Entry in the band's songbook
+ */
+export type Song = {
+  title: string;
+  artist?: string;
+  key?: string;
+  tempo?: number;
+  duration?: number; // seconds
+  genre?: string;
+  notes?: string;
+  lyrics_url?: string;
+  chart_url?: string;
+  tags?: string[];
+  active: boolean;
+  created_at?: string;
+  updated_at?: string;
+} & Pick<RaRecord, "id">;
+
+/**
+ * SetListTemplate - Reusable set list template
+ */
+export type SetListTemplate = {
+  name: string;
+  description?: string;
+  created_at?: string;
+  updated_at?: string;
+} & Pick<RaRecord, "id">;
+
+/**
+ * SetList - Set list for a specific gig or template
+ */
+export type SetList = {
+  gig_id?: Identifier;
+  template_id?: Identifier;
+  name: string;
+  position: number;
+  created_at?: string;
+  songs?: SetListSong[]; // Hydrated
+} & Pick<RaRecord, "id">;
+
+/**
+ * SetListSong - Individual song in a set list
+ */
+export type SetListSong = {
+  set_list_id: Identifier;
+  song_id: Identifier;
+  position: number;
+  notes?: string;
+  created_at?: string;
+  // Joined from song
+  title?: string;
+  artist?: string;
+  key?: string;
+  duration?: number;
+} & Pick<RaRecord, "id">;
+
+/**
+ * QuoteTemplate - Reusable quote template with Handlebars variables
+ */
+export type QuoteTemplate = {
+  name: string;
+  body_html: string;
+  is_default: boolean;
+  created_at?: string;
+  updated_at?: string;
+} & Pick<RaRecord, "id">;
+
+/**
+ * GigQuote - Generated quote for a specific gig
+ */
+export type GigQuote = {
+  gig_id: Identifier;
+  template_id?: Identifier;
+  rendered_html: string;
+  sent_at?: string;
+  accepted_at?: string;
+  version: number;
+  created_at?: string;
+} & Pick<RaRecord, "id">;
