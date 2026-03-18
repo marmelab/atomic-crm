@@ -25,16 +25,27 @@ export const useAddInfinitePagination = () => {
       .flatMap(([, pageData]) => pageData);
   }, [allPages]);
 
+  const visibleData = useMemo(() => {
+    if (allLoadedData.length > 0) {
+      return allLoadedData;
+    }
+
+    // Before the first page is persisted into allPages, still expose the
+    // current list data so pagination logic doesn't behave as if the list were
+    // empty.
+    return page === 1 && data ? data : allLoadedData;
+  }, [allLoadedData, data, page]);
+
   return {
     isPending,
     error,
-    data: allLoadedData,
+    data: visibleData,
     refetch,
     infinitePaginationContextValue: {
       fetchNextPage: async (): Promise<any> => {
         setPage(page + 1);
       },
-      hasNextPage: allLoadedData.length < (total ?? 0),
+      hasNextPage: visibleData.length < (total ?? 0),
       isFetchingNextPage: isPending,
       fetchPreviousPage: async (): Promise<any> => {
         setPage(page - 1);
