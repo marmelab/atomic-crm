@@ -57,6 +57,9 @@ export const englishCrmMessages = {
         create_item: "Create %{item}",
         create_label: "Start typing to create a new company",
       },
+      filters: {
+        only_mine: "Only companies I manage",
+      },
     },
     contacts: {
       name: "Contact |||| Contacts",
@@ -343,7 +346,13 @@ export const englishCrmMessages = {
     },
   },
   crm: {
+    action: {
+      reset_password: "Reset Password",
+    },
     auth: {
+      first_name: "First name",
+      last_name: "Last name",
+      confirm_password: "Confirm password",
       confirmation_required:
         "Please follow the link we just sent you by email to confirm your account.",
       recovery_email_sent:
