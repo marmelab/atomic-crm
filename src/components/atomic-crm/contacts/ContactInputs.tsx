@@ -134,11 +134,7 @@ const ContactPersonalInformationInputs = () => {
       <h6 className="text-lg font-semibold">
         {translate("resources.contacts.field_categories.personal_info")}
       </h6>
-      <ArrayInput
-        source="email_jsonb"
-        helperText={false}
-        defaultValue={[{ email: null, type: null }]}
-      >
+      <ArrayInput source="email_jsonb" helperText={false}>
         <SimpleFormIterator
           inline
           disableReordering
@@ -166,11 +162,7 @@ const ContactPersonalInformationInputs = () => {
           />
         </SimpleFormIterator>
       </ArrayInput>
-      <ArrayInput
-        source="phone_jsonb"
-        helperText={false}
-        defaultValue={[{ number: null, type: null }]}
-      >
+      <ArrayInput source="phone_jsonb" helperText={false}>
         <SimpleFormIterator
           inline
           disableReordering
