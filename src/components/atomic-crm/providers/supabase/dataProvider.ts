@@ -16,6 +16,13 @@ import type {
   SignUpData,
 } from "../../types";
 import type { ConfigurationContextValue } from "../../root/ConfigurationContext";
+import type {
+  GoogleCalendarEvent,
+  GoogleConnectionStatus,
+  GoogleEmailMessage,
+  GooglePreferences,
+} from "../../google/types";
+import { defaultGooglePreferences } from "../../google/types";
 import { getActivityLog } from "../commons/activity";
 import { ATTACHMENTS_BUCKET } from "../commons/attachments";
 import { getIsInitialized } from "./authProvider";
@@ -266,6 +273,108 @@ const dataProviderWithCustomMethods = {
       previousData: { id: 1 },
     });
     return data.config as ConfigurationContextValue;
+  },
+
+  // ── Google Integration ──────────────────────────────────────────
+  async getGoogleStatus() {
+    const { data, error } = await supabase.functions.invoke<{
+      data: GoogleConnectionStatus;
+    }>("google-oauth", {
+      method: "POST",
+      body: { action: "status" },
+    });
+    if (error) throw new Error("Failed to get Google status");
+    return (
+      data?.data ?? {
+        connected: false,
+        email: null,
+        scopes: [],
+        preferences: defaultGooglePreferences,
+      }
+    );
+  },
+  async getGoogleOAuthUrl() {
+    const { data, error } = await supabase.functions.invoke<{
+      data: { url: string; state: string };
+    }>("google-oauth", {
+      method: "POST",
+      body: { action: "get-auth-url" },
+    });
+    if (error) throw new Error("Failed to get Google OAuth URL");
+    return data!.data;
+  },
+  async exchangeGoogleOAuthCode(code: string) {
+    const { data, error } = await supabase.functions.invoke<{
+      data: { connected: boolean; email: string; scopes: string[] };
+    }>("google-oauth", {
+      method: "POST",
+      body: { action: "exchange-code", code },
+    });
+    if (error) throw new Error("Failed to exchange Google OAuth code");
+    return data!.data;
+  },
+  async disconnectGoogle() {
+    const { error } = await supabase.functions.invoke("google-oauth", {
+      method: "POST",
+      body: { action: "disconnect" },
+    });
+    if (error) throw new Error("Failed to disconnect Google");
+  },
+  async revokeGoogle() {
+    const { error } = await supabase.functions.invoke("google-oauth", {
+      method: "POST",
+      body: { action: "revoke" },
+    });
+    if (error) throw new Error("Failed to revoke Google access");
+  },
+  async updateGooglePreferences(preferences: GooglePreferences) {
+    const { error } = await supabase.functions.invoke("google-oauth", {
+      method: "POST",
+      body: { action: "update-preferences", preferences },
+    });
+    if (error) throw new Error("Failed to update Google preferences");
+    return preferences;
+  },
+  async getUpcomingCalendarEvents(params: {
+    timeMin: string;
+    timeMax: string;
+    maxResults?: number;
+  }) {
+    const { data, error } = await supabase.functions.invoke<{
+      data: { events: GoogleCalendarEvent[]; totalResults: number };
+    }>("google-calendar", {
+      method: "POST",
+      body: { action: "list-events", ...params },
+    });
+    if (error) throw new Error("Failed to fetch calendar events");
+    return data!.data;
+  },
+  async getContactEmails(emails: string[], maxResults?: number) {
+    const { data, error } = await supabase.functions.invoke<{
+      data: {
+        messages: GoogleEmailMessage[];
+        nextPageToken: string | null;
+        totalEstimate: number;
+      };
+    }>("google-gmail", {
+      method: "POST",
+      body: { action: "list-messages", emails, maxResults: maxResults ?? 10 },
+    });
+    if (error) throw new Error("Failed to fetch contact emails");
+    return data!.data;
+  },
+  async getContactCalendarEvents(
+    emails: string[],
+    params?: { timeMin?: string; timeMax?: string; maxResults?: number },
+  ) {
+    const { data, error } = await supabase.functions.invoke<{
+      data: { events: GoogleCalendarEvent[]; totalResults: number };
+    }>("google-calendar", {
+      method: "POST",
+      body: { action: "search-by-attendee", emails, ...params },
+    });
+    if (error) throw new Error("Failed to fetch contact calendar events");
+    return data!.data;
   },
 } satisfies DataProvider;
 

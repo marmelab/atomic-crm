@@ -32,6 +32,8 @@ import {
 import sales from "../sales";
 import { ProfilePage } from "../settings/ProfilePage";
 import { SettingsPage } from "../settings/SettingsPage";
+import { ConnectorsPage } from "../settings/ConnectorsPage";
+import { GoogleOAuthCallback } from "../google/GoogleOAuthCallback";
 import {
   CONFIGURATION_STORE_KEY,
   type ConfigurationContextValue,
@@ -235,11 +237,16 @@ const DesktopAdmin = (props: CoreAdminProps) => {
           element={<ForgotPasswordPage />}
         />
         <Route path={OAuthConsentPage.path} element={<OAuthConsentPage />} />
+        <Route
+          path={GoogleOAuthCallback.path}
+          element={<GoogleOAuthCallback />}
+        />
       </CustomRoutes>
 
       <CustomRoutes>
         <Route path={ProfilePage.path} element={<ProfilePage />} />
         <Route path={SettingsPage.path} element={<SettingsPage />} />
+        <Route path={ConnectorsPage.path} element={<ConnectorsPage />} />
         <Route path={ImportPage.path} element={<ImportPage />} />
       </CustomRoutes>
       <Resource name="deals" {...deals} />
@@ -293,6 +300,10 @@ const MobileAdmin = (props: CoreAdminProps) => {
             element={<ForgotPasswordPage />}
           />
           <Route path={OAuthConsentPage.path} element={<OAuthConsentPage />} />
+          <Route
+            path={GoogleOAuthCallback.path}
+            element={<GoogleOAuthCallback />}
+          />
         </CustomRoutes>
         <Resource
           name="contacts"

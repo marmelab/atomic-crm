@@ -22,10 +22,13 @@ import { TagsListEdit } from "./TagsListEdit";
 import { ContactPersonalInfo } from "./ContactPersonalInfo";
 import { ContactBackgroundInfo } from "./ContactBackgroundInfo";
 import { ContactTasksList } from "./ContactTasksList";
+import { ContactEmailHistory } from "./ContactEmailHistory";
+import { ContactCalendarEvents } from "./ContactCalendarEvents";
 import type { Contact } from "../types";
 import { Avatar } from "./Avatar";
 import { ContactAside } from "./ContactAside";
 import { MobileBackButton } from "../misc/MobileBackButton";
+import { useGoogleConnectionStatus } from "../google/useGoogleConnectionStatus";
 
 export const ContactShow = () => {
   const isMobile = useIsMobile();
@@ -51,6 +54,13 @@ const ContactShowContentMobile = () => {
   const { record, isPending } = useShowContext<Contact>();
   const [noteCreateOpen, setNoteCreateOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
+  const { data: googleStatus } = useGoogleConnectionStatus();
+  const showEmails =
+    googleStatus?.connected && googleStatus.preferences?.showEmailsOnContact;
+  const showCalendar =
+    googleStatus?.connected && googleStatus.preferences?.showCalendarOnContact;
+  const googleTabCount = (showEmails ? 1 : 0) + (showCalendar ? 1 : 0);
+  const totalTabs = 3 + googleTabCount;
   if (isPending || !record) return null;
 
   return (
@@ -123,7 +133,10 @@ const ContactShowContentMobile = () => {
         </div>
 
         <Tabs defaultValue="notes" className="w-full">
-          <TabsList className="grid w-full grid-cols-3 h-10">
+          <TabsList
+            className="grid w-full h-10"
+            style={{ gridTemplateColumns: `repeat(${totalTabs}, 1fr)` }}
+          >
             <TabsTrigger value="notes">Notes</TabsTrigger>
             <TabsTrigger value="tasks">
               <ReferenceManyCount
@@ -133,6 +146,8 @@ const ContactShowContentMobile = () => {
               />{" "}
               Tâches
             </TabsTrigger>
+            {showEmails && <TabsTrigger value="emails">Emails</TabsTrigger>}
+            {showCalendar && <TabsTrigger value="calendar">Agenda</TabsTrigger>}
             <TabsTrigger value="details">Détails</TabsTrigger>
           </TabsList>
 
@@ -169,6 +184,18 @@ const ContactShowContentMobile = () => {
           <TabsContent value="tasks" className="mt-4">
             <ContactTasksList />
           </TabsContent>
+
+          {showEmails && (
+            <TabsContent value="emails" className="mt-4">
+              <ContactEmailHistory />
+            </TabsContent>
+          )}
+
+          {showCalendar && (
+            <TabsContent value="calendar" className="mt-4">
+              <ContactCalendarEvents />
+            </TabsContent>
+          )}
 
           <TabsContent value="details" className="mt-4">
             <div className="space-y-6">

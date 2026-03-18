@@ -1,6 +1,7 @@
 import { useGetList } from "ra-core";
 
 import type { Contact, ContactNote } from "../types";
+import { useGoogleConnectionStatus } from "../google/useGoogleConnectionStatus";
 import { ActiveDeals } from "./ActiveDeals";
 import { DashboardActivityLog } from "./DashboardActivityLog";
 import { DashboardStepper } from "./DashboardStepper";
@@ -9,6 +10,7 @@ import { HotContacts } from "./HotContacts";
 import { KPICards } from "./KPICards";
 import { NoshoAIAssist } from "./NoshoAIAssist";
 import { TasksList } from "./TasksList";
+import { UpcomingCalendarEvents } from "./UpcomingCalendarEvents";
 import { Welcome } from "./Welcome";
 
 export const Dashboard = () => {
@@ -46,6 +48,10 @@ export const Dashboard = () => {
     return <DashboardStepper step={2} contactId={dataContact?.[0]?.id} />;
   }
 
+  const { data: googleStatus } = useGoogleConnectionStatus();
+  const showCalendar =
+    googleStatus?.connected && googleStatus.preferences?.showCalendarOnDashboard;
+
   return (
     <div className="flex flex-col gap-5 mt-1 pb-6">
       {/* Welcome banner (demo only) */}
@@ -54,12 +60,17 @@ export const Dashboard = () => {
       {/* Row 1: KPI Cards */}
       <KPICards />
 
-      {/* Row 2: Revenue Chart + Tasks */}
+      {/* Row 2: Revenue Chart + Calendar + Tasks */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
-        <div className="lg:col-span-8">
+        <div className={showCalendar ? "lg:col-span-6" : "lg:col-span-8"}>
           {totalDeal ? <DealsChart /> : null}
         </div>
-        <div className="lg:col-span-4">
+        {showCalendar && (
+          <div className="lg:col-span-3">
+            <UpcomingCalendarEvents />
+          </div>
+        )}
+        <div className={showCalendar ? "lg:col-span-3" : "lg:col-span-4"}>
           <TasksList />
         </div>
       </div>

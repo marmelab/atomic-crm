@@ -1,4 +1,4 @@
-import { Import, Settings, User, Users } from "lucide-react";
+import { Import, Plug, Settings, User, Users } from "lucide-react";
 import { CanAccess, useUserMenu } from "ra-core";
 import { Link, matchPath, useLocation } from "react-router";
 import { RefreshButton } from "@/components/admin/refresh-button";
@@ -80,6 +80,7 @@ const Header = () => {
                   <CanAccess resource="sales" action="list">
                     <UsersMenu />
                   </CanAccess>
+                  <ConnectorsMenu />
                   <CanAccess resource="configuration" action="edit">
                     <SettingsMenu />
                   </CanAccess>
@@ -139,6 +140,20 @@ const ProfileMenu = () => {
       <Link to="/profile" className="flex items-center gap-2">
         <User />
         Profil
+      </Link>
+    </DropdownMenuItem>
+  );
+};
+
+const ConnectorsMenu = () => {
+  const userMenuContext = useUserMenu();
+  if (!userMenuContext) {
+    throw new Error("<ConnectorsMenu> must be used inside <UserMenu>");
+  }
+  return (
+    <DropdownMenuItem asChild onClick={userMenuContext.onClose}>
+      <Link to="/connectors" className="flex items-center gap-2">
+        <Plug /> Connecteurs
       </Link>
     </DropdownMenuItem>
   );
