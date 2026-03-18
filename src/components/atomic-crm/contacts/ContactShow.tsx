@@ -58,6 +58,8 @@ const ContactShowContentMobile = () => {
   const [editOpen, setEditOpen] = useState(false);
   if (isPending || !record) return null;
 
+  const taskCount = record.nb_tasks ?? 0;
+
   return (
     <>
       {/* We need to repeat the note creation sheet here to support the note 
@@ -135,7 +137,7 @@ const ContactShowContentMobile = () => {
             </TabsTrigger>
             <TabsTrigger value="tasks">
               {translate("crm.common.task_count", {
-                smart_count: record.nb_tasks,
+                smart_count: taskCount,
               })}
             </TabsTrigger>
             <TabsTrigger value="details">

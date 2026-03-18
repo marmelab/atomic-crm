@@ -2,6 +2,7 @@
 import { Notification } from "@/components/admin/notification";
 import { ThemeProvider } from "@/components/admin/theme-provider";
 import { ContactList } from "@/components/atomic-crm/contacts/ContactList";
+import { ContactShow } from "@/components/atomic-crm/contacts/ContactShow";
 import {
   ContactListContent,
   ContactListContentMobile,
@@ -30,7 +31,7 @@ import {
   type AuthProvider,
 } from "ra-core";
 import { useMemo, useState, type ReactNode } from "react";
-import { MemoryRouter } from "react-router";
+import { MemoryRouter, Route, Routes } from "react-router";
 
 const listSort = { field: "last_seen", order: "DESC" } as const;
 const listPerPage = 25;
@@ -59,6 +60,10 @@ const resourceDefinitions = {
   },
   configuration: {
     name: "configuration",
+  },
+  contact_notes: {
+    hasList: true,
+    name: "contact_notes",
   },
   contacts: {
     hasCreate: true,
@@ -318,3 +323,9 @@ export const OpenTaskCreateSheetHarness = () => {
 
   return <TaskCreateSheet open={open} onOpenChange={setOpen} />;
 };
+
+export const MobileContactShowHarness = () => (
+  <Routes>
+    <Route path="/contacts/:id/show" element={<ContactShow />} />
+  </Routes>
+);
