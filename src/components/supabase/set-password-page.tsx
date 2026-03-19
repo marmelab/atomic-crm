@@ -101,7 +101,7 @@ export const SetPasswordPage = () => {
           validate={required()}
         />
         <TextInput
-          label={translate("ra.auth.confirm_password", {
+          label={translate("crm.auth.confirm_password", {
             _: "Confirm password",
           })}
           source="confirmPassword"

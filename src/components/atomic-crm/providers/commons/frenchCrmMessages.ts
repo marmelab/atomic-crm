@@ -60,6 +60,9 @@ export const frenchCrmMessages = {
         create_item: "Créer %{item}",
         create_label: "Commencez à taper pour créer une nouvelle entreprise",
       },
+      filters: {
+        only_mine: "Seulement les entreprises que je gère",
+      },
     },
     contacts: {
       name: "Contact |||| Contacts",
@@ -348,7 +351,13 @@ export const frenchCrmMessages = {
     },
   },
   crm: {
+    action: {
+      reset_password: "Réinitialiser le mot de passe",
+    },
     auth: {
+      first_name: "Prénom",
+      last_name: "Nom",
+      confirm_password: "Confirmer le mot de passe",
       confirmation_required:
         "Veuillez suivre le lien que nous venons de vous envoyer par email pour confirmer votre compte.",
       recovery_email_sent:
