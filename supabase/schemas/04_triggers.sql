@@ -38,6 +38,21 @@ create or replace trigger contact_saved
     before insert or update on public.contacts
     for each row execute function public.handle_contact_saved();
 
+-- Lowercase company website before insert or update
+create or replace trigger lowercase_company_website
+    before insert or update on public.companies
+    for each row execute function public.lowercase_website();
+
+-- Lowercase contact emails before insert or update
+create or replace trigger lowercase_contact_emails
+    before insert or update on public.contacts
+    for each row execute function public.lowercase_email_jsonb();
+
+-- Lowercase sales email before insert or update
+create or replace trigger lowercase_sales_email
+    before insert or update on public.sales
+    for each row execute function public.lowercase_email();
+
 -- Update contact.last_seen when a contact note is created
 create or replace trigger on_public_contact_notes_created_or_updated
     after insert on public.contact_notes

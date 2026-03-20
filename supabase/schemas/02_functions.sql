@@ -425,6 +425,47 @@ BEGIN
 END;
 $$;
 
+CREATE OR REPLACE FUNCTION "public"."lowercase_email"() RETURNS "trigger"
+    LANGUAGE "plpgsql"
+    SET "search_path" TO 'public'
+    AS $$
+BEGIN
+  IF NEW.email IS NOT NULL THEN
+    NEW.email = LOWER(NEW.email);
+  END IF;
+  RETURN NEW;
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION "public"."lowercase_email_jsonb"() RETURNS "trigger"
+    LANGUAGE "plpgsql"
+    SET "search_path" TO 'public'
+    AS $$
+BEGIN
+  IF NEW.email_jsonb IS NOT NULL THEN
+    NEW.email_jsonb = (
+      SELECT jsonb_agg(
+        jsonb_set(elem, '{email}', to_jsonb(LOWER(elem->>'email')))
+      )
+      FROM jsonb_array_elements(NEW.email_jsonb) AS elem
+    );
+  END IF;
+  RETURN NEW;
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION "public"."lowercase_website"() RETURNS "trigger"
+    LANGUAGE "plpgsql"
+    SET "search_path" TO 'public'
+    AS $$
+BEGIN
+  IF NEW.website IS NOT NULL THEN
+    NEW.website = LOWER(NEW.website);
+  END IF;
+  RETURN NEW;
+END;
+$$;
+
 CREATE OR REPLACE FUNCTION "public"."set_sales_id_default"() RETURNS "trigger"
     LANGUAGE "plpgsql"
     SET "search_path" TO 'public'
