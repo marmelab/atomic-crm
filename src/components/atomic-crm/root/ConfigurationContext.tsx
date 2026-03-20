@@ -11,6 +11,8 @@ export interface CustomView {
   label: string;
   companyType: string;
   visibleStages?: string[];
+  /** Sales IDs allowed to see this view. undefined or [] = all users. */
+  allowedUserIds?: number[];
 }
 
 export interface ConfigurationContextValue {

@@ -1,5 +1,5 @@
 import { Import, Plus, Plug, Settings, User, Users } from "lucide-react";
-import { CanAccess, useUserMenu } from "ra-core";
+import { CanAccess, useCanAccess, useGetIdentity, useUserMenu } from "ra-core";
 import { useState } from "react";
 import { Link, matchPath, useLocation } from "react-router";
 import { RefreshButton } from "@/components/admin/refresh-button";
@@ -16,6 +16,20 @@ const Header = () => {
     useConfigurationContext();
   const location = useLocation();
   const [createViewOpen, setCreateViewOpen] = useState(false);
+  const { identity } = useGetIdentity();
+  const { canAccess: isAdmin } = useCanAccess({
+    resource: "configuration",
+    action: "edit",
+  });
+
+  // Filter views: admins see all, regular users see views where allowedUserIds is empty or includes them
+  const currentSaleId = identity?.id as number | undefined;
+  const visibleViews = customViews.filter(
+    (view) =>
+      isAdmin ||
+      !view.allowedUserIds?.length ||
+      (currentSaleId != null && view.allowedUserIds.includes(currentSaleId)),
+  );
 
   let currentPath: string | boolean = "/";
   if (matchPath("/", location.pathname)) {
@@ -81,7 +95,7 @@ const Header = () => {
                     to="/deals"
                     isActive={currentPath === "/deals"}
                   />
-                  {customViews.map((view) => (
+                  {visibleViews.map((view) => (
                     <NavigationTab
                       key={view.id}
                       label={view.label}
@@ -89,13 +103,15 @@ const Header = () => {
                       isActive={currentPath === `/views/${view.id}`}
                     />
                   ))}
-                  <button
-                    onClick={() => setCreateViewOpen(true)}
-                    title="Créer une nouvelle vue"
-                    className="flex items-center justify-center w-7 h-7 ml-1 rounded-full text-secondary-foreground/50 hover:text-secondary-foreground hover:bg-secondary-foreground/10 transition-all"
-                  >
-                    <Plus className="h-4 w-4" />
-                  </button>
+                  {isAdmin && (
+                    <button
+                      onClick={() => setCreateViewOpen(true)}
+                      title="Créer une nouvelle vue"
+                      className="flex items-center justify-center w-7 h-7 ml-1 rounded-full text-secondary-foreground/50 hover:text-secondary-foreground hover:bg-secondary-foreground/10 transition-all"
+                    >
+                      <Plus className="h-4 w-4" />
+                    </button>
+                  )}
                 </nav>
               </div>
               <div className="flex items-center">

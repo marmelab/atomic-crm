@@ -1,5 +1,5 @@
-import { useGetIdentity, useListContext } from "ra-core";
-import { matchPath, useLocation, useParams } from "react-router";
+import { useCanAccess, useGetIdentity, useListContext } from "ra-core";
+import { matchPath, Navigate, useLocation, useParams } from "react-router";
 import { AutocompleteInput } from "@/components/admin/autocomplete-input";
 import { CreateButton } from "@/components/admin/create-button";
 import { ExportButton } from "@/components/admin/export-button";
@@ -23,8 +23,25 @@ export const DealListForView = () => {
   const { viewId } = useParams<{ viewId: string }>();
   const { customViews, dealCategories } = useConfigurationContext();
   const { identity } = useGetIdentity();
+  const { canAccess: isAdmin } = useCanAccess({
+    resource: "configuration",
+    action: "edit",
+  });
 
   const view = customViews.find((v) => v.id === viewId);
+  const currentSaleId = identity?.id as number | undefined;
+
+  // Access check: admins always allowed; regular users must be in allowedUserIds (or it's open)
+  const hasAccess =
+    !identity || // still loading
+    !view || // will 404
+    isAdmin ||
+    !view.allowedUserIds?.length ||
+    (currentSaleId != null && view.allowedUserIds.includes(currentSaleId));
+
+  if (identity && view && !hasAccess) {
+    return <Navigate to="/deals" replace />;
+  }
 
   if (!identity || !view) return null;
 
