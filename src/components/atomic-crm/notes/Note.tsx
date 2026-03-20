@@ -173,7 +173,7 @@ export const Note = ({
       </div>
       {isEditing ? (
         <Form onSubmit={handleNoteUpdate} record={note} className="mt-1">
-          <NoteInputs showStatus={showStatus} />
+          <NoteInputs showStatus={showStatus} showType={showType} />
           <div className="flex justify-end mt-2 space-x-4">
             <Button
               variant="ghost"
