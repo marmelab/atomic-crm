@@ -23,7 +23,7 @@ export const getOrCreateCompanyFromDomain = async ({
     await supabaseAdmin
       .from("companies")
       .select("*")
-      .or(`website.eq.${website},name.eq.${companyName}`)
+      .or(`website.eq.${website},name.eq.${companyName},name.eq.${domain}`)
       .maybeSingle();
   if (fetchCompanyError) {
     throw new Error(

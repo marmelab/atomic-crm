@@ -58,11 +58,11 @@ Deno.serve(async (req) => {
 
   const firstToEmail = (ToFull[0]?.Email || "").toLowerCase();
 
-  // If we have an INBOUND_EMAIL and the email is sent to the inbound email address, and the sender is a known sales email,
+  // If we have an INBOUND_EMAIL and the email is sent only to the inbound email address, and the sender is a known sales email,
   // then we can try to extract the real recipient email from the body of the email
   if (
     INBOUND_EMAIL &&
-    firstToEmail &&
+    ToFull.length === 1 &&
     firstToEmail === INBOUND_EMAIL &&
     salesEmails.includes(salesEmail)
   ) {

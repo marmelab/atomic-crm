@@ -183,6 +183,24 @@ describe("extractMailContactData", () => {
       expect(extractCompanyName("Example_Company.com")).toBe("Example Company");
     });
 
+    it("extracts company name with multiple hyphens", () => {
+      expect(extractCompanyName("my-super-cool-company.com")).toBe(
+        "My Super Cool Company",
+      );
+    });
+
+    it("extracts company name with multiple underscores", () => {
+      expect(extractCompanyName("my_super_cool_company.com")).toBe(
+        "My Super Cool Company",
+      );
+    });
+
+    it("extracts company name with mixed separators", () => {
+      expect(extractCompanyName("my-super_cool-company.com")).toBe(
+        "My Super Cool Company",
+      );
+    });
+
     it("handles invalid or unknown TLD domains gracefully", () => {
       expect(extractCompanyName("invalid.domain")).toBe("Invalid");
     });

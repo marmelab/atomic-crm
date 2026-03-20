@@ -6,22 +6,35 @@ SET search_path TO 'public'
 AS $$
 BEGIN
   IF NEW.email_jsonb IS NOT NULL THEN
-    NEW.email_jsonb = (
+    NEW.email_jsonb = COALESCE((
       SELECT jsonb_agg(
         jsonb_set(elem, '{email}', to_jsonb(LOWER(elem->>'email')))
       )
       FROM jsonb_array_elements(NEW.email_jsonb) AS elem
-    );
+    ), '[]'::jsonb);
   END IF;
   RETURN NEW;
 END;
 $$;
 
--- Trigger for contacts table to lowercase emails
+-- Drop and recreate triggers to ensure proper ordering
+-- Lowercase triggers must run before the avatar/favicon triggers
+
+-- Drop existing triggers
+DROP TRIGGER IF EXISTS lowercase_contact_emails ON contacts;
+DROP TRIGGER IF EXISTS contact_saved ON contacts;
+
+-- Create lowercase trigger first (so it runs before contact_saved)
 CREATE TRIGGER lowercase_contact_emails
   BEFORE INSERT OR UPDATE ON contacts
   FOR EACH ROW
   EXECUTE FUNCTION lowercase_email_jsonb();
+
+-- Recreate contact_saved trigger (will run after lowercase_contact_emails)
+CREATE TRIGGER contact_saved
+  BEFORE INSERT OR UPDATE ON contacts
+  FOR EACH ROW
+  EXECUTE FUNCTION handle_contact_saved();
 
 -- Function to lowercase website URL
 CREATE OR REPLACE FUNCTION lowercase_website()
@@ -37,11 +50,21 @@ BEGIN
 END;
 $$;
 
--- Trigger for companies table to lowercase website
+-- Drop existing triggers
+DROP TRIGGER IF EXISTS lowercase_company_website ON companies;
+DROP TRIGGER IF EXISTS company_saved ON companies;
+
+-- Create lowercase trigger first (so it runs before company_saved)
 CREATE TRIGGER lowercase_company_website
   BEFORE INSERT OR UPDATE ON companies
   FOR EACH ROW
   EXECUTE FUNCTION lowercase_website();
+
+-- Recreate company_saved trigger (will run after lowercase_company_website)
+CREATE TRIGGER company_saved
+  BEFORE INSERT OR UPDATE ON companies
+  FOR EACH ROW
+  EXECUTE FUNCTION handle_company_saved();
 
 -- Function to lowercase email address
 CREATE OR REPLACE FUNCTION lowercase_email()
@@ -57,6 +80,9 @@ BEGIN
 END;
 $$;
 
+-- Drop existing triggers
+DROP TRIGGER IF EXISTS lowercase_sales_email ON sales;
+
 -- Trigger for sales table to lowercase email
 CREATE TRIGGER lowercase_sales_email
   BEFORE INSERT OR UPDATE ON sales
@@ -65,12 +91,12 @@ CREATE TRIGGER lowercase_sales_email
 
 -- Update existing contacts to lowercase email addresses
 UPDATE contacts
-SET email_jsonb = (
+SET email_jsonb = COALESCE((
   SELECT jsonb_agg(
     jsonb_set(elem, '{email}', to_jsonb(LOWER(elem->>'email')))
   )
   FROM jsonb_array_elements(email_jsonb) AS elem
-)
+), '[]'::jsonb)
 WHERE email_jsonb IS NOT NULL;
 
 -- Update existing companies to lowercase website URLs
