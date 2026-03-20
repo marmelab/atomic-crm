@@ -50,7 +50,7 @@ import {
   defaultTaskTypes,
   defaultTitle,
 } from "./defaultConfiguration";
-import { i18nProvider } from "../providers/commons/i18nProvider";
+import { i18nProvider as defaulti18nProvider } from "../providers/commons/i18nProvider";
 import { StartPage } from "../login/StartPage.tsx";
 import { useIsMobile } from "@/hooks/use-mobile.ts";
 import { MobileTasksList } from "../tasks/MobileTasksList.tsx";
@@ -64,6 +64,7 @@ const defaultStore = localStorageStore(undefined, "CRM");
 export type CRMProps = {
   dataProvider?: CrmDataProvider;
   authProvider?: AuthProvider;
+  i18nProvider?: CoreAdminProps["i18nProvider"];
   disableTelemetry?: boolean;
   store?: CoreAdminProps["store"];
   dashboard?: DashboardComponent;
@@ -123,6 +124,7 @@ export const CRM = ({
   title = defaultTitle,
   dataProvider = defaultDataProviderBuilder(),
   authProvider = defaultAuthProviderBuilder(),
+  i18nProvider = defaulti18nProvider,
   store = defaultStore,
   googleWorkplaceDomain = import.meta.env.VITE_GOOGLE_WORKPLACE_DOMAIN,
   disableEmailPasswordAuthentication = import.meta.env
