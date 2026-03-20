@@ -98,6 +98,10 @@
           "type": "registry:component"
         },
         {
+          "path": "src/components/atomic-crm/tags/TagForm.tsx",
+          "type": "registry:component"
+        },
+        {
           "path": "src/components/atomic-crm/tags/TagEditModal.tsx",
           "type": "registry:component"
         },
@@ -723,6 +727,10 @@
         },
         {
           "path": "src/components/atomic-crm/contacts/ContactAside.tsx",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/contacts/BulkTagButton.tsx",
           "type": "registry:component"
         },
         {
