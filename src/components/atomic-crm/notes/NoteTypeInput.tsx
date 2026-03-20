@@ -36,14 +36,20 @@ export const NoteTypeInput = ({
       <TooltipProvider>
         <Tooltip>
           <TooltipTrigger asChild>
-            <SelectTrigger className="w-full hover:bg-accent transition-all">
+            <SelectTrigger
+              className="w-full transition-all"
+              style={
+                selected?.color && selected.value !== "none"
+                  ? {
+                      backgroundColor: selected.color + "22",
+                      borderColor: selected.color + "88",
+                      color: selected.color,
+                    }
+                  : undefined
+              }
+            >
               {SelectedIcon && selected?.value !== "none" ? (
-                <span
-                  className="flex items-center justify-center w-5 h-5 rounded-full"
-                  style={
-                    selected?.color ? { color: selected.color } : undefined
-                  }
-                >
+                <span className="flex items-center justify-center w-5 h-5">
                   <SelectedIcon className="w-4 h-4" />
                 </span>
               ) : (
