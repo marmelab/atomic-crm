@@ -30,21 +30,21 @@ test("user onboarding", async ({ page, isMobile, menu, dismissToast }) => {
   await page.getByText("Create Smith Corp").click();
   await page
     .getByRole("group", { name: "Email addresses" })
-    .getByRole("button", { name: "Add" })
-    .click();
-  await page
-    .getByRole("group", { name: "Email addresses" })
     .getByRole("textbox", { name: "Email" })
     .fill("jane@smithcorp.com");
-
   await page
-    .getByRole("group", { name: "Phone numbers" })
+    .getByRole("group", { name: "Email addresses" })
     .getByRole("button", { name: "Add" })
     .click();
+
   await page
     .getByRole("group", { name: "Phone numbers" })
     .getByRole("textbox", { name: "Phone number" })
     .fill("+1234567890");
+  await page
+    .getByRole("group", { name: "Phone numbers" })
+    .getByRole("button", { name: "Add" })
+    .click();
 
   await page
     .getByLabel("LinkedIn URL")
