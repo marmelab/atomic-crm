@@ -28,7 +28,8 @@ import type { ContactNote, DealNote } from "../types";
 import { NoteAttachments } from "./NoteAttachments";
 import { NoteInputs } from "./NoteInputs";
 import { useGetSalesName } from "../sales/useGetSalesName";
-import { NoteTypeBadge } from "./NoteTypeBadge";
+import { NOTE_TYPE_ICONS } from "./NoteTypeBadge";
+import { useConfigurationContext } from "../root/ConfigurationContext";
 
 export const Note = ({
   showStatus,
@@ -51,6 +52,12 @@ export const Note = ({
   const salesName = useGetSalesName(note.sales_id, {
     enabled: !isCurrentUser,
   });
+  const { noteTypes } = useConfigurationContext();
+  const noteType = note.type
+    ? noteTypes?.find((t) => t.value === note.type)
+    : null;
+  const NoteTypeIcon = noteType?.icon ? NOTE_TYPE_ICONS[noteType.icon] : null;
+
   // Detect if content is truncated
   useEffect(() => {
     const el = contentRef.current;
@@ -120,7 +127,6 @@ export const Note = ({
           {showStatus && note.status && (
             <Status className="ml-2" status={note.status} />
           )}
-          {note.type && <NoteTypeBadge type={note.type} />}
         </div>
         <span className={`${isHover ? "visible" : "invisible"}`}>
           <TooltipProvider>
@@ -188,6 +194,14 @@ export const Note = ({
         </Form>
       ) : (
         <div className="pt-2 text-sm max-w-150">
+          {NoteTypeIcon && noteType?.value !== "none" && (
+            <span
+              className="float-left mr-2 mt-0.5"
+              style={noteType?.color ? { color: noteType.color } : undefined}
+            >
+              <NoteTypeIcon className="w-4 h-4" />
+            </span>
+          )}
           {note.text && (
             <div
               ref={contentRef}
