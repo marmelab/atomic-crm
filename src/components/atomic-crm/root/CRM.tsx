@@ -1,10 +1,10 @@
-import {
-  type CoreAdminProps,
-  CustomRoutes,
-  localStorageStore,
-  Resource,
-  type AuthProvider,
+import type {
+  CoreAdminProps,
+  AuthProvider,
+  DashboardComponent,
+  LayoutComponent,
 } from "ra-core";
+import { CustomRoutes, localStorageStore, Resource } from "ra-core";
 import { useEffect, useMemo } from "react";
 import { Route } from "react-router";
 import { QueryClient } from "@tanstack/react-query";
@@ -26,8 +26,8 @@ import { SignupPage } from "../login/SignupPage";
 import { ConfirmationRequired } from "../login/ConfirmationRequired";
 import { ImportPage } from "../misc/ImportPage";
 import {
-  authProvider as defaultAuthProvider,
-  dataProvider as defaultDataProvider,
+  getAuthProvider as defaultAuthProviderBuilder,
+  getDataProvider as defaultDataProviderBuilder,
 } from "../providers/supabase";
 import sales from "../sales";
 import { SettingsPageMobile } from "../settings/SettingsPageMobile";
@@ -66,6 +66,8 @@ export type CRMProps = {
   authProvider?: AuthProvider;
   disableTelemetry?: boolean;
   store?: CoreAdminProps["store"];
+  dashboard?: DashboardComponent;
+  layout?: LayoutComponent;
 } & Partial<ConfigurationContextValue>;
 
 /**
@@ -119,8 +121,8 @@ export const CRM = ({
   noteStatuses = defaultNoteStatuses,
   taskTypes = defaultTaskTypes,
   title = defaultTitle,
-  dataProvider = defaultDataProvider,
-  authProvider = defaultAuthProvider,
+  dataProvider = defaultDataProviderBuilder(),
+  authProvider = defaultAuthProviderBuilder(),
   store = defaultStore,
   googleWorkplaceDomain = import.meta.env.VITE_GOOGLE_WORKPLACE_DOMAIN,
   disableEmailPasswordAuthentication = import.meta.env
@@ -225,9 +227,18 @@ export const CRM = ({
   );
 };
 
-const DesktopAdmin = (props: CoreAdminProps) => {
+const DesktopAdmin = (
+  props: CoreAdminProps & {
+    dashboard?: DashboardComponent;
+    layout?: LayoutComponent;
+  },
+) => {
   return (
-    <Admin layout={Layout} dashboard={Dashboard} {...props}>
+    <Admin
+      layout={props.layout ?? Layout}
+      dashboard={props.dashboard ?? Dashboard}
+      {...props}
+    >
       <CustomRoutes noLayout>
         <Route path={SignupPage.path} element={<SignupPage />} />
         <Route
@@ -259,7 +270,12 @@ const DesktopAdmin = (props: CoreAdminProps) => {
   );
 };
 
-const MobileAdmin = (props: CoreAdminProps) => {
+const MobileAdmin = (
+  props: CoreAdminProps & {
+    dashboard?: DashboardComponent;
+    layout?: LayoutComponent;
+  },
+) => {
   const queryClient = new QueryClient({
     defaultOptions: {
       queries: {
@@ -282,8 +298,8 @@ const MobileAdmin = (props: CoreAdminProps) => {
     >
       <Admin
         queryClient={queryClient}
-        layout={MobileLayout}
-        dashboard={MobileDashboard}
+        layout={props.layout ?? MobileLayout}
+        dashboard={props.dashboard ?? MobileDashboard}
         {...props}
       >
         <CustomRoutes noLayout>
