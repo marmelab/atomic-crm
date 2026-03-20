@@ -61,7 +61,7 @@ export const DealListForView = () => {
   ];
 
   return (
-    <DealListViewProvider value={{ initialVisibleStages: view.visibleStages }}>
+    <DealListViewProvider value={{ initialVisibleStages: view.visibleStages, companyType: view.companyType }}>
       <List
         resource="deals"
         perPage={100}
@@ -95,6 +95,7 @@ const DealViewLayout = () => {
     return (
       <>
         <DealEmpty>
+          <DealCreate open={!!matchCreate} />
           <DealShow open={!!matchShow} id={matchShow?.params.id} />
           <DealArchivedList />
         </DealEmpty>

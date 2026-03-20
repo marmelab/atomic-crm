@@ -7,6 +7,7 @@ import {
   useRedirect,
   type GetListResult,
 } from "ra-core";
+import { matchPath, useLocation } from "react-router";
 import { Create } from "@/components/admin/create";
 import { SaveButton } from "@/components/admin/form";
 import { FormToolbar } from "@/components/admin/simple-form";
@@ -19,9 +20,12 @@ export const DealCreate = ({ open }: { open: boolean }) => {
   const redirect = useRedirect();
   const dataProvider = useDataProvider();
   const { data: allDeals } = useListContext<Deal>();
+  const location = useLocation();
+  const viewMatch = matchPath("/views/:viewId/*", location.pathname);
+  const basePath = viewMatch ? `/views/${viewMatch.params.viewId}` : "/deals";
 
   const handleClose = () => {
-    redirect("/deals");
+    redirect(basePath);
   };
 
   const queryClient = useQueryClient();
@@ -67,7 +71,7 @@ export const DealCreate = ({ open }: { open: boolean }) => {
       },
       { updatedAt: now },
     );
-    redirect("/deals");
+    redirect(basePath);
   };
 
   const { identity } = useGetIdentity();

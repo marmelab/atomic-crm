@@ -11,8 +11,9 @@ import { getDealsByStage } from "./stages";
 
 interface DealListViewContextValue {
   initialVisibleStages?: string[];
+  companyType?: string;
 }
-const DealListViewContext = createContext<DealListViewContextValue>({});
+export const DealListViewContext = createContext<DealListViewContextValue>({});
 export const DealListViewProvider = DealListViewContext.Provider;
 
 export const DealListContent = () => {

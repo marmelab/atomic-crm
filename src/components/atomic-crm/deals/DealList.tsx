@@ -77,6 +77,7 @@ const DealLayout = () => {
     return (
       <>
         <DealEmpty>
+          <DealCreate open={!!matchCreate} />
           <DealShow open={!!matchShow} id={matchShow?.params.id} />
           <DealArchivedList />
         </DealEmpty>

@@ -131,7 +131,18 @@ const SettingsForm = () => {
       dealPipelineStatuses: config.dealPipelineStatuses,
       noteStatuses: config.noteStatuses,
     }),
-    [config],
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [
+      config.title,
+      config.lightModeLogo,
+      config.darkModeLogo,
+      config.companySectors,
+      config.dealCategories,
+      config.taskTypes,
+      config.dealStages,
+      config.dealPipelineStatuses,
+      config.noteStatuses,
+    ],
   );
 
   return (

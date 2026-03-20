@@ -5,7 +5,7 @@ import {
   useRecordContext,
   useRedirect,
 } from "ra-core";
-import { Link } from "react-router";
+import { Link, matchPath, useLocation } from "react-router";
 import { DeleteButton } from "@/components/admin/delete-button";
 import { ReferenceField } from "@/components/admin/reference-field";
 import { Button } from "@/components/ui/button";
@@ -19,9 +19,12 @@ import { DealInputs } from "./DealInputs";
 export const DealEdit = ({ open, id }: { open: boolean; id?: string }) => {
   const redirect = useRedirect();
   const notify = useNotify();
+  const location = useLocation();
+  const viewMatch = matchPath("/views/:viewId/*", location.pathname);
+  const basePath = viewMatch ? `/views/${viewMatch.params.viewId}` : "/deals";
 
   const handleClose = () => {
-    redirect("/deals", undefined, undefined, undefined, {
+    redirect(basePath, undefined, undefined, undefined, {
       _scrollToTop: false,
     });
   };
@@ -37,7 +40,7 @@ export const DealEdit = ({ open, id }: { open: boolean; id?: string }) => {
             mutationOptions={{
               onSuccess: () => {
                 notify("Opportunité mise à jour");
-                redirect(`/deals/${id}/show`, undefined, undefined, undefined, {
+                redirect(`${basePath}/${id}/show`, undefined, undefined, undefined, {
                   _scrollToTop: false,
                 });
               },
