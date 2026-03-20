@@ -1,5 +1,6 @@
-import { Import, Plug, Settings, User, Users } from "lucide-react";
+import { Import, Plus, Plug, Settings, User, Users } from "lucide-react";
 import { CanAccess, useUserMenu } from "ra-core";
+import { useState } from "react";
 import { Link, matchPath, useLocation } from "react-router";
 import { RefreshButton } from "@/components/admin/refresh-button";
 import { ThemeModeToggle } from "@/components/admin/theme-mode-toggle";
@@ -8,10 +9,13 @@ import { DropdownMenuItem } from "@/components/ui/dropdown-menu";
 
 import { useConfigurationContext } from "../root/ConfigurationContext";
 import { ImportPage } from "../misc/ImportPage";
+import { CreateViewDialog } from "../deals/CreateViewDialog";
 
 const Header = () => {
-  const { darkModeLogo, lightModeLogo, title } = useConfigurationContext();
+  const { darkModeLogo, lightModeLogo, title, customViews } =
+    useConfigurationContext();
   const location = useLocation();
+  const [createViewOpen, setCreateViewOpen] = useState(false);
 
   let currentPath: string | boolean = "/";
   if (matchPath("/", location.pathname)) {
@@ -22,12 +26,19 @@ const Header = () => {
     currentPath = "/companies";
   } else if (matchPath("/deals/*", location.pathname)) {
     currentPath = "/deals";
+  } else if (matchPath("/views/:viewId/*", location.pathname)) {
+    const match = matchPath("/views/:viewId/*", location.pathname);
+    currentPath = `/views/${match?.params.viewId}`;
   } else {
     currentPath = false;
   }
 
   return (
     <>
+      <CreateViewDialog
+        open={createViewOpen}
+        onClose={() => setCreateViewOpen(false)}
+      />
       <nav className="sticky top-0 z-50 grow">
         <header className="bg-secondary shadow-sm">
           <div className="px-4">
@@ -49,7 +60,7 @@ const Header = () => {
                 <h1 className="text-xl font-semibold">{title}</h1>
               </Link>
               <div>
-                <nav className="flex">
+                <nav className="flex items-center">
                   <NavigationTab
                     label="Tableau de bord"
                     to="/"
@@ -70,6 +81,21 @@ const Header = () => {
                     to="/deals"
                     isActive={currentPath === "/deals"}
                   />
+                  {customViews.map((view) => (
+                    <NavigationTab
+                      key={view.id}
+                      label={view.label}
+                      to={`/views/${view.id}`}
+                      isActive={currentPath === `/views/${view.id}`}
+                    />
+                  ))}
+                  <button
+                    onClick={() => setCreateViewOpen(true)}
+                    title="Créer une nouvelle vue"
+                    className="flex items-center justify-center w-7 h-7 ml-1 rounded-full text-secondary-foreground/50 hover:text-secondary-foreground hover:bg-secondary-foreground/10 transition-all"
+                  >
+                    <Plus className="h-4 w-4" />
+                  </button>
                 </nav>
               </div>
               <div className="flex items-center">

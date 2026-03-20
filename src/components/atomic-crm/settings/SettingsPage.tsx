@@ -1,4 +1,4 @@
-import { RotateCcw, Save } from "lucide-react";
+import { RotateCcw, Save, Trash2 } from "lucide-react";
 import type { RaRecord } from "ra-core";
 import { EditBase, Form, useGetList, useInput, useNotify } from "ra-core";
 import { useCallback, useMemo } from "react";
@@ -16,6 +16,7 @@ import {
   useConfigurationContext,
   useConfigurationUpdater,
   type ConfigurationContextValue,
+  type CustomView,
 } from "../root/ConfigurationContext";
 import { defaultConfiguration } from "../root/defaultConfiguration";
 
@@ -23,6 +24,7 @@ const SECTIONS = [
   { id: "branding", label: "Personnalisation" },
   { id: "companies", label: "Sociétés" },
   { id: "deals", label: "Opportunités" },
+  { id: "views", label: "Vues" },
   { id: "notes", label: "Notes" },
   { id: "tasks", label: "Tâches" },
 ];
@@ -342,6 +344,9 @@ const SettingsFormFields = () => {
           </CardContent>
         </Card>
 
+        {/* Custom Views */}
+        <CustomViewsSection />
+
         {/* Tasks */}
         <Card id="tasks">
           <CardContent className="space-y-4">
@@ -396,6 +401,124 @@ const SettingsFormFields = () => {
         </div>
       </div>
     </div>
+  );
+};
+
+const CustomViewsSection = () => {
+  const config = useConfigurationContext();
+  const { customViews, dealStages, companyTypes } = config;
+  const updateConfiguration = useConfigurationUpdater();
+
+  const handleDeleteView = (viewId: string) => {
+    updateConfiguration({
+      ...config,
+      customViews: customViews.filter((v) => v.id !== viewId),
+    });
+  };
+
+  const handleToggleStage = (view: CustomView, stageValue: string) => {
+    const currentVisible = view.visibleStages ?? dealStages.map((s) => s.value);
+    const isVisible = currentVisible.includes(stageValue);
+    let newVisible: string[];
+    if (isVisible) {
+      if (currentVisible.length === 1) return; // keep at least one
+      newVisible = currentVisible.filter((s) => s !== stageValue);
+    } else {
+      newVisible = [...currentVisible, stageValue];
+    }
+    updateConfiguration({
+      ...config,
+      customViews: customViews.map((v) =>
+        v.id === view.id ? { ...v, visibleStages: newVisible } : v,
+      ),
+    });
+  };
+
+  const handleResetStages = (viewId: string) => {
+    updateConfiguration({
+      ...config,
+      customViews: customViews.map((v) =>
+        v.id === viewId ? { ...v, visibleStages: undefined } : v,
+      ),
+    });
+  };
+
+  return (
+    <Card id="views">
+      <CardContent className="space-y-4">
+        <h2 className="text-xl font-semibold text-muted-foreground">Vues</h2>
+        {customViews.length === 0 ? (
+          <p className="text-sm text-muted-foreground">
+            Aucune vue personnalisée. Cliquez sur &quot;+&quot; dans la barre de
+            navigation pour en créer une.
+          </p>
+        ) : (
+          <div className="space-y-6">
+            {customViews.map((view) => {
+              const companyTypeLabel =
+                companyTypes.find((t) => t.value === view.companyType)?.label ??
+                view.companyType;
+              const visibleSet = new Set(
+                view.visibleStages ?? dealStages.map((s) => s.value),
+              );
+              const hasCustomStages = view.visibleStages !== undefined;
+              return (
+                <div key={view.id} className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h3 className="text-base font-medium">{view.label}</h3>
+                      <p className="text-xs text-muted-foreground">
+                        Type : {companyTypeLabel}
+                      </p>
+                    </div>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleDeleteView(view.id)}
+                      className="text-destructive hover:text-destructive"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
+                  <div>
+                    <p className="text-sm text-muted-foreground mb-2">
+                      Étapes visibles
+                    </p>
+                    <div className="flex flex-wrap gap-2">
+                      {dealStages.map((stage) => {
+                        const isVisible = visibleSet.has(stage.value);
+                        return (
+                          <Button
+                            key={stage.value}
+                            type="button"
+                            variant={isVisible ? "default" : "outline"}
+                            size="sm"
+                            onClick={() => handleToggleStage(view, stage.value)}
+                          >
+                            {stage.label || stage.value}
+                          </Button>
+                        );
+                      })}
+                    </div>
+                    {hasCustomStages && (
+                      <button
+                        type="button"
+                        onClick={() => handleResetStages(view.id)}
+                        className="mt-2 text-xs text-muted-foreground underline hover:text-foreground"
+                      >
+                        Réinitialiser (tout afficher)
+                      </button>
+                    )}
+                  </div>
+                  <Separator />
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </CardContent>
+    </Card>
   );
 };
 

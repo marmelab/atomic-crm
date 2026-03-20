@@ -20,6 +20,7 @@ import contacts from "../contacts";
 import { Dashboard } from "../dashboard/Dashboard";
 import { MobileDashboard } from "../dashboard/MobileDashboard";
 import deals from "../deals";
+import { DealListForView } from "../deals/DealListForView";
 import { Layout } from "../layout/Layout";
 import { MobileLayout } from "../layout/MobileLayout";
 import { SignupPage } from "../login/SignupPage";
@@ -248,6 +249,7 @@ const DesktopAdmin = (props: CoreAdminProps) => {
         <Route path={SettingsPage.path} element={<SettingsPage />} />
         <Route path={ConnectorsPage.path} element={<ConnectorsPage />} />
         <Route path={ImportPage.path} element={<ImportPage />} />
+        <Route path="/views/:viewId/*" element={<DealListForView />} />
       </CustomRoutes>
       <Resource name="deals" {...deals} />
       <Resource name="contacts" {...contacts} />
