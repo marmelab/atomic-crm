@@ -1,7 +1,11 @@
 import type { Identifier } from "ra-core";
 import { EditSheet } from "../misc/EditSheet";
 import { ContactInputs } from "./ContactInputs";
-import { cleanupContactForEdit } from "./contactModel";
+import {
+  cleanupContactForEdit,
+  defaultEmailJsonb,
+  defaultPhoneJsonb,
+} from "./contactModel";
 
 export interface ContactEditSheetProps {
   open: boolean;
@@ -21,6 +25,10 @@ export const ContactEditSheet = ({
       open={open}
       onOpenChange={onOpenChange}
       transform={cleanupContactForEdit}
+      defaultValues={{
+        email_jsonb: defaultEmailJsonb,
+        phone_jsonb: defaultPhoneJsonb,
+      }}
     >
       <ContactInputs />
     </EditSheet>
