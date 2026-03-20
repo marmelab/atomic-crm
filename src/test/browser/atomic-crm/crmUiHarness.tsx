@@ -298,28 +298,32 @@ export const StoryWrapper = ({
   children,
   data,
   dataProvider,
+  initialEntries,
 }: {
   children: ReactNode;
   data?: Partial<Db>;
   dataProvider?: Partial<ReturnType<typeof createDataProvider>>;
+  initialEntries?: string[];
 }) => (
-  <CRM
-    authProvider={createTestAuthProvider()}
-    dataProvider={{
-      ...createDataProvider({ db: createCrmDb({ ...data }) }),
-      ...dataProvider,
-    }}
-    i18nProvider={testI18nProvider}
-    dashboard={() => <>{children}</>}
-    store={memoryStore()}
-    disableTelemetry
-    layout={({ children }) => (
-      <>
-        {children}
-        <Notification />
-      </>
-    )}
-  />
+  <MemoryRouter initialEntries={initialEntries}>
+    <CRM
+      authProvider={createTestAuthProvider()}
+      dataProvider={{
+        ...createDataProvider({ db: createCrmDb({ ...data }) }),
+        ...dataProvider,
+      }}
+      i18nProvider={testI18nProvider}
+      dashboard={() => <>{children}</>}
+      store={memoryStore()}
+      disableTelemetry
+      layout={({ children }) => (
+        <>
+          {children}
+          <Notification />
+        </>
+      )}
+    />
+  </MemoryRouter>
 );
 
 export const DesktopContactListHarness = () => <ContactList />;
@@ -354,9 +358,3 @@ export const OpenTaskCreateSheetHarness = () => {
 
   return <TaskCreateSheet open={open} onOpenChange={setOpen} />;
 };
-
-export const MobileContactShowHarness = () => (
-  <Routes>
-    <Route path="/contacts/:id/show" element={<ContactShow />} />
-  </Routes>
-);

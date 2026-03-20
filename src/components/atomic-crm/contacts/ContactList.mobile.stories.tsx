@@ -9,7 +9,7 @@ import {
 } from "@/test/browser/atomic-crm/crmUiHarness";
 
 const meta = {
-  title: "Atomic CRM/Contacts/Contact List Mobile",
+  title: "Atomic CRM/Contacts/Contact List",
   parameters: {
     layout: "fullscreen",
   },
