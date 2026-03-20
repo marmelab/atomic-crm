@@ -91,9 +91,6 @@ test-app:
 test-functions:
 	npm run test:unit:functions
 
-test-integration:
-	npm run test:integration
-
 test-e2e: start-e2e
 	npx playwright test --ui
 

@@ -24,7 +24,6 @@ export default defineConfig({
     exclude: [
       "**/node_modules/**",
       "doc/**",
-      "src/**/*.integration.test.{ts,tsx}",
       "supabase/**",
       "e2e/**/*.spec.{ts,tsx}",
     ],
