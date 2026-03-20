@@ -34,6 +34,11 @@ export const Dashboard = () => {
     },
   );
 
+  // Must be called before any early return (React hooks rules)
+  const { data: googleStatus } = useGoogleConnectionStatus();
+  const showCalendar =
+    googleStatus?.connected && googleStatus.preferences?.showCalendarOnDashboard;
+
   const isPending = isPendingContact || isPendingContactNotes || isPendingDeal;
 
   if (isPending) {
@@ -47,10 +52,6 @@ export const Dashboard = () => {
   if (!totalContactNotes) {
     return <DashboardStepper step={2} contactId={dataContact?.[0]?.id} />;
   }
-
-  const { data: googleStatus } = useGoogleConnectionStatus();
-  const showCalendar =
-    googleStatus?.connected && googleStatus.preferences?.showCalendarOnDashboard;
 
   return (
     <div className="flex flex-col gap-5 mt-1 pb-6">
