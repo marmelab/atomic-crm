@@ -127,6 +127,7 @@ export interface CrmScenarioOptions {
   getListDelays?: Partial<Record<string, number>>;
   latency?: number;
   creationError?: string;
+  updateError?: string;
   silent?: boolean;
 }
 
@@ -144,16 +145,7 @@ export const createCrmDb = (overrides: Partial<Db> = {}): Db =>
     companies: [],
     configuration: [{ config: {}, id: 1 }],
     contact_notes: [],
-    contacts: [
-      {
-        id: 1,
-        first_name: "Ada",
-        last_name: "Lovelace",
-        email_jsonb: [{ email: "ada@lovelace.com", type: "Work" }],
-        phone_jsonb: [{ phone: "+1234567890", type: "Mobile" }],
-        sales_id: 1,
-      },
-    ],
+    contacts: [],
     deal_notes: [],
     deals: [],
     sales: [baseSale],
@@ -191,6 +183,7 @@ export const createCrmScenario = ({
   db = createCrmDb(),
   failGetListOnce = {},
   creationError,
+  updateError,
   getListDelays = {},
   latency = 0,
   silent = true,
@@ -224,6 +217,12 @@ export const createCrmScenario = ({
         throw new Error(creationError);
       }
       return baseDataProvider.create(resource, params);
+    },
+    update: async (resource, params) => {
+      if (updateError) {
+        throw new Error(updateError);
+      }
+      return baseDataProvider.update(resource, params);
     },
   } as ReturnType<typeof createDataProvider>;
   const store = localStorageStore(

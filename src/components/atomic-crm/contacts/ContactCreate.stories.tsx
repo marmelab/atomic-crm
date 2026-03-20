@@ -1,6 +1,7 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 
 import {
+  buildContact,
   createCrmDb,
   CrmStoryProvider,
 } from "@/test/browser/atomic-crm/crmUiHarness";
@@ -22,7 +23,18 @@ export const ConcatCreateBasic: Story = {
     <CrmStoryProvider
       resource="contacts"
       initialEntries={["/contacts/create"]}
-      scenarioOptions={{ db: createCrmDb(), silent: false }}
+      scenarioOptions={{
+        db: createCrmDb({
+          contacts: [
+            buildContact({
+              id: 1,
+              email_jsonb: [],
+              phone_jsonb: [],
+            }),
+          ] as any,
+        }),
+        silent: false,
+      }}
     >
       <ContactCreate />
     </CrmStoryProvider>
@@ -35,7 +47,15 @@ export const ConcatCreateBasicWithError: Story = {
       resource="contacts"
       initialEntries={["/contacts/create"]}
       scenarioOptions={{
-        db: createCrmDb(),
+        db: createCrmDb({
+          contacts: [
+            buildContact({
+              id: 1,
+              email_jsonb: [],
+              phone_jsonb: [],
+            }),
+          ] as any,
+        }),
         creationError: "Simulated create error",
         silent: false,
       }}
