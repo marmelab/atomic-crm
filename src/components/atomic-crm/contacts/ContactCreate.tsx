@@ -7,7 +7,7 @@ import {
   cleanupContactForCreate,
   defaultEmailJsonb,
   defaultPhoneJsonb,
-} from "./cleanupContact";
+} from "./contactModel";
 
 export const ContactCreate = ({
   mutationMode,
