@@ -21,6 +21,15 @@ supabase-reset-database: ## reset (and clear!) the database
 start-app: ## start the app locally
 	npm run dev
 
+start-app-e2e: ## start the app pointing to the e2e supabase instance
+	npx vite --port 5175 --force --mode e2e &
+
+stop-app-e2e:
+	kill $$(lsof -t -i:5175)
+
+start-app-e2e-ci: build-e2e ## start the app pointing to the e2e supabase instance in CI mode (no open, no watch)
+	npx serve -l 5175 -L -s dist &
+
 start: start-supabase start-app ## start the stack locally
 
 start-demo: ## start the app locally in demo mode
@@ -31,8 +40,33 @@ stop-supabase: ## stop local supabase
 
 stop: stop-supabase ## stop the stack locally
 
+start-supabase-e2e: ## start a separate supabase instance for e2e (fresh DB every run)
+	npx supabase stop --workdir .supabase-e2e --no-backup 2>/dev/null || true
+	rm -rf .supabase-e2e/supabase
+	mkdir -p .supabase-e2e/supabase
+	cp supabase/config.e2e.toml .supabase-e2e/supabase/config.toml
+	cp -r supabase/migrations .supabase-e2e/supabase/migrations
+	cp -r supabase/schemas .supabase-e2e/supabase/schemas
+	cp -r supabase/functions .supabase-e2e/supabase/functions
+	cp -r supabase/templates .supabase-e2e/supabase/templates
+	cp supabase/seed.sql .supabase-e2e/supabase/seed.sql
+	cp supabase/signing_keys.json .supabase-e2e/supabase/signing_keys.json
+	npx supabase start --workdir .supabase-e2e
+
+stop-supabase-e2e: ## stop the e2e supabase instance
+	npx supabase stop --workdir .supabase-e2e --no-backup
+
+start-e2e: start-supabase-e2e start-app-e2e ## start the stack in e2e mode (fresh supabase instance + app pointing to it)
+
+start-e2e-ci: start-supabase-e2e start-app-e2e-ci ## start the stack in e2e mode in CI (fresh supabase instance + built app pointing to it)
+
+stop-e2e: stop-supabase-e2e stop-app-e2e ## stop the stack in e2e mode
+
 build: ## build the app
 	npm run build
+
+build-e2e: ## build the app in e2e mode (with the e2e supabase config)
+	npm run build:e2e
 
 build-demo: ## build the app in demo mode
 	npm run build:demo
@@ -59,6 +93,13 @@ test-functions:
 
 test-integration:
 	npm run test:integration
+
+test-e2e: start-e2e
+	npx playwright test --ui
+
+test-e2e-ci: start-e2e-ci
+	npx wait-on http-get://localhost:54341/auth/v1/health http-get://localhost:5175
+	npx playwright test
 
 lint:
 	npm run lint

@@ -65,13 +65,29 @@ The user and developer documentation for this project is available [in the `doc/
 
 ## Testing Changes
 
-This project contains unit tests. Run them with the following command:
+This project contains unit tests and e2e. 
+Run unit test with the following command:
 
 ```sh
 make test
 ```
 
+Run e2e test with:
+
+```sh
+make test-e2e
+```
+
+Note: the `make test-e2e` will run the the e2e test in ui mode against a vite server with hot reload for ease of development. On the CI the e2e test will be run against the built app. If you need to run the test against the built file instead. You can run:
+
+```sh
+make start-e2e-ci # To launch the CI e2e environment (serving the built app)
+# followed by
+npx playwright test --ui
+```
+
 You can add your own unit tests powered by Jest anywhere in the `src` directory. The test files should be named `*.test.tsx` or `*.test.ts`.
+And you can also add your own e2e test. The e2e test files should be placed inside the `./e2e` folder
 
 ## Getting Updates
 
