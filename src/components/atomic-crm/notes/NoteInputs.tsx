@@ -15,6 +15,7 @@ import { foreignKeyMapping } from "./foreignKeyMapping";
 import { AutocompleteInput, ReferenceInput } from "@/components/admin";
 import { contactOptionText } from "../misc/ContactOption";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { NoteTypeInput } from "./NoteTypeInput";
 
 export const NoteInputs = ({
   showStatus,
@@ -26,7 +27,7 @@ export const NoteInputs = ({
   reference?: "contacts" | "deals";
 }) => {
   const isMobile = useIsMobile();
-  const { noteStatuses, noteTypes } = useConfigurationContext();
+  const { noteStatuses } = useConfigurationContext();
   const translate = useTranslate();
   const [displayMore, setDisplayMore] = useState(false);
 
@@ -36,17 +37,8 @@ export const NoteInputs = ({
   return (
     <div className="space-y-2">
       <div className="flex gap-6 items-start">
-        <div className="w-[10%] min-w-32 shrink-0">
-          <SelectInput
-            source="type"
-            label={false}
-            choices={noteTypes.map((t) => ({
-              id: t.value,
-              name: t.label,
-            }))}
-            defaultValue="none"
-            helperText={false}
-          />
+        <div className="w-10 shrink-0">
+          <NoteTypeInput />
         </div>
         <div className="flex-1">
           <TextInput
