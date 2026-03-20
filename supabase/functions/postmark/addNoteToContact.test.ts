@@ -23,7 +23,12 @@ describe("addNoteToContact", () => {
   });
   describe("getOrCreateCompanyFromDomain", () => {
     it("returns the existing company when it already exists in the database", async () => {
-      const existingCompany = { id: 1, name: "acme.com", sales_id: 42 };
+      const existingCompany = {
+        id: 1,
+        name: "Acme",
+        website: "https://acme.com",
+        sales_id: 42,
+      };
       mockFrom.mockReturnValue({
         select: () => ({
           eq: () => ({
@@ -33,7 +38,12 @@ describe("addNoteToContact", () => {
         }),
       });
 
-      const result = await getOrCreateCompanyFromDomain("acme.com", 42);
+      const result = await getOrCreateCompanyFromDomain({
+        domain: "acme.com",
+        salesId: 42,
+        companyName: "Acme",
+        website: "https://acme.com",
+      });
 
       expect(result).toEqual(existingCompany);
       expect(mockFrom).toHaveBeenCalledWith("companies");
@@ -50,30 +60,37 @@ describe("addNoteToContact", () => {
       });
 
       await expect(
-        getOrCreateCompanyFromDomain("acme.com", 42),
+        getOrCreateCompanyFromDomain({
+          domain: "acme.com",
+          salesId: 42,
+          companyName: "Acme",
+          website: "https://acme.com",
+        }),
       ).rejects.toThrow(
         "Could not fetch companies from database, name: acme.com, error: DB error",
       );
     });
 
     it("returns null for a known mail provider domain without creating a company", async () => {
-      mockFrom.mockReturnValue({
-        select: () => ({
-          eq: () => ({
-            maybeSingle: () => Promise.resolve({ data: null, error: null }),
-          }),
-        }),
+      const result = await getOrCreateCompanyFromDomain({
+        domain: "gmail.com",
+        salesId: 42,
+        companyName: "Gmail",
+        website: "https://gmail.com",
       });
 
-      const result = await getOrCreateCompanyFromDomain("gmail.com", 42);
-
       expect(result).toBeNull();
-      // insert should never be called
-      expect(mockFrom).toHaveBeenCalledTimes(1);
+      // No database calls should be made for mail providers
+      expect(mockFrom).not.toHaveBeenCalled();
     });
 
     it("creates and returns a new company when it does not exist and domain is not a mail provider", async () => {
-      const newCompany = { id: 2, name: "acme.com", sales_id: 42 };
+      const newCompany = {
+        id: 2,
+        name: "Acme",
+        website: "https://acme.com",
+        sales_id: 42,
+      };
       mockFrom
         .mockReturnValueOnce({
           // first call: fetch
@@ -90,7 +107,12 @@ describe("addNoteToContact", () => {
           }),
         });
 
-      const result = await getOrCreateCompanyFromDomain("acme.com", 42);
+      const result = await getOrCreateCompanyFromDomain({
+        domain: "acme.com",
+        salesId: 42,
+        companyName: "Acme",
+        website: "https://acme.com",
+      });
 
       expect(result).toEqual(newCompany);
       expect(mockFrom).toHaveBeenCalledTimes(2);
@@ -117,9 +139,14 @@ describe("addNoteToContact", () => {
         });
 
       await expect(
-        getOrCreateCompanyFromDomain("acme.com", 42),
+        getOrCreateCompanyFromDomain({
+          domain: "acme.com",
+          salesId: 42,
+          companyName: "Acme",
+          website: "https://acme.com",
+        }),
       ).rejects.toThrow(
-        "Could not create company in database, name: acme.com, error: Insert failed",
+        "Could not create company in database, domain: acme.com, error: Insert failed",
       );
     });
   });
@@ -131,6 +158,8 @@ describe("addNoteToContact", () => {
       lastName: "Smith",
       salesId: 42,
       domain: "acme.com",
+      companyName: "Acme",
+      website: "https://acme.com",
     };
 
     it("returns the existing contact when it already exists in the database", async () => {
@@ -178,7 +207,12 @@ describe("addNoteToContact", () => {
         last_name: "Smith",
         company_id: 1,
       };
-      const existingCompany = { id: 1, name: "acme.com", sales_id: 42 };
+      const existingCompany = {
+        id: 1,
+        name: "Acme",
+        website: "https://acme.com",
+        sales_id: 42,
+      };
 
       mockFrom
         .mockReturnValueOnce({
@@ -229,15 +263,7 @@ describe("addNoteToContact", () => {
           }),
         })
         .mockReturnValueOnce({
-          // 2nd call: fetch company (gmail.com) → not found (mail providers are never created)
-          select: () => ({
-            eq: () => ({
-              maybeSingle: () => Promise.resolve({ data: null, error: null }),
-            }),
-          }),
-        })
-        .mockReturnValueOnce({
-          // 3rd call: insert contact (with null company_id)
+          // 2nd call: insert contact (with null company_id)
           insert: () => ({
             select: () => Promise.resolve({ data: [newContact], error: null }),
           }),
@@ -247,15 +273,22 @@ describe("addNoteToContact", () => {
         ...contactParams,
         email: "alice@gmail.com",
         domain: "gmail.com",
+        companyName: "Gmail",
+        website: "https://gmail.com",
       });
 
       expect(result).toEqual(newContact);
-      // Only 3 froms: contacts fetch, companies fetch, contacts insert (no company insert for mail provider)
-      expect(mockFrom).toHaveBeenCalledTimes(3);
+      // Only 2 froms: contacts fetch, contacts insert (no company fetch/insert for mail provider)
+      expect(mockFrom).toHaveBeenCalledTimes(2);
     });
 
     it("throws when creating the contact fails", async () => {
-      const existingCompany = { id: 1, name: "acme.com", sales_id: 42 };
+      const existingCompany = {
+        id: 1,
+        name: "Acme",
+        website: "https://acme.com",
+        sales_id: 42,
+      };
 
       mockFrom
         .mockReturnValueOnce({
@@ -300,6 +333,8 @@ describe("addNoteToContact", () => {
       lastName: "Smith",
       noteContent: "A note",
       attachments: [],
+      companyName: "Acme",
+      website: "https://acme.com",
     };
 
     it("creates a note and returns undefined on success", async () => {

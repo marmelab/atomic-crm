@@ -2,16 +2,28 @@ import { supabaseAdmin } from "../_shared/supabaseAdmin.ts";
 import type { Attachment } from "./extractAndUploadAttachments.ts";
 import { MAIL_PROVIDERS } from "./mailProvider.const.ts";
 
-export const getOrCreateCompanyFromDomain = async (
-  domain: string,
-  salesId: number,
-) => {
+export const getOrCreateCompanyFromDomain = async ({
+  domain,
+  salesId,
+  companyName,
+  website,
+}: {
+  domain: string;
+  salesId: number;
+  companyName: string;
+  website: string;
+}) => {
+  if (MAIL_PROVIDERS.includes(domain)) {
+    // We don't want to create companies for generic mail providers, as they are not really companies and it would pollute the database with useless entries.
+    return null;
+  }
+
   // Check if the company already exists
   const { data: existingCompany, error: fetchCompanyError } =
     await supabaseAdmin
       .from("companies")
       .select("*")
-      .eq("name", domain)
+      .or(`website.eq.${website},name.eq.${companyName}`)
       .maybeSingle();
   if (fetchCompanyError) {
     throw new Error(
@@ -23,18 +35,13 @@ export const getOrCreateCompanyFromDomain = async (
     return existingCompany;
   }
 
-  if (MAIL_PROVIDERS.includes(domain)) {
-    // We don't want to create companies for generic mail providers, as they are not really companies and it would pollute the database with useless entries.
-    return null;
-  }
-
   const { data: newCompanies, error: createCompanyError } = await supabaseAdmin
     .from("companies")
-    .insert({ name: domain, sales_id: salesId })
+    .insert({ name: companyName, sales_id: salesId, website })
     .select();
   if (createCompanyError) {
     throw new Error(
-      `Could not create company in database, name: ${domain}, error: ${createCompanyError.message}`,
+      `Could not create company in database, domain: ${domain}, error: ${createCompanyError.message}`,
     );
   }
   return newCompanies[0];
@@ -46,12 +53,16 @@ export const getOrCreateContactFromEmailInfo = async ({
   lastName,
   salesId,
   domain,
+  companyName,
+  website,
 }: {
   email: string;
   firstName: string;
   lastName: string;
   salesId: number;
   domain: string;
+  companyName: string;
+  website: string;
 }) => {
   // Check if the contact already exists
   const { data: existingContact, error: fetchContactError } =
@@ -70,7 +81,12 @@ export const getOrCreateContactFromEmailInfo = async ({
     return existingContact;
   }
 
-  const company = await getOrCreateCompanyFromDomain(domain, salesId);
+  const company = await getOrCreateCompanyFromDomain({
+    domain,
+    salesId,
+    companyName,
+    website,
+  });
 
   // Create the contact
   const { data: newContacts, error: createContactError } = await supabaseAdmin
@@ -88,7 +104,7 @@ export const getOrCreateContactFromEmailInfo = async ({
     .select();
   if (createContactError || !newContacts[0]) {
     throw new Error(
-      `Could not create contact in database, email: ${email}, error: ${createContactError.message}`,
+      `Could not create contact in database, email: ${email}, error: ${createContactError?.message}`,
     );
   }
   return newContacts[0];
@@ -102,6 +118,8 @@ export const addNoteToContact = async ({
   lastName,
   noteContent,
   attachments,
+  companyName,
+  website,
 }: {
   salesEmail: string;
   email: string;
@@ -110,6 +128,8 @@ export const addNoteToContact = async ({
   lastName: string;
   noteContent: string;
   attachments: Attachment[];
+  companyName: string;
+  website: string;
 }) => {
   const { data: sales, error: fetchSalesError } = await supabaseAdmin
     .from("sales")
@@ -139,6 +159,8 @@ export const addNoteToContact = async ({
     lastName,
     salesId: sales.id,
     domain,
+    companyName,
+    website,
   })
     .then((contact) => ({
       contact,
