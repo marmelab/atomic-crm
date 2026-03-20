@@ -6,9 +6,19 @@ import { defaultConfiguration } from "./defaultConfiguration";
 
 export const CONFIGURATION_STORE_KEY = "app.configuration";
 
+export interface CustomView {
+  id: string;
+  label: string;
+  companyType: string;
+  visibleStages?: string[];
+  /** Sales IDs allowed to see this view. undefined or [] = all users. */
+  allowedUserIds?: number[];
+}
+
 export interface ConfigurationContextValue {
   companySectors: LabeledValue[];
   companyTypes: LabeledValue[];
+  customViews: CustomView[];
   dealCategories: LabeledValue[];
   dealPipelineStatuses: string[];
   dealStages: DealStage[];

@@ -1,4 +1,4 @@
-import { RotateCcw, Save } from "lucide-react";
+import { RotateCcw, Save, Trash2, Users, Globe } from "lucide-react";
 import type { RaRecord } from "ra-core";
 import { EditBase, Form, useGetList, useInput, useNotify } from "ra-core";
 import { useCallback, useMemo } from "react";
@@ -16,6 +16,7 @@ import {
   useConfigurationContext,
   useConfigurationUpdater,
   type ConfigurationContextValue,
+  type CustomView,
 } from "../root/ConfigurationContext";
 import { defaultConfiguration } from "../root/defaultConfiguration";
 
@@ -23,6 +24,7 @@ const SECTIONS = [
   { id: "branding", label: "Personnalisation" },
   { id: "companies", label: "Sociétés" },
   { id: "deals", label: "Opportunités" },
+  { id: "views", label: "Vues" },
   { id: "notes", label: "Notes" },
   { id: "tasks", label: "Tâches" },
 ];
@@ -129,7 +131,18 @@ const SettingsForm = () => {
       dealPipelineStatuses: config.dealPipelineStatuses,
       noteStatuses: config.noteStatuses,
     }),
-    [config],
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [
+      config.title,
+      config.lightModeLogo,
+      config.darkModeLogo,
+      config.companySectors,
+      config.dealCategories,
+      config.taskTypes,
+      config.dealStages,
+      config.dealPipelineStatuses,
+      config.noteStatuses,
+    ],
   );
 
   return (
@@ -342,6 +355,9 @@ const SettingsFormFields = () => {
           </CardContent>
         </Card>
 
+        {/* Custom Views */}
+        <CustomViewsSection />
+
         {/* Tasks */}
         <Card id="tasks">
           <CardContent className="space-y-4">
@@ -396,6 +412,216 @@ const SettingsFormFields = () => {
         </div>
       </div>
     </div>
+  );
+};
+
+const CustomViewsSection = () => {
+  const config = useConfigurationContext();
+  const { customViews, dealStages, companyTypes } = config;
+  const updateConfiguration = useConfigurationUpdater();
+
+  const { data: allSales } = useGetList("sales", {
+    pagination: { page: 1, perPage: 100 },
+    sort: { field: "first_name", order: "ASC" },
+    filter: { "disabled@neq": true },
+  });
+
+  const handleDeleteView = (viewId: string) => {
+    updateConfiguration({
+      ...config,
+      customViews: customViews.filter((v) => v.id !== viewId),
+    });
+  };
+
+  const handleToggleStage = (view: CustomView, stageValue: string) => {
+    const currentVisible = view.visibleStages ?? dealStages.map((s) => s.value);
+    const isVisible = currentVisible.includes(stageValue);
+    let newVisible: string[];
+    if (isVisible) {
+      if (currentVisible.length === 1) return;
+      newVisible = currentVisible.filter((s) => s !== stageValue);
+    } else {
+      newVisible = [...currentVisible, stageValue];
+    }
+    updateConfiguration({
+      ...config,
+      customViews: customViews.map((v) =>
+        v.id === view.id ? { ...v, visibleStages: newVisible } : v,
+      ),
+    });
+  };
+
+  const handleResetStages = (viewId: string) => {
+    updateConfiguration({
+      ...config,
+      customViews: customViews.map((v) =>
+        v.id === viewId ? { ...v, visibleStages: undefined } : v,
+      ),
+    });
+  };
+
+  const handleToggleUser = (view: CustomView, userId: number) => {
+    const current = view.allowedUserIds ?? [];
+    const isAllowed = current.includes(userId);
+    const newAllowed = isAllowed
+      ? current.filter((id) => id !== userId)
+      : [...current, userId];
+    updateConfiguration({
+      ...config,
+      customViews: customViews.map((v) =>
+        v.id === view.id ? { ...v, allowedUserIds: newAllowed } : v,
+      ),
+    });
+  };
+
+  const handleSetAllUsers = (viewId: string) => {
+    updateConfiguration({
+      ...config,
+      customViews: customViews.map((v) =>
+        v.id === viewId ? { ...v, allowedUserIds: undefined } : v,
+      ),
+    });
+  };
+
+  return (
+    <Card id="views">
+      <CardContent className="space-y-4">
+        <h2 className="text-xl font-semibold text-muted-foreground">Vues</h2>
+        {customViews.length === 0 ? (
+          <p className="text-sm text-muted-foreground">
+            Aucune vue personnalisée. Cliquez sur &quot;+&quot; dans la barre de
+            navigation pour en créer une.
+          </p>
+        ) : (
+          <div className="space-y-6">
+            {customViews.map((view) => {
+              const companyTypeLabel =
+                companyTypes.find((t) => t.value === view.companyType)?.label ??
+                view.companyType;
+              const visibleSet = new Set(
+                view.visibleStages ?? dealStages.map((s) => s.value),
+              );
+              const hasCustomStages = view.visibleStages !== undefined;
+              const isOpenToAll = !view.allowedUserIds?.length;
+
+              return (
+                <div key={view.id} className="space-y-4">
+                  {/* Header */}
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h3 className="text-base font-medium">{view.label}</h3>
+                      <p className="text-xs text-muted-foreground">
+                        Type : {companyTypeLabel}
+                      </p>
+                    </div>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleDeleteView(view.id)}
+                      className="text-destructive hover:text-destructive"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
+
+                  {/* Access control */}
+                  <div className="space-y-2">
+                    <p className="text-sm font-medium text-muted-foreground flex items-center gap-1.5">
+                      <Users className="h-3.5 w-3.5" />
+                      Accès
+                    </p>
+                    <div className="flex flex-wrap gap-2">
+                      {/* "Tous" button */}
+                      <button
+                        type="button"
+                        onClick={() => handleSetAllUsers(view.id)}
+                        className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium border transition-all ${
+                          isOpenToAll
+                            ? "bg-[var(--nosho-green)]/10 border-[var(--nosho-green)]/40 text-[var(--nosho-green-dark)]"
+                            : "bg-muted/50 border-border text-muted-foreground hover:border-muted-foreground/40"
+                        }`}
+                      >
+                        <Globe className="h-3 w-3" />
+                        Tous
+                      </button>
+                      {/* Per-user toggles */}
+                      {allSales?.map((sale) => {
+                        const isAllowed =
+                          isOpenToAll ||
+                          view.allowedUserIds?.includes(sale.id as number);
+                        const initials = `${sale.first_name?.[0] ?? ""}${sale.last_name?.[0] ?? ""}`.toUpperCase();
+                        return (
+                          <button
+                            key={sale.id}
+                            type="button"
+                            onClick={() =>
+                              handleToggleUser(view, sale.id as number)
+                            }
+                            title={`${sale.first_name} ${sale.last_name}`}
+                            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium border transition-all ${
+                              isAllowed && !isOpenToAll
+                                ? "bg-[var(--nosho-green)]/10 border-[var(--nosho-green)]/40 text-[var(--nosho-green-dark)]"
+                                : isOpenToAll
+                                  ? "bg-muted/30 border-border/50 text-muted-foreground/50"
+                                  : "bg-muted/50 border-border text-muted-foreground hover:border-muted-foreground/40"
+                            }`}
+                          >
+                            <span className="w-4 h-4 rounded-full bg-current/20 flex items-center justify-center text-[9px] font-bold shrink-0">
+                              {initials}
+                            </span>
+                            {sale.first_name} {sale.last_name}
+                          </button>
+                        );
+                      })}
+                    </div>
+                    {!isOpenToAll && (
+                      <p className="text-xs text-muted-foreground">
+                        Les admins ont toujours accès à toutes les vues.
+                      </p>
+                    )}
+                  </div>
+
+                  {/* Stage visibility */}
+                  <div className="space-y-2">
+                    <p className="text-sm font-medium text-muted-foreground">
+                      Étapes visibles
+                    </p>
+                    <div className="flex flex-wrap gap-2">
+                      {dealStages.map((stage) => {
+                        const isVisible = visibleSet.has(stage.value);
+                        return (
+                          <Button
+                            key={stage.value}
+                            type="button"
+                            variant={isVisible ? "default" : "outline"}
+                            size="sm"
+                            onClick={() => handleToggleStage(view, stage.value)}
+                          >
+                            {stage.label || stage.value}
+                          </Button>
+                        );
+                      })}
+                    </div>
+                    {hasCustomStages && (
+                      <button
+                        type="button"
+                        onClick={() => handleResetStages(view.id)}
+                        className="text-xs text-muted-foreground underline hover:text-foreground"
+                      >
+                        Réinitialiser (tout afficher)
+                      </button>
+                    )}
+                  </div>
+
+                  <Separator />
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </CardContent>
+    </Card>
   );
 };
 

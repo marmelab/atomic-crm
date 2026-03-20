@@ -90,6 +90,7 @@ export const defaultTaskTypes = [
 export const defaultConfiguration: ConfigurationContextValue = {
   companySectors: defaultCompanySectors,
   companyTypes: defaultCompanyTypes,
+  customViews: [],
   dealCategories: defaultDealCategories,
   dealPipelineStatuses: defaultDealPipelineStatuses,
   dealStages: defaultDealStages,

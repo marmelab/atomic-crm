@@ -5,7 +5,8 @@ import { useIsMobile } from "@/hooks/use-mobile";
 
 export const AutocompleteCompanyInput = ({
   validate,
-}: Pick<InputProps, "validate">) => {
+  defaultType,
+}: Pick<InputProps, "validate"> & { defaultType?: string }) => {
   const [create] = useCreate();
   const { identity } = useGetIdentity();
   const notify = useNotify();
@@ -19,6 +20,7 @@ export const AutocompleteCompanyInput = ({
             name,
             sales_id: identity?.id,
             created_at: new Date().toISOString(),
+            ...(defaultType ? { type: defaultType } : {}),
           },
         },
         { returnPromise: true },

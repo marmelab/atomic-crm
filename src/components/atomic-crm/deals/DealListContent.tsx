@@ -1,7 +1,7 @@
 import { DragDropContext, type OnDragEndResponder } from "@hello-pangea/dnd";
 import isEqual from "lodash/isEqual";
 import { useDataProvider, useListContext, type DataProvider } from "ra-core";
-import { useEffect, useState } from "react";
+import { createContext, useContext, useEffect, useState } from "react";
 
 import { useConfigurationContext } from "../root/ConfigurationContext";
 import type { Deal } from "../types";
@@ -9,8 +9,16 @@ import { DealColumn } from "./DealColumn";
 import type { DealsByStage } from "./stages";
 import { getDealsByStage } from "./stages";
 
+interface DealListViewContextValue {
+  initialVisibleStages?: string[];
+  companyType?: string;
+}
+export const DealListViewContext = createContext<DealListViewContextValue>({});
+export const DealListViewProvider = DealListViewContext.Provider;
+
 export const DealListContent = () => {
   const { dealStages } = useConfigurationContext();
+  const { initialVisibleStages } = useContext(DealListViewContext);
   const { data: unorderedDeals, isPending, refetch } = useListContext<Deal>();
   const dataProvider = useDataProvider();
 
@@ -18,9 +26,12 @@ export const DealListContent = () => {
     getDealsByStage([], dealStages),
   );
 
-  // All stages visible by default
+  // Use initialVisibleStages if provided, otherwise show all stages
   const [visibleStages, setVisibleStages] = useState<Set<string>>(
-    () => new Set(dealStages.map((s) => s.value)),
+    () =>
+      initialVisibleStages
+        ? new Set(initialVisibleStages)
+        : new Set(dealStages.map((s) => s.value)),
   );
 
   const toggleStage = (stageValue: string) => {

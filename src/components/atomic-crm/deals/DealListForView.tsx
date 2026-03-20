@@ -1,5 +1,5 @@
-import { useGetIdentity, useListContext } from "ra-core";
-import { matchPath, useLocation } from "react-router";
+import { useCanAccess, useGetIdentity, useListContext } from "ra-core";
+import { matchPath, Navigate, useLocation, useParams } from "react-router";
 import { AutocompleteInput } from "@/components/admin/autocomplete-input";
 import { CreateButton } from "@/components/admin/create-button";
 import { ExportButton } from "@/components/admin/export-button";
@@ -15,15 +15,35 @@ import { DealArchivedList } from "./DealArchivedList";
 import { DealCreate } from "./DealCreate";
 import { DealEdit } from "./DealEdit";
 import { DealEmpty } from "./DealEmpty";
-import { DealListContent } from "./DealListContent";
+import { DealListContent, DealListViewProvider } from "./DealListContent";
 import { DealShow } from "./DealShow";
 import { OnlyMineInput } from "./OnlyMineInput";
 
-const DealList = () => {
+export const DealListForView = () => {
+  const { viewId } = useParams<{ viewId: string }>();
+  const { customViews, dealCategories } = useConfigurationContext();
   const { identity } = useGetIdentity();
-  const { dealCategories, companyTypes } = useConfigurationContext();
+  const { canAccess: isAdmin } = useCanAccess({
+    resource: "configuration",
+    action: "edit",
+  });
 
-  if (!identity) return null;
+  const view = customViews.find((v) => v.id === viewId);
+  const currentSaleId = identity?.id as number | undefined;
+
+  // Access check: admins always allowed; regular users must be in allowedUserIds (or it's open)
+  const hasAccess =
+    !identity || // still loading
+    !view || // will 404
+    isAdmin ||
+    !view.allowedUserIds?.length ||
+    (currentSaleId != null && view.allowedUserIds.includes(currentSaleId));
+
+  if (identity && view && !hasAccess) {
+    return <Navigate to="/deals" replace />;
+  }
+
+  if (!identity || !view) return null;
 
   const dealFilters = [
     <SearchInput source="q" alwaysOn />,
@@ -37,37 +57,35 @@ const DealList = () => {
       optionText="label"
       optionValue="value"
     />,
-    <SelectInput
-      source="company_type"
-      label="Type de société"
-      emptyText="Tous les types"
-      choices={companyTypes}
-      optionText="label"
-      optionValue="value"
-    />,
     <OnlyMineInput source="sales_id" alwaysOn />,
   ];
 
   return (
-    <List
-      perPage={100}
-      filter={{ "archived_at@is": null }}
-      title={false}
-      sort={{ field: "index", order: "DESC" }}
-      filters={dealFilters}
-      actions={<DealActions />}
-      pagination={null}
-    >
-      <DealLayout />
-    </List>
+    <DealListViewProvider value={{ initialVisibleStages: view.visibleStages, companyType: view.companyType }}>
+      <List
+        resource="deals"
+        perPage={100}
+        filter={{
+          "archived_at@is": null,
+          company_type: view.companyType,
+        }}
+        title={false}
+        sort={{ field: "index", order: "DESC" }}
+        filters={dealFilters}
+        actions={<DealViewActions />}
+        pagination={null}
+      >
+        <DealViewLayout />
+      </List>
+    </DealListViewProvider>
   );
 };
 
-const DealLayout = () => {
+const DealViewLayout = () => {
   const location = useLocation();
-  const matchCreate = matchPath("/deals/create", location.pathname);
-  const matchShow = matchPath("/deals/:id/show", location.pathname);
-  const matchEdit = matchPath("/deals/:id", location.pathname);
+  const matchCreate = matchPath("/views/:viewId/create", location.pathname);
+  const matchShow = matchPath("/views/:viewId/:id/show", location.pathname);
+  const matchEdit = matchPath("/views/:viewId/:id", location.pathname);
 
   const { data, isPending, filterValues } = useListContext();
   const hasFilters = filterValues && Object.keys(filterValues).length > 0;
@@ -95,12 +113,10 @@ const DealLayout = () => {
   );
 };
 
-const DealActions = () => (
+const DealViewActions = () => (
   <TopToolbar>
     <FilterButton />
     <ExportButton />
     <CreateButton label="Nouvelle opportunité" />
   </TopToolbar>
 );
-
-export default DealList;

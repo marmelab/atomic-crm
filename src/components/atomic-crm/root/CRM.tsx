@@ -20,6 +20,7 @@ import contacts from "../contacts";
 import { Dashboard } from "../dashboard/Dashboard";
 import { MobileDashboard } from "../dashboard/MobileDashboard";
 import deals from "../deals";
+import { DealListForView } from "../deals/DealListForView";
 import { Layout } from "../layout/Layout";
 import { MobileLayout } from "../layout/MobileLayout";
 import { SignupPage } from "../login/SignupPage";
@@ -32,6 +33,8 @@ import {
 import sales from "../sales";
 import { ProfilePage } from "../settings/ProfilePage";
 import { SettingsPage } from "../settings/SettingsPage";
+import { ConnectorsPage } from "../settings/ConnectorsPage";
+import { GoogleOAuthCallback } from "../google/GoogleOAuthCallback";
 import {
   CONFIGURATION_STORE_KEY,
   type ConfigurationContextValue,
@@ -235,12 +238,18 @@ const DesktopAdmin = (props: CoreAdminProps) => {
           element={<ForgotPasswordPage />}
         />
         <Route path={OAuthConsentPage.path} element={<OAuthConsentPage />} />
+        <Route
+          path={GoogleOAuthCallback.path}
+          element={<GoogleOAuthCallback />}
+        />
       </CustomRoutes>
 
       <CustomRoutes>
         <Route path={ProfilePage.path} element={<ProfilePage />} />
         <Route path={SettingsPage.path} element={<SettingsPage />} />
+        <Route path={ConnectorsPage.path} element={<ConnectorsPage />} />
         <Route path={ImportPage.path} element={<ImportPage />} />
+        <Route path="/views/:viewId/*" element={<DealListForView />} />
       </CustomRoutes>
       <Resource name="deals" {...deals} />
       <Resource name="contacts" {...contacts} />
@@ -293,6 +302,10 @@ const MobileAdmin = (props: CoreAdminProps) => {
             element={<ForgotPasswordPage />}
           />
           <Route path={OAuthConsentPage.path} element={<OAuthConsentPage />} />
+          <Route
+            path={GoogleOAuthCallback.path}
+            element={<GoogleOAuthCallback />}
+          />
         </CustomRoutes>
         <Resource
           name="contacts"

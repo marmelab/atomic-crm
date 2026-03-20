@@ -9,13 +9,21 @@ import { TasksIterator } from "../tasks/TasksIterator";
 import { TagsListEdit } from "./TagsListEdit";
 import { ContactPersonalInfo } from "./ContactPersonalInfo";
 import { ContactBackgroundInfo } from "./ContactBackgroundInfo";
+import { ContactEmailHistory } from "./ContactEmailHistory";
+import { ContactCalendarEvents } from "./ContactCalendarEvents";
 import { AsideSection } from "../misc/AsideSection";
 import type { Contact } from "../types";
 import { ContactMergeButton } from "./ContactMergeButton";
 import { ExportVCardButton } from "./ExportVCardButton";
+import { useGoogleConnectionStatus } from "../google/useGoogleConnectionStatus";
 
 export const ContactAside = ({ link = "edit" }: { link?: "edit" | "show" }) => {
   const record = useRecordContext<Contact>();
+  const { data: googleStatus } = useGoogleConnectionStatus();
+  const showEmails =
+    googleStatus?.connected && googleStatus.preferences?.showEmailsOnContact;
+  const showCalendar =
+    googleStatus?.connected && googleStatus.preferences?.showCalendarOnContact;
 
   if (!record) return null;
   return (
@@ -50,6 +58,18 @@ export const ContactAside = ({ link = "edit" }: { link?: "edit" | "show" }) => {
         </ReferenceManyField>
         <AddTask />
       </AsideSection>
+
+      {showEmails && (
+        <AsideSection title="Emails">
+          <ContactEmailHistory />
+        </AsideSection>
+      )}
+
+      {showCalendar && (
+        <AsideSection title="Rendez-vous">
+          <ContactCalendarEvents />
+        </AsideSection>
+      )}
 
       {link !== "edit" && (
         <>
