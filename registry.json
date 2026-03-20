@@ -358,6 +358,14 @@
           "type": "registry:component"
         },
         {
+          "path": "src/components/atomic-crm/notes/NoteTypeInput.tsx",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/notes/NoteTypeBadge.tsx",
+          "type": "registry:component"
+        },
+        {
           "path": "src/components/atomic-crm/notes/NoteShowPage.tsx",
           "type": "registry:component"
         },

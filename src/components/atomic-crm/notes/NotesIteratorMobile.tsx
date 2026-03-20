@@ -15,15 +15,19 @@ import { RelativeDate } from "../misc/RelativeDate";
 import { Status } from "../misc/Status";
 import { useGetSalesName } from "../sales/useGetSalesName";
 import type { ContactNote } from "../types";
+import { NOTE_TYPE_ICONS } from "./NoteTypeBadge";
+import { useConfigurationContext } from "../root/ConfigurationContext";
 import { InfinitePagination } from "../misc/InfinitePagination";
 import { useAddInfinitePagination } from "./useAddInfinitePagination";
 
 export const NotesIteratorMobile = ({
   contactId,
   showStatus,
+  showType,
 }: {
   contactId: Identifier;
   showStatus?: boolean;
+  showType?: boolean;
 }) => {
   const { data, error, isPending, infinitePaginationContextValue, refetch } =
     useAddInfinitePagination();
@@ -78,6 +82,7 @@ export const NotesIteratorMobile = ({
             note={note}
             contactId={contactId}
             showStatus={showStatus}
+            showType={showType}
           />
         ))}
       </div>
@@ -90,10 +95,12 @@ export const NoteMobile = ({
   note,
   contactId,
   showStatus,
+  showType,
 }: {
   note: ContactNote;
   contactId: Identifier;
   showStatus?: boolean;
+  showType?: boolean;
 }) => {
   const translate = useTranslate();
   const { identity } = useGetIdentity();
@@ -101,6 +108,12 @@ export const NoteMobile = ({
   const salesName = useGetSalesName(note.sales_id, {
     enabled: !isCurrentUser,
   });
+  const { noteTypes } = useConfigurationContext();
+  const noteType =
+    showType && note.type
+      ? noteTypes?.find((t) => t.value === note.type)
+      : null;
+  const NoteTypeIcon = noteType?.icon ? NOTE_TYPE_ICONS[noteType.icon] : null;
 
   return (
     <Link

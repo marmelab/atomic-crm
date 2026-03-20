@@ -19,10 +19,12 @@ import { NoteTypeInput } from "./NoteTypeInput";
 
 export const NoteInputs = ({
   showStatus,
+  showType,
   selectReference,
   reference,
 }: {
   showStatus?: boolean;
+  showType?: boolean;
   selectReference?: boolean;
   reference?: "contacts" | "deals";
 }) => {
@@ -37,9 +39,11 @@ export const NoteInputs = ({
   return (
     <div className="space-y-2">
       <div className="flex gap-6 items-start">
-        <div className="w-10 shrink-0">
-          <NoteTypeInput />
-        </div>
+        {showType && (
+          <div className="w-10 shrink-0">
+            <NoteTypeInput />
+          </div>
+        )}
         <div className="flex-1">
           <TextInput
             source="text"

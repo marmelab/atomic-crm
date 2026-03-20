@@ -33,9 +33,11 @@ import { useConfigurationContext } from "../root/ConfigurationContext";
 
 export const Note = ({
   showStatus,
+  showType,
   note,
 }: {
   showStatus?: boolean;
+  showType?: boolean;
   note: DealNote | ContactNote;
   isLast: boolean;
 }) => {
@@ -194,7 +196,7 @@ export const Note = ({
         </Form>
       ) : (
         <div className="pt-2 text-sm max-w-150">
-          {NoteTypeIcon && noteType?.value !== "none" && (
+          {showType && NoteTypeIcon && noteType?.value !== "none" && (
             <span
               className="float-left mr-2 mt-0.5"
               style={noteType?.color ? { color: noteType.color } : undefined}

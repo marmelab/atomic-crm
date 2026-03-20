@@ -69,7 +69,7 @@ export const NoteEditSheet = ({
         />
       }
     >
-      <NoteInputs showStatus />
+      <NoteInputs showStatus showType />
     </EditSheet>
   );
 };

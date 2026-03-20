@@ -175,7 +175,7 @@ const ContactShowContentMobile = () => {
                 } as any // fixme: remove once https://github.com/marmelab/react-admin/pull/11166 is released
               }
             >
-              <NotesIteratorMobile contactId={record.id} showStatus />
+              <NotesIteratorMobile contactId={record.id} showStatus showType />
             </ReferenceManyField>
           </TabsContent>
 
@@ -274,7 +274,12 @@ const ContactShowContent = () => {
               reference="contact_notes"
               sort={{ field: "date", order: "DESC" }}
               empty={
-                <NoteCreate reference="contacts" showStatus className="mt-4" />
+                <NoteCreate
+                  reference="contacts"
+                  showStatus
+                  showType
+                  className="mt-4"
+                />
               }
               queryOptions={{
                 // We want infinite pagination so we need to disable placeHolder data to avoid flicker duplicating previous page before showing the new one
@@ -283,7 +288,7 @@ const ContactShowContent = () => {
                 placeholderData: null,
               }}
             >
-              <NotesIterator reference="contacts" showStatus />
+              <NotesIterator reference="contacts" showStatus showType />
             </ReferenceManyField>
           </CardContent>
         </Card>

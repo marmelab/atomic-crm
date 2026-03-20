@@ -22,10 +22,12 @@ import { foreignKeyMapping } from "./foreignKeyMapping";
 export const NoteCreate = ({
   reference,
   showStatus,
+  showType,
   className,
 }: {
   reference: "contacts" | "deals";
   showStatus?: boolean;
+  showType?: boolean;
   className?: string;
 }) => {
   const resource = useResourceContext();
@@ -38,7 +40,7 @@ export const NoteCreate = ({
     <CreateBase resource={resource} redirect={false}>
       <Form>
         <div className={cn("space-y-3", className)}>
-          <NoteInputs showStatus={showStatus} />
+          <NoteInputs showStatus={showStatus} showType={showType} />
           <NoteCreateButton reference={reference} record={record} />
         </div>
       </Form>

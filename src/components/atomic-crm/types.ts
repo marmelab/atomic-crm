@@ -133,7 +133,6 @@ export type DealNote = {
   text: string;
   date: string;
   sales_id: Identifier;
-  type?: string;
   attachments?: AttachmentNote[];
 
   // This is defined for compatibility with `ContactNote`

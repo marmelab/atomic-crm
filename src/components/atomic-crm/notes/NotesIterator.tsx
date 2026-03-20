@@ -10,9 +10,11 @@ import { useAddInfinitePagination } from "./useAddInfinitePagination";
 export const NotesIterator = ({
   reference,
   showStatus,
+  showType,
 }: {
   reference: "contacts" | "deals";
   showStatus?: boolean;
+  showType?: boolean;
 }) => {
   const { infinitePaginationContextValue, isPending, error, data } =
     useAddInfinitePagination();
@@ -22,7 +24,11 @@ export const NotesIterator = ({
   return (
     <InfinitePaginationContext.Provider value={infinitePaginationContextValue}>
       <div className="mt-4">
-        <NoteCreate reference={reference} showStatus={showStatus} />
+        <NoteCreate
+          reference={reference}
+          showStatus={showStatus}
+          showType={showType}
+        />
         {data.length && (
           <div className="mt-4 space-y-4">
             {data.map((note, index) => (
@@ -32,6 +38,7 @@ export const NotesIterator = ({
                   isLast={index === data.length - 1}
                   key={index}
                   showStatus={showStatus}
+                  showType={showType}
                 />
                 {index < data.length - 1 && <Separator />}
               </Fragment>
