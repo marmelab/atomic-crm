@@ -28,10 +28,13 @@ import {
   ResourceContextProvider,
   ResourceDefinitionContextProvider,
   localStorageStore,
+  memoryStore,
   type AuthProvider,
 } from "ra-core";
 import { useMemo, useState, type ReactNode } from "react";
 import { MemoryRouter, Route, Routes } from "react-router";
+import { CRM } from "@/components/atomic-crm/root/CRM";
+import { testI18nProvider } from "@/components/atomic-crm/providers/commons/i18nProvider";
 
 const listSort = { field: "last_seen", order: "DESC" } as const;
 const listPerPage = 25;
@@ -95,7 +98,7 @@ const resourceDefinitions = {
   },
 };
 
-const createTestAuthProvider = (): AuthProvider => ({
+export const createTestAuthProvider = (): AuthProvider => ({
   canAccess: async () => true,
   checkAuth: async () => undefined,
   checkError: async () => undefined,
@@ -290,6 +293,34 @@ export const CrmStoryProvider = ({
     </CrmTestProvider>
   );
 };
+
+export const StoryWrapper = ({
+  children,
+  data,
+  dataProvider,
+}: {
+  children: ReactNode;
+  data?: Partial<Db>;
+  dataProvider?: Partial<ReturnType<typeof createDataProvider>>;
+}) => (
+  <CRM
+    authProvider={createTestAuthProvider()}
+    dataProvider={{
+      ...createDataProvider({ db: createCrmDb({ ...data }) }),
+      ...dataProvider,
+    }}
+    i18nProvider={testI18nProvider}
+    dashboard={() => <>{children}</>}
+    store={memoryStore()}
+    disableTelemetry
+    layout={({ children }) => (
+      <>
+        {children}
+        <Notification />
+      </>
+    )}
+  />
+);
 
 export const DesktopContactListHarness = () => <ContactList />;
 
