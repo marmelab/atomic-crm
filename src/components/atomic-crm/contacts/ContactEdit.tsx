@@ -9,7 +9,7 @@ import {
   cleanupContactForEdit,
   defaultEmailJsonb,
   defaultPhoneJsonb,
-} from "./cleanupContact";
+} from "./contactModel";
 
 export const ContactEdit = ({
   mutationMode,

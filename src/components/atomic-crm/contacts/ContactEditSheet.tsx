@@ -1,6 +1,7 @@
 import type { Identifier } from "ra-core";
 import { EditSheet } from "../misc/EditSheet";
 import { ContactInputs } from "./ContactInputs";
+import { cleanupContactForEdit } from "./contactModel";
 
 export interface ContactEditSheetProps {
   open: boolean;
@@ -19,6 +20,7 @@ export const ContactEditSheet = ({
       id={contactId}
       open={open}
       onOpenChange={onOpenChange}
+      transform={cleanupContactForEdit}
     >
       <ContactInputs />
     </EditSheet>

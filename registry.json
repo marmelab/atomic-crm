@@ -646,15 +646,7 @@
           "type": "registry:component"
         },
         {
-          "path": "src/components/atomic-crm/contacts/exportToVCard.ts",
-          "type": "registry:component"
-        },
-        {
-          "path": "src/components/atomic-crm/contacts/contactGender.ts",
-          "type": "registry:component"
-        },
-        {
-          "path": "src/components/atomic-crm/contacts/cleanupContact.ts",
+          "path": "src/components/atomic-crm/contacts/contactModel.ts",
           "type": "registry:component"
         },
         {

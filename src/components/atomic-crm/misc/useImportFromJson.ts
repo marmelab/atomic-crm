@@ -12,7 +12,7 @@ import type { CrmDataProvider } from "../providers/types";
 import type { RAFile, Tag } from "../types";
 import { colors } from "../tags/colors";
 import { useConfigurationContext } from "../root/ConfigurationContext";
-import { contactGender } from "../contacts/contactGender";
+import { contactGender } from "../contacts/contactModel";
 
 export type ImportFromJsonStats = {
   sales: number;
