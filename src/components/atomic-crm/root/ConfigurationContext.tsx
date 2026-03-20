@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useCallback, useMemo } from "react";
 import { useStore } from "ra-core";
 
 import type { DealStage, LabeledValue, NoteStatus } from "../types";
@@ -46,4 +46,30 @@ export const useConfigurationUpdater = () => {
     CONFIGURATION_STORE_KEY,
   );
   return setConfig;
+};
+
+/**
+ * Hook to read/write only the `customViews` field in the store.
+ * Uses the raw stored config (not merged with defaults) to avoid
+ * creating new references for unrelated fields (companySectors, dealStages…)
+ * which would cause SettingsForm's defaultValues to change and reset the form.
+ */
+export const useCustomViewsStore = (): [
+  CustomView[],
+  (views: CustomView[]) => void,
+] => {
+  const [storedConfig, setStoredConfig] = useStore<
+    Partial<ConfigurationContextValue>
+  >(CONFIGURATION_STORE_KEY, {});
+  const setCustomViews = useCallback(
+    (views: CustomView[]) => {
+      setStoredConfig({ ...storedConfig, customViews: views });
+    },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [storedConfig],
+  );
+  return [
+    storedConfig.customViews ?? defaultConfiguration.customViews,
+    setCustomViews,
+  ];
 };

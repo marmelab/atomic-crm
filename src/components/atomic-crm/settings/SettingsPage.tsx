@@ -15,6 +15,7 @@ import ImageEditorField from "../misc/ImageEditorField";
 import {
   useConfigurationContext,
   useConfigurationUpdater,
+  useCustomViewsStore,
   type ConfigurationContextValue,
   type CustomView,
 } from "../root/ConfigurationContext";
@@ -416,9 +417,8 @@ const SettingsFormFields = () => {
 };
 
 const CustomViewsSection = () => {
-  const config = useConfigurationContext();
-  const { customViews, dealStages, companyTypes } = config;
-  const updateConfiguration = useConfigurationUpdater();
+  const { dealStages, companyTypes } = useConfigurationContext();
+  const [customViews, setCustomViews] = useCustomViewsStore();
 
   const { data: allSales } = useGetList("sales", {
     pagination: { page: 1, perPage: 100 },
@@ -427,10 +427,7 @@ const CustomViewsSection = () => {
   });
 
   const handleDeleteView = (viewId: string) => {
-    updateConfiguration({
-      ...config,
-      customViews: customViews.filter((v) => v.id !== viewId),
-    });
+    setCustomViews(customViews.filter((v) => v.id !== viewId));
   };
 
   const handleToggleStage = (view: CustomView, stageValue: string) => {
@@ -443,21 +440,19 @@ const CustomViewsSection = () => {
     } else {
       newVisible = [...currentVisible, stageValue];
     }
-    updateConfiguration({
-      ...config,
-      customViews: customViews.map((v) =>
+    setCustomViews(
+      customViews.map((v) =>
         v.id === view.id ? { ...v, visibleStages: newVisible } : v,
       ),
-    });
+    );
   };
 
   const handleResetStages = (viewId: string) => {
-    updateConfiguration({
-      ...config,
-      customViews: customViews.map((v) =>
+    setCustomViews(
+      customViews.map((v) =>
         v.id === viewId ? { ...v, visibleStages: undefined } : v,
       ),
-    });
+    );
   };
 
   const handleToggleUser = (view: CustomView, userId: number) => {
@@ -466,21 +461,19 @@ const CustomViewsSection = () => {
     const newAllowed = isAllowed
       ? current.filter((id) => id !== userId)
       : [...current, userId];
-    updateConfiguration({
-      ...config,
-      customViews: customViews.map((v) =>
+    setCustomViews(
+      customViews.map((v) =>
         v.id === view.id ? { ...v, allowedUserIds: newAllowed } : v,
       ),
-    });
+    );
   };
 
   const handleSetAllUsers = (viewId: string) => {
-    updateConfiguration({
-      ...config,
-      customViews: customViews.map((v) =>
+    setCustomViews(
+      customViews.map((v) =>
         v.id === viewId ? { ...v, allowedUserIds: undefined } : v,
       ),
-    });
+    );
   };
 
   return (
