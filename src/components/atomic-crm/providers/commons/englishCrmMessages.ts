@@ -140,6 +140,20 @@ export const englishCrmMessages = {
       list: {
         error_loading: "Error loading contacts",
       },
+      bulk_tag: {
+        action: "Tag",
+        back: "Back to tags",
+        create_description:
+          "Create a new tag and apply it to the selected contacts.",
+        description:
+          "Choose an existing tag or create a new one for the selected contacts.",
+        empty: "No tags yet. Create one to tag the selected contacts.",
+        error: "Failed to add tag to contacts",
+        noop: "Selected contacts already have this tag",
+        success:
+          "Tag added to %{smart_count} contact |||| Tag added to %{smart_count} contacts",
+        title: "Add tag to contacts",
+      },
       merge: {
         action: "Merge with another contact",
         confirm: "Merge Contacts",
