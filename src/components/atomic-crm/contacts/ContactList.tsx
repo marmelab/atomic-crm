@@ -7,13 +7,17 @@ import {
   type Exporter,
 } from "ra-core";
 import { BulkActionsToolbar } from "@/components/admin/bulk-actions-toolbar";
+import { BulkDeleteButton } from "@/components/admin/bulk-delete-button";
+import { BulkExportButton } from "@/components/admin/bulk-export-button";
 import { CreateButton } from "@/components/admin/create-button";
 import { ExportButton } from "@/components/admin/export-button";
 import { List } from "@/components/admin/list";
+import { SelectAllButton } from "@/components/admin/select-all-button";
 import { SortButton } from "@/components/admin/sort-button";
 import { Card } from "@/components/ui/card";
 
 import type { Company, Contact, Sale, Tag } from "../types";
+import { BulkTagButton } from "./BulkTagButton";
 import { ContactEmpty } from "./ContactEmpty";
 import { ContactImportButton } from "./ContactImportButton";
 import {
@@ -64,10 +68,21 @@ const ContactListLayoutDesktop = () => {
           <ContactListContent />
         </Card>
       </div>
-      <BulkActionsToolbar />
+      <BulkActionsToolbar>
+        <ContactBulkActionButtons />
+      </BulkActionsToolbar>
     </div>
   );
 };
+
+const ContactBulkActionButtons = () => (
+  <>
+    <SelectAllButton />
+    <BulkTagButton />
+    <BulkExportButton />
+    <BulkDeleteButton />
+  </>
+);
 
 const ContactListActions = () => (
   <TopToolbar>
