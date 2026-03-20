@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { render } from "vitest-browser-react";
 import { Mobile } from "./TaskCreateSheet.stories";
 import { useDataProvider, type DataProvider } from "ra-core";
-import { buildContact } from "@/test/browser/atomic-crm/crmUiHarness";
+import { buildContact } from "@/test/StoryWrapper";
 
 describe("TaskCreateSheet", () => {
   it("creates a task for a selected contact and updates last_seen", async () => {

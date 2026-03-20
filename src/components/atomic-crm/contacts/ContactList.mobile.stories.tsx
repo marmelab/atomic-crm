@@ -3,10 +3,7 @@ import { ResourceContextProvider } from "ra-core";
 
 import { ContactListMobile } from "./ContactList";
 
-import {
-  StoryWrapper,
-  buildContact,
-} from "@/test/browser/atomic-crm/crmUiHarness";
+import { StoryWrapper, buildContact } from "@/test/StoryWrapper";
 
 const meta = {
   title: "Atomic CRM/Contacts/Contact List",

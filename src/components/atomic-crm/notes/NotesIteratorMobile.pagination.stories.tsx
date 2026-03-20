@@ -3,7 +3,7 @@ import type { ReactNode } from "react";
 import { ListContextProvider } from "ra-core";
 
 import { NotesIteratorMobile } from "./NotesIteratorMobile";
-import { StoryWrapper } from "@/test/browser/atomic-crm/crmUiHarness";
+import { StoryWrapper } from "@/test/StoryWrapper";
 
 const singleNote = {
   contact_id: 3,
