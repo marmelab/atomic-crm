@@ -31,7 +31,7 @@ describe("addNoteToContact", () => {
       };
       mockFrom.mockReturnValue({
         select: () => ({
-          eq: () => ({
+          or: () => ({
             maybeSingle: () =>
               Promise.resolve({ data: existingCompany, error: null }),
           }),
@@ -52,7 +52,7 @@ describe("addNoteToContact", () => {
     it("throws when fetching the company fails", async () => {
       mockFrom.mockReturnValue({
         select: () => ({
-          eq: () => ({
+          or: () => ({
             maybeSingle: () =>
               Promise.resolve({ data: null, error: { message: "DB error" } }),
           }),
@@ -95,7 +95,7 @@ describe("addNoteToContact", () => {
         .mockReturnValueOnce({
           // first call: fetch
           select: () => ({
-            eq: () => ({
+            or: () => ({
               maybeSingle: () => Promise.resolve({ data: null, error: null }),
             }),
           }),
@@ -123,7 +123,7 @@ describe("addNoteToContact", () => {
       mockFrom
         .mockReturnValueOnce({
           select: () => ({
-            eq: () => ({
+            or: () => ({
               maybeSingle: () => Promise.resolve({ data: null, error: null }),
             }),
           }),
@@ -226,7 +226,7 @@ describe("addNoteToContact", () => {
         .mockReturnValueOnce({
           // 2nd call: fetch company → found
           select: () => ({
-            eq: () => ({
+            or: () => ({
               maybeSingle: () =>
                 Promise.resolve({ data: existingCompany, error: null }),
             }),
@@ -300,7 +300,7 @@ describe("addNoteToContact", () => {
         })
         .mockReturnValueOnce({
           select: () => ({
-            eq: () => ({
+            or: () => ({
               maybeSingle: () =>
                 Promise.resolve({ data: existingCompany, error: null }),
             }),
