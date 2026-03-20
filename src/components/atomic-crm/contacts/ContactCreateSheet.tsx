@@ -1,7 +1,11 @@
 import { useGetIdentity, useTranslate } from "ra-core";
 import { CreateSheet } from "../misc/CreateSheet";
 import { ContactInputs } from "./ContactInputs";
-import { cleanupContactForCreate } from "./contactModel";
+import {
+  cleanupContactForCreate,
+  defaultEmailJsonb,
+  defaultPhoneJsonb,
+} from "./contactModel";
 
 export interface ContactCreateSheetProps {
   open: boolean;
@@ -18,7 +22,11 @@ export const ContactCreateSheet = ({
     <CreateSheet
       resource="contacts"
       title={translate("resources.contacts.action.new")}
-      defaultValues={{ sales_id: identity?.id }}
+      defaultValues={{
+        sales_id: identity?.id,
+        email_jsonb: defaultEmailJsonb,
+        phone_jsonb: defaultPhoneJsonb,
+      }}
       transform={cleanupContactForCreate}
       open={open}
       onOpenChange={onOpenChange}
