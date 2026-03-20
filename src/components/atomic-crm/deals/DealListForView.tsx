@@ -1,7 +1,8 @@
 import { useCanAccess, useGetIdentity, useListContext } from "ra-core";
-import { matchPath, Navigate, useLocation, useParams } from "react-router";
+import { matchPath, Navigate, useLocation, useNavigate, useParams } from "react-router";
+import { Plus } from "lucide-react";
+import { buttonVariants } from "@/components/ui/button";
 import { AutocompleteInput } from "@/components/admin/autocomplete-input";
-import { CreateButton } from "@/components/admin/create-button";
 import { ExportButton } from "@/components/admin/export-button";
 import { List } from "@/components/admin/list";
 import { ReferenceInput } from "@/components/admin/reference-input";
@@ -113,10 +114,20 @@ const DealViewLayout = () => {
   );
 };
 
-const DealViewActions = () => (
-  <TopToolbar>
-    <FilterButton />
-    <ExportButton />
-    <CreateButton label="Nouvelle opportunité" />
-  </TopToolbar>
-);
+const DealViewActions = () => {
+  const { viewId } = useParams<{ viewId: string }>();
+  const navigate = useNavigate();
+  return (
+    <TopToolbar>
+      <FilterButton />
+      <ExportButton />
+      <button
+        className={buttonVariants({ variant: "outline" })}
+        onClick={() => navigate(`/views/${viewId}/create`)}
+      >
+        <Plus />
+        Nouvelle opportunité
+      </button>
+    </TopToolbar>
+  );
+};
