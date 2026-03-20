@@ -1,11 +1,16 @@
 import { render } from "vitest-browser-react";
 
 import {
-  ContactCreateHarness,
   createCrmDb,
   createCrmScenario,
   CrmTestProvider,
 } from "@/test/browser/atomic-crm/crmUiHarness";
+import { ContactCreate } from "./ContactCreate";
+
+// We use pessimistic mode to avoid the 5s undoable delay in tests.
+export const ContactCreateHarness = () => (
+  <ContactCreate mutationMode="pessimistic" />
+);
 
 /**
  * Create a scenario whose dataProvider.create is wrapped in a vi.fn(),

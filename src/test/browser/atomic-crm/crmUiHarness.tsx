@@ -1,8 +1,6 @@
 /* eslint-disable react-refresh/only-export-components */
 import { Notification } from "@/components/admin/notification";
 import { ThemeProvider } from "@/components/admin/theme-provider";
-import { ContactCreate } from "@/components/atomic-crm/contacts/ContactCreate";
-import { ContactEdit } from "@/components/atomic-crm/contacts/ContactEdit";
 import { ContactList } from "@/components/atomic-crm/contacts/ContactList";
 import { ContactShow } from "@/components/atomic-crm/contacts/ContactShow";
 import {
@@ -318,22 +316,6 @@ export const MobileContactListContentHarness = () => (
       <ContactListContentMobile />
     </InfiniteListBase>
   </div>
-);
-
-// We use pessimistic mode to avoid the 5s undoable delay in tests.
-export const ContactCreateHarness = () => (
-  <ContactCreate mutationMode="pessimistic" />
-);
-
-// EditBase reads the record id from the route params, so we mount a Route.
-// We use pessimistic mode to avoid the 5s undoable delay in tests.
-export const ContactEditHarness = () => (
-  <Routes>
-    <Route
-      path="/contacts/:id"
-      element={<ContactEdit mutationMode="pessimistic" />}
-    />
-  </Routes>
 );
 
 // Keep the sheet stateful so tests can assert that save flows close it.

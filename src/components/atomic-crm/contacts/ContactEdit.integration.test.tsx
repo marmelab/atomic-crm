@@ -2,11 +2,23 @@ import { render } from "vitest-browser-react";
 
 import {
   buildContact,
-  ContactEditHarness,
   createCrmDb,
   createCrmScenario,
   CrmTestProvider,
 } from "@/test/browser/atomic-crm/crmUiHarness";
+import { Route, Routes } from "react-router";
+import { ContactEdit } from "./ContactEdit";
+
+// EditBase reads the record id from the route params, so we mount a Route.
+// We use pessimistic mode to avoid the 5s undoable delay in tests.
+export const ContactEditHarness = () => (
+  <Routes>
+    <Route
+      path="/contacts/:id"
+      element={<ContactEdit mutationMode="pessimistic" />}
+    />
+  </Routes>
+);
 
 /**
  * Create a scenario whose dataProvider.update is wrapped in a vi.fn(),
