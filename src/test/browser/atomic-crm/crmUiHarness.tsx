@@ -126,6 +126,8 @@ export interface CrmScenarioOptions {
   failGetListOnce?: Partial<Record<string, string>>;
   getListDelays?: Partial<Record<string, number>>;
   latency?: number;
+  creationError?: string;
+  silent?: boolean;
 }
 
 export interface CrmScenario {
@@ -142,7 +144,16 @@ export const createCrmDb = (overrides: Partial<Db> = {}): Db =>
     companies: [],
     configuration: [{ config: {}, id: 1 }],
     contact_notes: [],
-    contacts: [],
+    contacts: [
+      {
+        id: 1,
+        first_name: "Ada",
+        last_name: "Lovelace",
+        email_jsonb: [{ email: "ada@lovelace.com", type: "Work" }],
+        phone_jsonb: [{ phone: "+1234567890", type: "Mobile" }],
+        sales_id: 1,
+      },
+    ],
     deal_notes: [],
     deals: [],
     sales: [baseSale],
@@ -179,14 +190,17 @@ export const buildContact = (overrides: Partial<Contact> = {}): Contact => ({
 export const createCrmScenario = ({
   db = createCrmDb(),
   failGetListOnce = {},
+  creationError,
   getListDelays = {},
   latency = 0,
+  silent = true,
 }: CrmScenarioOptions = {}): CrmScenario => {
   const authProvider = createTestAuthProvider();
   const baseDataProvider = createDataProvider({
     authProvider,
     db,
     latency,
+    silent,
   });
   const pendingFailures = new Map(Object.entries(failGetListOnce));
   const dataProvider = {
@@ -204,6 +218,12 @@ export const createCrmScenario = ({
       }
 
       return baseDataProvider.getList(resource, params);
+    },
+    create: async (resource, params) => {
+      if (creationError) {
+        throw new Error(creationError);
+      }
+      return baseDataProvider.create(resource, params);
     },
   } as ReturnType<typeof createDataProvider>;
   const store = localStorageStore(
