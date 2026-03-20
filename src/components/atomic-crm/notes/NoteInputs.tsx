@@ -26,7 +26,7 @@ export const NoteInputs = ({
   reference?: "contacts" | "deals";
 }) => {
   const isMobile = useIsMobile();
-  const { noteStatuses } = useConfigurationContext();
+  const { noteStatuses, noteTypes } = useConfigurationContext();
   const translate = useTranslate();
   const [displayMore, setDisplayMore] = useState(false);
 
@@ -35,14 +35,30 @@ export const NoteInputs = ({
   // but we want it to be "notes" regardless of the context
   return (
     <div className="space-y-2">
-      <TextInput
-        source="text"
-        label={false}
-        multiline
-        helperText={false}
-        placeholder={translate("resources.notes.inputs.add_note")}
-        rows={6}
-      />
+      <div className="flex gap-6 items-start">
+        <div className="w-[10%] min-w-32 shrink-0">
+          <SelectInput
+            source="type"
+            label={false}
+            choices={noteTypes.map((t) => ({
+              id: t.value,
+              name: t.label,
+            }))}
+            defaultValue="none"
+            helperText={false}
+          />
+        </div>
+        <div className="flex-1">
+          <TextInput
+            source="text"
+            label={false}
+            multiline
+            helperText={false}
+            placeholder={translate("resources.notes.inputs.add_note")}
+            rows={6}
+          />
+        </div>
+      </div>
 
       {selectReference && reference && (
         <ReferenceInput

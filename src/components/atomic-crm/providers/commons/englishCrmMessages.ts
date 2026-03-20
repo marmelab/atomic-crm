@@ -224,6 +224,7 @@ export const englishCrmMessages = {
       forcedCaseName: "Note",
       fields: {
         status: "Status",
+        type: "Type",
         date: "Date",
         attachments: "Attachments",
         contact_id: "Contact",
@@ -466,6 +467,7 @@ export const englishCrmMessages = {
       },
       light_mode_logo: "Light Mode Logo",
       notes: {
+        types: "Types",
         statuses: "Statuses",
       },
       reset_defaults: "Reset to Defaults",

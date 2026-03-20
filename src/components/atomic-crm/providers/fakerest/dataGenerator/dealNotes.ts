@@ -1,5 +1,6 @@
 import { datatype, lorem, random } from "faker/locale/en_US";
 
+import { defaultNoteTypes } from "../../../root/defaultConfiguration";
 import type { Db } from "./types";
 import { randomDate } from "./utils";
 
@@ -14,6 +15,7 @@ export const generateDealNotes = (db: Db) => {
         new Date(db.deals[deal.id as number].created_at),
       ).toISOString(),
       sales_id: deal.sales_id,
+      type: random.arrayElement(defaultNoteTypes).value,
     };
   });
 };

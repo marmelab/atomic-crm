@@ -1,3 +1,4 @@
+import type { NoteType } from "../types";
 import type { ConfigurationContextValue } from "./ConfigurationContext";
 
 export const defaultDarkModeLogo = "./logos/logo_atomic_crm_dark.svg";
@@ -47,6 +48,20 @@ export const defaultNoteStatuses = [
   { value: "in-contract", label: "In Contract", color: "#a4e87d" },
 ];
 
+export const defaultNoteTypes: NoteType[] = [
+  { value: "none", label: "None" },
+  { value: "call", label: "Call", color: "#7dbde8", icon: "phone" },
+  { value: "meeting", label: "Meeting", color: "#e8cb7d", icon: "users" },
+  { value: "email", label: "Email", color: "#a4e87d", icon: "mail" },
+  {
+    value: "follow-up",
+    label: "Follow-up",
+    color: "#e88b7d",
+    icon: "refresh-cw",
+  },
+  { value: "demo", label: "Demo", color: "#b87de8", icon: "monitor" },
+];
+
 export const defaultTaskTypes = [
   { value: "none", label: "None" },
   { value: "email", label: "Email" },
@@ -66,6 +81,7 @@ export const defaultConfiguration: ConfigurationContextValue = {
   dealPipelineStatuses: defaultDealPipelineStatuses,
   dealStages: defaultDealStages,
   noteStatuses: defaultNoteStatuses,
+  noteTypes: defaultNoteTypes,
   taskTypes: defaultTaskTypes,
   title: defaultTitle,
   darkModeLogo: defaultDarkModeLogo,

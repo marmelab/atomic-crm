@@ -9,7 +9,7 @@ import {
   useNotify,
   useTranslate,
 } from "ra-core";
-import { useCallback, useMemo } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { useFormContext } from "react-hook-form";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -27,6 +27,10 @@ import {
   type ConfigurationContextValue,
 } from "../root/ConfigurationContext";
 import { defaultConfiguration } from "../root/defaultConfiguration";
+import {
+  NOTE_TYPE_ICON_OPTIONS,
+  NOTE_TYPE_ICONS,
+} from "../notes/NoteTypeBadge";
 
 const SECTIONS = [
   {
@@ -128,6 +132,7 @@ const transformFormValues = (data: Record<string, any>) => ({
     dealStages: ensureValues(data.dealStages),
     dealPipelineStatuses: data.dealPipelineStatuses,
     noteStatuses: ensureValues(data.noteStatuses),
+    noteTypes: ensureValues(data.noteTypes),
   } as ConfigurationContextValue,
 });
 
@@ -176,6 +181,7 @@ const SettingsForm = () => {
       dealStages: config.dealStages,
       dealPipelineStatuses: config.dealPipelineStatuses,
       noteStatuses: config.noteStatuses,
+      noteTypes: config.noteTypes,
     }),
     [config],
   );
@@ -433,6 +439,19 @@ const SettingsFormFields = () => {
               })}
             </h2>
             <h3 className="text-lg font-medium text-muted-foreground">
+              {translate("crm.settings.notes.types")}
+            </h3>
+            <ArrayInput source="noteTypes" label={false} helperText={false}>
+              <SimpleFormIterator inline disableReordering disableClear>
+                <TextInput source="label" label={false} className="flex-1" />
+                <ColorInput source="color" />
+                <IconInput source="icon" />
+              </SimpleFormIterator>
+            </ArrayInput>
+
+            <Separator />
+
+            <h3 className="text-lg font-medium text-muted-foreground">
               {translate("crm.settings.notes.statuses")}
             </h3>
             <ArrayInput source="noteStatuses" label={false} helperText={false}>
@@ -517,5 +536,61 @@ const ColorInput = ({ source }: { source: string }) => {
       value={field.value || "#000000"}
       className="w-9 h-9 shrink-0 cursor-pointer appearance-none rounded border bg-transparent p-0.5 [&::-webkit-color-swatch-wrapper]:cursor-pointer [&::-webkit-color-swatch-wrapper]:p-0 [&::-webkit-color-swatch]:cursor-pointer [&::-webkit-color-swatch]:rounded-sm [&::-webkit-color-swatch]:border-none [&::-moz-color-swatch]:cursor-pointer [&::-moz-color-swatch]:rounded-sm [&::-moz-color-swatch]:border-none"
     />
+  );
+};
+
+/** An icon picker that shows a grid of available Lucide icons. */
+const IconInput = ({ source }: { source: string }) => {
+  const { field } = useInput({ source });
+  const [open, setOpen] = useState(false);
+  const SelectedIcon = field.value ? NOTE_TYPE_ICONS[field.value] : null;
+
+  return (
+    <div className="relative">
+      <button
+        type="button"
+        onClick={() => setOpen((o) => !o)}
+        className="w-9 h-9 shrink-0 flex items-center justify-center rounded border bg-background hover:bg-muted transition-colors"
+        title="Pick icon"
+      >
+        {SelectedIcon ? (
+          <SelectedIcon className="w-4 h-4" />
+        ) : (
+          <span className="text-xs text-muted-foreground">—</span>
+        )}
+      </button>
+      {open && (
+        <div className="absolute z-50 top-10 left-0 bg-background border rounded-md shadow-lg p-2 grid grid-cols-4 gap-1 w-40">
+          <button
+            type="button"
+            onClick={() => {
+              field.onChange("");
+              setOpen(false);
+            }}
+            className="w-8 h-8 flex items-center justify-center rounded hover:bg-muted text-xs text-muted-foreground"
+            title="None"
+          >
+            —
+          </button>
+          {NOTE_TYPE_ICON_OPTIONS.map((opt) => {
+            const Icon = NOTE_TYPE_ICONS[opt.value];
+            return (
+              <button
+                key={opt.value}
+                type="button"
+                onClick={() => {
+                  field.onChange(opt.value);
+                  setOpen(false);
+                }}
+                className={`w-8 h-8 flex items-center justify-center rounded hover:bg-muted ${field.value === opt.value ? "bg-muted ring-1 ring-primary" : ""}`}
+                title={opt.label}
+              >
+                <Icon className="w-4 h-4" />
+              </button>
+            );
+          })}
+        </div>
+      )}
+    </div>
   );
 };

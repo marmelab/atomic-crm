@@ -28,6 +28,7 @@ import type { ContactNote, DealNote } from "../types";
 import { NoteAttachments } from "./NoteAttachments";
 import { NoteInputs } from "./NoteInputs";
 import { useGetSalesName } from "../sales/useGetSalesName";
+import { NoteTypeBadge } from "./NoteTypeBadge";
 
 export const Note = ({
   showStatus,
@@ -50,7 +51,6 @@ export const Note = ({
   const salesName = useGetSalesName(note.sales_id, {
     enabled: !isCurrentUser,
   });
-
   // Detect if content is truncated
   useEffect(() => {
     const el = contentRef.current;
@@ -120,6 +120,7 @@ export const Note = ({
           {showStatus && note.status && (
             <Status className="ml-2" status={note.status} />
           )}
+          {note.type && <NoteTypeBadge type={note.type} />}
         </div>
         <span className={`${isHover ? "visible" : "invisible"}`}>
           <TooltipProvider>

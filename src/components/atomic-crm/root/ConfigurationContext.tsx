@@ -1,7 +1,7 @@
 import { useMemo } from "react";
 import { useStore } from "ra-core";
 
-import type { DealStage, LabeledValue, NoteStatus } from "../types";
+import type { DealStage, LabeledValue, NoteStatus, NoteType } from "../types";
 import { defaultConfiguration } from "./defaultConfiguration";
 
 export const CONFIGURATION_STORE_KEY = "app.configuration";
@@ -13,6 +13,7 @@ export interface ConfigurationContextValue {
   dealPipelineStatuses: string[];
   dealStages: DealStage[];
   noteStatuses: NoteStatus[];
+  noteTypes: NoteType[];
   taskTypes: LabeledValue[];
   title: string;
   darkModeLogo: string;
