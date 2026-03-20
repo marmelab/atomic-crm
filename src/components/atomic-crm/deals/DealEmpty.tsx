@@ -1,7 +1,8 @@
 import { useGetList } from "ra-core";
-import { matchPath, useLocation, Link } from "react-router";
+import { matchPath, useLocation, Link, useNavigate } from "react-router";
 import type { ReactNode } from "react";
-import { CreateButton } from "@/components/admin/create-button";
+import { Plus } from "lucide-react";
+import { buttonVariants } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 
 import useAppBarHeight from "../misc/useAppBarHeight";
@@ -11,6 +12,9 @@ import { DealCreate } from "./DealCreate";
 export const DealEmpty = ({ children }: { children?: ReactNode }) => {
   const location = useLocation();
   const matchCreate = matchPath("/deals/create", location.pathname);
+  const matchViewCreate = matchPath("/views/:viewId/create", location.pathname);
+  const viewId = matchViewCreate?.params.viewId;
+  const navigate = useNavigate();
   const appbarHeight = useAppBarHeight();
 
   // get Contact data
@@ -40,9 +44,17 @@ export const DealEmpty = ({ children }: { children?: ReactNode }) => {
             </p>
           </div>
           <div className="flex space-x-8">
-            <CreateButton label="Créer une opportunité" />
+            <button
+              className={buttonVariants({ variant: "outline" })}
+              onClick={() =>
+                navigate(viewId ? `/views/${viewId}/create` : "/deals/create")
+              }
+            >
+              <Plus />
+              Créer une opportunité
+            </button>
           </div>
-          <DealCreate open={!!matchCreate} />
+          <DealCreate open={!!matchCreate || !!matchViewCreate} />
           {children}
         </>
       ) : (
