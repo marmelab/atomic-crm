@@ -5,9 +5,15 @@ type ActivityLogNoteProps = {
   header: ReactNode;
   text: string;
   link: string | false;
+  icon?: ReactNode;
 };
 
-export function ActivityLogNote({ header, text, link }: ActivityLogNoteProps) {
+export function ActivityLogNote({
+  header,
+  text,
+  link,
+  icon,
+}: ActivityLogNoteProps) {
   if (!text) {
     return null;
   }
@@ -15,7 +21,10 @@ export function ActivityLogNote({ header, text, link }: ActivityLogNoteProps) {
   const plainText = text.replace(/\s+/g, " ").trim();
 
   const textElement = (
-    <p className="text-sm line-clamp-3 overflow-hidden">{plainText}</p>
+    <p className="text-sm line-clamp-3 overflow-hidden">
+      {icon && <span className="float-left mr-2 mt-0.5">{icon}</span>}
+      {plainText}
+    </p>
   );
 
   return (

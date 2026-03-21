@@ -6,8 +6,11 @@ import { TextField } from "@/components/admin/text-field";
 import { Card, CardContent } from "@/components/ui/card";
 
 import type { Contact, ContactNote } from "../types";
+import { useConfigurationContext } from "../root/ConfigurationContext";
+import { NOTE_TYPE_ICONS } from "../notes/NoteTypeBadge";
 
 export const LatestNotes = () => {
+  const { noteTypes } = useConfigurationContext();
   const { identity } = useGetIdentity();
   const translate = useTranslate();
   const { data: contactNotesData, isPending: contactNotesLoading } = useGetList(
@@ -40,9 +43,9 @@ export const LatestNotes = () => {
     .concat(
       contactNotesData.map((note) => ({
         ...note,
-        type: "contactNote",
+        noteKind: "contactNote",
       })),
-      dealNotesData.map((note) => ({ ...note, type: "dealNote" })),
+      dealNotesData.map((note) => ({ ...note, noteKind: "dealNote" })),
     )
     .sort((a, b) => new Date(b.date).valueOf() - new Date(a.date).valueOf())
     .slice(0, 5);
@@ -66,7 +69,7 @@ export const LatestNotes = () => {
               className="mb-8"
             >
               <div className="text-sm text-muted-foreground">
-                {note.type === "dealNote" ? (
+                {note.noteKind === "dealNote" ? (
                   <Deal note={note} />
                 ) : (
                   <Contact note={note} />
@@ -80,6 +83,26 @@ export const LatestNotes = () => {
               </div>
               <div>
                 <p className="text-sm line-clamp-3 overflow-hidden">
+                  {note.noteKind === "contactNote" &&
+                    (() => {
+                      const noteType = note.type
+                        ? noteTypes?.find((t) => t.value === note.type)
+                        : null;
+                      const Icon =
+                        noteType?.icon && noteType.value !== "none"
+                          ? NOTE_TYPE_ICONS[noteType.icon]
+                          : null;
+                      return Icon ? (
+                        <Icon
+                          className="w-4 h-4 float-left mr-2 mt-0.5"
+                          style={
+                            noteType?.color
+                              ? { color: noteType.color }
+                              : undefined
+                          }
+                        />
+                      ) : null;
+                    })()}
                   {note.text}
                 </p>
               </div>

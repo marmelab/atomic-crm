@@ -9,6 +9,8 @@ import { useGetSalesName } from "../sales/useGetSalesName";
 import type { ActivityContactNoteCreated, Contact } from "../types";
 import { useActivityLogContext } from "./ActivityLogContext";
 import { ActivityLogNote } from "./ActivityLogNote";
+import { useConfigurationContext } from "../root/ConfigurationContext";
+import { NOTE_TYPE_ICONS } from "../notes/NoteTypeBadge";
 
 type ActivityLogContactNoteCreatedProps = {
   activity: ActivityContactNoteCreated;
@@ -31,11 +33,28 @@ export function ActivityLogContactNoteCreated({
   const salesName = useGetSalesName(activity.sales_id, {
     enabled: !isCurrentUser,
   });
+  const { noteTypes } = useConfigurationContext();
+  const noteType = contactNote.type
+    ? noteTypes?.find((t) => t.value === contactNote.type)
+    : null;
+  const NoteTypeIcon =
+    noteType?.icon && noteType.value !== "none"
+      ? NOTE_TYPE_ICONS[noteType.icon]
+      : null;
+
   const link = isMobile
     ? `/contacts/${contactNote.contact_id}/notes/${contactNote.id}`
     : `/contacts/${contactNote.contact_id}/show`;
   return (
     <ActivityLogNote
+      icon={
+        NoteTypeIcon ? (
+          <NoteTypeIcon
+            className="w-4 h-4"
+            style={noteType?.color ? { color: noteType.color } : undefined}
+          />
+        ) : undefined
+      }
       header={
         <div className="flex items-start gap-2 w-full">
           <ReferenceField
