@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router";
+import { useDataProvider } from "ra-core";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -23,6 +24,7 @@ import {
   useConfigurationUpdater,
   type CustomView,
 } from "../root/ConfigurationContext";
+import type { CrmDataProvider } from "../providers/types";
 
 interface CreateViewDialogProps {
   open: boolean;
@@ -31,15 +33,17 @@ interface CreateViewDialogProps {
 
 export const CreateViewDialog = ({ open, onClose }: CreateViewDialogProps) => {
   const updateConfiguration = useConfigurationUpdater();
+  const dataProvider = useDataProvider<CrmDataProvider>();
   const navigate = useNavigate();
 
   const [label, setLabel] = useState("");
   const [companyType, setCompanyType] = useState("");
+  const [saving, setSaving] = useState(false);
 
   const config = useConfigurationContext();
   const { companyTypes } = config;
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!label.trim() || !companyType) return;
 
     const id = `view-${Date.now()}`;
@@ -49,10 +53,18 @@ export const CreateViewDialog = ({ open, onClose }: CreateViewDialogProps) => {
       companyType,
     };
 
-    updateConfiguration({
+    const newConfig = {
       ...config,
       customViews: [...(config.customViews ?? []), newView],
-    });
+    };
+
+    setSaving(true);
+    try {
+      await dataProvider.updateConfiguration(newConfig);
+      updateConfiguration(newConfig);
+    } finally {
+      setSaving(false);
+    }
 
     setLabel("");
     setCompanyType("");
@@ -106,7 +118,7 @@ export const CreateViewDialog = ({ open, onClose }: CreateViewDialogProps) => {
           </Button>
           <Button
             onClick={handleSubmit}
-            disabled={!label.trim() || !companyType}
+            disabled={!label.trim() || !companyType || saving}
           >
             Créer la vue
           </Button>
