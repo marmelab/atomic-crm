@@ -67,6 +67,7 @@ const resourceDefinitions = {
   },
   contacts: {
     hasCreate: true,
+    hasEdit: true,
     hasList: true,
     hasShow: true,
     name: "contacts",
@@ -125,6 +126,9 @@ export interface CrmScenarioOptions {
   failGetListOnce?: Partial<Record<string, string>>;
   getListDelays?: Partial<Record<string, number>>;
   latency?: number;
+  creationError?: string;
+  updateError?: string;
+  silent?: boolean;
 }
 
 export interface CrmScenario {
@@ -178,14 +182,18 @@ export const buildContact = (overrides: Partial<Contact> = {}): Contact => ({
 export const createCrmScenario = ({
   db = createCrmDb(),
   failGetListOnce = {},
+  creationError,
+  updateError,
   getListDelays = {},
   latency = 0,
+  silent = true,
 }: CrmScenarioOptions = {}): CrmScenario => {
   const authProvider = createTestAuthProvider();
   const baseDataProvider = createDataProvider({
     authProvider,
     db,
     latency,
+    silent,
   });
   const pendingFailures = new Map(Object.entries(failGetListOnce));
   const dataProvider = {
@@ -203,6 +211,18 @@ export const createCrmScenario = ({
       }
 
       return baseDataProvider.getList(resource, params);
+    },
+    create: async (resource, params) => {
+      if (creationError) {
+        throw new Error(creationError);
+      }
+      return baseDataProvider.create(resource, params);
+    },
+    update: async (resource, params) => {
+      if (updateError) {
+        throw new Error(updateError);
+      }
+      return baseDataProvider.update(resource, params);
     },
   } as ReturnType<typeof createDataProvider>;
   const store = localStorageStore(

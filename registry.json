@@ -638,11 +638,7 @@
           "type": "registry:component"
         },
         {
-          "path": "src/components/atomic-crm/contacts/exportToVCard.ts",
-          "type": "registry:component"
-        },
-        {
-          "path": "src/components/atomic-crm/contacts/contactGender.ts",
+          "path": "src/components/atomic-crm/contacts/contactModel.ts",
           "type": "registry:component"
         },
         {
@@ -710,11 +706,19 @@
           "type": "registry:component"
         },
         {
+          "path": "src/components/atomic-crm/contacts/ContactEdit.stories.tsx",
+          "type": "registry:component"
+        },
+        {
           "path": "src/components/atomic-crm/contacts/ContactCreateSheet.tsx",
           "type": "registry:component"
         },
         {
           "path": "src/components/atomic-crm/contacts/ContactCreate.tsx",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/contacts/ContactCreate.stories.tsx",
           "type": "registry:component"
         },
         {

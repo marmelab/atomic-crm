@@ -17,7 +17,7 @@ export default defineConfig({
   },
   test: {
     globals: true,
-    include: ["src/**/*.integration.test.{ts,tsx}"],
+    include: ["src/**/*.test.tsx"],
     exclude: ["**/node_modules/**", "doc/**"],
     setupFiles: ["./src/test/setup.integration.ts"],
     browser: {
