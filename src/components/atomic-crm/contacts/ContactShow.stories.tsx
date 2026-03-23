@@ -1,5 +1,4 @@
 import type { Meta } from "@storybook/react-vite";
-import { ResourceContextProvider } from "ra-core";
 
 import { ContactShow } from "./ContactShow";
 
