@@ -1,20 +1,12 @@
-import { SaveIcon } from "lucide-react";
-import { useEffect, useState, type ChangeEvent, type FormEvent } from "react";
-import { useTranslate } from "ra-core";
-import { Button, buttonVariants } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { cn } from "@/lib/utils";
 
 import type { Tag } from "../types";
-import { colors } from "./colors";
-import { RoundButton } from "./RoundButton";
+import { TagForm } from "./TagForm";
 
 type TagDialogProps = {
   open: boolean;
@@ -31,93 +23,24 @@ export function TagDialog({
   onClose,
   onSubmit,
 }: TagDialogProps) {
-  const translate = useTranslate();
-  const [newTagName, setNewTagName] = useState("");
-  const [newTagColor, setNewTagColor] = useState(colors[0]);
-  const [disabled, setDisabled] = useState(false);
-
-  const handleNewTagNameChange = (event: ChangeEvent<HTMLInputElement>) => {
-    setNewTagName(event.target.value);
+  const handleClose = (isOpen = false) => {
+    if (!isOpen) {
+      onClose();
+    }
   };
 
-  const handleClose = () => {
-    setDisabled(false);
-    onClose();
-  };
-
-  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-
-    await onSubmit({ name: newTagName, color: newTagColor });
-
-    setDisabled(true);
-    setNewTagName("");
-    setNewTagColor(colors[0]);
-
+  const handleSubmit = async (data: Pick<Tag, "name" | "color">) => {
+    await onSubmit(data);
     handleClose();
   };
-
-  useEffect(() => {
-    setNewTagName(tag?.name ?? "");
-    setNewTagColor(tag?.color ?? colors[0]);
-  }, [tag]);
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
       <DialogContent className="sm:max-w-lg">
-        <form onSubmit={handleSubmit}>
-          <DialogHeader>
-            <DialogTitle>{title}</DialogTitle>
-          </DialogHeader>
-
-          <div className="space-y-4 py-4">
-            <div className="space-y-2">
-              <Label htmlFor="tag-name">
-                {translate("resources.tags.dialog.name_label")}
-              </Label>
-              <Input
-                id="tag-name"
-                autoFocus
-                value={newTagName}
-                onChange={handleNewTagNameChange}
-                placeholder={translate(
-                  "resources.tags.dialog.name_placeholder",
-                )}
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label>{translate("resources.tags.dialog.color")}</Label>
-              <div className="flex flex-wrap">
-                {colors.map((color) => (
-                  <RoundButton
-                    key={color}
-                    color={color}
-                    selected={color === newTagColor}
-                    handleClick={() => {
-                      setNewTagColor(color);
-                    }}
-                  />
-                ))}
-              </div>
-            </div>
-          </div>
-
-          <div className="flex justify-end pt-4">
-            <Button
-              variant="outline"
-              disabled={disabled}
-              className={cn(
-                buttonVariants({ variant: "outline" }),
-                "text-primary",
-                disabled ? "opacity-50 cursor-not-allowed" : "cursor-pointer",
-              )}
-            >
-              <SaveIcon />
-              {translate("ra.action.save")}
-            </Button>
-          </div>
-        </form>
+        <DialogHeader>
+          <DialogTitle>{title}</DialogTitle>
+        </DialogHeader>
+        <TagForm open={open} tag={tag} onSubmit={handleSubmit} />
       </DialogContent>
     </Dialog>
   );
