@@ -75,7 +75,7 @@ jobs:
               run: CI=1 npm run test:integration -- --run
 
     e2e-test:
-      timeout-minutes: 20
+      timeout-minutes: 10
       runs-on: ubuntu-latest
       steps:
       - name: 📥 Checkout repo
