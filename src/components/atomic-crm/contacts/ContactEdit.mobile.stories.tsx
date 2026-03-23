@@ -6,12 +6,12 @@ import { buildContact, StoryWrapper } from "@/test/StoryWrapper";
 import type { DataProvider } from "ra-core";
 
 const meta = {
-  title: "Atomic CRM/Contacts/Contact Edit",
+  title: "Atomic CRM/Contacts/Contact Edit Mobile",
   parameters: {
     layout: "fullscreen",
   },
   globals: {
-    viewport: { value: "responsive", isRotated: false },
+    viewport: { value: "mobile1", isRotated: false },
   },
 } satisfies Meta;
 
@@ -25,7 +25,7 @@ export const ContactEditBasic = ({
   silent?: boolean;
 }) => (
   <StoryWrapper
-    initialEntries={["/contacts/1"]}
+    initialEntries={["/contacts/1/show"]}
     data={{
       contacts: [
         buildContact({
@@ -52,7 +52,7 @@ export const ContactEditWithEmailsAndPhones = ({
   silent?: boolean;
 }) => (
   <StoryWrapper
-    initialEntries={["/contacts/1"]}
+    initialEntries={["/contacts/1/show"]}
     data={{
       contacts: [
         buildContact({
@@ -73,7 +73,7 @@ export const ContactEditWithEmailsAndPhones = ({
 
 export const ContactEditWithError = () => (
   <StoryWrapper
-    initialEntries={["/contacts/1"]}
+    initialEntries={["/contacts/1/show"]}
     data={{
       contacts: [
         buildContact({
@@ -99,7 +99,7 @@ export const ContactEditWithError = () => (
 );
 
 export const ContactEditNotFound = () => (
-  <StoryWrapper initialEntries={["/contacts/1"]}>
+  <StoryWrapper initialEntries={["/contacts/1/show"]}>
     <Routes>
       <Route path="/contacts/:id" element={<ContactEdit />} />
     </Routes>
