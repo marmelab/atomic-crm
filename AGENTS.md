@@ -4,6 +4,10 @@
 
 Atomic CRM is a full-featured CRM built with React, shadcn-admin-kit, and Supabase. It provides contact management, task tracking, notes, email capture, and deal management with a Kanban board.
 
+## Deployment
+
+The CRM is deployed via **Coolify**. Every push to GitHub triggers an automatic **preview deployment**. There is no Vercel deployment for this project.
+
 ## Development Commands
 
 ### Setup
