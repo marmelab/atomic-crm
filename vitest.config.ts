@@ -5,6 +5,18 @@ import react from "@vitejs/plugin-react";
 
 export default defineConfig({
   plugins: [react()],
+  optimizeDeps: {
+    include: [
+      "@storybook/react-vite",
+      "faker/locale/en",
+      "faker/locale/en_US",
+      "jsonexport/dist",
+      "lodash",
+      "papaparse",
+      "ra-supabase-language-english",
+    ],
+    exclude: ["playwright", "playwright-core"],
+  },
   test: {
     globals: true,
     browser: {
@@ -33,9 +45,6 @@ export default defineConfig({
         external: [/playwright/],
       },
     },
-  },
-  optimizeDeps: {
-    exclude: ["playwright", "playwright-core"],
   },
   resolve: {
     preserveSymlinks: true,
