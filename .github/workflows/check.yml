@@ -75,7 +75,7 @@ jobs:
               run: CI=1 npm run test:integration -- --run
 
     e2e-test:
-      timeout-minutes: 10
+      timeout-minutes: 20
       runs-on: ubuntu-latest
       steps:
       - name: 📥 Checkout repo
@@ -89,7 +89,7 @@ jobs:
       - name: Install dependencies
         run: npm ci
       - name: Install Playwright Browsers
-        run: npx playwright install --with-deps
+        run: npx playwright install --with-deps webkit chromium
       - name: Install wait-on and serve
         run: npm install -g wait-on serve
       - name: Run Playwright tests
