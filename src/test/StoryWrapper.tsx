@@ -1,6 +1,6 @@
 /* eslint-disable react-refresh/only-export-components */
 import { memoryStore, type AuthProvider } from "ra-core";
-import { useMemo, type ReactNode } from "react";
+import { useEffect, useMemo, type ReactNode } from "react";
 import { MemoryRouter } from "react-router";
 import cloneDeep from "lodash/cloneDeep";
 import { Notification } from "@/components/admin/notification";
@@ -80,22 +80,29 @@ export const StoryWrapper = ({
   data,
   dataProvider: dataProviderOverrides,
   initialEntries,
+  silent,
 }: {
   children: ReactNode;
   data?: Partial<Db>;
   dataProvider?: Partial<ReturnType<typeof createDataProvider>>;
   initialEntries?: string[];
+  silent?: boolean;
 }) => {
   const authProvider = useMemo(() => createTestAuthProvider(), []);
   const dataProvider = useMemo(
     () => ({
-      ...createDataProvider({ db: createCrmDb(cloneDeep(data)) }),
+      ...createDataProvider({ db: createCrmDb(cloneDeep(data)), silent }),
       ...dataProviderOverrides,
     }),
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [],
   );
   const store = useMemo(() => memoryStore(), []);
+
+  useEffect(() => {
+    // Clear localStorage on mount to prevent test pollution from previous runs, since MemoryRouter doesn't reset state between tests.
+    localStorage.clear();
+  }, []);
 
   return (
     <MemoryRouter initialEntries={initialEntries}>
