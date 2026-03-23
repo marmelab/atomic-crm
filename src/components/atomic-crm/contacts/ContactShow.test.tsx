@@ -1,4 +1,3 @@
-import { describe, expect, it, vi } from "vitest";
 import { render } from "vitest-browser-react";
 import { MobileSuccess } from "./ContactShow.mobile.stories";
 

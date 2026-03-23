@@ -32,7 +32,7 @@ import { Avatar } from "./Avatar";
 import { ContactAside } from "./ContactAside";
 import { MobileBackButton } from "../misc/MobileBackButton";
 
-export const ContactShow = (props?: ShowBaseProps) => {
+export const ContactShow = (props: ShowBaseProps = {}) => {
   const isMobile = useIsMobile();
 
   return (

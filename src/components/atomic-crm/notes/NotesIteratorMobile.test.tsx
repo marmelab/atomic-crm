@@ -1,6 +1,5 @@
-import { describe, expect, it, vi } from "vitest";
 import { render } from "vitest-browser-react";
-import { SingleNote } from "./NotesIteratorMobile.pagination.stories";
+import { SingleNote } from "./NotesIteratorMobile.stories";
 
 // Trigger the infinite-pagination sentinel immediately in tests so we can
 // assert whether mounting the list would request another page.
@@ -37,8 +36,8 @@ class ImmediateIntersectionObserver implements IntersectionObserver {
   unobserve() {}
 }
 
-describe("NotesIteratorMobile pagination", () => {
-  it("does not request the next page on mount when the first page already contains the full result set", async () => {
+describe("NotesIteratorMobile", () => {
+  it("Pagination does not request the next page on mount when the first page already contains the full result set", async () => {
     const originalIntersectionObserver = window.IntersectionObserver;
     window.IntersectionObserver =
       ImmediateIntersectionObserver as unknown as typeof IntersectionObserver;
