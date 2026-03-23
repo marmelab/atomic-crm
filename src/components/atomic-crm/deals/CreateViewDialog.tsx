@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router";
 import { useDataProvider } from "ra-core";
+import { useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -34,6 +35,7 @@ interface CreateViewDialogProps {
 export const CreateViewDialog = ({ open, onClose }: CreateViewDialogProps) => {
   const updateConfiguration = useConfigurationUpdater();
   const dataProvider = useDataProvider<CrmDataProvider>();
+  const queryClient = useQueryClient();
   const navigate = useNavigate();
 
   const [label, setLabel] = useState("");
@@ -61,6 +63,7 @@ export const CreateViewDialog = ({ open, onClose }: CreateViewDialogProps) => {
     setSaving(true);
     try {
       await dataProvider.updateConfiguration(newConfig);
+      queryClient.setQueryData(["configuration"], newConfig);
       updateConfiguration(newConfig);
     } finally {
       setSaving(false);
