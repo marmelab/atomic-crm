@@ -1,5 +1,4 @@
 import type { Meta } from "@storybook/react-vite";
-import { ResourceContextProvider } from "ra-core";
 
 import { ContactShow } from "./ContactShow";
 
@@ -28,12 +27,7 @@ const successContacts = [
 ];
 
 export const MobileSuccess = () => (
-  <StoryWrapper
-    initialEntries={["/contacts/1/show"]}
-    data={{ contacts: successContacts }}
-  >
-    <ResourceContextProvider value="contacts">
-      <ContactShow />
-    </ResourceContextProvider>
+  <StoryWrapper data={{ contacts: successContacts }}>
+    <ContactShow resource="contacts" id={1} />
   </StoryWrapper>
 );

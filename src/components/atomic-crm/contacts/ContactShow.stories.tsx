@@ -25,12 +25,7 @@ const successContacts = [
 ];
 
 export const DesktopSuccess = () => (
-  <StoryWrapper
-    initialEntries={["/contacts/1/show"]}
-    data={{ contacts: successContacts }}
-  >
-    <ResourceContextProvider value="contacts">
-      <ContactShow />
-    </ResourceContextProvider>
+  <StoryWrapper data={{ contacts: successContacts }}>
+    <ContactShow resource="contacts" id={1} />
   </StoryWrapper>
 );
