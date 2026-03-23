@@ -21,11 +21,13 @@ test("user adds a tag to several contacts", async ({
     first_name: "Ada",
     last_name: "Lovelace",
     sales_id: sales.id,
+    title: "CTO",
   });
   await createContact({
     first_name: "Grace",
     last_name: "Hopper",
     sales_id: sales.id,
+    title: "Rear Admiral",
   });
 
   await page.goto("http://localhost:5175/");
@@ -38,10 +40,12 @@ test("user adds a tag to several contacts", async ({
   await expect(page.getByRole("link", { name: "Contacts" })).toBeVisible();
 
   await menu.goToContacts();
+  await expect(page.getByText("Ada Lovelace")).toBeVisible();
+  await expect(page.getByText("Grace Hopper")).toBeVisible();
 
   const checkboxes = page.getByRole("checkbox");
   await checkboxes.nth(1).click();
-  await checkboxes.nth(2).click();
+  await page.getByRole("button", { name: /select all/i }).click();
 
   await page.getByRole("button", { name: /^Tag$/ }).click();
   await page.getByRole("button", { name: "Create new tag" }).click();
@@ -50,5 +54,10 @@ test("user adds a tag to several contacts", async ({
 
   await dismissToast("Tag added to 2 contacts");
 
-  await expect(page.getByText("Prospect")).toHaveCount(2);
+  await expect(
+    page.getByText("Grace Hopper").locator("xpath=ancestor::a[1]"),
+  ).toContainText("Prospect");
+  await expect(
+    page.getByText("Ada Lovelace").locator("xpath=ancestor::a[1]"),
+  ).toContainText("Prospect");
 });
