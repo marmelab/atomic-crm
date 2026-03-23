@@ -175,7 +175,7 @@
     },
     {
       "path": "src/components/atomic-crm/sales/useGetSalesName.ts",
-      "content": "import type { Identifier } from \"ra-core\";\nimport { useGetManyAggregate } from \"ra-core\";\n\nexport const useGetSalesName = (\n  id?: Identifier,\n  options?: { enabled?: boolean },\n) => {\n  const enabled = options?.enabled ?? id != null;\n  const { data, error } = useGetManyAggregate(\n    \"sales\",\n    { ids: id !== null ? [id] : undefined },\n    { enabled },\n  );\n\n  return data\n    ? `${data[0].first_name} ${data[0].last_name}`\n    : error\n      ? \"??\"\n      : \"\";\n};\n",
+      "content": "import type { Identifier } from \"ra-core\";\nimport { useGetManyAggregate } from \"ra-core\";\n\nexport const useGetSalesName = (\n  id?: Identifier,\n  options?: { enabled?: boolean },\n) => {\n  const enabled = options?.enabled ?? id != null;\n  const { data, error } = useGetManyAggregate(\n    \"sales\",\n    { ids: id !== null ? [id] : undefined },\n    { enabled },\n  );\n\n  return data && data[0]\n    ? `${data[0].first_name} ${data[0].last_name}`\n    : error\n      ? \"??\"\n      : \"\";\n};\n",
       "type": "registry:component"
     },
     {
