@@ -53,6 +53,18 @@ grant all on function public.is_admin() to anon;
 grant all on function public.is_admin() to authenticated;
 grant all on function public.is_admin() to service_role;
 
+grant all on function public.lowercase_email() to anon;
+grant all on function public.lowercase_email() to authenticated;
+grant all on function public.lowercase_email() to service_role;
+
+grant all on function public.lowercase_email_jsonb() to anon;
+grant all on function public.lowercase_email_jsonb() to authenticated;
+grant all on function public.lowercase_email_jsonb() to service_role;
+
+grant all on function public.lowercase_website() to anon;
+grant all on function public.lowercase_website() to authenticated;
+grant all on function public.lowercase_website() to service_role;
+
 grant all on function public.merge_contacts(bigint, bigint) to anon;
 grant all on function public.merge_contacts(bigint, bigint) to authenticated;
 grant all on function public.merge_contacts(bigint, bigint) to service_role;
