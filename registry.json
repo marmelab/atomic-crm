@@ -94,6 +94,14 @@
           "type": "registry:component"
         },
         {
+          "path": "src/components/atomic-crm/tags/useTags.ts",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/tags/useCreateTag.ts",
+          "type": "registry:component"
+        },
+        {
           "path": "src/components/atomic-crm/tags/colors.ts",
           "type": "registry:component"
         },
