@@ -25,7 +25,7 @@ export const ContactEditBasic = ({
   silent?: boolean;
 }) => (
   <StoryWrapper
-    initialEntries={["/contacts/create"]}
+    initialEntries={["/contacts/1/show"]}
     data={{
       contacts: [
         buildContact({
@@ -52,7 +52,7 @@ export const ContactEditWithEmailsAndPhones = ({
   silent?: boolean;
 }) => (
   <StoryWrapper
-    initialEntries={["/contacts/create"]}
+    initialEntries={["/contacts/1/show"]}
     data={{
       contacts: [
         buildContact({

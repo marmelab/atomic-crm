@@ -100,7 +100,7 @@ export const StoryWrapper = ({
   const store = useMemo(() => memoryStore(), []);
 
   useEffect(() => {
-    // Clear localStorage on mount to prevent test pollution from previous runs, since MemoryRouter doesn't reset state between tests.
+    // Clear localStorage on mount to prevent data pollution from previous story / test, since we persist react-query cache in localStorage.
     localStorage.clear();
   }, []);
 
