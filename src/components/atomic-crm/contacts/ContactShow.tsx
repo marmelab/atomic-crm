@@ -88,10 +88,10 @@ const ContactShowContentMobile = () => {
           variant="ghost"
           size="icon"
           className="rounded-full"
+          aria-label={translate("ra.action.edit")}
           onClick={() => setEditOpen(true)}
         >
           <Pencil className="size-5" />
-          <span className="sr-only">{translate("ra.action.edit")}</span>
         </Button>
       </MobileHeader>
       <MobileContent>
