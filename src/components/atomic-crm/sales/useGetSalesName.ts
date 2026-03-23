@@ -12,7 +12,7 @@ export const useGetSalesName = (
     { enabled },
   );
 
-  return data
+  return data && data[0]
     ? `${data[0].first_name} ${data[0].last_name}`
     : error
       ? "??"
