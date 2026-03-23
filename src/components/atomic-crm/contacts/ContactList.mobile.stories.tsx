@@ -1,7 +1,7 @@
 import type { Meta } from "@storybook/react-vite";
 import { ResourceContextProvider } from "ra-core";
 
-import { ContactList } from "./ContactList";
+import { ContactListMobile } from "./ContactList";
 
 import { StoryWrapper, buildContact } from "@/test/StoryWrapper";
 
@@ -9,6 +9,9 @@ const meta = {
   title: "Atomic CRM/Contacts/Contact List",
   parameters: {
     layout: "fullscreen",
+  },
+  globals: {
+    viewport: { value: "mobile1", isRotated: false },
   },
 } satisfies Meta;
 
@@ -31,23 +34,23 @@ const successContacts = [
   }),
 ];
 
-export const DesktopEmpty = () => (
+export const MobileEmpty = () => (
   <StoryWrapper>
     <ResourceContextProvider value="contacts">
-      <ContactList />
+      <ContactListMobile />
     </ResourceContextProvider>
   </StoryWrapper>
 );
 
-export const DesktopSuccess = () => (
+export const MobileSuccess = () => (
   <StoryWrapper data={{ contacts: successContacts }}>
     <ResourceContextProvider value="contacts">
-      <ContactList />
+      <ContactListMobile />
     </ResourceContextProvider>
   </StoryWrapper>
 );
 
-export const DesktopLoading = () => (
+export const MobileLoading = () => (
   <StoryWrapper
     dataProvider={{
       getList: async (resource) => {
@@ -59,12 +62,12 @@ export const DesktopLoading = () => (
     }}
   >
     <ResourceContextProvider value="contacts">
-      <ContactList />
+      <ContactListMobile />
     </ResourceContextProvider>
   </StoryWrapper>
 );
 
-export const DesktopError = () => (
+export const MobileError = () => (
   <StoryWrapper
     dataProvider={{
       getList: async (resource) => {
@@ -76,7 +79,7 @@ export const DesktopError = () => (
     }}
   >
     <ResourceContextProvider value="contacts">
-      <ContactList />
+      <ContactListMobile />
     </ResourceContextProvider>
   </StoryWrapper>
 );

@@ -27,14 +27,15 @@ const excludedLibFiles = [
 ];
 
 const testFilePattern = "**/*.{test,spec}.*";
+const storyFilePattern = "**/*.stories.*";
 
 const atomicCrmComponents = globSync(
   path.join(atomicCrmComponentsPath, "**", "*.ts*"),
-  { ignore: [testFilePattern] },
+  { ignore: [testFilePattern, storyFilePattern] },
 );
 const supabaseComponents = globSync(
   path.join(supabaseComponentsPath, "**", "*.ts*"),
-  { ignore: [testFilePattern] },
+  { ignore: [testFilePattern, storyFilePattern] },
 );
 const hooks = globSync(path.join(hooksPath, "**", "*.ts*")).filter((hook) => {
   return !excludedHooks.includes(path.basename(hook));

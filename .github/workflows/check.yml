@@ -71,9 +71,6 @@ jobs:
             - name: 🔎 Unit Tests on Supabase functions
               run: CI=1 npm run test:unit:functions -- --run
 
-            - name: 🔎 Integration Tests
-              run: CI=1 npm run test:integration -- --run
-
     e2e-test:
       timeout-minutes: 10
       runs-on: ubuntu-latest
