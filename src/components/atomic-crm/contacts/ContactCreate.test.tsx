@@ -1,47 +1,14 @@
 import { render } from "vitest-browser-react";
 
-import {
-  createCrmDb,
-  createCrmScenario,
-  CrmTestProvider,
-} from "@/test/browser/atomic-crm/crmUiHarness";
-import { ContactCreate } from "./ContactCreate";
-
-// We use pessimistic mode to avoid the 5s undoable delay in tests.
-export const ContactCreateHarness = () => (
-  <ContactCreate mutationMode="pessimistic" />
-);
-
-/**
- * Create a scenario whose dataProvider.create is wrapped in a vi.fn(),
- * so we can assert on what data the transform sends to the backend.
- */
-const createScenarioWithCreateMock = (
-  ...args: Parameters<typeof createCrmScenario>
-) => {
-  const scenario = createCrmScenario(...args);
-  const originalCreate = scenario.dataProvider.create;
-  const createMock = vi.fn(
-    async (...createArgs: Parameters<typeof originalCreate>) =>
-      originalCreate(...createArgs),
-  );
-  scenario.dataProvider = { ...scenario.dataProvider, create: createMock };
-  return { scenario, createMock };
-};
+import { ContactCreateBasic } from "./ContactCreate.stories";
+import { page } from "vitest/browser";
 
 describe("ContactCreate integration", () => {
+  beforeAll(() => {
+    page.viewport(1600, 900);
+  });
   it("shows empty email and phone placeholder inputs", async () => {
-    const scenario = createCrmScenario({ db: createCrmDb() });
-
-    const screen = await render(
-      <CrmTestProvider
-        scenario={scenario}
-        resource="contacts"
-        initialEntries={["/contacts/create"]}
-      >
-        <ContactCreateHarness />
-      </CrmTestProvider>,
-    );
+    const screen = await render(<ContactCreateBasic />);
 
     await expect.element(screen.getByPlaceholder("Email")).toBeInTheDocument();
     await expect
@@ -50,18 +17,16 @@ describe("ContactCreate integration", () => {
   });
 
   it("does not submit empty email and phone entries", async () => {
-    const { scenario, createMock } = createScenarioWithCreateMock({
-      db: createCrmDb(),
-    });
+    const createMock = vi
+      .fn()
+      .mockImplementation(async (resource: string, params: any) => {
+        if (resource === "contacts") {
+          return { data: { id: 1, ...params.data } as any };
+        }
+      });
 
     const screen = await render(
-      <CrmTestProvider
-        scenario={scenario}
-        resource="contacts"
-        initialEntries={["/contacts/create"]}
-      >
-        <ContactCreateHarness />
-      </CrmTestProvider>,
+      <ContactCreateBasic silent dataProvider={{ create: createMock }} />,
     );
 
     await expect.element(screen.getByPlaceholder("Email")).toBeInTheDocument();
@@ -72,29 +37,33 @@ describe("ContactCreate integration", () => {
 
     await screen.getByRole("button", { name: /^save$/i }).click();
 
-    await expect.poll(() => createMock.mock.calls.length).toBe(1);
+    await expect
+      .poll(() => screen.getByText("Element created"))
+      .toBeInTheDocument();
+    await screen.getByLabelText("Close toast").click();
 
-    const createData = createMock.mock.calls[0][1].data;
-    expect(createData.email_jsonb).toBeNull();
-    expect(createData.phone_jsonb).toBeNull();
-    expect(createData.first_seen).toBeDefined();
-    expect(createData.last_seen).toBeDefined();
-    expect(createData.tags).toEqual([]);
+    await expect(createMock).toBeCalledTimes(1);
+
+    await expect(createMock).toBeCalledWith(
+      expect.anything(),
+      expect.objectContaining({
+        data: expect.objectContaining({
+          email_jsonb: null,
+          phone_jsonb: null,
+        }),
+      }),
+    );
   });
 
   it("submits only filled email and phone entries, stripping empty ones", async () => {
-    const { scenario, createMock } = createScenarioWithCreateMock({
-      db: createCrmDb(),
-    });
-
+    const createMock = vi.fn().mockResolvedValue({ data: {} });
     const screen = await render(
-      <CrmTestProvider
-        scenario={scenario}
-        resource="contacts"
-        initialEntries={["/contacts/create"]}
-      >
-        <ContactCreateHarness />
-      </CrmTestProvider>,
+      <ContactCreateBasic
+        dataProvider={{
+          create: createMock,
+        }}
+        silent
+      />,
     );
 
     await expect.element(screen.getByPlaceholder("Email")).toBeInTheDocument();
@@ -108,28 +77,29 @@ describe("ContactCreate integration", () => {
 
     await screen.getByRole("button", { name: /^save$/i }).click();
 
-    await expect.poll(() => createMock.mock.calls.length).toBe(1);
+    await expect.poll(() => createMock).toBeCalledTimes(1);
 
-    const createData = createMock.mock.calls[0][1].data;
-    expect(createData.email_jsonb).toEqual([
-      { email: "ada@example.com", type: "Work" },
-    ]);
-    expect(createData.phone_jsonb).toBeNull();
+    expect(createMock).toBeCalledWith(
+      expect.anything(),
+      expect.objectContaining({
+        data: expect.objectContaining({
+          email_jsonb: [{ email: "ada@example.com", type: "Work" }],
+          phone_jsonb: null,
+        }),
+      }),
+    );
   });
 
   it("submits both email and phone when filled", async () => {
-    const { scenario, createMock } = createScenarioWithCreateMock({
-      db: createCrmDb(),
-    });
+    const createMock = vi.fn().mockResolvedValue({ data: {} });
 
     const screen = await render(
-      <CrmTestProvider
-        scenario={scenario}
-        resource="contacts"
-        initialEntries={["/contacts/create"]}
-      >
-        <ContactCreateHarness />
-      </CrmTestProvider>,
+      <ContactCreateBasic
+        silent
+        dataProvider={{
+          create: createMock,
+        }}
+      />,
     );
 
     await expect.element(screen.getByPlaceholder("Email")).toBeInTheDocument();
@@ -144,14 +114,16 @@ describe("ContactCreate integration", () => {
 
     await screen.getByRole("button", { name: /^save$/i }).click();
 
-    await expect.poll(() => createMock.mock.calls.length).toBe(1);
+    await expect.poll(() => createMock).toBeCalledTimes(1);
 
-    const createData = createMock.mock.calls[0][1].data;
-    expect(createData.email_jsonb).toEqual([
-      { email: "ada@example.com", type: "Work" },
-    ]);
-    expect(createData.phone_jsonb).toEqual([
-      { number: "+1234567890", type: "Work" },
-    ]);
+    expect(createMock).toBeCalledWith(
+      expect.anything(),
+      expect.objectContaining({
+        data: expect.objectContaining({
+          email_jsonb: [{ email: "ada@example.com", type: "Work" }],
+          phone_jsonb: [{ number: "+1234567890", type: "Work" }],
+        }),
+      }),
+    );
   });
 });

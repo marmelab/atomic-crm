@@ -1,66 +1,67 @@
-import type { Meta, StoryObj } from "@storybook/react-vite";
+import type { Meta } from "@storybook/react-vite";
 
-import {
-  buildContact,
-  createCrmDb,
-  CrmStoryProvider,
-} from "@/test/browser/atomic-crm/crmUiHarness";
 import { ContactCreate } from "./ContactCreate";
+import { buildContact, StoryWrapper } from "@/test/StoryWrapper";
+import type { DataProvider } from "ra-core";
 
 const meta = {
   title: "Atomic CRM/Contacts/Contact Create",
   parameters: {
     layout: "fullscreen",
   },
+  globals: {
+    viewport: { value: "responsive", isRotated: false },
+  },
 } satisfies Meta;
 
 export default meta;
 
-type Story = StoryObj<typeof meta>;
-
-export const ConcatCreateBasic: Story = {
-  render: () => (
-    <CrmStoryProvider
-      resource="contacts"
-      initialEntries={["/contacts/create"]}
-      scenarioOptions={{
-        db: createCrmDb({
-          contacts: [
-            buildContact({
-              id: 1,
-              email_jsonb: [],
-              phone_jsonb: [],
-            }),
-          ] as any,
+export const ContactCreateBasic = ({
+  dataProvider = {},
+  silent,
+}: {
+  dataProvider?: Partial<DataProvider>;
+  silent?: boolean;
+}) => (
+  <StoryWrapper
+    initialEntries={["/contacts/create"]}
+    data={{
+      contacts: [
+        buildContact({
+          id: 1,
+          email_jsonb: [],
+          phone_jsonb: [],
         }),
-        silent: false,
-      }}
-    >
-      <ContactCreate />
-    </CrmStoryProvider>
-  ),
-};
+      ] as any,
+    }}
+    dataProvider={dataProvider}
+    silent={silent}
+  >
+    <ContactCreate />
+  </StoryWrapper>
+);
 
-export const ConcatCreateBasicWithError: Story = {
-  render: () => (
-    <CrmStoryProvider
-      resource="contacts"
-      initialEntries={["/contacts/create"]}
-      scenarioOptions={{
-        db: createCrmDb({
-          contacts: [
-            buildContact({
-              id: 1,
-              email_jsonb: [],
-              phone_jsonb: [],
-            }),
-          ] as any,
+export const ContactCreateBasicWithError = () => (
+  <StoryWrapper
+    initialEntries={["/contacts/create"]}
+    data={{
+      contacts: [
+        buildContact({
+          id: 1,
+          email_jsonb: [],
+          phone_jsonb: [],
         }),
-        creationError: "Simulated create error",
-        silent: false,
-      }}
-    >
-      <ContactCreate />
-    </CrmStoryProvider>
-  ),
-};
+      ] as any,
+    }}
+    dataProvider={{
+      create: async (resource, params) => {
+        if (resource === "contacts") {
+          throw new Error("Failed to create contact");
+        }
+        return { data: params.data as any };
+      },
+    }}
+  >
+    <ContactCreate />
+  </StoryWrapper>
+);
