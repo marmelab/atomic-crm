@@ -75,23 +75,30 @@ export const validateItemsInUse = (
   return undefined;
 };
 
-const transformFormValues = (data: Record<string, any>) => ({
-  config: {
-    title: data.title,
-    lightModeLogo: data.lightModeLogo,
-    darkModeLogo: data.darkModeLogo,
-    companySectors: ensureValues(data.companySectors),
-    dealCategories: ensureValues(data.dealCategories),
-    taskTypes: ensureValues(data.taskTypes),
-    dealStages: ensureValues(data.dealStages),
-    dealPipelineStatuses: data.dealPipelineStatuses,
-    noteStatuses: ensureValues(data.noteStatuses),
-  } as ConfigurationContextValue,
-});
-
 export const SettingsPage = () => {
   const updateConfiguration = useConfigurationUpdater();
   const notify = useNotify();
+  const [customViews] = useCustomViewsStore();
+  const { companyTypes } = useConfigurationContext();
+
+  const transform = useCallback(
+    (data: Record<string, any>) => ({
+      config: {
+        title: data.title,
+        lightModeLogo: data.lightModeLogo,
+        darkModeLogo: data.darkModeLogo,
+        companySectors: ensureValues(data.companySectors),
+        dealCategories: ensureValues(data.dealCategories),
+        taskTypes: ensureValues(data.taskTypes),
+        dealStages: ensureValues(data.dealStages),
+        dealPipelineStatuses: data.dealPipelineStatuses,
+        noteStatuses: ensureValues(data.noteStatuses),
+        customViews,
+        companyTypes,
+      } as ConfigurationContextValue,
+    }),
+    [customViews, companyTypes],
+  );
 
   return (
     <EditBase
@@ -99,7 +106,7 @@ export const SettingsPage = () => {
       id={1}
       mutationMode="pessimistic"
       redirect={false}
-      transform={transformFormValues}
+      transform={transform}
       mutationOptions={{
         onSuccess: (data: any) => {
           updateConfiguration(data.config);
