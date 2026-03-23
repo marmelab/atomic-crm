@@ -2,7 +2,6 @@ import { Plus, Tag as TagIcon } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import {
   useDataProvider,
-  useGetList,
   useGetMany,
   useListContext,
   useNotify,
@@ -20,6 +19,8 @@ import {
 } from "@/components/ui/dialog";
 
 import { TagForm } from "../tags/TagForm";
+import { useCreateTag } from "../tags/useCreateTag";
+import { useTags } from "../tags/useTags";
 import type { Contact, Tag } from "../types";
 
 type BulkTagDialogMode = "select" | "create";
@@ -29,6 +30,7 @@ export function BulkTagButton() {
   const notify = useNotify();
   const refresh = useRefresh();
   const dataProvider = useDataProvider();
+  const createTag = useCreateTag();
   const { onUnselectItems, selectedIds = [] } = useListContext<Contact>();
   const [open, setOpen] = useState(false);
   const [mode, setMode] = useState<BulkTagDialogMode>("select");
@@ -40,14 +42,9 @@ export function BulkTagButton() {
       { ids: selectedIds },
       { enabled: open && selectedIds.length > 0 },
     );
-  const { data: tags = [], isPending: isPendingTags } = useGetList<Tag>(
-    "tags",
-    {
-      pagination: { page: 1, perPage: 1000 },
-      sort: { field: "name", order: "ASC" },
-    },
-    { enabled: open },
-  );
+  const { data: tags = [], isPending: isPendingTags } = useTags({
+    enabled: open,
+  });
 
   const closeDialog = useCallback(() => {
     setOpen(false);
@@ -113,8 +110,8 @@ export function BulkTagButton() {
   );
 
   const handleCreateTag = async (data: Pick<Tag, "name" | "color">) => {
-    const response = await dataProvider.create<Tag>("tags", { data });
-    await applyTagToSelection(response.data);
+    const tag = await createTag(data);
+    await applyTagToSelection(tag);
   };
 
   if (!selectedIds.length) {
