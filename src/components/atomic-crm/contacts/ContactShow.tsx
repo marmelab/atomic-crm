@@ -137,7 +137,7 @@ const ContactShowContentMobile = () => {
             </TabsTrigger>
             <TabsTrigger value="tasks">
               {translate("crm.common.task_count", {
-                smart_count: taskCount,
+                smart_count: taskCount ?? 0,
               })}
             </TabsTrigger>
             <TabsTrigger value="details">

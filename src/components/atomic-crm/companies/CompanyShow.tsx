@@ -126,13 +126,13 @@ const CompanyShowContent = () => {
                   {record.nb_contacts === 0
                     ? translate("resources.companies.no_contacts")
                     : translate("resources.companies.nb_contacts", {
-                        smart_count: record.nb_contacts,
+                        smart_count: record.nb_contacts ?? 0,
                       })}
                 </TabsTrigger>
                 {record.nb_deals ? (
                   <TabsTrigger value="deals">
                     {translate("resources.companies.nb_deals", {
-                      smart_count: record.nb_deals,
+                      smart_count: record.nb_deals ?? 0,
                     })}
                   </TabsTrigger>
                 ) : null}
@@ -216,7 +216,7 @@ const ContactsIterator = () => {
                   {contact.title}
                   {contact.nb_tasks
                     ? ` - ${translate("crm.common.task_count", {
-                        smart_count: contact.nb_tasks,
+                        smart_count: contact.nb_tasks ?? 0,
                       })}`
                     : ""}
                   &nbsp; &nbsp;
