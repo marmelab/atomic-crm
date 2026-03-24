@@ -1,7 +1,6 @@
 import { render } from "vitest-browser-react";
 import { CoreAdminContext, Form } from "ra-core";
 import fakeDataProvider from "ra-data-fakerest";
-import { useFormContext } from "react-hook-form";
 
 import { NoteInputs } from "./NoteInputs";
 import { SaveButton } from "@/components/admin/form";
@@ -43,29 +42,17 @@ const dataProvider = fakeDataProvider({
   sales: [],
 });
 
-const Wrapper = ({ children }: { children: React.ReactNode }) => (
+const Wrapper = ({
+  children,
+  defaultValues,
+}: {
+  children: React.ReactNode;
+  defaultValues?: Record<string, unknown>;
+}) => (
   <CoreAdminContext dataProvider={dataProvider} i18nProvider={testI18nProvider}>
-    <Form>{children}</Form>
+    <Form defaultValues={defaultValues}>{children}</Form>
   </CoreAdminContext>
 );
-
-const AttachmentSetter = () => {
-  const { setValue } = useFormContext();
-
-  return (
-    <button
-      type="button"
-      onClick={() => {
-        setValue("attachments", [{ src: "blob:test", title: "evidence.pdf" }], {
-          shouldDirty: true,
-          shouldValidate: true,
-        });
-      }}
-    >
-      Add attachment
-    </button>
-  );
-};
 
 describe("NoteInputs", () => {
   beforeEach(() => {
@@ -194,18 +181,9 @@ describe("NoteInputs", () => {
   it("should use the note date instead of the current date when it is set", async () => {
     const screen = await render(<NoteInputs />, {
       wrapper: ({ children }) => (
-        <CoreAdminContext
-          dataProvider={dataProvider}
-          i18nProvider={testI18nProvider}
-        >
-          <Form
-            defaultValues={{
-              date: "2024-01-01T12:00",
-            }}
-          >
-            {children}
-          </Form>
-        </CoreAdminContext>
+        <Wrapper defaultValues={{ date: "2024-01-01T12:00" }}>
+          {children}
+        </Wrapper>
       ),
     });
 
@@ -253,11 +231,10 @@ describe("NoteInputs", () => {
       .toBeVisible();
   });
 
-  it("allows submitting a note with an attachment and no text", async () => {
+  it("allows submitting a note with text only", async () => {
     const screen = await render(
       <>
         <NoteInputs />
-        <AttachmentSetter />
         <SaveButton type="button" />
       </>,
       {
@@ -265,7 +242,33 @@ describe("NoteInputs", () => {
       },
     );
 
-    await screen.getByRole("button", { name: "Add attachment" }).click();
+    await screen.getByPlaceholder("Add a note").fill("Call summary");
+    await screen.getByRole("button", { name: "Save" }).click();
+
+    await expect
+      .element(screen.getByText("A note or an attachment is required"))
+      .not.toBeInTheDocument();
+  });
+
+  it("allows submitting a note with an attachment and no text", async () => {
+    const screen = await render(
+      <>
+        <NoteInputs />
+        <SaveButton type="button" />
+      </>,
+      {
+        wrapper: ({ children }) => (
+          <Wrapper
+            defaultValues={{
+              attachments: [{ src: "blob:test", title: "evidence.pdf" }],
+            }}
+          >
+            {children}
+          </Wrapper>
+        ),
+      },
+    );
+
     await screen.getByRole("button", { name: "Save" }).click();
 
     await expect
