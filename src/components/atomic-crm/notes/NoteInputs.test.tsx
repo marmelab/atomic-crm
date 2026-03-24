@@ -56,11 +56,10 @@ const AttachmentSetter = () => {
     <button
       type="button"
       onClick={() => {
-        setValue(
-          "attachments",
-          [{ src: "blob:test", title: "evidence.pdf" }],
-          { shouldDirty: true, shouldValidate: true },
-        );
+        setValue("attachments", [{ src: "blob:test", title: "evidence.pdf" }], {
+          shouldDirty: true,
+          shouldValidate: true,
+        });
       }}
     >
       Add attachment

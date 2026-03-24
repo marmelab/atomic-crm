@@ -281,8 +281,7 @@ export const frenchCrmMessages = {
         show_options: "Afficher les options",
       },
       validation: {
-        note_or_attachment_required:
-          "Une note ou une pièce jointe est requise",
+        note_or_attachment_required: "Une note ou une pièce jointe est requise",
       },
     },
     sales: {
