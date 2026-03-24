@@ -16,6 +16,24 @@ import { AutocompleteInput, ReferenceInput } from "@/components/admin";
 import { contactOptionText } from "../misc/ContactOption";
 import { useIsMobile } from "@/hooks/use-mobile";
 
+type NoteFormValues = {
+  attachments?: unknown[] | null;
+  text?: string | null;
+};
+
+const validateNoteOrAttachmentRequired = (
+  value: string | null | undefined,
+  values: NoteFormValues,
+) => {
+  const hasText = typeof value === "string" && value.trim().length > 0;
+  const hasAttachments =
+    Array.isArray(values?.attachments) && values.attachments.length > 0;
+
+  return hasText || hasAttachments
+    ? undefined
+    : "resources.notes.validation.note_or_attachment_required";
+};
+
 export const NoteInputs = ({
   showStatus,
   selectReference,
@@ -42,6 +60,7 @@ export const NoteInputs = ({
         helperText={false}
         placeholder={translate("resources.notes.inputs.add_note")}
         rows={6}
+        validate={validateNoteOrAttachmentRequired}
       />
 
       {selectReference && reference && (

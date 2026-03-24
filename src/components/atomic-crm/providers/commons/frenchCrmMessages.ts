@@ -280,6 +280,10 @@ export const frenchCrmMessages = {
         options_hint: "(joindre des fichiers ou modifier les détails)",
         show_options: "Afficher les options",
       },
+      validation: {
+        note_or_attachment_required:
+          "Une note ou une pièce jointe est requise",
+      },
     },
     sales: {
       name: "Utilisateur |||| Utilisateurs",
