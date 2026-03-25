@@ -53,10 +53,12 @@ export default defineConfig({
         }
       : undefined,
   base: "./",
-  esbuild: {
-    keepNames: true,
-  },
   build: {
+    rolldownOptions: {
+      output: {
+        keepNames: true,
+      },
+    },
     sourcemap: true,
   },
   resolve: {
