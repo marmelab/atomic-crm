@@ -140,6 +140,20 @@ export const englishCrmMessages = {
       list: {
         error_loading: "Error loading contacts",
       },
+      bulk_tag: {
+        action: "Tag",
+        back: "Back to tags",
+        create_description:
+          "Create a new tag and apply it to the selected contacts.",
+        description:
+          "Choose an existing tag or create a new one for the selected contacts.",
+        empty: "No tags yet. Create one to tag the selected contacts.",
+        error: "Failed to add tag to contacts",
+        noop: "Selected contacts already have this tag",
+        success:
+          "Tag added to %{smart_count} contact |||| Tag added to %{smart_count} contacts",
+        title: "Add tag to contacts",
+      },
       merge: {
         action: "Merge with another contact",
         confirm: "Merge Contacts",
@@ -507,6 +521,11 @@ export const englishCrmMessages = {
         description:
           "You can start sending emails to your server's inbound email address, e.g. by adding it to the %{field} field. Atomic CRM will process the emails and add notes to the corresponding contacts.",
         title: "Inbound email",
+      },
+      mcp: {
+        title: "MCP Server",
+        description:
+          "Use this URL to connect your AI assistant to your CRM data via the Model Context Protocol (MCP).",
       },
       password: {
         change: "Change password",

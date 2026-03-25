@@ -144,6 +144,21 @@ export const frenchCrmMessages = {
       list: {
         error_loading: "Erreur lors du chargement des contacts",
       },
+      bulk_tag: {
+        action: "Étiqueter",
+        back: "Retour aux étiquettes",
+        create_description:
+          "Créez une nouvelle étiquette et appliquez-la aux contacts sélectionnés.",
+        description:
+          "Choisissez une étiquette existante ou créez-en une pour les contacts sélectionnés.",
+        empty:
+          "Aucune étiquette pour le moment. Créez-en une pour étiqueter les contacts sélectionnés.",
+        error: "Impossible d'ajouter l'étiquette aux contacts",
+        noop: "Les contacts sélectionnés ont déjà cette étiquette",
+        success:
+          "Étiquette ajoutée à %{smart_count} contact |||| Étiquette ajoutée à %{smart_count} contacts",
+        title: "Ajouter une étiquette aux contacts",
+      },
       merge: {
         action: "Fusionner avec un autre contact",
         confirm: "Fusionner les contacts",
@@ -513,6 +528,11 @@ export const frenchCrmMessages = {
         description:
           "Vous pouvez commencer à envoyer des e-mails vers l'adresse de réception de votre serveur, par exemple en l'ajoutant au champ %{field}. Atomic CRM traitera les e-mails et ajoutera des notes aux contacts correspondants.",
         title: "E-mail entrant",
+      },
+      mcp: {
+        title: "Serveur MCP",
+        description:
+          "Utilisez cette URL pour connecter votre assistant IA aux données de votre CRM via le Model Context Protocol (MCP).",
       },
       password: {
         change: "Changer le mot de passe",
