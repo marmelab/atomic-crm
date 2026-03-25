@@ -278,7 +278,7 @@ function createMcpServer(authInfo: AuthInfo): McpServer {
 
   server.tool(
     "get_schema",
-    "Retrieve the database schema including all tables, views, columns, types, and foreign key relationships. Views (like contacts_summary, companies_summary) are read-only and provide pre-joined/aggregated data. Use them for search and list queries.",
+    "Retrieve the database schema for the user's Atomic CRM instance including all tables, views, columns, types, and foreign key relationships. Views (like contacts_summary, companies_summary) are read-only and provide pre-joined/aggregated data. Use them for search and list queries.",
     {},
     async () => {
       const schema = await getSchemaData();
@@ -288,9 +288,31 @@ function createMcpServer(authInfo: AuthInfo): McpServer {
 
   server.tool(
     "query",
-    "Execute a SQL query against the CRM database. The query runs with Row Level Security (RLS) enforced for the authenticated user. Supports SELECT, INSERT, UPDATE, DELETE. Use *_summary views for aggregated/search data. IMPORTANT: Never specify sales_id in INSERT or UPDATE statements — it is automatically set to the authenticated user by a database trigger. Examples: SELECT id, first_name, last_name FROM contacts_summary WHERE email_fts LIKE '%@company.com%'; INSERT INTO contact_notes (contact_id, text, date, status) VALUES (1, 'Called client', NOW(), 'cold')",
+    `Query data from the user's CRM instance using SQL.
+
+IMPORTANT: Before using this tool, you MUST call the get_schema tool first to understand what tables and columns are available in the database.
+
+Use this tool when the user asks about their CRM data such as:
+- Contacts, companies, and deals
+- Sales pipeline and forecasting data
+- Customer interactions and notes
+- Tasks and follow-ups
+- Custom fields and metadata
+
+Row Level Security (RLS) is enforced - queries automatically return only data the authenticated user has permission to access.
+
+Note: Use the *_summary views (contacts_summary, companies_summary) for queries that need aggregated data or search capabilities.
+
+IMPORTANT: Never specify sales_id in INSERT or UPDATE statements — it is automatically set to the authenticated user by a database trigger.
+
+Examples:
+- "SELECT id, first_name, last_name, email_fts FROM contacts_summary WHERE email_fts LIKE '%@company.com%'"
+- "SELECT name, stage, amount FROM deals WHERE created_at > NOW() - INTERVAL '30 days' ORDER BY amount DESC"
+- "SELECT COUNT(*) as total_tasks, type FROM tasks WHERE done_date IS NULL GROUP BY type"
+- "SELECT c.first_name, c.last_name, co.name as company_name FROM contacts c JOIN companies co ON c.company_id = co.id WHERE co.sector = 'Technology'"`,
     { sql: z.string().describe("The SQL query to execute") },
-    async ({ sql }) => {
+    async ({ sql }: { sql: string }) => {
+      // eslint-disable-next-line no-console
       console.log(`[MCP query] user=${authInfo.userId} sql=${sql}`);
       const result = await executeQueryWithRLS(sql, authInfo.token);
       if (result.success) {

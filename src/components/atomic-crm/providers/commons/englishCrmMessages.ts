@@ -522,6 +522,11 @@ export const englishCrmMessages = {
           "You can start sending emails to your server's inbound email address, e.g. by adding it to the %{field} field. Atomic CRM will process the emails and add notes to the corresponding contacts.",
         title: "Inbound email",
       },
+      mcp: {
+        title: "MCP Server",
+        description:
+          "Use this URL to connect your AI assistant to your CRM data via the Model Context Protocol (MCP).",
+      },
       password: {
         change: "Change password",
       },
