@@ -31,7 +31,11 @@ function getBaseUrl(req: Request): string {
     return `https://${forwardedHost}`;
   }
   const url = new URL(req.url);
-  return `${url.protocol}//${url.host}`;
+  const host = url.host;
+  // Supabase edge functions see http:// internally, but are served over HTTPS publicly
+  const proto =
+    host.includes("localhost") || host.includes("127.0.0.1") ? "http" : "https";
+  return `${proto}://${host}`;
 }
 
 function getResourceMetadataUrl(req: Request): string {
