@@ -2,6 +2,7 @@
 import { memoryStore, type AuthProvider } from "ra-core";
 import { useMemo, type ReactNode } from "react";
 import { MemoryRouter } from "react-router";
+import cloneDeep from "lodash/cloneDeep";
 import { Notification } from "@/components/admin/notification";
 import { createDataProvider } from "@/components/atomic-crm/providers/fakerest";
 import { DEFAULT_USER } from "@/components/atomic-crm/providers/fakerest/authProvider";
@@ -88,7 +89,7 @@ export const StoryWrapper = ({
   const authProvider = useMemo(() => createTestAuthProvider(), []);
   const dataProvider = useMemo(
     () => ({
-      ...createDataProvider({ db: createCrmDb({ ...data }) }),
+      ...createDataProvider({ db: createCrmDb(cloneDeep(data)) }),
       ...dataProviderOverrides,
     }),
     // eslint-disable-next-line react-hooks/exhaustive-deps
