@@ -29,6 +29,9 @@ describe("ContactList", () => {
       .not.toBeInTheDocument();
   });
 
+  /**
+   * The desktop version doesn't show a skeleton yet
+   */
   it.skip("renders a skeleton while loading", async () => {
     const screen = await render(<DesktopLoading />);
 
