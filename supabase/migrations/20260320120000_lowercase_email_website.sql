@@ -21,17 +21,16 @@ $$;
 -- Lowercase triggers must run before the avatar/favicon triggers
 
 -- Drop existing triggers
-DROP TRIGGER IF EXISTS lowercase_contact_emails ON contacts;
 DROP TRIGGER IF EXISTS contact_saved ON contacts;
 
 -- Create lowercase trigger first (so it runs before contact_saved)
-CREATE TRIGGER lowercase_contact_emails
+CREATE TRIGGER 10_lowercase_contact_emails
   BEFORE INSERT OR UPDATE ON contacts
   FOR EACH ROW
   EXECUTE FUNCTION lowercase_email_jsonb();
 
 -- Recreate contact_saved trigger (will run after lowercase_contact_emails)
-CREATE TRIGGER contact_saved
+CREATE TRIGGER 20_contact_saved
   BEFORE INSERT OR UPDATE ON contacts
   FOR EACH ROW
   EXECUTE FUNCTION handle_contact_saved();
@@ -51,17 +50,16 @@ END;
 $$;
 
 -- Drop existing triggers
-DROP TRIGGER IF EXISTS lowercase_company_website ON companies;
 DROP TRIGGER IF EXISTS company_saved ON companies;
 
 -- Create lowercase trigger first (so it runs before company_saved)
-CREATE TRIGGER lowercase_company_website
+CREATE TRIGGER 10_lowercase_company_website
   BEFORE INSERT OR UPDATE ON companies
   FOR EACH ROW
   EXECUTE FUNCTION lowercase_website();
 
 -- Recreate company_saved trigger (will run after lowercase_company_website)
-CREATE TRIGGER company_saved
+CREATE TRIGGER 20_company_saved
   BEFORE INSERT OR UPDATE ON companies
   FOR EACH ROW
   EXECUTE FUNCTION handle_company_saved();
