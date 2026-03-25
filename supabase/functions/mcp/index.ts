@@ -288,7 +288,7 @@ function createMcpServer(authInfo: AuthInfo): McpServer {
 
   server.tool(
     "query",
-    "Execute a SQL query against the CRM database. The query runs with Row Level Security (RLS) enforced for the authenticated user. Supports SELECT, INSERT, UPDATE, DELETE. Use *_summary views for aggregated/search data. Examples: SELECT id, first_name, last_name FROM contacts_summary WHERE email_fts LIKE '%@company.com%'; SELECT name, stage, amount FROM deals WHERE created_at > NOW() - INTERVAL '30 days' ORDER BY amount DESC",
+    "Execute a SQL query against the CRM database. The query runs with Row Level Security (RLS) enforced for the authenticated user. Supports SELECT, INSERT, UPDATE, DELETE. Use *_summary views for aggregated/search data. IMPORTANT: Never specify sales_id in INSERT or UPDATE statements — it is automatically set to the authenticated user by a database trigger. Examples: SELECT id, first_name, last_name FROM contacts_summary WHERE email_fts LIKE '%@company.com%'; INSERT INTO contact_notes (contact_id, text, date, status) VALUES (1, 'Called client', NOW(), 'cold')",
     { sql: z.string().describe("The SQL query to execute") },
     async ({ sql }) => {
       const result = await executeQueryWithRLS(sql, authInfo.token);
