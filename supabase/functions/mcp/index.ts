@@ -3,7 +3,7 @@ import { McpServer } from "npm:@modelcontextprotocol/sdk@1.28.0/server/mcp.js";
 import { WebStandardStreamableHTTPServerTransport } from "npm:@modelcontextprotocol/sdk@1.28.0/server/webStandardStreamableHttp.js";
 import { createRemoteJWKSet, jwtVerify, decodeJwt } from "npm:jose@5";
 import { Pool } from "https://deno.land/x/postgres@v0.17.0/mod.ts";
-import { z } from "npm:zod";
+import { z } from "npm:zod@^3.25";
 import { corsHeaders } from "../_shared/cors.ts";
 
 // --- Environment & Config ---
