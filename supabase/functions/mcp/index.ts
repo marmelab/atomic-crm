@@ -1,6 +1,6 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
-import { McpServer } from "npm:@modelcontextprotocol/sdk@1.27.1/server/mcp.js";
-import { WebStandardStreamableHTTPServerTransport } from "npm:@modelcontextprotocol/sdk@1.27.1/server/webStandardStreamableHttp.js";
+import { McpServer } from "npm:@modelcontextprotocol/sdk@1.28.0/server/mcp.js";
+import { WebStandardStreamableHTTPServerTransport } from "npm:@modelcontextprotocol/sdk@1.28.0/server/webStandardStreamableHttp.js";
 import { createRemoteJWKSet, jwtVerify, decodeJwt } from "npm:jose@5";
 import { Pool } from "https://deno.land/x/postgres@v0.17.0/mod.ts";
 import { z } from "npm:zod";
@@ -202,13 +202,25 @@ async function getSchemaData(): Promise<string> {
 
 // --- SQL Validation ---
 
-const ALLOWED_STATEMENTS = /^\s*(SELECT|INSERT|UPDATE|DELETE|WITH)\b/i;
+const ALLOWED_READ_STATEMENTS = /^\s*(SELECT|WITH)\b/i;
+const ALLOWED_WRITE_STATEMENTS = /^\s*(INSERT|UPDATE|DELETE|WITH)\b/i;
 const BLOCKED_KEYWORDS =
   /\b(DROP|ALTER|CREATE|TRUNCATE|GRANT|REVOKE|COPY|VACUUM|REINDEX|CLUSTER|COMMENT|SECURITY\s+LABEL|DO\s*\$|CALL|SET|RESET|LOAD|LISTEN|NOTIFY|UNLISTEN|DISCARD|PREPARE|EXECUTE|DEALLOCATE)\b/i;
 
-function validateDml(sql: string): string | null {
-  if (!ALLOWED_STATEMENTS.test(sql)) {
-    return "Only SELECT, INSERT, UPDATE, DELETE, and WITH statements are allowed.";
+function validateReadOnly(sql: string): string | null {
+  if (!ALLOWED_READ_STATEMENTS.test(sql)) {
+    return "Only SELECT and WITH statements are allowed. Use the mutate tool for INSERT, UPDATE, or DELETE.";
+  }
+  const match = sql.match(BLOCKED_KEYWORDS);
+  if (match) {
+    return `Disallowed keyword: ${match[0].toUpperCase()}`;
+  }
+  return null;
+}
+
+function validateWrite(sql: string): string | null {
+  if (!ALLOWED_WRITE_STATEMENTS.test(sql)) {
+    return "Only INSERT, UPDATE, DELETE, and WITH statements are allowed. Use the query tool for SELECT.";
   }
   const match = sql.match(BLOCKED_KEYWORDS);
   if (match) {
@@ -222,10 +234,11 @@ function validateDml(sql: string): string | null {
 async function executeQueryWithRLS(
   sql: string,
   userToken: string,
+  validate: (sql: string) => string | null,
 ): Promise<
   { success: true; data: unknown[] } | { success: false; error: string }
 > {
-  const validationError = validateDml(sql);
+  const validationError = validate(sql);
   if (validationError) {
     return { success: false, error: validationError };
   }
@@ -276,19 +289,25 @@ function createMcpServer(authInfo: AuthInfo): McpServer {
     version: "1.0.0",
   });
 
-  server.tool(
+  server.registerTool(
     "get_schema",
-    "Retrieve the database schema for the user's Atomic CRM instance including all tables, views, columns, types, and foreign key relationships. Views (like contacts_summary, companies_summary) are read-only and provide pre-joined/aggregated data. Use them for search and list queries.",
-    {},
+    {
+      title: "Get Database Schema",
+      description:
+        "Retrieve the database schema for the user's Atomic CRM instance including all tables, views, columns, types, and foreign key relationships. Views (like contacts_summary, companies_summary) are read-only and provide pre-joined/aggregated data. Use them for search and list queries.",
+      annotations: { readOnlyHint: true },
+    },
     async () => {
       const schema = await getSchemaData();
-      return { content: [{ type: "text", text: schema }] };
+      return { content: [{ type: "text" as const, text: schema }] };
     },
   );
 
-  server.tool(
+  server.registerTool(
     "query",
-    `Query data from the user's CRM instance using SQL.
+    {
+      title: "Query CRM Data",
+      description: `Read data from the user's CRM instance using SQL SELECT queries.
 
 IMPORTANT: Before using this tool, you MUST call the get_schema tool first to understand what tables and columns are available in the database.
 
@@ -303,27 +322,93 @@ Row Level Security (RLS) is enforced - queries automatically return only data th
 
 Note: Use the *_summary views (contacts_summary, companies_summary) for queries that need aggregated data or search capabilities.
 
-IMPORTANT: Never specify sales_id in INSERT or UPDATE statements — it is automatically set to the authenticated user by a database trigger.
+This tool only supports SELECT queries. For INSERT, UPDATE, or DELETE operations, use the mutate tool.
 
 Examples:
 - "SELECT id, first_name, last_name, email_fts FROM contacts_summary WHERE email_fts LIKE '%@company.com%'"
 - "SELECT name, stage, amount FROM deals WHERE created_at > NOW() - INTERVAL '30 days' ORDER BY amount DESC"
 - "SELECT COUNT(*) as total_tasks, type FROM tasks WHERE done_date IS NULL GROUP BY type"
 - "SELECT c.first_name, c.last_name, co.name as company_name FROM contacts c JOIN companies co ON c.company_id = co.id WHERE co.sector = 'Technology'"`,
-    { sql: z.string().describe("The SQL query to execute") },
+      inputSchema: z.object({
+        sql: z.string().describe("The SQL SELECT query to execute"),
+      }),
+      annotations: { readOnlyHint: true },
+    },
     async ({ sql }: { sql: string }) => {
       // eslint-disable-next-line no-console
       console.log(`[MCP query] user=${authInfo.userId} sql=${sql}`);
-      const result = await executeQueryWithRLS(sql, authInfo.token);
+      const result = await executeQueryWithRLS(
+        sql,
+        authInfo.token,
+        validateReadOnly,
+      );
       if (result.success) {
         return {
           content: [
-            { type: "text", text: JSON.stringify(result.data, null, 2) },
+            {
+              type: "text" as const,
+              text: JSON.stringify(result.data, null, 2),
+            },
           ],
         };
       }
       return {
-        content: [{ type: "text", text: `Error: ${result.error}` }],
+        content: [{ type: "text" as const, text: `Error: ${result.error}` }],
+        isError: true,
+      };
+    },
+  );
+
+  server.registerTool(
+    "mutate",
+    {
+      title: "Mutate CRM Data",
+      description: `Create, update, or delete data in the user's CRM instance using SQL.
+
+IMPORTANT: Before using this tool, you MUST call the get_schema tool first to understand what tables and columns are available in the database.
+
+Use this tool for data modifications such as:
+- Creating new contacts, companies, deals, tasks, or notes
+- Updating existing records
+- Deleting records
+
+Row Level Security (RLS) is enforced - mutations only affect data the authenticated user has permission to modify.
+
+IMPORTANT: Never specify sales_id in INSERT or UPDATE statements — it is automatically set to the authenticated user by a database trigger.
+
+For read-only queries, use the query tool instead.
+
+Examples:
+- "INSERT INTO contacts (first_name, last_name, email) VALUES ('John', 'Doe', 'john@example.com')"
+- "UPDATE deals SET stage = 'won-deal' WHERE id = 123"
+- "DELETE FROM tasks WHERE id = 456"`,
+      inputSchema: z.object({
+        sql: z
+          .string()
+          .describe("The SQL INSERT, UPDATE, or DELETE statement to execute"),
+      }),
+      annotations: { destructiveHint: true },
+    },
+    async ({ sql }: { sql: string }) => {
+      // eslint-disable-next-line no-console
+      console.log(`[MCP mutate] user=${authInfo.userId} sql=${sql}`);
+      const result = await executeQueryWithRLS(
+        sql,
+        authInfo.token,
+        validateWrite,
+      );
+      if (result.success) {
+        return {
+          content: [
+            {
+              type: "text" as const,
+              text: JSON.stringify(result.data, null, 2),
+            },
+          ],
+        };
+      }
+      return {
+        content: [{ type: "text" as const, text: `Error: ${result.error}` }],
         isError: true,
       };
     },
