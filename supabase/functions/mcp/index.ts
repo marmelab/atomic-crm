@@ -4,6 +4,7 @@ import { WebStandardStreamableHTTPServerTransport } from "npm:@modelcontextproto
 import { createRemoteJWKSet, jwtVerify, decodeJwt } from "npm:jose@5";
 import { Pool } from "https://deno.land/x/postgres@v0.17.0/mod.ts";
 import { z } from "npm:zod@^3.25";
+import { validateReadOnly, validateWrite } from "./validateSql.ts";
 import { corsHeaders } from "../_shared/cors.ts";
 
 // --- Environment & Config ---
@@ -198,50 +199,6 @@ async function getSchemaData(): Promise<string> {
   } finally {
     client.release();
   }
-}
-
-// --- SQL Validation ---
-
-const ALLOWED_READ_STATEMENTS = /^\s*(SELECT|WITH)\b/i;
-const ALLOWED_WRITE_STATEMENTS = /^\s*(INSERT|UPDATE|DELETE|WITH)\b/i;
-// Keywords blocked in all queries (DDL, admin commands, etc.)
-const BLOCKED_KEYWORDS =
-  /\b(DROP|ALTER|CREATE|TRUNCATE|GRANT|REVOKE|COPY|VACUUM|REINDEX|CLUSTER|COMMENT|SECURITY\s+LABEL|DO\s*\$|CALL|RESET|LOAD|LISTEN|NOTIFY|UNLISTEN|DISCARD|PREPARE|EXECUTE|DEALLOCATE)\b/i;
-// DML keywords that must not appear inside read-only queries
-// (e.g. writable CTEs: WITH d AS (DELETE FROM t RETURNING *) SELECT ...)
-const WRITE_KEYWORDS = /\b(INSERT|UPDATE|DELETE)\b/i;
-// SET is valid inside UPDATE (e.g. "UPDATE t SET col = val") but not as a
-// standalone statement (e.g. "SET search_path = ..."). Block it only when it
-// appears at the statement level.
-const BLOCKED_STATEMENT_SET = /^\s*SET\b/i;
-
-function validateReadOnly(sql: string): string | null {
-  if (!ALLOWED_READ_STATEMENTS.test(sql)) {
-    return "Only SELECT and WITH statements are allowed. Use the mutate tool for INSERT, UPDATE, or DELETE.";
-  }
-  const writeMatch = sql.match(WRITE_KEYWORDS);
-  if (writeMatch) {
-    return `Write operation ${writeMatch[0].toUpperCase()} is not allowed in read-only queries. Use the mutate tool instead.`;
-  }
-  const match = sql.match(BLOCKED_KEYWORDS);
-  if (match) {
-    return `Disallowed keyword: ${match[0].toUpperCase()}`;
-  }
-  return null;
-}
-
-function validateWrite(sql: string): string | null {
-  if (!ALLOWED_WRITE_STATEMENTS.test(sql)) {
-    return "Only INSERT, UPDATE, DELETE, and WITH statements are allowed. Use the query tool for SELECT.";
-  }
-  if (BLOCKED_STATEMENT_SET.test(sql)) {
-    return "Disallowed keyword: SET";
-  }
-  const match = sql.match(BLOCKED_KEYWORDS);
-  if (match) {
-    return `Disallowed keyword: ${match[0].toUpperCase()}`;
-  }
-  return null;
 }
 
 // --- Database: query with RLS ---
