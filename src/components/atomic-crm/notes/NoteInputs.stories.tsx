@@ -1,36 +1,12 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
-import { CoreAdminContext, Form } from "ra-core";
-import fakeDataProvider from "ra-data-fakerest";
+import { Form } from "ra-core";
 
 import { NoteInputs } from "./NoteInputs";
 import { SaveButton } from "@/components/admin/form";
-
-const testI18nProvider = {
-  translate: (key: string) =>
-    (
-      ({
-        "resources.notes.inputs.add_note": "Add a note",
-        "resources.notes.inputs.show_options": "Show options",
-        "resources.notes.fields.date": "Date",
-        "resources.notes.fields.attachments": "Attachments",
-        "resources.notes.fields.status": "Status",
-        "resources.notes.fields.contact_id": "Contact",
-        "resources.notes.fields.deal_id": "Deal",
-        "resources.notes.validation.note_or_attachment_required":
-          "A note or an attachment is required",
-        "ra.action.save": "Save",
-      }) as Record<string, string>
-    )[key] ?? key,
-  changeLocale: () => Promise.resolve(),
-  getLocale: () => "en",
-};
-
-const dataProvider = fakeDataProvider({
-  notes: [],
-  contacts: [],
-  deals: [],
-  sales: [],
-});
+import {
+  createCrmDb,
+  CrmStoryProvider,
+} from "@/test/browser/atomic-crm/crmUiHarness";
 
 type NoteInputsStoryProps = React.ComponentProps<typeof NoteInputs> & {
   defaultValues?: Record<string, unknown>;
@@ -42,12 +18,12 @@ export const NoteInputsStory = ({
   withSaveButton = false,
   ...props
 }: NoteInputsStoryProps) => (
-  <CoreAdminContext dataProvider={dataProvider} i18nProvider={testI18nProvider}>
+  <CrmStoryProvider scenarioOptions={{ db: createCrmDb() }}>
     <Form defaultValues={defaultValues}>
       <NoteInputs {...props} />
       {withSaveButton ? <SaveButton type="button" /> : null}
     </Form>
-  </CoreAdminContext>
+  </CrmStoryProvider>
 );
 
 const meta = {
