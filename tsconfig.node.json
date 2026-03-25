@@ -23,8 +23,5 @@
 
     "types": ["vitest/globals", "faker"]
   },
-  "include": [
-    "vite.config.ts",
-    "vite.demo.config.ts"
-  ]
+  "include": ["vite.config.ts", "vite.demo.config.ts"]
 }
