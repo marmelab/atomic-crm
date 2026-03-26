@@ -128,7 +128,7 @@
     "typescript": "~5.8.3",
     "typescript-eslint": "^8.35.1",
     "vite": "^8.0.2",
-    "vite-plugin-pwa": "file:vendor/vite-plugin-pwa-1.2.0.tgz",
+    "vite-plugin-pwa": "^1.2.0",
     "vite-plugin-simple-html": "^1.1.0",
     "vitest": "^4.1.1",
     "vitest-browser-react": "^2.0.5",
@@ -136,6 +136,9 @@
     "workbox-window": "^7.4.0"
   },
   "overrides": {
-    "@joshwooding/vite-plugin-react-docgen-typescript": "^0.7.0"
+    "@joshwooding/vite-plugin-react-docgen-typescript": "^0.7.0",
+    "vite-plugin-pwa": {
+      "vite": "$vite"
+    }
   }
 }
