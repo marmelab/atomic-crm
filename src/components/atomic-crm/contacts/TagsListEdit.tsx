@@ -1,6 +1,5 @@
 import { Edit, Plus } from "lucide-react";
 import {
-  useGetList,
   useGetMany,
   useRecordContext,
   useTranslate,
@@ -19,6 +18,7 @@ import {
 
 import { TagChip } from "../tags/TagChip";
 import { TagCreateModal } from "../tags/TagCreateModal";
+import { useTags } from "../tags/useTags";
 import type { Contact, Tag } from "../types";
 
 export const TagsListEdit = () => {
@@ -26,13 +26,9 @@ export const TagsListEdit = () => {
   const [open, setOpen] = useState(false);
   const translate = useTranslate();
 
-  const { data: allTags, isPending: isPendingAllTags } = useGetList<Tag>(
-    "tags",
-    {
-      pagination: { page: 1, perPage: 10 },
-      sort: { field: "name", order: "ASC" },
-    },
-  );
+  const { data: allTags, isPending: isPendingAllTags } = useTags({
+    perPage: 10,
+  });
   const { data: tags, isPending: isPendingRecordTags } = useGetMany<Tag>(
     "tags",
     { ids: record?.tags },

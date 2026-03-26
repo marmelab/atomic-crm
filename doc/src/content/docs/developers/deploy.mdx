@@ -72,6 +72,7 @@ POSTMARK_WEBHOOK_USER: User configured in Postmark to secure the webhook
 POSTMARK_WEBHOOK_PASSWORD: Password configured in Postmark to secure the webhook
 POSTMARK_WEBHOOK_AUTHORIZED_IPS: List of IPs (comma separated) authorized to send requests to the Postmark webhook
 VITE_INBOUND_EMAIL: The email address configured in Postmark to receive inbound emails
+VITE_ATTACHMENTS_BUCKET: The name of the bucket used to store attachments. Optional default to `attachments`
 ```
 
 > **Note:** The `POSTMARK_*` and `VITE_INBOUND_EMAIL` variables are required for Atomic CRM's inbound email features. Have a look at the the [inbound email configuration](../inbound-email-configuration) to learn more about their usage and setup.

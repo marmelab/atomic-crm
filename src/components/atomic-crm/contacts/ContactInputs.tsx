@@ -12,14 +12,14 @@ import { ArrayInput } from "@/components/admin/array-input";
 import { SimpleFormIterator } from "@/components/admin/simple-form-iterator";
 
 import { isLinkedinUrl } from "../misc/isLinkedInUrl";
+import type { Sale } from "../types";
+import { Avatar } from "./Avatar";
+import { AutocompleteCompanyInput } from "../companies/AutocompleteCompanyInput.tsx";
 import {
   contactGender,
   translateContactGenderLabel,
   translatePersonalInfoTypeLabel,
-} from "./contactGender";
-import type { Sale } from "../types";
-import { Avatar } from "./Avatar";
-import { AutocompleteCompanyInput } from "../companies/AutocompleteCompanyInput.tsx";
+} from "./contactModel.ts";
 
 export const ContactInputs = () => {
   const isMobile = useIsMobile();

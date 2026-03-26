@@ -289,6 +289,7 @@ export const AddItemButton = (props: React.ComponentProps<"button">) => {
             variant="ghost"
             size="icon"
             onClick={() => add()}
+            aria-label={translate("ra.action.add")}
             className={cn("button-add", `button-add-${source}`, className)}
             {...rest}
           >

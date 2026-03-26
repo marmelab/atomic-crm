@@ -1,14 +1,10 @@
-import type { Meta, StoryObj } from "@storybook/react-vite";
-
-import {
-  buildContact,
-  createCrmDb,
-  CrmStoryProvider,
-  OpenTaskCreateSheetHarness,
-} from "@/test/browser/atomic-crm/crmUiHarness";
-
+import type { Meta } from "@storybook/react-vite";
+import type { ReactNode } from "react";
+import { useState } from "react";
+import { TaskCreateSheet } from "./TaskCreateSheet";
+import { StoryWrapper, buildContact } from "@/test/StoryWrapper";
 const meta = {
-  title: "Atomic CRM/Tasks/Task Create Sheet",
+  title: "Atomic CRM/Tasks/TaskCreateSheet",
   parameters: {
     layout: "fullscreen",
   },
@@ -16,29 +12,35 @@ const meta = {
 
 export default meta;
 
-type Story = StoryObj<typeof meta>;
-
-export const GlobalTaskCreateOpen: Story = {
-  render: () => (
-    <CrmStoryProvider
-      scenarioOptions={{
-        db: createCrmDb({
-          contacts: [
-            buildContact({
-              first_name: "Ada",
-              id: 1,
-              last_name: "Lovelace",
-            }),
-            buildContact({
-              first_name: "Grace",
-              id: 2,
-              last_name: "Hopper",
-            }),
-          ] as any,
-        }),
-      }}
-    >
-      <OpenTaskCreateSheetHarness />
-    </CrmStoryProvider>
-  ),
+const defaultData = {
+  contacts: [
+    buildContact({
+      first_name: "Ada",
+      id: 1,
+      last_name: "Lovelace",
+    }),
+    buildContact({
+      first_name: "Grace",
+      id: 2,
+      last_name: "Hopper",
+    }),
+  ],
+};
+export const Mobile = ({
+  children,
+  data = defaultData,
+}: {
+  children?: ReactNode;
+  data?: any;
+}) => {
+  const [open, setOpen] = useState(true);
+  return (
+    <StoryWrapper data={data}>
+      <TaskCreateSheet open={open} onOpenChange={setOpen} />
+      {children}
+    </StoryWrapper>
+  );
+};
+Mobile.globals = {
+  viewport: { value: "mobile1", isRotated: false },
 };

@@ -80,7 +80,7 @@ export const ForgotPasswordPage = () => {
           validate={required()}
         />
         <Button type="submit" className="cursor-pointer" disabled={loading}>
-          {translate("ra.action.reset_password", {
+          {translate("crm.action.reset_password", {
             _: "Reset password",
           })}
         </Button>

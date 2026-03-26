@@ -8,7 +8,7 @@ import {
 } from "faker/locale/en_US";
 
 import { defaultNoteStatuses } from "../../../root/defaultConfiguration";
-import { contactGender } from "../../../contacts/contactGender";
+import { contactGender } from "../../../contacts/contactModel";
 import type { Company, Contact } from "../../../types";
 import type { Db } from "./types";
 import { randomDate, weightedBoolean } from "./utils";

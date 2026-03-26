@@ -10,6 +10,7 @@
 
 # testing
 /coverage
+__screenshots__
 
 # production
 /build
@@ -28,6 +29,7 @@ yarn-debug.log*
 yarn-error.log*
 supabase/.branches
 supabase/.temp
+.supabase-e2e/
 
 dist/
 /lib/
@@ -39,3 +41,11 @@ public/r/
 
 !supabase/functions/.env
 .claude/settings.local.json
+
+# Playwright
+node_modules/
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/
+/playwright/.auth/

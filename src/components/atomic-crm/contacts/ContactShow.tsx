@@ -5,6 +5,7 @@ import {
   useShowContext,
   useTranslate,
 } from "ra-core";
+import type { ShowBaseProps } from "ra-core";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { ReferenceField } from "@/components/admin/reference-field";
 import { ReferenceManyField } from "@/components/admin/reference-many-field";
@@ -31,7 +32,7 @@ import { Avatar } from "./Avatar";
 import { ContactAside } from "./ContactAside";
 import { MobileBackButton } from "../misc/MobileBackButton";
 
-export const ContactShow = () => {
+export const ContactShow = (props: ShowBaseProps = {}) => {
   const isMobile = useIsMobile();
 
   return (
@@ -45,6 +46,7 @@ export const ContactShow = () => {
             }
           : undefined,
       }}
+      {...props}
     >
       {isMobile ? <ContactShowContentMobile /> : <ContactShowContent />}
     </ShowBase>
@@ -86,10 +88,10 @@ const ContactShowContentMobile = () => {
           variant="ghost"
           size="icon"
           className="rounded-full"
+          aria-label={translate("ra.action.edit")}
           onClick={() => setEditOpen(true)}
         >
           <Pencil className="size-5" />
-          <span className="sr-only">{translate("ra.action.edit")}</span>
         </Button>
       </MobileHeader>
       <MobileContent>
@@ -137,7 +139,7 @@ const ContactShowContentMobile = () => {
             </TabsTrigger>
             <TabsTrigger value="tasks">
               {translate("crm.common.task_count", {
-                smart_count: taskCount,
+                smart_count: taskCount ?? 0,
               })}
             </TabsTrigger>
             <TabsTrigger value="details">

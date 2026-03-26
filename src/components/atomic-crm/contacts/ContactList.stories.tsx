@@ -1,13 +1,9 @@
-import type { Meta, StoryObj } from "@storybook/react-vite";
+import type { Meta } from "@storybook/react-vite";
+import { ResourceContextProvider } from "ra-core";
 
-import {
-  buildContact,
-  createCrmDb,
-  CrmStoryProvider,
-  DesktopContactListContentHarness,
-  DesktopContactListHarness,
-  MobileContactListContentHarness,
-} from "@/test/browser/atomic-crm/crmUiHarness";
+import { ContactList } from "./ContactList";
+
+import { StoryWrapper, buildContact } from "@/test/StoryWrapper";
 
 const meta = {
   title: "Atomic CRM/Contacts/Contact List",
@@ -17,8 +13,6 @@ const meta = {
 } satisfies Meta;
 
 export default meta;
-
-type Story = StoryObj<typeof meta>;
 
 const successContacts = [
   buildContact({
@@ -37,54 +31,78 @@ const successContacts = [
   }),
 ];
 
-export const EmptyDesktop: Story = {
-  render: () => (
-    <CrmStoryProvider
-      resource="contacts"
-      scenarioOptions={{ db: createCrmDb() }}
-    >
-      <DesktopContactListHarness />
-    </CrmStoryProvider>
-  ),
+export const DesktopEmpty = () => (
+  <StoryWrapper>
+    <ResourceContextProvider value="contacts">
+      <ContactList />
+    </ResourceContextProvider>
+  </StoryWrapper>
+);
+
+export const DesktopSuccess = () => (
+  <StoryWrapper data={{ contacts: successContacts }}>
+    <ResourceContextProvider value="contacts">
+      <ContactList />
+    </ResourceContextProvider>
+  </StoryWrapper>
+);
+
+export const DesktopLoading = () => (
+  <StoryWrapper
+    dataProvider={{
+      getList: async (resource) => {
+        if (resource === "contacts") {
+          await new Promise(() => {});
+        }
+        return { data: [], total: 0 };
+      },
+    }}
+  >
+    <ResourceContextProvider value="contacts">
+      <ContactList />
+    </ResourceContextProvider>
+  </StoryWrapper>
+);
+
+export const DesktopError = () => (
+  <StoryWrapper
+    dataProvider={{
+      getList: async (resource) => {
+        if (resource === "contacts") {
+          throw new Error("Error loading contacts");
+        }
+        return { data: [], total: 0 };
+      },
+    }}
+  >
+    <ResourceContextProvider value="contacts">
+      <ContactList />
+    </ResourceContextProvider>
+  </StoryWrapper>
+);
+
+const dataForBulkAddTag = {
+  contacts: [
+    buildContact({
+      first_name: "Ada",
+      id: 1,
+      last_name: "Lovelace",
+      tags: [1],
+    }),
+    buildContact({
+      first_name: "Grace",
+      id: 2,
+      last_name: "Hopper",
+      tags: [],
+    }),
+  ],
+  tags: [{ color: "#A5B4FC", id: 1, name: "VIP" }],
 };
 
-export const SuccessDesktop: Story = {
-  render: () => (
-    <CrmStoryProvider
-      resource="contacts"
-      scenarioOptions={{
-        db: createCrmDb({ contacts: successContacts as any }),
-      }}
-    >
-      <DesktopContactListHarness />
-    </CrmStoryProvider>
-  ),
-};
-
-export const LoadingContent: Story = {
-  render: () => (
-    <CrmStoryProvider
-      resource="contacts"
-      scenarioOptions={{
-        db: createCrmDb({ contacts: successContacts as any }),
-        getListDelays: { contacts: 10_000 },
-      }}
-    >
-      <DesktopContactListContentHarness />
-    </CrmStoryProvider>
-  ),
-};
-
-export const ErrorMobile: Story = {
-  render: () => (
-    <CrmStoryProvider
-      resource="contacts"
-      scenarioOptions={{
-        db: createCrmDb({ contacts: successContacts as any }),
-        failGetListOnce: { contacts: "Error loading contacts" },
-      }}
-    >
-      <MobileContactListContentHarness />
-    </CrmStoryProvider>
-  ),
-};
+export const BulkTagButton = () => (
+  <StoryWrapper data={dataForBulkAddTag}>
+    <ResourceContextProvider value="contacts">
+      <ContactList />
+    </ResourceContextProvider>
+  </StoryWrapper>
+);

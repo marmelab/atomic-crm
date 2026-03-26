@@ -176,8 +176,9 @@ async function waitForProjectToBeReady({ projectRef }) {
       throw new Error("Invalid JSON output");
     }
     const jsonOuput = JSON.parse(matchJSON[0]);
+
     const project = jsonOuput.find((project) => project.id === projectRef);
-    if (project.status !== "ACTIVE_HEALTHY") {
+    if (project?.status !== "ACTIVE_HEALTHY") {
       await sleep(1000);
       return waitForProjectToBeReady({ projectRef });
     }

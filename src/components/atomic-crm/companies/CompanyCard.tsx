@@ -55,7 +55,7 @@ export const CompanyCard = (props: { record?: Company }) => {
               <span className="text-sm font-medium">{record.nb_deals}</span>
               <span className="text-xs text-muted-foreground">
                 {translate("resources.deals.name", {
-                  smart_count: record.nb_deals,
+                  smart_count: record.nb_deals ?? 0,
                   _: "Deal |||| Deals",
                 })}
               </span>
