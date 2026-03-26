@@ -292,7 +292,9 @@ Use this tool when the user asks about their CRM data such as:
 
 Row Level Security (RLS) is enforced - queries automatically return only data the authenticated user has permission to access.
 
-Note: Use the *_summary views (contacts_summary, companies_summary) for queries that need aggregated data or search capabilities.
+Use the *_summary views (contacts_summary, companies_summary) for queries that need aggregated data or search capabilities.
+
+To filter by the current user, if the table has a sales_id column, add a WHERE sales_id = auth.uid() clause to your query.
 
 This tool only supports SELECT queries. For INSERT, UPDATE, or DELETE operations, use the mutate tool.
 

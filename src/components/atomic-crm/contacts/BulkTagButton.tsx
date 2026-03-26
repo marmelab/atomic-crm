@@ -1,12 +1,12 @@
 import { Plus, Tag as TagIcon } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import {
-  useDataProvider,
   useGetMany,
   useListContext,
   useNotify,
   useRefresh,
   useTranslate,
+  useUpdate,
 } from "ra-core";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -29,7 +29,9 @@ export function BulkTagButton() {
   const translate = useTranslate();
   const notify = useNotify();
   const refresh = useRefresh();
-  const dataProvider = useDataProvider();
+  const [update] = useUpdate<Contact>("contacts", undefined, {
+    returnPromise: true,
+  });
   const createTag = useCreateTag();
   const { onUnselectItems, selectedIds = [] } = useListContext<Contact>();
   const [open, setOpen] = useState(false);
@@ -68,11 +70,9 @@ export function BulkTagButton() {
       try {
         await Promise.all(
           contactsToUpdate.map((contact) =>
-            dataProvider.update<Contact>("contacts", {
+            update("contacts", {
               id: contact.id,
-              data: {
-                tags: Array.from(new Set([...(contact.tags ?? []), tag.id])),
-              },
+              data: { tags: [...(contact.tags ?? []), tag.id] },
               previousData: contact,
             }),
           ),
@@ -99,14 +99,7 @@ export function BulkTagButton() {
         setIsApplying(false);
       }
     },
-    [
-      closeDialog,
-      dataProvider,
-      notify,
-      onUnselectItems,
-      refresh,
-      selectedContacts,
-    ],
+    [closeDialog, update, notify, onUnselectItems, refresh, selectedContacts],
   );
 
   const handleCreateTag = async (data: Pick<Tag, "name" | "color">) => {
@@ -153,7 +146,7 @@ export function BulkTagButton() {
                 </DialogDescription>
               </DialogHeader>
 
-              <div className="space-y-3 py-2">
+              <div className="flex flex-col space-y-2 items-start">
                 {isPendingTags ? (
                   <p className="text-sm text-muted-foreground">
                     {translate("crm.common.loading")}
@@ -163,14 +156,14 @@ export function BulkTagButton() {
                     <Button
                       key={tag.id}
                       type="button"
-                      variant="outline"
-                      className="w-full justify-start h-auto py-3"
+                      variant="ghost"
                       disabled={isBusy}
+                      className="px-0 py-0 hover:bg-default dark:hover:bg-default mb-0"
                       onClick={() => applyTagToSelection(tag)}
                     >
                       <Badge
                         variant="secondary"
-                        className="font-normal text-black"
+                        className="font-normal text-black cursor-pointer hover:opacity-80 transition-opacity"
                         style={{ backgroundColor: tag.color }}
                       >
                         {tag.name}
@@ -184,10 +177,10 @@ export function BulkTagButton() {
                 )}
               </div>
 
-              <div className="flex justify-end pt-2">
+              <div className="flex justify-start">
                 <Button
                   type="button"
-                  variant="ghost"
+                  variant="outline"
                   disabled={isBusy}
                   onClick={() => setMode("create")}
                 >

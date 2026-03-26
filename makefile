@@ -91,9 +91,6 @@ test-app:
 test-functions:
 	npm run test:unit:functions
 
-test-integration:
-	npm run test:integration
-
 test-e2e: start-e2e
 	npx playwright test --ui
 
@@ -137,3 +134,6 @@ registry-deploy: registry-build ## Deploy the shadcn registry (Automatically don
 registry-gen: ## Generate the shadcn registry (ran automatically by a pre-commit hook)
 	npm run registry:gen
 	npx prettier --config ./.prettierrc.json --write "registry.json"
+
+storybook: ## start storybook
+	npm run storybook
