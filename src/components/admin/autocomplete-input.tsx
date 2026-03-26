@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import * as React from "react";
-import { useCallback } from "react";
+import { isValidElement, useCallback } from "react";
 import { Check, ChevronsUpDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -258,6 +258,10 @@ export const AutocompleteInput = (
                         !!createItem && choice?.id === createItem.id;
                       const disabled = getOptionDisabled(choice);
 
+                      const choiceText = getChoiceText(
+                        isCreateItem ? createItem : choice,
+                      );
+
                       return (
                         <CommandItem
                           key={getChoiceValue(choice)}
@@ -268,6 +272,11 @@ export const AutocompleteInput = (
                                 // to show the option when the filter value starts or ends with a space
                                 `?${filterValue}?`
                               : getChoiceValue(choice)
+                          }
+                          keywords={
+                            isCreateItem || isValidElement(choiceText)
+                              ? undefined
+                              : [choiceText]
                           }
                           onSelect={() => handleChangeWithCreateSupport(choice)}
                           disabled={disabled}
@@ -280,7 +289,7 @@ export const AutocompleteInput = (
                                 : "opacity-0",
                             )}
                           />
-                          {getChoiceText(isCreateItem ? createItem : choice)}
+                          {choiceText}
                         </CommandItem>
                       );
                     })}
