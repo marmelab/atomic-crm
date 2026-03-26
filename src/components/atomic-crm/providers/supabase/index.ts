@@ -1,2 +1,2 @@
-export { authProvider } from "./authProvider";
-export { dataProvider } from "./dataProvider";
+export { getAuthProvider } from "./authProvider";
+export { getDataProvider } from "./dataProvider";

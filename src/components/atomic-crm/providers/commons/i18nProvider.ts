@@ -66,3 +66,10 @@ export const i18nProvider = polyglotI18nProvider(
   ],
   { allowMissing: true },
 );
+
+export const testI18nProvider = polyglotI18nProvider(
+  () => englishCatalog,
+  "en",
+  [{ locale: "en", name: "English" }],
+  { allowMissing: true },
+);

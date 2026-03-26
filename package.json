@@ -5,7 +5,6 @@
   "scripts": {
     "test:unit:app": "vitest --config vitest.config.ts",
     "test:unit:functions": "vitest --config vitest.functions.config.ts",
-    "test:integration": "vitest --config vitest.integration.config.ts",
     "dev": "vite --force",
     "dev:demo": "vite --config vite.demo.config --force",
     "build": "tsc && vite build",
