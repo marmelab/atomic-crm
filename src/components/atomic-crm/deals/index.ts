@@ -1,6 +1,6 @@
-import { lazyImportWithReload } from "@/lib/lazyImportWithReload";
+import React from "react";
 
-const DealList = lazyImportWithReload(() => import("./DealList"), "DealList");
+const DealList = React.lazy(() => import("./DealList"));
 
 export default {
   list: DealList,
