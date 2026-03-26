@@ -10,7 +10,7 @@ export default defineConfig({
     globals: true,
     environment: "node",
     include: ["supabase/functions/**/*.test.ts"],
-    exclude: ["**/node_modules/**"],
+    exclude: ["**/node_modules/**", ".supabase-e2e/**"],
   },
   resolve: {
     alias: {

@@ -116,6 +116,7 @@ export interface CreateFakeRestDataProviderOptions {
   db?: Db;
   latency?: number;
   authProvider?: Pick<typeof defaultAuthProvider, "getIdentity">;
+  silent?: boolean;
 }
 
 const processConfigLogo = async (logo: any): Promise<string> => {
@@ -142,8 +143,9 @@ export const createDataProvider = ({
   db = generateData(),
   latency = 300,
   authProvider,
+  silent = false,
 }: CreateFakeRestDataProviderOptions = {}): CrmDataProvider => {
-  const baseDataProvider = fakeRestDataProvider(db, true, latency);
+  const baseDataProvider = fakeRestDataProvider(db, !silent, latency);
   let taskUpdateType = TASK_DONE_NOT_CHANGED;
   const getIdentity = async () =>
     authProvider?.getIdentity?.() ?? defaultAuthProvider.getIdentity?.();

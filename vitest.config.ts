@@ -25,6 +25,7 @@ export default defineConfig({
       "**/node_modules/**",
       "doc/**",
       "supabase/**",
+      ".supabase-e2e/**",
       "e2e/**/*.spec.{ts,tsx}",
     ],
     server: {
