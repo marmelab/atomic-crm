@@ -3,7 +3,7 @@ import { render } from "vitest-browser-react";
 import { ContactCreateBasic } from "./ContactCreate.stories";
 import { page } from "vitest/browser";
 
-describe("ContactCreate integration", () => {
+describe("ContactCreate", () => {
   beforeAll(() => {
     page.viewport(1600, 900);
   });
