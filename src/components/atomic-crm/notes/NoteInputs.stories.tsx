@@ -1,14 +1,12 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
+import type { ComponentProps } from "react";
 import { Form } from "ra-core";
 
 import { NoteInputs } from "./NoteInputs";
 import { SaveButton } from "@/components/admin/form";
-import {
-  createCrmDb,
-  CrmStoryProvider,
-} from "@/test/browser/atomic-crm/crmUiHarness";
+import { StoryWrapper } from "@/test/StoryWrapper";
 
-type NoteInputsStoryProps = React.ComponentProps<typeof NoteInputs> & {
+type NoteInputsStoryProps = ComponentProps<typeof NoteInputs> & {
   defaultValues?: Record<string, unknown>;
   withSaveButton?: boolean;
 };
@@ -18,12 +16,12 @@ export const NoteInputsStory = ({
   withSaveButton = false,
   ...props
 }: NoteInputsStoryProps) => (
-  <CrmStoryProvider scenarioOptions={{ db: createCrmDb() }}>
+  <StoryWrapper>
     <Form defaultValues={defaultValues}>
       <NoteInputs {...props} />
       {withSaveButton ? <SaveButton type="button" /> : null}
     </Form>
-  </CrmStoryProvider>
+  </StoryWrapper>
 );
 
 const meta = {
