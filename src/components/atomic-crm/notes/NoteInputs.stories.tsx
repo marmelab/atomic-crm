@@ -1,12 +1,11 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
-import type { ComponentProps } from "react";
 import { Form } from "ra-core";
 
 import { NoteInputs } from "./NoteInputs";
 import { SaveButton } from "@/components/admin/form";
 import { StoryWrapper } from "@/test/StoryWrapper";
 
-type NoteInputsStoryProps = ComponentProps<typeof NoteInputs> & {
+type NoteInputsStoryProps = React.ComponentProps<typeof NoteInputs> & {
   defaultValues?: Record<string, unknown>;
   withSaveButton?: boolean;
 };
