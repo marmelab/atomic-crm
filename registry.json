@@ -864,6 +864,10 @@
         {
           "path": "src/lib/toSlug.ts",
           "type": "registry:lib"
+        },
+        {
+          "path": "src/lib/lazyImportWithReload.ts",
+          "type": "registry:lib"
         }
       ]
     }
