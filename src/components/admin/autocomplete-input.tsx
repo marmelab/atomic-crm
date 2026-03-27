@@ -245,9 +245,9 @@ export const AutocompleteInput = (
                   value={filterValue}
                   onValueChange={(filter) => {
                     setFilterValue(filter);
-                    setTimeout(() => {
+                    requestAnimationFrame(() => {
                       listRef.current?.scrollTo(0, 0);
-                    }, 0);
+                    });
                     // We don't want the ChoicesContext to filter the choices if the input
                     // is not from a reference as it would also filter out the selected values
                     if (isFromReference) {
