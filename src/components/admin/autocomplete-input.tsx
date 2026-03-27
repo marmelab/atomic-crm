@@ -201,6 +201,7 @@ export const AutocompleteInput = (
       ? getCreateItem(filterValue)
       : null;
   let finalChoices = allChoices;
+
   if (createItem) {
     finalChoices = [...finalChoices, createItem];
   }
@@ -244,7 +245,9 @@ export const AutocompleteInput = (
                   value={filterValue}
                   onValueChange={(filter) => {
                     setFilterValue(filter);
-                    listRef.current?.scrollTo(0, 0);
+                    setTimeout(() => {
+                      listRef.current?.scrollTo(0, 0);
+                    }, 0);
                     // We don't want the ChoicesContext to filter the choices if the input
                     // is not from a reference as it would also filter out the selected values
                     if (isFromReference) {
