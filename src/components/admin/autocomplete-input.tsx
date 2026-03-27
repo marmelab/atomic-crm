@@ -125,6 +125,7 @@ export const AutocompleteInput = (
   });
 
   const [filterValue, setFilterValue] = React.useState("");
+  const listRef = React.useRef<HTMLDivElement>(null);
 
   const [open, setOpen] = React.useState(false);
   const selectedChoice = allChoices.find(
@@ -200,6 +201,7 @@ export const AutocompleteInput = (
       ? getCreateItem(filterValue)
       : null;
   let finalChoices = allChoices;
+
   if (createItem) {
     finalChoices = [...finalChoices, createItem];
   }
@@ -243,6 +245,9 @@ export const AutocompleteInput = (
                   value={filterValue}
                   onValueChange={(filter) => {
                     setFilterValue(filter);
+                    requestAnimationFrame(() => {
+                      listRef.current?.scrollTo(0, 0);
+                    });
                     // We don't want the ChoicesContext to filter the choices if the input
                     // is not from a reference as it would also filter out the selected values
                     if (isFromReference) {
@@ -250,7 +255,7 @@ export const AutocompleteInput = (
                     }
                   }}
                 />
-                <CommandList>
+                <CommandList ref={listRef}>
                   <CommandEmpty>No matching item found.</CommandEmpty>
                   <CommandGroup>
                     {finalChoices.map((choice) => {
