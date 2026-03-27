@@ -665,7 +665,7 @@
     },
     {
       "path": "src/components/atomic-crm/deals/index.ts",
-      "content": "import * as React from \"react\";\nconst DealList = React.lazy(() => import(\"./DealList\"));\n\nexport default {\n  list: DealList,\n};\n",
+      "content": "import React from \"react\";\n\nconst DealList = React.lazy(() => import(\"./DealList\"));\n\nexport default {\n  list: DealList,\n};\n",
       "type": "registry:component"
     },
     {
