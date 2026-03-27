@@ -12,7 +12,7 @@ import {
 import { CreateSheet } from "../misc/CreateSheet";
 import { foreignKeyMapping } from "./foreignKeyMapping";
 import { NoteInputs } from "./NoteInputs";
-import { getCurrentDate } from "./utils";
+import { getCurrentDate, getDefaultContactStatus } from "./utils";
 
 export interface NoteCreateSheetProps {
   open: boolean;
@@ -39,6 +39,9 @@ export const NoteCreateSheet = ({
   const redirect = useRedirect();
   const translate = useTranslate();
   const getContactRepresentation = useGetRecordRepresentation("contacts");
+  const defaultStatus = selectContact
+    ? undefined
+    : getDefaultContactStatus(contact?.status);
 
   if (!identity) return null;
 
@@ -91,6 +94,7 @@ export const NoteCreateSheet = ({
       onOpenChange={onOpenChange}
     >
       <NoteInputs
+        defaultStatus={defaultStatus}
         showStatus
         reference="contacts"
         selectReference={selectContact}

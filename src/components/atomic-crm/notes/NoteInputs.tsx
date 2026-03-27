@@ -1,15 +1,16 @@
-import { useState } from "react";
-import { required, useTranslate } from "ra-core";
+import { useEffect, useState } from "react";
+import { required, useGetOne, useTranslate } from "ra-core";
 import { TextInput } from "@/components/admin/text-input";
 import { FileInput } from "@/components/admin/file-input";
 import { SelectInput } from "@/components/admin/select-input";
 import { DateTimeInput } from "@/components/admin/date-time-input";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { useFormContext, useWatch } from "react-hook-form";
 
 import { Status } from "../misc/Status";
 import { useConfigurationContext } from "../root/ConfigurationContext";
-import { getCurrentDate } from "./utils";
+import { getCurrentDate, getDefaultContactStatus } from "./utils";
 import { AttachmentField } from "./AttachmentField";
 import { foreignKeyMapping } from "./foreignKeyMapping";
 import { AutocompleteInput, ReferenceInput } from "@/components/admin";
@@ -18,6 +19,9 @@ import { useIsMobile } from "@/hooks/use-mobile";
 
 type NoteFormValues = {
   attachments?: unknown[] | null;
+  contact_id?: number | string;
+  deal_id?: number | string;
+  status?: string;
   text?: string | null;
 };
 
@@ -35,10 +39,12 @@ const validateNoteOrAttachmentRequired = (
 };
 
 export const NoteInputs = ({
+  defaultStatus,
   showStatus,
   selectReference,
   reference,
 }: {
+  defaultStatus?: string;
   showStatus?: boolean;
   selectReference?: boolean;
   reference?: "contacts" | "deals";
@@ -47,6 +53,47 @@ export const NoteInputs = ({
   const { noteStatuses } = useConfigurationContext();
   const translate = useTranslate();
   const [displayMore, setDisplayMore] = useState(false);
+  const { control, formState, setValue } = useFormContext<NoteFormValues>();
+  const selectedContactId = useWatch({ control, name: "contact_id" });
+  const selectedStatus = useWatch({ control, name: "status" });
+  const shouldHydrateStatus =
+    showStatus &&
+    (defaultStatus !== undefined ||
+      (reference === "contacts" && Boolean(selectReference)));
+  const { data: selectedContact } = useGetOne(
+    "contacts",
+    { id: selectedContactId! },
+    {
+      enabled:
+        shouldHydrateStatus &&
+        reference === "contacts" &&
+        Boolean(selectReference) &&
+        selectedContactId != null,
+    },
+  );
+  const resolvedDefaultStatus = shouldHydrateStatus
+    ? reference === "contacts" && selectReference
+      ? getDefaultContactStatus(selectedContact?.status)
+      : getDefaultContactStatus(defaultStatus)
+    : undefined;
+
+  useEffect(() => {
+    if (!shouldHydrateStatus || !resolvedDefaultStatus) return;
+    if (
+      formState.dirtyFields.status ||
+      selectedStatus === resolvedDefaultStatus
+    ) {
+      return;
+    }
+
+    setValue("status", resolvedDefaultStatus, { shouldDirty: false });
+  }, [
+    formState.dirtyFields.status,
+    resolvedDefaultStatus,
+    selectedStatus,
+    setValue,
+    shouldHydrateStatus,
+  ]);
 
   // We manually define the input labels because the default ones
   // would use the resource from the context, which is either "contact_notes" or "deal_notes",
@@ -120,7 +167,7 @@ export const NoteInputs = ({
                 value: status.value,
               }))}
               optionText={optionRenderer}
-              defaultValue="warm"
+              defaultValue={resolvedDefaultStatus}
               helperText={false}
             />
           )}

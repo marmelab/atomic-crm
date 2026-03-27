@@ -70,6 +70,16 @@ describe("NoteInputs", () => {
     await expect.element(screen.getByText("Status")).toBeVisible();
   });
 
+  it("defaults the status selector to the current contact status", async () => {
+    const screen = await render(
+      <NoteInputsStory defaultStatus="hot" showStatus />,
+    );
+
+    await screen.getByRole("button", { name: "Show options" }).click();
+
+    await expect.element(screen.getByRole("combobox")).toHaveTextContent("Hot");
+  });
+
   it("does not render the status selector when showStatus is false", async () => {
     const screen = await render(<Default />);
 

@@ -16,7 +16,7 @@ import { SaveButton } from "@/components/admin/form";
 import { cn } from "@/lib/utils";
 
 import { NoteInputs } from "./NoteInputs";
-import { getCurrentDate } from "./utils";
+import { getCurrentDate, getDefaultContactStatus } from "./utils";
 import { foreignKeyMapping } from "./foreignKeyMapping";
 
 export const NoteCreate = ({
@@ -34,12 +34,21 @@ export const NoteCreate = ({
 
   if (!record || !identity) return null;
 
+  const defaultStatus =
+    reference === "contacts"
+      ? getDefaultContactStatus(record.status)
+      : undefined;
+
   return (
     <CreateBase resource={resource} redirect={false}>
       <Form>
         <div className={cn("space-y-3", className)}>
-          <NoteInputs showStatus={showStatus} />
-          <NoteCreateButton reference={reference} record={record} />
+          <NoteInputs defaultStatus={defaultStatus} showStatus={showStatus} />
+          <NoteCreateButton
+            defaultStatus={defaultStatus}
+            record={record}
+            reference={reference}
+          />
         </div>
       </Form>
     </CreateBase>
@@ -47,9 +56,11 @@ export const NoteCreate = ({
 };
 
 const NoteCreateButton = ({
+  defaultStatus,
   reference,
   record,
 }: {
+  defaultStatus?: string;
   reference: "contacts" | "deals";
   record: RaRecord<Identifier>;
 }) => {
@@ -73,11 +84,13 @@ const NoteCreateButton = ({
     attachments: null,
   };
 
-  if (reference === "contacts") {
-    resetValues.status = "warm";
-  }
-
   const handleSuccess = (data: any) => {
+    if (reference === "contacts") {
+      resetValues.status = getDefaultContactStatus(
+        data.status ?? defaultStatus,
+      );
+    }
+
     reset(resetValues, { keepValues: false });
     refetch();
     update(reference, {
