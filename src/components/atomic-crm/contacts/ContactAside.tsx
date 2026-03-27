@@ -17,9 +17,8 @@ import type { Contact } from "../types";
 import { ContactMergeButton } from "./ContactMergeButton";
 import { ExportVCardButton } from "./ExportVCardButton";
 
-export const ContactAside = ({ link = "edit" }: { link?: "edit" | "show" }) => {
+const ContactStatusSelector = () => {
   const record = useRecordContext<Contact>();
-  const translate = useTranslate();
   const [update, { isPending }] = useUpdate<Contact>();
   const [status, setStatus] = useState(getDefaultContactStatus(record?.status));
 
@@ -51,6 +50,22 @@ export const ContactAside = ({ link = "edit" }: { link?: "edit" | "show" }) => {
   };
 
   return (
+    <StatusSelector
+      disabled={isPending}
+      status={status}
+      setStatus={handleStatusChange}
+      triggerClassName="w-full"
+    />
+  );
+};
+
+export const ContactAside = ({ link = "edit" }: { link?: "edit" | "show" }) => {
+  const record = useRecordContext<Contact>();
+  const translate = useTranslate();
+
+  if (!record) return null;
+
+  return (
     <div className="hidden sm:block w-92 min-w-92 text-sm">
       <div className="mb-4 -ml-1">
         {link === "edit" ? (
@@ -61,12 +76,7 @@ export const ContactAside = ({ link = "edit" }: { link?: "edit" | "show" }) => {
       </div>
 
       <AsideSection title={translate("resources.notes.fields.status")}>
-        <StatusSelector
-          disabled={isPending}
-          status={status}
-          setStatus={handleStatusChange}
-          triggerClassName="w-full"
-        />
+        <ContactStatusSelector />
       </AsideSection>
 
       <AsideSection
