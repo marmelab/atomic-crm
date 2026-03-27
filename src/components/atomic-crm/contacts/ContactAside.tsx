@@ -1,9 +1,12 @@
-import { useRecordContext, useTranslate } from "ra-core";
+import { useEffect, useState } from "react";
+import { useRecordContext, useTranslate, useUpdate } from "ra-core";
 import { EditButton } from "@/components/admin/edit-button";
 import { DeleteButton } from "@/components/admin";
 import { ReferenceManyField } from "@/components/admin/reference-many-field";
 import { ShowButton } from "@/components/admin/show-button";
 
+import { StatusSelector } from "../notes";
+import { getDefaultContactStatus } from "../notes/utils";
 import { AddTask } from "../tasks/AddTask";
 import { TasksIterator } from "../tasks/TasksIterator";
 import { TagsListEdit } from "./TagsListEdit";
@@ -17,8 +20,36 @@ import { ExportVCardButton } from "./ExportVCardButton";
 export const ContactAside = ({ link = "edit" }: { link?: "edit" | "show" }) => {
   const record = useRecordContext<Contact>();
   const translate = useTranslate();
+  const [update, { isPending }] = useUpdate<Contact>();
+  const [status, setStatus] = useState(getDefaultContactStatus(record?.status));
+
+  useEffect(() => {
+    setStatus(getDefaultContactStatus(record?.status));
+  }, [record?.status]);
 
   if (!record) return null;
+
+  const handleStatusChange = (nextStatus: string) => {
+    if (nextStatus === status) return;
+
+    const previousStatus = status;
+    setStatus(nextStatus);
+
+    update(
+      "contacts",
+      {
+        id: record.id,
+        data: { status: nextStatus },
+        previousData: record,
+      },
+      {
+        onError: () => {
+          setStatus(previousStatus);
+        },
+      },
+    );
+  };
+
   return (
     <div className="hidden sm:block w-92 min-w-92 text-sm">
       <div className="mb-4 -ml-1">
@@ -28,6 +59,15 @@ export const ContactAside = ({ link = "edit" }: { link?: "edit" | "show" }) => {
           <ShowButton label="resources.contacts.action.show" />
         )}
       </div>
+
+      <AsideSection title={translate("resources.notes.fields.status")}>
+        <StatusSelector
+          disabled={isPending}
+          status={status}
+          setStatus={handleStatusChange}
+          triggerClassName="w-full"
+        />
+      </AsideSection>
 
       <AsideSection
         title={translate("resources.contacts.field_categories.personal_info")}

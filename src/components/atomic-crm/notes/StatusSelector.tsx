@@ -1,3 +1,4 @@
+import { cn } from "@/lib/utils";
 import {
   Select,
   SelectContent,
@@ -9,18 +10,31 @@ import {
 import { Status } from "../misc/Status";
 import { useConfigurationContext } from "../root/ConfigurationContext";
 
-export const StatusSelector = ({ status, setStatus }: any) => {
+type StatusSelectorProps = {
+  disabled?: boolean;
+  status?: string;
+  setStatus: (status: string) => void;
+  triggerClassName?: string;
+};
+
+export const StatusSelector = ({
+  disabled,
+  status,
+  setStatus,
+  triggerClassName,
+}: StatusSelectorProps) => {
   const { noteStatuses } = useConfigurationContext();
 
   const currentStatus = noteStatuses.find((s) => s.value === status);
 
   return (
-    <Select value={status} onValueChange={setStatus}>
-      <SelectTrigger className="w-32">
+    <Select disabled={disabled} value={status} onValueChange={setStatus}>
+      <SelectTrigger className={cn("w-32", triggerClassName)}>
         <SelectValue>
           {currentStatus && (
             <div className="flex items-center gap-2">
-              {currentStatus.label} <Status status={currentStatus.value} />
+              <Status status={currentStatus.value} />
+              {currentStatus.label}
             </div>
           )}
         </SelectValue>
@@ -29,7 +43,8 @@ export const StatusSelector = ({ status, setStatus }: any) => {
         {noteStatuses.map((statusOption) => (
           <SelectItem key={statusOption.value} value={statusOption.value}>
             <div className="flex items-center gap-2">
-              {statusOption.label} <Status status={statusOption.value} />
+              <Status status={statusOption.value} />
+              {statusOption.label}
             </div>
           </SelectItem>
         ))}
