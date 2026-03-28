@@ -111,7 +111,7 @@ export const SettingsPageMobile = () => {
             <McpServerSection />
           </div>
 
-          <div className="mt-auto pt-6 space-y-3">
+          <div className="mt-auto pt-6 space-y-3 mb-4">
             <ChangePasswordButton />
             <Button
               variant="destructive"
