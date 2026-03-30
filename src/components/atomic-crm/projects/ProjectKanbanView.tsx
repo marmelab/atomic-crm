@@ -13,7 +13,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import type { Project } from "../types";
 import { projectCategoryLabels } from "./projectTypes";
-import { formatCurrency } from "../dashboard/dashboardFormatters";
+import { formatCurrencyPrecise } from "../dashboard/dashboardFormatters";
 import { formatDateRange } from "../misc/formatDateRange";
 
 const columns: { id: Project["status"]; label: string; color: string }[] = [
@@ -227,7 +227,7 @@ const KanbanCard = ({ project, onDragStart, onDragEnd }: KanbanCardProps) => {
             {project.budget && (
               <div className="flex items-center gap-1">
                 <Briefcase className="h-3 w-3" />
-                Budget: {formatCurrency(project.budget)}
+                Budget: {formatCurrencyPrecise(project.budget)}
               </div>
             )}
           </div>

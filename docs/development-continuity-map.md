@@ -6,7 +6,7 @@ obbligatoria delle superfici collegate.
 **Quando usarlo:** ogni volta che una modifica tocca comportamento reale del
 prodotto.
 
-Last updated: 2026-03-08 (FatturaPA XML generation + structured BusinessProfile address)
+Last updated: 2026-03-30 (Bugfix audit — type safety, UI parity, formatting)
 
 ---
 
@@ -14,6 +14,7 @@ Last updated: 2026-03-08 (FatturaPA XML generation + structured BusinessProfile 
 
 ### Recent Updates (cronologico, più recente in alto)
 
+- [2026-03-30](#update-2026-03-30--bugfix-audit) — Bugfix audit: type safety, UI parity, formatting unification
 - [2026-03-08 (n)](#update-2026-03-08-n--fatturapa-xml-generation) — FatturaPA XML generation from invoice draft
 - [2026-03-08 (m)](#update-2026-03-08-m--invoice-draft-commercial-structure--navy-petrolio--services-navigation) — Invoice draft: commercial structure + Navy & Petrolio + services navigation
 - [2026-03-08 (l)](#update-2026-03-08-l--quote-pdf-navy-petrolio-redesign--email-color-alignment) — Quote PDF: Navy & Petrolio redesign + email color alignment
@@ -86,6 +87,44 @@ Last updated: 2026-03-08 (FatturaPA XML generation + structured BusinessProfile 
 - [Nota manutenzione 2026-03-02](#nota-manutenzione-2026-03-02-fix-ci)
 - [Testing Session Log 2026-03-04](#testing-session-log-2026-03-04--e2e-complete-validation)
 - [AI Semantic UI Upgrade 2026-03-04](#ai-semantic-ui-upgrade-2026-03-04--pareto-principle-applied)
+
+---
+
+## Update 2026-03-30 — Bugfix audit
+
+**Cosa è cambiato**
+
+Audit deterministico del codebase: 16 potenziali bug analizzati, 5 falsi positivi
+scartati, 11 confermati, 9 fixati (2 deferred: budget in mobile project card = design
+choice, N+1 query = mitigato da cache).
+
+- `types.ts`: Payment.client_id allineato a DB nullable (`?: Identifier | null`),
+  `updated_at?: string` aggiunto a Service/Payment/Expense
+- `clientLinking.ts`: `tags: []` nei default di creazione client
+- `SupplierInputs.tsx`: import canonico da `expenseTypes.ts` (aggiunto `credito_ricevuto`)
+- `ProjectShow.tsx` + `ProjectKanbanView.tsx`: budget unificato su `formatCurrencyPrecise`
+- `ExpenseMobileCard.tsx`: aggiunto fetch e display supplier name (parità mobile/desktop)
+- `DashboardKpiCards.tsx`: prop `compact` implementato (grid 2-col + gap-3 su mobile),
+  `DeltaArrow` mostra `0%` invece di `=` solitario
+- `dashboardModel.ts`: guard `payment.client_id != null` su `String()` conversions
+- `PaymentListContent.tsx`: `enabled: !!payment.client_id` su `useGetOne` calls
+- `dataProvider.ts`: try-catch su `JSON.parse` in `getColumnPreferences`
+
+**File toccati**
+
+- `src/components/atomic-crm/types.ts`
+- `src/components/atomic-crm/clients/clientLinking.ts`
+- `src/components/atomic-crm/suppliers/SupplierInputs.tsx`
+- `src/components/atomic-crm/projects/ProjectShow.tsx`
+- `src/components/atomic-crm/projects/ProjectKanbanView.tsx`
+- `src/components/atomic-crm/expenses/ExpenseMobileCard.tsx`
+- `src/components/atomic-crm/dashboard/DashboardKpiCards.tsx`
+- `src/components/atomic-crm/dashboard/dashboardModel.ts`
+- `src/components/atomic-crm/payments/PaymentListContent.tsx`
+- `src/components/atomic-crm/providers/supabase/dataProvider.ts`
+
+**Impatto architetturale**: nessuno — tutti fix di allineamento tipo/UI, zero
+nuove dipendenze, zero nuovi file.
 
 ---
 

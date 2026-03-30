@@ -2,16 +2,7 @@ import { required } from "ra-core";
 import { SelectInput } from "@/components/admin/select-input";
 import { TextInput } from "@/components/admin/text-input";
 import { CloudinaryUploadInput } from "../cloudinary/CloudinaryUploadInput";
-
-const supplierExpenseTypeChoices = [
-  { id: "spostamento_km", name: "Spostamento Km" },
-  { id: "pedaggio_autostradale", name: "Pedaggio autostradale" },
-  { id: "vitto_alloggio", name: "Vitto e alloggio" },
-  { id: "acquisto_materiale", name: "Acquisto materiale" },
-  { id: "abbonamento_software", name: "Abbonamento software" },
-  { id: "noleggio", name: "Noleggio" },
-  { id: "altro", name: "Altro" },
-];
+import { expenseTypeChoices } from "../expenses/expenseTypes";
 
 export const SupplierInputs = () => (
   <div className="flex flex-col gap-6 p-1">
@@ -43,7 +34,7 @@ export const SupplierInputs = () => (
         <SelectInput
           source="default_expense_type"
           label="Tipo spesa predefinito"
-          choices={supplierExpenseTypeChoices}
+          choices={[...expenseTypeChoices]}
           helperText="Pre-compila il tipo spesa quando crei una spesa da questo fornitore"
           emptyText="Nessuno"
         />

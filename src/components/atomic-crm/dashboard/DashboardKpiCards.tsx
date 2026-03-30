@@ -23,6 +23,7 @@ export const DashboardKpiCards = ({
   kpis,
   meta,
   year: _year,
+  compact,
   fiscalKpis = null,
   taxesPaid = 0,
 }: {
@@ -33,7 +34,9 @@ export const DashboardKpiCards = ({
   fiscalKpis?: FiscalKpis | null;
   taxesPaid?: number;
 }) => (
-  <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-5 gap-4">
+  <div
+    className={`grid grid-cols-1 sm:grid-cols-2 ${compact ? "gap-3" : "xl:grid-cols-5 gap-4"}`}
+  >
     <DashboardNetAvailabilityCard
       kpis={kpis}
       fiscalKpis={fiscalKpis}
@@ -213,7 +216,7 @@ const DeltaArrow = ({
   if (isFlat) {
     return (
       <span className="text-xs text-muted-foreground font-medium">
-        = {label}
+        0% {label}
       </span>
     );
   }

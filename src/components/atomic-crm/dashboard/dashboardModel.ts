@@ -362,9 +362,11 @@ export const buildDashboardModel = ({
         : undefined;
       return {
         paymentId: String(payment.id),
-        clientId: String(payment.client_id),
+        clientId: payment.client_id != null ? String(payment.client_id) : "",
         clientName:
-          clientById.get(String(payment.client_id))?.name ?? "Cliente",
+          clientById.get(
+            payment.client_id != null ? String(payment.client_id) : "",
+          )?.name ?? "Cliente",
         projectId:
           payment.project_id != null ? String(payment.project_id) : undefined,
         projectName: project?.name,
@@ -466,7 +468,9 @@ export const buildDashboardModel = ({
       const validDate =
         parsedDate && !Number.isNaN(parsedDate.valueOf()) ? parsedDate : null;
       const clientName =
-        clientById.get(String(payment.client_id))?.name ?? "Cliente";
+        clientById.get(
+          payment.client_id != null ? String(payment.client_id) : "",
+        )?.name ?? "Cliente";
       const project = payment.project_id
         ? projectById.get(String(payment.project_id))
         : undefined;

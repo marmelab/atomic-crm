@@ -196,7 +196,11 @@ const PaymentMobileCard = ({
   payment: Payment;
   link: string;
 }) => {
-  const { data: client } = useGetOne("clients", { id: payment.client_id });
+  const { data: client } = useGetOne(
+    "clients",
+    { id: payment.client_id ?? undefined },
+    { enabled: !!payment.client_id },
+  );
 
   return (
     <Link
@@ -227,7 +231,11 @@ const PaymentMobileCard = ({
 /* ---- Desktop table row ---- */
 const PaymentRow = ({ payment, link }: { payment: Payment; link: string }) => {
   const { cv } = useColumnVisibility("payments", PAYMENT_COLUMNS);
-  const { data: client } = useGetOne("clients", { id: payment.client_id });
+  const { data: client } = useGetOne(
+    "clients",
+    { id: payment.client_id ?? undefined },
+    { enabled: !!payment.client_id },
+  );
   const { data: project } = useGetOne(
     "projects",
     {

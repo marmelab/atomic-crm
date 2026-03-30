@@ -183,10 +183,11 @@ export type Service = {
   google_event_link?: string | null;
   notes?: string;
   created_at: string;
+  updated_at?: string;
 } & Pick<RaRecord, "id">;
 
 export type Payment = {
-  client_id: Identifier;
+  client_id?: Identifier | null;
   project_id?: Identifier | null;
   quote_id?: Identifier | null;
   payment_date: string;
@@ -203,6 +204,7 @@ export type Payment = {
   proof_url?: string | null;
   notes?: string;
   created_at: string;
+  updated_at?: string;
 } & Pick<RaRecord, "id">;
 
 export type FinancialDocument = {
@@ -341,6 +343,7 @@ export type Expense = {
   invoice_ref?: string;
   proof_url?: string | null;
   created_at: string;
+  updated_at?: string;
 } & Pick<RaRecord, "id">;
 
 export type Quote = {

@@ -23,6 +23,7 @@ import { InvoiceDraftDialog } from "../invoicing/InvoiceDraftDialog";
 import { buildInvoiceDraftFromProject } from "../invoicing/buildInvoiceDraftFromProject";
 import { hasInvoiceDraftCollectableAmount } from "../invoicing/invoiceDraftTypes";
 import { useConfigurationContext } from "../root/ConfigurationContext";
+import { formatCurrencyPrecise } from "../dashboard/dashboardFormatters";
 
 export const ProjectShow = () => (
   <ShowBase>
@@ -186,7 +187,7 @@ const ProjectDetails = ({ record }: { record: Project }) => (
         <InfoRow
           icon={<Wallet className="size-4" />}
           label="Budget"
-          value={`EUR ${record.budget.toLocaleString("it-IT", { minimumFractionDigits: 2 })}`}
+          value={formatCurrencyPrecise(record.budget)}
         />
       )}
     </div>

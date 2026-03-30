@@ -106,6 +106,7 @@ export const getClientCreateDefaultsFromSearch = (
     billing_sdi_code: getOptional("billing_sdi_code"),
     billing_pec: getOptional("billing_pec"),
     notes: getOptional("notes"),
+    tags: [],
   };
 };
 

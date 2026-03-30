@@ -19,6 +19,11 @@ export const ExpenseMobileCard = ({
     { id: expense.project_id ?? undefined },
     { enabled: !!expense.project_id },
   );
+  const { data: supplier } = useGetOne(
+    "suppliers",
+    { id: expense.supplier_id ?? undefined },
+    { enabled: !!expense.supplier_id },
+  );
   const total = computeTotal(expense, defaultKmRate);
 
   return (
@@ -37,8 +42,8 @@ export const ExpenseMobileCard = ({
               {new Date(expense.expense_date).toLocaleDateString("it-IT")}
             </span>
           </div>
-          <span className="text-xs text-muted-foreground">
-            {project?.name ?? ""}
+          <span className="text-xs text-muted-foreground truncate">
+            {[project?.name, supplier?.name].filter(Boolean).join(" · ")}
           </span>
         </div>
       </div>
