@@ -1,12 +1,10 @@
-import { useEffect, useState } from "react";
-import { useRecordContext, useTranslate, useUpdate } from "ra-core";
+import { useNotify, useRecordContext, useTranslate, useUpdate } from "ra-core";
 import { EditButton } from "@/components/admin/edit-button";
 import { DeleteButton } from "@/components/admin";
 import { ReferenceManyField } from "@/components/admin/reference-many-field";
 import { ShowButton } from "@/components/admin/show-button";
 
 import { StatusSelector } from "../notes";
-import { getDefaultContactStatus } from "../notes/utils";
 import { AddTask } from "../tasks/AddTask";
 import { TasksIterator } from "../tasks/TasksIterator";
 import { TagsListEdit } from "./TagsListEdit";
@@ -19,20 +17,12 @@ import { ExportVCardButton } from "./ExportVCardButton";
 
 const ContactStatusSelector = () => {
   const record = useRecordContext<Contact>();
-  const [update, { isPending }] = useUpdate<Contact>();
-  const [status, setStatus] = useState(getDefaultContactStatus(record?.status));
-
-  useEffect(() => {
-    setStatus(getDefaultContactStatus(record?.status));
-  }, [record?.status]);
-
+  const [update] = useUpdate<Contact>();
+  const notify = useNotify();
   if (!record) return null;
 
   const handleStatusChange = (nextStatus: string) => {
-    if (nextStatus === status) return;
-
-    const previousStatus = status;
-    setStatus(nextStatus);
+    if (nextStatus === record?.status) return;
 
     update(
       "contacts",
@@ -42,20 +32,32 @@ const ContactStatusSelector = () => {
         previousData: record,
       },
       {
-        onError: () => {
-          setStatus(previousStatus);
+        mutationMode: "optimistic",
+        onError: (error) => {
+          notify(
+            typeof error === "string"
+              ? error
+              : error?.message || "ra.notification.http_error",
+            {
+              type: "error",
+              messageArgs: {
+                _: typeof error === "string" ? error : error?.message,
+              },
+            },
+          );
         },
       },
     );
   };
 
   return (
-    <StatusSelector
-      disabled={isPending}
-      status={status}
-      setStatus={handleStatusChange}
-      triggerClassName="w-full"
-    />
+    <div className="[&_button]:w-auto">
+      <StatusSelector
+        status={record?.status}
+        setStatus={handleStatusChange}
+        triggerClassName="w-full"
+      />
+    </div>
   );
 };
 
