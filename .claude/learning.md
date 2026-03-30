@@ -47,6 +47,8 @@
 | **Workflow** | WF-7  | Dopo push → controlla CI autonomo         |
 | **Dominio**  | DOM-3 | FatturaPA XML → schema XSD + Aruba        |
 | **Config**   | CFG-2 | BusinessProfile → merge defaults safe     |
+| **Backend**  | BE-7  | OpenAI reasoning → effort "low" per CRM  |
+| **Backend**  | BE-8  | Supabase ref → NON dfrrigmjsvcsdhgqtikz   |
 
 ---
 
@@ -182,6 +184,18 @@ verify_jwt = false
 **Quando**: dopo `supabase start` o `supabase db reset` devo caricare dati remoti
 **Fare**: TRUNCATE tutte le tabelle (auth + public + storage) con `session_replication_role = replica` PRIMA di `psql -f dump.sql`
 **Perché**: la migration `20260302170000_domain_data_snapshot.sql` carica dati che collidono col dump remoto → errori "duplicate key". Sequenza: truncate → load dump → `npm run local:admin:bootstrap`
+
+### BE-7: OpenAI reasoning → effort "low" per unified_crm_answer
+
+**Quando**: tocco il parametro `reasoning` nella Edge Function `unified_crm_answer`
+**Fare**: MAI usare `effort: "medium"` — il contesto CRM completo è troppo grande e il modello esaurisce i token nel ragionamento, producendo output vuoto (502). Usare `effort: "low"`. Le altre EF (annual, historical, cash inflow) possono tenere "medium" perché il loro contesto è pre-aggregato e piccolo.
+**Perché**: gpt-5.2 e gpt-5-mini con reasoning medium + snapshot CRM intero → 20-30s di thinking → output_text vuoto → 502
+
+### BE-8: Supabase project ref → NON usare il vecchio
+
+**Quando**: deployo Edge Functions con `npx supabase functions deploy`
+**Fare**: usare `--project-ref qvdmzhyzpyaveniirsmo`, NON il vecchio `dfrrigmjsvcsdhgqtikz`
+**Perché**: il progetto è stato ricreato, il vecchio ref dà 403
 
 ### WF-7: Dopo push → controlla CI autonomamente
 
