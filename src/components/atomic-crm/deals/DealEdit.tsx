@@ -1,3 +1,4 @@
+import { useQueryClient } from "@tanstack/react-query";
 import {
   EditBase,
   Form,
@@ -19,6 +20,7 @@ import { DealInputs } from "./DealInputs";
 export const DealEdit = ({ open, id }: { open: boolean; id?: string }) => {
   const redirect = useRedirect();
   const notify = useNotify();
+  const queryClient = useQueryClient();
   const location = useLocation();
   const viewMatch = matchPath("/views/:viewId/*", location.pathname);
   const basePath = viewMatch ? `/views/${viewMatch.params.viewId}` : "/deals";
@@ -40,6 +42,7 @@ export const DealEdit = ({ open, id }: { open: boolean; id?: string }) => {
             mutationOptions={{
               onSuccess: () => {
                 notify("Opportunité mise à jour");
+                queryClient.invalidateQueries({ queryKey: ['deals', 'getList'] });
                 redirect(`${basePath}/${id}/show`, undefined, undefined, undefined, {
                   _scrollToTop: false,
                 });
