@@ -16,7 +16,7 @@ import { SaveButton } from "@/components/admin/form";
 import { cn } from "@/lib/utils";
 
 import { NoteInputs } from "./NoteInputs";
-import { getCurrentDate, getDefaultContactStatus } from "./utils";
+import { getCurrentDate } from "./utils";
 import { foreignKeyMapping } from "./foreignKeyMapping";
 
 export const NoteCreate = ({
@@ -34,10 +34,7 @@ export const NoteCreate = ({
 
   if (!record || !identity) return null;
 
-  const defaultStatus =
-    reference === "contacts"
-      ? getDefaultContactStatus(record.status)
-      : undefined;
+  const defaultStatus = reference === "contacts" ? record.status : undefined;
 
   return (
     <CreateBase resource={resource} redirect={false}>
@@ -86,9 +83,7 @@ const NoteCreateButton = ({
 
   const handleSuccess = (data: any) => {
     if (reference === "contacts") {
-      resetValues.status = getDefaultContactStatus(
-        data.status ?? defaultStatus,
-      );
+      resetValues.status = data.status ?? defaultStatus;
     }
 
     reset(resetValues, { keepValues: false });

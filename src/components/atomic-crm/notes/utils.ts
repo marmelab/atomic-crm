@@ -5,9 +5,6 @@ export const getCurrentDate = () => {
   return localDate.toISOString().slice(0, 16);
 };
 
-export const getDefaultContactStatus = (status?: string | null) =>
-  status ?? "cold";
-
 export const formatNoteDate = (dateString: string) => {
   const date = new Date(dateString);
   date.setSeconds(0);

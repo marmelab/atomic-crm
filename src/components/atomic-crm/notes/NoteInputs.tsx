@@ -10,7 +10,7 @@ import { useFormContext, useWatch } from "react-hook-form";
 
 import { Status } from "../misc/Status";
 import { useConfigurationContext } from "../root/ConfigurationContext";
-import { getCurrentDate, getDefaultContactStatus } from "./utils";
+import { getCurrentDate } from "./utils";
 import { AttachmentField } from "./AttachmentField";
 import { foreignKeyMapping } from "./foreignKeyMapping";
 import { AutocompleteInput, ReferenceInput } from "@/components/admin";
@@ -73,8 +73,8 @@ export const NoteInputs = ({
   );
   const resolvedDefaultStatus = shouldHydrateStatus
     ? reference === "contacts" && selectReference
-      ? getDefaultContactStatus(selectedContact?.status)
-      : getDefaultContactStatus(defaultStatus)
+      ? selectedContact?.status
+      : defaultStatus
     : undefined;
 
   useEffect(() => {
