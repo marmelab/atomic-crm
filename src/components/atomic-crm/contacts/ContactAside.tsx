@@ -1,65 +1,19 @@
-import { useNotify, useRecordContext, useTranslate, useUpdate } from "ra-core";
+import { useRecordContext, useTranslate } from "ra-core";
 import { EditButton } from "@/components/admin/edit-button";
 import { DeleteButton } from "@/components/admin";
 import { ReferenceManyField } from "@/components/admin/reference-many-field";
 import { ShowButton } from "@/components/admin/show-button";
 
-import { StatusSelector } from "../notes";
 import { AddTask } from "../tasks/AddTask";
 import { TasksIterator } from "../tasks/TasksIterator";
 import { TagsListEdit } from "./TagsListEdit";
+import { ContactStatusSelector } from "./ContactInputs";
 import { ContactPersonalInfo } from "./ContactPersonalInfo";
 import { ContactBackgroundInfo } from "./ContactBackgroundInfo";
 import { AsideSection } from "../misc/AsideSection";
 import type { Contact } from "../types";
 import { ContactMergeButton } from "./ContactMergeButton";
 import { ExportVCardButton } from "./ExportVCardButton";
-
-const ContactStatusSelector = () => {
-  const record = useRecordContext<Contact>();
-  const [update] = useUpdate<Contact>();
-  const notify = useNotify();
-  if (!record) return null;
-
-  const handleStatusChange = (nextStatus: string) => {
-    if (nextStatus === record?.status) return;
-
-    update(
-      "contacts",
-      {
-        id: record.id,
-        data: { status: nextStatus },
-        previousData: record,
-      },
-      {
-        mutationMode: "optimistic",
-        onError: (error) => {
-          notify(
-            typeof error === "string"
-              ? error
-              : error?.message || "ra.notification.http_error",
-            {
-              type: "error",
-              messageArgs: {
-                _: typeof error === "string" ? error : error?.message,
-              },
-            },
-          );
-        },
-      },
-    );
-  };
-
-  return (
-    <div className="[&_button]:w-auto">
-      <StatusSelector
-        status={record?.status}
-        setStatus={handleStatusChange}
-        triggerClassName="w-full"
-      />
-    </div>
-  );
-};
 
 export const ContactAside = ({ link = "edit" }: { link?: "edit" | "show" }) => {
   const record = useRecordContext<Contact>();
