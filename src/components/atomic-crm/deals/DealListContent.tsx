@@ -1,7 +1,9 @@
+import { useQueryClient } from "@tanstack/react-query";
 import { DragDropContext, type OnDragEndResponder } from "@hello-pangea/dnd";
 import isEqual from "lodash/isEqual";
 import { useDataProvider, useListContext, type DataProvider } from "ra-core";
 import { createContext, useContext, useEffect, useState } from "react";
+import { useLocation } from "react-router";
 
 import { useConfigurationContext } from "../root/ConfigurationContext";
 import type { Deal } from "../types";
@@ -19,20 +21,30 @@ export const DealListViewProvider = DealListViewContext.Provider;
 export const DealListContent = () => {
   const { dealStages } = useConfigurationContext();
   const { initialVisibleStages } = useContext(DealListViewContext);
-  const { data: unorderedDeals, isPending, refetch } = useListContext<Deal>();
+  const { data: unorderedDeals, isPending } = useListContext<Deal>();
   const dataProvider = useDataProvider();
+  const queryClient = useQueryClient();
+  const location = useLocation();
+  const storageKey = `dealListVisibleStages:${location.pathname}`;
 
   const [dealsByStage, setDealsByStage] = useState<DealsByStage>(
     getDealsByStage([], dealStages),
   );
 
-  // Use initialVisibleStages if provided, otherwise show all stages
-  const [visibleStages, setVisibleStages] = useState<Set<string>>(
-    () =>
-      initialVisibleStages
-        ? new Set(initialVisibleStages)
-        : new Set(dealStages.map((s) => s.value)),
-  );
+  // Use saved preference from localStorage, then initialVisibleStages, then all stages
+  const [visibleStages, setVisibleStages] = useState<Set<string>>(() => {
+    try {
+      const saved = localStorage.getItem(storageKey);
+      if (saved) {
+        const parsed = JSON.parse(saved) as string[];
+        const valid = parsed.filter((s) => dealStages.some((ds) => ds.value === s));
+        if (valid.length > 0) return new Set(valid);
+      }
+    } catch {}
+    return initialVisibleStages
+      ? new Set(initialVisibleStages)
+      : new Set(dealStages.map((s) => s.value));
+  });
 
   const toggleStage = (stageValue: string) => {
     setVisibleStages((prev) => {
@@ -43,6 +55,9 @@ export const DealListContent = () => {
       } else {
         next.add(stageValue);
       }
+      try {
+        localStorage.setItem(storageKey, JSON.stringify([...next]));
+      } catch {}
       return next;
     });
   };
@@ -93,9 +108,9 @@ export const DealListContent = () => {
       ),
     );
 
-    // persist the changes
+    // persist the changes and invalidate all deal list caches (all views)
     updateDealStage(sourceDeal, destinationDeal, dataProvider).then(() => {
-      refetch();
+      queryClient.invalidateQueries({ queryKey: ['deals', 'getList'] });
     });
   };
 
@@ -137,9 +152,13 @@ export const DealListContent = () => {
         })}
         {visibleStages.size < dealStages.length && (
           <button
-            onClick={() =>
-              setVisibleStages(new Set(dealStages.map((s) => s.value)))
-            }
+            onClick={() => {
+              const all = new Set(dealStages.map((s) => s.value));
+              setVisibleStages(all);
+              try {
+                localStorage.setItem(storageKey, JSON.stringify([...all]));
+              } catch {}
+            }}
             className="px-3 py-1.5 rounded-full text-xs font-medium text-[var(--nosho-green-dark)] bg-[var(--nosho-green)]/10 border border-[var(--nosho-green)]/30 transition-all hover:bg-[var(--nosho-green)]/20"
           >
             Tout afficher
