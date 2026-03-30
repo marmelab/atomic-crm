@@ -59,7 +59,11 @@ export const StatusSelector = ({
         </SelectValue>
       </SelectTrigger>
       <SelectContent>
-        <SelectItem value={NONE_VALUE}>None</SelectItem>
+        <SelectItem value={NONE_VALUE}>
+          <Translate i18nKey="resources.contacts.background.status_none">
+            None
+          </Translate>
+        </SelectItem>
         {noteStatuses.map((statusOption) => (
           <SelectItem key={statusOption.value} value={statusOption.value}>
             <div className="flex items-center gap-2">
