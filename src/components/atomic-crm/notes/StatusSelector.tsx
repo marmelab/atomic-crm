@@ -7,9 +7,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
-import { Status } from "../misc/Status";
 import { useConfigurationContext } from "../root/ConfigurationContext";
-import { Translate } from "ra-core";
+import { Translate, useTranslate } from "ra-core";
 
 const NONE_VALUE = "__none__";
 
@@ -27,8 +26,7 @@ export const StatusSelector = ({
   triggerClassName,
 }: StatusSelectorProps) => {
   const { noteStatuses } = useConfigurationContext();
-
-  const currentStatus = noteStatuses.find((s) => s.value === status);
+  const translate = useTranslate();
 
   /**
    * Radix's Select component doesn't allow empty string as value, so we use a placeholder value and convert it back to empty string on change
@@ -45,18 +43,11 @@ export const StatusSelector = ({
       onValueChange={handleValueChange}
     >
       <SelectTrigger className={cn("w-32", triggerClassName)}>
-        <SelectValue>
-          {currentStatus ? (
-            <div className="flex items-center gap-2">
-              <Status status={currentStatus.value} />
-              {currentStatus.label}
-            </div>
-          ) : (
-            <Translate i18nKey="resources.contacts.background.status_none">
-              None
-            </Translate>
-          )}
-        </SelectValue>
+        <SelectValue
+          placeholder={translate("resources.contacts.background.status_none", {
+            _: "None",
+          })}
+        />
       </SelectTrigger>
       <SelectContent>
         <SelectItem value={NONE_VALUE}>
@@ -67,7 +58,10 @@ export const StatusSelector = ({
         {noteStatuses.map((statusOption) => (
           <SelectItem key={statusOption.value} value={statusOption.value}>
             <div className="flex items-center gap-2">
-              <Status status={statusOption.value} />
+              <span
+                className="inline-block w-2.5 h-2.5 rounded-full"
+                style={{ backgroundColor: statusOption.color }}
+              />
               {statusOption.label}
             </div>
           </SelectItem>

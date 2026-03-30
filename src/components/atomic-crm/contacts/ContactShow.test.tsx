@@ -1,6 +1,6 @@
 import {
-  RecordContextProvider,
   ResourceContextProvider,
+  ShowBase,
   useDataProvider,
   type DataProvider,
 } from "ra-core";
@@ -50,9 +50,9 @@ describe("ContactShow", () => {
       <StoryWrapper data={{ contacts: [contact] }}>
         <DataProviderListener />
         <ResourceContextProvider value="contacts">
-          <RecordContextProvider value={contact}>
+          <ShowBase id={contact.id}>
             <ContactAside />
-          </RecordContextProvider>
+          </ShowBase>
         </ResourceContextProvider>
       </StoryWrapper>,
     );
