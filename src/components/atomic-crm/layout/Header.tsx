@@ -10,6 +10,7 @@ import { DropdownMenuItem } from "@/components/ui/dropdown-menu";
 import { useConfigurationContext } from "../root/ConfigurationContext";
 import { ImportPage } from "../misc/ImportPage";
 import { CreateViewDialog } from "../deals/CreateViewDialog";
+import { APP_VERSION } from "../../../version";
 
 const Header = () => {
   const { darkModeLogo, lightModeLogo, title, customViews } =
@@ -72,7 +73,7 @@ const Header = () => {
                   alt={title}
                 />
                 <h1 className="text-xl font-semibold">{title}</h1>
-                <span className="text-xs text-muted-foreground font-mono">{__APP_VERSION__}</span>
+                <span className="text-xs text-muted-foreground font-mono">{APP_VERSION}</span>
               </Link>
               <div>
                 <nav className="flex items-center">

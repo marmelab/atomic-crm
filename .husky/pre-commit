@@ -1,1 +1,14 @@
 make registry-gen
+
+# Auto-increment version in src/version.ts
+node -e "
+const fs = require('fs');
+const path = 'src/version.ts';
+const content = fs.readFileSync(path, 'utf8');
+const match = content.match(/v1\.(\d+)/);
+if (match) {
+  const next = parseInt(match[1], 10) + 1;
+  fs.writeFileSync(path, content.replace(/v1\.\d+/, 'v1.' + next));
+  require('child_process').execSync('git add ' + path);
+}
+"
