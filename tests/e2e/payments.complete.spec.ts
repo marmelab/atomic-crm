@@ -18,13 +18,14 @@ test.describe("Module: Payments - Complete", () => {
     await page.getByRole("link", { name: "Pagamenti" }).click();
     await expect(page).toHaveURL(/\/payments$/);
 
-    // Colonne
-    await expect(page.getByText("Data")).toBeVisible();
-    await expect(page.getByText("Cliente")).toBeVisible();
-    await expect(page.getByText("Progetto")).toBeVisible();
-    await expect(page.getByText("Tipo")).toBeVisible();
-    await expect(page.getByText("Importo")).toBeVisible();
-    await expect(page.getByText("Stato")).toBeVisible();
+    // Scope column headers to the table header row
+    const thead = page.locator("table thead");
+    await expect(thead.getByText("Data")).toBeVisible();
+    await expect(thead.getByText("Cliente")).toBeVisible();
+    await expect(thead.getByText("Progetto")).toBeVisible();
+    await expect(thead.getByText("Tipo")).toBeVisible();
+    await expect(thead.getByText("Importo")).toBeVisible();
+    await expect(thead.getByText("Stato")).toBeVisible();
 
     // 5 pagamenti di test
     const rows = page.locator("table tbody tr");
@@ -54,10 +55,10 @@ test.describe("Module: Payments - Complete", () => {
     await page.getByRole("option", { name: "Acconto" }).click();
 
     // Importo
-    await page.getByLabel("Importo").fill("1500");
+    await page.getByLabel("Importo (EUR)").fill("1500");
 
     // Metodo
-    await page.getByLabel("Metodo").click();
+    await page.getByLabel("Metodo pagamento").click();
     await page.getByRole("option", { name: "Bonifico" }).click();
 
     // Stato
@@ -66,7 +67,8 @@ test.describe("Module: Payments - Complete", () => {
 
     await page.getByRole("button", { name: "Salva" }).click();
 
-    await expect(page).toHaveURL(/\/payments$/);
+    // After create, redirect is "show" (PaymentCreate.tsx:51)
+    await expect(page).toHaveURL(/\/payments\/.+\/show$/);
   });
 
   test("payment statuses display correctly", async ({ page }) => {
@@ -74,15 +76,18 @@ test.describe("Module: Payments - Complete", () => {
 
     await page.getByRole("link", { name: "Pagamenti" }).click();
 
+    // Scope status checks to the table body to avoid matching sidebar filter badges
+    const tbody = page.locator("table tbody");
+
     // Verifica stati dei 5 pagamenti di test:
     // - 2 Ricevuto (acconto 2000 + saldo 1500)
     // - 1 Ricevuto (rimborso 300)
     // - 1 In attesa (2000)
     // - 1 Scaduto (500)
 
-    await expect(page.getByText("Ricevuto").first()).toBeVisible();
-    await expect(page.getByText("In attesa")).toBeVisible();
-    await expect(page.getByText("Scaduto")).toBeVisible();
+    await expect(tbody.getByText("Ricevuto").first()).toBeVisible();
+    await expect(tbody.getByText("In attesa")).toBeVisible();
+    await expect(tbody.getByText("Scaduto")).toBeVisible();
   });
 
   test("payment types display correctly", async ({ page }) => {
@@ -90,11 +95,15 @@ test.describe("Module: Payments - Complete", () => {
 
     await page.getByRole("link", { name: "Pagamenti" }).click();
 
-    // Verifica tipi
-    await expect(page.getByText("Acconto")).toBeVisible();
-    await expect(page.getByText("Saldo")).toBeVisible();
-    await expect(page.getByText("Parziale")).toBeVisible();
-    await expect(page.getByText("Rimborso")).toBeVisible();
+    // Scope type checks to the table body to avoid matching sidebar filter badges
+    const tbody = page.locator("table tbody");
+
+    // Verifica tipi (labels from paymentTypeLabels)
+    await expect(tbody.getByText("Acconto")).toBeVisible();
+    await expect(tbody.getByText("Saldo")).toBeVisible();
+    await expect(tbody.getByText("Parziale").first()).toBeVisible();
+    // "rimborso" maps to "Rimborso al cliente" in paymentTypeLabels
+    await expect(tbody.getByText("Rimborso al cliente")).toBeVisible();
   });
 
   test("payment detail shows linked project and calculations", async ({
@@ -106,10 +115,14 @@ test.describe("Module: Payments - Complete", () => {
     await page.locator("table tbody tr a").first().click();
     await expect(page).toHaveURL(/\/payments\/.+\/show$/);
 
-    // Verifica dettagli
-    await expect(page.getByText(/Importo|EUR/)).toBeVisible();
-    await expect(page.getByText(/Stato/)).toBeVisible();
-    await expect(page.getByText(/Tipo/)).toBeVisible();
+    // The show page renders: "{Type} — EUR {amount}" as heading,
+    // status badge, client name, and project name inline.
+    await expect(page.getByText(/EUR \d/).first()).toBeVisible();
+    // Status badge should be visible
+    await expect(page.locator(".inline-flex.items-center.gap-1").first()).toBeVisible();
+    // Client and project names should be visible
+    await expect(page.getByText(/Test Client/).first()).toBeVisible();
+    await expect(page.getByText(/Test Project/).first()).toBeVisible();
   });
 
   test("edit payment updates status correctly", async ({ page }) => {
@@ -141,12 +154,12 @@ test.describe("Module: Payments - Complete", () => {
 
     await page.goto("/#/");
 
-    // Trova scadenzario
-    await expect(page.getByText("Scadenzario operativo")).toBeVisible();
+    // The deadline tracker heading is "Cosa devi fare"
+    await expect(page.getByText("Cosa devi fare")).toBeVisible();
 
-    // Clicca "Segna come incassato" se presente
+    // The action button text is "Incassato"
     const markButton = page
-      .getByRole("button", { name: "Segna come incassato" })
+      .getByRole("button", { name: "Incassato" })
       .first();
     if (await markButton.isVisible().catch(() => false)) {
       await markButton.click();
@@ -162,12 +175,13 @@ test.describe("Module: Payments - Complete", () => {
 
     await page.getByRole("link", { name: "Pagamenti" }).click();
 
-    // Filtra per stato Ricevuto
-    await page.getByText("Ricevuto").first().click();
+    // Click the "Ricevuto" filter badge in the sidebar (not the table)
+    const sidebar = page.locator(".shrink-0.w-56");
+    await sidebar.getByText("Ricevuto").click();
 
-    // Verifica solo ricevuti visibili
-    const scadutoElements = page.getByText("Scaduto");
-    await expect(scadutoElements).toHaveCount(0);
+    // Wait for the filter to apply — table should have no "Scaduto" rows
+    const tbody = page.locator("table tbody");
+    await expect(tbody.getByText("Scaduto")).toHaveCount(0);
   });
 
   test("filter payments by project works", async ({ page }) => {
@@ -176,7 +190,9 @@ test.describe("Module: Payments - Complete", () => {
     await page.getByRole("link", { name: "Pagamenti" }).click();
 
     // Filtra per progetto
-    await page.getByRole("button", { name: /Filtra per progetto/ }).click();
+    await page
+      .getByRole("button", { name: /Filtra per progetto/ })
+      .click();
     await page.getByRole("option").first().click();
 
     // Tutti i pagamenti dovrebbero essere visibili (stesso progetto)
@@ -191,9 +207,10 @@ test.describe("Module: Payments - Complete", () => {
 
     await page.getByRole("link", { name: "Pagamenti" }).click();
 
-    // Verifica rimborso presente
-    await expect(page.getByText("Rimborso")).toBeVisible();
-    await expect(page.getByText("300,00")).toBeVisible();
+    // Verifica rimborso presente (label is "Rimborso al cliente")
+    const tbody = page.locator("table tbody");
+    await expect(tbody.getByText("Rimborso al cliente")).toBeVisible();
+    await expect(tbody.getByText("300,00")).toBeVisible();
   });
 
   test("overdue payments appear in dashboard alerts", async ({ page }) => {
@@ -201,44 +218,41 @@ test.describe("Module: Payments - Complete", () => {
 
     await page.goto("/#/");
 
-    // Verifica sezione pagamenti scaduti
-    await expect(page.getByText("Pagamenti scaduti")).toBeVisible();
+    // The overdue counter label in DashboardDeadlineTracker is "Scaduti"
+    await expect(page.getByText("Scaduti")).toBeVisible();
 
     // Dovrebbe esserci almeno 1 pagamento scaduto (500€)
     const scadutiCount = page.getByText(/500.*€|Scaduto/);
     await expect(scadutiCount.first()).toBeVisible();
   });
 
-  test("payment linking to quote shows quote details", async ({ page }) => {
+  test("payment create form has quote linking field", async ({ page }) => {
     await loginAsLocalAdmin(page);
 
-    // Crea preventivo e pagamento collegato
-    await page.getByRole("link", { name: "Preventivi" }).click();
-    await page.getByRole("link", { name: "Crea" }).click();
-
-    // ... creazione preventivo
-
-    // Crea pagamento collegato
     await page.getByRole("link", { name: "Pagamenti" }).click();
     await page.getByRole("link", { name: "Crea" }).click();
+    await expect(page).toHaveURL(/\/payments\/create$/);
 
-    // Seleziona preventivo (se disponibile)
-    const quoteField = page.getByLabel(/Preventivo/);
-    if (await quoteField.isVisible().catch(() => false)) {
-      await quoteField.click();
-      await page.getByRole("option").first().click();
-    }
+    // The payment form has a "Preventivo collegato" autocomplete field
+    await expect(page.getByLabel("Preventivo collegato")).toBeVisible();
   });
 
-  test("delete payment requires confirmation", async ({ page }) => {
+  test("delete payment uses undo pattern", async ({ page }) => {
     await loginAsLocalAdmin(page);
 
     await page.getByRole("link", { name: "Pagamenti" }).click();
     await page.locator("table tbody tr a").first().click();
+    await expect(page).toHaveURL(/\/payments\/.+\/show$/);
 
+    // DeleteButton uses useDeleteWithUndoController — clicking it deletes
+    // immediately, redirects to list, and shows an undo notification.
     await page.getByRole("button", { name: "Elimina" }).click();
 
-    await expect(page.getByText(/Conferma/)).toBeVisible();
-    await page.getByRole("button", { name: /Annulla/ }).click();
+    // After delete, user is redirected to list
+    await expect(page).toHaveURL(/\/payments$/);
+
+    // The row count should be 4 (one deleted)
+    const rows = page.locator("table tbody tr");
+    await expect(rows).toHaveCount(4);
   });
 });
