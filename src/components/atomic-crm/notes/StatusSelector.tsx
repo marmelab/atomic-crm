@@ -9,6 +9,7 @@ import {
 
 import { Status } from "../misc/Status";
 import { useConfigurationContext } from "../root/ConfigurationContext";
+import { Translate } from "ra-core";
 
 const NONE_VALUE = "__none__";
 
@@ -51,7 +52,9 @@ export const StatusSelector = ({
               {currentStatus.label}
             </div>
           ) : (
-            "None"
+            <Translate i18nKey="resources.contacts.background.status_none">
+              None
+            </Translate>
           )}
         </SelectValue>
       </SelectTrigger>

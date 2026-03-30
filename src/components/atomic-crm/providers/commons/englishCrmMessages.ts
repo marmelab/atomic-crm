@@ -100,6 +100,7 @@ export const englishCrmMessages = {
         added_on: "Added on %{date}",
         followed_by: "Followed by %{name}",
         followed_by_you: "Followed by you",
+        status_none: "None",
       },
       position_at: "%{title} at",
       position_at_company: "%{title} at %{company}",
