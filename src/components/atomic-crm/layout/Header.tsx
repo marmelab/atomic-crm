@@ -72,6 +72,7 @@ const Header = () => {
                   alt={title}
                 />
                 <h1 className="text-xl font-semibold">{title}</h1>
+                <span className="text-xs text-muted-foreground font-mono">{__APP_VERSION__}</span>
               </Link>
               <div>
                 <nav className="flex items-center">

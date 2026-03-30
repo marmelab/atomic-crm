@@ -1,5 +1,14 @@
 import path from "node:path";
+import { execSync } from "node:child_process";
 import { defineConfig } from "vite";
+
+const commitCount = (() => {
+  try {
+    return execSync("git rev-list --count HEAD").toString().trim();
+  } catch {
+    return "0";
+  }
+})();
 import tailwindcss from "@tailwindcss/vite";
 import react from "@vitejs/plugin-react";
 import { sentryVitePlugin } from "@sentry/vite-plugin";
@@ -42,8 +51,9 @@ export default defineConfig({
         ]
       : []),
   ],
-  define:
-    process.env.NODE_ENV === "production" && process.env.VITE_SUPABASE_URL
+  define: {
+    __APP_VERSION__: JSON.stringify(`v1.${commitCount}`),
+    ...(process.env.NODE_ENV === "production" && process.env.VITE_SUPABASE_URL
       ? {
           "import.meta.env.VITE_IS_DEMO": JSON.stringify(
             process.env.VITE_IS_DEMO,
@@ -58,7 +68,8 @@ export default defineConfig({
             process.env.VITE_INBOUND_EMAIL,
           ),
         }
-      : undefined,
+      : {}),
+  },
   base: "./",
   esbuild: {
     keepNames: true,

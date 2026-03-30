@@ -71,18 +71,9 @@ const dataProviderWithCustomMethods = {
     }
     if (resource === "deals" && params.filter?.company_type) {
       const { company_type, ...restFilter } = params.filter;
-      const { data: companies } = await baseDataProvider.getList("companies", {
-        filter: { type: company_type },
-        pagination: { page: 1, perPage: 1000 },
-        sort: { field: "id", order: "ASC" },
-      });
-      const companyIds = companies.map((c) => c.id);
-      if (companyIds.length === 0) {
-        return { data: [], total: 0 };
-      }
       return baseDataProvider.getList("deals", {
         ...params,
-        filter: { ...restFilter, "company_id@in": `(${companyIds.join(",")})` },
+        filter: { ...restFilter, "company_type@eq": company_type },
       });
     }
 

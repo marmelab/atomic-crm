@@ -114,6 +114,7 @@ export type ContactNote = {
 export type Deal = {
   name: string;
   company_id: Identifier;
+  company_type?: string;
   contact_ids: Identifier[];
   category: string;
   stage: string;
