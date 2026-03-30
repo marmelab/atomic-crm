@@ -5,5 +5,6 @@ VERSION_FILE="src/version.ts"
 CURRENT=$(grep -o 'v1\.[0-9]*' "$VERSION_FILE" | head -1)
 NUM=$(echo "$CURRENT" | grep -o '[0-9]*$')
 NEXT=$((NUM + 1))
-sed -i '' "s/v1\.$NUM/v1.$NEXT/" "$VERSION_FILE"
-git add "$VERSION_FILE"
+printf 'export const APP_VERSION = "v1.%s";\n' "$NEXT" > "$VERSION_FILE"
+HASH=$(git hash-object -w "$VERSION_FILE")
+git update-index --cacheinfo 100644,"$HASH","$VERSION_FILE"
