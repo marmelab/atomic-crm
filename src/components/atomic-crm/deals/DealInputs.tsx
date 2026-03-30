@@ -1,4 +1,4 @@
-import { useContext, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { required, useRecordContext } from "ra-core";
 import { useFormContext } from "react-hook-form";
 import { AutocompleteArrayInput } from "@/components/admin/autocomplete-array-input";
@@ -71,11 +71,20 @@ const DealLinkedToInputs = ({
   onCompanyTypeFilterChange: (type: string) => void;
 }) => {
   const { companyTypes } = useConfigurationContext();
-  const { setValue } = useFormContext();
+  const { setValue, getValues } = useFormContext();
+
+  // Initialise company_type au montage si pas encore défini (création)
+  useEffect(() => {
+    if (!getValues("company_type") && companyTypeFilter) {
+      setValue("company_type", companyTypeFilter);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const handleTypeChange = (newType: string) => {
     const type = newType === ALL_TYPES ? "" : newType;
     onCompanyTypeFilterChange(type);
+    setValue("company_type", type || null);
     setValue("company_id", null);
   };
 
