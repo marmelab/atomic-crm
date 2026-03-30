@@ -2,7 +2,7 @@
  * E2E smoke test for the annual dashboard:
  * - KPI cards render with correct values from controlled test data
  * - Alert rows have clickable action links to detail pages
- * - AI "spiegami l'anno" card is present and actionable
+ * - AI "Chiedi all'AI" card is present and actionable
  * - Expense KPIs flow through to the AI context (verified via network)
  */
 
@@ -22,7 +22,7 @@ test.describe("Annual Dashboard", () => {
     await loginAsLocalAdmin(page);
 
     // Wait for dashboard to load KPI data
-    await expect(page.getByText("Valore del lavoro dell'anno")).toBeVisible({
+    await expect(page.getByText("Lavoro dell'anno")).toBeVisible({
       timeout: 15000,
     });
 
@@ -33,14 +33,14 @@ test.describe("Annual Dashboard", () => {
 
     // Pending payments KPI card
     await expect(
-      page.getByText("Pagamenti da ricevere", { exact: true }),
+      page.getByText("Da incassare", { exact: true }),
     ).toBeVisible();
     // 2000€ in_attesa + 500€ scaduto = 2500€
     expect(dashboardText).toMatch(/2[.,]?500/);
 
     // Open quotes: should show count (0 in test data)
     await expect(
-      page.getByText("Preventivi aperti", { exact: true }),
+      page.getByText("Preventivi aperti").first(),
     ).toBeVisible();
   });
 
@@ -49,7 +49,7 @@ test.describe("Annual Dashboard", () => {
 
     // Wait for alerts card to render
     await expect(
-      page.getByText("Scadenze e alert", { exact: false }),
+      page.getByText("Cosa devi fare", { exact: false }),
     ).toBeVisible({ timeout: 15000 });
 
     // There should be at least one overdue payment (500€ scaduto)
@@ -79,13 +79,13 @@ test.describe("Annual Dashboard", () => {
     await loginAsLocalAdmin(page);
 
     // Wait for the new card to render
-    await expect(page.getByText("Disponibilità netta stimata")).toBeVisible({
+    await expect(page.getByText("Quanto ti resta in tasca")).toBeVisible({
       timeout: 15000,
     });
 
     // Verify breakdown lines are visible
-    await expect(page.getByText("Incassato netto:").first()).toBeVisible();
-    await expect(page.getByText("Spese operative:").first()).toBeVisible();
+    await expect(page.getByText("Incassato").first()).toBeVisible();
+    await expect(page.getByText("Spese").first()).toBeVisible();
   });
 
   test("Cash flow forecast card is visible for current year", async ({
@@ -94,13 +94,13 @@ test.describe("Annual Dashboard", () => {
     await loginAsLocalAdmin(page);
 
     // Wait for the cash flow card
-    await expect(page.getByText("Cash flow prossimi 30 giorni")).toBeVisible({
+    await expect(page.getByText(/Prossimi \d+ giorni/)).toBeVisible({
       timeout: 15000,
     });
 
     // Should show inflow/outflow sections
-    await expect(page.getByText("Entrate attese").first()).toBeVisible();
-    await expect(page.getByText("Uscite previste").first()).toBeVisible();
+    await expect(page.getByText("Entrano").first()).toBeVisible();
+    await expect(page.getByText("Escono").first()).toBeVisible();
   });
 
   test("AI context includes cash_received_net and yearOverYear", async ({
@@ -127,7 +127,7 @@ test.describe("Annual Dashboard", () => {
 
     await loginAsLocalAdmin(page);
     const explainButton = page.getByRole("button", {
-      name: /spiegami annuale/i,
+      name: /spiegami l'anno/i,
     });
     await expect(explainButton).toBeVisible({ timeout: 15000 });
     await explainButton.click();
@@ -153,7 +153,7 @@ test.describe("Annual Dashboard", () => {
     await loginAsLocalAdmin(page);
 
     // Wait for AI card to appear
-    const aiCard = page.getByText("AI: spiegami l'anno", { exact: false });
+    const aiCard = page.getByText("Chiedi all'AI", { exact: false });
     await expect(aiCard).toBeVisible({ timeout: 15000 });
 
     // Verify the description mentions spese
@@ -163,7 +163,7 @@ test.describe("Annual Dashboard", () => {
 
     // The "Spiegami Annuale" button should be present
     const explainButton = page.getByRole("button", {
-      name: /spiegami annuale/i,
+      name: /spiegami l'anno/i,
     });
     await expect(explainButton).toBeVisible();
   });
@@ -198,7 +198,7 @@ test.describe("Annual Dashboard", () => {
 
     // Wait for AI card
     const explainButton = page.getByRole("button", {
-      name: /spiegami annuale/i,
+      name: /spiegami l'anno/i,
     });
     await expect(explainButton).toBeVisible({ timeout: 15000 });
 

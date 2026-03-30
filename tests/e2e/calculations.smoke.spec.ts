@@ -21,7 +21,7 @@ test.describe("Financial Calculations", () => {
     await loginAsLocalAdmin(page);
 
     // Verifica calcoli in dashboard
-    await expect(page.getByText("Valore del lavoro dell'anno")).toBeVisible();
+    await expect(page.getByText("Lavoro dell'anno")).toBeVisible();
 
     // Aspetta che i dati siano caricati
     await page.waitForTimeout(1000);

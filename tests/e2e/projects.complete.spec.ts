@@ -18,16 +18,17 @@ test.describe("Module: Projects - Complete", () => {
     await page.getByRole("link", { name: "Progetti" }).click();
     await expect(page).toHaveURL(/\/projects$/);
 
-    // Colonne
-    await expect(page.getByText("Nome progetto")).toBeVisible();
-    await expect(page.getByText("Cliente")).toBeVisible();
-    await expect(page.getByText("Categoria")).toBeVisible();
-    await expect(page.getByText("Stato")).toBeVisible();
+    // Colonne (scoped to table to avoid navbar ambiguity)
+    const table = page.locator("table");
+    await expect(table.getByText("Nome progetto")).toBeVisible();
+    await expect(table.getByText("Cliente")).toBeVisible();
+    await expect(table.getByText("Categoria")).toBeVisible();
+    await expect(table.getByText("Stato")).toBeVisible();
 
     // Filtri
     await expect(page.getByPlaceholder(/Cerca progetto/)).toBeVisible();
     await expect(
-      page.getByRole("button", { name: /Filtra per cliente/ }),
+      page.locator("button[aria-label='Filtra per cliente']"),
     ).toBeVisible();
   });
 
@@ -56,8 +57,8 @@ test.describe("Module: Projects - Complete", () => {
 
     await page.getByRole("button", { name: "Salva" }).click();
 
-    // Verifica creazione
-    await expect(page).toHaveURL(/\/projects$/);
+    // Verifica creazione — redirect goes to show page
+    await expect(page).toHaveURL(/\/projects\/.+\/show$/);
     await expect(page.getByText("Nuovo Progetto Test")).toBeVisible();
   });
 
@@ -71,22 +72,22 @@ test.describe("Module: Projects - Complete", () => {
     await expect(page).toHaveURL(/\/projects\/.+\/show$/);
 
     // Verifica riepilogo finanziario con dati di test
-    await expect(page.getByText("Riepilogo finanziario")).toBeVisible();
+    await expect(page.getByText(/riepilogo finanziario/i)).toBeVisible();
 
-    // Dati attesi:
+    // Dati attesi (with auto-created km expenses from trigger):
     // - Servizi: 3
-    // - Compensi: 6500,00 €
-    // - Spese: 644,00 €
-    // - Totale: 7144,00 €
-    // - Pagato: 3200,00 €
-    // - Da incassare: 3944,00 €
+    // - Compensi: 6.500,00 €
+    // - Spese: 653,50 € (500*1.25 + 100*0.19 + 50*0.19)
+    // - Totale: 7.153,50 €
+    // - Pagato: 3.200,00 €
+    // - Da incassare: 3.953,50 €
 
     await expect(page.getByText("3").first()).toBeVisible(); // 3 servizi
-    await expect(page.getByText("6500,00 €").first()).toBeVisible();
-    await expect(page.getByText("644,00 €").first()).toBeVisible();
-    await expect(page.getByText("7144,00 €").first()).toBeVisible();
-    await expect(page.getByText("3200,00 €").first()).toBeVisible();
-    await expect(page.getByText("3944,00 €").first()).toBeVisible();
+    await expect(page.getByText(/6\.?500,00\s*€/).first()).toBeVisible();
+    await expect(page.getByText(/653,50\s*€/).first()).toBeVisible();
+    await expect(page.getByText(/7\.?153,50\s*€/).first()).toBeVisible();
+    await expect(page.getByText(/3\.?200,00\s*€/).first()).toBeVisible();
+    await expect(page.getByText(/3\.?953,50\s*€/).first()).toBeVisible();
   });
 
   test("quick episode dialog works", async ({ page }) => {
@@ -94,22 +95,23 @@ test.describe("Module: Projects - Complete", () => {
 
     await page.getByRole("link", { name: "Progetti" }).click();
     await page.locator("table tbody tr a").first().click();
+    await expect(page).toHaveURL(/\/projects\/.+\/show$/);
 
-    // Apri quick episode
-    await page.getByRole("button", { name: "Puntata" }).click();
+    // Apri quick episode (wait for button to appear)
+    const puntataBtn = page.getByRole("button", { name: "Puntata" });
+    await expect(puntataBtn).toBeVisible({ timeout: 10000 });
+    await puntataBtn.click();
 
-    // Verifica dialog
+    // Verifica dialog — title is "Registra Puntata — {name}"
     await expect(
-      page.getByRole("heading", { name: /Puntata|Aggiungi puntata/ }),
+      page.getByRole("heading", { name: /Registra Puntata/ }),
     ).toBeVisible();
 
-    // Compila
-    await page.getByLabel(/Data|Giorno/).fill("2026-03-15");
-    await page.getByLabel(/Tipo servizio|Tipo/).click();
-    await page.getByRole("option", { name: "Riprese" }).click();
+    // Compila data (service_type is auto-set from defaults, no selector)
+    await page.getByLabel(/Data/).fill("2026-03-15");
 
     // Annulla
-    await page.getByRole("button", { name: /Annulla|Chiudi/ }).click();
+    await page.getByRole("button", { name: /Annulla/ }).click();
   });
 
   test("quick payment dialog works", async ({ page }) => {
@@ -151,15 +153,15 @@ test.describe("Module: Projects - Complete", () => {
     // - Totale: 6500 + 28.50 - 3200 = 3328.50€
 
     await expect(page.getByText(/Riprese del 20\/01\/2026/)).toBeVisible();
-    await expect(page.getByText(/3000,00/)).toBeVisible();
-    await expect(page.getByText(/Rimborsi chilometrici/)).toBeVisible();
-    await expect(page.getByText(/28,50/)).toBeVisible();
-    await expect(page.getByText(/-3200,00/)).toBeVisible();
-    await expect(page.getByText(/3328,50/)).toBeVisible();
+    await expect(page.getByText(/3\.?000,00/).first()).toBeVisible();
+    await expect(page.getByText(/Rimborso chilometrico/).first()).toBeVisible();
+    await expect(page.getByText(/28,50/).first()).toBeVisible();
+    await expect(page.getByText(/-3\.?200,00/).first()).toBeVisible();
+    await expect(page.getByText(/3\.?328,50/).first()).toBeVisible();
 
     // Download PDF disponibile
     await expect(
-      page.getByRole("button", { name: "Download PDF" }),
+      page.getByRole("button", { name: "PDF" }),
     ).toBeVisible();
 
     await page.getByRole("button", { name: "Chiudi" }).click();
@@ -222,17 +224,21 @@ test.describe("Module: Projects - Complete", () => {
     await expect(page.getByText("In corso").first()).toBeVisible();
   });
 
-  test("delete project requires confirmation", async ({ page }) => {
+  test("delete project uses undo pattern", async ({ page }) => {
     await loginAsLocalAdmin(page);
 
     await page.getByRole("link", { name: "Progetti" }).click();
     await page.locator("table tbody tr a").first().click();
+    await expect(page).toHaveURL(/\/projects\/.+\/show$/);
 
-    await page.getByRole("button", { name: "Elimina" }).click();
+    // DeleteButton uses undo pattern (no confirmation dialog)
+    const deleteBtn = page.getByRole("button", { name: /Elimina/ });
+    await expect(deleteBtn).toBeVisible({ timeout: 10000 });
+    await deleteBtn.click();
 
-    // Dialog conferma
-    await expect(page.getByText(/Conferma|eliminare/)).toBeVisible();
-
-    await page.getByRole("button", { name: /Annulla/ }).click();
+    // Should show undo notification ("Elemento eliminato")
+    await expect(page.getByText(/Elemento eliminato|eliminat/i)).toBeVisible({
+      timeout: 5000,
+    });
   });
 });
