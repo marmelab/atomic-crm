@@ -24,8 +24,12 @@ export const NotesIteratorMobile = ({
   contactId: Identifier;
   showStatus?: boolean;
 }) => {
-  const { data = [], error, isPending, refetch } =
-    useListContext<ContactNote>();
+  const {
+    data = [],
+    error,
+    isPending,
+    refetch,
+  } = useListContext<ContactNote>();
   const translate = useTranslate();
   const oneSecondHasPassed = useTimeout(1000);
   if (isPending) {
