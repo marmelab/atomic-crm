@@ -1,4 +1,4 @@
-import { useContext, useEffect, useState } from "react";
+import { useContext, useState } from "react";
 import { required, useRecordContext } from "ra-core";
 import { useFormContext } from "react-hook-form";
 import { AutocompleteArrayInput } from "@/components/admin/autocomplete-array-input";
@@ -71,20 +71,11 @@ const DealLinkedToInputs = ({
   onCompanyTypeFilterChange: (type: string) => void;
 }) => {
   const { companyTypes } = useConfigurationContext();
-  const { setValue, getValues } = useFormContext();
-
-  // Set company_type on mount for new deals (edit loads it from the record)
-  useEffect(() => {
-    if (!getValues("company_type") && companyTypeFilter) {
-      setValue("company_type", companyTypeFilter);
-    }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  const { setValue } = useFormContext();
 
   const handleTypeChange = (newType: string) => {
     const type = newType === ALL_TYPES ? "" : newType;
     onCompanyTypeFilterChange(type);
-    setValue("company_type", type || null);
     setValue("company_id", null);
   };
 
