@@ -134,6 +134,10 @@
           "type": "registry:component"
         },
         {
+          "path": "src/components/atomic-crm/settings/ConnectorsPage.tsx",
+          "type": "registry:component"
+        },
+        {
           "path": "src/components/atomic-crm/sales/index.ts",
           "type": "registry:component"
         },
@@ -498,6 +502,22 @@
           "type": "registry:component"
         },
         {
+          "path": "src/components/atomic-crm/google/useGooglePreferences.ts",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/google/useGoogleConnectionStatus.ts",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/google/types.ts",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/google/GoogleOAuthCallback.tsx",
+          "type": "registry:component"
+        },
+        {
           "path": "src/components/atomic-crm/filters/FilterCategory.tsx",
           "type": "registry:component"
         },
@@ -523,6 +543,10 @@
         },
         {
           "path": "src/components/atomic-crm/deals/DealShow.tsx",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/deals/DealListForView.tsx",
           "type": "registry:component"
         },
         {
@@ -562,11 +586,19 @@
           "type": "registry:component"
         },
         {
+          "path": "src/components/atomic-crm/deals/CreateViewDialog.tsx",
+          "type": "registry:component"
+        },
+        {
           "path": "src/components/atomic-crm/deals/ContactList.tsx",
           "type": "registry:component"
         },
         {
           "path": "src/components/atomic-crm/dashboard/Welcome.tsx",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/dashboard/UpcomingCalendarEvents.tsx",
           "type": "registry:component"
         },
         {
@@ -582,11 +614,19 @@
           "type": "registry:component"
         },
         {
+          "path": "src/components/atomic-crm/dashboard/NoshoAIAssist.tsx",
+          "type": "registry:component"
+        },
+        {
           "path": "src/components/atomic-crm/dashboard/MobileDashboard.tsx",
           "type": "registry:component"
         },
         {
           "path": "src/components/atomic-crm/dashboard/LatestNotes.tsx",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/dashboard/KPICards.tsx",
           "type": "registry:component"
         },
         {
@@ -611,6 +651,10 @@
         },
         {
           "path": "src/components/atomic-crm/dashboard/Dashboard.tsx",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/dashboard/ActiveDeals.tsx",
           "type": "registry:component"
         },
         {
@@ -682,6 +726,10 @@
           "type": "registry:component"
         },
         {
+          "path": "src/components/atomic-crm/contacts/ContactEmailHistory.tsx",
+          "type": "registry:component"
+        },
+        {
           "path": "src/components/atomic-crm/contacts/ContactEditSheet.tsx",
           "type": "registry:component"
         },
@@ -695,6 +743,10 @@
         },
         {
           "path": "src/components/atomic-crm/contacts/ContactCreate.tsx",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/contacts/ContactCalendarEvents.tsx",
           "type": "registry:component"
         },
         {
