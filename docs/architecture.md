@@ -1118,6 +1118,12 @@ tags
 | `misc/CreateSheet.tsx` | Sheet mobile per creazione record |
 | `misc/FormToolbar.tsx` | Toolbar form con Save/Delete |
 
+### Utility data/timezone (lib/)
+
+| File | Scopo |
+|------|-------|
+| `lib/dateTimezone.ts` | `BUSINESS_TIMEZONE` (`Europe/Rome`), `toISODate(date)`, `todayISODate()` — conversione Date → `YYYY-MM-DD` nel fuso aziendale italiano. Sostituisce i pattern `toISOString().slice(0,10)` che ignorano il fuso e causano date sbagliate nelle ore notturne (CET/CEST). |
+
 ## Tipi TypeScript (types.ts)
 
 ```
