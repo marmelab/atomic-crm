@@ -1,4 +1,4 @@
-import { parse } from "npm:tldts";
+import { parse } from "tldts";
 
 const capitalize = (str: string) => str.charAt(0).toUpperCase() + str.slice(1);
 
