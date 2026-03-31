@@ -1123,6 +1123,7 @@ tags
 | File | Scopo |
 |------|-------|
 | `lib/dateTimezone.ts` | `BUSINESS_TIMEZONE` (`Europe/Rome`), `toISODate(date)`, `todayISODate()` — conversione Date → `YYYY-MM-DD` nel fuso aziendale italiano. Sostituisce i pattern `toISOString().slice(0,10)` che ignorano il fuso e causano date sbagliate nelle ore notturne (CET/CEST). |
+| `supabase/functions/_shared/dateTimezone.ts` | Stessa API del modulo client (`BUSINESS_TIMEZONE`, `toISODate`, `todayISODate`) + `formatDateInTimezone(date, tz)` per timezone configurabili. Duplicazione intenzionale: runtime diversi (Vite vs Deno). |
 
 ## Tipi TypeScript (types.ts)
 

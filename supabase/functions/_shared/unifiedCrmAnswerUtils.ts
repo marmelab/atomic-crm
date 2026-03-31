@@ -60,19 +60,7 @@ export const getDefaultKmRate = (context: Record<string, unknown>) => {
   return getNumber(travelReimbursement?.defaultKmRate);
 };
 
-export const formatDateInTimezone = (date: Date, timeZone: string) => {
-  const parts = new Intl.DateTimeFormat("en", {
-    timeZone,
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-  }).formatToParts(date);
-  const year = parts.find((part) => part.type === "year")?.value;
-  const month = parts.find((part) => part.type === "month")?.value;
-  const day = parts.find((part) => part.type === "day")?.value;
-
-  return year && month && day ? `${year}-${month}-${day}` : null;
-};
+export { formatDateInTimezone } from "./dateTimezone.ts";
 
 export const getObjectArray = (
   value: unknown,
