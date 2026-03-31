@@ -69,9 +69,9 @@ test.describe("AI Annual Real Response", () => {
     await explainButton.click();
 
     // Wait for the AI response to appear (real API call, may take time)
-    await expect(page.getByText("In breve", { exact: false })).toBeVisible({
-      timeout: 60000,
-    });
+    await expect(
+      page.getByText(/risposta breve|in breve/i, { exact: false }),
+    ).toBeVisible({ timeout: 60000 });
 
     // ────────────────────────────────────────────────
     // VERIFY: Request context had correct expense data
@@ -135,8 +135,10 @@ test.describe("AI Annual Real Response", () => {
     }
 
     // Must contain expected sections
-    expect(aiResponseMarkdown).toMatch(/## In breve/i);
-    expect(aiResponseMarkdown).toMatch(/## Cose importanti/i);
+    expect(aiResponseMarkdown).toMatch(/## (Risposta breve|In breve)/i);
+    expect(aiResponseMarkdown).toMatch(
+      /## (Perch[eé] lo dico|Cose importanti|Cosa controllare adesso)/i,
+    );
 
     // Must NOT treat zero quotes as automatic problem
     if (text.includes("preventivi")) {

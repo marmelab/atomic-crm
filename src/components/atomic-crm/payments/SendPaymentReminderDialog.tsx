@@ -19,17 +19,8 @@ import { buildPaymentReminderEmail } from "@/lib/communications/paymentReminderE
 
 import type { CrmDataProvider } from "../providers/types";
 import type { Client, Payment, Project } from "../types";
+import { getPaymentReminderDaysOverdue } from "./paymentReminderDates";
 import { paymentTypeLabels } from "./paymentTypes";
-
-const toStartOfDay = (date: Date) =>
-  new Date(date.getFullYear(), date.getMonth(), date.getDate());
-
-const diffDays = (from: Date, to: Date) => {
-  const msPerDay = 1000 * 60 * 60 * 24;
-  return Math.floor(
-    (toStartOfDay(to).valueOf() - toStartOfDay(from).valueOf()) / msPerDay,
-  );
-};
 
 const formatCurrency = (value: number) =>
   value.toLocaleString("it-IT", {
@@ -84,12 +75,7 @@ export const SendPaymentReminderDialog = ({
       project: Project | null;
       customMsg: string;
     }) => {
-      const daysOverdue = payment.payment_date
-        ? Math.max(
-            1,
-            Math.abs(diffDays(new Date(payment.payment_date), new Date())),
-          )
-        : 0;
+      const daysOverdue = getPaymentReminderDaysOverdue(payment.payment_date);
 
       const email = buildPaymentReminderEmail({
         clientName: client?.name ?? "Cliente",
@@ -142,12 +128,7 @@ export const SendPaymentReminderDialog = ({
   const project = context?.project ?? null;
   const clientEmail = client?.email;
 
-  const daysOverdue = payment?.payment_date
-    ? Math.max(
-        1,
-        Math.abs(diffDays(new Date(payment.payment_date), new Date())),
-      )
-    : 0;
+  const daysOverdue = getPaymentReminderDaysOverdue(payment?.payment_date);
 
   const preview =
     payment && client

@@ -50,6 +50,7 @@
 | **Backend**  | BE-7  | OpenAI reasoning → effort "low" per CRM  |
 | **Backend**  | BE-8  | Supabase ref → NON dfrrigmjsvcsdhgqtikz   |
 | **Workflow** | WF-8  | Business date → dateTimezone helper       |
+| **Workflow** | WF-9  | Business date UI → smoke cross-timezone   |
 
 ---
 
@@ -284,6 +285,39 @@ UTC midnight — giorno sbagliato in `Europe/Rome` nella stessa finestra.
 **Quando**: sto per eseguire `git commit` su codice prodotto
 **Fare**: PRIMA di committare, verificare se servono aggiornamenti a `docs/`, `memory/*.md`, `.claude/learning.md`. Se sì, includerli nello STESSO `git add` + `git commit`. MAI fare prima il commit di codice e poi un commit separato "docs: align...".
 **Perché**: commit separati per docs causano disallineamenti sistematici. L'utente ha dovuto correggermi più volte perché dimenticavo docs/memoria dopo il codice. La regola è ora anche in `.claude/rules/session-workflow.md` (COMMIT GATE).
+
+### WF-7: Full E2E rossa dopo evoluzione UI -> prima triage, poi patch mirata
+
+**Quando**: una full suite E2E fallisce in molti moduli subito dopo cambiamenti UI/label/flow
+**Fare**: NON rilanciare la suite intera alla cieca. Prendere 1 fail rappresentativo per modulo, confrontarlo con la UI reale e capire se e' drift della spec (label rinominata, selector ambiguo, flow cambiato, responsive) o bug prodotto. Correggere prima i test obsoleti, poi rilanciare la full suite una sola volta.
+**Perché**: evita di bruciare tempo/token su rerun inutili e separa rapidamente regressioni vere da test fragili. Oggi `tasks`, `services`, `payments`, `full-ui-audit` e `ai-annual-real` erano rossi per selector/heading obsoleti, non per regressioni del sistema.
+
+### WF-9: Business date UI -> smoke cross-timezone reale
+
+**Quando**: valido una UI che mostra scadenze, "oggi", giorni mancanti o date
+di business (`DashboardDeadlineTracker`, badge scaduti, date-only operative)
+**Fare**: aggiungere almeno uno smoke che blocca `Date.now()` e gira la stessa
+pagina in due timezone browser diverse (`Europe/Rome` e una timezone non-UE,
+es. `America/New_York`). Gli assert devono colpire il valore business vero
+(data mostrata, delta giorni), non dettagli di layout incidentalmente presenti
+o assenti.
+**Perché**: un codice che sembra corretto in locale puo' ancora dipendere dal
+timezone del browser quando fa `new Date("YYYY-MM-DD")` o formatta date-only.
+La prova reale e' "stesso output business in timezone diverse", non "passa nel
+mio browser".
+
+### WF-10: Fix timezone -> sweep tutti i consumer del date-only
+
+**Quando**: correggo un modello o helper che produce business-date `YYYY-MM-DD`
+o deadline fiscali
+**Fare**: grep e verificare ANCHE i consumer che:
+- leggono `currentYear` con `new Date().getFullYear()`
+- formattano `deadline.date` con `new Date("YYYY-MM-DD")`
+- generano `due_date` con `new Date(dateOnly + "T00:00:00").toISOString()`
+- esistono in runtime diversi (client + `supabase/functions/_shared`)
+**Perché**: sistemare solo il modello non basta. Wrapper UI, card di dettaglio
+e Edge Functions possono continuare a slittare su boundary anno/giorno o
+scrivere timestamp sbagliati pur usando dati gia' bonificati a monte.
 
 ---
 

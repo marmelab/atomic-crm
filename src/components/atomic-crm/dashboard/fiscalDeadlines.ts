@@ -1,18 +1,16 @@
-import { toISODate } from "@/lib/dateTimezone";
+import { diffBusinessDays } from "@/lib/dateTimezone";
 import type { FiscalDeadline, DeadlineItem } from "./fiscalModelTypes";
 
-// ── Date helpers (shared with fiscalModel.ts) ─────────────────────────
+const isoDate = (year: number, month: number, day: number) =>
+  `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
 
-export const toStartOfDay = (date: Date) =>
-  new Date(date.getFullYear(), date.getMonth(), date.getDate());
-
-export const diffDays = (from: Date, to: Date) => {
-  const msPerDay = 1000 * 60 * 60 * 24;
-  return Math.floor(
-    (toStartOfDay(to).valueOf() - toStartOfDay(from).valueOf()) / msPerDay,
-  );
+const buildDeadlineTiming = (date: string, todayIso: string) => {
+  const daysUntil = diffBusinessDays(todayIso, date) ?? 0;
+  return {
+    isPast: daysUntil < 0,
+    daysUntil,
+  };
 };
-
 
 // ── Deadlines builder ─────────────────────────────────────────────────
 
@@ -30,13 +28,13 @@ export const buildDeadlines = ({
   stimaInpsAnnuale,
   annoInizioAttivita,
   currentYear,
-  today,
+  todayIso,
 }: {
   stimaImpostaAnnuale: number;
   stimaInpsAnnuale: number;
   annoInizioAttivita: number;
   currentYear: number;
-  today: Date;
+  todayIso: string;
 }): FiscalDeadline[] => {
   // First year: no deadlines (no previous year to settle)
   if (annoInizioAttivita === currentYear) return [];
@@ -48,7 +46,7 @@ export const buildDeadlines = ({
   const hasSingleAcconto = stimaImpostaAnnuale >= 51.65 && !hasDoubleAcconto;
 
   // June 30 deadline
-  const juneDate = new Date(currentYear, 5, 30); // month is 0-indexed
+  const juneDate = isoDate(currentYear, 6, 30);
   const juneItems: DeadlineItem[] = [];
 
   // Saldo imposta anno precedente (full estimate minus advances)
@@ -78,20 +76,21 @@ export const buildDeadlines = ({
   });
 
   const juneTotalAmount = juneItems.reduce((s, i) => s + i.amount, 0);
+  const juneTiming = buildDeadlineTiming(juneDate, todayIso);
   deadlines.push({
-    date: toISODate(juneDate),
+    date: juneDate,
     label: "Saldo + 1° Acconto",
     items: juneItems,
     totalAmount: juneTotalAmount,
-    isPast: juneDate < today,
-    daysUntil: diffDays(today, juneDate),
+    isPast: juneTiming.isPast,
+    daysUntil: juneTiming.daysUntil,
     priority: "high",
     paidAmount: null,
     paidDate: null,
   });
 
   // November 30 deadline
-  const novDate = new Date(currentYear, 10, 30);
+  const novDate = isoDate(currentYear, 11, 30);
   const novItems: DeadlineItem[] = [];
 
   if (hasDoubleAcconto) {
@@ -113,19 +112,20 @@ export const buildDeadlines = ({
   });
 
   const novTotalAmount = novItems.reduce((s, i) => s + i.amount, 0);
+  const novTiming = buildDeadlineTiming(novDate, todayIso);
   deadlines.push({
-    date: toISODate(novDate),
+    date: novDate,
     label: "2° Acconto",
     items: novItems,
     totalAmount: novTotalAmount,
-    isPast: novDate < today,
-    daysUntil: diffDays(today, novDate),
+    isPast: novTiming.isPast,
+    daysUntil: novTiming.daysUntil,
     priority: "high",
     paidAmount: null,
     paidDate: null,
   });
 
-  deadlines.push(...buildLowPriorityDeadlines(currentYear, today));
+  deadlines.push(...buildLowPriorityDeadlines(currentYear, todayIso));
 
   // Sort: future first by date, then past by date descending
   deadlines.sort((a, b) => {
@@ -141,21 +141,22 @@ export const buildDeadlines = ({
 
 const buildLowPriorityDeadlines = (
   currentYear: number,
-  today: Date,
+  todayIso: string,
 ): FiscalDeadline[] => {
   const result: FiscalDeadline[] = [];
 
   // Bollo trimestrale sulle fatture elettroniche
-  const bolloQuarters: Array<{ date: Date; label: string }> = [
-    { date: new Date(currentYear, 4, 31), label: "Bollo Q1 (gen-mar)" },
-    { date: new Date(currentYear, 8, 30), label: "Bollo Q2 (apr-giu)" },
-    { date: new Date(currentYear, 10, 30), label: "Bollo Q3 (lug-set)" },
-    { date: new Date(currentYear + 1, 1, 28), label: "Bollo Q4 (ott-dic)" },
+  const bolloQuarters: Array<{ date: string; label: string }> = [
+    { date: isoDate(currentYear, 5, 31), label: "Bollo Q1 (gen-mar)" },
+    { date: isoDate(currentYear, 9, 30), label: "Bollo Q2 (apr-giu)" },
+    { date: isoDate(currentYear, 11, 30), label: "Bollo Q3 (lug-set)" },
+    { date: isoDate(currentYear + 1, 2, 28), label: "Bollo Q4 (ott-dic)" },
   ];
 
   for (const bq of bolloQuarters) {
+    const timing = buildDeadlineTiming(bq.date, todayIso);
     result.push({
-      date: toISODate(bq.date),
+      date: bq.date,
       label: bq.label,
       items: [
         {
@@ -164,8 +165,8 @@ const buildLowPriorityDeadlines = (
         },
       ],
       totalAmount: 0,
-      isPast: bq.date < today,
-      daysUntil: diffDays(today, bq.date),
+      isPast: timing.isPast,
+      daysUntil: timing.daysUntil,
       priority: "low",
       paidAmount: null,
       paidDate: null,
@@ -173,14 +174,15 @@ const buildLowPriorityDeadlines = (
   }
 
   // Dichiarazione dei redditi (Modello Redditi PF) — October 31
-  const dichDate = new Date(currentYear, 9, 31);
+  const dichDate = isoDate(currentYear, 10, 31);
+  const dichTiming = buildDeadlineTiming(dichDate, todayIso);
   result.push({
-    date: toISODate(dichDate),
+    date: dichDate,
     label: "Dichiarazione dei redditi",
     items: [{ description: "Invio telematico Modello Redditi PF", amount: 0 }],
     totalAmount: 0,
-    isPast: dichDate < today,
-    daysUntil: diffDays(today, dichDate),
+    isPast: dichTiming.isPast,
+    daysUntil: dichTiming.daysUntil,
     priority: "low",
   });
 

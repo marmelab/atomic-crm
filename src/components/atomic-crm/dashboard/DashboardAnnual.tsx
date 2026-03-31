@@ -33,8 +33,6 @@ import { useDashboardData } from "./useDashboardData";
 import { useFiscalPaymentTracking } from "./useFiscalPaymentTracking";
 import { useGenerateFiscalTasks } from "./useGenerateFiscalTasks";
 
-const currentYear = new Date().getFullYear();
-
 const REALTIME_TABLES = [
   "payments",
   "services",
@@ -46,6 +44,7 @@ const REALTIME_TABLES = [
 ];
 
 export const DashboardAnnual = () => {
+  const currentYear = Number(todayISODate().slice(0, 4));
   useRealtimeInvalidation(REALTIME_TABLES);
   const [selectedYear, setSelectedYear] = useState(currentYear);
   const { data, isPending, error, refetch } = useDashboardData(selectedYear);

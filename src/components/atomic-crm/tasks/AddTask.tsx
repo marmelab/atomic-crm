@@ -26,6 +26,7 @@ import {
 } from "@/components/ui/tooltip";
 
 import { TaskFormContent } from "./TaskFormContent";
+import { normalizeTaskDueDateForMutation } from "./taskDueDate";
 
 export const AddTask = ({
   selectClient,
@@ -105,10 +106,14 @@ export const AddTask = ({
         resource="client_tasks"
         record={defaultRecord}
         transform={(data) => {
-          if (data.all_day) {
-            const dueDate = new Date(data.due_date);
-            dueDate.setHours(0, 0, 0, 0);
-            return { ...data, due_date: dueDate.toISOString() };
+          if (typeof data.due_date === "string") {
+            return {
+              ...data,
+              due_date: normalizeTaskDueDateForMutation(
+                data.due_date,
+                data.all_day === true,
+              ),
+            };
           }
           return data;
         }}

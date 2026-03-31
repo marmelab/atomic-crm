@@ -46,6 +46,12 @@ import {
   buildClientFinancialSummaries,
   buildSupplierFinancialSummaries,
 } from "./unifiedCrmFinancialSummaries";
+import {
+  addDaysToISODate,
+  diffBusinessDays,
+  todayISODate,
+  toBusinessISODate,
+} from "@/lib/dateTimezone";
 import type {
   SnapshotContactReference,
   UnifiedCrmReadContext,
@@ -70,14 +76,14 @@ const toDateValue = (value?: string | null) => {
   return Number.isNaN(date.valueOf()) ? Number.NEGATIVE_INFINITY : date.valueOf();
 };
 
-const toStartOfDay = (date: Date) =>
-  new Date(date.getFullYear(), date.getMonth(), date.getDate());
+const compareBusinessDateValues = (left?: string | null, right?: string | null) => {
+  const leftIso = left ? toBusinessISODate(left) : null;
+  const rightIso = right ? toBusinessISODate(right) : null;
 
-const diffDays = (from: Date, to: Date) => {
-  const msPerDay = 1000 * 60 * 60 * 24;
-  return Math.floor(
-    (toStartOfDay(to).valueOf() - toStartOfDay(from).valueOf()) / msPerDay,
-  );
+  if (!leftIso && !rightIso) return 0;
+  if (!leftIso) return 1;
+  if (!rightIso) return -1;
+  return leftIso.localeCompare(rightIso);
 };
 
 const formatDateTimeLabel = (value: string) => {
@@ -240,26 +246,36 @@ export const buildUnifiedCrmReadContext = ({
     projectContactsByContactId.set(contactId, currentContactRows);
   });
 
-  const today = toStartOfDay(new Date());
-  const nextWeek = new Date(today);
-  nextWeek.setDate(nextWeek.getDate() + 7);
+  const todayIso = todayISODate();
+  const nextWeekIso = addDaysToISODate(todayIso, 7);
 
   const pendingPayments = payments
     .filter((payment) => payment.status !== "ricevuto" && payment.payment_type !== "rimborso")
-    .sort((left, right) => toDateValue(left.payment_date ?? left.created_at) - toDateValue(right.payment_date ?? right.created_at));
+    .sort((left, right) =>
+      compareBusinessDateValues(
+        left.payment_date ?? left.created_at,
+        right.payment_date ?? right.created_at,
+      ),
+    );
   const overduePayments = pendingPayments.filter((payment) => {
     if (payment.status !== "in_attesa" || !payment.payment_date) return false;
-    return toStartOfDay(new Date(payment.payment_date)) < today;
+    const paymentDateIso = toBusinessISODate(payment.payment_date);
+    if (!paymentDateIso) return false;
+    return paymentDateIso < todayIso;
   });
   const incompleteTasks = tasks
     .filter((task) => !task.done_date)
-    .sort((left, right) => toDateValue(left.due_date) - toDateValue(right.due_date));
+    .sort((left, right) => compareBusinessDateValues(left.due_date, right.due_date));
   const upcomingTasks = incompleteTasks.filter((task) => {
-    const dueDate = toStartOfDay(new Date(task.due_date));
-    return dueDate >= today && dueDate <= nextWeek;
+    const dueDateIso = toBusinessISODate(task.due_date);
+    if (!dueDateIso) return false;
+    return dueDateIso >= todayIso && dueDateIso <= nextWeekIso;
   });
   const overdueTasks = incompleteTasks.filter(
-    (task) => toStartOfDay(new Date(task.due_date)) < today,
+    (task) => {
+      const dueDateIso = toBusinessISODate(task.due_date);
+      return dueDateIso != null && dueDateIso < todayIso;
+    },
   );
   const recentExpenses = [...expenses].sort(
     (left, right) => toDateValue(right.expense_date) - toDateValue(left.expense_date),
@@ -432,7 +448,9 @@ export const buildUnifiedCrmReadContext = ({
         amount: Number(payment.amount ?? 0), status: payment.status, statusLabel: paymentStatusLabels[payment.status] ?? payment.status,
         paymentDate: payment.payment_date ?? null, isTaxable: getPaymentTaxable(payment),
         proofUrl: payment.proof_url ?? null,
-        daysOverdue: payment.payment_date ? Math.abs(diffDays(new Date(payment.payment_date), today)) : null,
+        daysOverdue: payment.payment_date
+          ? Math.abs(diffBusinessDays(payment.payment_date, todayIso) ?? 0)
+          : null,
       })),
       upcomingTasks: upcomingTasks.map((task) => ({
         taskId: String(task.id), clientId: task.client_id ? String(task.client_id) : null,
@@ -440,7 +458,7 @@ export const buildUnifiedCrmReadContext = ({
         supplierId: task.supplier_id ? String(task.supplier_id) : null,
         supplierName: getSupplierName(supplierById, task.supplier_id ?? null),
         text: task.text, type: task.type, dueDate: task.due_date, allDay: task.all_day,
-        daysUntilDue: diffDays(today, new Date(task.due_date)),
+        daysUntilDue: diffBusinessDays(todayIso, task.due_date) ?? 0,
       })),
       overdueTasks: overdueTasks.map((task) => ({
         taskId: String(task.id), clientId: task.client_id ? String(task.client_id) : null,
@@ -448,7 +466,7 @@ export const buildUnifiedCrmReadContext = ({
         supplierId: task.supplier_id ? String(task.supplier_id) : null,
         supplierName: getSupplierName(supplierById, task.supplier_id ?? null),
         text: task.text, type: task.type, dueDate: task.due_date, allDay: task.all_day,
-        daysOverdue: Math.abs(diffDays(new Date(task.due_date), today)),
+        daysOverdue: Math.abs(diffBusinessDays(task.due_date, todayIso) ?? 0),
       })),
       recentExpenses: recentExpenses.map((expense) => ({
         expenseId: String(expense.id), clientId: expense.client_id ? String(expense.client_id) : null,

@@ -6,7 +6,7 @@ obbligatoria delle superfici collegate.
 **Quando usarlo:** ogni volta che una modifica tocca comportamento reale del
 prodotto.
 
-Last updated: 2026-03-31 (Timezone bonifica — centralized business-date helpers)
+Last updated: 2026-03-31 (Timezone bonifica phase 4 — annual wrappers + fiscal deadline parity)
 
 ---
 
@@ -14,6 +14,8 @@ Last updated: 2026-03-31 (Timezone bonifica — centralized business-date helper
 
 ### Recent Updates (cronologico, più recente in alto)
 
+- [2026-03-31](#update-2026-03-31--timezone-bonifica-phase-4) — Timezone bonifica phase 4: annual wrappers, fiscal deadline consumers and Edge Function parity aligned to Europe/Rome
+- [2026-03-31](#update-2026-03-31--timezone-bonifica-phase-2) — Timezone bonifica phase 2: task all-day flows + AI read snapshot aligned to Europe/Rome
 - [2026-03-31](#update-2026-03-31--timezone-bonifica) — Timezone bonifica: centralized `dateTimezone` helpers, 12 call sites fixed
 - [2026-03-30](#update-2026-03-30--bugfix-audit) — Bugfix audit: type safety, UI parity, formatting unification
 - [2026-03-08 (n)](#update-2026-03-08-n--fatturapa-xml-generation) — FatturaPA XML generation from invoice draft
@@ -88,6 +90,114 @@ Last updated: 2026-03-31 (Timezone bonifica — centralized business-date helper
 - [Nota manutenzione 2026-03-02](#nota-manutenzione-2026-03-02-fix-ci)
 - [Testing Session Log 2026-03-04](#testing-session-log-2026-03-04--e2e-complete-validation)
 - [AI Semantic UI Upgrade 2026-03-04](#ai-semantic-ui-upgrade-2026-03-04--pareto-principle-applied)
+
+---
+
+## Update 2026-03-31 — Timezone bonifica phase 4
+
+**Cosa è cambiato**
+
+- I wrapper annuali non leggono piu' l'anno corrente da `new Date().getFullYear()`
+  locale: `DashboardAnnual.tsx`, `MobileDashboard.tsx` e
+  `DashboardAnnualAiSummaryCard.tsx` derivano il current year da
+  `todayISODate()` in `Europe/Rome`.
+- I consumer di `FiscalDeadline.date` non passano piu' da `new Date("YYYY-MM-DD")`:
+  `DashboardDeadlinesCard.tsx` formatta via `formatBusinessDate()` e
+  `useGenerateFiscalTasks.ts` crea `due_date` con `startOfBusinessDayISOString()`.
+- Il backend condiviso delle scadenze fiscali (`supabase/functions/_shared`)
+  e' ora allineato al contratto business-date del client:
+  `computeFiscalEstimates()` classifica l'anno dei pagamenti via
+  `getBusinessYear()`, `buildFiscalDeadlines()` usa date-only `YYYY-MM-DD` e
+  `fiscal_deadline_check/index.ts` deriva `currentYear` da `todayISODate()`.
+- `DashboardAnnualAiSummaryCard` etichetta il risultato con l'anno richiesto
+  (`Riassunto {year}`) invece di leggerlo dal timestamp `generatedAt`.
+
+**File toccati**
+
+- `src/components/atomic-crm/dashboard/DashboardAnnual.tsx`
+- `src/components/atomic-crm/dashboard/MobileDashboard.tsx`
+- `src/components/atomic-crm/dashboard/DashboardAnnualAiSummaryCard.tsx` + test
+- `src/components/atomic-crm/dashboard/DashboardDeadlinesCard.tsx`
+- `src/components/atomic-crm/dashboard/useGenerateFiscalTasks.ts`
+- `src/components/atomic-crm/settings/FiscalSettingsSection.tsx`
+- `supabase/functions/_shared/dateTimezone.ts` + test
+- `supabase/functions/_shared/fiscalDeadlineCalculation.ts` + test
+- `supabase/functions/fiscal_deadline_check/index.ts`
+
+**Verifica eseguita**
+
+- `npx tsc --noEmit`
+- `npm run lint`
+- `npm run build`
+- `vitest` mirati: `DashboardAnnualAiSummaryCard`, `dashboardAnnualModel`,
+  `fiscalModel`, `paymentReminderDates`, `paymentReminderEmail`,
+  `_shared/dateTimezone`, `_shared/fiscalDeadlineCalculation` → `45/45`
+- stessa suite con `TZ=America/New_York` → verde
+- `playwright`: `tests/e2e/dashboard-annual.smoke.spec.ts` verde (`7/7`)
+
+**Deploy richiesti**
+
+- Edge Function remota da riallineare: `fiscal_deadline_check`
+
+**Residuo noto dopo la chiusura hotspot**
+
+- `supabase/functions/google_calendar_sync/index.ts`: usa ancora
+  `toISOString().slice(0,10)` ma con `timeZone` esplicita del calendario,
+  quindi fuori dallo scope business-date `Europe/Rome`
+- `src/components/admin/date-input.tsx`: solo esempio JSDoc
+- `src/components/atomic-crm/quotes/CreateServiceFromQuoteDialog.tsx`:
+  parser display di input utente, non generatore di business-date
+
+---
+
+## Update 2026-03-31 — Timezone bonifica phase 2
+
+**Cosa è cambiato**
+
+- `client_tasks` all-day ora usa un contratto coerente di business-date:
+  create, edit, mobile sheet e postpone normalizzano `due_date` con helper
+  centralizzati invece di passare da `new Date(...).toISOString()`.
+- `TaskFormContent` forza il `DateInput` a leggere/scrivere la data business
+  corretta anche quando il DB restituisce timestamp ISO.
+- `taskFilters.ts` e il filtro libero di `TasksListContent.tsx` usano confini
+  di giornata in `Europe/Rome`, non `startOfToday().toISOString()` locale.
+- `formatDateRange.ts` / `formatDateLong.ts` trattano i range `allDay` come
+  business-date, evitando slittamenti di un giorno in show/list/card.
+- `unifiedCrmReadContext.ts` usa `todayISODate`, `toBusinessISODate` e
+  `diffBusinessDays` per classificare `pendingPayments`, `overduePayments`,
+  `upcomingTasks` e `overdueTasks`, così AI launcher e dashboard leggono le
+  stesse scadenze.
+
+**File toccati**
+
+- `src/lib/dateTimezone.ts` + test
+- `src/components/atomic-crm/tasks/AddTask.tsx`
+- `src/components/atomic-crm/tasks/TaskCreateSheet.tsx`
+- `src/components/atomic-crm/tasks/TaskEdit.tsx`
+- `src/components/atomic-crm/tasks/TaskEditSheet.tsx`
+- `src/components/atomic-crm/tasks/TaskFormContent.tsx`
+- `src/components/atomic-crm/tasks/Task.tsx`
+- `src/components/atomic-crm/tasks/taskDueDate.ts` + test
+- `src/components/atomic-crm/tasks/taskFilters.ts` + test
+- `src/components/atomic-crm/tasks/TasksListContent.tsx`
+- `src/components/atomic-crm/misc/formatDateRange.ts` + test
+- `src/lib/ai/unifiedCrmReadContext.ts` + test
+
+**Verifica eseguita**
+
+- `npx tsc --noEmit`
+- `vitest` mirati: `dateTimezone`, `taskDueDate`, `taskFilters`,
+  `formatDateRange`, `unifiedCrmReadContext`
+- `playwright`: `tests/e2e/tasks.complete.spec.ts` verde (`8/8`)
+- smoke cross-timezone gia' chiuso sul dashboard:
+  `tests/e2e/timezone-validation.smoke.spec.ts` verde su
+  `Europe/Rome` + `America/New_York`
+
+**Residuo noto fuori da questa slice**
+
+- chiusi poi nella phase 3/4 dello stesso giorno:
+  `dashboardModel.ts`, `fiscalModel.ts`, `SendPaymentReminderDialog.tsx`,
+  consumer annuali e shared fiscal deadline flow
 
 ---
 

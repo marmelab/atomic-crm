@@ -1,3 +1,4 @@
+import { formatBusinessDate } from "@/lib/dateTimezone";
 import { renderHtml, renderText } from "./quoteStatusEmailRenderers";
 import type { PaymentReminderEmailInput } from "./paymentReminderEmailTypes";
 import { paymentTypeLabels } from "@/components/atomic-crm/payments/paymentTypes";
@@ -10,13 +11,17 @@ const formatCurrency = (value: number) =>
   });
 
 const formatDate = (value: string) => {
-  const date = new Date(value);
-  if (Number.isNaN(date.valueOf())) return value;
-  return date.toLocaleDateString("it-IT", {
-    day: "2-digit",
-    month: "long",
-    year: "numeric",
-  });
+  return (
+    formatBusinessDate(
+      value,
+      {
+        day: "2-digit",
+        month: "long",
+        year: "numeric",
+      },
+      "it-IT",
+    ) ?? value
+  );
 };
 
 export const buildPaymentReminderEmail = (input: PaymentReminderEmailInput) => {
@@ -65,6 +70,7 @@ export const buildPaymentReminderEmail = (input: PaymentReminderEmailInput) => {
     businessName,
     previewText,
     subject,
+    headline: "Promemoria pagamento",
     intro,
     summaryRows,
     sections,

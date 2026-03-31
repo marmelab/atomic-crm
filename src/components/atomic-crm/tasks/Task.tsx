@@ -18,6 +18,7 @@ import { TaskEdit } from "./TaskEdit";
 import { TaskEditSheet } from "./TaskEditSheet";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { formatDateRange } from "../misc/formatDateRange";
+import { postponeTaskDueDate } from "./taskDueDate";
 
 export const Task = ({
   task,
@@ -146,7 +147,11 @@ export const Task = ({
             <DropdownMenuItem
               className="cursor-pointer h-12 md:h-8 px-4 md:px-2 text-base md:text-sm"
               onClick={() => {
-                const postponed = postponeDate(task.due_date, 1, task.all_day);
+                const postponed = postponeTaskDueDate(
+                  task.due_date,
+                  1,
+                  task.all_day,
+                );
                 update("client_tasks", {
                   id: task.id,
                   data: { due_date: postponed },
@@ -159,7 +164,11 @@ export const Task = ({
             <DropdownMenuItem
               className="cursor-pointer h-12 md:h-8 px-4 md:px-2 text-base md:text-sm"
               onClick={() => {
-                const postponed = postponeDate(task.due_date, 7, task.all_day);
+                const postponed = postponeTaskDueDate(
+                  task.due_date,
+                  7,
+                  task.all_day,
+                );
                 update("client_tasks", {
                   id: task.id,
                   data: { due_date: postponed },
@@ -196,11 +205,4 @@ export const Task = ({
       )}
     </>
   );
-};
-
-/** Postpone a due_date by N days, preserving time when all_day=false */
-const postponeDate = (dueDate: string, days: number, allDay: boolean) => {
-  const d = new Date(dueDate);
-  d.setDate(d.getDate() + days);
-  return allDay ? d.toISOString().slice(0, 10) : d.toISOString();
 };

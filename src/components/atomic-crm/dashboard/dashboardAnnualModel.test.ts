@@ -723,4 +723,60 @@ describe("buildDashboardModel annual semantics", () => {
     expect(model.kpis.clientExpenses).toBe(0);
     expect(model.kpis.expensesByType).toEqual([]);
   });
+
+  it("derives current year and alert windows from the Europe/Rome business date", () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-12-31T23:30:00.000Z"));
+
+    const model = buildDashboardModel({
+      payments: [
+        basePayment({
+          id: 1,
+          amount: 300,
+          status: "in_attesa",
+          payment_date: "2026-12-31T23:00:00.000Z",
+        }),
+      ],
+      quotes: [
+        baseQuote({
+          id: 1,
+          amount: 900,
+          status: "preventivo_inviato",
+          created_at: "2026-12-20T10:00:00.000Z",
+          sent_date: "2026-12-24T23:00:00.000Z",
+        }),
+      ],
+      services: [
+        baseService({
+          id: 1,
+          service_date: "2026-12-31T23:00:00.000Z",
+          fee_shooting: 500,
+        }),
+      ],
+      projects: [baseProject()],
+      clients: [baseClient()],
+      expenses: [],
+    });
+
+    expect(model.meta.selectedYear).toBe(2027);
+    expect(model.meta.asOfDate).toBe("2027-01-01");
+    expect(model.kpis.annualRevenue).toBe(500);
+    expect(model.cashFlowForecast?.inflowsTotal).toBe(300);
+    expect(model.alerts.paymentAlerts[0]).toEqual(
+      expect.objectContaining({
+        status: "in_attesa",
+        daysOffset: 0,
+      }),
+    );
+    expect(model.alerts.upcomingServices[0]).toEqual(
+      expect.objectContaining({
+        daysAhead: 0,
+      }),
+    );
+    expect(model.alerts.unansweredQuotes[0]).toEqual(
+      expect.objectContaining({
+        daysWaiting: 7,
+      }),
+    );
+  });
 });

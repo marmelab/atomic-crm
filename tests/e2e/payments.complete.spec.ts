@@ -40,26 +40,29 @@ test.describe("Module: Payments - Complete", () => {
     await expect(page).toHaveURL(/\/payments\/create$/);
 
     // Seleziona cliente
-    await page.getByLabel("Cliente").click();
-    await page.getByRole("option").first().click();
+    await page.getByRole("combobox", { name: "Cliente" }).click();
+    await page.getByPlaceholder("Cerca...").fill("Test Client");
+    await page.getByRole("option", { name: /Test Client/ }).first().click();
 
     // Seleziona progetto
-    await page.getByLabel("Progetto").click();
-    await page.getByRole("option").first().click();
+    await page.getByRole("combobox", { name: "Progetto" }).click();
+    const projectSearch = page.getByPlaceholder("Cerca...").last();
+    await projectSearch.fill("Test Project");
+    await projectSearch.press("Enter");
 
     // Data
     await page.getByLabel("Data pagamento").fill("2026-03-15");
 
     // Tipo
     await page.getByLabel("Tipo").click();
-    await page.getByRole("option", { name: "Acconto" }).click();
+    await page.getByRole("option", { name: "Acconto", exact: true }).click();
 
     // Importo
     await page.getByLabel("Importo (EUR)").fill("1500");
 
     // Metodo
     await page.getByLabel("Metodo pagamento").click();
-    await page.getByRole("option", { name: "Bonifico" }).click();
+    await page.getByRole("option", { name: "Bonifico", exact: true }).click();
 
     // Stato
     await page.getByLabel("Stato").click();

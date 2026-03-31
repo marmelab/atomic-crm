@@ -7,8 +7,8 @@ import {
   getUpcomingTasksForDeadlineTracker,
 } from "./DashboardDeadlineTracker";
 
-const today = new Date("2026-03-01T12:00:00.000Z");
-const limitDate = new Date("2026-03-08T12:00:00.000Z");
+const todayIso = "2026-03-01";
+const limitDateIso = "2026-03-08";
 
 const buildPayment = (
   id: string,
@@ -43,7 +43,7 @@ const buildTask = (
 describe("DashboardDeadlineTracker helpers", () => {
   it("returns overdue payments sorted by oldest date first", () => {
     const overdue = getOverduePaymentsForDeadlineTracker({
-      today,
+      todayIso,
       payments: [
         buildPayment("payment-new", {
           status: "scaduto",
@@ -68,8 +68,8 @@ describe("DashboardDeadlineTracker helpers", () => {
 
   it("returns only in-attesa payments due within seven days", () => {
     const dueSoon = getDueSoonPaymentsForDeadlineTracker({
-      today,
-      limitDate,
+      todayIso,
+      limitDateIso,
       payments: [
         buildPayment("payment-due-3", {
           status: "in_attesa",
@@ -98,8 +98,8 @@ describe("DashboardDeadlineTracker helpers", () => {
 
   it("returns only non-completed tasks due within seven days", () => {
     const tasks = getUpcomingTasksForDeadlineTracker({
-      today,
-      limitDate,
+      todayIso,
+      limitDateIso,
       tasks: [
         buildTask("task-early", {
           due_date: "2026-03-02T12:00:00.000Z",
@@ -124,21 +124,21 @@ describe("DashboardDeadlineTracker helpers", () => {
     expect(
       getOverduePaymentsForDeadlineTracker({
         payments: [],
-        today,
+        todayIso,
       }),
     ).toEqual([]);
     expect(
       getDueSoonPaymentsForDeadlineTracker({
         payments: [],
-        today,
-        limitDate,
+        todayIso,
+        limitDateIso,
       }),
     ).toEqual([]);
     expect(
       getUpcomingTasksForDeadlineTracker({
         tasks: [],
-        today,
-        limitDate,
+        todayIso,
+        limitDateIso,
       }),
     ).toEqual([]);
   });

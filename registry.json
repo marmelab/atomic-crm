@@ -80,6 +80,10 @@
           "type": "registry:component"
         },
         {
+          "path": "src/components/atomic-crm/tasks/taskDueDate.ts",
+          "type": "registry:component"
+        },
+        {
           "path": "src/components/atomic-crm/tasks/TasksListContent.tsx",
           "type": "registry:component"
         },
@@ -649,6 +653,10 @@
         },
         {
           "path": "src/components/atomic-crm/payments/paymentTypes.ts",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/payments/paymentReminderDates.ts",
           "type": "registry:component"
         },
         {

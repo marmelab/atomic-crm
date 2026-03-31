@@ -10,6 +10,7 @@ import { useWatch } from "react-hook-form";
 
 import { buildNameSearchFilter } from "../misc/referenceSearch";
 import { useConfigurationContext } from "../root/ConfigurationContext";
+import { toBusinessISODate } from "@/lib/dateTimezone";
 
 export const TaskFormContent = ({
   selectClient,
@@ -18,7 +19,6 @@ export const TaskFormContent = ({
 }) => {
   const { taskTypes } = useConfigurationContext();
   const allDay = useWatch({ name: "all_day" }) ?? true;
-  const DateComponent = allDay ? DateInput : DateTimeInput;
 
   return (
     <div className="flex flex-col gap-4">
@@ -48,12 +48,26 @@ export const TaskFormContent = ({
         defaultValue={true}
       />
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <DateComponent
-          source="due_date"
-          label="Scadenza"
-          helperText={false}
-          validate={required()}
-        />
+        {allDay ? (
+          <DateInput
+            source="due_date"
+            label="Scadenza"
+            helperText={false}
+            validate={required()}
+            format={(value) =>
+              value == null || value === ""
+                ? null
+                : toBusinessISODate(value as string | Date)
+            }
+          />
+        ) : (
+          <DateTimeInput
+            source="due_date"
+            label="Scadenza"
+            helperText={false}
+            validate={required()}
+          />
+        )}
         <SelectInput
           source="type"
           label="Tipo"

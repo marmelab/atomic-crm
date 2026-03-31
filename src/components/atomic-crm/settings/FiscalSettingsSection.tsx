@@ -15,11 +15,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { todayISODate } from "@/lib/dateTimezone";
 
 import { projectCategoryChoices } from "../projects/projectTypes";
 import type { Client } from "../types";
 
-const CURRENT_YEAR = new Date().getFullYear();
+const CURRENT_YEAR = Number(todayISODate().slice(0, 4));
 
 const asStringArray = (value: unknown) =>
   Array.isArray(value) ? value.map((item) => String(item)) : [];

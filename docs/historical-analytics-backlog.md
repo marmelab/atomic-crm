@@ -6,7 +6,64 @@
 incrociarlo con `docs/README.md`, `docs/architecture.md` e i documenti
 `canonical`.
 
-Last updated: 2026-03-08
+Last updated: 2026-03-31 (timezone bonifica hotspot list chiusa)
+
+## Update 2026-03-31 — Timezone bonifica backlog after phase 4
+
+Slice completata: `dashboard annual wrappers + fiscal deadline consumers + EF parity`.
+
+Deliverable chiusi:
+
+- `dashboardModel.ts` / `fiscalModel.ts` gia' bonificati e validati
+- `DashboardAnnual`, `MobileDashboard`, `DashboardAnnualAiSummaryCard` allineati
+  al current year `Europe/Rome`
+- `DashboardDeadlinesCard` e `useGenerateFiscalTasks` non convertono piu'
+  `FiscalDeadline.date` con `Date` locale
+- shared Edge Function fiscale allineata al contratto business-date
+  (`dateTimezone` Deno esteso + `fiscal_deadline_check` year derivato da
+  `todayISODate()`)
+- validazione forte chiusa:
+  - `typecheck` / `lint` / `build`
+  - unit mirati verdi
+  - stessa suite verde con `TZ=America/New_York`
+  - `dashboard-annual.smoke.spec.ts` verde
+
+Residuo immediato:
+
+- nessun hotspot business-critical noto ancora aperto nel piano timezone
+- match grep rimasti sono intenzionalmente fuori scope:
+  - `google_calendar_sync` (timezone esplicita del provider)
+  - esempio JSDoc in `date-input`
+  - parser display in `CreateServiceFromQuoteDialog`
+
+Nota operativa:
+
+- il prossimo passo non e' altro refactor timezone generico;
+  e' deployare la Edge Function remota `fiscal_deadline_check` quando si decide
+  di spedire questa slice.
+
+## Update 2026-03-31 — Timezone bonifica backlog after phase 2
+
+Slice completata: `tasks all-day + task filters + unifiedCrmReadContext business-date alignment`.
+
+Deliverable chiusi:
+
+- helper `dateTimezone` estesi con start/end of business day, delta giorni e
+  formatting business-date
+- `client_tasks` create/edit/postpone/list allineati a `Europe/Rome`
+- `formatDateRange` / `formatDateLong` stabili per superfici all-day
+- `unifiedCrmReadContext` allineato al contratto business-date della dashboard
+- validazione: unit verdi + `tasks.complete.spec.ts` verde + smoke
+  cross-timezone dashboard verde
+
+Backlog immediato residuo:
+
+- chiuso poi nella phase 3/4 dello stesso giorno
+
+Nota operativa:
+
+- la regola verificata resta la stessa:
+  business-date = helper condivisi + smoke cross-timezone su una superficie reale
 
 ## Update 2026-03-08 (d) — unified_crm_answer robustness + suggestion scoping
 

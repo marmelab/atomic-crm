@@ -4,6 +4,7 @@ import { type Identifier, RecordRepresentation } from "ra-core";
 import { EditSheet } from "../misc/EditSheet";
 import type { Client, ClientTask } from "../types";
 import { TaskFormContent } from "./TaskFormContent";
+import { normalizeTaskDueDateForMutation } from "./taskDueDate";
 
 export interface TaskEditSheetProps {
   open: boolean;
@@ -20,6 +21,18 @@ export const TaskEditSheet = ({
     <EditSheet
       resource="client_tasks"
       id={taskId}
+      transform={(data) => {
+        if (typeof data.due_date === "string") {
+          return {
+            ...data,
+            due_date: normalizeTaskDueDateForMutation(
+              data.due_date,
+              data.all_day === true,
+            ),
+          };
+        }
+        return data;
+      }}
       title={
         <ReferenceField<ClientTask, Client>
           source="client_id"

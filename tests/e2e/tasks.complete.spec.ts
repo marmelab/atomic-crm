@@ -19,24 +19,23 @@ test.describe("Module: Tasks - Complete", () => {
     await expect(page).toHaveURL(/\/client_tasks$/);
 
     // Verifica filtri temporali
-    await expect(page.getByText(/Scaduti|Overdue/)).toBeVisible();
-    await expect(page.getByText(/Oggi|Today/)).toBeVisible();
-    await expect(page.getByText(/Domani|Tomorrow/)).toBeVisible();
-    await expect(page.getByText(/Settimana|Week/)).toBeVisible();
+    await expect(
+      page.getByRole("button", { name: "Aggiungi promemoria" }),
+    ).toBeVisible();
+    await expect(page.locator('input[type="date"]').first()).toBeVisible();
+    await expect(page.locator('input[type="date"]').nth(1)).toBeVisible();
+    await expect(page.getByText("I tuoi promemoria appariranno qui.")).toBeVisible();
   });
 
   test("create task with client link", async ({ page }) => {
     await loginAsLocalAdmin(page);
 
     await page.getByRole("link", { name: "Promemoria" }).click();
-    await page
-      .getByRole("button", { name: /Aggiungi|Nuovo|Crea/ })
-      .first()
-      .click();
+    await page.getByRole("button", { name: "Aggiungi promemoria" }).click();
 
     // Compila task
-    await page.getByLabel(/Testo|Descrizione/).fill("Task di test");
-    await page.getByLabel(/Data scadenza/).fill("2026-03-20");
+    await page.getByLabel("Descrizione").fill("Task di test");
+    await page.getByLabel("Scadenza").fill("2026-03-20");
 
     // Seleziona cliente (opzionale)
     const clientField = page.getByLabel(/Cliente/);
@@ -55,15 +54,12 @@ test.describe("Module: Tasks - Complete", () => {
     await loginAsLocalAdmin(page);
 
     await page.getByRole("link", { name: "Promemoria" }).click();
-    await page
-      .getByRole("button", { name: /Aggiungi|Nuovo/ })
-      .first()
-      .click();
+    await page.getByRole("button", { name: "Aggiungi promemoria" }).click();
 
     // Crea task
-    await page.getByLabel(/Testo/).fill("Task da completare");
-    await page.getByLabel(/Data/).fill("2026-03-20");
-    await page.getByRole("button", { name: /Salva/ }).click();
+    await page.getByLabel("Descrizione").fill("Task da completare");
+    await page.getByLabel("Scadenza").fill("2026-03-20");
+    await page.getByRole("button", { name: "Salva" }).click();
 
     // Trova checkbox e completa
     const checkbox = page.getByRole("checkbox").first();
@@ -77,56 +73,61 @@ test.describe("Module: Tasks - Complete", () => {
     await loginAsLocalAdmin(page);
 
     await page.getByRole("link", { name: "Promemoria" }).click();
+    await page.getByRole("button", { name: "Aggiungi promemoria" }).click();
+    await page.getByLabel("Descrizione").fill("Task range test");
+    await page.getByLabel("Scadenza").fill("2026-03-20");
+    await page.getByRole("button", { name: "Salva" }).click();
 
-    // Clicca su filtro "Oggi"
-    await page.getByText(/Oggi|Today/).click();
+    // Filtra per range date
+    const dateInputs = page.locator('input[type="date"]');
+    await dateInputs.first().fill("2026-03-19");
+    await dateInputs.nth(1).fill("2026-03-21");
 
-    // Verifica risultati
-    // (nessun task di test è per oggi, quindi lista vuota o con task esistenti)
+    await expect(page.locator("#main-content").getByText("Task range test")).toBeVisible();
   });
 
   test("edit task updates fields", async ({ page }) => {
     await loginAsLocalAdmin(page);
 
     await page.getByRole("link", { name: "Promemoria" }).click();
-    await page
-      .getByRole("button", { name: /Aggiungi|Nuovo/ })
-      .first()
-      .click();
+    await page.getByRole("button", { name: "Aggiungi promemoria" }).click();
 
     // Crea task
-    await page.getByLabel(/Testo/).fill("Task originale");
-    await page.getByLabel(/Data/).fill("2026-03-20");
-    await page.getByRole("button", { name: /Salva/ }).click();
+    await page.getByLabel("Descrizione").fill("Task originale");
+    await page.getByLabel("Scadenza").fill("2026-03-20");
+    await page.getByRole("button", { name: "Salva" }).click();
 
     // Modifica
-    await page.getByText("Task originale").click();
-    await page.getByRole("link", { name: /Modifica/ }).click();
-    await page.getByLabel(/Testo/).fill("Task modificato");
-    await page.getByRole("button", { name: /Salva/ }).click();
+    await page.getByLabel("azioni attività").click();
+    await page.getByRole("menuitem", { name: "Modifica" }).click();
+    await page.getByLabel("Descrizione").fill("Task modificato");
+    await page.getByRole("button", { name: "Salva" }).click();
 
     // Verifica
-    await expect(page.getByText("Task modificato")).toBeVisible();
+    await expect(
+      page.getByRole("textbox", { name: "Descrizione" }),
+    ).not.toBeVisible();
+    await expect(
+      page.locator("#main-content").getByText("Task modificato"),
+    ).toBeVisible();
   });
 
-  test("delete task removes from list", async ({ page }) => {
+  test("delete task removes from list with undoable action", async ({
+    page,
+  }) => {
     await loginAsLocalAdmin(page);
 
     await page.getByRole("link", { name: "Promemoria" }).click();
-    await page
-      .getByRole("button", { name: /Aggiungi|Nuovo/ })
-      .first()
-      .click();
+    await page.getByRole("button", { name: "Aggiungi promemoria" }).click();
 
     // Crea task
-    await page.getByLabel(/Testo/).fill("Task da eliminare");
-    await page.getByLabel(/Data/).fill("2026-03-20");
-    await page.getByRole("button", { name: /Salva/ }).click();
+    await page.getByLabel("Descrizione").fill("Task da eliminare");
+    await page.getByLabel("Scadenza").fill("2026-03-20");
+    await page.getByRole("button", { name: "Salva" }).click();
 
     // Elimina
-    await page.getByText("Task da eliminare").click();
-    await page.getByRole("button", { name: /Elimina/ }).click();
-    await page.getByRole("button", { name: /Conferma/ }).click();
+    await page.getByLabel("azioni attività").click();
+    await page.getByRole("menuitem", { name: "Elimina" }).click();
 
     // Verifica rimozione
     await expect(page.getByText("Task da eliminare")).not.toBeVisible();
@@ -147,8 +148,7 @@ test.describe("Module: Tasks - Complete", () => {
 
     await page.goto("/#/");
 
-    // Scadenzario operativo
-    await expect(page.getByText("Scadenzario operativo")).toBeVisible();
-    await expect(page.getByText("Promemoria in scadenza")).toBeVisible();
+    await expect(page.getByText("Cosa devi fare")).toBeVisible();
+    await expect(page.getByText("Scaduti")).toBeVisible();
   });
 });

@@ -134,8 +134,7 @@ async function notifyImminent(
 
 async function runFiscalDeadlineCheck(): Promise<CheckResult> {
   const todayStr = todayISODate();
-  const today = new Date(`${todayStr}T00:00:00Z`);
-  const currentYear = today.getFullYear();
+  const currentYear = Number(todayStr.slice(0, 4));
 
   const fiscalConfig = await loadFiscalConfig();
   if (!fiscalConfig) {
@@ -159,7 +158,7 @@ async function runFiscalDeadlineCheck(): Promise<CheckResult> {
     ...estimates,
     annoInizioAttivita: fiscalConfig.annoInizioAttivita,
     currentYear,
-    today,
+    todayIso: todayStr,
   });
 
   if (deadlines.length === 0) {

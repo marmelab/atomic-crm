@@ -1,1 +1,2 @@
 - [Git push policy](feedback_no_push.md) — Mai proporre push, l'utente lo chiede quando serve
+- [E2E Test Guide](e2e-test-guide.md) — 98 test Playwright: suite, seed data, selettori, quando aggiornare

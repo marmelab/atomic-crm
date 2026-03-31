@@ -6,7 +6,12 @@
  * reminder task payloads for upcoming deadlines.
  */
 
-import { toISODate } from "./dateTimezone.ts";
+import {
+  diffBusinessDays,
+  formatBusinessDate,
+  getBusinessYear,
+  startOfBusinessDayISOString,
+} from "./dateTimezone.ts";
 
 // ── Types ─────────────────────────────────────────────────────────────
 
@@ -47,15 +52,8 @@ export type FiscalTaskPayload = {
 
 // ── Date helpers ──────────────────────────────────────────────────────
 
-const toStartOfDay = (date: Date) =>
-  new Date(date.getFullYear(), date.getMonth(), date.getDate());
-
-const diffDays = (from: Date, to: Date) => {
-  const msPerDay = 1000 * 60 * 60 * 24;
-  return Math.floor(
-    (toStartOfDay(to).valueOf() - toStartOfDay(from).valueOf()) / msPerDay,
-  );
-};
+const isoDate = (year: number, month: number, day: number) =>
+  `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
 
 // ── Tax rate calculation ──────────────────────────────────────────────
 
@@ -102,7 +100,7 @@ export const computeFiscalEstimates = ({
     (p) =>
       p.status === "ricevuto" &&
       p.payment_date &&
-      new Date(p.payment_date).getFullYear() === currentYear,
+      getBusinessYear(p.payment_date) === currentYear,
   );
 
   // Build project category map
@@ -161,18 +159,18 @@ export const computeFiscalEstimates = ({
 // ── Deadline builder ──────────────────────────────────────────────────
 
 const makeDeadline = (opts: {
-  date: Date;
+  date: string;
   label: string;
   items: DeadlineItem[];
   priority: "high" | "low";
-  today: Date;
+  todayIso: string;
 }): FiscalDeadline => ({
-  date: toISODate(opts.date),
+  date: opts.date,
   label: opts.label,
   items: opts.items,
   totalAmount: opts.items.reduce((s, i) => s + i.amount, 0),
-  isPast: opts.date < opts.today,
-  daysUntil: diffDays(opts.today, opts.date),
+  isPast: opts.date < opts.todayIso,
+  daysUntil: diffBusinessDays(opts.todayIso, opts.date) ?? 0,
   priority: opts.priority,
 });
 
@@ -180,7 +178,7 @@ const buildHighPriorityDeadlines = (
   stimaImpostaAnnuale: number,
   stimaInpsAnnuale: number,
   currentYear: number,
-  today: Date,
+  todayIso: string,
 ): FiscalDeadline[] => {
   const hasDoubleAcconto = stimaImpostaAnnuale > 257.52;
   const hasSingleAcconto = stimaImpostaAnnuale >= 51.65 && !hasDoubleAcconto;
@@ -227,31 +225,31 @@ const buildHighPriorityDeadlines = (
 
   return [
     makeDeadline({
-      date: new Date(currentYear, 5, 30),
+      date: isoDate(currentYear, 6, 30),
       label: "Saldo + 1° Acconto",
       items: juneItems,
       priority: "high",
-      today,
+      todayIso,
     }),
     makeDeadline({
-      date: new Date(currentYear, 10, 30),
+      date: isoDate(currentYear, 11, 30),
       label: "2° Acconto",
       items: novItems,
       priority: "high",
-      today,
+      todayIso,
     }),
   ];
 };
 
 const buildLowPriorityDeadlines = (
   currentYear: number,
-  today: Date,
+  todayIso: string,
 ): FiscalDeadline[] => {
   const bolloQuarters = [
-    { date: new Date(currentYear, 4, 31), label: "Bollo Q1 (gen-mar)" },
-    { date: new Date(currentYear, 8, 30), label: "Bollo Q2 (apr-giu)" },
-    { date: new Date(currentYear, 10, 30), label: "Bollo Q3 (lug-set)" },
-    { date: new Date(currentYear + 1, 1, 28), label: "Bollo Q4 (ott-dic)" },
+    { date: isoDate(currentYear, 5, 31), label: "Bollo Q1 (gen-mar)" },
+    { date: isoDate(currentYear, 9, 30), label: "Bollo Q2 (apr-giu)" },
+    { date: isoDate(currentYear, 11, 30), label: "Bollo Q3 (lug-set)" },
+    { date: isoDate(currentYear + 1, 2, 28), label: "Bollo Q4 (ott-dic)" },
   ];
 
   const deadlines = bolloQuarters.map((bq) =>
@@ -265,19 +263,19 @@ const buildLowPriorityDeadlines = (
         },
       ],
       priority: "low",
-      today,
+      todayIso,
     }),
   );
 
   deadlines.push(
     makeDeadline({
-      date: new Date(currentYear, 9, 31),
+      date: isoDate(currentYear, 10, 31),
       label: "Dichiarazione dei redditi",
       items: [
         { description: "Invio telematico Modello Redditi PF", amount: 0 },
       ],
       priority: "low",
-      today,
+      todayIso,
     }),
   );
 
@@ -289,13 +287,13 @@ export const buildFiscalDeadlines = ({
   stimaInpsAnnuale,
   annoInizioAttivita,
   currentYear,
-  today,
+  todayIso,
 }: {
   stimaImpostaAnnuale: number;
   stimaInpsAnnuale: number;
   annoInizioAttivita: number;
   currentYear: number;
-  today: Date;
+  todayIso: string;
 }): FiscalDeadline[] => {
   if (annoInizioAttivita === currentYear) return [];
 
@@ -304,9 +302,9 @@ export const buildFiscalDeadlines = ({
       stimaImpostaAnnuale,
       stimaInpsAnnuale,
       currentYear,
-      today,
+      todayIso,
     ),
-    ...buildLowPriorityDeadlines(currentYear, today),
+    ...buildLowPriorityDeadlines(currentYear, todayIso),
   ];
 };
 
@@ -338,7 +336,8 @@ export const buildTaskPayloads = (
       tasks.push({
         text: `${item.description}${amountNote}`,
         type: inferTaskType(item.description),
-        due_date: new Date(deadline.date + "T00:00:00").toISOString(),
+        due_date:
+          startOfBusinessDayISOString(deadline.date) ?? deadline.date,
         done_date: null,
         client_id: null,
       });
@@ -356,10 +355,11 @@ export const buildDeadlineNotificationMessage = (
   const lines: string[] = ["📋 Scadenze fiscali in arrivo:", ""];
 
   for (const d of upcomingDeadlines) {
-    const dateFormatted = new Date(d.date + "T00:00:00").toLocaleDateString(
-      "it-IT",
-      { day: "numeric", month: "long", year: "numeric" },
-    );
+    const dateFormatted = formatBusinessDate(d.date, {
+      day: "numeric",
+      month: "long",
+      year: "numeric",
+    });
     const amountStr =
       d.totalAmount > 0 ? ` — ${formatEurAmount(d.totalAmount)}` : "";
     lines.push(`⏰ ${d.label} (${dateFormatted})${amountStr}`);

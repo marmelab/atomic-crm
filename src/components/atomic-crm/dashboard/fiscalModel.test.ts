@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { buildFiscalModel } from "./fiscalModel";
 import type {
@@ -74,6 +74,19 @@ const basePayment = (overrides: Partial<Payment> = {}): Payment => ({
   status: "ricevuto",
   created_at: "2026-01-01T00:00:00.000Z",
   ...overrides,
+});
+
+const baseExpense = (overrides: Partial<Expense> = {}): Expense => ({
+  id: 1,
+  expense_date: "2026-01-15T00:00:00.000Z",
+  expense_type: "acquisto_materiale",
+  amount: 0,
+  created_at: "2026-01-01T00:00:00.000Z",
+  ...overrides,
+});
+
+afterEach(() => {
+  vi.useRealTimers();
 });
 
 describe("buildFiscalModel — cash basis", () => {
@@ -398,5 +411,56 @@ describe("buildFiscalModel — cash basis", () => {
 
     // Client concentration from services: top 3 = 400+300+200=900, total=1000
     expect(model.businessHealth.clientConcentration).toBeCloseTo(90, 5);
+  });
+
+  it("uses the Europe/Rome business year when year is omitted and dates cross UTC midnight", () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-12-31T23:30:00.000Z"));
+
+    const model = buildFiscalModel({
+      services: [
+        baseService({
+          id: 1,
+          fee_shooting: 500,
+          service_date: "2026-12-31T23:00:00.000Z",
+        }),
+      ],
+      expenses: [
+        baseExpense({
+          id: 1,
+          amount: 50,
+          expense_date: "2026-12-31T23:00:00.000Z",
+        }),
+      ],
+      payments: [
+        basePayment({
+          id: 1,
+          amount: 1000,
+          status: "ricevuto",
+          payment_date: "2026-12-31T23:00:00.000Z",
+        }),
+      ],
+      quotes: [],
+      projects: [baseProject()],
+      clients: [baseClient()],
+      fiscalConfig,
+    });
+
+    expect(model.fiscalKpis.monthsOfData).toBe(1);
+    expect(model.fiscalKpis.fatturatoLordoYtd).toBe(1000);
+    expect(model.businessHealth.marginPerCategory).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          category: "produzione_tv",
+          revenue: 500,
+          expenses: 0,
+        }),
+        expect.objectContaining({
+          category: "__general",
+          revenue: 0,
+          expenses: 50,
+        }),
+      ]),
+    );
   });
 });

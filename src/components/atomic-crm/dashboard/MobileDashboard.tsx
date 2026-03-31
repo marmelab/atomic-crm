@@ -17,6 +17,7 @@ import { Progress } from "@/components/ui/progress";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 
 import { useRealtimeInvalidation } from "@/hooks/useRealtimeInvalidation";
+import { formatBusinessDate, todayISODate } from "@/lib/dateTimezone";
 
 import { MobileContent } from "../layout/MobileContent";
 import { DashboardHistorical } from "./DashboardHistorical";
@@ -79,8 +80,6 @@ export const MobileDashboard = () => {
   );
 };
 
-const currentYear = new Date().getFullYear();
-
 const REALTIME_TABLES = [
   "payments",
   "services",
@@ -92,6 +91,7 @@ const REALTIME_TABLES = [
 ];
 
 const MobileAnnualDashboard = () => {
+  const currentYear = Number(todayISODate().slice(0, 4));
   useRealtimeInvalidation(REALTIME_TABLES);
   const [selectedYear, setSelectedYear] = useState(currentYear);
   const { data, isPending, error, refetch } = useDashboardData(selectedYear);
@@ -199,10 +199,10 @@ const MobileFiscalKpis = ({ fiscal }: { fiscal: FiscalModel }) => {
               {formatCurrency(nextDeadline.totalAmount)}
             </div>
             <p className="text-xs text-muted-foreground">
-              {new Date(nextDeadline.date + "T00:00:00").toLocaleDateString(
-                "it-IT",
-                { day: "2-digit", month: "long" },
-              )}{" "}
+              {formatBusinessDate(nextDeadline.date, {
+                day: "2-digit",
+                month: "long",
+              })}{" "}
               — {nextDeadline.label} ({nextDeadline.daysUntil}g)
             </p>
           </CardContent>

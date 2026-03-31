@@ -6,7 +6,49 @@ lavoro senza riaprire decisioni gia prese.
 **Quando NON usarlo da solo:** per dedurre architettura canonica o stato
 prodotto senza incrociarlo con `docs/README.md` e i documenti `canonical`.
 
-Last updated: 2026-03-08 (unified_crm_answer robustness + suggestion keyword fix)
+Last updated: 2026-03-31 (timezone bonifica phase 4 — annual wrappers + fiscal deadline parity)
+
+## Update 2026-03-31 — Timezone bonifica phase 4 (annual wrappers + fiscal deadline parity)
+
+- `DashboardAnnual.tsx`, `MobileDashboard.tsx` e
+  `DashboardAnnualAiSummaryCard.tsx` non usano piu' il current year del browser:
+  l'anno "corrente" e' derivato dal business-date `Europe/Rome`.
+- I chip AI della card annuale scelgono quindi correttamente il set
+  `current year` anche sul boundary `31 dicembre UTC / 1 gennaio Roma`, e il
+  risultato mostrato e' etichettato con l'anno richiesto (`Riassunto {year}`),
+  non con `generatedAt`.
+- `DashboardDeadlinesCard.tsx`, `useGenerateFiscalTasks.ts` e la shared Edge
+  Function `fiscalDeadlineCalculation.ts` trattano `FiscalDeadline.date` come
+  vera business-date:
+  - rendering tramite `formatBusinessDate`
+  - task payload con `startOfBusinessDayISOString`
+  - classificazione anno pagamenti via `getBusinessYear`
+  - `fiscal_deadline_check/index.ts` legge `currentYear` da `todayISODate()`
+- Verifica chiusa:
+  - unit mirati verdi anche con `TZ=America/New_York`
+  - `dashboard-annual.smoke.spec.ts` verde (`7/7`)
+
+Deploy richiesti: Edge Function remota `fiscal_deadline_check`.
+
+## Update 2026-03-31 — Timezone bonifica phase 2 (tasks + unifiedCrmReadContext)
+
+- `unifiedCrmReadContext.ts` non usa piu' `toStartOfDay(new Date(...))` e
+  `diffDays(...)` locali per `pending/overdue payments` e `upcoming/overdue tasks`.
+  Ora legge tutto via `todayISODate`, `toBusinessISODate` e
+  `diffBusinessDays` dal layer `dateTimezone`.
+- Effetto pratico: il launcher AI e le superfici read-only non anticipano o
+  ritardano le scadenze quando il browser/Node gira fuori da `Europe/Rome`.
+- Il modulo `tasks` e' stato allineato allo stesso contratto:
+  create/edit/postpone/filtering dei task all-day passano da helper business-date,
+  e `formatDateRange`/`formatDateLong` non slittano piu' di giorno sugli all-day
+  ISO timestamps.
+- Verifica chiusa:
+  - unit: `dateTimezone`, `taskDueDate`, `taskFilters`, `formatDateRange`,
+    `unifiedCrmReadContext`
+  - browser: `tasks.complete.spec.ts` verde
+  - smoke cross-timezone dashboard: verde su `Europe/Rome` e `America/New_York`
+
+Deploy richiesti: nessuno. Nessuna Edge Function remota toccata in questa fase.
 
 ## Update 2026-03-08 (p) — unified_crm_answer robustness + suggestion scoping
 

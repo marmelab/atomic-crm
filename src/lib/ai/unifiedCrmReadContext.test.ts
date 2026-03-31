@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { buildCrmCapabilityRegistry } from "@/lib/semantics/crmCapabilityRegistry";
 import { buildCrmSemanticRegistry } from "@/lib/semantics/crmSemanticRegistry";
@@ -10,6 +10,10 @@ const dateWithOffset = (daysOffset: number) => {
   date.setDate(date.getDate() + daysOffset);
   return date.toISOString();
 };
+
+afterEach(() => {
+  vi.useRealTimers();
+});
 
 describe("unifiedCrmReadContext", () => {
   it("builds a read-only CRM snapshot with recent records and totals", () => {
@@ -278,5 +282,79 @@ describe("unifiedCrmReadContext", () => {
       "payments",
     );
     expect(context.caveats[0]).toContain("read-only");
+  });
+
+  it("classifies tasks and payments by Europe/Rome business date", () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-03-09T23:30:00.000Z"));
+
+    const context = buildUnifiedCrmReadContext({
+      clients: [{ id: "client-1", name: "Mario Rossi", tags: [], created_at: "2026-02-10T10:00:00.000Z" }],
+      contacts: [],
+      quotes: [],
+      projects: [],
+      projectContacts: [],
+      services: [],
+      payments: [
+        {
+          id: "payment-today",
+          client_id: "client-1",
+          payment_type: "saldo",
+          amount: 100,
+          status: "in_attesa",
+          payment_date: "2026-03-09T23:00:00.000Z",
+          created_at: "2026-03-01T10:00:00.000Z",
+        },
+        {
+          id: "payment-overdue",
+          client_id: "client-1",
+          payment_type: "saldo",
+          amount: 50,
+          status: "in_attesa",
+          payment_date: "2026-03-08T23:00:00.000Z",
+          created_at: "2026-03-01T10:00:00.000Z",
+        },
+      ],
+      expenses: [],
+      tasks: [
+        {
+          id: "task-today",
+          client_id: "client-1",
+          text: "Task di oggi",
+          type: "call",
+          due_date: "2026-03-09T23:00:00.000Z",
+          all_day: true,
+          done_date: null,
+          created_at: "2026-03-01T10:00:00.000Z",
+          updated_at: "2026-03-01T10:00:00.000Z",
+        },
+        {
+          id: "task-overdue",
+          client_id: "client-1",
+          text: "Task in ritardo",
+          type: "call",
+          due_date: "2026-03-08T23:00:00.000Z",
+          all_day: true,
+          done_date: null,
+          created_at: "2026-03-01T10:00:00.000Z",
+          updated_at: "2026-03-01T10:00:00.000Z",
+        },
+      ],
+      semanticRegistry: buildCrmSemanticRegistry(),
+      capabilityRegistry: buildCrmCapabilityRegistry(),
+      generatedAt: "2026-03-09T23:30:00.000Z",
+    });
+
+    expect(context.snapshot.counts.overduePayments).toBe(1);
+    expect(context.snapshot.overduePayments[0]?.paymentId).toBe(
+      "payment-overdue",
+    );
+    expect(context.snapshot.overduePayments[0]?.daysOverdue).toBe(1);
+    expect(context.snapshot.counts.upcomingTasks).toBe(1);
+    expect(context.snapshot.upcomingTasks[0]?.taskId).toBe("task-today");
+    expect(context.snapshot.upcomingTasks[0]?.daysUntilDue).toBe(0);
+    expect(context.snapshot.counts.overdueTasks).toBe(1);
+    expect(context.snapshot.overdueTasks[0]?.taskId).toBe("task-overdue");
+    expect(context.snapshot.overdueTasks[0]?.daysOverdue).toBe(1);
   });
 });

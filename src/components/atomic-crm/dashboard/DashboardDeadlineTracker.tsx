@@ -1,4 +1,10 @@
-import { toISODate } from "@/lib/dateTimezone";
+import {
+  addDaysToISODate,
+  diffBusinessDays,
+  formatBusinessDate,
+  toBusinessISODate,
+  todayISODate,
+} from "@/lib/dateTimezone";
 import { CheckCircle2 } from "lucide-react";
 import { useMemo, type ReactNode } from "react";
 import { useCreatePath, useGetList, useUpdate, type Identifier } from "ra-core";
@@ -16,22 +22,18 @@ import { formatCompactCurrency, type DashboardAlerts } from "./dashboardModel";
 
 const LARGE_PAGE = { page: 1, perPage: 1000 };
 
-const toStartOfDay = (date: Date) =>
-  new Date(date.getFullYear(), date.getMonth(), date.getDate());
-
-const diffDays = (from: Date, to: Date) => {
-  const msPerDay = 1000 * 60 * 60 * 24;
-  return Math.floor(
-    (toStartOfDay(to).valueOf() - toStartOfDay(from).valueOf()) / msPerDay,
-  );
-};
-
-
 const formatShortDate = (value?: string | null) => {
   if (!value) return "--";
-  const date = new Date(value);
-  if (Number.isNaN(date.valueOf())) return "--";
-  return date.toLocaleDateString("it-IT", { day: "2-digit", month: "2-digit" });
+  return (
+    formatBusinessDate(
+      value,
+      {
+        day: "2-digit",
+        month: "2-digit",
+      },
+      "it-IT",
+    ) || "--"
+  );
 };
 
 const formatAmount = (value: number) =>
@@ -49,75 +51,89 @@ const getClientName = (
   return clientsById.get(String(clientId))?.name ?? "Cliente";
 };
 
+const compareDateValues = (left?: string | null, right?: string | null) => {
+  const leftIso = left ? toBusinessISODate(left) : null;
+  const rightIso = right ? toBusinessISODate(right) : null;
+
+  if (!leftIso && !rightIso) return 0;
+  if (!leftIso) return 1;
+  if (!rightIso) return -1;
+  return leftIso.localeCompare(rightIso);
+};
+
 export const getOverduePaymentsForDeadlineTracker = ({
   payments,
-  today,
+  todayIso,
 }: {
   payments: Payment[];
-  today: Date;
+  todayIso: string;
 }) =>
   payments
     .filter((payment) => {
       if (!payment.payment_date) {
         return payment.status === "scaduto";
       }
-      const paymentDate = toStartOfDay(new Date(payment.payment_date));
-      if (Number.isNaN(paymentDate.valueOf())) {
+      const paymentDateIso = toBusinessISODate(payment.payment_date);
+      if (!paymentDateIso) {
         return payment.status === "scaduto";
       }
-      return payment.status === "scaduto" || paymentDate < today;
+      return payment.status === "scaduto" || paymentDateIso < todayIso;
     })
     .sort(
       (left, right) =>
-        new Date(left.payment_date ?? left.created_at).valueOf() -
-        new Date(right.payment_date ?? right.created_at).valueOf(),
+        compareDateValues(
+          left.payment_date ?? left.created_at,
+          right.payment_date ?? right.created_at,
+        ),
     );
 
 export const getDueSoonPaymentsForDeadlineTracker = ({
   payments,
-  today,
-  limitDate,
+  todayIso,
+  limitDateIso,
 }: {
   payments: Payment[];
-  today: Date;
-  limitDate: Date;
+  todayIso: string;
+  limitDateIso: string;
 }) =>
   payments
     .filter((payment) => {
       if (payment.status !== "in_attesa" || !payment.payment_date) {
         return false;
       }
-      const paymentDate = toStartOfDay(new Date(payment.payment_date));
-      if (Number.isNaN(paymentDate.valueOf())) {
+      const paymentDateIso = toBusinessISODate(payment.payment_date);
+      if (!paymentDateIso) {
         return false;
       }
-      return paymentDate >= today && paymentDate <= limitDate;
+      return paymentDateIso >= todayIso && paymentDateIso <= limitDateIso;
     })
     .sort(
       (left, right) =>
-        new Date(left.payment_date ?? left.created_at).valueOf() -
-        new Date(right.payment_date ?? right.created_at).valueOf(),
+        compareDateValues(
+          left.payment_date ?? left.created_at,
+          right.payment_date ?? right.created_at,
+        ),
     );
 
 export const getUpcomingTasksForDeadlineTracker = ({
   tasks,
-  today,
-  limitDate,
+  todayIso,
+  limitDateIso,
 }: {
   tasks: ClientTask[];
-  today: Date;
-  limitDate: Date;
+  todayIso: string;
+  limitDateIso: string;
 }) =>
   tasks
     .filter((task) => {
       if (task.done_date) return false;
-      const dueDate = toStartOfDay(new Date(task.due_date));
-      if (Number.isNaN(dueDate.valueOf())) return false;
-      return dueDate >= today && dueDate <= limitDate;
+      const dueDateIso = toBusinessISODate(task.due_date);
+      if (!dueDateIso) return false;
+      return dueDateIso >= todayIso && dueDateIso <= limitDateIso;
     })
     .sort(
       (left, right) =>
-        new Date(left.due_date).valueOf() - new Date(right.due_date).valueOf(),
+        compareDateValues(left.due_date, right.due_date),
     );
 
 // ── Unified card: "Cosa devi fare" ──────────────────────────
@@ -127,9 +143,8 @@ export const DashboardDeadlineTracker = ({
 }: {
   alerts: DashboardAlerts;
 }) => {
-  const today = toStartOfDay(new Date());
-  const limitDate = new Date(today);
-  limitDate.setDate(limitDate.getDate() + 7);
+  const todayIso = todayISODate();
+  const limitDateIso = addDaysToISODate(todayIso, 7);
 
   const createPath = useCreatePath();
 
@@ -165,19 +180,19 @@ export const DashboardDeadlineTracker = ({
 
   const overduePayments = getOverduePaymentsForDeadlineTracker({
     payments: pendingPayments,
-    today,
+    todayIso,
   }).slice(0, 6);
 
   const dueSoonPayments = getDueSoonPaymentsForDeadlineTracker({
     payments: pendingPayments,
-    today,
-    limitDate,
+    todayIso,
+    limitDateIso,
   }).slice(0, 6);
 
   const upcomingTasks = getUpcomingTasksForDeadlineTracker({
     tasks: openTasks,
-    today,
-    limitDate,
+    todayIso,
+    limitDateIso,
   }).slice(0, 8);
 
   const markPaymentAsReceived = (payment: Payment) => {
@@ -185,7 +200,7 @@ export const DashboardDeadlineTracker = ({
       id: payment.id,
       data: {
         status: "ricevuto",
-        payment_date: payment.payment_date ?? toISODate(today),
+        payment_date: payment.payment_date ?? todayIso,
       },
       previousData: payment,
     });
@@ -260,7 +275,9 @@ export const DashboardDeadlineTracker = ({
                 const days = payment.payment_date
                   ? Math.max(
                       1,
-                      Math.abs(diffDays(new Date(payment.payment_date), today)),
+                      Math.abs(
+                        diffBusinessDays(payment.payment_date, todayIso) ?? 0,
+                      ),
                     )
                   : null;
 
@@ -287,7 +304,7 @@ export const DashboardDeadlineTracker = ({
 
               {dueSoonPayments.map((payment) => {
                 const daysUntil = payment.payment_date
-                  ? diffDays(today, new Date(payment.payment_date))
+                  ? diffBusinessDays(todayIso, payment.payment_date)
                   : null;
 
                 return (
@@ -309,7 +326,7 @@ export const DashboardDeadlineTracker = ({
               })}
 
               {upcomingTasks.map((task) => {
-                const daysUntil = diffDays(today, new Date(task.due_date));
+                const daysUntil = diffBusinessDays(todayIso, task.due_date) ?? 0;
                 return (
                   <ActionRow
                     key={`tk-${task.id}`}

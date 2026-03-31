@@ -29,6 +29,7 @@ import {
   getAnnualOperationsSuggestedQuestions,
   type SuggestedQuestion,
 } from "@/lib/analytics/annualAnalysis";
+import { todayISODate } from "@/lib/dateTimezone";
 
 // ── Type guards ──
 
@@ -121,7 +122,8 @@ export const DashboardAnnualAiSummaryCard = ({
 
   const _selectedModel =
     aiConfig?.historicalAnalysisModel ?? defaultAnnualAnalysisModel;
-  const isCurrentYear = year === new Date().getFullYear();
+  const currentYear = Number(todayISODate().slice(0, 4));
+  const isCurrentYear = year === currentYear;
   const suggestedQuestions = getAnnualOperationsSuggestedQuestions({
     year,
     isCurrentYear,
@@ -163,7 +165,7 @@ export const DashboardAnnualAiSummaryCard = ({
   }, []);
 
   // Resolve latest result — visual blocks or markdown
-  const latestResult = resolveLatestResult({ answer, summary });
+  const latestResult = resolveLatestResult({ answer, summary, year });
 
   return (
     <Card className="gap-3 py-4">
@@ -330,6 +332,7 @@ type LatestResult = {
 function resolveLatestResult({
   answer,
   summary,
+  year,
 }: {
   answer:
     | AnnualOperationsAnalyticsAnswer
@@ -339,6 +342,7 @@ function resolveLatestResult({
     | AnnualOperationsAnalyticsSummary
     | AnnualOperationsVisualSummary
     | undefined;
+  year: number;
 }): LatestResult {
   if (answer) {
     if (isVisualAnswer(answer)) {
@@ -349,12 +353,12 @@ function resolveLatestResult({
   if (summary) {
     if (isVisualSummary(summary)) {
       return {
-        label: `Riassunto ${new Date(summary.generatedAt).getFullYear()}`,
+        label: `Riassunto ${year}`,
         blocks: summary.blocks,
       };
     }
     return {
-      label: `Riassunto`,
+      label: `Riassunto ${year}`,
       markdown: summary.summaryMarkdown,
     };
   }

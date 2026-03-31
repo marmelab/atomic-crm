@@ -1,4 +1,13 @@
-import { toISODate } from "@/lib/dateTimezone";
+import {
+  addDaysToISODate,
+  diffBusinessDays,
+  formatBusinessDate,
+  getBusinessMonthIndex,
+  getBusinessMonthKey,
+  getBusinessYear,
+  todayISODate,
+  toBusinessISODate,
+} from "@/lib/dateTimezone";
 import { format } from "date-fns";
 import { it as itLocale } from "date-fns/locale";
 
@@ -99,23 +108,6 @@ const toNumber = (value: unknown) => {
   return 0;
 };
 
-const toStartOfDay = (date: Date) =>
-  new Date(date.getFullYear(), date.getMonth(), date.getDate());
-
-
-const addDays = (date: Date, days: number) => {
-  const next = new Date(date);
-  next.setDate(next.getDate() + days);
-  return next;
-};
-
-const diffDays = (from: Date, to: Date) => {
-  const msPerDay = 1000 * 60 * 60 * 24;
-  return Math.floor(
-    (toStartOfDay(to).valueOf() - toStartOfDay(from).valueOf()) / msPerDay,
-  );
-};
-
 const monthKey = (date: Date) =>
   `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`;
 
@@ -131,11 +123,12 @@ const getServiceNetRevenue = (service: Service) =>
   toNumber(service.fee_other) -
   toNumber(service.discount);
 
-const isCurrentYear = (value?: string, year = new Date().getFullYear()) => {
+const isInBusinessYear = (
+  value?: string,
+  year = Number(todayISODate().slice(0, 4)),
+) => {
   if (!value) return false;
-  const date = new Date(value);
-  if (Number.isNaN(date.valueOf())) return false;
-  return date.getFullYear() === year;
+  return getBusinessYear(value) === year;
 };
 
 export const buildDashboardModel = ({
@@ -157,9 +150,9 @@ export const buildDashboardModel = ({
   fiscalConfig?: FiscalConfig;
   year?: number;
 }): DashboardModel => {
-  const now = new Date();
-  const today = toStartOfDay(now);
-  const nowYear = now.getFullYear();
+  const todayIso = todayISODate();
+  const nowYear = Number(todayIso.slice(0, 4));
+  const nowMonthIndex = Number(todayIso.slice(5, 7)) - 1;
   // Validate year: must be a reasonable value, default to current year
   const selectedYear =
     year != null && Number.isFinite(year) && year >= 2000 && year <= nowYear
@@ -168,19 +161,23 @@ export const buildDashboardModel = ({
   const isSelectedCurrentYear = selectedYear === nowYear;
 
   // For past years use Dec as reference month; for current year use today
-  const referenceDate = isSelectedCurrentYear
-    ? now
-    : new Date(selectedYear, 11, 31);
+  const referenceMonthIndex = isSelectedCurrentYear ? nowMonthIndex : 11;
+  const referenceDate = new Date(
+    Date.UTC(selectedYear, referenceMonthIndex, 15, 12, 0, 0),
+  );
   const currentMonthKey = monthKey(referenceDate);
   const previousMonthDate = new Date(
-    referenceDate.getFullYear(),
-    referenceDate.getMonth() - 1,
-    1,
+    Date.UTC(selectedYear, referenceMonthIndex - 1, 15, 12, 0, 0),
   );
   const previousMonthKey = monthKey(previousMonthDate);
 
-  const asOfDate = toISODate(today);
-  const asOfDateLabel = today.toLocaleDateString("it-IT");
+  const asOfDate = todayIso;
+  const asOfDateLabel =
+    formatBusinessDate(todayIso, {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+    }) ?? todayIso;
   const monthlyTotals = new Map<
     string,
     { revenue: number; totalKm: number; kmCost: number }
@@ -202,10 +199,10 @@ export const buildDashboardModel = ({
 
   for (const service of services) {
     if (!service.service_date) continue;
-    const serviceDate = new Date(service.service_date);
-    if (Number.isNaN(serviceDate.valueOf())) continue;
-    if (serviceDate.getFullYear() !== selectedYear) continue;
-    if (isSelectedCurrentYear && toStartOfDay(serviceDate) > today) {
+    const serviceDateIso = toBusinessISODate(service.service_date);
+    if (!serviceDateIso) continue;
+    if (getBusinessYear(service.service_date) !== selectedYear) continue;
+    if (isSelectedCurrentYear && serviceDateIso > todayIso) {
       futureServicesExcludedCount += 1;
       continue;
     }
@@ -213,7 +210,8 @@ export const buildDashboardModel = ({
     const project = operationsProjectById.get(String(service.project_id));
 
     const revenue = getServiceNetRevenue(service);
-    const key = monthKey(serviceDate);
+    const key = getBusinessMonthKey(service.service_date);
+    if (!key) continue;
     const bucket = monthlyTotals.get(key) ?? {
       revenue: 0,
       totalKm: 0,
@@ -235,7 +233,7 @@ export const buildDashboardModel = ({
     pushQualityFlag("future_services_excluded");
   }
 
-  const lastVisibleMonthIndex = isSelectedCurrentYear ? now.getMonth() : 11;
+  const lastVisibleMonthIndex = referenceMonthIndex;
   const visibleMonths = Array.from(
     { length: lastVisibleMonthIndex + 1 },
     (_, index) => new Date(selectedYear, index, 1),
@@ -291,10 +289,10 @@ export const buildDashboardModel = ({
   // Filter payments and quotes by selected year
   const yearPayments = payments.filter((payment) => {
     const dateStr = payment.payment_date ?? payment.created_at;
-    return isCurrentYear(dateStr, selectedYear);
+    return isInBusinessYear(dateStr, selectedYear);
   });
   const yearQuotes = quotes.filter((quote) =>
-    isCurrentYear(quote.created_at, selectedYear),
+    isInBusinessYear(quote.created_at, selectedYear),
   );
 
   // Exclude refunds from pending alerts (refunds are outgoing, not incoming)
@@ -422,10 +420,10 @@ export const buildDashboardModel = ({
   const topClientRevenue = new Map<string, number>();
   for (const service of services) {
     if (!service.service_date) continue;
-    const serviceDate = new Date(service.service_date);
-    if (Number.isNaN(serviceDate.valueOf())) continue;
-    if (serviceDate.getFullYear() !== selectedYear) continue;
-    if (isSelectedCurrentYear && toStartOfDay(serviceDate) > today) continue;
+    const serviceDateIso = toBusinessISODate(service.service_date);
+    if (!serviceDateIso) continue;
+    if (getBusinessYear(service.service_date) !== selectedYear) continue;
+    if (isSelectedCurrentYear && serviceDateIso > todayIso) continue;
     const project = projectById.get(String(service.project_id));
     const clientId = project
       ? String(project.client_id)
@@ -459,9 +457,7 @@ export const buildDashboardModel = ({
   const paymentAlerts = pendingPayments
     .map((payment) => {
       const paymentDate = payment.payment_date;
-      const parsedDate = paymentDate ? new Date(paymentDate) : null;
-      const validDate =
-        parsedDate && !Number.isNaN(parsedDate.valueOf()) ? parsedDate : null;
+      const paymentDateIso = paymentDate ? toBusinessISODate(paymentDate) : null;
       const clientName =
         clientById.get(
           payment.client_id != null ? String(payment.client_id) : "",
@@ -469,7 +465,9 @@ export const buildDashboardModel = ({
       const project = payment.project_id
         ? projectById.get(String(payment.project_id))
         : undefined;
-      const daysOffset = validDate ? diffDays(today, validDate) : undefined;
+      const daysOffset = paymentDateIso
+        ? (diffBusinessDays(todayIso, paymentDateIso) ?? undefined)
+        : undefined;
       const isOverdue =
         payment.status === "scaduto" || (daysOffset != null && daysOffset < 0);
       const isDueSoon =
@@ -501,9 +499,9 @@ export const buildDashboardModel = ({
 
   const upcomingServices = services
     .map((service) => {
-      const date = new Date(service.service_date);
-      if (Number.isNaN(date.valueOf())) return null;
-      const daysAhead = diffDays(today, date);
+      const serviceDateIso = toBusinessISODate(service.service_date);
+      if (!serviceDateIso) return null;
+      const daysAhead = diffBusinessDays(todayIso, serviceDateIso) ?? 0;
       if (daysAhead < 0 || daysAhead > 14) return null;
       const project = projectById.get(String(service.project_id));
       const clientName = project
@@ -524,21 +522,23 @@ export const buildDashboardModel = ({
     .sort((a, b) => a.daysAhead - b.daysAhead)
     .slice(0, 6);
 
-  const unansweredThreshold = addDays(today, -7);
+  const unansweredThresholdIso = addDaysToISODate(todayIso, -7);
   const unansweredQuotes = quotes
     .map((quote) => {
       if (!unansweredQuoteStatuses.has(quote.status)) return null;
       if (!quote.sent_date || quote.response_date) return null;
-      const sentDate = new Date(quote.sent_date);
-      if (Number.isNaN(sentDate.valueOf())) return null;
-      if (sentDate > unansweredThreshold) return null;
+      const sentDateIso = toBusinessISODate(quote.sent_date);
+      if (!sentDateIso) return null;
+      if (sentDateIso > unansweredThresholdIso) return null;
       return {
         id: String(quote.id),
         clientName: clientById.get(String(quote.client_id))?.name ?? "Cliente",
         description: quote.description || "Preventivo",
         status: quote.status,
         sentDate: quote.sent_date,
-        daysWaiting: Math.abs(diffDays(sentDate, today)),
+        daysWaiting: Math.abs(
+          diffBusinessDays(sentDateIso, todayIso) ?? 0,
+        ),
         amount: toNumber(quote.amount),
       } satisfies UnansweredQuoteAlert;
     })
@@ -558,9 +558,7 @@ export const buildDashboardModel = ({
 
   for (const expense of expenses) {
     if (!expense.expense_date) continue;
-    const date = new Date(expense.expense_date);
-    if (Number.isNaN(date.valueOf()) || date.getFullYear() !== selectedYear)
-      continue;
+    if (getBusinessYear(expense.expense_date) !== selectedYear) continue;
     if (expense.expense_type === "credito_ricevuto") continue;
     const amount = getExpenseAmount(expense);
     annualExpensesTotal += amount;
@@ -603,7 +601,7 @@ export const buildDashboardModel = ({
 
   // ── Cash flow forecast (next 30 days, current year only) ───────────
   const cashFlowForecast = isSelectedCurrentYear
-    ? buildCashFlowForecast({ pendingPayments, today })
+    ? buildCashFlowForecast({ pendingPayments, todayIso })
     : null;
 
   const fiscal = fiscalConfig
@@ -636,11 +634,10 @@ export const buildDashboardModel = ({
 
   // Post-processing: inject fiscal deadline outflows into cash flow forecast
   if (cashFlowForecast && fiscal) {
-    const horizon = addDays(today, cashFlowForecast.horizonDays);
+    const horizonIso = addDaysToISODate(todayIso, cashFlowForecast.horizonDays);
     for (const deadline of fiscal.deadlines) {
       if (deadline.isPast || deadline.totalAmount === 0) continue;
-      const deadlineDate = new Date(deadline.date);
-      if (deadlineDate > horizon) continue;
+      if (deadline.date > horizonIso) continue;
       cashFlowForecast.outflows.push({
         label: deadline.label,
         amount: deadline.totalAmount,
@@ -737,9 +734,10 @@ const buildYearOverYear = ({
 
   const isInPeriod = (dateStr: string | undefined, year: number) => {
     if (!dateStr) return false;
-    const date = new Date(dateStr);
-    if (Number.isNaN(date.valueOf())) return false;
-    return date.getFullYear() === year && date.getMonth() <= maxMonth;
+    const businessYear = getBusinessYear(dateStr);
+    const businessMonthIndex = getBusinessMonthIndex(dateStr);
+    if (businessYear == null || businessMonthIndex == null) return false;
+    return businessYear === year && businessMonthIndex <= maxMonth;
   };
 
   // Previous year revenue (competence)
@@ -787,22 +785,22 @@ const buildYearOverYear = ({
 
 const buildCashFlowForecast = ({
   pendingPayments,
-  today,
+  todayIso,
 }: {
   pendingPayments: Payment[];
-  today: Date;
+  todayIso: string;
 }): CashFlowForecast => {
   const horizonDays = 30;
-  const horizon = addDays(today, horizonDays);
+  const horizonIso = addDaysToISODate(todayIso, horizonDays);
   const inflows: CashFlowItem[] = [];
   const outflows: CashFlowItem[] = [];
 
   // Inflows: pending payments with a date within 30 days
   for (const payment of pendingPayments) {
     if (!payment.payment_date) continue;
-    const date = new Date(payment.payment_date);
-    if (Number.isNaN(date.valueOf())) continue;
-    if (date < today || date > horizon) continue;
+    const paymentDateIso = toBusinessISODate(payment.payment_date);
+    if (!paymentDateIso) continue;
+    if (paymentDateIso < todayIso || paymentDateIso > horizonIso) continue;
     inflows.push({
       label: `Pagamento ${payment.notes || payment.payment_type || ""}`.trim(),
       amount: toNumber(payment.amount),

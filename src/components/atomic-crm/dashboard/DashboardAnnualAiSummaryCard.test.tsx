@@ -3,7 +3,7 @@
 import "@/setupTests";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 const generateAnnualOperationsAnalyticsSummary = vi.fn();
 const askAnnualOperationsQuestion = vi.fn();
@@ -51,6 +51,10 @@ describe("DashboardAnnualAiSummaryCard", () => {
     generateAnnualOperationsAnalyticsSummary.mockReset();
     askAnnualOperationsQuestion.mockReset();
     notify.mockReset();
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
   });
 
   it("renders primary summary button and suggested question chips", () => {
@@ -118,5 +122,27 @@ describe("DashboardAnnualAiSummaryCard", () => {
         "Nel 2025 il lavoro dell'anno e concentrato su pochi clienti forti.",
       ),
     ).toBeInTheDocument();
+    expect(await screen.findByText("Riassunto 2025")).toBeInTheDocument();
+  });
+
+  it("treats the selected year as current using Europe/Rome business date", () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-12-31T23:30:00.000Z"));
+
+    const queryClient = new QueryClient({
+      defaultOptions: {
+        queries: { retry: false },
+        mutations: { retry: false },
+      },
+    });
+
+    render(
+      <QueryClientProvider client={queryClient}>
+        <DashboardAnnualAiSummaryCard year={2027} />
+      </QueryClientProvider>,
+    );
+
+    expect(screen.getByText("Sto crescendo?")).toBeInTheDocument();
+    expect(screen.queryByText("Com'è andato?")).not.toBeInTheDocument();
   });
 });

@@ -23,6 +23,8 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
+import { formatBusinessDate } from "@/lib/dateTimezone";
+
 import { formatCurrencyPrecise } from "./dashboardModel";
 import type { FiscalDeadline } from "./fiscalModel";
 import type { FiscalPaymentRecord } from "./useFiscalPaymentTracking";
@@ -166,9 +168,7 @@ const DeadlineRow = ({
         ? "Oggi"
         : `${deadline.daysUntil}g`;
 
-  const formattedDate = new Date(
-    deadline.date + "T00:00:00",
-  ).toLocaleDateString("it-IT", {
+  const formattedDate = formatBusinessDate(deadline.date, {
     day: "2-digit",
     month: "long",
   });

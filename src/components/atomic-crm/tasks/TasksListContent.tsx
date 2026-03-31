@@ -4,6 +4,10 @@ import { Calendar, X } from "lucide-react";
 import { taskFilters, isBeforeFriday } from "./taskFilters";
 import { TasksListEmpty } from "../dashboard/TasksListEmpty";
 import { TasksListFilter } from "../dashboard/TasksListFilter";
+import {
+  endOfBusinessDayISOString,
+  startOfBusinessDayISOString,
+} from "@/lib/dateTimezone";
 
 export const TasksListContent = () => {
   const [dateFrom, setDateFrom] = useState("");
@@ -30,8 +34,18 @@ export const TasksListContent = () => {
 
   const dateRangeFilter: Record<string, string> = {
     "done_date@is": null as unknown as string,
-    ...(dateFrom ? { "due_date@gte": dateFrom } : {}),
-    ...(dateTo ? { "due_date@lte": `${dateTo}T23:59:59.999Z` } : {}),
+    ...(dateFrom
+      ? {
+          "due_date@gte":
+            startOfBusinessDayISOString(dateFrom) ?? dateFrom,
+        }
+      : {}),
+    ...(dateTo
+      ? {
+          "due_date@lte":
+            endOfBusinessDayISOString(dateTo) ?? `${dateTo}T23:59:59.999Z`,
+        }
+      : {}),
   };
 
   return (

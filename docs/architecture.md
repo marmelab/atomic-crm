@@ -7,7 +7,7 @@ di fotografo, videomaker e web developer. Single-user, interfaccia italiana.
 
 Stato del documento:
 
-- `canonical` — ultimo aggiornamento: 2026-03-08
+- `canonical` — ultimo aggiornamento: 2026-03-31
 - descrive la fotografia implementativa ad alto livello
 - le vecchie "sessioni" citate nel file sono indizi storici, non la fonte
   primaria della verita' operativa se entrano in conflitto con codice o
@@ -15,6 +15,9 @@ Stato del documento:
 
 ## Changelog
 
+- 2026-03-31: Timezone bonifica phase 4 — `DashboardAnnual`, `MobileDashboard`, `DashboardAnnualAiSummaryCard`, `DashboardDeadlinesCard`, `useGenerateFiscalTasks` and the shared Edge Function fiscal deadline flow now consume/generate business dates via `dateTimezone`; `fiscal_deadline_check` derives `currentYear` from the Europe/Rome business date instead of runtime-local `Date`.
+- 2026-03-31: Timezone bonifica phase 3 — `dashboardModel`, `fiscalModel`, `fiscalDeadlines` and payment reminder flows now classify years/months/day-deltas via `dateTimezone` business-date helpers instead of browser-local `Date` math; payment reminder emails now pass an explicit headline to the shared HTML renderer.
+- 2026-03-31: Timezone bonifica phase 2 — task all-day flows now normalize due_date on the Europe/Rome business day across create/edit/postpone/list filters, `formatDateRange`/`formatDateLong` no longer drift on all-day timestamps, and `unifiedCrmReadContext` classifies overdue/upcoming payments/tasks via business-date helpers instead of browser-local `Date` math.
 - 2026-03-31: Project list: batch client fetch via useGetMany (replaces N+1 useGetOne per row), budget displayed in mobile card via formatCurrencyPrecise.
 - 2026-03-30: Bugfix audit — 9 verified fixes: Payment.client_id nullable alignment (types.ts + consumer guards in dashboardModel/PaymentListContent), updated_at added to Service/Payment/Expense types, client tags default, supplier dropdown canonical import (credito_ricevuto), budget formatCurrencyPrecise unification (ProjectShow+Kanban), expense mobile card supplier name, DashboardKpiCards compact prop implementation, DeltaArrow 0% display, JSON.parse defensive try-catch in dataProvider.
 - 2026-03-09: fix(settings/mobile): Save bar now inline (scrollable) on mobile instead of fixed overlay that clashed with MobileNavigation. Desktop keeps fixed bar. fix(ai/invoice-draft): when user mentions "preventivo" but no open quotes exist in context, parser returns null (delegates to AI model) instead of misleading fallback to unrelated client surface.
@@ -1123,8 +1126,8 @@ tags
 
 | File | Scopo |
 |------|-------|
-| `lib/dateTimezone.ts` | `BUSINESS_TIMEZONE` (`Europe/Rome`), `toISODate(date)`, `todayISODate()` — conversione Date → `YYYY-MM-DD` nel fuso aziendale italiano. Sostituisce i pattern `toISOString().slice(0,10)` che ignorano il fuso e causano date sbagliate nelle ore notturne (CET/CEST). |
-| `supabase/functions/_shared/dateTimezone.ts` | Stessa API del modulo client (`BUSINESS_TIMEZONE`, `toISODate`, `todayISODate`) + `formatDateInTimezone(date, tz)` per timezone configurabili. Duplicazione intenzionale: runtime diversi (Vite vs Deno). |
+| `lib/dateTimezone.ts` | `BUSINESS_TIMEZONE` (`Europe/Rome`), `toISODate(date)`, `todayISODate()`, `toBusinessISODate(value)`, `startOfBusinessDayISOString(value)`, `endOfBusinessDayISOString(value)`, `diffBusinessDays(from,to)`, `formatBusinessDate(value)` — layer unico per business-date e day-boundary italiane. Sostituisce i pattern `toISOString().slice(0,10)`, `new Date("YYYY-MM-DD")` e i delta giorni basati sul fuso del browser. |
+| `supabase/functions/_shared/dateTimezone.ts` | Parity quasi completa col modulo client: `BUSINESS_TIMEZONE`, `toISODate`, `todayISODate`, `toBusinessISODate`, `getBusinessYear`, `startOfBusinessDayISOString`, `diffBusinessDays`, `formatBusinessDate` + `formatDateInTimezone(date, tz)` per timezone configurabili. Duplicazione intenzionale: runtime diversi (Vite vs Deno). |
 
 ## Tipi TypeScript (types.ts)
 

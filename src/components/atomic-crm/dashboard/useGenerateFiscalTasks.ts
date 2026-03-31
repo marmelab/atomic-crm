@@ -1,6 +1,8 @@
 import { useCallback, useMemo } from "react";
 import { useCreate, useDelete, useGetList } from "ra-core";
 
+import { startOfBusinessDayISOString } from "@/lib/dateTimezone";
+
 import type { ClientTask } from "../types";
 import { fiscalTaskTypes } from "../root/defaultConfiguration";
 import type { FiscalDeadline } from "./fiscalModelTypes";
@@ -74,7 +76,8 @@ export const useGenerateFiscalTasks = ({
           data: {
             text: `${item.description}${amountNote}`,
             type: taskType,
-            due_date: new Date(deadline.date + "T00:00:00").toISOString(),
+            due_date:
+              startOfBusinessDayISOString(deadline.date) ?? deadline.date,
             done_date: null,
             client_id: null,
           },

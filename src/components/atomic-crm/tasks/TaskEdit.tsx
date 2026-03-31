@@ -10,6 +10,7 @@ import {
 } from "@/components/ui/dialog";
 
 import { TaskFormContent } from "./TaskFormContent";
+import { normalizeTaskDueDateForMutation } from "./taskDueDate";
 
 export const TaskEdit = ({
   open,
@@ -28,6 +29,18 @@ export const TaskEdit = ({
           id={taskId}
           resource="client_tasks"
           className="mt-0"
+          transform={(data) => {
+            if (typeof data.due_date === "string") {
+              return {
+                ...data,
+                due_date: normalizeTaskDueDateForMutation(
+                  data.due_date,
+                  data.all_day === true,
+                ),
+              };
+            }
+            return data;
+          }}
           mutationOptions={{
             onSuccess: () => {
               close();

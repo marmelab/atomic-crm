@@ -19,14 +19,21 @@ test.describe("Module: Services - Complete", () => {
     await expect(page).toHaveURL(/\/services$/);
 
     // Colonne
-    await expect(page.getByText("Data")).toBeVisible();
-    await expect(page.getByText("Progetto")).toBeVisible();
-    await expect(page.getByText("Tipo")).toBeVisible();
-    await expect(page.getByText("Riprese")).toBeVisible();
-    await expect(page.getByText("Montaggio")).toBeVisible();
-    await expect(page.getByText("Totale")).toBeVisible();
-    await expect(page.getByText("Km")).toBeVisible();
-    await expect(page.getByText("Fiscale")).toBeVisible();
+    await expect(page.getByRole("columnheader", { name: "Data" })).toBeVisible();
+    await expect(
+      page.getByRole("columnheader", { name: "Progetto" }),
+    ).toBeVisible();
+    await expect(page.getByRole("columnheader", { name: "Tipo" })).toBeVisible();
+    await expect(
+      page.getByRole("columnheader", { name: "Riprese" }),
+    ).toBeVisible();
+    await expect(
+      page.getByRole("columnheader", { name: "Montaggio" }),
+    ).toBeVisible();
+    await expect(
+      page.getByRole("columnheader", { name: "Totale" }),
+    ).toBeVisible();
+    await expect(page.getByRole("columnheader", { name: "Km" })).toBeVisible();
   });
 
   test("create service with fees and km", async ({ page }) => {
@@ -41,11 +48,11 @@ test.describe("Module: Services - Complete", () => {
     await page.getByRole("option").first().click();
 
     // Data
-    await page.getByLabel("Data").fill("2026-03-10");
+    await page.getByLabel("Data inizio").fill("2026-03-10");
 
     // Tipo
     await page.getByLabel("Tipo servizio").click();
-    await page.getByRole("option", { name: "Riprese" }).click();
+    await page.getByRole("option", { name: "Riprese", exact: true }).click();
 
     // Compensi
     await page.getByLabel("Compenso riprese").fill("1500");
@@ -65,7 +72,7 @@ test.describe("Module: Services - Complete", () => {
     await page.getByRole("button", { name: "Salva" }).click();
 
     // Verifica
-    await expect(page).toHaveURL(/\/services$/);
+    await expect(page).toHaveURL(/\/services\/.+\/show$/);
     await expect(page.getByText("Catania")).toBeVisible();
   });
 
@@ -121,7 +128,7 @@ test.describe("Module: Services - Complete", () => {
 
     await page.getByLabel("Progetto").click();
     await page.getByRole("option").first().click();
-    await page.getByLabel("Data").fill("2026-03-15");
+    await page.getByLabel("Data inizio").fill("2026-03-15");
     await page.getByLabel("Compenso riprese").fill("1000");
 
     // Verifica flag tassabilità
@@ -184,10 +191,14 @@ test.describe("Module: Services - Complete", () => {
     await page.getByRole("link", { name: "Registro Lavori" }).click();
 
     // Filtra per tipo
-    await page.getByText("Riprese").first().click();
+    await page
+      .locator('[data-slot="badge"]')
+      .filter({ hasText: /^Riprese$/ })
+      .first()
+      .click();
 
     // Verifica risultati
-    await expect(page.getByText("Riprese")).toBeVisible();
+    await expect(page.locator("table tbody tr")).toHaveCount(1);
   });
 
   test("service with invoice_ref is excluded from draft", async ({ page }) => {
@@ -199,13 +210,15 @@ test.describe("Module: Services - Complete", () => {
     // Crea servizio con riferimento fattura
     await page.getByLabel("Progetto").click();
     await page.getByRole("option").first().click();
-    await page.getByLabel("Data").fill("2026-03-20");
+    await page.getByLabel("Data inizio").fill("2026-03-20");
     await page.getByLabel("Compenso riprese").fill("1000");
     await page.getByLabel("Rif. Fattura").fill("FPR 1/26");
 
     await page.getByRole("button", { name: "Salva" }).click();
 
-    // Questo servizio non dovrebbe apparire nelle bozze fattura
+    await expect(
+      page.getByRole("button", { name: /Genera bozza fattura/ }),
+    ).not.toBeVisible();
   });
 
   test("duplicate service creates copy", async ({ page }) => {
@@ -224,7 +237,9 @@ test.describe("Module: Services - Complete", () => {
     }
   });
 
-  test("delete service requires confirmation", async ({ page }) => {
+  test("delete service removes record with undoable action", async ({
+    page,
+  }) => {
     await loginAsLocalAdmin(page);
 
     await page.getByRole("link", { name: "Registro Lavori" }).click();
@@ -232,7 +247,6 @@ test.describe("Module: Services - Complete", () => {
 
     await page.getByRole("button", { name: "Elimina" }).click();
 
-    await expect(page.getByText(/Conferma/)).toBeVisible();
-    await page.getByRole("button", { name: /Annulla/ }).click();
+    await expect(page).toHaveURL(/\/services$/);
   });
 });

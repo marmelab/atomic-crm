@@ -9,7 +9,7 @@ test.describe("Full UI Audit", () => {
 
   test("Dashboard loads with all KPIs", async ({ page }) => {
     await loginAsLocalAdmin(page);
-    await expect(page.getByText("Valore del lavoro dell'anno")).toBeVisible();
+    await expect(page.getByText("Lavoro dell'anno")).toBeVisible();
     // Verifica che ci sia un importo in euro nella dashboard
     await expect(
       page.locator("text=/\\d+[.,]?\\d*\\s*€/").first(),

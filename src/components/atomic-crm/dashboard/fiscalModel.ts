@@ -11,7 +11,14 @@ import {
   calculateKmReimbursement,
   calculateServiceNetValue,
 } from "@/lib/semantics/crmSemanticRegistry";
-import { buildDeadlines, toStartOfDay, diffDays } from "./fiscalDeadlines";
+import { buildDeadlines } from "./fiscalDeadlines";
+import {
+  diffBusinessDays,
+  getBusinessMonthIndex,
+  getBusinessYear,
+  todayISODate,
+  toBusinessISODate,
+} from "@/lib/dateTimezone";
 import type {
   AtecoBreakdownPoint,
   BusinessHealthKpis,
@@ -95,9 +102,7 @@ export const getExpenseAmount = (expense: Expense) => {
 
 const isInYear = (value: string | undefined, year: number) => {
   if (!value) return false;
-  const date = new Date(value);
-  if (Number.isNaN(date.valueOf())) return false;
-  return date.getFullYear() === year;
+  return getBusinessYear(value) === year;
 };
 
 // ── Main builder ──────────────────────────────────────────────────────
@@ -121,9 +126,8 @@ export const buildFiscalModel = ({
   fiscalConfig: FiscalConfig;
   year?: number;
 }): FiscalModel => {
-  const now = new Date();
-  const today = toStartOfDay(now);
-  const nowYear = now.getFullYear();
+  const todayIso = todayISODate();
+  const nowYear = Number(todayIso.slice(0, 4));
   // Validate year: must be a reasonable value, default to current year
   const currentYear =
     year != null && Number.isFinite(year) && year >= 2000 && year <= nowYear
@@ -131,7 +135,9 @@ export const buildFiscalModel = ({
       : nowYear;
   const isSelectedCurrentYear = currentYear === nowYear;
   // Past years have 12 months of complete data; current year uses months elapsed
-  const currentMonth = isSelectedCurrentYear ? now.getMonth() + 1 : 12;
+  const currentMonth = isSelectedCurrentYear
+    ? (getBusinessMonthIndex(todayIso) ?? 0) + 1
+    : 12;
   const monthsOfData = Math.max(1, currentMonth);
   const yearPayments = payments.filter((payment) =>
     isInYear(payment.payment_date ?? payment.created_at, currentYear),
@@ -160,14 +166,14 @@ export const buildFiscalModel = ({
   const categoryRevenue = new Map<string, number>();
   const categoryExpenses = new Map<string, number>();
   const clientRevenue = new Map<string, number>();
-  const projectEarliestService = new Map<string, Date>();
-  const clientEarliestFlatService = new Map<string, Date>();
+  const projectEarliestService = new Map<string, string>();
+  const clientEarliestFlatService = new Map<string, string>();
   const defaultTaxProfile = fiscalConfig.taxProfiles[0];
 
   for (const service of services) {
     if (!service.service_date) continue;
-    const date = new Date(service.service_date);
-    if (Number.isNaN(date.valueOf()) || date.getFullYear() !== currentYear)
+    const serviceDateIso = toBusinessISODate(service.service_date);
+    if (!serviceDateIso || getBusinessYear(service.service_date) !== currentYear)
       continue;
     const project = service.project_id
       ? projectById.get(String(service.project_id))
@@ -183,8 +189,8 @@ export const buildFiscalModel = ({
           (clientRevenue.get(clientId) ?? 0) + revenue,
         );
         const existingFlat = clientEarliestFlatService.get(clientId);
-        if (!existingFlat || date < existingFlat) {
-          clientEarliestFlatService.set(clientId, date);
+        if (!existingFlat || serviceDateIso < existingFlat) {
+          clientEarliestFlatService.set(clientId, serviceDateIso);
         }
       }
       continue;
@@ -201,8 +207,8 @@ export const buildFiscalModel = ({
 
     const projectId = String(service.project_id);
     const existing = projectEarliestService.get(projectId);
-    if (!existing || date < existing) {
-      projectEarliestService.set(projectId, date);
+    if (!existing || serviceDateIso < existing) {
+      projectEarliestService.set(projectId, serviceDateIso);
     }
   }
 
@@ -219,12 +225,7 @@ export const buildFiscalModel = ({
   for (const payment of payments) {
     if (payment.status !== "ricevuto") continue;
     if (!payment.payment_date) continue;
-    const payDate = new Date(payment.payment_date);
-    if (
-      Number.isNaN(payDate.valueOf()) ||
-      payDate.getFullYear() !== currentYear
-    )
-      continue;
+    if (getBusinessYear(payment.payment_date) !== currentYear) continue;
 
     // Rimborsi al cliente riducono la base imponibile
     const isRefund = payment.payment_type === "rimborso";
@@ -281,9 +282,7 @@ export const buildFiscalModel = ({
 
   for (const expense of expenses) {
     if (!expense.expense_date) continue;
-    const date = new Date(expense.expense_date);
-    if (Number.isNaN(date.valueOf()) || date.getFullYear() !== currentYear)
-      continue;
+    if (getBusinessYear(expense.expense_date) !== currentYear) continue;
     if (expense.expense_type === "credito_ricevuto") continue; // credits reduce expenses
     const amount = getExpenseAmount(expense);
     if (!expense.project_id) {
@@ -375,7 +374,7 @@ export const buildFiscalModel = ({
     stimaInpsAnnuale,
     annoInizioAttivita: fiscalConfig.annoInizioAttivita,
     currentYear,
-    today,
+    todayIso,
   });
 
   // ── Business Health KPIs ──────────────────────────────────────────
@@ -411,13 +410,12 @@ export const buildFiscalModel = ({
   const dsoValues: number[] = [];
   for (const payment of yearPayments) {
     if (payment.status !== "ricevuto" || !payment.payment_date) continue;
-    const payDate = new Date(payment.payment_date);
-    if (Number.isNaN(payDate.valueOf())) continue;
     const earliestService = payment.project_id
       ? projectEarliestService.get(String(payment.project_id))
       : clientEarliestFlatService.get(String(payment.client_id));
     if (!earliestService) continue;
-    const days = diffDays(earliestService, payDate);
+    const days = diffBusinessDays(earliestService, payment.payment_date);
+    if (days == null) continue;
     if (days >= 0) dsoValues.push(days);
   }
   const dso =

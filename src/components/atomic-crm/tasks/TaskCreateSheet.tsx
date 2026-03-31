@@ -8,6 +8,7 @@ import {
 } from "ra-core";
 import { CreateSheet } from "../misc/CreateSheet";
 import { TaskFormContent } from "./TaskFormContent";
+import { normalizeTaskDueDateForMutation } from "./taskDueDate";
 
 export interface TaskCreateSheetProps {
   open: boolean;
@@ -56,10 +57,14 @@ export const TaskCreateSheet = ({
         due_date: todayISODate(),
       }}
       transform={(data) => {
-        if (data.all_day) {
-          const dueDate = new Date(data.due_date);
-          dueDate.setHours(0, 0, 0, 0);
-          return { ...data, due_date: dueDate.toISOString() };
+        if (typeof data.due_date === "string") {
+          return {
+            ...data,
+            due_date: normalizeTaskDueDateForMutation(
+              data.due_date,
+              data.all_day === true,
+            ),
+          };
         }
         return data;
       }}
