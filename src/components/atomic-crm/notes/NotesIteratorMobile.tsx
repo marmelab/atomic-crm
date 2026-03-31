@@ -1,7 +1,7 @@
 import type { Identifier } from "ra-core";
 import {
-  InfinitePaginationContext,
   useGetIdentity,
+  useListContext,
   useTimeout,
   useTranslate,
 } from "ra-core";
@@ -16,7 +16,6 @@ import { Status } from "../misc/Status";
 import { useGetSalesName } from "../sales/useGetSalesName";
 import type { ContactNote } from "../types";
 import { InfinitePagination } from "../misc/InfinitePagination";
-import { useAddInfinitePagination } from "./useAddInfinitePagination";
 
 export const NotesIteratorMobile = ({
   contactId,
@@ -25,8 +24,12 @@ export const NotesIteratorMobile = ({
   contactId: Identifier;
   showStatus?: boolean;
 }) => {
-  const { data, error, isPending, infinitePaginationContextValue, refetch } =
-    useAddInfinitePagination();
+  const {
+    data = [],
+    error,
+    isPending,
+    refetch,
+  } = useListContext<ContactNote>();
   const translate = useTranslate();
   const oneSecondHasPassed = useTimeout(1000);
   if (isPending) {
@@ -70,9 +73,9 @@ export const NotesIteratorMobile = ({
   }
 
   return (
-    <InfinitePaginationContext.Provider value={infinitePaginationContextValue}>
+    <>
       <div className="divide-y">
-        {data?.map((note) => (
+        {data.map((note) => (
           <NoteMobile
             key={note.id}
             note={note}
@@ -82,7 +85,7 @@ export const NotesIteratorMobile = ({
         ))}
       </div>
       <InfinitePagination />
-    </InfinitePaginationContext.Provider>
+    </>
   );
 };
 
