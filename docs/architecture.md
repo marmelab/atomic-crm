@@ -1152,6 +1152,7 @@ tags
 |------|-------|
 | `lib/dateTimezone.ts` | `BUSINESS_TIMEZONE` (`Europe/Rome`), `toISODate(date)`, `todayISODate()`, `toBusinessISODate(value)`, `startOfBusinessDayISOString(value)`, `endOfBusinessDayISOString(value)`, `diffBusinessDays(from,to)`, `formatBusinessDate(value)` — layer unico per business-date e day-boundary italiane. Sostituisce i pattern `toISOString().slice(0,10)`, `new Date("YYYY-MM-DD")` e i delta giorni basati sul fuso del browser. |
 | `supabase/functions/_shared/dateTimezone.ts` | Parity quasi completa col modulo client: `BUSINESS_TIMEZONE`, `toISODate`, `todayISODate`, `toBusinessISODate`, `getBusinessYear`, `startOfBusinessDayISOString`, `diffBusinessDays`, `formatBusinessDate` + `formatDateInTimezone(date, tz)` per timezone configurabili. Duplicazione intenzionale: runtime diversi (Vite vs Deno). |
+| `supabase/functions/_shared/parseAiVisualBlocks.ts` | Helper condiviso per il parsing JSON del visual mode AI. Esporta `parseAiVisualBlocks(outputText)` (wrappa `JSON.parse`) e `InvalidAiOutputError` (distinguibile da errori API generici). Le Edge Function con visual mode devono usare questo helper al posto di `JSON.parse` diretto, cosi' i catch block possono rispondere 502 vs 500 in modo semanticamente corretto. |
 
 ## Tipi TypeScript (types.ts)
 
