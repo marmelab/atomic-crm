@@ -41,11 +41,13 @@ describe("ContactList", () => {
   });
 
   it("renders an error notification when loading contacts fails", async () => {
+    vi.spyOn(console, "error").mockImplementation(() => {});
     const screen = await render(<DesktopError />);
 
     await expect
       .element(screen.getByText("Error loading contacts"))
       .toBeVisible();
+    vi.restoreAllMocks();
   });
 
   it("shows the bulk tag button only after selecting contacts", async () => {
