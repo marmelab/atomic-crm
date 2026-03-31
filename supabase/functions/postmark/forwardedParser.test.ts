@@ -1,4 +1,4 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi } from "vitest";
 import {
   stripForwardingHeaderBlock,
   stripSubjectForwardingPrefix,
@@ -231,8 +231,10 @@ describe("forwardedParser", () => {
     });
 
     it("should return original subject if stripping results in empty string", () => {
+      vi.spyOn(console, "warn").mockImplementation(() => {});
       const subject = "Fwd: ";
       expect(stripSubjectForwardingPrefix(subject)).toBe(subject);
+      vi.restoreAllMocks();
     });
   });
 
@@ -276,6 +278,7 @@ describe("forwardedParser", () => {
     });
 
     it("returns original text when stripping results in empty content", () => {
+      vi.spyOn(console, "warn").mockImplementation(() => {});
       const text = [
         "---------- Forwarded message ----------",
         "From: Alice <alice@wonderland.com>",
@@ -285,6 +288,7 @@ describe("forwardedParser", () => {
 
       // Both stripping operations would result in empty content, so original text should be returned.
       expect(getForwardedMailContent(text)).toBe(text.trim());
+      vi.restoreAllMocks();
     });
 
     it("handles text with no forwarding header and no signature", () => {
