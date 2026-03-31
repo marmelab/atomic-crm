@@ -15,6 +15,7 @@ Stato del documento:
 
 ## Changelog
 
+- 2026-03-31: Timezone bonifica phase 4b — removed the last grep-noise/residual date conversions: `google_calendar_sync` now uses shared `addDaysToISODate`, `CreateServiceFromQuoteDialog` normalizes draft date inputs via `toBusinessISODate`, and the `DateInput` JSDoc example no longer suggests `toISOString().split("T")[0]`.
 - 2026-03-31: Timezone bonifica phase 4 — `DashboardAnnual`, `MobileDashboard`, `DashboardAnnualAiSummaryCard`, `DashboardDeadlinesCard`, `useGenerateFiscalTasks` and the shared Edge Function fiscal deadline flow now consume/generate business dates via `dateTimezone`; `fiscal_deadline_check` derives `currentYear` from the Europe/Rome business date instead of runtime-local `Date`.
 - 2026-03-31: Timezone bonifica phase 3 — `dashboardModel`, `fiscalModel`, `fiscalDeadlines` and payment reminder flows now classify years/months/day-deltas via `dateTimezone` business-date helpers instead of browser-local `Date` math; payment reminder emails now pass an explicit headline to the shared HTML renderer.
 - 2026-03-31: Timezone bonifica phase 2 — task all-day flows now normalize due_date on the Europe/Rome business day across create/edit/postpone/list filters, `formatDateRange`/`formatDateLong` no longer drift on all-day timestamps, and `unifiedCrmReadContext` classifies overdue/upcoming payments/tasks via business-date helpers instead of browser-local `Date` math.

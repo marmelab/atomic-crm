@@ -52,9 +52,9 @@ import { cn } from "@/lib/utils";
  * // The input will display '2021-09-11' regardless of the browser timezone.
  *
  * @example
- * // If you want to manipulate the value from the field to adjust its timezone, use the format prop
- * <DateInput source="published_at" format={value => new Date(value).toISOString().split("T")[0]} />
- * // The input will display the UTC day regardless of the browser timezone.
+ * // If your API returns ISO strings and you only need the date part, use the format prop
+ * <DateInput source="published_at" format={value => String(value).slice(0, 10)} />
+ * // The input will display the date portion regardless of the browser timezone.
  *
  * @example
  * // If you want the returned value to be a Date, you must pass a custom parse method

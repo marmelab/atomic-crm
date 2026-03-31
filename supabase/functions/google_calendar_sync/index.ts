@@ -5,6 +5,7 @@ import { getUserSale } from "../_shared/getUserSale.ts";
 import { createErrorResponse } from "../_shared/utils.ts";
 import { supabaseAdmin } from "../_shared/supabaseAdmin.ts";
 import { getGoogleAccessToken } from "../_shared/googleCalendarAuth.ts";
+import { addDaysToISODate } from "../_shared/dateTimezone.ts";
 
 const CALENDAR_API = "https://www.googleapis.com/calendar/v3";
 const CALENDAR_ID = Deno.env.get("GOOGLE_CALENDAR_ID") ?? "";
@@ -70,7 +71,7 @@ function buildCalendarEvent(
 
   if (service.all_day) {
     // Google Calendar all-day events use exclusive end date
-    const endExclusive = addDays(endDate, 1);
+    const endExclusive = addDaysToISODate(endDate, 1);
     return {
       summary,
       description: descriptionLines.join("\n"),
@@ -88,12 +89,6 @@ function buildCalendarEvent(
     start: { dateTime: `${startDate}T09:00:00`, timeZone: "Europe/Rome" },
     end: { dateTime: `${endDate}T18:00:00`, timeZone: "Europe/Rome" },
   };
-}
-
-function addDays(dateStr: string, days: number): string {
-  const d = new Date(dateStr + "T00:00:00Z");
-  d.setUTCDate(d.getUTCDate() + days);
-  return d.toISOString().slice(0, 10);
 }
 
 async function calendarFetch(

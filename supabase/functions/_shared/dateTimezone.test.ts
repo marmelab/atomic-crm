@@ -1,5 +1,6 @@
 import { describe, it, expect } from "vitest";
 import {
+  addDaysToISODate,
   BUSINESS_TIMEZONE,
   diffBusinessDays,
   toISODate,
@@ -68,6 +69,12 @@ describe("toBusinessISODate", () => {
 describe("getBusinessYear", () => {
   it("uses Europe/Rome year at UTC year boundary", () => {
     expect(getBusinessYear("2026-12-31T23:30:00Z")).toBe(2027);
+  });
+});
+
+describe("addDaysToISODate", () => {
+  it("adds days to ISO date strings without runtime timezone drift", () => {
+    expect(addDaysToISODate("2026-05-31", 1)).toBe("2026-06-01");
   });
 });
 

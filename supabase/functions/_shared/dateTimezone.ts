@@ -103,6 +103,13 @@ export const getBusinessYear = (value: string | Date): number | null => {
   return Number(isoDate.slice(0, 4));
 };
 
+/** Add N calendar days to an ISO date string. */
+export const addDaysToISODate = (isoDate: string, days: number): string => {
+  const probe = isoDateToUtcProbe(isoDate);
+  probe.setUTCDate(probe.getUTCDate() + days);
+  return toISODate(probe);
+};
+
 /** Business date → ISO timestamp at start of Europe/Rome day. */
 export const startOfBusinessDayISOString = (
   value: string | Date,

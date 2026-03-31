@@ -15,6 +15,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
+import { toBusinessISODate } from "@/lib/dateTimezone";
 
 import type { Client, Quote, Service } from "../types";
 import { useConfigurationContext } from "../root/ConfigurationContext";
@@ -57,10 +58,7 @@ const getErrorMessage = (error: unknown, fallback: string) =>
 
 const toDateInputValue = (value?: string) => {
   if (!value) return "";
-  if (/^\d{4}-\d{2}-\d{2}/.test(value)) return value.slice(0, 10);
-  const date = new Date(value);
-  if (Number.isNaN(date.valueOf())) return "";
-  return date.toISOString().slice(0, 10);
+  return toBusinessISODate(value) ?? "";
 };
 
 const getDefaultState = (

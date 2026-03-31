@@ -6,7 +6,7 @@ obbligatoria delle superfici collegate.
 **Quando usarlo:** ogni volta che una modifica tocca comportamento reale del
 prodotto.
 
-Last updated: 2026-03-31 (Timezone bonifica phase 4 — annual wrappers + fiscal deadline parity)
+Last updated: 2026-03-31 (Timezone bonifica phase 4b — residual grep cleanup)
 
 ---
 
@@ -14,6 +14,7 @@ Last updated: 2026-03-31 (Timezone bonifica phase 4 — annual wrappers + fiscal
 
 ### Recent Updates (cronologico, più recente in alto)
 
+- [2026-03-31](#update-2026-03-31--timezone-bonifica-phase-4b) — Timezone bonifica phase 4b: final residual grep cleanup on quote dialog, calendar sync and DateInput docs
 - [2026-03-31](#update-2026-03-31--timezone-bonifica-phase-4) — Timezone bonifica phase 4: annual wrappers, fiscal deadline consumers and Edge Function parity aligned to Europe/Rome
 - [2026-03-31](#update-2026-03-31--timezone-bonifica-phase-2) — Timezone bonifica phase 2: task all-day flows + AI read snapshot aligned to Europe/Rome
 - [2026-03-31](#update-2026-03-31--timezone-bonifica) — Timezone bonifica: centralized `dateTimezone` helpers, 12 call sites fixed
@@ -90,6 +91,32 @@ Last updated: 2026-03-31 (Timezone bonifica phase 4 — annual wrappers + fiscal
 - [Nota manutenzione 2026-03-02](#nota-manutenzione-2026-03-02-fix-ci)
 - [Testing Session Log 2026-03-04](#testing-session-log-2026-03-04--e2e-complete-validation)
 - [AI Semantic UI Upgrade 2026-03-04](#ai-semantic-ui-upgrade-2026-03-04--pareto-principle-applied)
+
+---
+
+## Update 2026-03-31 — Timezone bonifica phase 4b
+
+**Cosa è cambiato**
+
+- `supabase/functions/google_calendar_sync/index.ts` non usa piu'
+  `toISOString().slice(0,10)` per l'end exclusive degli all-day event:
+  passa dal helper shared `addDaysToISODate()`.
+- `CreateServiceFromQuoteDialog.tsx` non converte piu' i draft date input via
+  `new Date(...).toISOString()`: usa `toBusinessISODate()` e quindi non slitta
+  il giorno in display sui timestamp ISO completi.
+- `src/components/admin/date-input.tsx` ha solo un cleanup documentale:
+  l'esempio JSDoc non suggerisce piu' il pattern `toISOString().split("T")[0]`.
+
+**Verifica eseguita**
+
+- `npx tsc --noEmit`
+- `vitest`: `supabase/functions/_shared/dateTimezone.test.ts` verde (`15/15`)
+- grep residui timezone su `src/` + `supabase/functions/` → `0` match
+
+**Impatto**
+
+- nessuna nuova superficie prodotto
+- cleanup finale dei residui del piano timezone
 
 ---
 
