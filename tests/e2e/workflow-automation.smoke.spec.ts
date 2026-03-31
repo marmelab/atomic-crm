@@ -56,7 +56,7 @@ test("workflow show page displays details", async ({ page }) => {
 
   // Should show action details
   await expect(
-    mainContent.getByText("Crea progetto", { exact: true }),
+    mainContent.getByText("Crea un nuovo progetto dal preventivo"),
   ).toBeVisible();
 
   // Should show action buttons
@@ -71,18 +71,18 @@ test("create a new workflow", async ({ page }) => {
   await page.goto("/#/workflows/create");
 
   // Fill in workflow name
-  await page.getByLabel("Nome workflow").fill("Test Workflow E2E");
+  await page.getByLabel("Nome automazione").fill("Test Workflow E2E");
 
   // Select trigger resource (default choices should be available)
-  await page.getByLabel("Risorsa").click();
+  await page.getByLabel("Cosa monitorare").click();
   await page.getByRole("option", { name: "Progetti" }).click();
 
   // Select trigger event
-  await page.getByLabel("Evento").click();
+  await page.getByLabel("Quale evento").click();
   await page.getByRole("option", { name: "Creato" }).click();
 
   // Select action type — default is create_task
-  await page.getByLabel("Tipo azione").click();
+  await page.getByLabel("Azione da eseguire").click();
   await page.getByRole("option", { name: "Crea promemoria" }).click();
 
   // Fill task text (conditional field for create_task)
