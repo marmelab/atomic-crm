@@ -1,3 +1,4 @@
+import { todayISODate, toISODate } from "@/lib/dateTimezone";
 import type { DataProvider, Identifier } from "ra-core";
 import type { Workflow, WorkflowAction } from "../types";
 import type { CrmDataProvider } from "../providers/supabase/dataProvider";
@@ -178,7 +179,7 @@ async function createTask(
   const { data } = await dataProvider.create("client_tasks", {
     data: {
       text: String(actionData.text ?? "Task automatico"),
-      due_date: dueDate.toISOString().split("T")[0],
+      due_date: toISODate(dueDate),
       done_date: null,
       type: "follow_up",
       client_id: clientId,
@@ -201,7 +202,7 @@ async function createProject(
     status: "in_corso",
     category: triggerRecord.service_type ?? "altro",
     budget: triggerRecord.amount ?? null,
-    start_date: new Date().toISOString().split("T")[0],
+    start_date: todayISODate(),
   };
 
   // Copy event dates from quote if available

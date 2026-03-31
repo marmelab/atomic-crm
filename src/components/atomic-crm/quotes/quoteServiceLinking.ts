@@ -1,3 +1,4 @@
+import { todayISODate } from "@/lib/dateTimezone";
 import type { Quote, Service } from "../types";
 
 /**
@@ -66,7 +67,7 @@ export const buildServiceDraftFromQuote = ({
   project_id: quote.project_id ?? undefined,
   service_type: getSuggestedServiceTypeFromQuote(quote.service_type),
   description: quote.description,
-  service_date: quote.event_start ?? new Date().toISOString().slice(0, 10),
+  service_date: quote.event_start ?? todayISODate(),
   service_end: quote.event_end,
   all_day: quote.all_day,
   is_taxable: quote.is_taxable,

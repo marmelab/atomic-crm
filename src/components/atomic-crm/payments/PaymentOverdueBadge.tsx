@@ -1,15 +1,9 @@
+import { toISODate } from "@/lib/dateTimezone";
 import { useGetList } from "ra-core";
 
 import { Badge } from "@/components/ui/badge";
 
 import type { Payment } from "../types";
-
-const toLocalISODate = (date: Date) => {
-  const year = date.getFullYear();
-  const month = `${date.getMonth() + 1}`.padStart(2, "0");
-  const day = `${date.getDate()}`.padStart(2, "0");
-  return `${year}-${month}-${day}`;
-};
 
 export const PaymentOverdueBadge = () => {
   const { total, isPending } = useGetList<Payment>("payments", {
@@ -17,7 +11,7 @@ export const PaymentOverdueBadge = () => {
     sort: { field: "payment_date", order: "ASC" },
     filter: {
       "status@neq": "ricevuto",
-      "payment_date@lt": toLocalISODate(new Date()),
+      "payment_date@lt": toISODate(new Date()),
     },
   });
 

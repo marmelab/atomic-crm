@@ -12,6 +12,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 
+import { todayISODate } from "@/lib/dateTimezone";
 import { useRealtimeInvalidation } from "@/hooks/useRealtimeInvalidation";
 
 import { Welcome } from "./Welcome";
@@ -182,7 +183,7 @@ export const DashboardAnnual = () => {
                   markAsPaid(
                     deadline,
                     deadline.totalAmount,
-                    new Date().toISOString().slice(0, 10),
+                    todayISODate(),
                   )
                 }
                 onClearPayment={clearPayment}

@@ -1,3 +1,4 @@
+import { toISODate } from "@/lib/dateTimezone";
 import { format } from "date-fns";
 import { it as itLocale } from "date-fns/locale";
 
@@ -101,12 +102,6 @@ const toNumber = (value: unknown) => {
 const toStartOfDay = (date: Date) =>
   new Date(date.getFullYear(), date.getMonth(), date.getDate());
 
-const toLocalISODate = (date: Date) => {
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, "0");
-  const day = String(date.getDate()).padStart(2, "0");
-  return `${year}-${month}-${day}`;
-};
 
 const addDays = (date: Date, days: number) => {
   const next = new Date(date);
@@ -184,7 +179,7 @@ export const buildDashboardModel = ({
   );
   const previousMonthKey = monthKey(previousMonthDate);
 
-  const asOfDate = toLocalISODate(today);
+  const asOfDate = toISODate(today);
   const asOfDateLabel = today.toLocaleDateString("it-IT");
   const monthlyTotals = new Map<
     string,

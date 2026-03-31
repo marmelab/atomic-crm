@@ -1,3 +1,4 @@
+import { todayISODate } from "@/lib/dateTimezone";
 import { FileCode, FileDown } from "lucide-react";
 import { useMemo, useState } from "react";
 
@@ -33,7 +34,6 @@ const formatAmount = (value: number) =>
     minimumFractionDigits: 2,
   });
 
-const todayIsoDate = () => new Date().toISOString().slice(0, 10);
 
 export const InvoiceDraftDialog = ({
   open,
@@ -198,7 +198,7 @@ export const InvoiceDraftDialog = ({
         </div>
 
         <p className="text-xs text-muted-foreground">
-          Origine: {draft.source.kind} — {draft.source.label} · Data: {draft.invoiceDate ?? todayIsoDate()}
+          Origine: {draft.source.kind} — {draft.source.label} · Data: {draft.invoiceDate ?? todayISODate()}
         </p>
 
         {draft.notes ? (

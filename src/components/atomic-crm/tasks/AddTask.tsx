@@ -1,3 +1,4 @@
+import { todayISODate } from "@/lib/dateTimezone";
 import { Plus } from "lucide-react";
 import {
   CreateBase,
@@ -56,13 +57,13 @@ export const AddTask = ({
           type: "none",
           all_day: true,
           supplier_id: parentRecord?.id ?? null,
-          due_date: new Date().toISOString().slice(0, 10),
+          due_date: todayISODate(),
         }
       : {
           type: "none",
           all_day: true,
           client_id: parentRecord?.id ?? null,
-          due_date: new Date().toISOString().slice(0, 10),
+          due_date: todayISODate(),
         };
 
   const representationResource =

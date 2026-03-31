@@ -7,6 +7,7 @@ import {
   View,
   pdf,
 } from "@react-pdf/renderer";
+import { todayISODate } from "@/lib/dateTimezone";
 
 import {
   formatClientBillingAddress,
@@ -249,7 +250,6 @@ const fmt = (v: number) =>
     minimumFractionDigits: 2,
   });
 
-const todayIso = () => new Date().toISOString().slice(0, 10);
 
 const clientFiscalLines = (client: Client) =>
   [
@@ -305,7 +305,7 @@ const InvoiceDraftPdfDocument = ({
               </Text>
             </View>
             <Text style={{ fontSize: 8, color: c.mid, marginTop: 4, textAlign: "right" as const }}>
-              Data: {draft.invoiceDate ?? todayIso()}
+              Data: {draft.invoiceDate ?? todayISODate()}
             </Text>
           </View>
         </View>

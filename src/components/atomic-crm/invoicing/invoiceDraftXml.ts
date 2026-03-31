@@ -1,3 +1,4 @@
+import { todayISODate } from "@/lib/dateTimezone";
 import type { BusinessProfile, Client } from "../types";
 import {
   computeInvoiceDraftTotals,
@@ -40,7 +41,6 @@ const tag = (name: string, value: string | number) =>
 const optTag = (name: string, value: string | number | undefined | null) =>
   value != null && String(value).trim() !== "" ? tag(name, value) : "";
 
-const todayIso = () => new Date().toISOString().slice(0, 10);
 
 // ── Client billing address for XML ──────────────────────────────────
 
@@ -175,7 +175,7 @@ export const buildInvoiceDraftXml = ({
     "<DatiGeneraliDocumento>",
     tag("TipoDocumento", "TD01"),
     tag("Divisa", "EUR"),
-    tag("Data", draft.invoiceDate ?? todayIso()),
+    tag("Data", draft.invoiceDate ?? todayISODate()),
     tag("Numero", invoiceNumber),
     tag("ImportoTotaleDocumento", fmtNum(totals.totalAmount)),
     tag("Causale", CAUSALE),

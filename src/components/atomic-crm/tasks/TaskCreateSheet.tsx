@@ -1,3 +1,4 @@
+import { todayISODate } from "@/lib/dateTimezone";
 import {
   type Identifier,
   RecordRepresentation,
@@ -52,7 +53,7 @@ export const TaskCreateSheet = ({
         type: "none",
         all_day: true,
         client_id: client_id ?? null,
-        due_date: new Date().toISOString().slice(0, 10),
+        due_date: todayISODate(),
       }}
       transform={(data) => {
         if (data.all_day) {

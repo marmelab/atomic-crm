@@ -1,3 +1,4 @@
+import { toISODate } from "@/lib/dateTimezone";
 import { CheckCircle2 } from "lucide-react";
 import { useMemo, type ReactNode } from "react";
 import { useCreatePath, useGetList, useUpdate, type Identifier } from "ra-core";
@@ -25,12 +26,6 @@ const diffDays = (from: Date, to: Date) => {
   );
 };
 
-const toLocalISODate = (date: Date) => {
-  const year = date.getFullYear();
-  const month = `${date.getMonth() + 1}`.padStart(2, "0");
-  const day = `${date.getDate()}`.padStart(2, "0");
-  return `${year}-${month}-${day}`;
-};
 
 const formatShortDate = (value?: string | null) => {
   if (!value) return "--";
@@ -190,7 +185,7 @@ export const DashboardDeadlineTracker = ({
       id: payment.id,
       data: {
         status: "ricevuto",
-        payment_date: payment.payment_date ?? toLocalISODate(today),
+        payment_date: payment.payment_date ?? toISODate(today),
       },
       previousData: payment,
     });

@@ -1,3 +1,4 @@
+import { toISODate } from "@/lib/dateTimezone";
 import type { FiscalDeadline, DeadlineItem } from "./fiscalModelTypes";
 
 // ── Date helpers (shared with fiscalModel.ts) ─────────────────────────
@@ -12,13 +13,6 @@ export const diffDays = (from: Date, to: Date) => {
   );
 };
 
-/** Format a local Date as YYYY-MM-DD without UTC conversion. */
-const toLocalISODate = (date: Date) => {
-  const y = date.getFullYear();
-  const m = String(date.getMonth() + 1).padStart(2, "0");
-  const d = String(date.getDate()).padStart(2, "0");
-  return `${y}-${m}-${d}`;
-};
 
 // ── Deadlines builder ─────────────────────────────────────────────────
 
@@ -85,7 +79,7 @@ export const buildDeadlines = ({
 
   const juneTotalAmount = juneItems.reduce((s, i) => s + i.amount, 0);
   deadlines.push({
-    date: toLocalISODate(juneDate),
+    date: toISODate(juneDate),
     label: "Saldo + 1° Acconto",
     items: juneItems,
     totalAmount: juneTotalAmount,
@@ -120,7 +114,7 @@ export const buildDeadlines = ({
 
   const novTotalAmount = novItems.reduce((s, i) => s + i.amount, 0);
   deadlines.push({
-    date: toLocalISODate(novDate),
+    date: toISODate(novDate),
     label: "2° Acconto",
     items: novItems,
     totalAmount: novTotalAmount,
@@ -161,7 +155,7 @@ const buildLowPriorityDeadlines = (
 
   for (const bq of bolloQuarters) {
     result.push({
-      date: toLocalISODate(bq.date),
+      date: toISODate(bq.date),
       label: bq.label,
       items: [
         {
@@ -181,7 +175,7 @@ const buildLowPriorityDeadlines = (
   // Dichiarazione dei redditi (Modello Redditi PF) — October 31
   const dichDate = new Date(currentYear, 9, 31);
   result.push({
-    date: toLocalISODate(dichDate),
+    date: toISODate(dichDate),
     label: "Dichiarazione dei redditi",
     items: [{ description: "Invio telematico Modello Redditi PF", amount: 0 }],
     totalAmount: 0,
