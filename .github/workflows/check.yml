@@ -86,7 +86,7 @@ jobs:
       - name: Install dependencies
         run: npm ci
       - name: Install Playwright Browsers
-        run: npx playwright install --with-deps webkit chromium
+        run: npx playwright install --with-deps chromium
       - name: Install wait-on and serve
         run: npm install -g wait-on serve
       - name: Run Playwright tests
