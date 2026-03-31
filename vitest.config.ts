@@ -10,7 +10,14 @@ export default defineConfig({
     browser: {
       provider: playwright(),
       enabled: true,
-      instances: [{ browser: "chromium" }],
+      instances: [
+        {
+          browser: "chromium",
+          ...(process.env.CI && {
+            launch: { channel: "chromium-headless-shell" },
+          }),
+        },
+      ],
       commands: {
         // Uses Chrome DevTools Protocol to override the timezone at runtime,
         // since process.env.TZ has no effect in a real browser environment.
