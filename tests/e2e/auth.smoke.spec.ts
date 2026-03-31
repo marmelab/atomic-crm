@@ -16,7 +16,7 @@ test("local admin can sign in and access dashboard and clients", async ({
   await expect(page.getByRole("link", { name: "Clienti" })).toBeVisible();
   await expect(
     page.getByRole("button", {
-      name: /Spiegami Annuale|Rigenera spiegazione/i,
+      name: /Spiegami l'anno \d{4}/i,
     }),
   ).toBeVisible();
 
@@ -35,23 +35,12 @@ test("local admin can sign in and access dashboard and clients", async ({
   await expect(page.getByText("Test Client")).toBeVisible();
 });
 
-test("dashboard keeps selected mode and reading guide dismissal after navigation", async ({
-  page,
-}) => {
+test("dashboard keeps selected mode after navigation", async ({ page }) => {
   await loginAsLocalAdmin(page);
 
-  // Testo attuale della guida
-  const annualGuideText = page.getByText(
-    "Qui vedi tutto il lavoro svolto nell'anno scelto, inclusi servizi diretti",
-  );
-  await expect(annualGuideText).toBeVisible();
-
-  await page
-    .getByRole("button", { name: "Chiudi guida lettura annuale" })
-    .click();
-  await expect(annualGuideText).toBeHidden();
+  // Subtitle shown beneath mode toggle
   await expect(
-    page.getByRole("button", { name: "Come leggere Annuale" }),
+    page.getByText("Annuale: numeri operativi dell'anno scelto."),
   ).toBeVisible();
 
   await page.getByRole("radio", { name: "Vista storica" }).click();
@@ -63,9 +52,4 @@ test("dashboard keeps selected mode and reading guide dismissal after navigation
   await page.getByRole("link", { name: "Bacheca" }).click();
 
   await expect(historicalMode).toBeChecked();
-
-  await page.getByRole("radio", { name: "Vista annuale" }).click();
-  await expect(
-    page.getByRole("button", { name: "Come leggere Annuale" }),
-  ).toBeVisible();
 });

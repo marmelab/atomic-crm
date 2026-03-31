@@ -14,6 +14,9 @@ import { loginAsLocalAdmin } from "./support/auth";
 import { resetAndSeedTestData } from "./support/test-data-controller";
 
 test.describe("AI Annual Real Response", () => {
+  // These tests call real Edge Functions — need longer timeout than the default 30s
+  test.setTimeout(90_000);
+
   test.beforeEach(() => {
     resetAndSeedTestData();
   });
@@ -21,6 +24,11 @@ test.describe("AI Annual Real Response", () => {
   test("AI spiegami l'anno produces correct, prudent summary with expense data", async ({
     page,
   }) => {
+    // Force markdown mode (visual mode is on by default → blocks, not markdown)
+    await page.addInitScript(() => {
+      localStorage.setItem("annual-ai-visual-mode", "false");
+    });
+
     // Capture the request context and response
     let requestContext: Record<string, unknown> | null = null;
     let aiResponseMarkdown: string | null = null;
@@ -55,7 +63,7 @@ test.describe("AI Annual Real Response", () => {
 
     // Click "Spiegami Annuale"
     const explainButton = page.getByRole("button", {
-      name: /spiegami annuale/i,
+      name: /spiegami l'anno/i,
     });
     await expect(explainButton).toBeVisible({ timeout: 15000 });
     await explainButton.click();
@@ -144,6 +152,11 @@ test.describe("AI Annual Real Response", () => {
   test("AI answer about expenses gives correct margin calculation", async ({
     page,
   }) => {
+    // Force markdown mode (visual mode is on by default → blocks, not markdown)
+    await page.addInitScript(() => {
+      localStorage.setItem("annual-ai-visual-mode", "false");
+    });
+
     let aiAnswerMarkdown: string | null = null;
 
     page.on("response", async (response) => {
@@ -164,19 +177,18 @@ test.describe("AI Annual Real Response", () => {
 
     // Wait for AI card to be ready
     await expect(
-      page.getByText("AI: spiegami l'anno", { exact: false }),
+      page.getByText("Chiedi all'AI", { exact: false }),
     ).toBeVisible({ timeout: 15000 });
 
     // Type a question about expenses/margin
-    const textarea = page.getByLabel("Fai una domanda su questo anno");
+    const textarea = page.getByPlaceholder("Oppure scrivi la tua domanda...");
     await textarea.fill("Qual è il margine lordo finora?");
 
-    // Click "Chiedi all'AI"
-    const askButton = page.getByRole("button", { name: /chiedi all'ai/i });
-    await askButton.click();
+    // Submit via Enter (the send button is an icon-only button)
+    await textarea.press("Enter");
 
-    // Wait for answer (real API call)
-    await expect(page.getByText("Domanda:", { exact: false })).toBeVisible({
+    // Wait for answer — the result card shows a PDF export button when ready
+    await expect(page.getByRole("button", { name: "PDF" })).toBeVisible({
       timeout: 60000,
     });
 

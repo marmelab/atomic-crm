@@ -1,13 +1,13 @@
 /**
  * Test UX semantica AI - Pareto Validation
- * Verifica che l'AI abbia colori semantici, icone e categorie
+ * Verifica che l'AI launcher mostri categorie, domande e stati di caricamento
  */
 
 import { expect, test } from "@playwright/test";
 import { loginAsLocalAdmin } from "./support/auth";
 
 test.describe("AI Semantic UI", () => {
-  test("AI launcher shows categorized questions with visual grouping", async ({
+  test("AI launcher shows categorized questions with tab navigation", async ({
     page,
   }) => {
     await loginAsLocalAdmin(page);
@@ -15,25 +15,80 @@ test.describe("AI Semantic UI", () => {
     // Apri AI launcher
     await page.getByRole("button", { name: "Apri chat AI unificata" }).click();
 
-    // Verifica header delle categorie
-    await expect(page.getByText("Panoramica")).toBeVisible();
-    await expect(page.getByText("Urgenti")).toBeVisible();
-    await expect(page.getByText("Entrate")).toBeVisible();
-    await expect(page.getByText("Lavoro")).toBeVisible();
-
-    // Verifica domande principali
+    // Verifica categorie (pill tabs) — use role selectors to avoid strict mode
     await expect(
-      page.getByText("Dammi un riepilogo operativo rapido"),
+      page.getByRole("button", { name: "Panoramica" }),
     ).toBeVisible();
     await expect(
-      page.getByText("Dove vedi attenzione immediata"),
+      page.getByRole("button", { name: "Fatturazione" }),
+    ).toBeVisible();
+    await expect(
+      page.getByRole("button", { name: "Incassi" }),
+    ).toBeVisible();
+    await expect(
+      page.getByRole("button", { name: "Lavoro svolto" }),
     ).toBeVisible();
 
-    // Verifica descrizioni helper
-    await expect(page.getByText("Panoramica generale di tutto")).toBeVisible();
+    // Verifica domande della categoria attiva (Panoramica di default)
+    await expect(
+      page.getByText("Come sta andando il business questo mese?"),
+    ).toBeVisible();
+    await expect(
+      page.getByText("Dammi un riepilogo operativo rapido del CRM."),
+    ).toBeVisible();
+
+    // Verifica hint text
+    await expect(
+      page.getByText("Scegli un tema o scrivi una domanda libera."),
+    ).toBeVisible();
   });
 
-  test("AI semantic categories have distinct background colors", async ({
+  test("AI category tabs switch displayed questions", async ({ page }) => {
+    await loginAsLocalAdmin(page);
+
+    // Apri AI launcher
+    await page.getByRole("button", { name: "Apri chat AI unificata" }).click();
+
+    // Panoramica è attiva di default — verifica una domanda Panoramica
+    await expect(
+      page.getByText("Come sta andando il business questo mese?"),
+    ).toBeVisible();
+
+    // Clicca su Incassi (tab button)
+    await page.getByRole("button", { name: "Incassi" }).click();
+
+    // Verifica domande Incassi
+    await expect(
+      page.getByText("Chi mi deve dei soldi e quanto?"),
+    ).toBeVisible();
+
+    // Clicca su Preventivi (tab button)
+    await page.getByRole("button", { name: "Preventivi" }).click();
+
+    // Verifica domande Preventivi
+    await expect(
+      page.getByText("Ci sono preventivi aperti che richiedono attenzione?"),
+    ).toBeVisible();
+  });
+
+  test("AI shows loading state after asking a question", async ({ page }) => {
+    await loginAsLocalAdmin(page);
+
+    // Apri AI launcher
+    await page.getByRole("button", { name: "Apri chat AI unificata" }).click();
+
+    // Clicca su una domanda suggerita
+    await page
+      .getByText("Come sta andando il business questo mese?")
+      .click();
+
+    // Verifica stato di caricamento
+    await expect(
+      page.getByText("Sto preparando una risposta grounded sul CRM..."),
+    ).toBeVisible({ timeout: 5000 });
+  });
+
+  test("AI launcher has multiple category tabs available", async ({
     page,
   }) => {
     await loginAsLocalAdmin(page);
@@ -41,71 +96,16 @@ test.describe("AI Semantic UI", () => {
     // Apri AI launcher
     await page.getByRole("button", { name: "Apri chat AI unificata" }).click();
 
-    // Verifica colori distinti per categoria (gradienti di sfondo)
-    // Panoramica: grigio/slate
-    const overviewSection = page.locator('div[class*="from-slate-50"]').first();
-    await expect(overviewSection).toBeVisible();
-
-    // Urgenti: rosso
-    const urgentSection = page.locator('div[class*="from-red-50"]').first();
-    await expect(urgentSection).toBeVisible();
-
-    // Entrate: verde/emerald
-    const revenueSection = page
-      .locator('div[class*="from-emerald-50"]')
-      .first();
-    await expect(revenueSection).toBeVisible();
-
-    // Lavoro: blu
-    const workSection = page.locator('div[class*="from-blue-50"]').first();
-    await expect(workSection).toBeVisible();
-  });
-
-  test("AI shows enhanced loading state with pulse animation", async ({
-    page,
-  }) => {
-    await loginAsLocalAdmin(page);
-
-    // Apri AI launcher
-    await page.getByRole("button", { name: "Apri chat AI unificata" }).click();
-
-    // Clicca su una domanda
-    await page.getByText("Dammi un riepilogo operativo rapido").click();
-
-    // Verifica stato di caricamento migliorato
-    await expect(page.getByText("Sto analizzando il CRM...")).toBeVisible({
-      timeout: 5000,
-    });
-    await expect(
-      page.getByText("Leggo clienti, progetti, pagamenti"),
-    ).toBeVisible();
-
-    // Verifica che ci sia un elemento con animazione pulse
-    const animatedElement = page
-      .locator(".animate-pulse, .animate-ping")
-      .first();
-    await expect(animatedElement).toBeVisible();
-  });
-
-  test("AI questions have icons and visual hierarchy", async ({ page }) => {
-    await loginAsLocalAdmin(page);
-
-    // Apri AI launcher
-    await page.getByRole("button", { name: "Apri chat AI unificata" }).click();
-
-    // Verifica che le domande siano raggruppate in sezioni
-    const categoryHeaders = page.getByText(
-      /Panoramica|Urgenti|Entrate|Lavoro|Insights/,
+    // Verifica che ci siano almeno 5 categorie visibili
+    const categoryTabs = page.getByText(
+      /Panoramica|Fatturazione|Incassi|Lavoro svolto|Spese e km|Preventivi|Clienti|Promemoria|Automazioni/,
     );
-    expect(await categoryHeaders.count()).toBeGreaterThanOrEqual(3);
+    expect(await categoryTabs.count()).toBeGreaterThanOrEqual(5);
 
-    // Verifica che ci siano icone (svg) nelle domande
-    const questionIcons = page
-      .locator("button svg, [class*='icon'] svg")
-      .first();
-    await expect(questionIcons).toBeVisible();
-
-    // Verifica badge di conteggio domande
-    await expect(page.getByText(/\d+ domande?/).first()).toBeVisible();
+    // Verifica che le domande siano cliccabili (button elements)
+    const questionButtons = page.locator(
+      'button:has-text("Come sta andando")',
+    );
+    await expect(questionButtons.first()).toBeVisible();
   });
 });
