@@ -425,18 +425,6 @@ BEGIN
 END;
 $$;
 
-CREATE OR REPLACE FUNCTION "public"."lowercase_email"() RETURNS "trigger"
-    LANGUAGE "plpgsql"
-    SET "search_path" TO 'public'
-    AS $$
-BEGIN
-  IF NEW.email IS NOT NULL THEN
-    NEW.email = LOWER(NEW.email);
-  END IF;
-  RETURN NEW;
-END;
-$$;
-
 CREATE OR REPLACE FUNCTION "public"."lowercase_email_jsonb"() RETURNS "trigger"
     LANGUAGE "plpgsql"
     SET "search_path" TO 'public'
@@ -449,18 +437,6 @@ BEGIN
       )
       FROM jsonb_array_elements(NEW.email_jsonb) AS elem
     ), '[]'::jsonb);
-  END IF;
-  RETURN NEW;
-END;
-$$;
-
-CREATE OR REPLACE FUNCTION "public"."lowercase_website"() RETURNS "trigger"
-    LANGUAGE "plpgsql"
-    SET "search_path" TO 'public'
-    AS $$
-BEGIN
-  IF NEW.website IS NOT NULL THEN
-    NEW.website = LOWER(NEW.website);
   END IF;
   RETURN NEW;
 END;

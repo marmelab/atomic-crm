@@ -28,13 +28,8 @@ create or replace trigger set_task_sales_id_trigger
     before insert on public.tasks
     for each row execute function public.set_sales_id_default();
 
--- Lowercase company website before insert or update (must run before company_saved)
-create or replace trigger "10_lowercase_company_website"
-    before insert or update on public.companies
-    for each row execute function public.lowercase_website();
-
--- Auto-fetch company logo from website favicon on save (runs after lowercase_company_website)
-create or replace trigger "20_company_saved"
+-- Auto-fetch company logo from website favicon on save
+create or replace trigger company_saved
     before insert or update on public.companies
     for each row execute function public.handle_company_saved();
 
@@ -47,11 +42,6 @@ create or replace trigger "10_lowercase_contact_emails"
 create or replace trigger "20_contact_saved"
     before insert or update on public.contacts
     for each row execute function public.handle_contact_saved();
-
--- Lowercase sales email before insert or update
-create or replace trigger lowercase_sales_email
-    before insert or update on public.sales
-    for each row execute function public.lowercase_email();
 
 -- Update contact.last_seen when a contact note is created
 create or replace trigger on_public_contact_notes_created_or_updated
