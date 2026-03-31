@@ -68,13 +68,13 @@ export const NoteCreateSheet = ({
     <CreateSheet
       resource="contact_notes"
       title={
-        <h1 className="text-xl font-semibold truncate pr-10">
+        <span className="text-xl font-semibold truncate pr-10">
           {!selectContact
             ? translate("resources.notes.sheet.create_for", {
                 name: getContactRepresentation(contact!),
               })
             : translate("resources.notes.sheet.create")}
-        </h1>
+        </span>
       }
       redirect={false}
       defaultValues={{ sales_id: identity?.id }}
