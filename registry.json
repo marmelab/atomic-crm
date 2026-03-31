@@ -996,6 +996,14 @@
           "type": "registry:component"
         },
         {
+          "path": "src/components/atomic-crm/dashboard/dashboardDeadlineTrackerModel.ts",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/dashboard/dashboardDeadlineTrackerFormatters.ts",
+          "type": "registry:component"
+        },
+        {
           "path": "src/components/atomic-crm/dashboard/Welcome.tsx",
           "type": "registry:component"
         },
@@ -1073,6 +1081,18 @@
         },
         {
           "path": "src/components/atomic-crm/dashboard/DashboardDeadlinesCard.tsx",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/dashboard/DashboardDeadlineTrackerSummary.tsx",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/dashboard/DashboardDeadlineTrackerContent.tsx",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/dashboard/DashboardDeadlineTrackerActionList.tsx",
           "type": "registry:component"
         },
         {

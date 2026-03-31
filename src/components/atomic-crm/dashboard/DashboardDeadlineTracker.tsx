@@ -1,158 +1,27 @@
-import {
-  addDaysToISODate,
-  diffBusinessDays,
-  formatBusinessDate,
-  toBusinessISODate,
-  todayISODate,
-} from "@/lib/dateTimezone";
-import { CheckCircle2 } from "lucide-react";
-import { useMemo, type ReactNode } from "react";
-import { useCreatePath, useGetList, useUpdate, type Identifier } from "ra-core";
-import { Link } from "react-router";
+import { addDaysToISODate, todayISODate } from "@/lib/dateTimezone";
+import { useMemo } from "react";
+import { useCreatePath, useGetList, useUpdate } from "ra-core";
 
-import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Separator } from "@/components/ui/separator";
 
 import type { Client, ClientTask, Payment } from "../types";
-import { paymentStatusLabels } from "../payments/paymentTypes";
-import { SendPaymentReminderDialog } from "../payments/SendPaymentReminderDialog";
-import { formatDateRange } from "../misc/formatDateRange";
-import { formatCompactCurrency, type DashboardAlerts } from "./dashboardModel";
+import { DashboardDeadlineTrackerContent } from "./DashboardDeadlineTrackerContent";
+import { type DashboardAlerts } from "./dashboardModel";
+import { buildDashboardDeadlineTrackerComputed } from "./dashboardDeadlineTrackerModel";
 
 const LARGE_PAGE = { page: 1, perPage: 1000 };
 
-const formatShortDate = (value?: string | null) => {
-  if (!value) return "--";
-  return (
-    formatBusinessDate(
-      value,
-      {
-        day: "2-digit",
-        month: "2-digit",
-      },
-      "it-IT",
-    ) || "--"
-  );
-};
-
-const formatAmount = (value: number) =>
-  value.toLocaleString("it-IT", {
-    style: "currency",
-    currency: "EUR",
-    maximumFractionDigits: 0,
-  });
-
-const getClientName = (
-  clientsById: Map<string, Client>,
-  clientId?: Identifier | null,
-) => {
-  if (!clientId) return "Cliente";
-  return clientsById.get(String(clientId))?.name ?? "Cliente";
-};
-
-const compareDateValues = (left?: string | null, right?: string | null) => {
-  const leftIso = left ? toBusinessISODate(left) : null;
-  const rightIso = right ? toBusinessISODate(right) : null;
-
-  if (!leftIso && !rightIso) return 0;
-  if (!leftIso) return 1;
-  if (!rightIso) return -1;
-  return leftIso.localeCompare(rightIso);
-};
-
-export const getOverduePaymentsForDeadlineTracker = ({
-  payments,
-  todayIso,
-}: {
-  payments: Payment[];
-  todayIso: string;
-}) =>
-  payments
-    .filter((payment) => {
-      if (!payment.payment_date) {
-        return payment.status === "scaduto";
-      }
-      const paymentDateIso = toBusinessISODate(payment.payment_date);
-      if (!paymentDateIso) {
-        return payment.status === "scaduto";
-      }
-      return payment.status === "scaduto" || paymentDateIso < todayIso;
-    })
-    .sort(
-      (left, right) =>
-        compareDateValues(
-          left.payment_date ?? left.created_at,
-          right.payment_date ?? right.created_at,
-        ),
-    );
-
-export const getDueSoonPaymentsForDeadlineTracker = ({
-  payments,
-  todayIso,
-  limitDateIso,
-}: {
-  payments: Payment[];
-  todayIso: string;
-  limitDateIso: string;
-}) =>
-  payments
-    .filter((payment) => {
-      if (payment.status !== "in_attesa" || !payment.payment_date) {
-        return false;
-      }
-      const paymentDateIso = toBusinessISODate(payment.payment_date);
-      if (!paymentDateIso) {
-        return false;
-      }
-      return paymentDateIso >= todayIso && paymentDateIso <= limitDateIso;
-    })
-    .sort(
-      (left, right) =>
-        compareDateValues(
-          left.payment_date ?? left.created_at,
-          right.payment_date ?? right.created_at,
-        ),
-    );
-
-export const getUpcomingTasksForDeadlineTracker = ({
-  tasks,
-  todayIso,
-  limitDateIso,
-}: {
-  tasks: ClientTask[];
-  todayIso: string;
-  limitDateIso: string;
-}) =>
-  tasks
-    .filter((task) => {
-      if (task.done_date) return false;
-      const dueDateIso = toBusinessISODate(task.due_date);
-      if (!dueDateIso) return false;
-      return dueDateIso >= todayIso && dueDateIso <= limitDateIso;
-    })
-    .sort(
-      (left, right) =>
-        compareDateValues(left.due_date, right.due_date),
-    );
-
-// ── Unified card: "Cosa devi fare" ──────────────────────────
-
-export const DashboardDeadlineTracker = ({
-  alerts,
-}: {
-  alerts: DashboardAlerts;
-}) => {
+const useDeadlineTrackerCollections = () => {
   const todayIso = todayISODate();
   const limitDateIso = addDaysToISODate(todayIso, 7);
-
   const createPath = useCreatePath();
 
-  const { data: clients = [] } = useGetList<Client>("clients", {
-    pagination: LARGE_PAGE,
-    sort: { field: "name", order: "ASC" },
-    filter: {},
-  });
+  const { data: clients = [], isPending: isPendingClients } =
+    useGetList<Client>("clients", {
+      pagination: LARGE_PAGE,
+      sort: { field: "name", order: "ASC" },
+      filter: {},
+    });
 
   const { data: pendingPayments = [], isPending: isPendingPayments } =
     useGetList<Payment>("payments", {
@@ -171,29 +40,26 @@ export const DashboardDeadlineTracker = ({
       filter: { "done_date@is": null },
     });
 
-  const [update, { isPending: isUpdating }] = useUpdate();
-
   const clientsById = useMemo(
     () => new Map(clients.map((client) => [String(client.id), client])),
     [clients],
   );
 
-  const overduePayments = getOverduePaymentsForDeadlineTracker({
-    payments: pendingPayments,
-    todayIso,
-  }).slice(0, 6);
-
-  const dueSoonPayments = getDueSoonPaymentsForDeadlineTracker({
-    payments: pendingPayments,
-    todayIso,
+  return {
+    clientsById,
+    createPath,
+    isPendingClients,
+    isPendingPayments,
+    isPendingTasks,
     limitDateIso,
-  }).slice(0, 6);
-
-  const upcomingTasks = getUpcomingTasksForDeadlineTracker({
-    tasks: openTasks,
+    openTasks,
+    pendingPayments,
     todayIso,
-    limitDateIso,
-  }).slice(0, 8);
+  };
+};
+
+const useDeadlineTrackerActions = (todayIso: string) => {
+  const [update, { isPending: isUpdating }] = useUpdate();
 
   const markPaymentAsReceived = (payment: Payment) => {
     update("payments", {
@@ -214,26 +80,73 @@ export const DashboardDeadlineTracker = ({
     });
   };
 
-  if (isPendingPayments || isPendingTasks) {
+  return { isUpdating, markPaymentAsReceived, markTaskAsDone };
+};
+
+const useDashboardDeadlineTrackerData = ({
+  alerts,
+}: {
+  alerts: DashboardAlerts;
+}) => {
+  const {
+    clientsById,
+    createPath,
+    isPendingClients,
+    isPendingPayments,
+    isPendingTasks,
+    limitDateIso,
+    openTasks,
+    pendingPayments,
+    todayIso,
+  } = useDeadlineTrackerCollections();
+  const { isUpdating, markPaymentAsReceived, markTaskAsDone } =
+    useDeadlineTrackerActions(todayIso);
+
+  const computed = useMemo(() => buildDashboardDeadlineTrackerComputed({
+    limitDateIso,
+    openTasks,
+    pendingPayments,
+    todayIso,
+    unansweredQuotesCount: alerts.unansweredQuotes.length,
+    upcomingServicesCount: alerts.upcomingServices.length,
+  }), [
+    alerts.unansweredQuotes.length,
+    alerts.upcomingServices.length,
+    limitDateIso,
+    openTasks,
+    pendingPayments,
+    todayIso,
+  ]);
+
+  return {
+    alerts,
+    clientsById,
+    createPath,
+    isPendingClients,
+    isPendingPayments,
+    isPendingTasks,
+    isUpdating,
+    markPaymentAsReceived,
+    markTaskAsDone,
+    todayIso,
+    ...computed,
+  };
+};
+
+export const DashboardDeadlineTracker = ({
+  alerts,
+}: {
+  alerts: DashboardAlerts;
+}) => {
+  const tracker = useDashboardDeadlineTrackerData({ alerts });
+
+  if (
+    tracker.isPendingClients ||
+    tracker.isPendingPayments ||
+    tracker.isPendingTasks
+  ) {
     return null;
   }
-
-  // Counts for the 3-column header
-  const overdueTotal = overduePayments.reduce(
-    (sum, p) => sum + Number(p.amount ?? 0),
-    0,
-  );
-  const dueSoonTotal = dueSoonPayments.reduce(
-    (sum, p) => sum + Number(p.amount ?? 0),
-    0,
-  );
-  const otherCount =
-    upcomingTasks.length +
-    alerts.upcomingServices.length +
-    alerts.unansweredQuotes.length;
-
-  const totalItems =
-    overduePayments.length + dueSoonPayments.length + otherCount;
 
   return (
     <Card className="gap-3 py-4">
@@ -243,244 +156,25 @@ export const DashboardDeadlineTracker = ({
         </CardTitle>
       </CardHeader>
       <CardContent className="px-4 space-y-3">
-        {totalItems === 0 ? (
-          <div className="flex items-center justify-center gap-2 rounded-md py-4 bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-200 text-sm font-bold">
-            <CheckCircle2 className="h-4 w-4" />
-            Tutto in ordine
-          </div>
-        ) : (
-          <>
-            {/* ── 3-column counters ── */}
-            <div className="grid grid-cols-[1fr_auto_1fr_auto_1fr] gap-0">
-              <CounterColumn
-                count={overduePayments.length}
-                label="Scaduti"
-                amount={overdueTotal}
-                color="red"
-              />
-              <Separator orientation="vertical" />
-              <CounterColumn
-                count={dueSoonPayments.length}
-                label="Prossimi 7g"
-                amount={dueSoonTotal}
-                color="amber"
-              />
-              <Separator orientation="vertical" />
-              <CounterColumn count={otherCount} label="Da fare" color="blue" />
-            </div>
-
-            {/* ── Flat action list ── */}
-            <div className="space-y-1.5">
-              {overduePayments.map((payment) => {
-                const days = payment.payment_date
-                  ? Math.max(
-                      1,
-                      Math.abs(
-                        diffBusinessDays(payment.payment_date, todayIso) ?? 0,
-                      ),
-                    )
-                  : null;
-
-                return (
-                  <ActionRow
-                    key={`op-${payment.id}`}
-                    dot="red"
-                    title={getClientName(clientsById, payment.client_id)}
-                    subtitle={`${formatAmount(Number(payment.amount ?? 0))} · ${paymentStatusLabels[payment.status] ?? payment.status}${days ? ` · ${days}g fa` : ""}`}
-                    link={createPath({
-                      resource: "payments",
-                      type: "show",
-                      id: payment.id,
-                    })}
-                    actionLabel="Incassato"
-                    onAction={() => markPaymentAsReceived(payment)}
-                    disabled={isUpdating}
-                    secondaryAction={
-                      <SendPaymentReminderDialog paymentId={payment.id} />
-                    }
-                  />
-                );
-              })}
-
-              {dueSoonPayments.map((payment) => {
-                const daysUntil = payment.payment_date
-                  ? diffBusinessDays(todayIso, payment.payment_date)
-                  : null;
-
-                return (
-                  <ActionRow
-                    key={`ds-${payment.id}`}
-                    dot="amber"
-                    title={getClientName(clientsById, payment.client_id)}
-                    subtitle={`${formatAmount(Number(payment.amount ?? 0))} · ${formatShortDate(payment.payment_date)}${daysUntil != null ? ` · tra ${daysUntil}g` : ""}`}
-                    link={createPath({
-                      resource: "payments",
-                      type: "show",
-                      id: payment.id,
-                    })}
-                    actionLabel="Incassato"
-                    onAction={() => markPaymentAsReceived(payment)}
-                    disabled={isUpdating}
-                  />
-                );
-              })}
-
-              {upcomingTasks.map((task) => {
-                const daysUntil = diffBusinessDays(todayIso, task.due_date) ?? 0;
-                return (
-                  <ActionRow
-                    key={`tk-${task.id}`}
-                    dot="blue"
-                    title={task.text}
-                    subtitle={`${getClientName(clientsById, task.client_id)} · ${formatShortDate(task.due_date)}${daysUntil >= 0 ? ` · tra ${daysUntil}g` : ""}`}
-                    link="/client_tasks"
-                    actionLabel="Fatto"
-                    onAction={() => markTaskAsDone(task)}
-                    disabled={isUpdating}
-                  />
-                );
-              })}
-
-              {alerts.upcomingServices.map((service) => (
-                <ActionRow
-                  key={`sv-${service.id}`}
-                  dot="blue"
-                  title={`${service.projectName} · ${prettifyServiceType(service.serviceType)}`}
-                  subtitle={`${service.clientName} · ${service.allDay ? formatShortDate(service.serviceDate) : formatDateRange(service.serviceDate, service.serviceEnd, false)}${service.daysAhead === 0 ? " · oggi" : ` · tra ${service.daysAhead}g`}`}
-                  link={createPath({
-                    resource: "services",
-                    type: "show",
-                    id: service.id,
-                  })}
-                />
-              ))}
-
-              {alerts.unansweredQuotes.map((quote) => (
-                <ActionRow
-                  key={`qt-${quote.id}`}
-                  dot="blue"
-                  title={`${quote.clientName} · ${quote.description}`}
-                  subtitle={`${formatCompactCurrency(quote.amount)} · inviato ${formatShortDate(quote.sentDate)} · ${quote.daysWaiting}g senza risposta`}
-                  link={createPath({
-                    resource: "quotes",
-                    type: "show",
-                    id: quote.id,
-                  })}
-                />
-              ))}
-            </div>
-          </>
-        )}
+        <DashboardDeadlineTrackerContent
+          alerts={tracker.alerts}
+          clientsById={tracker.clientsById}
+          createPath={tracker.createPath}
+          dueSoonCount={tracker.dueSoonCount}
+          dueSoonPayments={tracker.dueSoonPayments}
+          dueSoonTotal={tracker.dueSoonTotal}
+          isUpdating={tracker.isUpdating}
+          onMarkPaymentAsReceived={tracker.markPaymentAsReceived}
+          onMarkTaskAsDone={tracker.markTaskAsDone}
+          otherCount={tracker.otherCount}
+          overdueCount={tracker.overdueCount}
+          overduePayments={tracker.overduePayments}
+          overdueTotal={tracker.overdueTotal}
+          todayIso={tracker.todayIso}
+          totalItems={tracker.totalItems}
+          upcomingTasks={tracker.upcomingTasks}
+        />
       </CardContent>
     </Card>
   );
 };
-
-// ── Sub-components ───────────────────────────────────────────
-
-type DotColor = "red" | "amber" | "blue";
-
-const dotClasses: Record<DotColor, string> = {
-  red: "bg-red-500",
-  amber: "bg-amber-500",
-  blue: "bg-blue-500",
-};
-
-const counterColors: Record<DotColor, { count: string; label: string }> = {
-  red: {
-    count: "text-red-700 dark:text-red-300",
-    label: "text-red-600 dark:text-red-400",
-  },
-  amber: {
-    count: "text-amber-700 dark:text-amber-300",
-    label: "text-amber-600 dark:text-amber-400",
-  },
-  blue: {
-    count: "text-blue-700 dark:text-blue-300",
-    label: "text-blue-600 dark:text-blue-400",
-  },
-};
-
-const CounterColumn = ({
-  count,
-  label,
-  amount,
-  color,
-}: {
-  count: number;
-  label: string;
-  amount?: number;
-  color: DotColor;
-}) => {
-  const colors = counterColors[color];
-  return (
-    <div className="text-center space-y-0.5 px-2">
-      <div className={`text-2xl font-bold tabular-nums ${colors.count}`}>
-        {count}
-      </div>
-      <div
-        className={`text-xs font-semibold uppercase tracking-wide ${colors.label}`}
-      >
-        {label}
-      </div>
-      {amount != null && amount > 0 && (
-        <div className="text-[11px] text-muted-foreground tabular-nums">
-          {formatAmount(amount)}
-        </div>
-      )}
-    </div>
-  );
-};
-
-const ActionRow = ({
-  dot,
-  title,
-  subtitle,
-  link,
-  actionLabel,
-  onAction,
-  disabled,
-  secondaryAction,
-}: {
-  dot: DotColor;
-  title: string;
-  subtitle: string;
-  link: string;
-  actionLabel?: string;
-  onAction?: () => void;
-  disabled?: boolean;
-  secondaryAction?: ReactNode;
-}) => (
-  <div className="flex items-center gap-2">
-    <span className={`shrink-0 h-2 w-2 rounded-full ${dotClasses[dot]}`} />
-    <div className="min-w-0 flex-1">
-      <Link
-        to={link}
-        className="text-sm font-medium hover:underline truncate block"
-      >
-        {title}
-      </Link>
-      <p className="text-xs text-muted-foreground truncate">{subtitle}</p>
-    </div>
-    {(onAction || secondaryAction) && (
-      <div className="flex items-center gap-1.5 shrink-0">
-        {secondaryAction}
-        {onAction && actionLabel && (
-          <Button
-            type="button"
-            size="sm"
-            variant="outline"
-            className="shrink-0"
-            onClick={onAction}
-            disabled={disabled}
-          >
-            {actionLabel}
-          </Button>
-        )}
-      </div>
-    )}
-  </div>
-);
-
-const prettifyServiceType = (value: string) =>
-  value.replaceAll("_", " ").replace(/\b\w/g, (c) => c.toUpperCase());

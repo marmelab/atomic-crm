@@ -5,7 +5,7 @@ import {
   getDueSoonPaymentsForDeadlineTracker,
   getOverduePaymentsForDeadlineTracker,
   getUpcomingTasksForDeadlineTracker,
-} from "./DashboardDeadlineTracker";
+} from "./dashboardDeadlineTrackerModel";
 
 const todayIso = "2026-03-01";
 const limitDateIso = "2026-03-08";

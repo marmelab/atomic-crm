@@ -409,6 +409,17 @@ La dashboard annuale include una card `DashboardDeadlineTracker` con:
 - pagamenti in scadenza (7 giorni)
 - promemoria in scadenza (7 giorni)
 
+Il componente e' splittato in moduli focalizzati:
+
+- `dashboardDeadlineTrackerModel.ts` — filtering, sorting, conteggi (builder puro)
+- `dashboardDeadlineTrackerFormatters.ts` — formattazione date, valute, nomi
+- `DashboardDeadlineTrackerSummary.tsx` — contatori colorati + empty state
+- `DashboardDeadlineTrackerActionList.tsx` — lista azioni con dot/link/button
+- `DashboardDeadlineTrackerContent.tsx` — orchestrazione summary + action list
+
+Contatori e totali usano il dataset completo; la lista visibile e' limitata
+(`slice`) per non sovraccaricare la card.
+
 Il read-context AI (`buildUnifiedCrmReadContext`) include ora anche:
 
 - `overduePayments`
