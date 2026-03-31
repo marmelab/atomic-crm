@@ -7,6 +7,10 @@ import {
 } from "./forwardedParser";
 
 describe("forwardedParser", () => {
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
   describe("stripForwardingHeaderBlock", () => {
     describe("returns original text when no forwarding separator is found", () => {
       it("returns the original text for plain content", () => {
@@ -234,7 +238,6 @@ describe("forwardedParser", () => {
       vi.spyOn(console, "warn").mockImplementation(() => {});
       const subject = "Fwd: ";
       expect(stripSubjectForwardingPrefix(subject)).toBe(subject);
-      vi.restoreAllMocks();
     });
   });
 
@@ -288,7 +291,6 @@ describe("forwardedParser", () => {
 
       // Both stripping operations would result in empty content, so original text should be returned.
       expect(getForwardedMailContent(text)).toBe(text.trim());
-      vi.restoreAllMocks();
     });
 
     it("handles text with no forwarding header and no signature", () => {

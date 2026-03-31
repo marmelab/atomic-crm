@@ -8,6 +8,10 @@ import {
   BulkTagButton,
 } from "./ContactList.stories";
 
+afterEach(() => {
+  vi.restoreAllMocks();
+});
+
 describe("ContactList", () => {
   it("renders an invite to create the first contact when the app is empty", async () => {
     const screen = await render(<DesktopEmpty />);
@@ -47,7 +51,6 @@ describe("ContactList", () => {
     await expect
       .element(screen.getByText("Error loading contacts"))
       .toBeVisible();
-    vi.restoreAllMocks();
   });
 
   it("shows the bulk tag button only after selecting contacts", async () => {
