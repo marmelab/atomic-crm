@@ -8,7 +8,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 const getHistoricalCashInflowContext = vi.fn();
 
 vi.mock("ra-core", async () => {
-  const actual = await vi.importActual<typeof import("ra-core")>("ra-core");
+  const actual = await vi.importActual("ra-core");
   return {
     ...actual,
     useDataProvider: () => ({

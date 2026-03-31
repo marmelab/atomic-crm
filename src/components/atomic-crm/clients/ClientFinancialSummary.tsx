@@ -29,6 +29,7 @@ const getExpenseAmount = (e: Expense): number => {
 };
 
 type ProjectFinancialRow = {
+  id: number | string;
   project_id: string;
   project_name: string;
   total_fees: number | string;

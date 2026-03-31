@@ -420,6 +420,18 @@ Il componente e' splittato in moduli focalizzati:
 Contatori e totali usano il dataset completo; la lista visibile e' limitata
 (`slice`) per non sovraccaricare la card.
 
+### Type safety e allineamento tipi (2026-03-31)
+
+Audit su 632 file con fix non comportamentali:
+
+- tipi analytics views e `ProjectFinancialRow` allineati a `RaRecord` (`id`)
+- `UpcomingServiceAlert.serviceType` allineato al union literal di `Service`
+- `FiscalDeadline` dichiarazione redditi: aggiunti `paidAmount`/`paidDate`
+- dead code `_selectedModel` rimosso dalle AI card (model risolto nel provider)
+- `@testing-library/jest-dom/vitest` aggiunto a `tsconfig.app.json` per i
+  matcher DOM nei test
+- classi Tailwind normalizzate alla sintassi v4 canonical
+
 Il read-context AI (`buildUnifiedCrmReadContext`) include ora anche:
 
 - `overduePayments`

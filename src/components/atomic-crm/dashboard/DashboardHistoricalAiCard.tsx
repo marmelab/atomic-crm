@@ -15,7 +15,6 @@ import { useDataProvider, useNotify } from "ra-core";
 import { AiBlockRenderer } from "./AiBlockRenderer";
 import { Markdown } from "../misc/Markdown";
 import type { CrmDataProvider } from "../providers/types";
-import { useConfigurationContext } from "../root/ConfigurationContext";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
@@ -25,7 +24,6 @@ import {
   type HistoricalAnalyticsSummary,
   type HistoricalVisualAnswer,
   type HistoricalVisualSummary,
-  defaultHistoricalAnalysisModel,
   getHistoricalSuggestedQuestions,
   type HistoricalSuggestedQuestion,
 } from "@/lib/analytics/historicalAnalysis";
@@ -66,7 +64,6 @@ export const DashboardHistoricalAiCard = ({
 }) => {
   const dataProvider = useDataProvider<CrmDataProvider>();
   const notify = useNotify();
-  const { aiConfig } = useConfigurationContext();
   const [question, setQuestion] = useState("");
   const [visualMode, setVisualMode] = useState(getStoredVisualMode);
   const [suggestionsOpen, setSuggestionsOpen] = useState(!compact);
@@ -132,8 +129,6 @@ export const DashboardHistoricalAiCard = ({
     },
   });
 
-  const _selectedModel =
-    aiConfig?.historicalAnalysisModel ?? defaultHistoricalAnalysisModel;
   const suggestedQuestions = getHistoricalSuggestedQuestions();
   const isLoading = isSummaryPending || isAnswerPending;
 

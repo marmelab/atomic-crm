@@ -184,6 +184,8 @@ const buildLowPriorityDeadlines = (
     isPast: dichTiming.isPast,
     daysUntil: dichTiming.daysUntil,
     priority: "low",
+    paidAmount: null,
+    paidDate: null,
   });
 
   return result;

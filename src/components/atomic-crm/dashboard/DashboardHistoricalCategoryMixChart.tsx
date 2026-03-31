@@ -79,7 +79,7 @@ export const DashboardHistoricalCategoryMixChart = ({
         model.categoryMix.points.every((point) =>
           Object.values(point.values).every((value) => value === 0),
         ) ? (
-          <div className="h-[320px] flex items-center justify-center text-sm text-muted-foreground">
+          <div className="h-80 flex items-center justify-center text-sm text-muted-foreground">
             Nessun dato storico per categoria
           </div>
         ) : (
@@ -151,7 +151,7 @@ const HistoricalCategoryMixTooltip = ({
     .sort((a, b) => b.value - a.value);
 
   return (
-    <div className="rounded-lg border bg-background px-3 py-2 shadow-sm min-w-[220px]">
+    <div className="rounded-lg border bg-background px-3 py-2 shadow-sm min-w-55">
       <p className="text-xs text-muted-foreground mb-2">{label}</p>
       <div className="space-y-1.5">
         {rows.map((item) => (

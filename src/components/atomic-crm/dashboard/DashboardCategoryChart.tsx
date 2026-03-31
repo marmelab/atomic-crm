@@ -37,7 +37,7 @@ export const DashboardCategoryChart = ({
     </CardHeader>
     <CardContent className="px-2 pb-2">
       {!data.length || data.every((item) => item.revenue === 0) ? (
-        <div className="h-[320px] flex items-center justify-center text-sm text-muted-foreground">
+        <div className="h-80 flex items-center justify-center text-sm text-muted-foreground">
           Nessun dato per categoria
         </div>
       ) : (

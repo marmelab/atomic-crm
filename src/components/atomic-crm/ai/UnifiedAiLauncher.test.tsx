@@ -26,7 +26,7 @@ vi.mock("@/hooks/use-mobile", () => ({
 }));
 
 vi.mock("ra-core", async () => {
-  const actual = await vi.importActual<typeof import("ra-core")>("ra-core");
+  const actual = await vi.importActual("ra-core");
   return {
     ...actual,
     useDataProvider: () => ({

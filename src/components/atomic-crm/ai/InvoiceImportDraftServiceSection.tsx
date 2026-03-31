@@ -1,6 +1,6 @@
 import { Input } from "@/components/ui/input";
 import type { InvoiceImportRecordDraft } from "@/lib/ai/invoiceImport";
-import type { LabeledValue } from "../root/ConfigurationContext";
+import type { LabeledValue } from "../types";
 import { TravelRouteCalculatorDialog } from "../travel/TravelRouteCalculatorDialog";
 import { Field, Section, SelectField } from "./InvoiceImportDraftPrimitives";
 

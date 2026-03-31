@@ -12,12 +12,12 @@ export const DashboardLoading = () => (
       ))}
     </div>
     <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
-      <Skeleton className="h-[360px] w-full rounded-xl" />
-      <Skeleton className="h-[360px] w-full rounded-xl" />
+      <Skeleton className="h-90 w-full rounded-xl" />
+      <Skeleton className="h-90 w-full rounded-xl" />
     </div>
     <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
-      <Skeleton className="h-[520px] w-full rounded-xl" />
-      <Skeleton className="h-[520px] w-full rounded-xl" />
+      <Skeleton className="h-130 w-full rounded-xl" />
+      <Skeleton className="h-130 w-full rounded-xl" />
     </div>
   </div>
 );

@@ -510,7 +510,7 @@ export const buildDashboardModel = ({
       return {
         id: String(service.id),
         serviceDate: service.service_date,
-        serviceEnd: service.service_end ?? undefined,
+        ...(service.service_end ? { serviceEnd: service.service_end } : {}),
         allDay: service.all_day,
         projectName: project?.name ?? "Progetto",
         clientName,

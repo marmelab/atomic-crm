@@ -260,8 +260,8 @@ export const InvoiceImportDraftEditor = ({
               <InvoiceImportDraftServiceSection
                 record={record}
                 serviceTypeChoices={serviceTypeChoices}
-                defaultKmRate={operationalConfig.defaultKmRate ?? 0}
-                defaultTravelOrigin={operationalConfig.defaultTravelOrigin}
+                defaultKmRate={operationalConfig?.defaultKmRate ?? 0}
+                defaultTravelOrigin={operationalConfig?.defaultTravelOrigin}
                 onChange={(patch) => onChange(index, patch)}
               />
             ) : (

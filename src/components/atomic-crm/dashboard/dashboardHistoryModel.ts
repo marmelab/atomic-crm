@@ -14,6 +14,7 @@ export type AnalyticsHistoryMetaRow = {
 };
 
 export type AnalyticsYearlyCompetenceRevenueRow = {
+  id: number | string;
   year: number | string;
   is_closed_year: boolean;
   is_ytd: boolean;
@@ -27,6 +28,7 @@ export type AnalyticsYearlyCompetenceRevenueRow = {
 };
 
 export type AnalyticsYearlyCompetenceRevenueByCategoryRow = {
+  id: number | string;
   year: number | string;
   category: string;
   is_closed_year: boolean;
@@ -38,6 +40,7 @@ export type AnalyticsYearlyCompetenceRevenueByCategoryRow = {
 };
 
 export type AnalyticsClientLifetimeCompetenceRevenueRow = {
+  id: number | string;
   client_id: number | string;
   client_name: string;
   first_service_date?: string | null;

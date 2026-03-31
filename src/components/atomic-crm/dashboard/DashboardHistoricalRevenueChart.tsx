@@ -35,7 +35,7 @@ export const DashboardHistoricalRevenueChart = ({
     <CardContent className="px-2 pb-2">
       {model.yearlyRevenue.length === 0 ||
       model.yearlyRevenue.every((item) => item.revenue === 0) ? (
-        <div className="h-[320px] flex items-center justify-center text-sm text-muted-foreground">
+        <div className="h-80 flex items-center justify-center text-sm text-muted-foreground">
           Nessun dato storico disponibile
         </div>
       ) : (

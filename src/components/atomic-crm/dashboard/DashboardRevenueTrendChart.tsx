@@ -115,7 +115,7 @@ const RevenueTooltip = ({
 };
 
 const EmptyChartMessage = ({ message }: { message: string }) => (
-  <div className="h-[320px] flex items-center justify-center text-sm text-muted-foreground">
+  <div className="h-80 flex items-center justify-center text-sm text-muted-foreground">
     {message}
   </div>
 );

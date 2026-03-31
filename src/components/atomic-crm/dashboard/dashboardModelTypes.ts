@@ -1,3 +1,4 @@
+import type { Service } from "../types";
 import type { FiscalModel } from "./fiscalModel";
 
 export type MonthlyRevenueRow = {
@@ -188,7 +189,7 @@ export type UpcomingServiceAlert = {
   allDay: boolean;
   projectName: string;
   clientName: string;
-  serviceType: string;
+  serviceType: Service["service_type"];
   daysAhead: number;
 };
 

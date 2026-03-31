@@ -593,3 +593,7 @@ Errori di digitazione di Diego corretti direttamente in
   usa `todayISODate()` da `_shared/dateTimezone.ts` al posto di
   `new Date().toISOString().slice(0,10)`. Nessun impatto sul mapping o sui casi
   reali documentati sopra — cambia solo la data odierna iniettata nel prompt AI.
+- **2026-03-31 — Type safety audit:** `InvoiceImportDraftEditor` e
+  `InvoiceImportDraftServiceSection` hanno ricevuto fix di tipo (optional
+  chaining su `operationalConfig`, import path corretto per `LabeledValue`).
+  Nessun cambio comportamentale — solo allineamento ai tipi dichiarati.

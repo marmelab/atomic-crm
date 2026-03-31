@@ -60,7 +60,7 @@ export const DashboardPipelineCard = ({
           </div>
         </div>
         {!chartData.length ? (
-          <div className="h-[280px] flex items-center justify-center text-sm text-muted-foreground">
+          <div className="h-70 flex items-center justify-center text-sm text-muted-foreground">
             Nessun preventivo disponibile
           </div>
         ) : (

@@ -15,7 +15,6 @@ import { useDataProvider, useNotify } from "ra-core";
 import { AiBlockRenderer } from "./AiBlockRenderer";
 import { Markdown } from "../misc/Markdown";
 import type { CrmDataProvider } from "../providers/types";
-import { useConfigurationContext } from "../root/ConfigurationContext";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
@@ -25,7 +24,6 @@ import {
   type AnnualOperationsAnalyticsSummary,
   type AnnualOperationsVisualAnswer,
   type AnnualOperationsVisualSummary,
-  defaultAnnualAnalysisModel,
   getAnnualOperationsSuggestedQuestions,
   type SuggestedQuestion,
 } from "@/lib/analytics/annualAnalysis";
@@ -69,7 +67,6 @@ export const DashboardAnnualAiSummaryCard = ({
 }) => {
   const dataProvider = useDataProvider<CrmDataProvider>();
   const notify = useNotify();
-  const { aiConfig } = useConfigurationContext();
   const [question, setQuestion] = useState("");
   const [visualMode, setVisualMode] = useState(getStoredVisualMode);
 
@@ -120,8 +117,6 @@ export const DashboardAnnualAiSummaryCard = ({
     },
   });
 
-  const _selectedModel =
-    aiConfig?.historicalAnalysisModel ?? defaultAnnualAnalysisModel;
   const currentYear = Number(todayISODate().slice(0, 4));
   const isCurrentYear = year === currentYear;
   const suggestedQuestions = getAnnualOperationsSuggestedQuestions({
