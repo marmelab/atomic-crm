@@ -41,17 +41,17 @@ stop-supabase: ## stop local supabase
 stop: stop-supabase ## stop the stack locally
 
 start-supabase-e2e: ## start a separate supabase instance for e2e (fresh DB every run)
-	npx supabase stop --workdir .supabase-e2e --no-backup 2>/dev/null || true
-	rm -rf .supabase-e2e/supabase
-	mkdir -p .supabase-e2e/supabase
-	cp supabase/config.e2e.toml .supabase-e2e/supabase/config.toml
-	cp -r supabase/migrations .supabase-e2e/supabase/migrations
-	cp -r supabase/schemas .supabase-e2e/supabase/schemas
-	cp -r supabase/functions .supabase-e2e/supabase/functions
-	cp -r supabase/templates .supabase-e2e/supabase/templates
-	cp supabase/seed.sql .supabase-e2e/supabase/seed.sql
-	cp supabase/signing_keys.json .supabase-e2e/supabase/signing_keys.json
-	npx supabase start --workdir .supabase-e2e 1>/dev/null
+	@npx supabase stop --workdir .supabase-e2e --no-backup 2>/dev/null || true
+	@rm -rf .supabase-e2e/supabase
+	@mkdir -p .supabase-e2e/supabase
+	@cp supabase/config.e2e.toml .supabase-e2e/supabase/config.toml
+	@cp -r supabase/migrations .supabase-e2e/supabase/migrations
+	@cp -r supabase/schemas .supabase-e2e/supabase/schemas
+	@cp -r supabase/functions .supabase-e2e/supabase/functions
+	@cp -r supabase/templates .supabase-e2e/supabase/templates
+	@cp supabase/seed.sql .supabase-e2e/supabase/seed.sql
+	@cp supabase/signing_keys.json .supabase-e2e/supabase/signing_keys.json
+	@script -eq /dev/null -c "npx supabase start --workdir .supabase-e2e" >.supabase-e2e/start.log 2>&1 || (cat .supabase-e2e/start.log && exit 1)
 
 stop-supabase-e2e: ## stop the e2e supabase instance
 	npx supabase stop --workdir .supabase-e2e --no-backup
