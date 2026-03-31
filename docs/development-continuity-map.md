@@ -91,6 +91,39 @@ Last updated: 2026-03-31 (Timezone bonifica — centralized business-date helper
 
 ---
 
+## Update 2026-03-31 — Timezone bonifica
+
+**Cosa è cambiato**
+
+Centralizzati due moduli `dateTimezone` (client + Edge Function) che espongono
+`BUSINESS_TIMEZONE`, `todayISODate()`, `toISODate()`. Tutti i 12 call site che
+usavano `toISOString().slice(0,10)`, `toISOString().split("T")[0]` o
+`toLocalISODate` locale sono stati sostituiti. La view SQL
+`financial_documents_summary` usa ora `(NOW() AT TIME ZONE 'Europe/Rome')::date`.
+
+**File nuovi**
+
+- `src/lib/dateTimezone.ts` + `src/lib/dateTimezone.test.ts`
+- `supabase/functions/_shared/dateTimezone.ts` + `dateTimezone.test.ts`
+- `supabase/migrations/20260331194623_fix_timezone_in_financial_documents_summary.sql`
+
+**File modificati** (12 call site)
+
+- `fiscal_deadline_check/index.ts`, `fiscalDeadlineCalculation.ts`
+- `invoice_import_extract/index.ts`, `workflowTemplatePlaceholders.ts`
+- `unifiedCrmAnswerUtils.ts` (re-export)
+- `invoiceDraftXml.ts`, `invoiceDraftPdf.tsx`, `InvoiceDraftDialog.tsx`
+- `AddTask.tsx`, `TaskCreateSheet.tsx`, `workflowEngine.ts`
+- `quoteServiceLinking.ts`, `DashboardAnnual.tsx`
+- `fiscalDeadlines.ts`, `dashboardModel.ts`, `DashboardDeadlineTracker.tsx`
+- `PaymentOverdueBadge.tsx`
+
+**Sweep obbligatoria**: nessuna superficie UI nuova. Refactoring interno.
+
+**Spec**: `docs/superpowers/specs/2026-03-31-timezone-bonifica-design.md`
+
+---
+
 ## Update 2026-03-30 — Bugfix audit
 
 **Cosa è cambiato**

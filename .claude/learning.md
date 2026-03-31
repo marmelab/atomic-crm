@@ -49,6 +49,7 @@
 | **Config**   | CFG-2 | BusinessProfile → merge defaults safe     |
 | **Backend**  | BE-7  | OpenAI reasoning → effort "low" per CRM  |
 | **Backend**  | BE-8  | Supabase ref → NON dfrrigmjsvcsdhgqtikz   |
+| **Workflow** | WF-8  | Business date → dateTimezone helper       |
 
 ---
 
@@ -202,6 +203,18 @@ verify_jwt = false
 **Quando**: ho appena fatto `git push`
 **Fare**: SEMPRE controllare il CI con `gh run list --limit 1` + `gh run view <id> --log-failed` SENZA aspettare che l'utente mandi screenshot. Se fallisce, fixare e re-pushare autonomamente.
 **Perché**: l'utente non deve fare da intermediario tra me e il CI. Devo controllare i log da solo, ogni volta, subito dopo il push.
+
+### WF-8: Business date = dateTimezone helper, mai toISOString().slice
+
+**Quando**: scrivo `new Date().toISOString().slice(0,10)` o
+`.toISOString().split("T")[0]` per ottenere una data di business, oppure
+`new Date("YYYY-MM-DD")` per parsare una data di business
+**Fare**: usare `todayISODate()` o `toISODate(date)` dal modulo
+`dateTimezone` (`src/lib/dateTimezone.ts` client, `_shared/dateTimezone.ts` EF).
+Mai convertire una business date string in `Date` senza semantica esplicita.
+**Perché**: `toISOString()` converte in UTC prima di estrarre — data
+sbagliata tra 00:00 e 02:00 CEST. `new Date("YYYY-MM-DD")` interpreta come
+UTC midnight — giorno sbagliato in `Europe/Rome` nella stessa finestra.
 
 ---
 
