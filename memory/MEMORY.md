@@ -1,0 +1,1 @@
+- [Git push policy](feedback_no_push.md) — Mai proporre push, l'utente lo chiede quando serve

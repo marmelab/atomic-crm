@@ -49,6 +49,9 @@ public/r/
 .env*.local
 playwright-report/
 test-results/
+.playwright-mcp/
+.browser-sessions/
+.planning/
 
 # Temporary / generated assets
 /app/
