@@ -51,7 +51,7 @@ start-supabase-e2e: ## start a separate supabase instance for e2e (fresh DB ever
 	cp -r supabase/templates .supabase-e2e/supabase/templates
 	cp supabase/seed.sql .supabase-e2e/supabase/seed.sql
 	cp supabase/signing_keys.json .supabase-e2e/supabase/signing_keys.json
-	npx supabase start --workdir .supabase-e2e
+	npx supabase start --workdir .supabase-e2e 1>/dev/null
 
 stop-supabase-e2e: ## stop the e2e supabase instance
 	npx supabase stop --workdir .supabase-e2e --no-backup
@@ -66,7 +66,7 @@ build: ## build the app
 	npm run build
 
 build-e2e: ## build the app in e2e mode (with the e2e supabase config)
-	npm run build:e2e
+	npm run build:e2e 1>/dev/null
 
 build-demo: ## build the app in demo mode
 	npm run build:demo
