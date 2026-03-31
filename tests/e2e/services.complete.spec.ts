@@ -6,6 +6,7 @@
 import { expect, test } from "@playwright/test";
 import { loginAsLocalAdmin } from "./support/auth";
 import { resetAndSeedTestData } from "./support/test-data-controller";
+import { selectFirstOption } from "./support/select-first-option";
 
 test.describe("Module: Services - Complete", () => {
   test.beforeEach(() => {
@@ -44,8 +45,7 @@ test.describe("Module: Services - Complete", () => {
     await expect(page).toHaveURL(/\/services\/create$/);
 
     // Seleziona progetto
-    await page.getByLabel("Progetto").click();
-    await page.getByRole("option").first().click();
+    await selectFirstOption(page, page.getByRole("combobox", { name: "Progetto" }));
 
     // Data
     await page.getByLabel("Data inizio").fill("2026-03-10");
@@ -126,8 +126,7 @@ test.describe("Module: Services - Complete", () => {
     await page.getByRole("link", { name: "Registro Lavori" }).click();
     await page.getByRole("link", { name: "Crea" }).click();
 
-    await page.getByLabel("Progetto").click();
-    await page.getByRole("option").first().click();
+    await selectFirstOption(page, page.getByRole("combobox", { name: "Progetto" }));
     await page.getByLabel("Data inizio").fill("2026-03-15");
     await page.getByLabel("Compenso riprese").fill("1000");
 
@@ -177,8 +176,10 @@ test.describe("Module: Services - Complete", () => {
     await page.getByRole("link", { name: "Registro Lavori" }).click();
 
     // Filtra per progetto
-    await page.getByRole("button", { name: /Filtra per progetto/ }).click();
-    await page.getByRole("option").first().click();
+    await selectFirstOption(
+      page,
+      page.getByRole("button", { name: /Filtra per progetto/ }),
+    );
 
     // Verifica servizi visibili
     const rows = page.locator("table tbody tr");
@@ -208,8 +209,7 @@ test.describe("Module: Services - Complete", () => {
     await page.getByRole("link", { name: "Crea" }).click();
 
     // Crea servizio con riferimento fattura
-    await page.getByLabel("Progetto").click();
-    await page.getByRole("option").first().click();
+    await selectFirstOption(page, page.getByRole("combobox", { name: "Progetto" }));
     await page.getByLabel("Data inizio").fill("2026-03-20");
     await page.getByLabel("Compenso riprese").fill("1000");
     await page.getByLabel("Rif. Fattura").fill("FPR 1/26");

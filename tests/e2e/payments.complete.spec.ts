@@ -6,6 +6,7 @@
 import { expect, test } from "@playwright/test";
 import { loginAsLocalAdmin } from "./support/auth";
 import { resetAndSeedTestData } from "./support/test-data-controller";
+import { selectFirstOption } from "./support/select-first-option";
 
 test.describe("Module: Payments - Complete", () => {
   test.beforeEach(() => {
@@ -193,10 +194,10 @@ test.describe("Module: Payments - Complete", () => {
     await page.getByRole("link", { name: "Pagamenti" }).click();
 
     // Filtra per progetto
-    await page
-      .getByRole("button", { name: /Filtra per progetto/ })
-      .click();
-    await page.getByRole("option").first().click();
+    await selectFirstOption(
+      page,
+      page.getByRole("button", { name: /Filtra per progetto/ }),
+    );
 
     // Tutti i pagamenti dovrebbero essere visibili (stesso progetto)
     const rows = page.locator("table tbody tr");

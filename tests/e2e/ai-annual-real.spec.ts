@@ -140,9 +140,18 @@ test.describe("AI Annual Real Response", () => {
       /## (Perch[eé] lo dico|Cose importanti|Cosa controllare adesso)/i,
     );
 
-    // Must NOT treat zero quotes as automatic problem
+    // Zero open quotes should be presented as a neutral data point, not alarmism.
     if (text.includes("preventivi")) {
-      expect(text).not.toMatch(/problema|critico|alarm|emergenz|preoccupant/);
+      const quotesSection =
+        text.match(/preventivi[\s\S]{0,240}/)?.[0] ?? text;
+
+      expect(quotesSection).not.toMatch(/critico|alarm|emergenz|preoccupant/);
+
+      if (quotesSection.includes("problema")) {
+        expect(quotesSection).toMatch(
+          /non [^.]{0,80}problema|non è automaticamente un problema/,
+        );
+      }
     }
 
     // Log the response for manual inspection

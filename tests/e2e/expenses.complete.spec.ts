@@ -11,6 +11,7 @@
 import { expect, test } from "@playwright/test";
 import { loginAsLocalAdmin } from "./support/auth";
 import { resetAndSeedTestData } from "./support/test-data-controller";
+import { selectFirstOption } from "./support/select-first-option";
 
 test.describe("Module: Expenses - Complete", () => {
   test.beforeEach(() => {
@@ -57,8 +58,7 @@ test.describe("Module: Expenses - Complete", () => {
     await page.getByLabel("Spesa a mio carico").click();
 
     // Seleziona progetto
-    await page.getByLabel("Progetto").click();
-    await page.getByRole("option").first().click();
+    await selectFirstOption(page, page.getByRole("combobox", { name: "Progetto" }));
 
     // Data
     await page.getByLabel("Data").fill("2026-03-10");
@@ -94,8 +94,7 @@ test.describe("Module: Expenses - Complete", () => {
     await page.getByLabel("Spesa a mio carico").click();
 
     // Seleziona progetto
-    await page.getByLabel("Progetto").click();
-    await page.getByRole("option").first().click();
+    await selectFirstOption(page, page.getByRole("combobox", { name: "Progetto" }));
 
     // Data
     await page.getByLabel("Data").fill("2026-03-15");
@@ -207,8 +206,10 @@ test.describe("Module: Expenses - Complete", () => {
     await expect(page.locator("table tbody tr")).toHaveCount(5);
 
     // Filtra per progetto using the Popover trigger button
-    await page.getByRole("button", { name: /Filtra per progetto/ }).click();
-    await page.getByRole("option").first().click();
+    await selectFirstOption(
+      page,
+      page.getByRole("button", { name: /Filtra per progetto/ }),
+    );
 
     // Expenses with project_id: acquisto_materiale + 2 auto-km = 3
     const rows = page.locator("table tbody tr");
@@ -237,8 +238,7 @@ test.describe("Module: Expenses - Complete", () => {
     await page.getByLabel("Spesa a mio carico").click();
 
     // Crea credito ricevuto
-    await page.getByLabel("Progetto").click();
-    await page.getByRole("option").first().click();
+    await selectFirstOption(page, page.getByRole("combobox", { name: "Progetto" }));
     await page.getByLabel("Data").fill("2026-03-20");
     await page.getByLabel("Tipo").click();
     await page.getByRole("option", { name: "Credito ricevuto" }).click();

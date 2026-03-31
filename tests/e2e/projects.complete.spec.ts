@@ -6,6 +6,7 @@
 import { expect, test } from "@playwright/test";
 import { loginAsLocalAdmin } from "./support/auth";
 import { resetAndSeedTestData } from "./support/test-data-controller";
+import { selectFirstOption } from "./support/select-first-option";
 
 test.describe("Module: Projects - Complete", () => {
   test.beforeEach(() => {
@@ -41,8 +42,7 @@ test.describe("Module: Projects - Complete", () => {
 
     // Compila campi
     await page.getByLabel("Nome progetto").fill("Nuovo Progetto Test");
-    await page.getByLabel("Cliente").click();
-    await page.getByRole("option").first().click(); // Seleziona primo cliente
+    await selectFirstOption(page, page.getByRole("combobox", { name: "Cliente" }));
 
     await page.getByLabel("Categoria").click();
     await page.getByRole("option", { name: "Produzione TV" }).click();

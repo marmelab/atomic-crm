@@ -6,6 +6,7 @@
 import { expect, test } from "@playwright/test";
 import { loginAsLocalAdmin } from "./support/auth";
 import { resetAndSeedTestData } from "./support/test-data-controller";
+import { selectFirstOption } from "./support/select-first-option";
 
 test.describe("Module: Tasks - Complete", () => {
   test.beforeEach(() => {
@@ -40,8 +41,7 @@ test.describe("Module: Tasks - Complete", () => {
     // Seleziona cliente (opzionale)
     const clientField = page.getByLabel(/Cliente/);
     if (await clientField.isVisible().catch(() => false)) {
-      await clientField.click();
-      await page.getByRole("option").first().click();
+      await selectFirstOption(page, clientField);
     }
 
     await page.getByRole("button", { name: /Salva|Crea/ }).click();
@@ -78,12 +78,17 @@ test.describe("Module: Tasks - Complete", () => {
     await page.getByLabel("Scadenza").fill("2026-03-20");
     await page.getByRole("button", { name: "Salva" }).click();
 
+    await expect(page.getByRole("dialog")).not.toBeVisible();
+
     // Filtra per range date
-    const dateInputs = page.locator('input[type="date"]');
+    const dateInputs = page.locator("#main-content input[type='date']");
     await dateInputs.first().fill("2026-03-19");
     await dateInputs.nth(1).fill("2026-03-21");
 
-    await expect(page.locator("#main-content").getByText("Task range test")).toBeVisible();
+    await expect(page.locator("#main-content").getByText("Risultati")).toBeVisible();
+    await expect(
+      page.locator("#main-content").getByText("Task range test"),
+    ).toBeVisible();
   });
 
   test("edit task updates fields", async ({ page }) => {
