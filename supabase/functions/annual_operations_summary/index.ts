@@ -7,6 +7,10 @@ import { corsHeaders, OptionsMiddleware } from "../_shared/cors.ts";
 import { getUserSale } from "../_shared/getUserSale.ts";
 import { createErrorResponse } from "../_shared/utils.ts";
 import { visualModeInstructions } from "../_shared/visualModePrompt.ts";
+import {
+  parseAiVisualBlocks,
+  InvalidAiOutputError,
+} from "../_shared/parseAiVisualBlocks.ts";
 
 const defaultAnalysisModel = "gpt-5.2";
 const allowedModels = new Set(["gpt-5.2", "gpt-5-mini", "gpt-5-nano"]);
@@ -125,7 +129,7 @@ async function createAnnualOperationsSummary(
       ? {
           model: selectedModel,
           generatedAt: new Date().toISOString(),
-          blocks: JSON.parse(outputText),
+          blocks: parseAiVisualBlocks(outputText),
         }
       : {
           model: selectedModel,
@@ -137,6 +141,9 @@ async function createAnnualOperationsSummary(
       headers: { "Content-Type": "application/json", ...corsHeaders },
     });
   } catch (error) {
+    if (error instanceof InvalidAiOutputError) {
+      return createErrorResponse(502, error.message);
+    }
     console.error("annual_operations_summary.error", error);
     return createErrorResponse(
       500,

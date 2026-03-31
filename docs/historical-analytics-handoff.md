@@ -6,7 +6,23 @@ lavoro senza riaprire decisioni gia prese.
 **Quando NON usarlo da solo:** per dedurre architettura canonica o stato
 prodotto senza incrociarlo con `docs/README.md` e i documenti `canonical`.
 
-Last updated: 2026-03-31 (timezone bonifica phase 4 — annual wrappers + fiscal deadline parity)
+Last updated: 2026-04-01 (M1 — parseAiVisualBlocks helper consumed in 6 AI Edge Functions)
+
+## Update 2026-04-01 — M1: parseAiVisualBlocks consumed in 6 AI Edge Functions
+
+All 6 AI Edge Functions now use `parseAiVisualBlocks` from `_shared/parseAiVisualBlocks.ts`
+instead of raw `JSON.parse` for the visual-mode blocks output:
+
+- `annual_operations_summary`, `annual_operations_answer`
+- `historical_analytics_summary`, `historical_analytics_answer`
+- `historical_cash_inflow_summary`, `historical_cash_inflow_answer`
+
+The helper validates the JSON, strips markdown fences if present, and throws
+`InvalidAiOutputError` for malformed output. The catch blocks in each function
+now return 502 for `InvalidAiOutputError` and 500 for any other error.
+
+No behavioral change when the AI output is valid JSON. The improvement is
+structured error propagation when the AI returns non-JSON content.
 
 ## Update 2026-03-31 — Timezone bonifica phase 4 (annual wrappers + fiscal deadline parity)
 

@@ -6,6 +6,10 @@ import { corsHeaders, OptionsMiddleware } from "../_shared/cors.ts";
 import { getUserSale } from "../_shared/getUserSale.ts";
 import { createErrorResponse } from "../_shared/utils.ts";
 import { visualModeInstructions } from "../_shared/visualModePrompt.ts";
+import {
+  parseAiVisualBlocks,
+  InvalidAiOutputError,
+} from "../_shared/parseAiVisualBlocks.ts";
 
 const defaultHistoricalAnalysisModel = "gpt-5.2";
 const allowedModels = new Set(["gpt-5.2", "gpt-5-mini", "gpt-5-nano"]);
@@ -114,7 +118,7 @@ async function answerHistoricalCashInflowQuestion(
           question: trimmedQuestion,
           model: selectedModel,
           generatedAt: new Date().toISOString(),
-          blocks: JSON.parse(outputText),
+          blocks: parseAiVisualBlocks(outputText),
         }
       : {
           question: trimmedQuestion,
@@ -127,6 +131,9 @@ async function answerHistoricalCashInflowQuestion(
       headers: { "Content-Type": "application/json", ...corsHeaders },
     });
   } catch (error) {
+    if (error instanceof InvalidAiOutputError) {
+      return createErrorResponse(502, error.message);
+    }
     console.error("historical_cash_inflow_answer.error", error);
     return createErrorResponse(
       500,

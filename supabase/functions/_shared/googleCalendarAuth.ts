@@ -1,4 +1,5 @@
 import * as jose from "jsr:@panva/jose@6";
+import { validateGoogleTokenResponse } from "./validateGoogleTokenResponse.ts";
 
 const GOOGLE_TOKEN_URL = "https://oauth2.googleapis.com/token";
 const CALENDAR_SCOPE = "https://www.googleapis.com/auth/calendar";
@@ -49,10 +50,11 @@ export async function getGoogleAccessToken(): Promise<string> {
     throw new Error(`Google token exchange failed (${res.status}): ${errBody}`);
   }
 
-  const data = await res.json();
+  const rawData = await res.json();
+  const { access_token, expires_in } = validateGoogleTokenResponse(rawData);
   cachedToken = {
-    access_token: data.access_token,
-    expires_at: Date.now() + (data.expires_in - 60) * 1000,
+    access_token,
+    expires_at: Date.now() + (expires_in - 60) * 1000,
   };
 
   return cachedToken.access_token;
