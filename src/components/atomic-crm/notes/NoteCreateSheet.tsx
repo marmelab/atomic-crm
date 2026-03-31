@@ -39,6 +39,7 @@ export const NoteCreateSheet = ({
   const redirect = useRedirect();
   const translate = useTranslate();
   const getContactRepresentation = useGetRecordRepresentation("contacts");
+  const defaultStatus = selectContact ? undefined : contact?.status;
 
   if (!identity) return null;
 
@@ -91,6 +92,7 @@ export const NoteCreateSheet = ({
       onOpenChange={onOpenChange}
     >
       <NoteInputs
+        defaultStatus={defaultStatus}
         showStatus
         reference="contacts"
         selectReference={selectContact}
