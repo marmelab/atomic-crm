@@ -4,6 +4,13 @@
 
 Atomic CRM is a full-featured CRM built with React, shadcn-admin-kit, and Supabase. It provides contact management, task tracking, notes, email capture, and deal management with a Kanban board.
 
+## Workspace Relationship
+
+- This project lives beside travel-focused apps in the same workspace, but it should be treated as a separate product boundary.
+- Do not assume `../atomic-crm` is the backend for `../../base-beauty/` or `../../regal-content-control/`.
+- If a task references tours content, SEO pages, destinations, accommodations, or media workflows, that task likely belongs in the travel apps rather than here.
+- Work here when the task is truly CRM-shaped: contacts, companies, sales, deals, tasks, notes, users, or inbound-email handling.
+
 ## Development Commands
 
 ### Setup
