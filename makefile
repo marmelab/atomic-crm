@@ -1,5 +1,15 @@
 .PHONY: build help
 
+# Run silently, show output on failure
+run-silent = $1 >/tmp/atomic-crm-$2.log 2>&1 || (cat /tmp/atomic-crm-$2.log && false)
+
+# Same but captures TTY output (for docker/supabase)
+ifeq ($(shell uname),Darwin)
+run-silent-tty = script -q /tmp/atomic-crm-$2.log $1 >/dev/null 2>&1 || (cat /tmp/atomic-crm-$2.log && false)
+else
+run-silent-tty = script -eq /dev/null -c "$1" >/tmp/atomic-crm-$2.log 2>&1 || (cat /tmp/atomic-crm-$2.log && false)
+endif
+
 help:
 	@grep -E '^[a-zA-Z0-9_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'
 
@@ -42,16 +52,16 @@ stop: stop-supabase ## stop the stack locally
 
 start-supabase-e2e: ## start a separate supabase instance for e2e (fresh DB every run)
 	@npx supabase stop --workdir .supabase-e2e --no-backup 2>/dev/null || true
-	@rm -rf .supabase-e2e/supabase
-	@mkdir -p .supabase-e2e/supabase
-	@cp supabase/config.e2e.toml .supabase-e2e/supabase/config.toml
-	@cp -r supabase/migrations .supabase-e2e/supabase/migrations
-	@cp -r supabase/schemas .supabase-e2e/supabase/schemas
-	@cp -r supabase/functions .supabase-e2e/supabase/functions
-	@cp -r supabase/templates .supabase-e2e/supabase/templates
-	@cp supabase/seed.sql .supabase-e2e/supabase/seed.sql
-	@cp supabase/signing_keys.json .supabase-e2e/supabase/signing_keys.json
-	@script -eq /dev/null -c "npx supabase start --workdir .supabase-e2e" >.supabase-e2e/start.log 2>&1 || (cat .supabase-e2e/start.log && exit 1)
+	rm -rf .supabase-e2e/supabase
+	mkdir -p .supabase-e2e/supabase
+	cp supabase/config.e2e.toml .supabase-e2e/supabase/config.toml
+	cp -r supabase/migrations .supabase-e2e/supabase/migrations
+	cp -r supabase/schemas .supabase-e2e/supabase/schemas
+	cp -r supabase/functions .supabase-e2e/supabase/functions
+	cp -r supabase/templates .supabase-e2e/supabase/templates
+	cp supabase/seed.sql .supabase-e2e/supabase/seed.sql
+	cp supabase/signing_keys.json .supabase-e2e/supabase/signing_keys.json
+	@$(call run-silent-tty,npx supabase start --workdir .supabase-e2e,supabase-e2e)
 
 stop-supabase-e2e: ## stop the e2e supabase instance
 	npx supabase stop --workdir .supabase-e2e --no-backup
@@ -66,7 +76,7 @@ build: ## build the app
 	npm run build
 
 build-e2e: ## build the app in e2e mode (with the e2e supabase config)
-	npm run build:e2e 1>/dev/null
+	@$(call run-silent,npm run build:e2e,build-e2e)
 
 build-demo: ## build the app in demo mode
 	npm run build:demo
