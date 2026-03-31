@@ -1,4 +1,7 @@
-import { useListContext, useCreatePath, useGetOne } from "ra-core";
+import { useListContext, useCreatePath, useGetMany } from "ra-core";
+
+import type { Client, Project } from "../types";
+import { formatCurrencyPrecise } from "../dashboard/dashboardFormatters";
 import { Link } from "react-router";
 import {
   Table,
@@ -24,7 +27,6 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-import type { Project } from "../types";
 import { PROJECT_COLUMNS } from "../misc/columnDefinitions";
 import {
   projectCategoryLabels,
@@ -47,6 +49,19 @@ export const ProjectListContent = () => {
   const { getWidth, onResizeStart, headerRef } =
     useResizableColumns("projects");
 
+  // Batch-fetch all clients in one request (fixes N+1 query)
+  const clientIds = [
+    ...new Set(
+      (data ?? []).map((p) => p.client_id).filter(Boolean) as string[],
+    ),
+  ];
+  const { data: clients } = useGetMany<Client>(
+    "clients",
+    { ids: clientIds },
+    { enabled: !isPending && clientIds.length > 0 },
+  );
+  const clientsById = new Map(clients?.map((c) => [String(c.id), c]) ?? []);
+
   if (isPending || !data) return null;
 
   if (isMobile) {
@@ -57,6 +72,11 @@ export const ProjectListContent = () => {
             <MobileSelectableCard key={project.id} id={project.id}>
               <ProjectMobileCard
                 project={project}
+                clientName={
+                  project.client_id
+                    ? (clientsById.get(String(project.client_id))?.name ?? "")
+                    : ""
+                }
                 link={createPath({
                   resource: "projects",
                   type: "show",
@@ -126,6 +146,11 @@ export const ProjectListContent = () => {
             <ProjectRow
               key={project.id}
               project={project}
+              clientName={
+                project.client_id
+                  ? (clientsById.get(String(project.client_id))?.name ?? "")
+                  : ""
+              }
               link={createPath({
                 resource: "projects",
                 type: "show",
@@ -143,41 +168,46 @@ export const ProjectListContent = () => {
 /* ---- Mobile card ---- */
 const ProjectMobileCard = ({
   project,
+  clientName,
   link,
 }: {
   project: Project;
+  clientName: string;
   link: string;
-}) => {
-  const { data: client } = useGetOne("clients", { id: project.client_id });
-
-  return (
-    <Link
-      to={link}
-      className="flex flex-col gap-1 px-1 py-3 active:bg-muted/50"
-    >
-      <span className="text-base font-bold">{project.name}</span>
-      <div className="flex items-center justify-between">
+}) => (
+  <Link to={link} className="flex flex-col gap-1 px-1 py-3 active:bg-muted/50">
+    <span className="text-base font-bold">{project.name}</span>
+    <div className="flex items-center justify-between">
+      <span className="text-xs text-muted-foreground">{clientName}</span>
+      <ProjectStatusBadge status={project.status} />
+    </div>
+    <div className="flex items-center gap-2">
+      <ProjectCategoryBadge category={project.category} />
+      {project.tv_show && (
         <span className="text-xs text-muted-foreground">
-          {client?.name ?? ""}
+          {projectTvShowLabels[project.tv_show]}
         </span>
-        <ProjectStatusBadge status={project.status} />
-      </div>
-      <div className="flex items-center gap-2">
-        <ProjectCategoryBadge category={project.category} />
-        {project.tv_show && (
-          <span className="text-xs text-muted-foreground">
-            {projectTvShowLabels[project.tv_show]}
-          </span>
-        )}
-      </div>
-    </Link>
-  );
-};
+      )}
+      {project.budget != null && project.budget > 0 && (
+        <span className="text-xs text-muted-foreground">
+          {formatCurrencyPrecise(project.budget)}
+        </span>
+      )}
+    </div>
+  </Link>
+);
 
 /* ---- Desktop table row ---- */
-const ProjectRow = ({ project, link }: { project: Project; link: string }) => {
+const ProjectRow = ({
+  project,
+  clientName,
+  link,
+}: {
+  project: Project;
+  clientName: string;
+  link: string;
+}) => {
   const { cv } = useColumnVisibility("projects", PROJECT_COLUMNS);
-  const { data: client } = useGetOne("clients", { id: project.client_id });
 
   return (
     <TableRow className="cursor-pointer hover:bg-muted/50">
@@ -203,7 +233,7 @@ const ProjectRow = ({ project, link }: { project: Project; link: string }) => {
         </div>
       </TableCell>
       <TableCell className={cv("client", "text-muted-foreground")}>
-        {client?.name ?? ""}
+        {clientName}
       </TableCell>
       <TableCell className={cv("category")}>
         <ProjectCategoryBadge category={project.category} />

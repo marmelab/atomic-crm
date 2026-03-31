@@ -15,6 +15,7 @@ Stato del documento:
 
 ## Changelog
 
+- 2026-03-31: Project list: batch client fetch via useGetMany (replaces N+1 useGetOne per row), budget displayed in mobile card via formatCurrencyPrecise.
 - 2026-03-30: Bugfix audit — 9 verified fixes: Payment.client_id nullable alignment (types.ts + consumer guards in dashboardModel/PaymentListContent), updated_at added to Service/Payment/Expense types, client tags default, supplier dropdown canonical import (credito_ricevuto), budget formatCurrencyPrecise unification (ProjectShow+Kanban), expense mobile card supplier name, DashboardKpiCards compact prop implementation, DeltaArrow 0% display, JSON.parse defensive try-catch in dataProvider.
 - 2026-03-09: fix(settings/mobile): Save bar now inline (scrollable) on mobile instead of fixed overlay that clashed with MobileNavigation. Desktop keeps fixed bar. fix(ai/invoice-draft): when user mentions "preventivo" but no open quotes exist in context, parser returns null (delegates to AI model) instead of misleading fallback to unrelated client surface.
 - 2026-03-08: Mobile dashboard data parity fix — added useRealtimeInvalidation to MobileAnnualDashboard (was missing, causing stale data from persistent localStorage cache). Added staleTime: 2min to mobile QueryClient to force refetch when data is stale. Fixes expenses showing 0 on mobile while desktop showed correct values.
