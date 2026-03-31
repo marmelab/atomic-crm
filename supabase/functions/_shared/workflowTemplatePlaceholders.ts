@@ -37,13 +37,15 @@ const formatCurrency = (value: unknown): string => {
   });
 };
 
+import { BUSINESS_TIMEZONE } from "./dateTimezone.ts";
+
 const formatDate = (): string => {
-  const now = new Date();
-  return now.toLocaleDateString("it-IT", {
+  return new Intl.DateTimeFormat("it-IT", {
+    timeZone: BUSINESS_TIMEZONE,
     day: "2-digit",
     month: "2-digit",
     year: "numeric",
-  });
+  }).format(new Date());
 };
 
 export function resolveTemplatePlaceholders(

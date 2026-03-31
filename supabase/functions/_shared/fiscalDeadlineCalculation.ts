@@ -6,6 +6,8 @@
  * reminder task payloads for upcoming deadlines.
  */
 
+import { toISODate } from "./dateTimezone.ts";
+
 // ── Types ─────────────────────────────────────────────────────────────
 
 export type FiscalConfig = {
@@ -53,13 +55,6 @@ const diffDays = (from: Date, to: Date) => {
   return Math.floor(
     (toStartOfDay(to).valueOf() - toStartOfDay(from).valueOf()) / msPerDay,
   );
-};
-
-const toLocalISODate = (date: Date) => {
-  const y = date.getFullYear();
-  const m = String(date.getMonth() + 1).padStart(2, "0");
-  const d = String(date.getDate()).padStart(2, "0");
-  return `${y}-${m}-${d}`;
 };
 
 // ── Tax rate calculation ──────────────────────────────────────────────
@@ -172,7 +167,7 @@ const makeDeadline = (opts: {
   priority: "high" | "low";
   today: Date;
 }): FiscalDeadline => ({
-  date: toLocalISODate(opts.date),
+  date: toISODate(opts.date),
   label: opts.label,
   items: opts.items,
   totalAmount: opts.items.reduce((s, i) => s + i.amount, 0),

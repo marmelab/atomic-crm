@@ -584,3 +584,12 @@ Errori di digitazione di Diego corretti direttamente in
 | 15 | 5 gen 24 | 5 gen 25 | 2025-01-05 | BTF Santocchini |
 | 16 | 8 gen 24 | 8 gen 25 | 2025-01-08 | SPOT HCLINIC |
 | 17 | 13 gen 24 | 13 gen 25 | 2025-01-13 | BTF Pasticceria Vittoria |
+
+---
+
+## Note tecniche
+
+- **2026-03-31 — Timezone bonifica:** il prompt di `invoice_import_extract` ora
+  usa `todayISODate()` da `_shared/dateTimezone.ts` al posto di
+  `new Date().toISOString().slice(0,10)`. Nessun impatto sul mapping o sui casi
+  reali documentati sopra — cambia solo la data odierna iniettata nel prompt AI.

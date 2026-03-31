@@ -6,7 +6,7 @@ obbligatoria delle superfici collegate.
 **Quando usarlo:** ogni volta che una modifica tocca comportamento reale del
 prodotto.
 
-Last updated: 2026-03-30 (Bugfix audit — type safety, UI parity, formatting)
+Last updated: 2026-03-31 (Timezone bonifica — centralized business-date helpers)
 
 ---
 
@@ -14,6 +14,7 @@ Last updated: 2026-03-30 (Bugfix audit — type safety, UI parity, formatting)
 
 ### Recent Updates (cronologico, più recente in alto)
 
+- [2026-03-31](#update-2026-03-31--timezone-bonifica) — Timezone bonifica: centralized `dateTimezone` helpers, 12 call sites fixed
 - [2026-03-30](#update-2026-03-30--bugfix-audit) — Bugfix audit: type safety, UI parity, formatting unification
 - [2026-03-08 (n)](#update-2026-03-08-n--fatturapa-xml-generation) — FatturaPA XML generation from invoice draft
 - [2026-03-08 (m)](#update-2026-03-08-m--invoice-draft-commercial-structure--navy-petrolio--services-navigation) — Invoice draft: commercial structure + Navy & Petrolio + services navigation

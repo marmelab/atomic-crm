@@ -1,6 +1,7 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 
 import { AuthMiddleware } from "../_shared/authentication.ts";
+import { todayISODate } from "../_shared/dateTimezone.ts";
 import { corsHeaders, OptionsMiddleware } from "../_shared/cors.ts";
 import {
   buildDeadlineNotificationMessage,
@@ -132,7 +133,8 @@ async function notifyImminent(
 // ── Orchestrator ──────────────────────────────────────────────────────
 
 async function runFiscalDeadlineCheck(): Promise<CheckResult> {
-  const today = new Date();
+  const todayStr = todayISODate();
+  const today = new Date(`${todayStr}T00:00:00Z`);
   const currentYear = today.getFullYear();
 
   const fiscalConfig = await loadFiscalConfig();

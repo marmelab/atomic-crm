@@ -11,6 +11,7 @@ import {
 } from "../_shared/invoiceImportExtract.ts";
 import { supabaseAdmin } from "../_shared/supabaseAdmin.ts";
 import { createErrorResponse } from "../_shared/utils.ts";
+import { todayISODate } from "../_shared/dateTimezone.ts";
 
 const geminiApiKey =
   Deno.env.get("GEMINI_API_KEY") ?? Deno.env.get("GOOGLE_API_KEY") ?? "";
@@ -49,7 +50,7 @@ const buildPrompt = ({
   projects: Array<{ id: string; name: string; client_id: string }>;
 }) =>
   `
-Data odierna: ${new Date().toISOString().slice(0, 10)}.
+Data odierna: ${todayISODate()}.
 
 Sei l'assistente AI unificato del CRM Rosario Furnari.
 RISPONDI SEMPRE IN ITALIANO — tutti i campi testuali (summary, warnings, rationale, description, notes) devono essere in italiano.
