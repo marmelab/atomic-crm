@@ -16,7 +16,7 @@ export default defineConfig({
   integrations: [
     starlight({
       title: "Atomic CRM",
-      favicon: "./public/favicon.svg",
+      favicon: "./favicon.svg",
       customCss: ["./src/styles/global.css"],
       logo: {
         dark: "./public/logo_atomic_crm_dark.svg",
