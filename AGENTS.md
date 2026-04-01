@@ -418,7 +418,7 @@ src/
 │   │   ├── misc/           # Shared utilities (CreateSheet, FormToolbar, formatDateRange)
 │   │   ├── payments/       # Payment tracking
 │   │   ├── projects/       # Projects
-│   │   ├── providers/      # Data providers (Supabase active + FakeRest legacy scaffolding)
+│   │   ├── providers/      # Data providers (Supabase runtime modules)
 │   │   ├── quotes/         # Quotes and commercial flow
 │   │   ├── root/           # Root CRM component (CRM.tsx, moduleRegistry, config)
 │   │   ├── sales/          # User profile / auth support
@@ -511,19 +511,13 @@ Located in `supabase/functions/`:
 The active development/runtime provider is:
 1. **Supabase** (default): Production backend using PostgreSQL
 
-`FakeRest` remains in the repo only as legacy internal scaffolding for isolated
-tests or migration support. It is **not** a supported development/QA workflow
-for this product anymore.
-
-If FakeRest scaffolding is touched, database views are emulated in the
-frontend. Test data generators remain in
-`src/components/atomic-crm/providers/fakerest/dataGenerator/`.
+The FakeRest/demo provider has been removed from this repository. Development,
+QA, smoke validation and docs must assume the real Supabase-backed runtime only.
 
 #### Filter Syntax
 
 List filters follow the `ra-data-postgrest` convention with operator
-concatenation: `field_name@operator` (e.g., `first_name@eq`). The FakeRest
-adapter still maps these to FakeRest syntax if legacy scaffolding is used.
+concatenation: `field_name@operator` (e.g., `first_name@eq`).
 
 ## Development Workflows
 
@@ -540,8 +534,7 @@ The project uses TypeScript path aliases configured in `tsconfig.json` and `comp
 When modifying active CRM data structures:
 1. Create a migration: `npx supabase migration new <name>`
 2. Update `src/components/atomic-crm/types.ts`
-3. Update Supabase provider and only the FakeRest scaffolding if that legacy
-   path is still touched by the same change
+3. Update the Supabase provider
 4. Update affected views or Edge Functions
 5. Update affected UI surfaces: list/create/edit/show, filters, dialogs, linking helpers
 6. Update continuity docs in `docs/`
@@ -550,7 +543,7 @@ When modifying active CRM data structures:
 ### Running with Test Data
 
 Use only the real Supabase-backed workflow for development and validation.
-FakeRest/demo is not a supported local workflow anymore.
+The repository no longer ships a FakeRest/demo provider.
 
 ### Git Hooks
 
@@ -590,6 +583,4 @@ FakeRest/demo is not a supported local workflow anymore.
 - Modify files in `src/components/admin` and `src/components/ui` directly - they are meant to be customized
 - Unit tests can be added in the `src/` directory (test files are named `*.test.ts` or `*.test.tsx`)
 - User deletion is not supported to avoid data loss; use account disabling instead
-- Filter operators must still be supported by the `supabaseAdapter` if legacy
-  FakeRest scaffolding is touched
 - `progress.md` and `learnings.md` are legacy archives, not the primary entry point for new sessions

@@ -230,7 +230,7 @@ OAuthConsentPage.path = "/oauth/consent";
 /**
  * copied from @supabase/auth-js/src/lib/types.ts
  * to avoid adding a hard import to a Supabase package
- * because this page can also be used with FakeRest
+ * and keep this page decoupled from internal auth-js type exports
  */
 type OAuthAuthorizationDetails = {
   /** The authorization ID */

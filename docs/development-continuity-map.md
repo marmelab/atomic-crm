@@ -6,7 +6,7 @@ obbligatoria delle superfici collegate.
 **Quando usarlo:** ogni volta che una modifica tocca comportamento reale del
 prodotto.
 
-Last updated: 2026-04-01 (Build chunking follow-up)
+Last updated: 2026-04-01 (FakeRest removal cleanup)
 
 ---
 
@@ -14,6 +14,7 @@ Last updated: 2026-04-01 (Build chunking follow-up)
 
 ### Recent Updates (cronologico, più recente in alto)
 
+- [2026-04-01](#update-2026-04-01--fakerest-removal-cleanup) — FakeRest removal cleanup: deleted legacy provider tree, deps and stale docs references
 - [2026-04-01](#update-2026-04-01--build-chunking-follow-up) — Build chunking follow-up: `vendor-misc` split into smaller stable chunks
 - [2026-04-01](#update-2026-04-01--post-push-ci-follow-up) — Post-push CI follow-up: Prettier-only wrap fix on MobileDashboard after GitHub Check
 - [2026-04-01](#update-2026-04-01--technical-hardening-cleanup) — Technical hardening cleanup: telemetry fix, build artifact hardening, demo branch removal, DOMPurify/package cleanup
@@ -1472,7 +1473,8 @@ commit lasciando il progetto semanticamente spezzato.
 
 Per lo sviluppo locale supportato:
 
-- il repo usa Supabase reale locale, non la demo FakeRest
+- il repo usa Supabase reale locale; il vecchio provider demo/FakeRest e'
+  stato rimosso
 - questo progetto usa porte locali `5532x` per convivere con altri stack
   Docker gia' attivi sulla macchina
 - `make start` e `npx supabase db reset` devono lasciare il repo con un admin
@@ -1741,9 +1743,6 @@ Aggiornare sempre:
 - `src/components/atomic-crm/providers/supabase/dataProvider.ts` (orchestratore)
 - moduli feature del provider se la modifica tocca analytics, AI, import, comms
   o travel (vedi `docs/architecture.md` sezione "Struttura modulare")
-- `src/components/atomic-crm/providers/fakerest/dataProvider.ts`
-- `src/components/atomic-crm/providers/fakerest/dataGenerator/index.ts`
-- `src/components/atomic-crm/providers/fakerest/dataGenerator/types.ts`
 - `src/components/atomic-crm/root/CRM.tsx` se nasce/muore una resource
 - `src/components/atomic-crm/root/i18nProvider.tsx`
 - la UI della resource coinvolta
@@ -1906,6 +1905,35 @@ Non trattare mai il solo `git push` come deploy completo se hai toccato
 - `supabase/migrations/20260302170000_domain_data_snapshot.sql`
 - `docs/architecture.md` (aggiornato)
 - `docs/development-continuity-map.md` (questo file)
+
+---
+
+## Update 2026-04-01 — FakeRest removal cleanup
+
+**Cosa e' cambiato**
+
+- Rimossa l'intera cartella legacy
+  `src/components/atomic-crm/providers/fakerest/**`, non piu' importata dal
+  runtime Supabase.
+- Rimosse le dipendenze `faker`, `ra-data-fakerest` e `@types/faker`, insieme
+  ai residui di configurazione TypeScript (`faker` nei `types`, include `demo`
+  non piu' esistente).
+- Allineate le fonti canoniche e la docs-site interna: questo fork documenta
+  ora Supabase come unico data provider supportato.
+
+**Verifica eseguita**
+
+- `npm run typecheck`
+- `npm run lint`
+- `npm run build`
+- `npm test -- --run`
+- `npm run continuity:check`
+
+**Impatto**
+
+- nessuna feature nuova
+- meno codice morto e meno dipendenze inutilizzate
+- meno drift tra istruzioni agentiche, docs e codice reale
 
 ---
 

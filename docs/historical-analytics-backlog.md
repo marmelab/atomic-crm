@@ -1121,17 +1121,14 @@ the past.
   - if linked services include `is_taxable = false`, automatic send remains
     blocked
   - no automatic customer send path was introduced in this slice
-- FakeRest continuity:
-  - the same provider entry points now exist in FakeRest too
-  - send stays mocked there, with no real email delivery
 - Validation completed on `2026-02-28`:
   - `npm run typecheck`
   - `npm test -- --run src/lib/communications/quoteStatusEmailTemplates.test.ts src/lib/communications/quoteStatusEmailContext.test.ts src/lib/semantics/crmCapabilityRegistry.test.ts src/lib/semantics/crmSemanticRegistry.test.ts src/components/atomic-crm/quotes/SendQuoteStatusEmailDialog.test.tsx supabase/functions/_shared/quoteStatusEmailSend.test.ts`
 
 ### Explicit scope decision
 
-- FakeRest/demo historical support is not a current priority for this product.
-- Keep the existing demo gating as-is unless the scope changes later.
+- Historical FakeRest/demo notes below are legacy context only.
+- The FakeRest provider was removed from the repo on 2026-04-01.
 
 ### First end-user AI flow shipped
 
@@ -1689,22 +1686,20 @@ Acceptance:
 
 ## Priority 4
 
-### Revisit FakeRest/demo only if scope changes
+### Legacy note — old FakeRest/demo parity item
 
 Why:
 
-- the current product scope does not require historical demo parity.
+- the current product scope no longer includes a FakeRest/demo runtime.
 
 Tasks:
 
-- only if needed later, either generate synthetic `analytics_*` resources in
-  FakeRest,
-- or replace environment gating with a resource capability check.
+- if a synthetic demo ever returns, prefer a capability check over reviving the
+  old FakeRest-specific path.
 
 Acceptance:
 
-- demo mode does not expose a broken historical tab if the product scope starts
-  caring about demo parity.
+- any future synthetic demo mode must not expose a broken historical tab.
 
 ## Priority 5
 

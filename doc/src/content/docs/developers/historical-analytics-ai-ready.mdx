@@ -903,19 +903,13 @@ Examples:
 - `Crescita YoY su anni chiusi: 2025 vs 2024.`
 - `Top clienti all-time per compensi maturati fino al 28/02/2026.`
 
-## FakeRest And Demo Mode
+## Demo Runtime Note
 
-The FakeRest provider currently does not expose historical analytics resources.
+This fork now documents Supabase as the only supported runtime.
 
-Current product decision:
-
-- FakeRest/demo parity is not in scope for the current delivery,
-- so the historical AI flow can remain unsupported in demo mode,
-- and new work should not spend time on FakeRest unless product scope changes.
-
-If demo parity becomes relevant later, the cleanest option is to generate
-synthetic `analytics_*` resources so the semantic contract stays identical
-between demo and production.
+If a synthetic demo mode is ever reintroduced later, the cleanest option is to
+generate synthetic `analytics_*` resources so the semantic contract stays
+identical between the demo and production data providers.
 
 ## Provider Integration
 
@@ -963,7 +957,6 @@ Phase 1:
 Phase 2:
 
 - implement widget-level error states,
-- add FakeRest support,
 - add tests for semantic rules,
 - add `buildAnalyticsContext` for AI consumption.
 

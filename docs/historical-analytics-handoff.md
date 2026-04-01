@@ -2530,8 +2530,8 @@ Impact:
 
 ## Known Risks / Open Edges
 
-- FakeRest/demo historical resources remain unimplemented, but this is now
-  explicitly de-prioritized for the current product scope.
+- Historical references to FakeRest/demo in older notes are now obsolete:
+  the legacy provider was removed from the repo on 2026-04-01.
 - The assistant-ready payload exists, and a single-turn historical Q&A flow now
   exists, but no multi-turn conversational chat flow exists yet.
 - `Annuale` is still not AI-ready as a whole page:

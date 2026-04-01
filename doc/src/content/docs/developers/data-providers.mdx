@@ -15,45 +15,12 @@ To import the test data, follow these steps:
 2. Click the "Import" button.
 3. Select the file located at `test-data/contacts.csv`.
 
-## Using A Fake API For Development
+## Supported Provider In This Fork
 
-For development purposes, you can use an alternative data provider called [FakeRest](https://github.com/marmelab/FakeRest). It's a simple REST API running in the browser that resets the data on each page reload. It's useful for testing the frontend without having to set up a backend, e.g. to let end users test some updates before the backend is ready.
+This repository now ships only the Supabase-backed provider.
 
-### Running The App With FakeRest
-
-Type the following command to start the application with the FakeRest data provider:
-
-```bash
-npm run dev:demo
-```
-
-This will start the application on [http://localhost:5173/](http://localhost:5173/) using FakeRest as the data provider. You will be logged in as a demo user with admin rights. The CRM will be pre-filled with random test data. You can modify the data, but it will be reset when you reload the page.
-
-If you add custom fields and want them to be included in the FakeRest data, you can modify the data generator logic located in the [`src/components/atomic-crm/providers/fakerest/dataGenerator`](https://github.com/marmelab/atomic-crm/blob/main/src/components/atomic-crm/providers/fakerest/dataGenerator/) directory.
-
-:::tip
-The [Atomic CRM demo](https://marmelab.com/atomic-crm-demo/) also uses FakeRest. Check it out to see how it works!
-:::
-
-### Setting Up The FakeRest Data Provider
-
-If you want to set up the FakeRest data provider manually, you need to change the `dataProvider` import in the `src/App.tsx` file:
-
-```diff
-// in App.tsx
-import { CRM } from "@/components/atomic-crm/root/CRM";
-+import { authProvider, dataProvider } from "@/components/atomic-crm/providers/fakerest";
-
-const App = () => (
--    <CRM />
-+    <CRM dataProvider={dataProvider} authProvider={authProvider} />
-);
-
-export default App;
-
-```
-
-**Warning**: As supabase is still the default data provider, its environment variables (`VITE_SUPABASE_URL` and `VITE_SB_PUBLISHABLE_KEY`) are **still required**.
+The old FakeRest/demo provider was removed as part of the repository cleanup, so
+development, smoke validation, and QA should assume the real Supabase runtime.
 
 ### Filters Syntax
 
@@ -70,4 +37,5 @@ filter: {
 
 When you build custom sidebar filters in `src/components/atomic-crm`, prefer reusing `src/components/atomic-crm/filters/DateRangeFilter.tsx` so the validation and input behavior stay consistent across lists.
 
-When using FakeRest, the filters are mapped at runtime to the FakeRest filter syntax by the the [`supabaseAdapter`](https://github.com/marmelab/atomic-crm/blob/main/src/components/atomic-crm/providers/fakerest/internal/supabaseAdapter.ts) file. If a filter is not yet supported by the adapter, you have to modify this file to add support for it.
+Custom filters must therefore remain compatible with the active Supabase
+provider behavior.

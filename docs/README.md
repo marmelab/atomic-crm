@@ -20,7 +20,7 @@ categorie:
 - una regola di business deve avere una sola casa canonica
 - i documenti storici non devono sembrare fonte di verita' attuale
 - il workflow supportato di sviluppo/validazione locale usa il runtime reale
-  Supabase, non la vecchia demo FakeRest
+  Supabase; il vecchio provider demo/FakeRest e' stato rimosso dal repo
 - il sistema viene prima dei test:
   - prima si rende il dominio reale coerente
   - poi i test verificano che il comportamento corretto non regredisca

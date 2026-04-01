@@ -46,7 +46,7 @@ make lint
 
 Nota operativa:
 
-- la modalita' demo/FakeRest non fa piu parte del workflow supportato
+- il repository non contiene piu' il provider demo/FakeRest
 - sviluppo, smoke test e validazione vanno eseguiti sul runtime reale avviato
   con `make start`
 - `make start` e `npx supabase db reset` ricreano automaticamente anche un

@@ -106,7 +106,7 @@ Le superfici da considerare correlate sono almeno:
 - schema e migration Supabase
 - `src/components/atomic-crm/types.ts`
 - helper dominio `contacts/contactRecord.ts`
-- provider Supabase e, solo come scaffolding legacy, FakeRest
+- provider Supabase
 - `src/components/atomic-crm/root/CRM.tsx`
 - `src/components/atomic-crm/root/i18nProvider.tsx`
 - `ClientShow` e `ProjectShow`

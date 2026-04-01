@@ -19,7 +19,6 @@
       "dependencies": [
         "@hello-pangea/dnd@^18.0.1",
         "@nivo/bar@^0.99.0",
-        "faker@^5.5.3",
         "jsonexport@^3.2.0",
         "papaparse@^5.5.3",
         "ra-supabase-core@^3.5.1",
@@ -521,66 +520,6 @@
         },
         {
           "path": "src/components/atomic-crm/providers/supabase/authProvider.ts",
-          "type": "registry:component"
-        },
-        {
-          "path": "src/components/atomic-crm/providers/fakerest/index.ts",
-          "type": "registry:component"
-        },
-        {
-          "path": "src/components/atomic-crm/providers/fakerest/dataProvider.ts",
-          "type": "registry:component"
-        },
-        {
-          "path": "src/components/atomic-crm/providers/fakerest/authProvider.ts",
-          "type": "registry:component"
-        },
-        {
-          "path": "src/components/atomic-crm/providers/fakerest/internal/transformOrFilter.ts",
-          "type": "registry:component"
-        },
-        {
-          "path": "src/components/atomic-crm/providers/fakerest/internal/transformInFilter.ts",
-          "type": "registry:component"
-        },
-        {
-          "path": "src/components/atomic-crm/providers/fakerest/internal/transformFilter.ts",
-          "type": "registry:component"
-        },
-        {
-          "path": "src/components/atomic-crm/providers/fakerest/internal/transformContainsFilter.ts",
-          "type": "registry:component"
-        },
-        {
-          "path": "src/components/atomic-crm/providers/fakerest/internal/supabaseAdapter.ts",
-          "type": "registry:component"
-        },
-        {
-          "path": "src/components/atomic-crm/providers/fakerest/internal/listParser.ts",
-          "type": "registry:component"
-        },
-        {
-          "path": "src/components/atomic-crm/providers/fakerest/dataGenerator/utils.ts",
-          "type": "registry:component"
-        },
-        {
-          "path": "src/components/atomic-crm/providers/fakerest/dataGenerator/types.ts",
-          "type": "registry:component"
-        },
-        {
-          "path": "src/components/atomic-crm/providers/fakerest/dataGenerator/tags.ts",
-          "type": "registry:component"
-        },
-        {
-          "path": "src/components/atomic-crm/providers/fakerest/dataGenerator/sales.ts",
-          "type": "registry:component"
-        },
-        {
-          "path": "src/components/atomic-crm/providers/fakerest/dataGenerator/index.ts",
-          "type": "registry:component"
-        },
-        {
-          "path": "src/components/atomic-crm/providers/fakerest/dataGenerator/finalize.ts",
           "type": "registry:component"
         },
         {

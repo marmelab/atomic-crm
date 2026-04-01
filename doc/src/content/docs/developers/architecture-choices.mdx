@@ -41,8 +41,6 @@ Some pages in Atomic CRM require data from multiple tables. To simplify the fron
 
 For instance, the contact list page displays the number of tasks for each contact. This information is provided by the `contacts_summary` view, defined in the `supabase/migrations/init_db.sql` file.
 
-When using [the FakeRest data provider](../data-providers#setting-up-the-fakerest-data-provider), these views are emulated in the frontend.
-
 ## Triggers
 
 User credentials are stored in Supabase's `auth.users` table. Supabase does not allow to add columns to this table. That's why additional user details are stored in a `sales` table created by Atomic CRM. A database trigger is used to automatically sync the `sales` record when a user is created or updated (e.g. for the `first_name` and `last_name` fields).

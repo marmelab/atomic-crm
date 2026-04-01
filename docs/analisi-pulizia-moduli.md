@@ -422,7 +422,8 @@ notes, tags, activity — tenendo solo sales tabella/trigger):
 
 1. **`contacts_summary` view** → da rimuovere o ricreare per `clients`
 2. **`set_sales_id_default` trigger** → rimuovere i riferimenti a contacts/deals/companies
-3. **FakeRest data generators** → rimuovere generators per entità rimosse
+3. **Legacy FakeRest data generators** → item storico; il provider FakeRest è
+   stato poi rimosso dal repo
 4. **Activity log nei data provider** → rimuovere `getActivityLog()` method
 5. **`SaleName` component** → tenere, potrebbe servire nel gestionale
 6. **Mobile navigation** → rimuovere pulsanti rapidi task/note

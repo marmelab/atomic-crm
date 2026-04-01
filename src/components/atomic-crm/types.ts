@@ -25,8 +25,6 @@ export type Sale = {
   disabled?: boolean;
   user_id: string;
   email: string;
-  /** @deprecated Only used by FakeRest provider */
-  password?: string;
 } & Pick<RaRecord, "id">;
 
 export type ContactEmail = {

@@ -24,7 +24,7 @@
     "noFallthroughCasesInSwitch": true,
     "noUncheckedSideEffectImports": true,
 
-    "types": ["vitest/globals", "faker", "@testing-library/jest-dom/vitest"],
+    "types": ["vitest/globals", "@testing-library/jest-dom/vitest"],
 
     // Shadcn
     "baseUrl": ".",
@@ -32,5 +32,5 @@
       "@/*": ["./src/*"]
     }
   },
-  "include": ["src", "demo"]
+  "include": ["src"]
 }

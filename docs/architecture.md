@@ -15,6 +15,7 @@ Stato del documento:
 
 ## Changelog
 
+- 2026-04-01: FakeRest removal cleanup — removed the obsolete `src/components/atomic-crm/providers/fakerest/**` tree plus `faker` / `ra-data-fakerest` dependencies, cleaned TS config leftovers (`faker` ambient types, `demo` tsconfig include), and updated canonical/docs-site guidance so this fork now documents Supabase as the only supported data provider.
 - 2026-04-01: Build chunking follow-up — `vite.config.ts` now splits the old `vendor-misc` fallback more intentionally (`vendor-lodash`, `vendor-markdown`, `vendor-upload`, `@floating-ui` folded into `vendor-radix`) so the standard production build stays below the Vite 500 kB warning threshold without changing runtime behavior.
 - 2026-04-01: Post-push CI follow-up — `MobileDashboard.tsx` reflowed with Prettier after the GitHub `Prettier` job flagged a wrapping mismatch on the historical-mode helper copy. No behavioral change.
 - 2026-04-01: Technical hardening cleanup — app root now disables telemetry coherently (`App.tsx` + `CRM.tsx` aligned), `dompurify` upgraded to 3.3.3, normal builds no longer emit sourcemaps or `dist/stats.html` unless explicitly requested, unsupported demo entrypoints removed (`vite.demo.config.ts`, `demo/`, `Welcome.tsx`, `VITE_IS_DEMO` branches), `TagsListEdit` now used directly in ClientShow, and `QuoteCardActions` no longer uses a pointless dynamic import for `QuotePDF`.
