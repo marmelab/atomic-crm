@@ -799,8 +799,8 @@ acconto_ricevuto → in_lavorazione → completato → saldato → rifiutato / p
 
 | View | Scopo |
 |------|-------|
-| project_financials | Riepilogo finanziario per progetto: fees, km, expenses, total_owed (fees + expenses), total_paid (da payments con status=ricevuto), balance_due. Single source: sempre tabella `payments`, nessun dual-path. Include `client_id` e `client_name`. `security_invoker = on`. |
-| client_commercial_position | Posizione commerciale aggregata per cliente: total_fees, total_expenses, total_owed, total_paid, balance_due, projects_count. Applica Record Precedence Rules (project's client_id prevails). Include servizi/spese/pagamenti senza progetto. `security_invoker = on`. |
+| project_financials | Riepilogo finanziario per progetto: fees, km, expenses, total_owed (fees + expenses), total_paid (da payments con status=ricevuto), balance_due. Single source: sempre tabella `payments`, nessun dual-path. Include `client_id` e `client_name`. `security_invoker = on`. Tipo TypeScript: `ProjectFinancialRow` in `types.ts`. |
+| client_commercial_position | Posizione commerciale aggregata per cliente: total_fees, total_expenses, total_owed, total_paid, balance_due, projects_count. Applica Record Precedence Rules (project's client_id prevails). Include servizi/spese/pagamenti senza progetto. `security_invoker = on`. Tipo TypeScript: `ClientCommercialPosition` in `types.ts`. |
 | monthly_revenue | Fatturato mensile per categoria (fees - discount) |
 | analytics_* | Base storica/AI per Storico e consumer analytics (`analytics_business_clock`, `analytics_history_meta`, `analytics_yearly_competence_revenue`, `analytics_yearly_competence_revenue_by_category`, `analytics_client_lifetime_competence_revenue`, `analytics_yearly_cash_inflow`) |
 
