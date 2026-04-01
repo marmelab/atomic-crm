@@ -16,10 +16,10 @@ start-supabase-functions: ## start the supabase Functions watcher
 supabase-migrate-database: ## apply the migrations to the database
 	npx supabase migration up
 
-supabase-reset-database: ## reset (and clear!) the database, load production domain data
-	npx supabase db reset || true
+supabase-reset-database: ## reset schema, load production domain seed, bootstrap local admin
+	npx supabase db reset
 	@sleep 3
-	@echo "Loading domain data snapshot..."
+	@echo "Loading production domain seed..."
 	psql postgresql://postgres:postgres@127.0.0.1:55322/postgres < supabase/seed_domain_data.sql
 	npm run local:admin:bootstrap
 
@@ -36,19 +36,17 @@ stop: stop-supabase ## stop the stack locally
 build: ## build the app
 	npm run build
 
-prod-start: build supabase-deploy
+prod-start: build ## build and serve the production bundle locally
 	open http://127.0.0.1:3000 && npx serve -l tcp://127.0.0.1:3000 dist
 
-prod-deploy: build supabase-deploy
-	npm run ghpages:deploy
+prod-deploy: remote-deploy-supabase ## deploy backend changes to the linked remote
+	@echo "Frontend deploy is handled by Vercel on git push to main."
 
-supabase-remote-init:
-	npm run supabase:remote:init
-	$(MAKE) supabase-deploy
-
-supabase-deploy:
+remote-deploy-supabase: ## push migrations and Edge Functions to the linked remote
 	npx supabase db push
 	npx supabase functions deploy
+
+supabase-deploy: remote-deploy-supabase ## backward-compatible alias
 
 test:
 	npm test

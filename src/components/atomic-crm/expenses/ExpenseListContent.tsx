@@ -27,6 +27,7 @@ import { useResizableColumns } from "@/hooks/useResizableColumns";
 import { EXPENSE_COLUMNS } from "../misc/columnDefinitions";
 import { ExpenseIconAvatar, computeTotal, eur } from "./expenseListHelpers";
 import { ExpenseMobileCard } from "./ExpenseMobileCard";
+import { formatBusinessDate } from "@/lib/dateTimezone";
 
 export const ExpenseListContent = () => {
   const { data, isPending, error } = useListContext<Expense>();
@@ -203,7 +204,7 @@ const ExpenseRow = ({
       </TableCell>
       <TableCell className={cv("date", "text-sm")}>
         <Link to={link} className="text-primary hover:underline">
-          {new Date(expense.expense_date).toLocaleDateString("it-IT")}
+          {formatBusinessDate(expense.expense_date)}
         </Link>
       </TableCell>
       <TableCell className={cv("type", "text-sm")}>

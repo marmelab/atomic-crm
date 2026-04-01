@@ -70,7 +70,6 @@ jobs:
             VITE_SB_PUBLISHABLE_KEY: ${{ secrets.SB_PUBLISHABLE_KEY }}
             IS_SUPABASE_CONFIGURED: ${{ secrets.SUPABASE_ACCESS_TOKEN && secrets.SUPABASE_DB_PASSWORD && secrets.SUPABASE_PROJECT_ID && secrets.SUPABASE_URL && secrets.SB_PUBLISHABLE_KEY }}
             VITE_INBOUND_EMAIL: ${{ vars.VITE_INBOUND_EMAIL }}
-            PRODUCTION_REMOTE: https://git:${{ secrets.DEPLOY_TOKEN || secrets.GITHUB_TOKEN }}@github.com/${{ vars.DEPLOY_REPOSITORY }}
             POSTMARK_WEBHOOK_USER: ${{secrets.POSTMARK_WEBHOOK_USER}}
             POSTMARK_WEBHOOK_PASSWORD: ${{secrets.POSTMARK_WEBHOOK_PASSWORD}}
             POSTMARK_WEBHOOK_AUTHORIZED_IPS: ${{secrets.POSTMARK_WEBHOOK_AUTHORIZED_IPS}}
@@ -85,14 +84,6 @@ jobs:
               with:
                   node-version: 22
                   cache: npm
-
-            - name: ⚙️ Setup git
-              run: |
-                  echo Deploying to pages to ${{ vars.DEPLOY_REPOSITORY }}
-                  git remote set-url origin https://git:${{ secrets.DEPLOY_TOKEN || secrets.GITHUB_TOKEN }}@github.com/${{ vars.DEPLOY_REPOSITORY }}
-                  git remote add production $PRODUCTION_REMOTE
-                  git config --global user.email support+actions@github.com
-                  git config --global user.name github-actions-bot
 
             - name: ⚙️ Setup supabase
               uses: supabase/setup-cli@v1
@@ -157,8 +148,3 @@ jobs:
             - if: ${{ !env.IS_SUPABASE_CONFIGURED }}
               name: Supabase deployment skipped
               run: echo ':warning:Supabase deployment skipped' >> $GITHUB_STEP_SUMMARY
-
-            - name: 📡 Deploy GitHub pages
-              run: npx gh-pages --remote production -d dist -b ${{ vars.DEPLOY_BRANCH || 'gh-pages' }}
-              env:
-                  GITHUB_TOKEN: ${{ secrets.DEPLOY_TOKEN || secrets.GITHUB_TOKEN }}

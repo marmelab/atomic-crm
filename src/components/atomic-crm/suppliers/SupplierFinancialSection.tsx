@@ -2,6 +2,8 @@ import { useGetList } from "ra-core";
 import { Badge } from "@/components/ui/badge";
 import { FileText } from "lucide-react";
 
+import { formatBusinessDate } from "@/lib/dateTimezone";
+
 import type { FinancialDocumentSummary } from "../types";
 
 const eur = (n: number) =>
@@ -164,7 +166,7 @@ export const SupplierFinancialDocsCard = ({
                   n. {doc.document_number}
                 </span>
                 <span className="text-muted-foreground">
-                  {new Date(doc.issue_date).toLocaleDateString("it-IT")}
+                  {formatBusinessDate(doc.issue_date)}
                 </span>
               </div>
               <div className="flex items-center gap-2">

@@ -39,13 +39,8 @@ make build
 
 This will create a `dist` directory with the built application made of static HTML, CSS, and JS files. Upload this directory to the CDN of your choice (e.g. Netlify, Vercel, etc.).
 
-If you want to deploy it to GitHub pages, you can use the following command:
-
-```sh
-npm run ghpages:deploy
-```
-
-The CRM will be available at `https://<username>.github.io/atomic-crm/`.
+In this fork, the supported frontend production path is Vercel auto-deploy on
+push to `main`. A manual GitHub Pages deploy path is no longer maintained.
 
 ## Deploying Updates
 
@@ -55,7 +50,7 @@ If you've modified the code, run the following command to deploy a new version o
 make prod-deploy
 ```
 
-It will apply migrations, deploy edge functions and push the built applications to the `gh-pages` branch.
+In this fork it deploys backend changes only: Supabase migrations plus Edge Functions on the linked remote project. The frontend keeps deploying from GitHub to Vercel separately.
 
 ## Automating Deployments With GitHub Actions
 
@@ -75,4 +70,4 @@ POSTMARK_WEBHOOK_AUTHORIZED_IPS: List of IPs (comma separated) authorized to sen
 
 > **Note:** The `POSTMARK_*` variables are required for Atomic CRM's inbound email features. Have a look at the the [inbound email configuration](../inbound-email-configuration) to learn more about their usage and setup.
 
-The GitHub action will run the `prod-deploy` command on every push to the `main` branch, deploying the frontend to GitHub pages and updating the Supabase instance.
+The manual deploy workflow in this fork is backend-oriented: it updates the linked Supabase project. Frontend deployment remains handled by Vercel on `main`.

@@ -223,10 +223,10 @@ const DeadlineRow = ({
               <Badge variant="success" className="gap-1 text-[10px]">
                 <Check className="h-3 w-3" />
                 Pagato {formatCurrencyPrecise(payment.paidAmount)} il{" "}
-                {new Date(payment.paidDate + "T00:00:00").toLocaleDateString(
-                  "it-IT",
-                  { day: "2-digit", month: "short" },
-                )}
+                {formatBusinessDate(payment.paidDate, {
+                  day: "2-digit",
+                  month: "short",
+                })}
               </Badge>
               {onClearPayment && (
                 <Button
@@ -296,7 +296,7 @@ const LowPrioritySection = ({ deadlines }: { deadlines: FiscalDeadline[] }) => {
               className={`flex items-center justify-between text-xs px-2 py-1.5 rounded ${d.isPast ? "opacity-40" : "text-muted-foreground"}`}
             >
               <span>
-                {new Date(d.date + "T00:00:00").toLocaleDateString("it-IT", {
+                {formatBusinessDate(d.date, {
                   day: "2-digit",
                   month: "short",
                 })}{" "}

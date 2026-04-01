@@ -15,6 +15,7 @@ import { ErrorMessage } from "../misc/ErrorMessage";
 import { useConfigurationContext } from "../root/ConfigurationContext";
 import { MobileBackButton } from "../misc/MobileBackButton";
 import { CloudinaryImageField } from "../cloudinary/CloudinaryImageField";
+import { formatBusinessDate } from "@/lib/dateTimezone";
 
 const eur = (n: number) =>
   n.toLocaleString("it-IT", { minimumFractionDigits: 2 });
@@ -91,7 +92,7 @@ const ExpenseShowContent = () => {
               <div className="flex items-center gap-3 mt-1 text-sm text-muted-foreground flex-wrap">
                 <span className="flex items-center gap-1">
                   <Calendar className="size-3" />
-                  {new Date(record.expense_date).toLocaleDateString("it-IT")}
+                  {formatBusinessDate(record.expense_date)}
                 </span>
                 {project && (
                   <Link

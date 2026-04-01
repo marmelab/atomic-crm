@@ -13,6 +13,7 @@ import { Badge } from "@/components/ui/badge";
 import { useIsMobile } from "@/hooks/use-mobile";
 import type { LucideIcon } from "lucide-react";
 import { Wallet, CheckCircle, Clock, AlertCircle, Euro } from "lucide-react";
+import { formatBusinessDate } from "@/lib/dateTimezone";
 import { cn } from "@/lib/utils";
 
 import type { Payment } from "../types";
@@ -210,7 +211,7 @@ const PaymentMobileCard = ({
       <div className="flex items-center justify-between">
         <span className="text-xs text-muted-foreground">
           {payment.payment_date
-            ? new Date(payment.payment_date).toLocaleDateString("it-IT")
+            ? formatBusinessDate(payment.payment_date)
             : "--"}
         </span>
         <PaymentStatusBadge status={payment.status} />
@@ -263,7 +264,7 @@ const PaymentRow = ({ payment, link }: { payment: Payment; link: string }) => {
       <TableCell className={cv("date", "text-sm")}>
         <Link to={link} className="text-primary hover:underline">
           {payment.payment_date
-            ? new Date(payment.payment_date).toLocaleDateString("it-IT")
+            ? formatBusinessDate(payment.payment_date)
             : "--"}
         </Link>
       </TableCell>

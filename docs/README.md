@@ -48,6 +48,9 @@ Il database locale e' un ambiente pulito dal 2026-03-04:
 - `make supabase-reset-database` aggiunge il seed dal dump remoto
   (`supabase/seed_domain_data.sql`)
 - `npm run local:admin:bootstrap` crea l'admin locale
+- la suite Playwright corrente usa dati tecnici deterministici via
+  `tests/e2e/support/test-data-controller.ts`: utile per regressioni UI, non
+  come validazione del dominio reale
 
 I dati storici (2023-2025) restano archiviati in `Fatture/` come fonte di
 riferimento, ma non servono piu' per il rebuild locale.

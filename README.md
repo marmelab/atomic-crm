@@ -49,22 +49,21 @@ Nota operativa:
 - il repository non contiene piu' il provider demo/FakeRest
 - sviluppo, smoke test e validazione vanno eseguiti sul runtime reale avviato
   con `make start`
-- `make start` e `npx supabase db reset` ricreano automaticamente anche un
-  admin locale autenticabile
-- `make supabase-reset-database` ricostruisce il database locale da migration
-  + dump reale `supabase/seed_domain_data.sql`
+- `make start` avvia Supabase locale e bootstrapa l'admin locale
+- dopo un `npx supabase db reset`, se ti serve il login locale, esegui anche
+  `npm run local:admin:bootstrap`
+- `make supabase-reset-database` e' il rebuild locale supportato: migration +
+  dump reale `supabase/seed_domain_data.sql` + bootstrap admin
 - `Fatture/` e `Fatture/contabilità interna - diego caltabiano/` restano
   fonti storiche di riferimento, non il workflow di rebuild locale
 - nel solo runtime locale il login email/password Supabase resta abilitato per
   supportare bootstrap admin e smoke E2E
-- `make test-e2e` gira sul dataset locale reale ricostruito, non su fixture
-  dominio hardcoded
-- gli smoke Playwright locali coprono sia lettura sia write-path minimi:
-  - login admin
-  - cliente/referente Diego-Gustare
-  - progetto + snapshot AI
-  - creazione referente da progetto con auto-link
-  - aggiornamento referente primario progetto
+- `make test-e2e` esegue oggi una suite Playwright tecnica con dati
+  deterministici creati da `tests/e2e/support/test-data-controller.ts`
+- quella suite serve per regressioni UI/flow ripetibili, NON come fonte di
+  verita' del dominio
+- per validazione semantica o fiscale usare sempre il dominio locale
+  ricostruito via `make supabase-reset-database`
 - credenziali locali di default:
   - email `admin@gestionale.local`
   - password `LocalAdmin123!`

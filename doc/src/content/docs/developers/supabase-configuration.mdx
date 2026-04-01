@@ -7,13 +7,17 @@ Atomic CRM uses Supabase as a backend. This document explains how to configure a
 
 ## Creating a Remote Supabase Instance
 
-Atomic CRM comes with a CLI utility to create a backend instance on [supabase.com](https://supabase.com/):
+This fork no longer ships the one-shot `make supabase-remote-init` bootstrap.
+Create the project on [supabase.com](https://supabase.com/) first, then link and
+deploy it from the repo:
 
 ```sh
-make supabase-remote-init
+npx supabase login
+npx supabase link --project-ref <project-ref>
+make remote-deploy-supabase
 ```
 
-The script will ask you for the Supabase instance name, create the database, apply the migrations and deploy the edge functions. Finally, it will create a `.env.production.local` file with your remote Supabase configuration.
+Then configure your production env file locally with the remote URL and publishable key.
 
 The script cannot yet automate the configuration of the required SMTP provider on your Supabase instance. To do that, please follow the instructions detailed in the [Email Provider Setup](#email-provider-setup) section.
 
@@ -65,9 +69,9 @@ To do so, call the following command:
 make prod-start
 ```
 
-You will be prompted to create the first production user.
-
-Using a remote Supabase instance can be interesting if you deploy from your computer, or if you want to test your app with production data in production mode.
+This command now only builds the production bundle and serves `dist` locally.
+If your env points to a remote Supabase project, it lets you exercise the
+production build against that remote backend without deploying it.
 
 ## Email Provider Setup
 

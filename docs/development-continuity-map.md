@@ -14,6 +14,7 @@ Last updated: 2026-04-01 (CI hardening)
 
 ### Recent Updates (cronologico, più recente in alto)
 
+- [2026-04-01](#update-2026-04-01--repo-hardening-follow-up) — Repo hardening follow-up: local runtime contract clarified, legacy frontend deploy path removed, date-only UI sweep
 - [2026-04-01](#update-2026-04-01--ci-hardening) — CI hardening: Node 24 JS actions runtime + removal of stale demo deploy job
 - [2026-04-01](#update-2026-04-01--fakerest-removal-cleanup) — FakeRest removal cleanup: deleted legacy provider tree, deps and stale docs references
 - [2026-04-01](#update-2026-04-01--build-chunking-follow-up) — Build chunking follow-up: `vendor-misc` split into smaller stable chunks
@@ -96,6 +97,42 @@ Last updated: 2026-04-01 (CI hardening)
 - [Nota manutenzione 2026-03-02](#nota-manutenzione-2026-03-02-fix-ci)
 - [Testing Session Log 2026-03-04](#testing-session-log-2026-03-04--e2e-complete-validation)
 - [AI Semantic UI Upgrade 2026-03-04](#ai-semantic-ui-upgrade-2026-03-04--pareto-principle-applied)
+
+---
+
+## Update 2026-04-01 — Repo hardening follow-up
+
+**Cosa e' cambiato**
+
+- chiuso il deploy frontend legacy verso GitHub Pages:
+  - rimossi `ghpages:deploy`, `scripts/ghpages-deploy.mjs`
+  - `prod-deploy` ora deploya solo il backend Supabase remoto
+  - il workflow manuale `deploy.yml` non pubblica piu' `dist` su `gh-pages`
+- chiarito il contratto locale:
+  - `make start` bootstrapa l'admin locale
+  - `npx supabase db reset` riallinea schema+snapshot ma richiede
+    `npm run local:admin:bootstrap` se serve il login
+  - `make supabase-reset-database` resta il rebuild one-shot supportato
+    (reset + dump reale + admin)
+- la suite Playwright tecnica e' ora documentata per quello che e':
+  dati deterministici di regressione UI, non fonte di verita' del dominio
+- chiusi residui date-only in UI condivise (`payments`, `expenses`,
+  `suppliers`, `DashboardDeadlinesCard`) usando `formatBusinessDate()`
+- il pre-commit non maschera piu' i failure di `check-learning-integrity`
+
+**Verifica eseguita**
+
+- `npm run typecheck`
+- `npm run lint`
+- `npm run prettier`
+- `npm run build`
+- `make test-ci`
+
+**Impatto**
+
+- ridotto rischio di deploy remoto involontario
+- ridotto drift tra docs, Makefile e workflow
+- ridotto rischio di date business formattate col fuso sbagliato
 
 ---
 
@@ -1478,21 +1515,26 @@ Per lo sviluppo locale supportato:
   stato rimosso
 - questo progetto usa porte locali `5532x` per convivere con altri stack
   Docker gia' attivi sulla macchina
-- `make start` e `npx supabase db reset` devono lasciare il repo con un admin
-  locale autenticabile gia' pronto, senza setup manuale post-reset
+- `make start` deve lasciare il repo con un admin locale autenticabile gia'
+  pronto
+- `npx supabase db reset` riallinea schema + snapshot locale; se serve il login
+  dopo il reset, eseguire anche `npm run local:admin:bootstrap`
 - se tocchi `supabase/config.toml`, migration storiche o `.env` di sviluppo,
   devi verificare che `npx supabase start` resti replayable da zero senza
   dipendere da UUID catturati dal remoto o da stato preesistente
-- il dominio locale e' gestito con una migration snapshot statica:
+- il dominio locale supportato usa due layer espliciti:
   - `supabase/migrations/20260302170000_domain_data_snapshot.sql`
-  - dal 2026-03-04 contiene solo TRUNCATE + INSERT dei 6 settings di config
-  - nessun dato di dominio pre-caricato: il DB riparte vuoto per debug flussi
-  - dati storici (2023-2025) archiviati in `Fatture/`
-  - `npx supabase db reset` + `npm run local:admin:bootstrap` ripristina
-    un ambiente pulito con solo config e admin
-- se servono dati di test strutturati, crearli dall'UI o con migration dedicate
-- non reintrodurre script dinamici o seed paralleli
-- non reintrodurre script E2E o seed con dati dominio hardcoded come seconda
+  - contiene solo la base tecnica replayable (settings + cleanup)
+  - `supabase/seed_domain_data.sql`
+  - contiene il dump reale del dominio remoto usato dal rebuild locale
+  - `make supabase-reset-database`
+  - esegue reset schema + load del dump reale + bootstrap admin
+- i dati storici (2023-2025) restano archiviati in `Fatture/`
+- la suite Playwright corrente usa dati tecnici deterministici tramite
+  `tests/e2e/support/test-data-controller.ts`
+- quei dati tecnici non sostituiscono il dominio reale e non vanno usati come
+  fonte semantica/fiscale
+- non reintrodurre seed paralleli o fixture dominio hardcoded come seconda
   fonte di verita'
 
 ## Reading Order For A New Chat
@@ -1881,6 +1923,8 @@ In piu', per i moduli del `Mandatory Product Sweep`, annotare sempre anche:
   - `npx supabase db push`
 - modifiche Edge Functions:
   - `npx supabase functions deploy <nome>`
+- non usare piu' GitHub Pages come deploy path dell'app frontend:
+  nel fork attivo il frontend vive su Vercel
 
 Non trattare mai il solo `git push` come deploy completo se hai toccato
 `supabase/functions/**`.

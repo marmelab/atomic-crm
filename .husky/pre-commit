@@ -2,4 +2,6 @@ npm run registry:gen
 git add registry.json
 npm exec lint-staged
 npm run continuity:check
-git diff --cached --name-only | grep -q '.claude/rules/learning.md' && node scripts/check-learning-integrity.mjs || true
+if git diff --cached --name-only | grep -q '.claude/rules/learning.md'; then
+  node scripts/check-learning-integrity.mjs
+fi

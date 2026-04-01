@@ -2,6 +2,7 @@ import { useGetOne } from "ra-core";
 import { Link } from "react-router";
 
 import type { Expense } from "../types";
+import { formatBusinessDate } from "@/lib/dateTimezone";
 import { expenseTypeLabels } from "./expenseTypes";
 import { ExpenseIconAvatar, computeTotal, eur } from "./expenseListHelpers";
 
@@ -39,7 +40,7 @@ export const ExpenseMobileCard = ({
               {expenseTypeLabels[expense.expense_type] ?? expense.expense_type}
             </span>
             <span className="text-xs text-muted-foreground">
-              {new Date(expense.expense_date).toLocaleDateString("it-IT")}
+              {formatBusinessDate(expense.expense_date)}
             </span>
           </div>
           <span className="text-xs text-muted-foreground truncate">

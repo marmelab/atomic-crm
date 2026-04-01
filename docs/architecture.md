@@ -15,6 +15,7 @@ Stato del documento:
 
 ## Changelog
 
+- 2026-04-01: Repo hardening follow-up — removed the legacy frontend GitHub Pages deploy path (`ghpages:deploy`, related script and workflow step), made `prod-deploy` backend-only, clarified that `make start` bootstraps the local admin while raw `npx supabase db reset` still needs `npm run local:admin:bootstrap`, documented the deterministic Playwright test-data lane as technical-only, and swept remaining date-only UI formatters to `formatBusinessDate()`.
 - 2026-04-01: CI hardening — GitHub Actions workflows now opt into Node 24 for JavaScript actions, `actions/checkout` / `actions/setup-node` were bumped to v6, and the stale manual `deploy-demo` job was removed because the demo build path no longer exists in this fork.
 - 2026-04-01: FakeRest removal cleanup — removed the obsolete `src/components/atomic-crm/providers/fakerest/**` tree plus `faker` / `ra-data-fakerest` dependencies, cleaned TS config leftovers (`faker` ambient types, `demo` tsconfig include), and updated canonical/docs-site guidance so this fork now documents Supabase as the only supported data provider.
 - 2026-04-01: Build chunking follow-up — `vite.config.ts` now splits the old `vendor-misc` fallback more intentionally (`vendor-lodash`, `vendor-markdown`, `vendor-upload`, `@floating-ui` folded into `vendor-radix`) so the standard production build stays below the Vite 500 kB warning threshold without changing runtime behavior.
@@ -594,13 +595,16 @@ inserendo dati dall'interfaccia CRM.
 
 Regole operative:
 
-- `npx supabase db reset` + `npm run local:admin:bootstrap` ripristina
-  un database vuoto con solo config e admin, pronto per inserimento dati
+- `npx supabase db reset` riallinea migration + snapshot tecnica; se serve il
+  login locale, aggiungere `npm run local:admin:bootstrap`
+- `make supabase-reset-database` e' il rebuild locale supportato del dominio:
+  reset schema, load di `supabase/seed_domain_data.sql`, bootstrap admin
 - quando servono dati di test strutturati, crearli dall'UI o con migration
   dedicate
-- non reintrodurre script dinamici di rebuild come seconda fonte di verita'
-- fixture hardcoded di dominio usate per smoke o E2E non sono una base
-  architetturale accettabile
+- la suite Playwright deterministica basata su `test-data-controller.ts` e'
+  un harness tecnico di regressione UI, non una base architetturale del dominio
+- non reintrodurre script dinamici di rebuild o fixture dominio hardcoded come
+  seconda fonte di verita'
 
 ## Current Financial Semantics Warning
 
@@ -708,12 +712,12 @@ fragilita' semantica.
 | Deploy Vercel | gestionale-rosario.vercel.app | storico |
 | Supabase locale | Supportato su porte isolate `5532x`; il bootstrap da zero deve restare replayable con `npx supabase start` | 2026-03-01 |
 | Financial semantics foundation | Tabelle `financial_documents`, `cash_movements` e allocazioni pronte (schema + viste). `project_financials` usa `financial_foundation` come base primaria. La snapshot locale e' stata svuotata il 2026-03-04 per debug dei flussi; i dati storici restano in `Fatture/`. | 2026-03-04 |
-| Admin locale post-reset | Automatizzato via script bootstrap idempotente dopo `make start` / `npx supabase db reset` | 2026-03-01 |
-| Smoke E2E locale | Supportato via Playwright sul runtime reale locale, ma deve restare subordinato al rebuild del dominio da fonti reali | 2026-03-02 |
+| Admin locale post-reset | `make start` bootstrapa l'admin locale; dopo `npx supabase db reset` serve `npm run local:admin:bootstrap` se occorre il login | 2026-04-01 |
+| Smoke E2E locale | La suite Playwright corrente usa dati tecnici deterministici per regressioni UI; non sostituisce la validazione sul dominio reale ricostruito | 2026-04-01 |
 | Google Calendar sync | Unidirezionale Gestionale→Calendar via Service Account + Edge Function `google_calendar_sync`. Campi `google_event_id` e `google_event_link` su `services`. Link cliccabile in ServiceShow. | 2026-03-06 |
 | Cloudinary media | SDK (`@cloudinary/url-gen` + `@cloudinary/react`), Upload Widget e Media Library Widget (script async in index.html). Config in `src/lib/cloudinary/`, hooks `useCloudinaryUpload` e `useCloudinaryMediaLibrary`, componenti `CloudinaryUploadInput` (form) e `CloudinaryImageField` (display con transform). Upload preset: `Gestionale`. Cloud: `dsmhshc2b`. Campi DB: `clients.logo_url`, `contacts.photo_url`, `payments.proof_url`, `expenses.proof_url`. AI snapshot e semantic registry aggiornati. | 2026-03-08 |
 | Auth email/password locale | Abilitato solo nel runtime locale per bootstrap admin e smoke browser; non riflette automaticamente il remoto | 2026-03-01 |
-| Rebuild locale del dominio | **Snapshot vuota** dal 2026-03-04: `npx supabase db reset` + `npm run local:admin:bootstrap` ripristinano un DB con solo settings e admin. I dati di dominio vanno inseriti dall'UI per debug e verifica flussi. Dati storici archiviati in `Fatture/`. | 2026-03-04 |
+| Rebuild locale del dominio | `npx supabase db reset` riallinea migration + snapshot tecnica (settings). Il rebuild locale supportato del dominio e' `make supabase-reset-database`: reset, load di `supabase/seed_domain_data.sql` dal dump remoto e bootstrap admin. | 2026-04-01 |
 
 ### Cose ancora da verificare manualmente
 

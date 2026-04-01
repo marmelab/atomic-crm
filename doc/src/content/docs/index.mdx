@@ -298,19 +298,21 @@ This will display the "Referred By" information in the contact sidebar when avai
 
 ## Deploying to Production
 
-It's time to deploy your customized version of Atomic CRM to production. You use [Supabase.com](https://supabase.com) to host the backend, and GitHub Pages to host the frontend. Both services offer free plans that are sufficient for Atomic CRM.
+It's time to deploy your customized version of Atomic CRM to production. In this fork, [Supabase.com](https://supabase.com) hosts the backend and Vercel hosts the frontend.
 
 First, login or register to [Supabase.com](https://supabase.com).
 
-Atomic CRM comes with a CLI utility to create a backend instance on Supabase.com:
+Create the remote Supabase project first, then link and deploy it from the repo:
 
 ```sh
-make supabase-remote-init
+npx supabase login
+npx supabase link --project-ref <project-ref>
+make remote-deploy-supabase
 ```
 
-The script will ask you for the Supabase instance name, create the database, apply the migrations and deploy the edge functions. Finally, it will create a `.env.production.local` file with your remote Supabase configuration.
+Finally, configure your production env file locally with the remote URL and publishable key.
 
-The frontend of the CRM is a Single-Page App that can be deployed to any CDN. Since you have forked the Atomic CRM repository on GitHub, you can use GitHub Pages to host the frontend.
+The frontend of the CRM is a Single-Page App that can be deployed to any CDN. In this fork, the supported production path is Vercel auto-deploy on push to `main`.
 
 First, build the frontend bundle with:
 
@@ -320,13 +322,8 @@ npm run build
 
 This will create a `dist` directory with the built application made of static HTML, CSS, and JS files.
 
-To deploy it to GitHub pages, use the following command:
-
-```sh
-npm run ghpages:deploy
-```
-
-After a couple minutes, your customized CRM will be available at `https://<username>.github.io/atomic-crm/`, and connected to the production Supabase instance you created earlier.
+In this fork, the supported frontend production path is Vercel auto-deploy on
+push to `main`. A manual GitHub Pages deploy path is no longer maintained.
 
 You can proceed with the creation of the first admin user and start using your CRM in production!
 

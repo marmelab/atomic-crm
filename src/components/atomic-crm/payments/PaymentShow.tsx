@@ -31,6 +31,7 @@ import { ErrorMessage } from "../misc/ErrorMessage";
 import { MobileBackButton } from "../misc/MobileBackButton";
 import { SendPaymentReminderDialog } from "./SendPaymentReminderDialog";
 import { isPaymentTaxable } from "@/lib/semantics/crmSemanticRegistry";
+import { formatBusinessDate } from "@/lib/dateTimezone";
 import { CloudinaryImageField } from "../cloudinary/CloudinaryImageField";
 
 const eur = (n: number) =>
@@ -162,9 +163,7 @@ const PaymentShowContent = () => {
                   {record.payment_date && (
                     <span className="flex items-center gap-1">
                       <Calendar className="size-3" />
-                      {new Date(record.payment_date).toLocaleDateString(
-                        "it-IT",
-                      )}
+                      {formatBusinessDate(record.payment_date)}
                     </span>
                   )}
                   {client && (

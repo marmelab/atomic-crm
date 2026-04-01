@@ -55,6 +55,7 @@
 | **Workflow** | WF-9  | Business date UI → smoke cross-timezone   |
 | **Workflow** | WF-10 | Fix timezone → sweep consumer date-only   |
 | **Workflow** | WF-11 | Full E2E rossa → triage prima, patch dopo |
+| **Workflow** | WF-12 | Guardrail shell → non mangiare failure    |
 
 ---
 
@@ -313,6 +314,16 @@ UTC midnight — giorno sbagliato in `Europe/Rome` nella stessa finestra.
 **Quando**: una full suite E2E fallisce in molti moduli subito dopo cambiamenti UI/label/flow
 **Fare**: NON rilanciare la suite intera alla cieca. Prendere 1 fail rappresentativo per modulo, confrontarlo con la UI reale e capire se e' drift della spec (label rinominata, selector ambiguo, flow cambiato, responsive) o bug prodotto. Correggere prima i test obsoleti, poi rilanciare la full suite una sola volta.
 **Perché**: evita di bruciare tempo/token su rerun inutili e separa rapidamente regressioni vere da test fragili. Oggi `tasks`, `services`, `payments`, `full-ui-audit` e `ai-annual-real` erano rossi per selector/heading obsoleti, non per regressioni del sistema.
+
+### WF-12: Guardrail shell -> non usare `&& ... || true` per hook critici
+
+**Quando**: scrivo un comando shell in hook/CI che esegue un controllo solo se
+un file e' staged o se un `grep -q` fa match
+**Fare**: usare `if ...; then controllo; fi` oppure raggruppare i comandi, senza
+chiudere con `|| true` che assorbe anche il failure del controllo reale
+**Perché**: `.husky/pre-commit` sembrava validare `check-learning-integrity`,
+ma il pattern `grep -q ... && node ... || true` lasciava passare comunque i
+failure veri dello script
 
 ### WF-9: Business date UI -> smoke cross-timezone reale
 

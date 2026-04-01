@@ -1,8 +1,8 @@
 /**
  * Test Data Controller
  *
- * Gestisce dati di test deterministici e isolati.
- * NON usa dati storici (Diego/Gustare) ma crea entità fresh per ogni test.
+ * Gestisce dati tecnici deterministici per la suite Playwright.
+ * NON e' fonte di verita' del dominio: serve solo a rendere ripetibili i test UI.
  */
 
 import { execFileSync, execSync } from "node:child_process";
@@ -26,7 +26,7 @@ export interface TestEntities {
 }
 
 /**
- * Resetta il DB via SQL diretto (più affidabile di supabase db reset)
+ * Resetta le tabelle operative usate dalla suite tecnica via SQL diretto.
  */
 const resetDatabaseViaSql = () => {
   const sql = `
@@ -67,8 +67,8 @@ SET session_replication_role = DEFAULT;
       },
     );
   } catch (error) {
-    console.warn("[test-data-controller] SQL reset warning:", error);
-    // Continua comunque
+    console.error("[test-data-controller] SQL reset failed:", error);
+    throw error;
   }
 };
 
@@ -76,7 +76,7 @@ SET session_replication_role = DEFAULT;
  * Resetta il DB e inserisce dati di test controllati
  */
 export const resetAndSeedTestData = (): TestEntities => {
-  // Prima prova a svuotare via SQL diretto (più veloce e affidabile)
+  // La suite tecnica deve partire da uno stato deterministico: fallire e' meglio di sporcare i risultati.
   resetDatabaseViaSql();
 
   const uniqueId = randomUUID().slice(0, 8);

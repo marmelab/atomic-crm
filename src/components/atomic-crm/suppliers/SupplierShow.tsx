@@ -9,6 +9,7 @@ import { Link } from "react-router";
 import { useIsMobile } from "@/hooks/use-mobile";
 
 import type { Expense, Supplier } from "../types";
+import { formatBusinessDate } from "@/lib/dateTimezone";
 import { ErrorMessage } from "../misc/ErrorMessage";
 import { MobileBackButton } from "../misc/MobileBackButton";
 import { TagsListEdit } from "../tags/TagsListEdit";
@@ -213,7 +214,7 @@ const SupplierExpensesCard = ({ supplierId }: { supplierId: string }) => {
                       expense.expense_type}
                   </span>
                   <span className="text-muted-foreground">
-                    {new Date(expense.expense_date).toLocaleDateString("it-IT")}
+                    {formatBusinessDate(expense.expense_date)}
                   </span>
                 </div>
                 <span className="text-sm font-medium">

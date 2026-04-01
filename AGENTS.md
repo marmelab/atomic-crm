@@ -351,7 +351,7 @@ make stop             # Stop the stack
 
 ```bash
 make test             # Run unit tests (vitest)
-make test-e2e         # Run Playwright smoke tests on the local real stack after the local domain is aligned with real source data
+make test-e2e         # Run Playwright technical regression tests (deterministic local data)
 make typecheck        # Run TypeScript type checking
 make lint             # Run ESLint and Prettier checks
 ```
@@ -561,15 +561,19 @@ The repository no longer ships a FakeRest/demo provider.
 - in sviluppo locale, `.env.local` e `.env.development` devono puntare al
   Supabase locale su `127.0.0.1:55321`
 - `.env.production` resta dedicato al progetto remoto
-- `make start` e `npx supabase db reset` ricreano automaticamente un admin
-  locale autenticabile
+- `make start` avvia Supabase locale e bootstrapa un admin locale autenticabile
+- dopo un `npx supabase db reset`, se serve il login locale, eseguire anche
+  `npm run local:admin:bootstrap`
 - nel runtime locale il provider email/password Supabase e' abilitato per
   permettere bootstrap admin e smoke E2E; non e' una regola del remoto
 - `make supabase-reset-database` esegue: reset schema (migration), load
   domain seed da `supabase/seed_domain_data.sql` (dump del DB remoto),
   bootstrap admin locale
-- i browser smoke devono leggere e scrivere sul dataset locale ricostruito,
-  non su fixture dominio hardcoded
+- la suite Playwright corrente usa dati tecnici deterministici generati da
+  `tests/e2e/support/test-data-controller.ts` per regressioni UI ripetibili
+- quei dati tecnici NON sono fonte di verita' del dominio
+- validazione semantica/fiscale e verifiche manuali devono usare il dataset
+  locale ricostruito via `make supabase-reset-database`
 - default admin locale:
   - email `admin@gestionale.local`
   - password `LocalAdmin123!`
