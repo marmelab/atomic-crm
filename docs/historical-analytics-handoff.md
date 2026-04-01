@@ -6,7 +6,27 @@ lavoro senza riaprire decisioni gia prese.
 **Quando NON usarlo da solo:** per dedurre architettura canonica o stato
 prodotto senza incrociarlo con `docs/README.md` e i documenti `canonical`.
 
-Last updated: 2026-04-01 (error handling audit + prettier sweep 28 files)
+Last updated: 2026-04-01 (AI snapshot expense detail fix)
+
+## Update 2026-04-01 — AI snapshot expense detail fix
+
+- `unifiedCrmReadContext.ts` now exposes project expense rows directly under
+  `snapshot.activeProjects[].expenses`, mirroring the existing project
+  `services` detail already used by `unified_crm_answer`.
+- `snapshot.recentExpenses[].amount` and `snapshot.totals.expensesAmount` no
+  longer use the raw `expenses.amount` column. They now use the operational
+  amount helper:
+  - km expenses -> `km_distance * km_rate`
+  - markup expenses -> `amount * (1 + markup_percent/100)`
+  - `credito_ricevuto` -> negative amount
+- Practical effect: the AI can now explain project/client balances without
+  showing fake `0,00 €` rows for `spostamento_km` and without losing project
+  expense detail outside the global recent-expenses list.
+- Regression coverage added in `unifiedCrmReadContext.test.ts` for:
+  - project expense serialization
+  - operational amount on km expenses
+
+Deploy richiesti: Edge Function remota `unified_crm_answer` when this follow-up ships.
 
 ## Update 2026-04-01 — M1: parseAiVisualBlocks consumed in 6 AI Edge Functions
 

@@ -292,9 +292,19 @@ describe("unifiedCrmReadContext", () => {
     expect(context.snapshot.openQuotes[0]?.statusLabel).toBe("In trattativa");
     expect(context.snapshot.pendingPayments[0]?.statusLabel).toBe("In attesa");
     expect(context.snapshot.recentExpenses[0]?.expenseTypeLabel).toBe("Noleggio");
+    expect(context.snapshot.recentExpenses[0]?.amount).toBe(300);
     expect(context.snapshot.activeProjects[0]?.totalFees).toBe(2200);
     expect(context.snapshot.activeProjects[0]?.totalExpenses).toBe(300);
     expect(context.snapshot.activeProjects[0]?.balanceDue).toBe(2500);
+    expect(context.snapshot.activeProjects[0]?.expenses).toEqual([
+      expect.objectContaining({
+        expenseId: "expense-1",
+        expenseType: "noleggio",
+        expenseTypeLabel: "Noleggio",
+        amount: 300,
+        description: "Noleggio luci",
+      }),
+    ]);
     expect(context.snapshot.activeProjects[0]?.projectCategory).toBe("wedding");
     expect(context.snapshot.activeProjects[0]?.projectTvShow).toBeNull();
     expect(context.snapshot.activeProjects[0]?.contacts[0]).toEqual(
@@ -385,5 +395,82 @@ describe("unifiedCrmReadContext", () => {
     expect(context.snapshot.counts.overdueTasks).toBe(1);
     expect(context.snapshot.overdueTasks[0]?.taskId).toBe("task-overdue");
     expect(context.snapshot.overdueTasks[0]?.daysOverdue).toBe(1);
+  });
+
+  it("uses operational expense amounts for km rows and includes project expenses in project snapshots", () => {
+    const context = buildUnifiedCrmReadContext({
+      clients: [{ id: "client-1", name: "Mario Rossi", tags: [], created_at: "2026-02-10T10:00:00.000Z" }],
+      contacts: [],
+      quotes: [],
+      projects: [
+        {
+          id: "project-1",
+          client_id: "client-1",
+          name: "Vale il Viaggio",
+          category: "produzione_tv",
+          status: "in_corso",
+          all_day: true,
+          created_at: "2026-02-01T10:00:00.000Z",
+          updated_at: "2026-02-01T10:00:00.000Z",
+        },
+      ],
+      projectContacts: [],
+      services: [],
+      payments: [],
+      expenses: [
+        {
+          id: "expense-km-1",
+          client_id: "client-1",
+          project_id: "project-1",
+          expense_date: "2026-03-27T00:00:00.000Z",
+          expense_type: "spostamento_km",
+          amount: 0,
+          km_distance: 1341,
+          km_rate: 0.19,
+          description: "Trasferta Catania",
+          created_at: "2026-03-27T10:00:00.000Z",
+        },
+      ],
+      projectFinancialRows: [
+        {
+          project_id: "project-1",
+          project_name: "Vale il Viaggio",
+          client_id: "client-1",
+          client_name: "Mario Rossi",
+          category: "produzione_tv",
+          total_services: 0,
+          total_fees: 0,
+          total_km: 1341,
+          total_km_cost: 254.79,
+          total_expenses: 254.79,
+          total_owed: 254.79,
+          total_paid: 0,
+          balance_due: 254.79,
+        },
+      ],
+      tasks: [],
+      semanticRegistry: buildCrmSemanticRegistry(),
+      capabilityRegistry: buildCrmCapabilityRegistry(),
+      generatedAt: "2026-03-28T10:00:00.000Z",
+    });
+
+    expect(context.snapshot.totals.expensesAmount).toBe(254.79);
+    expect(context.snapshot.recentExpenses[0]).toEqual(
+      expect.objectContaining({
+        expenseId: "expense-km-1",
+        amount: 254.79,
+        expenseType: "spostamento_km",
+        expenseTypeLabel: "Spostamento Km",
+      }),
+    );
+    expect(context.snapshot.activeProjects[0]?.expenses).toEqual([
+      expect.objectContaining({
+        expenseId: "expense-km-1",
+        amount: 254.79,
+        expenseType: "spostamento_km",
+        expenseTypeLabel: "Spostamento Km",
+        description: "Trasferta Catania",
+      }),
+    ]);
   });
 });

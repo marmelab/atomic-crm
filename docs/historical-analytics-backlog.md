@@ -6,7 +6,25 @@
 incrociarlo con `docs/README.md`, `docs/architecture.md` e i documenti
 `canonical`.
 
-Last updated: 2026-03-31 (timezone bonifica hotspot list chiusa)
+Last updated: 2026-04-01 (AI snapshot expense detail fix)
+
+## Update 2026-04-01 — AI snapshot expense detail follow-up
+
+Slice completata: `unifiedCrmReadContext expense detail parity`.
+
+Deliverable chiusi:
+
+- `snapshot.activeProjects[]` include ora anche `expenses[]`
+- `recentExpenses.amount` usa l'importo operativo reale, non il raw DB
+- `snapshot.totals.expensesAmount` allineato alla stessa formula operativa
+- test di regressione aggiunti per `spostamento_km` e dettaglio spese progetto
+
+Motivazione:
+
+- dopo il refactor single-source financials i saldi erano corretti, ma l'AI
+  poteva ancora spiegare male i progetti con spese km perche' vedeva
+  `recentExpenses.amount = 0` sui record `spostamento_km` e non aveva un
+  dettaglio spese annidato nel progetto.
 
 ## Update 2026-03-31 — Timezone bonifica backlog after phase 4
 
