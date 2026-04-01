@@ -9,7 +9,7 @@ import { Phone, Mail, MapPin, FileText, Euro } from "lucide-react";
 import { Link, useLocation } from "react-router";
 import { useIsMobile } from "@/hooks/use-mobile";
 
-import type { Client, Project, Service } from "../types";
+import type { Client, Expense, Payment, Project, Service } from "../types";
 import { ClientTypeBadge } from "./ClientListContent";
 import { clientSourceLabels } from "./clientTypes";
 import {
@@ -110,11 +110,23 @@ const ClientHeader = ({ record }: { record: Client }) => {
     sort: { field: "name", order: "ASC" },
     filter: { "client_id@eq": String(record.id) },
   });
+  const { data: clientExpenses = [] } = useGetList<Expense>("expenses", {
+    pagination: { page: 1, perPage: 1000 },
+    sort: { field: "expense_date", order: "DESC" },
+    filter: { "client_id@eq": String(record.id) },
+  });
+  const { data: clientPayments = [] } = useGetList<Payment>("payments", {
+    pagination: { page: 1, perPage: 1000 },
+    sort: { field: "payment_date", order: "DESC" },
+    filter: { "client_id@eq": String(record.id) },
+  });
   const invoiceDraft = buildInvoiceDraftFromClient({
     client: record,
     services,
     projects,
     defaultKmRate: operationalConfig.defaultKmRate,
+    expenses: clientExpenses,
+    payments: clientPayments,
   });
   const hasCollectableAmount = hasInvoiceDraftCollectableAmount(invoiceDraft);
 

@@ -9,7 +9,7 @@ import { Calendar, Wallet, User, Euro, Car, Hash } from "lucide-react";
 import { Link, useLocation } from "react-router";
 import { useIsMobile } from "@/hooks/use-mobile";
 
-import type { Payment, Project, Service } from "../types";
+import type { Expense, Payment, Project, Service } from "../types";
 import { ProjectCategoryBadge, ProjectStatusBadge } from "./ProjectListContent";
 import { projectTvShowLabels } from "./projectTypes";
 import { QuickEpisodeDialog } from "./QuickEpisodeDialog";
@@ -98,6 +98,11 @@ const ProjectHeader = ({ record }: { record: Project }) => {
     sort: { field: "payment_date", order: "DESC" },
     filter: { "project_id@eq": String(record.id) },
   });
+  const { data: projectExpenses = [] } = useGetList<Expense>("expenses", {
+    pagination: { page: 1, perPage: 1000 },
+    sort: { field: "expense_date", order: "DESC" },
+    filter: { "project_id@eq": String(record.id) },
+  });
   const invoiceDraft = client
     ? buildInvoiceDraftFromProject({
         project: record,
@@ -105,6 +110,7 @@ const ProjectHeader = ({ record }: { record: Project }) => {
         services,
         payments: projectPayments,
         defaultKmRate: operationalConfig.defaultKmRate,
+        expenses: projectExpenses,
       })
     : null;
   const hasCollectableAmount = hasInvoiceDraftCollectableAmount(invoiceDraft);

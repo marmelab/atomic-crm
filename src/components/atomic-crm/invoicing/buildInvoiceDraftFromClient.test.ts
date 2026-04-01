@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import type { Client, Project, Service } from "../types";
+import type { Client, Expense, Payment, Project, Service } from "../types";
 import { buildInvoiceDraftFromClient } from "./buildInvoiceDraftFromClient";
 
 const baseClient: Client = {
@@ -116,7 +116,7 @@ describe("buildInvoiceDraftFromClient", () => {
     );
   });
 
-  it("returns empty lineItems when all services are already invoiced", () => {
+  it("returns null when all services are already invoiced", () => {
     const draft = buildInvoiceDraftFromClient({
       client: baseClient,
       projects: baseProjects,
@@ -133,6 +133,76 @@ describe("buildInvoiceDraftFromClient", () => {
       ],
     });
 
-    expect(draft.lineItems).toEqual([]);
+    expect(draft).toBeNull();
+  });
+
+  it("includes expenses and subtracts payments", () => {
+    const expense: Expense = {
+      id: "e1",
+      project_id: "project-1",
+      client_id: "client-1",
+      expense_date: "2026-01-15",
+      expense_type: "noleggio",
+      description: "Lights rental",
+      amount: 100,
+      markup_percent: 0,
+      created_at: "2026-01-14T10:00:00.000Z",
+    };
+    const payment: Payment = {
+      id: "pay1",
+      project_id: "project-1",
+      client_id: "client-1",
+      amount: 200,
+      payment_type: "acconto",
+      status: "ricevuto",
+      payment_date: "2026-01-20",
+      created_at: "2026-01-19T10:00:00.000Z",
+    };
+
+    const draft = buildInvoiceDraftFromClient({
+      client: baseClient,
+      services: [buildService("s1", { fee_shooting: 800 })],
+      projects: baseProjects,
+      defaultKmRate: 0.19,
+      expenses: [expense],
+      payments: [payment],
+    });
+
+    expect(draft).not.toBeNull();
+    const expenseLine = draft!.lineItems.find((l) =>
+      l.description.includes("Lights rental"),
+    );
+    expect(expenseLine).toBeDefined();
+    expect(expenseLine!.unitPrice).toBe(100);
+
+    const paymentLine = draft!.lineItems.find((l) =>
+      l.description.includes("Pagamenti"),
+    );
+    expect(paymentLine).toBeDefined();
+    expect(paymentLine!.unitPrice).toBe(-200);
+  });
+
+  it("returns null when nothing to collect after payments", () => {
+    const payment: Payment = {
+      id: "pay1",
+      project_id: "project-1",
+      client_id: "client-1",
+      amount: 2000,
+      payment_type: "saldo",
+      status: "ricevuto",
+      payment_date: "2026-01-20",
+      created_at: "2026-01-19T10:00:00.000Z",
+    };
+
+    const draft = buildInvoiceDraftFromClient({
+      client: baseClient,
+      services: [buildService("s1", { fee_shooting: 800 })],
+      projects: baseProjects,
+      defaultKmRate: 0.19,
+      expenses: [],
+      payments: [payment],
+    });
+
+    expect(draft).toBeNull();
   });
 });
