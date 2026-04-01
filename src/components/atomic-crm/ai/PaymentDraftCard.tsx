@@ -72,10 +72,14 @@ export const PaymentDraftCard = ({
     draft.originActionId === "project_quick_payment"
       ? "La scrittura non parte da qui: apri il quick payment del progetto con la bozza e conferma li dentro."
       : "La scrittura non parte da qui: apri il form pagamenti con la bozza e conferma li dentro.";
-  const allowedPaymentTypes =
-    draft.originActionId === "project_quick_payment"
-      ? new Set(["acconto", "saldo", "rimborso_spese"])
-      : new Set(["acconto", "saldo", "parziale"]);
+  // rimborso is intentionally excluded: refunds to clients are rare,
+  // sensitive operations done only via the manual payments CRUD.
+  const allowedPaymentTypes = new Set([
+    "acconto",
+    "saldo",
+    "parziale",
+    "rimborso_spese",
+  ]);
 
   return (
     <div className="space-y-3 rounded-2xl border border-[#2C3E50]/20 bg-[#E8EDF2] px-4 py-4 dark:bg-[#2C3E50]/20">

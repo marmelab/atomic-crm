@@ -167,7 +167,8 @@ export type DraftPaymentType =
   | "acconto"
   | "saldo"
   | "parziale"
-  | "rimborso_spese";
+  | "rimborso_spese"
+  | "rimborso";
 
 export const projectNameStopwords = new Set([
   "il",

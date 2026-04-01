@@ -59,7 +59,7 @@ export type UnifiedCrmPaymentDraft = {
   quoteId: string | null;
   clientId: string;
   projectId: string | null;
-  paymentType: "acconto" | "saldo" | "parziale" | "rimborso_spese";
+  paymentType: "acconto" | "saldo" | "parziale" | "rimborso_spese" | "rimborso";
   amount: number;
   status: "in_attesa" | "ricevuto";
   href: string;
