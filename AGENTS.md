@@ -92,6 +92,30 @@ Regola attuale per migration e bootstrap:
   - modifiche Edge Functions -> commit/push + deploy Supabase separato
   - modifiche miste -> entrambe le cose
 
+## CRITICAL TRIGGERS
+
+Errori ad alto costo gia' pagati. L'archivio completo (35 trigger) e' in
+`.claude/rules/learning.md`.
+
+- **Fiscale = CASSA**: la base imponibile forfettaria usa `payments`
+  (status=ricevuto, payment_date), MAI `services` (service_date)
+- **Forfettario != ordinario**: le spese NON si deducono individualmente;
+  no IVA, no deduzioni singole — verificare prima di proporre feature fiscali
+- **Nuova Edge Function -> config.toml**: aggiungere
+  `[functions.nome] verify_jwt = false` — senza, Kong blocca → 401 sistematico
+- **Edge Function modificata -> deploy manuale**: `git push` NON deploya le
+  EF remote; serve `npx supabase functions deploy`
+- **Desktop props -> verificare mobile**: cercare TUTTI i consumer e passare
+  i nuovi props anche da `MobileDashboard` — dati finanziari errati = critico
+- **Business date -> dateTimezone helper**: MAI `toISOString().slice(0,10)` o
+  `new Date("YYYY-MM-DD")` — usare `todayISODate()` / `toISODate()` da
+  `dateTimezone` (data sbagliata tra 00:00 e 02:00 CEST)
+- **Enum/Choice -> aggiorna TUTTE le superfici**: CHECK DB, types.ts, UI
+  choices, views CASE, AI registry, Edge Functions, test — un disallineamento
+  blocca INSERT o mostra tipi senza label
+- **Commit codice -> docs nello STESSO commit**: MAI committare codice e poi
+  docs in un commit separato
+
 ## Dashboard & KPI Card Design — "Approccio Bambino"
 
 Le card informative (KPI, cash flow, riepilogo) devono essere leggibili da un
