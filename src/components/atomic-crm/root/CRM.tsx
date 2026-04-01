@@ -185,6 +185,13 @@ export const CRM = ({
         } catch {
           // Non-critical: config will load via useConfigurationLoader
         }
+        try {
+          const prefs = await dataProvider.getPreferences();
+          if (prefs.theme) store.setItem("theme", prefs.theme);
+          if (prefs.locale) store.setItem("locale", prefs.locale);
+        } catch {
+          // Non-critical: prefs will load via usePreferencesLoader
+        }
         return result;
       },
       handleCallback: async (params: any) => {
@@ -201,6 +208,13 @@ export const CRM = ({
           }
         } catch {
           // Non-critical: config will load via useConfigurationLoader
+        }
+        try {
+          const prefs = await dataProvider.getPreferences();
+          if (prefs.theme) store.setItem("theme", prefs.theme);
+          if (prefs.locale) store.setItem("locale", prefs.locale);
+        } catch {
+          // Non-critical: prefs will load via usePreferencesLoader
         }
         return result;
       },

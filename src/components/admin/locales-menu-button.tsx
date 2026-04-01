@@ -7,7 +7,8 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
-import { useLocales, useLocaleState } from "ra-core";
+import type { CrmDataProvider } from "@/components/atomic-crm/providers/types";
+import { useDataProvider, useLocales, useLocaleState } from "ra-core";
 
 /**
  * Language switcher button that displays a menu allowing users to select the interface language.
@@ -22,6 +23,7 @@ import { useLocales, useLocaleState } from "ra-core";
 export function LocalesMenuButton() {
   const languages = useLocales();
   const [locale, setLocale] = useLocaleState();
+  const dataProvider = useDataProvider<CrmDataProvider>();
 
   const getNameForLocale = (locale: string): string => {
     const language = languages.find((language) => language.locale === locale);
@@ -30,6 +32,7 @@ export function LocalesMenuButton() {
 
   const changeLocale = (locale: string) => (): void => {
     setLocale(locale);
+    dataProvider.updatePreferences({ locale });
   };
 
   if (languages.length <= 1) {

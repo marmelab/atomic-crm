@@ -275,6 +275,12 @@ const LanguageSelector = () => {
   const translate = useTranslate();
   const locales = useLocales();
   const [locale, setLocale] = useLocaleState();
+  const dataProvider = useDataProvider<CrmDataProvider>();
+
+  const handleSetLocale = (value: string) => {
+    setLocale(value);
+    dataProvider.updatePreferences({ locale: value });
+  };
 
   if (locales.length <= 1) {
     return null;
@@ -285,7 +291,7 @@ const LanguageSelector = () => {
       <p className="text-xs text-muted-foreground">
         {translate("crm.language")}
       </p>
-      <Select value={locale} onValueChange={setLocale}>
+      <Select value={locale} onValueChange={handleSetLocale}>
         <SelectTrigger className="w-full">
           <SelectValue />
         </SelectTrigger>

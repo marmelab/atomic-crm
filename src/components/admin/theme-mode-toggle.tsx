@@ -1,5 +1,5 @@
 import { Check, Moon, Sun } from "lucide-react";
-import { useTranslate } from "ra-core";
+import { useDataProvider, useTranslate } from "ra-core";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -8,7 +8,9 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
+import type { Theme } from "@/components/admin/theme-context";
 import { useTheme } from "@/components/admin/use-theme";
+import type { CrmDataProvider } from "@/components/atomic-crm/providers/types";
 
 /**
  * Toggle button that lets users switch between light, dark, and system UI themes.
@@ -21,6 +23,12 @@ import { useTheme } from "@/components/admin/use-theme";
 export function ThemeModeToggle() {
   const { theme, setTheme } = useTheme();
   const translate = useTranslate();
+  const dataProvider = useDataProvider<CrmDataProvider>();
+
+  const handleSetTheme = (value: Theme) => {
+    setTheme(value);
+    dataProvider.updatePreferences({ theme: value });
+  };
 
   return (
     <DropdownMenu modal={false}>
@@ -32,15 +40,15 @@ export function ThemeModeToggle() {
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
-        <DropdownMenuItem onClick={() => setTheme("light")}>
+        <DropdownMenuItem onClick={() => handleSetTheme("light")}>
           {translate("crm.theme.light", { _: "Light" })}
           <Check className={cn("ml-auto", theme !== "light" && "hidden")} />
         </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => setTheme("dark")}>
+        <DropdownMenuItem onClick={() => handleSetTheme("dark")}>
           {translate("crm.theme.dark", { _: "Dark" })}
           <Check className={cn("ml-auto", theme !== "dark" && "hidden")} />
         </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => setTheme("system")}>
+        <DropdownMenuItem onClick={() => handleSetTheme("system")}>
           {translate("crm.theme.system", { _: "System" })}
           <Check className={cn("ml-auto", theme !== "system" && "hidden")} />
         </DropdownMenuItem>
