@@ -51,6 +51,8 @@
 | **Backend**  | BE-8  | Supabase ref → NON dfrrigmjsvcsdhgqtikz   |
 | **Workflow** | WF-8  | Business date → dateTimezone helper       |
 | **Workflow** | WF-9  | Business date UI → smoke cross-timezone   |
+| **Workflow** | WF-10 | Fix timezone → sweep consumer date-only   |
+| **Workflow** | WF-11 | Full E2E rossa → triage prima, patch dopo |
 
 ---
 
@@ -233,6 +235,12 @@ UTC midnight — giorno sbagliato in `Europe/Rome` nella stessa finestra.
 **Fare**: FERMARMI e verificare se ha senso nel forfettario
 **Perché**: nel forfettario le spese NON si deducono individualmente — il coefficiente di redditività le assorbe. No IVA, no deduzioni singole.
 
+### DOM-3: FatturaPA XML → schema XSD + Aruba
+
+**Quando**: tocco la generazione XML FatturaPA (`invoiceDraftXml.ts`)
+**Fare**: verificare conformità allo schema XSD FPR12 v1.2.3 e compatibilità col flusso Aruba PEC. I campi critici sono: DatiTrasmissione (CF intermediario Aruba), CedentePrestatore (RF19), DettaglioLinee (IVA 0% N2.2), DatiPagamento (MP05 bonifico). Bollo escluso dall'XML (gestito da Aruba).
+**Perché**: Aruba scarta silenziosamente XML non conformi allo schema, senza dare errori chiari. Un campo mancante o malformato blocca l'invio della fattura.
+
 ---
 
 ## Config Triggers
@@ -244,6 +252,12 @@ UTC midnight — giorno sbagliato in `Europe/Rome` nella stessa finestra.
 1. `defaultConfiguration.ts`
 2. `SettingsPage.tsx`
 3. `docs/architecture.md` sezione Settings
+
+### CFG-2: BusinessProfile → merge defaults safe
+
+**Quando**: modifico `businessProfile` in `defaultConfiguration.ts` o nel merge logic di Settings
+**Fare**: verificare che il merge config→defaults non sovrascriva campi utente con valori vuoti. Il pattern corretto e' deep merge con fallback: ogni campo usa il valore salvato se presente, altrimenti il default. MAI sostituire l'intero oggetto.
+**Perché**: un merge naive ha cancellato i dati emittente (P.IVA, IBAN) salvati dall'utente, facendo generare PDF preventivo/bozza fattura senza dati fiscali.
 
 ---
 
@@ -286,7 +300,7 @@ UTC midnight — giorno sbagliato in `Europe/Rome` nella stessa finestra.
 **Fare**: PRIMA di committare, verificare se servono aggiornamenti a `docs/`, `memory/*.md`, `.claude/learning.md`. Se sì, includerli nello STESSO `git add` + `git commit`. MAI fare prima il commit di codice e poi un commit separato "docs: align...".
 **Perché**: commit separati per docs causano disallineamenti sistematici. L'utente ha dovuto correggermi più volte perché dimenticavo docs/memoria dopo il codice. La regola è ora anche in `.claude/rules/session-workflow.md` (COMMIT GATE).
 
-### WF-7: Full E2E rossa dopo evoluzione UI -> prima triage, poi patch mirata
+### WF-11: Full E2E rossa dopo evoluzione UI -> prima triage, poi patch mirata
 
 **Quando**: una full suite E2E fallisce in molti moduli subito dopo cambiamenti UI/label/flow
 **Fare**: NON rilanciare la suite intera alla cieca. Prendere 1 fail rappresentativo per modulo, confrontarlo con la UI reale e capire se e' drift della spec (label rinominata, selector ambiguo, flow cambiato, responsive) o bug prodotto. Correggere prima i test obsoleti, poi rilanciare la full suite una sola volta.
