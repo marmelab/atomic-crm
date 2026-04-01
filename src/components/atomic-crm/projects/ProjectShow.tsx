@@ -234,9 +234,9 @@ const ProjectFinancials = ({ projectId }: { projectId: string }) => {
   const totalFees = toNum(data.total_fees);
   const totalExpenses = toNum(data.total_expenses);
   const totalServices = toNum(data.total_services);
+  const totalOwed = toNum(data.total_owed);
   const totalPaid = toNum(data.total_paid);
-  const grandTotal = totalFees + totalExpenses;
-  const balanceDue = grandTotal - totalPaid;
+  const balanceDue = toNum(data.balance_due);
 
   return (
     <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
@@ -258,7 +258,7 @@ const ProjectFinancials = ({ projectId }: { projectId: string }) => {
       <MetricCard
         icon={<Wallet className="size-4" />}
         label="Totale"
-        value={eur(grandTotal)}
+        value={eur(totalOwed)}
         className="font-bold"
       />
       <MetricCard
@@ -269,8 +269,8 @@ const ProjectFinancials = ({ projectId }: { projectId: string }) => {
       />
       <MetricCard
         icon={<Wallet className="size-4" />}
-        label="Da incassare"
-        value={eur(balanceDue)}
+        label={balanceDue < 0 ? "Credito cliente" : "Da incassare"}
+        value={eur(Math.abs(balanceDue))}
         className={
           balanceDue > 0
             ? "text-orange-600 font-bold"
