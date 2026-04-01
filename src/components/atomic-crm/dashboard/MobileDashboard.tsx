@@ -61,8 +61,8 @@ export const MobileDashboard = () => {
             </ToggleGroupItem>
           </ToggleGroup>
           <p className="text-xs text-muted-foreground">
-            Storico: andamento degli ultimi anni, con l'anno in corso letto
-            solo fino a oggi.
+            Storico: andamento degli ultimi anni, con l'anno in corso letto solo
+            fino a oggi.
           </p>
         </div>
 

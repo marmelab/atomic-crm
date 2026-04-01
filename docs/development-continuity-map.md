@@ -6,7 +6,7 @@ obbligatoria delle superfici collegate.
 **Quando usarlo:** ogni volta che una modifica tocca comportamento reale del
 prodotto.
 
-Last updated: 2026-04-01 (Technical hardening cleanup)
+Last updated: 2026-04-01 (Post-push CI follow-up)
 
 ---
 
@@ -14,6 +14,7 @@ Last updated: 2026-04-01 (Technical hardening cleanup)
 
 ### Recent Updates (cronologico, più recente in alto)
 
+- [2026-04-01](#update-2026-04-01--post-push-ci-follow-up) — Post-push CI follow-up: Prettier-only wrap fix on MobileDashboard after GitHub Check
 - [2026-04-01](#update-2026-04-01--technical-hardening-cleanup) — Technical hardening cleanup: telemetry fix, build artifact hardening, demo branch removal, DOMPurify/package cleanup
 - [2026-03-31](#update-2026-03-31--timezone-bonifica-phase-4b) — Timezone bonifica phase 4b: final residual grep cleanup on quote dialog, calendar sync and DateInput docs
 - [2026-03-31](#update-2026-03-31--timezone-bonifica-phase-4) — Timezone bonifica phase 4: annual wrappers, fiscal deadline consumers and Edge Function parity aligned to Europe/Rome
@@ -2157,6 +2158,26 @@ npx playwright test tests/e2e/ai-semantic-ui.spec.ts
 - ✅ Lint: PASS
 - ✅ E2E semantic UI: 2/4 test pass (struttura verificata)
 - ✅ UI: Colori semantici visibili nel launcher AI
+
+---
+
+## Update 2026-04-01 — Post-push CI follow-up
+
+**Cosa e' cambiato**
+
+- `src/components/atomic-crm/dashboard/MobileDashboard.tsx` ha ricevuto un
+  reflow Prettier-only su una stringa descrittiva della vista storica.
+- Nessun cambiamento funzionale: fix dedicato per riallineare il file al job
+  `Prettier` di GitHub Actions dopo il push del commit di hardening.
+
+**Verifica eseguita**
+
+- `npx prettier --check src/components/atomic-crm/dashboard/MobileDashboard.tsx`
+
+**Impatto**
+
+- zero impatto prodotto
+- fix CI-only
 
 ---
 
