@@ -166,7 +166,7 @@ export const CRM = ({
       } satisfies ConfigurationContextValue);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [store]);
 
   const isMobile = useIsMobile();
 

@@ -64,7 +64,7 @@ jobs:
               run: npm ci
 
             - name: 🎭 Install Playwright browsers
-              run: npx playwright install chromium chromium-headless-shell 1>/dev/null
+              run: npx playwright install chromium-headless-shell 1>/dev/null
 
             - name: 🔎 Unit Tests on App
               run: CI=1 npm run test:unit:app -- --run
