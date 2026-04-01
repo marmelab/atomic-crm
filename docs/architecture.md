@@ -494,11 +494,14 @@ Semantica di calcolo dei builders:
   (esclusi quelli con `invoice_ref` valorizzato)
 - i km reimbursement vengono aggregati come voce separata; il calcolo usa
   `calculateKmReimbursement()` che applica `defaultKmRate` dalla config quando
-  il servizio ha `km_rate` NULL — ogni Show page e `ClientFinancialSummary`
-  leggono `operationalConfig.defaultKmRate` da `useConfigurationContext()` e lo
-  passano esplicitamente ai builder; **non usare** `km_distance * km_rate`
-  inline (bug storico: NULL → 0). `TravelRouteCalculatorDialog.toRateValue`
-  also treats `km_rate === 0` as unset and falls back to `defaultKmRate`
+  il servizio ha `km_rate` NULL — ogni Show page legge
+  `operationalConfig.defaultKmRate` da `useConfigurationContext()` e lo passa
+  esplicitamente ai builder; **non usare** `km_distance * km_rate` inline (bug
+  storico: NULL → 0). `TravelRouteCalculatorDialog.toRateValue` also treats
+  `km_rate === 0` as unset and falls back to `defaultKmRate`.
+  `ClientFinancialSummary` now reads a single row from the
+  `client_commercial_position` view via `useGetOne` — zero recalculation in
+  React
 - vengono sottratti **solo** i pagamenti con `status === "ricevuto"` — i
   pagamenti `in_attesa` o `scaduto` non riducono il dovuto
 - i rimborsi (`payment_type === "rimborso"`) hanno segno invertito nella

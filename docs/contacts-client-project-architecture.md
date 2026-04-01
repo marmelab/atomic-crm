@@ -202,7 +202,10 @@ Semantica:
 - aggrega servizi non fatturati (senza `invoice_ref`) + km reimbursement
 - deduce solo pagamenti `status === "ricevuto"` (non `in_attesa`/`scaduto`)
 - rimborsi (`payment_type === "rimborso"`) hanno segno invertito
-- `ClientShow` e `ProjectShow` caricano i pagamenti con `useGetList<Payment>`
+- `ProjectShow` carica i pagamenti con `useGetList<Payment>`
+- `ClientFinancialSummary` ora legge un singolo record dalla view
+  `client_commercial_position` via `useGetOne` — zero ricalcolo in React,
+  nessuna aggregazione di 4 fetch separati
 - il pulsante "Genera bozza fattura" compare solo se
   `hasInvoiceDraftCollectableAmount()` ritorna true
 - non scrive su DB (solo anteprima/download PDF)
