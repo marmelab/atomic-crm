@@ -166,6 +166,35 @@ describe("unifiedCrmReadContext", () => {
           created_at: "2026-02-18T10:00:00.000Z",
         },
       ],
+      projectFinancialRows: [
+        {
+          project_id: "project-1",
+          project_name: "Wedding Mario",
+          client_id: "client-1",
+          client_name: "MARIO ROSSI STUDIO",
+          category: "wedding",
+          total_services: 1,
+          total_fees: 2200,
+          total_km: 0,
+          total_km_cost: 0,
+          total_expenses: 300,
+          total_owed: 2500,
+          total_paid: 0,
+          balance_due: 2500,
+        },
+      ],
+      clientCommercialPositions: [
+        {
+          client_id: "client-1",
+          client_name: "MARIO ROSSI STUDIO",
+          total_fees: 2200,
+          total_expenses: 300,
+          total_owed: 2500,
+          total_paid: 1000,
+          balance_due: 1500,
+          projects_count: 1,
+        },
+      ],
       tasks: [
         {
           id: "task-1",

@@ -202,7 +202,10 @@ Semantica:
 - aggrega servizi non fatturati (senza `invoice_ref`) + km reimbursement
 - deduce solo pagamenti `status === "ricevuto"` (non `in_attesa`/`scaduto`)
 - rimborsi (`payment_type === "rimborso"`) hanno segno invertito
-- `ClientShow` e `ProjectShow` caricano i pagamenti con `useGetList<Payment>`
+- `ProjectShow` carica i pagamenti con `useGetList<Payment>`
+- `ClientFinancialSummary` ora legge un singolo record dalla view
+  `client_commercial_position` via `useGetOne` — zero ricalcolo in React,
+  nessuna aggregazione di 4 fetch separati
 - il pulsante "Genera bozza fattura" compare solo se
   `hasInvoiceDraftCollectableAmount()` ritorna true
 - non scrive su DB (solo anteprima/download PDF)
@@ -231,3 +234,7 @@ Impatto architetturale: nessuno — nessuna nuova tabella, join o relazione.
 ## Mobile Card Style
 
 Titolo principale nelle card mobile lista: `text-base font-bold` (clients, contacts, projects).
+
+## AI Snapshot Financial Views (2026-04-01)
+
+buildUnifiedCrmReadContext now receives pre-computed financial data from DB views (project_financials, client_commercial_position) instead of calculating from raw tables. The snapshot shape for clientFinancials includes totalExpenses. No relational changes.

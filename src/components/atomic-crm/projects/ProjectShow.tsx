@@ -9,7 +9,7 @@ import { Calendar, Wallet, User, Euro, Car, Hash } from "lucide-react";
 import { Link, useLocation } from "react-router";
 import { useIsMobile } from "@/hooks/use-mobile";
 
-import type { Payment, Project, Service } from "../types";
+import type { Expense, Payment, Project, Service } from "../types";
 import { ProjectCategoryBadge, ProjectStatusBadge } from "./ProjectListContent";
 import { projectTvShowLabels } from "./projectTypes";
 import { QuickEpisodeDialog } from "./QuickEpisodeDialog";
@@ -98,6 +98,11 @@ const ProjectHeader = ({ record }: { record: Project }) => {
     sort: { field: "payment_date", order: "DESC" },
     filter: { "project_id@eq": String(record.id) },
   });
+  const { data: projectExpenses = [] } = useGetList<Expense>("expenses", {
+    pagination: { page: 1, perPage: 1000 },
+    sort: { field: "expense_date", order: "DESC" },
+    filter: { "project_id@eq": String(record.id) },
+  });
   const invoiceDraft = client
     ? buildInvoiceDraftFromProject({
         project: record,
@@ -105,6 +110,7 @@ const ProjectHeader = ({ record }: { record: Project }) => {
         services,
         payments: projectPayments,
         defaultKmRate: operationalConfig.defaultKmRate,
+        expenses: projectExpenses,
       })
     : null;
   const hasCollectableAmount = hasInvoiceDraftCollectableAmount(invoiceDraft);
@@ -234,9 +240,9 @@ const ProjectFinancials = ({ projectId }: { projectId: string }) => {
   const totalFees = toNum(data.total_fees);
   const totalExpenses = toNum(data.total_expenses);
   const totalServices = toNum(data.total_services);
+  const totalOwed = toNum(data.total_owed);
   const totalPaid = toNum(data.total_paid);
-  const grandTotal = totalFees + totalExpenses;
-  const balanceDue = grandTotal - totalPaid;
+  const balanceDue = toNum(data.balance_due);
 
   return (
     <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
@@ -258,7 +264,7 @@ const ProjectFinancials = ({ projectId }: { projectId: string }) => {
       <MetricCard
         icon={<Wallet className="size-4" />}
         label="Totale"
-        value={eur(grandTotal)}
+        value={eur(totalOwed)}
         className="font-bold"
       />
       <MetricCard
@@ -269,8 +275,8 @@ const ProjectFinancials = ({ projectId }: { projectId: string }) => {
       />
       <MetricCard
         icon={<Wallet className="size-4" />}
-        label="Da incassare"
-        value={eur(balanceDue)}
+        label={balanceDue < 0 ? "Credito cliente" : "Da incassare"}
+        value={eur(Math.abs(balanceDue))}
         className={
           balanceDue > 0
             ? "text-orange-600 font-bold"

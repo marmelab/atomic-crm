@@ -857,11 +857,13 @@ const getClientFinancials = (
   if (!match) return null;
 
   const totalFees = getNumber(match.totalFees) ?? 0;
+  const totalExpenses = getNumber(match.totalExpenses) ?? 0;
   const totalPaid = getNumber(match.totalPaid) ?? 0;
   const balanceDue = getNumber(match.balanceDue) ?? totalFees - totalPaid;
 
   return {
     totalFees,
+    totalExpenses,
     totalPaid,
     balanceDue,
     hasUninvoicedServices: match.hasUninvoicedServices === true,
@@ -1006,9 +1008,10 @@ export const buildUnifiedCrmInvoiceDraftAnswerMarkdown = ({
   if (financials) {
     lines.push("## Dettaglio finanziario");
     lines.push("");
-    lines.push(
-      `- **Lavoro totale**: ${formatNumber(financials.totalFees)} EUR`,
-    );
+    lines.push(`- **Compensi**: ${formatNumber(financials.totalFees)} EUR`);
+    if (financials.totalExpenses > 0) {
+      lines.push(`- **Spese**: ${formatNumber(financials.totalExpenses)} EUR`);
+    }
     lines.push(`- **Gia pagato**: ${formatNumber(financials.totalPaid)} EUR`);
 
     if (financials.balanceDue > 0) {

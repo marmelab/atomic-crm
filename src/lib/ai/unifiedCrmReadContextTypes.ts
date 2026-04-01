@@ -226,6 +226,7 @@ export type UnifiedCrmReadContext = {
       clientId: string;
       clientName: string;
       totalFees: number;
+      totalExpenses: number;
       totalPaid: number;
       balanceDue: number;
       hasUninvoicedServices: boolean;

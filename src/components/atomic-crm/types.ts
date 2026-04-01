@@ -504,3 +504,33 @@ export type WorkflowExecution = {
   error_message?: string;
   executed_at: string;
 } & Pick<RaRecord, "id">;
+
+// ── Canonical financial view types ──────────────────────────────────────────
+// These map 1:1 to the database views. Do NOT add computed fields here.
+
+export type ProjectFinancialRow = {
+  project_id: string;
+  project_name: string;
+  client_id: string;
+  client_name: string;
+  category: string | null;
+  total_services: number;
+  total_fees: number;
+  total_km: number;
+  total_km_cost: number;
+  total_expenses: number;
+  total_owed: number;
+  total_paid: number;
+  balance_due: number;
+};
+
+export type ClientCommercialPosition = {
+  client_id: string;
+  client_name: string;
+  total_fees: number;
+  total_expenses: number;
+  total_owed: number;
+  total_paid: number;
+  balance_due: number;
+  projects_count: number;
+};

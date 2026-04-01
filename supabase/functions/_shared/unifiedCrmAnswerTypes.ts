@@ -124,6 +124,7 @@ export type ParsedUnifiedCrmInvoiceDraftQuestion = {
   /** Financial summary from snapshot (null if not available). */
   financials: {
     totalFees: number;
+    totalExpenses: number;
     totalPaid: number;
     balanceDue: number;
     hasUninvoicedServices: boolean;

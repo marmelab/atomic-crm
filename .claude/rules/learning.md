@@ -28,6 +28,7 @@
 | **DB**       | DB-1  | Enum/Choice → aggiorna TUTTE le superfici |
 | **DB**       | DB-2  | Nuova migration → checklist replayability |
 | **DB**       | DB-3  | km servizi → spesa auto da trigger DB     |
+| **DB**       | DB-4  | View con meno colonne → DROP prima        |
 | **Backend**  | BE-1  | Edge Function modificata → deploy manuale |
 | **Backend**  | BE-2  | Nuova Edge Function → config.toml!        |
 | **Backend**  | BE-3  | Schema change → riavviare edge runtime    |
@@ -145,6 +146,12 @@
 **Quando**: codice che inserisce servizi con km_distance > 0
 **Fare**: NON creare manualmente spesa spostamento_km — il trigger `sync_service_km_expense` la crea via `source_service_id`
 **Perché**: doppio conteggio. `quickEpisodePersistence` e `invoice_import` NON devono creare spese km
+
+### DB-4: View con shape ridotta = DROP prima di ricreare
+
+**Quando**: riscrivo una view rimuovendo o rinominando colonne esistenti
+**Fare**: usare `DROP VIEW IF EXISTS ...` seguito da `CREATE VIEW ...`; non usare `CREATE OR REPLACE VIEW` se il nuovo schema ha meno colonne. Verificare prima eventuali dipendenze e ricrearle nella stessa migration se servono.
+**Perché**: Postgres non permette di eliminare colonne da una view con `OR REPLACE` (`ERROR: cannot drop columns from view`). Il bug ha rotto `supabase db reset` sulla migration `20260401094930_single_source_financials.sql`, quindi ha violato la replayability.
 
 ---
 

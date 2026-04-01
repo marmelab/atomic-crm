@@ -697,8 +697,13 @@ export const inferAmountFromQuestion = (question: string) => {
 export const inferPreferredPaymentType = (
   normalizedQuestion: string,
 ): DraftPaymentType | null => {
-  if (includesAny(normalizedQuestion, ["rimborso spese", "rimborso", "spes"])) {
+  // Mirrors src/lib/ai/inferPreferredPaymentType.ts (canonical)
+  if (includesAny(normalizedQuestion, ["rimborso spese", "spes"])) {
     return "rimborso_spese";
+  }
+
+  if (includesAny(normalizedQuestion, ["rimborso"])) {
+    return "rimborso";
   }
 
   if (includesAny(normalizedQuestion, ["acconto", "anticip"])) {

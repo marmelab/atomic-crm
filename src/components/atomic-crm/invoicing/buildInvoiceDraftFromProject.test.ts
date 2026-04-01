@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import type { Client, Payment, Project, Service } from "../types";
+import type { Client, Expense, Payment, Project, Service } from "../types";
 import { buildInvoiceDraftFromProject } from "./buildInvoiceDraftFromProject";
 
 const baseClient: Client = {
@@ -171,5 +171,103 @@ describe("buildInvoiceDraftFromProject", () => {
     });
 
     expect(draft.lineItems).toEqual([]);
+  });
+
+  it("includes expense line items", () => {
+    const expense: Expense = {
+      id: "e1",
+      project_id: "project-1",
+      client_id: "client-1",
+      expense_date: "2026-01-15",
+      expense_type: "noleggio",
+      description: "Drone rental",
+      amount: 150,
+      markup_percent: 0,
+      created_at: "2026-01-14T10:00:00.000Z",
+    };
+
+    const draft = buildInvoiceDraftFromProject({
+      project: baseProject,
+      client: baseClient,
+      services: [buildService("s1", { fee_shooting: 500 })],
+      expenses: [expense],
+    });
+
+    const expenseLine = draft.lineItems.find((l) =>
+      l.description.includes("Drone rental"),
+    );
+    expect(expenseLine).toBeDefined();
+    expect(expenseLine!.unitPrice).toBe(150);
+  });
+
+  it("excludes rimborso from payment deduction line", () => {
+    const payments: Pick<Payment, "amount" | "payment_type" | "status">[] = [
+      { amount: 300, payment_type: "acconto", status: "ricevuto" },
+      { amount: 50, payment_type: "rimborso", status: "ricevuto" },
+    ];
+
+    const draft = buildInvoiceDraftFromProject({
+      project: baseProject,
+      client: baseClient,
+      services: [buildService("s1", { fee_shooting: 500 })],
+      payments,
+    });
+
+    const paymentLine = draft.lineItems.find((l) =>
+      l.description.includes("Pagamenti"),
+    );
+    expect(paymentLine).toBeDefined();
+    expect(paymentLine!.unitPrice).toBe(-300);
+  });
+
+  it("applies markup_percent to expense amount", () => {
+    const expense: Expense = {
+      id: "e1",
+      project_id: "project-1",
+      client_id: "client-1",
+      expense_date: "2026-01-15",
+      expense_type: "noleggio",
+      description: "Equipment",
+      amount: 100,
+      markup_percent: 20,
+      created_at: "2026-01-14T10:00:00.000Z",
+    };
+
+    const draft = buildInvoiceDraftFromProject({
+      project: baseProject,
+      client: baseClient,
+      services: [buildService("s1", { fee_shooting: 500 })],
+      expenses: [expense],
+    });
+
+    const expenseLine = draft.lineItems.find((l) =>
+      l.description.includes("Equipment"),
+    );
+    expect(expenseLine!.unitPrice).toBe(120);
+  });
+
+  it("treats credito_ricevuto as negative expense", () => {
+    const expense: Expense = {
+      id: "e1",
+      project_id: "project-1",
+      client_id: "client-1",
+      expense_date: "2026-01-15",
+      expense_type: "credito_ricevuto",
+      description: "Credit note",
+      amount: 80,
+      created_at: "2026-01-14T10:00:00.000Z",
+    };
+
+    const draft = buildInvoiceDraftFromProject({
+      project: baseProject,
+      client: baseClient,
+      services: [buildService("s1", { fee_shooting: 500 })],
+      expenses: [expense],
+    });
+
+    const expenseLine = draft.lineItems.find((l) =>
+      l.description.includes("Credit note"),
+    );
+    expect(expenseLine!.unitPrice).toBe(-80);
   });
 });
