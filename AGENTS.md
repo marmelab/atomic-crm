@@ -10,8 +10,9 @@
   - non deve diventare una seconda fonte completa di regole progetto
 - se cambia una regola condivisa, aggiornare prima `AGENTS.md`
 - se `AGENTS.md` e `CLAUDE.md` entrano in conflitto, vince `AGENTS.md`
-- `.claude/learning.md` raccoglie lezioni operative tra sessioni; ogni agente
-  deve aggiornarla se scopre un pattern nuovo o un errore significativo
+- `.claude/rules/learning.md` raccoglie lezioni operative tra sessioni ed e'
+  auto-loaded in ogni sessione; ogni agente deve aggiornarla se scopre un
+  pattern nuovo o un errore significativo
 - i trigger in `learning.md` usano ID per categoria (`UI-N`, `DB-N`, `BE-N`,
   `DOM-N`, `CFG-N`, `WF-N`) e formato `Quando` / `Fare` / `Perché`
 

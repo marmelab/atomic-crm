@@ -52,7 +52,7 @@ PRIMA di eseguire `git commit` su codice prodotto, verificare SEMPRE:
    STESSO commit, non in un commit separato dopo
 2. `memory/*.md` — aggiornare se il cambiamento tocca architettura, moduli,
    pattern o convenzioni. Includerli nello STESSO commit
-3. `.claude/learning.md` — aggiornare se e' emerso un pattern nuovo o un
+3. `.claude/rules/learning.md` — aggiornare se e' emerso un pattern nuovo o un
    errore significativo. Includerli nello STESSO commit
 
 Se il commit contiene codice prodotto e i docs/memoria vanno aggiornati,

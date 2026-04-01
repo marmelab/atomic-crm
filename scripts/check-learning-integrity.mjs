@@ -9,7 +9,7 @@
 
 import { readFileSync } from "node:fs";
 
-const LEARNING_PATH = ".claude/learning.md";
+const LEARNING_PATH = ".claude/rules/learning.md";
 
 const content = readFileSync(LEARNING_PATH, "utf8");
 const lines = content.split("\n");

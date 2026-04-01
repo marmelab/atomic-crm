@@ -284,7 +284,7 @@ UTC midnight — giorno sbagliato in `Europe/Rome` nella stessa finestra.
 
 ### WF-4: Aggiorno file di sistema → sweep incrociata OBBLIGATORIA
 
-**Quando**: modifico uno qualsiasi tra: `memory/*.md`, `.claude/learning.md`, `CLAUDE.md`, `.claude/rules/*.md`
+**Quando**: modifico uno qualsiasi tra: `memory/*.md`, `.claude/rules/learning.md`, `CLAUDE.md`, `.claude/rules/*.md`
 **Fare**: PRIMA di dichiarare "fatto", verificare che TUTTI gli altri file di sistema siano coerenti:
 - Riferimenti a file: esistono ancora? path corretto?
 - Formati descritti nelle istruzioni: corrispondono al formato reale del file?
@@ -298,7 +298,7 @@ UTC midnight — giorno sbagliato in `Europe/Rome` nella stessa finestra.
 ### WF-6: Commit codice → docs+memoria NELLO STESSO commit
 
 **Quando**: sto per eseguire `git commit` su codice prodotto
-**Fare**: PRIMA di committare, verificare se servono aggiornamenti a `docs/`, `memory/*.md`, `.claude/learning.md`. Se sì, includerli nello STESSO `git add` + `git commit`. MAI fare prima il commit di codice e poi un commit separato "docs: align...".
+**Fare**: PRIMA di committare, verificare se servono aggiornamenti a `docs/`, `memory/*.md`, `.claude/rules/learning.md`. Se si', includerli nello STESSO `git add` + `git commit`. MAI fare prima il commit di codice e poi un commit separato "docs: align...".
 **Perché**: commit separati per docs causano disallineamenti sistematici. L'utente ha dovuto correggermi più volte perché dimenticavo docs/memoria dopo il codice. La regola è ora anche in `.claude/rules/session-workflow.md` (COMMIT GATE).
 
 ### WF-11: Full E2E rossa dopo evoluzione UI -> prima triage, poi patch mirata

@@ -20,11 +20,11 @@ Questo file e' intenzionalmente complementare, non parallelo.
 **Questo blocco è un comando. Devo eseguirlo ALL'INIZIO di ogni sessione.**
 
 ```
-LEGGI: .claude/learning.md
+learning.md e' ora in .claude/rules/ (auto-loaded in ogni sessione)
 ↓
-APPLICA: Tutti i trigger attivi nella sezione "⚡ Auto-Triggers"
+APPLICA: Tutti i trigger attivi automaticamente dal contesto
 ↓
-RICORDA: Se scopro una nuova lezione, aggiorno learning.md PRIMA di chiudere
+RICORDA: Se scopro una nuova lezione, aggiorno .claude/rules/learning.md PRIMA di chiudere
 ```
 
 ---
@@ -46,7 +46,7 @@ Dopo il rituale di inizio sessione:
 
 **PRIMA di chiudere una sessione in cui ho imparato qualcosa di nuovo**:
 
-1. Aggiungere un trigger a `.claude/learning.md` con:
+1. Aggiungere un trigger a `.claude/rules/learning.md` con:
    - ID categoria (`UI-N`, `DB-N`, `BE-N`, `DOM-N`, `CFG-N`, `WF-N`)
    - Formato: `Quando` / `Fare` / `Perché` (3 righe)
 2. Aggiungere la riga corrispondente nella tabella indice in cima al file
