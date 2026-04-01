@@ -15,6 +15,7 @@ Stato del documento:
 
 ## Changelog
 
+- 2026-04-01: AI snapshot expense detail fix — `unifiedCrmReadContext` now serializes per-project `expenses` alongside `services` inside `activeProjects`, and `recentExpenses` / `totals.expensesAmount` use the operational expense amount (km reimbursement, markup, credits) instead of raw `expenses.amount`; this closes the AI mismatch where project totals included expenses but the detail list showed `0,00` km rows.
 - 2026-04-01: Invoice draft builders now include billable expenses and apply Invoice Draft Sign Rule (rimborso excluded from deductions); `buildInvoiceDraftFromClient` accepts expenses + payments params, returns null when collectable <= 0; call sites in ProjectShow and ClientShow updated.
 - 2026-04-01: AI snapshot now reads from canonical views — `buildUnifiedCrmReadContext` accepts `projectFinancialRows` and `clientCommercialPositions` from the `project_financials` / `client_commercial_position` DB views via new mappers (`mapProjectFinancialRows`, `mapClientCommercialPositions`), removing the last client-side financial calculation from the snapshot builder; `dataProviderAi` fetches both views in the same `Promise.all`; invoice draft markdown shows expenses when present; `clientFinancials` snapshot shape now includes `totalExpenses`.
 - 2026-04-01: QuickPaymentDialog `rimborso_spese` fix — now suggests remaining expenses (total - already reimbursed), not gross total; `getSuggestedAmount` exported as pure function with `paidRimborsoSpese` param.

@@ -47,6 +47,7 @@ import {
   mapProjectFinancialRows,
   mapClientCommercialPositions,
   buildSupplierFinancialSummaries,
+  getExpenseOperationalAmount,
 } from "./unifiedCrmFinancialSummaries";
 import {
   addDaysToISODate,
@@ -203,6 +204,7 @@ export const buildUnifiedCrmReadContext = ({
   const projectFinancialsById = mapProjectFinancialRows(projectFinancialRows);
   const paymentsByQuoteId = new Map<string, Payment[]>();
   const servicesByProjectId = new Map<string, Service[]>();
+  const expensesByProjectId = new Map<string, Expense[]>();
   const contactsByClientId = new Map<string, Contact[]>();
   const projectContactsByProjectId = new Map<string, ProjectContact[]>();
   const projectContactsByContactId = new Map<string, ProjectContact[]>();
@@ -214,6 +216,14 @@ export const buildUnifiedCrmReadContext = ({
     const current = servicesByProjectId.get(projectId) ?? [];
     current.push(service);
     servicesByProjectId.set(projectId, current);
+  });
+
+  expenses.forEach((expense) => {
+    if (!expense.project_id) return;
+    const projectId = String(expense.project_id);
+    const current = expensesByProjectId.get(projectId) ?? [];
+    current.push(expense);
+    expensesByProjectId.set(projectId, current);
   });
 
   payments.forEach((payment) => {
@@ -306,7 +316,10 @@ export const buildUnifiedCrmReadContext = ({
 
   const openQuotesAmount = openQuotes.reduce((sum, quote) => sum + Number(quote.amount ?? 0), 0);
   const pendingPaymentsAmount = pendingPayments.reduce((sum, payment) => sum + Number(payment.amount ?? 0), 0);
-  const expensesAmount = recentExpenses.reduce((sum, expense) => sum + Number(expense.amount ?? 0), 0);
+  const expensesAmount = recentExpenses.reduce(
+    (sum, expense) => sum + getExpenseOperationalAmount(expense),
+    0,
+  );
 
   const getClientContacts = (clientId: string) =>
     [...(contactsByClientId.get(clientId) ?? [])]
@@ -446,6 +459,22 @@ export const buildUnifiedCrmReadContext = ({
               serviceDate: s.service_date,
               notes: s.notes ?? null,
             })),
+          expenses: (expensesByProjectId.get(String(project.id)) ?? [])
+            .sort(
+              (left, right) =>
+                toDateValue(right.expense_date) - toDateValue(left.expense_date),
+            )
+            .slice(0, 20)
+            .map((expense) => ({
+              expenseId: String(expense.id),
+              expenseType: expense.expense_type,
+              expenseTypeLabel:
+                expenseTypeLabels[expense.expense_type] ?? expense.expense_type,
+              description: expense.description ?? null,
+              amount: getExpenseOperationalAmount(expense),
+              expenseDate: expense.expense_date,
+              proofUrl: expense.proof_url ?? null,
+            })),
         };
       }),
       pendingPayments: pendingPayments.map((payment) => ({
@@ -490,7 +519,8 @@ export const buildUnifiedCrmReadContext = ({
         clientName: getClientName(clientById, expense.client_id ?? null),
         projectName: getProjectName(projectById, expense.project_id ?? null),
         supplierName: getSupplierName(supplierById, expense.supplier_id ?? null),
-        amount: Number(expense.amount ?? 0), expenseType: expense.expense_type,
+        amount: getExpenseOperationalAmount(expense),
+        expenseType: expense.expense_type,
         expenseTypeLabel: expenseTypeLabels[expense.expense_type] ?? expense.expense_type,
         expenseDate: expense.expense_date, description: expense.description ?? null,
         proofUrl: expense.proof_url ?? null,
@@ -542,7 +572,7 @@ export const buildUnifiedCrmReadContext = ({
     caveats: [
       "Questo snapshot e' read-only: nessuna scrittura nel CRM parte da questo contesto o dalle risposte AI che lo usano senza una conferma esplicita in un workflow dedicato.",
       "I significati di stati, tipi, formule e route vanno letti dai registri semantico e capability inclusi nel contesto.",
-      "Le liste recenti sono intenzionalmente limitate ai record piu utili per lettura rapida nel launcher unificato, ma ora espongono anche relazioni strutturate cliente-progetto-referente e i singoli servizi per progetto (max 20) gia presenti nel CRM.",
+      "Le liste recenti sono intenzionalmente limitate ai record piu utili per lettura rapida nel launcher unificato, ma ora espongono anche relazioni strutturate cliente-progetto-referente, i singoli servizi per progetto (max 20) e le spese progetto con importo operativo coerente.",
       "Ogni servizio ha un campo description (titolo breve identificativo) distinto da notes (annotazioni operative): usare description per nominare il servizio e notes per dettagli aggiuntivi.",
     ],
   };

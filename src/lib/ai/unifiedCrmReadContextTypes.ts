@@ -130,6 +130,15 @@ export type UnifiedCrmReadContext = {
         serviceDate: string;
         notes: string | null;
       }>;
+      expenses?: Array<{
+        expenseId: string;
+        expenseType: string;
+        expenseTypeLabel: string;
+        description: string | null;
+        amount: number;
+        expenseDate: string;
+        proofUrl: string | null;
+      }>;
     }>;
     pendingPayments: Array<{
       paymentId: string;
