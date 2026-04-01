@@ -1,0 +1,26 @@
+name: Notify bonnif on push
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  notify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Post commit comment mentioning @bonnif
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const { owner, repo } = context.repo;
+            const sha = context.sha;
+            const commit = await github.rest.repos.getCommit({ owner, repo, ref: sha });
+            const message = commit.data.commit.message.split('\n')[0];
+            const author = commit.data.commit.author.name;
+            await github.rest.repos.createCommitComment({
+              owner,
+              repo,
+              commit_sha: sha,
+              body: `@bonnif — nouveau commit sur \`main\` par **${author}** :\n\n> ${message}`,
+            });
