@@ -11,12 +11,14 @@ import { useConfigurationContext } from "../root/ConfigurationContext";
 import { ImportPage } from "../misc/ImportPage";
 import { CreateViewDialog } from "../deals/CreateViewDialog";
 import { APP_VERSION } from "../../../version";
+import { ChangelogModal } from "./ChangelogModal";
 
 const Header = () => {
   const { darkModeLogo, lightModeLogo, title, customViews } =
     useConfigurationContext();
   const location = useLocation();
   const [createViewOpen, setCreateViewOpen] = useState(false);
+  const [changelogOpen, setChangelogOpen] = useState(false);
   const { identity } = useGetIdentity();
   const { canAccess: isAdmin } = useCanAccess({
     resource: "configuration",
@@ -54,27 +56,38 @@ const Header = () => {
         open={createViewOpen}
         onClose={() => setCreateViewOpen(false)}
       />
+      <ChangelogModal
+        open={changelogOpen}
+        onClose={() => setChangelogOpen(false)}
+      />
       <nav className="sticky top-0 z-50 grow">
         <header className="bg-secondary shadow-sm">
           <div className="px-4">
             <div className="flex justify-between items-center flex-1">
-              <Link
-                to="/"
-                className="flex items-center gap-2 text-secondary-foreground no-underline"
-              >
-                <img
-                  className="[.light_&]:hidden h-6"
-                  src={darkModeLogo}
-                  alt={title}
-                />
-                <img
-                  className="[.dark_&]:hidden h-6"
-                  src={lightModeLogo}
-                  alt={title}
-                />
-                <h1 className="text-xl font-semibold">{title}</h1>
-                <span className="text-xs text-muted-foreground font-mono">{APP_VERSION}</span>
-              </Link>
+              <div className="flex items-center gap-2">
+                <Link
+                  to="/"
+                  className="flex items-center gap-2 text-secondary-foreground no-underline"
+                >
+                  <img
+                    className="[.light_&]:hidden h-6"
+                    src={darkModeLogo}
+                    alt={title}
+                  />
+                  <img
+                    className="[.dark_&]:hidden h-6"
+                    src={lightModeLogo}
+                    alt={title}
+                  />
+                  <h1 className="text-xl font-semibold">{title}</h1>
+                </Link>
+                <button
+                  onClick={() => setChangelogOpen(true)}
+                  className="text-xs text-muted-foreground font-mono hover:text-secondary-foreground transition-colors cursor-pointer"
+                >
+                  {APP_VERSION}
+                </button>
+              </div>
               <div>
                 <nav className="flex items-center">
                   <NavigationTab
