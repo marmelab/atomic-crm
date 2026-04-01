@@ -234,3 +234,7 @@ Impatto architetturale: nessuno — nessuna nuova tabella, join o relazione.
 ## Mobile Card Style
 
 Titolo principale nelle card mobile lista: `text-base font-bold` (clients, contacts, projects).
+
+## AI Snapshot Financial Views (2026-04-01)
+
+buildUnifiedCrmReadContext now receives pre-computed financial data from DB views (project_financials, client_commercial_position) instead of calculating from raw tables. The snapshot shape for clientFinancials includes totalExpenses. No relational changes.

@@ -1,10 +1,12 @@
 import type {
+  ClientCommercialPosition,
   ClientTask,
   Contact,
   Client,
   Expense,
   Payment,
   ProjectContact,
+  ProjectFinancialRow,
   Project,
   Quote,
   Service,
@@ -52,6 +54,8 @@ export const buildAiProviderMethods = (deps: {
         suppliersResponse,
         tasksResponse,
         workflowsResponse,
+        projectFinancialsResponse,
+        clientCommercialPositionsResponse,
       ] = await Promise.all([
         deps.baseDataProvider.getOne("configuration", { id: 1 }),
         deps.baseDataProvider.getList<Client>("clients", {
@@ -109,6 +113,22 @@ export const buildAiProviderMethods = (deps: {
           sort: { field: "created_at", order: "ASC" },
           filter: { "is_active@eq": true },
         }),
+        deps.baseDataProvider.getList<ProjectFinancialRow>(
+          "project_financials",
+          {
+            pagination: LARGE_PAGE,
+            sort: { field: "project_name", order: "ASC" },
+            filter: {},
+          },
+        ),
+        deps.baseDataProvider.getList<ClientCommercialPosition>(
+          "client_commercial_position",
+          {
+            pagination: LARGE_PAGE,
+            sort: { field: "client_name", order: "ASC" },
+            filter: {},
+          },
+        ),
       ]);
 
       const config =
@@ -124,6 +144,8 @@ export const buildAiProviderMethods = (deps: {
         services: servicesResponse.data,
         payments: paymentsResponse.data,
         expenses: expensesResponse.data,
+        projectFinancialRows: projectFinancialsResponse.data,
+        clientCommercialPositions: clientCommercialPositionsResponse.data,
         suppliers: suppliersResponse.data,
         tasks: tasksResponse.data,
         workflows: workflowsResponse.data,

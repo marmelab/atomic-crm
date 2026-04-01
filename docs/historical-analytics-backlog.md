@@ -1770,3 +1770,4 @@ These rules must remain true in all future work:
   `supabase/functions/.env.example` with placeholders.
 
 - 2026-03-08: reasoning effort downgraded to 'low' in unified_crm_answer (other EFs keep 'medium' — smaller context)
+- 2026-04-01: AI snapshot builder wired to canonical views (project_financials, client_commercial_position) — no new backlog items

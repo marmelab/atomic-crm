@@ -17,12 +17,14 @@ import {
   isContactPrimaryForClient,
 } from "@/components/atomic-crm/contacts/contactRecord";
 import type {
+  ClientCommercialPosition,
   ClientTask,
   Client,
   Contact,
   Expense,
   Payment,
   ProjectContact,
+  ProjectFinancialRow,
   Project,
   Quote,
   Service,
@@ -42,8 +44,8 @@ import {
   type CrmSemanticRegistry,
 } from "@/lib/semantics/crmSemanticRegistry";
 import {
-  buildProjectFinancialSummaries,
-  buildClientFinancialSummaries,
+  mapProjectFinancialRows,
+  mapClientCommercialPositions,
   buildSupplierFinancialSummaries,
 } from "./unifiedCrmFinancialSummaries";
 import {
@@ -137,6 +139,20 @@ const buildSnapshotContactReference = (
   };
 };
 
+// ── Uninvoiced count helper ───────────────────────────────────────────
+
+const computeUninvoicedCountByClient = (
+  services: Service[],
+): Map<string, number> => {
+  const counts = new Map<string, number>();
+  for (const service of services) {
+    if (!service.client_id || service.invoice_ref) continue;
+    const clientId = String(service.client_id);
+    counts.set(clientId, (counts.get(clientId) ?? 0) + 1);
+  }
+  return counts;
+};
+
 // ── Main builder ──────────────────────────────────────────────────────
 
 export const buildUnifiedCrmReadContext = ({
@@ -148,6 +164,8 @@ export const buildUnifiedCrmReadContext = ({
   services,
   payments,
   expenses,
+  projectFinancialRows = [],
+  clientCommercialPositions = [],
   suppliers = [],
   tasks = [],
   workflows = [],
@@ -163,6 +181,8 @@ export const buildUnifiedCrmReadContext = ({
   services: Service[];
   payments: Payment[];
   expenses: Expense[];
+  projectFinancialRows?: ProjectFinancialRow[];
+  clientCommercialPositions?: ClientCommercialPosition[];
   suppliers?: Supplier[];
   tasks?: ClientTask[];
   workflows?: Workflow[];
@@ -180,12 +200,7 @@ export const buildUnifiedCrmReadContext = ({
     contacts.map((contact) => [String(contact.id), contact]),
   );
   const quoteById = new Map(quotes.map((quote) => [String(quote.id), quote]));
-  const projectFinancialsById = buildProjectFinancialSummaries({
-    projects,
-    services,
-    payments,
-    expenses,
-  });
+  const projectFinancialsById = mapProjectFinancialRows(projectFinancialRows);
   const paymentsByQuoteId = new Map<string, Payment[]>();
   const servicesByProjectId = new Map<string, Service[]>();
   const contactsByClientId = new Map<string, Contact[]>();
@@ -504,7 +519,10 @@ export const buildUnifiedCrmReadContext = ({
           logoUrl: s.logo_url ?? null,
           createdAt: s.created_at,
         })),
-      clientFinancials: buildClientFinancialSummaries({ services, payments, clientById }),
+      clientFinancials: mapClientCommercialPositions(
+        clientCommercialPositions,
+        computeUninvoicedCountByClient(services),
+      ),
       supplierFinancials: buildSupplierFinancialSummaries({ expenses, supplierById }),
       activeWorkflows: workflows
         .filter((wf) => wf.is_active)

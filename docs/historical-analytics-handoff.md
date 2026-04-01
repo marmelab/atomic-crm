@@ -2794,3 +2794,5 @@ funzionale all'AI o al flusso analytics.
 - 2026-03-08: unified_crm_answer reasoning re-enabled at effort 'low' — medium exhausted token budget with full CRM snapshot
 - 2026-03-31: timezone bonifica — dashboard date helpers (`fiscalDeadlines.ts`, `dashboardModel.ts`, `DashboardDeadlineTracker.tsx`, `DashboardAnnual.tsx`) now use centralized `toISODate`/`todayISODate` from `lib/dateTimezone`. No functional change to AI or analytics flow.
 - 2026-04-01: `DashboardDeadlineTracker` — added `onSuccess`/`onError` callbacks to `useUpdate` calls for `markPaymentAsReceived` and `markTaskAsDone`. User-facing toast notifications added via `useNotify`. No change to data model, analytics, or AI flow.
+
+- 2026-04-01: AI snapshot reads from canonical views — `buildUnifiedCrmReadContext` now receives pre-computed `projectFinancialRows` and `clientCommercialPositions` from DB views instead of calculating from raw tables. Invoice draft markdown shows expenses when present. No change to AI model, analytics aggregation, or historical flow.
