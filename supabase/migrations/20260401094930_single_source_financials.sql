@@ -81,6 +81,8 @@ LEFT JOIN service_view sv ON sv.project_id = pr.id
 LEFT JOIN expense_view ev ON ev.project_id = pr.id
 LEFT JOIN payment_view pv ON pv.project_id = pr.id;
 
+ALTER VIEW public.project_financials SET (security_invoker = on);
+
 -- =============================================================================
 -- 2. Create client_commercial_position
 -- =============================================================================
@@ -174,6 +176,8 @@ LEFT JOIN fee_agg fa ON fa.client_id = c.id
 LEFT JOIN expense_agg ea ON ea.client_id = c.id
 LEFT JOIN payment_agg pa ON pa.client_id = c.id
 LEFT JOIN project_count_agg pc ON pc.client_id = c.id;
+
+ALTER VIEW public.client_commercial_position SET (security_invoker = on);
 
 -- =============================================================================
 -- 3. RLS — verify access
