@@ -50,7 +50,18 @@ export const ContactPersonalInfo = () => {
         <SingleFieldList className="flex-col gap-y-0">
           <PersonalInfoRow
             icon={<Phone className="w-4 h-4 text-muted-foreground" />}
-            primary={<TextField source="number" />}
+            primary={
+              <WithRecord
+                render={(row) => (
+                  <a
+                    href={`tel:${row.number}`}
+                    className="underline hover:no-underline text-sm"
+                  >
+                    {row.number}
+                  </a>
+                )}
+              />
+            }
             showType
           />
         </SingleFieldList>
