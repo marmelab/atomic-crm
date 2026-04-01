@@ -2,7 +2,8 @@
 
 > **Questo file NON è documentazione**. È il mio sistema di apprendimento
 > automatico. Ogni entry è un trigger che mi costringe a comportarmi
-> diversamente.
+> diversamente. I trigger critici sono anche coperti dai file auto-loaded
+> in `.claude/rules/` (architecture.md, supabase.md, session-workflow.md).
 
 ---
 
