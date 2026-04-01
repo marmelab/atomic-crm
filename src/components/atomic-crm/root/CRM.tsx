@@ -170,28 +170,32 @@ export const CRM = ({
 
   const isMobile = useIsMobile();
 
-  // on login, pre-fetch the configuration to avoid a flickering
-  // when accessing the app for the first time
+  // on login, pre-fetch the configuration and preferences to avoid
+  // a flickering when accessing the app for the first time
+  const prefetchConfigAndPreferences = async () => {
+    try {
+      const config = await dataProvider.getConfiguration();
+      if (Object.keys(config).length > 0) {
+        store.setItem(CONFIGURATION_STORE_KEY, config);
+      }
+    } catch {
+      // Non-critical: config will load via useConfigurationLoader
+    }
+    try {
+      const prefs = await dataProvider.getPreferences();
+      if (prefs.theme) store.setItem("theme", prefs.theme);
+      if (prefs.locale) store.setItem("locale", prefs.locale);
+    } catch {
+      // Non-critical: prefs will load via usePreferencesLoader
+    }
+  };
+
   const wrappedAuthProvider = useMemo<AuthProvider>(
     () => ({
       ...authProvider,
       login: async (params: any) => {
         const result = await authProvider.login(params);
-        try {
-          const config = await dataProvider.getConfiguration();
-          if (Object.keys(config).length > 0) {
-            store.setItem(CONFIGURATION_STORE_KEY, config);
-          }
-        } catch {
-          // Non-critical: config will load via useConfigurationLoader
-        }
-        try {
-          const prefs = await dataProvider.getPreferences();
-          if (prefs.theme) store.setItem("theme", prefs.theme);
-          if (prefs.locale) store.setItem("locale", prefs.locale);
-        } catch {
-          // Non-critical: prefs will load via usePreferencesLoader
-        }
+        await prefetchConfigAndPreferences();
         return result;
       },
       handleCallback: async (params: any) => {
@@ -201,21 +205,7 @@ export const CRM = ({
           );
         }
         const result = await authProvider.handleCallback(params);
-        try {
-          const config = await dataProvider.getConfiguration();
-          if (Object.keys(config).length > 0) {
-            store.setItem(CONFIGURATION_STORE_KEY, config);
-          }
-        } catch {
-          // Non-critical: config will load via useConfigurationLoader
-        }
-        try {
-          const prefs = await dataProvider.getPreferences();
-          if (prefs.theme) store.setItem("theme", prefs.theme);
-          if (prefs.locale) store.setItem("locale", prefs.locale);
-        } catch {
-          // Non-critical: prefs will load via usePreferencesLoader
-        }
+        await prefetchConfigAndPreferences();
         return result;
       },
       logout: async (params: any) => {
