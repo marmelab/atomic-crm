@@ -2,7 +2,7 @@ import type { DataProvider } from "ra-core";
 import { withSupabaseFilterAdapter } from "./supabaseAdapter";
 
 describe("getList", () => {
-  it("should transform '@eq'", () => {
+  it("should transform '@eq'", async () => {
     const getList = vi.fn();
     const mockDataProvider = {
       getList,
@@ -13,7 +13,7 @@ describe("getList", () => {
     const { getList: getListAdapter } =
       withSupabaseFilterAdapter(mockDataProvider);
 
-    expect(
+    await expect(
       getListAdapter("resource", { filter: { "a@id@eq": "1" } }),
     ).resolves.toEqual([{ id: 1 }]);
 
@@ -22,7 +22,7 @@ describe("getList", () => {
     });
   });
 
-  it("should transform '@neq'", () => {
+  it("should transform '@neq'", async () => {
     const getList = vi.fn();
     const mockDataProvider = {
       getList,
@@ -33,7 +33,7 @@ describe("getList", () => {
     const { getList: getListAdapter } =
       withSupabaseFilterAdapter(mockDataProvider);
 
-    expect(
+    await expect(
       getListAdapter("resource", { filter: { "a@id@neq": "1" } }),
     ).resolves.toEqual([{ id: 1 }]);
 
@@ -42,7 +42,7 @@ describe("getList", () => {
     });
   });
 
-  it("should transform '@eq'", () => {
+  it("should transform '@eq'", async () => {
     const getList = vi.fn();
     const mockDataProvider = {
       getList,
@@ -53,7 +53,7 @@ describe("getList", () => {
     const { getList: getListAdapter } =
       withSupabaseFilterAdapter(mockDataProvider);
 
-    expect(
+    await expect(
       getListAdapter("resource", { filter: { "a@id@eq": "1" } }),
     ).resolves.toEqual([{ id: 1 }]);
 
@@ -62,7 +62,7 @@ describe("getList", () => {
     });
   });
 
-  it("should transform '@neq'", () => {
+  it("should transform '@neq'", async () => {
     const getList = vi.fn();
     const mockDataProvider = {
       getList,
@@ -73,7 +73,7 @@ describe("getList", () => {
     const { getList: getListAdapter } =
       withSupabaseFilterAdapter(mockDataProvider);
 
-    expect(
+    await expect(
       getListAdapter("resource", { filter: { "a@id@neq": "1" } }),
     ).resolves.toEqual([{ id: 1 }]);
 
@@ -82,7 +82,7 @@ describe("getList", () => {
     });
   });
 
-  it("should transform '@is'", () => {
+  it("should transform '@is'", async () => {
     const getList = vi.fn();
     const mockDataProvider = {
       getList,
@@ -93,7 +93,7 @@ describe("getList", () => {
     const { getList: getListAdapter } =
       withSupabaseFilterAdapter(mockDataProvider);
 
-    expect(
+    await expect(
       getListAdapter("resource", { filter: { "id@is": null } }),
     ).resolves.toEqual([{ id: 1 }]);
 
@@ -102,7 +102,7 @@ describe("getList", () => {
     });
   });
 
-  it("should transform '@not.is'", () => {
+  it("should transform '@not.is'", async () => {
     const getList = vi.fn();
     const mockDataProvider = {
       getList,
@@ -113,7 +113,7 @@ describe("getList", () => {
     const { getList: getListAdapter } =
       withSupabaseFilterAdapter(mockDataProvider);
 
-    expect(
+    await expect(
       getListAdapter("resource", { filter: { "id@not.is": null } }),
     ).resolves.toEqual([{ id: 1 }]);
 
@@ -122,7 +122,7 @@ describe("getList", () => {
     });
   });
 
-  it("should transform '@lt'", () => {
+  it("should transform '@lt'", async () => {
     const getList = vi.fn();
     const mockDataProvider = {
       getList,
@@ -133,7 +133,7 @@ describe("getList", () => {
     const { getList: getListAdapter } =
       withSupabaseFilterAdapter(mockDataProvider);
 
-    expect(
+    await expect(
       getListAdapter("resource", { filter: { "a@id@lt": "1" } }),
     ).resolves.toEqual([{ id: 1 }]);
 
@@ -142,7 +142,7 @@ describe("getList", () => {
     });
   });
 
-  it("should transform '@lte'", () => {
+  it("should transform '@lte'", async () => {
     const getList = vi.fn();
     const mockDataProvider = {
       getList,
@@ -153,7 +153,7 @@ describe("getList", () => {
     const { getList: getListAdapter } =
       withSupabaseFilterAdapter(mockDataProvider);
 
-    expect(
+    await expect(
       getListAdapter("resource", { filter: { "a@id@lte": "1" } }),
     ).resolves.toEqual([{ id: 1 }]);
 
@@ -162,7 +162,7 @@ describe("getList", () => {
     });
   });
 
-  it("should transform '@gt'", () => {
+  it("should transform '@gt'", async () => {
     const getList = vi.fn();
     const mockDataProvider = {
       getList,
@@ -173,7 +173,7 @@ describe("getList", () => {
     const { getList: getListAdapter } =
       withSupabaseFilterAdapter(mockDataProvider);
 
-    expect(
+    await expect(
       getListAdapter("resource", { filter: { "a@id@gt": "1" } }),
     ).resolves.toEqual([{ id: 1 }]);
 
@@ -182,7 +182,7 @@ describe("getList", () => {
     });
   });
 
-  it("should transform '@gte'", () => {
+  it("should transform '@gte'", async () => {
     const getList = vi.fn();
     const mockDataProvider = {
       getList,
@@ -193,7 +193,7 @@ describe("getList", () => {
     const { getList: getListAdapter } =
       withSupabaseFilterAdapter(mockDataProvider);
 
-    expect(
+    await expect(
       getListAdapter("resource", { filter: { "a@id@gte": "1" } }),
     ).resolves.toEqual([{ id: 1 }]);
 
@@ -202,7 +202,7 @@ describe("getList", () => {
     });
   });
 
-  it("should transform '@in'", () => {
+  it("should transform '@in'", async () => {
     const getList = vi.fn();
     const mockDataProvider = {
       getList,
@@ -213,7 +213,7 @@ describe("getList", () => {
     const { getList: getListAdapter } =
       withSupabaseFilterAdapter(mockDataProvider);
 
-    expect(
+    await expect(
       getListAdapter("resource", { filter: { "id@in": "(1,2,a)" } }),
     ).resolves.toEqual([{ id: 1 }]);
 
@@ -222,7 +222,7 @@ describe("getList", () => {
     });
   });
 
-  it("should transform '@cs'", () => {
+  it("should transform '@cs'", async () => {
     const getList = vi.fn();
     const mockDataProvider = {
       getList,
@@ -233,7 +233,7 @@ describe("getList", () => {
     const { getList: getListAdapter } =
       withSupabaseFilterAdapter(mockDataProvider);
 
-    expect(
+    await expect(
       getListAdapter("resource", { filter: { "tags@cs": "{1,2,a}" } }),
     ).resolves.toEqual([{ id: 1 }]);
 
@@ -242,7 +242,7 @@ describe("getList", () => {
     });
   });
 
-  it("should transform '@or'", () => {
+  it("should transform '@or'", async () => {
     const getList = vi.fn();
     const mockDataProvider = {
       getList,
@@ -253,7 +253,7 @@ describe("getList", () => {
     const { getList: getListAdapter } =
       withSupabaseFilterAdapter(mockDataProvider);
 
-    expect(
+    await expect(
       getListAdapter("resource", {
         filter: { "@or": { last_name: "one" } },
       }),
@@ -264,7 +264,7 @@ describe("getList", () => {
     });
   });
 
-  it("should not transform a filter without operator", () => {
+  it("should not transform a filter without operator", async () => {
     const getList = vi.fn();
     const mockDataProvider = {
       getList,
@@ -275,9 +275,9 @@ describe("getList", () => {
     const { getList: getListAdapter } =
       withSupabaseFilterAdapter(mockDataProvider);
 
-    expect(getListAdapter("resource", { filter: { id: 1 } })).resolves.toEqual([
-      { id: 1 },
-    ]);
+    await expect(
+      getListAdapter("resource", { filter: { id: 1 } }),
+    ).resolves.toEqual([{ id: 1 }]);
 
     expect(getList).toHaveBeenCalledWith("resource", {
       filter: { id: 1 },
@@ -286,7 +286,7 @@ describe("getList", () => {
 });
 
 describe("getManyReference", () => {
-  it("should transform @eq", () => {
+  it("should transform @eq", async () => {
     const getManyReference = vi.fn();
     const mockDataProvider = {
       getManyReference,
@@ -297,7 +297,7 @@ describe("getManyReference", () => {
     const { getManyReference: getManyReferenceAdapter } =
       withSupabaseFilterAdapter(mockDataProvider);
 
-    expect(
+    await expect(
       getManyReferenceAdapter("resource", {
         id: 1,
         target: "target",
@@ -316,7 +316,7 @@ describe("getManyReference", () => {
     });
   });
 
-  it("should transform @neq", () => {
+  it("should transform @neq", async () => {
     const getManyReference = vi.fn();
     const mockDataProvider = {
       getManyReference,
@@ -327,7 +327,7 @@ describe("getManyReference", () => {
     const { getManyReference: getManyReferenceAdapter } =
       withSupabaseFilterAdapter(mockDataProvider);
 
-    expect(
+    await expect(
       getManyReferenceAdapter("resource", {
         id: 1,
         target: "target",
@@ -346,7 +346,7 @@ describe("getManyReference", () => {
     });
   });
 
-  it("should transform @is", () => {
+  it("should transform @is", async () => {
     const getManyReference = vi.fn();
     const mockDataProvider = {
       getManyReference,
@@ -357,7 +357,7 @@ describe("getManyReference", () => {
     const { getManyReference: getManyReferenceAdapter } =
       withSupabaseFilterAdapter(mockDataProvider);
 
-    expect(
+    await expect(
       getManyReferenceAdapter("resource", {
         id: 1,
         target: "target",
@@ -376,7 +376,7 @@ describe("getManyReference", () => {
     });
   });
 
-  it("should transform @not.is", () => {
+  it("should transform @not.is", async () => {
     const getManyReference = vi.fn();
     const mockDataProvider = {
       getManyReference,
@@ -387,7 +387,7 @@ describe("getManyReference", () => {
     const { getManyReference: getManyReferenceAdapter } =
       withSupabaseFilterAdapter(mockDataProvider);
 
-    expect(
+    await expect(
       getManyReferenceAdapter("resource", {
         id: 1,
         target: "target",
@@ -406,7 +406,7 @@ describe("getManyReference", () => {
     });
   });
 
-  it("should transform @lt", () => {
+  it("should transform @lt", async () => {
     const getManyReference = vi.fn();
     const mockDataProvider = {
       getManyReference,
@@ -417,7 +417,7 @@ describe("getManyReference", () => {
     const { getManyReference: getManyReferenceAdapter } =
       withSupabaseFilterAdapter(mockDataProvider);
 
-    expect(
+    await expect(
       getManyReferenceAdapter("resource", {
         id: 1,
         target: "target",
@@ -436,7 +436,7 @@ describe("getManyReference", () => {
     });
   });
 
-  it("should transform @lte", () => {
+  it("should transform @lte", async () => {
     const getManyReference = vi.fn();
     const mockDataProvider = {
       getManyReference,
@@ -447,7 +447,7 @@ describe("getManyReference", () => {
     const { getManyReference: getManyReferenceAdapter } =
       withSupabaseFilterAdapter(mockDataProvider);
 
-    expect(
+    await expect(
       getManyReferenceAdapter("resource", {
         id: 1,
         target: "target",
@@ -466,7 +466,7 @@ describe("getManyReference", () => {
     });
   });
 
-  it("should transform @gt", () => {
+  it("should transform @gt", async () => {
     const getManyReference = vi.fn();
     const mockDataProvider = {
       getManyReference,
@@ -477,7 +477,7 @@ describe("getManyReference", () => {
     const { getManyReference: getManyReferenceAdapter } =
       withSupabaseFilterAdapter(mockDataProvider);
 
-    expect(
+    await expect(
       getManyReferenceAdapter("resource", {
         id: 1,
         target: "target",
@@ -496,7 +496,7 @@ describe("getManyReference", () => {
     });
   });
 
-  it("should transform @gte", () => {
+  it("should transform @gte", async () => {
     const getManyReference = vi.fn();
     const mockDataProvider = {
       getManyReference,
@@ -507,7 +507,7 @@ describe("getManyReference", () => {
     const { getManyReference: getManyReferenceAdapter } =
       withSupabaseFilterAdapter(mockDataProvider);
 
-    expect(
+    await expect(
       getManyReferenceAdapter("resource", {
         id: 1,
         target: "target",
@@ -526,7 +526,7 @@ describe("getManyReference", () => {
     });
   });
 
-  it("should transform '@in'", () => {
+  it("should transform '@in'", async () => {
     const getManyReference = vi.fn();
     const mockDataProvider = {
       getManyReference,
@@ -537,7 +537,7 @@ describe("getManyReference", () => {
     const { getManyReference: getManyReferenceAdapter } =
       withSupabaseFilterAdapter(mockDataProvider);
 
-    expect(
+    await expect(
       getManyReferenceAdapter("resource", {
         id: 1,
         target: "target",
@@ -556,7 +556,7 @@ describe("getManyReference", () => {
     });
   });
 
-  it("should transform '@cs'", () => {
+  it("should transform '@cs'", async () => {
     const getManyReference = vi.fn();
     const mockDataProvider = {
       getManyReference,
@@ -567,7 +567,7 @@ describe("getManyReference", () => {
     const { getManyReference: getManyReferenceAdapter } =
       withSupabaseFilterAdapter(mockDataProvider);
 
-    expect(
+    await expect(
       getManyReferenceAdapter("resource", {
         id: 1,
         target: "target",
@@ -586,7 +586,7 @@ describe("getManyReference", () => {
     });
   });
 
-  it("should transform '@or'", () => {
+  it("should transform '@or'", async () => {
     const getManyReference = vi.fn();
     const mockDataProvider = {
       getManyReference,
@@ -597,7 +597,7 @@ describe("getManyReference", () => {
     const { getManyReference: getManyReferenceAdapter } =
       withSupabaseFilterAdapter(mockDataProvider);
 
-    expect(
+    await expect(
       getManyReferenceAdapter("resource", {
         id: 1,
         target: "target",
@@ -616,7 +616,7 @@ describe("getManyReference", () => {
     });
   });
 
-  it("should not transform a filter without operator", () => {
+  it("should not transform a filter without operator", async () => {
     const getManyReference = vi.fn();
     const mockDataProvider = {
       getManyReference,
@@ -627,7 +627,7 @@ describe("getManyReference", () => {
     const { getManyReference: getManyReferenceAdapter } =
       withSupabaseFilterAdapter(mockDataProvider);
 
-    expect(
+    await expect(
       getManyReferenceAdapter("resource", {
         id: 1,
         target: "target",
@@ -647,7 +647,7 @@ describe("getManyReference", () => {
   });
 });
 
-it("should remove summary suffix", () => {
+it("should remove summary suffix", async () => {
   const getOne = vi.fn();
   const getList = vi.fn();
   const getMany = vi.fn();
@@ -670,7 +670,7 @@ it("should remove summary suffix", () => {
     updateMany,
   });
 
-  expect(
+  await expect(
     Promise.all([
       dataProvider.getOne("resource_summary", { id: 1 }),
       dataProvider.getList("resource_summary", {

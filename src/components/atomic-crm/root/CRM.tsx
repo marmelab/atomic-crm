@@ -148,22 +148,25 @@ export const CRM = ({
 
   // Seed the store with CRM prop values if not already stored
   // (backwards compatibility for prop-based config)
-  if (!store.getItem(CONFIGURATION_STORE_KEY)) {
-    store.setItem(CONFIGURATION_STORE_KEY, {
-      companySectors,
-      currency,
-      dealCategories,
-      dealPipelineStatuses,
-      dealStages,
-      noteStatuses,
-      taskTypes,
-      title,
-      darkModeLogo,
-      lightModeLogo,
-      googleWorkplaceDomain,
-      disableEmailPasswordAuthentication,
-    } satisfies ConfigurationContextValue);
-  }
+  useEffect(() => {
+    if (!store.getItem(CONFIGURATION_STORE_KEY)) {
+      store.setItem(CONFIGURATION_STORE_KEY, {
+        companySectors,
+        currency,
+        dealCategories,
+        dealPipelineStatuses,
+        dealStages,
+        noteStatuses,
+        taskTypes,
+        title,
+        darkModeLogo,
+        lightModeLogo,
+        googleWorkplaceDomain,
+        disableEmailPasswordAuthentication,
+      } satisfies ConfigurationContextValue);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [store]);
 
   const isMobile = useIsMobile();
 
