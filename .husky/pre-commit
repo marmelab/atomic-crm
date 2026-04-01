@@ -7,5 +7,4 @@ PATCH=$(echo "$CURRENT" | grep -oE '[0-9]+$')
 PREFIX=$(echo "$CURRENT" | grep -oE '^v[0-9]+\.[0-9]+\.')
 NEXT="${PREFIX}$((PATCH + 1))"
 printf 'export const APP_VERSION = "%s";\n' "$NEXT" > "$VERSION_FILE"
-HASH=$(git hash-object -w "$VERSION_FILE")
-git update-index --cacheinfo 100644,"$HASH","$VERSION_FILE"
+git add "$VERSION_FILE"
