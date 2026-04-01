@@ -9,7 +9,10 @@
 -- =============================================================================
 -- 1. Rewrite project_financials
 -- =============================================================================
-CREATE OR REPLACE VIEW public.project_financials AS
+-- Column shape shrank in this rewrite, so the old view must be dropped first.
+DROP VIEW IF EXISTS public.project_financials;
+
+CREATE VIEW public.project_financials AS
 WITH service_view AS (
     SELECT
         s.project_id,

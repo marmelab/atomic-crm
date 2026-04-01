@@ -109,6 +109,10 @@ Last updated: 2026-04-01 (single source financials)
   (financial_foundation / legacy_payments), ora usa SEMPRE la tabella
   `payments` (status=ricevuto). Aggiunti `client_id`, `client_name`,
   `total_owed`.
+- Follow-up replayability: la migration finale fa `DROP VIEW IF EXISTS
+  public.project_financials` prima del `CREATE VIEW`, perche' il nuovo schema
+  rimuove colonne legacy e Postgres non consente di farlo con
+  `CREATE OR REPLACE VIEW`.
 - Nuova view `client_commercial_position`: aggregazione per cliente con
   Record Precedence Rules (il `client_id` del progetto prevale su quello
   del record). Include servizi/spese/pagamenti senza progetto.
