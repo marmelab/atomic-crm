@@ -11,6 +11,14 @@ Ordine corretto:
 3. documenti `working`
 4. archivi storici
 
+Se docs e codice divergono:
+
+- vale il codice reale come verita' operativa
+- se il codice sembra transitorio o incoerente, verificare migration, Edge
+  Functions e consumer principali prima di aggiornare i docs
+- i documenti `canonical` vanno corretti appena scoperto il drift, nello
+  stesso commit o al piu' tardi nella stessa sessione
+
 ## Resource Pattern
 
 Le resource vive del CRM includono almeno:
@@ -48,7 +56,9 @@ src/components/atomic-crm/[module]/
 ```
 
 Non tutti i file sono obbligatori — MobileCard, Row e ListHelpers si creano
-solo quando ListContent supera 300 righe.
+quando ListContent supera ~300 righe o quando le responsabilita' diventano
+multiple anche sotto quella soglia. Viceversa, un file lineare e leggibile
+puo' restare intero anche sopra.
 
 Eccezioni legittime:
 
@@ -65,10 +75,22 @@ aggiornare anche:
 - `defaultConfiguration`
 - `ConfigurationContext`
 - `SettingsPage`
-- section settings pertinente
+- la section specifica in `src/components/atomic-crm/settings/` che espone
+  quel campo all'utente
 
 Se la modifica e' solo strutturale o read-only, non toccare `Settings` per
-riflesso: lasciare invece traccia nei docs di continuita'.
+riflesso: lasciare invece traccia nei documenti `canonical` o `working` in
+`docs/` (tipicamente `development-continuity-map.md` o `architecture.md`).
+
+## Mobile Parity
+
+Ogni evoluzione di una superficie condivisa (componente, card, widget)
+richiede verifica dei consumer desktop e mobile. Se un componente riceve
+nuovi props con dati finanziari, cercare TUTTI i consumer nel codebase e
+verificare che i nuovi props siano passati da ogni call site (incluso
+`MobileDashboard`).
+
+Dati finanziari errati su mobile = rischio critico. MAI ignorabile.
 
 ## Anti-Bloat
 
