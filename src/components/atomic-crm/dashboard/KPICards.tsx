@@ -150,20 +150,34 @@ export function KPICards() {
       filter: { status: "hot" },
     });
 
-  const { data: deals, isPending: isPendingDeals } = useGetList<Deal>(
-    "deals",
-    {
-      pagination: { page: 1, perPage: 500 },
-    },
-  );
+  const { data: deals, isPending: isPendingDeals } = useGetList<Deal>("deals", {
+    pagination: { page: 1, perPage: 500 },
+  });
 
   const kpis = useMemo(() => {
     const hotCount = hotContacts?.length ?? 0;
 
     const wonDeals = deals?.filter((d) => d.stage === "closed-won") ?? [];
-    const wonCount = wonDeals.length;
 
-    return { hotCount, wonCount };
+    const now = new Date();
+    const cy = now.getFullYear();
+    const cm = now.getMonth();
+    const lm = cm === 0 ? 11 : cm - 1;
+    const ly = cm === 0 ? cy - 1 : cy;
+
+    const wonThisMonth = wonDeals.filter((d) => {
+      if (!d.updated_at) return false;
+      const u = new Date(d.updated_at);
+      return u.getFullYear() === cy && u.getMonth() === cm;
+    }).length;
+
+    const wonLastMonth = wonDeals.filter((d) => {
+      if (!d.updated_at) return false;
+      const u = new Date(d.updated_at);
+      return u.getFullYear() === ly && u.getMonth() === lm;
+    }).length;
+
+    return { hotCount, wonThisMonth, wonChange: wonThisMonth - wonLastMonth };
   }, [hotContacts, deals]);
 
   if (isPendingContacts || isPendingDeals) {
@@ -189,11 +203,17 @@ export function KPICards() {
       <RevenuePrevisionnelCard deals={deals} />
       <KPICard
         title="Opportunités gagnées"
-        value={kpis.wonCount}
+        value={kpis.wonThisMonth}
         icon={<Trophy className="w-5 h-5 text-[var(--nosho-green)]" />}
-        change={2}
+        change={kpis.wonChange}
         changeLabel="ce mois"
-        changeType="positive"
+        changeType={
+          kpis.wonChange > 0
+            ? "positive"
+            : kpis.wonChange < 0
+              ? "negative"
+              : "neutral"
+        }
       />
     </div>
   );
