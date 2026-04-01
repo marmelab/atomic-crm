@@ -588,6 +588,9 @@ AI intent parsing e handoff:
   (preventivo, progetto, cliente) come scelte separate
 - system prompt aggiornato: stile conciso (elenchi puntati, dritto al punto),
   istruzioni `clientFinancials`, formato Risposta/Dettaglio/Note
+- guardrail di copy: il prompt non deve esporre nomi di campi raw o flag
+  interni (`hasUninvoicedServices`, `balanceDue`, ecc.); quei valori vanno
+  sempre tradotti in italiano naturale lato risposta
 
 ## Current Direction
 

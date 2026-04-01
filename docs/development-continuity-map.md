@@ -6,7 +6,7 @@ obbligatoria delle superfici collegate.
 **Quando usarlo:** ogni volta che una modifica tocca comportamento reale del
 prodotto.
 
-Last updated: 2026-04-01 (single source financials)
+Last updated: 2026-04-01 (km duplicate audit)
 
 ---
 
@@ -14,6 +14,7 @@ Last updated: 2026-04-01 (single source financials)
 
 ### Recent Updates (cronologico, più recente in alto)
 
+- [2026-04-01](#update-2026-04-01--km-duplicate-audit-after-trigger-transition) — KM duplicate audit after trigger transition: root cause identified, audit/cleanup scripts added
 - [2026-04-01](#update-2026-04-01--single-source-financials) — Single source financials: project_financials rewritten (no dual-path), client_commercial_position view created
 - [2026-04-01](#update-2026-04-01--repo-hardening-follow-up) — Repo hardening follow-up: local runtime contract clarified, legacy frontend deploy path removed, date-only UI sweep
 - [2026-04-01](#update-2026-04-01--ci-hardening) — CI hardening: Node 24 JS actions runtime + removal of stale demo deploy job
@@ -131,6 +132,40 @@ Last updated: 2026-04-01 (single source financials)
 
 **Spec di riferimento:**
 `docs/superpowers/specs/2026-04-01-single-source-of-truth-financials-design.md`
+
+## Update 2026-04-01 — KM duplicate audit after trigger transition
+
+**Cosa e' cambiato**
+
+- identificato il root cause del doppio `spostamento_km` visto nella snapshot
+  AI e nei saldi di `VALE IL VIAGGIO - 2026`:
+  durante la transizione al trigger DB `sync_service_km_expense`, il flusso
+  `QuickEpisode` creava ancora manualmente una spesa km oltre al `service`.
+- aggiunti due script operativi:
+  - `scripts/km-expense-duplicate-audit.sql`
+  - `scripts/km-expense-duplicate-cleanup.sql`
+- la regola di cleanup e' esplicita:
+  cancellare solo righe `spostamento_km` con `source_service_id IS NULL`
+  che hanno un gemello linked con stessa chiave naturale
+  (`project/client/date/description/km_distance/km_rate`).
+
+**Verifica eseguita**
+
+- audit remoto sul progetto `VALE IL VIAGGIO - 2026`:
+  - servizio reale unico `bf002dba-e95a-4d89-9c8a-2a011aa98ceb`
+  - riga corretta linked `820ed074-def7-4f16-9642-68132ca7b070`
+  - riga duplicata orfana `4765187c-ef13-4057-ba64-7340e0bb5b9e`
+- il delta temporale tra le due insert (`~220ms`) e il diff storico di
+  `quickEpisodePersistence.ts` confermano il doppio path
+  frontend + trigger DB
+- audit dei `spostamento_km` unlinked creati dal `2026-03-06` in poi:
+  trovato solo quel record
+
+**Impatto**
+
+- il saldo progetto / cliente era gonfiato di `€ 40,54` fino al cleanup
+- il repo ha ora un audit ripetibile per altri casi legacy della stessa
+  transizione
 
 ---
 

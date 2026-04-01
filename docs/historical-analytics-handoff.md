@@ -6,7 +6,25 @@ lavoro senza riaprire decisioni gia prese.
 **Quando NON usarlo da solo:** per dedurre architettura canonica o stato
 prodotto senza incrociarlo con `docs/README.md` e i documenti `canonical`.
 
-Last updated: 2026-04-01 (AI snapshot expense detail fix)
+Last updated: 2026-04-01 (plain-language financial flags)
+
+## Update 2026-04-01 — Plain-language financial flags in unified_crm_answer
+
+- The `unified_crm_answer` system prompt now explicitly forbids exposing raw
+  snapshot field names or internal booleans in the markdown response.
+- The guardrail is intentionally narrow: it changes wording only, not the
+  overall answer shape or verbosity budget.
+- Practical rule enforced in the prompt:
+  - never echo keys like `hasUninvoicedServices`, `balanceDue`,
+    `clientFinancials`, `activeProjects`
+  - always translate technical flags into natural Italian copy
+- Concrete example:
+  - forbidden: `hasUninvoicedServices = si`
+  - required: `ci sono ancora servizi non fatturati`
+- No snapshot schema change: the read context still exposes the same fields;
+  only the user-facing wording contract changed.
+
+Deploy richiesti: Edge Function remota `unified_crm_answer`.
 
 ## Update 2026-04-01 — AI snapshot expense detail fix
 

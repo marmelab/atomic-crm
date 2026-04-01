@@ -6,7 +6,28 @@
 incrociarlo con `docs/README.md`, `docs/architecture.md` e i documenti
 `canonical`.
 
-Last updated: 2026-04-01 (AI snapshot expense detail fix)
+Last updated: 2026-04-01 (plain-language financial flags)
+
+## Update 2026-04-01 — unified_crm_answer prompt copy hardening
+
+Slice completata: `plain-language translation of internal financial flags`.
+
+Deliverable chiusi:
+
+- prompt `unified_crm_answer` aggiornato per vietare nomi di campi raw nel
+  markdown utente
+- traduzione obbligatoria dei booleani/flag tecnici in frasi naturali
+- guardrail ristretto al lessico: nessun cambio intenzionale di struttura
+  globale o verbosita' della risposta
+- caso esplicito coperto nel prompt:
+  `hasUninvoicedServices = si` -> `ci sono ancora servizi non fatturati`
+
+Motivazione:
+
+- dopo il refactor single-source financials l'AI usava correttamente la
+  snapshot, ma in alcuni casi faceva trapelare il nome del flag di sistema
+  invece di parlare in italiano umano. Il problema era di wording nel prompt,
+  non di dati o aggregazioni.
 
 ## Update 2026-04-01 — AI snapshot expense detail follow-up
 
