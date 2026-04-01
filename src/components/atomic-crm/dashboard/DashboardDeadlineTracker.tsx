@@ -1,6 +1,6 @@
 import { addDaysToISODate, todayISODate } from "@/lib/dateTimezone";
 import { useMemo } from "react";
-import { useCreatePath, useGetList, useUpdate } from "ra-core";
+import { useCreatePath, useGetList, useNotify, useUpdate } from "ra-core";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
@@ -60,24 +60,44 @@ const useDeadlineTrackerCollections = () => {
 
 const useDeadlineTrackerActions = (todayIso: string) => {
   const [update, { isPending: isUpdating }] = useUpdate();
+  const notify = useNotify();
 
   const markPaymentAsReceived = (payment: Payment) => {
-    update("payments", {
-      id: payment.id,
-      data: {
-        status: "ricevuto",
-        payment_date: payment.payment_date ?? todayIso,
+    update(
+      "payments",
+      {
+        id: payment.id,
+        data: {
+          status: "ricevuto",
+          payment_date: payment.payment_date ?? todayIso,
+        },
+        previousData: payment,
       },
-      previousData: payment,
-    });
+      {
+        onSuccess: () =>
+          notify("Pagamento segnato come ricevuto", { type: "success" }),
+        onError: () =>
+          notify("Errore nel segnare il pagamento come ricevuto", {
+            type: "error",
+          }),
+      },
+    );
   };
 
   const markTaskAsDone = (task: ClientTask) => {
-    update("client_tasks", {
-      id: task.id,
-      data: { done_date: new Date().toISOString() },
-      previousData: task,
-    });
+    update(
+      "client_tasks",
+      {
+        id: task.id,
+        data: { done_date: new Date().toISOString() },
+        previousData: task,
+      },
+      {
+        onSuccess: () => notify("Attività completata", { type: "success" }),
+        onError: () =>
+          notify("Errore nel completare l'attività", { type: "error" }),
+      },
+    );
   };
 
   return { isUpdating, markPaymentAsReceived, markTaskAsDone };
@@ -102,21 +122,25 @@ const useDashboardDeadlineTrackerData = ({
   const { isUpdating, markPaymentAsReceived, markTaskAsDone } =
     useDeadlineTrackerActions(todayIso);
 
-  const computed = useMemo(() => buildDashboardDeadlineTrackerComputed({
-    limitDateIso,
-    openTasks,
-    pendingPayments,
-    todayIso,
-    unansweredQuotesCount: alerts.unansweredQuotes.length,
-    upcomingServicesCount: alerts.upcomingServices.length,
-  }), [
-    alerts.unansweredQuotes.length,
-    alerts.upcomingServices.length,
-    limitDateIso,
-    openTasks,
-    pendingPayments,
-    todayIso,
-  ]);
+  const computed = useMemo(
+    () =>
+      buildDashboardDeadlineTrackerComputed({
+        limitDateIso,
+        openTasks,
+        pendingPayments,
+        todayIso,
+        unansweredQuotesCount: alerts.unansweredQuotes.length,
+        upcomingServicesCount: alerts.upcomingServices.length,
+      }),
+    [
+      alerts.unansweredQuotes.length,
+      alerts.upcomingServices.length,
+      limitDateIso,
+      openTasks,
+      pendingPayments,
+      todayIso,
+    ],
+  );
 
   return {
     alerts,
