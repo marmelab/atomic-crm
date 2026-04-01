@@ -194,3 +194,4 @@ Import `test-data/contacts.csv` via the Contacts page → Import button.
 - Unit tests can be added in the `src/` directory (test files are named `*.test.ts` or `*.test.tsx`)
 - User deletion is not supported to avoid data loss; use account disabling instead
 - Filter operators must be supported by the `supabaseAdapter` when using FakeRest
+- **This repo is a private fork of `marmelab/atomic-crm`. Never push branches named `sync/*` or any branch that could auto-create a PR on `marmelab/atomic-crm`. When syncing upstream, work locally and merge directly into `main` without pushing intermediary branches that GitHub would offer to contribute back upstream.**
