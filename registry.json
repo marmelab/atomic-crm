@@ -42,11 +42,19 @@
           "type": "registry:component"
         },
         {
-          "path": "src/components/atomic-crm/tasks/taskFilters.ts",
+          "path": "src/components/atomic-crm/tasks/tasksPredicate.ts",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/tasks/TasksListFilter.tsx",
           "type": "registry:component"
         },
         {
           "path": "src/components/atomic-crm/tasks/TasksListContent.tsx",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/tasks/TasksListByDueDate.tsx",
           "type": "registry:component"
         },
         {
@@ -82,7 +90,19 @@
           "type": "registry:component"
         },
         {
+          "path": "src/components/atomic-crm/tags/useTags.ts",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/tags/useCreateTag.ts",
+          "type": "registry:component"
+        },
+        {
           "path": "src/components/atomic-crm/tags/colors.ts",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/tags/TagForm.tsx",
           "type": "registry:component"
         },
         {
@@ -126,6 +146,10 @@
           "type": "registry:component"
         },
         {
+          "path": "src/components/atomic-crm/settings/SettingsPageMobile.tsx",
+          "type": "registry:component"
+        },
+        {
           "path": "src/components/atomic-crm/settings/SettingsPage.tsx",
           "type": "registry:component"
         },
@@ -134,7 +158,7 @@
           "type": "registry:component"
         },
         {
-          "path": "src/components/atomic-crm/settings/ConnectorsPage.tsx",
+          "path": "src/components/atomic-crm/sales/useGetSalesName.ts",
           "type": "registry:component"
         },
         {
@@ -158,15 +182,7 @@
           "type": "registry:component"
         },
         {
-          "path": "src/components/atomic-crm/sales/SaleName.tsx",
-          "type": "registry:component"
-        },
-        {
           "path": "src/components/atomic-crm/root/useConfigurationLoader.ts",
-          "type": "registry:component"
-        },
-        {
-          "path": "src/components/atomic-crm/root/i18nProvider.tsx",
           "type": "registry:component"
         },
         {
@@ -290,11 +306,23 @@
           "type": "registry:component"
         },
         {
+          "path": "src/components/atomic-crm/providers/commons/i18nProvider.ts",
+          "type": "registry:component"
+        },
+        {
           "path": "src/components/atomic-crm/providers/commons/getContactAvatar.ts",
           "type": "registry:component"
         },
         {
           "path": "src/components/atomic-crm/providers/commons/getCompanyAvatar.ts",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/providers/commons/frenchCrmMessages.ts",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/providers/commons/englishCrmMessages.ts",
           "type": "registry:component"
         },
         {
@@ -502,22 +530,6 @@
           "type": "registry:component"
         },
         {
-          "path": "src/components/atomic-crm/google/useGooglePreferences.ts",
-          "type": "registry:component"
-        },
-        {
-          "path": "src/components/atomic-crm/google/useGoogleConnectionStatus.ts",
-          "type": "registry:component"
-        },
-        {
-          "path": "src/components/atomic-crm/google/types.ts",
-          "type": "registry:component"
-        },
-        {
-          "path": "src/components/atomic-crm/google/GoogleOAuthCallback.tsx",
-          "type": "registry:component"
-        },
-        {
           "path": "src/components/atomic-crm/filters/FilterCategory.tsx",
           "type": "registry:component"
         },
@@ -534,19 +546,11 @@
           "type": "registry:component"
         },
         {
-          "path": "src/components/atomic-crm/deals/deal.ts",
-          "type": "registry:component"
-        },
-        {
           "path": "src/components/atomic-crm/deals/OnlyMineInput.tsx",
           "type": "registry:component"
         },
         {
           "path": "src/components/atomic-crm/deals/DealShow.tsx",
-          "type": "registry:component"
-        },
-        {
-          "path": "src/components/atomic-crm/deals/DealListForView.tsx",
           "type": "registry:component"
         },
         {
@@ -586,10 +590,6 @@
           "type": "registry:component"
         },
         {
-          "path": "src/components/atomic-crm/deals/CreateViewDialog.tsx",
-          "type": "registry:component"
-        },
-        {
           "path": "src/components/atomic-crm/deals/ContactList.tsx",
           "type": "registry:component"
         },
@@ -598,23 +598,7 @@
           "type": "registry:component"
         },
         {
-          "path": "src/components/atomic-crm/dashboard/UpcomingCalendarEvents.tsx",
-          "type": "registry:component"
-        },
-        {
-          "path": "src/components/atomic-crm/dashboard/TasksListFilter.tsx",
-          "type": "registry:component"
-        },
-        {
-          "path": "src/components/atomic-crm/dashboard/TasksListEmpty.tsx",
-          "type": "registry:component"
-        },
-        {
           "path": "src/components/atomic-crm/dashboard/TasksList.tsx",
-          "type": "registry:component"
-        },
-        {
-          "path": "src/components/atomic-crm/dashboard/NoshoAIAssist.tsx",
           "type": "registry:component"
         },
         {
@@ -623,10 +607,6 @@
         },
         {
           "path": "src/components/atomic-crm/dashboard/LatestNotes.tsx",
-          "type": "registry:component"
-        },
-        {
-          "path": "src/components/atomic-crm/dashboard/KPICards.tsx",
           "type": "registry:component"
         },
         {
@@ -654,10 +634,6 @@
           "type": "registry:component"
         },
         {
-          "path": "src/components/atomic-crm/dashboard/ActiveDeals.tsx",
-          "type": "registry:component"
-        },
-        {
           "path": "src/components/atomic-crm/contacts/useContactImport.tsx",
           "type": "registry:component"
         },
@@ -666,11 +642,7 @@
           "type": "registry:component"
         },
         {
-          "path": "src/components/atomic-crm/contacts/exportToVCard.ts",
-          "type": "registry:component"
-        },
-        {
-          "path": "src/components/atomic-crm/contacts/contactGender.ts",
+          "path": "src/components/atomic-crm/contacts/contactModel.ts",
           "type": "registry:component"
         },
         {
@@ -726,10 +698,6 @@
           "type": "registry:component"
         },
         {
-          "path": "src/components/atomic-crm/contacts/ContactEmailHistory.tsx",
-          "type": "registry:component"
-        },
-        {
           "path": "src/components/atomic-crm/contacts/ContactEditSheet.tsx",
           "type": "registry:component"
         },
@@ -746,15 +714,15 @@
           "type": "registry:component"
         },
         {
-          "path": "src/components/atomic-crm/contacts/ContactCalendarEvents.tsx",
-          "type": "registry:component"
-        },
-        {
           "path": "src/components/atomic-crm/contacts/ContactBackgroundInfo.tsx",
           "type": "registry:component"
         },
         {
           "path": "src/components/atomic-crm/contacts/ContactAside.tsx",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/contacts/BulkTagButton.tsx",
           "type": "registry:component"
         },
         {
@@ -767,6 +735,10 @@
         },
         {
           "path": "src/components/atomic-crm/companies/index.ts",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/companies/getTranslatedCompanySizeLabel.ts",
           "type": "registry:component"
         },
         {

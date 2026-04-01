@@ -2,7 +2,6 @@ import path from "node:path";
 import { defineConfig } from "vite";
 import tailwindcss from "@tailwindcss/vite";
 import react from "@vitejs/plugin-react";
-import { sentryVitePlugin } from "@sentry/vite-plugin";
 import { visualizer } from "rollup-plugin-visualizer";
 import createHtmlPlugin from "vite-plugin-simple-html";
 import { VitePWA } from "vite-plugin-pwa";
@@ -32,15 +31,6 @@ export default defineConfig({
       },
       manifest: false, // Use existing manifest.json from public/
     }),
-    ...(process.env.SENTRY_AUTH_TOKEN
-      ? [
-          sentryVitePlugin({
-            org: process.env.SENTRY_ORG,
-            project: process.env.SENTRY_PROJECT,
-            authToken: process.env.SENTRY_AUTH_TOKEN,
-          }),
-        ]
-      : []),
   ],
   define:
     process.env.NODE_ENV === "production" && process.env.VITE_SUPABASE_URL
@@ -56,6 +46,9 @@ export default defineConfig({
           ),
           "import.meta.env.VITE_INBOUND_EMAIL": JSON.stringify(
             process.env.VITE_INBOUND_EMAIL,
+          ),
+          "import.meta.env.VITE_ATTACHMENTS_BUCKET": JSON.stringify(
+            process.env.VITE_ATTACHMENTS_BUCKET,
           ),
         }
       : undefined,

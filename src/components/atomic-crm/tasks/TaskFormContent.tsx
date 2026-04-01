@@ -3,10 +3,10 @@ import { ReferenceInput } from "@/components/admin/reference-input";
 import { SelectInput } from "@/components/admin/select-input";
 import { TextInput } from "@/components/admin/text-input";
 import { required } from "ra-core";
+import { DateTimeInput } from "@/components/admin";
 
 import { contactOptionText } from "../misc/ContactOption";
 import { useConfigurationContext } from "../root/ConfigurationContext";
-import { DateTimeInput } from "@/components/admin";
 
 export const TaskFormContent = ({
   selectContact,
@@ -49,6 +49,7 @@ export const TaskFormContent = ({
           choices={taskTypes}
           optionText="label"
           optionValue="value"
+          defaultValue="none"
           helperText={false}
         />
       </div>

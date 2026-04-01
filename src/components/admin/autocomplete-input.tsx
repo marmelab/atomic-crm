@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import * as React from "react";
-import { useCallback } from "react";
+import { isValidElement, useCallback } from "react";
 import { Check, ChevronsUpDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -110,6 +110,7 @@ export const AutocompleteInput = (
     setFilters,
   } = useChoicesContext(props);
   const { id, field, isRequired } = useInput({ ...props, source });
+  const uniqueId = React.useId();
   const translate = useTranslate();
   const { placeholder = translate("ra.action.search", { _: "Search..." }) } =
     props;
@@ -124,6 +125,7 @@ export const AutocompleteInput = (
   });
 
   const [filterValue, setFilterValue] = React.useState("");
+  const listRef = React.useRef<HTMLDivElement>(null);
 
   const [open, setOpen] = React.useState(false);
   const selectedChoice = allChoices.find(
@@ -199,6 +201,7 @@ export const AutocompleteInput = (
       ? getCreateItem(filterValue)
       : null;
   let finalChoices = allChoices;
+
   if (createItem) {
     finalChoices = [...finalChoices, createItem];
   }
@@ -207,7 +210,7 @@ export const AutocompleteInput = (
     <>
       <FormField className={props.className} id={id} name={source}>
         {props.label !== false && (
-          <FormLabel>
+          <FormLabel id={uniqueId}>
             <FieldTitle
               label={props.label}
               source={props.source ?? source}
@@ -223,6 +226,7 @@ export const AutocompleteInput = (
                 variant="outline"
                 role="combobox"
                 aria-expanded={open}
+                aria-labelledby={uniqueId}
                 className="w-full justify-between h-auto py-1.75 font-normal"
               >
                 {selectedChoice ? (
@@ -237,10 +241,13 @@ export const AutocompleteInput = (
               {/* We handle the filtering ourselves */}
               <Command shouldFilter={!isFromReference}>
                 <CommandInput
-                  placeholder="Search..."
+                  placeholder={placeholder}
                   value={filterValue}
                   onValueChange={(filter) => {
                     setFilterValue(filter);
+                    requestAnimationFrame(() => {
+                      listRef.current?.scrollTo(0, 0);
+                    });
                     // We don't want the ChoicesContext to filter the choices if the input
                     // is not from a reference as it would also filter out the selected values
                     if (isFromReference) {
@@ -248,13 +255,17 @@ export const AutocompleteInput = (
                     }
                   }}
                 />
-                <CommandList>
+                <CommandList ref={listRef}>
                   <CommandEmpty>No matching item found.</CommandEmpty>
                   <CommandGroup>
                     {finalChoices.map((choice) => {
                       const isCreateItem =
                         !!createItem && choice?.id === createItem.id;
                       const disabled = getOptionDisabled(choice);
+
+                      const choiceText = getChoiceText(
+                        isCreateItem ? createItem : choice,
+                      );
 
                       return (
                         <CommandItem
@@ -267,6 +278,11 @@ export const AutocompleteInput = (
                                 `?${filterValue}?`
                               : getChoiceValue(choice)
                           }
+                          keywords={
+                            isCreateItem || isValidElement(choiceText)
+                              ? undefined
+                              : [choiceText]
+                          }
                           onSelect={() => handleChangeWithCreateSupport(choice)}
                           disabled={disabled}
                         >
@@ -278,7 +294,7 @@ export const AutocompleteInput = (
                                 : "opacity-0",
                             )}
                           />
-                          {getChoiceText(isCreateItem ? createItem : choice)}
+                          {choiceText}
                         </CommandItem>
                       );
                     })}

@@ -18,6 +18,7 @@ export interface CustomView {
 export interface ConfigurationContextValue {
   companySectors: LabeledValue[];
   companyTypes: LabeledValue[];
+  currency: string;
   customViews: CustomView[];
   dealCategories: LabeledValue[];
   dealPipelineStatuses: string[];

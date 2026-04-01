@@ -26,23 +26,15 @@ import { defaultGooglePreferences } from "../../google/types";
 import { getActivityLog } from "../commons/activity";
 import { ATTACHMENTS_BUCKET } from "../commons/attachments";
 import { getIsInitialized } from "./authProvider";
-import { supabase } from "./supabase";
+import { getSupabaseClient } from "./supabase";
 
-if (import.meta.env.VITE_SUPABASE_URL === undefined) {
-  throw new Error("Please set the VITE_SUPABASE_URL environment variable");
-}
-if (import.meta.env.VITE_SB_PUBLISHABLE_KEY === undefined) {
-  throw new Error(
-    "Please set the VITE_SB_PUBLISHABLE_KEY environment variable",
-  );
-}
-
-const baseDataProvider = supabaseDataProvider({
-  instanceUrl: import.meta.env.VITE_SUPABASE_URL,
-  apiKey: import.meta.env.VITE_SB_PUBLISHABLE_KEY,
-  supabaseClient: supabase,
-  sortOrder: "asc,desc.nullslast" as any,
-});
+const getBaseDataProvider = () =>
+  supabaseDataProvider({
+    instanceUrl: import.meta.env.VITE_SUPABASE_URL,
+    apiKey: import.meta.env.VITE_SB_PUBLISHABLE_KEY,
+    supabaseClient: getSupabaseClient(),
+    sortOrder: "asc,desc.nullslast" as any,
+  });
 
 const processCompanyLogo = async (params: any) => {
   const logo = params.data.logo;
@@ -60,316 +52,354 @@ const processCompanyLogo = async (params: any) => {
   };
 };
 
-const dataProviderWithCustomMethods = {
-  ...baseDataProvider,
-  async getList(resource: string, params: GetListParams) {
-    if (resource === "companies") {
-      return baseDataProvider.getList("companies_summary", params);
-    }
-    if (resource === "contacts") {
-      return baseDataProvider.getList("contacts_summary", params);
-    }
-    if (resource === "deals" && params.filter?.company_type) {
-      const { company_type, ...restFilter } = params.filter;
-      return baseDataProvider.getList("deals", {
-        ...params,
-        filter: { ...restFilter, "company_type@eq": company_type },
-      });
-    }
+const getDataProviderWithCustomMethods = () => {
+  const baseDataProvider = getBaseDataProvider();
 
-    return baseDataProvider.getList(resource, params);
-  },
-  async getOne(resource: string, params: any) {
-    if (resource === "companies") {
-      return baseDataProvider.getOne("companies_summary", params);
-    }
-    if (resource === "contacts") {
-      return baseDataProvider.getOne("contacts_summary", params);
-    }
+  return {
+    ...baseDataProvider,
+    async getList(resource: string, params: GetListParams) {
+      if (resource === "companies") {
+        return baseDataProvider.getList("companies_summary", params);
+      }
+      if (resource === "contacts") {
+        return baseDataProvider.getList("contacts_summary", params);
+      }
+      if (resource === "deals" && params.filter?.company_type) {
+        const { company_type, ...restFilter } = params.filter;
+        return baseDataProvider.getList("deals", {
+          ...params,
+          filter: { ...restFilter, "company_type@eq": company_type },
+        });
+      }
+      if (resource === "activity_log") {
+        const { data, total } = await baseDataProvider.getList(
+          "activity_log",
+          params,
+        );
+        // Rename snake_case view columns to camelCase to match Activity type
+        return {
+          data: data.map((row: any) => ({
+            ...row,
+            contactNote: row.contact_note ?? undefined,
+            dealNote: row.deal_note ?? undefined,
+            contact_note: undefined,
+            deal_note: undefined,
+          })),
+          total,
+        };
+      }
 
-    return baseDataProvider.getOne(resource, params);
-  },
+      return baseDataProvider.getList(resource, params);
+    },
+    async getOne(resource: string, params: any) {
+      if (resource === "companies") {
+        return baseDataProvider.getOne("companies_summary", params);
+      }
+      if (resource === "contacts") {
+        return baseDataProvider.getOne("contacts_summary", params);
+      }
 
-  async signUp({ email, password, first_name, last_name }: SignUpData) {
-    const response = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        data: {
-          first_name,
-          last_name,
+      return baseDataProvider.getOne(resource, params);
+    },
+
+    async signUp({ email, password, first_name, last_name }: SignUpData) {
+      const response = await getSupabaseClient().auth.signUp({
+        email,
+        password,
+        options: {
+          data: {
+            first_name,
+            last_name,
+          },
         },
-      },
-    });
+      });
 
-    if (!response.data?.user || response.error) {
-      console.error("signUp.error", response.error);
-      throw new Error(response?.error?.message || "Failed to create account");
-    }
+      if (!response.data?.user || response.error) {
+        console.error("signUp.error", response.error);
+        throw new Error(response?.error?.message || "Failed to create account");
+      }
 
-    // Update the is initialized cache
-    getIsInitialized._is_initialized_cache = true;
+      // Update the is initialized cache
+      getIsInitialized._is_initialized_cache = true;
 
-    return {
-      id: response.data.user.id,
-      email,
-      password,
-    };
-  },
-  async salesCreate(body: SalesFormData) {
-    const { data, error } = await supabase.functions.invoke<{ data: Sale }>(
-      "users",
-      {
+      return {
+        id: response.data.user.id,
+        email,
+        password,
+      };
+    },
+    async salesCreate(body: SalesFormData) {
+      const { data, error } = await getSupabaseClient().functions.invoke<{
+        data: Sale;
+      }>("users", {
         method: "POST",
         body,
-      },
-    );
-
-    if (!data || error) {
-      console.error("salesCreate.error", error);
-      const errorDetails = await (async () => {
-        try {
-          return (await error?.context?.json()) ?? {};
-        } catch {
-          return {};
-        }
-      })();
-      throw new Error(errorDetails?.message || "Failed to create the user");
-    }
-
-    return data.data;
-  },
-  async salesUpdate(
-    id: Identifier,
-    data: Partial<Omit<SalesFormData, "password">>,
-  ) {
-    const { email, first_name, last_name, administrator, avatar, disabled } =
-      data;
-
-    const { data: updatedData, error } = await supabase.functions.invoke<{
-      data: Sale;
-    }>("users", {
-      method: "PATCH",
-      body: {
-        sales_id: id,
-        email,
-        first_name,
-        last_name,
-        administrator,
-        disabled,
-        avatar,
-      },
-    });
-
-    if (!updatedData || error) {
-      console.error("salesCreate.error", error);
-      throw new Error("Failed to update account manager");
-    }
-
-    return updatedData.data;
-  },
-  async salesDelete(id: Identifier) {
-    const { data, error } = await supabase.functions.invoke<{ data: Sale }>(
-      "users",
-      {
-        method: "DELETE",
-        body: { sales_id: id },
-      },
-    );
-
-    if (error) {
-      console.error("salesDelete.error", error);
-      const errorDetails = await (async () => {
-        try {
-          return (await error?.context?.json()) ?? {};
-        } catch {
-          return {};
-        }
-      })();
-      throw new Error(errorDetails?.message || "Failed to delete the user");
-    }
-
-    return data?.data ?? ({ id } as any);
-  },
-  async updatePassword(id: Identifier) {
-    const { data: passwordUpdated, error } =
-      await supabase.functions.invoke<boolean>("update_password", {
-        method: "PATCH",
-        body: {
-          sales_id: id,
-        },
       });
 
-    if (!passwordUpdated || error) {
-      console.error("update_password.error", error);
-      throw new Error("Failed to update password");
-    }
-
-    return passwordUpdated;
-  },
-  async unarchiveDeal(deal: Deal) {
-    // get all deals where stage is the same as the deal to unarchive
-    const { data: deals } = await baseDataProvider.getList<Deal>("deals", {
-      filter: { stage: deal.stage },
-      pagination: { page: 1, perPage: 1000 },
-      sort: { field: "index", order: "ASC" },
-    });
-
-    // set index for each deal starting from 1, if the deal to unarchive is found, set its index to the last one
-    const updatedDeals = deals.map((d, index) => ({
-      ...d,
-      index: d.id === deal.id ? 0 : index + 1,
-      archived_at: d.id === deal.id ? null : d.archived_at,
-    }));
-
-    return await Promise.all(
-      updatedDeals.map((updatedDeal) =>
-        baseDataProvider.update("deals", {
-          id: updatedDeal.id,
-          data: updatedDeal,
-          previousData: deals.find((d) => d.id === updatedDeal.id),
-        }),
-      ),
-    );
-  },
-  async getActivityLog(companyId?: Identifier) {
-    return getActivityLog(baseDataProvider, companyId);
-  },
-  async isInitialized() {
-    return getIsInitialized();
-  },
-  async mergeContacts(sourceId: Identifier, targetId: Identifier) {
-    const { data, error } = await supabase.functions.invoke("merge_contacts", {
-      method: "POST",
-      body: { loserId: sourceId, winnerId: targetId },
-    });
-
-    if (error) {
-      console.error("merge_contacts.error", error);
-      throw new Error("Failed to merge contacts");
-    }
-
-    return data;
-  },
-  async getConfiguration(): Promise<ConfigurationContextValue> {
-    const { data } = await baseDataProvider.getOne("configuration", { id: 1 });
-    return (data?.config as ConfigurationContextValue) ?? {};
-  },
-  async updateConfiguration(
-    config: ConfigurationContextValue,
-  ): Promise<ConfigurationContextValue> {
-    const { data } = await baseDataProvider.update("configuration", {
-      id: 1,
-      data: { config },
-      previousData: { id: 1 },
-    });
-    return data.config as ConfigurationContextValue;
-  },
-
-  // ── Google Integration ──────────────────────────────────────────
-  async getGoogleStatus() {
-    const { data, error } = await supabase.functions.invoke<{
-      data: GoogleConnectionStatus;
-    }>("google-oauth", {
-      method: "POST",
-      body: { action: "status" },
-    });
-    if (error) throw new Error("Failed to get Google status");
-    return (
-      data?.data ?? {
-        connected: false,
-        email: null,
-        scopes: [],
-        preferences: defaultGooglePreferences,
+      if (!data || error) {
+        console.error("salesCreate.error", error);
+        const errorDetails = await (async () => {
+          try {
+            return (await error?.context?.json()) ?? {};
+          } catch {
+            return {};
+          }
+        })();
+        throw new Error(errorDetails?.message || "Failed to create the user");
       }
-    );
-  },
-  async getGoogleOAuthUrl() {
-    const { data, error } = await supabase.functions.invoke<{
-      data: { url: string; state: string };
-    }>("google-oauth", {
-      method: "POST",
-      body: { action: "get-auth-url" },
-    });
-    if (error) throw new Error("Failed to get Google OAuth URL");
-    return data!.data;
-  },
-  async exchangeGoogleOAuthCode(code: string) {
-    const { data, error } = await supabase.functions.invoke<{
-      data: { connected: boolean; email: string; scopes: string[] };
-    }>("google-oauth", {
-      method: "POST",
-      body: { action: "exchange-code", code },
-    });
-    if (error) throw new Error("Failed to exchange Google OAuth code");
-    return data!.data;
-  },
-  async disconnectGoogle() {
-    const { error } = await supabase.functions.invoke("google-oauth", {
-      method: "POST",
-      body: { action: "disconnect" },
-    });
-    if (error) throw new Error("Failed to disconnect Google");
-  },
-  async revokeGoogle() {
-    const { error } = await supabase.functions.invoke("google-oauth", {
-      method: "POST",
-      body: { action: "revoke" },
-    });
-    if (error) throw new Error("Failed to revoke Google access");
-  },
-  async updateGooglePreferences(preferences: GooglePreferences) {
-    const { error } = await supabase.functions.invoke("google-oauth", {
-      method: "POST",
-      body: { action: "update-preferences", preferences },
-    });
-    if (error) throw new Error("Failed to update Google preferences");
-    return preferences;
-  },
-  async getUpcomingCalendarEvents(params: {
-    timeMin: string;
-    timeMax: string;
-    maxResults?: number;
-  }) {
-    const { data, error } = await supabase.functions.invoke<{
-      data: { events: GoogleCalendarEvent[]; totalResults: number };
-    }>("google-calendar", {
-      method: "POST",
-      body: { action: "list-events", ...params },
-    });
-    if (error) throw new Error("Failed to fetch calendar events");
-    return data!.data;
-  },
-  async getContactEmails(emails: string[], maxResults?: number) {
-    const { data, error } = await supabase.functions.invoke<{
-      data: {
-        messages: GoogleEmailMessage[];
-        nextPageToken: string | null;
-        totalEstimate: number;
-      };
-    }>("google-gmail", {
-      method: "POST",
-      body: { action: "list-messages", emails, maxResults: maxResults ?? 10 },
-    });
-    if (error) throw new Error("Failed to fetch contact emails");
-    return data!.data;
-  },
-  async getContactCalendarEvents(
-    emails: string[],
-    params?: { timeMin?: string; timeMax?: string; maxResults?: number },
-  ) {
-    const { data, error } = await supabase.functions.invoke<{
-      data: { events: GoogleCalendarEvent[]; totalResults: number };
-    }>("google-calendar", {
-      method: "POST",
-      body: { action: "search-by-attendee", emails, ...params },
-    });
-    if (error) throw new Error("Failed to fetch contact calendar events");
-    return data!.data;
-  },
-} satisfies DataProvider;
 
-export type CrmDataProvider = typeof dataProviderWithCustomMethods;
+      return data.data;
+    },
+    async salesUpdate(
+      id: Identifier,
+      data: Partial<Omit<SalesFormData, "password">>,
+    ) {
+      const { email, first_name, last_name, administrator, avatar, disabled } =
+        data;
+
+      const { data: updatedData, error } =
+        await getSupabaseClient().functions.invoke<{
+          data: Sale;
+        }>("users", {
+          method: "PATCH",
+          body: {
+            sales_id: id,
+            email,
+            first_name,
+            last_name,
+            administrator,
+            disabled,
+            avatar,
+          },
+        });
+
+      if (!updatedData || error) {
+        console.error("salesCreate.error", error);
+        throw new Error("Failed to update account manager");
+      }
+
+      return updatedData.data;
+    },
+    async salesDelete(id: Identifier) {
+      const { data, error } = await getSupabaseClient().functions.invoke<{
+        data: Sale;
+      }>("users", {
+        method: "DELETE",
+        body: { sales_id: id },
+      });
+
+      if (error) {
+        console.error("salesDelete.error", error);
+        const errorDetails = await (async () => {
+          try {
+            return (await error?.context?.json()) ?? {};
+          } catch {
+            return {};
+          }
+        })();
+        throw new Error(errorDetails?.message || "Failed to delete the user");
+      }
+
+      return data?.data ?? ({ id } as any);
+    },
+    async updatePassword(id: Identifier) {
+      const { data: passwordUpdated, error } =
+        await getSupabaseClient().functions.invoke<boolean>("update_password", {
+          method: "PATCH",
+          body: {
+            sales_id: id,
+          },
+        });
+
+      if (!passwordUpdated || error) {
+        console.error("update_password.error", error);
+        throw new Error("Failed to update password");
+      }
+
+      return passwordUpdated;
+    },
+    async unarchiveDeal(deal: Deal) {
+      // get all deals where stage is the same as the deal to unarchive
+      const { data: deals } = await baseDataProvider.getList<Deal>("deals", {
+        filter: { stage: deal.stage },
+        pagination: { page: 1, perPage: 1000 },
+        sort: { field: "index", order: "ASC" },
+      });
+
+      // set index for each deal starting from 1, if the deal to unarchive is found, set its index to the last one
+      const updatedDeals = deals.map((d, index) => ({
+        ...d,
+        index: d.id === deal.id ? 0 : index + 1,
+        archived_at: d.id === deal.id ? null : d.archived_at,
+      }));
+
+      return await Promise.all(
+        updatedDeals.map((updatedDeal) =>
+          baseDataProvider.update("deals", {
+            id: updatedDeal.id,
+            data: updatedDeal,
+            previousData: deals.find((d) => d.id === updatedDeal.id),
+          }),
+        ),
+      );
+    },
+    async getActivityLog(companyId?: Identifier) {
+      return getActivityLog(baseDataProvider, companyId);
+    },
+    async isInitialized() {
+      return getIsInitialized();
+    },
+    async mergeContacts(sourceId: Identifier, targetId: Identifier) {
+      const { data, error } = await getSupabaseClient().functions.invoke(
+        "merge_contacts",
+        {
+          method: "POST",
+          body: { loserId: sourceId, winnerId: targetId },
+        },
+      );
+
+      if (error) {
+        console.error("merge_contacts.error", error);
+        throw new Error("Failed to merge contacts");
+      }
+
+      return data;
+    },
+    async getConfiguration(): Promise<ConfigurationContextValue> {
+      const { data } = await baseDataProvider.getOne("configuration", {
+        id: 1,
+      });
+      return (data?.config as ConfigurationContextValue) ?? {};
+    },
+    async updateConfiguration(
+      config: ConfigurationContextValue,
+    ): Promise<ConfigurationContextValue> {
+      const { data } = await baseDataProvider.update("configuration", {
+        id: 1,
+        data: { config },
+        previousData: { id: 1 },
+      });
+      return data.config as ConfigurationContextValue;
+    },
+
+    // ── Google Integration ──────────────────────────────────────────
+    async getGoogleStatus() {
+      const { data, error } = await getSupabaseClient().functions.invoke<{
+        data: GoogleConnectionStatus;
+      }>("google-oauth", {
+        method: "POST",
+        body: { action: "status" },
+      });
+      if (error) throw new Error("Failed to get Google status");
+      return (
+        data?.data ?? {
+          connected: false,
+          email: null,
+          scopes: [],
+          preferences: defaultGooglePreferences,
+        }
+      );
+    },
+    async getGoogleOAuthUrl() {
+      const { data, error } = await getSupabaseClient().functions.invoke<{
+        data: { url: string; state: string };
+      }>("google-oauth", {
+        method: "POST",
+        body: { action: "get-auth-url" },
+      });
+      if (error) throw new Error("Failed to get Google OAuth URL");
+      return data!.data;
+    },
+    async exchangeGoogleOAuthCode(code: string) {
+      const { data, error } = await getSupabaseClient().functions.invoke<{
+        data: { connected: boolean; email: string; scopes: string[] };
+      }>("google-oauth", {
+        method: "POST",
+        body: { action: "exchange-code", code },
+      });
+      if (error) throw new Error("Failed to exchange Google OAuth code");
+      return data!.data;
+    },
+    async disconnectGoogle() {
+      const { error } = await getSupabaseClient().functions.invoke(
+        "google-oauth",
+        {
+          method: "POST",
+          body: { action: "disconnect" },
+        },
+      );
+      if (error) throw new Error("Failed to disconnect Google");
+    },
+    async revokeGoogle() {
+      const { error } = await getSupabaseClient().functions.invoke(
+        "google-oauth",
+        {
+          method: "POST",
+          body: { action: "revoke" },
+        },
+      );
+      if (error) throw new Error("Failed to revoke Google access");
+    },
+    async updateGooglePreferences(preferences: GooglePreferences) {
+      const { error } = await getSupabaseClient().functions.invoke(
+        "google-oauth",
+        {
+          method: "POST",
+          body: { action: "update-preferences", preferences },
+        },
+      );
+      if (error) throw new Error("Failed to update Google preferences");
+      return preferences;
+    },
+    async getUpcomingCalendarEvents(params: {
+      timeMin: string;
+      timeMax: string;
+      maxResults?: number;
+    }) {
+      const { data, error } = await getSupabaseClient().functions.invoke<{
+        data: { events: GoogleCalendarEvent[]; totalResults: number };
+      }>("google-calendar", {
+        method: "POST",
+        body: { action: "list-events", ...params },
+      });
+      if (error) throw new Error("Failed to fetch calendar events");
+      return data!.data;
+    },
+    async getContactEmails(emails: string[], maxResults?: number) {
+      const { data, error } = await getSupabaseClient().functions.invoke<{
+        data: {
+          messages: GoogleEmailMessage[];
+          nextPageToken: string | null;
+          totalEstimate: number;
+        };
+      }>("google-gmail", {
+        method: "POST",
+        body: {
+          action: "list-messages",
+          emails,
+          maxResults: maxResults ?? 10,
+        },
+      });
+      if (error) throw new Error("Failed to fetch contact emails");
+      return data!.data;
+    },
+    async getContactCalendarEvents(
+      emails: string[],
+      params?: { timeMin?: string; timeMax?: string; maxResults?: number },
+    ) {
+      const { data, error } = await getSupabaseClient().functions.invoke<{
+        data: { events: GoogleCalendarEvent[]; totalResults: number };
+      }>("google-calendar", {
+        method: "POST",
+        body: { action: "search-by-attendee", emails, ...params },
+      });
+      if (error) throw new Error("Failed to fetch contact calendar events");
+      return data!.data;
+    },
+  } satisfies DataProvider;
+};
+
+export type CrmDataProvider = ReturnType<typeof getDataProviderWithCustomMethods>;
 
 const processConfigLogo = async (logo: any): Promise<string> => {
   if (typeof logo === "string") return logo;
@@ -467,7 +497,11 @@ const lifeCycleCallbacks: ResourceCallbacks[] = [
   {
     resource: "contacts_summary",
     beforeGetList: async (params) => {
-      return applyFullTextSearch(["first_name", "last_name", "company_name"])(params);
+      return applyFullTextSearch([
+        "first_name",
+        "last_name",
+        "company_name",
+      ])(params);
     },
   },
   {
@@ -478,10 +512,20 @@ const lifeCycleCallbacks: ResourceCallbacks[] = [
   },
 ];
 
-export const dataProvider = withLifecycleCallbacks(
-  dataProviderWithCustomMethods,
-  lifeCycleCallbacks,
-) as CrmDataProvider;
+export const getDataProvider = () => {
+  if (import.meta.env.VITE_SUPABASE_URL === undefined) {
+    throw new Error("Please set the VITE_SUPABASE_URL environment variable");
+  }
+  if (import.meta.env.VITE_SB_PUBLISHABLE_KEY === undefined) {
+    throw new Error(
+      "Please set the VITE_SB_PUBLISHABLE_KEY environment variable",
+    );
+  }
+  return withLifecycleCallbacks(
+    getDataProviderWithCustomMethods(),
+    lifeCycleCallbacks,
+  ) as CrmDataProvider;
+};
 
 /**
  * Normalize a search query: strip diacritics (accents) and trim whitespace.
@@ -558,7 +602,8 @@ const uploadToBucket = async (fi: RAFile) => {
   if (!fi.src.startsWith("blob:") && !fi.src.startsWith("data:")) {
     // Sign URL check if path exists in the bucket
     if (fi.path) {
-      const { error } = await supabase.storage
+      const { error } = await getSupabaseClient()
+        .storage
         .from(ATTACHMENTS_BUCKET)
         .createSignedUrl(fi.path, 60);
 
@@ -592,7 +637,8 @@ const uploadToBucket = async (fi: RAFile) => {
   const fileExt = fileParts.length > 1 ? `.${file.name.split(".").pop()}` : "";
   const fileName = `${Math.random()}${fileExt}`;
   const filePath = `${fileName}`;
-  const { error: uploadError } = await supabase.storage
+  const { error: uploadError } = await getSupabaseClient()
+    .storage
     .from(ATTACHMENTS_BUCKET)
     .upload(filePath, dataContent);
 
@@ -601,7 +647,8 @@ const uploadToBucket = async (fi: RAFile) => {
     throw new Error("Failed to upload attachment");
   }
 
-  const { data } = supabase.storage
+  const { data } = getSupabaseClient()
+    .storage
     .from(ATTACHMENTS_BUCKET)
     .getPublicUrl(filePath);
 

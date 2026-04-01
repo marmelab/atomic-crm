@@ -22,7 +22,7 @@ port = 54322
 shadow_port = 54320
 # The database major version to use. This has to be the same as your remote database's. Run `SHOW
 # server_version;` on the remote database to check.
-major_version = 17
+major_version = 15
 
 [db.pooler]
 enabled = false
@@ -83,6 +83,11 @@ refresh_token_reuse_interval = 10
 enable_signup = true
 # Development signing keys
 signing_keys_path = "./signing_keys.json"
+
+[auth.oauth_server]
+enabled = true
+authorization_url_path = "/oauth/consent"
+allow_dynamic_registration = true
 
 [auth.email]
 # Allow/disallow new user signups via email to your project.
@@ -164,4 +169,6 @@ verify_jwt = false
 [functions.update_password]
 verify_jwt = false
 [functions.users]
+verify_jwt = false
+[functions.mcp]
 verify_jwt = false

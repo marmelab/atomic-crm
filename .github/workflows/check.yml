@@ -45,7 +45,7 @@ jobs:
                   prettier: true
                   prettier_args: "--config ./.prettierrc.json \"**/*.{js,json,ts,tsx,css,md,html}\""
 
-    test:
+    test-app:
         name: 🔎 Test
         runs-on: ubuntu-latest
         timeout-minutes: 10
@@ -63,9 +63,34 @@ jobs:
             - name: 📥 Download deps
               run: npm ci
 
-            - name: 🔎 Test
-              run: make test-ci
+            - name: 🎭 Install Playwright browsers
+              run: npx playwright install chromium-headless-shell 1>/dev/null
 
+            - name: 🔎 Unit Tests on App
+              run: CI=1 npm run test:unit:app -- --run
+            - name: 🔎 Unit Tests on Supabase functions
+              run: CI=1 npm run test:unit:functions -- --run
+
+    e2e-test:
+      timeout-minutes: 10
+      runs-on: ubuntu-latest
+      steps:
+      - name: 📥 Checkout repo
+        uses: actions/checkout@v4
+
+      - name: ⚙️ Setup node
+        uses: actions/setup-node@v4
+        with:
+            node-version: 20
+            cache: npm
+      - name: Install dependencies
+        run: npm ci
+      - name: Install Playwright Browsers
+        run: npx playwright install --with-deps chromium-headless-shell 1>/dev/null
+      - name: Install wait-on and serve
+        run: npm install -g wait-on serve
+      - name: Run Playwright tests
+        run: make test-e2e-ci
 
     build:
         name: 🔨 Build

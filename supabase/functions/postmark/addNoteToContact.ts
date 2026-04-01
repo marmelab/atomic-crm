@@ -1,5 +1,98 @@
 import { supabaseAdmin } from "../_shared/supabaseAdmin.ts";
 import type { Attachment } from "./extractAndUploadAttachments.ts";
+import { MAIL_PROVIDERS } from "./mailProvider.const.ts";
+
+export const getOrCreateCompanyFromDomain = async (
+  domain: string,
+  salesId: number,
+) => {
+  // Check if the company already exists
+  const { data: existingCompany, error: fetchCompanyError } =
+    await supabaseAdmin
+      .from("companies")
+      .select("*")
+      .eq("name", domain)
+      .maybeSingle();
+  if (fetchCompanyError) {
+    throw new Error(
+      `Could not fetch companies from database, name: ${domain}, error: ${fetchCompanyError.message}`,
+    );
+  }
+
+  if (existingCompany) {
+    return existingCompany;
+  }
+
+  if (MAIL_PROVIDERS.includes(domain)) {
+    // We don't want to create companies for generic mail providers, as they are not really companies and it would pollute the database with useless entries.
+    return null;
+  }
+
+  const { data: newCompanies, error: createCompanyError } = await supabaseAdmin
+    .from("companies")
+    .insert({ name: domain, sales_id: salesId })
+    .select();
+  if (createCompanyError) {
+    throw new Error(
+      `Could not create company in database, name: ${domain}, error: ${createCompanyError.message}`,
+    );
+  }
+  return newCompanies[0];
+};
+
+export const getOrCreateContactFromEmailInfo = async ({
+  email,
+  firstName,
+  lastName,
+  salesId,
+  domain,
+}: {
+  email: string;
+  firstName: string;
+  lastName: string;
+  salesId: number;
+  domain: string;
+}) => {
+  // Check if the contact already exists
+  const { data: existingContact, error: fetchContactError } =
+    await supabaseAdmin
+      .from("contacts")
+      .select("*")
+      .contains("email_jsonb", JSON.stringify([{ email }]))
+      .maybeSingle();
+  if (fetchContactError) {
+    throw new Error(
+      `Could not fetch contact from database, email: ${email}, error: ${fetchContactError.message}`,
+    );
+  }
+
+  if (existingContact) {
+    return existingContact;
+  }
+
+  const company = await getOrCreateCompanyFromDomain(domain, salesId);
+
+  // Create the contact
+  const { data: newContacts, error: createContactError } = await supabaseAdmin
+    .from("contacts")
+    .insert({
+      first_name: firstName,
+      last_name: lastName,
+      email_jsonb: [{ email, type: "Work" }],
+      company_id: company ? company.id : null,
+      sales_id: salesId,
+      first_seen: new Date(),
+      last_seen: new Date(),
+      tags: [],
+    })
+    .select();
+  if (createContactError || !newContacts[0]) {
+    throw new Error(
+      `Could not create contact in database, email: ${email}, error: ${createContactError.message}`,
+    );
+  }
+  return newContacts[0];
+};
 
 export const addNoteToContact = async ({
   salesEmail,
@@ -24,11 +117,13 @@ export const addNoteToContact = async ({
     .eq("email", salesEmail)
     .neq("disabled", true)
     .maybeSingle();
-  if (fetchSalesError)
+
+  if (fetchSalesError) {
     return new Response(
       `Could not fetch sales from database, email: ${salesEmail}`,
       { status: 500 },
     );
+  }
   if (!sales) {
     // Return a 403 to let Postmark know that it's no use to retry this request
     // https://postmarkapp.com/developer/webhooks/inbound-webhook#errors-and-retries
@@ -38,77 +133,35 @@ export const addNoteToContact = async ({
     );
   }
 
-  // Check if the contact already exists
-  const { data: existingContact, error: fetchContactError } =
-    await supabaseAdmin
-      .from("contacts")
-      .select("*")
-      .contains("email_jsonb", JSON.stringify([{ email }]))
-      .maybeSingle();
-  if (fetchContactError)
+  const { contact, error } = await getOrCreateContactFromEmailInfo({
+    email,
+    firstName,
+    lastName,
+    salesId: sales.id,
+    domain,
+  })
+    .then((contact) => ({
+      contact,
+    }))
+    .catch((error) => {
+      return {
+        error,
+      };
+    });
+
+  if (error) {
+    console.error(
+      "Error in getOrCreateContactFromEmailInfo for email:",
+      email,
+      "sales:",
+      salesEmail,
+      "error:",
+      error,
+    );
     return new Response(
-      `Could not fetch contact from database, email: ${email}`,
+      `Could not get or create contact from database, email: ${email}, sales: ${salesEmail}`,
       { status: 500 },
     );
-
-  // deno-lint-ignore no-explicit-any
-  let contact: any = undefined;
-  if (existingContact) {
-    contact = existingContact;
-  } else {
-    // If the contact does not exist, we need to create it, along with the company if needed
-
-    // Check if the company already exists
-    const { data: existingCompany, error: fetchCompanyError } =
-      await supabaseAdmin
-        .from("companies")
-        .select("*")
-        .eq("name", domain)
-        .maybeSingle();
-    if (fetchCompanyError)
-      return new Response(
-        `Could not fetch companies from database, name: ${domain}`,
-        { status: 500 },
-      );
-
-    // deno-lint-ignore no-explicit-any
-    let company: any = undefined;
-    if (existingCompany) {
-      company = existingCompany;
-    } else {
-      const { data: newCompanies, error: createCompanyError } =
-        await supabaseAdmin
-          .from("companies")
-          .insert({ name: domain, sales_id: sales.id })
-          .select();
-      if (createCompanyError)
-        return new Response(
-          `Could not create company in database, name: ${domain}`,
-          { status: 500 },
-        );
-      company = newCompanies[0];
-    }
-
-    // Create the contact
-    const { data: newContacts, error: createContactError } = await supabaseAdmin
-      .from("contacts")
-      .insert({
-        first_name: firstName,
-        last_name: lastName,
-        email_jsonb: [{ email, type: "Work" }],
-        company_id: company.id,
-        sales_id: sales.id,
-        first_seen: new Date(),
-        last_seen: new Date(),
-        tags: [],
-      })
-      .select();
-    if (createContactError || !newContacts[0])
-      return new Response(
-        `Could not create contact in database, email: ${email}`,
-        { status: 500 },
-      );
-    contact = newContacts[0];
   }
 
   // Add note to contact
@@ -120,11 +173,12 @@ export const addNoteToContact = async ({
       sales_id: sales.id,
       attachments,
     });
-  if (createNoteError)
+  if (createNoteError) {
     return new Response(
       `Could not add note to contact ${email}, sales ${salesEmail}`,
       { status: 500 },
     );
+  }
 
   await supabaseAdmin
     .from("contacts")

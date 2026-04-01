@@ -3,6 +3,8 @@ import type { ConfigurationContextValue } from "./ConfigurationContext";
 export const defaultDarkModeLogo = "./appIcon/512.png";
 export const defaultLightModeLogo = "./appIcon/512.png";
 
+export const defaultCurrency = "EUR";
+
 export const defaultTitle = "Nosho CRM";
 
 export const defaultCompanySectors = [
@@ -90,6 +92,7 @@ export const defaultTaskTypes = [
 export const defaultConfiguration: ConfigurationContextValue = {
   companySectors: defaultCompanySectors,
   companyTypes: defaultCompanyTypes,
+  currency: defaultCurrency,
   customViews: [],
   dealCategories: defaultDealCategories,
   dealPipelineStatuses: defaultDealPipelineStatuses,

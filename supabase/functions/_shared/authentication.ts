@@ -1,6 +1,14 @@
-import type { User } from "jsr:@supabase/supabase-js@2";
+// Based on https://github.com/supabase/supabase/blob/master/examples/edge-functions/supabase/functions/_shared/jwt/default.ts
+import * as jose from "jsr:@panva/jose@6";
+import { createClient, type User } from "jsr:@supabase/supabase-js@2";
 import { createErrorResponse } from "./utils.ts";
-import { supabaseAdmin } from "./supabaseAdmin.ts";
+
+const SUPABASE_JWT_ISSUER =
+  Deno.env.get("SB_JWT_ISSUER") ?? Deno.env.get("SUPABASE_URL") + "/auth/v1";
+
+const SUPABASE_JWT_KEYS = jose.createRemoteJWKSet(
+  new URL(Deno.env.get("SUPABASE_URL")! + "/auth/v1/.well-known/jwks.json"),
+);
 
 function getAuthToken(req: Request) {
   const authHeader = req.headers.get("authorization");
@@ -15,6 +23,12 @@ function getAuthToken(req: Request) {
   return token;
 }
 
+function verifySupabaseJWT(jwt: string) {
+  return jose.jwtVerify(jwt, SUPABASE_JWT_KEYS, {
+    issuer: SUPABASE_JWT_ISSUER,
+  });
+}
+
 /**
  * Validates the Authorization header to ensure that a user is authenticated.
  */
@@ -26,9 +40,9 @@ export const AuthMiddleware = async (
 
   try {
     const token = getAuthToken(req);
-    const { data, error } = await supabaseAdmin.auth.getUser(token);
+    const isValidJWT = await verifySupabaseJWT(token);
 
-    if (data?.user && !error) return await next(req);
+    if (isValidJWT) return await next(req);
 
     return createErrorResponse(401, "Invalid authentication");
   } catch (e) {
@@ -47,8 +61,14 @@ export const UserMiddleware = async (
   if (req.method === "OPTIONS") return await next(req);
 
   try {
-    const token = getAuthToken(req);
-    const { data, error: authError } = await supabaseAdmin.auth.getUser(token);
+    const authHeader = req.headers.get("Authorization")!;
+    const localClient = createClient(
+      Deno.env.get("SUPABASE_URL") ?? "",
+      Deno.env.get("SB_PUBLISHABLE_KEY") ?? "",
+      { global: { headers: { Authorization: authHeader } } },
+    );
+
+    const { data, error: authError } = await localClient.auth.getUser();
     if (!data?.user || authError) {
       return createErrorResponse(401, "Unauthorized");
     }

@@ -151,11 +151,8 @@ async function inviteUser(req: Request, currentUserSale: any) {
       console.error("Error inviting user: undefined user");
       return createErrorResponse(500, "Internal Server Error");
     }
-    const siteUrl = Deno.env.get("SITE_URL") ?? "https://crm.nosho.cc";
     const { error: emailError } =
-      await supabaseAdmin.auth.admin.inviteUserByEmail(email, {
-        redirectTo: `${siteUrl}/auth-callback`,
-      });
+      await supabaseAdmin.auth.admin.inviteUserByEmail(email);
 
     if (emailError) {
       console.error(`Error inviting user, email_error=${emailError}`);
@@ -262,55 +259,6 @@ async function patchUser(req: Request, currentUserSale: any) {
   }
 }
 
-async function deleteUser(req: Request, currentUserSale: any) {
-  const { sales_id } = await req.json();
-
-  if (!currentUserSale.administrator) {
-    return createErrorResponse(401, "Not Authorized");
-  }
-
-  // Prevent self-deletion
-  if (currentUserSale.id === sales_id) {
-    return createErrorResponse(400, "Cannot delete your own account");
-  }
-
-  const { data: sale } = await supabaseAdmin
-    .from("sales")
-    .select("*")
-    .eq("id", sales_id)
-    .single();
-
-  if (!sale) {
-    return createErrorResponse(404, "Not Found");
-  }
-
-  const { error: authError } = await supabaseAdmin.auth.admin.deleteUser(
-    sale.user_id,
-  );
-
-  if (authError) {
-    console.error("Error deleting auth user:", authError);
-    return createErrorResponse(500, authError.message);
-  }
-
-  const { error: salesError } = await supabaseAdmin
-    .from("sales")
-    .delete()
-    .eq("id", sales_id);
-
-  if (salesError) {
-    console.error("Error deleting sale:", salesError);
-    return createErrorResponse(500, salesError.message);
-  }
-
-  return new Response(
-    JSON.stringify({ data: { id: sales_id } }),
-    {
-      headers: { "Content-Type": "application/json", ...corsHeaders },
-    },
-  );
-}
-
 Deno.serve(async (req: Request) =>
   OptionsMiddleware(req, async (req) =>
     AuthMiddleware(req, async (req) =>
@@ -326,10 +274,6 @@ Deno.serve(async (req: Request) =>
 
         if (req.method === "PATCH") {
           return patchUser(req, currentUserSale);
-        }
-
-        if (req.method === "DELETE") {
-          return deleteUser(req, currentUserSale);
         }
 
         return createErrorResponse(405, "Method Not Allowed");
