@@ -38,14 +38,20 @@ export default defineConfig({
   /* Configure projects for major browsers */
   projects: [
     {
-      name: "webkit",
-      use: { ...devices["Desktop Safari"] },
+      name: "chromium",
+      use: {
+        ...devices["Desktop Chrome"],
+        ...(process.env.CI && { channel: "chromium-headless-shell" }),
+      },
     },
 
     /* Test against mobile viewports. */
     {
       name: "Mobile Chrome",
-      use: { ...devices["Pixel 5"] },
+      use: {
+        ...devices["Pixel 5"],
+        ...(process.env.CI && { channel: "chromium-headless-shell" }),
+      },
     },
     // Uncomment to test against additional devices
 
