@@ -6,7 +6,7 @@ obbligatoria delle superfici collegate.
 **Quando usarlo:** ogni volta che una modifica tocca comportamento reale del
 prodotto.
 
-Last updated: 2026-04-01 (FakeRest removal cleanup)
+Last updated: 2026-04-01 (CI hardening)
 
 ---
 
@@ -14,6 +14,7 @@ Last updated: 2026-04-01 (FakeRest removal cleanup)
 
 ### Recent Updates (cronologico, più recente in alto)
 
+- [2026-04-01](#update-2026-04-01--ci-hardening) — CI hardening: Node 24 JS actions runtime + removal of stale demo deploy job
 - [2026-04-01](#update-2026-04-01--fakerest-removal-cleanup) — FakeRest removal cleanup: deleted legacy provider tree, deps and stale docs references
 - [2026-04-01](#update-2026-04-01--build-chunking-follow-up) — Build chunking follow-up: `vendor-misc` split into smaller stable chunks
 - [2026-04-01](#update-2026-04-01--post-push-ci-follow-up) — Post-push CI follow-up: Prettier-only wrap fix on MobileDashboard after GitHub Check
@@ -1905,6 +1906,31 @@ Non trattare mai il solo `git push` come deploy completo se hai toccato
 - `supabase/migrations/20260302170000_domain_data_snapshot.sql`
 - `docs/architecture.md` (aggiornato)
 - `docs/development-continuity-map.md` (questo file)
+
+---
+
+## Update 2026-04-01 — CI hardening
+
+**Cosa e' cambiato**
+
+- `.github/workflows/check.yml` e `.github/workflows/deploy.yml` forzano
+  `FORCE_JAVASCRIPT_ACTIONS_TO_NODE24=true` per anticipare la deprecazione
+  GitHub delle action JS su Node 20.
+- `actions/checkout` e `actions/setup-node` sono stati aggiornati alla major
+  `v6` nei workflow attivi.
+- Rimosso il job manuale `deploy-demo` dal workflow di deploy: puntava ancora a
+  `npm run build:demo` e a flag demo gia' rimossi dal fork.
+
+**Verifica eseguita**
+
+- parse YAML locale dei workflow aggiornati
+- controllo statico dei riferimenti rimossi (`build:demo`, `VITE_IS_DEMO`)
+
+**Impatto**
+
+- meno warning infrastrutturali in CI
+- nessun deploy manuale demo rotto rimasto nel repo
+- workflow piu' coerenti con il runtime reale supportato
 
 ---
 
