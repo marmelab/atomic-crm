@@ -6,7 +6,7 @@ obbligatoria delle superfici collegate.
 **Quando usarlo:** ogni volta che una modifica tocca comportamento reale del
 prodotto.
 
-Last updated: 2026-04-01 (Post-push CI follow-up)
+Last updated: 2026-04-01 (Build chunking follow-up)
 
 ---
 
@@ -14,6 +14,7 @@ Last updated: 2026-04-01 (Post-push CI follow-up)
 
 ### Recent Updates (cronologico, più recente in alto)
 
+- [2026-04-01](#update-2026-04-01--build-chunking-follow-up) — Build chunking follow-up: `vendor-misc` split into smaller stable chunks
 - [2026-04-01](#update-2026-04-01--post-push-ci-follow-up) — Post-push CI follow-up: Prettier-only wrap fix on MobileDashboard after GitHub Check
 - [2026-04-01](#update-2026-04-01--technical-hardening-cleanup) — Technical hardening cleanup: telemetry fix, build artifact hardening, demo branch removal, DOMPurify/package cleanup
 - [2026-03-31](#update-2026-03-31--timezone-bonifica-phase-4b) — Timezone bonifica phase 4b: final residual grep cleanup on quote dialog, calendar sync and DateInput docs
@@ -2158,6 +2159,30 @@ npx playwright test tests/e2e/ai-semantic-ui.spec.ts
 - ✅ Lint: PASS
 - ✅ E2E semantic UI: 2/4 test pass (struttura verificata)
 - ✅ UI: Colori semantici visibili nel launcher AI
+
+---
+
+## Update 2026-04-01 — Build chunking follow-up
+
+**Cosa e' cambiato**
+
+- `vite.config.ts` non lascia piu' `lodash`, `marked`/`dompurify`,
+  `react-dropzone`/`cropperjs` e `@floating-ui/*` nel fallback generico
+  `vendor-misc`.
+- Nuovi chunk dedicati: `vendor-lodash`, `vendor-markdown`, `vendor-upload`;
+  i pacchetti `@floating-ui/*` vengono assorbiti in `vendor-radix`.
+- Obiettivo: eliminare il warning Vite sui chunk > `500 kB` senza cambiare il
+  comportamento dell'app o il lazy-loading dei moduli prodotto.
+
+**Verifica eseguita**
+
+- `npm run build`
+
+**Impatto**
+
+- nessuna feature nuova
+- chunk vendor piu' leggibili e stabili
+- build standard senza warning size su `vendor-misc`
 
 ---
 

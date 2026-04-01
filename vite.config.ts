@@ -37,6 +37,7 @@ const vendorDomainRules: Array<{
     chunk: "vendor-radix",
     match: (pkg) =>
       pkg.startsWith("@radix-ui/") ||
+      pkg.startsWith("@floating-ui/") ||
       pkg === "radix-ui" ||
       pkg === "cmdk" ||
       pkg === "vaul",
@@ -134,6 +135,23 @@ const vendorDomainRules: Array<{
       pkg === "clsx" ||
       pkg === "next-themes" ||
       pkg === "tw-animate-css",
+  },
+  {
+    chunk: "vendor-upload",
+    match: (pkg) =>
+      pkg === "react-dropzone" ||
+      pkg === "file-selector" ||
+      pkg === "attr-accept" ||
+      pkg === "react-cropper" ||
+      pkg === "cropperjs",
+  },
+  {
+    chunk: "vendor-markdown",
+    match: (pkg) => pkg === "dompurify" || pkg === "marked",
+  },
+  {
+    chunk: "vendor-lodash",
+    match: (pkg) => pkg === "lodash",
   },
   {
     chunk: "vendor-forms",
