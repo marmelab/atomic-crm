@@ -1,14 +1,10 @@
 import type {
-  Client,
+  ClientCommercialPosition,
   Expense,
-  Payment,
-  Service,
+  ProjectFinancialRow,
   Supplier,
 } from "@/components/atomic-crm/types";
-import {
-  calculateKmReimbursement,
-  calculateServiceNetValue,
-} from "@/lib/semantics/crmSemanticRegistry";
+import { calculateKmReimbursement } from "@/lib/semantics/crmSemanticRegistry";
 
 // ── Expense amount helper ─────────────────────────────────────────────
 
@@ -40,135 +36,38 @@ export type ProjectFinancialSummary = {
   balanceDue: number;
 };
 
-export const buildProjectFinancialSummaries = ({
-  projects,
-  services,
-  payments,
-  expenses,
-}: {
-  projects: Array<{ id: string | number }>;
-  services: Service[];
-  payments: Payment[];
-  expenses: Expense[];
-}) => {
-  const summaries = new Map<string, ProjectFinancialSummary>(
-    projects.map((project) => [
-      String(project.id),
-      {
-        totalServices: 0,
-        totalFees: 0,
-        totalExpenses: 0,
-        totalPaid: 0,
-        balanceDue: 0,
-      },
-    ]),
-  );
-
-  services.forEach((service) => {
-    const projectId = service.project_id ? String(service.project_id) : null;
-    if (!projectId) return;
-
-    const current = summaries.get(projectId);
-    if (!current) return;
-
-    current.totalServices += 1;
-    current.totalFees += calculateServiceNetValue(service);
-  });
-
-  expenses.forEach((expense) => {
-    const projectId = expense.project_id ? String(expense.project_id) : null;
-    if (!projectId) return;
-
-    const current = summaries.get(projectId);
-    if (!current) return;
-
-    current.totalExpenses += getExpenseOperationalAmount(expense);
-  });
-
-  payments.forEach((payment) => {
-    const projectId = payment.project_id ? String(payment.project_id) : null;
-    if (!projectId || payment.status !== "ricevuto") return;
-
-    const current = summaries.get(projectId);
-    if (!current) return;
-
-    current.totalPaid +=
-      payment.payment_type === "rimborso"
-        ? -Number(payment.amount ?? 0)
-        : Number(payment.amount ?? 0);
-  });
-
-  summaries.forEach((summary) => {
-    summary.balanceDue =
-      summary.totalFees + summary.totalExpenses - summary.totalPaid;
-  });
-
+export const mapProjectFinancialRows = (
+  rows: ProjectFinancialRow[],
+): Map<string, ProjectFinancialSummary> => {
+  const summaries = new Map<string, ProjectFinancialSummary>();
+  for (const row of rows) {
+    summaries.set(row.project_id, {
+      totalServices: row.total_services,
+      totalFees: row.total_fees,
+      totalExpenses: row.total_expenses,
+      totalPaid: row.total_paid,
+      balanceDue: row.balance_due,
+    });
+  }
   return summaries;
 };
 
 // ── Client financial summaries ────────────────────────────────────────
 
-export const buildClientFinancialSummaries = ({
-  services,
-  payments,
-  clientById,
-}: {
-  services: Service[];
-  payments: Payment[];
-  clientById: Map<string, Client>;
-}) => {
-  const totals = new Map<
-    string,
-    {
-      totalFees: number;
-      totalPaid: number;
-      uninvoicedServices: number;
-    }
-  >();
-
-  const ensure = (clientId: string) => {
-    if (!totals.has(clientId)) {
-      totals.set(clientId, {
-        totalFees: 0,
-        totalPaid: 0,
-        uninvoicedServices: 0,
-      });
-    }
-    return totals.get(clientId)!;
-  };
-
-  for (const service of services) {
-    if (!service.client_id) continue;
-    const clientId = String(service.client_id);
-    const t = ensure(clientId);
-    t.totalFees += calculateServiceNetValue(service);
-    if (!service.invoice_ref || service.invoice_ref.trim().length === 0) {
-      t.uninvoicedServices += 1;
-    }
-  }
-
-  for (const payment of payments) {
-    if (payment.status !== "ricevuto" || !payment.client_id) continue;
-    const clientId = String(payment.client_id);
-    const t = ensure(clientId);
-    t.totalPaid +=
-      payment.payment_type === "rimborso"
-        ? -Number(payment.amount ?? 0)
-        : Number(payment.amount ?? 0);
-  }
-
-  return Array.from(totals.entries())
-    .map(([clientId, t]) => ({
-      clientId,
-      clientName: clientById.get(clientId)?.name ?? "Cliente",
-      totalFees: t.totalFees,
-      totalPaid: t.totalPaid,
-      balanceDue: t.totalFees - t.totalPaid,
-      hasUninvoicedServices: t.uninvoicedServices > 0,
-    }))
-    .filter((c) => c.totalFees !== 0 || c.totalPaid !== 0)
-    .sort((a, b) => b.balanceDue - a.balanceDue);
-};
+export const mapClientCommercialPositions = (
+  rows: ClientCommercialPosition[],
+  uninvoicedCountByClient: Map<string, number>,
+) =>
+  rows.map((row) => ({
+    clientId: row.client_id,
+    clientName: row.client_name,
+    totalFees: row.total_fees,
+    totalExpenses: row.total_expenses,
+    totalPaid: row.total_paid,
+    balanceDue: row.balance_due,
+    hasUninvoicedServices:
+      (uninvoicedCountByClient.get(row.client_id) ?? 0) > 0,
+  }));
 
 // ── Supplier financial summaries ─────────────────────────────────────
 

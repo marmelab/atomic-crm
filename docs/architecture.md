@@ -54,6 +54,7 @@ Stato del documento:
 - 2026-03-08: AI layer fully aligned with suppliers — snapshot includes recentSuppliers, supplierFinancials, supplier refs on expenses/tasks/contacts; semantic registry, capability registry, Edge Function instructions updated
 - 2026-03-08: Supplier financial section — SupplierFinancialSummary (debiti/crediti), SupplierFinancialDocsCard (storico documenti), financial_documents_summary view updated with supplier_id + LEFT JOIN
 - 2026-03-31: Timezone bonifica — centralized `dateTimezone` modules (client + EF), 12 call sites fixed, `financial_documents_summary` view uses `(NOW() AT TIME ZONE 'Europe/Rome')::date` instead of `CURRENT_DATE`
+- 2026-04-01: AI financial summaries refactored — `buildProjectFinancialSummaries` and `buildClientFinancialSummaries` replaced with thin view mappers (`mapProjectFinancialRows`, `mapClientCommercialPositions`) that read from `project_financials` and `client_commercial_positions` database views instead of computing from raw records
 - 2026-03-08: Supplier notes — SupplierNotesSection using `client_notes.supplier_id`, migration makes client_id nullable with CHECK constraint
 - 2026-03-08: Cloudinary — fix crop coordinates applied to saved URL (widget returns original + coordinates, now injected as c_crop transform)
 - 2026-03-08: Cloudinary Upload Widget — all available sources enabled (local, url, camera, image_search, google_drive, dropbox, unsplash, shutterstock, gettyimages, istock)
