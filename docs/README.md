@@ -1,6 +1,6 @@
 # Documentation Map
 
-Last updated: 2026-03-04
+Last updated: 2026-04-01
 
 ## Purpose
 
@@ -41,27 +41,27 @@ categorie:
 
 ## Current Continuity Intent
 
-Per la prossima fase del progetto, la continuita' va letta con questo ordine:
+Il database locale e' un ambiente pulito dal 2026-03-04:
 
-1. fonte di verita' reale
-2. rebuild locale del sistema
-3. correzione della semantica e delle relazioni di dominio
-4. test come verifica finale
+- `npx supabase db reset` applica tutte le migration (inclusa la snapshot
+  vuota `20260302170000_domain_data_snapshot.sql` con soli 6 settings)
+- `make supabase-reset-database` aggiunge il seed dal dump remoto
+  (`supabase/seed_domain_data.sql`)
+- `npm run local:admin:bootstrap` crea l'admin locale
 
-Tradotto in pratica:
+I dati storici (2023-2025) restano archiviati in `Fatture/` come fonte di
+riferimento, ma non servono piu' per il rebuild locale.
 
-- prima si ricostruisce il database locale partendo da `Fatture/`
-- poi si arricchisce dal materiale di
-  `Fatture/contabilità interna - diego caltabiano/`
-- poi si correggono le superfici applicative che leggono quei dati
-- solo dopo si scrivono o si aggiornano test E2E/smoke
-
-Il fronte piu' fragile da trattare con questa logica e' la semantica
-finanziaria, che oggi va ancora separata meglio tra:
+Il fronte piu' fragile resta la semantica finanziaria, che va ancora
+separata meglio tra:
 
 - documento emesso/ricevuto
 - stato da incassare/pagare
 - movimento di cassa effettivo
+
+La foundation DB (`financial_documents`, `cash_movements`, allocazioni) e'
+pronta a livello di schema; la migrazione progressiva dei consumer e' il
+prossimo passo corretto.
 
 ## Automation Guardrails
 
@@ -130,12 +130,14 @@ letto come fonte primaria.
 
 1. `docs/README.md`
 2. `docs/development-continuity-map.md`
-3. `docs/local-truth-rebuild.md`
-4. `docs/historical-analytics-handoff.md`
-5. `docs/architecture.md`
-6. `docs/contacts-client-project-architecture.md`
-7. `docs/data-import-analysis.md`
-8. `Gestionale_Rosario_Furnari_Specifica.md`
+3. `docs/architecture.md`
+4. `docs/local-truth-rebuild.md`
+5. `docs/historical-analytics-handoff.md`
+6. `docs/historical-analytics-backlog.md`
+7. `docs/contacts-client-project-architecture.md`
+8. `docs/ai-visual-blocks-pattern.md`
+9. `docs/data-import-analysis.md`
+10. `Gestionale_Rosario_Furnari_Specifica.md`
 
 ## Canonical
 
@@ -172,6 +174,25 @@ Fonte primaria per:
 
 - dominio `clients + contacts + project_contacts`
 - decisioni Pareto sui referenti
+
+### `docs/ai-visual-blocks-pattern.md`
+
+Fonte primaria per:
+
+- pattern "Vista smart" (AI block rendering)
+- checklist di replicazione su nuove superfici
+- tipi, colori e composizione dei blocchi AI
+
+## Workspace
+
+### `docs/superpowers/`
+
+Contiene piani e spec generati dalle skill di sviluppo (brainstorming,
+writing-plans). Non sono documenti canonici del prodotto — sono artefatti di
+sessione agentica.
+
+- `plans/` — piani di implementazione task-by-task
+- `specs/` — design spec pre-implementazione
 
 ## Working
 

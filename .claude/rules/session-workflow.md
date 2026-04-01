@@ -11,16 +11,22 @@ Quando i documenti entrano in conflitto, l'ordine corretto e':
 
 ## SESSION START
 
-Leggere sempre in questo ordine minimo:
+Leggere sempre nell'ordine canonico definito in `docs/README.md`
+(sezione "Reading Order For AI Or New Sessions").
+
+Ordine minimo obbligatorio:
 
 1. `docs/README.md`
 2. `docs/development-continuity-map.md`
-3. `docs/historical-analytics-handoff.md`
-4. `docs/architecture.md`
+3. `docs/architecture.md`
+4. `docs/historical-analytics-handoff.md`
 
 Leggere anche i documenti di dominio se pertinenti:
 
+- `docs/local-truth-rebuild.md`
+- `docs/historical-analytics-backlog.md`
 - `docs/contacts-client-project-architecture.md`
+- `docs/ai-visual-blocks-pattern.md`
 - `docs/data-import-analysis.md`
 - `Gestionale_Rosario_Furnari_Specifica.md`
 

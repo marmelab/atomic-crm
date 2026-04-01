@@ -1493,12 +1493,14 @@ Per lo sviluppo locale supportato:
 
 1. `docs/README.md`
 2. `docs/development-continuity-map.md`
-3. `docs/local-truth-rebuild.md`
-4. `docs/historical-analytics-handoff.md`
-5. `docs/historical-analytics-backlog.md`
-6. `docs/contacts-client-project-architecture.md`
-7. `docs/data-import-analysis.md`
-8. `Gestionale_Rosario_Furnari_Specifica.md`
+3. `docs/architecture.md`
+4. `docs/local-truth-rebuild.md`
+5. `docs/historical-analytics-handoff.md`
+6. `docs/historical-analytics-backlog.md`
+7. `docs/contacts-client-project-architecture.md`
+8. `docs/ai-visual-blocks-pattern.md`
+9. `docs/data-import-analysis.md`
+10. `Gestionale_Rosario_Furnari_Specifica.md`
 
 ## Source Of Truth By Area
 

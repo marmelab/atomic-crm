@@ -670,37 +670,37 @@ fragilita' semantica.
 |------------|-------|------------|
 | Schema DB custom + referenti CRM + analytics views | Deployed e conforme | migration review |
 | Migration Fase 2 (discount + tariffe) | Applicata al DB remoto | `npx supabase db push` |
-| Migration quotes index | Applicata al DB remoto | sessione 9 |
-| Migration client_tasks + client_notes + tags | Applicata al DB remoto | sessione 11 |
-| Import dati Diego Caltabiano (84 + 40 km + 3 split) | Applicata al DB remoto | sessione 12 |
-| Riallocazione pagamenti Diego (DELETE 10 + CREATE 11) | Applicata al DB remoto | sessione 13 |
-| Fix view project_financials (Cartesian product) | Applicata al DB remoto | sessione 12 |
-| Filtri progetto su Pagamenti/Spese | Implementati | sessione 12 |
-| Ricerca progetto (ilike) | Fix `q` → `name@ilike` | sessione 13 |
-| Bilanci verificati: tutti i progetti Diego a 0 o pending | Confermato | sessione 13 |
-| Riepilogo finanziario su ClientShow/ProjectShow | Implementato | sessione 12 |
-| Dashboard Fase 2 (Recharts) | Implementata (desktop + mobile KPI) | sessione 10 |
+| Migration quotes index | Applicata al DB remoto | storico |
+| Migration client_tasks + client_notes + tags | Applicata al DB remoto | storico |
+| Import dati Diego Caltabiano (84 + 40 km + 3 split) | Applicata al DB remoto | storico |
+| Riallocazione pagamenti Diego (DELETE 10 + CREATE 11) | Applicata al DB remoto | storico |
+| Fix view project_financials (Cartesian product) | Applicata al DB remoto | storico |
+| Filtri progetto su Pagamenti/Spese | Implementati | storico |
+| Ricerca progetto (ilike) | Fix `q` → `name@ilike` | storico |
+| Bilanci verificati: tutti i progetti Diego a 0 o pending | Confermato | storico |
+| Riepilogo finanziario su ClientShow/ProjectShow | Implementato | storico |
+| Dashboard Fase 2 (Recharts) | Implementata (desktop + mobile KPI) | storico |
 | Pulizia moduli Atomic CRM | Completata in modo selettivo: `companies` e `deals` rimossi, `contacts` riattivato come dominio referenti | 2026-03-01 |
 | Referenti CRM (`contacts` + `project_contacts`) | Implementati e integrati con clienti, progetti e chat AI | 2026-03-01 |
-| Tasks adattati (Promemoria) | Funzionanti con client_tasks | sessione 11 |
-| Notes clienti | Funzionanti con client_notes | sessione 11 |
-| Tags clienti | Funzionanti (BIGINT[] su clients) | sessione 11 |
+| Tasks adattati (Promemoria) | Funzionanti con client_tasks | storico |
+| Notes clienti | Funzionanti con client_notes | storico |
+| Tags clienti | Funzionanti (BIGINT[] su clients) | storico |
 | RLS policies | Attive su tutte le tabelle | audit manuale |
 | Signup pubblico libero | Non supportato; le route tecniche di bootstrap/recovery restano nel router, ma nel runtime Supabase single-user corrente il flusso normale resta login-only | 2026-03-01 |
 | Keep-alive workflow | Attivo, testato con successo (HTTP 200) | `gh workflow run` |
-| Localizzazione IT | Completa su ~70+ file, 3 livelli | audit sessione 4 |
-| DateTime Range Support (all_day pattern) | Implementato su 4 moduli | sessione 16 |
-| Simulatore Fiscale + KPI Salute Aziendale | Implementato | sessione 17 |
-| Mobile UX (card lists, Sheet filters, MobileBackButton) | Tutti i moduli CRUD | sessione 77 |
-| Login/Signup branding (foto utente, maschera circolare) | Implementato | sessione 77 |
-| Auth init bypass (single-user hardcoded) | Implementato | sessione 77 |
-| Navigazione per anno Dashboard | Implementata | sessione 18 |
-| Colori semantici Dashboard (success/warning badge + progress) | Implementati | sessione 18 |
+| Localizzazione IT | Completa su ~70+ file, 3 livelli | storico |
+| DateTime Range Support (all_day pattern) | Implementato su 4 moduli | storico |
+| Simulatore Fiscale + KPI Salute Aziendale | Implementato | storico |
+| Mobile UX (card lists, Sheet filters, MobileBackButton) | Tutti i moduli CRUD | storico |
+| Login/Signup branding (foto utente, maschera circolare) | Implementato | storico |
+| Auth init bypass (single-user hardcoded) | Implementato | storico |
+| Navigazione per anno Dashboard | Implementata | storico |
+| Colori semantici Dashboard (success/warning badge + progress) | Implementati | storico |
 | Typecheck | Guardrail operativo, da rieseguire sulle modifiche rilevanti | workflow locale |
 | Build produzione (`npm run build`) | Verifica disponibile, da rieseguire prima di release significative | workflow locale |
 | Test | Suite presente + test mirati per slice | vitest |
 | Lint | Guardrail operativo via ESLint + pre-commit | workflow locale |
-| Deploy Vercel | gestionale-rosario.vercel.app | sessione 5 |
+| Deploy Vercel | gestionale-rosario.vercel.app | storico |
 | Supabase locale | Supportato su porte isolate `5532x`; il bootstrap da zero deve restare replayable con `npx supabase start` | 2026-03-01 |
 | Financial semantics foundation | Tabelle `financial_documents`, `cash_movements` e allocazioni pronte (schema + viste). `project_financials` usa `financial_foundation` come base primaria. La snapshot locale e' stata svuotata il 2026-03-04 per debug dei flussi; i dati storici restano in `Fatture/`. | 2026-03-04 |
 | Admin locale post-reset | Automatizzato via script bootstrap idempotente dopo `make start` / `npx supabase db reset` | 2026-03-01 |
@@ -717,7 +717,8 @@ fragilita' semantica.
 - Il ramo `postmark` non fa parte del runtime/config attivo: le comunicazioni
   supportate oggi restano `Gmail` outbound cliente e `CallMeBot` per alert
   interni prioritari
-- 3 errori lint pre-esistenti (useGetOne condizionale in ExpenseShow/PaymentShow)
+- 3 warning lint pre-esistenti in ExpenseShow/PaymentShow (max-lines-per-function,
+  complexity — non errori bloccanti)
 
 ## Database Schema
 

@@ -201,9 +201,13 @@ Quando il toggle e' spento, il flusso markdown resta immutato.
 
 ### Implementazione attuale
 
-Attivo su: dashboard annuale (`DashboardAnnualAiSummaryCard`)
+Attivo su:
+
+- dashboard annuale (`DashboardAnnualAiSummaryCard`)
+- dashboard storica (`DashboardHistoricalAiCard`) — card unificata con scope
+  selector storico/incassi, Vista smart, PDF export, compact mobile
+
 Default: Vista smart attiva, card AI in cima alla dashboard (prima delle KPI)
-Prossime superfici pianificate: storico, pagine di dettaglio
 
 ## Frontend Import Rules
 
@@ -381,19 +385,26 @@ src/
 │   │   ├── contacts/       # Referents linked to clients/projects
 │   │   ├── dashboard/      # Annual and historical dashboards
 │   │   ├── expenses/       # Expenses and km flows
-│   │   ├── suppliers/      # Supplier registry
+│   │   ├── cloudinary/     # Cloudinary upload/media integration
+│   │   ├── filters/        # Shared filter helpers (FilterPopover, FilterSection)
+│   │   ├── invoicing/      # Internal invoice draft (no DB write)
 │   │   ├── layout/         # App layout components
 │   │   ├── login/          # Authentication pages
+│   │   ├── misc/           # Shared utilities (CreateSheet, FormToolbar, formatDateRange)
 │   │   ├── payments/       # Payment tracking
-│   │   ├── providers/      # Data providers (Supabase active + FakeRest legacy scaffolding)
 │   │   ├── projects/       # Projects
+│   │   ├── providers/      # Data providers (Supabase active + FakeRest legacy scaffolding)
 │   │   ├── quotes/         # Quotes and commercial flow
-│   │   ├── root/           # Root CRM component
+│   │   ├── root/           # Root CRM component (CRM.tsx, moduleRegistry, config)
+│   │   ├── sales/          # User profile / auth support
 │   │   ├── services/       # Work log / service records
 │   │   ├── settings/       # Settings page
+│   │   ├── simple-list/    # Lightweight list primitives
+│   │   ├── suppliers/      # Supplier registry
 │   │   ├── tags/           # Tag management
 │   │   ├── tasks/          # Reminders
-│   │   └── travel/         # Travel and km helpers
+│   │   ├── travel/         # Travel and km helpers
+│   │   └── workflows/      # Trigger-based automations
 │   ├── supabase/           # Supabase-specific auth components
 │   └── ui/                 # Shadcn UI components (mutable dependency)
 ├── hooks/                  # Custom React hooks
@@ -407,12 +418,8 @@ supabase/
 
 ### Key Architecture Patterns
 
-For repo-specific continuity, read first:
-
-1. `docs/README.md`
-2. `docs/development-continuity-map.md`
-3. `docs/historical-analytics-handoff.md`
-4. `docs/architecture.md`
+For repo-specific continuity, follow the reading order in `docs/README.md`
+(sezione "Reading Order For AI Or New Sessions").
 
 #### Mutable Dependencies
 
@@ -426,7 +433,9 @@ The `src/App.tsx` file renders the `<CRM>` component. In this repo the active
 configuration contract is aligned with `ConfigurationContext` and
 `defaultConfiguration`, not the old upstream Atomic CRM props list.
 
-Important active props/config keys include:
+Active configuration keys (managed via `ConfigurationContext` and persisted
+in the `settings` table):
+
 - `title`
 - `darkModeLogo`
 - `lightModeLogo`
@@ -435,12 +444,17 @@ Important active props/config keys include:
 - `quoteServiceTypes`
 - `serviceTypeChoices`
 - `operationalConfig.defaultKmRate`
+- `operationalConfig.defaultTravelOrigin`
 - `fiscalConfig.*`
 - `aiConfig.historicalAnalysisModel`
 - `aiConfig.invoiceExtractionModel`
+- `businessProfile.*` (emitter identity: name, P.IVA, CF, IBAN, address, etc.)
 - `googleWorkplaceDomain`
 - `disableEmailPasswordAuthentication`
-- `disableTelemetry`
+
+Note: `disableTelemetry` is a CRM component prop inherited from upstream
+Atomic CRM, not a `ConfigurationContext` key. It defaults to `false` and is
+not exposed in Settings.
 
 If this contract changes, also update:
 - `src/components/atomic-crm/root/ConfigurationContext.tsx`
