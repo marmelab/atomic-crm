@@ -2180,3 +2180,18 @@ allegati.
 
 **File toccato:** `src/components/atomic-crm/providers/supabase/storageBucket.ts`
 **Impatto architetturale:** nessuno — solo error handling mancante aggiunto.
+
+---
+
+## Update 2026-04-01 — M2: getUserSale throws on DB error
+
+Fix: `getUserSale` in `supabase/functions/_shared/getUserSale.ts` restituiva
+silenziosamente `null` in caso di errore Supabase (`.single()` con error object).
+Ora destruttura `{ data, error }` e lancia `new Error("getUserSale failed: ...")`
+se `error` e' presente, rendendo il fallimento esplicito e tracciabile dal caller.
+
+Test unitari aggiunti in `supabase/functions/_shared/getUserSale.test.ts`
+(3 test: success, null data, DB error).
+
+**File toccati:** `supabase/functions/_shared/getUserSale.ts`, `getUserSale.test.ts`
+**Impatto architetturale:** nessuno — solo error handling mancante aggiunto.
