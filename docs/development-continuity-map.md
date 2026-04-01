@@ -1830,6 +1830,8 @@ Controllare sempre:
   - `historical_cash_inflow_summary`
   - `historical_cash_inflow_answer`
 - `AISettingsSection` se cambia il modello o la promessa utente sulle analisi
+- per la validazione runtime remota ripetibile usare:
+  - `docs/dashboard-remote-verification-playbook.md`
 
 ### Chat AI unificata
 

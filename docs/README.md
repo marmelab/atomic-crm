@@ -1,6 +1,6 @@
 # Documentation Map
 
-Last updated: 2026-04-01
+Last updated: 2026-04-02
 
 ## Purpose
 
@@ -185,6 +185,17 @@ Fonte primaria per:
 - pattern "Vista smart" (AI block rendering)
 - checklist di replicazione su nuove superfici
 - tipi, colori e composizione dei blocchi AI
+
+## Reference
+
+### `docs/dashboard-remote-verification-playbook.md`
+
+Riferimento operativo per:
+
+- verificare la bacheca remota con utente smoke autenticato
+- catturare screenshot e testo renderizzato con `agent-browser`
+- ricostruire i numeri annuali/storici usando gli stessi builder TypeScript del frontend
+- chiudere cleanup di browser e smoke user senza lasciare scorie nel progetto remoto
 
 ## Workspace
 
