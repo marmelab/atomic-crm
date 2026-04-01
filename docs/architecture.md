@@ -15,6 +15,7 @@ Stato del documento:
 
 ## Changelog
 
+- 2026-04-01: QuickPaymentDialog `rimborso_spese` fix — now suggests remaining expenses (total - already reimbursed), not gross total; `getSuggestedAmount` exported as pure function with `paidRimborsoSpese` param.
 - 2026-04-01: AI payment parser fix — `inferPreferredPaymentType` now distinguishes bare "rimborso" (refund to client) from "rimborso spese" (expense reimbursement) using longest-match-first; canonical implementation in `src/lib/ai/inferPreferredPaymentType.ts`, mirrored in Edge Function `unifiedCrmAnswerIntents.ts`; `PaymentDraftCard` uses a single unified `allowedPaymentTypes` set excluding "rimborso" from draft cards (sensitive op, manual-only).
 - 2026-04-01: Single source of truth for financial position — rewrote `project_financials` view removing dual-path (foundation/legacy), always using `payments` table; added `client_id` and `total_owed` columns; created new `client_commercial_position` view for canonical client-level aggregation with Record Precedence Rules; added performance indexes on payments/expenses/services.
 - 2026-04-01: ProjectShow reads `total_owed` and `balance_due` from `project_financials` view — no more React-side recalculation of `grandTotal`/`balanceDue`; negative balance shown as "Credito cliente".

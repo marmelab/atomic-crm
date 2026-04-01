@@ -1,5 +1,11 @@
 import { useEffect, useState } from "react";
-import { useCreate, useGetOne, useNotify, useRefresh } from "ra-core";
+import {
+  useCreate,
+  useGetList,
+  useGetOne,
+  useNotify,
+  useRefresh,
+} from "ra-core";
 import { useLocation } from "react-router";
 import {
   Dialog,
@@ -13,7 +19,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { Euro } from "lucide-react";
-import type { Project } from "../types";
+import type { Payment, Project } from "../types";
 import {
   getProjectQuickPaymentDraftContextFromSearch,
   getUnifiedAiHandoffContextFromSearch,
@@ -33,14 +39,21 @@ const toNum = (v: unknown) => {
 
 const round2 = (n: number) => Math.round(n * 100) / 100;
 
-const getSuggestedAmount = (
+export type QuickPaymentTotals = {
+  fees: number;
+  expenses: number;
+  paid: number;
+  paidRimborsoSpese: number;
+};
+
+export const getSuggestedAmount = (
   type: string,
-  totals: { fees: number; expenses: number; paid: number },
+  totals: QuickPaymentTotals,
 ) => {
   const balance = totals.fees + totals.expenses - totals.paid;
   switch (type) {
     case "rimborso_spese":
-      return round2(totals.expenses);
+      return round2(Math.max(totals.expenses - totals.paidRimborsoSpese, 0));
     case "acconto":
       return round2(totals.fees);
     case "saldo":
@@ -53,7 +66,7 @@ const getSuggestedAmount = (
 const getAmountHint = (type: string): string => {
   switch (type) {
     case "rimborso_spese":
-      return "= totale spese progetto (km, materiale, noleggio...)";
+      return "= spese residue da rimborsare";
     case "acconto":
       return "= compensi professionali";
     case "saldo":
@@ -82,13 +95,32 @@ export const QuickPaymentDialog = ({ record }: { record: Project }) => {
     id: record.id,
   });
 
+  const { data: projectPayments } = useGetList<Payment>("payments", {
+    filter: {
+      "project_id@eq": record.id,
+      "status@eq": "ricevuto",
+      "payment_type@eq": "rimborso_spese",
+    },
+    pagination: { page: 1, perPage: 100 },
+  });
+
+  const paidRimborsoSpese = (projectPayments ?? []).reduce(
+    (sum, p) => sum + toNum(p.amount),
+    0,
+  );
+
   const totalFees = toNum(financials?.total_fees);
   const totalExpenses = toNum(financials?.total_expenses);
   const totalPaid = toNum(financials?.total_paid);
   const grandTotal = totalFees + totalExpenses;
   const balanceDue = grandTotal - totalPaid;
 
-  const totals = { fees: totalFees, expenses: totalExpenses, paid: totalPaid };
+  const totals: QuickPaymentTotals = {
+    fees: totalFees,
+    expenses: totalExpenses,
+    paid: totalPaid,
+    paidRimborsoSpese,
+  };
 
   const getInitialPaymentType = () =>
     draftContext?.paymentType ?? launcherHandoff?.paymentType ?? "acconto";
