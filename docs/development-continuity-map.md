@@ -119,6 +119,9 @@ Last updated: 2026-04-01 (CI hardening)
 - chiusi residui date-only in UI condivise (`payments`, `expenses`,
   `suppliers`, `DashboardDeadlinesCard`) usando `formatBusinessDate()`
 - il pre-commit non maschera piu' i failure di `check-learning-integrity`
+- chiuso anche il residuo audit dev-only del ramo PWA/Workbox con `overrides`
+  npm mirati su `@rollup/plugin-terser` e `serialize-javascript`, senza
+  cambiare la configurazione PWA applicativa
 
 **Verifica eseguita**
 
@@ -127,6 +130,7 @@ Last updated: 2026-04-01 (CI hardening)
 - `npm run prettier`
 - `npm run build`
 - `make test-ci`
+- `npm audit`
 
 **Impatto**
 

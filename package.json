@@ -117,5 +117,9 @@
     "vite-plugin-pwa": "^1.2.0",
     "vite-plugin-simple-html": "^1.0.1",
     "vitest": "^3.2.4"
+  },
+  "overrides": {
+    "@rollup/plugin-terser": "1.0.0",
+    "serialize-javascript": "7.0.5"
   }
 }
