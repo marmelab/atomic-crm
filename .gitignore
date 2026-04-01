@@ -56,5 +56,3 @@ test-results/
 # Temporary / generated assets
 /app/
 /screenshots/
-/scripts/
-*.png

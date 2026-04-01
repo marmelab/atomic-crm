@@ -24,7 +24,6 @@ import { DashboardHistorical } from "./DashboardHistorical";
 import { DashboardAnnualAiSummaryCard } from "./DashboardAnnualAiSummaryCard";
 import { formatCurrency, formatCurrencyPrecise } from "./dashboardModel";
 import type { FiscalModel } from "./fiscalModel";
-import { Welcome } from "./Welcome";
 import { DashboardKpiCards } from "./DashboardKpiCards";
 import { MobileDashboardLoading } from "./DashboardLoading";
 import { useDashboardData } from "./useDashboardData";
@@ -35,42 +34,39 @@ const Wrapper = ({ children }: { children: React.ReactNode }) => {
 };
 
 export const MobileDashboard = () => {
-  const allowHistorical = import.meta.env.VITE_IS_DEMO !== "true";
   const [mode, setMode] = useState<"annual" | "historical">("annual");
 
   return (
     <Wrapper>
       <div className="space-y-4 mt-1">
-        {allowHistorical ? (
-          <div className="space-y-2">
-            <ToggleGroup
-              type="single"
-              value={mode}
-              onValueChange={(value) => {
-                if (value === "annual" || value === "historical") {
-                  setMode(value);
-                }
-              }}
-              variant="outline"
-              className="w-full justify-start"
-            >
-              <ToggleGroupItem value="annual" aria-label="Vista annuale">
-                <CalendarRange className="h-4 w-4" />
-                Annuale
-              </ToggleGroupItem>
-              <ToggleGroupItem value="historical" aria-label="Vista storica">
-                <BarChart3 className="h-4 w-4" />
-                Storico
-              </ToggleGroupItem>
-            </ToggleGroup>
-            <p className="text-xs text-muted-foreground">
-              Storico: andamento degli ultimi anni, con l'anno in corso letto
-              solo fino a oggi.
-            </p>
-          </div>
-        ) : null}
+        <div className="space-y-2">
+          <ToggleGroup
+            type="single"
+            value={mode}
+            onValueChange={(value) => {
+              if (value === "annual" || value === "historical") {
+                setMode(value);
+              }
+            }}
+            variant="outline"
+            className="w-full justify-start"
+          >
+            <ToggleGroupItem value="annual" aria-label="Vista annuale">
+              <CalendarRange className="h-4 w-4" />
+              Annuale
+            </ToggleGroupItem>
+            <ToggleGroupItem value="historical" aria-label="Vista storica">
+              <BarChart3 className="h-4 w-4" />
+              Storico
+            </ToggleGroupItem>
+          </ToggleGroup>
+          <p className="text-xs text-muted-foreground">
+            Storico: andamento degli ultimi anni, con l'anno in corso letto
+            solo fino a oggi.
+          </p>
+        </div>
 
-        {allowHistorical && mode === "historical" ? (
+        {mode === "historical" ? (
           <DashboardHistorical compact />
         ) : (
           <MobileAnnualDashboard />
@@ -121,7 +117,6 @@ const MobileAnnualDashboard = () => {
 
   return (
     <div className="space-y-4">
-      {import.meta.env.VITE_IS_DEMO === "true" ? <Welcome /> : null}
       <div className="flex items-center gap-2">
         <Button
           variant="ghost"

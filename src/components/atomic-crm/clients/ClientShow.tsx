@@ -17,7 +17,6 @@ import {
   getClientBillingIdentityLines,
   getClientDistinctBillingName,
 } from "./clientBilling";
-import { ClientTagsListEdit } from "../tags/ClientTagsListEdit";
 import { ClientNotesSection } from "./ClientNotesSection";
 import { ClientTasksSection } from "./ClientTasksSection";
 import { ClientFinancialSummary } from "./ClientFinancialSummary";
@@ -30,6 +29,7 @@ import { buildInvoiceDraftFromClient } from "../invoicing/buildInvoiceDraftFromC
 import { hasInvoiceDraftCollectableAmount } from "../invoicing/invoiceDraftTypes";
 import { useConfigurationContext } from "../root/ConfigurationContext";
 import { CloudinaryImageField } from "../cloudinary/CloudinaryImageField";
+import { TagsListEdit } from "../tags/TagsListEdit";
 
 export const ClientShow = () => (
   <ShowBase>
@@ -61,7 +61,7 @@ const ClientShowContent = () => {
             <h3 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground mb-2">
               Etichette
             </h3>
-            <ClientTagsListEdit />
+            <TagsListEdit resource="clients" />
           </div>
         </CardContent>
       </Card>

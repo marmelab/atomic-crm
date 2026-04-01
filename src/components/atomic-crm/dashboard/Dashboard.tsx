@@ -9,12 +9,7 @@ import { DashboardHistorical } from "./DashboardHistorical";
 type DashboardMode = "annual" | "historical";
 
 export const Dashboard = () => {
-  const allowHistorical = import.meta.env.VITE_IS_DEMO !== "true";
   const [mode, setMode] = useStore<DashboardMode>("dashboard.mode", "annual");
-
-  if (!allowHistorical) {
-    return <DashboardAnnual />;
-  }
 
   return (
     <div className="space-y-6 mt-1 mb-28 md:mb-2">

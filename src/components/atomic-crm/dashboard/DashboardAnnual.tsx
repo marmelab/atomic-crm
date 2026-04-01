@@ -15,7 +15,6 @@ import { Card, CardContent } from "@/components/ui/card";
 import { todayISODate } from "@/lib/dateTimezone";
 import { useRealtimeInvalidation } from "@/hooks/useRealtimeInvalidation";
 
-import { Welcome } from "./Welcome";
 import { DashboardAnnualAiSummaryCard } from "./DashboardAnnualAiSummaryCard";
 import { DashboardAtecoChart } from "./DashboardAtecoChart";
 import { DashboardBusinessHealthCard } from "./DashboardBusinessHealthCard";
@@ -72,8 +71,6 @@ export const DashboardAnnual = () => {
 
   return (
     <div className="space-y-6">
-      {import.meta.env.VITE_IS_DEMO === "true" ? <Welcome /> : null}
-
       <YearSelector
         year={selectedYear}
         onPrev={() => setSelectedYear((y) => y - 1)}

@@ -25,6 +25,13 @@ const toUtcDayNumber = (isoDate: string): number => {
   return Date.UTC(year, month - 1, day) / (1000 * 60 * 60 * 24);
 };
 
+const toUtcISODate = (date: Date): string => {
+  const year = date.getUTCFullYear();
+  const month = String(date.getUTCMonth() + 1).padStart(2, "0");
+  const day = String(date.getUTCDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+};
+
 const parseOffsetMinutes = (offsetLabel: string): number => {
   if (offsetLabel === "GMT" || offsetLabel === "UTC") {
     return 0;
@@ -100,7 +107,7 @@ export const toBusinessISODate = (value: string | Date): string | null => {
 export const addDaysToISODate = (isoDate: string, days: number): string => {
   const probe = isoDateToUtcProbe(isoDate);
   probe.setUTCDate(probe.getUTCDate() + days);
-  return probe.toISOString().slice(0, 10);
+  return toUtcISODate(probe);
 };
 
 /** Date-like value → business year in Europe/Rome. */

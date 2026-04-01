@@ -151,7 +151,7 @@ export const CRM = ({
       store={store}
       loginPage={StartPage}
       requireAuth
-      disableTelemetry
+      disableTelemetry={disableTelemetry}
       {...rest}
     />
   );

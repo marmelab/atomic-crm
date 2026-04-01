@@ -48,6 +48,7 @@
 | **Workflow** | WF-7  | Dopo push → controlla CI autonomo         |
 | **Dominio**  | DOM-3 | FatturaPA XML → schema XSD + Aruba        |
 | **Config**   | CFG-2 | BusinessProfile → merge defaults safe     |
+| **Config**   | CFG-3 | Flag/prop root → verificare consumo reale |
 | **Backend**  | BE-7  | OpenAI reasoning → effort "low" per CRM  |
 | **Backend**  | BE-8  | Supabase ref → NON dfrrigmjsvcsdhgqtikz   |
 | **Workflow** | WF-8  | Business date → dateTimezone helper       |
@@ -259,6 +260,12 @@ UTC midnight — giorno sbagliato in `Europe/Rome` nella stessa finestra.
 **Quando**: modifico `businessProfile` in `defaultConfiguration.ts` o nel merge logic di Settings
 **Fare**: verificare che il merge config→defaults non sovrascriva campi utente con valori vuoti. Il pattern corretto e' deep merge con fallback: ogni campo usa il valore salvato se presente, altrimenti il default. MAI sostituire l'intero oggetto.
 **Perché**: un merge naive ha cancellato i dati emittente (P.IVA, IBAN) salvati dall'utente, facendo generare PDF preventivo/bozza fattura senza dati fiscali.
+
+### CFG-3: Flag/prop root -> verificare consumo reale
+
+**Quando**: aggiungo o uso una prop/flag di controllo a livello root (telemetry, feature flag, disable/enable behavior)
+**Fare**: verificare che la stessa prop venga consumata nel layer che produce davvero l'effetto e che non venga solo inoltrata a un figlio diverso. Se c'e' un wrapper (`App` -> `CRM` -> `Admin`), controllare TUTTI i passaggi.
+**Perché**: `disableTelemetry` era gia' forzato sul componente `Admin`, ma il beacon custom viveva in `CRM.tsx` e continuava a partire. Il flag sembrava attivo, ma non lo era nel punto che contava.
 
 ---
 

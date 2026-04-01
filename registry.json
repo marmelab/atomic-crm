@@ -152,10 +152,6 @@
           "type": "registry:component"
         },
         {
-          "path": "src/components/atomic-crm/tags/ClientTagsListEdit.tsx",
-          "type": "registry:component"
-        },
-        {
           "path": "src/components/atomic-crm/tags/ClientTagsList.tsx",
           "type": "registry:component"
         },
@@ -1001,10 +997,6 @@
         },
         {
           "path": "src/components/atomic-crm/dashboard/dashboardDeadlineTrackerFormatters.ts",
-          "type": "registry:component"
-        },
-        {
-          "path": "src/components/atomic-crm/dashboard/Welcome.tsx",
           "type": "registry:component"
         },
         {

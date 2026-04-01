@@ -6,7 +6,7 @@ obbligatoria delle superfici collegate.
 **Quando usarlo:** ogni volta che una modifica tocca comportamento reale del
 prodotto.
 
-Last updated: 2026-04-01 (H1 — google_calendar_sync Supabase mutation error handling)
+Last updated: 2026-04-01 (Technical hardening cleanup)
 
 ---
 
@@ -14,6 +14,7 @@ Last updated: 2026-04-01 (H1 — google_calendar_sync Supabase mutation error ha
 
 ### Recent Updates (cronologico, più recente in alto)
 
+- [2026-04-01](#update-2026-04-01--technical-hardening-cleanup) — Technical hardening cleanup: telemetry fix, build artifact hardening, demo branch removal, DOMPurify/package cleanup
 - [2026-03-31](#update-2026-03-31--timezone-bonifica-phase-4b) — Timezone bonifica phase 4b: final residual grep cleanup on quote dialog, calendar sync and DateInput docs
 - [2026-03-31](#update-2026-03-31--timezone-bonifica-phase-4) — Timezone bonifica phase 4: annual wrappers, fiscal deadline consumers and Edge Function parity aligned to Europe/Rome
 - [2026-03-31](#update-2026-03-31--timezone-bonifica-phase-2) — Timezone bonifica phase 2: task all-day flows + AI read snapshot aligned to Europe/Rome
@@ -2156,6 +2157,43 @@ npx playwright test tests/e2e/ai-semantic-ui.spec.ts
 - ✅ Lint: PASS
 - ✅ E2E semantic UI: 2/4 test pass (struttura verificata)
 - ✅ UI: Colori semantici visibili nel launcher AI
+
+---
+
+## Update 2026-04-01 — Technical hardening cleanup
+
+**Cosa e' cambiato**
+
+- `src/App.tsx` passa ora `disableTelemetry` a `<CRM>` e `CRM.tsx` inoltra la
+  stessa prop al layer `Admin`, evitando che il beacon custom resti attivo
+  mentre il prop downstream era gia' forzato a `true`.
+- `vite.config.ts` genera sourcemap e `dist/stats.html` solo in modalita'
+  esplicita (`BUILD_SOURCEMAP=true`, `BUNDLE_ANALYZE=true`) invece che in ogni
+  build standard.
+- Rimossi i residui runtime della demo non piu' supportata:
+  `vite.demo.config.ts`, `demo/`, `Welcome.tsx` e i branch `VITE_IS_DEMO`
+  nelle dashboard annuale/mobile.
+- `dompurify` aggiornato alla linea patched (`3.3.3`), rimossa la dipendenza
+  root inutilizzata `@google/genai`, spostato `rollup-plugin-visualizer` in
+  `devDependencies`.
+- `ClientShow` usa direttamente `TagsListEdit` e `QuoteCardActions` non usa piu'
+  il dynamic import inutile di `QuotePDF`.
+- `src/lib/dateTimezone.ts` non contiene piu' il residuo
+  `toISOString().slice(0, 10)` nel helper `addDaysToISODate`.
+
+**Verifica eseguita**
+
+- `npm run typecheck`
+- `npm run lint`
+- `npm run build`
+- `npm test -- --run`
+- `npm audit --omit=dev`
+
+**Impatto**
+
+- nessuna feature nuova
+- riduzione superfici legacy/demo
+- minore esposizione di artefatti build e dipendenze non necessarie
 
 ---
 

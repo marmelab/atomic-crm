@@ -11,14 +11,9 @@ import { useConfigurationContext } from "../root/ConfigurationContext";
 import type { Client, Quote } from "../types";
 import { sanitizeQuoteItems } from "./quoteItems";
 import { quoteStatusLabels } from "./quotesTypes";
-import type { QuotePDFProps } from "./QuotePDF";
+import { downloadQuotePDF } from "./QuotePDF";
 
 const LazyQuoteCardPDFPreview = lazy(() => import("./QuoteCardPDFPreview"));
-
-const lazyDownloadQuotePDF = async (props: QuotePDFProps) => {
-  const { downloadQuotePDF } = await import("./QuotePDF");
-  return downloadQuotePDF(props);
-};
 
 export const QuoteCardActions = ({
   quote,
@@ -50,7 +45,7 @@ export const QuoteCardActions = ({
     e.stopPropagation();
     setDownloading(true);
     try {
-      await lazyDownloadQuotePDF(pdfProps);
+      await downloadQuotePDF(pdfProps);
     } finally {
       setDownloading(false);
     }

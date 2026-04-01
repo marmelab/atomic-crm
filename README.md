@@ -51,11 +51,10 @@ Nota operativa:
   con `make start`
 - `make start` e `npx supabase db reset` ricreano automaticamente anche un
   admin locale autenticabile
-- `make start` verifica anche che il dominio locale minimo sia allineato al
-  rebuild reale da `Fatture/`
-- `make supabase-reset-database` ricostruisce il database locale di dominio da:
-  - `Fatture/`
-  - `Fatture/contabilità interna - diego caltabiano/`
+- `make supabase-reset-database` ricostruisce il database locale da migration
+  + dump reale `supabase/seed_domain_data.sql`
+- `Fatture/` e `Fatture/contabilità interna - diego caltabiano/` restano
+  fonti storiche di riferimento, non il workflow di rebuild locale
 - nel solo runtime locale il login email/password Supabase resta abilitato per
   supportare bootstrap admin e smoke E2E
 - `make test-e2e` gira sul dataset locale reale ricostruito, non su fixture
