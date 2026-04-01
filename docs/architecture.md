@@ -15,6 +15,7 @@ Stato del documento:
 
 ## Changelog
 
+- 2026-04-01: Single source of truth for financial position — rewrote `project_financials` view removing dual-path (foundation/legacy), always using `payments` table; added `client_id` and `total_owed` columns; created new `client_commercial_position` view for canonical client-level aggregation with Record Precedence Rules; added performance indexes on payments/expenses/services.
 - 2026-04-01: Repo hardening follow-up — removed the legacy frontend GitHub Pages deploy path (`ghpages:deploy`, related script and workflow step), made `prod-deploy` backend-only, clarified that `make start` bootstraps the local admin while raw `npx supabase db reset` still needs `npm run local:admin:bootstrap`, documented the deterministic Playwright test-data lane as technical-only, and swept remaining date-only UI formatters to `formatBusinessDate()`.
 - 2026-04-01: CI hardening — GitHub Actions workflows now opt into Node 24 for JavaScript actions, `actions/checkout` / `actions/setup-node` were bumped to v6, and the stale manual `deploy-demo` job was removed because the demo build path no longer exists in this fork.
 - 2026-04-01: FakeRest removal cleanup — removed the obsolete `src/components/atomic-crm/providers/fakerest/**` tree plus `faker` / `ra-data-fakerest` dependencies, cleaned TS config leftovers (`faker` ambient types, `demo` tsconfig include), and updated canonical/docs-site guidance so this fork now documents Supabase as the only supported data provider.
@@ -798,7 +799,8 @@ acconto_ricevuto → in_lavorazione → completato → saldato → rifiutato / p
 
 | View | Scopo |
 |------|-------|
-| project_financials | Riepilogo finanziario per progetto (fees - discount, km, paid, balance) con preferenza per foundation documenti/cassa e fallback legacy solo dove la copertura non e' ancora completa |
+| project_financials | Riepilogo finanziario per progetto: fees, km, expenses, total_owed (fees + expenses), total_paid (da payments con status=ricevuto), balance_due. Single source: sempre tabella `payments`, nessun dual-path. Include `client_id` e `client_name`. |
+| client_commercial_position | Posizione commerciale aggregata per cliente: total_fees, total_expenses, total_owed, total_paid, balance_due, projects_count. Applica Record Precedence Rules (project's client_id prevails). Include servizi/spese/pagamenti senza progetto. |
 | monthly_revenue | Fatturato mensile per categoria (fees - discount) |
 | analytics_* | Base storica/AI per Storico e consumer analytics (`analytics_business_clock`, `analytics_history_meta`, `analytics_yearly_competence_revenue`, `analytics_yearly_competence_revenue_by_category`, `analytics_client_lifetime_competence_revenue`, `analytics_yearly_cash_inflow`) |
 
@@ -831,15 +833,15 @@ getters). L'orchestratore assembla tutto con object spread e il tipo
 
 Semantica operativa attuale di `project_financials`:
 
-- `payment_semantics_basis = financial_foundation`
-  - il progetto ha documenti nella foundation e almeno una cassa allocata
-- `payment_semantics_basis = financial_documents`
-  - il progetto ha documenti foundation ma nessuna cassa allocata
-- `payment_semantics_basis = legacy_payments`
-  - il progetto non e' ancora coperto dai documenti foundation e il pagato
-    arriva solo dal layer storico `payments`
-- `payment_semantics_basis = none`
-  - nessuna base di pagamento disponibile
+- Single source: la view usa SEMPRE la tabella `payments` (status=ricevuto)
+  come unica fonte per `total_paid`. Il vecchio dual-path
+  (financial_foundation / legacy_payments) e' stato rimosso.
+- `total_owed` = total_fees + total_expenses (quanto il cliente deve)
+- `balance_due` = total_owed - total_paid (quanto resta da incassare)
+- Rimborsi (`payment_type = 'rimborso'`) vengono sottratti dal total_paid
+- Crediti ricevuti (`expense_type = 'credito_ricevuto'`) vengono sottratti
+  dalle expenses
+- Spese km usano `km_distance * km_rate` invece di `amount`
 
 ### Migrations
 
@@ -893,6 +895,7 @@ Semantica operativa attuale di `project_financials`:
 | `20260302160000_add_iphone_credit_payment.sql` | Inserisce il pagamento `rimborso_spese` di €250 in attesa (iPhone: accordo iniziale €500, rivalutato a €250, Diego deve €250 a Rosario) collegato a Borghi Marinari |
 | `20260302170000_domain_data_snapshot.sql` | **Snapshot pulita (solo settings).** TRUNCATE di tutte le tabelle operative + INSERT dei 6 record di configurazione. Svuotata il 2026-03-04 per debug dei flussi di calcolo. |
 | `20260307200325_round_monetary_fields_in_project_financials.sql` | Aggiunge `ROUND(..., 2)` a tutti i campi monetari aggregati nella view `project_financials` (total_fees, total_km_cost, total_expenses, total_paid_legacy, balance_due) per eliminare decimali spurii da floating point |
+| `20260401094930_single_source_financials.sql` | Riscrive `project_financials` (single source: sempre payments, no dual-path), aggiunge `client_id`/`total_owed`. Crea `client_commercial_position` view. Aggiunge indici performance su payments/expenses/services. |
 
 ## Moduli Frontend
 

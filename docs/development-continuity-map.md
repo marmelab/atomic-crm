@@ -6,7 +6,7 @@ obbligatoria delle superfici collegate.
 **Quando usarlo:** ogni volta che una modifica tocca comportamento reale del
 prodotto.
 
-Last updated: 2026-04-01 (CI hardening)
+Last updated: 2026-04-01 (single source financials)
 
 ---
 
@@ -14,6 +14,7 @@ Last updated: 2026-04-01 (CI hardening)
 
 ### Recent Updates (cronologico, più recente in alto)
 
+- [2026-04-01](#update-2026-04-01--single-source-financials) — Single source financials: project_financials rewritten (no dual-path), client_commercial_position view created
 - [2026-04-01](#update-2026-04-01--repo-hardening-follow-up) — Repo hardening follow-up: local runtime contract clarified, legacy frontend deploy path removed, date-only UI sweep
 - [2026-04-01](#update-2026-04-01--ci-hardening) — CI hardening: Node 24 JS actions runtime + removal of stale demo deploy job
 - [2026-04-01](#update-2026-04-01--fakerest-removal-cleanup) — FakeRest removal cleanup: deleted legacy provider tree, deps and stale docs references
@@ -97,6 +98,35 @@ Last updated: 2026-04-01 (CI hardening)
 - [Nota manutenzione 2026-03-02](#nota-manutenzione-2026-03-02-fix-ci)
 - [Testing Session Log 2026-03-04](#testing-session-log-2026-03-04--e2e-complete-validation)
 - [AI Semantic UI Upgrade 2026-03-04](#ai-semantic-ui-upgrade-2026-03-04--pareto-principle-applied)
+
+---
+
+## Update 2026-04-01 — Single source financials
+
+**Cosa e' cambiato**
+
+- `project_financials` riscritta: rimosso il dual-path
+  (financial_foundation / legacy_payments), ora usa SEMPRE la tabella
+  `payments` (status=ricevuto). Aggiunti `client_id`, `client_name`,
+  `total_owed`.
+- Nuova view `client_commercial_position`: aggregazione per cliente con
+  Record Precedence Rules (il `client_id` del progetto prevale su quello
+  del record). Include servizi/spese/pagamenti senza progetto.
+- Indici performance su `payments`, `expenses`, `services` per le colonne
+  usate dai JOIN delle view.
+
+**Superfici collegate da aggiornare (task successivi)**
+
+- `types.ts` — aggiungere tipo `ClientCommercialPosition`, aggiornare
+  `ProjectFinancials` con `client_id` e `total_owed`
+- dataProvider — registrare PK per `client_commercial_position`
+- consumer di `project_financials` che leggevano `total_paid_legacy` o
+  `payment_semantics_basis` — quei campi non esistono piu'
+- AI semantic registry — aggiornare snapshot se usa `project_financials`
+- docs di continuita' — allineare dopo i task frontend
+
+**Spec di riferimento:**
+`docs/superpowers/specs/2026-04-01-single-source-of-truth-financials-design.md`
 
 ---
 
