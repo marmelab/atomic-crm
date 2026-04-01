@@ -1,6 +1,8 @@
 import type { Identifier } from "ra-core";
+import { useDeleteController, useRecordContext } from "ra-core";
 import { EditSheet } from "../misc/EditSheet";
 import { ContactInputs } from "./ContactInputs";
+import { ContactMenuButton } from "./ContactMenuButton";
 import {
   cleanupContactForEdit,
   defaultEmailJsonb,
@@ -29,8 +31,31 @@ export const ContactEditSheet = ({
         email_jsonb: defaultEmailJsonb,
         phone_jsonb: defaultPhoneJsonb,
       }}
+      headerActions={<ContactEditMenuButton onOpenChange={onOpenChange} />}
+      deleteButton={false}
     >
       <ContactInputs />
     </EditSheet>
   );
+};
+
+const ContactEditMenuButton = ({
+  onOpenChange,
+}: {
+  onOpenChange: (open: boolean) => void;
+}) => {
+  const record = useRecordContext();
+  const { handleDelete } = useDeleteController({
+    record,
+    resource: "contacts",
+    redirect: "list",
+    mutationMode: "undoable",
+  });
+
+  const onDelete = () => {
+    onOpenChange(false);
+    handleDelete();
+  };
+
+  return <ContactMenuButton onDelete={onDelete} />;
 };

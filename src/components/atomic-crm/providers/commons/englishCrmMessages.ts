@@ -276,6 +276,9 @@ export const englishCrmMessages = {
         options_hint: "(attach files, or change details)",
         show_options: "Show options",
       },
+      actions: {
+        attach_document: "Attach document",
+      },
       validation: {
         note_or_attachment_required: "A note or an attachment is required",
       },

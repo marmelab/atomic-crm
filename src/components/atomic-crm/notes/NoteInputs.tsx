@@ -15,28 +15,7 @@ import { AttachmentField } from "./AttachmentField";
 import { foreignKeyMapping } from "./foreignKeyMapping";
 import { AutocompleteInput, ReferenceInput } from "@/components/admin";
 import { contactOptionText } from "../misc/ContactOption";
-import { useIsMobile } from "@/hooks/use-mobile";
-
-type NoteFormValues = {
-  attachments?: unknown[] | null;
-  contact_id?: number | string;
-  deal_id?: number | string;
-  status?: string;
-  text?: string | null;
-};
-
-const validateNoteOrAttachmentRequired = (
-  value: string | null | undefined,
-  values: NoteFormValues,
-) => {
-  const hasText = typeof value === "string" && value.trim().length > 0;
-  const hasAttachments =
-    Array.isArray(values?.attachments) && values.attachments.length > 0;
-
-  return hasText || hasAttachments
-    ? undefined
-    : "resources.notes.validation.note_or_attachment_required";
-};
+import { validateNoteOrAttachmentRequired } from "./noteModel";
 
 export const NoteInputs = ({
   defaultStatus,
@@ -49,7 +28,6 @@ export const NoteInputs = ({
   selectReference?: boolean;
   reference?: "contacts" | "deals";
 }) => {
-  const isMobile = useIsMobile();
   const { noteStatuses } = useConfigurationContext();
   const translate = useTranslate();
   const [displayMore, setDisplayMore] = useState(false);
@@ -131,7 +109,7 @@ export const NoteInputs = ({
         </ReferenceInput>
       )}
 
-      {!displayMore && !isMobile && (
+      {!displayMore && (
         <div className="flex justify-end items-center gap-2">
           <Button
             variant="link"
@@ -152,8 +130,8 @@ export const NoteInputs = ({
       <div
         className={cn(
           "space-y-3 mt-3 overflow-hidden origin-top",
-          !isMobile ? "transition-transform ease-in-out duration-300 " : "",
-          !displayMore && !isMobile ? "scale-y-0 max-h-0 h-0" : "scale-y-100",
+          "transition-transform ease-in-out duration-300",
+          !displayMore ? "scale-y-0 max-h-0 h-0" : "scale-y-100",
         )}
       >
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

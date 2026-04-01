@@ -1,14 +1,14 @@
-import { DeleteButton, ReferenceField } from "@/components/admin";
 import {
   type Identifier,
   useCreatePath,
-  useGetRecordRepresentation,
+  useDeleteController,
+  useRecordContext,
   useTranslate,
-  WithRecord,
 } from "ra-core";
 import { EditSheet } from "../misc/EditSheet";
 import { foreignKeyMapping } from "./foreignKeyMapping";
-import { NoteInputs } from "./NoteInputs";
+import { NoteInputsMobile } from "./NoteInputsMobile";
+import { NoteMenuButton } from "./NoteMenuButton";
 
 export interface NoteEditSheetProps {
   open: boolean;
@@ -30,46 +30,47 @@ export const NoteEditSheet = ({
       id: record ? record[foreignKeyMapping["contacts"]] : undefined,
     });
   };
-  const getContactRepresentation = useGetRecordRepresentation("contacts");
 
   return (
     <EditSheet
       resource="contact_notes"
       id={noteId}
-      title={
-        <ReferenceField
-          source={foreignKeyMapping["contacts"]}
-          reference="contacts"
-          render={({ referenceRecord }) => (
-            <h1 className="text-xl font-semibold truncate pr-10">
-              {referenceRecord
-                ? translate("resources.notes.sheet.edit_for", {
-                    name: getContactRepresentation(referenceRecord),
-                  })
-                : translate("resources.notes.sheet.edit")}
-            </h1>
-          )}
-        />
-      }
+      title={translate("resources.notes.sheet.edit")}
       redirect={(_resource, _id, record) => getRedirectTo(record)}
       open={open}
       onOpenChange={onOpenChange}
-      deleteButton={
-        <WithRecord
-          render={(record) => (
-            <DeleteButton
-              variant="destructive"
-              className="flex-1"
-              redirect={getRedirectTo(record)}
-              onClick={() => {
-                onOpenChange(false);
-              }}
-            />
-          )}
+      headerActions={
+        <NoteEditMenuButton
+          onOpenChange={onOpenChange}
+          getRedirectTo={getRedirectTo}
         />
       }
+      deleteButton={false}
     >
-      <NoteInputs showStatus />
+      <NoteInputsMobile />
     </EditSheet>
   );
+};
+
+const NoteEditMenuButton = ({
+  onOpenChange,
+  getRedirectTo,
+}: {
+  onOpenChange: (open: boolean) => void;
+  getRedirectTo: (record: any) => string;
+}) => {
+  const record = useRecordContext();
+  const { handleDelete } = useDeleteController({
+    record,
+    resource: "contact_notes",
+    redirect: getRedirectTo(record),
+    mutationMode: "undoable",
+  });
+
+  const onDelete = () => {
+    onOpenChange(false);
+    handleDelete();
+  };
+
+  return <NoteMenuButton onDelete={onDelete} />;
 };

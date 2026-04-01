@@ -11,7 +11,8 @@ import {
 } from "ra-core";
 import { CreateSheet } from "../misc/CreateSheet";
 import { foreignKeyMapping } from "./foreignKeyMapping";
-import { NoteInputs } from "./NoteInputs";
+import { NoteInputsMobile } from "./NoteInputsMobile";
+import { NoteMenuButton } from "./NoteMenuButton";
 import { getCurrentDate } from "./utils";
 
 export interface NoteCreateSheetProps {
@@ -68,13 +69,13 @@ export const NoteCreateSheet = ({
     <CreateSheet
       resource="contact_notes"
       title={
-        <h1 className="text-xl font-semibold truncate pr-10">
+        <span className="text-xl font-semibold truncate">
           {!selectContact
             ? translate("resources.notes.sheet.create_for", {
                 name: getContactRepresentation(contact!),
               })
             : translate("resources.notes.sheet.create")}
-        </h1>
+        </span>
       }
       redirect={false}
       defaultValues={{ sales_id: identity?.id }}
@@ -84,19 +85,14 @@ export const NoteCreateSheet = ({
           contact_id ?? data[foreignKeyMapping["contacts"]],
         sales_id: identity.id,
         date: new Date(data.date || getCurrentDate()).toISOString(),
+        status: defaultStatus,
       })}
-      mutationOptions={{
-        onSuccess: handleSuccess,
-      }}
+      mutationOptions={{ onSuccess: handleSuccess }}
       open={open}
       onOpenChange={onOpenChange}
+      headerActions={<NoteMenuButton />}
     >
-      <NoteInputs
-        defaultStatus={defaultStatus}
-        showStatus
-        reference="contacts"
-        selectReference={selectContact}
-      />
+      <NoteInputsMobile selectContact={selectContact} />
     </CreateSheet>
   );
 };
