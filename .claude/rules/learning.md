@@ -29,6 +29,7 @@
 | **DB**       | DB-2  | Nuova migration → checklist replayability |
 | **DB**       | DB-3  | km servizi → spesa auto da trigger DB     |
 | **DB**       | DB-4  | View con meno colonne → DROP prima        |
+| **DB**       | DB-5  | Frontend→trigger invariant → audit dup    |
 | **Backend**  | BE-1  | Edge Function modificata → deploy manuale |
 | **Backend**  | BE-2  | Nuova Edge Function → config.toml!        |
 | **Backend**  | BE-3  | Schema change → riavviare edge runtime    |
@@ -152,6 +153,12 @@
 **Quando**: riscrivo una view rimuovendo o rinominando colonne esistenti
 **Fare**: usare `DROP VIEW IF EXISTS ...` seguito da `CREATE VIEW ...`; non usare `CREATE OR REPLACE VIEW` se il nuovo schema ha meno colonne. Verificare prima eventuali dipendenze e ricrearle nella stessa migration se servono.
 **Perché**: Postgres non permette di eliminare colonne da una view con `OR REPLACE` (`ERROR: cannot drop columns from view`). Il bug ha rotto `supabase db reset` sulla migration `20260401094930_single_source_financials.sql`, quindi ha violato la replayability.
+
+### DB-5: Sposto un invariant dal frontend al DB trigger = audit duplicati orfani
+
+**Quando**: una logica che prima creava record dal client viene spostata in un trigger DB (es. `services` -> `expenses.spostamento_km`)
+**Fare**: auditare subito le righe create durante la finestra di transizione cercando gruppi con stessa chiave naturale ma mix di record linked/unlinked (`source_service_id` presente + assente). Pulire gli orfani prima di fidarsi dei nuovi totali.
+**Perché**: il 2026-03-06 `QuickEpisode` creava ancora manualmente la spesa km mentre il trigger `sync_service_km_expense` la creava gia' dal `service`. Risultato: doppio conteggio, progetto/cliente gonfiati di `€ 40,54` finche' non e' stato rimosso l'orfano.
 
 ---
 
