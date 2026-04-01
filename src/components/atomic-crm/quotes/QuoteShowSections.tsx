@@ -53,9 +53,7 @@ export const QuoteShowSections = ({
           </InfoField>
           <InfoField label="Tassabilità">
             <Badge
-              variant={
-                quote.is_taxable === false ? "secondary" : "outline"
-              }
+              variant={quote.is_taxable === false ? "secondary" : "outline"}
             >
               {quote.is_taxable === false ? "Non tassabile" : "Tassabile"}
             </Badge>
@@ -76,28 +74,28 @@ export const QuoteShowSections = ({
           Date
         </p>
         <div className="flex flex-wrap gap-4 sm:gap-8">
-        {quote.event_start && (
-          <InfoField
-            label="Evento"
-            value={formatDateRange(
-              quote.event_start,
-              quote.event_end,
-              quote.all_day,
-            )}
-          />
-        )}
-        {quote.sent_date && isValid(new Date(quote.sent_date)) && (
-          <InfoField
-            label="Data invio"
-            value={format(new Date(quote.sent_date), "dd/MM/yyyy")}
-          />
-        )}
-        {quote.response_date && isValid(new Date(quote.response_date)) && (
-          <InfoField
-            label="Data risposta"
-            value={format(new Date(quote.response_date), "dd/MM/yyyy")}
-          />
-        )}
+          {quote.event_start && (
+            <InfoField
+              label="Evento"
+              value={formatDateRange(
+                quote.event_start,
+                quote.event_end,
+                quote.all_day,
+              )}
+            />
+          )}
+          {quote.sent_date && isValid(new Date(quote.sent_date)) && (
+            <InfoField
+              label="Data invio"
+              value={format(new Date(quote.sent_date), "dd/MM/yyyy")}
+            />
+          )}
+          {quote.response_date && isValid(new Date(quote.response_date)) && (
+            <InfoField
+              label="Data risposta"
+              value={format(new Date(quote.response_date), "dd/MM/yyyy")}
+            />
+          )}
         </div>
       </div>
 

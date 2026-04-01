@@ -83,12 +83,25 @@ function useQuoteFormPDFProps() {
   const deferredClient = useDeferredValue(client);
   const sanitizedItems = sanitizeQuoteItems(deferredQuote.quote_items);
 
-  return { deferredQuote, deferredClient, serviceLabel, statusLabel, sanitizedItems, businessProfile };
+  return {
+    deferredQuote,
+    deferredClient,
+    serviceLabel,
+    statusLabel,
+    sanitizedItems,
+    businessProfile,
+  };
 }
 
 export const QuotePDFPreview = () => {
-  const { deferredQuote, deferredClient, serviceLabel, statusLabel, sanitizedItems, businessProfile } =
-    useQuoteFormPDFProps();
+  const {
+    deferredQuote,
+    deferredClient,
+    serviceLabel,
+    statusLabel,
+    sanitizedItems,
+    businessProfile,
+  } = useQuoteFormPDFProps();
 
   return (
     <div className="h-full min-h-[500px] max-w-full overflow-hidden rounded-md border bg-muted/30">
@@ -112,8 +125,14 @@ export const QuotePDFPreview = () => {
 };
 
 export const MobilePDFPreview = () => {
-  const { deferredQuote, deferredClient, serviceLabel, statusLabel, sanitizedItems, businessProfile } =
-    useQuoteFormPDFProps();
+  const {
+    deferredQuote,
+    deferredClient,
+    serviceLabel,
+    statusLabel,
+    sanitizedItems,
+    businessProfile,
+  } = useQuoteFormPDFProps();
 
   return (
     <BlobProvider

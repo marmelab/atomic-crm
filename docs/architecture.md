@@ -7,7 +7,7 @@ di fotografo, videomaker e web developer. Single-user, interfaccia italiana.
 
 Stato del documento:
 
-- `canonical` — ultimo aggiornamento: 2026-03-31
+- `canonical` — ultimo aggiornamento: 2026-04-01
 - descrive la fotografia implementativa ad alto livello
 - le vecchie "sessioni" citate nel file sono indizi storici, non la fonte
   primaria della verita' operativa se entrano in conflitto con codice o
@@ -15,6 +15,7 @@ Stato del documento:
 
 ## Changelog
 
+- 2026-04-01: Error handling audit — 8 verified bugs fixed (6 HIGH/MEDIUM + 2 LOW): `parseAiVisualBlocks` shared helper + `InvalidAiOutputError` for 6 AI EFs (502 vs 500 discrimination), `validateGoogleTokenResponse` for OAuth token caching, Supabase mutation error checks in `google_calendar_sync`, `useNotify` on `DashboardDeadlineTracker` mutations, `getUserSale` throws on DB error instead of masking as 401, `storageBucket` fetch error logging, runtime validation on Google Calendar API response shape, `updateSaleDisabled` error check in users EF. 16 new unit tests. Prettier formatting sweep (28 files, whitespace only).
 - 2026-03-31: Timezone bonifica phase 4b — removed the last grep-noise/residual date conversions: `google_calendar_sync` now uses shared `addDaysToISODate`, `CreateServiceFromQuoteDialog` normalizes draft date inputs via `toBusinessISODate`, and the `DateInput` JSDoc example no longer suggests `toISOString().split("T")[0]`.
 - 2026-03-31: Timezone bonifica phase 4 — `DashboardAnnual`, `MobileDashboard`, `DashboardAnnualAiSummaryCard`, `DashboardDeadlinesCard`, `useGenerateFiscalTasks` and the shared Edge Function fiscal deadline flow now consume/generate business dates via `dateTimezone`; `fiscal_deadline_check` derives `currentYear` from the Europe/Rome business date instead of runtime-local `Date`.
 - 2026-03-31: Timezone bonifica phase 3 — `dashboardModel`, `fiscalModel`, `fiscalDeadlines` and payment reminder flows now classify years/months/day-deltas via `dateTimezone` business-date helpers instead of browser-local `Date` math; payment reminder emails now pass an explicit headline to the shared HTML renderer.

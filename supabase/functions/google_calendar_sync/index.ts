@@ -167,10 +167,19 @@ async function createEvent(serviceId: string) {
     return { error: `Google Calendar API error: ${res.status}` };
   }
 
-  const { id: googleEventId, htmlLink } = res.data as {
-    id: string;
-    htmlLink: string;
-  };
+  const resData = res.data as Record<string, unknown> | null;
+  const googleEventId =
+    typeof resData?.id === "string" ? resData.id : undefined;
+  const htmlLink =
+    typeof resData?.htmlLink === "string" ? resData.htmlLink : undefined;
+
+  if (!googleEventId) {
+    console.error("google_calendar_sync.missing_event_id", {
+      serviceId,
+      resData,
+    });
+    return { error: "Google Calendar returned event without id" };
+  }
 
   // Save the event ID and link back to the service
   const { error: updateError } = await supabaseAdmin

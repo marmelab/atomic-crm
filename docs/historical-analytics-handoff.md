@@ -6,7 +6,7 @@ lavoro senza riaprire decisioni gia prese.
 **Quando NON usarlo da solo:** per dedurre architettura canonica o stato
 prodotto senza incrociarlo con `docs/README.md` e i documenti `canonical`.
 
-Last updated: 2026-04-01 (M1 — parseAiVisualBlocks helper consumed in 6 AI Edge Functions)
+Last updated: 2026-04-01 (error handling audit + prettier sweep 28 files)
 
 ## Update 2026-04-01 — M1: parseAiVisualBlocks consumed in 6 AI Edge Functions
 

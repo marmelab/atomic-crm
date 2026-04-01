@@ -142,8 +142,7 @@ test.describe("AI Annual Real Response", () => {
 
     // Zero open quotes should be presented as a neutral data point, not alarmism.
     if (text.includes("preventivi")) {
-      const quotesSection =
-        text.match(/preventivi[\s\S]{0,240}/)?.[0] ?? text;
+      const quotesSection = text.match(/preventivi[\s\S]{0,240}/)?.[0] ?? text;
 
       expect(quotesSection).not.toMatch(/critico|alarm|emergenz|preoccupant/);
 
@@ -187,9 +186,9 @@ test.describe("AI Annual Real Response", () => {
     await loginAsLocalAdmin(page);
 
     // Wait for AI card to be ready
-    await expect(
-      page.getByText("Chiedi all'AI", { exact: false }),
-    ).toBeVisible({ timeout: 15000 });
+    await expect(page.getByText("Chiedi all'AI", { exact: false })).toBeVisible(
+      { timeout: 15000 },
+    );
 
     // Type a question about expenses/margin
     const textarea = page.getByPlaceholder("Oppure scrivi la tua domanda...");

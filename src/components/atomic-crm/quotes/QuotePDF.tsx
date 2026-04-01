@@ -334,18 +334,14 @@ export const QuotePDFDocument = ({
             <Image style={styles.logo} src={LOGO_URL} />
             <View>
               <Text style={styles.brandName}>{businessProfile.name}</Text>
-              <Text style={styles.brandTagline}>
-                {businessProfile.tagline}
-              </Text>
+              <Text style={styles.brandTagline}>{businessProfile.tagline}</Text>
             </View>
           </View>
           <View style={styles.headerRight}>
             <View style={styles.docTypeBadge}>
               <Text style={styles.docTypeText}>Preventivo</Text>
             </View>
-            <Text style={styles.docNumber}>
-              {fmtQuoteId(String(quote.id))}
-            </Text>
+            <Text style={styles.docNumber}>{fmtQuoteId(String(quote.id))}</Text>
             <View
               style={[
                 styles.docStatusBadge,
@@ -365,111 +361,82 @@ export const QuotePDFDocument = ({
         </View>
 
         {/* ── Body ────────────────────────────────────────────── */}
-          <View style={styles.infoRow}>
-            <View style={styles.infoCard}>
-              <Text style={styles.infoLabel}>Cliente</Text>
-              <Text style={styles.infoName}>
-                {getClientBillingDisplayName(client) ?? client?.name ?? "—"}
-              </Text>
-              {formatClientBillingAddress(client) && (
-                <Text style={styles.infoText}>
-                  {formatClientBillingAddress(client)}
-                </Text>
-              )}
-              {client?.email && (
-                <Text style={styles.infoText}>{client.email}</Text>
-              )}
-              {client?.phone && (
-                <Text style={styles.infoText}>{client.phone}</Text>
-              )}
-              {getClientBillingIdentityLines(client).map((line) => (
-                <Text key={line} style={styles.infoText}>
-                  {line}
-                </Text>
-              ))}
-            </View>
-            <View
-              style={[
-                styles.infoCard,
-                { borderLeftColor: c.petrol },
-              ]}
-            >
-              <Text style={[styles.infoLabel, { color: c.petrol }]}>
-                Date
-              </Text>
+        <View style={styles.infoRow}>
+          <View style={styles.infoCard}>
+            <Text style={styles.infoLabel}>Cliente</Text>
+            <Text style={styles.infoName}>
+              {getClientBillingDisplayName(client) ?? client?.name ?? "—"}
+            </Text>
+            {formatClientBillingAddress(client) && (
               <Text style={styles.infoText}>
-                Emissione: {fmtDate(quote.created_at)}
+                {formatClientBillingAddress(client)}
               </Text>
-              {quote.event_start && (
-                <Text style={styles.infoText}>
-                  Evento:{" "}
-                  {formatDateLong(
-                    quote.event_start,
-                    quote.event_end,
-                    quote.all_day,
-                  )}
-                </Text>
-              )}
-              {quote.sent_date && (
-                <Text style={styles.infoText}>
-                  Invio: {fmtDate(quote.sent_date)}
-                </Text>
-              )}
-              {quote.response_date && (
-                <Text style={styles.infoText}>
-                  Risposta: {fmtDate(quote.response_date)}
-                </Text>
-              )}
-            </View>
+            )}
+            {client?.email && (
+              <Text style={styles.infoText}>{client.email}</Text>
+            )}
+            {client?.phone && (
+              <Text style={styles.infoText}>{client.phone}</Text>
+            )}
+            {getClientBillingIdentityLines(client).map((line) => (
+              <Text key={line} style={styles.infoText}>
+                {line}
+              </Text>
+            ))}
           </View>
+          <View style={[styles.infoCard, { borderLeftColor: c.petrol }]}>
+            <Text style={[styles.infoLabel, { color: c.petrol }]}>Date</Text>
+            <Text style={styles.infoText}>
+              Emissione: {fmtDate(quote.created_at)}
+            </Text>
+            {quote.event_start && (
+              <Text style={styles.infoText}>
+                Evento:{" "}
+                {formatDateLong(
+                  quote.event_start,
+                  quote.event_end,
+                  quote.all_day,
+                )}
+              </Text>
+            )}
+            {quote.sent_date && (
+              <Text style={styles.infoText}>
+                Invio: {fmtDate(quote.sent_date)}
+              </Text>
+            )}
+            {quote.response_date && (
+              <Text style={styles.infoText}>
+                Risposta: {fmtDate(quote.response_date)}
+              </Text>
+            )}
+          </View>
+        </View>
 
-          {/* ── Table ─────────────────────────────────────────── */}
-          <View style={styles.table}>
-            <View style={styles.tableHeader}>
-              <Text style={[styles.tableHeaderText, styles.colDesc]}>
-                Descrizione
-              </Text>
-              <Text style={[styles.tableHeaderText, styles.colType]}>
-                Dettaglio
-              </Text>
-              <Text style={[styles.tableHeaderText, styles.colAmount]}>
-                Importo
-              </Text>
-            </View>
-            {items.length > 0 ? (
-              items.map((item, index) => (
-                <View
-                  style={styles.tableRow}
-                  key={`${item.description}-${index}`}
-                >
-                  <Text style={[{ fontSize: 11 }, styles.colDesc]}>
-                    {item.description}
-                  </Text>
-                  <Text
-                    style={[{ fontSize: 10, color: c.mid }, styles.colType]}
-                  >
-                    {serviceLabel} · {item.quantity} ×{" "}
-                    {fmtCurrency(item.unit_price)}
-                  </Text>
-                  <Text
-                    style={[
-                      { fontSize: 11, fontFamily: "Helvetica-Bold" },
-                      styles.colAmount,
-                    ]}
-                  >
-                    {fmtCurrency(getQuoteItemLineTotal(item))}
-                  </Text>
-                </View>
-              ))
-            ) : (
-              <View style={styles.tableRow}>
+        {/* ── Table ─────────────────────────────────────────── */}
+        <View style={styles.table}>
+          <View style={styles.tableHeader}>
+            <Text style={[styles.tableHeaderText, styles.colDesc]}>
+              Descrizione
+            </Text>
+            <Text style={[styles.tableHeaderText, styles.colType]}>
+              Dettaglio
+            </Text>
+            <Text style={[styles.tableHeaderText, styles.colAmount]}>
+              Importo
+            </Text>
+          </View>
+          {items.length > 0 ? (
+            items.map((item, index) => (
+              <View
+                style={styles.tableRow}
+                key={`${item.description}-${index}`}
+              >
                 <Text style={[{ fontSize: 11 }, styles.colDesc]}>
-                  {quote.description || "Servizio professionale"}
+                  {item.description}
                 </Text>
-                <Text
-                  style={[{ fontSize: 10, color: c.mid }, styles.colType]}
-                >
-                  {serviceLabel}
+                <Text style={[{ fontSize: 10, color: c.mid }, styles.colType]}>
+                  {serviceLabel} · {item.quantity} ×{" "}
+                  {fmtCurrency(item.unit_price)}
                 </Text>
                 <Text
                   style={[
@@ -477,27 +444,43 @@ export const QuotePDFDocument = ({
                     styles.colAmount,
                   ]}
                 >
-                  {fmtCurrency(quote.amount)}
+                  {fmtCurrency(getQuoteItemLineTotal(item))}
                 </Text>
               </View>
-            )}
-          </View>
-
-          {/* ── Total hero — come l'email ────────────────────── */}
-          <View style={styles.totalHero}>
-            <Text style={styles.totalLabel}>Totale</Text>
-            <Text style={styles.totalAmount}>
-              {fmtCurrency(quote.amount)}
-            </Text>
-          </View>
-
-          {/* ── Notes ─────────────────────────────────────────── */}
-          {quote.notes && (
-            <View style={styles.notesSection}>
-              <Text style={styles.notesTitle}>Note</Text>
-              <Text style={styles.notesText}>{quote.notes}</Text>
+            ))
+          ) : (
+            <View style={styles.tableRow}>
+              <Text style={[{ fontSize: 11 }, styles.colDesc]}>
+                {quote.description || "Servizio professionale"}
+              </Text>
+              <Text style={[{ fontSize: 10, color: c.mid }, styles.colType]}>
+                {serviceLabel}
+              </Text>
+              <Text
+                style={[
+                  { fontSize: 11, fontFamily: "Helvetica-Bold" },
+                  styles.colAmount,
+                ]}
+              >
+                {fmtCurrency(quote.amount)}
+              </Text>
             </View>
           )}
+        </View>
+
+        {/* ── Total hero — come l'email ────────────────────── */}
+        <View style={styles.totalHero}>
+          <Text style={styles.totalLabel}>Totale</Text>
+          <Text style={styles.totalAmount}>{fmtCurrency(quote.amount)}</Text>
+        </View>
+
+        {/* ── Notes ─────────────────────────────────────────── */}
+        {quote.notes && (
+          <View style={styles.notesSection}>
+            <Text style={styles.notesTitle}>Note</Text>
+            <Text style={styles.notesText}>{quote.notes}</Text>
+          </View>
+        )}
 
         {/* ── Footer ──────────────────────────────────────────── */}
         <View style={styles.footer}>
@@ -524,12 +507,8 @@ export const QuotePDFDocument = ({
               businessProfile.fiscalCode
                 ? `CF ${businessProfile.fiscalCode}`
                 : "",
-              businessProfile.sdiCode
-                ? `SDI ${businessProfile.sdiCode}`
-                : "",
-              businessProfile.iban
-                ? `IBAN ${businessProfile.iban}`
-                : "",
+              businessProfile.sdiCode ? `SDI ${businessProfile.sdiCode}` : "",
+              businessProfile.iban ? `IBAN ${businessProfile.iban}` : "",
             ]
               .filter(Boolean)
               .map((item, i, arr) => (

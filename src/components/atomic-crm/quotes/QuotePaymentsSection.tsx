@@ -80,42 +80,42 @@ export const QuotePaymentsSection = ({
   );
 
   return (
-      <div className="sm:mx-4 rounded-lg border border-l-[3px] border-l-[#2C3E50] p-3 sm:p-4 space-y-4">
-        <div className="space-y-2">
-          <div className="flex flex-wrap items-center gap-2">
-            <span className="text-xs font-bold uppercase tracking-wider text-[#2C3E50]">
-              Pagamenti collegati
-            </span>
-            {!isPending && !error ? (
-              <Badge variant="outline">
-                {(data?.length ?? 0) === 1
-                  ? "1 pagamento"
-                  : `${data?.length ?? 0} pagamenti`}
-              </Badge>
-            ) : null}
-          </div>
-          <p className="text-sm text-muted-foreground">
-            Qui vedi solo i pagamenti già collegati a questo preventivo. Serve a
-            capire cosa è già coperto e cosa no.
-          </p>
+    <div className="sm:mx-4 rounded-lg border border-l-[3px] border-l-[#2C3E50] p-3 sm:p-4 space-y-4">
+      <div className="space-y-2">
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="text-xs font-bold uppercase tracking-wider text-[#2C3E50]">
+            Pagamenti collegati
+          </span>
+          {!isPending && !error ? (
+            <Badge variant="outline">
+              {(data?.length ?? 0) === 1
+                ? "1 pagamento"
+                : `${data?.length ?? 0} pagamenti`}
+            </Badge>
+          ) : null}
         </div>
-
-        {error ? (
-          <div className="rounded-md border border-dashed px-3 py-3 text-sm text-muted-foreground">
-            Impossibile leggere i pagamenti collegati adesso.
-          </div>
-        ) : isPending ? (
-          <div className="rounded-md border border-dashed px-3 py-3 text-sm text-muted-foreground">
-            Caricamento pagamenti collegati...
-          </div>
-        ) : !data || data.length === 0 ? (
-          <div className="rounded-md border border-dashed px-3 py-3 text-sm text-muted-foreground">
-            Nessun pagamento collegato ancora a questo preventivo.
-          </div>
-        ) : (
-          <QuotePaymentsLoadedState quote={quote} payments={data} />
-        )}
+        <p className="text-sm text-muted-foreground">
+          Qui vedi solo i pagamenti già collegati a questo preventivo. Serve a
+          capire cosa è già coperto e cosa no.
+        </p>
       </div>
+
+      {error ? (
+        <div className="rounded-md border border-dashed px-3 py-3 text-sm text-muted-foreground">
+          Impossibile leggere i pagamenti collegati adesso.
+        </div>
+      ) : isPending ? (
+        <div className="rounded-md border border-dashed px-3 py-3 text-sm text-muted-foreground">
+          Caricamento pagamenti collegati...
+        </div>
+      ) : !data || data.length === 0 ? (
+        <div className="rounded-md border border-dashed px-3 py-3 text-sm text-muted-foreground">
+          Nessun pagamento collegato ancora a questo preventivo.
+        </div>
+      ) : (
+        <QuotePaymentsLoadedState quote={quote} payments={data} />
+      )}
+    </div>
   );
 };
 

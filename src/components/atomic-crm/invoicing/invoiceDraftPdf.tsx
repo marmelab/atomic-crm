@@ -250,7 +250,6 @@ const fmt = (v: number) =>
     minimumFractionDigits: 2,
   });
 
-
 const clientFiscalLines = (client: Client) =>
   [
     client.vat_number ? `P.IVA ${client.vat_number}` : null,
@@ -295,16 +294,44 @@ const InvoiceDraftPdfDocument = ({
           </View>
           <View style={styles.headerRight}>
             <View style={[styles.badge, { backgroundColor: c.navyLight }]}>
-              <Text style={{ fontSize: 9, fontFamily: "Helvetica-Bold", color: c.navy, letterSpacing: 2, textTransform: "uppercase" as const }}>
+              <Text
+                style={{
+                  fontSize: 9,
+                  fontFamily: "Helvetica-Bold",
+                  color: c.navy,
+                  letterSpacing: 2,
+                  textTransform: "uppercase" as const,
+                }}
+              >
                 Fattura
               </Text>
             </View>
-            <View style={[styles.badge, { backgroundColor: "#FEF2F2", marginTop: 6 }]}>
-              <Text style={{ fontSize: 7.5, fontFamily: "Helvetica-Bold", color: "#B91C1C", letterSpacing: 1, textTransform: "uppercase" as const }}>
+            <View
+              style={[
+                styles.badge,
+                { backgroundColor: "#FEF2F2", marginTop: 6 },
+              ]}
+            >
+              <Text
+                style={{
+                  fontSize: 7.5,
+                  fontFamily: "Helvetica-Bold",
+                  color: "#B91C1C",
+                  letterSpacing: 1,
+                  textTransform: "uppercase" as const,
+                }}
+              >
                 Bozza
               </Text>
             </View>
-            <Text style={{ fontSize: 8, color: c.mid, marginTop: 4, textAlign: "right" as const }}>
+            <Text
+              style={{
+                fontSize: 8,
+                color: c.mid,
+                marginTop: 4,
+                textAlign: "right" as const,
+              }}
+            >
               Data: {draft.invoiceDate ?? todayISODate()}
             </Text>
           </View>
@@ -318,18 +345,34 @@ const InvoiceDraftPdfDocument = ({
             <View style={styles.infoCard}>
               <Text style={styles.infoLabel}>Fornitore</Text>
               <Text style={styles.infoName}>{issuer.name}</Text>
-              {issuer.vatNumber ? <Text style={styles.infoText}>P.IVA: IT{issuer.vatNumber}</Text> : null}
-              {issuer.fiscalCode ? <Text style={styles.infoText}>C.F.: {issuer.fiscalCode}</Text> : null}
-              {issuer.address ? <Text style={styles.infoText}>{issuer.address}</Text> : null}
-              {issuer.phone ? <Text style={styles.infoText}>Telefono: {issuer.phone}</Text> : null}
-              {issuer.email ? <Text style={styles.infoText}>{issuer.email}</Text> : null}
+              {issuer.vatNumber ? (
+                <Text style={styles.infoText}>P.IVA: IT{issuer.vatNumber}</Text>
+              ) : null}
+              {issuer.fiscalCode ? (
+                <Text style={styles.infoText}>C.F.: {issuer.fiscalCode}</Text>
+              ) : null}
+              {issuer.address ? (
+                <Text style={styles.infoText}>{issuer.address}</Text>
+              ) : null}
+              {issuer.phone ? (
+                <Text style={styles.infoText}>Telefono: {issuer.phone}</Text>
+              ) : null}
+              {issuer.email ? (
+                <Text style={styles.infoText}>{issuer.email}</Text>
+              ) : null}
             </View>
             <View style={[styles.infoCard, { borderLeftColor: c.petrol }]}>
-              <Text style={[styles.infoLabel, { color: c.petrol }]}>Cliente</Text>
+              <Text style={[styles.infoLabel, { color: c.petrol }]}>
+                Cliente
+              </Text>
               <Text style={styles.infoName}>{clientName}</Text>
-              {clientAddr ? <Text style={styles.infoText}>{clientAddr}</Text> : null}
+              {clientAddr ? (
+                <Text style={styles.infoText}>{clientAddr}</Text>
+              ) : null}
               {clientFiscalLines(draft.client).map((line) => (
-                <Text key={line} style={styles.infoText}>{line}</Text>
+                <Text key={line} style={styles.infoText}>
+                  {line}
+                </Text>
               ))}
             </View>
           </View>
@@ -348,21 +391,41 @@ const InvoiceDraftPdfDocument = ({
             {lines.map((li, i) => (
               <View key={`${li.description}-${i}`} style={styles.tRow}>
                 <Text style={[{ fontSize: 9 }, styles.cNr]}>{i + 1}</Text>
-                <Text style={[{ fontSize: 10 }, styles.cDesc]}>{li.description}</Text>
-                <Text style={[{ fontSize: 9 }, styles.cQty]}>{li.quantity}</Text>
-                <Text style={[{ fontSize: 9 }, styles.cPrice]}>{fmt(li.unitPrice)}</Text>
-                <Text style={[boldVal, styles.cAmt]}>{fmt(getInvoiceDraftLineTotal(li))}</Text>
-                <Text style={[{ fontSize: 8, color: c.mid }, styles.cIva]}>0% N2.2</Text>
+                <Text style={[{ fontSize: 10 }, styles.cDesc]}>
+                  {li.description}
+                </Text>
+                <Text style={[{ fontSize: 9 }, styles.cQty]}>
+                  {li.quantity}
+                </Text>
+                <Text style={[{ fontSize: 9 }, styles.cPrice]}>
+                  {fmt(li.unitPrice)}
+                </Text>
+                <Text style={[boldVal, styles.cAmt]}>
+                  {fmt(getInvoiceDraftLineTotal(li))}
+                </Text>
+                <Text style={[{ fontSize: 8, color: c.mid }, styles.cIva]}>
+                  0% N2.2
+                </Text>
               </View>
             ))}
             {hasStamp ? (
               <View style={styles.tRow}>
-                <Text style={[{ fontSize: 9 }, styles.cNr]}>{lines.length + 1}</Text>
-                <Text style={[{ fontSize: 9 }, styles.cDesc]}>{STAMP_DUTY_DESC}</Text>
+                <Text style={[{ fontSize: 9 }, styles.cNr]}>
+                  {lines.length + 1}
+                </Text>
+                <Text style={[{ fontSize: 9 }, styles.cDesc]}>
+                  {STAMP_DUTY_DESC}
+                </Text>
                 <Text style={[{ fontSize: 9 }, styles.cQty]}>1</Text>
-                <Text style={[{ fontSize: 9 }, styles.cPrice]}>{fmt(totals.stampDuty)}</Text>
-                <Text style={[boldVal, styles.cAmt]}>{fmt(totals.stampDuty)}</Text>
-                <Text style={[{ fontSize: 8, color: c.mid }, styles.cIva]}>0% N2.2</Text>
+                <Text style={[{ fontSize: 9 }, styles.cPrice]}>
+                  {fmt(totals.stampDuty)}
+                </Text>
+                <Text style={[boldVal, styles.cAmt]}>
+                  {fmt(totals.stampDuty)}
+                </Text>
+                <Text style={[{ fontSize: 8, color: c.mid }, styles.cIva]}>
+                  0% N2.2
+                </Text>
               </View>
             ) : null}
           </View>
@@ -370,7 +433,9 @@ const InvoiceDraftPdfDocument = ({
           {/* ── METODO DI PAGAMENTO ───────────────────────── */}
           <Text style={styles.sectionHeading}>Metodo di pagamento</Text>
           <View style={styles.card}>
-            <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
+            <View
+              style={{ flexDirection: "row", justifyContent: "space-between" }}
+            >
               <View style={{ width: "25%" }}>
                 <Text style={microLabel}>Modalità</Text>
                 <Text style={boldVal}>Bonifico</Text>
@@ -395,7 +460,14 @@ const InvoiceDraftPdfDocument = ({
             {issuer.iban ? (
               <View style={{ marginTop: 6 }}>
                 <Text style={microLabel}>IBAN</Text>
-                <Text style={{ fontSize: 10, fontFamily: "Helvetica-Bold", color: c.ink, letterSpacing: 0.5 }}>
+                <Text
+                  style={{
+                    fontSize: 10,
+                    fontFamily: "Helvetica-Bold",
+                    color: c.ink,
+                    letterSpacing: 0.5,
+                  }}
+                >
                   {issuer.iban}
                 </Text>
               </View>
@@ -405,7 +477,9 @@ const InvoiceDraftPdfDocument = ({
           {/* ── REGIME FISCALE ─────────────────────────────── */}
           <Text style={styles.sectionHeading}>Regime fiscale</Text>
           <View style={[styles.card, { borderLeftColor: c.petrol }]}>
-            <Text style={{ ...boldVal, marginBottom: 3 }}>RF19 — Regime forfettario</Text>
+            <Text style={{ ...boldVal, marginBottom: 3 }}>
+              RF19 — Regime forfettario
+            </Text>
             <Text style={styles.noteText}>
               Operazione senza applicazione dell'IVA ai sensi dell'art. 1 co.
               54-89 della legge n. 190/2014 così come modificato dalla legge n.
@@ -414,22 +488,74 @@ const InvoiceDraftPdfDocument = ({
           </View>
 
           {/* ── RIEPILOGO IVA + CALCOLO ───────────────────── */}
-          <Text style={styles.sectionHeading}>Riepilogo IVA e calcolo fattura</Text>
+          <Text style={styles.sectionHeading}>
+            Riepilogo IVA e calcolo fattura
+          </Text>
           <View style={{ flexDirection: "row", gap: 12, marginBottom: 6 }}>
             {/* Left: IVA summary */}
-            <View style={{ width: "48%", borderWidth: 0.5, borderColor: c.rule, borderRadius: 10, overflow: "hidden" }}>
-              <View style={{ flexDirection: "row", backgroundColor: c.navyLight, paddingVertical: 5, paddingHorizontal: 8, borderBottomWidth: 0.5, borderBottomColor: c.navy }}>
+            <View
+              style={{
+                width: "48%",
+                borderWidth: 0.5,
+                borderColor: c.rule,
+                borderRadius: 10,
+                overflow: "hidden",
+              }}
+            >
+              <View
+                style={{
+                  flexDirection: "row",
+                  backgroundColor: c.navyLight,
+                  paddingVertical: 5,
+                  paddingHorizontal: 8,
+                  borderBottomWidth: 0.5,
+                  borderBottomColor: c.navy,
+                }}
+              >
                 {["IVA", "NATURA", "IMPONIBILE", "IMPOSTA"].map((h, i) => (
-                  <Text key={h} style={{ fontSize: 7, fontFamily: "Helvetica-Bold", color: c.navy, letterSpacing: 1, width: i < 2 ? "18%" : "32%", textAlign: i >= 2 ? ("right" as const) : ("left" as const) }}>
+                  <Text
+                    key={h}
+                    style={{
+                      fontSize: 7,
+                      fontFamily: "Helvetica-Bold",
+                      color: c.navy,
+                      letterSpacing: 1,
+                      width: i < 2 ? "18%" : "32%",
+                      textAlign:
+                        i >= 2 ? ("right" as const) : ("left" as const),
+                    }}
+                  >
                     {h}
                   </Text>
                 ))}
               </View>
-              <View style={{ flexDirection: "row", paddingVertical: 6, paddingHorizontal: 8 }}>
+              <View
+                style={{
+                  flexDirection: "row",
+                  paddingVertical: 6,
+                  paddingHorizontal: 8,
+                }}
+              >
                 <Text style={{ fontSize: 9, width: "18%" }}>0%</Text>
                 <Text style={{ fontSize: 9, width: "18%" }}>N2.2</Text>
-                <Text style={{ fontSize: 9, width: "32%", textAlign: "right" as const }}>{fmt(totals.totalAmount)}</Text>
-                <Text style={{ fontSize: 9, width: "32%", textAlign: "right" as const }}>{fmt(0)}</Text>
+                <Text
+                  style={{
+                    fontSize: 9,
+                    width: "32%",
+                    textAlign: "right" as const,
+                  }}
+                >
+                  {fmt(totals.totalAmount)}
+                </Text>
+                <Text
+                  style={{
+                    fontSize: 9,
+                    width: "32%",
+                    textAlign: "right" as const,
+                  }}
+                >
+                  {fmt(0)}
+                </Text>
               </View>
             </View>
             {/* Right: Calculation */}
@@ -439,12 +565,25 @@ const InvoiceDraftPdfDocument = ({
                 ["Totale non soggetto IVA (N2)", fmt(totals.totalAmount)],
                 ["Totale IVA", fmt(0)],
               ].map(([label, val]) => (
-                <View key={label} style={{ flexDirection: "row", justifyContent: "space-between", marginBottom: 3 }}>
+                <View
+                  key={label}
+                  style={{
+                    flexDirection: "row",
+                    justifyContent: "space-between",
+                    marginBottom: 3,
+                  }}
+                >
                   <Text style={{ fontSize: 9, color: c.mid }}>{label}</Text>
                   <Text style={{ fontSize: 9 }}>{val}</Text>
                 </View>
               ))}
-              <View style={{ flexDirection: "row", justifyContent: "space-between", marginBottom: 3 }}>
+              <View
+                style={{
+                  flexDirection: "row",
+                  justifyContent: "space-between",
+                  marginBottom: 3,
+                }}
+              >
                 <Text style={boldVal}>Totale documento</Text>
                 <Text style={boldVal}>{fmt(totals.totalAmount)}</Text>
               </View>
@@ -453,10 +592,25 @@ const InvoiceDraftPdfDocument = ({
 
           {/* ── NETTO A PAGARE ─────────────────────────────── */}
           <View style={styles.totalHero}>
-            <Text style={{ fontSize: 9, fontFamily: "Helvetica-Bold", color: c.navy, textTransform: "uppercase" as const, letterSpacing: 2 }}>
+            <Text
+              style={{
+                fontSize: 9,
+                fontFamily: "Helvetica-Bold",
+                color: c.navy,
+                textTransform: "uppercase" as const,
+                letterSpacing: 2,
+              }}
+            >
               Netto a pagare
             </Text>
-            <Text style={{ fontSize: 22, fontFamily: "Helvetica-Bold", color: c.ink, letterSpacing: -0.3 }}>
+            <Text
+              style={{
+                fontSize: 22,
+                fontFamily: "Helvetica-Bold",
+                color: c.ink,
+                letterSpacing: -0.3,
+              }}
+            >
               {fmt(totals.totalAmount)}
             </Text>
           </View>
@@ -479,7 +633,14 @@ const InvoiceDraftPdfDocument = ({
             </View>
           ) : null}
 
-          <Text style={{ fontSize: 8, color: c.mid, marginTop: 10, textAlign: "right" as const }}>
+          <Text
+            style={{
+              fontSize: 8,
+              color: c.mid,
+              marginTop: 10,
+              textAlign: "right" as const,
+            }}
+          >
             Rif.: {draft.source.kind} — {draft.source.label}
           </Text>
         </View>

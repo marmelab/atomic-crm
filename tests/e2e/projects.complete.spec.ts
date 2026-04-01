@@ -42,7 +42,10 @@ test.describe("Module: Projects - Complete", () => {
 
     // Compila campi
     await page.getByLabel("Nome progetto").fill("Nuovo Progetto Test");
-    await selectFirstOption(page, page.getByRole("combobox", { name: "Cliente" }));
+    await selectFirstOption(
+      page,
+      page.getByRole("combobox", { name: "Cliente" }),
+    );
 
     await page.getByLabel("Categoria").click();
     await page.getByRole("option", { name: "Produzione TV" }).click();
@@ -160,9 +163,7 @@ test.describe("Module: Projects - Complete", () => {
     await expect(page.getByText(/3\.?328,50/).first()).toBeVisible();
 
     // Download PDF disponibile
-    await expect(
-      page.getByRole("button", { name: "PDF" }),
-    ).toBeVisible();
+    await expect(page.getByRole("button", { name: "PDF" })).toBeVisible();
 
     await page.getByRole("button", { name: "Chiudi" }).click();
   });

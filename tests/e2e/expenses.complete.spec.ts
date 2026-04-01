@@ -58,7 +58,10 @@ test.describe("Module: Expenses - Complete", () => {
     await page.getByLabel("Spesa a mio carico").click();
 
     // Seleziona progetto
-    await selectFirstOption(page, page.getByRole("combobox", { name: "Progetto" }));
+    await selectFirstOption(
+      page,
+      page.getByRole("combobox", { name: "Progetto" }),
+    );
 
     // Data
     await page.getByLabel("Data").fill("2026-03-10");
@@ -94,7 +97,10 @@ test.describe("Module: Expenses - Complete", () => {
     await page.getByLabel("Spesa a mio carico").click();
 
     // Seleziona progetto
-    await selectFirstOption(page, page.getByRole("combobox", { name: "Progetto" }));
+    await selectFirstOption(
+      page,
+      page.getByRole("combobox", { name: "Progetto" }),
+    );
 
     // Data
     await page.getByLabel("Data").fill("2026-03-15");
@@ -238,7 +244,10 @@ test.describe("Module: Expenses - Complete", () => {
     await page.getByLabel("Spesa a mio carico").click();
 
     // Crea credito ricevuto
-    await selectFirstOption(page, page.getByRole("combobox", { name: "Progetto" }));
+    await selectFirstOption(
+      page,
+      page.getByRole("combobox", { name: "Progetto" }),
+    );
     await page.getByLabel("Data").fill("2026-03-20");
     await page.getByLabel("Tipo").click();
     await page.getByRole("option", { name: "Credito ricevuto" }).click();

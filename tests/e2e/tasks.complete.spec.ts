@@ -25,7 +25,9 @@ test.describe("Module: Tasks - Complete", () => {
     ).toBeVisible();
     await expect(page.locator('input[type="date"]').first()).toBeVisible();
     await expect(page.locator('input[type="date"]').nth(1)).toBeVisible();
-    await expect(page.getByText("I tuoi promemoria appariranno qui.")).toBeVisible();
+    await expect(
+      page.getByText("I tuoi promemoria appariranno qui."),
+    ).toBeVisible();
   });
 
   test("create task with client link", async ({ page }) => {
@@ -85,7 +87,9 @@ test.describe("Module: Tasks - Complete", () => {
     await dateInputs.first().fill("2026-03-19");
     await dateInputs.nth(1).fill("2026-03-21");
 
-    await expect(page.locator("#main-content").getByText("Risultati")).toBeVisible();
+    await expect(
+      page.locator("#main-content").getByText("Risultati"),
+    ).toBeVisible();
     await expect(
       page.locator("#main-content").getByText("Task range test"),
     ).toBeVisible();

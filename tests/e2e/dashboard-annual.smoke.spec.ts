@@ -32,16 +32,12 @@ test.describe("Annual Dashboard", () => {
     expect(dashboardText).toMatch(/6[.,]?500/);
 
     // Pending payments KPI card
-    await expect(
-      page.getByText("Da incassare", { exact: true }),
-    ).toBeVisible();
+    await expect(page.getByText("Da incassare", { exact: true })).toBeVisible();
     // 2000€ in_attesa + 500€ scaduto = 2500€
     expect(dashboardText).toMatch(/2[.,]?500/);
 
     // Open quotes: should show count (0 in test data)
-    await expect(
-      page.getByText("Preventivi aperti").first(),
-    ).toBeVisible();
+    await expect(page.getByText("Preventivi aperti").first()).toBeVisible();
   });
 
   test("alert rows have clickable links to detail pages", async ({ page }) => {

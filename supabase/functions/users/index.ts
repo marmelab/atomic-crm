@@ -6,10 +6,15 @@ import { AuthMiddleware, UserMiddleware } from "../_shared/authentication.ts";
 import { getUserSale } from "../_shared/getUserSale.ts";
 
 async function updateSaleDisabled(user_id: string, disabled: boolean) {
-  return await supabaseAdmin
+  const { error } = await supabaseAdmin
     .from("sales")
     .update({ disabled: disabled ?? false })
     .eq("user_id", user_id);
+
+  if (error) {
+    console.error("updateSaleDisabled.error", { user_id, error });
+    throw error;
+  }
 }
 
 async function updateSaleAdministrator(

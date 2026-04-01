@@ -157,7 +157,9 @@ export const SendPaymentReminderDialog = ({
       </DialogTrigger>
       <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="text-lg font-bold text-[#2C3E50]">Invia reminder pagamento</DialogTitle>
+          <DialogTitle className="text-lg font-bold text-[#2C3E50]">
+            Invia reminder pagamento
+          </DialogTitle>
           <DialogDescription>
             Rivedi il contenuto della mail prima di inviarla. Dopo l'invio
             riceverai una notifica email e WhatsApp di conferma.
@@ -182,33 +184,43 @@ export const SendPaymentReminderDialog = ({
           <div className="space-y-4">
             <div className="grid gap-3 md:grid-cols-2">
               <div className="rounded-lg border border-l-[3px] border-l-[#2C3E50] bg-white px-3 py-3">
-                <p className="text-xs font-bold uppercase tracking-wider text-[#2C3E50]">A</p>
+                <p className="text-xs font-bold uppercase tracking-wider text-[#2C3E50]">
+                  A
+                </p>
                 <p className="text-sm font-medium">
                   {clientEmail || "Email cliente mancante"}
                 </p>
               </div>
               <div className="rounded-lg border border-l-[3px] border-l-[#456B6B] bg-white px-3 py-3">
-                <p className="text-xs font-bold uppercase tracking-wider text-[#456B6B]">Oggetto</p>
+                <p className="text-xs font-bold uppercase tracking-wider text-[#456B6B]">
+                  Oggetto
+                </p>
                 <p className="text-sm font-medium">{preview.subject}</p>
               </div>
             </div>
 
             <div className="grid gap-3 md:grid-cols-3">
               <div className="rounded-lg border border-l-[3px] border-l-[#2C3E50] bg-white px-3 py-3">
-                <p className="text-xs font-bold uppercase tracking-wider text-[#2C3E50]">Importo</p>
+                <p className="text-xs font-bold uppercase tracking-wider text-[#2C3E50]">
+                  Importo
+                </p>
                 <p className="text-sm font-semibold">
                   {formatCurrency(Number(payment.amount ?? 0))}
                 </p>
               </div>
               <div className="rounded-lg border border-l-[3px] border-l-[#456B6B] bg-white px-3 py-3">
-                <p className="text-xs font-bold uppercase tracking-wider text-[#456B6B]">Tipo</p>
+                <p className="text-xs font-bold uppercase tracking-wider text-[#456B6B]">
+                  Tipo
+                </p>
                 <p className="text-sm font-medium">
                   {paymentTypeLabels[payment.payment_type] ??
                     payment.payment_type}
                 </p>
               </div>
               <div className="rounded-lg border border-l-[3px] border-l-[#2C3E50] bg-white px-3 py-3">
-                <p className="text-xs font-bold uppercase tracking-wider text-[#2C3E50]">Ritardo</p>
+                <p className="text-xs font-bold uppercase tracking-wider text-[#2C3E50]">
+                  Ritardo
+                </p>
                 <p className="text-sm font-medium">
                   {daysOverdue} {daysOverdue === 1 ? "giorno" : "giorni"}
                 </p>
@@ -244,7 +256,9 @@ export const SendPaymentReminderDialog = ({
             </div>
 
             <div className="space-y-2">
-              <p className="text-xs font-bold uppercase tracking-wider text-[#2C3E50]">Anteprima testo</p>
+              <p className="text-xs font-bold uppercase tracking-wider text-[#2C3E50]">
+                Anteprima testo
+              </p>
               <div className="rounded-lg border bg-[#E8EDF2]/50 px-4 py-4 text-sm whitespace-pre-wrap leading-6">
                 {preview.text}
               </div>

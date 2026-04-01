@@ -43,7 +43,10 @@ test.describe("Module: Payments - Complete", () => {
     // Seleziona cliente
     await page.getByRole("combobox", { name: "Cliente" }).click();
     await page.getByPlaceholder("Cerca...").fill("Test Client");
-    await page.getByRole("option", { name: /Test Client/ }).first().click();
+    await page
+      .getByRole("option", { name: /Test Client/ })
+      .first()
+      .click();
 
     // Seleziona progetto
     await page.getByRole("combobox", { name: "Progetto" }).click();
@@ -123,7 +126,9 @@ test.describe("Module: Payments - Complete", () => {
     // status badge, client name, and project name inline.
     await expect(page.getByText(/EUR \d/).first()).toBeVisible();
     // Status badge should be visible
-    await expect(page.locator(".inline-flex.items-center.gap-1").first()).toBeVisible();
+    await expect(
+      page.locator(".inline-flex.items-center.gap-1").first(),
+    ).toBeVisible();
     // Client and project names should be visible
     await expect(page.getByText(/Test Client/).first()).toBeVisible();
     await expect(page.getByText(/Test Project/).first()).toBeVisible();
@@ -162,9 +167,7 @@ test.describe("Module: Payments - Complete", () => {
     await expect(page.getByText("Cosa devi fare")).toBeVisible();
 
     // The action button text is "Incassato"
-    const markButton = page
-      .getByRole("button", { name: "Incassato" })
-      .first();
+    const markButton = page.getByRole("button", { name: "Incassato" }).first();
     if (await markButton.isVisible().catch(() => false)) {
       await markButton.click();
 

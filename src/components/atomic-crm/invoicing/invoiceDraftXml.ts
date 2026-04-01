@@ -41,7 +41,6 @@ const tag = (name: string, value: string | number) =>
 const optTag = (name: string, value: string | number | undefined | null) =>
   value != null && String(value).trim() !== "" ? tag(name, value) : "";
 
-
 // ── Client billing address for XML ──────────────────────────────────
 
 const buildClientSede = (client: Client): string => {

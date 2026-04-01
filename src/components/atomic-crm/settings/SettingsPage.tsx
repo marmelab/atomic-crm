@@ -12,7 +12,6 @@ import {
   Zap,
   Bot,
   Palette,
-
   Car,
 } from "lucide-react";
 import { Link } from "react-router";
@@ -264,8 +263,7 @@ const SettingsFormFields = () => {
   useEffect(() => {
     // MobileContent uses overflow-y-auto on #main-content, so scroll events
     // fire on that container, not on window. We listen to both.
-    const scrollContainer =
-      document.getElementById("main-content") ?? window;
+    const scrollContainer = document.getElementById("main-content") ?? window;
     let lastScrollY = 0;
     const getScrollY = () =>
       scrollContainer instanceof HTMLElement
@@ -279,8 +277,7 @@ const SettingsFormFields = () => {
     scrollContainer.addEventListener("scroll", handleScroll, {
       passive: true,
     });
-    return () =>
-      scrollContainer.removeEventListener("scroll", handleScroll);
+    return () => scrollContainer.removeEventListener("scroll", handleScroll);
   }, []);
 
   const [openSections, setOpenSections] = useState<Set<string>>(new Set());
@@ -307,9 +304,8 @@ const SettingsFormFields = () => {
   };
 
   const activeCategoryId =
-    CATEGORIES.find((cat) =>
-      cat.sections.some((s) => s.id === activeSection),
-    )?.id ?? CATEGORIES[0].id;
+    CATEGORIES.find((cat) => cat.sections.some((s) => s.id === activeSection))
+      ?.id ?? CATEGORIES[0].id;
 
   return (
     <div className="flex flex-col md:flex-row gap-0 md:gap-8 mt-0 md:mt-4 pb-6 md:pb-20">
@@ -436,7 +432,6 @@ const SettingsFormFields = () => {
           </div>
         </CollapsibleSection>
 
-
         {/* Tags */}
         <CollapsibleSection
           id="tags"
@@ -459,8 +454,8 @@ const SettingsFormFields = () => {
           onToggle={() => toggleSection("quote-types")}
         >
           <p className="text-sm text-muted-foreground">
-            Categorie di lavoro proposte al cliente (es. Wedding, Produzione
-            TV, Spot).
+            Categorie di lavoro proposte al cliente (es. Wedding, Produzione TV,
+            Spot).
           </p>
           <ArrayInput
             source="quoteServiceTypes"
@@ -615,12 +610,14 @@ const SettingsFormFields = () => {
       </div>
 
       {/* Save bar — sticky on mobile (auto-hide on scroll), fixed+always visible on desktop */}
-      <div className={cn(
-        "sticky bottom-0 md:fixed md:bottom-0 md:left-0 md:right-0 z-60 border-t bg-background p-3 md:p-4 transition-all duration-300 md:opacity-100 md:translate-y-0 md:pointer-events-auto",
-        saveBarVisible
-          ? "opacity-100 translate-y-0"
-          : "opacity-0 translate-y-4 pointer-events-none"
-      )}>
+      <div
+        className={cn(
+          "sticky bottom-0 md:fixed md:bottom-0 md:left-0 md:right-0 z-60 border-t bg-background p-3 md:p-4 transition-all duration-300 md:opacity-100 md:translate-y-0 md:pointer-events-auto",
+          saveBarVisible
+            ? "opacity-100 translate-y-0"
+            : "opacity-0 translate-y-4 pointer-events-none",
+        )}
+      >
         <div className="max-w-screen-xl mx-auto flex gap-8 px-0 md:px-4">
           <div className="hidden md:block w-48 shrink-0" />
           <div className="flex-1 min-w-0 max-w-2xl flex flex-wrap items-center justify-between gap-2">
@@ -687,8 +684,12 @@ const CollapsibleSection = ({
       className="w-full flex items-center justify-between px-4 py-3 text-left"
     >
       <div className="flex items-center gap-2">
-        {Icon && <Icon className={cn("h-5 w-5", color ?? "text-muted-foreground")} />}
-        <h2 className="text-base font-semibold text-muted-foreground">{title}</h2>
+        {Icon && (
+          <Icon className={cn("h-5 w-5", color ?? "text-muted-foreground")} />
+        )}
+        <h2 className="text-base font-semibold text-muted-foreground">
+          {title}
+        </h2>
       </div>
       <ChevronDown
         className={cn(

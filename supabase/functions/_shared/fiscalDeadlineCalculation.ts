@@ -336,8 +336,7 @@ export const buildTaskPayloads = (
       tasks.push({
         text: `${item.description}${amountNote}`,
         type: inferTaskType(item.description),
-        due_date:
-          startOfBusinessDayISOString(deadline.date) ?? deadline.date,
+        due_date: startOfBusinessDayISOString(deadline.date) ?? deadline.date,
         done_date: null,
         client_id: null,
       });

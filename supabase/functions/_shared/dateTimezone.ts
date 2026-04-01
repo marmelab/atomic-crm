@@ -59,7 +59,9 @@ const businessDateStartUtcDate = (isoDate: string): Date => {
   let offsetMinutes = getBusinessOffsetMinutesAt(new Date(utcMidnight));
   let candidateUtc = utcMidnight - offsetMinutes * 60_000;
 
-  const refinedOffsetMinutes = getBusinessOffsetMinutesAt(new Date(candidateUtc));
+  const refinedOffsetMinutes = getBusinessOffsetMinutesAt(
+    new Date(candidateUtc),
+  );
   if (refinedOffsetMinutes !== offsetMinutes) {
     offsetMinutes = refinedOffsetMinutes;
     candidateUtc = utcMidnight - offsetMinutes * 60_000;

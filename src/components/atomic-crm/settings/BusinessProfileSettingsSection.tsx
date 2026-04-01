@@ -6,7 +6,10 @@ export const BusinessProfileSettingsSection = () => (
       Dati dell'emittente usati nei PDF di preventivi e bozze fattura.
     </p>
     <TextInput source="businessProfile.name" label="Nome" />
-    <TextInput source="businessProfile.beneficiaryName" label="Beneficiario pagamento (nome completo)" />
+    <TextInput
+      source="businessProfile.beneficiaryName"
+      label="Beneficiario pagamento (nome completo)"
+    />
     <TextInput source="businessProfile.tagline" label="Sottotitolo" />
     <TextInput source="businessProfile.vatNumber" label="P.IVA" />
     <TextInput source="businessProfile.fiscalCode" label="Codice Fiscale" />

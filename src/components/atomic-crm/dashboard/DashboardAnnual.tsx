@@ -179,11 +179,7 @@ export const DashboardAnnual = () => {
                 existingTasksCount={fiscalTasksCount}
                 getPayment={getPayment}
                 onMarkPaid={(deadline) =>
-                  markAsPaid(
-                    deadline,
-                    deadline.totalAmount,
-                    todayISODate(),
-                  )
+                  markAsPaid(deadline, deadline.totalAmount, todayISODate())
                 }
                 onClearPayment={clearPayment}
               />

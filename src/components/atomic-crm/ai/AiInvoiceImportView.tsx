@@ -1,9 +1,4 @@
-import {
-  CheckCircle2,
-  FileUp,
-  Loader2,
-  SendHorizontal,
-} from "lucide-react";
+import { CheckCircle2, FileUp, Loader2, SendHorizontal } from "lucide-react";
 import type { ChangeEventHandler, RefObject } from "react";
 
 import { Button } from "@/components/ui/button";

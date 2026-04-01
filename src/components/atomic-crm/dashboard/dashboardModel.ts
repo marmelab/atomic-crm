@@ -457,7 +457,9 @@ export const buildDashboardModel = ({
   const paymentAlerts = pendingPayments
     .map((payment) => {
       const paymentDate = payment.payment_date;
-      const paymentDateIso = paymentDate ? toBusinessISODate(paymentDate) : null;
+      const paymentDateIso = paymentDate
+        ? toBusinessISODate(paymentDate)
+        : null;
       const clientName =
         clientById.get(
           payment.client_id != null ? String(payment.client_id) : "",
@@ -536,9 +538,7 @@ export const buildDashboardModel = ({
         description: quote.description || "Preventivo",
         status: quote.status,
         sentDate: quote.sent_date,
-        daysWaiting: Math.abs(
-          diffBusinessDays(sentDateIso, todayIso) ?? 0,
-        ),
+        daysWaiting: Math.abs(diffBusinessDays(sentDateIso, todayIso) ?? 0),
         amount: toNumber(quote.amount),
       } satisfies UnansweredQuoteAlert;
     })

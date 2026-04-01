@@ -36,8 +36,7 @@ export const TasksListContent = () => {
     "done_date@is": null as unknown as string,
     ...(dateFrom
       ? {
-          "due_date@gte":
-            startOfBusinessDayISOString(dateFrom) ?? dateFrom,
+          "due_date@gte": startOfBusinessDayISOString(dateFrom) ?? dateFrom,
         }
       : {}),
     ...(dateTo

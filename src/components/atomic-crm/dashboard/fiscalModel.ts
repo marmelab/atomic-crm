@@ -173,7 +173,10 @@ export const buildFiscalModel = ({
   for (const service of services) {
     if (!service.service_date) continue;
     const serviceDateIso = toBusinessISODate(service.service_date);
-    if (!serviceDateIso || getBusinessYear(service.service_date) !== currentYear)
+    if (
+      !serviceDateIso ||
+      getBusinessYear(service.service_date) !== currentYear
+    )
       continue;
     const project = service.project_id
       ? projectById.get(String(service.project_id))

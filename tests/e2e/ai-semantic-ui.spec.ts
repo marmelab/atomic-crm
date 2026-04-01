@@ -22,9 +22,7 @@ test.describe("AI Semantic UI", () => {
     await expect(
       page.getByRole("button", { name: "Fatturazione" }),
     ).toBeVisible();
-    await expect(
-      page.getByRole("button", { name: "Incassi" }),
-    ).toBeVisible();
+    await expect(page.getByRole("button", { name: "Incassi" })).toBeVisible();
     await expect(
       page.getByRole("button", { name: "Lavoro svolto" }),
     ).toBeVisible();
@@ -78,9 +76,7 @@ test.describe("AI Semantic UI", () => {
     await page.getByRole("button", { name: "Apri chat AI unificata" }).click();
 
     // Clicca su una domanda suggerita
-    await page
-      .getByText("Come sta andando il business questo mese?")
-      .click();
+    await page.getByText("Come sta andando il business questo mese?").click();
 
     // Verifica stato di caricamento
     await expect(
@@ -88,9 +84,7 @@ test.describe("AI Semantic UI", () => {
     ).toBeVisible({ timeout: 5000 });
   });
 
-  test("AI launcher has multiple category tabs available", async ({
-    page,
-  }) => {
+  test("AI launcher has multiple category tabs available", async ({ page }) => {
     await loginAsLocalAdmin(page);
 
     // Apri AI launcher
@@ -103,9 +97,7 @@ test.describe("AI Semantic UI", () => {
     expect(await categoryTabs.count()).toBeGreaterThanOrEqual(5);
 
     // Verifica che le domande siano cliccabili (button elements)
-    const questionButtons = page.locator(
-      'button:has-text("Come sta andando")',
-    );
+    const questionButtons = page.locator('button:has-text("Come sta andando")');
     await expect(questionButtons.first()).toBeVisible();
   });
 });
