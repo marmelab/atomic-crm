@@ -173,10 +173,19 @@ async function createEvent(serviceId: string) {
   };
 
   // Save the event ID and link back to the service
-  await supabaseAdmin
+  const { error: updateError } = await supabaseAdmin
     .from("services")
     .update({ google_event_id: googleEventId, google_event_link: htmlLink })
     .eq("id", serviceId);
+
+  if (updateError) {
+    console.error("google_calendar_sync.db_update_error", {
+      serviceId,
+      googleEventId,
+      error: updateError,
+    });
+    return { error: "Calendar event created but failed to save link in DB" };
+  }
 
   return { google_event_id: googleEventId, google_event_link: htmlLink };
 }
@@ -238,10 +247,19 @@ async function deleteEvent(serviceId: string) {
   }
 
   // Clear the event ID and link from the service
-  await supabaseAdmin
+  const { error: updateError } = await supabaseAdmin
     .from("services")
     .update({ google_event_id: null, google_event_link: null })
     .eq("id", serviceId);
+
+  if (updateError) {
+    console.error("google_calendar_sync.db_clear_error", {
+      serviceId,
+      eventId,
+      error: updateError,
+    });
+    return { error: "Calendar event deleted but failed to clear link in DB" };
+  }
 
   return { deleted: eventId };
 }

@@ -6,7 +6,7 @@ obbligatoria delle superfici collegate.
 **Quando usarlo:** ogni volta che una modifica tocca comportamento reale del
 prodotto.
 
-Last updated: 2026-03-31 (Timezone bonifica phase 4b — residual grep cleanup)
+Last updated: 2026-04-01 (H1 — google_calendar_sync Supabase mutation error handling)
 
 ---
 
@@ -2154,3 +2154,29 @@ npx playwright test tests/e2e/ai-semantic-ui.spec.ts
 - ✅ Lint: PASS
 - ✅ E2E semantic UI: 2/4 test pass (struttura verificata)
 - ✅ UI: Colori semantici visibili nel launcher AI
+
+---
+
+## Update 2026-04-01 — H1: google_calendar_sync Supabase mutation error handling
+
+Fix: `createEvent` e `deleteEvent` in `google_calendar_sync/index.ts` ignoravano
+silenziosamente gli errori delle mutation Supabase (`.update()` su services).
+Ora entrambe le funzioni destrutturano `{ error }` e ritornano un messaggio
+esplicito se il DB update fallisce, loggando `google_calendar_sync.db_update_error`
+/ `google_calendar_sync.db_clear_error` per tracciabilità nei log Edge Function.
+
+**File toccato:** `supabase/functions/google_calendar_sync/index.ts`
+**Impatto architetturale:** nessuno — solo error handling mancante aggiunto.
+
+---
+
+## Update 2026-04-01 — M3: storageBucket fetch error logging
+
+Fix: il `.catch(() => null)` in `uploadToBucket` inghiottiva silenziosamente
+gli errori di rete durante il fetch del blob da `fi.src`.
+Ora il catch logga `console.warn("storageBucket.fetch_error", fi.src, err)`
+prima di ritornare `null`, rendendo visibili eventuali fallimenti nel caricamento
+allegati.
+
+**File toccato:** `src/components/atomic-crm/providers/supabase/storageBucket.ts`
+**Impatto architetturale:** nessuno — solo error handling mancante aggiunto.

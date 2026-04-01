@@ -60,7 +60,10 @@ export const uploadToBucket = async (fi: RAFile) => {
           }
           return res.blob();
         })
-        .catch(() => null)
+        .catch((err: unknown) => {
+          console.warn("storageBucket.fetch_error", fi.src, err);
+          return null;
+        })
     : fi.rawFile;
 
   if (dataContent == null) {
