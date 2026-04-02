@@ -15,6 +15,7 @@ Stato del documento:
 
 ## Changelog
 
+- 2026-04-02: Fiscal reality layer Phase 1 step 5 — `fiscalRealityProvider.ts` adds 10 closure-based provider methods for fiscal CRUD (declarations, obligations, F24 submissions/payment lines, regeneration, declaration delete). All reads are year-scoped via DB-side filters. `getEnrichedPaymentLinesForYear` uses two-step query (obligation IDs by payment_year, then lines by obligation_id). `regenerateDeclarationObligations` and `deleteFiscalDeclaration` return structured `BlockedObligation[]` results. Merged into `dataProvider.ts` via `buildFiscalRealityProviderMethods()`.
 - 2026-04-02: Fiscal reality layer Phase 1 step 4 — `buildFiscalRealityAwareSchedule` read model merges estimated deadlines with real obligations via UNION+merge by canonical key (`component::competenceYear::dueDate`). Handles estimate-only, obligation-only (manual/standalone), mixed sources, partial/full/over payments, deterministic component sort order, and priority-then-date deadline sort. 11 unit tests cover all status derivations, real-only deadlines, `estimateComparison`, and totals.
 - 2026-04-02: Fiscal reality layer Phase 1 step 2 — `buildObligationsFromDeclaration` pure function converts a `FiscalDeclaration` into `ObligationDraft[]` (omits server fields `id`, `created_at`, `updated_at`, `user_id`). Rules: saldo clamped ≥0, imposta double/single/no acconto based on thresholds (€257.52/€51.65), INPS 40%×2 when >0, zero-amount obligations not emitted, all rounded via `roundFiscalOutput`; 25 unit tests; no DB write or UI wiring in this step.
 - 2026-04-02: Fiscal reality layer — TypeScript types for 4 DB tables (`fiscal_declarations`, `fiscal_obligations`, `fiscal_f24_submissions`, `fiscal_f24_payment_lines`) and read model types (`FiscalDeadlineView`, `FiscalDeadlineViewItem`) added in `fiscalRealityTypes.ts`; no runtime change, type-only foundation for Phase 1.
@@ -855,6 +856,7 @@ Il provider Supabase e' organizzato in moduli feature nel path
 | `dataProviderInvoiceImport.ts` | Workspace, upload file, genera/conferma draft import (payments, expenses, services) |
 | `dataProviderCommunications.ts` | Email context preventivo, invio email |
 | `dataProviderTravel.ts` | Stima tratta, suggerisci luoghi |
+| `fiscalRealityProvider.ts` | CRUD fiscale: declarations, obligations, F24 submissions/payment lines, regeneration |
 | `dataProviderTypes.ts` | Tipi condivisi: InvokeEdgeFunction, BaseProvider, LARGE_PAGE |
 | `storageBucket.ts` | Upload attachments, logo config, file import fatture |
 | `edgeFunctionError.ts` | Helper estrazione errore da Edge Function |

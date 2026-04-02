@@ -33,6 +33,7 @@ import { buildInvoiceImportProviderMethods } from "./dataProviderInvoiceImport";
 import { buildCommunicationsProviderMethods } from "./dataProviderCommunications";
 import { buildTravelProviderMethods } from "./dataProviderTravel";
 import { buildGoogleCalendarProviderMethods } from "./dataProviderGoogleCalendar";
+import { buildFiscalRealityProviderMethods } from "./fiscalRealityProvider";
 
 if (import.meta.env.VITE_SUPABASE_URL === undefined) {
   throw new Error("Please set the VITE_SUPABASE_URL environment variable");
@@ -120,6 +121,7 @@ const travelMethods = buildTravelProviderMethods({
 const googleCalendarMethods = buildGoogleCalendarProviderMethods({
   invokeEdgeFunction: invokeAuthenticatedEdgeFunction,
 });
+const fiscalRealityMethods = buildFiscalRealityProviderMethods();
 
 // --- Core provider: auth, sales, config + assembled feature methods ---
 
@@ -131,6 +133,7 @@ const dataProviderWithCustomMethods = {
   ...commsMethods,
   ...travelMethods,
   ...googleCalendarMethods,
+  ...fiscalRealityMethods,
 
   async signUp({ email, password, first_name, last_name }: SignUpData) {
     const response = await supabase.auth.signUp({

@@ -6,7 +6,7 @@ obbligatoria delle superfici collegate.
 **Quando usarlo:** ogni volta che una modifica tocca comportamento reale del
 prodotto.
 
-Last updated: 2026-04-02 (fiscal reality layer — DB migration)
+Last updated: 2026-04-02 (fiscal reality layer — provider methods)
 
 ---
 
@@ -14,6 +14,7 @@ Last updated: 2026-04-02 (fiscal reality layer — DB migration)
 
 ### Recent Updates (cronologico, più recente in alto)
 
+- [2026-04-02 (c)](#update-2026-04-02-c--fiscal-reality-layer-provider-methods) — Fiscal reality layer provider methods: 10 closure-based CRUD methods for fiscal tables + enriched view
 - [2026-04-02 (b)](#update-2026-04-02-b--fiscal-reality-layer-db-migration) — Fiscal reality layer DB migration: 4 nuove tabelle (declarations, obligations, F24 submissions, payment lines) + enriched view
 - [2026-04-02](#update-2026-04-02--fiscal-truth--gestione-separata-parity) — Fiscal truth / Gestione Separata: estimate vs schedule split, explicit ATECO fallback, dashboard/EF parity
 - [2026-04-01](#update-2026-04-01--km-duplicate-audit-after-trigger-transition) — KM duplicate audit after trigger transition: root cause identified, audit/cleanup scripts added
@@ -101,6 +102,33 @@ Last updated: 2026-04-02 (fiscal reality layer — DB migration)
 - [Nota manutenzione 2026-03-02](#nota-manutenzione-2026-03-02-fix-ci)
 - [Testing Session Log 2026-03-04](#testing-session-log-2026-03-04--e2e-complete-validation)
 - [AI Semantic UI Upgrade 2026-03-04](#ai-semantic-ui-upgrade-2026-03-04--pareto-principle-applied)
+
+---
+
+## Update 2026-04-02 (c) — Fiscal reality layer provider methods
+
+`fiscalRealityProvider.ts` aggiunge 10 metodi closure-based al dataProvider
+per CRUD sulle tabelle fiscali reali.
+
+Metodi: `getFiscalDeclaration`, `saveFiscalDeclaration` (upsert),
+`getFiscalObligations`, `createFiscalObligation`, `updateFiscalObligation`
+(auto-sets `is_overridden` per auto_generated), `registerF24` (1 submission +
+N payment lines), `getEnrichedPaymentLinesForYear` (two-step: obligation IDs
+by payment_year → enriched lines by obligation_id), `deleteF24Submission`
+(cascade), `regenerateDeclarationObligations` (returns `RegenerateResult`
+with `blockedObligations`), `deleteFiscalDeclaration` (returns
+`DeleteDeclarationResult` with `blockedObligations`).
+
+File toccati:
+
+- `src/components/atomic-crm/providers/supabase/fiscalRealityProvider.ts` (nuovo)
+- `src/components/atomic-crm/providers/supabase/dataProvider.ts` (import + merge)
+
+Constraints rispettati:
+
+- No `this` — tutto closure-based con `supabase` client dal modulo
+- Year filter DB-side — `getEnrichedPaymentLinesForYear` filtra prima obligations per `payment_year`, poi fetcha lines per obligation_id
+- Regeneration/delete restituiscono risultato strutturato con `BlockedObligation[]`
 
 ---
 

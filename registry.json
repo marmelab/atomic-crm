@@ -471,6 +471,10 @@
           "type": "registry:component"
         },
         {
+          "path": "src/components/atomic-crm/providers/supabase/fiscalRealityProvider.ts",
+          "type": "registry:component"
+        },
+        {
           "path": "src/components/atomic-crm/providers/supabase/edgeFunctions.ts",
           "type": "registry:component"
         },
