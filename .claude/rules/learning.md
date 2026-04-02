@@ -59,6 +59,7 @@
 | **Workflow** | WF-10 | Fix timezone → sweep consumer date-only   |
 | **Workflow** | WF-11 | Full E2E rossa → triage prima, patch dopo |
 | **Workflow** | WF-12 | Guardrail shell → non mangiare failure    |
+| **Dominio**  | DOM-5 | Fiscale due layer → check entrambi        |
 
 ---
 
@@ -264,6 +265,12 @@ UTC midnight — giorno sbagliato in `Europe/Rome` nella stessa finestra.
 **Quando**: una vista deriva uno stato business (es. primo anno, step workflow, completezza) da condizioni tipo `items.length === 0`
 **Fare**: verificare se il dominio ha elementi "sempre presenti" o low-priority filler; se sì, introdurre un flag esplicito nel modello (`isFirstYear`, `isDegraded`, ecc.) e usare quello nella UI
 **Perché**: nel refactor fiscale 2026-04-02 le low-priority deadlines (bollo/dichiarazione) esistono sempre, quindi `deadlines.length === 0` non può più significare "primo anno". La UI avrebbe mostrato semantica falsa pur con calcolo corretto.
+
+### DOM-5: Fiscale due layer → check entrambi
+
+**Quando**: aggiungo feature fiscali, modifico deadline, dashboard o promemoria
+**Fare**: verificare ENTRAMBI i layer: 1) stima (fiscalModel, fiscalDeadlines) 2) realtà (fiscal_declarations, fiscal_obligations, F24). Un consumer deve usare `buildFiscalRealityAwareSchedule()` per il merge, MAI riscrivere la logica inline. Se tocco il layer stima, verificare che il read model produce output coerente. Se tocco il layer realtà, verificare che il fallback estimated funzioni ancora.
+**Perché**: il sistema ha 2 fonti fiscali — stime CRM e dati reali dal commercialista. Se una feature legge solo una delle due, mostra dati parziali o contraddittori. Phase 1 ha anche un'inconsistenza nota: dashboard mostra obblighi reali, promemoria automatici usano ancora le stime (Phase 2 follow-up).
 
 ---
 

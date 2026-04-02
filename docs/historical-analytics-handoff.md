@@ -6,7 +6,21 @@ lavoro senza riaprire decisioni gia prese.
 **Quando NON usarlo da solo:** per dedurre architettura canonica o stato
 prodotto senza incrociarlo con `docs/README.md` e i documenti `canonical`.
 
-Last updated: 2026-04-02 (fiscal reality layer Phase 1 step 9 — mobile parity)
+Last updated: 2026-04-02 (fiscal reality layer Phase 1 complete)
+
+## Phase 1 known inconsistency — IMPORTANT
+
+**Dashboard** uses real obligations from `fiscal_obligations` (when available),
+falling back to estimates. **Automated reminders** (`fiscal_deadline_check` Edge
+Function) still read estimates only. This means the user may see different amounts
+on the dashboard vs in automated reminder tasks until Phase 2 ships.
+
+**Phase 2 follow-up (immediately after Phase 1 ships):**
+
+- `fiscal_deadline_check` must read from `fiscal_obligations` when available
+- Priority: first task after Phase 1 is verified in production
+- UI note visible in DashboardDeadlinesCard footer: "I promemoria automatici
+  usano ancora le stime, non le obbligazioni reali." — remove when Phase 2 ships.
 
 ## Update 2026-04-02 — Fiscal reality layer: mobile parity (step 9)
 
