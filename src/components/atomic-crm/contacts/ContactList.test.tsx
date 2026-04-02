@@ -8,6 +8,10 @@ import {
   BulkTagButton,
 } from "./ContactList.stories";
 
+afterEach(() => {
+  vi.restoreAllMocks();
+});
+
 describe("ContactList", () => {
   it("renders an invite to create the first contact when the app is empty", async () => {
     const screen = await render(<DesktopEmpty />);
@@ -41,6 +45,7 @@ describe("ContactList", () => {
   });
 
   it("renders an error notification when loading contacts fails", async () => {
+    vi.spyOn(console, "error").mockImplementation(() => {});
     const screen = await render(<DesktopError />);
 
     await expect

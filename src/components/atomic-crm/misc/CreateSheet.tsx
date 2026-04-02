@@ -124,7 +124,11 @@ export const CreateSheet = ({
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent side="bottom" className="h-dvh flex flex-col">
+      <SheetContent
+        side="bottom"
+        className="h-dvh flex flex-col"
+        aria-describedby={undefined}
+      >
         <CreateBase
           {...createBaseProps}
           redirect={redirectTo}

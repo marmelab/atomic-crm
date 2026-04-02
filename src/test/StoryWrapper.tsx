@@ -80,7 +80,7 @@ export const StoryWrapper = ({
   data,
   dataProvider: dataProviderOverrides,
   initialEntries,
-  silent,
+  silent = import.meta.env.MODE === "test",
 }: {
   children: ReactNode;
   data?: Partial<Db>;
