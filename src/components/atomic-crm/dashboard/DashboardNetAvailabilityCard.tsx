@@ -16,17 +16,22 @@ export const DashboardNetAvailabilityCard = ({
   kpis,
   fiscalKpis,
   meta: _meta,
+  totalOpenObligations,
 }: {
   kpis: DashboardKpis;
   fiscalKpis: FiscalKpis | null;
   meta: DashboardMeta;
+  totalOpenObligations?: number;
 }) => {
   const cashReceived = kpis.cashReceivedNet;
   const expenses = kpis.ownExpenses;
   const hasFiscalData = fiscalKpis != null;
-  const taxReserve = hasFiscalData
-    ? fiscalKpis.stimaInpsAnnuale + fiscalKpis.stimaImpostaAnnuale
-    : 0;
+  const taxReserve =
+    totalOpenObligations != null
+      ? totalOpenObligations
+      : hasFiscalData
+        ? fiscalKpis.stimaInpsAnnuale + fiscalKpis.stimaImpostaAnnuale
+        : 0;
 
   const netAvailability = cashReceived - expenses - taxReserve;
   const isPositive = netAvailability >= 0;

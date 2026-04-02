@@ -6,7 +6,7 @@ obbligatoria delle superfici collegate.
 **Quando usarlo:** ogni volta che una modifica tocca comportamento reale del
 prodotto.
 
-Last updated: 2026-04-02 (fiscal reality layer — provider methods)
+Last updated: 2026-04-02 (fiscal reality layer — dashboard consumers)
 
 ---
 
@@ -14,6 +14,7 @@ Last updated: 2026-04-02 (fiscal reality layer — provider methods)
 
 ### Recent Updates (cronologico, più recente in alto)
 
+- [2026-04-02 (d)](#update-2026-04-02-d--fiscal-reality-layer-dashboard-consumers) — Fiscal reality layer dashboard consumers: DashboardAnnual + MobileDashboard wired to useFiscalReality, reality-aware DeadlinesCard + NetAvailability
 - [2026-04-02 (c)](#update-2026-04-02-c--fiscal-reality-layer-provider-methods) — Fiscal reality layer provider methods: 10 closure-based CRUD methods for fiscal tables + enriched view
 - [2026-04-02 (b)](#update-2026-04-02-b--fiscal-reality-layer-db-migration) — Fiscal reality layer DB migration: 4 nuove tabelle (declarations, obligations, F24 submissions, payment lines) + enriched view
 - [2026-04-02](#update-2026-04-02--fiscal-truth--gestione-separata-parity) — Fiscal truth / Gestione Separata: estimate vs schedule split, explicit ATECO fallback, dashboard/EF parity
@@ -102,6 +103,33 @@ Last updated: 2026-04-02 (fiscal reality layer — provider methods)
 - [Nota manutenzione 2026-03-02](#nota-manutenzione-2026-03-02-fix-ci)
 - [Testing Session Log 2026-03-04](#testing-session-log-2026-03-04--e2e-complete-validation)
 - [AI Semantic UI Upgrade 2026-03-04](#ai-semantic-ui-upgrade-2026-03-04--pareto-principle-applied)
+
+---
+
+## Update 2026-04-02 (d) — Fiscal reality layer dashboard consumers
+
+All dashboard consumers now read from the canonical `useFiscalReality` merged
+schedule instead of local reinterpretation.
+
+**Files changed:**
+
+- `DashboardAnnual.tsx` — calls `useFiscalReality`, passes `deadlineViews` and
+  `totalOpenObligations` to children, holds F24 registration state placeholder
+- `MobileDashboard.tsx` — same wiring; `MobileFiscalKpis` prefers
+  `deadlineViews` for next deadline info (shows remaining + paid)
+- `DashboardDeadlinesCard.tsx` — new props `deadlineViews?` and
+  `onRegisterF24?`; when `deadlineViews` provided, renders reality-aware view
+  with per-item status badges (estimated/due/partial/paid/overpaid), estimate
+  comparison text, and "Registra F24" button for obligation deadlines; legacy
+  `schedule` path untouched for backward compat
+- `DashboardNetAvailabilityCard.tsx` — new prop `totalOpenObligations?`; when
+  provided, uses it as `taxReserve` instead of estimated INPS+imposta sum
+- `DashboardKpiCards.tsx` — threads `totalOpenObligations` to
+  `DashboardNetAvailabilityCard`
+
+**Desktop/mobile parity:** both `DashboardAnnual` and `MobileDashboard` call
+`useFiscalReality` with the same input shape and pass `totalOpenObligations` to
+`DashboardKpiCards`.
 
 ---
 

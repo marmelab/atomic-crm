@@ -23,8 +23,10 @@ import { DashboardLoading } from "./DashboardLoading";
 import { DashboardPipelineCard } from "./DashboardPipelineCard";
 import { DashboardRevenueTrendChart } from "./DashboardRevenueTrendChart";
 import { DashboardTopClientsCard } from "./DashboardTopClientsCard";
+import type { FiscalDeadlineView } from "./fiscalRealityTypes";
 import { useDashboardData } from "./useDashboardData";
 import { useFiscalPaymentTracking } from "./useFiscalPaymentTracking";
+import { useFiscalReality } from "./useFiscalReality";
 import { useGenerateFiscalTasks } from "./useGenerateFiscalTasks";
 
 const REALTIME_TABLES = [
@@ -52,6 +54,15 @@ export const DashboardAnnual = () => {
 
   const { markAsPaid, clearPayment, getPayment } =
     useFiscalPaymentTracking(selectedYear);
+
+  const { deadlineViews, totalOpenObligations } = useFiscalReality({
+    estimatedDeadlines: data?.fiscal?.schedule.deadlines ?? [],
+    paymentYear: selectedYear,
+    todayIso: todayISODate(),
+  });
+
+  // F24 registration dialog state — dialog component comes in Task 8
+  const [_f24Target, setF24Target] = useState<FiscalDeadlineView | null>(null);
 
   if (isPending || !data) {
     if (error) {
@@ -82,6 +93,9 @@ export const DashboardAnnual = () => {
         meta={data.meta}
         year={data.selectedYear}
         fiscalKpis={data.fiscal?.fiscalKpis ?? null}
+        totalOpenObligations={
+          deadlineViews != null ? totalOpenObligations : undefined
+        }
       />
 
       {isCurrentYear && data.cashFlowForecast && (
@@ -150,6 +164,8 @@ export const DashboardAnnual = () => {
                   markAsPaid(deadline, deadline.totalAmount, todayISODate())
                 }
                 onClearPayment={clearPayment}
+                deadlineViews={deadlineViews ?? undefined}
+                onRegisterF24={setF24Target}
               />
             )}
           </div>

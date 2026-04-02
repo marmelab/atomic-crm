@@ -25,9 +25,11 @@ import { DashboardAnnualAiSummaryCard } from "./DashboardAnnualAiSummaryCard";
 import { DashboardFiscalWarnings } from "./DashboardFiscalWarnings";
 import { formatCurrency, formatCurrencyPrecise } from "./dashboardModel";
 import type { FiscalModel } from "./fiscalModel";
+import type { FiscalDeadlineView } from "./fiscalRealityTypes";
 import { DashboardKpiCards } from "./DashboardKpiCards";
 import { MobileDashboardLoading } from "./DashboardLoading";
 import { useDashboardData } from "./useDashboardData";
+import { useFiscalReality } from "./useFiscalReality";
 
 const Wrapper = ({ children }: { children: React.ReactNode }) => {
   return <MobileContent>{children}</MobileContent>;
@@ -94,6 +96,12 @@ const MobileAnnualDashboard = () => {
   const isCurrentYear = data?.isCurrentYear ?? selectedYear === currentYear;
   const showLoading = useTimeout(800);
 
+  const { deadlineViews, totalOpenObligations } = useFiscalReality({
+    estimatedDeadlines: data?.fiscal?.schedule.deadlines ?? [],
+    paymentYear: selectedYear,
+    todayIso: todayISODate(),
+  });
+
   if ((isPending || !data) && !error) {
     return showLoading ? <MobileDashboardLoading /> : null;
   }
@@ -144,12 +152,18 @@ const MobileAnnualDashboard = () => {
         meta={data.meta}
         year={data.selectedYear}
         fiscalKpis={data.fiscal?.fiscalKpis ?? null}
+        totalOpenObligations={
+          deadlineViews != null ? totalOpenObligations : undefined
+        }
         compact
       />
       {data.fiscal && (
         <>
           <DashboardFiscalWarnings warnings={data.fiscal.warnings} />
-          <MobileFiscalKpis fiscal={data.fiscal} />
+          <MobileFiscalKpis
+            fiscal={data.fiscal}
+            deadlineViews={deadlineViews ?? undefined}
+          />
         </>
       )}
     </div>
@@ -162,11 +176,24 @@ const getCeilingVariant = (pct: number) => {
   return "success" as const;
 };
 
-const MobileFiscalKpis = ({ fiscal }: { fiscal: FiscalModel }) => {
+const MobileFiscalKpis = ({
+  fiscal,
+  deadlineViews,
+}: {
+  fiscal: FiscalModel;
+  deadlineViews?: FiscalDeadlineView[];
+}) => {
   const { fiscalKpis, schedule } = fiscal;
-  const nextHighPriorityDeadline = schedule.deadlines.find(
-    (deadline) => deadline.priority === "high" && !deadline.isPast,
+
+  // Prefer reality-aware view for next deadline
+  const nextDeadlineView = deadlineViews?.find(
+    (d) => d.priority === "high" && !d.isPast && d.totalRemaining > 0,
   );
+  const nextHighPriorityDeadline = nextDeadlineView
+    ? null
+    : schedule.deadlines.find(
+        (deadline) => deadline.priority === "high" && !deadline.isPast,
+      );
 
   return (
     <div className="grid grid-cols-1 gap-3">
@@ -199,6 +226,24 @@ const MobileFiscalKpis = ({ fiscal }: { fiscal: FiscalModel }) => {
               Primo anno: nessun saldo o acconto stimato in questo anno di
               pagamento.
             </p>
+          ) : nextDeadlineView ? (
+            <>
+              <div className="text-xl font-semibold">
+                {formatCurrency(nextDeadlineView.totalRemaining)}
+              </div>
+              <p className="text-xs text-muted-foreground">
+                {formatBusinessDate(nextDeadlineView.date, {
+                  day: "2-digit",
+                  month: "long",
+                })}{" "}
+                — {nextDeadlineView.label} ({nextDeadlineView.daysUntil}g)
+              </p>
+              {nextDeadlineView.totalPaid > 0 && (
+                <p className="text-[11px] text-emerald-600 dark:text-emerald-400">
+                  {formatCurrencyPrecise(nextDeadlineView.totalPaid)} già versati
+                </p>
+              )}
+            </>
           ) : nextHighPriorityDeadline ? (
             <>
               <div className="text-xl font-semibold">

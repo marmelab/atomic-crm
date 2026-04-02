@@ -25,12 +25,14 @@ export const DashboardKpiCards = ({
   year: _year,
   compact,
   fiscalKpis = null,
+  totalOpenObligations,
 }: {
   kpis: DashboardKpis;
   meta: DashboardMeta;
   year: number;
   compact?: boolean;
   fiscalKpis?: FiscalKpis | null;
+  totalOpenObligations?: number;
 }) => (
   <div
     className={`grid grid-cols-1 sm:grid-cols-2 ${compact ? "gap-3" : "xl:grid-cols-5 gap-4"}`}
@@ -39,6 +41,7 @@ export const DashboardKpiCards = ({
       kpis={kpis}
       fiscalKpis={fiscalKpis}
       meta={meta}
+      totalOpenObligations={totalOpenObligations}
     />
 
     {/* ── Pagamenti da ricevere ── */}
