@@ -899,6 +899,10 @@
           "type": "registry:component"
         },
         {
+          "path": "src/components/atomic-crm/dashboard/useFiscalReality.ts",
+          "type": "registry:component"
+        },
+        {
           "path": "src/components/atomic-crm/dashboard/useFiscalPaymentTracking.ts",
           "type": "registry:component"
         },

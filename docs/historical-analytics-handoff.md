@@ -6,7 +6,21 @@ lavoro senza riaprire decisioni gia prese.
 **Quando NON usarlo da solo:** per dedurre architettura canonica o stato
 prodotto senza incrociarlo con `docs/README.md` e i documenti `canonical`.
 
-Last updated: 2026-04-02 (fiscal reality layer Phase 1 step 4)
+Last updated: 2026-04-02 (fiscal reality layer Phase 1 step 6)
+
+## Update 2026-04-02 — Fiscal reality layer: useFiscalReality hook
+
+- `useFiscalReality` hook added in `dashboard/` — single fetch+merge entrypoint
+  for all fiscal reality consumers.
+- Fetches `getFiscalObligations(paymentYear)` and
+  `getEnrichedPaymentLinesForYear(paymentYear)` via `useQuery` with year-scoped
+  query keys (`["fiscal-obligations", year]`, `["fiscal-enriched-payment-lines", year]`).
+- Calls `buildFiscalRealityAwareSchedule` via `useMemo`; returns `null` while
+  either query is pending so consumers can gate on `deadlineViews !== null`.
+- Derives `totalOpenObligations` as sum of `remainingAmount` across all items in
+  all deadline views (total fiscal reserve needed).
+- `hasRealFiscalData` = `obligations.length > 0`.
+- No DB write, no UI wiring, no Edge Function change in this step.
 
 ## Update 2026-04-02 — Fiscal reality layer: reality-aware schedule read model
 
