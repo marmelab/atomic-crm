@@ -947,6 +947,10 @@
           "type": "registry:component"
         },
         {
+          "path": "src/components/atomic-crm/dashboard/buildObligationsFromDeclaration.ts",
+          "type": "registry:component"
+        },
+        {
           "path": "src/components/atomic-crm/dashboard/buildFiscalDeadlineKey.ts",
           "type": "registry:component"
         },

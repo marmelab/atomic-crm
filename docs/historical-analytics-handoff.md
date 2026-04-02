@@ -6,7 +6,20 @@ lavoro senza riaprire decisioni gia prese.
 **Quando NON usarlo da solo:** per dedurre architettura canonica o stato
 prodotto senza incrociarlo con `docs/README.md` e i documenti `canonical`.
 
-Last updated: 2026-04-02 (fiscal truth / Gestione Separata parity)
+Last updated: 2026-04-02 (fiscal reality layer Phase 1 step 2)
+
+## Update 2026-04-02 — Fiscal reality layer: obligation auto-generation
+
+- `buildObligationsFromDeclaration` added in `dashboard/` — pure function,
+  takes `FiscalDeclaration`, returns `ObligationDraft[]`.
+- Logic: saldo = `total - prior_advances`, clamped ≥0; imposta acconti follow
+  thresholds (> €257.52 → double 50%, €51.65–€257.52 → single 100%, below →
+  none); INPS acconti = 40% ×2 when `total_inps > 0`; zero-amount entries
+  skipped; `source = 'auto_generated'`, `declaration_id` always set; Phase 1
+  = non-rateized only (installment fields are null).
+- 25 unit tests cover all branches and boundary conditions.
+- No DB write, no UI wiring, no Edge Function change in this step.
+- Next step: provider save + UI form.
 
 ## Update 2026-04-02 — Fiscal truth / Gestione Separata parity
 
