@@ -502,6 +502,10 @@
           "type": "registry:component"
         },
         {
+          "path": "src/components/atomic-crm/layout/ChangelogModal.tsx",
+          "type": "registry:component"
+        },
+        {
           "path": "src/components/atomic-crm/google/useGooglePreferences.ts",
           "type": "registry:component"
         },
@@ -771,6 +775,10 @@
         },
         {
           "path": "src/components/atomic-crm/companies/GridList.tsx",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/companies/EnrichmentDialog.tsx",
           "type": "registry:component"
         },
         {
