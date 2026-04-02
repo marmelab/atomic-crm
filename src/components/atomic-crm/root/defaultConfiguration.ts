@@ -1,3 +1,4 @@
+import type { DealStage } from "../types";
 import type { ConfigurationContextValue } from "./ConfigurationContext";
 
 export const defaultDarkModeLogo = "./logos/logo_atomic_crm_dark.svg";
@@ -21,13 +22,13 @@ export const defaultCompanySectors = [
   { value: "utilities", label: "Utilities" },
 ];
 
-export const defaultDealStages = [
-  { value: "opportunity", label: "Opportunity" },
-  { value: "proposal-sent", label: "Proposal Sent" },
-  { value: "in-negociation", label: "In Negotiation" },
-  { value: "won", label: "Won" },
-  { value: "lost", label: "Lost" },
-  { value: "delayed", label: "Delayed" },
+export const defaultDealStages: DealStage[] = [
+  { value: "opportunity", label: "Opportunity", multiplier: 0.2 },
+  { value: "proposal-sent", label: "Proposal Sent", multiplier: 0.5 },
+  { value: "in-negociation", label: "In Negotiation", multiplier: 0.8 },
+  { value: "won", label: "Won", multiplier: 1 },
+  { value: "lost", label: "Lost", multiplier: 0 },
+  { value: "delayed", label: "Delayed", multiplier: 0.3 },
 ];
 
 export const defaultDealPipelineStatuses = ["won"];

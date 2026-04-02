@@ -215,7 +215,11 @@ export interface LabeledValue {
   label: string;
 }
 
-export type DealStage = LabeledValue;
+/** Deal pipeline stage; `multiplier` is 0–1 forecast weight (editable in Settings). */
+export interface DealStage extends LabeledValue {
+  /** Forecast weight for expected pipeline value (0–1). Omitted in legacy config → fallback map. */
+  multiplier?: number;
+}
 
 export interface NoteStatus extends LabeledValue {
   color: string;

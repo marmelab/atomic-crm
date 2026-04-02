@@ -484,6 +484,9 @@ export const frenchCrmMessages = {
           "Sélectionnez les étapes d'affaire à considérer comme des affaires dans le pipeline.",
         pipeline_statuses: "Statuts des pipelines",
         stages: "Étapes",
+        stage_multiplier_short: "Poids prévisionnel",
+        stage_multiplier_help:
+          "Multiplicateur entre 0 et 1 pour la valeur attendue du pipeline (ex. : gagné = 1, perdu = 0).",
       },
       light_mode_logo: "Logo du mode clair",
       notes: {

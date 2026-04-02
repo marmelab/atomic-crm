@@ -8,6 +8,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { CompanyAvatar } from "../companies/CompanyAvatar";
 import { useConfigurationContext } from "../root/ConfigurationContext";
 import type { Deal } from "../types";
+import { getDealExpectedValue } from "./dealUtils";
 
 export const DealCard = ({ deal, index }: { deal: Deal; index: number }) => {
   if (!deal) return null;
@@ -30,7 +31,12 @@ export const DealCardContent = ({
   snapshot?: any;
   deal: Deal;
 }) => {
-  const { dealCategories, currency } = useConfigurationContext();
+  const { dealCategories, currency, dealStages } = useConfigurationContext();
+  const expectedValue = getDealExpectedValue(
+    deal.amount,
+    deal.stage,
+    dealStages,
+  );
   const redirect = useRedirect();
   const handleClick = () => {
     redirect(`/deals/${deal.id}/show`, undefined, undefined, undefined, {
@@ -91,6 +97,18 @@ export const DealCardContent = ({
                 optionText="label"
                 optionValue="value"
               />
+              <span>
+                {" "}
+                (Expected:{" "}
+                {expectedValue.toLocaleString("en-US", {
+                  notation: "compact",
+                  style: "currency",
+                  currency,
+                  currencyDisplay: "narrowSymbol",
+                  minimumSignificantDigits: 3,
+                })}
+                )
+              </span>
             </p>
           </CardContent>
         </Card>

@@ -2,7 +2,7 @@ import { Droppable } from "@hello-pangea/dnd";
 
 import { useConfigurationContext } from "../root/ConfigurationContext";
 import type { Deal } from "../types";
-import { findDealLabel } from "./dealUtils";
+import { findDealLabel, getDealExpectedValue } from "./dealUtils";
 import { DealCard } from "./DealCard";
 
 export const DealColumn = ({
@@ -14,6 +14,11 @@ export const DealColumn = ({
 }) => {
   const totalAmount = deals.reduce((sum, deal) => sum + deal.amount, 0);
   const { dealStages, currency } = useConfigurationContext();
+  const totalExpected = deals.reduce(
+    (sum, deal) =>
+      sum + getDealExpectedValue(deal.amount, deal.stage, dealStages),
+    0,
+  );
   return (
     <div className="flex-1 pb-8">
       <div className="flex flex-col items-center">
@@ -22,6 +27,16 @@ export const DealColumn = ({
         </h3>
         <p className="text-sm text-muted-foreground">
           {totalAmount.toLocaleString("en-US", {
+            notation: "compact",
+            style: "currency",
+            currency,
+            currencyDisplay: "narrowSymbol",
+            minimumSignificantDigits: 3,
+          })}
+        </p>
+        <p className="text-xs text-muted-foreground mt-1">
+          Expected{" "}
+          {totalExpected.toLocaleString("en-US", {
             notation: "compact",
             style: "currency",
             currency,

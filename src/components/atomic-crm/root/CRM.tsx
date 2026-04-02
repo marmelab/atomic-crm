@@ -26,7 +26,7 @@ import { SignupPage } from "../login/SignupPage";
 import { ConfirmationRequired } from "../login/ConfirmationRequired";
 import { ImportPage } from "../misc/ImportPage";
 import {
-  authProvider as defaultAuthProvider,
+  getAuthProvider,
   dataProvider as defaultDataProvider,
 } from "../providers/supabase";
 import sales from "../sales";
@@ -120,7 +120,7 @@ export const CRM = ({
   taskTypes = defaultTaskTypes,
   title = defaultTitle,
   dataProvider = defaultDataProvider,
-  authProvider = defaultAuthProvider,
+  authProvider: authProviderProp,
   store = defaultStore,
   googleWorkplaceDomain = import.meta.env.VITE_GOOGLE_WORKPLACE_DOMAIN,
   disableEmailPasswordAuthentication = import.meta.env
@@ -128,6 +128,11 @@ export const CRM = ({
   disableTelemetry,
   ...rest
 }: CRMProps) => {
+  const authProvider = useMemo(
+    () => authProviderProp ?? getAuthProvider(),
+    [authProviderProp],
+  );
+
   useEffect(() => {
     if (
       disableTelemetry ||

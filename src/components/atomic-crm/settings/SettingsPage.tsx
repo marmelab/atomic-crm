@@ -18,7 +18,11 @@ import { toSlug } from "@/lib/toSlug";
 import { ArrayInput } from "@/components/admin/array-input";
 import { AutocompleteInput } from "@/components/admin/autocomplete-input";
 import { SimpleFormIterator } from "@/components/admin/simple-form-iterator";
+import { NumberInput } from "@/components/admin/number-input";
 import { TextInput } from "@/components/admin/text-input";
+
+import type { DealStage } from "../types";
+import { getDealStageMultiplier } from "../deals/dealStageMultipliers";
 
 import ImageEditorField from "../misc/ImageEditorField";
 import {
@@ -47,6 +51,19 @@ const SECTIONS = [
 /** Ensure every item in a { value, label } array has a value (slug from label). */
 const ensureValues = (items: { value?: string; label: string }[] | undefined) =>
   items?.map((item) => ({ ...item, value: item.value || toSlug(item.label) }));
+
+/** Persist deal stages with slug + clamped forecast multiplier (0–1). */
+const ensureDealStages = (items: DealStage[] | undefined): DealStage[] | undefined =>
+  items?.map((item) => {
+    const value = item.value || toSlug(item.label);
+    let mult = item.multiplier;
+    if (typeof mult !== "number" || !Number.isFinite(mult)) {
+      mult = getDealStageMultiplier(value);
+    } else {
+      mult = Math.min(1, Math.max(0, mult));
+    }
+    return { ...item, value, multiplier: mult };
+  });
 
 type ValidateItemsInUseMessages = {
   duplicate?: (displayName: string, duplicates: string[]) => string;
@@ -125,7 +142,7 @@ const transformFormValues = (data: Record<string, any>) => ({
     companySectors: ensureValues(data.companySectors),
     dealCategories: ensureValues(data.dealCategories),
     taskTypes: ensureValues(data.taskTypes),
-    dealStages: ensureValues(data.dealStages),
+    dealStages: ensureDealStages(data.dealStages),
     dealPipelineStatuses: data.dealPipelineStatuses,
     noteStatuses: ensureValues(data.noteStatuses),
   } as ConfigurationContextValue,
@@ -209,7 +226,7 @@ const SettingsFormFields = () => {
   });
 
   const validateDealStages = useCallback(
-    (stages: { value: string; label: string }[] | undefined) =>
+    (stages: DealStage[] | undefined) =>
       validateItemsInUse(stages, deals, "stage", stageDisplayName, {
         duplicate: (displayName, duplicates) =>
           translate("crm.settings.validation.duplicate", {
@@ -354,14 +371,32 @@ const SettingsFormFields = () => {
             <h3 className="text-lg font-medium text-muted-foreground">
               {translate("crm.settings.deals.stages")}
             </h3>
+            <p className="text-sm text-muted-foreground">
+              {translate("crm.settings.deals.stage_multiplier_help")}
+            </p>
             <ArrayInput
               source="dealStages"
               label={false}
               helperText={false}
               validate={validateDealStages}
             >
-              <SimpleFormIterator disableClear>
-                <TextInput source="label" label={false} />
+              <SimpleFormIterator disableClear inline>
+                <div className="flex flex-1 flex-col gap-2 sm:flex-row sm:items-end sm:gap-3 min-w-0">
+                  <TextInput
+                    source="label"
+                    label={false}
+                    className="flex-1 min-w-0"
+                  />
+                  <NumberInput
+                    source="multiplier"
+                    label={translate("crm.settings.deals.stage_multiplier_short")}
+                    min={0}
+                    max={1}
+                    step={0.05}
+                    className="w-full sm:w-32 shrink-0"
+                    helperText={false}
+                  />
+                </div>
               </SimpleFormIterator>
             </ArrayInput>
 

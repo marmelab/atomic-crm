@@ -160,3 +160,30 @@ export const authProvider: AuthProvider = {
     return supabase.auth.oauth.denyAuthorization(authorizationId);
   },
 };
+
+/**
+ * When `VITE_DEV_BYPASS_AUTH=true` and Vite is in dev mode only, auth checks are skipped so you
+ * can preview the UI without Supabase login. Never set this in production.
+ */
+export function getAuthProvider(): AuthProvider {
+  if (
+    import.meta.env.DEV &&
+    import.meta.env.VITE_DEV_BYPASS_AUTH === "true"
+  ) {
+    return {
+      ...authProvider,
+      checkAuth: async () => {},
+      getIdentity: async () => ({
+        id: 1,
+        fullName: "Local dev (auth bypass)",
+        avatar: undefined,
+      }),
+      canAccess: async () => true,
+      login: async () => {},
+      logout: async () => {
+        clearCache();
+      },
+    };
+  }
+  return authProvider;
+}

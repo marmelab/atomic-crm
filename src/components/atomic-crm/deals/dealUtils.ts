@@ -1,10 +1,20 @@
 import { format } from "date-fns";
 
 import type { DealStage } from "../types";
+import { resolveDealStageMultiplier } from "./dealStageMultipliers";
 
 export const findDealLabel = (dealStages: DealStage[], dealValue: string) => {
   const dealStage = dealStages.find((stage) => stage.value === dealValue);
   return dealStage?.label;
+};
+
+/** Stage-weighted expected value — uses Settings multipliers when present. */
+export const getDealExpectedValue = (
+  amount: number,
+  stage: string,
+  dealStages: DealStage[],
+) => {
+  return amount * resolveDealStageMultiplier(stage, dealStages);
 };
 
 export function getRelativeTimeString(

@@ -477,6 +477,9 @@ export const englishCrmMessages = {
           "Select which deal stages should count as pipeline deals.",
         pipeline_statuses: "Pipeline Statuses",
         stages: "Stages",
+        stage_multiplier_short: "Forecast weight",
+        stage_multiplier_help:
+          "0–1 multiplier for expected pipeline value on cards and charts (e.g. won = 1, lost = 0).",
       },
       light_mode_logo: "Light Mode Logo",
       notes: {

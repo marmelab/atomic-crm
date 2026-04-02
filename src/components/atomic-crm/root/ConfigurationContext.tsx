@@ -1,6 +1,7 @@
 import { useMemo } from "react";
 import { useStore } from "ra-core";
 
+import { withResolvedDealStageMultipliers } from "../deals/dealStageMultipliers";
 import type { DealStage, LabeledValue, NoteStatus } from "../types";
 import { defaultConfiguration } from "./defaultConfiguration";
 
@@ -28,7 +29,13 @@ export const useConfigurationContext = () => {
   );
   // Merge with defaults so that missing fields in stored config
   // fall back to default values (e.g. when new settings are added)
-  return useMemo(() => ({ ...defaultConfiguration, ...config }), [config]);
+  return useMemo(() => {
+    const merged = { ...defaultConfiguration, ...config };
+    return {
+      ...merged,
+      dealStages: withResolvedDealStageMultipliers(merged.dealStages),
+    };
+  }, [config]);
 };
 
 export const useConfigurationUpdater = () => {
