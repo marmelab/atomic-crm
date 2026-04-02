@@ -25,6 +25,7 @@ import { NumberInput } from "@/components/admin/number-input";
 import { SimpleFormIterator } from "@/components/admin/simple-form-iterator";
 import { TextInput } from "@/components/admin/text-input";
 import { cn } from "@/lib/utils";
+import { getFiscalFallbackProfileStatus } from "@/lib/fiscalConfig";
 
 import ImageEditorField from "../misc/ImageEditorField";
 import {
@@ -230,6 +231,7 @@ const SettingsForm = () => {
 const SettingsFormFields = () => {
   const {
     reset,
+    watch,
     formState: { isSubmitting },
   } = useFormContext();
   const [activeSection, setActiveSection] =
@@ -281,6 +283,8 @@ const SettingsFormFields = () => {
   }, []);
 
   const [openSections, setOpenSections] = useState<Set<string>>(new Set());
+  const fiscalConfig = watch("fiscalConfig");
+  const fiscalFallbackStatus = getFiscalFallbackProfileStatus(fiscalConfig);
 
   const toggleSection = useCallback((id: string) => {
     setOpenSections((prev) => {
@@ -639,6 +643,11 @@ const SettingsFormFields = () => {
               Ripristina Predefiniti
             </Button>
             <div className="flex gap-2">
+              {!fiscalFallbackStatus.isValid && (
+                <p className="text-xs text-destructive self-center">
+                  Correggi la sezione Fiscale prima di salvare.
+                </p>
+              )}
               <Button
                 type="button"
                 variant="outline"
@@ -647,7 +656,11 @@ const SettingsFormFields = () => {
               >
                 Annulla
               </Button>
-              <Button type="submit" size="sm" disabled={isSubmitting}>
+              <Button
+                type="submit"
+                size="sm"
+                disabled={isSubmitting || !fiscalFallbackStatus.isValid}
+              >
                 <Save className="h-4 w-4 mr-1" />
                 {isSubmitting ? "..." : "Salva"}
               </Button>

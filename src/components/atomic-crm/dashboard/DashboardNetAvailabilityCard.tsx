@@ -16,22 +16,19 @@ export const DashboardNetAvailabilityCard = ({
   kpis,
   fiscalKpis,
   meta: _meta,
-  taxesPaid = 0,
 }: {
   kpis: DashboardKpis;
   fiscalKpis: FiscalKpis | null;
   meta: DashboardMeta;
-  taxesPaid?: number;
 }) => {
   const cashReceived = kpis.cashReceivedNet;
   const expenses = kpis.ownExpenses;
   const hasFiscalData = fiscalKpis != null;
-  const taxEstimate = hasFiscalData
+  const taxReserve = hasFiscalData
     ? fiscalKpis.stimaInpsAnnuale + fiscalKpis.stimaImpostaAnnuale
     : 0;
-  const taxRemaining = Math.max(0, taxEstimate - taxesPaid);
 
-  const netAvailability = cashReceived - expenses - taxRemaining;
+  const netAvailability = cashReceived - expenses - taxReserve;
   const isPositive = netAvailability >= 0;
 
   return (
@@ -79,17 +76,12 @@ export const DashboardNetAvailabilityCard = ({
             <div className="flex items-center justify-center gap-1 text-red-600 dark:text-red-400">
               <Landmark className="h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0" />
               <span className="text-[10px] sm:text-xs font-semibold uppercase tracking-wide">
-                Tasse
+                Riserva tasse
               </span>
             </div>
             <div className="text-lg sm:text-xl font-bold text-red-700 dark:text-red-300 tabular-nums">
-              {hasFiscalData ? formatCurrencyPrecise(taxRemaining) : "—"}
+              {hasFiscalData ? formatCurrencyPrecise(taxReserve) : "—"}
             </div>
-            {hasFiscalData && taxesPaid > 0 && (
-              <p className="text-[11px] text-muted-foreground">
-                Già versato {formatCurrencyPrecise(taxesPaid)}
-              </p>
-            )}
             {!hasFiscalData && (
               <Link
                 to="/settings"
@@ -119,6 +111,12 @@ export const DashboardNetAvailabilityCard = ({
           {isPositive ? "Ti restano " : "Ti mancano "}
           {formatCurrency(Math.abs(netAvailability))}
         </div>
+        {hasFiscalData && (
+          <p className="text-[11px] text-center text-muted-foreground">
+            Indicatore prudenziale: sottrae spese e riserva fiscale stimata
+            dell&apos;anno selezionato.
+          </p>
+        )}
       </CardContent>
     </Card>
   );

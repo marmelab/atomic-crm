@@ -22,12 +22,12 @@ import { formatBusinessDate, todayISODate } from "@/lib/dateTimezone";
 import { MobileContent } from "../layout/MobileContent";
 import { DashboardHistorical } from "./DashboardHistorical";
 import { DashboardAnnualAiSummaryCard } from "./DashboardAnnualAiSummaryCard";
+import { DashboardFiscalWarnings } from "./DashboardFiscalWarnings";
 import { formatCurrency, formatCurrencyPrecise } from "./dashboardModel";
 import type { FiscalModel } from "./fiscalModel";
 import { DashboardKpiCards } from "./DashboardKpiCards";
 import { MobileDashboardLoading } from "./DashboardLoading";
 import { useDashboardData } from "./useDashboardData";
-import { useFiscalPaymentTracking } from "./useFiscalPaymentTracking";
 
 const Wrapper = ({ children }: { children: React.ReactNode }) => {
   return <MobileContent>{children}</MobileContent>;
@@ -93,7 +93,6 @@ const MobileAnnualDashboard = () => {
   const { data, isPending, error, refetch } = useDashboardData(selectedYear);
   const isCurrentYear = data?.isCurrentYear ?? selectedYear === currentYear;
   const showLoading = useTimeout(800);
-  const { totalPaid: totalTaxesPaid } = useFiscalPaymentTracking(selectedYear);
 
   if ((isPending || !data) && !error) {
     return showLoading ? <MobileDashboardLoading /> : null;
@@ -145,10 +144,14 @@ const MobileAnnualDashboard = () => {
         meta={data.meta}
         year={data.selectedYear}
         fiscalKpis={data.fiscal?.fiscalKpis ?? null}
-        taxesPaid={totalTaxesPaid}
         compact
       />
-      {data.fiscal && <MobileFiscalKpis fiscal={data.fiscal} />}
+      {data.fiscal && (
+        <>
+          <DashboardFiscalWarnings warnings={data.fiscal.warnings} />
+          <MobileFiscalKpis fiscal={data.fiscal} />
+        </>
+      )}
     </div>
   );
 };
@@ -160,8 +163,10 @@ const getCeilingVariant = (pct: number) => {
 };
 
 const MobileFiscalKpis = ({ fiscal }: { fiscal: FiscalModel }) => {
-  const { fiscalKpis, deadlines } = fiscal;
-  const nextDeadline = deadlines.find((d) => !d.isPast);
+  const { fiscalKpis, schedule } = fiscal;
+  const nextHighPriorityDeadline = schedule.deadlines.find(
+    (deadline) => deadline.priority === "high" && !deadline.isPast,
+  );
 
   return (
     <div className="grid grid-cols-1 gap-3">
@@ -181,28 +186,41 @@ const MobileFiscalKpis = ({ fiscal }: { fiscal: FiscalModel }) => {
       </Card>
 
       {/* Next deadline */}
-      {nextDeadline && (
-        <Card className="gap-2 py-3">
-          <CardHeader className="px-4 pb-0 flex flex-row items-center justify-between space-y-0 gap-2">
-            <CardTitle className="text-sm font-medium">
-              Prossima scadenza stimata
-            </CardTitle>
-            <CalendarClock className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent className="px-4 space-y-1">
-            <div className="text-xl font-semibold">
-              {formatCurrency(nextDeadline.totalAmount)}
-            </div>
-            <p className="text-xs text-muted-foreground">
-              {formatBusinessDate(nextDeadline.date, {
-                day: "2-digit",
-                month: "long",
-              })}{" "}
-              — {nextDeadline.label} ({nextDeadline.daysUntil}g)
+      <Card className="gap-2 py-3">
+        <CardHeader className="px-4 pb-0 flex flex-row items-center justify-between space-y-0 gap-2">
+          <CardTitle className="text-sm font-medium">
+            Prossimo versamento stimato
+          </CardTitle>
+          <CalendarClock className="h-4 w-4 text-muted-foreground" />
+        </CardHeader>
+        <CardContent className="px-4 space-y-1">
+          {schedule.isFirstYear ? (
+            <p className="text-sm text-muted-foreground">
+              Primo anno: nessun saldo o acconto stimato in questo anno di
+              pagamento.
             </p>
-          </CardContent>
-        </Card>
-      )}
+          ) : nextHighPriorityDeadline ? (
+            <>
+              <div className="text-xl font-semibold">
+                {formatCurrency(nextHighPriorityDeadline.totalAmount)}
+              </div>
+              <p className="text-xs text-muted-foreground">
+                {formatBusinessDate(nextHighPriorityDeadline.date, {
+                  day: "2-digit",
+                  month: "long",
+                })}{" "}
+                — {nextHighPriorityDeadline.label} (
+                {nextHighPriorityDeadline.daysUntil}g)
+              </p>
+            </>
+          ) : (
+            <p className="text-sm text-muted-foreground">
+              Nessun versamento stimato ancora aperto nell&apos;anno
+              selezionato.
+            </p>
+          )}
+        </CardContent>
+      </Card>
 
       {/* Ceiling */}
       <Card className="gap-2 py-3">

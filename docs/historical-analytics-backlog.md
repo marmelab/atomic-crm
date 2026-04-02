@@ -6,7 +6,38 @@
 incrociarlo con `docs/README.md`, `docs/architecture.md` e i documenti
 `canonical`.
 
-Last updated: 2026-04-01 (plain-language financial flags)
+Last updated: 2026-04-02 (fiscal truth / Gestione Separata parity)
+
+## Update 2026-04-02 — Fiscal truth / Gestione Separata
+
+Slice completata: `dashboard + Edge Function fiscal truth parity`.
+
+Deliverable chiusi:
+
+- `fiscalConfig.defaultTaxProfileAtecoCode` aggiunto e reso editabile da
+  Settings con fallback stabile (`731102` / `73.11.02`)
+- fiscal model split in due corsie:
+  - stima anno fiscale selezionato
+  - calendario pagamenti anno `Y` costruito da `Y-1` e `Y-2`
+- `unmappedCashRevenue` + warning `UNMAPPED_TAX_PROFILE` introdotti con parita'
+  client/server
+- `DashboardNetAvailabilityCard` resa prudenziale:
+  niente sottrazione del "gia' pagato" locale dal reserve math canonico
+- tracking locale fiscale confinato alla UX scadenze con chiave stabile
+  `buildFiscalDeadlineKey()`
+- `useGenerateFiscalTasks` allineato a identita' strutturale
+  (`component + competenceYear + date`)
+- Edge Function `fiscal_deadline_check` riallineata alla stessa matematica e
+  agli stessi warning del client
+- parita' coperta da test sintetici dedicati:
+  `fiscalParity.test.ts` + `_shared/fiscalDeadlineCalculation.test.ts`
+
+Residuo immediato:
+
+- eseguire sweep completo `make test`, `make typecheck`, `make lint`
+- deployare la Edge Function remota `fiscal_deadline_check`
+- chiudere verifica manuale su dashboard annuale/mobile con warning
+  `UNMAPPED_TAX_PROFILE` visibile e calendario pagamento coerente
 
 ## Update 2026-04-01 — unified_crm_answer prompt copy hardening
 

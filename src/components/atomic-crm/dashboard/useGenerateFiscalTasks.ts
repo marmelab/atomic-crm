@@ -5,17 +5,77 @@ import { startOfBusinessDayISOString } from "@/lib/dateTimezone";
 
 import type { ClientTask } from "../types";
 import { fiscalTaskTypes } from "../root/defaultConfiguration";
-import type { FiscalDeadline } from "./fiscalModelTypes";
+import type { FiscalDeadline, FiscalScheduleItem } from "./fiscalModelTypes";
 
-/** Maps a deadline item description to the appropriate fiscal task type. */
-const inferTaskType = (description: string): string => {
-  const lower = description.toLowerCase();
-  if (lower.includes("inps")) return "inps";
-  if (lower.includes("imposta") || lower.includes("f24")) return "f24";
-  if (lower.includes("bollo")) return "bollo";
-  if (lower.includes("dichiarazione") || lower.includes("redditi"))
-    return "dichiarazione";
-  return "f24"; // fallback for fiscal items
+export type FiscalTaskDraft = {
+  key: string;
+  payload: Pick<
+    ClientTask,
+    "text" | "type" | "due_date" | "done_date" | "client_id"
+  >;
+};
+
+export const buildFiscalTaskType = (
+  component: FiscalScheduleItem["component"],
+): string => {
+  if (component.startsWith("inps")) return "inps";
+  if (component === "bollo") return "bollo";
+  if (component === "dichiarazione") return "dichiarazione";
+  return "f24";
+};
+
+export const buildFiscalTaskIdentity = ({
+  date,
+  component,
+  competenceYear,
+}: {
+  date: string;
+  component: FiscalScheduleItem["component"];
+  competenceYear: number | null;
+}) => [date, component, competenceYear ?? "none"].join("::");
+
+export const buildFiscalTaskDrafts = (
+  deadlines: FiscalDeadline[],
+): FiscalTaskDraft[] => {
+  const drafts: FiscalTaskDraft[] = [];
+  const seen = new Set<string>();
+
+  for (const deadline of deadlines) {
+    for (const item of deadline.items) {
+      const key = buildFiscalTaskIdentity({
+        date: deadline.date,
+        component: item.component,
+        competenceYear: item.competenceYear,
+      });
+
+      if (seen.has(key)) {
+        continue;
+      }
+
+      seen.add(key);
+
+      const amountNote =
+        item.amount > 0
+          ? ` (${item.amount.toLocaleString("it-IT", {
+              style: "currency",
+              currency: "EUR",
+            })})`
+          : "";
+
+      drafts.push({
+        key,
+        payload: {
+          text: `${item.description}${amountNote}`,
+          type: buildFiscalTaskType(item.component),
+          due_date: startOfBusinessDayISOString(deadline.date) ?? deadline.date,
+          done_date: null,
+          client_id: null,
+        },
+      });
+    }
+  }
+
+  return drafts;
 };
 
 /**
@@ -55,6 +115,8 @@ export const useGenerateFiscalTasks = ({
   const [deleteOne] = useDelete();
 
   const generate = useCallback(async () => {
+    const nextDrafts = buildFiscalTaskDrafts(deadlines);
+
     // Delete existing fiscal tasks for this year range
     for (const task of existingFiscalTasks) {
       await deleteOne("client_tasks", {
@@ -63,26 +125,11 @@ export const useGenerateFiscalTasks = ({
       });
     }
 
-    // Create a task for each deadline item
-    for (const deadline of deadlines) {
-      for (const item of deadline.items) {
-        const taskType = inferTaskType(item.description);
-        const amountNote =
-          item.amount > 0
-            ? ` (${item.amount.toLocaleString("it-IT", { style: "currency", currency: "EUR" })})`
-            : "";
-
-        await create("client_tasks", {
-          data: {
-            text: `${item.description}${amountNote}`,
-            type: taskType,
-            due_date:
-              startOfBusinessDayISOString(deadline.date) ?? deadline.date,
-            done_date: null,
-            client_id: null,
-          },
-        });
-      }
+    // Create one task per structured fiscal identity.
+    for (const draft of nextDrafts) {
+      await create("client_tasks", {
+        data: draft.payload,
+      });
     }
 
     // Refresh the list so the UI updates

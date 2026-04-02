@@ -49,6 +49,7 @@
 | **Backend**  | BE-6  | Reload remoto → TRUNCATE prima load       |
 | **Workflow** | WF-7  | Dopo push → controlla CI autonomo         |
 | **Dominio**  | DOM-3 | FatturaPA XML → schema XSD + Aruba        |
+| **Dominio**  | DOM-4 | Stato semantico ≠ `array.length`          |
 | **Config**   | CFG-2 | BusinessProfile → merge defaults safe     |
 | **Config**   | CFG-3 | Flag/prop root → verificare consumo reale |
 | **Backend**  | BE-7  | OpenAI reasoning → effort "low" per CRM  |
@@ -257,6 +258,12 @@ UTC midnight — giorno sbagliato in `Europe/Rome` nella stessa finestra.
 **Quando**: tocco la generazione XML FatturaPA (`invoiceDraftXml.ts`)
 **Fare**: verificare conformità allo schema XSD FPR12 v1.2.3 e compatibilità col flusso Aruba PEC. I campi critici sono: DatiTrasmissione (CF intermediario Aruba), CedentePrestatore (RF19), DettaglioLinee (IVA 0% N2.2), DatiPagamento (MP05 bonifico). Bollo escluso dall'XML (gestito da Aruba).
 **Perché**: Aruba scarta silenziosamente XML non conformi allo schema, senza dare errori chiari. Un campo mancante o malformato blocca l'invio della fattura.
+
+### DOM-4: Stato semantico di dominio ≠ lunghezza array UI
+
+**Quando**: una vista deriva uno stato business (es. primo anno, step workflow, completezza) da condizioni tipo `items.length === 0`
+**Fare**: verificare se il dominio ha elementi "sempre presenti" o low-priority filler; se sì, introdurre un flag esplicito nel modello (`isFirstYear`, `isDegraded`, ecc.) e usare quello nella UI
+**Perché**: nel refactor fiscale 2026-04-02 le low-priority deadlines (bollo/dichiarazione) esistono sempre, quindi `deadlines.length === 0` non può più significare "primo anno". La UI avrebbe mostrato semantica falsa pur con calcolo corretto.
 
 ---
 

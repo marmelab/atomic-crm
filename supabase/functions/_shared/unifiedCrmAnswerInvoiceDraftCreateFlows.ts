@@ -1,5 +1,12 @@
-import type { ParsedUnifiedCrmInvoiceDraftQuestion, UnifiedCrmSuggestedAction } from "./unifiedCrmAnswerTypes.ts";
-import { hasInvoiceDraftIntent, pickClientFromQuestion, pickProjectFromQuestion } from "./unifiedCrmAnswerIntents.ts";
+import type {
+  ParsedUnifiedCrmInvoiceDraftQuestion,
+  UnifiedCrmSuggestedAction,
+} from "./unifiedCrmAnswerTypes.ts";
+import {
+  hasInvoiceDraftIntent,
+  pickClientFromQuestion,
+  pickProjectFromQuestion,
+} from "./unifiedCrmAnswerIntents.ts";
 import {
   buildShowHrefWithSearch,
   formatNumber,
@@ -8,7 +15,10 @@ import {
   includesAny,
   normalizeText,
 } from "./unifiedCrmAnswerUtils.ts";
-import { invoiceDraftResourceMap, invoiceDraftSurfaceLabelMap } from "./unifiedCrmAnswerCreateFlowShared.ts";
+import {
+  invoiceDraftResourceMap,
+  invoiceDraftSurfaceLabelMap,
+} from "./unifiedCrmAnswerCreateFlowShared.ts";
 import {
   buildClientInvoiceDraftQuestion,
   buildProjectInvoiceDraftQuestion,
@@ -84,7 +94,12 @@ const buildInvoiceDraftShowHref = ({
   resource: "quotes" | "projects" | "clients";
   recordId: string | null;
 }) =>
-  buildShowHrefWithSearch(routePrefix, resource, recordId, invoiceDraftSearchParams);
+  buildShowHrefWithSearch(
+    routePrefix,
+    resource,
+    recordId,
+    invoiceDraftSearchParams,
+  );
 
 const buildInvoicePrimaryAction = ({
   routePrefix,
@@ -153,7 +168,8 @@ const buildInvoiceProjectFallbackAction = ({
     id: "invoice-draft-project-fallback",
     resource: "projects",
     label: "Bozza fattura dal progetto",
-    description: "Genera la bozza solo dai servizi del progetto attivo collegato.",
+    description:
+      "Genera la bozza solo dai servizi del progetto attivo collegato.",
     href: buildInvoiceDraftShowHref({
       routePrefix,
       resource: "projects",
@@ -218,8 +234,12 @@ export const parseUnifiedCrmInvoiceDraftQuestion = ({
   });
   const matchedClientId = getString(matchedClient?.clientId);
   const matchedProjectId = getString(matchedProject?.projectId);
-  const mentionsQuote = includesAny(normalizedQuestion, ["preventiv", "offert"]);
-  const shouldPreferQuote = mentionsQuote || (!matchedProjectId && !matchedClientId);
+  const mentionsQuote = includesAny(normalizedQuestion, [
+    "preventiv",
+    "offert",
+  ]);
+  const shouldPreferQuote =
+    mentionsQuote || (!matchedProjectId && !matchedClientId);
 
   if (shouldPreferQuote) {
     const quoteQuestion = buildQuoteInvoiceDraftQuestion({
@@ -280,7 +300,9 @@ export const buildUnifiedCrmInvoiceDraftAnswerMarkdown = ({
           "- La bozza dal cliente aggrega TUTTI i servizi non fatturati — controlla che sia quello che vuoi.",
         ]
       : []),
-  ].join("\n").trim();
+  ]
+    .join("\n")
+    .trim();
 
 export const buildUnifiedCrmInvoiceDraftSuggestedActions = ({
   context,
@@ -290,9 +312,8 @@ export const buildUnifiedCrmInvoiceDraftSuggestedActions = ({
   parsedQuestion: ParsedUnifiedCrmInvoiceDraftQuestion;
 }): UnifiedCrmSuggestedAction[] => {
   const routePrefix = getRoutePrefix(context);
-  const { openQuotes, activeProjects } = getInvoiceDraftSnapshotCollections(
-    context,
-  );
+  const { openQuotes, activeProjects } =
+    getInvoiceDraftSnapshotCollections(context);
 
   return [
     buildInvoicePrimaryAction({

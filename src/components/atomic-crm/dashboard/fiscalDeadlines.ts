@@ -1,192 +1,385 @@
 import { diffBusinessDays } from "@/lib/dateTimezone";
-import type { FiscalDeadline, DeadlineItem } from "./fiscalModelTypes";
+
+import { roundFiscalOutput } from "./roundFiscalOutput";
+import type {
+  DeadlineItem,
+  FiscalDeadline,
+  FiscalPaymentSchedule,
+  FiscalScheduleAssumptions,
+  FiscalScheduleConfidence,
+  FiscalScheduleMethod,
+} from "./fiscalModelTypes";
+
+export type FiscalEstimateScheduleInput = {
+  taxYear: number;
+  annualInpsEstimate: number;
+  annualSubstituteTaxEstimate: number;
+};
+
+export type FiscalAdvancePlan = {
+  paymentYear: number;
+  competenceYear: number;
+  juneItems: DeadlineItem[];
+  novemberItems: DeadlineItem[];
+  substituteTaxAdvanceTotal: number;
+  inpsAdvanceTotal: number;
+};
 
 const isoDate = (year: number, month: number, day: number) =>
   `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
 
+const SCHEDULE_METHOD: FiscalScheduleMethod = "historical";
+const SCHEDULE_CONFIDENCE: FiscalScheduleConfidence = "estimated";
+const SCHEDULE_ASSUMPTIONS: FiscalScheduleAssumptions = {
+  configMode: "current_config_reapplied",
+  paymentTrackingMode: "local_non_authoritative",
+};
+const MIN_SUBSTITUTE_TAX_ADVANCE = 51.65;
+const DOUBLE_SUBSTITUTE_TAX_ADVANCE_THRESHOLD = 257.52;
+
+const getSupportingTaxYears = (items: DeadlineItem[]) =>
+  Array.from(
+    new Set(
+      items
+        .map((item) => item.competenceYear)
+        .filter((year): year is number => year != null),
+    ),
+  ).sort((a, b) => a - b);
+
 const buildDeadlineTiming = (date: string, todayIso: string) => {
   const daysUntil = diffBusinessDays(todayIso, date) ?? 0;
+
   return {
     isPast: daysUntil < 0,
     daysUntil,
   };
 };
 
-// ── Deadlines builder ─────────────────────────────────────────────────
-
-/**
- * Builds fiscal deadlines for regime forfettario.
- *
- * Acconti split: 50/50 (D.L. 124/2019 art. 58 for ISA/forfettari subjects).
- * INPS advances: 80% of estimated annual total.
- *
- * June 30: Saldo anno precedente + 1° acconto anno corrente
- * November 30: 2° acconto anno corrente (not installable)
- */
-export const buildDeadlines = ({
-  stimaImpostaAnnuale,
-  stimaInpsAnnuale,
-  annoInizioAttivita,
-  currentYear,
+const makeDeadline = ({
+  paymentYear,
+  date,
+  label,
+  items,
+  priority,
   todayIso,
 }: {
-  stimaImpostaAnnuale: number;
-  stimaInpsAnnuale: number;
-  annoInizioAttivita: number;
-  currentYear: number;
+  paymentYear: number;
+  date: string;
+  label: string;
+  items: DeadlineItem[];
+  priority: "high" | "low";
   todayIso: string;
-}): FiscalDeadline[] => {
-  // First year: no deadlines (no previous year to settle)
-  if (annoInizioAttivita === currentYear) return [];
+}): FiscalDeadline => {
+  const normalizedItems = items.map((item) => ({
+    ...item,
+    amount: roundFiscalOutput(item.amount),
+  }));
+  const timing = buildDeadlineTiming(date, todayIso);
 
+  return {
+    paymentYear,
+    method: SCHEDULE_METHOD,
+    supportingTaxYears: getSupportingTaxYears(normalizedItems),
+    confidence: SCHEDULE_CONFIDENCE,
+    assumptions: SCHEDULE_ASSUMPTIONS,
+    date,
+    label,
+    items: normalizedItems,
+    totalAmount: roundFiscalOutput(
+      normalizedItems.reduce((sum, item) => sum + item.amount, 0),
+    ),
+    isPast: timing.isPast,
+    daysUntil: timing.daysUntil,
+    priority,
+  };
+};
+
+const sortDeadlines = (deadlines: FiscalDeadline[]) =>
+  [...deadlines].sort((left, right) => {
+    if (left.priority !== right.priority) {
+      return left.priority === "high" ? -1 : 1;
+    }
+
+    if (left.date !== right.date) {
+      return left.date.localeCompare(right.date);
+    }
+
+    return left.label.localeCompare(right.label);
+  });
+
+const resolveActivityStartYear = ({
+  configuredStartYear,
+  inferredStartYear,
+  paymentYear,
+}: {
+  configuredStartYear: number | null | undefined;
+  inferredStartYear?: number | null;
+  paymentYear: number;
+}) => {
+  if (
+    configuredStartYear != null &&
+    Number.isFinite(configuredStartYear) &&
+    configuredStartYear >= 2000 &&
+    configuredStartYear <= paymentYear
+  ) {
+    return configuredStartYear;
+  }
+
+  if (
+    inferredStartYear != null &&
+    Number.isFinite(inferredStartYear) &&
+    inferredStartYear >= 2000 &&
+    inferredStartYear <= paymentYear
+  ) {
+    return inferredStartYear;
+  }
+
+  return paymentYear;
+};
+
+const buildLowPriorityDeadlines = (
+  paymentYear: number,
+  todayIso: string,
+): FiscalDeadline[] => {
   const deadlines: FiscalDeadline[] = [];
 
-  // Acconto thresholds for imposta sostitutiva
-  const hasDoubleAcconto = stimaImpostaAnnuale > 257.52;
-  const hasSingleAcconto = stimaImpostaAnnuale >= 51.65 && !hasDoubleAcconto;
+  const bolloQuarters = [
+    { date: isoDate(paymentYear, 5, 31), label: "Bollo Q1 (gen-mar)" },
+    { date: isoDate(paymentYear, 9, 30), label: "Bollo Q2 (apr-giu)" },
+    { date: isoDate(paymentYear, 11, 30), label: "Bollo Q3 (lug-set)" },
+    { date: isoDate(paymentYear + 1, 2, 28), label: "Bollo Q4 (ott-dic)" },
+  ];
 
-  // June 30 deadline
-  const juneDate = isoDate(currentYear, 6, 30);
-  const juneItems: DeadlineItem[] = [];
-
-  // Saldo imposta anno precedente (full estimate minus advances)
-  juneItems.push({
-    description: "Saldo Imposta Sostitutiva anno precedente",
-    amount: stimaImpostaAnnuale,
-  });
-
-  // Saldo INPS anno precedente (20% not covered by advances)
-  juneItems.push({
-    description: "Saldo INPS anno precedente (20%)",
-    amount: stimaInpsAnnuale * 0.2,
-  });
-
-  // 1° acconto imposta (50% if double, 0 if single — goes to November)
-  if (hasDoubleAcconto) {
-    juneItems.push({
-      description: "1° Acconto Imposta Sostitutiva (50%)",
-      amount: stimaImpostaAnnuale * 0.5,
-    });
+  for (const bollo of bolloQuarters) {
+    deadlines.push(
+      makeDeadline({
+        paymentYear,
+        date: bollo.date,
+        label: bollo.label,
+        items: [
+          {
+            description: `Imposta di bollo fatture elettroniche — ${bollo.label}`,
+            amount: 0,
+            competenceYear: paymentYear,
+            component: "bollo",
+          },
+        ],
+        priority: "low",
+        todayIso,
+      }),
+    );
   }
 
-  // 1° acconto INPS (40% of total = 80% × 50%)
-  juneItems.push({
-    description: "1° Acconto INPS Gestione Separata (40%)",
-    amount: stimaInpsAnnuale * 0.4,
-  });
-
-  const juneTotalAmount = juneItems.reduce((s, i) => s + i.amount, 0);
-  const juneTiming = buildDeadlineTiming(juneDate, todayIso);
-  deadlines.push({
-    date: juneDate,
-    label: "Saldo + 1° Acconto",
-    items: juneItems,
-    totalAmount: juneTotalAmount,
-    isPast: juneTiming.isPast,
-    daysUntil: juneTiming.daysUntil,
-    priority: "high",
-    paidAmount: null,
-    paidDate: null,
-  });
-
-  // November 30 deadline
-  const novDate = isoDate(currentYear, 11, 30);
-  const novItems: DeadlineItem[] = [];
-
-  if (hasDoubleAcconto) {
-    novItems.push({
-      description: "2° Acconto Imposta Sostitutiva (50%)",
-      amount: stimaImpostaAnnuale * 0.5,
-    });
-  } else if (hasSingleAcconto) {
-    novItems.push({
-      description: "Acconto Unico Imposta Sostitutiva (100%)",
-      amount: stimaImpostaAnnuale,
-    });
-  }
-
-  // 2° acconto INPS (40% of total = 80% × 50%)
-  novItems.push({
-    description: "2° Acconto INPS Gestione Separata (40%)",
-    amount: stimaInpsAnnuale * 0.4,
-  });
-
-  const novTotalAmount = novItems.reduce((s, i) => s + i.amount, 0);
-  const novTiming = buildDeadlineTiming(novDate, todayIso);
-  deadlines.push({
-    date: novDate,
-    label: "2° Acconto",
-    items: novItems,
-    totalAmount: novTotalAmount,
-    isPast: novTiming.isPast,
-    daysUntil: novTiming.daysUntil,
-    priority: "high",
-    paidAmount: null,
-    paidDate: null,
-  });
-
-  deadlines.push(...buildLowPriorityDeadlines(currentYear, todayIso));
-
-  // Sort: future first by date, then past by date descending
-  deadlines.sort((a, b) => {
-    if (a.isPast !== b.isPast) return a.isPast ? 1 : -1;
-    if (!a.isPast) return a.date.localeCompare(b.date);
-    return b.date.localeCompare(a.date);
-  });
+  deadlines.push(
+    makeDeadline({
+      paymentYear,
+      date: isoDate(paymentYear, 10, 31),
+      label: "Dichiarazione dei redditi",
+      items: [
+        {
+          description: "Invio telematico Modello Redditi PF",
+          amount: 0,
+          competenceYear: paymentYear - 1,
+          component: "dichiarazione",
+        },
+      ],
+      priority: "low",
+      todayIso,
+    }),
+  );
 
   return deadlines;
 };
 
-// ── Low-priority deadlines (bollo, dichiarazione) ───────────────────
+export const buildAdvancePlanFromEstimate = ({
+  estimate,
+}: {
+  estimate: FiscalEstimateScheduleInput;
+}): FiscalAdvancePlan => {
+  const competenceYear = estimate.taxYear + 1;
+  const paymentYear = competenceYear;
 
-const buildLowPriorityDeadlines = (
-  currentYear: number,
-  todayIso: string,
-): FiscalDeadline[] => {
-  const result: FiscalDeadline[] = [];
+  const juneItems: DeadlineItem[] = [];
+  const novemberItems: DeadlineItem[] = [];
 
-  // Bollo trimestrale sulle fatture elettroniche
-  const bolloQuarters: Array<{ date: string; label: string }> = [
-    { date: isoDate(currentYear, 5, 31), label: "Bollo Q1 (gen-mar)" },
-    { date: isoDate(currentYear, 9, 30), label: "Bollo Q2 (apr-giu)" },
-    { date: isoDate(currentYear, 11, 30), label: "Bollo Q3 (lug-set)" },
-    { date: isoDate(currentYear + 1, 2, 28), label: "Bollo Q4 (ott-dic)" },
-  ];
+  const hasDoubleAcconto =
+    estimate.annualSubstituteTaxEstimate >
+    DOUBLE_SUBSTITUTE_TAX_ADVANCE_THRESHOLD;
+  const hasSingleAcconto =
+    estimate.annualSubstituteTaxEstimate >= MIN_SUBSTITUTE_TAX_ADVANCE &&
+    !hasDoubleAcconto;
 
-  for (const bq of bolloQuarters) {
-    const timing = buildDeadlineTiming(bq.date, todayIso);
-    result.push({
-      date: bq.date,
-      label: bq.label,
-      items: [
-        {
-          description: `Imposta di bollo fatture elettroniche — ${bq.label}`,
-          amount: 0,
-        },
-      ],
-      totalAmount: 0,
-      isPast: timing.isPast,
-      daysUntil: timing.daysUntil,
-      priority: "low",
-      paidAmount: null,
-      paidDate: null,
+  if (hasDoubleAcconto) {
+    juneItems.push({
+      description: "1° Acconto Imposta Sostitutiva (50%)",
+      amount: estimate.annualSubstituteTaxEstimate * 0.5,
+      competenceYear,
+      component: "imposta_acconto_1",
+    });
+    novemberItems.push({
+      description: "2° Acconto Imposta Sostitutiva (50%)",
+      amount: estimate.annualSubstituteTaxEstimate * 0.5,
+      competenceYear,
+      component: "imposta_acconto_2",
+    });
+  } else if (hasSingleAcconto) {
+    novemberItems.push({
+      description: "Acconto Unico Imposta Sostitutiva (100%)",
+      amount: estimate.annualSubstituteTaxEstimate,
+      competenceYear,
+      component: "imposta_acconto_unico",
     });
   }
 
-  // Dichiarazione dei redditi (Modello Redditi PF) — October 31
-  const dichDate = isoDate(currentYear, 10, 31);
-  const dichTiming = buildDeadlineTiming(dichDate, todayIso);
-  result.push({
-    date: dichDate,
-    label: "Dichiarazione dei redditi",
-    items: [{ description: "Invio telematico Modello Redditi PF", amount: 0 }],
-    totalAmount: 0,
-    isPast: dichTiming.isPast,
-    daysUntil: dichTiming.daysUntil,
-    priority: "low",
-    paidAmount: null,
-    paidDate: null,
+  if (estimate.annualInpsEstimate > 0) {
+    juneItems.push({
+      description: "1° Acconto INPS Gestione Separata (40%)",
+      amount: estimate.annualInpsEstimate * 0.4,
+      competenceYear,
+      component: "inps_acconto_1",
+    });
+    novemberItems.push({
+      description: "2° Acconto INPS Gestione Separata (40%)",
+      amount: estimate.annualInpsEstimate * 0.4,
+      competenceYear,
+      component: "inps_acconto_2",
+    });
+  }
+
+  const substituteTaxAdvanceTotal = roundFiscalOutput(
+    [...juneItems, ...novemberItems]
+      .filter((item) => item.component.startsWith("imposta_"))
+      .reduce((sum, item) => sum + item.amount, 0),
+  );
+  const inpsAdvanceTotal = roundFiscalOutput(
+    [...juneItems, ...novemberItems]
+      .filter((item) => item.component.startsWith("inps_"))
+      .reduce((sum, item) => sum + item.amount, 0),
+  );
+
+  return {
+    paymentYear,
+    competenceYear,
+    juneItems,
+    novemberItems,
+    substituteTaxAdvanceTotal,
+    inpsAdvanceTotal,
+  };
+};
+
+export const buildFiscalPaymentSchedule = ({
+  paymentYear,
+  basisEstimate,
+  priorAdvancePlan,
+  annoInizioAttivita,
+  inferredActivityStartYear,
+  todayIso,
+}: {
+  paymentYear: number;
+  basisEstimate: FiscalEstimateScheduleInput;
+  priorAdvancePlan: FiscalAdvancePlan | null;
+  annoInizioAttivita: number | null | undefined;
+  inferredActivityStartYear?: number | null;
+  todayIso: string;
+}): FiscalPaymentSchedule => {
+  const highPriorityDeadlines: FiscalDeadline[] = [];
+  const activityStartYear = resolveActivityStartYear({
+    configuredStartYear: annoInizioAttivita,
+    inferredStartYear: inferredActivityStartYear,
+    paymentYear,
+  });
+  const isFirstYear = paymentYear <= activityStartYear;
+  const isSecondYear = paymentYear === activityStartYear + 1;
+  const currentAdvancePlan = buildAdvancePlanFromEstimate({
+    estimate: basisEstimate,
   });
 
-  return result;
+  if (!isFirstYear) {
+    const previousSubstituteTaxAdvances = isSecondYear
+      ? 0
+      : (priorAdvancePlan?.substituteTaxAdvanceTotal ?? 0);
+    const previousInpsAdvances = isSecondYear
+      ? 0
+      : (priorAdvancePlan?.inpsAdvanceTotal ?? 0);
+
+    const juneItems: DeadlineItem[] = [];
+    const residualSubstituteTaxSaldo = Math.max(
+      0,
+      basisEstimate.annualSubstituteTaxEstimate - previousSubstituteTaxAdvances,
+    );
+    const residualInpsSaldo = Math.max(
+      0,
+      basisEstimate.annualInpsEstimate - previousInpsAdvances,
+    );
+
+    if (residualSubstituteTaxSaldo > 0) {
+      juneItems.push({
+        description: "Saldo Imposta Sostitutiva anno precedente",
+        amount: residualSubstituteTaxSaldo,
+        competenceYear: paymentYear - 1,
+        component: "imposta_saldo",
+      });
+    }
+
+    if (residualInpsSaldo > 0) {
+      juneItems.push({
+        description: "Saldo INPS anno precedente",
+        amount: residualInpsSaldo,
+        competenceYear: paymentYear - 1,
+        component: "inps_saldo",
+      });
+    }
+
+    juneItems.push(...currentAdvancePlan.juneItems);
+
+    if (juneItems.length > 0) {
+      highPriorityDeadlines.push(
+        makeDeadline({
+          paymentYear,
+          date: isoDate(paymentYear, 6, 30),
+          label: "Saldo + 1° Acconto",
+          items: juneItems,
+          priority: "high",
+          todayIso,
+        }),
+      );
+    }
+
+    if (currentAdvancePlan.novemberItems.length > 0) {
+      highPriorityDeadlines.push(
+        makeDeadline({
+          paymentYear,
+          date: isoDate(paymentYear, 11, 30),
+          label: "2° Acconto",
+          items: currentAdvancePlan.novemberItems,
+          priority: "high",
+          todayIso,
+        }),
+      );
+    }
+  }
+
+  const lowPriorityDeadlines = buildLowPriorityDeadlines(paymentYear, todayIso);
+  const deadlines = sortDeadlines([
+    ...highPriorityDeadlines,
+    ...lowPriorityDeadlines,
+  ]);
+  const supportingTaxYears = Array.from(
+    new Set(deadlines.flatMap((deadline) => deadline.supportingTaxYears)),
+  ).sort((a, b) => a - b);
+
+  return {
+    paymentYear,
+    basisTaxYear: paymentYear - 1,
+    isFirstYear,
+    supportingTaxYears,
+    method: SCHEDULE_METHOD,
+    confidence: SCHEDULE_CONFIDENCE,
+    assumptions: SCHEDULE_ASSUMPTIONS,
+    deadlines,
+  };
 };
+
+export const buildDeadlines = (
+  input: Parameters<typeof buildFiscalPaymentSchedule>[0],
+) => buildFiscalPaymentSchedule(input).deadlines;

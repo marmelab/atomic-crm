@@ -18,7 +18,9 @@ export const getClientFinancials = (
 ) => {
   const snapshot = isObject(context.snapshot) ? context.snapshot : null;
   const financials = getObjectArray(snapshot?.clientFinancials);
-  const match = financials.find((item) => getString(item.clientId) === clientId);
+  const match = financials.find(
+    (item) => getString(item.clientId) === clientId,
+  );
 
   if (!match) {
     return null;

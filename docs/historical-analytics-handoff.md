@@ -6,7 +6,38 @@ lavoro senza riaprire decisioni gia prese.
 **Quando NON usarlo da solo:** per dedurre architettura canonica o stato
 prodotto senza incrociarlo con `docs/README.md` e i documenti `canonical`.
 
-Last updated: 2026-04-01 (plain-language financial flags)
+Last updated: 2026-04-02 (fiscal truth / Gestione Separata parity)
+
+## Update 2026-04-02 — Fiscal truth / Gestione Separata parity
+
+- Fiscal dashboard and `fiscal_deadline_check` now share the same two-lane
+  fiscal contract:
+  - `FiscalYearEstimate` for selected tax year `Y`
+  - `FiscalPaymentSchedule` for payment year `Y`, built from estimate `Y-1`
+    and advance plan `Y-2`
+- `fiscalConfig` gained an explicit fallback field:
+  `defaultTaxProfileAtecoCode`.
+  Current default/fallback is `731102` (`73.11.02` - conduzione di campagne di
+  marketing e altri servizi pubblicitari).
+- Taxable cash that cannot be mapped to a valid ATECO profile no longer falls
+  through array order. It is isolated in `unmappedCashRevenue`, excluded from
+  taxable ATECO aggregation, and raises `UNMAPPED_TAX_PROFILE`.
+- `DashboardNetAvailabilityCard` is now safe-first:
+  local "segnato come pagato" no longer subtracts taxes from canonical reserve
+  math. That local state remains only inside `DashboardDeadlinesCard`.
+- `useFiscalPaymentTracking` migrated from legacy `date::label` persistence to
+  stable invariant keys via `buildFiscalDeadlineKey()` and explicitly wipes the
+  incompatible legacy key shape instead of trying to migrate it.
+- `useGenerateFiscalTasks` now derives task type and identity from structured
+  fiscal data (`component + competenceYear + date`), not from rendered copy.
+- Desktop and mobile fiscal surfaces now share warning semantics through
+  `DashboardFiscalWarnings`; mobile no longer relies on the removed
+  `taxesPaid` prop path.
+- Shared/server parity coverage added:
+  - `src/components/atomic-crm/dashboard/fiscalParity.test.ts`
+  - `supabase/functions/_shared/fiscalDeadlineCalculation.test.ts`
+- Deploy required after merge/push: remote Edge Function
+  `fiscal_deadline_check`.
 
 ## Update 2026-04-01 — Plain-language financial flags in unified_crm_answer
 

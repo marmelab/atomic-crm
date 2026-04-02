@@ -1,10 +1,11 @@
-import { useCallback, useMemo } from "react";
+import { useCallback, useEffect } from "react";
 import { useStore } from "ra-core";
 
+import { buildFiscalDeadlineKey } from "./buildFiscalDeadlineKey";
 import type { FiscalDeadline } from "./fiscalModelTypes";
 
 export type FiscalPaymentRecord = {
-  /** Deadline identifier: "YYYY-MM-DD::label" */
+  /** Stable deadline identifier derived from fiscal invariants. */
   key: string;
   paidAmount: number;
   paidDate: string;
@@ -12,12 +13,20 @@ export type FiscalPaymentRecord = {
 
 type FiscalPaymentStore = Record<string, FiscalPaymentRecord>;
 
-const makeKey = (deadline: FiscalDeadline) =>
-  `${deadline.date}::${deadline.label}`;
+const makeKey = (deadline: FiscalDeadline) => buildFiscalDeadlineKey(deadline);
 
 export const useFiscalPaymentTracking = (year: number) => {
   const storeKey = `dashboard.fiscalPayments.${year}`;
   const [store, setStore] = useStore<FiscalPaymentStore>(storeKey, {});
+  const hasLegacyKeyShape = Object.keys(store).some((key) =>
+    key.includes("::"),
+  );
+
+  useEffect(() => {
+    if (hasLegacyKeyShape) {
+      setStore({});
+    }
+  }, [hasLegacyKeyShape, setStore]);
 
   const markAsPaid = useCallback(
     (deadline: FiscalDeadline, paidAmount: number, paidDate: string) => {
@@ -49,10 +58,5 @@ export const useFiscalPaymentTracking = (year: number) => {
     [store],
   );
 
-  const totalPaid = useMemo(
-    () => Object.values(store).reduce((sum, r) => sum + r.paidAmount, 0),
-    [store],
-  );
-
-  return { markAsPaid, clearPayment, getPayment, totalPaid };
+  return { markAsPaid, clearPayment, getPayment };
 };

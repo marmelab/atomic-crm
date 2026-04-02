@@ -7,7 +7,7 @@ di fotografo, videomaker e web developer. Single-user, interfaccia italiana.
 
 Stato del documento:
 
-- `canonical` — ultimo aggiornamento: 2026-04-01
+- `canonical` — ultimo aggiornamento: 2026-04-02
 - descrive la fotografia implementativa ad alto livello
 - le vecchie "sessioni" citate nel file sono indizi storici, non la fonte
   primaria della verita' operativa se entrano in conflitto con codice o
@@ -15,6 +15,7 @@ Stato del documento:
 
 ## Changelog
 
+- 2026-04-02: Fiscal truth refactor (Gestione Separata) — the fiscal dashboard and `fiscal_deadline_check` now use a two-lane contract: `FiscalYearEstimate` for selected tax year `Y` and `FiscalPaymentSchedule` for payment year `Y`, built from estimate `Y-1` plus advance plan `Y-2`. Added explicit fallback config `fiscalConfig.defaultTaxProfileAtecoCode` (default `731102`, ATECO `73.11.02`), `UNMAPPED_TAX_PROFILE` warnings on dashboard and Edge Function, canonical rounding via pure helpers, and safe-first net availability: device-local "segnato come pagato" stays reminder-only and no longer alters reserve math. Desktop/mobile and client/server parity are covered by dedicated fiscal tests.
 - 2026-04-02: unified_crm_answer create-flow split — the old monolithic `_shared/unifiedCrmAnswerCreateFlows.ts` is now a thin barrel that re-exports per-intent modules (`TravelExpense`, `ProjectQuickEpisode`, `ServiceCreate`, `ExpenseCreate`, `InvoiceDraft`) plus a small shared helper file; this is a structural hardening only, meant to keep ESLint `max-lines` / `complexity` guardrails enforceable without changing AI handoff behavior.
 - 2026-04-01: AI snapshot expense detail fix — `unifiedCrmReadContext` now serializes per-project `expenses` alongside `services` inside `activeProjects`, and `recentExpenses` / `totals.expensesAmount` use the operational expense amount (km reimbursement, markup, credits) instead of raw `expenses.amount`; this closes the AI mismatch where project totals included expenses but the detail list showed `0,00` km rows.
 - 2026-04-01: Invoice draft builders now include billable expenses and apply Invoice Draft Sign Rule (rimborso excluded from deductions); `buildInvoiceDraftFromClient` accepts expenses + payments params, returns null when collectable <= 0; call sites in ProjectShow and ClientShow updated.
@@ -221,10 +222,14 @@ Check giornaliero schedulato via `pg_cron` + `pg_net` che invoca la Edge Functio
 `fiscal_deadline_check`. La funzione:
 
 1. Legge la fiscal config dalla tabella `configuration` (JSONB)
-2. Legge i pagamenti ricevuti nell'anno per calcolare il fatturato YTD
-3. Calcola le scadenze fiscali (stessa logica del client-side `fiscalDeadlines.ts`)
+2. Legge pagamenti/progetti necessari a ricostruire la stima fiscale di `Y-1`
+   e il piano acconti di `Y-2`
+3. Calcola il calendario di pagamento dell'anno `Y` con la stessa logica pura
+   del client-side (`fiscalDeadlines.ts` / `fiscalModel.ts`)
 4. Crea `client_tasks` per le scadenze entro 30 giorni (con deduplicazione)
 5. Manda notifica email + WhatsApp per le scadenze entro 7 giorni
+6. Logga warning strutturati se parte del cash tassabile resta non mappata a un
+   profilo ATECO valido (`UNMAPPED_TAX_PROFILE`) senza bloccare il calendario
 
 ### File coinvolti
 
@@ -466,13 +471,17 @@ Aggiornamenti principali:
 - modello fiscale basato su principio di CASSA (incassi ricevuti nell'anno),
   non su competenza (servizi erogati). La base imponibile forfettaria e' la
   somma dei pagamenti con `status='ricevuto'` e `payment_date` nell'anno,
-  mappati a categorie ATECO tramite il progetto collegato. Supporta flat
-  payments senza progetto (fallback al primo profilo ATECO configurato).
+  mappati a categorie ATECO tramite il progetto collegato. I flat payments o le
+  categorie non collegate usano il fallback esplicito
+  `fiscalConfig.defaultTaxProfileAtecoCode`; se il fallback e' invalido o
+  mancante, il cash resta in `unmappedCashRevenue`, non entra nei bucket
+  imponibili ATECO e alza il warning `UNMAPPED_TAX_PROFILE`.
 - metriche operative (margini, DSO, concentrazione clienti) restano basate
   sui servizi (competenza) per coerenza con la salute business
 - KPI fiscali estesi:
   - `fatturatoTotaleYtd` (incassato totale)
   - `fatturatoNonTassabileYtd` (incassato non tassabile)
+  - `unmappedCashRevenue` (incassato tassabile ma fiscalmente non mappato)
 
 ### Bozza fattura interna (no write DB)
 
@@ -794,9 +803,11 @@ acconto_ricevuto → in_lavorazione → completato → saldato → rifiutato / p
 - `operationalConfig.defaultKmRate`
 - `operationalConfig.defaultTravelOrigin` — threaded to all `TravelRouteCalculatorDialog` call sites (services, expenses, invoice import, quick episode)
 - `fiscalConfig.taxProfiles`
+- `fiscalConfig.defaultTaxProfileAtecoCode`
 - `fiscalConfig.aliquotaINPS`
 - `fiscalConfig.tettoFatturato`
 - `fiscalConfig.annoInizioAttivita`
+- `fiscalConfig.taxabilityDefaults`
 - `aiConfig.historicalAnalysisModel`: modello condiviso per Storico, Annuale e
   chat AI unificata read-only
 - `aiConfig.invoiceExtractionModel`: modello dedicato all'import documenti

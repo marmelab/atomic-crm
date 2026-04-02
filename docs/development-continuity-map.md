@@ -6,7 +6,7 @@ obbligatoria delle superfici collegate.
 **Quando usarlo:** ogni volta che una modifica tocca comportamento reale del
 prodotto.
 
-Last updated: 2026-04-01 (km duplicate audit)
+Last updated: 2026-04-02 (fiscal truth / Gestione Separata parity)
 
 ---
 
@@ -14,6 +14,7 @@ Last updated: 2026-04-01 (km duplicate audit)
 
 ### Recent Updates (cronologico, più recente in alto)
 
+- [2026-04-02](#update-2026-04-02--fiscal-truth--gestione-separata-parity) — Fiscal truth / Gestione Separata: estimate vs schedule split, explicit ATECO fallback, dashboard/EF parity
 - [2026-04-01](#update-2026-04-01--km-duplicate-audit-after-trigger-transition) — KM duplicate audit after trigger transition: root cause identified, audit/cleanup scripts added
 - [2026-04-01](#update-2026-04-01--single-source-financials) — Single source financials: project_financials rewritten (no dual-path), client_commercial_position view created
 - [2026-04-01](#update-2026-04-01--repo-hardening-follow-up) — Repo hardening follow-up: local runtime contract clarified, legacy frontend deploy path removed, date-only UI sweep
@@ -101,6 +102,62 @@ Last updated: 2026-04-01 (km duplicate audit)
 - [AI Semantic UI Upgrade 2026-03-04](#ai-semantic-ui-upgrade-2026-03-04--pareto-principle-applied)
 
 ---
+
+## Update 2026-04-02 — Fiscal truth / Gestione Separata parity
+
+**Cosa e' cambiato**
+
+- La semantica fiscale e' ora esplicita su due corsie:
+  - `FiscalYearEstimate` = simulazione dell'anno fiscale selezionato `Y`
+  - `FiscalPaymentSchedule` = pagamenti stimati dell'anno `Y`, costruiti da
+    `estimate(Y - 1)` e `advancePlanFromEstimate(Y - 2)`
+- `fiscalConfig` espone `defaultTaxProfileAtecoCode` come fallback ATECO
+  stabile. Default attuale: `731102` (`73.11.02`).
+- Gli incassi tassabili non mappati entrano in `unmappedCashRevenue`,
+  restano fuori dall'aggregazione imponibile ATECO e alzano
+  `UNMAPPED_TAX_PROFILE` su dashboard ed Edge Function.
+- `DashboardNetAvailabilityCard` usa la regola safe-first:
+  sottrae la riserva fiscale stimata dell'anno selezionato, non il
+  "gia' versato" tracciato localmente.
+- `useFiscalPaymentTracking` usa chiavi stabili da invarianti di dominio
+  (`buildFiscalDeadlineKey`) e resetta esplicitamente il vecchio formato
+  `date::label`.
+- `useGenerateFiscalTasks` non deriva piu' tipo/identita' dal copy:
+  usa `component + competenceYear + date`.
+- `fiscal_deadline_check` lato Supabase usa la stessa matematica del client,
+  logga warning strutturati (`code`, `taxYear`, `amount`, `paymentYear`) e non
+  interrompe il calendario in caso di config fallback degradata.
+
+**File/aree che diventano obbligatori quando tocchi questa semantica**
+
+- `src/components/atomic-crm/root/defaultConfiguration.ts`
+- `src/components/atomic-crm/root/ConfigurationContext.tsx`
+- `src/components/atomic-crm/settings/FiscalSettingsSection.tsx`
+- `src/components/atomic-crm/dashboard/fiscalModel.ts`
+- `src/components/atomic-crm/dashboard/fiscalDeadlines.ts`
+- `src/components/atomic-crm/dashboard/buildFiscalDeadlineKey.ts`
+- `src/components/atomic-crm/dashboard/roundFiscalOutput.ts`
+- `src/components/atomic-crm/dashboard/DashboardAnnual.tsx`
+- `src/components/atomic-crm/dashboard/MobileDashboard.tsx`
+- `src/components/atomic-crm/dashboard/useFiscalPaymentTracking.ts`
+- `src/components/atomic-crm/dashboard/useGenerateFiscalTasks.ts`
+- `supabase/functions/_shared/fiscalDeadlineCalculation.ts`
+- `supabase/functions/fiscal_deadline_check/index.ts`
+
+**Sweep minimo richiesto**
+
+- desktop + mobile dashboard fiscale
+- cash flow annuale (`dashboardModel.ts` + `DashboardCashFlowCard.tsx`)
+- reminder/task fiscali (`useGenerateFiscalTasks`, `DashboardDeadlineTracker`)
+- continuity docs + deploy note per Edge Function remota
+
+**Test chiave**
+
+- `src/components/atomic-crm/dashboard/fiscalModel.test.ts`
+- `src/components/atomic-crm/dashboard/fiscalParity.test.ts`
+- `src/components/atomic-crm/dashboard/dashboardAnnualModel.test.ts`
+- `src/components/atomic-crm/dashboard/useGenerateFiscalTasks.test.ts`
+- `supabase/functions/_shared/fiscalDeadlineCalculation.test.ts`
 
 ## Update 2026-04-01 — Single source financials
 
@@ -640,12 +697,13 @@ Trend/Categories → Pipeline/Clients → Fiscal → AI summary.
 ### Cosa è cambiato
 
 - **KPI Disponibilità netta stimata** (`DashboardNetAvailabilityCard`): mostra
-  cassa ricevuta − spese operative − tasse residue stimate. Usa dati fiscali
-  (`stimaInpsAnnuale + stimaImpostaAnnuale`) e sottrae pagamenti tracciati.
+  cassa ricevuta − spese operative − riserva fiscale stimata. Dal 2026-04-02
+  non sottrae piu' il "gia' pagato" locale: resta un indicatore prudenziale
+  dell'anno selezionato.
 - **Tracking pagamenti fiscali** (`useFiscalPaymentTracking`): persistenza
-  localStorage via `useStore` (ra-core). Chiave per deadline
-  `YYYY-MM-DD::label`. `DashboardDeadlinesCard` mostra "Segna come pagato" /
-  "Pagato ✓" con stile verde.
+  localStorage via `useStore` (ra-core). Dal 2026-04-02 la chiave deriva dagli
+  invarianti di dominio via `buildFiscalDeadlineKey()` e il tracking resta solo
+  promemoria locale dentro la card scadenze.
 - **Cash flow forecast 30 giorni** (`DashboardCashFlowCard`): combina entrate
   attese (pagamenti pendenti) con uscite previste (scadenze fiscali).
   Post-processato dopo build del modello fiscale. Tipo `CashFlowForecast`.
@@ -1450,7 +1508,9 @@ Quando tocchi dashboard annuale o task/payment deadline logic, controllare:
 **Invarianti scadenzario automatico:**
 
 - il calcolo server-side rispecchia la stessa logica di `fiscalDeadlines.ts`
-- i task vengono deduplicati per tipo + data (non si creano duplicati)
+  e `fiscalModel.ts` (schedule anno `Y` da `Y-1` e `Y-2`)
+- i task generati dalla dashboard usano identita' strutturale
+  `component + competenceYear + date`, non il copy renderizzato
 - le notifiche partono solo per scadenze entro 7 giorni
 - i task vengono creati per scadenze entro 30 giorni
 - il cron gira alle 07:00 UTC (08:00 CET / 09:00 CEST) ogni giorno

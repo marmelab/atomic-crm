@@ -903,6 +903,10 @@
           "type": "registry:component"
         },
         {
+          "path": "src/components/atomic-crm/dashboard/roundFiscalOutput.ts",
+          "type": "registry:component"
+        },
+        {
           "path": "src/components/atomic-crm/dashboard/fiscalModelTypes.ts",
           "type": "registry:component"
         },
@@ -936,6 +940,10 @@
         },
         {
           "path": "src/components/atomic-crm/dashboard/dashboardDeadlineTrackerFormatters.ts",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/dashboard/buildFiscalDeadlineKey.ts",
           "type": "registry:component"
         },
         {
@@ -1004,6 +1012,10 @@
         },
         {
           "path": "src/components/atomic-crm/dashboard/DashboardHistorical.tsx",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/dashboard/DashboardFiscalWarnings.tsx",
           "type": "registry:component"
         },
         {

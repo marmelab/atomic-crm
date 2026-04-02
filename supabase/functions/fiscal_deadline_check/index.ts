@@ -1,15 +1,15 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 
 import { AuthMiddleware } from "../_shared/authentication.ts";
-import { todayISODate } from "../_shared/dateTimezone.ts";
+import { getBusinessYear, todayISODate } from "../_shared/dateTimezone.ts";
 import { corsHeaders, OptionsMiddleware } from "../_shared/cors.ts";
 import {
   buildDeadlineNotificationMessage,
-  buildFiscalDeadlines,
+  buildFiscalReminderComputation,
   buildTaskPayloads,
-  computeFiscalEstimates,
   type FiscalConfig,
   type FiscalDeadline,
+  type FiscalWarning,
   type FiscalTaskPayload,
   type PaymentRow,
   type ProjectRow,
@@ -49,26 +49,38 @@ async function loadFiscalConfig(): Promise<FiscalConfig | null> {
 
   const appConfig = configRow.config as Record<string, unknown>;
   const fiscalConfig = appConfig.fiscalConfig as FiscalConfig | undefined;
-  return fiscalConfig?.taxProfiles?.length ? fiscalConfig : null;
+  return fiscalConfig ?? null;
 }
 
-async function loadYearData(currentYear: number) {
-  const yearStart = `${currentYear}-01-01`;
-  const yearEnd = `${currentYear}-12-31`;
+async function loadYearData(paymentYear: number) {
+  const paymentsRangeStart = `${paymentYear - 3}-01-01`;
+  const paymentsRangeEnd = `${paymentYear + 1}-01-01`;
 
-  const [paymentsResult, projectsResult] = await Promise.all([
-    supabaseAdmin
-      .from("payments")
-      .select("amount, payment_date, status, project_id")
-      .eq("status", "ricevuto")
-      .gte("payment_date", yearStart)
-      .lte("payment_date", yearEnd),
-    supabaseAdmin.from("projects").select("id, category"),
-  ]);
+  const [paymentsResult, projectsResult, earliestPaymentResult] =
+    await Promise.all([
+      supabaseAdmin
+        .from("payments")
+        .select(
+          "payment_type, client_id, project_id, payment_date, status, amount",
+        )
+        .gte("payment_date", paymentsRangeStart)
+        .lt("payment_date", paymentsRangeEnd),
+      supabaseAdmin.from("projects").select("id, category"),
+      supabaseAdmin
+        .from("payments")
+        .select("payment_date")
+        .not("payment_date", "is", null)
+        .order("payment_date", { ascending: true })
+        .limit(1),
+    ]);
 
   return {
     payments: (paymentsResult.data ?? []) as PaymentRow[],
     projects: (projectsResult.data ?? []) as ProjectRow[],
+    inferredActivityStartYear:
+      earliestPaymentResult.data?.[0]?.payment_date != null
+        ? getBusinessYear(String(earliestPaymentResult.data[0].payment_date))
+        : null,
   };
 }
 
@@ -119,7 +131,7 @@ async function notifyImminent(
 
   const message = buildDeadlineNotificationMessage(imminent);
   const n = imminent.length;
-  const subject = `⏰ ${n} scadenz${n === 1 ? "a" : "e"} fiscal${n === 1 ? "e" : "i"} entro ${NOTIFY_DAYS} giorni`;
+  const subject = `⏰ ${n} scadenz${n === 1 ? "a" : "e"} fiscali stimate entro ${NOTIFY_DAYS} giorni`;
 
   const result = await notifyOwner(subject, message);
   console.warn("fiscal_deadline_check.notification", {
@@ -129,6 +141,19 @@ async function notifyImminent(
   });
   return result.email.ok || result.whatsapp.ok;
 }
+
+const logFiscalWarnings = (warnings: FiscalWarning[]) => {
+  for (const warning of warnings) {
+    console.warn("fiscal_deadline_check.estimate_warning", {
+      code: warning.code,
+      taxYear: warning.taxYear,
+      amount: warning.amount,
+      paymentYear: warning.paymentYear,
+      severity: warning.severity,
+      message: warning.message,
+    });
+  }
+};
 
 // ── Orchestrator ──────────────────────────────────────────────────────
 
@@ -146,29 +171,18 @@ async function runFiscalDeadlineCheck(): Promise<CheckResult> {
     };
   }
 
-  const { payments, projects } = await loadYearData(currentYear);
-  const estimates = computeFiscalEstimates({
+  const { payments, projects, inferredActivityStartYear } =
+    await loadYearData(currentYear);
+  const computation = buildFiscalReminderComputation({
     config: fiscalConfig,
     payments,
     projects,
-    currentYear,
-  });
-
-  const deadlines = buildFiscalDeadlines({
-    ...estimates,
-    annoInizioAttivita: fiscalConfig.annoInizioAttivita,
-    currentYear,
+    paymentYear: currentYear,
     todayIso: todayStr,
+    inferredActivityStartYear,
   });
-
-  if (deadlines.length === 0) {
-    return {
-      deadlinesFound: 0,
-      tasksCreated: 0,
-      notificationSent: false,
-      details: "First year of activity — no deadlines to generate",
-    };
-  }
+  const deadlines = computation.schedule.deadlines;
+  logFiscalWarnings(computation.warnings);
 
   const upcoming = deadlines.filter(
     (d) => !d.isPast && d.daysUntil <= TASK_REMINDER_DAYS,
@@ -178,7 +192,7 @@ async function runFiscalDeadlineCheck(): Promise<CheckResult> {
       deadlinesFound: deadlines.length,
       tasksCreated: 0,
       notificationSent: false,
-      details: `${deadlines.length} deadlines found, none within ${TASK_REMINDER_DAYS} days`,
+      details: `${deadlines.length} deadlines found, none within ${TASK_REMINDER_DAYS} days${computation.warnings.length > 0 ? `, ${computation.warnings.length} warning(s)` : ""}`,
     };
   }
 
@@ -189,7 +203,7 @@ async function runFiscalDeadlineCheck(): Promise<CheckResult> {
     deadlinesFound: deadlines.length,
     tasksCreated: created,
     notificationSent,
-    details: `${upcoming.length} upcoming, ${needed} new tasks needed, ${created} created${notificationSent ? ", notification sent" : ""}`,
+    details: `${upcoming.length} upcoming, ${needed} new tasks needed, ${created} created${notificationSent ? ", notification sent" : ""}${computation.warnings.length > 0 ? `, ${computation.warnings.length} warning(s)` : ""}`,
   };
 }
 

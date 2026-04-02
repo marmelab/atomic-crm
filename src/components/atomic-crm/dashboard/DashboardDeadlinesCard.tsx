@@ -25,51 +25,27 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 import { formatBusinessDate } from "@/lib/dateTimezone";
 
+import { buildFiscalDeadlineKey } from "./buildFiscalDeadlineKey";
 import { formatCurrencyPrecise } from "./dashboardModel";
-import type { FiscalDeadline } from "./fiscalModel";
+import type { FiscalDeadline, FiscalPaymentSchedule } from "./fiscalModelTypes";
 import type { FiscalPaymentRecord } from "./useFiscalPaymentTracking";
 
 export const DashboardDeadlinesCard = ({
-  deadlines,
-  isFirstYear,
+  schedule,
   onGenerateTasks,
   existingTasksCount,
   getPayment,
   onMarkPaid,
   onClearPayment,
 }: {
-  deadlines: FiscalDeadline[];
-  isFirstYear: boolean;
+  schedule: FiscalPaymentSchedule;
   onGenerateTasks?: () => void;
   existingTasksCount?: number;
   getPayment?: (deadline: FiscalDeadline) => FiscalPaymentRecord | null;
   onMarkPaid?: (deadline: FiscalDeadline) => void;
   onClearPayment?: (deadline: FiscalDeadline) => void;
 }) => {
-  if (isFirstYear) {
-    return (
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base flex items-center gap-2">
-            <CalendarClock className="h-4 w-4" />
-            Scadenze fiscali stimate
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="rounded-md bg-muted p-4 text-sm text-muted-foreground">
-            <p className="font-medium text-foreground mb-1">
-              Primo anno di attivit&agrave;
-            </p>
-            <p>
-              Nessun acconto dovuto quest&apos;anno. Accantonare circa il 30%
-              del fatturato per il saldo di giugno del prossimo anno.
-            </p>
-          </div>
-        </CardContent>
-      </Card>
-    );
-  }
-
+  const { deadlines, isFirstYear, paymentYear, basisTaxYear } = schedule;
   const highPriority = deadlines.filter((d) => d.priority === "high");
   const lowPriority = deadlines.filter((d) => d.priority === "low");
   const futureHigh = highPriority.filter((d) => !d.isPast);
@@ -108,15 +84,35 @@ export const DashboardDeadlinesCard = ({
         </div>
       </CardHeader>
       <CardContent className="space-y-3">
+        <p className="text-xs text-muted-foreground">
+          Pagamenti stimati del {paymentYear}, costruiti dai dati fiscali del{" "}
+          {basisTaxYear}. “Segna come pagato” resta solo su questo dispositivo.
+        </p>
+        {isFirstYear && (
+          <div className="rounded-md bg-muted p-4 text-sm text-muted-foreground">
+            <p className="mb-1 font-medium text-foreground">
+              Primo anno di attivit&agrave;
+            </p>
+            <p>
+              Nessun versamento stimato di saldo o acconto in questo anno di
+              pagamento. Restano separati solo bolli e dichiarazione, se dovuti.
+            </p>
+          </div>
+        )}
         {futureHigh.length > 0 && (
           <div className="flex items-center justify-center gap-2 rounded-md py-2 text-sm font-bold bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-200">
             {futureHigh.length} scadenz{futureHigh.length === 1 ? "a" : "e"} ·{" "}
             {formatCurrencyPrecise(totalDue)} da versare
           </div>
         )}
+        {!isFirstYear && futureHigh.length === 0 && highPriority.length > 0 && (
+          <div className="rounded-md bg-muted px-3 py-2 text-xs text-muted-foreground">
+            Nessun versamento stimato ancora aperto in questo anno di pagamento.
+          </div>
+        )}
         {highPriority.map((deadline) => (
           <DeadlineRow
-            key={deadline.date + deadline.label}
+            key={buildFiscalDeadlineKey(deadline)}
             deadline={deadline}
             payment={getPayment?.(deadline) ?? null}
             onMarkPaid={onMarkPaid ? () => onMarkPaid(deadline) : undefined}
@@ -228,6 +224,9 @@ const DeadlineRow = ({
                   month: "short",
                 })}
               </Badge>
+              <span className="text-[10px] text-muted-foreground">
+                Promemoria locale
+              </span>
               {onClearPayment && (
                 <Button
                   variant="ghost"
@@ -255,7 +254,7 @@ const DeadlineRow = ({
                 }}
               >
                 <Check className="h-3 w-3" />
-                Segna come pagato
+                Segna come pagato qui
               </Button>
             )
           )}
@@ -292,7 +291,7 @@ const LowPrioritySection = ({ deadlines }: { deadlines: FiscalDeadline[] }) => {
         <div className="mt-2 space-y-1">
           {deadlines.map((d) => (
             <div
-              key={d.date + d.label}
+              key={buildFiscalDeadlineKey(d)}
               className={`flex items-center justify-between text-xs px-2 py-1.5 rounded ${d.isPast ? "opacity-40" : "text-muted-foreground"}`}
             >
               <span>

@@ -1,10 +1,4 @@
-import {
-  AlertTriangle,
-  ChevronLeft,
-  ChevronRight,
-  RefreshCw,
-  Settings,
-} from "lucide-react";
+import { ChevronLeft, ChevronRight, RefreshCw, Settings } from "lucide-react";
 import { useState } from "react";
 import { Link } from "react-router-dom";
 
@@ -23,6 +17,7 @@ import { DashboardCategoryChart } from "./DashboardCategoryChart";
 import { DashboardDeadlineTracker } from "./DashboardDeadlineTracker";
 import { DashboardDeadlinesCard } from "./DashboardDeadlinesCard";
 import { DashboardFiscalKpis } from "./DashboardFiscalKpis";
+import { DashboardFiscalWarnings } from "./DashboardFiscalWarnings";
 import { DashboardKpiCards } from "./DashboardKpiCards";
 import { DashboardLoading } from "./DashboardLoading";
 import { DashboardPipelineCard } from "./DashboardPipelineCard";
@@ -55,12 +50,8 @@ export const DashboardAnnual = () => {
       year: selectedYear,
     });
 
-  const {
-    markAsPaid,
-    clearPayment,
-    getPayment,
-    totalPaid: totalTaxesPaid,
-  } = useFiscalPaymentTracking(selectedYear);
+  const { markAsPaid, clearPayment, getPayment } =
+    useFiscalPaymentTracking(selectedYear);
 
   if (isPending || !data) {
     if (error) {
@@ -91,7 +82,6 @@ export const DashboardAnnual = () => {
         meta={data.meta}
         year={data.selectedYear}
         fiscalKpis={data.fiscal?.fiscalKpis ?? null}
-        taxesPaid={totalTaxesPaid}
       />
 
       {isCurrentYear && data.cashFlowForecast && (
@@ -137,25 +127,7 @@ export const DashboardAnnual = () => {
             definitiva.
           </p>
 
-          {isCurrentYear && data.fiscal.warnings.length > 0 && (
-            <div className="space-y-2">
-              {data.fiscal.warnings.map((w) => (
-                <div
-                  key={w.type}
-                  className={`flex items-center gap-2 rounded-md p-3 text-sm ${
-                    w.type === "ceiling_critical"
-                      ? "bg-destructive/10 text-destructive"
-                      : w.type === "ceiling_exceeded"
-                        ? "bg-amber-50 text-amber-700 dark:bg-amber-950/30 dark:text-amber-400"
-                        : "bg-muted text-muted-foreground"
-                  }`}
-                >
-                  <AlertTriangle className="h-4 w-4 shrink-0" />
-                  {w.message}
-                </div>
-              ))}
-            </div>
-          )}
+          <DashboardFiscalWarnings warnings={data.fiscal.warnings} />
 
           <DashboardFiscalKpis
             fiscalKpis={data.fiscal.fiscalKpis}
@@ -170,8 +142,7 @@ export const DashboardAnnual = () => {
             />
             {isCurrentYear && (
               <DashboardDeadlinesCard
-                deadlines={data.fiscal.deadlines}
-                isFirstYear={data.fiscal.deadlines.length === 0}
+                schedule={data.fiscal.schedule}
                 onGenerateTasks={generateFiscalTasks}
                 existingTasksCount={fiscalTasksCount}
                 getPayment={getPayment}

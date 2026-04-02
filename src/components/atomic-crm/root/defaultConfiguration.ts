@@ -127,7 +127,8 @@ export const defaultFiscalConfig: FiscalConfig = {
   taxProfiles: [
     {
       atecoCode: "731102",
-      description: "Marketing e servizi pubblicitari",
+      description:
+        "Conduzione di campagne di marketing e altri servizi pubblicitari",
       coefficienteReddititivita: 78,
       linkedCategories: ["produzione_tv", "spot", "wedding", "evento_privato"],
     },
@@ -138,6 +139,7 @@ export const defaultFiscalConfig: FiscalConfig = {
       linkedCategories: ["sviluppo_web"],
     },
   ],
+  defaultTaxProfileAtecoCode: "731102",
   aliquotaINPS: 26.07,
   tettoFatturato: 85000,
   annoInizioAttivita: 2023,

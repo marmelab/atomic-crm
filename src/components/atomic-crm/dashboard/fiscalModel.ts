@@ -11,7 +11,15 @@ import {
   calculateKmReimbursement,
   calculateServiceNetValue,
 } from "@/lib/semantics/crmSemanticRegistry";
-import { buildDeadlines } from "./fiscalDeadlines";
+import {
+  getValidFiscalTaxProfiles,
+  isValidFiscalTaxProfileAtecoCode,
+} from "@/lib/fiscalConfig";
+import {
+  buildAdvancePlanFromEstimate,
+  buildFiscalPaymentSchedule,
+  type FiscalEstimateScheduleInput,
+} from "./fiscalDeadlines";
 import {
   diffBusinessDays,
   getBusinessMonthIndex,
@@ -24,8 +32,10 @@ import type {
   BusinessHealthKpis,
   CategoryMargin,
   FiscalModel,
+  FiscalKpis,
   FiscalWarning,
 } from "./fiscalModelTypes";
+import { roundFiscalOutput } from "./roundFiscalOutput";
 
 // Re-export types for backward compatibility
 export type {
@@ -105,6 +115,253 @@ const isInYear = (value: string | undefined, year: number) => {
   return getBusinessYear(value) === year;
 };
 
+const getSignedPaymentAmount = (payment: Payment) => {
+  const amount = toNumber(payment.amount);
+  return payment.payment_type === "rimborso" ? -amount : amount;
+};
+
+const buildCategoryToProfileMap = (
+  taxProfiles: FiscalConfig["taxProfiles"],
+) => {
+  const categoryToProfile = new Map<string, (typeof taxProfiles)[number]>();
+
+  for (const profile of taxProfiles) {
+    for (const category of profile.linkedCategories) {
+      categoryToProfile.set(category, profile);
+    }
+  }
+
+  return categoryToProfile;
+};
+
+const isPaymentExcludedByTaxabilityDefaults = ({
+  payment,
+  projectById,
+  taxDefaults,
+}: {
+  payment: Payment;
+  projectById: Map<string, Project>;
+  taxDefaults: FiscalConfig["taxabilityDefaults"];
+}) => {
+  if (!taxDefaults) return false;
+
+  if (taxDefaults.nonTaxableClientIds?.includes(String(payment.client_id))) {
+    return true;
+  }
+
+  if (!payment.project_id) {
+    return false;
+  }
+
+  const project = projectById.get(String(payment.project_id));
+  if (!project) {
+    return false;
+  }
+
+  return taxDefaults.nonTaxableCategories?.includes(project.category) ?? false;
+};
+
+const inferActivityStartYearFromPayments = (payments: Payment[]) => {
+  const years = payments
+    .map((payment) => payment.payment_date)
+    .filter((value): value is string => Boolean(value))
+    .map((value) => getBusinessYear(value))
+    .filter((value): value is number => value != null)
+    .sort((left, right) => left - right);
+
+  return years[0] ?? null;
+};
+
+type FiscalYearEstimateBuildResult = {
+  fiscalKpis: FiscalKpis;
+  atecoBreakdown: AtecoBreakdownPoint[];
+  warnings: FiscalWarning[];
+  scheduleInput: FiscalEstimateScheduleInput;
+};
+
+export const buildFiscalYearEstimate = ({
+  payments,
+  projects,
+  fiscalConfig,
+  taxYear,
+  monthsOfData = 12,
+}: {
+  payments: Payment[];
+  projects: Project[];
+  fiscalConfig: FiscalConfig;
+  taxYear: number;
+  monthsOfData?: number;
+}): FiscalYearEstimateBuildResult => {
+  const projectById = new Map(
+    projects.map((project) => [String(project.id), project]),
+  );
+  const validTaxProfiles = getValidFiscalTaxProfiles(fiscalConfig.taxProfiles);
+  const categoryToProfile = buildCategoryToProfileMap(validTaxProfiles);
+  const profileByAtecoCode = new Map(
+    validTaxProfiles.map((profile) => [profile.atecoCode, profile]),
+  );
+  const fallbackProfile = isValidFiscalTaxProfileAtecoCode(
+    fiscalConfig.defaultTaxProfileAtecoCode,
+    validTaxProfiles,
+  )
+    ? (profileByAtecoCode.get(fiscalConfig.defaultTaxProfileAtecoCode) ?? null)
+    : null;
+  const taxDefaults = fiscalConfig.taxabilityDefaults;
+  const taxableCashRevenuePerAteco = new Map<string, number>();
+  let mappedTaxableCashRevenue = 0;
+  let totalCashRevenue = 0;
+  let nonTaxableCashRevenue = 0;
+  let unmappedCashRevenue = 0;
+
+  for (const payment of payments) {
+    if (payment.status !== "ricevuto") continue;
+    if (!payment.payment_date) continue;
+    if (getBusinessYear(payment.payment_date) !== taxYear) continue;
+
+    const amount = getSignedPaymentAmount(payment);
+    totalCashRevenue += amount;
+
+    if (
+      isPaymentExcludedByTaxabilityDefaults({
+        payment,
+        projectById,
+        taxDefaults,
+      })
+    ) {
+      nonTaxableCashRevenue += amount;
+      continue;
+    }
+
+    const project = payment.project_id
+      ? projectById.get(String(payment.project_id))
+      : null;
+    const mappedProfile =
+      project?.category != null
+        ? categoryToProfile.get(project.category)
+        : null;
+    const targetProfile = mappedProfile ?? fallbackProfile;
+
+    if (!targetProfile) {
+      unmappedCashRevenue += amount;
+      continue;
+    }
+
+    mappedTaxableCashRevenue += amount;
+    taxableCashRevenuePerAteco.set(
+      targetProfile.atecoCode,
+      (taxableCashRevenuePerAteco.get(targetProfile.atecoCode) ?? 0) + amount,
+    );
+  }
+
+  const aliquotaSostitutiva = getAliquotaSostitutiva(fiscalConfig, taxYear);
+  let forfettarioIncome = 0;
+  const atecoBreakdown: AtecoBreakdownPoint[] = validTaxProfiles.map(
+    (profile) => {
+      const rawRevenue = taxableCashRevenuePerAteco.get(profile.atecoCode) ?? 0;
+      const basis = Math.max(0, rawRevenue);
+      const redditoForfettario =
+        basis * (profile.coefficienteReddititivita / 100);
+      forfettarioIncome += redditoForfettario;
+
+      return {
+        atecoCode: profile.atecoCode,
+        description: profile.description,
+        coefficiente: profile.coefficienteReddititivita,
+        fatturato: roundFiscalOutput(rawRevenue),
+        redditoForfettario: roundFiscalOutput(redditoForfettario),
+        categories: profile.linkedCategories,
+      };
+    },
+  );
+
+  forfettarioIncome = Math.max(0, forfettarioIncome);
+  const annualInpsEstimate = Math.max(
+    0,
+    forfettarioIncome * (fiscalConfig.aliquotaINPS / 100),
+  );
+  const taxableIncomeAfterInps = Math.max(
+    0,
+    forfettarioIncome - annualInpsEstimate,
+  );
+  const annualSubstituteTaxEstimate = Math.max(
+    0,
+    taxableIncomeAfterInps * (aliquotaSostitutiva / 100),
+  );
+  const annualTotalEstimate = annualInpsEstimate + annualSubstituteTaxEstimate;
+  const monthlySetAside = annualTotalEstimate / 12;
+  const netEstimatedCash = totalCashRevenue - annualTotalEstimate;
+  const taxableExposureForCeiling = Math.max(
+    0,
+    mappedTaxableCashRevenue + unmappedCashRevenue,
+  );
+  const tettoFatturato =
+    fiscalConfig.tettoFatturato > 0 ? fiscalConfig.tettoFatturato : 85000;
+  const distanzaDalTetto = tettoFatturato - taxableExposureForCeiling;
+  const percentualeUtilizzoTetto =
+    tettoFatturato > 0 ? (taxableExposureForCeiling / tettoFatturato) * 100 : 0;
+  const percentualeNetto =
+    totalCashRevenue > 0 ? (netEstimatedCash / totalCashRevenue) * 100 : 0;
+  const roundedUnmappedCashRevenue = roundFiscalOutput(unmappedCashRevenue);
+
+  const warnings: FiscalWarning[] = [];
+  if (roundedUnmappedCashRevenue !== 0) {
+    warnings.push({
+      code: "UNMAPPED_TAX_PROFILE",
+      severity: "warning",
+      message: `${roundedUnmappedCashRevenue.toLocaleString("it-IT", {
+        style: "currency",
+        currency: "EUR",
+      })} di incassi tassabili non sono mappati a nessun profilo ATECO. Controlla il profilo fallback in Impostazioni -> Fiscale.`,
+      amount: roundedUnmappedCashRevenue,
+      taxYear,
+    });
+  }
+  if (distanzaDalTetto < 0 && taxableExposureForCeiling < 100000) {
+    warnings.push({
+      code: "CEILING_EXCEEDED",
+      severity: "warning",
+      message: "Tetto superato: uscita dal forfettario dall'anno prossimo",
+      taxYear,
+    });
+  }
+  if (taxableExposureForCeiling >= 100000) {
+    warnings.push({
+      code: "CEILING_CRITICAL",
+      severity: "critical",
+      message: "Superamento 100K: uscita IMMEDIATA dal regime forfettario",
+      taxYear,
+    });
+  }
+
+  return {
+    fiscalKpis: {
+      taxYear,
+      fatturatoLordoYtd: roundFiscalOutput(mappedTaxableCashRevenue),
+      fatturatoTotaleYtd: roundFiscalOutput(totalCashRevenue),
+      fatturatoNonTassabileYtd: roundFiscalOutput(nonTaxableCashRevenue),
+      unmappedCashRevenue: roundedUnmappedCashRevenue,
+      redditoLordoForfettario: roundFiscalOutput(forfettarioIncome),
+      stimaInpsAnnuale: roundFiscalOutput(annualInpsEstimate),
+      redditoImponibile: roundFiscalOutput(taxableIncomeAfterInps),
+      stimaImpostaAnnuale: roundFiscalOutput(annualSubstituteTaxEstimate),
+      redditoNettoStimato: roundFiscalOutput(netEstimatedCash),
+      percentualeNetto: roundFiscalOutput(percentualeNetto),
+      accantonamentoMensile: roundFiscalOutput(monthlySetAside),
+      distanzaDalTetto: roundFiscalOutput(distanzaDalTetto),
+      percentualeUtilizzoTetto: roundFiscalOutput(percentualeUtilizzoTetto),
+      aliquotaSostitutiva: roundFiscalOutput(aliquotaSostitutiva),
+      monthsOfData,
+    },
+    atecoBreakdown,
+    warnings,
+    scheduleInput: {
+      taxYear,
+      annualInpsEstimate,
+      annualSubstituteTaxEstimate,
+    },
+  };
+};
+
 // ── Main builder ──────────────────────────────────────────────────────
 
 export const buildFiscalModel = ({
@@ -148,17 +405,6 @@ export const buildFiscalModel = ({
 
   const projectById = new Map(projects.map((p) => [String(p.id), p]));
 
-  // Build category → ATECO profile mapping
-  const categoryToProfile = new Map<
-    string,
-    (typeof fiscalConfig.taxProfiles)[0]
-  >();
-  for (const profile of fiscalConfig.taxProfiles) {
-    for (const cat of profile.linkedCategories) {
-      categoryToProfile.set(cat, profile);
-    }
-  }
-
   // ── Operational revenue by category (competence basis) ────────────
   // Used for margins, DSO, and operational health KPIs.
   // NOT used for fiscal base — see cash-basis section below.
@@ -168,7 +414,6 @@ export const buildFiscalModel = ({
   const clientRevenue = new Map<string, number>();
   const projectEarliestService = new Map<string, string>();
   const clientEarliestFlatService = new Map<string, string>();
-  const defaultTaxProfile = fiscalConfig.taxProfiles[0];
 
   for (const service of services) {
     if (!service.service_date) continue;
@@ -215,72 +460,6 @@ export const buildFiscalModel = ({
     }
   }
 
-  // ── Cash-basis fiscal revenue (current year) ────────────────────
-  // Regime forfettario: la base imponibile è la somma degli INCASSI
-  // effettivamente ricevuti nell'anno (principio di cassa), NON il
-  // fatturato emesso o i servizi erogati (principio di competenza).
-  // Rif. normativo: Art. 1 commi 54-89, L. 190/2014.
-
-  const taxableCashRevenue = new Map<string, number>();
-  let fatturatoTotaleYtd = 0;
-  const taxDefaults = fiscalConfig.taxabilityDefaults;
-
-  for (const payment of payments) {
-    if (payment.status !== "ricevuto") continue;
-    if (!payment.payment_date) continue;
-    if (getBusinessYear(payment.payment_date) !== currentYear) continue;
-
-    // Rimborsi al cliente riducono la base imponibile
-    const isRefund = payment.payment_type === "rimborso";
-    const amount = isRefund
-      ? -toNumber(payment.amount)
-      : toNumber(payment.amount);
-
-    fatturatoTotaleYtd += amount;
-
-    // Check non-taxable via config defaults
-    let isTaxable = true;
-    if (taxDefaults) {
-      if (
-        taxDefaults.nonTaxableClientIds?.includes(String(payment.client_id))
-      ) {
-        isTaxable = false;
-      } else if (payment.project_id) {
-        const proj = projectById.get(String(payment.project_id));
-        if (proj && taxDefaults.nonTaxableCategories?.includes(proj.category)) {
-          isTaxable = false;
-        }
-      }
-    }
-
-    if (!isTaxable) continue;
-
-    // Map payment to ATECO category via project
-    const project = payment.project_id
-      ? projectById.get(String(payment.project_id))
-      : null;
-
-    if (!project) {
-      const fallbackKey = defaultTaxProfile
-        ? `__flat_payments_${defaultTaxProfile.atecoCode}`
-        : "__flat_payments_unclassified";
-      if (defaultTaxProfile) {
-        categoryToProfile.set(fallbackKey, defaultTaxProfile);
-      }
-      taxableCashRevenue.set(
-        fallbackKey,
-        (taxableCashRevenue.get(fallbackKey) ?? 0) + amount,
-      );
-      continue;
-    }
-
-    const category = project.category;
-    taxableCashRevenue.set(
-      category,
-      (taxableCashRevenue.get(category) ?? 0) + amount,
-    );
-  }
-
   // ── Expenses by category (current year) ───────────────────────────
 
   for (const expense of expenses) {
@@ -301,84 +480,36 @@ export const buildFiscalModel = ({
     categoryExpenses.set(cat, (categoryExpenses.get(cat) ?? 0) + amount);
   }
 
-  // ── Fiscal KPIs ───────────────────────────────────────────────────
-
-  const aliquotaSostitutiva = getAliquotaSostitutiva(fiscalConfig, currentYear);
-  let fatturatoLordoYtd = 0;
-  let redditoLordoForfettario = 0;
-  let unclassifiedRevenue = 0;
-
-  const atecoTotals = new Map<
-    string,
-    { fatturato: number; redditoForfettario: number }
-  >();
-
-  for (const [cat, revenue] of taxableCashRevenue) {
-    fatturatoLordoYtd += revenue;
-    const profile = categoryToProfile.get(cat);
-    if (profile) {
-      const reddito = revenue * (profile.coefficienteReddititivita / 100);
-      redditoLordoForfettario += reddito;
-      const key = profile.atecoCode;
-      const bucket = atecoTotals.get(key) ?? {
-        fatturato: 0,
-        redditoForfettario: 0,
-      };
-      bucket.fatturato += revenue;
-      bucket.redditoForfettario += reddito;
-      atecoTotals.set(key, bucket);
-    } else {
-      unclassifiedRevenue += revenue;
-    }
-  }
-
-  const stimaInpsAnnuale =
-    redditoLordoForfettario * (fiscalConfig.aliquotaINPS / 100);
-  const redditoImponibile = Math.max(
-    0,
-    redditoLordoForfettario - stimaInpsAnnuale,
-  );
-  const stimaImpostaAnnuale = redditoImponibile * (aliquotaSostitutiva / 100);
-  const redditoNettoStimato =
-    fatturatoLordoYtd - stimaInpsAnnuale - stimaImpostaAnnuale;
-  const percentualeNetto =
-    fatturatoLordoYtd > 0 ? (redditoNettoStimato / fatturatoLordoYtd) * 100 : 0;
-  const accantonamentoMensile = (stimaInpsAnnuale + stimaImpostaAnnuale) / 12;
-  const tettoFatturato =
-    fiscalConfig.tettoFatturato > 0 ? fiscalConfig.tettoFatturato : 85000;
-  const distanzaDalTetto = tettoFatturato - fatturatoLordoYtd;
-  const percentualeUtilizzoTetto =
-    tettoFatturato > 0 ? (fatturatoLordoYtd / tettoFatturato) * 100 : 0;
-  const fatturatoNonTassabileYtd = Math.max(
-    0,
-    fatturatoTotaleYtd - fatturatoLordoYtd,
-  );
-
-  // ── ATECO breakdown ───────────────────────────────────────────────
-
-  const atecoBreakdown: AtecoBreakdownPoint[] = fiscalConfig.taxProfiles.map(
-    (profile) => {
-      const bucket = atecoTotals.get(profile.atecoCode);
-      return {
-        atecoCode: profile.atecoCode,
-        description: profile.description,
-        coefficiente: profile.coefficienteReddititivita,
-        fatturato: bucket?.fatturato ?? 0,
-        redditoForfettario: bucket?.redditoForfettario ?? 0,
-        categories: profile.linkedCategories,
-      };
-    },
-  );
-
-  // ── Deadlines ─────────────────────────────────────────────────────
-
-  const deadlines = buildDeadlines({
-    stimaImpostaAnnuale,
-    stimaInpsAnnuale,
+  const estimate = buildFiscalYearEstimate({
+    payments,
+    projects,
+    fiscalConfig,
+    taxYear: currentYear,
+    monthsOfData,
+  });
+  const previousYearEstimate = buildFiscalYearEstimate({
+    payments,
+    projects,
+    fiscalConfig,
+    taxYear: currentYear - 1,
+  });
+  const twoYearsBackEstimate = buildFiscalYearEstimate({
+    payments,
+    projects,
+    fiscalConfig,
+    taxYear: currentYear - 2,
+  });
+  const schedule = buildFiscalPaymentSchedule({
+    paymentYear: currentYear,
+    basisEstimate: previousYearEstimate.scheduleInput,
+    priorAdvancePlan: buildAdvancePlanFromEstimate({
+      estimate: twoYearsBackEstimate.scheduleInput,
+    }),
     annoInizioAttivita: fiscalConfig.annoInizioAttivita,
-    currentYear,
+    inferredActivityStartYear: inferActivityStartYearFromPayments(payments),
     todayIso,
   });
+  const deadlines = schedule.deadlines;
 
   // ── Business Health KPIs ──────────────────────────────────────────
 
@@ -450,47 +581,10 @@ export const buildFiscalModel = ({
     0,
   );
 
-  // ── Warnings ──────────────────────────────────────────────────────
-
-  const warnings: FiscalWarning[] = [];
-  if (unclassifiedRevenue > 0) {
-    warnings.push({
-      type: "unclassified_revenue",
-      message: `${Math.round(unclassifiedRevenue).toLocaleString("it-IT")} € di fatturato non classificato. Collega le categorie mancanti in Impostazioni → Fiscale.`,
-      amount: unclassifiedRevenue,
-    });
-  }
-  if (distanzaDalTetto < 0 && fatturatoLordoYtd < 100000) {
-    warnings.push({
-      type: "ceiling_exceeded",
-      message: "Tetto superato: uscita dal forfettario dall'anno prossimo",
-    });
-  }
-  if (fatturatoLordoYtd >= 100000) {
-    warnings.push({
-      type: "ceiling_critical",
-      message: "Superamento 100K: uscita IMMEDIATA dal regime forfettario",
-    });
-  }
-
   return {
-    fiscalKpis: {
-      fatturatoLordoYtd,
-      fatturatoTotaleYtd,
-      fatturatoNonTassabileYtd,
-      redditoLordoForfettario,
-      stimaInpsAnnuale,
-      redditoImponibile,
-      stimaImpostaAnnuale,
-      redditoNettoStimato,
-      percentualeNetto,
-      accantonamentoMensile,
-      distanzaDalTetto,
-      percentualeUtilizzoTetto,
-      aliquotaSostitutiva,
-      monthsOfData,
-    },
-    atecoBreakdown,
+    fiscalKpis: estimate.fiscalKpis,
+    atecoBreakdown: estimate.atecoBreakdown,
+    schedule,
     deadlines,
     businessHealth: {
       marginPerCategory,
@@ -501,6 +595,6 @@ export const buildFiscalModel = ({
       clientConcentration,
       weightedPipelineValue,
     } satisfies BusinessHealthKpis,
-    warnings,
+    warnings: estimate.warnings,
   };
 };

@@ -415,6 +415,7 @@ export interface TaxabilityDefaultsConfig {
  *  All fields configurable from UI and persisted to DB via configuration JSONB. */
 export interface FiscalConfig {
   taxProfiles: FiscalTaxProfile[];
+  defaultTaxProfileAtecoCode: string;
   aliquotaINPS: number; // 26.07
   tettoFatturato: number; // 85000
   annoInizioAttivita: number; // 2023

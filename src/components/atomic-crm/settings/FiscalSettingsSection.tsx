@@ -1,10 +1,13 @@
+import { useEffect } from "react";
 import { useGetList, useInput } from "ra-core";
 import { useWatch } from "react-hook-form";
+import { AlertTriangle } from "lucide-react";
 
 import { ArrayInput } from "@/components/admin/array-input";
 import { NumberInput } from "@/components/admin/number-input";
 import { SimpleFormIterator } from "@/components/admin/simple-form-iterator";
 import { TextInput } from "@/components/admin/text-input";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
@@ -15,6 +18,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  getFiscalFallbackProfileStatus,
+  getValidFiscalTaxProfiles,
+} from "@/lib/fiscalConfig";
 import { todayISODate } from "@/lib/dateTimezone";
 
 import { projectCategoryChoices } from "../projects/projectTypes";
@@ -78,6 +85,7 @@ export const FiscalSettingsSection = () => {
             <LinkedCategoriesInput source="linkedCategories" />
           </SimpleFormIterator>
         </ArrayInput>
+        <FallbackTaxProfileInput />
       </div>
 
       <div className="space-y-4">
@@ -170,6 +178,59 @@ const LinkedCategoriesInput = ({ source }: { source: string }) => {
       </div>
       {selected.length === 0 ? (
         <p className="text-xs text-amber-600">Nessuna categoria collegata</p>
+      ) : null}
+    </div>
+  );
+};
+
+const FallbackTaxProfileInput = () => {
+  const taxProfiles = useWatch({ name: "fiscalConfig.taxProfiles" });
+  const {
+    field: { value, onChange },
+  } = useInput({ source: "fiscalConfig.defaultTaxProfileAtecoCode" });
+
+  const validProfiles = getValidFiscalTaxProfiles(taxProfiles);
+  const status = getFiscalFallbackProfileStatus({
+    taxProfiles,
+    defaultTaxProfileAtecoCode: typeof value === "string" ? value : undefined,
+  });
+
+  useEffect(() => {
+    if (status.isValid || !status.firstValidCode) return;
+    onChange(status.firstValidCode);
+  }, [onChange, status.firstValidCode, status.isValid]);
+
+  return (
+    <div className="space-y-2">
+      <Label className="text-sm font-medium">Profilo fallback incassi</Label>
+      <p className="text-sm text-muted-foreground">
+        Usato per incassi senza progetto o con categoria non mappata. Non
+        dipende piu' dall'ordine dei profili ATECO.
+      </p>
+      <Select
+        value={
+          typeof value === "string" && value.length > 0 ? value : undefined
+        }
+        onValueChange={onChange}
+        disabled={validProfiles.length === 0}
+      >
+        <SelectTrigger>
+          <SelectValue placeholder="Seleziona un profilo ATECO" />
+        </SelectTrigger>
+        <SelectContent>
+          {validProfiles.map((profile) => (
+            <SelectItem key={profile.atecoCode} value={profile.atecoCode}>
+              {profile.atecoCode} - {profile.description}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+      {status.blockingMessage ? (
+        <Alert variant="destructive">
+          <AlertTriangle className="h-4 w-4" />
+          <AlertTitle>Configurazione fiscale incompleta</AlertTitle>
+          <AlertDescription>{status.blockingMessage}</AlertDescription>
+        </Alert>
       ) : null}
     </div>
   );

@@ -9,6 +9,7 @@ import type {
   NoteStatus,
   OperationalConfig,
 } from "../types";
+import { getFirstValidFiscalTaxProfileAtecoCode } from "@/lib/fiscalConfig";
 import { defaultConfiguration } from "./defaultConfiguration";
 
 export const CONFIGURATION_STORE_KEY = "app.configuration";
@@ -38,30 +39,46 @@ type PartialConfigurationContextValue = Partial<ConfigurationContextValue> & {
 
 export const mergeConfigurationWithDefaults = (
   config?: PartialConfigurationContextValue,
-): ConfigurationContextValue => ({
-  ...defaultConfiguration,
-  ...config,
-  fiscalConfig: {
+): ConfigurationContextValue => {
+  const mergedFiscalConfig: FiscalConfig = {
     ...defaultConfiguration.fiscalConfig,
     ...config?.fiscalConfig,
     taxabilityDefaults: {
       ...defaultConfiguration.fiscalConfig.taxabilityDefaults,
       ...config?.fiscalConfig?.taxabilityDefaults,
     },
-  },
-  aiConfig: {
-    ...defaultConfiguration.aiConfig,
-    ...config?.aiConfig,
-  },
-  operationalConfig: {
-    ...defaultConfiguration.operationalConfig,
-    ...config?.operationalConfig,
-  },
-  businessProfile: {
-    ...defaultConfiguration.businessProfile,
-    ...config?.businessProfile,
-  },
-});
+    defaultTaxProfileAtecoCode:
+      config?.fiscalConfig &&
+      Object.prototype.hasOwnProperty.call(
+        config.fiscalConfig,
+        "defaultTaxProfileAtecoCode",
+      )
+        ? (config.fiscalConfig.defaultTaxProfileAtecoCode ??
+          defaultConfiguration.fiscalConfig.defaultTaxProfileAtecoCode)
+        : (getFirstValidFiscalTaxProfileAtecoCode(
+            config?.fiscalConfig?.taxProfiles ??
+              defaultConfiguration.fiscalConfig.taxProfiles,
+          ) ?? defaultConfiguration.fiscalConfig.defaultTaxProfileAtecoCode),
+  };
+
+  return {
+    ...defaultConfiguration,
+    ...config,
+    fiscalConfig: mergedFiscalConfig,
+    aiConfig: {
+      ...defaultConfiguration.aiConfig,
+      ...config?.aiConfig,
+    },
+    operationalConfig: {
+      ...defaultConfiguration.operationalConfig,
+      ...config?.operationalConfig,
+    },
+    businessProfile: {
+      ...defaultConfiguration.businessProfile,
+      ...config?.businessProfile,
+    },
+  };
+};
 
 export const useConfigurationContext = () => {
   const [config] = useStore<ConfigurationContextValue>(

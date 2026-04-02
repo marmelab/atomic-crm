@@ -93,9 +93,14 @@ const fiscalConfig: FiscalConfig = {
       linkedCategories: ["produzione_tv", "spot"],
     },
   ],
+  defaultTaxProfileAtecoCode: "59.11.00",
   aliquotaINPS: 26,
   tettoFatturato: 85000,
   annoInizioAttivita: 2023,
+  taxabilityDefaults: {
+    nonTaxableCategories: [],
+    nonTaxableClientIds: [],
+  },
 };
 
 afterEach(() => {
@@ -623,6 +628,48 @@ describe("buildDashboardModel annual semantics", () => {
     });
 
     expect(model.cashFlowForecast).toBeNull();
+  });
+
+  it("injects fiscal outflows into cash flow using payment-year schedule semantics, not current-year cash", () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-06-01T09:00:00.000Z"));
+
+    const model = buildDashboardModel({
+      payments: [
+        basePayment({
+          id: 1,
+          project_id: 1,
+          amount: 2000,
+          status: "ricevuto",
+          payment_date: "2025-02-01T00:00:00.000Z",
+        }),
+        basePayment({
+          id: 2,
+          project_id: 1,
+          amount: 10000,
+          status: "ricevuto",
+          payment_date: "2026-03-01T00:00:00.000Z",
+        }),
+      ],
+      quotes: [],
+      services: [],
+      projects: [baseProject({ id: 1, client_id: 1 })],
+      clients: [baseClient({ id: 1 })],
+      expenses: [],
+      fiscalConfig,
+      year: 2026,
+    });
+
+    expect(model.fiscal?.fiscalKpis.fatturatoLordoYtd).toBe(10000);
+    expect(model.cashFlowForecast?.outflows).toEqual([
+      expect.objectContaining({
+        type: "fiscal_deadline",
+        date: "2026-06-30",
+        label: "Saldo + 1° Acconto",
+        amount: 625.56,
+      }),
+    ]);
+    expect(model.cashFlowForecast?.outflowsTotal).toBe(625.56);
   });
 
   it("splits expenses into ownExpenses (no project) and clientExpenses (with project)", () => {
