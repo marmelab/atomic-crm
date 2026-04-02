@@ -1,6 +1,16 @@
-import { ChevronLeft, ChevronRight, RefreshCw, Settings } from "lucide-react";
+import {
+  ChevronLeft,
+  ChevronRight,
+  FilePlus,
+  PenLine,
+  Plus,
+  RefreshCw,
+  Settings,
+} from "lucide-react";
 import { useState } from "react";
 import { Link } from "react-router-dom";
+import { useDataProvider } from "ra-core";
+import { useQuery } from "@tanstack/react-query";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -9,6 +19,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { todayISODate } from "@/lib/dateTimezone";
 import { useRealtimeInvalidation } from "@/hooks/useRealtimeInvalidation";
 
+import type { CrmDataProvider } from "../providers/types";
 import { DashboardAnnualAiSummaryCard } from "./DashboardAnnualAiSummaryCard";
 import { DashboardAtecoChart } from "./DashboardAtecoChart";
 import { DashboardBusinessHealthCard } from "./DashboardBusinessHealthCard";
@@ -16,6 +27,7 @@ import { DashboardCashFlowCard } from "./DashboardCashFlowCard";
 import { DashboardCategoryChart } from "./DashboardCategoryChart";
 import { DashboardDeadlineTracker } from "./DashboardDeadlineTracker";
 import { DashboardDeadlinesCard } from "./DashboardDeadlinesCard";
+import { DichiarazioneEntryDialog } from "./DichiarazioneEntryDialog";
 import { DashboardFiscalKpis } from "./DashboardFiscalKpis";
 import { DashboardFiscalWarnings } from "./DashboardFiscalWarnings";
 import { DashboardKpiCards } from "./DashboardKpiCards";
@@ -23,6 +35,8 @@ import { DashboardLoading } from "./DashboardLoading";
 import { DashboardPipelineCard } from "./DashboardPipelineCard";
 import { DashboardRevenueTrendChart } from "./DashboardRevenueTrendChart";
 import { DashboardTopClientsCard } from "./DashboardTopClientsCard";
+import { F24RegistrationDialog } from "./F24RegistrationDialog";
+import { ObligationEntryDialog } from "./ObligationEntryDialog";
 import type { FiscalDeadlineView } from "./fiscalRealityTypes";
 import { useDashboardData } from "./useDashboardData";
 import { useFiscalPaymentTracking } from "./useFiscalPaymentTracking";
@@ -45,6 +59,7 @@ export const DashboardAnnual = () => {
   const [selectedYear, setSelectedYear] = useState(currentYear);
   const { data, isPending, error, refetch } = useDashboardData(selectedYear);
   const isCurrentYear = data?.isCurrentYear ?? selectedYear === currentYear;
+  const dataProvider = useDataProvider<CrmDataProvider>();
 
   const { generate: generateFiscalTasks, existingCount: fiscalTasksCount } =
     useGenerateFiscalTasks({
@@ -55,14 +70,25 @@ export const DashboardAnnual = () => {
   const { markAsPaid, clearPayment, getPayment } =
     useFiscalPaymentTracking(selectedYear);
 
-  const { deadlineViews, totalOpenObligations } = useFiscalReality({
-    estimatedDeadlines: data?.fiscal?.schedule.deadlines ?? [],
-    paymentYear: selectedYear,
-    todayIso: todayISODate(),
-  });
+  const { deadlineViews, totalOpenObligations, hasRealFiscalData } =
+    useFiscalReality({
+      estimatedDeadlines: data?.fiscal?.schedule.deadlines ?? [],
+      paymentYear: selectedYear,
+      todayIso: todayISODate(),
+    });
 
-  // F24 registration dialog state — dialog component comes in Task 8
-  const [_f24Target, setF24Target] = useState<FiscalDeadlineView | null>(null);
+  // Dialog states
+  const [f24Target, setF24Target] = useState<FiscalDeadlineView | null>(null);
+  const [showDichiarazione, setShowDichiarazione] = useState(false);
+  const [showObligation, setShowObligation] = useState(false);
+
+  // Check if declaration exists for the fiscal year (selectedYear - 1)
+  const declarationTaxYear = selectedYear - 1;
+  const { data: existingDeclaration } = useQuery({
+    queryKey: ["fiscal-declaration", declarationTaxYear],
+    queryFn: () => dataProvider.getFiscalDeclaration(declarationTaxYear),
+    enabled: data?.fiscal != null,
+  });
 
   if (isPending || !data) {
     if (error) {
@@ -129,11 +155,44 @@ export const DashboardAnnual = () => {
 
       {data.fiscal ? (
         <>
-          <h2 className="text-xl font-semibold mt-2">
-            {isCurrentYear
-              ? "Simulazione fiscale & salute aziendale"
-              : `Simulazione fiscale ${selectedYear}`}
-          </h2>
+          <div className="flex items-center justify-between mt-2">
+            <h2 className="text-xl font-semibold">
+              {isCurrentYear
+                ? "Simulazione fiscale & salute aziendale"
+                : `Simulazione fiscale ${selectedYear}`}
+            </h2>
+            {isCurrentYear && (
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="gap-1.5 text-xs"
+                  onClick={() => setShowDichiarazione(true)}
+                >
+                  {existingDeclaration ? (
+                    <>
+                      <PenLine className="h-3.5 w-3.5" />
+                      Modifica dichiarazione {declarationTaxYear}
+                    </>
+                  ) : (
+                    <>
+                      <FilePlus className="h-3.5 w-3.5" />
+                      Inserisci dichiarazione {declarationTaxYear}
+                    </>
+                  )}
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="gap-1.5 text-xs"
+                  onClick={() => setShowObligation(true)}
+                >
+                  <Plus className="h-3.5 w-3.5" />
+                  Aggiungi obbligazione
+                </Button>
+              </div>
+            )}
+          </div>
 
           <p className="text-xs text-muted-foreground -mt-3">
             Questa parte usa ipotesi fiscali e configurazione del regime
@@ -166,6 +225,7 @@ export const DashboardAnnual = () => {
                 onClearPayment={clearPayment}
                 deadlineViews={deadlineViews ?? undefined}
                 onRegisterF24={setF24Target}
+                hasRealFiscalData={hasRealFiscalData}
               />
             )}
           </div>
@@ -190,6 +250,32 @@ export const DashboardAnnual = () => {
           </CardContent>
         </Card>
       )}
+
+      {/* Fiscal entry dialogs */}
+      <DichiarazioneEntryDialog
+        open={showDichiarazione}
+        onOpenChange={setShowDichiarazione}
+        taxYear={declarationTaxYear}
+        estimatedSubstituteTax={
+          data?.fiscal?.fiscalKpis.stimaImpostaAnnuale
+        }
+        estimatedInps={data?.fiscal?.fiscalKpis.stimaInpsAnnuale}
+      />
+
+      <F24RegistrationDialog
+        open={f24Target != null}
+        onOpenChange={(open) => {
+          if (!open) setF24Target(null);
+        }}
+        deadlineView={f24Target}
+      />
+
+      <ObligationEntryDialog
+        open={showObligation}
+        onOpenChange={setShowObligation}
+        defaultCompetenceYear={selectedYear}
+        defaultPaymentYear={selectedYear}
+      />
     </div>
   );
 };

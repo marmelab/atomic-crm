@@ -6,7 +6,7 @@ obbligatoria delle superfici collegate.
 **Quando usarlo:** ogni volta che una modifica tocca comportamento reale del
 prodotto.
 
-Last updated: 2026-04-02 (fiscal reality layer — dashboard consumers)
+Last updated: 2026-04-02 (fiscal reality layer — UI entry dialogs)
 
 ---
 
@@ -14,6 +14,7 @@ Last updated: 2026-04-02 (fiscal reality layer — dashboard consumers)
 
 ### Recent Updates (cronologico, più recente in alto)
 
+- [2026-04-02 (e)](#update-2026-04-02-e--fiscal-reality-layer-ui-entry-dialogs) — Fiscal reality layer UI entry dialogs: DichiarazioneEntryDialog, F24RegistrationDialog, ObligationEntryDialog; trigger buttons in DashboardAnnual; Phase 1 inconsistency note in DeadlinesCard
 - [2026-04-02 (d)](#update-2026-04-02-d--fiscal-reality-layer-dashboard-consumers) — Fiscal reality layer dashboard consumers: DashboardAnnual + MobileDashboard wired to useFiscalReality, reality-aware DeadlinesCard + NetAvailability
 - [2026-04-02 (c)](#update-2026-04-02-c--fiscal-reality-layer-provider-methods) — Fiscal reality layer provider methods: 10 closure-based CRUD methods for fiscal tables + enriched view
 - [2026-04-02 (b)](#update-2026-04-02-b--fiscal-reality-layer-db-migration) — Fiscal reality layer DB migration: 4 nuove tabelle (declarations, obligations, F24 submissions, payment lines) + enriched view
@@ -103,6 +104,41 @@ Last updated: 2026-04-02 (fiscal reality layer — dashboard consumers)
 - [Nota manutenzione 2026-03-02](#nota-manutenzione-2026-03-02-fix-ci)
 - [Testing Session Log 2026-03-04](#testing-session-log-2026-03-04--e2e-complete-validation)
 - [AI Semantic UI Upgrade 2026-03-04](#ai-semantic-ui-upgrade-2026-03-04--pareto-principle-applied)
+
+---
+
+## Update 2026-04-02 (e) — Fiscal reality layer UI entry dialogs
+
+Three new dialog components for fiscal data entry, triggered from the
+DashboardAnnual fiscal section header.
+
+**Files created:**
+
+- `DichiarazioneEntryDialog.tsx` — upsert dialog for fiscal declarations
+  (tax year pre-filled Y-1); on submit calls `saveFiscalDeclaration` then
+  `regenerateDeclarationObligations`; shows blocked-obligation warning if
+  regeneration was partial; divergence warning >30% from CRM estimate
+- `F24RegistrationDialog.tsx` — checklist of obligations for a selected
+  deadline date (from `FiscalDeadlineView`); user can uncheck/adjust amounts;
+  on submit resolves obligation IDs then calls `registerF24`
+- `ObligationEntryDialog.tsx` — standalone manual obligation entry (bollo etc);
+  sets `source = 'manual'`, `declaration_id = null`
+
+**Files modified:**
+
+- `DashboardAnnual.tsx` — adds dialog states, declaration query for button
+  label ("Inserisci" vs "Modifica"), trigger buttons in fiscal section header,
+  renders all 3 dialogs; `_f24Target` renamed to `f24Target`
+- `DashboardDeadlinesCard.tsx` — new prop `hasRealFiscalData?`; when true,
+  shows Phase 1 inconsistency note in card footer: "I promemoria automatici
+  usano ancora le stime, non le obbligazioni reali."
+
+**Query invalidation:** all mutations invalidate `fiscal-obligations` and
+`fiscal-enriched-payment-lines` query keys.
+
+**Desktop/mobile parity:** DeadlinesCard is shared — Phase 1 note shows on
+both desktop and mobile when `hasRealFiscalData` is passed. Dialog buttons
+only appear on desktop (`isCurrentYear` guard in DashboardAnnual).
 
 ---
 

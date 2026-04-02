@@ -44,6 +44,7 @@ export const DashboardDeadlinesCard = ({
   onClearPayment,
   deadlineViews,
   onRegisterF24,
+  hasRealFiscalData,
 }: {
   schedule: FiscalPaymentSchedule;
   onGenerateTasks?: () => void;
@@ -53,6 +54,7 @@ export const DashboardDeadlinesCard = ({
   onClearPayment?: (deadline: FiscalDeadline) => void;
   deadlineViews?: FiscalDeadlineView[];
   onRegisterF24?: (deadline: FiscalDeadlineView) => void;
+  hasRealFiscalData?: boolean;
 }) => {
   // Reality-aware rendering when deadlineViews are provided
   if (deadlineViews != null) {
@@ -62,6 +64,7 @@ export const DashboardDeadlinesCard = ({
         onGenerateTasks={onGenerateTasks}
         existingTasksCount={existingTasksCount}
         onRegisterF24={onRegisterF24}
+        hasRealFiscalData={hasRealFiscalData}
       />
     );
   }
@@ -304,11 +307,13 @@ const DeadlinesCardFromViews = ({
   onGenerateTasks,
   existingTasksCount,
   onRegisterF24,
+  hasRealFiscalData,
 }: {
   deadlineViews: FiscalDeadlineView[];
   onGenerateTasks?: () => void;
   existingTasksCount?: number;
   onRegisterF24?: (deadline: FiscalDeadlineView) => void;
+  hasRealFiscalData?: boolean;
 }) => {
   const highPriority = deadlineViews.filter((d) => d.priority === "high");
   const lowPriority = deadlineViews.filter((d) => d.priority === "low");
@@ -368,6 +373,13 @@ const DeadlinesCardFromViews = ({
         ))}
         {lowPriority.length > 0 && (
           <LowPriorityViewSection deadlines={lowPriority} />
+        )}
+
+        {hasRealFiscalData && (
+          <p className="text-[10px] text-muted-foreground pt-2 border-t">
+            I promemoria automatici usano ancora le stime, non le obbligazioni
+            reali.
+          </p>
         )}
       </CardContent>
     </Card>
