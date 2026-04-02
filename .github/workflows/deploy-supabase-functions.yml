@@ -20,39 +20,32 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
 
-    env:
-      SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
-      SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
-      SUPABASE_PROJECT_ID: ${{ secrets.SUPABASE_PROJECT_ID }}
-      IS_CONFIGURED: ${{ secrets.SUPABASE_ACCESS_TOKEN != '' && secrets.SUPABASE_PROJECT_ID != '' }}
-
     steps:
       - name: 📥 Checkout repo
         uses: actions/checkout@v4
+
+      - name: 🔑 Fetch secrets from Doppler
+        uses: dopplerhq/secrets-fetch-action@v1
+        id: doppler
+        with:
+          doppler-token: ${{ secrets.DOPPLER_TOKEN }}
+          inject-env-vars: true
 
       - name: ⚙️ Setup Supabase CLI
         uses: supabase/setup-cli@v1
 
       - name: 🔗 Link project
-        if: ${{ env.IS_CONFIGURED == 'true' }}
         run: npx supabase link --project-ref ${{ env.SUPABASE_PROJECT_ID }}
 
       - name: 📡 Push DB migrations
-        if: ${{ env.IS_CONFIGURED == 'true' && env.SUPABASE_DB_PASSWORD != '' }}
         run: npx supabase db push
+        env:
+          SUPABASE_DB_PASSWORD: ${{ env.SUPABASE_DB_PASSWORD }}
 
-      - name: 🔑 Set enrichment secrets
-        if: ${{ env.IS_CONFIGURED == 'true' && secrets.PAPPERS_API_KEY != '' }}
+      - name: 🔑 Set Supabase function secrets
         run: |
-          npx supabase secrets set PAPPERS_API_KEY=${{ secrets.PAPPERS_API_KEY }}
-          npx supabase secrets set PHANTOMBUSTER_API_KEY=${{ secrets.PHANTOMBUSTER_API_KEY }}
+          npx supabase secrets set PAPPERS_API_KEY=${{ env.PAPPERS_API_KEY }}
+          npx supabase secrets set PHANTOMBUSTER_API_KEY=${{ env.PHANTOMBUSTER_API_KEY }}
 
       - name: 📡 Deploy edge functions
-        if: ${{ env.IS_CONFIGURED == 'true' }}
         run: npx supabase functions deploy
-
-      - name: ⚠️ Missing secrets warning
-        if: ${{ env.IS_CONFIGURED != 'true' }}
-        run: |
-          echo "::warning::SUPABASE_ACCESS_TOKEN or SUPABASE_PROJECT_ID secret is missing — Supabase deployment skipped"
-          echo ":warning: Supabase deployment skipped (missing secrets)" >> $GITHUB_STEP_SUMMARY

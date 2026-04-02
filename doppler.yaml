@@ -1,0 +1,3 @@
+setup:
+  - project: nosho-crm
+    config: dev

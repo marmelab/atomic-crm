@@ -1,16 +1,23 @@
 .PHONY: build help
 
+# Doppler: use 'doppler run --' to inject secrets if doppler.yaml is present
+DOPPLER := $(shell command -v doppler 2>/dev/null)
+DOPPLER_RUN := $(if $(DOPPLER),doppler run --,)
+
 help:
 	@grep -E '^[a-zA-Z0-9_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'
 
 install: package.json ## install dependencies
 	npm install;
 
+doppler-setup: ## configure Doppler for this project (run once)
+	doppler setup --project nosho-crm --config dev
+
 start-supabase: ## start supabase locally
 	npx supabase start
 
 start-supabase-functions: ## start the supabase Functions watcher
-	npx supabase functions serve
+	$(DOPPLER_RUN) npx supabase functions serve
 
 supabase-migrate-database: ## apply the migrations to the database
 	npx supabase migration up
@@ -19,7 +26,7 @@ supabase-reset-database: ## reset (and clear!) the database
 	npx supabase db reset
 
 start-app: ## start the app locally
-	npm run dev
+	$(DOPPLER_RUN) npm run dev
 
 start: start-supabase start-app ## start the stack locally
 
