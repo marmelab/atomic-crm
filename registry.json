@@ -951,6 +951,10 @@
           "type": "registry:component"
         },
         {
+          "path": "src/components/atomic-crm/dashboard/buildFiscalRealityAwareSchedule.ts",
+          "type": "registry:component"
+        },
+        {
           "path": "src/components/atomic-crm/dashboard/buildFiscalDeadlineKey.ts",
           "type": "registry:component"
         },

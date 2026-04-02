@@ -6,7 +6,26 @@ lavoro senza riaprire decisioni gia prese.
 **Quando NON usarlo da solo:** per dedurre architettura canonica o stato
 prodotto senza incrociarlo con `docs/README.md` e i documenti `canonical`.
 
-Last updated: 2026-04-02 (fiscal reality layer Phase 1 step 3)
+Last updated: 2026-04-02 (fiscal reality layer Phase 1 step 4)
+
+## Update 2026-04-02 — Fiscal reality layer: reality-aware schedule read model
+
+- `buildFiscalRealityAwareSchedule` added in `dashboard/` — the single semantic
+  merge point between estimated deadlines and real obligations.
+- Algorithm: UNION of estimated items + real obligations, merged by canonical key
+  `component::competenceYear::dueDate`. Phase A processes estimated deadlines
+  (replacing matched items with real data); Phase B adds unconsumed real-only
+  obligations as new deadline entries.
+- Status derivation: `estimated` → `due` → `partial` → `paid` → `overpaid`
+  based on obligation existence and payment coverage.
+- `estimateComparison` = aggregate original estimated amount when real data
+  exists for a deadline, null otherwise.
+- Real-only deadlines get `priority: "low"` if all bollo, `"high"` otherwise.
+- Deterministic sort: items by canonical component order, deadlines by
+  priority (high first) then date.
+- 11 unit tests cover all status paths, real-only deadlines, mixed sources,
+  overpayment, paidDate from submission_date, and totalRemaining.
+- No DB write, no UI wiring, no Edge Function change in this step.
 
 ## Update 2026-04-02 — Fiscal reality layer: canonical obligation merge key
 
