@@ -14,6 +14,7 @@ import { useConfigurationContext } from "../root/ConfigurationContext";
 import { SaleName } from "../sales/SaleName";
 import type { Company } from "../types";
 import { sizes } from "./sizes";
+import { EnrichmentDialog } from "./EnrichmentDialog";
 
 interface CompanyAsideProps {
   link?: string;
@@ -25,12 +26,13 @@ export const CompanyAside = ({ link = "edit" }: CompanyAsideProps) => {
 
   return (
     <div className="hidden sm:block w-92 min-w-92 space-y-4">
-      <div className="flex flex-row space-x-1">
+      <div className="flex flex-row flex-wrap gap-1">
         {link === "edit" ? (
           <EditButton label="Modifier la société" />
         ) : (
           <ShowButton label="Voir la société" />
         )}
+        <EnrichmentDialog />
       </div>
 
       <CompanyInfo record={record} />

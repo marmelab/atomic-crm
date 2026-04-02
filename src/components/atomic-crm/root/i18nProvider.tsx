@@ -2,6 +2,7 @@ import { mergeTranslations } from "ra-core";
 import polyglotI18nProvider from "ra-i18n-polyglot";
 import frenchMessages from "ra-language-french";
 import { raSupabaseEnglishMessages } from "ra-supabase-language-english";
+import { frenchCrmMessages } from "../providers/commons/frenchCrmMessages";
 
 // Override Supabase auth messages in French
 const raSupabaseFrenchMessages = {
@@ -80,7 +81,7 @@ export const customFrenchMessages = {
       hot_contacts_empty:
         'Les contacts avec le statut "Chaud" apparaissent ici.',
       hot_contacts_hint:
-        'Changez le statut d\'un contact via "Options avancées" lors d\'une note.',
+        "Changez le statut d'un contact via \"Options avancées\" lors d'une note.",
       upcoming_tasks: "Tâches à venir",
       latest_activity: "Activité récente",
       deal_revenue: "Revenus prévisionnels",
@@ -142,6 +143,7 @@ export const i18nProvider = polyglotI18nProvider(
       frenchMessages,
       raSupabaseEnglishMessages, // Supabase auth base (no official French package)
       raSupabaseFrenchMessages,
+      frenchCrmMessages,
       customFrenchMessages,
     );
   },

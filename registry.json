@@ -834,6 +834,10 @@
           "type": "registry:component"
         },
         {
+          "path": "src/components/atomic-crm/companies/EnrichmentDialog.tsx",
+          "type": "registry:component"
+        },
+        {
           "path": "src/components/atomic-crm/companies/CompanyShow.tsx",
           "type": "registry:component"
         },
