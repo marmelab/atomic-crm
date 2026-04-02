@@ -907,6 +907,10 @@
           "type": "registry:component"
         },
         {
+          "path": "src/components/atomic-crm/dashboard/fiscalRealityTypes.ts",
+          "type": "registry:component"
+        },
+        {
           "path": "src/components/atomic-crm/dashboard/fiscalModelTypes.ts",
           "type": "registry:component"
         },

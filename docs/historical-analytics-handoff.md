@@ -2865,3 +2865,5 @@ funzionale all'AI o al flusso analytics.
 - 2026-04-01: `DashboardDeadlineTracker` — added `onSuccess`/`onError` callbacks to `useUpdate` calls for `markPaymentAsReceived` and `markTaskAsDone`. User-facing toast notifications added via `useNotify`. No change to data model, analytics, or AI flow.
 
 - 2026-04-01: AI snapshot reads from canonical views — `buildUnifiedCrmReadContext` now receives pre-computed `projectFinancialRows` and `clientCommercialPositions` from DB views instead of calculating from raw tables. Invoice draft markdown shows expenses when present. No change to AI model, analytics aggregation, or historical flow.
+
+- 2026-04-02: fiscal-reality-layer branch opened — TypeScript types for the 4 fiscal reality DB tables (`fiscal_declarations`, `fiscal_obligations`, `fiscal_f24_submissions`, `fiscal_f24_payment_lines`) and the read model types (`FiscalDeadlineView`, `FiscalDeadlineViewItem`) added in `fiscalRealityTypes.ts`. No runtime change; this is the type-only foundation for Phase 1 of the fiscal reality layer.

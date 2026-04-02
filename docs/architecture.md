@@ -15,6 +15,7 @@ Stato del documento:
 
 ## Changelog
 
+- 2026-04-02: Fiscal reality layer — TypeScript types for 4 DB tables (`fiscal_declarations`, `fiscal_obligations`, `fiscal_f24_submissions`, `fiscal_f24_payment_lines`) and read model types (`FiscalDeadlineView`, `FiscalDeadlineViewItem`) added in `fiscalRealityTypes.ts`; no runtime change, type-only foundation for Phase 1.
 - 2026-04-02: Fiscal truth refactor (Gestione Separata) — the fiscal dashboard and `fiscal_deadline_check` now use a two-lane contract: `FiscalYearEstimate` for selected tax year `Y` and `FiscalPaymentSchedule` for payment year `Y`, built from estimate `Y-1` plus advance plan `Y-2`. Added explicit fallback config `fiscalConfig.defaultTaxProfileAtecoCode` (default `731102`, ATECO `73.11.02`), `UNMAPPED_TAX_PROFILE` warnings on dashboard and Edge Function, canonical rounding via pure helpers, and safe-first net availability: device-local "segnato come pagato" stays reminder-only and no longer alters reserve math. Desktop/mobile and client/server parity are covered by dedicated fiscal tests.
 - 2026-04-02: unified_crm_answer create-flow split — the old monolithic `_shared/unifiedCrmAnswerCreateFlows.ts` is now a thin barrel that re-exports per-intent modules (`TravelExpense`, `ProjectQuickEpisode`, `ServiceCreate`, `ExpenseCreate`, `InvoiceDraft`) plus a small shared helper file; this is a structural hardening only, meant to keep ESLint `max-lines` / `complexity` guardrails enforceable without changing AI handoff behavior.
 - 2026-04-01: AI snapshot expense detail fix — `unifiedCrmReadContext` now serializes per-project `expenses` alongside `services` inside `activeProjects`, and `recentExpenses` / `totals.expensesAmount` use the operational expense amount (km reimbursement, markup, credits) instead of raw `expenses.amount`; this closes the AI mismatch where project totals included expenses but the detail list showed `0,00` km rows.
@@ -1115,6 +1116,7 @@ src/components/atomic-crm/dashboard/
 ├── dashboardHistoryModel.ts            # Aggregazioni storiche e quality flags
 ├── fiscalModel.ts                      # Logica pura calcoli fiscali regime forfettario (principio di cassa)
 ├── fiscalModelTypes.ts                 # Tipi fiscali estratti (FiscalModel, FiscalKpis, deadlines, health)
+├── fiscalRealityTypes.ts               # Tipi DB (FiscalDeclaration, FiscalObligation, F24) + read model (FiscalDeadlineView)
 ├── fiscalDeadlines.ts                  # buildDeadlines (F24/INPS high-priority + bolli/dichiarazione low-priority)
 ├── useGenerateFiscalTasks.ts           # Hook: genera client_tasks dai deadline fiscali calcolati
 ├── DashboardAnnual.tsx                 # Vista Annuale con guida lettura, AI card e simulazione fiscale
