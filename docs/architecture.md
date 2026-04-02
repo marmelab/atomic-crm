@@ -784,6 +784,10 @@ Nota di continuita':
 | sales | Profilo utente e supporto auth single-user | auth.uid() IS NOT NULL | identita' utente, avatar, admin/disabled, FK `auth.users` |
 | tags | Catalogo etichette riusato dai clienti e disponibile anche nel modello dati dei referenti | auth.uid() IS NOT NULL | nome, colore |
 | keep_alive | Heartbeat free tier | SELECT public | ping e timestamp |
+| fiscal_declarations | Dichiarazione annuale dal commercialista (tasse sostitutive + INPS totali e acconti già versati) | auth.uid() = user_id | `tax_year` (UNIQUE per user), totali imposta sostitutiva, INPS, acconti pregressi, note, timestamps |
+| fiscal_obligations | Singole rate/scadenze da pagare derivate dalla dichiarazione o create manualmente | auth.uid() = user_id | FK `declaration_id` (bare, no cascade), `source` (auto_generated/manual), `component` (enum 8 valori), `competence_year`, `payment_year`, `due_date`, `amount`, `installment_number/total`, `is_overridden`, note, timestamps |
+| fiscal_f24_submissions | Un evento di versamento F24 | auth.uid() = user_id | `submission_date`, note, timestamps |
+| fiscal_f24_payment_lines | Allocazione importo da un F24 a un'obbligazione specifica | auth.uid() = user_id | FK `submission_id` (ON DELETE CASCADE), FK `obligation_id` (restrictive), `amount > 0`, `user_id` auto-sync dal trigger |
 
 ### Quotes — 10 stati pipeline
 
@@ -827,6 +831,7 @@ acconto_ricevuto → in_lavorazione → completato → saldato → rifiutato / p
 | project_financials | Riepilogo finanziario per progetto: fees, km, expenses, total_owed (fees + expenses), total_paid (da payments con status=ricevuto), balance_due. Single source: sempre tabella `payments`, nessun dual-path. Include `client_id` e `client_name`. `security_invoker = on`. Tipo TypeScript: `ProjectFinancialRow` in `types.ts`. |
 | client_commercial_position | Posizione commerciale aggregata per cliente: total_fees, total_expenses, total_owed, total_paid, balance_due, projects_count. Applica Record Precedence Rules (project's client_id prevails). Include servizi/spese/pagamenti senza progetto. `security_invoker = on`. Tipo TypeScript: `ClientCommercialPosition` in `types.ts`. |
 | monthly_revenue | Fatturato mensile per categoria (fees - discount) |
+| fiscal_f24_payment_lines_enriched | JOIN di payment lines con submission_date per evitare fetch broad + join in-memory lato client. `security_invoker = on`. |
 | analytics_* | Base storica/AI per Storico e consumer analytics (`analytics_business_clock`, `analytics_history_meta`, `analytics_yearly_competence_revenue`, `analytics_yearly_competence_revenue_by_category`, `analytics_client_lifetime_competence_revenue`, `analytics_yearly_cash_inflow`) |
 
 PK esplicite nel dataProvider:

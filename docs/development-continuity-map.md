@@ -6,7 +6,7 @@ obbligatoria delle superfici collegate.
 **Quando usarlo:** ogni volta che una modifica tocca comportamento reale del
 prodotto.
 
-Last updated: 2026-04-02 (fiscal truth / Gestione Separata parity)
+Last updated: 2026-04-02 (fiscal reality layer — DB migration)
 
 ---
 
@@ -14,6 +14,7 @@ Last updated: 2026-04-02 (fiscal truth / Gestione Separata parity)
 
 ### Recent Updates (cronologico, più recente in alto)
 
+- [2026-04-02 (b)](#update-2026-04-02-b--fiscal-reality-layer-db-migration) — Fiscal reality layer DB migration: 4 nuove tabelle (declarations, obligations, F24 submissions, payment lines) + enriched view
 - [2026-04-02](#update-2026-04-02--fiscal-truth--gestione-separata-parity) — Fiscal truth / Gestione Separata: estimate vs schedule split, explicit ATECO fallback, dashboard/EF parity
 - [2026-04-01](#update-2026-04-01--km-duplicate-audit-after-trigger-transition) — KM duplicate audit after trigger transition: root cause identified, audit/cleanup scripts added
 - [2026-04-01](#update-2026-04-01--single-source-financials) — Single source financials: project_financials rewritten (no dual-path), client_commercial_position view created
@@ -100,6 +101,27 @@ Last updated: 2026-04-02 (fiscal truth / Gestione Separata parity)
 - [Nota manutenzione 2026-03-02](#nota-manutenzione-2026-03-02-fix-ci)
 - [Testing Session Log 2026-03-04](#testing-session-log-2026-03-04--e2e-complete-validation)
 - [AI Semantic UI Upgrade 2026-03-04](#ai-semantic-ui-upgrade-2026-03-04--pareto-principle-applied)
+
+---
+
+## Update 2026-04-02 (b) — Fiscal reality layer DB migration
+
+Migration `20260402020254_fiscal_reality_layer.sql`: 4 nuove tabelle e 1 view
+per la gestione della realtà fiscale reale (dichiarazioni del commercialista,
+obbligazioni di pagamento, F24 submissions e payment lines).
+
+- Catena FK: `fiscal_declarations` → `fiscal_obligations` → `fiscal_f24_submissions` → `fiscal_f24_payment_lines`
+- FK semantics: bare (NO ACTION) su `declaration_id`; CASCADE su `submission_id`; restrictive su `obligation_id`
+- Trigger di guardia: blocco delete su declarations con pagamenti allocati; blocco delete su obligations con payment lines; auto-sync `user_id` su payment lines dal submission; cross-user validation
+- View `fiscal_f24_payment_lines_enriched` (`security_invoker = on`) evita fetch broad + join in-memory client-side
+
+File toccati: `supabase/migrations/20260402020254_fiscal_reality_layer.sql` (nuovo)
+
+Sweep per task successivi:
+
+- `src/components/atomic-crm/types.ts` — aggiungere tipi TypeScript per le nuove tabelle/view
+- dataProvider Supabase — esporre metodi per declarations, obligations, submissions, payment lines
+- UI surfaces da definire nei task successivi del Fiscal Reality Layer
 
 ---
 
