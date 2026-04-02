@@ -6,7 +6,17 @@ lavoro senza riaprire decisioni gia prese.
 **Quando NON usarlo da solo:** per dedurre architettura canonica o stato
 prodotto senza incrociarlo con `docs/README.md` e i documenti `canonical`.
 
-Last updated: 2026-04-02 (fiscal reality layer Phase 1 step 2)
+Last updated: 2026-04-02 (fiscal reality layer Phase 1 step 3)
+
+## Update 2026-04-02 — Fiscal reality layer: canonical obligation merge key
+
+- `buildFiscalObligationMergeKey` added to `buildFiscalDeadlineKey.ts`.
+- Key format: `component::competenceYear::dueDate` — Phase 1 matching, no
+  installment number in the key.
+- Existing `buildFiscalDeadlineKey` kept for backward compatibility until
+  `useFiscalPaymentTracking` is fully deprecated.
+- 2 unit tests verify key construction and uniqueness by component.
+- No DB write, no UI wiring, no Edge Function change in this step.
 
 ## Update 2026-04-02 — Fiscal reality layer: obligation auto-generation
 

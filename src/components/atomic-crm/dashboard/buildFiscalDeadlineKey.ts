@@ -1,5 +1,15 @@
 import type { FiscalDeadline } from "./fiscalModelTypes";
 
+export const buildFiscalObligationMergeKey = ({
+  component,
+  competenceYear,
+  dueDate,
+}: {
+  component: string;
+  competenceYear: number;
+  dueDate: string;
+}) => `${component}::${competenceYear}::${dueDate}`;
+
 const formatCompetenceYear = (value: number | null) =>
   value == null ? "none" : String(value);
 
