@@ -172,9 +172,12 @@ const PappersTab = ({
     setEnrichment(null);
     try {
       const data = await callFunction({ q: query });
+      if (data?.error) throw new Error(data.error);
       setSearchResults(data.results ?? []);
-    } catch {
-      notify("Erreur lors de la recherche Pappers", { type: "error" });
+    } catch (e) {
+      notify(`Erreur Pappers: ${e instanceof Error ? e.message : String(e)}`, {
+        type: "error",
+      });
     } finally {
       setLoading(false);
     }
@@ -186,9 +189,12 @@ const PappersTab = ({
     setEnrichment(null);
     try {
       const data = await callFunction({ siret });
+      if (data?.error) throw new Error(data.error);
       setEnrichment(data);
-    } catch {
-      notify("Erreur lors de la recherche SIRET", { type: "error" });
+    } catch (e) {
+      notify(`Erreur SIRET: ${e instanceof Error ? e.message : String(e)}`, {
+        type: "error",
+      });
     } finally {
       setLoading(false);
     }

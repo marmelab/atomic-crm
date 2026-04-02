@@ -112,6 +112,8 @@ jobs:
             POSTMARK_WEBHOOK_PASSWORD: ${{secrets.POSTMARK_WEBHOOK_PASSWORD}}
             POSTMARK_WEBHOOK_AUTHORIZED_IPS: ${{secrets.POSTMARK_WEBHOOK_AUTHORIZED_IPS}}
             VITE_GOOGLE_WORKPLACE_DOMAIN: ${{secrets.VITE_GOOGLE_WORKPLACE_DOMAIN}}
+            PAPPERS_API_KEY: ${{secrets.PAPPERS_API_KEY}}
+            PHANTOMBUSTER_API_KEY: ${{secrets.PHANTOMBUSTER_API_KEY}}
 
         steps:
             - name: 📥 Checkout repo
@@ -156,6 +158,12 @@ jobs:
                   npx supabase secrets set POSTMARK_WEBHOOK_AUTHORIZED_IPS=${{ env.POSTMARK_WEBHOOK_AUTHORIZED_IPS }}
                   npx supabase secrets set VITE_INBOUND_EMAIL=${{ env.VITE_INBOUND_EMAIL }}
                   npx supabase secrets set VITE_ATTACHMENTS_BUCKET=${{ env.VITE_ATTACHMENTS_BUCKET }}
+
+            - if: ${{ env.IS_SUPABASE_CONFIGURED && env.PAPPERS_API_KEY }}
+              name: 📡 Push supabase enrichment secrets
+              run: |
+                  npx supabase secrets set PAPPERS_API_KEY=${{ env.PAPPERS_API_KEY }}
+                  npx supabase secrets set PHANTOMBUSTER_API_KEY=${{ env.PHANTOMBUSTER_API_KEY }}
 
             - if: ${{ env.IS_SUPABASE_CONFIGURED }}
               name: 📡 Deploy supabase functions
