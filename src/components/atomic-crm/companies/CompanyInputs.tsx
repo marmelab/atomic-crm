@@ -1,4 +1,5 @@
 import { required, useRecordContext } from "ra-core";
+import { useWatch } from "react-hook-form";
 import { ReferenceInput } from "@/components/admin/reference-input";
 import { TextInput } from "@/components/admin/text-input";
 import { SelectInput } from "@/components/admin/select-input";
@@ -72,13 +73,48 @@ const CompanyContactInputs = () => {
   return (
     <div className="flex flex-col gap-4">
       <h6 className="text-lg font-semibold">Contact</h6>
-      <TextInput source="website" helperText={false} validate={isUrl} />
+      <WebsiteInputWithLogo />
       <TextInput
         source="linkedin_url"
         helperText={false}
         validate={isLinkedinUrl}
       />
       <TextInput source="phone_number" helperText={false} />
+    </div>
+  );
+};
+
+const WebsiteInputWithLogo = () => {
+  const website: string | undefined = useWatch({ name: "website" });
+
+  const domain = (() => {
+    if (!website) return null;
+    try {
+      const url = website.startsWith("http") ? website : `https://${website}`;
+      return new URL(url).hostname;
+    } catch {
+      return null;
+    }
+  })();
+
+  return (
+    <div className="flex items-center gap-2">
+      <TextInput
+        source="website"
+        helperText={false}
+        validate={isUrl}
+        className="flex-1"
+      />
+      {domain && (
+        <img
+          src={`https://www.google.com/s2/favicons?domain=${domain}&sz=64`}
+          alt=""
+          className="w-8 h-8 rounded object-contain border shrink-0"
+          onError={(e) => {
+            (e.target as HTMLImageElement).style.display = "none";
+          }}
+        />
+      )}
     </div>
   );
 };
