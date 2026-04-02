@@ -170,11 +170,6 @@ export const buildFiscalRealityProviderMethods = () => ({
       Omit<FiscalObligation, "id" | "created_at" | "updated_at" | "user_id">
     >,
   ): Promise<FiscalObligation> {
-    // If editing an auto-generated obligation, mark as overridden
-    const finalUpdates = updates.is_overridden === undefined
-      ? updates
-      : updates;
-
     // Fetch current to check if auto_generated → set overridden
     const { data: current } = await supabase
       .from("fiscal_obligations")
@@ -190,7 +185,7 @@ export const buildFiscalRealityProviderMethods = () => ({
     const data = throwOnError(
       await supabase
         .from("fiscal_obligations")
-        .update({ ...finalUpdates, ...overrideFields })
+        .update({ ...updates, ...overrideFields })
         .eq("id", id)
         .select()
         .single(),
