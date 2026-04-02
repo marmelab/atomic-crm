@@ -86,6 +86,9 @@
   --avatar-7: oklch(0.88 0.09 10);
   --avatar-8: oklch(0.92 0.08 80);
   --avatar-9: oklch(0.86 0.09 270);
+  --color-text-faint: var(--muted-foreground);
+  --color-gold: oklch(0.72 0.14 75);
+  --color-success: oklch(0.55 0.14 150);
 }
 
 .dark {
@@ -130,6 +133,9 @@
   --avatar-7: oklch(0.38 0.14 10);
   --avatar-8: oklch(0.4 0.11 80);
   --avatar-9: oklch(0.36 0.13 270);
+  --color-text-faint: var(--muted-foreground);
+  --color-gold: oklch(0.78 0.13 80);
+  --color-success: oklch(0.62 0.15 150);
 }
 
 a,

@@ -125,6 +125,8 @@ export type Deal = {
   expected_closing_date: string;
   sales_id: Identifier;
   index: number;
+  /** 1 = cold, 2 = warm, 3 = hot; null/undefined = unset (API/DB: `temperature_level`). */
+  temperature_level?: number | null;
 } & Pick<RaRecord, "id">;
 
 export type DealNote = {

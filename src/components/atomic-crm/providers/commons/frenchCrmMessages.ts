@@ -202,9 +202,16 @@ export const frenchCrmMessages = {
         company_id: "Entreprise",
         contact_ids: "Contacts",
         category: "Catégorie",
+        temperature_level: "Température",
         amount: "Budget",
         expected_closing_date: "Date de clôture prévue",
         stage: "Étape",
+      },
+      temperature: {
+        tooltip_unset: "Température : non renseignée",
+        tooltip_cold: "Température : froide",
+        tooltip_warm: "Température : tiède",
+        tooltip_hot: "Température : chaude",
       },
       action: {
         back_to_deal: "Retour à l'affaire",

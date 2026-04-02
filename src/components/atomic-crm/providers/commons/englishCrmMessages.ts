@@ -197,9 +197,16 @@ export const englishCrmMessages = {
         company_id: "Company",
         contact_ids: "Contacts",
         category: "Category",
+        temperature_level: "Temperature",
         amount: "Budget",
         expected_closing_date: "Expected closing date",
         stage: "Stage",
+      },
+      temperature: {
+        tooltip_unset: "Temperature: Not set",
+        tooltip_cold: "Temperature: Cold",
+        tooltip_warm: "Temperature: Warm",
+        tooltip_hot: "Temperature: Hot",
       },
       action: {
         back_to_deal: "Back to deal",

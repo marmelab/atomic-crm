@@ -27,6 +27,16 @@ export const generateDeals = (db: Db): Deal[] => {
       .toISOString()
       .split("T")[0];
 
+    const temperatureRoll = Math.random();
+    const temperature_level =
+      temperatureRoll < 0.25
+        ? null
+        : temperatureRoll < 0.5
+          ? 1
+          : temperatureRoll < 0.75
+            ? 2
+            : 3;
+
     return {
       id,
       name: lowercaseName[0].toUpperCase() + lowercaseName.slice(1),
@@ -41,6 +51,7 @@ export const generateDeals = (db: Db): Deal[] => {
       expected_closing_date,
       sales_id: company.sales_id,
       index: 0,
+      temperature_level,
     };
   });
   // compute index based on stage

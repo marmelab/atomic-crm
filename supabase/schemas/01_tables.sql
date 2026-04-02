@@ -75,7 +75,12 @@ create table public.deals (
     archived_at timestamp with time zone,
     expected_closing_date date,
     sales_id bigint,
-    index smallint
+    index smallint,
+    temperature_level smallint,
+    constraint deals_temperature_level_check check (
+        temperature_level is null
+        or temperature_level between 1 and 3
+    )
 );
 
 create table public.deal_notes (

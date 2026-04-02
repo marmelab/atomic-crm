@@ -13,6 +13,12 @@ import { contactOptionText } from "../misc/ContactOption";
 import { useConfigurationContext } from "../root/ConfigurationContext";
 import { AutocompleteCompanyInput } from "../companies/AutocompleteCompanyInput.tsx";
 
+const DEAL_TEMPERATURE_CHOICES = [
+  { label: "🧊 Cold", value: "1" },
+  { label: "🔥 Warm", value: "2" },
+  { label: "⚡ Hot", value: "3" },
+];
+
 export const DealInputs = () => {
   const isMobile = useIsMobile();
   return (
@@ -71,6 +77,17 @@ const DealMiscInputs = () => {
         {translate("resources.deals.field_categories.misc")}
       </h3>
 
+      <SelectInput
+        source="temperature_level"
+        label="resources.deals.fields.temperature_level"
+        choices={DEAL_TEMPERATURE_CHOICES}
+        optionText="label"
+        optionValue="value"
+        helperText={false}
+        emptyText=""
+        format={(v) => (v == null || v === "" ? "" : String(v))}
+        parse={(v) => (v === "" || v == null ? null : Number(v))}
+      />
       <SelectInput
         source="category"
         choices={dealCategories}
