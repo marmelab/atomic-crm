@@ -14,8 +14,16 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetFooter,
+} from "@/components/ui/sheet";
 import { Textarea } from "@/components/ui/textarea";
 
+import { useIsMobile } from "@/hooks/use-mobile";
 import { todayISODate } from "@/lib/dateTimezone";
 import { formatBusinessDate } from "@/lib/dateTimezone";
 
@@ -60,6 +68,7 @@ export const F24RegistrationDialog = ({
 }: F24RegistrationDialogProps) => {
   const dataProvider = useDataProvider<CrmDataProvider>();
   const queryClient = useQueryClient();
+  const isMobile = useIsMobile();
 
   // Build initial line state from deadline items that come from obligations
   const initialLines = useMemo<LineState[]>(() => {
@@ -186,100 +195,122 @@ export const F24RegistrationDialog = ({
     year: "numeric",
   });
 
+  const formBody = (
+    <div className="space-y-4">
+      <div className="space-y-2">
+        <Label htmlFor="f24-date">Data versamento</Label>
+        <Input
+          id="f24-date"
+          type="date"
+          value={submissionDate}
+          onChange={(e) => setSubmissionDate(e.target.value)}
+        />
+      </div>
+
+      {lines.length === 0 ? (
+        <p className="text-sm text-muted-foreground text-center py-4">
+          Nessuna obbligazione aperta per questa scadenza.
+        </p>
+      ) : (
+        <div className="space-y-3">
+          <Label>Voci da versare</Label>
+          {lines.map((line, index) => (
+            <div
+              key={line.obligationId}
+              className="flex items-center gap-3 rounded-md border p-3"
+            >
+              <Checkbox
+                checked={line.checked}
+                onCheckedChange={(checked) =>
+                  updateLine(index, { checked: checked === true })
+                }
+              />
+              <div className="flex-1 space-y-1">
+                <p className="text-sm font-medium">
+                  {COMPONENT_LABELS[line.component] ?? line.component}
+                </p>
+                <Input
+                  type="number"
+                  min={0}
+                  step="0.01"
+                  value={line.amount}
+                  onChange={(e) =>
+                    updateLine(index, { amount: e.target.value })
+                  }
+                  className="h-8 text-sm"
+                  disabled={!line.checked}
+                />
+              </div>
+              <span className="text-xs text-muted-foreground whitespace-nowrap">
+                residuo{" "}
+                {formatCurrencyPrecise(
+                  deadlineView.items.find(
+                    (i) =>
+                      `${i.component}:${i.competenceYear}` ===
+                      line.obligationId,
+                  )?.remainingAmount ?? 0,
+                )}
+              </span>
+            </div>
+          ))}
+        </div>
+      )}
+
+      <div className="space-y-2">
+        <Label htmlFor="f24-notes">Note</Label>
+        <Textarea
+          id="f24-notes"
+          value={notes}
+          onChange={(e) => setNotes(e.target.value)}
+          placeholder="Note opzionali"
+          rows={2}
+        />
+      </div>
+
+      {error && <p className="text-sm text-destructive">{error}</p>}
+    </div>
+  );
+
+  const footerButtons = (
+    <>
+      <Button
+        variant="outline"
+        onClick={() => onOpenChange(false)}
+        disabled={saving}
+      >
+        Annulla
+      </Button>
+      <Button onClick={handleSubmit} disabled={!isValid || saving}>
+        {saving && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+        Registra F24
+      </Button>
+    </>
+  );
+
+  if (isMobile) {
+    return (
+      <Sheet open={open} onOpenChange={onOpenChange}>
+        <SheetContent side="bottom" className="max-h-[85vh] overflow-y-auto">
+          <SheetHeader>
+            <SheetTitle>Registra F24 — {formattedDate}</SheetTitle>
+          </SheetHeader>
+          <div className="py-4">{formBody}</div>
+          <SheetFooter className="flex-row gap-2 pt-2">
+            {footerButtons}
+          </SheetFooter>
+        </SheetContent>
+      </Sheet>
+    );
+  }
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[520px]">
+      <DialogContent className="sm:max-w-130">
         <DialogHeader>
           <DialogTitle>Registra F24 — {formattedDate}</DialogTitle>
         </DialogHeader>
-
-        <div className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="f24-date">Data versamento</Label>
-            <Input
-              id="f24-date"
-              type="date"
-              value={submissionDate}
-              onChange={(e) => setSubmissionDate(e.target.value)}
-            />
-          </div>
-
-          {lines.length === 0 ? (
-            <p className="text-sm text-muted-foreground text-center py-4">
-              Nessuna obbligazione aperta per questa scadenza.
-            </p>
-          ) : (
-            <div className="space-y-3">
-              <Label>Voci da versare</Label>
-              {lines.map((line, index) => (
-                <div
-                  key={line.obligationId}
-                  className="flex items-center gap-3 rounded-md border p-3"
-                >
-                  <Checkbox
-                    checked={line.checked}
-                    onCheckedChange={(checked) =>
-                      updateLine(index, { checked: checked === true })
-                    }
-                  />
-                  <div className="flex-1 space-y-1">
-                    <p className="text-sm font-medium">
-                      {COMPONENT_LABELS[line.component] ?? line.component}
-                    </p>
-                    <Input
-                      type="number"
-                      min={0}
-                      step="0.01"
-                      value={line.amount}
-                      onChange={(e) =>
-                        updateLine(index, { amount: e.target.value })
-                      }
-                      className="h-8 text-sm"
-                      disabled={!line.checked}
-                    />
-                  </div>
-                  <span className="text-xs text-muted-foreground whitespace-nowrap">
-                    residuo{" "}
-                    {formatCurrencyPrecise(
-                      deadlineView.items.find(
-                        (i) =>
-                          `${i.component}:${i.competenceYear}` ===
-                          line.obligationId,
-                      )?.remainingAmount ?? 0,
-                    )}
-                  </span>
-                </div>
-              ))}
-            </div>
-          )}
-
-          <div className="space-y-2">
-            <Label htmlFor="f24-notes">Note</Label>
-            <Textarea
-              id="f24-notes"
-              value={notes}
-              onChange={(e) => setNotes(e.target.value)}
-              placeholder="Note opzionali"
-              rows={2}
-            />
-          </div>
-
-          {error && <p className="text-sm text-destructive">{error}</p>}
-        </div>
-
-        <DialogFooter>
-          <Button
-            variant="outline"
-            onClick={() => onOpenChange(false)}
-            disabled={saving}
-          >
-            Annulla
-          </Button>
-          <Button onClick={handleSubmit} disabled={!isValid || saving}>
-            {saving && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-            Registra F24
-          </Button>
-        </DialogFooter>
+        {formBody}
+        <DialogFooter>{footerButtons}</DialogFooter>
       </DialogContent>
     </Dialog>
   );

@@ -4,12 +4,16 @@ import {
   CalendarRange,
   ChevronLeft,
   ChevronRight,
+  FilePlus,
+  PenLine,
   PiggyBank,
+  Plus,
   Shield,
 } from "lucide-react";
 import { RefreshCw } from "lucide-react";
 import { useState } from "react";
-import { useTimeout } from "ra-core";
+import { useDataProvider, useTimeout } from "ra-core";
+import { useQuery } from "@tanstack/react-query";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -20,9 +24,13 @@ import { useRealtimeInvalidation } from "@/hooks/useRealtimeInvalidation";
 import { formatBusinessDate, todayISODate } from "@/lib/dateTimezone";
 
 import { MobileContent } from "../layout/MobileContent";
+import type { CrmDataProvider } from "../providers/types";
 import { DashboardHistorical } from "./DashboardHistorical";
 import { DashboardAnnualAiSummaryCard } from "./DashboardAnnualAiSummaryCard";
 import { DashboardFiscalWarnings } from "./DashboardFiscalWarnings";
+import { DichiarazioneEntryDialog } from "./DichiarazioneEntryDialog";
+import { F24RegistrationDialog } from "./F24RegistrationDialog";
+import { ObligationEntryDialog } from "./ObligationEntryDialog";
 import { formatCurrency, formatCurrencyPrecise } from "./dashboardModel";
 import type { FiscalModel } from "./fiscalModel";
 import type { FiscalDeadlineView } from "./fiscalRealityTypes";
@@ -95,11 +103,25 @@ const MobileAnnualDashboard = () => {
   const { data, isPending, error, refetch } = useDashboardData(selectedYear);
   const isCurrentYear = data?.isCurrentYear ?? selectedYear === currentYear;
   const showLoading = useTimeout(800);
+  const dataProvider = useDataProvider<CrmDataProvider>();
 
   const { deadlineViews, totalOpenObligations } = useFiscalReality({
     estimatedDeadlines: data?.fiscal?.schedule.deadlines ?? [],
     paymentYear: selectedYear,
     todayIso: todayISODate(),
+  });
+
+  // Fiscal dialog states
+  const [showDichiarazione, setShowDichiarazione] = useState(false);
+  const [showObligation, setShowObligation] = useState(false);
+  const [f24Target, setF24Target] = useState<FiscalDeadlineView | null>(null);
+
+  // Check if declaration exists for fiscal year (selectedYear - 1)
+  const declarationTaxYear = selectedYear - 1;
+  const { data: existingDeclaration } = useQuery({
+    queryKey: ["fiscal-declaration", declarationTaxYear],
+    queryFn: () => dataProvider.getFiscalDeclaration(declarationTaxYear),
+    enabled: data?.fiscal != null,
   });
 
   if ((isPending || !data) && !error) {
@@ -159,6 +181,37 @@ const MobileAnnualDashboard = () => {
       />
       {data.fiscal && (
         <>
+          {isCurrentYear && (
+            <div className="flex flex-wrap gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                className="gap-1.5 text-xs"
+                onClick={() => setShowDichiarazione(true)}
+              >
+                {existingDeclaration ? (
+                  <>
+                    <PenLine className="h-3.5 w-3.5" />
+                    Modifica dichiarazione {declarationTaxYear}
+                  </>
+                ) : (
+                  <>
+                    <FilePlus className="h-3.5 w-3.5" />
+                    Inserisci dichiarazione {declarationTaxYear}
+                  </>
+                )}
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                className="gap-1.5 text-xs"
+                onClick={() => setShowObligation(true)}
+              >
+                <Plus className="h-3.5 w-3.5" />
+                Aggiungi obbligazione
+              </Button>
+            </div>
+          )}
           <DashboardFiscalWarnings warnings={data.fiscal.warnings} />
           <MobileFiscalKpis
             fiscal={data.fiscal}
@@ -166,6 +219,30 @@ const MobileAnnualDashboard = () => {
           />
         </>
       )}
+
+      {/* Fiscal entry dialogs */}
+      <DichiarazioneEntryDialog
+        open={showDichiarazione}
+        onOpenChange={setShowDichiarazione}
+        taxYear={declarationTaxYear}
+        estimatedSubstituteTax={
+          data?.fiscal?.fiscalKpis.stimaImpostaAnnuale
+        }
+        estimatedInps={data?.fiscal?.fiscalKpis.stimaInpsAnnuale}
+      />
+      <F24RegistrationDialog
+        open={f24Target != null}
+        onOpenChange={(open) => {
+          if (!open) setF24Target(null);
+        }}
+        deadlineView={f24Target}
+      />
+      <ObligationEntryDialog
+        open={showObligation}
+        onOpenChange={setShowObligation}
+        defaultCompetenceYear={selectedYear}
+        defaultPaymentYear={selectedYear}
+      />
     </div>
   );
 };

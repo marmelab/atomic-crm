@@ -6,7 +6,14 @@ lavoro senza riaprire decisioni gia prese.
 **Quando NON usarlo da solo:** per dedurre architettura canonica o stato
 prodotto senza incrociarlo con `docs/README.md` e i documenti `canonical`.
 
-Last updated: 2026-04-02 (fiscal reality layer Phase 1 step 6)
+Last updated: 2026-04-02 (fiscal reality layer Phase 1 step 9 — mobile parity)
+
+## Update 2026-04-02 — Fiscal reality layer: mobile parity (step 9)
+
+All 3 fiscal entry dialogs (`DichiarazioneEntryDialog`, `F24RegistrationDialog`,
+`ObligationEntryDialog`) are now responsive: Sheet on mobile, Dialog on desktop.
+`MobileAnnualDashboard` holds fiscal dialog states and renders all 3 dialogs,
+with action buttons visible when `isCurrentYear && data.fiscal`.
 
 ## Update 2026-04-02 — Fiscal reality layer: useFiscalReality hook
 

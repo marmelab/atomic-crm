@@ -13,8 +13,16 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetFooter,
+} from "@/components/ui/sheet";
 import { Textarea } from "@/components/ui/textarea";
 
+import { useIsMobile } from "@/hooks/use-mobile";
 import type { CrmDataProvider } from "../providers/types";
 import { formatCurrencyPrecise } from "./dashboardModel";
 
@@ -80,6 +88,7 @@ export const DichiarazioneEntryDialog = ({
   }, [existing, open]);
 
   const isEdit = existing != null;
+  const isMobile = useIsMobile();
 
   // Validation
   const numTax = totalSubstituteTax === "" ? null : Number(totalSubstituteTax);
@@ -151,143 +160,161 @@ export const DichiarazioneEntryDialog = ({
     }
   };
 
+  const title = `${isEdit ? "Modifica" : "Inserisci"} dichiarazione ${taxYear}`;
+
+  const formBody = loadingExisting ? (
+    <div className="flex items-center justify-center py-8">
+      <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+    </div>
+  ) : (
+    <div className="space-y-4">
+      <div className="space-y-2">
+        <Label htmlFor="decl-tax">Imposta sostitutiva totale (€)</Label>
+        <Input
+          id="decl-tax"
+          type="number"
+          min={0}
+          step="0.01"
+          value={totalSubstituteTax}
+          onChange={(e) => setTotalSubstituteTax(e.target.value)}
+          placeholder="0.00"
+        />
+        {showTaxWarning && (
+          <p className="text-xs text-amber-600 dark:text-amber-400 flex items-center gap-1">
+            <AlertTriangle className="h-3 w-3" />
+            Diverge &gt;30% dalla stima CRM (
+            {formatCurrencyPrecise(estimatedSubstituteTax!)})
+          </p>
+        )}
+      </div>
+
+      <div className="space-y-2">
+        <Label htmlFor="decl-inps">INPS totale (€)</Label>
+        <Input
+          id="decl-inps"
+          type="number"
+          min={0}
+          step="0.01"
+          value={totalInps}
+          onChange={(e) => setTotalInps(e.target.value)}
+          placeholder="0.00"
+        />
+        {showInpsWarning && (
+          <p className="text-xs text-amber-600 dark:text-amber-400 flex items-center gap-1">
+            <AlertTriangle className="h-3 w-3" />
+            Diverge &gt;30% dalla stima CRM (
+            {formatCurrencyPrecise(estimatedInps!)})
+          </p>
+        )}
+      </div>
+
+      <div className="space-y-2">
+        <Label htmlFor="decl-prior-tax">
+          Acconti imposta già versati (€)
+        </Label>
+        <Input
+          id="decl-prior-tax"
+          type="number"
+          min={0}
+          step="0.01"
+          value={priorAdvancesTax}
+          onChange={(e) => setPriorAdvancesTax(e.target.value)}
+          placeholder="0.00"
+        />
+      </div>
+
+      <div className="space-y-2">
+        <Label htmlFor="decl-prior-inps">
+          Acconti INPS già versati (€)
+        </Label>
+        <Input
+          id="decl-prior-inps"
+          type="number"
+          min={0}
+          step="0.01"
+          value={priorAdvancesInps}
+          onChange={(e) => setPriorAdvancesInps(e.target.value)}
+          placeholder="0.00"
+        />
+      </div>
+
+      <div className="space-y-2">
+        <Label htmlFor="decl-notes">Note</Label>
+        <Textarea
+          id="decl-notes"
+          value={notes}
+          onChange={(e) => setNotes(e.target.value)}
+          placeholder="Note opzionali"
+          rows={2}
+        />
+      </div>
+
+      {error && <p className="text-sm text-destructive">{error}</p>}
+
+      {blockedCount > 0 && (
+        <div className="rounded-md bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 p-3 text-sm text-amber-800 dark:text-amber-200">
+          <p className="font-medium">
+            Dichiarazione salvata, ma {blockedCount} obbligazione
+            {blockedCount > 1 ? "i" : ""} non{" "}
+            {blockedCount > 1 ? "sono state" : "è stata"} rigenerat
+            {blockedCount > 1 ? "e" : "a"} (già versate o modificate
+            manualmente).
+          </p>
+          <Button
+            variant="outline"
+            size="sm"
+            className="mt-2"
+            onClick={() => onOpenChange(false)}
+          >
+            Chiudi
+          </Button>
+        </div>
+      )}
+    </div>
+  );
+
+  const footerButtons = !loadingExisting && blockedCount === 0 ? (
+    <>
+      <Button
+        variant="outline"
+        onClick={() => onOpenChange(false)}
+        disabled={saving}
+      >
+        Annulla
+      </Button>
+      <Button onClick={handleSubmit} disabled={!isValid || saving}>
+        {saving && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+        {isEdit ? "Aggiorna" : "Salva"} e genera obbligazioni
+      </Button>
+    </>
+  ) : null;
+
+  if (isMobile) {
+    return (
+      <Sheet open={open} onOpenChange={onOpenChange}>
+        <SheetContent side="bottom" className="max-h-[85vh] overflow-y-auto">
+          <SheetHeader>
+            <SheetTitle>{title}</SheetTitle>
+          </SheetHeader>
+          <div className="py-4">{formBody}</div>
+          {footerButtons && (
+            <SheetFooter className="flex-row gap-2 pt-2">
+              {footerButtons}
+            </SheetFooter>
+          )}
+        </SheetContent>
+      </Sheet>
+    );
+  }
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[480px]">
+      <DialogContent className="sm:max-w-120">
         <DialogHeader>
-          <DialogTitle>
-            {isEdit ? "Modifica" : "Inserisci"} dichiarazione {taxYear}
-          </DialogTitle>
+          <DialogTitle>{title}</DialogTitle>
         </DialogHeader>
-
-        {loadingExisting ? (
-          <div className="flex items-center justify-center py-8">
-            <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
-          </div>
-        ) : (
-          <div className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="decl-tax">Imposta sostitutiva totale (€)</Label>
-              <Input
-                id="decl-tax"
-                type="number"
-                min={0}
-                step="0.01"
-                value={totalSubstituteTax}
-                onChange={(e) => setTotalSubstituteTax(e.target.value)}
-                placeholder="0.00"
-              />
-              {showTaxWarning && (
-                <p className="text-xs text-amber-600 dark:text-amber-400 flex items-center gap-1">
-                  <AlertTriangle className="h-3 w-3" />
-                  Diverge &gt;30% dalla stima CRM (
-                  {formatCurrencyPrecise(estimatedSubstituteTax!)})
-                </p>
-              )}
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="decl-inps">INPS totale (€)</Label>
-              <Input
-                id="decl-inps"
-                type="number"
-                min={0}
-                step="0.01"
-                value={totalInps}
-                onChange={(e) => setTotalInps(e.target.value)}
-                placeholder="0.00"
-              />
-              {showInpsWarning && (
-                <p className="text-xs text-amber-600 dark:text-amber-400 flex items-center gap-1">
-                  <AlertTriangle className="h-3 w-3" />
-                  Diverge &gt;30% dalla stima CRM (
-                  {formatCurrencyPrecise(estimatedInps!)})
-                </p>
-              )}
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="decl-prior-tax">
-                Acconti imposta già versati (€)
-              </Label>
-              <Input
-                id="decl-prior-tax"
-                type="number"
-                min={0}
-                step="0.01"
-                value={priorAdvancesTax}
-                onChange={(e) => setPriorAdvancesTax(e.target.value)}
-                placeholder="0.00"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="decl-prior-inps">
-                Acconti INPS già versati (€)
-              </Label>
-              <Input
-                id="decl-prior-inps"
-                type="number"
-                min={0}
-                step="0.01"
-                value={priorAdvancesInps}
-                onChange={(e) => setPriorAdvancesInps(e.target.value)}
-                placeholder="0.00"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="decl-notes">Note</Label>
-              <Textarea
-                id="decl-notes"
-                value={notes}
-                onChange={(e) => setNotes(e.target.value)}
-                placeholder="Note opzionali"
-                rows={2}
-              />
-            </div>
-
-            {error && (
-              <p className="text-sm text-destructive">{error}</p>
-            )}
-
-            {blockedCount > 0 && (
-              <div className="rounded-md bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 p-3 text-sm text-amber-800 dark:text-amber-200">
-                <p className="font-medium">
-                  Dichiarazione salvata, ma {blockedCount} obbligazione
-                  {blockedCount > 1 ? "i" : ""} non{" "}
-                  {blockedCount > 1 ? "sono state" : "è stata"} rigenerat
-                  {blockedCount > 1 ? "e" : "a"} (già versate o modificate
-                  manualmente).
-                </p>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="mt-2"
-                  onClick={() => onOpenChange(false)}
-                >
-                  Chiudi
-                </Button>
-              </div>
-            )}
-          </div>
-        )}
-
-        {!loadingExisting && blockedCount === 0 && (
-          <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => onOpenChange(false)}
-              disabled={saving}
-            >
-              Annulla
-            </Button>
-            <Button onClick={handleSubmit} disabled={!isValid || saving}>
-              {saving && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-              {isEdit ? "Aggiorna" : "Salva"} e genera obbligazioni
-            </Button>
-          </DialogFooter>
-        )}
+        {formBody}
+        {footerButtons && <DialogFooter>{footerButtons}</DialogFooter>}
       </DialogContent>
     </Dialog>
   );

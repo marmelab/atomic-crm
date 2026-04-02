@@ -6,7 +6,7 @@ obbligatoria delle superfici collegate.
 **Quando usarlo:** ogni volta che una modifica tocca comportamento reale del
 prodotto.
 
-Last updated: 2026-04-02 (fiscal reality layer — UI entry dialogs)
+Last updated: 2026-04-02 (fiscal reality layer — mobile parity)
 
 ---
 
@@ -14,6 +14,7 @@ Last updated: 2026-04-02 (fiscal reality layer — UI entry dialogs)
 
 ### Recent Updates (cronologico, più recente in alto)
 
+- [2026-04-02 (f)](#update-2026-04-02-f--fiscal-reality-layer-mobile-parity) — Fiscal reality layer mobile parity: responsive dialogs (Sheet on mobile), fiscal buttons + dialogs wired in MobileAnnualDashboard
 - [2026-04-02 (e)](#update-2026-04-02-e--fiscal-reality-layer-ui-entry-dialogs) — Fiscal reality layer UI entry dialogs: DichiarazioneEntryDialog, F24RegistrationDialog, ObligationEntryDialog; trigger buttons in DashboardAnnual; Phase 1 inconsistency note in DeadlinesCard
 - [2026-04-02 (d)](#update-2026-04-02-d--fiscal-reality-layer-dashboard-consumers) — Fiscal reality layer dashboard consumers: DashboardAnnual + MobileDashboard wired to useFiscalReality, reality-aware DeadlinesCard + NetAvailability
 - [2026-04-02 (c)](#update-2026-04-02-c--fiscal-reality-layer-provider-methods) — Fiscal reality layer provider methods: 10 closure-based CRUD methods for fiscal tables + enriched view
@@ -104,6 +105,30 @@ Last updated: 2026-04-02 (fiscal reality layer — UI entry dialogs)
 - [Nota manutenzione 2026-03-02](#nota-manutenzione-2026-03-02-fix-ci)
 - [Testing Session Log 2026-03-04](#testing-session-log-2026-03-04--e2e-complete-validation)
 - [AI Semantic UI Upgrade 2026-03-04](#ai-semantic-ui-upgrade-2026-03-04--pareto-principle-applied)
+
+---
+
+## Update 2026-04-02 (f) — Fiscal reality layer mobile parity
+
+All 3 fiscal entry dialogs are now responsive. Fiscal action buttons and dialog
+states are wired in `MobileAnnualDashboard`.
+
+**Files modified:**
+
+- `DichiarazioneEntryDialog.tsx` — responsive: uses `Sheet` (bottom drawer) on
+  mobile, `Dialog` on desktop; form body extracted to avoid duplication
+- `F24RegistrationDialog.tsx` — same responsive pattern
+- `ObligationEntryDialog.tsx` — same responsive pattern
+- `MobileDashboard.tsx` — `MobileAnnualDashboard` now holds fiscal dialog states
+  (`showDichiarazione`, `showObligation`, `f24Target`), queries
+  `getFiscalDeclaration` for button label, renders all 3 dialogs; fiscal action
+  buttons visible when `isCurrentYear && data.fiscal`
+
+**Parity note:** mobile fiscal section is now on par with desktop for data entry.
+`F24RegistrationDialog` is triggered via `f24Target` state — on mobile the
+`DashboardDeadlinesCard` is not rendered (no calendar view), so the F24 button
+in `MobileAnnualDashboard` is present for future wiring but currently unreachable
+from mobile UI unless the user uses the obligation flow.
 
 ---
 
