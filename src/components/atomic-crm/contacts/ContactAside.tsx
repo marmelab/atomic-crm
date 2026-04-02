@@ -16,6 +16,7 @@ import type { Contact } from "../types";
 import { ContactMergeButton } from "./ContactMergeButton";
 import { ExportVCardButton } from "./ExportVCardButton";
 import { useGoogleConnectionStatus } from "../google/useGoogleConnectionStatus";
+import { ContactEnrichmentDialog } from "./ContactEnrichmentDialog";
 
 export const ContactAside = ({ link = "edit" }: { link?: "edit" | "show" }) => {
   const record = useRecordContext<Contact>();
@@ -28,12 +29,13 @@ export const ContactAside = ({ link = "edit" }: { link?: "edit" | "show" }) => {
   if (!record) return null;
   return (
     <div className="hidden sm:block w-92 min-w-92 text-sm">
-      <div className="mb-4 -ml-1">
+      <div className="mb-4 -ml-1 flex flex-wrap gap-1">
         {link === "edit" ? (
           <EditButton label="Modifier le contact" />
         ) : (
           <ShowButton label="Voir le contact" />
         )}
+        <ContactEnrichmentDialog />
       </div>
 
       <AsideSection title="Informations personnelles">

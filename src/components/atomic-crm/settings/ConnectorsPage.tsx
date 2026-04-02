@@ -10,7 +10,18 @@ import {
   Calendar,
   Mail,
   Users,
+  Key,
+  Eye,
+  EyeOff,
+  Save,
+  Trash2,
 } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  useConfigurationContext,
+  useConfigurationUpdater,
+} from "../root/ConfigurationContext";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
@@ -58,12 +69,7 @@ export const ConnectorsPage = () => {
       <div className="flex-1 min-w-0 max-w-2xl space-y-6">
         <GoogleConnectorCard />
 
-        <ComingSoonCard
-          id="dropcontact"
-          name="Dropcontact"
-          description="Enrichissement automatique de contacts B2B : emails professionnels, numéros de téléphone, informations entreprise."
-          icon="https://www.dropcontact.com/favicon.ico"
-        />
+        <DropcontactConnectorCard />
 
         <ComingSoonCard
           id="lemlist"
@@ -326,6 +332,196 @@ const PreferenceToggle = ({
     <Switch checked={checked} onCheckedChange={onChange} />
   </div>
 );
+
+// ── Dropcontact Connector ─────────────────────────────────────────
+
+const DropcontactConnectorCard = () => {
+  const config = useConfigurationContext();
+  const updateConfig = useConfigurationUpdater();
+  const notify = useNotify();
+
+  const [apiKey, setApiKey] = useState(config.dropcontactApiKey ?? "");
+  const [showKey, setShowKey] = useState(false);
+  const [saving, setSaving] = useState(false);
+
+  const connected = Boolean(config.dropcontactApiKey);
+
+  const handleSave = useCallback(async () => {
+    setSaving(true);
+    try {
+      updateConfig({ ...config, dropcontactApiKey: apiKey.trim() });
+      notify("Clé API Dropcontact enregistrée", { type: "success" });
+    } catch {
+      notify("Erreur lors de l'enregistrement", { type: "error" });
+    } finally {
+      setSaving(false);
+    }
+  }, [apiKey, config, updateConfig, notify]);
+
+  const handleDisconnect = useCallback(() => {
+    setApiKey("");
+    updateConfig({ ...config, dropcontactApiKey: undefined });
+    notify("Dropcontact déconnecté");
+  }, [config, updateConfig, notify]);
+
+  return (
+    <Card id="dropcontact">
+      <CardContent className="space-y-5">
+        {/* Header */}
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-lg bg-white border flex items-center justify-center overflow-hidden">
+              <img
+                src="https://www.dropcontact.com/favicon.ico"
+                alt="Dropcontact"
+                className="w-6 h-6"
+                onError={(e) => {
+                  (e.target as HTMLImageElement).style.display = "none";
+                }}
+              />
+            </div>
+            <div>
+              <h2 className="text-xl font-semibold">Dropcontact</h2>
+              <p className="text-sm text-muted-foreground">
+                Enrichissement B2B — contacts &amp; sociétés
+              </p>
+            </div>
+          </div>
+          {connected ? (
+            <Badge
+              variant="outline"
+              className="text-green-700 border-green-300 bg-green-50 dark:text-green-400 dark:border-green-800 dark:bg-green-950"
+            >
+              <CheckCircle2 className="h-3 w-3 mr-1" />
+              Connecté
+            </Badge>
+          ) : (
+            <Badge variant="outline" className="text-muted-foreground">
+              Non connecté
+            </Badge>
+          )}
+        </div>
+
+        <Separator />
+
+        <p className="text-sm text-muted-foreground">
+          Enrichissez automatiquement vos contacts (email pro, téléphone,
+          LinkedIn) et vos sociétés (SIREN, adresse, effectif) depuis la base de
+          données Dropcontact.
+        </p>
+
+        {/* API key input */}
+        <div className="space-y-2">
+          <Label
+            htmlFor="dc-api-key"
+            className="text-sm font-medium flex items-center gap-1.5"
+          >
+            <Key className="w-3.5 h-3.5" />
+            Clé API
+          </Label>
+          <div className="flex gap-2">
+            <div className="relative flex-1">
+              <Input
+                id="dc-api-key"
+                type={showKey ? "text" : "password"}
+                placeholder="Votre clé API Dropcontact…"
+                value={apiKey}
+                onChange={(e) => setApiKey(e.target.value)}
+                className="pr-9"
+              />
+              <button
+                type="button"
+                onClick={() => setShowKey((v) => !v)}
+                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                tabIndex={-1}
+              >
+                {showKey ? (
+                  <EyeOff className="w-4 h-4" />
+                ) : (
+                  <Eye className="w-4 h-4" />
+                )}
+              </button>
+            </div>
+            <Button
+              size="sm"
+              onClick={handleSave}
+              disabled={saving || !apiKey.trim()}
+            >
+              {saving ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                <Save className="w-4 h-4" />
+              )}
+            </Button>
+            {connected && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleDisconnect}
+                className="text-destructive hover:text-destructive"
+              >
+                <Trash2 className="w-4 h-4" />
+              </Button>
+            )}
+          </div>
+          <p className="text-xs text-muted-foreground">
+            Trouvez votre clé sur{" "}
+            <a
+              href="https://app.dropcontact.com/api"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="underline hover:no-underline inline-flex items-center gap-0.5"
+            >
+              app.dropcontact.com/api
+              <ExternalLink className="w-3 h-3" />
+            </a>
+          </p>
+        </div>
+
+        {connected && (
+          <>
+            <Separator />
+            <div className="space-y-3">
+              <h3 className="text-sm font-medium text-muted-foreground">
+                Ce que Dropcontact peut enrichir
+              </h3>
+              <div className="grid grid-cols-2 gap-2 text-sm text-muted-foreground">
+                <div className="flex items-center gap-1.5">
+                  <CheckCircle2 className="w-3.5 h-3.5 text-green-500 shrink-0" />
+                  Email professionnel
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <CheckCircle2 className="w-3.5 h-3.5 text-green-500 shrink-0" />
+                  Téléphone
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <CheckCircle2 className="w-3.5 h-3.5 text-green-500 shrink-0" />
+                  LinkedIn contact
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <CheckCircle2 className="w-3.5 h-3.5 text-green-500 shrink-0" />
+                  SIREN / SIRET
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <CheckCircle2 className="w-3.5 h-3.5 text-green-500 shrink-0" />
+                  Adresse société
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <CheckCircle2 className="w-3.5 h-3.5 text-green-500 shrink-0" />
+                  Site web société
+                </div>
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Bouton <span className="font-medium">✨ Enrichir</span>{" "}
+                disponible sur chaque fiche contact et société.
+              </p>
+            </div>
+          </>
+        )}
+      </CardContent>
+    </Card>
+  );
+};
 
 // ── Coming Soon Cards ─────────────────────────────────────────────
 

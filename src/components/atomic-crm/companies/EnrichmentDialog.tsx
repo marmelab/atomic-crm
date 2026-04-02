@@ -1,7 +1,14 @@
 import { useState } from "react";
 import { useUpdate, useNotify, useRecordContext } from "ra-core";
-import { Sparkles, Search, Loader2, CheckCircle2 } from "lucide-react";
+import {
+  Sparkles,
+  Search,
+  Loader2,
+  CheckCircle2,
+  AlertCircle,
+} from "lucide-react";
 import { getSupabaseClient } from "../providers/supabase/supabase";
+import { useConfigurationContext } from "../root/ConfigurationContext";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -110,6 +117,9 @@ export const EnrichmentDialog = () => {
             <TabsTrigger value="pappers" className="flex-1">
               Pappers
             </TabsTrigger>
+            <TabsTrigger value="dropcontact" className="flex-1">
+              Dropcontact
+            </TabsTrigger>
             <TabsTrigger
               value="phantombuster"
               className="flex-1"
@@ -126,6 +136,13 @@ export const EnrichmentDialog = () => {
 
           <TabsContent value="pappers" className="mt-4">
             <PappersTab record={record} onDone={() => setOpen(false)} />
+          </TabsContent>
+
+          <TabsContent value="dropcontact" className="mt-4">
+            <DropcontactCompanyTab
+              record={record}
+              onDone={() => setOpen(false)}
+            />
           </TabsContent>
 
           <TabsContent value="phantombuster" className="mt-4">
@@ -552,6 +569,193 @@ const PhantomBusterTab = ({
                 className="w-10 h-10 rounded object-contain border"
               />
             </div>
+          )}
+          <Button className="mt-2 w-full" size="sm" onClick={handleApply}>
+            <CheckCircle2 className="w-4 h-4 mr-1.5" />
+            Appliquer les champs manquants
+          </Button>
+        </div>
+      )}
+    </div>
+  );
+};
+
+// ─── Dropcontact company tab ──────────────────────────────────────────────────
+
+interface DropcontactCompanyResult {
+  siren?: string;
+  siret?: string;
+  website?: string;
+  nb_employees?: string;
+  address?: string;
+  zipcode?: string;
+  city?: string;
+  country?: string;
+}
+
+const DropcontactCompanyTab = ({
+  record,
+  onDone,
+}: {
+  record: Company;
+  onDone: () => void;
+}) => {
+  const { dropcontactApiKey } = useConfigurationContext();
+  const [update] = useUpdate();
+  const notify = useNotify();
+  const [loading, setLoading] = useState(false);
+  const [result, setResult] = useState<DropcontactCompanyResult | null>(null);
+
+  const handleEnrich = async () => {
+    if (!dropcontactApiKey) return;
+    setLoading(true);
+    setResult(null);
+    try {
+      const { data, error } = await getSupabaseClient().functions.invoke(
+        "enrich-dropcontact",
+        {
+          body: {
+            apiKey: dropcontactApiKey,
+            type: "company",
+            data: { name: record.name, website: record.website },
+          },
+        },
+      );
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      setResult(data);
+    } catch (e) {
+      notify(
+        `Erreur Dropcontact: ${e instanceof Error ? e.message : String(e)}`,
+        { type: "error" },
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleApply = async () => {
+    if (!result) return;
+    const patch: Partial<Company> = {};
+
+    if (result.siret && !record.tax_identifier)
+      patch.tax_identifier = result.siret;
+    if (result.address && !record.address) patch.address = result.address;
+    if (result.city && !record.city) patch.city = result.city;
+    if (result.zipcode && !record.zipcode) patch.zipcode = result.zipcode;
+    if (result.country && !record.country) patch.country = result.country;
+    if (result.website && !record.website) patch.website = result.website;
+
+    if (Object.keys(patch).length === 0) {
+      notify("Tous les champs sont déjà renseignés", { type: "info" });
+      return;
+    }
+
+    await update(
+      "companies",
+      { id: record.id, data: patch, previousData: record },
+      {
+        onSuccess: () => {
+          notify("Fiche enrichie avec Dropcontact", { type: "success" });
+          onDone();
+        },
+        onError: () =>
+          notify("Erreur lors de la mise à jour", { type: "error" }),
+      },
+    );
+  };
+
+  if (!dropcontactApiKey) {
+    return (
+      <div className="flex flex-col items-center gap-3 py-6 text-center text-sm text-muted-foreground">
+        <AlertCircle className="w-8 h-8 text-muted-foreground/50" />
+        <p>
+          Dropcontact n'est pas configuré.
+          <br />
+          Ajoutez votre clé API dans{" "}
+          <a
+            href="#/connectors"
+            className="underline hover:no-underline font-medium text-foreground"
+          >
+            Paramètres → Connecteurs
+          </a>
+          .
+        </p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex flex-col gap-4">
+      <p className="text-sm text-muted-foreground">
+        Enrichissez la société avec SIREN/SIRET, adresse et site web depuis
+        Dropcontact.
+      </p>
+      <div className="rounded-md border px-3 py-2 text-sm bg-muted/30">
+        <span className="text-muted-foreground">Société : </span>
+        <span className="font-medium">{record.name}</span>
+        {record.website && (
+          <>
+            <span className="text-muted-foreground"> · </span>
+            <span>{record.website}</span>
+          </>
+        )}
+      </div>
+      <Button onClick={handleEnrich} disabled={loading} className="w-full">
+        {loading ? (
+          <>
+            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+            Enrichissement en cours (~30s)…
+          </>
+        ) : (
+          <>
+            <Sparkles className="w-4 h-4 mr-2" />
+            Enrichir avec Dropcontact
+          </>
+        )}
+      </Button>
+
+      {result && (
+        <div className="border rounded-md p-3 flex flex-col gap-1.5 text-sm bg-muted/30">
+          <p className="font-medium text-xs uppercase tracking-wide text-muted-foreground mb-1">
+            Données trouvées
+          </p>
+          <EnrichField
+            label="SIRET"
+            value={result.siret}
+            current={record.tax_identifier}
+          />
+          <EnrichField
+            label="Site web"
+            value={result.website}
+            current={record.website}
+          />
+          <EnrichField
+            label="Adresse"
+            value={result.address}
+            current={record.address}
+          />
+          <EnrichField
+            label="Ville"
+            value={result.city}
+            current={record.city}
+          />
+          <EnrichField
+            label="CP"
+            value={result.zipcode}
+            current={record.zipcode}
+          />
+          <EnrichField
+            label="Pays"
+            value={result.country}
+            current={record.country}
+          />
+          {result.nb_employees && (
+            <EnrichField
+              label="Effectif"
+              value={result.nb_employees}
+              current={record.size ? String(record.size) : undefined}
+            />
           )}
           <Button className="mt-2 w-full" size="sm" onClick={handleApply}>
             <CheckCircle2 className="w-4 h-4 mr-1.5" />
