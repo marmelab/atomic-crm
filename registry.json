@@ -342,6 +342,10 @@
           "type": "registry:component"
         },
         {
+          "path": "src/components/atomic-crm/notes/noteModel.ts",
+          "type": "registry:component"
+        },
+        {
           "path": "src/components/atomic-crm/notes/index.ts",
           "type": "registry:component"
         },
@@ -363,6 +367,14 @@
         },
         {
           "path": "src/components/atomic-crm/notes/NoteShowPage.tsx",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/notes/NoteMenuButton.tsx",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/notes/NoteInputsMobile.tsx",
           "type": "registry:component"
         },
         {
@@ -671,6 +683,10 @@
         },
         {
           "path": "src/components/atomic-crm/contacts/ContactMergeButton.tsx",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/contacts/ContactMenuButton.tsx",
           "type": "registry:component"
         },
         {
