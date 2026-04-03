@@ -48,4 +48,6 @@ jobs:
           npx supabase secrets set PHANTOMBUSTER_API_KEY=${{ env.PHANTOMBUSTER_API_KEY }}
 
       - name: 📡 Deploy edge functions
-        run: npx supabase functions deploy
+        # --no-verify-jwt : le projet utilise ES256 (JWKS) mais le gateway Supabase
+        # vérifie en HS256 — l'auth est gérée dans le code via supabase.auth.getUser()
+        run: npx supabase functions deploy --no-verify-jwt
