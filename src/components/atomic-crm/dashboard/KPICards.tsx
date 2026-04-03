@@ -330,15 +330,31 @@ function WonDealsCard({ deals }: { deals: Deal[] | undefined }) {
 }
 
 export function KPICards() {
-  const { data: hotContacts, isPending: isPendingContacts } =
+  // Only deals from the "Opportunités" view (company_type IS NULL)
+  const { data: deals, isPending: isPendingDeals } = useGetList<Deal>("deals", {
+    pagination: { page: 1, perPage: 500 },
+    filter: { "archived_at@is": null, "company_type@is": null },
+  });
+
+  // Derive company IDs present in the Opportunités pipeline
+  const opportuniteCompanyIds = useMemo(
+    () => [...new Set((deals ?? []).map((d) => d.company_id))],
+    [deals],
+  );
+
+  const { data: allHotContacts, isPending: isPendingContacts } =
     useGetList<Contact>("contacts", {
       pagination: { page: 1, perPage: 100 },
       filter: { status: "hot" },
     });
 
-  const { data: deals, isPending: isPendingDeals } = useGetList<Deal>("deals", {
-    pagination: { page: 1, perPage: 500 },
-  });
+  // Only keep hot contacts whose company has a deal in the Opportunités view
+  const hotContacts = useMemo(() => {
+    if (!allHotContacts || !opportuniteCompanyIds.length) return [];
+    return allHotContacts.filter(
+      (c) => c.company_id && opportuniteCompanyIds.includes(c.company_id),
+    );
+  }, [allHotContacts, opportuniteCompanyIds]);
 
   const hotCount = useMemo(() => hotContacts?.length ?? 0, [hotContacts]);
 

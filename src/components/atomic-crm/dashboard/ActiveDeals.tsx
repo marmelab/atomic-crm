@@ -29,13 +29,13 @@ export function ActiveDeals() {
   const { data: allDeals, isPending } = useGetList<Deal>("deals", {
     pagination: { page: 1, perPage: 100 },
     sort: { field: "updated_at", order: "DESC" },
+    filter: { "archived_at@is": null, "company_type@is": null },
   });
 
   const data = useMemo(
     () =>
-      allDeals
-        ?.filter((d) => !CLOSED_STAGES.includes(d.stage))
-        .slice(0, 8) ?? [],
+      allDeals?.filter((d) => !CLOSED_STAGES.includes(d.stage)).slice(0, 8) ??
+      [],
     [allDeals],
   );
   const total = data.length;
@@ -54,16 +54,15 @@ export function ActiveDeals() {
         <h2 className="text-base font-semibold text-muted-foreground flex-1">
           Opportunités actives
         </h2>
-        <span className="text-xs text-muted-foreground">{total ?? 0} total</span>
+        <span className="text-xs text-muted-foreground">
+          {total ?? 0} total
+        </span>
       </div>
       <Card className="p-0 overflow-hidden shadow-sm border-border/50">
         {isPending ? (
           <div className="p-4 space-y-3">
             {[1, 2, 3].map((i) => (
-              <div
-                key={i}
-                className="h-10 bg-muted/30 rounded animate-pulse"
-              />
+              <div key={i} className="h-10 bg-muted/30 rounded animate-pulse" />
             ))}
           </div>
         ) : !data?.length ? (

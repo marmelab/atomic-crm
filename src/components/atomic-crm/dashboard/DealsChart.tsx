@@ -1,11 +1,5 @@
 import { ResponsiveBar } from "@nivo/bar";
-import {
-  addMonths,
-  format,
-  parseISO,
-  startOfMonth,
-  subMonths,
-} from "date-fns";
+import { addMonths, format, parseISO, startOfMonth, subMonths } from "date-fns";
 import { useGetList } from "ra-core";
 import { memo, useMemo } from "react";
 
@@ -39,6 +33,7 @@ export const DealsChart = memo(() => {
     },
     filter: {
       "expected_closing_date@gte": rangeStart.split("T")[0],
+      "company_type@is": null,
     },
   });
 
@@ -49,9 +44,7 @@ export const DealsChart = memo(() => {
     const now = new Date();
     const monthKeys: string[] = [];
     for (let i = -2; i <= 10; i++) {
-      monthKeys.push(
-        startOfMonth(addMonths(now, i)).toISOString(),
-      );
+      monthKeys.push(startOfMonth(addMonths(now, i)).toISOString());
     }
 
     const dealsByMonth: Record<string, Deal[]> = {};
@@ -62,9 +55,10 @@ export const DealsChart = memo(() => {
     data.forEach((deal) => {
       // Won deals: group by trial_start_date if available, else expected_closing_date
       const isWon = deal.stage === "closed-won";
-      const dateStr = isWon && deal.trial_start_date
-        ? deal.trial_start_date
-        : deal.expected_closing_date;
+      const dateStr =
+        isWon && deal.trial_start_date
+          ? deal.trial_start_date
+          : deal.expected_closing_date;
 
       if (!dateStr) return;
       const monthKey = startOfMonth(parseISO(dateStr)).toISOString();
@@ -112,7 +106,9 @@ export const DealsChart = memo(() => {
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
           <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-muted/60">
-            <span className="text-muted-foreground font-semibold text-base">€</span>
+            <span className="text-muted-foreground font-semibold text-base">
+              €
+            </span>
           </div>
           <h2 className="text-base font-semibold text-foreground">
             Revenus prévisionnels
