@@ -7,6 +7,7 @@ const PAPPERS_BASE = "https://api.pappers.fr/v2";
 async function handler(req: Request): Promise<Response> {
   const apiToken = Deno.env.get("PAPPERS_API_KEY");
   if (!apiToken) {
+    console.error("[enrich-pappers] PAPPERS_API_KEY secret is not set");
     return new Response(
       JSON.stringify({ error: "PAPPERS_API_KEY not configured" }),
       {
@@ -16,12 +17,22 @@ async function handler(req: Request): Promise<Response> {
     );
   }
 
-  const body = await req.json();
-  const { siret, siren, q } = body as {
-    siret?: string;
-    siren?: string;
-    q?: string;
-  };
+  let body: { siret?: string; siren?: string; q?: string };
+  try {
+    body = await req.json();
+  } catch (e) {
+    console.error("[enrich-pappers] Failed to parse request body:", e);
+    return new Response(
+      JSON.stringify({ error: "Invalid JSON body" }),
+      {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      },
+    );
+  }
+
+  const { siret, siren, q } = body;
+  console.log("[enrich-pappers] Request:", { siret, siren, q: q?.slice(0, 50) });
 
   // If SIRET or SIREN provided → direct lookup
   if (siret || siren) {
@@ -30,6 +41,7 @@ async function handler(req: Request): Promise<Response> {
     const res = await fetch(url);
     if (!res.ok) {
       const text = await res.text();
+      console.error(`[enrich-pappers] Pappers API error ${res.status}:`, text);
       return new Response(
         JSON.stringify({ error: `Pappers error: ${res.status}`, detail: text }),
         {
@@ -39,6 +51,7 @@ async function handler(req: Request): Promise<Response> {
       );
     }
     const data = await res.json();
+    console.log("[enrich-pappers] Lookup success:", data.siren ?? data.siret_siege);
     return new Response(JSON.stringify(mapPappersResult(data)), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
@@ -50,6 +63,7 @@ async function handler(req: Request): Promise<Response> {
     const res = await fetch(url);
     if (!res.ok) {
       const text = await res.text();
+      console.error(`[enrich-pappers] Pappers search error ${res.status}:`, text);
       return new Response(
         JSON.stringify({ error: `Pappers error: ${res.status}`, detail: text }),
         {
@@ -67,11 +81,13 @@ async function handler(req: Request): Promise<Response> {
       zipcode: r.siege?.code_postal,
       forme_juridique: r.forme_juridique,
     }));
+    console.log(`[enrich-pappers] Search "${q}" → ${results.length} results`);
     return new Response(JSON.stringify({ results }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   }
 
+  console.warn("[enrich-pappers] No siret, siren or q provided");
   return new Response(
     JSON.stringify({ error: "Provide siret, siren, or q parameter" }),
     {

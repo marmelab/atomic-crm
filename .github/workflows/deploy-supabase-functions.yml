@@ -1,0 +1,51 @@
+name: 🚀 Deploy Supabase Functions
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "supabase/functions/**"
+      - "supabase/migrations/**"
+      - "supabase/schemas/**"
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-supabase-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  deploy-supabase:
+    name: 🚀 Deploy edge functions + migrations
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: 📥 Checkout repo
+        uses: actions/checkout@v4
+
+      - name: 🔑 Fetch secrets from Doppler
+        uses: dopplerhq/secrets-fetch-action@v1
+        id: doppler
+        with:
+          doppler-token: ${{ secrets.DOPPLER_TOKEN }}
+          inject-env-vars: true
+
+      - name: ⚙️ Setup Supabase CLI
+        uses: supabase/setup-cli@v1
+
+      - name: 🔗 Link project
+        run: npx supabase link --project-ref ${{ env.SUPABASE_PROJECT_ID }}
+
+      - name: 📡 Push DB migrations
+        run: npx supabase db push
+        env:
+          SUPABASE_DB_PASSWORD: ${{ env.SUPABASE_DB_PASSWORD }}
+
+      - name: 🔑 Set Supabase function secrets
+        run: |
+          npx supabase secrets set PAPPERS_API_KEY=${{ env.PAPPERS_API_KEY }}
+          npx supabase secrets set PHANTOMBUSTER_API_KEY=${{ env.PHANTOMBUSTER_API_KEY }}
+
+      - name: 📡 Deploy edge functions
+        run: npx supabase functions deploy
