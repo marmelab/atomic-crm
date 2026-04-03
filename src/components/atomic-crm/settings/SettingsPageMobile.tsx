@@ -373,10 +373,20 @@ const LanguageRow = () => {
   const locales = useLocales();
   const [locale, setLocale] = useLocaleState();
   const dataProvider = useDataProvider<CrmDataProvider>();
+  const notify = useNotify();
 
   const handleSetLocale = (value: string) => {
     setLocale(value);
-    dataProvider.updatePreferences({ locale: value });
+    dataProvider
+      .updatePreferences({ locale: value })
+      .catch((e) =>
+        notify(
+          typeof e?.message === "string"
+            ? e?.message
+            : "ra.notification.http_error",
+          { type: "error" },
+        ),
+      );
   };
 
   if (locales.length <= 1) return null;
@@ -413,10 +423,20 @@ const ThemeRow = () => {
   const translate = useTranslate();
   const { theme, setTheme } = useTheme();
   const dataProvider = useDataProvider<CrmDataProvider>();
+  const notify = useNotify();
 
   const handleSetTheme = (value: Theme) => {
     setTheme(value);
-    dataProvider.updatePreferences({ theme: value });
+    dataProvider
+      .updatePreferences({ theme: value })
+      .catch((e) =>
+        notify(
+          typeof e?.message === "string"
+            ? e?.message
+            : "ra.notification.http_error",
+          { type: "error" },
+        ),
+      );
   };
 
   return (

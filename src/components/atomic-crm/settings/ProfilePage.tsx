@@ -276,10 +276,20 @@ const LanguageSelector = () => {
   const locales = useLocales();
   const [locale, setLocale] = useLocaleState();
   const dataProvider = useDataProvider<CrmDataProvider>();
+  const notify = useNotify();
 
   const handleSetLocale = (value: string) => {
     setLocale(value);
-    dataProvider.updatePreferences({ locale: value });
+    dataProvider
+      .updatePreferences({ locale: value })
+      .catch((e) =>
+        notify(
+          typeof e?.message === "string"
+            ? e?.message
+            : "ra.notification.http_error",
+          { type: "error" },
+        ),
+      );
   };
 
   if (locales.length <= 1) {

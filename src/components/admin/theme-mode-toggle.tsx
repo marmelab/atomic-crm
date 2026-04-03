@@ -1,5 +1,5 @@
 import { Check, Moon, Sun } from "lucide-react";
-import { useDataProvider, useTranslate } from "ra-core";
+import { useDataProvider, useNotify, useTranslate } from "ra-core";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -24,10 +24,20 @@ export function ThemeModeToggle() {
   const { theme, setTheme } = useTheme();
   const translate = useTranslate();
   const dataProvider = useDataProvider<CrmDataProvider>();
+  const notify = useNotify();
 
   const handleSetTheme = (value: Theme) => {
     setTheme(value);
-    dataProvider.updatePreferences({ theme: value });
+    dataProvider
+      .updatePreferences({ theme: value })
+      .catch((e) =>
+        notify(
+          typeof e?.message === "string"
+            ? e?.message
+            : "ra.notification.http_error",
+          { type: "error" },
+        ),
+      );
   };
 
   return (
