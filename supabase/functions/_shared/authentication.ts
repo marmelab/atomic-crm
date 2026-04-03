@@ -1,36 +1,16 @@
-// Based on https://github.com/supabase/supabase/blob/master/examples/edge-functions/supabase/functions/_shared/jwt/default.ts
-import * as jose from "jsr:@panva/jose@6";
 import { createClient, type User } from "jsr:@supabase/supabase-js@2";
 import { createErrorResponse } from "./utils.ts";
 
-const SUPABASE_JWT_ISSUER =
-  Deno.env.get("SB_JWT_ISSUER") ?? Deno.env.get("SUPABASE_URL") + "/auth/v1";
-
-const SUPABASE_JWT_KEYS = jose.createRemoteJWKSet(
-  new URL(Deno.env.get("SUPABASE_URL")! + "/auth/v1/.well-known/jwks.json"),
-);
-
-function getAuthToken(req: Request) {
+function getAuthToken(req: Request): string | null {
   const authHeader = req.headers.get("authorization");
-  if (!authHeader) {
-    throw new Error("Missing authorization header");
-  }
+  if (!authHeader) return null;
   const [bearer, token] = authHeader.split(" ");
-  if (bearer !== "Bearer") {
-    throw new Error(`Auth header is not 'Bearer {token}'`);
-  }
-
-  return token;
-}
-
-function verifySupabaseJWT(jwt: string) {
-  return jose.jwtVerify(jwt, SUPABASE_JWT_KEYS, {
-    issuer: SUPABASE_JWT_ISSUER,
-  });
+  return bearer === "Bearer" ? token : null;
 }
 
 /**
  * Validates the Authorization header to ensure that a user is authenticated.
+ * Uses supabase.auth.getUser() — works with all token types (ES256, HS256).
  */
 export const AuthMiddleware = async (
   req: Request,
@@ -38,15 +18,28 @@ export const AuthMiddleware = async (
 ) => {
   if (req.method === "OPTIONS") return await next(req);
 
+  const token = getAuthToken(req);
+  if (!token) {
+    return createErrorResponse(401, "Missing authorization header");
+  }
+
   try {
-    const token = getAuthToken(req);
-    const isValidJWT = await verifySupabaseJWT(token);
-
-    if (isValidJWT) return await next(req);
-
-    return createErrorResponse(401, "Invalid authentication");
+    const client = createClient(
+      Deno.env.get("SUPABASE_URL") ?? "",
+      Deno.env.get("SUPABASE_ANON_KEY") ??
+        Deno.env.get("SB_PUBLISHABLE_KEY") ??
+        "",
+      { global: { headers: { Authorization: `Bearer ${token}` } } },
+    );
+    const { data, error } = await client.auth.getUser();
+    if (error || !data?.user) {
+      console.error("[auth] getUser failed:", error?.message);
+      return createErrorResponse(401, "Invalid authentication");
+    }
+    return await next(req);
   } catch (e) {
-    return createErrorResponse(401, e?.toString() || "Unauthorized");
+    console.error("[auth] Unexpected error:", e);
+    return createErrorResponse(401, "Unauthorized");
   }
 };
 
