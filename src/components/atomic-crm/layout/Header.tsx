@@ -1,13 +1,19 @@
-import { Import, Plus, Plug, Settings, User, Users } from "lucide-react";
+import { Import, Plus, Plug, Settings, User, Users, Contact, Building2, TrendingUp, LayoutGrid } from "lucide-react";
 import { CanAccess, useCanAccess, useGetIdentity, useUserMenu } from "ra-core";
 import { useState } from "react";
-import { Link, matchPath, useLocation } from "react-router";
+import { Link, matchPath, useLocation, useNavigate } from "react-router";
 import { RefreshButton } from "@/components/admin/refresh-button";
 import { ThemeModeToggle } from "@/components/admin/theme-mode-toggle";
 import { UserMenu } from "@/components/admin/user-menu";
-import { DropdownMenuItem } from "@/components/ui/dropdown-menu";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
-import { useConfigurationContext } from "../root/ConfigurationContext";
+import { useConfigurationContext, type CustomView } from "../root/ConfigurationContext";
 import { ImportPage } from "../misc/ImportPage";
 import { CreateViewDialog } from "../deals/CreateViewDialog";
 import { APP_VERSION } from "../../../version";
@@ -118,15 +124,11 @@ const Header = () => {
                       isActive={currentPath === `/views/${view.id}`}
                     />
                   ))}
-                  {isAdmin && (
-                    <button
-                      onClick={() => setCreateViewOpen(true)}
-                      title="Créer une nouvelle vue"
-                      className="flex items-center justify-center w-7 h-7 ml-1 rounded-full text-secondary-foreground/50 hover:text-secondary-foreground hover:bg-secondary-foreground/10 transition-all"
-                    >
-                      <Plus className="h-4 w-4" />
-                    </button>
-                  )}
+                  <QuickCreateMenu
+                    visibleViews={visibleViews}
+                    isAdmin={isAdmin}
+                    onCreateView={() => setCreateViewOpen(true)}
+                  />
                 </nav>
               </div>
               <div className="flex items-center">
@@ -149,6 +151,76 @@ const Header = () => {
         </header>
       </nav>
     </>
+  );
+};
+
+const startsWithVowel = (s: string) =>
+  /^[aeiouéèêàâùûîôäëïöü]/i.test(s);
+
+const getViewCreateLabel = (view: CustomView) => {
+  const name = view.companyType.toLowerCase();
+  return startsWithVowel(name) ? `Nouvel ${name}` : `Nouveau ${name}`;
+};
+
+const QuickCreateMenu = ({
+  visibleViews,
+  isAdmin,
+  onCreateView,
+}: {
+  visibleViews: CustomView[];
+  isAdmin: boolean;
+  onCreateView: () => void;
+}) => {
+  const navigate = useNavigate();
+
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <button
+          title="Créer..."
+          className="flex items-center justify-center w-7 h-7 ml-1 rounded-full text-secondary-foreground/50 hover:text-secondary-foreground hover:bg-secondary-foreground/10 transition-all"
+        >
+          <Plus className="h-4 w-4" />
+        </button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end" className="w-52">
+        <DropdownMenuItem onClick={() => navigate("/contacts/create")}>
+          <Contact className="h-4 w-4 mr-2" />
+          Nouveau contact
+        </DropdownMenuItem>
+        <DropdownMenuItem onClick={() => navigate("/companies/create")}>
+          <Building2 className="h-4 w-4 mr-2" />
+          Nouvelle société
+        </DropdownMenuItem>
+        <DropdownMenuItem onClick={() => navigate("/deals/create")}>
+          <TrendingUp className="h-4 w-4 mr-2" />
+          Nouvelle opportunité
+        </DropdownMenuItem>
+        {visibleViews.length > 0 && (
+          <>
+            <DropdownMenuSeparator />
+            {visibleViews.map((view) => (
+              <DropdownMenuItem
+                key={view.id}
+                onClick={() => navigate(`/views/${view.id}/create`)}
+              >
+                <LayoutGrid className="h-4 w-4 mr-2" />
+                {getViewCreateLabel(view)}
+              </DropdownMenuItem>
+            ))}
+          </>
+        )}
+        {isAdmin && (
+          <>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onClick={onCreateView}>
+              <Plus className="h-4 w-4 mr-2" />
+              Nouvelle vue
+            </DropdownMenuItem>
+          </>
+        )}
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
 };
 
