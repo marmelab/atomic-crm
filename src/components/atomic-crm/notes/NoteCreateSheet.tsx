@@ -12,7 +12,6 @@ import {
 import { CreateSheet } from "../misc/CreateSheet";
 import { foreignKeyMapping } from "./foreignKeyMapping";
 import { NoteInputsMobile } from "./NoteInputsMobile";
-import { NoteMenuButton } from "./NoteMenuButton";
 import { getCurrentDate } from "./utils";
 
 export interface NoteCreateSheetProps {
@@ -69,7 +68,7 @@ export const NoteCreateSheet = ({
     <CreateSheet
       resource="contact_notes"
       title={
-        <span className="text-xl font-semibold truncate pr-10">
+        <span className="text-xl font-semibold truncate">
           {!selectContact
             ? translate("resources.notes.sheet.create_for", {
                 name: getContactRepresentation(contact!),
@@ -90,7 +89,6 @@ export const NoteCreateSheet = ({
       mutationOptions={{ onSuccess: handleSuccess }}
       open={open}
       onOpenChange={onOpenChange}
-      headerActions={<NoteMenuButton />}
     >
       <NoteInputsMobile selectContact={selectContact} />
     </CreateSheet>

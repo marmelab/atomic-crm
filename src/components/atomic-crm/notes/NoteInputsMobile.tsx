@@ -1,4 +1,5 @@
 import { useCallback, useRef } from "react";
+import { Paperclip } from "lucide-react";
 import { required, useInput, useTranslate, ValidationError } from "ra-core";
 import { RecordContextProvider } from "ra-core";
 import { AutocompleteInput, ReferenceInput } from "@/components/admin";
@@ -48,7 +49,7 @@ export const NoteInputsMobile = ({
         )}
       </div>
       {selectContact && (
-        <div className="px-4">
+        <div className="px-4 py-4">
           <ReferenceInput
             source={foreignKeyMapping["contacts"]}
             reference="contacts"
@@ -65,8 +66,56 @@ export const NoteInputsMobile = ({
       )}
       <div className="px-4">
         <AttachmentPreviewsMobile />
+        <AttachButton />
       </div>
     </div>
+  );
+};
+
+const AttachButton = () => {
+  const inputRef = useRef<HTMLInputElement>(null);
+  const { getValues, setValue } = useFormContext();
+  const translate = useTranslate();
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const fileList = e.target.files;
+    if (!fileList || fileList.length === 0) return;
+
+    const newFiles = Array.from(fileList).map((file) => ({
+      rawFile: file,
+      src: URL.createObjectURL(file),
+      title: file.name,
+    }));
+
+    const existing = getValues("attachments") || [];
+    const currentFiles = Array.isArray(existing) ? existing : [existing];
+    setValue("attachments", [...currentFiles, ...newFiles], {
+      shouldDirty: true,
+    });
+
+    e.target.value = "";
+  };
+
+  return (
+    <>
+      <button
+        type="button"
+        className="flex items-center gap-2 py-3 text-sm text-muted-foreground"
+        onClick={() => inputRef.current?.click()}
+      >
+        <Paperclip className="size-4" />
+        {translate("resources.notes.actions.attach_document", {
+          _: "Attach document",
+        })}
+      </button>
+      <input
+        ref={inputRef}
+        type="file"
+        multiple
+        className="hidden"
+        onChange={handleFileChange}
+      />
+    </>
   );
 };
 
