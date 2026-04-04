@@ -7,10 +7,7 @@ import { StoryWrapper } from "@/test/StoryWrapper";
 
 type NoteInputsMobileStoryProps = React.ComponentProps<
   typeof NoteInputsMobile
-> & {
-  defaultValues?: Record<string, unknown>;
-  withSaveButton?: boolean;
-};
+> & { defaultValues?: Record<string, unknown> };
 
 export const NoteInputsMobileStory = ({
   defaultValues,
@@ -42,9 +39,7 @@ type Story = StoryObj<typeof meta>;
 export const Default: Story = {};
 
 export const WithSelectContact: Story = {
-  args: {
-    selectContact: true,
-  },
+  args: { selectContact: true },
 };
 
 export const WithAttachmentDefault: Story = {
@@ -52,6 +47,5 @@ export const WithAttachmentDefault: Story = {
     defaultValues: {
       attachments: [{ src: "blob:test", title: "evidence.pdf" }],
     },
-    withSaveButton: true,
   },
 };
