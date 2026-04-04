@@ -1,7 +1,12 @@
 import { useCallback, useRef } from "react";
 import { Paperclip } from "lucide-react";
-import { required, useInput, useTranslate, ValidationError } from "ra-core";
-import { RecordContextProvider } from "ra-core";
+import {
+  required,
+  useInput,
+  useTranslate,
+  ValidationError,
+  RecordContextProvider,
+} from "ra-core";
 import { AutocompleteInput, ReferenceInput } from "@/components/admin";
 import { FileInputPreview } from "@/components/admin/file-input";
 import { useFormContext, useWatch } from "react-hook-form";
@@ -10,6 +15,7 @@ import { contactOptionText } from "../misc/ContactOption";
 import { AttachmentField } from "./AttachmentField";
 import { foreignKeyMapping } from "./foreignKeyMapping";
 import { validateNoteOrAttachmentRequired } from "./noteModel";
+import type { ContactNote } from "../types";
 
 export const NoteInputsMobile = ({
   selectContact,
@@ -121,7 +127,9 @@ const AttachButton = () => {
 
 const AttachmentPreviewsMobile = () => {
   const { control, setValue } = useFormContext();
-  const attachments = useWatch({ control, name: "attachments" });
+  const attachments = useWatch({ control, name: "attachments" }) as
+    | ContactNote["attachments"]
+    | undefined;
 
   if (!Array.isArray(attachments) || attachments.length === 0) return null;
 
@@ -132,9 +140,9 @@ const AttachmentPreviewsMobile = () => {
 
   return (
     <div className="flex flex-col gap-1">
-      {attachments.map((file: Record<string, unknown>, index: number) => (
+      {attachments.map((file, index: number) => (
         <FileInputPreview
-          key={index}
+          key={file.src}
           file={file}
           onRemove={() => onRemove(index)}
         >

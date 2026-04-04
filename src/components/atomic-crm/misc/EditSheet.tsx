@@ -1,4 +1,3 @@
-import { DeleteButton } from "@/components/admin";
 import { SaveButton } from "@/components/admin/form";
 import {
   Sheet,
@@ -97,7 +96,6 @@ export const EditSheet = ({
   mutationOptions,
   mutationMode = "undoable",
   defaultValues,
-  deleteButton,
   headerActions,
   ...editBaseProps
 }: EditSheetProps) => {
@@ -132,10 +130,6 @@ export const EditSheet = ({
     ...mutationOptions,
     onSuccess: handleSuccess,
   };
-
-  const defaultDeleteButton = (
-    <DeleteButton variant="destructive" className="flex-1 h-12" />
-  );
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
@@ -176,8 +170,6 @@ export const EditSheet = ({
 
             <SheetFooter className="border-t">
               <div className="flex w-full gap-4">
-                {deleteButton !== false &&
-                  (deleteButton || defaultDeleteButton)}
                 <SaveButton className="flex-1 h-12" />
               </div>
             </SheetFooter>

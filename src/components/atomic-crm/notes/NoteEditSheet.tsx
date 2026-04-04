@@ -69,7 +69,6 @@ export const NoteEditSheet = ({
           getRedirectTo={getRedirectTo}
         />
       }
-      deleteButton={false}
     >
       <NoteInputsMobile />
     </EditSheet>

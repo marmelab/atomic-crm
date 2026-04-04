@@ -39,7 +39,6 @@ export const TaskEditSheet = ({
       redirect={false}
       open={open}
       onOpenChange={onOpenChange}
-      deleteButton={false}
     >
       <TaskFormContent />
     </EditSheet>

@@ -39,7 +39,6 @@ export const ContactEditSheet = ({
         phone_jsonb: defaultPhoneJsonb,
       }}
       headerActions={<ContactEditMenuButton onOpenChange={onOpenChange} />}
-      deleteButton={false}
     >
       <ContactInputs />
     </EditSheet>
