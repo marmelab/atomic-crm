@@ -1,4 +1,4 @@
-import { useCallback, useRef } from "react";
+import { useEffect, useRef } from "react";
 import { Paperclip } from "lucide-react";
 import {
   required,
@@ -23,18 +23,18 @@ export const NoteInputsMobile = ({
   selectContact?: boolean;
 }) => {
   const translate = useTranslate();
+  const textareaRef = useRef<HTMLTextAreaElement | null>(null);
   const { field, fieldState } = useInput({
     source: "text",
     validate: validateNoteOrAttachmentRequired,
   });
-  const fieldRefCallback = useRef(field.ref);
-  fieldRefCallback.current = field.ref;
 
-  const textareaRef = useCallback((node: HTMLTextAreaElement | null) => {
-    fieldRefCallback.current(node);
+  useEffect(() => {
+    const node = textareaRef.current;
     if (!node) return;
     requestAnimationFrame(() => {
       node.focus();
+      // move cursor to end of text
       node.setSelectionRange(node.value.length, node.value.length);
     });
   }, []);
@@ -44,7 +44,10 @@ export const NoteInputsMobile = ({
       <div className="flex-1 flex flex-col">
         <textarea
           {...field}
-          ref={textareaRef}
+          ref={(node) => {
+            field.ref(node);
+            textareaRef.current = node;
+          }}
           placeholder={translate("resources.notes.inputs.add_note")}
           className="flex-1 min-h-0 resize-none bg-background p-4 touch-auto outline-none text-base"
         />
