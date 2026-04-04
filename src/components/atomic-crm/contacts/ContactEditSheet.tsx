@@ -65,7 +65,7 @@ const ContactEditMenuButton = ({
   };
 
   return (
-    <DropdownMenu modal={false}>
+    <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <button
           type="button"
