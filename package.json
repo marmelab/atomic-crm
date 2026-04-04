@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "type": "module",
   "scripts": {
-    "test:unit:app": "vitest --config vitest.config.ts --browser.headless",
+    "test:unit:app": "vitest --config vitest.config.ts",
     "test:unit:functions": "vitest --config vitest.functions.config.ts",
     "dev": "vite --force",
     "dev:demo": "vite --config vite.demo.config --force",
