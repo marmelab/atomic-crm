@@ -168,10 +168,8 @@ export const EditSheet = ({
               {children}
             </div>
 
-            <SheetFooter className="border-t">
-              <div className="flex w-full gap-4">
-                <SaveButton className="flex-1 h-12" />
-              </div>
+            <SheetFooter className="border-t flex w-full gap-4">
+              <SaveButton className="flex-1 h-12" />
             </SheetFooter>
           </Form>
         </EditBase>
