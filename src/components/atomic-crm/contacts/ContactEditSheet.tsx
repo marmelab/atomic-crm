@@ -1,6 +1,7 @@
 import type { Identifier } from "ra-core";
 import { useTranslate, useDeleteController, useRecordContext } from "ra-core";
 import { EllipsisVertical, Trash2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -67,15 +68,12 @@ const ContactEditMenuButton = ({
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <button
-          type="button"
-          className="opacity-70 transition-opacity hover:opacity-100 rounded-xs"
-        >
-          <EllipsisVertical className="size-6" />
+        <Button variant="ghost" size="icon">
+          <EllipsisVertical />
           <span className="sr-only">
             {translate("ra.action.open_menu", { _: "More" })}
           </span>
-        </button>
+        </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
         <DropdownMenuItem
