@@ -49,7 +49,7 @@ export const NoteInputsMobile = ({
             textareaRef.current = node;
           }}
           placeholder={translate("resources.notes.inputs.add_note")}
-          className="flex-1 min-h-0 resize-none bg-background p-4 touch-auto outline-none text-base"
+          className="flex-1 min-h-0 resize-none bg-background p-4 outline-none text-base"
         />
         {fieldState.error && (
           <p className="px-4 text-sm text-destructive">
