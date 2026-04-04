@@ -41,7 +41,7 @@ export const TagsListEdit = () => {
     record &&
     allTags.filter((tag) => !record.tags?.includes(tag.id));
 
-  const handleTagAdd = (id: Identifier) => {
+  const handleTagAdd = (id: number) => {
     if (!record) {
       throw new Error("No contact record found");
     }

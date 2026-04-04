@@ -92,7 +92,7 @@ export type Contact = {
   first_seen: string;
   last_seen: string;
   has_newsletter: boolean;
-  tags: Identifier[];
+  tags: number[];
   gender: string;
   sales_id?: Identifier;
   status: string;

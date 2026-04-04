@@ -10,7 +10,7 @@
     "build": "tsc && vite build",
     "build:e2e": "vite build --mode e2e",
     "build:demo": "tsc && vite build --config vite.demo.config",
-    "typecheck": "tsc --noEmit",
+    "typecheck": "tsc --noEmit --project tsconfig.app.json",
     "preview": "vite preview",
     "lint:apply": "eslint **/*.{mjs,ts,tsx} --fix",
     "lint": "eslint **/*.{mjs,ts,tsx}",

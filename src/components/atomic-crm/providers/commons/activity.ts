@@ -66,14 +66,16 @@ const getNewCompanies = async (
     pagination: { page: 1, perPage: 250 },
     sort: { field: "created_at", order: "DESC" },
   });
-  return companies.map((company) => ({
-    id: `company.${company.id}.created`,
-    type: COMPANY_CREATED,
-    company_id: company.id,
-    company,
-    sales_id: company.sales_id,
-    date: company.created_at,
-  }));
+  return companies
+    .filter((company: Company) => company.sales_id != null)
+    .map((company) => ({
+      id: `company.${company.id}.created`,
+      type: COMPANY_CREATED,
+      company_id: company.id,
+      company,
+      sales_id: company.sales_id!,
+      date: company.created_at,
+    }));
 };
 
 async function getNewContactsAndNotes(
@@ -106,14 +108,16 @@ async function getNewContactsAndNotes(
     },
   );
 
-  const newContacts = contacts.map((contact) => ({
-    id: `contact.${contact.id}.created`,
-    type: CONTACT_CREATED,
-    company_id: contact.company_id,
-    sales_id: contact.sales_id,
-    contact,
-    date: contact.first_seen,
-  }));
+  const newContacts = contacts
+    .filter((contact): contact is Contact & { company_id: Identifier } => contact.company_id != null)
+    .map((contact) => ({
+      id: `contact.${contact.id}.created`,
+      type: CONTACT_CREATED,
+      company_id: contact.company_id,
+      sales_id: contact.sales_id,
+      contact,
+      date: contact.first_seen,
+    }));
 
   const newContactNotes = contactNotes.map((contactNote) => ({
     id: `contactNote.${contactNote.id}.created`,

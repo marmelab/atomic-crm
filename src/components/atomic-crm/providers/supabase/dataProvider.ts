@@ -105,7 +105,7 @@ const getDataProviderWithCustomMethods = () => {
       }
 
       // Update the is initialized cache
-      getIsInitialized._is_initialized_cache = true;
+      (getIsInitialized as any)._is_initialized_cache = true;
 
       return {
         id: response.data.user.id,
@@ -404,7 +404,7 @@ const uploadToBucket = async (fi: RAFile) => {
   if (!fi.src.startsWith("blob:") && !fi.src.startsWith("data:")) {
     // Sign URL check if path exists in the bucket
     if (fi.path) {
-      const { error } = await supabase.storage
+      const { error } = await getSupabaseClient().storage
         .from(ATTACHMENTS_BUCKET)
         .createSignedUrl(fi.path, 60);
 
@@ -438,7 +438,7 @@ const uploadToBucket = async (fi: RAFile) => {
   const fileExt = fileParts.length > 1 ? `.${file.name.split(".").pop()}` : "";
   const fileName = `${Math.random()}${fileExt}`;
   const filePath = `${fileName}`;
-  const { error: uploadError } = await supabase.storage
+  const { error: uploadError } = await getSupabaseClient().storage
     .from(ATTACHMENTS_BUCKET)
     .upload(filePath, dataContent);
 
@@ -447,7 +447,7 @@ const uploadToBucket = async (fi: RAFile) => {
     throw new Error("Failed to upload attachment");
   }
 
-  const { data } = supabase.storage
+  const { data } = getSupabaseClient().storage
     .from(ATTACHMENTS_BUCKET)
     .getPublicUrl(filePath);
 

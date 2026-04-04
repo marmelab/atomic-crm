@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useFormContext, useWatch } from "react-hook-form";
 
+import type { ContactNote, DealNote } from "../types";
 import { Status } from "../misc/Status";
 import { useConfigurationContext } from "../root/ConfigurationContext";
 import { getCurrentDate } from "./utils";
@@ -33,7 +34,9 @@ export const NoteInputs = ({
   const [displayMore, setDisplayMore] = useState(false);
   const [isFocused, setIsFocused] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
-  const { control, formState, setValue } = useFormContext();
+  const { control, formState, setValue } = useFormContext<
+    ContactNote | DealNote
+  >();
   const selectedContactId = useWatch({ control, name: "contact_id" });
   const selectedStatus = useWatch({ control, name: "status" });
   const textValue = useWatch({ control, name: "text" as any });
