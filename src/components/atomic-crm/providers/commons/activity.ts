@@ -109,7 +109,10 @@ async function getNewContactsAndNotes(
   );
 
   const newContacts = contacts
-    .filter((contact): contact is Contact & { company_id: Identifier } => contact.company_id != null)
+    .filter(
+      (contact): contact is Contact & { company_id: Identifier } =>
+        contact.company_id != null,
+    )
     .map((contact) => ({
       id: `contact.${contact.id}.created`,
       type: CONTACT_CREATED,
