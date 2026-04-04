@@ -32,7 +32,6 @@ export const NoteEditSheet = ({
 }: NoteEditSheetProps) => {
   const createPath = useCreatePath();
   const translate = useTranslate();
-  const getContactRepresentation = useGetRecordRepresentation("contacts");
   const getRedirectTo = (record: any) => {
     return createPath({
       resource: "contacts",
@@ -40,6 +39,7 @@ export const NoteEditSheet = ({
       id: record ? record[foreignKeyMapping["contacts"]] : undefined,
     });
   };
+  const getContactRepresentation = useGetRecordRepresentation("contacts");
 
   return (
     <EditSheet
