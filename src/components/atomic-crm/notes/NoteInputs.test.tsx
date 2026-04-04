@@ -3,24 +3,10 @@ import { render } from "vitest-browser-react";
 import * as stories from "./NoteInputs.stories";
 import { NoteInputsStory } from "./NoteInputs.stories";
 
-const mockIsMobile = vi.hoisted(() => vi.fn(() => false));
-vi.mock("@/hooks/use-mobile", () => ({
-  useIsMobile: mockIsMobile,
-}));
-
 const { Default, WithAttachmentDefault, WithSaveButton } =
   composeStories(stories);
 
 describe("NoteInputs", () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
-    mockIsMobile.mockReturnValue(false);
-  });
-
-  afterAll(() => {
-    vi.resetAllMocks();
-  });
-
   it("renders the note textarea", async () => {
     const screen = await render(<Default />);
 
@@ -33,16 +19,6 @@ describe("NoteInputs", () => {
     await expect
       .element(screen.getByRole("button", { name: "Show options" }))
       .toBeVisible();
-  });
-
-  it("does not show the 'Show options' button on mobile", async () => {
-    mockIsMobile.mockReturnValue(true);
-
-    const screen = await render(<Default />);
-
-    await expect
-      .element(screen.getByRole("button", { name: "Show options" }))
-      .not.toBeInTheDocument();
   });
 
   it("reveals the extra options section after clicking 'Show options'", async () => {

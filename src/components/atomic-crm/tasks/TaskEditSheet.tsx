@@ -1,4 +1,4 @@
-import { DeleteButton, ReferenceField } from "@/components/admin";
+import { ReferenceField } from "@/components/admin";
 import type { Identifier } from "ra-core";
 import { useGetRecordRepresentation, useTranslate } from "ra-core";
 import { EditSheet } from "../misc/EditSheet";
@@ -39,16 +39,6 @@ export const TaskEditSheet = ({
       redirect={false}
       open={open}
       onOpenChange={onOpenChange}
-      deleteButton={
-        <DeleteButton
-          variant="destructive"
-          className="flex-1"
-          redirect={false}
-          onClick={() => {
-            onOpenChange(false);
-          }}
-        />
-      }
     >
       <TaskFormContent />
     </EditSheet>
