@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { required, useGetOne, useTranslate } from "ra-core";
 import { TextInput } from "@/components/admin/text-input";
 import { FileInput } from "@/components/admin/file-input";
@@ -31,9 +31,22 @@ export const NoteInputs = ({
   const { noteStatuses } = useConfigurationContext();
   const translate = useTranslate();
   const [displayMore, setDisplayMore] = useState(false);
-  const { control, formState, setValue } = useFormContext<NoteFormValues>();
+  const [isFocused, setIsFocused] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const { control, formState, setValue } = useFormContext();
   const selectedContactId = useWatch({ control, name: "contact_id" });
   const selectedStatus = useWatch({ control, name: "status" });
+  const textValue = useWatch({ control, name: "text" as any });
+  const isExpanded = isFocused || !!textValue;
+  useEffect(() => {
+    if (!textValue) {
+      setIsFocused(false);
+      const textarea = containerRef.current?.querySelector("textarea");
+      if (textarea) {
+        textarea.style.height = "";
+      }
+    }
+  }, [textValue]);
   const shouldHydrateStatus =
     showStatus &&
     (defaultStatus !== undefined ||
@@ -77,14 +90,20 @@ export const NoteInputs = ({
   // would use the resource from the context, which is either "contact_notes" or "deal_notes",
   // but we want it to be "notes" regardless of the context
   return (
-    <div className="space-y-2">
+    <div ref={containerRef} className="space-y-2">
       <TextInput
         source="text"
         label={false}
         multiline
         helperText={false}
         placeholder={translate("resources.notes.inputs.add_note")}
-        rows={6}
+        rows={3}
+        inputClassName={cn(
+          "transition-[min-height] duration-300 ease-in-out",
+          isExpanded && "min-h-[20rem]",
+        )}
+        onFocus={() => setIsFocused(true)}
+        onBlur={() => setIsFocused(false)}
         validate={validateNoteOrAttachmentRequired}
       />
 
