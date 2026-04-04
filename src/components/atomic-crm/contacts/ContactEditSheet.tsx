@@ -1,8 +1,15 @@
 import type { Identifier } from "ra-core";
-import { useDeleteController, useRecordContext } from "ra-core";
+import { useTranslate, useDeleteController, useRecordContext } from "ra-core";
+import { EllipsisVertical, Trash2 } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+
 import { EditSheet } from "../misc/EditSheet";
 import { ContactInputs } from "./ContactInputs";
-import { ContactMenuButton } from "./ContactMenuButton";
 import {
   cleanupContactForEdit,
   defaultEmailJsonb,
@@ -44,6 +51,7 @@ const ContactEditMenuButton = ({
 }: {
   onOpenChange: (open: boolean) => void;
 }) => {
+  const translate = useTranslate();
   const record = useRecordContext();
   const { handleDelete } = useDeleteController({
     record,
@@ -57,5 +65,29 @@ const ContactEditMenuButton = ({
     handleDelete();
   };
 
-  return <ContactMenuButton onDelete={onDelete} />;
+  return (
+    <DropdownMenu modal={false}>
+      <DropdownMenuTrigger asChild>
+        <button
+          type="button"
+          className="opacity-70 transition-opacity hover:opacity-100 rounded-xs"
+        >
+          <EllipsisVertical className="size-6" />
+          <span className="sr-only">
+            {translate("ra.action.open_menu", { _: "More" })}
+          </span>
+        </button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end">
+        <DropdownMenuItem
+          variant="destructive"
+          className="h-12 md:h-8 px-4 md:px-2 text-base md:text-sm"
+          onSelect={onDelete}
+        >
+          <Trash2 />
+          {translate("ra.action.delete")}
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
 };
