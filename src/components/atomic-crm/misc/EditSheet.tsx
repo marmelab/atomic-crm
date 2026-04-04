@@ -47,12 +47,6 @@ export interface EditSheetProps extends EditBaseProps {
   defaultValues?: FormProps["defaultValues"];
 
   /**
-   * Custom delete button component. If not provided, defaults to the standard DeleteButton.
-   * Set to `false` to hide the delete button entirely.
-   */
-  deleteButton?: ReactNode | false;
-
-  /**
    * Optional actions to render in the sheet header, next to the title
    */
   headerActions?: ReactNode;
