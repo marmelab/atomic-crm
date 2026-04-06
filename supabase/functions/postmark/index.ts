@@ -17,7 +17,7 @@ import { supabaseAdmin } from "../_shared/supabaseAdmin.ts";
 
 const webhookUser = Deno.env.get("POSTMARK_WEBHOOK_USER");
 const webhookPassword = Deno.env.get("POSTMARK_WEBHOOK_PASSWORD");
-const INBOUND_EMAIL = Deno.env.get("VITE_INBOUND_EMAIL");
+const INBOUND_EMAIL = (Deno.env.get("VITE_INBOUND_EMAIL") || "").toLowerCase();
 if (!webhookUser || !webhookPassword) {
   throw new Error(
     "Missing POSTMARK_WEBHOOK_USER or POSTMARK_WEBHOOK_PASSWORD env variable",
@@ -42,7 +42,7 @@ Deno.serve(async (req) => {
   const { FromFull, Attachments } = json;
   let { ToFull, TextBody, Subject } = json;
 
-  const { Email: salesEmail } = FromFull;
+  const salesEmail = (FromFull.Email || "").toLowerCase();
   if (!salesEmail) {
     // Return a 403 to let Postmark know that it's no use to retry this request
     // https://postmarkapp.com/developer/webhooks/inbound-webhook#errors-and-retries
@@ -56,21 +56,25 @@ Deno.serve(async (req) => {
   const salesEmails =
     allSales.data?.map((s: { email: string }) => s.email) ?? [];
 
-  // If we have an INBOUND_EMAIL and the email is sent to the inbound email address, and the sender is a known sales email,
+  const firstToEmail = (ToFull[0]?.Email || "").toLowerCase();
+
+  // If we have an INBOUND_EMAIL and the email is sent only to the inbound email address, and the sender is a known sales email,
   // then we can try to extract the real recipient email from the body of the email
   if (
     INBOUND_EMAIL &&
     ToFull.length === 1 &&
-    ToFull[0].Email === INBOUND_EMAIL &&
-    salesEmails.includes(FromFull.Email)
+    firstToEmail === INBOUND_EMAIL &&
+    salesEmails.includes(salesEmail)
   ) {
     const emailRegex = /[\w.+%-]+@[\w.-]+\.[a-zA-Z]{2,}/g;
     const emailsInBody = TextBody.match(emailRegex) || [];
 
-    const candidateEmails = emailsInBody.filter(
-      (email: string) =>
-        email !== INBOUND_EMAIL && !salesEmails?.includes(email),
-    );
+    const candidateEmails = emailsInBody
+      .map((email: string) => email.toLowerCase())
+      .filter(
+        (email: string) =>
+          email !== INBOUND_EMAIL && !salesEmails?.includes(email),
+      );
     if (candidateEmails.length > 0) {
       ToFull = [
         {
@@ -96,7 +100,14 @@ Deno.serve(async (req) => {
 
   const attachments = await extractAndUploadAttachments(Attachments);
 
-  for (const { firstName, lastName, email, domain } of contacts) {
+  for (const {
+    firstName,
+    lastName,
+    email,
+    domain,
+    companyName,
+    website,
+  } of contacts) {
     if (!email) {
       // Return a 403 to let Postmark know that it's no use to retry this request
       // https://postmarkapp.com/developer/webhooks/inbound-webhook#errors-and-retries
@@ -113,6 +124,8 @@ Deno.serve(async (req) => {
       lastName,
       noteContent,
       attachments,
+      companyName,
+      website,
     });
   }
 

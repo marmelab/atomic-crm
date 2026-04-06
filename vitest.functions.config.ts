@@ -14,11 +14,12 @@ export default defineConfig({
   },
   resolve: {
     alias: {
-      // Map Deno-style imports to installed npm packages
+      // Map the Deno imports to the installed npm packages
       "jsr:@supabase/supabase-js@2": path.resolve(
         __dirname,
         "node_modules/@supabase/supabase-js",
       ),
+      "npm:tldts": path.resolve(__dirname, "node_modules/tldts"),
       "npm:pgsql-ast-parser@^12": "pgsql-ast-parser",
     },
   },
