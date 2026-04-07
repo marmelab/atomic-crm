@@ -127,7 +127,7 @@
     "tldts": "^7.0.26",
     "typescript": "~5.8.3",
     "typescript-eslint": "^8.35.1",
-    "vite": "^7.3.0",
+    "vite": "^7.3.2",
     "vite-plugin-pwa": "^1.2.0",
     "vite-plugin-simple-html": "^1.0.1",
     "vitest": "^4.0.18",
