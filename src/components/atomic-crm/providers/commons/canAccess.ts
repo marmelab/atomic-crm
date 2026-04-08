@@ -27,5 +27,10 @@ export const canAccess = <
     return false;
   }
 
+  // Non admins can't access the integration log
+  if (params.resource === "integration_log") {
+    return false;
+  }
+
   return true;
 };
