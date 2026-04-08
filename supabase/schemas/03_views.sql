@@ -120,7 +120,7 @@ select
     co.last_seen,
     co.has_newsletter,
     co.status,
-    coalesce(array_agg(ct.tag_id) filter (where ct.tag_id is not null), '{}') as tags,
+    coalesce(array_agg(distinct ct.tag_id) filter (where ct.tag_id is not null), '{}') as tags,
     co.company_id,
     co.sales_id,
     co.linkedin_url,

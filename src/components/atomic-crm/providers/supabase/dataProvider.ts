@@ -351,16 +351,16 @@ const lifeCycleCallbacks: ResourceCallbacks[] = [
         "background",
       ])(params);
     },
-    afterCreate: async (result, params) => {
-      const tags: number[] | undefined = params.data?.tags;
+    afterCreate: async (result) => {
+      const tags: number[] | undefined = result.data?.tags;
       if (tags && tags.length > 0) {
         await syncContactTags(result.data.id, tags);
       }
       return result;
     },
-    afterUpdate: async (result, params) => {
-      if ("tags" in params.data) {
-        const tags: number[] = params.data.tags ?? [];
+    afterUpdate: async (result) => {
+      if (result.data?.tags !== undefined) {
+        const tags: number[] = result.data.tags ?? [];
         await syncContactTags(result.data.id, tags);
       }
       return result;
@@ -404,16 +404,16 @@ const lifeCycleCallbacks: ResourceCallbacks[] = [
     beforeGetList: async (params) => {
       return applyFullTextSearch(["name", "category", "description"])(params);
     },
-    afterCreate: async (result, params) => {
-      const contactIds: number[] | undefined = params.data?.contact_ids;
+    afterCreate: async (result) => {
+      const contactIds: number[] | undefined = result.data?.contact_ids;
       if (contactIds && contactIds.length > 0) {
         await syncDealContacts(result.data.id, contactIds);
       }
       return result;
     },
-    afterUpdate: async (result, params) => {
-      if ("contact_ids" in params.data) {
-        const contactIds: number[] = params.data.contact_ids ?? [];
+    afterUpdate: async (result) => {
+      if (result.data?.contact_ids !== undefined) {
+        const contactIds: number[] = result.data.contact_ids ?? [];
         await syncDealContacts(result.data.id, contactIds);
       }
       return result;

@@ -52,7 +52,7 @@ SELECT
     co.last_seen,
     co.has_newsletter,
     co.status,
-    COALESCE(array_agg(ct.tag_id) FILTER (WHERE ct.tag_id IS NOT NULL), '{}') AS tags,
+    COALESCE(array_agg(DISTINCT ct.tag_id) FILTER (WHERE ct.tag_id IS NOT NULL), '{}') AS tags,
     co.company_id,
     co.sales_id,
     co.linkedin_url,
