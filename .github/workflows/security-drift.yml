@@ -1,0 +1,78 @@
+name: 🛡️ Security drift
+
+# Runs scripts/drift-check.sh against the production Supabase project(s)
+# to catch tables created out-of-band, anon grants reintroduced by mistake,
+# storage buckets flipped back to public, and other regressions of the
+# hardening delivered by #14, #15 and #16.
+#
+# Triggers:
+#   * On PRs that touch any Supabase file — blocks merge if the current
+#     production state already has drift (so we notice before compounding
+#     the problem with new migrations).
+#   * Daily at 06:00 UTC — catches drift introduced directly via the
+#     Supabase SQL Editor between deploys.
+#   * Manual via workflow_dispatch — for on-demand audits.
+
+on:
+    pull_request:
+        paths:
+            - "supabase/**"
+            - "scripts/drift-check.sql"
+            - "scripts/drift-check.sh"
+            - ".github/workflows/security-drift.yml"
+        types:
+            - opened
+            - reopened
+            - synchronize
+            - ready_for_review
+    schedule:
+        - cron: "0 6 * * *"
+    workflow_dispatch:
+
+concurrency:
+    group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+    cancel-in-progress: true
+
+permissions:
+    contents: read
+
+jobs:
+    drift-check:
+        name: 🛡️ Supabase drift check
+        runs-on: ubuntu-latest
+        timeout-minutes: 5
+        # Skip the PR run when the secret is missing (e.g. forks): we still
+        # want the scheduled run to fail loudly on the main repo.
+        if: >-
+            github.event_name != 'pull_request'
+            || !github.event.pull_request.draft
+        env:
+            SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+            SUPABASE_LABEL: production
+
+        steps:
+            - name: 📥 Checkout repo
+              uses: actions/checkout@v4
+
+            - name: ⚙️ Install postgresql-client
+              run: |
+                  sudo apt-get update -qq
+                  sudo apt-get install -y --no-install-recommends postgresql-client
+
+            - name: 🔎 Confirm secret is configured
+              id: check_secret
+              run: |
+                  if [[ -z "$SUPABASE_DB_URL" ]]; then
+                      if [[ "${{ github.event_name }}" == "pull_request" ]]; then
+                          echo "::warning::SUPABASE_DB_URL secret is not configured; skipping the drift check on this pull request. Add the secret in repo settings > Secrets and variables > Actions (use the Session pooler connection string from Supabase Studio > Project Settings > Database) so scheduled runs can execute."
+                          echo "skip=true" >> "$GITHUB_OUTPUT"
+                          exit 0
+                      fi
+                      echo "::error::SUPABASE_DB_URL secret is not configured. Add it in repo settings > Secrets and variables > Actions. Use the 'Session pooler' connection string from Supabase Studio > Project Settings > Database."
+                      exit 1
+                  fi
+                  echo "skip=false" >> "$GITHUB_OUTPUT"
+
+            - name: 🛡️ Run drift check
+              if: steps.check_secret.outputs.skip != 'true'
+              run: ./scripts/drift-check.sh
