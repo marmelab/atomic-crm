@@ -270,7 +270,18 @@ const getDataProviderWithCustomMethods = () => {
       const { data } = await baseDataProvider.getOne("configuration", {
         id: 1,
       });
-      return (data?.config as ConfigurationContextValue) ?? {};
+      const config = (data?.config as ConfigurationContextValue) ?? {};
+      // This call goes through the bare base provider, so the `afterRead`
+      // lifecycle hook on `configuration` is bypassed. Resolve logos
+      // manually so the bootstrap path (CRM.tsx, useConfigurationLoader)
+      // doesn't end up rendering expired or unsigned storage paths.
+      if (config.lightModeLogo != null) {
+        config.lightModeLogo = await resolveConfigLogo(config.lightModeLogo);
+      }
+      if (config.darkModeLogo != null) {
+        config.darkModeLogo = await resolveConfigLogo(config.darkModeLogo);
+      }
+      return config;
     },
     async updateConfiguration(
       config: ConfigurationContextValue,
@@ -404,13 +415,57 @@ export type CrmDataProvider = ReturnType<
   typeof getDataProviderWithCustomMethods
 >;
 
+/**
+ * Persists a configuration logo and returns the storage path (or external
+ * URL) that should be stored in the JSONB column.
+ *
+ * The previous implementation returned `logo.src`, which after the
+ * private-bucket migration is a 1h signed URL — that would expire in the
+ * database within an hour. We instead persist the durable storage `path`
+ * for uploaded files, and let the `afterRead` lifecycle hook on
+ * `configuration` mint a fresh signed URL on every read.
+ *
+ * Heuristic for the returned string:
+ *   * empty / nullish input → empty string
+ *   * existing string already in the DB → returned untouched (could be an
+ *     external URL, a legacy public attachments URL, or a new path; the
+ *     read-side resolver knows how to handle each case).
+ *   * RAFile with a rawFile → upload, return its newly assigned `path`.
+ *   * RAFile without rawFile → return `path` if known, else fall back to
+ *     `src` (legacy records).
+ */
 const processConfigLogo = async (logo: any): Promise<string> => {
+  if (logo == null) return "";
   if (typeof logo === "string") return logo;
   if (logo?.rawFile instanceof File) {
     await uploadToBucket(logo);
-    return logo.src;
+    return logo.path ?? logo.src ?? "";
   }
-  return logo?.src ?? "";
+  return logo?.path ?? logo?.src ?? "";
+};
+
+/**
+ * Resolves a configuration logo (stored as a plain string) to a URL the
+ * browser can render.
+ *
+ * Distinguishes three cases:
+ *   1. external URL (gravatar, favicon CDN, ...) → returned as-is.
+ *   2. legacy public attachments URL → extract path, mint signed URL.
+ *   3. new bare storage path → mint signed URL directly.
+ */
+const resolveConfigLogo = async (value: unknown): Promise<string> => {
+  if (typeof value !== "string" || value === "") return "";
+  if (value.startsWith("data:")) return value;
+  if (/^https?:\/\//i.test(value)) {
+    // Could be an external URL OR a legacy public-attachments URL.
+    const path = getAttachmentStoragePath({ src: value });
+    if (!path) return value;
+    const signed = await signAttachmentUrl(path);
+    return signed ?? value;
+  }
+  // Bare path → sign directly.
+  const signed = await signAttachmentUrl(value);
+  return signed ?? value;
 };
 
 const lifeCycleCallbacks: ResourceCallbacks[] = [
@@ -423,6 +478,17 @@ const lifeCycleCallbacks: ResourceCallbacks[] = [
         config.darkModeLogo = await processConfigLogo(config.darkModeLogo);
       }
       return params;
+    },
+    afterRead: async (record) => {
+      if (record?.config) {
+        record.config.lightModeLogo = await resolveConfigLogo(
+          record.config.lightModeLogo,
+        );
+        record.config.darkModeLogo = await resolveConfigLogo(
+          record.config.darkModeLogo,
+        );
+      }
+      return record;
     },
   },
   {
@@ -507,6 +573,14 @@ const lifeCycleCallbacks: ResourceCallbacks[] = [
     },
     beforeUpdate: async (params) => {
       return await processCompanyLogo(params);
+    },
+    // Resolve company.logo to a fresh signed URL on every read. Lifecycle
+    // hooks fire on the wrapper resource argument ("companies"), not on the
+    // underlying view ("companies_summary") that the custom getList/getOne
+    // forwards to, so we register here.
+    afterRead: async (record) => {
+      await resolveRecordAttachments(record);
+      return record;
     },
   },
   {
