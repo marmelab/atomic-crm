@@ -5,13 +5,22 @@ export type Attachment = {
   title: string;
   type: string;
   path: string;
+  // `src` is intentionally left empty when persisting: the attachments
+  // bucket is private (see migrations/20260408140000_attachments_bucket_private.sql)
+  // and the frontend re-mints a short-lived signed URL on every read via
+  // the `afterRead` lifecycle hook in `dataProvider.ts`. We keep the field
+  // for shape compatibility with the existing JSONB column.
   src: string;
 };
 
 /**
- * Extracts the attachments from the email and upload them to Supabase Storage.
+ * Extracts the attachments from a Postmark inbound email payload and uploads
+ * them to the private `attachments` bucket on Supabase Storage.
  *
- * Example:
+ * Each returned attachment carries only the storage `path`; the matching
+ * frontend code resolves it to a fresh signed URL at read time.
+ *
+ * Example input:
  *   "Attachments": [
  *      {
  *          "Name": "test.txt",
@@ -21,14 +30,13 @@ export type Attachment = {
  *      }
  *   ]
  *
- * Return Value:
- * [{
- *    title: "test.txt",
- *    type: "text/plain",
- *    "path": "0.8262106278726917.txt",
- *    "src": "http://127.0.0.1:54321/storage/v1/object/public/attachments/0.8262106278726917.txt",
- * }]
- *
+ * Returned shape:
+ *   [{
+ *      title: "test.txt",
+ *      type: "text/plain",
+ *      path: "9b2c…uuid….txt",
+ *      src: "",
+ *   }]
  */
 export const extractAndUploadAttachments = async (
   Attachments: {
@@ -59,7 +67,10 @@ export const extractAndUploadAttachments = async (
 
         const fileParts = Name.split(".");
         const fileExt = fileParts.length > 1 ? `.${Name.split(".").pop()}` : "";
-        const fileName = `${Math.random()}${fileExt}`;
+        // crypto.randomUUID() gives 122 bits of entropy, replacing the old
+        // Math.random()-based filenames that were enumerable when the bucket
+        // was still public.
+        const fileName = `${crypto.randomUUID()}${fileExt}`;
         const { error: uploadError } = await supabaseAdmin.storage
           .from("attachments")
           .upload(fileName, decodedContent);
@@ -69,29 +80,13 @@ export const extractAndUploadAttachments = async (
           throw new Error("Failed to upload attachment");
         }
 
-        const { data } = supabaseAdmin.storage
-          .from("attachments")
-          .getPublicUrl(fileName);
-
         return {
           title: Name,
           type: ContentType,
           path: fileName,
-          src: fixPublicUrl(data.publicUrl),
+          src: "",
         };
       }),
     )
   ).filter(Boolean) as Attachment[];
-};
-
-/*
- * Workaround fix for public URL not working on local environment
- * See https://github.com/orgs/supabase/discussions/37271
- *
- * Replaces http://kong:8000/storage/v1/object/public/attachments/0.08968261048718773.txt with http://127.0.0.1:54321/storage/v1/object/public/attachments/0.08968261048718773.txt, using the SB_JWT_ISSUER env var (value http://127.0.0.1:54321/auth/v1) to get the external/public URL of the Supabase instance.
- */
-const fixPublicUrl = (url: string) => {
-  const jwtIssuer = Deno.env.get("SB_JWT_ISSUER") ?? "";
-  const localUrl = jwtIssuer.replace("/auth/v1", "");
-  return url.replace("http://kong:8000", localUrl);
 };

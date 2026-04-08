@@ -7,6 +7,7 @@ import {
   type ResourceCallbacks,
 } from "ra-core";
 import type {
+  AttachmentNote,
   ContactNote,
   Deal,
   DealNote,
@@ -399,7 +400,9 @@ const getDataProviderWithCustomMethods = () => {
   } satisfies DataProvider;
 };
 
-export type CrmDataProvider = ReturnType<typeof getDataProviderWithCustomMethods>;
+export type CrmDataProvider = ReturnType<
+  typeof getDataProviderWithCustomMethods
+>;
 
 const processConfigLogo = async (logo: any): Promise<string> => {
   if (typeof logo === "string") return logo;
@@ -432,6 +435,10 @@ const lifeCycleCallbacks: ResourceCallbacks[] = [
       }
       return data;
     },
+    afterRead: async (record) => {
+      await resolveRecordAttachments(record);
+      return record;
+    },
   },
   {
     resource: "deal_notes",
@@ -443,6 +450,10 @@ const lifeCycleCallbacks: ResourceCallbacks[] = [
       }
       return data;
     },
+    afterRead: async (record) => {
+      await resolveRecordAttachments(record);
+      return record;
+    },
   },
   {
     resource: "sales",
@@ -451,6 +462,10 @@ const lifeCycleCallbacks: ResourceCallbacks[] = [
         await uploadToBucket(data.avatar);
       }
       return data;
+    },
+    afterRead: async (record) => {
+      await resolveRecordAttachments(record);
+      return record;
     },
   },
   {
@@ -497,11 +512,9 @@ const lifeCycleCallbacks: ResourceCallbacks[] = [
   {
     resource: "contacts_summary",
     beforeGetList: async (params) => {
-      return applyFullTextSearch([
-        "first_name",
-        "last_name",
-        "company_name",
-      ])(params);
+      return applyFullTextSearch(["first_name", "last_name", "company_name"])(
+        params,
+      );
     },
   },
   {
@@ -598,18 +611,113 @@ const applyFullTextSearch = (columns: string[]) => (params: GetListParams) => {
   };
 };
 
+// How long signed URLs minted for the attachments bucket remain valid.
+// One hour is enough for a normal session of viewing notes / images and
+// short enough that a leaked URL stops working quickly. Re-signing happens
+// transparently on every read via the lifecycle callbacks below.
+const SIGNED_URL_TTL_SECONDS = 60 * 60;
+
+/**
+ * Builds a fresh, short-lived signed URL for an attachment stored in the
+ * private `attachments` bucket.
+ *
+ * Returns `null` when the storage path cannot be resolved (legacy record
+ * with neither `path` nor a recognizable storage URL in `src`, or storage
+ * itself errored). Callers must keep the original `src` in that case so
+ * external URLs (gravatar, favicons, ...) keep working.
+ */
+const signAttachmentUrl = async (
+  storagePath: string,
+): Promise<string | null> => {
+  const { data, error } = await getSupabaseClient()
+    .storage.from(ATTACHMENTS_BUCKET)
+    .createSignedUrl(storagePath, SIGNED_URL_TTL_SECONDS);
+
+  if (error || !data?.signedUrl) {
+    console.warn("Failed to sign attachment URL", { storagePath, error });
+    return null;
+  }
+  return data.signedUrl;
+};
+
+/**
+ * Returns the storage path for a file that lives in the `attachments`
+ * bucket, or `null` if it does not (e.g. external URL like gravatar.com).
+ *
+ * Strategy:
+ *   1. Prefer the explicit `path` set by `uploadToBucket` for new uploads.
+ *   2. For legacy records persisted before we stopped storing public URLs,
+ *      parse the `src` and extract the trailing path segment.
+ */
+const getAttachmentStoragePath = (file: Partial<RAFile>): string | null => {
+  if (file.path) return file.path;
+  if (!file.src) return null;
+  // Match both legacy public URLs and previously-signed URLs:
+  //   /storage/v1/object/public/attachments/<path>
+  //   /storage/v1/object/sign/attachments/<path>?token=...
+  const match = file.src.match(
+    /\/storage\/v1\/object\/(?:public|sign|authenticated)\/attachments\/([^?]+)/,
+  );
+  if (!match) return null;
+  try {
+    return decodeURIComponent(match[1]);
+  } catch {
+    return match[1];
+  }
+};
+
+/**
+ * Resolves an attachment in place: replaces `src` with a fresh signed URL
+ * derived from its storage path, leaving external URLs untouched.
+ */
+const resolveAttachmentInPlace = async <T extends Partial<RAFile>>(
+  file: T | null | undefined,
+): Promise<T | null | undefined> => {
+  if (!file) return file;
+  const storagePath = getAttachmentStoragePath(file);
+  if (!storagePath) return file;
+  const signedUrl = await signAttachmentUrl(storagePath);
+  if (signedUrl) {
+    file.src = signedUrl;
+    if (!file.path) file.path = storagePath;
+  }
+  return file;
+};
+
+/**
+ * Resolves every attachment of a single record (note, sale, ...). Mutates
+ * the record in place to keep the lifecycle hooks lightweight.
+ */
+const resolveRecordAttachments = async (record: any): Promise<void> => {
+  if (!record) return;
+  if (Array.isArray(record.attachments)) {
+    await Promise.all(
+      record.attachments.map((attachment: AttachmentNote) =>
+        resolveAttachmentInPlace(attachment),
+      ),
+    );
+  }
+  if (record.avatar) {
+    await resolveAttachmentInPlace(record.avatar);
+  }
+  if (record.logo) {
+    await resolveAttachmentInPlace(record.logo);
+  }
+};
+
 const uploadToBucket = async (fi: RAFile) => {
   if (!fi.src.startsWith("blob:") && !fi.src.startsWith("data:")) {
-    // Sign URL check if path exists in the bucket
+    // Already-uploaded file: nothing to do, the read-side lifecycle hook
+    // will mint a fresh signed URL on the next fetch.
     if (fi.path) {
-      const { error } = await getSupabaseClient()
-        .storage
-        .from(ATTACHMENTS_BUCKET)
-        .createSignedUrl(fi.path, 60);
-
-      if (!error) {
-        return fi;
-      }
+      return fi;
+    }
+    // Legacy record without `path`: derive it from the persisted URL when
+    // possible so future reads can re-sign without re-uploading.
+    const derivedPath = getAttachmentStoragePath(fi);
+    if (derivedPath) {
+      fi.path = derivedPath;
+      return fi;
     }
   }
 
@@ -635,11 +743,13 @@ const uploadToBucket = async (fi: RAFile) => {
   const file = fi.rawFile;
   const fileParts = file.name.split(".");
   const fileExt = fileParts.length > 1 ? `.${file.name.split(".").pop()}` : "";
-  const fileName = `${Math.random()}${fileExt}`;
+  // Use crypto.randomUUID() instead of Math.random(): the previous scheme
+  // produced filenames like `0.123456789.pdf` with only ~52 bits of entropy,
+  // which made the bucket vulnerable to URL enumeration when it was public.
+  const fileName = `${crypto.randomUUID()}${fileExt}`;
   const filePath = `${fileName}`;
   const { error: uploadError } = await getSupabaseClient()
-    .storage
-    .from(ATTACHMENTS_BUCKET)
+    .storage.from(ATTACHMENTS_BUCKET)
     .upload(filePath, dataContent);
 
   if (uploadError) {
@@ -647,13 +757,15 @@ const uploadToBucket = async (fi: RAFile) => {
     throw new Error("Failed to upload attachment");
   }
 
-  const { data } = getSupabaseClient()
-    .storage
-    .from(ATTACHMENTS_BUCKET)
-    .getPublicUrl(filePath);
-
   fi.path = filePath;
-  fi.src = data.publicUrl;
+
+  // Mint a short-lived signed URL so the freshly uploaded file is
+  // immediately viewable in the form. Subsequent fetches go through the
+  // afterRead lifecycle hooks which always re-sign.
+  const signedUrl = await signAttachmentUrl(filePath);
+  if (signedUrl) {
+    fi.src = signedUrl;
+  }
 
   // save MIME type
   const mimeType = file.type;
