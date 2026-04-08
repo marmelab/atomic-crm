@@ -1,6 +1,6 @@
 {
-  "short_name": "Atomic CRM",
-  "name": "Atomic CRM",
+  "short_name": "Hatch CRM",
+  "name": "Hatch CRM",
   "icons": [
     {
       "src": "favicon.ico",
@@ -69,6 +69,6 @@
   "start_url": ".",
   "display": "standalone",
   "orientation": "portrait",
-  "theme_color": "#000000",
+  "theme_color": "#4DC8E8",
   "background_color": "#ffffff"
 }
