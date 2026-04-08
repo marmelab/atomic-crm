@@ -231,3 +231,15 @@ create table public.contact_tags (
 );
 
 create index idx_contact_tags_tag on public.contact_tags(tag_id);
+
+--
+-- Wave 2.3A: deal_contacts join table (normalized from deals.contact_ids bigint[])
+--
+
+create table public.deal_contacts (
+    deal_id bigint not null references public.deals(id) on delete cascade,
+    contact_id bigint not null references public.contacts(id) on delete cascade,
+    primary key (deal_id, contact_id)
+);
+
+create index idx_deal_contacts_contact on public.deal_contacts(contact_id);

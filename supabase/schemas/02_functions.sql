@@ -53,54 +53,7 @@ CREATE OR REPLACE FUNCTION "public"."cleanup_note_attachments"() RETURNS "trigge
     END;
     $$;
 
-CREATE OR REPLACE FUNCTION "public"."get_avatar_for_email"("email" "text") RETURNS "text"
-    LANGUAGE "plpgsql"
-    SET "search_path" TO 'public'
-    AS $$
-declare email_hash text;
-declare gravatar_url text;
-declare gravatar_status int8;
-declare email_domain text;
-declare favicon_url text;
-declare domain_status int8;
-
-begin
-    -- Try to fetch a gravatar image
-    email_hash = encode(extensions.digest(email, 'sha256'), 'hex');
-    gravatar_url = concat('https://www.gravatar.com/avatar/', email_hash, '?d=404');
-
-    select status from extensions.http_get(gravatar_url) into gravatar_status;
-
-    if gravatar_status = 200 then
-        return gravatar_url;
-    end if;
-
-    -- Fallback to email's domain favicon if not excluded
-    email_domain = split_part(email, '@', 2);
-    return get_domain_favicon(email_domain);
-exception
-    when others then
-        return 'ERROR';
-end;
-$$;
-
-CREATE OR REPLACE FUNCTION "public"."get_domain_favicon"("domain_name" "text") RETURNS "text"
-    LANGUAGE "plpgsql"
-    SET "search_path" TO 'public'
-    AS $$
-declare domain_status int8;
-
-begin
-    if exists (select from favicons_excluded_domains as fav where fav.domain = domain_name) then
-        return null;
-    end if;
-
-    return concat(
-        'https://favicon.show/',
-        (regexp_matches(domain_name, '^(?:https?:\/\/)?(?:[^@\/\n]+@)?(?:www\.)?([^:\/?\n]+)', 'i'))[1]
-    );
-end;
-$$;
+-- get_avatar_for_email and get_domain_favicon removed (Phase 2 — defused network triggers)
 
 CREATE OR REPLACE FUNCTION "public"."get_note_attachments_function_url"() RETURNS "text"
     LANGUAGE "plpgsql"
@@ -163,21 +116,10 @@ CREATE OR REPLACE FUNCTION "public"."handle_company_saved"() RETURNS "trigger"
     LANGUAGE "plpgsql"
     SET "search_path" TO 'public'
     AS $$
-declare company_logo text;
-
-begin
-    if new.logo is not null then
-        return new;
-    end if;
-
-    company_logo = get_domain_favicon(new.website);
-    if company_logo is null then
-        return new;
-    end if;
-
-    new.logo = concat('{"src":"', company_logo, '","title":"Company favicon"}');
-    return new;
-end;
+BEGIN
+    -- Favicon enrichment removed (Phase 2).
+    RETURN NEW;
+END;
 $$;
 
 CREATE OR REPLACE FUNCTION "public"."handle_contact_note_created_or_updated"() RETURNS "trigger"
@@ -193,36 +135,12 @@ $$;
 CREATE OR REPLACE FUNCTION "public"."handle_contact_saved"() RETURNS "trigger"
     LANGUAGE "plpgsql"
     SET "search_path" TO 'public'
-    AS $$declare contact_avatar text;
-declare emails_length int8;
-declare item jsonb;
-
-begin
-    if new.avatar is not null then
-        return new;
-    end if;
-
-    select coalesce(jsonb_array_length(new.email_jsonb), 0) into emails_length;
-
-    if emails_length = 0 then
-        return new;
-    end if;
-
-    for item in select jsonb_array_elements(new.email_jsonb)
-    loop
-        select public.get_avatar_for_email(item->>'email') into contact_avatar;
-        if (contact_avatar is not null) then
-            exit;
-        end if;
-    end loop;
-
-    if contact_avatar is null then
-        return new;
-    end if;
-
-    new.avatar = concat('{"src":"', contact_avatar, '"}');
-    return new;
-end;$$;
+    AS $$
+BEGIN
+    -- Avatar enrichment removed (Phase 2).
+    RETURN NEW;
+END;
+$$;
 
 CREATE OR REPLACE FUNCTION "public"."handle_new_user"() RETURNS "trigger"
     LANGUAGE "plpgsql" SECURITY DEFINER
@@ -305,7 +223,15 @@ BEGIN
   -- 2. Reassign contact notes from loser to winner
   UPDATE contact_notes SET contact_id = winner_id WHERE contact_id = loser_id;
 
-  -- 3. Update deals - replace loser with winner in contact_ids array
+  -- 3. Update deals - replace loser with winner in both join table and array
+  -- Join table: move loser's deal associations to winner (ignore conflicts)
+  INSERT INTO deal_contacts (deal_id, contact_id)
+  SELECT deal_id, winner_id
+  FROM deal_contacts
+  WHERE contact_id = loser_id
+  ON CONFLICT DO NOTHING;
+
+  -- Array column (dual-write): replace loser with winner in contact_ids
   FOR deal_record IN
     SELECT id, contact_ids
     FROM deals
@@ -422,7 +348,7 @@ BEGIN
     tags = merged_tags
   WHERE id = winner_id;
 
-  -- 6. Delete loser contact
+  -- 6. Delete loser contact (CASCADE removes loser's contact_tags and deal_contacts rows)
   DELETE FROM contacts WHERE id = loser_id;
 
   RETURN winner_id;

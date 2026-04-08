@@ -404,6 +404,20 @@ const lifeCycleCallbacks: ResourceCallbacks[] = [
     beforeGetList: async (params) => {
       return applyFullTextSearch(["name", "category", "description"])(params);
     },
+    afterCreate: async (result, params) => {
+      const contactIds: number[] | undefined = params.data?.contact_ids;
+      if (contactIds && contactIds.length > 0) {
+        await syncDealContacts(result.data.id, contactIds);
+      }
+      return result;
+    },
+    afterUpdate: async (result, params) => {
+      if ("contact_ids" in params.data) {
+        const contactIds: number[] = params.data.contact_ids ?? [];
+        await syncDealContacts(result.data.id, contactIds);
+      }
+      return result;
+    },
   },
 ];
 
@@ -450,6 +464,27 @@ const applyFullTextSearch = (columns: string[]) => (params: GetListParams) => {
       }, {}),
     },
   };
+};
+
+const syncDealContacts = async (
+  dealId: number,
+  contactIds: number[],
+): Promise<void> => {
+  await getSupabaseClient()
+    .from("deal_contacts")
+    .delete()
+    .eq("deal_id", dealId);
+
+  if (contactIds.length > 0) {
+    await getSupabaseClient()
+      .from("deal_contacts")
+      .insert(
+        contactIds.map((contactId) => ({
+          deal_id: dealId,
+          contact_id: contactId,
+        })),
+      );
+  }
 };
 
 const syncContactTags = async (

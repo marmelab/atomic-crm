@@ -82,3 +82,7 @@ create policy "admin_write_lead_sources" on public.lead_sources for all to authe
 -- Contact Tags (join table — full access for authenticated)
 alter table public.contact_tags enable row level security;
 create policy "authenticated_all_contact_tags" on public.contact_tags for all to authenticated using (auth.uid() is not null) with check (auth.uid() is not null);
+
+-- Deal Contacts (join table — full access for authenticated)
+alter table public.deal_contacts enable row level security;
+create policy "authenticated_all_deal_contacts" on public.deal_contacts for all to authenticated using (auth.uid() is not null) with check (auth.uid() is not null);
