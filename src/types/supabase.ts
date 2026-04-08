@@ -18,63 +18,87 @@ export type Database = {
         Row: {
           address: string | null
           city: string | null
+          company_size: string | null
           context_links: Json | null
           country: string | null
           created_at: string
           description: string | null
+          external_id: string | null
+          external_source: string | null
           id: number
           linkedin_url: string | null
           logo: Json | null
+          metadata: Json | null
           name: string
           phone_number: string | null
           revenue: string | null
           sales_id: number | null
           sector: string | null
+          service_area: string | null
           size: number | null
           state_abbr: string | null
           tax_identifier: string | null
+          tech_maturity: string | null
+          trade_type_id: string | null
+          updated_at: string | null
           website: string | null
           zipcode: string | null
         }
         Insert: {
           address?: string | null
           city?: string | null
+          company_size?: string | null
           context_links?: Json | null
           country?: string | null
           created_at?: string
           description?: string | null
+          external_id?: string | null
+          external_source?: string | null
           id?: number
           linkedin_url?: string | null
           logo?: Json | null
+          metadata?: Json | null
           name: string
           phone_number?: string | null
           revenue?: string | null
           sales_id?: number | null
           sector?: string | null
+          service_area?: string | null
           size?: number | null
           state_abbr?: string | null
           tax_identifier?: string | null
+          tech_maturity?: string | null
+          trade_type_id?: string | null
+          updated_at?: string | null
           website?: string | null
           zipcode?: string | null
         }
         Update: {
           address?: string | null
           city?: string | null
+          company_size?: string | null
           context_links?: Json | null
           country?: string | null
           created_at?: string
           description?: string | null
+          external_id?: string | null
+          external_source?: string | null
           id?: number
           linkedin_url?: string | null
           logo?: Json | null
+          metadata?: Json | null
           name?: string
           phone_number?: string | null
           revenue?: string | null
           sales_id?: number | null
           sector?: string | null
+          service_area?: string | null
           size?: number | null
           state_abbr?: string | null
           tax_identifier?: string | null
+          tech_maturity?: string | null
+          trade_type_id?: string | null
+          updated_at?: string | null
           website?: string | null
           zipcode?: string | null
         }
@@ -84,6 +108,13 @@ export type Database = {
             columns: ["sales_id"]
             isOneToOne: false
             referencedRelation: "sales"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "companies_trade_type_id_fkey"
+            columns: ["trade_type_id"]
+            isOneToOne: false
+            referencedRelation: "trade_types"
             referencedColumns: ["id"]
           },
         ]
@@ -161,6 +192,8 @@ export type Database = {
           background: string | null
           company_id: number | null
           email_jsonb: Json | null
+          external_id: string | null
+          external_source: string | null
           first_name: string | null
           first_seen: string | null
           gender: string | null
@@ -168,18 +201,23 @@ export type Database = {
           id: number
           last_name: string | null
           last_seen: string | null
+          lead_source_id: string | null
           linkedin_url: string | null
+          metadata: Json | null
           phone_jsonb: Json | null
           sales_id: number | null
           status: string | null
           tags: number[] | null
           title: string | null
+          updated_at: string | null
         }
         Insert: {
           avatar?: Json | null
           background?: string | null
           company_id?: number | null
           email_jsonb?: Json | null
+          external_id?: string | null
+          external_source?: string | null
           first_name?: string | null
           first_seen?: string | null
           gender?: string | null
@@ -187,18 +225,23 @@ export type Database = {
           id?: number
           last_name?: string | null
           last_seen?: string | null
+          lead_source_id?: string | null
           linkedin_url?: string | null
+          metadata?: Json | null
           phone_jsonb?: Json | null
           sales_id?: number | null
           status?: string | null
           tags?: number[] | null
           title?: string | null
+          updated_at?: string | null
         }
         Update: {
           avatar?: Json | null
           background?: string | null
           company_id?: number | null
           email_jsonb?: Json | null
+          external_id?: string | null
+          external_source?: string | null
           first_name?: string | null
           first_seen?: string | null
           gender?: string | null
@@ -206,12 +249,15 @@ export type Database = {
           id?: number
           last_name?: string | null
           last_seen?: string | null
+          lead_source_id?: string | null
           linkedin_url?: string | null
+          metadata?: Json | null
           phone_jsonb?: Json | null
           sales_id?: number | null
           status?: string | null
           tags?: number[] | null
           title?: string | null
+          updated_at?: string | null
         }
         Relationships: [
           {
@@ -226,6 +272,13 @@ export type Database = {
             columns: ["company_id"]
             isOneToOne: false
             referencedRelation: "companies_summary"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contacts_lead_source_id_fkey"
+            columns: ["lead_source_id"]
+            isOneToOne: false
+            referencedRelation: "lead_sources"
             referencedColumns: ["id"]
           },
           {
@@ -294,6 +347,8 @@ export type Database = {
           expected_closing_date: string | null
           id: number
           index: number | null
+          lost_reason: string | null
+          metadata: Json | null
           name: string
           sales_id: number | null
           stage: string
@@ -310,6 +365,8 @@ export type Database = {
           expected_closing_date?: string | null
           id?: number
           index?: number | null
+          lost_reason?: string | null
+          metadata?: Json | null
           name: string
           sales_id?: number | null
           stage: string
@@ -326,6 +383,8 @@ export type Database = {
           expected_closing_date?: string | null
           id?: number
           index?: number | null
+          lost_reason?: string | null
+          metadata?: Json | null
           name?: string
           sales_id?: number | null
           stage?: string
@@ -367,6 +426,24 @@ export type Database = {
         Update: {
           domain?: string
           id?: number
+        }
+        Relationships: []
+      }
+      lead_sources: {
+        Row: {
+          created_at: string | null
+          id: string
+          name: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          name: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          name?: string
         }
         Relationships: []
       }
@@ -465,6 +542,27 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      trade_types: {
+        Row: {
+          created_at: string | null
+          display_order: number | null
+          id: string
+          name: string
+        }
+        Insert: {
+          created_at?: string | null
+          display_order?: number | null
+          id?: string
+          name: string
+        }
+        Update: {
+          created_at?: string | null
+          display_order?: number | null
+          id?: string
+          name?: string
+        }
+        Relationships: []
       }
     }
     Views: {

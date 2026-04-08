@@ -67,3 +67,20 @@ create policy "Enable update for admins" on public.configuration for update to a
 
 -- Favicons excluded domains
 create policy "Enable access for authenticated users only" on public.favicons_excluded_domains to authenticated using (true) with check (true);
+
+alter table public.trade_types enable row level security;
+alter table public.lead_sources enable row level security;
+
+create policy "authenticated_read_trade_types"
+    on public.trade_types for select to authenticated using (true);
+
+create policy "authenticated_read_lead_sources"
+    on public.lead_sources for select to authenticated using (true);
+
+create policy "admin_write_trade_types"
+    on public.trade_types for all to authenticated
+    using (public.is_admin()) with check (public.is_admin());
+
+create policy "admin_write_lead_sources"
+    on public.lead_sources for all to authenticated
+    using (public.is_admin()) with check (public.is_admin());

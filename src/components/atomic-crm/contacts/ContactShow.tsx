@@ -119,6 +119,18 @@ const ContactShowContentMobile = () => {
                   </ReferenceField>
                 )}
               </div>
+              {record.lead_source_id != null && (
+                <div className="text-sm text-muted-foreground mt-1">
+                  <span>Lead Source: </span>
+                  <ReferenceField
+                    source="lead_source_id"
+                    reference="lead_sources"
+                    link={false}
+                  >
+                    <TextField source="name" />
+                  </ReferenceField>
+                </div>
+              )}
             </div>
             <div>
               <ReferenceField
@@ -268,6 +280,18 @@ const ContactShowContent = () => {
                     </ReferenceField>
                   )}
                 </div>
+                {record.lead_source_id != null && (
+                  <div className="text-sm text-muted-foreground mt-1">
+                    <span>Lead Source: </span>
+                    <ReferenceField
+                      source="lead_source_id"
+                      reference="lead_sources"
+                      link={false}
+                    >
+                      <TextField source="name" />
+                    </ReferenceField>
+                  </div>
+                )}
               </div>
               <div>
                 <ReferenceField

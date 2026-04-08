@@ -1,62 +1,60 @@
 import type { ConfigurationContextValue } from "./ConfigurationContext";
 
-export const defaultDarkModeLogo = "./logos/logo_atomic_crm_dark.svg";
-export const defaultLightModeLogo = "./logos/logo_atomic_crm_light.svg";
+export const defaultDarkModeLogo = "./logos/logo_hatch_crm_dark.svg";
+export const defaultLightModeLogo = "./logos/logo_hatch_crm_light.svg";
 
-export const defaultCurrency = "USD";
+export const defaultCurrency = "CAD";
 
-export const defaultTitle = "Atomic CRM";
+export const defaultTitle = "Hatch CRM";
 
 export const defaultCompanySectors = [
-  { value: "communication-services", label: "Communication Services" },
-  { value: "consumer-discretionary", label: "Consumer Discretionary" },
-  { value: "consumer-staples", label: "Consumer Staples" },
-  { value: "energy", label: "Energy" },
-  { value: "financials", label: "Financials" },
-  { value: "health-care", label: "Health Care" },
-  { value: "industrials", label: "Industrials" },
-  { value: "information-technology", label: "Information Technology" },
-  { value: "materials", label: "Materials" },
-  { value: "real-estate", label: "Real Estate" },
-  { value: "utilities", label: "Utilities" },
+  { value: "roofing", label: "Roofing" },
+  { value: "hvac", label: "HVAC" },
+  { value: "plumbing", label: "Plumbing" },
+  { value: "electrical", label: "Electrical" },
+  { value: "general-contractor", label: "General Contractor" },
+  { value: "landscaping", label: "Landscaping" },
+  { value: "painting", label: "Painting" },
+  { value: "flooring", label: "Flooring" },
+  { value: "windows-doors", label: "Windows & Doors" },
+  { value: "other", label: "Other" },
 ];
 
 export const defaultDealStages = [
-  { value: "opportunity", label: "Opportunity" },
+  { value: "lead", label: "Lead" },
+  { value: "qualified", label: "Qualified" },
+  { value: "audit-scheduled", label: "Audit Scheduled" },
   { value: "proposal-sent", label: "Proposal Sent" },
-  { value: "in-negociation", label: "In Negotiation" },
   { value: "won", label: "Won" },
   { value: "lost", label: "Lost" },
-  { value: "delayed", label: "Delayed" },
 ];
 
 export const defaultDealPipelineStatuses = ["won"];
 
 export const defaultDealCategories = [
+  { value: "ai-audit", label: "AI Audit" },
+  { value: "workflow-automation", label: "Workflow Automation" },
+  { value: "crm-setup", label: "CRM Setup" },
+  { value: "full-package", label: "Full Package" },
   { value: "other", label: "Other" },
-  { value: "copywriting", label: "Copywriting" },
-  { value: "print-project", label: "Print project" },
-  { value: "ui-design", label: "UI Design" },
-  { value: "website-design", label: "Website design" },
 ];
 
 export const defaultNoteStatuses = [
   { value: "cold", label: "Cold", color: "#7dbde8" },
   { value: "warm", label: "Warm", color: "#e8cb7d" },
   { value: "hot", label: "Hot", color: "#e88b7d" },
-  { value: "in-contract", label: "In Contract", color: "#a4e87d" },
+  { value: "closed", label: "Closed", color: "#a4e87d" },
 ];
 
 export const defaultTaskTypes = [
-  { value: "none", label: "None" },
-  { value: "email", label: "Email" },
-  { value: "demo", label: "Demo" },
-  { value: "lunch", label: "Lunch" },
-  { value: "meeting", label: "Meeting" },
-  { value: "follow-up", label: "Follow-up" },
-  { value: "thank-you", label: "Thank you" },
-  { value: "ship", label: "Ship" },
   { value: "call", label: "Call" },
+  { value: "email", label: "Email" },
+  { value: "site-visit", label: "Site Visit" },
+  { value: "demo", label: "Demo" },
+  { value: "follow-up", label: "Follow-up" },
+  { value: "audit-call", label: "Audit Call" },
+  { value: "proposal", label: "Proposal" },
+  { value: "meeting", label: "Meeting" },
 ];
 
 export const defaultConfiguration: ConfigurationContextValue = {

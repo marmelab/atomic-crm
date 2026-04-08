@@ -37,6 +37,7 @@ export const CompanyInputs = () => {
         <div className="flex flex-col gap-10 flex-1">
           <CompanyContactInputs />
           <CompanyContextInputs />
+          <CompanyConstructionInputs />
         </div>
         <Separator orientation={isMobile ? "horizontal" : "vertical"} />
         <div className="flex flex-col gap-8 flex-1">
@@ -118,6 +119,49 @@ const CompanyContextInputs = () => {
       <SelectInput source="size" choices={translatedSizes} helperText={false} />
       <TextInput source="revenue" helperText={false} />
       <TextInput source="tax_identifier" helperText={false} />
+    </div>
+  );
+};
+
+const companySizeChoices = [
+  { id: "1-5", name: "1-5 employees" },
+  { id: "6-20", name: "6-20 employees" },
+  { id: "21-50", name: "21-50 employees" },
+  { id: "50+", name: "50+ employees" },
+];
+
+const techMaturityChoices = [
+  { id: "Paper", name: "Paper" },
+  { id: "Basic Digital", name: "Basic Digital" },
+  { id: "Automated", name: "Automated" },
+];
+
+const CompanyConstructionInputs = () => {
+  const translate = useTranslate();
+
+  return (
+    <div className="flex flex-col gap-4">
+      <h6 className="text-lg font-semibold">
+        {translate("resources.companies.field_categories.construction", {
+          _: "Construction",
+        })}
+      </h6>
+      <ReferenceInput reference="trade_types" source="trade_type_id">
+        <SelectInput helperText={false} optionText="name" label="Trade Type" />
+      </ReferenceInput>
+      <TextInput source="service_area" helperText={false} label="Service Area" />
+      <SelectInput
+        source="company_size"
+        helperText={false}
+        label="Company Size"
+        choices={companySizeChoices}
+      />
+      <SelectInput
+        source="tech_maturity"
+        helperText={false}
+        label="Tech Maturity"
+        choices={techMaturityChoices}
+      />
     </div>
   );
 };

@@ -181,3 +181,41 @@ create index contact_notes_contact_id_idx on public.contact_notes using btree (c
 create index contacts_company_id_idx on public.contacts using btree (company_id);
 create index deal_notes_deal_id_idx on public.deal_notes using btree (deal_id);
 create index deals_company_id_idx on public.deals using btree (company_id);
+
+--
+-- Wave 1.2A: Construction lookup tables and additive core-table fields
+--
+
+-- public.companies additive columns from 20260408120000_hatch_construction_fields.sql:
+--   trade_type_id uuid references public.trade_types(id)
+--   service_area text
+--   company_size text check (company_size in ('1-5', '6-20', '21-50', '50+'))
+--   tech_maturity text check (tech_maturity in ('Paper', 'Basic Digital', 'Automated'))
+--   metadata jsonb default '{}'
+--   updated_at timestamptz default now()
+--   external_source text
+--   external_id text
+--
+-- public.contacts additive columns from 20260408120000_hatch_construction_fields.sql:
+--   lead_source_id uuid references public.lead_sources(id)
+--   metadata jsonb default '{}'
+--   updated_at timestamptz default now()
+--   external_source text
+--   external_id text
+--
+-- public.deals additive columns from 20260408120000_hatch_construction_fields.sql:
+--   metadata jsonb default '{}'
+--   lost_reason text
+
+create table public.trade_types (
+    id uuid primary key default gen_random_uuid(),
+    name text not null unique,
+    display_order int default 0,
+    created_at timestamptz default now()
+);
+
+create table public.lead_sources (
+    id uuid primary key default gen_random_uuid(),
+    name text not null unique,
+    created_at timestamptz default now()
+);

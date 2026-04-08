@@ -78,3 +78,19 @@ create or replace trigger on_auth_user_created
 create or replace trigger on_auth_user_updated
     after update on auth.users
     for each row execute function public.handle_update_user();
+
+create or replace function public.update_updated_at()
+returns trigger as $$
+begin
+    new.updated_at = now();
+    return new;
+end;
+$$ language plpgsql;
+
+create trigger set_companies_updated_at
+    before update on public.companies
+    for each row execute function public.update_updated_at();
+
+create trigger set_contacts_updated_at
+    before update on public.contacts
+    for each row execute function public.update_updated_at();

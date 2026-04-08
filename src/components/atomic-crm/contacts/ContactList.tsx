@@ -144,6 +144,11 @@ const exporter: Exporter<Contact> = async (records, fetchRelatedRecords) => {
     "company_id",
     "companies",
   );
+  const leadSources = await fetchRelatedRecords<{ id: string; name: string }>(
+    records,
+    "lead_source_id",
+    "lead_sources",
+  );
   const sales = await fetchRelatedRecords<Sale>(records, "sales_id", "sales");
   const tags = await fetchRelatedRecords<Tag>(records, "tags", "tags");
 
@@ -153,6 +158,10 @@ const exporter: Exporter<Contact> = async (records, fetchRelatedRecords) => {
       company:
         contact.company_id != null
           ? companies[contact.company_id].name
+          : undefined,
+      lead_source:
+        contact.lead_source_id != null
+          ? leadSources[contact.lead_source_id]?.name
           : undefined,
       sales:
         contact.sales_id != null

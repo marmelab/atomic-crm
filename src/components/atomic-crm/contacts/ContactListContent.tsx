@@ -156,6 +156,18 @@ const ContactItemContent = ({
               <TagsList />
             </div>
           ) : null}
+          {contact.lead_source_id != null && (
+            <div className="text-sm text-muted-foreground">
+              <span>Lead Source: </span>
+              <ReferenceField
+                source="lead_source_id"
+                reference="lead_sources"
+                link={false}
+              >
+                <TextField source="name" />
+              </ReferenceField>
+            </div>
+          )}
         </div>
         {contact.last_seen && (
           <div className="text-right ml-4">
@@ -288,6 +300,18 @@ const ContactItemContentMobile = ({ contact }: { contact: Contact }) => {
                   })}
                 </span>
               ) : null}
+              {contact.lead_source_id != null && (
+                <span>
+                  Lead Source:{" "}
+                  <ReferenceField
+                    source="lead_source_id"
+                    reference="lead_sources"
+                    link={false}
+                  >
+                    <TextField source="name" />
+                  </ReferenceField>
+                </span>
+              )}
             </div>
           </div>
         </div>

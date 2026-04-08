@@ -38,6 +38,7 @@ import {
   AddressInfo,
   CompanyAside,
   CompanyInfo,
+  ConstructionInfo,
   ContextInfo,
 } from "./CompanyAside";
 import { CompanyAvatar } from "./CompanyAvatar";
@@ -82,6 +83,7 @@ const CompanyShowContentMobile = () => {
         <CompanyInfo record={record} />
         <AddressInfo record={record} />
         <ContextInfo record={record} />
+        <ConstructionInfo record={record} />
         <AdditionalInfo record={record} />
       </MobileContent>
     </>
