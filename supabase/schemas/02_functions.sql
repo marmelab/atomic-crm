@@ -391,12 +391,16 @@ BEGIN
   merged_phones := (SELECT jsonb_agg(value) FROM jsonb_each(phone_map));
   merged_phones := COALESCE(merged_phones, '[]'::jsonb);
 
-  -- Merge tags (remove duplicates)
+  -- Merge tags via join table: move loser tags to winner (ignore conflicts)
+  INSERT INTO contact_tags (contact_id, tag_id)
+  SELECT winner_id, tag_id
+  FROM contact_tags
+  WHERE contact_id = loser_id
+  ON CONFLICT DO NOTHING;
+
+  -- Build merged_tags from join table for the contacts.tags column (dual-write)
   merged_tags := ARRAY(
-    SELECT DISTINCT unnest(
-      COALESCE(winner_contact.tags, ARRAY[]::bigint[]) ||
-      COALESCE(loser_contact.tags, ARRAY[]::bigint[])
-    )
+    SELECT tag_id FROM contact_tags WHERE contact_id = winner_id
   );
 
   -- 5. Update winner with merged data

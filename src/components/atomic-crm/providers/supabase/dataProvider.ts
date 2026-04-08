@@ -351,6 +351,20 @@ const lifeCycleCallbacks: ResourceCallbacks[] = [
         "background",
       ])(params);
     },
+    afterCreate: async (result, params) => {
+      const tags: number[] | undefined = params.data?.tags;
+      if (tags && tags.length > 0) {
+        await syncContactTags(result.data.id, tags);
+      }
+      return result;
+    },
+    afterUpdate: async (result, params) => {
+      if ("tags" in params.data) {
+        const tags: number[] = params.data.tags ?? [];
+        await syncContactTags(result.data.id, tags);
+      }
+      return result;
+    },
   },
   {
     resource: "companies",
@@ -436,6 +450,24 @@ const applyFullTextSearch = (columns: string[]) => (params: GetListParams) => {
       }, {}),
     },
   };
+};
+
+const syncContactTags = async (
+  contactId: number,
+  tags: number[],
+): Promise<void> => {
+  await getSupabaseClient()
+    .from("contact_tags")
+    .delete()
+    .eq("contact_id", contactId);
+
+  if (tags.length > 0) {
+    await getSupabaseClient()
+      .from("contact_tags")
+      .insert(
+        tags.map((tagId) => ({ contact_id: contactId, tag_id: tagId })),
+      );
+  }
 };
 
 const signAttachmentUrls = async (

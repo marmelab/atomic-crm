@@ -78,3 +78,7 @@ create policy "admin_write_trade_types" on public.trade_types for all to authent
 alter table public.lead_sources enable row level security;
 create policy "authenticated_select_lead_sources" on public.lead_sources for select to authenticated using (auth.uid() is not null);
 create policy "admin_write_lead_sources" on public.lead_sources for all to authenticated using (public.is_admin()) with check (public.is_admin());
+
+-- Contact Tags (join table — full access for authenticated)
+alter table public.contact_tags enable row level security;
+create policy "authenticated_all_contact_tags" on public.contact_tags for all to authenticated using (auth.uid() is not null) with check (auth.uid() is not null);
