@@ -58,7 +58,7 @@ describe("TaskCreateSheet", () => {
 
     await typeInput.click();
     const typeOptions = screen.getByRole("listbox");
-    await typeOptions.getByText("Call").click();
+    await typeOptions.getByText("Call", { exact: true }).click();
 
     const dueDateInput = screen.getByLabelText(/due date/i);
     await dueDateInput.clear();

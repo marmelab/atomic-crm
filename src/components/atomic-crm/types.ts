@@ -53,6 +53,11 @@ export type Company = {
   logo: RAFile;
   sector: string;
   size: 1 | 10 | 50 | 250 | 500;
+  trade_type_id?: string | null;
+  service_area?: string;
+  company_size?: string;
+  tech_maturity?: string;
+  metadata?: Record<string, unknown>;
   linkedin_url: string;
   website: string;
   phone_number: string;
@@ -86,6 +91,7 @@ export type Contact = {
   last_name: string;
   title: string;
   company_id?: Identifier | null;
+  lead_source_id?: string | null;
   email_jsonb: EmailAndType[];
   avatar?: Partial<RAFile>;
   linkedin_url?: string | null;
@@ -100,6 +106,7 @@ export type Contact = {
   phone_jsonb: PhoneNumberAndType[];
   nb_tasks?: number;
   company_name?: string;
+  metadata?: Record<string, unknown>;
 } & Pick<RaRecord, "id">;
 
 export type ContactNote = {
@@ -117,6 +124,7 @@ export type Deal = {
   contact_ids: Identifier[];
   category: string;
   stage: string;
+  lost_reason?: string;
   description: string;
   amount: number;
   created_at: string;
@@ -125,6 +133,7 @@ export type Deal = {
   expected_closing_date: string;
   sales_id: Identifier;
   index: number;
+  metadata?: Record<string, unknown>;
 } & Pick<RaRecord, "id">;
 
 export type DealNote = {

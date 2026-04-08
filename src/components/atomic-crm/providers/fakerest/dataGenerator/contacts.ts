@@ -72,8 +72,7 @@ export const generateContacts = (db: Db, size = 500): Required<Contact>[] => {
 
     const first_seen = randomDate(new Date(company.created_at)).toISOString();
     const last_seen = first_seen;
-
-    return {
+    const generatedContact: Required<Contact> = {
       id,
       first_name,
       last_name,
@@ -81,10 +80,10 @@ export const generateContacts = (db: Db, size = 500): Required<Contact>[] => {
       title: title.charAt(0).toUpperCase() + title.substr(1),
       company_id: company.id,
       company_name: company.name,
+      lead_source_id: null,
       email_jsonb,
       phone_jsonb,
       background: lorem.sentence(),
-      acquisition: random.arrayElement(["inbound", "outbound"]),
       avatar,
       first_seen: first_seen,
       last_seen: last_seen,
@@ -96,6 +95,9 @@ export const generateContacts = (db: Db, size = 500): Required<Contact>[] => {
       sales_id: company.sales_id!,
       nb_tasks: 0,
       linkedin_url: null,
+      metadata: {},
     };
+
+    return generatedContact;
   });
 };

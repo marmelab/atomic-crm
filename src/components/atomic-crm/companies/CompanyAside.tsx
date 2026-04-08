@@ -8,6 +8,7 @@ import {
 import { EditButton } from "@/components/admin/edit-button";
 import { DeleteButton } from "@/components/admin/delete-button";
 import { ShowButton } from "@/components/admin/show-button";
+import { ReferenceField } from "@/components/admin/reference-field";
 import { TextField } from "@/components/admin/text-field";
 import { UrlField } from "@/components/admin/url-field";
 import { SelectField } from "@/components/admin/select-field";
@@ -44,6 +45,8 @@ export const CompanyAside = ({ link = "edit" }: CompanyAsideProps) => {
       <AddressInfo record={record} />
 
       <ContextInfo record={record} />
+
+      <ConstructionInfo record={record} />
 
       <AdditionalInfo record={record} />
 
@@ -172,6 +175,80 @@ export const AddressInfo = ({ record }: { record: Company }) => {
       <TextField source="zipcode" />
       <TextField source="state_abbr" />
       <TextField source="country" />
+    </AsideSection>
+  );
+};
+
+const constructionCompanySizeChoices = [
+  { id: "1-5", name: "1-5 employees" },
+  { id: "6-20", name: "6-20 employees" },
+  { id: "21-50", name: "21-50 employees" },
+  { id: "50+", name: "50+ employees" },
+];
+
+const techMaturityChoices = [
+  { id: "Paper", name: "Paper" },
+  { id: "Basic Digital", name: "Basic Digital" },
+  { id: "Automated", name: "Automated" },
+];
+
+export const ConstructionInfo = ({ record }: { record: Company }) => {
+  const translate = useTranslate();
+
+  if (
+    !record.trade_type_id &&
+    !record.service_area &&
+    !record.company_size &&
+    !record.tech_maturity
+  ) {
+    return null;
+  }
+
+  return (
+    <AsideSection
+      title={translate("resources.companies.field_categories.construction", {
+        _: "Construction",
+      })}
+    >
+      {record.trade_type_id && (
+        <span>
+          {translate("resources.companies.fields.trade_type_id", {
+            _: "Trade Type",
+          })}
+          :{" "}
+          <ReferenceField source="trade_type_id" reference="trade_types">
+            <TextField source="name" />
+          </ReferenceField>
+        </span>
+      )}
+      {record.service_area && (
+        <span>
+          {translate("resources.companies.fields.service_area", {
+            _: "Service Area",
+          })}
+          : <TextField source="service_area" />
+        </span>
+      )}
+      {record.company_size && (
+        <span>
+          {translate("resources.companies.fields.company_size", {
+            _: "Company Size",
+          })}
+          :{" "}
+          <SelectField
+            source="company_size"
+            choices={constructionCompanySizeChoices}
+          />
+        </span>
+      )}
+      {record.tech_maturity && (
+        <span>
+          {translate("resources.companies.fields.tech_maturity", {
+            _: "Tech Maturity",
+          })}
+          : <SelectField source="tech_maturity" choices={techMaturityChoices} />
+        </span>
+      )}
     </AsideSection>
   );
 };
