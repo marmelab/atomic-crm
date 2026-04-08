@@ -1,6 +1,6 @@
 import { useMutation } from "@tanstack/react-query";
 import { isValid } from "date-fns";
-import { Archive, ArchiveRestore } from "lucide-react";
+import { Archive, ArchiveRestore, CheckSquare } from "lucide-react";
 import {
   ShowBase,
   useDataProvider,
@@ -10,6 +10,7 @@ import {
   useRefresh,
   useUpdate,
 } from "ra-core";
+import { useState } from "react";
 import { DeleteButton } from "@/components/admin/delete-button";
 import { EditButton } from "@/components/admin/edit-button";
 import { ReferenceArrayField } from "@/components/admin/reference-array-field";
@@ -24,6 +25,7 @@ import { CompanyAvatar } from "../companies/CompanyAvatar";
 import { NoteCreate } from "../notes/NoteCreate";
 import { NotesIterator } from "../notes/NotesIterator";
 import { useConfigurationContext } from "../root/ConfigurationContext";
+import { TaskCreateSheet } from "../tasks/TaskCreateSheet";
 import type { Deal } from "../types";
 import { ContactList } from "./ContactList";
 import { findDealLabel } from "./deal";
@@ -51,6 +53,7 @@ export const DealShow = ({ open, id }: { open: boolean; id?: string }) => {
 const DealShowContent = () => {
   const { dealStages, dealCategories } = useConfigurationContext();
   const record = useRecordContext<Deal>();
+  const [taskSheetOpen, setTaskSheetOpen] = useState(false);
   if (!record) return null;
 
   return (
@@ -77,6 +80,15 @@ const DealShowContent = () => {
                 </>
               ) : (
                 <>
+                  <Button
+                    onClick={() => setTaskSheetOpen(true)}
+                    size="sm"
+                    variant="outline"
+                    className="flex items-center gap-2 h-9"
+                  >
+                    <CheckSquare className="w-4 h-4" />
+                    Créer une tâche
+                  </Button>
                   <ArchiveButton record={record} />
                   <EditButton />
                 </>
@@ -180,6 +192,11 @@ const DealShowContent = () => {
           </div>
         </div>
       </div>
+      <TaskCreateSheet
+        open={taskSheetOpen}
+        onOpenChange={setTaskSheetOpen}
+        contact_id={record.contact_ids?.[0]}
+      />
     </>
   );
 };
