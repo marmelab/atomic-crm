@@ -1,112 +1,216 @@
-# Atomic CRM
+# Hatch CRM
 
-A full-featured CRM built with React, shadcn-admin-kit, and Supabase.
+A construction-focused CRM built on [Atomic CRM](https://github.com/marmelab/atomic-crm) with React, react-admin, shadcn/ui, and Supabase. Built for [Hatch Theory](https://hatchtheory.com) to manage leads, deals, and client relationships in the trades and home services space.
 
-<https://github.com/user-attachments/assets/0d7554b5-49ef-41c6-bcc9-a76214fc5c99>
+**Live:** [hatch-crm.vercel.app](https://hatch-crm.vercel.app)
 
-Atomic CRM is free and open-source. You can test it online at <https://marmelab.com/atomic-crm-demo>.
+## Architecture Overview
 
-## Features
-
-- 📇 **Organize Contacts**: Keep all your contacts in one easily accessible place.
-- ⏰ **Create Tasks & Set Reminders**: Never miss a follow-up or deadline.
-- 📝 **Take Notes**: Capture important details and insights effortlessly.
-- ✉️ **Capture Emails**: CC Atomic CRM to automatically save communications as notes.
-- 📊 **Manage Deals**: Visualize and track your sales pipeline in a Kanban board.
-- 🔄 **Import & Export Data**: Easily transfer contacts in and out of the system.
-- 🔐 **Control Access**: Log in with Google, Azure, Keycloak, and Auth0.
-- 📜 **Track Activity History**: View all interactions in aggregated activity logs.
-- 🔗 **Integrate via API**: Connect seamlessly with other systems using our API.
-- 🛠️ **Customize Everything**: Add custom fields, change the theme, and replace any component to fit your needs.
-
-## Installation
-
-To run this project locally, you will need the following tools installed on your computer:
-
-- Make
-- Node 22 LTS
-- Docker (required by Supabase)
-
-Fork the [`marmelab/atomic-crm`](https://github.com/marmelab/atomic-crm) repository to your user/organization, then clone it locally:
-
-```sh
-git clone https://github.com/[username]/atomic-crm.git
+```
+Browser (React SPA)
+    |
+    ├── Supabase JS Client (REST + Auth)
+    |       |
+    |       └── Supabase (hosted)
+    |               ├── PostgreSQL (public schema)
+    |               ├── Auth (Supabase Auth)
+    |               ├── Storage (private attachments bucket)
+    |               └── Edge Functions (lead ingestion)
+    |
+    ├── n8n (workflow automation)
+    |       └── Postgres pooler (port 6543)
+    |
+    └── Audit System (separate Vercel app)
+            └── Supabase JS Client (service role key)
 ```
 
-Install dependencies:
+**Key layers:**
+- **Interface:** React + react-admin + shadcn/ui. Mobile-responsive with dedicated mobile navigation.
+- **Logic:** Supabase DataProvider handles all CRUD. Configuration singleton in DB drives pipeline stages, categories, branding.
+- **Data:** PostgreSQL on Supabase. Core tables use bigint PKs (inherited from Atomic CRM). New Hatch tables use UUID PKs.
+- **Integrations:** n8n connects via Postgres pooler. Audit System and Edge Functions use Supabase JS client.
+
+## Setup
+
+### Prerequisites
+
+- Node.js 22 LTS
+- npm
+- A Supabase project (or use the existing one)
+
+### Install and Run
 
 ```sh
-cd atomic-crm
-make install
+git clone https://github.com/nathansrm/hatch-crm.git
+cd hatch-crm
+npm install
 ```
 
-This will install the dependencies for the frontend and the backend, including a local Supabase instance.
-
-Once your app is configured, start the app locally with the following command:
+Create a `.env` file (see Environment Variables below), then:
 
 ```sh
-make start
+npm run dev          # Start dev server at http://localhost:5173
 ```
 
-This will start the Vite dev server for the frontend, the local Supabase instance for the API, and a Postgres database (thanks to Docker).
+### Environment Variables
 
-You can then access the app via [http://localhost:5173/](http://localhost:5173/). You will be prompted to create the first user.
+| Variable | Required | Description |
+|----------|----------|-------------|
+| `VITE_SUPABASE_URL` | Yes | Supabase project URL (e.g., `https://<ref>.supabase.co`) |
+| `VITE_SUPABASE_ANON_KEY` | Yes | Supabase anon/public key |
+| `VITE_IS_DEMO` | No | Set to `true` for demo mode with FakeRest provider |
+| `VITE_INBOUND_EMAIL` | No | Postmark inbound email address for email capture |
+| `VITE_ATTACHMENTS_BUCKET` | No | Storage bucket name (default: `attachments`) |
 
-If you need debug the backend, you can access the following services:
+For edge functions, see `supabase/functions/.env`.
 
-- Supabase dashboard: [http://localhost:54323/](http://localhost:54323/)
-- REST API: [http://127.0.0.1:54321](http://127.0.0.1:54321)
-- Attachments storage: [http://localhost:54323/project/default/storage/buckets/attachments](http://localhost:54323/project/default/storage/buckets/attachments)
-- Inbucket email testing service: [http://localhost:54324/](http://localhost:54324/)
-
-## Documentation
-
-The user and developer documentation for this project is available [in the `doc/` directory](./doc/). You can also read it online at [https://marmelab.com/atomic-crm/doc/](https://marmelab.com/atomic-crm/doc/).
-
-## Testing Changes
-
-This project contains unit tests and e2e. 
-Run unit test with the following command:
+### Commands
 
 ```sh
-make test
+npm run dev            # Dev server (http://localhost:5173)
+npm run build          # Production build (tsc + vite)
+npm run typecheck      # TypeScript check only
+npm run lint           # ESLint check
+npm run test:unit:app  # Vitest unit tests
 ```
 
-Run e2e test with:
+Supabase CLI:
 
 ```sh
-make test-e2e
+npx supabase db push           # Push migrations to remote
+npx supabase db diff           # Generate migration diff
+npx supabase functions deploy  # Deploy edge functions
 ```
 
-Note: the `make test-e2e` will run the the e2e test in ui mode against a vite server with hot reload for ease of development. On the CI the e2e test will be run against the built app. If you need to run the test against the built file instead. You can run:
+## Database Schema
+
+### Core Tables (bigint PKs, from Atomic CRM)
+
+| Table | Purpose |
+|-------|---------|
+| `companies` | Client companies. Extended with trade_type, service_area, company_size, tech_maturity. |
+| `contacts` | People at companies. Extended with lead_source_id. |
+| `deals` | Sales pipeline items. Extended with lost_reason. |
+| `deal_notes` | Notes attached to deals. |
+| `contact_notes` | Notes attached to contacts. |
+| `sales` | CRM users (linked to Supabase Auth). |
+| `tags` | Contact tags (colors + names). |
+| `tasks` | Follow-up tasks linked to contacts. |
+| `configuration` | Singleton row — pipeline stages, branding, categories. |
+
+### Lookup Tables (UUID PKs)
+
+| Table | Purpose |
+|-------|---------|
+| `trade_types` | Construction trade classifications (e.g., Plumbing, HVAC). Referenced by companies. |
+| `lead_sources` | Where contacts came from (e.g., Referral, Google). Referenced by contacts. |
+
+### Join Tables (composite PKs)
+
+| Table | Purpose |
+|-------|---------|
+| `contact_tags` | Many-to-many: contacts to tags. Normalized from `contacts.tags[]`. |
+| `deal_contacts` | Many-to-many: deals to contacts. Normalized from `deals.contact_ids[]`. |
+
+### System Tables (UUID PKs)
+
+| Table | Purpose |
+|-------|---------|
+| `audit_results` | Results from AI audit system — scores, findings, classifications. |
+| `audit_reports` | Generated audit report URLs and sharing metadata. |
+| `n8n_workflow_runs` | Tracks n8n workflow execution history. |
+| `integration_log` | All integration events (n8n, edge functions, external systems). |
+| `system_settings` | Key-value system configuration. |
+
+## Integration Documentation
+
+### Who Reads/Writes Each Table
+
+| Table | CRM UI | n8n | Audit System | Edge Functions |
+|-------|--------|-----|--------------|----------------|
+| `companies` | R/W | R | R | W (via lead ingestion) |
+| `contacts` | R/W | R | R | W (via lead ingestion) |
+| `deals` | R/W | R/W | -- | W (via lead ingestion) |
+| `deal_notes` | R/W | -- | -- | -- |
+| `contact_notes` | R/W | -- | -- | -- |
+| `sales` | R/W | -- | -- | -- |
+| `tags` | R/W | R | -- | -- |
+| `tasks` | R/W | R | -- | -- |
+| `contact_tags` | R/W | R | -- | -- |
+| `deal_contacts` | R/W | R | -- | -- |
+| `trade_types` | R/W | R | R | -- |
+| `lead_sources` | R/W | R | -- | -- |
+| `configuration` | R/W | -- | -- | -- |
+| `audit_results` | R | -- | R/W | -- |
+| `audit_reports` | R | -- | R/W | -- |
+| `n8n_workflow_runs` | R | W | -- | -- |
+| `integration_log` | R | W | -- | W |
+| `system_settings` | R/W | R | -- | -- |
+
+### Connection Methods
+
+| Consumer | Method | Port | Auth |
+|----------|--------|------|------|
+| CRM UI (browser) | Supabase JS client | HTTPS | Anon key + user JWT |
+| n8n | Postgres pooler (session mode) | 6543 | Database password |
+| Audit System | Supabase JS client | HTTPS | Service role key |
+| Edge Functions | Supabase JS client (internal) | HTTPS | Service role key |
+| pg_dump (backups) | Direct Postgres | 5432 | Database password |
+
+See [docs/n8n-integration.md](docs/n8n-integration.md) for detailed n8n setup instructions.
+
+## Pipeline Stages
+
+Lead → Qualified → Audit Scheduled → Proposal Sent → Won → Lost
+
+Stages are stored in the `configuration` table and rendered by the Kanban board. Currency: CAD.
+
+## Scripts
+
+| Script | Purpose |
+|--------|---------|
+| `scripts/backup.sh` | Database backup via pg_dump. Outputs to `backups/`. |
+| `scripts/health-check.sh` | Verify Supabase endpoints are responsive. |
+
+Run with: `bash scripts/backup.sh` or `bash scripts/health-check.sh`
+
+## Monitoring Checklist
+
+Where to check when something goes wrong:
+
+| Failure Type | Where to Look |
+|-------------|---------------|
+| Auth failures | Supabase Dashboard → Auth → Logs |
+| RLS rejections | Supabase Dashboard → Database → Logs (filter for "policy") |
+| Edge function errors | Supabase Dashboard → Edge Functions → Logs |
+| n8n workflow failures | n8n execution history + `n8n_workflow_runs` table |
+| Integration events | `integration_log` table (query by source, action, created_at) |
+| Build/deploy failures | Vercel → Deployments → Build Logs |
+| Database performance | Supabase Dashboard → Database → Query Performance |
+
+## Testing
+
+Unit tests use Vitest:
 
 ```sh
-make start-e2e-ci # To launch the CI e2e environment (serving the built app)
-# followed by
-npx playwright test --ui
+npm run test:unit:app        # Application tests
+npm run test:unit:functions  # Edge function tests
 ```
 
-You can add your own unit tests powered by Jest anywhere in the `src` directory. The test files should be named `*.test.tsx` or `*.test.ts`.
-And you can also add your own e2e test. The e2e test files should be placed inside the `./e2e` folder
+E2e tests use Playwright (see `playwright.config.ts`).
 
-## Getting Updates
+## Key Files
 
-Atomic CRM components are published as a Shadcn Registry file. This means you can update your installation by calling the following command:
+| File | Purpose |
+|------|---------|
+| `src/components/atomic-crm/root/CRM.tsx` | App composition root |
+| `src/components/atomic-crm/root/defaultConfiguration.ts` | Compile-time config fallbacks |
+| `src/components/atomic-crm/providers/supabase/dataProvider.ts` | All Supabase CRUD operations |
+| `src/components/atomic-crm/providers/supabase/authProvider.ts` | Auth logic |
+| `supabase/schemas/` | Source-of-truth SQL definitions |
+| `supabase/migrations/` | Ordered migration files |
+| `supabase/functions/ingest-lead/` | Lead ingestion edge function |
 
-```sh
-npx shadcn add https://marmelab.com/atomic-crm/r/atomic-crm.json -o
-```
+## Credits
 
-## Registry
-
-The Registry file is kept au to date when files are added or removed:
-
-- The `registry.json` file is automatically generated by the `scripts/generate-registry.mjs` script as a pre-commit hook.
-- The `http://marmelab.com/atomic-crm/r/atomic-crm.json` file is automatically published by the CI/CD pipeline
-
-> [!WARNING]  
-> If the `registry.json` misses some changes you made, you MUST update the `scripts/generate-registry.mjs` to include those changes.
-
-## License
-
-This project is licensed under the MIT License, courtesy of [Marmelab](https://marmelab.com). See the [LICENSE.md](./LICENSE.md) file for details.
+Forked from [Atomic CRM](https://github.com/marmelab/atomic-crm) by [Marmelab](https://marmelab.com). Licensed under MIT — see [LICENSE.md](./LICENSE.md).

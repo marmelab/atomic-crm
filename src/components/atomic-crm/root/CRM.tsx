@@ -29,6 +29,7 @@ import {
   getAuthProvider as defaultAuthProviderBuilder,
   getDataProvider as defaultDataProviderBuilder,
 } from "../providers/supabase";
+import integrationLog from "../integration-log";
 import sales from "../sales";
 import { SettingsPageMobile } from "../settings/SettingsPageMobile";
 import { ProfilePage } from "../settings/ProfilePage";
@@ -271,6 +272,7 @@ const DesktopAdmin = (
       <Resource name="tasks" />
       <Resource name="sales" {...sales} />
       <Resource name="tags" />
+      <Resource name="integration_log" {...integrationLog} />
     </Admin>
   );
 };
