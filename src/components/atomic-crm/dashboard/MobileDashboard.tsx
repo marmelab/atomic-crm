@@ -4,6 +4,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import type { Contact, ContactNote } from "../types";
 import { DashboardActivityLog } from "./DashboardActivityLog";
 import { DashboardStepper } from "./DashboardStepper";
+import { PipelineSummary } from "./PipelineSummary";
 import { Welcome } from "./Welcome";
 import MobileHeader from "../layout/MobileHeader";
 import { MobileContent } from "../layout/MobileContent";
@@ -81,8 +82,9 @@ export const MobileDashboard = () => {
 
   return (
     <Wrapper>
-      <div className="grid grid-cols-1 md:grid-cols-12 gap-6 mt-1">
+      <div className="flex flex-col gap-6 mt-1">
         {import.meta.env.VITE_IS_DEMO === "true" ? <Welcome /> : null}
+        <PipelineSummary />
         <DashboardActivityLog />
       </div>
     </Wrapper>

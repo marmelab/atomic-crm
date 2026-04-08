@@ -10,6 +10,7 @@ import { Home, ListTodo, Plus, Settings, Users } from "lucide-react";
 import { useTranslate } from "ra-core";
 import { Link, matchPath, useLocation, useMatch } from "react-router";
 import { ContactCreateSheet } from "../contacts/ContactCreateSheet";
+import { DealCreateSheet } from "../deals/DealCreateSheet";
 import { useState } from "react";
 import { NoteCreateSheet } from "../notes/NoteCreateSheet";
 import { TaskCreateSheet } from "../tasks/TaskCreateSheet";
@@ -112,6 +113,7 @@ const CreateButton = () => {
   const translate = useTranslate();
   const contact_id = useMatch("/contacts/:id/*")?.params.id;
   const [contactCreateOpen, setContactCreateOpen] = useState(false);
+  const [dealCreateOpen, setDealCreateOpen] = useState(false);
   const [noteCreateOpen, setNoteCreateOpen] = useState(false);
   const [taskCreateOpen, setTaskCreateOpen] = useState(false);
 
@@ -120,6 +122,10 @@ const CreateButton = () => {
       <ContactCreateSheet
         open={contactCreateOpen}
         onOpenChange={setContactCreateOpen}
+      />
+      <DealCreateSheet
+        open={dealCreateOpen}
+        onOpenChange={setDealCreateOpen}
       />
       <NoteCreateSheet
         open={noteCreateOpen}
@@ -143,6 +149,14 @@ const CreateButton = () => {
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent>
+          <DropdownMenuItem
+            className="h-12 px-4 text-base font-medium"
+            onSelect={() => {
+              setDealCreateOpen(true);
+            }}
+          >
+            New Lead
+          </DropdownMenuItem>
           <DropdownMenuItem
             className="h-12 px-4 text-base"
             onSelect={() => {
