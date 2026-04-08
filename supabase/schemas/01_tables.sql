@@ -219,3 +219,27 @@ create table public.lead_sources (
     name text not null unique,
     created_at timestamptz default now()
 );
+
+--
+-- Wave 2.2: contact_tags join table (normalized from contacts.tags bigint[])
+--
+
+create table public.contact_tags (
+    contact_id bigint not null references public.contacts(id) on delete cascade,
+    tag_id bigint not null references public.tags(id) on delete cascade,
+    primary key (contact_id, tag_id)
+);
+
+create index idx_contact_tags_tag on public.contact_tags(tag_id);
+
+--
+-- Wave 2.3A: deal_contacts join table (normalized from deals.contact_ids bigint[])
+--
+
+create table public.deal_contacts (
+    deal_id bigint not null references public.deals(id) on delete cascade,
+    contact_id bigint not null references public.contacts(id) on delete cascade,
+    primary key (deal_id, contact_id)
+);
+
+create index idx_deal_contacts_contact on public.deal_contacts(contact_id);

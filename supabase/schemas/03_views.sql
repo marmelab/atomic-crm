@@ -106,6 +106,7 @@ from public.companies c
     left join public.contacts co on c.id = co.company_id
 group by c.id;
 
+-- contacts_summary sources tags from contact_tags join table (Phase 2)
 create or replace view public.contacts_summary with (security_invoker = on) as
 select
     co.id,
@@ -119,7 +120,7 @@ select
     co.last_seen,
     co.has_newsletter,
     co.status,
-    co.tags,
+    coalesce(array_agg(distinct ct.tag_id) filter (where ct.tag_id is not null), '{}') as tags,
     co.company_id,
     co.sales_id,
     co.linkedin_url,
@@ -136,6 +137,7 @@ select
 from public.contacts co
     left join public.tasks t on co.id = t.contact_id
     left join public.companies c on co.company_id = c.id
+    left join public.contact_tags ct on co.id = ct.contact_id
 group by co.id, c.name;
 
 create or replace view public.init_state with (security_invoker = off) as

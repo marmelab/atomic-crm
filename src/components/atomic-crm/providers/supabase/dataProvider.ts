@@ -279,6 +279,25 @@ const lifeCycleCallbacks: ResourceCallbacks[] = [
       }
       return data;
     },
+    afterGetOne: async (result) => {
+      if (result.data?.attachments) {
+        result.data.attachments = await signAttachmentUrls(
+          result.data.attachments,
+        );
+      }
+      return result;
+    },
+    afterGetList: async (result) => {
+      result.data = await Promise.all(
+        result.data.map(async (note) => {
+          if (note.attachments) {
+            note.attachments = await signAttachmentUrls(note.attachments);
+          }
+          return note;
+        }),
+      );
+      return result;
+    },
   },
   {
     resource: "deal_notes",
@@ -289,6 +308,25 @@ const lifeCycleCallbacks: ResourceCallbacks[] = [
         );
       }
       return data;
+    },
+    afterGetOne: async (result) => {
+      if (result.data?.attachments) {
+        result.data.attachments = await signAttachmentUrls(
+          result.data.attachments,
+        );
+      }
+      return result;
+    },
+    afterGetList: async (result) => {
+      result.data = await Promise.all(
+        result.data.map(async (note) => {
+          if (note.attachments) {
+            note.attachments = await signAttachmentUrls(note.attachments);
+          }
+          return note;
+        }),
+      );
+      return result;
     },
   },
   {
@@ -312,6 +350,20 @@ const lifeCycleCallbacks: ResourceCallbacks[] = [
         "phone",
         "background",
       ])(params);
+    },
+    afterCreate: async (result) => {
+      const tags: number[] | undefined = result.data?.tags;
+      if (tags && tags.length > 0) {
+        await syncContactTags(result.data.id, tags);
+      }
+      return result;
+    },
+    afterUpdate: async (result) => {
+      if (result.data?.tags !== undefined) {
+        const tags: number[] = result.data.tags ?? [];
+        await syncContactTags(result.data.id, tags);
+      }
+      return result;
     },
   },
   {
@@ -351,6 +403,20 @@ const lifeCycleCallbacks: ResourceCallbacks[] = [
     resource: "deals",
     beforeGetList: async (params) => {
       return applyFullTextSearch(["name", "category", "description"])(params);
+    },
+    afterCreate: async (result) => {
+      const contactIds: number[] | undefined = result.data?.contact_ids;
+      if (contactIds && contactIds.length > 0) {
+        await syncDealContacts(result.data.id, contactIds);
+      }
+      return result;
+    },
+    afterUpdate: async (result) => {
+      if (result.data?.contact_ids !== undefined) {
+        const contactIds: number[] = result.data.contact_ids ?? [];
+        await syncDealContacts(result.data.id, contactIds);
+      }
+      return result;
     },
   },
 ];
@@ -400,6 +466,63 @@ const applyFullTextSearch = (columns: string[]) => (params: GetListParams) => {
   };
 };
 
+const syncDealContacts = async (
+  dealId: number,
+  contactIds: number[],
+): Promise<void> => {
+  await getSupabaseClient()
+    .from("deal_contacts")
+    .delete()
+    .eq("deal_id", dealId);
+
+  if (contactIds.length > 0) {
+    await getSupabaseClient()
+      .from("deal_contacts")
+      .insert(
+        contactIds.map((contactId) => ({
+          deal_id: dealId,
+          contact_id: contactId,
+        })),
+      );
+  }
+};
+
+const syncContactTags = async (
+  contactId: number,
+  tags: number[],
+): Promise<void> => {
+  await getSupabaseClient()
+    .from("contact_tags")
+    .delete()
+    .eq("contact_id", contactId);
+
+  if (tags.length > 0) {
+    await getSupabaseClient()
+      .from("contact_tags")
+      .insert(
+        tags.map((tagId) => ({ contact_id: contactId, tag_id: tagId })),
+      );
+  }
+};
+
+const signAttachmentUrls = async (
+  attachments: RAFile[] | undefined | null,
+): Promise<RAFile[] | undefined | null> => {
+  if (!attachments || attachments.length === 0) return attachments;
+  return Promise.all(
+    attachments.map(async (fi) => {
+      if (!fi.path) return fi;
+      const { data, error } = await getSupabaseClient()
+        .storage.from(ATTACHMENTS_BUCKET)
+        .createSignedUrl(fi.path, 3600);
+      if (!error && data?.signedUrl) {
+        return { ...fi, src: data.signedUrl };
+      }
+      return fi;
+    }),
+  );
+};
+
 const uploadToBucket = async (fi: RAFile) => {
   if (!fi.src.startsWith("blob:") && !fi.src.startsWith("data:")) {
     // Sign URL check if path exists in the bucket
@@ -447,12 +570,16 @@ const uploadToBucket = async (fi: RAFile) => {
     throw new Error("Failed to upload attachment");
   }
 
-  const { data } = getSupabaseClient()
+  const { data: signedData, error: signError } = await getSupabaseClient()
     .storage.from(ATTACHMENTS_BUCKET)
-    .getPublicUrl(filePath);
+    .createSignedUrl(filePath, 3600); // 1 hour
+
+  if (signError || !signedData?.signedUrl) {
+    throw new Error("Failed to create signed URL for attachment");
+  }
 
   fi.path = filePath;
-  fi.src = data.publicUrl;
+  fi.src = signedData.signedUrl;
 
   // save MIME type
   const mimeType = file.type;
