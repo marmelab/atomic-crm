@@ -1,45 +1,83 @@
 #!/usr/bin/env bash
 #
-# backup.sh — Dump Hatch CRM database via Supabase CLI
+# backup.sh - Dump Hatch CRM database via pg_dump
 #
 # Usage:
 #   ./scripts/backup.sh                     # Dumps to backups/hatch-crm-YYYY-MM-DD.sql
 #   ./scripts/backup.sh my-backup-name      # Dumps to backups/my-backup-name.sql
+#   ./scripts/backup.sh my-backup-name ref  # Dumps using the provided project ref
 #
 # Prerequisites:
-#   - Supabase CLI installed (npx supabase)
+#   - PostgreSQL client tools installed (`pg_dump`)
 #   - Database password set in SUPABASE_DB_PASSWORD env var or .env file
-#   - pg_dump available on PATH (comes with PostgreSQL client tools)
+#   - Project ref set in SUPABASE_PROJECT_REF, passed as the second arg, or derivable from VITE_SUPABASE_URL
 
 set -euo pipefail
 
-PROJECT_REF="sstvgrbzecdhysdgoall"
-BACKUP_DIR="$(dirname "$0")/../backups"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+ENV_FILE="${SCRIPT_DIR}/../.env"
+BACKUP_DIR="${SCRIPT_DIR}/../backups"
 BACKUP_NAME="${1:-hatch-crm-$(date +%Y-%m-%d)}"
+PROJECT_REF="${SUPABASE_PROJECT_REF:-${2:-}}"
 BACKUP_FILE="${BACKUP_DIR}/${BACKUP_NAME}.sql"
 
-# Load password from .env if not already set
+get_env_value() {
+    local key="$1"
+
+    if [[ -n "${!key:-}" ]]; then
+        printf '%s' "${!key}"
+        return 0
+    fi
+
+    if [[ -f "$ENV_FILE" ]]; then
+        local value
+        value="$(grep -m1 "^${key}=" "$ENV_FILE" | cut -d'=' -f2- | tr -d '\r' || true)"
+        value="${value%\"}"
+        value="${value#\"}"
+        value="${value%\'}"
+        value="${value#\'}"
+
+        if [[ -n "$value" ]]; then
+            printf '%s' "$value"
+            return 0
+        fi
+    fi
+
+    return 1
+}
+
 if [[ -z "${SUPABASE_DB_PASSWORD:-}" ]]; then
-    ENV_FILE="$(dirname "$0")/../.env"
-    if [[ -f "$ENV_FILE" ]] && grep -q SUPABASE_DB_PASSWORD "$ENV_FILE"; then
-        SUPABASE_DB_PASSWORD=$(grep SUPABASE_DB_PASSWORD "$ENV_FILE" | cut -d'=' -f2-)
-        export SUPABASE_DB_PASSWORD
-    else
-        echo "Error: SUPABASE_DB_PASSWORD not set."
-        echo "Set it via: export SUPABASE_DB_PASSWORD='your-password'"
-        echo "Or add SUPABASE_DB_PASSWORD=your-password to .env"
-        exit 1
+    SUPABASE_DB_PASSWORD="$(get_env_value SUPABASE_DB_PASSWORD || true)"
+fi
+
+if [[ -z "${SUPABASE_DB_PASSWORD:-}" ]]; then
+    echo "Error: SUPABASE_DB_PASSWORD not set."
+    echo "Set it via: export SUPABASE_DB_PASSWORD='your-password'"
+    echo "Or add SUPABASE_DB_PASSWORD=your-password to .env"
+    exit 1
+fi
+
+if [[ -z "$PROJECT_REF" ]]; then
+    SUPABASE_URL="$(get_env_value VITE_SUPABASE_URL || true)"
+    if [[ "$SUPABASE_URL" =~ ^https?://([^.]+)\.supabase\.co/?$ ]]; then
+        PROJECT_REF="${BASH_REMATCH[1]}"
     fi
 fi
 
-# Create backup directory
+if [[ -z "$PROJECT_REF" ]]; then
+    echo "Error: project ref not set."
+    echo "Pass it as the second argument, set SUPABASE_PROJECT_REF, or set VITE_SUPABASE_URL in .env."
+    exit 1
+fi
+
 mkdir -p "$BACKUP_DIR"
+
+trap 'echo "Backup failed. Check your database password, project ref, and network connectivity."; exit 1' ERR
 
 echo "Starting backup of Hatch CRM database..."
 echo "Project: ${PROJECT_REF}"
 echo "Output:  ${BACKUP_FILE}"
 
-# Use direct connection (port 5432) for pg_dump — pooler doesn't support it
 PGPASSWORD="$SUPABASE_DB_PASSWORD" pg_dump \
     --host "db.${PROJECT_REF}.supabase.co" \
     --port 5432 \
@@ -51,13 +89,8 @@ PGPASSWORD="$SUPABASE_DB_PASSWORD" pg_dump \
     --schema public \
     --file "$BACKUP_FILE"
 
-if [[ $? -eq 0 ]]; then
-    FILE_SIZE=$(du -h "$BACKUP_FILE" | cut -f1)
-    echo "Backup complete: ${BACKUP_FILE} (${FILE_SIZE})"
-    echo ""
-    echo "To restore to a scratch project:"
-    echo "  PGPASSWORD='password' psql -h db.<ref>.supabase.co -p 5432 -U postgres -d postgres -f ${BACKUP_FILE}"
-else
-    echo "Backup failed. Check your database password and network connectivity."
-    exit 1
-fi
+FILE_SIZE="$(du -h "$BACKUP_FILE" | cut -f1)"
+echo "Backup complete: ${BACKUP_FILE} (${FILE_SIZE})"
+echo ""
+echo "To restore to a scratch project:"
+echo "  PGPASSWORD='password' psql -h db.<ref>.supabase.co -p 5432 -U postgres -d postgres -f ${BACKUP_FILE}"

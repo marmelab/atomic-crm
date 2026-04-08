@@ -1,11 +1,10 @@
 import { useRecordContext } from "ra-core";
 import { DataTable } from "@/components/admin/data-table";
+import { ExportButton } from "@/components/admin/export-button";
 import { List } from "@/components/admin/list";
-import { SearchInput } from "@/components/admin/search-input";
 import { Badge } from "@/components/ui/badge";
 
 import { TopToolbar } from "../layout/TopToolbar";
-import { ExportButton } from "@/components/admin/export-button";
 
 const IntegrationLogActions = () => (
   <TopToolbar>
@@ -13,17 +12,20 @@ const IntegrationLogActions = () => (
   </TopToolbar>
 );
 
-const filters = [<SearchInput source="q" alwaysOn />];
-
 const ResultField = (_props: { label?: string | boolean }) => {
   const record = useRecordContext();
   if (!record) return null;
 
   const result = record.result;
+  const resultObject =
+    typeof result === "object" && result !== null
+      ? (result as Record<string, unknown>)
+      : null;
   const isSuccess =
-    typeof result === "string"
-      ? result === "success"
-      : result?.status === "success";
+    resultObject?.status === "success" ||
+    ["company_id", "contact_id", "deal_id"].some(
+      (key) => resultObject?.[key] != null,
+    );
 
   return (
     <Badge
@@ -47,6 +49,8 @@ const SourceBadge = (_props: { label?: string | boolean }) => {
     n8n: "border-orange-400 text-orange-700 dark:text-orange-300",
     edge_function:
       "border-purple-400 text-purple-700 dark:text-purple-300",
+    "ingest-lead":
+      "border-emerald-400 text-emerald-700 dark:text-emerald-300",
     crm: "border-blue-400 text-blue-700 dark:text-blue-300",
   };
 
@@ -76,7 +80,6 @@ export function IntegrationLogList() {
   return (
     <List
       title="Integration Log"
-      filters={filters}
       actions={<IntegrationLogActions />}
       sort={{ field: "created_at", order: "DESC" }}
       perPage={25}

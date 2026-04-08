@@ -62,7 +62,7 @@ If you see `permission denied` errors on system schemas, that's expected. Only t
 
 ```bash
 VITE_SUPABASE_URL=https://<scratch-ref>.supabase.co
-VITE_SUPABASE_ANON_KEY=<scratch-anon-key>
+VITE_SB_PUBLISHABLE_KEY=<scratch-anon-key>
 VITE_IS_DEMO=false
 VITE_ATTACHMENTS_BUCKET=attachments
 ```

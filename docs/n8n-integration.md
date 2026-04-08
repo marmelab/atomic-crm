@@ -7,7 +7,7 @@ n8n connects to Supabase via the **Postgres pooler** (session mode, port 6543).
 ### Connection String
 
 ```
-postgresql://postgres.sstvgrbzecdhysdgoall:[DB_PASSWORD]@aws-0-[REGION].pooler.supabase.com:6543/postgres
+postgresql://postgres.<YOUR_PROJECT_REF>:[DB_PASSWORD]@aws-0-<YOUR_REGION>.pooler.supabase.com:6543/postgres
 ```
 
 To find the exact values:
@@ -19,10 +19,10 @@ To find the exact values:
 
 1. In n8n, go to **Credentials** → **New Credential** → **Postgres**
 2. Fill in:
-   - **Host:** `aws-0-[REGION].pooler.supabase.com`
+   - **Host:** `aws-0-<YOUR_REGION>.pooler.supabase.com`
    - **Port:** `6543`
    - **Database:** `postgres`
-   - **User:** `postgres.sstvgrbzecdhysdgoall`
+   - **User:** `postgres.<YOUR_PROJECT_REF>`
    - **Password:** Your database password
    - **SSL:** Enable (required for Supabase cloud)
 3. Click **Test Connection** to verify
@@ -45,26 +45,25 @@ n8n workflows read and write to these tables:
 Every n8n workflow must log its activity to `integration_log`:
 
 ```sql
-INSERT INTO integration_log (source, action, entity_type, entity_id, trigger_row_id, result, metadata)
-VALUES ('n8n', 'workflow_name', 'deal', '<deal_uuid>', '<trigger_id>', 'success', '{"details": "..."}');
+INSERT INTO integration_log (source, action, entity_type, entity_id, payload, result)
+VALUES ('n8n', 'workflow_name', 'deal', '<deal_id>', '{"trigger_row_id": "<trigger_id>"}'::jsonb, '{"status": "success"}'::jsonb);
 ```
 
 Fields:
 - `source`: Always `'n8n'` for n8n workflows
 - `action`: The workflow name or action taken (e.g., `'new_deal_notification'`)
 - `entity_type`: The table/resource acted on (e.g., `'deal'`, `'contact'`)
-- `entity_id`: UUID of the affected record (cast bigint IDs to text)
-- `trigger_row_id`: TEXT — the row ID that triggered the workflow
-- `result`: `'success'` or `'failure'`
-- `metadata`: JSONB with any additional context
+- `entity_id`: ID of the affected record stored as text (cast bigint IDs to text)
+- `payload`: JSONB with request or trigger context
+- `result`: JSONB result payload such as `{"status": "success"}` or `{"error": "..."}`
 
 ### n8n_workflow_runs Schema
 
 For tracking workflow execution:
 
 ```sql
-INSERT INTO n8n_workflow_runs (workflow_id, workflow_name, status, started_at, completed_at, trigger_type, trigger_row_id, error_message)
-VALUES ('workflow-id', 'New Deal Notification', 'completed', now(), now(), 'row_change', '<id>', NULL);
+INSERT INTO n8n_workflow_runs (workflow_id, workflow_name, status, started_at, completed_at, trigger_table, trigger_row_id, result, error)
+VALUES ('workflow-id', 'New Deal Notification', 'completed', now(), now(), 'deals', '<id>', '{"status": "success"}'::jsonb, NULL);
 ```
 
 ## Sample Workflow: New Deal Notification
@@ -111,7 +110,7 @@ If you need RLS-aware access from n8n, use the Supabase JS client with the servi
 | Issue | Fix |
 |-------|-----|
 | Connection refused | Check SSL is enabled. Verify port is 6543 (pooler), not 5432 (direct). |
-| Authentication failed | Verify the password. The user is `postgres.sstvgrbzecdhysdgoall` (with the project ref prefix). |
+| Authentication failed | Verify the password. The user is `postgres.<YOUR_PROJECT_REF>` (with the project ref prefix). |
 | Permission denied | The postgres role should have full access. Check if the table exists. |
 | Supabase paused | Visit the Supabase dashboard to wake it, or set up the heartbeat workflow. |
 | Timeout on large queries | Use the pooler's session mode (6543). Add `LIMIT` to queries. |

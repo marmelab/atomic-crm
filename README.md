@@ -57,7 +57,7 @@ npm run dev          # Start dev server at http://localhost:5173
 | Variable | Required | Description |
 |----------|----------|-------------|
 | `VITE_SUPABASE_URL` | Yes | Supabase project URL (e.g., `https://<ref>.supabase.co`) |
-| `VITE_SUPABASE_ANON_KEY` | Yes | Supabase anon/public key |
+| `VITE_SB_PUBLISHABLE_KEY` | Yes | Supabase anon/public key |
 | `VITE_IS_DEMO` | No | Set to `true` for demo mode with FakeRest provider |
 | `VITE_INBOUND_EMAIL` | No | Postmark inbound email address for email capture |
 | `VITE_ATTACHMENTS_BUCKET` | No | Storage bucket name (default: `attachments`) |
