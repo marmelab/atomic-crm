@@ -127,6 +127,15 @@ from public.contacts co
     left join public.companies c on co.company_id = c.id
 group by co.id, c.name;
 
+create or replace view public.deals_summary with (security_invoker = on) as
+select
+    d.*,
+    coalesce(string_agg((c.first_name || ' ' || c.last_name), ' '), '') as contact_names,
+    lower(immutable_unaccent(coalesce(string_agg((c.first_name || ' ' || c.last_name), ' '), ''))) as contact_names_search
+from public.deals d
+    left join public.contacts c on c.id = any(d.contact_ids)
+group by d.id;
+
 create or replace view public.init_state with (security_invoker = off) as
 select count(sub.id) as is_initialized
 from (

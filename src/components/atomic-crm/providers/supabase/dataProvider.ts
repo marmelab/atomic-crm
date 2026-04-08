@@ -65,12 +65,15 @@ const getDataProviderWithCustomMethods = () => {
       if (resource === "contacts") {
         return baseDataProvider.getList("contacts_summary", params);
       }
-      if (resource === "deals" && params.filter?.company_type) {
-        const { company_type, ...restFilter } = params.filter;
-        return baseDataProvider.getList("deals", {
-          ...params,
-          filter: { ...restFilter, "company_type@eq": company_type },
-        });
+      if (resource === "deals") {
+        if (params.filter?.company_type) {
+          const { company_type, ...restFilter } = params.filter;
+          return baseDataProvider.getList("deals_summary", {
+            ...params,
+            filter: { ...restFilter, "company_type@eq": company_type },
+          });
+        }
+        return baseDataProvider.getList("deals_summary", params);
       }
       if (resource === "activity_log") {
         const { data, total } = await baseDataProvider.getList(
@@ -98,6 +101,9 @@ const getDataProviderWithCustomMethods = () => {
       }
       if (resource === "contacts") {
         return baseDataProvider.getOne("contacts_summary", params);
+      }
+      if (resource === "deals") {
+        return baseDataProvider.getOne("deals_summary", params);
       }
 
       return baseDataProvider.getOne(resource, params);
@@ -594,7 +600,12 @@ const lifeCycleCallbacks: ResourceCallbacks[] = [
   {
     resource: "deals",
     beforeGetList: async (params) => {
-      return applyFullTextSearch(["name", "category", "description"])(params);
+      return applyFullTextSearch([
+        "name",
+        "category",
+        "description",
+        "contact_names",
+      ])(params);
     },
   },
 ];
@@ -642,6 +653,7 @@ const SEARCHABLE_COLUMNS = new Set([
   // deals
   "category",
   "description",
+  "contact_names",
 ]);
 
 const applyFullTextSearch = (columns: string[]) => (params: GetListParams) => {

@@ -246,6 +246,19 @@ const dataProviderWithCustomMethod: CrmDataProvider = {
   },
 };
 
+async function computeContactNames(
+  contactIds: Identifier[] | undefined,
+  dataProvider: DataProvider,
+): Promise<string> {
+  if (!contactIds || contactIds.length === 0) return "";
+  const { data: contacts } = await dataProvider.getMany("contacts", {
+    ids: contactIds,
+  });
+  return contacts
+    .map((c: Contact) => `${c.first_name} ${c.last_name}`)
+    .join(" ");
+}
+
 async function updateCompany(
   companyId: Identifier,
   updateFn: (company: Company) => Partial<Company>,
@@ -525,13 +538,18 @@ export const dataProvider = withLifecycleCallbacks(
     } satisfies ResourceCallbacks<Company>,
     {
       resource: "deals",
-      beforeCreate: async (params) => {
+      beforeCreate: async (params, dataProvider) => {
+        const contact_names = await computeContactNames(
+          params.data.contact_ids,
+          dataProvider,
+        );
         return {
           ...params,
           data: {
             ...params.data,
             created_at: new Date().toISOString(),
             updated_at: new Date().toISOString(),
+            contact_names,
           },
         };
       },
@@ -542,12 +560,17 @@ export const dataProvider = withLifecycleCallbacks(
 
         return result;
       },
-      beforeUpdate: async (params) => {
+      beforeUpdate: async (params, dataProvider) => {
+        const contact_names = await computeContactNames(
+          params.data.contact_ids,
+          dataProvider,
+        );
         return {
           ...params,
           data: {
             ...params.data,
             updated_at: new Date().toISOString(),
+            contact_names,
           },
         };
       },

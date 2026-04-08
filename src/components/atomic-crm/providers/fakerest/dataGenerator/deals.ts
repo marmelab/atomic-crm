@@ -27,11 +27,17 @@ export const generateDeals = (db: Db): Deal[] => {
       .toISOString()
       .split("T")[0];
 
+    const contact_ids = contacts.map((contact) => contact.id);
+    const contact_names = contacts
+      .map((contact) => `${contact.first_name} ${contact.last_name}`)
+      .join(" ");
+
     return {
       id,
       name: lowercaseName[0].toUpperCase() + lowercaseName.slice(1),
       company_id: company.id,
-      contact_ids: contacts.map((contact) => contact.id),
+      contact_ids,
+      contact_names,
       category: random.arrayElement(defaultDealCategories).value,
       stage: random.arrayElement(defaultDealStages).value,
       description: lorem.paragraphs(datatype.number({ min: 1, max: 4 })),
