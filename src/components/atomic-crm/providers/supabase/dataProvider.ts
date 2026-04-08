@@ -279,6 +279,25 @@ const lifeCycleCallbacks: ResourceCallbacks[] = [
       }
       return data;
     },
+    afterGetOne: async (result) => {
+      if (result.data?.attachments) {
+        result.data.attachments = await signAttachmentUrls(
+          result.data.attachments,
+        );
+      }
+      return result;
+    },
+    afterGetList: async (result) => {
+      result.data = await Promise.all(
+        result.data.map(async (note) => {
+          if (note.attachments) {
+            note.attachments = await signAttachmentUrls(note.attachments);
+          }
+          return note;
+        }),
+      );
+      return result;
+    },
   },
   {
     resource: "deal_notes",
@@ -289,6 +308,25 @@ const lifeCycleCallbacks: ResourceCallbacks[] = [
         );
       }
       return data;
+    },
+    afterGetOne: async (result) => {
+      if (result.data?.attachments) {
+        result.data.attachments = await signAttachmentUrls(
+          result.data.attachments,
+        );
+      }
+      return result;
+    },
+    afterGetList: async (result) => {
+      result.data = await Promise.all(
+        result.data.map(async (note) => {
+          if (note.attachments) {
+            note.attachments = await signAttachmentUrls(note.attachments);
+          }
+          return note;
+        }),
+      );
+      return result;
     },
   },
   {
@@ -400,6 +438,24 @@ const applyFullTextSearch = (columns: string[]) => (params: GetListParams) => {
   };
 };
 
+const signAttachmentUrls = async (
+  attachments: RAFile[] | undefined | null,
+): Promise<RAFile[] | undefined | null> => {
+  if (!attachments || attachments.length === 0) return attachments;
+  return Promise.all(
+    attachments.map(async (fi) => {
+      if (!fi.path) return fi;
+      const { data, error } = await getSupabaseClient()
+        .storage.from(ATTACHMENTS_BUCKET)
+        .createSignedUrl(fi.path, 3600);
+      if (!error && data?.signedUrl) {
+        return { ...fi, src: data.signedUrl };
+      }
+      return fi;
+    }),
+  );
+};
+
 const uploadToBucket = async (fi: RAFile) => {
   if (!fi.src.startsWith("blob:") && !fi.src.startsWith("data:")) {
     // Sign URL check if path exists in the bucket
@@ -447,12 +503,16 @@ const uploadToBucket = async (fi: RAFile) => {
     throw new Error("Failed to upload attachment");
   }
 
-  const { data } = getSupabaseClient()
+  const { data: signedData, error: signError } = await getSupabaseClient()
     .storage.from(ATTACHMENTS_BUCKET)
-    .getPublicUrl(filePath);
+    .createSignedUrl(filePath, 3600); // 1 hour
+
+  if (signError || !signedData?.signedUrl) {
+    throw new Error("Failed to create signed URL for attachment");
+  }
 
   fi.path = filePath;
-  fi.src = data.publicUrl;
+  fi.src = signedData.signedUrl;
 
   // save MIME type
   const mimeType = file.type;
