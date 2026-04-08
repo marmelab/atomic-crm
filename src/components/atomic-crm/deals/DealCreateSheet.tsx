@@ -19,6 +19,7 @@ export const DealCreateSheet = ({
       title={translate("resources.deals.action.new", {
         _: "New Lead",
       })}
+      redirect={false}
       defaultValues={{
         sales_id: identity?.id,
         stage: "lead",

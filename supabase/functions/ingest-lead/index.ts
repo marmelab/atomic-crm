@@ -101,7 +101,8 @@ Deno.serve(async (req: Request) => {
   };
 
   try {
-    // Check idempotency: if key provided and already processed, return existing result
+    // Check idempotency: if key provided and already succeeded, return existing result.
+    // Only matches "create_lead" action (failures use "create_lead_failed").
     if (payload.idempotency_key) {
       const { data: existing } = await supabaseAdmin
         .from("integration_log")
@@ -284,7 +285,7 @@ Deno.serve(async (req: Request) => {
     console.error("Lead ingestion failed:", err);
 
     await logEvent(
-      "ingest-lead", "create_lead", "deal", null,
+      "ingest-lead", "create_lead_failed", "deal", null,
       payload as unknown as Record<string, unknown>,
       { error: String(err) },
       payload.idempotency_key,
