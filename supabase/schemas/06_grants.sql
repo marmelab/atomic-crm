@@ -106,6 +106,27 @@ grant all on table public.favicons_excluded_domains to anon;
 grant all on table public.favicons_excluded_domains to authenticated;
 grant all on table public.favicons_excluded_domains to service_role;
 
+-- Wave 3.1A: Audit & System table grants
+grant all on table public.audit_results to anon;
+grant all on table public.audit_results to authenticated;
+grant all on table public.audit_results to service_role;
+
+grant all on table public.audit_reports to anon;
+grant all on table public.audit_reports to authenticated;
+grant all on table public.audit_reports to service_role;
+
+grant all on table public.n8n_workflow_runs to anon;
+grant all on table public.n8n_workflow_runs to authenticated;
+grant all on table public.n8n_workflow_runs to service_role;
+
+grant all on table public.integration_log to anon;
+grant all on table public.integration_log to authenticated;
+grant all on table public.integration_log to service_role;
+
+grant all on table public.system_settings to anon;
+grant all on table public.system_settings to authenticated;
+grant all on table public.system_settings to service_role;
+
 -- View grants
 grant all on table public.activity_log to anon;
 grant all on table public.activity_log to authenticated;

@@ -243,3 +243,80 @@ create table public.deal_contacts (
 );
 
 create index idx_deal_contacts_contact on public.deal_contacts(contact_id);
+
+--
+-- Wave 3.1A: Audit & System tables
+--
+
+-- Zone 3: Audit Integration
+create table public.audit_results (
+    id uuid primary key default gen_random_uuid(),
+    company_id bigint references public.companies(id) on delete cascade,
+    contact_id bigint references public.contacts(id) on delete set null,
+    business_name text,
+    mode text default 'deep',
+    status text default 'pending',
+    overall_score int,
+    overall_classification text,
+    confidence numeric(3,2),
+    results jsonb default '{}',
+    findings jsonb default '{}',
+    limitations text[],
+    source_file_name text,
+    source_row_count int,
+    created_at timestamptz default now(),
+    updated_at timestamptz default now()
+);
+
+create index idx_audit_results_company on public.audit_results(company_id);
+create index idx_audit_results_status on public.audit_results(status);
+
+create table public.audit_reports (
+    id uuid primary key default gen_random_uuid(),
+    audit_result_id uuid references public.audit_results(id) on delete cascade,
+    report_url text,
+    report_type text default 'interactive',
+    report_data jsonb default '{}',
+    shared_with text[],
+    view_count int default 0,
+    last_viewed_at timestamptz,
+    created_at timestamptz default now()
+);
+
+create index idx_audit_reports_result on public.audit_reports(audit_result_id);
+
+-- Zone 4: System & Orchestration
+create table public.n8n_workflow_runs (
+    id uuid primary key default gen_random_uuid(),
+    workflow_name text not null,
+    workflow_id text,
+    trigger_table text,
+    trigger_row_id text,
+    status text default 'started',
+    result jsonb default '{}',
+    error text,
+    started_at timestamptz default now(),
+    completed_at timestamptz
+);
+
+create index idx_n8n_runs_trigger on public.n8n_workflow_runs(trigger_table, trigger_row_id);
+
+create table public.integration_log (
+    id uuid primary key default gen_random_uuid(),
+    source text not null,
+    action text not null,
+    entity_type text,
+    entity_id text,
+    payload jsonb default '{}',
+    result jsonb default '{}',
+    idempotency_key text,
+    created_at timestamptz default now()
+);
+
+create index idx_integration_log_source on public.integration_log(source, created_at desc);
+
+create table public.system_settings (
+    key text primary key,
+    value jsonb not null,
+    updated_at timestamptz default now()
+);

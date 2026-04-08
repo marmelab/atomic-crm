@@ -94,3 +94,11 @@ create trigger set_companies_updated_at
 create trigger set_contacts_updated_at
     before update on public.contacts
     for each row execute function public.update_updated_at();
+
+create trigger set_audit_results_updated_at
+    before update on public.audit_results
+    for each row execute function public.update_updated_at();
+
+create trigger set_system_settings_updated_at
+    before update on public.system_settings
+    for each row execute function public.update_updated_at();

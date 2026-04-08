@@ -86,3 +86,30 @@ create policy "authenticated_all_contact_tags" on public.contact_tags for all to
 -- Deal Contacts (join table — full access for authenticated)
 alter table public.deal_contacts enable row level security;
 create policy "authenticated_all_deal_contacts" on public.deal_contacts for all to authenticated using (auth.uid() is not null) with check (auth.uid() is not null);
+
+-- Audit Results (full CRUD for authenticated; audit system uses service role)
+alter table public.audit_results enable row level security;
+create policy "authenticated_select_audit_results" on public.audit_results for select to authenticated using (auth.uid() is not null);
+create policy "authenticated_insert_audit_results" on public.audit_results for insert to authenticated with check (auth.uid() is not null);
+create policy "authenticated_update_audit_results" on public.audit_results for update to authenticated using (auth.uid() is not null) with check (auth.uid() is not null);
+create policy "authenticated_delete_audit_results" on public.audit_results for delete to authenticated using (auth.uid() is not null);
+
+-- Audit Reports (full CRUD for authenticated)
+alter table public.audit_reports enable row level security;
+create policy "authenticated_select_audit_reports" on public.audit_reports for select to authenticated using (auth.uid() is not null);
+create policy "authenticated_insert_audit_reports" on public.audit_reports for insert to authenticated with check (auth.uid() is not null);
+create policy "authenticated_update_audit_reports" on public.audit_reports for update to authenticated using (auth.uid() is not null) with check (auth.uid() is not null);
+create policy "authenticated_delete_audit_reports" on public.audit_reports for delete to authenticated using (auth.uid() is not null);
+
+-- n8n Workflow Runs (read-only for authenticated; n8n writes via dedicated role)
+alter table public.n8n_workflow_runs enable row level security;
+create policy "authenticated_select_n8n_workflow_runs" on public.n8n_workflow_runs for select to authenticated using (auth.uid() is not null);
+
+-- Integration Log (read-only for authenticated; written by edge functions/n8n via service role)
+alter table public.integration_log enable row level security;
+create policy "authenticated_select_integration_log" on public.integration_log for select to authenticated using (auth.uid() is not null);
+
+-- System Settings (read = authenticated, write = admin only)
+alter table public.system_settings enable row level security;
+create policy "authenticated_select_system_settings" on public.system_settings for select to authenticated using (auth.uid() is not null);
+create policy "admin_write_system_settings" on public.system_settings for all to authenticated using (public.is_admin()) with check (public.is_admin());
