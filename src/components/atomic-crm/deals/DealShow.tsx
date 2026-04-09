@@ -28,6 +28,7 @@ import { useConfigurationContext } from "../root/ConfigurationContext";
 import type { Deal } from "../types";
 import { ContactList } from "./ContactList";
 import { findDealLabel, formatISODateString } from "./dealUtils";
+import { stageColorMap } from "./stageColors";
 
 export const DealShow = ({ open, id }: { open: boolean; id?: string }) => {
   const redirect = useRedirect();
@@ -135,9 +136,18 @@ const DealShowContent = () => {
               <span className="text-xs text-muted-foreground tracking-wide">
                 {translate("resources.deals.fields.stage")}
               </span>
-              <span className="text-sm">
+              <Badge
+                style={{
+                  backgroundColor:
+                    stageColorMap[record.stage]?.bg ?? "#F5F5F4",
+                  color: stageColorMap[record.stage]?.text ?? "#1A1A2E",
+                  border: `1px solid ${
+                    stageColorMap[record.stage]?.border ?? "#E5E5E3"
+                  }`,
+                }}
+              >
                 {findDealLabel(dealStages, record.stage)}
-              </span>
+              </Badge>
             </div>
           </div>
 

@@ -4,6 +4,7 @@ import { useConfigurationContext } from "../root/ConfigurationContext";
 import type { Deal } from "../types";
 import { findDealLabel } from "./dealUtils";
 import { DealCard } from "./DealCard";
+import { stageColorMap } from "./stageColors";
 
 export const DealColumn = ({
   stage,
@@ -14,10 +15,24 @@ export const DealColumn = ({
 }) => {
   const totalAmount = deals.reduce((sum, deal) => sum + deal.amount, 0);
   const { dealStages, currency } = useConfigurationContext();
+  const colors = stageColorMap[stage] ?? {
+    border: "#E5E5E3",
+    bg: "#F5F5F4",
+    text: "#6B6B80",
+  };
+
   return (
     <div className="flex-1 pb-8">
-      <div className="flex flex-col items-center">
-        <h3 className="text-base font-medium">
+      <div
+        className="flex flex-col items-center"
+        style={{
+          borderTop: `3px solid ${colors.border}`,
+          backgroundColor: colors.bg,
+          borderRadius: "8px 8px 0 0",
+          padding: "8px",
+        }}
+      >
+        <h3 className="text-base font-medium" style={{ color: colors.text }}>
           {findDealLabel(dealStages, stage)}
         </h3>
         <p className="text-sm text-muted-foreground">

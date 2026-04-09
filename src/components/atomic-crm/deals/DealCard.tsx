@@ -8,6 +8,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { CompanyAvatar } from "../companies/CompanyAvatar";
 import { useConfigurationContext } from "../root/ConfigurationContext";
 import type { Deal } from "../types";
+import { stageColorMap } from "./stageColors";
 
 export const DealCard = ({ deal, index }: { deal: Deal; index: number }) => {
   if (!deal) return null;
@@ -31,6 +32,7 @@ export const DealCardContent = ({
   deal: Deal;
 }) => {
   const { dealCategories, currency } = useConfigurationContext();
+  const colors = stageColorMap[deal.stage];
   const redirect = useRedirect();
   const handleClick = () => {
     redirect(`/deals/${deal.id}/show`, undefined, undefined, undefined, {
@@ -53,6 +55,7 @@ export const DealCardContent = ({
               ? "opacity-90 transform rotate-1 shadow-lg"
               : "shadow-sm hover:shadow-md"
           }`}
+          style={{ borderLeft: `3px solid ${colors?.border ?? "#E5E5E3"}` }}
         >
           <CardContent className="px-3 flex flex-col">
             <div className="flex-1 flex">

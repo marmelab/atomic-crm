@@ -1,11 +1,13 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 @import "@fontsource-variable/inter";
+@import "@fontsource-variable/manrope";
 
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
   --font-sans: "Inter Variable", ui-sans-serif, system-ui, sans-serif;
+  --font-heading: "Manrope Variable", ui-sans-serif, system-ui, sans-serif;
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
@@ -51,7 +53,7 @@
   --card-foreground: #1A1A2E;
   --popover: #FFFFFF;
   --popover-foreground: #1A1A2E;
-  --primary: #4AC1E0;
+  --primary: #4DC8E8;
   --primary-foreground: #FFFFFF;
   --secondary: #F5F5F4;
   --secondary-foreground: #1A1A2E;
@@ -62,20 +64,20 @@
   --destructive: #EF4444;
   --border: #E5E5E3;
   --input: #E5E5E3;
-  --ring: #4AC1E0;
-  --chart-1: #4AC1E0;
+  --ring: #4DC8E8;
+  --chart-1: #4DC8E8;
   --chart-2: #22C55E;
   --chart-3: #F59E0B;
   --chart-4: #8B5CF6;
   --chart-5: #EF4444;
   --sidebar: #1A1A2E;
   --sidebar-foreground: #E2E2E8;
-  --sidebar-primary: #4AC1E0;
+  --sidebar-primary: #4DC8E8;
   --sidebar-primary-foreground: #FFFFFF;
-  --sidebar-accent: rgba(74, 193, 224, 0.15);
-  --sidebar-accent-foreground: #4AC1E0;
+  --sidebar-accent: rgba(77, 200, 232, 0.15);
+  --sidebar-accent-foreground: #4DC8E8;
   --sidebar-border: rgba(255, 255, 255, 0.08);
-  --sidebar-ring: #4AC1E0;
+  --sidebar-ring: #4DC8E8;
   --avatar-0: oklch(0.85 0.08 240);
   --avatar-1: oklch(0.88 0.1 340);
   --avatar-2: oklch(0.85 0.07 180);
@@ -95,7 +97,7 @@
   --card-foreground: #F5F5F4;
   --popover: #1A1A2E;
   --popover-foreground: #F5F5F4;
-  --primary: #4AC1E0;
+  --primary: #4DC8E8;
   --primary-foreground: #FFFFFF;
   --secondary: #2A2A44;
   --secondary-foreground: #F5F5F4;
@@ -106,20 +108,20 @@
   --destructive: #EF4444;
   --border: rgba(255, 255, 255, 0.15);
   --input: rgba(255, 255, 255, 0.15);
-  --ring: #4AC1E0;
-  --chart-1: #4AC1E0;
+  --ring: #4DC8E8;
+  --chart-1: #4DC8E8;
   --chart-2: #22C55E;
   --chart-3: #F59E0B;
   --chart-4: #8B5CF6;
   --chart-5: #EF4444;
   --sidebar: #121225;
   --sidebar-foreground: #F5F5F4;
-  --sidebar-primary: #4AC1E0;
+  --sidebar-primary: #4DC8E8;
   --sidebar-primary-foreground: #F5F5F4;
   --sidebar-accent: #2A2A44;
   --sidebar-accent-foreground: #F5F5F4;
   --sidebar-border: rgba(255, 255, 255, 0.10);
-  --sidebar-ring: #4AC1E0;
+  --sidebar-ring: #4DC8E8;
   --avatar-0: oklch(0.35 0.12 240);
   --avatar-1: oklch(0.38 0.14 340);
   --avatar-2: oklch(0.35 0.11 180);
@@ -185,4 +187,9 @@ input[type="time"] {
 
 body {
   font-family: "Inter Variable", ui-sans-serif, system-ui, sans-serif;
+}
+
+h1, h2, h3, h4, h5, h6,
+.font-heading {
+  font-family: "Manrope Variable", ui-sans-serif, system-ui, sans-serif;
 }

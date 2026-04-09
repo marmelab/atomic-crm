@@ -27,6 +27,7 @@
   },
   "dependencies": {
     "@fontsource-variable/inter": "^5.2.8",
+    "@fontsource-variable/manrope": "^5.2.8",
     "@hello-pangea/dnd": "^18.0.1",
     "@nivo/bar": "^0.99.0",
     "@radix-ui/react-accordion": "^1.2.12",
