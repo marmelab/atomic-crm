@@ -170,16 +170,13 @@ const ContactItemContent = ({
           )}
         </div>
         {contact.last_seen && (
-          <div className="text-right ml-4">
-            <div
-              className="text-sm text-muted-foreground"
-              title={contact.last_seen}
-            >
+          <div className="flex flex-col items-end gap-1 ml-4">
+            <div className="text-sm text-muted-foreground" title={contact.last_seen}>
               {translate("crm.common.last_activity_with_date", {
                 date: lastActivity,
-              })}{" "}
-              <Status status={contact.status} />
+              })}
             </div>
+            <Status status={contact.status} showLabel />
           </div>
         )}
       </Link>

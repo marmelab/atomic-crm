@@ -13,7 +13,13 @@ export function AsideSection({ title, children, noGap }: AsideSectionProps) {
   const isMobile = useIsMobile();
   return (
     <div className="mb-6 text-sm">
-      <h3 className={isMobile ? "text-lg font-semibold" : "font-medium pb-1"}>
+      <h3
+        className={
+          isMobile
+            ? "text-lg font-semibold"
+            : "font-heading font-semibold text-sm uppercase tracking-wider text-muted-foreground pb-1"
+        }
+      >
         {title}
       </h3>
       <Separator />

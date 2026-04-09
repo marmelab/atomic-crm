@@ -33,7 +33,7 @@ export const CompanyCard = (props: { record?: Company }) => {
       })}
       className="no-underline"
     >
-      <Card className="h-[200px] flex flex-col justify-between p-4 hover:bg-muted">
+      <Card className="h-[200px] flex flex-col justify-between p-4 hover:bg-muted border-l-3 border-l-primary">
         <div className="flex flex-col items-center gap-1">
           <CompanyAvatar />
           <div className="text-center mt-1">
@@ -50,7 +50,7 @@ export const CompanyCard = (props: { record?: Company }) => {
             ) : null}
           </div>
           {record.nb_deals ? (
-            <div className="flex items-center ml-2 gap-0.5">
+            <div className="flex items-center ml-2 gap-0.5 bg-muted px-2 py-0.5 rounded-full">
               <Handshake className="w-4 h-4 text-muted-foreground" />
               <span className="text-sm font-medium">{record.nb_deals}</span>
               <span className="text-xs text-muted-foreground">
