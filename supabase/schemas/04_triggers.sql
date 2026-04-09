@@ -28,6 +28,14 @@ create or replace trigger set_task_sales_id_trigger
     before insert on public.tasks
     for each row execute function public.set_sales_id_default();
 
+create or replace trigger set_product_sales_id_trigger
+    before insert on public.products
+    for each row execute function public.set_sales_id_default();
+
+create or replace trigger set_service_contract_sales_id_trigger
+    before insert on public.service_contracts
+    for each row execute function public.set_sales_id_default();
+
 -- Auto-fetch company logo from website favicon on save
 create or replace trigger company_saved
     before insert or update on public.companies

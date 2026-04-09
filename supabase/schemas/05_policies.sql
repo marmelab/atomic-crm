@@ -67,3 +67,31 @@ create policy "Enable update for admins" on public.configuration for update to a
 
 -- Favicons excluded domains
 create policy "Enable access for authenticated users only" on public.favicons_excluded_domains to authenticated using (true) with check (true);
+
+-- Products
+alter table public.products enable row level security;
+create policy "Enable read access for authenticated users" on public.products for select to authenticated using (true);
+create policy "Enable insert for authenticated users only" on public.products for insert to authenticated with check (true);
+create policy "Enable update for authenticated users only" on public.products for update to authenticated using (true) with check (true);
+create policy "Products Delete Policy" on public.products for delete to authenticated using (true);
+
+-- Deal Products
+alter table public.deal_products enable row level security;
+create policy "Enable read access for authenticated users" on public.deal_products for select to authenticated using (true);
+create policy "Enable insert for authenticated users only" on public.deal_products for insert to authenticated with check (true);
+create policy "Enable update for authenticated users only" on public.deal_products for update to authenticated using (true) with check (true);
+create policy "Deal Products Delete Policy" on public.deal_products for delete to authenticated using (true);
+
+-- Company Machines
+alter table public.company_machines enable row level security;
+create policy "Enable read access for authenticated users" on public.company_machines for select to authenticated using (true);
+create policy "Enable insert for authenticated users only" on public.company_machines for insert to authenticated with check (true);
+create policy "Enable update for authenticated users only" on public.company_machines for update to authenticated using (true) with check (true);
+create policy "Company Machines Delete Policy" on public.company_machines for delete to authenticated using (true);
+
+-- Service Contracts
+alter table public.service_contracts enable row level security;
+create policy "Enable read access for authenticated users" on public.service_contracts for select to authenticated using (true);
+create policy "Enable insert for authenticated users only" on public.service_contracts for insert to authenticated with check (true);
+create policy "Enable update for authenticated users only" on public.service_contracts for update to authenticated using (true) with check (true);
+create policy "Service Contracts Delete Policy" on public.service_contracts for delete to authenticated using (true);

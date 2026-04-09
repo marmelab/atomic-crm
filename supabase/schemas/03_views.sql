@@ -132,3 +132,24 @@ select count(sub.id) as is_initialized
 from (
     select sales.id from public.sales limit 1
 ) sub;
+
+create or replace view public.service_contracts_with_machines as
+select
+    sc.*,
+    coalesce(
+        (
+            select json_agg(json_build_object(
+                'id', cm.id,
+                'product_id', cm.product_id,
+                'serial_number', cm.serial_number,
+                'purchase_date', cm.purchase_date,
+                'product_name', p.name,
+                'product_reference', p.reference
+            ))
+            from public.company_machines cm
+            join public.products p on p.id = cm.product_id
+            where cm.id = any(sc.machine_ids)
+        ),
+        '[]'::json
+    ) as machines
+from public.service_contracts sc;
