@@ -3,7 +3,7 @@ import path from "node:path";
 
 const config: StorybookConfig = {
   stories: ["../src/**/*.stories.@(ts|tsx)"],
-  addons: [],
+  addons: ["@storybook/addon-mcp"],
   framework: {
     name: "@storybook/react-vite",
     options: {},
