@@ -3,41 +3,36 @@ import type { ConfigurationContextValue } from "./ConfigurationContext";
 export const defaultDarkModeLogo = "./logos/logo_atomic_crm_dark.svg";
 export const defaultLightModeLogo = "./logos/logo_atomic_crm_light.svg";
 
-export const defaultCurrency = "USD";
+export const defaultCurrency = "EUR";
 
-export const defaultTitle = "Atomic CRM";
+export const defaultTitle = "Tondix CRM";
 
 export const defaultCompanySectors = [
-  { value: "communication-services", label: "Communication Services" },
-  { value: "consumer-discretionary", label: "Consumer Discretionary" },
-  { value: "consumer-staples", label: "Consumer Staples" },
-  { value: "energy", label: "Energy" },
-  { value: "financials", label: "Financials" },
-  { value: "health-care", label: "Health Care" },
-  { value: "industrials", label: "Industrials" },
-  { value: "information-technology", label: "Information Technology" },
-  { value: "materials", label: "Materials" },
-  { value: "real-estate", label: "Real Estate" },
-  { value: "utilities", label: "Utilities" },
+  { value: "golf", label: "Golf" },
+  { value: "collectivite", label: "Collectivité" },
+  { value: "paysagiste", label: "Paysagiste" },
+  { value: "camping-hotellerie", label: "Camping/Hôtellerie" },
+  { value: "sports-loisirs", label: "Sports & Loisirs" },
+  { value: "syndic-immobilier", label: "Syndic/Immobilier" },
 ];
 
 export const defaultDealStages = [
-  { value: "opportunity", label: "Opportunity" },
-  { value: "proposal-sent", label: "Proposal Sent" },
-  { value: "in-negociation", label: "In Negotiation" },
-  { value: "won", label: "Won" },
-  { value: "lost", label: "Lost" },
-  { value: "delayed", label: "Delayed" },
+  { value: "prospection", label: "Prospection" },
+  { value: "demonstration", label: "Démonstration" },
+  { value: "devis-envoye", label: "Devis envoyé" },
+  { value: "negociation", label: "Négociation" },
+  { value: "gagne", label: "Gagné" },
+  { value: "perdu", label: "Perdu" },
 ];
 
-export const defaultDealPipelineStatuses = ["won"];
+export const defaultDealPipelineStatuses = ["gagne"];
 
 export const defaultDealCategories = [
-  { value: "other", label: "Other" },
-  { value: "copywriting", label: "Copywriting" },
-  { value: "print-project", label: "Print project" },
-  { value: "ui-design", label: "UI Design" },
-  { value: "website-design", label: "Website design" },
+  { value: "tondeuse-thermique", label: "Tondeuse thermique" },
+  { value: "tondeuse-electrique", label: "électrique" },
+  { value: "robot-tondeuse", label: "Robot tondeuse" },
+  { value: "autoportee", label: "Autoportée" },
+  { value: "accessoires", label: "Accessoires" },
 ];
 
 export const defaultNoteStatuses = [
@@ -48,15 +43,13 @@ export const defaultNoteStatuses = [
 ];
 
 export const defaultTaskTypes = [
-  { value: "none", label: "None" },
+  { value: "appel", label: "Appel" },
+  { value: "demonstration", label: "Démonstration" },
   { value: "email", label: "Email" },
-  { value: "demo", label: "Demo" },
-  { value: "lunch", label: "Lunch" },
-  { value: "meeting", label: "Meeting" },
-  { value: "follow-up", label: "Follow-up" },
-  { value: "thank-you", label: "Thank you" },
-  { value: "ship", label: "Ship" },
-  { value: "call", label: "Call" },
+  { value: "devis", label: "Devis" },
+  { value: "reunion", label: "Réunion" },
+  { value: "relance", label: "Relance" },
+  { value: "renouvellement-contrat", label: "Renouvellement contrat" },
 ];
 
 export const defaultConfiguration: ConfigurationContextValue = {
