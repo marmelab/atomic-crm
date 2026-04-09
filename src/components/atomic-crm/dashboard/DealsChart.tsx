@@ -8,11 +8,11 @@ import { findDealLabel } from "../deals/dealUtils";
 import { useConfigurationContext } from "../root/ConfigurationContext";
 import type { Deal } from "../types";
 
-const multiplier = {
-  opportunity: 0.2,
-  "proposal-sent": 0.5,
-  "in-negociation": 0.8,
-  delayed: 0.3,
+const multiplier: Record<string, number> = {
+  lead: 0.2,
+  qualified: 0.4,
+  "audit-scheduled": 0.6,
+  "proposal-sent": 0.8,
 };
 
 const threeMonthsAgo = new Date(
@@ -63,8 +63,7 @@ export const DealsChart = memo(() => {
         pending: dealsByMonth[month]
           .filter((deal: Deal) => !["won", "lost"].includes(deal.stage))
           .reduce((acc: number, deal: Deal) => {
-            // @ts-expect-error - multiplier type issue
-            acc += deal.amount * multiplier[deal.stage];
+            acc += deal.amount * (multiplier[deal.stage] ?? 0);
             return acc;
           }, 0),
         lost: dealsByMonth[month]
@@ -103,7 +102,7 @@ export const DealsChart = memo(() => {
           data={months}
           indexBy="date"
           keys={["won", "pending", "lost"]}
-          colors={["#61cdbb", "#97e3d5", "#e25c3b"]}
+          colors={["#4AC1E0", "#22C55E", "#EF4444"]}
           margin={{ top: 30, right: 50, bottom: 30, left: 0 }}
           padding={0.3}
           valueScale={{
@@ -181,7 +180,7 @@ export const DealsChart = memo(() => {
                 axis: "y",
                 value: 0,
                 lineStyle: { strokeOpacity: 0 },
-                textStyle: { fill: "#2ebca6" },
+                textStyle: { fill: "#4AC1E0" },
                 legend: wonLabel,
                 legendPosition: "top-left",
                 legendOrientation: "vertical",
@@ -190,10 +189,10 @@ export const DealsChart = memo(() => {
                 axis: "y",
                 value: 0,
                 lineStyle: {
-                  stroke: "#f47560",
+                  stroke: "#EF4444",
                   strokeWidth: 1,
                 },
-                textStyle: { fill: "#e25c3b" },
+                textStyle: { fill: "#EF4444" },
                 legend: lostLabel,
                 legendPosition: "bottom-left",
                 legendOrientation: "vertical",

@@ -1,4 +1,5 @@
 import { useGetList } from "ra-core";
+import { Card } from "@/components/ui/card";
 
 import type { Contact, ContactNote } from "../types";
 import { DashboardActivityLog } from "./DashboardActivityLog";
@@ -6,7 +7,7 @@ import { DashboardStepper } from "./DashboardStepper";
 import { DealsChart } from "./DealsChart";
 import { DealsByTradeType } from "./DealsByTradeType";
 import { HotContacts } from "./HotContacts";
-import { LeadSourcesBreakdown } from "./LeadSourcesBreakdown";
+import { KPICards } from "./KPICards";
 import { TasksList } from "./TasksList";
 import { Welcome } from "./Welcome";
 
@@ -46,24 +47,29 @@ export const Dashboard = () => {
   }
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-12 gap-6 mt-1">
-      <div className="md:col-span-3">
-        <div className="flex flex-col gap-4">
-          {import.meta.env.VITE_IS_DEMO === "true" ? <Welcome /> : null}
-          <HotContacts />
-          <LeadSourcesBreakdown />
+    <div className="mt-1 space-y-6">
+      {import.meta.env.VITE_IS_DEMO === "true" ? <Welcome /> : null}
+      <KPICards />
+      <div className="grid grid-cols-1 gap-6 md:grid-cols-12">
+        <div className="md:col-span-8">
+          {totalDeal ? (
+            <Card className="p-4">
+              <DealsChart />
+            </Card>
+          ) : null}
+        </div>
+        <div className="md:col-span-4">
+          <DealsByTradeType />
         </div>
       </div>
-      <div className="md:col-span-6">
-        <div className="flex flex-col gap-6">
-          {totalDeal ? <DealsChart /> : null}
-          <DealsByTradeType />
+      <div className="grid grid-cols-1 gap-6 md:grid-cols-12">
+        <div className="md:col-span-8">
           <DashboardActivityLog />
         </div>
-      </div>
-
-      <div className="md:col-span-3">
-        <TasksList />
+        <div className="flex flex-col gap-6 md:col-span-4">
+          <TasksList />
+          <HotContacts />
+        </div>
       </div>
     </div>
   );
