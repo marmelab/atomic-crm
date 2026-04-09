@@ -101,6 +101,9 @@ grant all on table public.companies_summary to service_role;
 grant all on table public.contacts_summary to authenticated;
 grant all on table public.contacts_summary to service_role;
 
+grant all on table public.deals_summary to authenticated;
+grant all on table public.deals_summary to service_role;
+
 grant all on table public.init_state to authenticated;
 grant all on table public.init_state to service_role;
 
