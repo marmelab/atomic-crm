@@ -226,3 +226,56 @@ export interface ContactGender {
   label: string;
   icon: ComponentType<{ className?: string }>;
 }
+
+export type Product = {
+  id: number;
+  created_at: string;
+  reference: string;
+  name: string;
+  type:
+    | "thermique"
+    | "electrique"
+    | "robot"
+    | "autoportee"
+    | "accessoires"
+    | string;
+  price: number | null;
+  description: string | null;
+  active: boolean;
+  sales_id: number | null;
+};
+
+export type DealProduct = {
+  id: number;
+  deal_id: number;
+  product_id: number;
+  quantity: number;
+  unit_price: number | null;
+};
+
+export type CompanyMachine = {
+  id: number;
+  created_at: string;
+  company_id: number;
+  product_id: number;
+  serial_number: string | null;
+  purchase_date: string | null;
+  deal_id: number | null;
+  notes: string | null;
+};
+
+export type ServiceContract = {
+  id: number;
+  created_at: string;
+  name: string;
+  company_id: number | null;
+  contact_ids: number[];
+  deal_id: number | null;
+  machine_ids: number[];
+  start_date: string;
+  renewal_date: string;
+  amount: number | null;
+  notes: string | null;
+  status: "actif" | "a-renouveler" | "resilier";
+  sales_id: number | null;
+};
