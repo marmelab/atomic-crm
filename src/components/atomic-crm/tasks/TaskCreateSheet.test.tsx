@@ -95,7 +95,7 @@ describe("TaskCreateSheet", () => {
     expect(createdTask).toMatchObject({
       contact_id: 2,
       text: "Follow up about onboarding",
-      type: "call",
+      type: "appel",
     });
     expect(tasks.data).toHaveLength(2);
 
