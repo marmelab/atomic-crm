@@ -2,6 +2,7 @@ import type { LucideIcon } from "lucide-react";
 import {
   Building2,
   Cable,
+  CheckSquare,
   Handshake,
   House,
   Settings,
@@ -89,6 +90,12 @@ export function AppSidebar() {
                 icon={Building2}
                 label={translate("resources.companies.name", { smart_count: 2, _: "Companies" })}
                 to="/companies"
+                onClick={handleClick}
+              />
+              <NavMenuItem
+                icon={CheckSquare}
+                label={translate("resources.tasks.name", { smart_count: 2, _: "Tasks" })}
+                to="/tasks"
                 onClick={handleClick}
               />
             </SidebarMenu>

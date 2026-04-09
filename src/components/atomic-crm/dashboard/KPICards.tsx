@@ -23,13 +23,13 @@ export const KPICards = () => {
   const { identity, isPending: identityPending } = useGetIdentity();
 
   const { data: deals, isPending: dealsPending } = useGetList<Deal>("deals", {
-    pagination: { page: 1, perPage: 500 },
+    pagination: { page: 1, perPage: 10000 },
   });
 
   const { data: tasks, isPending: tasksPending } = useGetList<Task>(
     "tasks",
     {
-      pagination: { page: 1, perPage: 1000 },
+      pagination: { page: 1, perPage: 10000 },
       sort: { field: "due_date", order: "ASC" },
       filter: { sales_id: identity?.id },
     },
