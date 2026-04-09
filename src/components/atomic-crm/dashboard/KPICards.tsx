@@ -1,5 +1,6 @@
 import { AlertCircle, DollarSign, TrendingUp, Trophy } from "lucide-react";
 import { useGetIdentity, useGetList } from "ra-core";
+import { Link } from "react-router";
 import { Card } from "@/components/ui/card";
 
 import { useConfigurationContext } from "../root/ConfigurationContext";
@@ -70,50 +71,64 @@ export const KPICards = () => {
 
   return (
     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-      <Card className="gap-3 p-4">
-        <DollarSign className="h-5 w-5 text-muted-foreground" />
-        <div className="space-y-1">
-          <p className="text-sm font-medium text-muted-foreground">
-            Pipeline Value
-          </p>
-          <p className="text-2xl font-bold">
-            {formatCurrency(pipelineValue, currency)}
-          </p>
-        </div>
-      </Card>
-      <Card className="gap-3 p-4">
-        <Trophy className="h-5 w-5 text-muted-foreground" />
-        <div className="space-y-1">
-          <p className="text-sm font-medium text-muted-foreground">
-            Deals Won
-          </p>
-          <p className="text-2xl font-bold">{dealsWon}</p>
-        </div>
-      </Card>
-      <Card className="gap-3 p-4">
-        <TrendingUp className="h-5 w-5 text-muted-foreground" />
-        <div className="space-y-1">
-          <p className="text-sm font-medium text-muted-foreground">Total Won</p>
-          <p className="text-2xl font-bold">
-            {formatCurrency(totalWon, currency)}
-          </p>
-        </div>
-      </Card>
-      <Card className="gap-3 p-4">
-        <AlertCircle className="h-5 w-5 text-muted-foreground" />
-        <div className="space-y-1">
-          <p className="text-sm font-medium text-muted-foreground">
-            Overdue Tasks
-          </p>
-          <p
-            className={`text-2xl font-bold ${
-              overdueTasks > 0 ? "text-destructive" : ""
-            }`}
-          >
-            {overdueTasks}
-          </p>
-        </div>
-      </Card>
+      <Link to="/deals" className="transition-opacity hover:opacity-80">
+        <Card className="gap-3 p-4 cursor-pointer">
+          <DollarSign className="h-5 w-5 text-muted-foreground" />
+          <div className="space-y-1">
+            <p className="text-sm font-medium text-muted-foreground">
+              Pipeline Value
+            </p>
+            <p className="text-2xl font-bold">
+              {formatCurrency(pipelineValue, currency)}
+            </p>
+          </div>
+        </Card>
+      </Link>
+      <Link
+        to={`/deals?filter=${encodeURIComponent(JSON.stringify({ stage: "won" }))}`}
+        className="transition-opacity hover:opacity-80"
+      >
+        <Card className="gap-3 p-4 cursor-pointer">
+          <Trophy className="h-5 w-5 text-muted-foreground" />
+          <div className="space-y-1">
+            <p className="text-sm font-medium text-muted-foreground">
+              Deals Won
+            </p>
+            <p className="text-2xl font-bold">{dealsWon}</p>
+          </div>
+        </Card>
+      </Link>
+      <Link
+        to={`/deals?filter=${encodeURIComponent(JSON.stringify({ stage: "won" }))}`}
+        className="transition-opacity hover:opacity-80"
+      >
+        <Card className="gap-3 p-4 cursor-pointer">
+          <TrendingUp className="h-5 w-5 text-muted-foreground" />
+          <div className="space-y-1">
+            <p className="text-sm font-medium text-muted-foreground">Total Won</p>
+            <p className="text-2xl font-bold">
+              {formatCurrency(totalWon, currency)}
+            </p>
+          </div>
+        </Card>
+      </Link>
+      <Link to="/tasks" className="transition-opacity hover:opacity-80">
+        <Card className="gap-3 p-4 cursor-pointer">
+          <AlertCircle className="h-5 w-5 text-muted-foreground" />
+          <div className="space-y-1">
+            <p className="text-sm font-medium text-muted-foreground">
+              Overdue Tasks
+            </p>
+            <p
+              className={`text-2xl font-bold ${
+                overdueTasks > 0 ? "text-destructive" : ""
+              }`}
+            >
+              {overdueTasks}
+            </p>
+          </div>
+        </Card>
+      </Link>
     </div>
   );
 };

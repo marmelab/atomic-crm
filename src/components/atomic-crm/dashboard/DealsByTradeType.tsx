@@ -1,6 +1,7 @@
 import { Briefcase } from "lucide-react";
 import { useGetList } from "ra-core";
 import { memo, useMemo } from "react";
+import { Link } from "react-router";
 import { useConfigurationContext } from "../root/ConfigurationContext";
 import type { Deal } from "../types";
 
@@ -35,26 +36,26 @@ export const DealsByTradeType = memo(() => {
   const grouped = useMemo(() => {
     if (!deals || !companies || !tradeTypes) return [];
 
-    const companyTradeMap = new Map<number, string>();
+    const companyTradeMap = new Map<number, { name: string; id: string }>();
     for (const c of companies) {
       if (c.trade_type_id) {
         const tt = tradeTypes.find((t) => t.id === c.trade_type_id);
-        if (tt) companyTradeMap.set(c.id as number, tt.name);
+        if (tt) companyTradeMap.set(c.id as number, { name: tt.name, id: tt.id });
       }
     }
 
-    const counts: Record<string, { count: number; amount: number }> = {};
+    const counts: Record<string, { count: number; amount: number; tradeTypeId: string | null }> = {};
     for (const deal of deals) {
-      const tradeName =
-        companyTradeMap.get(deal.company_id as number) ?? "Unassigned";
-      if (!counts[tradeName]) counts[tradeName] = { count: 0, amount: 0 };
+      const trade = companyTradeMap.get(deal.company_id as number);
+      const tradeName = trade?.name ?? "Unassigned";
+      if (!counts[tradeName]) counts[tradeName] = { count: 0, amount: 0, tradeTypeId: trade?.id ?? null };
       counts[tradeName].count++;
       counts[tradeName].amount += deal.amount ?? 0;
     }
 
     return Object.entries(counts)
       .sort((a, b) => b[1].count - a[1].count)
-      .map(([name, { count, amount }]) => ({ name, count, amount }));
+      .map(([name, { count, amount, tradeTypeId }]) => ({ name, count, amount, tradeTypeId }));
   }, [deals, companies, tradeTypes]);
 
   if (dealsPending || companiesPending || tradeTypesPending) return null;
@@ -71,28 +72,41 @@ export const DealsByTradeType = memo(() => {
         </h2>
       </div>
       <div className="space-y-2">
-        {grouped.map(({ name, count, amount }) => (
-          <div
-            key={name}
-            className="flex items-center justify-between py-2 px-3 rounded-md bg-muted/50"
-          >
-            <span className="text-sm font-medium">{name}</span>
-            <div className="flex items-center gap-3">
-              <span className="text-xs text-muted-foreground">
-                {count} {count === 1 ? "deal" : "deals"}
-              </span>
-              {amount > 0 && (
-                <span className="text-sm font-semibold tabular-nums">
-                  {amount.toLocaleString(undefined, {
-                    style: "currency",
-                    currency,
-                    maximumFractionDigits: 0,
-                  })}
+        {grouped.map(({ name, count, amount, tradeTypeId }) => {
+          const content = (
+            <div
+              className="flex items-center justify-between py-2 px-3 rounded-md bg-muted/50"
+            >
+              <span className="text-sm font-medium">{name}</span>
+              <div className="flex items-center gap-3">
+                <span className="text-xs text-muted-foreground">
+                  {count} {count === 1 ? "deal" : "deals"}
                 </span>
-              )}
+                {amount > 0 && (
+                  <span className="text-sm font-semibold tabular-nums">
+                    {amount.toLocaleString(undefined, {
+                      style: "currency",
+                      currency,
+                      maximumFractionDigits: 0,
+                    })}
+                  </span>
+                )}
+              </div>
             </div>
-          </div>
-        ))}
+          );
+
+          return tradeTypeId ? (
+            <Link
+              key={name}
+              to={`/companies?filter=${encodeURIComponent(JSON.stringify({ trade_type_id: tradeTypeId }))}`}
+              className="block transition-opacity hover:opacity-80"
+            >
+              {content}
+            </Link>
+          ) : (
+            <div key={name}>{content}</div>
+          );
+        })}
       </div>
     </div>
   );

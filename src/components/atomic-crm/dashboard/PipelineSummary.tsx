@@ -1,5 +1,6 @@
 import { useGetList } from "ra-core";
 import { memo, useMemo } from "react";
+import { Link } from "react-router";
 import { useConfigurationContext } from "../root/ConfigurationContext";
 import type { Deal } from "../types";
 
@@ -48,15 +49,18 @@ export const PipelineSummary = memo(() => {
       </div>
       <div className="grid grid-cols-3 gap-2">
         {summary.map(({ label, value, count }) => (
-          <div
+          <Link
             key={value}
-            className="flex flex-col items-center p-2 rounded-md bg-muted/50"
+            to={`/deals?filter=${encodeURIComponent(JSON.stringify({ stage: value }))}`}
+            className="transition-opacity hover:opacity-80"
           >
-            <span className="text-lg font-bold">{count}</span>
-            <span className="text-xs text-muted-foreground text-center leading-tight">
-              {label}
-            </span>
-          </div>
+            <div className="flex flex-col items-center p-2 rounded-md bg-muted/50 cursor-pointer">
+              <span className="text-lg font-bold">{count}</span>
+              <span className="text-xs text-muted-foreground text-center leading-tight">
+                {label}
+              </span>
+            </div>
+          </Link>
         ))}
       </div>
     </div>
