@@ -6,7 +6,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
-import { Home, ListTodo, Plus, Settings, Users } from "lucide-react";
+import { Home, Inbox, ListTodo, Plus, Users } from "lucide-react";
 import { useTranslate } from "ra-core";
 import { Link, matchPath, useLocation, useMatch } from "react-router";
 import { ContactCreateSheet } from "../contacts/ContactCreateSheet";
@@ -30,6 +30,8 @@ export const MobileNavigation = () => {
     currentPath = "/tasks";
   } else if (matchPath("/deals/*", location.pathname)) {
     currentPath = "/deals";
+  } else if (matchPath("/intake_leads/*", location.pathname)) {
+    currentPath = "/intake_leads";
   } else {
     currentPath = false;
   }
@@ -76,7 +78,15 @@ export const MobileNavigation = () => {
             label={translate("resources.tasks.name", { smart_count: 2 })}
             isActive={currentPath === "/tasks"}
           />
-          <SettingsButton />
+          <NavigationButton
+            href="/intake_leads"
+            Icon={Inbox}
+            label={translate("resources.intake_leads.name", {
+              smart_count: 2,
+              _: "Intake",
+            })}
+            isActive={currentPath === "/intake_leads"}
+          />
         </>
       </div>
     </nav>
@@ -187,17 +197,3 @@ const CreateButton = () => {
   );
 };
 
-const SettingsButton = () => {
-  const translate = useTranslate();
-  const location = useLocation();
-  const isActive = !!matchPath("/settings", location.pathname);
-
-  return (
-    <NavigationButton
-      href="/settings"
-      Icon={Settings}
-      label={translate("crm.settings.title")}
-      isActive={isActive}
-    />
-  );
-};

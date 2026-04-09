@@ -225,6 +225,22 @@ const getDataProviderWithCustomMethods = () => {
 
       return data;
     },
+    async promoteIntakeLead(intakeLeadId: Identifier, createDeal = true) {
+      const { data, error } = await getSupabaseClient().functions.invoke(
+        "promote-intake-lead",
+        {
+          method: "POST",
+          body: { intake_lead_id: intakeLeadId, create_deal: createDeal },
+        },
+      );
+
+      if (error) {
+        console.error("promote-intake-lead.error", error);
+        throw new Error("Failed to promote intake lead");
+      }
+
+      return data;
+    },
     async getConfiguration(): Promise<ConfigurationContextValue> {
       const { data } = await baseDataProvider.getOne("configuration", {
         id: 1,

@@ -351,6 +351,36 @@ export const englishCrmMessages = {
       regarding_contact: "(Re: %{name})",
       updated: "Task updated",
     },
+    intake_leads: {
+      name: "Intake |||| Intake",
+      fields: {
+        business_name: "Business Name",
+        phone: "Phone",
+        email: "Email",
+        website: "Website",
+        address: "Address",
+        city: "City",
+        region: "Region",
+        trade_type_id: "Trade Type",
+        enrichment_summary: "AI Enrichment",
+        outreach_draft: "Outreach Draft",
+        source: "Source",
+        status: "Status",
+        rejection_reason: "Rejection Reason",
+        notes: "Notes",
+        sales_id: "Assigned To",
+        created_at: "Created",
+        updated_at: "Updated",
+      },
+      empty: {
+        title: "No intake leads yet",
+        description: "New leads will appear here as they arrive.",
+      },
+      action: {
+        promote: "Promote",
+        reject: "Reject",
+      },
+    },
     tags: {
       name: "Tag |||| Tags",
       action: {

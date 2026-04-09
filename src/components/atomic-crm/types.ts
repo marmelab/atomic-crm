@@ -162,6 +162,29 @@ export type Task = {
   sales_id?: Identifier;
 } & Pick<RaRecord, "id">;
 
+export type IntakeLead = {
+  business_name: string;
+  phone: string | null;
+  email: string | null;
+  website: string | null;
+  address: string | null;
+  city: string | null;
+  region: string | null;
+  trade_type_id: string | null;
+  enrichment_summary: string | null;
+  outreach_draft: string | null;
+  source: string;
+  status: string;
+  rejection_reason: string | null;
+  promoted_contact_id: number | null;
+  notes: string | null;
+  sales_id: Identifier | null;
+  metadata: Record<string, unknown>;
+  idempotency_key: string | null;
+  created_at: string;
+  updated_at: string;
+} & Pick<RaRecord, "id">;
+
 export type ActivityCompanyCreated = {
   type: typeof COMPANY_CREATED;
   company_id: Identifier;

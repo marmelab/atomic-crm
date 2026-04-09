@@ -5,6 +5,7 @@ import {
   CheckSquare,
   Handshake,
   House,
+  Inbox,
   Settings,
   UserCog,
   Users,
@@ -73,6 +74,12 @@ export function AppSidebar() {
                 to="/"
                 onClick={handleClick}
                 end
+              />
+              <NavMenuItem
+                icon={Inbox}
+                label={translate("resources.intake_leads.name", { smart_count: 2, _: "Intake" })}
+                to="/intake_leads"
+                onClick={handleClick}
               />
               <NavMenuItem
                 icon={Handshake}

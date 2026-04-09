@@ -19,6 +19,7 @@ import companies from "../companies";
 import contacts from "../contacts";
 import { Dashboard } from "../dashboard/Dashboard";
 import { MobileDashboard } from "../dashboard/MobileDashboard";
+import intake, { IntakeMobileList } from "../intake";
 import deals from "../deals";
 import { Layout } from "../layout/Layout";
 import { MobileLayout } from "../layout/MobileLayout";
@@ -272,6 +273,7 @@ const DesktopAdmin = (
       <Resource name="deal_notes" />
       <Resource name="tasks" list={TasksPage} />
       <Resource name="sales" {...sales} />
+      <Resource name="intake_leads" {...intake} />
       <Resource name="tags" />
       <Resource name="integration_log" {...integrationLog} />
     </Admin>
@@ -339,6 +341,7 @@ const MobileAdmin = (
         </Resource>
         <Resource name="deals" {...deals} />
         <Resource name="companies" show={CompanyShow} />
+        <Resource name="intake_leads" list={IntakeMobileList} />
         <Resource name="tasks" list={MobileTasksList} />
       </Admin>
     </PersistQueryClientProvider>
