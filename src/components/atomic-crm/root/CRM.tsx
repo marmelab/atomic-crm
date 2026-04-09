@@ -30,6 +30,7 @@ import {
   getDataProvider as defaultDataProviderBuilder,
 } from "../providers/supabase";
 import sales from "../sales";
+import serviceContracts from "../service-contracts";
 import { SettingsPageMobile } from "../settings/SettingsPageMobile";
 import { ProfilePage } from "../settings/ProfilePage";
 import { SettingsPage } from "../settings/SettingsPage";
@@ -270,6 +271,7 @@ const DesktopAdmin = (
       <Resource name="deal_notes" />
       <Resource name="tasks" />
       <Resource name="sales" {...sales} />
+      <Resource name="service_contracts" {...serviceContracts} />
       <Resource name="tags" />
     </Admin>
   );
