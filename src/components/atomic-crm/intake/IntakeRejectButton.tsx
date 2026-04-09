@@ -1,5 +1,5 @@
 import { X } from "lucide-react";
-import { useNotify, useRefresh, useUpdate } from "ra-core";
+import { useNotify, useRefresh, useTranslate, useUpdate } from "ra-core";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -18,9 +18,18 @@ export const INTAKE_REJECTION_REASONS = [
   "Other",
 ] as const;
 
+const REJECTION_REASON_KEYS: Record<string, string> = {
+  "Not a fit": "not_a_fit",
+  "Duplicate": "duplicate",
+  "No contact info": "no_contact_info",
+  "Out of area": "out_of_area",
+  "Other": "other",
+};
+
 export const IntakeRejectButton = ({ record }: { record: IntakeLead }) => {
   const notify = useNotify();
   const refresh = useRefresh();
+  const translate = useTranslate();
   const [update, { isPending }] = useUpdate();
   const disabled =
     isPending || record.status === "qualified" || record.status === "rejected";
@@ -38,14 +47,14 @@ export const IntakeRejectButton = ({ record }: { record: IntakeLead }) => {
       },
       {
         onSuccess: () => {
-          notify("Intake lead rejected", {
+          notify("resources.intake_leads.notify.rejected", {
             type: "success",
             messageArgs: { _: "Intake lead rejected" },
           });
           refresh();
         },
         onError: (error) => {
-          notify("Failed to reject intake lead", {
+          notify("resources.intake_leads.notify.reject_failed", {
             type: "error",
             messageArgs: {
               _: error instanceof Error
@@ -70,7 +79,7 @@ export const IntakeRejectButton = ({ record }: { record: IntakeLead }) => {
           onClick={(event) => event.stopPropagation()}
         >
           <X className="size-4" />
-          Reject
+          {translate("resources.intake_leads.action.reject", { _: "Reject" })}
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" onClick={(event) => event.stopPropagation()}>
@@ -80,7 +89,10 @@ export const IntakeRejectButton = ({ record }: { record: IntakeLead }) => {
             className="cursor-pointer"
             onSelect={() => handleReject(reason)}
           >
-            {reason}
+            {translate(
+              `resources.intake_leads.rejection_reasons.${REJECTION_REASON_KEYS[reason]}`,
+              { _: reason },
+            )}
           </DropdownMenuItem>
         ))}
       </DropdownMenuContent>

@@ -236,7 +236,10 @@ const getDataProviderWithCustomMethods = () => {
 
       if (error) {
         console.error("promote-intake-lead.error", error);
-        throw new Error("Failed to promote intake lead");
+        // Preserve structured error from edge function (e.g. 409 already-qualified)
+        const message =
+          typeof data?.error === "string" ? data.error : "Failed to promote intake lead";
+        throw new Error(message);
       }
 
       return data;

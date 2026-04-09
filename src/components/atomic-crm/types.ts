@@ -173,13 +173,13 @@ export type IntakeLead = {
   trade_type_id: string | null;
   enrichment_summary: string | null;
   outreach_draft: string | null;
-  source: string;
+  source: string | null;
   status: string;
   rejection_reason: string | null;
   promoted_contact_id: number | null;
   notes: string | null;
   sales_id: Identifier | null;
-  metadata: Record<string, unknown>;
+  metadata: Record<string, unknown> | null;
   idempotency_key: string | null;
   created_at: string;
   updated_at: string;

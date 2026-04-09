@@ -120,11 +120,31 @@ export const IntakeList = () => {
 
 const IntakeListLayout = () => {
   const isMobile = useIsMobile();
-  const { data, isPending, filterValues } = useListContext<IntakeLead>();
+  const translate = useTranslate();
+  const { data, isPending, isError, filterValues } = useListContext<IntakeLead>();
   const hasFilters = Boolean(filterValues && Object.keys(filterValues).length > 0);
 
   if (isPending) {
     return null;
+  }
+
+  if (isError) {
+    return (
+      <Card className="p-6">
+        <div className="space-y-2 text-center">
+          <h3 className="text-lg font-semibold">
+            {translate("resources.intake_leads.error.title", {
+              _: "Error loading intake leads",
+            })}
+          </h3>
+          <p className="text-sm text-muted-foreground">
+            {translate("resources.intake_leads.error.description", {
+              _: "Something went wrong. Please try again.",
+            })}
+          </p>
+        </div>
+      </Card>
+    );
   }
 
   if (!data?.length) {
@@ -147,24 +167,38 @@ const IntakeListLayout = () => {
   );
 };
 
-const IntakeEmpty = ({ hasFilters }: { hasFilters: boolean }) => (
-  <Card className="p-6">
-    <div className="space-y-2 text-center">
-      <h3 className="text-lg font-semibold">
-        {hasFilters ? "No intake leads match these filters" : "No intake leads yet"}
-      </h3>
-      <p className="text-sm text-muted-foreground">
-        {hasFilters
-          ? "Adjust your filters to widen the search."
-          : "New leads will appear here as they arrive."}
-      </p>
-    </div>
-  </Card>
-);
+const IntakeEmpty = ({ hasFilters }: { hasFilters: boolean }) => {
+  const translate = useTranslate();
+  return (
+    <Card className="p-6">
+      <div className="space-y-2 text-center">
+        <h3 className="text-lg font-semibold">
+          {hasFilters
+            ? translate("resources.intake_leads.empty.no_match_title", {
+                _: "No intake leads match these filters",
+              })
+            : translate("resources.intake_leads.empty.title", {
+                _: "No intake leads yet",
+              })}
+        </h3>
+        <p className="text-sm text-muted-foreground">
+          {hasFilters
+            ? translate("resources.intake_leads.empty.no_match_description", {
+                _: "Adjust your filters to widen the search.",
+              })
+            : translate("resources.intake_leads.empty.description", {
+                _: "New leads will appear here as they arrive.",
+              })}
+        </p>
+      </div>
+    </Card>
+  );
+};
 
 const DesktopIntakeTable = () => {
   const { data = [], selectedIds = [], onSelect, onToggleItem } =
     useListContext<IntakeLead>();
+  const translate = useTranslate();
   const [expandedIds, setExpandedIds] = useState<Identifier[]>([]);
 
   const selectableIds = useMemo(() => data.map((record) => record.id), [data]);
@@ -208,13 +242,13 @@ const DesktopIntakeTable = () => {
               onCheckedChange={(checked) => handleToggleAll(checked === true)}
             />
           </TableHead>
-          <TableHead>Business Name</TableHead>
-          <TableHead>Trade Type</TableHead>
-          <TableHead>Status</TableHead>
-          <TableHead>City</TableHead>
-          <TableHead>Source</TableHead>
-          <TableHead>Created</TableHead>
-          <TableHead className="text-right">Actions</TableHead>
+          <TableHead>{translate("resources.intake_leads.fields.business_name", { _: "Business Name" })}</TableHead>
+          <TableHead>{translate("resources.intake_leads.fields.trade_type_id", { _: "Trade Type" })}</TableHead>
+          <TableHead>{translate("resources.intake_leads.fields.status", { _: "Status" })}</TableHead>
+          <TableHead>{translate("resources.intake_leads.fields.city", { _: "City" })}</TableHead>
+          <TableHead>{translate("resources.intake_leads.fields.source", { _: "Source" })}</TableHead>
+          <TableHead>{translate("resources.intake_leads.fields.created_at", { _: "Created" })}</TableHead>
+          <TableHead className="text-right">{translate("ra.action.actions", { _: "Actions" })}</TableHead>
           <TableHead className="w-12" />
         </TableRow>
       </TableHeader>
@@ -288,6 +322,7 @@ const IntakeBulkRejectButton = () => {
   const dataProvider = useDataProvider();
   const notify = useNotify();
   const refresh = useRefresh();
+  const translate = useTranslate();
   const { selectedIds = [], onUnselectItems } = useListContext<IntakeLead>();
   const [isPending, setIsPending] = useState(false);
 
@@ -305,14 +340,14 @@ const IntakeBulkRejectButton = () => {
           rejection_reason: reason,
         },
       });
-      notify("Intake leads rejected", {
+      notify("resources.intake_leads.notify.batch_rejected", {
         type: "success",
         messageArgs: { _: "Selected intake leads were rejected" },
       });
       onUnselectItems?.();
       refresh();
     } catch (error) {
-      notify("Failed to reject intake leads", {
+      notify("resources.intake_leads.notify.batch_reject_failed", {
         type: "error",
         messageArgs: {
           _: error instanceof Error
@@ -335,7 +370,7 @@ const IntakeBulkRejectButton = () => {
           disabled={isPending || !selectedIds.length}
           className="border-destructive/40 text-destructive hover:text-destructive"
         >
-          Batch Reject
+          {translate("resources.intake_leads.action.batch_reject", { _: "Batch Reject" })}
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">

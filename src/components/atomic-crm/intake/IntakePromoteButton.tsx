@@ -1,6 +1,6 @@
 import { ArrowUpRight, Loader2 } from "lucide-react";
 import { useState } from "react";
-import { useDataProvider, useNotify, useRefresh } from "ra-core";
+import { useDataProvider, useNotify, useRefresh, useTranslate } from "ra-core";
 import { Button } from "@/components/ui/button";
 
 import type { CrmDataProvider } from "../providers/types";
@@ -10,6 +10,7 @@ export const IntakePromoteButton = ({ record }: { record: IntakeLead }) => {
   const dataProvider = useDataProvider();
   const notify = useNotify();
   const refresh = useRefresh();
+  const translate = useTranslate();
   const [isPending, setIsPending] = useState(false);
   const disabled =
     isPending || record.status === "qualified" || record.status === "rejected";
@@ -22,13 +23,13 @@ export const IntakePromoteButton = ({ record }: { record: IntakeLead }) => {
     try {
       setIsPending(true);
       await crmDataProvider.promoteIntakeLead(record.id);
-      notify("Intake lead promoted", {
+      notify("resources.intake_leads.notify.promoted", {
         type: "success",
         messageArgs: { _: "Intake lead promoted successfully" },
       });
       refresh();
     } catch (error) {
-      notify("Failed to promote intake lead", {
+      notify("resources.intake_leads.notify.promote_failed", {
         type: "error",
         messageArgs: {
           _: error instanceof Error
@@ -53,7 +54,9 @@ export const IntakePromoteButton = ({ record }: { record: IntakeLead }) => {
       }}
     >
       {isPending ? <Loader2 className="size-4 animate-spin" /> : <ArrowUpRight className="size-4" />}
-      {isPending ? "Promoting..." : "Promote"}
+      {isPending
+        ? translate("resources.intake_leads.action.promoting", { _: "Promoting..." })
+        : translate("resources.intake_leads.action.promote", { _: "Promote" })}
     </Button>
   );
 };

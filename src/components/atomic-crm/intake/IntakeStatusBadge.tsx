@@ -1,3 +1,4 @@
+import { useTranslate } from "ra-core";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 
@@ -14,14 +15,18 @@ const statusClasses: Record<string, string> = {
 };
 
 export const IntakeStatusBadge = ({ status }: { status: string }) => {
-  const label = status ? `${status.charAt(0).toUpperCase()}${status.slice(1)}` : "";
+  const translate = useTranslate();
+  const fallback = status ? `${status.charAt(0).toUpperCase()}${status.slice(1)}` : "";
+  const label = translate(`resources.intake_leads.status.${status}`, {
+    _: fallback || translate("resources.intake_leads.status.unknown", { _: "Unknown" }),
+  });
 
   return (
     <Badge
       variant="outline"
       className={cn("capitalize", statusClasses[status] ?? "border-border")}
     >
-      {label || "Unknown"}
+      {label}
     </Badge>
   );
 };

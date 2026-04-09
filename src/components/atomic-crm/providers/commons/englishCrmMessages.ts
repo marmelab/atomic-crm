@@ -375,10 +375,48 @@ export const englishCrmMessages = {
       empty: {
         title: "No intake leads yet",
         description: "New leads will appear here as they arrive.",
+        no_match_title: "No intake leads match these filters",
+        no_match_description: "Adjust your filters to widen the search.",
+      },
+      error: {
+        title: "Error loading intake leads",
+        description: "Something went wrong. Please try again.",
       },
       action: {
         promote: "Promote",
+        promoting: "Promoting...",
         reject: "Reject",
+        batch_reject: "Batch Reject",
+      },
+      status: {
+        new: "New",
+        contacted: "Contacted",
+        responded: "Responded",
+        qualified: "Qualified",
+        rejected: "Rejected",
+        unknown: "Unknown",
+      },
+      rejection_reasons: {
+        not_a_fit: "Not a fit",
+        duplicate: "Duplicate",
+        no_contact_info: "No contact info",
+        out_of_area: "Out of area",
+        other: "Other",
+      },
+      expanded: {
+        enrichment: "AI Enrichment",
+        outreach: "Outreach Draft",
+        location: "Location",
+        notes: "Notes",
+        no_details: "No additional details yet.",
+      },
+      notify: {
+        promoted: "Intake lead promoted successfully",
+        promote_failed: "Failed to promote intake lead",
+        rejected: "Intake lead rejected",
+        reject_failed: "Failed to reject intake lead",
+        batch_rejected: "Selected intake leads were rejected",
+        batch_reject_failed: "Failed to reject intake leads",
       },
     },
     tags: {

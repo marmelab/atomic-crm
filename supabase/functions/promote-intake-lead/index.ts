@@ -180,6 +180,10 @@ Deno.serve(async (req: Request) => {
     create_deal: typeof body.create_deal === "boolean" ? body.create_deal : true,
   };
 
+  // TODO: Wrap company/contact/deal inserts + intake_lead status update in a
+  // Postgres function (BEGIN/COMMIT) to prevent orphaned data on partial failure.
+  // Acceptable for MVP — promote is low-frequency, user-initiated. Harden before
+  // multi-tenant rollout (H2).
   try {
     const { data: intakeLeadData, error: intakeLeadErr } = await supabaseAdmin
       .from("intake_leads")
