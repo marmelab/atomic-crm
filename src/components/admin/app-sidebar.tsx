@@ -56,9 +56,6 @@ export function AppSidebar() {
                   src={darkModeLogo}
                   alt={title}
                 />
-                <span className="text-base font-semibold text-sidebar-foreground">
-                  {title}
-                </span>
               </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>
