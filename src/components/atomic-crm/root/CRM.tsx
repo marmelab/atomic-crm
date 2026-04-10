@@ -243,7 +243,8 @@ export const CRM = ({
       authProvider={wrappedAuthProvider}
       i18nProvider={i18nProvider}
       store={store}
-      {...(!isDemo && { loginPage: StartPage, requireAuth: true })}
+      loginPage={isDemo ? false : StartPage}
+      requireAuth={!isDemo}
       disableTelemetry
       {...rest}
     />
