@@ -1,5 +1,5 @@
 import { useContext, useEffect, useState } from "react";
-import { required, useRecordContext } from "ra-core";
+import { required, useCanAccess, useRecordContext } from "ra-core";
 import { useFormContext } from "react-hook-form";
 import { AutocompleteArrayInput } from "@/components/admin/autocomplete-array-input";
 import { ReferenceArrayInput } from "@/components/admin/reference-array-input";
@@ -22,6 +22,7 @@ import { contactOptionText } from "../misc/ContactOption";
 import { useConfigurationContext } from "../root/ConfigurationContext";
 import { AutocompleteCompanyInput } from "../companies/AutocompleteCompanyInput.tsx";
 import { DealListViewContext } from "./DealListContent";
+import type { Sale } from "../types";
 
 export const DealInputs = () => {
   const isMobile = useIsMobile();
@@ -78,7 +79,7 @@ const DealLinkedToInputs = ({
     if (!getValues("company_type") && companyTypeFilter) {
       setValue("company_type", companyTypeFilter);
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleTypeChange = (newType: string) => {
@@ -136,6 +137,32 @@ const DealLinkedToInputs = ({
   );
 };
 
+const saleOptionRenderer = (choice: Sale) =>
+  `${choice.first_name} ${choice.last_name}`;
+
+const DealSalesInput = () => {
+  const { canAccess: isAdmin } = useCanAccess({
+    resource: "configuration",
+    action: "edit",
+  });
+
+  if (!isAdmin) return null;
+
+  return (
+    <ReferenceInput
+      source="sales_id"
+      reference="sales"
+      filter={{ "disabled@neq": true }}
+    >
+      <SelectInput
+        label="Responsable commercial"
+        helperText={false}
+        optionText={saleOptionRenderer}
+      />
+    </ReferenceInput>
+  );
+};
+
 const DealMiscInputs = () => {
   const { dealStages, dealCategories } = useConfigurationContext();
   return (
@@ -176,6 +203,7 @@ const DealMiscInputs = () => {
         helperText={false}
         validate={required()}
       />
+      <DealSalesInput />
     </div>
   );
 };
