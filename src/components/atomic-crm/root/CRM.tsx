@@ -27,9 +27,25 @@ import { SignupPage } from "../login/SignupPage";
 import { ConfirmationRequired } from "../login/ConfirmationRequired";
 import { ImportPage } from "../misc/ImportPage";
 import {
-  getAuthProvider as defaultAuthProviderBuilder,
-  getDataProvider as defaultDataProviderBuilder,
+  getAuthProvider as supabaseAuthProviderBuilder,
+  getDataProvider as supabaseDataProviderBuilder,
 } from "../providers/supabase";
+import {
+  createDataProvider as createFakeRestDataProvider,
+} from "../providers/fakerest";
+import {
+  authProvider as fakeRestAuthProvider,
+} from "../providers/fakerest/authProvider";
+
+const isDemo = import.meta.env.VITE_IS_DEMO === "true";
+
+const defaultDataProviderBuilder = isDemo
+  ? () => createFakeRestDataProvider()
+  : supabaseDataProviderBuilder;
+
+const defaultAuthProviderBuilder = isDemo
+  ? () => fakeRestAuthProvider
+  : supabaseAuthProviderBuilder;
 import integrationLog from "../integration-log";
 import sales from "../sales";
 import { SettingsPageMobile } from "../settings/SettingsPageMobile";
