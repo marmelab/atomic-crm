@@ -1,9 +1,29 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
+import { z } from "npm:zod@^3.25";
 import { supabaseAdmin } from "../_shared/supabaseAdmin.ts";
 import { corsHeaders, OptionsMiddleware } from "../_shared/cors.ts";
 import { createErrorResponse } from "../_shared/utils.ts";
 import { AuthMiddleware, UserMiddleware } from "../_shared/authentication.ts";
 import { getUserSale } from "../_shared/getUserSale.ts";
+
+const InviteUserSchema = z.object({
+  email: z.string().email(),
+  password: z.string().min(8),
+  first_name: z.string().min(1).max(200),
+  last_name: z.string().min(1).max(200),
+  disabled: z.boolean().optional().default(false),
+  administrator: z.boolean().optional().default(false),
+});
+
+const PatchUserSchema = z.object({
+  sales_id: z.number().int().positive(),
+  email: z.string().email().optional(),
+  first_name: z.string().min(1).max(200).optional(),
+  last_name: z.string().min(1).max(200).optional(),
+  avatar: z.any().optional(),
+  administrator: z.boolean().optional(),
+  disabled: z.boolean().optional(),
+});
 
 async function updateSaleDisabled(user_id: string, disabled: boolean) {
   return await supabaseAdmin
@@ -67,12 +87,15 @@ async function updateSaleAvatar(user_id: string, avatar: string) {
 }
 
 async function inviteUser(req: Request, currentUserSale: any) {
-  const { email, password, first_name, last_name, disabled, administrator } =
-    await req.json();
-
   if (!currentUserSale.administrator) {
     return createErrorResponse(401, "Not Authorized");
   }
+
+  const parsed = InviteUserSchema.safeParse(await req.json());
+  if (!parsed.success) {
+    return createErrorResponse(400, parsed.error.issues[0]?.message ?? "Invalid input");
+  }
+  const { email, password, first_name, last_name, disabled, administrator } = parsed.data;
 
   const { data, error: userError } = await supabaseAdmin.auth.admin.createUser({
     email,
@@ -179,15 +202,12 @@ async function inviteUser(req: Request, currentUserSale: any) {
 }
 
 async function patchUser(req: Request, currentUserSale: any) {
-  const {
-    sales_id,
-    email,
-    first_name,
-    last_name,
-    avatar,
-    administrator,
-    disabled,
-  } = await req.json();
+  const parsed = PatchUserSchema.safeParse(await req.json());
+  if (!parsed.success) {
+    return createErrorResponse(400, parsed.error.issues[0]?.message ?? "Invalid input");
+  }
+  const { sales_id, email, first_name, last_name, avatar, administrator, disabled } = parsed.data;
+
   const { data: sale } = await supabaseAdmin
     .from("sales")
     .select("*")

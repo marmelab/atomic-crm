@@ -29,7 +29,16 @@ create table public.companies (
     description text,
     revenue text,
     tax_identifier text,
-    logo jsonb
+    logo jsonb,
+    -- Construction fields (20260408120000_hatch_construction_fields)
+    trade_type_id uuid references public.trade_types(id),
+    service_area text,
+    company_size text check (company_size in ('1-5', '6-20', '21-50', '50+')),
+    tech_maturity text check (tech_maturity in ('Paper', 'Basic Digital', 'Automated')),
+    metadata jsonb default '{}',
+    updated_at timestamptz default now(),
+    external_source text,
+    external_id text
 );
 
 create table public.contacts (
@@ -49,7 +58,13 @@ create table public.contacts (
     sales_id bigint,
     linkedin_url text,
     email_jsonb jsonb,
-    phone_jsonb jsonb
+    phone_jsonb jsonb,
+    -- Construction fields (20260408120000_hatch_construction_fields)
+    lead_source_id uuid references public.lead_sources(id),
+    metadata jsonb default '{}',
+    updated_at timestamptz default now(),
+    external_source text,
+    external_id text
 );
 
 create table public.contact_notes (
@@ -76,7 +91,10 @@ create table public.deals (
     archived_at timestamp with time zone,
     expected_closing_date date,
     sales_id bigint,
-    index smallint
+    index smallint,
+    -- Construction fields (20260408120000_hatch_construction_fields)
+    metadata jsonb default '{}',
+    lost_reason text
 );
 
 create table public.deal_notes (
@@ -182,30 +200,18 @@ create index contacts_company_id_idx on public.contacts using btree (company_id)
 create index deal_notes_deal_id_idx on public.deal_notes using btree (deal_id);
 create index deals_company_id_idx on public.deals using btree (company_id);
 
---
--- Wave 1.2A: Construction lookup tables and additive core-table fields
---
+-- Dedup indexes for external integrations
+create unique index idx_companies_external_dedup
+    on public.companies(external_source, external_id)
+    where external_source is not null and external_id is not null;
 
--- public.companies additive columns from 20260408120000_hatch_construction_fields.sql:
---   trade_type_id uuid references public.trade_types(id)
---   service_area text
---   company_size text check (company_size in ('1-5', '6-20', '21-50', '50+'))
---   tech_maturity text check (tech_maturity in ('Paper', 'Basic Digital', 'Automated'))
---   metadata jsonb default '{}'
---   updated_at timestamptz default now()
---   external_source text
---   external_id text
+create unique index idx_contacts_external_dedup
+    on public.contacts(external_source, external_id)
+    where external_source is not null and external_id is not null;
+
 --
--- public.contacts additive columns from 20260408120000_hatch_construction_fields.sql:
---   lead_source_id uuid references public.lead_sources(id)
---   metadata jsonb default '{}'
---   updated_at timestamptz default now()
---   external_source text
---   external_id text
+-- Construction lookup tables
 --
--- public.deals additive columns from 20260408120000_hatch_construction_fields.sql:
---   metadata jsonb default '{}'
---   lost_reason text
 
 create table public.trade_types (
     id uuid primary key default gen_random_uuid(),
@@ -320,3 +326,35 @@ create table public.system_settings (
     value jsonb not null,
     updated_at timestamptz default now()
 );
+
+--
+-- Cold Intake (20260409100000_intake_leads)
+--
+
+create table public.intake_leads (
+    id uuid primary key default gen_random_uuid(),
+    business_name text not null,
+    phone text,
+    email text,
+    website text,
+    address text,
+    city text,
+    region text,
+    trade_type_id uuid references public.trade_types(id),
+    enrichment_summary text,
+    outreach_draft text,
+    source text,
+    status text not null default 'new',
+    rejection_reason text,
+    notes text,
+    sales_id bigint references public.sales(id),
+    idempotency_key text,
+    created_at timestamptz default now(),
+    updated_at timestamptz default now()
+);
+
+create unique index idx_intake_leads_idempotency
+    on public.intake_leads(idempotency_key) where idempotency_key is not null;
+create index idx_intake_leads_status on public.intake_leads(status);
+create index idx_intake_leads_trade_type on public.intake_leads(trade_type_id);
+create index idx_intake_leads_created on public.intake_leads(created_at desc);

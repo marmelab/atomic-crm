@@ -148,7 +148,14 @@ const normalizeStoragePath = (path: string) => {
     return null;
   }
 
-  return safelyDecodePath(withoutBucket);
+  const decoded = safelyDecodePath(withoutBucket);
+
+  // Security: reject path traversal and absolute paths
+  if (decoded.includes("..") || decoded.startsWith("/")) {
+    return null;
+  }
+
+  return decoded;
 };
 
 const jsonResponse = (data: unknown, status = 200) =>

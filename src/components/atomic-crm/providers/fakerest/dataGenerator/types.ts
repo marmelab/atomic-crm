@@ -15,9 +15,12 @@ export interface Db {
   companies: Company[];
   contacts: Contact[];
   contact_notes: ContactNote[];
+  contact_tags: Array<{ id: string; contact_id: number; tag_id: number }>;
   deals: Deal[];
+  deal_contacts: Array<{ id: string; deal_id: number; contact_id: number }>;
   deal_notes: DealNote[];
   intake_leads: IntakeLead[];
+  lead_sources: Array<{ id: string; name: string }>;
   sales: Sale[];
   tags: Tag[];
   tasks: Task[];

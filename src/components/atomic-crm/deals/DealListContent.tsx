@@ -65,9 +65,14 @@ export const DealListContent = () => {
     );
 
     // persist the changes
-    updateDealStage(sourceDeal, destinationDeal, dataProvider).then(() => {
-      refetch();
-    });
+    updateDealStage(sourceDeal, destinationDeal, dataProvider)
+      .then(() => {
+        refetch();
+      })
+      .catch(() => {
+        // Revert optimistic update by re-fetching server state
+        refetch();
+      });
   };
 
   return (

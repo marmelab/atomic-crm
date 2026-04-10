@@ -17,6 +17,17 @@ const TRADE_TYPES = [
 
 export const generateTradeTypes = () => TRADE_TYPES;
 
+const LEAD_SOURCES = [
+  { id: "ls_1", name: "Google Places" },
+  { id: "ls_2", name: "Referral" },
+  { id: "ls_3", name: "Website Form" },
+  { id: "ls_4", name: "Cold Outreach" },
+  { id: "ls_5", name: "Trade Show" },
+  { id: "ls_6", name: "Yelp" },
+];
+
+export const generateLeadSources = () => LEAD_SOURCES;
+
 const statuses = ["new", "new", "new", "contacted", "responded", "qualified", "rejected"];
 const sources = ["Google Places", "Referral", "Website Form", "Cold Outreach", "Trade Show", "Yelp"];
 

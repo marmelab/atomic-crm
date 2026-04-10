@@ -121,14 +121,14 @@ export const IntakeList = () => {
 const IntakeListLayout = () => {
   const isMobile = useIsMobile();
   const translate = useTranslate();
-  const { data, isPending, isError, filterValues } = useListContext<IntakeLead>();
+  const { data, isPending, error, filterValues } = useListContext<IntakeLead>();
   const hasFilters = Boolean(filterValues && Object.keys(filterValues).length > 0);
 
   if (isPending) {
     return null;
   }
 
-  if (isError) {
+  if (error) {
     return (
       <Card className="p-6">
         <div className="space-y-2 text-center">

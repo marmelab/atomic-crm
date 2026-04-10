@@ -489,13 +489,18 @@ const syncDealContacts = async (
   dealId: number,
   contactIds: number[],
 ): Promise<void> => {
-  await getSupabaseClient()
+  const { error: deleteError } = await getSupabaseClient()
     .from("deal_contacts")
     .delete()
     .eq("deal_id", dealId);
 
+  if (deleteError) {
+    console.error("Failed to delete deal_contacts:", deleteError);
+    throw deleteError;
+  }
+
   if (contactIds.length > 0) {
-    await getSupabaseClient()
+    const { error: insertError } = await getSupabaseClient()
       .from("deal_contacts")
       .insert(
         contactIds.map((contactId) => ({
@@ -503,6 +508,11 @@ const syncDealContacts = async (
           contact_id: contactId,
         })),
       );
+
+    if (insertError) {
+      console.error("Failed to insert deal_contacts:", insertError);
+      throw insertError;
+    }
   }
 };
 
@@ -510,17 +520,27 @@ const syncContactTags = async (
   contactId: number,
   tags: number[],
 ): Promise<void> => {
-  await getSupabaseClient()
+  const { error: deleteError } = await getSupabaseClient()
     .from("contact_tags")
     .delete()
     .eq("contact_id", contactId);
 
+  if (deleteError) {
+    console.error("Failed to delete contact_tags:", deleteError);
+    throw deleteError;
+  }
+
   if (tags.length > 0) {
-    await getSupabaseClient()
+    const { error: insertError } = await getSupabaseClient()
       .from("contact_tags")
       .insert(
         tags.map((tagId) => ({ contact_id: contactId, tag_id: tagId })),
       );
+
+    if (insertError) {
+      console.error("Failed to insert contact_tags:", insertError);
+      throw insertError;
+    }
   }
 };
 

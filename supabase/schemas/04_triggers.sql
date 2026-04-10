@@ -102,3 +102,7 @@ create trigger set_audit_results_updated_at
 create trigger set_system_settings_updated_at
     before update on public.system_settings
     for each row execute function public.update_updated_at();
+
+create trigger set_intake_leads_updated_at
+    before update on public.intake_leads
+    for each row execute function public.update_updated_at();

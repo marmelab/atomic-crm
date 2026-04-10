@@ -105,11 +105,18 @@ create policy "authenticated_delete_audit_reports" on public.audit_reports for d
 alter table public.n8n_workflow_runs enable row level security;
 create policy "authenticated_select_n8n_workflow_runs" on public.n8n_workflow_runs for select to authenticated using (auth.uid() is not null);
 
--- Integration Log (read-only for authenticated; written by edge functions/n8n via service role)
+-- Integration Log (admin read-only; written by edge functions/n8n via service role)
 alter table public.integration_log enable row level security;
-create policy "authenticated_select_integration_log" on public.integration_log for select to authenticated using (auth.uid() is not null);
+create policy "admin_select_integration_log" on public.integration_log for select to authenticated using (public.is_admin());
 
 -- System Settings (read = authenticated, write = admin only)
 alter table public.system_settings enable row level security;
 create policy "authenticated_select_system_settings" on public.system_settings for select to authenticated using (auth.uid() is not null);
 create policy "admin_write_system_settings" on public.system_settings for all to authenticated using (public.is_admin()) with check (public.is_admin());
+
+-- Intake Leads (full CRUD for authenticated)
+alter table public.intake_leads enable row level security;
+create policy "authenticated_select_intake_leads" on public.intake_leads for select to authenticated using (auth.uid() is not null);
+create policy "authenticated_insert_intake_leads" on public.intake_leads for insert to authenticated with check (auth.uid() is not null);
+create policy "authenticated_update_intake_leads" on public.intake_leads for update to authenticated using (auth.uid() is not null) with check (auth.uid() is not null);
+create policy "authenticated_delete_intake_leads" on public.intake_leads for delete to authenticated using (auth.uid() is not null);

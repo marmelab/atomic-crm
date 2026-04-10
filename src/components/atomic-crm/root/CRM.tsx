@@ -291,10 +291,29 @@ const DesktopAdmin = (
       <Resource name="sales" {...sales} />
       <Resource name="intake_leads" {...intake} />
       <Resource name="tags" />
+      <Resource name="trade_types" />
+      <Resource name="lead_sources" />
+      <Resource name="contact_tags" />
+      <Resource name="deal_contacts" />
       <Resource name="integration_log" {...integrationLog} />
     </Admin>
   );
 };
+
+const mobileQueryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      gcTime: 1000 * 60 * 60 * 24, // 24 hours
+      networkMode: "offlineFirst",
+    },
+    mutations: {
+      networkMode: "offlineFirst",
+    },
+  },
+});
+const mobileAsyncStoragePersister = createAsyncStoragePersister({
+  storage: localStorage,
+});
 
 const MobileAdmin = (
   props: CoreAdminProps & {
@@ -302,28 +321,14 @@ const MobileAdmin = (
     layout?: LayoutComponent;
   },
 ) => {
-  const queryClient = new QueryClient({
-    defaultOptions: {
-      queries: {
-        gcTime: 1000 * 60 * 60 * 24, // 24 hours
-        networkMode: "offlineFirst",
-      },
-      mutations: {
-        networkMode: "offlineFirst",
-      },
-    },
-  });
-  const asyncStoragePersister = createAsyncStoragePersister({
-    storage: localStorage,
-  });
 
   return (
     <PersistQueryClientProvider
-      client={queryClient}
-      persistOptions={{ persister: asyncStoragePersister }}
+      client={mobileQueryClient}
+      persistOptions={{ persister: mobileAsyncStoragePersister }}
     >
       <Admin
-        queryClient={queryClient}
+        queryClient={mobileQueryClient}
         layout={props.layout ?? MobileLayout}
         dashboard={props.dashboard ?? MobileDashboard}
         {...props}
@@ -359,6 +364,10 @@ const MobileAdmin = (
         <Resource name="companies" show={CompanyShow} />
         <Resource name="intake_leads" {...intake} />
         <Resource name="tasks" list={MobileTasksList} />
+        <Resource name="tags" />
+        <Resource name="trade_types" />
+        <Resource name="lead_sources" />
+        <Resource name="sales" />
       </Admin>
     </PersistQueryClientProvider>
   );

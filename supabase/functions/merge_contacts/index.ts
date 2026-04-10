@@ -139,6 +139,22 @@ async function mergeContacts(
           .execute();
       }
 
+      // 4b. Sync deal_contacts join table — reassign loser rows to winner
+      // Delete any existing winner rows first to avoid duplicates, then reassign
+      for (const deal of deals) {
+        await trx
+          .deleteFrom("deal_contacts" as any)
+          .where("deal_id", "=", deal.id)
+          .where("contact_id", "=", winnerId)
+          .execute();
+        await trx
+          .updateTable("deal_contacts" as any)
+          .set({ contact_id: winnerId })
+          .where("deal_id", "=", deal.id)
+          .where("contact_id", "=", loserId)
+          .execute();
+      }
+
       // 5. Merge and update winner contact
       const mergedData = mergeContactData(winner as Contact, loser as Contact);
       await trx
@@ -146,6 +162,42 @@ async function mergeContacts(
         .set(mergedData)
         .where("id", "=", winnerId)
         .execute();
+
+      // 5b. Sync contact_tags join table — merge loser's tags into winner
+      // Delete winner duplicates first, then reassign remaining loser tags
+      const loserTags = await trx
+        .selectFrom("contact_tags" as any)
+        .selectAll()
+        .where("contact_id", "=", loserId)
+        .execute();
+
+      if (loserTags.length > 0) {
+        const winnerTags = await trx
+          .selectFrom("contact_tags" as any)
+          .selectAll()
+          .where("contact_id", "=", winnerId)
+          .execute();
+        const winnerTagIds = new Set(winnerTags.map((t: any) => t.tag_id));
+
+        // Delete loser tags that winner already has (avoid unique constraint violation)
+        const duplicateTagIds = loserTags
+          .filter((t: any) => winnerTagIds.has(t.tag_id))
+          .map((t: any) => t.tag_id);
+        if (duplicateTagIds.length > 0) {
+          await trx
+            .deleteFrom("contact_tags" as any)
+            .where("contact_id", "=", loserId)
+            .where("tag_id", "in", duplicateTagIds)
+            .execute();
+        }
+
+        // Reassign remaining loser tags to winner
+        await trx
+          .updateTable("contact_tags" as any)
+          .set({ contact_id: winnerId })
+          .where("contact_id", "=", loserId)
+          .execute();
+      }
 
       // 6. Delete loser contact
       await trx.deleteFrom("contacts").where("id", "=", loserId).execute();

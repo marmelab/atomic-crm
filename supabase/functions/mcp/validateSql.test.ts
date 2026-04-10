@@ -42,6 +42,10 @@ describe("validateReadOnly", () => {
       "SELECT /* DROP TABLE contacts */ * FROM contacts",
     ],
     ["DROP in line comment", "SELECT * FROM contacts -- DROP TABLE contacts"],
+    [
+      "denied function name in string literal",
+      "SELECT * FROM contacts WHERE note = 'call set_config() here'",
+    ],
   ])("allows %s", (_label, sql) => {
     expect(validateReadOnly(sql)).toBeNull();
   });
@@ -50,6 +54,20 @@ describe("validateReadOnly", () => {
     ["INSERT", "INSERT INTO contacts (name) VALUES ('test')"],
     ["UPDATE", "UPDATE contacts SET name = 'test'"],
     ["DELETE", "DELETE FROM contacts WHERE id = 1"],
+    [
+      "set_config privilege escalation",
+      "SELECT set_config('role', 'postgres', true)",
+    ],
+    ["pg_sleep DoS", "SELECT pg_sleep(100)"],
+    [
+      "pg_read_file file access",
+      "SELECT pg_read_file('/etc/passwd')",
+    ],
+    [
+      "lo_import large object",
+      "SELECT lo_import('/etc/passwd')",
+    ],
+    ["dblink remote exec", "SELECT dblink('host=evil', 'SELECT 1')"],
     [
       "writable CTE (DELETE)",
       "WITH d AS (DELETE FROM contacts RETURNING *) SELECT * FROM d",
@@ -116,6 +134,14 @@ describe("validateWrite", () => {
       "DELETE FROM contacts; SET LOCAL role = 'postgres'",
     ],
     ["unparseable SQL", "NOT VALID SQL %%%"],
+    [
+      "set_config in UPDATE subquery",
+      "UPDATE contacts SET name = (SELECT set_config('role','postgres',true)) WHERE id = 1",
+    ],
+    [
+      "pg_sleep in DELETE WHERE",
+      "DELETE FROM contacts WHERE pg_sleep(100)::boolean",
+    ],
   ])("rejects %s", (_label, sql) => {
     expect(validateWrite(sql)).not.toBeNull();
   });
