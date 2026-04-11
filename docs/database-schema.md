@@ -1,0 +1,421 @@
+# AtomicCRM Database Schema
+
+> **Disclaimer**: This document is derived from migration files in `supabase/migrations/`. Always verify against your instance schema, as manual changes or missed migrations may cause discrepancies.
+
+## Overview
+
+AtomicCRM uses a Supabase (PostgreSQL) backend with **10 tables**, **4 views**, row-level security (RLS), and a set of triggers/functions that automate avatar/logo resolution, email normalization, and sales-owner defaults.
+
+---
+
+## Tables (10)
+
+### `companies`
+
+| Column | Type | Nullable | Default | Notes |
+|--------|------|----------|---------|-------|
+| `id` | `bigint` (identity) | NO | auto | PK |
+| `created_at` | `timestamptz` | NO | `now()` | |
+| `name` | `text` | NO | | |
+| `sector` | `text` | YES | | |
+| `size` | `smallint` | YES | | |
+| `linkedin_url` | `text` | YES | | |
+| `website` | `extensions.citext` | YES | | Case-insensitive (`20260320120000_lowercase_email_website.sql`) |
+| `phone_number` | `text` | YES | | |
+| `address` | `text` | YES | | |
+| `zipcode` | `text` | YES | | |
+| `city` | `text` | YES | | |
+| `state_abbr` | `text` | YES | | Renamed from `stateAbbr` (`20260115150819_snake_case_renaming.sql`) |
+| `sales_id` | `bigint` | YES | | FK → `sales(id)` |
+| `context_links` | `json` | YES | | |
+| `country` | `text` | YES | | |
+| `description` | `text` | YES | | |
+| `revenue` | `text` | YES | | |
+| `tax_identifier` | `text` | YES | | |
+| `logo` | `jsonb` | YES | | Auto-populated by `handle_company_saved()` trigger |
+
+**Foreign keys**: `sales_id` → `sales(id)`
+
+**RLS**: Enabled. Policies for SELECT, INSERT, UPDATE, DELETE for `authenticated` role.
+
+---
+
+### `contacts`
+
+| Column | Type | Nullable | Default | Notes |
+|--------|------|----------|---------|-------|
+| `id` | `bigint` (identity) | NO | auto | PK |
+| `first_name` | `text` | YES | | |
+| `last_name` | `text` | YES | | |
+| `gender` | `text` | YES | | |
+| `title` | `text` | YES | | |
+| `email_jsonb` | `jsonb` | YES | | Array of `{"email": "...", "type": "..."}` objects. Replaced flat `email` column (`20250109152531_email_jsonb.sql`). Emails are lowercased automatically. |
+| `phone_jsonb` | `jsonb` | YES | | Array of `{"number": "...", "type": "..."}` objects. Replaced `phone_1_*`/`phone_2_*` columns (`20250113132531_phone_jsonb.sql`) |
+| `background` | `text` | YES | | |
+| `avatar` | `jsonb` | YES | | Auto-populated by `handle_contact_saved()` trigger. `{"src": "<url>"}` |
+| `first_seen` | `timestamptz` | YES | | |
+| `last_seen` | `timestamptz` | YES | | Updated by `handle_contact_note_created_or_updated` trigger on `contact_notes` |
+| `has_newsletter` | `boolean` | YES | | |
+| `status` | `text` | YES | | |
+| `tags` | `bigint[]` | YES | | Array of tag IDs |
+| `company_id` | `bigint` | YES | | FK → `companies(id)` ON DELETE CASCADE |
+| `sales_id` | `bigint` | YES | | FK → `sales(id)`. Auto-populated by `set_sales_id_default()` trigger |
+| `linkedin_url` | `text` | YES | | |
+
+**Dropped columns**: `email` (→ `email_jsonb`), `phone_1_number`, `phone_1_type`, `phone_2_number`, `phone_2_type` (→ `phone_jsonb`), `acquisition` (`20240807082449_remove-aquisition.sql`).
+
+**Foreign keys**: `company_id` → `companies(id)` ON DELETE CASCADE, `sales_id` → `sales(id)`
+
+**RLS**: Enabled. Policies for SELECT, INSERT, UPDATE, DELETE for `authenticated` role.
+
+---
+
+### `contact_notes`
+
+> Renamed from `contactNotes` in migration `20260115150819_snake_case_renaming.sql`.
+
+| Column | Type | Nullable | Default | Notes |
+|--------|------|----------|---------|-------|
+| `id` | `bigint` (identity) | NO | auto | PK |
+| `contact_id` | `bigint` | NO | | FK → `contacts(id)` ON DELETE CASCADE |
+| `text` | `text` | YES | | Note body |
+| `date` | `timestamptz` | YES | `now()` | |
+| `sales_id` | `bigint` | YES | | FK → `sales(id)`. Auto-populated by `set_sales_id_default()` trigger |
+| `status` | `text` | YES | | |
+| `attachments` | `jsonb[]` | YES | | Array of attachment objects |
+
+**Foreign keys**: `contact_id` → `contacts(id)` ON DELETE CASCADE, `sales_id` → `sales(id)` ON DELETE CASCADE
+
+**RLS**: Enabled. Policies for SELECT, INSERT, UPDATE, DELETE for `authenticated` role.
+
+---
+
+### `deals`
+
+| Column | Type | Nullable | Default | Notes |
+|--------|------|----------|---------|-------|
+| `id` | `bigint` (identity) | NO | auto | PK |
+| `name` | `text` | NO | | |
+| `company_id` | `bigint` | YES | | FK → `companies(id)` ON DELETE CASCADE |
+| `contact_ids` | `bigint[]` | YES | | Array of contact IDs |
+| `category` | `text` | YES | | Stored as slug (e.g. `"energy"` not `"Energy"`) |
+| `stage` | `text` | NO | | |
+| `description` | `text` | YES | | |
+| `amount` | `bigint` | YES | | |
+| `created_at` | `timestamptz` | NO | `now()` | |
+| `updated_at` | `timestamptz` | NO | `now()` | |
+| `archived_at` | `timestamptz` | YES | `null` | |
+| `expected_closing_date` | `date` | YES | `null` | Changed from `timestamptz` to `date` (`20260226163952_deals_expected_closing_date_date_only.sql`) |
+| `sales_id` | `bigint` | YES | | FK → `sales(id)`. Auto-populated by `set_sales_id_default()` trigger |
+| `index` | `smallint` | YES | | Display ordering |
+
+**Foreign keys**: `company_id` → `companies(id)` ON DELETE CASCADE, `sales_id` → `sales(id)`
+
+**RLS**: Enabled. Policies for SELECT, INSERT, UPDATE, DELETE for `authenticated` role.
+
+---
+
+### `deal_notes`
+
+> Renamed from `dealNotes` in migration `20260115150819_snake_case_renaming.sql`.
+
+| Column | Type | Nullable | Default | Notes |
+|--------|------|----------|---------|-------|
+| `id` | `bigint` (identity) | NO | auto | PK |
+| `deal_id` | `bigint` | NO | | FK → `deals(id)` ON DELETE CASCADE |
+| `type` | `text` | YES | | |
+| `text` | `text` | YES | | Note body |
+| `date` | `timestamptz` | YES | `now()` | |
+| `sales_id` | `bigint` | YES | | FK → `sales(id)`. Auto-populated by `set_sales_id_default()` trigger |
+| `attachments` | `jsonb[]` | YES | | Array of attachment objects |
+
+**Foreign keys**: `deal_id` → `deals(id)` ON DELETE CASCADE, `sales_id` → `sales(id)`
+
+**RLS**: Enabled. Policies for SELECT, INSERT, UPDATE, DELETE for `authenticated` role.
+
+---
+
+### `sales`
+
+Represents CRM users (sales representatives). One-to-one with `auth.users` via `user_id`.
+
+| Column | Type | Nullable | Default | Notes |
+|--------|------|----------|---------|-------|
+| `id` | `bigint` (identity) | NO | auto | PK |
+| `first_name` | `text` | NO | `'Pending'` | Defaults to `'Pending'` for SSO users who haven't set a name (`20260128165057_sso_handling.sql`) |
+| `last_name` | `text` | NO | `'Pending'` | Defaults to `'Pending'` for SSO users |
+| `email` | `extensions.citext` | NO | | Case-insensitive (`20260320120000_lowercase_email_website.sql`) |
+| `administrator` | `boolean` | NO | | First user becomes admin automatically |
+| `user_id` | `uuid` | NO | | FK → `auth.users(id)` |
+| `avatar` | `jsonb` | YES | | |
+| `disabled` | `boolean` | NO | `FALSE` | |
+
+**Unique index**: `uq__sales__user_id` on `user_id`
+
+**Foreign keys**: `user_id` → `auth.users(id)`
+
+**RLS**: Enabled. Only **SELECT** policy remains for `authenticated` users. INSERT and UPDATE policies were removed in `20241104153231_sales_policies.sql` — rows are managed exclusively by `handle_new_user()` and `handle_update_user()` triggers on `auth.users`.
+
+---
+
+### `tags`
+
+| Column | Type | Nullable | Default | Notes |
+|--------|------|----------|---------|-------|
+| `id` | `bigint` (identity) | NO | auto | PK |
+| `name` | `text` | NO | | |
+| `color` | `text` | NO | | |
+
+**RLS**: Enabled. Policies for SELECT, INSERT, UPDATE, DELETE for `authenticated` role.
+
+---
+
+### `tasks`
+
+| Column | Type | Nullable | Default | Notes |
+|--------|------|----------|---------|-------|
+| `id` | `bigint` (identity) | NO | auto | PK |
+| `contact_id` | `bigint` | NO | | FK → `contacts(id)` ON DELETE CASCADE |
+| `type` | `text` | YES | | Stored as slug |
+| `text` | `text` | YES | | Task description |
+| `due_date` | `timestamptz` | **YES** | | Nullable since `20260127140209_imports.sql` (altered to drop NOT NULL) |
+| `done_date` | `timestamptz` | YES | | `NULL` = pending, non-null = completed |
+| `sales_id` | `bigint` | YES | | FK → `sales(id)`. Auto-populated by `set_sales_id_default()` trigger |
+
+**Foreign keys**: `contact_id` → `contacts(id)` ON DELETE CASCADE
+
+**RLS**: Enabled. Policies for SELECT, INSERT, UPDATE, DELETE for `authenticated` role.
+
+---
+
+### `configuration`
+
+Singleton table storing application configuration as a JSONB document. Added in `20260211194545_app_configuration.sql`.
+
+| Column | Type | Nullable | Default | Notes |
+|--------|------|----------|---------|-------|
+| `id` | `integer` | NO | `1` | PK, constrained to `1` via `configuration_singleton` check |
+| `config` | `jsonb` | NO | `'{}'::jsonb` | Merged with code defaults at runtime |
+
+**Constraint**: `configuration_singleton CHECK (id = 1)` ensures single-row table.
+
+**RLS**: Enabled. SELECT for all `authenticated`; INSERT/UPDATE restricted to admins via `is_admin()` function.
+
+---
+
+### `favicons_excluded_domains`
+
+Domains excluded from automatic favicon/logo resolution. Added in `20260127140209_imports.sql`.
+
+| Column | Type | Nullable | Default | Notes |
+|--------|------|----------|---------|-------|
+| `id` | `bigint` (identity) | NO | auto | PK |
+| `domain` | `text` | NO | | Excluded domain name |
+
+**RLS**: Enabled. Full CRUD for `authenticated` role.
+
+---
+
+## Views (4)
+
+### `contacts_summary`
+
+Enriched contacts with company name, FTS columns, and **pending task count**.
+
+```sql
+CREATE VIEW contacts_summary WITH (security_invoker=on) AS
+SELECT
+    co.*,
+    jsonb_path_query_array(co.email_jsonb, '$[*].email')::text AS email_fts,
+    jsonb_path_query_array(co.phone_jsonb, '$[*].number')::text AS phone_fts,
+    c.name AS company_name,
+    count(DISTINCT t.id) FILTER (WHERE t.done_date IS NULL) AS nb_tasks
+FROM contacts co
+LEFT JOIN tasks t ON co.id = t.contact_id
+LEFT JOIN companies c ON co.company_id = c.id
+GROUP BY co.id, c.name;
+```
+
+**Key**: `nb_tasks` counts only **pending** tasks (`done_date IS NULL`). Includes `email_fts` and `phone_fts` text columns for full-text search.
+
+---
+
+### `companies_summary`
+
+Enriched companies with deal and contact counts.
+
+```sql
+CREATE VIEW companies_summary WITH (security_invoker=on) AS
+SELECT
+    c.*,
+    count(DISTINCT d.id) AS nb_deals,
+    count(DISTINCT co.id) AS nb_contacts
+FROM companies c
+LEFT JOIN deals d ON c.id = d.company_id
+LEFT JOIN contacts co ON c.id = co.company_id
+GROUP BY c.id;
+```
+
+---
+
+### `init_state`
+
+Returns whether the app has been initialized (has at least one sales user). `security_invoker=off` allows unauthenticated check.
+
+```sql
+CREATE VIEW init_state WITH (security_invoker=off) AS
+SELECT count(id) AS is_initialized
+FROM (SELECT id FROM public.sales LIMIT 1) AS sub;
+```
+
+---
+
+### `activity_log`
+
+Aggregated timeline of all activity events (company/contact/note/deal creation), pageable by date. Added in `20260314120000_activity_log_view.sql`.
+
+```sql
+CREATE VIEW activity_log WITH (security_invoker=on) AS
+SELECT
+    'company.' || c.id || '.created' AS id,
+    'company.created' AS type,
+    c.created_at AS date,
+    c.id AS company_id,
+    c.sales_id,
+    to_json(c.*) AS company,
+    NULL::json AS contact,
+    NULL::json AS deal,
+    NULL::json AS contact_note,
+    NULL::json AS deal_note
+FROM companies c
+UNION ALL
+SELECT 'contact.' || co.id || '.created', 'contact.created', ... FROM contacts co
+UNION ALL
+SELECT 'contactNote.' || cn.id || '.created', 'contactNote.created', ... FROM contact_notes cn ...
+UNION ALL
+SELECT 'deal.' || d.id || '.created', 'deal.created', ... FROM deals d
+UNION ALL
+SELECT 'dealNote.' || dn.id || '.created', 'dealNote.created', ... FROM deal_notes dn ...;
+```
+
+---
+
+## Functions
+
+| Function | Returns | Language | Security | Description |
+|----------|---------|----------|----------|-------------|
+| `merge_contacts(loser_id bigint, winner_id bigint)` | `bigint` | plpgsql | INVOKER | Merges two contacts: reassigns tasks, notes, deals; merges emails/phones/tags (winner wins conflicts); deletes loser. |
+| `is_admin()` | `boolean` | plpgsql | DEFINER | Checks if current user is an admin (`sales.administrator = true`). Used in RLS policies for `configuration` table. |
+| `get_avatar_for_email(email text)` | `text` | plpgsql | — | Resolves avatar URL: tries Gravatar first, falls back to domain favicon. Uses `extensions.http_get` and `extensions.digest`. |
+| `get_domain_favicon(domain_name text)` | `text` | plpgsql | — | Returns favicon URL for a domain via `favicon.show`, unless domain is in `favicons_excluded_domains`. |
+| `get_user_id_by_email(email text)` | `TABLE(id uuid)` | plpgsql | DEFINER | Looks up `auth.users.id` by email. Execute revoked from `anon`, `authenticated`, `public`. |
+| `lowercase_email_jsonb()` | `trigger` | plpgsql | — | Trigger function that lowercases all email addresses in `email_jsonb` before insert/update. |
+| `handle_contact_saved()` | `trigger` | plpgsql | — | Auto-populates `avatar` from Gravatar/domain favicon on contact create/update. |
+| `handle_company_saved()` | `trigger` | plpgsql | — | Auto-populates `logo` from domain favicon on company create/update. |
+| `handle_contact_note_created_or_updated()` | `trigger` | plpgsql | DEFINER | Updates `contacts.last_seen` when a contact note is created or updated. |
+| `handle_new_user()` | `trigger` | plpgsql | DEFINER | Creates `sales` row when a new `auth.users` row is inserted. First user becomes admin. Defaults names to `'Pending'` for SSO. |
+| `handle_update_user()` | `trigger` | plpgsql | DEFINER | Syncs `sales` row when `auth.users` is updated. |
+| `set_sales_id_default()` | `trigger` | plpgsql | — | Auto-populates `sales_id` from current user's `sales.id` on insert for contacts, companies, deals, tasks, notes. |
+| `cleanup_note_attachments()` | `trigger` | plpgsql | DEFINER | Calls Edge Function to delete attachment files from storage when notes are deleted or attachments updated. |
+| `get_note_attachments_function_url()` | `text` | plpgsql | — | Resolves the `delete_note_attachments` Edge Function URL from JWT issuer, with Docker fallback. |
+
+---
+
+## Triggers
+
+### Contact Triggers
+
+| Trigger | Table | Timing | Function | Notes |
+|---------|-------|--------|----------|-------|
+| `10_lowercase_contact_emails` | `contacts` | BEFORE INSERT/UPDATE | `lowercase_email_jsonb()` | Runs first — lowercases emails before other processing |
+| `20_contact_saved` | `contacts` | BEFORE INSERT/UPDATE | `handle_contact_saved()` | Auto-resolves avatar from Gravatar/favicon. Runs after lowercase trigger. Renamed from `contact_saved` (`20260320120000`). |
+| `set_contact_sales_id_trigger` | `contacts` | BEFORE INSERT | `set_sales_id_default()` | Auto-assigns current user as sales owner |
+
+### Company Triggers
+
+| Trigger | Table | Timing | Function | Notes |
+|---------|-------|--------|----------|-------|
+| `company_saved` | `companies` | BEFORE INSERT/UPDATE | `handle_company_saved()` | Auto-resolves logo from domain favicon |
+| `set_company_sales_id_trigger` | `companies` | BEFORE INSERT | `set_sales_id_default()` | Auto-assigns current user as sales owner |
+
+### Contact Note Triggers
+
+| Trigger | Table | Timing | Function | Notes |
+|---------|-------|--------|----------|-------|
+| `on_public_contact_notes_created_or_updated` | `contact_notes` | AFTER INSERT | `handle_contact_note_created_or_updated()` | Updates `contacts.last_seen` |
+| `on_contact_notes_deleted_delete_note_attachments` | `contact_notes` | AFTER DELETE | `cleanup_note_attachments()` | Cleans up storage files |
+| `on_contact_notes_attachments_updated_delete_note_attachments` | `contact_notes` | AFTER UPDATE (when attachments change) | `cleanup_note_attachments()` | Cleans up storage files |
+| `set_contact_notes_sales_id_trigger` | `contact_notes` | BEFORE INSERT | `set_sales_id_default()` | Auto-assigns current user as sales owner |
+
+### Deal Triggers
+
+| Trigger | Table | Timing | Function | Notes |
+|---------|-------|--------|----------|-------|
+| `set_deal_sales_id_trigger` | `deals` | BEFORE INSERT | `set_sales_id_default()` | Auto-assigns current user as sales owner |
+
+### Deal Note Triggers
+
+| Trigger | Table | Timing | Function | Notes |
+|---------|-------|--------|----------|-------|
+| `on_deal_notes_deleted_delete_note_attachments` | `deal_notes` | AFTER DELETE | `cleanup_note_attachments()` | Cleans up storage files |
+| `on_deal_notes_attachments_updated_delete_note_attachments` | `deal_notes` | AFTER UPDATE (when attachments change) | `cleanup_note_attachments()` | Cleans up storage files |
+| `set_deal_notes_sales_id_trigger` | `deal_notes` | BEFORE INSERT | `set_sales_id_default()` | Auto-assigns current user as sales owner |
+
+### Task Triggers
+
+| Trigger | Table | Timing | Function | Notes |
+|---------|-------|--------|----------|-------|
+| `set_task_sales_id_trigger` | `tasks` | BEFORE INSERT | `set_sales_id_default()` | Auto-assigns current user as sales owner |
+
+### Auth Triggers
+
+| Trigger | Table | Timing | Function | Notes |
+|---------|-------|--------|----------|-------|
+| `on_auth_user_created` | `auth.users` | AFTER INSERT | `handle_new_user()` | Creates matching `sales` row |
+| `on_auth_user_updated` | `auth.users` | AFTER UPDATE | `handle_update_user()` | Syncs name/email to `sales` row |
+
+---
+
+## Storage
+
+- **Bucket**: `attachments` (public) — stores note/file attachments.
+- **Policies**: SELECT, INSERT, DELETE for `authenticated` role.
+
+---
+
+## Extensions
+
+| Extension | Schema | Purpose |
+|-----------|--------|---------|
+| `citext` | `extensions` | Case-insensitive text for `companies.website` and `sales.email` |
+| `pgjwt` | `extensions` | JWT token handling for auth |
+| `http` | `extensions` | HTTP client for Gravatar/favicon resolution |
+| `pg_net` | `extensions` | Async HTTP for note attachment cleanup (moved from public schema in `20260309112831`) |
+
+---
+
+## Key Migration Milestones
+
+| Migration | Description |
+|-----------|-------------|
+| `20240730075029_init_db.sql` | Initial schema — 8 tables, views, RLS policies |
+| `20240730075425_init_triggers.sql` | Auth user triggers, `init_state` view |
+| `20240807082449_remove-aquisition.sql` | Drop `contacts.acquisition` column |
+| `20240808141826_init_state_configure.sql` | `init_state` view and configure |
+| `20240813084010_tags_policy.sql` | Tags DELETE/UPDATE policies |
+| `20241104153231_sales_policies.sql` | **Remove** INSERT/UPDATE policies on `sales` |
+| `20250109152531_email_jsonb.sql` | `email` → `email_jsonb`, add `email_fts` to `contacts_summary` |
+| `20250113132531_phone_jsonb.sql` | Phone columns → `phone_jsonb`, add `phone_fts` |
+| `20251204172855_merge_contacts_function.sql` | Add `merge_contacts()` function |
+| `20251204201317_drop_merge_contacts_function.sql` | Drop `merge_contacts()` (reverted to edge function) |
+| `20260108160722_task_default_sales.sql` | Add `set_sales_id_default()` trigger to multiple tables |
+| `20260115150819_snake_case_renaming.sql` | Rename `contactNotes` → `contact_notes`, `dealNotes` → `deal_notes`, `stateAbbr` → `state_abbr`; re-add `merge_contacts()` |
+| `20260127140209_imports.sql` | `favicons_excluded_domains`, `tasks.due_date` nullable, avatar/favicon functions, triggers |
+| `20260128165057_sso_handling.sql` | SSO defaults (`'Pending'` names), `handle_new_user`/`handle_update_user` with SSO claims |
+| `20260211194545_app_configuration.sql` | `configuration` table, `is_admin()` function |
+| `20260226163952_deals_expected_closing_date_date_only.sql` | `deals.expected_closing_date` → `date` type |
+| `20260304104600_note_attachments_trigger.sql` | Note attachment cleanup triggers via Edge Function |
+| `20260307120000_nb_tasks_pending_only.sql` | `contacts_summary.nb_tasks` → pending tasks only, add `email_fts`/`phone_fts` |
+| `20260309112831_fix_security_warnings.sql` | Security hardening: `security_invoker` on views, `search_path` on functions, `merge_contacts` recreated with proper settings, `pg_net` moved to `extensions` schema |
+| `20260314120000_activity_log_view.sql` | `activity_log` view |
+| `20260320120000_lowercase_email_website.sql` | `companies.website`/`sales.email` → `citext`, email lowercase trigger, trigger rename (`contact_saved` → `20_contact_saved`) |
