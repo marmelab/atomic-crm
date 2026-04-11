@@ -326,7 +326,7 @@ Deno.serve(async (req: Request) => {
           name: `${intakeLead.business_name} - Intake Lead`,
           company_id: companyId,
           contact_ids: [contactId],
-          stage: "lead",
+          stage: "discovery",
           created_at: now,
           updated_at: now,
           metadata: intakeLead.metadata ?? {},

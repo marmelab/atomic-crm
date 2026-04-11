@@ -134,6 +134,11 @@ export type Deal = {
   sales_id: Identifier;
   index: number;
   metadata?: Record<string, unknown>;
+  primary_bottleneck?: string;
+  software_stack?: string[];
+  dm_present?: boolean;
+  hours_wasted_per_week?: number;
+  response_time_hours?: number;
 } & Pick<RaRecord, "id">;
 
 export type DealNote = {

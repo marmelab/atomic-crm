@@ -9,10 +9,9 @@ import { useConfigurationContext } from "../root/ConfigurationContext";
 import type { Deal } from "../types";
 
 const multiplier: Record<string, number> = {
-  lead: 0.2,
-  qualified: 0.4,
-  "audit-scheduled": 0.6,
-  "proposal-sent": 0.8,
+  discovery: 0.2,
+  "solutions-mapping": 0.5,
+  "proposal-under-review": 0.8,
 };
 
 const threeMonthsAgo = new Date(

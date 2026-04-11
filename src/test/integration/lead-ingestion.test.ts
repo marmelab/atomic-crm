@@ -65,7 +65,7 @@ describe("Lead ingestion edge function", () => {
       .eq("id", result.deal_id)
       .single();
 
-    expect(deal?.stage).toBe("lead");
+    expect(deal?.stage).toBe("discovery");
     expect(deal?.name).toBe("Sunrise Roofing - Inbound Lead");
   });
 

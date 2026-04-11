@@ -8,6 +8,7 @@ import { DealsChart } from "./DealsChart";
 import { DealsByTradeType } from "./DealsByTradeType";
 import { HotContacts } from "./HotContacts";
 import { KPICards } from "./KPICards";
+import { PipelineSummary } from "./PipelineSummary";
 import { TasksList } from "./TasksList";
 import { Welcome } from "./Welcome";
 
@@ -58,7 +59,10 @@ export const Dashboard = () => {
             </Card>
           ) : null}
         </div>
-        <div className="md:col-span-4">
+        <div className="flex flex-col gap-6 md:col-span-4">
+          <Card className="p-4">
+            <PipelineSummary />
+          </Card>
           <DealsByTradeType />
         </div>
       </div>

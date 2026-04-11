@@ -241,14 +241,14 @@ Deno.serve(async (req: Request) => {
       }
     }
 
-    // 5. Create deal in "lead" stage
+    // 5. Create deal in "discovery" stage
     const { data: newDeal, error: dealErr } = await supabaseAdmin
       .from("deals")
       .insert({
         name: `${payload.company_name} - Inbound Lead`,
         company_id: companyId,
         contact_ids: contactId ? [contactId] : [],
-        stage: "lead",
+        stage: "discovery",
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
         metadata: payload.metadata,
