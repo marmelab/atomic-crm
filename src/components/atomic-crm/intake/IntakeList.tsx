@@ -162,6 +162,13 @@ const StatusTabBar = () => {
     return map;
   }, [allLeads]);
 
+  const reviewCount = useMemo(
+    () =>
+      allLeads.filter((lead) => lead.current_draft_status === "ai_reviewed")
+        .length,
+    [allLeads],
+  );
+
   const baseFilters = useMemo(() => {
     const next = { ...filterValues };
     delete next.status;
@@ -215,6 +222,11 @@ const StatusTabBar = () => {
           </button>
         );
       })}
+      {reviewCount > 0 ? (
+        <Badge variant="default" className="ml-auto self-center rounded-full">
+          {reviewCount} ready for review
+        </Badge>
+      ) : null}
     </div>
   );
 };
@@ -285,6 +297,7 @@ const DesktopIntakeTable = () => {
             {translate("resources.intake_leads.fields.status", { _: "Status" })}
           </TableHead>
           <TableHead>Outreach Progress</TableHead>
+          <TableHead>Draft Status</TableHead>
           <TableHead className="text-right">
             {translate("ra.action.actions", { _: "Actions" })}
           </TableHead>
@@ -322,6 +335,9 @@ const DesktopIntakeTable = () => {
                 <TableCell>
                   <OutreachProgress record={record} />
                 </TableCell>
+                <TableCell>
+                  <DraftStatusBadge status={record.current_draft_status} />
+                </TableCell>
                 <TableCell
                   className="text-right"
                   onClick={(event) => event.stopPropagation()}
@@ -344,7 +360,7 @@ const DesktopIntakeTable = () => {
               </TableRow>
               {expanded ? (
                 <TableRow className="bg-muted/20 hover:bg-muted/20">
-                  <TableCell colSpan={8} className="p-4">
+                  <TableCell colSpan={9} className="p-4">
                     <IntakeExpandedRow record={record} />
                   </TableCell>
                 </TableRow>
@@ -354,6 +370,43 @@ const DesktopIntakeTable = () => {
         })}
       </TableBody>
     </Table>
+  );
+};
+
+const DraftStatusBadge = ({
+  status,
+}: {
+  status: IntakeLead["current_draft_status"];
+}) => {
+  if (status === "none") {
+    return <span className="text-sm text-muted-foreground">-</span>;
+  }
+
+  const config: Record<string, { label: string; className: string }> = {
+    drafting: {
+      label: "Drafting",
+      className: "bg-muted text-muted-foreground",
+    },
+    ai_reviewed: {
+      label: "Ready for Review",
+      className: "border-blue-500/50 bg-blue-50 text-blue-700",
+    },
+    approved: {
+      label: "Approved",
+      className: "border-primary/50 bg-primary/10 text-primary",
+    },
+    sent: {
+      label: "Sent",
+      className: "border-green-500/50 bg-green-50 text-green-700",
+    },
+  };
+
+  const { label, className } = config[status] ?? { label: status, className: "" };
+
+  return (
+    <Badge variant="outline" className={cn("rounded-full", className)}>
+      {label}
+    </Badge>
   );
 };
 
