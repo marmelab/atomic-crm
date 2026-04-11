@@ -296,6 +296,58 @@ Deno.serve(async (req: Request) => {
         );
       }
 
+      // Recompute rollups so intake_leads reflects the failed status
+      const { data: failStepsData } = await supabaseAdmin
+        .from("outreach_steps")
+        .select("sequence_step, status, sent_at, subject, body")
+        .eq("intake_lead_id", step.intake_lead_id);
+
+      if (failStepsData) {
+        const failSteps = failStepsData as OutreachStepRollupRow[];
+        let failOutreachCount = 0;
+        let failOutreachSeqStep = 0;
+        let failLastOutreachAt: string | null = null;
+
+        for (const rs of failSteps) {
+          if (rs.status === "sent") {
+            failOutreachCount++;
+            if (
+              !failLastOutreachAt ||
+              (rs.sent_at &&
+                new Date(rs.sent_at) > new Date(failLastOutreachAt))
+            ) {
+              failLastOutreachAt = rs.sent_at;
+            }
+          }
+          if (
+            (rs.status === "sent" || rs.status === "completed") &&
+            rs.sequence_step > failOutreachSeqStep
+          ) {
+            failOutreachSeqStep = rs.sequence_step;
+          }
+        }
+
+        const failLatestStep = failSteps.reduce<OutreachStepRollupRow | null>(
+          (best, rs) =>
+            !best || rs.sequence_step > best.sequence_step ? rs : best,
+          null,
+        );
+
+        await supabaseAdmin
+          .from("intake_leads")
+          .update({
+            outreach_count: failOutreachCount,
+            outreach_sequence_step: failOutreachSeqStep,
+            last_outreach_at: failLastOutreachAt,
+            current_draft_status: failLatestStep
+              ? (DRAFT_STATUS_MAP[failLatestStep.status] ?? "none")
+              : "none",
+            outreach_subject: failLatestStep?.subject ?? null,
+            outreach_draft: failLatestStep?.body ?? null,
+          })
+          .eq("id", step.intake_lead_id);
+      }
+
       await logEvent(
         "send-outreach",
         "postmark_send_failed",

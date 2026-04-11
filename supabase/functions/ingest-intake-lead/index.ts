@@ -107,7 +107,23 @@ Deno.serve(async (req: Request) => {
     return jsonResponse({ error: "Invalid JSON body" }, 400);
   }
 
-  const body = rawBody as Record<string, unknown>;
+  const body =
+    typeof rawBody === "object" && rawBody !== null && !Array.isArray(rawBody)
+      ? (rawBody as Record<string, unknown>)
+      : null;
+
+  if (!body) {
+    await logEvent(
+      "ingest-intake-lead",
+      "validation_failed",
+      null,
+      null,
+      {},
+      { error: "body_not_object" },
+    );
+    return jsonResponse({ error: "Request body must be a JSON object" }, 400);
+  }
+
   if (typeof body.business_name !== "string" || !body.business_name.trim()) {
     await logEvent(
       "ingest-intake-lead",

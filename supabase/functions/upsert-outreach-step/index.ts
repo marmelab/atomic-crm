@@ -1,4 +1,5 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
+import { createClient } from "jsr:@supabase/supabase-js@2";
 import { corsHeaders } from "../_shared/cors.ts";
 import { supabaseAdmin } from "../_shared/supabaseAdmin.ts";
 
@@ -164,15 +165,38 @@ Deno.serve(async (req: Request) => {
     return jsonResponse({ error: "Method Not Allowed" }, 405);
   }
 
+  // Dual auth: API key (n8n / external) OR JWT (frontend)
   const apiKey = req.headers.get("x-api-key");
-  if (!INGEST_API_KEY || apiKey !== INGEST_API_KEY) {
+  const authHeader =
+    req.headers.get("Authorization") ?? req.headers.get("authorization");
+  let authenticated = false;
+
+  if (apiKey && INGEST_API_KEY && apiKey === INGEST_API_KEY) {
+    authenticated = true;
+  } else if (authHeader) {
+    const authClient = createClient(
+      Deno.env.get("SUPABASE_URL") ?? "",
+      Deno.env.get("SUPABASE_ANON_KEY") ?? "",
+      {
+        auth: { autoRefreshToken: false, persistSession: false },
+        global: { headers: { Authorization: authHeader } },
+      },
+    );
+    const { data: authData, error: authError } =
+      await authClient.auth.getUser();
+    if (!authError && authData?.user) {
+      authenticated = true;
+    }
+  }
+
+  if (!authenticated) {
     await logEvent(
       "upsert-outreach-step",
       "auth_failed",
       null,
       null,
       {},
-      { error: "invalid_api_key" },
+      { error: "invalid_credentials" },
     );
     return jsonResponse({ error: "Unauthorized" }, 401);
   }

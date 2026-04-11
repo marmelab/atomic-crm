@@ -16,6 +16,7 @@ import {
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 import type { IntakeLead, OutreachStep } from "../types";
+import { getSupabaseClient } from "../providers/supabase/supabase";
 
 const STEP_STATUS_CONFIG: Record<
   OutreachStep["status"],
@@ -85,12 +86,15 @@ export const IntakeExpandedRow = ({ record }: { record: IntakeLead }) => {
         return;
       }
 
+      const {
+        data: { session },
+      } = await getSupabaseClient().auth.getSession();
+
       const response = await fetch(supabaseUrl + "/functions/v1/send-outreach", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization:
-            "Bearer " + (localStorage.getItem("sb-access-token") || ""),
+          Authorization: "Bearer " + (session?.access_token ?? ""),
         },
         body: JSON.stringify({ outreach_step_id: stepId }),
       });
@@ -117,11 +121,18 @@ export const IntakeExpandedRow = ({ record }: { record: IntakeLead }) => {
         return;
       }
 
+      const {
+        data: { session },
+      } = await getSupabaseClient().auth.getSession();
+
       const response = await fetch(
         supabaseUrl + "/functions/v1/upsert-outreach-step",
         {
           method: "POST",
-          headers: { "Content-Type": "application/json", "x-api-key": "demo" },
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: "Bearer " + (session?.access_token ?? ""),
+          },
           body: JSON.stringify({
             intake_lead_id: step.intake_lead_id,
             sequence_step: step.sequence_step,
