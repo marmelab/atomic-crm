@@ -1,6 +1,19 @@
+import { differenceInCalendarDays } from "date-fns";
 import { format } from "date-fns";
 
-import type { DealStage } from "../types";
+import type { Deal, DealStage } from "../types";
+
+export type DecayLevel = "none" | "amber" | "red";
+
+const TERMINAL_STAGES = ["won", "lost"];
+
+export function getDealDecayLevel(deal: Deal, now = new Date()): DecayLevel {
+  if (TERMINAL_STAGES.includes(deal.stage)) return "none";
+  const daysSince = differenceInCalendarDays(now, new Date(deal.updated_at));
+  if (daysSince >= 7) return "red";
+  if (daysSince >= 3) return "amber";
+  return "none";
+}
 
 export const findDealLabel = (dealStages: DealStage[], dealValue: string) => {
   const dealStage = dealStages.find((stage) => stage.value === dealValue);
