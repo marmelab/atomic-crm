@@ -2,6 +2,7 @@ import { useGetList } from "ra-core";
 import { Card } from "@/components/ui/card";
 
 import type { Contact, ContactNote } from "../types";
+import { ActionQueue } from "./ActionQueue";
 import { DashboardActivityLog } from "./DashboardActivityLog";
 import { DashboardStepper } from "./DashboardStepper";
 import { DealsChart } from "./DealsChart";
@@ -9,6 +10,7 @@ import { DealsByTradeType } from "./DealsByTradeType";
 import { HotContacts } from "./HotContacts";
 import { KPICards } from "./KPICards";
 import { PipelineSummary } from "./PipelineSummary";
+import { StaleDeals } from "./StaleDeals";
 import { TasksList } from "./TasksList";
 import { Welcome } from "./Welcome";
 
@@ -67,7 +69,9 @@ export const Dashboard = () => {
         </div>
       </div>
       <div className="grid grid-cols-1 gap-6 md:grid-cols-12">
-        <div className="md:col-span-8">
+        <div className="flex flex-col gap-6 md:col-span-8">
+          <ActionQueue />
+          <StaleDeals />
           <DashboardActivityLog />
         </div>
         <div className="flex flex-col gap-6 md:col-span-4">
