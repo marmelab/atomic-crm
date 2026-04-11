@@ -290,6 +290,7 @@ const DesktopAdmin = (
       <Resource name="tasks" list={TasksPage} />
       <Resource name="sales" {...sales} />
       <Resource name="intake_leads" {...intake} />
+      <Resource name="outreach_steps" />
       <Resource name="tags" />
       <Resource name="trade_types" />
       <Resource name="lead_sources" />
@@ -363,6 +364,7 @@ const MobileAdmin = (
         <Resource name="deals" {...deals} />
         <Resource name="companies" show={CompanyShow} />
         <Resource name="intake_leads" {...intake} />
+        <Resource name="outreach_steps" />
         <Resource name="tasks" list={MobileTasksList} />
         <Resource name="tags" />
         <Resource name="trade_types" />

@@ -188,10 +188,42 @@ export type IntakeLead = {
   outreach_count: number;
   next_outreach_date: string | null;
   outreach_sequence_step: number;
+  current_draft_status:
+    | "none"
+    | "drafting"
+    | "ai_reviewed"
+    | "approved"
+    | "sent";
+  outreach_subject: string | null;
   metadata: Record<string, unknown> | null;
   idempotency_key: string | null;
   created_at: string;
   updated_at: string;
+} & Pick<RaRecord, "id">;
+
+export type OutreachStep = {
+  intake_lead_id: string;
+  sequence_step: number;
+  channel: "email" | "linkedin" | "phone";
+  subject: string | null;
+  body: string | null;
+  review_status: "pending" | "passed" | "failed" | "skipped";
+  review_feedback: string | null;
+  status:
+    | "drafting"
+    | "ai_reviewed"
+    | "action_needed"
+    | "approved"
+    | "sent"
+    | "completed"
+    | "failed"
+    | "replied";
+  provider_message_id: string | null;
+  reply_body: string | null;
+  reply_received_at: string | null;
+  run_id: string | null;
+  created_at: string;
+  sent_at: string | null;
 } & Pick<RaRecord, "id">;
 
 export type ActivityCompanyCreated = {
