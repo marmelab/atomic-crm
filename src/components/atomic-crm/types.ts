@@ -184,6 +184,10 @@ export type IntakeLead = {
   promoted_contact_id: number | null;
   notes: string | null;
   sales_id: Identifier | null;
+  last_outreach_at: string | null;
+  outreach_count: number;
+  next_outreach_date: string | null;
+  outreach_sequence_step: number;
   metadata: Record<string, unknown> | null;
   idempotency_key: string | null;
   created_at: string;

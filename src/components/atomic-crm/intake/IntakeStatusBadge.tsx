@@ -3,11 +3,16 @@ import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 
 const statusClasses: Record<string, string> = {
-  new: "border-blue-500/60 bg-blue-500/10 text-blue-700 dark:text-blue-300",
-  contacted:
-    "border-yellow-500/60 bg-yellow-500/10 text-yellow-700 dark:text-yellow-300",
-  responded:
+  uncontacted:
+    "border-blue-500/60 bg-blue-500/10 text-blue-700 dark:text-blue-300",
+  "in-sequence":
+    "border-amber-500/60 bg-amber-500/10 text-amber-700 dark:text-amber-300",
+  engaged:
     "border-green-500/60 bg-green-500/10 text-green-700 dark:text-green-300",
+  "not-interested":
+    "border-slate-400/60 bg-slate-400/10 text-slate-600 dark:text-slate-300",
+  unresponsive:
+    "border-orange-500/60 bg-orange-500/10 text-orange-700 dark:text-orange-300",
   qualified:
     "border-emerald-500/60 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300",
   rejected:

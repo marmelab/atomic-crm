@@ -1,8 +1,10 @@
-import { company, address, internet, phone, lorem, random } from "faker/locale/en_US";
+import { company, address, internet, phone, lorem, random, datatype } from "faker/locale/en_US";
 
 import { randomDate } from "./utils";
 import type { IntakeLead } from "../../../types";
 import type { Db } from "./types";
+
+const OUTREACH_CADENCE_DAYS = [1, 3, 4, 7, 14, 21, 28];
 
 const TRADE_TYPES = [
   { id: "tt_1", name: "Roofing" },
@@ -28,7 +30,7 @@ const LEAD_SOURCES = [
 
 export const generateLeadSources = () => LEAD_SOURCES;
 
-const statuses = ["new", "new", "new", "contacted", "responded", "qualified", "rejected"];
+const statuses = ["uncontacted", "uncontacted", "uncontacted", "in-sequence", "in-sequence", "engaged", "not-interested", "unresponsive", "qualified", "rejected"];
 const sources = ["Google Places", "Referral", "Website Form", "Cold Outreach", "Trade Show", "Yelp"];
 
 const enrichmentSamples = [
@@ -56,6 +58,25 @@ export const generateIntakeLeads = (_db: Db, size = 12): IntakeLead[] => {
     const city = random.arrayElement(["Toronto", "Mississauga", "Brampton", "Vaughan", "Markham", "Oakville", "Hamilton", "Oshawa"]);
     const createdAt = randomDate(new Date(Date.now() - 30 * 24 * 60 * 60 * 1000));
 
+    // Outreach tracking: sequence step depends on status
+    const sequenceStep =
+      status === "uncontacted"
+        ? 0
+        : status === "in-sequence"
+          ? datatype.number({ min: 1, max: 5 })
+          : status === "engaged" || status === "not-interested" || status === "unresponsive"
+            ? datatype.number({ min: 2, max: 7 })
+            : 0;
+    const outreachCount = sequenceStep;
+    const lastOutreachDate =
+      outreachCount > 0
+        ? new Date(createdAt.getTime() + OUTREACH_CADENCE_DAYS[Math.min(sequenceStep - 1, 6)] * 86400000).toISOString()
+        : null;
+    const nextOutreachDate =
+      status === "in-sequence" && sequenceStep < 7
+        ? new Date(createdAt.getTime() + OUTREACH_CADENCE_DAYS[Math.min(sequenceStep, 6)] * 86400000).toISOString()
+        : null;
+
     const lead: IntakeLead = {
       id,
       business_name: `${company.companyName()} ${random.arrayElement(["Contracting", "Services", "Solutions", "Pro", "Inc.", "Corp."])}`,
@@ -73,6 +94,10 @@ export const generateIntakeLeads = (_db: Db, size = 12): IntakeLead[] => {
       rejection_reason: status === "rejected" ? random.arrayElement(rejectionReasons) : null,
       promoted_contact_id: status === "qualified" ? random.arrayElement([100, 101, 102]) : null,
       notes: random.arrayElement([lorem.sentence(), lorem.sentences(2), null, null]),
+      last_outreach_at: lastOutreachDate,
+      outreach_count: outreachCount,
+      next_outreach_date: nextOutreachDate,
+      outreach_sequence_step: sequenceStep,
       sales_id: null,
       metadata: null,
       idempotency_key: null,

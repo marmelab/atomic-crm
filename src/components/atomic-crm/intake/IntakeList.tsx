@@ -51,9 +51,11 @@ import {
 import { IntakeStatusBadge } from "./IntakeStatusBadge";
 
 const statusChoices = [
-  { id: "new", name: "New" },
-  { id: "contacted", name: "Contacted" },
-  { id: "responded", name: "Responded" },
+  { id: "uncontacted", name: "Uncontacted" },
+  { id: "in-sequence", name: "In Sequence" },
+  { id: "engaged", name: "Engaged" },
+  { id: "not-interested", name: "Not Interested" },
+  { id: "unresponsive", name: "Unresponsive" },
   { id: "qualified", name: "Qualified" },
   { id: "rejected", name: "Rejected" },
 ];
