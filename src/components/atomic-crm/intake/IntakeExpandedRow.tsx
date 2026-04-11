@@ -1,134 +1,114 @@
-import type { ReactNode } from "react";
-import { useTranslate } from "ra-core";
+import { useNotify } from "ra-core";
+import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import type { IntakeLead } from "../types";
 
 const OUTREACH_CADENCE = [
   { day: 1, label: "Day 1", type: "Email" },
-  { day: 3, label: "Day 3", type: "Call" },
-  { day: 4, label: "Day 4", type: "Email" },
-  { day: 7, label: "Day 7", type: "Call" },
+  { day: 3, label: "Day 3", type: "Email" },
+  { day: 4, label: "Day 4", type: "LinkedIn" },
+  { day: 7, label: "Day 7", type: "Phone" },
   { day: 14, label: "Day 14", type: "Email" },
-  { day: 21, label: "Day 21", type: "Call" },
+  { day: 21, label: "Day 21", type: "Phone" },
   { day: 28, label: "Day 28", type: "Email" },
 ];
 
-const Section = ({
-  title,
-  children,
-}: {
-  title: string;
-  children: ReactNode;
-}) => (
-  <section className="space-y-2">
-    <h4 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-      {title}
-    </h4>
-    <div className="whitespace-pre-wrap text-sm leading-6 text-muted-foreground">
-      {children}
-    </div>
-  </section>
-);
-
 export const IntakeExpandedRow = ({ record }: { record: IntakeLead }) => {
-  const translate = useTranslate();
-  const hasLocation = Boolean(record.address || record.city || record.region);
-  const hasOutreachTracking = record.outreach_sequence_step > 0 || record.status === "in-sequence";
-  const hasDetails = Boolean(
-    record.enrichment_summary ||
-      record.outreach_draft ||
-      record.notes ||
-      hasLocation ||
-      hasOutreachTracking,
-  );
-
-  if (!hasDetails) {
-    return (
-      <div className="text-sm text-muted-foreground">
-        {translate("resources.intake_leads.expanded.no_details", {
-          _: "No additional details yet.",
-        })}
-      </div>
-    );
-  }
+  const notify = useNotify();
+  const hasOutreachHistory = record.outreach_sequence_step > 0;
+  const currentStepIndex = Math.max(record.outreach_sequence_step - 1, 0);
 
   return (
-    <div className="space-y-6 rounded-lg border bg-muted/20 p-4">
-      {record.enrichment_summary ? (
-        <Section title={translate("resources.intake_leads.expanded.enrichment", { _: "AI Enrichment" })}>
-          {record.enrichment_summary}
-        </Section>
-      ) : null}
+    <div className="grid grid-cols-3 gap-4">
+      <div className="rounded-2xl border bg-card p-4">
+        <h4 className="mb-2 font-heading text-base font-extrabold">
+          AI Enrichment Summary
+        </h4>
+        <p className="text-sm leading-6 text-muted-foreground">
+          {record.enrichment_summary || "No enrichment data yet."}
+        </p>
+      </div>
 
-      {record.outreach_draft ? (
-        <Section title={translate("resources.intake_leads.expanded.outreach", { _: "Outreach Draft" })}>
-          {record.outreach_draft}
-        </Section>
-      ) : null}
+      <div className="rounded-2xl border bg-card p-4">
+        <h4 className="mb-2 font-heading text-base font-extrabold">
+          Outreach Draft
+        </h4>
+        <p className="whitespace-pre-wrap text-sm leading-6 text-muted-foreground">
+          {record.outreach_draft || "No draft generated yet."}
+        </p>
+        {record.outreach_draft ? (
+          <div className="mt-4 flex gap-2">
+            <Button
+              size="sm"
+              className="bg-primary text-primary-foreground hover:bg-primary/90"
+              onClick={() =>
+                notify("Outreach sending coming soon", { type: "info" })
+              }
+            >
+              Send Now
+            </Button>
+            <Button size="sm" variant="outline">
+              Edit Draft
+            </Button>
+          </div>
+        ) : null}
+      </div>
 
-      {record.outreach_sequence_step > 0 || record.status === "in-sequence" ? (
-        <section className="space-y-2">
-          <h4 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-            Outreach Cadence
-          </h4>
-          <div className="flex items-center gap-1">
-            {OUTREACH_CADENCE.map((touch, i) => {
-              const completed = i < record.outreach_sequence_step;
-              const current = i === record.outreach_sequence_step && record.status === "in-sequence";
+      <div className="rounded-2xl border bg-card p-4">
+        <h4 className="mb-3 font-heading text-base font-extrabold">
+          Cadence Timeline
+        </h4>
+        {!hasOutreachHistory && record.status !== "in-sequence" ? (
+          <p className="text-sm leading-6 text-muted-foreground">
+            No outreach history yet. Sequence activity will appear here after the
+            first touch.
+          </p>
+        ) : (
+          <div className="grid grid-cols-7 gap-2 text-center text-xs font-semibold">
+            {OUTREACH_CADENCE.map((touch, index) => {
+              const isCurrent =
+                record.status === "in-sequence" && index === currentStepIndex;
+              const isCompleted =
+                record.status === "in-sequence"
+                  ? index < currentStepIndex
+                  : index < record.outreach_sequence_step;
+
               return (
-                <div key={touch.day} className="flex flex-col items-center gap-1">
-                  <div
-                    className={cn(
-                      "w-8 h-8 rounded-full flex items-center justify-center text-xs font-medium border-2 transition-colors",
-                      completed
-                        ? "bg-green-500 border-green-500 text-white"
-                        : current
-                          ? "bg-amber-100 border-amber-500 text-amber-700"
-                          : "bg-muted border-border text-muted-foreground",
-                    )}
-                  >
-                    {i + 1}
-                  </div>
-                  <span className="text-[10px] text-muted-foreground">{touch.type}</span>
-                  {i < OUTREACH_CADENCE.length - 1 && (
-                    <div className="hidden" />
+                <div
+                  key={touch.day}
+                  className={cn(
+                    "rounded-xl px-2 py-3",
+                    isCompleted
+                      ? "bg-green-500/12 text-green-700"
+                      : isCurrent
+                        ? "bg-primary/12 text-primary"
+                        : "bg-muted text-muted-foreground",
                   )}
+                >
+                  <div>
+                    {touch.label}
+                    {isCompleted ? (
+                      <>
+                        {" "}
+                        &#10003;
+                      </>
+                    ) : isCurrent ? (
+                      <>
+                        {" "}
+                        &rarr;
+                      </>
+                    ) : null}
+                  </div>
+                  <div className="mt-1 font-medium">
+                    {touch.type} &middot;{" "}
+                    {isCompleted ? "sent" : isCurrent ? "next" : "pending"}
+                  </div>
                 </div>
               );
             })}
           </div>
-          {record.last_outreach_at && (
-            <p className="text-xs text-muted-foreground">
-              Last outreach: {new Date(record.last_outreach_at).toLocaleDateString()}
-              {record.next_outreach_date && (
-                <> &middot; Next: {new Date(record.next_outreach_date).toLocaleDateString()}</>
-              )}
-            </p>
-          )}
-        </section>
-      ) : null}
-
-      {hasLocation ? (
-        <section className="space-y-2">
-          <h4 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-            {translate("resources.intake_leads.expanded.location", { _: "Location" })}
-          </h4>
-          <div className="space-y-1 text-sm text-muted-foreground">
-            {record.address ? <div>{record.address}</div> : null}
-            {record.city || record.region ? (
-              <div>
-                {[record.city, record.region].filter(Boolean).join(", ")}
-              </div>
-            ) : null}
-          </div>
-        </section>
-      ) : null}
-
-      {record.notes ? (
-        <Section title={translate("resources.intake_leads.expanded.notes", { _: "Notes" })}>
-          {record.notes}
-        </Section>
-      ) : null}
+        )}
+      </div>
     </div>
   );
 };

@@ -6,7 +6,7 @@ const statusClasses: Record<string, string> = {
   uncontacted:
     "border-blue-500/60 bg-blue-500/10 text-blue-700 dark:text-blue-300",
   "in-sequence":
-    "border-amber-500/60 bg-amber-500/10 text-amber-700 dark:text-amber-300",
+    "border-primary/60 bg-primary/10 text-primary",
   engaged:
     "border-green-500/60 bg-green-500/10 text-green-700 dark:text-green-300",
   "not-interested":

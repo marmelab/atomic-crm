@@ -1,33 +1,21 @@
-import type { MouseEvent, ReactNode } from "react";
 import { useMemo, useState } from "react";
-import type { Identifier, InputProps } from "ra-core";
+import type { Identifier } from "ra-core";
 import {
   RecordContextProvider,
-  useDataProvider,
+  useGetList,
   useListContext,
-  useNotify,
-  useRefresh,
   useTranslate,
 } from "ra-core";
 import { ChevronDown } from "lucide-react";
-import { BulkActionsToolbar } from "@/components/admin/bulk-actions-toolbar";
-import { FilterButton } from "@/components/admin/filter-form";
-import { DateField } from "@/components/admin/date-field";
 import { List } from "@/components/admin/list";
 import { ReferenceField } from "@/components/admin/reference-field";
 import { ReferenceInput } from "@/components/admin/reference-input";
 import { SelectInput } from "@/components/admin/select-input";
 import { TextField } from "@/components/admin/text-field";
 import { TextInput } from "@/components/admin/text-input";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Card } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+import { Card } from "@/components/ui/card";
 import {
   Table,
   TableBody,
@@ -36,49 +24,28 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { cn } from "@/lib/utils";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { cn } from "@/lib/utils";
 
-import { TopToolbar } from "../layout/TopToolbar";
 import type { IntakeLead } from "../types";
 import { IntakeExpandedRow } from "./IntakeExpandedRow";
 import { IntakeMobileList } from "./IntakeMobileList";
 import { IntakePromoteButton } from "./IntakePromoteButton";
-import {
-  INTAKE_REJECTION_REASONS,
-  IntakeRejectButton,
-} from "./IntakeRejectButton";
 import { IntakeStatusBadge } from "./IntakeStatusBadge";
 
-const statusChoices = [
-  { id: "uncontacted", name: "Uncontacted" },
-  { id: "in-sequence", name: "In Sequence" },
-  { id: "engaged", name: "Engaged" },
-  { id: "not-interested", name: "Not Interested" },
-  { id: "unresponsive", name: "Unresponsive" },
-  { id: "qualified", name: "Qualified" },
-  { id: "rejected", name: "Rejected" },
-];
+const ACTIVE_PIPELINE_STATUSES = [
+  "uncontacted",
+  "in-sequence",
+  "engaged",
+  "not-interested",
+  "unresponsive",
+] as const;
 
-const IntakeListActions = () => (
-  <TopToolbar>
-    <FilterButton />
-  </TopToolbar>
-);
-
-const FilterFieldWrapper = ({ children }: InputProps & { children: ReactNode }) =>
-  children;
+const ACTIVE_PIPELINE_FILTER = `(${ACTIVE_PIPELINE_STATUSES.join(",")})`;
+const OUTREACH_STEPS_TOTAL = 7;
+const COUNT_QUERY = { page: 1, perPage: 1 };
 
 const intakeFilters = [
-  <FilterFieldWrapper key="status" source="status" label="Status">
-    <SelectInput
-      source="status"
-      label={false}
-      helperText={false}
-      choices={statusChoices}
-      emptyText="All statuses"
-    />
-  </FilterFieldWrapper>,
   <ReferenceInput
     key="trade_type_id"
     source="trade_type_id"
@@ -110,8 +77,9 @@ export const IntakeList = () => {
         smart_count: 2,
         _: "Intake Leads",
       })}
-      actions={<IntakeListActions />}
+      actions={false}
       filters={intakeFilters}
+      filterDefaultValues={{ "status@in": ACTIVE_PIPELINE_FILTER }}
       sort={{ field: "created_at", order: "DESC" }}
       perPage={25}
     >
@@ -124,7 +92,16 @@ const IntakeListLayout = () => {
   const isMobile = useIsMobile();
   const translate = useTranslate();
   const { data, isPending, error, filterValues } = useListContext<IntakeLead>();
-  const hasFilters = Boolean(filterValues && Object.keys(filterValues).length > 0);
+  const hasFilters = Boolean(
+    filterValues &&
+      Object.entries(filterValues).some(([key, value]) => {
+        if (key === "status@in" && value === ACTIVE_PIPELINE_FILTER) {
+          return false;
+        }
+
+        return value !== undefined && value !== null && value !== "";
+      }),
+  );
 
   if (isPending) {
     return null;
@@ -149,28 +126,155 @@ const IntakeListLayout = () => {
     );
   }
 
-  if (!data?.length) {
-    return <IntakeEmpty hasFilters={hasFilters} />;
-  }
-
   if (isMobile) {
     return <IntakeMobileList />;
   }
 
   return (
     <>
-      <Card className="gap-0 overflow-hidden py-0">
-        <DesktopIntakeTable />
-      </Card>
-      <BulkActionsToolbar>
-        <IntakeBulkRejectButton />
-      </BulkActionsToolbar>
+      <StatusTabBar />
+      {!data?.length ? (
+        <IntakeEmpty hasFilters={hasFilters} />
+      ) : (
+        <Card className="gap-0 overflow-hidden py-0">
+          <DesktopIntakeTable />
+        </Card>
+      )}
     </>
+  );
+};
+
+const StatusTabBar = () => {
+  const { displayedFilters, filterValues = {}, setFilters } =
+    useListContext<IntakeLead>();
+
+  const baseFilters = useMemo(() => {
+    const nextFilters = { ...filterValues };
+    delete nextFilters.status;
+    delete nextFilters["status@in"];
+    return nextFilters;
+  }, [filterValues]);
+
+  const allFilter = useMemo(
+    () => ({ ...baseFilters, "status@in": ACTIVE_PIPELINE_FILTER }),
+    [baseFilters],
+  );
+  const uncontactedFilter = useMemo(
+    () => ({ ...baseFilters, status: "uncontacted" }),
+    [baseFilters],
+  );
+  const inSequenceFilter = useMemo(
+    () => ({ ...baseFilters, status: "in-sequence" }),
+    [baseFilters],
+  );
+  const engagedFilter = useMemo(
+    () => ({ ...baseFilters, status: "engaged" }),
+    [baseFilters],
+  );
+  const notInterestedFilter = useMemo(
+    () => ({ ...baseFilters, status: "not-interested" }),
+    [baseFilters],
+  );
+  const unresponsiveFilter = useMemo(
+    () => ({ ...baseFilters, status: "unresponsive" }),
+    [baseFilters],
+  );
+
+  const { total: allCount = 0 } = useGetList("intake_leads", {
+    filter: allFilter,
+    pagination: COUNT_QUERY,
+  });
+  const { total: uncontactedCount = 0 } = useGetList("intake_leads", {
+    filter: uncontactedFilter,
+    pagination: COUNT_QUERY,
+  });
+  const { total: inSequenceCount = 0 } = useGetList("intake_leads", {
+    filter: inSequenceFilter,
+    pagination: COUNT_QUERY,
+  });
+  const { total: engagedCount = 0 } = useGetList("intake_leads", {
+    filter: engagedFilter,
+    pagination: COUNT_QUERY,
+  });
+  const { total: notInterestedCount = 0 } = useGetList("intake_leads", {
+    filter: notInterestedFilter,
+    pagination: COUNT_QUERY,
+  });
+  const { total: unresponsiveCount = 0 } = useGetList("intake_leads", {
+    filter: unresponsiveFilter,
+    pagination: COUNT_QUERY,
+  });
+
+  const tabs = [
+    { id: "all", label: "All", count: allCount, filter: allFilter },
+    {
+      id: "uncontacted",
+      label: "Uncontacted",
+      count: uncontactedCount,
+      filter: uncontactedFilter,
+    },
+    {
+      id: "in-sequence",
+      label: "In Sequence",
+      count: inSequenceCount,
+      filter: inSequenceFilter,
+    },
+    {
+      id: "engaged",
+      label: "Engaged",
+      count: engagedCount,
+      filter: engagedFilter,
+    },
+    {
+      id: "not-interested",
+      label: "Not Interested",
+      count: notInterestedCount,
+      filter: notInterestedFilter,
+    },
+    {
+      id: "unresponsive",
+      label: "Unresponsive",
+      count: unresponsiveCount,
+      filter: unresponsiveFilter,
+    },
+  ] as const;
+
+  const activeTabId =
+    typeof filterValues.status === "string" &&
+    ACTIVE_PIPELINE_STATUSES.includes(
+      filterValues.status as (typeof ACTIVE_PIPELINE_STATUSES)[number],
+    )
+      ? filterValues.status
+      : "all";
+
+  return (
+    <div className="mb-5 flex flex-wrap gap-3">
+      {tabs.map((tab) => {
+        const isActive = activeTabId === tab.id;
+
+        return (
+          <button
+            key={tab.id}
+            type="button"
+            className={cn(
+              "rounded-xl px-4 py-2.5 text-sm font-semibold transition-colors",
+              isActive
+                ? "border border-primary/35 bg-primary/12 text-primary"
+                : "border border-border bg-white text-muted-foreground",
+            )}
+            onClick={() => setFilters(tab.filter, displayedFilters)}
+          >
+            {tab.label} ({tab.count})
+          </button>
+        );
+      })}
+    </div>
   );
 };
 
 const IntakeEmpty = ({ hasFilters }: { hasFilters: boolean }) => {
   const translate = useTranslate();
+
   return (
     <Card className="p-6">
       <div className="space-y-2 text-center">
@@ -198,15 +302,9 @@ const IntakeEmpty = ({ hasFilters }: { hasFilters: boolean }) => {
 };
 
 const DesktopIntakeTable = () => {
-  const { data = [], selectedIds = [], onSelect, onToggleItem } =
-    useListContext<IntakeLead>();
+  const { data = [] } = useListContext<IntakeLead>();
   const translate = useTranslate();
   const [expandedIds, setExpandedIds] = useState<Identifier[]>([]);
-
-  const selectableIds = useMemo(() => data.map((record) => record.id), [data]);
-  const allSelected =
-    selectableIds.length > 0 &&
-    selectableIds.every((id) => selectedIds.includes(id));
 
   const toggleExpanded = (id: Identifier) => {
     setExpandedIds((current) =>
@@ -216,41 +314,33 @@ const DesktopIntakeTable = () => {
     );
   };
 
-  const handleToggleAll = (checked: boolean) => {
-    if (!onSelect) {
-      return;
-    }
-
-    onSelect(
-      checked
-        ? Array.from(new Set([...selectedIds, ...selectableIds]))
-        : selectedIds.filter((id) => !selectableIds.includes(id)),
-    );
-  };
-
-  const handleToggleRowSelection =
-    (id: Identifier) => (event: MouseEvent<HTMLTableCellElement>) => {
-      event.stopPropagation();
-      onToggleItem?.(id);
-    };
-
   return (
     <Table>
       <TableHeader>
         <TableRow>
-          <TableHead className="w-12">
-            <Checkbox
-              checked={allSelected}
-              onCheckedChange={(checked) => handleToggleAll(checked === true)}
-            />
+          <TableHead>
+            {translate("resources.intake_leads.fields.business_name", {
+              _: "Business Name",
+            })}
           </TableHead>
-          <TableHead>{translate("resources.intake_leads.fields.business_name", { _: "Business Name" })}</TableHead>
-          <TableHead>{translate("resources.intake_leads.fields.trade_type_id", { _: "Trade Type" })}</TableHead>
-          <TableHead>{translate("resources.intake_leads.fields.status", { _: "Status" })}</TableHead>
-          <TableHead>{translate("resources.intake_leads.fields.city", { _: "City" })}</TableHead>
-          <TableHead>{translate("resources.intake_leads.fields.source", { _: "Source" })}</TableHead>
-          <TableHead>{translate("resources.intake_leads.fields.created_at", { _: "Created" })}</TableHead>
-          <TableHead className="text-right">{translate("ra.action.actions", { _: "Actions" })}</TableHead>
+          <TableHead>
+            {translate("resources.intake_leads.fields.trade_type_id", {
+              _: "Trade Type",
+            })}
+          </TableHead>
+          <TableHead>
+            {translate("resources.intake_leads.fields.city", { _: "City" })}
+          </TableHead>
+          <TableHead>
+            {translate("resources.intake_leads.fields.source", { _: "Source" })}
+          </TableHead>
+          <TableHead>
+            {translate("resources.intake_leads.fields.status", { _: "Status" })}
+          </TableHead>
+          <TableHead>Outreach Progress</TableHead>
+          <TableHead className="text-right">
+            {translate("ra.action.actions", { _: "Actions" })}
+          </TableHead>
           <TableHead className="w-12" />
         </TableRow>
       </TableHeader>
@@ -261,13 +351,9 @@ const DesktopIntakeTable = () => {
           return (
             <RecordContextProvider key={record.id} value={record}>
               <TableRow
-                data-state={selectedIds.includes(record.id) ? "selected" : undefined}
-                className="cursor-pointer"
+                className="cursor-pointer hover:bg-primary/5"
                 onClick={() => toggleExpanded(record.id)}
               >
-                <TableCell onClick={handleToggleRowSelection(record.id)}>
-                  <Checkbox checked={selectedIds.includes(record.id)} />
-                </TableCell>
                 <TableCell className="font-medium">{record.business_name}</TableCell>
                 <TableCell>
                   <ReferenceField
@@ -276,24 +362,28 @@ const DesktopIntakeTable = () => {
                     link={false}
                     empty={<span className="text-muted-foreground">-</span>}
                   >
-                    <TextField source="name" />
+                    <Badge variant="secondary" className="rounded-full">
+                      <TextField source="name" />
+                    </Badge>
                   </ReferenceField>
-                </TableCell>
-                <TableCell>
-                  <IntakeStatusBadge status={record.status} />
                 </TableCell>
                 <TableCell>{record.city || "-"}</TableCell>
                 <TableCell>{record.source || "-"}</TableCell>
-                <TableCell className="text-muted-foreground">
-                  <DateField source="created_at" />
+                <TableCell>
+                  <IntakeStatusBadge status={record.status} />
+                </TableCell>
+                <TableCell>
+                  <OutreachProgress record={record} />
                 </TableCell>
                 <TableCell
                   className="text-right"
                   onClick={(event) => event.stopPropagation()}
                 >
                   <div className="flex justify-end gap-2">
-                    <IntakePromoteButton record={record} />
-                    <IntakeRejectButton record={record} />
+                    <IntakeActionButton
+                      record={record}
+                      onToggleExpanded={toggleExpanded}
+                    />
                   </div>
                 </TableCell>
                 <TableCell className="text-right">
@@ -307,7 +397,7 @@ const DesktopIntakeTable = () => {
               </TableRow>
               {expanded ? (
                 <TableRow className="bg-muted/20 hover:bg-muted/20">
-                  <TableCell colSpan={9} className="p-4">
+                  <TableCell colSpan={8} className="p-4">
                     <IntakeExpandedRow record={record} />
                   </TableCell>
                 </TableRow>
@@ -320,74 +410,140 @@ const DesktopIntakeTable = () => {
   );
 };
 
-const IntakeBulkRejectButton = () => {
-  const dataProvider = useDataProvider();
-  const notify = useNotify();
-  const refresh = useRefresh();
-  const translate = useTranslate();
-  const { selectedIds = [], onUnselectItems } = useListContext<IntakeLead>();
-  const [isPending, setIsPending] = useState(false);
+const OutreachProgress = ({ record }: { record: IntakeLead }) => {
+  const nextDate = formatShortDate(record.next_outreach_date);
+  const progressWidth = `${Math.max(
+    0,
+    Math.min(100, (record.outreach_sequence_step / OUTREACH_STEPS_TOTAL) * 100),
+  )}%`;
 
-  const handleReject = async (reason: string) => {
-    if (!selectedIds.length) {
-      return;
-    }
+  if (record.status === "uncontacted") {
+    return <div className="text-sm text-muted-foreground">Ready for first touch</div>;
+  }
 
-    try {
-      setIsPending(true);
-      await dataProvider.updateMany("intake_leads", {
-        ids: selectedIds,
-        data: {
-          status: "rejected",
-          rejection_reason: reason,
-        },
-      });
-      notify("resources.intake_leads.notify.batch_rejected", {
-        type: "success",
-        messageArgs: { _: "Selected intake leads were rejected" },
-      });
-      onUnselectItems?.();
-      refresh();
-    } catch (error) {
-      notify("resources.intake_leads.notify.batch_reject_failed", {
-        type: "error",
-        messageArgs: {
-          _: error instanceof Error
-            ? error.message
-            : "Failed to reject intake leads",
-        },
-      });
-    } finally {
-      setIsPending(false);
-    }
-  };
+  if (record.status === "in-sequence") {
+    return (
+      <div className="space-y-2">
+        <div className="text-sm font-semibold">
+          Touch {record.outreach_sequence_step}/{OUTREACH_STEPS_TOTAL}
+        </div>
+        <div className="h-2 w-40 rounded-full bg-muted">
+          <div
+            className="h-2 rounded-full bg-primary"
+            style={{ width: progressWidth }}
+          />
+        </div>
+        <div className="text-xs text-muted-foreground">Next: {nextDate}</div>
+      </div>
+    );
+  }
 
-  return (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          disabled={isPending || !selectedIds.length}
-          className="border-destructive/40 text-destructive hover:text-destructive"
-        >
-          {translate("resources.intake_leads.action.batch_reject", { _: "Batch Reject" })}
-        </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="end">
-        {INTAKE_REJECTION_REASONS.map((reason) => (
-          <DropdownMenuItem
-            key={reason}
-            className="cursor-pointer"
-            onSelect={() => {
-              void handleReject(reason);
-            }}
-          >
-            {reason}
-          </DropdownMenuItem>
-        ))}
-      </DropdownMenuContent>
-    </DropdownMenu>
-  );
+  if (record.status === "engaged") {
+    return <div className="text-sm text-muted-foreground">Reply received</div>;
+  }
+
+  if (record.status === "not-interested") {
+    return <div className="text-sm text-muted-foreground">Declined</div>;
+  }
+
+  if (record.status === "unresponsive") {
+    return (
+      <div className="text-sm text-muted-foreground">
+        Touch {record.outreach_sequence_step}/{OUTREACH_STEPS_TOTAL} &middot; Next:{" "}
+        {nextDate}
+      </div>
+    );
+  }
+
+  if (record.status === "qualified") {
+    return <div className="text-sm text-muted-foreground">Promoted</div>;
+  }
+
+  if (record.status === "rejected") {
+    return <div className="text-sm text-muted-foreground">Rejected</div>;
+  }
+
+  return <div className="text-sm text-muted-foreground">-</div>;
+};
+
+const IntakeActionButton = ({
+  record,
+  onToggleExpanded,
+}: {
+  record: IntakeLead;
+  onToggleExpanded: (id: Identifier) => void;
+}) => {
+  const handleExpand = () => onToggleExpanded(record.id);
+
+  if (record.status === "engaged") {
+    return (
+      <div className="[&_button]:border-green-500 [&_button]:bg-green-500 [&_button]:text-white">
+        <IntakePromoteButton record={record} />
+      </div>
+    );
+  }
+
+  if (record.status === "qualified") {
+    return (
+      <Button type="button" size="sm" disabled>
+        Promoted
+      </Button>
+    );
+  }
+
+  if (record.status === "rejected") {
+    return (
+      <Button type="button" size="sm" disabled>
+        Rejected
+      </Button>
+    );
+  }
+
+  if (record.status === "not-interested") {
+    return (
+      <Button type="button" size="sm" variant="outline" onClick={handleExpand}>
+        Review Notes
+      </Button>
+    );
+  }
+
+  if (record.status === "uncontacted") {
+    return (
+      <Button
+        type="button"
+        size="sm"
+        className="bg-primary text-primary-foreground hover:bg-primary/90"
+        onClick={handleExpand}
+      >
+        Send Outreach
+      </Button>
+    );
+  }
+
+  if (record.status === "in-sequence" || record.status === "unresponsive") {
+    return (
+      <Button
+        type="button"
+        size="sm"
+        variant="outline"
+        className="border-primary/35 bg-primary/12 text-primary hover:bg-primary/20 hover:text-primary"
+        onClick={handleExpand}
+      >
+        View Sequence
+      </Button>
+    );
+  }
+
+  return null;
+};
+
+const formatShortDate = (value: string | null) => {
+  if (!value) {
+    return "TBD";
+  }
+
+  return new Date(value).toLocaleDateString(undefined, {
+    month: "short",
+    day: "numeric",
+  });
 };
