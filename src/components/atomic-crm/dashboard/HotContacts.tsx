@@ -2,6 +2,7 @@ import { Plus, Users } from "lucide-react";
 import { useGetIdentity, useGetList, useTranslate } from "ra-core";
 import { Link } from "react-router";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import {
   Tooltip,
@@ -40,6 +41,11 @@ export const HotContacts = () => {
         <h2 className="text-xl font-semibold text-muted-foreground">
           {translate("resources.contacts.hot.title")}
         </h2>
+        {contactTotal ? (
+          <Badge variant="secondary" className="ml-2">
+            {contactTotal}
+          </Badge>
+        ) : null}
         <TooltipProvider>
           <Tooltip>
             <TooltipTrigger asChild>
@@ -72,14 +78,21 @@ export const HotContacts = () => {
             `${contact.first_name} ${contact.last_name}`
           }
           secondaryText={(contact) => (
-            <>
-              {contact.title && contact.company_name
-                ? translate("resources.contacts.position_at_company", {
-                    title: contact.title,
-                    company: contact.company_name,
-                  })
-                : contact.title || contact.company_name}
-            </>
+            <span className="flex items-center gap-1.5">
+              <span>
+                {contact.title && contact.company_name
+                  ? translate("resources.contacts.position_at_company", {
+                      title: contact.title,
+                      company: contact.company_name,
+                    })
+                  : contact.title || contact.company_name}
+              </span>
+              {contact.last_seen && (
+                <span className="text-muted-foreground/60">
+                  &middot; {new Date(contact.last_seen).toLocaleDateString(undefined, { month: "short", day: "numeric" })}
+                </span>
+              )}
+            </span>
           )}
           leftAvatar={(contact) => <Avatar record={contact} />}
           empty={

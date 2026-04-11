@@ -1,4 +1,4 @@
-import { AlertCircle, DollarSign, TrendingUp, Trophy } from "lucide-react";
+import { AlertCircle, DollarSign, Percent, Trophy } from "lucide-react";
 import { useGetIdentity, useGetList } from "ra-core";
 import { Link } from "react-router";
 import { Card } from "@/components/ui/card";
@@ -57,7 +57,7 @@ export const KPICards = () => {
 
   const wonDeals = deals?.filter((deal) => deal.stage === "won") ?? [];
   const dealsWon = wonDeals.length;
-  const totalWon = wonDeals.reduce((sum, deal) => sum + (deal.amount ?? 0), 0);
+  const closedDeals = deals?.filter((deal) => ["won", "lost"].includes(deal.stage)).length ?? 0;
   const startOfToday = today();
 
   const overdueTasks =
@@ -99,15 +99,17 @@ export const KPICards = () => {
         </Card>
       </Link>
       <Link
-        to={`/deals?filter=${encodeURIComponent(JSON.stringify({ stage: "won" }))}`}
+        to="/deals"
         className="transition-opacity hover:opacity-80"
       >
         <Card className="gap-3 p-4 cursor-pointer">
-          <TrendingUp className="h-5 w-5 text-muted-foreground" />
+          <Percent className="h-5 w-5 text-muted-foreground" />
           <div className="space-y-1">
-            <p className="text-sm font-medium text-muted-foreground">Total Won</p>
+            <p className="text-sm font-medium text-muted-foreground">Win Rate</p>
             <p className="text-2xl font-bold">
-              {formatCurrency(totalWon, currency)}
+              {closedDeals > 0
+                ? `${Math.round((dealsWon / closedDeals) * 100)}%`
+                : "—"}
             </p>
           </div>
         </Card>

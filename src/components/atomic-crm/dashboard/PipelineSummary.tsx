@@ -2,6 +2,7 @@ import { useGetList } from "ra-core";
 import { memo, useMemo } from "react";
 import { Link } from "react-router";
 import { useConfigurationContext } from "../root/ConfigurationContext";
+import { stageColorMap } from "../deals/stageColors";
 import type { Deal } from "../types";
 
 export const PipelineSummary = memo(() => {
@@ -54,9 +55,17 @@ export const PipelineSummary = memo(() => {
             to={`/deals?filter=${encodeURIComponent(JSON.stringify({ stage: value }))}`}
             className="transition-opacity hover:opacity-80"
           >
-            <div className="flex flex-col items-center p-2 rounded-md bg-muted/50 cursor-pointer">
-              <span className="text-lg font-bold">{count}</span>
-              <span className="text-xs text-muted-foreground text-center leading-tight">
+            <div
+              className="flex flex-col items-center p-2 rounded-md cursor-pointer"
+              style={{
+                backgroundColor: stageColorMap[value]?.bg ?? "#F5F5F4",
+                borderLeft: `3px solid ${stageColorMap[value]?.border ?? "#E5E5E3"}`,
+              }}
+            >
+              <span className="text-lg font-bold" style={{ color: stageColorMap[value]?.text }}>
+                {count}
+              </span>
+              <span className="text-xs text-center leading-tight" style={{ color: stageColorMap[value]?.text }}>
                 {label}
               </span>
             </div>
