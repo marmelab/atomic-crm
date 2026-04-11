@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Hatch CRM Mock 04 • Intake Outreach</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>tailwind.config={theme:{extend:{fontFamily:{heading:["Manrope","sans-serif"],body:["Inter","sans-serif"]}}}};</script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Manrope:wght@600;700;800&display=swap" rel="stylesheet" />
+    <style>
+      :root { --primary:#4DC8E8; --bg:#FAFAF9; --fg:#1A1A2E; --card:#FFFFFF; --muted:#F5F5F4; --muted-fg:#6B6B80; --destructive:#EF4444; --success:#22C55E; --warning:#F59E0B; --purple:#8B5CF6; --sidebar:#1A1A2E; --sidebar-text:#E2E2E8; --sidebar-active:rgba(77,200,232,0.15); --border:#E5E5E3; }
+      body { background: radial-gradient(circle at top right, rgba(77,200,232,0.1), transparent 24%), var(--bg); color:var(--fg); font-family:"Inter",sans-serif; }
+      [data-lucide] { width:16px; height:16px; stroke-width:1.9; }
+      .card { background:var(--card); border:1px solid var(--border); border-radius:.5rem; box-shadow:0 16px 40px rgba(26,26,46,0.06); }
+      .nav-item,.hover-lift,.tab,.buttonish { transition:transform .18s ease, box-shadow .18s ease, border-color .18s ease, background-color .18s ease, color .18s ease; }
+      .nav-item:hover { background:rgba(255,255,255,0.06); color:#fff; }
+      .nav-item.active { background:var(--sidebar-active); color:var(--primary); }
+      .hover-lift:hover,.buttonish:hover { transform:translateY(-2px); box-shadow:0 20px 40px rgba(26,26,46,0.08); }
+      .tab:hover { border-color:rgba(77,200,232,0.42); color:var(--primary); }
+      .avatar { display:grid; place-items:center; border-radius:9999px; font-family:"Manrope",sans-serif; font-weight:800; }
+      .badge { display:inline-flex; align-items:center; gap:.25rem; border-radius:9999px; padding:.24rem .62rem; font-size:11px; font-weight:700; }
+      .table-row:hover { background:rgba(77,200,232,0.05); }
+    </style>
+  </head>
+  <body>
+    <div class="mx-auto grid min-h-screen w-full max-w-[1360px] grid-cols-[240px_1fr]">
+      <aside class="flex min-h-screen flex-col border-r border-white/5 bg-[var(--sidebar)] px-4 py-5 text-[var(--sidebar-text)]">
+        <div class="mb-8 rounded-2xl border border-white/10 bg-white/5 px-4 py-4">
+          <div class="font-heading text-xl font-extrabold tracking-[0.24em] text-[var(--primary)]">HATCH CRM</div>
+          <p class="mt-2 text-sm text-white/60">Lead intake and outbound sequence orchestration</p>
+        </div>
+        <nav class="space-y-1.5 text-sm font-medium">
+          <a class="nav-item flex items-center gap-3 rounded-xl px-3 py-3" href="#"><i data-lucide="layout-dashboard"></i><span>Dashboard</span></a>
+          <a class="nav-item active flex items-center gap-3 rounded-xl px-3 py-3" href="#"><i data-lucide="inbox"></i><span>Intake</span></a>
+          <a class="nav-item flex items-center gap-3 rounded-xl px-3 py-3" href="#"><i data-lucide="briefcase-business"></i><span>Deals</span></a>
+          <a class="nav-item flex items-center gap-3 rounded-xl px-3 py-3" href="#"><i data-lucide="users"></i><span>Contacts</span></a>
+          <a class="nav-item flex items-center gap-3 rounded-xl px-3 py-3" href="#"><i data-lucide="building-2"></i><span>Companies</span></a>
+          <a class="nav-item flex items-center gap-3 rounded-xl px-3 py-3" href="#"><i data-lucide="check-square"></i><span>Tasks</span></a>
+        </nav>
+        <div class="mt-auto rounded-2xl border border-white/10 bg-white/5 p-3"><div class="flex items-center gap-3"><div class="avatar h-11 w-11 bg-[var(--primary)] text-sm text-[var(--sidebar)]">NS</div><div><div class="font-semibold text-white">Nathan S.</div><div class="text-xs text-white/60">Outbound owner</div></div></div></div>
+      </aside>
+
+      <main class="px-8 py-7">
+        <div class="mb-6 flex items-start justify-between">
+          <div><h1 class="font-heading text-[2rem] font-extrabold tracking-[-0.03em]">Intake Leads</h1><p class="mt-1 text-sm text-[var(--muted-fg)]">New GTA trade leads, enrichment context, and multi-touch outreach progress.</p></div>
+          <div class="card flex items-center gap-2 px-4 py-3 text-sm text-[var(--muted-fg)]"><i data-lucide="sliders-horizontal"></i><span>Source: Google Maps + Apollo + referrals</span></div>
+        </div>
+
+        <div class="mb-5 flex flex-wrap gap-3">
+          <button class="tab buttonish rounded-xl border border-[rgba(77,200,232,0.35)] bg-[rgba(77,200,232,0.12)] px-4 py-2.5 text-sm font-semibold text-[var(--primary)]">All (24)</button>
+          <button class="tab rounded-xl border border-[var(--border)] bg-white px-4 py-2.5 text-sm font-semibold text-[var(--muted-fg)]">Uncontacted (8)</button>
+          <button class="tab rounded-xl border border-[var(--border)] bg-white px-4 py-2.5 text-sm font-semibold text-[var(--muted-fg)]">In Sequence (6)</button>
+          <button class="tab rounded-xl border border-[var(--border)] bg-white px-4 py-2.5 text-sm font-semibold text-[var(--muted-fg)]">Engaged (4)</button>
+          <button class="tab rounded-xl border border-[var(--border)] bg-white px-4 py-2.5 text-sm font-semibold text-[var(--muted-fg)]">Not Interested (3)</button>
+          <button class="tab rounded-xl border border-[var(--border)] bg-white px-4 py-2.5 text-sm font-semibold text-[var(--muted-fg)]">Unresponsive (3)</button>
+        </div>
+
+        <section class="card overflow-hidden">
+          <table class="w-full text-left text-sm">
+            <thead class="bg-[var(--muted)] text-[var(--muted-fg)]"><tr><th class="px-4 py-3 font-semibold">Business Name</th><th class="px-4 py-3 font-semibold">Trade Type</th><th class="px-4 py-3 font-semibold">City</th><th class="px-4 py-3 font-semibold">Source</th><th class="px-4 py-3 font-semibold">Status</th><th class="px-4 py-3 font-semibold">Outreach Progress</th><th class="px-4 py-3 font-semibold">Actions</th></tr></thead>
+            <tbody>
+              <tr class="table-row border-t border-[var(--border)]"><td class="px-4 py-4 font-semibold">Toronto Scaffolding Group</td><td class="px-4 py-4"><span class="badge bg-[rgba(139,92,246,0.12)] text-[#6D28D9]">Scaffolding</span></td><td class="px-4 py-4 text-[var(--muted-fg)]">Toronto</td><td class="px-4 py-4 text-[var(--muted-fg)]">Google Maps</td><td class="px-4 py-4"><span class="badge bg-[rgba(77,200,232,0.14)] text-[var(--primary)]">In Sequence</span></td><td class="px-4 py-4"><div class="text-sm font-semibold">Touch 3/7</div><div class="mt-2 h-2 w-40 rounded-full bg-[var(--muted)]"><div class="h-2 rounded-full bg-[var(--primary)]" style="width:43%"></div></div><div class="mt-2 text-xs text-[var(--muted-fg)]">Next: Apr 14</div></td><td class="px-4 py-4"><button class="buttonish rounded-xl border border-[rgba(77,200,232,0.35)] bg-[rgba(77,200,232,0.12)] px-3 py-2 text-sm font-semibold text-[var(--primary)]">View Sequence</button></td></tr>
+              <tr class="border-t border-[var(--border)] bg-[rgba(77,200,232,0.04)]">
+                <td colspan="7" class="px-5 py-5">
+                  <div class="grid grid-cols-[1.05fr_1fr_1.2fr] gap-4">
+                    <div class="rounded-2xl border border-[var(--border)] bg-white p-4"><div class="mb-2 font-heading text-base font-extrabold">AI Enrichment Summary</div><p class="text-sm leading-6 text-[var(--muted-fg)]">Family-run scaffolding contractor serving condo restoration and mid-rise sites across downtown Toronto. Heavy quote volume, fast response times in reviews, and recurring mention of manual bid coordination between office staff and field supervisors.</p></div>
+                    <div class="rounded-2xl border border-[var(--border)] bg-white p-4"><div class="mb-2 font-heading text-base font-extrabold">Outreach Draft</div><p class="text-sm leading-6 text-[var(--muted-fg)]">“Noticed Toronto Scaffolding Group is moving quickly on condo restoration bids. We help GTA trade contractors cut the back-and-forth between inbound inquiries, estimating, and proposal follow-up without replacing the tools your team already uses.”</p><div class="mt-4 flex gap-2"><button class="buttonish rounded-xl bg-[var(--primary)] px-3 py-2 text-sm font-semibold text-[var(--sidebar)]">Send Now</button><button class="buttonish rounded-xl border border-[var(--border)] bg-white px-3 py-2 text-sm font-semibold text-[var(--fg)]">Edit Draft</button></div></div>
+                    <div class="rounded-2xl border border-[var(--border)] bg-white p-4"><div class="mb-3 font-heading text-base font-extrabold">Cadence Timeline</div><div class="grid grid-cols-6 gap-2 text-center text-xs font-semibold"><div class="rounded-xl bg-[rgba(34,197,94,0.12)] px-2 py-3 text-[#15803D]">Day 1 ✓<div class="mt-1 font-medium text-[var(--muted-fg)]">Email • sent</div></div><div class="rounded-xl bg-[rgba(34,197,94,0.12)] px-2 py-3 text-[#15803D]">Day 3 ✓<div class="mt-1 font-medium text-[var(--muted-fg)]">Email • sent</div></div><div class="rounded-xl bg-[rgba(77,200,232,0.12)] px-2 py-3 text-[var(--primary)]">Day 4 →<div class="mt-1 font-medium text-[var(--muted-fg)]">LinkedIn • next</div></div><div class="rounded-xl bg-[var(--muted)] px-2 py-3 text-[var(--muted-fg)]">Day 7<div class="mt-1 font-medium">Phone • pending</div></div><div class="rounded-xl bg-[var(--muted)] px-2 py-3 text-[var(--muted-fg)]">Day 14<div class="mt-1 font-medium">Email • scheduled</div></div><div class="rounded-xl bg-[var(--muted)] px-2 py-3 text-[var(--muted-fg)]">Day 21<div class="mt-1 font-medium">Phone • scheduled</div></div></div></div>
+                  </div>
+                </td>
+              </tr>
+              <tr class="table-row border-t border-[var(--border)]"><td class="px-4 py-4 font-semibold">Peel Region Mechanical</td><td class="px-4 py-4"><span class="badge bg-[rgba(77,200,232,0.12)] text-[var(--primary)]">HVAC</span></td><td class="px-4 py-4 text-[var(--muted-fg)]">Mississauga</td><td class="px-4 py-4 text-[var(--muted-fg)]">Referral</td><td class="px-4 py-4"><span class="badge bg-[rgba(107,107,128,0.12)] text-[var(--muted-fg)]">Uncontacted</span></td><td class="px-4 py-4 text-[var(--muted-fg)]">Ready for first touch</td><td class="px-4 py-4"><button class="buttonish rounded-xl bg-[var(--primary)] px-3 py-2 text-sm font-semibold text-[var(--sidebar)]">Send Outreach</button></td></tr>
+              <tr class="table-row border-t border-[var(--border)]"><td class="px-4 py-4 font-semibold">Durham Electrical Group</td><td class="px-4 py-4"><span class="badge bg-[rgba(245,158,11,0.12)] text-[#B45309]">Electrical</span></td><td class="px-4 py-4 text-[var(--muted-fg)]">Whitby</td><td class="px-4 py-4 text-[var(--muted-fg)]">Apollo</td><td class="px-4 py-4"><span class="badge bg-[rgba(34,197,94,0.12)] text-[var(--success)]">Engaged</span></td><td class="px-4 py-4 text-[var(--muted-fg)]">Reply received • intro call booked</td><td class="px-4 py-4"><button class="buttonish rounded-xl bg-[var(--success)] px-3 py-2 text-sm font-semibold text-white">Promote</button></td></tr>
+              <tr class="table-row border-t border-[var(--border)]"><td class="px-4 py-4 font-semibold">North York Roofing Partners</td><td class="px-4 py-4"><span class="badge bg-[rgba(239,68,68,0.12)] text-[var(--destructive)]">Roofing</span></td><td class="px-4 py-4 text-[var(--muted-fg)]">North York</td><td class="px-4 py-4 text-[var(--muted-fg)]">Google Maps</td><td class="px-4 py-4"><span class="badge bg-[rgba(245,158,11,0.12)] text-[var(--warning)]">Unresponsive</span></td><td class="px-4 py-4 text-[var(--muted-fg)]">Touch 5/7 • Next: Apr 15</td><td class="px-4 py-4"><button class="buttonish rounded-xl border border-[var(--border)] bg-white px-3 py-2 text-sm font-semibold text-[var(--fg)]">View Sequence</button></td></tr>
+              <tr class="table-row border-t border-[var(--border)]"><td class="px-4 py-4 font-semibold">Halton Concrete Forming</td><td class="px-4 py-4"><span class="badge bg-[rgba(139,92,246,0.12)] text-[#6D28D9]">Concrete</span></td><td class="px-4 py-4 text-[var(--muted-fg)]">Burlington</td><td class="px-4 py-4 text-[var(--muted-fg)]">Chamber Directory</td><td class="px-4 py-4"><span class="badge bg-[rgba(239,68,68,0.12)] text-[var(--destructive)]">Not Interested</span></td><td class="px-4 py-4 text-[var(--muted-fg)]">Declined after first call</td><td class="px-4 py-4"><button class="buttonish rounded-xl border border-[var(--border)] bg-white px-3 py-2 text-sm font-semibold text-[var(--fg)]">Review Notes</button></td></tr>
+              <tr class="table-row border-t border-[var(--border)]"><td class="px-4 py-4 font-semibold">Scarborough Fire Protection</td><td class="px-4 py-4"><span class="badge bg-[rgba(249,115,22,0.12)] text-[#F97316]">Fire Protection</span></td><td class="px-4 py-4 text-[var(--muted-fg)]">Scarborough</td><td class="px-4 py-4 text-[var(--muted-fg)]">Referral</td><td class="px-4 py-4"><span class="badge bg-[rgba(77,200,232,0.14)] text-[var(--primary)]">In Sequence</span></td><td class="px-4 py-4"><div class="text-sm font-semibold">Touch 2/7</div><div class="mt-2 h-2 w-40 rounded-full bg-[var(--muted)]"><div class="h-2 rounded-full bg-[var(--primary)]" style="width:28%"></div></div><div class="mt-2 text-xs text-[var(--muted-fg)]">Next: Apr 14</div></td><td class="px-4 py-4"><button class="buttonish rounded-xl border border-[rgba(77,200,232,0.35)] bg-[rgba(77,200,232,0.12)] px-3 py-2 text-sm font-semibold text-[var(--primary)]">View Sequence</button></td></tr>
+            </tbody>
+          </table>
+        </section>
+      </main>
+    </div>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script>lucide.createIcons();</script>
+  </body>
+</html>
