@@ -43,7 +43,6 @@ const ACTIVE_PIPELINE_STATUSES = [
 
 const ACTIVE_PIPELINE_FILTER = `(${ACTIVE_PIPELINE_STATUSES.join(",")})`;
 const OUTREACH_STEPS_TOTAL = 7;
-const COUNT_QUERY = { page: 1, perPage: 1 };
 
 const intakeFilters = [
   <ReferenceInput
@@ -148,95 +147,35 @@ const StatusTabBar = () => {
   const { displayedFilters, filterValues = {}, setFilters } =
     useListContext<IntakeLead>();
 
+  // Single query for all active-pipeline leads, count by status client-side
+  const { data: allLeads = [] } = useGetList<IntakeLead>("intake_leads", {
+    filter: { "status@in": ACTIVE_PIPELINE_FILTER },
+    pagination: { page: 1, perPage: 1000 },
+    sort: { field: "id", order: "ASC" },
+  });
+
+  const counts = useMemo(() => {
+    const map: Record<string, number> = {};
+    for (const lead of allLeads) {
+      map[lead.status] = (map[lead.status] || 0) + 1;
+    }
+    return map;
+  }, [allLeads]);
+
   const baseFilters = useMemo(() => {
-    const nextFilters = { ...filterValues };
-    delete nextFilters.status;
-    delete nextFilters["status@in"];
-    return nextFilters;
+    const next = { ...filterValues };
+    delete next.status;
+    delete next["status@in"];
+    return next;
   }, [filterValues]);
 
-  const allFilter = useMemo(
-    () => ({ ...baseFilters, "status@in": ACTIVE_PIPELINE_FILTER }),
-    [baseFilters],
-  );
-  const uncontactedFilter = useMemo(
-    () => ({ ...baseFilters, status: "uncontacted" }),
-    [baseFilters],
-  );
-  const inSequenceFilter = useMemo(
-    () => ({ ...baseFilters, status: "in-sequence" }),
-    [baseFilters],
-  );
-  const engagedFilter = useMemo(
-    () => ({ ...baseFilters, status: "engaged" }),
-    [baseFilters],
-  );
-  const notInterestedFilter = useMemo(
-    () => ({ ...baseFilters, status: "not-interested" }),
-    [baseFilters],
-  );
-  const unresponsiveFilter = useMemo(
-    () => ({ ...baseFilters, status: "unresponsive" }),
-    [baseFilters],
-  );
-
-  const { total: allCount = 0 } = useGetList("intake_leads", {
-    filter: allFilter,
-    pagination: COUNT_QUERY,
-  });
-  const { total: uncontactedCount = 0 } = useGetList("intake_leads", {
-    filter: uncontactedFilter,
-    pagination: COUNT_QUERY,
-  });
-  const { total: inSequenceCount = 0 } = useGetList("intake_leads", {
-    filter: inSequenceFilter,
-    pagination: COUNT_QUERY,
-  });
-  const { total: engagedCount = 0 } = useGetList("intake_leads", {
-    filter: engagedFilter,
-    pagination: COUNT_QUERY,
-  });
-  const { total: notInterestedCount = 0 } = useGetList("intake_leads", {
-    filter: notInterestedFilter,
-    pagination: COUNT_QUERY,
-  });
-  const { total: unresponsiveCount = 0 } = useGetList("intake_leads", {
-    filter: unresponsiveFilter,
-    pagination: COUNT_QUERY,
-  });
-
   const tabs = [
-    { id: "all", label: "All", count: allCount, filter: allFilter },
-    {
-      id: "uncontacted",
-      label: "Uncontacted",
-      count: uncontactedCount,
-      filter: uncontactedFilter,
-    },
-    {
-      id: "in-sequence",
-      label: "In Sequence",
-      count: inSequenceCount,
-      filter: inSequenceFilter,
-    },
-    {
-      id: "engaged",
-      label: "Engaged",
-      count: engagedCount,
-      filter: engagedFilter,
-    },
-    {
-      id: "not-interested",
-      label: "Not Interested",
-      count: notInterestedCount,
-      filter: notInterestedFilter,
-    },
-    {
-      id: "unresponsive",
-      label: "Unresponsive",
-      count: unresponsiveCount,
-      filter: unresponsiveFilter,
-    },
+    { id: "all", label: "All", count: allLeads.length },
+    { id: "uncontacted", label: "Uncontacted", count: counts["uncontacted"] || 0 },
+    { id: "in-sequence", label: "In Sequence", count: counts["in-sequence"] || 0 },
+    { id: "engaged", label: "Engaged", count: counts["engaged"] || 0 },
+    { id: "not-interested", label: "Not Interested", count: counts["not-interested"] || 0 },
+    { id: "unresponsive", label: "Unresponsive", count: counts["unresponsive"] || 0 },
   ] as const;
 
   const activeTabId =
@@ -246,6 +185,14 @@ const StatusTabBar = () => {
     )
       ? filterValues.status
       : "all";
+
+  const handleTabClick = (tabId: string) => {
+    const filter =
+      tabId === "all"
+        ? { ...baseFilters, "status@in": ACTIVE_PIPELINE_FILTER }
+        : { ...baseFilters, status: tabId };
+    setFilters(filter, displayedFilters);
+  };
 
   return (
     <div className="mb-5 flex flex-wrap gap-3">
@@ -262,7 +209,7 @@ const StatusTabBar = () => {
                 ? "border border-primary/35 bg-primary/12 text-primary"
                 : "border border-border bg-white text-muted-foreground",
             )}
-            onClick={() => setFilters(tab.filter, displayedFilters)}
+            onClick={() => handleTabClick(tab.id)}
           >
             {tab.label} ({tab.count})
           </button>
