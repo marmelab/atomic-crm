@@ -211,7 +211,7 @@ Deno.serve(async (req: Request) => {
       return jsonResponse({ error: "Intake lead not found" }, 404);
     }
 
-    if (intakeLead.status === "qualified") {
+    if (intakeLead.status === "qualified" || intakeLead.status === "rejected") {
       await logEvent(
         "promote-intake-lead",
         "promote_conflict",
@@ -219,13 +219,13 @@ Deno.serve(async (req: Request) => {
         intakeLead.id,
         payload as unknown as Record<string, unknown>,
         {
-          error: "already_qualified",
+          error: `already_${intakeLead.status}`,
           promoted_contact_id: intakeLead.promoted_contact_id,
         },
       );
       return jsonResponse(
         {
-          error: "Intake lead already qualified",
+          error: `Intake lead already ${intakeLead.status}`,
           promoted_contact_id: intakeLead.promoted_contact_id,
         },
         409,

@@ -344,11 +344,16 @@ create table public.intake_leads (
     enrichment_summary text,
     outreach_draft text,
     source text,
-    status text not null default 'new',
+    status text not null default 'uncontacted'
+        check (status in ('uncontacted', 'in-sequence', 'engaged', 'not-interested', 'unresponsive', 'qualified', 'rejected')),
     rejection_reason text,
     notes text,
     sales_id bigint references public.sales(id),
     idempotency_key text,
+    last_outreach_at timestamptz,
+    outreach_count integer not null default 0,
+    next_outreach_date timestamptz,
+    outreach_sequence_step integer not null default 0,
     created_at timestamptz default now(),
     updated_at timestamptz default now()
 );

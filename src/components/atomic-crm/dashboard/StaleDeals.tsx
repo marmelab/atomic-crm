@@ -1,17 +1,16 @@
 import { AlertTriangle } from "lucide-react";
-import { useGetList, useRedirect, useTranslate } from "ra-core";
+import { useGetList, useRedirect } from "ra-core";
 import { Card } from "@/components/ui/card";
 
 import { useConfigurationContext } from "../root/ConfigurationContext";
 import type { Deal } from "../types";
-import { getDealDecayLevel, type DecayLevel } from "../deals/dealUtils";
+import { getDealDecayLevel } from "../deals/dealUtils";
 import { stageColorMap } from "../deals/stageColors";
 import { Badge } from "@/components/ui/badge";
 
 const TERMINAL_STAGES = ["won", "lost"];
 
 export const StaleDeals = () => {
-  const translate = useTranslate();
   const { dealStages, currency } = useConfigurationContext();
   const redirect = useRedirect();
 

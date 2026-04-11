@@ -1,5 +1,5 @@
 import { Zap } from "lucide-react";
-import { useGetIdentity, useGetList, useRedirect, useTranslate } from "ra-core";
+import { useGetIdentity, useGetList, useRedirect } from "ra-core";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 
@@ -12,13 +12,13 @@ type ActionItem = {
   label: string;
   detail: string;
   urgency: "amber" | "red";
+  days: number;
   onClick: () => void;
 };
 
 const TERMINAL_STAGES = ["won", "lost"];
 
 export const ActionQueue = () => {
-  const translate = useTranslate();
   const { identity } = useGetIdentity();
   const redirect = useRedirect();
 
@@ -53,6 +53,7 @@ export const ActionQueue = () => {
       label: task.text,
       detail: `${daysOverdue}d overdue`,
       urgency: daysOverdue >= 3 ? "red" : "amber",
+      days: daysOverdue,
       onClick: () =>
         redirect(`/contacts/${task.contact_id}/show`, undefined, undefined, undefined, {
           _scrollToTop: false,
@@ -75,6 +76,7 @@ export const ActionQueue = () => {
         label: deal.name,
         detail: `${days}d no activity`,
         urgency: decay === "red" ? "red" : "amber",
+        days,
         onClick: () =>
           redirect(`/deals/${deal.id}/show`, undefined, undefined, undefined, {
             _scrollToTop: false,
@@ -82,10 +84,10 @@ export const ActionQueue = () => {
       });
     });
 
-  // Sort: red before amber, then by detail number descending
+  // Sort: red before amber, then by most days first within each group
   actions.sort((a, b) => {
     if (a.urgency !== b.urgency) return a.urgency === "red" ? -1 : 1;
-    return 0;
+    return b.days - a.days;
   });
 
   const topActions = actions.slice(0, 8);

@@ -33,11 +33,13 @@ const Section = ({
 export const IntakeExpandedRow = ({ record }: { record: IntakeLead }) => {
   const translate = useTranslate();
   const hasLocation = Boolean(record.address || record.city || record.region);
+  const hasOutreachTracking = record.outreach_sequence_step > 0 || record.status === "in-sequence";
   const hasDetails = Boolean(
     record.enrichment_summary ||
       record.outreach_draft ||
       record.notes ||
-      hasLocation,
+      hasLocation ||
+      hasOutreachTracking,
   );
 
   if (!hasDetails) {
