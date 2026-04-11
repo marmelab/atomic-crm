@@ -5,6 +5,7 @@ import { generateDealNotes } from "./dealNotes";
 import { generateDeals } from "./deals";
 import { finalize } from "./finalize";
 import { generateIntakeLeads, generateLeadSources, generateTradeTypes } from "./intakeLeads";
+import { generateOutreachSteps } from "./outreachSteps";
 import { generateSales } from "./sales";
 import { generateTags } from "./tags";
 import { generateTasks } from "./tasks";
@@ -23,6 +24,7 @@ export default (): Db => {
   db.deal_notes = generateDealNotes(db);
   db.tasks = generateTasks(db);
   db.intake_leads = generateIntakeLeads(db);
+  db.outreach_steps = generateOutreachSteps(db);
   db.contact_tags = [];
   db.deal_contacts = [];
   db.configuration = [

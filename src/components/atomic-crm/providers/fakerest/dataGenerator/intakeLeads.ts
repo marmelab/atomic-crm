@@ -49,6 +49,12 @@ const outreachSamples = [
   null,
 ];
 
+const outreachSubjects = [
+  "Quick idea for streamlining estimates in the GTA",
+  "Following up on lead response times for your crew",
+  "Worth a quick look: fewer admin bottlenecks this season",
+];
+
 const rejectionReasons = ["Not a fit", "Duplicate", "No contact info", "Out of area", "Other"];
 
 export const generateIntakeLeads = (_db: Db, size = 12): IntakeLead[] => {
@@ -76,6 +82,15 @@ export const generateIntakeLeads = (_db: Db, size = 12): IntakeLead[] => {
       status === "in-sequence" && sequenceStep < 7
         ? new Date(createdAt.getTime() + OUTREACH_CADENCE_DAYS[Math.min(sequenceStep, 6)] * 86400000).toISOString()
         : null;
+    const hasActiveOutreach =
+      status === "in-sequence" || status === "engaged";
+    const currentDraftStatus = hasActiveOutreach
+      ? random.arrayElement(["ai_reviewed", "sent", "none"] as const)
+      : "none";
+    const outreachSubject =
+      hasActiveOutreach && currentDraftStatus !== "none"
+        ? random.arrayElement(outreachSubjects)
+        : null;
 
     const lead: IntakeLead = {
       id,
@@ -98,6 +113,8 @@ export const generateIntakeLeads = (_db: Db, size = 12): IntakeLead[] => {
       outreach_count: outreachCount,
       next_outreach_date: nextOutreachDate,
       outreach_sequence_step: sequenceStep,
+      current_draft_status: currentDraftStatus,
+      outreach_subject: outreachSubject,
       sales_id: null,
       metadata: null,
       idempotency_key: null,

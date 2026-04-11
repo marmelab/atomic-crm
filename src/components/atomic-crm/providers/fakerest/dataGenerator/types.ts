@@ -5,6 +5,7 @@ import type {
   Deal,
   DealNote,
   IntakeLead,
+  OutreachStep,
   Sale,
   Tag,
   Task,
@@ -20,6 +21,7 @@ export interface Db {
   deal_contacts: Array<{ id: string; deal_id: number; contact_id: number }>;
   deal_notes: DealNote[];
   intake_leads: IntakeLead[];
+  outreach_steps: OutreachStep[];
   lead_sources: Array<{ id: string; name: string }>;
   sales: Sale[];
   tags: Tag[];
