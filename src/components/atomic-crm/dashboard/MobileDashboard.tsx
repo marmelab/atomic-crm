@@ -1,9 +1,13 @@
 import { useGetList, useTimeout } from "ra-core";
+import { Card } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 
 import type { Contact, ContactNote } from "../types";
+import { ActionQueue } from "./ActionQueue";
 import { DashboardActivityLog } from "./DashboardActivityLog";
 import { DashboardStepper } from "./DashboardStepper";
+import { HotContacts } from "./HotContacts";
+import { KPICards } from "./KPICards";
 import { PipelineSummary } from "./PipelineSummary";
 import MobileHeader from "../layout/MobileHeader";
 import { MobileContent } from "../layout/MobileContent";
@@ -82,7 +86,12 @@ export const MobileDashboard = () => {
   return (
     <Wrapper>
       <div className="flex flex-col gap-6 mt-1">
-        <PipelineSummary />
+        <KPICards />
+        <ActionQueue />
+        <Card className="p-4">
+          <PipelineSummary />
+        </Card>
+        <HotContacts />
         <DashboardActivityLog />
       </div>
     </Wrapper>
