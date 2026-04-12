@@ -182,7 +182,7 @@ export const IntakeExpandedRow = ({ record }: { record: IntakeLead }) => {
             return (
               <div
                 key={step.id}
-                className="flex cursor-pointer gap-3 rounded-xl border bg-card p-3"
+                className="flex flex-wrap items-start cursor-pointer gap-2 rounded-xl border bg-card p-3 sm:flex-nowrap sm:gap-3"
                 onClick={() => toggleExpanded(step.id)}
               >
                 <div className="flex flex-col items-center gap-1">
@@ -256,7 +256,7 @@ export const IntakeExpandedRow = ({ record }: { record: IntakeLead }) => {
                   ) : null}
                 </div>
 
-                <div className="flex shrink-0 flex-col items-end gap-3 text-right">
+                <div className="flex w-full shrink-0 flex-col items-start gap-3 text-left sm:w-auto sm:items-end sm:text-right">
                   <div className="text-xs text-muted-foreground">
                     {formatStepDate(displayDate)}
                   </div>
@@ -265,8 +265,8 @@ export const IntakeExpandedRow = ({ record }: { record: IntakeLead }) => {
                     <Dialog>
                       <DialogTrigger asChild>
                         <Button
-                          size="sm"
-                          className="bg-primary text-primary-foreground hover:bg-primary/90"
+                          size="default"
+                          className="min-h-11 w-full bg-primary text-primary-foreground hover:bg-primary/90 sm:w-auto"
                           onClick={(event) => event.stopPropagation()}
                         >
                           Approve &amp; Send
@@ -299,8 +299,9 @@ export const IntakeExpandedRow = ({ record }: { record: IntakeLead }) => {
 
                   {step.status === "action_needed" ? (
                     <Button
-                      size="sm"
+                      size="default"
                       variant="outline"
+                      className="min-h-11 w-full sm:w-auto"
                       onClick={(event) => {
                         event.stopPropagation();
                         void handleMarkComplete(step);
