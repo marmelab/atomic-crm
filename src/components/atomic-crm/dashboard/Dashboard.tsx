@@ -12,7 +12,6 @@ import { KPICards } from "./KPICards";
 import { PipelineSummary } from "./PipelineSummary";
 import { StaleDeals } from "./StaleDeals";
 import { TasksList } from "./TasksList";
-import { Welcome } from "./Welcome";
 
 export const Dashboard = () => {
   const {
@@ -51,7 +50,6 @@ export const Dashboard = () => {
 
   return (
     <div className="mt-1 space-y-6">
-      {import.meta.env.VITE_IS_DEMO === "true" ? <Welcome /> : null}
       <KPICards />
       <div className="grid grid-cols-1 gap-6 md:grid-cols-12">
         <div className="md:col-span-8">

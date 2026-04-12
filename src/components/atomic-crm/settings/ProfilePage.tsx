@@ -239,7 +239,7 @@ const ProfileForm = ({
               </h2>
               <p className="text-sm text-muted-foreground">
                 {translate("crm.profile.inbound.description", {
-                  _: "You can start sending emails to your server's inbound email address, e.g. by adding it to the Cc: field. Atomic CRM will process the emails and add notes to the corresponding contacts.",
+                  _: "You can start sending emails to your server's inbound email address, e.g. by adding it to the Cc: field. Hatch CRM will process the emails and add notes to the corresponding contacts.",
                   field: "Cc:",
                 })}
               </p>

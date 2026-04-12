@@ -66,7 +66,7 @@ export const DashboardStepper = ({
                 <CheckCircle className="text-green-600 w-5 h-5 shrink-0" />
                 <h4 className="font-bold">
                   {translate("crm.dashboard.stepper.install", {
-                    _: "Install Atomic CRM",
+                    _: "Install Hatch CRM",
                   })}
                 </h4>
               </div>
