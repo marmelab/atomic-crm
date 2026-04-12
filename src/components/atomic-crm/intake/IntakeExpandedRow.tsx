@@ -154,8 +154,8 @@ export const IntakeExpandedRow = ({ record }: { record: IntakeLead }) => {
 
   return (
     <div className="grid gap-4 lg:grid-cols-3">
-      <div className="lg:col-span-1">
-        <div className="rounded-2xl border bg-card p-4">
+      <div className="min-w-0 lg:col-span-1">
+        <div className="overflow-hidden rounded-2xl border bg-card p-4">
           <h4 className="mb-2 font-heading text-base font-extrabold">
             AI Enrichment Summary
           </h4>
