@@ -3,12 +3,14 @@ import {
   useGetIdentity,
   useListContext,
 } from "ra-core";
+import { matchPath, useLocation } from "react-router";
 
 import MobileHeader from "../layout/MobileHeader";
 import { MobileContent } from "../layout/MobileContent";
 import { InfinitePagination } from "../misc/InfinitePagination";
 import type { Deal } from "../types";
 import { DealCardContent } from "./DealCard";
+import { DealShow } from "./DealShow";
 
 export const DealListMobile = () => {
   const { identity } = useGetIdentity();
@@ -18,6 +20,7 @@ export const DealListMobile = () => {
     <InfiniteListBase
       perPage={25}
       sort={{ field: "updated_at", order: "DESC" }}
+      filter={{ archived_at: undefined }}
       queryOptions={{
         onError: () => {
           /* Disable error notification as DealListLayoutMobile handles it */
@@ -31,6 +34,8 @@ export const DealListMobile = () => {
 
 const DealListLayoutMobile = () => {
   const { isPending, data, error, filterValues } = useListContext<Deal>();
+  const location = useLocation();
+  const matchShow = matchPath("/deals/:id/show", location.pathname);
 
   const hasFilters = filterValues && Object.keys(filterValues).length > 0;
 
@@ -57,6 +62,7 @@ const DealListLayoutMobile = () => {
           </div>
         )}
       </MobileContent>
+      <DealShow open={!!matchShow} id={matchShow?.params.id} />
     </div>
   );
 };
