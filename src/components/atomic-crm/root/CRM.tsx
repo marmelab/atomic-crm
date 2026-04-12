@@ -75,7 +75,9 @@ import { MobileTasksList } from "../tasks/MobileTasksList.tsx";
 import { TasksPage } from "../tasks/TasksPage.tsx";
 import { ContactListMobile } from "../contacts/ContactList.tsx";
 import { ContactShow } from "../contacts/ContactShow.tsx";
+import { CompanyListMobile } from "../companies/CompanyListMobile.tsx";
 import { CompanyShow } from "../companies/CompanyShow.tsx";
+import { DealListMobile } from "../deals/DealListMobile.tsx";
 import { NoteShowPage } from "../notes/NoteShowPage.tsx";
 
 const defaultStore = localStorageStore(undefined, "CRM");
@@ -345,8 +347,12 @@ const MobileAdmin = (
         >
           <Route path=":id/notes/:noteId" element={<NoteShowPage />} />
         </Resource>
-        <Resource name="deals" {...deals} />
-        <Resource name="companies" show={CompanyShow} />
+        <Resource name="deals" list={DealListMobile} />
+        <Resource
+          name="companies"
+          list={CompanyListMobile}
+          show={CompanyShow}
+        />
         <Resource name="intake_leads" {...intake} />
         <Resource name="outreach_steps" />
         <Resource name="tasks" list={MobileTasksList} />
