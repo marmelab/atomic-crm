@@ -227,7 +227,7 @@ const DownloadErrorFileButton = ({
         const url = window.URL.createObjectURL(blob);
         event.currentTarget.href = url;
       }}
-      download="atomic-crm-import-report.json"
+      download="hatch-crm-import-report.json"
     >
       {translate("crm.import.action.download_error_report", {
         _: "Download the error report",

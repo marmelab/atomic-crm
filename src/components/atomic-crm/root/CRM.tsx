@@ -75,7 +75,9 @@ import { MobileTasksList } from "../tasks/MobileTasksList.tsx";
 import { TasksPage } from "../tasks/TasksPage.tsx";
 import { ContactListMobile } from "../contacts/ContactList.tsx";
 import { ContactShow } from "../contacts/ContactShow.tsx";
+import { CompanyListMobile } from "../companies/CompanyListMobile.tsx";
 import { CompanyShow } from "../companies/CompanyShow.tsx";
+import { DealListMobile } from "../deals/DealListMobile.tsx";
 import { NoteShowPage } from "../notes/NoteShowPage.tsx";
 
 const defaultStore = localStorageStore(undefined, "CRM");
@@ -84,7 +86,6 @@ export type CRMProps = {
   dataProvider?: CrmDataProvider;
   authProvider?: AuthProvider;
   i18nProvider?: CoreAdminProps["i18nProvider"];
-  disableTelemetry?: boolean;
   store?: CoreAdminProps["store"];
   dashboard?: DashboardComponent;
   layout?: LayoutComponent;
@@ -148,23 +149,8 @@ export const CRM = ({
   googleWorkplaceDomain = import.meta.env.VITE_GOOGLE_WORKPLACE_DOMAIN,
   disableEmailPasswordAuthentication = import.meta.env
     .VITE_DISABLE_EMAIL_PASSWORD_AUTHENTICATION === "true",
-  disableTelemetry,
   ...rest
 }: CRMProps) => {
-  useEffect(() => {
-    if (
-      disableTelemetry ||
-      process.env.NODE_ENV !== "production" ||
-      typeof window === "undefined" ||
-      typeof window.location === "undefined" ||
-      typeof Image === "undefined"
-    ) {
-      return;
-    }
-    const img = new Image();
-    img.src = `https://atomic-crm-telemetry.marmelab.com/atomic-crm-telemetry?domain=${window.location.hostname}`;
-  }, [disableTelemetry]);
-
   // Seed the store with CRM prop values if not already stored
   // (backwards compatibility for prop-based config)
   useEffect(() => {
@@ -361,8 +347,12 @@ const MobileAdmin = (
         >
           <Route path=":id/notes/:noteId" element={<NoteShowPage />} />
         </Resource>
-        <Resource name="deals" {...deals} />
-        <Resource name="companies" show={CompanyShow} />
+        <Resource name="deals" list={DealListMobile} />
+        <Resource
+          name="companies"
+          list={CompanyListMobile}
+          show={CompanyShow}
+        />
         <Resource name="intake_leads" {...intake} />
         <Resource name="outreach_steps" />
         <Resource name="tasks" list={MobileTasksList} />

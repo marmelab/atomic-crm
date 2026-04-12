@@ -460,7 +460,7 @@ const InboundEmailSection = () => {
       <SectionLabel>{translate("crm.profile.inbound.title")}</SectionLabel>
       <p className="text-sm text-muted-foreground mb-2 px-1">
         {translate("crm.profile.inbound.description", {
-          _: "You can start sending emails to your server's inbound email address, e.g. by adding it to the Cc: field. Atomic CRM will process the emails and add notes to the corresponding contacts.",
+          _: "You can start sending emails to your server's inbound email address, e.g. by adding it to the Cc: field. Hatch CRM will process the emails and add notes to the corresponding contacts.",
           field: "Cc:",
         })}
       </p>
