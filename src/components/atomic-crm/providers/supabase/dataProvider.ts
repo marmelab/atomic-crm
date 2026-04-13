@@ -91,9 +91,10 @@ const getDataProviderWithCustomMethods = () => {
         // to be dropped before reaching PostgREST.
         const searchParams = applyFullTextSearch([
           "name",
+          "company_name",
+          "contact_names",
           "category",
           "description",
-          "contact_names",
         ])(params);
         // Pull the bare `company_type` out of the filter. It comes from
         // `DealListForView`'s permanent filter when a custom view declares a

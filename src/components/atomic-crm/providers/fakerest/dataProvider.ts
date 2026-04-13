@@ -246,6 +246,17 @@ const dataProviderWithCustomMethod: CrmDataProvider = {
   },
 };
 
+async function computeCompanyName(
+  companyId: Identifier | undefined,
+  dataProvider: DataProvider,
+): Promise<string> {
+  if (companyId == null) return "";
+  const { data: company } = await dataProvider.getOne<Company>("companies", {
+    id: companyId,
+  });
+  return company?.name ?? "";
+}
+
 async function computeContactNames(
   contactIds: Identifier[] | undefined,
   dataProvider: DataProvider,
@@ -539,10 +550,10 @@ export const dataProvider = withLifecycleCallbacks(
     {
       resource: "deals",
       beforeCreate: async (params, dataProvider) => {
-        const contact_names = await computeContactNames(
-          params.data.contact_ids,
-          dataProvider,
-        );
+        const [contact_names, company_name] = await Promise.all([
+          computeContactNames(params.data.contact_ids, dataProvider),
+          computeCompanyName(params.data.company_id, dataProvider),
+        ]);
         return {
           ...params,
           data: {
@@ -550,6 +561,7 @@ export const dataProvider = withLifecycleCallbacks(
             created_at: new Date().toISOString(),
             updated_at: new Date().toISOString(),
             contact_names,
+            company_name,
           },
         };
       },
@@ -561,16 +573,17 @@ export const dataProvider = withLifecycleCallbacks(
         return result;
       },
       beforeUpdate: async (params, dataProvider) => {
-        const contact_names = await computeContactNames(
-          params.data.contact_ids,
-          dataProvider,
-        );
+        const [contact_names, company_name] = await Promise.all([
+          computeContactNames(params.data.contact_ids, dataProvider),
+          computeCompanyName(params.data.company_id, dataProvider),
+        ]);
         return {
           ...params,
           data: {
             ...params.data,
             updated_at: new Date().toISOString(),
             contact_names,
+            company_name,
           },
         };
       },

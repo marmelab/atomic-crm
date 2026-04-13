@@ -130,11 +130,14 @@ group by co.id, c.name;
 create or replace view public.deals_summary with (security_invoker = on) as
 select
     d.*,
-    coalesce(string_agg((c.first_name || ' ' || c.last_name), ' '), '') as contact_names,
-    lower(immutable_unaccent(coalesce(string_agg((c.first_name || ' ' || c.last_name), ' '), ''))) as contact_names_search
+    comp.name                                                                                          as company_name,
+    lower(immutable_unaccent(coalesce(comp.name, '')))                                                 as company_name_search,
+    coalesce(string_agg((c.first_name || ' ' || c.last_name), ' '), '')                               as contact_names,
+    lower(immutable_unaccent(coalesce(string_agg((c.first_name || ' ' || c.last_name), ' '), '')))    as contact_names_search
 from public.deals d
     left join public.contacts c on c.id = any(d.contact_ids)
-group by d.id;
+    left join public.companies comp on comp.id = d.company_id
+group by d.id, comp.name;
 
 create or replace view public.init_state with (security_invoker = off) as
 select count(sub.id) as is_initialized

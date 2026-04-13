@@ -36,6 +36,7 @@ export const generateDeals = (db: Db): Deal[] => {
       id,
       name: lowercaseName[0].toUpperCase() + lowercaseName.slice(1),
       company_id: company.id,
+      company_name: company.name,
       contact_ids,
       contact_names,
       category: random.arrayElement(defaultDealCategories).value,
