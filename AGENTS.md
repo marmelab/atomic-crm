@@ -39,9 +39,21 @@ The database schema is defined declaratively in `supabase/schemas/` (source of t
 ```bash
 npx supabase db diff --local -f <name>  # Generate migration from schema changes
 npx supabase migration up --local       # Apply migrations locally
-npx supabase db push                    # Push migrations to remote
+make supabase-push                      # Push migrations to remote (uses Doppler for credentials)
 npx supabase db reset --local           # Reset local database (destructive)
 ```
+
+**IMPORTANT – after every migration that ships to production**, always run:
+```bash
+make supabase-push
+```
+This command injects `SUPABASE_ACCESS_TOKEN` and `SUPABASE_PROJECT_REF` via Doppler and pushes
+all pending migrations to the remote database. Never rely on the Coolify build alone —
+the app deploy does not run `db push`.
+
+Secrets required in Doppler (`nosho-crm / prod`):
+- `SUPABASE_ACCESS_TOKEN` — personal access token from supabase.com/dashboard/account/tokens
+- `SUPABASE_PROJECT_REF` — project ref from Supabase Dashboard → Settings → General
 
 ### Registry (Shadcn Components)
 

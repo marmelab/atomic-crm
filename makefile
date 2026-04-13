@@ -98,9 +98,11 @@ supabase-remote-init:
 	npm run supabase:remote:init
 	$(MAKE) supabase-deploy
 
-supabase-deploy:
-	npx supabase db push
-	npx supabase functions deploy
+supabase-push: ## push pending migrations to remote Supabase (requires Doppler)
+	$(DOPPLER_RUN) sh -c 'npx supabase db push --project-ref $$SUPABASE_PROJECT_REF'
+
+supabase-deploy: supabase-push ## deploy migrations + edge functions to remote Supabase
+	$(DOPPLER_RUN) npx supabase functions deploy
 
 test-app:
 	npm run test:unit:app
