@@ -60,20 +60,49 @@ const getDataProviderWithCustomMethods = () => {
     ...baseDataProvider,
     async getList(resource: string, params: GetListParams) {
       if (resource === "companies") {
-        return baseDataProvider.getList("companies_summary", params);
+        const searchParams = applyFullTextSearch([
+          "name",
+          "phone_number",
+          "website",
+          "zipcode",
+          "city",
+          "state_abbr",
+        ])(params);
+        return baseDataProvider.getList("companies_summary", searchParams);
       }
       if (resource === "contacts") {
-        return baseDataProvider.getList("contacts_summary", params);
+        const searchParams = applyFullTextSearch([
+          "first_name",
+          "last_name",
+          "company_name",
+          "title",
+          "email",
+          "phone",
+          "background",
+        ])(params);
+        return baseDataProvider.getList("contacts_summary", searchParams);
       }
       if (resource === "deals") {
-        if (params.filter?.company_type) {
-          const { company_type, ...restFilter } = params.filter;
+        // Apply full-text search transformation here (not via a lifecycle
+        // callback) so the `@or` filter is guaranteed to be present when we
+        // forward the call to `deals_summary`. Relying on a `beforeGetList`
+        // callback registered on `"deals"` was fragile because the redirect
+        // below changes the effective resource and could cause the `q` filter
+        // to be dropped before reaching PostgREST.
+        const searchParams = applyFullTextSearch([
+          "name",
+          "category",
+          "description",
+          "contact_names",
+        ])(params);
+        if (searchParams.filter?.company_type) {
+          const { company_type, ...restFilter } = searchParams.filter;
           return baseDataProvider.getList("deals_summary", {
-            ...params,
+            ...searchParams,
             filter: { ...restFilter, "company_type@eq": company_type },
           });
         }
-        return baseDataProvider.getList("deals_summary", params);
+        return baseDataProvider.getList("deals_summary", searchParams);
       }
       if (resource === "activity_log") {
         const { data, total } = await baseDataProvider.getList(
@@ -541,31 +570,7 @@ const lifeCycleCallbacks: ResourceCallbacks[] = [
     },
   },
   {
-    resource: "contacts",
-    beforeGetList: async (params) => {
-      return applyFullTextSearch([
-        "first_name",
-        "last_name",
-        "company_name",
-        "title",
-        "email",
-        "phone",
-        "background",
-      ])(params);
-    },
-  },
-  {
     resource: "companies",
-    beforeGetList: async (params) => {
-      return applyFullTextSearch([
-        "name",
-        "phone_number",
-        "website",
-        "zipcode",
-        "city",
-        "state_abbr",
-      ])(params);
-    },
     beforeCreate: async (params) => {
       const createParams = await processCompanyLogo(params);
 
@@ -587,25 +592,6 @@ const lifeCycleCallbacks: ResourceCallbacks[] = [
     afterRead: async (record) => {
       await resolveRecordAttachments(record);
       return record;
-    },
-  },
-  {
-    resource: "contacts_summary",
-    beforeGetList: async (params) => {
-      return applyFullTextSearch(["first_name", "last_name", "company_name"])(
-        params,
-      );
-    },
-  },
-  {
-    resource: "deals",
-    beforeGetList: async (params) => {
-      return applyFullTextSearch([
-        "name",
-        "category",
-        "description",
-        "contact_names",
-      ])(params);
     },
   },
 ];
