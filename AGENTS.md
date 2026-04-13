@@ -4,6 +4,23 @@
 
 Atomic CRM is a full-featured CRM built with React, shadcn-admin-kit, and Supabase. It provides contact management, task tracking, notes, email capture, and deal management with a Kanban board.
 
+## Definition of Done — Mandatory Verification Checklist
+
+**After every fix or feature, always run these steps before considering the task complete:**
+
+1. **TypeScript** — `make typecheck` must pass with zero errors
+2. **Migrations** — if any `.sql` file was added to `supabase/migrations/`, run `make supabase-push` and confirm "No pending migrations" on the next run
+3. **Behavioral verification** — confirm the fix actually works:
+   - For DB changes: query the remote via `scripts/supabase-push.sh`-style API call to verify column/table exists
+   - For search/filter bugs: test the generated PostgREST URL contains the expected `or=(...)` or filter params
+   - For UI bugs: verify the relevant component logic with a targeted test or trace through the data flow
+4. **Version** — the pre-commit hook auto-bumps `src/version.ts` on every commit. Always:
+   - Read `src/version.ts` after committing to get the actual bumped version
+   - Include the version in the commit message, e.g. `fix(deals): ... (v1.9.34)`
+   - Explicitly tell the user the new version number in the response
+
+The project Stop hook (`.claude/hooks/verify-fix.sh`) automatically checks steps 1–2 and will re-wake Claude if anything is missed.
+
 ## Deployment
 
 The CRM is deployed via **Coolify**. Every push to GitHub triggers an automatic **preview deployment**. There is no Vercel deployment for this project.
