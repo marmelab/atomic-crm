@@ -1,5 +1,11 @@
 import { useCanAccess, useGetIdentity, useListContext } from "ra-core";
-import { matchPath, Navigate, useLocation, useNavigate, useParams } from "react-router";
+import {
+  matchPath,
+  Navigate,
+  useLocation,
+  useNavigate,
+  useParams,
+} from "react-router";
 import { Plus } from "lucide-react";
 import { buttonVariants } from "@/components/ui/button";
 import { AutocompleteInput } from "@/components/admin/autocomplete-input";
@@ -62,13 +68,22 @@ export const DealListForView = () => {
   ];
 
   return (
-    <DealListViewProvider value={{ initialVisibleStages: view.visibleStages, companyType: view.companyType }}>
+    <DealListViewProvider
+      value={{
+        initialVisibleStages: view.visibleStages,
+        companyType: view.companyType,
+      }}
+    >
       <List
         resource="deals"
         perPage={100}
         filter={{
           "archived_at@is": null,
-          company_type: view.companyType,
+          // Only apply the company_type constraint when the view actually
+          // declares one. Passing `company_type: undefined` would leak into
+          // PostgREST as `company_type=eq.undefined` (literal string match)
+          // and silently return zero results — including for the search box.
+          ...(view.companyType ? { company_type: view.companyType } : {}),
         }}
         title={false}
         sort={{ field: "index", order: "DESC" }}

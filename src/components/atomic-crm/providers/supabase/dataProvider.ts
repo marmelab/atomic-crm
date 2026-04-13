@@ -95,14 +95,25 @@ const getDataProviderWithCustomMethods = () => {
           "description",
           "contact_names",
         ])(params);
-        if (searchParams.filter?.company_type) {
-          const { company_type, ...restFilter } = searchParams.filter;
-          return baseDataProvider.getList("deals_summary", {
-            ...searchParams,
-            filter: { ...restFilter, "company_type@eq": company_type },
-          });
-        }
-        return baseDataProvider.getList("deals_summary", searchParams);
+        // Pull the bare `company_type` out of the filter. It comes from
+        // `DealListForView`'s permanent filter when a custom view declares a
+        // company type. Any other shape (`company_type@is`, `company_type@eq`,
+        // ...) is left alone and forwarded as-is to PostgREST.
+        //
+        // Critically, we must DROP the key when its value is falsy
+        // (undefined / null / empty string). Otherwise ra-data-postgrest
+        // would serialize it as `company_type=eq.undefined` (or `eq.null`,
+        // `eq.`), which PostgREST interprets as a literal string comparison
+        // and silently returns zero rows — breaking the search box on any
+        // custom view that omits `companyType`.
+        const { company_type, ...restFilter } = searchParams.filter ?? {};
+        const finalFilter = company_type
+          ? { ...restFilter, "company_type@eq": company_type }
+          : restFilter;
+        return baseDataProvider.getList("deals_summary", {
+          ...searchParams,
+          filter: finalFilter,
+        });
       }
       if (resource === "activity_log") {
         const { data, total } = await baseDataProvider.getList(
