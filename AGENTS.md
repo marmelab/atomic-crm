@@ -53,7 +53,7 @@ the app deploy does not run `db push`.
 
 Secrets required in Doppler (`nosho-crm / prod`):
 - `SUPABASE_ACCESS_TOKEN` — personal access token from supabase.com/dashboard/account/tokens
-- `SUPABASE_PROJECT_REF` — project ref from Supabase Dashboard → Settings → General
+- `SUPABASE_PROJECT_ID` — project ref from Supabase Dashboard → Settings → General
 
 ### Registry (Shadcn Components)
 

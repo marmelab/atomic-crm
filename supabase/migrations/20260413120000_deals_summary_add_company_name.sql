@@ -2,10 +2,15 @@
 -- the search box on the Kanban board can match deals by their company name.
 --
 -- Previously the view only joined contacts (for contact_names), but not
--- companies. This meant typing a company name in the search box returned no
--- results even though the deal was clearly linked to that company.
+-- companies. This meant typing a company name in the search box always
+-- returned zero results even though the deal was clearly linked to that company.
+--
+-- Note: CREATE OR REPLACE VIEW cannot reorder existing columns, so we must
+-- DROP and recreate. The column order here must also match 03_views.sql.
 
-create or replace view public.deals_summary
+drop view if exists public.deals_summary;
+
+create view public.deals_summary
   with (security_invoker = on)
   as
 select
@@ -19,7 +24,7 @@ from public.deals d
     left join public.companies comp on comp.id = d.company_id
 group by d.id, comp.name;
 
--- Re-apply grants (CREATE OR REPLACE VIEW resets them)
+-- Re-apply grants (DROP VIEW resets them)
 revoke all on table public.deals_summary from anon;
 grant all on table public.deals_summary to authenticated;
 grant all on table public.deals_summary to service_role;
