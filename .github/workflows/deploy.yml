@@ -114,6 +114,9 @@ jobs:
             VITE_GOOGLE_WORKPLACE_DOMAIN: ${{secrets.VITE_GOOGLE_WORKPLACE_DOMAIN}}
             PAPPERS_API_KEY: ${{secrets.PAPPERS_API_KEY}}
             PHANTOMBUSTER_API_KEY: ${{secrets.PHANTOMBUSTER_API_KEY}}
+            GOOGLE_CLIENT_ID: ${{secrets.GOOGLE_CLIENT_ID}}
+            GOOGLE_CLIENT_SECRET: ${{secrets.GOOGLE_CLIENT_SECRET}}
+            GOOGLE_REDIRECT_URI: ${{secrets.GOOGLE_REDIRECT_URI}}
 
         steps:
             - name: 📥 Checkout repo
@@ -164,6 +167,13 @@ jobs:
               run: |
                   npx supabase secrets set PAPPERS_API_KEY=${{ env.PAPPERS_API_KEY }}
                   npx supabase secrets set PHANTOMBUSTER_API_KEY=${{ env.PHANTOMBUSTER_API_KEY }}
+
+            - if: ${{ env.IS_SUPABASE_CONFIGURED && env.GOOGLE_CLIENT_ID && env.GOOGLE_CLIENT_SECRET && env.GOOGLE_REDIRECT_URI }}
+              name: 📡 Push supabase Google OAuth secrets
+              run: |
+                  npx supabase secrets set GOOGLE_CLIENT_ID=${{ env.GOOGLE_CLIENT_ID }}
+                  npx supabase secrets set GOOGLE_CLIENT_SECRET=${{ env.GOOGLE_CLIENT_SECRET }}
+                  npx supabase secrets set GOOGLE_REDIRECT_URI=${{ env.GOOGLE_REDIRECT_URI }}
 
             - if: ${{ env.IS_SUPABASE_CONFIGURED }}
               name: 📡 Deploy supabase functions
