@@ -5,6 +5,9 @@ import { Notification } from "@/components/admin/notification";
 import { Error } from "@/components/admin/error";
 import { Skeleton } from "@/components/ui/skeleton";
 
+import { AssistProvider } from "../assist/assistStore";
+import { NoshoAssistChat } from "../assist/NoshoAssistChat";
+import { NoshoAssistFAB } from "../assist/NoshoAssistFAB";
 import { useConfigurationLoader } from "../root/useConfigurationLoader";
 import Header from "./Header";
 
@@ -20,7 +23,7 @@ const SentryErrorBoundary = Sentry.withErrorBoundary(
 export const Layout = ({ children }: { children: ReactNode }) => {
   useConfigurationLoader();
   return (
-    <>
+    <AssistProvider>
       <Header />
       <main className="w-full pt-4 px-[50px]" id="main-content">
         <SentryErrorBoundary>
@@ -33,7 +36,9 @@ export const Layout = ({ children }: { children: ReactNode }) => {
           </ErrorBoundary>
         </SentryErrorBoundary>
       </main>
+      <NoshoAssistFAB />
+      <NoshoAssistChat />
       <Notification />
-    </>
+    </AssistProvider>
   );
 };

@@ -1,7 +1,9 @@
 import { Sparkles } from "lucide-react";
 import { Card } from "@/components/ui/card";
+import { useAssist } from "../assist/assistStore";
 
 export function NoshoAIAssist() {
+  const { open } = useAssist();
   return (
     <Card className="p-4 shadow-sm border-border/50 bg-gradient-to-br from-[var(--nosho-orange)]/5 to-[var(--nosho-green)]/5">
       <div className="flex items-start gap-3">
@@ -18,6 +20,11 @@ export function NoshoAIAssist() {
           </p>
           <button
             type="button"
+            onClick={() =>
+              open(
+                "Bonjour, peux-tu m'aider à analyser mes contacts récents et me suggérer des actions ?",
+              )
+            }
             className="mt-1 self-start text-xs font-medium px-3 py-1.5 rounded-lg bg-[var(--nosho-green)]/15 text-[var(--nosho-green-dark)] hover:bg-[var(--nosho-green)]/25 transition-colors cursor-pointer"
           >
             Analyser mes contacts
