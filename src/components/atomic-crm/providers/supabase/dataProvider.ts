@@ -634,6 +634,12 @@ const normalizeSearchQuery = (q: string): string =>
     .trim();
 
 /**
+ * Normalize for _search columns: also strip spaces so "SoClinic" matches "So Clinic".
+ */
+const normalizeForSearchColumn = (q: string): string =>
+  normalizeSearchQuery(q).replace(/\s+/g, "");
+
+/**
  * Columns that have a corresponding `_search` generated column in the DB
  * (lowercase + unaccented). Only these get the extra `_search@ilike` filter.
  */
@@ -660,9 +666,10 @@ const applyFullTextSearch = (columns: string[]) => (params: GetListParams) => {
   }
   const { q, ...filter } = params.filter;
   const normalizedQ = normalizeSearchQuery(q);
+  const spacelessQ = normalizeForSearchColumn(q);
 
   // Build OR conditions for a given query term
-  const buildConditions = (term: string) =>
+  const buildConditions = (term: string, searchColumnTerm: string) =>
     columns.reduce(
       (acc, column) => {
         if (column === "email") return { ...acc, [`email_fts@ilike`]: term };
@@ -671,9 +678,9 @@ const applyFullTextSearch = (columns: string[]) => (params: GetListParams) => {
           ...acc,
           [`${column}@ilike`]: term,
         };
-        // Only add _search filter for columns that have a generated _search column
+        // _search columns strip spaces, so match with spaceless term
         if (SEARCHABLE_COLUMNS.has(column)) {
-          conditions[`${column}_search@ilike`] = term;
+          conditions[`${column}_search@ilike`] = searchColumnTerm;
         }
         return conditions;
       },
@@ -683,8 +690,11 @@ const applyFullTextSearch = (columns: string[]) => (params: GetListParams) => {
   // If query has accents, search with both original and normalized terms
   const orConditions =
     normalizedQ !== q
-      ? { ...buildConditions(q), ...buildConditions(normalizedQ) }
-      : buildConditions(normalizedQ);
+      ? {
+          ...buildConditions(q, spacelessQ),
+          ...buildConditions(normalizedQ, spacelessQ),
+        }
+      : buildConditions(normalizedQ, spacelessQ);
 
   return {
     ...params,

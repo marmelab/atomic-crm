@@ -73,25 +73,7 @@ from public.deal_notes dn
 
 create or replace view public.companies_summary with (security_invoker = on) as
 select
-    c.id,
-    c.created_at,
-    c.name,
-    c.sector,
-    c.size,
-    c.linkedin_url,
-    c.website,
-    c.phone_number,
-    c.address,
-    c.zipcode,
-    c.city,
-    c.state_abbr,
-    c.sales_id,
-    c.context_links,
-    c.country,
-    c.description,
-    c.revenue,
-    c.tax_identifier,
-    c.logo,
+    c.*,
     count(distinct d.id) as nb_deals,
     count(distinct co.id) as nb_contacts
 from public.companies c
@@ -102,11 +84,11 @@ group by c.id;
 create or replace view public.contacts_summary with (security_invoker = on) as
 select
     co.*,
-    c.name                                                        as company_name,
-    lower(immutable_unaccent(coalesce(c.name, '')))               as company_name_search,
-    jsonb_path_query_array(co.email_jsonb, '$[*].email')::text    as email_fts,
-    jsonb_path_query_array(co.phone_jsonb, '$[*].number')::text   as phone_fts,
-    count(distinct t.id) filter (where t.done_date is null)       as nb_tasks
+    c.name                                                                    as company_name,
+    replace(lower(immutable_unaccent(coalesce(c.name, ''))), ' ', '')         as company_name_search,
+    jsonb_path_query_array(co.email_jsonb, '$[*].email')::text                as email_fts,
+    jsonb_path_query_array(co.phone_jsonb, '$[*].number')::text               as phone_fts,
+    count(distinct t.id) filter (where t.done_date is null)                   as nb_tasks
 from public.contacts co
     left join public.tasks t    on co.id = t.contact_id
     left join public.companies c on co.company_id = c.id
@@ -115,10 +97,10 @@ group by co.id, c.name;
 create or replace view public.deals_summary with (security_invoker = on) as
 select
     d.*,
-    comp.name                                                                                          as company_name,
-    lower(immutable_unaccent(coalesce(comp.name, '')))                                                 as company_name_search,
-    coalesce(string_agg((c.first_name || ' ' || c.last_name), ' '), '')                               as contact_names,
-    lower(immutable_unaccent(coalesce(string_agg((c.first_name || ' ' || c.last_name), ' '), '')))    as contact_names_search
+    comp.name                                                                                                          as company_name,
+    replace(lower(immutable_unaccent(coalesce(comp.name, ''))), ' ', '')                                                as company_name_search,
+    coalesce(string_agg((c.first_name || ' ' || c.last_name), ' '), '')                                                as contact_names,
+    replace(lower(immutable_unaccent(coalesce(string_agg((c.first_name || ' ' || c.last_name), ' '), ''))), ' ', '')    as contact_names_search
 from public.deals d
     left join public.contacts c on c.id = any(d.contact_ids)
     left join public.companies comp on comp.id = d.company_id
