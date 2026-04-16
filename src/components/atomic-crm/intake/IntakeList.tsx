@@ -126,7 +126,7 @@ const IntakeListLayout = () => {
   }
 
   if (isMobile) {
-    return <IntakeMobileList />;
+    return <IntakeMobileList data={data} />;
   }
 
   return (

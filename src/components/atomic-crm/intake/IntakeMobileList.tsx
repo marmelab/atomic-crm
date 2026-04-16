@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { RecordContextProvider, useListContext } from "ra-core";
+import { RecordContextProvider } from "ra-core";
 import { ChevronDown } from "lucide-react";
 import { ReferenceField } from "@/components/admin/reference-field";
 import { TextField } from "@/components/admin/text-field";
@@ -18,8 +18,11 @@ import { IntakePromoteButton } from "./IntakePromoteButton";
 import { IntakeRejectButton } from "./IntakeRejectButton";
 import { IntakeStatusBadge } from "./IntakeStatusBadge";
 
-export const IntakeMobileList = () => {
-  const { data = [] } = useListContext<IntakeLead>();
+export const IntakeMobileList = ({
+  data = [],
+}: {
+  data?: IntakeLead[];
+}) => {
   const [expandedIds, setExpandedIds] = useState<Array<IntakeLead["id"]>>([]);
 
   const toggleExpanded = (id: IntakeLead["id"]) => {
