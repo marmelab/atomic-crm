@@ -5,6 +5,7 @@ import { createRemoteJWKSet, jwtVerify, decodeJwt } from "npm:jose@5";
 import { Pool } from "https://deno.land/x/postgres@v0.17.0/mod.ts";
 import { z } from "npm:zod@^3.25";
 import { validateReadOnly, validateWrite } from "./validateSql.ts";
+import { TASK_LIST_HTML, TASK_LIST_UI_URI } from "./taskListUi.ts";
 import { corsHeaders } from "../_shared/cors.ts";
 
 // --- Environment & Config ---
@@ -218,11 +219,18 @@ async function executeQueryWithRLS(
   const client = await pool.connect();
   try {
     const jwtClaims = decodeJwt(userToken);
-    const claimsJson = JSON.stringify(jwtClaims).replace(/'/g, "''");
+    const claimsJson = JSON.stringify(jwtClaims);
 
     await client.queryObject("BEGIN");
-    await client.queryObject("SET LOCAL role = 'authenticated'");
-    await client.queryObject(`SET LOCAL request.jwt.claims = '${claimsJson}'`);
+    // set_config(..., is_local=true) is the parameterized equivalent of
+    // SET LOCAL — avoids interpolating JWT claims into a SQL string.
+    await client.queryObject(
+      "SELECT set_config('role', 'authenticated', true)",
+    );
+    await client.queryObject({
+      text: "SELECT set_config('request.jwt.claims', $1, true)",
+      args: [claimsJson],
+    });
 
     const result = await client.queryObject(sql);
     await client.queryObject("COMMIT");
@@ -384,6 +392,140 @@ Examples:
       return {
         content: [{ type: "text" as const, text: `Error: ${result.error}` }],
         isError: true,
+      };
+    },
+  );
+
+  // --- UI resource for the task-list MCP App ---
+
+  server.registerResource(
+    "task-list-ui",
+    TASK_LIST_UI_URI,
+    {
+      title: "Task List UI",
+      description: "Interactive list of tasks with mark-as-done buttons.",
+      mimeType: "text/html;profile=mcp-app",
+    },
+    async (uri: URL) => ({
+      contents: [
+        {
+          uri: uri.href,
+          mimeType: "text/html;profile=mcp-app",
+          text: TASK_LIST_HTML,
+        },
+      ],
+    }),
+  );
+
+  const taskSchema = z.object({
+    id: z
+      .number()
+      .int()
+      .describe("Task id — required for the mark-as-done action"),
+    text: z.string().nullable().optional().describe("Task description"),
+    type: z
+      .string()
+      .nullable()
+      .optional()
+      .describe("Task category/type (rendered as a pill)"),
+    due_date: z.string().nullable().optional().describe("ISO date string"),
+    done_date: z
+      .string()
+      .nullable()
+      .optional()
+      .describe("ISO timestamp if already done; null or omitted for pending"),
+    contact_name: z
+      .string()
+      .nullable()
+      .optional()
+      .describe("Full name of the linked contact, if any"),
+  });
+  type Task = z.infer<typeof taskSchema>;
+
+  server.registerTool(
+    "display_task_list",
+    {
+      title: "Display Task List",
+      description: `Render an array of task rows as an interactive UI (MCP App) where the user can mark each task as done.
+
+This tool is presentational: it does not query the database. Fetch the rows yourself via the query tool (joining contacts for contact_name when useful), then pass them here. Prefer this over replying with a bulleted list of tasks.
+
+Each task should include at least: id (required, used for the mark-as-done action), text, type, due_date, done_date, and optionally contact_name.`,
+      inputSchema: {
+        tasks: z.array(taskSchema).describe("Array of task objects to render"),
+      },
+      annotations: { readOnlyHint: true },
+      _meta: {
+        ui: {
+          resourceUri: TASK_LIST_UI_URI,
+          visibility: ["model"],
+        },
+      },
+    },
+    ({ tasks }: { tasks: Task[] }) => {
+      // eslint-disable-next-line no-console
+      console.log(
+        `[MCP display_task_list] user=${authInfo.userId} count=${tasks.length}`,
+      );
+      return {
+        content: [{ type: "text" as const, text: JSON.stringify(tasks) }],
+      };
+    },
+  );
+
+  server.registerTool(
+    "complete_task",
+    {
+      title: "Mark Task Done",
+      description:
+        "Mark a single task as done by id. Used by the task-list UI when the user clicks a task's checkmark, and also callable directly by the model.",
+      inputSchema: {
+        id: z
+          .number()
+          .int()
+          .positive()
+          .describe("The id of the task to mark as done"),
+      },
+      annotations: { idempotentHint: true },
+      _meta: {
+        ui: {
+          visibility: ["model", "app"],
+        },
+      },
+    },
+    async ({ id }: { id: number }) => {
+      // RETURNING id lets us distinguish a successful update from an
+      // RLS-blocked or non-existent row (executeQueryWithRLS would otherwise
+      // report success on 0 rows affected).
+      const sql = `UPDATE tasks SET done_date = NOW() WHERE id = ${id} RETURNING id`;
+      // eslint-disable-next-line no-console
+      console.log(`[MCP complete_task] user=${authInfo.userId} id=${id}`);
+      const result = await executeQueryWithRLS(
+        sql,
+        authInfo.token,
+        validateWrite,
+      );
+      if (!result.success) {
+        return {
+          content: [{ type: "text" as const, text: `Error: ${result.error}` }],
+          isError: true,
+        };
+      }
+      if (result.data.length === 0) {
+        return {
+          content: [
+            {
+              type: "text" as const,
+              text: `Error: task ${id} not found or permission denied.`,
+            },
+          ],
+          isError: true,
+        };
+      }
+      return {
+        content: [
+          { type: "text" as const, text: `Task ${id} marked as done.` },
+        ],
       };
     },
   );
