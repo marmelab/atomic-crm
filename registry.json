@@ -886,6 +886,22 @@
           "type": "registry:component"
         },
         {
+          "path": "src/components/atomic-crm/assist/useAssistChat.ts",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/assist/assistStore.tsx",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/assist/NoshoAssistFAB.tsx",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/assist/NoshoAssistChat.tsx",
+          "type": "registry:component"
+        },
+        {
           "path": "src/components/atomic-crm/activity/ActivityLogNote.tsx",
           "type": "registry:component"
         },
