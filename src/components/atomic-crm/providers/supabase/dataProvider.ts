@@ -70,7 +70,7 @@ const getDataProviderWithCustomMethods = () => {
         ])(params);
         return baseDataProvider.getList("companies_summary", searchParams);
       }
-      if (resource === "contacts") {
+      if (resource === "contacts" || resource === "contacts_summary") {
         const searchParams = applyFullTextSearch([
           "first_name",
           "last_name",
