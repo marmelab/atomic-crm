@@ -210,21 +210,53 @@ export const TASK_LIST_HTML = /*html*/ `
       });
   };
 
+  // Extract an array of tasks from a tool result, handling the multiple
+  // shapes hosts use. Claude sends the JSON-stringified array in
+  // content[0].text. ChatGPT (OpenAI Apps SDK convention) instead populates
+  // structuredContent with typed data — either the array directly or a
+  // wrapper object like { tasks: [...] }.
+  const extractTasks = (result) => {
+    if (!result) return null;
+    const sc = result.structuredContent;
+    if (Array.isArray(sc)) return sc;
+    if (sc && Array.isArray(sc.tasks)) return sc.tasks;
+    const text = result.content && result.content[0] && result.content[0].text;
+    if (typeof text === 'string' && text.length > 0) {
+      try {
+        const parsed = JSON.parse(text);
+        if (Array.isArray(parsed)) return parsed;
+        if (parsed && Array.isArray(parsed.tasks)) return parsed.tasks;
+      } catch (_) {
+        // fall through
+      }
+    }
+    return null;
+  };
+
   const applyToolResult = (result) => {
     LOG('applyToolResult', result);
-    const text = result && result.content && result.content[0] && result.content[0].text;
-    try {
-      const parsed = JSON.parse(text || '[]');
-      tasks = Array.isArray(parsed) ? parsed : [];
+    const extracted = extractTasks(result);
+    if (extracted) {
+      tasks = extracted;
       errorMsg = '';
       LOG('parsed tasks', { count: tasks.length });
-    } catch (e) {
+    } else {
       tasks = [];
-      errorMsg = 'Could not parse task list: ' + ((e && e.message) || e);
-      LOG('parse error', errorMsg);
+      errorMsg = 'Could not extract task list from tool result';
+      LOG('extract failed', { hasStructured: !!result && !!result.structuredContent });
     }
     ready = true;
     render();
+  };
+
+  const applyToolInput = (input) => {
+    const args = input && input.arguments;
+    if (args && Array.isArray(args.tasks)) {
+      tasks = args.tasks;
+      errorMsg = '';
+      ready = true;
+      render();
+    }
   };
 
   // -------- Bootstrap --------
@@ -258,18 +290,14 @@ export const TASK_LIST_HTML = /*html*/ `
     if (m.method === 'ui/notifications/tool-result') {
       LOG('handling tool-result');
       applyToolResult(m.params);
-    } else if (m.method === 'ui/notifications/tool-input-partial') {
-      // Stream partial tool arguments: render progressively so the user sees
-      // tasks appear as the model generates them instead of a 10s blank wait.
-      const partialTasks = m.params && m.params.arguments && m.params.arguments.tasks;
-      if (Array.isArray(partialTasks)) {
-        tasks = partialTasks;
-        errorMsg = '';
-        ready = true;
-        render();
-      }
-    } else if (m.method === 'ui/notifications/tool-input') {
-      // Final resolved tool-input arrives just before tool-result; ignore here.
+    } else if (
+      m.method === 'ui/notifications/tool-input-partial' ||
+      m.method === 'ui/notifications/tool-input'
+    ) {
+      // Render progressively from streamed tool arguments so the user sees
+      // tasks appear as the model generates them instead of a blank wait.
+      // Claude uses tool-input-partial; ChatGPT streams via tool-input.
+      applyToolInput(m.params);
     } else if (m.method === 'ui/notifications/host-context-changed') {
       LOG('host-context-changed', m.params);
       const theme = m.params && m.params.theme;

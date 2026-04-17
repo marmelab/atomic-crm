@@ -483,8 +483,12 @@ Each task should include at least: id (required, used for the mark-as-done actio
       console.log(
         `[MCP display_task_list] user=${authInfo.userId} count=${tasks.length}`,
       );
+      // content carries the display text (used by Claude's guest HTML);
+      // structuredContent carries the typed data (used by ChatGPT's Apps SDK
+      // convention). Supplying both keeps the guest host-agnostic.
       return {
         content: [{ type: "text" as const, text: JSON.stringify(tasks) }],
+        structuredContent: { tasks },
       };
     },
   );
