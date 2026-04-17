@@ -283,16 +283,47 @@ export const TASK_LIST_HTML = /*html*/ `
     if (sizeReportCount <= 3) LOG('reportSize', { height: h + 2, count: sizeReportCount });
     post({ jsonrpc: '2.0', method: 'ui/size', params: { height: h + 2 } });
   };
-  if (typeof ResizeObserver !== 'undefined') {
-    LOG('installing ResizeObserver');
-    new ResizeObserver(reportSize).observe(document.body);
-  } else {
-    LOG('no ResizeObserver available');
-  }
 
   render();
-  LOG('initial render done, posting ui/ready');
-  post({ jsonrpc: '2.0', method: 'ui/ready' });
+
+  // -------- Spec-compliant MCP Apps handshake --------
+  // Per the MCP Apps spec, the host MUST NOT send any notification (including
+  // tool-result) before it receives ui/notifications/initialized from the
+  // view. We therefore: (1) send ui/initialize, (2) await the response,
+  // (3) send ui/notifications/initialized, and only then wire up the
+  // ResizeObserver so the host is not spammed with ui/size before handshake.
+  LOG('posting ui/initialize');
+  rpc('ui/initialize', {
+    protocolVersion: '2025-06-18',
+    clientInfo: { name: 'atomic-crm-task-list', version: '1.0.0' },
+    capabilities: {},
+    appCapabilities: {
+      tools: { listChanged: false },
+      availableDisplayModes: ['inline'],
+    },
+  })
+    .then((result) => {
+      LOG('ui/initialize result', result);
+      // Apply theme from host context if provided
+      const theme = result && result.hostContext && result.hostContext.theme;
+      if (theme) {
+        const cl = document.documentElement.classList;
+        cl.toggle('dark', theme === 'dark');
+        cl.toggle('light', theme === 'light');
+      }
+      post({ jsonrpc: '2.0', method: 'ui/notifications/initialized', params: {} });
+      if (typeof ResizeObserver !== 'undefined') {
+        LOG('installing ResizeObserver');
+        new ResizeObserver(reportSize).observe(document.body);
+      } else {
+        LOG('no ResizeObserver available');
+      }
+    })
+    .catch((e) => {
+      LOG('ui/initialize failed', (e && e.message) || String(e));
+      errorMsg = 'Failed to initialize MCP App: ' + ((e && e.message) || e);
+      render();
+    });
 })();
 </script>
 </body>
