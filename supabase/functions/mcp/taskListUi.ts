@@ -295,8 +295,7 @@ export const TASK_LIST_HTML = /*html*/ `
   LOG('posting ui/initialize');
   rpc('ui/initialize', {
     protocolVersion: '2025-06-18',
-    clientInfo: { name: 'atomic-crm-task-list', version: '1.0.0' },
-    capabilities: {},
+    appInfo: { name: 'atomic-crm-task-list', version: '1.0.0' },
     appCapabilities: {
       tools: { listChanged: false },
       availableDisplayModes: ['inline'],
