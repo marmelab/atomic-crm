@@ -1,7 +1,6 @@
 // Task-list MCP App. Everything lives in this single file: template,
-// styles, and glue.
-// It uses Vue.js as it's easier for a single-file app with no bundler.
-// Vue.js is loaded from unpkg at runtime; the bundler only sees this module.
+// styles, and glue. Plain vanilla JS — no external scripts, because host
+// CSPs (e.g. Claude.ai) only allow 'self' + 'unsafe-inline' for scripts.
 // Syntax highlighted if the IDE has the es6-string-html extension enabled.
 
 export const TASK_LIST_UI_URI = "ui://atomic-crm/task-list";
@@ -12,7 +11,7 @@ export const TASK_LIST_HTML = /*html*/ `
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline' 'unsafe-eval' https://unpkg.com; style-src 'unsafe-inline'; base-uri 'none'; form-action 'none'; frame-src 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; base-uri 'none'; form-action 'none'; frame-src 'none'">
 <title>Tasks</title>
 <style>
   :root { color-scheme: light dark; }
@@ -56,48 +55,13 @@ export const TASK_LIST_HTML = /*html*/ `
 </style>
 </head>
 <body>
-<div id="app">
-  <div v-if="error" class="error">{{ error }}</div>
-  <div v-if="!ready" class="empty">Waiting for data\u2026</div>
-  <div v-else-if="!tasks.length" class="empty">No pending tasks.</div>
-  <div
-    v-for="t in tasks"
-    :key="t.id"
-    class="task"
-    :class="{ done: !!t.done_date, updating: updating[t.id] }"
-  >
-    <button
-      type="button"
-      class="check"
-      :class="{ checked: !!t.done_date }"
-      :aria-label="t.done_date ? 'Already done' : 'Mark as done'"
-      :disabled="!!t.done_date"
-      @click="complete(t)"
-    ></button>
-    <div class="task-content">
-      <div class="task-text">{{ t.text || '(no description)' }}</div>
-      <div v-if="t.contact_name || t.type || t.due_date" class="task-meta">
-        <a
-          v-if="t.contact_name && t.contact_id && contactUrl(t.contact_id)"
-          class="contact"
-          :href="contactUrl(t.contact_id)"
-          target="_blank"
-          rel="noopener noreferrer"
-        >{{ t.contact_name }}</a>
-        <span v-else-if="t.contact_name" class="contact">{{ t.contact_name }}</span>
-        <span v-if="t.type" class="pill">{{ t.type }}</span>
-        <span v-if="t.due_date">Due {{ formatDate(t.due_date) }}</span>
-      </div>
-    </div>
-  </div>
-</div>
-<script
-  src="https://unpkg.com/vue@3.5.13/dist/vue.global.prod.js"
-  integrity="sha384-W/1Fp/LgAYO/oTn9Gs+PbeWuMuq1eQCnUMPCeg8POmMYchhzxctjEqtbiCIxDOON"
-  crossorigin="anonymous"
-></script>
+<div id="app"></div>
 <script>
 (() => {
+  // Injected server-side; empty string when not configured, in which case
+  // contact names render as plain text instead of links.
+  const CRM_BASE_URL = '__CRM_BASE_URL__';
+
   // -------- JSON-RPC plumbing over postMessage --------
   const pending = new Map();
   const RPC_TIMEOUT_MS = 10000;
@@ -116,100 +80,183 @@ export const TASK_LIST_HTML = /*html*/ `
     post({ jsonrpc: '2.0', id, method, params });
   });
 
-  const { createApp, ref, reactive, onMounted } = Vue;
+  // -------- State --------
+  let tasks = [];
+  let errorMsg = '';
+  let ready = false;
+  const updating = Object.create(null);
 
-  createApp({
-    setup() {
-      const tasks = ref([]);
-      const error = ref('');
-      const ready = ref(false);
-      const updating = reactive({});
+  // -------- Rendering (vanilla DOM) --------
+  const root = document.getElementById('app');
 
-      // CRM base URL is injected server-side (empty string when not configured,
-      // in which case contact names render as plain text).
-      const CRM_BASE_URL = '__CRM_BASE_URL__';
-      const contactUrl = (id) => CRM_BASE_URL ? CRM_BASE_URL + '/#/contacts/' + id + '/show' : '';
+  const contactUrl = (id) =>
+    CRM_BASE_URL ? CRM_BASE_URL + '/#/contacts/' + id + '/show' : '';
 
-      const formatDate = (value) => {
-        const d = new Date(value);
-        if (isNaN(d.getTime())) return String(value);
-        return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
-      };
+  const formatDate = (value) => {
+    const d = new Date(value);
+    if (isNaN(d.getTime())) return String(value);
+    return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
+  };
 
-      const complete = (t) => {
-        if (t.done_date || updating[t.id]) return;
-        updating[t.id] = true;
-        rpc('tools/call', { name: 'complete_task', arguments: { id: t.id } })
-          .then((result) => {
-            updating[t.id] = false;
-            if (result?.isError) {
-              error.value = result.content?.[0]?.text || 'Failed to mark task as done';
-              return;
-            }
-            error.value = '';
-            t.done_date = new Date().toISOString();
-          })
-          .catch((e) => {
-            updating[t.id] = false;
-            error.value = 'Could not mark as done: ' + (e?.message || String(e));
-          });
-      };
+  const el = (tag, attrs, children) => {
+    const node = document.createElement(tag);
+    if (attrs) {
+      for (const k in attrs) {
+        const v = attrs[k];
+        if (v == null || v === false) continue;
+        if (k === 'class') node.className = v;
+        else if (k === 'text') node.textContent = v;
+        else if (k.startsWith('on') && typeof v === 'function') node.addEventListener(k.slice(2), v);
+        else node.setAttribute(k, v === true ? '' : String(v));
+      }
+    }
+    if (children) {
+      for (const c of children) {
+        if (c == null || c === false) continue;
+        node.appendChild(typeof c === 'string' ? document.createTextNode(c) : c);
+      }
+    }
+    return node;
+  };
 
-      const applyToolResult = (result) => {
-        const text = result?.content?.[0]?.text;
-        try {
-          const parsed = JSON.parse(text || '[]');
-          tasks.value = Array.isArray(parsed) ? parsed : [];
-          error.value = '';
-        } catch (e) {
-          tasks.value = [];
-          error.value = 'Could not parse task list: ' + (e?.message || e);
+  const render = () => {
+    root.replaceChildren();
+
+    if (errorMsg) {
+      root.appendChild(el('div', { class: 'error', text: errorMsg }));
+    }
+
+    if (!ready) {
+      root.appendChild(el('div', { class: 'empty', text: 'Waiting for data\u2026' }));
+      return;
+    }
+
+    if (!tasks.length) {
+      root.appendChild(el('div', { class: 'empty', text: 'No pending tasks.' }));
+      return;
+    }
+
+    for (const t of tasks) {
+      const done = !!t.done_date;
+      const upd = !!updating[t.id];
+
+      const classes = ['task'];
+      if (done) classes.push('done');
+      if (upd) classes.push('updating');
+
+      const meta = [];
+      if (t.contact_name && t.contact_id && contactUrl(t.contact_id)) {
+        meta.push(el('a', {
+          class: 'contact',
+          href: contactUrl(t.contact_id),
+          target: '_blank',
+          rel: 'noopener noreferrer',
+          text: t.contact_name,
+        }));
+      } else if (t.contact_name) {
+        meta.push(el('span', { class: 'contact', text: t.contact_name }));
+      }
+      if (t.type) meta.push(el('span', { class: 'pill', text: t.type }));
+      if (t.due_date) meta.push(el('span', { text: 'Due ' + formatDate(t.due_date) }));
+
+      const checkClasses = ['check'];
+      if (done) checkClasses.push('checked');
+
+      const card = el('div', { class: classes.join(' ') }, [
+        el('button', {
+          type: 'button',
+          class: checkClasses.join(' '),
+          'aria-label': done ? 'Already done' : 'Mark as done',
+          disabled: done,
+          onclick: () => complete(t),
+        }),
+        el('div', { class: 'task-content' }, [
+          el('div', { class: 'task-text', text: t.text || '(no description)' }),
+          meta.length ? el('div', { class: 'task-meta' }, meta) : null,
+        ]),
+      ]);
+
+      root.appendChild(card);
+    }
+  };
+
+  // -------- Actions --------
+  const complete = (t) => {
+    if (t.done_date || updating[t.id]) return;
+    updating[t.id] = true;
+    render();
+    rpc('tools/call', { name: 'complete_task', arguments: { id: t.id } })
+      .then((result) => {
+        updating[t.id] = false;
+        if (result && result.isError) {
+          errorMsg = (result.content && result.content[0] && result.content[0].text) || 'Failed to mark task as done';
+        } else {
+          errorMsg = '';
+          t.done_date = new Date().toISOString();
         }
-        ready.value = true;
-      };
-
-      onMounted(() => {
-        window.addEventListener('message', (event) => {
-          // Origin-agnostic (the host's origin is unknown at build time);
-          // just assert the message came from the parent frame.
-          if (event.source !== window.parent) return;
-          const m = event.data;
-          if (!m || m.jsonrpc !== '2.0') return;
-          if (m.id !== undefined && m.method === undefined) {
-            const w = pending.get(m.id);
-            if (!w) return;
-            pending.delete(m.id);
-            clearTimeout(w.timer);
-            if (m.error) w.reject(new Error(m.error.message || 'RPC error'));
-            else w.resolve(m.result);
-            return;
-          }
-          if (m.method === 'ui/notifications/tool-result') applyToolResult(m.params);
-          else if (m.method === 'ui/notifications/theme') {
-            const theme = m.params?.theme;
-            const cl = document.documentElement.classList;
-            cl.toggle('dark', theme === 'dark');
-            cl.toggle('light', theme === 'light');
-          }
-        });
-        // Iframe has no intrinsic height from the host's perspective;
-        // measure our own content and ask the host to resize via ui/size.
-        const reportSize = () => {
-          const h = Math.max(
-            document.body.scrollHeight,
-            document.body.offsetHeight,
-            document.documentElement.scrollHeight,
-            document.documentElement.offsetHeight,
-          );
-          post({ jsonrpc: '2.0', method: 'ui/size', params: { height: h + 2 } });
-        };
-        if (typeof ResizeObserver !== 'undefined') new ResizeObserver(reportSize).observe(document.body);
-        post({ jsonrpc: '2.0', method: 'ui/ready' });
+        render();
+      })
+      .catch((e) => {
+        updating[t.id] = false;
+        errorMsg = 'Could not mark as done: ' + ((e && e.message) || String(e));
+        render();
       });
+  };
 
-      return { tasks, error, ready, updating, formatDate, contactUrl, complete };
-    },
-  }).mount('#app');
+  const applyToolResult = (result) => {
+    const text = result && result.content && result.content[0] && result.content[0].text;
+    try {
+      const parsed = JSON.parse(text || '[]');
+      tasks = Array.isArray(parsed) ? parsed : [];
+      errorMsg = '';
+    } catch (e) {
+      tasks = [];
+      errorMsg = 'Could not parse task list: ' + ((e && e.message) || e);
+    }
+    ready = true;
+    render();
+  };
+
+  // -------- Bootstrap --------
+  window.addEventListener('message', (event) => {
+    // Origin-agnostic (the host's origin is unknown at build time);
+    // just assert the message came from the parent frame.
+    if (event.source !== window.parent) return;
+    const m = event.data;
+    if (!m || m.jsonrpc !== '2.0') return;
+    if (m.id !== undefined && m.method === undefined) {
+      const w = pending.get(m.id);
+      if (!w) return;
+      pending.delete(m.id);
+      clearTimeout(w.timer);
+      if (m.error) w.reject(new Error(m.error.message || 'RPC error'));
+      else w.resolve(m.result);
+      return;
+    }
+    if (m.method === 'ui/notifications/tool-result') applyToolResult(m.params);
+    else if (m.method === 'ui/notifications/theme') {
+      const theme = m.params && m.params.theme;
+      const cl = document.documentElement.classList;
+      cl.toggle('dark', theme === 'dark');
+      cl.toggle('light', theme === 'light');
+    }
+  });
+
+  // Iframe has no intrinsic height from the host's perspective;
+  // measure our own content and ask the host to resize via ui/size.
+  const reportSize = () => {
+    const h = Math.max(
+      document.body.scrollHeight,
+      document.body.offsetHeight,
+      document.documentElement.scrollHeight,
+      document.documentElement.offsetHeight,
+    );
+    post({ jsonrpc: '2.0', method: 'ui/size', params: { height: h + 2 } });
+  };
+  if (typeof ResizeObserver !== 'undefined') new ResizeObserver(reportSize).observe(document.body);
+
+  render();
+  post({ jsonrpc: '2.0', method: 'ui/ready' });
 })();
 </script>
 </body>
