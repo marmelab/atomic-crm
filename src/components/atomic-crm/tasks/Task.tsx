@@ -1,7 +1,14 @@
 import { useQueryClient } from "@tanstack/react-query";
 import { MoreVertical } from "lucide-react";
-import { useDeleteWithUndoController, useNotify, useUpdate } from "ra-core";
-import { useEffect, useState } from "react";
+import {
+  type Identifier,
+  useDeleteWithUndoController,
+  useGetList,
+  useNotify,
+  useUpdate,
+} from "ra-core";
+import { useEffect, useState, type MouseEvent } from "react";
+import { Link } from "react-router";
 import { ReferenceField } from "@/components/admin/reference-field";
 import { DateField } from "@/components/admin/date-field";
 import { Button } from "@/components/ui/button";
@@ -14,7 +21,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 
 import { useConfigurationContext } from "../root/ConfigurationContext";
-import type { Contact, Task as TData } from "../types";
+import type { Contact, Deal, Task as TData } from "../types";
 import { TaskEdit } from "./TaskEdit";
 import { TaskEditSheet } from "./TaskEditSheet";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -109,24 +116,26 @@ export const Task = ({
               due&nbsp;
               <DateField source="due_date" record={task} showDate showTime />
               {showContact && (
-                <ReferenceField<TData, Contact>
-                  source="contact_id"
-                  reference="contacts"
-                  record={task}
-                  link="show"
-                  className="inline text-sm text-muted-foreground"
-                  render={({ referenceRecord }) => {
-                    if (!referenceRecord) return null;
-                    return (
-                      <>
-                        {" "}
-                        (Re:&nbsp;
-                        {referenceRecord?.first_name}{" "}
-                        {referenceRecord?.last_name})
-                      </>
-                    );
-                  }}
-                />
+                <>
+                  {" · "}
+                  <ReferenceField<TData, Contact>
+                    source="contact_id"
+                    reference="contacts"
+                    record={task}
+                    link="show"
+                    className="inline text-sm [&_a]:text-foreground [&_a]:hover:underline"
+                    render={({ referenceRecord }) => {
+                      if (!referenceRecord) return null;
+                      return (
+                        <>
+                          {referenceRecord?.first_name}{" "}
+                          {referenceRecord?.last_name}
+                        </>
+                      );
+                    }}
+                  />
+                  <TaskDealLink contactId={task.contact_id} />
+                </>
               )}
             </div>
           </div>
@@ -201,6 +210,54 @@ export const Task = ({
       ) : (
         <TaskEdit taskId={task.id} open={openEdit} close={handleCloseEdit} />
       )}
+    </>
+  );
+};
+
+const stopPropagation = (e: MouseEvent) => e.stopPropagation();
+
+const TaskDealLink = ({ contactId }: { contactId: Identifier }) => {
+  const { data: deals, isPending } = useGetList<Deal>(
+    "deals",
+    {
+      pagination: { page: 1, perPage: 3 },
+      sort: { field: "updated_at", order: "DESC" },
+      filter: {
+        "contact_ids@cs": `{${contactId}}`,
+        "archived_at@is": null,
+      },
+    },
+    { enabled: contactId != null },
+  );
+
+  if (isPending || !deals || deals.length === 0) return null;
+
+  if (deals.length === 1) {
+    const deal = deals[0];
+    return (
+      <>
+        {" · "}
+        <Link
+          to={`/deals/${deal.id}/show`}
+          onClick={stopPropagation}
+          className="text-foreground hover:underline"
+        >
+          {deal.name}
+        </Link>
+      </>
+    );
+  }
+
+  return (
+    <>
+      {" · "}
+      <Link
+        to={`/contacts/${contactId}/show`}
+        onClick={stopPropagation}
+        className="text-foreground hover:underline"
+      >
+        {deals.length} opportunités
+      </Link>
     </>
   );
 };
