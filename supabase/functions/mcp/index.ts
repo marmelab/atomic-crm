@@ -13,6 +13,7 @@ import { corsHeaders } from "../_shared/cors.ts";
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SUPABASE_JWT_ISSUER =
   Deno.env.get("SB_JWT_ISSUER") ?? `${SUPABASE_URL}/auth/v1`;
+const CRM_BASE_URL = (Deno.env.get("CRM_BASE_URL") ?? "").replace(/\/$/, "");
 
 const JWKS = createRemoteJWKSet(
   new URL(`${SUPABASE_URL}/auth/v1/.well-known/jwks.json`),
@@ -398,6 +399,13 @@ Examples:
 
   // --- UI resource for the task-list MCP App ---
 
+  // Inject the CRM base URL into the task-list guest HTML
+  // so contact names can link back to the CRM
+  const taskListHtml = TASK_LIST_HTML.replace(
+    /__CRM_BASE_URL__/g,
+    CRM_BASE_URL,
+  );
+
   server.registerResource(
     "task-list-ui",
     TASK_LIST_UI_URI,
@@ -411,7 +419,7 @@ Examples:
         {
           uri: uri.href,
           mimeType: "text/html;profile=mcp-app",
-          text: TASK_LIST_HTML,
+          text: taskListHtml,
         },
       ],
     }),
@@ -439,6 +447,14 @@ Examples:
       .nullable()
       .optional()
       .describe("Full name of the linked contact, if any"),
+    contact_id: z
+      .number()
+      .int()
+      .nullable()
+      .optional()
+      .describe(
+        "Id of the linked contact — used to render the contact name as a link to the CRM contact page",
+      ),
   });
   type Task = z.infer<typeof taskSchema>;
 
@@ -450,7 +466,7 @@ Examples:
 
 This tool is presentational: it does not query the database. Fetch the rows yourself via the query tool (joining contacts for contact_name when useful), then pass them here. Prefer this over replying with a bulleted list of tasks.
 
-Each task should include at least: id (required, used for the mark-as-done action), text, type, due_date, done_date, and optionally contact_name.`,
+Each task should include at least: id (required, used for the mark-as-done action), text, type, due_date, done_date, and optionally contact_name + contact_id (the UI renders the name as a link to the CRM contact page when contact_id is provided).`,
       inputSchema: {
         tasks: z.array(taskSchema).describe("Array of task objects to render"),
       },

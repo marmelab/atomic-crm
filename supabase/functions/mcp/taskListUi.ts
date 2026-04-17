@@ -31,6 +31,8 @@ export const TASK_LIST_HTML = /*html*/ `
   .task-meta { margin-top:3px; font-size:12px; color:#6b7280; display:flex; flex-wrap:wrap; gap:10px; }
   .pill { display:inline-block; padding:1px 6px; border-radius:4px; background:rgba(128,128,128,0.22); color:#374151; }
   .contact { color:#2563eb; font-weight:500; }
+  a.contact { text-decoration:none; }
+  a.contact:hover { text-decoration:underline; }
   .empty { text-align:center; color:#6b7280; padding:16px 8px; }
   .error { padding:8px 10px; border-radius:6px; border:1px solid rgba(220,38,38,0.4); background:rgba(220,38,38,0.08); color:#dc2626; font-size:12px; margin-bottom:8px; }
   html.dark body { color:#f5f5f5; }
@@ -75,7 +77,14 @@ export const TASK_LIST_HTML = /*html*/ `
     <div class="task-content">
       <div class="task-text">{{ t.text || '(no description)' }}</div>
       <div v-if="t.contact_name || t.type || t.due_date" class="task-meta">
-        <span v-if="t.contact_name" class="contact">{{ t.contact_name }}</span>
+        <a
+          v-if="t.contact_name && t.contact_id && contactUrl(t.contact_id)"
+          class="contact"
+          :href="contactUrl(t.contact_id)"
+          target="_blank"
+          rel="noopener noreferrer"
+        >{{ t.contact_name }}</a>
+        <span v-else-if="t.contact_name" class="contact">{{ t.contact_name }}</span>
         <span v-if="t.type" class="pill">{{ t.type }}</span>
         <span v-if="t.due_date">Due {{ formatDate(t.due_date) }}</span>
       </div>
@@ -115,6 +124,11 @@ export const TASK_LIST_HTML = /*html*/ `
       const error = ref('');
       const ready = ref(false);
       const updating = reactive({});
+
+      // CRM base URL is injected server-side (empty string when not configured,
+      // in which case contact names render as plain text).
+      const CRM_BASE_URL = '__CRM_BASE_URL__';
+      const contactUrl = (id) => CRM_BASE_URL ? CRM_BASE_URL + '/#/contacts/' + id + '/show' : '';
 
       const formatDate = (value) => {
         const d = new Date(value);
@@ -193,7 +207,7 @@ export const TASK_LIST_HTML = /*html*/ `
         post({ jsonrpc: '2.0', method: 'ui/ready' });
       });
 
-      return { tasks, error, ready, updating, formatDate, complete };
+      return { tasks, error, ready, updating, formatDate, contactUrl, complete };
     },
   }).mount('#app');
 })();
