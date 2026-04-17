@@ -62,12 +62,19 @@ export const TASK_LIST_HTML = /*html*/ `
   // contact names render as plain text instead of links.
   const CRM_BASE_URL = '__CRM_BASE_URL__';
 
+  // -------- Debug logging --------
+  const LOG = (...args) => console.log('[mcp-task-list]', ...args);
+  LOG('script start', { url: location.href, hasParent: window.parent !== window });
+
   // -------- JSON-RPC plumbing over postMessage --------
   const pending = new Map();
   const RPC_TIMEOUT_MS = 10000;
   let nextId = 1;
 
-  const post = (msg) => window.parent.postMessage(msg, '*');
+  const post = (msg) => {
+    LOG('post ->', msg);
+    window.parent.postMessage(msg, '*');
+  };
 
   const rpc = (method, params) => new Promise((resolve, reject) => {
     const id = nextId++;
@@ -204,14 +211,17 @@ export const TASK_LIST_HTML = /*html*/ `
   };
 
   const applyToolResult = (result) => {
+    LOG('applyToolResult', result);
     const text = result && result.content && result.content[0] && result.content[0].text;
     try {
       const parsed = JSON.parse(text || '[]');
       tasks = Array.isArray(parsed) ? parsed : [];
       errorMsg = '';
+      LOG('parsed tasks', { count: tasks.length });
     } catch (e) {
       tasks = [];
       errorMsg = 'Could not parse task list: ' + ((e && e.message) || e);
+      LOG('parse error', errorMsg);
     }
     ready = true;
     render();
@@ -219,12 +229,24 @@ export const TASK_LIST_HTML = /*html*/ `
 
   // -------- Bootstrap --------
   window.addEventListener('message', (event) => {
+    LOG('message <-', {
+      origin: event.origin,
+      fromParent: event.source === window.parent,
+      data: event.data,
+    });
     // Origin-agnostic (the host's origin is unknown at build time);
     // just assert the message came from the parent frame.
-    if (event.source !== window.parent) return;
+    if (event.source !== window.parent) {
+      LOG('dropped: not from parent');
+      return;
+    }
     const m = event.data;
-    if (!m || m.jsonrpc !== '2.0') return;
+    if (!m || m.jsonrpc !== '2.0') {
+      LOG('dropped: not jsonrpc 2.0', m);
+      return;
+    }
     if (m.id !== undefined && m.method === undefined) {
+      LOG('rpc response', { id: m.id, hasError: !!m.error });
       const w = pending.get(m.id);
       if (!w) return;
       pending.delete(m.id);
@@ -233,17 +255,23 @@ export const TASK_LIST_HTML = /*html*/ `
       else w.resolve(m.result);
       return;
     }
-    if (m.method === 'ui/notifications/tool-result') applyToolResult(m.params);
-    else if (m.method === 'ui/notifications/theme') {
+    if (m.method === 'ui/notifications/tool-result') {
+      LOG('handling tool-result');
+      applyToolResult(m.params);
+    } else if (m.method === 'ui/notifications/theme') {
+      LOG('handling theme', m.params);
       const theme = m.params && m.params.theme;
       const cl = document.documentElement.classList;
       cl.toggle('dark', theme === 'dark');
       cl.toggle('light', theme === 'light');
+    } else {
+      LOG('unhandled method', m.method);
     }
   });
 
   // Iframe has no intrinsic height from the host's perspective;
   // measure our own content and ask the host to resize via ui/size.
+  let sizeReportCount = 0;
   const reportSize = () => {
     const h = Math.max(
       document.body.scrollHeight,
@@ -251,11 +279,19 @@ export const TASK_LIST_HTML = /*html*/ `
       document.documentElement.scrollHeight,
       document.documentElement.offsetHeight,
     );
+    sizeReportCount++;
+    if (sizeReportCount <= 3) LOG('reportSize', { height: h + 2, count: sizeReportCount });
     post({ jsonrpc: '2.0', method: 'ui/size', params: { height: h + 2 } });
   };
-  if (typeof ResizeObserver !== 'undefined') new ResizeObserver(reportSize).observe(document.body);
+  if (typeof ResizeObserver !== 'undefined') {
+    LOG('installing ResizeObserver');
+    new ResizeObserver(reportSize).observe(document.body);
+  } else {
+    LOG('no ResizeObserver available');
+  }
 
   render();
+  LOG('initial render done, posting ui/ready');
   post({ jsonrpc: '2.0', method: 'ui/ready' });
 })();
 </script>
