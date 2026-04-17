@@ -7,13 +7,11 @@ import { TextInput } from "@/components/admin/text-input";
 import { Notification } from "@/components/admin/notification";
 import { useConfigurationContext } from "@/components/atomic-crm/root/ConfigurationContext.tsx";
 import { SSOAuthButton } from "./SSOAuthButton";
+import { GOOGLE_SSO_ENABLED } from "./googleSsoFeatureFlag";
 
 export const LoginPage = (props: { redirectTo?: string }) => {
-  const {
-    title,
-    googleWorkplaceDomain,
-    disableEmailPasswordAuthentication,
-  } = useConfigurationContext();
+  const { title, googleWorkplaceDomain, disableEmailPasswordAuthentication } =
+    useConfigurationContext();
   const { redirectTo } = props;
   const [loading, setLoading] = useState(false);
   const hasDisplayedRecoveryNotification = useRef(false);
@@ -34,7 +32,10 @@ export const LoginPage = (props: { redirectTo?: string }) => {
     searchParams.delete("passwordRecoveryEmailSent");
     const nextSearch = searchParams.toString();
     navigate(
-      { pathname: location.pathname, search: nextSearch ? `?${nextSearch}` : "" },
+      {
+        pathname: location.pathname,
+        search: nextSearch ? `?${nextSearch}` : "",
+      },
       { replace: true },
     );
   }, [location.pathname, location.search, navigate, notify]);
@@ -54,9 +55,12 @@ export const LoginPage = (props: { redirectTo?: string }) => {
           {
             type: "error",
             messageArgs: {
-              _: typeof error === "string"
-                ? error
-                : error && error.message ? error.message : undefined,
+              _:
+                typeof error === "string"
+                  ? error
+                  : error && error.message
+                    ? error.message
+                    : undefined,
             },
           },
         );
@@ -69,20 +73,25 @@ export const LoginPage = (props: { redirectTo?: string }) => {
       <div className="fixed inset-0 pointer-events-none overflow-hidden">
         <div
           className="absolute -top-24 -left-24 w-[380px] h-[380px] rounded-full opacity-40"
-          style={{ background: "radial-gradient(circle, #FF9B54 0%, transparent 70%)" }}
+          style={{
+            background: "radial-gradient(circle, #FF9B54 0%, transparent 70%)",
+          }}
         />
         <div
           className="absolute top-1/2 -right-32 w-[300px] h-[300px] rounded-full opacity-20"
-          style={{ background: "radial-gradient(circle, #92B592 0%, transparent 70%)" }}
+          style={{
+            background: "radial-gradient(circle, #92B592 0%, transparent 70%)",
+          }}
         />
         <div
           className="absolute -bottom-16 left-1/3 w-[220px] h-[220px] rounded-full opacity-15"
-          style={{ background: "radial-gradient(circle, #FF9B54 0%, transparent 70%)" }}
+          style={{
+            background: "radial-gradient(circle, #FF9B54 0%, transparent 70%)",
+          }}
         />
       </div>
 
       <div className="relative z-10 grid w-full max-w-[950px] mx-auto px-6 lg:grid-cols-2 lg:gap-12 min-h-screen lg:min-h-0 lg:items-center">
-
         {/* ── Panneau gauche ── */}
         <div className="hidden lg:flex flex-col py-16 pr-8">
           {/* Logo */}
@@ -123,11 +132,18 @@ export const LoginPage = (props: { redirectTo?: string }) => {
                 <div
                   key={f.title}
                   className="rounded-xl p-4 border border-gray-100 shadow-sm"
-                  style={{ backgroundColor: "rgba(255,255,255,0.8)", backdropFilter: "blur(8px)" }}
+                  style={{
+                    backgroundColor: "rgba(255,255,255,0.8)",
+                    backdropFilter: "blur(8px)",
+                  }}
                 >
                   <span className="text-xl">{f.icon}</span>
-                  <p className="mt-1.5 font-semibold text-gray-900 text-sm">{f.title}</p>
-                  <p className="mt-0.5 text-gray-500 text-xs leading-relaxed">{f.desc}</p>
+                  <p className="mt-1.5 font-semibold text-gray-900 text-sm">
+                    {f.title}
+                  </p>
+                  <p className="mt-0.5 text-gray-500 text-xs leading-relaxed">
+                    {f.desc}
+                  </p>
                 </div>
               ))}
             </div>
@@ -160,7 +176,10 @@ export const LoginPage = (props: { redirectTo?: string }) => {
           {/* Card formulaire */}
           <div
             className="w-full max-w-sm rounded-3xl border border-gray-100 p-8 shadow-xl"
-            style={{ backgroundColor: "rgba(255,255,255,0.9)", backdropFilter: "blur(12px)" }}
+            style={{
+              backgroundColor: "rgba(255,255,255,0.9)",
+              backdropFilter: "blur(12px)",
+            }}
           >
             <div className="mb-8">
               <h2 className="text-2xl font-bold text-gray-900">
@@ -222,9 +241,12 @@ export const LoginPage = (props: { redirectTo?: string }) => {
               </Form>
             )}
 
-            {googleWorkplaceDomain && (
+            {GOOGLE_SSO_ENABLED && googleWorkplaceDomain && (
               <div className="mt-4">
-                <SSOAuthButton className="w-full rounded-xl" domain={googleWorkplaceDomain}>
+                <SSOAuthButton
+                  className="w-full rounded-xl"
+                  domain={googleWorkplaceDomain}
+                >
                   Continuer avec Google
                 </SSOAuthButton>
               </div>

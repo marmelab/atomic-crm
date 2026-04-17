@@ -436,3 +436,17 @@ BEGIN
   RETURN NEW;
 END;
 $$;
+
+CREATE OR REPLACE FUNCTION "public"."set_deal_won_at"() RETURNS "trigger"
+    LANGUAGE "plpgsql"
+    SET "search_path" TO 'public'
+    AS $$
+BEGIN
+  IF NEW.stage = 'closed-won' AND (OLD.stage IS DISTINCT FROM 'closed-won') THEN
+    NEW.won_at := NOW();
+  ELSIF NEW.stage != 'closed-won' AND OLD.stage = 'closed-won' THEN
+    NEW.won_at := NULL;
+  END IF;
+  RETURN NEW;
+END;
+$$;

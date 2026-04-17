@@ -14,6 +14,7 @@ import { LoginSkeleton } from "./LoginSkeleton";
 import { Notification } from "@/components/admin/notification";
 import { ConfirmationRequired } from "./ConfirmationRequired";
 import { SSOAuthButton } from "./SSOAuthButton";
+import { GOOGLE_SSO_ENABLED } from "./googleSsoFeatureFlag";
 
 export const SignupPage = () => {
   const queryClient = useQueryClient();
@@ -159,7 +160,7 @@ export const SignupPage = () => {
                   "Create account"
                 )}
               </Button>
-              {googleWorkplaceDomain ? (
+              {GOOGLE_SSO_ENABLED && googleWorkplaceDomain ? (
                 <SSOAuthButton
                   className="w-full"
                   domain={googleWorkplaceDomain}

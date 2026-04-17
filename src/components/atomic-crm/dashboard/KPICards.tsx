@@ -241,15 +241,18 @@ function WonDealsCard({ deals }: { deals: Deal[] | undefined }) {
 
   const { wonThisMonth, wonLastMonthCount } = useMemo(() => {
     const wonDeals = deals?.filter((d) => d.stage === "closed-won") ?? [];
+    const wonDate = (d: Deal) => d.won_at ?? d.updated_at;
     return {
       wonThisMonth: wonDeals.filter((d) => {
-        if (!d.updated_at) return false;
-        const u = new Date(d.updated_at);
+        const raw = wonDate(d);
+        if (!raw) return false;
+        const u = new Date(raw);
         return u.getFullYear() === cy && u.getMonth() === cm;
       }),
       wonLastMonthCount: wonDeals.filter((d) => {
-        if (!d.updated_at) return false;
-        const u = new Date(d.updated_at);
+        const raw = wonDate(d);
+        if (!raw) return false;
+        const u = new Date(raw);
         return u.getFullYear() === ly && u.getMonth() === lm;
       }).length,
     };

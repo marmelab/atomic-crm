@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Loader2, Send, Sparkles } from "lucide-react";
+import { ImagePlus, Loader2, Send, Sparkles, X } from "lucide-react";
 import {
   Sheet,
   SheetContent,
@@ -19,6 +19,9 @@ const TYPE_LABEL: Record<"bug" | "feature" | "question", string> = {
   question: "Question",
 };
 
+const MAX_ASSIST_IMAGES = 3;
+const MAX_ASSIST_IMAGE_SIZE = 5 * 1024 * 1024; // 5 MB
+
 export function NoshoAssistChat() {
   const { isOpen, initialMessage, close } = useAssist();
   const {
@@ -34,8 +37,13 @@ export function NoshoAssistChat() {
 
   const [input, setInput] = useState("");
   const [submitted, setSubmitted] = useState<{ url?: string } | null>(null);
+  const [images, setImages] = useState<{ file: File; previewUrl: string }[]>(
+    [],
+  );
+  const [imageError, setImageError] = useState<string | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Reset state on open, optionally seeding the textarea with a message.
   useEffect(() => {
@@ -43,10 +51,25 @@ export function NoshoAssistChat() {
     reset();
     setSubmitted(null);
     setInput(initialMessage ?? "");
+    setImages((prev) => {
+      prev.forEach((img) => URL.revokeObjectURL(img.previewUrl));
+      return [];
+    });
+    setImageError(null);
     // Focus shortly after the sheet animation starts.
     const t = setTimeout(() => textareaRef.current?.focus(), 200);
     return () => clearTimeout(t);
   }, [isOpen, initialMessage, reset]);
+
+  // Revoke preview URLs when the component unmounts.
+  useEffect(() => {
+    return () => {
+      images.forEach((img) => URL.revokeObjectURL(img.previewUrl));
+    };
+    // Intentional: cleanup on unmount only. Per-change cleanup is handled
+    // in the add/remove handlers.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Auto-scroll on new messages.
   useEffect(() => {
@@ -70,10 +93,49 @@ export function NoshoAssistChat() {
   };
 
   const handleSubmit = async () => {
-    const result = await submitDraft();
+    const result = await submitDraft(images.map((img) => img.file));
     if (result?.ok) {
       setSubmitted({ url: result.issueUrl });
+      images.forEach((img) => URL.revokeObjectURL(img.previewUrl));
+      setImages([]);
     }
+  };
+
+  const handlePickImages = (files: FileList | null) => {
+    setImageError(null);
+    if (!files || files.length === 0) return;
+    const selected = Array.from(files);
+    const tooBig = selected.find((f) => f.size > MAX_ASSIST_IMAGE_SIZE);
+    if (tooBig) {
+      setImageError(
+        `"${tooBig.name}" dépasse la taille max (${MAX_ASSIST_IMAGE_SIZE / (1024 * 1024)} Mo).`,
+      );
+      return;
+    }
+    setImages((prev) => {
+      const remaining = MAX_ASSIST_IMAGES - prev.length;
+      if (remaining <= 0) {
+        setImageError(`Maximum ${MAX_ASSIST_IMAGES} images.`);
+        return prev;
+      }
+      const next = selected.slice(0, remaining).map((file) => ({
+        file,
+        previewUrl: URL.createObjectURL(file),
+      }));
+      if (selected.length > remaining) {
+        setImageError(`Maximum ${MAX_ASSIST_IMAGES} images.`);
+      }
+      return [...prev, ...next];
+    });
+  };
+
+  const handleRemoveImage = (index: number) => {
+    setImages((prev) => {
+      const img = prev[index];
+      if (img) URL.revokeObjectURL(img.previewUrl);
+      return prev.filter((_, i) => i !== index);
+    });
+    setImageError(null);
   };
 
   return (
@@ -187,7 +249,64 @@ export function NoshoAssistChat() {
         </div>
 
         <div className="border-t p-3">
+          {images.length > 0 && (
+            <div className="flex flex-wrap gap-2 mb-2">
+              {images.map((img, i) => (
+                <div
+                  key={img.previewUrl}
+                  className="relative w-14 h-14 rounded-md overflow-hidden border border-border"
+                >
+                  <img
+                    src={img.previewUrl}
+                    alt={img.file.name}
+                    className="w-full h-full object-cover"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => handleRemoveImage(i)}
+                    className="absolute top-0.5 right-0.5 rounded-full bg-black/60 text-white p-0.5 hover:bg-black/80 transition-colors"
+                    aria-label={`Retirer ${img.file.name}`}
+                  >
+                    <X className="w-3 h-3" />
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+          {imageError && (
+            <p className="text-[10px] text-destructive mb-1.5 px-1">
+              {imageError}
+            </p>
+          )}
           <div className="flex items-end gap-2">
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              multiple
+              className="hidden"
+              onChange={(e) => {
+                handlePickImages(e.target.files);
+                e.target.value = "";
+              }}
+            />
+            <Button
+              type="button"
+              size="icon"
+              variant="ghost"
+              onClick={() => fileInputRef.current?.click()}
+              disabled={
+                isSending ||
+                !!submitted ||
+                isSubmitting ||
+                images.length >= MAX_ASSIST_IMAGES
+              }
+              className="shrink-0"
+              aria-label="Joindre une image"
+              title="Joindre une capture ou une image"
+            >
+              <ImagePlus className="w-4 h-4" />
+            </Button>
             <Textarea
               ref={textareaRef}
               value={input}
@@ -209,7 +328,9 @@ export function NoshoAssistChat() {
             </Button>
           </div>
           <p className="text-[10px] text-muted-foreground mt-1.5 px-1">
-            Entrée pour envoyer · Maj+Entrée pour aller à la ligne
+            Entrée pour envoyer · Maj+Entrée pour aller à la ligne · Jusqu'à{" "}
+            {MAX_ASSIST_IMAGES} images (max{" "}
+            {MAX_ASSIST_IMAGE_SIZE / (1024 * 1024)} Mo)
           </p>
         </div>
       </SheetContent>

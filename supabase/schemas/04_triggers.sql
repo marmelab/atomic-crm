@@ -20,6 +20,13 @@ create or replace trigger set_deal_sales_id_trigger
     before insert on public.deals
     for each row execute function public.set_sales_id_default();
 
+-- Auto-set deal.won_at when stage transitions to/from closed-won
+create or replace trigger deal_stage_won_at
+    before update on public.deals
+    for each row
+    when (old.stage is distinct from new.stage)
+    execute function public.set_deal_won_at();
+
 create or replace trigger set_deal_notes_sales_id_trigger
     before insert on public.deal_notes
     for each row execute function public.set_sales_id_default();
