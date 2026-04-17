@@ -258,6 +258,26 @@ export const TASK_LIST_HTML = /*html*/ `
     if (m.method === 'ui/notifications/tool-result') {
       LOG('handling tool-result');
       applyToolResult(m.params);
+    } else if (m.method === 'ui/notifications/tool-input-partial') {
+      // Stream partial tool arguments: render progressively so the user sees
+      // tasks appear as the model generates them instead of a 10s blank wait.
+      const partialTasks = m.params && m.params.arguments && m.params.arguments.tasks;
+      if (Array.isArray(partialTasks)) {
+        tasks = partialTasks;
+        errorMsg = '';
+        ready = true;
+        render();
+      }
+    } else if (m.method === 'ui/notifications/tool-input') {
+      // Final resolved tool-input arrives just before tool-result; ignore here.
+    } else if (m.method === 'ui/notifications/host-context-changed') {
+      LOG('host-context-changed', m.params);
+      const theme = m.params && m.params.theme;
+      if (theme) {
+        const cl = document.documentElement.classList;
+        cl.toggle('dark', theme === 'dark');
+        cl.toggle('light', theme === 'light');
+      }
     } else if (m.method === 'ui/notifications/theme') {
       LOG('handling theme', m.params);
       const theme = m.params && m.params.theme;
@@ -269,9 +289,11 @@ export const TASK_LIST_HTML = /*html*/ `
     }
   });
 
-  // Iframe has no intrinsic height from the host's perspective;
-  // measure our own content and ask the host to resize via ui/size.
+  // Iframe has no intrinsic height from the host's perspective; measure our
+  // own content and ask the host to resize via ui/notifications/size-changed
+  // (per MCP Apps spec; hosts like Claude Desktop ignore non-spec ui/size).
   let sizeReportCount = 0;
+  let lastReportedHeight = 0;
   const reportSize = () => {
     const h = Math.max(
       document.body.scrollHeight,
@@ -279,9 +301,16 @@ export const TASK_LIST_HTML = /*html*/ `
       document.documentElement.scrollHeight,
       document.documentElement.offsetHeight,
     );
+    const height = h + 2;
+    if (height === lastReportedHeight) return;
+    lastReportedHeight = height;
     sizeReportCount++;
-    if (sizeReportCount <= 3) LOG('reportSize', { height: h + 2, count: sizeReportCount });
-    post({ jsonrpc: '2.0', method: 'ui/size', params: { height: h + 2 } });
+    if (sizeReportCount <= 3) LOG('reportSize', { height, count: sizeReportCount });
+    post({
+      jsonrpc: '2.0',
+      method: 'ui/notifications/size-changed',
+      params: { width: document.documentElement.clientWidth, height },
+    });
   };
 
   render();
