@@ -62,19 +62,12 @@ export const TASK_LIST_HTML = /*html*/ `
   // contact names render as plain text instead of links.
   const CRM_BASE_URL = '__CRM_BASE_URL__';
 
-  // -------- Debug logging --------
-  const LOG = (...args) => console.log('[mcp-task-list]', ...args);
-  LOG('script start', { url: location.href, hasParent: window.parent !== window });
-
   // -------- JSON-RPC plumbing over postMessage --------
   const pending = new Map();
   const RPC_TIMEOUT_MS = 10000;
   let nextId = 1;
 
-  const post = (msg) => {
-    LOG('post ->', msg);
-    window.parent.postMessage(msg, '*');
-  };
+  const post = (msg) => window.parent.postMessage(msg, '*');
 
   const rpc = (method, params) => new Promise((resolve, reject) => {
     const id = nextId++;
@@ -234,16 +227,13 @@ export const TASK_LIST_HTML = /*html*/ `
   };
 
   const applyToolResult = (result) => {
-    LOG('applyToolResult', result);
     const extracted = extractTasks(result);
     if (extracted) {
       tasks = extracted;
       errorMsg = '';
-      LOG('parsed tasks', { count: tasks.length });
     } else {
       tasks = [];
       errorMsg = 'Could not extract task list from tool result';
-      LOG('extract failed', { hasStructured: !!result && !!result.structuredContent });
     }
     ready = true;
     render();
@@ -261,24 +251,12 @@ export const TASK_LIST_HTML = /*html*/ `
 
   // -------- Bootstrap --------
   window.addEventListener('message', (event) => {
-    LOG('message <-', {
-      origin: event.origin,
-      fromParent: event.source === window.parent,
-      data: event.data,
-    });
     // Origin-agnostic (the host's origin is unknown at build time);
     // just assert the message came from the parent frame.
-    if (event.source !== window.parent) {
-      LOG('dropped: not from parent');
-      return;
-    }
+    if (event.source !== window.parent) return;
     const m = event.data;
-    if (!m || m.jsonrpc !== '2.0') {
-      LOG('dropped: not jsonrpc 2.0', m);
-      return;
-    }
+    if (!m || m.jsonrpc !== '2.0') return;
     if (m.id !== undefined && m.method === undefined) {
-      LOG('rpc response', { id: m.id, hasError: !!m.error });
       const w = pending.get(m.id);
       if (!w) return;
       pending.delete(m.id);
@@ -288,7 +266,6 @@ export const TASK_LIST_HTML = /*html*/ `
       return;
     }
     if (m.method === 'ui/notifications/tool-result') {
-      LOG('handling tool-result');
       applyToolResult(m.params);
     } else if (
       m.method === 'ui/notifications/tool-input-partial' ||
@@ -298,29 +275,22 @@ export const TASK_LIST_HTML = /*html*/ `
       // tasks appear as the model generates them instead of a blank wait.
       // Claude uses tool-input-partial; ChatGPT streams via tool-input.
       applyToolInput(m.params);
-    } else if (m.method === 'ui/notifications/host-context-changed') {
-      LOG('host-context-changed', m.params);
+    } else if (
+      m.method === 'ui/notifications/host-context-changed' ||
+      m.method === 'ui/notifications/theme'
+    ) {
       const theme = m.params && m.params.theme;
       if (theme) {
         const cl = document.documentElement.classList;
         cl.toggle('dark', theme === 'dark');
         cl.toggle('light', theme === 'light');
       }
-    } else if (m.method === 'ui/notifications/theme') {
-      LOG('handling theme', m.params);
-      const theme = m.params && m.params.theme;
-      const cl = document.documentElement.classList;
-      cl.toggle('dark', theme === 'dark');
-      cl.toggle('light', theme === 'light');
-    } else {
-      LOG('unhandled method', m.method);
     }
   });
 
   // Iframe has no intrinsic height from the host's perspective; measure our
   // own content and ask the host to resize via ui/notifications/size-changed
   // (per MCP Apps spec; hosts like Claude Desktop ignore non-spec ui/size).
-  let sizeReportCount = 0;
   let lastReportedHeight = 0;
   const reportSize = () => {
     const h = Math.max(
@@ -332,8 +302,6 @@ export const TASK_LIST_HTML = /*html*/ `
     const height = h + 2;
     if (height === lastReportedHeight) return;
     lastReportedHeight = height;
-    sizeReportCount++;
-    if (sizeReportCount <= 3) LOG('reportSize', { height, count: sizeReportCount });
     post({
       jsonrpc: '2.0',
       method: 'ui/notifications/size-changed',
@@ -348,8 +316,7 @@ export const TASK_LIST_HTML = /*html*/ `
   // tool-result) before it receives ui/notifications/initialized from the
   // view. We therefore: (1) send ui/initialize, (2) await the response,
   // (3) send ui/notifications/initialized, and only then wire up the
-  // ResizeObserver so the host is not spammed with ui/size before handshake.
-  LOG('posting ui/initialize');
+  // ResizeObserver so the host is not spammed with size reports before handshake.
   rpc('ui/initialize', {
     protocolVersion: '2025-06-18',
     appInfo: { name: 'atomic-crm-task-list', version: '1.0.0' },
@@ -359,7 +326,6 @@ export const TASK_LIST_HTML = /*html*/ `
     },
   })
     .then((result) => {
-      LOG('ui/initialize result', result);
       // Apply theme from host context if provided
       const theme = result && result.hostContext && result.hostContext.theme;
       if (theme) {
@@ -369,14 +335,10 @@ export const TASK_LIST_HTML = /*html*/ `
       }
       post({ jsonrpc: '2.0', method: 'ui/notifications/initialized', params: {} });
       if (typeof ResizeObserver !== 'undefined') {
-        LOG('installing ResizeObserver');
         new ResizeObserver(reportSize).observe(document.body);
-      } else {
-        LOG('no ResizeObserver available');
       }
     })
     .catch((e) => {
-      LOG('ui/initialize failed', (e && e.message) || String(e));
       errorMsg = 'Failed to initialize MCP App: ' + ((e && e.message) || e);
       render();
     });
