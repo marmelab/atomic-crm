@@ -16,8 +16,8 @@ export const DealColumn = ({
 
   const { dealStages } = useConfigurationContext();
   return (
-    <div className="flex-1 pb-8">
-      <div className="flex flex-col items-center">
+    <div className="flex-1 min-w-[220px] pb-8">
+      <div className="sticky top-0 z-10 flex flex-col items-center bg-background py-2 shadow-[0_4px_6px_-6px_rgba(0,0,0,0.15)]">
         <h3 className="text-base font-medium">
           {findDealLabel(dealStages, stage)} ({deals.length})
         </h3>

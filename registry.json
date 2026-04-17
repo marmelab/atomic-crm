@@ -490,6 +490,10 @@
           "type": "registry:component"
         },
         {
+          "path": "src/components/atomic-crm/login/googleSsoFeatureFlag.ts",
+          "type": "registry:component"
+        },
+        {
           "path": "src/components/atomic-crm/login/StartPage.tsx",
           "type": "registry:component"
         },

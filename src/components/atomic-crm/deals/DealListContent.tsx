@@ -37,7 +37,9 @@ export const DealListContent = () => {
       const saved = localStorage.getItem(storageKey);
       if (saved) {
         const parsed = JSON.parse(saved) as string[];
-        const valid = parsed.filter((s) => dealStages.some((ds) => ds.value === s));
+        const valid = parsed.filter((s) =>
+          dealStages.some((ds) => ds.value === s),
+        );
         if (valid.length > 0) return new Set(valid);
       }
     } catch {}
@@ -110,7 +112,7 @@ export const DealListContent = () => {
 
     // persist the changes and invalidate all deal list caches (all views)
     updateDealStage(sourceDeal, destinationDeal, dataProvider).then(() => {
-      queryClient.invalidateQueries({ queryKey: ['deals', 'getList'] });
+      queryClient.invalidateQueries({ queryKey: ["deals", "getList"] });
     });
   };
 
@@ -168,7 +170,7 @@ export const DealListContent = () => {
 
       {/* Kanban columns */}
       <DragDropContext onDragEnd={onDragEnd}>
-        <div className="flex gap-4 overflow-x-auto pb-4">
+        <div className="flex gap-4 overflow-auto pb-4 h-[calc(100dvh-14rem)] min-h-[420px]">
           {visibleDealStages.map((stage) => (
             <DealColumn
               stage={stage.value}
