@@ -1,4 +1,6 @@
 import path from "node:path";
+import { readFileSync } from "node:fs";
+import type { Plugin } from "vite";
 import { defineConfig } from "vite";
 import tailwindcss from "@tailwindcss/vite";
 import react from "@vitejs/plugin-react";
@@ -6,11 +8,40 @@ import { visualizer } from "rollup-plugin-visualizer";
 import createHtmlPlugin from "vite-plugin-simple-html";
 import { VitePWA } from "vite-plugin-pwa";
 
+function readAppVersion(): string {
+  const src = readFileSync(path.resolve(__dirname, "src/version.ts"), "utf-8");
+  const match = src.match(/APP_VERSION\s*=\s*"([^"]+)"/);
+  return match?.[1] ?? "unknown";
+}
+
+function versionJsonPlugin(): Plugin {
+  const payload = () =>
+    JSON.stringify({ version: readAppVersion(), builtAt: Date.now() });
+  return {
+    name: "nosho-version-json",
+    configureServer(server) {
+      server.middlewares.use("/version.json", (_req, res) => {
+        res.setHeader("Content-Type", "application/json");
+        res.setHeader("Cache-Control", "no-store");
+        res.end(payload());
+      });
+    },
+    generateBundle() {
+      this.emitFile({
+        type: "asset",
+        fileName: "version.json",
+        source: payload(),
+      });
+    },
+  };
+}
+
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [
     react(),
     tailwindcss(),
+    versionJsonPlugin(),
     visualizer({
       open: process.env.NODE_ENV !== "CI",
       filename: "./dist/stats.html",
