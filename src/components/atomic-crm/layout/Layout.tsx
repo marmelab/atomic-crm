@@ -10,6 +10,7 @@ import { NoshoAssistChat } from "../assist/NoshoAssistChat";
 import { NoshoAssistFAB } from "../assist/NoshoAssistFAB";
 import { useConfigurationLoader } from "../root/useConfigurationLoader";
 import Header from "./Header";
+import { VersionUpdateToast } from "./VersionUpdateToast";
 
 const SentryErrorBoundary = Sentry.withErrorBoundary(
   ({ children }: { children: ReactNode }) => <>{children}</>,
@@ -38,6 +39,7 @@ export const Layout = ({ children }: { children: ReactNode }) => {
       </main>
       <NoshoAssistFAB />
       <NoshoAssistChat />
+      <VersionUpdateToast />
       <Notification />
     </AssistProvider>
   );
