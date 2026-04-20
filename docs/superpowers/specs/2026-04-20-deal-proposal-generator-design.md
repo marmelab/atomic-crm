@@ -47,7 +47,7 @@ Add a "Générer proposition commerciale" action to the deal detail page. The ac
    │ idempotence check
    │ build payload
    │ POST Nosho API with X-API-Key
-   │ UPDATE opportunities SET proposal_edit_url, proposal_public_url
+   │ UPDATE deals SET proposal_edit_url, proposal_public_url
    ▼
 [UI: invalidate deal, render URLs on deal page]
 ```
@@ -56,9 +56,9 @@ All Nosho API calls go through the Supabase edge function. The API key is never 
 
 ## Database changes
 
-### Migration: add proposal URL columns to `opportunities`
+### Migration: add proposal URL columns to `deals`
 
-Add to `supabase/schemas/01_tables.sql`, table `opportunities`:
+Add to `supabase/schemas/01_tables.sql`, table `deals`:
 
 ```sql
 proposal_edit_url text,
@@ -161,7 +161,7 @@ All Supabase queries in this function use a client initialized with the **user's
    - Otherwise: no contact — omit `clientContact` from the payload.
 6. Build payload (see mapping below).
 7. `fetch` POST to Nosho API with `X-API-Key`, 15s timeout via `AbortController`.
-8. On success: `UPDATE opportunities SET proposal_edit_url = :editUrl, proposal_public_url = :publicUrl WHERE id = :dealId`.
+8. On success: `UPDATE deals SET proposal_edit_url = :editUrl, proposal_public_url = :publicUrl WHERE id = :dealId`.
 9. Return `{ editUrl, publicUrl }`.
 
 ### Payload mapping
