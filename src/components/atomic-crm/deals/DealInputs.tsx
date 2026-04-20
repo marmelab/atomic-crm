@@ -86,10 +86,7 @@ const DealLinkedToInputs = ({
     const type = newType === ALL_TYPES ? "" : newType;
     onCompanyTypeFilterChange(type);
     setValue("company_type", type || null);
-    setValue("company_id", null);
   };
-
-  const companyFilter = companyTypeFilter ? { type: companyTypeFilter } : {};
 
   return (
     <div className="flex flex-col gap-4 flex-1">
@@ -115,11 +112,7 @@ const DealLinkedToInputs = ({
         </Select>
       </div>
 
-      <ReferenceInput
-        source="company_id"
-        reference="companies"
-        filter={companyFilter}
-      >
+      <ReferenceInput source="company_id" reference="companies">
         <AutocompleteCompanyInput
           validate={required()}
           defaultType={companyTypeFilter || undefined}
