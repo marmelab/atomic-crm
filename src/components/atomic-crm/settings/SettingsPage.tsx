@@ -44,6 +44,13 @@ export const validateItemsInUse = (
   deals: RaRecord[] | undefined,
   fieldName: string,
   displayName: string,
+  /**
+   * Slugs that were present in the last-saved configuration. When provided,
+   * a deal is only flagged as "still using a removed value" if its value was
+   * in this set — orphan values that exist in the DB but not in the saved
+   * config don't block the user from editing other settings.
+   */
+  baselineValues?: Set<string>,
 ) => {
   if (!items) return undefined;
   // Check for duplicate slugs
@@ -63,9 +70,13 @@ export const validateItemsInUse = (
   const inUse = [
     ...new Set(
       deals
-        .filter(
-          (deal) => deal[fieldName] && !values.has(deal[fieldName] as string),
-        )
+        .filter((deal) => {
+          const value = deal[fieldName] as string | undefined | null;
+          if (!value) return false;
+          if (values.has(value)) return false;
+          if (baselineValues && !baselineValues.has(value)) return false;
+          return true;
+        })
         .map((deal) => deal[fieldName] as string),
     ),
   ];
@@ -171,20 +182,37 @@ const SettingsFormFields = () => {
   const dealStages = watch("dealStages");
   const dealPipelineStatuses: string[] = watch("dealPipelineStatuses") ?? [];
 
+  const config = useConfigurationContext();
+
   const { data: deals } = useGetList("deals", {
     pagination: { page: 1, perPage: 1000 },
   });
 
+  const baselineStageValues = useMemo(
+    () => new Set(config.dealStages.map((s) => s.value)),
+    [config.dealStages],
+  );
+  const baselineCategoryValues = useMemo(
+    () => new Set(config.dealCategories.map((c) => c.value)),
+    [config.dealCategories],
+  );
+
   const validateDealStages = useCallback(
     (stages: { value: string; label: string }[] | undefined) =>
-      validateItemsInUse(stages, deals, "stage", "stages"),
-    [deals],
+      validateItemsInUse(stages, deals, "stage", "stages", baselineStageValues),
+    [deals, baselineStageValues],
   );
 
   const validateDealCategories = useCallback(
     (categories: { value: string; label: string }[] | undefined) =>
-      validateItemsInUse(categories, deals, "category", "categories"),
-    [deals],
+      validateItemsInUse(
+        categories,
+        deals,
+        "category",
+        "categories",
+        baselineCategoryValues,
+      ),
+    [deals, baselineCategoryValues],
   );
 
   return (
@@ -221,7 +249,9 @@ const SettingsFormFields = () => {
             <TextInput source="title" label="Titre de l'application" />
             <div className="flex gap-8">
               <div className="flex flex-col items-center gap-1">
-                <p className="text-sm text-muted-foreground">Logo (mode clair)</p>
+                <p className="text-sm text-muted-foreground">
+                  Logo (mode clair)
+                </p>
                 <ImageEditorField
                   source="lightModeLogo"
                   width={100}
@@ -231,7 +261,9 @@ const SettingsFormFields = () => {
                 />
               </div>
               <div className="flex flex-col items-center gap-1">
-                <p className="text-sm text-muted-foreground">Logo (mode sombre)</p>
+                <p className="text-sm text-muted-foreground">
+                  Logo (mode sombre)
+                </p>
                 <ImageEditorField
                   source="darkModeLogo"
                   width={100}
@@ -550,7 +582,8 @@ const CustomViewsSection = () => {
                         const isAllowed =
                           isOpenToAll ||
                           view.allowedUserIds?.includes(sale.id as number);
-                        const initials = `${sale.first_name?.[0] ?? ""}${sale.last_name?.[0] ?? ""}`.toUpperCase();
+                        const initials =
+                          `${sale.first_name?.[0] ?? ""}${sale.last_name?.[0] ?? ""}`.toUpperCase();
                         return (
                           <button
                             key={sale.id}

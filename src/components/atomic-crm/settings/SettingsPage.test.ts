@@ -89,4 +89,33 @@ describe("validateItemsInUse", () => {
       validateItemsInUse(items, deals, "category", "categories"),
     ).toContain("copywriting");
   });
+
+  it("ignores orphan deal values not present in the baseline config", () => {
+    // Scenario: a deal has stage="opportunity" in the DB, but that stage was
+    // never part of the saved config. Adding a new stage should not trigger
+    // a removal error for the orphan value.
+    const items = [
+      { value: "won", label: "Won" },
+      { value: "lost", label: "Lost" },
+      { value: "new-stage", label: "New Stage" },
+    ];
+    const baseline = new Set(["won", "lost"]);
+    expect(validateItemsInUse(items, deals, "stage", "stages", baseline)).toBe(
+      undefined,
+    );
+  });
+
+  it("still flags removed values that were in the baseline", () => {
+    const items = [{ value: "won", label: "Won" }];
+    const baseline = new Set(["won", "lost", "opportunity"]);
+    const result = validateItemsInUse(
+      items,
+      deals,
+      "stage",
+      "stages",
+      baseline,
+    );
+    expect(result).toContain("lost");
+    expect(result).toContain("opportunity");
+  });
 });
