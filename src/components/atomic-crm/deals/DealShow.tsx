@@ -30,6 +30,7 @@ import type { Deal } from "../types";
 import { ContactList } from "./ContactList";
 import { findDealLabel } from "./deal";
 import { formatISODateString } from "./dealUtils";
+import { GenerateProposalAction } from "./GenerateProposalAction";
 
 export const DealShow = ({ open, id }: { open: boolean; id?: string }) => {
   const redirect = useRedirect();
@@ -89,6 +90,7 @@ const DealShowContent = () => {
                     <CheckSquare className="w-4 h-4" />
                     Créer une tâche
                   </Button>
+                  <GenerateProposalAction />
                   <ArchiveButton record={record} />
                   <EditButton />
                 </>
