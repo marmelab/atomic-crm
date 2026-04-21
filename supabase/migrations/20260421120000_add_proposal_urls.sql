@@ -1,6 +1,6 @@
 alter table public.deals
-    add column proposal_edit_url text,
-    add column proposal_public_url text;
+    add column if not exists proposal_edit_url text,
+    add column if not exists proposal_public_url text;
 
 -- Refresh deals_summary so the view picks up the new columns
 -- (it uses d.* which is expanded at view creation time).
