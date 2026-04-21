@@ -111,11 +111,15 @@ async function handler(req: Request, user: User): Promise<Response> {
   let contact: { first_name: string | null; last_name: string | null } | null =
     null;
   if (useContactId !== null) {
-    const { data: c } = await supabase
+    const { data: c, error: contactError } = await supabase
       .from("contacts")
       .select("first_name, last_name")
       .eq("id", useContactId)
       .maybeSingle();
+    if (contactError) {
+      console.error("[generate-proposal] contact fetch error:", contactError);
+      return jsonResponse(500, { error: "internal_error" });
+    }
     if (c) contact = c;
   }
 
@@ -123,11 +127,15 @@ async function handler(req: Request, user: User): Promise<Response> {
   let sales: { first_name: string | null; last_name: string | null } | null =
     null;
   if (deal.sales_id) {
-    const { data: s } = await supabase
+    const { data: s, error: salesError } = await supabase
       .from("sales")
       .select("first_name, last_name")
       .eq("id", deal.sales_id)
       .maybeSingle();
+    if (salesError) {
+      console.error("[generate-proposal] sales fetch error:", salesError);
+      return jsonResponse(500, { error: "internal_error" });
+    }
     if (s) sales = s;
   }
 
