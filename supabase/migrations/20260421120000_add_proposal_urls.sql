@@ -2,9 +2,12 @@ alter table public.deals
     add column if not exists proposal_edit_url text,
     add column if not exists proposal_public_url text;
 
--- Refresh deals_summary so the view picks up the new columns
--- (it uses d.* which is expanded at view creation time).
-create or replace view public.deals_summary with (security_invoker = on) as
+-- Refresh deals_summary so the view picks up the new columns.
+-- Must DROP+CREATE (not CREATE OR REPLACE) because d.* introduces new
+-- columns in the middle of the select list, which Postgres rejects as
+-- a column reorder.
+drop view if exists public.deals_summary;
+create view public.deals_summary with (security_invoker = on) as
 select
     d.*,
     comp.name                                                                                                          as company_name,
