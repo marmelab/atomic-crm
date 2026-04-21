@@ -128,6 +128,8 @@ export type Deal = {
   won_at?: string;
   sales_id: Identifier;
   index: number;
+  proposal_edit_url?: string;
+  proposal_public_url?: string;
 } & Pick<RaRecord, "id">;
 
 export type DealNote = {
