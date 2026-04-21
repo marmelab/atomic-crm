@@ -1,7 +1,7 @@
 import { createClient, type User } from "jsr:@supabase/supabase-js@2";
 import { createErrorResponse } from "./utils.ts";
 
-function getAuthToken(req: Request): string | null {
+export function getAuthToken(req: Request): string | null {
   const authHeader = req.headers.get("authorization");
   if (!authHeader) return null;
   const [bearer, token] = authHeader.split(" ");
