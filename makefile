@@ -111,7 +111,7 @@ test-functions:
 	npm run test:unit:functions
 
 test-edge-functions: ## run Deno tests for Supabase edge functions
-	deno test supabase/functions/
+	npx -y deno@latest test supabase/functions/generate-proposal/
 
 test-e2e: start-e2e
 	npx playwright test --ui
