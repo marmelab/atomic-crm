@@ -76,7 +76,9 @@ create table public.deals (
     expected_closing_date date,
     sales_id bigint,
     index smallint,
-    won_at date
+    won_at date,
+    proposal_edit_url text,
+    proposal_public_url text
 );
 
 create table public.deal_notes (
