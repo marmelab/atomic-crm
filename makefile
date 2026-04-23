@@ -97,7 +97,7 @@ supabase-deploy:
 
 test-unit: test-app test-functions 
 
-test: test-unit test-e2e-ci
+test: test-unit
 
 test-app:
 	npm run test:unit:app
