@@ -8,6 +8,7 @@ export default defineConfig({
   test: {
     globals: true,
     browser: {
+      headless: true,
       provider: playwright(),
       enabled: true,
       instances: [
