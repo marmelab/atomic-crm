@@ -241,6 +241,37 @@ const getDataProviderWithCustomMethods = () => {
       });
       return data.config as ConfigurationContextValue;
     },
+    async getPreferences(): Promise<Record<string, string>> {
+      const { data: session } = await getSupabaseClient().auth.getSession();
+      if (!session?.session?.user) return {};
+      const { data } = await getSupabaseClient()
+        .from("sales")
+        .select("preferences")
+        .match({ user_id: session.session.user.id })
+        .single();
+      return (data?.preferences as Record<string, string>) ?? {};
+    },
+    async updatePreferences(
+      prefs: Record<string, string>,
+    ): Promise<Record<string, string>> {
+      const { data: session } = await getSupabaseClient().auth.getSession();
+      if (!session?.session?.user) return prefs;
+      const { data: sale } = await getSupabaseClient()
+        .from("sales")
+        .select("preferences")
+        .match({ user_id: session.session.user.id })
+        .single();
+      if (!sale) return prefs;
+      const merged = {
+        ...((sale?.preferences as Record<string, string>) ?? {}),
+        ...prefs,
+      };
+      await getSupabaseClient()
+        .from("sales")
+        .update({ preferences: merged })
+        .match({ user_id: session.session.user.id });
+      return merged;
+    },
   } satisfies DataProvider;
 };
 

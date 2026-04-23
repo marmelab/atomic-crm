@@ -5,10 +5,12 @@ import { Suspense, type ReactNode } from "react";
 import { ErrorBoundary } from "react-error-boundary";
 
 import { useConfigurationLoader } from "../root/useConfigurationLoader";
+import { usePreferencesLoader } from "../root/usePreferencesLoader";
 import { MobileNavigation } from "./MobileNavigation";
 
 export const MobileLayout = ({ children }: { children: ReactNode }) => {
   useConfigurationLoader();
+  usePreferencesLoader();
   return (
     <>
       <ErrorBoundary FallbackComponent={Error}>

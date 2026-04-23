@@ -1,4 +1,5 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import type { Theme } from "@/components/admin/theme-context";
 import { useTheme } from "@/components/admin/use-theme";
 import { KeyRound } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -371,6 +372,22 @@ const LanguageRow = () => {
   const translate = useTranslate();
   const locales = useLocales();
   const [locale, setLocale] = useLocaleState();
+  const dataProvider = useDataProvider<CrmDataProvider>();
+  const notify = useNotify();
+
+  const handleSetLocale = (value: string) => {
+    setLocale(value);
+    dataProvider
+      .updatePreferences({ locale: value })
+      .catch((e) =>
+        notify(
+          typeof e?.message === "string"
+            ? e?.message
+            : "ra.notification.http_error",
+          { type: "error" },
+        ),
+      );
+  };
 
   if (locales.length <= 1) return null;
 
@@ -382,7 +399,7 @@ const LanguageRow = () => {
         </ItemTitle>
       </ItemContent>
       <ItemActions>
-        <Select value={locale} onValueChange={setLocale}>
+        <Select value={locale} onValueChange={handleSetLocale}>
           <SelectTrigger
             size="sm"
             className="w-auto !h-auto py-0 border-none shadow-none"
@@ -405,6 +422,22 @@ const LanguageRow = () => {
 const ThemeRow = () => {
   const translate = useTranslate();
   const { theme, setTheme } = useTheme();
+  const dataProvider = useDataProvider<CrmDataProvider>();
+  const notify = useNotify();
+
+  const handleSetTheme = (value: Theme) => {
+    setTheme(value);
+    dataProvider
+      .updatePreferences({ theme: value })
+      .catch((e) =>
+        notify(
+          typeof e?.message === "string"
+            ? e?.message
+            : "ra.notification.http_error",
+          { type: "error" },
+        ),
+      );
+  };
 
   return (
     <Item size="sm" className="flex-col items-stretch gap-2">
@@ -414,9 +447,7 @@ const ThemeRow = () => {
       <ToggleGroup
         type="single"
         value={theme}
-        onValueChange={(value) =>
-          value && setTheme(value as "light" | "dark" | "system")
-        }
+        onValueChange={(value) => value && handleSetTheme(value as Theme)}
         size="lg"
         variant="outline"
         className="w-full"
