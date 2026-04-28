@@ -7,6 +7,9 @@ import createHtmlPlugin from "vite-plugin-simple-html";
 
 // https://vitejs.dev/config/
 export default defineConfig({
+  server: {
+    host: true,
+  },
   plugins: [
     react(),
     tailwindcss(),

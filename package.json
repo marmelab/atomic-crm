@@ -22,7 +22,8 @@
     "supabase:remote:init": "node ./scripts/supabase-remote-init.mjs",
     "storybook": "storybook dev -p 6006",
     "build-storybook": "storybook build",
-    "prepare": "husky"
+    "prepare": "husky",
+    "reload": "make stop && make start"
   },
   "dependencies": {
     "@fontsource-variable/inter": "^5.2.8",

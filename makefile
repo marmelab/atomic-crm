@@ -17,7 +17,9 @@ install: package.json ## install dependencies
 	npm install;
 
 start-supabase: ## start supabase locally
-	npx supabase start
+	@docker network rm atomic-crm-network 2>/dev/null || true
+	@docker network create -o 'com.docker.network.bridge.host_binding_ipv4=0.0.0.0' atomic-crm-network 2>/dev/null || true
+	npx supabase start --network-id atomic-crm-network
 
 start-supabase-functions: ## start the supabase Functions watcher
 	npx supabase functions serve
