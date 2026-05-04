@@ -29,8 +29,8 @@
     "prepare": "husky"
   },
   "dependencies": {
-    "@copilotkit/react-core": "1.56.3",
-    "@copilotkit/react-ui": "1.56.3",
+    "@copilotkit/react-core": "1.56.5",
+    "@copilotkit/react-ui": "1.56.5",
     "@hello-pangea/dnd": "^18.0.1",
     "@nivo/bar": "^0.99.0",
     "@radix-ui/react-accordion": "^1.2.12",

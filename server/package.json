@@ -12,7 +12,7 @@
   "dependencies": {
     "@ag-ui/mcp-apps-middleware": "latest",
     "@copilotkit/license-verifier": "file:../packages/license-verifier",
-    "@copilotkit/runtime": "1.56.3",
+    "@copilotkit/runtime": "1.56.5",
     "@hono/node-server": "^1",
     "@modelcontextprotocol/ext-apps": "^1.2.2",
     "@modelcontextprotocol/sdk": "^1",
