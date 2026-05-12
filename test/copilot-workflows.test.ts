@@ -1,30 +1,26 @@
-import { describe, it, expect, beforeAll, afterAll } from "vitest";
-import { createCRMMock } from "./llmock-setup";
-import type { LLMock } from "@copilotkit/aimock";
+import { describe, it, expect, inject } from "vitest";
+
+/**
+ * These tests run in browser mode (Chromium). The aimock server runs in Node
+ * context via test/globalSetup.ts. We receive the server URL and a snapshot of
+ * the loaded fixtures through Vitest's provide/inject mechanism — this avoids
+ * importing @copilotkit/aimock in the browser, which would fail because aimock
+ * extends Node-only classes (http.Server, etc.).
+ */
+const aimockUrl = inject("aimockUrl");
+const fixtures = inject("aimockFixtures");
 
 describe("CopilotKit workflow fixtures", () => {
-  let mock: LLMock;
-
-  beforeAll(async () => {
-    mock = await createCRMMock();
-  });
-
-  afterAll(async () => {
-    await mock.stop();
-  });
-
   it("loads all fixtures without errors", () => {
-    const fixtures = mock.getFixtures();
     // 4 workflow fixtures + 1 catch-all
     expect(fixtures.length).toBe(5);
   });
 
   it("matches review account prompt", () => {
-    const fixtures = mock.getFixtures();
     const match = fixtures.find(
       (f) =>
         typeof f.match.userMessage === "string" &&
-        f.match.userMessage.includes("Review the account"),
+        (f.match.userMessage as string).includes("Review the account"),
     );
     expect(match).toBeDefined();
     expect("toolCalls" in match!.response).toBe(true);
@@ -38,11 +34,10 @@ describe("CopilotKit workflow fixtures", () => {
   });
 
   it("matches analyze contract prompt", () => {
-    const fixtures = mock.getFixtures();
     const match = fixtures.find(
       (f) =>
         typeof f.match.userMessage === "string" &&
-        f.match.userMessage.includes("Analyze the contract"),
+        (f.match.userMessage as string).includes("Analyze the contract"),
     );
     expect(match).toBeDefined();
     const response = match!.response as { toolCalls: Array<{ name: string }> };
@@ -50,11 +45,10 @@ describe("CopilotKit workflow fixtures", () => {
   });
 
   it("matches forecast review prompt", () => {
-    const fixtures = mock.getFixtures();
     const match = fixtures.find(
       (f) =>
         typeof f.match.userMessage === "string" &&
-        f.match.userMessage.includes("Review the renewal forecast"),
+        (f.match.userMessage as string).includes("Review the renewal forecast"),
     );
     expect(match).toBeDefined();
     const response = match!.response as { toolCalls: Array<{ name: string }> };
@@ -62,11 +56,10 @@ describe("CopilotKit workflow fixtures", () => {
   });
 
   it("matches lead triage prompt", () => {
-    const fixtures = mock.getFixtures();
     const match = fixtures.find(
       (f) =>
         typeof f.match.userMessage === "string" &&
-        f.match.userMessage.includes("Triage the top leads"),
+        (f.match.userMessage as string).includes("Triage the top leads"),
     );
     expect(match).toBeDefined();
     const response = match!.response as { toolCalls: Array<{ name: string }> };
@@ -76,14 +69,13 @@ describe("CopilotKit workflow fixtures", () => {
   });
 
   it("has a catch-all fixture for tool results", () => {
-    const fixtures = mock.getFixtures();
     const catchAll = fixtures[fixtures.length - 1];
     expect(catchAll.match).toEqual({});
     expect("content" in catchAll.response).toBe(true);
   });
 
   it("streams review account response via HTTP", async () => {
-    const res = await fetch(`${mock.baseUrl}/v1/chat/completions`, {
+    const res = await fetch(`${aimockUrl}/v1/chat/completions`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -110,18 +102,21 @@ describe("CopilotKit workflow fixtures", () => {
     expect(text).toContain("AccountSummary");
     expect(text).toContain("MissingSignals");
 
-    // Verify journal recorded the request
-    const lastReq = mock.getLastRequest();
-    expect(lastReq).toBeDefined();
-    expect(lastReq!.response.fixture).toBeDefined();
+    // Verify journal recorded the request via the control API
+    const journalRes = await fetch(`${aimockUrl}/__aimock/journal`);
+    const journal = (await journalRes.json()) as Array<{
+      response: { fixture: unknown };
+    }>;
+    expect(journal.length).toBeGreaterThan(0);
+    const lastEntry = journal[journal.length - 1];
+    expect(lastEntry.response.fixture).toBeDefined();
   });
 
   it("review account fixture has deterministic data", () => {
-    const fixtures = mock.getFixtures();
     const match = fixtures.find(
       (f) =>
         typeof f.match.userMessage === "string" &&
-        f.match.userMessage.includes("Review the account"),
+        (f.match.userMessage as string).includes("Review the account"),
     );
     const response = match!.response as {
       toolCalls: Array<{ name: string; arguments: string }>;
