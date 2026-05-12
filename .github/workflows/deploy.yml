@@ -13,29 +13,21 @@ permissions:
     contents: write
 
 jobs:
-    deploy-doc:
-        name: 🚀 Deploy (doc)
+    # ─── Documentation ───────────────────────────────────────────────
+    build-doc:
+        name: 🔨 Build (doc)
         runs-on: ubuntu-latest
         timeout-minutes: 5
-
-        env:
-          PRODUCTION_REMOTE: https://git:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}
 
         steps:
             - name: 📥 Checkout repo
               uses: actions/checkout@v4
 
+            # No cache — deploy builds must be hermetic
             - name: ⚙️ Setup node
               uses: actions/setup-node@v4
               with:
                   node-version: 22
-                  cache: npm
-
-            - name: ⚙️ Setup git
-              run: |
-                git remote set-url origin https://git:${{ secrets.GITHUB_TOKEN }}@github.com/${GITHUB_REPOSITORY}
-                git config --global user.email support+actions@github.com
-                git config --global user.name github-actions-bot
 
             - name: 📥 Download deps
               run: make doc-install
@@ -46,20 +38,80 @@ jobs:
             - name: 🔨 Build Documentation
               run: make doc-build
 
+            - name: 📤 Upload doc artifacts
+              uses: actions/upload-artifact@v4
+              with:
+                  name: doc-artifacts
+                  path: |
+                      doc/dist
+                      public/r
+
+    deploy-doc:
+        name: 🚀 Deploy (doc)
+        runs-on: ubuntu-latest
+        timeout-minutes: 5
+        needs: build-doc
+
+        steps:
+            - name: 📥 Checkout repo
+              uses: actions/checkout@v4
+
+            - name: ⚙️ Setup git
+              run: |
+                git remote set-url origin https://git:${{ secrets.GITHUB_TOKEN }}@github.com/${GITHUB_REPOSITORY}
+                git config --global user.email support+actions@github.com
+                git config --global user.name github-actions-bot
+
+            - name: 📥 Download doc artifacts
+              uses: actions/download-artifact@v4
+              with:
+                  name: doc-artifacts
+
             - name: 📡 Deploy Registry
-              run: make registry-deploy
+              run: cd public/r && npx gh-pages -b gh-pages -d ./ -s atomic-crm.json -e r -m "Deploy registry" --remove r
 
             - name: 📡 Deploy Documentation
-              run: make doc-deploy
+              run: cd doc && npx gh-pages -b gh-pages -d dist -e doc -m "Deploy docs" --remove doc
 
-    deploy-demo:
-        name: 🚀 Deploy (demo)
+    # ─── Demo ────────────────────────────────────────────────────────
+    build-demo:
+        name: 🔨 Build (demo)
         runs-on: ubuntu-latest
         timeout-minutes: 10
 
         env:
             VITE_IS_DEMO: true
             VITE_INBOUND_EMAIL: ${{ vars.VITE_INBOUND_EMAIL }}
+
+        steps:
+            - name: 📥 Checkout repo
+              uses: actions/checkout@v4
+
+            # No cache — deploy builds must be hermetic
+            - name: ⚙️ Setup node
+              uses: actions/setup-node@v4
+              with:
+                  node-version: 22
+
+            - name: 📥 Download deps
+              run: npm ci
+
+            - name: 🔨 Build
+              run: npm run build:demo
+
+            - name: 📤 Upload demo artifacts
+              uses: actions/upload-artifact@v4
+              with:
+                  name: demo-artifacts
+                  path: dist
+
+    deploy-demo:
+        name: 🚀 Deploy (demo)
+        runs-on: ubuntu-latest
+        timeout-minutes: 5
+        needs: build-demo
+
+        env:
             PRODUCTION_REMOTE: https://git:${{ secrets.DEPLOY_TOKEN || secrets.GITHUB_TOKEN }}@github.com/${{ vars.DEMO_DEPLOY_REPOSITORY }}
 
         steps:
@@ -70,7 +122,6 @@ jobs:
               uses: actions/setup-node@v4
               with:
                   node-version: 22
-                  cache: npm
 
             - name: ⚙️ Setup git
               run: |
@@ -80,21 +131,58 @@ jobs:
                   git config --global user.email support+actions@github.com
                   git config --global user.name github-actions-bot
 
-            - name: 📥 Download deps
-              run: npm ci
-
-            - name: 🔨 Build
-              run: npm run build:demo
+            - name: 📥 Download demo artifacts
+              uses: actions/download-artifact@v4
+              with:
+                  name: demo-artifacts
+                  path: dist
 
             - name: 📡 Deploy GitHub pages
               run: npx gh-pages --remote production -d dist -b ${{ vars.DEPLOY_BRANCH || 'gh-pages' }}
               env:
                   GITHUB_TOKEN: ${{ secrets.DEPLOY_TOKEN || secrets.GITHUB_TOKEN }}
 
+    # ─── Supabase ────────────────────────────────────────────────────
+    build-supabase:
+        name: 🔨 Build (supabase)
+        runs-on: ubuntu-latest
+        timeout-minutes: 10
+
+        env:
+            # Vite embeds these at build time (client-side values only)
+            VITE_SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+            VITE_SB_PUBLISHABLE_KEY: ${{ secrets.SB_PUBLISHABLE_KEY }}
+            VITE_GOOGLE_WORKPLACE_DOMAIN: ${{ secrets.VITE_GOOGLE_WORKPLACE_DOMAIN }}
+            VITE_IS_DEMO: ${{ vars.VITE_IS_DEMO }}
+            VITE_INBOUND_EMAIL: ${{ vars.VITE_INBOUND_EMAIL }}
+
+        steps:
+            - name: 📥 Checkout repo
+              uses: actions/checkout@v4
+
+            # No cache — deploy builds must be hermetic
+            - name: ⚙️ Setup node
+              uses: actions/setup-node@v4
+              with:
+                  node-version: 22
+
+            - name: 📥 Download deps
+              run: npm ci
+
+            - name: 🔨 Build
+              run: npm run build
+
+            - name: 📤 Upload supabase artifacts
+              uses: actions/upload-artifact@v4
+              with:
+                  name: supabase-artifacts
+                  path: dist
+
     deploy-supabase:
         name: 🚀 Deploy (supabase)
         runs-on: ubuntu-latest
         timeout-minutes: 10
+        needs: build-supabase
 
         env:
             SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
@@ -115,12 +203,6 @@ jobs:
             - name: 📥 Checkout repo
               uses: actions/checkout@v4
 
-            - name: ⚙️ Setup node
-              uses: actions/setup-node@v4
-              with:
-                  node-version: 22
-                  cache: npm
-
             - name: ⚙️ Setup git
               run: |
                   echo Deploying to pages to ${{ vars.DEPLOY_REPOSITORY }}
@@ -132,11 +214,10 @@ jobs:
             - name: ⚙️ Setup supabase
               uses: supabase/setup-cli@v1
 
-            - name: 📥 Download deps
-              run: npm ci
-
-            - name: 🔨 Build
-              run: npm run build
+            - name: 📥 Download supabase artifacts
+              uses: actions/download-artifact@v4
+              with:
+                  name: supabase-artifacts
 
             - if: ${{ env.IS_SUPABASE_CONFIGURED }}
               name: 🔗 Supabase Link
