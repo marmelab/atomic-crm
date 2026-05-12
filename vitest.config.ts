@@ -7,6 +7,7 @@ export default defineConfig({
   plugins: [react()],
   test: {
     globals: true,
+    globalSetup: ["./test/globalSetup.ts"],
     browser: {
       provider: playwright(),
       enabled: true,
