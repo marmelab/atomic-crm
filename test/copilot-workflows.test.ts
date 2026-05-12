@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeAll, afterAll } from "vitest";
 import { createCRMMock } from "./llmock-setup";
-import type { LLMock } from "@copilotkit/llmock";
+import type { LLMock } from "@copilotkit/aimock";
 
 describe("CopilotKit workflow fixtures", () => {
   let mock: LLMock;

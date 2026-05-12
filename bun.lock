@@ -75,7 +75,7 @@
         "zod": "^4.1.12",
       },
       "devDependencies": {
-        "@copilotkit/llmock": "^1.4.0",
+        "@copilotkit/aimock": "^1.22.0",
         "@eslint/js": "^9.22.0",
         "@inquirer/prompts": "^8.2.0",
         "@storybook/react-vite": "^9.1.19",
@@ -347,7 +347,7 @@
 
     "@copilotkit/a2ui-renderer": ["@copilotkit/a2ui-renderer@1.54.0", "", { "dependencies": { "@a2ui/lit": "^0.8.1", "clsx": "^2.1.1", "markdown-it": "^14.1.0", "zod": "^3.25.75" }, "peerDependencies": { "react": "^18 || ^19 || ^19.0.0-rc", "react-dom": "^18 || ^19 || ^19.0.0-rc" } }, "sha512-98Q9c+Zk2mmEs1gt9N+BQ9ZB8DDO0mmDrsjCCb0IK3Zm6u0jRhYG+rv71PyHdEG4O8ysQf0krpjZy4uh8Gs5/Q=="],
 
-    "@copilotkit/llmock": ["@copilotkit/llmock@1.4.0", "", { "bin": { "llmock": "dist/cli.js" } }, "sha512-AYkozube6vsCX152nr62WdTSvJfQU07gg38wUMqKmFaMyzvlqce/nwedWMalNEtfgnc83t/AyCJr6PS8V2ZUXg=="],
+    "@copilotkit/aimock": ["@copilotkit/aimock@1.22.0", "", { "bin": { "aimock": "dist/aimock-cli.js", "llmock": "dist/cli.js" } }, ""],
 
     "@copilotkit/react-core": ["@copilotkit/react-core@1.54.0", "", { "dependencies": { "@ag-ui/client": "^0.0.47", "@copilotkit/runtime-client-gql": "1.54.0", "@copilotkit/shared": "1.54.0", "@copilotkitnext/core": "1.54.0", "@copilotkitnext/react": "1.54.0", "@scarf/scarf": "^1.3.0", "react-markdown": "^8.0.7", "untruncate-json": "^0.0.1" }, "peerDependencies": { "react": "^18 || ^19 || ^19.0.0-rc", "react-dom": "^18 || ^19 || ^19.0.0-rc", "zod": ">=3.0.0" } }, "sha512-rivNaXth1H2wGZdVWs0fnQSCiTVQm23QBjpxSU0oSc0agsZO3IRJglMQjb7eMGRw8O4Kxd4+Uh32s6EIpb11sg=="],
 

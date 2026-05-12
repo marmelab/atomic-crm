@@ -1,4 +1,4 @@
-import { LLMock } from "@copilotkit/llmock";
+import { LLMock } from "@copilotkit/aimock";
 import path from "node:path";
 
 const FIXTURES_DIR = path.join(__dirname, "fixtures");

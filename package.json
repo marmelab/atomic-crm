@@ -100,7 +100,7 @@
     "zod": "^4.1.12"
   },
   "devDependencies": {
-    "@copilotkit/llmock": "^1.4.0",
+    "@copilotkit/aimock": "^1.22.0",
     "@eslint/js": "^9.22.0",
     "@inquirer/prompts": "^8.2.0",
     "@storybook/react-vite": "^9.1.19",
