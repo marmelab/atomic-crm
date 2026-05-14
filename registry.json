@@ -182,6 +182,10 @@
           "type": "registry:component"
         },
         {
+          "path": "src/components/atomic-crm/root/usePreferencesLoader.ts",
+          "type": "registry:component"
+        },
+        {
           "path": "src/components/atomic-crm/root/useConfigurationLoader.ts",
           "type": "registry:component"
         },
