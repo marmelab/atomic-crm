@@ -9,6 +9,12 @@ import {
 import type { FocusEvent, ClipboardEventHandler } from "react";
 import { useFormContext } from "react-hook-form";
 import { Separator } from "@/components/ui/separator";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { BooleanInput } from "@/components/admin/boolean-input";
 import { ReferenceInput } from "@/components/admin/reference-input";
@@ -31,6 +37,7 @@ import {
 
 export const ContactInputs = () => {
   const isMobile = useIsMobile();
+  const translate = useTranslate();
 
   return (
     <div className="flex flex-col gap-2 p-1 relative md:static">
@@ -50,6 +57,48 @@ export const ContactInputs = () => {
           <ContactMiscInputs />
         </div>
       </div>
+      <Accordion type="single" collapsible className="w-full">
+        <AccordionItem value="eswatini-identifiers">
+          <AccordionTrigger className="text-lg font-semibold py-2">
+            {translate(
+              "resources.contacts.field_categories.eswatini_identifiers",
+              { _: "Eswatini Identifiers" },
+            )}
+          </AccordionTrigger>
+          <AccordionContent>
+            <ContactEswatiniInputs />
+          </AccordionContent>
+        </AccordionItem>
+      </Accordion>
+    </div>
+  );
+};
+
+const ContactEswatiniInputs = () => {
+  const translate = useTranslate();
+  return (
+    <div className="flex flex-col gap-4 pt-2">
+      <TextInput
+        source="tin"
+        label={translate("resources.contacts.fields.tin", {
+          _: "TIN (Tax Identification Number)",
+        })}
+        helperText={false}
+      />
+      <TextInput
+        source="national_id_number"
+        label={translate("resources.contacts.fields.national_id_number", {
+          _: "National ID Number",
+        })}
+        helperText={false}
+      />
+      <TextInput
+        source="role_at_company"
+        label={translate("resources.contacts.fields.role_at_company", {
+          _: "Role at Company",
+        })}
+        helperText={false}
+      />
     </div>
   );
 };

@@ -123,6 +123,11 @@ export const mergeContacts = async (
       phone_jsonb: mergedPhones,
       linkedin_url: winnerContact.linkedin_url || loserContact.linkedin_url,
       background: winnerContact.background ?? loserContact.background,
+      tin: winnerContact.tin ?? loserContact.tin,
+      national_id_number:
+        winnerContact.national_id_number ?? loserContact.national_id_number,
+      role_at_company:
+        winnerContact.role_at_company ?? loserContact.role_at_company,
       has_newsletter:
         winnerContact.has_newsletter ?? loserContact.has_newsletter,
       first_seen: winnerContact.first_seen ?? loserContact.first_seen,

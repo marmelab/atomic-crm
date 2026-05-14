@@ -1,63 +1,152 @@
-# Atomic CRM
+# Practice-CRM
 
-A full-featured CRM built with React, shadcn-admin-kit, and Supabase.
+**Owner:** Eswatini Consulting  
+**Purpose:** A CRM and tax-compliance manager for a consulting practice based in the Kingdom of Eswatini. Manage clients, track ERS (Eswatini Revenue Service) filing deadlines on a per-company Compliance Calendar, and log billable time with draft invoice generation.
 
-<https://github.com/user-attachments/assets/0d7554b5-49ef-41c6-bcc9-a76214fc5c99>
-
-Atomic CRM is free and open-source. You can test it online at <https://marmelab.com/atomic-crm-demo>.
+Built on [Atomic CRM](https://github.com/marmelab/atomic-crm) — React + shadcn-admin-kit + Supabase.
 
 ## Features
 
-- 📇 **Organize Contacts**: Keep all your contacts in one easily accessible place.
-- ⏰ **Create Tasks & Set Reminders**: Never miss a follow-up or deadline.
-- 📝 **Take Notes**: Capture important details and insights effortlessly.
-- ✉️ **Capture Emails**: CC Atomic CRM to automatically save communications as notes.
-- 📊 **Manage Deals**: Visualize and track your sales pipeline in a Kanban board.
-- 🔄 **Import & Export Data**: Easily transfer contacts in and out of the system.
-- 🔐 **Control Access**: Log in with Google, Azure, Keycloak, and Auth0.
-- 📜 **Track Activity History**: View all interactions in aggregated activity logs.
-- 🔗 **Integrate via API**: Connect seamlessly with other systems using our API.
-- 🛠️ **Customize Everything**: Add custom fields, change the theme, and replace any component to fit your needs.
+- 📇 **Manage Clients**: Contacts and companies with Eswatini-specific fields (TIN, registration number, entity type, VAT/PAYE/SDL flags).
+- 📅 **Compliance Calendar**: Auto-generate annual ERS filing schedules per company. Calendar, Kanban, and list views.
+- ⏱️ **Time Billing**: Log billable hours, generate draft invoices with 15% VAT in SZL (Emalangeni).
+- 📝 **Notes & Tasks**: Capture important details and set follow-up reminders.
+- 📊 **Deals Pipeline**: Track engagements and proposals in a Kanban board.
+- 🔄 **Import & Export**: Transfer contacts in and out via CSV.
+
+## Eswatini Domain Notes
+
+- **Currency:** SZL (Emalangeni) — displayed as `E5,000.00`. Pegged 1:1 with ZAR.
+- **Tax year:** 1 July – 30 June (default). Companies may have different year-ends.
+- **Tax authority:** ERS (Eswatini Revenue Service) — [ers.org.sz](https://www.ers.org.sz)
+- **TIN:** Single Tax Identification Number covering VAT, PAYE, Income Tax, and Provisional Tax.
+- **Locale:** en-SZ, timezone Africa/Mbabane (SAST, UTC+2), date format DD/MM/YYYY.
 
 ## Installation
 
-To run this project locally, you will need the following tools installed on your computer:
+Requirements: **Make**, **Node 22 LTS**, **Docker** (for local Supabase).
 
-- Make
-- Node 22 LTS
-- Docker (required by Supabase)
-
-Fork the [`marmelab/atomic-crm`](https://github.com/marmelab/atomic-crm) repository to your user/organization, then clone it locally:
+Clone this repository:
 
 ```sh
-git clone https://github.com/[username]/atomic-crm.git
+git clone https://github.com/[username]/eswatini-crm.git
+cd eswatini-crm
 ```
 
 Install dependencies:
 
 ```sh
-cd atomic-crm
 make install
 ```
 
-This will install the dependencies for the frontend and the backend, including a local Supabase instance.
+This installs frontend dependencies and starts a local Supabase instance.
 
-Once your app is configured, start the app locally with the following command:
+Start the app:
 
 ```sh
 make start
 ```
 
-This will start the Vite dev server for the frontend, the local Supabase instance for the API, and a Postgres database (thanks to Docker).
+Access the app at [http://localhost:5173/](http://localhost:5173/). You will be prompted to create the first user account.
 
-You can then access the app via [http://localhost:5173/](http://localhost:5173/). You will be prompted to create the first user.
-
-If you need debug the backend, you can access the following services:
+Local development services:
 
 - Supabase dashboard: [http://localhost:54323/](http://localhost:54323/)
 - REST API: [http://127.0.0.1:54321](http://127.0.0.1:54321)
 - Attachments storage: [http://localhost:54323/project/default/storage/buckets/attachments](http://localhost:54323/project/default/storage/buckets/attachments)
-- Inbucket email testing service: [http://localhost:54324/](http://localhost:54324/)
+- Inbucket email testing: [http://localhost:54324/](http://localhost:54324/)
+
+## Production Deployment
+
+This guide deploys Practice-CRM to **Vercel** (frontend) + **Supabase** (database, auth, storage).
+
+> **Why eu-west-1 (Ireland)?** Supabase has no Africa region as of 2025. Ireland (eu-west-1) is the closest region with reasonable latency to Eswatini and satisfies most data-residency considerations for a small practice.
+
+---
+
+### Step 1 — Create a production Supabase project
+
+1. Go to [supabase.com](https://supabase.com) → **New project**.
+2. Choose your organisation.
+3. **Project name:** `practice-crm` (or similar).
+4. **Database password:** generate a strong one and save it in a password manager.
+5. **Region:** `West EU (Ireland)` — `eu-west-1`.
+6. Click **Create new project** and wait for provisioning (~2 minutes).
+
+---
+
+### Step 2 — Apply database migrations
+
+Once the project is provisioned, run the following from your project directory (you need [Supabase CLI](https://supabase.com/docs/guides/cli) installed):
+
+```sh
+# Link your local project to the remote Supabase project
+npx supabase link --project-ref YOUR_PROJECT_REF
+
+# Push all migrations (creates tables, views, triggers, and Eswatini fields)
+npx supabase db push
+```
+
+`YOUR_PROJECT_REF` is the string in your Supabase project URL: `https://YOUR_PROJECT_REF.supabase.co`.
+
+---
+
+### Step 3 — Set environment variables
+
+Create a `.env.production` file in the project root (this file is git-ignored):
+
+```
+VITE_SUPABASE_URL=https://YOUR_PROJECT_REF.supabase.co
+VITE_SUPABASE_ANON_KEY=your-anon-key-from-supabase-dashboard
+```
+
+Find these values in your Supabase dashboard → **Project Settings → API**.
+
+- `VITE_SUPABASE_URL` — the project URL shown under "Project URL".
+- `VITE_SUPABASE_ANON_KEY` — the `anon` / `public` key shown under "Project API keys".
+
+> **Do not commit `.env.production`** — it contains your API key.
+
+---
+
+### Step 4 — Create the first user
+
+In Supabase dashboard → **Authentication → Users → Add user** → create your admin email + password.
+
+This becomes the login for the app. You can add up to 2 more users the same way (1–3 user practice tool).
+
+---
+
+### Step 5 — Deploy to Vercel
+
+1. Push your code to GitHub (create a private repo if you haven't already).
+2. Go to [vercel.com](https://vercel.com) → **Add New Project** → import your GitHub repo.
+3. **Framework preset:** Vite (auto-detected).
+4. Under **Environment Variables**, add:
+   - `VITE_SUPABASE_URL` = `https://YOUR_PROJECT_REF.supabase.co`
+   - `VITE_SUPABASE_ANON_KEY` = your anon key
+5. Click **Deploy**.
+
+Vercel will build and publish the app. You get a URL like `https://practice-crm-xxxx.vercel.app`.
+
+---
+
+### Step 6 — Configure Supabase Auth redirect URL
+
+In Supabase dashboard → **Authentication → URL Configuration**:
+
+- **Site URL:** `https://your-vercel-url.vercel.app`
+- **Redirect URLs:** add `https://your-vercel-url.vercel.app/**`
+
+This allows Supabase Auth magic-link and password-reset emails to redirect to your live app.
+
+---
+
+### Step 7 — Verify the deployment
+
+Open your Vercel URL → log in → create one company → generate a compliance schedule → confirm filings appear. That's the smoke test.
+
+---
 
 ## Documentation
 

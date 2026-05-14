@@ -47,6 +47,8 @@ export const CompanyAside = ({ link = "edit" }: CompanyAsideProps) => {
 
       <AdditionalInfo record={record} />
 
+      <EswatiniComplianceInfo record={record} />
+
       {link !== "edit" && (
         <div className="mt-6 pt-6 border-t hidden sm:flex flex-col gap-2 items-start">
           <DeleteButton
@@ -172,6 +174,145 @@ export const AddressInfo = ({ record }: { record: Company }) => {
       <TextField source="zipcode" />
       <TextField source="state_abbr" />
       <TextField source="country" />
+    </AsideSection>
+  );
+};
+
+const MONTH_NAMES = [
+  "January",
+  "February",
+  "March",
+  "April",
+  "May",
+  "June",
+  "July",
+  "August",
+  "September",
+  "October",
+  "November",
+  "December",
+];
+
+const ENTITY_TYPE_LABELS: Record<string, string> = {
+  PTY_LTD: "Private Company (Pty) Ltd",
+  PUBLIC_CO: "Public Company",
+  SOLE_PROP: "Sole Proprietorship",
+  PARTNERSHIP: "Partnership",
+  TRUST: "Trust",
+  NGO: "NGO / Non-Profit",
+  OTHER: "Other",
+};
+
+export const EswatiniComplianceInfo = ({ record }: { record: Company }) => {
+  const translate = useTranslate();
+  const hasData =
+    record.tin ||
+    record.registration_number ||
+    record.entity_type ||
+    record.vat_registered ||
+    record.paye_registered ||
+    record.sdl_registered ||
+    record.provisional_tax_registered ||
+    record.trading_license_number ||
+    record.trading_license_expiry ||
+    record.tax_clearance_certificate_expiry ||
+    (record.employees_count != null && record.employees_count > 0);
+  if (!hasData) return null;
+
+  return (
+    <AsideSection
+      title={translate(
+        "resources.companies.field_categories.eswatini_compliance",
+        { _: "Eswatini Compliance" },
+      )}
+    >
+      {record.tin && (
+        <span>
+          {translate("resources.companies.fields.tin", { _: "TIN" })}:{" "}
+          {record.tin}
+        </span>
+      )}
+      {record.registration_number && (
+        <span>
+          {translate("resources.companies.fields.registration_number", {
+            _: "Reg. No.",
+          })}
+          : {record.registration_number}
+        </span>
+      )}
+      {record.entity_type && (
+        <span>
+          {translate("resources.companies.fields.entity_type", {
+            _: "Entity Type",
+          })}
+          : {ENTITY_TYPE_LABELS[record.entity_type] ?? record.entity_type}
+        </span>
+      )}
+      {record.financial_year_end_month != null && (
+        <span>
+          {translate("resources.companies.fields.financial_year_end_month", {
+            _: "FY-End",
+          })}
+          : {MONTH_NAMES[(record.financial_year_end_month ?? 6) - 1]}
+        </span>
+      )}
+      {record.employees_count != null && record.employees_count > 0 && (
+        <span>
+          {translate("resources.companies.fields.employees_count", {
+            _: "Employees",
+          })}
+          : {record.employees_count}
+        </span>
+      )}
+      {record.vat_registered && (
+        <span>
+          {translate("resources.companies.fields.vat_registered", {
+            _: "VAT Registered",
+          })}
+          {record.vat_filing_frequency &&
+            ` (${record.vat_filing_frequency.toLowerCase()})`}
+        </span>
+      )}
+      {record.paye_registered && (
+        <span>
+          {translate("resources.companies.fields.paye_registered", {
+            _: "PAYE Registered",
+          })}
+        </span>
+      )}
+      {record.sdl_registered && (
+        <span>
+          {translate("resources.companies.fields.sdl_registered", {
+            _: "SDL Registered",
+          })}
+        </span>
+      )}
+      {record.provisional_tax_registered && (
+        <span>
+          {translate("resources.companies.fields.provisional_tax_registered", {
+            _: "Provisional Tax",
+          })}
+        </span>
+      )}
+      {record.trading_license_number && (
+        <span>
+          {translate("resources.companies.fields.trading_license_number", {
+            _: "Trading Lic.",
+          })}
+          : {record.trading_license_number}
+          {record.trading_license_expiry &&
+            ` (exp. ${record.trading_license_expiry})`}
+        </span>
+      )}
+      {record.tax_clearance_certificate_expiry && (
+        <span>
+          {translate(
+            "resources.companies.fields.tax_clearance_certificate_expiry",
+            { _: "Tax Clearance Exp." },
+          )}
+          : {record.tax_clearance_certificate_expiry}
+        </span>
+      )}
     </AsideSection>
   );
 };

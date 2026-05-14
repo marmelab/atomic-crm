@@ -46,7 +46,19 @@ export type Sale = {
    * @deprecated
    */
   password?: string;
+  default_hourly_rate_szl?: number | null;
 } & Pick<RaRecord, "id">;
+
+export type EswatiniEntityType =
+  | "PTY_LTD"
+  | "PUBLIC_CO"
+  | "SOLE_PROP"
+  | "PARTNERSHIP"
+  | "TRUST"
+  | "NGO"
+  | "OTHER";
+
+export type VatFilingFrequency = "MONTHLY" | "BIMONTHLY" | "QUARTERLY";
 
 export type Company = {
   name: string;
@@ -69,6 +81,90 @@ export type Company = {
   context_links?: string[];
   nb_contacts?: number;
   nb_deals?: number;
+  // Eswatini compliance fields
+  tin?: string | null;
+  registration_number?: string | null;
+  entity_type?: EswatiniEntityType | null;
+  vat_registered: boolean;
+  vat_filing_frequency?: VatFilingFrequency | null;
+  paye_registered: boolean;
+  sdl_registered: boolean;
+  provisional_tax_registered: boolean;
+  employees_count: number;
+  financial_year_end_month: number;
+  trading_license_number?: string | null;
+  trading_license_expiry?: string | null;
+  tax_clearance_certificate_expiry?: string | null;
+} & Pick<RaRecord, "id">;
+
+export type FilingType =
+  | "VAT_RETURN"
+  | "PAYE_RETURN"
+  | "PROV_TAX_FIRST"
+  | "PROV_TAX_SECOND"
+  | "PROV_TAX_TOPUP"
+  | "INCOME_TAX_COMPANY"
+  | "INCOME_TAX_INDIVIDUAL"
+  | "WORKMENS_COMP"
+  | "TRADING_LICENSE_RENEWAL"
+  | "TAX_CLEARANCE_RENEWAL"
+  | "WHT_NON_RESIDENT"
+  | "AFS"
+  | "INDEPENDENT_REVIEW"
+  | "GRADED_TAX";
+
+export type FilingStatus = "UPCOMING" | "IN_PROGRESS" | "SUBMITTED" | "OVERDUE";
+
+export type ComplianceFiling = {
+  company_id: Identifier;
+  filing_type: FilingType;
+  period_covered: string;
+  due_date: string;
+  submitted_date?: string | null;
+  status: FilingStatus;
+  assigned_to?: Identifier | null;
+  notes?: string | null;
+  created_at: string;
+  updated_at: string;
+} & Pick<RaRecord, "id">;
+
+export type ServiceLine =
+  | "TAX"
+  | "AFS"
+  | "PAYROLL"
+  | "BOOKKEEPING"
+  | "ADVISORY"
+  | "COMPLIANCE"
+  | "OTHER";
+
+export type InvoiceStatus = "DRAFT" | "SENT" | "PAID" | "CANCELLED";
+
+export type TimeEntry = {
+  company_id: Identifier;
+  contact_id?: Identifier | null;
+  entry_date: string;
+  hours: number;
+  billable: boolean;
+  hourly_rate_szl: number;
+  service_line: ServiceLine;
+  description: string;
+  linked_filing_id?: Identifier | null;
+  invoice_id?: Identifier | null;
+  created_at: string;
+} & Pick<RaRecord, "id">;
+
+export type Invoice = {
+  invoice_number: string;
+  company_id: Identifier;
+  period_start: string;
+  period_end: string;
+  subtotal_szl: number;
+  vat_szl: number;
+  total_szl: number;
+  status: InvoiceStatus;
+  notes?: string | null;
+  created_at: string;
+  updated_at: string;
 } & Pick<RaRecord, "id">;
 
 export type EmailAndType = {
@@ -100,6 +196,10 @@ export type Contact = {
   phone_jsonb: PhoneNumberAndType[];
   nb_tasks?: number;
   company_name?: string;
+  // Eswatini identifier fields
+  tin?: string | null;
+  national_id_number?: string | null;
+  role_at_company?: string | null;
 } & Pick<RaRecord, "id">;
 
 export type ContactNote = {

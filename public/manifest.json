@@ -1,6 +1,6 @@
 {
-  "short_name": "Atomic CRM",
-  "name": "Atomic CRM",
+  "short_name": "Practice-CRM",
+  "name": "Practice-CRM",
   "icons": [
     {
       "src": "favicon.ico",
@@ -69,6 +69,6 @@
   "start_url": ".",
   "display": "standalone",
   "orientation": "portrait",
-  "theme_color": "#000000",
+  "theme_color": "#0F172A",
   "background_color": "#ffffff"
 }

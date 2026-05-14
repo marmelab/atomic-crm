@@ -48,6 +48,20 @@ export const generateCompanies = (db: Db, size = 55): Required<Company>[] => {
       tax_identifier: random.alphaNumeric(10),
       country: random.arrayElement(["USA", "France", "UK"]),
       context_links: [],
+      // Eswatini compliance defaults for demo data
+      tin: null,
+      registration_number: null,
+      entity_type: null,
+      vat_registered: false,
+      vat_filing_frequency: null,
+      paye_registered: false,
+      sdl_registered: false,
+      provisional_tax_registered: true,
+      employees_count: 0,
+      financial_year_end_month: 6,
+      trading_license_number: null,
+      trading_license_expiry: null,
+      tax_clearance_certificate_expiry: null,
     };
   });
 };

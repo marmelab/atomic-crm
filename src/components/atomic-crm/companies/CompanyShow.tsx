@@ -7,6 +7,7 @@ import { UserPlus } from "lucide-react";
 import {
   RecordContextProvider,
   ShowBase,
+  useGetList,
   useListContext,
   useLocaleState,
   useRecordContext,
@@ -32,7 +33,11 @@ import { MobileBackButton } from "../misc/MobileBackButton";
 import { formatRelativeDate } from "../misc/RelativeDate";
 import { Status } from "../misc/Status";
 import { useConfigurationContext } from "../root/ConfigurationContext";
-import type { Company, Contact, Deal } from "../types";
+import type { Company, ComplianceFiling, Contact, Deal } from "../types";
+import { ComplianceStatusBadge } from "../compliance/ComplianceStatusBadge";
+import { FILING_TYPE_LABELS } from "../compliance/filingTypes";
+import { GenerateScheduleButton } from "../compliance/GenerateScheduleButton";
+import { GenerateInvoiceButton } from "../time-billing/GenerateInvoiceButton";
 import {
   AdditionalInfo,
   AddressInfo,
@@ -118,7 +123,7 @@ const CompanyShowContent = () => {
               <h5 className="text-xl ml-2 flex-1">{record.name}</h5>
             </div>
             <Tabs defaultValue={currentTab} onValueChange={handleTabChange}>
-              <TabsList className="grid w-full grid-cols-3">
+              <TabsList className="w-full">
                 <TabsTrigger value="activity">
                   {translate("crm.common.activity")}
                 </TabsTrigger>
@@ -136,6 +141,9 @@ const CompanyShowContent = () => {
                     })}
                   </TabsTrigger>
                 ) : null}
+                <TabsTrigger value="filings">
+                  {translate("crm.compliance.tab_filings", { _: "Filings" })}
+                </TabsTrigger>
               </TabsList>
               <TabsContent value="activity" className="pt-2">
                 <ActivityLog companyId={record.id} context="company" />
@@ -177,6 +185,9 @@ const CompanyShowContent = () => {
                     <DealsIterator />
                   </ReferenceManyField>
                 ) : null}
+              </TabsContent>
+              <TabsContent value="filings" className="pt-2">
+                <CompanyFilingsTab />
               </TabsContent>
             </Tabs>
           </CardContent>
@@ -255,6 +266,66 @@ const CreateRelatedContactButton = () => {
         {translate("resources.contacts.action.add")}
       </RouterLink>
     </Button>
+  );
+};
+
+const CompanyFilingsTab = () => {
+  const company = useRecordContext<Company>();
+  const { data: filings = [], isPending } = useGetList<ComplianceFiling>(
+    "compliance_filings",
+    {
+      filter: { company_id: company?.id },
+      sort: { field: "due_date", order: "ASC" },
+      pagination: { page: 1, perPage: 1000 },
+    },
+    { enabled: !!company?.id },
+  );
+
+  if (!company) return null;
+
+  return (
+    <div className="flex flex-col gap-3 pt-1">
+      <div className="flex justify-end gap-2">
+        <GenerateInvoiceButton />
+        <GenerateScheduleButton />
+      </div>
+      {!isPending && filings.length === 0 ? (
+        <p className="text-sm text-muted-foreground py-4 text-center">
+          No filings yet. Generate a schedule to get started.
+        </p>
+      ) : (
+        <div className="overflow-x-auto rounded-md border">
+          <table className="w-full text-sm">
+            <thead className="bg-muted/50">
+              <tr>
+                <th className="text-left p-2 font-medium">Due Date</th>
+                <th className="text-left p-2 font-medium">Filing</th>
+                <th className="text-left p-2 font-medium">Period</th>
+                <th className="text-left p-2 font-medium">Status</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y">
+              {filings.map((f) => (
+                <tr key={f.id} className="hover:bg-muted/30 transition-colors">
+                  <td className="p-2 whitespace-nowrap text-xs">
+                    {new Date(f.due_date).toLocaleDateString("en-GB")}
+                  </td>
+                  <td className="p-2 text-xs">
+                    {FILING_TYPE_LABELS[f.filing_type]}
+                  </td>
+                  <td className="p-2 text-xs text-muted-foreground">
+                    {f.period_covered}
+                  </td>
+                  <td className="p-2">
+                    <ComplianceStatusBadge status={f.status} />
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </div>
   );
 };
 

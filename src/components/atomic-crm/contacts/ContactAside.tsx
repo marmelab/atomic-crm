@@ -12,6 +12,44 @@ import { ContactPersonalInfo } from "./ContactPersonalInfo";
 import { ContactBackgroundInfo } from "./ContactBackgroundInfo";
 import { AsideSection } from "../misc/AsideSection";
 import type { Contact } from "../types";
+
+const ContactEswatiniInfo = ({ record }: { record: Contact }) => {
+  const translate = useTranslate();
+  if (!record.tin && !record.national_id_number && !record.role_at_company) {
+    return null;
+  }
+  return (
+    <AsideSection
+      title={translate(
+        "resources.contacts.field_categories.eswatini_identifiers",
+        { _: "Eswatini Identifiers" },
+      )}
+    >
+      {record.tin && (
+        <span>
+          {translate("resources.contacts.fields.tin", { _: "TIN" })}:{" "}
+          {record.tin}
+        </span>
+      )}
+      {record.national_id_number && (
+        <span>
+          {translate("resources.contacts.fields.national_id_number", {
+            _: "National ID",
+          })}
+          : {record.national_id_number}
+        </span>
+      )}
+      {record.role_at_company && (
+        <span>
+          {translate("resources.contacts.fields.role_at_company", {
+            _: "Role",
+          })}
+          : {record.role_at_company}
+        </span>
+      )}
+    </AsideSection>
+  );
+};
 import { ContactMergeButton } from "./ContactMergeButton";
 import { ExportVCardButton } from "./ExportVCardButton";
 
@@ -46,6 +84,8 @@ export const ContactAside = ({ link = "edit" }: { link?: "edit" | "show" }) => {
       >
         <ContactBackgroundInfo />
       </AsideSection>
+
+      <ContactEswatiniInfo record={record} />
 
       <AsideSection
         title={translate("resources.tags.name", { smart_count: 2 })}

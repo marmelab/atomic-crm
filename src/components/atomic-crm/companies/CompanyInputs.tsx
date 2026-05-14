@@ -4,7 +4,16 @@ import { TextInput } from "@/components/admin/text-input";
 import { SelectInput } from "@/components/admin/select-input";
 import { ArrayInput } from "@/components/admin/array-input";
 import { SimpleFormIterator } from "@/components/admin/simple-form-iterator";
+import { BooleanInput } from "@/components/admin/boolean-input";
+import { DateInput } from "@/components/admin/date-input";
+import { NumberInput } from "@/components/admin/number-input";
 import { Separator } from "@/components/ui/separator";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 import { useIsMobile } from "@/hooks/use-mobile";
 
 import ImageEditorField from "../misc/ImageEditorField";
@@ -29,6 +38,7 @@ const isUrl = (url: string) => {
 
 export const CompanyInputs = () => {
   const isMobile = useIsMobile();
+  const translate = useTranslate();
 
   return (
     <div className="flex flex-col gap-4 p-1">
@@ -44,6 +54,19 @@ export const CompanyInputs = () => {
           <CompanyAdditionalInformationInputs />
         </div>
       </div>
+      <Accordion type="single" collapsible className="w-full">
+        <AccordionItem value="eswatini-compliance">
+          <AccordionTrigger className="text-lg font-semibold py-2">
+            {translate(
+              "resources.companies.field_categories.eswatini_compliance",
+              { _: "Eswatini Compliance" },
+            )}
+          </AccordionTrigger>
+          <AccordionContent>
+            <CompanyEswatiniInputs />
+          </AccordionContent>
+        </AccordionItem>
+      </Accordion>
     </div>
   );
 };
@@ -175,3 +198,167 @@ const CompanyAdditionalInformationInputs = () => {
 
 const saleOptionRenderer = (choice: Sale) =>
   `${choice.first_name} ${choice.last_name}`;
+
+const ENTITY_TYPE_CHOICES = [
+  { id: "PTY_LTD", name: "Private Company (Pty) Ltd" },
+  { id: "PUBLIC_CO", name: "Public Company" },
+  { id: "SOLE_PROP", name: "Sole Proprietorship" },
+  { id: "PARTNERSHIP", name: "Partnership" },
+  { id: "TRUST", name: "Trust" },
+  { id: "NGO", name: "NGO / Non-Profit" },
+  { id: "OTHER", name: "Other" },
+];
+
+const VAT_FREQUENCY_CHOICES = [
+  { id: "MONTHLY", name: "Monthly" },
+  { id: "BIMONTHLY", name: "Bi-monthly" },
+  { id: "QUARTERLY", name: "Quarterly" },
+];
+
+const MONTH_CHOICES = [
+  { id: 1, name: "January" },
+  { id: 2, name: "February" },
+  { id: 3, name: "March" },
+  { id: 4, name: "April" },
+  { id: 5, name: "May" },
+  { id: 6, name: "June" },
+  { id: 7, name: "July" },
+  { id: 8, name: "August" },
+  { id: 9, name: "September" },
+  { id: 10, name: "October" },
+  { id: 11, name: "November" },
+  { id: 12, name: "December" },
+];
+
+const CompanyEswatiniInputs = () => {
+  const translate = useTranslate();
+  return (
+    <div className="flex flex-col gap-6 pt-2">
+      <div className="flex flex-col gap-4">
+        <h6 className="text-base font-semibold text-muted-foreground">
+          {translate("resources.companies.fields.entity_type", {
+            _: "Registration",
+          })}
+        </h6>
+        <TextInput
+          source="tin"
+          label={translate("resources.companies.fields.tin", {
+            _: "TIN (Tax Identification Number)",
+          })}
+          helperText={false}
+        />
+        <TextInput
+          source="registration_number"
+          label={translate("resources.companies.fields.registration_number", {
+            _: "Registration Number (CoI No.)",
+          })}
+          helperText={false}
+        />
+        <SelectInput
+          source="entity_type"
+          label={translate("resources.companies.fields.entity_type", {
+            _: "Entity Type",
+          })}
+          choices={ENTITY_TYPE_CHOICES}
+          helperText={false}
+        />
+        <SelectInput
+          source="financial_year_end_month"
+          label={translate(
+            "resources.companies.fields.financial_year_end_month",
+            { _: "Financial Year-End Month" },
+          )}
+          choices={MONTH_CHOICES}
+          defaultValue={6}
+          helperText={false}
+        />
+        <NumberInput
+          source="employees_count"
+          label={translate("resources.companies.fields.employees_count", {
+            _: "Number of Employees",
+          })}
+          defaultValue={0}
+          min={0}
+          helperText={false}
+        />
+      </div>
+
+      <div className="flex flex-col gap-4">
+        <h6 className="text-base font-semibold text-muted-foreground">
+          Tax Registrations
+        </h6>
+        <BooleanInput
+          source="vat_registered"
+          label={translate("resources.companies.fields.vat_registered", {
+            _: "VAT Registered",
+          })}
+          helperText={false}
+        />
+        <SelectInput
+          source="vat_filing_frequency"
+          label={translate("resources.companies.fields.vat_filing_frequency", {
+            _: "VAT Filing Frequency",
+          })}
+          choices={VAT_FREQUENCY_CHOICES}
+          helperText={false}
+        />
+        <BooleanInput
+          source="paye_registered"
+          label={translate("resources.companies.fields.paye_registered", {
+            _: "PAYE Registered",
+          })}
+          helperText={false}
+        />
+        <BooleanInput
+          source="sdl_registered"
+          label={translate("resources.companies.fields.sdl_registered", {
+            _: "SDL Registered",
+          })}
+          helperText={false}
+        />
+        <BooleanInput
+          source="provisional_tax_registered"
+          label={translate(
+            "resources.companies.fields.provisional_tax_registered",
+            { _: "Provisional Tax Registered" },
+          )}
+          helperText={false}
+        />
+      </div>
+
+      <div className="flex flex-col gap-4">
+        <h6 className="text-base font-semibold text-muted-foreground">
+          Licences &amp; Certificates
+        </h6>
+        <TextInput
+          source="trading_license_number"
+          label={translate(
+            "resources.companies.fields.trading_license_number",
+            {
+              _: "Trading License Number",
+            },
+          )}
+          helperText={false}
+        />
+        <DateInput
+          source="trading_license_expiry"
+          label={translate(
+            "resources.companies.fields.trading_license_expiry",
+            {
+              _: "Trading License Expiry",
+            },
+          )}
+          helperText={false}
+        />
+        <DateInput
+          source="tax_clearance_certificate_expiry"
+          label={translate(
+            "resources.companies.fields.tax_clearance_certificate_expiry",
+            { _: "Tax Clearance Certificate Expiry" },
+          )}
+          helperText={false}
+        />
+      </div>
+    </div>
+  );
+};

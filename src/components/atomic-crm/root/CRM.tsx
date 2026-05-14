@@ -16,6 +16,8 @@ import { SetPasswordPage } from "@/components/supabase/set-password-page";
 import { OAuthConsentPage } from "@/components/supabase/oauth-consent-page";
 
 import companies from "../companies";
+import { CompliancePage } from "../compliance/CompliancePage";
+import { TimePage } from "../time-billing/TimePage";
 import contacts from "../contacts";
 import { Dashboard } from "../dashboard/Dashboard";
 import { MobileDashboard } from "../dashboard/MobileDashboard";
@@ -264,6 +266,8 @@ const DesktopAdmin = (
         <Route path={SettingsPage.path} element={<SettingsPage />} />
         <Route path={ImportPage.path} element={<ImportPage />} />
         <Route path={ChangelogPage.path} element={<ChangelogPage />} />
+        <Route path="/compliance" element={<CompliancePage />} />
+        <Route path="/time" element={<TimePage />} />
       </CustomRoutes>
       <Resource name="deals" {...deals} />
       <Resource name="contacts" {...contacts} />
@@ -273,6 +277,9 @@ const DesktopAdmin = (
       <Resource name="tasks" />
       <Resource name="sales" {...sales} />
       <Resource name="tags" />
+      <Resource name="compliance_filings" />
+      <Resource name="time_entries" />
+      <Resource name="invoices" />
     </Admin>
   );
 };

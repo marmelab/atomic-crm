@@ -1,6 +1,7 @@
 {
-  "name": "atomic-crm",
+  "name": "practice-crm",
   "version": "0.1.0",
+  "description": "CRM and tax-compliance manager for Eswatini Consulting — Eswatini consulting practice",
   "type": "module",
   "scripts": {
     "test:unit:app": "vitest --config vitest.config.ts",

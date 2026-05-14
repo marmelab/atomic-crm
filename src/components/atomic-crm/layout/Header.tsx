@@ -24,6 +24,10 @@ const Header = () => {
     currentPath = "/companies";
   } else if (matchPath("/deals/*", location.pathname)) {
     currentPath = "/deals";
+  } else if (matchPath("/compliance/*", location.pathname)) {
+    currentPath = "/compliance";
+  } else if (matchPath("/time/*", location.pathname)) {
+    currentPath = "/time";
   } else {
     currentPath = false;
   }
@@ -77,6 +81,18 @@ const Header = () => {
                     })}
                     to="/deals"
                     isActive={currentPath === "/deals"}
+                  />
+                  <NavigationTab
+                    label={translate("resources.compliance_filings.name", {
+                      smart_count: 2,
+                    })}
+                    to="/compliance"
+                    isActive={currentPath === "/compliance"}
+                  />
+                  <NavigationTab
+                    label="Time"
+                    to="/time"
+                    isActive={currentPath === "/time"}
                   />
                 </nav>
               </div>

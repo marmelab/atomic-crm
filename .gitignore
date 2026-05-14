@@ -41,6 +41,14 @@ public/r/
 
 !supabase/functions/.env
 .claude/settings.local.json
+.claude/scheduled_tasks.lock
+
+# Local Supabase dev env (contains local keys — not for production)
+supabase/.env.development
+
+# AI planning files
+docs/superpowers/
+.husky/Docs
 
 # Playwright
 node_modules/
