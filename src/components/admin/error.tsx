@@ -42,24 +42,18 @@ export const Error = (props: InternalErrorProps & {}) => {
       <div>
         <Translate i18nKey="ra.message.error" />
       </div>
-      {
+      {process.env.NODE_ENV !== "production" && (
         <>
-          <div className="mt-1 p-3 bg-destructive/10 border border-destructive/30 rounded w-full lg:w-150">
-            <p className="font-mono text-sm font-semibold text-destructive break-all">
-              {errorMessage}
-            </p>
-          </div>
           <Accordion
             type="multiple"
-            defaultValue={["error"]}
             className="mt-1 p-2 bg-secondary w-full lg:w-150"
           >
             <AccordionItem value="error">
               <AccordionTrigger className="py-2">
-                Component stack (click to collapse)
+                <Translate i18nKey={errorMessage}>{errorMessage}</Translate>
               </AccordionTrigger>
               <AccordionContent className="whitespace-pre-wrap pt-1">
-                <pre className="text-xs">{errorInfo?.componentStack}</pre>
+                <pre className="text-xls">{errorInfo?.componentStack}</pre>
               </AccordionContent>
             </AccordionItem>
           </Accordion>
@@ -100,7 +94,7 @@ export const Error = (props: InternalErrorProps & {}) => {
             </ul>
           </div>
         </>
-      }
+      )}
       <div className="mt-8">
         <Button onClick={goBack}>
           <History />

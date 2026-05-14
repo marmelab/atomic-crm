@@ -21,6 +21,7 @@ import type { ComplianceFiling, FilingStatus, FilingType } from "../types";
 import {
   ALL_FILING_STATUSES,
   ALL_FILING_TYPES,
+  FILING_STATUS_LABELS,
   FILING_TYPE_LABELS,
 } from "./filingTypes";
 import { ComplianceStatusBadge } from "./ComplianceStatusBadge";
