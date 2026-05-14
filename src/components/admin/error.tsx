@@ -42,7 +42,7 @@ export const Error = (props: InternalErrorProps & {}) => {
       <div>
         <Translate i18nKey="ra.message.error" />
       </div>
-      {process.env.NODE_ENV !== "production" && (
+      {
         <>
           <Accordion
             type="multiple"
@@ -94,7 +94,7 @@ export const Error = (props: InternalErrorProps & {}) => {
             </ul>
           </div>
         </>
-      )}
+      }
       <div className="mt-8">
         <Button onClick={goBack}>
           <History />
