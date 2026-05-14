@@ -27,8 +27,10 @@ alter table public.contacts
 
 -- ─── Update companies_summary view ───────────────────────────────────────────
 -- Adds the new Eswatini columns so list queries include them.
+-- Must drop+recreate because CREATE OR REPLACE VIEW cannot insert columns mid-list.
 
-create or replace view public.companies_summary with (security_invoker = on) as
+drop view if exists public.companies_summary;
+create view public.companies_summary with (security_invoker = on) as
 select
     c.id,
     c.created_at,
@@ -71,7 +73,8 @@ group by c.id;
 
 -- ─── Update contacts_summary view ────────────────────────────────────────────
 
-create or replace view public.contacts_summary with (security_invoker = on) as
+drop view if exists public.contacts_summary;
+create view public.contacts_summary with (security_invoker = on) as
 select
     co.id,
     co.first_name,
