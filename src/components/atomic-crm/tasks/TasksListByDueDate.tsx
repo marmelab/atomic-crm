@@ -33,6 +33,8 @@ export const TasksListByDueDate = ({
   const isMobile = useIsMobile();
   const translate = useTranslate();
 
+  const isAdmin = (identity as any)?.administrator === true;
+
   const { data: tasks, isPending } = useGetList(
     "tasks",
     {
@@ -41,7 +43,9 @@ export const TasksListByDueDate = ({
       filter: {
         ...(filterByContact != null
           ? { contact_id: filterByContact }
-          : { sales_id: identity?.id }),
+          : !isAdmin
+            ? { sales_id: identity?.id }
+            : {}),
       },
     },
     { enabled: filterByContact != null ? true : !!identity },
@@ -105,18 +109,21 @@ export const TasksListByDueDate = ({
         tasks={overdueTasks}
         title={translate("resources.tasks.filters.overdue")}
         showContact={showContact}
+        showAssignee={isAdmin}
         isMobile={isMobile}
       />
       <TaskListFilter
         tasks={dueTodayTasks}
         title={translate("resources.tasks.filters.today")}
         showContact={showContact}
+        showAssignee={isAdmin}
         isMobile={isMobile}
       />
       <TaskListFilter
         tasks={dueTomorrowTasks}
         title={translate("resources.tasks.filters.tomorrow")}
         showContact={showContact}
+        showAssignee={isAdmin}
         isMobile={isMobile}
       />
       {(!filterByContact || (filterByContact && isBeforeFriday())) && (
@@ -124,6 +131,7 @@ export const TasksListByDueDate = ({
           tasks={dueThisWeekTasks}
           title={translate("resources.tasks.filters.this_week")}
           showContact={showContact}
+          showAssignee={isAdmin}
           isMobile={isMobile}
         />
       )}
@@ -131,6 +139,7 @@ export const TasksListByDueDate = ({
         tasks={dueLaterTasks}
         title={translate("resources.tasks.filters.later")}
         showContact={showContact}
+        showAssignee={isAdmin}
         isMobile={isMobile}
       />
     </div>

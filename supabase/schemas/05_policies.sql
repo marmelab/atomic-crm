@@ -54,11 +54,27 @@ create policy "Enable insert for authenticated users only" on public.tags for in
 create policy "Enable update for authenticated users only" on public.tags for update to authenticated using (true);
 create policy "Enable delete for authenticated users only" on public.tags for delete to authenticated using (true);
 
--- Tasks
-create policy "Enable read access for authenticated users" on public.tasks for select to authenticated using (true);
-create policy "Enable insert for authenticated users only" on public.tasks for insert to authenticated with check (true);
-create policy "Task Update Policy" on public.tasks for update to authenticated using (true);
-create policy "Task Delete Policy" on public.tasks for delete to authenticated using (true);
+-- Tasks (admin sees all; employees see only tasks assigned to them)
+create policy "Task Select Policy" on public.tasks for select to authenticated
+  using (
+    public.is_admin()
+    OR sales_id IN (SELECT id FROM public.sales WHERE user_id = auth.uid())
+  );
+create policy "Task Insert Policy" on public.tasks for insert to authenticated
+  with check (
+    public.is_admin()
+    OR sales_id IN (SELECT id FROM public.sales WHERE user_id = auth.uid())
+  );
+create policy "Task Update Policy" on public.tasks for update to authenticated
+  using (
+    public.is_admin()
+    OR sales_id IN (SELECT id FROM public.sales WHERE user_id = auth.uid())
+  );
+create policy "Task Delete Policy" on public.tasks for delete to authenticated
+  using (
+    public.is_admin()
+    OR sales_id IN (SELECT id FROM public.sales WHERE user_id = auth.uid())
+  );
 
 -- Configuration (admin-only for writes)
 create policy "Enable read for authenticated" on public.configuration for select to authenticated using (true);

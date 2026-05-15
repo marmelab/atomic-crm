@@ -2,7 +2,7 @@ import { AutocompleteInput } from "@/components/admin/autocomplete-input";
 import { ReferenceInput } from "@/components/admin/reference-input";
 import { SelectInput } from "@/components/admin/select-input";
 import { TextInput } from "@/components/admin/text-input";
-import { required } from "ra-core";
+import { required, useGetIdentity } from "ra-core";
 import { DateTimeInput } from "@/components/admin";
 
 import { contactOptionText } from "../misc/ContactOption";
@@ -14,6 +14,9 @@ export const TaskFormContent = ({
   selectContact?: boolean;
 }) => {
   const { taskTypes } = useConfigurationContext();
+  const { identity } = useGetIdentity();
+  const isAdmin = (identity as any)?.administrator === true;
+
   return (
     <div className="flex flex-col gap-4">
       <TextInput
@@ -52,6 +55,20 @@ export const TaskFormContent = ({
           helperText={false}
         />
       </div>
+
+      {isAdmin && (
+        <ReferenceInput source="sales_id" reference="sales">
+          <AutocompleteInput
+            label="Assign to"
+            optionText={(record: any) =>
+              `${record.first_name} ${record.last_name}`
+            }
+            helperText={false}
+            validate={required()}
+            modal
+          />
+        </ReferenceInput>
+      )}
     </div>
   );
 };

@@ -28,6 +28,8 @@ const Header = () => {
     currentPath = "/compliance";
   } else if (matchPath("/time/*", location.pathname)) {
     currentPath = "/time";
+  } else if (matchPath("/sales/*", location.pathname)) {
+    currentPath = "/sales";
   } else {
     currentPath = false;
   }
@@ -94,6 +96,13 @@ const Header = () => {
                     to="/time"
                     isActive={currentPath === "/time"}
                   />
+                  <CanAccess resource="sales" action="list">
+                    <NavigationTab
+                      label="Team"
+                      to="/sales"
+                      isActive={currentPath === "/sales"}
+                    />
+                  </CanAccess>
                 </nav>
               </div>
               <div className="flex items-center">

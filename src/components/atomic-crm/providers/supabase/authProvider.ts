@@ -17,6 +17,7 @@ const getBaseAuthProvider = () =>
         id: sale.id,
         fullName: `${sale.first_name} ${sale.last_name}`,
         avatar: sale.avatar?.src,
+        administrator: sale.administrator ?? false,
       };
     },
   });

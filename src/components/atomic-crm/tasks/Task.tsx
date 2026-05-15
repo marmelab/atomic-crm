@@ -28,9 +28,11 @@ import { useIsMobile } from "@/hooks/use-mobile";
 export const Task = ({
   task,
   showContact,
+  showAssignee,
 }: {
   task: TData;
   showContact?: boolean;
+  showAssignee?: boolean;
 }) => {
   const isMobile = useIsMobile();
   const { taskTypes } = useConfigurationContext();
@@ -141,6 +143,23 @@ export const Task = ({
                           name: getContactRepresentation(referenceRecord),
                         })}
                       </>
+                    );
+                  }}
+                />
+              )}
+              {showAssignee && task.sales_id && (
+                <ReferenceField<TData, any>
+                  source="sales_id"
+                  reference="sales"
+                  record={task}
+                  link={false}
+                  className="inline text-sm text-muted-foreground"
+                  render={({ referenceRecord }) => {
+                    if (!referenceRecord) return null;
+                    return (
+                      <span className="ml-1 text-xs bg-muted px-1.5 py-0.5 rounded">
+                        {referenceRecord.first_name} {referenceRecord.last_name}
+                      </span>
                     );
                   }}
                 />
