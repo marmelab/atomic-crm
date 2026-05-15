@@ -1,4 +1,4 @@
-name: 🚀 Deploy
+name: "\U0001F680 Deploy"
 on:
     push:
         branches:
@@ -9,37 +9,38 @@ concurrency:
     cancel-in-progress: true
 
 permissions:
-    pages: write
-    contents: write
+    contents: read
 
 jobs:
     # ─── Documentation ───────────────────────────────────────────────
     build-doc:
-        name: 🔨 Build (doc)
+        name: "\U0001F528 Build (doc)"
         runs-on: ubuntu-latest
         timeout-minutes: 5
 
         steps:
-            - name: 📥 Checkout repo
-              uses: actions/checkout@v4
+            - name: "\U0001F4E5 Checkout repo"
+              uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+              with:
+                  persist-credentials: false
 
             # No cache — deploy builds must be hermetic
-            - name: ⚙️ Setup node
-              uses: actions/setup-node@v4
+            - name: "⚙️ Setup node"
+              uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
               with:
                   node-version: 22
 
-            - name: 📥 Download deps
+            - name: "\U0001F4E5 Download deps"
               run: make doc-install
 
-            - name: 🔨 Build Registry
+            - name: "\U0001F528 Build Registry"
               run: make registry-build
 
-            - name: 🔨 Build Documentation
+            - name: "\U0001F528 Build Documentation"
               run: make doc-build
 
-            - name: 📤 Upload doc artifacts
-              uses: actions/upload-artifact@v4
+            - name: "\U0001F4E4 Upload doc artifacts"
+              uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
               with:
                   name: doc-artifacts
                   path: |
@@ -47,35 +48,42 @@ jobs:
                       public/r
 
     deploy-doc:
-        name: 🚀 Deploy (doc)
+        name: "\U0001F680 Deploy (doc)"
         runs-on: ubuntu-latest
         timeout-minutes: 5
         needs: build-doc
+        permissions:
+            contents: write
+            pages: write
 
         steps:
-            - name: 📥 Checkout repo
-              uses: actions/checkout@v4
+            - name: "\U0001F4E5 Checkout repo"
+              uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+              with:
+                  persist-credentials: false
 
-            - name: ⚙️ Setup git
+            - name: "⚙️ Setup git"
               run: |
-                git remote set-url origin https://git:${{ secrets.GITHUB_TOKEN }}@github.com/${GITHUB_REPOSITORY}
+                git remote set-url origin "https://git:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}"
                 git config --global user.email support+actions@github.com
                 git config --global user.name github-actions-bot
+              env:
+                GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-            - name: 📥 Download doc artifacts
-              uses: actions/download-artifact@v4
+            - name: "\U0001F4E5 Download doc artifacts"
+              uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
               with:
                   name: doc-artifacts
 
-            - name: 📡 Deploy Registry
+            - name: "\U0001F4E1 Deploy Registry"
               run: cd public/r && npx gh-pages -b gh-pages -d ./ -s atomic-crm.json -e r -m "Deploy registry" --remove r
 
-            - name: 📡 Deploy Documentation
+            - name: "\U0001F4E1 Deploy Documentation"
               run: cd doc && npx gh-pages -b gh-pages -d dist -e doc -m "Deploy docs" --remove doc
 
     # ─── Demo ────────────────────────────────────────────────────────
     build-demo:
-        name: 🔨 Build (demo)
+        name: "\U0001F528 Build (demo)"
         runs-on: ubuntu-latest
         timeout-minutes: 10
 
@@ -84,68 +92,79 @@ jobs:
             VITE_INBOUND_EMAIL: ${{ vars.VITE_INBOUND_EMAIL }}
 
         steps:
-            - name: 📥 Checkout repo
-              uses: actions/checkout@v4
+            - name: "\U0001F4E5 Checkout repo"
+              uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+              with:
+                  persist-credentials: false
 
             # No cache — deploy builds must be hermetic
-            - name: ⚙️ Setup node
-              uses: actions/setup-node@v4
+            - name: "⚙️ Setup node"
+              uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
               with:
                   node-version: 22
 
-            - name: 📥 Download deps
+            - name: "\U0001F4E5 Download deps"
               run: npm ci
 
-            - name: 🔨 Build
+            - name: "\U0001F528 Build"
               run: npm run build:demo
 
-            - name: 📤 Upload demo artifacts
-              uses: actions/upload-artifact@v4
+            - name: "\U0001F4E4 Upload demo artifacts"
+              uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
               with:
                   name: demo-artifacts
                   path: dist
 
     deploy-demo:
-        name: 🚀 Deploy (demo)
+        name: "\U0001F680 Deploy (demo)"
         if: ${{ vars.DEMO_DEPLOY_REPOSITORY != '' }}
         runs-on: ubuntu-latest
         timeout-minutes: 5
         needs: build-demo
+        permissions:
+            contents: write
+            pages: write
 
         env:
             PRODUCTION_REMOTE: https://git:${{ secrets.DEPLOY_TOKEN || secrets.GITHUB_TOKEN }}@github.com/${{ vars.DEMO_DEPLOY_REPOSITORY }}
 
         steps:
-            - name: 📥 Checkout repo
-              uses: actions/checkout@v4
+            - name: "\U0001F4E5 Checkout repo"
+              uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+              with:
+                  persist-credentials: false
 
-            - name: ⚙️ Setup node
-              uses: actions/setup-node@v4
+            - name: "⚙️ Setup node"
+              uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
               with:
                   node-version: 22
 
-            - name: ⚙️ Setup git
+            - name: "⚙️ Setup git"
               run: |
-                  echo Deploying to pages to ${{ vars.DEMO_DEPLOY_REPOSITORY }}
-                  git remote set-url origin https://git:${{ secrets.DEPLOY_TOKEN || secrets.GITHUB_TOKEN }}@github.com/${{ vars.DEMO_DEPLOY_REPOSITORY }}
-                  git remote add production $PRODUCTION_REMOTE
+                  echo "Deploying to pages to $DEMO_DEPLOY_REPOSITORY"
+                  git remote set-url origin "https://git:${DEPLOY_TOKEN}@github.com/${DEMO_DEPLOY_REPOSITORY}"
+                  git remote add production "$PRODUCTION_REMOTE"
                   git config --global user.email support+actions@github.com
                   git config --global user.name github-actions-bot
+              env:
+                  DEPLOY_TOKEN: ${{ secrets.DEPLOY_TOKEN || secrets.GITHUB_TOKEN }}
+                  DEMO_DEPLOY_REPOSITORY: ${{ vars.DEMO_DEPLOY_REPOSITORY }}
 
-            - name: 📥 Download demo artifacts
-              uses: actions/download-artifact@v4
+            - name: "\U0001F4E5 Download demo artifacts"
+              uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
               with:
                   name: demo-artifacts
                   path: dist
 
-            - name: 📡 Deploy GitHub pages
-              run: npx gh-pages --remote production -d dist -b ${{ vars.DEPLOY_BRANCH || 'gh-pages' }}
+            - name: "\U0001F4E1 Deploy GitHub pages"
+              run: npx gh-pages --remote production -d dist -b "${DEPLOY_BRANCH:-gh-pages}"
               env:
                   GITHUB_TOKEN: ${{ secrets.DEPLOY_TOKEN || secrets.GITHUB_TOKEN }}
+                  DEPLOY_BRANCH: ${{ vars.DEPLOY_BRANCH }}
 
     # ─── Supabase ────────────────────────────────────────────────────
     build-supabase:
-        name: 🔨 Build (supabase)
+        name: "\U0001F528 Build (supabase)"
         runs-on: ubuntu-latest
         timeout-minutes: 10
 
@@ -158,33 +177,38 @@ jobs:
             VITE_INBOUND_EMAIL: ${{ vars.VITE_INBOUND_EMAIL }}
 
         steps:
-            - name: 📥 Checkout repo
-              uses: actions/checkout@v4
+            - name: "\U0001F4E5 Checkout repo"
+              uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+              with:
+                  persist-credentials: false
 
             # No cache — deploy builds must be hermetic
-            - name: ⚙️ Setup node
-              uses: actions/setup-node@v4
+            - name: "⚙️ Setup node"
+              uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
               with:
                   node-version: 22
 
-            - name: 📥 Download deps
+            - name: "\U0001F4E5 Download deps"
               run: npm ci
 
-            - name: 🔨 Build
+            - name: "\U0001F528 Build"
               run: npm run build
 
-            - name: 📤 Upload supabase artifacts
-              uses: actions/upload-artifact@v4
+            - name: "\U0001F4E4 Upload supabase artifacts"
+              uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
               with:
                   name: supabase-artifacts
                   path: dist
 
     deploy-supabase:
-        name: 🚀 Deploy (supabase)
+        name: "\U0001F680 Deploy (supabase)"
         if: ${{ vars.DEPLOY_REPOSITORY != '' }}
         runs-on: ubuntu-latest
         timeout-minutes: 10
         needs: build-supabase
+        permissions:
+            contents: write
+            pages: write
 
         env:
             SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
@@ -196,50 +220,55 @@ jobs:
             VITE_IS_DEMO: ${{ vars.VITE_IS_DEMO }}
             VITE_INBOUND_EMAIL: ${{ vars.VITE_INBOUND_EMAIL }}
             PRODUCTION_REMOTE: https://git:${{ secrets.DEPLOY_TOKEN || secrets.GITHUB_TOKEN }}@github.com/${{ vars.DEPLOY_REPOSITORY }}
-            POSTMARK_WEBHOOK_USER: ${{secrets.POSTMARK_WEBHOOK_USER}}
-            POSTMARK_WEBHOOK_PASSWORD: ${{secrets.POSTMARK_WEBHOOK_PASSWORD}}
-            POSTMARK_WEBHOOK_AUTHORIZED_IPS: ${{secrets.POSTMARK_WEBHOOK_AUTHORIZED_IPS}}
-            VITE_GOOGLE_WORKPLACE_DOMAIN: ${{secrets.VITE_GOOGLE_WORKPLACE_DOMAIN}}
+            POSTMARK_WEBHOOK_USER: ${{ secrets.POSTMARK_WEBHOOK_USER }}
+            POSTMARK_WEBHOOK_PASSWORD: ${{ secrets.POSTMARK_WEBHOOK_PASSWORD }}
+            POSTMARK_WEBHOOK_AUTHORIZED_IPS: ${{ secrets.POSTMARK_WEBHOOK_AUTHORIZED_IPS }}
+            VITE_GOOGLE_WORKPLACE_DOMAIN: ${{ secrets.VITE_GOOGLE_WORKPLACE_DOMAIN }}
 
         steps:
-            - name: 📥 Checkout repo
-              uses: actions/checkout@v4
+            - name: "\U0001F4E5 Checkout repo"
+              uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+              with:
+                  persist-credentials: false
 
-            - name: ⚙️ Setup git
+            - name: "⚙️ Setup git"
               run: |
-                  echo Deploying to pages to ${{ vars.DEPLOY_REPOSITORY }}
-                  git remote set-url origin https://git:${{ secrets.DEPLOY_TOKEN || secrets.GITHUB_TOKEN }}@github.com/${{ vars.DEPLOY_REPOSITORY }}
-                  git remote add production $PRODUCTION_REMOTE
+                  echo "Deploying to pages to $DEPLOY_REPOSITORY"
+                  git remote set-url origin "https://git:${DEPLOY_TOKEN}@github.com/${DEPLOY_REPOSITORY}"
+                  git remote add production "$PRODUCTION_REMOTE"
                   git config --global user.email support+actions@github.com
                   git config --global user.name github-actions-bot
+              env:
+                  DEPLOY_TOKEN: ${{ secrets.DEPLOY_TOKEN || secrets.GITHUB_TOKEN }}
+                  DEPLOY_REPOSITORY: ${{ vars.DEPLOY_REPOSITORY }}
 
-            - name: ⚙️ Setup supabase
-              uses: supabase/setup-cli@v1
+            - name: "⚙️ Setup supabase"
+              uses: supabase/setup-cli@b60b5899c73b63a2d2d651b1e90db8d4c9392f51 # v1.6.0
 
-            - name: 📥 Download supabase artifacts
-              uses: actions/download-artifact@v4
+            - name: "\U0001F4E5 Download supabase artifacts"
+              uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
               with:
                   name: supabase-artifacts
                   path: dist
 
             - if: ${{ env.IS_SUPABASE_CONFIGURED }}
-              name: 🔗 Supabase Link
+              name: "\U0001F517 Supabase Link"
               run: npx supabase link --project-ref $SUPABASE_PROJECT_ID
 
             - if: ${{ env.IS_SUPABASE_CONFIGURED }}
-              name: 📡 Push supabase migrations
+              name: "\U0001F4E1 Push supabase migrations"
               run: npx supabase db push
 
             - if: ${{ env.IS_SUPABASE_CONFIGURED && env.POSTMARK_WEBHOOK_USER && env.POSTMARK_WEBHOOK_PASSWORD && env.POSTMARK_WEBHOOK_AUTHORIZED_IPS }}
-              name: 📡 Push supabase postmark webhook user secret
+              name: "\U0001F4E1 Push supabase postmark webhook user secret"
               run: |
-                  npx supabase secrets set POSTMARK_WEBHOOK_USER=${{ env.POSTMARK_WEBHOOK_USER }}
-                  npx supabase secrets set POSTMARK_WEBHOOK_PASSWORD=${{ env.POSTMARK_WEBHOOK_PASSWORD }}
-                  npx supabase secrets set POSTMARK_WEBHOOK_AUTHORIZED_IPS=${{ env.POSTMARK_WEBHOOK_AUTHORIZED_IPS }}
-                  npx supabase secrets set VITE_INBOUND_EMAIL=${{ env.VITE_INBOUND_EMAIL }}
+                  npx supabase secrets set "POSTMARK_WEBHOOK_USER=$POSTMARK_WEBHOOK_USER"
+                  npx supabase secrets set "POSTMARK_WEBHOOK_PASSWORD=$POSTMARK_WEBHOOK_PASSWORD"
+                  npx supabase secrets set "POSTMARK_WEBHOOK_AUTHORIZED_IPS=$POSTMARK_WEBHOOK_AUTHORIZED_IPS"
+                  npx supabase secrets set "VITE_INBOUND_EMAIL=$VITE_INBOUND_EMAIL"
 
             - if: ${{ env.IS_SUPABASE_CONFIGURED }}
-              name: 📡 Deploy supabase functions
+              name: "\U0001F4E1 Deploy supabase functions"
               run: npx supabase functions deploy
 
             - if: ${{ !env.SUPABASE_ACCESS_TOKEN }}
@@ -267,18 +296,19 @@ jobs:
               run: echo ':warning:POSTMARK_WEBHOOK_USER secret is missing' >> $GITHUB_STEP_SUMMARY
 
             - if: ${{ !env.POSTMARK_WEBHOOK_PASSWORD }}
-              name: Check POSTMARK_WEBHOOK_USER secret
+              name: Check POSTMARK_WEBHOOK_PASSWORD secret
               run: echo ':warning:POSTMARK_WEBHOOK_PASSWORD secret is missing' >> $GITHUB_STEP_SUMMARY
 
             - if: ${{ !env.POSTMARK_WEBHOOK_AUTHORIZED_IPS }}
-              name: Check POSTMARK_WEBHOOK_USER secret
+              name: Check POSTMARK_WEBHOOK_AUTHORIZED_IPS secret
               run: echo ':warning:POSTMARK_WEBHOOK_AUTHORIZED_IPS secret is missing' >> $GITHUB_STEP_SUMMARY
 
             - if: ${{ !env.IS_SUPABASE_CONFIGURED }}
               name: Supabase deployment skipped
               run: echo ':warning:Supabase deployment skipped' >> $GITHUB_STEP_SUMMARY
 
-            - name: 📡 Deploy GitHub pages
-              run: npx gh-pages --remote production -d dist -b ${{ vars.DEPLOY_BRANCH || 'gh-pages' }}
+            - name: "\U0001F4E1 Deploy GitHub pages"
+              run: npx gh-pages --remote production -d dist -b "${DEPLOY_BRANCH:-gh-pages}"
               env:
                   GITHUB_TOKEN: ${{ secrets.DEPLOY_TOKEN || secrets.GITHUB_TOKEN }}
+                  DEPLOY_BRANCH: ${{ vars.DEPLOY_BRANCH }}

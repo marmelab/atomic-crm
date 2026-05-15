@@ -1,4 +1,4 @@
-name: ✅ Check
+name: "✅ Check"
 on:
     push:
         branches:
@@ -15,30 +15,34 @@ concurrency:
     cancel-in-progress: true
 
 permissions:
-    contents: write
-    checks: write
+    contents: read
 
 jobs:
     lint:
-        name: 🔬 ESLint
+        name: "\U0001F52C ESLint"
         runs-on: ubuntu-latest
         timeout-minutes: 10
         if: ${{ !github.event.pull_request.draft || github.event_name == 'push' }}
+        permissions:
+            contents: write
+            checks: write
         steps:
-            - name: 📥 Checkout repo
-              uses: actions/checkout@v4
+            - name: "\U0001F4E5 Checkout repo"
+              uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+              with:
+                  persist-credentials: false
 
-            - name: ⚙️ Setup node
-              uses: actions/setup-node@v4
+            - name: "⚙️ Setup node"
+              uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
               with:
                   node-version: 20
                   cache: npm
 
-            - name: 📥 Download deps
+            - name: "\U0001F4E5 Download deps"
               run: npm ci
 
-            - name: 🔬 Lint
-              uses: wearerequired/lint-action@v2
+            - name: "\U0001F52C Lint"
+              uses: wearerequired/lint-action@548d8a7c4b04d3553d32ed5b6e91eb171e10e7bb # v2
               with:
                   eslint: true
                   eslint_args: "**/*.{mjs,ts,tsx}"
@@ -46,50 +50,54 @@ jobs:
                   prettier_args: "--config ./.prettierrc.json \"**/*.{js,json,ts,tsx,css,md,html}\""
 
     test:
-        name: 🔎 Test
+        name: "\U0001F50E Test"
         runs-on: ubuntu-latest
         timeout-minutes: 10
         if: ${{ !github.event.pull_request.draft || github.event_name == 'push' }}
         steps:
-            - name: 📥 Checkout repo
-              uses: actions/checkout@v4
+            - name: "\U0001F4E5 Checkout repo"
+              uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+              with:
+                  persist-credentials: false
 
-            - name: ⚙️ Setup node
-              uses: actions/setup-node@v4
+            - name: "⚙️ Setup node"
+              uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
               with:
                   node-version: 20
                   cache: npm
 
-            - name: 📥 Download deps
+            - name: "\U0001F4E5 Download deps"
               run: npm ci
 
-            - name: 🎭 Install Playwright browsers
+            - name: "\U0001F3AD Install Playwright browsers"
               run: npx playwright install chromium chromium-headless-shell
 
-            - name: 🔎 Unit Tests
+            - name: "\U0001F50E Unit Tests"
               run: CI=1 npm test -- --run
 
-            - name: 🔎 Integration Tests
+            - name: "\U0001F50E Integration Tests"
               run: CI=1 npm run test:integration -- --run
 
 
     build:
-        name: 🔨 Build
+        name: "\U0001F528 Build"
         timeout-minutes: 10
         runs-on: ubuntu-latest
         if: ${{ !github.event.pull_request.draft || github.event_name == 'push' }}
         steps:
-            - name: 📥 Checkout repo
-              uses: actions/checkout@v4
+            - name: "\U0001F4E5 Checkout repo"
+              uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+              with:
+                  persist-credentials: false
 
-            - name: ⚙️ Setup node
-              uses: actions/setup-node@v4
+            - name: "⚙️ Setup node"
+              uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
               with:
                   node-version: 20
                   cache: npm
 
-            - name: 📥 Download deps
+            - name: "\U0001F4E5 Download deps"
               run: npm ci
 
-            - name: 🔨 Build
+            - name: "\U0001F528 Build"
               run: npm run build
