@@ -107,6 +107,7 @@ jobs:
 
     deploy-demo:
         name: 🚀 Deploy (demo)
+        if: ${{ vars.DEMO_DEPLOY_REPOSITORY != '' }}
         runs-on: ubuntu-latest
         timeout-minutes: 5
         needs: build-demo
@@ -180,6 +181,7 @@ jobs:
 
     deploy-supabase:
         name: 🚀 Deploy (supabase)
+        if: ${{ vars.DEPLOY_REPOSITORY != '' }}
         runs-on: ubuntu-latest
         timeout-minutes: 10
         needs: build-supabase
@@ -218,6 +220,7 @@ jobs:
               uses: actions/download-artifact@v4
               with:
                   name: supabase-artifacts
+                  path: dist
 
             - if: ${{ env.IS_SUPABASE_CONFIGURED }}
               name: 🔗 Supabase Link
