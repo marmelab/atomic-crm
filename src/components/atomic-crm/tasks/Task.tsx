@@ -16,14 +16,23 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuSub,
+  DropdownMenuSubContent,
+  DropdownMenuSubTrigger,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
 import { useConfigurationContext } from "../root/ConfigurationContext";
-import type { Contact, Task as TData } from "../types";
+import type { Contact, Task as TData, TaskStatus } from "../types";
 import { TaskEdit } from "./TaskEdit";
 import { TaskEditSheet } from "./TaskEditSheet";
 import { useIsMobile } from "@/hooks/use-mobile";
+import {
+  TASK_STATUSES,
+  TASK_STATUS_MAP,
+  resolveStatus,
+} from "./taskStatus";
 
 export const Task = ({
   task,
@@ -66,17 +75,33 @@ export const Task = ({
   };
 
   const handleCheck = () => () => {
+    const nowDone = !task.done_date;
     update("tasks", {
       id: task.id,
       data: {
-        done_date: task.done_date ? null : new Date().toISOString(),
+        done_date: nowDone ? new Date().toISOString() : null,
+        status: nowDone ? "completed" : "todo",
+      },
+      previousData: task,
+    });
+  };
+
+  const handleStatusChange = (newStatus: TaskStatus) => {
+    const isCompleting = newStatus === "completed";
+    update("tasks", {
+      id: task.id,
+      data: {
+        status: newStatus,
+        done_date: isCompleting
+          ? (task.done_date ?? new Date().toISOString())
+          : null,
       },
       previousData: task,
     });
   };
 
   useEffect(() => {
-    // We do not want to invalidate the query when a tack is checked or unchecked
+    // We do not want to invalidate the query when a task is checked or unchecked
     if (
       isUpdatePending ||
       !isSuccess ||
@@ -89,6 +114,8 @@ export const Task = ({
   }, [queryClient, isUpdatePending, isSuccess, variables]);
 
   const labelId = `checkbox-list-label-${task.id}`;
+  const currentStatus = resolveStatus(task.status);
+  const statusMeta = TASK_STATUS_MAP[currentStatus];
 
   return (
     <>
@@ -105,7 +132,7 @@ export const Task = ({
             className="mt-1"
           />
           <div className={`flex-grow ${task.done_date ? "line-through" : ""}`}>
-            <div className="text-sm flex items-center gap-1.5">
+            <div className="text-sm flex items-center gap-1.5 flex-wrap">
               {task.priority && task.priority !== "medium" && (
                 <span
                   className={`inline-block w-2 h-2 rounded-full shrink-0 ${
@@ -132,6 +159,14 @@ export const Task = ({
                 </>
               )}
               {task.text}
+              {/* Status badge — hidden for default 'todo' to reduce noise */}
+              {currentStatus !== "todo" && (
+                <span
+                  className={`inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium leading-none shrink-0 ${statusMeta.color}`}
+                >
+                  {statusMeta.label}
+                </span>
+              )}
             </div>
             <div className="text-sm text-muted-foreground">
               {translate("resources.tasks.fields.due_short")}
@@ -190,6 +225,40 @@ export const Task = ({
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
+            {/* Status sub-menu */}
+            <DropdownMenuSub>
+              <DropdownMenuSubTrigger className="h-12 md:h-8 px-4 md:px-2 text-base md:text-sm cursor-pointer">
+                <span>
+                  Status:{" "}
+                  <span
+                    className={`inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium leading-none ${statusMeta.color}`}
+                  >
+                    {statusMeta.label}
+                  </span>
+                </span>
+              </DropdownMenuSubTrigger>
+              <DropdownMenuSubContent>
+                {TASK_STATUSES.map((s) => (
+                  <DropdownMenuItem
+                    key={s.value}
+                    className="cursor-pointer h-10 md:h-8 px-4 md:px-3 text-base md:text-sm gap-2"
+                    onClick={() => handleStatusChange(s.value)}
+                  >
+                    <span
+                      className={`inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium leading-none ${s.color}`}
+                    >
+                      {s.label}
+                    </span>
+                    {s.value === currentStatus && (
+                      <span className="ml-auto text-xs text-muted-foreground">
+                        ✓
+                      </span>
+                    )}
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuSubContent>
+            </DropdownMenuSub>
+            <DropdownMenuSeparator />
             <DropdownMenuItem
               className="cursor-pointer h-12 md:h-8 px-4 md:px-2 text-base md:text-sm"
               onClick={() => {
@@ -222,6 +291,7 @@ export const Task = ({
             >
               {translate("resources.tasks.actions.postpone_next_week")}
             </DropdownMenuItem>
+            <DropdownMenuSeparator />
             <DropdownMenuItem
               className="cursor-pointer h-12 md:h-8 px-4 md:px-2 text-base md:text-sm"
               onClick={handleEdit}

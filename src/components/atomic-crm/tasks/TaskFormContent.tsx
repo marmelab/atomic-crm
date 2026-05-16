@@ -7,6 +7,7 @@ import { DateTimeInput } from "@/components/admin";
 
 import { contactOptionText } from "../misc/ContactOption";
 import { useConfigurationContext } from "../root/ConfigurationContext";
+import { TASK_STATUSES } from "./taskStatus";
 
 export const TaskFormContent = ({
   selectContact,
@@ -56,18 +57,28 @@ export const TaskFormContent = ({
         />
       </div>
 
-      <SelectInput
-        source="priority"
-        defaultValue="medium"
-        helperText={false}
-        choices={[
-          { value: "high", label: "High" },
-          { value: "medium", label: "Medium" },
-          { value: "low", label: "Low" },
-        ]}
-        optionText="label"
-        optionValue="value"
-      />
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <SelectInput
+          source="priority"
+          defaultValue="medium"
+          helperText={false}
+          choices={[
+            { value: "high", label: "High" },
+            { value: "medium", label: "Medium" },
+            { value: "low", label: "Low" },
+          ]}
+          optionText="label"
+          optionValue="value"
+        />
+        <SelectInput
+          source="status"
+          defaultValue="todo"
+          helperText={false}
+          choices={TASK_STATUSES}
+          optionText="label"
+          optionValue="value"
+        />
+      </div>
 
       {isAdmin && (
         <ReferenceInput

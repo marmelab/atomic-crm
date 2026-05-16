@@ -244,6 +244,13 @@ export type Tag = {
   color: string;
 };
 
+export type TaskStatus =
+  | "draft"
+  | "todo"
+  | "in_progress"
+  | "completed"
+  | "cancelled";
+
 export type Task = {
   contact_id: Identifier;
   type: string;
@@ -252,6 +259,7 @@ export type Task = {
   done_date?: string | null;
   sales_id?: Identifier;
   priority?: "high" | "medium" | "low";
+  status?: TaskStatus;
 } & Pick<RaRecord, "id">;
 
 export type ActivityCompanyCreated = {

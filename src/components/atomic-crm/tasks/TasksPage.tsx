@@ -13,6 +13,7 @@ import {
 import { useConfigurationContext } from "../root/ConfigurationContext";
 import { AddTask } from "./AddTask";
 import { TasksListByDueDate } from "./TasksListByDueDate";
+import { TASK_STATUSES } from "./taskStatus";
 
 export const TasksPage = () => {
   const { identity } = useGetIdentity();
@@ -22,6 +23,7 @@ export const TasksPage = () => {
   const [filterType, setFilterType] = useState<string>("ALL");
   const [filterAssignee, setFilterAssignee] = useState<string>("ALL");
   const [filterPriority, setFilterPriority] = useState<string>("ALL");
+  const [filterStatus, setFilterStatus] = useState<string>("ALL");
   const [overdueOnly, setOverdueOnly] = useState(false);
 
   const { data: salesList = [] } = useGetList(
@@ -38,15 +40,24 @@ export const TasksPage = () => {
     const f: Record<string, any> = {};
     if (filterType !== "ALL") f["type@eq"] = filterType;
     if (filterPriority !== "ALL") f["priority@eq"] = filterPriority;
+    if (filterStatus !== "ALL") f["status@eq"] = filterStatus;
     if (isAdmin && filterAssignee !== "ALL")
       f["sales_id@eq"] = Number(filterAssignee);
     if (overdueOnly) f["due_date@lt"] = new Date().toISOString();
     return f;
-  }, [filterType, filterPriority, filterAssignee, overdueOnly, isAdmin]);
+  }, [
+    filterType,
+    filterPriority,
+    filterStatus,
+    filterAssignee,
+    overdueOnly,
+    isAdmin,
+  ]);
 
   const hasFilters =
     filterType !== "ALL" ||
     filterPriority !== "ALL" ||
+    filterStatus !== "ALL" ||
     filterAssignee !== "ALL" ||
     overdueOnly;
 
@@ -89,6 +100,20 @@ export const TasksPage = () => {
           </SelectContent>
         </Select>
 
+        <Select value={filterStatus} onValueChange={setFilterStatus}>
+          <SelectTrigger className="w-36 h-8 text-xs">
+            <SelectValue placeholder="Status" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="ALL">All statuses</SelectItem>
+            {TASK_STATUSES.map((s) => (
+              <SelectItem key={s.value} value={s.value}>
+                {s.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+
         {isAdmin && (
           <Select value={filterAssignee} onValueChange={setFilterAssignee}>
             <SelectTrigger className="w-40 h-8 text-xs">
@@ -122,6 +147,7 @@ export const TasksPage = () => {
             onClick={() => {
               setFilterType("ALL");
               setFilterPriority("ALL");
+              setFilterStatus("ALL");
               setFilterAssignee("ALL");
               setOverdueOnly(false);
             }}

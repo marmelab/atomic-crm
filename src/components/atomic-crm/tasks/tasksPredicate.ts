@@ -10,9 +10,11 @@ export const isBeforeFriday = () => getDay(new Date()) < 5; // Friday is represe
 type Task = {
   due_date: string;
   done_date: string | null;
+  status?: string | null;
 };
 
-export const isDone = (task: Task) => task.done_date != null;
+export const isDone = (task: Task) =>
+  task.done_date != null || task.status === "cancelled";
 
 // A task is recently done if it was marked as done less than 5 minutes ago
 // useful to keep recently done tasks in the list to avoid flickering when a task is marked as done while the user is consulting the list of tasks. It gives a chance to the user to see that the task was marked as done and then it will disappear after 5 minutes.
