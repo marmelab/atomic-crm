@@ -22,10 +22,12 @@ import {
 
 export const TasksListByDueDate = ({
   filterByContact,
+  extraFilter,
   emptyPlaceholder,
   pendingPlaceholder,
 }: {
   filterByContact?: Identifier;
+  extraFilter?: Record<string, any>;
   emptyPlaceholder?: React.ReactNode;
   pendingPlaceholder?: React.ReactNode;
 }) => {
@@ -46,6 +48,7 @@ export const TasksListByDueDate = ({
           : !isAdmin
             ? { sales_id: identity?.id }
             : {}),
+        ...extraFilter,
       },
     },
     { enabled: filterByContact != null ? true : !!identity },

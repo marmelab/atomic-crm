@@ -105,7 +105,17 @@ export const Task = ({
             className="mt-1"
           />
           <div className={`flex-grow ${task.done_date ? "line-through" : ""}`}>
-            <div className="text-sm">
+            <div className="text-sm flex items-center gap-1.5">
+              {task.priority && task.priority !== "medium" && (
+                <span
+                  className={`inline-block w-2 h-2 rounded-full shrink-0 ${
+                    task.priority === "high" ? "bg-red-500" : "bg-slate-400"
+                  }`}
+                  title={
+                    task.priority === "high" ? "High priority" : "Low priority"
+                  }
+                />
+              )}
               {task.type && task.type !== "none" && (
                 <>
                   <span className="font-semibold text-sm">

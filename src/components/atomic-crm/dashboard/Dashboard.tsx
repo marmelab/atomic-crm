@@ -6,6 +6,7 @@ import { DashboardStepper } from "./DashboardStepper";
 import { DealsChart } from "./DealsChart";
 import { FilingsDueThisWeek } from "./FilingsDueThisWeek";
 import { HotContacts } from "./HotContacts";
+import { TaskCompletionStats } from "./TaskCompletionStats";
 import { TasksList } from "./TasksList";
 import { Welcome } from "./Welcome";
 
@@ -61,6 +62,7 @@ export const Dashboard = () => {
 
       <div className="md:col-span-3">
         <div className="flex flex-col gap-4">
+          <TaskCompletionStats />
           <FilingsDueThisWeek />
           <TasksList />
         </div>

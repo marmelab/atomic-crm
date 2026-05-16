@@ -56,6 +56,19 @@ export const TaskFormContent = ({
         />
       </div>
 
+      <SelectInput
+        source="priority"
+        defaultValue="medium"
+        helperText={false}
+        choices={[
+          { value: "high", label: "High" },
+          { value: "medium", label: "Medium" },
+          { value: "low", label: "Low" },
+        ]}
+        optionText="label"
+        optionValue="value"
+      />
+
       {isAdmin && (
         <ReferenceInput
           source="sales_id"

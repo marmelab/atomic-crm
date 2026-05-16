@@ -251,6 +251,7 @@ export type Task = {
   due_date: string;
   done_date?: string | null;
   sales_id?: Identifier;
+  priority?: "high" | "medium" | "low";
 } & Pick<RaRecord, "id">;
 
 export type ActivityCompanyCreated = {

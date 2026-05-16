@@ -1,5 +1,11 @@
 import { FileText, Import, Settings, User, Users } from "lucide-react";
-import { CanAccess, useTranslate, useUserMenu } from "ra-core";
+import {
+  CanAccess,
+  useGetIdentity,
+  useGetList,
+  useTranslate,
+  useUserMenu,
+} from "ra-core";
 import { Link, matchPath, useLocation } from "react-router";
 import { RefreshButton } from "@/components/admin/refresh-button";
 import { ThemeModeToggle } from "@/components/admin/theme-mode-toggle";
@@ -98,11 +104,7 @@ const Header = () => {
                     to="/time"
                     isActive={currentPath === "/time"}
                   />
-                  <NavigationTab
-                    label="Tasks"
-                    to="/tasks"
-                    isActive={currentPath === "/tasks"}
-                  />
+                  <TasksNavTab isActive={currentPath === "/tasks"} />
                   <CanAccess resource="sales" action="list">
                     <NavigationTab
                       label="Team"
@@ -155,6 +157,39 @@ const NavigationTab = ({
     {label}
   </Link>
 );
+
+const TasksNavTab = ({ isActive }: { isActive: boolean }) => {
+  const { identity } = useGetIdentity();
+  const { data: overdueTasks } = useGetList(
+    "tasks",
+    {
+      pagination: { page: 1, perPage: 200 },
+      sort: { field: "due_date", order: "ASC" },
+      filter: { "due_date@lt": new Date().toISOString() },
+    },
+    { enabled: !!identity },
+  );
+  const overdueCount = (overdueTasks ?? []).filter(
+    (t: any) => !t.done_date,
+  ).length;
+  return (
+    <Link
+      to="/tasks"
+      className={`relative px-6 py-3 text-sm font-medium transition-colors border-b-2 ${
+        isActive
+          ? "text-secondary-foreground border-secondary-foreground"
+          : "text-secondary-foreground/70 border-transparent hover:text-secondary-foreground/80"
+      }`}
+    >
+      Tasks
+      {overdueCount > 0 && (
+        <span className="absolute top-1.5 right-1 min-w-[16px] h-4 rounded-full bg-red-500 text-white text-[10px] font-bold flex items-center justify-center px-1 leading-none">
+          {overdueCount > 99 ? "99+" : overdueCount}
+        </span>
+      )}
+    </Link>
+  );
+};
 
 const UsersMenu = () => {
   const translate = useTranslate();
