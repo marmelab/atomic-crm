@@ -57,7 +57,11 @@ export const TaskFormContent = ({
       </div>
 
       {isAdmin && (
-        <ReferenceInput source="sales_id" reference="sales">
+        <ReferenceInput
+          source="sales_id"
+          reference="sales"
+          filter={{ disabled: false }}
+        >
           <AutocompleteInput
             label="Assign to"
             optionText={(record: any) =>
