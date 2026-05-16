@@ -16,18 +16,22 @@ import {
 } from "@/components/ui/dialog";
 
 import { TaskFormContent } from "./TaskFormContent";
+import { useTaskAssignmentNotify } from "./useTaskAssignmentNotify";
 
 export const TaskEdit = ({
   open,
   close,
   taskId,
+  previousSalesId,
 }: {
   taskId: Identifier;
   open: boolean;
   close: () => void;
+  previousSalesId?: Identifier | null;
 }) => {
   const notify = useNotify();
   const translate = useTranslate();
+  const notifyAssignment = useTaskAssignmentNotify();
   return (
     <Dialog open={open} onOpenChange={close}>
       {open && taskId && (
@@ -36,12 +40,15 @@ export const TaskEdit = ({
           resource="tasks"
           className="mt-0"
           mutationOptions={{
-            onSuccess: () => {
+            onSuccess: (data: any) => {
               close();
               notify("resources.tasks.updated", {
                 type: "info",
                 undoable: true,
               });
+              if (data?.sales_id) {
+                notifyAssignment(data.id, data.sales_id, previousSalesId);
+              }
             },
           }}
           redirect={false}

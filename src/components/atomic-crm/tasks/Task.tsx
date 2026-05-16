@@ -243,9 +243,15 @@ export const Task = ({
           taskId={task.id}
           open={openEdit}
           onOpenChange={setOpenEdit}
+          previousSalesId={task.sales_id}
         />
       ) : (
-        <TaskEdit taskId={task.id} open={openEdit} close={handleCloseEdit} />
+        <TaskEdit
+          taskId={task.id}
+          open={openEdit}
+          close={handleCloseEdit}
+          previousSalesId={task.sales_id}
+        />
       )}
     </>
   );

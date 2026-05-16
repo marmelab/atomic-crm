@@ -28,6 +28,7 @@ import {
 } from "@/components/ui/tooltip";
 
 import { TaskFormContent } from "./TaskFormContent";
+import { useTaskAssignmentNotify } from "./useTaskAssignmentNotify";
 
 export const AddTask = ({
   selectContact,
@@ -47,6 +48,7 @@ export const AddTask = ({
     setOpen(true);
   };
   const getContactRepresentation = useGetRecordRepresentation("contacts");
+  const notifyAssignment = useTaskAssignmentNotify();
 
   const handleSuccess = async (data: any) => {
     setOpen(false);
@@ -62,6 +64,10 @@ export const AddTask = ({
     });
 
     notify("resources.tasks.added");
+    // Notify the assignee if they differ from the creator
+    if (data.sales_id && data.sales_id !== identity?.id) {
+      notifyAssignment(data.id, data.sales_id);
+    }
   };
 
   if (!identity) return null;
