@@ -28,27 +28,19 @@ import { Phone } from "lucide-react";
 import type { CallLog, Company } from "../types";
 import type { CrmDataProvider } from "../providers/supabase/dataProvider";
 
-// Mapping from call outcome → company lead_status
-// null = don't change the company status
-const OUTCOME_TO_LEAD_STATUS: Record<
-  CallLog["call_outcome"],
-  Company["lead_status"] | null
-> = {
-  no_answer: "no_response",
-  busy: "no_response",
-  wrong_number: null,
-  spoke_gatekeeper: "contacted",
-  spoke_decision_maker: "contacted",
-  interested: "interested",
-  not_interested: "not_interested",
-  meeting_booked: "meeting_booked",
-  send_info: "send_info",
-  callback_requested: "contacted",
-};
+const outcomeOptions: { value: CallLog["call_outcome"]; label: string }[] = [
+  { value: "hot_lead", label: "\u{1F525} Heta leads" },
+  { value: "active_customer", label: "Aktiva kunder" },
+  { value: "under_negotiation", label: "Under förhandling" },
+  { value: "follow_up", label: "Att följa upp" },
+  { value: "never_contacted", label: "Aldrig kontaktade" },
+  { value: "contacted_no_response", label: "Kontaktade, inget svar" },
+  { value: "not_interested", label: "Inte intresserade" },
+];
 
 export const CallLogModal = () => {
   const [open, setOpen] = useState(false);
-  const [outcome, setOutcome] = useState<CallLog["call_outcome"]>("no_answer");
+  const [outcome, setOutcome] = useState<CallLog["call_outcome"]>("none");
   const [notes, setNotes] = useState("");
   const [followupDate, setFollowupDate] = useState("");
   const [followupNote, setFollowupNote] = useState("");
@@ -76,20 +68,12 @@ export const CallLogModal = () => {
         followup_note: followupNote || null,
       });
 
-      // Auto-update company lead_status based on call outcome
-      const newStatus = OUTCOME_TO_LEAD_STATUS[outcome];
-      if (newStatus) {
-        await dataProvider.update("companies", {
-          id: company.id,
-          data: { lead_status: newStatus },
-          previousData: company,
-        });
-      }
+      // RPC function handles lead_status update — no need to update manually
 
       notify("Samtalslogg sparad", { type: "success" });
       refresh();
       setOpen(false);
-      setOutcome("no_answer");
+      setOutcome("none");
       setNotes("");
       setFollowupDate("");
       setFollowupNote("");
@@ -102,19 +86,6 @@ export const CallLogModal = () => {
       setIsPending(false);
     }
   };
-
-  const outcomeOptions: { value: CallLog["call_outcome"]; label: string }[] = [
-    { value: "no_answer", label: "Inget svar" },
-    { value: "busy", label: "Upptaget" },
-    { value: "wrong_number", label: "Fel nummer" },
-    { value: "spoke_gatekeeper", label: "Pratade med receptionist" },
-    { value: "spoke_decision_maker", label: "Pratade med beslutsfattare" },
-    { value: "interested", label: "Intresserad" },
-    { value: "not_interested", label: "Inte intresserad" },
-    { value: "meeting_booked", label: "Möte bokat" },
-    { value: "send_info", label: "Skicka info" },
-    { value: "callback_requested", label: "Ring upp igen" },
-  ];
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -136,13 +107,13 @@ export const CallLogModal = () => {
             <div className="grid gap-2">
               <Label htmlFor="outcome">Resultat</Label>
               <Select
-                value={outcome}
+                value={outcome === "none" ? undefined : outcome}
                 onValueChange={(value) =>
                   setOutcome(value as CallLog["call_outcome"])
                 }
               >
                 <SelectTrigger id="outcome">
-                  <SelectValue />
+                  <SelectValue placeholder="Välj resultat (valfritt)..." />
                 </SelectTrigger>
                 <SelectContent>
                   {outcomeOptions.map((option) => (

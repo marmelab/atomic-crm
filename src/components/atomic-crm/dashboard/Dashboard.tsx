@@ -1,6 +1,7 @@
 import { useGetList } from "ra-core";
 
 import type { Contact, ContactNote } from "../types";
+import { CallStatsWidget } from "./CallStatsWidget";
 import { DashboardActivityLog } from "./DashboardActivityLog";
 import { DashboardStepper } from "./DashboardStepper";
 import { DealStageFunnel } from "./DealStageFunnel";
@@ -79,6 +80,9 @@ export const Dashboard = () => {
             ) : null}
             <WidgetErrorBoundary>
               <SalesTrackingWidget />
+            </WidgetErrorBoundary>
+            <WidgetErrorBoundary>
+              <CallStatsWidget />
             </WidgetErrorBoundary>
             <WidgetErrorBoundary>
               <DashboardActivityLog />

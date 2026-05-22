@@ -30,14 +30,24 @@ import {
 import type { CallLog, Company } from "../types";
 import { supabase } from "../providers/supabase/supabase";
 
+// Labels for ALL outcomes (current 7 Relationsstatus + legacy) so historical data displays correctly
 const outcomeLabels: Record<CallLog["call_outcome"], string> = {
+  // Current 7 Relationsstatus outcomes
+  none: "Inget resultat",
+  hot_lead: "\u{1F525} Heta leads",
+  active_customer: "Aktiva kunder",
+  under_negotiation: "Under förhandling",
+  follow_up: "Att följa upp",
+  never_contacted: "Aldrig kontaktade",
+  contacted_no_response: "Kontaktade, inget svar",
+  not_interested: "Inte intresserade",
+  // Legacy outcomes
   no_answer: "Inget svar",
   busy: "Upptaget",
   wrong_number: "Fel nummer",
   spoke_gatekeeper: "Pratade med receptionist",
   spoke_decision_maker: "Pratade med beslutsfattare",
   interested: "Intresserad",
-  not_interested: "Inte intresserad",
   meeting_booked: "Möte bokat",
   send_info: "Skicka info",
   callback_requested: "Ring upp igen",
@@ -47,29 +57,36 @@ const outcomeVariants: Record<
   CallLog["call_outcome"],
   "default" | "secondary" | "destructive" | "outline"
 > = {
+  // Current 7 Relationsstatus
+  none: "secondary",
+  hot_lead: "default",
+  active_customer: "default",
+  under_negotiation: "outline",
+  follow_up: "outline",
+  never_contacted: "secondary",
+  contacted_no_response: "secondary",
+  not_interested: "destructive",
+  // Legacy
   no_answer: "secondary",
   busy: "secondary",
   wrong_number: "destructive",
   spoke_gatekeeper: "outline",
   spoke_decision_maker: "default",
   interested: "default",
-  not_interested: "destructive",
   meeting_booked: "default",
   send_info: "outline",
   callback_requested: "outline",
 };
 
+// Only current 7 Relationsstatus options shown in edit dropdown
 const outcomeOptions: { value: CallLog["call_outcome"]; label: string }[] = [
-  { value: "no_answer", label: "Inget svar" },
-  { value: "busy", label: "Upptaget" },
-  { value: "wrong_number", label: "Fel nummer" },
-  { value: "spoke_gatekeeper", label: "Pratade med receptionist" },
-  { value: "spoke_decision_maker", label: "Pratade med beslutsfattare" },
-  { value: "interested", label: "Intresserad" },
-  { value: "not_interested", label: "Inte intresserad" },
-  { value: "meeting_booked", label: "Möte bokat" },
-  { value: "send_info", label: "Skicka info" },
-  { value: "callback_requested", label: "Ring upp igen" },
+  { value: "hot_lead", label: "\u{1F525} Heta leads" },
+  { value: "active_customer", label: "Aktiva kunder" },
+  { value: "under_negotiation", label: "Under förhandling" },
+  { value: "follow_up", label: "Att följa upp" },
+  { value: "never_contacted", label: "Aldrig kontaktade" },
+  { value: "contacted_no_response", label: "Kontaktade, inget svar" },
+  { value: "not_interested", label: "Inte intresserade" },
 ];
 
 export const CallLogHistory = () => {
@@ -237,9 +254,11 @@ const CallLogItem = ({ log }: { log: CallLog }) => {
       <div className="flex items-center justify-between mb-2 gap-3">
         <div className="flex items-center gap-2 min-w-0">
           <Phone className="h-4 w-4 text-muted-foreground shrink-0" />
-          <Badge variant={outcomeVariants[log.call_outcome]}>
-            {outcomeLabels[log.call_outcome]}
-          </Badge>
+          {log.call_outcome !== "none" && (
+            <Badge variant={outcomeVariants[log.call_outcome]}>
+              {outcomeLabels[log.call_outcome]}
+            </Badge>
+          )}
           <div
             className={`${isHover || isEditing ? "visible" : "invisible"} flex items-center gap-1`}
           >
@@ -279,13 +298,13 @@ const CallLogItem = ({ log }: { log: CallLog }) => {
           <div className="grid gap-2">
             <Label htmlFor={`outcome-${log.id}`}>Resultat</Label>
             <Select
-              value={outcome}
+              value={outcome === "none" ? undefined : outcome}
               onValueChange={(value) =>
                 setOutcome(value as CallLog["call_outcome"])
               }
             >
               <SelectTrigger id={`outcome-${log.id}`}>
-                <SelectValue />
+                <SelectValue placeholder="Välj resultat (valfritt)..." />
               </SelectTrigger>
               <SelectContent>
                 {outcomeOptions.map((option) => (

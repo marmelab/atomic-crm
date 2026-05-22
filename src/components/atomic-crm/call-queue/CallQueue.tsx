@@ -1,10 +1,5 @@
 import { useEffect, useState } from "react";
-import {
-  useGetList,
-  useNotify,
-  useRefresh,
-  useDataProvider,
-} from "ra-core";
+import { useGetList, useNotify, useRefresh, useDataProvider } from "ra-core";
 import { Link } from "react-router";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -39,16 +34,13 @@ import type { CallLog, Company } from "../types";
 import type { CrmDataProvider } from "../providers/supabase/dataProvider";
 
 const outcomeOptions: { value: CallLog["call_outcome"]; label: string }[] = [
-  { value: "no_answer", label: "Inget svar" },
-  { value: "busy", label: "Upptaget" },
-  { value: "wrong_number", label: "Fel nummer" },
-  { value: "spoke_gatekeeper", label: "Pratade med receptionist" },
-  { value: "spoke_decision_maker", label: "Pratade med beslutsfattare" },
-  { value: "interested", label: "Intresserad" },
-  { value: "not_interested", label: "Inte intresserad" },
-  { value: "meeting_booked", label: "Möte bokat" },
-  { value: "send_info", label: "Skicka info" },
-  { value: "callback_requested", label: "Ring upp igen" },
+  { value: "hot_lead", label: "\u{1F525} Heta leads" },
+  { value: "active_customer", label: "Aktiva kunder" },
+  { value: "under_negotiation", label: "Under förhandling" },
+  { value: "follow_up", label: "Att följa upp" },
+  { value: "never_contacted", label: "Aldrig kontaktade" },
+  { value: "contacted_no_response", label: "Kontaktade, inget svar" },
+  { value: "not_interested", label: "Inte intresserade" },
 ];
 
 const leadStatusBadgeVariant = (status: string) => {
@@ -101,19 +93,20 @@ export const CallQueueContent = () => {
   const perPage = 50;
   const activeStatusesKey = activeStatuses.join(",");
 
-  const { data: companies, total = 0, isPending } = useGetList<Company>(
-    "companies",
-    {
-      filter: {
-        "prospecting_status@eq": "call_ready",
-        ...(activeStatuses.length > 0
-          ? { "lead_status@in": `(${activeStatuses.join(",")})` }
-          : {}),
-      },
-      sort: { field: "processing_order", order: "ASC" },
-      pagination: { page, perPage },
+  const {
+    data: companies,
+    total = 0,
+    isPending,
+  } = useGetList<Company>("companies", {
+    filter: {
+      "prospecting_status@eq": "call_ready",
+      ...(activeStatuses.length > 0
+        ? { "lead_status@in": `(${activeStatuses.join(",")})` }
+        : {}),
     },
-  );
+    sort: { field: "processing_order", order: "ASC" },
+    pagination: { page, perPage },
+  });
 
   useEffect(() => {
     setPage(1);
@@ -191,7 +184,7 @@ export const CallQueueContent = () => {
           </Button>
         </div>
       </div>
- 
+
       <div className="mb-4 flex flex-wrap gap-2">
         <Button
           size="sm"
@@ -376,13 +369,12 @@ const CallLogDialog = ({
   open: boolean;
   onClose: () => void;
 }) => {
-  const dataProvider =
-    useDataProvider() as CrmDataProvider;
+  const dataProvider = useDataProvider() as CrmDataProvider;
   const notify = useNotify();
   const refresh = useRefresh();
   const [isSaving, setIsSaving] = useState(false);
 
-  const [outcome, setOutcome] = useState<CallLog["call_outcome"]>("no_answer");
+  const [outcome, setOutcome] = useState<CallLog["call_outcome"]>("none");
   const [notes, setNotes] = useState("");
   const [followupDate, setFollowupDate] = useState("");
   const [followupNote, setFollowupNote] = useState("");
@@ -416,7 +408,7 @@ const CallLogDialog = ({
   };
 
   const resetForm = () => {
-    setOutcome("no_answer");
+    setOutcome("none");
     setNotes("");
     setFollowupDate("");
     setFollowupNote("");
@@ -446,15 +438,15 @@ const CallLogDialog = ({
           )}
 
           <div className="grid gap-2">
-            <Label htmlFor="outcome">Resultat *</Label>
+            <Label htmlFor="outcome">Resultat</Label>
             <Select
-              value={outcome}
+              value={outcome === "none" ? undefined : outcome}
               onValueChange={(value) =>
                 setOutcome(value as CallLog["call_outcome"])
               }
             >
               <SelectTrigger id="outcome">
-                <SelectValue />
+                <SelectValue placeholder="Välj resultat (valfritt)..." />
               </SelectTrigger>
               <SelectContent>
                 {outcomeOptions.map((option) => (

@@ -324,13 +324,22 @@ export type CallLog = {
   contact_id?: Identifier | null;
   user_id?: string;
   call_outcome:
+    | "none"
+    // 7 Relationsstatus outcomes
+    | "hot_lead"
+    | "active_customer"
+    | "under_negotiation"
+    | "follow_up"
+    | "never_contacted"
+    | "contacted_no_response"
+    | "not_interested"
+    // Legacy outcomes (historical data)
     | "no_answer"
     | "busy"
     | "wrong_number"
     | "spoke_gatekeeper"
     | "spoke_decision_maker"
     | "interested"
-    | "not_interested"
     | "meeting_booked"
     | "send_info"
     | "callback_requested";
