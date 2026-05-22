@@ -35,6 +35,7 @@ import {
   reportValidationFailure,
   summarizeZodError,
 } from "./validationReporter.ts";
+import type { TakeSnapshotFn } from "./takeSnapshot.ts";
 
 /** Minimal supabase client surface needed by the helper — matches the
  *  pattern already used by pipelineLogger for test-compatible types. */
@@ -103,12 +104,20 @@ export interface CreateSigningSubmissionInput {
   /** Injection points for testing. */
   fetchImpl?: typeof fetch;
   now?: () => Date;
+  /**
+   * Fas 6A: optional snapshot function. When provided, a sent_for_signing
+   * snapshot is taken after the quote row is updated (new submission only —
+   * reused submissions do not change state so no snapshot is needed).
+   * Inject as: (opts) => takeSnapshot({ supabase, ...opts })
+   */
+  takeSnapshotFn?: TakeSnapshotFn;
 }
 
 export interface CreateSigningSubmissionResult {
   submissionId: string;
   signingUrl: string | null;
   reusedExistingSubmission: boolean;
+  shouldSendSigningEmail: boolean;
   /** The payload that was (or would have been) sent to DocuSeal. Returned
    *  for observability and for parity testing between callers. */
   docusealPayload: DocuSealSubmissionPayload;
@@ -129,6 +138,73 @@ class DocuSealSubmissionError extends Error {
 }
 
 export { DocuSealSubmissionError };
+
+interface ExistingSubmissionLookup {
+  exists: boolean;
+  signingUrl: string | null;
+}
+
+async function updateQuoteOrThrow(
+  supabase: MinimalSupabaseClient,
+  quoteId: number,
+  values: Record<string, unknown>,
+): Promise<void> {
+  const { error } = await supabase
+    .from("quotes")
+    .update(values)
+    .eq("id", quoteId);
+
+  if (error) {
+    console.error("createSigningSubmission: quote update failed", {
+      quoteId,
+      values,
+      error,
+    });
+    throw new DocuSealSubmissionError(
+      500,
+      "Failed to persist quote signing state",
+    );
+  }
+}
+
+async function fetchExistingSubmission(
+  fetchImpl: typeof fetch,
+  docusealBaseUrl: string,
+  docusealApiKey: string,
+  submissionId: string,
+): Promise<ExistingSubmissionLookup> {
+  const response = await fetchImpl(
+    `${docusealBaseUrl}/api/submissions/${submissionId}`,
+    {
+      method: "GET",
+      headers: {
+        "X-Auth-Token": docusealApiKey,
+      },
+    },
+  );
+
+  if (response.status === 404) {
+    return { exists: false, signingUrl: null };
+  }
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new DocuSealSubmissionError(response.status, errorText);
+  }
+
+  const submission = (await response.json()) as Record<string, unknown>;
+  const submitters = Array.isArray(submission.submitters)
+    ? submission.submitters as Array<Record<string, unknown>>
+    : [];
+  const customerSubmitter = submitters[submitters.length - 1] || {};
+  const signingSlug =
+    typeof customerSubmitter.slug === "string" ? customerSubmitter.slug : null;
+
+  return {
+    exists: true,
+    signingUrl: signingSlug ? `${docusealBaseUrl}/s/${signingSlug}` : null,
+  };
+}
 
 /**
  * Build the DocuSeal payload for a quote without sending it. Shared with
@@ -218,36 +294,144 @@ export async function createSigningSubmission(
     );
   }
 
-  // Minimal idempotence guard.
+  if (input.quote.status === QUOTE_STATUS.DECLINED) {
+    throw new DocuSealSubmissionError(
+      409,
+      "Quote is declined. Recall to generated before sending again.",
+    );
+  }
+
+  // Phase 6B: stronger idempotence. Reuse active submissions, recover
+  // partial writes, and heal phantom submission ids that no longer exist
+  // server-side in DocuSeal.
   const reusableStatuses: readonly string[] = [
     QUOTE_STATUS.SENT,
     QUOTE_STATUS.VIEWED,
     QUOTE_STATUS.SIGNED,
   ];
-  if (
-    input.quote.docuseal_submission_id &&
-    input.quote.status &&
-    reusableStatuses.includes(input.quote.status)
-  ) {
-    // Observability signal: the guard hit, no DocuSeal call will be made.
-    // Makes production reuse visible in edge function logs so smoke-check
-    // section 6 and future debugging can rely on it.
-    console.warn(
-      "createSigningSubmission: reusing existing DocuSeal submission",
-      {
-        quoteId: input.quote.id,
-        submissionId: input.quote.docuseal_submission_id,
-        quoteStatus: input.quote.status,
-        initiatorSource: input.initiator.source,
-      },
-    );
-    return {
-      submissionId: input.quote.docuseal_submission_id,
-      signingUrl: input.quote.docuseal_signing_url ?? null,
-      reusedExistingSubmission: true,
-      docusealPayload: payload,
-      submittedAt: now().toISOString(),
-    };
+  if (input.quote.docuseal_submission_id) {
+    if (
+      input.quote.status &&
+      reusableStatuses.includes(input.quote.status)
+    ) {
+      if (input.quote.status === QUOTE_STATUS.SIGNED) {
+        return {
+          submissionId: input.quote.docuseal_submission_id,
+          signingUrl: input.quote.docuseal_signing_url ?? null,
+          reusedExistingSubmission: true,
+          shouldSendSigningEmail: false,
+          docusealPayload: payload,
+          submittedAt: now().toISOString(),
+        };
+      }
+
+      const existing = await fetchExistingSubmission(
+        fetchImpl,
+        input.docusealBaseUrl,
+        input.docusealApiKey,
+        input.quote.docuseal_submission_id,
+      );
+
+      if (existing.exists) {
+        console.warn(
+          "createSigningSubmission: reusing existing DocuSeal submission",
+          {
+            quoteId: input.quote.id,
+            submissionId: input.quote.docuseal_submission_id,
+            quoteStatus: input.quote.status,
+            initiatorSource: input.initiator.source,
+          },
+        );
+        return {
+          submissionId: input.quote.docuseal_submission_id,
+          signingUrl: existing.signingUrl ?? input.quote.docuseal_signing_url ??
+            null,
+          reusedExistingSubmission: true,
+          shouldSendSigningEmail: true,
+          docusealPayload: payload,
+          submittedAt: now().toISOString(),
+        };
+      }
+
+      console.warn(
+        "createSigningSubmission: phantom DocuSeal submission detected, recreating",
+        {
+          quoteId: input.quote.id,
+          submissionId: input.quote.docuseal_submission_id,
+          quoteStatus: input.quote.status,
+        },
+      );
+      await updateQuoteOrThrow(input.supabase, input.quote.id, {
+        docuseal_submission_id: null,
+        docuseal_signing_url: null,
+      });
+    } else if (
+      input.quote.status === QUOTE_STATUS.DRAFT ||
+      input.quote.status === QUOTE_STATUS.GENERATED ||
+      !input.quote.status
+    ) {
+      const existing = await fetchExistingSubmission(
+        fetchImpl,
+        input.docusealBaseUrl,
+        input.docusealApiKey,
+        input.quote.docuseal_submission_id,
+      );
+
+      if (existing.exists) {
+        const recoveredSigningUrl =
+          existing.signingUrl ?? input.quote.docuseal_signing_url ?? null;
+        const submittedAt = now().toISOString();
+        const updateData: Record<string, unknown> = {
+          docuseal_submission_id: input.quote.docuseal_submission_id,
+          docuseal_signing_url: recoveredSigningUrl,
+          status: QUOTE_STATUS.SENT,
+          sent_at: submittedAt,
+        };
+        if (input.initiator.source === "discord_approval") {
+          updateData.approved_at = submittedAt;
+        }
+        await updateQuoteOrThrow(input.supabase, input.quote.id, updateData);
+
+        if (input.takeSnapshotFn) {
+          await input.takeSnapshotFn({
+            quoteId: input.quote.id,
+            triggerEvent: "sent_for_signing",
+            oldStatus: input.quote.status ?? null,
+            newStatus: QUOTE_STATUS.SENT,
+            initiatorSource:
+              input.initiator.source === "discord_approval"
+                ? "discord_approval"
+                : "crm_seller",
+            metadata: {
+              submissionId: input.quote.docuseal_submission_id,
+              recoveredExistingSubmission: true,
+            },
+          });
+        }
+
+        return {
+          submissionId: input.quote.docuseal_submission_id,
+          signingUrl: recoveredSigningUrl,
+          reusedExistingSubmission: false,
+          shouldSendSigningEmail: true,
+          docusealPayload: payload,
+          submittedAt,
+        };
+      }
+
+      console.warn(
+        "createSigningSubmission: stale partial DocuSeal submission id, recreating",
+        {
+          quoteId: input.quote.id,
+          submissionId: input.quote.docuseal_submission_id,
+          quoteStatus: input.quote.status,
+        },
+      );
+      await updateQuoteOrThrow(input.supabase, input.quote.id, {
+        docuseal_submission_id: null,
+        docuseal_signing_url: null,
+      });
+    }
   }
 
   const response = await fetchImpl(`${input.docusealBaseUrl}/api/submissions`, {
@@ -293,15 +477,29 @@ export async function createSigningSubmission(
     updateData.approved_at = submittedAt;
   }
 
-  await input.supabase
-    .from("quotes")
-    .update(updateData)
-    .eq("id", input.quote.id);
+  await updateQuoteOrThrow(input.supabase, input.quote.id, updateData);
+
+  // Fas 6A: snapshot the state transition. Reused submissions are excluded
+  // because no state change occurred — the quote was already sent/viewed/signed.
+  if (input.takeSnapshotFn) {
+    await input.takeSnapshotFn({
+      quoteId: input.quote.id,
+      triggerEvent: "sent_for_signing",
+      oldStatus: input.quote.status ?? null,
+      newStatus: QUOTE_STATUS.SENT,
+      initiatorSource:
+        input.initiator.source === "discord_approval"
+          ? "discord_approval"
+          : "crm_seller",
+      metadata: { submissionId, reusedExistingSubmission: false },
+    });
+  }
 
   return {
     submissionId,
     signingUrl,
     reusedExistingSubmission: false,
+    shouldSendSigningEmail: true,
     docusealPayload: payload,
     submittedAt,
   };

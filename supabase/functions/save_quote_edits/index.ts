@@ -9,6 +9,7 @@ import {
   saveQuoteEditsPayloadSchema,
   summarizeZodError,
 } from "../_shared/quoteWorkflow/index.ts";
+import { takeSnapshot } from "../_shared/quoteWorkflow/takeSnapshot.ts";
 
 /**
  * Save inline quote edits made in the WYSIWYG HTML editor.
@@ -117,6 +118,8 @@ Deno.serve(async (req: Request) =>
         sections,
         initiator: { source: "public_editor", writeTokenVerified: true },
         regeneratePdf,
+        takeSnapshotFn: (opts) =>
+          takeSnapshot({ supabase: supabaseAdmin, ...opts }),
       });
 
       return new Response(

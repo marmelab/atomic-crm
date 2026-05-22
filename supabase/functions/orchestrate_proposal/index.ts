@@ -322,6 +322,7 @@ Deno.serve(async (req: Request) =>
 
       const quoteTitle = deal.name || `Offert — ${company?.name || "Kund"}`;
 
+      const createQuoteStartedAt = new Date();
       const { data: quote, error: quoteError } = await supabase
         .from("quotes")
         .insert({
@@ -364,6 +365,24 @@ Deno.serve(async (req: Request) =>
           unit_price: deal.amount,
           sort_order: 0,
         });
+      }
+
+      try {
+        const completedAt = new Date();
+        await supabase.from("quote_pipeline_steps").insert({
+          quote_id: quote.id,
+          step_name: PIPELINE_STEP.CREATE_QUOTE,
+          status: "success",
+          started_at: createQuoteStartedAt.toISOString(),
+          completed_at: completedAt.toISOString(),
+          duration_ms: completedAt.getTime() - createQuoteStartedAt.getTime(),
+          metadata: { trigger: "orchestrated", deal_id },
+        });
+      } catch (pipelineInsertError) {
+        console.warn(
+          "orchestrate_proposal: failed to log create_quote step",
+          pipelineInsertError,
+        );
       }
 
       // ================================================================
@@ -520,16 +539,25 @@ Deno.serve(async (req: Request) =>
       // Step 7: Call generate_quote_pdf edge function
       // ================================================================
       const supabaseUrl = Deno.env.get("SUPABASE_URL") || "";
-      const pdfResponse = await fetch(
-        `${supabaseUrl}/functions/v1/generate_quote_pdf`,
+      const pdfResponse = await withPipelineStep(
         {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${serviceRoleKey}`,
-          },
-          body: JSON.stringify({ quote_id: quote.id }),
+          supabase,
+          quoteId: quote.id,
+          stepName: PIPELINE_STEP.GENERATE_PDF,
+          metadata: { trigger: "orchestrated", deal_id },
         },
+        () =>
+          fetch(
+            `${supabaseUrl}/functions/v1/generate_quote_pdf`,
+            {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${serviceRoleKey}`,
+              },
+              body: JSON.stringify({ quote_id: quote.id }),
+            },
+          ),
       );
 
       let pdfUrl = "";
@@ -579,27 +607,36 @@ Deno.serve(async (req: Request) =>
         url: `${crmUrl}/#/quotes/${quote.id}/show`,
       });
 
-      await notifyDiscord(
+      await withPipelineStep(
         {
-          title: "Ny offert redo for granskning",
-          description: [
-            `**Deal:** ${dealName}`,
-            `**Foretag:** ${company?.name || "Okant"}`,
-            `**Kontakt:** ${contactName || "Ingen kontakt"} (${primaryEmail})`,
-            `**Belopp:** ${totalAmount}`,
-            `**Offert:** ${quoteNumber}`,
-          ].join("\n"),
-          color: 3447003, // Blue
-          fields: [
-            {
-              name: "AI-genererad text (forsta 200 tecken)",
-              value:
-                generatedText.substring(0, 200) +
-                (generatedText.length > 200 ? "..." : ""),
-            },
-          ],
+          supabase,
+          quoteId: quote.id,
+          stepName: PIPELINE_STEP.DISCORD_NOTIFY,
+          metadata: { trigger: "orchestrated", deal_id },
         },
-        discordButtons,
+        () =>
+          notifyDiscord(
+            {
+              title: "Ny offert redo for granskning",
+              description: [
+                `**Deal:** ${dealName}`,
+                `**Foretag:** ${company?.name || "Okant"}`,
+                `**Kontakt:** ${contactName || "Ingen kontakt"} (${primaryEmail})`,
+                `**Belopp:** ${totalAmount}`,
+                `**Offert:** ${quoteNumber}`,
+              ].join("\n"),
+              color: 3447003, // Blue
+              fields: [
+                {
+                  name: "AI-genererad text (forsta 200 tecken)",
+                  value:
+                    generatedText.substring(0, 200) +
+                    (generatedText.length > 200 ? "..." : ""),
+                },
+              ],
+            },
+            discordButtons,
+          ),
       );
 
       return new Response(

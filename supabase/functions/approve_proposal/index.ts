@@ -8,6 +8,7 @@ import {
   DEAL_STAGE_PROPOSAL_FLOW,
   DocuSealSubmissionError,
   PIPELINE_STEP,
+  sendSigningEmail,
   withPipelineStep,
 } from "../_shared/quoteWorkflow/index.ts";
 
@@ -40,76 +41,6 @@ async function notifyDiscord(embed: {
     });
   } catch (e) {
     console.warn("Discord notification failed:", e);
-  }
-}
-
-async function sendProposalEmail(params: {
-  to: string;
-  contactName: string;
-  companyName: string;
-  quoteNumber: string;
-  proposalUrl: string;
-}) {
-  const resendApiKey = Deno.env.get("RESEND_API_KEY");
-  const fromEmail = Deno.env.get("RESEND_FROM_EMAIL") || "hej@axonadigital.se";
-  if (!resendApiKey) {
-    console.warn("RESEND_API_KEY not set, skipping email");
-    return;
-  }
-
-  const safeContact = escapeHtml(params.contactName);
-  const safeCompany = escapeHtml(params.companyName);
-  const safeQuoteNumber = escapeHtml(params.quoteNumber);
-  const safeUrl = encodeURI(params.proposalUrl);
-  if (!/^https?:\/\//i.test(safeUrl)) {
-    console.error(
-      "Invalid proposal URL protocol, skipping email:",
-      params.proposalUrl,
-    );
-    return;
-  }
-
-  const html = `<!DOCTYPE html>
-<html lang="sv">
-<head><meta charset="utf-8"></head>
-<body style="font-family:Inter,-apple-system,sans-serif;margin:0;padding:0;background:#f5f5f5;">
-  <div style="max-width:600px;margin:40px auto;background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,0.08);">
-    <div style="background:#0a0a0a;padding:32px 40px;">
-      <h1 style="color:#fff;font-size:20px;margin:0;">Offert ${safeQuoteNumber}</h1>
-      <p style="color:#a3a3a3;font-size:14px;margin:8px 0 0;">Axona Digital AB</p>
-    </div>
-    <div style="padding:40px;">
-      <p style="font-size:15px;color:#0a0a0a;line-height:1.6;margin:0 0 16px;">Hej ${safeContact},</p>
-      <p style="font-size:15px;color:#525252;line-height:1.6;margin:0 0 24px;">Tack för ditt intresse! Vi har tagit fram en offert till ${safeCompany}. Klicka på knappen nedan för att granska offerten och signera avtalet.</p>
-      <div style="text-align:center;margin:32px 0;">
-        <a href="${safeUrl}" style="display:inline-block;padding:14px 32px;background:#2563eb;color:#fff;text-decoration:none;border-radius:8px;font-size:15px;font-weight:600;">Visa offert och signera</a>
-      </div>
-      <p style="font-size:13px;color:#a3a3a3;line-height:1.6;margin:24px 0 0;">Om du har frågor, svara gärna på detta mejl så återkommer vi så snart vi kan.</p>
-    </div>
-    <div style="padding:24px 40px;background:#fafafa;border-top:1px solid #e5e5e5;">
-      <p style="font-size:12px;color:#a3a3a3;margin:0;">Axona Digital AB | Östersund, Sverige</p>
-    </div>
-  </div>
-</body>
-</html>`;
-
-  const response = await fetch("https://api.resend.com/emails", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${resendApiKey}`,
-    },
-    body: JSON.stringify({
-      from: fromEmail,
-      to: params.to,
-      subject: `Offert ${params.quoteNumber} — Axona Digital`,
-      html,
-    }),
-  });
-
-  if (!response.ok) {
-    const errorText = await response.text();
-    console.error("Resend email error:", errorText);
   }
 }
 
@@ -254,6 +185,44 @@ Deno.serve(async (req: Request) =>
 
       const docusealBaseUrl = getDocuSealBaseUrl();
 
+      // Phase 6B: atomic-ish approval claim. Only one request should win the
+      // right to proceed beyond this point. If a later step fails we clear
+      // the claim best-effort as long as the quote never reached a sent-like
+      // status.
+      const approvalClaimedAt = new Date().toISOString();
+      const { data: approvalClaimRows, error: approvalClaimError } =
+        await supabase
+          .from("quotes")
+          .update({ approved_at: approvalClaimedAt })
+          .eq("id", quote.id)
+          .is("approved_at", null)
+          .select("id");
+
+      if (approvalClaimError) {
+        throw approvalClaimError;
+      }
+
+      if (!approvalClaimRows || approvalClaimRows.length === 0) {
+        return new Response(
+          htmlPage(
+            "Redan godkand",
+            `Offerten ${quote.quote_number || ""} har redan godkants eller skickats av en annan begaran.`,
+            "info",
+          ),
+          { headers: { "Content-Type": "text/html; charset=utf-8" } },
+        );
+      }
+
+      const { data: freshQuote } = await supabase
+        .from("quotes")
+        .select("*")
+        .eq("id", quote.id)
+        .single();
+      const quoteForSigning = freshQuote ?? {
+        ...quote,
+        approved_at: approvalClaimedAt,
+      };
+
       // Delegate DocuSeal submission + quote status update to shared helper.
       // Phase 2: both signing paths go through createSigningSubmission.
       let signingResult;
@@ -270,21 +239,21 @@ Deno.serve(async (req: Request) =>
               supabase,
               initiator: { source: "discord_approval" },
               quote: {
-                id: quote.id,
-                quote_number: quote.quote_number,
-                valid_until: quote.valid_until,
-                total_amount: quote.total_amount,
-                subtotal: quote.subtotal,
-                vat_amount: quote.vat_amount,
-                vat_rate: quote.vat_rate,
-                payment_terms: quote.payment_terms,
-                delivery_terms: quote.delivery_terms,
-                terms_and_conditions: quote.terms_and_conditions,
-                generated_text: quote.generated_text,
-                currency: quote.currency,
-                docuseal_submission_id: quote.docuseal_submission_id,
-                docuseal_signing_url: quote.docuseal_signing_url,
-                status: quote.status,
+                id: quoteForSigning.id,
+                quote_number: quoteForSigning.quote_number,
+                valid_until: quoteForSigning.valid_until,
+                total_amount: quoteForSigning.total_amount,
+                subtotal: quoteForSigning.subtotal,
+                vat_amount: quoteForSigning.vat_amount,
+                vat_rate: quoteForSigning.vat_rate,
+                payment_terms: quoteForSigning.payment_terms,
+                delivery_terms: quoteForSigning.delivery_terms,
+                terms_and_conditions: quoteForSigning.terms_and_conditions,
+                generated_text: quoteForSigning.generated_text,
+                currency: quoteForSigning.currency,
+                docuseal_submission_id: quoteForSigning.docuseal_submission_id,
+                docuseal_signing_url: quoteForSigning.docuseal_signing_url,
+                status: quoteForSigning.status,
               },
               company: { name: companyName, org_number: companyOrgNumber },
               contact: { name: contactName, email: contactEmail },
@@ -296,7 +265,27 @@ Deno.serve(async (req: Request) =>
             }),
         );
       } catch (err) {
+        await supabase
+          .from("quotes")
+          .update({ approved_at: null })
+          .eq("id", quote.id)
+          .neq("status", "sent")
+          .neq("status", "viewed")
+          .neq("status", "signed");
         if (err instanceof DocuSealSubmissionError) {
+          if (err.status === 409) {
+            return new Response(
+              htmlPage(
+                "Offerten maste aterkallas",
+                "Offerten ar declined och maste recallas till generated innan den kan skickas for signering igen.",
+                "info",
+              ),
+              {
+                headers: { "Content-Type": "text/html; charset=utf-8" },
+                status: 409,
+              },
+            );
+          }
           await notifyDiscord({
             title: "E-signering misslyckades",
             description: `**Offert:** ${quote.quote_number || quote.id}\n**DocuSeal ${err.status}:** ${err.body.slice(0, 500)}`,
@@ -317,16 +306,52 @@ Deno.serve(async (req: Request) =>
         throw err;
       }
 
-      const { signingUrl } = signingResult;
+      const { signingUrl, shouldSendSigningEmail, reusedExistingSubmission } =
+        signingResult;
       const quoteNumber = quote.quote_number || `#${quote.id}`;
+      let reservationShouldSend = false;
 
-      await sendProposalEmail({
-        to: contactEmail,
-        contactName,
-        companyName,
-        quoteNumber,
-        proposalUrl,
-      });
+      if (signingUrl && shouldSendSigningEmail) {
+        let emailResult: { sent: boolean; skipped: boolean } | undefined;
+        await withPipelineStep(
+          {
+            supabase,
+            quoteId: Number(quote.id),
+            stepName: PIPELINE_STEP.SEND_EMAIL,
+            metadata: {
+              trigger: "discord_approval",
+              email_type: "docuseal_signing",
+            },
+          },
+          async () => {
+            emailResult = await sendSigningEmail({
+              supabase,
+              quoteId: Number(quote.id),
+              contactId: quote.contact_id,
+              companyId: quote.company_id,
+              salesId: quote.sales_id,
+              contactName,
+              contactEmail,
+              companyName,
+              quoteNumber,
+              signingUrl,
+              proposalUrl,
+            });
+          },
+        );
+        reservationShouldSend = emailResult?.sent ?? false;
+      }
+
+      if (reusedExistingSubmission && !reservationShouldSend) {
+        return new Response(
+          htmlPage(
+            "Redan skickad",
+            `Offert ${quoteNumber} har redan en aktiv signeringslank och skickades inte igen.`,
+            "info",
+          ),
+          { headers: { "Content-Type": "text/html; charset=utf-8" } },
+        );
+      }
 
       if (quote.deal_id) {
         await supabase
@@ -334,22 +359,6 @@ Deno.serve(async (req: Request) =>
           .update({ stage: DEAL_STAGE_PROPOSAL_FLOW.PROPOSAL_SENT })
           .eq("id", quote.deal_id);
       }
-
-      await supabase.from("email_sends").insert({
-        contact_id: quote.contact_id,
-        company_id: quote.company_id,
-        sales_id: quote.sales_id,
-        subject: `Offert ${quoteNumber} — E-signering skickad`,
-        body: "Offert skickad via Resend med DocuSeal signeringslank",
-        to_email: contactEmail,
-        status: "sent",
-        sent_at: new Date().toISOString(),
-        metadata: {
-          source: "docuseal_signing",
-          quote_id: quote.id,
-          signing_url: signingUrl,
-        },
-      });
 
       await notifyDiscord({
         title: "Offert godkand och skickad for e-signering!",

@@ -19,6 +19,9 @@
 -- UPDATE / DELETE policy is added here), so edge functions stay the
 -- only writers and no client can mutate pipeline history.
 
+drop policy if exists "Authenticated users can read quote pipeline steps"
+  on public.quote_pipeline_steps;
+
 create policy "Authenticated users can read quote pipeline steps"
   on public.quote_pipeline_steps
   for select

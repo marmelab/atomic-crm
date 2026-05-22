@@ -9,7 +9,9 @@ import {
   Circle,
   Loader2,
   MinusCircle,
+  RotateCcw,
 } from "lucide-react";
+import { supabase } from "@/components/atomic-crm/providers/supabase/supabase";
 import { Badge } from "@/components/ui/badge";
 import {
   buildPipelineStepViews,
@@ -41,10 +43,20 @@ interface QuotePipelineViewProps {
 
 const POLL_INTERVAL_MS = 3000;
 
+/** Steps that can be retried from the UI, matching the backend RETRY_GUARD. */
+const RETRYABLE_STEPS = new Set([
+  "generate_pdf",
+  "docuseal_submit",
+  "send_email",
+]);
+
 export const QuotePipelineView = ({ quoteId }: QuotePipelineViewProps) => {
   const dataProvider = useDataProvider();
   const [isExpanded, setIsExpanded] = useState(false);
   const [expandedStep, setExpandedStep] = useState<string | null>(null);
+  const [retryingStep, setRetryingStep] = useState<string | null>(null);
+  const [retryError, setRetryError] = useState<string | null>(null);
+  const [retryInfo, setRetryInfo] = useState<string | null>(null);
 
   const { data, isLoading, isError, error, refetch } = useQuery({
     queryKey: ["quote_pipeline_steps", quoteId],
@@ -117,6 +129,57 @@ export const QuotePipelineView = ({ quoteId }: QuotePipelineViewProps) => {
                   )
                 }
                 isLast={index === views.length - 1}
+                isRetrying={retryingStep === view.stepName}
+                retryError={
+                  retryingStep === null && expandedStep === view.stepName
+                    ? retryError
+                    : null
+                }
+                retryInfo={
+                  retryingStep === null && expandedStep === view.stepName
+                    ? retryInfo
+                    : null
+                }
+                onRetry={
+                  view.status === "failed" && RETRYABLE_STEPS.has(view.stepName)
+                    ? async () => {
+                        setRetryingStep(view.stepName);
+                        setRetryError(null);
+                        setRetryInfo(null);
+                        try {
+                          const { data, error } =
+                            await supabase.functions.invoke(
+                              "retry_quote_step",
+                              {
+                                body: {
+                                  quote_id: quoteId,
+                                  step_name: view.stepName,
+                                },
+                              },
+                            );
+                          if (error) throw error;
+                          // Surface skipped result (e.g. email already sent for this signing URL)
+                          if (
+                            data?.result?.skipped &&
+                            view.stepName === "send_email"
+                          ) {
+                            setRetryInfo(
+                              `Mailet är redan skickat (${data.result.reason ?? "already_sent"}) — ingen åtgärd togs`,
+                            );
+                          }
+                          await refetch();
+                        } catch (err) {
+                          setRetryError(
+                            err instanceof Error
+                              ? err.message
+                              : "Retry failed — check logs",
+                          );
+                        } finally {
+                          setRetryingStep(null);
+                        }
+                      }
+                    : undefined
+                }
               />
             ))}
           </div>
@@ -161,12 +224,20 @@ interface PipelineStepCardProps {
   isExpanded: boolean;
   onToggle: () => void;
   isLast: boolean;
+  isRetrying?: boolean;
+  retryError?: string | null;
+  retryInfo?: string | null;
+  onRetry?: () => Promise<void>;
 }
 
 const PipelineStepCard = ({
   view,
   isExpanded,
   onToggle,
+  isRetrying,
+  retryError,
+  retryInfo,
+  onRetry,
 }: PipelineStepCardProps) => {
   const canExpand =
     view.status === "failed" ||
@@ -187,7 +258,7 @@ const PipelineStepCard = ({
         ].join(" ")}
       >
         <div className="flex items-center gap-1.5 min-w-0">
-          <StatusIcon status={view.status} />
+          <StatusIcon status={isRetrying ? "running" : view.status} />
           <span className="text-xs font-medium truncate">{view.label}</span>
         </div>
         <div className="mt-1 flex items-center justify-between text-[11px] text-muted-foreground">
@@ -243,6 +314,33 @@ const PipelineStepCard = ({
                 {JSON.stringify(view.metadata, null, 2)}
               </pre>
             </details>
+          )}
+          {onRetry && (
+            <div className="pt-0.5">
+              <button
+                type="button"
+                onClick={onRetry}
+                disabled={isRetrying}
+                className="flex items-center gap-1 rounded px-2 py-1 text-[11px] font-medium bg-destructive/10 text-destructive hover:bg-destructive/20 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              >
+                {isRetrying ? (
+                  <Loader2 className="w-3 h-3 animate-spin" />
+                ) : (
+                  <RotateCcw className="w-3 h-3" />
+                )}
+                {isRetrying ? "Retrying…" : "Retry"}
+              </button>
+              {retryError && (
+                <div className="mt-1 text-destructive/80 text-[10px] whitespace-pre-wrap break-words">
+                  {retryError}
+                </div>
+              )}
+              {retryInfo && !retryError && (
+                <div className="mt-1 text-amber-600/80 text-[10px] whitespace-pre-wrap break-words">
+                  {retryInfo}
+                </div>
+              )}
+            </div>
           )}
         </div>
       )}

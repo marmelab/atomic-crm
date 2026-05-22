@@ -99,7 +99,7 @@ export const docuSealWebhookPayloadSchema = z
           .object({
             id: z.union([z.number(), z.string()]).optional(),
             status: z.string().optional(),
-            combined_document_url: z.string().optional(),
+            combined_document_url: z.string().nullish(),
           })
           .passthrough()
           .optional(),

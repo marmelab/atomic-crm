@@ -23,6 +23,7 @@
  */
 
 import { QUOTE_STATUS } from "./constants.ts";
+import type { TakeSnapshotFn } from "./takeSnapshot.ts";
 
 /** Minimal supabase surface used by this helper — mirrors the pattern in
  *  createSigningSubmission.ts so test mocks stay simple and we do not
@@ -70,6 +71,14 @@ export interface SaveQuoteContentInput {
    * tests stub the regeneration without mocking fetch globally.
    */
   regeneratePdf?: (quoteId: number | string) => Promise<string | null>;
+  /**
+   * Fas 6A: optional snapshot function. When provided, a content_edited
+   * snapshot is taken after a successful save — but ONLY when the merged
+   * state differs from the existing state (no snapshot for no-op saves).
+   * Inject as: (opts) => takeSnapshot({ supabase, ...opts })
+   * Omit in tests to disable snapshot side-effects.
+   */
+  takeSnapshotFn?: TakeSnapshotFn;
 }
 
 export interface SaveQuoteContentResult {
@@ -152,7 +161,14 @@ export function deepMergeSections(
 export async function saveQuoteContent(
   input: SaveQuoteContentInput,
 ): Promise<SaveQuoteContentResult> {
-  const { supabase, quoteId, sections, initiator, regeneratePdf } = input;
+  const {
+    supabase,
+    quoteId,
+    sections,
+    initiator,
+    regeneratePdf,
+    takeSnapshotFn,
+  } = input;
 
   if (!quoteId) {
     throw new SaveQuoteContentError(
@@ -239,6 +255,26 @@ export async function saveQuoteContent(
     initiatorSource: initiator.source,
     regenerated: pdfUrl != null,
   });
+
+  // Fas 6A: snapshot only when the merged state actually changed.
+  // JSON.stringify comparison is sufficient here — both objects originate
+  // from the same code path (deepMergeSections over DB-loaded data), so
+  // key order is stable. A false positive produces an extra snapshot;
+  // a false negative silently skips one. We accept the former.
+  if (takeSnapshotFn) {
+    const stateChanged = JSON.stringify(merged) !== JSON.stringify(existing);
+    if (stateChanged) {
+      await takeSnapshotFn({
+        quoteId: quote.id,
+        triggerEvent: "content_edited",
+        initiatorSource:
+          initiator.source === "public_editor" ? "public_editor" : "crm_seller",
+        initiatorUserId:
+          initiator.source === "crm_seller" ? (initiator.userId ?? null) : null,
+        metadata: { regenerated: pdfUrl != null },
+      });
+    }
+  }
 
   return {
     success: true,

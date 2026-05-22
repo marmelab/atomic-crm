@@ -253,8 +253,9 @@ describe("Phase 2 parity: createSigningSubmission from both callers", () => {
     );
   });
 
-  it("idempotence: reuses existing submission when status is sent/viewed/signed", async () => {
-    for (const status of ["sent", "viewed", "signed"]) {
+  it("idempotence: reuses existing submission for sent/viewed after DocuSeal verification", async () => {
+    for (const status of ["sent", "viewed"]) {
+      let fetchCalls = 0;
       const input = buildSigningInput(
         { source: "crm_manual" },
         {
@@ -265,8 +266,19 @@ describe("Phase 2 parity: createSigningSubmission from both callers", () => {
             status,
           },
           fetchImpl: async () => {
-            throw new Error(
-              "fetch should NOT be called when reusing existing submission",
+            fetchCalls += 1;
+            return new Response(
+              JSON.stringify({
+                id: "existing-submission-42",
+                submitters: [
+                  { slug: "axona" },
+                  { slug: "existing" },
+                ],
+              }),
+              {
+                status: 200,
+                headers: { "content-type": "application/json" },
+              },
             );
           },
         },
@@ -274,10 +286,38 @@ describe("Phase 2 parity: createSigningSubmission from both callers", () => {
 
       const result = await createSigningSubmission(input);
 
+      expect(fetchCalls).toBe(1);
       expect(result.reusedExistingSubmission).toBe(true);
+      expect(result.shouldSendSigningEmail).toBe(true);
       expect(result.submissionId).toBe("existing-submission-42");
       expect(result.signingUrl).toBe("https://test-docuseal.local/s/existing");
     }
+  });
+
+  it("idempotence: reuses signed submissions without contacting DocuSeal", async () => {
+    const input = buildSigningInput(
+      { source: "crm_manual" },
+      {
+        quote: {
+          ...buildSigningInput({ source: "crm_manual" }).quote,
+          docuseal_submission_id: "existing-submission-42",
+          docuseal_signing_url: "https://test-docuseal.local/s/existing",
+          status: "signed",
+        },
+        fetchImpl: async () => {
+          throw new Error(
+            "fetch should NOT be called when reusing a signed submission",
+          );
+        },
+      },
+    );
+
+    const result = await createSigningSubmission(input);
+
+    expect(result.reusedExistingSubmission).toBe(true);
+    expect(result.shouldSendSigningEmail).toBe(false);
+    expect(result.submissionId).toBe("existing-submission-42");
+    expect(result.signingUrl).toBe("https://test-docuseal.local/s/existing");
   });
 
   it("idempotence: creates a new submission when no submission_id exists", async () => {

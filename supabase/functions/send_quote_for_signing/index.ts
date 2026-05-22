@@ -2,14 +2,12 @@ import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { corsHeaders, OptionsMiddleware } from "../_shared/cors.ts";
 import { createErrorResponse } from "../_shared/utils.ts";
 import { supabaseAdmin } from "../_shared/supabaseAdmin.ts";
-import {
-  getDocuSealBaseUrl,
-  getResendApiUrl,
-} from "../_shared/serviceEndpoints.ts";
+import { getDocuSealBaseUrl } from "../_shared/serviceEndpoints.ts";
 import {
   createSigningSubmission,
   DocuSealSubmissionError,
   PIPELINE_STEP,
+  sendSigningEmail,
   withPipelineStep,
 } from "../_shared/quoteWorkflow/index.ts";
 
@@ -171,6 +169,9 @@ Deno.serve(async (req: Request) =>
         );
       } catch (err) {
         if (err instanceof DocuSealSubmissionError) {
+          if (err.status === 409) {
+            return createErrorResponse(409, err.body);
+          }
           return createErrorResponse(
             502,
             "Failed to create signing submission",
@@ -179,62 +180,45 @@ Deno.serve(async (req: Request) =>
         throw err;
       }
 
-      const { submissionId, signingUrl } = signingResult;
+      const { submissionId, signingUrl, shouldSendSigningEmail } =
+        signingResult;
 
-      // Send signing invitation email via Resend.
-      // Note: the email template diverges from approve_proposal today; phase 3
-      // will unify them behind a shared sendSigningEmail helper.
-      if (signingUrl) {
-        const resendApiKey = Deno.env.get("RESEND_API_KEY");
-        const fromEmail =
-          Deno.env.get("RESEND_FROM_EMAIL") || "hej@axonadigital.se";
-
-        if (resendApiKey) {
-          const quoteLabel = quote.quote_number || `#${quote.id}`;
-          const firstName = signerName.split(" ")[0] || signerName;
-
-          const html = [
-            `<p>Hej ${firstName},</p>`,
-            `<p>Tack för att ni väljer Axona Digital! Din offert <strong>${quoteLabel}</strong> är nu klar för granskning och signering.</p>`,
-            `<p>Klicka på knappen nedan för att läsa igenom offerten och signera avtalet digitalt:</p>`,
-            `<p style="margin:24px 0;">`,
-            `  <a href="${proposalUrl}" style="background:#1a1a1a;color:#fff;padding:14px 28px;border-radius:6px;text-decoration:none;font-weight:600;font-size:15px;">`,
-            `    Granska och signera offert`,
-            `  </a>`,
-            `</p>`,
-            `<p style="color:#888;font-size:13px;">Länken är personlig — dela den inte med andra.</p>`,
-            `<p>Med vänlig hälsning,<br>Rasmus Jönsson<br>Axona Digital AB</p>`,
-          ].join("\n");
-
-          const emailRes = await fetch(`${getResendApiUrl()}/emails`, {
-            method: "POST",
-            headers: {
-              Authorization: `Bearer ${resendApiKey}`,
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              from: `Axona Digital <${fromEmail}>`,
-              to: [signerEmail],
-              subject: `Din offert från Axona Digital — ${quoteLabel}`,
-              html,
-            }),
-          });
-
-          if (!emailRes.ok) {
-            const errBody = await emailRes.text();
-            console.error(
-              "Resend signing email error:",
-              emailRes.status,
-              errBody,
-            );
-          } else {
-            console.warn("Signing invitation sent via Resend to:", signerEmail);
-          }
-        } else {
-          console.warn(
-            "RESEND_API_KEY not configured — signing email not sent",
-          );
-        }
+      if (signingUrl && shouldSendSigningEmail) {
+        const quoteLabel = quote.quote_number || `#${quote.id}`;
+        await withPipelineStep(
+          {
+            supabase,
+            quoteId: Number(quote.id),
+            stepName: PIPELINE_STEP.SEND_EMAIL,
+            metadata: { trigger: "crm_manual", email_type: "docuseal_signing" },
+          },
+          async () => {
+            const emailResult = await sendSigningEmail({
+              supabase,
+              quoteId: Number(quote.id),
+              contactId: quote.contact_id,
+              companyId: quote.company_id,
+              salesId: quote.sales_id,
+              contactName: signerName,
+              contactEmail: signerEmail,
+              companyName,
+              quoteNumber: quoteLabel,
+              signingUrl,
+              proposalUrl,
+            });
+            if (emailResult.skipped) {
+              console.warn("send_quote_for_signing: signing email skipped", {
+                quoteId: quote.id,
+                reason: emailResult.reason,
+              });
+            }
+          },
+        );
+      } else if (signingUrl) {
+        console.warn(
+          "send_quote_for_signing: skipping signing email on reused submission",
+          { quoteId: quote.id, submissionId },
+        );
       }
 
       return new Response(

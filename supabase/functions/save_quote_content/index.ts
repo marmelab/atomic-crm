@@ -11,6 +11,7 @@ import {
   saveQuoteContentPayloadSchema,
   summarizeZodError,
 } from "../_shared/quoteWorkflow/index.ts";
+import { takeSnapshot } from "../_shared/quoteWorkflow/takeSnapshot.ts";
 
 /**
  * Save quote content from the CRM seller editor.
@@ -157,6 +158,8 @@ Deno.serve(async (req: Request) =>
             sections,
             initiator: { source: "crm_seller", userId: user.id },
             regeneratePdf,
+            takeSnapshotFn: (opts) =>
+              takeSnapshot({ supabase: supabaseAdmin, ...opts }),
           });
 
           return new Response(

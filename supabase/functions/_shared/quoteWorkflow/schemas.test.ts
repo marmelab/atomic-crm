@@ -143,6 +143,26 @@ describe("docuSealWebhookPayloadSchema", () => {
     expect(parsed.success).toBe(true);
   });
 
+  it("accepts a form.declined payload where combined_document_url is null (DocuSeal CE)", () => {
+    // DocuSeal CE sends null for combined_document_url when no document has been produced yet
+    // (e.g. form.viewed, form.declined). This was previously quarantined because
+    // z.string().optional() rejects explicit null values.
+    const parsed = docuSealWebhookPayloadSchema.safeParse({
+      event_type: "form.declined",
+      data: {
+        submission: {
+          id: 39,
+          status: "declined",
+          combined_document_url: null,
+        },
+        status: "declined",
+        declined_at: "2026-04-15T16:20:34.400Z",
+        submission_id: 39,
+      },
+    });
+    expect(parsed.success).toBe(true);
+  });
+
   it("accepts a submission.viewed payload with top-level submission_id", () => {
     const parsed = docuSealWebhookPayloadSchema.safeParse({
       type: "submission.viewed",
