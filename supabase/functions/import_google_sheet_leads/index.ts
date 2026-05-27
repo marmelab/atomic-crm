@@ -1420,17 +1420,60 @@ async function handleImportNext(
 
   try {
     const parsedRows = await fetchParsedRows(claimedSource);
-    const pendingRows = range
-      ? parsedRows.filter(
-          (row) =>
-            row.sourceRowNumber >= range.startRow &&
-            row.sourceRowNumber <= range.endRow,
-        )
-      : parsedRows
-          .filter(
-            (row) => row.sourceRowNumber > claimedSource.last_imported_row,
-          )
-          .slice(0, batchSize);
+    const filterConfig: ImportFilterConfig = claimedSource.filter_config ?? {};
+
+    // Pre-filter: apply basic filters (free, instant) BEFORE slicing to
+    // batchSize. This way batch_size means "give me N candidates that
+    // match my filters", not "scan N rows regardless of filters".
+    let pendingRows: typeof parsedRows;
+    let rowsSkippedByPreFilter = 0;
+    let lastScannedRow = claimedSource.last_imported_row;
+
+    if (range) {
+      pendingRows = parsedRows.filter(
+        (row) =>
+          row.sourceRowNumber >= range.startRow &&
+          row.sourceRowNumber <= range.endRow,
+      );
+    } else {
+      const allRemaining = parsedRows.filter(
+        (row) => row.sourceRowNumber > claimedSource.last_imported_row,
+      );
+
+      const candidates: typeof parsedRows = [];
+      for (const row of allRemaining) {
+        lastScannedRow = row.sourceRowNumber;
+
+        // Quick mappability check
+        const name = (
+          row.rowRecord.namn ||
+          row.rowRecord.name ||
+          row.rowRecord.foretagsnamn ||
+          ""
+        ).trim();
+        const orgNumber = (
+          row.rowRecord.orgnr ||
+          row.rowRecord.org_number ||
+          row.rowRecord.organisationsnummer ||
+          ""
+        ).trim();
+        if (!name || !orgNumber) {
+          rowsSkippedByPreFilter++;
+          continue;
+        }
+
+        const filterResult = applyImportFilters(row.rowRecord, filterConfig);
+        if (filterResult.skip) {
+          rowsSkippedByPreFilter++;
+          continue;
+        }
+
+        candidates.push(row);
+        if (candidates.length >= batchSize) break;
+      }
+
+      pendingRows = candidates;
+    }
 
     if (pendingRows.length === 0) {
       await finalizeRun(claimedSource, run.id, {
@@ -1477,8 +1520,7 @@ async function handleImportNext(
     let rowsSkippedFiltered = 0;
     let rowsSkippedPrequalified = 0;
     let rowsFailed = 0;
-    let lastProcessedRow = claimedSource.last_imported_row;
-    const filterConfig: ImportFilterConfig = claimedSource.filter_config ?? {};
+    let lastProcessedRow = lastScannedRow;
     const serperApiKey = filterConfig.pre_qualify_website
       ? Deno.env.get("SERPER_API_KEY")
       : null;
@@ -1673,12 +1715,16 @@ async function handleImportNext(
             .join(" | ")
         : null;
 
+    const totalScanned = pendingRows.length + rowsSkippedByPreFilter;
+    const totalFiltered =
+      rowsSkippedFiltered + rowsSkippedPrequalified + rowsSkippedByPreFilter;
+
     await finalizeRun(claimedSource, run.id, {
       status,
-      rows_scanned: pendingRows.length,
+      rows_scanned: totalScanned,
       rows_inserted: rowsInserted,
       rows_skipped_duplicates: rowsSkippedDuplicates,
-      rows_skipped_filtered: rowsSkippedFiltered + rowsSkippedPrequalified,
+      rows_skipped_filtered: totalFiltered,
       rows_failed: rowsFailed,
       actual_batch_size: pendingRows.length,
       imported_company_ids: importedCompanyIds,
@@ -1694,11 +1740,12 @@ async function handleImportNext(
     return createJsonResponse({
       source_id: claimedSource.id,
       run_id: run.id,
-      rows_scanned: pendingRows.length,
+      rows_scanned: totalScanned,
       rows_inserted: rowsInserted,
       rows_skipped_duplicates: rowsSkippedDuplicates,
       rows_skipped_filtered: rowsSkippedFiltered,
       rows_skipped_prequalified: rowsSkippedPrequalified,
+      rows_skipped_by_pre_filter: rowsSkippedByPreFilter,
       rows_failed: rowsFailed,
       actual_batch_size: pendingRows.length,
       imported_company_ids: importedCompanyIds,
