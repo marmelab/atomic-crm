@@ -163,6 +163,9 @@ export type ImportFilterConfig = {
   exclude_org_forms?: string[];
   min_employees?: number | null;
   max_employees?: number | null;
+  include_verksamhet_keywords?: string[];
+  exclude_verksamhet_keywords?: string[];
+  pre_qualify_website?: boolean;
 };
 
 export type LeadImportSource = {

@@ -44,6 +44,9 @@ export const LeadImportFilterSettings = () => {
   const [orgForms, setOrgForms] = useState("");
   const [minEmployees, setMinEmployees] = useState("");
   const [maxEmployees, setMaxEmployees] = useState("");
+  const [includeVerksamhet, setIncludeVerksamhet] = useState("");
+  const [excludeVerksamhet, setExcludeVerksamhet] = useState("");
+  const [preQualifyWebsite, setPreQualifyWebsite] = useState(false);
 
   if (!record) return null;
 
@@ -57,6 +60,9 @@ export const LeadImportFilterSettings = () => {
     setOrgForms(keywordsToString(cfg.exclude_org_forms));
     setMinEmployees(cfg.min_employees != null ? String(cfg.min_employees) : "");
     setMaxEmployees(cfg.max_employees != null ? String(cfg.max_employees) : "");
+    setIncludeVerksamhet(keywordsToString(cfg.include_verksamhet_keywords));
+    setExcludeVerksamhet(keywordsToString(cfg.exclude_verksamhet_keywords));
+    setPreQualifyWebsite(cfg.pre_qualify_website ?? false);
   };
 
   const handleOpenChange = (next: boolean) => {
@@ -72,6 +78,9 @@ export const LeadImportFilterSettings = () => {
       exclude_org_forms: stringToKeywords(orgForms),
       min_employees: minEmployees.trim() ? Number(minEmployees) : null,
       max_employees: maxEmployees.trim() ? Number(maxEmployees) : null,
+      include_verksamhet_keywords: stringToKeywords(includeVerksamhet),
+      exclude_verksamhet_keywords: stringToKeywords(excludeVerksamhet),
+      pre_qualify_website: preQualifyWebsite || undefined,
     };
 
     try {
@@ -97,7 +106,10 @@ export const LeadImportFilterSettings = () => {
     (record.filter_config?.exclude_name_keywords ?? []).length > 0 ||
     (record.filter_config?.exclude_org_forms ?? []).length > 0 ||
     record.filter_config?.min_employees != null ||
-    record.filter_config?.max_employees != null;
+    record.filter_config?.max_employees != null ||
+    (record.filter_config?.include_verksamhet_keywords ?? []).length > 0 ||
+    (record.filter_config?.exclude_verksamhet_keywords ?? []).length > 0 ||
+    record.filter_config?.pre_qualify_website;
 
   return (
     <Sheet open={open} onOpenChange={handleOpenChange}>
@@ -125,6 +137,25 @@ export const LeadImportFilterSettings = () => {
         </SheetHeader>
 
         <div className="mt-6 flex flex-1 flex-col gap-5 overflow-y-auto pr-1">
+          {/* Pre-qualify website */}
+          <div className="flex items-center gap-3 rounded-lg border border-blue-200 bg-blue-50 p-3 dark:border-blue-800 dark:bg-blue-950">
+            <Switch
+              id="pre-qualify-website"
+              checked={preQualifyWebsite}
+              onCheckedChange={setPreQualifyWebsite}
+            />
+            <div>
+              <Label htmlFor="pre-qualify-website">
+                Pre-kvalificera hemsida
+              </Label>
+              <p className="text-muted-foreground text-xs">
+                Kontrollerar varje företags hemsida INNAN import. Företag med
+                bra hemsidor (score &ge;70) importeras aldrig. Kostar 1
+                Serper-anrop per företag. Rekommenderad batchstorlek: 30-50.
+              </p>
+            </div>
+          </div>
+
           {/* Revenue */}
           <div className="flex flex-col gap-1.5">
             <Label htmlFor="min-revenue">Minsta omsättning (kkr)</Label>
@@ -185,6 +216,42 @@ export const LeadImportFilterSettings = () => {
             <p className="text-muted-foreground text-xs">
               Kommaseparerade. Matchar delsträngar i organisationsform (ej
               skiftlägeskänsligt).
+            </p>
+          </div>
+
+          {/* Include verksamhet */}
+          <div className="flex flex-col gap-1.5">
+            <Label htmlFor="include-verksamhet">
+              Inkludera verksamhetsbeskrivning
+            </Label>
+            <Input
+              id="include-verksamhet"
+              type="text"
+              placeholder="t.ex. restaurang, frisör, bygg, verkstad, café"
+              value={includeVerksamhet}
+              onChange={(e) => setIncludeVerksamhet(e.target.value)}
+            />
+            <p className="text-muted-foreground text-xs">
+              Kommaseparerade. Bara företag vars verksamhetsbeskrivning matchar
+              minst ett av orden importeras. Lämna tomt för att inte filtrera.
+            </p>
+          </div>
+
+          {/* Exclude verksamhet */}
+          <div className="flex flex-col gap-1.5">
+            <Label htmlFor="exclude-verksamhet">
+              Uteslut verksamhetsbeskrivning
+            </Label>
+            <Input
+              id="exclude-verksamhet"
+              type="text"
+              placeholder="t.ex. förvaltning, fastighet, jordbruk, skogsbruk"
+              value={excludeVerksamhet}
+              onChange={(e) => setExcludeVerksamhet(e.target.value)}
+            />
+            <p className="text-muted-foreground text-xs">
+              Kommaseparerade. Företag vars verksamhetsbeskrivning matchar något
+              av orden hoppas över.
             </p>
           </div>
 

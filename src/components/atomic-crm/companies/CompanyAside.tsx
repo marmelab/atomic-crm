@@ -72,6 +72,8 @@ export const CompanyAside = ({ link = "edit" }: CompanyAsideProps) => {
 
       <SwedishCrmInfo record={record} />
 
+      <ImportInfo record={record} />
+
       <EnrichmentInfo record={record} />
 
       <AddressInfo record={record} />
@@ -297,6 +299,69 @@ export const SwedishCrmInfo = ({ record }: { record: Company }) => {
               {tag}
             </Badge>
           ))}
+        </div>
+      )}
+    </AsideSection>
+  );
+};
+
+const PROSPECTING_STATUS_LABELS: Record<
+  string,
+  { label: string; color: string }
+> = {
+  imported: {
+    label: "Importerad",
+    color: "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200",
+  },
+  enriching: {
+    label: "Berikas...",
+    color:
+      "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200",
+  },
+  call_ready: {
+    label: "Redo att ringa",
+    color: "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200",
+  },
+  needs_review: {
+    label: "Behöver granskning",
+    color:
+      "bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200",
+  },
+  completed: {
+    label: "Klar",
+    color: "bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200",
+  },
+  disqualified: {
+    label: "Diskvalificerad",
+    color: "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200",
+  },
+};
+
+const ImportInfo = ({ record }: { record: Company }) => {
+  if (record.source !== "import" && record.source !== "google_maps")
+    return null;
+
+  const status = record.prospecting_status
+    ? PROSPECTING_STATUS_LABELS[record.prospecting_status]
+    : null;
+
+  return (
+    <AsideSection title="Import">
+      {status && (
+        <div className="flex items-center gap-2 mb-2">
+          <Badge className={status.color}>{status.label}</Badge>
+        </div>
+      )}
+      {record.source_row_number && (
+        <div className="text-sm mb-1">
+          <span className="font-medium">Rad i sheet:</span>{" "}
+          {record.source_row_number}
+        </div>
+      )}
+      {record.import_run_id && (
+        <div className="text-sm mb-1">
+          <span className="font-medium">Import-körning:</span> #
+          {String(record.import_run_id)}
         </div>
       )}
     </AsideSection>

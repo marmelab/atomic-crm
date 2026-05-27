@@ -1,4 +1,11 @@
-import { Building, Handshake, Sparkles, Truck, Users } from "lucide-react";
+import {
+  Building,
+  FileDown,
+  Handshake,
+  Sparkles,
+  Truck,
+  Users,
+} from "lucide-react";
 import { useGetIdentity, useTranslate } from "ra-core";
 import { ToggleFilterButton } from "@/components/admin/toggle-filter-button";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -117,6 +124,42 @@ export const CompanyListFilter = () => {
           className={toggleClassName}
           label="Dålig hemsida"
           value={{ "website_quality@eq": "poor" }}
+          size={toggleSize}
+        />
+      </FilterCategory>
+
+      <FilterCategory
+        icon={<FileDown className="h-4 w-4" />}
+        label="Import & Prospektering"
+      >
+        <ToggleFilterButton
+          className={toggleClassName}
+          label="Importerade"
+          value={{ "source@eq": "import" }}
+          size={toggleSize}
+        />
+        <ToggleFilterButton
+          className={toggleClassName}
+          label="Redo att ringa"
+          value={{ "prospecting_status@eq": "call_ready" }}
+          size={toggleSize}
+        />
+        <ToggleFilterButton
+          className={toggleClassName}
+          label="Behöver granskning"
+          value={{ "prospecting_status@eq": "needs_review" }}
+          size={toggleSize}
+        />
+        <ToggleFilterButton
+          className={toggleClassName}
+          label="Nyimporterade"
+          value={{ "prospecting_status@eq": "imported" }}
+          size={toggleSize}
+        />
+        <ToggleFilterButton
+          className={toggleClassName}
+          label="Diskvalificerade"
+          value={{ "prospecting_status@eq": "disqualified" }}
           size={toggleSize}
         />
       </FilterCategory>

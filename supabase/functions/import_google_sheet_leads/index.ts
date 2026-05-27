@@ -39,6 +39,9 @@ type ImportFilterConfig = {
   exclude_org_forms?: string[];
   min_employees?: number | null;
   max_employees?: number | null;
+  include_verksamhet_keywords?: string[];
+  exclude_verksamhet_keywords?: string[];
+  pre_qualify_website?: boolean;
 };
 
 type LeadImportSource = {
@@ -105,7 +108,7 @@ type ParsedSheetRow = {
 
 type ProcessedRowResult = {
   sourceRowNumber: number;
-  status: "imported" | "duplicate" | "failed" | "filtered";
+  status: "imported" | "duplicate" | "failed" | "filtered" | "prequalified";
   companyId: number | null;
   importedAt: string | null;
 };
@@ -115,6 +118,7 @@ type RowStats = {
   imported: number[];
   duplicates: number[];
   failed: number[];
+  prequalified: number[];
 };
 
 type SheetWritebackResult = {
@@ -282,7 +286,305 @@ function applyImportFilters(
     }
   }
 
+  // Verksamhetsbeskrivning filters
+  const verksamhet = (
+    row.verksamhetsbeskrivning ||
+    row.verksamhet ||
+    row.description ||
+    row.beskrivning ||
+    row.bransch ||
+    row.sni_beskrivning ||
+    ""
+  )
+    .trim()
+    .toLowerCase();
+
+  // Include filter: ONLY import if verksamhet matches at least one keyword
+  if (config.include_verksamhet_keywords?.length && verksamhet) {
+    const matches = config.include_verksamhet_keywords.some((kw) =>
+      verksamhet.includes(kw.toLowerCase()),
+    );
+    if (!matches) {
+      return {
+        skip: true,
+        reason: `verksamhet "${verksamhet.slice(0, 60)}" matchar inga inkluderade nyckelord`,
+      };
+    }
+  }
+
+  // Exclude filter: skip if verksamhet matches any keyword
+  if (config.exclude_verksamhet_keywords?.length && verksamhet) {
+    const matched = config.exclude_verksamhet_keywords.find((kw) =>
+      verksamhet.includes(kw.toLowerCase()),
+    );
+    if (matched) {
+      return {
+        skip: true,
+        reason: `verksamhet keyword "${matched}"`,
+      };
+    }
+  }
+
   return { skip: false };
+}
+
+// --- Pre-qualification: Quick website check before import ---
+
+const PRE_QUAL_SKIP_DOMAINS = [
+  "facebook.com",
+  "instagram.com",
+  "linkedin.com",
+  "twitter.com",
+  "x.com",
+  "tiktok.com",
+  "bokadirekt.se",
+  "voady.com",
+  "boka.se",
+  "bokamera.se",
+  "timecenter.se",
+  "booksy.com",
+  "fresha.com",
+  "treatwell.se",
+  "linktr.ee",
+  "linktree.com",
+  "hitta.se",
+  "eniro.se",
+  "allabolag.se",
+  "ratsit.se",
+  "google.com/maps",
+  "maps.google",
+  "yelp.com",
+  "tripadvisor.com",
+  "carrd.co",
+  "beacons.ai",
+];
+
+interface PreQualResult {
+  has_good_website: boolean;
+  website: string | null;
+  website_quality: "none" | "poor" | "ok" | "good";
+  website_score: number;
+}
+
+async function quickWebsitePreCheck(
+  companyName: string,
+  city: string | null,
+  serperApiKey: string,
+): Promise<PreQualResult> {
+  const noWebsite: PreQualResult = {
+    has_good_website: false,
+    website: null,
+    website_quality: "none",
+    website_score: 0,
+  };
+
+  const cleanName = companyName
+    .replace(
+      /\b(ab|hb|kb|ek\.?\s*för\.?|aktiebolag|handelsbolag|enskild firma|kommanditbolag|ekonomisk förening)\b/gi,
+      "",
+    )
+    .replace(/\s+/g, " ")
+    .trim()
+    .split(/\s+/)
+    .filter((w) => w.length > 1)
+    .join(" ");
+
+  const query =
+    city && !cleanName.toLowerCase().includes(city.toLowerCase())
+      ? `${cleanName} ${city}`
+      : cleanName;
+
+  try {
+    const res = await fetch("https://google.serper.dev/search", {
+      method: "POST",
+      headers: {
+        "X-API-KEY": serperApiKey,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ q: query, gl: "se", hl: "sv", num: 5 }),
+    });
+
+    if (!res.ok) return noWebsite;
+    const data = await res.json();
+
+    let websiteUrl: string | null = data.knowledgeGraph?.website || null;
+
+    if (!websiteUrl && data.organic) {
+      const nameWords = cleanName
+        .toLowerCase()
+        .split(/\s+/)
+        .filter((w: string) => w.length > 2);
+      for (const item of data.organic) {
+        const link = item.link.toLowerCase();
+        if (PRE_QUAL_SKIP_DOMAINS.some((d) => link.includes(d))) continue;
+        if (link.includes("/blogg/") || link.includes(".pdf")) continue;
+        const hasMatch = nameWords.some(
+          (w: string) =>
+            item.title.toLowerCase().includes(w) || link.includes(w),
+        );
+        if (hasMatch) {
+          websiteUrl = item.link;
+          break;
+        }
+      }
+    }
+
+    if (
+      !websiteUrl ||
+      PRE_QUAL_SKIP_DOMAINS.some((d) => websiteUrl!.toLowerCase().includes(d))
+    ) {
+      return noWebsite;
+    }
+
+    // Quick HTTP check on the website
+    // Scoring philosophy: start LOW (20). Only genuinely modern, well-built
+    // sites can reach "good" (≥80). A basic WordPress or old HTML site should
+    // NEVER be skipped — those are leads for a web agency.
+    const url = websiteUrl.startsWith("http")
+      ? websiteUrl
+      : `https://${websiteUrl}`;
+    try {
+      const startTime = Date.now();
+      const siteRes = await fetch(url, {
+        signal: AbortSignal.timeout(10000),
+        redirect: "follow",
+        headers: {
+          "User-Agent":
+            "Mozilla/5.0 (compatible; CRMBot/1.0; +https://axonadigital.se)",
+        },
+      });
+      const responseTime = Date.now() - startTime;
+
+      if (!siteRes.ok) {
+        return {
+          has_good_website: false,
+          website: websiteUrl,
+          website_quality: "poor",
+          website_score: 0,
+        };
+      }
+
+      const html = await siteRes.text();
+      const htmlLower = html.toLowerCase();
+
+      // Parked / placeholder → immediate poor
+      if (
+        html.length < 2000 ||
+        htmlLower.includes("domain is for sale") ||
+        htmlLower.includes("coming soon") ||
+        htmlLower.includes("under construction") ||
+        htmlLower.includes("denna domän") ||
+        htmlLower.includes("köp denna")
+      ) {
+        return {
+          has_good_website: false,
+          website: websiteUrl,
+          website_quality: "poor",
+          website_score: 5,
+        };
+      }
+
+      // Start at 20 — "a site exists, nothing more"
+      let score = 20;
+
+      // --- Modern framework detection (only these can push to "good") ---
+      // Full JS frameworks → genuinely custom/modern site
+      if (htmlLower.includes("__next") || htmlLower.includes("_next/static")) {
+        score += 40; // Next.js
+      } else if (
+        htmlLower.includes("__nuxt") ||
+        htmlLower.includes("/_nuxt/")
+      ) {
+        score += 40; // Nuxt
+      } else if (htmlLower.includes("___gatsby")) {
+        score += 35; // Gatsby
+      } else if (htmlLower.includes("_astro")) {
+        score += 35; // Astro
+      } else if (/ng-version=/i.test(html)) {
+        score += 30; // Angular
+      } else if (htmlLower.includes("webflow")) {
+        score += 30; // Webflow
+      } else if (htmlLower.includes("squarespace")) {
+        score += 25; // Squarespace
+      } else if (
+        htmlLower.includes("shopify") ||
+        htmlLower.includes("myshopify")
+      ) {
+        score += 25; // Shopify
+      } else if (
+        htmlLower.includes("wp-block-") &&
+        (htmlLower.includes("wp-element") || htmlLower.includes("wp-json"))
+      ) {
+        // Modern WordPress with block editor (both markers needed)
+        score += 15;
+      }
+      // NOTE: Wix, one.com, Loopia, Jimdo, Google Sites → no bonus
+      // These are budget builders = leads for a web agency
+
+      // --- Basic positive signals ---
+      const finalUrl = siteRes.url || url;
+      if (finalUrl.startsWith("https://")) score += 5;
+      if (/meta[^>]+viewport/i.test(html)) score += 10;
+      if (
+        htmlLower.includes('loading="lazy"') ||
+        htmlLower.includes("lazyload")
+      )
+        score += 5;
+      if (
+        htmlLower.includes("preconnect") ||
+        htmlLower.includes("prefetch") ||
+        htmlLower.includes("preload")
+      )
+        score += 5;
+      if (responseTime < 1500) score += 5;
+      // Structured data (schema.org, JSON-LD)
+      if (
+        htmlLower.includes("application/ld+json") ||
+        htmlLower.includes("schema.org")
+      )
+        score += 5;
+
+      // --- Negative signals (old/broken tech) ---
+      if (!finalUrl.startsWith("https://")) score -= 5;
+      if (!/meta[^>]+viewport/i.test(html)) score -= 10;
+      if (htmlLower.includes("<font")) score -= 10;
+      if (htmlLower.includes("shockwave-flash") || htmlLower.includes(".swf"))
+        score -= 15;
+      const jqMatch = html.match(/jquery[.-]?(\d+)\./i);
+      if (jqMatch && parseInt(jqMatch[1]) < 3) score -= 5;
+      // Table-based layout
+      const tableCount = (htmlLower.match(/<table/g) || []).length;
+      const divCount = (htmlLower.match(/<div/g) || []).length;
+      if (tableCount > 3 && tableCount > divCount * 0.5) score -= 10;
+      // Frames
+      if (htmlLower.includes("<frameset")) score -= 10;
+      // XHTML / no doctype
+      if (htmlLower.includes("xhtml") || htmlLower.includes("transitional"))
+        score -= 5;
+
+      score = Math.max(0, Math.min(100, score));
+
+      // Threshold 80: only truly modern, polished sites get skipped
+      const quality: "good" | "ok" | "poor" =
+        score >= 80 ? "good" : score >= 40 ? "ok" : "poor";
+
+      return {
+        has_good_website: quality === "good",
+        website: websiteUrl,
+        website_quality: quality,
+        website_score: score,
+      };
+    } catch {
+      return {
+        has_good_website: false,
+        website: websiteUrl,
+        website_quality: "poor",
+        website_score: 0,
+      };
+    }
+  } catch {
+    return noWebsite;
+  }
 }
 
 function sleep(ms: number) {
@@ -700,7 +1002,9 @@ function toRowRanges(rowNumbers: number[]) {
     }
 
     ranges.push(
-      rangeStart === previous ? String(rangeStart) : `${rangeStart}-${previous}`,
+      rangeStart === previous
+        ? String(rangeStart)
+        : `${rangeStart}-${previous}`,
     );
     rangeStart = current;
     previous = current;
@@ -728,16 +1032,25 @@ function buildRowStats(
     failed: processedRows
       .filter((row) => row.status === "failed")
       .map((row) => row.sourceRowNumber),
+    prequalified: processedRows
+      .filter((row) => row.status === "prequalified")
+      .map((row) => row.sourceRowNumber),
   };
 }
 
 function buildLastRunMessage(rowStats: RowStats) {
-  return [
+  const parts = [
     `Rader: ${toRowRanges(rowStats.scanned)}`,
     `Nya: ${toRowRanges(rowStats.imported)}`,
+  ];
+  if (rowStats.prequalified.length > 0) {
+    parts.push(`Bra hemsida (skippad): ${toRowRanges(rowStats.prequalified)}`);
+  }
+  parts.push(
     `Dubbletter: ${toRowRanges(rowStats.duplicates)}`,
     `Fel: ${toRowRanges(rowStats.failed)}`,
-  ].join(" | ");
+  );
+  return parts.join(" | ");
 }
 
 async function fetchParsedRows(source: LeadImportSource) {
@@ -1162,9 +1475,13 @@ async function handleImportNext(
     let rowsInserted = 0;
     let rowsSkippedDuplicates = 0;
     let rowsSkippedFiltered = 0;
+    let rowsSkippedPrequalified = 0;
     let rowsFailed = 0;
     let lastProcessedRow = claimedSource.last_imported_row;
     const filterConfig: ImportFilterConfig = claimedSource.filter_config ?? {};
+    const serperApiKey = filterConfig.pre_qualify_website
+      ? Deno.env.get("SERPER_API_KEY")
+      : null;
 
     for (const pendingRow of pendingRows) {
       lastProcessedRow = pendingRow.sourceRowNumber;
@@ -1235,9 +1552,59 @@ async function handleImportNext(
         continue;
       }
 
+      // Pre-qualification: quick website check before import
+      let preQualData: PreQualResult | null = null;
+      if (serperApiKey) {
+        preQualData = await quickWebsitePreCheck(
+          mapped.company.name,
+          mapped.company.city,
+          serperApiKey,
+        );
+
+        if (preQualData.has_good_website) {
+          rowsSkippedPrequalified++;
+          processedRows.push({
+            sourceRowNumber: pendingRow.sourceRowNumber,
+            status: "prequalified",
+            companyId: null,
+            importedAt: null,
+          });
+          await sleep(300);
+          continue;
+        }
+
+        await sleep(300);
+      }
+
+      // Build insert payload with pre-qualification data if available
+      const insertPayload = {
+        ...mapped.company,
+        ...(preQualData?.website
+          ? {
+              website: preQualData.website,
+              website_quality: preQualData.website_quality,
+              website_score: preQualData.website_score,
+              has_website: preQualData.website_quality !== "none",
+            }
+          : {}),
+        enrichment_data: {
+          ...mapped.company.enrichment_data,
+          ...(preQualData
+            ? {
+                pre_qualification: {
+                  website: preQualData.website,
+                  website_quality: preQualData.website_quality,
+                  website_score: preQualData.website_score,
+                  checked_at: new Date().toISOString(),
+                },
+              }
+            : {}),
+        },
+      };
+
       const { data: inserted, error: insertError } = await supabaseAdmin
         .from("companies")
-        .insert(mapped.company)
+        .insert(insertPayload)
         .select("id")
         .single();
 
@@ -1311,7 +1678,7 @@ async function handleImportNext(
       rows_scanned: pendingRows.length,
       rows_inserted: rowsInserted,
       rows_skipped_duplicates: rowsSkippedDuplicates,
-      rows_skipped_filtered: rowsSkippedFiltered,
+      rows_skipped_filtered: rowsSkippedFiltered + rowsSkippedPrequalified,
       rows_failed: rowsFailed,
       actual_batch_size: pendingRows.length,
       imported_company_ids: importedCompanyIds,
@@ -1331,6 +1698,7 @@ async function handleImportNext(
       rows_inserted: rowsInserted,
       rows_skipped_duplicates: rowsSkippedDuplicates,
       rows_skipped_filtered: rowsSkippedFiltered,
+      rows_skipped_prequalified: rowsSkippedPrequalified,
       rows_failed: rowsFailed,
       actual_batch_size: pendingRows.length,
       imported_company_ids: importedCompanyIds,
@@ -1345,6 +1713,7 @@ async function handleImportNext(
         scanned_rows: rowStats.scanned,
         imported_rows: rowStats.imported,
         duplicate_rows: rowStats.duplicates,
+        prequalified_rows: rowStats.prequalified,
         failed_rows: rowStats.failed,
       },
       last_run_message: lastRunMessage,
