@@ -1422,12 +1422,17 @@ async function handleImportNext(
     const parsedRows = await fetchParsedRows(claimedSource);
     const filterConfig: ImportFilterConfig = claimedSource.filter_config ?? {};
 
-    // Pre-filter: apply basic filters (free, instant) BEFORE slicing to
-    // batchSize. This way batch_size means "give me N candidates that
-    // match my filters", not "scan N rows regardless of filters".
+    // Pre-filter strategy: scan ALL remaining rows, apply filters, and
+    // collect up to batchSize candidates. The row pointer (last_imported_row)
+    // is NOT used to skip rows — instead we rely on the duplicate check
+    // (companies table) + blocklist to skip already-processed rows.
+    //
+    // This means changing filters will re-evaluate ALL rows from the start
+    // of the sheet. Previously imported/blocked rows are skipped instantly
+    // by the org_number checks, so the only cost is the filter evaluation
+    // itself (fast, no API calls).
     let pendingRows: typeof parsedRows;
     let rowsSkippedByPreFilter = 0;
-    let lastScannedRow = claimedSource.last_imported_row;
 
     if (range) {
       pendingRows = parsedRows.filter(
@@ -1436,14 +1441,9 @@ async function handleImportNext(
           row.sourceRowNumber <= range.endRow,
       );
     } else {
-      const allRemaining = parsedRows.filter(
-        (row) => row.sourceRowNumber > claimedSource.last_imported_row,
-      );
-
       const candidates: typeof parsedRows = [];
-      for (const row of allRemaining) {
-        lastScannedRow = row.sourceRowNumber;
 
+      for (const row of parsedRows) {
         // Quick mappability check
         const name = (
           row.rowRecord.namn ||
@@ -1520,13 +1520,11 @@ async function handleImportNext(
     let rowsSkippedFiltered = 0;
     let rowsSkippedPrequalified = 0;
     let rowsFailed = 0;
-    let lastProcessedRow = lastScannedRow;
     const serperApiKey = filterConfig.pre_qualify_website
       ? Deno.env.get("SERPER_API_KEY")
       : null;
 
     for (const pendingRow of pendingRows) {
-      lastProcessedRow = pendingRow.sourceRowNumber;
       const mapped = mapRowToCompany(
         pendingRow.rowRecord,
         pendingRow.sourceRowNumber,
@@ -1752,7 +1750,6 @@ async function handleImportNext(
       sheet_writeback_error: writebackResult.error ?? null,
       error_summary: errorSummary,
       last_run_message: lastRunMessage,
-      ...(range ? {} : { last_imported_row: lastProcessedRow }),
     });
 
     return createJsonResponse({
@@ -1768,7 +1765,6 @@ async function handleImportNext(
       actual_batch_size: pendingRows.length,
       imported_company_ids: importedCompanyIds,
       enrichment_results: enrichmentResults,
-      ...(range ? {} : { last_imported_row: lastProcessedRow }),
       sheet_writeback_status: writebackResult.status,
       sheet_rows_marked: writebackResult.rows_marked,
       sheet_rows_failed: writebackResult.rows_failed,
