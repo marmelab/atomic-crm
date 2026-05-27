@@ -1594,6 +1594,24 @@ async function handleImportNext(
         continue;
       }
 
+      // Check blocklist (previously deleted imported companies)
+      const { data: blocked } = await supabaseAdmin
+        .from("import_blocklist")
+        .select("id")
+        .eq("org_number", mapped.company.org_number)
+        .maybeSingle();
+
+      if (blocked) {
+        rowsSkippedDuplicates++;
+        processedRows.push({
+          sourceRowNumber: pendingRow.sourceRowNumber,
+          status: "duplicate",
+          companyId: null,
+          importedAt: null,
+        });
+        continue;
+      }
+
       // Pre-qualification: quick website check before import
       let preQualData: PreQualResult | null = null;
       if (serperApiKey) {
