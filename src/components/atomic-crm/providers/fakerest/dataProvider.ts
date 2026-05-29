@@ -316,6 +316,34 @@ export const createDataProvider = ({
       });
       return config;
     },
+    getPreferences: async (): Promise<Record<string, string>> => {
+      const identity = await getIdentity();
+      if (!identity) return {};
+      const { data } = await baseDataProvider.getOne("sales", {
+        id: identity.id,
+      });
+      return (data?.preferences as Record<string, string>) ?? {};
+    },
+    updatePreferences: async (
+      prefs: Record<string, string>,
+    ): Promise<Record<string, string>> => {
+      const identity = await getIdentity();
+      if (!identity) return prefs;
+      const { data: sale } = await baseDataProvider.getOne("sales", {
+        id: identity.id,
+      });
+      if (!sale) return prefs;
+      const merged = {
+        ...((sale?.preferences as Record<string, string>) ?? {}),
+        ...prefs,
+      };
+      await baseDataProvider.update("sales", {
+        id: identity.id,
+        data: { ...sale, preferences: merged },
+        previousData: sale,
+      });
+      return merged;
+    },
   };
 
   const dataProvider = withLifecycleCallbacks(

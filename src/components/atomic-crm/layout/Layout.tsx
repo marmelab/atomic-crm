@@ -5,10 +5,12 @@ import { Error } from "@/components/admin/error";
 import { Skeleton } from "@/components/ui/skeleton";
 
 import { useConfigurationLoader } from "../root/useConfigurationLoader";
+import { usePreferencesLoader } from "../root/usePreferencesLoader";
 import Header from "./Header";
 
 export const Layout = ({ children }: { children: ReactNode }) => {
   useConfigurationLoader();
+  usePreferencesLoader();
   return (
     <>
       <Header />

@@ -47,6 +47,7 @@ create policy "Deal Notes Delete Policy" on public.deal_notes for delete to auth
 
 -- Sales
 create policy "Enable read access for authenticated users" on public.sales for select to authenticated using (true);
+create policy "Enable self-update for authenticated users" on public.sales for update to authenticated using (user_id = auth.uid()) with check (user_id = auth.uid());
 
 -- Tags
 create policy "Enable read access for authenticated users" on public.tags for select to authenticated using (true);

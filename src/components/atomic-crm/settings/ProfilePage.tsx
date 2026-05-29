@@ -275,6 +275,22 @@ const LanguageSelector = () => {
   const translate = useTranslate();
   const locales = useLocales();
   const [locale, setLocale] = useLocaleState();
+  const dataProvider = useDataProvider<CrmDataProvider>();
+  const notify = useNotify();
+
+  const handleSetLocale = (value: string) => {
+    setLocale(value);
+    dataProvider
+      .updatePreferences({ locale: value })
+      .catch((e) =>
+        notify(
+          typeof e?.message === "string"
+            ? e?.message
+            : "ra.notification.http_error",
+          { type: "error" },
+        ),
+      );
+  };
 
   if (locales.length <= 1) {
     return null;
@@ -285,7 +301,7 @@ const LanguageSelector = () => {
       <p className="text-xs text-muted-foreground">
         {translate("crm.language")}
       </p>
-      <Select value={locale} onValueChange={setLocale}>
+      <Select value={locale} onValueChange={handleSetLocale}>
         <SelectTrigger className="w-full">
           <SelectValue />
         </SelectTrigger>
