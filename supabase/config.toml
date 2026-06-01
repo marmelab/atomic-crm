@@ -86,7 +86,7 @@ signing_keys_path = "./signing_keys.json"
 
 [auth.oauth_server]
 enabled = true
-authorization_url_path = "/oauth-consent.html"
+authorization_url_path = "/oauth/consent"
 allow_dynamic_registration = true
 
 [auth.email]

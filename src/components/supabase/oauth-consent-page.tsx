@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useAuthProvider, useTranslate } from "ra-core";
-import { getSupabaseClient } from "@/components/atomic-crm/providers/supabase/supabase";
 import { Layout } from "@/components/supabase/layout";
 import { Button } from "@/components/ui/button";
 import {
@@ -50,10 +49,10 @@ export function OAuthConsentPage() {
         return;
       }
 
-      const {
-        data: { session },
-      } = await getSupabaseClient().auth.getSession();
-      if (!session) {
+      // Check if user is authenticated
+      try {
+        await authProvider.checkAuth({});
+      } catch {
         navigate("/login", {
           state: {
             nextPathname: "/oauth/consent",
