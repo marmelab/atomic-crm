@@ -53,9 +53,12 @@ export function OAuthConsentPage() {
       try {
         await authProvider.checkAuth({});
       } catch {
-        navigate(
-          `/login?redirect=/oauth/consent?authorization_id=${authorizationId}`,
-        );
+        navigate("/login", {
+          state: {
+            nextPathname: "/oauth/consent",
+            nextSearch: `?authorization_id=${encodeURIComponent(authorizationId)}`,
+          },
+        });
         return;
       }
 
@@ -65,6 +68,14 @@ export function OAuthConsentPage() {
 
       if (error) {
         setError(error.message);
+      } else if (
+        data &&
+        !("authorization_id" in data) &&
+        "redirect_url" in data &&
+        typeof data.redirect_url === "string"
+      ) {
+        // User already approved this client — skip straight to the callback
+        window.location.href = data.redirect_url;
       } else {
         setAuthDetails(data as OAuthAuthorizationDetails);
       }

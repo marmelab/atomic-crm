@@ -15,11 +15,12 @@
         window.location.search,
       ).get("authorization_id");
 
-      if (!authorizationId) {
-        window.location.href = "./#/";
-      } else {
-        window.location.href = `./#/oauth/consent?authorization_id=${encodeURIComponent(authorizationId)}`;
-      }
+      const target = authorizationId
+        ? `${window.location.origin}/#/oauth/consent?authorization_id=${encodeURIComponent(authorizationId)}`
+        : `${window.location.origin}/#/`;
+
+      // replace() so back button doesn't return to this redirect stub
+      window.location.replace(target);
     </script>
   </body>
 </html>
