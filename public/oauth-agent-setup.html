@@ -90,7 +90,7 @@
       (function () {
         var PKCE_KEY = "mcp_agent_code_verifier";
         var redirectUri =
-          window.location.origin + "/oauth-agent-setup.html";
+          window.location.origin + "/auth-callback.html";
 
         function base64UrlEncode(bytes) {
           var binary = "";
@@ -260,7 +260,7 @@
           if (!configured) {
             html += "<ol>";
             html +=
-              "<li>Add this redirect URI to your Supabase OAuth app:<br><code>" +
+              "<li>Your Supabase OAuth app must include this redirect URI:<br><code>" +
               redirectUri +
               "</code></li>";
             html +=

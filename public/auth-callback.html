@@ -118,24 +118,28 @@
         </div>
     </body>
     <script>
-        const getUrlParams = () => {
-            const urlSearchParams = new URLSearchParams(
-                window.location.hash.substring(1)
+        (function () {
+            var search = new URLSearchParams(window.location.search);
+            if (search.get("code") || search.get("error")) {
+                window.location.replace(
+                    "./oauth-agent-setup.html?" + search.toString(),
+                );
+                return;
+            }
+
+            var hashParams = new URLSearchParams(
+                window.location.hash.substring(1),
             );
-            const access_token = urlSearchParams.get('access_token');
-            const refresh_token = urlSearchParams.get('refresh_token');
-            const type = urlSearchParams.get('type');
-
-            return { access_token, refresh_token, type };
-        };
-
-        function interceptAuthCallback() {
-                const hash = window.location.hash;
-                const {access_token, refresh_token, type} = getUrlParams();
-                window.location.href = `./#/auth-callback?access_token=${access_token}&refresh_token=${refresh_token}&type=${type}`;
-        }
-    
-        // Call the function to intercept the auth callback
-        interceptAuthCallback();
+            var access_token = hashParams.get("access_token");
+            var refresh_token = hashParams.get("refresh_token");
+            var type = hashParams.get("type");
+            window.location.href =
+                "./#/auth-callback?access_token=" +
+                access_token +
+                "&refresh_token=" +
+                refresh_token +
+                "&type=" +
+                type;
+        })();
     </script>
 </html>
