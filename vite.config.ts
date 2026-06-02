@@ -28,6 +28,11 @@ export default defineConfig({
       workbox: {
         globPatterns: ["**/*.{js,css,html,ico,png,svg,woff,woff2}"],
         maximumFileSizeToCacheInBytes: 5 * 1024 * 1024, // 5 MiB
+        navigateFallbackDenylist: [
+          /^\/auth-callback\.html/,
+          /^\/oauth-consent\.html/,
+          /^\/oauth-agent-setup\.html/,
+        ],
       },
       manifest: false, // Use existing manifest.json from public/
     }),
