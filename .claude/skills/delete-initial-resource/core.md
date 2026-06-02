@@ -6,10 +6,10 @@ Read this before touching any resource, then read the per-resource file(s) for w
 
 `delete-initial-resource.ts` deletes each resource's own folder, then prints the **merged, de-duplicated list of dependent files** (files inside a just-deleted folder are dropped automatically — e.g. `companies/CompanyShow.tsx` won't be listed if you also deleted `companies`). It does **not** edit those files — that's your job. Each entry in the script's `dependentFiles` map has a `//` comment telling you *what* to remove from that path; read it alongside the printed list.
 
-Run from the project root (`tsx` runs the standalone `.ts` reliably regardless of the local Node's type-stripping support; `npx -y` fetches it):
+Run from the project root directly:
 
 ```bash
-npx -y tsx .claude/skills/delete-initial-resource/delete-initial-resource.ts <resource> [<resource> ...]
+node .claude/skills/delete-initial-resource/delete-initial-resource.ts <resource> [<resource> ...]
 ```
 
 It validates every name (exits on an unknown one or a missing folder), deletes `src/components/atomic-crm/<resource>/` for each, and prints the dependent files plus shared files like `root/CRM.tsx`.

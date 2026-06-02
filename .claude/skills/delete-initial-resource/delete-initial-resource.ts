@@ -1,4 +1,5 @@
-// Run with `npx -y tsx .claude/skills/delete-initial-resource/delete-initial-resource.ts`.
+// Run with `node .claude/skills/delete-initial-resource/delete-initial-resource.ts`
+// (Node >= 22.18 strips TypeScript types natively; on older Node use `npx -y tsx <...>`).
 // `process` is declared locally because this standalone script lives outside the
 // project's tsconfig and so doesn't pick up the global @types/node.
 declare const process: {
