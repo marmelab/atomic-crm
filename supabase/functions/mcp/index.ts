@@ -48,14 +48,40 @@ function getResourceMetadataUrl(req: Request): string {
 
 // --- Auth ---
 
+function extractAuthToken(authHeader: string): string | null {
+  const trimmed = authHeader.trim();
+  if (!trimmed) return null;
+
+  if (trimmed.toLowerCase().startsWith("bearer ")) {
+    let token = trimmed.slice(7).trim();
+    // Some clients include "Bearer " in the secret value itself.
+    while (token.toLowerCase().startsWith("bearer ")) {
+      token = token.slice(7).trim();
+    }
+    return token || null;
+  }
+
+  // ElevenLabs Secret Token is sent as the raw Authorization header value.
+  return trimmed;
+}
+
+function looksLikeJwt(token: string): boolean {
+  return token.split(".").length === 3;
+}
+
 async function validateToken(req: Request): Promise<AuthInfo | null> {
   const authHeader = req.headers.get("authorization");
   if (!authHeader) return null;
 
-  const [bearer, token] = authHeader.split(" ");
-  if (bearer !== "Bearer" || !token) return null;
+  const token = extractAuthToken(authHeader);
+  if (!token) return null;
 
-  return resolveAuthInfo(token, pool, JWKS, SUPABASE_JWT_ISSUER);
+  try {
+    return await resolveAuthInfo(token, pool, JWKS, SUPABASE_JWT_ISSUER);
+  } catch (error) {
+    console.error("[MCP auth] validation error:", error);
+    return null;
+  }
 }
 
 // --- Database: get_schema ---
@@ -555,11 +581,16 @@ async function handleMcpRequest(req: Request): Promise<Response> {
   const authInfo = await validateToken(req);
   if (!authInfo) {
     const metadataUrl = getResourceMetadataUrl(req);
+    const authHeader = req.headers.get("authorization");
+    const token = authHeader ? extractAuthToken(authHeader) : null;
+    const headers: Record<string, string> = {};
+    // OAuth clients (Claude) need RFC 9728 metadata; static-secret clients do not.
+    if (!token || looksLikeJwt(token)) {
+      headers["WWW-Authenticate"] = `Bearer resource_metadata="${metadataUrl}"`;
+    }
     return new Response("Unauthorized", {
       status: 401,
-      headers: {
-        "WWW-Authenticate": `Bearer resource_metadata="${metadataUrl}"`,
-      },
+      headers,
     });
   }
 

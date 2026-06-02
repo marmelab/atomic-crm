@@ -23,18 +23,19 @@ function getAgentOAuthConfig(): {
   clientId: string;
   clientSecret: string;
 } | null {
-  const clientId = Deno.env.get("MCP_OAUTH_CLIENT_ID");
-  const clientSecret = Deno.env.get("MCP_OAUTH_CLIENT_SECRET");
+  const clientId = Deno.env.get("MCP_OAUTH_CLIENT_ID")?.trim();
+  const clientSecret = Deno.env.get("MCP_OAUTH_CLIENT_SECRET")?.trim();
   if (!clientId || !clientSecret) return null;
   return { clientId, clientSecret };
 }
 
 function secretsEqual(a: string, b: string): boolean {
-  const encoder = new TextEncoder();
-  const aBytes = encoder.encode(a);
-  const bBytes = encoder.encode(b);
-  if (aBytes.length !== bBytes.length) return false;
-  return crypto.subtle.timingSafeEqual(aBytes, bBytes);
+  if (a.length !== b.length) return false;
+  let mismatch = 0;
+  for (let i = 0; i < a.length; i++) {
+    mismatch |= a.charCodeAt(i) ^ b.charCodeAt(i);
+  }
+  return mismatch === 0;
 }
 
 async function loadRefreshToken(
@@ -151,14 +152,24 @@ export async function resolveAuthInfo(
 
   const agentConfig = getAgentOAuthConfig();
   if (!agentConfig) return null;
-  if (!secretsEqual(bearerToken, agentConfig.clientSecret)) return null;
+  if (!secretsEqual(bearerToken.trim(), agentConfig.clientSecret)) {
+    console.warn(
+      "[MCP agent auth] bearer token did not match configured client secret",
+    );
+    return null;
+  }
 
   const cached = await getAgentAccessToken(
     pool,
     agentConfig.clientId,
     agentConfig.clientSecret,
   );
-  if (!cached) return null;
+  if (!cached) {
+    console.error(
+      "[MCP agent auth] client secret matched but refresh token exchange failed",
+    );
+    return null;
+  }
 
   return {
     token: cached.accessToken,
