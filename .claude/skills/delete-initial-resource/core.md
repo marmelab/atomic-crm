@@ -6,7 +6,7 @@ Read this before touching any resource, then read the per-resource file(s) for w
 
 `delete-initial-resource.ts` deletes each resource's own folder, then prints the **merged, de-duplicated list of dependent files** (files inside a just-deleted folder are dropped automatically — e.g. `companies/CompanyShow.tsx` won't be listed if you also deleted `companies`). It does **not** edit those files — that's your job. Each entry in the script's `dependentFiles` map has a `//` comment telling you *what* to remove from that path; read it alongside the printed list.
 
-Run from the project root (Node 18 can't run TS directly, so `tsx` is required; `npx -y` fetches it):
+Run from the project root (`tsx` runs the standalone `.ts` reliably regardless of the local Node's type-stripping support; `npx -y` fetches it):
 
 ```bash
 npx -y tsx .claude/skills/delete-initial-resource/delete-initial-resource.ts <resource> [<resource> ...]
@@ -54,7 +54,7 @@ The dependent-file list is a guide, not a guarantee — resolve whatever `tsc` s
 
 **i18n is all-or-nothing across both catalogs:** `frenchCrmMessages.ts` is type-checked against the `CrmMessages` type derived from `englishCrmMessages.ts`, so a key must be removed from **both** or **neither** — a one-sided removal is a `tsc` error. Dead `resources.<x>.*` keys are harmless; because cleanup is large and all-or-nothing, **flag them to the user rather than forcing it**. Note: `frenchCrmMessages.ts` uses literal `…` escapes — if an exact-string `Edit` fails on a block spanning one, fall back to `sed -i '<from>,<to>d'` after confirming line numbers with a fresh read.
 
-If local Supabase is running, `npx supabase db reset --local` replays the whole chain + `seed.sql` and catches a broken view/function/grant that `db diff` alone won't (benign `index "…_pkey" does not exist, skipping` NOTICEs are expected). `make test` (vitest) needs Node ≥ 20.12 — under Node 18 it aborts at startup with `crypto.hash is not a function`, so typecheck + lint are the reliable gates.
+If local Supabase is running, `npx supabase db reset --local` replays the whole chain + `seed.sql` and catches a broken view/function/grant that `db diff` alone won't (benign `index "…_pkey" does not exist, skipping` NOTICEs are expected). The project runs on Node 22 (see `.nvmrc`), so `make test` (vitest) is also available as a gate if the resource had unit tests.
 
 ## Notes
 
