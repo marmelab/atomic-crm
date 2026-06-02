@@ -14,6 +14,7 @@ alter table public.tags enable row level security;
 alter table public.tasks enable row level security;
 alter table public.configuration enable row level security;
 alter table public.favicons_excluded_domains enable row level security;
+alter table public.mcp_oauth_agent_credentials enable row level security;
 
 -- Companies
 create policy "Enable read access for authenticated users" on public.companies for select to authenticated using (true);

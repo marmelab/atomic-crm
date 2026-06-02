@@ -173,6 +173,14 @@ alter table only public.contact_notes
 alter table only public.deal_notes
     add constraint "dealNotes_pkey" primary key (id);
 
+-- OAuth refresh tokens for MCP clients that only support static secrets (e.g. ElevenLabs).
+-- Access via edge functions only; not exposed through PostgREST.
+create table public.mcp_oauth_agent_credentials (
+    oauth_client_id text primary key,
+    refresh_token text not null,
+    updated_at timestamp with time zone not null default now()
+);
+
 --
 -- Indexes on foreign keys
 --

@@ -1,12 +1,13 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { McpServer } from "npm:@modelcontextprotocol/sdk@1.28.0/server/mcp.js";
 import { WebStandardStreamableHTTPServerTransport } from "npm:@modelcontextprotocol/sdk@1.28.0/server/webStandardStreamableHttp.js";
-import { createRemoteJWKSet, jwtVerify, decodeJwt } from "npm:jose@5";
+import { createRemoteJWKSet, decodeJwt } from "npm:jose@5";
 import { Pool } from "https://deno.land/x/postgres@v0.17.0/mod.ts";
 import { z } from "npm:zod@^3.25";
 import { validateReadOnly, validateWrite } from "./validateSql.ts";
 import { TASK_LIST_HTML, TASK_LIST_UI_URI } from "./taskListUi.ts";
 import { corsHeaders } from "../_shared/cors.ts";
+import { resolveAuthInfo, type AuthInfo } from "./agentAuth.ts";
 
 // --- Environment & Config ---
 
@@ -47,13 +48,6 @@ function getResourceMetadataUrl(req: Request): string {
 
 // --- Auth ---
 
-interface AuthInfo {
-  token: string;
-  userId: string;
-  role?: string;
-  clientId?: string;
-}
-
 async function validateToken(req: Request): Promise<AuthInfo | null> {
   const authHeader = req.headers.get("authorization");
   if (!authHeader) return null;
@@ -61,22 +55,7 @@ async function validateToken(req: Request): Promise<AuthInfo | null> {
   const [bearer, token] = authHeader.split(" ");
   if (bearer !== "Bearer" || !token) return null;
 
-  try {
-    const { payload } = await jwtVerify(token, JWKS, {
-      issuer: SUPABASE_JWT_ISSUER,
-    });
-
-    if (!payload.sub) return null;
-
-    return {
-      token,
-      userId: payload.sub,
-      role: payload.role as string | undefined,
-      clientId: payload.client_id as string | undefined,
-    };
-  } catch {
-    return null;
-  }
+  return resolveAuthInfo(token, pool, JWKS, SUPABASE_JWT_ISSUER);
 }
 
 // --- Database: get_schema ---
