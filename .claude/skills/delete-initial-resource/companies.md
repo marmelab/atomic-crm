@@ -3,11 +3,7 @@
 A **spine/link** resource: it owns the `companies` table *and* is a `company_id` link on **both** `contacts` and `deals`, its `companies_summary` view aggregates `nb_contacts`/`nb_deals`, and it adds a **denormalized `company_name`** to the `Contact` type. So it fans out far wider than its folder (≈50 frontend files + backend).
 
 ## Confirm cascade scope first
-Ask whether to:
-- **remove `company_id` fully** (cleanest — drops the column from the `Contact`/`Deal` types, the CSV import/export, `mergeContacts`, the fakerest generators, and i18n), or
-- **leave it as an orphaned shell** (keep the column typed `Identifier`, default `null`/unset, but delete all company UI — compiles, but leaves dead FKs pointing at a dropped table).
-
-The full removal is what makes the deletion large.
+**Remove `company_id` fully** — drop the column from the `Contact`/`Deal` types, the CSV import/export, `mergeContacts`, the fakerest generators, and i18n. This full removal is what makes the deletion large.
 
 ## Frontend specifics
 - **Activity log** — a dedicated `company.created` branch (delete `ActivityLogCompanyCreated.tsx` outright + the branch in `ActivityLogIterator.tsx` + `COMPANY_CREATED` in `consts.ts`/`types.ts`) **and** a `"company"` member in the context union. Narrowing the union turns the `=== "company"` checks in `ActivityLogContactCreated`/`ActivityLogContactNoteCreated`/`ActivityLogDealCreated`/`ActivityLogDealNoteCreated` into type errors — prune those branches (the `company_id` "to/at `<company>`" ReferenceField + the `CompanyAvatar` in the deal-note header). `ActivityLog.tsx` has a `companyId` prop + `company_id` filter; `providers/commons/activity.ts` has a `getNewCompanies` fetcher + `companyId` param.

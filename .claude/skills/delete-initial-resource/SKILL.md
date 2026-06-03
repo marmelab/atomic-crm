@@ -12,7 +12,9 @@ Removes one or more of the five initial Atomic CRM resources (`contacts`, `compa
 1. **Confirm the target(s)**, then read each one's file before editing:
    - `contacts` → [`contacts.md`](contacts.md) — spine; **confirm cascade scope first**
    - `companies` → [`companies.md`](companies.md) — spine/link; **confirm cascade scope first**
-   - `deals` → [`deals.md`](deals.md) · `tags` → [`tags.md`](tags.md) · `tasks` → [`tasks.md`](tasks.md)
+   - `deals` → [`deals.md`](deals.md)
+   - `tags` → [`tags.md`](tags.md)
+   - `tasks` → [`tasks.md`](tasks.md)
 2. **Run the script** (below) — deletes each `src/components/atomic-crm/<resource>/` folder and prints the dependent files to clean.
 3. **Clean each dependent file** using the "Shapes" patterns below + the per-resource file.
 4. **Verify** (below).
