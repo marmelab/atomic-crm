@@ -1,6 +1,6 @@
 # Deleting `deals`
 
-`deals` owns the `deals` + `deal_notes` tables but is woven into **two shared subsystems** (notes, activity log), adds an aggregated `nb_deals` to `companies_summary`, ships **three** config props plus a non-eponymous one, and has a custom dataProvider method — so it fans out almost as wide as a column removal. (Read [`core.md`](core.md) first.)
+`deals` owns the `deals` + `deal_notes` tables but is woven into **two shared subsystems** (notes, activity log), adds an aggregated `nb_deals` to `companies_summary`, ships **three** config props plus a non-eponymous one, and has a custom dataProvider method — so it fans out almost as wide as a column removal.
 
 ## Frontend specifics
 - **Shared subsystems** — narrow the notes union to `"contacts"` and the activity-log union to drop `"deal"`; prune the `=== "deals"`/`deal_id`/`DealNote` branches (the `=== "contacts"` checks stay valid). Delete `ActivityLogDealCreated.tsx` + `ActivityLogDealNoteCreated.tsx` outright; drop `getNewDealsAndNotes` in `providers/commons/activity.ts` and `DEAL_CREATED`/`DEAL_NOTE_CREATED` + `ActivityDeal*` in `consts.ts`/`types.ts`. Drop the `"deals"` reference test in `NoteInputs.test.tsx`.

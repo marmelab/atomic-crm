@@ -1,6 +1,6 @@
 # Deleting `contacts`
 
-**The spine of the CRM and the widest deletion of the five.** Notes attach to `contacts | deals`, tasks belong only to contacts, `tags` is a field on `Contact`, companies aggregate `nb_contacts`, deals link `contact_ids`, and the activity-log + JSON-import + merge subsystems all revolve around it. Removing it orphans notes/tasks/tags. (Read [`core.md`](core.md) first.)
+**The spine of the CRM and the widest deletion of the five.** Notes attach to `contacts | deals`, tasks belong only to contacts, `tags` is a field on `Contact`, companies aggregate `nb_contacts`, deals link `contact_ids`, and the activity-log + JSON-import + merge subsystems all revolve around it. Removing it orphans notes/tasks/tags.
 
 ## Confirm cascade scope first
 Ask the user how far to cascade — the answer changes the whole job:
