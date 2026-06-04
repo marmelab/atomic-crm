@@ -366,8 +366,10 @@ IMPORTANT: Never specify sales_id in INSERT or UPDATE statements — it is autom
 
 For read-only queries, use the query tool instead.
 
+Contact emails and phones are stored as JSONB arrays (email_jsonb, phone_jsonb), not scalar columns.
+
 Examples:
-- "INSERT INTO contacts (first_name, last_name, email) VALUES ('John', 'Doe', 'john@example.com')"
+- "INSERT INTO contacts (first_name, last_name, email_jsonb) VALUES ('John', 'Doe', '[{\"email\": \"john@example.com\", \"type\": \"Work\"}]'::jsonb)"
 - "UPDATE deals SET stage = 'won-deal' WHERE id = 123"
 - "DELETE FROM tasks WHERE id = 456"`,
       inputSchema: z.object({
