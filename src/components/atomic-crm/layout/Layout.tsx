@@ -4,6 +4,7 @@ import { Notification } from "@/components/admin/notification";
 import { Error } from "@/components/admin/error";
 import { Skeleton } from "@/components/ui/skeleton";
 
+import { FloatingFeedbackWidget } from "../feedback";
 import { useConfigurationLoader } from "../root/useConfigurationLoader";
 import Header from "./Header";
 
@@ -20,6 +21,7 @@ export const Layout = ({ children }: { children: ReactNode }) => {
         </ErrorBoundary>
       </main>
       <Notification />
+      <FloatingFeedbackWidget />
     </>
   );
 };

@@ -644,3 +644,17 @@ export interface ContactGender {
   label: string;
   icon: ComponentType<{ className?: string }>;
 }
+
+// Feedback inbox ("chatt-widget") — delad teaminkorg för feedback om CRM:t självt.
+export type FeedbackCategory = "works" | "bug" | "request";
+export type FeedbackStatus = "open" | "done";
+
+export type FeedbackItem = {
+  text: string;
+  category: FeedbackCategory;
+  status: FeedbackStatus;
+  page_context?: string | null;
+  sales_id: Identifier;
+  created_at: string;
+  updated_at: string;
+} & Pick<RaRecord, "id">;

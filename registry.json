@@ -278,6 +278,10 @@
           "type": "registry:component"
         },
         {
+          "path": "src/components/atomic-crm/quotes/QuoteSectionEditor.tsx",
+          "type": "registry:component"
+        },
+        {
           "path": "src/components/atomic-crm/quotes/QuotePipelineView.tsx",
           "type": "registry:component"
         },
@@ -882,6 +886,10 @@
           "type": "registry:component"
         },
         {
+          "path": "src/components/atomic-crm/dashboard/CallStatsWidget.tsx",
+          "type": "registry:component"
+        },
+        {
           "path": "src/components/atomic-crm/contacts/useContactImport.tsx",
           "type": "registry:component"
         },
@@ -1203,6 +1211,10 @@
         },
         {
           "path": "src/lib/toSlug.ts",
+          "type": "registry:lib"
+        },
+        {
+          "path": "src/lib/quoteSectionDefaults.ts",
           "type": "registry:lib"
         }
       ]
