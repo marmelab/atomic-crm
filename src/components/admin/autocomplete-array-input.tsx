@@ -99,6 +99,7 @@ export const AutocompleteArrayInput = (
   });
 
   const inputRef = React.useRef<HTMLInputElement>(null);
+  const listRef = React.useRef<HTMLDivElement>(null);
   const [open, setOpen] = React.useState(false);
 
   const handleUnselect = useEvent((choice: any) => {
@@ -197,6 +198,9 @@ export const AutocompleteArrayInput = (
                 value={filterValue}
                 onValueChange={(filter) => {
                   setFilterValue(filter);
+                  requestAnimationFrame(() => {
+                    listRef.current?.scrollTo(0, 0);
+                  });
                   // We don't want the ChoicesContext to filter the choices if the input
                   // is not from a reference as it would also filter out the selected values
                   if (isFromReference) {
@@ -211,14 +215,21 @@ export const AutocompleteArrayInput = (
             </div>
           </div>
           <div className="relative">
-            <CommandList>
+            <CommandList ref={listRef}>
               {open && availableChoices.length > 0 ? (
                 <div className="absolute top-2 z-10 w-full rounded-md border bg-popover text-popover-foreground shadow-md outline-none animate-in">
                   <CommandGroup className="h-full overflow-auto">
                     {availableChoices.map((choice) => {
+                      const choiceText = getChoiceText(choice);
                       return (
                         <CommandItem
                           key={getChoiceValue(choice)}
+                          value={getChoiceValue(choice)}
+                          keywords={
+                            React.isValidElement(choiceText)
+                              ? undefined
+                              : [choiceText]
+                          }
                           onMouseDown={(e) => {
                             e.preventDefault();
                             e.stopPropagation();
@@ -235,7 +246,7 @@ export const AutocompleteArrayInput = (
                           }}
                           className="cursor-pointer"
                         >
-                          {getChoiceText(choice)}
+                          {choiceText}
                         </CommandItem>
                       );
                     })}

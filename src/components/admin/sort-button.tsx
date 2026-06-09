@@ -4,6 +4,7 @@ import { ArrowUpDown, ChevronDown } from "lucide-react";
 import {
   shallowEqual,
   useListSortContext,
+  useResourceContext,
   useTranslate,
   useTranslateLabel,
 } from "ra-core";
@@ -52,11 +53,11 @@ const SortButtonComponent = (props: SortButtonProps) => {
     fields,
     label = "ra.sort.sort_by",
     icon = defaultIcon,
-    resource: resourceProp,
+    resource: _resource,
     ...rest
   } = props;
-  const { resource: resourceFromContext, sort, setSort } = useListSortContext();
-  const resource = resourceProp || resourceFromContext;
+  const resource = useResourceContext(props);
+  const { sort, setSort } = useListSortContext();
   const translate = useTranslate();
   const translateLabel = useTranslateLabel();
   const isMobile = useIsMobile();
@@ -74,14 +75,17 @@ const SortButtonComponent = (props: SortButtonProps) => {
     resource,
     source: sort.field,
   });
-  const buttonLabel = translate(label, {
+  const translationOptions = {
     field: fieldLabel,
     field_lower_first:
       typeof fieldLabel === "string"
         ? fieldLabel.charAt(0).toLowerCase() + fieldLabel.slice(1)
         : undefined,
     order: translate(`ra.sort.${sort.order}`),
-    _: label,
+  };
+  const buttonLabel = translate(`resources.${resource}.action.sort_by`, {
+    ...translationOptions,
+    _: translate(label, { ...translationOptions, _: label }),
   });
 
   return (
