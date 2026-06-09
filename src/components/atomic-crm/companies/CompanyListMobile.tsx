@@ -9,6 +9,8 @@ import {
 import { Link } from "react-router";
 import { MapPin, Phone } from "lucide-react";
 
+import { SortButton } from "@/components/admin/sort-button";
+
 import MobileHeader from "../layout/MobileHeader";
 import { MobileContent } from "../layout/MobileContent";
 import { InfinitePagination } from "../misc/InfinitePagination";
@@ -49,7 +51,18 @@ const CompanyListLayoutMobile = () => {
   return (
     <div>
       <MobileHeader>
-        <CompanyListFilter />
+        <div className="flex items-center gap-2">
+          <CompanyListFilter />
+          <SortButton
+            fields={[
+              "name",
+              "created_at",
+              "nb_contacts",
+              "lead_status",
+              "last_touch_at",
+            ]}
+          />
+        </div>
       </MobileHeader>
       <MobileContent onRefresh={refresh}>
         {data?.length ? (

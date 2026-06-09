@@ -722,6 +722,42 @@
           "type": "registry:component"
         },
         {
+          "path": "src/components/atomic-crm/feedback/useGetFeedback.ts",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/feedback/index.ts",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/feedback/feedbackCategories.ts",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/feedback/FloatingFeedbackWidget.tsx",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/feedback/FeedbackThread.tsx",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/feedback/FeedbackPanel.tsx",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/feedback/FeedbackInputBar.tsx",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/feedback/FeedbackBubble.tsx",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/feedback/FeedbackAuthor.tsx",
+          "type": "registry:component"
+        },
+        {
           "path": "src/components/atomic-crm/deals/stages.ts",
           "type": "registry:component"
         },

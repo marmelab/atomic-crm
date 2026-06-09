@@ -781,6 +781,49 @@ const dataProviderWithCustomMethods = {
       new_lead_status: string;
     };
   },
+  async generateFollowupMessage(callLogId: Identifier): Promise<{
+    email_subject: string;
+    email_body: string;
+    sms_text: string;
+    contact_id: number | null;
+    contact_name: string;
+    contact_email: string | null;
+    contact_phone: string | null;
+  }> {
+    const { data, error } = await supabase.functions.invoke(
+      "generate_followup_message",
+      {
+        method: "POST",
+        body: { action: "generate", call_log_id: callLogId },
+      },
+    );
+    if (error || !data) {
+      throw new Error("Failed to generate follow-up message");
+    }
+    return data;
+  },
+  async sendFollowupEmail(params: {
+    contact_id: Identifier;
+    subject: string;
+    body: string;
+  }): Promise<{ success: true; email_send_id: number }> {
+    const { data, error } = await supabase.functions.invoke(
+      "generate_followup_message",
+      {
+        method: "POST",
+        body: {
+          action: "send",
+          contact_id: params.contact_id,
+          subject: params.subject,
+          body: params.body,
+        },
+      },
+    );
+    if (error || !data) {
+      throw new Error("Failed to send follow-up email");
+    }
+    return data;
+  },
   async expireOverdueQuotes(): Promise<{ affected: number }> {
     const { data, error } = await supabase.rpc("expire_overdue_quotes");
     if (error) {

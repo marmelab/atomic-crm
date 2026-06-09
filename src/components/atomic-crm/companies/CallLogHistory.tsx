@@ -24,11 +24,13 @@ import {
   Edit,
   Phone,
   Save,
+  Sparkles,
   Trash2,
   User,
 } from "lucide-react";
 import type { CallLog, Company } from "../types";
 import { supabase } from "../providers/supabase/supabase";
+import { CallLogFollowupModal } from "./CallLogFollowupModal";
 
 // Labels for ALL outcomes (current 7 Relationsstatus + legacy) so historical data displays correctly
 const outcomeLabels: Record<CallLog["call_outcome"], string> = {
@@ -146,6 +148,7 @@ const CallLogItem = ({ log }: { log: CallLog }) => {
   const [salesName, setSalesName] = useState<string>("");
   const [isHover, setHover] = useState(false);
   const [isEditing, setEditing] = useState(false);
+  const [showFollowup, setShowFollowup] = useState(false);
   const [outcome, setOutcome] = useState<CallLog["call_outcome"]>(
     log.call_outcome,
   );
@@ -270,6 +273,16 @@ const CallLogItem = ({ log }: { log: CallLog }) => {
               disabled={isUpdating || isDeleting}
             >
               <Edit className="h-4 w-4" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-auto p-1"
+              title="Generera uppföljning (mejl/SMS)"
+              onClick={() => setShowFollowup(true)}
+              disabled={isUpdating || isDeleting}
+            >
+              <Sparkles className="h-4 w-4" />
             </Button>
             <Button
               variant="ghost"
@@ -407,6 +420,12 @@ const CallLogItem = ({ log }: { log: CallLog }) => {
           )}
         </>
       )}
+
+      <CallLogFollowupModal
+        log={log}
+        open={showFollowup}
+        onOpenChange={setShowFollowup}
+      />
     </div>
   );
 };

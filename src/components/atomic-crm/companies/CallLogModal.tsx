@@ -32,6 +32,7 @@ const outcomeOptions: { value: CallLog["call_outcome"]; label: string }[] = [
   { value: "hot_lead", label: "\u{1F525} Heta leads" },
   { value: "active_customer", label: "Aktiva kunder" },
   { value: "under_negotiation", label: "Under förhandling" },
+  { value: "meeting_booked", label: "\u{1F4C5} Möte bokat" },
   { value: "follow_up", label: "Att följa upp" },
   { value: "never_contacted", label: "Aldrig kontaktade" },
   { value: "contacted_no_response", label: "Kontaktade, inget svar" },

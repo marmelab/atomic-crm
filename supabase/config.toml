@@ -177,3 +177,5 @@ verify_jwt = false
 verify_jwt = false
 [functions.users]
 verify_jwt = false
+[functions.generate_followup_message]
+verify_jwt = false

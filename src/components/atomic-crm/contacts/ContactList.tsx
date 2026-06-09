@@ -110,7 +110,10 @@ const ContactListLayoutMobile = () => {
   return (
     <div>
       <MobileHeader>
-        <ContactListFilter />
+        <div className="flex items-center gap-2">
+          <ContactListFilter />
+          <SortButton fields={["first_name", "last_name", "last_seen"]} />
+        </div>
       </MobileHeader>
       <MobileContent onRefresh={refresh}>
         <ContactListFilterSummary />
