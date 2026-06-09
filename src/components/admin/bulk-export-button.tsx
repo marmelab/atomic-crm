@@ -1,6 +1,11 @@
 import { Download } from "lucide-react";
 import type { RaRecord, UseBulkExportOptions } from "ra-core";
-import { Translate, useBulkExport } from "ra-core";
+import {
+  useBulkExport,
+  useGetResourceLabel,
+  useResourceContext,
+  useResourceTranslation,
+} from "ra-core";
 
 import { Button } from "../ui/button";
 
@@ -31,11 +36,23 @@ import { Button } from "../ui/button";
  */
 export const BulkExportButton = <T extends RaRecord>({
   icon = defaultIcon,
-  label = "ra.action.export",
+  label: labelProp,
   onClick,
   ...props
 }: BulkExportButtonProps<T>) => {
   const bulkExport = useBulkExport(props);
+  const resource = useResourceContext(props);
+  const getResourceLabel = useGetResourceLabel();
+  const label = useResourceTranslation({
+    resourceI18nKey: resource
+      ? `resources.${resource}.action.export`
+      : undefined,
+    baseI18nKey: "ra.action.export",
+    options: {
+      name: resource ? getResourceLabel(resource, 1) : undefined,
+    },
+    userText: labelProp,
+  });
 
   const handleClick = (event: React.MouseEvent<HTMLButtonElement>) => {
     bulkExport();
@@ -49,10 +66,11 @@ export const BulkExportButton = <T extends RaRecord>({
       variant="outline"
       size="sm"
       className="flex items-center gap-2 h-9"
+      aria-label={typeof label === "string" ? label : undefined}
       {...sanitizeRestProps(props)}
     >
       {icon}
-      {label && <Translate i18nKey={label}>{label}</Translate>}
+      {label}
     </Button>
   );
 };

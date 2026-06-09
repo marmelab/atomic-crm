@@ -83,6 +83,7 @@ export const BooleanInput = (props: BooleanInputProps) => {
           checked={Boolean(field.value)}
           onFocus={onFocus}
           onCheckedChange={handleChange}
+          disabled={disabled || readOnly}
         />
         <FormLabel htmlFor={id}>
           <FieldTitle

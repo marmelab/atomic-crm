@@ -183,8 +183,8 @@ const SaveButton = <RecordType extends RaRecord = RaRecord>(
   const translate = useTranslate();
   const form = useFormContext();
   const saveContext = useSaveContext();
-  const { isValidating, isSubmitting } = useFormState();
-  const disabled = disabledProp || isValidating || isSubmitting;
+  const { isValidating, isSubmitting, disabled: formDisabled } = useFormState();
+  const disabled = disabledProp || isValidating || isSubmitting || formDisabled;
 
   warning(
     type === "submit" &&

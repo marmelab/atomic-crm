@@ -2,7 +2,12 @@
 import { Button } from "@/components/ui/button";
 import { Trash } from "lucide-react";
 import type { RaRecord, UseBulkDeleteControllerParams } from "ra-core";
-import { Translate, useBulkDeleteController } from "ra-core";
+import {
+  useBulkDeleteController,
+  useGetResourceLabel,
+  useResourceContext,
+  useResourceTranslation,
+} from "ra-core";
 import { cn } from "@/lib/utils";
 import type { ReactNode } from "react";
 
@@ -37,11 +42,23 @@ export const BulkDeleteButton = <
   MutationOptionsError = unknown,
 >({
   icon = defaultIcon,
-  label,
+  label: labelProp,
   className,
   ...props
 }: BulkDeleteButtonProps<RecordType, MutationOptionsError>) => {
   const { handleDelete, isPending } = useBulkDeleteController(props);
+  const resource = useResourceContext(props);
+  const getResourceLabel = useGetResourceLabel();
+  const label = useResourceTranslation({
+    resourceI18nKey: resource
+      ? `resources.${resource}.action.delete`
+      : undefined,
+    baseI18nKey: "ra.action.delete",
+    options: {
+      name: resource ? getResourceLabel(resource, 1) : undefined,
+    },
+    userText: labelProp,
+  });
 
   return (
     <Button
@@ -49,12 +66,11 @@ export const BulkDeleteButton = <
       type="button"
       onClick={handleDelete}
       disabled={isPending}
+      aria-label={typeof label === "string" ? label : undefined}
       className={cn("h-9", className)}
     >
       {icon}
-      <Translate i18nKey={label ?? "ra.action.delete"}>
-        {label ?? "Delete"}
-      </Translate>
+      {label}
     </Button>
   );
 };

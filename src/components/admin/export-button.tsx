@@ -5,9 +5,10 @@ import type { Exporter } from "ra-core";
 import {
   fetchRelatedRecords,
   useDataProvider,
+  useGetResourceLabel,
   useNotify,
   useListContext,
-  Translate,
+  useResourceTranslation,
 } from "ra-core";
 import { Button } from "@/components/ui/button";
 
@@ -40,7 +41,7 @@ export const ExportButton = (props: ExportButtonProps) => {
   const {
     maxResults = 1000,
     onClick,
-    label = "ra.action.export",
+    label: labelProp,
     icon = defaultIcon,
     exporter: customExporter,
     meta,
@@ -52,6 +53,15 @@ export const ExportButton = (props: ExportButtonProps) => {
     resource,
     exporter: exporterFromContext,
   } = useListContext();
+  const getResourceLabel = useGetResourceLabel();
+  const label = useResourceTranslation({
+    resourceI18nKey: `resources.${resource}.action.export`,
+    baseI18nKey: "ra.action.export",
+    options: {
+      name: getResourceLabel(resource, 1),
+    },
+    userText: labelProp,
+  });
   const exporter = customExporter || exporterFromContext;
   const dataProvider = useDataProvider();
   const notify = useNotify();
@@ -102,7 +112,7 @@ export const ExportButton = (props: ExportButtonProps) => {
       className={className}
     >
       {icon}
-      <Translate i18nKey={label}>Export</Translate>
+      {label}
     </Button>
   );
 };
