@@ -18,7 +18,7 @@ Invoked by `chat-orchestrator` (team-lead) for COMPLEX requests.
 ## Wave of N tickets
 
 1. PLANNER produces N tickets.
-2. Lead `TeamCreate({team_name: "tickets-<SESSION_SHORT_ID>"})` (once per wave). Replace `<SESSION_SHORT_ID>` with the actual 8-char value (e.g. `tickets-46bc14c5`). A PreToolUse hook wipes any orphan team with the same name from a prior crashed run of THIS session before creation.
+2. Lead `TeamCreate({team_name: "tickets-<SESSION_SHORT_ID>"})` (once per wave). Replace `<SESSION_SHORT_ID>` with the actual 8-char value (e.g. `tickets-46bc14c5`). If an orphan team from a prior crashed run still holds the name, TeamCreate may return an auto-suffixed name — always use the team name TeamCreate RETURNS verbatim in all subsequent dispatches.
 3. Lead dispatches all members in ONE message: **N developers + 2N reviewers + 1 shared `merger` = 3N + 1**.
 4. Lead `SendMessage(GO)` to each `developer-TASK-XXX` (one message per dev, in one assistant turn).
 5. Lead enters passive wait. Each ticket's dev↔reviewers↔merger flow runs concurrently inside the team.
@@ -174,11 +174,11 @@ Scan incoming `<teammate-message>` blocks for `shutdown_approved`:
 TeamDelete({})
 ```
 
-`{}` = "the only team this session has open". `teamdelete-gate.mjs` blocks if any non-lead member hasn't acknowledged. If blocked: yield first, retry next turn — do not retry in same turn.
+`{}` = "the only team this session has open". Delete only after step 3c: every non-lead member must have acknowledged the shutdown (or been logged as unresponsive). If TeamDelete errors because members are still busy: yield first, retry next turn — do not retry in same turn.
 
-### 3e — Cleanup (automatic)
+### 3e — Cleanup
 
-`teamdelete-cleanup.mjs` (PostToolUse) silently removes residual `~/.claude/teams/tickets-<SESSION_SHORT_ID>/`. Lead does nothing.
+Residual `~/.claude/teams/tickets-<SESSION_SHORT_ID>/` directories from crashed runs are harmless — TeamCreate auto-suffixes when a name is taken (see step 2). Lead does nothing.
 
 Subagent transcripts (`subagents/agent-<task_id>.{jsonl,meta.json}`) are kept for stats/debugging — removed at chat-service session end.
 

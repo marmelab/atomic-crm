@@ -1,10 +1,4 @@
-// Tests for setup-worktree.mjs session-branch topology (vitest, Node project).
-// Uses a throwaway git repo as the project root via the APP_DIR override, and a
-// throwaway CRM_TMP_ROOT so worktrees land in a predictable, isolated location.
-//
-// The tests are intentionally ordered and stateful: each one observes (or mutates)
-// the worktree state produced by the previous step. Vitest runs tests within a file
-// sequentially in declaration order, which preserves that contract.
+// Tests for setup-worktree.mjs session-branch topology (vitest, Node project). Uses a throwaway git repo (APP_DIR) + CRM_TMP_ROOT. Tests are ordered and stateful — each observes the state produced by the previous step.
 
 import {
   mkdtempSync,
@@ -19,15 +13,16 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { spawnSync } from "node:child_process";
 import { describe, test, expect, beforeAll, afterAll } from "vitest";
+import { sanitizePath } from "../lib/paths.mjs";
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const HOOK = join(HERE, "..", "setup-worktree.mjs");
 const SESSION_ID = "ab12cd34-1111-2222-3333-444455556666";
-const SS = SESSION_ID.split("-")[0]; // ab12cd34
+const SS = SESSION_ID.split("-")[0];
 
 let TMP;
 let APP_DIR;
-let WB; // WORKTREE_BASE: <CRM_TMP_ROOT>/<APP_DIR with '/'->'_'>/<SESSION_ID>
+let WB;
 let env;
 
 const g = (...args) =>
@@ -51,14 +46,12 @@ beforeAll(() => {
   g("commit", "-q", "-m", "seed");
   mkdirSync(join(APP_DIR, "node_modules"), { recursive: true });
 
-  // Isolated scratch root + full session id supplied on stdin (no chat-service).
   const CRM_TMP_ROOT = join(TMP, "scratch");
-  WB = join(CRM_TMP_ROOT, APP_DIR.replace(/\//g, "_"), SESSION_ID);
+  WB = join(CRM_TMP_ROOT, sanitizePath(APP_DIR), SESSION_ID);
 
   env = { ...process.env, APP_DIR, CRM_TMP_ROOT };
   delete env.VALIDATE_WORKTREE;
 
-  // Dispatch a COMPLEX developer for TASK-001.
   dispatch("developer-TASK-001");
 });
 
@@ -89,7 +82,6 @@ describe("setup-worktree session-branch topology", () => {
   });
 
   test("task branch forked from session branch", () => {
-    // Task branch must fork from the session branch, not main directly.
     expect(
       g("merge-base", "--is-ancestor", `session/${SS}`, `${SS}/TASK-001`)
         .status,
@@ -97,13 +89,9 @@ describe("setup-worktree session-branch topology", () => {
   });
 
   test("idempotent second run exits 0", () => {
-    // Restart scenario: a second dispatch with the same session must be a no-op.
     expect(dispatch("developer-TASK-001").status).toBe(0);
   });
 
-  // Regression: session restart where cleanup wiped the _session directory but git
-  // still holds the worktree registration. Plain `worktree add` fails with "missing
-  // but already registered"; the hook must prune + recreate.
   test("stale _session registration survives dir wipe", () => {
     rmSync(join(WB, "_session"), { recursive: true, force: true });
     expect(

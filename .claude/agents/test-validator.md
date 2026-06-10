@@ -123,7 +123,7 @@ Read each screenshot you take. Legibility failure (text invisible on its backgro
 
 ## Step 3 — e2e spec sanity check
 
-Execution is the `run-e2e-tests.mjs` hook's job (full mode only). You only verify:
+Execution is the validation hooks' job (`validate-on-stop.mjs` / `validate-before-review.mjs`, full mode only). You only verify:
 - Spec file exists if acceptance criteria require it
 - Spec targets the right route/component (read-only)
 

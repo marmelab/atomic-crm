@@ -1,141 +1,141 @@
 #!/usr/bin/env node
-// SubagentStop hook — removes session worktrees after the merger completes.
-// Only acts on worktrees under this session's worktreeBase.
-//
-// Guard: only removes worktrees whose branch has been merged into the repo's
-// base branch AND has commits. If the merger stopped prematurely (before
-// merging), the worktree is preserved.
+// SubagentStop — remove this session's task worktrees once their branch has been
+// merged (--no-ff, the merger's contract) into the session integration branch and
+// the worktree has no uncommitted changes. Session worktrees/branches (_session,
+// simple, session*/), fresh worktrees, and unmerged work are preserved.
 
-import { existsSync, readdirSync, rmSync, rmdirSync } from "node:fs";
+import { existsSync, readdirSync, readFileSync, rmSync, rmdirSync } from "node:fs";
 import { join } from "node:path";
-import { readStdin, crmIdentity, baseBranch, git, exec } from "./lib/common.mjs";
+import { createHookContext } from "./lib/context.mjs";
+import {
+  getBaseBranch,
+  getWorktreeEntries,
+  getWorktreePaths,
+  git,
+} from "./lib/git.mjs";
+import { exec } from "./lib/process.mjs";
+import {
+  isInfraWorktreePath,
+  isProtectedBranch,
+  isTaskWorktreeDirName,
+  sessionBaseBranch,
+  sessionBranch,
+} from "./lib/topology.mjs";
 
-const ctx = crmIdentity(readStdin());
+const ctx = createHookContext(readFileSync(0, "utf8"), "cleanup-worktree");
 
 if (!existsSync(ctx.worktreeBase)) {
-  ctx.log(`cleanup-worktree SKIP ${ctx.worktreeBase} not found`);
-  process.exit(0);
+  ctx.accept(`${ctx.worktreeBase} not found`);
 }
 
-const base = baseBranch();
-ctx.log(`cleanup-worktree START session=${ctx.sessionShort} base=${ctx.worktreeBase} branch=${base}`);
+const base = getBaseBranch();
+ctx.log(
+  `START session=${ctx.sessionShort} base=${ctx.worktreeBase} branch=${base}`,
+);
 
-let removed = 0;
-let skipped = 0;
-const branchesToDelete = [];
+const isUnderBase = (p) =>
+  p === ctx.worktreeBase || p.startsWith(ctx.worktreeBase + "/");
 
-// Parse `git worktree list --porcelain` into { path, branch } entries.
-// Format: a "worktree <path>" line, optional "branch refs/heads/<name>" line
-// (absent when detached), then a blank line separating entries.
-const porcelain = git(["worktree", "list", "--porcelain"]).stdout;
-const entries = [];
-let cur = null;
-for (const line of porcelain.split("\n")) {
-  if (line.startsWith("worktree ")) {
-    cur = { path: line.slice("worktree ".length), branch: "" };
-    entries.push(cur);
-  } else if (line.startsWith("branch refs/heads/") && cur) {
-    cur.branch = line.slice("branch refs/heads/".length);
+const hasLocalBranch = (ref) =>
+  git(["show-ref", "--verify", "--quiet", `refs/heads/${ref}`]).status === 0;
+
+// Tips that were merged with --no-ff into the session integration branch: the
+// second-plus parents of its merge commits. Ancestry alone cannot tell a merged
+// branch from a fresh one that never diverged (both tips are ancestors), and a
+// fresh worktree may belong to a developer still working — so only branches
+// whose tip is a recorded merge parent are removable.
+const getMergedTips = () => {
+  const integration = sessionBranch(ctx);
+  if (!hasLocalBranch(integration)) return new Set();
+  const anchor = sessionBaseBranch(ctx);
+  const range = hasLocalBranch(anchor)
+    ? `${anchor}..${integration}`
+    : integration;
+  return new Set(
+    git(["log", "--merges", "--format=%P", range])
+      .stdout.split("\n")
+      .filter(Boolean)
+      .flatMap((line) => line.split(" ").slice(1)),
+  );
+};
+const mergedTips = getMergedTips();
+
+const shouldRemove = ({ path: wtPath, branch }) => {
+  if (isInfraWorktreePath(wtPath)) {
+    ctx.log(`SKIP-SESSION-WORKTREE ${wtPath}`);
+    return false;
   }
-}
-
-for (const { path: wtPath, branch } of entries) {
-  if (!(wtPath === ctx.worktreeBase || wtPath.startsWith(ctx.worktreeBase + "/"))) continue;
-
-  // Never clean the session integration worktree or the SIMPLE worktree; both
-  // persist for the whole session (_session for complex merges, <ID>/simple for
-  // the optional POST-DEV migration round).
-  if (wtPath.endsWith("/_session") || wtPath.endsWith("/simple")) {
-    ctx.log(`cleanup-worktree SKIP-SESSION-WORKTREE ${wtPath}`);
-    skipped++;
-    continue;
-  }
-
-  // Only remove if the branch has developer commits AND is merged into base:
-  // - A detached HEAD has no branch name to check.
-  // - A freshly created branch (no commits) has HEAD == base, so --merged would
-  //   flag it merged; check for commits first to avoid removing a just-started one.
-  // - An unmerged branch with commits must be preserved until the merger runs.
   if (!branch) {
-    ctx.log(`cleanup-worktree SKIP-DETACHED ${wtPath} (detached HEAD)`);
-    skipped++;
-    continue;
+    ctx.log(`SKIP-DETACHED ${wtPath} (detached HEAD)`);
+    return false;
   }
-  const ahead = git(["log", "--oneline", `${base}..${branch}`]).stdout.split("\n")[0] || "";
-  if (!ahead.trim()) {
-    ctx.log(`cleanup-worktree SKIP-NO-COMMITS ${wtPath} branch=${branch}`);
-    skipped++;
-    continue;
+  const tip = git(["rev-parse", "--verify", branch]).stdout.trim();
+  if (!tip || !mergedTips.has(tip)) {
+    ctx.log(`SKIP-UNMERGED ${wtPath} branch=${branch}`);
+    return false;
   }
-  const mergedOut = git(["branch", "--merged", base]).stdout;
-  const isMerged = mergedOut.split("\n").some((l) => l.includes(` ${branch}`));
-  if (!isMerged) {
-    ctx.log(`cleanup-worktree SKIP-UNMERGED ${wtPath} branch=${branch}`);
-    skipped++;
-    continue;
+  if (exec("git", ["-C", wtPath, "status", "--porcelain"]).stdout.trim()) {
+    ctx.log(`SKIP-DIRTY ${wtPath} (uncommitted changes)`);
+    return false;
   }
+  return true;
+};
 
-  branchesToDelete.push(branch);
+const removeWorktree = (wtPath) => {
   if (git(["worktree", "remove", "--force", wtPath]).status === 0) {
-    ctx.log(`cleanup-worktree REMOVED ${wtPath}`);
-  } else {
-    rmSync(wtPath, { recursive: true, force: true });
-    ctx.log(`cleanup-worktree RM-RF ${wtPath}`);
+    ctx.log(`REMOVED ${wtPath}`);
+    return;
   }
-  removed++;
-}
+  rmSync(wtPath, { recursive: true, force: true });
+  ctx.log(`RM-RF ${wtPath}`);
+};
 
-for (const branch of branchesToDelete) {
-  if (!branch) continue;
-  // Never delete session branches, the anchor ref, or the SIMPLE branch — they
-  // must persist for the whole session (*/simple may be reused by POST-DEV migration).
-  if (/^session\//.test(branch) || /^session-base\//.test(branch) || /\/simple$/.test(branch)) {
-    ctx.log(`cleanup-worktree SKIP-SESSION-BRANCH ${branch}`);
-    continue;
+const deleteBranch = (branch) => {
+  if (!branch) return;
+  if (isProtectedBranch(branch)) {
+    ctx.log(`SKIP-SESSION-BRANCH ${branch}`);
+    return;
   }
   if (git(["branch", "-d", branch]).status !== 0) {
     git(["branch", "-D", branch]);
   }
-  ctx.log(`cleanup-worktree BRANCH-DELETED ${branch}`);
-}
+  ctx.log(`BRANCH-DELETED ${branch}`);
+};
+
+const ourWorktrees = getWorktreeEntries().filter((e) => isUnderBase(e.path));
+const toRemove = ourWorktrees.filter(shouldRemove);
+
+toRemove.forEach((e) => removeWorktree(e.path));
+toRemove.map((e) => e.branch).forEach(deleteBranch);
 
 git(["worktree", "prune"]);
 
-// Remove leftover dirs not registered as git worktrees.
-const registered = git(["worktree", "list", "--porcelain"])
-  .stdout.split("\n")
-  .filter((l) => l.startsWith("worktree "))
-  .map((l) => l.slice("worktree ".length));
+const registered = getWorktreePaths();
 
-for (const entry of readdirSync(ctx.worktreeBase, { withFileTypes: true })) {
-  if (!entry.isDirectory()) continue;
+const sweepLeftover = (entry) => {
+  if (!entry.isDirectory()) return;
   const dir = join(ctx.worktreeBase, entry.name);
-  // Never remove the session integration worktree; it persists for the whole session.
   if (dir.endsWith("/_session")) {
-    ctx.log(`cleanup-worktree SKIP-SESSION-LEFTOVER ${dir}`);
-    continue;
+    ctx.log(`SKIP-SESSION-LEFTOVER ${dir}`);
+    return;
   }
-  // Only sweep orphaned *worktree* directories (named TASK-XXX or "simple"). In
-  // the portable path layout `worktreeBase` IS `sessionDir`, so sibling session
-  // state dirs (tickets, flags, breaker) and the hooks log live here too — they
-  // are NOT worktrees and must never be deleted by this sweep. (In the original
-  // chat-service layout these lived under /chat-service/logs, outside the base.)
-  const isWorktreeDir = /^TASK-[0-9]+$/.test(entry.name) || entry.name === "simple";
-  if (!isWorktreeDir) {
-    ctx.log(`cleanup-worktree SKIP-NON-WORKTREE ${dir}`);
-    continue;
+  if (!isTaskWorktreeDirName(entry.name)) {
+    ctx.log(`SKIP-NON-WORKTREE ${dir}`);
+    return;
   }
-  if (!registered.includes(dir)) {
-    rmSync(dir, { recursive: true, force: true });
-    ctx.log(`cleanup-worktree LEFTOVER RM ${dir}`);
-  }
-}
+  if (registered.includes(dir)) return;
+  rmSync(dir, { recursive: true, force: true });
+  ctx.log(`LEFTOVER RM ${dir}`);
+};
+
+readdirSync(ctx.worktreeBase, { withFileTypes: true }).forEach(sweepLeftover);
 
 try {
-  rmdirSync(ctx.worktreeBase); // only succeeds if now empty
+  rmdirSync(ctx.worktreeBase);
 } catch {
   // not empty / already gone — fine
 }
 
-ctx.log(`cleanup-worktree EXIT=0 removed=${removed} skipped=${skipped} session=${ctx.sessionShort}`);
-process.exit(0);
+ctx.accept(
+  `removed=${toRemove.length} skipped=${ourWorktrees.length - toRemove.length} session=${ctx.sessionShort}`,
+);

@@ -166,7 +166,7 @@ start it again here.
    - `ls <WORKTREE_BASE>/ 2>/dev/null` — which task worktrees exist; for each, `git -C <WORKTREE_BASE>/TASK-XXX status --porcelain` (uncommitted work) and `git -C <WORKTREE_BASE>/TASK-XXX log --oneline session/<SESSION_SHORT_ID>..HEAD` (committed-but-unmerged work).
 3. Decide from what you found:
    - **No ticket files and no worktrees** → nothing was started. Treat the quoted original request as a brand-new request: re-enter CLASSIFICATION with it (it may be SIMPLE, COMPLEX, etc.).
-   - **Tickets exist, at least one not `merged`** → resume the COMPLEX flow. `TeamCreate({team_name: "tickets-<SESSION_SHORT_ID>"})` (a PreToolUse hook wipes any orphan team of the same name from the dead run — do not assume the old team survived). Then for each non-merged ticket re-dispatch the full trio + the shared merger exactly as STATE B does, adding to each developer's `GO`: `RESUME: a worktree may already hold partial work — check for uncommitted changes and existing commits and continue from there; do not restart from scratch.` Then re-enter STATE C.
+   - **Tickets exist, at least one not `merged`** → resume the COMPLEX flow. `TeamCreate({team_name: "tickets-<SESSION_SHORT_ID>"})` (an orphan team of the same name may survive from the dead run, in which case TeamCreate auto-suffixes — always use the team name TeamCreate RETURNS verbatim in all subsequent dispatches, and do not assume the old team survived). Then for each non-merged ticket re-dispatch the full trio + the shared merger exactly as STATE B does, adding to each developer's `GO`: `RESUME: a worktree may already hold partial work — check for uncommitted changes and existing commits and continue from there; do not restart from scratch.` Then re-enter STATE C.
    - **All tickets `merged` but the session branch was never promoted** → go straight to STATE D (promotion).
 4. One text line to the user in their language: e.g. *"Picking your changes back up where they stopped."*
 
@@ -406,7 +406,6 @@ The dev's (or reviewer's) final response is in your context.
 2. If reviewer returned `BLOCKED:` → you should not be here: a `BLOCKED:` routes to STATE S-FIX (silent dev loop), and only reaches the user after 2 failed fix attempts. Never merge a `BLOCKED:` change.
 3. If dev returned `DONE: branch=<X>...` and (review skipped OR review `APPROVED`) → dispatch merger (no `team_name`, no SendMessage). Use the **ROLLBACK merger template** when the original user turn was `<intent>rollback-conflict</intent>`, otherwise the **SIMPLE merger template**:
    ```
-   Bash("touch /tmp/notified-merger-<SESSION_SHORT_ID>-simple")
    Agent({
      subagent_type: "merger",
      description: "Merge SIMPLE branch <X>",   // or "Promote rollback branch <X>"
@@ -707,7 +706,6 @@ Dispatch ONE quality-reviewer (no team) with `MODE: migration-review` and the mi
 Dispatch the SIMPLE merger for branch `<SESSION_SHORT_ID>/simple` (Stage A + promotion to main):
 
 ```
-Bash("touch /tmp/notified-merger-<SESSION_SHORT_ID>-simple")
 Agent({
   subagent_type: "merger",
   description: "Merge SIMPLE branch <SESSION_SHORT_ID>/simple with migration",

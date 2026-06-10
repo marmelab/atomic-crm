@@ -11,11 +11,10 @@ export default tseslint.config(
   { ignores: ["dist"] },
   {
     extends: [js.configs.recommended, ...tseslint.configs.recommended],
-    files: ["**/*.{ts,tsx}"],
+    files: ["**/*.{ts,tsx,mjs}"],
     ignores: ["**/node_modules/**", "**/dist/**", "**/.astro/**"],
     languageOptions: {
       ecmaVersion: 2020,
-      globals: globals.browser,
     },
     plugins: {
       "react-hooks": reactHooks,
@@ -37,6 +36,23 @@ export default tseslint.config(
       "no-console": ["error", { allow: ["warn", "error"] }],
       "@typescript-eslint/no-explicit-any": "off",
       "@typescript-eslint/consistent-type-imports": "warn",
+    },
+  },
+  {
+    files: ["**/*.{ts,tsx}"],
+    languageOptions: {
+      globals: globals.browser,
+    },
+  },
+  {
+    // Node scripts and Claude Code hooks. TypeScript files rely on the
+    // compiler for undefined identifiers; plain JS needs no-undef back on.
+    files: ["**/*.mjs"],
+    languageOptions: {
+      globals: globals.node,
+    },
+    rules: {
+      "no-undef": "error",
     },
   },
   {

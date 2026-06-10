@@ -117,11 +117,11 @@ File modifications go through Edit or Write. **NEVER** use Bash to write files.
 
 Forbidden: `sed -i`, `awk -i inplace`, `cat > file`, `cat >> file`, `echo > file`, `python3 -c '... write_text() ...'`, `node -e '... writeFileSync ...'`, any `command > file` / `command | tee file`.
 
-Bash writes bypass PostToolUse hooks (prettier, typecheck) and leave the codebase unformatted. Violation = rejected at review.
+Bash writes bypass the harness's edit tracking and reach reviewers unformatted. Violation = rejected at review.
 
 ## Validation commands — DO NOT RUN
 
-See `.claude/rules/validation-commands.md` for the full list and rationale. Short version: typecheck / prettier / unit / e2e / lint / build are blocked by `block-bash-validation`. After implementation + commit: **SendMessage to your reviewers** (WORKFLOW step 5 above). The `validate-before-review` PreToolUse hook runs validation automatically when you attempt that SendMessage — if validation fails the message is blocked and you fix + commit + retry. Do NOT stop here and wait for SubagentStop hooks; those are for simple-developer only.
+See `.claude/rules/validation-commands.md` for the full list and rationale. Short version: typecheck / prettier / unit / e2e / lint / build are blocked by `bash-guard`. After implementation + commit: **SendMessage to your reviewers** (WORKFLOW step 5 above). The `validate-before-review` PreToolUse hook runs validation automatically when you attempt that SendMessage — if validation fails the message is blocked and you fix + commit + retry. Always notify BOTH reviewers (step 5) before messaging the merger (step 8): the merger relies on reviewer approvals, and each notification revalidates only when the worktree SHA changed. Do NOT stop here and wait for SubagentStop hooks; those are for simple-developer only.
 
 ## Bash — what IS allowed
 
@@ -129,7 +129,7 @@ See `.claude/rules/validation-commands.md` for the full list and rationale. Shor
 - Git: `git status`, `git diff`, `git log`, `git add`, `git commit`, `git worktree list`, `git branch`
 - Quick fs checks where Glob/Grep don't fit: `ls -la`, `test -f`
 
-Each Bash counts against a 30/subagent budget. Prefer Glob/Grep/Read for exploration.
+Keep Bash usage lean — around 30 calls per ticket is the expected ceiling. Prefer Glob/Grep/Read for exploration.
 
 ## Tool call efficiency — HARD RULE
 

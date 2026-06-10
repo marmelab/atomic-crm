@@ -1,10 +1,4 @@
-// Tests for restrict-documentator-write.mjs (vitest, Node project).
-// Hook is gated on DOCUMENTATOR_RUN=1. When active, it allows writes to:
-//   - <REPO>/docs/learnings/patterns.md (the ledger)
-//   - <CONFIG_DIR>/settings.local.json
-//   - <REPO>/MEMORY.md
-//   - <CONFIG_DIR>/local/** (runtime additions)
-// Everything else is blocked. When inactive (no env var), pass-through.
+// Tests for restrict-documentator-write.mjs — the DOCUMENTATOR_RUN=1 allowlist (ledger, settings.local.json, MEMORY.md, CONFIG_DIR/local/**) and pass-through when inactive (vitest, Node project).
 
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -14,14 +8,12 @@ import { describe, test, expect } from "vitest";
 const HERE = dirname(fileURLToPath(import.meta.url));
 const HOOK = join(HERE, "..", "restrict-documentator-write.mjs");
 
-// Pin the portable roots so the allow/deny path literals below are deterministic
-// regardless of where this repo is checked out.
 const baseEnv = {
   ...process.env,
   CLAUDE_PROJECT_DIR: "/app",
   CLAUDE_CONFIG_DIR: "/home/developer/.claude",
 };
-delete baseEnv.APP_DIR; // APP_DIR would override CLAUDE_PROJECT_DIR
+delete baseEnv.APP_DIR;
 
 const runHook = (envFlag, input) => {
   const env = { ...baseEnv };
@@ -31,7 +23,6 @@ const runHook = (envFlag, input) => {
 };
 
 describe("restrict-documentator-write hook", () => {
-  // --- Inactive (no DOCUMENTATOR_RUN env var) — pass-through always ---
   test("non-documentator session, any path → allowed", () => {
     expect(
       runHook(
@@ -50,7 +41,6 @@ describe("restrict-documentator-write hook", () => {
     ).toBe(0);
   });
 
-  // --- Active (DOCUMENTATOR_RUN=1) — strict allowlist ---
   test("ledger write → allowed", () => {
     expect(
       runHook(
@@ -164,7 +154,6 @@ describe("restrict-documentator-write hook", () => {
     expect(runHook("1", "not-json{")).toBe(2);
   });
 
-  // --- Edge cases: path lookalikes ---
   test("path that contains 'local/' but not under base local/ → blocked", () => {
     expect(
       runHook(
