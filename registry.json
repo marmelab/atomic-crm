@@ -1066,6 +1066,10 @@
           "type": "registry:component"
         },
         {
+          "path": "src/components/atomic-crm/companies/buildCustomerProfile.ts",
+          "type": "registry:component"
+        },
+        {
           "path": "src/components/atomic-crm/companies/SearchProfiles.tsx",
           "type": "registry:component"
         },
@@ -1075,6 +1079,14 @@
         },
         {
           "path": "src/components/atomic-crm/companies/GoogleMapsScraper.tsx",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/companies/CustomerDetailsTab.tsx",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/companies/CopyCustomerProfileButton.tsx",
           "type": "registry:component"
         },
         {
