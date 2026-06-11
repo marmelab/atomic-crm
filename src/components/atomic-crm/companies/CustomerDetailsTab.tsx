@@ -20,6 +20,7 @@ import type {
   CustomerCredentialRef,
   CustomerDetails,
 } from "../types";
+import { WebsiteStatsSection } from "./WebsiteStatsSection";
 
 /**
  * Fliken visas när företaget är kund: vunnen lead-status, en vunnen affär,
@@ -124,6 +125,8 @@ export const CustomerDetailsTab = () => {
           ) : null}
         </CardContent>
       </Card>
+
+      <WebsiteStatsSection company={company} />
 
       <Card>
         <CardHeader>

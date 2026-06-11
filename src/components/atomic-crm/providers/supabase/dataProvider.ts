@@ -824,6 +824,18 @@ const dataProviderWithCustomMethods = {
     }
     return data;
   },
+  async analyzeWebsite(
+    companyId: Identifier,
+  ): Promise<{ success: true; snapshot_id: number; findings_count: number }> {
+    const { data, error } = await supabase.functions.invoke("analyze_website", {
+      method: "POST",
+      body: { company_id: companyId },
+    });
+    if (error || !data) {
+      throw new Error("Failed to analyze website");
+    }
+    return data;
+  },
   async expireOverdueQuotes(): Promise<{ affected: number }> {
     const { data, error } = await supabase.rpc("expire_overdue_quotes");
     if (error) {

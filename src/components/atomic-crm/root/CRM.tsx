@@ -287,6 +287,7 @@ const DesktopAdmin = (props: CoreAdminProps) => {
       <Resource name="tags" />
       <Resource name="feedback_items" />
       <Resource name="customer_details" />
+      <Resource name="website_snapshots" />
     </Admin>
   );
 };
@@ -380,6 +381,7 @@ const MobileAdmin = (props: CoreAdminProps) => {
         <Resource name="tags" />
         <Resource name="feedback_items" />
         <Resource name="customer_details" />
+        <Resource name="website_snapshots" />
         <Resource name="calendar_events" {...calendarEvents} />
       </Admin>
     </PersistQueryClientProvider>

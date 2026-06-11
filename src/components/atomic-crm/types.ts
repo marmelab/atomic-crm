@@ -683,3 +683,56 @@ export type CustomerDetails = {
   created_at: string;
   updated_at: string;
 } & Pick<RaRecord, "id">;
+
+// Hemsidestatistik (Fas 2 av kundregistret) — en rad per analys, tidsserie.
+export type WebsiteFinding = {
+  key: string;
+  severity: "high" | "medium" | "low";
+  title: string;
+  description: string;
+  service: string;
+};
+
+export type WebsiteSnapshot = {
+  company_id: Identifier;
+  fetched_at: string;
+  source: "manual" | "cron";
+  url: string;
+  performance_score?: number | null;
+  seo_score?: number | null;
+  pagespeed?: {
+    lcp_ms?: number | null;
+    cls?: number | null;
+    tbt_ms?: number | null;
+    opportunities?: Array<{ id: string; title: string; savings_ms: number }>;
+  } | null;
+  seo_checks?: {
+    title?: string | null;
+    meta_description?: string | null;
+    og_tags?: boolean;
+    schema_org?: boolean;
+    sitemap?: boolean;
+    robots?: boolean;
+    llms_txt?: boolean;
+    h1?: boolean;
+  } | null;
+  business_profile?: {
+    found: boolean;
+    rating?: number | null;
+    reviews_count?: number | null;
+    place_id?: string | null;
+  } | null;
+  search_console?: {
+    clicks: number;
+    impressions: number;
+    position: number;
+    top_queries: Array<{
+      query: string;
+      clicks: number;
+      impressions: number;
+      position: number;
+    }>;
+  } | null;
+  findings: WebsiteFinding[];
+  created_at: string;
+} & Pick<RaRecord, "id">;

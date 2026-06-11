@@ -179,3 +179,5 @@ verify_jwt = false
 verify_jwt = false
 [functions.generate_followup_message]
 verify_jwt = false
+[functions.analyze_website]
+verify_jwt = false
