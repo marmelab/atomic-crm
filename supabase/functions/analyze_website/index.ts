@@ -352,7 +352,7 @@ async function crawlSeoChecks(url: string): Promise<SeoChecks | null> {
   };
 }
 
-// --- d) Google Search Console (hybrid via service account) ---
+// --- d) Google Search Console (OAuth-användartoken eller service-konto) ---
 
 type ServiceAccountConfig = {
   client_email: string;
@@ -360,21 +360,84 @@ type ServiceAccountConfig = {
   token_uri: string;
 };
 
+type AuthorizedUserConfig = {
+  type: "authorized_user";
+  client_id: string;
+  client_secret: string;
+  refresh_token: string;
+  // Krävs när credentialen kommer från gclouds delade OAuth-klient:
+  // API-anrop måste attribueras till ett eget projekt via x-goog-user-project.
+  quota_project_id?: string;
+};
+
+// Sätts av getGoogleAccessToken när credentialen har quota_project_id.
+let googleQuotaProject: string | null = null;
+
+function googleApiHeaders(token: string): Record<string, string> {
+  return {
+    Authorization: `Bearer ${token}`,
+    ...(googleQuotaProject
+      ? { "x-goog-user-project": googleQuotaProject }
+      : {}),
+  };
+}
+
+/**
+ * Byter en authorized_user-credential (gcloud application-default login,
+ * scopad till webmasters.readonly) mot en access token. Föredragen väg:
+ * info@axonadigital.se ser ALLA Axonas Search Console-properties utan
+ * per-sajt-konfiguration, och org-policyn som blockerar service-kontonycklar
+ * kringgås inte.
+ */
+async function getAccessTokenFromAuthorizedUser(
+  config: AuthorizedUserConfig,
+): Promise<string | null> {
+  const tokenResponse = await fetch("https://oauth2.googleapis.com/token", {
+    method: "POST",
+    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+    body: new URLSearchParams({
+      grant_type: "refresh_token",
+      client_id: config.client_id,
+      client_secret: config.client_secret,
+      refresh_token: config.refresh_token,
+    }),
+  });
+  if (!tokenResponse.ok) {
+    console.error(
+      `analyze_website: OAuth refresh failed: ${(await tokenResponse.text()).slice(0, 200)}`,
+    );
+    return null;
+  }
+  return (await tokenResponse.json()).access_token as string;
+}
+
 async function getGoogleAccessToken(scope: string): Promise<string | null> {
   // Dedikerad secret för GSC-läsaren. GOOGLE_SERVICE_ACCOUNT_JSON delas av
   // calendar_sync + import_google_sheet_leads — att återanvända den skulle
   // aktivera deras Google-vägar med ett konto som saknar deras behörigheter.
   const raw =
+    Deno.env.get("GSC_GOOGLE_CREDENTIALS") ??
     Deno.env.get("GSC_SERVICE_ACCOUNT_JSON") ??
     Deno.env.get("GOOGLE_SERVICE_ACCOUNT_JSON");
   if (!raw) return null;
 
-  let serviceAccount: ServiceAccountConfig;
+  let parsed: Record<string, unknown>;
   try {
-    serviceAccount = JSON.parse(raw) as ServiceAccountConfig;
+    parsed = JSON.parse(raw) as Record<string, unknown>;
   } catch {
     return null;
   }
+
+  if (parsed.type === "authorized_user") {
+    const config = parsed as unknown as AuthorizedUserConfig;
+    if (!config.client_id || !config.client_secret || !config.refresh_token) {
+      return null;
+    }
+    googleQuotaProject = config.quota_project_id ?? null;
+    return getAccessTokenFromAuthorizedUser(config);
+  }
+
+  const serviceAccount = parsed as unknown as ServiceAccountConfig;
   if (
     !serviceAccount.client_email ||
     !serviceAccount.private_key ||
@@ -425,11 +488,11 @@ async function fetchSearchConsole(
   const hostname = hostnameOf(url);
   if (!hostname) return null;
 
-  // Lista properties service-kontot har åtkomst till och matcha mot domänen.
+  // Lista properties kontot har åtkomst till och matcha mot domänen.
   const sitesResponse = await fetchWithTimeout(
     "https://www.googleapis.com/webmasters/v3/sites",
     FETCH_TIMEOUT_MS,
-    { headers: { Authorization: `Bearer ${token}` } },
+    { headers: googleApiHeaders(token) },
   );
   if (!sitesResponse.ok) return null;
 
@@ -456,7 +519,7 @@ async function fetchSearchConsole(
     fetchWithTimeout(queryUrl, FETCH_TIMEOUT_MS, {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${token}`,
+        ...googleApiHeaders(token),
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
