@@ -48,6 +48,7 @@ import { CompanyAvatar } from "./CompanyAvatar";
 import { CompanyEditSheet } from "./CompanyEditSheet";
 import { CallLogModal } from "./CallLogModal";
 import { CallLogHistory } from "./CallLogHistory";
+import { CopyCustomerProfileButton } from "./CopyCustomerProfileButton";
 
 export const CompanyShow = () => {
   const isMobile = useIsMobile();
@@ -110,6 +111,7 @@ const CompanyShowContentMobile = () => {
             <div className="mx-3 flex-1 min-w-0">
               <h2 className="text-2xl font-bold truncate">{record.name}</h2>
             </div>
+            <CopyCustomerProfileButton />
             <CallLogModal />
           </div>
         </div>
@@ -244,6 +246,7 @@ const CompanyShowContent = () => {
             <div className="flex mb-3 items-center">
               <CompanyAvatar />
               <h5 className="text-xl ml-2 flex-1">{record.name}</h5>
+              <CopyCustomerProfileButton />
               <CallLogModal />
             </div>
             <Tabs defaultValue={currentTab} onValueChange={handleTabChange}>
@@ -360,7 +363,9 @@ const ContactsIterator = () => {
                 <Avatar />
               </div>
               <div className="flex-1 min-w-0">
-                <div className="font-medium">{getContactDisplayName(contact)}</div>
+                <div className="font-medium">
+                  {getContactDisplayName(contact)}
+                </div>
                 <div className="text-sm text-muted-foreground">
                   {contact.title}
                   {contact.nb_tasks
