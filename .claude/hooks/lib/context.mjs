@@ -119,8 +119,8 @@ export function createHookContext(input, name = "hook") {
       if (existsSync(target)) return;
       if (!existsSync(join(REPO, "node_modules"))) return;
       if (exec("cp", ["-al", join(REPO, "node_modules"), target]).status !== 0) {
-        rmSync(target, { recursive: true, force: true }); // pas de partiel
-        throw new Error(`cp -al node_modules failed — worktree base (${wt}) doit être sur le même FS que ${REPO}`);
+        rmSync(target, { recursive: true, force: true });
+        throw new Error(`cp -al node_modules failed — worktree base (${wt}) must be on the same filesystem as ${REPO}`);
       }
       try {
         symlinkSync(join(REPO, "node_modules"), target);

@@ -1,9 +1,10 @@
 #!/usr/bin/env node
-// PreToolUse(Bash) — block the main orchestrator session from running merge-class
-// git commands. Only the dispatched `merger` agent may merge; if the orchestrator
-// falls back to merging itself, the team workflow looks healthy but is silently
-// broken (the dev↔merger path is dead). The behavioral rule lives in
-// chat-orchestrator.md ("NEVER act as merger yourself"); this is the runtime guard.
+// PreToolUse(Bash) — only the dispatched `merger` agent may run merge-class git
+// commands. The main orchestrator session and every other subagent (developer,
+// reviewers, …) are blocked; if any of them falls back to merging itself, the
+// team workflow looks healthy but is silently broken (the dev↔merger path is
+// dead). The behavioral rule lives in chat-orchestrator.md ("NEVER act as merger
+// yourself"); this is the runtime guard.
 //
 // OPT-IN: inert unless ATOMIC_CRM_ENFORCE_MERGE_GUARD=1. In a plain Claude Code
 // checkout the main session is a general assistant, and blocking its git
@@ -12,16 +13,16 @@
 
 import { readFileSync } from "node:fs";
 import { createHookContext } from "./lib/context.mjs";
+import { isMerger } from "./lib/teams.mjs";
 
 if (process.env.ATOMIC_CRM_ENFORCE_MERGE_GUARD !== "1") process.exit(0);
 
 const input = JSON.parse(readFileSync(0, "utf8"));
 const ctx = createHookContext(input, "block-orchestrator-merge");
 
-// Only block the main orchestrator session (agent_type empty). Dispatched
-// subagents (merger, developer, …) are allowed.
-const agent = input.agent_type || "";
-if (agent) process.exit(0);
+// Allow only the dispatched `merger` agent through. The runtime carries its
+// (possibly suffixed) identity in agentName or agentType, so check both.
+if ([ctx.agentName, ctx.agentType].some(isMerger)) process.exit(0);
 
 const cmd = input.tool_input?.command || "";
 if (!cmd) process.exit(0);
@@ -38,9 +39,10 @@ else if (/apply-app-variant\.sh/.test(cmd))
 
 if (blocked) {
   ctx.fail(
-    `Blocked: orchestrator attempted to run "${blocked}".\n\n` +
-      "Rule: chat-orchestrator must NEVER act as merger. Only the dispatched `merger`\n" +
-      'agent runs merge-class git commands. See chat-orchestrator.md "NEVER act as merger yourself".\n\n' +
+    `Blocked: only the dispatched \`merger\` agent may run "${blocked}".\n\n` +
+      "Rule: chat-orchestrator must NEVER act as merger, and neither may any other\n" +
+      "subagent. Only the `merger` runs merge-class git commands. See chat-orchestrator.md\n" +
+      '"NEVER act as merger yourself".\n\n' +
       "If you got here because the merger didn't report back, the team communication broke —\n" +
       "the dev's \"ready\" message never reached the merger. Don't salvage by merging yourself;\n" +
       "report the failure to the user and stop. Salvaging hides the bug.\n\n" +

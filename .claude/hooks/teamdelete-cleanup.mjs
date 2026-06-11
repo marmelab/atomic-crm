@@ -2,11 +2,7 @@
 // PostToolUse(TeamDelete) — remove residual team disk artifacts after a successful
 // TeamDelete, so stale ~/.claude/teams/<team>/ directories don't accumulate.
 //
-// Disk-cleanup only. The old STATE-DONE anti-loop flag is intentionally gone: its
-// only reader was teamdelete-gate.mjs, removed in the native-Teams model (TeamDelete
-// errors when members are still busy, so the orchestrator no longer loops here).
-//
-// Always exits 0 — this hook is informational and never blocks.
+// Disk-cleanup only. Always exits 0 — this hook is informational and never blocks.
 // Safety: the team_name is validated (alphanumeric/dash/underscore) and the target
 // path is asserted to live strictly under TEAMS_DIR, blocking path traversal.
 
