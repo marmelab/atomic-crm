@@ -159,6 +159,7 @@ Any `[FAIL]` → BLOCKED. Omitting a criterion from the list is itself a bug.
 ### A.4 Code quality (WARNING)
 - Functions > 50 lines → split
 - Files > 800 lines → extract
+- A diff that grows a file already past ~400 lines by appending, where a new focused module was the natural home → flag (extract, don't grow)
 - Deep nesting > 4 levels → early returns
 - No `console.log` outside conditional debug
 - No dead code, unused imports, commented-out code
@@ -224,6 +225,8 @@ Flag only issues with a realistic attack vector.
 - Policies use `auth.jwt() ->> 'role'` or `auth.uid()` — never `USING (true)` in production
 - No table with RLS enabled but zero policies
 - Roles match the project's `user_roles`
+- `WITH CHECK` constrains **every** field a non-admin can set (`status`, `type`, amounts, flags) — not just ownership. Ownership-only `WITH CHECK` = privilege escalation (caller forges other columns via PostgREST)
+- Row-counting enforcement (capacity/quota/balance) is `SECURITY DEFINER` — a `SECURITY INVOKER` count runs under caller RLS, under-counts, and the limit never fires
 
 ### B.2 Secrets & env vars (BLOCKING)
 - No service_role key or secret in client-side code

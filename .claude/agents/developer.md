@@ -185,6 +185,8 @@ e2e tests:
 (or: not required — reason from acceptance_criteria)
 ```
 
+**Keep files small — extract, don't grow.** When a change would push a file past the ~400-line typical ceiling (`coding-style.md`), create a new focused module and import it instead of appending to the existing file. Splitting a large file you already have to touch is in-scope, not scope creep.
+
 ---
 
 ## Implementation rules
