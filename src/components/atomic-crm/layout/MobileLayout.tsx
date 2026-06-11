@@ -4,6 +4,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Suspense, useEffect, type ReactNode } from "react";
 import { ErrorBoundary } from "react-error-boundary";
 
+import { FloatingFeedbackWidget } from "../feedback";
 import { useConfigurationLoader } from "../root/useConfigurationLoader";
 import { MobileNavigation } from "./MobileNavigation";
 import { mobileLayoutVars } from "./mobileLayoutConstants";
@@ -46,6 +47,7 @@ export const MobileLayout = ({ children }: { children: ReactNode }) => {
         </Suspense>
       </ErrorBoundary>
       <MobileNavigation />
+      <FloatingFeedbackWidget />
       <Notification
         mobileOffset={{ bottom: "calc(var(--crm-mobile-nav-height) + 1rem)" }}
       />
