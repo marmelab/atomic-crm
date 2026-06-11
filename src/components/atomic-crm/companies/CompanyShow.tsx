@@ -49,6 +49,7 @@ import { CompanyEditSheet } from "./CompanyEditSheet";
 import { CallLogModal } from "./CallLogModal";
 import { CallLogHistory } from "./CallLogHistory";
 import { CopyCustomerProfileButton } from "./CopyCustomerProfileButton";
+import { CustomerDetailsTab, useIsCustomer } from "./CustomerDetailsTab";
 
 export const CompanyShow = () => {
   const isMobile = useIsMobile();
@@ -72,6 +73,7 @@ const CompanyShowContentMobile = () => {
     },
     { enabled: !!record?.id },
   );
+  const isCustomer = useIsCustomer(record);
 
   if (isPending || !record) return null;
 
@@ -117,7 +119,9 @@ const CompanyShowContentMobile = () => {
         </div>
 
         <Tabs defaultValue="activity" className="w-full">
-          <TabsList className="grid w-full grid-cols-3 h-10">
+          <TabsList
+            className={`grid w-full ${isCustomer ? "grid-cols-4" : "grid-cols-3"} h-10`}
+          >
             <TabsTrigger value="activity">
               {translate("crm.common.activity")}
             </TabsTrigger>
@@ -128,6 +132,9 @@ const CompanyShowContentMobile = () => {
             <TabsTrigger value="info">
               {translate("crm.common.details")}
             </TabsTrigger>
+            {isCustomer ? (
+              <TabsTrigger value="customer">Kund</TabsTrigger>
+            ) : null}
           </TabsList>
 
           <TabsContent value="activity" className="mt-2">
@@ -194,6 +201,12 @@ const CompanyShowContentMobile = () => {
               )}
             </div>
           </TabsContent>
+
+          {isCustomer ? (
+            <TabsContent value="customer" className="mt-2">
+              <CustomerDetailsTab />
+            </TabsContent>
+          ) : null}
         </Tabs>
       </MobileContent>
     </>
@@ -217,6 +230,7 @@ const CompanyShowContent = () => {
     },
     { enabled: !!record?.id },
   );
+  const isCustomer = useIsCustomer(record);
 
   const handleTabChange = (value: string) => {
     if (value === currentTab) return;
@@ -231,12 +245,12 @@ const CompanyShowContent = () => {
 
   const hasDeals = !!record.nb_deals;
   const hasQuotes = nbQuotes > 0;
+  const tabCount =
+    3 + (hasDeals ? 1 : 0) + (hasQuotes ? 1 : 0) + (isCustomer ? 1 : 0);
   const gridColsClass =
-    hasDeals && hasQuotes
-      ? "grid-cols-5"
-      : hasDeals || hasQuotes
-        ? "grid-cols-4"
-        : "grid-cols-3";
+    { 3: "grid-cols-3", 4: "grid-cols-4", 5: "grid-cols-5", 6: "grid-cols-6" }[
+      tabCount
+    ] ?? "grid-cols-3";
 
   return (
     <div className="mt-2 flex pb-2 gap-8">
@@ -275,6 +289,9 @@ const CompanyShowContent = () => {
                       _: `${nbQuotes} Quotes`,
                     })}
                   </TabsTrigger>
+                ) : null}
+                {isCustomer ? (
+                  <TabsTrigger value="customer">Kund</TabsTrigger>
                 ) : null}
               </TabsList>
               <TabsContent value="activity" className="pt-2">
@@ -332,6 +349,11 @@ const CompanyShowContent = () => {
                   </ReferenceManyField>
                 ) : null}
               </TabsContent>
+              {isCustomer ? (
+                <TabsContent value="customer" className="pt-2">
+                  <CustomerDetailsTab />
+                </TabsContent>
+              ) : null}
             </Tabs>
           </CardContent>
         </Card>

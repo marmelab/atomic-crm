@@ -658,3 +658,28 @@ export type FeedbackItem = {
   created_at: string;
   updated_at: string;
 } & Pick<RaRecord, "id">;
+
+// Kundregister — samlad info för levererade kunder (1:1 mot companies).
+export type CustomerAgreement = {
+  name: string;
+  signed_date?: string | null;
+  url?: string | null;
+  note?: string | null;
+};
+
+// OBS: endast referenser till var uppgifter förvaras — aldrig faktiska lösenord.
+export type CustomerCredentialRef = {
+  label: string;
+  location: string;
+};
+
+export type CustomerDetails = {
+  company_id: Identifier;
+  delivered_website_url?: string | null;
+  launch_date?: string | null;
+  agreements: CustomerAgreement[];
+  credential_refs: CustomerCredentialRef[];
+  notes?: string | null;
+  created_at: string;
+  updated_at: string;
+} & Pick<RaRecord, "id">;
