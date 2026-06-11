@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // PreToolUse(SendMessage) — when a developer messages a reviewer/merger, run the validation chain (prettier auto-fix, typecheck, unit-app, unit-functions, e2e) on the caller's worktree; exit 2 blocks the SendMessage on failure. A per-worktree SHA cache short-circuits repeats. VALIDATE_DRY_RUN=1 skips the chain; =fail simulates a failure.
 
-import { readFileSync, unlinkSync, writeFileSync } from "node:fs";
+import { mkdirSync, readFileSync, unlinkSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { createHookContext } from "./lib/context.mjs";
 import { stringifyMessage } from "./lib/io.mjs";
@@ -62,9 +62,7 @@ if (!stdin) finish(0);
 
 const { agentName, agentType } = ctx;
 const to = input.tool_input?.to || "";
-ctx.log(
-  `INVOKE agent_env='${agentName}' agent_type='${agentType}' to='${to}'`,
-);
+ctx.log(`INVOKE agent_env='${agentName}' agent_type='${agentType}' to='${to}'`);
 
 const callerIsDeveloper = isDeveloper(agentName) || isDeveloper(agentType);
 if (!callerIsDeveloper) finish(0);
@@ -78,12 +76,34 @@ const taskId = getFirstTaskId(to) || getFirstTaskId(msgBody);
 const validateWorktree = taskId ? taskWorktreePath(ctx, taskId) : "";
 logWt = validateWorktree;
 
+// Open the member-idle-gate for the recipient: the developer has validated and is
+// messaging them, so they may start working. Flag read by member-idle-gate.mjs.
+const openGate = () => {
+  const role = isQualityReviewer(to)
+    ? "qr"
+    : isTestValidator(to)
+      ? "tv"
+      : isMerger(to)
+        ? "merger"
+        : "";
+  if (!role || !taskId) return;
+  const flagsDir = join(ctx.sessionDir, "flags");
+  try {
+    mkdirSync(flagsDir, { recursive: true });
+    writeFileSync(join(flagsDir, `notified-${role}-${taskId}`), "");
+    ctx.log(`NOTIFY ${role} task=${taskId}`);
+  } catch {
+    // best-effort
+  }
+};
+
 // Same scope as the validation chain: the task worktree when the task id is
 // known, otherwise all session worktrees.
 const cacheWorktrees = getActiveWorktrees(ctx, validateWorktree);
 
 if (allAtCachedSha(cacheWorktrees, ".sha")) {
   ctx.log(`CACHE HIT to=${to} (worktree at last-validated SHA)`);
+  openGate();
   finish(0);
 }
 
@@ -126,4 +146,5 @@ if (!result.skipReason) {
   }
 }
 
+openGate();
 finish(0);

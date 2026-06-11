@@ -22,13 +22,13 @@ const RULES = [
     blocked: isPendingMigration(filePath),
     tag: "pending-folder",
     reason:
-      "supabase/migrations-pending/ was removed by the deferred-migration design (spec 2026-05-27). Migrations live in supabase/migrations/ and are written only by simple-developer in MIGRATION MODE.",
+      "Writing to supabase/migrations-pending/ is not allowed. Migrations live in supabase/migrations/ and are written only by simple-developer in MIGRATION MODE.",
   },
   {
     blocked: baseAgent === "developer" && isMigration(filePath),
     tag: "developer-migration",
     reason:
-      "developer agent is forbidden from writing SQL migrations (see agents/developer.md, deferred-migration design). Migrations are generated at deploy time by the PD-MIG round (simple-developer in MIGRATION MODE) from the session-branch diff.",
+      "The developer agent is not allowed to write SQL migrations. Only simple-developer in MIGRATION MODE may do so.",
   },
 ];
 

@@ -26,11 +26,28 @@
   "hooks": {
     "PreToolUse": [
       {
+        "matcher": "Bash|Read|Grep|Glob|SendMessage",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/member-idle-gate.mjs"
+          }
+        ]
+      },
+      {
         "matcher": "Bash",
         "hooks": [
           {
             "type": "command",
             "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/bash-guard.mjs"
+          },
+          {
+            "type": "command",
+            "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/circuit-breaker.mjs"
+          },
+          {
+            "type": "command",
+            "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/block-orchestrator-merge.mjs"
           },
           {
             "type": "command",
@@ -63,6 +80,17 @@
             "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/validate-before-review.mjs",
             "timeout": 900,
             "statusMessage": "Validating before review/merge..."
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "TeamDelete",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/teamdelete-cleanup.mjs"
           }
         ]
       }
