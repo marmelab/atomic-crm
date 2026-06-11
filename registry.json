@@ -1070,6 +1070,10 @@
           "type": "registry:component"
         },
         {
+          "path": "src/components/atomic-crm/companies/WebsiteStatsSection.tsx",
+          "type": "registry:component"
+        },
+        {
           "path": "src/components/atomic-crm/companies/SearchProfiles.tsx",
           "type": "registry:component"
         },
