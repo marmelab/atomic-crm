@@ -228,7 +228,16 @@ export function computeFindings(input: AnalysisInput): Finding[] {
 
   // --- Search Console (endast när åtkomst finns) ---
   if (searchConsole) {
-    if (searchConsole.clicks === 0 && searchConsole.impressions > 0) {
+    if (searchConsole.clicks === 0 && searchConsole.impressions === 0) {
+      findings.push({
+        key: "no_search_visibility",
+        severity: "high",
+        title: "Syns inte i Google-sök",
+        description:
+          "Sajten fick inga visningar alls i Googles sökresultat senaste 28 dagarna — den är i praktiken osynlig för sökande kunder. Troliga orsaker: indexeringsproblem eller mycket svag SEO-närvaro.",
+        service: SERVICES.seo,
+      });
+    } else if (searchConsole.clicks === 0 && searchConsole.impressions > 0) {
       findings.push({
         key: "no_clicks",
         severity: "high",

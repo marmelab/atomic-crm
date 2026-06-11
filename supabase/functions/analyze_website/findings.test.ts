@@ -91,6 +91,24 @@ describe("computeFindings", () => {
     expect(findings).toEqual([]);
   });
 
+  it("flags total search invisibility (0 clicks AND 0 impressions) as high", () => {
+    const findings = computeFindings({
+      ...healthySite,
+      searchConsole: {
+        clicks: 0,
+        impressions: 0,
+        position: 0,
+        top_queries: [],
+      },
+    });
+    const invisible = findings.find((f) => f.key === "no_search_visibility");
+    expect(invisible?.severity).toBe("high");
+    expect(invisible?.service).toBe("SEO-optimering");
+    // ska inte dubbelrapporteras som no_clicks/low_position
+    expect(findings.find((f) => f.key === "no_clicks")).toBeUndefined();
+    expect(findings.find((f) => f.key === "low_position")).toBeUndefined();
+  });
+
   it("flags zero clicks despite impressions from Search Console", () => {
     const findings = computeFindings({
       ...healthySite,

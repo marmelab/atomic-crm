@@ -237,24 +237,31 @@ export const WebsiteStatsSection = ({ company }: { company: Company }) => {
           <div className="rounded-md border p-3">
             <p className="font-medium mb-1">Google Search Console</p>
             {gsc ? (
-              <div className="flex flex-col gap-0.5">
-                <p>
-                  {gsc.clicks.toLocaleString("sv-SE")} klick ·{" "}
-                  {gsc.impressions.toLocaleString("sv-SE")} visningar (28 dgr)
+              gsc.clicks === 0 && gsc.impressions === 0 ? (
+                <p className="text-red-700">
+                  Inga visningar i Google-sök senaste 28 dagarna — sajten är i
+                  praktiken osynlig för sökande kunder.
                 </p>
-                <p className="text-muted-foreground">
-                  Snittposition{" "}
-                  {gsc.position.toLocaleString("sv-SE", {
-                    maximumFractionDigits: 1,
-                  })}
-                </p>
-                {gsc.top_queries.length > 0 ? (
-                  <p className="text-xs text-muted-foreground truncate">
-                    Toppsökningar:{" "}
-                    {gsc.top_queries.map((q) => q.query).join(", ")}
+              ) : (
+                <div className="flex flex-col gap-0.5">
+                  <p>
+                    {gsc.clicks.toLocaleString("sv-SE")} klick ·{" "}
+                    {gsc.impressions.toLocaleString("sv-SE")} visningar (28 dgr)
                   </p>
-                ) : null}
-              </div>
+                  <p className="text-muted-foreground">
+                    Snittposition{" "}
+                    {gsc.position.toLocaleString("sv-SE", {
+                      maximumFractionDigits: 1,
+                    })}
+                  </p>
+                  {gsc.top_queries.length > 0 ? (
+                    <p className="text-xs text-muted-foreground truncate">
+                      Toppsökningar:{" "}
+                      {gsc.top_queries.map((q) => q.query).join(", ")}
+                    </p>
+                  ) : null}
+                </div>
+              )
             ) : (
               <p className="text-muted-foreground">
                 Ingen åtkomst — lägg till service-kontot i kundens Search
