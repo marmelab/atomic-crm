@@ -17,6 +17,7 @@ import type {
   SeoChecks,
 } from "./findings.ts";
 import { computeFindings } from "./findings.ts";
+import { domainOf, isPlaceMatch } from "./matching.ts";
 
 /**
  * Analyze Website — hemsidestatistik + brist-analys per företag (Fas 2 av
@@ -74,12 +75,14 @@ async function fetchWithTimeout(
 // --- a) PageSpeed Insights ---
 
 async function fetchPageSpeed(url: string): Promise<PageSpeedSummary | null> {
+  // PageSpeed-API:t fungerar även utan nyckel (delad, låg kvot) — kör hellre
+  // nyckellöst än att hoppa över källan. Med GOOGLE_PAGESPEED_API_KEY satt
+  // får vi egen kvot (25k/dag).
   const apiKey = Deno.env.get("GOOGLE_PAGESPEED_API_KEY");
   if (!apiKey) {
     console.warn(
-      "analyze_website: GOOGLE_PAGESPEED_API_KEY not set — skipping PageSpeed",
+      "analyze_website: GOOGLE_PAGESPEED_API_KEY not set — running keyless with shared quota",
     );
-    return null;
   }
 
   const endpoint = new URL(
@@ -89,7 +92,9 @@ async function fetchPageSpeed(url: string): Promise<PageSpeedSummary | null> {
   endpoint.searchParams.set("strategy", "mobile");
   endpoint.searchParams.append("category", "PERFORMANCE");
   endpoint.searchParams.append("category", "SEO");
-  endpoint.searchParams.set("key", apiKey);
+  if (apiKey) {
+    endpoint.searchParams.set("key", apiKey);
+  }
 
   const response = await fetchWithTimeout(
     endpoint.toString(),
@@ -154,10 +159,41 @@ async function fetchPageSpeed(url: string): Promise<PageSpeedSummary | null> {
 
 // --- b) Google Business-profil ---
 
+async function fetchPlaceDetails(
+  placeId: string,
+  apiKey: string,
+): Promise<{
+  name: string | null;
+  website: string | null;
+  rating: number | null;
+  reviews_count: number | null;
+} | null> {
+  const endpoint = new URL(
+    "https://maps.googleapis.com/maps/api/place/details/json",
+  );
+  endpoint.searchParams.set("place_id", placeId);
+  endpoint.searchParams.set("fields", "name,website,rating,user_ratings_total");
+  endpoint.searchParams.set("key", apiKey);
+
+  const response = await fetchWithTimeout(
+    endpoint.toString(),
+    FETCH_TIMEOUT_MS,
+  );
+  const data = await response.json();
+  if (data.status !== "OK") return null;
+  return {
+    name: data.result?.name ?? null,
+    website: data.result?.website ?? null,
+    rating: data.result?.rating ?? null,
+    reviews_count: data.result?.user_ratings_total ?? null,
+  };
+}
+
 async function fetchBusinessProfile(company: {
   google_place_id?: string | null;
   name: string;
   city?: string | null;
+  website?: string | null;
 }): Promise<BusinessProfile | null> {
   const apiKey = Deno.env.get("GOOGLE_MAPS_API_KEY");
   if (!apiKey) {
@@ -167,24 +203,15 @@ async function fetchBusinessProfile(company: {
     return null;
   }
 
+  // Sparat place_id är medvetet kopplat till företaget (t.ex. via
+  // GoogleMapsScraper-importen) — litar på det utan namnverifiering.
   if (company.google_place_id) {
-    const endpoint = new URL(
-      "https://maps.googleapis.com/maps/api/place/details/json",
-    );
-    endpoint.searchParams.set("place_id", company.google_place_id);
-    endpoint.searchParams.set("fields", "rating,user_ratings_total");
-    endpoint.searchParams.set("key", apiKey);
-
-    const response = await fetchWithTimeout(
-      endpoint.toString(),
-      FETCH_TIMEOUT_MS,
-    );
-    const data = await response.json();
-    if (data.status === "OK") {
+    const details = await fetchPlaceDetails(company.google_place_id, apiKey);
+    if (details) {
       return {
         found: true,
-        rating: data.result?.rating ?? null,
-        reviews_count: data.result?.user_ratings_total ?? null,
+        rating: details.rating,
+        reviews_count: details.reviews_count,
         place_id: company.google_place_id,
       };
     }
@@ -206,20 +233,57 @@ async function fetchBusinessProfile(company: {
   );
   const data = await response.json();
 
-  if (data.status === "OK" && data.results?.length > 0) {
-    const place = data.results[0];
-    return {
-      found: true,
-      rating: place.rating ?? null,
-      reviews_count: place.user_ratings_total ?? null,
-      place_id: place.place_id ?? null,
-    };
-  }
   if (data.status === "ZERO_RESULTS") {
     return { found: false };
   }
-  console.error(`analyze_website: Places API status ${data.status}`);
-  return null;
+  if (data.status !== "OK") {
+    console.error(`analyze_website: Places API status ${data.status}`);
+    return null;
+  }
+
+  // Textsearch returnerar ofta NÅGON verksamhet på orten — verifiera att
+  // kandidaten verkligen är kundens företag (namn-token eller domänmatch)
+  // innan vi rapporterar betyg/recensioner som kundens.
+  const candidates = (data.results ?? []).slice(0, 3) as Array<{
+    place_id?: string;
+    name?: string;
+    rating?: number;
+    user_ratings_total?: number;
+  }>;
+
+  for (const candidate of candidates) {
+    if (
+      !isPlaceMatch({
+        companyName: company.name,
+        companyWebsite: company.website,
+        placeName: candidate.name,
+        placeWebsite: null,
+      })
+    ) {
+      continue;
+    }
+
+    // Namnet matchar — hämta details för domän-dubbelkoll när båda har webb.
+    const details = candidate.place_id
+      ? await fetchPlaceDetails(candidate.place_id, apiKey)
+      : null;
+    const companyDomain = domainOf(company.website);
+    const placeDomain = domainOf(details?.website);
+    if (companyDomain && placeDomain && companyDomain !== placeDomain) {
+      continue; // Namnlik verksamhet med ANNAN hemsida — inte kundens profil.
+    }
+
+    return {
+      found: true,
+      rating: details?.rating ?? candidate.rating ?? null,
+      reviews_count:
+        details?.reviews_count ?? candidate.user_ratings_total ?? null,
+      place_id: candidate.place_id ?? null,
+    };
+  }
+
+  // Träffar fanns men ingen kunde verifieras som kundens verksamhet.
+  return { found: false };
 }
 
 // --- c) Egen SEO/AI-sök-crawl ---

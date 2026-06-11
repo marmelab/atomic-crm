@@ -149,6 +149,17 @@ export const WebsiteStatsSection = ({ company }: { company: Company }) => {
   const gsc = latest.search_console;
   const business = latest.business_profile;
 
+  // Källor som inte kunde analyseras (saknad nyckel eller fel) — ska synas,
+  // annars ser "0 brister" ut som ett friskt betyg när analysen var partiell.
+  const inactiveSources = [
+    latest.performance_score == null && latest.pagespeed == null
+      ? "Prestanda/SEO-poäng (PageSpeed)"
+      : null,
+    latest.seo_checks == null ? "SEO/AI-sök-genomgång" : null,
+    business == null ? "Google Business-profil" : null,
+  ].filter(Boolean) as string[];
+  const analysisComplete = inactiveSources.length === 0;
+
   return (
     <Card>
       <CardHeader>
@@ -165,6 +176,13 @@ export const WebsiteStatsSection = ({ company }: { company: Company }) => {
         </p>
       </CardHeader>
       <CardContent className="flex flex-col gap-4 text-sm">
+        {inactiveSources.length > 0 ? (
+          <div className="rounded-md border border-amber-200 bg-amber-50 p-2 text-xs text-amber-800">
+            ⚠️ Ofullständig analys — kunde inte kontrollera:{" "}
+            {inactiveSources.join(", ")}. Brist-listan nedan täcker bara de
+            källor som gick att analysera.
+          </div>
+        ) : null}
         <div className="flex flex-wrap items-center gap-6">
           <ScoreBadge
             label="Prestanda"
@@ -255,7 +273,9 @@ export const WebsiteStatsSection = ({ company }: { company: Company }) => {
           </p>
           {latest.findings.length === 0 ? (
             <p className="text-muted-foreground">
-              Inga brister hittade — sajten ser bra ut! 🎉
+              {analysisComplete
+                ? "Inga brister hittade i någon källa — sajten ser bra ut! 🎉"
+                : "Inga brister i de källor som kunde analyseras — kör om analysen när alla källor är aktiva för en komplett bild."}
             </p>
           ) : (
             <div className="flex flex-col gap-2">
