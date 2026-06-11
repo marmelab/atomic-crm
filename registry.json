@@ -1138,6 +1138,10 @@
           "type": "registry:component"
         },
         {
+          "path": "src/components/atomic-crm/companies/CallLogFollowupModal.tsx",
+          "type": "registry:component"
+        },
+        {
           "path": "src/components/atomic-crm/companies/AutocompleteCompanyInput.tsx",
           "type": "registry:component"
         },

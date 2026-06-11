@@ -182,13 +182,35 @@ async function handleGenerate(callLogId: unknown): Promise<Response> {
       max_tokens: 1500,
       system: SYSTEM_PROMPT,
       messages: [{ role: "user", content: prompt }],
+      // Structured outputs guarantee valid JSON matching the schema, so the
+      // model can never emit a multi-line body that breaks JSON.parse.
+      output_config: {
+        format: {
+          type: "json_schema",
+          schema: {
+            type: "object",
+            properties: {
+              email_subject: { type: "string" },
+              email_body: { type: "string" },
+              sms_text: { type: "string" },
+            },
+            required: ["email_subject", "email_body", "sms_text"],
+            additionalProperties: false,
+          },
+        },
+      },
     }),
   });
 
   if (!response.ok) {
     const errorText = await response.text();
     console.error("Anthropic API error:", errorText);
-    return createErrorResponse(502, "Failed to generate message from AI");
+    // Surface the upstream status + body so failures are diagnosable from the
+    // HTTP response instead of only the function logs.
+    return createErrorResponse(
+      502,
+      `Anthropic ${response.status}: ${errorText.slice(0, 300)}`,
+    );
   }
 
   const result = await response.json();
@@ -196,7 +218,10 @@ async function handleGenerate(callLogId: unknown): Promise<Response> {
   const draft = parseDraft(rawText);
   if (!draft) {
     console.error("Could not parse AI draft:", rawText.slice(0, 500));
-    return createErrorResponse(502, "AI returned an unexpected format");
+    return createErrorResponse(
+      502,
+      `AI returned an unexpected format: ${rawText.slice(0, 200)}`,
+    );
   }
 
   const emailJsonb = contact?.email_jsonb as
