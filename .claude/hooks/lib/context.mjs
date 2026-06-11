@@ -4,11 +4,11 @@
 // accept/block/fail add the `ACCEPT|BLOCK|FAIL` verb on top — so call sites pass
 // only the detail and never repeat the name.
 
-import { mkdirSync, appendFileSync, existsSync, symlinkSync } from "node:fs";
-import { dirname, basename, join } from "node:path";
+import { appendFileSync, existsSync, mkdirSync, rmSync, symlinkSync } from "node:fs";
+import { basename, dirname, join } from "node:path";
 import { decisionBlock } from "./io.mjs";
-import { exec } from "./process.mjs";
 import { REPO, TMP_ROOT, sanitizePath } from "./paths.mjs";
+import { exec } from "./process.mjs";
 
 /**
  * @param {string | Record<string, unknown>} input
@@ -118,7 +118,10 @@ export function createHookContext(input, name = "hook") {
       const target = join(wt, "node_modules");
       if (existsSync(target)) return;
       if (!existsSync(join(REPO, "node_modules"))) return;
-      if (exec("cp", ["-al", join(REPO, "node_modules"), target]).status === 0) return;
+      if (exec("cp", ["-al", join(REPO, "node_modules"), target]).status !== 0) {
+        rmSync(target, { recursive: true, force: true }); // pas de partiel
+        throw new Error(`cp -al node_modules failed — worktree base (${wt}) doit être sur le même FS que ${REPO}`);
+      }
       try {
         symlinkSync(join(REPO, "node_modules"), target);
       } catch {
