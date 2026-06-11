@@ -361,7 +361,12 @@ type ServiceAccountConfig = {
 };
 
 async function getGoogleAccessToken(scope: string): Promise<string | null> {
-  const raw = Deno.env.get("GOOGLE_SERVICE_ACCOUNT_JSON");
+  // Dedikerad secret för GSC-läsaren. GOOGLE_SERVICE_ACCOUNT_JSON delas av
+  // calendar_sync + import_google_sheet_leads — att återanvända den skulle
+  // aktivera deras Google-vägar med ett konto som saknar deras behörigheter.
+  const raw =
+    Deno.env.get("GSC_SERVICE_ACCOUNT_JSON") ??
+    Deno.env.get("GOOGLE_SERVICE_ACCOUNT_JSON");
   if (!raw) return null;
 
   let serviceAccount: ServiceAccountConfig;
