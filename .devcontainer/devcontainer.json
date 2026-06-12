@@ -1,0 +1,35 @@
+// See https://containers.dev/implementors/json_reference/ for configuration reference
+{
+  "name": "Atomic CRM",
+  "build": {
+    "dockerfile": "Dockerfile"
+  },
+  "remoteUser": "node",
+  "features": {
+    "ghcr.io/devcontainers-extra/features/claude-code:2": {},
+    "ghcr.io/devcontainers-extra/features/neovim-apt-get:1": {}
+  },
+  "postAttachCommand": "make install-playwright-browsers",
+  "mounts": [
+    {
+      "type": "bind",
+      "source": "${localEnv:HOME}/.gitconfig",
+      "target": "/home/node/.gitconfig,ro"
+    },
+    {
+      "type": "bind",
+      "source": "${localEnv:HOME}/.bash_aliases",
+      "target": "/home/node/.bash_aliases,ro"
+    },
+    {
+      "type": "bind",
+      "source": "${localEnv:HOME}/.claude.json",
+      "target": "/home/node/.claude.json,ro"
+    },
+    {
+      "type": "bind",
+      "source": "${localEnv:HOME}/.claude",
+      "target": "/home/node/.claude"
+    }
+  ]
+}
