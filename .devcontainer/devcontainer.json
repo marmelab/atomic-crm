@@ -9,7 +9,7 @@
     "ghcr.io/devcontainers-extra/features/claude-code:2": {},
     "ghcr.io/devcontainers-extra/features/neovim-apt-get:1": {}
   },
-  "postAttachCommand": "make install-playwright-browsers",
+  "postAttachCommand": "make devcontainer-configure",
   "mounts": [
     {
       "type": "bind",
@@ -24,7 +24,7 @@
     {
       "type": "bind",
       "source": "${localEnv:HOME}/.claude.json",
-      "target": "/home/node/.claude.json,ro"
+      "target": "/home/node/.claude.json"
     },
     {
       "type": "bind",

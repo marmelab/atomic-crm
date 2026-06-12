@@ -19,6 +19,9 @@ install: package.json ## install dependencies
 install-playwright-browsers: install ## install the playwright browsers (chromium, firefox, webkit)
 	npx playwright install chromium
 
+devcontainer-configure: install-playwright-browsers
+	claude install
+
 start-supabase: ## start supabase locally
 	npx supabase start
 

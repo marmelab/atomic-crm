@@ -45,7 +45,11 @@ RUN echo $USERNAME ALL=\(root\) NOPASSWD:ALL > /etc/sudoers.d/$USERNAME \
 # Set `DEVCONTAINER` environment variable to help with orientation
 ENV DEVCONTAINER=true
 
+RUN mkdir -p /home/node/.cache/claude && chown node:node /home/node/.cache/claude
 RUN mkdir -p /home/node/.cache/ms-playwright && chown node:node /home/node/.cache/ms-playwright
 
+RUN echo 'export PATH="$HOME/.local/bin:$PATH"' >> /home/node/.bashrc
+
+VOLUME /home/node/.cache/claude
 VOLUME /home/node/.cache/ms-playwright
 VOLUME /tmp
