@@ -18,11 +18,6 @@
     },
     {
       "type": "bind",
-      "source": "${localEnv:HOME}/.bash_aliases",
-      "target": "/home/node/.bash_aliases,ro"
-    },
-    {
-      "type": "bind",
       "source": "${localEnv:HOME}/.claude.json",
       "target": "/home/node/.claude.json"
     },
