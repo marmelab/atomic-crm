@@ -1,4 +1,5 @@
 import { CRM } from "@/components/atomic-crm/root/CRM";
+import { CimaBreakQuiz } from "@/components/atomic-crm/misc/CimaBreakQuiz";
 
 /**
  * Application entry point
@@ -24,6 +25,11 @@ import { CRM } from "@/components/atomic-crm/root/CRM";
  *    />
  * );
  */
-const App = () => <CRM />;
+const App = () => (
+  <>
+    <CimaBreakQuiz />
+    <CRM />
+  </>
+);
 
 export default App;
