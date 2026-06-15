@@ -160,7 +160,7 @@ storybook: ## start storybook
 	npm run storybook
 
 harness: ## run the agent harness interactively (pass REQUEST="..." to pre-fill)
-	scripts/test-harness.sh "$(REQUEST)"
+	scripts/launch-harness.sh "$(REQUEST)"
 
 clean-harness: ## clean up the agent harness session
 	scripts/clean-harness.sh
