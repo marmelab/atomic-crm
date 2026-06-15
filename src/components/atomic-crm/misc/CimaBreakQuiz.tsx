@@ -1,5 +1,4 @@
 import { useEffect, useMemo, useState } from "react";
-import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   formatBreakTime,
@@ -100,20 +99,34 @@ export function CimaBreakQuiz() {
     setQuestionIndex((value) => getRandomQuestionIndex(value, questions.length));
   };
 
+  const handleCloseQuiz = () => {
+    setIsHidden(true);
+    setHasStarted(false);
+    setIsActive(true);
+    setTimeLeft(BREAK_SECONDS);
+    setSelectedAnswer(null);
+    setIsAnswered(false);
+    setQuestionIndex(0);
+  };
+
   if (isHidden) {
     return (
-      <Button
-        variant="default"
-        size="icon"
-        className="fixed top-4 right-4 z-[100] h-12 w-12 rounded-full shadow-lg"
+      <button
+        type="button"
+        className="fixed top-4 right-4 z-[100] inline-flex h-12 items-center justify-center rounded-full bg-primary px-4 text-sm font-medium text-primary-foreground shadow-lg transition hover:bg-primary/90"
         onClick={() => {
           setIsHidden(false);
           setHasStarted(false);
+          setIsActive(true);
+          setTimeLeft(BREAK_SECONDS);
+          setSelectedAnswer(null);
+          setIsAnswered(false);
+          setQuestionIndex(0);
         }}
         aria-label="Show CIMA quiz"
       >
-        ?
-      </Button>
+        CIMA Quiz
+      </button>
     );
   }
 
@@ -128,9 +141,13 @@ export function CimaBreakQuiz() {
                 Start a 10-minute strategic management break and test your understanding.
               </p>
             </div>
-            <Button variant="ghost" size="sm" className="h-8 px-2" onClick={() => setIsHidden(true)}>
+            <button
+              type="button"
+              className="inline-flex h-8 items-center justify-center rounded-md border border-transparent px-2 text-sm font-medium text-muted-foreground transition hover:bg-accent hover:text-accent-foreground"
+              onClick={handleCloseQuiz}
+            >
               Hide
-            </Button>
+            </button>
           </div>
         </CardHeader>
         <CardContent className="space-y-3">
@@ -140,12 +157,20 @@ export function CimaBreakQuiz() {
           </div>
         </CardContent>
         <CardFooter className="flex items-center justify-between gap-2 pt-0">
-          <Button variant="outline" size="sm" onClick={() => setIsHidden(true)}>
+          <button
+            type="button"
+            className="inline-flex h-9 items-center justify-center rounded-md border border-input bg-background px-3 text-sm font-medium shadow-xs transition hover:bg-accent hover:text-accent-foreground"
+            onClick={handleCloseQuiz}
+          >
             Close
-          </Button>
-          <Button size="sm" onClick={() => setHasStarted(true)}>
+          </button>
+          <button
+            type="button"
+            className="inline-flex h-9 items-center justify-center rounded-md bg-primary px-3 text-sm font-medium text-primary-foreground shadow-xs transition hover:bg-primary/90"
+            onClick={() => setHasStarted(true)}
+          >
             Start break
-          </Button>
+          </button>
         </CardFooter>
       </Card>
     );
@@ -165,9 +190,13 @@ export function CimaBreakQuiz() {
             <div className="rounded-full border border-primary/20 bg-primary/10 px-3 py-1 text-sm font-semibold text-primary">
               {formatBreakTime(timeLeft)}
             </div>
-            <Button variant="ghost" size="sm" className="h-8 px-2" onClick={() => setIsHidden(true)}>
+            <button
+              type="button"
+              className="inline-flex h-8 items-center justify-center rounded-md border border-transparent px-2 text-sm font-medium text-muted-foreground transition hover:bg-accent hover:text-accent-foreground"
+              onClick={handleCloseQuiz}
+            >
               Hide
-            </Button>
+            </button>
           </div>
         </div>
       </CardHeader>
@@ -220,12 +249,21 @@ export function CimaBreakQuiz() {
         ) : null}
       </CardContent>
       <CardFooter className="flex items-center justify-between gap-2 pt-0">
-        <Button variant="outline" size="sm" onClick={() => setIsActive((value) => !value)}>
+        <button
+          type="button"
+          className="inline-flex h-9 items-center justify-center rounded-md border border-input bg-background px-3 text-sm font-medium shadow-xs transition hover:bg-accent hover:text-accent-foreground"
+          onClick={() => setIsActive((value) => !value)}
+        >
           {isActive ? "Pause" : "Resume"}
-        </Button>
-        <Button size="sm" onClick={handleNextQuestion} disabled={!isAnswered}>
+        </button>
+        <button
+          type="button"
+          className="inline-flex h-9 items-center justify-center rounded-md bg-primary px-3 text-sm font-medium text-primary-foreground shadow-xs transition hover:bg-primary/90 disabled:pointer-events-none disabled:opacity-50"
+          onClick={handleNextQuestion}
+          disabled={!isAnswered}
+        >
           Next question
-        </Button>
+        </button>
       </CardFooter>
     </Card>
   );
