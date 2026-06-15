@@ -22,6 +22,8 @@ export function CimaBreakQuiz() {
   const [isActive, setIsActive] = useState(true);
   const [streak, setStreak] = useState(0);
   const [bestStreak, setBestStreak] = useState(0);
+  const [isHidden, setIsHidden] = useState(true);
+  const [hasStarted, setHasStarted] = useState(false);
 
   const currentQuestion = questions[questionIndex];
 
@@ -52,7 +54,7 @@ export function CimaBreakQuiz() {
   }, [bestStreak, streak]);
 
   useEffect(() => {
-    if (!isActive) {
+    if (!isActive || !hasStarted) {
       return;
     }
 
@@ -72,7 +74,7 @@ export function CimaBreakQuiz() {
     }, 1000);
 
     return () => window.clearInterval(timer);
-  }, [isActive, questions.length]);
+  }, [hasStarted, isActive, questions.length]);
 
   const handleAnswer = (optionIndex: number) => {
     if (isAnswered) {
@@ -98,6 +100,57 @@ export function CimaBreakQuiz() {
     setQuestionIndex((value) => getRandomQuestionIndex(value, questions.length));
   };
 
+  if (isHidden) {
+    return (
+      <Button
+        variant="default"
+        size="icon"
+        className="fixed top-4 right-4 z-[100] h-12 w-12 rounded-full shadow-lg"
+        onClick={() => {
+          setIsHidden(false);
+          setHasStarted(false);
+        }}
+        aria-label="Show CIMA quiz"
+      >
+        ?
+      </Button>
+    );
+  }
+
+  if (!hasStarted) {
+    return (
+      <Card className="fixed top-4 right-4 z-[100] w-[min(92vw,24rem)] border-primary/30 bg-background/95 shadow-2xl backdrop-blur">
+        <CardHeader className="pb-3">
+          <div className="flex items-start justify-between gap-3">
+            <div>
+              <CardTitle className="text-base">CIMA E3 break quiz</CardTitle>
+              <p className="text-sm text-muted-foreground">
+                Start a 10-minute strategic management break and test your understanding.
+              </p>
+            </div>
+            <Button variant="ghost" size="sm" className="h-8 px-2" onClick={() => setIsHidden(true)}>
+              Hide
+            </Button>
+          </div>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          <div className="rounded-md border border-primary/15 bg-primary/5 p-3 text-sm text-primary">
+            <p className="font-semibold">Ready for a focused break?</p>
+            <p>Each session gives you one objective-style question based on strategic management principles.</p>
+          </div>
+        </CardContent>
+        <CardFooter className="flex items-center justify-between gap-2 pt-0">
+          <Button variant="outline" size="sm" onClick={() => setIsHidden(true)}>
+            Close
+          </Button>
+          <Button size="sm" onClick={() => setHasStarted(true)}>
+            Start break
+          </Button>
+        </CardFooter>
+      </Card>
+    );
+  }
+
   return (
     <Card className="fixed top-4 right-4 z-[100] w-[min(92vw,24rem)] border-primary/30 bg-background/95 shadow-2xl backdrop-blur">
       <CardHeader className="pb-3">
@@ -108,8 +161,13 @@ export function CimaBreakQuiz() {
               10-minute strategic management practice for objective tests.
             </p>
           </div>
-          <div className="rounded-full border border-primary/20 bg-primary/10 px-3 py-1 text-sm font-semibold text-primary">
-            {formatBreakTime(timeLeft)}
+          <div className="flex items-center gap-2">
+            <div className="rounded-full border border-primary/20 bg-primary/10 px-3 py-1 text-sm font-semibold text-primary">
+              {formatBreakTime(timeLeft)}
+            </div>
+            <Button variant="ghost" size="sm" className="h-8 px-2" onClick={() => setIsHidden(true)}>
+              Hide
+            </Button>
           </div>
         </div>
       </CardHeader>
