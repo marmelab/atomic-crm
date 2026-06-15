@@ -4,7 +4,7 @@
 // accept/block/fail add the `ACCEPT|BLOCK|FAIL` verb on top — so call sites pass
 // only the detail and never repeat the name.
 
-import { appendFileSync, existsSync, mkdirSync, rmSync, symlinkSync } from "node:fs";
+import { appendFileSync, existsSync, mkdirSync, rmSync } from "node:fs";
 import { basename, dirname, join } from "node:path";
 import { decisionBlock } from "./io.mjs";
 import { REPO, TMP_ROOT, sanitizePath } from "./paths.mjs";
@@ -117,15 +117,18 @@ export function createHookContext(input, name = "hook") {
     linkNodeModules(wt) {
       const target = join(wt, "node_modules");
       if (existsSync(target)) return;
-      if (!existsSync(join(REPO, "node_modules"))) return;
-      if (exec("cp", ["-al", join(REPO, "node_modules"), target]).status !== 0) {
+      const source = join(REPO, "node_modules");
+      if (!existsSync(source)) return;
+      // Fast path: hardlink tree (cp -al) when the worktree base shares a
+      // filesystem with the repo. In dev containers /tmp and /workspaces are
+      // different mounts (cross-device), so cp -al fails — fall back to a full
+      // real copy. A symlinked node_modules is NOT an option: vitest browser
+      // mode (Chromium) hangs on it. See memory worktree-node-modules-provisioning.
+      if (exec("cp", ["-al", source, target]).status === 0) return;
+      rmSync(target, { recursive: true, force: true });
+      if (exec("cp", ["-a", source, target]).status !== 0) {
         rmSync(target, { recursive: true, force: true });
-        throw new Error(`cp -al node_modules failed — worktree base (${wt}) must be on the same filesystem as ${REPO}`);
-      }
-      try {
-        symlinkSync(join(REPO, "node_modules"), target);
-      } catch {
-        // best-effort
+        throw new Error(`node_modules provisioning failed for ${wt} — cp -al and cp -a both failed`);
       }
     },
   };
