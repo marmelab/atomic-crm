@@ -4,12 +4,10 @@
   "build": {
     "dockerfile": "Dockerfile"
   },
+  "workspaceFolder": "/workspaces/atomic-crm",
+  "workspaceMount": "source=${localWorkspaceFolder},target=/workspaces/atomic-crm,type=bind,consistency=cached",
   "remoteUser": "node",
-  "features": {
-    "ghcr.io/devcontainers-extra/features/claude-code:2": {},
-    "ghcr.io/devcontainers-extra/features/neovim-apt-get:1": {}
-  },
-  "postAttachCommand": "make devcontainer-configure",
+  "postAttachCommand": "make install-playwright-browsers",
   "mounts": [
     {
       "type": "bind",

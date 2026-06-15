@@ -53,3 +53,14 @@ RUN echo 'export PATH="$HOME/.local/bin:$PATH"' >> /home/node/.bashrc
 VOLUME /home/node/.cache/claude
 VOLUME /home/node/.cache/ms-playwright
 VOLUME /tmp
+
+USER node
+
+WORKDIR /tmp
+
+RUN curl -fsSL https://claude.ai/install.sh -o claude-install.sh && \
+    chmod +x claude-install.sh && \
+    ./claude-install.sh && \
+    rm claude-install.sh
+
+WORKDIR /workspaces/atomic-crm

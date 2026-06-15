@@ -1,14 +1,3 @@
 {
-  "features": {
-    "ghcr.io/devcontainers-extra/features/claude-code:2": {
-      "version": "2.0.0",
-      "resolved": "ghcr.io/devcontainers-extra/features/claude-code@sha256:37b0d444a704021ee5f6d24242a4621bf337867d110e4e3c06b863a3a78122ac",
-      "integrity": "sha256:37b0d444a704021ee5f6d24242a4621bf337867d110e4e3c06b863a3a78122ac"
-    },
-    "ghcr.io/devcontainers-extra/features/neovim-apt-get:1": {
-      "version": "1.0.20",
-      "resolved": "ghcr.io/devcontainers-extra/features/neovim-apt-get@sha256:99663f4dfdfac03321caa2f72e64132a43ae778e7cc2da2681e6a50e4f071038",
-      "integrity": "sha256:99663f4dfdfac03321caa2f72e64132a43ae778e7cc2da2681e6a50e4f071038"
-    }
-  }
+  "features": {}
 }
