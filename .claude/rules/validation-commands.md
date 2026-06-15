@@ -5,9 +5,10 @@ paths: []
 # Validation commands — DO NOT RUN
 
 Validation is automated:
-- `SubagentStop` hooks run typecheck / prettier / unit / e2e after every developer stops.
-- `validate-before-review` PreToolUse hook re-runs them when a COMPLEX dev SendMessages a reviewer or merger.
-- `block-bash-validation` PreToolUse hook blocks `developer`, `quality-reviewer`, `test-validator` from running them manually.
+- The `validate-on-stop.mjs` SubagentStop hook runs the full chain (prettier auto-fix, typecheck, unit, e2e) after the simple-developer stops.
+- The `validate-before-review.mjs` PreToolUse hook runs the same chain when a COMPLEX dev SendMessages a reviewer or merger (SHA-cached: unchanged worktrees are not revalidated).
+- The `bash-guard.mjs` PreToolUse hook blocks `developer`, `simple-developer`, `quality-reviewer`, `test-validator` from running them manually.
+- Prettier is auto-applied and committed by the validation chain — formatting never needs manual action unless a file has a syntax error.
 
 ## Forbidden commands (developer / quality-reviewer / test-validator)
 
@@ -23,7 +24,7 @@ Validation is automated:
 Why blocked:
 - Burns tool budget — each call returns a hook block error.
 - Can hang — `npx vitest` launches a headed Chromium browser; without a display it waits forever. Hooks set `CI=true` to force `chromium-headless-shell`; manual calls don't.
-- Duplicates hook work — `SubagentStop` already runs them after you stop; failures appear in stderr.
+- Duplicates hook work — the validation hooks already run them; failures appear in stderr.
 
 ## What to do instead
 

@@ -1,38 +1,40 @@
 #!/usr/bin/env node
-// PreToolUse / Bash hook. Restricts the documentator's bash usage to a strict
-// read-only whitelist. Pass-through for any other agent or for non-documentator
-// claude sessions (no DOCUMENTATOR_RUN env var).
+// PreToolUse(Bash) — restrict the documentator (DOCUMENTATOR_RUN=1) to a read-only / MEMORY.md-commit whitelist, rejecting shell metacharacters first; pass-through otherwise.
 
-import { readStdin, parseJson } from "./lib/common.mjs";
+import { readFileSync } from "node:fs";
+import { createHookContext } from "./lib/context.mjs";
 
 if (process.env.DOCUMENTATOR_RUN !== "1") process.exit(0);
 
-// Read the JSON envelope from stdin and extract tool_input.command. If the
-// payload is malformed, treat as block (safer than passing through with an
-// empty command that would later match `^ls( |$)` against an empty string).
-const command = parseJson(readStdin()).tool_input?.command || "";
+// Fail closed: a malformed payload is a block signal for this restricted
+// agent, not a pass-through. Leave input empty so the !command guard below
+// exits 2 (exit 1 from an uncaught throw would let the Bash command through).
+let input = {};
+try {
+  input = JSON.parse(readFileSync(0, "utf8"));
+} catch {
+  // fall through to the empty-command block below
+}
+const ctx = createHookContext(input, "restrict-documentator-bash");
+const command = input.tool_input?.command || "";
 
 if (!command) {
-  process.stderr.write("Bash command blocked for documentator: empty or unparseable command.\n");
-  process.exit(2);
-}
-
-// Reject any command containing shell metacharacters that could chain or
-// redirect. The prefix whitelist below trusts that the command is a single
-// atom, so we have to enforce that here first.
-const METACHARS = [";", "&&", "||", "|", "`", "$(", ">", "<", "\n"];
-if (METACHARS.some((m) => command.includes(m))) {
-  process.stderr.write(
-    'Bash command blocked for documentator: shell metacharacters not allowed (";", "&&", "||", "|", backtick, "$(", redirections, newline).\n'
+  ctx.error(
+    "Bash command blocked for documentator: empty or unparseable command.",
   );
   process.exit(2);
 }
 
-// Allowed-prefix patterns (anchored). Mode 1: read-only inspection.
-// Mode 2: read the session diff vs origin/main, commit MEMORY.md with the
-// pinned Documentator identity (never via `cd && …` — chaining is blocked).
-// The `-C <repo>` target is matched generically ([^ ]+) so the whitelist is
-// portable to any checkout location, not just /app.
+const SHELL_METACHARS = [";", "&&", "||", "|", "`", "$(", ">", "<", "\n"];
+const hasShellMetachars = (cmd) => SHELL_METACHARS.some((m) => cmd.includes(m));
+
+if (hasShellMetachars(command)) {
+  ctx.error(
+    'Bash command blocked for documentator: shell metacharacters not allowed (";", "&&", "||", "|", backtick, "$(", redirections, newline).',
+  );
+  process.exit(2);
+}
+
 const WHITELIST = [
   /^git log( |$)/,
   /^git show( |$)/,
@@ -43,16 +45,16 @@ const WHITELIST = [
   /^ls( |$)/,
   /^wc -l( |$)/,
   /^git -C [^ ]+ add MEMORY\.md *$/,
-  // commit: accept user.name/user.email in either order
   /^git -C [^ ]+ -c user\.name=['"]?Documentator['"]? -c user\.email=['"]?documentator@atomic-crm\.local['"]? commit -m /,
   /^git -C [^ ]+ -c user\.email=['"]?documentator@atomic-crm\.local['"]? -c user\.name=['"]?Documentator['"]? commit -m /,
 ];
+const isWhitelisted = (cmd) => WHITELIST.some((pattern) => pattern.test(cmd));
 
-if (WHITELIST.some((pattern) => pattern.test(command))) {
+if (isWhitelisted(command)) {
   process.exit(0);
 }
 
-process.stderr.write(
-  "Bash command blocked for documentator. Allowed: git log, git show, git diff, ls, wc -l; Mode 2 only: 'git -C <repo> fetch origin main --quiet', 'git -C <repo> diff …', 'git -C <repo> log …', 'git -C <repo> add MEMORY.md', 'git -C <repo> -c user.name=Documentator -c user.email=documentator@atomic-crm.local commit -m …'. Use Read/Glob/Grep otherwise.\n"
+ctx.error(
+  "Bash command blocked for documentator. Allowed: git log, git show, git diff, ls, wc -l; Mode 2 only: 'git -C <repo> fetch origin main --quiet', 'git -C <repo> diff …', 'git -C <repo> log …', 'git -C <repo> add MEMORY.md', 'git -C <repo> -c user.name=Documentator -c user.email=documentator@atomic-crm.local commit -m …'. Use Read/Glob/Grep otherwise.",
 );
 process.exit(2);

@@ -39,19 +39,11 @@
         "hooks": [
           {
             "type": "command",
-            "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/silent-mode-check.mjs"
+            "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/bash-guard.mjs"
           },
           {
             "type": "command",
             "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/circuit-breaker.mjs"
-          },
-          {
-            "type": "command",
-            "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/block-bash-file-write.mjs"
-          },
-          {
-            "type": "command",
-            "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/block-bash-validation.mjs"
           },
           {
             "type": "command",
@@ -86,29 +78,8 @@
           {
             "type": "command",
             "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/validate-before-review.mjs",
-            "timeout": 180,
+            "timeout": 900,
             "statusMessage": "Validating before review/merge..."
-          }
-        ]
-      },
-      {
-        "matcher": "TeamDelete",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/teamdelete-gate.mjs",
-            "timeout": 5,
-            "statusMessage": "Checking team teardown state..."
-          }
-        ]
-      },
-      {
-        "matcher": "TeamCreate",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/teamcreate-wipe-orphan.mjs",
-            "timeout": 5
           }
         ]
       }
@@ -119,8 +90,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/teamdelete-cleanup.mjs",
-            "timeout": 5
+            "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/teamdelete-cleanup.mjs"
           }
         ]
       }
@@ -155,33 +125,9 @@
         "hooks": [
           {
             "type": "command",
-            "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/typecheck-on-commit.mjs",
-            "timeout": 120,
-            "statusMessage": "Validating typecheck..."
-          },
-          {
-            "type": "command",
-            "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/prettier-on-stop.mjs",
-            "timeout": 60,
-            "statusMessage": "Validating prettier..."
-          },
-          {
-            "type": "command",
-            "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/run-unit-tests-app.mjs",
-            "timeout": 180,
-            "statusMessage": "Running unit tests (app)..."
-          },
-          {
-            "type": "command",
-            "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/run-unit-tests-functions.mjs",
-            "timeout": 180,
-            "statusMessage": "Running unit tests (functions)..."
-          },
-          {
-            "type": "command",
-            "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/run-e2e-tests.mjs",
-            "timeout": 600,
-            "statusMessage": "Running e2e tests..."
+            "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/validate-on-stop.mjs",
+            "timeout": 900,
+            "statusMessage": "Running validation (prettier, typecheck, unit, e2e)..."
           }
         ]
       }

@@ -1,61 +1,102 @@
-// Tests the migration-review bypass for quality-reviewer (vitest, Node project).
+// Tests for member-idle-gate.mjs — gates quality-reviewer-*, test-validator-* and
+// merger-* until the developer's "ready" flag exists. Blocks are exit 2 + stderr
+// (ctx.fail); passes are exit 0. Flags live under <sessionDir>/flags, where
+// sessionDir = <CRM_TMP_ROOT>/<sanitized APP_DIR>/<session_id>.
 
-import { mkdtempSync, mkdirSync, rmSync } from "node:fs";
+import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { spawnSync } from "node:child_process";
-import { describe, test, expect, beforeAll, afterAll } from "vitest";
+import { afterAll, beforeEach, describe, test, expect } from "vitest";
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const HOOK = join(HERE, "..", "member-idle-gate.mjs");
-const SESSION_ID = "ab12cd34-1111-2222-3333-444455556666";
 
-let TMP;
-let WB;
-let env;
+const tmpRoot = mkdtempSync(join(tmpdir(), "idle-gate-tmp-"));
+const appDir = mkdtempSync(join(tmpdir(), "idle-gate-app-"));
+const SESSION = "idle-1234";
 
-beforeAll(() => {
-  TMP = mkdtempSync(join(tmpdir(), "idle-gate-test-"));
-  const APP_DIR = join(TMP, "app");
-  mkdirSync(APP_DIR, { recursive: true });
-  const CRM_TMP_ROOT = join(TMP, "scratch");
-  // WORKTREE_BASE mirrors lib/common.mjs.
-  WB = join(CRM_TMP_ROOT, APP_DIR.replace(/\//g, "_"), SESSION_ID);
-  env = { ...process.env, APP_DIR, CRM_TMP_ROOT };
-});
+const sanitize = (p) => p.replace(/\//g, "_");
+const flagsDir = join(tmpRoot, sanitize(appDir), SESSION, "flags");
 
 afterAll(() => {
-  rmSync(TMP, { recursive: true, force: true });
+  rmSync(tmpRoot, { recursive: true, force: true });
+  rmSync(appDir, { recursive: true, force: true });
 });
 
-const run = (stdin) =>
-  spawnSync("node", [HOOK], { input: stdin, env, encoding: "utf8" }).status;
+beforeEach(() => {
+  rmSync(flagsDir, { recursive: true, force: true });
+});
 
-describe("member-idle-gate migration-review bypass", () => {
-  test("migration-review on simple worktree → allowed", () => {
-    // A quality-reviewer reading the migration (simple) worktree must be ALLOWED (exit 0).
-    expect(
-      run(
-        JSON.stringify({
-          agent_type: "quality-reviewer",
-          session_id: SESSION_ID,
-          tool_input: { command: `cat ${WB}/simple/supabase/migrations/x.sql` },
-        }),
-      ),
-    ).toBe(0);
+const writeFlag = (name) => {
+  mkdirSync(flagsDir, { recursive: true });
+  writeFileSync(join(flagsDir, name), "");
+};
+
+const runHook = (
+  agentType,
+  toolName = "Read",
+  toolInput = { file_path: "/x" },
+) => {
+  const env = { ...process.env, CRM_TMP_ROOT: tmpRoot, APP_DIR: appDir };
+  delete env.CLAUDE_AGENT_NAME;
+  const payload = {
+    tool_name: toolName,
+    agent_type: agentType,
+    session_id: SESSION,
+    tool_input: toolInput,
+  };
+  return spawnSync("node", [HOOK], {
+    input: JSON.stringify(payload),
+    env,
+    encoding: "utf8",
+  });
+};
+
+describe("member-idle-gate hook", () => {
+  test("quality-reviewer without its flag is blocked", () => {
+    const r = runHook("quality-reviewer-TASK-007");
+    expect(r.status).toBe(2);
+    expect(r.stderr).toContain("notified-qr-TASK-007");
   });
 
-  test("premature review, no flag, no migration path → blocked", () => {
-    // A plain quality-reviewer with no flag and no migration path stays BLOCKED (exit 2).
-    expect(
-      run(
-        JSON.stringify({
-          agent_type: "quality-reviewer",
-          session_id: SESSION_ID,
-          tool_input: { command: "ls" },
-        }),
-      ),
-    ).toBe(2);
+  test("quality-reviewer with its flag is allowed", () => {
+    writeFlag("notified-qr-TASK-007");
+    const r = runHook("quality-reviewer-TASK-007");
+    expect(r.status).toBe(0);
+  });
+
+  test("test-validator without its flag is blocked", () => {
+    const r = runHook("test-validator-TASK-008");
+    expect(r.status).toBe(2);
+  });
+
+  test("test-validator with its flag is allowed", () => {
+    writeFlag("notified-tv-TASK-008");
+    const r = runHook("test-validator-TASK-008");
+    expect(r.status).toBe(0);
+  });
+
+  test("merger with its task flag is allowed", () => {
+    writeFlag("notified-merger-TASK-009");
+    const r = runHook("merger-TASK-009", "Bash", { command: "git merge" });
+    expect(r.status).toBe(0);
+  });
+
+  test("non-reviewer agent (developer) passes through immediately", () => {
+    const r = runHook("developer-TASK-007", "Bash", { command: "ls" });
+    expect(r.status).toBe(0);
+  });
+
+  test("main session (no agent_type) passes through", () => {
+    const r = runHook("", "Bash", { command: "ls" });
+    expect(r.status).toBe(0);
+  });
+
+  test("reviewer with no resolvable TASK_ID is blocked conservatively", () => {
+    const r = runHook("quality-reviewer", "Bash", { command: "ls" });
+    expect(r.status).toBe(2);
+    expect(r.stderr).toContain("TASK_ID");
   });
 });

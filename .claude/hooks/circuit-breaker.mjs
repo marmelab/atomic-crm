@@ -1,36 +1,32 @@
 #!/usr/bin/env node
-// PreToolUse hook — per-subagent circuit breaker.
-// Detects agents stuck in Bash loops without sabotaging legitimate multi-agent
-// workflows that cumulatively exceed a session-wide budget.
-//
-// Keyed on `agent_id` (unique per subagent dispatch). Verified empirically in
-// Claude Code 2.1.x: the hook input JSON includes `agent_id` ONLY when the
-// calling context is a subagent — absent for the top-level orchestrator.
-// So each subagent gets its own budget, and a loop in one doesn't block others.
-//
-// Input on stdin: { session_id, transcript_path, agent_id?, agent_type?,
-//                   tool_name, tool_input, ... }
+// PreToolUse(Bash) — per-subagent circuit breaker. Counts Bash calls per subagent
+// (keyed on agent_id, present only for subagents) and blocks once a subagent
+// exceeds the loop limit, so a stuck agent can't spin forever. The main session
+// (no agent_id) is never throttled — interactive sessions legitimately make many
+// Bash calls.
 
-import { existsSync, mkdirSync, readFileSync, writeFileSync, statSync, unlinkSync } from "node:fs";
+import {
+  existsSync,
+  mkdirSync,
+  readFileSync,
+  writeFileSync,
+  statSync,
+  unlinkSync,
+} from "node:fs";
 import { join } from "node:path";
 import { createHash } from "node:crypto";
-import { readStdin, parseJson, crmIdentity, tmpRoot, decisionBlock } from "./lib/common.mjs";
+import { createHookContext } from "./lib/context.mjs";
+import { TMP_ROOT } from "./lib/paths.mjs";
 
-// Per-subagent Bash budget. Calibrated on the "hooks own validation" model:
-// developer doesn't run typecheck/prettier/vitest/e2e himself (those are
-// run by SubagentStop hooks and blocked at PreToolUse via
-// block-bash-validation.mjs). So a dev's legitimate Bash usage is:
-//   worktree setup (1) + git add/commit/status (5-8) + git exploration (2-3)
-//   + fix retries (5-10) = ~15-20 Bash calls per ticket.
-// 45 is comfortable for this workload and catches infinite loops (which
-// typically hit 100+ in a few seconds).
+// Per-subagent Bash budget. A developer's legitimate Bash usage is worktree setup
+// + git add/commit/status + exploration + fix retries (~15-20 calls). 45 is
+// comfortable for that workload and catches infinite loops (which hit 100+ fast).
 const ITERATION_LIMIT = 45;
 
-const input = parseJson(readStdin());
-const ctx = crmIdentity(input);
+const input = JSON.parse(readFileSync(0, "utf8"));
+const ctx = createHookContext(input, "circuit-breaker");
 
-// Per-subagent breaker only. The main session (no agent_id) is never throttled —
-// an interactive session legitimately makes many Bash calls.
+// Per-subagent breaker only. The main session (no agent_id) is never throttled.
 if (!ctx.agentId) process.exit(0);
 
 const key = `sub-${ctx.agentId}`;
@@ -40,11 +36,11 @@ let counterDir = join(ctx.sessionDir, "breaker");
 try {
   mkdirSync(counterDir, { recursive: true });
 } catch {
-  counterDir = tmpRoot();
+  counterDir = TMP_ROOT;
 }
 const counterFile = join(counterDir, `bash-count-${keyHash}`);
 
-// Auto-reset if counter file is older than 1 hour (stale subagent).
+// Auto-reset if the counter file is older than 1 hour (stale subagent).
 if (existsSync(counterFile)) {
   try {
     const ageMs = Date.now() - statSync(counterFile).mtimeMs;
@@ -67,13 +63,14 @@ try {
   // ignore
 }
 
-// Observability: record the keyed count so we can audit per-agent budgets.
-ctx.log(`circuit-breaker key=${key} hash=${keyHash} count=${count}`);
+// Observability: record the keyed count so per-agent budgets can be audited.
+ctx.log(`key=${key} hash=${keyHash} count=${count}`);
 
 if (count > ITERATION_LIMIT) {
-  decisionBlock(
-    `Circuit breaker: this subagent has made ${count} Bash calls — likely stuck in a loop. Stop, report where you are blocked so the orchestrator can re-dispatch with a fresh context.`
-  );
+  ctx.block({
+    reason: `Circuit breaker: this subagent has made ${count} Bash calls — likely stuck in a loop. Stop, and report where you are blocked so the orchestrator can re-dispatch with a fresh context.`,
+    log: `BLOCK count=${count}`,
+  });
 }
 
 process.exit(0);

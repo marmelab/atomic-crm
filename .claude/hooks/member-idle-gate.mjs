@@ -1,58 +1,77 @@
 #!/usr/bin/env node
-// PreToolUse hook — prevents quality-reviewer-* and test-validator-* from using
-// any tool before the developer has sent them a "ready for review" message.
+// PreToolUse(Bash|Read|Grep|Glob|SendMessage) — prevent quality-reviewer-*,
+// test-validator-* and merger-* from using any tool before the developer has sent
+// them a "ready for review" message.
 //
 // Rationale: reviewers are dispatched simultaneously with the developer. Without
 // this gate they read an empty worktree and send unsolicited "nothing to review"
 // messages, confusing the developer and breaking the review loop.
 //
-// Why NOT check the team inbox file: reviewers are dispatched with their task
-// context already in the spawn prompt (a <teammate-message> from team-lead), so
-// the inbox has 1 message immediately at spawn time — an inbox COUNT >= 1 check
-// would always pass. The flag file written by validate-before-review is the
-// correct signal: it appears only when the developer explicitly validates and
-// sends "ready for review", which is a strictly later event.
-//
-// Flags (under flagsDir, already session-scoped so a stale flag from a previous
-// session never unblocks a reviewer in a new one):
+// Signal: a flag file written by validate-before-review.mjs when the developer
+// validates and messages the reviewer/merger. Flags live under <sessionDir>/flags
+// (session-scoped, so a stale flag from a prior session never unblocks a reviewer):
 //   notified-qr-TASK-XXX  (quality-reviewer-TASK-XXX)
 //   notified-tv-TASK-XXX  (test-validator-TASK-XXX)
 //   notified-merger-TASK-XXX / notified-merger-simple (merger)
 
-import { existsSync, mkdirSync, writeFileSync, readdirSync } from "node:fs";
+import {
+  existsSync,
+  mkdirSync,
+  readdirSync,
+  readFileSync,
+  writeFileSync,
+} from "node:fs";
 import { join } from "node:path";
-import { readStdin, parseJson, crmIdentity } from "./lib/common.mjs";
+import { createHookContext } from "./lib/context.mjs";
+import {
+  getFirstTaskId,
+  isMerger,
+  isQualityReviewer,
+  isTestValidator,
+} from "./lib/teams.mjs";
+import { simpleWorktreePath } from "./lib/topology.mjs";
 
-const input = parseJson(readStdin());
-const ctx = crmIdentity(input);
+const input = JSON.parse(readFileSync(0, "utf8"));
+const ctx = createHookContext(input, "member-idle-gate");
 
-// crm_identity sets agentType to the full agent name (e.g. "quality-reviewer-
-// TASK-001") for in-process teammates, falling back to CLAUDE_AGENT_NAME.
-const agent = ctx.agentType;
+// The runtime carries the agent's (possibly TASK-suffixed) identity in either
+// agentName or agentType depending on context — check both.
+const names = [ctx.agentName, ctx.agentType].filter(Boolean);
+const isRole = (pred) => names.some(pred);
 
 let gateType;
-if (/^quality-reviewer(-|$)/.test(agent)) gateType = "qr";
-else if (/^test-validator(-|$)/.test(agent)) gateType = "tv";
-else if (/^merger(-|$)/.test(agent)) gateType = "merger";
+if (isRole(isQualityReviewer)) gateType = "qr";
+else if (isRole(isTestValidator)) gateType = "tv";
+else if (isRole(isMerger)) gateType = "merger";
 else process.exit(0);
 
+const flagsDir = join(ctx.sessionDir, "flags");
 const toolInput = input.tool_input || {};
+const toolInputStr = JSON.stringify(toolInput);
+const simpleWt = simpleWorktreePath(ctx);
 
-// Extract TASK_ID: first from the agent name, then from tool_input fields.
-let taskId = (agent.match(/TASK-[0-9]+/) || [])[0] || "";
+// Extract TASK_ID from the agent name first, then from tool_input fields.
+let taskId = "";
+for (const n of names) {
+  const m = getFirstTaskId(n);
+  if (m) {
+    taskId = m;
+    break;
+  }
+}
 if (!taskId) {
   const candidates = [
-    toolInput.file_path || "",
-    toolInput.command || "",
-    toolInput.path || "",
-    toolInput.to || "",
-    toolInput.message || "",
-    JSON.stringify(toolInput),
+    toolInput.file_path,
+    toolInput.command,
+    toolInput.path,
+    toolInput.to,
+    toolInput.message,
+    toolInputStr,
   ];
   for (const s of candidates) {
-    const m = String(s).match(/TASK-[0-9]+/);
+    const m = getFirstTaskId(s);
     if (m) {
-      taskId = m[0];
+      taskId = m;
       break;
     }
   }
@@ -60,76 +79,69 @@ if (!taskId) {
 
 const touch = (path) => {
   try {
-    mkdirSync(ctx.flagsDir, { recursive: true });
+    mkdirSync(flagsDir, { recursive: true });
     writeFileSync(path, "");
   } catch {
     // best-effort
   }
 };
 
-const blockNoTask = () => {
-  ctx.log(`member-idle-gate BLOCK-NOTASK agent=${agent} gate=${gateType} (no TASK_ID in input)`);
-  process.stderr.write(
-    `[member-idle-gate] Cannot determine TASK_ID for agent '${agent}'.\n` +
-      `Do NOT call any tool until you receive the developer's "ready for review" SendMessage.\n`
-  );
-  process.exit(2);
-};
-
-const simpleWt = join(ctx.worktreeBase, "simple");
-const toolInputStr = JSON.stringify(toolInput);
-
 if (!taskId) {
-  // Merger special case: the merger often runs git/shell commands that don't
-  // mention TASK-XXX. Once the developer has validated and sent to the merger,
-  // a notified-merger-* flag exists → allow all its tool calls.
+  // Merger special cases.
   if (gateType === "merger") {
     let mergerFlag = "";
     try {
-      mergerFlag = readdirSync(ctx.flagsDir).find((f) => f.startsWith("notified-merger-")) || "";
+      mergerFlag =
+        readdirSync(flagsDir).find((f) => f.startsWith("notified-merger-")) ||
+        "";
     } catch {
       mergerFlag = "";
     }
     if (mergerFlag) {
-      ctx.log(`member-idle-gate PASS agent=${agent} task=any (session merger flag: ${mergerFlag})`);
+      ctx.log(
+        `PASS agent=${names.join("/")} task=any (session merger flag: ${mergerFlag})`,
+      );
       process.exit(0);
     }
     // SIMPLE flow: orchestrator dispatches merger directly (no SendMessage, no
     // validate-before-review) so no merger flag is ever written. Detect by the
-    // presence of the SIMPLE worktree path in tool_input.
+    // SIMPLE worktree path in tool_input.
     if (toolInputStr.includes(simpleWt)) {
-      touch(join(ctx.flagsDir, "notified-merger-simple"));
-      ctx.log(`member-idle-gate PASS agent=${agent} task=simple (SIMPLE flow, wrote notified-merger-simple)`);
+      touch(join(flagsDir, "notified-merger-simple"));
+      ctx.log(`PASS agent=${names.join("/")} task=simple (SIMPLE flow)`);
       process.exit(0);
     }
   }
-  // Migration-round reviewer bypass: a quality-reviewer operating on the
-  // migration worktree (<worktreeBase>/simple) is dispatched sequentially AFTER
-  // the SQL is written — the empty-worktree race cannot happen. Allow it.
+  // Migration-round reviewer bypass: a quality-reviewer on the migration worktree
+  // is dispatched sequentially AFTER the SQL is written — no empty-worktree race.
   if (gateType === "qr" && toolInputStr.includes(simpleWt)) {
-    ctx.log(`member-idle-gate PASS agent=${agent} task=migration (migration-review bypass)`);
+    ctx.log(
+      `PASS agent=${names.join("/")} task=migration (migration-review bypass)`,
+    );
     process.exit(0);
   }
   // No TASK_ID anywhere — block conservatively.
-  blockNoTask();
+  ctx.fail(
+    `Cannot determine TASK_ID for agent '${names.join("/")}'.\n` +
+      'Do NOT call any tool until you receive the developer\'s "ready for review" SendMessage.',
+    { log: `BLOCK-NOTASK gate=${gateType}` },
+  );
 }
 
 const flag = {
-  qr: join(ctx.flagsDir, `notified-qr-${taskId}`),
-  tv: join(ctx.flagsDir, `notified-tv-${taskId}`),
-  merger: join(ctx.flagsDir, `notified-merger-${taskId}`),
+  qr: join(flagsDir, `notified-qr-${taskId}`),
+  tv: join(flagsDir, `notified-tv-${taskId}`),
+  merger: join(flagsDir, `notified-merger-${taskId}`),
 }[gateType];
 
 if (!existsSync(flag)) {
-  ctx.log(`member-idle-gate BLOCK agent=${agent} task=${taskId} flag=${flag} not found`);
-  process.stderr.write(
-    `[member-idle-gate] Your flag (${flag}) does not exist yet.\n` +
-      `The developer has not sent you a "ready for review" message.\n` +
-      `Do NOT call any tool (Read, Bash, Grep, SendMessage…).\n` +
-      `Idle until you receive the developer's first SendMessage.\n`
+  ctx.fail(
+    `Your flag (${flag}) does not exist yet.\n` +
+      'The developer has not sent you a "ready for review" message.\n' +
+      "Do NOT call any tool (Read, Bash, Grep, SendMessage…). Idle until the developer's first SendMessage.",
+    { log: `BLOCK task=${taskId} flag=${flag} not found` },
   );
-  process.exit(2);
 }
 
-ctx.log(`member-idle-gate PASS agent=${agent} task=${taskId}`);
+ctx.log(`PASS agent=${names.join("/")} task=${taskId}`);
 process.exit(0);

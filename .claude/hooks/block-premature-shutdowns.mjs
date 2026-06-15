@@ -1,66 +1,53 @@
 #!/usr/bin/env node
-// PreToolUse hook — block ANY SendMessage(shutdown_request) when no merge report
-// has yet arrived in the team-lead's inbox.
-//
-// Safety-net role: the orchestrator's prompt and the agent-team skill describe
-// the correct flow (Phase 1 dispatches → wait → Phase 3 teardown after merger
-// reports). This hook is the runtime guardrail in case the model collapses
-// Phase 1 and Phase 3 into a single turn: if any shutdown_request is sent before
-// the merger has produced even one merged/merge-failed report, it is blocked.
-//
-// Generalized from "merger-only" to "all members" because the developer must
-// converse with reviewers BEFORE notifying the merger; pre-emptively shutting
-// reviewers down would break the review loop.
-//
-// Exits 2 with a stderr message pointing to the agent-team skill.
+// PreToolUse(SendMessage) — block any shutdown_request until the merger has reported a merge result (a team-lead inbox message, or a TASK-*.json with status=merged). Prevents collapsing Phase 1 and Phase 3.
 
 import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { basename, dirname, join } from "node:path";
-import { readStdin, parseJson, crmIdentity, readJson, teamConfigs, TEAMS_DIR } from "./lib/common.mjs";
+import { stringifyMessage } from "./lib/io.mjs";
+import { createHookContext } from "./lib/context.mjs";
+import { getTeamConfigsForSession, isValidTeamName } from "./lib/teams.mjs";
+import { TEAMS_DIR } from "./lib/paths.mjs";
 
-const input = parseJson(readStdin());
-const ctx = crmIdentity(input);
+const isMergeReport = (text) =>
+  /(^|\s)merged\s+TASK-/.test(text) || /merge\s+failed/.test(text);
+const isTicketFile = (name) => /^TASK-.*\.json$/.test(name);
+
+const input = JSON.parse(readFileSync(0, "utf8"));
+const ctx = createHookContext(input, "block-premature-shutdowns");
 
 const ti = input.tool_input || {};
 const tool = input.tool_name || "";
 const to = ti.to || "";
-const msg = typeof ti.message === "string" ? ti.message : ti.message ? JSON.stringify(ti.message) : "";
+const msg = stringifyMessage(ti.message);
 const sessionId = input.session_id || "";
 
 if (tool !== "SendMessage") process.exit(0);
 
-// Only gate when the message is a shutdown_request.
 if (!msg.includes("shutdown_request")) process.exit(0);
 
-// Resolve the team. SendMessage's tool_input has no team_name. Resolution order:
-//   1. tickets-<sessionShort> derived from the session id.
-//   2. leadSessionId in config.json — covers the orchestrator when the session
-//      id isn't propagated to the team config.
-// Failing both, exit 0 (fails open for non-lead senders).
 let team = ti.team_name || "";
-if (!team || /[^A-Za-z0-9_-]/.test(team)) {
+if (!isValidTeamName(team)) {
   team = "";
-  if (ctx.sessionShort && existsSync(join(TEAMS_DIR, `tickets-${ctx.sessionShort}`))) {
+  if (
+    ctx.sessionShort &&
+    existsSync(join(TEAMS_DIR, `tickets-${ctx.sessionShort}`))
+  ) {
     team = `tickets-${ctx.sessionShort}`;
   }
   if (!team && sessionId && existsSync(TEAMS_DIR)) {
-    for (const cfg of teamConfigs()) {
-      if ((readJson(cfg)?.leadSessionId || "") === sessionId) {
-        team = basename(dirname(cfg));
-        break;
-      }
-    }
+    const cfg = getTeamConfigsForSession(sessionId)[0];
+    if (cfg) team = basename(dirname(cfg));
   }
 }
 
-if (!team) process.exit(0); // No team for this session — nothing to gate against.
+if (!team) process.exit(0);
 
 const inboxPath = join(TEAMS_DIR, team, "inboxes", "team-lead.json");
 const inboxExists = existsSync(inboxPath);
 
-const blockWithReason = (reason) => {
-  process.stderr.write(
-    `[block-premature-shutdowns] Blocked: SendMessage(to: "${to}", shutdown_request)
+const blockWithReason = (reason) =>
+  ctx.fail(
+    `Blocked: SendMessage(to: "${to}", shutdown_request)
 before any merge has been reported.
 
 ${reason}
@@ -78,55 +65,48 @@ issue Phase 3 shutdowns to all members in one batch.
 
 See chat-orchestrator.md "Trigger condition for Phase 3 — strict" and
 agent-team skill Phase 3.
-`
+`,
+  );
+
+const hasMergerReport = () => {
+  if (!inboxExists) return false;
+  const inbox = JSON.parse(readFileSync(inboxPath, "utf8")) || [];
+  return (Array.isArray(inbox) ? inbox : []).some(
+    (entry) =>
+      (entry.from || "") === "merger" &&
+      isMergeReport((entry.text || entry.message || "").toString()),
   );
 };
 
-// Check 1: inbox messages from the merger reporting a merge result.
-let inboxCount = 0;
-if (inboxExists) {
-  const inbox = readJson(inboxPath) || [];
-  for (const entry of Array.isArray(inbox) ? inbox : []) {
-    if ((entry.from || "") !== "merger") continue;
-    const text = (entry.text || entry.message || "").toString();
-    if (/(^|\s)merged\s+TASK-/.test(text) || /merge\s+failed/.test(text) || /TASK-[A-Za-z0-9_-]+\s+merge\s+failed/.test(text)) {
-      inboxCount++;
-    }
-  }
-}
+if (hasMergerReport()) process.exit(0);
 
-if (inboxCount >= 1) process.exit(0); // At least one merger report — allow.
-
-// Check 2 (fallback): any TASK-*.json in ticketsDir with "status": "merged".
-// Catches a merger that used a non-standard SendMessage format but did update
-// the ticket JSON.
-let ticketMergedCount = 0;
-if (ctx.ticketsDir && existsSync(ctx.ticketsDir)) {
+const hasMergedTicket = () => {
+  if (!ctx.ticketsDir || !existsSync(ctx.ticketsDir)) return false;
   let files = [];
   try {
-    files = readdirSync(ctx.ticketsDir).filter((f) => /^TASK-.*\.json$/.test(f));
+    files = readdirSync(ctx.ticketsDir).filter(isTicketFile);
   } catch {
-    files = [];
+    return false;
   }
-  for (const f of files) {
+  return files.some((f) => {
     try {
-      if (readFileSync(join(ctx.ticketsDir, f), "utf8").includes('"status": "merged"')) ticketMergedCount++;
+      return readFileSync(join(ctx.ticketsDir, f), "utf8").includes(
+        '"status": "merged"',
+      );
     } catch {
-      // unreadable — skip
+      return false;
     }
-  }
-}
+  });
+};
 
-if (ticketMergedCount >= 1) process.exit(0);
+if (hasMergedTicket()) process.exit(0);
 
-// Nothing found — block.
 if (inboxExists) {
   blockWithReason(
-    `The team-lead inbox at ${inboxPath} has 0 messages from the merger matching "merged TASK-..." or "...merge failed", and no TASK-*.json in ${ctx.ticketsDir} shows status=merged.`
+    `The team-lead inbox at ${inboxPath} has 0 messages from the merger matching "merged TASK-..." or "...merge failed", and no TASK-*.json in ${ctx.ticketsDir} shows status=merged.`,
   );
 } else {
   blockWithReason(
-    `The team-lead inbox at ${inboxPath} does not exist yet, and no TASK-*.json in ${ctx.ticketsDir} shows status=merged.`
+    `The team-lead inbox at ${inboxPath} does not exist yet, and no TASK-*.json in ${ctx.ticketsDir} shows status=merged.`,
   );
 }
-process.exit(2);

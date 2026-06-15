@@ -1,21 +1,29 @@
 #!/usr/bin/env node
-// PreToolUse / Write|Edit hook. Restricts the documentator's writes to a small
-// set of paths: the ledger, the runtime additions tree, MEMORY.md, and
-// settings.local.json. All other paths are blocked — the documentator is not
-// allowed to touch application code or to modify the base config under
-// $CONFIG_DIR/{agents,skills,hooks,rules,settings.json}.
-// Pass-through for any other agent or for non-documentator claude sessions
-// (no DOCUMENTATOR_RUN env var).
+// PreToolUse(Write|Edit) — restrict the documentator (DOCUMENTATOR_RUN=1) writes to the ledger, the runtime additions tree (CONFIG_DIR/local/**), MEMORY.md, and settings.local.json; pass-through otherwise.
 
+import { readFileSync } from "node:fs";
 import { join } from "node:path";
-import { readStdin, parseJson, REPO, CONFIG_DIR } from "./lib/common.mjs";
+import { createHookContext } from "./lib/context.mjs";
+import { REPO, CONFIG_DIR } from "./lib/paths.mjs";
 
 if (process.env.DOCUMENTATOR_RUN !== "1") process.exit(0);
 
-const filePath = parseJson(readStdin()).tool_input?.file_path || "";
+// Fail closed: a malformed payload is a block signal for this restricted
+// agent, not a pass-through. Leave input empty so the !filePath guard below
+// exits 2 (exit 1 from an uncaught throw would let the Write through).
+let input = {};
+try {
+  input = JSON.parse(readFileSync(0, "utf8"));
+} catch {
+  // fall through to the empty-file_path block below
+}
+const ctx = createHookContext(input, "restrict-documentator-write");
+const filePath = input.tool_input?.file_path || "";
 
 if (!filePath) {
-  process.stderr.write("Write/Edit blocked for documentator: empty or unparseable file_path.\n");
+  ctx.error(
+    "Write/Edit blocked for documentator: empty or unparseable file_path.",
+  );
   process.exit(2);
 }
 
@@ -24,16 +32,17 @@ const LOCAL_PREFIX = join(CONFIG_DIR, "local") + "/";
 const SETTINGS_LOCAL = join(CONFIG_DIR, "settings.local.json");
 const MEMORY = join(REPO, "MEMORY.md");
 
-if (
-  filePath === LEDGER ||
-  filePath === SETTINGS_LOCAL ||
-  filePath === MEMORY ||
-  filePath.startsWith(LOCAL_PREFIX)
-) {
+const isAllowedPath = (p) =>
+  p === LEDGER ||
+  p === SETTINGS_LOCAL ||
+  p === MEMORY ||
+  p.startsWith(LOCAL_PREFIX);
+
+if (isAllowedPath(filePath)) {
   process.exit(0);
 }
 
-process.stderr.write(
-  `Write/Edit blocked for documentator: ${filePath} is outside the allowed set. Allowed: ${LEDGER}, ${SETTINGS_LOCAL}, ${MEMORY}, ${LOCAL_PREFIX}**.\n`
+ctx.error(
+  `Write/Edit blocked for documentator: ${filePath} is outside the allowed set. Allowed: ${LEDGER}, ${SETTINGS_LOCAL}, ${MEMORY}, ${LOCAL_PREFIX}**.`,
 );
 process.exit(2);

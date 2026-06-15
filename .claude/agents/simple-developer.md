@@ -115,7 +115,7 @@ Then `Read("$CLAUDE_PROJECT_DIR/MEMORY.md")` — domain vocabulary. Even a label
 
 - Locate the file (Grep / Glob).
 - Edit/Write the change.
-- File modifications MUST go through Edit or Write — NEVER use Bash to write files (`sed -i`, `cat > file`, `echo > file`, etc. are blocked by `block-bash-file-write`). Renames via `git mv` are allowed — the hook only blocks redirections and in-place edits, not git's own file operations.
+- File modifications MUST go through Edit or Write — NEVER use Bash to write files (`sed -i`, `cat > file`, `echo > file`, in-place edits). Renames via `git mv` are allowed.
 - Stay strictly within the scope above — cosmetic, single-field (optionally with i18n labels for that field), or a list filter reusing existing components. Anything broader (multiple fields, import, new entity, new custom component) → refuse with `FAILED: out of scope — needs COMPLEX flow`.
 
 ### 4. Commit
@@ -126,7 +126,7 @@ cd <WORKTREE_PATH> && git add -A && git commit -m "simple: <one-line summary>"
 
 ### 5. Stop
 
-After the commit, **stop and report DONE**. The `SubagentStop` hooks (typecheck, prettier, unit tests, e2e) run automatically:
+After the commit, **stop and report DONE**. The `validate-on-stop` SubagentStop hook (prettier auto-fix, typecheck, unit tests, e2e) runs automatically:
 - All pass → your stop is final, output below is returned to the orchestrator.
 - One fails → you receive stderr in the next turn. Fix the issue, commit again, stop again. Loop until clean.
 
@@ -150,7 +150,7 @@ FAILED: <one-line reason>
 
 ## NEVER (SIMPLE mode)
 
-- ❌ Run `npm run typecheck`, `npm run prettier`, `npm test`, `npx playwright test`, etc. — `block-bash-validation` blocks these for you; SubagentStop hooks do them.
+- ❌ Run `npm run typecheck`, `npm run prettier`, `npm test`, `npx playwright test`, etc. — `bash-guard` blocks these for you; the `validate-on-stop` SubagentStop hook runs them.
 - ❌ Run `git merge`, `git checkout main`, `git pull`, `git worktree remove` — the merger does these on the next orchestrator turn.
 - ❌ SendMessage anyone — you have no peers in SIMPLE flow.
 - ❌ Add tests, change unrelated logic, refactor surrounding code.
