@@ -137,6 +137,25 @@ function readJsonl(path) {
   return out;
 }
 
+// Claude Code records a failed hook command as an `attachment` whose inner type
+// is hook_(non_)blocking_error.
+function hookErrorsFrom(records) {
+  const errs = [];
+  for (const rec of records) {
+    const a = rec.attachment;
+    if (!a || !/hook_(non_)?blocking_error/.test(a.type || "")) continue;
+    errs.push({
+      ts: rec.timestamp,
+      hookName: a.hookName || a.hookEvent || "hook",
+      stderr: (a.stderr || "").split("\n")[0].slice(0, 120),
+      command: (a.command || "").slice(0, 80),
+      exitCode: a.exitCode,
+      blocking: !/non_blocking/.test(a.type || ""),
+    });
+  }
+  return errs;
+}
+
 function readAgents(dir) {
   if (!existsSync(dir)) return [];
   const agents = [];
@@ -191,6 +210,7 @@ function readAgents(dir) {
       lastText,
       firstTs,
       lastTs,
+      hookErrors: hookErrorsFrom(records),
       verdict: classifyVerdict(lastText),
     });
   }
@@ -226,7 +246,7 @@ function readOrchestrator(path) {
         lastText = block.text.trim();
     }
   }
-  return { lastText, lastTs, dispatches };
+  return { lastText, lastTs, dispatches, hookErrors: hookErrorsFrom(records) };
 }
 
 // Merge every timestamped signal — orchestrator spawns, agent SendMessages,
@@ -365,8 +385,26 @@ function readTickets(dirs) {
 // ─── diagnosis ──────────────────────────────────────────────────────────────
 // Turn the raw event stream into named pathologies.
 
-function diagnose(events, agents) {
+function diagnose(events, agents, hookErrors = []) {
   const findings = [];
+
+  // 0. Failed hook commands (from the transcript, not hooks.log). Aggregate by
+  //    hook + first error line so a hook that fires on every tool use collapses
+  //    into one finding with a count.
+  const byErr = new Map();
+  for (const h of hookErrors) {
+    const key = `${h.hookName} → ${h.stderr}`;
+    const row = byErr.get(key) ?? { ...h, count: 0 };
+    row.count++;
+    byErr.set(key, row);
+  }
+  for (const h of byErr.values()) {
+    const sev = h.blocking ? red("✗") : yellow("⚠");
+    const cmd = h.command ? dim(` [${h.command}]`) : "";
+    findings.push(
+      `${sev} ${h.blocking ? "BLOCKING " : ""}hook error ×${h.count}: ${h.hookName} — ${h.stderr} (exit ${h.exitCode})${cmd}`,
+    );
+  }
 
   // 1. A validation step that keeps failing on the same worktree.
   const validFails = events.filter(
@@ -562,9 +600,14 @@ function render(id, limit = 0) {
   }
   line();
 
-  // Diagnosis
+  // Diagnosis — include hook-command failures gathered from every transcript
+  // (orchestrator + each subagent), which never appear in hooks.log.
+  const hookErrors = [
+    ...(orchestrator?.hookErrors ?? []),
+    ...agents.flatMap((a) => a.hookErrors ?? []),
+  ];
   line(bold("DIAGNOSIS"));
-  for (const f of diagnose(events, agents)) line(`  ${f}`);
+  for (const f of diagnose(events, agents, hookErrors)) line(`  ${f}`);
 
   return out.join("\n");
 }
