@@ -19,7 +19,8 @@ import {
 const ctx = createHookContext(readFileSync(0, "utf8"), "setup-worktree");
 
 const agentType = ctx.agentType || "";
-const taskId = getFirstTaskId(agentType);
+const agentName = ctx.agentName || "";
+const taskId = getFirstTaskId(agentName) || getFirstTaskId(agentType);
 
 let worktreePath;
 let branchName;
@@ -54,9 +55,7 @@ if (!existsSync(join(sessionWt, ".git"))) {
   const add = git(["worktree", "add", sessionWt, integrationBranch]);
   if (add.status === 0) {
     ctx.linkNodeModules(sessionWt);
-    ctx.log(
-      `SESSION-BRANCH created ${integrationBranch} from ${base}`,
-    );
+    ctx.log(`SESSION-BRANCH created ${integrationBranch} from ${base}`);
   } else {
     ctx.log(
       `SESSION-BRANCH FAILED _session worktree ${integrationBranch} err=${add.stderr.replace(/\n/g, " ")}`,
@@ -64,9 +63,7 @@ if (!existsSync(join(sessionWt, ".git"))) {
   }
 }
 
-ctx.log(
-  `START agent=${agentType} path=${worktreePath} branch=${branchName}`,
-);
+ctx.log(`START agent=${agentType} path=${worktreePath} branch=${branchName}`);
 
 if (getWorktreePaths().includes(worktreePath)) {
   ctx.accept(`already registered (${worktreePath})`);

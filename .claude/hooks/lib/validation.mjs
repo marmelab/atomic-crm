@@ -98,7 +98,7 @@ export function runValidationSteps(ctx, { worktree = "" } = {}) {
 
   for (const wt of worktrees) {
     const failed = (step, output) => {
-      ctx.log(`FAIL step=${step} wt=${wt}`);
+      ctx.log(`FAIL step=${step} wt=${wt}\n${output}`);
       return { ok: false, step, output: `=== ${step} failed in ${wt} ===\n${output}\n` };
     };
 

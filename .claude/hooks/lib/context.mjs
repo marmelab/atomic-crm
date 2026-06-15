@@ -20,9 +20,10 @@ export function createHookContext(input, name = "hook") {
   const clean = (s) => String(s ?? "").replace(/[\t\n]/g, " ");
 
   const agentId = clean(i.agent_id);
-  // agentName is the runtime-assigned (possibly TASK-suffixed) name from the
-  // environment; agentType prefers the payload's agent_type and falls back to it.
-  const agentName = process.env.CLAUDE_AGENT_NAME || "";
+  // agentName: env var carries the suffixed runtime name (e.g. developer-TASK-001)
+  // in PostToolUse/PreToolUse contexts; for SubagentStart the env is the parent's,
+  // so fall back to i.agent_name which Claude Code populates with the child's name.
+  const agentName = process.env.CLAUDE_AGENT_NAME || clean(i.agent_name) || "";
   const chatSessionId = process.env.CHAT_SESSION_DIR ? basename(process.env.CHAT_SESSION_DIR) : "";
 
   const sessionId =
