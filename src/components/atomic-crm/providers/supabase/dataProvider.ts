@@ -28,6 +28,34 @@ const getBaseDataProvider = () =>
     sortOrder: "asc,desc.nullslast" as any,
   });
 
+// Deleting a user is not a plain table delete: the sales table is protected by
+// RLS (no delete policy) and is referenced by several foreign keys. It must go
+// through the `users` edge function, which runs with the service role,
+// reassigns the user's records to the deleting admin, then removes the sales
+// row and the auth user.
+const callSalesDelete = async (id: Identifier): Promise<Identifier> => {
+  const { data, error } = await getSupabaseClient().functions.invoke<{
+    data: { id: Identifier };
+  }>("users", {
+    method: "DELETE",
+    body: { sales_id: id },
+  });
+
+  if (!data || error) {
+    console.error("salesDelete.error", error);
+    const errorDetails = await (async () => {
+      try {
+        return (await (error as any)?.context?.json()) ?? {};
+      } catch {
+        return {};
+      }
+    })();
+    throw new Error(errorDetails?.message || "Failed to delete the user");
+  }
+
+  return data.data?.id ?? id;
+};
+
 const processCompanyLogo = async (params: any) => {
   const logo = params.data.logo;
 
@@ -85,6 +113,26 @@ const getDataProviderWithCustomMethods = () => {
       }
 
       return baseDataProvider.getOne(resource, params);
+    },
+
+    async delete(resource: string, params: any) {
+      if (resource === "sales") {
+        await callSalesDelete(params.id);
+        return { data: params.previousData ?? { id: params.id } };
+      }
+      return baseDataProvider.delete(resource, params);
+    },
+
+    async deleteMany(resource: string, params: any) {
+      if (resource === "sales") {
+        // Reassign + delete each user sequentially so a failure surfaces a
+        // clear error instead of leaving records partially reassigned.
+        for (const id of params.ids) {
+          await callSalesDelete(id);
+        }
+        return { data: params.ids };
+      }
+      return baseDataProvider.deleteMany(resource, params);
     },
 
     async signUp({ email, password, first_name, last_name }: SignUpData) {
