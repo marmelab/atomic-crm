@@ -30,6 +30,25 @@
     <link rel="apple-touch-icon" sizes="1024x1024" href="./appIcon/1024.png" />
     <title>Practice-CRM</title>
 
+    <script>
+      // Apply the persisted theme before React mounts to avoid a flash of the
+      // wrong theme and to keep the login page themed. Key must match
+      // src/components/admin/theme-provider.tsx.
+      (function () {
+        try {
+          var theme = localStorage.getItem("eswatini-crm-theme") || "system";
+          var dark =
+            theme === "dark" ||
+            (theme === "system" &&
+              window.matchMedia &&
+              window.matchMedia("(prefers-color-scheme: dark)").matches);
+          document.documentElement.classList.add(dark ? "dark" : "light");
+        } catch (e) {
+          /* localStorage unavailable */
+        }
+      })();
+    </script>
+
     <style>
       body {
         margin: 0;
