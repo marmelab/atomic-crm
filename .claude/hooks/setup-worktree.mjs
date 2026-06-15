@@ -1,11 +1,36 @@
 #!/usr/bin/env node
-// SubagentStart — for developer/simple-developer agents, create the per-session integration branch + _session worktree and the task worktree, then link node_modules. developer-TASK-XXX → <base>/<TASK_ID>; simple-developer → <base>/simple. Recovers from stale registrations, orphan dirs, and orphan branches.
+// PreToolUse(Agent) — before a developer / simple-developer subagent starts,
+// create its git worktree (forked from the session integration branch) and
+// provision node_modules. Fires on the orchestrator's Agent dispatch, where the
+// dispatched identity (subagent_type, name, prompt) is available — unlike
+// SubagentStart, which in a parallel wave cannot tell which of N developers is
+// starting, so it cannot know the TASK_ID / worktree to create.
+//
+// Identity: a real TASK id (TASK-001) from the prompt's TASK_ID line or the
+// dispatch name (developer-TASK-001) → <base>/<TASK_ID>; a simple-developer with
+// no task → <base>/simple. Paths are derived from topology (authoritative),
+// matching the value the orchestrator substitutes into WORKTREE_PATH.
+//
+// Also resets stale review verdicts for a (re)dispatched developer, so a changed
+// diff cannot pass block-merger-without-review on a previous attempt's APPROVED.
+//
+// Recovery: already-registered worktree → skip (restart / retry); orphan dir →
+// rm -rf then recreate; orphan branch with no worktree → force-delete so -b works.
 
-import { existsSync, mkdirSync, readFileSync, rmSync } from "node:fs";
+import {
+  existsSync,
+  mkdirSync,
+  readFileSync,
+  rmdirSync,
+  rmSync,
+  statSync,
+} from "node:fs";
 import { dirname, join } from "node:path";
 import { createHookContext } from "./lib/context.mjs";
-import { getBaseBranch, git, getWorktreePaths } from "./lib/git.mjs";
+import { parseDispatch } from "./lib/dispatch-parse.mjs";
+import { getBaseBranch, getWorktreePaths, git } from "./lib/git.mjs";
 import { getFirstTaskId } from "./lib/teams.mjs";
+import { REVIEW_ROLES, reviewFlag } from "./lib/reviews.mjs";
 import {
   sessionBaseBranch,
   sessionBranch,
@@ -16,30 +41,88 @@ import {
   taskWorktreePath,
 } from "./lib/topology.mjs";
 
-const ctx = createHookContext(readFileSync(0, "utf8"), "setup-worktree");
+const input = JSON.parse(readFileSync(0, "utf8"));
+const ctx = createHookContext(input, "setup-worktree");
+const d = parseDispatch(input);
 
-const agentType = ctx.agentType || "";
-const agentName = ctx.agentName || "";
-const taskId = getFirstTaskId(agentName) || getFirstTaskId(agentType);
+// Only act on developer / simple-developer dispatches; reviewers, merger,
+// planner and documentator reuse (or never touch) a worktree.
+if (d.subagentType !== "developer" && d.subagentType !== "simple-developer") {
+  process.exit(0);
+}
+
+const taskId =
+  (/^TASK-\d+$/.test(d.taskId) && d.taskId) || getFirstTaskId(d.name);
 
 let worktreePath;
 let branchName;
 if (taskId) {
   worktreePath = taskWorktreePath(ctx, taskId);
   branchName = taskBranch(ctx, taskId);
-} else if (agentType === "simple-developer") {
+} else if (d.subagentType === "simple-developer") {
   worktreePath = simpleWorktreePath(ctx);
   branchName = simpleBranch(ctx);
 } else {
-  process.exit(0);
+  // developer without a resolvable task id — enforce-dev-dispatch blocks the
+  // missing-WORKTREE_PATH case separately; nothing safe to create here.
+  ctx.accept("developer dispatch with no task id — skipped");
 }
 
 mkdirSync(ctx.sessionDir, { recursive: true });
 
+// Serialise the git-mutation region per session: a COMPLEX wave dispatches N
+// developers in ONE orchestrator message, so N PreToolUse hooks can fire nearly
+// together and race on session-branch / _session creation and git's internal
+// worktree locks. A best-effort advisory lock (atomic mkdir + bounded spin,
+// 60s stale-steal) serialises them; released on any exit via the exit handler.
+const lockDir = join(ctx.sessionDir, ".setup-worktree.lock");
+const sleepSync = (ms) =>
+  Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, ms);
+let locked = false;
+const deadline = Date.now() + 20000;
+while (Date.now() < deadline) {
+  try {
+    mkdirSync(lockDir);
+    locked = true;
+    break;
+  } catch (e) {
+    if (e.code !== "EEXIST") break; // can't lock — proceed best-effort
+    try {
+      if (Date.now() - statSync(lockDir).mtimeMs > 60000) {
+        rmSync(lockDir, { recursive: true, force: true });
+        continue;
+      }
+    } catch {
+      continue; // lock vanished — retry immediately
+    }
+    sleepSync(100);
+  }
+}
+// Release the advisory lock. Idempotent (guarded by `locked`) so it is safe to
+// call explicitly once the git-mutation region is done — releasing before the
+// slow node_modules provisioning keeps the critical section short — and again on
+// exit as a backstop.
+const releaseLock = () => {
+  if (!locked) return;
+  try {
+    rmdirSync(lockDir);
+  } catch {
+    // best-effort
+  }
+  locked = false;
+};
+process.on("exit", releaseLock);
+
 const base = getBaseBranch();
 const integrationBranch = sessionBranch(ctx);
-
 const sessionWt = sessionWorktreePath(ctx);
+
+// Worktrees whose node_modules is provisioned AFTER the lock is released (see
+// the explicit releaseLock() below). cp -a of node_modules can take 20-40s on a
+// cross-mount dev container; doing it under the lock made parallel-wave waiters
+// exceed the acquire deadline and run the git-mutation region unlocked.
+const toProvision = [];
+
 if (
   git(["show-ref", "--verify", "--quiet", `refs/heads/${integrationBranch}`])
     .status !== 0
@@ -54,16 +137,31 @@ if (!existsSync(join(sessionWt, ".git"))) {
   git(["worktree", "prune"]);
   const add = git(["worktree", "add", sessionWt, integrationBranch]);
   if (add.status === 0) {
-    ctx.linkNodeModules(sessionWt);
+    toProvision.push(sessionWt);
     ctx.log(`SESSION-BRANCH created ${integrationBranch} from ${base}`);
   } else {
     ctx.log(
-      `SESSION-BRANCH FAILED _session worktree ${integrationBranch} err=${add.stderr.replace(/\n/g, " ")}`,
+      `SESSION-BRANCH FAILED _session ${integrationBranch} err=${add.stderr.replace(/\n/g, " ")}`,
     );
   }
 }
 
-ctx.log(`START agent=${agentType} path=${worktreePath} branch=${branchName}`);
+// A (re)dispatched developer means the diff will change — invalidate any prior
+// review verdicts for this ticket so a stale APPROVED can't let the merger
+// through before the new attempt is re-reviewed.
+if (taskId) {
+  for (const r of REVIEW_ROLES) {
+    try {
+      rmSync(reviewFlag(ctx, taskId, r), { force: true });
+    } catch {
+      // best-effort
+    }
+  }
+}
+
+ctx.log(
+  `START agent=${d.subagentType} path=${worktreePath} branch=${branchName}`,
+);
 
 if (getWorktreePaths().includes(worktreePath)) {
   ctx.accept(`already registered (${worktreePath})`);
@@ -92,12 +190,28 @@ const add = git([
 if (add.status !== 0) {
   ctx.fail(
     `Cannot create worktree at ${worktreePath} (branch=${branchName}): ${add.stderr}\n`,
-    {
-      log: `path=${worktreePath} err=${add.stderr}`,
-    },
+    { log: `path=${worktreePath} err=${add.stderr}` },
   );
 }
 ctx.log(`CREATED branch=${branchName} path=${worktreePath}`);
+toProvision.push(worktreePath);
 
-ctx.linkNodeModules(worktreePath);
+// Git-mutation region is done — release the lock before provisioning so a
+// parallel-wave waiter can serialise its own git ops while this hook copies
+// node_modules. Distinct target dirs, copied from $REPO, so the copies can run
+// concurrently without racing.
+releaseLock();
+
+try {
+  for (const wt of toProvision) ctx.linkNodeModules(wt);
+} catch (e) {
+  // Fail closed (exit 2 → block the dispatch): a developer must not start in a
+  // worktree with no dependencies. An uncaught throw would exit 1, which a
+  // PreToolUse hook treats as non-blocking — letting the broken dispatch run.
+  ctx.fail(
+    `node_modules provisioning failed for ${worktreePath}: ${e.message}`,
+    { log: `provision-failed wt=${worktreePath}` },
+  );
+}
+
 ctx.accept(`OK wt=${worktreePath}`);

@@ -5,8 +5,9 @@ import { getBaseBranch, getWorktreeChangedFiles, getWorktreePaths, isWorktreeDir
 import { bash, exec } from "./process.mjs";
 
 // `only` narrows to a single worktree when the caller already knows it
-// (validate-before-review with a task id); VALIDATE_WORKTREE is the test
-// override. Either falls back to all session worktrees when the path is gone.
+// (validate-on-stop scoping to the stopping agent's own task worktree);
+// VALIDATE_WORKTREE is the test override. Either falls back to all session
+// worktrees when the path is gone.
 export function getActiveWorktrees(ctx, only = "") {
   const narrowed = only || process.env.VALIDATE_WORKTREE || "";
   if (narrowed && existsSync(narrowed)) return [narrowed];
@@ -72,9 +73,8 @@ function runVitest(wt, configFile, projects = []) {
   return { status: r.status, output, timedOut: r.status === 124 };
 }
 
-// The full validation chain, shared by both validation entry points
-// (validate-on-stop.mjs on SubagentStop, validate-before-review.mjs on
-// SendMessage). Per dirty worktree, fail-fast: prettier auto-fix (+ commit),
+// The full validation chain, run by validate-on-stop.mjs on SubagentStop (after
+// every developer / simple-developer stop). Per dirty worktree, fail-fast: prettier auto-fix (+ commit),
 // typecheck, unit app, unit functions; then e2e once in the repo (full mode
 // only). VALIDATE_DRY_RUN=1 skips everything, =fail simulates a failure.
 // Returns { ok: true, skipReason? } or { ok: false, step, output }.

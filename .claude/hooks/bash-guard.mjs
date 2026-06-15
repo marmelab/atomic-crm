@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// PreToolUse(Bash) — single guard for Bash commands. Blocks commands that open browser windows (headed Playwright, Vite --open) for every caller, and blocks gated subagents from running validation commands (the validation hooks run them: validate-on-stop.mjs on SubagentStop, validate-before-review.mjs on SendMessage).
+// PreToolUse(Bash) — single guard for Bash commands. Blocks commands that open browser windows (headed Playwright, Vite --open) for every caller, and blocks gated subagents from running validation commands (validate-on-stop.mjs runs them automatically on SubagentStop).
 
 import { readFileSync } from "node:fs";
 import { createHookContext } from "./lib/context.mjs";
@@ -63,12 +63,13 @@ const runsUnitTests = (c) =>
   );
 const runsE2eTests = (c) => /(npx\s+playwright\s+test|make\s+test-e2e)/.test(c);
 const runsLint = (c) => /(make\s+lint\b|npm\s+run\s+lint\b)/.test(c);
-const runsBuild = (c) => /(npx\s+vite\s+build|npm\s+run\s+build\b|make\s+build\b)/.test(c);
+const runsBuild = (c) =>
+  /(npx\s+vite\s+build|npm\s+run\s+build\b|make\s+build\b)/.test(c);
 
 const VALIDATION_RULES = [
   [
     runsTypecheck,
-    "typecheck — the validation hooks run this automatically (validate-on-stop.mjs after you stop, validate-before-review.mjs before review messages); read their stderr output instead.",
+    "typecheck — validate-on-stop.mjs runs this automatically after you stop; read its stderr output instead.",
   ],
   [
     runsPrettier,
