@@ -38,6 +38,8 @@ Only **developer** runs on opus; everything else is sonnet or haiku.
 
 The **developer** and **simple-developer** apply the **Ponytail** minimization ladder (full mode) on every change, via inline directives in their prompts. The plugin (`ponytail@ponytail`, enabled in `.claude/settings.json`) also provides orchestrator-level guidance and the manual `/ponytail*` skills — but its `SessionStart` / `UserPromptSubmit` hooks reach only the main session, NOT `Agent`-dispatched subagents, which is why the dev agents get the ladder inline rather than from the plugin.
 
+**Caveman** (`caveman@caveman`, also enabled in `.claude/settings.json`, pinned to `CAVEMAN_DEFAULT_MODE=lite` via the `env` block) is an output-token compressor — it trims prose but keeps code, CLI commands, and error strings verbatim. It uses the same main-session-only hook mechanism, but here that gap is **intentional**: caveman is deliberately NOT inlined into any agent prompt (the opposite of Ponytail), because the dev / reviewer / merger subagents emit regex-parsed contract lines (`DONE:` / `FAILED:` / `APPROVED` / `REJECTED:`) that must stay contract-compliant. `lite` keeps the orchestrator's user-facing chat readable; the manual `/caveman*` skills stay available.
+
 ## The orchestrator's job between hand-offs
 
 Relay agent reports, surface blockers, and stop to ask the user whenever an agent flags an open question or a `BLOCKED` verdict. Do not bypass this flow for "small-looking" changes — the trigger is *plan approved*, not *task size*. Direct requests that never entered plan mode are not subject to this workflow.

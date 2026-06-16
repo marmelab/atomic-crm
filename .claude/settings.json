@@ -5,10 +5,17 @@
         "source": "github",
         "repo": "DietrichGebert/ponytail"
       }
+    },
+    "caveman": {
+      "source": {
+        "source": "github",
+        "repo": "JuliusBrussee/caveman"
+      }
     }
   },
   "enabledPlugins": {
     "ponytail@ponytail": true,
+    "caveman@caveman": true,
     "context7@claude-plugins-official": false,
     "playwright@claude-plugins-official": false,
     "security-guidance@claude-plugins-official": false,
