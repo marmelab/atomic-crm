@@ -21,6 +21,8 @@ export interface ConfigurationContextValue {
   disableEmailPasswordAuthentication?: boolean;
 }
 
+// NOTE: this is backed by ra-core's store, not a React Context — there is no Provider.
+// See adr/ADR-0002-configuration-store-pattern.md
 export const useConfigurationContext = () => {
   const [config] = useStore<ConfigurationContextValue>(
     CONFIGURATION_STORE_KEY,
