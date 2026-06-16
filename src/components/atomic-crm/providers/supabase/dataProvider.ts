@@ -244,6 +244,8 @@ const getDataProviderWithCustomMethods = () => {
   } satisfies DataProvider;
 };
 
+// This type is the contract both providers satisfy; FakeRest conforms to whatever
+// Supabase's custom methods produce. See adr/ADR-0003-dual-data-provider-pattern.md
 export type CrmDataProvider = ReturnType<
   typeof getDataProviderWithCustomMethods
 >;

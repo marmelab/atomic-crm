@@ -1,0 +1,14 @@
+# Machine-specific paths — break on any other checkout
+.graphify_python
+.graphify_root
+.graphify_labels.json
+manifest.json
+
+# Local accounting and regenerable caches
+cost.json
+cache/
+
+# Large interactive viz — regenerate with `graphify export html`
+graph.html
+
+# Tracked on purpose: GRAPH_REPORT.md, graph.json, .gitignore

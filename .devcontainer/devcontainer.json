@@ -10,6 +10,7 @@
   "remoteUser": "node",
   "features": {
     "./claude-code": {},
+    "./graphify": {},
     "./npm": {
       "workspaceFolder": "${containerWorkspaceFolder}"
     },
