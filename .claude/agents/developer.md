@@ -149,6 +149,15 @@ Context grows with every turn — fewer turns means lower cost and faster execut
 
 ## Codebase audit
 
+Before building anything, walk the **Ponytail ladder** (applied automatically,
+full mode) and stop at the first rung that satisfies the
+ticket: (1) does it need to exist? → (2) stdlib? → (3) native platform feature?
+→ (4) already-installed dependency (react-admin / shadcn / existing component)?
+→ (5) one line? → (6) only then minimal code. The cheapest ticket adds no code
+at all. Rungs 3–4 ARE the reuse registry below — build it first and let it shape
+the plan. Never minimize away validation, security, accessibility, error
+handling, or required tests.
+
 From `files_to_modify`, build a reuse registry:
 
 - Existing entities in `src/resources/`
@@ -193,6 +202,7 @@ e2e tests:
 
 Implement the plan. No deviations without flagging team-lead.
 
+- **Ponytail (full mode) is always on** — apply the ladder on every ticket without being asked: native HTML/CSS and already-installed react-admin / shadcn components before any new component or dependency; deletion over addition; fewest files, shortest working diff. Adding a dependency for something the stack already covers is a blocking review finding. Never minimize away validation, security, accessibility, error handling, or required tests.
 - All work in the worktree. Commits on `BRANCH_NAME`, never on `main`. MERGER does the merge.
 - Atomic commits per logical step. Every subject includes `TASK-XXX`: `feat(TASK-XXX): <what>`.
 - TypeScript strict: no `any`, no `@ts-ignore` without JSDoc.
