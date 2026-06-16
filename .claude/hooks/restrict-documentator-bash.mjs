@@ -5,7 +5,7 @@ import { readFileSync } from "node:fs";
 import { createHookContext } from "./lib/context.mjs";
 
 // Detect the documentator EITHER by DOCUMENTATOR_RUN=1 (legacy standalone
-// `claude -p` — a top-level process with no agent_type) OR by agent_type ===
+// run — a top-level process with no agent_type) OR by agent_type ===
 // "documentator" (an Agent-dispatched documentator subagent, the same signal the
 // other PreToolUse hooks use). Read the payload first so agent_type is available.
 //

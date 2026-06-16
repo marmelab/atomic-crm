@@ -1,6 +1,5 @@
 // Agent identity helpers — the single source for every hook that gates on who
-// an agent is. (The team-config enumeration that used to live here was removed
-// with the team flow; dispatch is now background-subagent only.)
+// an agent is.
 
 export const getFirstTaskId = (text) => (String(text ?? "").match(/TASK-[0-9]+/) || [])[0] || "";
 

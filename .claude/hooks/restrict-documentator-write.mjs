@@ -7,7 +7,7 @@ import { createHookContext } from "./lib/context.mjs";
 import { REPO, CONFIG_DIR } from "./lib/paths.mjs";
 
 // Detect the documentator EITHER by DOCUMENTATOR_RUN=1 (legacy standalone
-// `claude -p` — a top-level process with no agent_type) OR by agent_type ===
+// run — a top-level process with no agent_type) OR by agent_type ===
 // "documentator" (an Agent-dispatched documentator subagent). Read the payload
 // first so agent_type is available.
 //
