@@ -19,3 +19,7 @@ Edge function conventions:
 
 Other conventions:
 - New tables need RLS policies and the auto-set `sales_id` trigger (see migration `20260108160722`)
+
+RLS enforcement pitfalls (security-critical):
+- A trigger/function that **counts rows to enforce a limit** (capacity, quota, balance, subscription depletion) must be `SECURITY DEFINER` with a fixed `search_path`, or delegate to one. A `SECURITY INVOKER` count runs under the caller's RLS, sees only the rows that caller may read, under-counts, and the limit silently never fires (e.g. `session_booked_count` is DEFINER for exactly this reason).
+- A `WITH CHECK` clause must constrain **every column a non-admin may set**, not just ownership. `with check (contact_id = current_user_contact())` alone lets the caller forge any other column (`status`, `type`, amounts, flags) via PostgREST — privilege escalation / payment bypass. Whitelist allowed values in the policy, a trigger, or a `CHECK` constraint; never trust a client-chosen `status`/`type`.
