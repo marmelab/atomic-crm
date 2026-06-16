@@ -11,11 +11,6 @@
   "mounts": [
     {
       "type": "bind",
-      "source": "${localEnv:HOME}/.gitconfig",
-      "target": "/home/node/.gitconfig,ro"
-    },
-    {
-      "type": "bind",
       "source": "${localEnv:HOME}/.claude.json",
       "target": "/home/node/.claude.json"
     },

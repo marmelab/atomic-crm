@@ -1,14 +1,14 @@
 #!/usr/bin/env node
 // PreToolUse(Agent) — block the session->main promotion while any developed-but-
 // unmerged task branch still exists. In the no-team flow the orchestrator tracks
-// each wave's tickets in its own context across many background turns; a ticket
-// that finishes early can be lost between its developer's DONE and the
-// REVIEW->MERGE transition — its branch never merges into session/<short>, yet
-// the orchestrator believes the wave is done and dispatches the promotion merger,
-// silently dropping the work. This is the deterministic backstop.
+// each wave's tickets in its working context across a long synchronous turn; a
+// ticket can be lost between its developer's DONE and the REVIEW->MERGE
+// transition — its branch never merges into session/<short>, yet the orchestrator
+// believes the wave is done and dispatches the promotion merger, silently
+// dropping the work. This is the deterministic backstop.
 //
-// Behavioural counterpart: chat-orchestrator STATE B Step 3 reconciles against
-// disk before promoting, so in the normal case this never fires.
+// Behavioural counterpart: chat-orchestrator STATE B's Promotion step reconciles
+// against disk before promoting, so in the normal case this never fires.
 
 import { readFileSync } from "node:fs";
 import { createHookContext } from "./lib/context.mjs";

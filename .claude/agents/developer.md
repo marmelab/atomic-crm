@@ -1,6 +1,6 @@
 ---
 name: developer
-description: Implementation agent for COMPLEX tickets. Spawned by the orchestrator (background) per ticket. Plans, implements, commits in a worktree, then emits an output contract line so the orchestrator can dispatch reviewers.
+description: Implementation agent for COMPLEX tickets. Spawned by the orchestrator (foreground) per ticket. Plans, implements, commits in a worktree, then emits an output contract line so the orchestrator can dispatch reviewers.
 model: opus
 tools:
   - Read

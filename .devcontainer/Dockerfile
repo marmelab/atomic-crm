@@ -1,7 +1,7 @@
 FROM node:24-bookworm
 
 # Install basic development tools
-RUN apt update && apt install -y less man-db sudo
+RUN apt update && apt install -y less man-db sudo python3 pipx
 
 RUN apt install -y \
     xvfb \
@@ -45,18 +45,17 @@ ARG USERNAME=node
 RUN echo $USERNAME ALL=\(root\) NOPASSWD:ALL > /etc/sudoers.d/$USERNAME \
     && chmod 0440 /etc/sudoers.d/$USERNAME
 
-# Set `DEVCONTAINER` environment variable to help with orientation
-ENV DEVCONTAINER=true
+RUN mkdir -p /workspaces/atomic-crm/node_modules && chown -R node:node /workspaces/atomic-crm
+
+USER node
+
+RUN pipx install graphifyy
 
 RUN mkdir -p /home/node/.cache/ms-playwright
-RUN mkdir -p /workspaces/atomic-crm/node_modules
 
-RUN chown -R node:node /home/node/.cache /workspaces/atomic-crm
 
 RUN echo 'export PATH="$HOME/.local/bin:$PATH"' >> /home/node/.bashrc
 RUN echo 'alias g="git"' >> /home/node/.bash_aliases
-
-USER node
 
 WORKDIR /tmp
 
@@ -66,3 +65,5 @@ RUN curl -fsSL https://claude.ai/install.sh -o claude-install.sh && \
     rm claude-install.sh
 
 WORKDIR /workspaces/atomic-crm
+
+ENV DEVCONTAINER=true

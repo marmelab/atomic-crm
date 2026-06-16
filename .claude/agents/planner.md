@@ -142,7 +142,10 @@ Normal feature tickets (type / component / config prop) → `parallel_safe: true
    In normal COMPLEX mode (`SETUP_MODE` absent or `false`), do **not**
    read or edit `$CLAUDE_PROJECT_DIR/docs/project-context.json` — only the per-ticket
    files in `${TICKETS_DIR}` are yours to write.
-3. `TaskCreate({ subject: "TASK-XXX: title", description: "..." })` per ticket.
+
+The ticket JSON files on disk are the single source of truth — the orchestrator
+reads them from `${TICKETS_DIR}` and the merger updates each `status`. Do not call
+any task-tracking tool; it is not part of your toolset and the flow does not use it.
 
 ## Step 4.5 — SETUP_MODE specifics
 
