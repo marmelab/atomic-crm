@@ -82,6 +82,27 @@ describe("record-review-verdict", () => {
     expect(existsSync(flag("TASK-009-quality-reviewer"))).toBe(false);
   });
 
+  test("trailing prose starting with REJECTED does not flip a real APPROVED", () => {
+    // A chatty reviewer that approves but adds a clarifying sentence which happens
+    // to start with the keyword must NOT be recorded as REJECTED. The contract
+    // REJECTED form requires a colon (`REJECTED:`), so this trailing prose is
+    // ignored and the standalone APPROVED above wins.
+    run({
+      agent_type: "quality-reviewer-TASK-010",
+      last_assistant_message:
+        "APPROVED\nREJECTED concerns from the first pass are now resolved.",
+    });
+    expect(existsSync(flag("TASK-010-quality-reviewer"))).toBe(true);
+  });
+
+  test("standalone APPROVED with a trailing note still approves", () => {
+    run({
+      agent_type: "test-validator-TASK-010",
+      last_assistant_message: "APPROVED\nNice work — all e2e specs present.",
+    });
+    expect(existsSync(flag("TASK-010-test-validator"))).toBe(true);
+  });
+
   test("unknown verdict leaves state untouched (no flag written)", () => {
     run({
       agent_type: "quality-reviewer-TASK-008",

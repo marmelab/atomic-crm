@@ -2,12 +2,12 @@
 // "claude" Node project). Builds a throwaway repo with a session branch + one
 // merged and one unmerged task branch, then exercises the PreToolUse(Agent) hook.
 
-import { mkdtempSync, mkdirSync, writeFileSync, rmSync } from "node:fs";
+import { spawnSync } from "node:child_process";
+import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
-import { spawnSync } from "node:child_process";
-import { describe, test, expect, beforeAll, afterAll } from "vitest";
+import { afterAll, beforeAll, describe, expect, test } from "vitest";
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const HOOK = join(HERE, "..", "block-promote-unmerged.mjs");
@@ -98,6 +98,18 @@ describe("block-promote-unmerged", () => {
   test("allows promotion again once the branch is merged", () => {
     g("checkout", "-q", `session/${SS}`);
     g("merge", "-q", "--no-ff", `${SS}/TASK-002`, "-m", "merge(TASK-002)");
+    g("checkout", "-q", "main");
+    expect(run(PROMOTE)).toBe(0);
+  });
+
+  test("ignores the <short>/simple branch even when ahead of the session branch", () => {
+    // <short>/simple promotes straight to main (never into the session branch),
+    // so its commits are legitimately not on session/<short> and must NOT block a
+    // COMPLEX promotion.
+    g("checkout", "-q", "-b", `${SS}/simple`, "main");
+    writeFileSync(join(APP_DIR, "simple.txt"), "s\n");
+    g("add", ".");
+    g("commit", "-qm", "feat: a simple change");
     g("checkout", "-q", "main");
     expect(run(PROMOTE)).toBe(0);
   });

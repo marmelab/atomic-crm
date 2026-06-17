@@ -4,19 +4,19 @@
 // throwaway git repo (APP_DIR) + CRM_TMP_ROOT. Tests are ordered and stateful —
 // each observes the state produced by the previous step.
 
+import { spawnSync } from "node:child_process";
 import {
-  mkdtempSync,
-  mkdirSync,
-  writeFileSync,
-  readFileSync,
   existsSync,
+  mkdirSync,
+  mkdtempSync,
+  readFileSync,
   rmSync,
+  writeFileSync,
 } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
-import { spawnSync } from "node:child_process";
-import { describe, test, expect, beforeAll, afterAll } from "vitest";
+import { afterAll, beforeAll, describe, expect, test } from "vitest";
 import { sanitizePath } from "../lib/paths.mjs";
 
 const HERE = dirname(fileURLToPath(import.meta.url));
@@ -167,6 +167,39 @@ describe("setup-worktree session-branch topology (PreToolUse/Agent)", () => {
       encoding: "utf8",
     });
     expect(existsSync(join(WB, "simple"))).toBe(true);
+  });
+
+  test("developer with WORKTREE_PATH but unresolvable task id is blocked (exit 2)", () => {
+    const r = spawnSync("node", [HOOK], {
+      input: JSON.stringify({
+        session_id: SESSION_ID,
+        tool_input: {
+          subagent_type: "developer",
+          name: "developer",
+          prompt:
+            "ROLE: developer\nWORKTREE_PATH: /wt/nowhere\nBRANCH_NAME: x/y",
+        },
+      }),
+      env,
+      encoding: "utf8",
+    });
+    expect(r.status).toBe(2);
+  });
+
+  test("promotion-conflict-resolver is accepted with no worktree (exit 0)", () => {
+    const r = spawnSync("node", [HOOK], {
+      input: JSON.stringify({
+        session_id: SESSION_ID,
+        tool_input: {
+          subagent_type: "developer",
+          name: "developer",
+          prompt: `ROLE: promotion-conflict-resolver (gated $CLAUDE_PROJECT_DIR exception)\nSESSION_SHORT_ID: ${SS}`,
+        },
+      }),
+      env,
+      encoding: "utf8",
+    });
+    expect(r.status).toBe(0);
   });
 
   test("no SESSION-BRANCH FAILED logged", () => {

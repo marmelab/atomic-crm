@@ -679,9 +679,14 @@ When every ticket of the wave is `DONE` or `FAILED`:
 #### Promotion (after the last wave)
 
 First reconcile — a ticket could be `DONE` on disk yet mis-tracked in your note. Run
-this read-only check (allowed — not a merge-class command):
+this read-only check (allowed — not a merge-class command). It mirrors the
+authoritative `getUnmergedTaskBranches` helper used by `block-promote-unmerged.mjs`
+(that hook is the real gate; keep this snippet aligned with it): it skips
+`<SESSION_SHORT_ID>/simple` (the SIMPLE/migration branch promotes straight to main,
+never into the session branch) and treats an empty/failed count as unmerged
+(fail-closed):
 ```
-Bash("for b in $(git -C $CLAUDE_PROJECT_DIR for-each-ref --format='%(refname:short)' refs/heads/<SESSION_SHORT_ID>); do n=$(git -C $CLAUDE_PROJECT_DIR rev-list --count session/<SESSION_SHORT_ID>..$b 2>/dev/null); [ \"${n:-0}\" -gt 0 ] && echo \"$b: $n unmerged\"; done")
+Bash("for b in $(git -C $CLAUDE_PROJECT_DIR for-each-ref --format='%(refname:short)' refs/heads/<SESSION_SHORT_ID>); do [ \"$b\" = \"<SESSION_SHORT_ID>/simple\" ] && continue; n=$(git -C $CLAUDE_PROJECT_DIR rev-list --count session/<SESSION_SHORT_ID>..$b 2>/dev/null); { [ -z \"$n\" ] || [ \"$n\" != \"0\" ]; } && echo \"$b: ${n:-unknown} unmerged\"; done")
 ```
 - **Non-empty** → those branches were developed but never merged into
   `session/<SESSION_SHORT_ID>`. For each, resume its normal stages (review it if it

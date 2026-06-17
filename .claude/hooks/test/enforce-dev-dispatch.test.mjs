@@ -63,6 +63,17 @@ describe("enforce-dev-dispatch", () => {
     ).toBe(2);
   });
 
+  test("blocks a developer dispatch using run_in_background:true", () => {
+    expect(
+      run({
+        subagent_type: "developer",
+        run_in_background: true,
+        prompt:
+          "ROLE: developer\nTASK_ID: TASK-001\nWORKTREE_PATH: /wt/x/TASK-001\nBRANCH_NAME: x/TASK-001",
+      }),
+    ).toBe(2);
+  });
+
   test("allows the promotion-conflict-resolver (no WORKTREE_PATH by design)", () => {
     expect(
       run({

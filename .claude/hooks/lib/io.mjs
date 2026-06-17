@@ -1,10 +1,5 @@
-// SendMessage bodies may be strings or structured objects; gating hooks match
-// substrings (shutdown_request, TASK-XXX) against one canonical stringification.
-export function stringifyMessage(message) {
-  if (typeof message === "string") return message;
-  return message != null ? JSON.stringify(message) : "";
-}
-
+// Emit a PreToolUse "block" decision on stdout — the channel Claude Code reads to
+// deny a tool call while surfacing `reason` to the agent.
 export function decisionBlock(reason) {
   process.stdout.write(JSON.stringify({ decision: "block", reason }) + "\n");
 }

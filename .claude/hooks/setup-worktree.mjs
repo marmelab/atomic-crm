@@ -29,8 +29,8 @@ import { dirname, join } from "node:path";
 import { createHookContext } from "./lib/context.mjs";
 import { parseDispatch } from "./lib/dispatch-parse.mjs";
 import { getBaseBranch, getWorktreePaths, git } from "./lib/git.mjs";
-import { getFirstTaskId } from "./lib/teams.mjs";
 import { REVIEW_ROLES, reviewFlag } from "./lib/reviews.mjs";
+import { getFirstTaskId } from "./lib/teams.mjs";
 import {
   sessionBaseBranch,
   sessionBranch,
@@ -40,6 +40,13 @@ import {
   taskBranch,
   taskWorktreePath,
 } from "./lib/topology.mjs";
+
+// Advisory-lock tuning (see the acquire loop below). LOCK_ACQUIRE_TIMEOUT_MS must
+// stay comfortably under this hook's PreToolUse timeout in settings.json so a
+// waiter gives up and proceeds best-effort rather than being killed mid-run.
+const LOCK_ACQUIRE_TIMEOUT_MS = 20_000;
+const LOCK_STALE_MS = 60_000;
+const LOCK_SPIN_MS = 100;
 
 const input = JSON.parse(readFileSync(0, "utf8"));
 const ctx = createHookContext(input, "setup-worktree");
@@ -62,10 +69,22 @@ if (taskId) {
 } else if (d.subagentType === "simple-developer") {
   worktreePath = simpleWorktreePath(ctx);
   branchName = simpleBranch(ctx);
+} else if (d.role === "promotion-conflict-resolver") {
+  // The sanctioned $REPO-on-main exception (see enforce-dev-dispatch /
+  // worktree-scope): it works directly in the repo under the promote lock and
+  // owns no task worktree, so there is nothing to create here.
+  ctx.accept(
+    "promotion-conflict-resolver — operates in $REPO on main, no worktree",
+  );
 } else {
-  // developer without a resolvable task id — enforce-dev-dispatch blocks the
-  // missing-WORKTREE_PATH case separately; nothing safe to create here.
-  ctx.accept("developer dispatch with no task id — skipped");
+  // A developer that passed enforce-dev-dispatch (so it carries WORKTREE_PATH)
+  // but whose TASK id can't be resolved from TASK_ID or the dispatch name. We
+  // can't derive the canonical worktree path; accepting would let the developer
+  // cd into a directory that was never created. Fail closed instead.
+  ctx.fail(
+    "developer dispatch carries WORKTREE_PATH but no resolvable TASK-XXX id (expected a 'TASK_ID: TASK-XXX' line or a 'developer-TASK-XXX' name). Use the STATE B dispatch template with a real ticket id.",
+    { log: "BLOCK unresolvable task id" },
+  );
 }
 
 mkdirSync(ctx.sessionDir, { recursive: true });
@@ -79,7 +98,7 @@ const lockDir = join(ctx.sessionDir, ".setup-worktree.lock");
 const sleepSync = (ms) =>
   Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, ms);
 let locked = false;
-const deadline = Date.now() + 20000;
+const deadline = Date.now() + LOCK_ACQUIRE_TIMEOUT_MS;
 while (Date.now() < deadline) {
   try {
     mkdirSync(lockDir);
@@ -88,14 +107,14 @@ while (Date.now() < deadline) {
   } catch (e) {
     if (e.code !== "EEXIST") break; // can't lock — proceed best-effort
     try {
-      if (Date.now() - statSync(lockDir).mtimeMs > 60000) {
+      if (Date.now() - statSync(lockDir).mtimeMs > LOCK_STALE_MS) {
         rmSync(lockDir, { recursive: true, force: true });
         continue;
       }
     } catch {
       continue; // lock vanished — retry immediately
     }
-    sleepSync(100);
+    sleepSync(LOCK_SPIN_MS);
   }
 }
 // Release the advisory lock. Idempotent (guarded by `locked`) so it is safe to

@@ -90,7 +90,13 @@ const lastAssistantText = () => {
       lastText = content;
     }
     if (!role) {
-      const m = line.match(/ROLE:\s*(quality-reviewer|test-validator)/);
+      // Anchor to a dispatch-line boundary — start of the JSONL record, an
+      // escaped newline (\n inside the JSON string), or the prompt field's
+      // opening quote — so an inline prose mention ("...the ROLE: test-validator
+      // agent...") cannot mis-assign the role.
+      const m = line.match(
+        /(?:^|\\n|")ROLE:\s*(quality-reviewer|test-validator)/,
+      );
       if (m) role = m[1];
     }
     if (!task) {
@@ -107,17 +113,34 @@ const lastAssistantText = () => {
   return lastText;
 };
 
-// Verdict = the LAST line that opens with the contract keyword. Not simply the
-// final non-empty line: a `REJECTED:` verdict is followed by a bulleted feedback
-// list (one bullet per issue, per agent-output-format.md), so the marker line is
-// not the last line. Scanning for the last marker handles both the bare
-// `APPROVED` and the multi-line `REJECTED:\n- ...` shapes, and ignores any
-// keyword that appears only in the informational body above the verdict.
+// Verdict = the last CLEAN contract marker, read bottom-up. The contract puts the
+// verdict on the final line: a bare `APPROVED`, or `REJECTED:` followed by a
+// bulleted feedback list (so the REJECTED marker is NOT the last line). We scan
+// upward from the bottom and take the first clean marker, skipping feedback
+// bullets and trailing prose. Two deliberate asymmetries stop a chatty trailing
+// line from FLIPPING a real verdict:
+//   - APPROVED matches only a standalone `APPROVED` (optionally trailing
+//     punctuation) — not "APPROVED parts: ..." prose.
+//   - REJECTED requires the contract colon `REJECTED:` — so a trailing sentence
+//     like "REJECTED concerns are resolved" after a real APPROVED is ignored.
+// A line that is neither a clean marker nor a feedback bullet is skipped (keep
+// scanning up); if none is found the verdict is UNKNOWN and the flag is untouched.
 const src = lastAssistantText();
+const isApproved = (l) => l.replace(/[.!\s]+$/, "") === "APPROVED";
+const isRejected = (l) => /^REJECTED:/.test(l);
 let verdict = "";
-for (const line of src.split("\n").map((s) => s.trim())) {
-  if (/^APPROVED\b/.test(line)) verdict = "APPROVED";
-  else if (/^REJECTED\b/.test(line)) verdict = "REJECTED";
+const verdictLines = src.split("\n").map((s) => s.trim());
+for (let i = verdictLines.length - 1; i >= 0; i--) {
+  const line = verdictLines[i];
+  if (!line) continue;
+  if (isRejected(line)) {
+    verdict = "REJECTED";
+    break;
+  }
+  if (isApproved(line)) {
+    verdict = "APPROVED";
+    break;
+  }
 }
 
 ctx.log(
