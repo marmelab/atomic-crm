@@ -6,9 +6,9 @@ paths: []
 
 All ticket agents are spawned one-shot (in the background) by the chat orchestrator. Each agent's last line of output is parsed by regex against an output contract. Anything else in the body is informational and ignored by the orchestrator's parser.
 
-The developer, quality-reviewer, and test-validator read their ticket from `${TICKET_FILE}` (an absolute path passed in the spawn prompt). The merger additionally receives `${TICKETS_DIR}` (the per-session directory holding all ticket JSON files) so it can update the ticket's `status` field after a successful merge.
+The developer and quality-reviewer read their ticket from `${TICKET_FILE}` (an absolute path passed in the spawn prompt). The merger additionally receives `${TICKETS_DIR}` (the per-session directory holding all ticket JSON files) so it can update the ticket's `status` field after a successful merge.
 
-## Reviewer agents (quality-reviewer, test-validator)
+## Reviewer agent (quality-reviewer)
 
 Last line of output MUST be exactly one of:
 

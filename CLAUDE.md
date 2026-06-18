@@ -15,7 +15,7 @@ The **chat-orchestrator** is the user-facing entry point. It routes, narrates pr
 
 1. **planner** — decompose the approved plan into atomic, ordered tickets (JSON) with best-guess file paths and dependency waves. Skip only when the plan is already a single atomic deliverable (one file, one fix, one migration).
 2. **developer** (one per ticket) — implement + commit inside the ticket's git worktree. Tickets in the same wave (`parallel_safe: true`, no mutual dependency) are spawned concurrently as **foreground** subagents — a single message with multiple `Agent(...)` tool uses (no `run_in_background`); the orchestrator's turn resumes once they all return. Developers also write an ADR under `adr/` when a change introduces a structural decision, and never write SQL migrations (those are generated at deploy time).
-3. **quality-reviewer** + **test-validator** (per ticket, in parallel) — quality-reviewer does combined semantic code + security review; test-validator checks integration wiring and e2e presence. Neither re-runs validation (hooks already do).
+3. **quality-reviewer** — the single reviewer: combined semantic code + security review (Parts A, B) plus QA / runtime validation — integration wiring, behavior-verifiable acceptance criteria, e2e presence (Part C). Never re-runs validation (hooks already do).
 4. **merger** — `git merge --no-ff` only; never `git add` / `git commit`. One merger is dispatched per ticket (Stage A: feature branch → session branch); a final promotion merger (`MODE: promote`) moves the session branch onto `main` once the wave is done, serialised across sessions by a `flock` on the shared `.git`.
 5. **documentator** — auto-runs at the end of every COMPLEX session, appending business knowledge to `MEMORY.md` from the session diff. (Mode 1 also captures reusable rules/skills on explicit user request.)
 
@@ -29,8 +29,7 @@ There is no cross-agent messaging: the orchestrator dispatches every agent as a 
 | planner | sonnet | Decomposes the plan into tickets JSON with waves + file hints. |
 | developer | opus | Implements + commits in a worktree. Applies the **Ponytail** minimization ladder (full mode) automatically on every ticket, via an inline prompt directive. Writes ADRs for structural decisions. Never writes SQL migrations (deploy-time only). |
 | simple-developer | sonnet | One cosmetic edit, one single-field entity change, or one filter reusing existing components. Applies the **Ponytail** ladder (full mode) automatically, via an inline prompt directive. No team, no review. |
-| quality-reviewer | sonnet | Combined semantic code + security review only. Never re-runs validation. |
-| test-validator | haiku | Integration wiring + e2e presence. |
+| quality-reviewer | sonnet | Sole reviewer: combined semantic code + security review AND QA/runtime validation (integration wiring, behavior criteria, e2e presence). Never re-runs validation. |
 | merger | haiku | `git merge --no-ff` only. Never `git add` / `git commit`. |
 | documentator | sonnet | Mode 1 — captures rules/skills on request. Mode 2 — appends business knowledge to `MEMORY.md` at COMPLEX session end. |
 

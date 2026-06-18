@@ -1,9 +1,9 @@
 #!/usr/bin/env node
-// PreToolUse(Agent) — block dispatching a per-ticket merger until BOTH reviewers
-// (quality-reviewer + test-validator) have recorded APPROVED for that ticket.
-// With no SendMessage handshake, nothing else stops the orchestrator from going
-// developer -> merger directly and skipping review; this gate enforces the
-// dev -> reviewers -> (both APPROVED) -> merger ordering structurally.
+// PreToolUse(Agent) — block dispatching a per-ticket merger until the
+// quality-reviewer has recorded APPROVED for that ticket. With no SendMessage
+// handshake, nothing else stops the orchestrator from going developer -> merger
+// directly and skipping review; this gate enforces the
+// dev -> reviewer -> (APPROVED) -> merger ordering structurally.
 //
 // Verdicts are recorded by record-review-verdict.mjs (SubagentStop) as flags
 // under <sessionDir>/reviews/<TASK>-<role>. Skipped for the SIMPLE flow,
@@ -27,11 +27,11 @@ if (!/^TASK-\d+$/.test(d.taskId)) process.exit(0); // can't identify a ticket �
 const missing = REVIEW_ROLES.filter(
   (role) => !existsSync(reviewFlag(ctx, d.taskId, role)),
 );
-if (missing.length === 0) process.exit(0); // both APPROVED → allow the merge
+if (missing.length === 0) process.exit(0); // APPROVED → allow the merge
 
 ctx.fail(
   `Refusing to dispatch the merger for ${d.taskId}: no APPROVED verdict from ${missing.join(" and ")} yet.\n` +
-    "The flow is: developer -> quality-reviewer + test-validator -> (BOTH return APPROVED) -> merger.\n" +
-    `Dispatch quality-reviewer-${d.taskId} and test-validator-${d.taskId} first (STATE B transitions), then dispatch the merger only after both APPROVED.`,
+    "The flow is: developer -> quality-reviewer -> (APPROVED) -> merger.\n" +
+    `Dispatch quality-reviewer-${d.taskId} first (STATE B transition), then dispatch the merger only after it returns APPROVED.`,
   { log: `BLOCK ${d.taskId} missing=${missing.join(",")}` },
 );

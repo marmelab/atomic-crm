@@ -598,25 +598,22 @@ If an `Agent` dispatch *call itself* errors (rather than the agent running), mar
 
 #### Stage 2 — REVIEW + bounded retry (concurrent reviews, looped)
 
-For every ticket now in `REVIEW`, dispatch BOTH reviewers in the foreground. Batch
-all reviewers for all review-ready tickets into ONE message so they run
-concurrently (reviewers are read-only on separate worktrees). Substitute the real
-ticket id `T` in the prompt — plus the concrete
+For every ticket now in `REVIEW`, dispatch the single quality-reviewer in the
+foreground. Batch the reviewer for all review-ready tickets into ONE message so
+they run concurrently (reviewers are read-only on separate worktrees). Substitute
+the real ticket id `T` in the prompt — plus the concrete
 `<TICKETS_DIR>` / `<WORKTREE_BASE>` values:
 
 ```
 Agent({ subagent_type: "quality-reviewer",
-  description: "Quality review T",
+  description: "Review T",
   prompt: "ROLE: quality-reviewer\nTASK_ID: T\nTICKET_FILE: <TICKETS_DIR>/T.json\nWORKTREE_PATH: <WORKTREE_BASE>/T" })
-Agent({ subagent_type: "test-validator",
-  description: "Test validation T",
-  prompt: "ROLE: test-validator\nTASK_ID: T\nTICKET_FILE: <TICKETS_DIR>/T.json\nWORKTREE_PATH: <WORKTREE_BASE>/T" })
 ```
 
-When they return, store each verdict in `reviews.{quality|test}` and resolve every
+When it returns, store the verdict in `reviews.quality` and resolve every
 reviewed ticket:
-- both `APPROVED` → `stage = MERGE`.
-- at least one `REJECTED` (malformed reviewer output → treat as `REJECTED`) →
+- `APPROVED` → `stage = MERGE`.
+- `REJECTED` (malformed reviewer output → treat as `REJECTED`) →
   increment `retries`. If `retries ≤ MAX_RETRIES` (2): `stage = DEV`, clear
   `reviews`, and **re-develop** (below). If `retries > MAX_RETRIES`: `stage = FAILED`.
 
@@ -626,7 +623,7 @@ reviewed ticket:
 fresh PreToolUse/Agent event; `setup-worktree` re-reads them and SKIPs harmlessly
 because the worktree already exists — dropping them yields `setup-worktree SKIP
 missing identity`), PLUS a trailing line:
-`RETRY_FEEDBACK=<for each REJECTED reviewer, prefix its verdict body with 'quality:' or 'test:' and include it verbatim; omit APPROVED reviewers; separate the two prefixed blocks with a blank line when both are present>`
+`RETRY_FEEDBACK=<the reviewer's REJECTED verdict body, verbatim>`
 
 After re-developing a ticket, **re-review it** (run this stage again for that
 ticket). **Loop Stage 2 until every still-live ticket is `MERGE` or `FAILED`** —
@@ -649,8 +646,8 @@ Agent({ subagent_type: "merger",
 
 Per result: `DONE: T commit=…` → `stage = DONE`; `FAILED: …` or malformed →
 `stage = FAILED`. (The `block-merger-without-review` hook still gates each merger
-dispatch on both recorded `APPROVED` verdicts — the SubagentStop
-`record-review-verdict` hook recorded them when the reviewers returned, exactly as
+dispatch on the recorded quality-reviewer `APPROVED` verdict — the SubagentStop
+`record-review-verdict` hook recorded it when the reviewer returned, exactly as
 before.)
 
 Emit a short status line only when crossing a milestone the user cares about (a

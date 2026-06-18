@@ -56,12 +56,12 @@ describe("record-review-verdict", () => {
     expect(existsSync(flag("TASK-007-quality-reviewer"))).toBe(false);
   });
 
-  test("test-validator records its own flag from the final line", () => {
+  test("records the flag from a final APPROVED after preamble prose", () => {
     run({
-      agent_type: "test-validator-TASK-007",
-      last_assistant_message: "Step 1 — integration: present\nAPPROVED",
+      agent_type: "quality-reviewer-TASK-011",
+      last_assistant_message: "Part C — integration: present\nAPPROVED",
     });
-    expect(existsSync(flag("TASK-007-test-validator"))).toBe(true);
+    expect(existsSync(flag("TASK-011-quality-reviewer"))).toBe(true);
   });
 
   test("multi-line REJECTED (bulleted feedback) clears a prior flag", () => {
@@ -97,10 +97,10 @@ describe("record-review-verdict", () => {
 
   test("standalone APPROVED with a trailing note still approves", () => {
     run({
-      agent_type: "test-validator-TASK-010",
+      agent_type: "quality-reviewer-TASK-012",
       last_assistant_message: "APPROVED\nNice work — all e2e specs present.",
     });
-    expect(existsSync(flag("TASK-010-test-validator"))).toBe(true);
+    expect(existsSync(flag("TASK-012-quality-reviewer"))).toBe(true);
   });
 
   test("unknown verdict leaves state untouched (no flag written)", () => {

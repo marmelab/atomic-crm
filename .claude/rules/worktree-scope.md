@@ -1,6 +1,6 @@
 # Worktree scope — strict file access for ticket work
 
-Applies to: developer, quality-reviewer, test-validator. Any agent dispatched by the orchestrator (background, single-shot) to work on a specific ticket, with a suffixed name (e.g. `developer-TASK-006`).
+Applies to: developer, quality-reviewer. Any agent dispatched by the orchestrator (background, single-shot) to work on a specific ticket, with a suffixed name (e.g. `developer-TASK-006`).
 
 Throughout this rule, `$REPO` is the project root (`$CLAUDE_PROJECT_DIR` — wherever the repo is checked out). `<WORKTREE_PATH>` is the absolute worktree path handed to you in your spawn prompt.
 

@@ -119,13 +119,20 @@ Then `Read("$CLAUDE_PROJECT_DIR/MEMORY.md")` — domain vocabulary. Even a label
 - File modifications MUST go through Edit or Write — NEVER use Bash to write files (`sed -i`, `cat > file`, `echo > file`, in-place edits). Renames via `git mv` are allowed.
 - Stay strictly within the scope above — cosmetic, single-field (optionally with i18n labels for that field), or a list filter reusing existing components. Anything broader (multiple fields, import, new entity, new custom component) → refuse with `FAILED: out of scope — needs COMPLEX flow`.
 
-### 4. Commit
+### 4. Self-check
+
+If the change touched `supabase/schemas/`, verify before committing (these are exactly what the post-commit DB review blocks on — each miss costs a silent fix round-trip):
+- new column appended at the **end** of the view's SELECT in `03_views.sql` (no reordering),
+- no file under `supabase/migrations/` in your diff,
+- i18n keys for the new field present in BOTH `englishCrmMessages.ts` and `frenchCrmMessages.ts` if the field has user-facing labels.
+
+### 5. Commit
 
 ```bash
 cd <WORKTREE_PATH> && git add -A && git commit -m "simple: <one-line summary>"
 ```
 
-### 5. Stop
+### 6. Stop
 
 After the commit, **stop and report DONE**. The `validate-on-stop` SubagentStop hook (prettier auto-fix, typecheck, unit tests, e2e) runs automatically:
 - All pass → your stop is final, output below is returned to the orchestrator.

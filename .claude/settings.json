@@ -105,7 +105,7 @@
         ]
       },
       {
-        "matcher": "quality-reviewer|test-validator",
+        "matcher": "quality-reviewer",
         "hooks": [
           {
             "type": "command",

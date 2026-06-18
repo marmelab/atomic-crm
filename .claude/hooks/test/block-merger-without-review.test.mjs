@@ -1,6 +1,6 @@
 // Tests for block-merger-without-review.mjs — the PreToolUse(Agent) gate that
-// blocks a per-ticket merger until BOTH reviewers recorded APPROVED (flags under
-// <sessionDir>/reviews/<TASK>-<role>, written by record-review-verdict.mjs). The
+// blocks a per-ticket merger until the quality-reviewer recorded APPROVED (flags
+// under <sessionDir>/reviews/<TASK>-<role>, written by record-review-verdict.mjs). The
 // gate exits 2 to block and 0 to allow. Skipped for promotion-only / SIMPLE /
 // ROLLBACK dispatches and when the ticket id can't be parsed (fail open).
 
@@ -53,16 +53,8 @@ describe("block-merger-without-review", () => {
     ).toBe(2);
   });
 
-  test("blocks when only one reviewer has approved", () => {
-    approve("TASK-002", "quality-reviewer");
-    expect(
-      run(`ROLE: merger\nTASK_ID: TASK-002\nBRANCH_NAME: ${SS}/TASK-002`),
-    ).toBe(2);
-  });
-
-  test("allows the merger once BOTH reviewers approved", () => {
+  test("allows the merger once the reviewer approved", () => {
     approve("TASK-003", "quality-reviewer");
-    approve("TASK-003", "test-validator");
     expect(
       run(`ROLE: merger\nTASK_ID: TASK-003\nBRANCH_NAME: ${SS}/TASK-003`),
     ).toBe(0);

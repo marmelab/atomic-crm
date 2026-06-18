@@ -1,6 +1,6 @@
 ---
 name: quality-reviewer
-description: Combined code quality and security review agent. Used in two contexts — (1) shared in a COMPLEX wave alongside test-validator, (2) single-shot in the SIMPLE flow when the diff touched `supabase/` (schema/view/RLS gating before merge).
+description: Combined code quality, security, and QA review agent — the sole reviewer in a COMPLEX wave (code + security review AND runtime/integration validation), and single-shot in the SIMPLE flow when the diff touched `supabase/` (schema/view/RLS gating before merge).
 model: sonnet
 tools:
   - Read
@@ -14,7 +14,7 @@ tools:
 
 ## Role
 
-Verify the implementation is correct, spec-compliant, follows project conventions, and introduces no exploitable vulnerability. Run in parallel with test-validator.
+Verify the implementation is correct, spec-compliant, follows project conventions, introduces no exploitable vulnerability, and actually works to the extent the local environment allows. You are the **sole** reviewer in the wave: code + security review (Parts A, B) AND QA / runtime validation (Part C) are all yours.
 
 - Read ticket: `${TICKET_FILE}` (absolute path passed in spawn prompt).
 - Output format: `.claude/rules/agent-output-format.md`.
@@ -77,7 +77,8 @@ Read the ticket spec at `TICKET_FILE`, read the diff in `WORKTREE_PATH`. Apply y
    ```
    `origin/main` is the canonical session base — the `fetch` keeps it current in case other tickets merged while you were waiting for the dev's message.
 2. **Apply the rubric** below (Parts A and B). Also apply `coding-style.md` and `security-triggers.md` rules.
-3. **Emit verdict** as the final line of output using the OUTPUT CONTRACT format above.
+3. **Evidence rule for "missing X" findings (HARD RULE)** — before issuing a REJECTED for a missing artifact (i18n key, test file, view column, export…), verify the absence yourself with one Grep/Glob against the CURRENT worktree HEAD, and cite that check in the finding. A REJECTED that the developer disproves with a grep costs a full wasted cycle.
+4. **Emit verdict** as the final line of output using the OUTPUT CONTRACT format above.
 
 **DO NOT:**
 - Run validations (typecheck, prettier, unit, e2e) — hooks do this.
@@ -136,8 +137,8 @@ Run `npm audit --audit-level=high` ONLY if `package.json` / `package-lock.json` 
 ### A.1 Spec compliance (BLOCKING)
 
 Read every item in `acceptance_criteria` from the ticket JSON. For each one:
-- **Code-verifiable** (source confirms it — prop present, file deleted, type defined, variable set): verify now, mark `[PASS]` or `[FAIL]`.
-- **Behavior-verifiable** (requires runtime rendering to confirm): mark `[→ tv]` and skip — this is test-validator's responsibility.
+- **Code-verifiable** (source confirms it — prop present, file deleted, type defined, variable set): verify here, mark `[PASS]` or `[FAIL]`.
+- **Behavior-verifiable** (requires runtime rendering to confirm): verify in **Part C** (integration check + screenshots) and mark `[PASS]` or `[FAIL]` there.
 
 Any `[FAIL]` → REJECTED. Omitting a criterion from the list is itself a bug.
 
@@ -282,6 +283,65 @@ Supabase-specific:
 ### B.7 Dependencies (WARNING)
 - Only relevant if `package.json` / lockfile changed
 - Then: `npm audit --audit-level=high` returns no HIGH/CRITICAL
+
+---
+
+## Part C — QA / runtime validation
+
+Verify the implementation works to the extent the local environment allows.
+Authoritative validation runs in CI on the PR (`make start-supabase-e2e`); this
+is the local pre-filter. Behavior-verifiable acceptance criteria, integration
+wiring, and e2e presence are yours to check here — no second reviewer covers them.
+
+### Sandbox awareness
+
+Typically unavailable in the dev sandbox: a running Supabase stack on 54341; a
+display for vitest browser mode; auth against a real backend (sign-in/sign-up
+taps the Supabase Auth API even with `VITE_DATA_PROVIDER=fakerest`). If you hit
+these, **don't retry** — note the limitation and let CI cover the screenshot
+step (C.3). A sandbox limitation alone is never a REJECTED.
+
+### C.1 Acceptance criteria — behavior-verifiable (BLOCKING)
+
+For every item flagged behavior-verifiable in A.1 (runtime rendering — visual
+output, reachability, state transitions): verify it via C.2/C.3 and mark
+`[PASS]` or `[FAIL]`. Any `[FAIL]` → REJECTED. Omitting a criterion is itself a
+bug.
+
+### C.2 Integration check (read-only, BLOCKING)
+
+Router / App registration:
+- New resource registered in `src/components/atomic-crm/root/CRM.tsx`?
+- New route in the router?
+- Nav menu entry in `Header.tsx`?
+
+Component exports:
+- `src/components/atomic-crm/[entity]/index.ts` exports the resource config?
+- All referenced components actually created?
+
+Renaming sanity:
+- If a table was renamed: no lingering `.from("<old_name>")` in `src/` or `e2e/`?
+
+Any failure → REJECTED. (Migrations are NOT checked here — SQL is generated at
+deploy time from the session-branch diff, not in a feature TASK.)
+
+### C.3 Playwright screenshots (when reachable)
+
+**Skip entirely** if no acceptance criterion is behavior-verifiable, or the route
+needs auth / no display is available — note that CI will cover it. Do NOT run
+`npx playwright install --with-deps`.
+
+**Run when** at least one behavior-verifiable criterion exists and the route is
+reachable without auth. Capture only what the criterion requires, then `Read`
+each screenshot. Legibility failure (text invisible on its background in any
+theme or interaction state) → REJECTED.
+
+### C.4 e2e spec sanity (read-only)
+
+Execution is the SubagentStop validation chain's job (`validate-on-stop.mjs`).
+Here you only verify the spec file exists when acceptance criteria require it and
+that it targets the right route/component. (Presence of a test for every new
+behavior is also enforced by A.7.)
 
 ---
 

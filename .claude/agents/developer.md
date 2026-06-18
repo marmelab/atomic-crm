@@ -64,7 +64,7 @@ The orchestrator parses this line by regex. Any other format is treated as `FAIL
 
 If your spawn prompt contains a `RETRY_FEEDBACK=...` block, you are on a retry attempt. The worktree already exists with your previous commits on the branch — do NOT re-create it, do NOT re-init the branch.
 
-1. Read the bullets in `RETRY_FEEDBACK` carefully. They come from `quality-reviewer` and/or `test-validator` and describe issues with your previous attempt.
+1. Read the bullets in `RETRY_FEEDBACK` carefully. They come from the `quality-reviewer` and describe issues with your previous attempt.
 2. Apply targeted fixes only for the listed issues. Do not refactor unrelated code.
 3. Commit your fixes. The SubagentStop validation chain (typecheck + prettier + unit + e2e) runs automatically when you stop — failures come back to you as stderr and you fix and re-stop until it passes, exactly as for a fresh attempt.
 4. Emit the OUTPUT CONTRACT line with the new HEAD commit sha.

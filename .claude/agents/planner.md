@@ -2,6 +2,7 @@
 name: planner
 description: Product task planner. Use at the start of any new feature or project need (COMPLEX path) and at the end of FULL_SETUP (SETUP_MODE=true). Decomposes natural-language product needs into atomic, ordered, actionable tickets with best-guess file paths.
 model: sonnet
+effort: xhigh
 tools:
   - Write
   - Edit
@@ -223,6 +224,23 @@ The correct phrasing for the same intent is *schema-file* based:
 
 If you catch yourself writing "migration" anywhere in an AC, delete the line and
 rewrite it against `supabase/schemas/`.
+
+### Mandatory acceptance criteria — convention-implied, ALWAYS WRITE THESE
+
+Some conventions are reviewer-blocking but easy to leave implicit. Write these
+standard ACs in every relevant ticket so the developer ships them in the first
+pass and reviewers check the same line:
+
+- Ticket touches UI / filter / form / interaction → add:
+  *"An e2e spec in `e2e/` covers <the main user-visible behavior>"*
+- Ticket introduces new user-facing labels/strings → add:
+  *"New labels have i18n keys in both `englishCrmMessages.ts` and `frenchCrmMessages.ts`"*
+- Ticket touches `supabase/schemas/01_tables.sql` → add:
+  *"The new column is exposed in the matching `03_views.sql` view"*
+
+Make each criterion specific and testable — one line the developer marks `[PASS]`
+against the diff and a reviewer checks independently. These are implied by project
+conventions, not invented criteria.
 
 ---
 
