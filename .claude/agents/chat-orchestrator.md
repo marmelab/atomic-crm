@@ -577,17 +577,16 @@ wave (separate worktrees → parallel is safe). Every ticket starts at
 ```
 Agent({
   subagent_type: "developer",
-  name: "developer-TASK-XXX",
   description: "Implement TASK-XXX",
   prompt: "ROLE: developer\nTASK_ID: TASK-XXX\nTICKET_FILE: <TICKETS_DIR>/TASK-XXX.json\nWORKTREE_PATH: <WORKTREE_BASE>/TASK-XXX\nBRANCH_NAME: <SESSION_SHORT_ID>/<branch_name (must start with TASK-XXX)>"
 })
 ```
 
-(No `run_in_background`, no `isolation`.)
+(No `run_in_background`, no `isolation`, no `name`.)
 
-Substitute the actual ticket id (e.g. `TASK-003`) for `TASK-XXX` in both the `name` and the prompt, and the concrete `<TICKETS_DIR>` / `<WORKTREE_BASE>` / `<SESSION_SHORT_ID>` values. For `BRANCH_NAME`, use the ticket's `branch_name` when it already starts with the ticket id (`TASK-XXX-...`); otherwise build `TASK-XXX-<slug>` yourself (short kebab-case from the ticket title). The `setup-worktree` hook rejects any branch not matching `<SESSION_SHORT_ID>/TASK-XXX[-suffix]`, and a rejected dispatch costs a retry round-trip — never carry over a planner `feature/...` or `fix/...` prefix. **The `WORKTREE_PATH` and `BRANCH_NAME` lines are required and must follow the template verbatim**: the `setup-worktree` hook runs on THIS dispatch (PreToolUse/Agent), reads `WORKTREE_PATH`/`BRANCH_NAME`/`TASK_ID` from the prompt, and creates the worktree (forked from `session/<SESSION_SHORT_ID>`, node_modules provisioned) before the developer starts. `enforce-dev-dispatch` blocks the dispatch if `WORKTREE_PATH` is missing or if you add `isolation: "worktree"`. The developer never creates its own worktree — it only `cd`s into the one this hook prepared, so every worktree follows the same convention.
+Substitute the actual ticket id (e.g. `TASK-003`) for `TASK-XXX` in the prompt, and the concrete `<TICKETS_DIR>` / `<WORKTREE_BASE>` / `<SESSION_SHORT_ID>` values. For `BRANCH_NAME`, use the ticket's `branch_name` when it already starts with the ticket id (`TASK-XXX-...`); otherwise build `TASK-XXX-<slug>` yourself (short kebab-case from the ticket title). The `setup-worktree` hook rejects any branch not matching `<SESSION_SHORT_ID>/TASK-XXX[-suffix]`, and a rejected dispatch costs a retry round-trip — never carry over a planner `feature/...` or `fix/...` prefix. **The `WORKTREE_PATH` and `BRANCH_NAME` lines are required and must follow the template verbatim**: the `setup-worktree` hook runs on THIS dispatch (PreToolUse/Agent), reads `WORKTREE_PATH`/`BRANCH_NAME`/`TASK_ID` from the prompt, and creates the worktree (forked from `session/<SESSION_SHORT_ID>`, node_modules provisioned) before the developer starts. `enforce-dev-dispatch` blocks the dispatch if `WORKTREE_PATH` is missing or if you add `isolation: "worktree"`. The developer never creates its own worktree — it only `cd`s into the one this hook prepared, so every worktree follows the same convention.
 
-The `name:` field (`<subagent_type>-<TASK_ID>`) is reused for every dispatch in this state (developers, reviewers, mergers) to keep activity easy to read in logs. Keep it consistent.
+**Never add a `name:` field to any STATE B dispatch** (developers, reviewers, mergers). The Agent tool schema in this harness has `additionalProperties: false` with no `name` property, so a `name:` makes the dispatch fail input validation *before* the subagent starts — the call errors out instead of blocking and returning a result line. (`name`/`team_name` were part of the removed agent-teams model; foreground-vs-background is now controlled solely by `run_in_background` — absent/false here, so dispatches block.) Use `description:` for human-readable labels in logs.
 
 Emit one short user-facing status line (user's language), e.g. *"Working on it…"*. **Do NOT end the turn.**
 
@@ -602,14 +601,14 @@ If an `Agent` dispatch *call itself* errors (rather than the agent running), mar
 For every ticket now in `REVIEW`, dispatch BOTH reviewers in the foreground. Batch
 all reviewers for all review-ready tickets into ONE message so they run
 concurrently (reviewers are read-only on separate worktrees). Substitute the real
-ticket id `T` everywhere — both in `name` and in the prompt — plus the concrete
+ticket id `T` in the prompt — plus the concrete
 `<TICKETS_DIR>` / `<WORKTREE_BASE>` values:
 
 ```
-Agent({ subagent_type: "quality-reviewer", name: "quality-reviewer-T",
+Agent({ subagent_type: "quality-reviewer",
   description: "Quality review T",
   prompt: "ROLE: quality-reviewer\nTASK_ID: T\nTICKET_FILE: <TICKETS_DIR>/T.json\nWORKTREE_PATH: <WORKTREE_BASE>/T" })
-Agent({ subagent_type: "test-validator", name: "test-validator-T",
+Agent({ subagent_type: "test-validator",
   description: "Test validation T",
   prompt: "ROLE: test-validator\nTASK_ID: T\nTICKET_FILE: <TICKETS_DIR>/T.json\nWORKTREE_PATH: <WORKTREE_BASE>/T" })
 ```
@@ -621,8 +620,8 @@ reviewed ticket:
   increment `retries`. If `retries ≤ MAX_RETRIES` (2): `stage = DEV`, clear
   `reviews`, and **re-develop** (below). If `retries > MAX_RETRIES`: `stage = FAILED`.
 
-**Re-develop** = one foreground developer dispatch for that ticket, reusing
-`name: "developer-T"` and the **exact Stage 1 prompt including the
+**Re-develop** = one foreground developer dispatch for that ticket, reusing the
+**exact Stage 1 prompt including the
 `TASK_ID`/`WORKTREE_PATH`/`BRANCH_NAME` identity lines verbatim** (the retry is a
 fresh PreToolUse/Agent event; `setup-worktree` re-reads them and SKIPs harmlessly
 because the worktree already exists — dropping them yields `setup-worktree SKIP
@@ -643,7 +642,7 @@ then the next. `<branch>` is the `branch=` value from this ticket's stored
 `dev_output` (NOT the planner's suggestion — the developer may have renamed it):
 
 ```
-Agent({ subagent_type: "merger", name: "merger-T",
+Agent({ subagent_type: "merger",
   description: "Merge T",
   prompt: "ROLE: merger\nTASK_ID: T\nBRANCH_NAME: <SESSION_SHORT_ID>/<branch>\nWORKTREE_PATH: <WORKTREE_BASE>/T\nSESSION_SHORT_ID: <SESSION_SHORT_ID>\nTICKETS_DIR: <TICKETS_DIR>" })
 ```
@@ -702,7 +701,6 @@ tickets on `session/<SESSION_SHORT_ID>`; nothing has reached `main` yet.
   ```
   Agent({
     subagent_type: "merger",
-    name: "merger-promote",
     description: "Promote session branch to main",
     prompt: "ROLE: merger\nMODE: promote\nSESSION_SHORT_ID: <SESSION_SHORT_ID>"
   })
