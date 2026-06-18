@@ -1,0 +1,20 @@
+{
+  "id": "npm",
+  "version": "1.0.0",
+  "name": "NPM",
+  "options": {
+    "workspaceFolder": {
+      "type": "string",
+      "default": "",
+      "description": "Absolute path to the workspace folder inside the container. Used to pre-create and own the node_modules volume mount point."
+    }
+  },
+  "postCreateCommand": "npm install",
+  "mounts": [
+    {
+      "type": "volume",
+      "source": "${devcontainerId}-node-modules",
+      "target": "${containerWorkspaceFolder}/node_modules"
+    }
+  ]
+}

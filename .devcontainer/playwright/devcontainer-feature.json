@@ -1,0 +1,23 @@
+{
+  "id": "playwright",
+  "version": "1.0.0",
+  "name": "Playwright",
+  "postCreateCommand": "npx playwright install",
+  "containerEnv": {
+    "PLAYWRIGHT_BROWSERS_PATH": "/mount/.ms-playwright"
+  },
+  "dependsOn": {
+    "ghcr.io/postfinance/devcontainer-features/playwright-deps:1": {
+      "installChromiumDeps": true,
+      "installFirefoxDeps": true,
+      "installWebkitDeps": true
+    }
+  },
+  "mounts": [
+    {
+      "type": "volume",
+      "source": "${devcontainerId}-playwright",
+      "target": "/mount/.ms-playwright"
+    }
+  ]
+}

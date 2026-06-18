@@ -50,6 +50,5 @@ node_modules/
 /playwright/.cache/
 /playwright/.auth/
 
-.devcontainer/.mnt-*/*
-!.devcontainer/.mnt-*/.gitkeep
 *.lock
+ 
