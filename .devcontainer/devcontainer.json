@@ -7,13 +7,8 @@
   "workspaceFolder": "/workspaces/atomic-crm",
   "workspaceMount": "source=${localWorkspaceFolder},target=/workspaces/atomic-crm,type=bind,consistency=cached",
   "remoteUser": "node",
-  "postAttachCommand": "make install-playwright-browsers",
+  "postCreateCommand": "make install-playwright-browsers",
   "mounts": [
-    {
-      "type": "bind",
-      "source": "${localEnv:HOME}/.gitconfig",
-      "target": "/home/node/.gitconfig,ro"
-    },
     {
       "type": "bind",
       "source": "${localEnv:HOME}/.claude.json",
@@ -23,6 +18,26 @@
       "type": "bind",
       "source": "${localEnv:HOME}/.claude",
       "target": "/home/node/.claude"
+    },
+    {
+      "type": "bind",
+      "source": "${localWorkspaceFolder}/.devcontainer/.mnt-ms-playwright-cache",
+      "target": "/home/node/.cache/ms-playwright"
+    },
+    {
+      "type": "bind",
+      "source": "${localWorkspaceFolder}/.devcontainer/.mnt-tmp",
+      "target": "/tmp"
+    },
+    {
+      "type": "bind",
+      "source": "${localWorkspaceFolder}/.devcontainer/.mnt-node_modules",
+      "target": "/workspaces/atomic-crm/node_modules"
     }
-  ]
+  ],
+  "customizations": {
+    "vscode": {
+      "extensions": ["Anthropic.claude-code"]
+    }
+  }
 }

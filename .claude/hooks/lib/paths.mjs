@@ -14,7 +14,6 @@ export const REPO = getRepo();
 
 export const CONFIG_DIR =
   process.env.CLAUDE_CONFIG_DIR || join(process.env.HOME || "/root", ".claude");
-export const TEAMS_DIR = join(CONFIG_DIR, "teams");
 export const TMP_ROOT = process.env.CRM_TMP_ROOT || "/tmp";
 
 export function sanitizePath(p) {

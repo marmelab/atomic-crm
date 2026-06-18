@@ -1,12 +1,13 @@
 import { existsSync, readFileSync, unlinkSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { basename, join } from "node:path";
-import { getBaseBranch, getWorktreeChangedFiles, getWorktreePaths, isWorktreeDirty } from "./git.mjs";
+import { getBaseBranch, getWorktreeChangeSummary, getWorktreePaths } from "./git.mjs";
 import { bash, exec } from "./process.mjs";
 
 // `only` narrows to a single worktree when the caller already knows it
-// (validate-before-review with a task id); VALIDATE_WORKTREE is the test
-// override. Either falls back to all session worktrees when the path is gone.
+// (validate-on-stop scoping to the stopping agent's own task worktree);
+// VALIDATE_WORKTREE is the test override. Either falls back to all session
+// worktrees when the path is gone.
 export function getActiveWorktrees(ctx, only = "") {
   const narrowed = only || process.env.VALIDATE_WORKTREE || "";
   if (narrowed && existsSync(narrowed)) return [narrowed];
@@ -15,7 +16,7 @@ export function getActiveWorktrees(ctx, only = "") {
 
 // Pure query — never exits. An empty list with a non-empty skipReason means
 // there is nothing to validate.
-function getWorktreesToValidate(ctx, { skipAdrOnly = false, only = "" } = {}) {
+function getWorktreesToValidate(ctx, { skipAdrOnly = false, only = "", base = "" } = {}) {
   if (!existsSync(ctx.repo)) {
     return { worktrees: [], skipReason: "cd_failed" };
   }
@@ -23,14 +24,20 @@ function getWorktreesToValidate(ctx, { skipAdrOnly = false, only = "" } = {}) {
   if (active.length === 0) {
     return { worktrees: [], skipReason: "no_active_worktree" };
   }
-  const base = getBaseBranch();
+  // Compare against the branch the worktree forked from (the session branch,
+  // passed by validate-on-stop) so the change set is the ticket's OWN work, not
+  // everything since the repo's checked-out base branch — which would over- or
+  // under-report a worktree's delta whenever the base branch has diverged from
+  // the session branch. Falls back to the repo base branch when no override.
+  const effectiveBase = base || getBaseBranch();
   const isAdrOnly = (files) => files.length > 0 && files.every((f) => f.startsWith("adr/"));
   const worktrees = active.filter((wt) => {
-    if (!isWorktreeDirty(wt, base)) {
+    const { dirty, changedFiles } = getWorktreeChangeSummary(wt, effectiveBase);
+    if (!dirty) {
       ctx.log(`SKIP wt=${wt} (no changes)`);
       return false;
     }
-    if (skipAdrOnly && isAdrOnly(getWorktreeChangedFiles(wt, base))) {
+    if (skipAdrOnly && isAdrOnly(changedFiles)) {
       ctx.log(`SKIP wt=${wt} (adr-only)`);
       return false;
     }
@@ -72,13 +79,12 @@ function runVitest(wt, configFile, projects = []) {
   return { status: r.status, output, timedOut: r.status === 124 };
 }
 
-// The full validation chain, shared by both validation entry points
-// (validate-on-stop.mjs on SubagentStop, validate-before-review.mjs on
-// SendMessage). Per dirty worktree, fail-fast: prettier auto-fix (+ commit),
+// The full validation chain, run by validate-on-stop.mjs on SubagentStop (after
+// every developer / simple-developer stop). Per dirty worktree, fail-fast: prettier auto-fix (+ commit),
 // typecheck, unit app, unit functions; then e2e once in the repo (full mode
 // only). VALIDATE_DRY_RUN=1 skips everything, =fail simulates a failure.
 // Returns { ok: true, skipReason? } or { ok: false, step, output }.
-export function runValidationSteps(ctx, { worktree = "" } = {}) {
+export function runValidationSteps(ctx, { worktree = "", base = "" } = {}) {
   if (process.env.VALIDATE_DRY_RUN === "1") {
     ctx.log("DRY_RUN=1, skipping validation");
     return { ok: true, skipReason: "dry_run" };
@@ -91,6 +97,7 @@ export function runValidationSteps(ctx, { worktree = "" } = {}) {
   const { worktrees, skipReason } = getWorktreesToValidate(ctx, {
     skipAdrOnly: true,
     only: worktree,
+    base,
   });
   if (skipReason) return { ok: true, skipReason };
 

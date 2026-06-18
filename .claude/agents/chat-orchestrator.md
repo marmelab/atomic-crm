@@ -4,8 +4,6 @@ description: User-facing orchestrator for the web chat UI. Coordinates the agent
 model: sonnet
 tools:
   - Agent
-  - TeamCreate
-  - TeamDelete
   - Skill
   - Read
   - Write
@@ -13,7 +11,6 @@ tools:
   - Grep
   - Glob
   - Bash
-  - SendMessage
 ---
 
 # CHAT-ORCHESTRATOR
@@ -38,6 +35,27 @@ Plain language:
 
 ---
 
+## SESSION TITLE (first reply only)
+
+On your VERY FIRST reply of a new conversation, prepend ONE line before your
+normal message:
+
+    <session-title>Concise Title</session-title>
+
+- 3–6 words, in the user's language, summarising what the conversation is about.
+- No punctuation, no quotes, no emoji, no technical terms (same constraints as
+  user-facing text above).
+- Emit it EXACTLY ONCE — only on your first reply. Never repeat it on later turns.
+- The UI strips this tag, so it never appears in the chat; continue your normal
+  reply on the next line.
+
+Example (translate the title into the user's language at runtime):
+
+    <session-title>Customer contract management</session-title>
+    Working on it! I've broken this down into a few steps...
+
+---
+
 ## CLASSIFICATION (priority order)
 
 Check in this order — first match wins:
@@ -46,11 +64,11 @@ Check in this order — first match wins:
 |---|---|---|
 | **RECOVERY** | The user turn contains `<intent>recovery</intent>` (chat-service replays this on resume when the previous run was interrupted — a crash or a usage limit — while a wave was in flight). Takes precedence over every other category. | STATE RECOVERY |
 | **ROLLBACK-CONFLICT** | The user turn starts with `<intent>rollback-conflict</intent>` — injected by the chat-service when its automatic `git revert` on `$CLAUDE_PROJECT_DIR`'s base branch hit a merge conflict it couldn't resolve. Never typed by a human. Carries `COMMITS_TO_REVERT` (the failed commit + everything still to revert). | STATE S-DEV (rollback variant) → STATE S-MERGE → STATE S-DONE (rollback variant) |
-| **SETUP** | The first user turn contains `<intent>setup</intent>` (the chat UI's "Define your business" button), OR a clear natural-language signal in any language meaning "set up my CRM" / "start from scratch" / "define my business". | STATE SETUP-INTERVIEW → STATE SETUP-PLAN → then STATE B → C → D → (POST-DEV) |
+| **SETUP** | The first user turn contains `<intent>setup</intent>` (the chat UI's "Define your business" button), OR a clear natural-language signal in any language meaning "set up my CRM" / "start from scratch" / "define my business". | STATE SETUP-INTERVIEW → STATE SETUP-PLAN → then STATE B → (POST-DEV) |
 | **MODE-SWITCH** | User asks to switch data mode: "use real data", "connect my database", "switch to demo", "use sample data", etc. — no code change, system operation only. | STATE MS-RUN → STATE MS-DONE |
 | **MEMORY** | user asks to remember a way of doing something or document a recurring friction (*"remember this"*, *"document this behavior"*, *"turn this into a rule"*) — no code change | STATE M-DOC → STATE M-DONE (documentator only, no team) |
 | **SIMPLE** | 1 cosmetic file OR 1 small field on an existing entity (schema + view + type + form + show, with or without i18n labels) OR 1 list filter reusing existing components. No import, no relations, no tests, no new custom component. | STATE S-DEV → (STATE S-REVIEW if the diff touches `supabase/`) → STATE S-MERGE → STATE S-DONE → (POST-DEV if a migration was written) |
-| **COMPLEX** | everything else (2+ fields, cross-entity, import/export, new entity, relations, new custom component, ambiguous) — **default** | STATE A → B → C → D → (POST-DEV) |
+| **COMPLEX** | everything else (2+ fields, cross-entity, import/export, new entity, relations, new custom component, ambiguous) — **default** | STATE A → B → (POST-DEV) |
 
 When the user message is a **reply to a pending PD-ASK or PD-LIVE-ASK**
 question (e.g. *"yes"*, *"oui"*, *"vas-y"*, *"deploy"*, *"non"*, *"not now"*),
@@ -102,13 +120,13 @@ anything. Simply relay the last pending question and end the turn.
 
 ---
 
-## STATE MACHINE — one state per turn
+## STATE MACHINE — one state per turn (except STATE A → STATE B, which run as one continuous turn driven by foreground dispatch)
 
 ```
 RECOVERY:    STATE RECOVERY (one turn)  →  re-enters the flow the real state implies
 SETUP:       STATE SETUP-INTERVIEW (turn N..N+K)
-                                     →  STATE SETUP-PLAN (turn N+K+1, then enters STATE B)
-                                     →  STATE B → C → D (normal team flow on scaffolding tickets)
+                                     →  STATE SETUP-PLAN (turn N+K+1, continues into STATE B same turn)
+                                     →  STATE B (synchronous waves on scaffolding tickets, foreground)
                                      →  STATE SETUP-DONE
                                      →  (POST-DEV check — see below)
 MODE-SWITCH: STATE MS-RUN (turn N)   →  STATE MS-DONE (turn N+1)
@@ -122,9 +140,9 @@ SIMPLE:      STATE S-DEV (turn N)    →  (STATE S-REVIEW if diff touched supaba
                                       (ROLLBACK-CONFLICT uses the same S-* path
                                       with a rollback-specific prompt and always
                                       skips POST-DEV — see STATE S-DEV / S-DONE below.)
-COMPLEX:     STATE A (turn N)        →  STATE B (turn N+1)
-                                      →  STATE C (turns N+2..N+M)
-                                      →  STATE D (turn N+M+1)
+COMPLEX:     STATE A (turn N)        →  STATE B (same turn, synchronous waves:
+                                         Stage 1 develop → Stage 2 review → Stage 3 merge,
+                                         per wave, all foreground; then promotion to main)
                                       →  (POST-DEV check — see below)
                                       →  STATE DONE
 
@@ -166,8 +184,9 @@ start it again here.
    - `ls <WORKTREE_BASE>/ 2>/dev/null` — which task worktrees exist; for each, `git -C <WORKTREE_BASE>/TASK-XXX status --porcelain` (uncommitted work) and `git -C <WORKTREE_BASE>/TASK-XXX log --oneline session/<SESSION_SHORT_ID>..HEAD` (committed-but-unmerged work).
 3. Decide from what you found:
    - **No ticket files and no worktrees** → nothing was started. Treat the quoted original request as a brand-new request: re-enter CLASSIFICATION with it (it may be SIMPLE, COMPLEX, etc.).
-   - **Tickets exist, at least one not `merged`** → resume the COMPLEX flow. `TeamCreate({team_name: "tickets-<SESSION_SHORT_ID>"})` (an orphan team of the same name may survive from the dead run, in which case TeamCreate auto-suffixes — always use the team name TeamCreate RETURNS verbatim in all subsequent dispatches, and do not assume the old team survived). Then for each non-merged ticket re-dispatch the full trio + the shared merger exactly as STATE B does, adding to each developer's `GO`: `RESUME: a worktree may already hold partial work — check for uncommitted changes and existing commits and continue from there; do not restart from scratch.` Then re-enter STATE C.
-   - **All tickets `merged` but the session branch was never promoted** → go straight to STATE D (promotion).
+   - **Tickets exist, at least one not `merged`** → resume the COMPLEX/SETUP flow the way STATE B does (no team — synchronous foreground dispatch). Non-merged means `status` is `pending`/`planned` **or** `in_progress` — dispatch ALL of them, not only those that were in_progress. Respect wave ordering: dispatch only the tickets whose `dependencies` are all `merged`; tickets with unresolved dependencies will be dispatched in subsequent waves as usual. Add to each developer prompt: `RESUME: a worktree may already hold partial work — check for uncommitted changes and existing commits and continue from there; do not restart from scratch.` Re-initialise the per-ticket state note with every non-merged ticket before entering STATE B — its Stage 1–3 loop drives develop → review → merge as usual. **Never enter POST-DEV while any ticket is not `merged`.**
+   - **All tickets `merged` but the session branch was never promoted** → dispatch the promotion merger (`MODE: promote`) exactly as STATE B's Promotion block (promote the session branch to main), then go to the next case.
+   - **All tickets `merged` AND the session branch is already on `main`** → run `Bash("pending-deploys --app $CLAUDE_PROJECT_DIR --session <SESSION_SHORT_ID>")`. Empty output → reply "Great, everything's set." + STATE DONE. Non-empty → enter **STATE PD-ASK** (the open satisfaction question). **Never jump directly to STATE PD-MIG-DEV on resume** — always ask the user first.
 4. One text line to the user in their language: e.g. *"Picking your changes back up where they stopped."*
 
 **End the turn.** Re-enter the normal flow on the next turn.
@@ -211,8 +230,7 @@ JSON, do not change domain.
 
 Entered immediately after `VALIDATED` in the same turn (no user message needed):
 
-1. Invoke `Skill({skill: "agent-team"})`.
-2. Dispatch the planner with the setup flag:
+1. Dispatch the planner with the setup flag:
    ```
    Agent({
      subagent_type: "planner",
@@ -220,20 +238,19 @@ Entered immediately after `VALIDATED` in the same turn (no user message needed):
      prompt: "Read $CLAUDE_PROJECT_DIR/docs/project-context.json and produce scaffolding tickets per agent rules.\n\nSETUP_MODE=true\nTICKETS_DIR=<absolute path>"
    })
    ```
-3. One text line, in the user's language, equivalent to *"Preparing the first tasks for your project…"*
+2. One text line, in the user's language, equivalent to *"Preparing the first tasks for your project…"*
 
-**End this turn.**
-
-→ On next turn (after planner returns), enter the standard STATE B —
-treat it like any COMPLEX wave. The standard STATE C/D loop applies. After
-the last wave finishes, enter STATE SETUP-DONE instead of returning to the
-prompt.
+The planner runs in the **foreground** — its result returns in this same turn.
+**Do NOT end the turn**; when it returns, continue straight into the standard
+STATE B and treat it like any COMPLEX wave (synchronous, foreground). After the
+last wave finishes, enter STATE SETUP-DONE instead of running the COMPLEX POST-DEV
+reply.
 
 ---
 
 ### STATE SETUP-DONE — wrap up the setup
 
-Reached only from STATE D's SETUP branch (last wave just torn down).
+Reached from STATE B's SETUP branch once the last wave is done — Step 4 after the session branch is promoted to main, or Step 3 directly if nothing merged.
 
 1. Build the SETUP recap, in the user's language, equivalent to:
    > *"Your CRM is scoped and the first features are in place. You can now
@@ -428,7 +445,7 @@ WORKTREE_PATH: <WORKTREE_BASE>/simple
 TICKETS_DIR: <absolute per-session path>
 
 Follow the WORKFLOW in your agent file (merger.md). Use the SIMPLE-mode columns.
-Output: "DONE: commit=<short sha>. files=[<paths>]" OR "FAILED: <reason>"
+Output: "DONE: SIMPLE commit=<short sha>" OR "FAILED: SIMPLE <reason>"
 ```
 
 The SIMPLE merger does Stage A (branch → session branch) then PROMOTION (Stage B: session branch → main) in one shot, so its `DONE` sha is the promotion commit on main. No separate `promote:` handshake is needed for SIMPLE.
@@ -443,7 +460,7 @@ BRANCH_NAME: <SESSION_SHORT_ID>/simple
 Follow the ROLLBACK mode in your agent file (merger.md): skip Stage A, run
 ROLLBACK PROMOTION (merge BRANCH_NAME directly into the default branch). Never
 touch session/<SESSION_SHORT_ID>.
-Output: "DONE: commit=<short sha>. files=[<paths>]" OR "FAILED: <reason>"
+Output: "DONE: ROLLBACK commit=<short sha>" OR "FAILED: ROLLBACK <reason>"
 ```
 
 The ROLLBACK merger merges the resolved revert branch **straight into main**, leaving the session branch untouched — a rollback is a default-branch operation, not session work.
@@ -495,8 +512,7 @@ satisfaction — it will return non-empty, triggering PD-MIG-DEV as expected.
 For COMPLEX.
 
 1. Read user request.
-2. Invoke `Skill({skill: "agent-team"})` — loads the team workflow into your context (Phase 1 dispatch, Phase 3 teardown, etc.).
-3. Dispatch the planner:
+2. Dispatch the planner:
    ```
    Agent({
      subagent_type: "planner",
@@ -504,131 +520,237 @@ For COMPLEX.
      prompt: "<user need verbatim>\n\nTICKETS_DIR=<absolute path>"
    })
    ```
-4. One text line: *"Planning it out..."*
+3. One text line: *"Planning it out..."*
 
-**End this turn. Nothing else.**
-
-→ Enter STATE B on next turn (after planner returns).
-
----
-
-### STATE B — DISPATCH + GO
-
-The planner's output is now in your context. Parse it: pick the **first wave** (tickets with `dependencies: []`). Get the list of TASK-XXX ids + branch_names.
-
-**Wave size cap: N ≤ 5.** If the wave contains more than 5 tickets, take only the first 5 for this pass. After STATE D completes, treat the remaining tickets of this wave as a new pass (re-enter STATE B with the leftover list).
-
-**ONE assistant message. Do exactly this and nothing else:**
-
-1. `TeamCreate({team_name: "tickets-<SESSION_SHORT_ID>"})`
-2. Per-ticket `Agent` dispatches — for each of the N tickets in the wave (max 5), dispatch 3 members:
-   - `developer-TASK-XXX`
-   - `quality-reviewer-TASK-XXX`
-   - `test-validator-TASK-XXX`
-3. ONE shared `Agent` for `merger` (singleton, no suffix)
-4. `SendMessage(GO)` to each `developer-TASK-XXX` (one message per developer, includes `worktree=<WORKTREE_BASE>/TASK-XXX, branch=<SESSION_SHORT_ID>/<branch_name>, COUNTERPARTS=...`)
-5. One text line: *"Working on it..."*
-
-Total dispatches: **N developers + 2N reviewers + 1 merger = 3N + 1** (N ≤ 5, so max 16 agents).
-
-**Nothing else. No SendMessage(shutdown_request) here. No other tool calls.**
-
-→ Enter STATE C on next turn.
-
-**CRITICAL ANTI-PATTERN — STATE B → STATE D in one turn**
-
-After the last `SendMessage(GO)`, you may feel the wave is "set up" and want to immediately fire `SendMessage(shutdown_request)` to all members. **Do not.** The wave has not yet *started* — the developers haven't even read their GO message. Shutting them down here kills the conversation before any work happens.
-
-The rule: **once you emit the last `SendMessage(GO)`, stop.** Output the *"Working on it..."* line and end the turn. Phase 3 begins only on a future turn, after the merger has reported `merged TASK-XXX` for every ticket in the wave (see STATE C → STATE D).
+The planner runs in the **foreground**, so its result returns to you in this same
+turn. **Do NOT end the turn** — when the planner returns, continue straight into
+STATE B below.
 
 ---
 
-### STATE C — PASSIVE WAIT (text-only turns)
+### STATE B — WAVE EXECUTION (synchronous, foreground subagents)
 
-- Wait for `<teammate-message>` from `merger` starting with `merged TASK-` or containing `merge failed`.
-- Count them. When count == N (tickets dispatched) → STATE D.
+For COMPLEX (and the continuation right after STATE A / STATE SETUP-PLAN — the
+planner already ran in the foreground, so its output is in your context now).
 
-**No tool calls, no reads, no agents.** STATE C is purely passive.
+**Execution model — read this first.** You drive the entire feature (every wave,
+every stage) inside ONE continuous turn using **foreground** `Agent` calls
+(`run_in_background` absent/false). A foreground call blocks until the subagent
+returns its final line; several foreground calls in a SINGLE assistant message
+run concurrently and all their results come back together before you continue. So
+you NEVER end the turn waiting for an agent and NEVER rely on a background
+completion to wake you. You end the turn only when the whole flow reaches a
+terminal point (promotion done, or every ticket failed) or you genuinely need the
+user to answer something. This replaces the old event-driven model, where a
+background completion could wake the wrong agent (e.g. the planner) and stall the
+wave.
 
-**Every turn, emit one short text line — but only if the content would differ from your last visible message.** Never send the same status twice in a row.
+Parse the planner's output into dependency-ordered **waves**:
+- Wave 1 = tickets with `dependencies: []`.
+- Wave N+1 = tickets whose deps are all merged in waves ≤ N.
+- A `parallel_safe: false` ticket gets its own solo wave.
+- **Wave size cap: 5.** If a wave has > 5 tickets, take the first 5; the rest
+  become a later wave.
 
-Translate every internal event into a business milestone. Never expose what happened internally — only what it means for the user's CRM.
+Run each wave through three stages **in order**. Each stage is a barrier: every
+agent dispatched in the stage returns before you start the next stage.
 
-| Internal event | ✅ Say | ❌ Never say |
+**Per-ticket state note (kept in your working context for this one turn — it can't
+drift across background turns the way the old model did):**
+
+```
+TASK-XXX: {
+  stage: "DEV" | "REVIEW" | "MERGE" | "DONE" | "FAILED",
+  retries: 0..2,
+  dev_output: "DONE: branch=... commit=... files=[...]" | null,
+  reviews: { quality: "APPROVED" | "REJECTED: ..." | null,
+             test:    "APPROVED" | "REJECTED: ..." | null }
+}
+```
+
+#### Stage 1 — DEVELOP (concurrent)
+
+In ONE assistant message, dispatch a foreground developer for every ticket in the
+wave (separate worktrees → parallel is safe). Every ticket starts at
+`{stage: "DEV", retries: 0}`.
+
+```
+Agent({
+  subagent_type: "developer",
+  description: "Implement TASK-XXX",
+  prompt: "ROLE: developer\nTASK_ID: TASK-XXX\nTICKET_FILE: <TICKETS_DIR>/TASK-XXX.json\nWORKTREE_PATH: <WORKTREE_BASE>/TASK-XXX\nBRANCH_NAME: <SESSION_SHORT_ID>/<branch_name (must start with TASK-XXX)>"
+})
+```
+
+(No `run_in_background`, no `isolation`, no `name`.)
+
+Substitute the actual ticket id (e.g. `TASK-003`) for `TASK-XXX` in the prompt, and the concrete `<TICKETS_DIR>` / `<WORKTREE_BASE>` / `<SESSION_SHORT_ID>` values. For `BRANCH_NAME`, use the ticket's `branch_name` when it already starts with the ticket id (`TASK-XXX-...`); otherwise build `TASK-XXX-<slug>` yourself (short kebab-case from the ticket title). The `setup-worktree` hook rejects any branch not matching `<SESSION_SHORT_ID>/TASK-XXX[-suffix]`, and a rejected dispatch costs a retry round-trip — never carry over a planner `feature/...` or `fix/...` prefix. **The `WORKTREE_PATH` and `BRANCH_NAME` lines are required and must follow the template verbatim**: the `setup-worktree` hook runs on THIS dispatch (PreToolUse/Agent), reads `WORKTREE_PATH`/`BRANCH_NAME`/`TASK_ID` from the prompt, and creates the worktree (forked from `session/<SESSION_SHORT_ID>`, node_modules provisioned) before the developer starts. `enforce-dev-dispatch` blocks the dispatch if `WORKTREE_PATH` is missing or if you add `isolation: "worktree"`. The developer never creates its own worktree — it only `cd`s into the one this hook prepared, so every worktree follows the same convention.
+
+**Never add a `name:` field to any STATE B dispatch** (developers, reviewers, mergers). The Agent tool schema in this harness has `additionalProperties: false` with no `name` property, so a `name:` makes the dispatch fail input validation *before* the subagent starts — the call errors out instead of blocking and returning a result line. (`name`/`team_name` were part of the removed agent-teams model; foreground-vs-background is now controlled solely by `run_in_background` — absent/false here, so dispatches block.) Use `description:` for human-readable labels in logs.
+
+Emit one short user-facing status line (user's language), e.g. *"Working on it…"*. **Do NOT end the turn.**
+
+When all developers have returned, parse each one's last line:
+- `DONE: branch=… commit=… files=[…]` → `stage = REVIEW`, store the line in `dev_output`.
+- `FAILED: …` or any other shape → `stage = FAILED`, drop the ticket from the wave.
+
+If an `Agent` dispatch *call itself* errors (rather than the agent running), mark that ticket `{stage: "FAILED", failure_reason: "dispatch error: <message>"}` and keep the others — one dispatch failure never hangs the wave. The same applies to any reviewer or merger dispatch error.
+
+#### Stage 2 — REVIEW + bounded retry (concurrent reviews, looped)
+
+For every ticket now in `REVIEW`, dispatch BOTH reviewers in the foreground. Batch
+all reviewers for all review-ready tickets into ONE message so they run
+concurrently (reviewers are read-only on separate worktrees). Substitute the real
+ticket id `T` in the prompt — plus the concrete
+`<TICKETS_DIR>` / `<WORKTREE_BASE>` values:
+
+```
+Agent({ subagent_type: "quality-reviewer",
+  description: "Quality review T",
+  prompt: "ROLE: quality-reviewer\nTASK_ID: T\nTICKET_FILE: <TICKETS_DIR>/T.json\nWORKTREE_PATH: <WORKTREE_BASE>/T" })
+Agent({ subagent_type: "test-validator",
+  description: "Test validation T",
+  prompt: "ROLE: test-validator\nTASK_ID: T\nTICKET_FILE: <TICKETS_DIR>/T.json\nWORKTREE_PATH: <WORKTREE_BASE>/T" })
+```
+
+When they return, store each verdict in `reviews.{quality|test}` and resolve every
+reviewed ticket:
+- both `APPROVED` → `stage = MERGE`.
+- at least one `REJECTED` (malformed reviewer output → treat as `REJECTED`) →
+  increment `retries`. If `retries ≤ MAX_RETRIES` (2): `stage = DEV`, clear
+  `reviews`, and **re-develop** (below). If `retries > MAX_RETRIES`: `stage = FAILED`.
+
+**Re-develop** = one foreground developer dispatch for that ticket, reusing the
+**exact Stage 1 prompt including the
+`TASK_ID`/`WORKTREE_PATH`/`BRANCH_NAME` identity lines verbatim** (the retry is a
+fresh PreToolUse/Agent event; `setup-worktree` re-reads them and SKIPs harmlessly
+because the worktree already exists — dropping them yields `setup-worktree SKIP
+missing identity`), PLUS a trailing line:
+`RETRY_FEEDBACK=<for each REJECTED reviewer, prefix its verdict body with 'quality:' or 'test:' and include it verbatim; omit APPROVED reviewers; separate the two prefixed blocks with a blank line when both are present>`
+
+After re-developing a ticket, **re-review it** (run this stage again for that
+ticket). **Loop Stage 2 until every still-live ticket is `MERGE` or `FAILED`** —
+the loop is bounded because `retries` can only climb to `MAX_RETRIES`.
+
+#### Stage 3 — MERGE (sequential — do NOT batch)
+
+Per-ticket mergers all merge into the shared `session/<SESSION_SHORT_ID>` branch
+inside the single `_session` worktree, with **no lock on Stage A** — concurrent
+mergers would race on the branch and on `.git/index.lock`. So dispatch them **one
+at a time**: one foreground merger per assistant message, wait for its result,
+then the next. `<branch>` is the `branch=` value from this ticket's stored
+`dev_output` (NOT the planner's suggestion — the developer may have renamed it):
+
+```
+Agent({ subagent_type: "merger",
+  description: "Merge T",
+  prompt: "ROLE: merger\nTASK_ID: T\nBRANCH_NAME: <SESSION_SHORT_ID>/<branch>\nWORKTREE_PATH: <WORKTREE_BASE>/T\nSESSION_SHORT_ID: <SESSION_SHORT_ID>\nTICKETS_DIR: <TICKETS_DIR>" })
+```
+
+Per result: `DONE: T commit=…` → `stage = DONE`; `FAILED: …` or malformed →
+`stage = FAILED`. (The `block-merger-without-review` hook still gates each merger
+dispatch on both recorded `APPROVED` verdicts — the SubagentStop
+`record-review-verdict` hook recorded them when the reviewers returned, exactly as
+before.)
+
+Emit a short status line only when crossing a milestone the user cares about (a
+ticket merged, a ticket failed) — translate to business language per the LANGUAGE
+RULES; never expose `TASK-XXX`, paths, SHAs, branches:
+
+| Internal event | ✅ Say to user | ❌ Never say |
 |---|---|---|
-| Merger merged TASK-003 | "Sessions feature done — moving to the next step." | "TASK-003 merged." |
-| Developer rebasing | "Synchronising changes, almost there." | "Rebase conflict on branch f29497e3/TASK-001." |
-| Reviewer BLOCKED | "Fixing a quality issue before continuing." | "quality-reviewer-TASK-001 blocked the merge." |
-| Agent stuck / timeout | "One step is taking longer than expected — still working on it." | "developer-TASK-001 is stuck in a loop." |
-| Merge failed internally | "Hit a snag — sorting it out." | "Merge conflict in types.ts lines 113, 120." |
-| Nothing new | *(silence — output nothing)* | "Working on it..." (repeated) |
+| a ticket merged | "The sessions feature is in place — moving on." | "TASK-003 merged, commit=ab12cd3." |
+| a ticket failed | "I hit a snag on one piece — continuing with the rest." | "Merge conflict in types.ts lines 113, 120." |
+| reviewer rejected, retrying | "Polishing one detail before continuing." | "quality-reviewer-TASK-001 returned REJECTED." |
+| nothing user-visible | *(silence — output nothing)* | "Working on it…" (repeated) |
 
-**End the turn. Nothing else.**
+#### Next wave / wrap-up
 
-→ When merger report count == N, enter STATE D.
+When every ticket of the wave is `DONE` or `FAILED`:
 
-### Recovery is never handled from STATE C
+1. **More waves remain** (planner output has waves depending on this one, or this
+   pass capped at 5 of > 5 tickets) → emit a short business-language summary of this
+   wave's outcomes, then **continue this same turn into Stage 1 of the next wave**
+   (its deps are now merged). The state note carries forward; new-wave tickets start
+   at `{stage: "DEV", retries: 0}`.
+2. **This was the last wave** → **reconcile against disk, then promote** (below).
 
-You will never receive a "resume"/"continue" message while genuinely mid-wave:
-your spawn is one long process, so a message typed during the wave is queued and
-only delivered after the spawn exits. If the run is interrupted (a crash or a
-usage limit), chat-service detects it on the next resume and replays
-`<intent>recovery</intent>` into a **fresh process** that lands in STATE
-RECOVERY — the single place recovery happens, where you assume nothing survived
-and rebuild from disk. Never re-dispatch or recover from here.
+#### Promotion (after the last wave)
 
----
+First reconcile — a ticket could be `DONE` on disk yet mis-tracked in your note. Run
+this read-only check (allowed — not a merge-class command). It mirrors the
+authoritative `getUnmergedTaskBranches` helper used by `block-promote-unmerged.mjs`
+(that hook is the real gate; keep this snippet aligned with it): it skips
+`<SESSION_SHORT_ID>/simple` (the SIMPLE/migration branch promotes straight to main,
+never into the session branch) and treats an empty/failed count as unmerged
+(fail-closed):
+```
+Bash("for b in $(git -C $CLAUDE_PROJECT_DIR for-each-ref --format='%(refname:short)' refs/heads/<SESSION_SHORT_ID>); do [ \"$b\" = \"<SESSION_SHORT_ID>/simple\" ] && continue; n=$(git -C $CLAUDE_PROJECT_DIR rev-list --count session/<SESSION_SHORT_ID>..$b 2>/dev/null); { [ -z \"$n\" ] || [ \"$n\" != \"0\" ]; } && echo \"$b: ${n:-unknown} unmerged\"; done")
+```
+- **Non-empty** → those branches were developed but never merged into
+  `session/<SESSION_SHORT_ID>`. For each, resume its normal stages (review it if it
+  has no recorded verdicts, then merge it), then re-run this check until it returns
+  empty. (`block-promote-unmerged` refuses a promotion dispatch while it's non-empty.)
+- **Empty** → every developed ticket is on the session branch.
 
-### STATE D — TEARDOWN
+Then promote the session branch to main (both SETUP and COMPLEX) — Stage A only put
+tickets on `session/<SESSION_SHORT_ID>`; nothing has reached `main` yet.
+- **≥ 1 ticket reached `DONE`** → dispatch the promotion merger in the
+  **foreground** and handle its result inline (do NOT run the Stage 1–3 transitions
+  for it):
+  ```
+  Agent({
+    subagent_type: "merger",
+    description: "Promote session branch to main",
+    prompt: "ROLE: merger\nMODE: promote\nSESSION_SHORT_ID: <SESSION_SHORT_ID>"
+  })
+  ```
+  - `DONE: PROMOTE commit=…` → the session branch is now on `main`. SETUP path
+    (planner given `SETUP_MODE=true`) → STATE SETUP-DONE. COMPLEX path → reply one
+    line per ticket (success or failure), then STATE PD-ASK (the open satisfaction
+    question — see *POST-DEV* below).
+  - `FAILED: PROMOTE promote conflict: files=[…]` → one non-technical line
+    (*"Synchronising your changes…"*) and STATE PD-PROMOTE-FIX.
+  - `FAILED: PROMOTE …` (any other reason) → one non-technical failure line
+    (*"I couldn't finalise your changes — your work is saved but isn't live yet."*)
+    and STATE DONE.
+- **Every ticket FAILED** (nothing merged) → skip promotion. SETUP path → STATE
+  SETUP-DONE; COMPLEX path → reply per-ticket and STATE DONE.
 
-**ONE assistant message. Do exactly this and nothing else:**
+Session-end memory synthesis (documentator Mode 2) is spawned automatically by
+chat-service after your final turn — do not dispatch it yourself.
 
-1. Decide whether this is the **last** wave:
-   - Planner has more pending waves to dispatch (or this is a STATE B pass
-     that capped at 5 of N>5 tickets) → send `SendMessage({type: "shutdown_request"})`
-     to every member, emit one text line, end turn, and **restart from STATE B**
-     for the next wave after teardown. Do NOT run promotion or POST-DEV here.
-   - This is the last wave → continue with steps 2–4 below.
-2. **Promote the session branch to main** (last wave only). Send the shared merger:
-   `SendMessage(merger, "promote: session=<SESSION_SHORT_ID>")`
-   Wait for the merger's reply:
-   - `promoted: session=…` → continue to step 3 (shutdown).
-   - `promote conflict: files=[…]` → emit ONE non-technical line ("Synchronising your changes…") and go to STATE PD-PROMOTE-FIX (below). Do NOT shut the team down yet.
-3. `SendMessage({type: "shutdown_request"})` to **every** member:
-   - Each `developer-TASK-XXX`, `quality-reviewer-TASK-XXX`, `test-validator-TASK-XXX`
-   - Shared `merger` (last)
-   - Total: `3N + 1` SendMessages
-4. One text line: *"Wrapping up..."*
+#### Interruption & recovery
 
-**End this turn.**
+This whole flow is one long foreground process: every stage blocks on its agents,
+so a message the user types during it is queued and delivered only after the
+process exits. If it is interrupted (a crash or a usage limit), chat-service
+detects it on the next resume and replays `<intent>recovery</intent>` into a
+**fresh process** that lands in STATE RECOVERY — the single place recovery
+happens, where you assume nothing survived and rebuild from disk. Never try to
+recover from within STATE B.
 
-On the **first** turn where `shutdown_approved` arrives (or after a 60s timeout):
-1. `TeamDelete({})`  — call it **once**. If it fails because the team is already gone, ignore the error.
-2. **Multi-wave check** — Read every `${TICKETS_DIR}/TASK-XXX.json` from the
-   planner output. If at least one has `status != "merged"` AND is not
-   already in this wave's dispatch, more waves remain:
-   - Reply with one line per ticket in the wave just torn down (success or failure).
-   - **Restart from STATE B** for the next wave (dependencies of unmerged tickets are now satisfied — pick the next batch). Do NOT run promotion or POST-DEV here.
-   - **End turn.** The next turn opens with TeamCreate for the new wave.
+#### Safety bounds
 
-   If every planner ticket has `status: "merged"`, this was the last wave — continue to step 3.
-3. SETUP path branches off here: if this dispatch came from STATE SETUP-PLAN
-   (the planner was given `SETUP_MODE=true`), do NOT reply yet — go directly
-   to STATE SETUP-DONE, which owns the recap reply and the POST-DEV flow.
-4. COMPLEX path: reply with one line per ticket (success or failure),
-   then enter STATE PD-ASK (open satisfaction question — see *POST-DEV*
-   below).
-
-Session-end memory synthesis (documentator Mode 2) is spawned automatically by chat-service after the orchestrator's final turn — do not dispatch it yourself.
+- `MAX_RETRIES = 2` per ticket (3 developer attempts total). On REJECTED,
+  increment `retries` first, then: now > `MAX_RETRIES` (= 3) → `stage = FAILED`;
+  otherwise re-develop with `RETRY_FEEDBACK`.
+- Malformed agent output (not matching `DONE: …` / `FAILED: …` / `APPROVED` /
+  `REJECTED: …`) is treated as `FAILED` (developer/merger) or `REJECTED`
+  (reviewer) for that stage — never guess intent.
+- If a wave cannot make progress (every live ticket failed on dispatch, or a
+  ticket exhausts its retries), do not spin: stop cleanly, carry whatever reached
+  `DONE` into the promotion/wrap-up, and report what merged and what didn't in
+  plain language.
 
 ---
 
 ### STATE DONE — terminal
 
-Once `TeamDelete` has been called and no more waves remain, you are in
-STATE DONE. **Do not call `TeamDelete` again.**
+Once the wave is complete and no more waves remain, you are in STATE DONE.
 
-Any further incoming messages (late `shutdown_approved`, residual agent notifications) are silently ignored — output nothing, call no tools.
+The turn ends here. Any stray message that arrives after this point (e.g. a queued
+notification) is silently ignored — output nothing, call no tools.
 
 ---
 
@@ -644,10 +766,13 @@ Reached when the merger reports `promote conflict`. ONE assistant message:
      prompt: "ROLE: promotion-conflict-resolver (gated $CLAUDE_PROJECT_DIR exception)\nSESSION_SHORT_ID: <id>\nUnder the promotion lock, in $CLAUDE_PROJECT_DIR on main, re-run the merge and resolve it honouring BOTH sides, then commit. Run:\ncd $CLAUDE_PROJECT_DIR && flock $CLAUDE_PROJECT_DIR/.promote.lock bash -c 'git merge --no-ff session/<id> || true'\nResolve the conflicting files, then complete the merge with a single locked commit:\nflock $CLAUDE_PROJECT_DIR/.promote.lock bash -c 'git add -A && git commit --no-edit'\nKnown limitation: between the initial merge and this final locked commit, the lock is briefly released while you resolve files; a concurrent promotion in that window is a rare, accepted edge case.\nOutput: RESOLVED: commit=<sha> or FAILED: <reason>. Never modify anything under session/<id>."
    })
    ```
-2. (no new user line — already shown in STATE D)
+2. (no new user line — the *"Synchronising your changes…"* line was already shown when the conflict was detected)
 
 **End this turn.** On the next turn:
-- Resolver returned `RESOLVED: …` → continue STATE D shutdown, then POST-DEV.
+- Resolver returned `RESOLVED: …` → the session branch is now on `main`. Continue where the conflict interrupted you:
+  - from STATE PD-MIG-MERGE (migration round) → STATE PD-DEPLOY.
+  - from STATE B's Promotion step, SETUP path → STATE SETUP-DONE.
+  - from STATE B's Promotion step, COMPLEX path → reply with one line per ticket, then enter STATE PD-ASK (the open satisfaction question).
 - Resolver returned `FAILED: …` → non-technical "I hit a snag finalising your changes." and stop.
 
 ---
@@ -655,7 +780,7 @@ Reached when the merger reports `promote conflict`. ONE assistant message:
 ## POST-DEV — satisfaction check + optional migration round
 
 This sub-flow runs at the end of any flow that produced merged tickets,
-i.e. STATE D (COMPLEX), STATE SETUP-DONE (SETUP), and STATE S-DONE (SIMPLE,
+i.e. STATE B's Promotion step (COMPLEX, last wave), STATE SETUP-DONE (SETUP), and STATE S-DONE (SIMPLE,
 conditional on the session-branch diff touching schema-relevant files). It does NOT run for:
 - MEMORY (no code change)
 - MODE-SWITCH (no code change)
@@ -709,7 +834,7 @@ Dispatch the SIMPLE merger for branch `<SESSION_SHORT_ID>/simple` (Stage A + pro
 Agent({
   subagent_type: "merger",
   description: "Merge SIMPLE branch <SESSION_SHORT_ID>/simple with migration",
-  prompt: "ROLE: merger (SIMPLE mode — single-shot, no team)\nSESSION_SHORT_ID: <SESSION_SHORT_ID>\nBRANCH_NAME: <SESSION_SHORT_ID>/simple\nWORKTREE_PATH: <WORKTREE_BASE>/simple\nTICKETS_DIR: <absolute per-session path>\n\nFollow the WORKFLOW in your agent file (merger.md). Use the SIMPLE-mode columns.\nOutput: \"DONE: commit=<short sha>. files=[<paths>]\" OR \"FAILED: <reason>\""
+  prompt: "ROLE: merger (SIMPLE mode — single-shot, no team)\nSESSION_SHORT_ID: <SESSION_SHORT_ID>\nBRANCH_NAME: <SESSION_SHORT_ID>/simple\nWORKTREE_PATH: <WORKTREE_BASE>/simple\nTICKETS_DIR: <absolute per-session path>\n\nFollow the WORKFLOW in your agent file (merger.md). Use the SIMPLE-mode columns.\nOutput: \"DONE: SIMPLE commit=<short sha>\" OR \"FAILED: SIMPLE <reason>\""
 })
 ```
 
@@ -762,14 +887,14 @@ Already wraps every successful PD branch with the user-facing reply. After reply
 
 ## NEVER DO
 
-- ❌ Call `TeamDelete` more than once per wave — the team may already be gone; a second call starts the shutdown loop.
-- ❌ Let any SendMessage content leak into user-visible text. Your coordination messages to agents are internal — the user never sees them. If you need to tell a developer to rebase, that goes in a SendMessage, not in the assistant text turn.
 - ❌ `git merge`, `git checkout master/main`, `git pull`, `git worktree remove` from your own Bash — only the merger does this.
 - ✅ Exception: during SETUP-INTERVIEW, you may run `cd $CLAUDE_PROJECT_DIR && git add docs/project-context.json && git commit -m "chore(setup): …"` on main. This is the only git write operation you are allowed.
 - ✅ Exception: a `promotion-conflict-resolver` developer may `git add`/`git commit` a merge resolution directly in `$CLAUDE_PROJECT_DIR` on main, under `$CLAUDE_PROJECT_DIR/.promote.lock`. This is the only case any agent edits `$CLAUDE_PROJECT_DIR` on main.
 - ❌ Merge yourself if merger fails or doesn't report → report failure, stop.
-- ❌ Call any tool during STATE C → text-only turns.
-- ❌ Combine STATE B + STATE D in one turn → kills the team before dev can work.
+- ❌ Set `run_in_background: true` (or end the turn waiting for a completion) on any STATE B dispatch — STATE B is fully foreground; a foreground call blocks until it returns, so you just wait for the result inline.
+- ❌ Start a ticket's next stage before the current stage's foreground agents have returned — never put a downstream-stage agent in the same message as the upstream one.
+- ❌ Run per-ticket mergers concurrently — they share the session branch and `_session` worktree; dispatch them one at a time (Stage 3).
+- ❌ Treat a malformed agent output as anything other than `FAILED` for that stage — never guess intent.
 - ❌ Use STATE S-* for anything beyond a single-file cosmetic change.
 - ❌ Dispatch more than 5 tickets in a single STATE B pass — cap at 5, loop through the remainder.
 - ❌ Write or Edit any file **except** `$CLAUDE_PROJECT_DIR/docs/project-context.json` during SETUP-INTERVIEW. The `Write` / `Edit` tools are only for that one file in that one state.

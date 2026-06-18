@@ -40,6 +40,21 @@ const dispatch = (hook, agentType) =>
     env,
     encoding: "utf8",
   });
+// setup-worktree is now a PreToolUse(Agent) hook — build a dispatch payload to
+// provision the task worktrees this test then exercises cleanup against.
+const setupDispatch = (taskId) =>
+  spawnSync("node", [SETUP], {
+    input: JSON.stringify({
+      session_id: SESSION_ID,
+      tool_input: {
+        subagent_type: "developer",
+        name: `developer-${taskId}`,
+        prompt: `ROLE: developer\nTASK_ID: ${taskId}\nWORKTREE_PATH: ${join(WB, taskId)}\nBRANCH_NAME: ${SS}/${taskId}`,
+      },
+    }),
+    env,
+    encoding: "utf8",
+  });
 
 beforeAll(() => {
   TMP = mkdtempSync(join(tmpdir(), "cleanup-wt-test-"));
@@ -59,8 +74,8 @@ beforeAll(() => {
   env = { ...process.env, APP_DIR, CRM_TMP_ROOT };
   delete env.VALIDATE_WORKTREE;
 
-  dispatch(SETUP, "developer-TASK-001");
-  dispatch(SETUP, "developer-TASK-002");
+  setupDispatch("TASK-001");
+  setupDispatch("TASK-002");
 });
 
 afterAll(() => {

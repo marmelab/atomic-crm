@@ -1,7 +1,7 @@
 FROM node:24-bookworm
 
 # Install basic development tools
-RUN apt update && apt install -y less man-db sudo
+RUN apt update && apt install -y less man-db sudo python3 pipx
 
 RUN apt install -y \
     xvfb \
@@ -35,26 +35,27 @@ RUN apt install -y \
     libxext6 \
     libxfixes3 \
     libxkbcommon0 \
-    libxrandr2
+    libxrandr2 \
+    libxcursor1 \
+    libgtk-3-0
+
 
 # Ensure default `node` user has access to `sudo`
 ARG USERNAME=node
 RUN echo $USERNAME ALL=\(root\) NOPASSWD:ALL > /etc/sudoers.d/$USERNAME \
     && chmod 0440 /etc/sudoers.d/$USERNAME
 
-# Set `DEVCONTAINER` environment variable to help with orientation
-ENV DEVCONTAINER=true
-
-RUN mkdir -p /home/node/.cache/claude && chown node:node /home/node/.cache/claude
-RUN mkdir -p /home/node/.cache/ms-playwright && chown node:node /home/node/.cache/ms-playwright
-
-RUN echo 'export PATH="$HOME/.local/bin:$PATH"' >> /home/node/.bashrc
-
-VOLUME /home/node/.cache/claude
-VOLUME /home/node/.cache/ms-playwright
-VOLUME /tmp
+RUN mkdir -p /workspaces/atomic-crm/node_modules && chown -R node:node /workspaces/atomic-crm
 
 USER node
+
+RUN pipx install graphifyy
+
+RUN mkdir -p /home/node/.cache/ms-playwright
+
+
+RUN echo 'export PATH="$HOME/.local/bin:$PATH"' >> /home/node/.bashrc
+RUN echo 'alias g="git"' >> /home/node/.bash_aliases
 
 WORKDIR /tmp
 
@@ -64,3 +65,5 @@ RUN curl -fsSL https://claude.ai/install.sh -o claude-install.sh && \
     rm claude-install.sh
 
 WORKDIR /workspaces/atomic-crm
+
+ENV DEVCONTAINER=true

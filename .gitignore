@@ -49,3 +49,7 @@ node_modules/
 /blob-report/
 /playwright/.cache/
 /playwright/.auth/
+
+.devcontainer/.mnt-*/*
+!.devcontainer/.mnt-*/.gitkeep
+*.lock

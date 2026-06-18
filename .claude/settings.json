@@ -12,9 +12,6 @@
     "hookify@claude-plugins-official": false,
     "ralph-loop@claude-plugins-official": false
   },
-  "env": {
-    "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1"
-  },
   "skillListingMaxDescChars": 512,
   "permissions": {
     "allow": []
@@ -25,15 +22,6 @@
   },
   "hooks": {
     "PreToolUse": [
-      {
-        "matcher": "Bash|Read|Grep|Glob|SendMessage",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/member-idle-gate.mjs"
-          }
-        ]
-      },
       {
         "matcher": "Bash",
         "hooks": [
@@ -69,41 +57,36 @@
         ]
       },
       {
-        "matcher": "SendMessage",
+        "matcher": "Agent",
         "hooks": [
           {
             "type": "command",
-            "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/block-premature-shutdowns.mjs"
+            "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/block-merger-without-review.mjs"
           },
           {
             "type": "command",
-            "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/validate-before-review.mjs",
-            "timeout": 900,
-            "statusMessage": "Validating before review/merge..."
-          }
-        ]
-      }
-    ],
-    "PostToolUse": [
-      {
-        "matcher": "TeamDelete",
-        "hooks": [
+            "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/block-promote-unmerged.mjs"
+          },
           {
             "type": "command",
-            "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/teamdelete-cleanup.mjs"
-          }
-        ]
-      }
-    ],
-    "SubagentStart": [
-      {
-        "matcher": "simple-developer|developer",
-        "hooks": [
+            "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/enforce-dev-dispatch.mjs"
+          },
           {
             "type": "command",
             "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/setup-worktree.mjs",
-            "timeout": 60,
+            "timeout": 180,
             "statusMessage": "Setting up worktree..."
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/turn-complete.mjs",
+            "timeout": 5
           }
         ]
       }
@@ -121,7 +104,17 @@
         ]
       },
       {
-        "matcher": "simple-developer",
+        "matcher": "quality-reviewer|test-validator",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/record-review-verdict.mjs",
+            "timeout": 15
+          }
+        ]
+      },
+      {
+        "matcher": "simple-developer|developer",
         "hooks": [
           {
             "type": "command",
