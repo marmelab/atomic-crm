@@ -36,7 +36,7 @@ The `agent-team` skill is the single source of truth for team layout and cross-a
 
 Only **developer** runs on opus; everything else is sonnet or haiku.
 
-The **developer** and **simple-developer** apply the **Ponytail** minimization ladder (full mode) on every change, via inline directives in their prompts. The plugin (`ponytail@ponytail`, enabled in `.claude/settings.json`) also provides orchestrator-level guidance and the manual `/ponytail*` skills — but its `SessionStart` / `UserPromptSubmit` hooks reach only the main session, NOT `Agent`-dispatched subagents, which is why the dev agents get the ladder inline rather than from the plugin.
+The **developer** and **simple-developer** apply the **Ponytail** minimization ladder (full mode) on every change, via inline directives in their prompts. The plugin (`ponytail@ponytail`) is vendored in-repo at `.claude/plugins/ponytail/` and enabled via `enabledPlugins` in `.claude/settings.json`; its local-directory marketplace is registered per-machine in the git-ignored `.claude/settings.local.json` (the path is absolute because Claude Code does not resolve relative marketplace paths — anthropics/claude-code#23978 — so each clone registers it once with `/plugin marketplace add ./.claude/plugins/ponytail`). It also provides orchestrator-level guidance and the manual `/ponytail*` skills — but its `SessionStart` / `UserPromptSubmit` hooks reach only the main session, NOT `Agent`-dispatched subagents, which is why the dev agents get the ladder inline rather than from the plugin.
 
 ## The orchestrator's job between hand-offs
 
