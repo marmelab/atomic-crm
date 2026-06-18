@@ -13,7 +13,6 @@
     "ralph-loop@claude-plugins-official": false
   },
   "skillListingMaxDescChars": 512,
-  "skipDangerousModePermissionPrompt": true,
   "permissions": {
     "allow": []
   },
