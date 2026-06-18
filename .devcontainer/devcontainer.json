@@ -5,24 +5,25 @@
     "dockerfile": "Dockerfile"
   },
   "workspaceFolder": "/workspaces/atomic-crm",
-  "workspaceMount": "source=${localWorkspaceFolder},target=/workspaces/atomic-crm,type=bind,consistency=cached",
+  "workspaceMount": "source=${localWorkspaceFolder},target=${containerWorkspaceFolder},type=bind,consistency=cached",
   "remoteUser": "node",
-  "postAttachCommand": "make install-playwright-browsers",
+  "features": {
+    "./claude-code": {},
+    "./npm": {
+      "workspaceFolder": "${containerWorkspaceFolder}"
+    },
+    "./playwright": {}
+  },
+  "customizations": {
+    "vscode": {
+      "extensions": []
+    }
+  },
   "mounts": [
     {
-      "type": "bind",
-      "source": "${localEnv:HOME}/.gitconfig",
-      "target": "/home/node/.gitconfig,ro"
-    },
-    {
-      "type": "bind",
-      "source": "${localEnv:HOME}/.claude.json",
-      "target": "/home/node/.claude.json"
-    },
-    {
-      "type": "bind",
-      "source": "${localEnv:HOME}/.claude",
-      "target": "/home/node/.claude"
+      "type": "volume",
+      "source": "${devcontainerId}-tmp",
+      "target": "/tmp"
     }
   ]
 }

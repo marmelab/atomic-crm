@@ -1,19 +1,28 @@
 #!/usr/bin/env node
-// PreToolUse(Bash) — restrict the documentator (DOCUMENTATOR_RUN=1) to a read-only / MEMORY.md-commit whitelist, rejecting shell metacharacters first; pass-through otherwise.
+// PreToolUse(Bash) — restrict the documentator (DOCUMENTATOR_RUN=1 or agent_type=documentator) to a read-only / MEMORY.md-commit whitelist, rejecting shell metacharacters first; pass-through otherwise.
 
 import { readFileSync } from "node:fs";
 import { createHookContext } from "./lib/context.mjs";
 
-if (process.env.DOCUMENTATOR_RUN !== "1") process.exit(0);
-
-// Fail closed: a malformed payload is a block signal for this restricted
-// agent, not a pass-through. Leave input empty so the !command guard below
-// exits 2 (exit 1 from an uncaught throw would let the Bash command through).
+// Detect the documentator EITHER by DOCUMENTATOR_RUN=1 (legacy standalone
+// run — a top-level process with no agent_type) OR by agent_type ===
+// "documentator" (an Agent-dispatched documentator subagent, the same signal the
+// other PreToolUse hooks use). Read the payload first so agent_type is available.
+//
+// Fail closed: a malformed payload is a block signal for this restricted agent,
+// not a pass-through. Leave input empty so the !command guard below exits 2
+// (exit 1 from an uncaught throw would let the Bash command through).
 let input = {};
 try {
   input = JSON.parse(readFileSync(0, "utf8"));
 } catch {
   // fall through to the empty-command block below
+}
+if (
+  process.env.DOCUMENTATOR_RUN !== "1" &&
+  (input.agent_type || "") !== "documentator"
+) {
+  process.exit(0);
 }
 const ctx = createHookContext(input, "restrict-documentator-bash");
 const command = input.tool_input?.command || "";
