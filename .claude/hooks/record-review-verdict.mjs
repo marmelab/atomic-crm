@@ -47,6 +47,36 @@ for (const n of ids) {
   }
 }
 
+// No suffixed agent name in this harness → recover task/role from the dispatch
+// prompt in the transcript. Done unconditionally: lastAssistantText() returns
+// early on last_assistant_message, bypassing its own recovery (→ task=UNKNOWN).
+if (!role || !task) {
+  const tp = input.agent_transcript_path || input.transcript_path;
+  if (tp && existsSync(tp)) {
+    let body = "";
+    try {
+      body = readFileSync(tp, "utf8");
+    } catch {
+      body = "";
+    }
+    for (const line of body.split("\n")) {
+      if (!role) {
+        const m = line.match(
+          /(?:^|\\n|")ROLE:\s*(quality-reviewer|test-validator)/,
+        );
+        if (m) role = m[1];
+      }
+      if (!task) {
+        const m =
+          line.match(/TASK_ID[:=\s]+(TASK-\d+)/) ||
+          line.match(/TICKET_FILE[=:\s]+\S*(TASK-\d+)/);
+        if (m) task = m[1];
+      }
+      if (role && task) break;
+    }
+  }
+}
+
 // Last assistant text: prefer the payload field, fall back to the transcript.
 // While scanning the transcript, recover role/task from the dispatch prompt
 // (ROLE: / TICKET_FILE:) when the agent name didn't carry them.
