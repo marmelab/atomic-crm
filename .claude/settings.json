@@ -1,4 +1,5 @@
 {
+  "extraKnownMarketplaces": {},
   "enabledPlugins": {
     "context7@claude-plugins-official": false,
     "playwright@claude-plugins-official": false,

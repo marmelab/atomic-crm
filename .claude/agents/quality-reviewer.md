@@ -149,9 +149,17 @@ Any `[FAIL]` → REJECTED. Omitting a criterion from the list is itself a bug.
 - Grep for hardcoded color literals — they bypass the theme system and break contrast in at least one mode.
 - Verify interactive states (hover, focus, disabled) use theme variables, not hardcoded values. A hardcoded foreground color on a themed background will be invisible in the opposite color mode.
 
-### A.2 Reuse (BLOCKING)
-- Native framework components used where they cover 80%+ of the need
-- No duplication of existing logic — the developer should reuse existing entities, components, and types whenever possible
+### A.2 Reuse & minimization (BLOCKING)
+
+The developers apply Ponytail (full mode); review against the same ladder — flag over-engineering, not just duplication:
+
+- Native HTML/CSS or framework components used where they cover 80%+ of the need (e.g. `<input type="date">` over a date-picker library).
+- No new npm dependency for something the stack (react-admin, shadcn, stdlib) already covers → BLOCKING.
+- No custom wrapper component that adds no behavior over a native element / existing component.
+- No re-implementation of list / filter / form / pagination logic react-admin already provides.
+- No duplication of existing logic — reuse existing entities, components, and types.
+
+Do NOT flag the *absence* of validation, security, accessibility, error handling, or tests as "minimization" — those are required (covered by Parts A.1, A.6, A.7, B).
 
 ### A.3 TypeScript correctness (BLOCKING)
 - No `any` without justifying JSDoc
