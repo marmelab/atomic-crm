@@ -1,69 +1,13 @@
-FROM node:24-bookworm
+FROM node:24-trixie
 
-# Install basic development tools
-RUN apt update && apt install -y less man-db sudo python3 pipx
+RUN apt update && apt install -y sudo build-essential
 
-RUN apt install -y \
-    xvfb \
-    fonts-noto-color-emoji \
-    fonts-unifont \
-    libfontconfig1 \
-    libfreetype6 \
-    xfonts-scalable \
-    fonts-liberation \
-    fonts-ipafont-gothic \
-    fonts-wqy-zenhei \
-    fonts-tlwg-loma-otf \
-    fonts-freefont-ttf \
-    libasound2 \
-    libatk-bridge2.0-0 \
-    libatk1.0-0 \
-    libatspi2.0-0 \
-    libcairo2 \
-    libcups2 \
-    libdbus-1-3 \
-    libdrm2 \
-    libgbm1 \
-    libglib2.0-0 \
-    libnspr4 \
-    libnss3 \
-    libpango-1.0-0 \
-    libx11-6 \
-    libxcb1 \
-    libxcomposite1 \
-    libxdamage1 \
-    libxext6 \
-    libxfixes3 \
-    libxkbcommon0 \
-    libxrandr2 \
-    libxcursor1 \
-    libgtk-3-0
-
-
-# Ensure default `node` user has access to `sudo`
 ARG USERNAME=node
 RUN echo $USERNAME ALL=\(root\) NOPASSWD:ALL > /etc/sudoers.d/$USERNAME \
     && chmod 0440 /etc/sudoers.d/$USERNAME
 
-RUN mkdir -p /workspaces/atomic-crm/node_modules && chown -R node:node /workspaces/atomic-crm
-
 USER node
 
-RUN pipx install graphifyy
-
-RUN mkdir -p /home/node/.cache/ms-playwright
-
-
-RUN echo 'export PATH="$HOME/.local/bin:$PATH"' >> /home/node/.bashrc
 RUN echo 'alias g="git"' >> /home/node/.bash_aliases
-
-WORKDIR /tmp
-
-RUN curl -fsSL https://claude.ai/install.sh -o claude-install.sh && \
-    chmod +x claude-install.sh && \
-    ./claude-install.sh && \
-    rm claude-install.sh
-
-WORKDIR /workspaces/atomic-crm
 
 ENV DEVCONTAINER=true

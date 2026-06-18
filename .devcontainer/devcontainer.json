@@ -5,39 +5,25 @@
     "dockerfile": "Dockerfile"
   },
   "workspaceFolder": "/workspaces/atomic-crm",
-  "workspaceMount": "source=${localWorkspaceFolder},target=/workspaces/atomic-crm,type=bind,consistency=cached",
+  "workspaceMount": "source=${localWorkspaceFolder},target=${containerWorkspaceFolder},type=bind,consistency=cached",
   "remoteUser": "node",
-  "postCreateCommand": "make install-playwright-browsers",
-  "mounts": [
-    {
-      "type": "bind",
-      "source": "${localEnv:HOME}/.claude.json",
-      "target": "/home/node/.claude.json"
+  "features": {
+    "./claude-code": {},
+    "./npm": {
+      "workspaceFolder": "${containerWorkspaceFolder}"
     },
-    {
-      "type": "bind",
-      "source": "${localEnv:HOME}/.claude",
-      "target": "/home/node/.claude"
-    },
-    {
-      "type": "bind",
-      "source": "${localWorkspaceFolder}/.devcontainer/.mnt-ms-playwright-cache",
-      "target": "/home/node/.cache/ms-playwright"
-    },
-    {
-      "type": "bind",
-      "source": "${localWorkspaceFolder}/.devcontainer/.mnt-tmp",
-      "target": "/tmp"
-    },
-    {
-      "type": "bind",
-      "source": "${localWorkspaceFolder}/.devcontainer/.mnt-node_modules",
-      "target": "/workspaces/atomic-crm/node_modules"
-    }
-  ],
+    "./playwright": {}
+  },
   "customizations": {
     "vscode": {
-      "extensions": ["Anthropic.claude-code"]
+      "extensions": []
     }
-  }
+  },
+  "mounts": [
+    {
+      "type": "volume",
+      "source": "${devcontainerId}-tmp",
+      "target": "/tmp"
+    }
+  ]
 }
