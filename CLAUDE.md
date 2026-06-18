@@ -36,7 +36,7 @@ There is no cross-agent messaging: the orchestrator dispatches every agent as a 
 
 Only **developer** runs on opus; everything else is sonnet or haiku.
 
-The **developer** and **simple-developer** apply the **Ponytail** minimization ladder (full mode) on every change, via inline directives in their prompts. Ponytail is installed **natively** in-repo (no plugin or marketplace): its skills live in `.claude/skills/ponytail*`, its `/ponytail*` commands in `.claude/commands/`, and its `SessionStart` / `UserPromptSubmit` hooks are wired in `.claude/settings.json` to `.claude/hooks/ponytail-*.js` (CommonJS scripts — `.claude/hooks/package.json` pins them to `commonjs` since the repo is an ESM package). It provides orchestrator-level guidance and the manual `/ponytail*` commands — but those `SessionStart` / `UserPromptSubmit` hooks reach only the main session, NOT `Agent`-dispatched subagents, which is why the dev agents get the ladder inline rather than from the hooks.
+The **developer** and **simple-developer** apply the **Ponytail** minimization ladder (full mode) on every change, via inline directives in their prompts — the only mechanism that reaches `Agent`-dispatched subagents. Ponytail is also installed **natively** in-repo as on-demand skills (no plugin, no marketplace, no hooks): its skills live in `.claude/skills/ponytail*` and its `/ponytail*` commands in `.claude/commands/`, for interactive use in the main session (`/ponytail-review`, `/ponytail-audit`, …). These do not affect the dev agents, whose ladder comes from the inline directives above.
 
 ## The orchestrator's job between hand-offs
 
