@@ -113,7 +113,12 @@ Then `Read("$CLAUDE_PROJECT_DIR/MEMORY.md")` — domain vocabulary. Even a label
 
 ### 3. Make the change (Edit/Write only)
 
-- Locate the file (Grep / Glob).
+- Locate the file via the knowledge graph first (see `.claude/rules/graphify-navigation.md`), then Grep/Glob if needed:
+  ```bash
+  cd <WORKTREE_PATH> && graphify query "<field or label to change> on the <entity>"
+  ```
+  `query` is read-only — it writes nothing, so it is safe before your `git add -A`.
+  Do NOT run `graphify update`.
 - **Ponytail (full mode) is always on** — walk the ladder before editing (need it? → stdlib? → native? → already-installed? → one line?). Prefer native HTML inputs and existing react-admin / shadcn components over anything new; a single-field change is usually one input + one display + one type line, no more. Never cut validation, security, accessibility, or i18n.
 - Edit/Write the change.
 - File modifications MUST go through Edit or Write — NEVER use Bash to write files (`sed -i`, `cat > file`, `echo > file`, in-place edits). Renames via `git mv` are allowed.

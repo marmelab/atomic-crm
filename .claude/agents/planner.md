@@ -37,7 +37,16 @@ If the description is ambiguous on a point that affects decomposition: flag it b
 
 ## Step 2 — File discovery (light)
 
-Run 1-3 Grep/Glob calls per probable area. Examples:
+**Navigate the knowledge graph first** (see `.claude/rules/graphify-navigation.md`).
+One `graphify query` per probable area usually returns the relevant files with
+`src=<path>` locations faster than several greps:
+
+```bash
+graphify query "where is the deal stage configured"
+```
+
+Fall back to Grep/Glob (1-3 calls per area) when graphify returns nothing useful,
+or to confirm a path the graph surfaced. Examples:
 - New field on entity → Grep entity type, Glob `src/**/<entity>/**/*.tsx`
 - New form/list view → Glob `src/**/*List.tsx` / `*Edit.tsx`
 - Config prop → Grep `ConfigurationContext`, `defaultConfiguration`

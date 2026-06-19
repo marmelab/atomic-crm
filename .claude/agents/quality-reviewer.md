@@ -161,6 +161,15 @@ The developers apply Ponytail (full mode); review against the same ladder — fl
 
 Do NOT flag the *absence* of validation, security, accessibility, error handling, or tests as "minimization" — those are required (covered by Parts A.1, A.6, A.7, B).
 
+To catch duplication, navigate the knowledge graph for pre-existing implementations
+the diff should have reused (see `.claude/rules/graphify-navigation.md`):
+```bash
+cd <WORKTREE_PATH> && graphify query "existing <thing the diff implements>"
+```
+If the graph shows an existing component/type/util that covers the need and the diff
+reimplemented it, that is a BLOCKING reuse violation. (The graph reflects committed
+code, so it shows what existed before this ticket.)
+
 ### A.3 TypeScript correctness (BLOCKING)
 - No `any` without justifying JSDoc
 - No `@ts-ignore` without justification

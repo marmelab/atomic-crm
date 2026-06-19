@@ -87,6 +87,17 @@ Any `[FAIL]` → REJECTED. Omitting a criterion from the list is itself a bug.
 
 ## Step 1 — Integration check (read-only, required)
 
+To trace where a resource/route/component is wired in, navigate the knowledge graph
+before grepping (see `.claude/rules/graphify-navigation.md`):
+```bash
+cd <WORKTREE_PATH> && graphify query "where is the <entity> resource registered"
+cd <WORKTREE_PATH> && graphify path "<NewComponent>" "CRM"   # is it actually reachable?
+```
+A component the diff added but the graph shows no path to is a strong unreachable
+signal — confirm by Read, then REJECTED if truly unwired. (The graph reflects
+committed code; brand-new files from this ticket may not appear yet — fall back to
+Grep/Read for those.)
+
 Router / App registration:
 - New resource registered in `src/components/atomic-crm/root/CRM.tsx`?
 - New route in the router?

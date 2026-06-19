@@ -170,7 +170,20 @@ From `files_to_modify`, build a reuse registry:
 - Existing TypeScript types in `src/types/`
 - Established patterns
 
-**Exploration depth — stay scope-bound**: read the files listed in `files_to_modify` plus their direct imports if a specific pattern is unclear. Do not expand to the full dependency graph by default. If you hit an unknown pattern that blocks you, read one additional file to resolve it — then stop. Grep broadly only if `files_to_modify` is missing or clearly incomplete.
+**Navigate with the knowledge graph** (see `.claude/rules/graphify-navigation.md`).
+Before grepping the worktree, query the graph for what already exists and how it
+connects — it surfaces reusable components, types, and call sites you would
+otherwise miss:
+
+```bash
+cd <WORKTREE_PATH> && graphify query "components that render a contact list filter"
+cd <WORKTREE_PATH> && graphify path "DealInputs" "dataProvider"   # trace a relationship
+```
+
+The graph reflects committed code; for files you create in this ticket, use
+Read/Glob/Grep. Never run `graphify update` in your worktree.
+
+**Exploration depth — stay scope-bound**: read the files listed in `files_to_modify` plus their direct imports if a specific pattern is unclear. Do not expand to the full dependency graph by default. If you hit an unknown pattern that blocks you, read one additional file to resolve it — then stop. Use `graphify query`/`path` (or Grep) broadly only if `files_to_modify` is missing or clearly incomplete.
 
 ## Plan format
 
