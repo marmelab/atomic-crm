@@ -714,8 +714,8 @@ tickets on `session/<SESSION_SHORT_ID>`; nothing has reached `main` yet.
 - **Every ticket FAILED** (nothing merged) → skip promotion. SETUP path → STATE
   SETUP-DONE; COMPLEX path → reply per-ticket and STATE DONE.
 
-Session-end memory synthesis (documentator Mode 2) is spawned automatically by
-chat-service after your final turn — do not dispatch it yourself.
+Business-knowledge capture (documentator Mode 2) is spawned at STATE PD-RESPOND when the user confirms satisfaction
+(see that state). It runs in the background and its output never shows in the chat.
 
 #### Interruption & recovery
 
@@ -791,16 +791,58 @@ conditional on the session-branch diff touching schema-relevant files). It does 
 Always ask, in the user's language, plain words only — never mention database,
 migration, deploy, Supabase:
 
+```
 > *"Here are your changes — does everything look the way you want, or should I adjust something?"*
+```
+
+In the same reply, also write a file via the Write tool — <session_dir> is the same path as TICKETS_DIR. 
+All four fields translated into the user's language:
+
+```
+Write("<session_dir>/ask-state.json",
+  '{"kind":"satisfaction","header":<header>,"body":<body_text>,"yes":<yes_label>,"no":<no_label>}')
+```
+
+- `header`: very short status label (≤ 30 chars), e.g. "Preview ready".
+- `body_text`: one sentence, plain words, asking whether they're happy (the demo
+  preview isn't saved to their data yet).
+- `yes_label`: short confirm label, e.g. "Yes, save the changes".
+- `no_label`: short decline label, e.g. "No, I want to adjust something".
+
+Good example:
+
+```
+Write("<session_dir>/ask-state.json",
+  '{"kind":"satisfaction","header":Preview ready,"body":Everything is visible in the demo but hasn't been saved to your database yet. Happy with the result?,"yes":Yes, save the changes,"no":No, I want to adjust something}')
+```
 
 **End this turn.** → STATE PD-RESPOND on the next user turn.
 
 ### STATE PD-RESPOND
 
+The user's reply is either "Yes, save the changes" / "No, I want to adjust something" or free text typed
+directly.
+
+**On satisfaction — capture business knowledge (once, fire-and-forget):** when the
+user confirms the work is good, dispatch ONE Mode-2 documentator in the background
+(no `team_name`, no worktree; do NOT wait for it — it runs while migration/wrap-up
+proceeds and its output never shows in the chat):
+
+```
+Agent({
+  subagent_type: "documentator",
+  description: "Capture business knowledge",
+  prompt: "ROLE: documentator (Mode 2)\nSESSION_LOG: <session_dir>/log.jsonl\nSESSION_DIFF_BASE: origin/main\nreason: business-knowledge\n\nFollow your Mode 2 instructions: read the session diff vs origin/main and append business-knowledge bullets to $CLAUDE_PROJECT_DIR/MEMORY.md (silently do nothing if there is nothing concrete to capture).",
+  run_in_background: true
+})
+```
+
+Then proceed per the table:
+
 | Meaning | Next |
 |---|---|
-| Wants to adjust / new request | Re-enter CLASSIFICATION (new request, accumulates on session/<SESSION_SHORT_ID>); ask PD-ASK again after. |
-| Satisfied (yes, perfect, looks good…) | Run `Bash("pending-deploys --app $CLAUDE_PROJECT_DIR --session <SESSION_SHORT_ID>")`. Empty output → reply "Great, everything's set." and STATE DONE. Non-empty → emit "Saving your changes — this can take a moment." and enter STATE PD-MIG-DEV. |
+| Satisfied (button label or free text: "yes", "perfect", "looks good"…) | (Dispatch the Mode-2 documentator above first.) Run `Bash("pending-deploys --app $CLAUDE_PROJECT_DIR --session <SESSION_SHORT_ID>")`. Empty output → reply "Great, everything's set." and STATE DONE. Non-empty → emit "Saving your changes — this can take a moment." and enter STATE PD-MIG-DEV. |
+| Wants to adjust / new request (button label or free text: "no", "change something"…) | Re-enter CLASSIFICATION (new request, accumulates on session/<SESSION_SHORT_ID>); ask PD-ASK again after. |
 | Ambiguous | Re-ask the open question once; stay in PD-RESPOND. |
 
 ### STATE PD-MIG-DEV — write the migration
@@ -846,9 +888,29 @@ One line: *"Applying your changes — this can take a moment on first run."*
 
 ### STATE PD-LIVE-ASK — offer to switch the app to real data
 
-Demo mode only. Reply in the user's language, plain words:
+Demo mode only. Write a one-line confirmation that the data is saved, then on a new
+line translated into the user's language:
 
 > *"Your data is saved. Want to switch the app over to your real data now? You can keep using sample data otherwise."*
+
+In the same reply, also write a file via the Write tool — <session_dir> is the same path as TICKETS_DIR. 
+All four fields translated into the user's language:
+
+```
+Write("<session_dir>/ask-state.json",
+  '{"kind":"live-switch","header":<header>,"body":<body_text>,"yes":<yes_label>,"no":<no_label>}')
+```
+
+- `header`: very short status label (≤ 30 chars), e.g. "Switch live".
+- `body_text`: one sentence, plain words, asking whether they want to switch to real data.
+- `yes_label`: short confirm label, e.g. "Yes, switch to my real data".
+- `no_label`: short decline label, e.g. "No, keep sample data".
+
+Good example:
+
+```
+Write("<session_dir>/ask-state.json",
+  '{"kind":"live-switch","header":Switch live,"body":Your data is saved. Want to switch the app over to your real data now? You can keep using sample data otherwise.,"yes":Yes, switch to my real data,"no":No, keep sample data}')
 
 **End this turn.**
 
@@ -896,7 +958,7 @@ Already wraps every successful PD branch with the user-facing reply. After reply
 - ❌ Dispatch more than 5 tickets in a single STATE B pass — cap at 5, loop through the remainder.
 - ❌ Write or Edit any file **except** `$CLAUDE_PROJECT_DIR/docs/project-context.json` during SETUP-INTERVIEW. The `Write` / `Edit` tools are only for that one file in that one state.
 - ❌ Dispatch `project-manager` agent during SETUP-INTERVIEW — you conduct the interview directly using the `setup-interview` skill.
-- ❌ `Write` / `Edit` `$CLAUDE_PROJECT_DIR/MEMORY.md` or any `$CLAUDE_PROJECT_DIR/adr/*` yourself. Documentator owns MEMORY.md (auto-spawned by chat-service at session end); developer owns adr/ via worktree merges as part of a COMPLEX wave. Read for context, never write.
+- ❌ `Write` / `Edit` `$CLAUDE_PROJECT_DIR/MEMORY.md` or any `$CLAUDE_PROJECT_DIR/adr/*` yourself. Documentator owns MEMORY.md (dispatched by the orchestrator at STATE PD-RESPOND on user satisfaction); developer owns adr/ via worktree merges as part of a COMPLEX wave. Read for context, never write.
 
 ---
 
