@@ -494,10 +494,9 @@ never triggers a forward migration, so POST-DEV is always skipped:
 3. Build the reply in user's language, plain words — e.g. *"Done — take a look in the demo."*
 4. Branch on the detection output:
    - Empty → send the reply, enter STATE DONE.
-   - Non-empty (one or more schema-relevant file paths) → on a new line after the reply,
-     append the `%%ASK_SATISFACTION%%` marker (exact format and HARD REQUIREMENT per
-     STATE PD-ASK) — do NOT send a separate PD-ASK turn, and do NOT ask in plain prose.
-     End this turn and enter STATE PD-RESPOND.
+   - Non-empty (one or more schema-relevant file paths) → append the PD-ASK satisfaction
+     question to the reply (do NOT send a separate PD-ASK turn — the question is already
+     embedded here), end this turn, and enter STATE PD-RESPOND.
 
 From PD-RESPOND onward, the existing POST-DEV state machine (PD-MIG-DEV →
 PD-MIG-REVIEW → PD-MIG-MERGE → PD-DEPLOY → PD-LIVE-ASK → PD-LIVE-SWITCH → PD-DONE)
@@ -792,35 +791,18 @@ conditional on the session-branch diff touching schema-relevant files). It does 
 
 **SIMPLE flows skip this state** — the satisfaction question is embedded in the S-DONE reply and the orchestrator enters STATE PD-RESPOND directly on the next user turn.
 
-Write ONE short line recapping **only what was built** (past tense, plain words,
-in the user's language, no tech terms — never mention database, migration, deploy,
-Supabase). Do NOT ask anything in prose. Then, on a **new line**, append the
-satisfaction marker, all four fields translated into the user's language:
+Always ask, in the user's language, plain words only — never mention database,
+migration, deploy, Supabase:
 
-```
-%%ASK_SATISFACTION|<header>|<body_text>|<yes_label>|<no_label>%%
-```
-
-- `header`: very short status label (≤ 30 chars), e.g. "Preview ready".
-- `body_text`: one sentence, plain words, asking whether they're happy (the demo
-  preview isn't saved to their data yet).
-- `yes_label`: short confirm label, e.g. "Yes, save the changes".
-- `no_label`: short decline label, e.g. "No, I want to adjust something".
-
-Good example (recap states the feature, widget asks to save — no overlap):
-
-```
-I built the equipment, rentals and maintenance sections you asked for.
-%%ASK_SATISFACTION|Preview ready|Everything is visible in the demo but hasn't been saved to your database yet. Happy with the result?|Yes, save the changes|No, I want to adjust something%%
+> *"Here are your changes — does everything look the way you want, or should I adjust something?"*
 ```
 
 **End this turn.** → STATE PD-RESPOND on the next user turn.
 
 ### STATE PD-RESPOND
 
-The user's reply is either the satisfaction widget **button label** (the full text,
-e.g. "Yes, save the changes" / "No, I want to adjust something") or free text typed
-directly — treat the button label as the corresponding answer.
+The user's reply is either "Yes, save the changes" / "No, I want to adjust something" or free text typed
+directly.
 
 **On satisfaction — capture business knowledge (once, fire-and-forget):** when the
 user confirms the work is good, dispatch ONE Mode-2 documentator in the background
@@ -888,14 +870,9 @@ One line: *"Applying your changes — this can take a moment on first run."*
 ### STATE PD-LIVE-ASK — offer to switch the app to real data
 
 Demo mode only. Write a one-line confirmation that the data is saved, then on a new
-line append the satisfaction marker (same format and HARD REQUIREMENT as STATE PD-ASK)
-offering the switch, translated into the user's language:
+line translated into the user's language:
 
-```
-%%ASK_SATISFACTION|Changes saved|Your changes have been saved. Want to switch the app to your real data now, or keep using sample data?|Yes, switch to real data|No, keep sample data%%
-```
-
-Do NOT ask in plain prose — the widget IS the question. The marker is required.
+> *"Your data is saved. Want to switch the app over to your real data now? You can keep using sample data otherwise."*
 
 **End this turn.**
 
