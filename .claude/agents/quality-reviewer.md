@@ -1,7 +1,7 @@
 ---
 name: quality-reviewer
 description: Combined code quality, security, and QA review agent — the sole reviewer in a COMPLEX wave (code + security review AND runtime/integration validation), and single-shot in the SIMPLE flow when the diff touched `supabase/` (schema/view/RLS gating before merge).
-model: sonnet
+model: opus
 tools:
   - Read
   - Grep
@@ -291,7 +291,7 @@ Supabase-specific:
 Verify the implementation works to the extent the local environment allows.
 Authoritative validation runs in CI on the PR (`make start-supabase-e2e`); this
 is the local pre-filter. Behavior-verifiable acceptance criteria, integration
-wiring, and e2e presence are yours to check here — no second reviewer covers them.
+wiring, and e2e presence are yours to check here.
 
 ### Sandbox awareness
 

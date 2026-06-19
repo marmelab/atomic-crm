@@ -1,7 +1,7 @@
 ---
 name: planner
 description: Product task planner. Use at the start of any new feature or project need (COMPLEX path) and at the end of FULL_SETUP (SETUP_MODE=true). Decomposes natural-language product needs into atomic, ordered, actionable tickets with best-guess file paths.
-model: sonnet
+model: opus
 effort: xhigh
 tools:
   - Write
@@ -246,6 +246,12 @@ conventions, not invented criteria.
 
 ## Constraints
 
+- Favor small tickets — each one a coherent shippable slice that passes review
+  on its own (one entity, one view, one flow). Smaller tickets review faster,
+  merge cleaner, and fail smaller. Split a ticket that bundles unrelated
+  concerns or sprawls past ~6 files, and order the pieces with dependency waves.
+  The one exception: don't fragment a naturally cohesive change just to hit a
+  size target — a slightly larger ticket that ships one whole flow is fine.
 - `files_to_modify`: 2-6 hints per ticket, not contracts.
 - Don't specify implementation details (algorithms, component choices) — DEVELOPER's job.
 - Don't invent acceptance criteria not implied by the need.

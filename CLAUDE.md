@@ -26,14 +26,14 @@ There is no cross-agent messaging: the orchestrator dispatches every agent as a 
 | Agent | Model | Role |
 |---|---|---|
 | chat-orchestrator | sonnet | User-facing. Routes, narrates. SIMPLE flow dispatches simple-developer + merger directly (no team). |
-| planner | sonnet | Decomposes the plan into tickets JSON with waves + file hints. |
-| developer | opus | Implements + commits in a worktree. Applies the **Ponytail** minimization ladder (full mode) automatically on every ticket, via an inline prompt directive. Writes ADRs for structural decisions. Never writes SQL migrations (deploy-time only). |
+| planner | opus | Decomposes the plan into tickets JSON with waves + file hints. |
+| developer | sonnet | Implements + commits in a worktree. Applies the **Ponytail** minimization ladder (full mode) automatically on every ticket, via an inline prompt directive. Writes ADRs for structural decisions. Never writes SQL migrations (deploy-time only). |
 | simple-developer | sonnet | One cosmetic edit, one single-field entity change, or one filter reusing existing components. Applies the **Ponytail** ladder (full mode) automatically, via an inline prompt directive. No team, no review. |
-| quality-reviewer | sonnet | Sole reviewer: combined semantic code + security review AND QA/runtime validation (integration wiring, behavior criteria, e2e presence). Never re-runs validation. |
+| quality-reviewer | opus | Sole reviewer: combined semantic code + security review AND QA/runtime validation (integration wiring, behavior criteria, e2e presence). Never re-runs validation. |
 | merger | haiku | `git merge --no-ff` only. Never `git add` / `git commit`. |
-| documentator | sonnet | Mode 1 — captures rules/skills on request. Mode 2 — appends business knowledge to `MEMORY.md` at COMPLEX session end. |
+| documentator | haiku | Mode 1 — captures rules/skills on request. Mode 2 — appends business knowledge to `MEMORY.md` at COMPLEX session end. |
 
-Only **developer** runs on opus; everything else is sonnet or haiku.
+**planner** and **quality-reviewer** run on opus; everything else is sonnet or haiku.
 
 The **developer** and **simple-developer** apply the **Ponytail** minimization ladder (full mode) on every change, via inline directives in their prompts — the only mechanism that reaches `Agent`-dispatched subagents. Ponytail is also installed **natively** in-repo as on-demand skills (no plugin, no marketplace, no hooks): its skills live in `.claude/skills/ponytail*` and its `/ponytail*` commands in `.claude/commands/`, for interactive use in the main session (`/ponytail-review`, `/ponytail-audit`, …). These do not affect the dev agents, whose ladder comes from the inline directives above.
 
