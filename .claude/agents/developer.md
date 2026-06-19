@@ -21,6 +21,7 @@ tools:
   - mcp__playwright__browser_take_screenshot
   - mcp__playwright__browser_console_messages
   - mcp__playwright__browser_close
+  - LSP
 ---
 
 # DEVELOPER — Implementation Agent
@@ -206,6 +207,8 @@ From `files_to_modify`, build a reuse registry:
 - Established patterns
 
 **Exploration depth — stay scope-bound**: read the files listed in `files_to_modify` plus their direct imports if a specific pattern is unclear. Do not expand to the full dependency graph by default. If you hit an unknown pattern that blocks you, read one additional file to resolve it — then stop. Grep broadly only if `files_to_modify` is missing or clearly incomplete.
+
+**Use the `LSP` tool for semantic navigation — do not `grep` for symbols.** To find where a TypeScript identifier (type, component, hook, function, exported const) is defined or used in `.ts/.tsx/.js/.jsx`, call `LSP`: `goToDefinition`, `findReferences` (size the blast radius before changing a signature), `hover` (confirm a type), `workspaceSymbol` (locate a symbol), `incomingCalls` (who calls it). Never `grep -rn "<Symbol>" src/` in Bash for this — it misses re-exports and aliased imports and can't tell a definition from a comment. Reserve `grep`/`rg` for text and domain-word sweeps (e.g. deleting all mentions of a resource), database column/view names, and non-TS files (`.sql`, `.md`, `.json`, `.css`). See `.claude/rules/lsp-usage.md`.
 
 ## Plan format
 

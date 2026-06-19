@@ -19,6 +19,13 @@ install: package.json ## install dependencies
 install-playwright-browsers: install ## install the playwright browsers (chromium, firefox, webkit)
 	npx playwright install chromium
 
+install-claude-plugins:
+	claude plugin marketplace update claude-plugins-official
+	claude plugin install typescript-lsp@claude-plugins-official
+
+install-lsp:
+	npm install -g typescript-language-server
+
 start-supabase: ## start supabase locally
 	npx supabase start
 

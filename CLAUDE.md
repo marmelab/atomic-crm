@@ -29,4 +29,4 @@ The **developer** is a single agent with no modes: it implements the ticket in `
 
 ## Rules & hooks
 
-Mechanics live in `.claude/rules/` (worktree-scope, agent-output-format, validation-commands, security-triggers). Hooks in `.claude/settings.json` / `.claude/hooks/` are `.mjs` ES modules.
+Mechanics live in `.claude/rules/` (worktree-scope, agent-output-format, validation-commands, lsp-usage, security-triggers). Hooks in `.claude/settings.json` / `.claude/hooks/` are `.mjs` ES modules.
