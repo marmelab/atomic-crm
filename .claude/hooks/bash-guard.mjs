@@ -101,4 +101,37 @@ if (violation) {
   });
 }
 
+// File-write rules — gated subagents only: code-writing agents must use the
+// Write/Edit tools, never Bash redirection/in-place edits. Bash writes bypass the
+// Write|Edit-only block-migration-writes guard (a developer could otherwise write a migration in
+// bash).
+const writesRedirect = (c) =>
+  /(^|[^0-9&])>>?\s*(\/|\.\.?\/|~\/|[a-zA-Z0-9._-]+\/|[a-zA-Z0-9._-]+\.[a-zA-Z0-9]+)/.test(
+    c,
+  ) && !/>>?\s*(\/dev\/null|\/chat-service\/logs\/)/.test(c);
+const writesSedInPlace = (c) => /sed\s+(-[a-zA-Z]*i\b|--in-place)/.test(c);
+const writesAwkInPlace = (c) => /awk\s+-i\s+inplace/.test(c);
+const writesTee = (c) =>
+  /\|\s*tee\s+[^-]/.test(c) && !/\|\s*tee\s+(-a\s+)?\/dev\/null/.test(c);
+const writesScript = (c) =>
+  /(node|python3?)\s+-[ecp].*(writeFileSync|writeFile|write_text|os\.write|fs\.write)/.test(
+    c,
+  );
+
+const FILE_WRITE_RULES = [
+  [writesRedirect, "bash redirection to a file (> or >>)"],
+  [writesSedInPlace, "sed -i (in-place edit)"],
+  [writesAwkInPlace, "awk -i inplace"],
+  [writesTee, "pipe to tee (file write)"],
+  [writesScript, "scripted file write via node/python"],
+];
+
+const writeViolation = FILE_WRITE_RULES.find(([matches]) => matches(cmd));
+if (writeViolation) {
+  ctx.block({
+    reason: `File editing via Bash is forbidden: ${writeViolation[1]}. Use the Write or Edit tool instead — Bash writes bypass prettier/typecheck and the migration-write guard. See developer.md.`,
+    log: `file-write cmd=${cmd.slice(0, 120)}`,
+  });
+}
+
 process.exit(0);
