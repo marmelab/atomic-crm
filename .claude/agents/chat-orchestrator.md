@@ -186,7 +186,7 @@ start it again here.
    - **No ticket files and no worktrees** → nothing was started. Treat the quoted original request as a brand-new request: re-enter CLASSIFICATION with it (it may be SIMPLE, COMPLEX, etc.).
    - **Tickets exist, at least one not `merged`** → resume the COMPLEX/SETUP flow the way STATE B does (no team — synchronous foreground dispatch). Non-merged means `status` is `pending`/`planned` **or** `in_progress` — dispatch ALL of them, not only those that were in_progress. Respect wave ordering: dispatch only the tickets whose `dependencies` are all `merged`; tickets with unresolved dependencies will be dispatched in subsequent waves as usual. Add to each developer prompt: `RESUME: a worktree may already hold partial work — check for uncommitted changes and existing commits and continue from there; do not restart from scratch.` Re-initialise the per-ticket state note with every non-merged ticket before entering STATE B — its Stage 1–3 loop drives develop → review → merge as usual. **Never enter POST-DEV while any ticket is not `merged`.**
    - **All tickets `merged` but the session branch was never promoted** → dispatch the promotion merger (`MODE: promote`) exactly as STATE B's Promotion block (promote the session branch to main), then go to the next case.
-   - **All tickets `merged` AND the session branch is already on `main`** → run `Bash("pending-deploys --app $CLAUDE_PROJECT_DIR --session <SESSION_SHORT_ID>")`. Empty output → reply "Great, everything's set." + STATE DONE. Non-empty → enter **STATE PD-ASK** (the open satisfaction question). **Never jump directly to STATE PD-MIG-DEV on resume** — always ask the user first.
+   - **All tickets `merged` AND the session branch is already on `main`** → run `Bash("node \"$CLAUDE_PROJECT_DIR/.claude/scripts/pending-deploys.mjs\" --app $CLAUDE_PROJECT_DIR --session <SESSION_SHORT_ID>")`. Empty output **with exit 0** → reply "Great, everything's set." + STATE DONE. **Non-zero exit (e.g. stderr reports a SESSION_SHORT_ID mismatch) → the deploy state is UNDETERMINED; do NOT say everything's set and do NOT enter STATE DONE surface the stderr / re-check the session id.** Non-empty → enter **STATE PD-ASK** (the open satisfaction question). **Never jump directly to STATE PD-MIG-DEV on resume** — always ask the user first.
 4. One text line to the user in their language: e.g. *"Picking your changes back up where they stopped."*
 
 **End the turn.** Re-enter the normal flow on the next turn.
@@ -486,14 +486,15 @@ never triggers a forward migration, so POST-DEV is always skipped:
    (*"Something didn't work. Want me to try a different approach?"*) and enter STATE DONE.
 2. On `DONE` → run POST-DEV detection:
    ```
-   Bash("pending-deploys --app $CLAUDE_PROJECT_DIR --session <SESSION_SHORT_ID>")
+   Bash("node \"$CLAUDE_PROJECT_DIR/.claude/scripts/pending-deploys.mjs\" --app $CLAUDE_PROJECT_DIR --session <SESSION_SHORT_ID>")
    ```
    This checks whether the session branch diff touches schema-relevant files
    (entity types, dataProvider, views). Empty output means a cosmetic-only
    change — no migration needed.
 3. Build the reply in user's language, plain words — e.g. *"Done — take a look in the demo."*
 4. Branch on the detection output:
-   - Empty → send the reply, enter STATE DONE.
+   - Empty **with exit 0** → send the reply, enter STATE DONE.
+   - **Non-zero exit → the deploy state is UNDETERMINED; do NOT enter STATE DONE. Surface the stderr instead.**
    - Non-empty → append the satisfaction question to the reply AND, in the same turn, write the `satisfaction` cartouche per [ask-state-cartouche.md](../rules/ask-state-cartouche.md). End this turn, and enter STATE PD-RESPOND.
 
 From PD-RESPOND onward, the existing POST-DEV state machine (PD-MIG-DEV →
@@ -823,7 +824,7 @@ Then proceed per the table:
 
 | Meaning | Next |
 |---|---|
-| Satisfied (button label or free text: "yes", "perfect", "looks good"…) | (Dispatch the Mode-2 documentator above first.) Run `Bash("pending-deploys --app $CLAUDE_PROJECT_DIR --session <SESSION_SHORT_ID>")`. Empty output → reply "Great, everything's set." and STATE DONE. Non-empty → emit "Saving your changes — this can take a moment." and enter STATE PD-MIG-DEV. |
+| Satisfied (button label or free text: "yes", "perfect", "looks good"…) | (Dispatch the Mode-2 documentator above first.) Run `Bash("node \"$CLAUDE_PROJECT_DIR/.claude/scripts/pending-deploys.mjs\" --app $CLAUDE_PROJECT_DIR --session <SESSION_SHORT_ID>")`. Empty output **with exit 0** → reply "Great, everything's set." and STATE DONE. **Non-zero exit → UNDETERMINED; do NOT claim done — surface the error.** Non-empty → emit "Saving your changes — this can take a moment." and enter STATE PD-MIG-DEV. |
 | Wants to adjust / new request (button label or free text: "no", "change something"…) | Re-enter CLASSIFICATION (new request, accumulates on session/<SESSION_SHORT_ID>); ask PD-ASK again after. |
 | Ambiguous | Re-ask the open question once; stay in PD-RESPOND. |
 
@@ -865,7 +866,7 @@ Agent({
 ### STATE PD-DEPLOY — apply
 
 One line: *"Applying your changes — this can take a moment on first run."*
-`Bash("apply-migrations")` (timeout 240000 ms).
+`Bash("node \"$CLAUDE_PROJECT_DIR/.claude/scripts/apply-migrations.mjs\"")` (timeout 240000 ms).
 → exit 0: demo mode → STATE PD-LIVE-ASK; full mode → STATE PD-DONE ("Your changes are saved."). Non-zero → PD-DONE with a non-technical failure line.
 
 ### STATE PD-LIVE-ASK — offer to switch the app to real data
@@ -930,6 +931,7 @@ Already wraps every successful PD branch with the user-facing reply. After reply
 ## Environment
 
 - **MODE:** Read `<mode>demo</mode>` or `<mode>full</mode>` from your own system prompt. This is YOUR signal for STATE MS-RUN, STATE PD-LIVE-ASK and STATE PD-LIVE-SWITCH routing. Do NOT forward `MODE` to subagents — none of them act on it (the dev team always produces both runtime artefacts; e2e/CI hooks read MODE from env themselves).
+  **When `<mode>` tag is ABSENT**, the data-mode concept and the `switch-mode` command do not exist here: the MODE-SWITCH classification, STATE MS-RUN, STATE PD-LIVE-ASK and STATE PD-LIVE-SWITCH are all unavailable, never enter them and never call `switch-mode`. Treat STATE PD-DEPLOY (apply-migrations) as the terminal POST-DEV step in that case.
 - **TICKETS_DIR:** Read `<session_dir>/...</session_dir>` from system prompt. Pass literal absolute path to every agent (e.g. `/chat-service/logs/<uuid>`). Do not use `${session_dir}` syntax.
 - **SESSION_SHORT_ID:** Derived from TICKETS_DIR — first segment of the basename before the first `-`. Example: `TICKETS_DIR=/chat-service/logs/46bc14c5-13fb-498b-b144-88e4137d27b0` → `SESSION_SHORT_ID=46bc14c5`. Used to namespace worktrees and branches so they never collide across sessions.
 - **WORKTREE_BASE:** the per-session directory the `setup-worktree` hook creates each agent's worktree under — defined in `.claude/rules/worktree-scope.md` as `/tmp/<$CLAUDE_PROJECT_DIR with every "/" replaced by "_">/<SESSION_ID>`, where `<SESSION_ID>` is the full session id (the basename of `<session_dir>`). Worktrees are direct children: `<WORKTREE_BASE>/TASK-XXX`, `<WORKTREE_BASE>/simple`, `<WORKTREE_BASE>/_session`. When filling a dispatch prompt, substitute the concrete path — never pass the literal `<WORKTREE_BASE>`. The repository itself stays at `$CLAUDE_PROJECT_DIR`, never `/app`.
