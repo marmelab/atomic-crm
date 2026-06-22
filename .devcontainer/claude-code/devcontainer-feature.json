@@ -12,6 +12,11 @@
       "type": "bind",
       "source": "${localEnv:HOME}/.claude",
       "target": "/home/node/.claude"
+    },
+    {
+      "type": "volume",
+      "source": "claude-plugins",
+      "target": "/home/node/.claude/plugins"
     }
   ],
   "customizations": {
