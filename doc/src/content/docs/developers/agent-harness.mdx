@@ -1,0 +1,109 @@
+---
+title: Agent Harness
+description: How to use the Atomic CRM agent harness to implement CRM changes with a coordinated team of Claude Code agents.
+---
+
+Atomic CRM ships a local **agent harness**: a coordinated team of agents that turns a request in natural language into committed, reviewed, and merged code. Instead of implementing a change yourself, you describe what you want and the harness plans, implements, reviews, and merges it through a deterministic pipeline.
+
+This document explains how to launch a session, follow its progress, and clean up afterwards.
+
+## Prerequisites
+
+- The [Claude Code CLI](https://docs.claude.com/en/docs/claude-code) installed and authenticated (an Anthropic API key or a Claude subscription).
+- Project dependencies installed (`make install`).
+- For full-stack runs only: a local Supabase instance up (`make start-supabase`).
+
+:::note
+The harness drives Claude Code locally and creates git worktrees and branches as it works. It is a development tool, run it on a feature branch, not directly on a shared branch.
+:::
+
+## Launching a Session
+
+Start an interactive session with:
+
+```sh
+make harness
+```
+
+This opens the **chat-orchestrator** agent. Type your request once the session opens, and the orchestrator takes over.
+
+You can also pre-fill the first message:
+
+```sh
+make harness REQUEST="Add a reason for a lost deal"
+```
+
+### Triggering the Harness In-Session
+
+You don't have to run `make harness` to use the agent team. When you work in a regular Claude Code session inside the repository, **harness routing is the default**: just describe what you want, and once a plan is approved, the work is automatically routed to the agent team instead of being implemented inline.
+
+If you'd rather have the change implemented directly, without the agent team, say so in your request. Any of these opt out:
+
+- `#no-harness`
+- *"implement directly"*
+- *"without the agent team"*
+- *"skip harness"*
+
+The main thread then implements the change itself, no agents, even after a plan is approved. Add *"no-harness for this session"* to keep it off for the whole session.
+
+:::note
+This opt-out only applies to interactive sessions. Under `make harness`, the orchestrator always routes the work.
+:::
+
+## Monitoring a Session
+
+The harness writes a detailed trace of every agent, hook, and ticket. Three commands let you follow it:
+
+```sh
+make watch                  # live monitor of the most recent session
+make monitor                # one-shot summary of the most recent session
+make monitor SESSION=<id>   # summary of a specific session
+make sessions               # list known sessions, newest first
+```
+
+`make watch` re-renders a live view of the active agents, hook activity, and ticket statuses, useful to keep open in a second terminal while a COMPLEX session runs. `make monitor` prints the same information as a single snapshot.
+
+## Cleaning Up
+
+A harness session leaves behind temporary worktrees, session branches, and a promotion lock. Clean them all up with:
+
+```sh
+make clean-harness
+```
+
+By default this also lands you back where you launched the harness from: it checks out your original branch, resets it to the pre-harness commit (dropping any promoted commits if you want to discard the work), and restores `main` to `origin/main` as a backstop. The starting point is recorded at launch under `.git/`, so it survives the temporary-directory cleanup.
+
+The underlying script accepts two flags if you call it directly:
+
+```sh
+scripts/clean-harness.sh --no-reset   # remove session artifacts only, keep your branch as-is
+scripts/clean-harness.sh --dry-run    # print what would happen, change nothing
+```
+
+:::note
+`clean-harness` stashes uncommitted tracked changes before resetting, so a surprise is always recoverable with `git stash pop`. It never deletes `main`, your current branch, or any branch not tied to a session worktree.
+:::
+
+## CRM Builder: A Visual, Ready-Made Environment
+
+The `make harness` workflow described above is the command-line interface to the agent team. If you'd rather not set up Claude Code and the local toolchain yourself, [**CRM Builder**](https://github.com/marmelab/crm-builder) wraps the same harness in a containerized, visual environment.
+
+CRM Builder lets you design and customize a CRM from plain-English prompts through a browser-based builder, with a live preview of the running app beside the conversation. It uses Atomic CRM as its starting template and orchestrates the same kind of Claude Code agent team to apply your changes.
+
+Key conveniences over running the harness directly:
+
+- A **visual builder UI** at `http://localhost:8080`, with a live, hot-reloading preview of the CRM.
+- A **ready-made environment**: Supabase, React, and the full toolchain are pre-installed and isolated inside Docker containers.
+- **Demo and full-stack modes** you can switch between without restarting — frontend-only with mocked data, or a real database with automatic SQL migration generation.
+- **Session history and parallel sessions**, plus the ability to download the generated code.
+- A **session dashboard** that surfaces the full statistics of a session and the complete operation history of the agents — what each agent did, in which order — without dropping to the command line. It is the visual equivalent of `make monitor` and `make watch`.
+
+Getting started requires Docker Desktop and an Anthropic API key or Claude subscription:
+
+```sh
+docker build -t atomic-crm-dev .
+make up
+make claude   # OAuth authentication on first run
+```
+
+Then open the builder at `http://localhost:8080`. See the [CRM Builder repository](https://github.com/marmelab/crm-builder) for full setup instructions and prerequisites.
