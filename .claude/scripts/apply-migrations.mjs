@@ -21,8 +21,11 @@
 //
 //  Portability (works on both crm-builder and a bare AtomicCRM checkout):
 //    APP_DIR  — repo root. Defaults to $CLAUDE_PROJECT_DIR, then /app.
-//    MODE     — crm-builder sets demo|full; when unset (AtomicCRM
-//               standalone) we proceed (treated as full).
+//    Migrations are always applied regardless of the app's data mode:
+//    crm-builder runs in demo (FakeRest) by default at migration time,
+//    but the committed migrations must still land in local Supabase so
+//    they are ready when the app is switched to live data. The demo|full
+//    MODE distinction belongs only to the live-switch step, not here.
 //    Supabase is driven via the `supabase` CLI, which manages its own
 //    Docker containers — we do NOT gate on /var/run/docker.sock so the
 //    same script works wherever the CLI is available (e.g. `make`).
@@ -32,7 +35,6 @@ import { mkdirSync } from "node:fs";
 import { setTimeout as sleep } from "node:timers/promises";
 
 const APP_DIR = process.env.APP_DIR || process.env.CLAUDE_PROJECT_DIR || "/app";
-const MODE = process.env.MODE || "full";
 
 const GREEN = "\x1b[0;32m";
 const YELLOW = "\x1b[1;33m";
@@ -42,13 +44,6 @@ const NC = "\x1b[0m";
 
 const log = (msg) => process.stdout.write(`${msg}\n`);
 const err = (msg) => process.stderr.write(`${msg}\n`);
-
-if (MODE === "demo") {
-  log(
-    `${YELLOW}Demo mode (FakeRest) — no Supabase instance to migrate. Migration files are committed and will be applied on deploy.${NC}`,
-  );
-  process.exit(0);
-}
 
 process.chdir(APP_DIR);
 mkdirSync("supabase/migrations", { recursive: true });
