@@ -2,7 +2,11 @@
 
 # Agent Workflow
 
-This project ships CRM changes through a coordinated agent team rather than a single implementer. Once a plan is approved (via `ExitPlanMode`), the main thread / orchestrator does not implement directly — it routes the work to the custom agents defined under `.claude/agents/`. Each agent's full contract lives in its own file; this section is the map of who does what, and in which order.
+Once a plan is approved (`ExitPlanMode`), the main thread does not implement directly — it routes to the agents in `.claude/agents/` (each carries its own full contract). Trigger is *plan approved*, not task size.
+
+## Opting out
+
+Harness routing is the **default**. `#no-harness` (or "implement directly" / "without the agent team" / "skip harness") makes the main thread implement itself, no agents, even after plan approval. "no-harness for this session" keeps it off all session. Irrelevant under `make harness` (orchestrator always routes).
 
 ## Routing: one pipeline for every change
 
@@ -10,40 +14,23 @@ The **chat-orchestrator** is the user-facing entry point. It routes, narrates pr
 
 ## The pipeline
 
-1. **planner** — decompose the approved plan into atomic, ordered tickets (JSON) with best-guess file paths and dependency waves. Skip only when the plan is already a single atomic deliverable (one file, one fix).
-2. **developer** (one per ticket) — implement + commit inside the ticket's git worktree. Tickets in the same wave (`parallel_safe: true`, no mutual dependency) are spawned concurrently as **foreground** subagents — a single message with multiple `Agent(...)` tool uses (no `run_in_background`); the orchestrator's turn resumes once they all return. Developers also write an ADR under `adr/` when a change introduces a structural decision, and never write SQL migrations (those are generated at deploy time).
-3. **quality-reviewer** — the single reviewer: combined semantic code + security review (Parts A, B) plus QA / runtime validation — integration wiring, behavior-verifiable acceptance criteria, e2e presence (Part C). Never re-runs validation (hooks already do).
-4. **merger** — `git merge --no-ff` only; never `git add` / `git commit`. One merger is dispatched per ticket (Stage A: feature branch → session branch); a final promotion merger (`MODE: promote`) moves the session branch onto `main` once the wave is done, serialised across sessions by a `flock` on the shared `.git`.
-5. **documentator** — auto-runs at the end of every session, appending business knowledge to `MEMORY.md` from the session diff. (Mode 1 also captures reusable rules/skills on explicit user request.)
+planner (tickets JSON + waves) → developer per ticket (implements + commits in a worktree; no SQL migrations, deploy-time only) → quality-reviewer (code + security + QA) → merger (`git merge --no-ff` only; Stage A per ticket, then one `MODE: promote` to the base branch under `flock`) → documentator (appends to `MEMORY.md`). Agents run as **foreground** subagents in one synchronous turn; each agent's last line is an output contract the orchestrator parses (`.claude/rules/agent-output-format.md`).
 
-There is no cross-agent messaging: the orchestrator dispatches every agent as a **foreground subagent** (`Agent(...)`, no `run_in_background`) and drives the wave **synchronously within one continuous turn** (chat-orchestrator.md STATE B) — a foreground call blocks until the subagent returns, and several in one message run concurrently and return together. Each wave flows through three barriered stages: develop (concurrent) → review + bounded retry (concurrent) → merge (sequential, since per-ticket mergers share the session branch). This replaces an earlier event-driven background model, which stalled when a background completion woke the wrong subagent instead of the orchestrator. Each agent's last output line is an **output contract** (`DONE: …` / `FAILED: …` / `APPROVED` / `REJECTED: …`) that the orchestrator parses to choose the next dispatch (see `.claude/rules/agent-output-format.md`). PreToolUse/Agent hooks prepare the worktree (`setup-worktree`) and gate the flow (`enforce-dev-dispatch`, `block-merger-without-review`, `block-promote-unmerged`); SubagentStop hooks validate (`validate-on-stop`) and record review verdicts (`record-review-verdict`).
+## Agents
 
-## Agent team
+chat-orchestrator (routes, narrates), planner, developer, quality-reviewer, merger, documentator. Models/roles: see each `.claude/agents/*.md`. **planner** and **quality-reviewer** run on opus; everything else is sonnet or haiku.
 
-| Agent | Model | Role |
-|---|---|---|
-| chat-orchestrator | sonnet | User-facing. Routes every code change through the one pipeline; narrates progress; never implements. |
-| planner | opus | Decomposes the plan into tickets JSON with waves + file hints. |
-| developer | sonnet | One agent, no modes. Implements the ticket in `TICKET_FILE`: plans, commits in a per-ticket worktree, peer-reviewed, writes ADRs for structural decisions, never writes SQL migrations during tickets. Two session-level operations are handed to it as **skills** (loaded on dispatch, run on the shared `<base>/ops` worktree): `writing-migrations` (deploy-time SQL generation) and `resolving-rollback-conflicts` (replay merge-commit reverts). Applies the **Ponytail** minimization ladder (full mode) automatically via an inline prompt directive. |
-| quality-reviewer | opus | Sole reviewer: combined semantic code + security review AND QA/runtime validation (integration wiring, behavior criteria, e2e presence). Never re-runs validation. |
-| merger | haiku | `git merge --no-ff` only. Never `git add` / `git commit`. |
-| documentator | haiku | Mode 1 — captures rules/skills on request. Mode 2 — appends business knowledge to `MEMORY.md` at session end. |
+The **developer** is a single agent with no modes: it implements the ticket in `TICKET_FILE` (peer-reviewed, writes ADRs for structural decisions, never writes SQL during tickets). Two session-level operations are handed to it as **skills** loaded on dispatch, run on the shared `<base>/ops` worktree: `writing-migrations` (deploy-time SQL generation) and `resolving-rollback-conflicts` (replay merge-commit reverts). It applies the **Ponytail** minimization ladder (full mode) on every change via an inline prompt directive — the only mechanism that reaches `Agent`-dispatched subagents. Ponytail is also installed natively in-repo as on-demand skills (`.claude/skills/ponytail*`) and `/ponytail*` commands for interactive use in the main session; these do not affect the dev agents.
 
-**planner** and **quality-reviewer** run on opus; everything else is sonnet or haiku.
+## Rules & hooks
 
-The **developer** applies the **Ponytail** minimization ladder (full mode) on every change — in every mode — via inline directives in its prompt, the only mechanism that reaches `Agent`-dispatched subagents. Ponytail is also installed **natively** in-repo as on-demand skills (no plugin, no marketplace, no hooks): its skills live in `.claude/skills/ponytail*` and its `/ponytail*` commands in `.claude/commands/`, for interactive use in the main session (`/ponytail-review`, `/ponytail-audit`, …). These do not affect the dev agents, whose ladder comes from the inline directives above.
+Mechanics live in `.claude/rules/` (worktree-scope, agent-output-format, validation-commands, security-triggers). Hooks in `.claude/settings.json` / `.claude/hooks/` are `.mjs` ES modules.
 
-## The orchestrator's job between hand-offs
+## graphify
 
-Relay agent reports, surface blockers, and stop to ask the user whenever an agent flags an open question or a `FAILED` outcome the orchestrator can't resolve. (A reviewer `REJECTED` verdict is handled silently by the bounded developer-retry loop, not surfaced to the user.) Do not bypass this flow for "small-looking" changes — the trigger is *plan approved*, not *task size*. Direct requests that never entered plan mode are not subject to this workflow.
+This project has a knowledge graph at graphify-out/ with god nodes, community structure, and cross-file relationships.
 
-## Supporting rules
-
-The mechanics each agent must follow live in `.claude/rules/`:
-
-- **worktree-scope** — every ticket agent works only inside its own worktree; never read/edit the base-branch checkout. Covers session-branch topology and the merge path.
-- **agent-output-format** — the structured-text contract every agent returns.
-- **validation-commands** — typecheck / prettier / unit / e2e are automated by hooks; agents must not run them manually.
-- **security-triggers** — when a change warrants extra security scrutiny.
-
-Claude Code hooks (configured in `.claude/settings.json`, stored in `.claude/hooks/`) must be written as `.mjs` files (ES modules).
+Rules:
+- For codebase questions, first run `graphify query "<question>"` when graphify-out/graph.json exists. Use `graphify path "<A>" "<B>"` for relationships and `graphify explain "<concept>"` for focused concepts. These return a scoped subgraph, usually much smaller than GRAPH_REPORT.md or raw grep output.
+- Read graphify-out/GRAPH_REPORT.md only for broad architecture review or when query/path/explain do not surface enough context.
+- After modifying code, run `graphify update .` to keep the graph current (AST-only, no API cost).

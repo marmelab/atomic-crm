@@ -77,3 +77,19 @@ Reviewers see the ADR alongside the implementation.
 ```
 
 Keep it short. An ADR longer than 25 lines is a sign that the decision either belongs in code comments or is actually several decisions that should be split.
+
+## Red Flags
+
+- An ADR written for a naming, file-placement, or pure-style choice (no ADR is the default).
+- A monotonic `ADR-NNN-…` filename instead of the `ADR-<SESSION_SHORT_ID>-<TASK-XXX>-<slug>` namespace parallel workers collide on the same number.
+- An ADR file written outside the worktree, or committed separately from the code it describes.
+- `Alternatives considered` invented after the fact instead of `- _Not captured at decision time._`.
+- An ADR past 25 lines likely belongs in code comments or is several decisions.
+
+## Verification
+
+- [ ] The change is a genuine structural decision (new pattern, dependency, convention departure, non-obvious schema) otherwise no ADR.
+- [ ] Filename is `<WORKTREE_PATH>/adr/ADR-<SESSION_SHORT_ID>-<TASK-XXX>-<slug>.md`.
+- [ ] Exactly one source-code reference comment points at the ADR.
+- [ ] ADR + reference comment are in the same commit as the code, with the `docs(TASK-XXX):` subject.
+- [ ] Body follows the template and is ≤ 25 lines.

@@ -5,6 +5,7 @@
 # Removes everything the SIMPLE/COMPLEX agent pipeline leaves behind:
 #   - session git worktrees under /tmp/<repo-slug>/
 #   - branches checked out in those worktrees, plus session/* and session-base/*
+#   - the sessionbase.* git config keys recording each session's fork-base branch
 #   - the .promote.lock promotion lock file
 #   - the /tmp/<repo-slug> session directory tree
 #
@@ -12,11 +13,13 @@
 # session worktree.
 #
 # By default it also lands you back where you launched the harness from:
-#   - checks out the branch you started on (the harness checks out main to
-#     promote, which would otherwise strand you there),
+#   - checks out the branch you started on (a safety net, in case the harness or
+#     a drifted session left you on a different branch),
 #   - hard-resets that branch to the pre-harness commit (dropping every commit
-#     the harness made on top),
-#   - restores main to origin/main (undoing the merge the harness made on main).
+#     the harness promoted onto it — promotion now targets the start branch, not
+#     main),
+#   - restores main to origin/main as a backstop (older sessions promoted onto
+#     main; current sessions promote onto the start branch instead).
 #
 # The start branch + commit are read from .git/clean-harness-return, written by
 # launch-harness.sh at launch (it survives the /tmp cleanup). If that record is
@@ -137,6 +140,21 @@ say "==> Deleting session branches..."
     do_run git branch -D "$br"
   fi
 done
+
+# 3b. Remove recorded session fork-base config keys (sessionbase.<short>.branch,
+# written by setup-worktree.mjs and read by the promotion merger). Every session
+# branch is being deleted above, so a stray key would only outlive its branch and
+# accumulate in .git/config. `--get-regexp` exits non-zero with no matches, hence
+# the `|| true` guard under `set -e`.
+say "==> Removing session base-branch config keys..."
+{ git config --local --get-regexp '^sessionbase\.' 2>/dev/null || true; } \
+  | awk '{ sub(/\.branch$/, "", $1); print $1 }' \
+  | sort -u \
+  | while IFS= read -r subsection; do
+      [[ -z "$subsection" ]] && continue
+      say "    - $subsection"
+      do_run git config --local --remove-section "$subsection" 2>/dev/null || true
+    done
 
 # 4. Remove the promotion lock.
 if [[ -f "$REPO_ROOT/.promote.lock" ]]; then

@@ -157,6 +157,21 @@ if (
   git(["branch", sessionBaseBranch(ctx), base]);
 }
 
+// Record the fork-base branch NAME so promotion (merger Stage B) merges the
+// session's work back into the branch it was forked from — the source branch the
+// user is on — instead of always targeting the repo default (main). The
+// session-base/<short> ref records the fork COMMIT but not the name, so the name
+// is captured here. Written only when missing: that pins the value at fork time
+// and never overwrites it with a later, possibly drifted, $REPO HEAD. The key
+// lives for the whole session — like session/<short> and session-base/<short> it
+// is NOT torn down per request (cleanup-worktree leaves it in place); clean-harness
+// removes it at session teardown. Keyed by session short id (a config subsection,
+// so any short id is valid).
+const baseBranchKey = `sessionbase.${ctx.sessionShort}.branch`;
+if (!git(["config", "--get", baseBranchKey]).stdout.trim()) {
+  git(["config", "--local", baseBranchKey, base]);
+}
+
 if (!existsSync(join(sessionWt, ".git"))) {
   rmSync(sessionWt, { recursive: true, force: true });
   mkdirSync(dirname(sessionWt), { recursive: true });

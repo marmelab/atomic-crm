@@ -46,7 +46,7 @@ const describe = ({ branch, count }) =>
   `  - ${branch} (${count === null ? "unmerged (count unavailable)" : `${count} unmerged commit(s)`})`;
 
 ctx.fail(
-  `Refusing to promote ${session} to main — these task branches have commits NOT yet merged into the session branch:\n` +
+  `Refusing to promote ${session} to the base branch — these task branches have commits NOT yet merged into the session branch:\n` +
     unmerged.map(describe).join("\n") +
     "\n" +
     "A ticket was developed but never merged (its reviewer/merger were likely never dispatched). For EACH branch above, drive its ticket through REVIEW -> MERGE (dispatch its quality-reviewer if needed, then its per-ticket merger) so its work lands on the session branch. Re-dispatch the promotion merger only once this list is empty.",
