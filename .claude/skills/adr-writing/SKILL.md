@@ -29,7 +29,7 @@ Path: `<WORKTREE_PATH>/adr/ADR-<SESSION_SHORT_ID>-<TASK-XXX>-<slug>.md`
 - `<slug>` is kebab-case, ASCII, ≤ 40 chars.
 - One ADR per ticket is the common case. If the same ticket genuinely needs two ADRs, the distinct slugs keep them apart.
 
-**Why the session+ticket namespace**: in a COMPLEX wave, N developers run in parallel on worktrees branched from the same base. A monotonically-incremented `ADR-NNN-…` scheme makes every worker independently pick the same next number (e.g. all land on `ADR-003`); different slugs hide the collision from `git merge`, so duplicate numbers land in `$CLAUDE_PROJECT_DIR/adr/` silently. `<TASK-XXX>` removes the intra-wave collision; the `<SESSION_SHORT_ID>` prefix removes the cross-session one — ticket numbering restarts at TASK-001 each session, so two sessions both producing a `TASK-004` would otherwise overwrite each other's ADR in the shared `$CLAUDE_PROJECT_DIR/adr/`.
+**Why the session+ticket namespace**: in a wave, N developers run in parallel on worktrees branched from the same base. A monotonically-incremented `ADR-NNN-…` scheme makes every worker independently pick the same next number (e.g. all land on `ADR-003`); different slugs hide the collision from `git merge`, so duplicate numbers land in `$CLAUDE_PROJECT_DIR/adr/` silently. `<TASK-XXX>` removes the intra-wave collision; the `<SESSION_SHORT_ID>` prefix removes the cross-session one — ticket numbering restarts at TASK-001 each session, so two sessions both producing a `TASK-004` would otherwise overwrite each other's ADR in the shared `$CLAUDE_PROJECT_DIR/adr/`.
 
 ## Source-code reference
 

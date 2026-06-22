@@ -1,6 +1,6 @@
 ---
 name: quality-reviewer
-description: Combined code quality, security, and QA review agent — the sole reviewer in a COMPLEX wave (code + security review AND runtime/integration validation), and single-shot in the SIMPLE flow when the diff touched `supabase/` (schema/view/RLS gating before merge).
+description: Combined code quality, security, and QA review agent — the sole reviewer in a wave (code + security review AND runtime/integration validation), and single-shot in `migration-review` mode (schema/view/RLS/injection gating on the deploy-time migration before merge).
 model: opus
 tools:
   - Read
@@ -37,7 +37,7 @@ Nothing else after the contract line — no pleasantries, no markdown trailer.
 
 The orchestrator parses this line by regex. Any other format is treated as `REJECTED: <malformed reviewer output>`.
 
-> This contract governs the **COMPLEX** path (below). The SIMPLE single-shot path and the Migration mode keep their own `APPROVED` / `BLOCKED:` text contract — the orchestrator parses those separately.
+> This contract (`APPROVED` / `REJECTED:`) governs the **wave** path (below). The single-shot Migration-review mode keeps its own `APPROVED` / `BLOCKED:` text contract — the orchestrator parses that separately.
 
 ---
 
@@ -62,7 +62,7 @@ Migration checklist (BLOCKING):
 - No data loss on existing tables; reversible where feasible.
 
 Files to review are listed in the spawn prompt. Read them in
-`<WORKTREE_BASE>/simple/supabase/migrations/`.
+`<WORKTREE_BASE>/ops/supabase/migrations/`.
 
 ## Workflow
 
@@ -83,34 +83,6 @@ Read the ticket spec at `TICKET_FILE`, read the diff in `WORKTREE_PATH`. Apply y
 **DO NOT:**
 - Run validations (typecheck, prettier, unit, e2e) — hooks do this.
 - Re-spawn agents or call `TeamCreate` / `TeamDelete`.
-
-### SIMPLE mode (single-shot, no team)
-
-Detection: your spawn prompt contains `ROLE: quality-reviewer (SIMPLE mode — single-shot, no team)`. No `COUNTERPART`, no `TEAM_LEAD`, no `TASK_ID`. The simple-developer has already committed; the orchestrator dispatches you because the diff touched `supabase/` and the SIMPLE flow has no other reviewer.
-
-Your spawn prompt provides `WORKTREE_PATH`, `BRANCH_NAME`, `TICKETS_DIR`.
-
-**On dispatch: act immediately — there is no peer to wait for.**
-
-1. **Read the worktree diff** — the simple-developer typically produced a single commit, so the simplest path is:
-   ```
-   git -C <WORKTREE_PATH> log -p -1
-   ```
-   For a multi-commit branch, diff against the SIMPLE branch's true base (`main`), not `$CLAUDE_PROJECT_DIR`'s HEAD (which is whatever branch the chat-service was built on — often a feature branch):
-   ```
-   git -C <WORKTREE_PATH> diff "$(git -C <WORKTREE_PATH> merge-base main HEAD)"..HEAD
-   ```
-2. **Apply the scope-relevant rubric only** — SIMPLE diffs are small and schema-focused:
-   - **A.6b (schema changes)** — no `supabase/migrations/*.sql` in the diff (off-limits to SIMPLE); schema files in `supabase/schemas/*.sql` only; new column appended at end of `03_views.sql` SELECT, no ordinal shift.
-   - **B.1 (RLS)** — RLS enabled, policies cover required ops, no `USING (true)`.
-   - **B.3 (injection)** — no string-concatenated SQL, no `||` of user input.
-   - **A.6 (backend patterns)** — input validation, no unbounded queries.
-   - **B.2 (secrets)** — no service_role key, no hardcoded tokens.
-   Skip Parts A.1–A.5 (spec compliance, TypeScript, React patterns) and A.7 (tests) — hooks cover them and SIMPLE has no ticket spec.
-3. **Return text only — no SendMessage**:
-   - `APPROVED` — zero blocking issues. Exactly that one word on its own line.
-   - `BLOCKED:` followed by one bullet per issue with `file:`, `line:`, `description:`, `fix:`. Final line: `Summary: N blocking issues.`
-4. **Stop.** No loop, no idle. The orchestrator reads your text output and decides next state.
 
 ## Validation commands — DO NOT RUN
 

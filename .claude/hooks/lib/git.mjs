@@ -62,7 +62,7 @@ export function getWorktreeChangeSummary(wt, base) {
 // mirrors it and must stay aligned. Fails CLOSED: a failed/unparseable rev-list
 // count is reported as unmerged (count: null) rather than silently treated as
 // merged. `exclude` drops branches that legitimately never merge into the session
-// branch (e.g. <short>/simple, which promotes straight to main).
+// branch (e.g. <short>/ops, which promotes straight to main).
 export function getUnmergedTaskBranches(short, sessionRef, exclude = []) {
   const branches = git([
     "for-each-ref",

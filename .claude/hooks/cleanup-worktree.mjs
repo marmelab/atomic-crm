@@ -2,9 +2,15 @@
 // SubagentStop — remove this session's task worktrees once their branch has been
 // merged (--no-ff, the merger's contract) into the session integration branch and
 // the worktree has no uncommitted changes. Session worktrees/branches (_session,
-// simple, session*/), fresh worktrees, and unmerged work are preserved.
+// ops, session*/), fresh worktrees, and unmerged work are preserved.
 
-import { existsSync, readdirSync, readFileSync, rmSync, rmdirSync } from "node:fs";
+import {
+  existsSync,
+  readdirSync,
+  readFileSync,
+  rmSync,
+  rmdirSync,
+} from "node:fs";
 import { join } from "node:path";
 import { createHookContext } from "./lib/context.mjs";
 import {

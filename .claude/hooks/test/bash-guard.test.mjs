@@ -71,8 +71,8 @@ describe("bash-guard hook", () => {
     const cases = [
       ["developer", "npm run typecheck"],
       ["developer", "npx tsc --noEmit"],
-      ["simple-developer", "npx vitest run"],
-      ["simple-developer", "npm run prettier:apply"],
+      ["developer", "npx vitest run"],
+      ["developer", "npm run prettier:apply"],
       ["quality-reviewer", "npx playwright test --headless"],
       ["quality-reviewer", "make lint"],
       ["developer", "npm run build"],

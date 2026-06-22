@@ -1,15 +1,21 @@
 ---
 name: writing-migrations
-description: Generate Supabase SQL migrations at deploy time from the session branch diff. Used by simple-developer in the deploy-time migration round only.
+description: Generate Supabase SQL migrations at deploy time from the session branch diff. Load this when your developer dispatch asks you to generate the deploy-time migration (it points you at the shared <base>/ops worktree). This is NOT a feature ticket — the workflow below replaces the normal ticket rules: here you DO write SQL under supabase/migrations/, and you do not edit TS/TSX/CSS.
 ---
 
 # Writing Migrations (deploy-time round)
 
-You are `simple-developer` in migration mode. Your worktree is
-`<WORKTREE_BASE>/simple` on `<SESSION_SHORT_ID>/simple`,
+You (the `developer`) have been asked to generate the deploy-time migration.
+Your worktree is `<WORKTREE_BASE>/ops` on `<SESSION_SHORT_ID>/ops`,
 forked from `session/<SESSION_SHORT_ID>` (`<WORKTREE_BASE>` =
 `/tmp/<$CLAUDE_PROJECT_DIR with every "/" replaced by "_">/<SESSION_ID>`). Produce SQL migrations that make the
-real Supabase schema match what this session's app expects — nothing more.
+real Supabase schema match what this session's app expects — nothing more. The
+"never write migrations / no schema" rule of normal ticket work does NOT apply
+here: writing SQL under `supabase/migrations/` is the whole job. Do not edit any
+TS/TSX/CSS — the schema diff already comes from the session branch; you only
+translate it to SQL.
+
+Every Bash call must `cd <WORKTREE_PATH> && …` (stateless shells).
 
 ## 1. Compute the session's net change
 
@@ -94,8 +100,20 @@ look prettier — schema drift breaks future `supabase db diff` generations.
 
 ## 6. Commit and hand off
 
-Commit the SQL on `<SESSION_SHORT_ID>/simple`. Stop. SubagentStop hooks
-(typecheck/prettier/unit/e2e) run automatically. The orchestrator then sends you
-to quality-reviewer (migration mode) and the merger.
+Commit the SQL on `<SESSION_SHORT_ID>/ops`:
+
+```bash
+cd <WORKTREE_PATH> && git add supabase/migrations && git commit -m "migration(<SESSION_SHORT_ID>): <slug>"
+```
+
+Then stop and emit the output contract as your very last line — one of:
+
+- `DONE: branch=<SESSION_SHORT_ID>/ops migration=<filename> summary=<what the SQL does>`
+- `NO_MIGRATION_NEEDED` — only after computing the diff (step 1) and confirming no schema impact.
+- `FAILED: <one-line reason>`
+
+SubagentStop hooks (typecheck/prettier/unit/e2e) run automatically; they should
+pass since you only touched SQL. The orchestrator then sends you to
+quality-reviewer (`MODE: migration-review`) and the merger.
 
 For Postgres correctness you may load `Skill({skill: "supabase-postgres-best-practices"})`.

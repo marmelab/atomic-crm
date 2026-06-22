@@ -115,7 +115,7 @@
         ]
       },
       {
-        "matcher": "simple-developer|developer",
+        "matcher": "developer",
         "hooks": [
           {
             "type": "command",

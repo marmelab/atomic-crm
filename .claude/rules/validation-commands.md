@@ -5,8 +5,8 @@ paths: []
 # Validation commands — DO NOT RUN
 
 Validation is automated:
-- The `validate-on-stop.mjs` SubagentStop hook runs the full chain (prettier auto-fix, typecheck, unit, e2e) after every developer (and simple-developer) stops. A failed validation rejects the stop, the developer's internal loop fixes the issue, and only a green stop returns control to the orchestrator.
-- The `bash-guard.mjs` PreToolUse hook blocks `developer`, `simple-developer`, `quality-reviewer` from running them manually.
+- The `validate-on-stop.mjs` SubagentStop hook runs the full chain (prettier auto-fix, typecheck, unit, e2e) after every developer stop (ticket or lightweight MODE). A failed validation rejects the stop, the developer's internal loop fixes the issue, and only a green stop returns control to the orchestrator.
+- The `bash-guard.mjs` PreToolUse hook blocks `developer`, `quality-reviewer` from running them manually.
 - Prettier is auto-applied and committed by the validation chain — formatting never needs manual action unless a file has a syntax error.
 
 ## Forbidden commands (developer / quality-reviewer)

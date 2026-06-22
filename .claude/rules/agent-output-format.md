@@ -19,7 +19,7 @@ Anything above the contract line is informational and discarded by the orchestra
 
 Any other shape is treated by the orchestrator as `REJECTED: <malformed reviewer output>`.
 
-(The SIMPLE-flow single-shot quality-reviewer and the migration-review reviewer keep their own `APPROVED` / `BLOCKED:` text contract — see quality-reviewer.md. The orchestrator parses those in the SIMPLE / migration flow, not the COMPLEX-wave parser above.)
+(The single-shot `migration-review` reviewer keeps its own `APPROVED` / `BLOCKED:` text contract — see quality-reviewer.md. The orchestrator parses that in the migration round, not with the wave parser above.)
 
 ## Developer agent
 
@@ -32,15 +32,17 @@ When the spawn prompt includes a `RETRY_FEEDBACK=...` block, the developer is on
 
 Any other shape is treated by the orchestrator as `FAILED`.
 
+(The two single-shot **ops-mode** developer dispatches define their OWN contract in their skill — these supersede the line above for that dispatch only: `writing-migrations` emits `DONE: branch=<short>/ops migration=<filename> summary=<...>` or `NO_MIGRATION_NEEDED`; `resolving-rollback-conflicts` emits `DONE: branch=<short>/ops files=[<...>]`. The orchestrator parses these in their respective states, PD-MIG-DEV / STATE RB-DEV.)
+
 ## Merger agent
 
 Last line of output MUST be exactly one of:
 
-- `DONE: <TASK_ID> commit=<short_sha>` — `<TASK_ID>` matches the spawn prompt (e.g. `TASK-003`, or the literal `SIMPLE` / `ROLLBACK` / `PROMOTE`).
+- `DONE: <TASK_ID> commit=<short_sha>` — `<TASK_ID>` matches the spawn prompt (e.g. `TASK-003`, or the literal `MIGRATION` / `ROLLBACK` / `PROMOTE`).
 - `FAILED: <TASK_ID> <one-line reason>`
 
 Any other shape is treated by the orchestrator as `FAILED: <TASK_ID> <malformed merger output>`.
 
-## Status updates (COMPLEX flow only)
+## Status updates (wave flow only)
 
 The merger updates `${TICKETS_DIR}/TASK-XXX.json` `status` to `merged` after a successful merge. The developer does not write the ticket file — its `DONE: ...` line is sufficient for the orchestrator.

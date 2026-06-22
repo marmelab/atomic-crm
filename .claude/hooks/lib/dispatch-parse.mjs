@@ -4,7 +4,7 @@
 // block-merger-without-review, block-promote-unmerged) parses through here, so
 // the contract regexes live in exactly one place.
 //
-// TASK_ID is anchored at line start and only accepts TASK-<n> | SIMPLE | PROMOTE
+// TASK_ID is anchored at line start and only accepts TASK-<n> | MIGRATION | PROMOTE
 // | ROLLBACK, so prose mentioning another ticket (e.g. "TASK-001 is merged; now
 // merge this one") can never mis-key a gate.
 
@@ -28,7 +28,7 @@ export function parseDispatch(input) {
     isolation: String(ti.isolation ?? ""),
     runInBackground: Boolean(ti.run_in_background),
     role: grab(/^ROLE:\s*(\S+)/m),
-    taskId: grab(/^TASK_ID:\s*(TASK-\d+|SIMPLE|PROMOTE|ROLLBACK)\b/m),
+    taskId: grab(/^TASK_ID:\s*(TASK-\d+|MIGRATION|PROMOTE|ROLLBACK)\b/m),
     worktreePath: grab(/^WORKTREE_PATH:\s*(\S+)/m),
     branchName: grab(/^BRANCH_NAME:\s*(\S+)/m),
     mode: grab(/^MODE:\s*(\S+)/m),

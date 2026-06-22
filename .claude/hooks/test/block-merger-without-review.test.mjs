@@ -1,7 +1,7 @@
 // Tests for block-merger-without-review.mjs — the PreToolUse(Agent) gate that
 // blocks a per-ticket merger until the quality-reviewer recorded APPROVED (flags
 // under <sessionDir>/reviews/<TASK>-<role>, written by record-review-verdict.mjs). The
-// gate exits 2 to block and 0 to allow. Skipped for promotion-only / SIMPLE /
+// gate exits 2 to block and 0 to allow. Skipped for promotion-only / MIGRATION /
 // ROLLBACK dispatches and when the ticket id can't be parsed (fail open).
 
 import { mkdtempSync, mkdirSync, writeFileSync, rmSync } from "node:fs";
@@ -64,9 +64,9 @@ describe("block-merger-without-review", () => {
     expect(run(`ROLE: merger\nMODE: promote\nSESSION_SHORT_ID: ${SS}`)).toBe(0);
   });
 
-  test("ignores the SIMPLE merger (no per-ticket review)", () => {
+  test("ignores the MIGRATION merger (no per-ticket review)", () => {
     expect(
-      run(`ROLE: merger\nTASK_ID: SIMPLE\nBRANCH_NAME: ${SS}/simple`),
+      run(`ROLE: merger\nTASK_ID: MIGRATION\nBRANCH_NAME: ${SS}/ops`),
     ).toBe(0);
   });
 

@@ -8,10 +8,11 @@
 // the worktree is finished). Keeps the orchestrator on the STATE B dispatch
 // template instead of improvising a free-form prompt.
 //
-// simple-developer is intentionally NOT gated here: setup-worktree derives its
-// fixed <short>/simple worktree from the session even when the SIMPLE template
-// omits WORKTREE_PATH (the COMPLEX developer has no such fallback — its path is
-// per-ticket and must be carried explicitly).
+// A developer dispatch on the <short>/ops branch (single-shot rollback /
+// migration) is intentionally NOT gated here: setup-worktree derives its fixed
+// <short>/ops worktree from the session, so those templates don't need a
+// per-ticket WORKTREE_PATH (the per-ticket wave developer has no such fallback —
+// its path is per-ticket and must be carried explicitly).
 //
 // The promotion-conflict-resolver is also a `developer` dispatch but is the one
 // sanctioned exception that works in $REPO on `main` under the promote lock (see
@@ -33,6 +34,13 @@ if (d.role === "promotion-conflict-resolver") {
   ctx.accept(
     "promotion-conflict-resolver — operates in $REPO on main, no worktree",
   );
+}
+
+// Single-shot ops flows run on the fixed <short>/ops worktree that setup-worktree
+// derives from the session; their templates need no per-ticket WORKTREE_PATH, so
+// skip the per-ticket gate below.
+if (/\/ops$/.test(d.branchName) || /\/ops$/.test(d.worktreePath)) {
+  ctx.accept("single-shot ops developer (<short>/ops) — fixed ops worktree");
 }
 
 if (d.isolation === "worktree") {

@@ -1,6 +1,6 @@
 ---
 name: planner
-description: Product task planner. Use at the start of any new feature or project need (COMPLEX path) and at the end of FULL_SETUP (SETUP_MODE=true). Decomposes natural-language product needs into atomic, ordered, actionable tickets with best-guess file paths.
+description: Product task planner. Use at the start of any code-change request and at the end of FULL_SETUP (SETUP_MODE=true). Decomposes natural-language product needs into atomic, ordered, actionable tickets with best-guess file paths.
 model: opus
 effort: xhigh
 tools:
@@ -140,7 +140,7 @@ Normal feature tickets (type / component / config prop) → `parallel_safe: true
    cd $CLAUDE_PROJECT_DIR && git add docs/project-context.json && \
    git commit -m "chore(setup): scaffolding tickets"
    ```
-   In normal COMPLEX mode (`SETUP_MODE` absent or `false`), do **not**
+   In normal mode (`SETUP_MODE` absent or `false`), do **not**
    read or edit `$CLAUDE_PROJECT_DIR/docs/project-context.json` — only the per-ticket
    files in `${TICKETS_DIR}` are yours to write.
 
