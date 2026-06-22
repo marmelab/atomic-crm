@@ -5,7 +5,15 @@ description: Shadcn/ui theming and component customization — CSS variables, OK
 
 # Customization & Theming
 
-Components reference semantic CSS variable tokens. Change the variables to change every component.
+Reference for theming and component customization. Components reference semantic CSS variable tokens change the variables to change every component. Read the relevant section, then check the Red Flags and Verification list.
+
+## When to Use
+
+- Changing colors, theme, dark mode, or border radius.
+- Adding a custom color token or a new component variant.
+- Customizing or wrapping a shadcn/ui component.
+
+For component *architecture* and where to import from, see `Skill({skill: "frontend-dev"})`.
 
 ---
 
@@ -169,3 +177,22 @@ npx shadcn@latest add button --diff
 npx shadcn@latest add button --dry-run        # see all affected files
 npx shadcn@latest add button --diff button.tsx # diff for a specific file
 ```
+
+---
+
+## Red Flags
+
+- A hardcoded hex/rgb color in a component instead of a semantic token (`bg-primary`, `text-muted-foreground`).
+- A new CSS file created for custom colors instead of adding them to the global CSS file.
+- A custom color used without registering it under `@theme inline` for Tailwind v4.
+- Editing component source for a one-off when a `variant` or `className` would do.
+- Palette changes wired anywhere but the `lightTheme`/`darkTheme` props on `<CRM>`.
+- A token defined in `:root` but not in `.dark` (or vice versa) — one mode is left broken.
+
+## Verification
+
+- [ ] Colors use semantic tokens, never hardcoded values.
+- [ ] Custom colors live in the global CSS file and are registered under `@theme inline`.
+- [ ] Every new token is defined in both `:root` and `.dark`.
+- [ ] Customization uses the lowest-effort approach that works (variant → `className` → new variant → wrapper).
+- [ ] Palette changes go through `lightTheme`/`darkTheme` on `<CRM>`.

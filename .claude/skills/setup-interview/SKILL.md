@@ -3,11 +3,18 @@ name: setup-interview
 description: Domain-by-domain interview to produce $CLAUDE_PROJECT_DIR/docs/project-context.json. Invoked once by the orchestrator; the orchestrator then conducts all turns directly using Read/Write/Edit — no agent dispatching.
 ---
 
-## Purpose
+## Overview
+
+A domain-by-domain interview that produces `$CLAUDE_PROJECT_DIR/docs/project-context.json`. You drive it one user turn at a time, persisting after each domain, until the user confirms — exit criterion: a `validated: true` JSON committed and the `VALIDATED` token emitted.
 
 **Scope constraint**: during SETUP-INTERVIEW, your Write / Edit tools are
 restricted to `$CLAUDE_PROJECT_DIR/docs/project-context.json` only. Never touch `$CLAUDE_PROJECT_DIR/src/` or
 any other path.
+
+## When to Use
+
+- Invoked once by the orchestrator at the start of project setup; the orchestrator then conducts every turn directly.
+- Resuming an interrupted interview (`validated: false`) or updating an existing config (`validated: true`).
 
 ---
 
@@ -269,3 +276,25 @@ Every orchestrator turn during SETUP-INTERVIEW ends with **exactly one** of:
 
 The `tickets` array is populated later by `planner` in SETUP_MODE — leave it
 empty here.
+
+---
+
+## Red Flags
+
+- Asking more than one domain in a single turn, or skipping the per-domain confirmation.
+- Writing or editing any path other than `docs/project-context.json`.
+- Setting `validated: true` before the consistency checks pass.
+- Mentioning entities, tables, components, or other technical terms to the user (use plain-language feature names).
+- An entity resembling a built-in (`contact`/`company`/`deal`/`tag`/`task`/`note`) marked `"type": "create"` instead of `"extend"`.
+- A service-role key or secret stored in a client-side variable.
+- Emitting anything other than exactly one output contract (plain-text question / `VALIDATED` / `FAILED:`) per turn.
+
+## Verification
+
+Before emitting `VALIDATED`:
+
+- [ ] All 8 applicable domains are `"done"` (domain 8 skipped when `MODE=demo`).
+- [ ] All consistency checks pass (no duplicate fields, pipeline entities exist, every role has a permission, built-ins use `"extend"`, no client-side secrets).
+- [ ] The `cleanup` derivation was presented in plain language and confirmed (or skipped silently when nothing qualified).
+- [ ] The user gave an affirmative final confirmation.
+- [ ] `validated: true` written, JSON committed, and `VALIDATED` is the only output (no trailing text).
