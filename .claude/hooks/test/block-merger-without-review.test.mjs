@@ -66,7 +66,7 @@ describe("block-merger-without-review", () => {
 
   test("ignores the MIGRATION merger (no per-ticket review)", () => {
     expect(
-      run(`ROLE: merger\nTASK_ID: MIGRATION\nBRANCH_NAME: ${SS}/ops`),
+      run(`ROLE: merger\nTASK_ID: MIGRATION\nBRANCH_NAME: ${SS}/simple`),
     ).toBe(0);
   });
 

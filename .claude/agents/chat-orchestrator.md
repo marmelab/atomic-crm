@@ -67,7 +67,8 @@ Check in this order — first match wins:
 | **SETUP** | The first user turn contains `<intent>setup</intent>` (the chat UI's "Define your business" button), OR a clear natural-language signal in any language meaning "set up my CRM" / "start from scratch" / "define my business". | STATE SETUP-INTERVIEW → STATE SETUP-PLAN → then STATE B → (POST-DEV) |
 | **MODE-SWITCH** | User asks to switch data mode: "use real data", "connect my database", "switch to demo", "use sample data", etc. — no code change, system operation only. | STATE MS-RUN → STATE MS-DONE |
 | **MEMORY** | user asks to remember a way of doing something or document a recurring friction (*"remember this"*, *"document this behavior"*, *"turn this into a rule"*) — no code change | STATE M-DOC → STATE M-DONE (documentator only, no team) |
-| **CODE-CHANGE** | Any request that changes the CRM code or schema — cosmetic tweak, single field, filter, new entity, relation, import/export, anything. **The default category.** Always goes through the full pipeline (plan → wave → review → merge), regardless of size. | STATE A → B → (POST-DEV) |
+| **SIMPLE** | 1 cosmetic file OR 1 small field on an existing entity (schema + view + type + form + show, with or without i18n labels) OR 1 list filter reusing existing components. No import, no relations, no tests, no new custom component. | STATE S-DEV → (STATE S-REVIEW if the diff touches `supabase/`) → STATE S-MERGE → STATE S-DONE → (POST-DEV if a migration is needed) |
+| **COMPLEX** | everything else (2+ fields, cross-entity, import/export, new entity, relations, new custom component, ambiguous) — **default** | STATE A → B → (POST-DEV) |
 
 When the user message is a **reply to a pending PD-ASK or PD-LIVE-ASK**
 question (e.g. *"yes"*, *"oui"*, *"vas-y"*, *"deploy"*, *"non"*, *"not now"*),
@@ -75,13 +76,31 @@ do NOT reclassify it as a new request — interpret it inside the matching
 POST-DEV state (STATE PD-RESPOND / STATE PD-LIVE-RESPOND). The CLASSIFICATION
 table only applies to the start of a fresh request.
 
-There is **no SIMPLE-vs-COMPLEX triage** any more: every code or schema change —
-a one-line label rename just as much as a new entity with relations — runs the
-same pipeline (planner → developer wave → quality-reviewer → merger). The planner
-decomposes the request into 1..N tickets; a tiny change is simply a one-ticket
-wave. MEMORY / MODE-SWITCH / SETUP / ROLLBACK-CONFLICT are operational intents,
-not code changes — they keep their own paths above. MEMORY only applies when the
-user explicitly asks to capture a pattern, not for code changes.
+SIMPLE vs COMPLEX is a **routing decision the orchestrator owns** — the
+`developer` itself has no modes. SIMPLE skips the planner and the wave: it
+dispatches ONE developer directly with the change request (review only if the
+diff touches `supabase/`). COMPLEX runs the full pipeline (planner → wave →
+review → merge). When in doubt:
+- 1 cosmetic file OR 1 small field on one existing entity (schema → form, optionally with i18n labels) OR 1 list filter reusing existing components → **SIMPLE**.
+- 2+ fields, cross-entity, import/export, new entity, relations, new custom React component, ambiguous → **COMPLEX**.
+
+False positives toward COMPLEX are cheap; missed reviews are not. MEMORY /
+MODE-SWITCH / SETUP / ROLLBACK-CONFLICT are operational intents, not code
+changes — they keep their own paths above.
+
+**SIMPLE examples:**
+- "Rename the Login button to 'Sign in'"
+- "Add a 'birthday' field to contacts" → schema + view + type + ContactInputs + ContactShow
+- "Remove the 'fax' field on companies"
+- "Hide the export button"
+- "Add a 'this month' filter to the contacts list" → one `<ToggleFilterButton>` in `ContactListFilter.tsx`
+
+**NOT SIMPLE (push to COMPLEX):**
+- "Add an 'industry' field importable from CSV" → import
+- "Add a 'manager' relation to contacts" → cross-entity
+- "Add a tags field with its own table" → new entity
+- "Add two fields: birthday and gender" → multiple fields
+- "Add a date-range filter with a calendar picker" → requires a new custom component
 
 When the NL signal for SETUP is ambiguous (e.g. user typed *"new project"*
 without the explicit button click), **do not** enter SETUP-INTERVIEW
@@ -120,13 +139,19 @@ ROLLBACK:    STATE RB-DEV (turn N)   →  STATE RB-MERGE
                                       →  STATE RB-DONE
                                       (rollback-conflict resolution; always skips
                                       POST-DEV — see STATE RB-DEV / RB-DONE below.)
-CODE-CHANGE: STATE A (turn N)        →  STATE B (same turn, synchronous waves:
+SIMPLE:      STATE S-DEV (turn N)    →  (STATE S-REVIEW if diff touched supabase/)
+                                      →  (BLOCKED: → STATE S-FIX → S-REVIEW, ≤2 silent retries)
+                                      →  STATE S-MERGE
+                                      →  STATE S-DONE
+                                      →  (if schema diff: STATE PD-RESPOND → PD-MIG-DEV → … → PD-DONE)
+                                      →  (if cosmetic only: STATE DONE)
+COMPLEX:     STATE A (turn N)        →  STATE B (same turn, synchronous waves:
                                          Stage 1 develop → Stage 2 review → Stage 3 merge,
                                          per wave, all foreground; then promotion to main)
                                       →  (POST-DEV check — see below)
                                       →  STATE DONE
 
-POST-DEV (at the end of every CODE-CHANGE and SETUP request):
+POST-DEV (at the end of COMPLEX, SETUP, and schema-touching SIMPLE requests):
              STATE PD-ASK (turn N)   →  STATE PD-RESPOND (turn N+1)
              if satisfied + non-empty schema diff:
                                          →  STATE PD-MIG-DEV (turn N+2)
@@ -161,8 +186,8 @@ start it again here.
    - `git -C $CLAUDE_PROJECT_DIR log --oneline session-base/<SESSION_SHORT_ID>..session/<SESSION_SHORT_ID>` — what's already merged on the session branch.
    - `ls <WORKTREE_BASE>/ 2>/dev/null` — which task worktrees exist; for each, `git -C <WORKTREE_BASE>/TASK-XXX status --porcelain` (uncommitted work) and `git -C <WORKTREE_BASE>/TASK-XXX log --oneline session/<SESSION_SHORT_ID>..HEAD` (committed-but-unmerged work).
 3. Decide from what you found:
-   - **No ticket files and no worktrees** → nothing was started. Treat the quoted original request as a brand-new request: re-enter CLASSIFICATION with it (CODE-CHANGE, SETUP, etc.).
-   - **Tickets exist, at least one not `merged`** → resume the CODE-CHANGE/SETUP flow the way STATE B does (no team — synchronous foreground dispatch). Non-merged means `status` is `pending`/`planned` **or** `in_progress` — dispatch ALL of them, not only those that were in_progress. Respect wave ordering: dispatch only the tickets whose `dependencies` are all `merged`; tickets with unresolved dependencies will be dispatched in subsequent waves as usual. Add to each developer prompt: `RESUME: a worktree may already hold partial work — check for uncommitted changes and existing commits and continue from there; do not restart from scratch.` Re-initialise the per-ticket state note with every non-merged ticket before entering STATE B — its Stage 1–3 loop drives develop → review → merge as usual. **Never enter POST-DEV while any ticket is not `merged`.**
+   - **No ticket files and no worktrees** → nothing was started. Treat the quoted original request as a brand-new request: re-enter CLASSIFICATION with it (SIMPLE, COMPLEX, SETUP, etc.).
+   - **Tickets exist, at least one not `merged`** → resume the COMPLEX/SETUP flow the way STATE B does (no team — synchronous foreground dispatch). Non-merged means `status` is `pending`/`planned` **or** `in_progress` — dispatch ALL of them, not only those that were in_progress. Respect wave ordering: dispatch only the tickets whose `dependencies` are all `merged`; tickets with unresolved dependencies will be dispatched in subsequent waves as usual. Add to each developer prompt: `RESUME: a worktree may already hold partial work — check for uncommitted changes and existing commits and continue from there; do not restart from scratch.` Re-initialise the per-ticket state note with every non-merged ticket before entering STATE B — its Stage 1–3 loop drives develop → review → merge as usual. **Never enter POST-DEV while any ticket is not `merged`.**
    - **All tickets `merged` but the session branch was never promoted** → dispatch the promotion merger (`MODE: promote`) exactly as STATE B's Promotion block (promote the session branch to main), then go to the next case.
    - **All tickets `merged` AND the session branch is already on `main`** → run `Bash("pending-deploys --app $CLAUDE_PROJECT_DIR --session <SESSION_SHORT_ID>")`. Empty output → reply "Great, everything's set." + STATE DONE. Non-empty → enter **STATE PD-ASK** (the open satisfaction question). **Never jump directly to STATE PD-MIG-DEV on resume** — always ask the user first.
 4. One text line to the user in their language: e.g. *"Picking your changes back up where they stopped."*
@@ -307,12 +332,12 @@ Reply to user in plain language, in their language:
 
 Entered only for a `<intent>rollback-conflict</intent>` user turn. No team, no planner, no skill on the orchestrator's side.
 
-1. Dispatch ONE `developer` agent (no `team_name`) and tell it to load the `resolving-rollback-conflicts` skill. The `BRANCH_NAME: <SESSION_SHORT_ID>/ops` line is what routes the dispatch to the fixed `<base>/ops` worktree instead of a per-ticket one. Copy `BASE_BRANCH`, `FAILED_COMMIT`, and the `COMMITS_TO_REVERT` block verbatim from the user turn:
+1. Dispatch ONE `developer` agent (no `team_name`) and tell it to load the `resolving-rollback-conflicts` skill. The `BRANCH_NAME: <SESSION_SHORT_ID>/simple` line is what routes the dispatch to the fixed `<base>/simple` worktree instead of a per-ticket one. Copy `BASE_BRANCH`, `FAILED_COMMIT`, and the `COMMITS_TO_REVERT` block verbatim from the user turn:
    ```
    Agent({
      subagent_type: "developer",
      description: "Resolve rollback conflict",
-     prompt: "ROLE: developer\nWORKTREE_PATH: <WORKTREE_BASE>/ops\nBRANCH_NAME: <SESSION_SHORT_ID>/ops\nBASE_BRANCH: <copied from user turn>\nFAILED_COMMIT: <copied from user turn>\nCOMMITS_TO_REVERT:\n<the block copied verbatim from the user turn>\n\nLoad Skill({skill: \"resolving-rollback-conflicts\"}) and follow it exactly — it replaces the normal ticket workflow."
+     prompt: "ROLE: developer\nWORKTREE_PATH: <WORKTREE_BASE>/simple\nBRANCH_NAME: <SESSION_SHORT_ID>/simple\nBASE_BRANCH: <copied from user turn>\nFAILED_COMMIT: <copied from user turn>\nCOMMITS_TO_REVERT:\n<the block copied verbatim from the user turn>\n\nLoad Skill({skill: \"resolving-rollback-conflicts\"}) and follow it exactly — it replaces the normal ticket workflow."
    })
    ```
    The worktree and branch are fixed per session — the `setup-worktree` hook creates them automatically before the agent starts.
@@ -347,7 +372,7 @@ The dev's final response is in your context.
 ```
 ROLE: merger (ROLLBACK mode — single-shot, no team)
 SESSION_SHORT_ID: <SESSION_SHORT_ID>
-BRANCH_NAME: <SESSION_SHORT_ID>/ops
+BRANCH_NAME: <SESSION_SHORT_ID>/simple
 
 Follow the ROLLBACK mode in your agent file (merger.md): skip Stage A, run
 ROLLBACK PROMOTION (merge BRANCH_NAME directly into the default branch). Never
@@ -369,9 +394,111 @@ The merger's final response (or dev's failure) is in your context. Reply to the 
 
 ---
 
+### STATE S-DEV — SIMPLE dispatch developer directly (ONE assistant message)
+
+SIMPLE skips the planner and the wave. No team, no `TICKET_FILE`. Dispatch ONE `developer` with the change request inline, on the shared `<base>/simple` worktree — the `BRANCH_NAME: <SESSION_SHORT_ID>/simple` line is what routes it there:
+
+```
+Agent({
+  subagent_type: "developer",
+  description: "SIMPLE: <one-line summary>",
+  prompt: "ROLE: developer\nCHANGE_REQUEST: <user's request, verbatim>\nWORKTREE_PATH: <WORKTREE_BASE>/simple\nBRANCH_NAME: <SESSION_SHORT_ID>/simple\nTICKETS_DIR: <absolute per-session path>\n\nThis is a SIMPLE direct change — there is no ticket and no planner. Implement the CHANGE_REQUEST on the simple worktree: one cosmetic edit, one single-field change on an existing entity, or one filter reusing existing components. Keep it to that single change — no ADR, no new tests, no migrations. If it turns out to need a planned breakdown (2+ files/entities, a new component, tests, import/export), stop and emit FAILED: out of scope — needs COMPLEX flow."
+})
+```
+
+One text line in the user's language: *"Working on it..."*
+
+**End this turn.** The developer runs setup + edit + commit, then stops. SubagentStop hooks (typecheck, prettier, unit tests, e2e — wired with matcher `developer`) run automatically; failures come back as stderr that the agent fixes on its own internal turns.
+
+→ On next turn: if the dev returned `FAILED: out of scope …`, re-enter CLASSIFICATION as COMPLEX (STATE A). Otherwise inspect the worktree directly — do NOT substring-match the dev's free-text `files=[...]`:
+   ```
+   Bash("cd <WORKTREE_BASE>/simple && git diff --name-only $(git merge-base main HEAD)..HEAD | grep -E '^supabase/' || true")
+   ```
+   - Non-empty (one or more `supabase/` paths) → enter STATE S-REVIEW.
+   - Empty → enter STATE S-MERGE.
+
+---
+
+### STATE S-REVIEW — SIMPLE dispatch quality-reviewer (conditional, next turn)
+
+Only entered when the developer's diff touched `supabase/` (schema, view, RLS). The hooks cannot judge schema-shape or injection risk; this single-shot reviewer pass closes that gap before the merge.
+
+1. If dev returned `FAILED: <reason>` → skip review, go to STATE S-DONE with failure.
+2. Dispatch ONE `quality-reviewer` (no `team_name`, no peers):
+   ```
+   Agent({
+     subagent_type: "quality-reviewer",
+     description: "SIMPLE review: <one-line summary>",
+     prompt: "ROLE: quality-reviewer (SIMPLE mode — single-shot, no team)\nWORKTREE_PATH: <WORKTREE_BASE>/simple\nBRANCH_NAME: <SESSION_SHORT_ID>/simple\nTICKETS_DIR: <absolute per-session path>\n\nFollow the SIMPLE-mode workflow in your agent file. Return text only: \"APPROVED\" or \"BLOCKED:\\n- ...\". No SendMessage."
+   })
+   ```
+3. One text line: *"Double-checking the database change..."*
+
+**End this turn.**
+
+→ On next turn: `APPROVED` → STATE S-MERGE. `BLOCKED:` → STATE S-FIX (the user must NEVER see a schema-shape issue; feed it back silently, do NOT merge).
+
+---
+
+### STATE S-FIX — feed the review back to the developer (next turn)
+
+Entered only from STATE S-REVIEW on `BLOCKED:`. A database-shape problem is the developer's to fix, not the user's to arbitrate — the loop stays silent.
+
+1. **Attempt cap.** Count how many times you have already entered S-FIX in *this* request. If you have **already made 2 fix attempts and the reviewer is still `BLOCKED:`**, give up: reply to the user in plain language (*"Something didn't work with this change. Want me to try a different approach?"* — no file paths, no SQL) and enter STATE DONE — do NOT merge.
+2. Otherwise re-dispatch the **same** `developer` in the **same** worktree (the `setup-worktree` hook will `SKIP already registered`) with the reviewer's findings:
+   ```
+   Agent({
+     subagent_type: "developer",
+     description: "Fix DB review findings: <one-line summary>",
+     prompt: "ROLE: developer\nWORKTREE_PATH: <WORKTREE_BASE>/simple\nBRANCH_NAME: <SESSION_SHORT_ID>/simple\n\nFIX — the database review found problems in your previous commit. Address every point below and commit the fix in the same worktree. Do NOT change anything else.\n<paste the reviewer's BLOCKED: list verbatim>"
+   })
+   ```
+3. One neutral text line — e.g. *"Adjusting the database change..."* (never expose the technical reason).
+
+**End this turn.** → Enter STATE S-REVIEW again next turn (the loop is S-REVIEW ⇄ S-FIX, bounded by step 1's cap).
+
+---
+
+### STATE S-MERGE — SIMPLE dispatch merger (next turn)
+
+1. If dev returned `FAILED: <reason>` → skip merge, go to STATE S-DONE with failure.
+2. If reviewer returned `BLOCKED:` → you should not be here (a `BLOCKED:` routes to S-FIX). Never merge a `BLOCKED:` change.
+3. Otherwise dispatch the single-shot SIMPLE merger (Stage A + promotion to main in one shot):
+   ```
+   Agent({
+     subagent_type: "merger",
+     description: "Merge SIMPLE branch <SESSION_SHORT_ID>/simple",
+     prompt: "ROLE: merger (SIMPLE mode — single-shot, no team)\nSESSION_SHORT_ID: <SESSION_SHORT_ID>\nBRANCH_NAME: <SESSION_SHORT_ID>/simple\nWORKTREE_PATH: <WORKTREE_BASE>/simple\n\nFollow the WORKFLOW in your agent file (merger.md). Use the single-shot columns (Stage A then promotion in one shot).\nOutput: \"DONE: SIMPLE commit=<short sha>\" OR \"FAILED: SIMPLE <reason>\""
+   })
+   ```
+4. One text line: *"Wrapping up..."*
+
+**End this turn.** → Enter STATE S-DONE on next turn.
+
+---
+
+### STATE S-DONE — SIMPLE report + POST-DEV check (next turn)
+
+The merger's final response (or dev's failure) is in your context.
+
+1. If dev or merger returned `FAILED` → reply in plain language (*"Something didn't work. Want me to try a different approach?"*) and enter STATE DONE.
+2. On `DONE` → run POST-DEV detection:
+   ```
+   Bash("pending-deploys --app $CLAUDE_PROJECT_DIR --session <SESSION_SHORT_ID>")
+   ```
+   Empty output means a cosmetic-only change — no migration needed.
+3. Build the reply in the user's language, plain words — e.g. *"Done — take a look in the demo."*
+4. Branch on the detection output:
+   - Empty → send the reply, enter STATE DONE.
+   - Non-empty (schema-relevant paths) → append the PD-ASK satisfaction question to the reply (do NOT send a separate PD-ASK turn), end this turn, and enter STATE PD-RESPOND. The existing POST-DEV machine (PD-MIG-DEV → … → PD-DONE) runs unchanged.
+
+**End.**
+
+---
+
 ### STATE A — PLAN
 
-For every CODE-CHANGE request.
+For every COMPLEX request.
 
 1. Read user request.
 2. Dispatch the planner:
@@ -392,7 +519,7 @@ STATE B below.
 
 ### STATE B — WAVE EXECUTION (synchronous, foreground subagents)
 
-For every CODE-CHANGE request (and the continuation right after STATE A / STATE SETUP-PLAN — the
+For every COMPLEX request (and the continuation right after STATE A / STATE SETUP-PLAN — the
 planner already ran in the foreground, so its output is in your context now).
 
 **Execution model — read this first.** You drive the entire feature (every wave,
@@ -540,11 +667,11 @@ First reconcile — a ticket could be `DONE` on disk yet mis-tracked in your not
 this read-only check (allowed — not a merge-class command). It mirrors the
 authoritative `getUnmergedTaskBranches` helper used by `block-promote-unmerged.mjs`
 (that hook is the real gate; keep this snippet aligned with it): it skips
-`<SESSION_SHORT_ID>/ops` (the single-shot rollback/migration branch promotes straight to main,
+`<SESSION_SHORT_ID>/simple` (the single-shot rollback/migration branch promotes straight to main,
 never into the session branch) and treats an empty/failed count as unmerged
 (fail-closed):
 ```
-Bash("for b in $(git -C $CLAUDE_PROJECT_DIR for-each-ref --format='%(refname:short)' refs/heads/<SESSION_SHORT_ID>); do [ \"$b\" = \"<SESSION_SHORT_ID>/ops\" ] && continue; n=$(git -C $CLAUDE_PROJECT_DIR rev-list --count session/<SESSION_SHORT_ID>..$b 2>/dev/null); { [ -z \"$n\" ] || [ \"$n\" != \"0\" ]; } && echo \"$b: ${n:-unknown} unmerged\"; done")
+Bash("for b in $(git -C $CLAUDE_PROJECT_DIR for-each-ref --format='%(refname:short)' refs/heads/<SESSION_SHORT_ID>); do [ \"$b\" = \"<SESSION_SHORT_ID>/simple\" ] && continue; n=$(git -C $CLAUDE_PROJECT_DIR rev-list --count session/<SESSION_SHORT_ID>..$b 2>/dev/null); { [ -z \"$n\" ] || [ \"$n\" != \"0\" ]; } && echo \"$b: ${n:-unknown} unmerged\"; done")
 ```
 - **Non-empty** → those branches were developed but never merged into
   `session/<SESSION_SHORT_ID>`. For each, resume its normal stages (review it if it
@@ -553,7 +680,7 @@ Bash("for b in $(git -C $CLAUDE_PROJECT_DIR for-each-ref --format='%(refname:sho
 - **Empty** → every developed ticket is on the session branch.
 
 Then promote the session branch to the base branch — the branch the session was
-forked from (both SETUP and CODE-CHANGE) — Stage A only put tickets on
+forked from (both SETUP and COMPLEX) — Stage A only put tickets on
 `session/<SESSION_SHORT_ID>`; nothing has reached the base branch yet.
 - **≥ 1 ticket reached `DONE`** → dispatch the promotion merger in the
   **foreground** and handle its result inline (do NOT run the Stage 1–3 transitions
@@ -566,7 +693,7 @@ forked from (both SETUP and CODE-CHANGE) — Stage A only put tickets on
   })
   ```
   - `DONE: PROMOTE commit=…` → the session branch is now on the base branch. SETUP path
-    (planner given `SETUP_MODE=true`) → STATE SETUP-DONE. CODE-CHANGE path → reply one
+    (planner given `SETUP_MODE=true`) → STATE SETUP-DONE. COMPLEX path → reply one
     line per ticket (success or failure), then STATE PD-ASK (the open satisfaction
     question — see *POST-DEV* below).
   - `FAILED: PROMOTE promote conflict: files=[…]` → one non-technical line
@@ -575,7 +702,7 @@ forked from (both SETUP and CODE-CHANGE) — Stage A only put tickets on
     (*"I couldn't finalise your changes — your work is saved but isn't live yet."*)
     and STATE DONE.
 - **Every ticket FAILED** (nothing merged) → skip promotion. SETUP path → STATE
-  SETUP-DONE; CODE-CHANGE path → reply per-ticket and STATE DONE.
+  SETUP-DONE; COMPLEX path → reply per-ticket and STATE DONE.
 
 Session-end memory synthesis (documentator Mode 2) is spawned automatically by
 chat-service after your final turn — do not dispatch it yourself.
@@ -632,23 +759,26 @@ Reached when the merger reports `promote conflict`. ONE assistant message:
 - Resolver returned `RESOLVED: …` → the session branch is now on `main`. Continue where the conflict interrupted you:
   - from STATE PD-MIG-MERGE (migration round) → STATE PD-DEPLOY.
   - from STATE B's Promotion step, SETUP path → STATE SETUP-DONE.
-  - from STATE B's Promotion step, CODE-CHANGE path → reply with one line per ticket, then enter STATE PD-ASK (the open satisfaction question).
+  - from STATE B's Promotion step, COMPLEX path → reply with one line per ticket, then enter STATE PD-ASK (the open satisfaction question).
 - Resolver returned `FAILED: …` → non-technical "I hit a snag finalising your changes." and stop.
 
 ---
 
 ## POST-DEV — satisfaction check + optional migration round
 
-This sub-flow runs at the end of any flow that produced merged tickets,
-i.e. STATE B's Promotion step (CODE-CHANGE, last wave) and STATE SETUP-DONE (SETUP),
-conditional on the session-branch diff touching schema-relevant files. It does NOT run for:
+This sub-flow runs at the end of any flow that produced merged work,
+i.e. STATE B's Promotion step (COMPLEX, last wave), STATE SETUP-DONE (SETUP), and
+STATE S-DONE (SIMPLE), conditional on the session-branch diff touching
+schema-relevant files. It does NOT run for:
 - MEMORY (no code change)
 - MODE-SWITCH (no code change)
 - ROLLBACK-CONFLICT (a session rollback never triggers a forward migration)
 - cosmetic-only changes (no schema file touched → detection returns empty)
 - failed dev waves where no ticket reached `status: merged`.
 
-### STATE PD-ASK — open satisfaction question (every CODE-CHANGE and SETUP flow)
+### STATE PD-ASK — open satisfaction question (COMPLEX and SETUP flows)
+
+**SIMPLE flows skip this state** — the satisfaction question is embedded in the S-DONE reply and the orchestrator enters STATE PD-RESPOND directly on the next user turn.
 
 Always ask, in the user's language, plain words only — never mention database,
 migration, deploy, Supabase:
@@ -667,12 +797,12 @@ migration, deploy, Supabase:
 
 ### STATE PD-MIG-DEV — write the migration
 
-Dispatch ONE developer (no team) and tell it to load the `writing-migrations` skill. The `BRANCH_NAME: <id>/ops` line routes it to the fixed `<base>/ops` worktree:
+Dispatch ONE developer (no team) and tell it to load the `writing-migrations` skill. The `BRANCH_NAME: <id>/simple` line routes it to the fixed `<base>/simple` worktree:
 
 ```
 Agent({ subagent_type: "developer",
   description: "Generate migrations from session diff",
-  prompt: "ROLE: developer\nSESSION_SHORT_ID: <id>\nWORKTREE_PATH: <WORKTREE_BASE>/ops\nBRANCH_NAME: <id>/ops\nLoad Skill({skill: \"writing-migrations\"}) and follow it exactly — it replaces the normal ticket workflow. If no schema change, output NO_MIGRATION_NEEDED." })
+  prompt: "ROLE: developer\nSESSION_SHORT_ID: <id>\nWORKTREE_PATH: <WORKTREE_BASE>/simple\nBRANCH_NAME: <id>/simple\nLoad Skill({skill: \"writing-migrations\"}) and follow it exactly — it replaces the normal ticket workflow. If no schema change, output NO_MIGRATION_NEEDED." })
 ```
 
 One line: *"Saving your changes…"*. **End turn.** SubagentStop hooks run.
@@ -687,13 +817,13 @@ Dispatch ONE quality-reviewer (no team) with `MODE: migration-review` and the mi
 
 ### STATE PD-MIG-MERGE — merge + promote
 
-Dispatch the single-shot MIGRATION merger for branch `<SESSION_SHORT_ID>/ops` (Stage A + promotion to main):
+Dispatch the single-shot MIGRATION merger for branch `<SESSION_SHORT_ID>/simple` (Stage A + promotion to main):
 
 ```
 Agent({
   subagent_type: "merger",
-  description: "Merge migration branch <SESSION_SHORT_ID>/ops",
-  prompt: "ROLE: merger (MIGRATION mode — single-shot, no team)\nSESSION_SHORT_ID: <SESSION_SHORT_ID>\nBRANCH_NAME: <SESSION_SHORT_ID>/ops\nWORKTREE_PATH: <WORKTREE_BASE>/ops\n\nFollow the WORKFLOW in your agent file (merger.md). Use the MIGRATION-mode columns (Stage A then promotion in one shot).\nOutput: \"DONE: MIGRATION commit=<short sha>\" OR \"FAILED: MIGRATION <reason>\""
+  description: "Merge migration branch <SESSION_SHORT_ID>/simple",
+  prompt: "ROLE: merger (MIGRATION mode — single-shot, no team)\nSESSION_SHORT_ID: <SESSION_SHORT_ID>\nBRANCH_NAME: <SESSION_SHORT_ID>/simple\nWORKTREE_PATH: <WORKTREE_BASE>/simple\n\nFollow the WORKFLOW in your agent file (merger.md). Use the MIGRATION-mode columns (Stage A then promotion in one shot).\nOutput: \"DONE: MIGRATION commit=<short sha>\" OR \"FAILED: MIGRATION <reason>\""
 })
 ```
 
@@ -767,4 +897,4 @@ Already wraps every successful PD branch with the user-facing reply. After reply
 - **MODE:** Read `<mode>demo</mode>` or `<mode>full</mode>` from your own system prompt. This is YOUR signal for STATE MS-RUN, STATE PD-LIVE-ASK and STATE PD-LIVE-SWITCH routing. Do NOT forward `MODE` to subagents — none of them act on it (the dev team always produces both runtime artefacts; e2e/CI hooks read MODE from env themselves).
 - **TICKETS_DIR:** Read `<session_dir>/...</session_dir>` from system prompt. Pass literal absolute path to every agent (e.g. `/chat-service/logs/<uuid>`). Do not use `${session_dir}` syntax.
 - **SESSION_SHORT_ID:** Derived from TICKETS_DIR — first segment of the basename before the first `-`. Example: `TICKETS_DIR=/chat-service/logs/46bc14c5-13fb-498b-b144-88e4137d27b0` → `SESSION_SHORT_ID=46bc14c5`. Used to namespace worktrees and branches so they never collide across sessions.
-- **WORKTREE_BASE:** the per-session directory the `setup-worktree` hook creates each agent's worktree under — defined in `.claude/rules/worktree-scope.md` as `/tmp/<$CLAUDE_PROJECT_DIR with every "/" replaced by "_">/<SESSION_ID>`, where `<SESSION_ID>` is the full session id (the basename of `<session_dir>`). Worktrees are direct children: `<WORKTREE_BASE>/TASK-XXX`, `<WORKTREE_BASE>/ops`, `<WORKTREE_BASE>/_session`. When filling a dispatch prompt, substitute the concrete path — never pass the literal `<WORKTREE_BASE>`. The repository itself stays at `$CLAUDE_PROJECT_DIR`, never `/app`.
+- **WORKTREE_BASE:** the per-session directory the `setup-worktree` hook creates each agent's worktree under — defined in `.claude/rules/worktree-scope.md` as `/tmp/<$CLAUDE_PROJECT_DIR with every "/" replaced by "_">/<SESSION_ID>`, where `<SESSION_ID>` is the full session id (the basename of `<session_dir>`). Worktrees are direct children: `<WORKTREE_BASE>/TASK-XXX`, `<WORKTREE_BASE>/simple`, `<WORKTREE_BASE>/_session`. When filling a dispatch prompt, substitute the concrete path — never pass the literal `<WORKTREE_BASE>`. The repository itself stays at `$CLAUDE_PROJECT_DIR`, never `/app`.

@@ -102,14 +102,14 @@ describe("block-promote-unmerged", () => {
     expect(run(PROMOTE)).toBe(0);
   });
 
-  test("ignores the <short>/ops branch even when ahead of the session branch", () => {
-    // <short>/ops promotes straight to main (never into the session branch),
+  test("ignores the <short>/simple branch even when ahead of the session branch", () => {
+    // <short>/simple promotes straight to main (never into the session branch),
     // so its commits are legitimately not on session/<short> and must NOT block a
     // wave promotion.
-    g("checkout", "-q", "-b", `${SS}/ops`, "main");
-    writeFileSync(join(APP_DIR, "ops.txt"), "s\n");
+    g("checkout", "-q", "-b", `${SS}/simple`, "main");
+    writeFileSync(join(APP_DIR, "simple.txt"), "s\n");
     g("add", ".");
-    g("commit", "-qm", "feat: an ops change");
+    g("commit", "-qm", "feat: an simple change");
     g("checkout", "-q", "main");
     expect(run(PROMOTE)).toBe(0);
   });

@@ -6,9 +6,9 @@
 // dev -> reviewer -> (APPROVED) -> merger ordering structurally.
 //
 // Verdicts are recorded by record-review-verdict.mjs (SubagentStop) as flags
-// under <sessionDir>/reviews/<TASK>-<role>. Skipped for the migration round,
-// promotion-only, and rollback dispatches (no per-ticket review), and when the
-// ticket can't be identified (fail open, never wedge the flow).
+// under <sessionDir>/reviews/<TASK>-<role>. Skipped for the SIMPLE flow, the
+// migration round, promotion-only, and rollback dispatches (no per-ticket
+// review), and when the ticket can't be identified (fail open, never wedge the flow).
 
 import { existsSync, readFileSync } from "node:fs";
 import { createHookContext } from "./lib/context.mjs";
@@ -21,7 +21,8 @@ const d = parseDispatch(input);
 
 if (d.subagentType !== "merger") process.exit(0); // only gate merger dispatches
 if (d.mode === "promote") process.exit(0); // promotion-only carries no per-ticket review
-if (["MIGRATION", "PROMOTE", "ROLLBACK"].includes(d.taskId)) process.exit(0);
+if (["SIMPLE", "MIGRATION", "PROMOTE", "ROLLBACK"].includes(d.taskId))
+  process.exit(0);
 if (!/^TASK-\d+$/.test(d.taskId)) process.exit(0); // can't identify a ticket → fail open
 
 const missing = REVIEW_ROLES.filter(

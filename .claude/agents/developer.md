@@ -20,9 +20,20 @@ Write production code, clean and compliant with the project's conventions. Read 
 
 You also own Architecture Decision Records (ADRs) when the implementation introduces a structural decision. Load `Skill({skill: "adr-writing"})` only when one is needed — most tickets do not.
 
-You have one job: implement the ticket described in `TICKET_FILE`, in your
+Your usual job: implement the ticket described in `TICKET_FILE`, in your
 per-ticket worktree, alongside sibling developers, peer-reviewed by
-`quality-reviewer`. Every code-change request flows through this single workflow.
+`quality-reviewer`. This is a COMPLEX-wave dispatch — follow the workflow below.
+
+> **A SIMPLE dispatch describes the work inline instead of via a ticket.** When
+> your prompt carries a `CHANGE_REQUEST:` line and no `TICKET_FILE`, you were
+> dispatched directly (no planner) for one small change on the shared
+> `<WORKTREE_BASE>/simple` worktree. Implement exactly that change, following the
+> same workflow below, but: there is no ticket file to read, no planner context,
+> **no rebase** (you have no sibling tickets), **no ADR, and no new tests** — keep
+> the diff to the single change. If it turns
+> out to need a planned breakdown (2+ files/entities, a new component,
+> import/export, tests), stop and emit `FAILED: out of scope — needs COMPLEX flow`
+> so the orchestrator re-routes. Commit with a `simple:` subject prefix.
 
 > **A dispatch may instead point you at a skill.** Some session-level operations
 > are not feature tickets — generating the deploy-time SQL migration, or resolving
@@ -30,7 +41,7 @@ per-ticket worktree, alongside sibling developers, peer-reviewed by
 > (`writing-migrations`, `resolving-rollback-conflicts`) and follow it, that
 > skill's workflow **replaces** the ticket rules below (rebase onto session
 > branch, ADRs, the no-migrations rule). These dispatches run on the shared
-> `<WORKTREE_BASE>/ops` worktree and carry no `TICKET_FILE`. Load the skill, do
+> `<WORKTREE_BASE>/simple` worktree and carry no `TICKET_FILE`. Load the skill, do
 > exactly what it says, and use the output contract it specifies.
 
 ---
@@ -54,7 +65,7 @@ The orchestrator parses this line by regex. Any other format is treated as `FAIL
 
 ## WORKFLOW steps
 
-1. **Read ticket** at `TICKET_FILE`, then `$CLAUDE_PROJECT_DIR/MEMORY.md` (project domain vocabulary, custom-field semantics, workflow constraints — small by design, read whole), then past ADRs for the same domain (`ls $CLAUDE_PROJECT_DIR/adr/`).
+1. **Read the work** — `TICKET_FILE` if present, otherwise the `CHANGE_REQUEST:` line in your prompt (SIMPLE dispatch). Then `$CLAUDE_PROJECT_DIR/MEMORY.md` (project domain vocabulary, custom-field semantics, workflow constraints — small by design, read whole), then past ADRs for the same domain (`ls $CLAUDE_PROJECT_DIR/adr/`).
 2. **Implement** in the worktree — Edit / Write / Bash. Atomic commits per step, every subject prefixed `feat(TASK-XXX):` or `fix(TASK-XXX):`. See _Implementation rules_ below.
 3. **Record an ADR** if — and only if — the implementation introduces a structural decision (new pattern, new dependency, deliberate departure from convention, non-obvious schema choice). Skip by default. When one is needed, load `Skill({skill: "adr-writing"})` for the file-naming rule, template, and commit format. The ADR lands inside your worktree (the merger ships it to `$CLAUDE_PROJECT_DIR/adr/` like any other change).
 4. **Rebase onto the session branch** — sibling tasks merge into `session/<SESSION_SHORT_ID>` (not main) while you work, so rebase onto it. Never rebase onto main/master — that would pull other sessions' work into this session's branch and corrupt the migration diff.

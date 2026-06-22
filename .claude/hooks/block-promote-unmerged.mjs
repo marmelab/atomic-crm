@@ -14,7 +14,7 @@ import { readFileSync } from "node:fs";
 import { createHookContext } from "./lib/context.mjs";
 import { parseDispatch } from "./lib/dispatch-parse.mjs";
 import { getUnmergedTaskBranches, git } from "./lib/git.mjs";
-import { opsBranch, sessionBranch } from "./lib/topology.mjs";
+import { simpleBranch, sessionBranch } from "./lib/topology.mjs";
 
 const input = JSON.parse(readFileSync(0, "utf8"));
 const ctx = createHookContext(input, "block-promote-unmerged");
@@ -34,11 +34,11 @@ if (
 }
 
 // Task branches under refs/heads/<short>/ with commits not on the session branch.
-// <short>/ops is excluded: the single-shot rollback/migration round promotes it
+// <short>/simple is excluded: the single-shot rollback/migration round promotes it
 // straight to main, never into the session branch, so it is legitimately "ahead"
 // of session/<short> and must not block a wave promotion. Fails CLOSED — a
 // branch whose rev-list count can't be read is reported as unmerged.
-const unmerged = getUnmergedTaskBranches(short, session, [opsBranch(ctx)]);
+const unmerged = getUnmergedTaskBranches(short, session, [simpleBranch(ctx)]);
 
 if (unmerged.length === 0) process.exit(0);
 

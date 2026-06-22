@@ -32,7 +32,7 @@ When the spawn prompt includes a `RETRY_FEEDBACK=...` block, the developer is on
 
 Any other shape is treated by the orchestrator as `FAILED`.
 
-(The two single-shot **ops-mode** developer dispatches define their OWN contract in their skill — these supersede the line above for that dispatch only: `writing-migrations` emits `DONE: branch=<short>/ops migration=<filename> summary=<...>` or `NO_MIGRATION_NEEDED`; `resolving-rollback-conflicts` emits `DONE: branch=<short>/ops files=[<...>]`. The orchestrator parses these in their respective states, PD-MIG-DEV / STATE RB-DEV.)
+(The two single-shot skill-driven developer dispatches define their OWN contract in their skill — these supersede the line above for that dispatch only: `writing-migrations` emits `DONE: branch=<short>/simple migration=<filename> summary=<...>` or `NO_MIGRATION_NEEDED`; `resolving-rollback-conflicts` emits `DONE: branch=<short>/simple files=[<...>]`. The orchestrator parses these in their respective states, PD-MIG-DEV / STATE RB-DEV.)
 
 ## Merger agent
 

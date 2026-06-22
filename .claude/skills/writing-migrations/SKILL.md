@@ -1,6 +1,6 @@
 ---
 name: writing-migrations
-description: Generate Supabase SQL migrations at deploy time from the session branch diff. Load this when your developer dispatch asks you to generate the deploy-time migration (it points you at the shared <base>/ops worktree). This is NOT a feature ticket — the workflow below replaces the normal ticket rules: here you DO write SQL under supabase/migrations/, and you do not edit TS/TSX/CSS.
+description: Generate Supabase SQL migrations at deploy time from the session branch diff. Load this when your developer dispatch asks you to generate the deploy-time migration (it points you at the shared <base>/simple worktree). This is NOT a feature ticket — the workflow below replaces the normal ticket rules: here you DO write SQL under supabase/migrations/, and you do not edit TS/TSX/CSS.
 ---
 
 # Writing Migrations (deploy-time round)
@@ -17,7 +17,7 @@ TS/TSX/CSS — the schema diff already comes from the session branch; you only
 translate it to SQL.
 Exit criterion: either a committed, idempotent migration whose delta is provably the net schema change, or an explicit `NO_MIGRATION_NEEDED` when there is no schema impact.
 
-Your worktree is `<WORKTREE_BASE>/ops` on `<SESSION_SHORT_ID>/ops`, forked from `session/<SESSION_SHORT_ID>` (`<WORKTREE_BASE>` =
+Your worktree is `<WORKTREE_BASE>/simple` on `<SESSION_SHORT_ID>/simple`, forked from `session/<SESSION_SHORT_ID>` (`<WORKTREE_BASE>` =
 `/tmp/<$CLAUDE_PROJECT_DIR with every "/" replaced by "_">/<SESSION_ID>`). Every Bash call must `cd <WORKTREE_PATH> && …` (stateless shells).
 
 ## When to Use
@@ -129,7 +129,7 @@ positions 1..N of the recreated view match the old view exactly, the new column 
 
 ### 6. Commit and hand off
 
-Commit the SQL on `<SESSION_SHORT_ID>/ops`:
+Commit the SQL on `<SESSION_SHORT_ID>/simple`:
 
 ```bash
 cd <WORKTREE_PATH> && git add supabase/migrations && git commit -m "migration(<SESSION_SHORT_ID>): <slug>"
@@ -137,7 +137,7 @@ cd <WORKTREE_PATH> && git add supabase/migrations && git commit -m "migration(<S
 
 Then stop and emit the output contract as your very last line — one of:
 
-- `DONE: branch=<SESSION_SHORT_ID>/ops migration=<filename> summary=<what the SQL does>`
+- `DONE: branch=<SESSION_SHORT_ID>/simple migration=<filename> summary=<what the SQL does>`
 - `NO_MIGRATION_NEEDED` — only after computing the diff (step 1) and confirming no schema impact.
 - `FAILED: <one-line reason>`
 
@@ -147,7 +147,7 @@ quality-reviewer (`MODE: migration-review`) and the merger.
 
 For Postgres correctness you may load `Skill({skill: "supabase-postgres-best-practices"})`.
 
-**Checkpoint:** the migration is committed on `<SESSION_SHORT_ID>/ops` and the SubagentStop validation chain is green.
+**Checkpoint:** the migration is committed on `<SESSION_SHORT_ID>/simple` and the SubagentStop validation chain is green.
 
 ## Rationalizations
 
@@ -176,4 +176,4 @@ For Postgres correctness you may load `Skill({skill: "supabase-postgres-best-pra
 - [ ] All statements are idempotent (`IF [NOT] EXISTS`).
 - [ ] New tables have RLS enabled with real policies (never `USING (true)`).
 - [ ] Affected views recreated via `CREATE OR REPLACE`, new column last, matching `03_views.sql`.
-- [ ] SQL committed on `<SESSION_SHORT_ID>/ops`; SubagentStop validation green — OR `NO_MIGRATION_NEEDED` reported with no file written.
+- [ ] SQL committed on `<SESSION_SHORT_ID>/simple`; SubagentStop validation green — OR `NO_MIGRATION_NEEDED` reported with no file written.

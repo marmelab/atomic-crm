@@ -38,8 +38,8 @@ const dispatch = ({
   taskId = "",
   name = "",
 } = {}) => {
-  const wp = taskId ? join(WB, taskId) : join(WB, "ops");
-  const branch = taskId ? `${SS}/${taskId}` : `${SS}/ops`;
+  const wp = taskId ? join(WB, taskId) : join(WB, "simple");
+  const branch = taskId ? `${SS}/${taskId}` : `${SS}/simple`;
   const prompt =
     `ROLE: ${subagentType}\n` +
     (taskId ? `TASK_ID: ${taskId}\n` : "") +
@@ -153,20 +153,20 @@ describe("setup-worktree session-branch topology (PreToolUse/Agent)", () => {
     expect(existsSync(join(WB, "_session", ".git"))).toBe(true);
   });
 
-  test("developer on the <short>/ops branch derives the ops worktree", () => {
+  test("developer on the <short>/simple branch derives the simple worktree", () => {
     spawnSync("node", [HOOK], {
       input: JSON.stringify({
         session_id: SESSION_ID,
         tool_input: {
           subagent_type: "developer",
           name: "developer",
-          prompt: `ROLE: developer\nWORKTREE_PATH: ${join(WB, "ops")}\nBRANCH_NAME: ${SS}/ops`,
+          prompt: `ROLE: developer\nWORKTREE_PATH: ${join(WB, "simple")}\nBRANCH_NAME: ${SS}/simple`,
         },
       }),
       env,
       encoding: "utf8",
     });
-    expect(existsSync(join(WB, "ops"))).toBe(true);
+    expect(existsSync(join(WB, "simple"))).toBe(true);
   });
 
   test("developer with WORKTREE_PATH but unresolvable task id is blocked (exit 2)", () => {

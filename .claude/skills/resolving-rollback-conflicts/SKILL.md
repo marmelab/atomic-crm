@@ -13,8 +13,8 @@ The conflict exists because a *later* session edited the same lines this rollbac
 
 ```
 ROLE: developer
-WORKTREE_PATH: <WORKTREE_BASE>/ops
-BRANCH_NAME: <SESSION_SHORT_ID>/ops
+WORKTREE_PATH: <WORKTREE_BASE>/simple
+BRANCH_NAME: <SESSION_SHORT_ID>/simple
 BASE_BRANCH: <the default branch, e.g. master — the promotion target>
 FAILED_COMMIT: <short sha> ("<subject>")
 COMMITS_TO_REVERT:
@@ -22,13 +22,13 @@ COMMITS_TO_REVERT:
   - ...
 ```
 
-**Working directory is `<WORKTREE_PATH>`** — the shared `<base>/ops` worktree the `setup-worktree` hook creates for you. Every Bash call must `cd <WORKTREE_PATH> && …` (shell state is stateless between calls). Do NOT touch `$CLAUDE_PROJECT_DIR/src/...` — that's the base branch.
+**Working directory is `<WORKTREE_PATH>`** — the shared `<base>/simple` worktree the `setup-worktree` hook creates for you. Every Bash call must `cd <WORKTREE_PATH> && …` (shell state is stateless between calls). Do NOT touch `$CLAUDE_PROJECT_DIR/src/...` — that's the base branch.
 
 ## Output contract
 
 Your very last line of output MUST be exactly one of:
 
-- `DONE: branch=<SESSION_SHORT_ID>/ops files=[<every file you touched, deduped>]`
+- `DONE: branch=<SESSION_SHORT_ID>/simple files=[<every file you touched, deduped>]`
 - `FAILED: <one-line, plain-English reason — say what was confusing>`
 
 The orchestrator's STATE RB-MERGE relies on those literal prefixes.
@@ -133,7 +133,7 @@ Then re-check `git diff --name-only HEAD^ HEAD`. If empty, apply the Outcome B l
 Emit the output contract:
 
 ```
-DONE: branch=<SESSION_SHORT_ID>/ops files=[<every file you touched, deduped>]
+DONE: branch=<SESSION_SHORT_ID>/simple files=[<every file you touched, deduped>]
 ```
 
 The orchestrator's STATE RB-MERGE will dispatch the single-shot merger to merge your branch back into the base.

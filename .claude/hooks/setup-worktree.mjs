@@ -8,8 +8,8 @@
 //
 // Identity: a real TASK id (TASK-001) from the prompt's TASK_ID line or the
 // dispatch name (developer-TASK-001) → <base>/<TASK_ID> (per-ticket wave); a
-// developer dispatch on the <short>/ops branch (rollback-conflict / migration,
-// no task) → <base>/ops. Paths are derived from topology (authoritative),
+// developer dispatch on the <short>/simple branch (rollback-conflict / migration,
+// no task) → <base>/simple. Paths are derived from topology (authoritative),
 // matching the value the orchestrator substitutes into WORKTREE_PATH.
 //
 // Also resets stale review verdicts for a (re)dispatched developer, so a changed
@@ -33,8 +33,8 @@ import { getBaseBranch, getWorktreePaths, git } from "./lib/git.mjs";
 import { REVIEW_ROLES, reviewFlag } from "./lib/reviews.mjs";
 import { getFirstTaskId } from "./lib/teams.mjs";
 import {
-  opsBranch,
-  opsWorktreePath,
+  simpleBranch,
+  simpleWorktreePath,
   sessionBaseBranch,
   sessionBranch,
   sessionWorktreePath,
@@ -59,11 +59,12 @@ if (d.subagentType !== "developer") {
   process.exit(0);
 }
 
-// A developer dispatch whose branch/worktree is <short>/ops runs single-shot on
-// the shared <base>/ops worktree (rollback-conflict replay, deploy-time
-// migration) instead of a per-ticket one. The /ops branch is the discriminator;
+// A developer dispatch whose branch/worktree is <short>/simple runs single-shot on
+// the shared <base>/simple worktree (rollback-conflict replay, deploy-time
+// migration) instead of a per-ticket one. The /simple branch is the discriminator;
 // every other developer dispatch is a per-ticket wave developer.
-const isOps = /\/ops$/.test(d.branchName) || /\/ops$/.test(d.worktreePath);
+const isSimple =
+  /\/simple$/.test(d.branchName) || /\/simple$/.test(d.worktreePath);
 
 const taskId =
   (/^TASK-\d+$/.test(d.taskId) && d.taskId) || getFirstTaskId(d.name);
@@ -73,9 +74,9 @@ let branchName;
 if (taskId) {
   worktreePath = taskWorktreePath(ctx, taskId);
   branchName = taskBranch(ctx, taskId);
-} else if (isOps) {
-  worktreePath = opsWorktreePath(ctx);
-  branchName = opsBranch(ctx);
+} else if (isSimple) {
+  worktreePath = simpleWorktreePath(ctx);
+  branchName = simpleBranch(ctx);
 } else if (d.role === "promotion-conflict-resolver") {
   // The sanctioned $REPO-on-main exception (see enforce-dev-dispatch /
   // worktree-scope): it works directly in the repo under the promote lock and
@@ -85,11 +86,11 @@ if (taskId) {
   );
 } else {
   // A developer that passed enforce-dev-dispatch (so it carries WORKTREE_PATH)
-  // but is neither a resolvable TASK-XXX nor an <short>/ops dispatch. We can't
+  // but is neither a resolvable TASK-XXX nor an <short>/simple dispatch. We can't
   // derive the canonical worktree path; accepting would let the developer cd into
   // a directory that was never created. Fail closed instead.
   ctx.fail(
-    "developer dispatch carries WORKTREE_PATH but no resolvable TASK-XXX id and no <short>/ops branch (expected a 'TASK_ID: TASK-XXX' line, a 'developer-TASK-XXX' name, or 'BRANCH_NAME: <SESSION_SHORT_ID>/ops'). Use the STATE B dispatch template.",
+    "developer dispatch carries WORKTREE_PATH but no resolvable TASK-XXX id and no <short>/simple branch (expected a 'TASK_ID: TASK-XXX' line, a 'developer-TASK-XXX' name, or 'BRANCH_NAME: <SESSION_SHORT_ID>/simple'). Use the STATE B dispatch template.",
     { log: "BLOCK unresolvable task id" },
   );
 }

@@ -7,7 +7,7 @@ import { git } from "./lib/git.mjs";
 import { getFirstTaskId } from "./lib/teams.mjs";
 import {
   sessionBranch,
-  opsWorktreePath,
+  simpleWorktreePath,
   taskWorktreePath,
 } from "./lib/topology.mjs";
 import { runValidationSteps } from "./lib/validation.mjs";
@@ -22,19 +22,19 @@ try {
 }
 
 // Scope validation to the stopping subagent's OWN worktree: a per-ticket
-// developer-TASK-XXX validates <base>/TASK-XXX, a single-shot ops developer (on
-// the <short>/ops branch — rollback / migration) validates <base>/ops. Avoids the
+// developer-TASK-XXX validates <base>/TASK-XXX, a single-shot simple developer (on
+// the <short>/simple branch — rollback / migration) validates <base>/simple. Avoids the
 // "shared brakes" failure where one ticket's broken state blocks an unrelated
 // developer and N stops each re-validate every session worktree. Falls back to
 // all session worktrees when the identity can't be resolved.
 const ids = [ctx.agentName, ctx.agentType].filter(Boolean);
 let taskId = ids.map(getFirstTaskId).find(Boolean) || "";
-// A single-shot ops developer runs on the shared <base>/ops worktree; its agent
+// A single-shot simple developer runs on the shared <base>/simple worktree; its agent
 // name carries no TASK suffix, so it's recovered from the dispatch prompt below.
-let isOps = false;
+let isSimple = false;
 
 // No suffixed agent name in this harness → recover the TASK_ID (or the single-shot
-// ops flow) from the dispatch prompt in the transcript, to scope validation to
+// simple flow) from the dispatch prompt in the transcript, to scope validation to
 // this dev's worktree (not wt=all).
 if (!taskId) {
   const tp = payload.agent_transcript_path || payload.transcript_path;
@@ -49,8 +49,8 @@ if (!taskId) {
           taskId = m[1];
           break;
         }
-        if (/BRANCH_NAME[:=\s]+\S+\/ops\b/.test(line)) {
-          isOps = true;
+        if (/BRANCH_NAME[:=\s]+\S+\/simple\b/.test(line)) {
+          isSimple = true;
         }
       }
     } catch {
@@ -61,14 +61,14 @@ if (!taskId) {
 
 const ownWorktree = taskId
   ? taskWorktreePath(ctx, taskId)
-  : isOps
-    ? opsWorktreePath(ctx)
+  : isSimple
+    ? simpleWorktreePath(ctx)
     : "";
 
 // Diff each worktree against session/<short>, not the repo's checked-out base
 // branch, so validation sees a per-ticket developer's OWN change set. (A
-// single-shot ops developer is the exception: resolving-rollback-conflicts does
-// `git reset --hard <BASE_BRANCH>`, re-forking <short>/ops onto the default
+// single-shot simple developer is the exception: resolving-rollback-conflicts does
+// `git reset --hard <BASE_BRANCH>`, re-forking <short>/simple onto the default
 // branch, so its diff against session/<short> can span unrelated files — accepted
 // noise, since the rollback's whole point is to diverge from the session.)
 // Empty base → validation.mjs falls back to the repo base branch (e.g. before the

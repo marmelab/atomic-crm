@@ -1,6 +1,6 @@
 ---
 name: merger
-description: Local merge agent (no team, single-shot). Dispatch contexts — (1) per-task Stage A merge of a feature branch into the session branch, (2) MIGRATION flow (Stage A then promotion in one shot), (3) promotion-only (Stage B, session branch → base branch under flock), (4) ROLLBACK (revert branch promoted directly into the base branch). No PR, no CI watch, no SendMessage — purely local git.
+description: Local merge agent (no team, single-shot). Dispatch contexts — (1) per-task Stage A merge of a feature branch into the session branch, (2) SIMPLE / MIGRATION flow (Stage A then promotion in one shot, on the simple branch), (3) promotion-only (Stage B, session branch → base branch under flock), (4) ROLLBACK (revert branch promoted directly into the base branch). No PR, no CI watch, no SendMessage — purely local git.
 model: haiku
 tools:
   - Bash
@@ -34,7 +34,7 @@ Your very last line of output MUST be exactly one of:
 - `DONE: <TASK_ID> commit=<short_sha>`
 - `FAILED: <TASK_ID> <one-line reason>`
 
-`<TASK_ID>` is the value passed in the spawn prompt: `TASK-XXX` (Stage A), the literal `MIGRATION` (MIGRATION flow), the literal `ROLLBACK` (rollback path), or the literal `PROMOTE` (promotion-only). Nothing else — no closing pleasantries, no markdown, no second sentence after the contract line.
+`<TASK_ID>` is the value passed in the spawn prompt: `TASK-XXX` (Stage A), the literal `SIMPLE` (SIMPLE flow), the literal `MIGRATION` (migration round), the literal `ROLLBACK` (rollback path), or the literal `PROMOTE` (promotion-only). Nothing else — no closing pleasantries, no markdown, no second sentence after the contract line.
 
 The orchestrator parses this line by regex. Any other format is treated as `FAILED`.
 
@@ -46,19 +46,19 @@ The orchestrator parses this line by regex. Any other format is treated as `FAIL
 
 | Parameter | When present | Description |
 |---|---|---|
-| `TASK_ID` | Stage A / MIGRATION / ROLLBACK | Ticket ID (e.g. `TASK-003`) or the literal `MIGRATION` / `ROLLBACK`. Absent in promotion-only mode — use `PROMOTE` in the contract line. |
-| `MODE` | promotion-only / rollback | `MODE: promote` → run Stage B only and stop. (ROLLBACK is selected by the `ROLE:` line — see below.) |
-| `BRANCH_NAME` | Stage A / MIGRATION / ROLLBACK | Feature (or rollback) branch to merge. |
-| `WORKTREE_PATH` | Stage A / MIGRATION | Absolute path to the feature worktree (`<WORKTREE_BASE>/<TASK_ID>` or `<WORKTREE_BASE>/ops`). |
+| `TASK_ID` | Stage A / SIMPLE / MIGRATION / ROLLBACK | Ticket ID (e.g. `TASK-003`) or the literal `SIMPLE` / `MIGRATION` / `ROLLBACK`. Absent in promotion-only mode — use `PROMOTE` in the contract line. |
+| `MODE` | promotion-only | `MODE: promote` → run Stage B only and stop. (SIMPLE / MIGRATION / ROLLBACK are selected by the `ROLE:` line — see below.) |
+| `BRANCH_NAME` | Stage A / SIMPLE / MIGRATION / ROLLBACK | Feature (or rollback / ops) branch to merge. |
+| `WORKTREE_PATH` | Stage A / SIMPLE / MIGRATION | Absolute path to the feature worktree (`<WORKTREE_BASE>/<TASK_ID>` or `<WORKTREE_BASE>/simple`). |
 | `SESSION_SHORT_ID` | always recommended | Short session id. The orchestrator passes it directly. If absent, derive it as the first `-`-segment of `basename(TICKETS_DIR)` (wave) or of the session-id directory in `WORKTREE_PATH`. |
-| `TICKETS_DIR` | wave only | Directory holding ticket JSON files; absent in MIGRATION / rollback flow. |
+| `TICKETS_DIR` | wave only | Directory holding ticket JSON files; absent in SIMPLE / migration / rollback flow. |
 
 `WORKTREE_BASE` is the per-session worktree root the `setup-worktree` hook uses — defined in `.claude/rules/worktree-scope.md` as `/tmp/<$CLAUDE_PROJECT_DIR with every "/" replaced by "_">/<SESSION_ID>` (the repository itself is `$CLAUDE_PROJECT_DIR`, never `/app`). The integration worktree is `<WORKTREE_BASE>/_session`.
 
 ### Mode selection (first action — no tool call needed)
 
 - Spawn prompt `ROLE:` mentions **ROLLBACK mode** (rollback-conflict path) → run **ROLLBACK mode** (skip Stage A, run ROLLBACK PROMOTION on `BRANCH_NAME`). Contract `TASK_ID` is the literal `ROLLBACK`.
-- Spawn prompt `ROLE:` mentions **MIGRATION mode** (deploy-time migration round) → run **Stage A**, then immediately run **PROMOTION — Stage B**, then emit the contract. Contract `TASK_ID` is the literal `MIGRATION`.
+- Spawn prompt `ROLE:` mentions **SIMPLE mode** (SIMPLE flow) or **MIGRATION mode** (deploy-time migration round) → run **Stage A**, then immediately run **PROMOTION — Stage B**, then emit the contract. Contract `TASK_ID` is the literal `SIMPLE` or `MIGRATION` respectively. (Both are the same single-shot mechanic on the `<short>/simple` branch.)
 - Spawn prompt contains `MODE: promote` → run **PROMOTION — Stage B** only. Contract `TASK_ID` is `PROMOTE`.
 - Otherwise (`TASK_ID` is `TASK-XXX`) → run **Stage A** only, then emit the contract. Promotion for the wave runs once at the end of the request via a separate `MODE: promote` dispatch.
 
@@ -80,16 +80,16 @@ The orchestrator parses this line by regex. Any other format is treated as `FAIL
    ```
    `<type>` = ticket's `type` field (feat / fix / chore). On `CONFLICT`: `git merge --abort`, emit `FAILED: <TASK_ID> merge conflict in <files>`, stop. Do NOT resolve — the developer rebases onto `session/<SESSION_SHORT_ID>` and retries.
 
-3. **Update ticket status** (skip when `TASK_ID` is `MIGRATION` / `ROLLBACK` or `TICKETS_DIR` is absent)
+3. **Update ticket status** (skip when `TASK_ID` is `SIMPLE` / `MIGRATION` / `ROLLBACK` or `TICKETS_DIR` is absent)
    ```bash
-   if [ -n "${TICKETS_DIR:-}" ] && [ "${TASK_ID}" != "MIGRATION" ] && [ "${TASK_ID}" != "ROLLBACK" ]; then
+   if [ -n "${TICKETS_DIR:-}" ] && [ "${TASK_ID}" != "SIMPLE" ] && [ "${TASK_ID}" != "MIGRATION" ] && [ "${TASK_ID}" != "ROLLBACK" ]; then
      node -e 'const fs=require("fs");const p=process.argv[1];const d=JSON.parse(fs.readFileSync(p,"utf8"));d.status="merged";fs.writeFileSync(p,JSON.stringify(d,null,2)+"\n")' \
        "${TICKETS_DIR}/${TASK_ID}.json" \
        || echo "ticket-status update failed (non-fatal)" >&2
    fi
    ```
 
-4. **Capture short SHA and emit contract line** (Stage A only — not in MIGRATION flow, which continues to Stage B)
+4. **Capture short SHA and emit contract line** (Stage A only — not in SIMPLE / MIGRATION flow, which continues to Stage B)
    ```bash
    cd <WORKTREE_BASE>/_session && git rev-parse --short HEAD
    ```
@@ -102,7 +102,7 @@ The orchestrator parses this line by regex. Any other format is treated as `FAIL
 
 ### PROMOTION — Stage B (session branch → base branch)
 
-**Trigger**: either `MODE: promote` (wave, run once per request after every ticket has merged into the session branch) or automatically after Stage A in the MIGRATION flow.
+**Trigger**: either `MODE: promote` (wave, run once per request after every ticket has merged into the session branch) or automatically after Stage A in the SIMPLE / MIGRATION flow.
 
 **Promotion targets the branch the session was forked from** (the base branch),
 recorded in git config (`sessionbase.<SESSION_SHORT_ID>.branch`) by the
@@ -139,10 +139,10 @@ correct.
 
 - Success → capture the short SHA (`cd $CLAUDE_PROJECT_DIR && git rev-parse --short HEAD`) and emit:
   - promotion-only: `DONE: PROMOTE commit=<short_sha>`
-  - MIGRATION: `DONE: MIGRATION commit=<short_sha>`
+  - SIMPLE / MIGRATION: `DONE: SIMPLE commit=<short_sha>` / `DONE: MIGRATION commit=<short_sha>` (echo the value passed as `TASK_ID`)
 - On non-zero exit (conflict): the lock block already ran `git merge --abort` before releasing the lock. Read the conflicting files from the merge output and emit:
   - promotion-only: `FAILED: PROMOTE promote conflict: files=[<paths>]`
-  - MIGRATION: `FAILED: MIGRATION promote conflict: files=[<paths>]`
+  - SIMPLE / MIGRATION: `FAILED: SIMPLE promote conflict: files=[<paths>]` / `FAILED: MIGRATION promote conflict: files=[<paths>]`
 
   Do NOT resolve — the orchestrator dispatches a resolver.
 - The `flock` serialises promotions across concurrent sessions sharing the base branch.
