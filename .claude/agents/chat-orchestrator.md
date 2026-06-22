@@ -494,9 +494,7 @@ never triggers a forward migration, so POST-DEV is always skipped:
 3. Build the reply in user's language, plain words — e.g. *"Done — take a look in the demo."*
 4. Branch on the detection output:
    - Empty → send the reply, enter STATE DONE.
-   - Non-empty (one or more schema-relevant file paths) → append the PD-ASK satisfaction
-     question to the reply (do NOT send a separate PD-ASK turn — the question is already
-     embedded here), end this turn, and enter STATE PD-RESPOND.
+   - Non-empty → append the satisfaction question to the reply AND, in the same turn, write the `satisfaction` cartouche per [ask-state-cartouche.md](../rules/ask-state-cartouche.md). End this turn, and enter STATE PD-RESPOND.
 
 From PD-RESPOND onward, the existing POST-DEV state machine (PD-MIG-DEV →
 PD-MIG-REVIEW → PD-MIG-MERGE → PD-DEPLOY → PD-LIVE-ASK → PD-LIVE-SWITCH → PD-DONE)
@@ -795,26 +793,7 @@ migration, deploy, Supabase:
 > *"Here are your changes — does everything look the way you want, or should I adjust something?"*
 ```
 
-In the same reply, also write a file via the Write tool — <session_dir> is the same path as TICKETS_DIR. 
-All four fields translated into the user's language:
-
-```
-Write("<session_dir>/ask-state.json",
-  '{"kind":"satisfaction","header":<header>,"body":<body_text>,"yes":<yes_label>,"no":<no_label>}')
-```
-
-- `header`: very short status label (≤ 30 chars), e.g. "Preview ready".
-- `body_text`: one sentence, plain words, asking whether they're happy (the demo
-  preview isn't saved to their data yet).
-- `yes_label`: short confirm label, e.g. "Yes, save the changes".
-- `no_label`: short decline label, e.g. "No, I want to adjust something".
-
-Good example:
-
-```
-Write("<session_dir>/ask-state.json",
-  '{"kind":"satisfaction","header":Preview ready,"body":Everything is visible in the demo but hasn't been saved to your database yet. Happy with the result?,"yes":Yes, save the changes,"no":No, I want to adjust something}')
-```
+In the same reply, also write the `satisfaction` cartouche per [ask-state-cartouche.md](../rules/ask-state-cartouche.md) (all field values translated into the user's language).
 
 **End this turn.** → STATE PD-RESPOND on the next user turn.
 
@@ -893,24 +872,7 @@ line translated into the user's language:
 
 > *"Your data is saved. Want to switch the app over to your real data now? You can keep using sample data otherwise."*
 
-In the same reply, also write a file via the Write tool — <session_dir> is the same path as TICKETS_DIR. 
-All four fields translated into the user's language:
-
-```
-Write("<session_dir>/ask-state.json",
-  '{"kind":"live-switch","header":<header>,"body":<body_text>,"yes":<yes_label>,"no":<no_label>}')
-```
-
-- `header`: very short status label (≤ 30 chars), e.g. "Switch live".
-- `body_text`: one sentence, plain words, asking whether they want to switch to real data.
-- `yes_label`: short confirm label, e.g. "Yes, switch to my real data".
-- `no_label`: short decline label, e.g. "No, keep sample data".
-
-Good example:
-
-```
-Write("<session_dir>/ask-state.json",
-  '{"kind":"live-switch","header":Switch live,"body":Your data is saved. Want to switch the app over to your real data now? You can keep using sample data otherwise.,"yes":Yes, switch to my real data,"no":No, keep sample data}')
+In the same reply, also write the `live-switch` cartouche per [ask-state-cartouche.md](../rules/ask-state-cartouche.md) (all field values translated into the user's language).
 
 **End this turn.**
 
