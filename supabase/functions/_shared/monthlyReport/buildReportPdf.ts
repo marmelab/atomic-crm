@@ -4,7 +4,7 @@ import {
   rgb,
   type PDFFont,
   type PDFPage,
-} from "pdf-lib";
+} from "npm:pdf-lib@1.17.1";
 import type { ReportAiContent, ReportViewModel } from "./types.ts";
 
 const PAGE_WIDTH = 595.28;
