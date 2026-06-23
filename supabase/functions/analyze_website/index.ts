@@ -39,7 +39,10 @@ import { domainOf, isPlaceMatch } from "./matching.ts";
  */
 
 const FETCH_TIMEOUT_MS = 15_000;
-const PAGESPEED_TIMEOUT_MS = 60_000;
+// Lighthouse-körningen för långsamma sajter ligger ofta 15–60s; 60s slog i
+// taket för danielssonsbygg (64,5s total körning → null). 90s ger marginal
+// utan att riskera edge-funktionens wall-clock-gräns (~150s).
+const PAGESPEED_TIMEOUT_MS = 90_000;
 const CRON_BATCH_SIZE = 3;
 
 // --- Helpers ---
@@ -96,16 +99,23 @@ async function fetchPageSpeed(url: string): Promise<PageSpeedSummary | null> {
     endpoint.searchParams.set("key", apiKey);
   }
 
-  const response = await fetchWithTimeout(
-    endpoint.toString(),
-    PAGESPEED_TIMEOUT_MS,
-  );
-  if (!response.ok) {
+  // Google svarar ibland med transient 429/500 — ett snabbt omförsök räddar
+  // de fallen. Timeout (AbortError) försöker vi INTE om: ett andra 90s-försök
+  // riskerar funktionens wall-clock-gräns och Lighthouse-kön är sällan kortare.
+  let response: Response | null = null;
+  for (let attempt = 1; attempt <= 2; attempt++) {
+    const r = await fetchWithTimeout(endpoint.toString(), PAGESPEED_TIMEOUT_MS);
+    if (r.ok) {
+      response = r;
+      break;
+    }
+    const body = (await r.text()).slice(0, 200);
     console.error(
-      `analyze_website: PageSpeed ${response.status} for ${url}: ${(await response.text()).slice(0, 200)}`,
+      `analyze_website: PageSpeed ${r.status} (försök ${attempt}/2) for ${url}: ${body}`,
     );
-    return null;
+    if (attempt === 2 || (r.status !== 429 && r.status < 500)) return null;
   }
+  if (!response) return null;
 
   const result = await response.json();
   const lighthouse = result?.lighthouseResult;
@@ -494,12 +504,20 @@ async function fetchSearchConsole(
     FETCH_TIMEOUT_MS,
     { headers: googleApiHeaders(token) },
   );
-  if (!sitesResponse.ok) return null;
+  if (!sitesResponse.ok) {
+    // Tidigare tyst null → omöjligt att skilja "saknar åtkomst" från "anropet
+    // failade". Logga status + body så roten syns i edge-loggen.
+    console.error(
+      `analyze_website: GSC sites.list ${sitesResponse.status}: ${(await sitesResponse.text()).slice(0, 300)}`,
+    );
+    return null;
+  }
 
   const sites = (await sitesResponse.json()) as {
     siteEntry?: Array<{ siteUrl: string; permissionLevel: string }>;
   };
-  const property = sites.siteEntry?.find((entry) => {
+  const entries = sites.siteEntry ?? [];
+  const property = entries.find((entry) => {
     if (entry.permissionLevel === "siteUnverifiedUser") return false;
     const siteUrl = entry.siteUrl;
     if (siteUrl.startsWith("sc-domain:")) {
@@ -508,7 +526,18 @@ async function fetchSearchConsole(
     }
     return hostnameOf(siteUrl) === hostname;
   });
-  if (!property) return null; // Ingen åtkomst till denna kunds property — inte ett fel.
+  if (!property) {
+    // Ingen matchande property — logga vad kontot FAKTISKT ser så vi kan se om
+    // det är fel konto (propertyn saknas) eller ett matchningsfel (finns men
+    // matchar inte hostname).
+    console.warn(
+      `analyze_website: GSC no property for hostname "${hostname}" — ${entries.length} sites visible: ${entries
+        .map((e) => `${e.siteUrl}(${e.permissionLevel})`)
+        .join(", ")
+        .slice(0, 500)}`,
+    );
+    return null; // Ingen åtkomst till denna kunds property — inte ett fel.
+  }
 
   const endDate = new Date();
   const startDate = new Date(endDate.getTime() - 28 * 24 * 60 * 60 * 1000);
