@@ -78,6 +78,23 @@ const ScoreBadge = ({
   );
 };
 
+const GscStat = ({
+  label,
+  value,
+  hint,
+}: {
+  label: string;
+  value: string;
+  hint?: string;
+}) => (
+  <div className="flex flex-col" title={hint}>
+    <span className="text-base font-semibold leading-tight text-foreground">
+      {value}
+    </span>
+    <span className="text-[11px] text-muted-foreground">{label}</span>
+  </div>
+);
+
 export const WebsiteStatsSection = ({ company }: { company: Company }) => {
   const dataProvider = useDataProvider<CrmDataProvider>();
   const notify = useNotify();
@@ -243,23 +260,68 @@ export const WebsiteStatsSection = ({ company }: { company: Company }) => {
                   praktiken osynlig för sökande kunder.
                 </p>
               ) : (
-                <div className="flex flex-col gap-0.5">
-                  <p>
-                    {gsc.clicks.toLocaleString("sv-SE")} klick ·{" "}
-                    {gsc.impressions.toLocaleString("sv-SE")} visningar (28 dgr)
-                  </p>
-                  <p className="text-muted-foreground">
-                    Snittposition{" "}
-                    {gsc.position.toLocaleString("sv-SE", {
-                      maximumFractionDigits: 1,
-                    })}
-                  </p>
+                <div className="flex flex-col gap-3">
+                  <div className="grid grid-cols-2 gap-x-4 gap-y-2">
+                    <GscStat
+                      label="Klick"
+                      value={gsc.clicks.toLocaleString("sv-SE")}
+                      hint="Antal personer som klickade in på sajten från Google"
+                    />
+                    <GscStat
+                      label="Visningar"
+                      value={gsc.impressions.toLocaleString("sv-SE")}
+                      hint="Antal gånger sajten visades i Googles sökresultat"
+                    />
+                    <GscStat
+                      label="CTR"
+                      value={`${
+                        gsc.impressions > 0
+                          ? (
+                              (gsc.clicks / gsc.impressions) *
+                              100
+                            ).toLocaleString("sv-SE", {
+                              maximumFractionDigits: 1,
+                            })
+                          : "0"
+                      } %`}
+                      hint="Klickfrekvens: andel visningar som blev klick"
+                    />
+                    <GscStat
+                      label="Snittposition"
+                      value={gsc.position.toLocaleString("sv-SE", {
+                        maximumFractionDigits: 1,
+                      })}
+                      hint="Genomsnittlig placering i sökresultatet — lägre är bättre (1 = överst)"
+                    />
+                  </div>
                   {gsc.top_queries.length > 0 ? (
-                    <p className="text-xs text-muted-foreground truncate">
-                      Toppsökningar:{" "}
-                      {gsc.top_queries.map((q) => q.query).join(", ")}
-                    </p>
+                    <div>
+                      <p className="mb-1 text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
+                        Toppsökningar
+                      </p>
+                      <ul className="flex flex-col gap-1">
+                        {gsc.top_queries.map((q) => (
+                          <li
+                            key={q.query}
+                            className="flex items-baseline justify-between gap-2 text-xs"
+                          >
+                            <span className="truncate" title={q.query}>
+                              {q.query}
+                            </span>
+                            <span className="whitespace-nowrap text-muted-foreground">
+                              {q.clicks.toLocaleString("sv-SE")} klick · pos{" "}
+                              {q.position.toLocaleString("sv-SE", {
+                                maximumFractionDigits: 1,
+                              })}
+                            </span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
                   ) : null}
+                  <p className="text-[11px] text-muted-foreground">
+                    Senaste 28 dagarna
+                  </p>
                 </div>
               )
             ) : (
