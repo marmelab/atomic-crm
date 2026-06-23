@@ -5,7 +5,7 @@ description: How to use the Atomic CRM agent harness to implement CRM changes wi
 
 Atomic CRM ships a local **agent harness**: a coordinated team of agents that turns a request in natural language into committed, reviewed, and merged code. Instead of implementing a change yourself, you describe what you want and the harness plans, implements, reviews, and merges it through a deterministic pipeline.
 
-This document explains how to launch a session, follow its progress, and clean up afterwards.
+This document explains how to launch a session, follow its progress, and present CRM Builder.
 
 ## Prerequisites
 
@@ -30,12 +30,12 @@ You can also pre-fill the first message:
 make harness REQUEST="Add a reason for a lost deal"
 ```
 
-Or you can start a plan mode and at the end, **chat-orchestrator** will implement it with the harness.
+Or, you can start a plan mode and at the end, **chat-orchestrator** will implement it with the harness.
 
-The orchestrator routes requests one of two ways:
+The orchestrator will consider your request in two ways:
 
-- **SIMPLE** — a single cosmetic edit, a single-field change on an existing entity, or a filter reusing existing components. One developer agent, no planning overhead.
-- **COMPLEX** — everything else. The planner decomposes it into tickets; developers, reviewers, and the merger run as a coordinated wave.
+- **SIMPLE**: a single cosmetic edit, a single-field change on an existing entity, or a filter reusing existing components. One developer agent, no planning overhead.
+- **COMPLEX**: everything else. The planner decomposes it into tickets; developers, reviewers, and the merger run as a coordinated wave.
 
 ### Avoid using the harness
 
