@@ -8,171 +8,54 @@ import {
   Users,
 } from "lucide-react";
 import { CanAccess, useTranslate, useUserMenu } from "ra-core";
-import { Link, matchPath, useLocation } from "react-router";
+import { Link } from "react-router";
 import { RefreshButton } from "@/components/admin/refresh-button";
 import { ThemeModeToggle } from "@/components/admin/theme-mode-toggle";
 import { UserMenu } from "@/components/admin/user-menu";
 import { DropdownMenuItem } from "@/components/ui/dropdown-menu";
+import { SidebarTrigger } from "@/components/ui/sidebar";
 
-import { useConfigurationContext } from "../root/ConfigurationContext";
 import { ImportPage } from "../misc/ImportPage";
 
+/**
+ * Slim top bar for the desktop sidebar layout.
+ *
+ * Navigation lives in the left sidebar (see AppSidebar). This bar keeps the
+ * sidebar toggle, theme switch, refresh and the user menu — no functionality
+ * was removed from the previous header, only the horizontal tab nav and logo
+ * (the logo moved into the sidebar header).
+ */
 const Header = () => {
-  const { darkModeLogo, lightModeLogo, title } = useConfigurationContext();
-  const location = useLocation();
-  const translate = useTranslate();
-
-  let currentPath: string | boolean = "/";
-  if (matchPath("/", location.pathname)) {
-    currentPath = "/";
-  } else if (matchPath("/call-queue", location.pathname)) {
-    currentPath = "/call-queue";
-  } else if (matchPath("/calendar/*", location.pathname)) {
-    currentPath = "/calendar";
-  } else if (matchPath("/contacts/*", location.pathname)) {
-    currentPath = "/contacts";
-  } else if (matchPath("/companies/*", location.pathname)) {
-    currentPath = "/companies";
-  } else if (matchPath("/deals/*", location.pathname)) {
-    currentPath = "/deals";
-  } else if (matchPath("/quotes/*", location.pathname)) {
-    currentPath = "/quotes";
-  } else if (
-    matchPath("/lead_import_sources", location.pathname) ||
-    matchPath("/lead_import_runs", location.pathname)
-  ) {
-    currentPath = "/lead-import";
-  } else {
-    currentPath = false;
-  }
-
   return (
-    <>
-      <nav className="grow">
-        <header className="bg-secondary">
-          <div className="px-4">
-            <div className="flex justify-between items-center flex-1">
-              <Link
-                to="/"
-                className="flex items-center gap-2 text-secondary-foreground no-underline"
-              >
-                <img
-                  className="[.light_&]:hidden h-6"
-                  src={darkModeLogo}
-                  alt={title}
-                />
-                <img
-                  className="[.dark_&]:hidden h-6"
-                  src={lightModeLogo}
-                  alt={title}
-                />
-                <h1 className="text-xl font-semibold">{title}</h1>
-              </Link>
-              <div>
-                <nav className="flex">
-                  <NavigationTab
-                    label={translate("ra.page.dashboard")}
-                    to="/"
-                    isActive={currentPath === "/"}
-                  />
-                  <NavigationTab
-                    label="Ringlista"
-                    to="/call-queue"
-                    isActive={currentPath === "/call-queue"}
-                  />
-                  <NavigationTab
-                    label="Leadimport"
-                    to="/lead_import_sources"
-                    isActive={currentPath === "/lead-import"}
-                  />
-                  <NavigationTab
-                    label={translate("resources.contacts.name", {
-                      smart_count: 2,
-                    })}
-                    to="/contacts"
-                    isActive={currentPath === "/contacts"}
-                  />
-                  <NavigationTab
-                    label={translate("resources.calendar_events.name", {
-                      smart_count: 2,
-                    })}
-                    to="/calendar"
-                    isActive={currentPath === "/calendar"}
-                  />
-                  <NavigationTab
-                    label={translate("resources.companies.name", {
-                      smart_count: 2,
-                    })}
-                    to="/companies"
-                    isActive={currentPath === "/companies"}
-                  />
-                  <NavigationTab
-                    label={translate("resources.deals.name", {
-                      smart_count: 2,
-                    })}
-                    to="/deals"
-                    isActive={currentPath === "/deals"}
-                  />
-                  <NavigationTab
-                    label={translate("resources.quotes.name", {
-                      smart_count: 2,
-                    })}
-                    to="/quotes"
-                    isActive={currentPath === "/quotes"}
-                  />
-                </nav>
-              </div>
-              <div className="flex items-center">
-                <ThemeModeToggle />
-                <RefreshButton />
-                <UserMenu>
-                  <ProfileMenu />
-                  <CanAccess resource="sales" action="list">
-                    <UsersMenu />
-                  </CanAccess>
-                  <CanAccess resource="configuration" action="edit">
-                    <SettingsMenu />
-                  </CanAccess>
-                  <EmailTemplatesMenu />
-                  <SequencesMenu />
-                  <LeadImportsMenu />
-                  <ImportFromJsonMenuItem />
-                </UserMenu>
-              </div>
-            </div>
-          </div>
-        </header>
-      </nav>
-    </>
+    <header className="sticky top-0 z-20 flex h-14 shrink-0 items-center gap-2 border-b bg-background/80 px-4 backdrop-blur-sm">
+      <SidebarTrigger className="-ml-1" />
+      <div className="flex-1" id="breadcrumb" />
+      <div className="flex items-center gap-0.5">
+        <ThemeModeToggle />
+        <RefreshButton />
+        <UserMenu>
+          <ProfileMenu />
+          <CanAccess resource="sales" action="list">
+            <UsersMenu />
+          </CanAccess>
+          <CanAccess resource="configuration" action="edit">
+            <SettingsMenu />
+          </CanAccess>
+          <EmailTemplatesMenu />
+          <SequencesMenu />
+          <LeadImportsMenu />
+          <ImportFromJsonMenuItem />
+        </UserMenu>
+      </div>
+    </header>
   );
 };
-
-const NavigationTab = ({
-  label,
-  to,
-  isActive,
-}: {
-  label: string;
-  to: string;
-  isActive: boolean;
-}) => (
-  <Link
-    to={to}
-    className={`px-6 py-3 text-sm font-medium transition-colors border-b-2 ${
-      isActive
-        ? "text-secondary-foreground border-secondary-foreground"
-        : "text-secondary-foreground/70 border-transparent hover:text-secondary-foreground/80"
-    }`}
-  >
-    {label}
-  </Link>
-);
 
 const UsersMenu = () => {
   const translate = useTranslate();
   const userMenuContext = useUserMenu();
   if (!userMenuContext) {
-    throw new Error("<UsersMenu> must be used inside <UserMenu?");
+    throw new Error("<UsersMenu> must be used inside <UserMenu>");
   }
   return (
     <DropdownMenuItem asChild onClick={userMenuContext.onClose}>
@@ -188,7 +71,7 @@ const ProfileMenu = () => {
   const translate = useTranslate();
   const userMenuContext = useUserMenu();
   if (!userMenuContext) {
-    throw new Error("<ProfileMenu> must be used inside <UserMenu?");
+    throw new Error("<ProfileMenu> must be used inside <UserMenu>");
   }
   return (
     <DropdownMenuItem asChild onClick={userMenuContext.onClose}>
@@ -276,4 +159,5 @@ const ImportFromJsonMenuItem = () => {
     </DropdownMenuItem>
   );
 };
+
 export default Header;
