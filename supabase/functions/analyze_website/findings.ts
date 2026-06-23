@@ -100,6 +100,10 @@ export type SearchConsoleSummary = {
     ctr: number;
     position: number;
   }>;
+  /** Varumärkessökningar (namn/domän) — baserat på toppsökningarna. */
+  branded?: { clicks: number; impressions: number; queries: number };
+  /** Tjänste-/upptäcktssökningar — non-branded-tillväxt = äkta SEO-vinst. */
+  non_branded?: { clicks: number; impressions: number; queries: number };
   opportunities?: Array<{
     kind: "low_ctr" | "position_4_10" | "position_11_20";
     query: string;

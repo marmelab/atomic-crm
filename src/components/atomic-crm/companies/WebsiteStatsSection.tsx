@@ -719,6 +719,60 @@ export function WebsiteStatsSection({ company }: { company: Company }) {
               </Card>
             </div>
 
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-base">
+                  <Search className="size-4" />
+                  Varumärke vs upptäckt
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {gsc?.branded || gsc?.non_branded ? (
+                  <div className="space-y-3">
+                    <div className="grid gap-3 sm:grid-cols-2">
+                      <div className="rounded-md border p-3">
+                        <p className="text-xs text-muted-foreground">
+                          Varumärkessökningar
+                        </p>
+                        <p className="text-2xl font-semibold tabular-nums">
+                          {(gsc.branded?.clicks ?? 0).toLocaleString("sv-SE")}{" "}
+                          klick
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          {gsc.branded?.queries ?? 0} sökord · de som redan
+                          känner er
+                        </p>
+                      </div>
+                      <div className="rounded-md border p-3">
+                        <p className="text-xs text-muted-foreground">
+                          Upptäcktssökningar (non-branded)
+                        </p>
+                        <p className="text-2xl font-semibold tabular-nums">
+                          {(gsc.non_branded?.clicks ?? 0).toLocaleString(
+                            "sv-SE",
+                          )}{" "}
+                          klick
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          {gsc.non_branded?.queries ?? 0} sökord · nya kunder
+                          som hittar er
+                        </p>
+                      </div>
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      Tillväxt i upptäcktssökningar är den äkta SEO-vinsten —
+                      nya kunder som hittar er via tjänsten, inte bara fler som
+                      googlar namnet. Baserat på toppsökningarna.
+                    </p>
+                  </div>
+                ) : (
+                  <p className="text-sm text-muted-foreground">
+                    Ingen sökordsdata för perioden.
+                  </p>
+                )}
+              </CardContent>
+            </Card>
+
             <div className="grid gap-4 lg:grid-cols-2">
               <Card>
                 <CardHeader>

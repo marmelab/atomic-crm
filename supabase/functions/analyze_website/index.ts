@@ -26,6 +26,7 @@ import {
   type VisibilityWindowKind,
 } from "../_shared/visibilityPeriods.ts";
 import { classifySearchOpportunities } from "./searchOpportunities.ts";
+import { brandTokens, classifyBrandedQueries } from "./brandedQueries.ts";
 
 /**
  * Analyze Website — hemsidestatistik + brist-analys per företag (Fas 2 av
@@ -607,6 +608,7 @@ async function getGoogleAccessToken(scope: string): Promise<string | null> {
 async function fetchSearchConsole(
   url: string,
   period: VisibilityPeriod,
+  brand: string[],
 ): Promise<SearchConsoleSummary | null> {
   const token = await getGoogleAccessToken(
     "https://www.googleapis.com/auth/webmasters.readonly",
@@ -721,6 +723,10 @@ async function fetchSearchConsole(
     position: round1(row.position),
   }));
   const opportunities = classifySearchOpportunities(normalizedQueries);
+  // Branded vs non-branded baseras på toppsökningarna (upp till 250 rader) —
+  // GSC döljer long-tail/anonymiserade sökningar, så hinkarna summerar inte
+  // nödvändigtvis till totalen. Det är ett riktmärke, inte en exakt fördelning.
+  const brandedSplit = classifyBrandedQueries(normalizedQueries, brand);
 
   // Device-uppdelning: GSC-nycklar är MOBILE/DESKTOP/TABLET.
   const deviceBreakdown: SearchConsoleSummary["device_breakdown"] = {};
@@ -765,6 +771,8 @@ async function fetchSearchConsole(
     })),
     device_breakdown: deviceBreakdown,
     top_countries: topCountries,
+    branded: brandedSplit.branded,
+    non_branded: brandedSplit.non_branded,
     opportunities,
   };
 }
@@ -826,13 +834,15 @@ async function analyzeCompany(
     );
   }
   const url = normalizeUrl(rawUrl);
+  // Varumärkes-tokens för branded/non-branded-klassning av sökord.
+  const brand = brandTokens(company.name, company.website);
 
   const [pageSpeedResult, seoResult, businessResult, searchResult] =
     await Promise.all([
       inspectSource("pagespeed", fetchPageSpeed(url)),
       inspectSource("seo_crawl", crawlSeoChecks(url)),
       inspectSource("business_profile", fetchBusinessProfile(company)),
-      inspectSource("search_console", fetchSearchConsole(url, period)),
+      inspectSource("search_console", fetchSearchConsole(url, period, brand)),
     ]);
   const pagespeed = pageSpeedResult.value;
   const seoChecks = seoResult.value;
