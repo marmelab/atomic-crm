@@ -679,6 +679,7 @@ export type CustomerDetails = {
   launch_date?: string | null;
   agreements: CustomerAgreement[];
   credential_refs: CustomerCredentialRef[];
+  competitor_urls?: string[];
   notes?: string | null;
   created_at: string;
   updated_at: string;
@@ -807,6 +808,16 @@ export type WebsiteSnapshot = {
       position: number;
     }>;
   } | null;
+  competitors?: Array<{
+    url: string;
+    performance_score: number | null;
+    seo_score: number | null;
+    lcp_ms: number | null;
+    cls: number | null;
+    has_title: boolean;
+    has_schema: boolean;
+    has_sitemap: boolean;
+  }> | null;
   findings: WebsiteFinding[];
   created_at: string;
 } & Pick<RaRecord, "id">;

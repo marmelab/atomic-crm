@@ -12,6 +12,7 @@ import {
 } from "../_shared/http.ts";
 import type {
   BusinessProfile,
+  CompetitorSnapshot,
   CoreWebVitalsFieldData,
   PageSpeedMetrics,
   PageSpeedSummary,
@@ -525,6 +526,35 @@ async function crawlSeoChecks(url: string): Promise<SeoChecks | null> {
   };
 }
 
+// --- Konkurrentbenchmark (Fas 1E) ---
+
+/**
+ * Lättviktig konkurrentanalys: mobil-PageSpeed + on-page-crawl. Konkurrenter
+ * ger inte GSC/GBP-åtkomst, så vi jämför bara det som går att mäta externt.
+ * Mobil-only håller nere tid och PSI-kvot. Allt är icke-fatalt — en
+ * konkurrent som felar utesluts bara ur listan.
+ */
+async function analyzeCompetitor(
+  rawUrl: string,
+): Promise<CompetitorSnapshot | null> {
+  const url = normalizeUrl(rawUrl);
+  const [run, seo] = await Promise.all([
+    fetchPageSpeedRun(url, "mobile").catch(() => null),
+    crawlSeoChecks(url).catch(() => null),
+  ]);
+  if (!run && !seo) return null;
+  return {
+    url,
+    performance_score: run?.metrics.performance_score ?? null,
+    seo_score: run?.metrics.seo_score ?? null,
+    lcp_ms: run?.metrics.lcp_ms ?? null,
+    cls: run?.metrics.cls ?? null,
+    has_title: Boolean(seo?.title),
+    has_schema: Boolean(seo?.schema_org),
+    has_sitemap: Boolean(seo?.sitemap),
+  };
+}
+
 // --- d) Google Search Console (OAuth-användartoken eller service-konto) ---
 
 type ServiceAccountConfig = {
@@ -868,7 +898,7 @@ async function analyzeCompany(
 
   const { data: details } = await supabaseAdmin
     .from("customer_details")
-    .select("delivered_website_url")
+    .select("delivered_website_url, competitor_urls")
     .eq("company_id", companyId)
     .maybeSingle();
 
@@ -881,14 +911,31 @@ async function analyzeCompany(
   const url = normalizeUrl(rawUrl);
   // Varumärkes-tokens för branded/non-branded-klassning av sökord.
   const brand = brandTokens(company.name, company.website);
+  // Konkurrenter (max 3 för att hålla PSI-kvot och tidsbudget i schack).
+  const competitorUrls = Array.isArray(details?.competitor_urls)
+    ? (details.competitor_urls as unknown[])
+        .filter(
+          (entry): entry is string =>
+            typeof entry === "string" && entry.trim().length > 0,
+        )
+        .slice(0, 3)
+    : [];
 
-  const [pageSpeedResult, seoResult, businessResult, searchResult] =
-    await Promise.all([
-      inspectSource("pagespeed", fetchPageSpeed(url)),
-      inspectSource("seo_crawl", crawlSeoChecks(url)),
-      inspectSource("business_profile", fetchBusinessProfile(company)),
-      inspectSource("search_console", fetchSearchConsole(url, period, brand)),
-    ]);
+  const [
+    pageSpeedResult,
+    seoResult,
+    businessResult,
+    searchResult,
+    competitors,
+  ] = await Promise.all([
+    inspectSource("pagespeed", fetchPageSpeed(url)),
+    inspectSource("seo_crawl", crawlSeoChecks(url)),
+    inspectSource("business_profile", fetchBusinessProfile(company)),
+    inspectSource("search_console", fetchSearchConsole(url, period, brand)),
+    Promise.all(competitorUrls.map((u) => analyzeCompetitor(u))).then((rows) =>
+      rows.filter((row): row is CompetitorSnapshot => row != null),
+    ),
+  ]);
   const pagespeed = pageSpeedResult.value;
   const seoChecks = seoResult.value;
   const businessProfile = businessResult.value;
@@ -946,6 +993,7 @@ async function analyzeCompany(
     seo_checks: seoChecks,
     business_profile: businessProfile,
     search_console: searchConsole,
+    competitors: competitors.length > 0 ? competitors : null,
     findings,
   };
 

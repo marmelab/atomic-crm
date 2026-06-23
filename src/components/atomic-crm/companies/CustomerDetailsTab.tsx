@@ -208,6 +208,7 @@ type FormState = {
   launch_date: string;
   agreements: CustomerAgreement[];
   credential_refs: CustomerCredentialRef[];
+  competitor_urls: string[];
   notes: string;
 };
 
@@ -230,6 +231,7 @@ const CustomerDetailsForm = ({
     launch_date: details?.launch_date ?? "",
     agreements: details?.agreements ?? [],
     credential_refs: details?.credential_refs ?? [],
+    competitor_urls: details?.competitor_urls ?? [],
     notes: details?.notes ?? "",
   });
 
@@ -267,6 +269,9 @@ const CustomerDetailsForm = ({
       credential_refs: form.credential_refs.filter(
         (r) => r.label.trim() || r.location.trim(),
       ),
+      competitor_urls: form.competitor_urls
+        .map((u) => u.trim())
+        .filter(Boolean),
       notes: form.notes.trim() || null,
     };
     try {
@@ -432,6 +437,57 @@ const CustomerDetailsForm = ({
             <Plus className="w-4 h-4 mr-1" />
             Lägg till referens
           </Button>
+        </div>
+
+        <div className="flex flex-col gap-2">
+          <Label>Konkurrenter att jämföra med</Label>
+          <p className="text-xs text-muted-foreground">
+            Hemsideanalysen jämför laddtid och SEO-poäng mot dessa (max 3, mätt
+            mobilt).
+          </p>
+          {form.competitor_urls.map((competitorUrl, index) => (
+            <div key={index} className="flex flex-wrap items-center gap-2">
+              <Input
+                className="flex-1 min-w-48"
+                placeholder="https://konkurrent.se"
+                value={competitorUrl}
+                onChange={(e) =>
+                  setField(
+                    "competitor_urls",
+                    form.competitor_urls.map((u, i) =>
+                      i === index ? e.target.value : u,
+                    ),
+                  )
+                }
+              />
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() =>
+                  setField(
+                    "competitor_urls",
+                    form.competitor_urls.filter((_, i) => i !== index),
+                  )
+                }
+              >
+                <Trash2 className="w-4 h-4" />
+                <span className="sr-only">Ta bort konkurrent</span>
+              </Button>
+            </div>
+          ))}
+          {form.competitor_urls.length < 3 ? (
+            <Button
+              variant="outline"
+              size="sm"
+              className="self-start"
+              onClick={() =>
+                setField("competitor_urls", [...form.competitor_urls, ""])
+              }
+            >
+              <Plus className="w-4 h-4 mr-1" />
+              Lägg till konkurrent
+            </Button>
+          ) : null}
         </div>
 
         <div className="flex flex-col gap-1.5">

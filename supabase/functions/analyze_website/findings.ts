@@ -44,6 +44,18 @@ export type CoreWebVitalsFieldData = {
   cls_rating: CoreWebVitalsRating | null;
 };
 
+/** Lättviktig benchmark mot en konkurrent (mobil-PSI + on-page-crawl). */
+export type CompetitorSnapshot = {
+  url: string;
+  performance_score: number | null;
+  seo_score: number | null;
+  lcp_ms: number | null;
+  cls: number | null;
+  has_title: boolean;
+  has_schema: boolean;
+  has_sitemap: boolean;
+};
+
 export type SeoChecks = {
   title: string | null;
   meta_description: string | null;

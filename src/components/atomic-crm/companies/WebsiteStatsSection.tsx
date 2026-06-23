@@ -93,6 +93,18 @@ function countryName(code: string): string {
   return COUNTRY_NAMES[code.toLowerCase()] ?? code.toUpperCase();
 }
 
+function hostnameLabel(url: string): string {
+  try {
+    return new URL(url).hostname.replace(/^www\./, "");
+  } catch {
+    return url;
+  }
+}
+
+function seconds(ms: number | null): string {
+  return ms == null ? "—" : `${(ms / 1000).toFixed(1)} s`;
+}
+
 type DeviceBreakdown = NonNullable<
   NonNullable<WebsiteSnapshot["search_console"]>["device_breakdown"]
 >;
@@ -1130,6 +1142,48 @@ export function WebsiteStatsSection({ company }: { company: Company }) {
                 </CardContent>
               </Card>
             </div>
+
+            {selected.competitors && selected.competitors.length > 0 ? (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2 text-base">
+                    <BarChart3 className="size-4" />
+                    Konkurrentjämförelse
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-1">
+                    <div className="flex items-center justify-between border-b py-2 text-sm font-medium">
+                      <span>Er sajt</span>
+                      <span className="text-muted-foreground">
+                        Prestanda {selected.performance_score ?? "—"} · SEO{" "}
+                        {selected.seo_score ?? "—"} · LCP{" "}
+                        {seconds(selected.pagespeed?.lcp_ms ?? null)}
+                      </span>
+                    </div>
+                    {selected.competitors.map((c) => (
+                      <div
+                        key={c.url}
+                        className="flex items-center justify-between gap-2 border-b py-2 text-sm last:border-0"
+                      >
+                        <span className="truncate" title={c.url}>
+                          {hostnameLabel(c.url)}
+                        </span>
+                        <span className="whitespace-nowrap text-muted-foreground">
+                          Prestanda {c.performance_score ?? "—"} · SEO{" "}
+                          {c.seo_score ?? "—"} · LCP {seconds(c.lcp_ms)}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                  <p className="mt-3 text-xs text-muted-foreground">
+                    Snabbare laddtid och högre poäng än konkurrenterna är ett
+                    konkret säljargument. Mätt mobilt. Lägg till konkurrenter på
+                    Kund-fliken.
+                  </p>
+                </CardContent>
+              </Card>
+            ) : null}
           </TabsContent>
 
           <TabsContent value="reports" className="mt-5 space-y-4">
