@@ -5,7 +5,16 @@ description: Remove one or more of the initial CRM resources (contacts, companie
 
 # delete-initial-resource
 
-Removes one or more of the five initial Atomic CRM resources (`contacts`, `companies`, `deals`, `tags`, `tasks`) and every reference to them. **Irreversible — confirm the target(s) with the user first; rely on git to recover.**
+## Overview
+
+Removes one or more of the five initial Atomic CRM resources (`contacts`, `companies`, `deals`, `tags`, `tasks`) and every reference to them. **Irreversible confirm the target(s) with the user first; rely on git to recover.** Exit criterion: `make typecheck && make lint` is clean and no live reference to the deleted resource(s) survives in `src/` or `supabase/`.
+
+## When to Use
+
+- The user asks to delete, remove, or strip out one or several built-in CRM resources.
+- Not for *custom* entities added during setup only the five built-ins above.
+
+For the backend migration mechanics, see `Skill({skill: "backend-dev"})` and `Skill({skill: "writing-migrations"})`.
 
 ## Steps
 
@@ -53,13 +62,39 @@ See the `backend-dev` skill for the migration workflow. In `supabase/schemas/`:
 - **Orphan check:** deleting triggers can orphan helpers — but verify shared callers first (`get_domain_favicon` survives a `companies` delete because contact avatars also call it).
 - **Edge functions** are separate and easy to miss: `merge_contacts/`, `_shared/db.ts` (Kysely types), `postmark/` (inbound email), and `mcp/` (an AI subsystem whose depth varies per resource). When a surviving function loses a capability, **flag it to the user**.
 
-## Verify
+## Rationalizations
+
+| Rationalization | Reality |
+|---|---|
+| "I deleted the folder, the resource is gone." | A resource is also fields on other records, `nb_<resource>` aggregates, shared subsystems, config props, dataProvider methods, and SQL — the folder is the easy part. |
+| "A `\b<resource>\b` grep came back clean, so it's clean." | `nb_<resource>` and denormalized `company_name` are invisible to that grep (`_` is a word char). Grep them separately. |
+| "I'll remove the i18n key from English only." | The French catalog is type-checked against English — a one-sided removal is a `tsc` error. Remove from both or neither. |
+| "The script edits the dependent files for me." | The script only deletes folders and prints the list. Editing every dependent file is your job. |
+| "Typecheck passes, so the deletion is complete." | `tsc` misses broken views/functions/grants. Reset the DB and grep for live references too. |
+
+## Red Flags
+
+- Editing files inside `supabase/migrations/` (never — they are append-only history).
+- A one-sided i18n key removal (English without French, or vice versa).
+- Relying on a single `\b<resource>\b` grep and skipping `nb_<resource>` / `company_name`.
+- Deleting a shared SQL helper or edge-function capability without checking surviving callers.
+- Deleting several resources but half-applying each file's "narrow the union" note.
+- Skipping the `db reset` check when Supabase is running.
+
+## Verification
 
 ```bash
 make typecheck && make lint
 ```
 
 Resolve whatever `tsc` surfaces (the dependent-file list is a guide, not a guarantee). Then `grep -rniE "\b<resource>\b"` over `src/`+`supabase/`, plus **separate** greps for `nb_<resource>`, `company_name`, and config-prop names (`<resource>Types`, `companySectors`, `currency`). Watch for benign/substring false positives (each resource file lists its own); never edit `supabase/migrations/`.
+
+- [ ] `make typecheck && make lint` is clean.
+- [ ] `\b<resource>\b`, `nb_<resource>`, `company_name`, and config-prop greps return only benign matches.
+- [ ] i18n keys removed from both catalogs, or neither.
+- [ ] Backend: table/view/policies/grants/sequences and any function references handled in `supabase/schemas/` (not `migrations/`).
+- [ ] If Supabase is running, `npx supabase db reset --local` replays cleanly.
+- [ ] Any lost edge-function capability flagged to the user.
 
 **i18n is all-or-nothing:** `frenchCrmMessages.ts` is type-checked against the type derived from `englishCrmMessages.ts`, so remove a key from **both** catalogs or **neither** (a one-sided removal is a `tsc` error). Dead `resources.<x>.*` keys are harmless — flag rather than force. `frenchCrmMessages.ts` uses literal `…` escapes; if an exact-string `Edit` fails on a block spanning one, fall back to `sed -i '<from>,<to>d'`.
 

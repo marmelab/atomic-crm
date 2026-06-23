@@ -3,6 +3,11 @@ name: e2e-conventions
 description: When to write e2e tests, where to put them, and how to verify them. Apply to any task touching UI, filters, forms, or interactions.
 ---
 
+# E2E Conventions
+
+Reference for *whether* an e2e test is required, *where* it goes, and *what* it must assert. For the assertion/locator patterns inside the spec, see
+`Skill({skill: "playwright-testing"})`.
+
 ## When e2e tests are required
 
 A change **requires** an e2e test if it touches any of:
@@ -28,4 +33,16 @@ If the work is tracked under a ticket id, you may prefix the file with it (e.g. 
 
 Write the spec alongside the implementation. The reviewer checks that the spec exists and asserts the right thing. CI runs it — don't run it locally yourself.
 
-See [playwright-testing](../playwright-testing/SKILL.md) for the assertion / locator patterns to use inside the spec.
+## Red Flags
+
+- A UI/filter/form/interaction change with no `e2e/*.spec.ts` added.
+- Claiming the CSS/migration-only exception without saying so in the task notes.
+- A spec placed outside `e2e/`, or that asserts nothing user-visible.
+- Running the e2e suite locally instead of letting CI do it.
+
+## Verification
+
+- [ ] If the change touches UI/filters/forms/interactions, a spec exists under `e2e/`.
+- [ ] The spec is named after the feature (ticket-id prefix optional).
+- [ ] The spec asserts the right user-visible behavior, using `playwright-testing` patterns.
+- [ ] Any CSS/migration-only exemption is stated explicitly in the task notes.

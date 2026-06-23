@@ -692,19 +692,20 @@ Bash("for b in $(git -C $CLAUDE_PROJECT_DIR for-each-ref --format='%(refname:sho
   empty. (`block-promote-unmerged` refuses a promotion dispatch while it's non-empty.)
 - **Empty** → every developed ticket is on the session branch.
 
-Then promote the session branch to main (both SETUP and COMPLEX) — Stage A only put
-tickets on `session/<SESSION_SHORT_ID>`; nothing has reached `main` yet.
+Then promote the session branch to the base branch — the branch the session was
+forked from (both SETUP and COMPLEX) — Stage A only put tickets on
+`session/<SESSION_SHORT_ID>`; nothing has reached the base branch yet.
 - **≥ 1 ticket reached `DONE`** → dispatch the promotion merger in the
   **foreground** and handle its result inline (do NOT run the Stage 1–3 transitions
   for it):
   ```
   Agent({
     subagent_type: "merger",
-    description: "Promote session branch to main",
+    description: "Promote session branch to base branch",
     prompt: "ROLE: merger\nMODE: promote\nSESSION_SHORT_ID: <SESSION_SHORT_ID>"
   })
   ```
-  - `DONE: PROMOTE commit=…` → the session branch is now on `main`. SETUP path
+  - `DONE: PROMOTE commit=…` → the session branch is now on the base branch. SETUP path
     (planner given `SETUP_MODE=true`) → STATE SETUP-DONE. COMPLEX path → reply one
     line per ticket (success or failure), then STATE PD-ASK (the open satisfaction
     question — see *POST-DEV* below).

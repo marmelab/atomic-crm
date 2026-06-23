@@ -5,7 +5,16 @@ description: Playwright E2E testing patterns — web-first assertions, user-visi
 
 # Playwright E2E Testing
 
-Browser-based end-to-end testing with auto-waiting, cross-browser support, and reliable locators.
+Reference for the assertion, locator, and structure patterns used inside an e2e spec. Browser-based end-to-end testing with auto-waiting, cross-browser support, and reliable locators.
+
+## When to Use
+
+- Writing or reviewing the body of a Playwright e2e spec.
+- Setting up browser testing for the app (config, fixtures, auth, parallelism).
+- Migrating tests from Cypress or Selenium.
+
+For *whether* a change requires an e2e test and *where* the spec goes, see
+`Skill({skill: "e2e-conventions"})`.
 
 ---
 
@@ -442,7 +451,16 @@ Run `npx playwright test --update-snapshots` to generate baseline images. Snapsh
 
 ---
 
-## Checklist
+## Red Flags
+
+- `page.$()` / `page.textContent()` / `isVisible()` checks instead of web-first assertions.
+- CSS or XPath selectors where a `getByRole`/`getByLabel`/`getByText` locator exists.
+- Any `waitForTimeout()`, or `waitForSelector()` before a locator action.
+- `waitForResponse()` set up *after* the action that triggers the call.
+- Login flow repeated per test instead of `storageState` or a fixture.
+- `test.only` left in code, or `fullyParallel` disabled without a shared-state reason.
+
+## Verification
 
 - [ ] Web-first assertions (`expect(locator).toBeVisible()`) — never `page.$()` or `page.textContent()`
 - [ ] User-visible locators (`getByRole`, `getByLabel`, `getByText`) over CSS selectors
