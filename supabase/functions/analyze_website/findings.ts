@@ -44,6 +44,15 @@ export type CoreWebVitalsFieldData = {
   cls_rating: CoreWebVitalsRating | null;
 };
 
+/** Google Business-åtgärder senaste perioden (Performance API). */
+export type GbpActions = {
+  calls: number;
+  website_clicks: number;
+  direction_requests: number;
+  period_start: string;
+  period_end: string;
+};
+
 /** Lättviktig benchmark mot en konkurrent (mobil-PSI + on-page-crawl). */
 export type CompetitorSnapshot = {
   url: string;

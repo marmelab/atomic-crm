@@ -680,6 +680,7 @@ export type CustomerDetails = {
   agreements: CustomerAgreement[];
   credential_refs: CustomerCredentialRef[];
   competitor_urls?: string[];
+  gbp_location_id?: string | null;
   notes?: string | null;
   created_at: string;
   updated_at: string;
@@ -818,6 +819,13 @@ export type WebsiteSnapshot = {
     has_schema: boolean;
     has_sitemap: boolean;
   }> | null;
+  gbp_actions?: {
+    calls: number;
+    website_clicks: number;
+    direction_requests: number;
+    period_start: string;
+    period_end: string;
+  } | null;
   findings: WebsiteFinding[];
   created_at: string;
 } & Pick<RaRecord, "id">;

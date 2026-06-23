@@ -14,6 +14,7 @@ import type {
   BusinessProfile,
   CompetitorSnapshot,
   CoreWebVitalsFieldData,
+  GbpActions,
   PageSpeedMetrics,
   PageSpeedSummary,
   SearchConsoleSummary,
@@ -852,6 +853,94 @@ async function fetchSearchConsole(
   };
 }
 
+// --- e) Google Business-åtgärder (Performance API, gated) ---
+
+function ymd(date: string): { year: number; month: number; day: number } {
+  const [year, month, day] = date
+    .split("-")
+    .map((part) => Number.parseInt(part, 10));
+  return { year, month, day };
+}
+
+/**
+ * Hämtar Google Business-åtgärder (samtal, webbklick, vägbeskrivningar) för
+ * perioden. Gated och icke-fatal: kräver business.manage-credential OCH ett
+ * ifyllt location-ID. Saknas något → null (visas som "ej konfigurerat").
+ */
+async function fetchGbpActions(
+  locationId: string | null,
+  period: VisibilityPeriod,
+): Promise<GbpActions | null> {
+  if (!locationId) return null;
+  const token = await getGoogleAccessToken(
+    "https://www.googleapis.com/auth/business.manage",
+  );
+  if (!token) return null;
+
+  const loc = locationId.replace(/^locations\//, "").trim();
+  if (!loc) return null;
+  const start = ymd(period.startDate);
+  const end = ymd(period.endDate);
+  const metrics = [
+    "CALL_CLICKS",
+    "WEBSITE_CLICKS",
+    "BUSINESS_DIRECTION_REQUESTS",
+  ];
+
+  const endpoint = new URL(
+    `https://businessprofileperformance.googleapis.com/v1/locations/${loc}:fetchMultiDailyMetricsTimeSeries`,
+  );
+  for (const metric of metrics) {
+    endpoint.searchParams.append("dailyMetrics", metric);
+  }
+  endpoint.searchParams.set("dailyRange.startDate.year", String(start.year));
+  endpoint.searchParams.set("dailyRange.startDate.month", String(start.month));
+  endpoint.searchParams.set("dailyRange.startDate.day", String(start.day));
+  endpoint.searchParams.set("dailyRange.endDate.year", String(end.year));
+  endpoint.searchParams.set("dailyRange.endDate.month", String(end.month));
+  endpoint.searchParams.set("dailyRange.endDate.day", String(end.day));
+
+  const response = await fetchWithTimeout(
+    endpoint.toString(),
+    FETCH_TIMEOUT_MS,
+    {
+      headers: googleApiHeaders(token),
+    },
+  );
+  if (!response.ok) {
+    console.warn(
+      `analyze_website: GBP actions ${response.status} for ${loc}: ${(await response.text()).slice(0, 200)}`,
+    );
+    return null;
+  }
+
+  const data = await response.json();
+  const groups = (data?.multiDailyMetricTimeSeries ?? []) as Array<{
+    dailyMetricTimeSeries?: Array<{
+      dailyMetric?: string;
+      timeSeries?: { datedValues?: Array<{ value?: string | number }> };
+    }>;
+  }>;
+  const totals: Record<string, number> = {};
+  for (const group of groups) {
+    for (const entry of group.dailyMetricTimeSeries ?? []) {
+      const metric = entry.dailyMetric ?? "";
+      const sum = (entry.timeSeries?.datedValues ?? []).reduce(
+        (acc, dated) => acc + (Number(dated.value) || 0),
+        0,
+      );
+      totals[metric] = (totals[metric] ?? 0) + sum;
+    }
+  }
+  return {
+    calls: totals.CALL_CLICKS ?? 0,
+    website_clicks: totals.WEBSITE_CLICKS ?? 0,
+    direction_requests: totals.BUSINESS_DIRECTION_REQUESTS ?? 0,
+    period_start: period.startDate,
+    period_end: period.endDate,
+  };
+}
+
 // --- Analys av ett företag ---
 
 type SourceState = {
@@ -898,7 +987,7 @@ async function analyzeCompany(
 
   const { data: details } = await supabaseAdmin
     .from("customer_details")
-    .select("delivered_website_url, competitor_urls")
+    .select("delivered_website_url, competitor_urls, gbp_location_id")
     .eq("company_id", companyId)
     .maybeSingle();
 
@@ -921,12 +1010,18 @@ async function analyzeCompany(
         .slice(0, 3)
     : [];
 
+  const gbpLocationId =
+    typeof details?.gbp_location_id === "string"
+      ? details.gbp_location_id
+      : null;
+
   const [
     pageSpeedResult,
     seoResult,
     businessResult,
     searchResult,
     competitors,
+    gbpActions,
   ] = await Promise.all([
     inspectSource("pagespeed", fetchPageSpeed(url)),
     inspectSource("seo_crawl", crawlSeoChecks(url)),
@@ -935,6 +1030,14 @@ async function analyzeCompany(
     Promise.all(competitorUrls.map((u) => analyzeCompetitor(u))).then((rows) =>
       rows.filter((row): row is CompetitorSnapshot => row != null),
     ),
+    fetchGbpActions(gbpLocationId, period).catch((error) => {
+      console.warn(
+        `analyze_website: GBP actions failed: ${
+          error instanceof Error ? error.message : error
+        }`,
+      );
+      return null;
+    }),
   ]);
   const pagespeed = pageSpeedResult.value;
   const seoChecks = seoResult.value;
@@ -994,6 +1097,7 @@ async function analyzeCompany(
     business_profile: businessProfile,
     search_console: searchConsole,
     competitors: competitors.length > 0 ? competitors : null,
+    gbp_actions: gbpActions,
     findings,
   };
 

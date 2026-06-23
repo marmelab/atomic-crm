@@ -17,6 +17,7 @@ import {
   Globe2,
   Loader2,
   MapPin,
+  Phone,
   RefreshCw,
   Search,
   Settings2,
@@ -1142,6 +1143,55 @@ export function WebsiteStatsSection({ company }: { company: Company }) {
                 </CardContent>
               </Card>
             </div>
+
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-base">
+                  <Phone className="size-4" />
+                  Kundåtgärder · Google Business
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {selected.gbp_actions ? (
+                  <div className="grid gap-3 sm:grid-cols-3">
+                    <div className="rounded-md border p-3">
+                      <p className="text-2xl font-semibold tabular-nums">
+                        {selected.gbp_actions.calls.toLocaleString("sv-SE")}
+                      </p>
+                      <p className="text-xs text-muted-foreground">Samtal</p>
+                    </div>
+                    <div className="rounded-md border p-3">
+                      <p className="text-2xl font-semibold tabular-nums">
+                        {selected.gbp_actions.direction_requests.toLocaleString(
+                          "sv-SE",
+                        )}
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        Vägbeskrivningar
+                      </p>
+                    </div>
+                    <div className="rounded-md border p-3">
+                      <p className="text-2xl font-semibold tabular-nums">
+                        {selected.gbp_actions.website_clicks.toLocaleString(
+                          "sv-SE",
+                        )}
+                      </p>
+                      <p className="text-xs text-muted-foreground">Webbklick</p>
+                    </div>
+                  </div>
+                ) : (
+                  <p className="text-sm text-muted-foreground">
+                    Inga åtgärdsdata. Kräver att kundens Google Business
+                    location-ID fylls i på Kund-fliken och att kontot har
+                    business.manage-behörighet.
+                  </p>
+                )}
+                <p className="mt-3 text-xs text-muted-foreground">
+                  Direkta kundåtgärder från Google-kartan — närmast affär av all
+                  synlighetsdata.
+                </p>
+              </CardContent>
+            </Card>
 
             {selected.competitors && selected.competitors.length > 0 ? (
               <Card>

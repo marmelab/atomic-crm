@@ -209,6 +209,7 @@ type FormState = {
   agreements: CustomerAgreement[];
   credential_refs: CustomerCredentialRef[];
   competitor_urls: string[];
+  gbp_location_id: string;
   notes: string;
 };
 
@@ -232,6 +233,7 @@ const CustomerDetailsForm = ({
     agreements: details?.agreements ?? [],
     credential_refs: details?.credential_refs ?? [],
     competitor_urls: details?.competitor_urls ?? [],
+    gbp_location_id: details?.gbp_location_id ?? "",
     notes: details?.notes ?? "",
   });
 
@@ -272,6 +274,7 @@ const CustomerDetailsForm = ({
       competitor_urls: form.competitor_urls
         .map((u) => u.trim())
         .filter(Boolean),
+      gbp_location_id: form.gbp_location_id.trim() || null,
       notes: form.notes.trim() || null,
     };
     try {
@@ -488,6 +491,20 @@ const CustomerDetailsForm = ({
               Lägg till konkurrent
             </Button>
           ) : null}
+        </div>
+
+        <div className="flex flex-col gap-1.5">
+          <Label htmlFor="gbp_location_id">Google Business location-ID</Label>
+          <Input
+            id="gbp_location_id"
+            placeholder="locations/12345678901234567890"
+            value={form.gbp_location_id}
+            onChange={(e) => setField("gbp_location_id", e.target.value)}
+          />
+          <p className="text-xs text-muted-foreground">
+            Hämtar samtal, vägbeskrivningar och webbklick från kartprofilen.
+            Kräver business.manage-behörighet på Google-kontot.
+          </p>
         </div>
 
         <div className="flex flex-col gap-1.5">
