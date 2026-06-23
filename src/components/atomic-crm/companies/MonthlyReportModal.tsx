@@ -13,10 +13,17 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, Mail, Sparkles } from "lucide-react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Download, Loader2, Mail, Sparkles } from "lucide-react";
 
 import type { Company, MonthlyReport, ReportAiContent } from "../types";
-import type { CrmDataProvider } from "../providers/supabase/dataProvider";
+import type { VisibilityDataProvider } from "./visibility/types";
 
 /**
  * Månadsrapport-modal: generera draft → granska/redigera → skicka till kund.
@@ -25,26 +32,25 @@ import type { CrmDataProvider } from "../providers/supabase/dataProvider";
  */
 export const MonthlyReportModal = ({
   company,
+  reportId,
   open,
   onOpenChange,
   onSent,
-  initialReportId,
 }: {
   company: Company;
+  reportId?: number;
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onSent?: () => void;
-  /** Öppna direkt på en befintlig rapport (från "Senaste rapporter") utan att generera om. */
-  initialReportId?: number | null;
 }) => {
-  const dataProvider = useDataProvider() as CrmDataProvider;
+  const dataProvider = useDataProvider() as VisibilityDataProvider;
   const notify = useNotify();
 
   const [isGenerating, setIsGenerating] = useState(false);
   const [isSending, setIsSending] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
   const [report, setReport] = useState<MonthlyReport | null>(null);
   const [recipientEmail, setRecipientEmail] = useState("");
+  const [selectedUpsellService, setSelectedUpsellService] = useState("");
   const [ai, setAi] = useState<ReportAiContent>({
     greeting: "",
     summary: "",
@@ -52,35 +58,55 @@ export const MonthlyReportModal = ({
     upsell_pitch: "",
   });
 
-  const loadReport = async (reportId: number) => {
+  useEffect(() => {
+    if (!open) return;
+    if (!reportId) {
+      setReport(null);
+      setRecipientEmail("");
+      return;
+    }
+    let active = true;
+    dataProvider
+      .getOne<MonthlyReport>("monthly_reports", { id: reportId })
+      .then(({ data }) => {
+        if (!active) return;
+        setReport(data);
+        setRecipientEmail(data.recipient_email ?? "");
+        setSelectedUpsellService(data.selected_upsells[0]?.service ?? "");
+        if (data.ai_content) setAi(data.ai_content);
+      })
+      .catch((error) => {
+        if (active) {
+          notify(
+            error instanceof Error
+              ? error.message
+              : "Kunde inte öppna rapporten",
+            { type: "warning" },
+          );
+        }
+      });
+    return () => {
+      active = false;
+    };
+  }, [dataProvider, notify, open, reportId]);
+
+  const loadReport = async (id: number) => {
     const { data } = await dataProvider.getOne<MonthlyReport>(
       "monthly_reports",
-      { id: reportId },
+      { id },
     );
     setReport(data);
     setRecipientEmail(data.recipient_email ?? "");
+    setSelectedUpsellService(data.selected_upsells[0]?.service ?? "");
     if (data.ai_content) setAi(data.ai_content);
   };
-
-  // Öppnas modalen på en befintlig rapport → ladda den direkt. Stängs den →
-  // nollställ så nästa öppning börjar rent.
-  useEffect(() => {
-    if (!open) {
-      setReport(null);
-      return;
-    }
-    if (initialReportId) {
-      setIsLoading(true);
-      loadReport(initialReportId)
-        .catch(() => notify("Kunde inte ladda rapporten", { type: "error" }))
-        .finally(() => setIsLoading(false));
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open, initialReportId]);
 
   const handleGenerate = async () => {
     setIsGenerating(true);
     try {
+      await dataProvider.analyzeWebsite(company.id, {
+        window_kind: "calendar_month",
+      });
       const result = await dataProvider.generateMonthlyReport(company.id);
       if (!result.report_id || result.status.startsWith("skipped")) {
         notify(
@@ -106,6 +132,19 @@ export const MonthlyReportModal = ({
       );
     } finally {
       setIsGenerating(false);
+    }
+  };
+
+  const handleDownloadPdf = async () => {
+    if (!report) return;
+    try {
+      const result = await dataProvider.getMonthlyReportPdf(report.id);
+      window.open(result.signed_url, "_blank", "noopener,noreferrer");
+    } catch (error) {
+      notify(
+        error instanceof Error ? error.message : "Kunde inte öppna PDF:en",
+        { type: "warning" },
+      );
     }
   };
 
@@ -135,7 +174,11 @@ export const MonthlyReportModal = ({
     }
   };
 
-  const upsell = report?.selected_upsells?.[0];
+  const upsell =
+    report?.selected_upsells.find(
+      (offer) => offer.service === selectedUpsellService,
+    ) ?? report?.selected_upsells?.[0];
+  const canSend = report?.status === "draft" || report?.status === "failed";
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -148,17 +191,11 @@ export const MonthlyReportModal = ({
         </DialogHeader>
 
         <div className="overflow-y-auto min-h-0 pr-1">
-          {isLoading ? (
-            <div className="flex items-center justify-center gap-2 py-12 text-muted-foreground">
-              <Loader2 className="h-4 w-4 animate-spin" />
-              Laddar rapport...
-            </div>
-          ) : !report ? (
+          {!report ? (
             <div className="flex flex-col items-center gap-4 py-8">
               <p className="text-sm text-muted-foreground text-center">
-                Skapar en rapport från senaste hemsidestatistiken med trend och
-                ett skräddarsytt förslag — som du kan granska och redigera innan
-                den skickas.
+                Hämtar föregående kompletta kalendermånad och skapar ett
+                verifierat HTML-mejl med samma data som den bifogade PDF:en.
               </p>
               <Button onClick={handleGenerate} disabled={isGenerating}>
                 {isGenerating ? (
@@ -166,7 +203,9 @@ export const MonthlyReportModal = ({
                 ) : (
                   <Sparkles className="h-4 w-4" />
                 )}
-                {isGenerating ? "Genererar (~15 s)..." : "Generera draft"}
+                {isGenerating
+                  ? "Analyserar och genererar (~1 min)…"
+                  : "Generera rapport"}
               </Button>
             </div>
           ) : (
@@ -196,6 +235,52 @@ export const MonthlyReportModal = ({
                   <Badge variant="outline">💡 {upsell.label}</Badge>
                 </div>
               )}
+
+              {report.selected_upsells.length > 1 ? (
+                <div className="grid gap-2">
+                  <Label htmlFor="report-recommendation">
+                    Rekommenderad huvudåtgärd
+                  </Label>
+                  <Select
+                    value={upsell?.service}
+                    onValueChange={(service) => {
+                      const selected = report.selected_upsells.find(
+                        (offer) => offer.service === service,
+                      );
+                      if (!selected) return;
+                      setSelectedUpsellService(service);
+                      setAi((current) => ({
+                        ...current,
+                        recommended_action: selected.description,
+                        upsell_pitch: selected.pitch,
+                      }));
+                    }}
+                  >
+                    <SelectTrigger id="report-recommendation">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {report.selected_upsells.map((offer) => (
+                        <SelectItem key={offer.service} value={offer.service}>
+                          {offer.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              ) : null}
+
+              {report.view_model ? (
+                <div className="rounded-lg border bg-muted/30 p-4 text-sm">
+                  <p className="font-medium">Rapportunderlag</p>
+                  <p className="mt-1 text-muted-foreground">
+                    Period {report.view_model.period.start}–{" "}
+                    {report.view_model.period.end} ·{" "}
+                    {report.view_model.coverage.available}/
+                    {report.view_model.coverage.total} datakällor
+                  </p>
+                </div>
+              ) : null}
 
               <div className="grid gap-3 border-t pt-4">
                 <div className="flex items-center gap-2 text-sm font-medium">
@@ -264,29 +349,45 @@ export const MonthlyReportModal = ({
         <DialogFooter>
           {report && (
             <>
-              <Button
-                variant="ghost"
-                onClick={handleGenerate}
-                disabled={isGenerating}
-              >
-                {isGenerating ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                ) : (
-                  <Sparkles className="h-4 w-4" />
-                )}
-                Generera om
-              </Button>
-              <Button
-                onClick={handleSend}
-                disabled={isSending || !recipientEmail}
-              >
-                {isSending ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                ) : (
-                  <Mail className="h-4 w-4" />
-                )}
-                {isSending ? "Skickar..." : "Skicka till kund"}
-              </Button>
+              {report.pdf_storage_path ? (
+                <Button variant="outline" onClick={handleDownloadPdf}>
+                  <Download className="h-4 w-4" />
+                  Öppna PDF
+                </Button>
+              ) : null}
+              {canSend ? (
+                <>
+                  <Button
+                    variant="ghost"
+                    onClick={handleGenerate}
+                    disabled={isGenerating}
+                  >
+                    {isGenerating ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <Sparkles className="h-4 w-4" />
+                    )}
+                    Generera om
+                  </Button>
+                  <Button
+                    onClick={handleSend}
+                    disabled={isSending || !recipientEmail}
+                  >
+                    {isSending ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <Mail className="h-4 w-4" />
+                    )}
+                    {isSending ? "Skickar..." : "Skicka till kund"}
+                  </Button>
+                </>
+              ) : (
+                <Badge variant="outline">
+                  {report.status === "sent"
+                    ? "Rapporten är redan skickad"
+                    : "Rapporten behandlas"}
+                </Badge>
+              )}
             </>
           )}
           <Button variant="outline" onClick={() => onOpenChange(false)}>

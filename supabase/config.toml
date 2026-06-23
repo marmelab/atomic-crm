@@ -191,3 +191,5 @@ verify_jwt = false
 verify_jwt = false
 [functions.fetch_fireflies_transcripts]
 verify_jwt = false
+[functions.get_monthly_report_pdf]
+verify_jwt = false

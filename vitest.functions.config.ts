@@ -23,6 +23,7 @@ export default defineConfig({
       // so edge function tests can import the same schemas that run in
       // production without requiring the full Deno runtime.
       "npm:zod@4": path.resolve(__dirname, "node_modules/zod"),
+      "npm:pdf-lib@1.17.1": path.resolve(__dirname, "node_modules/pdf-lib"),
     },
   },
 });

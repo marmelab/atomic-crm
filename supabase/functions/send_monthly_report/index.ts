@@ -10,9 +10,11 @@ import {
 } from "../_shared/http.ts";
 import { sendMonthlyReportEmail } from "../_shared/monthlyReport/sendMonthlyReportEmail.ts";
 import { buildReportEmailHtml } from "../_shared/monthlyReport/buildReportEmailHtml.ts";
+import { buildReportPdf } from "../_shared/monthlyReport/buildReportPdf.ts";
 import type {
   ReportAiContent,
   ReportMetrics,
+  ReportViewModel,
 } from "../_shared/monthlyReport/types.ts";
 
 /**
@@ -47,7 +49,7 @@ async function sendReport(
   const { data: report, error } = await supabaseAdmin
     .from("monthly_reports")
     .select(
-      "id, company_id, period, status, recipient_email, recipient_name, generated_html, ai_content, metrics",
+      "id, company_id, period, status, recipient_email, recipient_name, generated_html, ai_content, metrics, view_model, pdf_storage_path",
     )
     .eq("id", reportId)
     .single();
@@ -55,6 +57,16 @@ async function sendReport(
 
   if (report.status === "sent") {
     return { report_id: reportId, status: "already_sent", email_send_id: null };
+  }
+  if (report.status === "approved") {
+    return {
+      report_id: reportId,
+      status: "already_processing",
+      email_send_id: null,
+    };
+  }
+  if (report.status !== "draft" && report.status !== "failed") {
+    throw new Error(`Report cannot be sent from status ${report.status}`);
   }
 
   const recipientEmail = overrides.recipient_email || report.recipient_email;
@@ -84,6 +96,7 @@ async function sendReport(
       periodLabel: monthLabelSv(report.period),
       aiContent: overrides.ai_content,
       metrics,
+      viewModel: (report.view_model as ReportViewModel | null) ?? undefined,
       hasSearchData,
       replyToEmail: Deno.env.get("RESEND_FROM_EMAIL") || "hej@axonadigital.se",
     });
@@ -91,9 +104,36 @@ async function sendReport(
   if (!html) {
     throw new Error("No generated_html on report — regenerate the draft first");
   }
+  const viewModel = report.view_model as ReportViewModel | null;
+  if (!report.pdf_storage_path || !viewModel || !aiContent) {
+    throw new Error("No PDF on report — regenerate the draft first");
+  }
+  const refreshedPdf = await buildReportPdf({ viewModel, aiContent });
+  const { error: uploadError } = await supabaseAdmin.storage
+    .from("monthly-reports")
+    .upload(report.pdf_storage_path, refreshedPdf, {
+      contentType: "application/pdf",
+      upsert: true,
+    });
+  if (uploadError) {
+    throw new Error(`Could not update report PDF: ${uploadError.message}`);
+  }
+  const { data: pdfData, error: pdfError } = await supabaseAdmin.storage
+    .from("monthly-reports")
+    .download(report.pdf_storage_path);
+  if (pdfError || !pdfData) {
+    throw new Error(`Could not load report PDF: ${pdfError?.message}`);
+  }
+  const pdfBytes = new Uint8Array(await pdfData.arrayBuffer());
+  const safeCompanyName = companyName
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "");
 
   // Markera approved innan utskick (spårbarhet om Resend skulle hänga).
-  await supabaseAdmin
+  const { data: claimed } = await supabaseAdmin
     .from("monthly_reports")
     .update({
       status: "approved",
@@ -102,8 +142,19 @@ async function sendReport(
       recipient_name: overrides.recipient_name ?? report.recipient_name,
       ai_content: aiContent,
       generated_html: html,
+      pdf_generated_at: new Date().toISOString(),
     })
-    .eq("id", reportId);
+    .eq("id", reportId)
+    .in("status", ["draft", "failed"])
+    .select("id")
+    .maybeSingle();
+  if (!claimed) {
+    return {
+      report_id: reportId,
+      status: "already_processing",
+      email_send_id: null,
+    };
+  }
 
   let result;
   try {
@@ -114,9 +165,12 @@ async function sendReport(
       toEmail: recipientEmail,
       subject,
       html,
-      bodyPreview:
-        (report.ai_content?.summary as string | undefined) ?? subject,
+      bodyPreview: aiContent?.summary ?? subject,
       period: report.period,
+      attachment: {
+        filename: `synlighetsrapport-${safeCompanyName || "kund"}-${report.period}.pdf`,
+        content: pdfBytes,
+      },
     });
   } catch (sendError) {
     // Släpp tillbaka till draft så teamet kan försöka igen.
@@ -166,7 +220,7 @@ Deno.serve(async (req: Request) =>
               ? (overridesRaw as {
                   recipient_email?: string;
                   recipient_name?: string;
-                  generated_html?: string;
+                  ai_content?: ReportAiContent;
                 })
               : {};
           const result = await sendReport(reportId as number, overrides);

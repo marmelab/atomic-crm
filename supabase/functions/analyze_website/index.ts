@@ -18,6 +18,12 @@ import type {
 } from "./findings.ts";
 import { computeFindings } from "./findings.ts";
 import { domainOf, isPlaceMatch } from "./matching.ts";
+import {
+  resolveVisibilityPeriod,
+  type VisibilityPeriod,
+  type VisibilityWindowKind,
+} from "../_shared/visibilityPeriods.ts";
+import { classifySearchOpportunities } from "./searchOpportunities.ts";
 
 /**
  * Analyze Website — hemsidestatistik + brist-analys per företag (Fas 2 av
@@ -113,9 +119,11 @@ async function fetchPageSpeed(url: string): Promise<PageSpeedSummary | null> {
     console.error(
       `analyze_website: PageSpeed ${r.status} (försök ${attempt}/2) for ${url}: ${body}`,
     );
-    if (attempt === 2 || (r.status !== 429 && r.status < 500)) return null;
+    if (attempt === 2 || (r.status !== 429 && r.status < 500)) {
+      throw new Error(`PageSpeed API ${r.status}: ${body}`);
+    }
   }
-  if (!response) return null;
+  if (!response) throw new Error("PageSpeed API returned no response");
 
   const result = await response.json();
   const lighthouse = result?.lighthouseResult;
@@ -157,6 +165,30 @@ async function fetchPageSpeed(url: string): Promise<PageSpeedSummary | null> {
       savings_ms: Math.round(audit.details?.overallSavingsMs ?? 0),
     }));
 
+  const fieldSource = result?.loadingExperience?.metrics
+    ? { scope: "url" as const, metrics: result.loadingExperience.metrics }
+    : result?.originLoadingExperience?.metrics
+      ? {
+          scope: "origin" as const,
+          metrics: result.originLoadingExperience.metrics,
+        }
+      : null;
+  const fieldMetric = (key: string) => fieldSource?.metrics?.[key] ?? null;
+  const fieldValue = (key: string): number | null => {
+    const value = fieldMetric(key)?.percentile;
+    return typeof value === "number" ? value : null;
+  };
+  const fieldRating = (key: string) => {
+    const value = fieldMetric(key)?.category;
+    return value === "FAST"
+      ? ("GOOD" as const)
+      : value === "AVERAGE"
+        ? ("NEEDS_IMPROVEMENT" as const)
+        : value === "SLOW"
+          ? ("POOR" as const)
+          : null;
+  };
+
   return {
     performance_score: toScore(lighthouse.categories?.performance?.score),
     seo_score: toScore(lighthouse.categories?.seo?.score),
@@ -164,6 +196,20 @@ async function fetchPageSpeed(url: string): Promise<PageSpeedSummary | null> {
     cls: numeric("cumulative-layout-shift"),
     tbt_ms: numeric("total-blocking-time"),
     opportunities,
+    field_data: fieldSource
+      ? {
+          scope: fieldSource.scope,
+          lcp_ms: fieldValue("LARGEST_CONTENTFUL_PAINT_MS"),
+          inp_ms: fieldValue("INTERACTION_TO_NEXT_PAINT"),
+          cls:
+            fieldValue("CUMULATIVE_LAYOUT_SHIFT_SCORE") == null
+              ? null
+              : fieldValue("CUMULATIVE_LAYOUT_SHIFT_SCORE")! / 100,
+          lcp_rating: fieldRating("LARGEST_CONTENTFUL_PAINT_MS"),
+          inp_rating: fieldRating("INTERACTION_TO_NEXT_PAINT"),
+          cls_rating: fieldRating("CUMULATIVE_LAYOUT_SHIFT_SCORE"),
+        }
+      : null,
   };
 }
 
@@ -247,8 +293,7 @@ async function fetchBusinessProfile(company: {
     return { found: false };
   }
   if (data.status !== "OK") {
-    console.error(`analyze_website: Places API status ${data.status}`);
-    return null;
+    throw new Error(`Places API status ${data.status}`);
   }
 
   // Textsearch returnerar ofta NÅGON verksamhet på orten — verifiera att
@@ -311,14 +356,20 @@ async function probeExists(url: string): Promise<boolean> {
 
 async function crawlSeoChecks(url: string): Promise<SeoChecks | null> {
   let html: string;
+  let xRobotsTag = "";
   try {
     const response = await fetchWithTimeout(url, FETCH_TIMEOUT_MS, {
       redirect: "follow",
     });
-    if (!response.ok) return null;
+    if (!response.ok) {
+      throw new Error(`Website returned HTTP ${response.status}`);
+    }
+    xRobotsTag = response.headers.get("x-robots-tag") ?? "";
     html = await response.text();
-  } catch {
-    return null;
+  } catch (error) {
+    throw new Error(
+      `Could not fetch website: ${error instanceof Error ? error.message : String(error)}`,
+    );
   }
 
   const origin = new URL(url).origin;
@@ -330,6 +381,14 @@ async function crawlSeoChecks(url: string): Promise<SeoChecks | null> {
     html.match(
       /<meta[^>]+content=["']([^"']*)["'][^>]+name=["']description["']/i,
     );
+  const metaRobots =
+    html.match(
+      /<meta[^>]+name=["']robots["'][^>]+content=["']([^"']*)["']/i,
+    )?.[1] ??
+    html.match(
+      /<meta[^>]+content=["']([^"']*)["'][^>]+name=["']robots["']/i,
+    )?.[1] ??
+    "";
 
   // robots.txt kan peka ut sitemap som ligger på annan path
   let robotsBody = "";
@@ -359,6 +418,7 @@ async function crawlSeoChecks(url: string): Promise<SeoChecks | null> {
     robots: robotsBody.length > 0,
     llms_txt: llmsExists,
     h1: /<h1[\s>]/i.test(html),
+    indexable: !/noindex/i.test(`${metaRobots} ${xRobotsTag}`),
   };
 }
 
@@ -489,6 +549,7 @@ async function getGoogleAccessToken(scope: string): Promise<string | null> {
 
 async function fetchSearchConsole(
   url: string,
+  period: VisibilityPeriod,
 ): Promise<SearchConsoleSummary | null> {
   const token = await getGoogleAccessToken(
     "https://www.googleapis.com/auth/webmasters.readonly",
@@ -507,10 +568,9 @@ async function fetchSearchConsole(
   if (!sitesResponse.ok) {
     // Tidigare tyst null → omöjligt att skilja "saknar åtkomst" från "anropet
     // failade". Logga status + body så roten syns i edge-loggen.
-    console.error(
-      `analyze_website: GSC sites.list ${sitesResponse.status}: ${(await sitesResponse.text()).slice(0, 300)}`,
+    throw new Error(
+      `GSC sites.list ${sitesResponse.status}: ${(await sitesResponse.text()).slice(0, 300)}`,
     );
-    return null;
   }
 
   const sites = (await sitesResponse.json()) as {
@@ -539,9 +599,6 @@ async function fetchSearchConsole(
     return null; // Ingen åtkomst till denna kunds property — inte ett fel.
   }
 
-  const endDate = new Date();
-  const startDate = new Date(endDate.getTime() - 28 * 24 * 60 * 60 * 1000);
-  const fmt = (d: Date) => d.toISOString().slice(0, 10);
   const queryUrl = `https://www.googleapis.com/webmasters/v3/sites/${encodeURIComponent(property.siteUrl)}/searchAnalytics/query`;
 
   const analyticsQuery = (body: Record<string, unknown>) =>
@@ -552,57 +609,101 @@ async function fetchSearchConsole(
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        startDate: fmt(startDate),
-        endDate: fmt(endDate),
+        startDate: period.startDate,
+        endDate: period.endDate,
+        dataState: "final",
         ...body,
       }),
     });
 
-  const [totalsResponse, queriesResponse] = await Promise.all([
+  const [totalsResponse, queriesResponse, pagesResponse] = await Promise.all([
     analyticsQuery({}),
-    analyticsQuery({ dimensions: ["query"], rowLimit: 5 }),
+    analyticsQuery({ dimensions: ["query"], rowLimit: 250 }),
+    analyticsQuery({ dimensions: ["page"], rowLimit: 10 }),
   ]);
-  if (!totalsResponse.ok) return null;
+  if (!totalsResponse.ok) {
+    throw new Error(
+      `GSC totals ${totalsResponse.status}: ${(await totalsResponse.text()).slice(0, 200)}`,
+    );
+  }
 
   const totals = (await totalsResponse.json()).rows?.[0];
   const queryRows = queriesResponse.ok
     ? ((await queriesResponse.json()).rows ?? [])
     : [];
+  const pageRows = pagesResponse.ok
+    ? ((await pagesResponse.json()).rows ?? [])
+    : [];
+  type AnalyticsRow = {
+    keys: string[];
+    clicks: number;
+    impressions: number;
+    ctr: number;
+    position: number;
+  };
+  const normalizedQueries = (queryRows as AnalyticsRow[]).map((row) => ({
+    query: row.keys?.[0] ?? "",
+    clicks: row.clicks,
+    impressions: row.impressions,
+    ctr: row.ctr,
+    position: Math.round(row.position * 10) / 10,
+  }));
+  const opportunities = classifySearchOpportunities(normalizedQueries);
 
   return {
     clicks: totals?.clicks ?? 0,
     impressions: totals?.impressions ?? 0,
+    ctr: totals?.ctr ?? 0,
     position: totals?.position ?? 0,
-    top_queries: queryRows.map(
-      (row: {
-        keys: string[];
-        clicks: number;
-        impressions: number;
-        position: number;
-      }) => ({
-        query: row.keys?.[0] ?? "",
-        clicks: row.clicks,
-        impressions: row.impressions,
-        position: Math.round(row.position * 10) / 10,
-      }),
-    ),
+    period_start: period.startDate,
+    period_end: period.endDate,
+    data_state: "final",
+    top_queries: normalizedQueries.slice(0, 10),
+    top_pages: (pageRows as AnalyticsRow[]).map((row) => ({
+      page: row.keys?.[0] ?? "",
+      clicks: row.clicks,
+      impressions: row.impressions,
+      ctr: row.ctr,
+      position: Math.round(row.position * 10) / 10,
+    })),
+    opportunities,
   };
 }
 
 // --- Analys av ett företag ---
 
-async function safe<T>(label: string, promise: Promise<T>): Promise<T | null> {
+type SourceState = {
+  status: "available" | "unavailable" | "error";
+  message?: string;
+};
+
+async function inspectSource<T>(
+  label: string,
+  promise: Promise<T>,
+): Promise<{ value: T | null; state: SourceState }> {
   try {
-    return await promise;
+    const value = await promise;
+    return {
+      value: value ?? null,
+      state:
+        value == null ? { status: "unavailable" } : { status: "available" },
+    };
   } catch (error) {
     console.error(`analyze_website: ${label} failed:`, error);
-    return null;
+    return {
+      value: null,
+      state: {
+        status: "error",
+        message: error instanceof Error ? error.message : String(error),
+      },
+    };
   }
 }
 
 async function analyzeCompany(
   companyId: number,
   source: "manual" | "cron",
+  period: VisibilityPeriod,
 ): Promise<{ snapshot_id: number; findings_count: number }> {
   const { data: company, error: companyError } = await supabaseAdmin
     .from("companies")
@@ -627,13 +728,17 @@ async function analyzeCompany(
   }
   const url = normalizeUrl(rawUrl);
 
-  const [pagespeed, seoChecks, businessProfile, searchConsole] =
+  const [pageSpeedResult, seoResult, businessResult, searchResult] =
     await Promise.all([
-      safe("pagespeed", fetchPageSpeed(url)),
-      safe("seo_crawl", crawlSeoChecks(url)),
-      safe("business_profile", fetchBusinessProfile(company)),
-      safe("search_console", fetchSearchConsole(url)),
+      inspectSource("pagespeed", fetchPageSpeed(url)),
+      inspectSource("seo_crawl", crawlSeoChecks(url)),
+      inspectSource("business_profile", fetchBusinessProfile(company)),
+      inspectSource("search_console", fetchSearchConsole(url, period)),
     ]);
+  const pagespeed = pageSpeedResult.value;
+  const seoChecks = seoResult.value;
+  const businessProfile = businessResult.value;
+  const searchConsole = searchResult.value;
 
   const findings = computeFindings({
     pagespeed,
@@ -641,23 +746,84 @@ async function analyzeCompany(
     businessProfile,
     searchConsole,
   });
+  const fieldData = pagespeed?.field_data ?? null;
+  const labPageSpeed = pagespeed
+    ? {
+        performance_score: pagespeed.performance_score,
+        seo_score: pagespeed.seo_score,
+        lcp_ms: pagespeed.lcp_ms,
+        cls: pagespeed.cls,
+        tbt_ms: pagespeed.tbt_ms,
+        opportunities: pagespeed.opportunities,
+      }
+    : null;
+  const sourceStatus = {
+    pagespeed: pageSpeedResult.state,
+    seo_crawl: seoResult.state,
+    business_profile: businessResult.state,
+    search_console: searchResult.state,
+  };
+  const availableSources = Object.values(sourceStatus).filter(
+    (state) => state.status === "available",
+  ).length;
+  const snapshotValues = {
+    company_id: companyId,
+    source,
+    url,
+    period_start: period.startDate,
+    period_end: period.endDate,
+    window_kind: period.kind,
+    data_coverage: {
+      available_sources: availableSources,
+      total_sources: 4,
+      ratio: availableSources / 4,
+      has_search_console: searchResult.state.status === "available",
+      has_field_data: fieldData != null,
+    },
+    source_status: sourceStatus,
+    performance_score: pagespeed?.performance_score ?? null,
+    seo_score: pagespeed?.seo_score ?? null,
+    pagespeed: labPageSpeed,
+    field_data: fieldData,
+    seo_checks: seoChecks,
+    business_profile: businessProfile,
+    search_console: searchConsole,
+    findings,
+  };
 
-  const { data: snapshot, error: insertError } = await supabaseAdmin
-    .from("website_snapshots")
-    .insert({
-      company_id: companyId,
-      source,
-      url,
-      performance_score: pagespeed?.performance_score ?? null,
-      seo_score: pagespeed?.seo_score ?? null,
-      pagespeed,
-      seo_checks: seoChecks,
-      business_profile: businessProfile,
-      search_console: searchConsole,
-      findings,
-    })
-    .select("id")
-    .single();
+  let snapshot;
+  let insertError;
+  if (period.kind === "calendar_month") {
+    const { data: existing } = await supabaseAdmin
+      .from("website_snapshots")
+      .select("id")
+      .eq("company_id", companyId)
+      .eq("window_kind", "calendar_month")
+      .eq("period_start", period.startDate)
+      .maybeSingle();
+    const result = existing
+      ? await supabaseAdmin
+          .from("website_snapshots")
+          .update({ ...snapshotValues, fetched_at: new Date().toISOString() })
+          .eq("id", existing.id)
+          .select("id")
+          .single()
+      : await supabaseAdmin
+          .from("website_snapshots")
+          .insert(snapshotValues)
+          .select("id")
+          .single();
+    snapshot = result.data;
+    insertError = result.error;
+  } else {
+    const result = await supabaseAdmin
+      .from("website_snapshots")
+      .insert(snapshotValues)
+      .select("id")
+      .single();
+    snapshot = result.data;
+    insertError = result.error;
+  }
   if (insertError || !snapshot) {
     throw new Error(`Failed to store snapshot: ${insertError?.message}`);
   }
@@ -667,7 +833,7 @@ async function analyzeCompany(
 
 // --- Cron-läge: alla kunder med levererad hemsida, i batchar ---
 
-async function runCronSweep(): Promise<void> {
+async function runCronSweep(period: VisibilityPeriod): Promise<void> {
   const { data: customers, error } = await supabaseAdmin
     .from("customer_details")
     .select("company_id")
@@ -682,7 +848,7 @@ async function runCronSweep(): Promise<void> {
     const batch = customers.slice(i, i + CRON_BATCH_SIZE);
     await Promise.all(
       batch.map((row) =>
-        analyzeCompany(row.company_id, "cron").catch((err) =>
+        analyzeCompany(row.company_id, "cron", period).catch((err) =>
           console.error(
             `analyze_website cron: company ${row.company_id} failed:`,
             err,
@@ -721,8 +887,9 @@ Deno.serve(async (req: Request) =>
         const cron = getOptionalBooleanField(body, "cron");
 
         if (cron) {
+          const period = resolveVisibilityPeriod({ kind: "calendar_month" });
           // Kör svepet i bakgrunden — pg_net väntar inte på långa analyser.
-          const sweep = runCronSweep();
+          const sweep = runCronSweep(period);
           if (typeof EdgeRuntime !== "undefined" && EdgeRuntime.waitUntil) {
             EdgeRuntime.waitUntil(sweep);
           } else {
@@ -734,8 +901,31 @@ Deno.serve(async (req: Request) =>
         const company_id = getPositiveIntegerField(body, "company_id", {
           required: true,
         });
-        const result = await analyzeCompany(company_id as number, "manual");
-        return createJsonResponse({ success: true, ...result });
+        const requestedKind = (body as { window_kind?: unknown }).window_kind;
+        if (
+          requestedKind != null &&
+          requestedKind !== "rolling_28d" &&
+          requestedKind !== "calendar_month"
+        ) {
+          throw new Error("window_kind must be rolling_28d or calendar_month");
+        }
+        const period = resolveVisibilityPeriod({
+          kind: (requestedKind as VisibilityWindowKind | undefined) ?? null,
+          startDate:
+            typeof (body as { start_date?: unknown }).start_date === "string"
+              ? (body as { start_date: string }).start_date
+              : null,
+          endDate:
+            typeof (body as { end_date?: unknown }).end_date === "string"
+              ? (body as { end_date: string }).end_date
+              : null,
+        });
+        const result = await analyzeCompany(
+          company_id as number,
+          "manual",
+          period,
+        );
+        return createJsonResponse({ success: true, period, ...result });
       } catch (error) {
         return errorResponseFromUnknown(error);
       }

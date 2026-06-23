@@ -88,6 +88,14 @@ const resourceDefinitions = {
     name: "tasks",
     recordRepresentation: getTaskName,
   },
+  website_snapshots: {
+    hasList: true,
+    name: "website_snapshots",
+  },
+  monthly_reports: {
+    hasList: true,
+    name: "monthly_reports",
+  },
 };
 
 const createTestAuthProvider = (): AuthProvider => ({

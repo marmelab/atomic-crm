@@ -14,6 +14,19 @@ export type PageSpeedSummary = {
   cls: number | null;
   tbt_ms: number | null;
   opportunities: Array<{ id: string; title: string; savings_ms: number }>;
+  field_data?: CoreWebVitalsFieldData | null;
+};
+
+export type CoreWebVitalsRating = "GOOD" | "NEEDS_IMPROVEMENT" | "POOR";
+
+export type CoreWebVitalsFieldData = {
+  scope: "url" | "origin";
+  lcp_ms: number | null;
+  inp_ms: number | null;
+  cls: number | null;
+  lcp_rating: CoreWebVitalsRating | null;
+  inp_rating: CoreWebVitalsRating | null;
+  cls_rating: CoreWebVitalsRating | null;
 };
 
 export type SeoChecks = {
@@ -25,6 +38,7 @@ export type SeoChecks = {
   robots: boolean;
   llms_txt: boolean;
   h1: boolean;
+  indexable?: boolean | null;
 };
 
 export type BusinessProfile = {
@@ -37,11 +51,31 @@ export type BusinessProfile = {
 export type SearchConsoleSummary = {
   clicks: number;
   impressions: number;
+  ctr?: number;
   position: number;
+  period_start?: string;
+  period_end?: string;
+  data_state?: "final";
   top_queries: Array<{
     query: string;
     clicks: number;
     impressions: number;
+    ctr?: number;
+    position: number;
+  }>;
+  top_pages?: Array<{
+    page: string;
+    clicks: number;
+    impressions: number;
+    ctr: number;
+    position: number;
+  }>;
+  opportunities?: Array<{
+    kind: "low_ctr" | "position_4_10" | "position_11_20";
+    query: string;
+    clicks: number;
+    impressions: number;
+    ctr: number;
     position: number;
   }>;
 };
@@ -124,6 +158,16 @@ export function computeFindings(input: AnalysisInput): Finding[] {
         title: "Saknar sidtitel",
         description:
           "Startsidan saknar <title> — det viktigaste enskilda SEO-elementet.",
+        service: SERVICES.seo,
+      });
+    }
+    if (seoChecks.indexable === false) {
+      findings.push({
+        key: "noindex",
+        severity: "high",
+        title: "Startsidan är blockerad från indexering",
+        description:
+          "Sidan har en noindex-instruktion och kan därför inte visas i Googles sökresultat förrän blockeringen tas bort.",
         service: SERVICES.seo,
       });
     }

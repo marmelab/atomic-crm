@@ -9,7 +9,6 @@ import {
   getPositiveIntegerField,
   parseRequiredJsonBody,
 } from "../_shared/http.ts";
-import { computeReportMetrics } from "../_shared/monthlyReport/computeReportMetrics.ts";
 import {
   DEFAULT_UPSELL_CATALOG,
   selectUpsells,
@@ -25,6 +24,12 @@ import type {
   ReportSnapshot,
   UpsellOffer,
 } from "../_shared/monthlyReport/types.ts";
+import {
+  buildFallbackReportContent,
+  buildReportViewModel,
+} from "../_shared/monthlyReport/reportViewModel.ts";
+import { buildReportPdf } from "../_shared/monthlyReport/buildReportPdf.ts";
+import { previousCalendarMonth } from "../_shared/visibilityPeriods.ts";
 
 /**
  * Generate Monthly Reports — skapar en DRAFT-månadsrapport per kund (godkännande-
@@ -39,13 +44,6 @@ import type {
 const CRON_BATCH_SIZE = 3;
 
 // --- Helpers ---
-
-function periodStartISO(): string {
-  const now = new Date();
-  const y = now.getUTCFullYear();
-  const m = String(now.getUTCMonth() + 1).padStart(2, "0");
-  return `${y}-${m}-01`;
-}
 
 function monthLabelSv(periodISO: string): string {
   return new Date(`${periodISO}T00:00:00Z`).toLocaleDateString("sv-SE", {
@@ -120,7 +118,11 @@ async function generateReportForCompany(
   companyId: number,
   source: "manual" | "cron",
 ): Promise<{ report_id: number | null; status: string }> {
-  const period = periodStartISO();
+  const reportPeriod = previousCalendarMonth();
+  const previousPeriod = previousCalendarMonth(
+    new Date(`${reportPeriod.startDate}T12:00:00Z`),
+  );
+  const period = reportPeriod.startDate;
 
   // Idempotens: en redan färdig (skickad/godkänd) rapport rörs aldrig.
   const { data: existing } = await supabaseAdmin
@@ -143,18 +145,28 @@ async function generateReportForCompany(
     .single();
   if (!company) throw new Error(`Company ${companyId} not found`);
 
-  // Senaste 2 snapshots (trend). Index (company_id, fetched_at DESC) finns.
-  const { data: snapshots } = await supabaseAdmin
-    .from("website_snapshots")
-    .select(
-      "id, fetched_at, performance_score, seo_score, pagespeed, seo_checks, business_profile, search_console, findings",
-    )
-    .eq("company_id", companyId)
-    .order("fetched_at", { ascending: false })
-    .limit(2);
-
-  const latest = (snapshots?.[0] ?? null) as ReportSnapshot | null;
-  const previous = (snapshots?.[1] ?? null) as ReportSnapshot | null;
+  // Only official calendar snapshots are valid report inputs. Manual rolling
+  // analyses must never become month-over-month comparison data.
+  const snapshotColumns =
+    "id, fetched_at, period_start, period_end, window_kind, data_coverage, source_status, performance_score, seo_score, pagespeed, field_data, seo_checks, business_profile, search_console, findings";
+  const [{ data: latestData }, { data: previousData }] = await Promise.all([
+    supabaseAdmin
+      .from("website_snapshots")
+      .select(snapshotColumns)
+      .eq("company_id", companyId)
+      .eq("window_kind", "calendar_month")
+      .eq("period_start", reportPeriod.startDate)
+      .maybeSingle(),
+    supabaseAdmin
+      .from("website_snapshots")
+      .select(snapshotColumns)
+      .eq("company_id", companyId)
+      .eq("window_kind", "calendar_month")
+      .eq("period_start", previousPeriod.startDate)
+      .maybeSingle(),
+  ]);
+  const latest = (latestData ?? null) as ReportSnapshot | null;
+  const previous = (previousData ?? null) as ReportSnapshot | null;
 
   const writeRow = async (fields: Record<string, unknown>) => {
     if (existing) {
@@ -182,7 +194,13 @@ async function generateReportForCompany(
   }
 
   const recipient = await resolveRecipient(companyId);
-  const metrics = computeReportMetrics(latest, previous);
+  const viewModel = buildReportViewModel({
+    companyName: company.name,
+    periodLabel: monthLabelSv(period),
+    latest,
+    previous,
+  });
+  const metrics = viewModel.metrics;
   const catalog = await loadUpsellCatalog();
   const upsells = selectUpsells(
     latest.findings,
@@ -190,9 +208,6 @@ async function generateReportForCompany(
     CUSTOMER_HIDDEN_FINDING_KEYS,
   );
   const hasSearchData = !!latest.search_console;
-
-  const apiKey = Deno.env.get("ANTHROPIC_API_KEY");
-  if (!apiKey) throw new Error("ANTHROPIC_API_KEY not configured");
 
   const { prompt, systemPrompt } = buildMonthlyReportPrompts({
     companyName: company.name,
@@ -204,59 +219,37 @@ async function generateReportForCompany(
     hasSearchData,
   });
 
-  let content;
-  try {
-    const result = await generateReportContent({
-      prompt,
-      systemPrompt,
-      apiKey,
-      validation: {
-        supabase: supabaseAdmin,
-        notifyDiscord: async ({ validationError }) => {
-          await notifyReportDiscord({
-            title: "Månadsrapport: AI-text underkänd",
-            description: `**Kund:** ${company.name}\n**Fel:** ${validationError}`,
-            color: 15105570, // amber
-          });
+  let content = buildFallbackReportContent(viewModel, recipient.name);
+  let aiFallbackReason: string | null = null;
+  const apiKey = Deno.env.get("ANTHROPIC_API_KEY");
+  if (apiKey) {
+    try {
+      const result = await generateReportContent({
+        prompt,
+        systemPrompt,
+        apiKey,
+        validation: {
+          supabase: supabaseAdmin,
+          notifyDiscord: async ({ validationError }) => {
+            await notifyReportDiscord({
+              title: "Månadsrapport: AI-text underkänd",
+              description: `**Kund:** ${company.name}\n**Fel:** ${validationError}`,
+              color: 15105570,
+            });
+          },
         },
-      },
-    });
-    content = result.content;
-  } catch (aiError) {
-    // AI-anropet kastade (API-fel: nyckel/kredit/modell). Spara exakt orsak i
-    // raden i stället för att bara kasta 500 utan spår.
-    const message =
-      aiError instanceof Error ? aiError.message : String(aiError);
-    const id = await writeRow({
-      status: "failed",
-      snapshot_id: latest.id ?? null,
-      previous_snapshot_id: previous?.id ?? null,
-      recipient_email: recipient.email,
-      recipient_name: recipient.name,
-      metrics,
-      selected_upsells: upsells,
-      error: `AI-anrop misslyckades: ${message}`,
-    });
-    await notifyReportDiscord({
-      title: "Månadsrapport: AI-anrop misslyckades",
-      description: `**Kund:** ${company.name}\n**Fel:** ${message}`,
-      color: 15548997, // röd
-    });
-    return { report_id: id, status: "failed_ai_error" };
-  }
-
-  if (!content) {
-    const id = await writeRow({
-      status: "failed",
-      snapshot_id: latest.id ?? null,
-      previous_snapshot_id: previous?.id ?? null,
-      recipient_email: recipient.email,
-      recipient_name: recipient.name,
-      metrics,
-      selected_upsells: upsells,
-      error: "AI content failed validation (quarantined)",
-    });
-    return { report_id: id, status: "failed_ai" };
+      });
+      if (result.content) {
+        content = result.content;
+      } else {
+        aiFallbackReason = "AI-svaret klarade inte valideringen";
+      }
+    } catch (aiError) {
+      aiFallbackReason =
+        aiError instanceof Error ? aiError.message : String(aiError);
+    }
+  } else {
+    aiFallbackReason = "ANTHROPIC_API_KEY saknas";
   }
 
   const html = buildReportEmailHtml({
@@ -264,9 +257,21 @@ async function generateReportForCompany(
     periodLabel: monthLabelSv(period),
     aiContent: content,
     metrics,
+    viewModel,
     hasSearchData,
     replyToEmail: Deno.env.get("RESEND_FROM_EMAIL") || "hej@axonadigital.se",
   });
+  const pdfBytes = await buildReportPdf({ viewModel, aiContent: content });
+  const pdfPath = `${companyId}/${period}/synlighetsrapport-v2.pdf`;
+  const { error: pdfUploadError } = await supabaseAdmin.storage
+    .from("monthly-reports")
+    .upload(pdfPath, pdfBytes, {
+      contentType: "application/pdf",
+      upsert: true,
+    });
+  if (pdfUploadError) {
+    throw new Error(`PDF upload failed: ${pdfUploadError.message}`);
+  }
 
   const reportId = await writeRow({
     status: "draft",
@@ -277,8 +282,16 @@ async function generateReportForCompany(
     ai_content: content,
     selected_upsells: upsells,
     metrics,
+    view_model: viewModel,
     generated_html: html,
-    error: null,
+    data_period_start: reportPeriod.startDate,
+    data_period_end: reportPeriod.endDate,
+    report_version: 2,
+    pdf_storage_path: pdfPath,
+    pdf_generated_at: new Date().toISOString(),
+    error: aiFallbackReason
+      ? `AI-reservtext användes: ${aiFallbackReason}`
+      : null,
   });
 
   // Discord-grind: "Granska & skicka" → CRM:t. Varningsfärg vid negativ huvudtrend.
@@ -299,6 +312,9 @@ async function generateReportForCompany(
         `**Period:** ${monthLabelSv(period)}\n` +
         `**Mottagare:** ${recipientLine}\n` +
         `**Föreslagen upsell:** ${upsells[0]?.label ?? "ingen"}\n` +
+        (aiFallbackReason
+          ? `ℹ️ **Reservtext användes:** ${aiFallbackReason.slice(0, 120)}\n`
+          : "") +
         (negative
           ? `⚠️ **Klick ned ${Math.round(clicksDelta!)}% mot förra månaden — granska tonen.**`
           : ""),

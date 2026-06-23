@@ -826,10 +826,24 @@ const dataProviderWithCustomMethods = {
   },
   async analyzeWebsite(
     companyId: Identifier,
-  ): Promise<{ success: true; snapshot_id: number; findings_count: number }> {
+    options?: {
+      window_kind?: "rolling_28d" | "calendar_month";
+      start_date?: string;
+      end_date?: string;
+    },
+  ): Promise<{
+    success: true;
+    snapshot_id: number;
+    findings_count: number;
+    period: {
+      kind: "rolling_28d" | "calendar_month";
+      startDate: string;
+      endDate: string;
+    };
+  }> {
     const { data, error } = await supabase.functions.invoke("analyze_website", {
       method: "POST",
-      body: { company_id: companyId },
+      body: { company_id: companyId, ...options },
     });
     if (error || !data) {
       throw new Error("Failed to analyze website");
@@ -878,6 +892,21 @@ const dataProviderWithCustomMethods = {
     );
     if (error || !data) {
       throw new Error("Failed to send monthly report");
+    }
+    return data;
+  },
+  async getMonthlyReportPdf(
+    reportId: Identifier,
+  ): Promise<{ success: true; signed_url: string; expires_in: number }> {
+    const { data, error } = await supabase.functions.invoke(
+      "get_monthly_report_pdf",
+      {
+        method: "POST",
+        body: { report_id: reportId },
+      },
+    );
+    if (error || !data) {
+      throw new Error("Failed to create report PDF download link");
     }
     return data;
   },

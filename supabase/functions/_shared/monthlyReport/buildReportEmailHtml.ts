@@ -6,7 +6,11 @@
  * footer från quoteWorkflow/sendSigningEmail.ts buildSigningEmailHtml.
  */
 
-import type { ReportAiContent, ReportMetrics } from "./types.ts";
+import type {
+  ReportAiContent,
+  ReportMetrics,
+  ReportViewModel,
+} from "./types.ts";
 
 /**
  * Findings som inte ska driva innehåll i KUNDmailet. missing_llms_txt döljs:
@@ -53,6 +57,7 @@ export type BuildReportEmailInput = {
   periodLabel: string;
   aiContent: ReportAiContent;
   metrics: ReportMetrics;
+  viewModel?: ReportViewModel;
   hasSearchData: boolean;
   /** From-adress för en "svara på mejlet"-CTA. */
   replyToEmail: string;
@@ -80,6 +85,16 @@ export function buildReportEmailHtml(input: BuildReportEmailInput): string {
           "Klick till er sajt",
           metrics.clicks.current.toLocaleString("sv-SE"),
           deltaBadge(metrics.clicks.deltaPct),
+        ),
+      );
+    }
+    if (metrics.ctr.current != null) {
+      rows.push(
+        metricRow(
+          "↗",
+          "Andel visningar som blev klick",
+          `${metrics.ctr.current.toLocaleString("sv-SE", { maximumFractionDigits: 1 })} %`,
+          deltaBadge(metrics.ctr.deltaPct),
         ),
       );
     }
@@ -123,6 +138,13 @@ export function buildReportEmailHtml(input: BuildReportEmailInput): string {
   const safeCompany = escapeHtml(input.companyName);
   const safePeriod = escapeHtml(input.periodLabel);
   const safeMailto = `mailto:${encodeURIComponent(input.replyToEmail)}`;
+  const coverageText = input.viewModel
+    ? `${input.viewModel.coverage.available} av ${input.viewModel.coverage.total} datakällor kunde analyseras${
+        input.viewModel.coverage.missingSources.length
+          ? `. Saknas: ${input.viewModel.coverage.missingSources.join(", ")}`
+          : ""
+      }.`
+    : null;
 
   return `<!DOCTYPE html>
 <html lang="sv">
@@ -136,6 +158,11 @@ export function buildReportEmailHtml(input: BuildReportEmailInput): string {
     <div style="padding:40px;">
       <p style="font-size:15px;color:#0a0a0a;line-height:1.6;margin:0 0 16px;">${escapeHtml(aiContent.greeting)}</p>
       <p style="font-size:15px;color:#525252;line-height:1.6;margin:0 0 24px;">${escapeHtml(aiContent.summary)}</p>
+      ${
+        coverageText
+          ? `<p style="font-size:13px;color:#737373;line-height:1.5;margin:-12px 0 24px;">Datatäckning: ${escapeHtml(coverageText)}</p>`
+          : ""
+      }
 
       <table style="width:100%;border-collapse:collapse;margin:0 0 28px;">
         ${rows.join("\n")}
@@ -146,6 +173,8 @@ export function buildReportEmailHtml(input: BuildReportEmailInput): string {
         <p style="font-size:15px;color:#0a0a0a;line-height:1.6;margin:0 0 8px;">${escapeHtml(aiContent.recommended_action)}</p>
         <p style="font-size:14px;color:#525252;line-height:1.6;margin:0;">${escapeHtml(aiContent.upsell_pitch)}</p>
       </div>
+
+      <p style="font-size:14px;color:#525252;line-height:1.6;margin:0 0 24px;">Den bifogade PDF-rapporten förklarar siffrorna, visar sökord med potential och samlar vår prioriterade åtgärdsplan.</p>
 
       <div style="text-align:center;margin:32px 0 8px;">
         <a href="${safeMailto}" style="display:inline-block;padding:14px 32px;background:#2563eb;color:#fff;text-decoration:none;border-radius:8px;font-size:15px;font-weight:600;">Prata med oss om nästa steg</a>

@@ -718,6 +718,10 @@
           "type": "registry:component"
         },
         {
+          "path": "src/components/atomic-crm/layout/AppSidebar.tsx",
+          "type": "registry:component"
+        },
+        {
           "path": "src/components/atomic-crm/filters/FilterCategory.tsx",
           "type": "registry:component"
         },
@@ -838,6 +842,10 @@
           "type": "registry:component"
         },
         {
+          "path": "src/components/atomic-crm/dashboard/chartTheme.ts",
+          "type": "registry:component"
+        },
+        {
           "path": "src/components/atomic-crm/dashboard/WidgetErrorBoundary.tsx",
           "type": "registry:component"
         },
@@ -867,6 +875,10 @@
         },
         {
           "path": "src/components/atomic-crm/dashboard/RevenueGoalsTracker.tsx",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/dashboard/PipelineDonut.tsx",
           "type": "registry:component"
         },
         {
@@ -911,6 +923,10 @@
         },
         {
           "path": "src/components/atomic-crm/dashboard/DashboardStepper.tsx",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/dashboard/DashboardCard.tsx",
           "type": "registry:component"
         },
         {
@@ -1078,6 +1094,10 @@
           "type": "registry:component"
         },
         {
+          "path": "src/components/atomic-crm/companies/MonthlyReportModal.tsx",
+          "type": "registry:component"
+        },
+        {
           "path": "src/components/atomic-crm/companies/GridList.tsx",
           "type": "registry:component"
         },
@@ -1159,6 +1179,26 @@
         },
         {
           "path": "src/components/atomic-crm/companies/AutocompleteCompanyInput.tsx",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/companies/visibility/types.ts",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/companies/visibility/VisibilityTrendChart.tsx",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/companies/visibility/VisibilityStatusCard.tsx",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/companies/visibility/VisibilityMetricCard.tsx",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/companies/visibility/MetricExplanation.tsx",
           "type": "registry:component"
         },
         {

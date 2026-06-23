@@ -31,6 +31,10 @@ export interface SendMonthlyReportEmailInput {
   /** Kort textsammanfattning för email_sends.body (loggning). */
   bodyPreview: string;
   period: string; // ISO-datum för perioden, sparas i metadata
+  attachment?: {
+    filename: string;
+    content: Uint8Array;
+  } | null;
 }
 
 export interface SendMonthlyReportEmailResult {
@@ -61,6 +65,15 @@ export async function sendMonthlyReportEmail(
       to: [input.toEmail],
       subject: input.subject,
       html: input.html,
+      attachments: input.attachment
+        ? [
+            {
+              filename: input.attachment.filename,
+              content: uint8ToBase64(input.attachment.content),
+              content_type: "application/pdf",
+            },
+          ]
+        : undefined,
     }),
   });
 
@@ -111,4 +124,15 @@ export async function sendMonthlyReportEmail(
   }
 
   return { emailSendId };
+}
+
+function uint8ToBase64(bytes: Uint8Array): string {
+  let binary = "";
+  const chunkSize = 0x8000;
+  for (let offset = 0; offset < bytes.length; offset += chunkSize) {
+    binary += String.fromCharCode(
+      ...bytes.subarray(offset, Math.min(offset + chunkSize, bytes.length)),
+    );
+  }
+  return btoa(binary);
 }

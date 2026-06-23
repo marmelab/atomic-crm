@@ -20,6 +20,7 @@ const healthySite: AnalysisInput = {
     robots: true,
     llms_txt: true,
     h1: true,
+    indexable: true,
   },
   businessProfile: { found: true, rating: 4.8, reviews_count: 27 },
   searchConsole: {
@@ -79,6 +80,19 @@ describe("computeFindings", () => {
         )
         .every((f) => f.service === "AI-sök-optimering"),
     ).toBe(true);
+  });
+
+  it("flags an explicit noindex directive as a high SEO issue", () => {
+    const findings = computeFindings({
+      ...healthySite,
+      seoChecks: { ...healthySite.seoChecks!, indexable: false },
+    });
+    expect(findings.find((finding) => finding.key === "noindex")).toMatchObject(
+      {
+        severity: "high",
+        service: "SEO-optimering",
+      },
+    );
   });
 
   it("skips entire sections when source data is null (failed fetch or no access)", () => {

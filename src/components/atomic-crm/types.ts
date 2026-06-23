@@ -698,6 +698,23 @@ export type WebsiteSnapshot = {
   fetched_at: string;
   source: "manual" | "cron";
   url: string;
+  period_start?: string | null;
+  period_end?: string | null;
+  window_kind?: "legacy" | "rolling_28d" | "calendar_month";
+  data_coverage?: {
+    available_sources?: number;
+    total_sources?: number;
+    ratio?: number;
+    has_search_console?: boolean;
+    has_field_data?: boolean;
+  };
+  source_status?: Record<
+    string,
+    {
+      status: "available" | "unavailable" | "error";
+      message?: string;
+    }
+  >;
   performance_score?: number | null;
   seo_score?: number | null;
   pagespeed?: {
@@ -705,6 +722,15 @@ export type WebsiteSnapshot = {
     cls?: number | null;
     tbt_ms?: number | null;
     opportunities?: Array<{ id: string; title: string; savings_ms: number }>;
+  } | null;
+  field_data?: {
+    scope: "url" | "origin";
+    lcp_ms?: number | null;
+    inp_ms?: number | null;
+    cls?: number | null;
+    lcp_rating?: "GOOD" | "NEEDS_IMPROVEMENT" | "POOR" | null;
+    inp_rating?: "GOOD" | "NEEDS_IMPROVEMENT" | "POOR" | null;
+    cls_rating?: "GOOD" | "NEEDS_IMPROVEMENT" | "POOR" | null;
   } | null;
   seo_checks?: {
     title?: string | null;
@@ -715,6 +741,7 @@ export type WebsiteSnapshot = {
     robots?: boolean;
     llms_txt?: boolean;
     h1?: boolean;
+    indexable?: boolean | null;
   } | null;
   business_profile?: {
     found: boolean;
@@ -725,11 +752,31 @@ export type WebsiteSnapshot = {
   search_console?: {
     clicks: number;
     impressions: number;
+    ctr?: number;
     position: number;
+    period_start?: string;
+    period_end?: string;
+    data_state?: "final";
     top_queries: Array<{
       query: string;
       clicks: number;
       impressions: number;
+      ctr?: number;
+      position: number;
+    }>;
+    top_pages?: Array<{
+      page: string;
+      clicks: number;
+      impressions: number;
+      ctr: number;
+      position: number;
+    }>;
+    opportunities?: Array<{
+      kind: "low_ctr" | "position_4_10" | "position_11_20";
+      query: string;
+      clicks: number;
+      impressions: number;
+      ctr: number;
       position: number;
     }>;
   } | null;
@@ -761,6 +808,48 @@ export type ReportAiContent = {
   upsell_pitch: string;
 };
 
+export type ReportStatus = "good" | "needs_attention" | "poor" | "missing";
+
+export type ReportViewModel = {
+  version: 2;
+  companyName: string;
+  period: { start: string; end: string; label: string };
+  comparisonPeriod: { start: string; end: string } | null;
+  coverage: {
+    available: number;
+    total: number;
+    ratio: number;
+    missingSources: string[];
+  };
+  metrics: Record<string, MetricTrend | unknown> & {
+    topQueries?: Array<{ query: string; clicks: number; position: number }>;
+    topPages?: Array<{
+      page: string;
+      clicks: number;
+      impressions: number;
+      ctr: number;
+      position: number;
+    }>;
+    opportunities?: NonNullable<
+      NonNullable<WebsiteSnapshot["search_console"]>["opportunities"]
+    >;
+  };
+  statuses: {
+    googleVisibility: ReportStatus;
+    pageExperience: ReportStatus;
+    localVisibility: ReportStatus;
+    technicalFoundation: ReportStatus;
+  };
+  technicalChecks: Array<{
+    key: string;
+    label: string;
+    passed: boolean | null;
+    explanation: string;
+  }>;
+  recommendations: WebsiteFinding[];
+  primaryRecommendation: WebsiteFinding | null;
+};
+
 /** En månatlig kundrapport (draft → godkänd → skickad). Tabell: monthly_reports. */
 export type MonthlyReport = {
   company_id: Identifier;
@@ -775,6 +864,12 @@ export type MonthlyReport = {
   metrics?: Record<string, MetricTrend | unknown> | null;
   generated_html?: string | null;
   public_url?: string | null;
+  data_period_start?: string | null;
+  data_period_end?: string | null;
+  report_version?: number;
+  pdf_storage_path?: string | null;
+  pdf_generated_at?: string | null;
+  view_model?: ReportViewModel | null;
   approval_token: string;
   email_send_id?: number | null;
   error?: string | null;
