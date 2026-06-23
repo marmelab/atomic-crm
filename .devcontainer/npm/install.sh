@@ -12,3 +12,4 @@ fi
 NODE_MODULES_PATH="${WORKSPACE_FOLDER}/node_modules"
 
 mkdir -p "$NODE_MODULES_PATH" && chown -R $_CONTAINER_USER:$_CONTAINER_USER "$NODE_MODULES_PATH"
+mkdir -p "/usr/local/lib/node_modules"

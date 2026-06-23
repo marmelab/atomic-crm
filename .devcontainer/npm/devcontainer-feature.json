@@ -15,6 +15,11 @@
       "type": "volume",
       "source": "${devcontainerId}-node-modules",
       "target": "${containerWorkspaceFolder}/node_modules"
+    },
+    {
+      "type": "volume",
+      "source": "${devcontainerId}-global-node-modules",
+      "target": "/usr/local/lib/node_modules"
     }
   ]
 }

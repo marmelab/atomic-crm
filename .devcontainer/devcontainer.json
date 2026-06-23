@@ -6,13 +6,17 @@
   },
   "workspaceFolder": "/workspaces/atomic-crm",
   "workspaceMount": "source=${localWorkspaceFolder},target=${containerWorkspaceFolder},type=bind,consistency=cached",
+  "postCreateCommand": "bash .devcontainer/post-create.sh",
   "remoteUser": "node",
   "features": {
     "./claude-code": {},
     "./npm": {
       "workspaceFolder": "${containerWorkspaceFolder}"
     },
-    "./playwright": {}
+    "./playwright": {},
+    "ghcr.io/devcontainers/features/docker-in-docker:3": {
+      "moby": false
+    }
   },
   "customizations": {
     "vscode": {
