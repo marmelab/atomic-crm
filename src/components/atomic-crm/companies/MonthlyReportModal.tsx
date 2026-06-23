@@ -71,10 +71,11 @@ export const MonthlyReportModal = ({
         );
         return;
       }
-      if (result.status === "failed_ai") {
-        notify("AI-texten underkändes vid granskning — försök igen.", {
-          type: "error",
-        });
+      if (result.status.startsWith("failed")) {
+        notify(
+          "Kunde inte generera rapporttexten (AI-fel). Se rapportens felmeddelande eller försök igen.",
+          { type: "error" },
+        );
         return;
       }
       await loadReport(result.report_id);

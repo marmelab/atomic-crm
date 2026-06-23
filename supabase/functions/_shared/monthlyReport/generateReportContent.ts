@@ -81,7 +81,11 @@ export async function generateReportContent(
   if (!response.ok) {
     const errorText = await response.text();
     console.error("generateReportContent: Claude API error:", errorText);
-    throw new Error(`Anthropic API request failed: ${response.status}`);
+    // Ta med Anthropics meddelande (t.ex. "credit balance is too low") så
+    // orsaken syns i monthly_reports.error utan att behöva läsa edge-loggen.
+    throw new Error(
+      `Anthropic API request failed: ${response.status} — ${errorText.slice(0, 300)}`,
+    );
   }
 
   const result = (await response.json()) as {

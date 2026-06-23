@@ -204,21 +204,46 @@ async function generateReportForCompany(
     hasSearchData,
   });
 
-  const { content } = await generateReportContent({
-    prompt,
-    systemPrompt,
-    apiKey,
-    validation: {
-      supabase: supabaseAdmin,
-      notifyDiscord: async ({ validationError }) => {
-        await notifyReportDiscord({
-          title: "Månadsrapport: AI-text underkänd",
-          description: `**Kund:** ${company.name}\n**Fel:** ${validationError}`,
-          color: 15105570, // amber
-        });
+  let content;
+  try {
+    const result = await generateReportContent({
+      prompt,
+      systemPrompt,
+      apiKey,
+      validation: {
+        supabase: supabaseAdmin,
+        notifyDiscord: async ({ validationError }) => {
+          await notifyReportDiscord({
+            title: "Månadsrapport: AI-text underkänd",
+            description: `**Kund:** ${company.name}\n**Fel:** ${validationError}`,
+            color: 15105570, // amber
+          });
+        },
       },
-    },
-  });
+    });
+    content = result.content;
+  } catch (aiError) {
+    // AI-anropet kastade (API-fel: nyckel/kredit/modell). Spara exakt orsak i
+    // raden i stället för att bara kasta 500 utan spår.
+    const message =
+      aiError instanceof Error ? aiError.message : String(aiError);
+    const id = await writeRow({
+      status: "failed",
+      snapshot_id: latest.id ?? null,
+      previous_snapshot_id: previous?.id ?? null,
+      recipient_email: recipient.email,
+      recipient_name: recipient.name,
+      metrics,
+      selected_upsells: upsells,
+      error: `AI-anrop misslyckades: ${message}`,
+    });
+    await notifyReportDiscord({
+      title: "Månadsrapport: AI-anrop misslyckades",
+      description: `**Kund:** ${company.name}\n**Fel:** ${message}`,
+      color: 15548997, // röd
+    });
+    return { report_id: id, status: "failed_ai_error" };
+  }
 
   if (!content) {
     const id = await writeRow({
