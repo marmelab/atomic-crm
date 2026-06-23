@@ -73,9 +73,14 @@ export function brandTokens(
 export function isBranded(query: string, tokens: string[]): boolean {
   if (!tokens.length) return false;
   const normalized = normalize(query);
+  const words = new Set(normalized.split(" "));
   const compact = normalized.replace(/\s+/g, "");
-  return tokens.some(
-    (token) => normalized.includes(token) || compact.includes(token),
+  // Långa tokens (>= 6 tecken, t.ex. domän-etikett eller särskiljande namn)
+  // matchas mot hela den ihopskrivna frågan. Korta tokens måste matcha ett
+  // HELT ord — annars klassas branschord som "bygg" eller "data" felaktigt
+  // som varumärke i generiska tjänstesökningar ("byggmaterial pris").
+  return tokens.some((token) =>
+    token.length >= 6 ? compact.includes(token) : words.has(token),
   );
 }
 

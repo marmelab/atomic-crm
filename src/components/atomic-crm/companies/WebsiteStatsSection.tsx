@@ -740,7 +740,10 @@ export function WebsiteStatsSection({ company }: { company: Company }) {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                {gsc?.branded || gsc?.non_branded ? (
+                {(gsc?.branded?.clicks ?? 0) > 0 ||
+                (gsc?.non_branded?.clicks ?? 0) > 0 ||
+                (gsc?.branded?.impressions ?? 0) > 0 ||
+                (gsc?.non_branded?.impressions ?? 0) > 0 ? (
                   <div className="space-y-3">
                     <div className="grid gap-3 sm:grid-cols-2">
                       <div className="rounded-md border p-3">
@@ -909,12 +912,16 @@ export function WebsiteStatsSection({ company }: { company: Company }) {
                 </div>
                 <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
                   <VisibilityMetricCard
-                    label="Verklig LCP"
+                    label={
+                      selected.field_data?.lcp_ms != null
+                        ? "Verklig LCP"
+                        : "LCP (labbtest)"
+                    }
                     value={
                       selected.field_data?.lcp_ms != null
                         ? `${(selected.field_data.lcp_ms / 1000).toFixed(1)} s`
                         : selected.pagespeed?.lcp_ms != null
-                          ? `${(selected.pagespeed.lcp_ms / 1000).toFixed(1)} s (labbtest)`
+                          ? `${(selected.pagespeed.lcp_ms / 1000).toFixed(1)} s`
                           : "Saknas"
                     }
                     trend={
@@ -945,7 +952,7 @@ export function WebsiteStatsSection({ company }: { company: Company }) {
                     label="Verklig INP"
                     value={
                       selected.field_data?.inp_ms == null
-                        ? "Endast verklig data"
+                        ? "Ej tillgängligt"
                         : `${Math.round(selected.field_data.inp_ms)} ms`
                     }
                     trend={
@@ -971,12 +978,16 @@ export function WebsiteStatsSection({ company }: { company: Company }) {
                     }}
                   />
                   <VisibilityMetricCard
-                    label="Verklig CLS"
+                    label={
+                      selected.field_data?.cls != null
+                        ? "Verklig CLS"
+                        : "CLS (labbtest)"
+                    }
                     value={
                       selected.field_data?.cls != null
                         ? selected.field_data.cls.toFixed(2)
                         : selected.pagespeed?.cls != null
-                          ? `${selected.pagespeed.cls.toFixed(2)} (labbtest)`
+                          ? selected.pagespeed.cls.toFixed(2)
                           : "Saknas"
                     }
                     trend={
@@ -1007,8 +1018,9 @@ export function WebsiteStatsSection({ company }: { company: Company }) {
                     label="Lighthouse prestanda"
                     value={selected.performance_score?.toString() ?? "Saknas"}
                     trend={
+                      selected.performance_score != null &&
                       selected.pagespeed?.desktop?.performance_score != null
-                        ? `Mobil · Desktop ${selected.pagespeed.desktop.performance_score} · 0–100`
+                        ? `Mobil ${selected.performance_score} · Desktop ${selected.pagespeed.desktop.performance_score} · 0–100`
                         : "Syntetiskt mobiltest · 0–100"
                     }
                     explanation={{
@@ -1025,8 +1037,8 @@ export function WebsiteStatsSection({ company }: { company: Company }) {
                               null
                             ? `Mobil ${selected.performance_score}/100, desktop ${selected.pagespeed.desktop.performance_score}/100. Mobil väger tyngst (Google är mobile-first).`
                             : selected.performance_score >= 80
-                              ? "Labbtestet ser bra ut."
-                              : "Labbtestet visar förbättringsbehov.",
+                              ? "Labbtestet ser bra ut (mobil)."
+                              : "Labbtestet visar förbättringsbehov (mobil).",
                       action:
                         "Använd Lighthouse-förslagen för att prioritera bilder, skript och rendering.",
                     }}
@@ -1038,27 +1050,33 @@ export function WebsiteStatsSection({ company }: { company: Company }) {
             <VisibilityStatusCard
               title="Indexering & synlighet"
               status={
-                selected.seo_checks?.indexable === false
-                  ? "poor"
-                  : gsc && gsc.impressions === 0
+                !selected.seo_checks && !gsc
+                  ? "missing"
+                  : selected.seo_checks?.indexable === false
                     ? "poor"
-                    : gsc && gsc.impressions > 0
-                      ? "good"
-                      : "attention"
+                    : gsc && gsc.impressions === 0
+                      ? "poor"
+                      : gsc && gsc.impressions > 0
+                        ? "good"
+                        : "attention"
               }
               detail={
-                selected.seo_checks?.indexable === false
-                  ? "Startsidan är blockerad (noindex) — kan inte visas i Google."
-                  : [
-                      selected.seo_checks?.sitemap_url_count != null
-                        ? `${selected.seo_checks.sitemap_url_count.toLocaleString("sv-SE")} sidor i sitemap`
-                        : "Sitemap saknas eller kunde inte läsas",
-                      gsc
-                        ? `${gsc.impressions.toLocaleString("sv-SE")} visningar i Google`
-                        : null,
-                    ]
-                      .filter(Boolean)
-                      .join(" · ")
+                !selected.seo_checks && !gsc
+                  ? "Inga index- eller crawl-data tillgängliga för perioden."
+                  : selected.seo_checks?.indexable === false
+                    ? "Startsidan är blockerad (noindex) — kan inte visas i Google."
+                    : [
+                        selected.seo_checks
+                          ? selected.seo_checks.sitemap_url_count != null
+                            ? `${selected.seo_checks.sitemap_url_count.toLocaleString("sv-SE")} sidor i sitemap`
+                            : "Sitemap saknas eller kunde inte läsas"
+                          : null,
+                        gsc
+                          ? `${gsc.impressions.toLocaleString("sv-SE")} visningar i Google`
+                          : null,
+                      ]
+                        .filter(Boolean)
+                        .join(" · ")
               }
               icon={<FileText className="size-4" />}
             />

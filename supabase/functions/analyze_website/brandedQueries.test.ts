@@ -42,6 +42,17 @@ describe("isBranded", () => {
   it("utan tokens är inget branded", () => {
     expect(isBranded("vad som helst", [])).toBe(false);
   });
+
+  it("klassar INTE branschord i företagsnamnet som varumärke (ordgräns)", () => {
+    const buildTokens = brandTokens(
+      "Jönköpings Bygg AB",
+      "https://jonkopingsbygg.se",
+    );
+    // "bygg" (kort token) får bara matcha som helt ord, inte inuti "byggmaterial".
+    expect(isBranded("köpa byggmaterial billigt", buildTokens)).toBe(false);
+    // Men en faktisk varumärkessökning fångas via domän-etiketten.
+    expect(isBranded("jonkopingsbygg", buildTokens)).toBe(true);
+  });
 });
 
 describe("classifyBrandedQueries", () => {

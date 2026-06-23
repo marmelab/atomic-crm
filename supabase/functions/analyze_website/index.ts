@@ -419,11 +419,16 @@ function countLocs(xml: string): number {
 }
 
 async function fetchSitemapText(url: string): Promise<string | null> {
+  // Gzippade sitemaps (.xml.gz) kan vi inte läsa som text — returnera null
+  // (okänt) i stället för att räkna 0 <loc> på binärdata och låtsas "tom".
+  if (/\.gz(\?|$)/i.test(url)) return null;
   try {
     const response = await fetchWithTimeout(url, FETCH_TIMEOUT_MS, {
       redirect: "follow",
     });
     if (!response.ok) return null;
+    const contentType = response.headers.get("content-type") ?? "";
+    if (/gzip|octet-stream/i.test(contentType)) return null;
     // Skydda minnet — sitemaps är sällan stora, men kapa ändå.
     return (await response.text()).slice(0, 5_000_000);
   } catch {
@@ -433,8 +438,8 @@ async function fetchSitemapText(url: string): Promise<string | null> {
 
 /**
  * Räknar antal URL:er i sajtens sitemap. Hanterar sitemap-index en nivå djupt
- * (hämtar upp till 5 under-sitemaps för att skydda funktionens tidsbudget —
- * räknar då "minst" detta antal). null = ingen läsbar sitemap.
+ * (hämtar upp till 5 under-sitemaps parallellt för att skydda funktionens
+ * tidsbudget — räknar då "minst" detta antal). null = ingen läsbar sitemap.
  */
 async function countSitemapUrls(
   origin: string,
@@ -447,14 +452,24 @@ async function countSitemapUrls(
 
   if (/<sitemapindex/i.test(xml)) {
     const children = [...xml.matchAll(/<loc>\s*([^<\s]+)\s*<\/loc>/gi)]
-      .map((match) => match[1])
+      .map((match) => {
+        // Relativa <loc> (vanligt i WordPress/SSG) måste resolvas mot
+        // sitemap-URL:en, annars kastar fetch på en relativ sökväg.
+        try {
+          return new URL(match[1], sitemapUrl).toString();
+        } catch {
+          return null;
+        }
+      })
+      .filter((child): child is string => child != null)
       .slice(0, 5);
-    let total = 0;
-    for (const child of children) {
-      const childXml = await fetchSitemapText(child);
-      if (childXml) total += countLocs(childXml);
-    }
-    return total;
+    const counts = await Promise.all(
+      children.map(async (child) => {
+        const childXml = await fetchSitemapText(child);
+        return childXml ? countLocs(childXml) : 0;
+      }),
+    );
+    return counts.reduce((sum, count) => sum + count, 0);
   }
   return countLocs(xml);
 }
