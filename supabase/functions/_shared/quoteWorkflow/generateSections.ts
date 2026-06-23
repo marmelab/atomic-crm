@@ -38,7 +38,7 @@ import {
   summarizeZodError,
 } from "./validationReporter.ts";
 
-const ANTHROPIC_MODEL = "claude-sonnet-4-20250514";
+const ANTHROPIC_MODEL = "claude-sonnet-4-6";
 const ANTHROPIC_MAX_TOKENS = 3000;
 const ANTHROPIC_API_VERSION = "2023-06-01";
 

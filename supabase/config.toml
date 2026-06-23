@@ -185,3 +185,9 @@ verify_jwt = false
 verify_jwt = false
 [functions.send_monthly_report]
 verify_jwt = false
+[functions.analyze_meeting]
+verify_jwt = false
+[functions.fireflies_webhook]
+verify_jwt = false
+[functions.fetch_fireflies_transcripts]
+verify_jwt = false
