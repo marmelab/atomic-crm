@@ -50,6 +50,8 @@ export type SeoChecks = {
   og_tags: boolean;
   schema_org: boolean;
   sitemap: boolean;
+  /** Antal URL:er i sitemap (en nivå sitemap-index). null = ingen läsbar sitemap. */
+  sitemap_url_count?: number | null;
   robots: boolean;
   llms_txt: boolean;
   h1: boolean;

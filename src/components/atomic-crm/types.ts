@@ -749,6 +749,7 @@ export type WebsiteSnapshot = {
     og_tags?: boolean;
     schema_org?: boolean;
     sitemap?: boolean;
+    sitemap_url_count?: number | null;
     robots?: boolean;
     llms_txt?: boolean;
     h1?: boolean;

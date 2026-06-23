@@ -412,6 +412,51 @@ async function probeExists(url: string): Promise<boolean> {
   }
 }
 
+function countLocs(xml: string): number {
+  return (xml.match(/<loc>/gi) ?? []).length;
+}
+
+async function fetchSitemapText(url: string): Promise<string | null> {
+  try {
+    const response = await fetchWithTimeout(url, FETCH_TIMEOUT_MS, {
+      redirect: "follow",
+    });
+    if (!response.ok) return null;
+    // Skydda minnet — sitemaps är sällan stora, men kapa ändå.
+    return (await response.text()).slice(0, 5_000_000);
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Räknar antal URL:er i sajtens sitemap. Hanterar sitemap-index en nivå djupt
+ * (hämtar upp till 5 under-sitemaps för att skydda funktionens tidsbudget —
+ * räknar då "minst" detta antal). null = ingen läsbar sitemap.
+ */
+async function countSitemapUrls(
+  origin: string,
+  robotsBody: string,
+): Promise<number | null> {
+  const fromRobots = robotsBody.match(/sitemap:\s*(\S+)/i)?.[1];
+  const sitemapUrl = fromRobots ?? `${origin}/sitemap.xml`;
+  const xml = await fetchSitemapText(sitemapUrl);
+  if (xml == null) return null;
+
+  if (/<sitemapindex/i.test(xml)) {
+    const children = [...xml.matchAll(/<loc>\s*([^<\s]+)\s*<\/loc>/gi)]
+      .map((match) => match[1])
+      .slice(0, 5);
+    let total = 0;
+    for (const child of children) {
+      const childXml = await fetchSitemapText(child);
+      if (childXml) total += countLocs(childXml);
+    }
+    return total;
+  }
+  return countLocs(xml);
+}
+
 async function crawlSeoChecks(url: string): Promise<SeoChecks | null> {
   let html: string;
   let xRobotsTag = "";
@@ -460,12 +505,11 @@ async function crawlSeoChecks(url: string): Promise<SeoChecks | null> {
     // robots saknas — hanteras nedan
   }
 
-  const [sitemapExists, llmsExists] = await Promise.all([
-    /sitemap:/i.test(robotsBody)
-      ? Promise.resolve(true)
-      : probeExists(`${origin}/sitemap.xml`),
+  const [llmsExists, sitemapUrlCount] = await Promise.all([
     probeExists(`${origin}/llms.txt`),
+    countSitemapUrls(origin, robotsBody),
   ]);
+  const sitemapExists = sitemapUrlCount != null || /sitemap:/i.test(robotsBody);
 
   return {
     title: titleMatch?.[1]?.trim() || null,
@@ -473,6 +517,7 @@ async function crawlSeoChecks(url: string): Promise<SeoChecks | null> {
     og_tags: /<meta[^>]+property=["']og:/i.test(html),
     schema_org: /application\/ld\+json/i.test(html),
     sitemap: sitemapExists,
+    sitemap_url_count: sitemapUrlCount,
     robots: robotsBody.length > 0,
     llms_txt: llmsExists,
     h1: /<h1[\s>]/i.test(html),

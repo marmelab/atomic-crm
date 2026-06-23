@@ -1022,6 +1022,34 @@ export function WebsiteStatsSection({ company }: { company: Company }) {
               </CardContent>
             </Card>
 
+            <VisibilityStatusCard
+              title="Indexering & synlighet"
+              status={
+                selected.seo_checks?.indexable === false
+                  ? "poor"
+                  : gsc && gsc.impressions === 0
+                    ? "poor"
+                    : gsc && gsc.impressions > 0
+                      ? "good"
+                      : "attention"
+              }
+              detail={
+                selected.seo_checks?.indexable === false
+                  ? "Startsidan är blockerad (noindex) — kan inte visas i Google."
+                  : [
+                      selected.seo_checks?.sitemap_url_count != null
+                        ? `${selected.seo_checks.sitemap_url_count.toLocaleString("sv-SE")} sidor i sitemap`
+                        : "Sitemap saknas eller kunde inte läsas",
+                      gsc
+                        ? `${gsc.impressions.toLocaleString("sv-SE")} visningar i Google`
+                        : null,
+                    ]
+                      .filter(Boolean)
+                      .join(" · ")
+              }
+              icon={<FileText className="size-4" />}
+            />
+
             <div className="grid gap-4 lg:grid-cols-2">
               <Card>
                 <CardHeader>
