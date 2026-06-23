@@ -14,12 +14,12 @@ import { useGetList, useTranslate } from "ra-core";
 import { memo, useMemo } from "react";
 
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 
 import type { RevenueGoal } from "../root/ConfigurationContext";
 import { useConfigurationContext } from "../root/ConfigurationContext";
 import type { Deal } from "../types";
+import { DashboardCard } from "./DashboardCard";
 
 const DEFAULT_LOCALE = "en-US";
 
@@ -99,72 +99,62 @@ export const RevenueGoalsTracker = memo(() => {
   }
 
   return (
-    <div className="flex flex-col gap-2">
-      <div className="flex items-center mb-2">
-        <div className="mr-3 flex">
-          <Goal className="text-muted-foreground w-6 h-6" />
-        </div>
-        <h2 className="text-xl font-semibold text-muted-foreground">
-          {translate("crm.dashboard.revenue_goals", {
-            _: "Revenue Goals",
-          })}
-        </h2>
-      </div>
-      <Card>
-        <CardContent className="flex flex-col gap-5">
-          {goalProgress.map((goal, index) => (
-            <div key={index} className="flex flex-col gap-2">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <span className="font-medium text-sm">{goal.label}</span>
-                  <Badge variant="outline" className="text-xs">
-                    {goal.periodLabel}
-                  </Badge>
-                </div>
-                <span className="text-sm font-semibold">
-                  {goal.percentage.toFixed(0)}%
-                </span>
-              </div>
-              <Progress
-                value={goal.percentage}
-                className="h-3"
-                style={
-                  {
-                    "--color-primary":
-                      goal.percentage >= 100
-                        ? "#22c55e"
-                        : goal.percentage >= 50
-                          ? "#f59e0b"
-                          : "#3b82f6",
-                  } as React.CSSProperties
-                }
-              />
-              <div className="flex justify-between text-xs text-muted-foreground">
-                <span>
-                  {goal.revenue.toLocaleString(locale, {
-                    style: "currency",
-                    currency,
-                    maximumFractionDigits: 0,
-                  })}{" "}
-                  {translate("crm.dashboard.revenue_goals.of", { _: "of" })}{" "}
-                  {goal.amount.toLocaleString(locale, {
-                    style: "currency",
-                    currency,
-                    maximumFractionDigits: 0,
-                  })}
-                </span>
-                {goal.percentage >= 100 && (
-                  <span className="text-green-600 font-medium">
-                    {translate("crm.dashboard.revenue_goals.reached", {
-                      _: "Goal reached!",
-                    })}
-                  </span>
-                )}
-              </div>
+    <DashboardCard
+      title={translate("crm.dashboard.revenue_goals", { _: "Säljmål" })}
+      icon={Goal}
+      contentClassName="flex flex-col gap-5 p-5"
+    >
+      {goalProgress.map((goal, index) => (
+        <div key={index} className="flex flex-col gap-2">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <span className="font-medium text-sm">{goal.label}</span>
+              <Badge variant="outline" className="text-xs">
+                {goal.periodLabel}
+              </Badge>
             </div>
-          ))}
-        </CardContent>
-      </Card>
-    </div>
+            <span className="text-sm font-semibold">
+              {goal.percentage.toFixed(0)}%
+            </span>
+          </div>
+          <Progress
+            value={goal.percentage}
+            className="h-3"
+            style={
+              {
+                "--color-primary":
+                  goal.percentage >= 100
+                    ? "var(--color-chart-2)"
+                    : goal.percentage >= 50
+                      ? "var(--color-chart-3)"
+                      : "var(--color-primary)",
+              } as React.CSSProperties
+            }
+          />
+          <div className="flex justify-between text-xs text-muted-foreground">
+            <span>
+              {goal.revenue.toLocaleString(locale, {
+                style: "currency",
+                currency,
+                maximumFractionDigits: 0,
+              })}{" "}
+              {translate("crm.dashboard.revenue_goals.of", { _: "of" })}{" "}
+              {goal.amount.toLocaleString(locale, {
+                style: "currency",
+                currency,
+                maximumFractionDigits: 0,
+              })}
+            </span>
+            {goal.percentage >= 100 && (
+              <span className="text-green-600 font-medium">
+                {translate("crm.dashboard.revenue_goals.reached", {
+                  _: "Goal reached!",
+                })}
+              </span>
+            )}
+          </div>
+        </div>
+      ))}
+    </DashboardCard>
   );
 });

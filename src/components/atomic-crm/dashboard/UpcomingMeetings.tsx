@@ -1,9 +1,9 @@
 import { CalendarDays } from "lucide-react";
 import { useGetList, useTranslate } from "ra-core";
-import { Card } from "@/components/ui/card";
 
 import { CalendarAgenda } from "../calendar/CalendarAgenda";
 import type { CalendarEvent } from "../calendar/types";
+import { DashboardCard } from "./DashboardCard";
 
 const isUpcoming = (event: CalendarEvent) => {
   if (event.status === "cancelled") {
@@ -22,18 +22,11 @@ export const UpcomingMeetings = () => {
   const events = (data ?? []).filter(isUpcoming);
 
   return (
-    <div className="flex flex-col gap-2">
-      <div className="flex items-center">
-        <div className="mr-3 flex">
-          <CalendarDays className="text-muted-foreground w-6 h-6" />
-        </div>
-        <h2 className="text-xl font-semibold text-muted-foreground flex-1">
-          {translate("crm.dashboard.upcoming_meetings")}
-        </h2>
-      </div>
-      <Card className="p-4 mb-2">
-        <CalendarAgenda events={events} isPending={isPending} compact />
-      </Card>
-    </div>
+    <DashboardCard
+      title={translate("crm.dashboard.upcoming_meetings")}
+      icon={CalendarDays}
+    >
+      <CalendarAgenda events={events} isPending={isPending} compact />
+    </DashboardCard>
   );
 };
