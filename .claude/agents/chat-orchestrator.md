@@ -552,8 +552,7 @@ TASK-XXX: {
   stage: "DEV" | "REVIEW" | "MERGE" | "DONE" | "FAILED",
   retries: 0..2,
   dev_output: "DONE: branch=... commit=... files=[...]" | null,
-  reviews: { quality: "APPROVED" | "REJECTED: ..." | null,
-             test:    "APPROVED" | "REJECTED: ..." | null }
+  reviews: { quality: "APPROVED" | "REJECTED: ..." | null }
 }
 ```
 

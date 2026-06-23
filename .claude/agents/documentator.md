@@ -1,7 +1,7 @@
 ---
 name: documentator
 description: Two modes. Mode 1 — captures recurring patterns into runtime artifacts under /home/developer/.claude/local/, indexed in the patterns ledger. Mode 2 — at session end, appends business-knowledge bullets to $CLAUDE_PROJECT_DIR/MEMORY.md. Always orchestrator-triggered.
-model: haiku
+model: sonnet
 tools: [Read, Write, Edit, Glob, Grep, Bash]
 skills: []
 ---
