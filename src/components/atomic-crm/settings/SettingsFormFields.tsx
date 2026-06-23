@@ -58,6 +58,11 @@ const SECTIONS = [
     label: "crm.settings.sections.revenue_goals",
     fallback: "Revenue Goals",
   },
+  {
+    id: "monthly-report",
+    label: "crm.settings.sections.monthly_report",
+    fallback: "Månadsrapport",
+  },
 ] as const;
 
 /** Ensure every item in a { value, label } array has a value (slug from label). */
@@ -153,6 +158,16 @@ export const transformSettingsFormValues = (data: Record<string, any>) => ({
       amount: Number(g.amount) || 0,
       period: g.period ?? "monthly",
     })),
+    monthlyReport: {
+      upsellCatalog: (data.monthlyReport?.upsellCatalog ?? []).map(
+        (o: Record<string, any>) => ({
+          service: o.service ?? "",
+          label: o.label ?? "",
+          description: o.description ?? "",
+          pitch: o.pitch ?? "",
+        }),
+      ),
+    },
   } as ConfigurationContextValue,
 });
 
@@ -644,6 +659,31 @@ const RevenueGoalsFields = () => {
   );
 };
 
+const MonthlyReportFields = () => {
+  const translate = useTranslate();
+  return (
+    <>
+      <p className="text-sm text-muted-foreground">
+        {translate("crm.settings.monthly_report.description", {
+          _: "Upsell-katalogen styr vilka tjänster månadsrapporten föreslår. 'Tjänst' måste matcha bristanalysens tjänstenamn exakt (t.ex. SEO-optimering, Google Business-paket). Inga priser — pris tas i dialog.",
+        })}
+      </p>
+      <ArrayInput
+        source="monthlyReport.upsellCatalog"
+        label={false}
+        helperText={false}
+      >
+        <SimpleFormIterator disableReordering>
+          <TextInput source="service" label="Tjänst (matchar brist)" />
+          <TextInput source="label" label="Rubrik" />
+          <TextAreaInput source="description" label="Behov (kundvänd mening)" />
+          <TextAreaInput source="pitch" label="Pitch-vinkel" />
+        </SimpleFormIterator>
+      </ArrayInput>
+    </>
+  );
+};
+
 const SECTION_COMPONENTS: Record<
   (typeof SECTIONS)[number]["id"],
   () => React.JSX.Element
@@ -656,6 +696,7 @@ const SECTION_COMPONENTS: Record<
   notes: NotesFields,
   tasks: TasksFields,
   "revenue-goals": RevenueGoalsFields,
+  "monthly-report": MonthlyReportFields,
 };
 
 /* ──────────────────────────────── Layouts ──────────────────────────────── */

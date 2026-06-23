@@ -1,7 +1,12 @@
 import { useMemo } from "react";
 import { useStore } from "ra-core";
 
-import type { DealStage, LabeledValue, NoteStatus } from "../types";
+import type {
+  DealStage,
+  LabeledValue,
+  NoteStatus,
+  UpsellOffer,
+} from "../types";
 import { defaultConfiguration } from "./defaultConfiguration";
 
 export const CONFIGURATION_STORE_KEY = "app.configuration";
@@ -50,6 +55,8 @@ export interface ConfigurationContextValue {
   sellerCompany: SellerCompanyInfo;
   proposalKbTemplate: string;
   revenueGoals: RevenueGoal[];
+  /** Upsell-katalog för månadsrapporten (utan pris). */
+  monthlyReport?: { upsellCatalog: UpsellOffer[] };
 }
 
 export const useConfigurationContext = () => {

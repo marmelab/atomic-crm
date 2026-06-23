@@ -5,14 +5,37 @@ import {
   ArrowDownRight,
   ArrowUpRight,
   ChartLine,
+  FileText,
   Loader2,
   RefreshCw,
 } from "lucide-react";
 import { useState } from "react";
 import { useDataProvider, useGetList, useNotify } from "ra-core";
 
+import { MonthlyReportModal } from "./MonthlyReportModal";
 import type { CrmDataProvider } from "../providers/types";
-import type { Company, WebsiteFinding, WebsiteSnapshot } from "../types";
+import type {
+  Company,
+  MonthlyReport,
+  WebsiteFinding,
+  WebsiteSnapshot,
+} from "../types";
+
+const REPORT_STATUS_STYLES: Record<MonthlyReport["status"], string> = {
+  draft: "bg-sky-100 text-sky-800 border-sky-200",
+  approved: "bg-amber-100 text-amber-800 border-amber-200",
+  sent: "bg-green-100 text-green-800 border-green-200",
+  failed: "bg-red-100 text-red-800 border-red-200",
+  skipped: "bg-muted text-muted-foreground",
+};
+
+const REPORT_STATUS_LABELS: Record<MonthlyReport["status"], string> = {
+  draft: "Utkast",
+  approved: "Godkänd",
+  sent: "Skickad",
+  failed: "Misslyckad",
+  skipped: "Hoppad",
+};
 
 /**
  * Hemsidestatistik på Kund-fliken (Fas 2 av kundregistret):
@@ -99,12 +122,22 @@ export const WebsiteStatsSection = ({ company }: { company: Company }) => {
   const dataProvider = useDataProvider<CrmDataProvider>();
   const notify = useNotify();
   const [analyzing, setAnalyzing] = useState(false);
+  const [reportOpen, setReportOpen] = useState(false);
 
   const { data: snapshots, refetch } = useGetList<WebsiteSnapshot>(
     "website_snapshots",
     {
       pagination: { page: 1, perPage: 2 },
       sort: { field: "fetched_at", order: "DESC" },
+      filter: { company_id: company.id },
+    },
+  );
+
+  const { data: reports, refetch: refetchReports } = useGetList<MonthlyReport>(
+    "monthly_reports",
+    {
+      pagination: { page: 1, perPage: 3 },
+      sort: { field: "period", order: "DESC" },
       filter: { company_id: company.id },
     },
   );
@@ -140,6 +173,28 @@ export const WebsiteStatsSection = ({ company }: { company: Company }) => {
       )}
       {analyzing ? "Analyserar (~30 s)..." : "Uppdatera statistik"}
     </Button>
+  );
+
+  const reportButton = (
+    <Button
+      variant="outline"
+      size="sm"
+      onClick={() => setReportOpen(true)}
+      disabled={!latest}
+      title={latest ? undefined : "Kör en statistikanalys först"}
+    >
+      <FileText className="w-4 h-4 mr-1" />
+      Skapa & skicka rapport
+    </Button>
+  );
+
+  const reportModal = (
+    <MonthlyReportModal
+      company={company}
+      open={reportOpen}
+      onOpenChange={setReportOpen}
+      onSent={() => refetchReports()}
+    />
   );
 
   if (!latest) {
@@ -185,7 +240,10 @@ export const WebsiteStatsSection = ({ company }: { company: Company }) => {
             <ChartLine className="w-4 h-4" />
             Hemsidestatistik
           </CardTitle>
-          {analyzeButton}
+          <div className="flex items-center gap-2">
+            {reportButton}
+            {analyzeButton}
+          </div>
         </div>
         <p className="text-xs text-muted-foreground">
           Senast uppdaterad {formatDateTime(latest.fetched_at)} ·{" "}
@@ -370,7 +428,38 @@ export const WebsiteStatsSection = ({ company }: { company: Company }) => {
             </div>
           )}
         </div>
+
+        {reports && reports.length > 0 ? (
+          <div className="border-t pt-3">
+            <p className="font-medium mb-2">Senaste rapporter</p>
+            <ul className="flex flex-col gap-1">
+              {reports.map((report) => (
+                <li
+                  key={report.id}
+                  className="flex items-center justify-between gap-2 text-sm"
+                >
+                  <span className="text-muted-foreground">
+                    {new Date(`${report.period}T00:00:00Z`).toLocaleDateString(
+                      "sv-SE",
+                      { month: "long", year: "numeric", timeZone: "UTC" },
+                    )}
+                    {report.sent_at
+                      ? ` · skickad till ${report.recipient_email ?? "—"}`
+                      : ""}
+                  </span>
+                  <Badge
+                    variant="outline"
+                    className={REPORT_STATUS_STYLES[report.status]}
+                  >
+                    {REPORT_STATUS_LABELS[report.status]}
+                  </Badge>
+                </li>
+              ))}
+            </ul>
+          </div>
+        ) : null}
       </CardContent>
+      {reportModal}
     </Card>
   );
 };

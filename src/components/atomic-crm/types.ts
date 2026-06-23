@@ -736,3 +736,49 @@ export type WebsiteSnapshot = {
   findings: WebsiteFinding[];
   created_at: string;
 } & Pick<RaRecord, "id">;
+
+/** Ett upsell-erbjudande i månadsrapport-katalogen (utan pris — pris tas i dialog). */
+export type UpsellOffer = {
+  service: string;
+  label: string;
+  description: string;
+  pitch: string;
+};
+
+/** En trend för ett mått i månadsrapporten. */
+export type MetricTrend = {
+  current: number | null;
+  previous: number | null;
+  deltaPct: number | null;
+  deltaAbsolute: number | null;
+};
+
+/** AI-genererat, kundvänt rapportinnehåll. */
+export type ReportAiContent = {
+  greeting: string;
+  summary: string;
+  recommended_action: string;
+  upsell_pitch: string;
+};
+
+/** En månatlig kundrapport (draft → godkänd → skickad). Tabell: monthly_reports. */
+export type MonthlyReport = {
+  company_id: Identifier;
+  period: string; // YYYY-MM-01
+  snapshot_id?: number | null;
+  previous_snapshot_id?: number | null;
+  status: "draft" | "approved" | "sent" | "failed" | "skipped";
+  recipient_email?: string | null;
+  recipient_name?: string | null;
+  ai_content?: ReportAiContent | null;
+  selected_upsells: UpsellOffer[];
+  metrics?: Record<string, MetricTrend | unknown> | null;
+  generated_html?: string | null;
+  public_url?: string | null;
+  approval_token: string;
+  email_send_id?: number | null;
+  error?: string | null;
+  approved_at?: string | null;
+  sent_at?: string | null;
+  created_at: string;
+} & Pick<RaRecord, "id">;

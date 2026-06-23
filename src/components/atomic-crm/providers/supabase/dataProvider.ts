@@ -836,6 +836,51 @@ const dataProviderWithCustomMethods = {
     }
     return data;
   },
+  async generateMonthlyReport(
+    companyId: Identifier,
+  ): Promise<{ success: true; report_id: number | null; status: string }> {
+    const { data, error } = await supabase.functions.invoke(
+      "generate_monthly_reports",
+      {
+        method: "POST",
+        body: { company_id: companyId },
+      },
+    );
+    if (error || !data) {
+      throw new Error("Failed to generate monthly report");
+    }
+    return data;
+  },
+  async sendMonthlyReport(
+    reportId: Identifier,
+    overrides?: {
+      recipient_email?: string;
+      recipient_name?: string;
+      ai_content?: {
+        greeting: string;
+        summary: string;
+        recommended_action: string;
+        upsell_pitch: string;
+      };
+    },
+  ): Promise<{
+    success: true;
+    report_id: number;
+    status: string;
+    email_send_id: number | null;
+  }> {
+    const { data, error } = await supabase.functions.invoke(
+      "send_monthly_report",
+      {
+        method: "POST",
+        body: { report_id: reportId, overrides },
+      },
+    );
+    if (error || !data) {
+      throw new Error("Failed to send monthly report");
+    }
+    return data;
+  },
   async expireOverdueQuotes(): Promise<{ affected: number }> {
     const { data, error } = await supabase.rpc("expire_overdue_quotes");
     if (error) {
