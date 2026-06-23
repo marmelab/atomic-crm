@@ -4,11 +4,10 @@ import type { Contact, ContactNote } from "../types";
 import { CallStatsWidget } from "./CallStatsWidget";
 import { DashboardActivityLog } from "./DashboardActivityLog";
 import { DashboardStepper } from "./DashboardStepper";
-import { DealStageFunnel } from "./DealStageFunnel";
-import { DealsChart } from "./DealsChart";
 import { FollowUpsDueToday } from "./FollowUpsDueToday";
 import { KpiSummaryRow } from "./KpiSummaryRow";
 import { LeadsMissingNextStep } from "./LeadsMissingNextStep";
+import { PipelineDonut } from "./PipelineDonut";
 import { RevenueGoalsTracker } from "./RevenueGoalsTracker";
 import { RevenueTrendChart } from "./RevenueTrendChart";
 import { SalesTrackingWidget } from "./SalesTrackingWidget";
@@ -62,52 +61,48 @@ export const Dashboard = () => {
         </WidgetErrorBoundary>
       ) : null}
 
-      <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
-        <div className="md:col-span-8">
-          <div className="flex flex-col gap-6">
-            {totalDeal ? (
-              <>
-                <WidgetErrorBoundary>
-                  <RevenueTrendChart />
-                </WidgetErrorBoundary>
-                <WidgetErrorBoundary>
-                  <DealsChart />
-                </WidgetErrorBoundary>
-                <WidgetErrorBoundary>
-                  <DealStageFunnel />
-                </WidgetErrorBoundary>
-              </>
-            ) : null}
-            <WidgetErrorBoundary>
-              <SalesTrackingWidget />
-            </WidgetErrorBoundary>
-            <WidgetErrorBoundary>
-              <CallStatsWidget />
-            </WidgetErrorBoundary>
-            <WidgetErrorBoundary>
-              <DashboardActivityLog />
-            </WidgetErrorBoundary>
-          </div>
+      {/* Hero: monthly revenue bars + pipeline distribution donut */}
+      {totalDeal ? (
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+          <WidgetErrorBoundary>
+            <RevenueTrendChart />
+          </WidgetErrorBoundary>
+          <WidgetErrorBoundary>
+            <PipelineDonut />
+          </WidgetErrorBoundary>
+        </div>
+      ) : null}
+
+      {/* Secondary: tracking charts + activity (2/3) alongside action lists (1/3) */}
+      <div className="grid grid-cols-1 gap-6 xl:grid-cols-3">
+        <div className="flex flex-col gap-6 xl:col-span-2">
+          <WidgetErrorBoundary>
+            <SalesTrackingWidget />
+          </WidgetErrorBoundary>
+          <WidgetErrorBoundary>
+            <CallStatsWidget />
+          </WidgetErrorBoundary>
+          <WidgetErrorBoundary>
+            <DashboardActivityLog />
+          </WidgetErrorBoundary>
         </div>
 
-        <div className="md:col-span-4">
-          <div className="flex flex-col gap-4">
-            <WidgetErrorBoundary>
-              <RevenueGoalsTracker />
-            </WidgetErrorBoundary>
-            <WidgetErrorBoundary>
-              <FollowUpsDueToday />
-            </WidgetErrorBoundary>
-            <WidgetErrorBoundary>
-              <LeadsMissingNextStep />
-            </WidgetErrorBoundary>
-            <WidgetErrorBoundary>
-              <UpcomingMeetings />
-            </WidgetErrorBoundary>
-            <WidgetErrorBoundary>
-              <TasksList />
-            </WidgetErrorBoundary>
-          </div>
+        <div className="flex flex-col gap-6">
+          <WidgetErrorBoundary>
+            <RevenueGoalsTracker />
+          </WidgetErrorBoundary>
+          <WidgetErrorBoundary>
+            <FollowUpsDueToday />
+          </WidgetErrorBoundary>
+          <WidgetErrorBoundary>
+            <LeadsMissingNextStep />
+          </WidgetErrorBoundary>
+          <WidgetErrorBoundary>
+            <UpcomingMeetings />
+          </WidgetErrorBoundary>
+          <WidgetErrorBoundary>
+            <TasksList />
+          </WidgetErrorBoundary>
         </div>
       </div>
     </div>
