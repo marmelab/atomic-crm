@@ -13,19 +13,16 @@ This document explains how to launch a session, follow its progress, and clean u
 - Project dependencies installed (`make install`).
 - For full-stack runs only: a local Supabase instance up (`make start-supabase`).
 
-:::note
-The harness drives Claude Code locally and creates git worktrees and branches as it works. It is a development tool, run it on a feature branch, not directly on a shared branch.
-:::
 
 ## Launching a Session
 
-Start an interactive session with:
+To start a session directly with the harness:
 
 ```sh
 make harness
 ```
 
-This opens the **chat-orchestrator** agent. Type your request once the session opens, and the orchestrator takes over.
+This opens the **chat-orchestrator** agent in automatic-permission mode. Type your request once the session opens, and the orchestrator takes over.
 
 You can also pre-fill the first message:
 
@@ -33,11 +30,16 @@ You can also pre-fill the first message:
 make harness REQUEST="Add a reason for a lost deal"
 ```
 
-### Triggering the Harness In-Session
+Or you can start a plan mode and at the end, **chat-orchestrator** will implement it with the harness.
 
-You don't have to run `make harness` to use the agent team. When you work in a regular Claude Code session inside the repository, **harness routing is the default**: just describe what you want, and once a plan is approved, the work is automatically routed to the agent team instead of being implemented inline.
+The orchestrator routes requests one of two ways:
 
-If you'd rather have the change implemented directly, without the agent team, say so in your request. Any of these opt out:
+- **SIMPLE** — a single cosmetic edit, a single-field change on an existing entity, or a filter reusing existing components. One developer agent, no planning overhead.
+- **COMPLEX** — everything else. The planner decomposes it into tickets; developers, reviewers, and the merger run as a coordinated wave.
+
+### Avoid using the harness
+
+If you'd rather have the change implemented directly, without the harness, say so in your request. Any of these opt out:
 
 - `#no-harness`
 - *"implement directly"*
@@ -45,10 +47,6 @@ If you'd rather have the change implemented directly, without the agent team, sa
 - *"skip harness"*
 
 The main thread then implements the change itself, no agents, even after a plan is approved. Add *"no-harness for this session"* to keep it off for the whole session.
-
-:::note
-This opt-out only applies to interactive sessions. Under `make harness`, the orchestrator always routes the work.
-:::
 
 ## Monitoring a Session
 
@@ -63,47 +61,14 @@ make sessions               # list known sessions, newest first
 
 `make watch` re-renders a live view of the active agents, hook activity, and ticket statuses, useful to keep open in a second terminal while a COMPLEX session runs. `make monitor` prints the same information as a single snapshot.
 
-## Cleaning Up
-
-A harness session leaves behind temporary worktrees, session branches, and a promotion lock. Clean them all up with:
-
-```sh
-make clean-harness
-```
-
-By default this also lands you back where you launched the harness from: it checks out your original branch, resets it to the pre-harness commit (dropping any promoted commits if you want to discard the work), and restores `main` to `origin/main` as a backstop. The starting point is recorded at launch under `.git/`, so it survives the temporary-directory cleanup.
-
-The underlying script accepts two flags if you call it directly:
-
-```sh
-scripts/clean-harness.sh --no-reset   # remove session artifacts only, keep your branch as-is
-scripts/clean-harness.sh --dry-run    # print what would happen, change nothing
-```
-
-:::note
-`clean-harness` stashes uncommitted tracked changes before resetting, so a surprise is always recoverable with `git stash pop`. It never deletes `main`, your current branch, or any branch not tied to a session worktree.
-:::
 
 ## CRM Builder: A Visual, Ready-Made Environment
 
-The `make harness` workflow described above is the command-line interface to the agent team. If you'd rather not set up Claude Code and the local toolchain yourself, [**CRM Builder**](https://github.com/marmelab/crm-builder) wraps the same harness in a containerized, visual environment.
+[**CRM Builder**](https://github.com/marmelab/crm-builder) wraps the same harness in a containerized, browser-based environment, with no local setup. It adds:
 
-CRM Builder lets you design and customize a CRM from plain-English prompts through a browser-based builder, with a live preview of the running app beside the conversation. It uses Atomic CRM as its starting template and orchestrates the same kind of Claude Code agent team to apply your changes.
+- A live preview of the CRM, updated as the harness applies your changes.
+- A pre-installed toolchain, no need to set up Claude Code, Node, or Supabase yourself.
+- A session dashboard to follow each run's agents and progress.
+- Demo and full-stack mode switching from the UI.
 
-Key conveniences over running the harness directly:
-
-- A **visual builder UI** at `http://localhost:8080`, with a live, hot-reloading preview of the CRM.
-- A **ready-made environment**: Supabase, React, and the full toolchain are pre-installed and isolated inside Docker containers.
-- **Demo and full-stack modes** you can switch between without restarting — frontend-only with mocked data, or a real database with automatic SQL migration generation.
-- **Session history and parallel sessions**, plus the ability to download the generated code.
-- A **session dashboard** that surfaces the full statistics of a session and the complete operation history of the agents — what each agent did, in which order — without dropping to the command line. It is the visual equivalent of `make monitor` and `make watch`.
-
-Getting started requires Docker Desktop and an Anthropic API key or Claude subscription:
-
-```sh
-docker build -t atomic-crm-dev .
-make up
-make claude   # OAuth authentication on first run
-```
-
-Then open the builder at `http://localhost:8080`. See the [CRM Builder repository](https://github.com/marmelab/crm-builder) for full setup instructions and prerequisites.
+![CRM Builder UI](../../images/crm-builder.png)
