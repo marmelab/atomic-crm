@@ -20,6 +20,7 @@ import {
   RefreshCw,
   Search,
   Settings2,
+  Smartphone,
 } from "lucide-react";
 import { useState } from "react";
 import { useDataProvider, useGetList, useNotify } from "ra-core";
@@ -70,6 +71,61 @@ const SOURCE_LABELS: Record<string, string> = {
   business_profile: "Google Business",
   search_console: "Search Console",
 };
+
+// Vanligaste länderna för svenska SMB — ISO-3166-1 alpha-3 (GSC-format).
+const COUNTRY_NAMES: Record<string, string> = {
+  swe: "Sverige",
+  nor: "Norge",
+  dnk: "Danmark",
+  fin: "Finland",
+  usa: "USA",
+  gbr: "Storbritannien",
+  deu: "Tyskland",
+};
+
+const DEVICE_LABELS: Record<string, string> = {
+  mobile: "Mobil",
+  desktop: "Desktop",
+  tablet: "Surfplatta",
+};
+
+function countryName(code: string): string {
+  return COUNTRY_NAMES[code.toLowerCase()] ?? code.toUpperCase();
+}
+
+type DeviceBreakdown = NonNullable<
+  NonNullable<WebsiteSnapshot["search_console"]>["device_breakdown"]
+>;
+
+function DeviceBreakdownList({ breakdown }: { breakdown?: DeviceBreakdown }) {
+  const devices = breakdown ? Object.entries(breakdown) : [];
+  if (!devices.length) {
+    return (
+      <p className="text-sm text-muted-foreground">
+        Ingen enhetsdata för perioden.
+      </p>
+    );
+  }
+  const total = devices.reduce((sum, [, d]) => sum + (d?.clicks ?? 0), 0);
+  return (
+    <div className="space-y-2">
+      {devices
+        .sort((a, b) => (b[1]?.clicks ?? 0) - (a[1]?.clicks ?? 0))
+        .map(([key, d]) => (
+          <div
+            key={key}
+            className="flex items-center justify-between border-b py-2 text-sm last:border-0"
+          >
+            <span>{DEVICE_LABELS[key] ?? key}</span>
+            <span className="text-muted-foreground">
+              {(d?.clicks ?? 0).toLocaleString("sv-SE")} klick ·{" "}
+              {total > 0 ? Math.round(((d?.clicks ?? 0) / total) * 100) : 0} %
+            </span>
+          </div>
+        ))}
+    </div>
+  );
+}
 
 function formatDate(value?: string | null): string {
   if (!value) return "Okänd period";
@@ -613,6 +669,55 @@ export function WebsiteStatsSection({ company }: { company: Company }) {
                 />
               </CardContent>
             </Card>
+
+            <div className="grid gap-4 lg:grid-cols-2">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2 text-base">
+                    <Smartphone className="size-4" />
+                    Enhetsfördelning
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <DeviceBreakdownList breakdown={gsc?.device_breakdown} />
+                  <p className="mt-3 text-xs text-muted-foreground">
+                    Andel klick per enhet. Är de flesta på mobil bör sajten
+                    optimeras mobil-först.
+                  </p>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2 text-base">
+                    <Globe2 className="size-4" />
+                    Var besökarna finns
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {gsc?.top_countries?.length ? (
+                    <div className="space-y-2">
+                      {gsc.top_countries.map((c) => (
+                        <div
+                          key={c.country}
+                          className="flex items-center justify-between border-b py-2 text-sm last:border-0"
+                        >
+                          <span>{countryName(c.country)}</span>
+                          <span className="text-muted-foreground">
+                            {c.clicks.toLocaleString("sv-SE")} klick ·{" "}
+                            {c.impressions.toLocaleString("sv-SE")} visningar
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-sm text-muted-foreground">
+                      Ingen geografisk data för perioden.
+                    </p>
+                  )}
+                </CardContent>
+              </Card>
+            </div>
 
             <div className="grid gap-4 lg:grid-cols-2">
               <Card>

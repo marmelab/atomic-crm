@@ -673,10 +673,18 @@ async function fetchSearchConsole(
       }),
     });
 
-  const [totalsResponse, queriesResponse, pagesResponse] = await Promise.all([
+  const [
+    totalsResponse,
+    queriesResponse,
+    pagesResponse,
+    deviceResponse,
+    countryResponse,
+  ] = await Promise.all([
     analyticsQuery({}),
     analyticsQuery({ dimensions: ["query"], rowLimit: 250 }),
     analyticsQuery({ dimensions: ["page"], rowLimit: 10 }),
+    analyticsQuery({ dimensions: ["device"] }),
+    analyticsQuery({ dimensions: ["country"], rowLimit: 10 }),
   ]);
   if (!totalsResponse.ok) {
     throw new Error(
@@ -691,6 +699,12 @@ async function fetchSearchConsole(
   const pageRows = pagesResponse.ok
     ? ((await pagesResponse.json()).rows ?? [])
     : [];
+  const deviceRows = deviceResponse.ok
+    ? ((await deviceResponse.json()).rows ?? [])
+    : [];
+  const countryRows = countryResponse.ok
+    ? ((await countryResponse.json()).rows ?? [])
+    : [];
   type AnalyticsRow = {
     keys: string[];
     clicks: number;
@@ -698,14 +712,40 @@ async function fetchSearchConsole(
     ctr: number;
     position: number;
   };
+  const round1 = (n: number) => Math.round(n * 10) / 10;
   const normalizedQueries = (queryRows as AnalyticsRow[]).map((row) => ({
     query: row.keys?.[0] ?? "",
     clicks: row.clicks,
     impressions: row.impressions,
     ctr: row.ctr,
-    position: Math.round(row.position * 10) / 10,
+    position: round1(row.position),
   }));
   const opportunities = classifySearchOpportunities(normalizedQueries);
+
+  // Device-uppdelning: GSC-nycklar är MOBILE/DESKTOP/TABLET.
+  const deviceBreakdown: SearchConsoleSummary["device_breakdown"] = {};
+  for (const row of deviceRows as AnalyticsRow[]) {
+    const key = (row.keys?.[0] ?? "").toLowerCase();
+    if (key === "mobile" || key === "desktop" || key === "tablet") {
+      deviceBreakdown[key] = {
+        clicks: row.clicks,
+        impressions: row.impressions,
+        ctr: row.ctr,
+        position: round1(row.position),
+      };
+    }
+  }
+
+  // Geografi: nycklar är ISO-3166-1 alpha-3 i gemener (t.ex. "swe", "nor").
+  const topCountries = (countryRows as AnalyticsRow[])
+    .map((row) => ({
+      country: row.keys?.[0] ?? "",
+      clicks: row.clicks,
+      impressions: row.impressions,
+      ctr: row.ctr,
+      position: round1(row.position),
+    }))
+    .slice(0, 5);
 
   return {
     clicks: totals?.clicks ?? 0,
@@ -721,8 +761,10 @@ async function fetchSearchConsole(
       clicks: row.clicks,
       impressions: row.impressions,
       ctr: row.ctr,
-      position: Math.round(row.position * 10) / 10,
+      position: round1(row.position),
     })),
+    device_breakdown: deviceBreakdown,
+    top_countries: topCountries,
     opportunities,
   };
 }

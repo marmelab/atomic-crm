@@ -85,6 +85,21 @@ export type SearchConsoleSummary = {
     ctr: number;
     position: number;
   }>;
+  /** Klick/visningar per enhetstyp (GSC device-dimension). */
+  device_breakdown?: Partial<
+    Record<
+      "mobile" | "desktop" | "tablet",
+      { clicks: number; impressions: number; ctr: number; position: number }
+    >
+  >;
+  /** Topp-länder (GSC country-dimension), ISO-3166-1 alpha-3 i gemener. */
+  top_countries?: Array<{
+    country: string;
+    clicks: number;
+    impressions: number;
+    ctr: number;
+    position: number;
+  }>;
   opportunities?: Array<{
     kind: "low_ctr" | "position_4_10" | "position_11_20";
     query: string;

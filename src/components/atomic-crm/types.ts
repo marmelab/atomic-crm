@@ -782,6 +782,19 @@ export type WebsiteSnapshot = {
       ctr: number;
       position: number;
     }>;
+    device_breakdown?: Partial<
+      Record<
+        "mobile" | "desktop" | "tablet",
+        { clicks: number; impressions: number; ctr: number; position: number }
+      >
+    >;
+    top_countries?: Array<{
+      country: string;
+      clicks: number;
+      impressions: number;
+      ctr: number;
+      position: number;
+    }>;
     opportunities?: Array<{
       kind: "low_ctr" | "position_4_10" | "position_11_20";
       query: string;
