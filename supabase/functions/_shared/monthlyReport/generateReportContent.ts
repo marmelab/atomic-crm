@@ -18,8 +18,8 @@ import {
 import { monthlyReportContentSchema } from "./reportSchemas.ts";
 import type { ReportAiContent } from "./types.ts";
 
-// Behåll samma modell/parametrar som offert-pipelinen för konsekvens.
-const ANTHROPIC_MODEL = "claude-sonnet-4-20250514";
+// Aktuell Sonnet (claude-sonnet-4-20250514 är utfasad → 404 not_found).
+const ANTHROPIC_MODEL = "claude-sonnet-4-6";
 const ANTHROPIC_MAX_TOKENS = 1500;
 const ANTHROPIC_API_VERSION = "2023-06-01";
 

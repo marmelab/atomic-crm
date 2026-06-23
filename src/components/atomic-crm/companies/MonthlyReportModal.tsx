@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useDataProvider, useNotify } from "ra-core";
 import { Button } from "@/components/ui/button";
 import {
@@ -28,17 +28,21 @@ export const MonthlyReportModal = ({
   open,
   onOpenChange,
   onSent,
+  initialReportId,
 }: {
   company: Company;
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onSent?: () => void;
+  /** Öppna direkt på en befintlig rapport (från "Senaste rapporter") utan att generera om. */
+  initialReportId?: number | null;
 }) => {
   const dataProvider = useDataProvider() as CrmDataProvider;
   const notify = useNotify();
 
   const [isGenerating, setIsGenerating] = useState(false);
   const [isSending, setIsSending] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const [report, setReport] = useState<MonthlyReport | null>(null);
   const [recipientEmail, setRecipientEmail] = useState("");
   const [ai, setAi] = useState<ReportAiContent>({
@@ -57,6 +61,22 @@ export const MonthlyReportModal = ({
     setRecipientEmail(data.recipient_email ?? "");
     if (data.ai_content) setAi(data.ai_content);
   };
+
+  // Öppnas modalen på en befintlig rapport → ladda den direkt. Stängs den →
+  // nollställ så nästa öppning börjar rent.
+  useEffect(() => {
+    if (!open) {
+      setReport(null);
+      return;
+    }
+    if (initialReportId) {
+      setIsLoading(true);
+      loadReport(initialReportId)
+        .catch(() => notify("Kunde inte ladda rapporten", { type: "error" }))
+        .finally(() => setIsLoading(false));
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, initialReportId]);
 
   const handleGenerate = async () => {
     setIsGenerating(true);
@@ -128,7 +148,12 @@ export const MonthlyReportModal = ({
         </DialogHeader>
 
         <div className="overflow-y-auto min-h-0 pr-1">
-          {!report ? (
+          {isLoading ? (
+            <div className="flex items-center justify-center gap-2 py-12 text-muted-foreground">
+              <Loader2 className="h-4 w-4 animate-spin" />
+              Laddar rapport...
+            </div>
+          ) : !report ? (
             <div className="flex flex-col items-center gap-4 py-8">
               <p className="text-sm text-muted-foreground text-center">
                 Skapar en rapport från senaste hemsidestatistiken med trend och

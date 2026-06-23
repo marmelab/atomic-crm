@@ -123,6 +123,7 @@ export const WebsiteStatsSection = ({ company }: { company: Company }) => {
   const notify = useNotify();
   const [analyzing, setAnalyzing] = useState(false);
   const [reportOpen, setReportOpen] = useState(false);
+  const [selectedReportId, setSelectedReportId] = useState<number | null>(null);
 
   const { data: snapshots, refetch } = useGetList<WebsiteSnapshot>(
     "website_snapshots",
@@ -179,7 +180,10 @@ export const WebsiteStatsSection = ({ company }: { company: Company }) => {
     <Button
       variant="outline"
       size="sm"
-      onClick={() => setReportOpen(true)}
+      onClick={() => {
+        setSelectedReportId(null);
+        setReportOpen(true);
+      }}
       disabled={!latest}
       title={latest ? undefined : "Kör en statistikanalys först"}
     >
@@ -194,6 +198,7 @@ export const WebsiteStatsSection = ({ company }: { company: Company }) => {
       open={reportOpen}
       onOpenChange={setReportOpen}
       onSent={() => refetchReports()}
+      initialReportId={selectedReportId}
     />
   );
 
@@ -434,25 +439,34 @@ export const WebsiteStatsSection = ({ company }: { company: Company }) => {
             <p className="font-medium mb-2">Senaste rapporter</p>
             <ul className="flex flex-col gap-1">
               {reports.map((report) => (
-                <li
-                  key={report.id}
-                  className="flex items-center justify-between gap-2 text-sm"
-                >
-                  <span className="text-muted-foreground">
-                    {new Date(`${report.period}T00:00:00Z`).toLocaleDateString(
-                      "sv-SE",
-                      { month: "long", year: "numeric", timeZone: "UTC" },
-                    )}
-                    {report.sent_at
-                      ? ` · skickad till ${report.recipient_email ?? "—"}`
-                      : ""}
-                  </span>
-                  <Badge
-                    variant="outline"
-                    className={REPORT_STATUS_STYLES[report.status]}
+                <li key={report.id}>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSelectedReportId(report.id as number);
+                      setReportOpen(true);
+                    }}
+                    className="flex w-full items-center justify-between gap-2 rounded-md px-1 py-1 text-left text-sm hover:bg-muted"
                   >
-                    {REPORT_STATUS_LABELS[report.status]}
-                  </Badge>
+                    <span className="text-muted-foreground">
+                      {new Date(
+                        `${report.period}T00:00:00Z`,
+                      ).toLocaleDateString("sv-SE", {
+                        month: "long",
+                        year: "numeric",
+                        timeZone: "UTC",
+                      })}
+                      {report.sent_at
+                        ? ` · skickad till ${report.recipient_email ?? "—"}`
+                        : ""}
+                    </span>
+                    <Badge
+                      variant="outline"
+                      className={REPORT_STATUS_STYLES[report.status]}
+                    >
+                      {REPORT_STATUS_LABELS[report.status]}
+                    </Badge>
+                  </button>
                 </li>
               ))}
             </ul>
