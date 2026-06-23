@@ -181,3 +181,7 @@ verify_jwt = false
 verify_jwt = false
 [functions.analyze_website]
 verify_jwt = false
+[functions.generate_monthly_reports]
+verify_jwt = false
+[functions.send_monthly_report]
+verify_jwt = false
