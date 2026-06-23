@@ -729,19 +729,27 @@ export function WebsiteStatsSection({ company }: { company: Company }) {
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="rounded-md border border-sky-200 bg-sky-50 p-3 text-sm text-sky-900">
-                  Verklig besöksdata visas som Core Web Vitals när Google har
-                  tillräckligt underlag. Lighthouse-poängen är ett separat
-                  labbtest. TBT visas aldrig som om det vore INP.
+                  Verklig besöksdata (fält) visas när Google har tillräckligt
+                  underlag. Saknas den faller LCP och CLS tillbaka på
+                  labbtestets värde, tydligt märkt "(labbtest)". INP kan aldrig
+                  mätas i labb — bara på verkliga besök. TBT visas aldrig som om
+                  det vore INP.
                 </div>
                 <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
                   <VisibilityMetricCard
                     label="Verklig LCP"
                     value={
-                      selected.field_data?.lcp_ms == null
-                        ? "Fältdata saknas"
-                        : `${(selected.field_data.lcp_ms / 1000).toFixed(1)} s`
+                      selected.field_data?.lcp_ms != null
+                        ? `${(selected.field_data.lcp_ms / 1000).toFixed(1)} s`
+                        : selected.pagespeed?.lcp_ms != null
+                          ? `${(selected.pagespeed.lcp_ms / 1000).toFixed(1)} s (labbtest)`
+                          : "Saknas"
                     }
-                    trend="75:e percentilen av verkliga besök"
+                    trend={
+                      selected.field_data?.lcp_ms != null
+                        ? "75:e percentilen av verkliga besök"
+                        : "Labbtest — verklig fältdata saknas ännu"
+                    }
                     explanation={{
                       meaning:
                         "Hur snabbt sidans största synliga innehåll laddas för verkliga besökare.",
@@ -750,11 +758,13 @@ export function WebsiteStatsSection({ company }: { company: Company }) {
                       thresholds:
                         "Bra under 2,5 s, förbättras 2,5–4,0 s, dåligt över 4,0 s.",
                       interpretation:
-                        selected.field_data?.lcp_ms == null
-                          ? "Google har inte tillräcklig fältdata."
-                          : selected.field_data.lcp_ms <= 2500
+                        selected.field_data?.lcp_ms != null
+                          ? selected.field_data.lcp_ms <= 2500
                             ? "Laddningen är bra."
-                            : "Laddningen bör förbättras.",
+                            : "Laddningen bör förbättras."
+                          : selected.pagespeed?.lcp_ms != null
+                            ? "Ingen verklig fältdata (för låg trafik) — visar labbtestets värde i stället."
+                            : "Varken fältdata eller labbtest kunde hämtas.",
                       action:
                         "Optimera största bilden, typsnitt och kritiska resurser.",
                     }}
@@ -763,10 +773,14 @@ export function WebsiteStatsSection({ company }: { company: Company }) {
                     label="Verklig INP"
                     value={
                       selected.field_data?.inp_ms == null
-                        ? "Fältdata saknas"
+                        ? "Endast verklig data"
                         : `${Math.round(selected.field_data.inp_ms)} ms`
                     }
-                    trend="Respons på klick och interaktion"
+                    trend={
+                      selected.field_data?.inp_ms == null
+                        ? "Kan inte mätas i labbtest — kräver verkliga klick"
+                        : "Respons på klick och interaktion"
+                    }
                     explanation={{
                       meaning:
                         "Hur snabbt sidan visuellt svarar efter en användarinteraktion.",
@@ -776,7 +790,7 @@ export function WebsiteStatsSection({ company }: { company: Company }) {
                         "Bra under 200 ms, förbättras 200–500 ms, dåligt över 500 ms.",
                       interpretation:
                         selected.field_data?.inp_ms == null
-                          ? "Google har inte tillräcklig fältdata."
+                          ? "INP mäts bara på verkliga besök — ett labbtest kan inte mäta interaktionssvar. Saknas tills sajten har tillräcklig trafik i Google."
                           : selected.field_data.inp_ms <= 200
                             ? "Responsen är bra."
                             : "Responsen bör förbättras.",
@@ -787,11 +801,17 @@ export function WebsiteStatsSection({ company }: { company: Company }) {
                   <VisibilityMetricCard
                     label="Verklig CLS"
                     value={
-                      selected.field_data?.cls == null
-                        ? "Fältdata saknas"
-                        : selected.field_data.cls.toFixed(2)
+                      selected.field_data?.cls != null
+                        ? selected.field_data.cls.toFixed(2)
+                        : selected.pagespeed?.cls != null
+                          ? `${selected.pagespeed.cls.toFixed(2)} (labbtest)`
+                          : "Saknas"
                     }
-                    trend="Layoutstabilitet för verkliga besök"
+                    trend={
+                      selected.field_data?.cls != null
+                        ? "Layoutstabilitet för verkliga besök"
+                        : "Labbtest — verklig fältdata saknas ännu"
+                    }
                     explanation={{
                       meaning:
                         "Hur mycket innehållet hoppar medan sidan laddas.",
@@ -800,11 +820,13 @@ export function WebsiteStatsSection({ company }: { company: Company }) {
                       thresholds:
                         "Bra under 0,10, förbättras 0,10–0,25, dåligt över 0,25.",
                       interpretation:
-                        selected.field_data?.cls == null
-                          ? "Google har inte tillräcklig fältdata."
-                          : selected.field_data.cls <= 0.1
+                        selected.field_data?.cls != null
+                          ? selected.field_data.cls <= 0.1
                             ? "Layouten är stabil."
-                            : "Layouten behöver stabiliseras.",
+                            : "Layouten behöver stabiliseras."
+                          : selected.pagespeed?.cls != null
+                            ? "Ingen verklig fältdata (för låg trafik) — visar labbtestets värde i stället."
+                            : "Varken fältdata eller labbtest kunde hämtas.",
                       action:
                         "Sätt fasta dimensioner på bilder, embeds och dynamiskt innehåll.",
                     }}
@@ -812,10 +834,14 @@ export function WebsiteStatsSection({ company }: { company: Company }) {
                   <VisibilityMetricCard
                     label="Lighthouse prestanda"
                     value={selected.performance_score?.toString() ?? "Saknas"}
-                    trend="Syntetiskt mobiltest · 0–100"
+                    trend={
+                      selected.pagespeed?.desktop?.performance_score != null
+                        ? `Mobil · Desktop ${selected.pagespeed.desktop.performance_score} · 0–100`
+                        : "Syntetiskt mobiltest · 0–100"
+                    }
                     explanation={{
                       meaning:
-                        "Ett kontrollerat labbtest som hjälper oss hitta tekniska flaskhalsar.",
+                        "Ett kontrollerat labbtest som hjälper oss hitta tekniska flaskhalsar. Vi kör både mobil och desktop.",
                       impact:
                         "Bra för diagnos, men ersätter inte hur verkliga besökare upplever sidan.",
                       thresholds:
@@ -823,9 +849,12 @@ export function WebsiteStatsSection({ company }: { company: Company }) {
                       interpretation:
                         selected.performance_score == null
                           ? "Testet kunde inte köras."
-                          : selected.performance_score >= 80
-                            ? "Labbtestet ser bra ut."
-                            : "Labbtestet visar förbättringsbehov.",
+                          : selected.pagespeed?.desktop?.performance_score !=
+                              null
+                            ? `Mobil ${selected.performance_score}/100, desktop ${selected.pagespeed.desktop.performance_score}/100. Mobil väger tyngst (Google är mobile-first).`
+                            : selected.performance_score >= 80
+                              ? "Labbtestet ser bra ut."
+                              : "Labbtestet visar förbättringsbehov.",
                       action:
                         "Använd Lighthouse-förslagen för att prioritera bilder, skript och rendering.",
                     }}

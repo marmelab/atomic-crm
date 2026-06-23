@@ -685,6 +685,22 @@ export type CustomerDetails = {
 } & Pick<RaRecord, "id">;
 
 // Hemsidestatistik (Fas 2 av kundregistret) — en rad per analys, tidsserie.
+
+// Labb-mätvärden (Lighthouse, syntetiskt). `desktop` är en valfri parallell
+// körning; toppnivån är mobil (Google är mobile-first).
+export type PageSpeedLabMetrics = {
+  performance_score?: number | null;
+  seo_score?: number | null;
+  lcp_ms?: number | null;
+  cls?: number | null;
+  tbt_ms?: number | null;
+  fcp_ms?: number | null;
+  speed_index_ms?: number | null;
+  tti_ms?: number | null;
+  opportunities?: Array<{ id: string; title: string; savings_ms: number }>;
+  desktop?: PageSpeedLabMetrics | null;
+};
+
 export type WebsiteFinding = {
   key: string;
   severity: "high" | "medium" | "low";
@@ -717,12 +733,7 @@ export type WebsiteSnapshot = {
   >;
   performance_score?: number | null;
   seo_score?: number | null;
-  pagespeed?: {
-    lcp_ms?: number | null;
-    cls?: number | null;
-    tbt_ms?: number | null;
-    opportunities?: Array<{ id: string; title: string; savings_ms: number }>;
-  } | null;
+  pagespeed?: PageSpeedLabMetrics | null;
   field_data?: {
     scope: "url" | "origin";
     lcp_ms?: number | null;

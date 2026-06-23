@@ -59,7 +59,10 @@ async function createSale(
   return sales.at(0);
 }
 
-async function updateSaleAvatar(user_id: string, avatar: string) {
+async function updateSaleAvatar(
+  user_id: string,
+  avatar: Record<string, unknown>,
+) {
   const { data: sales, error: salesError } = await supabaseAdmin
     .from("sales")
     .update({ avatar })
@@ -93,8 +96,7 @@ function isValidName(name: unknown): name is string {
 }
 
 function buildAuthCallbackUrl() {
-  const siteUrl =
-    Deno.env.get("SITE_URL") ?? "https://crm.axonadigital.se";
+  const siteUrl = Deno.env.get("SITE_URL") ?? "https://crm.axonadigital.se";
 
   try {
     return new URL("/auth-callback.html", siteUrl).toString();
@@ -109,8 +111,9 @@ function generateTemporaryPassword(length = 20) {
     "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789!@#$%^&*";
   const randomBytes = crypto.getRandomValues(new Uint8Array(length));
 
-  return Array.from(randomBytes, (value) =>
-    alphabet[value % alphabet.length]
+  return Array.from(
+    randomBytes,
+    (value) => alphabet[value % alphabet.length],
   ).join("");
 }
 
@@ -337,7 +340,23 @@ async function patchUser(req: Request, currentUserSale: any) {
     const email = getOptionalStringField(body, "email");
     const first_name = getOptionalStringField(body, "first_name");
     const last_name = getOptionalStringField(body, "last_name");
-    const avatar = getOptionalStringField(body, "avatar");
+    // Avatar is stored as a jsonb object ({ src, path, title, type }) to match
+    // the `sales.avatar` column and how it is rendered across the app.
+    const avatarValue = body.avatar;
+    let avatar: Record<string, unknown> | undefined;
+    if (avatarValue !== undefined && avatarValue !== null) {
+      if (
+        typeof avatarValue !== "object" ||
+        Array.isArray(avatarValue) ||
+        typeof (avatarValue as { src?: unknown }).src !== "string"
+      ) {
+        return createErrorResponse(
+          400,
+          "avatar must be an object with a string src",
+        );
+      }
+      avatar = avatarValue as Record<string, unknown>;
+    }
     const administrator = getOptionalBooleanField(body, "administrator");
     const disabled = getOptionalBooleanField(body, "disabled");
 
@@ -369,11 +388,8 @@ async function patchUser(req: Request, currentUserSale: any) {
     const { data, error: userError } =
       await supabaseAdmin.auth.admin.updateUserById(sale.user_id, {
         email,
-        ban_duration: disabled === undefined
-          ? undefined
-          : disabled
-          ? "87600h"
-          : "none",
+        ban_duration:
+          disabled === undefined ? undefined : disabled ? "87600h" : "none",
         user_metadata: { first_name, last_name },
       });
 
@@ -399,7 +415,10 @@ async function patchUser(req: Request, currentUserSale: any) {
     }
 
     try {
-      await updateSaleDisabled(data.user.id, disabled ?? sale.disabled ?? false);
+      await updateSaleDisabled(
+        data.user.id,
+        disabled ?? sale.disabled ?? false,
+      );
       const updatedSale = await updateSaleAdministrator(
         data.user.id,
         administrator ?? sale.administrator ?? false,

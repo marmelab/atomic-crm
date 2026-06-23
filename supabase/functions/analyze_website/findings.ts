@@ -7,13 +7,28 @@
  * detta är underlaget för merförsäljning.
  */
 
-export type PageSpeedSummary = {
+/**
+ * Labb-mätvärden (Lighthouse, syntetiskt) för EN strategi (mobil eller desktop).
+ * Full uppsättning så vi maximerar insamlad data — inte bara LCP/CLS/TBT.
+ */
+export type PageSpeedMetrics = {
   performance_score: number | null;
   seo_score: number | null;
   lcp_ms: number | null;
   cls: number | null;
   tbt_ms: number | null;
+  fcp_ms: number | null;
+  speed_index_ms: number | null;
+  tti_ms: number | null;
   opportunities: Array<{ id: string; title: string; savings_ms: number }>;
+};
+
+export type PageSpeedSummary = PageSpeedMetrics & {
+  /** Primär strategi vars värden ligger på toppnivån (mobil — Google är mobile-first). */
+  strategy: "mobile";
+  /** Desktop-körning (labb). null om desktop-hämtningen felade — icke-fatalt. */
+  desktop?: PageSpeedMetrics | null;
+  /** Verklig användardata (CrUX). null = för låg trafik för fältdata. */
   field_data?: CoreWebVitalsFieldData | null;
 };
 

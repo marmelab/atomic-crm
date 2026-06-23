@@ -12,6 +12,8 @@ import {
 } from "../_shared/http.ts";
 import type {
   BusinessProfile,
+  CoreWebVitalsFieldData,
+  PageSpeedMetrics,
   PageSpeedSummary,
   SearchConsoleSummary,
   SeoChecks,
@@ -83,22 +85,122 @@ async function fetchWithTimeout(
 
 // --- a) PageSpeed Insights ---
 
-async function fetchPageSpeed(url: string): Promise<PageSpeedSummary | null> {
-  // PageSpeed-API:t fungerar även utan nyckel (delad, låg kvot) — kör hellre
-  // nyckellöst än att hoppa över källan. Med GOOGLE_PAGESPEED_API_KEY satt
-  // får vi egen kvot (25k/dag).
-  const apiKey = Deno.env.get("GOOGLE_PAGESPEED_API_KEY");
-  if (!apiKey) {
-    console.warn(
-      "analyze_website: GOOGLE_PAGESPEED_API_KEY not set — running keyless with shared quota",
-    );
-  }
+// Plockar ut hela labb-uppsättningen (inte bara LCP/CLS/TBT) ur ett
+// Lighthouse-svar — samma parsing oavsett mobil/desktop-strategi.
+function parseLighthouseMetrics(lighthouse: {
+  categories?: { performance?: { score?: unknown }; seo?: { score?: unknown } };
+  audits?: Record<
+    string,
+    {
+      numericValue?: number;
+      title?: string;
+      details?: { type?: string; overallSavingsMs?: number };
+    }
+  >;
+}): PageSpeedMetrics {
+  const toScore = (value: unknown): number | null =>
+    typeof value === "number" ? Math.round(value * 100) : null;
 
+  const audits = lighthouse.audits ?? {};
+  const numeric = (id: string): number | null => {
+    const value = audits[id]?.numericValue;
+    return typeof value === "number" ? value : null;
+  };
+
+  // Topp-3 förbättringsmöjligheter med mätbar besparing
+  const opportunities = Object.entries(audits)
+    .filter(
+      ([, audit]) =>
+        audit?.details?.type === "opportunity" &&
+        (audit.details.overallSavingsMs ?? 0) > 100,
+    )
+    .sort(
+      (a, b) =>
+        (b[1].details?.overallSavingsMs ?? 0) -
+        (a[1].details?.overallSavingsMs ?? 0),
+    )
+    .slice(0, 3)
+    .map(([id, audit]) => ({
+      id,
+      title: audit.title ?? id,
+      savings_ms: Math.round(audit.details?.overallSavingsMs ?? 0),
+    }));
+
+  return {
+    performance_score: toScore(lighthouse.categories?.performance?.score),
+    seo_score: toScore(lighthouse.categories?.seo?.score),
+    lcp_ms: numeric("largest-contentful-paint"),
+    cls: numeric("cumulative-layout-shift"),
+    tbt_ms: numeric("total-blocking-time"),
+    fcp_ms: numeric("first-contentful-paint"),
+    speed_index_ms: numeric("speed-index"),
+    tti_ms: numeric("interactive"),
+    opportunities,
+  };
+}
+
+// Verklig användardata (CrUX). Sid-nivå (loadingExperience) föredras; faller
+// tillbaka på origin-nivå när sidan själv saknar underlag. null = för låg
+// trafik för fältdata överhuvudtaget.
+function parseFieldData(result: {
+  loadingExperience?: { metrics?: Record<string, unknown> };
+  originLoadingExperience?: { metrics?: Record<string, unknown> };
+}): CoreWebVitalsFieldData | null {
+  const fieldSource = result?.loadingExperience?.metrics
+    ? { scope: "url" as const, metrics: result.loadingExperience.metrics }
+    : result?.originLoadingExperience?.metrics
+      ? {
+          scope: "origin" as const,
+          metrics: result.originLoadingExperience.metrics,
+        }
+      : null;
+  if (!fieldSource) return null;
+
+  const metric = (key: string) =>
+    (fieldSource.metrics?.[key] as
+      | { percentile?: number; category?: string }
+      | undefined) ?? null;
+  const fieldValue = (key: string): number | null => {
+    const value = metric(key)?.percentile;
+    return typeof value === "number" ? value : null;
+  };
+  const fieldRating = (key: string) => {
+    const value = metric(key)?.category;
+    return value === "FAST"
+      ? ("GOOD" as const)
+      : value === "AVERAGE"
+        ? ("NEEDS_IMPROVEMENT" as const)
+        : value === "SLOW"
+          ? ("POOR" as const)
+          : null;
+  };
+  const cls = fieldValue("CUMULATIVE_LAYOUT_SHIFT_SCORE");
+  return {
+    scope: fieldSource.scope,
+    lcp_ms: fieldValue("LARGEST_CONTENTFUL_PAINT_MS"),
+    inp_ms: fieldValue("INTERACTION_TO_NEXT_PAINT"),
+    cls: cls == null ? null : cls / 100,
+    lcp_rating: fieldRating("LARGEST_CONTENTFUL_PAINT_MS"),
+    inp_rating: fieldRating("INTERACTION_TO_NEXT_PAINT"),
+    cls_rating: fieldRating("CUMULATIVE_LAYOUT_SHIFT_SCORE"),
+  };
+}
+
+// En enskild PSI-körning för en strategi. Returnerar labb-metrik + (för mobil)
+// fältdata. Kastar vid hårt API-fel så inspectSource kan flagga källan.
+async function fetchPageSpeedRun(
+  url: string,
+  strategy: "mobile" | "desktop",
+): Promise<{
+  metrics: PageSpeedMetrics;
+  fieldData: CoreWebVitalsFieldData | null;
+} | null> {
+  const apiKey = Deno.env.get("GOOGLE_PAGESPEED_API_KEY");
   const endpoint = new URL(
     "https://www.googleapis.com/pagespeedonline/v5/runPagespeed",
   );
   endpoint.searchParams.set("url", url);
-  endpoint.searchParams.set("strategy", "mobile");
+  endpoint.searchParams.set("strategy", strategy);
   endpoint.searchParams.append("category", "PERFORMANCE");
   endpoint.searchParams.append("category", "SEO");
   if (apiKey) {
@@ -117,10 +219,10 @@ async function fetchPageSpeed(url: string): Promise<PageSpeedSummary | null> {
     }
     const body = (await r.text()).slice(0, 200);
     console.error(
-      `analyze_website: PageSpeed ${r.status} (försök ${attempt}/2) for ${url}: ${body}`,
+      `analyze_website: PageSpeed ${strategy} ${r.status} (försök ${attempt}/2) for ${url}: ${body}`,
     );
     if (attempt === 2 || (r.status !== 429 && r.status < 500)) {
-      throw new Error(`PageSpeed API ${r.status}: ${body}`);
+      throw new Error(`PageSpeed API ${strategy} ${r.status}: ${body}`);
     }
   }
   if (!response) throw new Error("PageSpeed API returned no response");
@@ -129,87 +231,42 @@ async function fetchPageSpeed(url: string): Promise<PageSpeedSummary | null> {
   const lighthouse = result?.lighthouseResult;
   if (!lighthouse) return null;
 
-  const toScore = (value: unknown): number | null =>
-    typeof value === "number" ? Math.round(value * 100) : null;
-
-  const audits = lighthouse.audits ?? {};
-  const numeric = (id: string): number | null => {
-    const value = audits[id]?.numericValue;
-    return typeof value === "number" ? value : null;
+  return {
+    metrics: parseLighthouseMetrics(lighthouse),
+    fieldData: parseFieldData(result),
   };
+}
 
-  // Topp-3 förbättringsmöjligheter med mätbar besparing
-  const opportunities = Object.entries(
-    audits as Record<
-      string,
-      {
-        title?: string;
-        details?: { type?: string; overallSavingsMs?: number };
-      }
-    >,
-  )
-    .filter(
-      ([, audit]) =>
-        audit?.details?.type === "opportunity" &&
-        (audit.details.overallSavingsMs ?? 0) > 100,
-    )
-    .sort(
-      (a, b) =>
-        (b[1].details?.overallSavingsMs ?? 0) -
-        (a[1].details?.overallSavingsMs ?? 0),
-    )
-    .slice(0, 3)
-    .map(([id, audit]) => ({
-      id,
-      title: audit.title ?? id,
-      savings_ms: Math.round(audit.details?.overallSavingsMs ?? 0),
-    }));
+async function fetchPageSpeed(url: string): Promise<PageSpeedSummary | null> {
+  // PageSpeed-API:t fungerar även utan nyckel (delad, låg kvot) — kör hellre
+  // nyckellöst än att hoppa över källan. Med GOOGLE_PAGESPEED_API_KEY satt
+  // får vi egen kvot (25k/dag).
+  if (!Deno.env.get("GOOGLE_PAGESPEED_API_KEY")) {
+    console.warn(
+      "analyze_website: GOOGLE_PAGESPEED_API_KEY not set — running keyless with shared quota",
+    );
+  }
 
-  const fieldSource = result?.loadingExperience?.metrics
-    ? { scope: "url" as const, metrics: result.loadingExperience.metrics }
-    : result?.originLoadingExperience?.metrics
-      ? {
-          scope: "origin" as const,
-          metrics: result.originLoadingExperience.metrics,
-        }
-      : null;
-  const fieldMetric = (key: string) => fieldSource?.metrics?.[key] ?? null;
-  const fieldValue = (key: string): number | null => {
-    const value = fieldMetric(key)?.percentile;
-    return typeof value === "number" ? value : null;
-  };
-  const fieldRating = (key: string) => {
-    const value = fieldMetric(key)?.category;
-    return value === "FAST"
-      ? ("GOOD" as const)
-      : value === "AVERAGE"
-        ? ("NEEDS_IMPROVEMENT" as const)
-        : value === "SLOW"
-          ? ("POOR" as const)
-          : null;
-  };
+  // Mobil är primär (Google är mobile-first) och bär fältdatan. Desktop är
+  // komplement och får ALDRIG fälla analysen — kör isolerat och svälj fel.
+  const [mobile, desktop] = await Promise.all([
+    fetchPageSpeedRun(url, "mobile"),
+    fetchPageSpeedRun(url, "desktop").catch((error) => {
+      console.warn(
+        `analyze_website: desktop PageSpeed failed for ${url}: ${
+          error instanceof Error ? error.message : error
+        }`,
+      );
+      return null;
+    }),
+  ]);
+  if (!mobile) return null;
 
   return {
-    performance_score: toScore(lighthouse.categories?.performance?.score),
-    seo_score: toScore(lighthouse.categories?.seo?.score),
-    lcp_ms: numeric("largest-contentful-paint"),
-    cls: numeric("cumulative-layout-shift"),
-    tbt_ms: numeric("total-blocking-time"),
-    opportunities,
-    field_data: fieldSource
-      ? {
-          scope: fieldSource.scope,
-          lcp_ms: fieldValue("LARGEST_CONTENTFUL_PAINT_MS"),
-          inp_ms: fieldValue("INTERACTION_TO_NEXT_PAINT"),
-          cls:
-            fieldValue("CUMULATIVE_LAYOUT_SHIFT_SCORE") == null
-              ? null
-              : fieldValue("CUMULATIVE_LAYOUT_SHIFT_SCORE")! / 100,
-          lcp_rating: fieldRating("LARGEST_CONTENTFUL_PAINT_MS"),
-          inp_rating: fieldRating("INTERACTION_TO_NEXT_PAINT"),
-          cls_rating: fieldRating("CUMULATIVE_LAYOUT_SHIFT_SCORE"),
-        }
-      : null,
+    strategy: "mobile",
+    ...mobile.metrics,
+    desktop: desktop?.metrics ?? null,
+    field_data: mobile.fieldData,
   };
 }
 
@@ -754,7 +811,11 @@ async function analyzeCompany(
         lcp_ms: pagespeed.lcp_ms,
         cls: pagespeed.cls,
         tbt_ms: pagespeed.tbt_ms,
+        fcp_ms: pagespeed.fcp_ms,
+        speed_index_ms: pagespeed.speed_index_ms,
+        tti_ms: pagespeed.tti_ms,
         opportunities: pagespeed.opportunities,
+        desktop: pagespeed.desktop ?? null,
       }
     : null;
   const sourceStatus = {

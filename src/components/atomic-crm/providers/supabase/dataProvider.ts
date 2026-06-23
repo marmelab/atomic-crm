@@ -377,8 +377,26 @@ const dataProviderWithCustomMethods = {
     id: Identifier,
     data: Partial<Omit<SalesFormData, "password">>,
   ) {
-    const { email, first_name, last_name, administrator, avatar, disabled } =
-      data;
+    const { email, first_name, last_name, administrator, disabled } = data;
+    const avatar = data.avatar as RAFile | string | undefined;
+
+    // The avatar arrives from the image editor as a RAFile object containing a
+    // local blob URL and the raw File. This sales-specific update path bypasses
+    // the `beforeSave` lifecycle hook, so we must upload any newly-selected file
+    // to the storage bucket here and send the resulting public URL (as a jsonb
+    // object, matching the `avatar` column) to the edge function.
+    let avatarToSave:
+      | { src?: string; path?: string; title?: string; type?: string }
+      | undefined;
+    if (avatar && typeof avatar === "object") {
+      const uploaded = avatar.rawFile ? await uploadToBucket(avatar) : avatar;
+      avatarToSave = {
+        src: uploaded.src,
+        path: uploaded.path,
+        title: uploaded.title,
+        type: uploaded.type,
+      };
+    }
 
     const { data: updatedData, error } = await supabase.functions.invoke<{
       data: Sale;
@@ -391,7 +409,7 @@ const dataProviderWithCustomMethods = {
         last_name,
         administrator,
         disabled,
-        avatar,
+        avatar: avatarToSave,
       },
     });
 
