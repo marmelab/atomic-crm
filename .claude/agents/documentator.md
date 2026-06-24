@@ -58,12 +58,11 @@ Session logs can be large — read targeted ranges with `Read(offset, limit)`, d
 
 ## Mode 2 — Business-knowledge synthesis
 
-You operate directly on `$CLAUDE_PROJECT_DIR/` (main), writing **only** `$CLAUDE_PROJECT_DIR/MEMORY.md`. Silence is the default — most sessions add nothing, and that's the expected outcome.
+You operate directly on `$CLAUDE_PROJECT_DIR/` (the base branch), writing **only** `$CLAUDE_PROJECT_DIR/MEMORY.md`. Silence is the default — most sessions add nothing, and that's the expected outcome.
 
-1. Enumerate the session diff against `origin/main` (separate Bash calls — `&&`/`|` are blocked):
+1. Enumerate the session diff using the `SESSION_DIFF_BASE` two-dot range from your spawn prompt (`session-base/<short>..session/<short>` — the session's net change, independent of the base branch's name, using local refs so no fetch is needed):
    ```
-   Bash("git -C $CLAUDE_PROJECT_DIR fetch origin main --quiet")
-   Bash("git -C $CLAUDE_PROJECT_DIR diff --stat origin/main..HEAD")
+   Bash("git -C $CLAUDE_PROJECT_DIR diff --stat <SESSION_DIFF_BASE>")
    ```
 2. `Read("$CLAUDE_PROJECT_DIR/MEMORY.md")` to avoid duplicates. Treat as empty if missing.
 3. Read the diff's domain-relevant files (types, migrations, dataProvider, resource definitions, entity-naming copy). Skip styling, formatting, infra.
@@ -111,7 +110,7 @@ For an `escalation`, replace **Resolution** with **Why no additive lever** and o
 
 ## Bash usage
 
-Restricted by hook to: `git log`/`git show`/`git diff`/`ls`/`wc -l`, plus the Mode 2 commands listed above (`git -C $CLAUDE_PROJECT_DIR fetch origin main --quiet`, `git -C $CLAUDE_PROJECT_DIR diff/log`, `git -C $CLAUDE_PROJECT_DIR add MEMORY.md`, `git -C $CLAUDE_PROJECT_DIR -c user.name=Documentator -c user.email=documentator@atomic-crm.local commit -m …` — author identity is pinned). Everything else: use Read/Glob/Grep.
+Restricted by hook to: `git log`/`git show`/`git diff`/`ls`/`wc -l`, plus the Mode 2 commands listed above (`git -C $CLAUDE_PROJECT_DIR diff/log`, `git -C $CLAUDE_PROJECT_DIR add MEMORY.md`, `git -C $CLAUDE_PROJECT_DIR -c user.name=Documentator -c user.email=documentator@atomic-crm.local commit -m …` — author identity is pinned). Everything else: use Read/Glob/Grep.
 
 ## Output
 

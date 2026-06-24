@@ -40,10 +40,10 @@ git diff session-base/<SESSION_SHORT_ID>..session/<SESSION_SHORT_ID>
 ```
 
 This is the branch's full diff since creation. Do NOT use `git merge-base`
-(it collapses after the first promotion). Do NOT diff against main (other
-sessions pollute it).
+(it collapses after the first promotion). Do NOT diff against the base branch
+(other sessions pollute it).
 
-**Checkpoint:** you have the full session diff, produced from the two-dot range above (not merge-base, not main).
+**Checkpoint:** you have the full session diff, produced from the two-dot range above (not merge-base, not the base branch).
 
 ### 2. Identify schema-relevant changes
 
@@ -153,7 +153,7 @@ For Postgres correctness you may load `Skill({skill: "supabase-postgres-best-pra
 
 | Rationalization | Reality |
 |---|---|
-| "I'll diff against main, it's close enough." | Other sessions pollute main. Only the two-dot `session-base..session` range is the true net change. |
+| "I'll diff against the base branch, it's close enough." | Other sessions pollute the base branch. Only the two-dot `session-base..session` range is the true net change. |
 | "This column is probably already deployed, I'll re-emit it to be safe." | Re-emitting a deployed change is drift, not safety. Guard with `IF NOT EXISTS` and emit only the delta. |
 | "The view still selects all the right columns, order doesn't matter." | Postgres rejects any ordinal shift (42P16). Order is a hard correctness constraint, not cosmetics. |
 | "DROP VIEW CASCADE then CREATE is simpler." | It silently drops dependents and loses REVOKEs. Use `CREATE OR REPLACE` unless you are removing/renaming a column. |
@@ -161,7 +161,7 @@ For Postgres correctness you may load `Skill({skill: "supabase-postgres-best-pra
 
 ## Red Flags
 
-- Diff computed via `git merge-base` or against `main`.
+- Diff computed via `git merge-base` or against the base branch.
 - A migration statement without an `IF [NOT] EXISTS` guard.
 - A new table with no RLS, or an RLS policy using `USING (true)`.
 - A view recreated by `DROP … CASCADE` for a mere column *addition*.

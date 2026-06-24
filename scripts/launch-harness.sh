@@ -5,7 +5,6 @@
 #
 # Usage:
 #   scripts/launch-harness.sh ["CRM change request"]
-#   MODE=full scripts/launch-harness.sh "..."     # real backend (needs local Supabase up)
 #
 # The request is optional: pass it to pre-fill the first message, or omit it and
 # type your request once the session opens.
@@ -21,10 +20,10 @@ REPO="$(git rev-parse --show-toplevel)"
 cd "$REPO"
 
 # Record the branch + commit we start from so `make clean-harness` can land us
-# back here afterwards. The harness checks out main to promote merged work, which
-# would otherwise leave you stranded on main with your branch behind. Stored
-# under .git/ so it survives the /tmp session cleanup. Detached HEAD → empty
-# branch field (clean-harness then just resets in place).
+# back here afterwards. The harness checks out the base branch (the branch you
+# started on) to promote merged work, which would otherwise leave you stranded on
+# it with your branch behind. Stored under .git/ so it survives the /tmp session
+# cleanup. Detached HEAD → empty branch field (clean-harness then just resets in place).
 START_BRANCH="$(git symbolic-ref --short HEAD 2>/dev/null || true)"
 START_SHA="$(git rev-parse HEAD)"
 printf '%s\t%s\n' "$START_BRANCH" "$START_SHA" > "$REPO/.git/clean-harness-return"
@@ -39,10 +38,7 @@ SAN="$(printf '%s' "$REPO" | sed 's#/#_#g')"
 SESSION_DIR="/tmp/atomic-crm-harness/${UUID}"
 mkdir -p "$SESSION_DIR"
 
-MODE="${MODE:-demo}"
-
 echo "Harness session"
-echo "  mode:          $MODE"
 echo "  session id:    $UUID"
 echo "  session dir:   $SESSION_DIR"
 echo "  worktree base: /tmp/${SAN}/${UUID}   (created lazily by the setup-worktree hook)"
@@ -55,8 +51,7 @@ ARGS=(
   --agent chat-orchestrator
   --session-id "$UUID"
   --permission-mode auto
-  --append-system-prompt "<mode>${MODE}</mode>
-<session_dir>${SESSION_DIR}</session_dir>"
+  --append-system-prompt "<session_dir>${SESSION_DIR}</session_dir>"
 )
 if [ -n "$REQUEST" ]; then
   ARGS+=("$REQUEST")
@@ -65,7 +60,6 @@ fi
 exec env \
   CLAUDE_PROJECT_DIR="$REPO" \
   CHAT_SESSION_DIR="$SESSION_DIR" \
-  MODE="$MODE" \
   DISABLE_AUTOUPDATER=1 \
   CLAUDE_CODE_DISABLE_BACKGROUND_TASKS=1 \
   claude "${ARGS[@]}"

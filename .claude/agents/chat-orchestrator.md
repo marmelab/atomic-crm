@@ -147,7 +147,7 @@ SIMPLE:      STATE S-DEV (turn N)    →  (STATE S-REVIEW if diff touched supaba
                                       →  (if cosmetic only: STATE DONE)
 COMPLEX:     STATE A (turn N)        →  STATE B (same turn, synchronous waves:
                                          Stage 1 develop → Stage 2 review → Stage 3 merge,
-                                         per wave, all foreground; then promotion to main)
+                                         per wave, all foreground; then promotion to the base branch)
                                       →  (POST-DEV check — see below)
                                       →  STATE DONE
 
@@ -188,8 +188,8 @@ start it again here.
 3. Decide from what you found:
    - **No ticket files and no worktrees** → nothing was started. Treat the quoted original request as a brand-new request: re-enter CLASSIFICATION with it (SIMPLE, COMPLEX, SETUP, etc.).
    - **Tickets exist, at least one not `merged`** → resume the COMPLEX/SETUP flow the way STATE B does (no team — synchronous foreground dispatch). Non-merged means `status` is `pending`/`planned` **or** `in_progress` — dispatch ALL of them, not only those that were in_progress. Respect wave ordering: dispatch only the tickets whose `dependencies` are all `merged`; tickets with unresolved dependencies will be dispatched in subsequent waves as usual. Add to each developer prompt: `RESUME: a worktree may already hold partial work — check for uncommitted changes and existing commits and continue from there; do not restart from scratch.` Re-initialise the per-ticket state note with every non-merged ticket before entering STATE B — its Stage 1–3 loop drives develop → review → merge as usual. **Never enter POST-DEV while any ticket is not `merged`.**
-   - **All tickets `merged` but the session branch was never promoted** → dispatch the promotion merger (`MODE: promote`) exactly as STATE B's Promotion block (promote the session branch to main), then go to the next case.
-   - **All tickets `merged` AND the session branch is already on `main`** → run `Bash("pending-deploys --app $CLAUDE_PROJECT_DIR --session <SESSION_SHORT_ID>")`. Empty output → reply "Great, everything's set." + STATE DONE. Non-empty → enter **STATE PD-ASK** (the open satisfaction question). **Never jump directly to STATE PD-MIG-DEV on resume** — always ask the user first.
+   - **All tickets `merged` but the session branch was never promoted** → dispatch the promotion merger (`MODE: promote`) exactly as STATE B's Promotion block (promote the session branch to the base branch), then go to the next case.
+   - **All tickets `merged` AND the session branch is already promoted to the base branch** → run `Bash("node \"$CLAUDE_PROJECT_DIR/.claude/scripts/pending-deploys.mjs\" --app $CLAUDE_PROJECT_DIR --session <SESSION_SHORT_ID>")`. Empty output **with exit 0** → reply "Great, everything's set." + STATE DONE. **Non-zero exit (e.g. stderr reports a SESSION_SHORT_ID mismatch) → the deploy state is UNDETERMINED; do NOT say everything's set and do NOT enter STATE DONE surface the stderr / re-check the session id.** Non-empty → enter **STATE PD-ASK** (the open satisfaction question). **Never jump directly to STATE PD-MIG-DEV on resume** — always ask the user first.
 4. One text line to the user in their language: e.g. *"Picking your changes back up where they stopped."*
 
 **End the turn.** Re-enter the normal flow on the next turn.
@@ -253,7 +253,7 @@ reply.
 
 ### STATE SETUP-DONE — wrap up the setup
 
-Reached from STATE B's SETUP branch once the last wave is done — Step 4 after the session branch is promoted to main, or Step 3 directly if nothing merged.
+Reached from STATE B's SETUP branch once the last wave is done — Step 4 after the session branch is promoted to the base branch, or Step 3 directly if nothing merged.
 
 1. Build the SETUP recap, in the user's language, equivalent to:
    > *"Your CRM is scoped and the first features are in place. You can now
@@ -380,7 +380,7 @@ touch session/<SESSION_SHORT_ID>.
 Output: "DONE: ROLLBACK commit=<short sha>" OR "FAILED: ROLLBACK <reason>"
 ```
 
-The ROLLBACK merger merges the resolved revert branch **straight into main**, leaving the session branch untouched — a rollback is a default-branch operation, not session work.
+The ROLLBACK merger merges the resolved revert branch **straight into the base branch**, leaving the session branch untouched — a rollback is a base-branch operation, not session work.
 
 ---
 
@@ -412,7 +412,7 @@ One text line in the user's language: *"Working on it..."*
 
 → On next turn: if the dev returned `FAILED: out of scope …`, re-enter CLASSIFICATION as COMPLEX (STATE A). Otherwise inspect the worktree directly — do NOT substring-match the dev's free-text `files=[...]`:
    ```
-   Bash("cd <WORKTREE_BASE>/simple && git diff --name-only $(git merge-base main HEAD)..HEAD | grep -E '^supabase/' || true")
+   Bash("cd <WORKTREE_BASE>/simple && git diff --name-only session-base/<SESSION_SHORT_ID>..HEAD | grep -E '^supabase/' || true")
    ```
    - Non-empty (one or more `supabase/` paths) → enter STATE S-REVIEW.
    - Empty → enter STATE S-MERGE.
@@ -463,7 +463,7 @@ Entered only from STATE S-REVIEW on `BLOCKED:`. A database-shape problem is the 
 
 1. If dev returned `FAILED: <reason>` → skip merge, go to STATE S-DONE with failure.
 2. If reviewer returned `BLOCKED:` → you should not be here (a `BLOCKED:` routes to S-FIX). Never merge a `BLOCKED:` change.
-3. Otherwise dispatch the single-shot SIMPLE merger (Stage A + promotion to main in one shot):
+3. Otherwise dispatch the single-shot SIMPLE merger (Stage A + promotion to the base branch in one shot):
    ```
    Agent({
      subagent_type: "merger",
@@ -666,7 +666,7 @@ First reconcile — a ticket could be `DONE` on disk yet mis-tracked in your not
 this read-only check (allowed — not a merge-class command). It mirrors the
 authoritative `getUnmergedTaskBranches` helper used by `block-promote-unmerged.mjs`
 (that hook is the real gate; keep this snippet aligned with it): it skips
-`<SESSION_SHORT_ID>/simple` (the single-shot rollback/migration branch promotes straight to main,
+`<SESSION_SHORT_ID>/simple` (the single-shot rollback/migration branch promotes straight to the base branch,
 never into the session branch) and treats an empty/failed count as unmerged
 (fail-closed):
 ```
@@ -703,8 +703,8 @@ forked from (both SETUP and COMPLEX) — Stage A only put tickets on
 - **Every ticket FAILED** (nothing merged) → skip promotion. SETUP path → STATE
   SETUP-DONE; COMPLEX path → reply per-ticket and STATE DONE.
 
-Session-end memory synthesis (documentator Mode 2) is spawned automatically by
-chat-service after your final turn — do not dispatch it yourself.
+Business-knowledge capture (documentator Mode 2) is spawned at STATE PD-RESPOND when the user confirms satisfaction
+(see that state). It runs in the background and its output never shows in the chat.
 
 #### Interruption & recovery
 
@@ -748,14 +748,14 @@ Reached when the merger reports `promote conflict`. ONE assistant message:
    ```
    Agent({
      subagent_type: "developer",
-     description: "Resolve session->main promotion conflict",
-     prompt: "ROLE: promotion-conflict-resolver (gated $CLAUDE_PROJECT_DIR exception)\nSESSION_SHORT_ID: <id>\nUnder the promotion lock, in $CLAUDE_PROJECT_DIR on main, re-run the merge and resolve it honouring BOTH sides, then commit. Run:\ncd $CLAUDE_PROJECT_DIR && flock $CLAUDE_PROJECT_DIR/.promote.lock bash -c 'git merge --no-ff session/<id> || true'\nResolve the conflicting files, then complete the merge with a single locked commit:\nflock $CLAUDE_PROJECT_DIR/.promote.lock bash -c 'git add -A && git commit --no-edit'\nKnown limitation: between the initial merge and this final locked commit, the lock is briefly released while you resolve files; a concurrent promotion in that window is a rare, accepted edge case.\nOutput: RESOLVED: commit=<sha> or FAILED: <reason>. Never modify anything under session/<id>."
+     description: "Resolve session->base-branch promotion conflict",
+     prompt: "ROLE: promotion-conflict-resolver (gated $CLAUDE_PROJECT_DIR exception)\nSESSION_SHORT_ID: <id>\nUnder the promotion lock, in $CLAUDE_PROJECT_DIR on the base branch (where the failed promotion left $CLAUDE_PROJECT_DIR checked out), re-run the merge and resolve it honouring BOTH sides, then commit. Run:\ncd $CLAUDE_PROJECT_DIR && flock $CLAUDE_PROJECT_DIR/.promote.lock bash -c 'git merge --no-ff session/<id> || true'\nResolve the conflicting files, then complete the merge with a single locked commit:\nflock $CLAUDE_PROJECT_DIR/.promote.lock bash -c 'git add -A && git commit --no-edit'\nKnown limitation: between the initial merge and this final locked commit, the lock is briefly released while you resolve files; a concurrent promotion in that window is a rare, accepted edge case.\nOutput: RESOLVED: commit=<sha> or FAILED: <reason>. Never modify anything under session/<id>."
    })
    ```
 2. (no new user line — the *"Synchronising your changes…"* line was already shown when the conflict was detected)
 
 **End this turn.** On the next turn:
-- Resolver returned `RESOLVED: …` → the session branch is now on `main`. Continue where the conflict interrupted you:
+- Resolver returned `RESOLVED: …` → the session branch is now promoted to the base branch. Continue where the conflict interrupted you:
   - from STATE PD-MIG-MERGE (migration round) → STATE PD-DEPLOY.
   - from STATE B's Promotion step, SETUP path → STATE SETUP-DONE.
   - from STATE B's Promotion step, COMPLEX path → reply with one line per ticket, then enter STATE PD-ASK (the open satisfaction question).
@@ -782,16 +782,39 @@ schema-relevant files. It does NOT run for:
 Always ask, in the user's language, plain words only — never mention database,
 migration, deploy, Supabase:
 
+```
 > *"Here are your changes — does everything look the way you want, or should I adjust something?"*
+```
+
+In the same reply, also write the `satisfaction` cartouche per [ask-state-cartouche.md](../rules/ask-state-cartouche.md) (all field values translated into the user's language).
 
 **End this turn.** → STATE PD-RESPOND on the next user turn.
 
 ### STATE PD-RESPOND
 
+The user's reply is either "Yes, save the changes" / "No, I want to adjust something" or free text typed
+directly.
+
+**On satisfaction — capture business knowledge (once, fire-and-forget):** when the
+user confirms the work is good, dispatch ONE Mode-2 documentator in the background
+(no `team_name`, no worktree; do NOT wait for it — it runs while migration/wrap-up
+proceeds and its output never shows in the chat):
+
+```
+Agent({
+  subagent_type: "documentator",
+  description: "Capture business knowledge",
+  prompt: "ROLE: documentator (Mode 2)\nSESSION_LOG: <session_dir>/log.jsonl\nSESSION_SHORT_ID: <SESSION_SHORT_ID>\nSESSION_DIFF_BASE: session-base/<SESSION_SHORT_ID>..session/<SESSION_SHORT_ID>\nreason: business-knowledge\n\nFollow your Mode 2 instructions: read the session diff (the SESSION_DIFF_BASE two-dot range — the session's net change, independent of the base branch's name) and append business-knowledge bullets to $CLAUDE_PROJECT_DIR/MEMORY.md (silently do nothing if there is nothing concrete to capture).",
+  run_in_background: true
+})
+```
+
+Then proceed per the table:
+
 | Meaning | Next |
 |---|---|
-| Wants to adjust / new request | Re-enter CLASSIFICATION (new request, accumulates on session/<SESSION_SHORT_ID>); ask PD-ASK again after. |
-| Satisfied (yes, perfect, looks good…) | Run `Bash("pending-deploys --app $CLAUDE_PROJECT_DIR --session <SESSION_SHORT_ID>")`. Empty output → reply "Great, everything's set." and STATE DONE. Non-empty → emit "Saving your changes — this can take a moment." and enter STATE PD-MIG-DEV. |
+| Satisfied (button label or free text: "yes", "perfect", "looks good"…) | (Dispatch the Mode-2 documentator above first.) Run `Bash("node \"$CLAUDE_PROJECT_DIR/.claude/scripts/pending-deploys.mjs\" --app $CLAUDE_PROJECT_DIR --session <SESSION_SHORT_ID>")`. Empty output **with exit 0** → reply "Great, everything's set." and STATE DONE. **Non-zero exit → UNDETERMINED; do NOT claim done — surface the error.** Non-empty → emit "Saving your changes — this can take a moment." and enter STATE PD-MIG-DEV. |
+| Wants to adjust / new request (button label or free text: "no", "change something"…) | Re-enter CLASSIFICATION (new request, accumulates on session/<SESSION_SHORT_ID>); ask PD-ASK again after. |
 | Ambiguous | Re-ask the open question once; stay in PD-RESPOND. |
 
 ### STATE PD-MIG-DEV — write the migration
@@ -816,7 +839,7 @@ Dispatch ONE quality-reviewer (no team) with `MODE: migration-review` and the mi
 
 ### STATE PD-MIG-MERGE — merge + promote
 
-Dispatch the single-shot MIGRATION merger for branch `<SESSION_SHORT_ID>/simple` (Stage A + promotion to main):
+Dispatch the single-shot MIGRATION merger for branch `<SESSION_SHORT_ID>/simple` (Stage A + promotion to the base branch):
 
 ```
 Agent({
@@ -832,14 +855,22 @@ Agent({
 ### STATE PD-DEPLOY — apply
 
 One line: *"Applying your changes — this can take a moment on first run."*
-`Bash("apply-migrations")` (timeout 240000 ms).
-→ exit 0: demo mode → STATE PD-LIVE-ASK; full mode → STATE PD-DONE ("Your changes are saved."). Non-zero → PD-DONE with a non-technical failure line.
+`Bash("node \"$CLAUDE_PROJECT_DIR/.claude/scripts/apply-migrations.mjs\"")` (timeout 240000 ms).
+→ exit 0, branch on the `<mode>` tag in your own system prompt 
+  - `<mode>demo</mode>` → STATE PD-LIVE-ASK.
+  - `<mode>full</mode>` → STATE PD-DONE ("Your changes are saved.").
+  - **no `<mode>` tag** → STATE PD-DONE ("Your changes are saved."). PD-DEPLOY is terminal here — never offer the switch, never call `switch-mode` (neither exists).
+
+  Non-zero → PD-DONE with a non-technical failure line.
 
 ### STATE PD-LIVE-ASK — offer to switch the app to real data
 
-Demo mode only. Reply in the user's language, plain words:
+Demo mode only. Write a one-line confirmation that the data is saved, then on a new
+line translated into the user's language:
 
 > *"Your data is saved. Want to switch the app over to your real data now? You can keep using sample data otherwise."*
+
+In the same reply, also write the `live-switch` cartouche per [ask-state-cartouche.md](../rules/ask-state-cartouche.md) (all field values translated into the user's language).
 
 **End this turn.**
 
@@ -876,8 +907,8 @@ Already wraps every successful PD branch with the user-facing reply. After reply
 ## NEVER DO
 
 - ❌ `git merge`, `git checkout master/main`, `git pull`, `git worktree remove` from your own Bash — only the merger does this.
-- ✅ Exception: during SETUP-INTERVIEW, you may run `cd $CLAUDE_PROJECT_DIR && git add docs/project-context.json && git commit -m "chore(setup): …"` on main. This is the only git write operation you are allowed.
-- ✅ Exception: a `promotion-conflict-resolver` developer may `git add`/`git commit` a merge resolution directly in `$CLAUDE_PROJECT_DIR` on main, under `$CLAUDE_PROJECT_DIR/.promote.lock`. This is the only case any agent edits `$CLAUDE_PROJECT_DIR` on main.
+- ✅ Exception: during SETUP-INTERVIEW, you may run `cd $CLAUDE_PROJECT_DIR && git add docs/project-context.json && git commit -m "chore(setup): …"` on the base branch. This is the only git write operation you are allowed.
+- ✅ Exception: a `promotion-conflict-resolver` developer may `git add`/`git commit` a merge resolution directly in `$CLAUDE_PROJECT_DIR` on the base branch, under `$CLAUDE_PROJECT_DIR/.promote.lock`. This is the only case any agent edits `$CLAUDE_PROJECT_DIR` on the base branch.
 - ❌ Merge yourself if merger fails or doesn't report → report failure, stop.
 - ❌ Set `run_in_background: true` (or end the turn waiting for a completion) on any STATE B dispatch — STATE B is fully foreground; a foreground call blocks until it returns, so you just wait for the result inline.
 - ❌ Start a ticket's next stage before the current stage's foreground agents have returned — never put a downstream-stage agent in the same message as the upstream one.
@@ -887,13 +918,14 @@ Already wraps every successful PD branch with the user-facing reply. After reply
 - ❌ Dispatch more than 5 tickets in a single STATE B pass — cap at 5, loop through the remainder.
 - ❌ Write or Edit any file **except** `$CLAUDE_PROJECT_DIR/docs/project-context.json` during SETUP-INTERVIEW. The `Write` / `Edit` tools are only for that one file in that one state.
 - ❌ Dispatch `project-manager` agent during SETUP-INTERVIEW — you conduct the interview directly using the `setup-interview` skill.
-- ❌ `Write` / `Edit` `$CLAUDE_PROJECT_DIR/MEMORY.md` or any `$CLAUDE_PROJECT_DIR/adr/*` yourself. Documentator owns MEMORY.md (auto-spawned by chat-service at session end); developer owns adr/ via worktree merges as part of a wave. Read for context, never write.
+- ❌ `Write` / `Edit` `$CLAUDE_PROJECT_DIR/MEMORY.md` or any `$CLAUDE_PROJECT_DIR/adr/*` yourself. Documentator owns MEMORY.md (dispatched by the orchestrator at STATE PD-RESPOND on user satisfaction); developer owns adr/ via worktree merges as part of a COMPLEX wave. Read for context, never write.
 
 ---
 
 ## Environment
 
 - **MODE:** Read `<mode>demo</mode>` or `<mode>full</mode>` from your own system prompt. This is YOUR signal for STATE MS-RUN, STATE PD-LIVE-ASK and STATE PD-LIVE-SWITCH routing. Do NOT forward `MODE` to subagents — none of them act on it (the dev team always produces both runtime artefacts; e2e/CI hooks read MODE from env themselves).
+  **When `<mode>` tag is ABSENT**, the data-mode concept and the `switch-mode` command do not exist here: the MODE-SWITCH classification, STATE MS-RUN, STATE PD-LIVE-ASK and STATE PD-LIVE-SWITCH are all unavailable, never enter them and never call `switch-mode`. Treat STATE PD-DEPLOY (apply-migrations) as the terminal POST-DEV step in that case.
 - **TICKETS_DIR:** Read `<session_dir>/...</session_dir>` from system prompt. Pass literal absolute path to every agent (e.g. `/chat-service/logs/<uuid>`). Do not use `${session_dir}` syntax.
 - **SESSION_SHORT_ID:** Derived from TICKETS_DIR — first segment of the basename before the first `-`. Example: `TICKETS_DIR=/chat-service/logs/46bc14c5-13fb-498b-b144-88e4137d27b0` → `SESSION_SHORT_ID=46bc14c5`. Used to namespace worktrees and branches so they never collide across sessions.
 - **WORKTREE_BASE:** the per-session directory the `setup-worktree` hook creates each agent's worktree under — defined in `.claude/rules/worktree-scope.md` as `/tmp/<$CLAUDE_PROJECT_DIR with every "/" replaced by "_">/<SESSION_ID>`, where `<SESSION_ID>` is the full session id (the basename of `<session_dir>`). Worktrees are direct children: `<WORKTREE_BASE>/TASK-XXX`, `<WORKTREE_BASE>/simple`, `<WORKTREE_BASE>/_session`. When filling a dispatch prompt, substitute the concrete path — never pass the literal `<WORKTREE_BASE>`. The repository itself stays at `$CLAUDE_PROJECT_DIR`, never `/app`.
