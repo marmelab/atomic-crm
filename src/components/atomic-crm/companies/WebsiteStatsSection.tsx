@@ -22,6 +22,7 @@ import {
   Search,
   Settings2,
   Smartphone,
+  TrendingUp,
 } from "lucide-react";
 import { useState } from "react";
 import { useDataProvider, useGetList, useNotify } from "ra-core";
@@ -104,6 +105,54 @@ function hostnameLabel(url: string): string {
 
 function seconds(ms: number | null): string {
   return ms == null ? "—" : `${(ms / 1000).toFixed(1)} s`;
+}
+
+type QueryRow = NonNullable<
+  NonNullable<WebsiteSnapshot["search_console"]>["top_queries"]
+>[number];
+
+type KeywordMover = {
+  query: string;
+  current: number;
+  previous: number;
+  delta: number;
+};
+
+// Jämför sökordspositioner mellan två officiella månader. Negativ delta =
+// förbättring (lägre position är bättre).
+function computeKeywordMovers(
+  latest?: WebsiteSnapshot,
+  previous?: WebsiteSnapshot,
+): { improved: KeywordMover[]; declined: KeywordMover[]; added: QueryRow[] } {
+  const current = latest?.search_console?.top_queries ?? [];
+  const prior = previous?.search_console?.top_queries ?? [];
+  const priorByQuery = new Map(prior.map((row) => [row.query, row.position]));
+  const movers: KeywordMover[] = [];
+  const added: QueryRow[] = [];
+  for (const row of current) {
+    const priorPosition = priorByQuery.get(row.query);
+    if (priorPosition == null) {
+      added.push(row);
+    } else if (priorPosition !== row.position) {
+      movers.push({
+        query: row.query,
+        current: row.position,
+        previous: priorPosition,
+        delta: row.position - priorPosition,
+      });
+    }
+  }
+  return {
+    improved: movers
+      .filter((m) => m.delta < 0)
+      .sort((a, b) => a.delta - b.delta)
+      .slice(0, 5),
+    declined: movers
+      .filter((m) => m.delta > 0)
+      .sort((a, b) => b.delta - a.delta)
+      .slice(0, 3),
+    added: added.slice(0, 5),
+  };
 }
 
 type DeviceBreakdown = NonNullable<
@@ -245,6 +294,23 @@ export function WebsiteStatsSection({ company }: { company: Company }) {
         snapshot.window_kind === "calendar_month" && snapshot.period_start,
     )
     .sort((a, b) => (a.period_start ?? "").localeCompare(b.period_start ?? ""));
+  // Sökordsrörelser (2A): jämför de två senaste officiella månaderna.
+  const keywordMovers = computeKeywordMovers(
+    officialHistory[officialHistory.length - 1],
+    officialHistory[officialHistory.length - 2],
+  );
+  // Recensionsvelocitet (2C): nya recensioner mellan de två senaste officiella
+  // månaderna. null när underlag saknas.
+  const reviewVelocity = (() => {
+    const latestCount =
+      officialHistory[officialHistory.length - 1]?.business_profile
+        ?.reviews_count;
+    const priorCount =
+      officialHistory[officialHistory.length - 2]?.business_profile
+        ?.reviews_count;
+    if (latestCount == null || priorCount == null) return null;
+    return latestCount - priorCount;
+  })();
 
   const handleAnalyze = async () => {
     setAnalyzing(true);
@@ -680,6 +746,97 @@ export function WebsiteStatsSection({ company }: { company: Company }) {
                     value: snapshot.search_console?.clicks ?? null,
                   }))}
                 />
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-base">
+                  <TrendingUp className="size-4" />
+                  Sökordsrörelser
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {officialHistory.length < 2 ? (
+                  <p className="text-sm text-muted-foreground">
+                    Visas när vi har minst två officiella månader att jämföra.
+                  </p>
+                ) : keywordMovers.improved.length === 0 &&
+                  keywordMovers.declined.length === 0 &&
+                  keywordMovers.added.length === 0 ? (
+                  <p className="text-sm text-muted-foreground">
+                    Inga tydliga positionsförändringar sedan förra månaden.
+                  </p>
+                ) : (
+                  <div className="space-y-4 text-sm">
+                    {keywordMovers.improved.length > 0 ? (
+                      <div>
+                        <p className="mb-1 text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
+                          Förbättrade
+                        </p>
+                        {keywordMovers.improved.map((mover) => (
+                          <div
+                            key={mover.query}
+                            className="flex items-center justify-between gap-2 border-b py-1.5 last:border-0"
+                          >
+                            <span className="truncate" title={mover.query}>
+                              {mover.query}
+                            </span>
+                            <span className="whitespace-nowrap text-green-700">
+                              ↑ {Math.abs(mover.delta).toFixed(1)} platser (→
+                              pos {mover.current.toFixed(1)})
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    ) : null}
+                    {keywordMovers.declined.length > 0 ? (
+                      <div>
+                        <p className="mb-1 text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
+                          Tappade
+                        </p>
+                        {keywordMovers.declined.map((mover) => (
+                          <div
+                            key={mover.query}
+                            className="flex items-center justify-between gap-2 border-b py-1.5 last:border-0"
+                          >
+                            <span className="truncate" title={mover.query}>
+                              {mover.query}
+                            </span>
+                            <span className="whitespace-nowrap text-red-700">
+                              ↓ {mover.delta.toFixed(1)} platser (→ pos{" "}
+                              {mover.current.toFixed(1)})
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    ) : null}
+                    {keywordMovers.added.length > 0 ? (
+                      <div>
+                        <p className="mb-1 text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
+                          Nya sökord
+                        </p>
+                        {keywordMovers.added.map((row) => (
+                          <div
+                            key={row.query}
+                            className="flex items-center justify-between gap-2 border-b py-1.5 last:border-0"
+                          >
+                            <span className="truncate" title={row.query}>
+                              {row.query}
+                            </span>
+                            <span className="whitespace-nowrap text-muted-foreground">
+                              pos {row.position.toFixed(1)}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    ) : null}
+                  </div>
+                )}
+                <p className="mt-3 text-xs text-muted-foreground">
+                  Positionsförändringar mellan de två senaste officiella
+                  månaderna — den tydligaste bevisningen på SEO-framsteg.
+                </p>
               </CardContent>
             </Card>
 
@@ -1124,6 +1281,18 @@ export function WebsiteStatsSection({ company }: { company: Company }) {
                       )}
                     </div>
                   ))}
+                  {selected.seo_checks?.lastmod_newest ? (
+                    <p className="pt-2 text-xs text-muted-foreground">
+                      Innehållsfärskhet: senast uppdaterad{" "}
+                      {new Date(
+                        selected.seo_checks.lastmod_newest,
+                      ).toLocaleDateString("sv-SE")}
+                      {selected.seo_checks.stale_count
+                        ? ` · ${selected.seo_checks.stale_count} sidor ej uppdaterade på 6 mån`
+                        : ""}
+                      . Färskt innehåll ger fler AI-citeringar.
+                    </p>
+                  ) : null}
                 </CardContent>
               </Card>
 
@@ -1147,9 +1316,23 @@ export function WebsiteStatsSection({ company }: { company: Company }) {
                       <p className="text-muted-foreground">
                         {business.reviews_count ?? 0} recensioner
                       </p>
+                      {reviewVelocity != null ? (
+                        <p
+                          className={
+                            reviewVelocity > 0
+                              ? "text-green-700"
+                              : "text-muted-foreground"
+                          }
+                        >
+                          {reviewVelocity > 0
+                            ? `+${reviewVelocity} nya recensioner senaste månaden`
+                            : "Inga nya recensioner senaste månaden"}
+                        </p>
+                      ) : null}
                       <p>
                         En jämn ström av nya recensioner stärker både lokal
-                        synlighet och förtroende.
+                        synlighet och förtroende — färskhet väger tyngre än
+                        engångsvolym.
                       </p>
                     </>
                   ) : (

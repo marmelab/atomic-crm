@@ -414,8 +414,21 @@ async function probeExists(url: string): Promise<boolean> {
   }
 }
 
-function countLocs(xml: string): number {
-  return (xml.match(/<loc>/gi) ?? []).length;
+type SitemapSummary = {
+  url_count: number;
+  lastmod_newest: string | null; // YYYY-MM-DD, nyaste uppdaterade sidan
+  stale_count: number; // antal URL:er ej uppdaterade på 180+ dagar
+};
+
+const STALE_AFTER_MS = 180 * 24 * 60 * 60 * 1000;
+
+// Räknar <loc> och plockar parsbara <lastmod>-tidsstämplar ur ett sitemap-dokument.
+function parseSitemapDoc(xml: string): { locs: number; lastmods: number[] } {
+  const locs = (xml.match(/<loc>/gi) ?? []).length;
+  const lastmods = [...xml.matchAll(/<lastmod>\s*([^<\s]+)/gi)]
+    .map((match) => Date.parse(match[1]))
+    .filter((time) => !Number.isNaN(time));
+  return { locs, lastmods };
 }
 
 async function fetchSitemapText(url: string): Promise<string | null> {
@@ -437,18 +450,22 @@ async function fetchSitemapText(url: string): Promise<string | null> {
 }
 
 /**
- * Räknar antal URL:er i sajtens sitemap. Hanterar sitemap-index en nivå djupt
- * (hämtar upp till 5 under-sitemaps parallellt för att skydda funktionens
- * tidsbudget — räknar då "minst" detta antal). null = ingen läsbar sitemap.
+ * Sammanfattar sajtens sitemap: antal URL:er + innehållsfärskhet (nyaste
+ * lastmod + hur många sidor som inte rörts på 180+ dagar). Hanterar
+ * sitemap-index en nivå djupt (upp till 5 under-sitemaps parallellt för att
+ * skydda tidsbudgeten). null = ingen läsbar sitemap.
  */
-async function countSitemapUrls(
+async function summarizeSitemap(
   origin: string,
   robotsBody: string,
-): Promise<number | null> {
+): Promise<SitemapSummary | null> {
   const fromRobots = robotsBody.match(/sitemap:\s*(\S+)/i)?.[1];
   const sitemapUrl = fromRobots ?? `${origin}/sitemap.xml`;
   const xml = await fetchSitemapText(sitemapUrl);
   if (xml == null) return null;
+
+  let urlCount = 0;
+  const lastmods: number[] = [];
 
   if (/<sitemapindex/i.test(xml)) {
     const children = [...xml.matchAll(/<loc>\s*([^<\s]+)\s*<\/loc>/gi)]
@@ -463,15 +480,31 @@ async function countSitemapUrls(
       })
       .filter((child): child is string => child != null)
       .slice(0, 5);
-    const counts = await Promise.all(
+    const docs = await Promise.all(
       children.map(async (child) => {
         const childXml = await fetchSitemapText(child);
-        return childXml ? countLocs(childXml) : 0;
+        return childXml ? parseSitemapDoc(childXml) : null;
       }),
     );
-    return counts.reduce((sum, count) => sum + count, 0);
+    for (const doc of docs) {
+      if (!doc) continue;
+      urlCount += doc.locs;
+      lastmods.push(...doc.lastmods);
+    }
+  } else {
+    const doc = parseSitemapDoc(xml);
+    urlCount = doc.locs;
+    lastmods.push(...doc.lastmods);
   }
-  return countLocs(xml);
+
+  const staleThreshold = Date.now() - STALE_AFTER_MS;
+  const newest = lastmods.length > 0 ? Math.max(...lastmods) : null;
+  return {
+    url_count: urlCount,
+    lastmod_newest:
+      newest != null ? new Date(newest).toISOString().slice(0, 10) : null,
+    stale_count: lastmods.filter((time) => time < staleThreshold).length,
+  };
 }
 
 async function crawlSeoChecks(url: string): Promise<SeoChecks | null> {
@@ -522,11 +555,11 @@ async function crawlSeoChecks(url: string): Promise<SeoChecks | null> {
     // robots saknas — hanteras nedan
   }
 
-  const [llmsExists, sitemapUrlCount] = await Promise.all([
+  const [llmsExists, sitemap] = await Promise.all([
     probeExists(`${origin}/llms.txt`),
-    countSitemapUrls(origin, robotsBody),
+    summarizeSitemap(origin, robotsBody),
   ]);
-  const sitemapExists = sitemapUrlCount != null || /sitemap:/i.test(robotsBody);
+  const sitemapExists = sitemap != null || /sitemap:/i.test(robotsBody);
 
   return {
     title: titleMatch?.[1]?.trim() || null,
@@ -534,7 +567,9 @@ async function crawlSeoChecks(url: string): Promise<SeoChecks | null> {
     og_tags: /<meta[^>]+property=["']og:/i.test(html),
     schema_org: /application\/ld\+json/i.test(html),
     sitemap: sitemapExists,
-    sitemap_url_count: sitemapUrlCount,
+    sitemap_url_count: sitemap?.url_count ?? null,
+    lastmod_newest: sitemap?.lastmod_newest ?? null,
+    stale_count: sitemap?.stale_count ?? null,
     robots: robotsBody.length > 0,
     llms_txt: llmsExists,
     h1: /<h1[\s>]/i.test(html),
@@ -852,7 +887,9 @@ async function fetchSearchConsole(
     period_start: period.startDate,
     period_end: period.endDate,
     data_state: "final",
-    top_queries: normalizedQueries.slice(0, 10),
+    // Topp 50 (av 250 hämtade) — ger sökordshistorik/-rörelser månad för
+    // månad utan ny tabell. UI visar topp 10 men matchar rörelser mot fler.
+    top_queries: normalizedQueries.slice(0, 50),
     top_pages: (pageRows as AnalyticsRow[]).map((row) => ({
       page: row.keys?.[0] ?? "",
       clicks: row.clicks,

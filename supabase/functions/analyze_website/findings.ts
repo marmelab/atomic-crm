@@ -73,6 +73,10 @@ export type SeoChecks = {
   sitemap: boolean;
   /** Antal URL:er i sitemap (en nivå sitemap-index). null = ingen läsbar sitemap. */
   sitemap_url_count?: number | null;
+  /** Nyaste <lastmod> i sitemap (YYYY-MM-DD). null = saknas. */
+  lastmod_newest?: string | null;
+  /** Antal sidor ej uppdaterade på 180+ dagar (innehållsfärskhet). */
+  stale_count?: number | null;
   robots: boolean;
   llms_txt: boolean;
   h1: boolean;

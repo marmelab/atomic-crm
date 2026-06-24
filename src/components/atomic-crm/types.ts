@@ -752,6 +752,8 @@ export type WebsiteSnapshot = {
     schema_org?: boolean;
     sitemap?: boolean;
     sitemap_url_count?: number | null;
+    lastmod_newest?: string | null;
+    stale_count?: number | null;
     robots?: boolean;
     llms_txt?: boolean;
     h1?: boolean;
