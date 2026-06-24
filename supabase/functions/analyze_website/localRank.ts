@@ -32,25 +32,28 @@ function normalize(value: string): string {
 }
 
 // Mest särskiljande token ur företagsnamnet (längst, >= 4 tecken) för
-// namnmatchning mot map-pack-titlar.
-function longestToken(name: string): string | null {
+// namnmatchning mot map-pack-titlar. Ortnamnet exkluderas — annars matchar
+// "Östersunds El" vilken konkurrent som helst i Östersund.
+function longestToken(name: string, city?: string | null): string | null {
+  const cityNorm = city ? normalize(city) : "";
+  const cityWords = new Set(cityNorm.split(" ").filter(Boolean));
   const tokens = normalize(name)
     .split(" ")
-    .filter((token) => token.length >= 4)
+    .filter((token) => token.length >= 4 && !cityWords.has(token))
     .sort((a, b) => b.length - a.length);
   return tokens[0] ?? null;
 }
 
 /**
  * Hittar kundens position bland map-pack-träffarna. Domänmatch är starkast;
- * annars matchas företagsnamnets mest särskiljande token mot titeln.
+ * annars matchas företagsnamnets mest särskiljande token (ej ortnamn) mot titeln.
  */
 export function findLocalPosition(
   items: LocalFinderItem[],
-  company: { website?: string | null; name: string },
+  company: { website?: string | null; name: string; city?: string | null },
 ): { position: number | null; found: boolean } {
   const companyDomain = domainOf(company.website);
-  const token = longestToken(company.name);
+  const token = longestToken(company.name, company.city);
 
   for (const item of items) {
     const itemDomain = domainOf(item.domain ?? item.url);

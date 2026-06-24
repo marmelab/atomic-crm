@@ -55,6 +55,9 @@ const FETCH_TIMEOUT_MS = 15_000;
 // taket för danielssonsbygg (64,5s total körning → null). 90s ger marginal
 // utan att riskera edge-funktionens wall-clock-gräns (~150s).
 const PAGESPEED_TIMEOUT_MS = 90_000;
+// DataForSEO live-endpoints svarar normalt under 10s — 90s (PSI-nivå) skulle
+// onödigt riskera funktionens wall-clock-gräns.
+const DATAFORSEO_TIMEOUT_MS = 25_000;
 const CRON_BATCH_SIZE = 3;
 
 // --- Helpers ---
@@ -1017,7 +1020,7 @@ async function fetchLocalRank(
       try {
         const response = await fetchWithTimeout(
           "https://api.dataforseo.com/v3/serp/google/local_finder/live/advanced",
-          PAGESPEED_TIMEOUT_MS,
+          DATAFORSEO_TIMEOUT_MS,
           {
             method: "POST",
             headers: {
@@ -1041,10 +1044,20 @@ async function fetchLocalRank(
           return { keyword, position: null, found: false };
         }
         const data = await response.json();
-        const items = data?.tasks?.[0]?.result?.[0]?.items ?? [];
+        const task = data?.tasks?.[0];
+        // DataForSEO svarar 200 även vid task-fel (t.ex. okänd ort = 40501).
+        // Logga så att "okänd ort" inte ser ut som "kund saknas i kartpaketet".
+        if (task?.status_code && task.status_code !== 20000) {
+          console.warn(
+            `analyze_website: DataForSEO task ${task.status_code} for "${keyword}" (location "${locationName}"): ${task.status_message ?? ""}`,
+          );
+          return { keyword, position: null, found: false };
+        }
+        const items = task?.result?.[0]?.items ?? [];
         const { position, found } = findLocalPosition(items, {
           website: company.website,
           name: company.name,
+          city: company.city,
         });
         return { keyword, position, found };
       } catch (error) {

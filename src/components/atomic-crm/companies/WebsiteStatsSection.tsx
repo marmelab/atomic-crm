@@ -158,7 +158,10 @@ function computeKeywordMovers(
       .filter((m) => m.delta > 0)
       .sort((a, b) => b.delta - a.delta)
       .slice(0, 3),
-    added: added.slice(0, 5),
+    // Vid första körningen efter 10→50-utökningen har förra månaden bara 10
+    // lagrade sökord — då är "nya sökord" mest brus. Visa först när underlaget
+    // är moget (förra månaden lagrade fler än 20).
+    added: prior.length >= 20 ? added.slice(0, 5) : [],
   };
 }
 
@@ -301,20 +304,22 @@ export function WebsiteStatsSection({ company }: { company: Company }) {
         snapshot.window_kind === "calendar_month" && snapshot.period_start,
     )
     .sort((a, b) => (a.period_start ?? "").localeCompare(b.period_start ?? ""));
-  // Sökordsrörelser (2A): jämför de två senaste officiella månaderna.
+  // Sökordsrörelser (2A): jämför de två senaste officiella månaderna. Kräver
+  // två OLIKA perioder — annars är jämförelsen meningslös.
+  const latestOfficial = officialHistory[officialHistory.length - 1];
+  const priorOfficial = officialHistory[officialHistory.length - 2];
   const keywordMovers = computeKeywordMovers(
-    officialHistory[officialHistory.length - 1],
-    officialHistory[officialHistory.length - 2],
+    latestOfficial,
+    priorOfficial && priorOfficial.period_start !== latestOfficial?.period_start
+      ? priorOfficial
+      : undefined,
   );
-  // Recensionsvelocitet (2C): nya recensioner mellan de två senaste officiella
-  // månaderna. null när underlag saknas.
+  // Recensionsvelocitet (2C): skillnad i antal recensioner mellan vald period
+  // och jämförelseperioden (samma fönster) — följer samma logik som övriga
+  // deltan. null när underlag saknas.
   const reviewVelocity = (() => {
-    const latestCount =
-      officialHistory[officialHistory.length - 1]?.business_profile
-        ?.reviews_count;
-    const priorCount =
-      officialHistory[officialHistory.length - 2]?.business_profile
-        ?.reviews_count;
+    const latestCount = selected?.business_profile?.reviews_count;
+    const priorCount = comparison?.business_profile?.reviews_count;
     if (latestCount == null || priorCount == null) return null;
     return latestCount - priorCount;
   })();
@@ -1295,7 +1300,7 @@ export function WebsiteStatsSection({ company }: { company: Company }) {
                         selected.seo_checks.lastmod_newest,
                       ).toLocaleDateString("sv-SE")}
                       {selected.seo_checks.stale_count
-                        ? ` · ${selected.seo_checks.stale_count} sidor ej uppdaterade på 6 mån`
+                        ? ` · ${selected.seo_checks.stale_count} sidor med datum äldre än 6 mån`
                         : ""}
                       . Färskt innehåll ger fler AI-citeringar.
                     </p>
@@ -1328,12 +1333,16 @@ export function WebsiteStatsSection({ company }: { company: Company }) {
                           className={
                             reviewVelocity > 0
                               ? "text-green-700"
-                              : "text-muted-foreground"
+                              : reviewVelocity < 0
+                                ? "text-red-700"
+                                : "text-muted-foreground"
                           }
                         >
                           {reviewVelocity > 0
-                            ? `+${reviewVelocity} nya recensioner senaste månaden`
-                            : "Inga nya recensioner senaste månaden"}
+                            ? `+${reviewVelocity} nya recensioner sedan föregående period`
+                            : reviewVelocity < 0
+                              ? `${Math.abs(reviewVelocity)} recensioner färre än föregående period`
+                              : "Inga nya recensioner sedan föregående period"}
                         </p>
                       ) : null}
                       <p>
