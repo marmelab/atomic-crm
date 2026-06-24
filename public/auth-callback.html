@@ -15,7 +15,10 @@
             body {
                 margin: 0;
                 padding: 0;
-                font-family: sans-serif;
+                font-family: system-ui, -apple-system, sans-serif;
+                background: #fafafa;
+                color: #1a1a1a;
+                line-height: 1.5;
             }
 
             .loader-container {
@@ -31,7 +34,52 @@
                 background-color: #fafafa;
             }
 
-            /* CSS Spinner from https://projects.lukehaas.me/css-loaders/ */
+            main {
+                max-width: 32rem;
+                margin: 0 auto;
+                padding: 2rem 1.25rem;
+            }
+
+            h1 {
+                font-size: 1.25rem;
+                margin: 0 0 0.5rem;
+            }
+
+            p {
+                margin: 0 0 1rem;
+                color: #444;
+            }
+
+            .card {
+                background: #fff;
+                border: 1px solid #e5e5e5;
+                border-radius: 8px;
+                padding: 1.25rem;
+                margin-top: 1rem;
+            }
+
+            .status-ok {
+                color: #166534;
+            }
+
+            .status-error {
+                color: #b91c1c;
+            }
+
+            a.button {
+                display: inline-block;
+                background: #283593;
+                color: #fff;
+                border-radius: 6px;
+                padding: 0.625rem 1rem;
+                font-size: 0.9375rem;
+                text-decoration: none;
+            }
+
+            code {
+                font-size: 0.8125rem;
+                word-break: break-all;
+            }
 
             .loader,
             .loader:before,
@@ -48,15 +96,13 @@
                 width: 10em;
                 height: 10em;
                 box-shadow: inset 0 0 0 1em;
-                -webkit-transform: translateZ(0);
-                -ms-transform: translateZ(0);
                 transform: translateZ(0);
             }
 
             .loader:before,
             .loader:after {
                 position: absolute;
-                content: '';
+                content: "";
             }
 
             .loader:before {
@@ -66,9 +112,7 @@
                 border-radius: 10.2em 0 0 10.2em;
                 top: -0.1em;
                 left: -0.1em;
-                -webkit-transform-origin: 5.2em 5.1em;
                 transform-origin: 5.2em 5.1em;
-                -webkit-animation: load2 2s infinite ease 1.5s;
                 animation: load2 2s infinite ease 1.5s;
             }
 
@@ -79,30 +123,15 @@
                 border-radius: 0 10.2em 10.2em 0;
                 top: -0.1em;
                 left: 5.1em;
-                -webkit-transform-origin: 0px 5.1em;
-                transform-origin: 0px 5.1em;
-                -webkit-animation: load2 2s infinite ease;
+                transform-origin: 0 5.1em;
                 animation: load2 2s infinite ease;
-            }
-
-            @-webkit-keyframes load2 {
-                0% {
-                    -webkit-transform: rotate(0deg);
-                    transform: rotate(0deg);
-                }
-                100% {
-                    -webkit-transform: rotate(360deg);
-                    transform: rotate(360deg);
-                }
             }
 
             @keyframes load2 {
                 0% {
-                    -webkit-transform: rotate(0deg);
                     transform: rotate(0deg);
                 }
                 100% {
-                    -webkit-transform: rotate(360deg);
                     transform: rotate(360deg);
                 }
             }
@@ -110,32 +139,198 @@
     </head>
 
     <body>
-        <noscript> You need to enable JavaScript to run this app. </noscript>
-        <div id="root">
+        <noscript>You need to enable JavaScript to run this app.</noscript>
+
+        <div id="agent-setup" hidden>
+            <main>
+                <h1>MCP agent setup</h1>
+                <p>Finishing connection for ElevenLabs and similar tools.</p>
+                <div id="agent-content" class="card">Saving agent credentials…</div>
+            </main>
+        </div>
+
+        <div id="login-callback">
             <div class="loader-container">
                 <div class="loader">Loading...</div>
             </div>
         </div>
+
+        <script>
+            (function () {
+                var PKCE_KEY = "mcp_agent_code_verifier";
+                var redirectUri =
+                    window.location.origin + "/auth-callback.html";
+
+                function findAuthStorageKey() {
+                    for (var i = 0; i < localStorage.length; i++) {
+                        var key = localStorage.key(i);
+                        if (
+                            key &&
+                            key.indexOf("sb-") === 0 &&
+                            key.endsWith("-auth-token")
+                        ) {
+                            return key;
+                        }
+                    }
+                    return null;
+                }
+
+                function getSession() {
+                    var key = findAuthStorageKey();
+                    if (!key) return null;
+                    try {
+                        var raw = localStorage.getItem(key);
+                        if (!raw) return null;
+                        var data = JSON.parse(raw);
+                        var match = key.match(/^sb-(.+)-auth-token$/);
+                        var projectRef = match ? match[1] : null;
+                        if (!projectRef || !data.access_token) return null;
+                        return {
+                            accessToken: data.access_token,
+                            supabaseUrl:
+                                "https://" + projectRef + ".supabase.co",
+                        };
+                    } catch (e) {
+                        return null;
+                    }
+                }
+
+                function setAgentContent(html) {
+                    document.getElementById("agent-content").innerHTML = html;
+                }
+
+                function showAgentSetup() {
+                    document.getElementById("agent-setup").hidden = false;
+                    document.getElementById("login-callback").hidden = true;
+                }
+
+                function showAgentError(message, details) {
+                    var html =
+                        '<p class="status-error"><strong>Error:</strong> ' +
+                        message +
+                        "</p>";
+                    if (details) {
+                        html += "<p><code>" + details + "</code></p>";
+                    }
+                    html +=
+                        '<p><a class="button" href="./oauth-agent-setup.html">Try again</a></p>';
+                    setAgentContent(html);
+                }
+
+                function finishAgentSetup(code) {
+                    showAgentSetup();
+                    var session = getSession();
+                    if (!session) {
+                        showAgentError(
+                            "You must be logged in as a CRM administrator.",
+                            "Sign in at the CRM, then run setup again from oauth-agent-setup.html",
+                        );
+                        return;
+                    }
+
+                    var verifier = sessionStorage.getItem(PKCE_KEY);
+                    if (!verifier) {
+                        showAgentError(
+                            "Missing PKCE verifier.",
+                            "Start again from oauth-agent-setup.html and click Connect in the same browser tab.",
+                        );
+                        return;
+                    }
+
+                    fetch(
+                        session.supabaseUrl + "/functions/v1/mcp-agent-setup",
+                        {
+                            method: "POST",
+                            headers: {
+                                Authorization:
+                                    "Bearer " + session.accessToken,
+                                "Content-Type": "application/json",
+                            },
+                            body: JSON.stringify({
+                                code: code,
+                                redirect_uri: redirectUri,
+                                code_verifier: verifier,
+                            }),
+                        },
+                    )
+                        .then(function (res) {
+                            return res.json().then(function (body) {
+                                return {
+                                    ok: res.ok,
+                                    status: res.status,
+                                    body: body,
+                                };
+                            });
+                        })
+                        .then(function (result) {
+                            sessionStorage.removeItem(PKCE_KEY);
+                            if (window.history.replaceState) {
+                                window.history.replaceState(
+                                    {},
+                                    "",
+                                    window.location.pathname,
+                                );
+                            }
+
+                            if (!result.ok) {
+                                var msg =
+                                    result.body.message ||
+                                    result.body.error ||
+                                    "Setup request failed";
+                                showAgentError(msg, JSON.stringify(result.body));
+                                return;
+                            }
+
+                            setAgentContent(
+                                '<p class="status-ok"><strong>Agent connected.</strong></p>' +
+                                    "<p>Use your OAuth app <strong>client secret</strong> as the Secret Token in ElevenLabs.</p>" +
+                                    '<p><a class="button" href="./">Back to CRM</a></p>',
+                            );
+                        })
+                        .catch(function (err) {
+                            showAgentError("Network error", String(err));
+                        });
+                }
+
+                var search = new URLSearchParams(window.location.search);
+                var code = search.get("code");
+                var oauthError = search.get("error");
+                var oauthErrorDescription = search.get("error_description");
+
+                if (oauthError) {
+                    showAgentSetup();
+                    showAgentError(
+                        oauthError,
+                        oauthErrorDescription || "",
+                    );
+                    return;
+                }
+
+                if (code) {
+                    finishAgentSetup(code);
+                    return;
+                }
+
+                var hashParams = new URLSearchParams(
+                    window.location.hash.substring(1),
+                );
+                var access_token = hashParams.get("access_token");
+                var refresh_token = hashParams.get("refresh_token");
+                var type = hashParams.get("type");
+
+                if (access_token) {
+                    window.location.href =
+                        "./#/auth-callback?access_token=" +
+                        encodeURIComponent(access_token) +
+                        "&refresh_token=" +
+                        encodeURIComponent(refresh_token || "") +
+                        "&type=" +
+                        encodeURIComponent(type || "");
+                    return;
+                }
+
+                window.location.href = "./#/";
+            })();
+        </script>
     </body>
-    <script>
-        const getUrlParams = () => {
-            const urlSearchParams = new URLSearchParams(
-                window.location.hash.substring(1)
-            );
-            const access_token = urlSearchParams.get('access_token');
-            const refresh_token = urlSearchParams.get('refresh_token');
-            const type = urlSearchParams.get('type');
-
-            return { access_token, refresh_token, type };
-        };
-
-        function interceptAuthCallback() {
-                const hash = window.location.hash;
-                const {access_token, refresh_token, type} = getUrlParams();
-                window.location.href = `./#/auth-callback?access_token=${access_token}&refresh_token=${refresh_token}&type=${type}`;
-        }
-    
-        // Call the function to intercept the auth callback
-        interceptAuthCallback();
-    </script>
 </html>
