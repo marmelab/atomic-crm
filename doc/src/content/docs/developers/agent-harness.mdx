@@ -3,9 +3,7 @@ title: Agent Harness
 description: How to use the Atomic CRM agent harness to implement CRM changes with a coordinated team of Claude Code agents.
 ---
 
-Atomic CRM ships a local **agent harness**: a coordinated team of agents that turns a request in natural language into committed, reviewed, and merged code. Instead of implementing a change yourself, you describe what you want and the harness plans, implements, reviews, and merges it through a deterministic pipeline.
-
-This document explains how to launch a session, follow its progress, and present CRM Builder.
+Atomic CRM ships a local **agent harness** for Claude Code: a coordinated team of agents that turns a feature request in natural language into working code. Instead of implementing a change yourself, you can describe what you want and the harness plans, implements, reviews, and merges it through a deterministic pipeline.
 
 ## Prerequisites
 
@@ -13,16 +11,15 @@ This document explains how to launch a session, follow its progress, and present
 - Project dependencies installed (`make install`).
 - For full-stack runs only: a local Supabase instance up (`make start-supabase`).
 
-
 ## Launching a Session
 
-To start a session directly with the harness:
+To start a Claude Code session directly with the harness:
 
 ```sh
 make harness
 ```
 
-This opens the **chat-orchestrator** agent in automatic-permission mode. Type your request once the session opens, and the orchestrator takes over.
+This launches the **chat-orchestrator** agent in automatic-permission mode. Type your request once the session opens, and the orchestrator takes over.
 
 You can also pre-fill the first message:
 
@@ -30,16 +27,22 @@ You can also pre-fill the first message:
 make harness REQUEST="Add a reason for a lost deal"
 ```
 
-Or, you can start a plan mode and at the end, **chat-orchestrator** will implement it with the harness.
-
-The orchestrator will consider your request in two ways:
-
-- **SIMPLE**: a single cosmetic edit, a single-field change on an existing entity, or a filter reusing existing components. One developer agent, no planning overhead.
-- **COMPLEX**: everything else. The planner decomposes it into tickets; developers, reviewers, and the merger run as a coordinated wave.
-
 <script src="https://asciinema.org/a/YnU8RU7vCtJsi3yC.js" id="asciicast-YnU8RU7vCtJsi3yC" data-speed="4" async="true"></script>
 
-### Avoid using the harness
+Or, you can start a plan mode and at the end, **chat-orchestrator** will implement it with the harness.
+
+:::tip
+**Heads up**: The harness runs in automatic-permission mode, which means it can execute arbitrary commands on your machine. We advise you to run the harness in a disposable environment, such as a DevContainer (already configured in the repo) or a throwaway VM.
+:::
+
+The orchestrator will determine the type of your request and launch the appropriate sub-agents. There are two types of requests:
+
+- **Simple**: a single cosmetic edit, a single-field change on an existing entity, or a filter reusing existing components. One developer agent, no planning overhead.
+- **Complex**: everything else. The planner decomposes it into tickets; developers, reviewers, and the merger run as a coordinated wave.
+
+Then, all the work will take place in a git worktree to keep your main branch clean. The orchestrator will create a new branch, and when the change is complete, it will merge it into your main branch.
+
+## Disabling the harness
 
 If you'd rather have the change implemented directly, without the harness, say so in your request. Any of these opt out:
 
@@ -70,8 +73,9 @@ make sessions               # list known sessions, newest first
 
 [**CRM Builder**](https://github.com/marmelab/crm-builder) wraps the same harness in a containerized, browser-based environment, with no local setup. It adds:
 
-- A live preview of the CRM, updated as the harness applies your changes.
+- A containerized environment so you can run the harness without security concerns.
 - A pre-installed toolchain, no need to set up Claude Code, Node, or Supabase yourself.
+- A live preview of the CRM, updated as the harness applies your changes.
 - A session dashboard to follow each run's agents and progress.
 - Demo and full-stack mode switching from the UI.
 
