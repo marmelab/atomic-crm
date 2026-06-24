@@ -770,9 +770,36 @@ export function WebsiteStatsSection({ company }: { company: Company }) {
               </CardHeader>
               <CardContent>
                 {officialHistory.length < 2 ? (
-                  <p className="text-sm text-muted-foreground">
-                    Visas när vi har minst två officiella månader att jämföra.
-                  </p>
+                  gsc?.top_queries && gsc.top_queries.length > 0 ? (
+                    <div className="space-y-2 text-sm">
+                      <p className="text-xs text-muted-foreground">
+                        Nuläge (utgångsläge för kommande rörelser). Månad-för-
+                        månad-jämförelse visas när vi har två officiella
+                        månadsmätningar — nästa skapas automatiskt den 4:e.
+                      </p>
+                      {[...gsc.top_queries]
+                        .sort((a, b) => a.position - b.position)
+                        .slice(0, 8)
+                        .map((query) => (
+                          <div
+                            key={query.query}
+                            className="flex items-center justify-between gap-2 border-b py-1.5 last:border-0"
+                          >
+                            <span className="truncate" title={query.query}>
+                              {query.query}
+                            </span>
+                            <span className="whitespace-nowrap text-muted-foreground">
+                              pos {query.position.toFixed(1)}
+                            </span>
+                          </div>
+                        ))}
+                    </div>
+                  ) : (
+                    <p className="text-sm text-muted-foreground">
+                      Visas när vi har sökordsdata och minst två officiella
+                      månader att jämföra.
+                    </p>
+                  )
                 ) : keywordMovers.improved.length === 0 &&
                   keywordMovers.declined.length === 0 &&
                   keywordMovers.added.length === 0 ? (
