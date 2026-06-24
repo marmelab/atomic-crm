@@ -18,7 +18,7 @@ afterAll(() => {
   rmSync(tmpRoot, { recursive: true, force: true });
 });
 
-const INPUT = '{"session_id":"test-1234","agent_type":"simple-developer"}';
+const INPUT = '{"session_id":"test-1234","agent_type":"developer"}';
 
 const runHook = (dryRun) => {
   const env = {

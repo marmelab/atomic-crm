@@ -40,12 +40,18 @@ describe("bash-guard hook", () => {
     });
 
     test("headed playwright screenshot from merger → blocked", () => {
-      const r = runHook("merger", "npx playwright screenshot http://localhost:5173 out.png");
+      const r = runHook(
+        "merger",
+        "npx playwright screenshot http://localhost:5173 out.png",
+      );
       expect(isBlocked(r)).toBe(true);
     });
 
     test("playwright with --headless from main session → allowed", () => {
-      const r = runHook("", "npx playwright screenshot --headless http://localhost:5173 out.png");
+      const r = runHook(
+        "",
+        "npx playwright screenshot --headless http://localhost:5173 out.png",
+      );
       expect(r.status).toBe(0);
       expect(isBlocked(r)).toBe(false);
     });
@@ -65,10 +71,10 @@ describe("bash-guard hook", () => {
     const cases = [
       ["developer", "npm run typecheck"],
       ["developer", "npx tsc --noEmit"],
-      ["simple-developer", "npx vitest run"],
-      ["simple-developer", "npm run prettier:apply"],
+      ["developer", "npx vitest run"],
+      ["developer", "npm run prettier:apply"],
       ["quality-reviewer", "npx playwright test --headless"],
-      ["test-validator", "make lint"],
+      ["quality-reviewer", "make lint"],
       ["developer", "npm run build"],
     ];
 

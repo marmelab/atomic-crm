@@ -1,6 +1,6 @@
 ---
 name: writing-migrations
-description: Generate Supabase SQL migrations at deploy time from the session branch diff. Used by simple-developer in the deploy-time migration round only.
+description: Generate Supabase SQL migrations at deploy time from the session branch diff. Load this when your developer dispatch asks you to generate the deploy-time migration (it points you at the shared <base>/simple worktree). This is NOT a feature ticket — the workflow below replaces the normal ticket rules: here you DO write SQL under supabase/migrations/, and you do not edit TS/TSX/CSS.
 ---
 
 # Writing Migrations (deploy-time round)
@@ -8,18 +8,22 @@ description: Generate Supabase SQL migrations at deploy time from the session br
 ## Overview
 
 A workflow that turns a session's *code* changes into the *minimal* SQL that
-makes the real Supabase schema match what the session's app now expects
-nothing more. 
-You run as `simple-developer` in migration mode. 
+makes the real Supabase schema match what the session's app now expects —
+nothing more.
+You (the `developer`) have been asked to generate the deploy-time migration. The
+"never write migrations / no schema" rule of normal ticket work does NOT apply
+here: writing SQL under `supabase/migrations/` is the whole job. Do not edit any
+TS/TSX/CSS — the schema diff already comes from the session branch; you only
+translate it to SQL.
 Exit criterion: either a committed, idempotent migration whose delta is provably the net schema change, or an explicit `NO_MIGRATION_NEEDED` when there is no schema impact.
 
 Your worktree is `<WORKTREE_BASE>/simple` on `<SESSION_SHORT_ID>/simple`, forked from `session/<SESSION_SHORT_ID>` (`<WORKTREE_BASE>` =
-`/tmp/<$CLAUDE_PROJECT_DIR with every "/" replaced by "_">/<SESSION_ID>`).
+`/tmp/<$CLAUDE_PROJECT_DIR with every "/" replaced by "_">/<SESSION_ID>`). Every Bash call must `cd <WORKTREE_PATH> && …` (stateless shells).
 
 ## When to Use
 
 - The deploy-time migration round, after a session's app changes have merged to `session/<SESSION_SHORT_ID>` and need their schema counterpart.
-- Triggered only by the orchestrator dispatching `simple-developer` in MIGRATION MODE never invoked ad hoc by a feature developer (developers never write SQL).
+- Triggered only by the orchestrator dispatching a `developer` that loads this skill, never invoked ad hoc by a feature developer (per-ticket developers never write SQL).
 
 Skip (write nothing, report `NO_MIGRATION_NEEDED`) when the net diff has no
 schema impact: CSS, layout, copy, or test-only changes.
@@ -125,9 +129,21 @@ positions 1..N of the recreated view match the old view exactly, the new column 
 
 ### 6. Commit and hand off
 
-Commit the SQL on `<SESSION_SHORT_ID>/simple`. Stop. SubagentStop hooks
-(typecheck/prettier/unit/e2e) run automatically. The orchestrator then sends you
-to quality-reviewer (migration mode) and the merger.
+Commit the SQL on `<SESSION_SHORT_ID>/simple`:
+
+```bash
+cd <WORKTREE_PATH> && git add supabase/migrations && git commit -m "migration(<SESSION_SHORT_ID>): <slug>"
+```
+
+Then stop and emit the output contract as your very last line — one of:
+
+- `DONE: branch=<SESSION_SHORT_ID>/simple migration=<filename> summary=<what the SQL does>`
+- `NO_MIGRATION_NEEDED` — only after computing the diff (step 1) and confirming no schema impact.
+- `FAILED: <one-line reason>`
+
+SubagentStop hooks (typecheck/prettier/unit/e2e) run automatically; they should
+pass since you only touched SQL. The orchestrator then sends you to
+quality-reviewer (`MODE: migration-review`) and the merger.
 
 For Postgres correctness you may load `Skill({skill: "supabase-postgres-best-practices"})`.
 

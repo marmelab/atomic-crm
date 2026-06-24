@@ -61,7 +61,7 @@ export function getWorktreeChangeSummary(wt, base) {
 // (block-promote-unmerged.mjs); the chat-orchestrator's STATE B reconcile Bash
 // mirrors it and must stay aligned. Fails CLOSED: a failed/unparseable rev-list
 // count is reported as unmerged (count: null) rather than silently treated as
-// merged. `exclude` drops branches that legitimately never merge into the session
+// merged. `exclude` simple branches that legitimately never merge into the session
 // branch (e.g. <short>/simple, which promotes straight to main).
 export function getUnmergedTaskBranches(short, sessionRef, exclude = []) {
   const branches = git([

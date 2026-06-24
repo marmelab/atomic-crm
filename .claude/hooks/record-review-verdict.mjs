@@ -1,7 +1,7 @@
 #!/usr/bin/env node
-// SubagentStop(quality-reviewer|test-validator) — record each reviewer's verdict
+// SubagentStop(quality-reviewer) — record the reviewer's verdict
 // as a per-ticket flag so block-merger-without-review.mjs can enforce
-// dev -> reviewers -> merger. SubagentStop cannot block — it only records.
+// dev -> reviewer -> merger. SubagentStop cannot block — it only records.
 //
 // Flag (presence == APPROVED): <sessionDir>/reviews/<TASK>-<role>. Cleared on
 // REJECTED here; cleared on a developer (re)dispatch by setup-worktree.mjs so a
@@ -21,11 +21,7 @@ import {
   writeFileSync,
 } from "node:fs";
 import { createHookContext } from "./lib/context.mjs";
-import {
-  getFirstTaskId,
-  isQualityReviewer,
-  isTestValidator,
-} from "./lib/teams.mjs";
+import { getFirstTaskId, isQualityReviewer } from "./lib/teams.mjs";
 import { reviewFlag, reviewsDir } from "./lib/reviews.mjs";
 
 const input = JSON.parse(readFileSync(0, "utf8"));
@@ -33,11 +29,7 @@ const ctx = createHookContext(input, "record-review-verdict");
 
 // Role + task from the (suffixed) agent identity, e.g. quality-reviewer-TASK-001.
 const ids = [ctx.agentName, ctx.agentType].filter(Boolean);
-let role = ids.some(isQualityReviewer)
-  ? "quality-reviewer"
-  : ids.some(isTestValidator)
-    ? "test-validator"
-    : "";
+let role = ids.some(isQualityReviewer) ? "quality-reviewer" : "";
 let task = "";
 for (const n of ids) {
   const m = getFirstTaskId(n);
@@ -61,9 +53,7 @@ if (!role || !task) {
     }
     for (const line of body.split("\n")) {
       if (!role) {
-        const m = line.match(
-          /(?:^|\\n|")ROLE:\s*(quality-reviewer|test-validator)/,
-        );
+        const m = line.match(/(?:^|\\n|")ROLE:\s*(quality-reviewer)/);
         if (m) role = m[1];
       }
       if (!task) {
@@ -122,11 +112,9 @@ const lastAssistantText = () => {
     if (!role) {
       // Anchor to a dispatch-line boundary — start of the JSONL record, an
       // escaped newline (\n inside the JSON string), or the prompt field's
-      // opening quote — so an inline prose mention ("...the ROLE: test-validator
+      // opening quote — so an inline prose mention ("...the ROLE: quality-reviewer
       // agent...") cannot mis-assign the role.
-      const m = line.match(
-        /(?:^|\\n|")ROLE:\s*(quality-reviewer|test-validator)/,
-      );
+      const m = line.match(/(?:^|\\n|")ROLE:\s*(quality-reviewer)/);
       if (m) role = m[1];
     }
     if (!task) {

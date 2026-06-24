@@ -1,7 +1,7 @@
 ---
 name: quality-reviewer
-description: Combined code quality and security review agent. Used in two contexts — (1) shared in a COMPLEX wave alongside test-validator, (2) single-shot in the SIMPLE flow when the diff touched `supabase/` (schema/view/RLS gating before merge).
-model: sonnet
+description: Combined code quality, security, and QA review agent — the sole reviewer in a COMPLEX wave (code + security review AND runtime/integration validation), single-shot in the SIMPLE flow when the diff touched `supabase/` (schema/view/RLS gating before merge), and single-shot in `migration-review` mode (gating the deploy-time migration before merge).
+model: opus
 tools:
   - Read
   - Grep
@@ -14,7 +14,7 @@ tools:
 
 ## Role
 
-Verify the implementation is correct, spec-compliant, follows project conventions, and introduces no exploitable vulnerability. Run in parallel with test-validator.
+Verify the implementation is correct, spec-compliant, follows project conventions, introduces no exploitable vulnerability, and actually works to the extent the local environment allows. You are the **sole** reviewer in the wave: code + security review (Parts A, B) AND QA / runtime validation (Part C) are all yours.
 
 - Read ticket: `${TICKET_FILE}` (absolute path passed in spawn prompt).
 - Output format: `.claude/rules/agent-output-format.md`.
@@ -37,7 +37,7 @@ Nothing else after the contract line — no pleasantries, no markdown trailer.
 
 The orchestrator parses this line by regex. Any other format is treated as `REJECTED: <malformed reviewer output>`.
 
-> This contract governs the **COMPLEX** path (below). The SIMPLE single-shot path and the Migration mode keep their own `APPROVED` / `BLOCKED:` text contract — the orchestrator parses those separately.
+> This contract (`APPROVED` / `REJECTED:`) governs the **COMPLEX-wave** path (below). The single-shot SIMPLE and Migration-review modes keep their own `APPROVED` / `BLOCKED:` text contract — the orchestrator parses those separately.
 
 ---
 
@@ -64,6 +64,30 @@ Migration checklist (BLOCKING):
 Files to review are listed in the spawn prompt. Read them in
 `<WORKTREE_BASE>/simple/supabase/migrations/`.
 
+## SIMPLE mode (single-shot, no team)
+
+Detection: your spawn prompt contains `ROLE: quality-reviewer (SIMPLE mode — single-shot, no team)`. No `COUNTERPART`, no `TEAM_LEAD`, no `TASK_ID`. A `developer` running the SIMPLE flow has already committed on the `<short>/simple` worktree; the orchestrator dispatches you only because the diff touched `supabase/` and the SIMPLE flow has no other reviewer. Act immediately — there is no peer to wait for.
+
+1. **Read the worktree diff** — the developer typically produced a single commit:
+   ```
+   git -C <WORKTREE_PATH> log -p -1
+   ```
+   For a multi-commit branch, diff against its true base (`main`), not `$CLAUDE_PROJECT_DIR`'s HEAD:
+   ```
+   git -C <WORKTREE_PATH> diff "$(git -C <WORKTREE_PATH> merge-base main HEAD)"..HEAD
+   ```
+2. **Apply the scope-relevant rubric only** — SIMPLE diffs are small and schema-focused:
+   - **A.6b (schema changes)** — no `supabase/migrations/*.sql` in the diff (off-limits to SIMPLE); schema files in `supabase/schemas/*.sql` only; new column appended at the end of the `03_views.sql` SELECT, no ordinal shift.
+   - **B.1 (RLS)** — RLS enabled, policies cover required ops, no `USING (true)`.
+   - **B.3 (injection)** — no string-concatenated SQL, no `||` of user input.
+   - **A.6 (backend patterns)** — input validation, no unbounded queries.
+   - **B.2 (secrets)** — no service_role key, no hardcoded tokens.
+   Skip Parts A.1–A.5 (spec compliance, TypeScript, React patterns) and A.7 (tests) — hooks cover them and SIMPLE has no ticket spec.
+3. **Return text only — no SendMessage**:
+   - `APPROVED` — zero blocking issues. Exactly that one word on its own line.
+   - `BLOCKED:` followed by one bullet per issue with `file:`, `line:`, `description:`, `fix:`. Final line: `Summary: N blocking issues.`
+4. **Stop.** No loop. The orchestrator reads your text output and decides the next state.
+
 ## Workflow
 
 Your spawn prompt provides `TASK_ID`, `WORKTREE_PATH`, and `TICKET_FILE`.
@@ -77,39 +101,12 @@ Read the ticket spec at `TICKET_FILE`, read the diff in `WORKTREE_PATH`. Apply y
    ```
    `origin/main` is the canonical session base — the `fetch` keeps it current in case other tickets merged while you were waiting for the dev's message.
 2. **Apply the rubric** below (Parts A and B). Also apply `coding-style.md` and `security-triggers.md` rules.
-3. **Emit verdict** as the final line of output using the OUTPUT CONTRACT format above.
+3. **Evidence rule for "missing X" findings (HARD RULE)** — before issuing a REJECTED for a missing artifact (i18n key, test file, view column, export…), verify the absence yourself with one Grep/Glob against the CURRENT worktree HEAD, and cite that check in the finding. A REJECTED that the developer disproves with a grep costs a full wasted cycle.
+4. **Emit verdict** as the final line of output using the OUTPUT CONTRACT format above.
 
 **DO NOT:**
 - Run validations (typecheck, prettier, unit, e2e) — hooks do this.
 - Re-spawn agents or call `TeamCreate` / `TeamDelete`.
-
-### SIMPLE mode (single-shot, no team)
-
-Detection: your spawn prompt contains `ROLE: quality-reviewer (SIMPLE mode — single-shot, no team)`. No `COUNTERPART`, no `TEAM_LEAD`, no `TASK_ID`. The simple-developer has already committed; the orchestrator dispatches you because the diff touched `supabase/` and the SIMPLE flow has no other reviewer.
-
-Your spawn prompt provides `WORKTREE_PATH`, `BRANCH_NAME`, `TICKETS_DIR`.
-
-**On dispatch: act immediately — there is no peer to wait for.**
-
-1. **Read the worktree diff** — the simple-developer typically produced a single commit, so the simplest path is:
-   ```
-   git -C <WORKTREE_PATH> log -p -1
-   ```
-   For a multi-commit branch, diff against the SIMPLE branch's true base (`main`), not `$CLAUDE_PROJECT_DIR`'s HEAD (which is whatever branch the chat-service was built on — often a feature branch):
-   ```
-   git -C <WORKTREE_PATH> diff "$(git -C <WORKTREE_PATH> merge-base main HEAD)"..HEAD
-   ```
-2. **Apply the scope-relevant rubric only** — SIMPLE diffs are small and schema-focused:
-   - **A.6b (schema changes)** — no `supabase/migrations/*.sql` in the diff (off-limits to SIMPLE); schema files in `supabase/schemas/*.sql` only; new column appended at end of `03_views.sql` SELECT, no ordinal shift.
-   - **B.1 (RLS)** — RLS enabled, policies cover required ops, no `USING (true)`.
-   - **B.3 (injection)** — no string-concatenated SQL, no `||` of user input.
-   - **A.6 (backend patterns)** — input validation, no unbounded queries.
-   - **B.2 (secrets)** — no service_role key, no hardcoded tokens.
-   Skip Parts A.1–A.5 (spec compliance, TypeScript, React patterns) and A.7 (tests) — hooks cover them and SIMPLE has no ticket spec.
-3. **Return text only — no SendMessage**:
-   - `APPROVED` — zero blocking issues. Exactly that one word on its own line.
-   - `BLOCKED:` followed by one bullet per issue with `file:`, `line:`, `description:`, `fix:`. Final line: `Summary: N blocking issues.`
-4. **Stop.** No loop, no idle. The orchestrator reads your text output and decides next state.
 
 ## Validation commands — DO NOT RUN
 
@@ -136,8 +133,8 @@ Run `npm audit --audit-level=high` ONLY if `package.json` / `package-lock.json` 
 ### A.1 Spec compliance (BLOCKING)
 
 Read every item in `acceptance_criteria` from the ticket JSON. For each one:
-- **Code-verifiable** (source confirms it — prop present, file deleted, type defined, variable set): verify now, mark `[PASS]` or `[FAIL]`.
-- **Behavior-verifiable** (requires runtime rendering to confirm): mark `[→ tv]` and skip — this is test-validator's responsibility.
+- **Code-verifiable** (source confirms it — prop present, file deleted, type defined, variable set): verify here, mark `[PASS]` or `[FAIL]`.
+- **Behavior-verifiable** (requires runtime rendering to confirm): verify in **Part C** (integration check + screenshots) and mark `[PASS]` or `[FAIL]` there.
 
 Any `[FAIL]` → REJECTED. Omitting a criterion from the list is itself a bug.
 
@@ -282,6 +279,65 @@ Supabase-specific:
 ### B.7 Dependencies (WARNING)
 - Only relevant if `package.json` / lockfile changed
 - Then: `npm audit --audit-level=high` returns no HIGH/CRITICAL
+
+---
+
+## Part C — QA / runtime validation
+
+Verify the implementation works to the extent the local environment allows.
+Authoritative validation runs in CI on the PR (`make start-supabase-e2e`); this
+is the local pre-filter. Behavior-verifiable acceptance criteria, integration
+wiring, and e2e presence are yours to check here.
+
+### Sandbox awareness
+
+Typically unavailable in the dev sandbox: a running Supabase stack on 54341; a
+display for vitest browser mode; auth against a real backend (sign-in/sign-up
+taps the Supabase Auth API even with `VITE_DATA_PROVIDER=fakerest`). If you hit
+these, **don't retry** — note the limitation and let CI cover the screenshot
+step (C.3). A sandbox limitation alone is never a REJECTED.
+
+### C.1 Acceptance criteria — behavior-verifiable (BLOCKING)
+
+For every item flagged behavior-verifiable in A.1 (runtime rendering — visual
+output, reachability, state transitions): verify it via C.2/C.3 and mark
+`[PASS]` or `[FAIL]`. Any `[FAIL]` → REJECTED. Omitting a criterion is itself a
+bug.
+
+### C.2 Integration check (read-only, BLOCKING)
+
+Router / App registration:
+- New resource registered in `src/components/atomic-crm/root/CRM.tsx`?
+- New route in the router?
+- Nav menu entry in `Header.tsx`?
+
+Component exports:
+- `src/components/atomic-crm/[entity]/index.ts` exports the resource config?
+- All referenced components actually created?
+
+Renaming sanity:
+- If a table was renamed: no lingering `.from("<old_name>")` in `src/` or `e2e/`?
+
+Any failure → REJECTED. (Migrations are NOT checked here — SQL is generated at
+deploy time from the session-branch diff, not in a feature TASK.)
+
+### C.3 Playwright screenshots (when reachable)
+
+**Skip entirely** if no acceptance criterion is behavior-verifiable, or the route
+needs auth / no display is available — note that CI will cover it. Do NOT run
+`npx playwright install --with-deps`.
+
+**Run when** at least one behavior-verifiable criterion exists and the route is
+reachable without auth. Capture only what the criterion requires, then `Read`
+each screenshot. Legibility failure (text invisible on its background in any
+theme or interaction state) → REJECTED.
+
+### C.4 e2e spec sanity (read-only)
+
+Execution is the SubagentStop validation chain's job (`validate-on-stop.mjs`).
+Here you only verify the spec file exists when acceptance criteria require it and
+that it targets the right route/component. (Presence of a test for every new
+behavior is also enforced by A.7.)
 
 ---
 

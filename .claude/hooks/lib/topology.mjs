@@ -1,7 +1,7 @@
 // Session worktree/branch topology — the single source for the layout created
 // by setup-worktree and torn down by cleanup-worktree:
 //   <worktreeBase>/TASK-XXX  on branch <short>/TASK-XXX   (one per ticket)
-//   <worktreeBase>/simple    on branch <short>/simple     (SIMPLE flow / migration)
+//   <worktreeBase>/simple       on branch <short>/simple        (single-shot rollback / migration)
 //   <worktreeBase>/_session  on branch session/<short>    (merger integration)
 //   session-base/<short>                                  (fixed fork anchor)
 // Every hook that builds or matches these names must go through this module.
