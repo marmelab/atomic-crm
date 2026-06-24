@@ -931,3 +931,89 @@ export type MonthlyReport = {
   sent_at?: string | null;
   created_at: string;
 } & Pick<RaRecord, "id">;
+
+export type CustomerPerformanceCategory =
+  | "very_good"
+  | "good"
+  | "watch"
+  | "poor"
+  | "missing";
+
+export type CustomerReportDeliveryStatus =
+  | "sent"
+  | "draft"
+  | "missing"
+  | "failed";
+
+export type CustomerVisibilityDashboardResponse = {
+  period: { start: string; end: string };
+  previous_period: { start: string; end: string };
+  rows: Array<{
+    company_id: Identifier;
+    company_name: string;
+    delivered_website_url: string;
+    launch_date?: string | null;
+    current_snapshot: WebsiteSnapshot | null;
+    previous_snapshot: WebsiteSnapshot | null;
+    report: MonthlyReport | null;
+    history: WebsiteSnapshot[];
+  }>;
+};
+
+export type CustomerVisibilityReason = {
+  tone: "positive" | "neutral" | "negative";
+  label: string;
+};
+
+export type CustomerVisibilityRow = {
+  companyId: Identifier;
+  companyName: string;
+  websiteUrl: string;
+  launchDate: string | null;
+  category: CustomerPerformanceCategory;
+  reasons: CustomerVisibilityReason[];
+  currentSnapshot: WebsiteSnapshot | null;
+  previousSnapshot: WebsiteSnapshot | null;
+  report: MonthlyReport | null;
+  reportStatus: CustomerReportDeliveryStatus;
+  viewModel: ReportViewModel | null;
+  history: WebsiteSnapshot[];
+};
+
+export type CustomerPortfolioTrendPoint = {
+  period: string;
+  customers: number;
+  clicks: number | null;
+  impressions: number | null;
+  ctr: number | null;
+  position: number | null;
+  performance: number | null;
+  gbpActions: number | null;
+};
+
+export type CustomerPortfolioViewModel = {
+  period: { start: string; end: string; label: string };
+  previousPeriod: { start: string; end: string };
+  rows: CustomerVisibilityRow[];
+  counts: Record<CustomerPerformanceCategory, number>;
+  reports: Record<CustomerReportDeliveryStatus, number>;
+  metrics: {
+    customers: number;
+    improved: number;
+    declined: number;
+    clicks: number | null;
+    impressions: number | null;
+    ctr: number | null;
+    position: number | null;
+    performance: number | null;
+    healthyCoreWebVitals: number;
+    coreWebVitalsCustomers: number;
+    googleBusinessRating: number | null;
+    googleBusinessCustomers: number;
+    reviews: number | null;
+    gbpActions: number | null;
+    gbpActionCustomers: number;
+    searchCustomers: number;
+  };
+  trends: CustomerPortfolioTrendPoint[];
+};

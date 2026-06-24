@@ -74,6 +74,7 @@ import { QuoteShow } from "../quotes/QuoteShow";
 import { MobileSalesList } from "../sales/MobileSalesList";
 import { MobileSequencesList } from "../sequences/MobileSequencesList";
 import { MobileEmailTemplatesList } from "../templates/MobileEmailTemplatesList";
+import { CustomerVisibilityPage } from "../customer-visibility/CustomerVisibilityPage";
 
 const defaultStore = localStorageStore(undefined, "CRM");
 
@@ -264,6 +265,7 @@ const DesktopAdmin = (props: CoreAdminProps) => {
         <Route path={ImportPage.path} element={<ImportPage />} />
         <Route path="/call-queue" element={<CallQueue />} />
         <Route path="/calendar" element={<CalendarPage />} />
+        <Route path="/customer-radar" element={<CustomerVisibilityPage />} />
       </CustomRoutes>
       <Resource name="deals" {...deals} />
       <Resource name="quotes" {...quotes} />
@@ -288,6 +290,7 @@ const DesktopAdmin = (props: CoreAdminProps) => {
       <Resource name="feedback_items" />
       <Resource name="customer_details" />
       <Resource name="website_snapshots" />
+      <Resource name="monthly_reports" />
     </Admin>
   );
 };
@@ -349,6 +352,7 @@ const MobileAdmin = (props: CoreAdminProps) => {
           <Route path={ImportPage.path} element={<ImportPage />} />
           <Route path="/calendar" element={<CalendarPage />} />
           <Route path="/call-queue" element={<MobileCallQueue />} />
+          <Route path="/customer-radar" element={<CustomerVisibilityPage />} />
         </CustomRoutes>
         <Resource
           name="contacts"
@@ -382,6 +386,7 @@ const MobileAdmin = (props: CoreAdminProps) => {
         <Resource name="feedback_items" />
         <Resource name="customer_details" />
         <Resource name="website_snapshots" />
+        <Resource name="monthly_reports" />
         <Resource name="calendar_events" {...calendarEvents} />
       </Admin>
     </PersistQueryClientProvider>

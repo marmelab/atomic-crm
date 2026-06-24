@@ -24,8 +24,9 @@ import {
   Smartphone,
   TrendingUp,
 } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useDataProvider, useGetList, useNotify } from "ra-core";
+import { useSearchParams } from "react-router";
 
 import type {
   Company,
@@ -268,6 +269,8 @@ export function WebsiteStatsSection({ company }: { company: Company }) {
   const [reportOpen, setReportOpen] = useState(false);
   const [selectedSnapshotId, setSelectedSnapshotId] = useState<string>();
   const [selectedReportId, setSelectedReportId] = useState<number>();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const reportQuery = searchParams.get("report");
 
   const { data: snapshots, refetch } = useGetList<WebsiteSnapshot>(
     "website_snapshots",
@@ -285,6 +288,13 @@ export function WebsiteStatsSection({ company }: { company: Company }) {
       filter: { company_id: company.id },
     },
   );
+
+  useEffect(() => {
+    if (!reportQuery) return;
+    const parsedId = Number(reportQuery);
+    setSelectedReportId(Number.isFinite(parsedId) ? parsedId : undefined);
+    setReportOpen(true);
+  }, [reportQuery]);
 
   const selected =
     snapshots?.find((snapshot) => String(snapshot.id) === selectedSnapshotId) ??
@@ -585,7 +595,7 @@ export function WebsiteStatsSection({ company }: { company: Company }) {
           </div>
         ) : null}
 
-        <Tabs defaultValue="overview">
+        <Tabs defaultValue={reportQuery ? "reports" : "overview"}>
           <TabsList className="grid h-auto w-full grid-cols-2 md:grid-cols-4">
             <TabsTrigger value="overview">Översikt</TabsTrigger>
             <TabsTrigger value="google">Google & sökord</TabsTrigger>
@@ -1630,7 +1640,14 @@ export function WebsiteStatsSection({ company }: { company: Company }) {
         company={company}
         reportId={selectedReportId}
         open={reportOpen}
-        onOpenChange={setReportOpen}
+        onOpenChange={(open) => {
+          setReportOpen(open);
+          if (!open && reportQuery) {
+            const nextParams = new URLSearchParams(searchParams);
+            nextParams.delete("report");
+            setSearchParams(nextParams, { replace: true });
+          }
+        }}
         onSent={() => refetchReports()}
       />
     </Card>

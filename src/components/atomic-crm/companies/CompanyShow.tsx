@@ -64,6 +64,9 @@ export const CompanyShow = () => {
 const CompanyShowContentMobile = () => {
   const translate = useTranslate();
   const { record, isPending } = useShowContext<Company>();
+  const navigate = useNavigate();
+  const tabMatch = useMatch("/companies/:id/show/:tab");
+  const currentTab = tabMatch?.params?.tab || "activity";
   const [editOpen, setEditOpen] = useState(false);
   const { total: nbQuotes = 0 } = useGetList<Quote>(
     "quotes",
@@ -79,6 +82,15 @@ const CompanyShowContentMobile = () => {
 
   const hasDeals = !!record.nb_deals;
   const hasQuotes = nbQuotes > 0;
+
+  const handleTabChange = (value: string) => {
+    if (value === currentTab) return;
+    navigate(
+      value === "activity"
+        ? `/companies/${record.id}/show`
+        : `/companies/${record.id}/show/${value}`,
+    );
+  };
 
   return (
     <>
@@ -118,7 +130,11 @@ const CompanyShowContentMobile = () => {
           </div>
         </div>
 
-        <Tabs defaultValue="activity" className="w-full">
+        <Tabs
+          value={currentTab}
+          onValueChange={handleTabChange}
+          className="w-full"
+        >
           <TabsList
             className={`grid w-full ${isCustomer ? "grid-cols-4" : "grid-cols-3"} h-10`}
           >

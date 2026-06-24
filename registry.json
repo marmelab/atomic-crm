@@ -942,6 +942,34 @@
           "type": "registry:component"
         },
         {
+          "path": "src/components/atomic-crm/customer-visibility/portfolioModel.ts",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/customer-visibility/customerVisibilityUi.ts",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/customer-visibility/CustomerVisibilityTable.tsx",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/customer-visibility/CustomerVisibilityPage.tsx",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/customer-visibility/CustomerVisibilityDetailSheet.tsx",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/customer-visibility/CustomerPortfolioTrendChart.tsx",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/customer-visibility/CustomerPerformanceMap.tsx",
+          "type": "registry:component"
+        },
+        {
           "path": "src/components/atomic-crm/contacts/useContactImport.tsx",
           "type": "registry:component"
         },

@@ -6,6 +6,7 @@ import {
   Handshake,
   LayoutDashboard,
   Phone,
+  Radar,
   Users,
 } from "lucide-react";
 import { Link, useMatch } from "react-router";
@@ -51,6 +52,7 @@ const NAV_SECTIONS: NavSection[] = [
     label: "Översikt",
     items: [
       { label: "Dashboard", to: "/", end: true, icon: LayoutDashboard },
+      { label: "Kundradar", to: "/customer-radar", icon: Radar },
       { label: "Ringlista", to: "/call-queue", icon: Phone },
       { label: "Kalender", to: "/calendar", icon: CalendarDays },
     ],

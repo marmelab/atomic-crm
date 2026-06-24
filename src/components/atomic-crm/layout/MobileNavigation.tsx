@@ -24,6 +24,7 @@ import {
   MoreHorizontal,
   Phone,
   Plus,
+  Radar,
   Settings,
   Users,
 } from "lucide-react";
@@ -57,6 +58,8 @@ export const MobileNavigation = () => {
     currentPath = "/deals";
   } else if (matchPath("/call-queue", location.pathname)) {
     currentPath = "/call-queue";
+  } else if (matchPath("/customer-radar", location.pathname)) {
+    currentPath = "/customer-radar";
   } else if (matchPath("/quotes/*", location.pathname)) {
     currentPath = "/quotes";
   } else if (matchPath("/settings", location.pathname)) {
@@ -77,7 +80,8 @@ export const MobileNavigation = () => {
     currentPath === "/tasks" ||
     currentPath === "/calendar" ||
     currentPath === "/settings" ||
-    currentPath === "/lead-import";
+    currentPath === "/lead-import" ||
+    currentPath === "/customer-radar";
 
   return (
     <nav
@@ -264,6 +268,11 @@ const MoreMenu = ({ isActive }: { isActive: boolean }) => {
   const [open, setOpen] = useState(false);
 
   const menuItems = [
+    {
+      href: "/customer-radar",
+      Icon: Radar,
+      label: "Kundradar",
+    },
     {
       href: "/companies",
       Icon: Building2,

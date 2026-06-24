@@ -19,6 +19,7 @@ import type {
   SalesFormData,
   SignUpData,
   Task,
+  CustomerVisibilityDashboardResponse,
 } from "../../types";
 import type { ConfigurationContextValue } from "../../root/ConfigurationContext";
 import { getActivityLog } from "../commons/activity";
@@ -168,6 +169,31 @@ export const createDataProvider = ({
 
   const dataProviderWithCustomMethod: CrmDataProvider = {
     ...baseDataProvider,
+    async getCustomerVisibilityDashboard(
+      period: string,
+    ): Promise<CustomerVisibilityDashboardResponse> {
+      const start = new Date(`${period}T00:00:00Z`);
+      const previousStart = new Date(
+        Date.UTC(start.getUTCFullYear(), start.getUTCMonth() - 1, 1),
+      );
+      const end = new Date(
+        Date.UTC(start.getUTCFullYear(), start.getUTCMonth() + 1, 0),
+      );
+      const previousEnd = new Date(
+        Date.UTC(start.getUTCFullYear(), start.getUTCMonth(), 0),
+      );
+      return {
+        period: {
+          start: period,
+          end: end.toISOString().slice(0, 10),
+        },
+        previous_period: {
+          start: previousStart.toISOString().slice(0, 10),
+          end: previousEnd.toISOString().slice(0, 10),
+        },
+        rows: [],
+      };
+    },
     async getList(resource: string, params: any) {
       if (resource === "activity_log") {
         const { filter = {}, pagination } = params;
