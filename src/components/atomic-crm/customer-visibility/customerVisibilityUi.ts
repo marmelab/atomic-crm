@@ -1,6 +1,7 @@
 import type {
   CustomerPerformanceCategory,
   CustomerReportDeliveryStatus,
+  CustomerVisibilityRow,
   MetricTrend,
 } from "../types";
 
@@ -50,6 +51,15 @@ export function reportBadgeClass(status: CustomerReportDeliveryStatus) {
       : status === "failed"
         ? "border-red-200 bg-red-50 text-red-800"
         : "border-slate-200 bg-slate-50 text-slate-700";
+}
+
+export function dataBasisLabel(
+  basis: CustomerVisibilityRow["dataBasis"],
+): string {
+  if (basis === "official_month") return "Officiell månad";
+  if (basis === "combined") return "Månad + senaste analys";
+  if (basis === "latest_analysis") return "Senaste analys";
+  return "Ingen analys";
 }
 
 export function formatMetric(

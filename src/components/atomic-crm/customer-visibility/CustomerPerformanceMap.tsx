@@ -12,6 +12,7 @@ import {
   CATEGORY_LABELS,
   CATEGORY_ORDER,
   categoryBadgeClass,
+  dataBasisLabel,
 } from "./customerVisibilityUi";
 
 export function CustomerPerformanceMap({
@@ -83,6 +84,17 @@ function CategoryColumn({
                 <p className="mt-2 line-clamp-2 text-xs font-normal text-muted-foreground">
                   {row.reasons[0]?.label ?? "Ingen förklaring tillgänglig"}
                 </p>
+                <div className="mt-2 flex flex-wrap gap-1 text-[11px] font-normal text-muted-foreground">
+                  <span>{dataBasisLabel(row.dataBasis)}</span>
+                  {row.currentSnapshot?.performance_score != null ? (
+                    <span>
+                      · Prestanda {row.currentSnapshot.performance_score}
+                    </span>
+                  ) : null}
+                  {row.currentSnapshot?.seo_score != null ? (
+                    <span>· SEO {row.currentSnapshot.seo_score}</span>
+                  ) : null}
+                </div>
               </div>
               <ArrowRight className="size-4 shrink-0 text-muted-foreground" />
             </Button>

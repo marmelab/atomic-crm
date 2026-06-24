@@ -7,6 +7,8 @@ import {
   Globe2,
   MapPin,
   RefreshCw,
+  SearchCheck,
+  Settings2,
 } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
@@ -25,6 +27,7 @@ import type { CustomerVisibilityRow } from "../types";
 import {
   CATEGORY_LABELS,
   categoryBadgeClass,
+  dataBasisLabel,
   formatMetric,
   REPORT_STATUS_LABELS,
   reportBadgeClass,
@@ -63,10 +66,13 @@ export function CustomerVisibilityDetailSheet({
                 <Badge className={reportBadgeClass(row.reportStatus)}>
                   Rapport: {REPORT_STATUS_LABELS[row.reportStatus]}
                 </Badge>
+                <Badge variant="outline">{dataBasisLabel(row.dataBasis)}</Badge>
               </div>
               <SheetTitle>{row.companyName}</SheetTitle>
               <SheetDescription>
-                Förklaringen bygger på samma perioddata som kundrapporten.
+                Search Console följer vald period. Lighthouse, teknisk SEO och
+                lokal synlighet använder den senaste verifierade analysen när
+                månadens snapshot saknar dessa källor.
               </SheetDescription>
             </SheetHeader>
 
@@ -125,6 +131,15 @@ export function CustomerVisibilityDetailSheet({
                   }
                 />
                 <DetailMetric
+                  icon={SearchCheck}
+                  label="Lighthouse SEO"
+                  value={
+                    snapshot?.seo_score == null
+                      ? "Saknas"
+                      : `${snapshot.seo_score}/100`
+                  }
+                />
+                <DetailMetric
                   icon={MapPin}
                   label="Google Business"
                   value={
@@ -133,6 +148,120 @@ export function CustomerVisibilityDetailSheet({
                       : `${snapshot.business_profile.rating.toFixed(1)} · ${snapshot.business_profile.reviews_count ?? 0} recensioner`
                   }
                 />
+              </div>
+
+              <div className="space-y-3">
+                <h3 className="flex items-center gap-2 text-sm font-semibold">
+                  <Globe2 className="size-4" />
+                  Google-synlighet och möjligheter
+                </h3>
+                {snapshot?.search_console ? (
+                  <div className="space-y-3">
+                    {snapshot.search_console.top_queries.length > 0 ? (
+                      <div>
+                        <p className="mb-2 text-xs font-medium text-muted-foreground">
+                          Trafikdrivande sökord
+                        </p>
+                        <div className="space-y-2">
+                          {snapshot.search_console.top_queries
+                            .slice(0, 3)
+                            .map((query) => (
+                              <div
+                                key={query.query}
+                                className="flex items-center justify-between gap-3 rounded-lg border px-3 py-2 text-sm"
+                              >
+                                <span className="truncate">{query.query}</span>
+                                <span className="shrink-0 text-muted-foreground">
+                                  {query.clicks} klick · plats{" "}
+                                  {query.position.toFixed(1)}
+                                </span>
+                              </div>
+                            ))}
+                        </div>
+                      </div>
+                    ) : null}
+                    {snapshot.search_console.opportunities?.length ? (
+                      <div>
+                        <p className="mb-2 text-xs font-medium text-muted-foreground">
+                          Sökordsmöjligheter
+                        </p>
+                        <div className="space-y-2">
+                          {snapshot.search_console.opportunities
+                            .slice(0, 3)
+                            .map((opportunity) => (
+                              <div
+                                key={`${opportunity.kind}-${opportunity.query}`}
+                                className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-950"
+                              >
+                                <p className="font-medium">
+                                  {opportunity.query}
+                                </p>
+                                <p className="mt-1 text-xs">
+                                  {opportunity.impressions} visningar · CTR{" "}
+                                  {(opportunity.ctr * 100).toFixed(1)} % · plats{" "}
+                                  {opportunity.position.toFixed(1)}
+                                </p>
+                              </div>
+                            ))}
+                        </div>
+                      </div>
+                    ) : null}
+                  </div>
+                ) : (
+                  <p className="rounded-lg border border-dashed p-3 text-sm text-muted-foreground">
+                    Search Console saknas. Lighthouse, teknisk SEO och lokal
+                    statistik nedan används fortfarande i bedömningen.
+                  </p>
+                )}
+              </div>
+
+              <div className="space-y-3">
+                <h3 className="text-sm font-semibold">
+                  Lighthouse – labbmätning
+                </h3>
+                {snapshot?.pagespeed ? (
+                  <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+                    <LabMetric
+                      label="LCP"
+                      value={
+                        snapshot.pagespeed.lcp_ms == null
+                          ? "—"
+                          : `${(snapshot.pagespeed.lcp_ms / 1000).toFixed(1)} s`
+                      }
+                    />
+                    <LabMetric
+                      label="CLS"
+                      value={
+                        snapshot.pagespeed.cls == null
+                          ? "—"
+                          : snapshot.pagespeed.cls.toFixed(2)
+                      }
+                    />
+                    <LabMetric
+                      label="TBT"
+                      value={
+                        snapshot.pagespeed.tbt_ms == null
+                          ? "—"
+                          : `${Math.round(snapshot.pagespeed.tbt_ms)} ms`
+                      }
+                    />
+                    <LabMetric
+                      label="FCP"
+                      value={
+                        snapshot.pagespeed.fcp_ms == null
+                          ? "—"
+                          : `${(snapshot.pagespeed.fcp_ms / 1000).toFixed(1)} s`
+                      }
+                    />
+                  </div>
+                ) : (
+                  <p className="text-sm text-muted-foreground">
+                    Lighthouse-data saknas för kunden.
+                  </p>
+                )}
+                <p className="text-xs text-muted-foreground">
+                  TBT är Lighthouse-labbdata och visas aldrig som verklig INP.
+                </p>
               </div>
 
               <div className="space-y-3">
@@ -174,6 +303,132 @@ export function CustomerVisibilityDetailSheet({
                   </p>
                 )}
               </div>
+
+              <div className="space-y-3">
+                <h3 className="flex items-center gap-2 text-sm font-semibold">
+                  <Settings2 className="size-4" />
+                  Teknisk grund
+                </h3>
+                {snapshot?.seo_checks ? (
+                  <div className="grid grid-cols-2 gap-2 text-sm">
+                    {[
+                      ["Indexerbar", snapshot.seo_checks.indexable !== false],
+                      ["Sidtitel", Boolean(snapshot.seo_checks.title)],
+                      [
+                        "Metabeskrivning",
+                        Boolean(snapshot.seo_checks.meta_description),
+                      ],
+                      ["H1", Boolean(snapshot.seo_checks.h1)],
+                      ["Sitemap", Boolean(snapshot.seo_checks.sitemap)],
+                      ["Robots.txt", Boolean(snapshot.seo_checks.robots)],
+                      ["Schema", Boolean(snapshot.seo_checks.schema_org)],
+                      ["Open Graph", Boolean(snapshot.seo_checks.og_tags)],
+                    ].map(([label, passed]) => (
+                      <div
+                        key={String(label)}
+                        className="flex items-center justify-between rounded-lg border px-3 py-2"
+                      >
+                        <span>{String(label)}</span>
+                        <Badge
+                          variant="outline"
+                          className={
+                            passed
+                              ? "border-emerald-200 bg-emerald-50 text-emerald-800"
+                              : "border-red-200 bg-red-50 text-red-800"
+                          }
+                        >
+                          {passed ? "Godkänd" : "Brister"}
+                        </Badge>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-sm text-muted-foreground">
+                    Den tekniska crawlen saknas.
+                  </p>
+                )}
+              </div>
+
+              <div className="space-y-3">
+                <h3 className="flex items-center gap-2 text-sm font-semibold">
+                  <MapPin className="size-4" />
+                  Lokal synlighet
+                </h3>
+                <div className="grid grid-cols-2 gap-2">
+                  <LabMetric
+                    label="Betyg"
+                    value={
+                      snapshot?.business_profile?.rating == null
+                        ? "Saknas"
+                        : snapshot.business_profile.rating.toFixed(1)
+                    }
+                  />
+                  <LabMetric
+                    label="Recensioner"
+                    value={
+                      snapshot?.business_profile?.reviews_count == null
+                        ? "Saknas"
+                        : String(snapshot.business_profile.reviews_count)
+                    }
+                  />
+                  <LabMetric
+                    label="Samtal"
+                    value={
+                      snapshot?.gbp_actions
+                        ? String(snapshot.gbp_actions.calls)
+                        : "Saknas"
+                    }
+                  />
+                  <LabMetric
+                    label="Webbplatsklick"
+                    value={
+                      snapshot?.gbp_actions
+                        ? String(snapshot.gbp_actions.website_clicks)
+                        : "Saknas"
+                    }
+                  />
+                </div>
+                {snapshot?.local_rank?.length ? (
+                  <div className="space-y-2">
+                    <p className="text-xs font-medium text-muted-foreground">
+                      Lokal ranking
+                    </p>
+                    {snapshot.local_rank.slice(0, 5).map((rank) => (
+                      <div
+                        key={rank.keyword}
+                        className="flex items-center justify-between rounded-lg border px-3 py-2 text-sm"
+                      >
+                        <span>{rank.keyword}</span>
+                        <span className="text-muted-foreground">
+                          {rank.found && rank.position != null
+                            ? `Plats ${rank.position}`
+                            : "Inte hittad"}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                ) : null}
+              </div>
+
+              {snapshot?.competitors?.length ? (
+                <div className="space-y-3">
+                  <h3 className="text-sm font-semibold">Konkurrentjämförelse</h3>
+                  <div className="space-y-2">
+                    {snapshot.competitors.slice(0, 4).map((competitor) => (
+                      <div
+                        key={competitor.url}
+                        className="flex items-center justify-between gap-3 rounded-lg border px-3 py-2 text-sm"
+                      >
+                        <span className="truncate">{competitor.url}</span>
+                        <span className="shrink-0 text-muted-foreground">
+                          Prestanda {competitor.performance_score ?? "—"} · SEO{" "}
+                          {competitor.seo_score ?? "—"}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ) : null}
 
               <div className="space-y-2">
                 <h3 className="text-sm font-semibold">Prioriterad åtgärd</h3>
@@ -295,6 +550,15 @@ function CoreWebVital({
               ? "Kan förbättras"
               : "Saknas"}
       </p>
+    </div>
+  );
+}
+
+function LabMetric({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-lg border p-3 text-center">
+      <p className="text-xs text-muted-foreground">{label}</p>
+      <p className="mt-1 font-semibold tabular-nums">{value}</p>
     </div>
   );
 }

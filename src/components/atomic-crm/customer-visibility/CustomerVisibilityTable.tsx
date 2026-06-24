@@ -16,6 +16,7 @@ import type { CustomerVisibilityRow } from "../types";
 import {
   CATEGORY_LABELS,
   categoryBadgeClass,
+  dataBasisLabel,
   formatMetric,
   REPORT_STATUS_LABELS,
   reportBadgeClass,
@@ -86,6 +87,9 @@ export function CustomerVisibilityTable({
                     <p className="font-medium">{row.companyName}</p>
                     <p className="max-w-48 truncate text-xs text-muted-foreground">
                       {row.websiteUrl}
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      {dataBasisLabel(row.dataBasis)}
                     </p>
                   </TableCell>
                   <TableCell>

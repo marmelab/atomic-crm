@@ -111,9 +111,17 @@ function fallbackViewModel(
   const missingSources = sourceEntries
     .filter(([, source]) => source.status !== "available")
     .map(([key]) => SOURCE_LABELS[key] ?? key);
+  const inferredAvailable = [
+    latest.pagespeed ?? latest.performance_score,
+    latest.seo_checks,
+    latest.business_profile,
+    latest.search_console,
+  ].filter((value) => value != null).length;
   const available =
     latest.data_coverage?.available_sources ??
-    Math.max(0, sourceEntries.length - missingSources.length);
+    (sourceEntries.length > 0
+      ? Math.max(0, sourceEntries.length - missingSources.length)
+      : inferredAvailable);
   const total = latest.data_coverage?.total_sources ?? 4;
   const latestSearch = latest.search_console;
   const previousSearch = previous?.search_console;
@@ -202,6 +210,86 @@ function reportStatus(
   return "draft";
 }
 
+function hasDiagnosticData(snapshot: WebsiteSnapshot | null): boolean {
+  return Boolean(
+    snapshot &&
+      (snapshot.pagespeed ||
+        snapshot.performance_score != null ||
+        snapshot.seo_checks ||
+        snapshot.business_profile ||
+        snapshot.field_data ||
+        snapshot.findings.length > 0),
+  );
+}
+
+function mergeSourceStatus(
+  official: WebsiteSnapshot | null,
+  analysis: WebsiteSnapshot | null,
+) {
+  const result = {
+    ...(analysis?.source_status ?? {}),
+    ...(official?.source_status ?? {}),
+  };
+  if (!official?.search_console && analysis?.search_console) {
+    result.search_console = analysis.source_status?.search_console ?? {
+      status: "available",
+    };
+  }
+  return result;
+}
+
+function combineSnapshots(
+  official: WebsiteSnapshot | null,
+  analysis: WebsiteSnapshot | null,
+): WebsiteSnapshot | null {
+  if (!official && !analysis) return null;
+  if (!official) return analysis;
+  if (!analysis || official.id === analysis.id) return official;
+
+  const sourceStatus = mergeSourceStatus(official, analysis);
+  const availableSources = [
+    official.search_console ?? analysis.search_console,
+    analysis.pagespeed ??
+      official.pagespeed ??
+      analysis.performance_score ??
+      official.performance_score,
+    analysis.seo_checks ?? official.seo_checks,
+    analysis.business_profile ?? official.business_profile,
+  ].filter(Boolean).length;
+
+  return {
+    ...analysis,
+    ...official,
+    performance_score:
+      analysis.performance_score ?? official.performance_score,
+    seo_score: analysis.seo_score ?? official.seo_score,
+    pagespeed: analysis.pagespeed ?? official.pagespeed,
+    field_data: analysis.field_data ?? official.field_data,
+    seo_checks: analysis.seo_checks ?? official.seo_checks,
+    business_profile:
+      analysis.business_profile ?? official.business_profile,
+    search_console: official.search_console ?? analysis.search_console,
+    competitors: analysis.competitors ?? official.competitors,
+    gbp_actions: official.gbp_actions ?? analysis.gbp_actions,
+    local_rank: analysis.local_rank ?? official.local_rank,
+    findings:
+      analysis.findings.length > 0 ? analysis.findings : official.findings,
+    source_status: sourceStatus,
+    data_coverage: {
+      ...analysis.data_coverage,
+      ...official.data_coverage,
+      available_sources: availableSources,
+      total_sources: 4,
+      ratio: availableSources / 4,
+      has_search_console: Boolean(
+        official.search_console ?? analysis.search_console,
+      ),
+      has_field_data: Boolean(analysis.field_data ?? official.field_data),
+      backfilled: false,
+    },
+  };
+}
+
 function classifyCustomer(
   viewModel: ReportViewModel | null,
   current: WebsiteSnapshot | null,
@@ -213,11 +301,13 @@ function classifyCustomer(
   if (!current || !viewModel || viewModel.coverage.available === 0) {
     return {
       category: "missing",
-      reasons: [{ tone: "neutral", label: "Officiell månadsdata saknas" }],
+      reasons: [{ tone: "neutral", label: "Ingen webbplatsanalys finns" }],
     };
   }
 
-  const reasons: CustomerVisibilityReason[] = [];
+  const negativeReasons: CustomerVisibilityReason[] = [];
+  const positiveReasons: CustomerVisibilityReason[] = [];
+  const neutralReasons: CustomerVisibilityReason[] = [];
   const statuses = Object.values(viewModel.statuses);
   const highFindings = current.findings.filter(
     (finding) => finding.severity === "high",
@@ -240,28 +330,59 @@ function classifyCustomer(
       : null;
 
   if (clickDelta != null && Math.abs(clickDelta) >= 5) {
-    reasons.push({
+    (clickDelta > 0 ? positiveReasons : negativeReasons).push({
       tone: clickDelta > 0 ? "positive" : "negative",
       label: `${Math.abs(Math.round(clickDelta))} % ${clickDelta > 0 ? "fler" : "färre"} Google-klick`,
     });
   }
   if (positionDelta != null && Math.abs(positionDelta) >= 1) {
-    reasons.push({
+    (positionDelta < 0 ? positiveReasons : negativeReasons).push({
       tone: positionDelta < 0 ? "positive" : "negative",
       label: `Snittpositionen ${positionDelta < 0 ? "förbättrades" : "försämrades"} ${Math.abs(positionDelta).toFixed(1)} steg`,
     });
   }
   if (highFindings[0]) {
-    reasons.push({ tone: "negative", label: highFindings[0].title });
+    negativeReasons.push({ tone: "negative", label: highFindings[0].title });
   } else if (mediumFindings[0]) {
-    reasons.push({ tone: "negative", label: mediumFindings[0].title });
+    negativeReasons.push({ tone: "negative", label: mediumFindings[0].title });
+  } else if (viewModel.statuses.pageExperience === "poor") {
+    negativeReasons.push({
+      tone: "negative",
+      label: "Sidupplevelsen har en dålig nivå",
+    });
+  } else if (viewModel.statuses.pageExperience === "needs_attention") {
+    negativeReasons.push({
+      tone: "negative",
+      label: "Sidupplevelsen behöver förbättras",
+    });
+  } else if (viewModel.statuses.technicalFoundation === "poor") {
+    negativeReasons.push({
+      tone: "negative",
+      label: "Flera tekniska SEO-kontroller misslyckades",
+    });
+  } else if (viewModel.statuses.localVisibility === "poor") {
+    negativeReasons.push({
+      tone: "negative",
+      label: "Den lokala synligheten behöver åtgärdas",
+    });
   }
   if (viewModel.coverage.ratio < 1) {
-    reasons.push({
+    neutralReasons.push({
       tone: "neutral",
       label: `${viewModel.coverage.available} av ${viewModel.coverage.total} datakällor`,
     });
   }
+  if (!current.search_console) {
+    neutralReasons.push({
+      tone: "neutral",
+      label: "Search Console saknas – övrig analys finns",
+    });
+  }
+  const reasons = [
+    ...negativeReasons,
+    ...positiveReasons,
+    ...neutralReasons,
+  ];
 
   if (
     highFindings.length > 0 ||
@@ -404,25 +525,32 @@ export function buildCustomerPortfolioViewModel(
   response: CustomerVisibilityDashboardResponse,
 ): CustomerPortfolioViewModel {
   const rows = response.rows.map((row) => {
-    const reportViewModel =
-      row.report?.view_model &&
-      row.report.view_model.period.start === response.period.start
-        ? row.report.view_model
-        : null;
-    const viewModel =
-      reportViewModel ??
-      (row.current_snapshot
-        ? fallbackViewModel(
-            row.company_name,
-            row.current_snapshot,
-            row.previous_snapshot,
-          )
-        : null);
+    const currentSnapshot = combineSnapshots(
+      row.current_snapshot,
+      row.latest_analysis,
+    );
+    const viewModel = currentSnapshot
+      ? fallbackViewModel(
+          row.company_name,
+          currentSnapshot,
+          row.previous_snapshot,
+        )
+      : null;
     const classification = classifyCustomer(
       viewModel,
-      row.current_snapshot,
+      currentSnapshot,
       row.previous_snapshot,
     );
+    const dataBasis =
+      row.current_snapshot && row.latest_analysis &&
+      row.current_snapshot.id !== row.latest_analysis.id &&
+      hasDiagnosticData(row.latest_analysis)
+        ? "combined"
+        : row.current_snapshot
+          ? "official_month"
+          : row.latest_analysis
+            ? "latest_analysis"
+            : "missing";
     return {
       companyId: row.company_id,
       companyName: row.company_name,
@@ -430,8 +558,10 @@ export function buildCustomerPortfolioViewModel(
       launchDate: row.launch_date ?? null,
       category: classification.category,
       reasons: classification.reasons,
-      currentSnapshot: row.current_snapshot,
+      currentSnapshot,
       previousSnapshot: row.previous_snapshot,
+      dataBasis,
+      analysisFetchedAt: row.latest_analysis?.fetched_at ?? null,
       report: row.report,
       reportStatus: reportStatus(row.report),
       viewModel,
@@ -511,6 +641,8 @@ export function buildCustomerPortfolioViewModel(
     reports,
     metrics: {
       customers: rows.length,
+      analyzedCustomers: rows.filter((row) => row.currentSnapshot != null)
+        .length,
       improved: comparableRows.filter(
         (row) =>
           row.currentSnapshot!.search_console!.clicks >
@@ -535,6 +667,12 @@ export function buildCustomerPortfolioViewModel(
         ? performance.reduce((sum, value) => sum + value, 0) /
           performance.length
         : null,
+      technicalHealthy: rows.filter(
+        (row) => row.viewModel?.statuses.technicalFoundation === "good",
+      ).length,
+      technicalCustomers: rows.filter(
+        (row) => row.viewModel?.statuses.technicalFoundation !== "missing",
+      ).length,
       healthyCoreWebVitals: cwvRows.filter(
         (row) => worstCwvRating(row.currentSnapshot!) === "GOOD",
       ).length,

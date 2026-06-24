@@ -371,12 +371,12 @@ function CustomerVisibilityContent({
         </Select>
       </header>
 
-      <div className="grid grid-cols-2 gap-3 xl:grid-cols-5">
+      <div className="grid grid-cols-2 gap-3 xl:grid-cols-7">
         <SummaryCard
           icon={Users}
           label="Levererade sajter"
           value={String(model.metrics.customers)}
-          helper={`${model.metrics.searchCustomers} med Search Console-data`}
+          helper={`${model.metrics.analyzedCustomers} med någon analys`}
         />
         <SummaryCard
           icon={Globe2}
@@ -391,6 +391,22 @@ function CustomerVisibilityContent({
           label="Förbättrats"
           value={String(model.metrics.improved)}
           helper={`${model.metrics.declined} har försämrats`}
+        />
+        <SummaryCard
+          icon={Gauge}
+          label="Lighthouse-prestanda"
+          value={
+            model.metrics.performance == null
+              ? "Data saknas"
+              : `${Math.round(model.metrics.performance)}/100`
+          }
+          helper={`${model.rows.filter((row) => row.currentSnapshot?.performance_score != null).length} kunder ingår`}
+        />
+        <SummaryCard
+          icon={FileCheck2}
+          label="Teknisk grund"
+          value={`${model.metrics.technicalHealthy}/${model.metrics.technicalCustomers}`}
+          helper="kunder med godkänd teknisk status"
         />
         <SummaryCard
           icon={Gauge}

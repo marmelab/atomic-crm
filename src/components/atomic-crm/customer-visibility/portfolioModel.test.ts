@@ -73,6 +73,7 @@ function response(
         delivered_website_url: "https://example.se",
         current_snapshot: current,
         previous_snapshot: previous,
+        latest_analysis: current,
         report: null,
         history: current ? [current] : [],
       },
@@ -140,6 +141,7 @@ describe("customer portfolio model", () => {
       delivered_website_url: "https://andra.se",
       current_snapshot: second,
       previous_snapshot: null,
+      latest_analysis: second,
       report: null,
       history: [second],
     });
@@ -151,5 +153,95 @@ describe("customer portfolio model", () => {
     expect(previousCompleteMonth(new Date("2026-01-15T12:00:00Z"))).toBe(
       "2025-12-01",
     );
+  });
+
+  it("uses Lighthouse and technical data when Search Console is missing", () => {
+    const lighthouseOnly = snapshot({
+      window_kind: "rolling_28d",
+      search_console: null,
+      source_status: {
+        pagespeed: { status: "available" },
+        seo_crawl: { status: "available" },
+        business_profile: { status: "available" },
+        search_console: { status: "unavailable" },
+      },
+      data_coverage: {
+        available_sources: 3,
+        total_sources: 4,
+        ratio: 0.75,
+      },
+    });
+    const data = response(null, null);
+    data.rows[0].latest_analysis = lighthouseOnly;
+    const model = buildCustomerPortfolioViewModel(data);
+
+    expect(model.rows[0].category).toBe("good");
+    expect(model.rows[0].dataBasis).toBe("latest_analysis");
+    expect(model.rows[0].currentSnapshot?.performance_score).toBe(92);
+    expect(model.rows[0].reasons.map((reason) => reason.label)).toContain(
+      "Search Console saknas – övrig analys finns",
+    );
+  });
+
+  it("combines official Search Console with the latest Lighthouse analysis", () => {
+    const official = snapshot({
+      id: 10,
+      performance_score: null,
+      pagespeed: null,
+      field_data: null,
+      seo_checks: null,
+      business_profile: null,
+      findings: [],
+      data_coverage: {
+        available_sources: 1,
+        total_sources: 4,
+        ratio: 0.25,
+        backfilled: true,
+      },
+    });
+    const analysis = snapshot({
+      id: 11,
+      window_kind: "rolling_28d",
+      search_console: null,
+      performance_score: 76,
+    });
+    const data = response(official, null);
+    data.rows[0].latest_analysis = analysis;
+    const model = buildCustomerPortfolioViewModel(data);
+
+    expect(model.rows[0].dataBasis).toBe("combined");
+    expect(model.rows[0].currentSnapshot?.search_console?.clicks).toBe(120);
+    expect(model.rows[0].currentSnapshot?.performance_score).toBe(76);
+    expect(model.rows[0].viewModel?.coverage.available).toBe(4);
+  });
+
+  it("puts the category-triggering problem before positive click growth", () => {
+    const current = snapshot({
+      findings: [
+        {
+          key: "missing_schema",
+          severity: "medium",
+          title: "Strukturerad data saknas",
+          description: "Sidan är svårare att tolka.",
+          service: "Teknisk SEO",
+        },
+      ],
+    });
+    const previous = snapshot({
+      search_console: {
+        clicks: 70,
+        impressions: 800,
+        ctr: 0.0875,
+        position: 5,
+        top_queries: [],
+      },
+    });
+    const model = buildCustomerPortfolioViewModel(
+      response(current, previous),
+    );
+
+    expect(model.rows[0].category).toBe("watch");
+    expect(model.rows[0].reasons[0].label).toBe("Strukturerad data saknas");
+    expect(model.rows[0].reasons[1].label).toContain("fler Google-klick");
   });
 });

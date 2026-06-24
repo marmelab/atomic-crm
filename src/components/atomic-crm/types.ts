@@ -956,6 +956,7 @@ export type CustomerVisibilityDashboardResponse = {
     launch_date?: string | null;
     current_snapshot: WebsiteSnapshot | null;
     previous_snapshot: WebsiteSnapshot | null;
+    latest_analysis: WebsiteSnapshot | null;
     report: MonthlyReport | null;
     history: WebsiteSnapshot[];
   }>;
@@ -975,6 +976,8 @@ export type CustomerVisibilityRow = {
   reasons: CustomerVisibilityReason[];
   currentSnapshot: WebsiteSnapshot | null;
   previousSnapshot: WebsiteSnapshot | null;
+  dataBasis: "official_month" | "combined" | "latest_analysis" | "missing";
+  analysisFetchedAt: string | null;
   report: MonthlyReport | null;
   reportStatus: CustomerReportDeliveryStatus;
   viewModel: ReportViewModel | null;
@@ -1000,6 +1003,7 @@ export type CustomerPortfolioViewModel = {
   reports: Record<CustomerReportDeliveryStatus, number>;
   metrics: {
     customers: number;
+    analyzedCustomers: number;
     improved: number;
     declined: number;
     clicks: number | null;
@@ -1007,6 +1011,8 @@ export type CustomerPortfolioViewModel = {
     ctr: number | null;
     position: number | null;
     performance: number | null;
+    technicalHealthy: number;
+    technicalCustomers: number;
     healthyCoreWebVitals: number;
     coreWebVitalsCustomers: number;
     googleBusinessRating: number | null;
