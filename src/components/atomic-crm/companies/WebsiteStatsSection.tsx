@@ -301,8 +301,8 @@ export function WebsiteStatsSection({ company }: { company: Company }) {
   // en gammal månad. period_end ger den mest aktuella mätningen först
   // (rullande 28d med full data), och en kronologisk dropdown.
   const orderedSnapshots = [...(snapshots ?? [])].sort((a, b) => {
-    const keyA = a.period_end ?? a.period_start ?? a.fetched_at;
-    const keyB = b.period_end ?? b.period_start ?? b.fetched_at;
+    const keyA = a.period_end ?? a.period_start ?? a.fetched_at ?? "";
+    const keyB = b.period_end ?? b.period_start ?? b.fetched_at ?? "";
     return keyB.localeCompare(keyA);
   });
   const selected =

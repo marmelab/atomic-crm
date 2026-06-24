@@ -270,7 +270,15 @@ async function generateReportForCompany(
     }
     const { data, error } = await supabaseAdmin
       .from("monthly_reports")
-      .insert({ company_id: companyId, period, ...fields })
+      .insert({
+        company_id: companyId,
+        period,
+        // Alltid satt (även skip-vägen) så idempotens-kollen matchar och cron
+        // inte ackumulerar dubbletter för kunder utan snapshot.
+        data_period_start: reportPeriod.startDate,
+        data_period_end: reportPeriod.endDate,
+        ...fields,
+      })
       .select("id")
       .single();
     if (error) throw new Error(`insert monthly_reports: ${error.message}`);

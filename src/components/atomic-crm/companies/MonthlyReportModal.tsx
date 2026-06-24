@@ -33,7 +33,6 @@ import type { VisibilityDataProvider } from "./visibility/types";
 
 const PERIOD_PRESETS: Array<{ value: string; label: string }> = [
   { value: "last_month", label: "Förra månaden" },
-  { value: "this_month", label: "Denna månad" },
   { value: "last_2", label: "Senaste 2 månaderna" },
   { value: "quarter", label: "Senaste kvartalet (3 mån)" },
   { value: "half", label: "Senaste halvåret (6 mån)" },
@@ -165,9 +164,12 @@ export const MonthlyReportModal = ({
   const handleGenerate = async () => {
     const period = computeReportPeriod(periodPreset, customFrom, customTo);
     if (!period) {
-      notify("Välj giltigt från- och till-datum för intervallet.", {
-        type: "warning",
-      });
+      notify(
+        !customFrom || !customTo
+          ? "Fyll i både från- och till-månad för eget intervall."
+          : "Från-månaden måste vara samma som eller före till-månaden.",
+        { type: "warning" },
+      );
       return;
     }
     setIsGenerating(true);
