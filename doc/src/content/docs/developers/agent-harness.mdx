@@ -40,7 +40,21 @@ The orchestrator will determine the type of your request and launch the appropri
 - **Simple**: a single cosmetic edit, a single-field change on an existing entity, or a filter reusing existing components. One developer agent, no planning overhead.
 - **Complex**: everything else. The planner decomposes it into tickets; developers, reviewers, and the merger run as a coordinated wave.
 
-Then, all the work will take place in a git worktree to keep your main branch clean. The orchestrator will create a new branch, and when the change is complete, it will merge it into your main branch.
+Then, all the work will take place in a git worktree to keep your branch clean. The orchestrator creates a new branch and, once the change is complete, **merges it automatically into the branch you started from**.
+
+## Undoing a Session
+
+Because the merge is automatic, if you need to roll back, you can use the command:
+
+```sh
+make clean-harness
+```
+
+This removes everything the last session created (worktrees, session branches) and hard-resets your start branch to the exact commit it was on before the session began.
+
+:::caution
+`make clean-harness` is a hard reset: any uncommitted work is stashed first (recover it with `git stash pop`), but committed work made *after* the session started on that branch is also dropped. Run it only when you want to discard the whole session.
+:::
 
 ## Disabling the harness
 
