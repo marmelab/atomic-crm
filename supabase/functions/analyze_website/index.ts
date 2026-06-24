@@ -357,7 +357,21 @@ async function searchPlacesV1(
         "X-Goog-FieldMask":
           "places.id,places.displayName,places.rating,places.userRatingCount,places.websiteUri,places.addressComponents",
       },
-      body: JSON.stringify({ textQuery: query, regionCode: "SE" }),
+      body: JSON.stringify({
+        textQuery: query,
+        regionCode: "SE",
+        // Hård geografisk begränsning till Sverige. Edge-funktionen kör från
+        // Irland — därifrån kan en utländsk namnkollision (t.ex. holländska
+        // "Zontaxi") ranka över den svenska så att den svenska faller bort,
+        // trots regionCode. Rektangeln täcker hela Sverige; landsfiltret i
+        // selectVerifiedPlace är kvar som extra skydd vid gränsfall.
+        locationRestriction: {
+          rectangle: {
+            low: { latitude: 55.0, longitude: 10.5 },
+            high: { latitude: 69.2, longitude: 24.2 },
+          },
+        },
+      }),
     },
   );
   if (!response.ok) {
