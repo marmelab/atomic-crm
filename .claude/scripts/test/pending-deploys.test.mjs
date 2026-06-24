@@ -91,6 +91,24 @@ describe("pending-deploys", () => {
     rmSync(dir, { recursive: true, force: true });
   });
 
+  test("exits 3 (could not decide) when --session is missing", () => {
+    const dir = setupRepo();
+    let code = 0,
+      stderr = "";
+    try {
+      execFileSync("node", [SCRIPT, "--app", dir], {
+        encoding: "utf8",
+        stdio: ["pipe", "pipe", "pipe"],
+      });
+    } catch (e) {
+      code = e.status;
+      stderr = (e.stderr || "").toString();
+    }
+    expect(code).toBe(3);
+    expect(stderr).toMatch(/session/i);
+    rmSync(dir, { recursive: true, force: true });
+  });
+
   test("fails loudly (exit 3 + stderr) on SESSION_SHORT_ID mismatch", () => {
     const dir = setupRepo(); // creates session-base/ab12cd34 + session/ab12cd34
     let code = 0,

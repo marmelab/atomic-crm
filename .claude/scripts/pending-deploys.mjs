@@ -9,7 +9,8 @@
 //
 // Exit codes:
 //   0 — decision made (stdout empty = nothing to deploy, non-empty = paths).
-//   3 — could NOT decide: the passed <SESSION_SHORT> has no session refs.
+//   3 — could NOT decide: --session missing, or the passed <SESSION_SHORT>
+//       has session-base siblings but no refs of its own (likely a mismatch).
 import { execFileSync } from "node:child_process";
 
 const args = process.argv.slice(2);
@@ -20,8 +21,10 @@ const get = (flag, def) => {
 const APP = get("--app", process.env.CLAUDE_PROJECT_DIR || "/app");
 const SESSION = get("--session", "");
 if (!SESSION) {
+  // Couldn't decide — exit 3, never 0 (0 + empty stdout reads as "nothing to
+  // deploy", which would silently skip a real pending deploy).
   process.stderr.write("--session <SESSION_SHORT> required\n");
-  process.exit(0);
+  process.exit(3);
 }
 
 const refExists = (ref) => {

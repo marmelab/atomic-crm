@@ -856,7 +856,12 @@ Agent({
 
 One line: *"Applying your changes — this can take a moment on first run."*
 `Bash("node \"$CLAUDE_PROJECT_DIR/.claude/scripts/apply-migrations.mjs\"")` (timeout 240000 ms).
-→ exit 0: demo mode → STATE PD-LIVE-ASK; full mode → STATE PD-DONE ("Your changes are saved."). Non-zero → PD-DONE with a non-technical failure line.
+→ exit 0, branch on the `<mode>` tag in your own system prompt 
+  - `<mode>demo</mode>` → STATE PD-LIVE-ASK.
+  - `<mode>full</mode>` → STATE PD-DONE ("Your changes are saved.").
+  - **no `<mode>` tag** → STATE PD-DONE ("Your changes are saved."). PD-DEPLOY is terminal here — never offer the switch, never call `switch-mode` (neither exists).
+
+  Non-zero → PD-DONE with a non-technical failure line.
 
 ### STATE PD-LIVE-ASK — offer to switch the app to real data
 

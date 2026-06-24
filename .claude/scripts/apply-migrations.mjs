@@ -70,8 +70,8 @@ function reloadSchemaCache() {
   const { code } = run("npx", [
     "supabase",
     "db",
-    "execute",
-    "--sql",
+    "query",
+    "--local",
     "SELECT pg_notify('pgrst', 'reload schema');",
   ]);
   if (code === 0) {
@@ -84,7 +84,7 @@ function reloadSchemaCache() {
 if (await isSupabaseUp()) {
   // ── Apply migrations to running Supabase ──
   log(`${BOLD}Applying pending migrations to running Supabase...${NC}`);
-  let { out, code } = run("npx", ["supabase", "migration", "up"]);
+  let { out, code } = run("npx", ["supabase", "migration", "up", "--local"]);
 
   if (code !== 0) {
     // Auto-repair phantom versions that are recorded in Supabase but absent from
@@ -104,11 +104,17 @@ if (await isSupabaseUp()) {
           "supabase",
           "migration",
           "repair",
+          "--local",
           "--status",
           "reverted",
           ...phantomVersions,
         ]);
-        ({ out, code } = run("npx", ["supabase", "migration", "up"]));
+        ({ out, code } = run("npx", [
+          "supabase",
+          "migration",
+          "up",
+          "--local",
+        ]));
       }
     }
     if (code !== 0) {
