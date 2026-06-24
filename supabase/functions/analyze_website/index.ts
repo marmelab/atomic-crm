@@ -21,7 +21,7 @@ import type {
   SeoChecks,
 } from "./findings.ts";
 import { computeFindings } from "./findings.ts";
-import { domainOf, isPlaceMatch } from "./matching.ts";
+import { selectVerifiedPlace } from "./matching.ts";
 import {
   resolveVisibilityPeriod,
   type VisibilityPeriod,
@@ -42,7 +42,8 @@ import { findLocalPosition, type LocalRankResult } from "./localRank.ts";
  *
  * Källor (varje källa är oberoende — ett källfel fäller aldrig analysen):
  *   a) PageSpeed Insights  (GOOGLE_PAGESPEED_API_KEY)
- *   b) Google Business     (GOOGLE_MAPS_API_KEY; place_id eller textsearch)
+ *   b) Google Business     (GOOGLE_MAPS_API_KEY; Places API New: place_id-
+ *                           uppslag eller searchText + svenskt landsfilter)
  *   c) Egen SEO/AI-crawl   (ingen nyckel: title/meta/og/schema/sitemap/llms.txt)
  *   d) Search Console      (GOOGLE_SERVICE_ACCOUNT_JSON; hybrid — endast för
  *                           properties där service-kontot lagts till som användare)
@@ -279,37 +280,100 @@ async function fetchPageSpeed(url: string): Promise<PageSpeedSummary | null> {
 
 // --- b) Google Business-profil ---
 
-async function fetchPlaceDetails(
-  placeId: string,
-  apiKey: string,
-): Promise<{
+// Landskod ur v1 addressComponents (komponenten med type "country", shortText
+// = ISO-2, t.ex. "SE"/"NL"). Används för att hårt avvisa utländska träffar.
+function countryCodeOf(
+  addressComponents?: Array<{ types?: string[]; shortText?: string }>,
+): string | null {
+  const country = addressComponents?.find((component) =>
+    component.types?.includes("country"),
+  );
+  return country?.shortText ?? null;
+}
+
+type PlaceV1 = {
+  id: string | null;
   name: string | null;
   website: string | null;
   rating: number | null;
   reviews_count: number | null;
-} | null> {
-  const endpoint = new URL(
-    "https://maps.googleapis.com/maps/api/place/details/json",
-  );
-  endpoint.searchParams.set("place_id", placeId);
-  endpoint.searchParams.set("fields", "name,website,rating,user_ratings_total");
-  endpoint.searchParams.set("key", apiKey);
+  country: string | null;
+};
 
-  const response = await fetchWithTimeout(
-    endpoint.toString(),
-    FETCH_TIMEOUT_MS,
-  );
-  const data = await response.json();
-  if (data.status !== "OK") return null;
+function mapPlaceV1(place: Record<string, unknown>): PlaceV1 {
+  const displayName = place.displayName as { text?: string } | undefined;
   return {
-    name: data.result?.name ?? null,
-    website: data.result?.website ?? null,
-    rating: data.result?.rating ?? null,
-    reviews_count: data.result?.user_ratings_total ?? null,
+    id: (place.id as string) ?? null,
+    name: displayName?.text ?? null,
+    website: (place.websiteUri as string) ?? null,
+    rating: (place.rating as number) ?? null,
+    reviews_count: (place.userRatingCount as number) ?? null,
+    country: countryCodeOf(
+      place.addressComponents as
+        | Array<{ types?: string[]; shortText?: string }>
+        | undefined,
+    ),
   };
 }
 
+// Hämtar EN plats via stabilt place_id (Places API New). userRatingCount matchar
+// den publika Maps-siffran — till skillnad från gamla user_ratings_total som kan
+// släpa eller, på svag fråga, peka på fel namnkollision.
+async function fetchPlaceV1(
+  placeId: string,
+  apiKey: string,
+): Promise<PlaceV1 | null> {
+  const response = await fetchWithTimeout(
+    `https://places.googleapis.com/v1/places/${encodeURIComponent(placeId)}`,
+    FETCH_TIMEOUT_MS,
+    {
+      headers: {
+        "X-Goog-Api-Key": apiKey,
+        "X-Goog-FieldMask":
+          "id,displayName,rating,userRatingCount,websiteUri,addressComponents",
+      },
+    },
+  );
+  if (!response.ok) return null;
+  const data = await response.json();
+  return mapPlaceV1(data);
+}
+
+// Söker platser via Places API New (searchText). regionCode SE biasar mot
+// Sverige; landskoden i svaret används sedan för att HÅRT avvisa utländska
+// namnkollisioner (svensk "Zontaxi" vs holländsk "Zontaxi").
+async function searchPlacesV1(
+  query: string,
+  apiKey: string,
+): Promise<PlaceV1[]> {
+  const response = await fetchWithTimeout(
+    "https://places.googleapis.com/v1/places:searchText",
+    FETCH_TIMEOUT_MS,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-Goog-Api-Key": apiKey,
+        "X-Goog-FieldMask":
+          "places.id,places.displayName,places.rating,places.userRatingCount,places.websiteUri,places.addressComponents",
+      },
+      body: JSON.stringify({ textQuery: query, regionCode: "SE" }),
+    },
+  );
+  if (!response.ok) {
+    const text = await response.text().catch(() => "");
+    throw new Error(
+      `Places searchText ${response.status}: ${text.slice(0, 200)}`,
+    );
+  }
+  const data = await response.json();
+  return ((data.places ?? []) as Array<Record<string, unknown>>).map(
+    mapPlaceV1,
+  );
+}
+
 async function fetchBusinessProfile(company: {
+  id?: number | string | null;
   google_place_id?: string | null;
   name: string;
   city?: string | null;
@@ -323,86 +387,53 @@ async function fetchBusinessProfile(company: {
     return null;
   }
 
-  // Sparat place_id är medvetet kopplat till företaget (t.ex. via
-  // GoogleMapsScraper-importen) — litar på det utan namnverifiering.
+  // Sparat place_id är redan verifierat — hämta direkt via stabilt id.
   if (company.google_place_id) {
-    const details = await fetchPlaceDetails(company.google_place_id, apiKey);
-    if (details) {
+    const place = await fetchPlaceV1(company.google_place_id, apiKey);
+    if (place) {
       return {
         found: true,
-        rating: details.rating,
-        reviews_count: details.reviews_count,
+        rating: place.rating,
+        reviews_count: place.reviews_count,
         place_id: company.google_place_id,
       };
     }
-    // NOT_FOUND på sparat place_id → falla igenom till textsearch
+    // Hittas ej på sparat id → falla igenom till sökning.
   }
 
-  const endpoint = new URL(
-    "https://maps.googleapis.com/maps/api/place/textsearch/json",
+  const query = [company.name, company.city].filter(Boolean).join(" ");
+  const candidates = await searchPlacesV1(query, apiKey);
+  const match = selectVerifiedPlace(
+    { name: company.name, website: company.website },
+    candidates,
   );
-  endpoint.searchParams.set(
-    "query",
-    [company.name, company.city].filter(Boolean).join(" "),
-  );
-  endpoint.searchParams.set("key", apiKey);
-
-  const response = await fetchWithTimeout(
-    endpoint.toString(),
-    FETCH_TIMEOUT_MS,
-  );
-  const data = await response.json();
-
-  if (data.status === "ZERO_RESULTS") {
+  if (!match) {
+    // Träffar kan ha funnits, men ingen var kundens svenska verksamhet.
     return { found: false };
   }
-  if (data.status !== "OK") {
-    throw new Error(`Places API status ${data.status}`);
+
+  // Verifierad match — pinna place_id (när det saknas) så framtida körningar går
+  // via stabilt id och slipper sökningen som annars kan driva till fel
+  // namnkollision.
+  if (company.id != null && match.id) {
+    const { error } = await supabaseAdmin
+      .from("companies")
+      .update({ google_place_id: match.id })
+      .eq("id", company.id)
+      .is("google_place_id", null);
+    if (error) {
+      console.warn(
+        `analyze_website: kunde inte spara place_id för company ${company.id}: ${error.message}`,
+      );
+    }
   }
 
-  // Textsearch returnerar ofta NÅGON verksamhet på orten — verifiera att
-  // kandidaten verkligen är kundens företag (namn-token eller domänmatch)
-  // innan vi rapporterar betyg/recensioner som kundens.
-  const candidates = (data.results ?? []).slice(0, 3) as Array<{
-    place_id?: string;
-    name?: string;
-    rating?: number;
-    user_ratings_total?: number;
-  }>;
-
-  for (const candidate of candidates) {
-    if (
-      !isPlaceMatch({
-        companyName: company.name,
-        companyWebsite: company.website,
-        placeName: candidate.name,
-        placeWebsite: null,
-      })
-    ) {
-      continue;
-    }
-
-    // Namnet matchar — hämta details för domän-dubbelkoll när båda har webb.
-    const details = candidate.place_id
-      ? await fetchPlaceDetails(candidate.place_id, apiKey)
-      : null;
-    const companyDomain = domainOf(company.website);
-    const placeDomain = domainOf(details?.website);
-    if (companyDomain && placeDomain && companyDomain !== placeDomain) {
-      continue; // Namnlik verksamhet med ANNAN hemsida — inte kundens profil.
-    }
-
-    return {
-      found: true,
-      rating: details?.rating ?? candidate.rating ?? null,
-      reviews_count:
-        details?.reviews_count ?? candidate.user_ratings_total ?? null,
-      place_id: candidate.place_id ?? null,
-    };
-  }
-
-  // Träffar fanns men ingen kunde verifieras som kundens verksamhet.
-  return { found: false };
+  return {
+    found: true,
+    rating: match.rating,
+    reviews_count: match.reviews_count,
+    place_id: match.id,
+  };
 }
 
 // --- c) Egen SEO/AI-sök-crawl ---

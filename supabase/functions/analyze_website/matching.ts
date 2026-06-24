@@ -95,3 +95,49 @@ export function isPlaceMatch(params: {
       compact(token).includes(placeCompact),
   );
 }
+
+export type PlaceCandidate = {
+  id?: string | null;
+  name?: string | null;
+  website?: string | null;
+  country?: string | null;
+};
+
+/**
+ * Väljer den första kandidaten som verkligen är kundens svenska verksamhet.
+ *
+ * Tre grindar i ordning:
+ *   1. Land — en träff med känd landskod ≠ "SE" avvisas. Detta stoppar
+ *      namnkollisioner över gränsen (svensk "Zontaxi" i Östersund vs holländsk
+ *      "Zontaxi" i Zeewolde). Okänd landskod släpps vidare till namnkollen.
+ *   2. Namn/domän — isPlaceMatch (särskiljande token eller domänmatch).
+ *   3. Domän-motsägelse — namnlik verksamhet med ANNAN hemsida avvisas.
+ *
+ * Kandidaterna förväntas vara rankade (t.ex. Places searchText-ordning); första
+ * som klarar alla grindar vinner.
+ */
+export function selectVerifiedPlace<T extends PlaceCandidate>(
+  company: { name: string; website?: string | null },
+  candidates: readonly T[],
+): T | null {
+  for (const candidate of candidates) {
+    if (candidate.country && candidate.country !== "SE") continue;
+    if (
+      !isPlaceMatch({
+        companyName: company.name,
+        companyWebsite: company.website,
+        placeName: candidate.name,
+        placeWebsite: candidate.website,
+      })
+    ) {
+      continue;
+    }
+    const companyDomain = domainOf(company.website);
+    const placeDomain = domainOf(candidate.website);
+    if (companyDomain && placeDomain && companyDomain !== placeDomain) {
+      continue;
+    }
+    return candidate;
+  }
+  return null;
+}

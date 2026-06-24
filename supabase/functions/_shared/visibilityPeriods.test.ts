@@ -30,6 +30,16 @@ describe("visibility periods", () => {
     });
   });
 
+  it("defaults to the previous calendar month when no kind is given", () => {
+    expect(
+      resolveVisibilityPeriod({ now: new Date("2026-06-24T06:00:00Z") }),
+    ).toEqual({
+      kind: "calendar_month",
+      startDate: "2026-05-01",
+      endDate: "2026-05-31",
+    });
+  });
+
   it("accepts an explicit validated date range", () => {
     expect(
       resolveVisibilityPeriod({

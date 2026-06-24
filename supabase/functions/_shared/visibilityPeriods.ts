@@ -53,7 +53,10 @@ export function resolveVisibilityPeriod(input: {
   endDate?: string | null;
   now?: Date;
 }): VisibilityPeriod {
-  const kind = input.kind ?? "rolling_28d";
+  // Kalendermånad är basen för all kundvänd rapportering (matchar Search
+  // Console). Rullande 28-dagars finns kvar i typen för att läsa äldre rader,
+  // men ingen ny analys ska defaulta till den.
+  const kind = input.kind ?? "calendar_month";
   if (
     (input.startDate && !input.endDate) ||
     (!input.startDate && input.endDate)

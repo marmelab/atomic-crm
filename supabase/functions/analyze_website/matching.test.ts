@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { domainOf, isPlaceMatch } from "./matching.ts";
+import { domainOf, isPlaceMatch, selectVerifiedPlace } from "./matching.ts";
 
 describe("domainOf", () => {
   it("normalizes urls with and without protocol", () => {
@@ -77,5 +77,62 @@ describe("isPlaceMatch", () => {
         placeWebsite: null,
       }),
     ).toBe(false);
+  });
+});
+
+describe("selectVerifiedPlace", () => {
+  const swede = {
+    id: "ChIJzdTArBOa14MRlgHJvPWn9o8",
+    name: "Zontaxi Östersund",
+    website: null,
+    country: "SE",
+    reviews_count: 31,
+  };
+  const dutch = {
+    id: "ChIJo-c47Br2GWwRCsOaD72-pXo",
+    name: "Zontaxi",
+    website: null,
+    country: "NL",
+    reviews_count: 23,
+  };
+
+  it("rejects the foreign namesake and picks the Swedish business (the Zontaxi bug)", () => {
+    // Holländska "Zontaxi" rankas först — landsfiltret måste hoppa över den.
+    const match = selectVerifiedPlace({ name: "Zontaxi" }, [dutch, swede]);
+    expect(match?.id).toBe(swede.id);
+    expect(match?.reviews_count).toBe(31);
+  });
+
+  it("returns null when the only candidate is foreign", () => {
+    expect(selectVerifiedPlace({ name: "Zontaxi" }, [dutch])).toBeNull();
+  });
+
+  it("accepts a candidate with unknown country when the name matches", () => {
+    const match = selectVerifiedPlace({ name: "Zontaxi" }, [
+      { id: "x", name: "Zontaxi Östersund", website: null, country: null },
+    ]);
+    expect(match?.id).toBe("x");
+  });
+
+  it("rejects a Swedish namesake with a contradicting website domain", () => {
+    const match = selectVerifiedPlace(
+      { name: "ARONSGÅRD Bygg", website: "https://aronsgard.se" },
+      [
+        {
+          id: "y",
+          name: "Aronsgård Bygg",
+          website: "https://annandoman.se",
+          country: "SE",
+        },
+      ],
+    );
+    expect(match).toBeNull();
+  });
+
+  it("returns null when no candidate matches the name", () => {
+    const match = selectVerifiedPlace({ name: "Zontaxi" }, [
+      { id: "z", name: "Persson Måleri", website: null, country: "SE" },
+    ]);
+    expect(match).toBeNull();
   });
 });

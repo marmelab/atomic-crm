@@ -209,15 +209,46 @@ function formatDate(value?: string | null): string {
   });
 }
 
+// En kalendermånad är pågående ("hittills") när dess slutdatum inte är
+// månadens sista dag — då växer siffrorna fortfarande.
+function isLastDayOfMonth(isoDate: string): boolean {
+  const date = new Date(`${isoDate}T00:00:00Z`);
+  const next = new Date(date.getTime() + 24 * 60 * 60 * 1000);
+  return next.getUTCMonth() !== date.getUTCMonth();
+}
+
+function isPartialMonth(snapshot: WebsiteSnapshot): boolean {
+  return (
+    snapshot.window_kind === "calendar_month" &&
+    snapshot.period_end != null &&
+    !isLastDayOfMonth(snapshot.period_end)
+  );
+}
+
+// Innevarande månad t.o.m. idag (UTC) — basen för den manuella uppdateringen.
+// Speglar hur Search Console visar pågående månad.
+function monthToDateRange(now = new Date()): {
+  start_date: string;
+  end_date: string;
+} {
+  const start = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1));
+  const end = new Date(
+    Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()),
+  );
+  return {
+    start_date: start.toISOString().slice(0, 10),
+    end_date: end.toISOString().slice(0, 10),
+  };
+}
+
 function periodLabel(snapshot: WebsiteSnapshot): string {
+  if (snapshot.window_kind === "calendar_month" && snapshot.period_start) {
+    const month = formatDate(snapshot.period_start);
+    return isPartialMonth(snapshot) ? `${month} (hittills)` : month;
+  }
+  // Äldre rader utan kalendermånad — neutral etikett (visas bara som fallback).
   if (snapshot.period_start && snapshot.period_end) {
-    const kind =
-      snapshot.window_kind === "calendar_month"
-        ? "Officiell månad"
-        : snapshot.window_kind === "rolling_28d"
-          ? "Rullande 28 dagar"
-          : "Äldre analys";
-    return `${formatDate(snapshot.period_start)} · ${kind}`;
+    return `${formatDate(snapshot.period_start)} · äldre analys`;
   }
   return `${new Date(snapshot.fetched_at).toLocaleDateString("sv-SE")} · äldre analys`;
 }
@@ -296,19 +327,42 @@ export function WebsiteStatsSection({ company }: { company: Company }) {
     setReportOpen(true);
   }, [reportQuery]);
 
-  // Ordna på senaste PERIOD (inte fetched_at). Efter backfill delar alla
-  // mätningar fetched_at ≈ nu, så fetched_at-sortering landade godtyckligt på
-  // en gammal månad. period_end ger den mest aktuella mätningen först
-  // (rullande 28d med full data), och en kronologisk dropdown.
-  const orderedSnapshots = [...(snapshots ?? [])].sort((a, b) => {
-    const keyA = a.period_end ?? a.period_start ?? a.fetched_at ?? "";
-    const keyB = b.period_end ?? b.period_start ?? b.fetched_at ?? "";
-    return keyB.localeCompare(keyA);
-  });
+  // Kundvyn bygger på officiella kalendermånader. Rullande 28-dagars döljs helt
+  // — den matchar inte Search Console och förvirrade tidigare. Per kalendermånad
+  // behåller vi den färskaste mätningen (högsta period_end), så en stängd månad
+  // ersätter sin egen "hittills"-version.
+  const monthlyByPeriod = new Map<string, WebsiteSnapshot>();
+  for (const snapshot of snapshots ?? []) {
+    if (snapshot.window_kind !== "calendar_month" || !snapshot.period_start) {
+      continue;
+    }
+    const monthKey = snapshot.period_start.slice(0, 7);
+    const existing = monthlyByPeriod.get(monthKey);
+    const existingEnd = existing?.period_end ?? existing?.period_start ?? "";
+    const candidateEnd = snapshot.period_end ?? snapshot.period_start;
+    if (!existing || candidateEnd.localeCompare(existingEnd) > 0) {
+      monthlyByPeriod.set(monthKey, snapshot);
+    }
+  }
+  // Senaste månaden först i dropdown och som default.
+  const monthlySnapshots = [...monthlyByPeriod.values()].sort((a, b) =>
+    (b.period_start ?? "").localeCompare(a.period_start ?? ""),
+  );
+  // Fallback för kunder som ännu inte fått en kalendermånad: visa äldre
+  // analyser, men aldrig rullande 28-dagars som primär vy.
+  const visibleSnapshots = monthlySnapshots.length
+    ? monthlySnapshots
+    : [...(snapshots ?? [])]
+        .filter((snapshot) => snapshot.window_kind !== "rolling_28d")
+        .sort((a, b) => {
+          const keyA = a.period_end ?? a.period_start ?? a.fetched_at ?? "";
+          const keyB = b.period_end ?? b.period_start ?? b.fetched_at ?? "";
+          return keyB.localeCompare(keyA);
+        });
   const selected =
-    orderedSnapshots.find(
+    visibleSnapshots.find(
       (snapshot) => String(snapshot.id) === selectedSnapshotId,
-    ) ?? orderedSnapshots[0];
+    ) ?? visibleSnapshots[0];
   const comparison = selected
     ? snapshots?.find(
         (snapshot) =>
@@ -319,12 +373,10 @@ export function WebsiteStatsSection({ company }: { company: Company }) {
             : snapshot.fetched_at < selected.fetched_at),
       )
     : undefined;
-  const officialHistory = (snapshots ?? [])
-    .filter(
-      (snapshot) =>
-        snapshot.window_kind === "calendar_month" && snapshot.period_start,
-    )
-    .sort((a, b) => (a.period_start ?? "").localeCompare(b.period_start ?? ""));
+  // Trend + sökordsrörelser: deduppade kalendermånader i kronologisk ordning.
+  const officialHistory = [...monthlySnapshots].sort((a, b) =>
+    (a.period_start ?? "").localeCompare(b.period_start ?? ""),
+  );
   // Sökordsrörelser (2A): jämför de två senaste officiella månaderna. Kräver
   // två OLIKA perioder — annars är jämförelsen meningslös.
   const latestOfficial = officialHistory[officialHistory.length - 1];
@@ -349,11 +401,12 @@ export function WebsiteStatsSection({ company }: { company: Company }) {
     setAnalyzing(true);
     try {
       const result = await dataProvider.analyzeWebsite(company.id, {
-        window_kind: "rolling_28d",
+        window_kind: "calendar_month",
+        ...monthToDateRange(),
       });
       await refetch();
       setSelectedSnapshotId(String(result.snapshot_id));
-      notify("Den rullande 28-dagarsanalysen är uppdaterad", {
+      notify("Den här månadens analys är uppdaterad", {
         type: "success",
       });
     } catch (error) {
@@ -449,14 +502,22 @@ export function WebsiteStatsSection({ company }: { company: Company }) {
       : previousGsc && previousGsc.impressions > 0
         ? (previousGsc.clicks / previousGsc.impressions) * 100
         : null;
-  const clickDelta = percentDelta(gsc?.clicks, previousGsc?.clicks);
-  const impressionDelta = percentDelta(
-    gsc?.impressions,
-    previousGsc?.impressions,
-  );
-  const ctrDelta = percentDelta(ctr, previousCtr);
+  // Pågående månad jämförs inte mot föregående (hela) månad — det vore att
+  // ställa en halvfärdig månad mot en komplett och skapa en missvisande delta.
+  // Jämförelser visas först när månaden är stängd.
+  const selectedIsPartial = isPartialMonth(selected);
+  const partialTrendNote = "Pågående månad – jämförs vid månadsskifte";
+  const clickDelta = selectedIsPartial
+    ? null
+    : percentDelta(gsc?.clicks, previousGsc?.clicks);
+  const impressionDelta = selectedIsPartial
+    ? null
+    : percentDelta(gsc?.impressions, previousGsc?.impressions);
+  const ctrDelta = selectedIsPartial ? null : percentDelta(ctr, previousCtr);
   const positionDelta =
-    gsc && previousGsc ? gsc.position - previousGsc.position : null;
+    !selectedIsPartial && gsc && previousGsc
+      ? gsc.position - previousGsc.position
+      : null;
   const coverageAvailable =
     selected.data_coverage?.available_sources ??
     ["pagespeed", "seo_crawl", "business_profile", "search_console"].filter(
@@ -566,7 +627,7 @@ export function WebsiteStatsSection({ company }: { company: Company }) {
               ) : (
                 <RefreshCw className="size-4" />
               )}
-              {analyzing ? "Analyserar…" : "Uppdatera 28 dagar"}
+              {analyzing ? "Analyserar…" : "Uppdatera (denna månad)"}
             </Button>
           </div>
         </div>
@@ -575,11 +636,11 @@ export function WebsiteStatsSection({ company }: { company: Company }) {
             value={String(selected.id)}
             onValueChange={setSelectedSnapshotId}
           >
-            <SelectTrigger className="w-[260px]">
+            <SelectTrigger className="w-full sm:w-[260px]">
               <SelectValue aria-label={periodLabel(selected)} />
             </SelectTrigger>
             <SelectContent>
-              {orderedSnapshots.map((snapshot) => (
+              {visibleSnapshots.map((snapshot) => (
                 <SelectItem key={snapshot.id} value={String(snapshot.id)}>
                   {periodLabel(snapshot)}
                 </SelectItem>
@@ -594,6 +655,19 @@ export function WebsiteStatsSection({ company }: { company: Company }) {
       </CardHeader>
 
       <CardContent>
+        {selectedIsPartial ? (
+          <div className="mb-5 rounded-lg border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-900">
+            <p className="font-medium">
+              Pågående månad · {formatDate(selected.period_start)}
+            </p>
+            <p className="mt-1 text-xs">
+              Söktrafiken visar månaden hittills och växer tills månaden är
+              slut. Search Console finaliserar de senaste ~3 dagarna i
+              efterhand. Jämförelse mot föregående månad visas när månaden är
+              stängd.
+            </p>
+          </div>
+        ) : null}
         {selected.data_coverage?.backfilled ? (
           <div className="mb-5 rounded-lg border border-sky-200 bg-sky-50 p-3 text-sm text-sky-900">
             <p className="font-medium">Historisk månad</p>
@@ -723,7 +797,9 @@ export function WebsiteStatsSection({ company }: { company: Company }) {
               <VisibilityMetricCard
                 label="Klick från Google"
                 value={gsc?.clicks.toLocaleString("sv-SE") ?? "Saknas"}
-                trend={trendText(clickDelta)}
+                trend={
+                  selectedIsPartial ? partialTrendNote : trendText(clickDelta)
+                }
                 explanation={{
                   meaning:
                     "Antal besök där någon klickade från Googles organiska sökresultat.",
@@ -739,7 +815,11 @@ export function WebsiteStatsSection({ company }: { company: Company }) {
               <VisibilityMetricCard
                 label="Visningar"
                 value={gsc?.impressions.toLocaleString("sv-SE") ?? "Saknas"}
-                trend={trendText(impressionDelta)}
+                trend={
+                  selectedIsPartial
+                    ? partialTrendNote
+                    : trendText(impressionDelta)
+                }
                 explanation={{
                   meaning:
                     "Hur många gånger sajten förekom i Googles sökresultat.",
@@ -759,7 +839,9 @@ export function WebsiteStatsSection({ company }: { company: Company }) {
                     ? "Saknas"
                     : `${ctr.toLocaleString("sv-SE", { maximumFractionDigits: 1 })} %`
                 }
-                trend={trendText(ctrDelta)}
+                trend={
+                  selectedIsPartial ? partialTrendNote : trendText(ctrDelta)
+                }
                 explanation={{
                   meaning:
                     "Andelen visningar som blev ett klick till webbplatsen.",
@@ -782,9 +864,11 @@ export function WebsiteStatsSection({ company }: { company: Company }) {
                     : "Saknas"
                 }
                 trend={
-                  positionDelta == null
-                    ? "Ingen jämförbar föregående period"
-                    : `${positionDelta < 0 ? "Förbättring" : "Försämring"} ${Math.abs(positionDelta).toFixed(1)} platser`
+                  selectedIsPartial
+                    ? partialTrendNote
+                    : positionDelta == null
+                      ? "Ingen jämförbar föregående period"
+                      : `${positionDelta < 0 ? "Förbättring" : "Försämring"} ${Math.abs(positionDelta).toFixed(1)} platser`
                 }
                 explanation={{
                   meaning:
@@ -1415,6 +1499,12 @@ export function WebsiteStatsSection({ company }: { company: Company }) {
                       </p>
                       <p className="text-muted-foreground">
                         {business.reviews_count ?? 0} recensioner
+                        <span className="block text-xs">
+                          Nuläge · uppmätt{" "}
+                          {new Date(selected.fetched_at).toLocaleDateString(
+                            "sv-SE",
+                          )}
+                        </span>
                       </p>
                       {reviewVelocity != null ? (
                         <p
