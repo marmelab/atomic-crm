@@ -8,9 +8,9 @@
 //
 //  Behaviour:
 //    Migrations are already committed to supabase/migrations/ on
-//    main (written by the deploy-time migration round and merged
-//    by the merger) before this script runs. There is nothing to
-//    promote — this script only applies what is already there.
+//    the base branch (written by the deploy-time migration round and
+//    merged by the merger) before this script runs. There is nothing
+//    to promote — this script only applies what is already there.
 //
 //    If Supabase is not running: start it (initial start applies
 //    every migration in supabase/migrations/).

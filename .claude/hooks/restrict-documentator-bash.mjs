@@ -48,7 +48,6 @@ const WHITELIST = [
   /^git log( |$)/,
   /^git show( |$)/,
   /^git diff( |$)/,
-  /^git -C [^ ]+ fetch origin main --quiet *$/,
   /^git -C [^ ]+ diff( |$)/,
   /^git -C [^ ]+ log( |$)/,
   /^ls( |$)/,
@@ -64,6 +63,6 @@ if (isWhitelisted(command)) {
 }
 
 ctx.error(
-  "Bash command blocked for documentator. Allowed: git log, git show, git diff, ls, wc -l; Mode 2 only: 'git -C <repo> fetch origin main --quiet', 'git -C <repo> diff …', 'git -C <repo> log …', 'git -C <repo> add MEMORY.md', 'git -C <repo> -c user.name=Documentator -c user.email=documentator@atomic-crm.local commit -m …'. Use Read/Glob/Grep otherwise.",
+  "Bash command blocked for documentator. Allowed: git log, git show, git diff, ls, wc -l; Mode 2 only: 'git -C <repo> diff …', 'git -C <repo> log …', 'git -C <repo> add MEMORY.md', 'git -C <repo> -c user.name=Documentator -c user.email=documentator@atomic-crm.local commit -m …'. Use Read/Glob/Grep otherwise.",
 );
 process.exit(2);

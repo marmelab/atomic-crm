@@ -72,9 +72,10 @@ Detection: your spawn prompt contains `ROLE: quality-reviewer (SIMPLE mode — s
    ```
    git -C <WORKTREE_PATH> log -p -1
    ```
-   For a multi-commit branch, diff against its true base (`main`), not `$CLAUDE_PROJECT_DIR`'s HEAD:
+   For a multi-commit branch, diff against the session fork anchor `session-base/<short>` (a local ref, independent of the base branch's name — main, master, or a working branch), not `$CLAUDE_PROJECT_DIR`'s HEAD:
    ```
-   git -C <WORKTREE_PATH> diff "$(git -C <WORKTREE_PATH> merge-base main HEAD)"..HEAD
+   SHORT=$(git -C <WORKTREE_PATH> rev-parse --abbrev-ref HEAD | cut -d/ -f1)
+   git -C <WORKTREE_PATH> diff "session-base/$SHORT"..HEAD
    ```
 2. **Apply the scope-relevant rubric only** — SIMPLE diffs are small and schema-focused:
    - **A.6b (schema changes)** — no `supabase/migrations/*.sql` in the diff (off-limits to SIMPLE); schema files in `supabase/schemas/*.sql` only; new column appended at the end of the `03_views.sql` SELECT, no ordinal shift.
@@ -94,12 +95,12 @@ Your spawn prompt provides `TASK_ID`, `WORKTREE_PATH`, and `TICKET_FILE`.
 
 Read the ticket spec at `TICKET_FILE`, read the diff in `WORKTREE_PATH`. Apply your review checklist. Emit the contract line.
 
-1. **Read** ticket spec at `TICKET_FILE` and the worktree diff against the project's main branch:
+1. **Read** ticket spec at `TICKET_FILE` and the worktree diff against the session fork anchor:
    ```
-   git -C <WORKTREE_PATH> fetch origin main --quiet
-   git -C <WORKTREE_PATH> diff origin/main..HEAD
+   SHORT=$(git -C <WORKTREE_PATH> rev-parse --abbrev-ref HEAD | cut -d/ -f1)
+   git -C <WORKTREE_PATH> diff "session-base/$SHORT"..HEAD
    ```
-   `origin/main` is the canonical session base — the `fetch` keeps it current in case other tickets merged while you were waiting for the dev's message.
+   `session-base/<short>` is the fixed session fork anchor — a local ref, independent of the base branch's name (main, master, or a working branch). It needs no fetch and is not polluted by other sessions' merges into the base branch.
 2. **Apply the rubric** below (Parts A and B). Also apply `coding-style.md` and `security-triggers.md` rules.
 3. **Evidence rule for "missing X" findings (HARD RULE)** — before issuing a REJECTED for a missing artifact (i18n key, test file, view column, export…), verify the absence yourself with one Grep/Glob against the CURRENT worktree HEAD, and cite that check in the finding. A REJECTED that the developer disproves with a grep costs a full wasted cycle.
 4. **Emit verdict** as the final line of output using the OUTPUT CONTRACT format above.

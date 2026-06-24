@@ -20,10 +20,10 @@ REPO="$(git rev-parse --show-toplevel)"
 cd "$REPO"
 
 # Record the branch + commit we start from so `make clean-harness` can land us
-# back here afterwards. The harness checks out main to promote merged work, which
-# would otherwise leave you stranded on main with your branch behind. Stored
-# under .git/ so it survives the /tmp session cleanup. Detached HEAD → empty
-# branch field (clean-harness then just resets in place).
+# back here afterwards. The harness checks out the base branch (the branch you
+# started on) to promote merged work, which would otherwise leave you stranded on
+# it with your branch behind. Stored under .git/ so it survives the /tmp session
+# cleanup. Detached HEAD → empty branch field (clean-harness then just resets in place).
 START_BRANCH="$(git symbolic-ref --short HEAD 2>/dev/null || true)"
 START_SHA="$(git rev-parse HEAD)"
 printf '%s\t%s\n' "$START_BRANCH" "$START_SHA" > "$REPO/.git/clean-harness-return"

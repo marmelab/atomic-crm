@@ -132,7 +132,7 @@ Normal feature tickets (type / component / config prop) → `parallel_safe: true
    by `SESSION_SHORT_ID`, so the TASK number only needs to be unique within this
    session, not across the repository.
 2. **`SETUP_MODE=true` only** — update `$CLAUDE_PROJECT_DIR/docs/project-context.json`
-   with the full ticket list and commit on main:
+   with the full ticket list and commit on the base branch:
    ```json
    { "tickets": [{ "ticket_id": "TASK-001", "title": "...", "status": "pending" }, ...] }
    ```
@@ -184,7 +184,7 @@ When `SETUP_MODE=true`:
 
   Title convention: `"Remove unused <element> from default CRM"`.
   Type: `"fix"`.
-- Commit project-context.json on main as described in Step 4.
+- Commit project-context.json on the base branch as described in Step 4.
 
 ## Step 5 — Order + summarize
 

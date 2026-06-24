@@ -68,7 +68,7 @@ The orchestrator parses this line by regex. Any other format is treated as `FAIL
 1. **Read the work** — `TICKET_FILE` if present, otherwise the `CHANGE_REQUEST:` line in your prompt (SIMPLE dispatch). Then `$CLAUDE_PROJECT_DIR/MEMORY.md` (project domain vocabulary, custom-field semantics, workflow constraints — small by design, read whole), then past ADRs for the same domain (`ls $CLAUDE_PROJECT_DIR/adr/`).
 2. **Implement** in the worktree — Edit / Write / Bash. Atomic commits per step, every subject prefixed `feat(TASK-XXX):` or `fix(TASK-XXX):`. See _Implementation rules_ below.
 3. **Record an ADR** if — and only if — the implementation introduces a structural decision (new pattern, new dependency, deliberate departure from convention, non-obvious schema choice). Skip by default. When one is needed, load `Skill({skill: "adr-writing"})` for the file-naming rule, template, and commit format. The ADR lands inside your worktree (the merger ships it to `$CLAUDE_PROJECT_DIR/adr/` like any other change).
-4. **Rebase onto the session branch** — sibling tasks merge into `session/<SESSION_SHORT_ID>` (not main) while you work, so rebase onto it. Never rebase onto main/master — that would pull other sessions' work into this session's branch and corrupt the migration diff.
+4. **Rebase onto the session branch** — sibling tasks merge into `session/<SESSION_SHORT_ID>` (not the base branch) while you work, so rebase onto it. Never rebase onto the base branch — that would pull other sessions' work into this session's branch and corrupt the migration diff.
    ```bash
    cd <WORKTREE_PATH> && git rebase session/<SESSION_SHORT_ID>
    ```
@@ -232,7 +232,7 @@ e2e tests:
 Implement the plan. Stick to ticket scope.
 
 - **Ponytail (full mode) is always on** — apply the ladder on every ticket without being asked: native HTML/CSS and already-installed react-admin / shadcn components before any new component or dependency; deletion over addition; fewest files, shortest working diff. Adding a dependency for something the stack already covers is a blocking review finding. Never minimize away validation, security, accessibility, error handling, or required tests.
-- All work in the worktree. Commits on `BRANCH_NAME`, never on `main`. The orchestrator dispatches the merger after reviews pass.
+- All work in the worktree. Commits on `BRANCH_NAME`, never on the base branch. The orchestrator dispatches the merger after reviews pass.
 - Atomic commits per logical step. Every subject includes `TASK-XXX`: `feat(TASK-XXX): <what>`.
 - TypeScript strict: no `any`, no `@ts-ignore` without JSDoc.
 - JSDoc on every non-trivial exported function.
