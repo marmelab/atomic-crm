@@ -30,6 +30,7 @@ import {
 } from "../_shared/monthlyReport/reportViewModel.ts";
 import { buildReportPdf } from "../_shared/monthlyReport/buildReportPdf.ts";
 import { previousCalendarMonth } from "../_shared/visibilityPeriods.ts";
+import { aggregateSearchConsole } from "../_shared/monthlyReport/aggregateSnapshots.ts";
 
 /**
  * Generate Monthly Reports — skapar en DRAFT-månadsrapport per kund (godkännande-
@@ -51,6 +52,90 @@ function monthLabelSv(periodISO: string): string {
     year: "numeric",
     timeZone: "UTC",
   });
+}
+
+const SNAPSHOT_COLUMNS =
+  "id, fetched_at, period_start, period_end, window_kind, data_coverage, source_status, performance_score, seo_score, pagespeed, field_data, seo_checks, business_profile, search_console, findings";
+
+const isoDate = (d: Date): string => d.toISOString().slice(0, 10);
+
+function monthFirst(periodISO: string): string {
+  const d = new Date(`${periodISO}T00:00:00Z`);
+  return isoDate(new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), 1)));
+}
+function monthLast(periodISO: string): string {
+  const d = new Date(`${periodISO}T00:00:00Z`);
+  return isoDate(
+    new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth() + 1, 0)),
+  );
+}
+function monthCount(startISO: string, endISO: string): number {
+  const s = new Date(`${startISO}T00:00:00Z`);
+  const e = new Date(`${endISO}T00:00:00Z`);
+  return (
+    (e.getUTCFullYear() - s.getUTCFullYear()) * 12 +
+    (e.getUTCMonth() - s.getUTCMonth()) +
+    1
+  );
+}
+/** Föregående lika långa månadsintervall (för trend-jämförelsen). */
+function precedingRange(
+  startISO: string,
+  months: number,
+): { startDate: string; endDate: string } {
+  const s = new Date(`${startISO}T00:00:00Z`);
+  const endPrev = new Date(Date.UTC(s.getUTCFullYear(), s.getUTCMonth(), 0));
+  const startPrev = new Date(
+    Date.UTC(endPrev.getUTCFullYear(), endPrev.getUTCMonth() - (months - 1), 1),
+  );
+  return { startDate: isoDate(startPrev), endDate: isoDate(endPrev) };
+}
+function periodLabelSv(startISO: string, endISO: string): string {
+  return monthFirst(startISO) === monthFirst(endISO)
+    ? monthLabelSv(startISO)
+    : `${monthLabelSv(startISO)} – ${monthLabelSv(endISO)}`;
+}
+
+async function loadMonthSnapshots(
+  companyId: number,
+  startDate: string,
+  endDate: string,
+): Promise<ReportSnapshot[]> {
+  const { data } = await supabaseAdmin
+    .from("website_snapshots")
+    .select(SNAPSHOT_COLUMNS)
+    .eq("company_id", companyId)
+    .eq("window_kind", "calendar_month")
+    .gte("period_start", startDate)
+    .lte("period_start", endDate)
+    .order("period_start", { ascending: true });
+  return (data ?? []) as ReportSnapshot[];
+}
+
+/**
+ * Slår ihop flera månads-snapshots till en syntetisk ReportSnapshot för
+ * perioden: GSC aggregeras (B1), medan prestanda/SEO/Business tas från den
+ * SENASTE månaden (ögonblicksdata som inte kan historiseras).
+ */
+function aggregateReportSnapshot(
+  snaps: ReportSnapshot[],
+  range: { startDate: string; endDate: string },
+): ReportSnapshot | null {
+  if (snaps.length === 0) return null;
+  const sorted = [...snaps].sort((a, b) =>
+    (a.period_start ?? "").localeCompare(b.period_start ?? ""),
+  );
+  const mostRecent = sorted[sorted.length - 1];
+  const agg = aggregateSearchConsole(
+    sorted.map((s) => s.search_console ?? null),
+  );
+  return {
+    ...mostRecent,
+    period_start: range.startDate,
+    period_end: range.endDate,
+    search_console: (agg ??
+      mostRecent.search_console) as ReportSnapshot["search_console"],
+  };
 }
 
 /** Kundvänd rad om GEO/AI-sök-beredskap ur crawl-data. llms.txt nämns ej. */
@@ -117,19 +202,33 @@ async function resolveRecipient(
 async function generateReportForCompany(
   companyId: number,
   source: "manual" | "cron",
+  requestedPeriod?: { startDate: string; endDate: string },
 ): Promise<{ report_id: number | null; status: string }> {
-  const reportPeriod = previousCalendarMonth();
-  const previousPeriod = previousCalendarMonth(
-    new Date(`${reportPeriod.startDate}T12:00:00Z`),
-  );
+  // Period: vald (normaliserad till hela månader) eller default = förra månaden.
+  const reportPeriod = requestedPeriod
+    ? {
+        startDate: monthFirst(requestedPeriod.startDate),
+        endDate: monthLast(requestedPeriod.endDate),
+      }
+    : (() => {
+        const m = previousCalendarMonth();
+        return { startDate: m.startDate, endDate: m.endDate };
+      })();
+  const months = monthCount(reportPeriod.startDate, reportPeriod.endDate);
+  const comparisonPeriod = precedingRange(reportPeriod.startDate, months);
   const period = reportPeriod.startDate;
+  const periodLabel = periodLabelSv(
+    reportPeriod.startDate,
+    reportPeriod.endDate,
+  );
 
-  // Idempotens: en redan färdig (skickad/godkänd) rapport rörs aldrig.
+  // Idempotens per distinkt period (start+slut). Färdig rapport rörs aldrig.
   const { data: existing } = await supabaseAdmin
     .from("monthly_reports")
     .select("id, status")
     .eq("company_id", companyId)
-    .eq("period", period)
+    .eq("data_period_start", reportPeriod.startDate)
+    .eq("data_period_end", reportPeriod.endDate)
     .maybeSingle();
   if (
     existing &&
@@ -145,28 +244,18 @@ async function generateReportForCompany(
     .single();
   if (!company) throw new Error(`Company ${companyId} not found`);
 
-  // Only official calendar snapshots are valid report inputs. Manual rolling
-  // analyses must never become month-over-month comparison data.
-  const snapshotColumns =
-    "id, fetched_at, period_start, period_end, window_kind, data_coverage, source_status, performance_score, seo_score, pagespeed, field_data, seo_checks, business_profile, search_console, findings";
-  const [{ data: latestData }, { data: previousData }] = await Promise.all([
-    supabaseAdmin
-      .from("website_snapshots")
-      .select(snapshotColumns)
-      .eq("company_id", companyId)
-      .eq("window_kind", "calendar_month")
-      .eq("period_start", reportPeriod.startDate)
-      .maybeSingle(),
-    supabaseAdmin
-      .from("website_snapshots")
-      .select(snapshotColumns)
-      .eq("company_id", companyId)
-      .eq("window_kind", "calendar_month")
-      .eq("period_start", previousPeriod.startDate)
-      .maybeSingle(),
+  // Endast officiella kalendermånad-snapshots är giltiga rapportunderlag.
+  // Flera månader aggregeras (B1); jämförelsen är föregående lika långa period.
+  const [rangeSnaps, comparisonSnaps] = await Promise.all([
+    loadMonthSnapshots(companyId, reportPeriod.startDate, reportPeriod.endDate),
+    loadMonthSnapshots(
+      companyId,
+      comparisonPeriod.startDate,
+      comparisonPeriod.endDate,
+    ),
   ]);
-  const latest = (latestData ?? null) as ReportSnapshot | null;
-  const previous = (previousData ?? null) as ReportSnapshot | null;
+  const latest = aggregateReportSnapshot(rangeSnaps, reportPeriod);
+  const previous = aggregateReportSnapshot(comparisonSnaps, comparisonPeriod);
 
   const writeRow = async (fields: Record<string, unknown>) => {
     if (existing) {
@@ -196,7 +285,7 @@ async function generateReportForCompany(
   const recipient = await resolveRecipient(companyId);
   const viewModel = buildReportViewModel({
     companyName: company.name,
-    periodLabel: monthLabelSv(period),
+    periodLabel,
     latest,
     previous,
   });
@@ -212,7 +301,7 @@ async function generateReportForCompany(
   const { prompt, systemPrompt } = buildMonthlyReportPrompts({
     companyName: company.name,
     contactName: recipient.name,
-    periodLabel: monthLabelSv(period),
+    periodLabel,
     metrics,
     upsell: upsells[0] ?? null,
     geoReadiness: geoReadiness(latest.seo_checks),
@@ -254,7 +343,7 @@ async function generateReportForCompany(
 
   const html = buildReportEmailHtml({
     companyName: company.name,
-    periodLabel: monthLabelSv(period),
+    periodLabel,
     aiContent: content,
     metrics,
     viewModel,
@@ -262,7 +351,7 @@ async function generateReportForCompany(
     replyToEmail: Deno.env.get("RESEND_FROM_EMAIL") || "hej@axonadigital.se",
   });
   const pdfBytes = await buildReportPdf({ viewModel, aiContent: content });
-  const pdfPath = `${companyId}/${period}/synlighetsrapport-v2.pdf`;
+  const pdfPath = `${companyId}/${reportPeriod.startDate}_${reportPeriod.endDate}/synlighetsrapport-v2.pdf`;
   const { error: pdfUploadError } = await supabaseAdmin.storage
     .from("monthly-reports")
     .upload(pdfPath, pdfBytes, {
@@ -309,7 +398,7 @@ async function generateReportForCompany(
     {
       title: `Månadsrapport redo: ${company.name}`,
       description:
-        `**Period:** ${monthLabelSv(period)}\n` +
+        `**Period:** ${periodLabel}\n` +
         `**Mottagare:** ${recipientLine}\n` +
         `**Föreslagen upsell:** ${upsells[0]?.label ?? "ingen"}\n` +
         (aiFallbackReason
@@ -403,9 +492,16 @@ Deno.serve(async (req: Request) =>
         const company_id = getPositiveIntegerField(body, "company_id", {
           required: true,
         });
+        const periodStart = (body as { period_start?: unknown }).period_start;
+        const periodEnd = (body as { period_end?: unknown }).period_end;
+        const requestedPeriod =
+          typeof periodStart === "string" && typeof periodEnd === "string"
+            ? { startDate: periodStart, endDate: periodEnd }
+            : undefined;
         const result = await generateReportForCompany(
           company_id as number,
           "manual",
+          requestedPeriod,
         );
         return createJsonResponse({ success: true, ...result });
       } catch (error) {

@@ -883,12 +883,13 @@ const dataProviderWithCustomMethods = {
   },
   async generateMonthlyReport(
     companyId: Identifier,
+    period?: { period_start: string; period_end: string },
   ): Promise<{ success: true; report_id: number | null; status: string }> {
     const { data, error } = await supabase.functions.invoke(
       "generate_monthly_reports",
       {
         method: "POST",
-        body: { company_id: companyId },
+        body: { company_id: companyId, ...period },
       },
     );
     if (error || !data) {

@@ -30,6 +30,64 @@ import type { VisibilityDataProvider } from "./visibility/types";
  * Speglar CallLogFollowupModal. Edge-funktionen bygger om mail-HTML från
  * redigerad AI-text vid utskick (single source of truth).
  */
+
+const PERIOD_PRESETS: Array<{ value: string; label: string }> = [
+  { value: "last_month", label: "Förra månaden" },
+  { value: "this_month", label: "Denna månad" },
+  { value: "last_2", label: "Senaste 2 månaderna" },
+  { value: "quarter", label: "Senaste kvartalet (3 mån)" },
+  { value: "half", label: "Senaste halvåret (6 mån)" },
+  { value: "year", label: "Senaste året (12 mån)" },
+  { value: "custom", label: "Eget månadsintervall" },
+];
+
+// Beräknar {period_start, period_end} (hela månader, UTC) för ett snabbval.
+function computeReportPeriod(
+  preset: string,
+  customFrom: string,
+  customTo: string,
+): { period_start: string; period_end: string } | null {
+  const now = new Date();
+  const y = now.getUTCFullYear();
+  const m = now.getUTCMonth();
+  const range = (backStart: number, backEnd: number) => ({
+    period_start: new Date(Date.UTC(y, m + backStart, 1))
+      .toISOString()
+      .slice(0, 10),
+    period_end: new Date(Date.UTC(y, m + backEnd + 1, 0))
+      .toISOString()
+      .slice(0, 10),
+  });
+  switch (preset) {
+    case "this_month":
+      return range(0, 0);
+    case "last_month":
+      return range(-1, -1);
+    case "last_2":
+      return range(-2, -1);
+    case "quarter":
+      return range(-3, -1);
+    case "half":
+      return range(-6, -1);
+    case "year":
+      return range(-12, -1);
+    case "custom": {
+      if (!customFrom || !customTo) return null;
+      const [fy, fm] = customFrom.split("-").map(Number);
+      const [ty, tm] = customTo.split("-").map(Number);
+      if (!fy || !fm || !ty || !tm) return null;
+      const start = new Date(Date.UTC(fy, fm - 1, 1));
+      const end = new Date(Date.UTC(ty, tm, 0));
+      if (start > end) return null;
+      return {
+        period_start: start.toISOString().slice(0, 10),
+        period_end: end.toISOString().slice(0, 10),
+      };
+    }
+    default:
+      return range(-1, -1);
+  }
+}
 export const MonthlyReportModal = ({
   company,
   reportId,
@@ -48,6 +106,9 @@ export const MonthlyReportModal = ({
 
   const [isGenerating, setIsGenerating] = useState(false);
   const [isSending, setIsSending] = useState(false);
+  const [periodPreset, setPeriodPreset] = useState("last_month");
+  const [customFrom, setCustomFrom] = useState("");
+  const [customTo, setCustomTo] = useState("");
   const [report, setReport] = useState<MonthlyReport | null>(null);
   const [recipientEmail, setRecipientEmail] = useState("");
   const [selectedUpsellService, setSelectedUpsellService] = useState("");
@@ -102,16 +163,31 @@ export const MonthlyReportModal = ({
   };
 
   const handleGenerate = async () => {
+    const period = computeReportPeriod(periodPreset, customFrom, customTo);
+    if (!period) {
+      notify("Välj giltigt från- och till-datum för intervallet.", {
+        type: "warning",
+      });
+      return;
+    }
     setIsGenerating(true);
     try {
-      await dataProvider.analyzeWebsite(company.id, {
-        window_kind: "calendar_month",
-      });
-      const result = await dataProvider.generateMonthlyReport(company.id);
+      // Färska bara den senaste månaden när rapporten gäller just den (default).
+      // Övriga perioder aggregerar befintlig månadshistorik (kör "Hämta
+      // historik" om månader saknas).
+      if (periodPreset === "last_month") {
+        await dataProvider.analyzeWebsite(company.id, {
+          window_kind: "calendar_month",
+        });
+      }
+      const result = await dataProvider.generateMonthlyReport(
+        company.id,
+        period,
+      );
       if (!result.report_id || result.status.startsWith("skipped")) {
         notify(
           result.status === "skipped_no_snapshot"
-            ? "Ingen hemsidestatistik ännu — kör 'Uppdatera statistik' först."
+            ? "Ingen månadsstatistik för perioden — kör 'Hämta historik' på Kund-fliken först."
             : `Rapporten kunde inte skapas (${result.status}).`,
           { type: "warning" },
         );
@@ -192,20 +268,64 @@ export const MonthlyReportModal = ({
 
         <div className="overflow-y-auto min-h-0 pr-1">
           {!report ? (
-            <div className="flex flex-col items-center gap-4 py-8">
-              <p className="text-sm text-muted-foreground text-center">
-                Hämtar föregående kompletta kalendermånad och skapar ett
-                verifierat HTML-mejl med samma data som den bifogade PDF:en.
-              </p>
-              <Button onClick={handleGenerate} disabled={isGenerating}>
+            <div className="flex flex-col gap-4 py-6">
+              <div className="grid gap-2">
+                <Label htmlFor="report-period">Rapportperiod</Label>
+                <Select value={periodPreset} onValueChange={setPeriodPreset}>
+                  <SelectTrigger id="report-period">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {PERIOD_PRESETS.map((preset) => (
+                      <SelectItem key={preset.value} value={preset.value}>
+                        {preset.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {periodPreset === "custom" ? (
+                  <div className="grid grid-cols-2 gap-2">
+                    <div className="grid gap-1">
+                      <Label htmlFor="period-from" className="text-xs">
+                        Från månad
+                      </Label>
+                      <Input
+                        id="period-from"
+                        type="month"
+                        value={customFrom}
+                        onChange={(e) => setCustomFrom(e.target.value)}
+                      />
+                    </div>
+                    <div className="grid gap-1">
+                      <Label htmlFor="period-to" className="text-xs">
+                        Till månad
+                      </Label>
+                      <Input
+                        id="period-to"
+                        type="month"
+                        value={customTo}
+                        onChange={(e) => setCustomTo(e.target.value)}
+                      />
+                    </div>
+                  </div>
+                ) : null}
+                <p className="text-xs text-muted-foreground">
+                  Flermånadersperioder summerar befintlig månadshistorik och
+                  jämförs med föregående lika långa period. Saknas månader, kör
+                  "Hämta historik" på Kund-fliken först.
+                </p>
+              </div>
+              <Button
+                className="self-start"
+                onClick={handleGenerate}
+                disabled={isGenerating}
+              >
                 {isGenerating ? (
                   <Loader2 className="h-4 w-4 animate-spin" />
                 ) : (
                   <Sparkles className="h-4 w-4" />
                 )}
-                {isGenerating
-                  ? "Analyserar och genererar (~1 min)…"
-                  : "Generera rapport"}
+                {isGenerating ? "Genererar (~1 min)…" : "Generera rapport"}
               </Button>
             </div>
           ) : (

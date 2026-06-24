@@ -22,6 +22,7 @@ export type VisibilityDataProvider = DataProvider & {
   ): Promise<{ accepted?: boolean; created?: number; skipped?: number }>;
   generateMonthlyReport(
     companyId: Identifier,
+    period?: { period_start: string; period_end: string },
   ): Promise<{ success: true; report_id: number | null; status: string }>;
   sendMonthlyReport(
     reportId: Identifier,
