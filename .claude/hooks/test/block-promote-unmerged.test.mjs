@@ -105,11 +105,11 @@ describe("block-promote-unmerged", () => {
   test("ignores the <short>/simple branch even when ahead of the session branch", () => {
     // <short>/simple promotes straight to main (never into the session branch),
     // so its commits are legitimately not on session/<short> and must NOT block a
-    // COMPLEX promotion.
+    // wave promotion.
     g("checkout", "-q", "-b", `${SS}/simple`, "main");
     writeFileSync(join(APP_DIR, "simple.txt"), "s\n");
     g("add", ".");
-    g("commit", "-qm", "feat: a simple change");
+    g("commit", "-qm", "feat: an simple change");
     g("checkout", "-q", "main");
     expect(run(PROMOTE)).toBe(0);
   });

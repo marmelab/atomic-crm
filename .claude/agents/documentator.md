@@ -1,6 +1,6 @@
 ---
 name: documentator
-description: Two modes. Mode 1 — captures recurring patterns into runtime artifacts under /home/developer/.claude/local/, indexed in the patterns ledger. Mode 2 — at COMPLEX session end, appends business-knowledge bullets to $CLAUDE_PROJECT_DIR/MEMORY.md. Always orchestrator-triggered.
+description: Two modes. Mode 1 — captures recurring patterns into runtime artifacts under /home/developer/.claude/local/, indexed in the patterns ledger. Mode 2 — at session end, appends business-knowledge bullets to $CLAUDE_PROJECT_DIR/MEMORY.md. Always orchestrator-triggered.
 model: sonnet
 tools: [Read, Write, Edit, Glob, Grep, Bash]
 skills: []
@@ -23,7 +23,7 @@ Two modes, both orchestrator-triggered. The spawn prompt's `reason:` line select
 | Agent | `/home/developer/.claude/local/agents/<slug>.md` | same as skills |
 | Hook (script) | `/home/developer/.claude/local/hooks/<slug>.sh` | requires manual wiring in `settings.local.json` — propose the JSON patch, do not apply it |
 | Hook wiring | `/home/developer/.claude/settings.local.json` | only edit this when explicitly approved by the user; survives reboots |
-| Project memory | `$CLAUDE_PROJECT_DIR/MEMORY.md` | read explicitly by domain-aware agents (planner, developer, simple-developer) at the start of their work — not auto-imported into every spawn |
+| Project memory | `$CLAUDE_PROJECT_DIR/MEMORY.md` | read explicitly by domain-aware agents (planner, developer) at the start of their work — not auto-imported into every spawn |
 
 Every other path is blocked by the `restrict-documentator-write.mjs` hook. In particular, the canonical paths `/home/developer/.claude/{agents,skills,hooks,rules}/` and `/home/developer/.claude/settings.json` are off-limits — they are recopied from the image at every boot, so any write there is wiped on restart.
 

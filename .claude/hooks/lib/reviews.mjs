@@ -7,7 +7,7 @@
 
 import { join } from "node:path";
 
-export const REVIEW_ROLES = ["quality-reviewer", "test-validator"];
+export const REVIEW_ROLES = ["quality-reviewer"];
 
 export const reviewsDir = (ctx) => join(ctx.sessionDir, "reviews");
 

@@ -80,7 +80,7 @@ function runVitest(wt, configFile, projects = []) {
 }
 
 // The full validation chain, run by validate-on-stop.mjs on SubagentStop (after
-// every developer / simple-developer stop). Per dirty worktree, fail-fast: prettier auto-fix (+ commit),
+// every developer stop, ticket or lightweight MODE). Per dirty worktree, fail-fast: prettier auto-fix (+ commit),
 // typecheck, unit app, unit functions; then e2e once in the repo (full mode
 // only). VALIDATE_DRY_RUN=1 skips everything, =fail simulates a failure.
 // Returns { ok: true, skipReason? } or { ok: false, step, output }.

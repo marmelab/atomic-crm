@@ -20,7 +20,7 @@ English when it doesn't change the semantics.
 ## Speaking another language at runtime
 
 Agents that converse with the user (chat-orchestrator, project-manager,
-simple-developer, etc.) MUST reply in the user's language at runtime.
+etc.) MUST reply in the user's language at runtime.
 Achieve this with English instructions plus a directive like *"reply in
 the user's language"* — never by hard-coding non-English templates inside
 the agent prompt.

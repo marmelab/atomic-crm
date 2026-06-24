@@ -32,11 +32,12 @@ describe("parseDispatch", () => {
     expect(d.taskId).toBe("");
   });
 
-  test("recognises SIMPLE / ROLLBACK skip keys", () => {
+  test("recognises MIGRATION / ROLLBACK skip keys", () => {
     expect(
-      parseDispatch({ tool_input: { prompt: "ROLE: merger\nTASK_ID: SIMPLE" } })
-        .taskId,
-    ).toBe("SIMPLE");
+      parseDispatch({
+        tool_input: { prompt: "ROLE: merger\nTASK_ID: MIGRATION" },
+      }).taskId,
+    ).toBe("MIGRATION");
     expect(
       parseDispatch({
         tool_input: { prompt: "ROLE: merger\nTASK_ID: ROLLBACK" },

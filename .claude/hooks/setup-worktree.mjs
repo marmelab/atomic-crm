@@ -1,14 +1,15 @@
 #!/usr/bin/env node
-// PreToolUse(Agent) — before a developer / simple-developer subagent starts,
-// create its git worktree (forked from the session integration branch) and
-// provision node_modules. Fires on the orchestrator's Agent dispatch, where the
-// dispatched identity (subagent_type, name, prompt) is available — unlike
-// SubagentStart, which in a parallel wave cannot tell which of N developers is
-// starting, so it cannot know the TASK_ID / worktree to create.
+// PreToolUse(Agent) — before a developer subagent starts, create its git
+// worktree (forked from the session integration branch) and provision
+// node_modules. Fires on the orchestrator's Agent dispatch, where the dispatched
+// identity (subagent_type, name, prompt) is available — unlike SubagentStart,
+// which in a parallel wave cannot tell which of N developers is starting, so it
+// cannot know the TASK_ID / worktree to create.
 //
 // Identity: a real TASK id (TASK-001) from the prompt's TASK_ID line or the
-// dispatch name (developer-TASK-001) → <base>/<TASK_ID>; a simple-developer with
-// no task → <base>/simple. Paths are derived from topology (authoritative),
+// dispatch name (developer-TASK-001) → <base>/<TASK_ID> (per-ticket wave); a
+// developer dispatch on the <short>/simple branch (rollback-conflict / migration,
+// no task) → <base>/simple. Paths are derived from topology (authoritative),
 // matching the value the orchestrator substitutes into WORKTREE_PATH.
 //
 // Also resets stale review verdicts for a (re)dispatched developer, so a changed
@@ -32,11 +33,11 @@ import { getBaseBranch, getWorktreePaths, git } from "./lib/git.mjs";
 import { REVIEW_ROLES, reviewFlag } from "./lib/reviews.mjs";
 import { getFirstTaskId } from "./lib/teams.mjs";
 import {
+  simpleBranch,
+  simpleWorktreePath,
   sessionBaseBranch,
   sessionBranch,
   sessionWorktreePath,
-  simpleBranch,
-  simpleWorktreePath,
   taskBranch,
   taskWorktreePath,
 } from "./lib/topology.mjs";
@@ -52,11 +53,18 @@ const input = JSON.parse(readFileSync(0, "utf8"));
 const ctx = createHookContext(input, "setup-worktree");
 const d = parseDispatch(input);
 
-// Only act on developer / simple-developer dispatches; reviewers, merger,
-// planner and documentator reuse (or never touch) a worktree.
-if (d.subagentType !== "developer" && d.subagentType !== "simple-developer") {
+// Only act on developer dispatches; reviewers, merger, planner and documentator
+// reuse (or never touch) a worktree.
+if (d.subagentType !== "developer") {
   process.exit(0);
 }
+
+// A developer dispatch whose branch/worktree is <short>/simple runs single-shot on
+// the shared <base>/simple worktree (rollback-conflict replay, deploy-time
+// migration) instead of a per-ticket one. The /simple branch is the discriminator;
+// every other developer dispatch is a per-ticket wave developer.
+const isSimple =
+  /\/simple$/.test(d.branchName) || /\/simple$/.test(d.worktreePath);
 
 const taskId =
   (/^TASK-\d+$/.test(d.taskId) && d.taskId) || getFirstTaskId(d.name);
@@ -66,7 +74,7 @@ let branchName;
 if (taskId) {
   worktreePath = taskWorktreePath(ctx, taskId);
   branchName = taskBranch(ctx, taskId);
-} else if (d.subagentType === "simple-developer") {
+} else if (isSimple) {
   worktreePath = simpleWorktreePath(ctx);
   branchName = simpleBranch(ctx);
 } else if (d.role === "promotion-conflict-resolver") {
@@ -78,18 +86,18 @@ if (taskId) {
   );
 } else {
   // A developer that passed enforce-dev-dispatch (so it carries WORKTREE_PATH)
-  // but whose TASK id can't be resolved from TASK_ID or the dispatch name. We
-  // can't derive the canonical worktree path; accepting would let the developer
-  // cd into a directory that was never created. Fail closed instead.
+  // but is neither a resolvable TASK-XXX nor an <short>/simple dispatch. We can't
+  // derive the canonical worktree path; accepting would let the developer cd into
+  // a directory that was never created. Fail closed instead.
   ctx.fail(
-    "developer dispatch carries WORKTREE_PATH but no resolvable TASK-XXX id (expected a 'TASK_ID: TASK-XXX' line or a 'developer-TASK-XXX' name). Use the STATE B dispatch template with a real ticket id.",
+    "developer dispatch carries WORKTREE_PATH but no resolvable TASK-XXX id and no <short>/simple branch (expected a 'TASK_ID: TASK-XXX' line, a 'developer-TASK-XXX' name, or 'BRANCH_NAME: <SESSION_SHORT_ID>/simple'). Use the STATE B dispatch template.",
     { log: "BLOCK unresolvable task id" },
   );
 }
 
 mkdirSync(ctx.sessionDir, { recursive: true });
 
-// Serialise the git-mutation region per session: a COMPLEX wave dispatches N
+// Serialise the git-mutation region per session: a wave dispatches N
 // developers in ONE orchestrator message, so N PreToolUse hooks can fire nearly
 // together and race on session-branch / _session creation and git's internal
 // worktree locks. A best-effort advisory lock (atomic mkdir + bounded spin,
@@ -194,7 +202,7 @@ if (taskId) {
 }
 
 ctx.log(
-  `START agent=${d.subagentType} path=${worktreePath} branch=${branchName}`,
+  `START agent=${d.subagentType}${d.mode ? ` mode=${d.mode}` : ""} path=${worktreePath} branch=${branchName}`,
 );
 
 if (getWorktreePaths().includes(worktreePath)) {

@@ -41,12 +41,7 @@ if (browserViolation) {
 
 // Validation rules — gated subagents only: the validation hooks already run
 // these; manual runs burn budget and can hang (vitest headed without CI=true).
-const GATED_AGENTS = [
-  "developer",
-  "quality-reviewer",
-  "test-validator",
-  "simple-developer",
-];
+const GATED_AGENTS = ["developer", "quality-reviewer"];
 if (!GATED_AGENTS.includes(agent)) process.exit(0);
 
 const runsTypecheck = (c) =>

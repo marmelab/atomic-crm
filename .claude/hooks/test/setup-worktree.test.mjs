@@ -153,14 +153,14 @@ describe("setup-worktree session-branch topology (PreToolUse/Agent)", () => {
     expect(existsSync(join(WB, "_session", ".git"))).toBe(true);
   });
 
-  test("simple-developer without WORKTREE_PATH derives the simple worktree", () => {
+  test("developer on the <short>/simple branch derives the simple worktree", () => {
     spawnSync("node", [HOOK], {
       input: JSON.stringify({
         session_id: SESSION_ID,
         tool_input: {
-          subagent_type: "simple-developer",
-          name: "simple-developer",
-          prompt: "ROLE: simple-developer\nCHANGE_REQUEST: rename a button",
+          subagent_type: "developer",
+          name: "developer",
+          prompt: `ROLE: developer\nWORKTREE_PATH: ${join(WB, "simple")}\nBRANCH_NAME: ${SS}/simple`,
         },
       }),
       env,
