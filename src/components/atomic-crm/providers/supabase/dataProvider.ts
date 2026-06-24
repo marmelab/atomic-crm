@@ -7,6 +7,7 @@ import {
   type ResourceCallbacks,
 } from "ra-core";
 import type {
+  CustomerVisibilityDashboardResponse,
   ContactNote,
   Deal,
   DealNote,
@@ -868,6 +869,18 @@ const dataProviderWithCustomMethods = {
     }
     return data;
   },
+  async backfillWebsiteHistory(
+    companyId: Identifier,
+  ): Promise<{ accepted?: boolean; created?: number; skipped?: number }> {
+    const { data, error } = await supabase.functions.invoke("analyze_website", {
+      method: "POST",
+      body: { company_id: companyId, backfill: true },
+    });
+    if (error || !data) {
+      throw new Error("Failed to backfill website history");
+    }
+    return data;
+  },
   async generateMonthlyReport(
     companyId: Identifier,
   ): Promise<{ success: true; report_id: number | null; status: string }> {
@@ -927,6 +940,20 @@ const dataProviderWithCustomMethods = {
       throw new Error("Failed to create report PDF download link");
     }
     return data;
+  },
+  async getCustomerVisibilityDashboard(
+    period: string,
+  ): Promise<CustomerVisibilityDashboardResponse> {
+    const { data, error } = await supabase.rpc(
+      "get_customer_visibility_dashboard",
+      { p_period: period },
+    );
+    if (error || !data) {
+      throw new Error(
+        error?.message ?? "Failed to load customer visibility dashboard",
+      );
+    }
+    return data as CustomerVisibilityDashboardResponse;
   },
   async expireOverdueQuotes(): Promise<{ affected: number }> {
     const { data, error } = await supabase.rpc("expire_overdue_quotes");

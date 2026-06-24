@@ -1297,6 +1297,147 @@ async function analyzeCompany(
   return { snapshot_id: snapshot.id, findings_count: findings.length };
 }
 
+// --- Backfill: historiska GSC-månader ---
+
+/**
+ * Skapar officiella kalendermånad-mätningar för de senaste `months` avslutade
+ * månaderna ur Google Search Console-historiken (GSC har ~16 mån). ENDAST
+ * GSC-data backfillas — PageSpeed/CWV/Business är ögonblicksmätningar och kan
+ * inte hämtas bakåt. Hoppar månader som redan har en mätning (klottrar aldrig
+ * över cron-data).
+ */
+async function backfillCompany(
+  companyId: number,
+  months: number,
+): Promise<{ created: number; skipped: number }> {
+  const { data: company, error: companyError } = await supabaseAdmin
+    .from("companies")
+    .select("id, name, website")
+    .eq("id", companyId)
+    .single();
+  if (companyError || !company) {
+    throw new Error(`Company ${companyId} not found`);
+  }
+  const { data: details } = await supabaseAdmin
+    .from("customer_details")
+    .select("delivered_website_url")
+    .eq("company_id", companyId)
+    .maybeSingle();
+  const rawUrl = details?.delivered_website_url || company.website;
+  if (!rawUrl) {
+    throw new Error(`Company ${companyId} has no website to analyze`);
+  }
+  const url = normalizeUrl(rawUrl);
+  const brand = brandTokens(company.name, company.website);
+
+  const now = new Date();
+  let created = 0;
+  let skipped = 0;
+
+  for (let i = 1; i <= months; i++) {
+    const start = new Date(
+      Date.UTC(now.getUTCFullYear(), now.getUTCMonth() - i, 1),
+    );
+    const end = new Date(
+      Date.UTC(start.getUTCFullYear(), start.getUTCMonth() + 1, 0),
+    );
+    const startDate = start.toISOString().slice(0, 10);
+    const endDate = end.toISOString().slice(0, 10);
+
+    const { data: existing } = await supabaseAdmin
+      .from("website_snapshots")
+      .select("id")
+      .eq("company_id", companyId)
+      .eq("window_kind", "calendar_month")
+      .eq("period_start", startDate)
+      .maybeSingle();
+    if (existing) {
+      skipped++;
+      continue;
+    }
+
+    let searchConsole: SearchConsoleSummary | null = null;
+    try {
+      searchConsole = await fetchSearchConsole(
+        url,
+        { kind: "calendar_month", startDate, endDate },
+        brand,
+      );
+    } catch (error) {
+      console.warn(
+        `analyze_website backfill: GSC failed for ${startDate}: ${
+          error instanceof Error ? error.message : error
+        }`,
+      );
+    }
+    if (!searchConsole) {
+      skipped++;
+      continue;
+    }
+
+    const findings = computeFindings({
+      pagespeed: null,
+      seoChecks: null,
+      businessProfile: null,
+      searchConsole,
+    });
+    const { error: insertError } = await supabaseAdmin
+      .from("website_snapshots")
+      .insert({
+        company_id: companyId,
+        source: "manual",
+        url,
+        period_start: startDate,
+        period_end: endDate,
+        window_kind: "calendar_month",
+        data_coverage: {
+          available_sources: 1,
+          total_sources: 4,
+          ratio: 0.25,
+          has_search_console: true,
+          has_field_data: false,
+          backfilled: true,
+        },
+        source_status: {
+          search_console: { status: "available" },
+          pagespeed: {
+            status: "unavailable",
+            message: "Historisk månad — endast söktrafik backfillad",
+          },
+          seo_crawl: { status: "unavailable", message: "Historisk månad" },
+          business_profile: {
+            status: "unavailable",
+            message: "Historisk månad",
+          },
+        },
+        performance_score: null,
+        seo_score: null,
+        pagespeed: null,
+        field_data: null,
+        seo_checks: null,
+        business_profile: null,
+        search_console: searchConsole,
+        competitors: null,
+        gbp_actions: null,
+        local_rank: null,
+        findings,
+      });
+    if (insertError) {
+      console.warn(
+        `analyze_website backfill: insert failed for ${startDate}: ${insertError.message}`,
+      );
+      skipped++;
+      continue;
+    }
+    created++;
+  }
+
+  console.warn(
+    `analyze_website backfill: company ${companyId} — ${created} skapade, ${skipped} hoppade`,
+  );
+  return { created, skipped };
+}
+
 // --- Cron-läge: alla kunder med levererad hemsida, i batchar ---
 
 async function runCronSweep(period: VisibilityPeriod): Promise<void> {
@@ -1362,6 +1503,28 @@ Deno.serve(async (req: Request) =>
             await sweep;
           }
           return createJsonResponse({ accepted: true }, { status: 202 });
+        }
+
+        const backfill = getOptionalBooleanField(body, "backfill");
+        if (backfill) {
+          const backfillCompanyId = getPositiveIntegerField(
+            body,
+            "company_id",
+            { required: true },
+          );
+          // 12 månader GSC-historik tar tid (sekventiella anrop) — kör i
+          // bakgrunden och svara direkt, frontend laddar om sedan.
+          const job = backfillCompany(backfillCompanyId as number, 12);
+          if (typeof EdgeRuntime !== "undefined" && EdgeRuntime.waitUntil) {
+            EdgeRuntime.waitUntil(
+              job.catch((err) =>
+                console.error("analyze_website backfill failed:", err),
+              ),
+            );
+            return createJsonResponse({ accepted: true }, { status: 202 });
+          }
+          const result = await job;
+          return createJsonResponse({ success: true, ...result });
         }
 
         const company_id = getPositiveIntegerField(body, "company_id", {

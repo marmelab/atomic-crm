@@ -264,6 +264,7 @@ export function WebsiteStatsSection({ company }: { company: Company }) {
   const dataProvider = useDataProvider<VisibilityDataProvider>();
   const notify = useNotify();
   const [analyzing, setAnalyzing] = useState(false);
+  const [backfilling, setBackfilling] = useState(false);
   const [reportOpen, setReportOpen] = useState(false);
   const [selectedSnapshotId, setSelectedSnapshotId] = useState<string>();
   const [selectedReportId, setSelectedReportId] = useState<number>();
@@ -344,6 +345,24 @@ export function WebsiteStatsSection({ company }: { company: Company }) {
       );
     } finally {
       setAnalyzing(false);
+    }
+  };
+
+  const handleBackfill = async () => {
+    setBackfilling(true);
+    try {
+      await dataProvider.backfillWebsiteHistory(company.id);
+      notify(
+        "Historik hämtas i bakgrunden (upp till 12 månader, ~1 min). Ladda om sidan strax för att se trend och sökordsrörelser.",
+        { type: "info" },
+      );
+    } catch (error) {
+      notify(
+        error instanceof Error ? error.message : "Kunde inte hämta historik",
+        { type: "warning" },
+      );
+    } finally {
+      setBackfilling(false);
     }
   };
 
@@ -503,6 +522,19 @@ export function WebsiteStatsSection({ company }: { company: Company }) {
             <Button variant="outline" onClick={openNewReport}>
               <FileText className="size-4" />
               Skapa kundrapport
+            </Button>
+            <Button
+              variant="outline"
+              onClick={handleBackfill}
+              disabled={backfilling}
+              title="Hämtar upp till 12 månaders söktrafik-historik från Google Search Console"
+            >
+              {backfilling ? (
+                <Loader2 className="size-4 animate-spin" />
+              ) : (
+                <TrendingUp className="size-4" />
+              )}
+              {backfilling ? "Hämtar historik…" : "Hämta historik (12 mån)"}
             </Button>
             <Button
               variant="outline"

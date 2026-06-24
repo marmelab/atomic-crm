@@ -1,5 +1,8 @@
 import type { DataProvider, Identifier } from "ra-core";
-import type { ReportAiContent } from "../../types";
+import type {
+  CustomerVisibilityDashboardResponse,
+  ReportAiContent,
+} from "../../types";
 
 export type VisibilityDataProvider = DataProvider & {
   analyzeWebsite(
@@ -14,6 +17,9 @@ export type VisibilityDataProvider = DataProvider & {
     snapshot_id: number;
     findings_count: number;
   }>;
+  backfillWebsiteHistory(
+    companyId: Identifier,
+  ): Promise<{ accepted?: boolean; created?: number; skipped?: number }>;
   generateMonthlyReport(
     companyId: Identifier,
   ): Promise<{ success: true; report_id: number | null; status: string }>;
@@ -33,4 +39,7 @@ export type VisibilityDataProvider = DataProvider & {
   getMonthlyReportPdf(
     reportId: Identifier,
   ): Promise<{ success: true; signed_url: string; expires_in: number }>;
+  getCustomerVisibilityDashboard(
+    period: string,
+  ): Promise<CustomerVisibilityDashboardResponse>;
 };
