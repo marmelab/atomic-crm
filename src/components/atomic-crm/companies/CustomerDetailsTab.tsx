@@ -210,6 +210,7 @@ type FormState = {
   credential_refs: CustomerCredentialRef[];
   competitor_urls: string[];
   gbp_location_id: string;
+  local_rank_keywords: string[];
   notes: string;
 };
 
@@ -234,6 +235,7 @@ const CustomerDetailsForm = ({
     credential_refs: details?.credential_refs ?? [],
     competitor_urls: details?.competitor_urls ?? [],
     gbp_location_id: details?.gbp_location_id ?? "",
+    local_rank_keywords: details?.local_rank_keywords ?? [],
     notes: details?.notes ?? "",
   });
 
@@ -275,6 +277,9 @@ const CustomerDetailsForm = ({
         .map((u) => u.trim())
         .filter(Boolean),
       gbp_location_id: form.gbp_location_id.trim() || null,
+      local_rank_keywords: form.local_rank_keywords
+        .map((k) => k.trim())
+        .filter(Boolean),
       notes: form.notes.trim() || null,
     };
     try {
@@ -489,6 +494,60 @@ const CustomerDetailsForm = ({
             >
               <Plus className="w-4 h-4 mr-1" />
               Lägg till konkurrent
+            </Button>
+          ) : null}
+        </div>
+
+        <div className="flex flex-col gap-2">
+          <Label>Lokala sökord (kartplacering)</Label>
+          <p className="text-xs text-muted-foreground">
+            Spårar er placering i Googles kartpaket, t.ex. &quot;takläggare
+            östersund&quot; (max 3, kräver DataForSEO-konfiguration).
+          </p>
+          {form.local_rank_keywords.map((keyword, index) => (
+            <div key={index} className="flex flex-wrap items-center gap-2">
+              <Input
+                className="flex-1 min-w-48"
+                placeholder="tjänst + ort"
+                value={keyword}
+                onChange={(e) =>
+                  setField(
+                    "local_rank_keywords",
+                    form.local_rank_keywords.map((k, i) =>
+                      i === index ? e.target.value : k,
+                    ),
+                  )
+                }
+              />
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() =>
+                  setField(
+                    "local_rank_keywords",
+                    form.local_rank_keywords.filter((_, i) => i !== index),
+                  )
+                }
+              >
+                <Trash2 className="w-4 h-4" />
+                <span className="sr-only">Ta bort sökord</span>
+              </Button>
+            </div>
+          ))}
+          {form.local_rank_keywords.length < 3 ? (
+            <Button
+              variant="outline"
+              size="sm"
+              className="self-start"
+              onClick={() =>
+                setField("local_rank_keywords", [
+                  ...form.local_rank_keywords,
+                  "",
+                ])
+              }
+            >
+              <Plus className="w-4 h-4 mr-1" />
+              Lägg till sökord
             </Button>
           ) : null}
         </div>

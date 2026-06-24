@@ -681,6 +681,7 @@ export type CustomerDetails = {
   credential_refs: CustomerCredentialRef[];
   competitor_urls?: string[];
   gbp_location_id?: string | null;
+  local_rank_keywords?: string[];
   notes?: string | null;
   created_at: string;
   updated_at: string;
@@ -828,6 +829,11 @@ export type WebsiteSnapshot = {
     period_start: string;
     period_end: string;
   } | null;
+  local_rank?: Array<{
+    keyword: string;
+    position: number | null;
+    found: boolean;
+  }> | null;
   findings: WebsiteFinding[];
   created_at: string;
 } & Pick<RaRecord, "id">;

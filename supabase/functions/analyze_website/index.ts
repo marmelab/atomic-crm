@@ -29,6 +29,7 @@ import {
 } from "../_shared/visibilityPeriods.ts";
 import { classifySearchOpportunities } from "./searchOpportunities.ts";
 import { brandTokens, classifyBrandedQueries } from "./brandedQueries.ts";
+import { findLocalPosition, type LocalRankResult } from "./localRank.ts";
 
 /**
  * Analyze Website — hemsidestatistik + brist-analys per företag (Fas 2 av
@@ -993,6 +994,71 @@ async function fetchGbpActions(
   };
 }
 
+// --- f) Lokal map-pack-rank (DataForSEO, gated) ---
+
+/**
+ * Hämtar kundens placering i Googles kartpaket per lokalt sökord via DataForSEO.
+ * Gated + icke-fatal: kräver DATAFORSEO_LOGIN/PASSWORD OCH ifyllda sökord.
+ * Max 3 sökord, parallellt, för att hålla kostnad och tidsbudget i schack.
+ */
+async function fetchLocalRank(
+  keywords: string[],
+  company: { name: string; website: string | null; city: string | null },
+): Promise<LocalRankResult[] | null> {
+  if (!keywords.length) return null;
+  const login = Deno.env.get("DATAFORSEO_LOGIN");
+  const password = Deno.env.get("DATAFORSEO_PASSWORD");
+  if (!login || !password) return null;
+  const auth = btoa(`${login}:${password}`);
+  const locationName = company.city ? `${company.city},Sweden` : "Sweden";
+
+  return await Promise.all(
+    keywords.slice(0, 3).map(async (keyword): Promise<LocalRankResult> => {
+      try {
+        const response = await fetchWithTimeout(
+          "https://api.dataforseo.com/v3/serp/google/local_finder/live/advanced",
+          PAGESPEED_TIMEOUT_MS,
+          {
+            method: "POST",
+            headers: {
+              Authorization: `Basic ${auth}`,
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify([
+              {
+                keyword,
+                location_name: locationName,
+                language_code: "sv",
+                device: "mobile",
+              },
+            ]),
+          },
+        );
+        if (!response.ok) {
+          console.warn(
+            `analyze_website: DataForSEO ${response.status} for "${keyword}": ${(await response.text()).slice(0, 200)}`,
+          );
+          return { keyword, position: null, found: false };
+        }
+        const data = await response.json();
+        const items = data?.tasks?.[0]?.result?.[0]?.items ?? [];
+        const { position, found } = findLocalPosition(items, {
+          website: company.website,
+          name: company.name,
+        });
+        return { keyword, position, found };
+      } catch (error) {
+        console.warn(
+          `analyze_website: DataForSEO failed for "${keyword}": ${
+            error instanceof Error ? error.message : error
+          }`,
+        );
+        return { keyword, position: null, found: false };
+      }
+    }),
+  );
+}
+
 // --- Analys av ett företag ---
 
 type SourceState = {
@@ -1039,7 +1105,9 @@ async function analyzeCompany(
 
   const { data: details } = await supabaseAdmin
     .from("customer_details")
-    .select("delivered_website_url, competitor_urls, gbp_location_id")
+    .select(
+      "delivered_website_url, competitor_urls, gbp_location_id, local_rank_keywords",
+    )
     .eq("company_id", companyId)
     .maybeSingle();
 
@@ -1066,6 +1134,15 @@ async function analyzeCompany(
     typeof details?.gbp_location_id === "string"
       ? details.gbp_location_id
       : null;
+  // Lokala sökord för map-pack-rank (max 3).
+  const localRankKeywords = Array.isArray(details?.local_rank_keywords)
+    ? (details.local_rank_keywords as unknown[])
+        .filter(
+          (entry): entry is string =>
+            typeof entry === "string" && entry.trim().length > 0,
+        )
+        .slice(0, 3)
+    : [];
 
   const [
     pageSpeedResult,
@@ -1074,6 +1151,7 @@ async function analyzeCompany(
     searchResult,
     competitors,
     gbpActions,
+    localRank,
   ] = await Promise.all([
     inspectSource("pagespeed", fetchPageSpeed(url)),
     inspectSource("seo_crawl", crawlSeoChecks(url)),
@@ -1085,6 +1163,18 @@ async function analyzeCompany(
     fetchGbpActions(gbpLocationId, period).catch((error) => {
       console.warn(
         `analyze_website: GBP actions failed: ${
+          error instanceof Error ? error.message : error
+        }`,
+      );
+      return null;
+    }),
+    fetchLocalRank(localRankKeywords, {
+      name: company.name,
+      website: company.website,
+      city: company.city,
+    }).catch((error) => {
+      console.warn(
+        `analyze_website: local rank failed: ${
           error instanceof Error ? error.message : error
         }`,
       );
@@ -1150,6 +1240,7 @@ async function analyzeCompany(
     search_console: searchConsole,
     competitors: competitors.length > 0 ? competitors : null,
     gbp_actions: gbpActions,
+    local_rank: localRank && localRank.length > 0 ? localRank : null,
     findings,
   };
 

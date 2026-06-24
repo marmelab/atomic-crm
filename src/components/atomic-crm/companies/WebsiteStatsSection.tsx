@@ -107,6 +107,13 @@ function seconds(ms: number | null): string {
   return ms == null ? "—" : `${(ms / 1000).toFixed(1)} s`;
 }
 
+function localRankColor(position: number | null, found: boolean): string {
+  if (!found || position == null) return "text-muted-foreground";
+  if (position <= 3) return "text-green-700";
+  if (position <= 10) return "text-amber-700";
+  return "text-red-700";
+}
+
 type QueryRow = NonNullable<
   NonNullable<WebsiteSnapshot["search_console"]>["top_queries"]
 >[number];
@@ -1344,6 +1351,47 @@ export function WebsiteStatsSection({ company }: { company: Company }) {
                 </CardContent>
               </Card>
             </div>
+
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-base">
+                  <MapPin className="size-4" />
+                  Lokal placering · kartpaket
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {selected.local_rank && selected.local_rank.length > 0 ? (
+                  <div className="space-y-2">
+                    {selected.local_rank.map((rank) => (
+                      <div
+                        key={rank.keyword}
+                        className="flex items-center justify-between gap-2 border-b py-2 text-sm last:border-0"
+                      >
+                        <span className="truncate" title={rank.keyword}>
+                          {rank.keyword}
+                        </span>
+                        <span
+                          className={`whitespace-nowrap font-medium ${localRankColor(rank.position, rank.found)}`}
+                        >
+                          {rank.found && rank.position != null
+                            ? `Plats ${rank.position}`
+                            : "Utanför kartpaketet"}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-sm text-muted-foreground">
+                    Inga lokala sökord spårade. Lägg till sökord på Kund-fliken
+                    (kräver DataForSEO-konfiguration).
+                  </p>
+                )}
+                <p className="mt-3 text-xs text-muted-foreground">
+                  Placering i Googles kartpaket för "tjänst nära mig"-sökningar
+                  — ofta högst ROI för lokala företag.
+                </p>
+              </CardContent>
+            </Card>
 
             <Card>
               <CardHeader>
