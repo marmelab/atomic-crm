@@ -296,9 +296,19 @@ export function WebsiteStatsSection({ company }: { company: Company }) {
     setReportOpen(true);
   }, [reportQuery]);
 
+  // Ordna på senaste PERIOD (inte fetched_at). Efter backfill delar alla
+  // mätningar fetched_at ≈ nu, så fetched_at-sortering landade godtyckligt på
+  // en gammal månad. period_end ger den mest aktuella mätningen först
+  // (rullande 28d med full data), och en kronologisk dropdown.
+  const orderedSnapshots = [...(snapshots ?? [])].sort((a, b) => {
+    const keyA = a.period_end ?? a.period_start ?? a.fetched_at;
+    const keyB = b.period_end ?? b.period_start ?? b.fetched_at;
+    return keyB.localeCompare(keyA);
+  });
   const selected =
-    snapshots?.find((snapshot) => String(snapshot.id) === selectedSnapshotId) ??
-    snapshots?.[0];
+    orderedSnapshots.find(
+      (snapshot) => String(snapshot.id) === selectedSnapshotId,
+    ) ?? orderedSnapshots[0];
   const comparison = selected
     ? snapshots?.find(
         (snapshot) =>
@@ -569,7 +579,7 @@ export function WebsiteStatsSection({ company }: { company: Company }) {
               <SelectValue aria-label={periodLabel(selected)} />
             </SelectTrigger>
             <SelectContent>
-              {(snapshots ?? []).map((snapshot) => (
+              {orderedSnapshots.map((snapshot) => (
                 <SelectItem key={snapshot.id} value={String(snapshot.id)}>
                   {periodLabel(snapshot)}
                 </SelectItem>
@@ -584,7 +594,16 @@ export function WebsiteStatsSection({ company }: { company: Company }) {
       </CardHeader>
 
       <CardContent>
-        {missingSources.length > 0 ? (
+        {selected.data_coverage?.backfilled ? (
+          <div className="mb-5 rounded-lg border border-sky-200 bg-sky-50 p-3 text-sm text-sky-900">
+            <p className="font-medium">Historisk månad</p>
+            <p className="mt-1 text-xs">
+              Endast söktrafik från Search Console — prestanda, teknisk SEO och
+              Google Business är ögonblicksmätningar och kan inte hämtas bakåt i
+              tiden.
+            </p>
+          </div>
+        ) : missingSources.length > 0 ? (
           <div className="mb-5 rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900">
             <p className="font-medium">Analysen är delvis komplett</p>
             <p className="mt-1 text-xs">

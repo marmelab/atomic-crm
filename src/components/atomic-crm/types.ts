@@ -726,6 +726,7 @@ export type WebsiteSnapshot = {
     ratio?: number;
     has_search_console?: boolean;
     has_field_data?: boolean;
+    backfilled?: boolean;
   };
   source_status?: Record<
     string,
