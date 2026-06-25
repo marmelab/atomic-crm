@@ -39,6 +39,30 @@ for (const n of ids) {
   }
 }
 
+// Most reliable source at SubagentStop: the sibling <agent>.meta.json. It is
+// written at spawn (so it exists even when the big transcript JSONL hasn't been
+// flushed yet — a real race here) and carries agentType + the dispatch
+// description. In this runtime the payload's `agent_type` is empty and
+// `transcript_path` can point at a not-yet-written file, so prefer the meta.
+if (!role || !task) {
+  const tp0 = input.agent_transcript_path || input.transcript_path || "";
+  const metaPath = tp0.replace(/\.jsonl$/, ".meta.json");
+  if (metaPath.endsWith(".meta.json") && existsSync(metaPath)) {
+    try {
+      const meta = JSON.parse(readFileSync(metaPath, "utf8"));
+      if (!role && isQualityReviewer(meta.agentType || "")) {
+        role = "quality-reviewer";
+      }
+      if (!task) {
+        const m = String(meta.description || "").match(/TASK-\d+/);
+        if (m) task = m[0];
+      }
+    } catch {
+      // best-effort — fall through to the transcript recovery below
+    }
+  }
+}
+
 // No suffixed agent name in this harness → recover task/role from the dispatch
 // prompt in the transcript. Done unconditionally: lastAssistantText() returns
 // early on last_assistant_message, bypassing its own recovery (→ task=UNKNOWN).
@@ -161,13 +185,19 @@ for (let i = verdictLines.length - 1; i >= 0; i--) {
   }
 }
 
-const _tp = input.agent_transcript_path || input.transcript_path || "";
-ctx.log(
-  `role=${role || "UNKNOWN"} task=${task || "UNKNOWN"} verdict=${verdict || "UNKNOWN"}` +
-    (role && task && verdict
-      ? ""
-      : ` | DIAG agent_type=${JSON.stringify(input.agent_type)} agent_name=${JSON.stringify(input.agent_name)} last_msg=${input.last_assistant_message ? "present" : "absent"} tp=${_tp || "none"} tp_exists=${Boolean(_tp && existsSync(_tp))} keys=[${Object.keys(input).join(",")}]`),
-);
+// Only log for reviewer stops. This hook fires on EVERY subagent stop (the
+// SubagentStop matcher doesn't filter and agent_type is empty in this runtime),
+// so logging non-reviewer stops (developer/merger/planner/…) is pure noise.
+// `role` found OR a verdict in the final message ⇒ this was a reviewer.
+if (role || verdict) {
+  const _tp = input.agent_transcript_path || input.transcript_path || "";
+  ctx.log(
+    `role=${role || "UNKNOWN"} task=${task || "UNKNOWN"} verdict=${verdict || "UNKNOWN"}` +
+      (role && task && verdict
+        ? ""
+        : ` | DIAG tp_exists=${Boolean(_tp && existsSync(_tp))} last_msg=${input.last_assistant_message ? "present" : "absent"}`),
+  );
+}
 
 if (!role || !task) process.exit(0); // can't key the flag — leave state untouched
 
