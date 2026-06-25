@@ -1,62 +1,66 @@
 import type { ConfigurationContextValue } from "./ConfigurationContext";
 
-export const defaultDarkModeLogo = "./logos/logo_atomic_crm_dark.svg";
-export const defaultLightModeLogo = "./logos/logo_atomic_crm_light.svg";
+// Hyer branding
+export const defaultDarkModeLogo = "./logos/logo_hyer_dark.svg";
+export const defaultLightModeLogo = "./logos/logo_hyer_light.svg";
 
 export const defaultCurrency = "USD";
 
-export const defaultTitle = "Atomic CRM";
+export const defaultTitle = "Hyer CRM";
 
 export const defaultCompanySectors = [
-  { value: "communication-services", label: "Communication Services" },
-  { value: "consumer-discretionary", label: "Consumer Discretionary" },
-  { value: "consumer-staples", label: "Consumer Staples" },
-  { value: "energy", label: "Energy" },
-  { value: "financials", label: "Financials" },
-  { value: "health-care", label: "Health Care" },
-  { value: "industrials", label: "Industrials" },
-  { value: "information-technology", label: "Information Technology" },
-  { value: "materials", label: "Materials" },
-  { value: "real-estate", label: "Real Estate" },
-  { value: "utilities", label: "Utilities" },
+  { value: "saas", label: "SaaS" },
+  { value: "ai-ml", label: "AI / ML" },
+  { value: "fintech", label: "FinTech" },
+  { value: "devtools", label: "Dev Tools / Infra" },
+  { value: "ecommerce", label: "E-commerce / DTC" },
+  { value: "healthtech", label: "HealthTech" },
+  { value: "marketing-agency", label: "Marketing Agency" },
+  { value: "energy", label: "Energy / Oil & Gas" },
+  { value: "other", label: "Other" },
 ];
 
 export const defaultDealStages = [
-  { value: "opportunity", label: "Opportunity" },
-  { value: "proposal-sent", label: "Proposal Sent" },
-  { value: "in-negociation", label: "In Negotiation" },
+  { value: "new", label: "New" },
+  { value: "contacted", label: "Contacted" },
+  { value: "connected", label: "Connected" },
+  { value: "replied", label: "Replied - Warm" },
+  { value: "call-booked", label: "Call Booked" },
+  { value: "proposal", label: "Proposal Sent" },
   { value: "won", label: "Won" },
-  { value: "lost", label: "Lost" },
-  { value: "delayed", label: "Delayed" },
+  { value: "nurture", label: "Nurture / Later" },
+  { value: "lost", label: "Not a Fit" },
 ];
 
 export const defaultDealPipelineStatuses = ["won"];
 
 export const defaultDealCategories = [
+  { value: "dev-pod", label: "Dev Pod" },
+  { value: "eor", label: "EOR Only" },
+  { value: "ea-ops", label: "EA / Ops" },
+  { value: "support", label: "Customer Support" },
+  { value: "marketing", label: "Marketing" },
+  { value: "design", label: "Design" },
+  { value: "energy", label: "Energy / O&G Search" },
   { value: "other", label: "Other" },
-  { value: "copywriting", label: "Copywriting" },
-  { value: "print-project", label: "Print project" },
-  { value: "ui-design", label: "UI Design" },
-  { value: "website-design", label: "Website design" },
 ];
 
 export const defaultNoteStatuses = [
   { value: "cold", label: "Cold", color: "#7dbde8" },
   { value: "warm", label: "Warm", color: "#e8cb7d" },
   { value: "hot", label: "Hot", color: "#e88b7d" },
-  { value: "in-contract", label: "In Contract", color: "#a4e87d" },
+  { value: "in-contract", label: "Client", color: "#a4e87d" },
 ];
 
 export const defaultTaskTypes = [
   { value: "none", label: "None" },
   { value: "email", label: "Email" },
-  { value: "demo", label: "Demo" },
-  { value: "lunch", label: "Lunch" },
-  { value: "meeting", label: "Meeting" },
-  { value: "follow-up", label: "Follow-up" },
-  { value: "thank-you", label: "Thank you" },
-  { value: "ship", label: "Ship" },
+  { value: "linkedin", label: "LinkedIn" },
   { value: "call", label: "Call" },
+  { value: "follow-up", label: "Follow-up" },
+  { value: "demo", label: "Demo / Discovery" },
+  { value: "proposal", label: "Proposal" },
+  { value: "thank-you", label: "Thank you" },
 ];
 
 export const defaultConfiguration: ConfigurationContextValue = {
