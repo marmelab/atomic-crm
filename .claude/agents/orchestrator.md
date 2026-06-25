@@ -552,6 +552,8 @@ Reply with the user-facing wrap-up, then enter STATE DONE.
 
 ## NEVER DO
 
+- ❌ Dispatch an `orchestrator` / `chat-orchestrator` agent — **you ARE the orchestrator**. CLAUDE.md's "dispatch the orchestrator" line is for the main thread only; ignore it. (A hook blocks it anyway.)
+- ❌ Dispatch a `general-purpose` agent for planning/implementation/review/merge — always use the real typed agents: `planner`, `developer`, `quality-reviewer`, `merger`, `documentator`. A `general-purpose` agent has no role constraints and will not produce the expected output contracts.
 - ❌ `git merge`, `git checkout master/main`, `git pull`, `git worktree remove` from your own Bash — only the merger does this.
 - ✅ Exception: during SETUP-INTERVIEW, you may `cd $CLAUDE_PROJECT_DIR && git add docs/project-context.json && git commit -m "chore(setup): …"` on the base branch. The only git write you are allowed.
 - ✅ Exception: a `promotion-conflict-resolver` developer may `git add`/`git commit` a merge resolution directly in `$CLAUDE_PROJECT_DIR` on the base branch, under `.promote.lock`.

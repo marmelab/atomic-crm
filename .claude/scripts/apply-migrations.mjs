@@ -34,7 +34,19 @@ import { spawnSync } from "node:child_process";
 import { mkdirSync } from "node:fs";
 import { setTimeout as sleep } from "node:timers/promises";
 
-const APP_DIR = process.env.APP_DIR || process.env.CLAUDE_PROJECT_DIR || "/app";
+// Resolve the repo root robustly. Prefer an explicit override / the env var, then
+// the git toplevel — works on any surface (local, devcontainer, CRM Builder)
+// without relying on CLAUDE_PROJECT_DIR being EXPORTED to this node process. The
+// old "/app" hardcoded fallback was a CRM-Builder-ism: on a bare checkout where the
+// env var wasn't exported, it chdir'd into a non-writable /app → EACCES on mkdir.
+const gitTop = spawnSync("git", ["rev-parse", "--show-toplevel"], {
+  encoding: "utf8",
+});
+const APP_DIR =
+  process.env.APP_DIR ||
+  process.env.CLAUDE_PROJECT_DIR ||
+  (gitTop.status === 0 && gitTop.stdout.trim()) ||
+  process.cwd();
 
 const GREEN = "\x1b[0;32m";
 const YELLOW = "\x1b[1;33m";
