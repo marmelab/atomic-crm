@@ -73,15 +73,6 @@
         ]
       },
       {
-        "matcher": "Skill",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/block-routing-skill.mjs"
-          }
-        ]
-      },
-      {
         "matcher": "Agent",
         "hooks": [
           {
