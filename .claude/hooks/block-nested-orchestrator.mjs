@@ -1,17 +1,21 @@
 #!/usr/bin/env node
-// PreToolUse(Agent) — only the main thread may dispatch the orchestrator.
+// PreToolUse(Agent) — enforce the harness dispatch topology. Two rules:
 //
-// CLAUDE.md tells whoever receives a code-change request to dispatch the
-// `orchestrator` agent. But CLAUDE.md (and its memory hierarchy) loads into EVERY
-// custom subagent too — so a worker, or a `general-purpose` helper the orchestrator
-// spawned, can read that directive, treat its task as a "code change", and
-// re-dispatch an orchestrator → runaway nesting (orchestrator → general-purpose →
-// orchestrator → …), which is exactly the broken tree this guards against.
+// Rule 1 — the ORCHESTRATOR may dispatch ONLY the typed harness agents
+//   (planner, developer, quality-reviewer, merger, documentator). It keeps
+//   drifting to `general-purpose` for planning/review despite its instructions;
+//   a general-purpose agent has no role constraints, won't honour the output
+//   contracts, and tends to re-dispatch an orchestrator (→ recursion). Anything
+//   off the allowlist (general-purpose, orchestrator, Explore, …) is blocked.
 //
-// The orchestrator is the SINGLE harness entry the main thread spawns. Inside the
-// harness every agent does its own job and never re-enters it. This gate enforces
-// that: a subagent (agent_id present) dispatching `orchestrator` / `chat-orchestrator`
-// is blocked. The main thread (no agent_id) is allowed through.
+// Rule 2 — any OTHER subagent (a stray general-purpose, a worker, …) must NOT
+//   dispatch an `orchestrator` / `chat-orchestrator`: that re-enters the harness
+//   and causes runaway nesting. Only the main/top-level session (no agent_id)
+//   may dispatch the orchestrator.
+//
+// CLAUDE.md tells the top-level session to "dispatch the orchestrator", but
+// CLAUDE.md loads into every subagent too — so without this gate a subagent that
+// reads it would re-dispatch an orchestrator.
 
 import { readFileSync } from "node:fs";
 import { createHookContext } from "./lib/context.mjs";
@@ -20,17 +24,41 @@ const input = JSON.parse(readFileSync(0, "utf8"));
 const ctx = createHookContext(input, "block-nested-orchestrator");
 
 const target = input.tool_input?.subagent_type || "";
-if (target !== "orchestrator" && target !== "chat-orchestrator")
-  process.exit(0);
+const caller = input.agent_type || ctx.agentType || "";
+const isOrchestrator = /^(chat-)?orchestrator(-|$)/.test(caller);
 
-// agentId is set only for subagents; the main/top-level session has none.
-if (ctx.agentId) {
+// Rule 1 — orchestrator allowlist.
+const ALLOWED = [
+  "planner",
+  "developer",
+  "quality-reviewer",
+  "merger",
+  "documentator",
+];
+if (isOrchestrator) {
+  if (!ALLOWED.includes(target)) {
+    ctx.block({
+      reason:
+        `As the orchestrator you may ONLY dispatch the typed harness agents: ${ALLOWED.join(", ")}. ` +
+        `You tried to dispatch \`${target || "(none)"}\` — not allowed. ` +
+        `For planning use the \`planner\` agent (subagent_type: "planner"), NEVER \`general-purpose\`. ` +
+        `Re-dispatch with subagent_type set to the correct typed agent.`,
+      log: `BLOCK orchestrator dispatch of ${target || "(none)"}`,
+    });
+  }
+  process.exit(0); // allowed typed agent — fine
+}
+
+// Rule 2 — non-main subagent must not dispatch an orchestrator.
+if (
+  ctx.agentId &&
+  (target === "orchestrator" || target === "chat-orchestrator")
+) {
   ctx.block({
     reason:
       `Only the main thread may dispatch the \`${target}\` agent. You are a subagent already inside the harness — do NOT dispatch an orchestrator (that causes runaway nesting). ` +
-      `If you are the orchestrator, dispatch planner / developer / quality-reviewer / merger per your states — never another orchestrator. ` +
-      `If you are a worker or a general-purpose helper, just do the task you were given; ignore CLAUDE.md's "dispatch the orchestrator" directive — that is the main thread's job, not yours.`,
-    log: `BLOCK nested ${target} by ${ctx.agentType || "subagent"}`,
+      `Do the task you were given; ignore CLAUDE.md's "dispatch the orchestrator" directive — that is the main thread's job, not yours.`,
+    log: `BLOCK nested ${target} by ${caller || "subagent"}`,
   });
 }
 
