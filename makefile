@@ -16,8 +16,8 @@ help:
 install: package.json ## install dependencies
 	npm install
 
-install-playwright-browsers: install ## install the playwright browsers (chromium, firefox, webkit)
-	npx playwright install chromium
+install-playwright-browsers: install ## install the playwright browsers matching the repo's pinned version
+	npx playwright install chromium chromium-headless-shell
 
 start-supabase: ## start supabase locally
 	npx supabase start
