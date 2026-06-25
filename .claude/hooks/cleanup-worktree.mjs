@@ -28,7 +28,37 @@ import {
   sessionBranch,
 } from "./lib/topology.mjs";
 
-const ctx = createHookContext(readFileSync(0, "utf8"), "cleanup-worktree");
+const raw = readFileSync(0, "utf8");
+const ctx = createHookContext(raw, "cleanup-worktree");
+
+// SubagentStop fires this on EVERY subagent stop here (the matcher doesn't filter
+// and agent_type is empty in the payload). cleanup is the MERGER's post-merge step
+// — skip the worktree sweep when the sibling <agent>.meta.json shows the stopping
+// agent is clearly NOT a merger (developer / reviewer / planner / …). The sweep is
+// idempotent either way; this just avoids running it on every stop. Meta
+// missing/ambiguous → proceed with the normal cleanup.
+{
+  let payload = {};
+  try {
+    payload = JSON.parse(raw);
+  } catch {
+    /* proceed */
+  }
+  const tp = payload.agent_transcript_path || payload.transcript_path || "";
+  const metaPath = tp.replace(/\.jsonl$/, ".meta.json");
+  if (metaPath.endsWith(".meta.json") && existsSync(metaPath)) {
+    try {
+      const at = String(
+        JSON.parse(readFileSync(metaPath, "utf8")).agentType || "",
+      );
+      if (at && at !== "merger") {
+        ctx.accept(`skip — ${at} stop (cleanup runs on merger stops)`);
+      }
+    } catch {
+      // proceed with the normal cleanup
+    }
+  }
+}
 
 if (!existsSync(ctx.worktreeBase)) {
   ctx.accept(`${ctx.worktreeBase} not found`);
