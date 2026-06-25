@@ -2,24 +2,13 @@
 
 # Agent Workflow
 
-Once a plan is approved (`ExitPlanMode`), the main thread does not implement directly — it routes to the agents in `.claude/agents/` (each carries its own full contract). Trigger is *plan approved*, not task size.
+Code-change requests are handled by the **agent harness** by default: a team of subagents (planner, developer, quality-reviewer, merger, documentator) that implements the change through a deterministic, foreground pipeline in git worktrees.
+
+**To route a code-change request, load the `harness-routing` skill and follow it.** It is the single source of truth for classification (SIMPLE vs COMPLEX, plus the SETUP / MEMORY / ROLLBACK-CONFLICT / RECOVERY operational intents), the dispatch templates, the wave + promotion mechanics, and the deploy-time migration round. Each agent's last line is an output contract the others parse (`.claude/rules/agent-output-format.md`).
 
 ## Opting out
 
-Harness routing is the **default**. `#no-harness` (or "implement directly" / "without the agent team" / "skip harness") makes the main thread implement itself, no agents, even after plan approval. "no-harness for this session" keeps it off all session. Irrelevant under `make harness` (orchestrator always routes).
-
-## Routing: SIMPLE vs COMPLEX
-
-The **chat-orchestrator** is the user-facing entry point. It routes, narrates progress, and never implements. It classifies each code change:
-
-- **SIMPLE** — one cosmetic edit, OR one single-field change on an existing entity (schema + view + type + form + show), OR one list filter reusing existing components (no import, no relations, no new custom component). The orchestrator skips the planner and the wave: it dispatches ONE `developer` directly with the change request on the shared `<base>/simple` worktree, reviews only if the diff touched `supabase/`, then merges. No planner, no peer review otherwise.
-- **COMPLEX** — everything else (default). Runs the full pipeline below.
-
-SIMPLE vs COMPLEX is purely a routing decision the orchestrator owns — the `developer` itself has no modes. The orchestrator also branches away for non-code operational intents: SETUP, MODE-SWITCH, MEMORY, ROLLBACK-CONFLICT, RECOVERY.
-
-## The COMPLEX pipeline
-
-planner (tickets JSON + waves) → developer per ticket (implements + commits in a worktree; no SQL migrations, deploy-time only) → quality-reviewer (code + security + QA) → merger (`git merge --no-ff` only; Stage A per ticket, then one `MODE: promote` to the base branch under `flock`) → documentator (appends to `MEMORY.md`). Agents run as **foreground** subagents in one synchronous turn; each agent's last line is an output contract the orchestrator parses (`.claude/rules/agent-output-format.md`).
+`#no-harness` (or "implement directly" / "without the agent team" / "skip harness") makes the main thread implement the change itself, no agents. "no-harness for this session" keeps it off for the whole session.
 
 ## Agents
 

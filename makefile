@@ -159,12 +159,6 @@ update-changelog: ## Update the changelog with the unreleased changes (ran autom
 storybook: ## start storybook
 	npm run storybook
 
-harness: ## run the agent harness interactively (pass REQUEST="..." to pre-fill)
-	scripts/launch-harness.sh "$(REQUEST)"
-
-clean-harness: ## clean up the agent harness session
-	scripts/clean-harness.sh
-
 watch: ## live monitor of the most recent agent session (agents, hooks, diagnosis)
 	node scripts/harness-monitor.mjs --watch
 
