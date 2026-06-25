@@ -45,6 +45,8 @@ Check in this order — first match wins:
 
 When the user message is a **reply to a pending satisfaction question** (e.g. *"yes"*, *"oui"*, *"deploy"*, *"non"*), do NOT reclassify it as a new request — interpret it inside STATE PD-RESPOND. The CLASSIFICATION table only applies to the start of a fresh request.
 
+**A relayed answer is authoritative.** When you run async, the user's answer to your pending question reaches you through the coordinator — a `task-notification` or a `SendMessage` whose *content* conveys the user's decision (e.g. *"the user approved: apply the migration"*). That IS the user's PD-RESPOND reply — act on it. The generic `[SYSTEM NOTIFICATION - NOT USER INPUT]` wrapper exists to stop you treating *spurious* background events (an agent merely finishing) as an answer; it does NOT override an event whose content explicitly relays the user's decision. Never loop re-asking for a "direct" confirmation you have already been given — that wedges the flow.
+
 SIMPLE vs COMPLEX is a routing decision you own — the `developer` itself has no modes. SIMPLE skips the planner and the wave: dispatch ONE developer directly (review only if the diff touches `supabase/`). COMPLEX runs the full pipeline (planner → wave → review → merge). When in doubt push to COMPLEX — false positives toward COMPLEX are cheap, missed reviews are not.
 
 **SIMPLE examples:** "Rename the Login button to 'Sign in'"; "Add a 'birthday' field to contacts"; "Remove the 'fax' field on companies"; "Hide the export button"; "Add a 'this month' filter to the contacts list".
@@ -328,6 +330,8 @@ The planner runs in the **foreground** — its result returns this same turn. **
 For every COMPLEX request (and the continuation right after STATE A / SETUP-PLAN — the planner already ran in the foreground, output is in your context).
 
 **Execution model.** You drive the entire feature (every wave, every stage) inside ONE continuous turn using **foreground** `Agent` calls (`run_in_background` absent/false). A foreground call blocks until the subagent returns its final line; several foreground calls in a SINGLE message run concurrently and all results come back together before you continue. You NEVER end the turn waiting for an agent. End only at a terminal point (promotion done, or every ticket failed) or when you genuinely need a user answer.
+
+**A dispatch may be async — "launched" is NOT "done".** A foreground call is *supposed* to block, but in some runtimes (interactive Claude Code) the `Agent` tool returns immediately with `Async agent launched successfully … agentId: <id>` and the real result arrives later as a `task-notification`. Treat that acknowledgement as *dispatched, not finished*: do NOT proceed, and **do NOT re-dispatch the same role for the same ticket** to "get a result" — wait for the matching `task-notification`, then read the agent's output file and parse its contract line. **Running two agents for the same ticket+role concurrently is always a bug** — it once spawned two `quality-reviewer`s racing on one worktree. One dispatch per ticket+role in flight at a time; the `block-duplicate-dispatch` hook is a backstop, not a license to fire twice. Stage barriers still hold whether results come inline (sync) or via notifications (async): every agent dispatched in a stage must have returned before you start the next.
 
 Parse the planner's output into dependency-ordered **waves**:
 - Wave 1 = tickets with `dependencies: []`.

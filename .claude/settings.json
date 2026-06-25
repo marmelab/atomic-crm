@@ -81,7 +81,7 @@
           },
           {
             "type": "command",
-            "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/block-duplicate-planner.mjs"
+            "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/block-duplicate-dispatch.mjs"
           },
           {
             "type": "command",
