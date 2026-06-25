@@ -401,7 +401,7 @@ async function fetchBusinessProfile(company: {
     return null;
   }
 
-  // Sparat place_id är redan verifierat — hämta direkt via stabilt id.
+  // Manuellt satt place_id (override) — litas på, hämta direkt via stabilt id.
   if (company.google_place_id) {
     const place = await fetchPlaceV1(company.google_place_id, apiKey);
     if (place) {
@@ -426,22 +426,9 @@ async function fetchBusinessProfile(company: {
     return { found: false };
   }
 
-  // Verifierad match — pinna place_id (när det saknas) så framtida körningar går
-  // via stabilt id och slipper sökningen som annars kan driva till fel
-  // namnkollision.
-  if (company.id != null && match.id) {
-    const { error } = await supabaseAdmin
-      .from("companies")
-      .update({ google_place_id: match.id })
-      .eq("id", company.id)
-      .is("google_place_id", null);
-    if (error) {
-      console.warn(
-        `analyze_website: kunde inte spara place_id för company ${company.id}: ${error.message}`,
-      );
-    }
-  }
-
+  // Ingen auto-låsning: vi söker varje körning så att en NY Google-profil fångas
+  // automatiskt nästa gång. (Manuellt satt google_place_id respekteras som
+  // override ovan.)
   return {
     found: true,
     rating: match.rating,

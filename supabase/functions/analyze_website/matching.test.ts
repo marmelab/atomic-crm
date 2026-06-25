@@ -80,6 +80,108 @@ describe("isPlaceMatch", () => {
   });
 });
 
+describe("isPlaceMatch — särskiljande del (facit från manuell verifiering)", () => {
+  it("tillåter namnvariation via särskiljande ord (Sandgren)", () => {
+    // CRM har legalt namn, Google handelsnamn — "sandgren" är gemensamt.
+    expect(
+      isPlaceMatch({
+        companyName: "Christoffer Sandgren Bygg & Snickeri AB",
+        placeName: "Sandgren Bygg & Snickeri",
+      }),
+    ).toBe(true);
+  });
+
+  it("avvisar annat företag som bara delar ett generiskt branschord (Furuhov)", () => {
+    expect(
+      isPlaceMatch({
+        companyName: "Furuhov Hundpark",
+        placeName: "Brunflo Hundpark",
+      }),
+    ).toBe(false);
+    expect(
+      isPlaceMatch({
+        companyName: "Furuhov Hundpark",
+        placeName: "Furuhov Hundpark",
+      }),
+    ).toBe(true);
+  });
+
+  it("kräver den särskiljande delen, inte bara bransch + ort (Isakssons)", () => {
+    expect(
+      isPlaceMatch({
+        companyName: "Isakssons Måleri i Östersund AB",
+        placeName: "Måleri i Östersund",
+      }),
+    ).toBe(false);
+    expect(
+      isPlaceMatch({
+        companyName: "Isakssons Måleri i Östersund AB",
+        placeName: "Isakssons Måleri",
+      }),
+    ).toBe(true);
+  });
+
+  it("kräver hela namnet vid kort akronym + branschord (JVS/MB/VPM)", () => {
+    expect(
+      isPlaceMatch({
+        companyName: "JVS Maskiner AB",
+        placeName: "Östersunds Maskiner AB",
+      }),
+    ).toBe(false);
+    expect(
+      isPlaceMatch({
+        companyName: "JVS Maskiner AB",
+        placeName: "JVS Maskiner",
+      }),
+    ).toBe(true);
+    expect(
+      isPlaceMatch({
+        companyName: "MB Färg & Kakel AB",
+        placeName: "Färg & Kakel i Östersund",
+      }),
+    ).toBe(false);
+    expect(
+      isPlaceMatch({
+        companyName: "MB Färg & Kakel AB",
+        placeName: "MB Färg & Kakel",
+      }),
+    ).toBe(true);
+    expect(
+      isPlaceMatch({
+        companyName: "VPM Energi AB",
+        placeName: "Jämtlands Energi AB",
+      }),
+    ).toBe(false);
+  });
+
+  it("avvisar annat företag som bara delar ortnamn (Rödöns)", () => {
+    expect(
+      isPlaceMatch({
+        companyName: "Rödöns Bygg AB",
+        placeName: "Rödöns Trä & Montage",
+      }),
+    ).toBe(false);
+    expect(
+      isPlaceMatch({ companyName: "Rödöns Bygg AB", placeName: "Rödöns Bygg" }),
+    ).toBe(true);
+  });
+
+  it("matchar äkta helnamnsföretag men ej generisk ort-variant (Östersunds Elservice)", () => {
+    expect(
+      isPlaceMatch({
+        companyName: "Östersunds Elservice AB",
+        placeName: "Östersunds Elservice AB",
+      }),
+    ).toBe(true);
+    expect(
+      isPlaceMatch({
+        companyName: "Östersunds Elservice AB",
+        placeName: "Östersund El & Montage",
+      }),
+    ).toBe(false);
+  });
+});
+
 describe("selectVerifiedPlace", () => {
   const swede = {
     id: "ChIJzdTArBOa14MRlgHJvPWn9o8",

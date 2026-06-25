@@ -9,17 +9,6 @@
  * Ren modul utan Deno-beroenden — unit-testas med vitest.
  */
 
-const GENERIC_TOKENS = new Set([
-  "ab",
-  "hb",
-  "kb",
-  "aktiebolag",
-  "handelsbolag",
-  "firma",
-  "och",
-  "the",
-]);
-
 function compact(value: string): string {
   return value
     .toLowerCase()
@@ -28,12 +17,83 @@ function compact(value: string): string {
     .replace(/[^a-z0-9]/g, "");
 }
 
+// Generiska ord som INTE särskiljer ett företag — juridiska suffix, branschord
+// och ortnamn. Lagras i kompakt form (å/ä→a, ö→o). Matchning får ALDRIG ske
+// enbart på dessa, annars fastnar t.ex. "Furuhov Hundpark" på ett annat
+// "hundpark", eller "JVS Maskiner" på vilken maskinfirma som helst.
+const GENERIC_COMPACT = new Set<string>([
+  // juridiskt / bindeord
+  "ab",
+  "hb",
+  "kb",
+  "aktiebolag",
+  "handelsbolag",
+  "firma",
+  "och",
+  "the",
+  // bransch
+  "bygg",
+  "maleri",
+  "snickeri",
+  "elservice",
+  "vvs",
+  "ror",
+  "maskiner",
+  "maskin",
+  "energi",
+  "kakel",
+  "farg",
+  "akeri",
+  "entreprenad",
+  "service",
+  "stadservice",
+  "stad",
+  "transport",
+  "platservice",
+  "plat",
+  "tak",
+  "hundpark",
+  "taxi",
+  "bil",
+  "ventilation",
+  "golv",
+  "mark",
+  "schakt",
+  "grav",
+  "anlaggning",
+  "fastighet",
+  "fastigheter",
+  "design",
+  "montage",
+  // ort / region (Jämtland m.fl.)
+  "ostersund",
+  "ostersunds",
+  "jamtland",
+  "jamtlands",
+  "harjedalen",
+  "froson",
+  "rodon",
+  "rodons",
+  "krokom",
+  "brunflo",
+  "vemdalen",
+  "are",
+  "loke",
+  "lit",
+  "stortorget",
+  "sverige",
+]);
+
+// Särskiljande ord = signifikanta ord (≥4 tecken) minus de generiska. Längst
+// först (mest särskiljande).
 function significantTokens(name: string): string[] {
   return name
     .toLowerCase()
     .replace(/[^a-zåäö0-9\s]/g, " ")
     .split(/\s+/)
-    .filter((token) => token.length >= 4 && !GENERIC_TOKENS.has(token))
+    .filter(
+      (token) => token.length >= 4 && !GENERIC_COMPACT.has(compact(token)),
+    )
     .sort((a, b) => b.length - a.length);
 }
 
@@ -51,10 +111,11 @@ export function domainOf(url: string | null | undefined): string | null {
  * Avgör om en Places-kandidat verkligen är kundens verksamhet.
  *
  * Starkast signal: kandidatens webbplats-domän == kundens domän.
- * Annars: företagsnamnets mest särskiljande token (längst, ej generisk)
- * måste ingå i kandidatnamnet (eller tvärtom). Ortnamn och generiska ord
- * räcker inte — "Vemdalens Fjällhotell" ska inte matcha "danielssonsbygg
- * vemdalen" bara för att orten överlappar.
+ * Annars: minst ett av företagsnamnets SÄRSKILJANDE ord (ej bransch-/ortord)
+ * måste ingå i kandidatnamnet. Saknas särskiljande ord (kort akronym +
+ * branschord) krävs att hela namnet finns i kandidaten. Generiska ord räcker
+ * aldrig ensamma — "Vemdalens Fjällhotell" matchar inte "danielssonsbygg
+ * vemdalen", och ett annat "Hundpark" matchar inte "Furuhov Hundpark".
  */
 export function isPlaceMatch(params: {
   companyName: string;
@@ -74,26 +135,22 @@ export function isPlaceMatch(params: {
   const placeCompact = compact(placeName);
   if (!placeCompact) return false;
 
-  // Endast den MEST särskiljande tokenen (längst, ej generisk) används —
-  // kortare tokens är ofta ortnamn ("vemdalen") som matchar fel verksamheter
-  // på samma ort. Kompakt jämförelse fångar ihopskrivningar:
-  // "danielssonsbygg" ⊃ "Danielssons Bygg".
-  const tokens = significantTokens(companyName).slice(0, 1);
-  if (tokens.length === 0) {
-    // Företagsnamn utan särskiljande tokens — jämför hela kompakta namnet.
-    const companyCompact = compact(companyName);
-    return (
-      companyCompact.length >= 4 &&
-      (placeCompact.includes(companyCompact) ||
-        companyCompact.includes(placeCompact))
-    );
+  // Matcha på företagets SÄRSKILJANDE ord (varumärkesdelen) — inte på generiska
+  // bransch-/ortord. Räcker att NÅGON särskiljande del finns i platsnamnet,
+  // vilket tillåter namnvariationer ("Christoffer Sandgren …" ↔ "Sandgren Bygg")
+  // men sållar bort fel företag i samma bransch ("Furuhov" ≠ annat "Hundpark").
+  const distinctive = significantTokens(companyName);
+  if (distinctive.length > 0) {
+    return distinctive.some((token) => placeCompact.includes(compact(token)));
   }
 
-  return tokens.some(
-    (token) =>
-      placeCompact.includes(compact(token)) ||
-      compact(token).includes(placeCompact),
+  // Inget särskiljande ord kvar (kort akronym + branschord, t.ex. "MB Färg &
+  // Kakel", "JVS Maskiner") — kräv då att HELA företagsnamnet finns i
+  // platsnamnet, annars riskerar vi att fastna på vilken branschfirma som helst.
+  const companyCompact = compact(
+    companyName.replace(/\b(ab|hb|kb|aktiebolag|handelsbolag)\b/gi, " "),
   );
+  return companyCompact.length >= 4 && placeCompact.includes(companyCompact);
 }
 
 export type PlaceCandidate = {
