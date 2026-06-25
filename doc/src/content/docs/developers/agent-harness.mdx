@@ -3,7 +3,7 @@ title: Agent Harness
 description: How to use the Atomic CRM agent harness to implement CRM changes with a coordinated team of Claude Code agents.
 ---
 
-Atomic CRM ships an *agent harness*: a team of specialized Claude Code agents — planner, developer, reviewer, tester, documenter — that turns a plain-English feature request into committed code through a deterministic pipeline. The agents share the same coding guidelines as the Atomic CRM core team, and add tools that cut token usage and speed up development.
+Atomic CRM ships an *agent harness*: a team of specialized Claude Code agents (planner, developer, reviewer, documenter) that turns a plain-English feature request into committed code through a deterministic pipeline. The agents share the same coding guidelines as the Atomic CRM core team, and add tools that cut token usage and speed up development.
 
 ## Prerequisites
 
@@ -13,28 +13,20 @@ Atomic CRM ships an *agent harness*: a team of specialized Claude Code agents �
 
 ## Usage
 
-Start a Claude Code session as usual. In your prompt, mention the harness to trigger it. For instance:
+Start a Claude Code session as usual and ask for a new feature:
 
 ```
-Create a new field for lost deal reasons, and implement it with the harness.
+Create a new field for lost deal reasons.
 
 # or
 
-Build a CRM for my company Acme, a recruiting agency, using the harness.
+Build a CRM for my company Acme, a recruiting agency.
 ```
 
-The harness starts immediately (or once you exit plan mode): Claude Code will delegate the coordination of the work to a specialized subagent called `chat-orchestrator`, and this agent will spawn other specialized agents depending on the complexity of the task. 
-
-You can also launch the harness from the terminal with a specialized make command. For example:
-
-```sh
-make harness REQUEST="Add a reason for a lost deal"
-```
-
-<script src="https://asciinema.org/a/YnU8RU7vCtJsi3yC.js" id="asciicast-YnU8RU7vCtJsi3yC" data-speed="4" async="true"></script>
+The harness starts immediately: Claude Code coordinates a team of specialized agents, depending on the complexity of the task.
 
 :::caution
-The harness runs in automatic-permission mode, which means it can execute arbitrary commands on your machine and may modify or delete files. We advise you to run the harness in a sandboxed environment, such as a DevContainer (already configured in the repo) or a VM.
+The harness ask for many permissions, turn on automatic-permission mode to skip them, note this lets it run arbitrary commands on your machine and may modify or delete files. We advise you to run the harness in a sandboxed environment, such as a DevContainer (already configured in the repo) or a VM.
 :::
 
 :::tip
@@ -42,25 +34,34 @@ The subagents work in a temporary directory (in `/tmp/<repo-slug>`) to keep your
 :::
 
 :::tip
-Based on the complexity of the feature request, the orchestrator runs either one of two workflows:
+Based on the complexity of the feature request, the main thread runs one of two workflows:
 
 - **Simple**: a single cosmetic edit, a single-field change on an existing entity, or a filter reusing existing components. One developer agent, no planning overhead.
 - **Complex**: everything else. The planner decomposes it into tickets; developers, reviewers, and the merger run as a coordinated wave.
 :::
 
+## Inspecting a Change
+
+To see exactly what a harness session produced, use the diff command from within the session:
+
+```
+/harness-diff
+```
+
+It shows the net set of changes the session built, isolated from any other work on your branch. If you run it from a fresh session and several harness sessions exist, it lists them so you can pick the one to inspect.
 
 ## Reverting a Change
 
-Because the merge is automatic, the agent harness may make a change you're not happy with. You can use the following command to revert the last session and return to the state of your branch before the harness started:
+Because the merge is automatic, the harness may make a change you're not happy with. You can use the following command to revert the current session:
 
-```sh
-make clean-harness
+```
+/harness-revert
 ```
 
-This hard-resets your start branch to the exact commit it was on before the session began.
+This undoes everything the session merged into your branch and cleans up its temporary branches and worktrees. By default it targets the current session; if you run it from a fresh session and several exist, it lists them and asks which to revert.
 
 :::caution
-`make clean-harness` is a hard reset: any uncommitted work is stashed first (recover it with `git stash pop`), but committed work made *after* the session started on that branch is also dropped. Run it only when you want to discard the whole session.
+`/harness-revert` undoes the session's changes by reverting its merge commits, so it is safe even when several sessions have landed on the same branch; it removes only the selected session's work, not the others'. Uncommitted local edits are stashed first (recover them with `git stash pop`).
 :::
 
 ## Disabling the Harness
@@ -79,7 +80,7 @@ Create a new field for lost deal reasons without the agent team
 Create a new field for lost deal reasons, skipping the agent team
 ```
 
-The main thread then implements the change itself, no agents, even after a plan is approved. Add *"no-harness for this session"* to keep it off for the whole session.
+The main thread then implements the change itself, no specialized agents. Add *"no-harness for this session"* to keep it off for the whole session.
 
 ## Monitoring a Session
 
