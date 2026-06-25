@@ -39,7 +39,10 @@ const CLAUDE_PROJ = join(
   homedir(),
   ".claude",
   "projects",
-  REPO.replace(/\//g, "-"),
+  // Claude Code names the project dir by replacing EVERY non-alphanumeric char
+  // (slashes AND dots, e.g. ".code-workspace") with "-". Replacing only "/" broke
+  // discovery for any repo path containing a dot → "no subagent transcripts found".
+  REPO.replace(/[^a-zA-Z0-9]/g, "-"),
 );
 // A session id is a worktree-base subdir that has a hooks.log. Test fixtures
 // (td-1, td-2, …) are skipped — they are not real sessions.

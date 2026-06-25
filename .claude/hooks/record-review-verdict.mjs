@@ -161,8 +161,12 @@ for (let i = verdictLines.length - 1; i >= 0; i--) {
   }
 }
 
+const _tp = input.agent_transcript_path || input.transcript_path || "";
 ctx.log(
-  `role=${role || "UNKNOWN"} task=${task || "UNKNOWN"} verdict=${verdict || "UNKNOWN"}`,
+  `role=${role || "UNKNOWN"} task=${task || "UNKNOWN"} verdict=${verdict || "UNKNOWN"}` +
+    (role && task && verdict
+      ? ""
+      : ` | DIAG agent_type=${JSON.stringify(input.agent_type)} agent_name=${JSON.stringify(input.agent_name)} last_msg=${input.last_assistant_message ? "present" : "absent"} tp=${_tp || "none"} tp_exists=${Boolean(_tp && existsSync(_tp))} keys=[${Object.keys(input).join(",")}]`),
 );
 
 if (!role || !task) process.exit(0); // can't key the flag — leave state untouched
