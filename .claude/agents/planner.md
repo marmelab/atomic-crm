@@ -105,7 +105,7 @@ Rules:
 
 Normal feature tickets (type / component / config prop) → `parallel_safe: true`.
 
-**`branch_name`**: filesystem-safe, `<TICKET_ID>-<short-kebab>` (e.g. `TASK-002-deal-stage-filter`). It MUST start with the ticket's own id: the orchestrator dispatches with `BRANCH_NAME: <SESSION_SHORT_ID>/<branch_name>`, and the `setup-worktree` hook rejects any branch that does not match `<SESSION_SHORT_ID>/TASK-XXX[-suffix]`. Never prefix with `feature/` or `fix/`.
+**`branch_name`**: descriptive only — a human-readable label, `<TICKET_ID>-<short-kebab>` (e.g. `TASK-002-deal-stage-filter`). It is NOT used as the git branch: the orchestrator always dispatches with the canonical `BRANCH_NAME: <SESSION_SHORT_ID>/TASK-XXX`, and `setup-worktree` derives the branch it creates solely from the ticket id (`<SESSION_SHORT_ID>/TASK-XXX`), ignoring any suffix. Keep it readable; never prefix with `feature/` or `fix/`.
 
 **`visual_customization`**: set `true` when the ticket touches colors, theme, component styling, dark/light mode, or layout preferences. The developer loads `Skill({skill: "shadcn-customization"})` as its first action on such tickets.
 

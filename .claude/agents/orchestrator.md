@@ -355,13 +355,13 @@ In ONE assistant message, dispatch a foreground developer for every ticket in th
 Agent({
   subagent_type: "developer",
   description: "Implement TASK-XXX",
-  prompt: "ROLE: developer\nTASK_ID: TASK-XXX\nTICKET_FILE: <TICKETS_DIR>/TASK-XXX.json\nWORKTREE_PATH: <WORKTREE_BASE>/TASK-XXX\nBRANCH_NAME: <SESSION_SHORT_ID>/<branch_name (must start with TASK-XXX)>"
+  prompt: "ROLE: developer\nTASK_ID: TASK-XXX\nTICKET_FILE: <TICKETS_DIR>/TASK-XXX.json\nWORKTREE_PATH: <WORKTREE_BASE>/TASK-XXX\nBRANCH_NAME: <SESSION_SHORT_ID>/TASK-XXX"
 })
 ```
 
 (No `run_in_background`, no `isolation`, no `name`.)
 
-Substitute the actual ticket id and the concrete `<TICKETS_DIR>` / `<WORKTREE_BASE>` / `<SESSION_SHORT_ID>`. For `BRANCH_NAME`, use the ticket's `branch_name` when it starts with the ticket id (`TASK-XXX-...`); otherwise build `TASK-XXX-<slug>` (short kebab-case from the title). The `setup-worktree` hook rejects any branch not matching `<SESSION_SHORT_ID>/TASK-XXX[-suffix]` — never carry over a planner `feature/...`/`fix/...` prefix. **The `WORKTREE_PATH` and `BRANCH_NAME` lines are required and must follow the template verbatim**: `setup-worktree` runs on THIS dispatch (PreToolUse/Agent), reads `WORKTREE_PATH`/`BRANCH_NAME`/`TASK_ID`, and creates the worktree (forked from `session/<SESSION_SHORT_ID>`, node_modules provisioned) before the developer starts. `enforce-dev-dispatch` blocks the dispatch if `WORKTREE_PATH` is missing or if you add `isolation: "worktree"`.
+Substitute the actual ticket id and the concrete `<TICKETS_DIR>` / `<WORKTREE_BASE>` / `<SESSION_SHORT_ID>`. `BRANCH_NAME` is always exactly `<SESSION_SHORT_ID>/TASK-XXX` — slug-free. `setup-worktree` derives the branch it creates solely from `TASK_ID` (`<SESSION_SHORT_ID>/TASK-XXX`) and ignores any descriptive suffix; carrying a slug (or a planner `feature/...`/`fix/...` prefix) only makes the merger's `BRANCH_NAME` disagree with the branch that actually exists, so don't add one. **The `WORKTREE_PATH` and `BRANCH_NAME` lines are required and must follow the template verbatim**: `setup-worktree` runs on THIS dispatch (PreToolUse/Agent), reads `WORKTREE_PATH`/`BRANCH_NAME`/`TASK_ID`, and creates the worktree (forked from `session/<SESSION_SHORT_ID>`, node_modules provisioned) before the developer starts. `enforce-dev-dispatch` blocks the dispatch if `WORKTREE_PATH` is missing or if you add `isolation: "worktree"`.
 
 **Never add a `name:` field to any STATE B dispatch.** The Agent tool schema has `additionalProperties: false` with no `name` property, so a `name:` fails input validation before the subagent starts. Use `description:` for labels; foreground-vs-background is controlled solely by `run_in_background` (absent/false → dispatches block).
 
@@ -393,12 +393,12 @@ After re-developing, **re-review** it. **Loop Stage 2 until every still-live tic
 
 #### Stage 3 — MERGE (sequential — do NOT batch)
 
-Per-ticket mergers all merge into the shared `session/<SESSION_SHORT_ID>` branch inside the single `_session` worktree, with no lock on Stage A — concurrent mergers would race on the branch and `.git/index.lock`. Dispatch them **one at a time**: one foreground merger per message, wait, then the next. `<branch>` is the `branch=` value from this ticket's stored `dev_output` (NOT the planner's suggestion):
+Per-ticket mergers all merge into the shared `session/<SESSION_SHORT_ID>` branch inside the single `_session` worktree, with no lock on Stage A — concurrent mergers would race on the branch and `.git/index.lock`. Dispatch them **one at a time**: one foreground merger per message, wait, then the next. `BRANCH_NAME` is always `<SESSION_SHORT_ID>/TASK-XXX` — the canonical branch `setup-worktree` created for this ticket. Do NOT use the `branch=` value echoed in the developer's `dev_output` (it reflects the prompt's `BRANCH_NAME`, which may carry a phantom slug) nor the planner's suggestion — both can disagree with the branch that actually exists and make the merge fail with "not something we can merge":
 
 ```
 Agent({ subagent_type: "merger",
   description: "Merge T",
-  prompt: "ROLE: merger\nTASK_ID: T\nBRANCH_NAME: <SESSION_SHORT_ID>/<branch>\nWORKTREE_PATH: <WORKTREE_BASE>/T\nSESSION_SHORT_ID: <SESSION_SHORT_ID>\nTICKETS_DIR: <TICKETS_DIR>" })
+  prompt: "ROLE: merger\nTASK_ID: T\nBRANCH_NAME: <SESSION_SHORT_ID>/T\nWORKTREE_PATH: <WORKTREE_BASE>/T\nSESSION_SHORT_ID: <SESSION_SHORT_ID>\nTICKETS_DIR: <TICKETS_DIR>" })
 ```
 
 Per result: `DONE: T commit=…` → `stage = DONE`; `FAILED:`/malformed → `stage = FAILED`. (The `block-merger-without-review` hook gates each merger dispatch on the recorded quality-reviewer `APPROVED` verdict.)
