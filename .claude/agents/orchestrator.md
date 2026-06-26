@@ -24,7 +24,7 @@ Your developer / reviewer / merger subagents run one level below you: their inte
 These instructions are the **mechanics**. Two concerns are owned by your surface, NOT by these instructions:
 
 - **User-facing messaging.** Where these instructions say "emit a progress line" or "report to the user", phrase it for your surface. The web-chat surface persona (injected into your system prompt by the launcher) uses plain, non-technical language in the user's language (no file paths, no `TASK-XXX`, no git terms) and writes `ask-state` cartouches for confirmations; a developer session uses normal technical language. Example phrasings below are guidance, not literal scripts.
-- **Data-mode (demo/full).** The MODE-SWITCH intent and the demo→live data switch live in the web-chat surface persona (injected by the launcher), never here, and exist only when a `<mode>` tag is present in your context. With no `<mode>` tag — the default — data-mode does not exist: treat applying the migration as the terminal POST-DEV step.
+- **Data-mode (demo/full).** The MODE-SWITCH intent and the demo→live data switch live in the web-chat surface persona (injected by the launcher), never here, and exist only when a `<mode>` tag is present in your context. With no `<mode>` tag — the default — data-mode does not exist: treat applying the migration (STATE PD-DEPLOY) as the terminal POST-DEV step. **When a `<mode>` tag IS present, PD-DEPLOY is NOT terminal** — after it succeeds you hand off to the surface's post-deploy step (in `demo` that is a mandatory demo→live offer; see STATE PD-DEPLOY).
 
 ---
 
@@ -80,7 +80,7 @@ POST-DEV (end of COMPLEX, SETUP, schema-touching SIMPLE), conditional on a schem
                • dev surface: coordinator re-dispatches you FRESH —
                    approved      → <intent>apply-migration</intent> → PD-APPLY
                    wants changes → normal new request → CLASSIFICATION
-             satisfied + non-empty schema diff: → PD-MIG-DEV → PD-MIG-REVIEW → PD-MIG-MERGE → PD-DEPLOY → PD-DONE
+             satisfied + non-empty schema diff: → PD-MIG-DEV → PD-MIG-REVIEW → PD-MIG-MERGE → PD-DEPLOY → (PD-LIVE-ASK if `<mode>demo`, surface-owned) → PD-DONE
              satisfied + empty diff: → STATE DONE
 APPLY-MIGRATION: PD-APPLY (one fresh turn) → PD-MIG-DEV → … → PD-DONE   (skips the PD-ASK re-ask)
 ```
@@ -564,7 +564,9 @@ Agent({
 
 One progress line (*"Applying your changes — this can take a moment on first run."*).
 `Bash("node \"$CLAUDE_PROJECT_DIR/.claude/scripts/apply-migrations.mjs\"")` (timeout 240000 ms).
-→ exit 0 → STATE PD-DONE ("Your changes are saved."). This is the terminal POST-DEV step. (Persona overlay: in demo mode only, branch to the demo→live switch instead; absent a `<mode>` tag, PD-DEPLOY is terminal — never offer a data switch.)
+→ exit 0 — the next step depends on whether a `<mode>` tag is present:
+  - **`<mode>` tag present (web-chat surface) → PD-DEPLOY is NOT terminal.** Hand off to your surface's post-deploy step. In **`demo`** mode you MUST enter the demo→live switch (STATE PD-LIVE-ASK: write the `live-switch` cartouche and ask the user before switching the app to their real data) — applying the migration does NOT make the app live, so ending at "done" here without offering the switch is a bug. In **`full`** mode the surface treats PD-DONE as terminal.
+  - **No `<mode>` tag (developer surface) → STATE PD-DONE is terminal** ("Your changes are saved."); never offer a data switch.
 → Non-zero → STATE PD-DONE with a failure line.
 
 ### STATE PD-DONE — POST-DEV wrap
