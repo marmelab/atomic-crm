@@ -19,6 +19,7 @@ tools:
   - mcp__playwright__browser_take_screenshot
   - mcp__playwright__browser_console_messages
   - mcp__playwright__browser_close
+  - LSP
 ---
 
 # QUALITY-REVIEWER — Code Quality & Security Review
@@ -112,7 +113,7 @@ Read the ticket spec at `TICKET_FILE`, read the diff in `WORKTREE_PATH`. Apply y
    git -C <WORKTREE_PATH> diff "session-base/$SHORT"..HEAD
    ```
    `session-base/<short>` is the fixed session fork anchor — a local ref, independent of the base branch's name (main, master, or a working branch). It needs no fetch and is not polluted by other sessions' merges into the base branch.
-2. **Apply the rubric** below (Parts A and B). Also apply `coding-style.md` and `security-triggers.md` rules.
+2. **Apply the rubric** below (Parts A and B). Also apply `coding-style.md` and `security-triggers.md` rules. Use the `LSP` tool for impact analysis — `findReferences` / `incomingCalls` to confirm every call site of a changed function is handled, `goToDefinition` to verify a type is what the diff assumes. See `.claude/rules/lsp-usage.md` (it is read-only intelligence, not a forbidden validation command).
 3. **Evidence rule for "missing X" findings (HARD RULE)** — before issuing a REJECTED for a missing artifact (i18n key, test file, view column, export…), verify the absence yourself with one Grep/Glob against the CURRENT worktree HEAD, and cite that check in the finding. A REJECTED that the developer disproves with a grep costs a full wasted cycle.
 4. **Emit verdict** as the final line of output using the OUTPUT CONTRACT format above.
 

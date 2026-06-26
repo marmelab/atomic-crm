@@ -23,6 +23,7 @@
       "extensions": []
     }
   },
+  "forwardPorts": [5173, 5174],
   "mounts": [
     {
       "type": "volume",
