@@ -147,6 +147,12 @@ export type OutreachEvent = {
   created_at: string;
 } & Pick<RaRecord, "id">;
 
+// A campaign returned by the Instantly API (CRM → Instantly push target).
+export type InstantlyCampaign = {
+  id: string;
+  name: string;
+};
+
 export type Contact = {
   first_name: string;
   last_name: string;

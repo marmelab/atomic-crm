@@ -174,3 +174,5 @@ verify_jwt = false
 verify_jwt = false
 [functions.email_verifier]
 verify_jwt = false
+[functions.instantly]
+verify_jwt = false

@@ -7,16 +7,19 @@ import {
   type ResourceCallbacks,
 } from "ra-core";
 import type {
+  Contact,
   ContactNote,
   Deal,
   DealNote,
   EmailVerificationResult,
+  InstantlyCampaign,
   RAFile,
   Sale,
   SalesFormData,
   SignUpData,
 } from "../../types";
 import type { ConfigurationContextValue } from "../../root/ConfigurationContext";
+import { advanceOutreachStatus } from "../../misc/outreachStatus";
 import { ATTACHMENTS_BUCKET } from "../commons/attachments";
 import { getIsInitialized } from "./authProvider";
 import { getSupabaseClient } from "./supabase";
@@ -240,6 +243,77 @@ const getDataProviderWithCustomMethods = () => {
       }
 
       return data.data;
+    },
+    async listInstantlyCampaigns(): Promise<InstantlyCampaign[]> {
+      const { data, error } = await getSupabaseClient().functions.invoke<{
+        data: InstantlyCampaign[];
+      }>("instantly", {
+        method: "POST",
+        body: { action: "listCampaigns" },
+      });
+
+      if (!data || error) {
+        console.error("instantly.listCampaigns.error", error);
+        throw new Error("Failed to load Instantly campaigns");
+      }
+
+      return data.data;
+    },
+    async pushToInstantly(
+      campaignId: string,
+      campaignName: string,
+      contacts: Contact[],
+    ): Promise<number> {
+      const { data, error } = await getSupabaseClient().functions.invoke<{
+        data: { pushed: number };
+      }>("instantly", {
+        method: "POST",
+        body: {
+          action: "pushLeads",
+          campaignId,
+          contacts: contacts.map((contact) => ({
+            first_name: contact.first_name,
+            last_name: contact.last_name,
+            company_name: contact.company_name,
+            email_jsonb: contact.email_jsonb,
+          })),
+        },
+      });
+
+      if (!data || error) {
+        console.error("instantly.pushLeads.error", error);
+        throw new Error("Failed to push leads to Instantly");
+      }
+
+      // Reflect the push in the CRM immediately: mark queued + log an event.
+      const now = new Date().toISOString();
+      await Promise.all(
+        contacts.flatMap((contact) => [
+          baseDataProvider.update("contacts", {
+            id: contact.id,
+            data: {
+              outreach_status: advanceOutreachStatus(
+                contact.outreach_status,
+                "queued",
+              ),
+              instantly_campaign: campaignName,
+              last_outreach_at: now,
+            },
+            previousData: contact,
+          }),
+          baseDataProvider.create("outreach_events", {
+            data: {
+              contact_id: contact.id,
+              type: "queued",
+              campaign: campaignName,
+              occurred_at: now,
+              created_at: now,
+            },
+          }),
+        ]),
+      );
+
+      return data.data.pushed;
     },
     async getConfiguration(): Promise<ConfigurationContextValue> {
       const { data } = await baseDataProvider.getOne("configuration", {

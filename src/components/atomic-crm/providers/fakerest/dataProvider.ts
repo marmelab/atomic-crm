@@ -16,11 +16,13 @@ import type {
   DealNote,
   EmailVerificationResult,
   EmailVerificationStatus,
+  InstantlyCampaign,
   Sale,
   SalesFormData,
   SignUpData,
   Task,
 } from "../../types";
+import { advanceOutreachStatus } from "../../misc/outreachStatus";
 import type { ConfigurationContextValue } from "../../root/ConfigurationContext";
 import { getActivityLog } from "../commons/activity";
 import { getCompanyAvatar } from "../commons/getCompanyAvatar";
@@ -298,6 +300,44 @@ export const createDataProvider = ({
     },
     mergeContacts: async (sourceId: Identifier, targetId: Identifier) => {
       return mergeContacts(sourceId, targetId, baseDataProvider);
+    },
+    listInstantlyCampaigns: async (): Promise<InstantlyCampaign[]> => [
+      { id: "demo-campaign-1", name: "Texas Founders Q3" },
+      { id: "demo-campaign-2", name: "Seed SaaS CTOs" },
+      { id: "demo-campaign-3", name: "Energy Ops Leaders" },
+    ],
+    pushToInstantly: async (
+      _campaignId: string,
+      campaignName: string,
+      contacts: Contact[],
+    ): Promise<number> => {
+      const now = new Date().toISOString();
+      await Promise.all(
+        contacts.flatMap((contact) => [
+          dataProvider.update("contacts", {
+            id: contact.id,
+            data: {
+              outreach_status: advanceOutreachStatus(
+                contact.outreach_status,
+                "queued",
+              ),
+              instantly_campaign: campaignName,
+              last_outreach_at: now,
+            },
+            previousData: contact,
+          }),
+          dataProvider.create("outreach_events", {
+            data: {
+              contact_id: contact.id,
+              type: "queued",
+              campaign: campaignName,
+              occurred_at: now,
+              created_at: now,
+            },
+          }),
+        ]),
+      );
+      return contacts.length;
     },
     verifyEmails: async (
       emails: string[],
