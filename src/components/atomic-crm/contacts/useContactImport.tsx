@@ -1,7 +1,13 @@
 import { useDataProvider, useGetIdentity, type DataProvider } from "ra-core";
 import { useCallback, useMemo } from "react";
 
-import type { Company, Tag } from "../types";
+import type { Company, Contact, Tag } from "../types";
+import type { CrmDataProvider } from "../providers/types";
+import {
+  applyVerificationToEmails,
+  RATE_LIMIT_DELAY_MS,
+  sleep,
+} from "./useVerifyContacts";
 
 export type ContactImportSchema = {
   first_name: string;
@@ -28,7 +34,7 @@ export type ContactImportSchema = {
 export function useContactImport() {
   const today = new Date().toISOString();
   const user = useGetIdentity();
-  const dataProvider = useDataProvider();
+  const dataProvider = useDataProvider<CrmDataProvider>();
 
   // company cache to avoid creating the same company multiple times and costly roundtrips
   // Cache is dependent of dataProvider, so it's safe to use it as a dependency
@@ -72,6 +78,35 @@ export function useContactImport() {
     [tagsCache, dataProvider],
   );
 
+  // Auto-verify freshly imported contacts through MyEmailVerifier, throttled to
+  // respect the rate limit. Failures are non-fatal — the import still succeeds.
+  const verifyImportedContacts = useCallback(
+    async (contacts: Contact[]) => {
+      for (let i = 0; i < contacts.length; i++) {
+        const contact = contacts[i];
+        const emails = contact.email_jsonb ?? [];
+        const addresses = emails.map((entry) => entry.email).filter(Boolean);
+        if (addresses.length === 0) continue;
+
+        try {
+          const results = await dataProvider.verifyEmails(addresses);
+          await dataProvider.update("contacts", {
+            id: contact.id,
+            data: { email_jsonb: applyVerificationToEmails(emails, results) },
+            previousData: contact,
+          });
+        } catch (error) {
+          console.error("Auto-verify failed for imported contact", error);
+        }
+
+        if (i < contacts.length - 1) {
+          await sleep(RATE_LIMIT_DELAY_MS * addresses.length);
+        }
+      }
+    },
+    [dataProvider],
+  );
+
   const processBatch = useCallback(
     async (batch: ContactImportSchema[]) => {
       const [companies, tags] = await Promise.all([
@@ -83,7 +118,7 @@ export function useContactImport() {
         getTags(batch.flatMap((batch) => parseTags(batch.tags))),
       ]);
 
-      await Promise.all(
+      const created = await Promise.all(
         batch.map(
           async ({
             first_name,
@@ -122,34 +157,47 @@ export function useContactImport() {
               .map((name) => tags.get(name))
               .filter((tag): tag is Tag => !!tag);
 
-            return dataProvider.create("contacts", {
-              data: {
-                first_name,
-                last_name,
-                gender,
-                title,
-                email_jsonb,
-                phone_jsonb,
-                background,
-                first_seen: first_seen
-                  ? new Date(first_seen).toISOString()
-                  : today,
-                last_seen: last_seen
-                  ? new Date(last_seen).toISOString()
-                  : today,
-                has_newsletter,
-                status,
-                company_id: company?.id,
-                tags: tagList.map((tag) => tag.id),
-                sales_id: user?.identity?.id,
-                linkedin_url,
+            const { data: contact } = await dataProvider.create<Contact>(
+              "contacts",
+              {
+                data: {
+                  first_name,
+                  last_name,
+                  gender,
+                  title,
+                  email_jsonb,
+                  phone_jsonb,
+                  background,
+                  first_seen: first_seen
+                    ? new Date(first_seen).toISOString()
+                    : today,
+                  last_seen: last_seen
+                    ? new Date(last_seen).toISOString()
+                    : today,
+                  has_newsletter,
+                  status,
+                  company_id: company?.id,
+                  tags: tagList.map((tag) => tag.id),
+                  sales_id: user?.identity?.id,
+                  linkedin_url,
+                },
               },
-            });
+            );
+            return contact;
           },
         ),
       );
+
+      await verifyImportedContacts(created.filter(Boolean));
     },
-    [dataProvider, getCompanies, getTags, user?.identity?.id, today],
+    [
+      dataProvider,
+      getCompanies,
+      getTags,
+      user?.identity?.id,
+      today,
+      verifyImportedContacts,
+    ],
   );
 
   return processBatch;
