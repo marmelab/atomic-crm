@@ -29,6 +29,7 @@ import {
 } from "node:fs";
 import { createHookContext } from "./lib/context.mjs";
 import { getFirstTaskId, isQualityReviewer } from "./lib/teams.mjs";
+import { readAgentMeta } from "./lib/agent-meta.mjs";
 import { reviewFlag, reviewsDir } from "./lib/reviews.mjs";
 
 const input = JSON.parse(readFileSync(0, "utf8"));
@@ -52,20 +53,12 @@ for (const n of ids) {
 // description. In this runtime the payload's `agent_type` is empty and
 // `transcript_path` can point at a not-yet-written file, so prefer the meta.
 if (!role || !task) {
-  const tp0 = input.agent_transcript_path || input.transcript_path || "";
-  const metaPath = tp0.replace(/\.jsonl$/, ".meta.json");
-  if (metaPath.endsWith(".meta.json") && existsSync(metaPath)) {
-    try {
-      const meta = JSON.parse(readFileSync(metaPath, "utf8"));
-      if (!role && isQualityReviewer(meta.agentType || "")) {
-        role = "quality-reviewer";
-      }
-      if (!task) {
-        const m = String(meta.description || "").match(/TASK-\d+/);
-        if (m) task = m[0];
-      }
-    } catch {
-      // best-effort — fall through to the transcript recovery below
+  const meta = readAgentMeta(input);
+  if (meta) {
+    if (!role && isQualityReviewer(meta.agentType)) role = "quality-reviewer";
+    if (!task) {
+      const m = meta.description.match(/TASK-\d+/);
+      if (m) task = m[0];
     }
   }
 }

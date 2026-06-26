@@ -157,16 +157,25 @@ if (HARD) {
   } else {
     requireOnBase();
     stashDirty();
+    // All-or-nothing: capture HEAD before the first revert so that if a later
+    // merge conflicts we can roll the already-applied reverts back. Otherwise a
+    // partial run leaves some reverts committed while the original merges still
+    // match the subject filter, and a naive "resolve and re-run" would re-revert
+    // the already-reverted merges (revert-of-revert re-applies the session's
+    // changes). Resetting to preRevertHead keeps re-run idempotent.
+    const preRevertHead = DRY_RUN ? "" : git(["rev-parse", "HEAD"]).out;
     for (const sha of merges) {
       log(`==> Reverting promotion merge ${sha.slice(0, 12)}`);
       const r = gitRun(["revert", "--no-edit", "-m", "1", sha]);
       if (r.code !== 0) {
-        git(["revert", "--abort"]);
+        gitRun(["revert", "--abort"]);
+        if (!DRY_RUN && preRevertHead)
+          gitRun(["reset", "--hard", preRevertHead]);
         err(
           `!! Revert hit a conflict on ${sha.slice(0, 12)} (another session may have touched the same files).`,
         );
         err(
-          "   Resolve it manually, then re-run. Aborted before cleanup — nothing was removed.",
+          "   Rolled back to the pre-revert state — nothing was reverted or removed. Resolve the conflict source, then re-run.",
         );
         process.exit(1);
       }
@@ -219,12 +228,14 @@ log(`==> Removing config sessionbase.${SHORT}`);
 gitRun(["config", "--local", "--remove-section", `sessionbase.${SHORT}`]);
 
 // 6. Remove this session's /tmp dir(s). Worktree base is /tmp/<slug>/<full-id>;
-//    the full id starts with the short id, so match on it.
+//    the full id is <short>-<rest>, so match on the short id at the UUID-segment
+//    boundary (exact, or followed by "-"). A bare startsWith(SHORT) would also
+//    swallow another session whose id merely shares the leading hex block.
 const slug = REPO_ROOT.replace(/\//g, "_");
 const tmpBase = `/tmp/${slug}`;
 if (existsSync(tmpBase)) {
   for (const name of readdirSync(tmpBase)) {
-    if (!name.startsWith(SHORT)) continue;
+    if (name !== SHORT && !name.startsWith(`${SHORT}-`)) continue;
     const dir = join(tmpBase, name);
     log(`==> Removing session dir ${dir}`);
     if (DRY_RUN) log(`[dry-run] rm -rf ${dir}`);

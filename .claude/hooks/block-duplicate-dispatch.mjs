@@ -69,8 +69,12 @@ if (d.subagentType === "planner") {
 
   if (existsSync(marker)) {
     try {
-      if (Date.now() - statSync(marker).mtimeMs > PLANNER_STALE_MS)
-        unlinkSync(marker);
+      // Stale if older than the window — OR if its mtime is in the FUTURE
+      // (clock skew / NFS drift): a negative age would otherwise read as "fresh"
+      // forever and permanently block re-planning, with no escape (the
+      // orchestrator can't rm a breaker marker — bash-guard blocks that).
+      const age = Date.now() - statSync(marker).mtimeMs;
+      if (age > PLANNER_STALE_MS || age < 0) unlinkSync(marker);
     } catch {
       // ignore — fall through to the existence check
     }
@@ -98,12 +102,15 @@ if (d.subagentType === "planner") {
 
 // ---- Concern 2: debounce duplicate developer/reviewer/merger dispatches -------
 if (DEBOUNCE_ROLES.has(d.subagentType)) {
-  // Key on the ticket identity when present (TASK-001 / SIMPLE / MIGRATION /
-  // PROMOTE / ROLLBACK); fall back to a prompt hash for dispatches with no
-  // TASK_ID line (e.g. the SIMPLE inline CHANGE_REQUEST), so two identical
-  // prompts inside the window still collide while a genuine retry — which
-  // carries different prompt text (RETRY_FEEDBACK / FIX findings) — does not.
-  const idPart = d.taskId || `prompt:${sha(prompt)}`;
+  // Key on the ticket identity AND the prompt content. The async-ack duplicate
+  // re-issues the IDENTICAL dispatch prompt, so an identical (caller, role,
+  // ticket, prompt) inside the window collides and is blocked. A genuine retry
+  // carries different prompt text (RETRY_FEEDBACK / FIX findings) → different
+  // key → allowed even inside the window (keying on the TASK id alone would
+  // wrongly debounce a fast-failing ticket's legitimate re-dispatch). The
+  // TASK id, when present, is kept as the human-readable label for messages.
+  const label = d.taskId || `prompt:${sha(prompt)}`;
+  const idPart = `${d.taskId || "_"}::${sha(prompt)}`;
   const marker = join(
     markerDir,
     `dispatch-${sha(`${caller}::${d.subagentType}::${idPart}`)}`,
@@ -119,7 +126,7 @@ if (DEBOUNCE_ROLES.has(d.subagentType)) {
     if (ageMs < DEBOUNCE_WINDOW_MS) {
       ctx.block({
         reason:
-          `A \`${d.subagentType}\` dispatch for ${idPart} was made ${Math.round(ageMs / 1000)}s ago and is still in flight. ` +
+          `A \`${d.subagentType}\` dispatch for ${label} was made ${Math.round(ageMs / 1000)}s ago and is still in flight. ` +
           `A dispatch can return immediately as "Async agent launched … agentId: <id>" WITHOUT blocking — that acknowledgement means "dispatched", not "done". ` +
           `Do NOT re-dispatch the same role for the same ticket: wait for its task-notification, then read the agent's output file and parse its contract line. ` +
           `Two ${d.subagentType}s on the same ticket race on one worktree/branch — that is always a bug.`,

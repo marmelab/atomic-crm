@@ -19,13 +19,13 @@
 
 import { readFileSync } from "node:fs";
 import { createHookContext } from "./lib/context.mjs";
+import { isOrchestrator } from "./lib/teams.mjs";
 
 const input = JSON.parse(readFileSync(0, "utf8"));
 const ctx = createHookContext(input, "block-nested-orchestrator");
 
 const target = input.tool_input?.subagent_type || "";
 const caller = input.agent_type || ctx.agentType || "";
-const isOrchestrator = /^(chat-)?orchestrator(-|$)/.test(caller);
 
 // Rule 1 — orchestrator allowlist.
 const ALLOWED = [
@@ -35,7 +35,7 @@ const ALLOWED = [
   "merger",
   "documentator",
 ];
-if (isOrchestrator) {
+if (isOrchestrator(caller)) {
   if (!ALLOWED.includes(target)) {
     ctx.block({
       reason:

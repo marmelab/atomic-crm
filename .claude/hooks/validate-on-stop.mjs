@@ -5,6 +5,7 @@ import { existsSync, readFileSync } from "node:fs";
 import { createHookContext } from "./lib/context.mjs";
 import { git } from "./lib/git.mjs";
 import { getFirstTaskId } from "./lib/teams.mjs";
+import { readAgentMeta } from "./lib/agent-meta.mjs";
 import {
   sessionBranch,
   simpleWorktreePath,
@@ -39,16 +40,10 @@ let isSimple = false;
 // TASK-002: …"). Use it to scope validation to THIS dev's worktree instead of
 // re-validating every session worktree (wt=all) on every stop.
 if (!taskId) {
-  const tp0 = payload.agent_transcript_path || payload.transcript_path || "";
-  const metaPath = tp0.replace(/\.jsonl$/, ".meta.json");
-  if (metaPath.endsWith(".meta.json") && existsSync(metaPath)) {
-    try {
-      const meta = JSON.parse(readFileSync(metaPath, "utf8"));
-      const m = String(meta.description || "").match(/TASK-\d+/);
-      if (m) taskId = m[0];
-    } catch {
-      // best-effort — fall through to transcript recovery below
-    }
+  const meta = readAgentMeta(payload);
+  if (meta) {
+    const m = meta.description.match(/TASK-\d+/);
+    if (m) taskId = m[0];
   }
 }
 

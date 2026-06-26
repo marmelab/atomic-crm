@@ -3,6 +3,11 @@
 
 import { readFileSync } from "node:fs";
 import { createHookContext } from "./lib/context.mjs";
+import {
+  isDeveloper,
+  isOrchestrator,
+  isQualityReviewer,
+} from "./lib/teams.mjs";
 
 const input = JSON.parse(readFileSync(0, "utf8"));
 const ctx = createHookContext(input, "bash-guard");
@@ -49,19 +54,23 @@ if (browserViolation) {
 // `rm breaker/dispatch-*` to force a merge. Reads (ls/cat) stay allowed.
 // Match the orchestrator the same way block-nested-orchestrator does: agent_type
 // when present, else the CLAUDE_AGENT_NAME-derived ctx.agentType, allowing a
-// suffixed runtime name (orchestrator-…) and the chat- prefix.
-const isOrchestrator = /^(chat-)?orchestrator(-|$)/.test(
-  agent || ctx.agentType || "",
-);
-if (isOrchestrator) {
-  const guardPath = /\/(reviews|breaker)\//;
+// suffixed runtime name (orchestrator-…) and the chat- prefix. (isOrchestrator
+// lives in lib/teams.mjs so both gates share one predicate.)
+if (isOrchestrator(agent || ctx.agentType)) {
+  // Match `reviews`/`breaker` as a path segment bounded on the left by `/` and
+  // on the right by `/`, a quote, whitespace, or end-of-token. The trailing-slash
+  // form alone missed the command the codebase actually teaches the reviewer to
+  // use — `RD="$(dirname "$TICKET_FILE")/reviews" && touch "$RD/<flag>"` — whose
+  // literal text is `…/reviews"` then `$RD/…`, never `/reviews/`. That let a
+  // confused orchestrator forge a verdict flag through the documented form.
+  const guardPath = /\/(reviews|breaker)(\/|["'\s]|$)/;
   const mutatingVerb =
     /(^|[;&|]|\bsudo\b|\bxargs\b)\s*(rm|touch|mkdir|mv|cp|truncate|ln)\b/.test(
       cmd,
     ) ||
     /\bsed\s+(-[a-zA-Z]*i\b|--in-place)/.test(cmd) ||
     /\|\s*tee\b/.test(cmd);
-  const redirectToGuard = />>?\s*\S*\/(reviews|breaker)\//.test(cmd);
+  const redirectToGuard = />>?\s*\S*\/(reviews|breaker)(\/|["'\s]|$)/.test(cmd);
   if ((mutatingVerb && guardPath.test(cmd)) || redirectToGuard) {
     ctx.block({
       reason:
@@ -75,8 +84,12 @@ if (isOrchestrator) {
 
 // Validation rules — gated subagents only: the validation hooks already run
 // these; manual runs burn budget and can hang (vitest headed without CI=true).
-const GATED_AGENTS = ["developer", "quality-reviewer"];
-if (!GATED_AGENTS.includes(agent)) process.exit(0);
+// Resolve identity the same robust way as the guard-state rule above: prefer the
+// payload agent_type, fall back to the CLAUDE_AGENT_NAME-derived ctx.agentType,
+// and match via the suffix-aware predicates — so a `developer-TASK-001` runtime
+// name (or an empty agent_type) is still gated, not silently waved through.
+const who = agent || ctx.agentType || "";
+if (!isDeveloper(who) && !isQualityReviewer(who)) process.exit(0);
 
 const runsTypecheck = (c) =>
   /(make\s+typecheck|npm\s+run\s+typecheck|npx\s+tsc(\s|$)|tsc\s+--noEmit)/.test(

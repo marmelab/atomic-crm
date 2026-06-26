@@ -168,5 +168,26 @@ describe("bash-guard hook", () => {
       );
       expect(isBlocked(r)).toBe(true);
     });
+
+    // Regression: the form the codebase teaches the reviewer uses a shell
+    // variable, so the literal command text is `…/reviews"` then `$RD/…` and
+    // never contains `/reviews/`. The trailing-slash-only guard missed it,
+    // letting a confused orchestrator forge a verdict flag through the
+    // documented form.
+    test("orchestrator forging the flag via the documented variable form → blocked", () => {
+      const r = runHook(
+        "orchestrator",
+        `RD="$(dirname "$TICKET_FILE")/reviews" && mkdir -p "$RD" && touch "$RD/TASK-002-quality-reviewer"`,
+      );
+      expect(isBlocked(r)).toBe(true);
+    });
+
+    test("orchestrator cd-ing into the reviews dir then touching a flag → blocked", () => {
+      const r = runHook(
+        "orchestrator",
+        `cd ${SD}/reviews && touch TASK-002-quality-reviewer`,
+      );
+      expect(isBlocked(r)).toBe(true);
+    });
   });
 });

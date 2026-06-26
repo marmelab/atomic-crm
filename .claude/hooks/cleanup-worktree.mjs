@@ -13,6 +13,7 @@ import {
 } from "node:fs";
 import { join } from "node:path";
 import { createHookContext } from "./lib/context.mjs";
+import { readAgentMeta } from "./lib/agent-meta.mjs";
 import {
   getBaseBranch,
   getWorktreeEntries,
@@ -44,19 +45,9 @@ const ctx = createHookContext(raw, "cleanup-worktree");
   } catch {
     /* proceed */
   }
-  const tp = payload.agent_transcript_path || payload.transcript_path || "";
-  const metaPath = tp.replace(/\.jsonl$/, ".meta.json");
-  if (metaPath.endsWith(".meta.json") && existsSync(metaPath)) {
-    try {
-      const at = String(
-        JSON.parse(readFileSync(metaPath, "utf8")).agentType || "",
-      );
-      if (at && at !== "merger") {
-        ctx.accept(`skip — ${at} stop (cleanup runs on merger stops)`);
-      }
-    } catch {
-      // proceed with the normal cleanup
-    }
+  const meta = readAgentMeta(payload);
+  if (meta && meta.agentType && meta.agentType !== "merger") {
+    ctx.accept(`skip — ${meta.agentType} stop (cleanup runs on merger stops)`);
   }
 }
 
