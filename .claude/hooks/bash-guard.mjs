@@ -1,8 +1,13 @@
 #!/usr/bin/env node
-// PreToolUse(Bash) — single guard for Bash commands. Blocks commands that open browser windows (headed Playwright, Vite --open) for every caller, and blocks gated subagents from running validation commands (validate-on-stop.mjs runs them automatically on SubagentStop).
+// PreToolUse(Bash) — single guard for Bash commands. Blocks commands that open browser windows (headed Playwright, Vite --open) for every caller, blocks the orchestrator from mutating the review/dispatch guard state under <sessionDir>/{reviews,breaker}, and blocks gated subagents from running validation commands (validate-on-stop.mjs runs them automatically on SubagentStop).
 
 import { readFileSync } from "node:fs";
 import { createHookContext } from "./lib/context.mjs";
+import {
+  isDeveloper,
+  isOrchestrator,
+  isQualityReviewer,
+} from "./lib/teams.mjs";
 
 const input = JSON.parse(readFileSync(0, "utf8"));
 const ctx = createHookContext(input, "bash-guard");
@@ -39,10 +44,50 @@ if (browserViolation) {
   });
 }
 
+// Guard-state rule — orchestrator only: the orchestrator must NEVER mutate the
+// hook state under <sessionDir>/reviews (review-verdict flags) or
+// <sessionDir>/breaker (planner/duplicate-dispatch markers). Those files ARE the
+// safety guards (block-merger-without-review, block-duplicate-dispatch) — an
+// orchestrator that touches/rm's them forges an approval or clears a debounce and
+// bypasses review entirely.
+// Match the orchestrator the same way block-nested-orchestrator does: agent_type
+// when present, else the CLAUDE_AGENT_NAME-derived ctx.agentType, allowing a
+// suffixed runtime name (orchestrator-…) and the chat- prefix. (isOrchestrator
+// lives in lib/teams.mjs so both gates share one predicate.)
+if (isOrchestrator(agent || ctx.agentType)) {
+  // Match `reviews`/`breaker` as a path segment bounded on the left by `/` and
+  // on the right by `/`, a quote, whitespace, or end-of-token. The trailing-slash
+  // form alone missed the command the codebase actually teaches the reviewer to
+  // use — `RD="$(dirname "$TICKET_FILE")/reviews" && touch "$RD/<flag>"` — whose
+  // literal text is `…/reviews"` then `$RD/…`, never `/reviews/`. That let a
+  // confused orchestrator forge a verdict flag through the documented form.
+  const guardPath = /\/(reviews|breaker)(\/|["'\s]|$)/;
+  const mutatingVerb =
+    /(^|[;&|]|\bsudo\b|\bxargs\b)\s*(rm|touch|mkdir|mv|cp|truncate|ln)\b/.test(
+      cmd,
+    ) ||
+    /\bsed\s+(-[a-zA-Z]*i\b|--in-place)/.test(cmd) ||
+    /\|\s*tee\b/.test(cmd);
+  const redirectToGuard = />>?\s*\S*\/(reviews|breaker)(\/|["'\s]|$)/.test(cmd);
+  if ((mutatingVerb && guardPath.test(cmd)) || redirectToGuard) {
+    ctx.block({
+      reason:
+        "Refusing this command: the orchestrator must not write to or delete files under <session_dir>/reviews or <session_dir>/breaker — those ARE the review/dispatch guards. " +
+        "If a merger dispatch was blocked for 'no APPROVED verdict', do NOT fabricate the flag and do NOT re-dispatch the reviewer: the reviewer writes its own flag on APPROVED (quality-reviewer.md). A missing flag means the reviewer did NOT approve — read its output file and act on the real verdict. " +
+        "If a dispatch was blocked as 'still in flight', wait for its task-notification instead of clearing the marker.",
+      log: `BLOCK orchestrator guard-state mutation cmd=${cmd.slice(0, 120)}`,
+    });
+  }
+}
+
 // Validation rules — gated subagents only: the validation hooks already run
 // these; manual runs burn budget and can hang (vitest headed without CI=true).
-const GATED_AGENTS = ["developer", "quality-reviewer"];
-if (!GATED_AGENTS.includes(agent)) process.exit(0);
+// Resolve identity the same robust way as the guard-state rule above: prefer the
+// payload agent_type, fall back to the CLAUDE_AGENT_NAME-derived ctx.agentType,
+// and match via the suffix-aware predicates — so a `developer-TASK-001` runtime
+// name (or an empty agent_type) is still gated, not silently waved through.
+const who = agent || ctx.agentType || "";
+if (!isDeveloper(who) && !isQualityReviewer(who)) process.exit(0);
 
 const runsTypecheck = (c) =>
   /(make\s+typecheck|npm\s+run\s+typecheck|npx\s+tsc(\s|$)|tsc\s+--noEmit)/.test(

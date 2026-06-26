@@ -4,7 +4,7 @@ Applies to: developer, quality-reviewer. Any agent dispatched by the orchestrato
 
 Throughout this rule, `$REPO` is the project root (`$CLAUDE_PROJECT_DIR` — wherever the repo is checked out). `<WORKTREE_PATH>` is the absolute worktree path handed to you in your spawn prompt.
 
-Not applicable to: planner (searches `$REPO/src/` for file discovery), merger (operates in `$REPO` to merge), chat-orchestrator (doesn't touch files), project-manager (operates on `$REPO/docs/project-context.json` directly on main — config only, no code), documentator (writes `$REPO/MEMORY.md` directly on main in Mode 2; never touches application code).
+Not applicable to: planner (searches `$REPO/src/` for file discovery), merger (operates in `$REPO` to merge), orchestrator (doesn't touch files), project-manager (operates on `$REPO/docs/project-context.json` directly on main — config only, no code), documentator (writes `$REPO/MEMORY.md` directly on main in Mode 2; never touches application code).
 
 Developer ADRs follow the standard worktree rule: write `<WORKTREE_PATH>/adr/ADR-<SESSION_SHORT_ID>-<TASK-XXX>-<slug>.md` inside your worktree, commit alongside the implementation, the merger ships it to `$REPO/adr/` like any other change. See `Skill({skill: "adr-writing"})` for the full rules and template.
 
@@ -30,6 +30,7 @@ Each session owns an integration branch `session/<SESSION_SHORT_ID>` (forked fro
 |---|---|---|---|
 | `<WORKTREE_PATH>/**` (i.e. `<WORKTREE_BASE>/TASK-XXX/`) | ✅ | ✅ | ✅ |
 | `${TICKETS_DIR}/TASK-XXX.json` (per-session folder passed in your prompt) | ✅ (ticket source of truth) | ⚠️ merger writes the `status` field — no other writes | — |
+| `${TICKETS_DIR}/reviews/<TASK-XXX>-quality-reviewer` (`reviews/` sibling of the ticket file) | ✅ | ⚠️ quality-reviewer ONLY, and ONLY its own ticket's flag: `touch` on APPROVED / `rm -f` on REJECTED (records its verdict; see quality-reviewer.md). No other agent, no other file under `reviews/`. | — |
 | `$REPO/adr/**` | ✅ (learn from past structural decisions) | ❌ (developer writes ADRs inside the worktree at `<WORKTREE_PATH>/adr/`; the merger ships them to `$REPO/adr/`) | — |
 | `~/.claude/**` (`$CLAUDE_CONFIG_DIR`) | ✅ (skills, rules) | ❌ | — |
 

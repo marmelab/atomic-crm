@@ -2,7 +2,6 @@
   "id": "playwright",
   "version": "1.0.0",
   "name": "Playwright",
-  "postCreateCommand": "npx playwright install",
   "containerEnv": {
     "PLAYWRIGHT_BROWSERS_PATH": "/mount/.ms-playwright"
   },

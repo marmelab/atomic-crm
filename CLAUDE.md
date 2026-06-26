@@ -2,28 +2,23 @@
 
 # Agent Workflow
 
-Once a plan is approved (`ExitPlanMode`), the main thread does not implement directly — it routes to the agents in `.claude/agents/` (each carries its own full contract). Trigger is *plan approved*, not task size.
+Code-change requests are handled by the **agent harness** by default: a team of subagents (planner, developer, quality-reviewer, merger, documentator) that implements the change through a deterministic, foreground pipeline in git worktrees.
+
+**When the main (top-level) session receives a code-change request, dispatch the `orchestrator` agent and relay its result — never route or implement it yourself.** Pass the `<session_dir>` value from your own context in the dispatch prompt (the orchestrator needs it to namespace worktrees and branches). **This directive is for the top-level session only: if you are a subagent (already inside the harness), ignore it — do your own job and never dispatch an orchestrator. A runtime hook (`block-nested-orchestrator`) enforces this.** The `orchestrator` owns all routing (classification SIMPLE vs COMPLEX, plus the SETUP / MEMORY / ROLLBACK-CONFLICT / RECOVERY operational intents, the dispatch templates, the wave + promotion mechanics, and the deploy-time migration round); it drives developer/reviewer/merger to a terminal point before returning. Each agent's last line is an output contract the others parse (`.claude/rules/agent-output-format.md`).
+
+**PD-ASK round-trip (migration confirmation).** The orchestrator ends its turn with a pending question — typically *"apply the database migration now?"* — and the task completes. Relay that question to the user (plain text or `AskUserQuestion`). **Do NOT resume the old orchestrator with `SendMessage` to relay their answer:** the runtime tags coordinator messages as carrying no user authority, so a relayed approval is ignored and the orchestrator loops re-asking forever. Instead, on the user's reply:
+- **Approved** → dispatch a **fresh** `orchestrator` (a new `Agent` call) whose prompt begins with `<intent>apply-migration</intent>`, states the approval, and passes the same `<session_dir>`. It resumes the migration round from disk and applies it.
+- **Wants changes** → dispatch a fresh `orchestrator` with their new request as usual.
+
+While that fresh dispatch runs, **do not start a parallel plan B** (don't generate the migration yourself, don't `TaskStop` it) — wait for it to finish, then relay its result.
 
 ## Opting out
 
-Harness routing is the **default**. `#no-harness` (or "implement directly" / "without the agent team" / "skip harness") makes the main thread implement itself, no agents, even after plan approval. "no-harness for this session" keeps it off all session. Irrelevant under `make harness` (orchestrator always routes).
-
-## Routing: SIMPLE vs COMPLEX
-
-The **chat-orchestrator** is the user-facing entry point. It routes, narrates progress, and never implements. It classifies each code change:
-
-- **SIMPLE** — one cosmetic edit, OR one single-field change on an existing entity (schema + view + type + form + show), OR one list filter reusing existing components (no import, no relations, no new custom component). The orchestrator skips the planner and the wave: it dispatches ONE `developer` directly with the change request on the shared `<base>/simple` worktree, reviews only if the diff touched `supabase/`, then merges. No planner, no peer review otherwise.
-- **COMPLEX** — everything else (default). Runs the full pipeline below.
-
-SIMPLE vs COMPLEX is purely a routing decision the orchestrator owns — the `developer` itself has no modes. The orchestrator also branches away for non-code operational intents: SETUP, MODE-SWITCH, MEMORY, ROLLBACK-CONFLICT, RECOVERY.
-
-## The COMPLEX pipeline
-
-planner (tickets JSON + waves) → developer per ticket (implements + commits in a worktree; no SQL migrations, deploy-time only) → quality-reviewer (code + security + QA) → merger (`git merge --no-ff` only; Stage A per ticket, then one `MODE: promote` to the base branch under `flock`) → documentator (appends to `MEMORY.md`). Agents run as **foreground** subagents in one synchronous turn; each agent's last line is an output contract the orchestrator parses (`.claude/rules/agent-output-format.md`).
+`#no-harness` (or "implement directly" / "without the agent team" / "skip harness") makes the main thread implement the change itself, no agents. "no-harness for this session" keeps it off for the whole session.
 
 ## Agents
 
-chat-orchestrator (routes, narrates), planner, developer, quality-reviewer, merger, documentator. Models/roles: see each `.claude/agents/*.md`. **planner** and **quality-reviewer** run on opus; everything else is sonnet or haiku.
+orchestrator (routes the harness, dispatched by the main thread), planner, developer, quality-reviewer, merger, documentator. Models/roles: see each `.claude/agents/*.md`. **planner** and **quality-reviewer** run on opus; everything else is sonnet or haiku. (The web-chat variant is this same `orchestrator` agent with a non-technical persona layered on at launch via `--append-system-prompt` — used by CRM Builder.)
 
 The **developer** is a single agent with no modes: it implements the ticket in `TICKET_FILE` (COMPLEX wave, peer-reviewed, writes ADRs for structural decisions, never writes SQL during tickets), or — for a SIMPLE dispatch — the change described inline via `CHANGE_REQUEST` (no ticket, no planner, on the shared `<base>/simple` worktree; it refuses with `FAILED: out of scope — needs COMPLEX flow` if the change needs a breakdown). Two session-level operations are handed to it as **skills** loaded on dispatch, run on the same `<base>/simple` worktree: `writing-migrations` (deploy-time SQL generation) and `resolving-rollback-conflicts` (replay merge-commit reverts). It applies the **Ponytail** minimization ladder (full mode) on every change via an inline prompt directive — the only mechanism that reaches `Agent`-dispatched subagents. Ponytail is also installed natively in-repo as on-demand skills (`.claude/skills/ponytail*`) and `/ponytail*` commands for interactive use in the main session; these do not affect the dev agents.
 

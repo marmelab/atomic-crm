@@ -127,7 +127,8 @@ cd $CLAUDE_PROJECT_DIR && flock $CLAUDE_PROJECT_DIR/.promote.lock bash -c '
   [ -z "$DEFAULT" ] && { git show-ref --verify --quiet refs/heads/master && DEFAULT=master || DEFAULT=main; }
   git reset --hard HEAD                       # drop working-tree debris on whatever branch we are on
   git checkout "$DEFAULT" || exit 1           # promotion target is the session fork-base branch, NOT $CLAUDE_PROJECT_DIR HEAD
-  /entrypoint-helpers/apply-app-variant.sh    # checkout reverts App.tsx variant — re-apply it
+  # Docker-only helper: re-applies the App.tsx variant that checkout reverts. Absent in a local checkout — skip it there.
+  [ -x /entrypoint-helpers/apply-app-variant.sh ] && /entrypoint-helpers/apply-app-variant.sh
   git merge --no-ff session/<SESSION_SHORT_ID> -m "merge(session): <SESSION_SHORT_ID>" \
     || { git merge --abort; exit 1; }
 '
@@ -164,7 +165,8 @@ cd $CLAUDE_PROJECT_DIR && flock $CLAUDE_PROJECT_DIR/.promote.lock bash -c '
   [ -z "$DEFAULT" ] && { git show-ref --verify --quiet refs/heads/master && DEFAULT=master || DEFAULT=main; }
   git reset --hard HEAD
   git checkout "$DEFAULT" || exit 1
-  /entrypoint-helpers/apply-app-variant.sh
+  # Docker-only helper: re-applies the App.tsx variant that checkout reverts. Absent in a local checkout — skip it there.
+  [ -x /entrypoint-helpers/apply-app-variant.sh ] && /entrypoint-helpers/apply-app-variant.sh
   git merge --no-ff <BRANCH_NAME> -m "rollback(<SESSION_SHORT_ID>): undo via agent" \
     || { git merge --abort; exit 1; }
 '

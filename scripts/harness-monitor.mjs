@@ -39,10 +39,11 @@ const CLAUDE_PROJ = join(
   homedir(),
   ".claude",
   "projects",
-  REPO.replace(/\//g, "-"),
+  // Claude Code names the project dir by replacing EVERY non-alphanumeric char
+  // (slashes AND dots, e.g. ".code-workspace") with "-". Replacing only "/" broke
+  // discovery for any repo path containing a dot → "no subagent transcripts found".
+  REPO.replace(/[^a-zA-Z0-9]/g, "-"),
 );
-const HARNESS_ROOT = "/tmp/atomic-crm-harness";
-
 // A session id is a worktree-base subdir that has a hooks.log. Test fixtures
 // (td-1, td-2, …) are skipped — they are not real sessions.
 function listSessions() {
@@ -63,7 +64,9 @@ function sessionPaths(id) {
     hooksLog: join(base, "hooks.log"),
     mainTranscript: join(CLAUDE_PROJ, `${id}.jsonl`),
     subagentsDir: join(CLAUDE_PROJ, id, "subagents"),
-    ticketDirs: [join(HARNESS_ROOT, id), join(base, "tickets")],
+    // Tickets land in the session dir itself (TICKETS_DIR = session_dir = base);
+    // <base>/tickets is the legacy fallback layout.
+    ticketDirs: [base, join(base, "tickets")],
   };
 }
 
@@ -643,7 +646,7 @@ const sessionId = valueOf("--session") || listSessions()[0]?.id;
 if (!sessionId) {
   console.error(
     red(
-      `No session found under ${WORKTREE_ROOT}. Start the harness first (make harness).`,
+      `No session found under ${WORKTREE_ROOT}. Start a harness session first (ask Claude Code for a change).`,
     ),
   );
   process.exit(1);

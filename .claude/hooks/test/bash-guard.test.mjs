@@ -104,4 +104,90 @@ describe("bash-guard hook", () => {
       expect(isBlocked(r)).toBe(false);
     });
   });
+
+  describe("guard-state rule — orchestrator only", () => {
+    const SD = "/tmp/_repo/sess-1234";
+
+    test("orchestrator touches a review flag → blocked", () => {
+      const r = runHook(
+        "orchestrator",
+        `touch ${SD}/reviews/TASK-002-quality-reviewer`,
+      );
+      expect(r.status).toBe(0);
+      expect(isBlocked(r)).toBe(true);
+    });
+
+    test("orchestrator rm's a breaker marker → blocked", () => {
+      const r = runHook("orchestrator", `rm ${SD}/breaker/dispatch-abc123`);
+      expect(isBlocked(r)).toBe(true);
+    });
+
+    test("orchestrator mkdir + touch a review flag (compound) → blocked", () => {
+      const r = runHook(
+        "orchestrator",
+        `mkdir -p ${SD}/reviews && touch ${SD}/reviews/TASK-002-quality-reviewer`,
+      );
+      expect(isBlocked(r)).toBe(true);
+    });
+
+    test("orchestrator redirects into a breaker file → blocked", () => {
+      const r = runHook("orchestrator", `echo x > ${SD}/breaker/marker`);
+      expect(isBlocked(r)).toBe(true);
+    });
+
+    test("orchestrator lists the reviews dir (read) → allowed", () => {
+      const r = runHook("orchestrator", `ls ${SD}/reviews/`);
+      expect(isBlocked(r)).toBe(false);
+    });
+
+    test("orchestrator cats a review flag with 2>/dev/null (read) → allowed", () => {
+      const r = runHook(
+        "orchestrator",
+        `cat ${SD}/reviews/TASK-002-quality-reviewer 2>/dev/null`,
+      );
+      expect(isBlocked(r)).toBe(false);
+    });
+
+    test("quality-reviewer touches its own flag → allowed (reviewer is the writer)", () => {
+      const r = runHook(
+        "quality-reviewer",
+        `mkdir -p ${SD}/reviews && touch ${SD}/reviews/TASK-002-quality-reviewer`,
+      );
+      expect(isBlocked(r)).toBe(false);
+    });
+
+    test("orchestrator rm of an unrelated tmp file → allowed", () => {
+      const r = runHook("orchestrator", `rm ${SD}/scratch/note.txt`);
+      expect(isBlocked(r)).toBe(false);
+    });
+
+    test("chat-orchestrator variant touching a review flag → blocked", () => {
+      const r = runHook(
+        "chat-orchestrator",
+        `touch ${SD}/reviews/TASK-001-quality-reviewer`,
+      );
+      expect(isBlocked(r)).toBe(true);
+    });
+
+    // Regression: the form the codebase teaches the reviewer uses a shell
+    // variable, so the literal command text is `…/reviews"` then `$RD/…` and
+    // never contains `/reviews/`. The trailing-slash-only guard missed it,
+    // letting a confused orchestrator forge a verdict flag through the
+    // documented form.
+    test("orchestrator forging the flag via the documented variable form → blocked", () => {
+      const r = runHook(
+        "orchestrator",
+        `RD="$(dirname "$TICKET_FILE")/reviews" && mkdir -p "$RD" && touch "$RD/TASK-002-quality-reviewer"`,
+      );
+      expect(isBlocked(r)).toBe(true);
+    });
+
+    test("orchestrator cd-ing into the reviews dir then touching a flag → blocked", () => {
+      const r = runHook(
+        "orchestrator",
+        `cd ${SD}/reviews && touch TASK-002-quality-reviewer`,
+      );
+      expect(isBlocked(r)).toBe(true);
+    });
+  });
 });
