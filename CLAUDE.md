@@ -1,41 +1,50 @@
-@AGENTS.md
+# Hyer CRM
 
-# Agent Workflow
+## The business
+- Patrick is a partner at **Hyer** (hyertalents.com), launching the **US branch**.
+- Hyer = Singapore-based recruitment + Vietnam EOR (Employer of Record) + managed offshore teams + Energy/Oil & Gas retained search. Singapore EA License 22C1411.
+- Goal: land the first US clients.
 
-Once a plan is approved (`ExitPlanMode`), the main thread does not implement directly — it routes to the agents in `.claude/agents/` (each carries its own full contract). Trigger is *plan approved*, not task size.
+## US strategy
+- Target: funded US tech startups (seed-Series B, 20-150 employees, raised in the last 6-18 months, actively hiring).
+- Sell to Founder/CEO, CTO/VP Eng, or COO -- not HR.
+- Positioning: reliability & accountability, NOT cheap labor.
+- Pricing: premium-anchored (US-market rates, still ~50-65% under US cost) + "Founding Client" 15%-off-for-12-months for the first 5 logos.
 
-## Opting out
+## This CRM
+- **What:** Atomic CRM (open-source, MIT), rebranded as "Hyer CRM."
+- **Live URL:** https://cozy-semolina-708416.netlify.app
+- **Hosting:** Netlify, team "Hyer", site `cozy-semolina-708416` (free tier).
+- **Database:** Supabase project ref `ujfyhbdlaliwuqqwafwx`, URL https://ujfyhbdlaliwuqqwafwx.supabase.co (free tier).
+- **Deploy:** pushing to `main` auto-deploys to Netlify in ~1 minute.
+- **Build:** `npm run build`, publish dir `dist`.
+- **Netlify env vars:** `VITE_SUPABASE_URL`, `VITE_SB_PUBLISHABLE_KEY`, `VITE_ATTACHMENTS_BUCKET=attachments`, `VITE_IS_DEMO=false`.
+- **Admin login:** pat@hyertalents.com (email confirmation OFF in Supabase auth).
 
-Harness routing is the **default**. `#no-harness` (or "implement directly" / "without the agent team" / "skip harness") makes the main thread implement itself, no agents, even after plan approval. "no-harness for this session" keeps it off all session. Irrelevant under `make harness` (orchestrator always routes).
+## CRM configuration
+- **Pipeline stages:** New, Contacted, Connected, Replied - Warm, Call Booked, Proposal Sent, Won, Nurture / Later, Not a Fit.
+- **Deal categories:** Dev Pod, EOR Only, EA / Ops, Customer Support, Marketing, Design, Energy / O&G Search, Other.
+- **Company sectors:** SaaS, AI / ML, FinTech, Dev Tools / Infra, E-commerce / DTC, HealthTech, Marketing Agency, Energy / Oil & Gas, Other.
+- **Note statuses:** Cold, Warm, Hot, Client.
+- **Task types:** None, Email, LinkedIn, Call, Follow-up, Demo / Discovery, Proposal, Thank you.
+- **77 Texas leads imported** (tagged Texas / Tier 1).
 
-## Routing: SIMPLE vs COMPLEX
+## Tech stack
+- React 19 + TypeScript + Vite
+- React Router v7, TanStack Query, React Hook Form
+- shadcn-admin-kit + ra-core (react-admin headless)
+- Shadcn UI + Radix UI + Tailwind CSS v4
+- Supabase (PostgreSQL + REST API + Auth + Storage + Edge Functions)
 
-The **chat-orchestrator** is the user-facing entry point. It routes, narrates progress, and never implements. It classifies each code change:
+## Related files (in ~/HYER/ folder, not in this repo)
+- `Hyer_USA_Launch_Plan.docx` -- ICP, US price book, week-1 plan.
+- `Hyer_Outreach_Assistant_SOPs.docx` -- playbook + templates for the Vietnam assistant.
+- `Hyer_Pricing_Calculator.html` -- live cost-vs-Hyer savings calculator.
+- `Hyer_Texas_Leads_CRM_import.csv` -- the 77 leads in CRM import format.
+- `WORK/` -- earlier research (target accounts, email sequences, sales scripts).
 
-- **SIMPLE** — one cosmetic edit, OR one single-field change on an existing entity (schema + view + type + form + show), OR one list filter reusing existing components (no import, no relations, no new custom component). The orchestrator skips the planner and the wave: it dispatches ONE `developer` directly with the change request on the shared `<base>/simple` worktree, reviews only if the diff touched `supabase/`, then merges. No planner, no peer review otherwise.
-- **COMPLEX** — everything else (default). Runs the full pipeline below.
-
-SIMPLE vs COMPLEX is purely a routing decision the orchestrator owns — the `developer` itself has no modes. The orchestrator also branches away for non-code operational intents: SETUP, MODE-SWITCH, MEMORY, ROLLBACK-CONFLICT, RECOVERY.
-
-## The COMPLEX pipeline
-
-planner (tickets JSON + waves) → developer per ticket (implements + commits in a worktree; no SQL migrations, deploy-time only) → quality-reviewer (code + security + QA) → merger (`git merge --no-ff` only; Stage A per ticket, then one `MODE: promote` to the base branch under `flock`) → documentator (appends to `MEMORY.md`). Agents run as **foreground** subagents in one synchronous turn; each agent's last line is an output contract the orchestrator parses (`.claude/rules/agent-output-format.md`).
-
-## Agents
-
-chat-orchestrator (routes, narrates), planner, developer, quality-reviewer, merger, documentator. Models/roles: see each `.claude/agents/*.md`. **planner** and **quality-reviewer** run on opus; everything else is sonnet or haiku.
-
-The **developer** is a single agent with no modes: it implements the ticket in `TICKET_FILE` (COMPLEX wave, peer-reviewed, writes ADRs for structural decisions, never writes SQL during tickets), or — for a SIMPLE dispatch — the change described inline via `CHANGE_REQUEST` (no ticket, no planner, on the shared `<base>/simple` worktree; it refuses with `FAILED: out of scope — needs COMPLEX flow` if the change needs a breakdown). Two session-level operations are handed to it as **skills** loaded on dispatch, run on the same `<base>/simple` worktree: `writing-migrations` (deploy-time SQL generation) and `resolving-rollback-conflicts` (replay merge-commit reverts). It applies the **Ponytail** minimization ladder (full mode) on every change via an inline prompt directive — the only mechanism that reaches `Agent`-dispatched subagents. Ponytail is also installed natively in-repo as on-demand skills (`.claude/skills/ponytail*`) and `/ponytail*` commands for interactive use in the main session; these do not affect the dev agents.
-
-## Rules & hooks
-
-Mechanics live in `.claude/rules/` (worktree-scope, agent-output-format, validation-commands, security-triggers). Hooks in `.claude/settings.json` / `.claude/hooks/` are `.mjs` ES modules.
-
-## graphify
-
-This project has a knowledge graph at graphify-out/ with god nodes, community structure, and cross-file relationships.
-
-Rules:
-- For codebase questions, first run `graphify query "<question>"` when graphify-out/graph.json exists. Use `graphify path "<A>" "<B>"` for relationships and `graphify explain "<concept>"` for focused concepts. These return a scoped subgraph, usually much smaller than GRAPH_REPORT.md or raw grep output.
-- Read graphify-out/GRAPH_REPORT.md only for broad architecture review or when query/path/explain do not surface enough context.
-- After modifying code, run `graphify update .` to keep the graph current (AST-only, no API cost).
+## Working with this repo
+- Make changes directly on `main` -- no branching workflow needed.
+- After committing and pushing, Netlify auto-rebuilds in ~1 minute.
+- For in-app changes (contacts, deals, pipeline config): use the CRM UI directly.
+- For code changes (branding, new fields, features): edit this repo and push.
