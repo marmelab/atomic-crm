@@ -172,3 +172,5 @@ verify_jwt = false
 verify_jwt = false
 [functions.mcp]
 verify_jwt = false
+[functions.email_verifier]
+verify_jwt = false

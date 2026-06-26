@@ -10,6 +10,7 @@ import type {
   ContactNote,
   Deal,
   DealNote,
+  EmailVerificationResult,
   RAFile,
   Sale,
   SalesFormData,
@@ -224,6 +225,21 @@ const getDataProviderWithCustomMethods = () => {
       }
 
       return data;
+    },
+    async verifyEmails(emails: string[]): Promise<EmailVerificationResult[]> {
+      const { data, error } = await getSupabaseClient().functions.invoke<{
+        data: EmailVerificationResult[];
+      }>("email_verifier", {
+        method: "POST",
+        body: { emails },
+      });
+
+      if (!data || error) {
+        console.error("email_verifier.error", error);
+        throw new Error("Failed to verify emails");
+      }
+
+      return data.data;
     },
     async getConfiguration(): Promise<ConfigurationContextValue> {
       const { data } = await baseDataProvider.getOne("configuration", {

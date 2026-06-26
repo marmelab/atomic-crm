@@ -18,6 +18,7 @@ import { Card } from "@/components/ui/card";
 
 import type { Company, Contact, Sale, Tag } from "../types";
 import { BulkTagButton } from "./BulkTagButton";
+import { BulkVerifyButton } from "./BulkVerifyButton";
 import { ContactEmpty } from "./ContactEmpty";
 import { ContactImportButton } from "./ContactImportButton";
 import {
@@ -79,6 +80,7 @@ const ContactBulkActionButtons = () => (
   <>
     <SelectAllButton />
     <BulkTagButton />
+    <BulkVerifyButton />
     <BulkExportButton />
     <BulkDeleteButton />
   </>

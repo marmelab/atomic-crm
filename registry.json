@@ -654,6 +654,10 @@
           "type": "registry:component"
         },
         {
+          "path": "src/components/atomic-crm/contacts/VerifyEmailsButton.tsx",
+          "type": "registry:component"
+        },
+        {
           "path": "src/components/atomic-crm/contacts/TagsListEdit.tsx",
           "type": "registry:component"
         },
@@ -663,6 +667,10 @@
         },
         {
           "path": "src/components/atomic-crm/contacts/ExportVCardButton.tsx",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/contacts/EmailVerificationBadge.tsx",
           "type": "registry:component"
         },
         {
@@ -727,6 +735,10 @@
         },
         {
           "path": "src/components/atomic-crm/contacts/ContactAside.tsx",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/contacts/BulkVerifyButton.tsx",
           "type": "registry:component"
         },
         {

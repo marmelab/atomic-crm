@@ -11,7 +11,8 @@ import {
   translateContactGenderLabel,
   translatePersonalInfoTypeLabel,
 } from "./contactModel";
-import type { Contact } from "../types";
+import type { Contact, EmailAndType } from "../types";
+import { EmailVerificationBadge } from "./EmailVerificationBadge";
 
 export const ContactPersonalInfo = () => {
   const record = useRecordContext<Contact>();
@@ -83,7 +84,7 @@ export const ContactPersonalInfo = () => {
 };
 
 const EmailRow = () => {
-  const record = useRecordContext<{ email: string }>();
+  const record = useRecordContext<EmailAndType>();
   const translate = useTranslate();
   const [copied, setCopied] = useState(false);
 
@@ -112,7 +113,12 @@ const EmailRow = () => {
           )}
         </button>
       }
-      primary={<EmailField source="email" />}
+      primary={
+        <span className="inline-flex items-center gap-x-1.5">
+          <EmailField source="email" />
+          <EmailVerificationBadge verification={record.verification} />
+        </span>
+      }
     />
   );
 };

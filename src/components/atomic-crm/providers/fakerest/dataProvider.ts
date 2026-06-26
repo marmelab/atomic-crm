@@ -14,6 +14,8 @@ import type {
   ContactNote,
   Deal,
   DealNote,
+  EmailVerificationResult,
+  EmailVerificationStatus,
   Sale,
   SalesFormData,
   SignUpData,
@@ -296,6 +298,25 @@ export const createDataProvider = ({
     },
     mergeContacts: async (sourceId: Identifier, targetId: Identifier) => {
       return mergeContacts(sourceId, targetId, baseDataProvider);
+    },
+    verifyEmails: async (
+      emails: string[],
+    ): Promise<EmailVerificationResult[]> => {
+      // Demo stub — deterministic, no network. Addresses containing
+      // "invalid" / "catch" simulate those statuses; everything else is Valid.
+      const checkedAt = new Date().toISOString();
+      return emails.map((email) => {
+        const lower = email.toLowerCase();
+        const status: EmailVerificationStatus = lower.includes("invalid")
+          ? "Invalid"
+          : lower.includes("catch")
+            ? "Catch-all"
+            : "Valid";
+        return {
+          email,
+          verification: { status, diagnosis: "Demo result", checkedAt },
+        };
+      });
     },
     getConfiguration: async (): Promise<ConfigurationContextValue> => {
       const { data } = await baseDataProvider.getOne("configuration", {

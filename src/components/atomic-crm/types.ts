@@ -71,9 +71,34 @@ export type Company = {
   nb_deals?: number;
 } & Pick<RaRecord, "id">;
 
+export type EmailVerificationStatus =
+  | "Valid"
+  | "Invalid"
+  | "Catch-all"
+  | "Unknown";
+
+// Result of a MyEmailVerifier check, persisted alongside each email in
+// `email_jsonb` (schemaless JSONB — no DB migration needed).
+export type EmailVerification = {
+  status: EmailVerificationStatus;
+  diagnosis?: string;
+  roleBased?: boolean;
+  disposable?: boolean;
+  freeDomain?: boolean;
+  checkedAt: string; // ISO timestamp
+};
+
 export type EmailAndType = {
   email: string;
   type: "Work" | "Home" | "Other";
+  verification?: EmailVerification;
+};
+
+// One entry per email returned by the `verifyEmails` data-provider method.
+export type EmailVerificationResult = {
+  email: string;
+  verification: EmailVerification | null;
+  error?: string;
 };
 
 export type PhoneNumberAndType = {
