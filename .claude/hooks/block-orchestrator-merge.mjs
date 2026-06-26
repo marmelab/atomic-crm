@@ -3,7 +3,7 @@
 // commands. The main orchestrator session and every other subagent (developer,
 // reviewers, …) are blocked; if any of them falls back to merging itself, the
 // team workflow looks healthy but is silently broken (the dev↔merger path is
-// dead). The behavioral rule lives in chat-orchestrator.md ("NEVER act as merger
+// dead). The behavioral rule lives in orchestrator.md ("NEVER act as merger
 // yourself"); this is the runtime guard.
 //
 // OPT-IN: inert unless ATOMIC_CRM_ENFORCE_MERGE_GUARD=1. In a plain Claude Code
@@ -40,8 +40,8 @@ else if (/apply-app-variant\.sh/.test(cmd))
 if (blocked) {
   ctx.fail(
     `Blocked: only the dispatched \`merger\` agent may run "${blocked}".\n\n` +
-      "Rule: chat-orchestrator must NEVER act as merger, and neither may any other\n" +
-      "subagent. Only the `merger` runs merge-class git commands. See chat-orchestrator.md\n" +
+      "Rule: the orchestrator must NEVER act as merger, and neither may any other\n" +
+      "subagent. Only the `merger` runs merge-class git commands. See orchestrator.md\n" +
       '"NEVER act as merger yourself".\n\n' +
       "If you got here because the merger didn't report back, the team communication broke —\n" +
       "the dev's \"ready\" message never reached the merger. Don't salvage by merging yourself;\n" +

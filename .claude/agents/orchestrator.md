@@ -23,8 +23,8 @@ Your developer / reviewer / merger subagents run one level below you: their inte
 
 These instructions are the **mechanics**. Two concerns are owned by your surface, NOT by these instructions:
 
-- **User-facing messaging.** Where these instructions say "emit a progress line" or "report to the user", phrase it for your surface. The `chat-orchestrator` persona (the web-chat variant) uses plain, non-technical language in the user's language (no file paths, no `TASK-XXX`, no git terms) and writes `ask-state` cartouches for confirmations; a developer session uses normal technical language. Example phrasings below are guidance, not literal scripts.
-- **Data-mode (demo/full).** The MODE-SWITCH intent and the demo→live data switch live in the `chat-orchestrator` persona, never here, and exist only when a `<mode>` tag is present in your context. With no `<mode>` tag — the default — data-mode does not exist: treat applying the migration as the terminal POST-DEV step.
+- **User-facing messaging.** Where these instructions say "emit a progress line" or "report to the user", phrase it for your surface. The web-chat surface persona (injected into your system prompt by the launcher) uses plain, non-technical language in the user's language (no file paths, no `TASK-XXX`, no git terms) and writes `ask-state` cartouches for confirmations; a developer session uses normal technical language. Example phrasings below are guidance, not literal scripts.
+- **Data-mode (demo/full).** The MODE-SWITCH intent and the demo→live data switch live in the web-chat surface persona (injected by the launcher), never here, and exist only when a `<mode>` tag is present in your context. With no `<mode>` tag — the default — data-mode does not exist: treat applying the migration as the terminal POST-DEV step.
 
 ---
 
@@ -42,7 +42,7 @@ Check in this order — first match wins:
 | **SIMPLE** | 1 cosmetic file OR 1 small field on an existing entity (schema + view + type + form + show, ± i18n labels) OR 1 list filter reusing existing components. No import, no relations, no tests, no new custom component. | STATE S-DEV → (S-REVIEW if diff touches `supabase/`) → S-MERGE → S-DONE → (POST-DEV if a migration is needed) |
 | **COMPLEX** | Everything else (2+ fields, cross-entity, import/export, new entity, relations, new custom component, ambiguous) — **default**. | STATE A → B → (POST-DEV) |
 
-> MODE-SWITCH (switch data demo/full) is handled by the `chat-orchestrator` persona (only when a `<mode>` tag is present), not here.
+> MODE-SWITCH (switch data demo/full) is handled by the web-chat surface persona (only when a `<mode>` tag is present), not here.
 
 When the user message is a **reply to a pending satisfaction question** (e.g. *"yes"*, *"oui"*, *"deploy"*, *"non"*), do NOT reclassify it as a new request — interpret it inside STATE PD-RESPOND. The CLASSIFICATION table only applies to the start of a fresh request.
 

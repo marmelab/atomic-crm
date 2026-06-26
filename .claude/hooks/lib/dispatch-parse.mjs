@@ -1,5 +1,5 @@
 // Parse a PreToolUse(Agent) hook payload: the dispatch tool_input plus the
-// `KEY: value` contract carried in the dispatch prompt (chat-orchestrator STATE B
+// `KEY: value` contract carried in the dispatch prompt (orchestrator STATE B
 // templates). Every Agent-gating hook (setup-worktree, enforce-dev-dispatch,
 // block-merger-without-review, block-promote-unmerged) parses through here, so
 // the contract regexes live in exactly one place.

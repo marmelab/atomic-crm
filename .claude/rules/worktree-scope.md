@@ -4,7 +4,7 @@ Applies to: developer, quality-reviewer. Any agent dispatched by the orchestrato
 
 Throughout this rule, `$REPO` is the project root (`$CLAUDE_PROJECT_DIR` — wherever the repo is checked out). `<WORKTREE_PATH>` is the absolute worktree path handed to you in your spawn prompt.
 
-Not applicable to: planner (searches `$REPO/src/` for file discovery), merger (operates in `$REPO` to merge), chat-orchestrator (doesn't touch files), project-manager (operates on `$REPO/docs/project-context.json` directly on main — config only, no code), documentator (writes `$REPO/MEMORY.md` directly on main in Mode 2; never touches application code).
+Not applicable to: planner (searches `$REPO/src/` for file discovery), merger (operates in `$REPO` to merge), orchestrator (doesn't touch files), project-manager (operates on `$REPO/docs/project-context.json` directly on main — config only, no code), documentator (writes `$REPO/MEMORY.md` directly on main in Mode 2; never touches application code).
 
 Developer ADRs follow the standard worktree rule: write `<WORKTREE_PATH>/adr/ADR-<SESSION_SHORT_ID>-<TASK-XXX>-<slug>.md` inside your worktree, commit alongside the implementation, the merger ships it to `$REPO/adr/` like any other change. See `Skill({skill: "adr-writing"})` for the full rules and template.
 
