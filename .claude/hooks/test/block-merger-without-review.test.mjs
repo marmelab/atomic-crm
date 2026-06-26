@@ -42,6 +42,11 @@ beforeAll(() => {
   reviewsDir = join(CRM_TMP_ROOT, sanitizePath(APP_DIR), SESSION_ID, "reviews");
   mkdirSync(reviewsDir, { recursive: true });
   env = { ...process.env, APP_DIR, CRM_TMP_ROOT };
+  // Neutralise an ambient CHAT_SESSION_DIR: reviewsDir() prefers it over
+  // ctx.sessionDir (managed-launcher path), which would point the verdict flag
+  // away from this test's CRM_TMP_ROOT fixture. See reviews.test.mjs for the
+  // CHAT_SESSION_DIR-present behaviour.
+  delete env.CHAT_SESSION_DIR;
 });
 
 afterAll(() => rmSync(TMP, { recursive: true, force: true }));
