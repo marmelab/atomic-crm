@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// PreToolUse(Bash) — single guard for Bash commands. Blocks commands that open browser windows (headed Playwright, Vite --open) for every caller, and blocks gated subagents from running validation commands (validate-on-stop.mjs runs them automatically on SubagentStop).
+// PreToolUse(Bash) — single guard for Bash commands. Blocks commands that open browser windows (headed Playwright, Vite --open) for every caller, blocks the orchestrator from mutating the review/dispatch guard state under <sessionDir>/{reviews,breaker}, and blocks gated subagents from running validation commands (validate-on-stop.mjs runs them automatically on SubagentStop).
 
 import { readFileSync } from "node:fs";
 import { createHookContext } from "./lib/context.mjs";
@@ -37,6 +37,40 @@ if (browserViolation) {
     reason: browserViolation[1],
     log: `browser cmd=${cmd.slice(0, 120)}`,
   });
+}
+
+// Guard-state rule — orchestrator only: the orchestrator must NEVER mutate the
+// hook state under <sessionDir>/reviews (review-verdict flags) or
+// <sessionDir>/breaker (planner/duplicate-dispatch markers). Those files ARE the
+// safety guards (block-merger-without-review, block-duplicate-dispatch) — an
+// orchestrator that touches/rm's them forges an approval or clears a debounce and
+// bypasses review entirely. This happened in a past session: a racy verdict flag
+// led the orchestrator to `touch reviews/TASK-002-quality-reviewer` and
+// `rm breaker/dispatch-*` to force a merge. Reads (ls/cat) stay allowed.
+// Match the orchestrator the same way block-nested-orchestrator does: agent_type
+// when present, else the CLAUDE_AGENT_NAME-derived ctx.agentType, allowing a
+// suffixed runtime name (orchestrator-…) and the chat- prefix.
+const isOrchestrator = /^(chat-)?orchestrator(-|$)/.test(
+  agent || ctx.agentType || "",
+);
+if (isOrchestrator) {
+  const guardPath = /\/(reviews|breaker)\//;
+  const mutatingVerb =
+    /(^|[;&|]|\bsudo\b|\bxargs\b)\s*(rm|touch|mkdir|mv|cp|truncate|ln)\b/.test(
+      cmd,
+    ) ||
+    /\bsed\s+(-[a-zA-Z]*i\b|--in-place)/.test(cmd) ||
+    /\|\s*tee\b/.test(cmd);
+  const redirectToGuard = />>?\s*\S*\/(reviews|breaker)\//.test(cmd);
+  if ((mutatingVerb && guardPath.test(cmd)) || redirectToGuard) {
+    ctx.block({
+      reason:
+        "Refusing this command: the orchestrator must not write to or delete files under <session_dir>/reviews or <session_dir>/breaker — those ARE the review/dispatch guards. " +
+        "If a merger dispatch was blocked for 'no APPROVED verdict', do NOT fabricate the flag and do NOT re-dispatch the reviewer: the reviewer writes its own flag on APPROVED (quality-reviewer.md). A missing flag means the reviewer did NOT approve — read its output file and act on the real verdict. " +
+        "If a dispatch was blocked as 'still in flight', wait for its task-notification instead of clearing the marker.",
+      log: `BLOCK orchestrator guard-state mutation cmd=${cmd.slice(0, 120)}`,
+    });
+  }
 }
 
 // Validation rules — gated subagents only: the validation hooks already run

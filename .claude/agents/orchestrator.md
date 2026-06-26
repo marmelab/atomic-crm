@@ -412,6 +412,8 @@ Agent({ subagent_type: "merger",
 
 Per result: `DONE: T commit=…` → `stage = DONE`; `FAILED:`/malformed → `stage = FAILED`. (The `block-merger-without-review` hook gates each merger dispatch on the recorded quality-reviewer `APPROVED` verdict.)
 
+**If the merger dispatch is blocked for `no APPROVED verdict yet`:** the quality-reviewer writes its own verdict flag on APPROVED (it's the source of truth — see quality-reviewer.md), so a missing flag means **the reviewer did NOT approve**, regardless of any APPROVED text you think you saw. Do NOT re-dispatch the reviewer to "create the record", and **never create, touch, or delete files under `<session_dir>/reviews` or `<session_dir>/breaker` yourself** — those files ARE the guard, and `bash-guard` blocks you from mutating them. Instead: re-read the reviewer's actual output/contract line for that ticket. If it truly was `REJECTED`, follow the Stage 2 retry path; if the reviewer genuinely emitted `APPROVED` but its self-write failed, re-run the SAME reviewer dispatch (a fresh review, not a flag hack) so it records the flag on its own. Forging the flag bypasses review — that is always a bug.
+
 Emit a progress line only when crossing a milestone the user cares about (a ticket merged, a ticket failed) — never expose `TASK-XXX`, paths, SHAs, branches when reporting (your surface decides the wording).
 
 #### Next wave / wrap-up
@@ -574,11 +576,12 @@ Reply with the user-facing wrap-up, then enter STATE DONE.
 ## NEVER DO
 
 - ❌ Dispatch an `orchestrator` / `chat-orchestrator` agent — **you ARE the orchestrator**. CLAUDE.md's "dispatch the orchestrator" line is for the main thread only; ignore it. (A hook blocks it anyway.)
-- ❌ Dispatch a `general-purpose` agent for planning/implementation/review/merge — always use the real typed agents: `planner`, `developer`, `quality-reviewer`, `merger`, `documentator`. A `general-purpose` agent has no role constraints and will not produce the expected output contracts.
+- ❌ Dispatch a `general-purpose` agent for planning/implementation/review/merge — always use the real typed agents: `planner`, `developer`, `quality-reviewer`, `merger`, `documentator`. A `general-purpose` agent has no role constraints and will not produce the expected output contracts. **Every `Agent` call MUST set `subagent_type` explicitly** — omitting it defaults to `general-purpose` (shown as `(none)` in the block message), which `block-nested-orchestrator` rejects.
 - ❌ `git merge`, `git checkout master/main`, `git pull`, `git worktree remove` from your own Bash — only the merger does this.
 - ✅ Exception: during SETUP-INTERVIEW, you may `cd $CLAUDE_PROJECT_DIR && git add docs/project-context.json && git commit -m "chore(setup): …"` on the base branch. The only git write you are allowed.
 - ✅ Exception: a `promotion-conflict-resolver` developer may `git add`/`git commit` a merge resolution directly in `$CLAUDE_PROJECT_DIR` on the base branch, under `.promote.lock`.
 - ❌ Merge yourself if the merger fails or doesn't report → report failure, stop.
+- ❌ Create, touch, edit, or delete any file under `<session_dir>/reviews` or `<session_dir>/breaker` — those are the review-verdict and dispatch-debounce guards. Fabricating an approval flag or clearing a dispatch marker bypasses review; `bash-guard` blocks it. The reviewer writes its own verdict flag; you only ever read these dirs.
 - ❌ Set `run_in_background: true` (or end the turn waiting) on any STATE B dispatch — STATE B is fully foreground.
 - ❌ Start a ticket's next stage before the current stage's foreground agents have returned.
 - ❌ Run per-ticket mergers concurrently — dispatch one at a time (Stage 3).

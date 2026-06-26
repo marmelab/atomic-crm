@@ -30,6 +30,7 @@ Each session owns an integration branch `session/<SESSION_SHORT_ID>` (forked fro
 |---|---|---|---|
 | `<WORKTREE_PATH>/**` (i.e. `<WORKTREE_BASE>/TASK-XXX/`) | ✅ | ✅ | ✅ |
 | `${TICKETS_DIR}/TASK-XXX.json` (per-session folder passed in your prompt) | ✅ (ticket source of truth) | ⚠️ merger writes the `status` field — no other writes | — |
+| `${TICKETS_DIR}/reviews/<TASK-XXX>-quality-reviewer` (`reviews/` sibling of the ticket file) | ✅ | ⚠️ quality-reviewer ONLY, and ONLY its own ticket's flag: `touch` on APPROVED / `rm -f` on REJECTED (records its verdict; see quality-reviewer.md). No other agent, no other file under `reviews/`. | — |
 | `$REPO/adr/**` | ✅ (learn from past structural decisions) | ❌ (developer writes ADRs inside the worktree at `<WORKTREE_PATH>/adr/`; the merger ships them to `$REPO/adr/`) | — |
 | `~/.claude/**` (`$CLAUDE_CONFIG_DIR`) | ✅ (skills, rules) | ❌ | — |
 

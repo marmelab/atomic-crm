@@ -1,7 +1,14 @@
 #!/usr/bin/env node
-// SubagentStop(quality-reviewer) — record the reviewer's verdict
-// as a per-ticket flag so block-merger-without-review.mjs can enforce
-// dev -> reviewer -> merger. SubagentStop cannot block — it only records.
+// SubagentStop(quality-reviewer) — FALLBACK recorder of the reviewer's verdict
+// flag (block-merger-without-review.mjs enforces dev -> reviewer -> merger on it).
+// The PRIMARY writer is now the quality-reviewer agent itself, which touches the
+// flag via Bash before it stops (see quality-reviewer.md) — synchronous, no race.
+// This hook stays as belt-and-suspenders: at SubagentStop the reviewer's final
+// contract line is often not yet flushed to the transcript (and last_assistant_message
+// is absent in this runtime), so verdict recovery here can return UNKNOWN and the
+// flag is left untouched. That silent miss was the TASK-002 cascade — the agent
+// self-write removes the dependency; this hook only catches the case the agent
+// skipped its touch. SubagentStop cannot block — it only records.
 //
 // Flag (presence == APPROVED): <sessionDir>/reviews/<TASK>-<role>. Cleared on
 // REJECTED here; cleared on a developer (re)dispatch by setup-worktree.mjs so a
