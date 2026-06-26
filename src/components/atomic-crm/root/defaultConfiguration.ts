@@ -24,7 +24,7 @@ export const defaultDealStages = [
   { value: "new", label: "New" },
   { value: "contacted", label: "Contacted" },
   { value: "connected", label: "Connected" },
-  { value: "replied", label: "Replied - Warm" },
+  { value: "replied", label: "Replied – Warm" },
   { value: "call-booked", label: "Call Booked" },
   { value: "proposal", label: "Proposal Sent" },
   { value: "won", label: "Won" },
