@@ -106,6 +106,47 @@ export type PhoneNumberAndType = {
   type: "Work" | "Home" | "Other";
 };
 
+// Furthest-along outreach state for a contact (denormalized for quick display).
+export type OutreachStatus =
+  | "not_contacted"
+  | "queued"
+  | "emailed"
+  | "opened"
+  | "replied"
+  | "interested"
+  | "meeting_booked"
+  | "closed"
+  | "bounced"
+  | "unsubscribed"
+  | "not_interested"
+  | "wrong_person";
+
+// A single timestamped outreach event (one row per Instantly webhook / push).
+export type OutreachEventType =
+  | "queued"
+  | "emailed"
+  | "opened"
+  | "clicked"
+  | "replied"
+  | "bounced"
+  | "interested"
+  | "not_interested"
+  | "neutral"
+  | "meeting_booked"
+  | "closed"
+  | "unsubscribed"
+  | "wrong_person";
+
+export type OutreachEvent = {
+  contact_id: Identifier;
+  type: OutreachEventType;
+  campaign?: string | null;
+  summary?: string | null;
+  occurred_at: string;
+  payload?: Record<string, unknown> | null;
+  created_at: string;
+} & Pick<RaRecord, "id">;
+
 export type Contact = {
   first_name: string;
   last_name: string;
@@ -123,6 +164,10 @@ export type Contact = {
   status: string;
   background: string;
   phone_jsonb: PhoneNumberAndType[];
+  outreach_status?: OutreachStatus;
+  last_emailed_at?: string | null;
+  last_outreach_at?: string | null;
+  instantly_campaign?: string | null;
   nb_tasks?: number;
   company_name?: string;
 } & Pick<RaRecord, "id">;

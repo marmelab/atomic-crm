@@ -7,6 +7,7 @@
 alter table public.companies enable row level security;
 alter table public.contacts enable row level security;
 alter table public.contact_notes enable row level security;
+alter table public.outreach_events enable row level security;
 alter table public.deals enable row level security;
 alter table public.deal_notes enable row level security;
 alter table public.sales enable row level security;
@@ -32,6 +33,12 @@ create policy "Enable read access for authenticated users" on public.contact_not
 create policy "Enable insert for authenticated users only" on public.contact_notes for insert to authenticated with check (true);
 create policy "Contact Notes Update policy" on public.contact_notes for update to authenticated using (true);
 create policy "Contact Notes Delete Policy" on public.contact_notes for delete to authenticated using (true);
+
+-- Outreach Events
+create policy "Enable read access for authenticated users" on public.outreach_events for select to authenticated using (true);
+create policy "Enable insert for authenticated users only" on public.outreach_events for insert to authenticated with check (true);
+create policy "Outreach Events Update Policy" on public.outreach_events for update to authenticated using (true);
+create policy "Outreach Events Delete Policy" on public.outreach_events for delete to authenticated using (true);
 
 -- Deals
 create policy "Enable read access for authenticated users" on public.deals for select to authenticated using (true);

@@ -9,9 +9,30 @@ import {
 
 import { defaultNoteStatuses } from "../../../root/defaultConfiguration";
 import { contactGender } from "../../../contacts/contactModel";
-import type { Company, Contact } from "../../../types";
+import type { Company, Contact, OutreachStatus } from "../../../types";
 import type { Db } from "./types";
 import { randomDate, weightedBoolean } from "./utils";
+
+const outreachStatusOptions: OutreachStatus[] = [
+  "not_contacted",
+  "not_contacted",
+  "not_contacted",
+  "queued",
+  "emailed",
+  "emailed",
+  "opened",
+  "replied",
+  "interested",
+  "meeting_booked",
+  "bounced",
+  "unsubscribed",
+];
+
+const campaignOptions = [
+  "Texas Founders Q3",
+  "Seed SaaS CTOs",
+  "Energy Ops Leaders",
+];
 
 const maxContacts = {
   1: 1,
@@ -73,6 +94,16 @@ export const generateContacts = (db: Db, size = 500): Required<Contact>[] => {
     const first_seen = randomDate(new Date(company.created_at)).toISOString();
     const last_seen = first_seen;
 
+    const outreach_status = random.arrayElement(outreachStatusOptions);
+    const contacted = outreach_status !== "not_contacted";
+    const last_outreach_at = contacted
+      ? randomDate(new Date(first_seen)).toISOString()
+      : null;
+    const last_emailed_at = contacted ? last_outreach_at : null;
+    const instantly_campaign = contacted
+      ? random.arrayElement(campaignOptions)
+      : null;
+
     return {
       id,
       first_name,
@@ -94,6 +125,10 @@ export const generateContacts = (db: Db, size = 500): Required<Contact>[] => {
         .arrayElements(db.tags, random.arrayElement([0, 0, 0, 1, 1, 2]))
         .map((tag) => tag.id), // finalize
       sales_id: company.sales_id!,
+      outreach_status,
+      last_emailed_at,
+      last_outreach_at,
+      instantly_campaign,
       nb_tasks: 0,
       linkedin_url: null,
     };
