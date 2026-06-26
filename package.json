@@ -99,6 +99,7 @@
   "devDependencies": {
     "@eslint/js": "^9.22.0",
     "@inquirer/prompts": "^8.2.0",
+    "@playwright/mcp": "^0.0.76",
     "@playwright/test": "^1.60.0",
     "@storybook/react-vite": "^9.1.19",
     "@types/dompurify": "^3.0.5",

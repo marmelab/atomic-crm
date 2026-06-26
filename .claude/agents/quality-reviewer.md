@@ -8,6 +8,17 @@ tools:
   - Glob
   - Bash
   - Skill
+  - mcp__playwright__browser_navigate
+  - mcp__playwright__browser_snapshot
+  - mcp__playwright__browser_click
+  - mcp__playwright__browser_type
+  - mcp__playwright__browser_fill_form
+  - mcp__playwright__browser_select_option
+  - mcp__playwright__browser_press_key
+  - mcp__playwright__browser_wait_for
+  - mcp__playwright__browser_take_screenshot
+  - mcp__playwright__browser_console_messages
+  - mcp__playwright__browser_close
 ---
 
 # QUALITY-REVIEWER — Code Quality & Security Review
@@ -293,10 +304,15 @@ wiring, and e2e presence are yours to check here.
 ### Sandbox awareness
 
 Typically unavailable in the dev sandbox: a running Supabase stack on 54341; a
-display for vitest browser mode; auth against a real backend (sign-in/sign-up
-taps the Supabase Auth API even with `VITE_DATA_PROVIDER=fakerest`). If you hit
-these, **don't retry** — note the limitation and let CI cover the screenshot
-step (C.3). A sandbox limitation alone is never a REJECTED.
+display for headed browsers; auth against a real backend (sign-in/sign-up taps
+the Supabase Auth API). For runtime checks, prefer **demo mode** (C.3) — it runs
+on FakeRest entirely in the browser, needs no Supabase and no auth, so most
+behavior-verifiable criteria become reachable. The Playwright MCP runs headless
+(configured in `.mcp.json`), so no display is needed. If you still hit a hard
+limitation (a flow that genuinely requires the real Auth API, or the browser
+binary is missing — do NOT run `npx playwright install`), **don't retry** —
+note the limitation and let CI cover it. A sandbox limitation alone is never a
+REJECTED.
 
 ### C.1 Acceptance criteria — behavior-verifiable (BLOCKING)
 
@@ -322,16 +338,41 @@ Renaming sanity:
 Any failure → REJECTED. (Migrations are NOT checked here — SQL is generated at
 deploy time from the session-branch diff, not in a feature TASK.)
 
-### C.3 Playwright screenshots (when reachable)
+### C.3 Runtime verification — demo mode + Playwright MCP
 
-**Skip entirely** if no acceptance criterion is behavior-verifiable, or the route
-needs auth / no display is available — note that CI will cover it. Do NOT run
-`npx playwright install --with-deps`.
+**Skip entirely** if no acceptance criterion is behavior-verifiable, or the flow
+genuinely requires the real Supabase Auth API (demo mode can't reach it) — note
+that CI will cover it. Do NOT run `npx playwright install`.
 
-**Run when** at least one behavior-verifiable criterion exists and the route is
-reachable without auth. Capture only what the criterion requires, then `Read`
-each screenshot. Legibility failure (text invisible on its background in any
-theme or interaction state) → REJECTED.
+**Run when** at least one behavior-verifiable criterion exists. Drive the app
+interactively via the Playwright MCP against a demo-mode server you start inside
+**your own worktree** (never `$REPO` — that serves the wrong branch):
+
+1. **Start the server (background, from the worktree).** Pick a port unique to
+   this task to avoid collisions with parallel reviewers — `5300` + the TASK
+   number (e.g. TASK-006 → `5306`):
+   ```bash
+   cd <WORKTREE_PATH> && npm run dev:demo -- --port <PORT> --strictPort
+   ```
+   Run it with `run_in_background: true`. Demo mode uses FakeRest and is
+   auto-authenticated — no Supabase, no login.
+2. **Wait until ready**, then drive it. The app uses hash routing, so navigate to
+   `http://localhost:<PORT>/#/<route>`:
+   - `browser_navigate` → `browser_snapshot` (accessibility tree — token-cheap,
+     use this to assert structure, reachability, and state transitions).
+   - `browser_click` / `browser_fill_form` / `browser_select_option` to walk a
+     multi-step flow when the criterion requires it.
+   - `browser_take_screenshot` only when a criterion is **visual** (legibility,
+     layout, theme/dark-mode) — then `Read` the PNG. Text invisible on its
+     background in any theme or interaction state → REJECTED.
+   - `browser_console_messages` to catch runtime errors the snapshot hides.
+3. **Tear down (always):** `browser_close`, then kill the background server
+   (`kill <pid>` of the `dev:demo` process you started). Leaving it running
+   stalls the SubagentStop validation chain.
+
+A red criterion verified here is a `[FAIL]` → REJECTED. The `npx playwright
+screenshot --headless <url> out.png` CLI remains a fallback for a single static
+shot when no interaction is needed.
 
 ### C.4 e2e spec sanity (read-only)
 
