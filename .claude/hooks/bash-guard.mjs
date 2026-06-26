@@ -49,9 +49,7 @@ if (browserViolation) {
 // <sessionDir>/breaker (planner/duplicate-dispatch markers). Those files ARE the
 // safety guards (block-merger-without-review, block-duplicate-dispatch) — an
 // orchestrator that touches/rm's them forges an approval or clears a debounce and
-// bypasses review entirely. This happened in a past session: a racy verdict flag
-// led the orchestrator to `touch reviews/TASK-002-quality-reviewer` and
-// `rm breaker/dispatch-*` to force a merge. Reads (ls/cat) stay allowed.
+// bypasses review entirely.
 // Match the orchestrator the same way block-nested-orchestrator does: agent_type
 // when present, else the CLAUDE_AGENT_NAME-derived ctx.agentType, allowing a
 // suffixed runtime name (orchestrator-…) and the chat- prefix. (isOrchestrator

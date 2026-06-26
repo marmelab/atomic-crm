@@ -5,22 +5,13 @@
 //  1. planner: at most ONE `planner` dispatch per request.
 //     Scope = caller orchestrator agent_id + TICKETS_DIR (one planning round).
 //     A 2nd planner would overwrite the TASK-*.json the wave is already running
-//     against. 1-hour staleness reset so a stuck marker can't poison a
-//     long-lived orchestrator.
+//     against.
 //
 //  2. developer / quality-reviewer / merger: debounce identical re-dispatches
 //     inside a short window. A foreground Agent call is SUPPOSED to block and
 //     return the subagent's final line inline; in some runtimes (interactive
 //     Claude Code) it instead returns immediately with "Async agent launched …
 //     agentId: <id>" and the real result arrives later as a task-notification.
-//     An orchestrator expecting an inline result then re-dispatches the SAME
-//     role for the SAME ticket seconds later — two agents racing on one
-//     worktree/branch. This produced duplicate quality-reviewers on TASK-001 in
-//     a past session. Block the second dispatch inside the window; the prompt
-//     tells the caller to wait for the task-notification instead. The window is
-//     short (< the time any agent takes to finish) so it only ever catches the
-//     rapid re-dispatch, never a legitimate retry minutes later (which also
-//     carries a different prompt).
 
 import {
   existsSync,
