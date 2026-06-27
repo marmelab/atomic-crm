@@ -31,6 +31,7 @@ import { ContactTasksList } from "./ContactTasksList";
 import type { Contact } from "../types";
 import { Avatar } from "./Avatar";
 import { ContactAside } from "./ContactAside";
+import { OutreachStatusBadge } from "./OutreachStatusBadge";
 import { MobileBackButton } from "../misc/MobileBackButton";
 
 export const ContactShow = (props: ShowBaseProps = {}) => {
@@ -248,9 +249,12 @@ const ContactShowContent = () => {
             <div className="flex">
               <Avatar />
               <div className="ml-2 flex-1">
-                <h5 className="text-xl font-semibold">
-                  <RecordRepresentation />
-                </h5>
+                <div className="flex items-center gap-2">
+                  <h5 className="text-xl font-semibold">
+                    <RecordRepresentation />
+                  </h5>
+                  <OutreachStatusBadge status={record.outreach_status} />
+                </div>
                 <div className="inline-flex text-sm text-muted-foreground">
                   {record.title && record.company_id != null
                     ? `${translate("resources.contacts.position_at", {

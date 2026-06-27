@@ -21,6 +21,7 @@ import { Status } from "../misc/Status";
 import { formatRelativeDate } from "../misc/RelativeDate";
 import type { Contact } from "../types";
 import { Avatar } from "./Avatar";
+import { OutreachStatusBadge } from "./OutreachStatusBadge";
 import { TagsList } from "./TagsList";
 
 export const ContactListContent = () => {
@@ -157,8 +158,9 @@ const ContactItemContent = ({
             </div>
           ) : null}
         </div>
-        {contact.last_seen && (
-          <div className="text-right ml-4">
+        <div className="text-right ml-4 flex flex-col items-end gap-1">
+          <OutreachStatusBadge status={contact.outreach_status} />
+          {contact.last_seen && (
             <div
               className="text-sm text-muted-foreground"
               title={contact.last_seen}
@@ -168,8 +170,8 @@ const ContactItemContent = ({
               })}{" "}
               <Status status={contact.status} />
             </div>
-          </div>
-        )}
+          )}
+        </div>
       </Link>
     </div>
   );

@@ -11,9 +11,12 @@ import { ContactStatusSelector } from "./ContactInputs";
 import { ContactPersonalInfo } from "./ContactPersonalInfo";
 import { ContactBackgroundInfo } from "./ContactBackgroundInfo";
 import { AsideSection } from "../misc/AsideSection";
+import { RelativeDate } from "../misc/RelativeDate";
 import type { Contact } from "../types";
 import { ContactMergeButton } from "./ContactMergeButton";
 import { ExportVCardButton } from "./ExportVCardButton";
+import { OutreachStatusBadge } from "./OutreachStatusBadge";
+import { OutreachTimeline } from "./OutreachTimeline";
 import { VerifyEmailsButton } from "./VerifyEmailsButton";
 
 export const ContactAside = ({ link = "edit" }: { link?: "edit" | "show" }) => {
@@ -34,6 +37,33 @@ export const ContactAside = ({ link = "edit" }: { link?: "edit" | "show" }) => {
 
       <AsideSection title={translate("resources.notes.fields.status")}>
         <ContactStatusSelector />
+      </AsideSection>
+
+      <AsideSection
+        title={translate("resources.contacts.field_categories.outreach", {
+          _: "Outreach",
+        })}
+      >
+        <div className="flex flex-col gap-2">
+          <OutreachStatusBadge
+            status={record.outreach_status}
+            className="self-start"
+          />
+          {(record.last_emailed_at || record.instantly_campaign) && (
+            <div className="text-xs text-muted-foreground">
+              {record.last_emailed_at && (
+                <>
+                  {translate("resources.contacts.outreach.last_emailed", {
+                    _: "Last emailed",
+                  })}{" "}
+                  <RelativeDate date={record.last_emailed_at} />
+                </>
+              )}
+              {record.instantly_campaign && <> · {record.instantly_campaign}</>}
+            </div>
+          )}
+          <OutreachTimeline />
+        </div>
       </AsideSection>
 
       <AsideSection
