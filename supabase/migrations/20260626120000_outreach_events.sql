@@ -35,7 +35,9 @@ grant all on sequence public.outreach_events_id_seq to anon;
 grant all on sequence public.outreach_events_id_seq to authenticated;
 grant all on sequence public.outreach_events_id_seq to service_role;
 
--- Surface the new contact fields in the summary view used by the list + detail.
+-- Recreate the view to add the new outreach columns (Postgres requires DROP
+-- when column order changes in a CREATE OR REPLACE VIEW).
+drop view if exists public.contacts_summary;
 create or replace view public.contacts_summary with (security_invoker = on) as
 select
     co.id,
