@@ -1,4 +1,6 @@
 import type {
+  AiAuditEvent,
+  AiCommand,
   Company,
   Contact,
   ContactNote,
@@ -23,5 +25,7 @@ export interface Db {
   tags: Tag[];
   tasks: Task[];
   daily_research_activities: DailyResearchActivity[];
+  ai_commands: AiCommand[];
+  ai_audit_events: AiAuditEvent[];
   configuration: Array<{ id: number; config: ConfigurationContextValue }>;
 }

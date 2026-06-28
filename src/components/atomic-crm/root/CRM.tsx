@@ -69,6 +69,7 @@ import { CompanyShow } from "../companies/CompanyShow.tsx";
 import { NoteShowPage } from "../notes/NoteShowPage.tsx";
 import { LukeCommandCenter } from "../luke/LukeCommandCenter.tsx";
 import { LukeReviewDashboard } from "../luke/LukeReviewDashboard.tsx";
+import { AiCommandCenter } from "../ai/AiCommandCenter.tsx";
 
 const defaultStore = localStorageStore(undefined, "CRM");
 
@@ -290,6 +291,14 @@ const DesktopAdmin = (
             </ProtectedCustomRoute>
           }
         />
+        <Route
+          path={AiCommandCenter.path}
+          element={
+            <ProtectedCustomRoute resource="ai_command_center">
+              <AiCommandCenter />
+            </ProtectedCustomRoute>
+          }
+        />
       </CustomRoutes>
       <Resource name="deals" {...deals} />
       <Resource name="contacts" {...contacts} />
@@ -298,6 +307,8 @@ const DesktopAdmin = (
       <Resource name="deal_notes" />
       <Resource name="outreach_events" />
       <Resource name="daily_research_activities" />
+      <Resource name="ai_commands" />
+      <Resource name="ai_audit_events" />
       <Resource name="tasks" />
       <Resource name="sales" {...sales} />
       <Resource name="tags" />
@@ -372,6 +383,14 @@ const MobileAdmin = (
               </ProtectedCustomRoute>
             }
           />
+          <Route
+            path={AiCommandCenter.path}
+            element={
+              <ProtectedCustomRoute resource="ai_command_center">
+                <AiCommandCenter />
+              </ProtectedCustomRoute>
+            }
+          />
         </CustomRoutes>
         <Resource
           name="contacts"
@@ -384,6 +403,8 @@ const MobileAdmin = (
         <Resource name="companies" show={CompanyShow} />
         <Resource name="tasks" list={MobileTasksList} />
         <Resource name="daily_research_activities" />
+        <Resource name="ai_commands" />
+        <Resource name="ai_audit_events" />
       </Admin>
     </PersistQueryClientProvider>
   );

@@ -25,6 +25,14 @@ export const canAccess = <
     return role === "sales_manager";
   }
 
+  if (params.resource === "ai_command_center") {
+    return false;
+  }
+
+  if (["ai_commands", "ai_audit_events"].includes(params.resource)) {
+    return role === "sales_manager" && ["list", "show"].includes(params.action);
+  }
+
   if (role === "viewer") {
     return ["list", "show"].includes(params.action);
   }
@@ -38,7 +46,11 @@ export const canAccess = <
       return false;
     }
 
-    if (params.resource === "luke_review") {
+    if (
+      ["luke_review", "ai_commands", "ai_audit_events"].includes(
+        params.resource,
+      )
+    ) {
       return false;
     }
 

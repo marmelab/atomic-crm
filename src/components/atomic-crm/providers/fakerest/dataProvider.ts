@@ -9,6 +9,9 @@ import {
 import fakeRestDataProvider from "ra-data-fakerest";
 
 import type {
+  AiAuditEvent,
+  AiCommand,
+  AiCommandCreateInput,
   Company,
   Contact,
   ContactNote,
@@ -45,6 +48,34 @@ const TASK_DONE_NOT_CHANGED = "TASK_DONE_NOT_CHANGED";
 type IdentityWithRole = {
   role?: string;
 };
+
+const TASK_PRIORITIES = ["low", "medium", "high", "urgent"] as const;
+
+const assertAdmin = async (getIdentity: () => Promise<unknown>) => {
+  const currentUser = await getIdentity();
+  const role = (currentUser as IdentityWithRole | undefined)?.role;
+  if (role !== "admin") {
+    throw new Error("Not authorized");
+  }
+};
+
+const createAuditEvent = async (
+  dataProvider: DataProvider,
+  data: Partial<AiAuditEvent> & Pick<AiAuditEvent, "action">,
+) =>
+  dataProvider.create<AiAuditEvent>("ai_audit_events", {
+    data: {
+      command_id: data.command_id ?? null,
+      source_ai: data.source_ai ?? null,
+      action: data.action,
+      entity_type: data.entity_type ?? null,
+      entity_id: data.entity_id ?? null,
+      before_data: data.before_data ?? null,
+      after_data: data.after_data ?? null,
+      metadata: data.metadata ?? {},
+      created_at: new Date().toISOString(),
+    },
+  });
 
 const processCompanyLogo = async (params: any) => {
   let logo = params.data.logo;
@@ -386,6 +417,175 @@ export const createDataProvider = ({
         "daily_research_activities",
         { data: activity },
       );
+      return data;
+    },
+    createAiCommand: async (
+      command: AiCommandCreateInput,
+    ): Promise<AiCommand> => {
+      if (command.command_type !== "create_luke_task") {
+        throw new Error("Unsupported command type");
+      }
+
+      const title = command.payload.title;
+      const contactId = command.payload.contact_id;
+      if (typeof title !== "string" || !title.trim()) {
+        throw new Error("Task title is required");
+      }
+      if (typeof contactId !== "number") {
+        throw new Error("Contact is required");
+      }
+
+      const now = new Date().toISOString();
+      const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000);
+      const { data } = await dataProvider.create<AiCommand>("ai_commands", {
+        data: {
+          idempotency_key: command.idempotency_key ?? null,
+          command_hash: null,
+          source_ai: command.source_ai,
+          command_type: command.command_type,
+          target_entity_type: command.target_entity_type ?? "task",
+          target_entity_id: command.target_entity_id ?? null,
+          payload: command.payload,
+          status: "pending",
+          requires_approval: true,
+          approved_by_user_id: null,
+          approved_at: null,
+          executed_at: null,
+          execution_result: null,
+          error_message: null,
+          expires_at: expiresAt.toISOString(),
+          created_at: now,
+          updated_at: now,
+        },
+      });
+
+      await createAuditEvent(dataProvider, {
+        command_id: data.id,
+        source_ai: data.source_ai,
+        action: "command_created",
+        metadata: { command_type: data.command_type },
+      });
+
+      return data;
+    },
+    approveAiCommand: async (id: Identifier): Promise<AiCommand> => {
+      await assertAdmin(getIdentity);
+
+      const { data: command } = await dataProvider.getOne<AiCommand>(
+        "ai_commands",
+        { id },
+      );
+
+      if (command.status !== "pending") {
+        throw new Error("Only pending commands can be approved");
+      }
+
+      const { data: sales } = await dataProvider.getList<Sale>("sales", {
+        filter: { role: "lead_researcher", disabled: false },
+        pagination: { page: 1, perPage: 2 },
+        sort: { field: "id", order: "ASC" },
+      });
+      const luke = sales[0];
+      if (!luke) {
+        throw new Error("No lead_researcher user found. Create Luke first.");
+      }
+
+      const payload = command.payload;
+      const title = String(payload.title ?? "").trim();
+      const contactId = Number(payload.contact_id);
+      const { data: task } = await dataProvider.create<Task>("tasks", {
+        data: {
+          contact_id: contactId,
+          title,
+          text: String(payload.text ?? title),
+          type: String(payload.type ?? "Research"),
+          due_date:
+            typeof payload.due_date === "string"
+              ? payload.due_date
+              : new Date().toISOString(),
+          done_date: null,
+          sales_id: luke.id,
+          priority: TASK_PRIORITIES.includes(payload.priority as any)
+            ? (payload.priority as Task["priority"])
+            : "medium",
+          source: "ai_command",
+          source_command_id: command.id,
+          linked_entity_type: "contact",
+          linked_entity_id: contactId,
+          success_definition:
+            typeof payload.success_definition === "string"
+              ? payload.success_definition
+              : null,
+        },
+      });
+
+      const now = new Date().toISOString();
+      const { data: completed } = await dataProvider.update<AiCommand>(
+        "ai_commands",
+        {
+          id,
+          data: {
+            status: "completed",
+            approved_by_user_id: 0,
+            approved_at: now,
+            executed_at: now,
+            execution_result: {
+              task_id: task.id,
+              assigned_to_user_id: luke.id,
+            },
+            error_message: null,
+            updated_at: now,
+          },
+          previousData: command,
+        },
+      );
+
+      await createAuditEvent(dataProvider, {
+        command_id: command.id,
+        source_ai: command.source_ai,
+        action: "command_approved",
+      });
+      await createAuditEvent(dataProvider, {
+        command_id: command.id,
+        source_ai: command.source_ai,
+        action: "command_completed",
+        entity_type: "task",
+        entity_id: task.id,
+      });
+
+      return completed;
+    },
+    rejectAiCommand: async (
+      id: Identifier,
+      reason?: string,
+    ): Promise<AiCommand> => {
+      await assertAdmin(getIdentity);
+
+      const { data: command } = await dataProvider.getOne<AiCommand>(
+        "ai_commands",
+        { id },
+      );
+      if (command.status !== "pending") {
+        throw new Error("Only pending commands can be rejected");
+      }
+
+      const { data } = await dataProvider.update<AiCommand>("ai_commands", {
+        id,
+        data: {
+          status: "rejected",
+          error_message: reason || "Rejected by admin",
+          updated_at: new Date().toISOString(),
+        },
+        previousData: command,
+      });
+
+      await createAuditEvent(dataProvider, {
+        command_id: command.id,
+        source_ai: command.source_ai,
+        action: "command_rejected",
+        metadata: { reason: reason || "Rejected by admin" },
+      });
+
       return data;
     },
     verifyEmails: async (

@@ -178,3 +178,5 @@ verify_jwt = false
 verify_jwt = false
 [functions.instantly_webhook]
 verify_jwt = false
+[functions.ai_commands]
+verify_jwt = false

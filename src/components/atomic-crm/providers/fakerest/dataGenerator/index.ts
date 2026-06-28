@@ -22,6 +22,8 @@ export default (): Db => {
   db.deal_notes = generateDealNotes(db);
   db.tasks = generateTasks(db);
   db.daily_research_activities = [];
+  db.ai_commands = [];
+  db.ai_audit_events = [];
   db.configuration = [
     {
       id: 1,

@@ -16,6 +16,8 @@ alter table public.tasks enable row level security;
 alter table public.configuration enable row level security;
 alter table public.favicons_excluded_domains enable row level security;
 alter table public.daily_research_activities enable row level security;
+alter table public.ai_commands enable row level security;
+alter table public.ai_audit_events enable row level security;
 
 -- Companies
 create policy "Enable read access for authenticated users" on public.companies for select to authenticated using (public.current_user_role() in ('admin', 'sales_manager', 'viewer') or assigned_to_user_id = public.current_sale_id() or sales_id = public.current_sale_id());
@@ -81,3 +83,12 @@ create policy "Enable read daily research activities" on public.daily_research_a
 create policy "Enable insert own daily research activity" on public.daily_research_activities for insert to authenticated with check (public.current_user_role() in ('admin', 'sales_manager') or (public.current_user_role() = 'lead_researcher' and user_id = public.current_sale_id()));
 create policy "Enable update own daily research activity" on public.daily_research_activities for update to authenticated using (public.current_user_role() in ('admin', 'sales_manager') or (public.current_user_role() = 'lead_researcher' and user_id = public.current_sale_id())) with check (public.current_user_role() in ('admin', 'sales_manager') or (public.current_user_role() = 'lead_researcher' and user_id = public.current_sale_id()));
 create policy "Enable delete daily research activities for admins" on public.daily_research_activities for delete to authenticated using (public.current_user_role() = 'admin');
+
+-- AI commands
+create policy "Enable ai command read for managers" on public.ai_commands for select to authenticated using (public.current_user_role() in ('admin', 'sales_manager'));
+create policy "Enable ai command creation for authenticated" on public.ai_commands for insert to authenticated with check (true);
+create policy "Enable ai command update for admins" on public.ai_commands for update to authenticated using (public.current_user_role() = 'admin') with check (public.current_user_role() = 'admin');
+
+-- AI audit events
+create policy "Enable ai audit read for managers" on public.ai_audit_events for select to authenticated using (public.current_user_role() in ('admin', 'sales_manager'));
+create policy "Enable ai audit creation for authenticated" on public.ai_audit_events for insert to authenticated with check (true);

@@ -7,6 +7,8 @@ import {
   type ResourceCallbacks,
 } from "ra-core";
 import type {
+  AiCommand,
+  AiCommandCreateInput,
   Contact,
   ContactNote,
   DailyResearchActivity,
@@ -348,6 +350,51 @@ const getDataProviderWithCustomMethods = () => {
       }
 
       return data as DailyResearchActivity;
+    },
+    async createAiCommand(command: AiCommandCreateInput): Promise<AiCommand> {
+      const { data, error } = await getSupabaseClient().functions.invoke<{
+        data: AiCommand;
+      }>("ai_commands", {
+        method: "POST",
+        body: { action: "create", ...command },
+      });
+
+      if (!data || error) {
+        console.error("ai_commands.create.error", error);
+        throw new Error("Failed to create AI command");
+      }
+
+      return data.data;
+    },
+    async approveAiCommand(id: Identifier): Promise<AiCommand> {
+      const { data, error } = await getSupabaseClient().functions.invoke<{
+        data: AiCommand;
+      }>("ai_commands", {
+        method: "POST",
+        body: { action: "approve", commandId: Number(id) },
+      });
+
+      if (!data || error) {
+        console.error("ai_commands.approve.error", error);
+        throw new Error("Failed to approve AI command");
+      }
+
+      return data.data;
+    },
+    async rejectAiCommand(id: Identifier, reason?: string): Promise<AiCommand> {
+      const { data, error } = await getSupabaseClient().functions.invoke<{
+        data: AiCommand;
+      }>("ai_commands", {
+        method: "POST",
+        body: { action: "reject", commandId: Number(id), reason },
+      });
+
+      if (!data || error) {
+        console.error("ai_commands.reject.error", error);
+        throw new Error("Failed to reject AI command");
+      }
+
+      return data.data;
     },
     async getConfiguration(): Promise<ConfigurationContextValue> {
       const { data } = await baseDataProvider.getOne("configuration", {

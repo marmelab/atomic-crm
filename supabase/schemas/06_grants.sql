@@ -85,6 +85,10 @@ grant all on function public.set_daily_research_activity_updated_at() to anon;
 grant all on function public.set_daily_research_activity_updated_at() to authenticated;
 grant all on function public.set_daily_research_activity_updated_at() to service_role;
 
+grant all on function public.set_ai_commands_updated_at() to anon;
+grant all on function public.set_ai_commands_updated_at() to authenticated;
+grant all on function public.set_ai_commands_updated_at() to service_role;
+
 -- Table grants
 grant all on table public.companies to anon;
 grant all on table public.companies to authenticated;
@@ -133,6 +137,12 @@ grant all on table public.favicons_excluded_domains to service_role;
 grant all on table public.daily_research_activities to anon;
 grant all on table public.daily_research_activities to authenticated;
 grant all on table public.daily_research_activities to service_role;
+
+grant select, insert, update on table public.ai_commands to authenticated;
+grant all on table public.ai_commands to service_role;
+
+grant select, insert on table public.ai_audit_events to authenticated;
+grant all on table public.ai_audit_events to service_role;
 
 -- View grants
 grant all on table public.activity_log to anon;
@@ -195,6 +205,12 @@ grant all on sequence public.tasks_id_seq to service_role;
 grant all on sequence public.daily_research_activities_id_seq to anon;
 grant all on sequence public.daily_research_activities_id_seq to authenticated;
 grant all on sequence public.daily_research_activities_id_seq to service_role;
+
+grant usage, select on sequence public.ai_commands_id_seq to authenticated;
+grant all on sequence public.ai_commands_id_seq to service_role;
+
+grant usage, select on sequence public.ai_audit_events_id_seq to authenticated;
+grant all on sequence public.ai_audit_events_id_seq to service_role;
 
 -- Default privileges
 alter default privileges for role postgres in schema public grant all on sequences to postgres;

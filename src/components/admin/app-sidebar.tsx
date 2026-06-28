@@ -23,7 +23,14 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ClipboardCheck, House, List, SearchCheck, Shell } from "lucide-react";
+import {
+  Bot,
+  ClipboardCheck,
+  House,
+  List,
+  SearchCheck,
+  Shell,
+} from "lucide-react";
 
 type IdentityWithRole = {
   role?: string;
@@ -89,6 +96,14 @@ export function AppSidebar() {
                   to="/dashboard/luke-review"
                   label="Luke Review"
                   icon={<ClipboardCheck />}
+                  onClick={handleClick}
+                />
+              ) : null}
+              {role === "admin" ? (
+                <CustomMenuItem
+                  to="/dashboard/ai-command-center"
+                  label="AI Command Center"
+                  icon={<Bot />}
                   onClick={handleClick}
                 />
               ) : null}

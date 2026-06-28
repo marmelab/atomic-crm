@@ -40,6 +40,10 @@ create or replace trigger set_daily_research_activity_updated_at
     before update on public.daily_research_activities
     for each row execute function public.set_daily_research_activity_updated_at();
 
+create or replace trigger set_ai_commands_updated_at
+    before update on public.ai_commands
+    for each row execute function public.set_ai_commands_updated_at();
+
 -- Auto-fetch company logo from website favicon on save
 create or replace trigger company_saved
     before insert or update on public.companies

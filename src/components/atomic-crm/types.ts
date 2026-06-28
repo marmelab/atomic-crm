@@ -234,6 +234,63 @@ export type DailyResearchActivity = {
   updated_at?: string;
 } & Pick<RaRecord, "id">;
 
+export type AiCommandStatus =
+  | "pending"
+  | "approved"
+  | "executing"
+  | "completed"
+  | "failed"
+  | "rejected"
+  | "expired";
+
+export type AiSourceType =
+  | "chatgpt"
+  | "claude"
+  | "gemini"
+  | "manual"
+  | "system";
+
+export type AiCommand = {
+  idempotency_key?: string | null;
+  command_hash?: string | null;
+  source_ai: AiSourceType;
+  command_type: "create_luke_task";
+  target_entity_type?: string | null;
+  target_entity_id?: Identifier | null;
+  payload: Record<string, unknown>;
+  status: AiCommandStatus;
+  requires_approval: boolean;
+  approved_by_user_id?: Identifier | null;
+  approved_at?: string | null;
+  executed_at?: string | null;
+  execution_result?: Record<string, unknown> | null;
+  error_message?: string | null;
+  expires_at: string;
+  created_at: string;
+  updated_at: string;
+} & Pick<RaRecord, "id">;
+
+export type AiCommandCreateInput = {
+  source_ai: AiSourceType;
+  command_type: "create_luke_task";
+  target_entity_type?: string | null;
+  target_entity_id?: Identifier | null;
+  idempotency_key?: string | null;
+  payload: Record<string, unknown>;
+};
+
+export type AiAuditEvent = {
+  command_id?: Identifier | null;
+  source_ai?: AiSourceType | null;
+  action: string;
+  entity_type?: string | null;
+  entity_id?: Identifier | null;
+  before_data?: Record<string, unknown> | null;
+  after_data?: Record<string, unknown> | null;
+  metadata?: Record<string, unknown> | null;
+  created_at: string;
+} & Pick<RaRecord, "id">;
+
 export type ContactNote = {
   contact_id: Identifier;
   text: string;
@@ -278,11 +335,18 @@ export type Tag = {
 
 export type Task = {
   contact_id: Identifier;
+  title?: string | null;
   type: string;
   text: string;
   due_date: string;
   done_date?: string | null;
   sales_id?: Identifier;
+  priority?: "low" | "medium" | "high" | "urgent";
+  source?: "manual" | "ai_command" | "instantly_webhook" | "system";
+  source_command_id?: Identifier | null;
+  linked_entity_type?: string | null;
+  linked_entity_id?: Identifier | null;
+  success_definition?: string | null;
 } & Pick<RaRecord, "id">;
 
 export type ActivityCompanyCreated = {
