@@ -5,6 +5,7 @@ import {
   useTranslate,
   useUpdate,
   useNotify,
+  useGetIdentity,
 } from "ra-core";
 import type { FocusEvent, ClipboardEventHandler } from "react";
 import { useFormContext } from "react-hook-form";
@@ -15,6 +16,7 @@ import { ReferenceInput } from "@/components/admin/reference-input";
 import { TextInput } from "@/components/admin/text-input";
 import { RadioButtonGroupInput } from "@/components/admin/radio-button-group-input";
 import { SelectInput } from "@/components/admin/select-input";
+import { NumberInput } from "@/components/admin/number-input";
 import { ArrayInput } from "@/components/admin/array-input";
 import { SimpleFormIterator } from "@/components/admin/simple-form-iterator";
 
@@ -28,6 +30,11 @@ import {
   translateContactGenderLabel,
   translatePersonalInfoTypeLabel,
 } from "./contactModel.ts";
+import { researchStatusChoices } from "../luke/research.ts";
+
+type IdentityWithRole = {
+  role?: string;
+};
 
 export const ContactInputs = () => {
   const isMobile = useIsMobile();
@@ -47,9 +54,51 @@ export const ContactInputs = () => {
         )}
         <div className="flex flex-col gap-10 flex-1">
           <ContactPersonalInformationInputs />
+          <ContactResearchInputs />
           <ContactMiscInputs />
         </div>
       </div>
+    </div>
+  );
+};
+
+const ContactResearchInputs = () => {
+  const { identity } = useGetIdentity();
+  const role = (identity as IdentityWithRole | undefined)?.role;
+  const choices =
+    role === "lead_researcher"
+      ? researchStatusChoices.filter(
+          (choice) => choice.id !== "approved_for_instantly",
+        )
+      : researchStatusChoices;
+
+  return (
+    <div className="flex flex-col gap-4">
+      <h6 className="text-lg font-semibold">Lead research</h6>
+      <ReferenceInput
+        reference="sales"
+        source="assigned_to_user_id"
+        sort={{ field: "last_name", order: "ASC" }}
+        filter={{
+          "disabled@neq": true,
+        }}
+      >
+        <SelectInput helperText={false} optionText={saleOptionRenderer} />
+      </ReferenceInput>
+      <SelectInput
+        source="research_status"
+        choices={choices}
+        helperText={false}
+        defaultValue="new"
+      />
+      <NumberInput source="icp_score" min={0} max={100} helperText={false} />
+      <TextInput source="trigger_reason" multiline helperText={false} />
+      <BooleanInput source="email_verified" helperText={false} />
+      <BooleanInput source="ready_for_review" helperText={false} />
+      {role === "admin" || role === "sales_manager" ? (
+        <BooleanInput source="approved_for_instantly" helperText={false} />
+      ) : null}
+      <TextInput source="review_notes" multiline helperText={false} />
     </div>
   );
 };

@@ -23,13 +23,17 @@ export type SalesFormData = {
   first_name: string;
   last_name: string;
   administrator: boolean;
+  role: UserRole;
   disabled: boolean;
 };
+
+export type UserRole = "admin" | "sales_manager" | "lead_researcher" | "viewer";
 
 export type Sale = {
   first_name: string;
   last_name: string;
   administrator: boolean;
+  role: UserRole;
   avatar?: RAFile;
   disabled?: boolean;
   user_id: string;
@@ -69,7 +73,30 @@ export type Company = {
   context_links?: string[];
   nb_contacts?: number;
   nb_deals?: number;
+  assigned_to_user_id?: Identifier | null;
+  created_by_user_id?: Identifier | null;
+  last_updated_by_user_id?: Identifier | null;
+  research_status?: ResearchStatus;
+  icp_score?: number | null;
+  trigger_reason?: string | null;
+  ready_for_review?: boolean;
+  approved_for_instantly?: boolean;
+  reviewed_by_user_id?: Identifier | null;
+  review_notes?: string | null;
 } & Pick<RaRecord, "id">;
+
+export type ResearchStatus =
+  | "new"
+  | "researching"
+  | "enriched"
+  | "verified"
+  | "ready_for_review"
+  | "approved_for_instantly"
+  | "needs_fixing"
+  | "rejected"
+  | "in_campaign"
+  | "replied"
+  | "bad_fit";
 
 export type EmailVerificationStatus =
   | "Valid"
@@ -176,6 +203,35 @@ export type Contact = {
   instantly_campaign?: string | null;
   nb_tasks?: number;
   company_name?: string;
+  company_website?: string | null;
+  company_linkedin_url?: string | null;
+  company_size?: number | null;
+  assigned_to_user_id?: Identifier | null;
+  created_by_user_id?: Identifier | null;
+  last_updated_by_user_id?: Identifier | null;
+  research_status?: ResearchStatus;
+  icp_score?: number | null;
+  trigger_reason?: string | null;
+  email_verified?: boolean;
+  ready_for_review?: boolean;
+  approved_for_instantly?: boolean;
+  reviewed_by_user_id?: Identifier | null;
+  review_notes?: string | null;
+} & Pick<RaRecord, "id">;
+
+export type DailyResearchActivity = {
+  user_id: Identifier;
+  date: string;
+  companies_added: number;
+  contacts_found: number;
+  emails_verified: number;
+  crm_records_updated: number;
+  ready_for_instantly: number;
+  bad_fits_removed: number;
+  blockers?: string | null;
+  tomorrow_plan?: string | null;
+  created_at?: string;
+  updated_at?: string;
 } & Pick<RaRecord, "id">;
 
 export type ContactNote = {

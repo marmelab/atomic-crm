@@ -28,6 +28,18 @@ create or replace trigger set_task_sales_id_trigger
     before insert on public.tasks
     for each row execute function public.set_sales_id_default();
 
+create or replace trigger set_companies_research_audit_fields
+    before insert or update on public.companies
+    for each row execute function public.set_research_audit_fields();
+
+create or replace trigger set_contacts_research_audit_fields
+    before insert or update on public.contacts
+    for each row execute function public.set_research_audit_fields();
+
+create or replace trigger set_daily_research_activity_updated_at
+    before update on public.daily_research_activities
+    for each row execute function public.set_daily_research_activity_updated_at();
+
 -- Auto-fetch company logo from website favicon on save
 create or replace trigger company_saved
     before insert or update on public.companies

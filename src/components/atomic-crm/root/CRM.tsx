@@ -4,8 +4,14 @@ import type {
   DashboardComponent,
   LayoutComponent,
 } from "ra-core";
-import { CustomRoutes, localStorageStore, Resource } from "ra-core";
+import {
+  CustomRoutes,
+  localStorageStore,
+  Resource,
+  useCanAccess,
+} from "ra-core";
 import { useEffect, useMemo } from "react";
+import type { ReactNode } from "react";
 import { Route } from "react-router";
 import { QueryClient } from "@tanstack/react-query";
 import { PersistQueryClientProvider } from "@tanstack/react-query-persist-client";
@@ -14,6 +20,8 @@ import { Admin } from "@/components/admin/admin";
 import { ForgotPasswordPage } from "@/components/supabase/forgot-password-page";
 import { SetPasswordPage } from "@/components/supabase/set-password-page";
 import { OAuthConsentPage } from "@/components/supabase/oauth-consent-page";
+import { Loading } from "@/components/admin/loading";
+import { NotFound } from "@/components/admin/not-found";
 
 import companies from "../companies";
 import contacts from "../contacts";
@@ -59,6 +67,8 @@ import { ContactListMobile } from "../contacts/ContactList.tsx";
 import { ContactShow } from "../contacts/ContactShow.tsx";
 import { CompanyShow } from "../companies/CompanyShow.tsx";
 import { NoteShowPage } from "../notes/NoteShowPage.tsx";
+import { LukeCommandCenter } from "../luke/LukeCommandCenter.tsx";
+import { LukeReviewDashboard } from "../luke/LukeReviewDashboard.tsx";
 
 const defaultStore = localStorageStore(undefined, "CRM");
 
@@ -264,6 +274,22 @@ const DesktopAdmin = (
         <Route path={SettingsPage.path} element={<SettingsPage />} />
         <Route path={ImportPage.path} element={<ImportPage />} />
         <Route path={ChangelogPage.path} element={<ChangelogPage />} />
+        <Route
+          path={LukeCommandCenter.path}
+          element={
+            <ProtectedCustomRoute resource="luke_command_center">
+              <LukeCommandCenter />
+            </ProtectedCustomRoute>
+          }
+        />
+        <Route
+          path={LukeReviewDashboard.path}
+          element={
+            <ProtectedCustomRoute resource="luke_review">
+              <LukeReviewDashboard />
+            </ProtectedCustomRoute>
+          }
+        />
       </CustomRoutes>
       <Resource name="deals" {...deals} />
       <Resource name="contacts" {...contacts} />
@@ -271,6 +297,7 @@ const DesktopAdmin = (
       <Resource name="contact_notes" />
       <Resource name="deal_notes" />
       <Resource name="outreach_events" />
+      <Resource name="daily_research_activities" />
       <Resource name="tasks" />
       <Resource name="sales" {...sales} />
       <Resource name="tags" />
@@ -329,6 +356,22 @@ const MobileAdmin = (
             element={<SettingsPageMobile />}
           />
           <Route path={ChangelogPage.path} element={<ChangelogPage />} />
+          <Route
+            path={LukeCommandCenter.path}
+            element={
+              <ProtectedCustomRoute resource="luke_command_center">
+                <LukeCommandCenter />
+              </ProtectedCustomRoute>
+            }
+          />
+          <Route
+            path={LukeReviewDashboard.path}
+            element={
+              <ProtectedCustomRoute resource="luke_review">
+                <LukeReviewDashboard />
+              </ProtectedCustomRoute>
+            }
+          />
         </CustomRoutes>
         <Resource
           name="contacts"
@@ -340,7 +383,27 @@ const MobileAdmin = (
         </Resource>
         <Resource name="companies" show={CompanyShow} />
         <Resource name="tasks" list={MobileTasksList} />
+        <Resource name="daily_research_activities" />
       </Admin>
     </PersistQueryClientProvider>
   );
+};
+
+const ProtectedCustomRoute = ({
+  children,
+  resource,
+}: {
+  children: ReactNode;
+  resource: string;
+}) => {
+  const { canAccess, isPending } = useCanAccess({
+    action: "list",
+    resource,
+  });
+
+  if (isPending) {
+    return <Loading />;
+  }
+
+  return canAccess ? children : <NotFound />;
 };

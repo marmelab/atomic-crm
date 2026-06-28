@@ -1,7 +1,9 @@
 import { createElement } from "react";
+import type React from "react";
 import {
   useCanAccess,
   useCreatePath,
+  useGetIdentity,
   useGetResourceLabel,
   useHasDashboard,
   useResourceDefinitions,
@@ -21,7 +23,11 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 import { Skeleton } from "@/components/ui/skeleton";
-import { House, List, Shell } from "lucide-react";
+import { ClipboardCheck, House, List, SearchCheck, Shell } from "lucide-react";
+
+type IdentityWithRole = {
+  role?: string;
+};
 
 /**
  * Navigation sidebar displaying menu items, allowing users to navigate between different sections of the application.
@@ -38,6 +44,8 @@ import { House, List, Shell } from "lucide-react";
 export function AppSidebar() {
   const hasDashboard = useHasDashboard();
   const resources = useResourceDefinitions();
+  const { identity } = useGetIdentity();
+  const role = (identity as IdentityWithRole | undefined)?.role;
   const { openMobile, setOpenMobile } = useSidebar();
   const handleClick = () => {
     if (openMobile) {
@@ -67,6 +75,22 @@ export function AppSidebar() {
             <SidebarMenu>
               {hasDashboard ? (
                 <DashboardMenuItem onClick={handleClick} />
+              ) : null}
+              {role === "lead_researcher" || role === "admin" ? (
+                <CustomMenuItem
+                  to="/dashboard/luke"
+                  label="Luke Command Center"
+                  icon={<SearchCheck />}
+                  onClick={handleClick}
+                />
+              ) : null}
+              {role === "sales_manager" || role === "admin" ? (
+                <CustomMenuItem
+                  to="/dashboard/luke-review"
+                  label="Luke Review"
+                  icon={<ClipboardCheck />}
+                  onClick={handleClick}
+                />
               ) : null}
               {Object.keys(resources)
                 .filter((name) => resources[name].hasList)
@@ -106,6 +130,30 @@ export const DashboardMenuItem = ({ onClick }: { onClick?: () => void }) => {
       <SidebarMenuButton asChild isActive={!!match}>
         <Link to="/" onClick={onClick}>
           <House />
+          {label}
+        </Link>
+      </SidebarMenuButton>
+    </SidebarMenuItem>
+  );
+};
+
+const CustomMenuItem = ({
+  to,
+  label,
+  icon,
+  onClick,
+}: {
+  to: string;
+  label: string;
+  icon: React.ReactNode;
+  onClick?: () => void;
+}) => {
+  const match = useMatch({ path: to, end: false });
+  return (
+    <SidebarMenuItem>
+      <SidebarMenuButton asChild isActive={!!match}>
+        <Link to={to} onClick={onClick}>
+          {icon}
           {label}
         </Link>
       </SidebarMenuButton>

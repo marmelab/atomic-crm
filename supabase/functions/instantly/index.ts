@@ -3,6 +3,7 @@ import { corsHeaders, OptionsMiddleware } from "../_shared/cors.ts";
 import { createErrorResponse } from "../_shared/utils.ts";
 import { AuthMiddleware, UserMiddleware } from "../_shared/authentication.ts";
 import { mapLead, type CrmContactInput } from "./mapLead.ts";
+import { getUserSale } from "../_shared/getUserSale.ts";
 
 const API_BASE = "https://api.instantly.ai/api/v2";
 
@@ -68,10 +69,15 @@ async function pushLeads(
   return ok({ data: { pushed: leads.length, result } });
 }
 
-async function handle(req: Request): Promise<Response> {
+async function handle(req: Request, currentUserSale: any): Promise<Response> {
   const apiKey = Deno.env.get("INSTANTLY_API_KEY");
   if (!apiKey) {
     return createErrorResponse(500, "Instantly is not configured");
+  }
+
+  const role = currentUserSale?.administrator ? "admin" : currentUserSale?.role;
+  if (!["admin", "sales_manager"].includes(role)) {
+    return createErrorResponse(403, "Not Authorized");
   }
 
   let body: {
@@ -98,9 +104,10 @@ async function handle(req: Request): Promise<Response> {
 Deno.serve((req: Request) =>
   OptionsMiddleware(req, (req) =>
     AuthMiddleware(req, (req) =>
-      UserMiddleware(req, (req) => {
+      UserMiddleware(req, async (req, user) => {
         if (req.method === "POST") {
-          return handle(req);
+          const currentUserSale = user ? await getUserSale(user) : null;
+          return handle(req, currentUserSale);
         }
         return Promise.resolve(createErrorResponse(405, "Method Not Allowed"));
       }),

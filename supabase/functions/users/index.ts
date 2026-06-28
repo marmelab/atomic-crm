@@ -38,11 +38,13 @@ async function createSale(
     last_name: string;
     disabled: boolean;
     administrator: boolean;
+    role?: string;
   },
 ) {
+  const role = data.administrator ? "admin" : (data.role ?? "sales_manager");
   const { data: sales, error: salesError } = await supabaseAdmin
     .from("sales")
-    .insert({ ...data, user_id })
+    .insert({ ...data, role, user_id })
     .select("*");
 
   if (!sales?.length || salesError) {
@@ -67,8 +69,15 @@ async function updateSaleAvatar(user_id: string, avatar: string) {
 }
 
 async function inviteUser(req: Request, currentUserSale: any) {
-  const { email, password, first_name, last_name, disabled, administrator } =
-    await req.json();
+  const {
+    email,
+    password,
+    first_name,
+    last_name,
+    disabled,
+    administrator,
+    role,
+  } = await req.json();
 
   if (!currentUserSale.administrator) {
     return createErrorResponse(401, "Not Authorized");
@@ -121,6 +130,7 @@ async function inviteUser(req: Request, currentUserSale: any) {
         last_name,
         disabled,
         administrator,
+        role,
       });
 
       return new Response(
@@ -162,11 +172,20 @@ async function inviteUser(req: Request, currentUserSale: any) {
 
   try {
     await updateSaleDisabled(user.id, disabled);
-    const sale = await updateSaleAdministrator(user.id, administrator);
+    await updateSaleAdministrator(user.id, administrator);
+    const { data: sales, error: roleError } = await supabaseAdmin
+      .from("sales")
+      .update({ role: administrator ? "admin" : (role ?? "sales_manager") })
+      .eq("user_id", user.id)
+      .select("*");
+
+    if (!sales?.length || roleError) {
+      throw roleError ?? new Error("Failed to update role");
+    }
 
     return new Response(
       JSON.stringify({
-        data: sale,
+        data: sales.at(0),
       }),
       {
         headers: { "Content-Type": "application/json", ...corsHeaders },
@@ -186,6 +205,7 @@ async function patchUser(req: Request, currentUserSale: any) {
     last_name,
     avatar,
     administrator,
+    role,
     disabled,
   } = await req.json();
   const { data: sale } = await supabaseAdmin
@@ -241,10 +261,20 @@ async function patchUser(req: Request, currentUserSale: any) {
 
   try {
     await updateSaleDisabled(data.user.id, disabled);
-    const sale = await updateSaleAdministrator(data.user.id, administrator);
+    await updateSaleAdministrator(data.user.id, administrator);
+    const { data: sales, error: roleError } = await supabaseAdmin
+      .from("sales")
+      .update({ role: administrator ? "admin" : (role ?? "sales_manager") })
+      .eq("user_id", data.user.id)
+      .select("*");
+
+    if (!sales?.length || roleError) {
+      throw roleError ?? new Error("Failed to update role");
+    }
+
     return new Response(
       JSON.stringify({
-        data: sale,
+        data: sales.at(0),
       }),
       {
         headers: {

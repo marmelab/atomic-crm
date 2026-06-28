@@ -131,6 +131,25 @@ export const generateContacts = (db: Db, size = 500): Required<Contact>[] => {
       instantly_campaign,
       nb_tasks: 0,
       linkedin_url: null,
+      company_website: company.website,
+      company_linkedin_url: company.linkedin_url,
+      company_size: company.size,
+      assigned_to_user_id: company.sales_id ?? null,
+      created_by_user_id: company.sales_id ?? null,
+      last_updated_by_user_id: company.sales_id ?? null,
+      research_status: random.arrayElement([
+        "new",
+        "researching",
+        "enriched",
+        "verified",
+      ]),
+      icp_score: random.number({ min: 40, max: 95 }),
+      trigger_reason: lorem.sentence(),
+      email_verified: weightedBoolean(70),
+      ready_for_review: false,
+      approved_for_instantly: false,
+      reviewed_by_user_id: null,
+      review_notes: null,
     };
   });
 };

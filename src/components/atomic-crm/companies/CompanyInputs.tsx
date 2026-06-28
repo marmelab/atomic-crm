@@ -1,7 +1,14 @@
-import { required, useRecordContext, useTranslate } from "ra-core";
+import {
+  required,
+  useGetIdentity,
+  useRecordContext,
+  useTranslate,
+} from "ra-core";
 import { ReferenceInput } from "@/components/admin/reference-input";
 import { TextInput } from "@/components/admin/text-input";
 import { SelectInput } from "@/components/admin/select-input";
+import { NumberInput } from "@/components/admin/number-input";
+import { BooleanInput } from "@/components/admin/boolean-input";
 import { ArrayInput } from "@/components/admin/array-input";
 import { SimpleFormIterator } from "@/components/admin/simple-form-iterator";
 import { Separator } from "@/components/ui/separator";
@@ -13,6 +20,11 @@ import { useConfigurationContext } from "../root/ConfigurationContext";
 import type { Company, Sale } from "../types";
 import { getTranslatedCompanySizeLabel } from "./getTranslatedCompanySizeLabel";
 import { sizes } from "./sizes";
+import { researchStatusChoices } from "../luke/research";
+
+type IdentityWithRole = {
+  role?: string;
+};
 
 const isUrl = (url: string) => {
   if (!url) return;
@@ -41,9 +53,49 @@ export const CompanyInputs = () => {
         <Separator orientation={isMobile ? "horizontal" : "vertical"} />
         <div className="flex flex-col gap-8 flex-1">
           <CompanyAddressInputs />
+          <CompanyResearchInputs />
           <CompanyAdditionalInformationInputs />
         </div>
       </div>
+    </div>
+  );
+};
+
+const CompanyResearchInputs = () => {
+  const { identity } = useGetIdentity();
+  const role = (identity as IdentityWithRole | undefined)?.role;
+  const choices =
+    role === "lead_researcher"
+      ? researchStatusChoices.filter(
+          (choice) => choice.id !== "approved_for_instantly",
+        )
+      : researchStatusChoices;
+
+  return (
+    <div className="flex flex-col gap-4">
+      <h6 className="text-lg font-semibold">Lead research</h6>
+      <ReferenceInput
+        source="assigned_to_user_id"
+        reference="sales"
+        filter={{
+          "disabled@neq": true,
+        }}
+      >
+        <SelectInput helperText={false} optionText={saleOptionRenderer} />
+      </ReferenceInput>
+      <SelectInput
+        source="research_status"
+        choices={choices}
+        helperText={false}
+        defaultValue="new"
+      />
+      <NumberInput source="icp_score" min={0} max={100} helperText={false} />
+      <TextInput source="trigger_reason" multiline helperText={false} />
+      <BooleanInput source="ready_for_review" helperText={false} />
+      {role === "admin" || role === "sales_manager" ? (
+        <BooleanInput source="approved_for_instantly" helperText={false} />
+      ) : null}
+      <TextInput source="review_notes" multiline helperText={false} />
     </div>
   );
 };

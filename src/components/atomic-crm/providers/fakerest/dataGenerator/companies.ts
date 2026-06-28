@@ -48,6 +48,16 @@ export const generateCompanies = (db: Db, size = 55): Required<Company>[] => {
       tax_identifier: random.alphaNumeric(10),
       country: random.arrayElement(["USA", "France", "UK"]),
       context_links: [],
+      assigned_to_user_id: null,
+      created_by_user_id: null,
+      last_updated_by_user_id: null,
+      research_status: "new",
+      icp_score: null,
+      trigger_reason: null,
+      ready_for_review: false,
+      approved_for_instantly: false,
+      reviewed_by_user_id: null,
+      review_notes: null,
     };
   });
 };

@@ -17,6 +17,41 @@ export const canAccess = <
     return true;
   }
 
+  if (params.resource === "luke_command_center") {
+    return role === "lead_researcher";
+  }
+
+  if (params.resource === "luke_review") {
+    return role === "sales_manager";
+  }
+
+  if (role === "viewer") {
+    return ["list", "show"].includes(params.action);
+  }
+
+  if (role === "lead_researcher") {
+    if (["delete", "export"].includes(params.action)) {
+      return false;
+    }
+
+    if (["sales", "configuration"].includes(params.resource)) {
+      return false;
+    }
+
+    if (params.resource === "luke_review") {
+      return false;
+    }
+
+    if (
+      params.resource === "deals" &&
+      !["list", "show"].includes(params.action)
+    ) {
+      return false;
+    }
+
+    return true;
+  }
+
   // Non admins can't access the sales resource
   if (params.resource === "sales") {
     return false;

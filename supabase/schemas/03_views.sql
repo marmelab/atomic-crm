@@ -92,6 +92,16 @@ select
     c.revenue,
     c.tax_identifier,
     c.logo,
+    c.assigned_to_user_id,
+    c.created_by_user_id,
+    c.last_updated_by_user_id,
+    c.research_status,
+    c.icp_score,
+    c.trigger_reason,
+    c.ready_for_review,
+    c.approved_for_instantly,
+    c.reviewed_by_user_id,
+    c.review_notes,
     count(distinct d.id) as nb_deals,
     count(distinct co.id) as nb_contacts
 from public.companies c
@@ -122,14 +132,28 @@ select
     co.last_emailed_at,
     co.last_outreach_at,
     co.instantly_campaign,
+    co.assigned_to_user_id,
+    co.created_by_user_id,
+    co.last_updated_by_user_id,
+    co.research_status,
+    co.icp_score,
+    co.trigger_reason,
+    co.email_verified,
+    co.ready_for_review,
+    co.approved_for_instantly,
+    co.reviewed_by_user_id,
+    co.review_notes,
     (jsonb_path_query_array(co.email_jsonb, '$[*]."email"'))::text as email_fts,
     (jsonb_path_query_array(co.phone_jsonb, '$[*]."number"'))::text as phone_fts,
     c.name as company_name,
+    c.website as company_website,
+    c.linkedin_url as company_linkedin_url,
+    c.size as company_size,
     count(distinct t.id) filter (where t.done_date is null) as nb_tasks
 from public.contacts co
     left join public.tasks t on co.id = t.contact_id
     left join public.companies c on co.company_id = c.id
-group by co.id, c.name;
+group by co.id, c.name, c.website, c.linkedin_url, c.size;
 
 create or replace view public.init_state with (security_invoker = off) as
 select count(sub.id) as is_initialized

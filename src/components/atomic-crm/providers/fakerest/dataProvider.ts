@@ -12,6 +12,7 @@ import type {
   Company,
   Contact,
   ContactNote,
+  DailyResearchActivity,
   Deal,
   DealNote,
   EmailVerificationResult,
@@ -40,6 +41,10 @@ import { withSupabaseFilterAdapter } from "./internal/supabaseAdapter";
 const TASK_MARKED_AS_DONE = "TASK_MARKED_AS_DONE";
 const TASK_MARKED_AS_UNDONE = "TASK_MARKED_AS_UNDONE";
 const TASK_DONE_NOT_CHANGED = "TASK_DONE_NOT_CHANGED";
+
+type IdentityWithRole = {
+  role?: string;
+};
 
 const processCompanyLogo = async (params: any) => {
   let logo = params.data.logo;
@@ -311,6 +316,19 @@ export const createDataProvider = ({
       campaignName: string,
       contacts: Contact[],
     ): Promise<number> => {
+      const currentUser = await getIdentity();
+      const role = (currentUser as IdentityWithRole | undefined)?.role;
+      if (role !== "admin" && role !== "sales_manager") {
+        throw new Error("Not authorized to push leads to Instantly");
+      }
+
+      const unapprovedContacts = contacts.filter(
+        (contact) => !contact.approved_for_instantly,
+      );
+      if (unapprovedContacts.length > 0) {
+        throw new Error("Only approved leads can be pushed to Instantly");
+      }
+
       const now = new Date().toISOString();
       await Promise.all(
         contacts.flatMap((contact) => [
@@ -322,6 +340,7 @@ export const createDataProvider = ({
                 "queued",
               ),
               instantly_campaign: campaignName,
+              research_status: "in_campaign",
               last_outreach_at: now,
             },
             previousData: contact,
@@ -338,6 +357,36 @@ export const createDataProvider = ({
         ]),
       );
       return contacts.length;
+    },
+    submitDailyResearchActivity: async (
+      activity: DailyResearchActivity,
+    ): Promise<DailyResearchActivity> => {
+      const existing = await dataProvider.getList<DailyResearchActivity>(
+        "daily_research_activities",
+        {
+          filter: { user_id: activity.user_id, date: activity.date },
+          pagination: { page: 1, perPage: 1 },
+          sort: { field: "id", order: "ASC" },
+        },
+      );
+
+      if (existing.data[0]) {
+        const { data } = await dataProvider.update<DailyResearchActivity>(
+          "daily_research_activities",
+          {
+            id: existing.data[0].id,
+            data: activity,
+            previousData: existing.data[0],
+          },
+        );
+        return data;
+      }
+
+      const { data } = await dataProvider.create<DailyResearchActivity>(
+        "daily_research_activities",
+        { data: activity },
+      );
+      return data;
     },
     verifyEmails: async (
       emails: string[],

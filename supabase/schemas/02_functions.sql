@@ -262,14 +262,59 @@ begin
 end;
 $$;
 
+CREATE OR REPLACE FUNCTION "public"."current_sale_id"() RETURNS bigint
+    LANGUAGE "plpgsql" SECURITY DEFINER
+    SET "search_path" TO ''
+    AS $$
+declare
+    sale_id bigint;
+begin
+    select id into sale_id
+    from public.sales
+    where user_id = auth.uid()
+      and disabled = false;
+
+    return sale_id;
+end;
+$$;
+
+CREATE OR REPLACE FUNCTION "public"."current_user_role"() RETURNS text
+    LANGUAGE "plpgsql" SECURITY DEFINER
+    SET "search_path" TO ''
+    AS $$
+declare
+    user_role text;
+begin
+    select case when administrator then 'admin' else role end into user_role
+    from public.sales
+    where user_id = auth.uid()
+      and disabled = false;
+
+    return coalesce(user_role, 'viewer');
+end;
+$$;
+
 CREATE OR REPLACE FUNCTION "public"."is_admin"() RETURNS boolean
     LANGUAGE "plpgsql" SECURITY DEFINER
     SET "search_path" TO ''
     AS $$
 begin
   return exists (
-    select 1 from public.sales where user_id = auth.uid() and administrator = true
+    select 1
+    from public.sales
+    where user_id = auth.uid()
+      and disabled = false
+      and (administrator = true or role = 'admin')
   );
+end;
+$$;
+
+CREATE OR REPLACE FUNCTION "public"."can_review_luke_output"() RETURNS boolean
+    LANGUAGE "plpgsql" SECURITY DEFINER
+    SET "search_path" TO ''
+    AS $$
+begin
+  return public.current_user_role() in ('admin', 'sales_manager');
 end;
 $$;
 
@@ -452,4 +497,51 @@ BEGIN
   END IF;
   RETURN NEW;
 END;
+$$;
+
+CREATE OR REPLACE FUNCTION "public"."set_research_audit_fields"() RETURNS "trigger"
+    LANGUAGE "plpgsql"
+    SET "search_path" TO 'public'
+    AS $$
+declare
+    sale_id bigint;
+begin
+    sale_id := public.current_sale_id();
+
+    if public.current_user_role() = 'lead_researcher'
+       and tg_op = 'UPDATE'
+       and (
+           new.approved_for_instantly is distinct from old.approved_for_instantly
+           or new.research_status = 'approved_for_instantly'
+       ) then
+        raise exception 'Lead researchers cannot approve leads for Instantly';
+    end if;
+
+    if tg_op = 'INSERT' then
+        new.created_by_user_id = coalesce(new.created_by_user_id, sale_id);
+        new.assigned_to_user_id = coalesce(new.assigned_to_user_id, sale_id);
+    end if;
+
+    new.last_updated_by_user_id = sale_id;
+
+    if new.approved_for_instantly = true then
+        new.research_status = 'approved_for_instantly';
+        new.ready_for_review = true;
+        new.reviewed_by_user_id = coalesce(new.reviewed_by_user_id, sale_id);
+    elsif new.ready_for_review = true and new.research_status not in ('approved_for_instantly', 'needs_fixing', 'rejected', 'bad_fit', 'in_campaign', 'replied') then
+        new.research_status = 'ready_for_review';
+    end if;
+
+    return new;
+end;
+$$;
+
+CREATE OR REPLACE FUNCTION "public"."set_daily_research_activity_updated_at"() RETURNS "trigger"
+    LANGUAGE "plpgsql"
+    SET "search_path" TO 'public'
+    AS $$
+begin
+    new.updated_at = now();
+    return new;
+end;
 $$;

@@ -49,9 +49,21 @@ grant all on function public.handle_update_user() to anon;
 grant all on function public.handle_update_user() to authenticated;
 grant all on function public.handle_update_user() to service_role;
 
+grant all on function public.current_sale_id() to anon;
+grant all on function public.current_sale_id() to authenticated;
+grant all on function public.current_sale_id() to service_role;
+
+grant all on function public.current_user_role() to anon;
+grant all on function public.current_user_role() to authenticated;
+grant all on function public.current_user_role() to service_role;
+
 grant all on function public.is_admin() to anon;
 grant all on function public.is_admin() to authenticated;
 grant all on function public.is_admin() to service_role;
+
+grant all on function public.can_review_luke_output() to anon;
+grant all on function public.can_review_luke_output() to authenticated;
+grant all on function public.can_review_luke_output() to service_role;
 
 grant all on function public.lowercase_email_jsonb() to anon;
 grant all on function public.lowercase_email_jsonb() to authenticated;
@@ -64,6 +76,14 @@ grant all on function public.merge_contacts(bigint, bigint) to service_role;
 grant all on function public.set_sales_id_default() to anon;
 grant all on function public.set_sales_id_default() to authenticated;
 grant all on function public.set_sales_id_default() to service_role;
+
+grant all on function public.set_research_audit_fields() to anon;
+grant all on function public.set_research_audit_fields() to authenticated;
+grant all on function public.set_research_audit_fields() to service_role;
+
+grant all on function public.set_daily_research_activity_updated_at() to anon;
+grant all on function public.set_daily_research_activity_updated_at() to authenticated;
+grant all on function public.set_daily_research_activity_updated_at() to service_role;
 
 -- Table grants
 grant all on table public.companies to anon;
@@ -109,6 +129,10 @@ grant all on table public.configuration to service_role;
 grant all on table public.favicons_excluded_domains to anon;
 grant all on table public.favicons_excluded_domains to authenticated;
 grant all on table public.favicons_excluded_domains to service_role;
+
+grant all on table public.daily_research_activities to anon;
+grant all on table public.daily_research_activities to authenticated;
+grant all on table public.daily_research_activities to service_role;
 
 -- View grants
 grant all on table public.activity_log to anon;
@@ -167,6 +191,10 @@ grant all on sequence public.tags_id_seq to service_role;
 grant all on sequence public.tasks_id_seq to anon;
 grant all on sequence public.tasks_id_seq to authenticated;
 grant all on sequence public.tasks_id_seq to service_role;
+
+grant all on sequence public.daily_research_activities_id_seq to anon;
+grant all on sequence public.daily_research_activities_id_seq to authenticated;
+grant all on sequence public.daily_research_activities_id_seq to service_role;
 
 -- Default privileges
 alter default privileges for role postgres in schema public grant all on sequences to postgres;

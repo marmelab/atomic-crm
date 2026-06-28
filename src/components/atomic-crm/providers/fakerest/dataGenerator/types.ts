@@ -2,6 +2,7 @@ import type {
   Company,
   Contact,
   ContactNote,
+  DailyResearchActivity,
   Deal,
   DealNote,
   OutreachEvent,
@@ -21,5 +22,6 @@ export interface Db {
   sales: Sale[];
   tags: Tag[];
   tasks: Task[];
+  daily_research_activities: DailyResearchActivity[];
   configuration: Array<{ id: number; config: ConfigurationContextValue }>;
 }

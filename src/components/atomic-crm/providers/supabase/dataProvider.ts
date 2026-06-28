@@ -9,6 +9,7 @@ import {
 import type {
   Contact,
   ContactNote,
+  DailyResearchActivity,
   Deal,
   DealNote,
   EmailVerificationResult,
@@ -143,8 +144,15 @@ const getDataProviderWithCustomMethods = () => {
       id: Identifier,
       data: Partial<Omit<SalesFormData, "password">>,
     ) {
-      const { email, first_name, last_name, administrator, avatar, disabled } =
-        data;
+      const {
+        email,
+        first_name,
+        last_name,
+        administrator,
+        role,
+        avatar,
+        disabled,
+      } = data;
 
       const { data: updatedData, error } =
         await getSupabaseClient().functions.invoke<{
@@ -157,6 +165,7 @@ const getDataProviderWithCustomMethods = () => {
             first_name,
             last_name,
             administrator,
+            role,
             disabled,
             avatar,
           },
@@ -264,6 +273,14 @@ const getDataProviderWithCustomMethods = () => {
       campaignName: string,
       contacts: Contact[],
     ): Promise<number> {
+      const unapprovedContacts = contacts.filter(
+        (contact) => !contact.approved_for_instantly,
+      );
+
+      if (unapprovedContacts.length > 0) {
+        throw new Error("Only approved leads can be pushed to Instantly");
+      }
+
       const { data, error } = await getSupabaseClient().functions.invoke<{
         data: { pushed: number };
       }>("instantly", {
@@ -297,6 +314,7 @@ const getDataProviderWithCustomMethods = () => {
                 "queued",
               ),
               instantly_campaign: campaignName,
+              research_status: "in_campaign",
               last_outreach_at: now,
             },
             previousData: contact,
@@ -314,6 +332,22 @@ const getDataProviderWithCustomMethods = () => {
       );
 
       return data.data.pushed;
+    },
+    async submitDailyResearchActivity(
+      activity: DailyResearchActivity,
+    ): Promise<DailyResearchActivity> {
+      const { data, error } = await getSupabaseClient()
+        .from("daily_research_activities")
+        .upsert(activity, { onConflict: "user_id,date" })
+        .select()
+        .single();
+
+      if (!data || error) {
+        console.error("daily_research_activities.upsert.error", error);
+        throw new Error("Failed to submit EOD report");
+      }
+
+      return data as DailyResearchActivity;
     },
     async getConfiguration(): Promise<ConfigurationContextValue> {
       const { data } = await baseDataProvider.getOne("configuration", {

@@ -2,6 +2,7 @@ import { Send } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import {
   useDataProvider,
+  useGetIdentity,
   useGetMany,
   useListContext,
   useNotify,
@@ -20,11 +21,16 @@ import {
 import type { CrmDataProvider } from "../providers/types";
 import type { Contact, InstantlyCampaign } from "../types";
 
+type IdentityWithRole = {
+  role?: string;
+};
+
 export function SendToInstantlyButton() {
   const translate = useTranslate();
   const notify = useNotify();
   const refresh = useRefresh();
   const dataProvider = useDataProvider<CrmDataProvider>();
+  const { identity } = useGetIdentity();
   const { onUnselectItems, selectedIds = [] } = useListContext<Contact>();
   const [open, setOpen] = useState(false);
   const [campaigns, setCampaigns] = useState<InstantlyCampaign[]>([]);
@@ -87,7 +93,11 @@ export function SendToInstantlyButton() {
     [dataProvider, selectedContacts, notify, onUnselectItems, refresh],
   );
 
-  if (!selectedIds.length) return null;
+  const role = (identity as IdentityWithRole | undefined)?.role;
+
+  if (!selectedIds.length || (role !== "admin" && role !== "sales_manager")) {
+    return null;
+  }
 
   return (
     <>
