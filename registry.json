@@ -274,6 +274,10 @@
           "type": "registry:component"
         },
         {
+          "path": "src/components/atomic-crm/providers/fakerest/dataGenerator/outreachEvents.ts",
+          "type": "registry:component"
+        },
+        {
           "path": "src/components/atomic-crm/providers/fakerest/dataGenerator/index.ts",
           "type": "registry:component"
         },
@@ -418,6 +422,10 @@
           "type": "registry:component"
         },
         {
+          "path": "src/components/atomic-crm/misc/outreachStatus.ts",
+          "type": "registry:component"
+        },
+        {
           "path": "src/components/atomic-crm/misc/isLinkedInUrl.ts",
           "type": "registry:component"
         },
@@ -479,6 +487,18 @@
         },
         {
           "path": "src/components/atomic-crm/misc/ActiveFilterButton.tsx",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/luke/research.ts",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/luke/LukeReviewDashboard.tsx",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/luke/LukeCommandCenter.tsx",
           "type": "registry:component"
         },
         {
@@ -642,6 +662,10 @@
           "type": "registry:component"
         },
         {
+          "path": "src/components/atomic-crm/contacts/useVerifyContacts.ts",
+          "type": "registry:component"
+        },
+        {
           "path": "src/components/atomic-crm/contacts/useContactImport.tsx",
           "type": "registry:component"
         },
@@ -663,6 +687,18 @@
         },
         {
           "path": "src/components/atomic-crm/contacts/TagsList.tsx",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/contacts/SendToInstantlyButton.tsx",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/contacts/OutreachTimeline.tsx",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/contacts/OutreachStatusBadge.tsx",
           "type": "registry:component"
         },
         {
@@ -807,6 +843,10 @@
         },
         {
           "path": "src/components/atomic-crm/companies/AutocompleteCompanyInput.tsx",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/ai/AiCommandCenter.tsx",
           "type": "registry:component"
         },
         {
