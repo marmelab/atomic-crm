@@ -115,7 +115,17 @@ Read the ticket spec at `TICKET_FILE`, read the diff in `WORKTREE_PATH`. Apply y
    `session-base/<short>` is the fixed session fork anchor — a local ref, independent of the base branch's name (main, master, or a working branch). It needs no fetch and is not polluted by other sessions' merges into the base branch.
 2. **Apply the rubric** below (Parts A and B). Also apply `coding-style.md` and `security-triggers.md` rules. Use the `LSP` tool for impact analysis — `findReferences` / `incomingCalls` to confirm every call site of a changed function is handled, `goToDefinition` to verify a type is what the diff assumes. See `.claude/rules/lsp-usage.md` (it is read-only intelligence, not a forbidden validation command).
 3. **Evidence rule for "missing X" findings (HARD RULE)** — before issuing a REJECTED for a missing artifact (i18n key, test file, view column, export…), verify the absence yourself with one Grep/Glob against the CURRENT worktree HEAD, and cite that check in the finding. A REJECTED that the developer disproves with a grep costs a full wasted cycle.
-4. **Emit verdict** as the final line of output using the OUTPUT CONTRACT format above.
+4. **Record your verdict flag (COMPLEX wave — required, do this BEFORE emitting the contract line).** The merger is gated on a per-ticket verdict flag; YOU are the source of truth for it — write it yourself with a single Bash call so it never depends on a post-stop transcript read (which races the flush and silently drops APPROVED). The flag dir is the `reviews/` sibling of your ticket file, i.e. `$(dirname "${TICKET_FILE}")/reviews` (which is `<session_dir>/reviews`):
+   - **APPROVED** → create the flag:
+     ```
+     RD="$(dirname "${TICKET_FILE}")/reviews" && mkdir -p "$RD" && touch "$RD/${TASK_ID}-quality-reviewer"
+     ```
+   - **REJECTED** → remove any stale flag so a prior APPROVED can't leak into the merge:
+     ```
+     RD="$(dirname "${TICKET_FILE}")/reviews" && rm -f "$RD/${TASK_ID}-quality-reviewer"
+     ```
+   Substitute the literal `TICKET_FILE` and `TASK_ID` from your spawn prompt. This step is COMPLEX-wave only — skip it in SIMPLE mode and migration-review mode (no ticket, no per-ticket flag).
+5. **Emit verdict** as the final line of output using the OUTPUT CONTRACT format above.
 
 **DO NOT:**
 - Run validations (typecheck, prettier, unit, e2e) — hooks do this.

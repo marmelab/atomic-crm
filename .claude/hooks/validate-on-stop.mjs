@@ -5,6 +5,7 @@ import { existsSync, readFileSync } from "node:fs";
 import { createHookContext } from "./lib/context.mjs";
 import { git } from "./lib/git.mjs";
 import { getFirstTaskId } from "./lib/teams.mjs";
+import { readAgentMeta } from "./lib/agent-meta.mjs";
 import {
   sessionBranch,
   simpleWorktreePath,
@@ -32,6 +33,19 @@ let taskId = ids.map(getFirstTaskId).find(Boolean) || "";
 // A single-shot simple developer runs on the shared <base>/simple worktree; its agent
 // name carries no TASK suffix, so it's recovered from the dispatch prompt below.
 let isSimple = false;
+
+// Reliable identity at SubagentStop: the sibling <agent>.meta.json (written at
+// spawn, so it exists even when the big transcript JSONL hasn't been flushed yet —
+// a real race here). Its `description` carries the ticket (e.g. "Implement
+// TASK-002: …"). Use it to scope validation to THIS dev's worktree instead of
+// re-validating every session worktree (wt=all) on every stop.
+if (!taskId) {
+  const meta = readAgentMeta(payload);
+  if (meta) {
+    const m = meta.description.match(/TASK-\d+/);
+    if (m) taskId = m[0];
+  }
+}
 
 // No suffixed agent name in this harness → recover the TASK_ID (or the single-shot
 // simple flow) from the dispatch prompt in the transcript, to scope validation to

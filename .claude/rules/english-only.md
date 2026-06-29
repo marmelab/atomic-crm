@@ -19,7 +19,7 @@ English when it doesn't change the semantics.
 
 ## Speaking another language at runtime
 
-Agents that converse with the user (chat-orchestrator, project-manager,
+Agents that converse with the user (orchestrator, project-manager,
 etc.) MUST reply in the user's language at runtime.
 Achieve this with English instructions plus a directive like *"reply in
 the user's language"* — never by hard-coding non-English templates inside
@@ -37,4 +37,4 @@ based on the user's most recent message.
    words (je, tu, le, la, voici, equipo, scrivere, …).
 2. If any found, rewrite in English (keep runtime-translation directives
    if user-facing strings are involved).
-3. Commit messages: English imperative, e.g. `Add SETUP path to chat-orchestrator`.
+3. Commit messages: English imperative, e.g. `Add SETUP path to orchestrator`.

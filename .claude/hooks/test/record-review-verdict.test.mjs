@@ -35,6 +35,12 @@ beforeAll(() => {
   reviewsDir = join(CRM_TMP_ROOT, sanitizePath(APP_DIR), SESSION_ID, "reviews");
   env = { ...process.env, APP_DIR, CRM_TMP_ROOT };
   delete env.CLAUDE_AGENT_NAME;
+  // These tests assert the flag lands under ctx.sessionDir (CRM_TMP_ROOT/...).
+  // reviewsDir() prefers CHAT_SESSION_DIR when set (managed-launcher path), so a
+  // CHAT_SESSION_DIR inherited from the ambient env (e.g. CRM Builder's container)
+  // would redirect the flag and break the assertion — neutralise it here. The
+  // CHAT_SESSION_DIR-present path is covered by reviews.test.mjs.
+  delete env.CHAT_SESSION_DIR;
 });
 
 afterAll(() => rmSync(TMP, { recursive: true, force: true }));

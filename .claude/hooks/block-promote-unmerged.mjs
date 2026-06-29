@@ -7,7 +7,7 @@
 // believes the wave is done and dispatches the promotion merger, silently
 // dropping the work. This is the deterministic backstop.
 //
-// Behavioural counterpart: chat-orchestrator STATE B's Promotion step reconciles
+// Behavioural counterpart: orchestrator STATE B's Promotion step reconciles
 // against disk before promoting, so in the normal case this never fires.
 
 import { readFileSync } from "node:fs";

@@ -165,8 +165,9 @@ if (
 // is captured here. Written only when missing: that pins the value at fork time
 // and never overwrites it with a later, possibly drifted, $REPO HEAD. The key
 // lives for the whole session — like session/<short> and session-base/<short> it
-// is NOT torn down per request (cleanup-worktree leaves it in place); clean-harness
-// removes it at session teardown. Keyed by session short id (a config subsection,
+// is NOT torn down per request (cleanup-worktree leaves it in place);
+// harness-revert.mjs (the /harness-revert command) removes it at session teardown.
+// Keyed by session short id (a config subsection,
 // so any short id is valid).
 const baseBranchKey = `sessionbase.${ctx.sessionShort}.branch`;
 if (!git(["config", "--get", baseBranchKey]).stdout.trim()) {

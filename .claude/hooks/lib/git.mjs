@@ -58,7 +58,7 @@ export function getWorktreeChangeSummary(wt, base) {
 
 // Task branches under refs/heads/<short>/ that still have commits NOT merged into
 // `sessionRef`. The single source of truth for the promotion-safety check
-// (block-promote-unmerged.mjs); the chat-orchestrator's STATE B reconcile Bash
+// (block-promote-unmerged.mjs); the orchestrator's STATE B reconcile Bash
 // mirrors it and must stay aligned. Fails CLOSED: a failed/unparseable rev-list
 // count is reported as unmerged (count: null) rather than silently treated as
 // merged. `exclude` simple branches that legitimately never merge into the session

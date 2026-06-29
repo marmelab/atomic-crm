@@ -1,7 +1,14 @@
 #!/usr/bin/env node
-// SubagentStop(quality-reviewer) — record the reviewer's verdict
-// as a per-ticket flag so block-merger-without-review.mjs can enforce
-// dev -> reviewer -> merger. SubagentStop cannot block — it only records.
+// SubagentStop(quality-reviewer) — FALLBACK recorder of the reviewer's verdict
+// flag (block-merger-without-review.mjs enforces dev -> reviewer -> merger on it).
+// The PRIMARY writer is now the quality-reviewer agent itself, which touches the
+// flag via Bash before it stops (see quality-reviewer.md) — synchronous, no race.
+// This hook stays as belt-and-suspenders: at SubagentStop the reviewer's final
+// contract line is often not yet flushed to the transcript (and last_assistant_message
+// is absent in this runtime), so verdict recovery here can return UNKNOWN and the
+// flag is left untouched. That silent miss was the TASK-002 cascade — the agent
+// self-write removes the dependency; this hook only catches the case the agent
+// skipped its touch. SubagentStop cannot block — it only records.
 //
 // Flag (presence == APPROVED): <sessionDir>/reviews/<TASK>-<role>. Cleared on
 // REJECTED here; cleared on a developer (re)dispatch by setup-worktree.mjs so a
@@ -22,6 +29,7 @@ import {
 } from "node:fs";
 import { createHookContext } from "./lib/context.mjs";
 import { getFirstTaskId, isQualityReviewer } from "./lib/teams.mjs";
+import { readAgentMeta } from "./lib/agent-meta.mjs";
 import { reviewFlag, reviewsDir } from "./lib/reviews.mjs";
 
 const input = JSON.parse(readFileSync(0, "utf8"));
@@ -36,6 +44,22 @@ for (const n of ids) {
   if (m) {
     task = m;
     break;
+  }
+}
+
+// Most reliable source at SubagentStop: the sibling <agent>.meta.json. It is
+// written at spawn (so it exists even when the big transcript JSONL hasn't been
+// flushed yet — a real race here) and carries agentType + the dispatch
+// description. In this runtime the payload's `agent_type` is empty and
+// `transcript_path` can point at a not-yet-written file, so prefer the meta.
+if (!role || !task) {
+  const meta = readAgentMeta(input);
+  if (meta) {
+    if (!role && isQualityReviewer(meta.agentType)) role = "quality-reviewer";
+    if (!task) {
+      const m = meta.description.match(/TASK-\d+/);
+      if (m) task = m[0];
+    }
   }
 }
 
@@ -161,9 +185,19 @@ for (let i = verdictLines.length - 1; i >= 0; i--) {
   }
 }
 
-ctx.log(
-  `role=${role || "UNKNOWN"} task=${task || "UNKNOWN"} verdict=${verdict || "UNKNOWN"}`,
-);
+// Only log for reviewer stops. This hook fires on EVERY subagent stop (the
+// SubagentStop matcher doesn't filter and agent_type is empty in this runtime),
+// so logging non-reviewer stops (developer/merger/planner/…) is pure noise.
+// `role` found OR a verdict in the final message ⇒ this was a reviewer.
+if (role || verdict) {
+  const _tp = input.agent_transcript_path || input.transcript_path || "";
+  ctx.log(
+    `role=${role || "UNKNOWN"} task=${task || "UNKNOWN"} verdict=${verdict || "UNKNOWN"}` +
+      (role && task && verdict
+        ? ""
+        : ` | DIAG tp_exists=${Boolean(_tp && existsSync(_tp))} last_msg=${input.last_assistant_message ? "present" : "absent"}`),
+  );
+}
 
 if (!role || !task) process.exit(0); // can't key the flag — leave state untouched
 

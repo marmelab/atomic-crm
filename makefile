@@ -16,8 +16,8 @@ help:
 install: package.json ## install dependencies
 	npm install
 
-install-playwright-browsers: install ## install the playwright browsers (chromium, firefox, webkit)
-	npx playwright install chromium
+install-playwright-browsers: install ## install the playwright browsers matching the repo's pinned version
+	npx playwright install chromium chromium-headless-shell
 
 install-claude-plugins:
 	claude plugin marketplace update claude-plugins-official
@@ -165,12 +165,6 @@ update-changelog: ## Update the changelog with the unreleased changes (ran autom
 
 storybook: ## start storybook
 	npm run storybook
-
-harness: ## run the agent harness interactively (pass REQUEST="..." to pre-fill)
-	scripts/launch-harness.sh "$(REQUEST)"
-
-clean-harness: ## clean up the agent harness session
-	scripts/clean-harness.sh
 
 watch: ## live monitor of the most recent agent session (agents, hooks, diagnosis)
 	node scripts/harness-monitor.mjs --watch
