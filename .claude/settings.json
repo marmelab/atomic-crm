@@ -5,7 +5,7 @@
     "playwright@claude-plugins-official": false,
     "security-guidance@claude-plugins-official": false,
     "supabase@claude-plugins-official": false,
-    "typescript-lsp@claude-plugins-official": false,
+    "typescript-lsp@claude-plugins-official": true,
     "code-review@claude-plugins-official": false,
     "commit-commands@claude-plugins-official": false,
     "frontend-design@claude-plugins-official": false,
@@ -14,6 +14,9 @@
     "ralph-loop@claude-plugins-official": false
   },
   "skillListingMaxDescChars": 512,
+  "env": {
+    "ENABLE_LSP_TOOL": "1"
+  },
   "permissions": {
     "allow": []
   },
@@ -149,5 +152,12 @@
         ]
       }
     ]
+  },
+  "lspServers": {
+    "typescript": {
+      "command": "typescript-language-server",
+      "args": ["--stdio"],
+      "fileTypes": [".ts", ".tsx", ".mjs", ".js", ".jsx"]
+    }
   }
 }
