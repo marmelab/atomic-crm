@@ -555,7 +555,8 @@ using (true);
 insert into storage.buckets
   (id, name, public)
 values
-  ('attachments', 'attachments', true);
+  ('attachments', 'attachments', true)
+on conflict (id) do nothing;
 
 CREATE POLICY "Attachments 1mt4rzk_0" ON storage.objects FOR SELECT TO authenticated USING (bucket_id = 'attachments');
 CREATE POLICY "Attachments 1mt4rzk_1" ON storage.objects FOR INSERT TO authenticated WITH CHECK (bucket_id = 'attachments');

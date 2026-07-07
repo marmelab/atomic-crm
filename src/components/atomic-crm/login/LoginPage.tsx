@@ -24,10 +24,14 @@ export const LoginPage = (props: { redirectTo?: string }) => {
     googleWorkplaceDomain,
     disableEmailPasswordAuthentication,
   } = useConfigurationContext();
-  const { redirectTo } = props;
+  const { redirectTo: redirectToProp } = props;
   const [loading, setLoading] = useState(false);
   const hasDisplayedRecoveryNotification = useRef(false);
   const location = useLocation();
+  const redirectFromQuery = new URLSearchParams(location.search).get(
+    "redirect",
+  );
+  const redirectTo = redirectToProp ?? redirectFromQuery ?? undefined;
   const navigate = useNavigate();
   const login = useLogin();
   const notify = useNotify();

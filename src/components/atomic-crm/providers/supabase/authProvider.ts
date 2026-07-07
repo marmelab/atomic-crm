@@ -130,6 +130,10 @@ export const getAuthProvider = (): AuthProvider => {
       ) {
         return;
       }
+      // OAuth MCP consent — handled by OAuthConsentPage (may redirect to login)
+      if (window.location.hash.includes("#/oauth/consent")) {
+        return;
+      }
 
       const isInitialized = await getIsInitialized();
 

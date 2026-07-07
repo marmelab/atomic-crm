@@ -1,0 +1,370 @@
+<!doctype html>
+<html lang="en" translate="no" class="notranslate">
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="minimum-scale=1, initial-scale=1, width=device-width, shrink-to-fit=no"
+    />
+    <title>Atomic CRM — MCP Agent Setup</title>
+    <style>
+      body {
+        margin: 0;
+        font-family:
+          system-ui,
+          -apple-system,
+          sans-serif;
+        background: #fafafa;
+        color: #1a1a1a;
+        line-height: 1.5;
+      }
+      main {
+        max-width: 32rem;
+        margin: 0 auto;
+        padding: 2rem 1.25rem;
+      }
+      h1 {
+        font-size: 1.25rem;
+        margin: 0 0 0.5rem;
+      }
+      p {
+        margin: 0 0 1rem;
+        color: #444;
+      }
+      .card {
+        background: #fff;
+        border: 1px solid #e5e5e5;
+        border-radius: 8px;
+        padding: 1.25rem;
+        margin-top: 1rem;
+      }
+      .status-ok {
+        color: #166534;
+      }
+      .status-warn {
+        color: #a16207;
+      }
+      .status-error {
+        color: #b91c1c;
+      }
+      button,
+      a.button {
+        display: inline-block;
+        background: #283593;
+        color: #fff;
+        border: none;
+        border-radius: 6px;
+        padding: 0.625rem 1rem;
+        font-size: 0.9375rem;
+        cursor: pointer;
+        text-decoration: none;
+      }
+      button:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+      }
+      code {
+        font-size: 0.8125rem;
+        word-break: break-all;
+      }
+      ol {
+        margin: 0;
+        padding-left: 1.25rem;
+        color: #444;
+      }
+      ol li {
+        margin-bottom: 0.5rem;
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>MCP agent setup</h1>
+      <p id="subtitle">
+        One-time setup so ElevenLabs (and similar tools) can connect with a
+        permanent secret.
+      </p>
+      <div id="content" class="card">Loading…</div>
+    </main>
+    <script>
+      (function () {
+        var PKCE_KEY = "mcp_agent_code_verifier";
+        var redirectUri =
+          window.location.origin + "/auth-callback.html";
+
+        function base64UrlEncode(bytes) {
+          var binary = "";
+          for (var i = 0; i < bytes.length; i++) {
+            binary += String.fromCharCode(bytes[i]);
+          }
+          return btoa(binary)
+            .replace(/\+/g, "-")
+            .replace(/\//g, "_")
+            .replace(/=+$/, "");
+        }
+
+        function findAuthStorageKey() {
+          for (var i = 0; i < localStorage.length; i++) {
+            var key = localStorage.key(i);
+            if (key && key.indexOf("sb-") === 0 && key.endsWith("-auth-token")) {
+              return key;
+            }
+          }
+          return null;
+        }
+
+        function getSession() {
+          var key = findAuthStorageKey();
+          if (!key) return null;
+          try {
+            var raw = localStorage.getItem(key);
+            if (!raw) return null;
+            var data = JSON.parse(raw);
+            var match = key.match(/^sb-(.+)-auth-token$/);
+            var projectRef = match ? match[1] : null;
+            if (!projectRef || !data.access_token) return null;
+            return {
+              accessToken: data.access_token,
+              supabaseUrl: "https://" + projectRef + ".supabase.co",
+            };
+          } catch (e) {
+            return null;
+          }
+        }
+
+        function setContent(html) {
+          document.getElementById("content").innerHTML = html;
+        }
+
+        function showError(message, details) {
+          var html =
+            '<p class="status-error"><strong>Error:</strong> ' +
+            message +
+            "</p>";
+          if (details) {
+            html += "<p><code>" + details + "</code></p>";
+          }
+          html +=
+            '<p><a class="button" href="' +
+            window.location.pathname +
+            '">Try again</a></p>';
+          setContent(html);
+        }
+
+        function generatePkce() {
+          var bytes = crypto.getRandomValues(new Uint8Array(32));
+          var verifier = base64UrlEncode(bytes);
+          return crypto.subtle
+            .digest("SHA-256", new TextEncoder().encode(verifier))
+            .then(function (hash) {
+              return {
+                verifier: verifier,
+                challenge: base64UrlEncode(new Uint8Array(hash)),
+              };
+            });
+        }
+
+        function startAuthorize(oauthClientId, supabaseUrl) {
+          return generatePkce().then(function (pkce) {
+            sessionStorage.setItem(PKCE_KEY, pkce.verifier);
+            var url =
+              supabaseUrl.replace(/\/$/, "") +
+              "/auth/v1/oauth/authorize?" +
+              new URLSearchParams({
+                client_id: oauthClientId,
+                redirect_uri: redirectUri,
+                response_type: "code",
+                scope: "openid email profile",
+                code_challenge: pkce.challenge,
+                code_challenge_method: "S256",
+              });
+            window.location.href = url;
+          });
+        }
+
+        function finishSetup(session, code) {
+          var verifier = sessionStorage.getItem(PKCE_KEY);
+          if (!verifier) {
+            showError(
+              "Missing PKCE verifier. Click Connect again from the start page.",
+            );
+            return;
+          }
+
+          setContent("<p>Saving agent credentials…</p>");
+
+          fetch(session.supabaseUrl + "/functions/v1/mcp-agent-setup", {
+            method: "POST",
+            headers: {
+              Authorization: "Bearer " + session.accessToken,
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              code: code,
+              redirect_uri: redirectUri,
+              code_verifier: verifier,
+            }),
+          })
+            .then(function (res) {
+              return res.json().then(function (body) {
+                return { ok: res.ok, status: res.status, body: body };
+              });
+            })
+            .then(function (result) {
+              sessionStorage.removeItem(PKCE_KEY);
+              if (window.history.replaceState) {
+                window.history.replaceState(
+                  {},
+                  "",
+                  window.location.pathname,
+                );
+              }
+
+              if (!result.ok) {
+                var msg =
+                  result.body.message ||
+                  result.body.error ||
+                  "Setup request failed";
+                showError(msg, JSON.stringify(result.body));
+                return;
+              }
+
+              setContent(
+                '<p class="status-ok"><strong>Agent connected.</strong></p>' +
+                  "<p>The refresh token is stored. Use your OAuth app <strong>client secret</strong> as the Secret Token in ElevenLabs.</p>" +
+                  '<p><a class="button" href="/">Back to CRM</a></p>',
+              );
+            })
+            .catch(function (err) {
+              showError("Network error", String(err));
+            });
+        }
+
+        function renderStart(session, status) {
+          var configured = status.configured;
+          var html = "";
+
+          if (configured) {
+            html +=
+              '<p class="status-ok"><strong>Status:</strong> Agent is configured.</p>';
+          } else {
+            html +=
+              '<p class="status-warn"><strong>Status:</strong> Not configured yet.</p>';
+          }
+
+          html +=
+            "<p>OAuth client: <code>" +
+            status.oauth_client_id +
+            "</code></p>";
+
+          if (!configured) {
+            html += "<ol>";
+            html +=
+              "<li>Your Supabase OAuth app must include this redirect URI:<br><code>" +
+              redirectUri +
+              "</code></li>";
+            html +=
+              "<li>Click <strong>Connect agent user</strong> and approve access (use the CRM user the agent should act as).</li>";
+            html += "</ol>";
+            html +=
+              '<p><button type="button" id="connect-btn">Connect agent user</button></p>';
+          } else {
+            html +=
+              '<p><a class="button" href="/">Back to CRM</a></p>';
+          }
+
+          setContent(html);
+
+          var btn = document.getElementById("connect-btn");
+          if (btn) {
+            btn.addEventListener("click", function () {
+              btn.disabled = true;
+              btn.textContent = "Redirecting…";
+              startAuthorize(status.oauth_client_id, session.supabaseUrl).catch(
+                function (err) {
+                  showError("Could not start authorization", String(err));
+                },
+              );
+            });
+          }
+        }
+
+        function renderNotLoggedIn() {
+          setContent(
+            "<p>You must be logged in as a CRM <strong>administrator</strong>.</p>" +
+              "<ol>" +
+              "<li>Open the CRM and sign in.</li>" +
+              "<li>Return to this page.</li>" +
+              "</ol>" +
+              '<p><a class="button" href="/">Go to CRM</a></p>',
+          );
+        }
+
+        var params = new URLSearchParams(window.location.search);
+        var code = params.get("code");
+        var oauthError = params.get("error");
+        var oauthErrorDescription = params.get("error_description");
+
+        if (oauthError) {
+          showError(oauthError, oauthErrorDescription || "");
+          return;
+        }
+
+        var session = getSession();
+        if (!session) {
+          renderNotLoggedIn();
+          return;
+        }
+
+        if (code) {
+          finishSetup(session, code);
+          return;
+        }
+
+        setContent("<p>Checking setup status…</p>");
+
+        fetch(session.supabaseUrl + "/functions/v1/mcp-agent-setup", {
+          headers: {
+            Authorization: "Bearer " + session.accessToken,
+          },
+        })
+          .then(function (res) {
+            return res.json().then(function (body) {
+              return { ok: res.ok, status: res.status, body: body };
+            });
+          })
+          .then(function (result) {
+            if (result.status === 401) {
+              renderNotLoggedIn();
+              return;
+            }
+            if (result.status === 403) {
+              showError(
+                "Only CRM administrators can run agent setup.",
+                "Sign in with an admin account and try again.",
+              );
+              return;
+            }
+            if (result.status === 503) {
+              showError(
+                "MCP OAuth secrets are not configured on the server.",
+                "Set MCP_OAUTH_CLIENT_ID and MCP_OAUTH_CLIENT_SECRET edge function secrets, then redeploy.",
+              );
+              return;
+            }
+            if (!result.ok) {
+              showError(
+                "Could not load setup status",
+                JSON.stringify(result.body),
+              );
+              return;
+            }
+            renderStart(session, result.body);
+          })
+          .catch(function (err) {
+            showError("Could not reach setup endpoint", String(err));
+          });
+      })();
+    </script>
+  </body>
+</html>

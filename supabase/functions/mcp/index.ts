@@ -1,12 +1,13 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { McpServer } from "npm:@modelcontextprotocol/sdk@1.28.0/server/mcp.js";
 import { WebStandardStreamableHTTPServerTransport } from "npm:@modelcontextprotocol/sdk@1.28.0/server/webStandardStreamableHttp.js";
-import { createRemoteJWKSet, jwtVerify, decodeJwt } from "npm:jose@5";
+import { createRemoteJWKSet, decodeJwt } from "npm:jose@5";
 import { Pool } from "https://deno.land/x/postgres@v0.17.0/mod.ts";
 import { z } from "npm:zod@^3.25";
 import { validateReadOnly, validateWrite } from "./validateSql.ts";
 import { TASK_LIST_HTML, TASK_LIST_UI_URI } from "./taskListUi.ts";
 import { corsHeaders } from "../_shared/cors.ts";
+import { resolveAuthInfo, type AuthInfo } from "./agentAuth.ts";
 
 // --- Environment & Config ---
 
@@ -47,34 +48,38 @@ function getResourceMetadataUrl(req: Request): string {
 
 // --- Auth ---
 
-interface AuthInfo {
-  token: string;
-  userId: string;
-  role?: string;
-  clientId?: string;
+function extractAuthToken(authHeader: string): string | null {
+  const trimmed = authHeader.trim();
+  if (!trimmed) return null;
+
+  if (trimmed.toLowerCase().startsWith("bearer ")) {
+    let token = trimmed.slice(7).trim();
+    // Some clients include "Bearer " in the secret value itself.
+    while (token.toLowerCase().startsWith("bearer ")) {
+      token = token.slice(7).trim();
+    }
+    return token || null;
+  }
+
+  // ElevenLabs Secret Token is sent as the raw Authorization header value.
+  return trimmed;
+}
+
+function looksLikeJwt(token: string): boolean {
+  return token.split(".").length === 3;
 }
 
 async function validateToken(req: Request): Promise<AuthInfo | null> {
   const authHeader = req.headers.get("authorization");
   if (!authHeader) return null;
 
-  const [bearer, token] = authHeader.split(" ");
-  if (bearer !== "Bearer" || !token) return null;
+  const token = extractAuthToken(authHeader);
+  if (!token) return null;
 
   try {
-    const { payload } = await jwtVerify(token, JWKS, {
-      issuer: SUPABASE_JWT_ISSUER,
-    });
-
-    if (!payload.sub) return null;
-
-    return {
-      token,
-      userId: payload.sub,
-      role: payload.role as string | undefined,
-      clientId: payload.client_id as string | undefined,
-    };
-  } catch {
+    return await resolveAuthInfo(token, pool, JWKS, SUPABASE_JWT_ISSUER);
+  } catch (error) {
+    console.error("[MCP auth] validation error:", error);
     return null;
   }
 }
@@ -361,8 +366,10 @@ IMPORTANT: Never specify sales_id in INSERT or UPDATE statements — it is autom
 
 For read-only queries, use the query tool instead.
 
+Contact emails and phones are stored as JSONB arrays (email_jsonb, phone_jsonb), not scalar columns.
+
 Examples:
-- "INSERT INTO contacts (first_name, last_name, email) VALUES ('John', 'Doe', 'john@example.com')"
+- "INSERT INTO contacts (first_name, last_name, email_jsonb) VALUES ('John', 'Doe', '[{\"email\": \"john@example.com\", \"type\": \"Work\"}]'::jsonb)"
 - "UPDATE deals SET stage = 'won-deal' WHERE id = 123"
 - "DELETE FROM tasks WHERE id = 456"`,
       inputSchema: z.object({
@@ -576,11 +583,16 @@ async function handleMcpRequest(req: Request): Promise<Response> {
   const authInfo = await validateToken(req);
   if (!authInfo) {
     const metadataUrl = getResourceMetadataUrl(req);
+    const authHeader = req.headers.get("authorization");
+    const token = authHeader ? extractAuthToken(authHeader) : null;
+    const headers: Record<string, string> = {};
+    // OAuth clients (Claude) need RFC 9728 metadata; static-secret clients do not.
+    if (!token || looksLikeJwt(token)) {
+      headers["WWW-Authenticate"] = `Bearer resource_metadata="${metadataUrl}"`;
+    }
     return new Response("Unauthorized", {
       status: 401,
-      headers: {
-        "WWW-Authenticate": `Bearer resource_metadata="${metadataUrl}"`,
-      },
+      headers,
     });
   }
 
