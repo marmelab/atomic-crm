@@ -7,6 +7,7 @@ import { TextInput } from "@/components/admin/text-input";
 import { Notification } from "@/components/admin/notification";
 import { useConfigurationContext } from "@/components/atomic-crm/root/ConfigurationContext.tsx";
 import { SSOAuthButton } from "./SSOAuthButton";
+import { SocialLoginButton } from "./SocialLoginButton";
 
 /**
  * Login page displayed when authentication is enabled and the user is not authenticated.
@@ -106,6 +107,11 @@ export const LoginPage = (props: { redirectTo?: string }) => {
                 {translate("ra.auth.sign_in")}
               </h1>
             </div>
+            <SocialLoginButton className="w-full" provider="google">
+              {translate("crm.auth.oauth_sign_in.google", {
+                _: "Sign in with Google",
+              })}
+            </SocialLoginButton>
             {disableEmailPasswordAuthentication ? null : (
               <Form className="space-y-8" onSubmit={handleSubmit}>
                 <TextInput
