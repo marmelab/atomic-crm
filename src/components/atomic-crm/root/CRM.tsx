@@ -36,6 +36,7 @@ import { ProfilePage } from "../settings/ProfilePage";
 import { SettingsPage } from "../settings/SettingsPage";
 import {
   CONFIGURATION_STORE_KEY,
+  parseEnabledOAuthProviders,
   type ConfigurationContextValue,
 } from "./ConfigurationContext";
 import type { CrmDataProvider } from "../providers/types";
@@ -130,6 +131,9 @@ export const CRM = ({
   googleWorkplaceDomain = import.meta.env.VITE_GOOGLE_WORKPLACE_DOMAIN,
   disableEmailPasswordAuthentication = import.meta.env
     .VITE_DISABLE_EMAIL_PASSWORD_AUTHENTICATION === "true",
+  enabledOAuthProviders = parseEnabledOAuthProviders(
+    import.meta.env.VITE_ENABLED_OAUTH_PROVIDERS,
+  ),
   disableTelemetry,
   ...rest
 }: CRMProps) => {
@@ -164,6 +168,7 @@ export const CRM = ({
         lightModeLogo,
         googleWorkplaceDomain,
         disableEmailPasswordAuthentication,
+        enabledOAuthProviders,
       } satisfies ConfigurationContextValue);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps

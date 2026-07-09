@@ -14,6 +14,7 @@ import { LoginSkeleton } from "./LoginSkeleton";
 import { Notification } from "@/components/admin/notification";
 import { ConfirmationRequired } from "./ConfirmationRequired";
 import { SSOAuthButton } from "./SSOAuthButton";
+import { OAuthLoginButtons } from "./OAuthLoginButtons";
 
 export const SignupPage = () => {
   const queryClient = useQueryClient();
@@ -191,6 +192,7 @@ export const SignupPage = () => {
                   })}
                 </SSOAuthButton>
               ) : null}
+              <OAuthLoginButtons />
             </div>
           </form>
         </div>

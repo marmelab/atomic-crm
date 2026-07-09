@@ -494,6 +494,10 @@
           "type": "registry:component"
         },
         {
+          "path": "src/components/atomic-crm/login/OAuthLoginButtons.tsx",
+          "type": "registry:component"
+        },
+        {
           "path": "src/components/atomic-crm/login/LoginSkeleton.tsx",
           "type": "registry:component"
         },
