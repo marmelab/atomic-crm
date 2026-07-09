@@ -2,6 +2,7 @@ import { useState, type MouseEvent, type ComponentProps } from "react";
 import { useLogin, useNotify } from "ra-core";
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
+import type { OAuthProvider } from "@/components/atomic-crm/root/ConfigurationContext";
 
 export const SocialLoginButton = ({
   children,
@@ -62,6 +63,6 @@ export const SocialLoginButton = ({
 };
 
 export type SocialLoginButtonProps = {
-  provider: "google";
+  provider: OAuthProvider;
   redirect?: string;
 } & ComponentProps<typeof Button>;
