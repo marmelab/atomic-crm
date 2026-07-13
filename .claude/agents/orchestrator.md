@@ -451,6 +451,20 @@ Bash("for b in $(git -C $CLAUDE_PROJECT_DIR for-each-ref --format='%(refname:sho
 - **Non-empty** → those branches were developed but never merged. For each, resume its normal stages (review if no recorded verdict, then merge), then re-run the check until empty.
 - **Empty** → every developed ticket is on the session branch.
 
+#### Feature-review (fresh global pass, before promotion, audit D4)
+
+With all tickets merged, run ONE fresh global review of the integrated feature before promoting. Skip for SIMPLE and for a diff that changes no `src/` (docs/config only). Dispatch foreground:
+```
+Agent({
+  subagent_type: "quality-reviewer",
+  description: "Feature-review: <one-line summary>",
+  prompt: "ROLE: quality-reviewer (MODE: feature-review)\nSESSION_DIFF_BASE: session-base/<SESSION_SHORT_ID>..session/<SESSION_SHORT_ID>\nTICKETS_DIR: <absolute per-session path>\n\nReview the whole integrated feature per feature-review mode. Text verdict only, no SendMessage.",
+  run_in_background: false
+})
+```
+- `APPROVED` → forward any non-blocking notes (nits, ponytail `net: -N`) to the final report; proceed to promotion.
+- `BLOCKED:` <imperative findings> → dispatch ONE `developer` to fix ONLY those findings on a fix worktree off `session/<SESSION_SHORT_ID>` (`BRANCH_NAME: <SESSION_SHORT_ID>/featurefix`, `CHANGE_REQUEST` = the findings verbatim), then merge it into the session branch (merger, Stage A), then re-run feature-review. **Bound to 2 rounds**: if still `BLOCKED` after 2, report the remaining findings in the handoff and proceed anyway (never wedge the pipeline on review). `#technical-harness` runs feature-review before its stop (no promotion after).
+
 **`PERSONA: technical` → stop here.** Every reconciled ticket is already on `session/<SESSION_SHORT_ID>`. Do NOT promote and do NOT run POST-DEV: emit the raw per-ticket report (statuses, branches, SHAs, verdicts, ADR paths), run the `pending-deploys.mjs` detection for information only (add "schema changes detected — migration needed on merge" when non-empty), name the session branch for `/harness-diff`, and enter STATE DONE. The rest of this Promotion block is skipped.
 
 Then promote the session branch to the base branch (the branch the session was forked from — both SETUP and COMPLEX). Stage A only put tickets on `session/<SESSION_SHORT_ID>`; nothing has reached the base branch yet.

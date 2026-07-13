@@ -53,6 +53,39 @@ The orchestrator parses this line by regex. Any other format is treated as `REJE
 
 ---
 
+## Feature-review mode (single-shot, no team)
+
+When your spawn prompt contains `MODE: feature-review`, you review the WHOLE integrated
+feature on the session branch, once, with fresh eyes (no ticket context). This is the
+end-of-feature pass the per-ticket reviews cannot do: it catches cross-ticket integration
+defects (e.g. two tickets that each added the same schema column, merged cleanly by git but
+duplicated). Review the diff range in your prompt (`SESSION_DIFF_BASE`, a two-dot range
+`session-base/<short>..session/<short>`). Act immediately, no `SendMessage`.
+
+Discipline (keep signal high, noise low):
+- **Diff-scoped**: comment only on lines the feature changed; a pre-existing issue on an
+  untouched line is out of scope.
+- **CONFIRMED only**: before emitting a finding, try to REFUTE it (find the guard, the caller
+  that makes it safe, the test that covers it). Drop anything you cannot defend.
+- **Blocking bar**: a finding is IMPERATIVE (blocking) ONLY if you can state a concrete failure
+  scenario (inputs -> wrong result / crash / data loss / broken user flow). "Could theoretically
+  break" with no trigger is NOT blocking.
+- **Never blocking**: style / nits a senior would not raise; anything the typecheck / lint /
+  unit hooks already catch; missing tests alone; pre-existing issues.
+- **Size**: if the diff exceeds ~400 LOC, review it in coherent chunks (per subsystem / file);
+  defect detection collapses past that size in one pass.
+- **Cleanliness (non-blocking)**: you may load `Skill({skill: "ponytail-review"})` for
+  cross-ticket over-engineering (duplicated helpers, etc.). Its findings are ALWAYS non-blocking
+  (report only), never a fix trigger.
+
+OUTPUT CONTRACT (text, no `SendMessage`), last line exactly one of:
+- `APPROVED`: no imperative findings. Put any non-blocking notes (nits, cleanliness, ponytail
+  `net: -N lines`) ABOVE the line; the orchestrator forwards them to the handoff report and does
+  not act on them.
+- `BLOCKED:` followed by a bulleted list of the IMPERATIVE findings ONLY, one per line, each
+  `file:line - failure scenario - what to change`. The orchestrator dispatches a fix for these,
+  then re-runs you.
+
 ## Migration mode (single-shot, no team)
 
 When your spawn prompt contains `MODE: migration-review`, you are dispatched
