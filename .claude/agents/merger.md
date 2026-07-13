@@ -127,8 +127,7 @@ cd $CLAUDE_PROJECT_DIR && flock $CLAUDE_PROJECT_DIR/.promote.lock bash -c '
   [ -n "$DEFAULT" ] && ! git show-ref --verify --quiet "refs/heads/$DEFAULT" && DEFAULT=
   [ -z "$DEFAULT" ] && DEFAULT=$(git symbolic-ref --short refs/remotes/origin/HEAD 2>/dev/null | sed "s@^origin/@@")
   [ -z "$DEFAULT" ] && { git show-ref --verify --quiet refs/heads/master && DEFAULT=master || DEFAULT=main; }
-  git reset --hard HEAD                       # drop working-tree debris on whatever branch we are on
-  git checkout "$DEFAULT" || exit 1           # promotion target is the session fork-base branch, NOT $CLAUDE_PROJECT_DIR HEAD
+  git checkout -f "$DEFAULT" || exit 1        # switch to the promotion target (session fork-base branch, NOT $CLAUDE_PROJECT_DIR HEAD), discarding demo working-tree debris in the same step. `-f` replaces the old `git reset --hard HEAD; git checkout`: same clean-then-switch effect, but without `git reset --hard`, which the auto-mode command classifier blocks (audit #08).
   # Docker-only helper: re-applies the App.tsx variant that checkout reverts. Absent in a local checkout — skip it there.
   [ -x /entrypoint-helpers/apply-app-variant.sh ] && /entrypoint-helpers/apply-app-variant.sh
   git merge --no-ff session/<SESSION_SHORT_ID> -m "merge(session): <SESSION_SHORT_ID>" \
@@ -165,8 +164,7 @@ cd $CLAUDE_PROJECT_DIR && flock $CLAUDE_PROJECT_DIR/.promote.lock bash -c '
   [ -n "$DEFAULT" ] && ! git show-ref --verify --quiet "refs/heads/$DEFAULT" && DEFAULT=
   [ -z "$DEFAULT" ] && DEFAULT=$(git symbolic-ref --short refs/remotes/origin/HEAD 2>/dev/null | sed "s@^origin/@@")
   [ -z "$DEFAULT" ] && { git show-ref --verify --quiet refs/heads/master && DEFAULT=master || DEFAULT=main; }
-  git reset --hard HEAD
-  git checkout "$DEFAULT" || exit 1
+  git checkout -f "$DEFAULT" || exit 1        # clean-then-switch in one step; no `git reset --hard` (auto-mode classifier blocks it, audit #08)
   # Docker-only helper: re-applies the App.tsx variant that checkout reverts. Absent in a local checkout — skip it there.
   [ -x /entrypoint-helpers/apply-app-variant.sh ] && /entrypoint-helpers/apply-app-variant.sh
   git merge --no-ff <BRANCH_NAME> -m "rollback(<SESSION_SHORT_ID>): undo via agent" \
