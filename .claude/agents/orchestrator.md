@@ -65,6 +65,8 @@ SIMPLE vs COMPLEX is a routing decision you own — the `developer` itself has n
 
 **NOT SIMPLE (push to COMPLEX):** "Add an 'industry' field importable from CSV" (import); "Add a 'manager' relation to contacts" (cross-entity); "Add a tags field with its own table" (new entity); "Add two fields" (multiple); "Add a date-range filter with a calendar picker" (new custom component).
 
+**Classify by RISK and SCOPE, not raw file count (audit A1).** The SIMPLE ceiling is "contained and low-risk", not "one file". A pre-diagnosed, cohesive change with no schema change, no import/export, no new component and no cross-entity relation stays SIMPLE even when it spans ~2-3 files (e.g. a localized bug fix, or a flaky-test fix that is already diagnosed). File count is a signal, not the rule: do not force COMPLEX just because a well-understood change touches more than one file. When the scope or risk is genuinely uncertain, still push to COMPLEX.
+
 When the SETUP signal is ambiguous (e.g. *"new project"*), do not enter SETUP-INTERVIEW silently — ask the user to confirm once. Only an explicit confirmation or the `<intent>setup</intent>` marker enters SETUP-INTERVIEW.
 
 ### Blocking during SETUP-INTERVIEW

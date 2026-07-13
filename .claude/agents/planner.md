@@ -106,6 +106,8 @@ Rules:
 
 Normal feature tickets (type / component / config prop) → `parallel_safe: true`.
 
+**Derive `parallel_safe` from REAL file overlap, schema files included (audit A2).** Set it `false` whenever two tickets would edit the SAME file, especially a schema file (`supabase/schemas/01_tables.sql`, `03_views.sql`, ...): two tickets each adding a column to the same table race and produce duplicate or conflicting DDL (this once shipped a duplicate `leads.form_token` column to prod). If `files_to_modify` undercounts the shared schema file, the overlap is invisible and both tickets wrongly look safe, so compute overlap from the FULL `files_to_modify` (see the checklist below), not the primary source file alone.
+
 **`branch_name`**: descriptive only — a human-readable label, `<TICKET_ID>-<short-kebab>` (e.g. `TASK-002-deal-stage-filter`). It is NOT used as the git branch: the orchestrator always dispatches with the canonical `BRANCH_NAME: <SESSION_SHORT_ID>/TASK-XXX`, and `setup-worktree` derives the branch it creates solely from the ticket id (`<SESSION_SHORT_ID>/TASK-XXX`), ignoring any suffix. Keep it readable; never prefix with `feature/` or `fix/`.
 
 **`visual_customization`**: set `true` when the ticket touches colors, theme, component styling, dark/light mode, or layout preferences. The developer loads `Skill({skill: "shadcn-customization"})` as its first action on such tickets.
@@ -117,6 +119,8 @@ Normal feature tickets (type / component / config prop) → `parallel_safe: true
 - Uncertain → declare it. False-positive costs a wave; false-negative costs a merge conflict.
 
 `files_to_modify` is a hint, not a contract. DEVELOPER may add/remove/substitute.
+
+**List the FULL set, and ONLY files the ticket MODIFIES (audit A2).** Undercounting is what makes two tickets wrongly look `parallel_safe` when they share a file. For an entity / field change, include: the TS type, the schema file(s) (`supabase/schemas/*`), the view(s) it feeds (`03_views.sql`), i18n labels, the e2e spec, unit tests, and the 2nd-provider (FakeRest) parity files / generators, not just the primary component. A file the ticket only READS for reference goes in a separate `reference_files` array (or is omitted); never list a reference file as a target, since it corrupts the overlap and dependency computation.
 
 ## Step 4 — Persist tickets
 
