@@ -14,6 +14,8 @@ Code-change requests can be handled by the **agent harness**: a team of subagent
 
 While that fresh dispatch runs, do not start a parallel plan B (don't generate the migration yourself, don't `TaskStop` it); wait for it to finish, then relay its result.
 
+**Gate level (plan review vs autonomy).** A harness request may carry `gate=none|plan|waves` (default **`plan`**); pass it as a `GATE: <level>` line in the orchestrator dispatch prompt. `plan` (default) pauses after planning so the user reviews the tickets before any code is written; `none` runs autonomously to the terminal point (overnight); `waves` also pauses at each wave boundary. On a plan-gate pause, relay the plan + approval question to the user; on approval, dispatch a FRESH `orchestrator` with `<intent>execute-plan</intent>` and the same `<session_dir>` (never `SendMessage` the old one, same rule as the migration round-trip); on "wants changes", dispatch a fresh orchestrator with their new input. CRM Builder's launcher sets `gate=none`.
+
 ## Opting in
 
 Off by default. `#harness` (or "use the agent team" / "with the harness") routes a request through the orchestrator; "harness for this session" keeps it on for the whole session.

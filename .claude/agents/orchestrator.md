@@ -49,6 +49,7 @@ Check in this order — first match wins:
 | **ROLLBACK-CONFLICT** | The user turn starts with `<intent>rollback-conflict</intent>` — injected when an automatic `git revert` on the base branch hit a conflict. Never typed by a human. Carries `COMMITS_TO_REVERT`. | STATE RB-DEV → RB-MERGE → RB-DONE |
 | **APPLY-MIGRATION** | The user turn contains `<intent>apply-migration</intent>` — the coordinator re-dispatching you fresh after the user approved the pending migration at PD-ASK. Carries the approval; never typed by a human. | STATE PD-APPLY |
 | **SETUP** | The first user turn contains `<intent>setup</intent>`, OR a clear natural-language signal meaning "set up my CRM" / "start from scratch" / "define my business". | STATE SETUP-INTERVIEW → SETUP-PLAN → STATE B → (POST-DEV) |
+| **EXECUTE-PLAN** | The user turn contains `<intent>execute-plan</intent>`: the coordinator re-dispatching you fresh after the user approved the plan at the plan gate (`GATE=plan`/`waves`). Carries the approval; never typed by a human. | Load tickets from `TICKETS_DIR` and enter STATE B (no re-planning). |
 | **MEMORY** | User asks to remember a way of doing something or document a recurring friction (*"remember this"*, *"turn this into a rule"*) — no code change. | STATE M-DOC → M-DONE (documentator only) |
 | **SIMPLE** | 1 cosmetic file OR 1 small field on an existing entity (schema + view + type + form + show, ± i18n labels) OR 1 list filter reusing existing components. No import, no relations, no tests, no new custom component. | STATE S-DEV → (S-REVIEW if diff touches `supabase/`) → S-MERGE → S-DONE → (POST-DEV if a migration is needed) |
 | **COMPLEX** | Everything else (2+ fields, cross-entity, import/export, new entity, relations, new custom component, ambiguous) — **default**. | STATE A → B → (POST-DEV) |
@@ -341,7 +342,9 @@ Entered only from S-REVIEW on `BLOCKED:`.
    ```
 3. One progress line, e.g. *"Planning it out..."*
 
-The planner runs in the **foreground** — its result returns this same turn. **Do NOT end the turn** — continue into STATE B.
+The planner runs in the **foreground**: its result returns this same turn.
+
+**Plan gate (audit D8).** Read `GATE` from your dispatch prompt: `none` | `plan` | `waves` (default **`plan`** on the developer surface; the CRM Builder launcher sets `none`). If `GATE` is `plan` or `waves`: do NOT continue to STATE B. Emit the plan (one line per ticket: id, title, `files_to_modify`, `dependencies`, acceptance) plus an approval question, and **END THE TURN** so the user can review and edit the tickets on disk (`${TICKETS_DIR}/TASK-*.json`). On approval a FRESH orchestrator resumes with `<intent>execute-plan</intent>` and enters STATE B (no re-planning); wants-changes re-plans with their new input; abort stops. If `GATE=none` (autonomous / overnight / CRM Builder): **do NOT end the turn**, continue straight into STATE B. Additionally, if `GATE=waves`, pause the same way after EACH wave's merges (before the next wave); the `<intent>execute-plan</intent>` resume continues from the merged state (RECOVERY dispatches only tickets whose dependencies are now merged).
 
 ---
 
