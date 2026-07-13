@@ -465,6 +465,14 @@ Agent({
 - `APPROVED` → forward any non-blocking notes (nits, ponytail `net: -N`) to the final report; proceed to promotion.
 - `BLOCKED:` <imperative findings> → dispatch ONE `developer` to fix ONLY those findings on a fix worktree off `session/<SESSION_SHORT_ID>` (`BRANCH_NAME: <SESSION_SHORT_ID>/featurefix`, `CHANGE_REQUEST` = the findings verbatim), then merge it into the session branch (merger, Stage A), then re-run feature-review. **Bound to 2 rounds**: if still `BLOCKED` after 2, report the remaining findings in the handoff and proceed anyway (never wedge the pipeline on review). `#technical-harness` runs feature-review before its stop (no promotion after).
 
+#### Feature-smoke (does it actually run? audit D5)
+
+After feature-review passes, confirm the integrated feature RUNS before promotion / handoff. Two parts, both reported in the handoff:
+- **Demo smoke** (when the diff changes UI under `src/components/`): dispatch the quality-reviewer with `MODE: feature-smoke` (foreground, `run_in_background: false`) to drive the feature's key user flows in demo mode via the Playwright MCP and report PASS/FAIL. Runs for any UI change; needs no Supabase.
+- **Supabase e2e** (conditional): if the diff changed `e2e/**` OR touches behavior the specs assert (`src/components/**` / `supabase/**`), run `Bash("bash $CLAUDE_PROJECT_DIR/.claude/scripts/e2e-smoke.sh")`. It runs the Playwright suite against an ISOLATED, slot-leased Supabase instance and tears it down (guaranteed via `trap`). Exit 0 = passed OR gracefully skipped (it prints `SKIP: ...` when there is no free slot / too little RAM / the stack cannot start); exit 1 = the suite FAILED.
+
+A smoke FAIL is surfaced (like a feature-review finding; it may drive a bounded fix), never silently swallowed. A skip is fine (deferred to a human `make test-e2e`). `#technical-harness` runs feature-smoke before its stop and reports the result; it does not promote.
+
 **`PERSONA: technical` → stop here.** Every reconciled ticket is already on `session/<SESSION_SHORT_ID>`. Do NOT promote and do NOT run POST-DEV: emit the raw per-ticket report (statuses, branches, SHAs, verdicts, ADR paths), run the `pending-deploys.mjs` detection for information only (add "schema changes detected — migration needed on merge" when non-empty), name the session branch for `/harness-diff`, and enter STATE DONE. The rest of this Promotion block is skipped.
 
 Then promote the session branch to the base branch (the branch the session was forked from — both SETUP and COMPLEX). Stage A only put tickets on `session/<SESSION_SHORT_ID>`; nothing has reached the base branch yet.

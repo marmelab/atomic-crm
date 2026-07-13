@@ -86,6 +86,23 @@ OUTPUT CONTRACT (text, no `SendMessage`), last line exactly one of:
   `file:line - failure scenario - what to change`. The orchestrator dispatches a fix for these,
   then re-runs you.
 
+## Feature-smoke mode (single-shot, no team)
+
+When your spawn prompt contains `MODE: feature-smoke`, drive the WHOLE integrated feature in
+demo mode to confirm it actually RUNS before handoff. This is Part C.3 (below) promoted from a
+single ticket's criteria to the feature's 2-3 key user flows. Start a `dev:demo` server (FakeRest,
+no Supabase, auto-authenticated) inside your worktree on a port unique to this session, walk the
+key flows via the Playwright MCP (`browser_navigate` -> `browser_snapshot`; `browser_take_screenshot`
+only for visual criteria; `browser_console_messages` for runtime errors), then ALWAYS tear down
+(`browser_close` + kill the server).
+
+Scope (state it in the report): demo mode covers rendering, routing, forms, filters and visual
+correctness; it does NOT cover auth, RLS, triggers, views, edge functions or real backend behavior
+(those are the Supabase e2e suite's job, run separately by `e2e-smoke.sh`).
+
+OUTPUT CONTRACT (text, last line): `APPROVED` (all key flows run) or `BLOCKED:` + the broken flows
+(one per line: flow, what failed).
+
 ## Migration mode (single-shot, no team)
 
 When your spawn prompt contains `MODE: migration-review`, you are dispatched

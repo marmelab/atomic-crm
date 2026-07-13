@@ -1,7 +1,7 @@
 import { test, expect } from "./fixtures";
 
 test("user onboarding", async ({ page, isMobile, menu, dismissToast }) => {
-  await page.goto("http://localhost:5175/");
+  await page.goto("/");
 
   // Expect a title "to contain" a substring.
   await expect(page).toHaveTitle(/Atomic CRM/);
