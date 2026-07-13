@@ -100,6 +100,10 @@
           },
           {
             "type": "command",
+            "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/force-foreground-orchestrator-dispatch.mjs"
+          },
+          {
+            "type": "command",
             "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/setup-worktree.mjs",
             "timeout": 180,
             "statusMessage": "Setting up worktree..."
@@ -148,6 +152,16 @@
             "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/validate-on-stop.mjs",
             "timeout": 900,
             "statusMessage": "Running validation (prettier, typecheck, unit, e2e)..."
+          }
+        ]
+      },
+      {
+        "matcher": "orchestrator",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/completion-invariant.mjs",
+            "timeout": 30
           }
         ]
       }

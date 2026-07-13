@@ -1,8 +1,8 @@
 #!/usr/bin/env node
-// PreToolUse(Bash) — per-subagent circuit breaker. Counts Bash calls per subagent
+// PreToolUse(Bash) - per-subagent circuit breaker. Counts Bash calls per subagent
 // (keyed on agent_id, present only for subagents) and blocks once a subagent
 // exceeds the loop limit, so a stuck agent can't spin forever. The main session
-// (no agent_id) is never throttled — interactive sessions legitimately make many
+// (no agent_id) is never throttled - interactive sessions legitimately make many
 // Bash calls.
 
 import {
@@ -18,16 +18,78 @@ import { createHash } from "node:crypto";
 import { createHookContext } from "./lib/context.mjs";
 import { TMP_ROOT } from "./lib/paths.mjs";
 
-// Per-subagent Bash budget. A developer's legitimate Bash usage is worktree setup
-// + git add/commit/status + exploration + fix retries (~15-20 calls). 45 is
-// comfortable for that workload and catches infinite loops (which hit 100+ fast).
+// Per-subagent budget of WORK calls. Read-only exploration and git plumbing/commit
+// are free (see isFreeCommand), so this counts only "real work" (builds, scripts,
+// migrations, rebases). 45 work calls is comfortable and catches infinite loops
+// (which hit 100+ fast). Before this exclusion, devs burned the whole budget on
+// grep-based symbol search (0 LSP / 209 grep in one session) and had none left to
+// commit -- audit finding #02, ADR P2.
 const ITERATION_LIMIT = 45;
+
+// A Bash call is "free" (never counted) when its primary command is read-only
+// exploration or git plumbing/commit. Strips a leading `cd <path> &&` (the worktree
+// convention) and inspects the first token of the first pipeline stage.
+function isFreeCommand(raw) {
+  let c = String(raw || "").trim();
+  c = c.replace(/^cd\s+\S+\s*(?:&&|;)\s*/, "").trim();
+  const first = c.split(/[|&;]/)[0].trim().split(/\s+/)[0] || "";
+  const READONLY = new Set([
+    "grep",
+    "rg",
+    "egrep",
+    "fgrep",
+    "find",
+    "ls",
+    "cat",
+    "wc",
+    "head",
+    "tail",
+    "pwd",
+    "tree",
+    "stat",
+    "file",
+    "which",
+    "echo",
+    "dirname",
+    "basename",
+    "realpath",
+  ]);
+  if (READONLY.has(first)) return true;
+  const gm = c.match(/^git\s+(\S+)/);
+  if (gm) {
+    const GIT_FREE = new Set([
+      "add",
+      "commit",
+      "status",
+      "diff",
+      "log",
+      "show",
+      "branch",
+      "rev-parse",
+      "rev-list",
+      "stash",
+      "worktree",
+      "ls-files",
+      "merge-base",
+    ]);
+    if (GIT_FREE.has(gm[1])) return true;
+  }
+  return false;
+}
 
 const input = JSON.parse(readFileSync(0, "utf8"));
 const ctx = createHookContext(input, "circuit-breaker");
 
 // Per-subagent breaker only. The main session (no agent_id) is never throttled.
 if (!ctx.agentId) process.exit(0);
+
+// Read-only exploration (grep/find/ls/cat/...) and git plumbing (add/commit/status)
+// do NOT count against the budget. The breaker exists to catch stuck WORK loops, not
+// to ration symbol search or starve the final commit. See ADR P2 / audit #02.
+if (isFreeCommand(input.tool_input?.command)) {
+  ctx.log(`free: ${String(input.tool_input?.command ?? "").slice(0, 80)}`);
+  process.exit(0);
+}
 
 const key = `sub-${ctx.agentId}`;
 const keyHash = createHash("sha1").update(key).digest("hex").slice(0, 16);
@@ -68,7 +130,7 @@ ctx.log(`key=${key} hash=${keyHash} count=${count}`);
 
 if (count > ITERATION_LIMIT) {
   ctx.block({
-    reason: `Circuit breaker: this subagent has made ${count} Bash calls — likely stuck in a loop. Stop, and report where you are blocked so the orchestrator can re-dispatch with a fresh context.`,
+    reason: `Circuit breaker: this subagent has made ${count} Bash calls - likely stuck in a loop. Stop, and report where you are blocked so the orchestrator can re-dispatch with a fresh context.`,
     log: `BLOCK count=${count}`,
   });
 }
