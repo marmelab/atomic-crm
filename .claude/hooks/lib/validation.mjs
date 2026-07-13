@@ -66,12 +66,19 @@ const tryUnlink = (path) => {
   }
 };
 
-function runVitest(wt, configFile, projects = []) {
+function runVitest(wt, configFile, projects = [], changedSince = "") {
   const projectTag = projects.length ? `-${projects.join("-")}` : "";
   const out = join(tmpdir(), `vitest-${basename(configFile)}${projectTag}-${process.pid}.out`);
   const projectFlags = projects.map((p) => `--project ${p}`).join(" ");
+  // Scope to tests related to THIS worktree's diff since `changedSince` (the session
+  // branch it forked from), so a ticket runs only its own affected tests, not the whole
+  // suite (ADR D1). Pass the ref EXPLICITLY: the ticket's work is committed by stop time,
+  // so a bare `--changed` (uncommitted-only) would find nothing and run zero tests (false
+  // green). Empty ref -> full run (safe fallback). The end-of-feature smoke re-runs the
+  // full suite on the integrated session branch, catching anything the module graph missed.
+  const changedFlag = changedSince ? `--changed ${changedSince}` : "";
   const r = bash(
-    `CI=true timeout 180 npx vitest run --config ${configFile} ${projectFlags} > "${out}" 2>&1`,
+    `CI=true timeout 180 npx vitest run --config ${configFile} ${projectFlags} ${changedFlag} > "${out}" 2>&1`,
     { cwd: wt },
   );
   const output = tailFile(out, 40);
@@ -129,12 +136,12 @@ export function runValidationSteps(ctx, { worktree = "", base = "" } = {}) {
     const typecheck = bash("npm run typecheck 2>&1", { cwd: wt });
     if (typecheck.status !== 0) return failed("typecheck", tailLines(typecheck.stdout, 20));
 
-    const app = runVitest(wt, "vitest.config.ts", ["app", "claude"]);
+    const app = runVitest(wt, "vitest.config.ts", ["app", "claude"], base);
     if (app.timedOut) return failed("unit-app", "TIMEOUT (>180s) -- vitest did not exit. Tests may be hanging.");
     if (app.status !== 0) return failed("unit-app", app.output);
 
     if (hasFunctions) {
-      const fn = runVitest(wt, "vitest.config.ts", ["functions"]);
+      const fn = runVitest(wt, "vitest.config.ts", ["functions"], base);
       if (fn.timedOut) return failed("unit-fn", "TIMEOUT (>180s) -- vitest did not exit. Tests may be hanging.");
       if (fn.status !== 0) return failed("unit-fn", fn.output);
     }
