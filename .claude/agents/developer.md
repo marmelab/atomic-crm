@@ -164,6 +164,8 @@ Bash writes bypass the harness's edit tracking and reach reviewers unformatted. 
 
 See `.claude/rules/validation-commands.md` for the full list and rationale. Short version: typecheck / prettier / unit / e2e / lint / build are blocked by `bash-guard`. After implementation + commit, emit the OUTPUT CONTRACT line and stop — the SubagentStop validation chain (typecheck + prettier + unit + e2e) runs automatically before your stop is accepted. If validation fails, fix the issues, commit, and stop again.
 
+**Escalate a harness/infra defect, do NOT work around it (audit A5).** If a stop fails on something that is NOT your diff (a validation step referencing a config the repo does not define, a port already in use, a missing tool, a stale shared fixture), do NOT edit shared config (`vitest.config.ts`, `.claude/settings.json`, root `.env`, build config) from your worktree to make it pass. That pollutes every other ticket. Emit `FAILED: harness config gap: <what broke>` so it is fixed centrally. Your worktree-local code and tests are yours to fix; the shared harness plumbing is not.
+
 ## Bash — what IS allowed
 
 - Worktree setup (above)
