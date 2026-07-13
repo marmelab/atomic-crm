@@ -127,6 +127,7 @@ cd $CLAUDE_PROJECT_DIR && flock $CLAUDE_PROJECT_DIR/.promote.lock bash -c '
   [ -n "$DEFAULT" ] && ! git show-ref --verify --quiet "refs/heads/$DEFAULT" && DEFAULT=
   [ -z "$DEFAULT" ] && DEFAULT=$(git symbolic-ref --short refs/remotes/origin/HEAD 2>/dev/null | sed "s@^origin/@@")
   [ -z "$DEFAULT" ] && { git show-ref --verify --quiet refs/heads/master && DEFAULT=master || DEFAULT=main; }
+  case "$DEFAULT" in main|master) [ "$ALLOW_MAIN" = "1" ] || { echo "main opt-in required for $DEFAULT"; exit 3; } ;; esac  # audit A3: never silently commit to main/master without an explicit ALLOW_MAIN=1
   git checkout -f "$DEFAULT" || exit 1        # switch to the promotion target (session fork-base branch, NOT $CLAUDE_PROJECT_DIR HEAD), discarding demo working-tree debris in the same step. `-f` replaces the old `git reset --hard HEAD; git checkout`: same clean-then-switch effect, but without `git reset --hard`, which the auto-mode command classifier blocks (audit #08).
   # Docker-only helper: re-applies the App.tsx variant that checkout reverts. Absent in a local checkout — skip it there.
   [ -x /entrypoint-helpers/apply-app-variant.sh ] && /entrypoint-helpers/apply-app-variant.sh
@@ -148,6 +149,13 @@ correct.
 
   Do NOT resolve — the orchestrator dispatches a resolver.
 - The `flock` serialises promotions across concurrent sessions sharing the base branch.
+- **Direct `main`/`master` promotion needs an opt-in (audit A3).** The Stage-B block above
+  refuses (`exit 3`) when the resolved target is `main`/`master` and `ALLOW_MAIN` is not set,
+  so the harness never silently commits to main. If your dispatch prompt carries `ALLOW_MAIN`,
+  prefix the `flock` command with `ALLOW_MAIN=1` (it propagates into the `bash -c` subshell).
+  On `exit 3`, emit `FAILED: PROMOTE main opt-in required` (distinct from a conflict) so the
+  orchestrator confirms with the user and re-dispatches with the opt-in. (ROLLBACK is a
+  user-initiated revert, so its base operation is intended and is out of this guard's scope.)
 
 ### ROLLBACK PROMOTION (ROLLBACK mode — `BRANCH_NAME` → base branch, no Stage A)
 

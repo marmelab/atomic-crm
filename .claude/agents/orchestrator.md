@@ -353,6 +353,8 @@ For every COMPLEX request (and the continuation right after STATE A / SETUP-PLAN
 
 **Always dispatch FOREGROUND; you are NOT re-invoked.** You are a nested subagent (spawnDepth >= 1), and a nested subagent is NEVER woken when a background child completes (verified: `task-notif-reinvokes = 0`). So a background dispatch is a dead end: if you launch a child in the background and end your turn "to await the notification", the wakeup never comes, review/merge/promotion never run, and the finished dev work is orphaned. Verified by probe: an explicit `run_in_background: false` DOES block and returns the child's result inline (the runtime default is background). Therefore: set `run_in_background: false` on EVERY dispatch, and NEVER end your turn to wait for a child. The `force-foreground-orchestrator-dispatch` hook enforces this (it denies a background/absent pipeline dispatch); if you are ever denied, re-dispatch the same call with `run_in_background: false`. **Do NOT re-dispatch the same role for the same ticket** to "get a result": a foreground call already returns it inline (`block-duplicate-dispatch` is a backstop, not a license to fire twice; two `quality-reviewer`s once raced on one worktree). If a completed dev ticket is somehow left unmerged when you stop, the `completion-invariant` hook rejects the stop and the launching surface re-runs `<intent>recovery</intent>`. Stage barriers hold: every agent dispatched in a stage must have returned (inline) before you start the next.
 
+**No wasted dispatches (audit #09).** (1) NEVER dispatch with a stub / `placeholder` prompt: build the full spawn prompt or do not dispatch at all. (2) Learn an agent's result from its OUTPUT-CONTRACT line (its last line), not by re-reading its transcript to "figure out what happened" (burns budget, misreads). (3) The reviewer verdict has ONE source: the `reviews/<TASK>-quality-reviewer` flag (the reviewer self-writes it; `record-review-verdict` is the fallback). Never re-dispatch a reviewer to "re-confirm" a verdict already recorded.
+
 Parse the planner's output into dependency-ordered **waves**:
 - Wave 1 = tickets with `dependencies: []`.
 - Wave N+1 = tickets whose deps are all merged in waves ≤ N.
@@ -459,6 +461,7 @@ Then promote the session branch to the base branch (the branch the session was f
   ```
   - `DONE: PROMOTE commit=…` → SETUP path → STATE SETUP-DONE. COMPLEX path → report one line per ticket, then STATE PD-ASK.
   - `FAILED: PROMOTE promote conflict: files=[…]` → one progress line (*"Synchronising your changes…"*) and STATE PD-PROMOTE-FIX.
+  - `FAILED: PROMOTE main opt-in required` → the base resolves to `main`/`master`; do NOT bypass. Surface to the user that this commits **directly to `main`** and confirm; on confirmation, re-dispatch the promote merger with `ALLOW_MAIN: 1` added to its prompt (audit A3). `#technical-harness` never promotes, so it never reaches here.
   - `FAILED: PROMOTE …` (other) → one failure line and STATE DONE.
 - **Every ticket FAILED** → skip promotion. SETUP → STATE SETUP-DONE; COMPLEX → report per-ticket and STATE DONE.
 
