@@ -16,11 +16,16 @@
 set -uo pipefail
 
 REPO="${CLAUDE_PROJECT_DIR:-$(git rev-parse --show-toplevel 2>/dev/null || pwd)}"
+# Where to read the app + specs + schema FROM. A feature-smoke must run the INTEGRATED
+# session code, not the base-branch checkout ($REPO) - so the orchestrator passes
+# E2E_SMOKE_SRC=<WORKTREE_BASE>/_session (the session worktree, on session/<short>, with
+# node_modules already provisioned). Default $REPO = a base-branch baseline check.
+SRC="${E2E_SMOKE_SRC:-$REPO}"
 SLOTS="${E2E_SMOKE_SLOTS:-5}"
 MIN_MB="${E2E_SMOKE_MIN_MB:-2500}"
 DRY="${E2E_SMOKE_DRY:-0}"
 SLOT_LOCK_DIR="/tmp/atomic-crm-e2e-slots"
-CONFIG_SRC="$REPO/supabase/config.e2e.toml"
+CONFIG_SRC="$SRC/supabase/config.e2e.toml"
 mkdir -p "$SLOT_LOCK_DIR"
 
 skip() { echo "SKIP: $*"; exit 0; }   # graceful: not run here, not a failure
@@ -73,10 +78,10 @@ perl -pe "s/^(project_id\s*=\s*).*/\$1\"$project\"/;
 
 # Supabase needs the schema/migrations/seed to build the DB on first start.
 for d in migrations schemas functions templates; do
-  [ -d "$REPO/supabase/$d" ] && cp -r "$REPO/supabase/$d" "$workdir/supabase/$d"
+  [ -d "$SRC/supabase/$d" ] && cp -r "$SRC/supabase/$d" "$workdir/supabase/$d"
 done
 for f in seed.sql signing_keys.json; do
-  [ -f "$REPO/supabase/$f" ] && cp "$REPO/supabase/$f" "$workdir/supabase/$f"
+  [ -f "$SRC/supabase/$f" ] && cp "$SRC/supabase/$f" "$workdir/supabase/$f"
 done
 
 if [ "$DRY" = "1" ]; then
@@ -105,14 +110,14 @@ export VITE_SUPABASE_ANON_KEY="$ANON_KEY"
 export SERVICE_ROLE_KEY
 
 # --- serve the app (dev server reads env at start, so no per-slot build) ----
-( cd "$REPO" && VITE_SUPABASE_URL="$VITE_SUPABASE_URL" npx vite --port "$app_port" --strictPort --mode e2e >"$workroot/app.log" 2>&1 ) &
+( cd "$SRC" && VITE_SUPABASE_URL="$VITE_SUPABASE_URL" npx vite --port "$app_port" --strictPort --mode e2e >"$workroot/app.log" 2>&1 ) &
 APP_PID=$!
 npx wait-on -t 120000 "http-get://127.0.0.1:$api_port/auth/v1/health" "http-get://127.0.0.1:$app_port" >/dev/null 2>&1 \
   || skip "isolated stack did not become ready in time."
 
 # --- run the suite ----------------------------------------------------------
 echo "e2e-smoke: running Playwright against the isolated stack..."
-( cd "$REPO" && CI=true PLAYWRIGHT_BASE_URL="http://127.0.0.1:$app_port" npx playwright test )
+( cd "$SRC" && CI=true PLAYWRIGHT_BASE_URL="http://127.0.0.1:$app_port" npx playwright test )
 result=$?
 echo "e2e-smoke: suite exit=$result (slot $slot)"
 exit $result
