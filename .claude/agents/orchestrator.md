@@ -463,7 +463,7 @@ Agent({
 })
 ```
 - `APPROVED` → forward any non-blocking notes (nits, ponytail `net: -N`) to the final report; proceed to promotion.
-- `BLOCKED:` <imperative findings> → dispatch ONE `developer` to fix ONLY those findings on a fix worktree off `session/<SESSION_SHORT_ID>` (`BRANCH_NAME: <SESSION_SHORT_ID>/featurefix`, `CHANGE_REQUEST` = the findings verbatim), then merge it into the session branch (merger, Stage A), then re-run feature-review. **Bound to 2 rounds**: if still `BLOCKED` after 2, report the remaining findings in the handoff and proceed anyway (never wedge the pipeline on review). `#technical-harness` runs feature-review before its stop (no promotion after).
+- `BLOCKED:` <imperative findings> → fix them on the shared `<SESSION_SHORT_ID>/simple` worktree, which `setup-worktree` forks from the session branch (so the fix lands on top of the merged work). Do NOT invent a `featurefix` branch: `setup-worktree` / `enforce-dev-dispatch` only recognize `TASK-XXX` and `<SESSION_SHORT_ID>/simple`, so a bespoke branch is rejected (fail-closed) and the fix cannot get a worktree. Dispatch ONE `developer` with the SIMPLE template: `CHANGE_REQUEST` = the findings verbatim, `BRANCH_NAME: <SESSION_SHORT_ID>/simple`, `WORKTREE_PATH: <WORKTREE_BASE>/simple`, `run_in_background: false`. Then merge it into `session/<SESSION_SHORT_ID>` with a SIMPLE-mode merger carrying `STAGE: a-only` (Stage A only, no promotion), and re-run feature-review. **Bound to 2 rounds**: if still `BLOCKED` after 2, report the remaining findings in the handoff and proceed anyway (never wedge the pipeline on review). `#technical-harness` runs feature-review before its stop (no promotion after).
 
 #### Feature-smoke (does it actually run? audit D5)
 
