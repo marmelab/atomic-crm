@@ -31,12 +31,27 @@ let breakerDir;
 let env;
 
 // Returns { blocked: boolean } — blocked when the decisionBlock JSON is printed.
-const run = (prompt, subagentType, agentId = CALLER) => {
+// runInBackground defaults to false: in the real harness (post force-foreground)
+// every pipeline dispatch carries run_in_background:false, and block-duplicate only
+// debounces those. Pass `undefined` to simulate the malformed (absent) dispatch that
+// force-foreground denies — block-duplicate must skip it (no marker).
+const run = (
+  prompt,
+  subagentType,
+  agentId = CALLER,
+  runInBackground = false,
+) => {
+  const tool_input = { subagent_type: subagentType, prompt };
+  // Pass the sentinel "absent" to OMIT the field (a default param can't express this:
+  // passing `undefined` still triggers the default). "absent" simulates the malformed
+  // dispatch force-foreground denies.
+  if (runInBackground !== "absent")
+    tool_input.run_in_background = runInBackground;
   const r = spawnSync("node", [HOOK], {
     input: JSON.stringify({
       session_id: SESSION_ID,
       agent_id: agentId,
-      tool_input: { subagent_type: subagentType, prompt },
+      tool_input,
     }),
     env,
     encoding: "utf8",
@@ -147,5 +162,19 @@ describe("block-duplicate-dispatch — pass-through", () => {
       "",
     );
     expect(r.blocked).toBe(false);
+  });
+});
+
+describe("block-duplicate-dispatch — force-foreground retry (regression 8468cc06)", () => {
+  // A pipeline dispatch without run_in_background:false is DENIED by
+  // force-foreground-orchestrator-dispatch and re-issued. block-duplicate must NOT
+  // record a marker for the denied attempt, or the corrective retry would be wrongly
+  // rejected as a duplicate (this wedged planning for 60 min in a real run).
+  test("a rib-absent pipeline dispatch is skipped, so the rib:false retry is not a duplicate", () => {
+    const p = `TICKETS_DIR=${join(TMP, "tickets-ff")}`;
+    const FF = "ff-orch"; // unique caller: no marker collision with earlier tests
+    expect(run(p, "planner", FF, "absent").blocked).toBe(false); // denied form -> skipped, no marker
+    expect(run(p, "planner", FF, false).blocked).toBe(false); // the retry proceeds
+    expect(run(p, "planner", FF, false).blocked).toBe(true); // a genuine 2nd planner is still blocked
   });
 });
