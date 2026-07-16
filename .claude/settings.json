@@ -32,6 +32,11 @@
             "type": "command",
             "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/session-bootstrap.mjs",
             "timeout": 10
+          },
+          {
+            "type": "command",
+            "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/ensure-playwright-mcp.mjs",
+            "timeout": 10
           }
         ]
       }

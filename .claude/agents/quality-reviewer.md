@@ -353,6 +353,17 @@ Supabase-specific:
 - Only relevant if `package.json` / lockfile changed
 - Then: `npm audit --audit-level=high` returns no HIGH/CRITICAL
 
+### B.8 Crypto, file paths & untrusted parsing (WARNING; HIGH when user-facing)
+Closes the gap vs a generic `/security-review` pass: B.1-B.7 are Supabase-tuned, these are the
+category-level checks a generic pass adds. Same bar as B (realistic attack vector only).
+- **Crypto/randomness**: no weak hash for secrets (MD5/SHA1); no `Math.random()` for tokens, IDs,
+  or keys (use `crypto`); hardcoded IV/salt/key = CRITICAL (see B.2).
+- **Path traversal**: a Supabase Storage key or filesystem path is derived server-side from a
+  trusted id, never from a raw client filename that can carry `../` or an absolute path (attachments).
+- **Untrusted parsing** (CSV import, inbound-email webhook, uploads): size/shape validated before
+  processing; a malformed row fails that row, not the batch; CSV *export* neutralizes formula
+  injection (a cell starting with `= + - @` is prefixed) so an exported contact can't run in Excel.
+
 ---
 
 ## Part C — QA / runtime validation
