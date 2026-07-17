@@ -48,6 +48,7 @@ The orchestrator parses this line by regex. Any other format is treated as `FAIL
 |---|---|---|
 | `TASK_ID` | Stage A / SIMPLE / MIGRATION / ROLLBACK | Ticket ID (e.g. `TASK-003`) or the literal `SIMPLE` / `MIGRATION` / `ROLLBACK`. Absent in promotion-only mode — use `PROMOTE` in the contract line. |
 | `MODE` | promotion-only | `MODE: promote` → run Stage B only and stop. (SIMPLE / MIGRATION / ROLLBACK are selected by the `ROLE:` line — see below.) |
+| `STAGE` | technical-harness | `STAGE: a-only` → run **Stage A only** and stop, even in SIMPLE / MIGRATION mode. Never run Stage B / promotion. Used by the `#technical-harness` flow, which leaves the work on the session branch for the developer to promote. Overrides the automatic "Stage A then promotion" coupling. |
 | `BRANCH_NAME` | Stage A / SIMPLE / MIGRATION / ROLLBACK | Feature (or rollback / ops) branch to merge. |
 | `WORKTREE_PATH` | Stage A / SIMPLE / MIGRATION | Absolute path to the feature worktree (`<WORKTREE_BASE>/<TASK_ID>` or `<WORKTREE_BASE>/simple`). |
 | `SESSION_SHORT_ID` | always recommended | Short session id. The orchestrator passes it directly. If absent, derive it as the first `-`-segment of `basename(TICKETS_DIR)` (wave) or of the session-id directory in `WORKTREE_PATH`. |
@@ -58,6 +59,7 @@ The orchestrator parses this line by regex. Any other format is treated as `FAIL
 ### Mode selection (first action — no tool call needed)
 
 - Spawn prompt `ROLE:` mentions **ROLLBACK mode** (rollback-conflict path) → run **ROLLBACK mode** (skip Stage A, run ROLLBACK PROMOTION on `BRANCH_NAME`). Contract `TASK_ID` is the literal `ROLLBACK`.
+- Spawn prompt contains **`STAGE: a-only`** → run **Stage A only** on `BRANCH_NAME` (merge into `session/<SESSION_SHORT_ID>`) and stop after the Stage A contract. Never run Stage B / promotion, whatever the `ROLE:` line says. This takes precedence over the SIMPLE / MIGRATION coupling below. Contract `TASK_ID` stays the literal from the prompt (`SIMPLE` / `MIGRATION`).
 - Spawn prompt `ROLE:` mentions **SIMPLE mode** (SIMPLE flow) or **MIGRATION mode** (deploy-time migration round) → run **Stage A**, then immediately run **PROMOTION — Stage B**, then emit the contract. Contract `TASK_ID` is the literal `SIMPLE` or `MIGRATION` respectively. (Both are the same single-shot mechanic on the `<short>/simple` branch.)
 - Spawn prompt contains `MODE: promote` → run **PROMOTION — Stage B** only. Contract `TASK_ID` is `PROMOTE`.
 - Otherwise (`TASK_ID` is `TASK-XXX`) → run **Stage A** only, then emit the contract. Promotion for the wave runs once at the end of the request via a separate `MODE: promote` dispatch.
@@ -89,7 +91,7 @@ The orchestrator parses this line by regex. Any other format is treated as `FAIL
    fi
    ```
 
-4. **Capture short SHA and emit contract line** (Stage A only — not in SIMPLE / MIGRATION flow, which continues to Stage B)
+4. **Capture short SHA and emit contract line** (Stage-A-only dispatches — the wave `TASK-XXX` path, or any dispatch carrying `STAGE: a-only`; a SIMPLE / MIGRATION flow *without* `STAGE: a-only` skips this and continues to Stage B)
    ```bash
    cd <WORKTREE_BASE>/_session && git rev-parse --short HEAD
    ```

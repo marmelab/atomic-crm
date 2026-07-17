@@ -23,8 +23,19 @@ Your developer / reviewer / merger subagents run one level below you: their inte
 
 These instructions are the **mechanics**. Two concerns are owned by your surface, NOT by these instructions:
 
-- **User-facing messaging.** Where these instructions say "emit a progress line" or "report to the user", phrase it for your surface. The web-chat surface persona (injected into your system prompt by the launcher) uses plain, non-technical language in the user's language (no file paths, no `TASK-XXX`, no git terms) and writes `ask-state` cartouches for confirmations; a developer session uses normal technical language. Example phrasings below are guidance, not literal scripts.
+- **User-facing messaging.** Where these instructions say "emit a progress line" or "report to the user", phrase it for your surface. The web-chat surface persona (injected into your system prompt by the launcher) uses plain, non-technical language in the user's language (no file paths, no `TASK-XXX`, no git terms) and writes `ask-state` cartouches for confirmations; a developer session uses normal technical language. **If your dispatch prompt carries `PERSONA: technical`, you are talking to a real developer: use the full technical register unconditionally — file paths, `TASK-XXX`, git terms, `database`/`migration`/`Supabase` — and do NOT apply any plain-language / non-technical softening even if a web-chat persona is also present.** Example phrasings below are guidance, not literal scripts.
 - **Data-mode (demo/full).** The MODE-SWITCH intent and the demo→live data switch live in the web-chat surface persona (injected by the launcher), never here, and exist only when a `<mode>` tag is present in your context. With no `<mode>` tag — the default — data-mode does not exist: treat applying the migration (STATE PD-DEPLOY) as the terminal POST-DEV step. **When a `<mode>` tag IS present, PD-DEPLOY is NOT terminal** — after it succeeds you hand off to the surface's post-deploy step (in `demo` that is a mandatory demo→live offer; see STATE PD-DEPLOY).
+
+### `PERSONA: technical` — the developer-harness contract
+
+When your dispatch prompt carries `PERSONA: technical` (the `#technical-harness` opt-in), the request comes from a real developer who owns the merge and the deploy. Three behaviours change versus a normal run — they apply to every flow (SIMPLE, COMPLEX, SETUP):
+
+1. **Full technical register** — as stated in the User-facing-messaging bullet above.
+2. **Raw reporting.** Your final report is not a summary; it is the mechanical truth. Include: each `TASK-XXX` and its status, the branch names (`session/<SESSION_SHORT_ID>` and the per-task branches), the commit SHAs, each reviewer verdict (`APPROVED` / `REJECTED: <feedback>`), and any ADR file paths the developer wrote. Do not soften or omit failures.
+3. **Stop at the session branch — never auto-promote.** The session branch is your terminal point. Do **not** dispatch the Stage-B promotion into the base branch, and do **not** run the POST-DEV migration round (STATE PD-* / writing-migrations). Merge every ticket into `session/<SESSION_SHORT_ID>` (Stage A only) and stop. The developer reviews the session branch, promotes it, and generates/applies migrations themselves. Still run the `pending-deploys.mjs` detection for **information only**, and report "schema changes detected — you will need a migration on merge" when it is non-empty; never generate or apply the migration yourself.
+4. **Live progress log.** Your final report only reaches the developer when this long turn ends, so give them a live feed: append one timestamped line to `<session_dir>/harness-progress.log` at **every point where these instructions have you emit a progress line** — plan ready (ticket count), each ticket dispatched, each developer `DONE` (with `branch=`/`commit=`/`files=`), each reviewer verdict (`APPROVED` / `REJECTED: …`), each Stage-A merge, and the final stop. Append immediately after the event, before moving on, with `Bash("echo \"$(date -u +%H:%M:%S) <event>\" >> <session_dir>/harness-progress.log")` (substitute the real `<session_dir>` from your context). Overwrite nothing — append only. The developer runs `tail -f` on this file to watch the harness code in real time.
+
+The main thread runs `/harness-diff` after you return, so end your report by naming the session branch it should diff.
 
 ---
 
@@ -296,6 +307,7 @@ Entered only from S-REVIEW on `BLOCKED:`.
      prompt: "ROLE: merger (SIMPLE mode — single-shot, no team)\nSESSION_SHORT_ID: <SESSION_SHORT_ID>\nBRANCH_NAME: <SESSION_SHORT_ID>/simple\nWORKTREE_PATH: <WORKTREE_BASE>/simple\n\nFollow the WORKFLOW in merger.md. Use the single-shot columns (Stage A then promotion in one shot).\nOutput: \"DONE: SIMPLE commit=<short sha>\" OR \"FAILED: SIMPLE <reason>\""
    })
    ```
+   **`PERSONA: technical` → do NOT promote.** Add `STAGE: a-only` to the prompt so the merger runs Stage A only (merge into `session/<SESSION_SHORT_ID>`) and stops without Stage B: `"ROLE: merger (SIMPLE mode — single-shot, no team)\nSTAGE: a-only\nSESSION_SHORT_ID: …\nBRANCH_NAME: <SESSION_SHORT_ID>/simple\nWORKTREE_PATH: <WORKTREE_BASE>/simple\n\nStage A ONLY — merge BRANCH_NAME into the session branch and stop. Do NOT run Stage B / promotion.\nOutput: \"DONE: SIMPLE commit=<short sha>\" OR \"FAILED: SIMPLE <reason>\""`
 4. One progress line, e.g. *"Wrapping up..."*
 
 **End this turn.** → STATE S-DONE next turn.
@@ -308,6 +320,7 @@ Entered only from S-REVIEW on `BLOCKED:`.
 4. Branch on detection:
    - Empty → send reply, STATE DONE.
    - Non-empty (schema-relevant) → append the satisfaction question to the reply (do NOT send a separate PD-ASK turn), end the turn, enter STATE PD-RESPOND. The POST-DEV machine (PD-MIG-DEV → … → PD-DONE) runs unchanged.
+   - **`PERSONA: technical` override** → never enter the POST-DEV machine. On non-empty detection, add "schema changes detected — generate/apply a migration on merge" to the raw report; either way send the report (naming `session/<SESSION_SHORT_ID>`) and enter STATE DONE.
 
 **End.**
 
@@ -430,6 +443,8 @@ Bash("for b in $(git -C $CLAUDE_PROJECT_DIR for-each-ref --format='%(refname:sho
 ```
 - **Non-empty** → those branches were developed but never merged. For each, resume its normal stages (review if no recorded verdict, then merge), then re-run the check until empty.
 - **Empty** → every developed ticket is on the session branch.
+
+**`PERSONA: technical` → stop here.** Every reconciled ticket is already on `session/<SESSION_SHORT_ID>`. Do NOT promote and do NOT run POST-DEV: emit the raw per-ticket report (statuses, branches, SHAs, verdicts, ADR paths), run the `pending-deploys.mjs` detection for information only (add "schema changes detected — migration needed on merge" when non-empty), name the session branch for `/harness-diff`, and enter STATE DONE. The rest of this Promotion block is skipped.
 
 Then promote the session branch to the base branch (the branch the session was forked from — both SETUP and COMPLEX). Stage A only put tickets on `session/<SESSION_SHORT_ID>`; nothing has reached the base branch yet.
 - **≥ 1 ticket reached `DONE`** → dispatch the promotion merger in the **foreground** and handle its result inline (do NOT run Stage 1–3 transitions for it):
