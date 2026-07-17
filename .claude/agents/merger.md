@@ -53,6 +53,7 @@ The orchestrator parses this line by regex. Any other format is treated as `FAIL
 | `WORKTREE_PATH` | Stage A / SIMPLE / MIGRATION | Absolute path to the feature worktree (`<WORKTREE_BASE>/<TASK_ID>` or `<WORKTREE_BASE>/simple`). |
 | `SESSION_SHORT_ID` | always recommended | Short session id. The orchestrator passes it directly. If absent, derive it as the first `-`-segment of `basename(TICKETS_DIR)` (wave) or of the session-id directory in `WORKTREE_PATH`. |
 | `TICKETS_DIR` | wave only | Directory holding ticket JSON files; absent in SIMPLE / migration / rollback flow. |
+| `APPROVAL_TRAILER` | MIGRATION only | One-line `Approved-by-user: ...` provenance the orchestrator built from the user's migration approval. When present, append it to the migration merge commit (Stage A) so the approval trail lives in git history. Absent = no trailer. |
 
 `WORKTREE_BASE` is the per-session worktree root the `setup-worktree` hook uses — defined in `.claude/rules/worktree-scope.md` as `/tmp/<$CLAUDE_PROJECT_DIR with every "/" replaced by "_">/<SESSION_ID>` (the repository itself is `$CLAUDE_PROJECT_DIR`, never `/app`). The integration worktree is `<WORKTREE_BASE>/_session`.
 
@@ -81,6 +82,8 @@ The orchestrator parses this line by regex. Any other format is treated as `FAIL
      && git merge --no-ff <BRANCH_NAME> -m "<type>(<TASK_ID>): <ticket title>"
    ```
    `<type>` = ticket's `type` field (feat / fix / chore). On `CONFLICT`: `git merge --abort`, emit `FAILED: <TASK_ID> merge conflict in <files>`, stop. Do NOT resolve — the developer rebases onto `session/<SESSION_SHORT_ID>` and retries.
+
+   **MIGRATION mode with `APPROVAL_TRAILER`**: append it as a second commit paragraph so the migration's approval provenance is recorded in git history (audit finding: PD-ASK provenance), e.g. `git merge --no-ff <BRANCH_NAME> -m "chore(MIGRATION): apply approved schema change" -m "<APPROVAL_TRAILER>"`.
 
 3. **Update ticket status** (skip when `TASK_ID` is `SIMPLE` / `MIGRATION` / `ROLLBACK` or `TICKETS_DIR` is absent)
    ```bash

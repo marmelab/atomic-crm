@@ -549,6 +549,7 @@ Ask the user whether the changes look right or need adjustment — confirm BEFOR
 Fresh process: trust disk, not memory. The user already approved at PD-ASK and your dispatch prompt carries that approval, so **do NOT re-ask — skip PD-ASK/PD-RESPOND**.
 
 1. Derive `SESSION_SHORT_ID` / `TICKETS_DIR` / `WORKTREE_BASE` from `<session_dir>`.
+1b. **Read the approval record** `<session_dir>/migration-approval.json` (the coordinator wrote it at PD-ASK). Build a one-line provenance trailer from it and carry it to STATE PD-MIG-MERGE: `Approved-by-user: "<answer>" to "<question>" at <approved_at> (session <SESSION_SHORT_ID>, via AskUserQuestion; record=<session_dir>/migration-approval.json)`. If the record is absent (older flow), proceed without a trailer and note it in your report - do not fabricate one.
 2. Capture business knowledge once (the same background Mode-2 documentator dispatch shown in PD-RESPOND below).
 3. Confirm there is something to apply: `Bash("node \"$CLAUDE_PROJECT_DIR/.claude/scripts/pending-deploys.mjs\" --app $CLAUDE_PROJECT_DIR --session <SESSION_SHORT_ID>")`. Empty + exit 0 → report done, STATE DONE. **Non-zero exit → UNDETERMINED; surface the error, do not guess.** Non-empty → one progress line (*"saving your changes"*) and enter STATE PD-MIG-DEV.
 
@@ -600,7 +601,7 @@ Dispatch the single-shot MIGRATION merger for `<SESSION_SHORT_ID>/simple` (Stage
 Agent({
   subagent_type: "merger",
   description: "Merge migration branch <SESSION_SHORT_ID>/simple",
-  prompt: "ROLE: merger (MIGRATION mode — single-shot, no team)\nSESSION_SHORT_ID: <SESSION_SHORT_ID>\nBRANCH_NAME: <SESSION_SHORT_ID>/simple\nWORKTREE_PATH: <WORKTREE_BASE>/simple\n\nFollow the WORKFLOW in merger.md. Use the MIGRATION-mode columns (Stage A then promotion in one shot).\nOutput: \"DONE: MIGRATION commit=<short sha>\" OR \"FAILED: MIGRATION <reason>\""
+  prompt: "ROLE: merger (MIGRATION mode, single-shot, no team)\nSESSION_SHORT_ID: <SESSION_SHORT_ID>\nBRANCH_NAME: <SESSION_SHORT_ID>/simple\nWORKTREE_PATH: <WORKTREE_BASE>/simple\nAPPROVAL_TRAILER: <the one-line trailer built in PD-APPLY step 1b; omit this line if there was no approval record>\n\nFollow the WORKFLOW in merger.md. Use the MIGRATION-mode columns (Stage A then promotion in one shot). Append APPROVAL_TRAILER to the migration merge commit so the approval provenance lives in git history.\nOutput: \"DONE: MIGRATION commit=<short sha>\" OR \"FAILED: MIGRATION <reason>\""
 })
 ```
 **End turn.** → `DONE` → STATE PD-DEPLOY. `FAILED`/`promote conflict` → STATE PD-PROMOTE-FIX.
