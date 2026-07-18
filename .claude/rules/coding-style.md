@@ -25,6 +25,11 @@ abstractions when repetition is real, not speculative.
 YAGNI — do not build features before they are needed. Start simple,
 refactor when the pressure is real.
 
+Scope discipline: implement exactly what the task asks, no more. An
+adjacent problem you notice (a nearby bug, a tempting refactor, missing
+tests elsewhere) is REPORTED, never fixed in the same change. Never expand
+scope silently.
+
 ## File organization
 
 Many small files over few large files:
