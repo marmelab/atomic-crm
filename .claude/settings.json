@@ -18,7 +18,13 @@
     "ENABLE_LSP_TOOL": "1"
   },
   "permissions": {
-    "allow": []
+    "allow": [],
+    "deny": [
+      "Bash(npm install *)",
+      "Bash(npm i *)",
+      "Bash(pnpm add *)",
+      "Bash(yarn add *)"
+    ]
   },
   "attribution": {
     "commit": "",
@@ -48,6 +54,11 @@
           {
             "type": "command",
             "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/bash-guard.mjs"
+          },
+          {
+            "type": "command",
+            "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/pre-pr-checks.mjs",
+            "timeout": 150
           },
           {
             "type": "command",
@@ -116,6 +127,33 @@
         ]
       }
     ],
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/format-on-write.mjs",
+            "timeout": 20
+          },
+          {
+            "type": "command",
+            "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/check-typescript-shortcuts.mjs"
+          }
+        ]
+      }
+    ],
+    "PostCompact": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/reinject-invariants.mjs",
+            "timeout": 5
+          }
+        ]
+      }
+    ],
     "Stop": [
       {
         "hooks": [
@@ -150,7 +188,7 @@
         ]
       },
       {
-        "matcher": "developer",
+        "matcher": "developer|test-writer",
         "hooks": [
           {
             "type": "command",

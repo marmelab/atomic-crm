@@ -246,15 +246,14 @@ toProvision.push(worktreePath);
 releaseLock();
 
 try {
-  for (const wt of toProvision) ctx.linkNodeModules(wt);
+  for (const wt of toProvision) ctx.provisionWorktree(wt);
 } catch (e) {
-  // Fail closed (exit 2 → block the dispatch): a developer must not start in a
+  // Fail closed (exit 2 -> block the dispatch): a developer must not start in a
   // worktree with no dependencies. An uncaught throw would exit 1, which a
-  // PreToolUse hook treats as non-blocking — letting the broken dispatch run.
-  ctx.fail(
-    `node_modules provisioning failed for ${worktreePath}: ${e.message}`,
-    { log: `provision-failed wt=${worktreePath}` },
-  );
+  // PreToolUse hook treats as non-blocking, letting the broken dispatch run.
+  ctx.fail(`worktree provisioning failed for ${worktreePath}: ${e.message}`, {
+    log: `provision-failed wt=${worktreePath}`,
+  });
 }
 
 ctx.accept(`OK wt=${worktreePath}`);

@@ -18,17 +18,14 @@
 import { readFileSync } from "node:fs";
 import { createHookContext } from "./lib/context.mjs";
 import { parseDispatch } from "./lib/dispatch-parse.mjs";
+import { pipelineRoleSet } from "./lib/teams.mjs";
 
-// Pipeline roles whose result the orchestrator MUST consume in the same turn. The
-// orchestrator (main->orchestrator hop) and documentator (fire-and-forget) are deliberately
-// excluded: their background dispatch is correct.
-const PIPELINE_ROLES = new Set([
-  "developer",
-  "quality-reviewer",
-  "merger",
-  "planner",
-  "simple-developer",
-]);
+// Pipeline roles whose result the orchestrator MUST consume in the same turn come
+// from harness.config.json (config.roles `pipeline` flag), so this set and the
+// one in block-duplicate-dispatch share one source. The orchestrator
+// (main->orchestrator hop) and documentator (fire-and-forget) are excluded
+// (pipeline:false): their background dispatch is correct.
+const PIPELINE_ROLES = pipelineRoleSet();
 
 let input;
 try {

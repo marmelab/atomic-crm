@@ -8,6 +8,12 @@ import {
   isOrchestrator,
   isQualityReviewer,
 } from "./lib/teams.mjs";
+import {
+  loadConfig,
+  validationSteps,
+  extraForbidden,
+  launcher,
+} from "./lib/config.mjs";
 
 const input = JSON.parse(readFileSync(0, "utf8"));
 const ctx = createHookContext(input, "bash-guard");
@@ -106,32 +112,61 @@ const runsLint = (c) => /(make\s+lint\b|npm\s+run\s+lint\b)/.test(c);
 const runsBuild = (c) =>
   /(npx\s+vite\s+build|npm\s+run\s+build\b|make\s+build\b)/.test(c);
 
-const VALIDATION_RULES = [
-  [
+const CATEGORY_RULES = {
+  typecheck: [
     runsTypecheck,
-    "typecheck — validate-on-stop.mjs runs this automatically after you stop; read its stderr output instead.",
+    "typecheck: validate-on-stop.mjs runs this automatically after you stop; read its stderr output instead.",
   ],
-  [
+  prettier: [
     runsPrettier,
-    "prettier — the validation hooks auto-apply prettier and commit the result; don't run it manually.",
+    "prettier: the validation hooks auto-apply prettier and commit the result; don't run it manually.",
   ],
-  [
+  unit: [
     runsUnitTests,
-    "unit tests — the validation hooks run vitest automatically. In this sandbox vitest browser mode HANGS without CI=true (chromium headed waits for display). Trust the hooks.",
+    "unit tests: the validation hooks run vitest automatically. In this sandbox vitest browser mode HANGS without CI=true (chromium headed waits for display). Trust the hooks.",
   ],
-  [
+  e2e: [
     runsE2eTests,
-    "e2e tests — the validation hooks run playwright in full mode only; in demo mode they're skipped. Don't run them manually.",
+    "e2e tests: the validation hooks run playwright in full mode only; in demo mode they're skipped. Don't run them manually.",
   ],
-  [
+  lint: [
     runsLint,
-    "lint — prettier is auto-applied by the validation hooks; eslint runs via the project's editor config. Skip it.",
+    "lint: prettier is auto-applied by the validation hooks; eslint runs via the project's editor config. Skip it.",
   ],
-  [
+  build: [
     runsBuild,
-    "build — don't run production builds during tickets; typecheck (run by the validation hooks) catches type errors.",
+    "build: don't run production builds during tickets; typecheck (run by the validation hooks) catches type errors.",
   ],
-];
+};
+
+// Which categories to guard comes from the SAME config the validation chain runs
+// (kills the triple-encoding: runner, guard, and doc no longer drift). Each
+// validation step's kind maps to a category, plus validation.extraForbidden
+// (lint/build — never run during tickets, not part of the chain). Fail-open to
+// ALL categories if the config can't be read, so a malformed config never
+// weakens the guard.
+const KIND_TO_CATEGORY = {
+  format: "prettier",
+  typecheck: "typecheck",
+  unit: "unit",
+  e2e: "e2e",
+};
+let activeCategories;
+try {
+  const cfg = loadConfig();
+  activeCategories = new Set([
+    ...validationSteps(cfg)
+      .map((s) => KIND_TO_CATEGORY[s.kind])
+      .filter(Boolean),
+    ...extraForbidden(cfg),
+  ]);
+} catch {
+  activeCategories = new Set(Object.keys(CATEGORY_RULES));
+}
+
+const VALIDATION_RULES = [...activeCategories]
+  .map((c) => CATEGORY_RULES[c])
+  .filter(Boolean);
 
 const violation = VALIDATION_RULES.find(([matches]) => matches(cmd));
 if (violation) {
@@ -145,16 +180,30 @@ if (violation) {
 // Write/Edit tools, never Bash redirection/in-place edits. Bash writes bypass the
 // Write|Edit-only block-migration-writes guard (a developer could otherwise write a migration in
 // bash).
-const REDIRECT_TARGET_RE =
-  /(^|[^0-9&])>>?\s*(\/dev\/null\b|\/chat-service\/logs\/\S*|\/|\.\.?\/|~\/|[a-zA-Z0-9._-]+\/|[a-zA-Z0-9._-]+\.[a-zA-Z0-9]+)/g;
+// The managed-launcher log dir (e.g. CRM Builder's /chat-service/logs) is a
+// launcher extension point: config.launcher.logsDir. A redirect into it is
+// exempt (agents legitimately append their logs there). When unset, only
+// /dev/null is exempt and no chat-service path is hardcoded.
+let logsDir = "";
+try {
+  logsDir = launcher(loadConfig()).logsDir || "";
+} catch {
+  logsDir = "";
+}
+const escapeRe = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+const logsAlt = logsDir ? `${escapeRe(logsDir)}\\/\\S*|` : "";
+const REDIRECT_TARGET_RE = new RegExp(
+  `(^|[^0-9&])>>?\\s*(\\/dev\\/null\\b|${logsAlt}\\/|\\.\\.?\\/|~\\/|[a-zA-Z0-9._-]+\\/|[a-zA-Z0-9._-]+\\.[a-zA-Z0-9]+)`,
+  "g",
+);
 const writesRedirect = (c) => {
   // Evaluate the /dev/null and logs exemptions PER redirect, so an unrelated
   // `cmd 2>/dev/null` can't disarm detection of a real `> file` write in the
   // same command.
   for (const m of c.matchAll(REDIRECT_TARGET_RE)) {
     const target = m[2];
-    if (target === "/dev/null" || target.startsWith("/chat-service/logs/"))
-      continue;
+    if (target === "/dev/null") continue;
+    if (logsDir && target.startsWith(logsDir + "/")) continue;
     return true;
   }
   return false;

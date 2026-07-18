@@ -6,16 +6,22 @@
 // dead). The behavioral rule lives in orchestrator.md ("NEVER act as merger
 // yourself"); this is the runtime guard.
 //
-// OPT-IN: inert unless ATOMIC_CRM_ENFORCE_MERGE_GUARD=1. In a plain Claude Code
+// OPT-IN: inert unless HARNESS_ENFORCE_MERGE_GUARD=1 (deprecated fallback:
+// ATOMIC_CRM_ENFORCE_MERGE_GUARD, kept for one release). In a plain Claude Code
 // checkout the main session is a general assistant, and blocking its git
-// merge/pull/checkout would break normal use — so it stays off until the
+// merge/pull/checkout would break normal use, so it stays off until the
 // orchestrator explicitly enables it before a team wave.
 
 import { readFileSync } from "node:fs";
+import { basename } from "node:path";
 import { createHookContext } from "./lib/context.mjs";
 import { isMerger } from "./lib/teams.mjs";
+import { loadConfig, launcher } from "./lib/config.mjs";
 
-if (process.env.ATOMIC_CRM_ENFORCE_MERGE_GUARD !== "1") process.exit(0);
+const mergeGuardEnabled =
+  process.env.HARNESS_ENFORCE_MERGE_GUARD === "1" ||
+  process.env.ATOMIC_CRM_ENFORCE_MERGE_GUARD === "1";
+if (!mergeGuardEnabled) process.exit(0);
 
 const input = JSON.parse(readFileSync(0, "utf8"));
 const ctx = createHookContext(input, "block-orchestrator-merge");
@@ -27,6 +33,17 @@ if ([ctx.agentName, ctx.agentType].some(isMerger)) process.exit(0);
 const cmd = input.tool_input?.command || "";
 if (!cmd) process.exit(0);
 
+// The post-checkout script (e.g. CRM Builder's apply-app-variant.sh) is a
+// launcher extension point: its path comes from config.launcher.postCheckoutScript
+// so no chat-service path is hardcoded here. When unset, that guard clause is
+// inert (a project with no post-checkout script has nothing to gate).
+let postCheckoutScript = "";
+try {
+  postCheckoutScript = launcher(loadConfig()).postCheckoutScript || "";
+} catch {
+  postCheckoutScript = "";
+}
+
 let blocked = "";
 if (/(^|[;&|\s])git\s+merge(\s|$)/.test(cmd)) blocked = "git merge";
 else if (/(^|[;&|\s])git\s+checkout\s+(master|main)(\s|$)/.test(cmd))
@@ -34,8 +51,8 @@ else if (/(^|[;&|\s])git\s+checkout\s+(master|main)(\s|$)/.test(cmd))
 else if (/(^|[;&|\s])git\s+pull(\s|$)/.test(cmd)) blocked = "git pull";
 else if (/(^|[;&|\s])git\s+worktree\s+remove(\s|$)/.test(cmd))
   blocked = "git worktree remove";
-else if (/apply-app-variant\.sh/.test(cmd))
-  blocked = "apply-app-variant.sh (merger-only command)";
+else if (postCheckoutScript && cmd.includes(basename(postCheckoutScript)))
+  blocked = `${basename(postCheckoutScript)} (merger-only command)`;
 
 if (blocked) {
   ctx.fail(

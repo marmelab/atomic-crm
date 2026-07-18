@@ -25,8 +25,11 @@ import { join } from "node:path";
 import { createHash } from "node:crypto";
 import { createHookContext } from "./lib/context.mjs";
 import { parseDispatch } from "./lib/dispatch-parse.mjs";
+import { pipelineRoleSet, debounceRoleSet } from "./lib/teams.mjs";
 
-const DEBOUNCE_ROLES = new Set(["developer", "quality-reviewer", "merger"]);
+// Sourced from harness.config.json (config.roles debounce/pipeline flags) via
+// teams.mjs, so these sets and force-foreground's share one source of truth.
+const DEBOUNCE_ROLES = debounceRoleSet();
 const DEBOUNCE_WINDOW_MS = 90 * 1000;
 const PLANNER_STALE_MS = 60 * 60 * 1000;
 
@@ -55,13 +58,7 @@ const sha = (s) => createHash("sha1").update(s).digest("hex").slice(0, 16);
 // corrective retry as a "duplicate" (a regression from force-foreground's deny-and-retry,
 // caught by fresh-session run 8468cc06 - the planner never ran yet its marker blocked the
 // retry for 60 min). Only debounce dispatches that will actually proceed (rib === false).
-const PIPELINE_ROLES = new Set([
-  "developer",
-  "quality-reviewer",
-  "merger",
-  "planner",
-  "simple-developer",
-]);
+const PIPELINE_ROLES = pipelineRoleSet();
 const childRole = PIPELINE_ROLES.has(d.subagentType)
   ? d.subagentType
   : PIPELINE_ROLES.has(d.role)
