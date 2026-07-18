@@ -88,7 +88,7 @@ SIMPLE:      S-DEV (turn N) → (S-REVIEW if diff touched supabase/ → BLOCKED?
 COMPLEX:     STATE A (turn N) → STATE B (same turn: Stage 1 develop → Stage 2 review → Stage 3 merge, per wave,
                             all foreground; then promotion to the base branch) → (POST-DEV) → STATE DONE
 
-POST-DEV (end of COMPLEX, SETUP, schema-touching SIMPLE), conditional on a schema-relevant diff:
+POST-DEV runs ONLY if the project configures a deploy adapter (`config.deploy` in `harness.config.json`). With no deploy adapter, `pending-deploys.mjs` returns empty for every run, so each flow terminates at promotion / STATE DONE with NO PD state and no migration mention (the pluggable deploy phase, TB.1). When configured, it is (end of COMPLEX, SETUP, schema-touching SIMPLE), conditional on a deploy-relevant diff:
              PD-ASK (turn N, then END the turn) → resume one of two ways:
                • chat surface: user's own next message → PD-RESPOND (turn N+1)
                • dev surface: coordinator re-dispatches you FRESH —
@@ -257,16 +257,16 @@ Agent({
 
 One progress line, e.g. *"Working on it..."* **End this turn.** SubagentStop hooks run validation automatically.
 
-→ Next turn: if dev returned `FAILED: out of scope …`, re-enter CLASSIFICATION as COMPLEX (STATE A). Otherwise inspect the worktree directly — do NOT substring-match the dev's free-text `files=[...]`:
+→ Next turn: if dev returned `FAILED: out of scope …`, re-enter CLASSIFICATION as COMPLEX (STATE A). Otherwise inspect the worktree directly — do NOT substring-match the dev's free-text `files=[...]`. Grep for **deploy-relevant paths** (`config.deploy.relevantGlobs`, currently `^supabase/`; the same single definition `pending-deploys.mjs` uses). A project with no deploy adapter has none of these paths, so the grep is empty and the schema review is naturally skipped:
 ```
 Bash("cd <WORKTREE_BASE>/simple && git diff --name-only session-base/<SESSION_SHORT_ID>..HEAD | grep -E '^supabase/' || true")
 ```
-- Non-empty (`supabase/` paths) → STATE S-REVIEW.
+- Non-empty (deploy-relevant paths) → STATE S-REVIEW.
 - Empty → STATE S-MERGE.
 
 ### STATE S-REVIEW — SIMPLE: dispatch quality-reviewer (conditional, next turn)
 
-Only when the diff touched `supabase/` (schema, view, RLS) — the hooks can't judge schema-shape or injection risk.
+Only when the diff touched deploy-relevant paths (`config.deploy.relevantGlobs`, e.g. `supabase/` schema, view, RLS) — the hooks can't judge schema-shape or injection risk.
 
 1. If dev returned `FAILED:` → skip review, go to S-DONE with failure.
 2. Dispatch ONE `quality-reviewer`:
@@ -402,6 +402,19 @@ When all developers return, parse each last line:
 
 If an `Agent` dispatch *call itself* errors, mark that ticket `{stage: "FAILED", failure_reason: "dispatch error: <message>"}` and keep the others — one dispatch failure never hangs the wave. Same for reviewer/merger dispatch errors.
 
+#### Stage 1b: TEST-WRITER (conditional, OFF by default)
+
+Only for a ticket that reached `REVIEW` **and** whose ticket JSON has `"separate_test_writer": true` (the planner sets this only on structural / high-risk tickets). Every other ticket skips this stage, so the default path is unchanged. Dispatch runs BEFORE that ticket's Stage 2 review, FOREGROUND, on the developer's OWN worktree (batch all flagged tickets into one message — separate worktrees):
+```
+Agent({
+  subagent_type: "test-writer",
+  description: "Strengthen tests for TASK-XXX",
+  prompt: "ROLE: test-writer\nTASK_ID: TASK-XXX\nTICKET_FILE: <TICKETS_DIR>/TASK-XXX.json\nWORKTREE_PATH: <WORKTREE_BASE>/TASK-XXX\nBRANCH_NAME: <SESSION_SHORT_ID>/TASK-XXX",
+  run_in_background: false
+})
+```
+The `TASK_ID` + `WORKTREE_PATH` lines let the SubagentStop validation chain scope to this worktree (its committed tests are typechecked + run, same as the developer's). Parse the last line: `DONE: …` → proceed to Stage 2 review as usual. `FAILED: <reason>` → do NOT silently absorb it (it usually means the new tests exposed a real bug, or the ticket needs an app-code change the test-writer may not make): feed the reason to the developer as a Stage-2-style retry (`RETRY_FEEDBACK=<the test-writer's FAILED reason>`), re-develop, then re-run the test-writer, before review.
+
 #### Stage 2 — REVIEW + bounded retry (concurrent reviews, looped)
 
 For every ticket in `REVIEW`, dispatch the quality-reviewer in the foreground. Batch all review-ready tickets into ONE message (reviewers are read-only on separate worktrees):
@@ -462,7 +475,7 @@ Agent({
   run_in_background: false
 })
 ```
-- `APPROVED` → forward any non-blocking notes (nits, ponytail `net: -N`) to the final report; proceed to promotion.
+- `APPROVED` → forward any non-blocking notes (nits, ponytail `net: -N`) to the final report; proceed to promotion. **`PERSONA: technical` only:** also relay the reviewer's `Hotspots for human review:` section verbatim in the final report (it points the developer at the spots most worth eyeballing before promotion). Omit it for the non-technical web-chat persona (file:line risks are noise there).
 - `BLOCKED:` <imperative findings> → fix them on the shared `<SESSION_SHORT_ID>/simple` worktree, which `setup-worktree` forks from the session branch (so the fix lands on top of the merged work). Do NOT invent a `featurefix` branch: `setup-worktree` / `enforce-dev-dispatch` only recognize `TASK-XXX` and `<SESSION_SHORT_ID>/simple`, so a bespoke branch is rejected (fail-closed) and the fix cannot get a worktree. Dispatch ONE `developer` with the SIMPLE template: `CHANGE_REQUEST` = the findings verbatim, `BRANCH_NAME: <SESSION_SHORT_ID>/simple`, `WORKTREE_PATH: <WORKTREE_BASE>/simple`, `run_in_background: false`. Then merge it into `session/<SESSION_SHORT_ID>` with a SIMPLE-mode merger carrying `STAGE: a-only` (Stage A only, no promotion), and re-run feature-review. **Bound to 2 rounds**: if still `BLOCKED` after 2, report the remaining findings in the handoff and proceed anyway (never wedge the pipeline on review). `#technical-harness` runs feature-review before its stop (no promotion after).
 
 #### Feature-smoke (does it actually run? audit D5)

@@ -78,10 +78,20 @@ Discipline (keep signal high, noise low):
   cross-ticket over-engineering (duplicated helpers, etc.). Its findings are ALWAYS non-blocking
   (report only), never a fix trigger.
 
+**Hotspots for human review (required section, ABOVE the contract line).** Regardless of the
+verdict, compile a `Hotspots for human review:` section that targets a human's attention where a
+mistake would be most costly. Rules:
+- 1 to 5 entries, hard cap at 5. Each is `file:line - one sentence naming the concrete risk`.
+- Prioritize any `HESITATIONS:` the developers flagged, then irreversible / high-blast-radius spots
+  (auth, RLS, migrations, money, data deletion, shared config).
+- These are NOT findings to fix: a hotspot can coexist with `APPROVED`. Never list linter-style
+  items (style, naming, things the hooks already catch).
+- `Hotspots for human review: none identified` is a valid, complete section.
+
 OUTPUT CONTRACT (text, no `SendMessage`), last line exactly one of:
 - `APPROVED`: no imperative findings. Put any non-blocking notes (nits, cleanliness, ponytail
-  `net: -N lines`) ABOVE the line; the orchestrator forwards them to the handoff report and does
-  not act on them.
+  `net: -N lines`) and the Hotspots section ABOVE the line; the orchestrator forwards them to the
+  handoff report and does not act on them.
 - `BLOCKED:` followed by a bulleted list of the IMPERATIVE findings ONLY, one per line, each
   `file:line - failure scenario - what to change`. The orchestrator dispatches a fix for these,
   then re-runs you.
@@ -420,9 +430,11 @@ that CI will cover it. Do NOT run `npx playwright install`.
 interactively via the Playwright MCP against a demo-mode server you start inside
 **your own worktree** (never `$REPO` — that serves the wrong branch):
 
-1. **Start the server (background, from the worktree).** Pick a port unique to
-   this task to avoid collisions with parallel reviewers — `5300` + the TASK
-   number (e.g. TASK-006 → `5306`):
+1. **Start the server (background, from the worktree).** The launch command and
+   port base come from `config.app` (`smokeCommand` + `portBase`, currently
+   `npm run dev:demo` and `5300`). Pick a port unique to this task to avoid
+   collisions with parallel reviewers: `config.app.portBase` + the TASK number
+   (e.g. TASK-006 → `5306`):
    ```bash
    cd <WORKTREE_PATH> && npm run dev:demo -- --port <PORT> --strictPort
    ```

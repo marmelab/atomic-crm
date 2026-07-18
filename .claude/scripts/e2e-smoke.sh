@@ -109,6 +109,38 @@ export VITE_SUPABASE_URL="http://127.0.0.1:$api_port"
 export VITE_SUPABASE_ANON_KEY="$ANON_KEY"
 export SERVICE_ROLE_KEY
 
+# --- P-001: materialize the session schema the deploy-time migration will carry -
+# Ticket developers never write migrations, so a schema-touching session has
+# supabase/schemas/ ahead of supabase/migrations/. The CLI builds the DB from
+# migrations/ only, so without this the isolated stack lacks the new columns and
+# schema-exercising specs 400 against PostgREST - a false FAIL (P-001). When the
+# session changed supabase/schemas/, generate a THROWAWAY migration from the delta
+# INTO THE WORKDIR (never $SRC) and apply it. Best-effort: on any failure SKIP the
+# leg rather than emit a false FAIL (the real migration lands in the deploy round).
+schema_changed=0
+branch="$(git -C "$SRC" rev-parse --abbrev-ref HEAD 2>/dev/null || echo "")"
+case "$branch" in
+  session/*)
+    base="session-base/${branch#session/}"
+    if git -C "$SRC" rev-parse --verify -q "$base" >/dev/null 2>&1 \
+       && git -C "$SRC" diff --name-only "$base"...HEAD 2>/dev/null | grep -q '^supabase/schemas/'; then
+      schema_changed=1
+    fi
+    ;;
+esac
+if [ "$schema_changed" = "1" ] && [ -d "$workdir/supabase/schemas" ]; then
+  echo "e2e-smoke: session changed supabase/schemas/, materializing a throwaway migration..."
+  if npx supabase db diff --workdir "$workdir" --local -f _e2e_throwaway >"$workroot/dbdiff.log" 2>&1; then
+    if ls "$workdir"/supabase/migrations/*_e2e_throwaway.sql >/dev/null 2>&1; then
+      npx supabase migration up --workdir "$workdir" --local >"$workroot/migup.log" 2>&1 \
+        || { cat "$workroot/migup.log" >&2; skip "schema pending migration round (throwaway apply failed); deferring the Supabase e2e leg to the deploy-time migration."; }
+    fi
+  else
+    cat "$workroot/dbdiff.log" >&2
+    skip "schema pending migration round (throwaway diff failed); deferring the Supabase e2e leg to the deploy-time migration."
+  fi
+fi
+
 # --- serve the app (dev server reads env at start, so no per-slot build) ----
 ( cd "$SRC" && VITE_SUPABASE_URL="$VITE_SUPABASE_URL" npx vite --port "$app_port" --strictPort --mode e2e >"$workroot/app.log" 2>&1 ) &
 APP_PID=$!

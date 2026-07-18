@@ -71,6 +71,12 @@ Your very last line of output MUST be exactly one of:
 - `DONE: branch=<BRANCH_NAME> commit=<short_sha> files=[<comma-separated modified paths, relative to repo root>]`
 - `FAILED: <one-line reason>`
 
+Optionally, on the single line IMMEDIATELY BEFORE that final line, you may emit one hesitation:
+
+- `HESITATIONS: <one line: the riskiest spot in this diff, or a decision you were unsure about>`
+
+Omit it when you have none. The contract line always stays LAST (the orchestrator parses it by regex); the reviewer reads `HESITATIONS` to prioritize where a human should look.
+
 Nothing else after the contract line — no pleasantries, no markdown trailer.
 
 The orchestrator parses this line by regex. Any other format is treated as `FAILED`.
@@ -252,8 +258,8 @@ Implement the plan. Stick to ticket scope.
 - Atomic commits per logical step. Every subject includes `TASK-XXX`: `feat(TASK-XXX): <what>`.
 - TypeScript strict: no `any`, no `@ts-ignore` without JSDoc.
 - JSDoc on every non-trivial exported function.
-- No features outside ticket scope.
+- No features outside ticket scope. An adjacent problem you notice (a nearby bug, a tempting refactor) is REPORTED in your final message, never fixed silently in this diff (`coding-style.md` scope discipline).
 - e2e tests in `e2e/` if ticket touches UI/filters/forms/interactions, unless acceptance criteria say otherwise. Call `Skill({skill: "e2e-conventions"})` and `Skill({skill: "playwright-testing"})` before writing e2e tests. Don't run them — ship the spec, CI executes.
 - Silent mode: Playwright `--headless`, Vite without `--open`, Vitest without `browser.ui`.
-- **Self-verification in the browser (optional, before commit).** When a change is behavior-visible and you want to confirm it renders before handing off to review, drive it via the Playwright MCP against a demo-mode server you start **inside your own worktree** (never `$REPO`): `cd <WORKTREE_PATH> && npm run dev:demo -- --port <PORT> --strictPort` (run in background; pick a port unique to this task, e.g. `5300` + the TASK number). Demo mode is FakeRest + auto-authenticated (no Supabase, no login); the app uses hash routing, so navigate to `http://localhost:<PORT>/#/<route>`. Prefer `browser_snapshot` (accessibility tree, token-cheap) over `browser_take_screenshot` (reserve pixels for visual/legibility checks). **Always tear down** — `browser_close` and kill the server — before you stop, or the SubagentStop validation chain stalls. This is for your own confidence; the quality-reviewer re-verifies in its Part C. It does **not** replace the required e2e spec.
+- **Self-verification in the browser (optional, before commit).** When a change is behavior-visible and you want to confirm it renders before handing off to review, drive it via the Playwright MCP against a demo-mode server you start **inside your own worktree** (never `$REPO`). The launch command and port base come from `config.app` (`smokeCommand` + `portBase`, currently `npm run dev:demo` and `5300`): `cd <WORKTREE_PATH> && npm run dev:demo -- --port <PORT> --strictPort` (run in background; pick a port unique to this task, e.g. `5300` + the TASK number). Demo mode is FakeRest + auto-authenticated (no Supabase, no login); with `config.app.hashRouting` the app uses hash routing, so navigate to `http://localhost:<PORT>/#/<route>`. Prefer `browser_snapshot` (accessibility tree, token-cheap) over `browser_take_screenshot` (reserve pixels for visual/legibility checks). **Always tear down** — `browser_close` and kill the server — before you stop, or the SubagentStop validation chain stalls. This is for your own confidence; the quality-reviewer re-verifies in its Part C. It does **not** replace the required e2e spec.
 - Architecture Decision Records: load `Skill({skill: "adr-writing"})` only when the change introduces a structural decision (see WORKFLOW step 3). Skip by default.
