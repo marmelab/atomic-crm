@@ -124,7 +124,7 @@ describe("bash-guard hook", () => {
     });
   });
 
-  describe("forbidden set is config-driven (TA.2: no triple-encoding)", () => {
+  describe("forbidden set is config-driven (no triple-encoding)", () => {
     // A config with only a typecheck step and no extraForbidden: typecheck stays
     // guarded, but unit/e2e/build are no longer part of the chain, so the guard
     // must NOT block them.

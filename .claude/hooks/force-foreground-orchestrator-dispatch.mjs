@@ -5,7 +5,7 @@
 // tool to BACKGROUND, and a nested subagent (the orchestrator, spawnDepth >= 1) is NEVER
 // re-invoked when a background child completes. So a background dispatch from the
 // orchestrator ends its turn "to await a notification" that never comes - review / merge /
-// promotion never run and finished dev work is orphaned (audit finding #01, 4/11 sessions).
+// promotion never run and finished dev work is orphaned.
 // A probe confirmed explicit run_in_background:false DOES block (child output inline) while
 // the default is async; CLI defaults to foreground, so the bug only ever bit the extension.
 //

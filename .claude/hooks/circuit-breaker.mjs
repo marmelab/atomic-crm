@@ -23,7 +23,7 @@ import { TMP_ROOT } from "./lib/paths.mjs";
 // migrations, rebases). 45 work calls is comfortable and catches infinite loops
 // (which hit 100+ fast). Before this exclusion, devs burned the whole budget on
 // grep-based symbol search (0 LSP / 209 grep in one session) and had none left to
-// commit -- audit finding #02, ADR P2.
+// commit.
 const ITERATION_LIMIT = 45;
 
 // A Bash call is "free" (never counted) when its primary command is read-only
@@ -85,7 +85,7 @@ if (!ctx.agentId) process.exit(0);
 
 // Read-only exploration (grep/find/ls/cat/...) and git plumbing (add/commit/status)
 // do NOT count against the budget. The breaker exists to catch stuck WORK loops, not
-// to ration symbol search or starve the final commit. See ADR P2 / audit #02.
+// to ration symbol search or starve the final commit.
 if (isFreeCommand(input.tool_input?.command)) {
   ctx.log(`free: ${String(input.tool_input?.command ?? "").slice(0, 80)}`);
   process.exit(0);

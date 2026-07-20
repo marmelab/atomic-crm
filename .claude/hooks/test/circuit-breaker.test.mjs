@@ -1,6 +1,6 @@
 // Tests for circuit-breaker.mjs - per-subagent WORK-call counter. Blocks are decision
 // JSON on stdout with exit 0; the main session (no agent_id) is never throttled.
-// Read-only exploration and git plumbing/commit are "free" (never counted) - ADR P2.
+// Read-only exploration and git plumbing/commit are "free" (never counted).
 
 import { mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";

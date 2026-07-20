@@ -1,5 +1,5 @@
 // Tests for .claude/scripts/pending-deploys.mjs: decides whether a session has
-// deploy-relevant changes worth a migration round. Config-driven (TB.1/TB.2):
+// deploy-relevant changes worth a migration round. Config-driven:
 // the round exists iff config.deploy is present, and relevance comes from
 // config.deploy.relevantGlobs (one definition, unified with the orchestrator's
 // SIMPLE-review gate).
@@ -50,7 +50,7 @@ const run = (dir, ...args) =>
     .toString()
     .trim();
 
-describe("pending-deploys relevance (TB.2)", () => {
+describe("pending-deploys relevance", () => {
   test("globToRegexSource anchors and expands ** / *", () => {
     expect(globToRegexSource("supabase/**")).toBe("^supabase/.*");
     expect(globToRegexSource("**/types.ts")).toBe("^(?:.*/)?types\\.ts");
@@ -99,7 +99,7 @@ describe("pending-deploys", () => {
     rmSync(dir, { recursive: true, force: true });
   });
 
-  test("no config.deploy -> exit 0 empty (deploy phase not configured, TB.1)", () => {
+  test("no config.deploy -> exit 0 empty (deploy phase not configured)", () => {
     const dir = setupRepo({ deploy: false });
     git(dir, "checkout", "-q", "session/ab12cd34");
     writeFileSync(

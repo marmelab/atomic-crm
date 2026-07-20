@@ -12,8 +12,7 @@ export const CONFIG_FILENAME = "harness.config.json";
 
 // Minimal safe baseline. The committed harness.config.json overrides these.
 // Optional capabilities (deploy, app) are ABSENT here on purpose: a capability
-// exists iff its block is present in the config (see the optionality design
-// note in adr/harness-action-plan.md).
+// exists iff its block is present in the config.
 const DEFAULTS = {
   name: "harness",
   layout: { src: "src", e2e: "e2e", adr: "adr" },
@@ -122,7 +121,7 @@ export function clearConfigCache() {
   cache.clear();
 }
 
-// ---- Typed readers used by the config consumers (TA.2..TB.4) ----------------
+// ---- Typed readers used by the config consumers ----------------
 
 export const validationSteps = (cfg) => cfg.validation?.steps ?? [];
 export const extraForbidden = (cfg) => cfg.validation?.extraForbidden ?? [];

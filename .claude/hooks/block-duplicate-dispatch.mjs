@@ -56,7 +56,7 @@ const sha = (s) => createHash("sha1").update(s).digest("hex").slice(0, 16);
 // force-foreground-orchestrator-dispatch and re-issued with false. Do NOT record or
 // check a marker for it here: otherwise the denied attempt's marker would reject the
 // corrective retry as a "duplicate" (a regression from force-foreground's deny-and-retry,
-// caught by fresh-session run 8468cc06 - the planner never ran yet its marker blocked the
+// seen when the planner never ran yet its marker blocked the
 // retry for 60 min). Only debounce dispatches that will actually proceed (rib === false).
 const PIPELINE_ROLES = pipelineRoleSet();
 const childRole = PIPELINE_ROLES.has(d.subagentType)

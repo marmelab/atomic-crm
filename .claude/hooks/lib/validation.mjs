@@ -73,7 +73,7 @@ function runVitest(wt, configFile, projects = [], changedSince = "") {
   const projectFlags = projects.map((p) => `--project ${p}`).join(" ");
   // Scope to tests related to THIS worktree's diff since `changedSince` (the session
   // branch it forked from), so a ticket runs only its own affected tests, not the whole
-  // suite (ADR D1). Pass the ref EXPLICITLY: the ticket's work is committed by stop time,
+  // suite. Pass the ref EXPLICITLY: the ticket's work is committed by stop time,
   // so a bare `--changed` (uncommitted-only) would find nothing and run zero tests (false
   // green). Empty ref -> full run (safe fallback). The end-of-feature smoke re-runs the
   // full suite on the integrated session branch, catching anything the module graph missed.

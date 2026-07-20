@@ -36,7 +36,7 @@ export function globToRegexSource(glob) {
 }
 
 // The single deploy-relevance matcher, built from config.deploy.relevantGlobs
-// (TB.2: one definition, shared with the orchestrator's SIMPLE-review gate and
+// (one definition, shared with the orchestrator's SIMPLE-review gate and
 // the planner's schema wording). Empty globs -> matches nothing.
 export function relevanceRegex(globs) {
   if (!globs.length) return /a^/; // never matches
@@ -52,7 +52,7 @@ function main() {
   const APP = get("--app", process.env.CLAUDE_PROJECT_DIR || "/app");
   const SESSION = get("--session", "");
 
-  // Pluggable deploy phase (TB.1): the migration round exists ONLY if this
+  // Pluggable deploy phase: the migration round exists ONLY if this
   // project configures a deploy adapter. With no config.deploy, there is nothing
   // to deploy, so exit 0 (empty) and the orchestrator terminates at promotion
   // with no PD state.
@@ -122,7 +122,7 @@ function main() {
     process.exit(0); // no session topology anywhere -> nothing to deploy
   }
 
-  // Deploy-relevance from config.deploy.relevantGlobs (TB.2): one definition of
+  // Deploy-relevance from config.deploy.relevantGlobs: one definition of
   // "deploy-relevant paths", not a hardcoded regex. A real migration requires a
   // change under these globs (the DDL source of truth), so this is both
   // necessary and sufficient to decide whether to offer the migration round.

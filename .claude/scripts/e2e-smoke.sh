@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # e2e-smoke.sh - run the Playwright e2e suite against an ISOLATED, disposable Supabase
 # instance so multiple harness sessions can run it in parallel without colliding.
-# Guaranteed teardown via `trap ... EXIT`. Audit D5/D7.
+# Guaranteed teardown via `trap ... EXIT`.
 #
 # Isolation per run: a leased SLOT (0..K-1) gives offset = slot*20, applied to the
 # project_id, every Supabase port, and the app port + auth URLs, in a throwaway workdir.
@@ -109,11 +109,11 @@ export VITE_SUPABASE_URL="http://127.0.0.1:$api_port"
 export VITE_SUPABASE_ANON_KEY="$ANON_KEY"
 export SERVICE_ROLE_KEY
 
-# --- P-001: materialize the session schema the deploy-time migration will carry -
+# --- materialize the session schema the deploy-time migration will carry --------
 # Ticket developers never write migrations, so a schema-touching session has
 # supabase/schemas/ ahead of supabase/migrations/. The CLI builds the DB from
 # migrations/ only, so without this the isolated stack lacks the new columns and
-# schema-exercising specs 400 against PostgREST - a false FAIL (P-001). When the
+# schema-exercising specs 400 against PostgREST - a false FAIL. When the
 # session changed supabase/schemas/, generate a THROWAWAY migration from the delta
 # INTO THE WORKDIR (never $SRC) and apply it. Best-effort: on any failure SKIP the
 # leg rather than emit a false FAIL (the real migration lands in the deploy round).

@@ -1,6 +1,6 @@
 #!/usr/bin/env node
-// SubagentStop(orchestrator) - completion invariant. INSURANCE for the P1 handoff
-// stall: P1a (force-foreground) + P1b are the real fix (foreground blocks, verified),
+// SubagentStop(orchestrator) - completion invariant. INSURANCE for the handoff
+// stall: forcing foreground dispatch is the real fix (foreground blocks, verified),
 // but if the orchestrator ever stops with APPROVED dev work NOT merged into the session
 // branch, that is an orphaned / incomplete pipeline. Reject the stop a few times (keep
 // it alive to finish the merges FOREGROUND); if it still stops orphaned, drop a

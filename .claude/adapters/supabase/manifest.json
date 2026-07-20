@@ -26,5 +26,5 @@
     "script": ".claude/scripts/e2e-smoke.sh"
   },
   "locations": "in-place",
-  "note": "Files are referenced at their current discoverable locations (.claude/skills, .claude/scripts, .claude/hooks). The physical relocation under adapters/supabase/ happens in Phase C (TC.1), which also gives the renderer the symlink mechanism that keeps the skill discoverable. This manifest is the adapter-boundary declaration in the meantime."
+  "note": "Files are referenced at their current discoverable locations (.claude/skills, .claude/scripts, .claude/hooks)."
 }

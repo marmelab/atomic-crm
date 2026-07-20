@@ -9,12 +9,6 @@ The user owns the REMOTE and the promotion of shared history. Agents never push,
 pull, or force-push. What an agent MAY do LOCALLY depends on its role and is scoped
 to its own worktree / branch.
 
-(Audit #03: the previous blanket "agents must not commit" contradicted the
-developer's need to build its own branch and the `validate-on-stop` auto-commit, so
-devs wasted budget on a "forbidden" commit and one suspected a prompt injection.
-SOMETHING must commit the task branch - it is exactly what the reviewer reads and the
-merger merges. This rule scopes commit rights instead of banning them.)
-
 ## Developer / simple-developer - commit your OWN task branch (required)
 
 Building your task branch IS the mechanism the reviewer reads and the merger merges,

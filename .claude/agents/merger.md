@@ -83,7 +83,7 @@ The orchestrator parses this line by regex. Any other format is treated as `FAIL
    ```
    `<type>` = ticket's `type` field (feat / fix / chore). On `CONFLICT`: `git merge --abort`, emit `FAILED: <TASK_ID> merge conflict in <files>`, stop. Do NOT resolve — the developer rebases onto `session/<SESSION_SHORT_ID>` and retries.
 
-   **MIGRATION mode with `APPROVAL_TRAILER`**: append it as a second commit paragraph so the migration's approval provenance is recorded in git history (audit finding: PD-ASK provenance), e.g. `git merge --no-ff <BRANCH_NAME> -m "chore(MIGRATION): apply approved schema change" -m "<APPROVAL_TRAILER>"`.
+   **MIGRATION mode with `APPROVAL_TRAILER`**: append it as a second commit paragraph so the migration's approval provenance is recorded in git history (traceable in the commit), e.g. `git merge --no-ff <BRANCH_NAME> -m "chore(MIGRATION): apply approved schema change" -m "<APPROVAL_TRAILER>"`.
 
 3. **Update ticket status** (skip when `TASK_ID` is `SIMPLE` / `MIGRATION` / `ROLLBACK` or `TICKETS_DIR` is absent)
    ```bash
@@ -130,8 +130,8 @@ cd $CLAUDE_PROJECT_DIR && flock $CLAUDE_PROJECT_DIR/.promote.lock bash -c '
   [ -n "$DEFAULT" ] && ! git show-ref --verify --quiet "refs/heads/$DEFAULT" && DEFAULT=
   [ -z "$DEFAULT" ] && DEFAULT=$(git symbolic-ref --short refs/remotes/origin/HEAD 2>/dev/null | sed "s@^origin/@@")
   [ -z "$DEFAULT" ] && { git show-ref --verify --quiet refs/heads/master && DEFAULT=master || DEFAULT=main; }
-  case "$DEFAULT" in main|master) [ "$ALLOW_MAIN" = "1" ] || { echo "main opt-in required for $DEFAULT"; exit 3; } ;; esac  # audit A3: never silently commit to main/master without an explicit ALLOW_MAIN=1
-  git checkout -f "$DEFAULT" || exit 1        # switch to the promotion target (session fork-base branch, NOT $CLAUDE_PROJECT_DIR HEAD), discarding demo working-tree debris in the same step. `-f` replaces the old `git reset --hard HEAD; git checkout`: same clean-then-switch effect, but without `git reset --hard`, which the auto-mode command classifier blocks (audit #08).
+  case "$DEFAULT" in main|master) [ "$ALLOW_MAIN" = "1" ] || { echo "main opt-in required for $DEFAULT"; exit 3; } ;; esac
+  git checkout -f "$DEFAULT" || exit 1        # switch to the promotion target (session fork-base branch, NOT $CLAUDE_PROJECT_DIR HEAD), discarding demo working-tree debris in the same step. `-f` replaces the old `git reset --hard HEAD; git checkout`: same clean-then-switch effect, but without `git reset --hard`, which the auto-mode command classifier blocks.
   # Launcher post-checkout script (config.launcher.postCheckoutScript, see rules/launcher-interface.md): re-applies the App.tsx variant that checkout reverts. The `-x` test makes it inert wherever the script is absent (a local checkout, or a project with no launcher).
   [ -x /entrypoint-helpers/apply-app-variant.sh ] && /entrypoint-helpers/apply-app-variant.sh
   git merge --no-ff session/<SESSION_SHORT_ID> -m "merge(session): <SESSION_SHORT_ID>" \
@@ -152,7 +152,7 @@ correct.
 
   Do NOT resolve — the orchestrator dispatches a resolver.
 - The `flock` serialises promotions across concurrent sessions sharing the base branch.
-- **Direct `main`/`master` promotion needs an opt-in (audit A3).** The Stage-B block above
+- **Direct `main`/`master` promotion needs an opt-in.** The Stage-B block above
   refuses (`exit 3`) when the resolved target is `main`/`master` and `ALLOW_MAIN` is not set,
   so the harness never silently commits to main. If your dispatch prompt carries `ALLOW_MAIN`,
   prefix the `flock` command with `ALLOW_MAIN=1` (it propagates into the `bash -c` subshell).
@@ -175,7 +175,7 @@ cd $CLAUDE_PROJECT_DIR && flock $CLAUDE_PROJECT_DIR/.promote.lock bash -c '
   [ -n "$DEFAULT" ] && ! git show-ref --verify --quiet "refs/heads/$DEFAULT" && DEFAULT=
   [ -z "$DEFAULT" ] && DEFAULT=$(git symbolic-ref --short refs/remotes/origin/HEAD 2>/dev/null | sed "s@^origin/@@")
   [ -z "$DEFAULT" ] && { git show-ref --verify --quiet refs/heads/master && DEFAULT=master || DEFAULT=main; }
-  git checkout -f "$DEFAULT" || exit 1        # clean-then-switch in one step; no `git reset --hard` (auto-mode classifier blocks it, audit #08)
+  git checkout -f "$DEFAULT" || exit 1        # clean-then-switch in one step; no `git reset --hard`
   # Launcher post-checkout script (config.launcher.postCheckoutScript, see rules/launcher-interface.md): re-applies the App.tsx variant that checkout reverts. The `-x` test makes it inert wherever the script is absent (a local checkout, or a project with no launcher).
   [ -x /entrypoint-helpers/apply-app-variant.sh ] && /entrypoint-helpers/apply-app-variant.sh
   git merge --no-ff <BRANCH_NAME> -m "rollback(<SESSION_SHORT_ID>): undo via agent" \

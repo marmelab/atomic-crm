@@ -4,7 +4,7 @@
 # uses), instead of the MCP's default `chrome` channel (/opt/google/chrome/chrome),
 # which provisioning never installs. Without this the feature-smoke reviewer's first
 # navigate fails with "Chromium distribution 'chrome' is not found" and only works if
-# someone symlinks the bundled binary by hand. Audit: verify item 5 residual.
+# someone symlinks the bundled binary by hand.
 #
 # The bundled path is version-pinned (chromium-<rev>), so resolve it dynamically via
 # playwright-core rather than hardcoding it in .mcp.json. If resolution fails (e.g.

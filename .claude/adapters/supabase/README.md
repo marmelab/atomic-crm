@@ -2,7 +2,7 @@
 
 This adapter provides the harness's optional **deploy phase**: the deploy-time SQL
 migration round (STATE PD-* in the orchestrator). It is a pluggable capability
-under the optionality model (see `adr/harness-action-plan.md`):
+under the optionality model:
 
 - The phase exists **iff** `harness.config.json` has a `deploy` block whose
   `adapter` is `supabase`. Remove that block and a schema-free feature runs end
@@ -26,6 +26,4 @@ sufficient to decide whether to offer the migration round.
 The adapter's files still live at their discoverable locations
 (`.claude/skills/writing-migrations`, `.claude/scripts/*`, `.claude/hooks/block-migration-writes.mjs`)
 because Claude Code discovers skills only under `.claude/skills/`. `manifest.json`
-declares the boundary by pointing at them. The physical relocation under this
-directory happens in Phase C (TC.1), together with the renderer's symlink
-mechanism that keeps the skill discoverable after the move.
+declares the boundary by pointing at them.
