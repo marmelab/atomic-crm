@@ -34,6 +34,19 @@ export function createHookContext(input, name = "hook") {
   const sessionDir = join(TMP_ROOT, sanitizePath(REPO), sessionId);
   const logFile = join(sessionDir, "hooks.log");
 
+  // #technical-harness (visible worktrees). When the orchestrator marks the run
+  // technical — a real developer watching the work in their editor — it drops a
+  // `.technical-persona` marker in sessionDir. That flips the worktree base from
+  // /tmp (invisible to VS Code) to <REPO>/.harness-worktrees/<sessionId>, a
+  // gitignored folder INSIDE the repo, so VS Code's Source Control panel detects
+  // each task worktree as a nested repository and the developer sees files change
+  // live. Only the worktree base moves; sessionDir, tickets, and logs stay in /tmp.
+  // Every path builder goes through ctx.worktreeBase (see topology.mjs), so this
+  // one switch relocates setup-worktree, cleanup-worktree, and validation together.
+  const worktreeBase = existsSync(join(sessionDir, ".technical-persona"))
+    ? join(REPO, ".harness-worktrees", sessionId)
+    : sessionDir;
+
   /**
    * @param {...unknown} parts
    * @returns {void}
@@ -74,7 +87,7 @@ export function createHookContext(input, name = "hook") {
     agentId,
     sessionShort,
     sessionDir,
-    worktreeBase: sessionDir,
+    worktreeBase,
     logFile,
     ticketsDir: process.env.TICKETS_DIR || join(sessionDir, "tickets"),
 

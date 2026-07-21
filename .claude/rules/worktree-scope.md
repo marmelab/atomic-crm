@@ -10,7 +10,7 @@ Developer ADRs follow the standard worktree rule: write `<WORKTREE_PATH>/adr/ADR
 
 ## Why
 
-Each ticket gets its own git worktree under a session-scoped base, `<WORKTREE_BASE>/TASK-XXX/`, where `<WORKTREE_BASE>` is `/tmp/<$REPO with every "/" replaced by "_">/<SESSION_ID>` (session-scoped to prevent stale worktrees from a previous stopped session from interfering). Reading/editing `$REPO/src/...` while you have the same file at `<WORKTREE_PATH>/src/...` is:
+Each ticket gets its own git worktree under a session-scoped base, `<WORKTREE_BASE>/TASK-XXX/`, where `<WORKTREE_BASE>` is `/tmp/<$REPO with every "/" replaced by "_">/<SESSION_ID>` (session-scoped to prevent stale worktrees from a previous stopped session from interfering). (Under the `#technical-harness` opt-in, `<WORKTREE_BASE>` is instead `$REPO/.harness-worktrees/<SESSION_ID>` — a gitignored folder inside the repo so the developer can watch the worktrees in VS Code's Source Control; everything in this rule applies unchanged, only the base directory differs. The value is always the one handed to you in your spawn prompt — never hardcode `/tmp`.) Reading/editing `$REPO/src/...` while you have the same file at `<WORKTREE_PATH>/src/...` is:
 
 1. Duplicate work — same bytes, twice the token cost
 2. Incorrect — `$REPO` is on the base branch, missing the ticket's changes

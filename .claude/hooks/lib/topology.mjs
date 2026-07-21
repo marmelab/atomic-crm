@@ -5,6 +5,9 @@
 //   <worktreeBase>/_session  on branch session/<short>    (merger integration)
 //   session-base/<short>                                  (fixed fork anchor)
 // Every hook that builds or matches these names must go through this module.
+// <worktreeBase> is /tmp/<repo>/<session> by default, or (under #technical-harness)
+// <REPO>/.harness-worktrees/<session> so the worktrees show up in VS Code's Source
+// Control panel — see context.mjs. This module is agnostic to which one it is.
 
 import { join } from "node:path";
 
