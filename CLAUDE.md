@@ -14,7 +14,7 @@ Code-change requests can run through the **agent harness**: subagents (planner, 
 
 While a fresh dispatch runs, don't start a parallel plan B; wait, then relay.
 
-**Gate level.** A request may carry `gate=none|plan|waves` (default **`plan`**); ALWAYS pass an explicit `GATE: <level>` line (the orchestrator also fails closed to `plan` on a missing/unknown value). `plan` pauses after planning for ticket review; `none` runs autonomously; `waves` also pauses at each wave. On a plan pause, relay the plan + question; on approval dispatch a FRESH `orchestrator` with `<intent>execute-plan</intent>` and the same `<session_dir>` (never `SendMessage`); on "wants changes" dispatch a fresh one. CRM Builder's launcher sets `gate=none`.
+**Gate level.** A request may carry `gate=none|plan|waves` (default **`plan`**); ALWAYS pass an explicit `GATE: <level>` line (the orchestrator also fails closed to `plan` on a missing/unknown value). `plan` pauses after planning for ticket review; `none` runs autonomously; `waves` also pauses at each wave. On a plan pause, relay the plan + question **and a clickable link to the actual ticket JSONs** so the user reviews the real tickets, not just your summary: the `link-session-workspace` hook maintains a `.harness-session` symlink at the workspace root pointing at `<session_dir>`, so link `[tickets](.harness-session/tickets/)` (or the specific `TASK-XXX.json` files) with a relative markdown path. On approval dispatch a FRESH `orchestrator` with `<intent>execute-plan</intent>` and the same `<session_dir>` (never `SendMessage`); on "wants changes" dispatch a fresh one. CRM Builder's launcher sets `gate=none`.
 
 ## Opting in
 

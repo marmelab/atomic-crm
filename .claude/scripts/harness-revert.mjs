@@ -18,8 +18,8 @@
 // branch is exactly the merge commits whose subject is "merge(session): <short>".
 //
 // Usage:
-//   scripts/harness-revert.mjs <SESSION_SHORT_ID>            # revert + clean up
-//   scripts/harness-revert.mjs <SESSION_SHORT_ID> --dry-run  # print, change nothing
+//   .claude/scripts/harness-revert.mjs <SESSION_SHORT_ID>            # revert + clean up
+//   .claude/scripts/harness-revert.mjs <SESSION_SHORT_ID> --dry-run  # print, change nothing
 //
 import { spawnSync } from "node:child_process";
 import { existsSync, readdirSync, rmSync } from "node:fs";

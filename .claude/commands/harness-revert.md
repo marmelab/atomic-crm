@@ -19,7 +19,7 @@ Revert everything a harness session merged into your branch, then remove its tem
 
 3. **On confirmation, run the script** from the repo root (append `--hard` for the clean-history strategy):
    ```
-   node "$(git rev-parse --show-toplevel)/scripts/harness-revert.mjs" <short> [--hard]
+   node "$(git rev-parse --show-toplevel)/.claude/scripts/harness-revert.mjs" <short> [--hard]
    ```
    (Run it once with `--dry-run` appended first if you want to preview the exact git actions.) Relay the script's output. Default mode reverts this session's promotion merge commit(s) (safe even if other sessions landed on the same branch); `--hard` resets the base branch to the fork point (refuses if history diverged). Either way it then removes the session's worktrees, branches, `sessionbase.<short>` config, and `/tmp` dir.
 

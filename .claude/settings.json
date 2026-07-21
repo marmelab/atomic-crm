@@ -23,7 +23,19 @@
       "Bash(npm install *)",
       "Bash(npm i *)",
       "Bash(pnpm add *)",
-      "Bash(yarn add *)"
+      "Bash(yarn add *)",
+      "mcp__github__merge_pull_request",
+      "mcp__github__create_or_update_file",
+      "mcp__github__push_files",
+      "mcp__github__delete_file",
+      "mcp__github__create_repository",
+      "mcp__github__fork_repository",
+      "mcp__plugin_github_github__merge_pull_request",
+      "mcp__plugin_github_github__create_or_update_file",
+      "mcp__plugin_github_github__push_files",
+      "mcp__plugin_github_github__delete_file",
+      "mcp__plugin_github_github__create_repository",
+      "mcp__plugin_github_github__fork_repository"
     ]
   },
   "attribution": {
@@ -43,6 +55,22 @@
             "type": "command",
             "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/ensure-playwright-mcp.mjs",
             "timeout": 10
+          },
+          {
+            "type": "command",
+            "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/link-session-workspace.mjs",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "SessionEnd": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/cleanup-session.mjs",
+            "timeout": 30
           }
         ]
       }

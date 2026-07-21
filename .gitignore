@@ -42,6 +42,9 @@ public/r/
 !supabase/functions/.env
 .claude/settings.local.json
 
+# Harness scratch (promotion lock; worktrees + test-results also cleaned at SessionEnd)
+.promote.lock
+
 # Playwright
 node_modules/
 /test-results/
