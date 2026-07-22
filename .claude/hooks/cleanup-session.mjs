@@ -24,6 +24,7 @@ import { join } from "node:path";
 import { createHookContext } from "./lib/context.mjs";
 import { REPO } from "./lib/paths.mjs";
 import { removeWorktreesUnder } from "./lib/worktree.mjs";
+import { removeWorktreeFolders } from "./lib/workspace-folders.mjs";
 
 if (process.env.CHAT_SESSION_DIR) process.exit(0);
 
@@ -41,6 +42,13 @@ try {
   // session ends). Base removal is last: nothing may log after it (this hook's log
   // file lives inside it and logging would recreate it).
   removeWorktreesUnder(ctx.worktreeBase);
+  // Drop this session's worktree folders from the editor workspace (setup-worktree
+  // added them on a technical run). Path prefix match on the session's worktree
+  // base, so a concurrent session's folders stay intact.
+  removeWorktreeFolders(
+    ctx.repo,
+    (p) => p === ctx.worktreeBase || p.startsWith(ctx.worktreeBase + "/"),
+  );
   rmSync(join(REPO, "test-results"), { recursive: true, force: true });
   // This session's rendered board only (render-status.mjs). Per-session subdir,
   // so a concurrent session's board under .harness/<other-short> is left intact.

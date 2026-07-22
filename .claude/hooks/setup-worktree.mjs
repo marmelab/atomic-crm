@@ -32,6 +32,7 @@ import { parseDispatch } from "./lib/dispatch-parse.mjs";
 import { getBaseBranch, getWorktreePaths, git } from "./lib/git.mjs";
 import { REVIEW_ROLES, reviewFlag } from "./lib/reviews.mjs";
 import { getFirstTaskId } from "./lib/teams.mjs";
+import { addWorktreeFolder } from "./lib/workspace-folders.mjs";
 import {
   simpleBranch,
   simpleWorktreePath,
@@ -238,6 +239,22 @@ if (add.status !== 0) {
 }
 ctx.log(`CREATED branch=${branchName} path=${worktreePath}`);
 toProvision.push(worktreePath);
+
+// Surface this worktree in the editor (files + live Source Control) for a
+// technical run, so the developer can watch the code being modified. Done under
+// the session lock so a parallel wave's edits to the shared .code-workspace do
+// not race. No-op under a managed launcher (owns its own UI) or a non-technical
+// run (no progress log), matching the render-status board's gating.
+if (
+  !process.env.CHAT_SESSION_DIR &&
+  existsSync(join(ctx.sessionDir, "harness-progress.log"))
+) {
+  addWorktreeFolder(
+    ctx.repo,
+    worktreePath,
+    `🎫 ${taskId || "simple"} · ${ctx.sessionShort}`,
+  );
+}
 
 // Git-mutation region is done — release the lock before provisioning so a
 // parallel-wave waiter can serialise its own git ops while this hook copies
