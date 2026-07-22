@@ -106,6 +106,32 @@ describe("cleanup-session", () => {
     expect(worktreeList()).toContain(app);
   });
 
+  test("preserves state for resume when a ticket is not yet merged (in-flight)", () => {
+    const { base, run } = setup();
+    writeFileSync(
+      join(base, "TASK-001.json"),
+      JSON.stringify({ id: "TASK-001", status: "planned" }),
+    );
+    const r = run();
+    expect(r.status).toBe(0);
+    // Teardown SKIPPED: the same session id must resume from disk later.
+    expect(existsSync(base)).toBe(true);
+    expect(existsSync(join(base, "TASK-001.json"))).toBe(true);
+  });
+
+  test("preserves state when the session branch has unpromoted commits", () => {
+    const { base, run } = setup();
+    const sessWt = join(base, "_session");
+    writeFileSync(join(sessWt, "wave.txt"), "x\n");
+    const gw = (...a) =>
+      spawnSync("git", ["-C", sessWt, ...a], { encoding: "utf8" });
+    gw("add", ".");
+    gw("commit", "-qm", "wave work");
+    const r = run();
+    expect(r.status).toBe(0);
+    expect(existsSync(base)).toBe(true);
+  });
+
   test("is a no-op under a managed launcher (CHAT_SESSION_DIR set)", () => {
     const { base, promoteLock, run } = setup();
     const r = run({ CHAT_SESSION_DIR: "/tmp/managed-session-xyz" });

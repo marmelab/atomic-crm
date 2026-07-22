@@ -13,6 +13,11 @@
 // exclusion (same reasoning as harness-revert.mjs). It is gitignored, so it does
 // not show as untracked either way.
 //
+// Resume guard: if the session is still mid-harness at end (plan gate, mid-wave,
+// awaiting promotion, or a pending deploy migration), teardown is SKIPPED so the
+// same session id can resume from disk later (STATE RECOVERY). Only a finished /
+// idle session is torn down. See lib/session-state.mjs.
+//
 // Only the CURRENT session's paths are touched, never another session's (a
 // second VS Code window is its own session and may be running concurrently).
 // No-op under a managed launcher (CHAT_SESSION_DIR owns its own lifecycle).
@@ -24,6 +29,7 @@ import { join } from "node:path";
 import { createHookContext } from "./lib/context.mjs";
 import { REPO } from "./lib/paths.mjs";
 import { removeWorktreesUnder } from "./lib/worktree.mjs";
+import { detectInflight } from "./lib/session-state.mjs";
 import { removeWorktreeFolders } from "./lib/workspace-folders.mjs";
 
 if (process.env.CHAT_SESSION_DIR) process.exit(0);
@@ -35,6 +41,25 @@ try {
   process.exit(0);
 }
 const ctx = createHookContext(raw, "cleanup-session");
+
+// Resume safety: if THIS session is mid-harness (plan gate, mid-wave, awaiting
+// promotion, or a pending deploy migration), a clean SessionEnd must NOT destroy
+// its state - the same session id resumes later and STATE RECOVERY needs the
+// tickets and partial worktrees on disk. Preserve everything and bail. `null`
+// (undetermined) also preserves: never delete resumable work on a probe error.
+// Keyed on this session's own namespace, so a concurrent session is unaffected.
+try {
+  const { inflight, phase } = detectInflight(ctx);
+  if (inflight !== false) {
+    ctx.error(
+      `preserved for resume (phase=${phase ?? "undetermined"}); state kept for STATE RECOVERY`,
+    );
+    process.exit(0);
+  }
+} catch {
+  // Detection failed entirely: fail safe (preserve), do not risk deleting work.
+  process.exit(0);
+}
 
 try {
   // All worktrees under this session's base (_session, simple, leftover TASK-XXX)

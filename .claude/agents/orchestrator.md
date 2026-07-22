@@ -113,6 +113,7 @@ The previous process was interrupted (crash or usage limit). **This is a fresh p
 
 1. Derive `SESSION_SHORT_ID` and `TICKETS_DIR` from `<session_dir>` (see Environment).
 2. Re-evaluate the real state with read-only Bash inspection:
+   - `git -C $CLAUDE_PROJECT_DIR worktree prune` FIRST — a machine restart can wipe `/tmp` (where worktrees live) while the branches survive in `.git`, leaving stale worktree admin refs that would make `setup-worktree`'s `worktree add` fail. Pruning them is safe and idempotent; the branches (the real work) are untouched.
    - `ls ${TICKETS_DIR}/TASK-*.json 2>/dev/null` — were tickets ever created?
    - For each ticket, `Read` it and note its `status` (planned / in_progress / merged).
    - `git -C $CLAUDE_PROJECT_DIR log --oneline session-base/<SESSION_SHORT_ID>..session/<SESSION_SHORT_ID>` — what's merged on the session branch.
