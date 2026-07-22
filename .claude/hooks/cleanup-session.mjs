@@ -42,6 +42,12 @@ try {
   // file lives inside it and logging would recreate it).
   removeWorktreesUnder(ctx.worktreeBase);
   rmSync(join(REPO, "test-results"), { recursive: true, force: true });
+  // This session's rendered board only (render-status.mjs). Per-session subdir,
+  // so a concurrent session's board under .harness/<other-short> is left intact.
+  rmSync(join(REPO, ".harness", ctx.sessionShort), {
+    recursive: true,
+    force: true,
+  });
   rmSync(ctx.worktreeBase, { recursive: true, force: true });
 } catch (e) {
   ctx.error(`skipped: ${e?.message ?? e}`);

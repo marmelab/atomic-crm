@@ -235,6 +235,16 @@
             "timeout": 30
           }
         ]
+      },
+      {
+        "matcher": "developer|simple-developer|test-writer|quality-reviewer|merger|planner|orchestrator",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/render-status.mjs",
+            "timeout": 15
+          }
+        ]
       }
     ]
   },

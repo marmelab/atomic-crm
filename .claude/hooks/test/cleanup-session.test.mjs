@@ -86,6 +86,19 @@ describe("cleanup-session", () => {
     expect(existsSync(promoteLock)).toBe(true);
   });
 
+  test("removes only THIS session's rendered board, leaving other sessions'", () => {
+    const { app, run } = setup();
+    const mine = join(app, ".harness", SHORT);
+    const other = join(app, ".harness", "beef9999");
+    mkdirSync(mine, { recursive: true });
+    mkdirSync(other, { recursive: true });
+    writeFileSync(join(mine, "STATUS.md"), "# mine\n");
+    writeFileSync(join(other, "STATUS.md"), "# other\n");
+    run();
+    expect(existsSync(mine)).toBe(false);
+    expect(existsSync(other)).toBe(true);
+  });
+
   test("leaves the main repo worktree intact", () => {
     const { app, run, worktreeList } = setup();
     run();
