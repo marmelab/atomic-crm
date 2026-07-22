@@ -124,6 +124,43 @@ describe("render-status", () => {
     expect(s.last).toContain("TASK-001 merged");
   });
 
+  test("writes session.diff and a Changes section from the session branch", () => {
+    const { app, outDir, run } = setup();
+    // Turn the throwaway repo into a git repo with a session branch carrying one
+    // change vs its fork anchor (session-base), like the harness topology.
+    const g = (...a) =>
+      spawnSync("git", ["-C", app, ...a], { encoding: "utf8" });
+    g("init", "-q", "-b", "main");
+    g("config", "user.email", "t@t.t");
+    g("config", "user.name", "t");
+    writeFileSync(join(app, "Button.tsx"), "label = 'Add contact'\n");
+    g("add", ".");
+    g("commit", "-qm", "base");
+    g("branch", `session-base/${SHORT}`);
+    g("checkout", "-q", "-b", `session/${SHORT}`);
+    writeFileSync(join(app, "Button.tsx"), "label = 'New contact'\n");
+    g("add", ".");
+    g("commit", "-qm", "rename button");
+    g("checkout", "-q", "main");
+
+    run();
+    const patch = readFileSync(join(outDir, "session.diff"), "utf8");
+    expect(patch).toContain("Button.tsx");
+    expect(patch).toContain("+label = 'New contact'");
+    expect(patch).toContain("-label = 'Add contact'");
+    const md = readFileSync(join(outDir, "STATUS.md"), "utf8");
+    expect(md).toContain("## Changes");
+    expect(md).toContain("Button.tsx");
+  });
+
+  test("omits session.diff when there is no git session branch", () => {
+    const { outDir, run } = setup();
+    run();
+    expect(existsSync(join(outDir, "session.diff"))).toBe(false);
+    const md = readFileSync(join(outDir, "STATUS.md"), "utf8");
+    expect(md).toContain("no changes on the session branch yet");
+  });
+
   test("is inert when there is no technical progress log", () => {
     const { app, run } = setup({ withProgressLog: false });
     const r = run();

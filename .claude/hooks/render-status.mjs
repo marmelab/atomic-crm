@@ -27,6 +27,8 @@ import { join } from "node:path";
 import { createHookContext } from "./lib/context.mjs";
 import { REPO } from "./lib/paths.mjs";
 import { reviewsDir } from "./lib/reviews.mjs";
+import { getBaseBranch, git } from "./lib/git.mjs";
+import { sessionBaseBranch, sessionBranch } from "./lib/topology.mjs";
 
 if (process.env.CHAT_SESSION_DIR) process.exit(0);
 
@@ -96,6 +98,25 @@ function recentActivity(max = 25) {
 
 const cell = (s) => String(s ?? "").replace(/\|/g, "\\|");
 
+// The cumulative diff of the session's merged work vs its fork anchor: the code
+// the harness has actually changed. Written as a `.diff` file so the developer
+// can open it and SEE the change on any surface (the VS Code extension can't show
+// the /tmp worktree diffs; the desktop diff pane is undocumented for subagents).
+// Returns null when the session branch does not exist yet or has no diff.
+const verifyRef = (ref) =>
+  git(["rev-parse", "--verify", "--quiet", ref]).status === 0;
+
+function sessionDiff() {
+  const branch = sessionBranch(ctx);
+  if (!verifyRef(branch)) return null;
+  const anchor = sessionBaseBranch(ctx);
+  const baseRef = verifyRef(anchor) ? anchor : getBaseBranch();
+  const range = `${baseRef}...${branch}`;
+  const patch = git(["diff", range]).stdout;
+  if (!patch.trim()) return null;
+  return { range, stat: git(["diff", "--stat", range]).stdout.trim(), patch };
+}
+
 function build() {
   const tickets = readTickets();
   const worktrees = liveWorktrees();
@@ -103,6 +124,7 @@ function build() {
   const merged = tickets.filter((t) => t.status === "merged").length;
   const updated = new Date(statSync(progressLog).mtime).toISOString();
   const activity = recentActivity();
+  const diff = sessionDiff();
 
   // STATUS.md - the live board.
   const statusMd = [
@@ -125,6 +147,11 @@ function build() {
     worktrees.length
       ? worktrees.map((w) => `- \`${w}\``).join("\n")
       : "_none (nothing in flight)_",
+    "",
+    "## Changes",
+    diff
+      ? `Full patch in \`session.diff\` (same folder).\n\n\`\`\`\n${diff.stat}\n\`\`\``
+      : "_no changes on the session branch yet_",
     "",
     "## Recent activity",
     "```",
@@ -165,11 +192,11 @@ function build() {
     last: activity[activity.length - 1] || "",
   };
 
-  return { statusMd, ticketsMd, statusJson };
+  return { statusMd, ticketsMd, statusJson, diffPatch: diff?.patch };
 }
 
 try {
-  const { statusMd, ticketsMd, statusJson } = build();
+  const { statusMd, ticketsMd, statusJson, diffPatch } = build();
   const outDir = join(REPO, ".harness", ctx.sessionShort);
   mkdirSync(outDir, { recursive: true });
   writeFileSync(join(outDir, "STATUS.md"), statusMd);
@@ -178,6 +205,7 @@ try {
     join(outDir, "status.json"),
     JSON.stringify(statusJson, null, 2),
   );
+  if (diffPatch) writeFileSync(join(outDir, "session.diff"), diffPatch);
   ctx.log(`rendered board -> ${outDir}`);
 } catch (e) {
   ctx.log(`skipped: ${e?.message ?? e}`);
