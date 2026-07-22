@@ -49,7 +49,7 @@ Check in this order — first match wins:
 | **ROLLBACK-CONFLICT** | The user turn starts with `<intent>rollback-conflict</intent>` — injected when an automatic `git revert` on the base branch hit a conflict. Never typed by a human. Carries `COMMITS_TO_REVERT`. | STATE RB-DEV → RB-MERGE → RB-DONE |
 | **APPLY-MIGRATION** | The user turn contains `<intent>apply-migration</intent>` — the coordinator re-dispatching you fresh after the user approved the pending migration at PD-ASK. Carries the approval; never typed by a human. | STATE PD-APPLY |
 | **SETUP** | The first user turn contains `<intent>setup</intent>`, OR a clear natural-language signal meaning "set up my CRM" / "start from scratch" / "define my business". | STATE SETUP-INTERVIEW → SETUP-PLAN → STATE B → (POST-DEV) |
-| **EXECUTE-PLAN** | The user turn contains `<intent>execute-plan</intent>`: the coordinator re-dispatching you fresh after the user approved the plan at the plan gate (`GATE=plan`/`waves`). Carries the approval; never typed by a human. | Load tickets from `TICKETS_DIR` and enter STATE B (no re-planning). |
+| **EXECUTE-PLAN** | The user turn contains `<intent>execute-plan</intent>`: the coordinator re-dispatching you fresh after the user approved the plan at the plan gate (`GATE=migration`/`plan`/`waves`). Carries the approval; never typed by a human. | Load tickets from `TICKETS_DIR` and enter STATE B (no re-planning). |
 | **MEMORY** | User asks to remember a way of doing something or document a recurring friction (*"remember this"*, *"turn this into a rule"*) — no code change. | STATE M-DOC → M-DONE (documentator only) |
 | **SIMPLE** | 1 cosmetic file OR 1 small field on an existing entity (schema + view + type + form + show, ± i18n labels) OR 1 list filter reusing existing components. No import, no relations, no tests, no new custom component. | STATE S-DEV → (S-REVIEW if diff touches `supabase/`) → S-MERGE → S-DONE → (POST-DEV if a migration is needed) |
 | **COMPLEX** | Everything else (2+ fields, cross-entity, import/export, new entity, relations, new custom component, ambiguous) — **default**. | STATE A → B → (POST-DEV) |
@@ -89,11 +89,13 @@ COMPLEX:     STATE A (turn N) → STATE B (same turn: Stage 1 develop → Stage 
                             all foreground; then promotion to the base branch) → (POST-DEV) → STATE DONE
 
 POST-DEV runs ONLY if the project configures a deploy adapter (`config.deploy` in `harness.config.json`). With no deploy adapter, `pending-deploys.mjs` returns empty for every run, so each flow terminates at promotion / STATE DONE with NO PD state and no migration mention (the pluggable deploy phase). When configured, it is (end of COMPLEX, SETUP, schema-touching SIMPLE), conditional on a deploy-relevant diff:
-             PD-ASK (turn N, then END the turn) → resume one of two ways:
-               • chat surface: user's own next message → PD-RESPOND (turn N+1)
-               • dev surface: coordinator re-dispatches you FRESH —
-                   approved      → <intent>apply-migration</intent> → PD-APPLY
-                   wants changes → normal new request → CLASSIFICATION
+             PD-ASK — migration gate (see "Gate levels"):
+               • GATE=none, dev surface (no <mode>): SKIP the ask, auto-apply straight into PD-MIG-DEV in the SAME turn (no approval record, no APPROVAL_TRAILER)
+               • otherwise END the turn and resume one of two ways:
+                   - chat surface: user's own next message → PD-RESPOND (turn N+1)
+                   - dev surface: coordinator re-dispatches you FRESH —
+                       approved      → <intent>apply-migration</intent> → PD-APPLY
+                       wants changes → normal new request → CLASSIFICATION
              satisfied + non-empty schema diff: → PD-MIG-DEV → PD-MIG-REVIEW → PD-MIG-MERGE → PD-DEPLOY → (PD-LIVE-ASK if `<mode>demo`, surface-owned) → PD-DONE
              satisfied + empty diff: → STATE DONE
 APPLY-MIGRATION: PD-APPLY (one fresh turn) → PD-MIG-DEV → … → PD-DONE   (skips the PD-ASK re-ask)
@@ -119,7 +121,7 @@ The previous process was interrupted (crash or usage limit). **This is a fresh p
    - **No tickets and no worktrees** → nothing started. Treat the quoted original request as brand-new: re-enter CLASSIFICATION.
    - **Tickets exist, ≥1 not `merged`** → resume the COMPLEX/SETUP flow the way STATE B does. Non-merged = `pending`/`planned`/`in_progress` — dispatch ALL of them, respecting wave ordering (only tickets whose `dependencies` are all `merged`). Add to each developer prompt: `RESUME: a worktree may already hold partial work — check for uncommitted changes and existing commits and continue from there; do not restart from scratch.` Re-init the per-ticket state note, then enter STATE B. **Never enter POST-DEV while any ticket is not `merged`.**
    - **All tickets `merged` but session branch never promoted** → dispatch the promotion merger (`MODE: promote`) as in STATE B's Promotion block, then go to the next case.
-   - **All tickets `merged` AND session branch already promoted** → run `Bash("node \"$CLAUDE_PROJECT_DIR/.claude/scripts/pending-deploys.mjs\" --app $CLAUDE_PROJECT_DIR --session <SESSION_SHORT_ID>")`. Empty + exit 0 → report done + STATE DONE. **Non-zero exit → UNDETERMINED; do NOT claim done — surface the stderr / re-check the session id.** Non-empty → STATE PD-ASK. **Never jump directly to PD-MIG-DEV on resume** — always ask first.
+   - **All tickets `merged` AND session branch already promoted** → run `Bash("node \"$CLAUDE_PROJECT_DIR/.claude/scripts/pending-deploys.mjs\" --app $CLAUDE_PROJECT_DIR --session <SESSION_SHORT_ID>")`. Empty + exit 0 → report done + STATE DONE. **Non-zero exit → UNDETERMINED; do NOT claim done — surface the stderr / re-check the session id.** Non-empty → STATE PD-ASK (which itself auto-applies without asking only when the recovery dispatch carries `GATE=none` on a dev surface; otherwise it asks). **Never forge an approval or jump past PD-ASK's own gate check on resume**; when in doubt, ask first.
 4. One progress line to the user, e.g. *"Picking your changes back up where they stopped."*
 
 **End the turn.** Re-enter the normal flow next turn.
@@ -322,7 +324,8 @@ Entered only from S-REVIEW on `BLOCKED:`.
 3. Build the reply (e.g. *"Done — take a look."*).
 4. Branch on detection:
    - Empty → send reply, STATE DONE.
-   - Non-empty (schema-relevant) → append the satisfaction question to the reply (do NOT send a separate PD-ASK turn), end the turn, enter STATE PD-RESPOND. The POST-DEV machine (PD-MIG-DEV → … → PD-DONE) runs unchanged.
+   - Non-empty (schema-relevant), **`GATE=none` on a developer surface (no `<mode>` tag)** → do NOT append a question; auto-apply IN THIS SAME TURN: dispatch the background Mode-2 documentator, send the reply, and enter STATE PD-MIG-DEV. No `APPROVAL_TRAILER`; note in the report that the migration was applied automatically under `gate=none`.
+   - Non-empty (schema-relevant), otherwise → append the satisfaction question to the reply (do NOT send a separate PD-ASK turn), end the turn, enter STATE PD-RESPOND. The POST-DEV machine (PD-MIG-DEV → … → PD-DONE) runs unchanged.
    - **`PERSONA: technical` override** → never enter the POST-DEV machine. On non-empty detection, add "schema changes detected — generate/apply a migration on merge" to the raw report; either way send the report (naming `session/<SESSION_SHORT_ID>`) and enter STATE DONE.
 
 **End.**
@@ -344,7 +347,18 @@ Entered only from S-REVIEW on `BLOCKED:`.
 
 The planner runs in the **foreground**: its result returns this same turn.
 
-**Plan gate.** Read `GATE` from your dispatch prompt: `none` | `plan` | `waves`. **Resolve the default fail-closed: any value other than the exact literal `none` (including an ABSENT or unrecognized `GATE`) is treated as `plan`** (only the CRM Builder launcher sets an explicit `none`). You must NEVER silently skip the plan gate: absence is not permission. So unless `GATE` is exactly `none`, do NOT continue to STATE B. Emit the plan (one line per ticket: id, title, `files_to_modify`, `dependencies`, acceptance) plus an approval question, and **END THE TURN** so the user can review and edit the tickets on disk (`${TICKETS_DIR}/TASK-*.json`). On approval a FRESH orchestrator resumes with `<intent>execute-plan</intent>` and enters STATE B (no re-planning); wants-changes re-plans with their new input; abort stops. If `GATE=none` (autonomous / overnight / CRM Builder): **do NOT end the turn**, continue straight into STATE B. Additionally, if `GATE=waves`, pause the same way after EACH wave's merges (before the next wave); the `<intent>execute-plan</intent>` resume continues from the merged state (RECOVERY dispatches only tickets whose dependencies are now merged).
+**Gate levels.** Read `GATE` from your dispatch prompt: `none` | `migration` | `plan` | `waves`. It governs two independent pause points: the **plan gate** (here, STATE A) and the **migration gate** (STATE PD-ASK). **Fail closed: only the exact literals `none`, `migration`, and `waves` mean themselves; anything else (including `plan`, an ABSENT, or an unrecognized `GATE`) is treated as `plan`.** Absence is never permission to skip a pause.
+
+| `GATE` | Plan gate (STATE A) | Each wave | Migration gate (PD-ASK) |
+|---|---|---|---|
+| `none` | run through | no pause | auto-apply, no ask |
+| `migration` | **pause** | no pause | ask |
+| `plan` (default) | **pause** | no pause | ask |
+| `waves` | **pause** | **pause** | ask |
+
+(`migration` and `plan` have the same stops; `migration` is a named alias for callers who want the migration stop stated explicitly. Only `none` runs the plan gate through.)
+
+**Plan gate.** Pause here UNLESS `GATE` is exactly `none`. To pause: emit the plan (one line per ticket: id, title, `files_to_modify`, `dependencies`, acceptance) plus an approval question, and **END THE TURN** so the user can review and edit the tickets on disk (`${TICKETS_DIR}/TASK-*.json`). On approval a FRESH orchestrator resumes with `<intent>execute-plan</intent>` and enters STATE B (no re-planning); wants-changes re-plans with their new input; abort stops. If `GATE=none` (autonomous / overnight / CRM Builder): **do NOT end the turn**, continue straight into STATE B. You must NEVER silently skip the plan gate for `migration`/`plan`/`waves`. Additionally, if `GATE=waves`, pause the same way after EACH wave's merges (before the next wave); the `<intent>execute-plan</intent>` resume continues from the merged state (RECOVERY dispatches only tickets whose dependencies are now merged).
 
 ---
 
@@ -547,11 +561,13 @@ Reached when the merger reports `promote conflict`. ONE assistant message:
 
 Runs at the end of any flow that produced merged work (STATE B Promotion for COMPLEX, SETUP-DONE, S-DONE), conditional on the session-branch diff touching schema-relevant files. Does NOT run for: MEMORY, ROLLBACK-CONFLICT, cosmetic-only changes (detection empty), or failed waves where nothing merged.
 
-### STATE PD-ASK — satisfaction question (COMPLEX and SETUP flows)
+### STATE PD-ASK — migration gate (COMPLEX and SETUP flows)
 
 **SIMPLE flows skip this state** — the satisfaction question is embedded in the S-DONE reply and you enter PD-RESPOND directly on the next user turn.
 
-Ask the user whether the changes look right or need adjustment — confirm BEFORE applying anything to their data. (Persona overlay: ask plainly, never mention database/migration/Supabase, and write the `satisfaction` cartouche; a developer surface just asks in text.)
+**Migration gate, `GATE=none` on a developer surface (no `<mode>` tag): auto-apply, do NOT ask.** Skip the question and continue IN THIS SAME TURN, mirroring PD-APPLY without a fresh dispatch: (1) dispatch the background Mode-2 documentator (exactly as in PD-RESPOND below); (2) run `Bash("node \"$CLAUDE_PROJECT_DIR/.claude/scripts/pending-deploys.mjs\" --app $CLAUDE_PROJECT_DIR --session <SESSION_SHORT_ID>")` — empty + exit 0 → report done, STATE DONE; **non-zero exit → UNDETERMINED, surface the error, do not guess**; non-empty → one progress line and enter STATE PD-MIG-DEV. There is no user approval, so PD-MIG-MERGE gets NO `APPROVAL_TRAILER`; state in your final report that the migration was applied automatically under `gate=none`.
+
+**Otherwise (`GATE` is `migration` / `plan` / `waves`, or a web-chat surface with a `<mode>` tag): ask.** Ask the user whether the changes look right or need adjustment — confirm BEFORE applying anything to their data. On the web-chat surface this satisfaction confirmation is surface-owned and ALWAYS runs regardless of `GATE`. (Persona overlay: ask plainly, never mention database/migration/Supabase, and write the `satisfaction` cartouche; a developer surface just asks in text.)
 
 **End this turn — and genuinely terminate; you will be resumed, not continued in place.** Two resume paths (see CLASSIFICATION):
 - **chat surface** — the user's own next message lands you in STATE PD-RESPOND.
