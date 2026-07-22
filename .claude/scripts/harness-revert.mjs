@@ -28,13 +28,16 @@ import { join } from "node:path";
 const argv = process.argv.slice(2);
 const DRY_RUN = argv.includes("--dry-run") || argv.includes("-n");
 const HARD = argv.includes("--hard");
+const FORCE = argv.includes("--force");
 const SHORT = argv.find((a) => !a.startsWith("-"));
 
 const log = (msg) => process.stdout.write(`${msg}\n`);
 const err = (msg) => process.stderr.write(`${msg}\n`);
 
 if (!SHORT) {
-  err("usage: harness-revert.mjs <SESSION_SHORT_ID> [--hard] [--dry-run]");
+  err(
+    "usage: harness-revert.mjs <SESSION_SHORT_ID> [--hard] [--force] [--dry-run]",
+  );
   process.exit(2);
 }
 
@@ -123,6 +126,44 @@ if (HARD) {
       `!! ${anchor} (${forkSha.slice(0, 12)}) is not an ancestor of HEAD — history diverged, refusing to hard-reset. Use the default (revert) mode.`,
     );
     process.exit(1);
+  }
+  // Safety: `reset --hard` drops EVERYTHING in forkSha..HEAD, not just the
+  // session. The session's own footprint here is its promotion merge(s) plus the
+  // commits reachable from session/<short>; anything else is UNRELATED work (e.g.
+  // commits you made on the base branch after the session forked) that --hard
+  // would silently destroy. Refuse when such collateral exists, unless --force.
+  const sessionRef = `session/${SHORT}`;
+  const hasSessionBranch =
+    git(["show-ref", "--verify", "--quiet", `refs/heads/${sessionRef}`])
+      .code === 0;
+  const collateral = git(["rev-list", `${forkSha}..HEAD`])
+    .out.split("\n")
+    .filter(Boolean)
+    .filter((sha) => {
+      if (
+        git(["show", "-s", "--format=%s", sha]).out ===
+        `merge(session): ${SHORT}`
+      )
+        return false; // this session's promotion merge
+      if (
+        hasSessionBranch &&
+        git(["merge-base", "--is-ancestor", sha, sessionRef]).code === 0
+      )
+        return false; // brought in by the session
+      return true; // unrelated commit
+    });
+  if (collateral.length && !FORCE) {
+    err(
+      `!! reset --hard to ${anchor} would ALSO drop ${collateral.length} commit(s) NOT part of session ${SHORT}:`,
+    );
+    for (const sha of collateral.slice(0, 20))
+      err(`     ${git(["show", "-s", "--format=%h %s", sha]).out}`);
+    if (collateral.length > 20)
+      err(`     ... and ${collateral.length - 20} more`);
+    err(
+      `   These would be permanently removed from ${CURRENT_BRANCH}. Use the default (revert) mode (drop --hard) - it never touches unrelated commits - or re-run with --force if you really mean to reset to the fork point.`,
+    );
+    if (!DRY_RUN) process.exit(1);
   }
   stashDirty();
   log(
