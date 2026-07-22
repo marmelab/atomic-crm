@@ -98,23 +98,63 @@ function recentActivity(max = 25) {
 
 const cell = (s) => String(s ?? "").replace(/\|/g, "\\|");
 
-// The cumulative diff of the session's merged work vs its fork anchor: the code
-// the harness has actually changed. Written as a `.diff` file so the developer
-// can open it and SEE the change on any surface (the VS Code extension can't show
-// the /tmp worktree diffs; the desktop diff pane is undocumented for subagents).
-// Returns null when the session branch does not exist yet or has no diff.
+// The cumulative diff of everything the session has changed so far: work already
+// merged into `session/<short>` PLUS in-flight work still on live dev branches
+// (`<short>/TASK-XXX`, `<short>/simple`) not yet merged. Written as a `.diff` file
+// so the developer can open it and SEE the change on any surface (the VS Code
+// extension does not show the /tmp worktree diffs). Updated on every agent STOP
+// (not continuously while an agent works), so a developer's work appears once THAT
+// developer stops - before the merge, not only after it. Null when nothing has
+// changed vs the fork anchor yet.
 const verifyRef = (ref) =>
   git(["rev-parse", "--verify", "--quiet", ref]).status === 0;
 
-function sessionDiff() {
-  const branch = sessionBranch(ctx);
-  if (!verifyRef(branch)) return null;
-  const anchor = sessionBaseBranch(ctx);
-  const baseRef = verifyRef(anchor) ? anchor : getBaseBranch();
-  const range = `${baseRef}...${branch}`;
+function diffSection(label, range) {
   const patch = git(["diff", range]).stdout;
   if (!patch.trim()) return null;
-  return { range, stat: git(["diff", "--stat", range]).stdout.trim(), patch };
+  return {
+    label,
+    range,
+    patch,
+    stat: git(["diff", "--stat", range]).stdout.trim(),
+  };
+}
+
+function sessionDiff() {
+  const anchor = sessionBaseBranch(ctx);
+  const baseRef = verifyRef(anchor) ? anchor : getBaseBranch();
+  const sessRef = sessionBranch(ctx);
+  const sections = [];
+
+  // Merged work: fork anchor -> session branch.
+  if (verifyRef(sessRef)) {
+    const s = diffSection(`merged into ${sessRef}`, `${baseRef}...${sessRef}`);
+    if (s) sections.push(s);
+  }
+
+  // In-flight work: each <short>/* dev branch with commits not yet on the session
+  // branch (diffed against it, so the already-merged part is not counted twice).
+  const inflightBase = verifyRef(sessRef) ? sessRef : baseRef;
+  const devBranches = git([
+    "for-each-ref",
+    "--format=%(refname:short)",
+    `refs/heads/${ctx.sessionShort}/`,
+  ])
+    .stdout.split("\n")
+    .map((b) => b.trim())
+    .filter(Boolean);
+  for (const br of devBranches) {
+    const s = diffSection(`in flight: ${br}`, `${inflightBase}...${br}`);
+    if (s) sections.push(s);
+  }
+
+  if (!sections.length) return null;
+  return {
+    patch: sections
+      .map((s) => `### ${s.label} (${s.range})\n\n${s.patch}`)
+      .join("\n\n"),
+    stat: sections.map((s) => `${s.label}:\n${s.stat}`).join("\n\n"),
+  };
 }
 
 function build() {
@@ -151,7 +191,7 @@ function build() {
     "## Changes",
     diff
       ? `Full patch in \`session.diff\` (same folder).\n\n\`\`\`\n${diff.stat}\n\`\`\``
-      : "_no changes on the session branch yet_",
+      : "_no changes yet_",
     "",
     "## Recent activity",
     "```",

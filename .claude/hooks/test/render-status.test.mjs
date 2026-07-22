@@ -153,12 +153,37 @@ describe("render-status", () => {
     expect(md).toContain("Button.tsx");
   });
 
+  test("includes in-flight dev-branch work before it is merged", () => {
+    const { app, outDir, run } = setup();
+    const g = (...a) =>
+      spawnSync("git", ["-C", app, ...a], { encoding: "utf8" });
+    g("init", "-q", "-b", "main");
+    g("config", "user.email", "t@t.t");
+    g("config", "user.name", "t");
+    writeFileSync(join(app, "List.tsx"), "no filter\n");
+    g("add", ".");
+    g("commit", "-qm", "base");
+    g("branch", `session-base/${SHORT}`);
+    g("branch", `session/${SHORT}`); // session branch at fork, nothing merged yet
+    // developer's in-flight branch, committed but NOT merged into the session
+    g("checkout", "-q", "-b", `${SHORT}/TASK-001`);
+    writeFileSync(join(app, "List.tsx"), "without-email filter\n");
+    g("add", ".");
+    g("commit", "-qm", "wip");
+    g("checkout", "-q", "main");
+
+    run();
+    const patch = readFileSync(join(outDir, "session.diff"), "utf8");
+    expect(patch).toContain(`in flight: ${SHORT}/TASK-001`);
+    expect(patch).toContain("+without-email filter");
+  });
+
   test("omits session.diff when there is no git session branch", () => {
     const { outDir, run } = setup();
     run();
     expect(existsSync(join(outDir, "session.diff"))).toBe(false);
     const md = readFileSync(join(outDir, "STATUS.md"), "utf8");
-    expect(md).toContain("no changes on the session branch yet");
+    expect(md).toContain("no changes yet");
   });
 
   test("is inert when there is no technical progress log", () => {
