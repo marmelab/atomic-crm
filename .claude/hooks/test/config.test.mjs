@@ -17,6 +17,7 @@ import {
   debounceRoles,
   roleModel,
   worktreeProvision,
+  prePrSteps,
 } from "../lib/config.mjs";
 
 const REPO_ROOT = join(
@@ -117,6 +118,32 @@ describe("config loader", () => {
         makeRepo({ validation: { steps: [] }, roles: {}, deploy: {} }),
       ),
     ).toThrow(/deploy\.relevantGlobs/);
+  });
+
+  test("prePrSteps takes typecheck/lint but excludes changedScoped steps", () => {
+    const cfg = loadConfig(
+      makeRepo({
+        validation: {
+          steps: [
+            {
+              id: "typecheck",
+              kind: "typecheck",
+              command: "npm run typecheck",
+            },
+            {
+              id: "lint",
+              kind: "lint",
+              command: "npx eslint",
+              changedScoped: true,
+            },
+          ],
+        },
+        roles: {},
+      }),
+    );
+    // typecheck (whole-repo-safe) is on the human push path; the diff-scoped lint
+    // step is not — it needs a per-worktree base the human path lacks.
+    expect(prePrSteps(cfg).map((s) => s.id)).toEqual(["typecheck"]);
   });
 
   test("the committed harness.config.json is valid", () => {

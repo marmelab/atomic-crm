@@ -157,6 +157,25 @@ describe("bash-guard hook", () => {
       expect(isBlocked(r)).toBe(false);
     });
 
+    test("a lint step in the chain blocks manual lint (no extraForbidden)", () => {
+      const withLintStep = {
+        validation: {
+          steps: [
+            {
+              id: "lint",
+              kind: "lint",
+              command: "npx eslint",
+              changedScoped: true,
+            },
+          ],
+          extraForbidden: [],
+        },
+        roles: { developer: { model: "sonnet" } },
+      };
+      const r = runHookWithConfig("developer", "npm run lint", withLintStep);
+      expect(isBlocked(r)).toBe(true);
+    });
+
     test("extraForbidden build is blocked when listed", () => {
       const withBuild = {
         validation: { steps: [], extraForbidden: ["build"] },

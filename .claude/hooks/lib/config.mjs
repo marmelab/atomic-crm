@@ -141,5 +141,10 @@ export const launcher = (cfg) => cfg.launcher ?? {};
 export const formatStep = (cfg) =>
   validationSteps(cfg).find((s) => s.kind === "format") ?? null;
 // Steps a pre-PR / pre-push gate runs on the human path (fast checks only).
+// `changedScoped` steps are EXCLUDED: they need a per-worktree diff base (the
+// session branch) that the human push path lacks, and running their bare command
+// whole-repo would lint/test far more than the change at hand.
 export const prePrSteps = (cfg) =>
-  validationSteps(cfg).filter((s) => s.kind === "typecheck" || s.kind === "lint");
+  validationSteps(cfg).filter(
+    (s) => (s.kind === "typecheck" || s.kind === "lint") && !s.changedScoped,
+  );

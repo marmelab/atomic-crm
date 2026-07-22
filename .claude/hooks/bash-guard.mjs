@@ -131,7 +131,7 @@ const CATEGORY_RULES = {
   ],
   lint: [
     runsLint,
-    "lint: prettier is auto-applied by the validation hooks; eslint runs via the project's editor config. Skip it.",
+    "lint: validate-on-stop.mjs runs eslint on your changed files automatically after you stop; read its stderr output instead.",
   ],
   build: [
     runsBuild,
@@ -141,13 +141,14 @@ const CATEGORY_RULES = {
 
 // Which categories to guard comes from the SAME config the validation chain runs
 // (kills the triple-encoding: runner, guard, and doc no longer drift). Each
-// validation step's kind maps to a category, plus validation.extraForbidden
-// (lint/build — never run during tickets, not part of the chain). Fail-open to
-// ALL categories if the config can't be read, so a malformed config never
-// weakens the guard.
+// validation step's kind maps to a category (lint included — it is now a chain
+// step), plus validation.extraForbidden (build — never run during tickets, not
+// part of the chain). Fail-open to ALL categories if the config can't be read,
+// so a malformed config never weakens the guard.
 const KIND_TO_CATEGORY = {
   format: "prettier",
   typecheck: "typecheck",
+  lint: "lint",
   unit: "unit",
   e2e: "e2e",
 };

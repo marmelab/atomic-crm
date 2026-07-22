@@ -10,12 +10,13 @@ guard, so they can never drift:
 
 - `validate-on-stop.mjs` (SubagentStop) runs the whole chain after every
   developer / test-writer stop: the format step (prettier auto-fix + commit),
-  typecheck, the unit steps, then e2e once in the repo (full mode only). A failed
-  step rejects the stop; the agent's internal loop fixes it and only a green stop
-  returns control to the orchestrator.
+  typecheck, lint (eslint, scoped to the stop's changed files), the unit steps,
+  then e2e once in the repo (full mode only). A failed step rejects the stop; the
+  agent's internal loop fixes it and only a green stop returns control to the
+  orchestrator.
 - `bash-guard.mjs` (PreToolUse Bash) blocks `developer` / `quality-reviewer` from
-  running those same commands manually, plus `validation.extraForbidden` (lint,
-  build). The forbidden set is DERIVED from `validation.steps`, not hardcoded here.
+  running those same commands manually, plus `validation.extraForbidden` (build).
+  The forbidden set is DERIVED from `validation.steps`, not hardcoded here.
 
 ## Why blocked (developer / quality-reviewer)
 

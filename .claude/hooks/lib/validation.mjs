@@ -87,8 +87,37 @@ function runVitest(wt, configFile, projects = [], changedSince = "") {
   return { status: r.status, output, timedOut: r.status === 124 };
 }
 
+// Files this worktree changed that lint should check: the config `extensions`,
+// restricted to paths that still exist on disk. A deleted / renamed-away file
+// must not be handed to eslint (it would error "No files matching"). Pure —
+// unit-tested independently of the shell-out.
+export function scopedLintFiles(changedFiles, cwd, extensions) {
+  return changedFiles.filter(
+    (f) => extensions.some((e) => f.endsWith(e)) && existsSync(join(cwd, f)),
+  );
+}
+
+// Run eslint on ONLY this worktree's diff since `base` (the session branch it
+// forked from), mirroring the vitest `--changed` scoping: a ticket is judged on
+// its own changed files, never the whole repo — which also sidesteps pre-existing
+// lint noise in unrelated / generated files. Zero matching files -> nothing to
+// lint (ok). `base` empty -> repo base branch, matching getWorktreesToValidate.
+// `command` is the eslint invocation prefix (e.g. `npx eslint`); files are
+// appended here, so the config command must NOT carry its own file glob.
+function runEslintScoped(cwd, base, command, extensions, tail) {
+  const { changedFiles } = getWorktreeChangeSummary(cwd, base || getBaseBranch());
+  const files = scopedLintFiles(changedFiles, cwd, extensions);
+  if (files.length === 0) return { ok: true };
+  const out = join(tmpdir(), `eslint-${process.pid}.out`);
+  const args = files.map((f) => `'${f.replace(/'/g, `'\\''`)}'`).join(" ");
+  const r = bash(`${command} ${args} > "${out}" 2>&1`, { cwd });
+  const output = tailFile(out, tail);
+  tryUnlink(out);
+  return r.status === 0 ? { ok: true } : { ok: false, output };
+}
+
 // Per-kind tail length for failure output (mechanical, not a project fact).
-const TAIL_LINES = { format: 15, typecheck: 20, unit: 40, e2e: 50 };
+const TAIL_LINES = { format: 15, typecheck: 20, lint: 30, unit: 40, e2e: 50 };
 
 // A step is skipped when its `condition` is not met. `pathExists` gates on a
 // path under the repo (e.g. the supabase/functions unit-fn gate); `modeNot`
@@ -117,6 +146,11 @@ function runStep(ctx, step, { cwd, base }) {
     const r = runVitest(cwd, step.config, step.projects, step.changedScoped ? base : "");
     if (r.timedOut) return { ok: false, output: "TIMEOUT (>180s) -- vitest did not exit. Tests may be hanging." };
     return r.status === 0 ? { ok: true } : { ok: false, output: r.output };
+  }
+
+  if (step.kind === "lint" && step.changedScoped) {
+    const exts = step.extensions ?? [".ts", ".tsx", ".mjs"];
+    return runEslintScoped(cwd, base, step.command, exts, tail);
   }
 
   const r = bash(`${step.command} 2>&1`, { cwd });

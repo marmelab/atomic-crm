@@ -21,6 +21,13 @@
         "command": "npm run typecheck"
       },
       {
+        "id": "lint",
+        "kind": "lint",
+        "command": "npx eslint",
+        "changedScoped": true,
+        "extensions": [".ts", ".tsx", ".mjs"]
+      },
+      {
         "id": "unit-app",
         "kind": "unit",
         "runner": "vitest",
@@ -45,7 +52,7 @@
         "condition": { "modeNot": "demo" }
       }
     ],
-    "extraForbidden": ["lint", "build"]
+    "extraForbidden": ["build"]
   },
   "worktree": {
     "provision": "npm-link"
