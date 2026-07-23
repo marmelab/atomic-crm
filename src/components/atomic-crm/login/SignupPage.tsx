@@ -13,16 +13,11 @@ import type { SignUpData } from "../types";
 import { LoginSkeleton } from "./LoginSkeleton";
 import { Notification } from "@/components/admin/notification";
 import { ConfirmationRequired } from "./ConfirmationRequired";
-import { SSOAuthButton } from "./SSOAuthButton";
 
 export const SignupPage = () => {
   const queryClient = useQueryClient();
   const dataProvider = useDataProvider<CrmDataProvider>();
-  const {
-    darkModeLogo: logo,
-    title,
-    googleWorkplaceDomain,
-  } = useConfigurationContext();
+  const { darkModeLogo: logo, title } = useConfigurationContext();
   const navigate = useNavigate();
   const translate = useTranslate();
   const { data: isInitialized, isPending } = useQuery({
@@ -181,16 +176,6 @@ export const SignupPage = () => {
                   })
                 )}
               </Button>
-              {googleWorkplaceDomain ? (
-                <SSOAuthButton
-                  className="w-full"
-                  domain={googleWorkplaceDomain}
-                >
-                  {translate("crm.auth.sign_in_google_workspace", {
-                    _: "Sign in with Google Workplace",
-                  })}
-                </SSOAuthButton>
-              ) : null}
             </div>
           </form>
         </div>

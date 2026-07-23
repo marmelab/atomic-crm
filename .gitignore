@@ -36,6 +36,13 @@ dist/
 .env
 *storybook.log
 
+# local libSQL / SQLite dev databases
+*.db
+*.db-journal
+*.db-wal
+*.db-shm
+db/*.db*
+
 # Shadcn Registry
 public/r/
 

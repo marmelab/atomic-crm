@@ -19,7 +19,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
-import { Check, Copy, LogOut, Moon, Smartphone, Sun } from "lucide-react";
+import { LogOut, Moon, Smartphone, Sun } from "lucide-react";
 import {
   Form,
   Translate,
@@ -34,12 +34,6 @@ import {
   useTranslate,
 } from "ra-core";
 import { useCallback, useEffect, useRef, useState } from "react";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
 
 import { MobileContent } from "../layout/MobileContent";
 import MobileHeader from "../layout/MobileHeader";
@@ -109,8 +103,6 @@ export const SettingsPageMobile = () => {
           <div className="space-y-6">
             <ProfileSection />
             <PreferencesSection />
-            <InboundEmailSection />
-            <McpServerSection />
             <AboutSection />
           </div>
 
@@ -453,49 +445,6 @@ const ThemeRow = () => {
   );
 };
 
-const InboundEmailSection = () => {
-  const translate = useTranslate();
-
-  if (!import.meta.env.VITE_INBOUND_EMAIL) return null;
-
-  return (
-    <div>
-      <SectionLabel>{translate("crm.profile.inbound.title")}</SectionLabel>
-      <p className="text-sm text-muted-foreground mb-2 px-1">
-        {translate("crm.profile.inbound.description", {
-          _: "You can start sending emails to your server's inbound email address, e.g. by adding it to the Cc: field. Atomic CRM will process the emails and add notes to the corresponding contacts.",
-          field: "Cc:",
-        })}
-      </p>
-      <ItemGroup className="rounded-lg border overflow-hidden">
-        <CopyPasteRow value={import.meta.env.VITE_INBOUND_EMAIL} />
-      </ItemGroup>
-    </div>
-  );
-};
-
-const McpServerSection = () => {
-  const translate = useTranslate();
-
-  return (
-    <div>
-      <SectionLabel>
-        {translate("crm.profile.mcp.title", { _: "MCP Server" })}
-      </SectionLabel>
-      <p className="text-sm text-muted-foreground mb-2 px-1">
-        {translate("crm.profile.mcp.description", {
-          _: "Use this URL to connect your AI assistant to your CRM data via the Model Context Protocol (MCP).",
-        })}
-      </p>
-      <ItemGroup className="rounded-lg border overflow-hidden">
-        <CopyPasteRow
-          value={`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/mcp`}
-        />
-      </ItemGroup>
-    </div>
-  );
-};
-
 const AboutSection = () => {
   const translate = useTranslate();
 
@@ -517,49 +466,5 @@ const AboutSection = () => {
         </Item>
       </ItemGroup>
     </div>
-  );
-};
-
-const CopyPasteRow = ({ value }: { value: string }) => {
-  const translate = useTranslate();
-  const [copied, setCopied] = useState(false);
-  const handleCopy = () => {
-    setCopied(true);
-    navigator.clipboard.writeText(value);
-    setTimeout(() => {
-      setCopied(false);
-    }, 1500);
-  };
-
-  return (
-    <TooltipProvider>
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <Item
-            size="sm"
-            className="cursor-pointer flex-nowrap"
-            onClick={handleCopy}
-          >
-            <ItemContent className="overflow-hidden">
-              <ItemTitle className="font-normal truncate">{value}</ItemTitle>
-            </ItemContent>
-            <ItemActions className="shrink-0">
-              {copied ? (
-                <Check className="size-4 text-muted-foreground" />
-              ) : (
-                <Copy className="size-4 text-muted-foreground" />
-              )}
-            </ItemActions>
-          </Item>
-        </TooltipTrigger>
-        <TooltipContent>
-          <p>
-            {copied
-              ? translate("crm.common.copied")
-              : translate("crm.common.copy")}
-          </p>
-        </TooltipContent>
-      </Tooltip>
-    </TooltipProvider>
   );
 };

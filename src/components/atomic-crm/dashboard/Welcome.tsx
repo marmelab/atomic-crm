@@ -17,7 +17,7 @@ export const Welcome = () => (
       </p>
       <p className="text-sm mb-4">
         This demo runs on a mock API, so you can explore and modify the data. It
-        resets on reload. The full version uses Supabase for the backend.
+        resets on reload. The full version uses Turso for the backend.
       </p>
       <p className="text-sm">
         Powered by{" "}

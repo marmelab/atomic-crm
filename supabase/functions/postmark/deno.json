@@ -1,6 +1,0 @@
-{
-  "imports": {
-    "base64-arraybuffer": "npm:base64-arraybuffer",
-    "tldts": "npm:tldts"
-  }
-}

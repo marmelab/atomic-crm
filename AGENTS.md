@@ -2,16 +2,18 @@
 
 ## Project Overview
 
-Atomic CRM is a full-featured CRM built with React, shadcn-admin-kit, and Supabase. It provides contact management, task tracking, notes, email capture, and deal management with a Kanban board.
+Atomic CRM is a full-featured CRM built with React, shadcn-admin-kit, and Turso (libSQL/SQLite). It provides contact management, task tracking, notes, and deal management with a Kanban board.
 
 ## Development Commands
 
 ### Setup
 ```bash
-make install          # Install dependencies (frontend, backend, local Supabase)
-make start            # Start full stack with real API (Supabase + Vite dev server)
-make stop             # Stop the stack
-make start-demo       # Start full-stack with FakeRest data provider
+make install          # Install dependencies (npm)
+make start            # Start the full stack (Turso API server + Vite dev server)
+make start-server     # Start only the backend API server (server/index.mjs)
+make start-app        # Start only the Vite dev server
+make stop             # Stop the local backend API server
+make start-demo       # Start the app in demo mode (in-browser FakeRest data)
 ```
 
 ### Testing and Code Quality
@@ -30,13 +32,18 @@ make build            # Build production bundle (runs tsc + vite build)
 
 ### Database Management
 
-The database schema is defined declaratively in `supabase/schemas/` (source of truth). Migrations in `supabase/migrations/` are auto-generated and should generally not be edited directly — but sometimes manual adjustment is needed (e.g., replacing a DROP+CREATE with an ALTER TABLE RENAME for column renames). Function definitions in `02_functions.sql` must use the exact `pg_dump` format (run `npx supabase db dump --local --schema public`) to avoid phantom diffs.
+The database runs on [Turso](https://turso.tech) (libSQL/SQLite). The schema (tables + views) lives in `db/schema.sql` and reference seed data in `db/seed.sql` — these are the source of truth. The backend provisions the schema automatically the first time it connects to an empty database; apply it manually (after editing it, or to a fresh database) with:
 
 ```bash
-npx supabase db diff --local -f <name>  # Generate migration from schema changes
-npx supabase migration up --local       # Apply migrations locally
-npx supabase db push                    # Push migrations to remote
-npx supabase db reset --local           # Reset local database (destructive)
+npm run db:apply        # apply db/schema.sql (+ seed) to $TURSO_DATABASE_URL
+```
+
+Backend DB credentials are read from `.env` (`TURSO_DATABASE_URL`, `TURSO_AUTH_TOKEN`); see `.env.example`. Create a database and token with the Turso CLI:
+
+```bash
+turso db create <name>
+turso db show <name> --url        # -> TURSO_DATABASE_URL
+turso db tokens create <name>     # -> TURSO_AUTH_TOKEN
 ```
 
 ### Registry (Shadcn Components)
@@ -57,7 +64,7 @@ make registry-build   # Build Shadcn registry
 - **Application Logic**: shadcn-admin-kit + ra-core (react-admin headless)
 - **UI Components**: Shadcn UI + Radix UI
 - **Styling**: Tailwind CSS v4
-- **Backend**: Supabase (PostgreSQL + REST API + Auth + Storage + Edge Functions)
+- **Backend**: Turso (libSQL/SQLite) accessed through a small Hono API server (`server/`); single-user with no real login; file attachments stored as base64 in the database
 - **Testing**: Vitest
 
 ### Directory Structure
@@ -77,23 +84,20 @@ src/
 │   │   ├── login/          # Authentication pages
 │   │   ├── misc/           # Shared utilities
 │   │   ├── notes/          # Note management
-│   │   ├── providers/      # Data providers (Supabase + FakeRest)
+│   │   ├── providers/      # Data providers (Turso + FakeRest)
 │   │   ├── root/           # Root CRM component
 │   │   ├── sales/          # Sales team management
 │   │   ├── settings/       # Settings page
 │   │   ├── simple-list/    # List components
 │   │   ├── tags/           # Tag management
 │   │   └── tasks/          # Task management
-│   ├── supabase/           # Supabase-specific auth components
 │   └── ui/                 # Shadcn UI components (mutable dependency)
 ├── hooks/                  # Custom React hooks
 ├── lib/                    # Utility functions
 └── App.tsx                 # Application entry point
 
-supabase/
-├── functions/              # Edge functions (user management, inbound email)
-├── migrations/             # Database migrations (auto-generated, do not edit directly)
-└── schemas/                # Declarative schema (source of truth for DB structure)
+db/                         # SQLite schema + seed for Turso (schema.sql, seed.sql, apply-schema.mjs)
+server/                     # Node/Hono API server over libSQL/Turso (index.mjs + helpers)
 ```
 
 ### Key Architecture Patterns
@@ -120,29 +124,23 @@ The `src/App.tsx` file renders the `<CRM>` component, which accepts props for do
 
 #### Database Views
 
-Complex queries are handled via database views to simplify frontend code and reduce HTTP overhead. For example, `contacts_summary` provides aggregated contact data including task counts.
+Complex queries are handled via SQLite views (defined in `db/schema.sql`) to simplify frontend code and reduce round-trips. `companies_summary` and `contacts_summary` expose aggregated columns (contact/deal counts, open-task count, company name, and full-text-search helpers extracted from the email/phone JSON). The frontend reads them by redirecting `getList`/`getOne` for `companies`/`contacts` to the matching `_summary` view (writes still go to the base tables).
 
-#### Database Triggers
+#### Backend API Server
 
-User data syncs between Supabase's `auth.users` table and the CRM's `sales` table via triggers (see `supabase/schemas/04_triggers.sql`).
-
-#### Edge Functions
-
-Located in `supabase/functions/`:
-- User management (creating/updating users, account disabling)
-- Inbound email webhook processing
+`server/` is a small [Hono](https://hono.dev) app (`server/index.mjs`) exposing a generic data endpoint (`POST /api/:resource/:method`) that mirrors the react-admin DataProvider methods, backed by `@libsql/client` against Turso. It translates the app's `field@operator` filters to SQL (`server/filter.mjs`), (de)serializes JSON/boolean columns per `server/resources.mjs`, and cascades deletes. In production it also serves the built `dist/` from the same process. There is no separate auth service, object storage, or serverless-function layer: the app is single-user with no real login, attachments are stored as base64 in the database, and the former Supabase edge functions (user management, inbound email) were dropped.
 
 #### Data Providers
 
-Two data providers are available:
-1. **Supabase** (default): Production backend using PostgreSQL
-2. **FakeRest**: In-browser fake API for development/demos, resets on page reload
+Two data providers are available (`src/components/atomic-crm/providers/`):
+1. **Turso** (default): talks over HTTP (`/api`) to the backend server, which runs SQL against Turso. See `providers/turso/` (`dataProvider.ts`, `authProvider.ts`, `internal/httpClient.ts`).
+2. **FakeRest**: in-browser fake API for demos, resets on page reload.
 
-When using FakeRest, database views are emulated in the frontend. Test data generators are in `src/components/atomic-crm/providers/fakerest/dataGenerator/`.
+Both emulate the same `contacts_summary` / `companies_summary` / `activity_log` shapes so the UI is identical. FakeRest test-data generators are in `providers/fakerest/dataGenerator/`.
 
 #### Filter Syntax
 
-List filters follow the `ra-data-postgrest` convention with operator concatenation: `field_name@operator` (e.g., `first_name@eq`). The FakeRest adapter maps these to FakeRest syntax at runtime.
+List filters follow the `ra-data-postgrest` convention with operator concatenation: `field_name@operator` (e.g., `first_name@ilike`, `id@in`, `tags@cs`). The Turso backend translates these to SQL (`server/filter.mjs`); the FakeRest adapter maps them to FakeRest syntax at runtime.
 
 ## Development Workflows
 
@@ -157,15 +155,12 @@ The project uses TypeScript path aliases configured in `tsconfig.json` and `comp
 ### Adding Custom Fields
 
 When modifying contact or company data structures:
-1. Edit the relevant schema file in `supabase/schemas/` (table in `01_tables.sql`, views in `03_views.sql`, etc.)
-2. Generate a migration: `npx supabase db diff --local -f <name>`
-3. Apply it: `npx supabase migration up --local`
-4. Update the sample CSV: `src/components/atomic-crm/contacts/contacts_export.csv`
-5. Update the import function: `src/components/atomic-crm/contacts/useContactImport.tsx`
-6. If using FakeRest, update data generators in `src/components/atomic-crm/providers/fakerest/dataGenerator/`
-7. Don't forget to update the related view (`contacts_summary`, `companies_summary`) in `03_views.sql`
-8. Don't forget the export functions
-9. Don't forget the contact merge logic
+1. Edit `db/schema.sql`: add the column to the table AND to the related view (`contacts_summary` / `companies_summary`). If the column stores JSON or a boolean, register it in `server/resources.mjs` so the backend (de)serializes it correctly.
+2. Apply the schema: `npm run db:apply`
+3. Update the sample CSV: `src/components/atomic-crm/contacts/contacts_export.csv`
+4. Update the import function: `src/components/atomic-crm/contacts/useContactImport.tsx`
+5. If using FakeRest, update data generators in `src/components/atomic-crm/providers/fakerest/dataGenerator/`
+6. Don't forget the export functions and the contact merge logic
 
 ### Running with Test Data
 
@@ -177,11 +172,9 @@ Import `test-data/contacts.csv` via the Contacts page → Import button.
 
 ### Accessing Local Services During Development
 
-- Frontend: http://localhost:5173/
-- Supabase Dashboard: http://localhost:54323/
-- REST API: http://127.0.0.1:54321
-- Storage (attachments): http://localhost:54323/project/default/storage/buckets/attachments
-- Inbucket (email testing): http://localhost:54324/
+- Frontend (Vite dev server): http://localhost:5173/
+- Backend API: http://localhost:3001/api (the frontend proxies `/api` here — see `vite.config.ts`)
+- Turso database: inspect with `turso db shell <name>` or the Turso dashboard (https://turso.tech)
 
 ## Important Notes
 
@@ -189,4 +182,4 @@ Import `test-data/contacts.csv` via the Contacts page → Import button.
 - Modify files in `src/components/admin` and `src/components/ui` directly - they are meant to be customized
 - Unit tests can be added in the `src/` directory (test files are named `*.test.ts` or `*.test.tsx`)
 - User deletion is not supported to avoid data loss; use account disabling instead
-- Filter operators must be supported by the `supabaseAdapter` when using FakeRest
+- Filter operators must be supported by the Turso backend (`server/filter.mjs`), and — for demo mode — by the FakeRest `supabaseAdapter`

@@ -1,12 +1,11 @@
 import { useEffect, useRef, useState } from "react";
 import { Form, required, useLogin, useNotify, useTranslate } from "ra-core";
 import type { SubmitHandler, FieldValues } from "react-hook-form";
-import { Link, useLocation, useNavigate } from "react-router";
+import { useLocation, useNavigate } from "react-router";
 import { Button } from "@/components/ui/button";
 import { TextInput } from "@/components/admin/text-input";
 import { Notification } from "@/components/admin/notification";
 import { useConfigurationContext } from "@/components/atomic-crm/root/ConfigurationContext.tsx";
-import { SSOAuthButton } from "./SSOAuthButton";
 
 /**
  * Login page displayed when authentication is enabled and the user is not authenticated.
@@ -18,12 +17,8 @@ import { SSOAuthButton } from "./SSOAuthButton";
  * @see {@link https://marmelab.com/shadcn-admin-kit/docs/security Security documentation}
  */
 export const LoginPage = (props: { redirectTo?: string }) => {
-  const {
-    darkModeLogo,
-    title,
-    googleWorkplaceDomain,
-    disableEmailPasswordAuthentication,
-  } = useConfigurationContext();
+  const { darkModeLogo, title, disableEmailPasswordAuthentication } =
+    useConfigurationContext();
   const { redirectTo } = props;
   const [loading, setLoading] = useState(false);
   const hasDisplayedRecoveryNotification = useRef(false);
@@ -130,23 +125,6 @@ export const LoginPage = (props: { redirectTo?: string }) => {
                   </Button>
                 </div>
               </Form>
-            )}
-            {googleWorkplaceDomain ? (
-              <SSOAuthButton className="w-full" domain={googleWorkplaceDomain}>
-                {translate("crm.auth.sign_in_google_workspace", {
-                  _: "Sign in with Google Workplace",
-                })}
-              </SSOAuthButton>
-            ) : null}
-            {disableEmailPasswordAuthentication ? null : (
-              <Link
-                to={"/forgot-password"}
-                className="block text-sm text-center hover:underline"
-              >
-                {translate("ra-supabase.auth.forgot_password", {
-                  _: "Forgot password?",
-                })}
-              </Link>
             )}
           </div>
         </div>

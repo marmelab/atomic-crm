@@ -29,12 +29,6 @@ export default defineConfig({
   ],
   define: {
     "import.meta.env.VITE_IS_DEMO": JSON.stringify("true"),
-    "import.meta.env.VITE_SUPABASE_URL": JSON.stringify(
-      process.env.VITE_SUPABASE_URL ?? "https://demo.example.org",
-    ),
-    "import.meta.env.VITE_SB_PUBLISHABLE_KEY": JSON.stringify(
-      process.env.VITE_SB_PUBLISHABLE_KEY ?? "https://demo.example.org",
-    ),
   },
   base: "./",
   esbuild: {

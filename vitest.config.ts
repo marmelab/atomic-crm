@@ -3,15 +3,12 @@ import { defineConfig } from "vitest/config";
 import { playwright } from "@vitest/browser-playwright";
 import react from "@vitejs/plugin-react";
 
-// Three test projects (https://vitest.dev/guide/projects.html):
-//   - "app":       React/DOM unit tests, run in a real browser (Playwright/Chromium).
-//   - "claude":    agent-harness hook tests, plain Node integration tests that spawn
-//                  the .claude/hooks/*.mjs hooks as subprocesses. No DOM, no browser.
-//   - "functions": Supabase Edge Function tests. Written for Deno with JSR imports;
-//                  Node-only here, with the jsr:/npm: specifiers aliased to their
-//                  installed npm equivalents. Aliases are scoped to this project.
-// Run everything with `npm run test:unit:app`, or a single suite with
-// `npm run test:unit:claude` / `npm run test:unit:functions` (neither boots a browser).
+// Two test projects (https://vitest.dev/guide/projects.html):
+//   - "app":    React/DOM unit tests, run in a real browser (Playwright/Chromium).
+//   - "claude": agent-harness hook tests, plain Node integration tests that spawn
+//               the .claude/hooks/*.mjs hooks as subprocesses. No DOM, no browser.
+// Run everything with `npm run test:unit:app`, or the hook suite with
+// `npm run test:unit:claude` (which does not boot a browser).
 export default defineConfig({
   test: {
     projects: [
@@ -79,28 +76,6 @@ export default defineConfig({
           // so they need more headroom than the default 5s.
           testTimeout: 30000,
           hookTimeout: 30000,
-        },
-      },
-      {
-        // Map the Deno imports to the installed npm packages so Vitest can run
-        // these Deno-targeted tests in Node without a Deno runtime. These aliases
-        // only apply to this project.
-        resolve: {
-          alias: {
-            "jsr:@supabase/supabase-js@2": path.resolve(
-              __dirname,
-              "node_modules/@supabase/supabase-js",
-            ),
-            "npm:tldts": path.resolve(__dirname, "node_modules/tldts"),
-            "npm:pgsql-ast-parser@^12": "pgsql-ast-parser",
-          },
-        },
-        test: {
-          name: "functions",
-          globals: true,
-          environment: "node",
-          include: ["supabase/functions/**/*.test.ts"],
-          exclude: ["**/node_modules/**", ".supabase-e2e/**"],
         },
       },
     ],

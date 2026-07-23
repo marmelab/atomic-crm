@@ -7,7 +7,6 @@ import path from "node:path";
 const registryPath = "registry.json";
 const basePath = "src";
 const atomicCrmComponentsPath = path.join(basePath, "components", "atomic-crm");
-const supabaseComponentsPath = path.join(basePath, "components", "supabase");
 const hooksPath = path.join(basePath, "hooks");
 const libPath = path.join(basePath, "lib");
 
@@ -33,10 +32,6 @@ const atomicCrmComponents = globSync(
   path.join(atomicCrmComponentsPath, "**", "*.ts*"),
   { ignore: [testFilePattern, storyFilePattern] },
 );
-const supabaseComponents = globSync(
-  path.join(supabaseComponentsPath, "**", "*.ts*"),
-  { ignore: [testFilePattern, storyFilePattern] },
-);
 const hooks = globSync(path.join(hooksPath, "**", "*.ts*")).filter((hook) => {
   return !excludedHooks.includes(path.basename(hook));
 });
@@ -49,12 +44,6 @@ const registryContent = JSON.parse(fs.readFileSync(registryPath, "utf-8"));
 
 const files = [
   ...atomicCrmComponents.map((path) => {
-    return {
-      path,
-      type: "registry:component",
-    };
-  }),
-  ...supabaseComponents.map((path) => {
     return {
       path,
       type: "registry:component",

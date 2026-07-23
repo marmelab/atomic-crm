@@ -11,9 +11,6 @@ import { QueryClient } from "@tanstack/react-query";
 import { PersistQueryClientProvider } from "@tanstack/react-query-persist-client";
 import { createAsyncStoragePersister } from "@tanstack/query-async-storage-persister";
 import { Admin } from "@/components/admin/admin";
-import { ForgotPasswordPage } from "@/components/supabase/forgot-password-page";
-import { SetPasswordPage } from "@/components/supabase/set-password-page";
-import { OAuthConsentPage } from "@/components/supabase/oauth-consent-page";
 
 import companies from "../companies";
 import contacts from "../contacts";
@@ -29,7 +26,7 @@ import { ChangelogPage } from "../misc/ChangelogPage";
 import {
   getAuthProvider as defaultAuthProviderBuilder,
   getDataProvider as defaultDataProviderBuilder,
-} from "../providers/supabase";
+} from "../providers/turso";
 import sales from "../sales";
 import { SettingsPageMobile } from "../settings/SettingsPageMobile";
 import { ProfilePage } from "../settings/ProfilePage";
@@ -251,12 +248,6 @@ const DesktopAdmin = (
           path={ConfirmationRequired.path}
           element={<ConfirmationRequired />}
         />
-        <Route path={SetPasswordPage.path} element={<SetPasswordPage />} />
-        <Route
-          path={ForgotPasswordPage.path}
-          element={<ForgotPasswordPage />}
-        />
-        <Route path={OAuthConsentPage.path} element={<OAuthConsentPage />} />
       </CustomRoutes>
 
       <CustomRoutes>
@@ -315,12 +306,6 @@ const MobileAdmin = (
             path={ConfirmationRequired.path}
             element={<ConfirmationRequired />}
           />
-          <Route path={SetPasswordPage.path} element={<SetPasswordPage />} />
-          <Route
-            path={ForgotPasswordPage.path}
-            element={<ForgotPasswordPage />}
-          />
-          <Route path={OAuthConsentPage.path} element={<OAuthConsentPage />} />
         </CustomRoutes>
         <CustomRoutes>
           <Route

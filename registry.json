@@ -22,8 +22,6 @@
         "faker@^5.5.3",
         "jsonexport@^3.2.0",
         "papaparse@^5.5.3",
-        "ra-supabase-core@^3.5.1",
-        "ra-supabase-language-english@^3.5.0",
         "zod@^4.0.5",
         "@tanstack/query-async-storage-persister@^5.90.22",
         "@tanstack/react-query-persist-client@^5.90.22",
@@ -202,19 +200,19 @@
           "type": "registry:component"
         },
         {
-          "path": "src/components/atomic-crm/providers/supabase/supabase.ts",
+          "path": "src/components/atomic-crm/providers/turso/index.ts",
           "type": "registry:component"
         },
         {
-          "path": "src/components/atomic-crm/providers/supabase/index.ts",
+          "path": "src/components/atomic-crm/providers/turso/dataProvider.ts",
           "type": "registry:component"
         },
         {
-          "path": "src/components/atomic-crm/providers/supabase/dataProvider.ts",
+          "path": "src/components/atomic-crm/providers/turso/authProvider.ts",
           "type": "registry:component"
         },
         {
-          "path": "src/components/atomic-crm/providers/supabase/authProvider.ts",
+          "path": "src/components/atomic-crm/providers/turso/internal/httpClient.ts",
           "type": "registry:component"
         },
         {
@@ -487,10 +485,6 @@
         },
         {
           "path": "src/components/atomic-crm/login/SignupPage.tsx",
-          "type": "registry:component"
-        },
-        {
-          "path": "src/components/atomic-crm/login/SSOAuthButton.tsx",
           "type": "registry:component"
         },
         {
@@ -831,22 +825,6 @@
         },
         {
           "path": "src/components/atomic-crm/activity/ActivityLog.tsx",
-          "type": "registry:component"
-        },
-        {
-          "path": "src/components/supabase/set-password-page.tsx",
-          "type": "registry:component"
-        },
-        {
-          "path": "src/components/supabase/oauth-consent-page.tsx",
-          "type": "registry:component"
-        },
-        {
-          "path": "src/components/supabase/layout.tsx",
-          "type": "registry:component"
-        },
-        {
-          "path": "src/components/supabase/forgot-password-page.tsx",
           "type": "registry:component"
         },
         {
