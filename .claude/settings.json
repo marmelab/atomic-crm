@@ -15,7 +15,8 @@
   },
   "skillListingMaxDescChars": 512,
   "env": {
-    "ENABLE_LSP_TOOL": "1"
+    "ENABLE_LSP_TOOL": "1",
+    "CLAUDE_CODE_MAX_SUBAGENT_SPAWN_DEPTH": "3"
   },
   "permissions": {
     "allow": [],
