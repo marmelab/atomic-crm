@@ -19,8 +19,6 @@ import { MobileDashboard } from "../dashboard/MobileDashboard";
 import deals from "../deals";
 import { Layout } from "../layout/Layout";
 import { MobileLayout } from "../layout/MobileLayout";
-import { SignupPage } from "../login/SignupPage";
-import { ConfirmationRequired } from "../login/ConfirmationRequired";
 import { ImportPage } from "../misc/ImportPage";
 import { ChangelogPage } from "../misc/ChangelogPage";
 import {
@@ -125,8 +123,6 @@ export const CRM = ({
   i18nProvider = defaulti18nProvider,
   store = defaultStore,
   googleWorkplaceDomain = import.meta.env.VITE_GOOGLE_WORKPLACE_DOMAIN,
-  disableEmailPasswordAuthentication = import.meta.env
-    .VITE_DISABLE_EMAIL_PASSWORD_AUTHENTICATION === "true",
   disableTelemetry,
   ...rest
 }: CRMProps) => {
@@ -160,7 +156,6 @@ export const CRM = ({
         darkModeLogo,
         lightModeLogo,
         googleWorkplaceDomain,
-        disableEmailPasswordAuthentication,
       } satisfies ConfigurationContextValue);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -242,14 +237,6 @@ const DesktopAdmin = (
       dashboard={props.dashboard ?? Dashboard}
       {...props}
     >
-      <CustomRoutes noLayout>
-        <Route path={SignupPage.path} element={<SignupPage />} />
-        <Route
-          path={ConfirmationRequired.path}
-          element={<ConfirmationRequired />}
-        />
-      </CustomRoutes>
-
       <CustomRoutes>
         <Route path={ProfilePage.path} element={<ProfilePage />} />
         <Route path={SettingsPage.path} element={<SettingsPage />} />
@@ -300,13 +287,6 @@ const MobileAdmin = (
         dashboard={props.dashboard ?? MobileDashboard}
         {...props}
       >
-        <CustomRoutes noLayout>
-          <Route path={SignupPage.path} element={<SignupPage />} />
-          <Route
-            path={ConfirmationRequired.path}
-            element={<ConfirmationRequired />}
-          />
-        </CustomRoutes>
         <CustomRoutes>
           <Route
             path={SettingsPageMobile.path}

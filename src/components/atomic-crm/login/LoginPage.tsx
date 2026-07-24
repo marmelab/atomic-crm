@@ -1,135 +1,103 @@
-import { useEffect, useRef, useState } from "react";
-import { Form, required, useLogin, useNotify, useTranslate } from "ra-core";
-import type { SubmitHandler, FieldValues } from "react-hook-form";
-import { useLocation, useNavigate } from "react-router";
+import { useState, useEffect } from "react";
+import { useLogin } from "ra-core";
+import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { TextInput } from "@/components/admin/text-input";
-import { Notification } from "@/components/admin/notification";
-import { useConfigurationContext } from "@/components/atomic-crm/root/ConfigurationContext.tsx";
 
-/**
- * Login page displayed when authentication is enabled and the user is not authenticated.
- *
- * Automatically shown when an unauthenticated user tries to access a protected route.
- * Handles login via authProvider.login() and displays error notifications on failure.
- *
- * @see {@link https://marmelab.com/shadcn-admin-kit/docs/loginpage LoginPage documentation}
- * @see {@link https://marmelab.com/shadcn-admin-kit/docs/security Security documentation}
- */
-export const LoginPage = (props: { redirectTo?: string }) => {
-  const { darkModeLogo, title, disableEmailPasswordAuthentication } =
-    useConfigurationContext();
-  const { redirectTo } = props;
-  const [loading, setLoading] = useState(false);
-  const hasDisplayedRecoveryNotification = useRef(false);
-  const location = useLocation();
-  const navigate = useNavigate();
+const ATTEMPTS_KEY = "app_login_attempts";
+
+function getBlockedUntil(): number | null {
+  if (typeof window === "undefined") return null;
+  try {
+    const data = JSON.parse(localStorage.getItem(ATTEMPTS_KEY) || "{}");
+    if (data.blockedUntil && Date.now() < data.blockedUntil) {
+      return data.blockedUntil;
+    }
+  } catch {
+    // ignore
+  }
+  return null;
+}
+
+export const LoginPage = () => {
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const [blockedUntil, setBlockedUntil] = useState<number | null>(null);
+  const [remaining, setRemaining] = useState("");
   const login = useLogin();
-  const notify = useNotify();
-  const translate = useTranslate();
 
   useEffect(() => {
-    const searchParams = new URLSearchParams(location.search);
-    const shouldNotify = searchParams.get("passwordRecoveryEmailSent") === "1";
-
-    if (!shouldNotify || hasDisplayedRecoveryNotification.current) {
-      return;
+    const blocked = getBlockedUntil();
+    if (blocked) {
+      setBlockedUntil(blocked);
     }
+  }, []);
 
-    hasDisplayedRecoveryNotification.current = true;
-    notify("crm.auth.recovery_email_sent", {
-      type: "success",
-      messageArgs: {
-        _: "If you're a registered user, you should receive a password recovery email shortly.",
-      },
-    });
+  useEffect(() => {
+    if (!blockedUntil) return;
+    const update = () => {
+      const diff = blockedUntil - Date.now();
+      if (diff <= 0) {
+        setBlockedUntil(null);
+        setRemaining("");
+        return;
+      }
+      const mins = Math.ceil(diff / 60000);
+      setRemaining(`${mins} minute${mins > 1 ? "s" : ""}`);
+    };
+    update();
+    const interval = setInterval(update, 1000);
+    return () => clearInterval(interval);
+  }, [blockedUntil]);
 
-    searchParams.delete("passwordRecoveryEmailSent");
-    const nextSearch = searchParams.toString();
-    navigate(
-      {
-        pathname: location.pathname,
-        search: nextSearch ? `?${nextSearch}` : "",
-      },
-      { replace: true },
-    );
-  }, [location.pathname, location.search, navigate, notify]);
+  const isBlocked = blockedUntil !== null;
 
-  const handleSubmit: SubmitHandler<FieldValues> = (values) => {
-    setLoading(true);
-    login(values, redirectTo)
-      .then(() => {
-        setLoading(false);
-      })
-      .catch((error) => {
-        setLoading(false);
-        notify(
-          typeof error === "string"
-            ? error
-            : typeof error === "undefined" || !error.message
-              ? "ra.auth.sign_in_error"
-              : error.message,
-          {
-            type: "error",
-            messageArgs: {
-              _:
-                typeof error === "string"
-                  ? error
-                  : error && error.message
-                    ? error.message
-                    : undefined,
-            },
-          },
-        );
-      });
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError("");
+    try {
+      await login({ password });
+    } catch (err: any) {
+      setError(err.message || "Erreur de connexion");
+      const blocked = getBlockedUntil();
+      if (blocked) setBlockedUntil(blocked);
+    }
   };
 
   return (
-    <div className="min-h-screen flex">
-      <div className="relative grid w-full lg:grid-cols-2">
-        <div className="relative hidden h-full flex-col bg-muted p-10 text-white dark:border-r lg:flex">
-          <div className="absolute inset-0 bg-zinc-900" />
-          <div className="relative z-20 flex items-center text-lg font-medium">
-            <img className="h-6 mr-2" src={darkModeLogo} alt={title} />
-            {title}
-          </div>
-        </div>
-        <div className="flex flex-col justify-center w-full p-4 lg:p-8">
-          <div className="w-full space-y-6 lg:mx-auto lg:w-[350px]">
-            <div className="text-center">
-              <h1 className="text-2xl font-semibold tracking-tight">
-                {translate("ra.auth.sign_in")}
-              </h1>
-            </div>
-            {disableEmailPasswordAuthentication ? null : (
-              <Form className="space-y-8" onSubmit={handleSubmit}>
-                <TextInput
-                  label="ra.auth.email"
-                  source="email"
-                  type="email"
-                  validate={required()}
-                />
-                <TextInput
-                  label="ra.auth.password"
-                  source="password"
-                  type="password"
-                  validate={required()}
-                />
-                <div className="flex flex-col gap-4">
-                  <Button
-                    type="submit"
-                    className="cursor-pointer"
-                    disabled={loading}
-                  >
-                    {translate("ra.auth.sign_in")}
-                  </Button>
-                </div>
-              </Form>
-            )}
-          </div>
-        </div>
+    <div className="min-h-screen flex items-center justify-center bg-zinc-900">
+      <div className="w-full max-w-sm p-8">
+        <h1 className="text-2xl font-semibold text-white text-center mb-8">
+          Accès
+        </h1>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <Input
+            type="password"
+            value={password}
+            onChange={(e) => {
+              setPassword(e.target.value);
+              setError("");
+            }}
+            placeholder="Mot de passe"
+            disabled={isBlocked}
+            className="text-white placeholder:text-zinc-500 bg-zinc-800 border-zinc-700 focus-visible:ring-zinc-600"
+            autoFocus
+          />
+          {error && <p className="text-red-400 text-sm">{error}</p>}
+          {isBlocked && remaining && (
+            <p className="text-amber-400 text-sm">
+              Bloqué. Réessayez dans {remaining}.
+            </p>
+          )}
+          <Button
+            type="submit"
+            disabled={isBlocked || !password}
+            className="w-full cursor-pointer"
+            variant="secondary"
+          >
+            {isBlocked ? "Bloqué" : "Connexion"}
+          </Button>
+        </form>
       </div>
-      <Notification />
     </div>
   );
 };
