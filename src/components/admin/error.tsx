@@ -106,7 +106,8 @@ export const Error = (props: InternalErrorProps & {}) => {
 };
 
 interface InternalErrorProps
-  extends Omit<HtmlHTMLAttributes<HTMLDivElement>, "title">, FallbackProps {
+  extends Omit<HtmlHTMLAttributes<HTMLDivElement>, "title">,
+    FallbackProps {
   className?: string;
   errorInfo?: ErrorInfo;
 }

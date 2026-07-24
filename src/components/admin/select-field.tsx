@@ -102,8 +102,9 @@ export const SelectField = genericMemo(SelectFieldImpl);
 export interface SelectFieldProps<
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   RecordType extends Record<string, any> = Record<string, any>,
->
-  extends
-    Omit<ChoicesProps, "disableValue" | "createValue" | "createHintValue">,
+> extends Omit<
+      ChoicesProps,
+      "disableValue" | "createValue" | "createHintValue"
+    >,
     FieldProps<RecordType>,
     HTMLAttributes<HTMLSpanElement> {}
