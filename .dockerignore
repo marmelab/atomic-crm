@@ -49,6 +49,7 @@ scripts/
 
 doc/
 *.md
+!CHANGELOG.md
 
 .DS_Store
 *storybook.log
