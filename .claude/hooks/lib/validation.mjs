@@ -4,6 +4,7 @@ import { basename, join } from "node:path";
 import { getBaseBranch, getWorktreeChangeSummary, getWorktreePaths } from "./git.mjs";
 import { bash, exec } from "./process.mjs";
 import { loadConfig, validationSteps } from "./config.mjs";
+import { appendProgress } from "./progress-log.mjs";
 
 // `only` narrows to a single worktree when the caller already knows it
 // (validate-on-stop scoping to the stopping agent's own task worktree);
@@ -207,22 +208,34 @@ export function runValidationSteps(ctx, { worktree = "", base = "" } = {}) {
   const perWorktree = steps.filter((s) => s.cwd !== "repo");
   const repoLevel = steps.filter((s) => s.cwd === "repo");
 
+  // Enrich the #technical-harness progress log with each validation step as it runs,
+  // so the otherwise-silent multi-minute chain (typecheck, lint, vitest, e2e) shows up
+  // in a `tail -f` / the board / a Monitor. Inert (no-op) on a non-technical run: the
+  // log does not exist there, so appendProgress writes nothing and creates nothing.
+  const progress = (line) => appendProgress(ctx.sessionDir, line);
+
   for (const wt of worktrees) {
+    const label = basename(wt);
     for (const step of perWorktree) {
       if (stepSkipped(ctx, step)) continue;
+      progress(`[validate:${label}] ${step.id}…`);
       const r = runStep(ctx, step, { cwd: wt, base });
       if (!r.ok) {
+        progress(`[validate:${label}] ${step.id} FAILED`);
         ctx.log(`FAIL step=${step.id} wt=${wt}\n${r.output}`);
         return { ok: false, step: step.id, output: `=== ${step.id} failed in ${wt} ===\n${r.output}\n` };
       }
     }
+    progress(`[validate:${label}] checks passed`);
     ctx.log(`OK wt=${wt}`);
   }
 
   for (const step of repoLevel) {
     if (stepSkipped(ctx, step)) continue;
+    progress(`[validate:repo] ${step.id}…`);
     const r = runStep(ctx, step, { cwd: ctx.repo, base });
     if (!r.ok) {
+      progress(`[validate:repo] ${step.id} FAILED`);
       ctx.log(`FAIL step=${step.id} exit`);
       return { ok: false, step: step.id, output: r.output + "\n" };
     }

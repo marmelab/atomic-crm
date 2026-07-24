@@ -60,10 +60,10 @@ The orchestrator parses this line by regex. Any other format is treated as `FAIL
 ### Mode selection (first action — no tool call needed)
 
 - Spawn prompt `ROLE:` mentions **ROLLBACK mode** (rollback-conflict path) → run **ROLLBACK mode** (skip Stage A, run ROLLBACK PROMOTION on `BRANCH_NAME`). Contract `TASK_ID` is the literal `ROLLBACK`.
-- Spawn prompt contains **`STAGE: a-only`** → run **Stage A only** on `BRANCH_NAME` (merge into `session/<SESSION_SHORT_ID>`) and stop after the Stage A contract. Never run Stage B / promotion, whatever the `ROLE:` line says. This takes precedence over the SIMPLE / MIGRATION coupling below. Contract `TASK_ID` stays the literal from the prompt (`SIMPLE` / `MIGRATION`).
+- Spawn prompt contains **`STAGE: a-only`** → run **Stage A only** on `BRANCH_NAME` (merge into `session/<SESSION_SHORT_ID>`) and stop after the Stage A contract. Never run Stage B / promotion, whatever the `ROLE:` line says. This takes precedence over the SIMPLE / MIGRATION coupling below. Contract `TASK_ID` stays the literal from the prompt (`TASK-XXX` for a wave merge, or `SIMPLE` / `MIGRATION`).
 - Spawn prompt `ROLE:` mentions **SIMPLE mode** (SIMPLE flow) or **MIGRATION mode** (deploy-time migration round) → run **Stage A**, then immediately run **PROMOTION — Stage B**, then emit the contract. Contract `TASK_ID` is the literal `SIMPLE` or `MIGRATION` respectively. (Both are the same single-shot mechanic on the `<short>/simple` branch.)
 - Spawn prompt contains `MODE: promote` → run **PROMOTION — Stage B** only. Contract `TASK_ID` is `PROMOTE`.
-- Otherwise (`TASK_ID` is `TASK-XXX`) → run **Stage A** only, then emit the contract. Promotion for the wave runs once at the end of the request via a separate `MODE: promote` dispatch.
+- Otherwise (`TASK_ID` is `TASK-XXX`) → run **Stage A ONLY**, then emit the contract, and **STOP**. A per-ticket wave merger MUST NEVER run Stage B / promotion: no `git checkout <base>`, no `git merge session/<SESSION_SHORT_ID>` into the base branch. Promoting partial work to the base branch mid-feature corrupts it (this happened once: a wave-1 merger promoted TASK-001 alone onto the base branch). Promotion for the wave runs exactly once, at the end of the request, via a separate `MODE: promote` dispatch. The orchestrator passes `STAGE: a-only` on the wave dispatch (so the rule above applies), and `block-wave-merger-promote.mjs` blocks a Stage-B command from a Stage-A-only merger at runtime (fail-closed); this rule is not honour-system.
 
 ---
 
