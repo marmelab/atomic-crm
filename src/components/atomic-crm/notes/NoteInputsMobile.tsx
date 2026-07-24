@@ -131,8 +131,7 @@ const AttachButton = () => {
 const AttachmentPreviewsMobile = () => {
   const { control, setValue } = useFormContext();
   const attachments = useWatch({ control, name: "attachments" }) as
-    | ContactNote["attachments"]
-    | undefined;
+    ContactNote["attachments"] | undefined;
 
   if (!Array.isArray(attachments) || attachments.length === 0) return null;
 

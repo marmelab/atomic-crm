@@ -78,8 +78,7 @@ export const IconButtonWithTooltip = ({
   );
 };
 
-export interface IconButtonWithTooltipProps
-  extends React.ComponentProps<"button"> {
+export interface IconButtonWithTooltipProps extends React.ComponentProps<"button"> {
   label: React.ReactNode;
   children: React.ReactNode;
 }

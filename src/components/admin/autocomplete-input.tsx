@@ -86,8 +86,7 @@ export const AutocompleteInput = (
       translateChoice?: boolean;
       placeholder?: string;
       inputText?:
-        | React.ReactNode
-        | ((option: any | undefined) => React.ReactNode);
+        React.ReactNode | ((option: any | undefined) => React.ReactNode);
     } & Pick<PopoverProps, "modal">,
 ) => {
   const {

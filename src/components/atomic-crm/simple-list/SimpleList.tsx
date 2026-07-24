@@ -125,8 +125,9 @@ export const SimpleList = <RecordType extends RaRecord = any>(
   );
 };
 
-export interface SimpleListProps<RecordType extends RaRecord = any>
-  extends SimpleListBaseProps<RecordType> {
+export interface SimpleListProps<
+  RecordType extends RaRecord = any,
+> extends SimpleListBaseProps<RecordType> {
   className?: string;
   empty?: ReactElement;
   // can be injected when using the component without context

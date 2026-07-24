@@ -446,12 +446,7 @@ export interface FilterButtonProps extends HtmlHTMLAttributes<HTMLDivElement> {
   filters?: ReactNode[];
   resource?: string;
   variant?:
-    | "default"
-    | "destructive"
-    | "outline"
-    | "secondary"
-    | "ghost"
-    | "link";
+    "default" | "destructive" | "outline" | "secondary" | "ghost" | "link";
   size?: "default" | "sm" | "lg" | "icon";
 }
 
