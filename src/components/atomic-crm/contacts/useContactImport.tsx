@@ -23,6 +23,7 @@ export type ContactImportSchema = {
   status: string;
   tags: string;
   linkedin_url: string;
+  telegram_handle: string;
 };
 
 export function useContactImport() {
@@ -104,6 +105,7 @@ export function useContactImport() {
             company: companyName,
             tags: tagNames,
             linkedin_url,
+            telegram_handle,
           }) => {
             const email_jsonb = [
               { email: email_work, type: "Work" },
@@ -143,6 +145,7 @@ export function useContactImport() {
                 tags: tagList.map((tag) => tag.id),
                 sales_id: user?.identity?.id,
                 linkedin_url,
+                telegram_handle: telegram_handle || null,
               },
             });
           },

@@ -258,11 +258,15 @@ const ContactMergeDialog = ({ open, onClose }: ContactMergeDialogProps) => {
                       added
                     </li>
                   )}
+                  {loserContact.telegram_handle && (
+                    <li>• Telegram handle will be added</li>
+                  )}
                   {!notesCount &&
                     !tasksCount &&
                     !dealsCount &&
                     !loserContact.email_jsonb?.length &&
-                    !loserContact.phone_jsonb?.length && (
+                    !loserContact.phone_jsonb?.length &&
+                    !loserContact.telegram_handle && (
                       <li className="text-muted-foreground/60">
                         {translate(
                           "resources.contacts.merge.no_additional_data",

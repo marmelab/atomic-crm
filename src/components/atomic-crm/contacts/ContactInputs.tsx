@@ -200,6 +200,7 @@ const ContactPersonalInformationInputs = () => {
         helperText={false}
         validate={isLinkedinUrl}
       />
+      <TextInput source="telegram_handle" helperText={false} />
     </div>
   );
 };

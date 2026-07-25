@@ -311,6 +311,7 @@ const lifeCycleCallbacks: ResourceCallbacks[] = [
         "email",
         "phone",
         "background",
+        "telegram_handle",
       ])(params);
     },
   },

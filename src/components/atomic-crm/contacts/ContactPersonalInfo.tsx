@@ -4,7 +4,7 @@ import { ArrayField } from "@/components/admin/array-field";
 import { SingleFieldList } from "@/components/admin/single-field-list";
 import { TextField } from "@/components/admin/text-field";
 import { EmailField } from "@/components/admin/email-field";
-import { Mail, Phone, Linkedin, Check } from "lucide-react";
+import { Mail, Phone, Linkedin, Check, Send } from "lucide-react";
 import type { ReactNode } from "react";
 import {
   contactGender,
@@ -12,6 +12,8 @@ import {
   translatePersonalInfoTypeLabel,
 } from "./contactModel";
 import type { Contact } from "../types";
+
+const TELEGRAM_URL = "https://t.me/";
 
 export const ContactPersonalInfo = () => {
   const record = useRecordContext<Contact>();
@@ -58,6 +60,22 @@ export const ContactPersonalInfo = () => {
           />
         </SingleFieldList>
       </ArrayField>
+      {record.telegram_handle && (
+        <PersonalInfoRow
+          icon={<Send className="w-4 h-4 text-muted-foreground" />}
+          primary={
+            <a
+              className="underline hover:no-underline text-sm text-muted-foreground"
+              href={`${TELEGRAM_URL}${record.telegram_handle}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              title={record.telegram_handle}
+            >
+              Telegram
+            </a>
+          }
+        />
+      )}
       {contactGender
         .map((genderOption) => {
           if (record.gender === genderOption.value) {

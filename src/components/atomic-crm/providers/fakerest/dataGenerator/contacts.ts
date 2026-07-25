@@ -96,6 +96,12 @@ export const generateContacts = (db: Db, size = 500): Required<Contact>[] => {
       sales_id: company.sales_id!,
       nb_tasks: 0,
       linkedin_url: null,
+      telegram_handle: weightedBoolean(15)
+        ? random.arrayElement([
+            String(random.number({ min: 100000000, max: 999999999 })),
+            String(random.number({ min: 10000000, max: 99999999 })),
+          ])
+        : null,
     };
   });
 };

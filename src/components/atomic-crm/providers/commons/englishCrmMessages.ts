@@ -82,6 +82,7 @@ export const englishCrmMessages = {
         phone_jsonb: "Phone numbers",
         phone_number: "Phone number",
         linkedin_url: "LinkedIn URL",
+        telegram_handle: "Telegram",
         background: "Background info (bio, how you met, etc)",
         has_newsletter: "Has newsletter",
         sales_id: "Account manager",

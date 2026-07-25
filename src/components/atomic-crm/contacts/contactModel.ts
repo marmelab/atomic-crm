@@ -155,6 +155,11 @@ export function exportToVCard(
     lines.push(`URL:${contact.linkedin_url}`);
   }
 
+  // Telegram handle
+  if (contact.telegram_handle) {
+    lines.push(`X-TELEGRAM:${contact.telegram_handle}`);
+  }
+
   // Background/Note
   if (contact.background) {
     // Escape newlines and special characters in notes

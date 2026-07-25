@@ -35,6 +35,7 @@ export interface ContactsTable {
   company_id: number | null;
   sales_id: number | null;
   linkedin_url: string | null;
+  telegram_handle: string | null;
 }
 
 interface TasksTable {
