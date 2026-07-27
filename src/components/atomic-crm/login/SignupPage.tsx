@@ -102,7 +102,7 @@ export const SignupPage = () => {
           src={logo}
           alt={title}
           width={24}
-          className="filter brightness-0 invert"
+          className="filter brightness-0 dark:invert"
         />
         <h1 className="text-xl font-semibold">{title}</h1>
       </div>
