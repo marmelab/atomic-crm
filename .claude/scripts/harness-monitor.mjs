@@ -9,10 +9,10 @@
 //   3. tickets              <CHAT_SESSION_DIR or TICKETS_DIR>/TASK-*.json
 //
 // Usage:
-//   scripts/harness-monitor.mjs                 # latest session, one-shot summary
-//   scripts/harness-monitor.mjs --watch         # latest session, live (re-renders)
-//   scripts/harness-monitor.mjs --session <id>  # a specific session id
-//   scripts/harness-monitor.mjs --list          # list known sessions, newest first
+//   .claude/scripts/harness-monitor.mjs                 # latest session, one-shot summary
+//   .claude/scripts/harness-monitor.mjs --watch         # latest session, live (re-renders)
+//   .claude/scripts/harness-monitor.mjs --session <id>  # a specific session id
+//   .claude/scripts/harness-monitor.mjs --list          # list known sessions, newest first
 
 import { readFileSync, readdirSync, existsSync, statSync } from "node:fs";
 import { join, basename } from "node:path";

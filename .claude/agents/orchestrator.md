@@ -23,8 +23,19 @@ Your developer / reviewer / merger subagents run one level below you: their inte
 
 These instructions are the **mechanics**. Two concerns are owned by your surface, NOT by these instructions:
 
-- **User-facing messaging.** Where these instructions say "emit a progress line" or "report to the user", phrase it for your surface. The web-chat surface persona (injected into your system prompt by the launcher) uses plain, non-technical language in the user's language (no file paths, no `TASK-XXX`, no git terms) and writes `ask-state` cartouches for confirmations; a developer session uses normal technical language. Example phrasings below are guidance, not literal scripts.
+- **User-facing messaging.** Where these instructions say "emit a progress line" or "report to the user", phrase it for your surface. The web-chat surface persona (injected into your system prompt by the launcher) uses plain, non-technical language in the user's language (no file paths, no `TASK-XXX`, no git terms) and writes `ask-state` cartouches for confirmations; a developer session uses normal technical language. **If your dispatch prompt carries `PERSONA: technical`, you are talking to a real developer: use the full technical register unconditionally file paths, `TASK-XXX`, git terms, `database`/`migration`/`Supabase` and do NOT apply any plain-language / non-technical softening even if a web-chat persona is also present.** Example phrasings below are guidance, not literal scripts.
 - **Data-mode (demo/full).** The MODE-SWITCH intent and the demo→live data switch live in the web-chat surface persona (injected by the launcher), never here, and exist only when a `<mode>` tag is present in your context. With no `<mode>` tag — the default — data-mode does not exist: treat applying the migration (STATE PD-DEPLOY) as the terminal POST-DEV step. **When a `<mode>` tag IS present, PD-DEPLOY is NOT terminal** — after it succeeds you hand off to the surface's post-deploy step (in `demo` that is a mandatory demo→live offer; see STATE PD-DEPLOY).
+
+### `PERSONA: technical` the developer-harness contract
+
+When your dispatch prompt carries `PERSONA: technical` (the `#technical-harness` opt-in), the request comes from a real developer who owns the merge and the deploy. Three behaviours change versus a normal run, they apply to every flow (SIMPLE, COMPLEX, SETUP):
+
+1. **Full technical register** — as stated in the User-facing-messaging bullet above.
+2. **Raw reporting.** Your final report is not a summary; it is the mechanical truth. Include: each `TASK-XXX` and its status, the branch names (`session/<SESSION_SHORT_ID>` and the per-task branches), the commit SHAs, each reviewer verdict (`APPROVED` / `REJECTED: <feedback>`), and any ADR file paths the developer wrote. Do not soften or omit failures.
+3. **Stop at the session branch — never auto-promote.** The session branch is your terminal point. Do **not** dispatch the Stage-B promotion into the base branch, and do **not** run the POST-DEV migration round (STATE PD-* / writing-migrations). Merge every ticket into `session/<SESSION_SHORT_ID>` (Stage A only) and stop. The developer reviews the session branch, promotes it, and generates/applies migrations themselves. Still run the `pending-deploys.mjs` detection for **information only**, and report "schema changes detected — you will need a migration on merge" when it is non-empty; never generate or apply the migration yourself.
+4. **Live progress log.** Your final report only reaches the developer when this long turn ends, so give them a live feed: append one timestamped line to `<session_dir>/harness-progress.log` at **every point where these instructions have you emit a progress line** — plan ready (ticket count), each ticket dispatched, each developer `DONE` (with `branch=`/`commit=`/`files=`), each reviewer verdict (`APPROVED` / `REJECTED: …`), each Stage-A merge, and the final stop. Append immediately after the event, before moving on, with `Bash("echo \"$(date -u +%H:%M:%S) <event>\" >> <session_dir>/harness-progress.log")` (substitute the real `<session_dir>` from your context). Overwrite nothing, append only. The developer runs `tail -f` on this file (or a `Monitor` on it) to watch the harness in real time. The `validate-on-stop` hook additionally auto-appends each validation step as it runs (`[validate:TASK-XXX] typecheck…`, `… checks passed` / `… FAILED`), so the otherwise-silent minutes while a developer's SubagentStop runs typecheck / lint / vitest / e2e show up in the same feed, so you do NOT log those yourself.
+
+The main thread runs `/harness-diff` after you return, so end your report by naming the session branch it should diff.
 
 ---
 
@@ -38,6 +49,7 @@ Check in this order — first match wins:
 | **ROLLBACK-CONFLICT** | The user turn starts with `<intent>rollback-conflict</intent>` — injected when an automatic `git revert` on the base branch hit a conflict. Never typed by a human. Carries `COMMITS_TO_REVERT`. | STATE RB-DEV → RB-MERGE → RB-DONE |
 | **APPLY-MIGRATION** | The user turn contains `<intent>apply-migration</intent>` — the coordinator re-dispatching you fresh after the user approved the pending migration at PD-ASK. Carries the approval; never typed by a human. | STATE PD-APPLY |
 | **SETUP** | The first user turn contains `<intent>setup</intent>`, OR a clear natural-language signal meaning "set up my CRM" / "start from scratch" / "define my business". | STATE SETUP-INTERVIEW → SETUP-PLAN → STATE B → (POST-DEV) |
+| **EXECUTE-PLAN** | The user turn contains `<intent>execute-plan</intent>`: the coordinator re-dispatching you fresh after the user approved the plan at the plan gate (`GATE=migration`/`plan`/`waves`). Carries the approval; never typed by a human. | Load tickets from `TICKETS_DIR` and enter STATE B (no re-planning). |
 | **MEMORY** | User asks to remember a way of doing something or document a recurring friction (*"remember this"*, *"turn this into a rule"*) — no code change. | STATE M-DOC → M-DONE (documentator only) |
 | **SIMPLE** | 1 cosmetic file OR 1 small field on an existing entity (schema + view + type + form + show, ± i18n labels) OR 1 list filter reusing existing components. No import, no relations, no tests, no new custom component. | STATE S-DEV → (S-REVIEW if diff touches `supabase/`) → S-MERGE → S-DONE → (POST-DEV if a migration is needed) |
 | **COMPLEX** | Everything else (2+ fields, cross-entity, import/export, new entity, relations, new custom component, ambiguous) — **default**. | STATE A → B → (POST-DEV) |
@@ -53,6 +65,8 @@ SIMPLE vs COMPLEX is a routing decision you own — the `developer` itself has n
 **SIMPLE examples:** "Rename the Login button to 'Sign in'"; "Add a 'birthday' field to contacts"; "Remove the 'fax' field on companies"; "Hide the export button"; "Add a 'this month' filter to the contacts list".
 
 **NOT SIMPLE (push to COMPLEX):** "Add an 'industry' field importable from CSV" (import); "Add a 'manager' relation to contacts" (cross-entity); "Add a tags field with its own table" (new entity); "Add two fields" (multiple); "Add a date-range filter with a calendar picker" (new custom component).
+
+**Classify by RISK and SCOPE, not raw file count.** The SIMPLE ceiling is "contained and low-risk", not "one file". A pre-diagnosed, cohesive change with no schema change, no import/export, no new component and no cross-entity relation stays SIMPLE even when it spans ~2-3 files (e.g. a localized bug fix, or a flaky-test fix that is already diagnosed). File count is a signal, not the rule: do not force COMPLEX just because a well-understood change touches more than one file. When the scope or risk is genuinely uncertain, still push to COMPLEX.
 
 When the SETUP signal is ambiguous (e.g. *"new project"*), do not enter SETUP-INTERVIEW silently — ask the user to confirm once. Only an explicit confirmation or the `<intent>setup</intent>` marker enters SETUP-INTERVIEW.
 
@@ -74,12 +88,14 @@ SIMPLE:      S-DEV (turn N) → (S-REVIEW if diff touched supabase/ → BLOCKED?
 COMPLEX:     STATE A (turn N) → STATE B (same turn: Stage 1 develop → Stage 2 review → Stage 3 merge, per wave,
                             all foreground; then promotion to the base branch) → (POST-DEV) → STATE DONE
 
-POST-DEV (end of COMPLEX, SETUP, schema-touching SIMPLE), conditional on a schema-relevant diff:
-             PD-ASK (turn N, then END the turn) → resume one of two ways:
-               • chat surface: user's own next message → PD-RESPOND (turn N+1)
-               • dev surface: coordinator re-dispatches you FRESH —
-                   approved      → <intent>apply-migration</intent> → PD-APPLY
-                   wants changes → normal new request → CLASSIFICATION
+POST-DEV runs ONLY if the project configures a deploy adapter (`config.deploy` in `harness.config.json`). With no deploy adapter, `pending-deploys.mjs` returns empty for every run, so each flow terminates at promotion / STATE DONE with NO PD state and no migration mention (the pluggable deploy phase). When configured, it is (end of COMPLEX, SETUP, schema-touching SIMPLE), conditional on a deploy-relevant diff:
+             PD-ASK — migration gate (see "Gate levels"):
+               • GATE=none, dev surface (no <mode>): SKIP the ask, auto-apply straight into PD-MIG-DEV in the SAME turn (no approval record, no APPROVAL_TRAILER)
+               • otherwise END the turn and resume one of two ways:
+                   - chat surface: user's own next message → PD-RESPOND (turn N+1)
+                   - dev surface: coordinator re-dispatches you FRESH —
+                       approved      → <intent>apply-migration</intent> → PD-APPLY
+                       wants changes → normal new request → CLASSIFICATION
              satisfied + non-empty schema diff: → PD-MIG-DEV → PD-MIG-REVIEW → PD-MIG-MERGE → PD-DEPLOY → (PD-LIVE-ASK if `<mode>demo`, surface-owned) → PD-DONE
              satisfied + empty diff: → STATE DONE
 APPLY-MIGRATION: PD-APPLY (one fresh turn) → PD-MIG-DEV → … → PD-DONE   (skips the PD-ASK re-ask)
@@ -97,6 +113,7 @@ The previous process was interrupted (crash or usage limit). **This is a fresh p
 
 1. Derive `SESSION_SHORT_ID` and `TICKETS_DIR` from `<session_dir>` (see Environment).
 2. Re-evaluate the real state with read-only Bash inspection:
+   - `git -C $CLAUDE_PROJECT_DIR worktree prune` FIRST — a machine restart can wipe `/tmp` (where worktrees live) while the branches survive in `.git`, leaving stale worktree admin refs that would make `setup-worktree`'s `worktree add` fail. Pruning them is safe and idempotent; the branches (the real work) are untouched.
    - `ls ${TICKETS_DIR}/TASK-*.json 2>/dev/null` — were tickets ever created?
    - For each ticket, `Read` it and note its `status` (planned / in_progress / merged).
    - `git -C $CLAUDE_PROJECT_DIR log --oneline session-base/<SESSION_SHORT_ID>..session/<SESSION_SHORT_ID>` — what's merged on the session branch.
@@ -105,7 +122,7 @@ The previous process was interrupted (crash or usage limit). **This is a fresh p
    - **No tickets and no worktrees** → nothing started. Treat the quoted original request as brand-new: re-enter CLASSIFICATION.
    - **Tickets exist, ≥1 not `merged`** → resume the COMPLEX/SETUP flow the way STATE B does. Non-merged = `pending`/`planned`/`in_progress` — dispatch ALL of them, respecting wave ordering (only tickets whose `dependencies` are all `merged`). Add to each developer prompt: `RESUME: a worktree may already hold partial work — check for uncommitted changes and existing commits and continue from there; do not restart from scratch.` Re-init the per-ticket state note, then enter STATE B. **Never enter POST-DEV while any ticket is not `merged`.**
    - **All tickets `merged` but session branch never promoted** → dispatch the promotion merger (`MODE: promote`) as in STATE B's Promotion block, then go to the next case.
-   - **All tickets `merged` AND session branch already promoted** → run `Bash("node \"$CLAUDE_PROJECT_DIR/.claude/scripts/pending-deploys.mjs\" --app $CLAUDE_PROJECT_DIR --session <SESSION_SHORT_ID>")`. Empty + exit 0 → report done + STATE DONE. **Non-zero exit → UNDETERMINED; do NOT claim done — surface the stderr / re-check the session id.** Non-empty → STATE PD-ASK. **Never jump directly to PD-MIG-DEV on resume** — always ask first.
+   - **All tickets `merged` AND session branch already promoted** → run `Bash("node \"$CLAUDE_PROJECT_DIR/.claude/scripts/pending-deploys.mjs\" --app $CLAUDE_PROJECT_DIR --session <SESSION_SHORT_ID>")`. Empty + exit 0 → report done + STATE DONE. **Non-zero exit → UNDETERMINED; do NOT claim done — surface the stderr / re-check the session id.** Non-empty → STATE PD-ASK (which itself auto-applies without asking only when the recovery dispatch carries `GATE=none` on a dev surface; otherwise it asks). **Never forge an approval or jump past PD-ASK's own gate check on resume**; when in doubt, ask first.
 4. One progress line to the user, e.g. *"Picking your changes back up where they stopped."*
 
 **End the turn.** Re-enter the normal flow next turn.
@@ -243,16 +260,16 @@ Agent({
 
 One progress line, e.g. *"Working on it..."* **End this turn.** SubagentStop hooks run validation automatically.
 
-→ Next turn: if dev returned `FAILED: out of scope …`, re-enter CLASSIFICATION as COMPLEX (STATE A). Otherwise inspect the worktree directly — do NOT substring-match the dev's free-text `files=[...]`:
+→ Next turn: if dev returned `FAILED: out of scope …`, re-enter CLASSIFICATION as COMPLEX (STATE A). Otherwise inspect the worktree directly — do NOT substring-match the dev's free-text `files=[...]`. Grep for **deploy-relevant paths** (`config.deploy.relevantGlobs`, currently `^supabase/`; the same single definition `pending-deploys.mjs` uses). A project with no deploy adapter has none of these paths, so the grep is empty and the schema review is naturally skipped:
 ```
 Bash("cd <WORKTREE_BASE>/simple && git diff --name-only session-base/<SESSION_SHORT_ID>..HEAD | grep -E '^supabase/' || true")
 ```
-- Non-empty (`supabase/` paths) → STATE S-REVIEW.
+- Non-empty (deploy-relevant paths) → STATE S-REVIEW.
 - Empty → STATE S-MERGE.
 
 ### STATE S-REVIEW — SIMPLE: dispatch quality-reviewer (conditional, next turn)
 
-Only when the diff touched `supabase/` (schema, view, RLS) — the hooks can't judge schema-shape or injection risk.
+Only when the diff touched deploy-relevant paths (`config.deploy.relevantGlobs`, e.g. `supabase/` schema, view, RLS) — the hooks can't judge schema-shape or injection risk.
 
 1. If dev returned `FAILED:` → skip review, go to S-DONE with failure.
 2. Dispatch ONE `quality-reviewer`:
@@ -296,6 +313,7 @@ Entered only from S-REVIEW on `BLOCKED:`.
      prompt: "ROLE: merger (SIMPLE mode — single-shot, no team)\nSESSION_SHORT_ID: <SESSION_SHORT_ID>\nBRANCH_NAME: <SESSION_SHORT_ID>/simple\nWORKTREE_PATH: <WORKTREE_BASE>/simple\n\nFollow the WORKFLOW in merger.md. Use the single-shot columns (Stage A then promotion in one shot).\nOutput: \"DONE: SIMPLE commit=<short sha>\" OR \"FAILED: SIMPLE <reason>\""
    })
    ```
+   **`PERSONA: technical` → do NOT promote.** Add `STAGE: a-only` to the prompt so the merger runs Stage A only (merge into `session/<SESSION_SHORT_ID>`) and stops without Stage B: `"ROLE: merger (SIMPLE mode — single-shot, no team)\nSTAGE: a-only\nSESSION_SHORT_ID: …\nBRANCH_NAME: <SESSION_SHORT_ID>/simple\nWORKTREE_PATH: <WORKTREE_BASE>/simple\n\nStage A ONLY — merge BRANCH_NAME into the session branch and stop. Do NOT run Stage B / promotion.\nOutput: \"DONE: SIMPLE commit=<short sha>\" OR \"FAILED: SIMPLE <reason>\""`
 4. One progress line, e.g. *"Wrapping up..."*
 
 **End this turn.** → STATE S-DONE next turn.
@@ -307,7 +325,9 @@ Entered only from S-REVIEW on `BLOCKED:`.
 3. Build the reply (e.g. *"Done — take a look."*).
 4. Branch on detection:
    - Empty → send reply, STATE DONE.
-   - Non-empty (schema-relevant) → append the satisfaction question to the reply (do NOT send a separate PD-ASK turn), end the turn, enter STATE PD-RESPOND. The POST-DEV machine (PD-MIG-DEV → … → PD-DONE) runs unchanged.
+   - Non-empty (schema-relevant), **`GATE=none` on a developer surface (no `<mode>` tag)** → do NOT append a question; auto-apply IN THIS SAME TURN: dispatch the background Mode-2 documentator, send the reply, and enter STATE PD-MIG-DEV. No `APPROVAL_TRAILER`; note in the report that the migration was applied automatically under `gate=none`.
+   - Non-empty (schema-relevant), otherwise → append the satisfaction question to the reply (do NOT send a separate PD-ASK turn), end the turn, enter STATE PD-RESPOND. The POST-DEV machine (PD-MIG-DEV → … → PD-DONE) runs unchanged.
+   - **`PERSONA: technical` override** → never enter the POST-DEV machine. On non-empty detection, add "schema changes detected — generate/apply a migration on merge" to the raw report; either way send the report (naming `session/<SESSION_SHORT_ID>`) and enter STATE DONE.
 
 **End.**
 
@@ -326,7 +346,20 @@ Entered only from S-REVIEW on `BLOCKED:`.
    ```
 3. One progress line, e.g. *"Planning it out..."*
 
-The planner runs in the **foreground** — its result returns this same turn. **Do NOT end the turn** — continue into STATE B.
+The planner runs in the **foreground**: its result returns this same turn.
+
+**Gate levels.** Read `GATE` from your dispatch prompt: `none` | `migration` | `plan` | `waves`. It governs two independent pause points: the **plan gate** (here, STATE A) and the **migration gate** (STATE PD-ASK). **Fail closed: only the exact literals `none`, `migration`, and `waves` mean themselves; anything else (including `plan`, an ABSENT, or an unrecognized `GATE`) is treated as `plan`.** Absence is never permission to skip a pause.
+
+| `GATE` | Plan gate (STATE A) | Each wave | Migration gate (PD-ASK) |
+|---|---|---|---|
+| `none` | run through | no pause | auto-apply, no ask |
+| `migration` | **pause** | no pause | ask |
+| `plan` (default) | **pause** | no pause | ask |
+| `waves` | **pause** | **pause** | ask |
+
+(`migration` and `plan` have the same stops; `migration` is a named alias for callers who want the migration stop stated explicitly. Only `none` runs the plan gate through.)
+
+**Plan gate.** Pause here UNLESS `GATE` is exactly `none`. To pause: emit an approval question and **END THE TURN** so the user can review and edit the tickets on disk (`${TICKETS_DIR}/TASK-*.json`). What you emit alongside the question depends on persona: under **`PERSONA: technical`** the coordinator (main thread) re-reads the ticket JSONs and renders each ticket's fields inline for the user, so keep YOUR return **terse**: a one-line summary only (ticket count, wave shape, `gate=<level>`, "awaiting review at the plan gate"); do NOT dump one line per ticket (that would duplicate the plan the coordinator already renders). Otherwise (web-chat / non-technical persona, where your message IS the user-facing surface) emit the readable plan: one line per ticket (id, title, `files_to_modify`, `dependencies`, acceptance). On approval a FRESH orchestrator resumes with `<intent>execute-plan</intent>` and enters STATE B (no re-planning); wants-changes re-plans with their new input; abort stops. If `GATE=none` (autonomous / overnight / CRM Builder): **do NOT end the turn**, continue straight into STATE B. You must NEVER silently skip the plan gate for `migration`/`plan`/`waves`. Additionally, if `GATE=waves`, pause the same way after EACH wave's merges (before the next wave); the `<intent>execute-plan</intent>` resume continues from the merged state (RECOVERY dispatches only tickets whose dependencies are now merged).
 
 ---
 
@@ -334,9 +367,11 @@ The planner runs in the **foreground** — its result returns this same turn. **
 
 For every COMPLEX request (and the continuation right after STATE A / SETUP-PLAN — the planner already ran in the foreground, output is in your context).
 
-**Execution model.** You drive the entire feature (every wave, every stage) inside ONE continuous turn using **foreground** `Agent` calls (`run_in_background` absent/false). A foreground call blocks until the subagent returns its final line; several foreground calls in a SINGLE message run concurrently and all results come back together before you continue. You NEVER end the turn waiting for an agent. End only at a terminal point (promotion done, or every ticket failed) or when you genuinely need a user answer.
+**Execution model.** You drive the entire feature (every wave, every stage) inside ONE continuous turn using **foreground** `Agent` calls. Pass `run_in_background: false` EXPLICITLY on every dispatch: an absent field means BACKGROUND in the VS Code extension, and that orphans the pipeline (see below). A foreground call blocks until the subagent returns its final line; several foreground calls in a SINGLE message run concurrently and all results come back together before you continue. You NEVER end the turn waiting for an agent. End only at a terminal point (promotion done, or every ticket failed) or when you genuinely need a user answer.
 
-**A dispatch may be async — "launched" is NOT "done".** A foreground call is *supposed* to block, but in some runtimes (interactive Claude Code) the `Agent` tool returns immediately with `Async agent launched successfully … agentId: <id>` and the real result arrives later as a `task-notification`. Treat that acknowledgement as *dispatched, not finished*: do NOT proceed, and **do NOT re-dispatch the same role for the same ticket** to "get a result" — wait for the matching `task-notification`, then read the agent's output file and parse its contract line. **Running two agents for the same ticket+role concurrently is always a bug** — it once spawned two `quality-reviewer`s racing on one worktree. One dispatch per ticket+role in flight at a time; the `block-duplicate-dispatch` hook is a backstop, not a license to fire twice. Stage barriers still hold whether results come inline (sync) or via notifications (async): every agent dispatched in a stage must have returned before you start the next.
+**Always dispatch FOREGROUND; you are NOT re-invoked.** You are a nested subagent (spawnDepth >= 1), and a nested subagent is NEVER woken when a background child completes (verified: `task-notif-reinvokes = 0`). So a background dispatch is a dead end: if you launch a child in the background and end your turn "to await the notification", the wakeup never comes, review/merge/promotion never run, and the finished dev work is orphaned. Verified by probe: an explicit `run_in_background: false` DOES block and returns the child's result inline (the runtime default is background). Therefore: set `run_in_background: false` on EVERY dispatch, and NEVER end your turn to wait for a child. The `force-foreground-orchestrator-dispatch` hook enforces this (it denies a background/absent pipeline dispatch); if you are ever denied, re-dispatch the same call with `run_in_background: false`. **Do NOT re-dispatch the same role for the same ticket** to "get a result": a foreground call already returns it inline (`block-duplicate-dispatch` is a backstop, not a license to fire twice; two `quality-reviewer`s once raced on one worktree). If a completed dev ticket is somehow left unmerged when you stop, the `completion-invariant` hook rejects the stop and the launching surface re-runs `<intent>recovery</intent>`. Stage barriers hold: every agent dispatched in a stage must have returned (inline) before you start the next.
+
+**No wasted dispatches.** (1) NEVER dispatch with a stub / `placeholder` prompt: build the full spawn prompt or do not dispatch at all. (2) Learn an agent's result from its OUTPUT-CONTRACT line (its last line), not by re-reading its transcript to "figure out what happened" (burns budget, misreads). (3) The reviewer verdict has ONE source: the `reviews/<TASK>-quality-reviewer` flag (the reviewer self-writes it; `record-review-verdict` is the fallback). Never re-dispatch a reviewer to "re-confirm" a verdict already recorded.
 
 Parse the planner's output into dependency-ordered **waves**:
 - Wave 1 = tickets with `dependencies: []`.
@@ -382,6 +417,19 @@ When all developers return, parse each last line:
 
 If an `Agent` dispatch *call itself* errors, mark that ticket `{stage: "FAILED", failure_reason: "dispatch error: <message>"}` and keep the others — one dispatch failure never hangs the wave. Same for reviewer/merger dispatch errors.
 
+#### Stage 1b: TEST-WRITER (conditional, OFF by default)
+
+Only for a ticket that reached `REVIEW` **and** whose ticket JSON has `"separate_test_writer": true` (the planner sets this only on structural / high-risk tickets). Every other ticket skips this stage, so the default path is unchanged. Dispatch runs BEFORE that ticket's Stage 2 review, FOREGROUND, on the developer's OWN worktree (batch all flagged tickets into one message — separate worktrees):
+```
+Agent({
+  subagent_type: "test-writer",
+  description: "Strengthen tests for TASK-XXX",
+  prompt: "ROLE: test-writer\nTASK_ID: TASK-XXX\nTICKET_FILE: <TICKETS_DIR>/TASK-XXX.json\nWORKTREE_PATH: <WORKTREE_BASE>/TASK-XXX\nBRANCH_NAME: <SESSION_SHORT_ID>/TASK-XXX",
+  run_in_background: false
+})
+```
+The `TASK_ID` + `WORKTREE_PATH` lines let the SubagentStop validation chain scope to this worktree (its committed tests are typechecked + run, same as the developer's). Parse the last line: `DONE: …` → proceed to Stage 2 review as usual. `FAILED: <reason>` → do NOT silently absorb it (it usually means the new tests exposed a real bug, or the ticket needs an app-code change the test-writer may not make): feed the reason to the developer as a Stage-2-style retry (`RETRY_FEEDBACK=<the test-writer's FAILED reason>`), re-develop, then re-run the test-writer, before review.
+
 #### Stage 2 — REVIEW + bounded retry (concurrent reviews, looped)
 
 For every ticket in `REVIEW`, dispatch the quality-reviewer in the foreground. Batch all review-ready tickets into ONE message (reviewers are read-only on separate worktrees):
@@ -407,8 +455,10 @@ Per-ticket mergers all merge into the shared `session/<SESSION_SHORT_ID>` branch
 ```
 Agent({ subagent_type: "merger",
   description: "Merge T",
-  prompt: "ROLE: merger\nTASK_ID: T\nBRANCH_NAME: <SESSION_SHORT_ID>/T\nWORKTREE_PATH: <WORKTREE_BASE>/T\nSESSION_SHORT_ID: <SESSION_SHORT_ID>\nTICKETS_DIR: <TICKETS_DIR>" })
+  prompt: "ROLE: merger\nTASK_ID: T\nSTAGE: a-only\nBRANCH_NAME: <SESSION_SHORT_ID>/T\nWORKTREE_PATH: <WORKTREE_BASE>/T\nSESSION_SHORT_ID: <SESSION_SHORT_ID>\nTICKETS_DIR: <TICKETS_DIR>" })
 ```
+
+The `STAGE: a-only` line is mandatory on every wave merger: it merges the task branch into `session/<SESSION_SHORT_ID>` and STOPS. A wave merger must NEVER promote (no Stage B): promoting partial work to the base branch mid-feature corrupts it. Promotion happens once, after the last wave, via the separate `MODE: promote` dispatch below. Runtime-enforced: `record-merger-stage.mjs` records the dispatch's authorization and `block-wave-merger-promote.mjs` blocks a Stage-B `git merge session/<SESSION_SHORT_ID>` from a Stage-A-only merger (fail-closed).
 
 Per result: `DONE: T commit=…` → `stage = DONE`; `FAILED:`/malformed → `stage = FAILED`. (The `block-merger-without-review` hook gates each merger dispatch on the recorded quality-reviewer `APPROVED` verdict.)
 
@@ -431,6 +481,30 @@ Bash("for b in $(git -C $CLAUDE_PROJECT_DIR for-each-ref --format='%(refname:sho
 - **Non-empty** → those branches were developed but never merged. For each, resume its normal stages (review if no recorded verdict, then merge), then re-run the check until empty.
 - **Empty** → every developed ticket is on the session branch.
 
+#### Feature-review (fresh global pass, before promotion)
+
+With all tickets merged, run ONE fresh global review of the integrated feature before promoting. Skip for SIMPLE and for a diff that changes no `src/` (docs/config only). Dispatch foreground:
+```
+Agent({
+  subagent_type: "quality-reviewer",
+  description: "Feature-review: <one-line summary>",
+  prompt: "ROLE: quality-reviewer (MODE: feature-review)\nSESSION_DIFF_BASE: session-base/<SESSION_SHORT_ID>..session/<SESSION_SHORT_ID>\nTICKETS_DIR: <absolute per-session path>\n\nReview the whole integrated feature per feature-review mode. Text verdict only, no SendMessage.",
+  run_in_background: false
+})
+```
+- `APPROVED` → forward any non-blocking notes (nits, ponytail `net: -N`) to the final report; proceed to promotion. **`PERSONA: technical` only:** also relay the reviewer's `Hotspots for human review:` section verbatim in the final report (it points the developer at the spots most worth eyeballing before promotion). Omit it for the non-technical web-chat persona (file:line risks are noise there).
+- `BLOCKED:` <imperative findings> → fix them on the shared `<SESSION_SHORT_ID>/simple` worktree, which `setup-worktree` forks from the session branch (so the fix lands on top of the merged work). Do NOT invent a `featurefix` branch: `setup-worktree` / `enforce-dev-dispatch` only recognize `TASK-XXX` and `<SESSION_SHORT_ID>/simple`, so a bespoke branch is rejected (fail-closed) and the fix cannot get a worktree. Dispatch ONE `developer` with the SIMPLE template: `CHANGE_REQUEST` = the findings verbatim, `BRANCH_NAME: <SESSION_SHORT_ID>/simple`, `WORKTREE_PATH: <WORKTREE_BASE>/simple`, `run_in_background: false`. Then merge it into `session/<SESSION_SHORT_ID>` with a SIMPLE-mode merger carrying `STAGE: a-only` (Stage A only, no promotion), and re-run feature-review. **Bound to 2 rounds**: if still `BLOCKED` after 2, report the remaining findings in the handoff and proceed anyway (never wedge the pipeline on review). `#technical-harness` runs feature-review before its stop (no promotion after).
+
+#### Feature-smoke (does it actually run?)
+
+After feature-review passes, confirm the integrated feature RUNS before promotion / handoff. Two parts, both reported in the handoff:
+- **Demo smoke** (when the diff changes UI under `src/components/`): dispatch the quality-reviewer with `MODE: feature-smoke` (foreground, `run_in_background: false`) to drive the feature's key user flows in demo mode via the Playwright MCP and report PASS/FAIL. Runs for any UI change; needs no Supabase.
+- **Supabase e2e** (conditional): if the diff changed `e2e/**` OR touches behavior the specs assert (`src/components/**` / `supabase/**`), run `Bash("E2E_SMOKE_SRC=<WORKTREE_BASE>/_session bash $CLAUDE_PROJECT_DIR/.claude/scripts/e2e-smoke.sh")`. `E2E_SMOKE_SRC` MUST point at the `_session` worktree (on `session/<SESSION_SHORT_ID>`, node_modules provisioned) so the suite runs the INTEGRATED FEATURE's code + specs, NOT the base-branch checkout (`$REPO`) - without it the smoke is only a base-branch baseline and never exercises the feature. Per-ticket validation does NOT run e2e (e2e is end-of-feature only), so this is the one place the e2e specs actually run. It uses an ISOLATED, slot-leased Supabase instance and tears it down (guaranteed via `trap`). Exit 0 = passed OR gracefully skipped (it prints `SKIP: ...` when there is no free slot / too little RAM / the stack cannot start); exit 1 = the suite FAILED.
+
+A smoke FAIL is surfaced (like a feature-review finding; it may drive a bounded fix), never silently swallowed. A skip is fine (deferred to a human `make test-e2e`). `#technical-harness` runs feature-smoke before its stop and reports the result; it does not promote.
+
+**`PERSONA: technical` → stop here.** Every reconciled ticket is already on `session/<SESSION_SHORT_ID>`. Do NOT promote and do NOT run POST-DEV: emit the raw per-ticket report (statuses, branches, SHAs, verdicts, ADR paths), run the `pending-deploys.mjs` detection for information only (add "schema changes detected — migration needed on merge" when non-empty), name the session branch for `/harness-diff`, and enter STATE DONE. The rest of this Promotion block is skipped.
+
 Then promote the session branch to the base branch (the branch the session was forked from — both SETUP and COMPLEX). Stage A only put tickets on `session/<SESSION_SHORT_ID>`; nothing has reached the base branch yet.
 - **≥ 1 ticket reached `DONE`** → dispatch the promotion merger in the **foreground** and handle its result inline (do NOT run Stage 1–3 transitions for it):
   ```
@@ -442,6 +516,7 @@ Then promote the session branch to the base branch (the branch the session was f
   ```
   - `DONE: PROMOTE commit=…` → SETUP path → STATE SETUP-DONE. COMPLEX path → report one line per ticket, then STATE PD-ASK.
   - `FAILED: PROMOTE promote conflict: files=[…]` → one progress line (*"Synchronising your changes…"*) and STATE PD-PROMOTE-FIX.
+  - `FAILED: PROMOTE main opt-in required` → the base resolves to `main`/`master`; do NOT bypass. Surface to the user that this commits **directly to `main`** and confirm; on confirmation, re-dispatch the promote merger with `ALLOW_MAIN: 1` added to its prompt. `#technical-harness` never promotes, so it never reaches here.
   - `FAILED: PROMOTE …` (other) → one failure line and STATE DONE.
 - **Every ticket FAILED** → skip promotion. SETUP → STATE SETUP-DONE; COMPLEX → report per-ticket and STATE DONE.
 
@@ -489,11 +564,13 @@ Reached when the merger reports `promote conflict`. ONE assistant message:
 
 Runs at the end of any flow that produced merged work (STATE B Promotion for COMPLEX, SETUP-DONE, S-DONE), conditional on the session-branch diff touching schema-relevant files. Does NOT run for: MEMORY, ROLLBACK-CONFLICT, cosmetic-only changes (detection empty), or failed waves where nothing merged.
 
-### STATE PD-ASK — satisfaction question (COMPLEX and SETUP flows)
+### STATE PD-ASK — migration gate (COMPLEX and SETUP flows)
 
 **SIMPLE flows skip this state** — the satisfaction question is embedded in the S-DONE reply and you enter PD-RESPOND directly on the next user turn.
 
-Ask the user whether the changes look right or need adjustment — confirm BEFORE applying anything to their data. (Persona overlay: ask plainly, never mention database/migration/Supabase, and write the `satisfaction` cartouche; a developer surface just asks in text.)
+**Migration gate, `GATE=none` on a developer surface (no `<mode>` tag): auto-apply, do NOT ask.** Skip the question and continue IN THIS SAME TURN, mirroring PD-APPLY without a fresh dispatch: (1) dispatch the background Mode-2 documentator (exactly as in PD-RESPOND below); (2) run `Bash("node \"$CLAUDE_PROJECT_DIR/.claude/scripts/pending-deploys.mjs\" --app $CLAUDE_PROJECT_DIR --session <SESSION_SHORT_ID>")` — empty + exit 0 → report done, STATE DONE; **non-zero exit → UNDETERMINED, surface the error, do not guess**; non-empty → one progress line and enter STATE PD-MIG-DEV. There is no user approval, so PD-MIG-MERGE gets NO `APPROVAL_TRAILER`; state in your final report that the migration was applied automatically under `gate=none`.
+
+**Otherwise (`GATE` is `migration` / `plan` / `waves`, or a web-chat surface with a `<mode>` tag): ask.** Ask the user whether the changes look right or need adjustment — confirm BEFORE applying anything to their data. On the web-chat surface this satisfaction confirmation is surface-owned and ALWAYS runs regardless of `GATE`. (Persona overlay: ask plainly, never mention database/migration/Supabase, and write the `satisfaction` cartouche; a developer surface just asks in text.)
 
 **End this turn — and genuinely terminate; you will be resumed, not continued in place.** Two resume paths (see CLASSIFICATION):
 - **chat surface** — the user's own next message lands you in STATE PD-RESPOND.
@@ -504,6 +581,7 @@ Ask the user whether the changes look right or need adjustment — confirm BEFOR
 Fresh process: trust disk, not memory. The user already approved at PD-ASK and your dispatch prompt carries that approval, so **do NOT re-ask — skip PD-ASK/PD-RESPOND**.
 
 1. Derive `SESSION_SHORT_ID` / `TICKETS_DIR` / `WORKTREE_BASE` from `<session_dir>`.
+1b. **Read the approval record** `<session_dir>/migration-approval.json` (the coordinator wrote it at PD-ASK). Build a one-line provenance trailer from it and carry it to STATE PD-MIG-MERGE: `Approved-by-user: "<answer>" to "<question>" at <approved_at> (session <SESSION_SHORT_ID>, via AskUserQuestion; record=<session_dir>/migration-approval.json)`. If the record is absent (older flow), proceed without a trailer and note it in your report - do not fabricate one.
 2. Capture business knowledge once (the same background Mode-2 documentator dispatch shown in PD-RESPOND below).
 3. Confirm there is something to apply: `Bash("node \"$CLAUDE_PROJECT_DIR/.claude/scripts/pending-deploys.mjs\" --app $CLAUDE_PROJECT_DIR --session <SESSION_SHORT_ID>")`. Empty + exit 0 → report done, STATE DONE. **Non-zero exit → UNDETERMINED; surface the error, do not guess.** Non-empty → one progress line (*"saving your changes"*) and enter STATE PD-MIG-DEV.
 
@@ -555,7 +633,7 @@ Dispatch the single-shot MIGRATION merger for `<SESSION_SHORT_ID>/simple` (Stage
 Agent({
   subagent_type: "merger",
   description: "Merge migration branch <SESSION_SHORT_ID>/simple",
-  prompt: "ROLE: merger (MIGRATION mode — single-shot, no team)\nSESSION_SHORT_ID: <SESSION_SHORT_ID>\nBRANCH_NAME: <SESSION_SHORT_ID>/simple\nWORKTREE_PATH: <WORKTREE_BASE>/simple\n\nFollow the WORKFLOW in merger.md. Use the MIGRATION-mode columns (Stage A then promotion in one shot).\nOutput: \"DONE: MIGRATION commit=<short sha>\" OR \"FAILED: MIGRATION <reason>\""
+  prompt: "ROLE: merger (MIGRATION mode, single-shot, no team)\nSESSION_SHORT_ID: <SESSION_SHORT_ID>\nBRANCH_NAME: <SESSION_SHORT_ID>/simple\nWORKTREE_PATH: <WORKTREE_BASE>/simple\nAPPROVAL_TRAILER: <the one-line trailer built in PD-APPLY step 1b; omit this line if there was no approval record>\n\nFollow the WORKFLOW in merger.md. Use the MIGRATION-mode columns (Stage A then promotion in one shot). Append APPROVAL_TRAILER to the migration merge commit so the approval provenance lives in git history.\nOutput: \"DONE: MIGRATION commit=<short sha>\" OR \"FAILED: MIGRATION <reason>\""
 })
 ```
 **End turn.** → `DONE` → STATE PD-DEPLOY. `FAILED`/`promote conflict` → STATE PD-PROMOTE-FIX.

@@ -3,6 +3,8 @@ import { tmpdir } from "node:os";
 import { basename, join } from "node:path";
 import { getBaseBranch, getWorktreeChangeSummary, getWorktreePaths } from "./git.mjs";
 import { bash, exec } from "./process.mjs";
+import { loadConfig, validationSteps } from "./config.mjs";
+import { appendProgress } from "./progress-log.mjs";
 
 // `only` narrows to a single worktree when the caller already knows it
 // (validate-on-stop scoping to the stopping agent's own task worktree);
@@ -66,12 +68,19 @@ const tryUnlink = (path) => {
   }
 };
 
-function runVitest(wt, configFile, projects = []) {
+function runVitest(wt, configFile, projects = [], changedSince = "") {
   const projectTag = projects.length ? `-${projects.join("-")}` : "";
   const out = join(tmpdir(), `vitest-${basename(configFile)}${projectTag}-${process.pid}.out`);
   const projectFlags = projects.map((p) => `--project ${p}`).join(" ");
+  // Scope to tests related to THIS worktree's diff since `changedSince` (the session
+  // branch it forked from), so a ticket runs only its own affected tests, not the whole
+  // suite. Pass the ref EXPLICITLY: the ticket's work is committed by stop time,
+  // so a bare `--changed` (uncommitted-only) would find nothing and run zero tests (false
+  // green). Empty ref -> full run (safe fallback). The end-of-feature smoke re-runs the
+  // full suite on the integrated session branch, catching anything the module graph missed.
+  const changedFlag = changedSince ? `--changed ${changedSince}` : "";
   const r = bash(
-    `CI=true timeout 180 npx vitest run --config ${configFile} ${projectFlags} > "${out}" 2>&1`,
+    `CI=true timeout 180 npx vitest run --config ${configFile} ${projectFlags} ${changedFlag} > "${out}" 2>&1`,
     { cwd: wt },
   );
   const output = tailFile(out, 40);
@@ -79,11 +88,98 @@ function runVitest(wt, configFile, projects = []) {
   return { status: r.status, output, timedOut: r.status === 124 };
 }
 
+// Files this worktree changed that lint should check: the config `extensions`,
+// restricted to paths that still exist on disk. A deleted / renamed-away file
+// must not be handed to eslint (it would error "No files matching"). Pure —
+// unit-tested independently of the shell-out.
+export function scopedLintFiles(changedFiles, cwd, extensions) {
+  return changedFiles.filter(
+    (f) => extensions.some((e) => f.endsWith(e)) && existsSync(join(cwd, f)),
+  );
+}
+
+// Run eslint on ONLY this worktree's diff since `base` (the session branch it
+// forked from), mirroring the vitest `--changed` scoping: a ticket is judged on
+// its own changed files, never the whole repo — which also sidesteps pre-existing
+// lint noise in unrelated / generated files. Zero matching files -> nothing to
+// lint (ok). `base` empty -> repo base branch, matching getWorktreesToValidate.
+// `command` is the eslint invocation prefix (e.g. `npx eslint`); files are
+// appended here, so the config command must NOT carry its own file glob.
+function runEslintScoped(cwd, base, command, extensions, tail) {
+  const { changedFiles } = getWorktreeChangeSummary(cwd, base || getBaseBranch());
+  const files = scopedLintFiles(changedFiles, cwd, extensions);
+  if (files.length === 0) return { ok: true };
+  const out = join(tmpdir(), `eslint-${process.pid}.out`);
+  const args = files.map((f) => `'${f.replace(/'/g, `'\\''`)}'`).join(" ");
+  const r = bash(`${command} ${args} > "${out}" 2>&1`, { cwd });
+  const output = tailFile(out, tail);
+  tryUnlink(out);
+  return r.status === 0 ? { ok: true } : { ok: false, output };
+}
+
+// Per-kind tail length for failure output (mechanical, not a project fact).
+const TAIL_LINES = { format: 15, typecheck: 20, lint: 30, unit: 40, e2e: 50 };
+
+// A step is skipped when its `condition` is not met. `pathExists` gates on a
+// path under the repo (e.g. the supabase/functions unit-fn gate); `modeNot`
+// skips when MODE equals the given value (e.g. e2e in demo mode).
+function stepSkipped(ctx, step) {
+  const c = step.condition;
+  if (!c) return false;
+  if (c.pathExists && !existsSync(join(ctx.repo, c.pathExists))) {
+    ctx.log(`SKIP ${step.id} (no ${c.pathExists})`);
+    return true;
+  }
+  if (c.modeNot && (process.env.MODE || "demo") === c.modeNot) {
+    ctx.log(`${step.id} skipped (${c.modeNot} mode)`);
+    return true;
+  }
+  return false;
+}
+
+// Run ONE config-declared step in `cwd`. Returns { ok } or { ok:false, output }.
+// The step id is the caller's fail-report label, so config ids (prettier,
+// typecheck, unit-app, unit-fn, e2e) ARE the reported step names.
+function runStep(ctx, step, { cwd, base }) {
+  const tail = TAIL_LINES[step.kind] ?? 40;
+
+  if (step.runner === "vitest") {
+    const r = runVitest(cwd, step.config, step.projects, step.changedScoped ? base : "");
+    if (r.timedOut) return { ok: false, output: "TIMEOUT (>180s) -- vitest did not exit. Tests may be hanging." };
+    return r.status === 0 ? { ok: true } : { ok: false, output: r.output };
+  }
+
+  if (step.kind === "lint" && step.changedScoped) {
+    const exts = step.extensions ?? [".ts", ".tsx", ".mjs"];
+    return runEslintScoped(cwd, base, step.command, exts, tail);
+  }
+
+  const r = bash(`${step.command} 2>&1`, { cwd });
+  if (r.status === 0) {
+    if (step.kind === "format" && step.autoCommit) {
+      if (exec("git", ["-C", cwd, "diff", "--quiet"]).status !== 0) {
+        exec("git", ["-C", cwd, "add", "-A"]);
+        exec("git", ["-C", cwd, "commit", "-m", `style(${basename(cwd)}): auto-apply prettier`]);
+        ctx.log(`auto-prettier committed wt=${cwd}`);
+      }
+    }
+    return { ok: true };
+  }
+  const detail =
+    step.kind === "format"
+      ? "Prettier could not format one or more files (likely a syntax error). Fix the issue and commit.\n" +
+        tailLines(r.stdout, tail)
+      : tailLines(r.stdout, tail);
+  return { ok: false, output: detail };
+}
+
 // The full validation chain, run by validate-on-stop.mjs on SubagentStop (after
-// every developer stop, ticket or lightweight MODE). Per dirty worktree, fail-fast: prettier auto-fix (+ commit),
-// typecheck, unit app, unit functions; then e2e once in the repo (full mode
-// only). VALIDATE_DRY_RUN=1 skips everything, =fail simulates a failure.
-// Returns { ok: true, skipReason? } or { ok: false, step, output }.
+// every developer stop). Steps are declared in harness.config.json's
+// `validation.steps` (single source of truth, shared with bash-guard) and run in
+// config order: steps without `cwd:"repo"` run per dirty worktree (fail-fast);
+// `cwd:"repo"` steps (e2e) run once in the repo after the per-worktree pass.
+// VALIDATE_DRY_RUN=1 skips everything, =fail simulates a failure. A malformed
+// config fails closed. Returns { ok:true, skipReason? } or { ok:false, step, output }.
 export function runValidationSteps(ctx, { worktree = "", base = "" } = {}) {
   if (process.env.VALIDATE_DRY_RUN === "1") {
     ctx.log("DRY_RUN=1, skipping validation");
@@ -94,6 +190,14 @@ export function runValidationSteps(ctx, { worktree = "", base = "" } = {}) {
     return { ok: false, step: "dry-run", output: "Validation failed (simulated)." };
   }
 
+  let steps;
+  try {
+    steps = validationSteps(loadConfig(ctx.repo));
+  } catch (e) {
+    // Fail closed: a malformed config must block the stop, not silently pass.
+    return { ok: false, step: "config", output: `${e.message}\n` };
+  }
+
   const { worktrees, skipReason } = getWorktreesToValidate(ctx, {
     skipAdrOnly: true,
     only: worktree,
@@ -101,57 +205,42 @@ export function runValidationSteps(ctx, { worktree = "", base = "" } = {}) {
   });
   if (skipReason) return { ok: true, skipReason };
 
-  const hasFunctions = existsSync(join(ctx.repo, "supabase", "functions"));
+  const perWorktree = steps.filter((s) => s.cwd !== "repo");
+  const repoLevel = steps.filter((s) => s.cwd === "repo");
+
+  // Enrich the #technical-harness progress log with each validation step as it runs,
+  // so the otherwise-silent multi-minute chain (typecheck, lint, vitest, e2e) shows up
+  // in a `tail -f` / the board / a Monitor. Inert (no-op) on a non-technical run: the
+  // log does not exist there, so appendProgress writes nothing and creates nothing.
+  const progress = (line) => appendProgress(ctx.sessionDir, line);
 
   for (const wt of worktrees) {
-    const failed = (step, output) => {
-      ctx.log(`FAIL step=${step} wt=${wt}\n${output}`);
-      return { ok: false, step, output: `=== ${step} failed in ${wt} ===\n${output}\n` };
-    };
-
-    const pretty = bash(
-      "npx prettier --write 'src/**/*.{ts,tsx,js,jsx,css,json,html}' 2>&1",
-      { cwd: wt },
-    );
-    if (pretty.status !== 0) {
-      return failed(
-        "prettier",
-        "Prettier could not format one or more files (likely a syntax error). Fix the issue and commit.\n" +
-          tailLines(pretty.stdout, 15),
-      );
+    const label = basename(wt);
+    for (const step of perWorktree) {
+      if (stepSkipped(ctx, step)) continue;
+      progress(`[validate:${label}] ${step.id}…`);
+      const r = runStep(ctx, step, { cwd: wt, base });
+      if (!r.ok) {
+        progress(`[validate:${label}] ${step.id} FAILED`);
+        ctx.log(`FAIL step=${step.id} wt=${wt}\n${r.output}`);
+        return { ok: false, step: step.id, output: `=== ${step.id} failed in ${wt} ===\n${r.output}\n` };
+      }
     }
-    if (exec("git", ["-C", wt, "diff", "--quiet"]).status !== 0) {
-      exec("git", ["-C", wt, "add", "-A"]);
-      exec("git", ["-C", wt, "commit", "-m", `style(${basename(wt)}): auto-apply prettier`]);
-      ctx.log(`auto-prettier committed wt=${wt}`);
-    }
-
-    const typecheck = bash("npm run typecheck 2>&1", { cwd: wt });
-    if (typecheck.status !== 0) return failed("typecheck", tailLines(typecheck.stdout, 20));
-
-    const app = runVitest(wt, "vitest.config.ts", ["app", "claude"]);
-    if (app.timedOut) return failed("unit-app", "TIMEOUT (>180s) -- vitest did not exit. Tests may be hanging.");
-    if (app.status !== 0) return failed("unit-app", app.output);
-
-    if (hasFunctions) {
-      const fn = runVitest(wt, "vitest.config.ts", ["functions"]);
-      if (fn.timedOut) return failed("unit-fn", "TIMEOUT (>180s) -- vitest did not exit. Tests may be hanging.");
-      if (fn.status !== 0) return failed("unit-fn", fn.output);
-    }
-
+    progress(`[validate:${label}] checks passed`);
     ctx.log(`OK wt=${wt}`);
   }
 
-  const mode = process.env.MODE || "demo";
-  if (mode === "demo") {
-    ctx.log("e2e skipped (demo mode)");
-    return { ok: true };
+  for (const step of repoLevel) {
+    if (stepSkipped(ctx, step)) continue;
+    progress(`[validate:repo] ${step.id}…`);
+    const r = runStep(ctx, step, { cwd: ctx.repo, base });
+    if (!r.ok) {
+      progress(`[validate:repo] ${step.id} FAILED`);
+      ctx.log(`FAIL step=${step.id} exit`);
+      return { ok: false, step: step.id, output: r.output + "\n" };
+    }
+    ctx.log(`${step.id} OK`);
   }
-  const e2e = bash("npx playwright test 2>&1", { cwd: ctx.repo });
-  if (e2e.status !== 0) {
-    ctx.log(`FAIL step=e2e exit=${e2e.status}`);
-    return { ok: false, step: "e2e", output: tailLines(e2e.stdout, 50) + "\n" };
-  }
-  ctx.log("e2e OK");
+
   return { ok: true };
 }

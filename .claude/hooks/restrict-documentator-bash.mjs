@@ -53,8 +53,10 @@ const WHITELIST = [
   /^ls( |$)/,
   /^wc -l( |$)/,
   /^git -C [^ ]+ add MEMORY\.md *$/,
-  /^git -C [^ ]+ -c user\.name=['"]?Documentator['"]? -c user\.email=['"]?documentator@atomic-crm\.local['"]? commit -m /,
-  /^git -C [^ ]+ -c user\.email=['"]?documentator@atomic-crm\.local['"]? -c user\.name=['"]?Documentator['"]? commit -m /,
+  // Author identity is pinned. Accept the neutral harness.local and the
+  // deprecated atomic-crm.local (kept for one release).
+  /^git -C [^ ]+ -c user\.name=['"]?Documentator['"]? -c user\.email=['"]?documentator@(harness|atomic-crm)\.local['"]? commit -m /,
+  /^git -C [^ ]+ -c user\.email=['"]?documentator@(harness|atomic-crm)\.local['"]? -c user\.name=['"]?Documentator['"]? commit -m /,
 ];
 const isWhitelisted = (cmd) => WHITELIST.some((pattern) => pattern.test(cmd));
 
@@ -63,6 +65,6 @@ if (isWhitelisted(command)) {
 }
 
 ctx.error(
-  "Bash command blocked for documentator. Allowed: git log, git show, git diff, ls, wc -l; Mode 2 only: 'git -C <repo> diff …', 'git -C <repo> log …', 'git -C <repo> add MEMORY.md', 'git -C <repo> -c user.name=Documentator -c user.email=documentator@atomic-crm.local commit -m …'. Use Read/Glob/Grep otherwise.",
+  "Bash command blocked for documentator. Allowed: git log, git show, git diff, ls, wc -l; Mode 2 only: 'git -C <repo> diff …', 'git -C <repo> log …', 'git -C <repo> add MEMORY.md', 'git -C <repo> -c user.name=Documentator -c user.email=documentator@harness.local commit -m …'. Use Read/Glob/Grep otherwise.",
 );
 process.exit(2);

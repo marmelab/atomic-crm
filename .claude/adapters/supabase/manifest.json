@@ -1,0 +1,30 @@
+{
+  "adapter": "supabase",
+  "provides": "deploy",
+  "description": "Supabase deploy adapter: the deploy-time SQL migration round. Active iff harness.config.json has a `deploy` block with adapter=supabase.",
+  "detection": {
+    "relevantGlobsFrom": "harness.config.json:deploy.relevantGlobs",
+    "pendingDeploysScript": ".claude/scripts/pending-deploys.mjs"
+  },
+  "generate": {
+    "skill": "writing-migrations",
+    "note": "developer-dispatched skill that generates SQL under supabase/migrations/ from the session-branch schema diff"
+  },
+  "apply": {
+    "script": ".claude/scripts/apply-migrations.mjs"
+  },
+  "review": {
+    "mode": "migration-review",
+    "agent": "quality-reviewer",
+    "note": "single-shot migration-review mode gates the generated SQL before merge"
+  },
+  "writeGuard": {
+    "hook": ".claude/hooks/block-migration-writes.mjs",
+    "note": "blocks migration SQL writes outside the deploy-time round"
+  },
+  "e2eSmoke": {
+    "script": ".claude/scripts/e2e-smoke.sh"
+  },
+  "locations": "in-place",
+  "note": "Files are referenced at their current discoverable locations (.claude/skills, .claude/scripts, .claude/hooks)."
+}

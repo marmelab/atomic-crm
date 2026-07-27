@@ -4,7 +4,7 @@
 // ctx.sessionDir = <TMP_ROOT>/<sanitized repo>/<session_id>, so its basename is
 // the real session id (what setup-worktree and the orchestrator also key off).
 
-import { mkdtempSync, rmSync } from "node:fs";
+import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -65,5 +65,36 @@ describe("session-bootstrap", () => {
     const r = run(undefined);
     expect(r.status).toBe(0);
     expect(r.stdout).not.toContain("<session_dir>");
+  });
+
+  test("emits no resume banner for a fresh session with no harness state", () => {
+    const r = run({ session_id: SESSION_ID });
+    expect(r.stdout).not.toContain("<harness_resume>");
+  });
+
+  test("injects a resume banner when THIS session has in-flight harness state", () => {
+    // An unmerged ticket in the session dir = an interrupted plan-gate session.
+    // Isolated app/scratch so the shared module-level dirs stay banner-free.
+    const app = mkdtempSync(join(tmpdir(), "sb-inflight-app-"));
+    const scratch = mkdtempSync(join(tmpdir(), "sb-inflight-scratch-"));
+    const sid = "beef1234-aaaa-bbbb-cccc-ddddeeeeffff";
+    const sessionDir = join(scratch, sanitizePath(app), sid);
+    mkdirSync(sessionDir, { recursive: true });
+    writeFileSync(
+      join(sessionDir, "TASK-001.json"),
+      JSON.stringify({ id: "TASK-001", status: "planned" }),
+    );
+    const r = spawnSync("node", [HOOK], {
+      input: JSON.stringify({ session_id: sid }),
+      env: { ...baseEnv, APP_DIR: app, CRM_TMP_ROOT: scratch },
+      encoding: "utf8",
+    });
+    rmSync(app, { recursive: true, force: true });
+    rmSync(scratch, { recursive: true, force: true });
+    expect(r.status).toBe(0);
+    expect(r.stdout).toContain("<harness_resume>");
+    expect(r.stdout).toContain("plan gate");
+    // The banner is appended, not a replacement: <session_dir> is still present.
+    expect(r.stdout).toContain("<session_dir>");
   });
 });

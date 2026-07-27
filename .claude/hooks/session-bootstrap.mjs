@@ -15,6 +15,7 @@
 
 import { readFileSync, mkdirSync } from "node:fs";
 import { createHookContext } from "./lib/context.mjs";
+import { detectInflight } from "./lib/session-state.mjs";
 
 // A managed launcher owns the session context — stay out of its way.
 if (process.env.CHAT_SESSION_DIR) process.exit(0);
@@ -43,11 +44,34 @@ try {
 
 ctx.log(`SESSION-BOOTSTRAP session_dir=${sessionDir}`);
 
+// Resume banner: on a RESUMED session (same id → same namespace), the previous
+// orchestrator process is gone and nothing re-launches it, so an interrupted
+// harness would otherwise sit dead. If THIS session has in-flight harness state
+// on disk/git, tell the main thread to re-dispatch a FRESH recovery orchestrator
+// (never SendMessage the dead one). Keyed only on this session id — a fresh or
+// unrelated concurrent session has no state under its id and gets no banner.
+let resume = "";
+try {
+  const { inflight, phase } = detectInflight(ctx);
+  if (inflight === true) {
+    ctx.log(`SESSION-BOOTSTRAP resume-available phase=${phase}`);
+    resume =
+      `\n<harness_resume>` +
+      `An interrupted harness session was detected for THIS session (short id \`${ctx.sessionShort}\`), paused at: ${phase}. ` +
+      `Its orchestrator process ended when the window last closed; nothing is running now. ` +
+      `To resume, dispatch a FRESH orchestrator with <intent>recovery</intent> and this same session_dir. ` +
+      `Do NOT SendMessage a previous orchestrator (it is dead). See CLAUDE.md "Resuming after a restart".` +
+      `</harness_resume>`;
+  }
+} catch {
+  // detection must never break bootstrap
+}
+
 process.stdout.write(
   JSON.stringify({
     hookSpecificOutput: {
       hookEventName: "SessionStart",
-      additionalContext: `<session_dir>${sessionDir}</session_dir>`,
+      additionalContext: `<session_dir>${sessionDir}</session_dir>${resume}`,
     },
   }) + "\n",
 );

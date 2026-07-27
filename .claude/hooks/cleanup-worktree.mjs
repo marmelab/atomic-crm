@@ -28,6 +28,8 @@ import {
   sessionBaseBranch,
   sessionBranch,
 } from "./lib/topology.mjs";
+import { removeWorktree } from "./lib/worktree.mjs";
+import { removeWorktreeFolders } from "./lib/workspace-folders.mjs";
 
 const raw = readFileSync(0, "utf8");
 const ctx = createHookContext(raw, "cleanup-worktree");
@@ -108,15 +110,6 @@ const shouldRemove = ({ path: wtPath, branch }) => {
   return true;
 };
 
-const removeWorktree = (wtPath) => {
-  if (git(["worktree", "remove", "--force", wtPath]).status === 0) {
-    ctx.log(`REMOVED ${wtPath}`);
-    return;
-  }
-  rmSync(wtPath, { recursive: true, force: true });
-  ctx.log(`RM-RF ${wtPath}`);
-};
-
 const deleteBranch = (branch) => {
   if (!branch) return;
   if (isProtectedBranch(branch)) {
@@ -132,8 +125,19 @@ const deleteBranch = (branch) => {
 const ourWorktrees = getWorktreeEntries().filter((e) => isUnderBase(e.path));
 const toRemove = ourWorktrees.filter(shouldRemove);
 
-toRemove.forEach((e) => removeWorktree(e.path));
+toRemove.forEach((e) => {
+  removeWorktree(e.path);
+  ctx.log(`REMOVED ${e.path}`);
+});
 toRemove.map((e) => e.branch).forEach(deleteBranch);
+
+// Drop the merged worktrees from the editor's workspace folders (setup-worktree
+// added them on a technical run). No-op under a managed launcher or a mono-folder
+// window (no `.code-workspace` to edit; `code --remove` does not exist).
+if (!process.env.CHAT_SESSION_DIR && toRemove.length) {
+  const removed = new Set(toRemove.map((e) => e.path));
+  removeWorktreeFolders(ctx.repo, (p) => removed.has(p));
+}
 
 git(["worktree", "prune"]);
 

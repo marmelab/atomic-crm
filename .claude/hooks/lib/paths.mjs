@@ -14,7 +14,10 @@ export const REPO = getRepo();
 
 export const CONFIG_DIR =
   process.env.CLAUDE_CONFIG_DIR || join(process.env.HOME || "/root", ".claude");
-export const TMP_ROOT = process.env.CRM_TMP_ROOT || "/tmp";
+// HARNESS_TMP_ROOT is the neutral name; CRM_TMP_ROOT is the deprecated fallback
+// kept for one release so existing launchers / tests keep working.
+export const TMP_ROOT =
+  process.env.HARNESS_TMP_ROOT || process.env.CRM_TMP_ROOT || "/tmp";
 
 export function sanitizePath(p) {
   return String(p ?? "").replace(/\//g, "_");

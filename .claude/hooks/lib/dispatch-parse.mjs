@@ -32,6 +32,9 @@ export function parseDispatch(input) {
     worktreePath: grab(/^WORKTREE_PATH:\s*(\S+)/m),
     branchName: grab(/^BRANCH_NAME:\s*(\S+)/m),
     mode: grab(/^MODE:\s*(\S+)/m),
+    // STAGE: a-only marks a merger dispatch as Stage A ONLY (no Stage B / promotion),
+    // even in SIMPLE / MIGRATION mode. Read by record-merger-stage to authorize promotion.
+    stage: grab(/^STAGE:\s*(\S+)/m),
     sessionShortId: grab(/^SESSION_SHORT_ID:\s*(\S+)/m),
     ticketFile: grab(/^TICKET_FILE:\s*(\S+)/m),
     ticketsDir: grab(/^TICKETS_DIR:\s*(\S+)/m),

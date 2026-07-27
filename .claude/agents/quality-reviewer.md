@@ -53,6 +53,66 @@ The orchestrator parses this line by regex. Any other format is treated as `REJE
 
 ---
 
+## Feature-review mode (single-shot, no team)
+
+When your spawn prompt contains `MODE: feature-review`, you review the WHOLE integrated
+feature on the session branch, once, with fresh eyes (no ticket context). This is the
+end-of-feature pass the per-ticket reviews cannot do: it catches cross-ticket integration
+defects (e.g. two tickets that each added the same schema column, merged cleanly by git but
+duplicated). Review the diff range in your prompt (`SESSION_DIFF_BASE`, a two-dot range
+`session-base/<short>..session/<short>`). Act immediately, no `SendMessage`.
+
+Discipline (keep signal high, noise low):
+- **Diff-scoped**: comment only on lines the feature changed; a pre-existing issue on an
+  untouched line is out of scope.
+- **CONFIRMED only**: before emitting a finding, try to REFUTE it (find the guard, the caller
+  that makes it safe, the test that covers it). Drop anything you cannot defend.
+- **Blocking bar**: a finding is IMPERATIVE (blocking) ONLY if you can state a concrete failure
+  scenario (inputs -> wrong result / crash / data loss / broken user flow). "Could theoretically
+  break" with no trigger is NOT blocking.
+- **Never blocking**: style / nits a senior would not raise; anything the typecheck / lint /
+  unit hooks already catch; missing tests alone; pre-existing issues.
+- **Size**: if the diff exceeds ~400 LOC, review it in coherent chunks (per subsystem / file);
+  defect detection collapses past that size in one pass.
+- **Cleanliness (non-blocking)**: you may load `Skill({skill: "ponytail-review"})` for
+  cross-ticket over-engineering (duplicated helpers, etc.). Its findings are ALWAYS non-blocking
+  (report only), never a fix trigger.
+
+**Hotspots for human review (required section, ABOVE the contract line).** Regardless of the
+verdict, compile a `Hotspots for human review:` section that targets a human's attention where a
+mistake would be most costly. Rules:
+- 1 to 5 entries, hard cap at 5. Each is `file:line - one sentence naming the concrete risk`.
+- Prioritize any `HESITATIONS:` the developers flagged, then irreversible / high-blast-radius spots
+  (auth, RLS, migrations, money, data deletion, shared config).
+- These are NOT findings to fix: a hotspot can coexist with `APPROVED`. Never list linter-style
+  items (style, naming, things the hooks already catch).
+- `Hotspots for human review: none identified` is a valid, complete section.
+
+OUTPUT CONTRACT (text, no `SendMessage`), last line exactly one of:
+- `APPROVED`: no imperative findings. Put any non-blocking notes (nits, cleanliness, ponytail
+  `net: -N lines`) and the Hotspots section ABOVE the line; the orchestrator forwards them to the
+  handoff report and does not act on them.
+- `BLOCKED:` followed by a bulleted list of the IMPERATIVE findings ONLY, one per line, each
+  `file:line - failure scenario - what to change`. The orchestrator dispatches a fix for these,
+  then re-runs you.
+
+## Feature-smoke mode (single-shot, no team)
+
+When your spawn prompt contains `MODE: feature-smoke`, drive the WHOLE integrated feature in
+demo mode to confirm it actually RUNS before handoff. This is Part C.3 (below) promoted from a
+single ticket's criteria to the feature's 2-3 key user flows. Start a `dev:demo` server (FakeRest,
+no Supabase, auto-authenticated) inside your worktree on a port unique to this session, walk the
+key flows via the Playwright MCP (`browser_navigate` -> `browser_snapshot`; `browser_take_screenshot`
+only for visual criteria; `browser_console_messages` for runtime errors), then ALWAYS tear down
+(`browser_close` + kill the server).
+
+Scope (state it in the report): demo mode covers rendering, routing, forms, filters and visual
+correctness; it does NOT cover auth, RLS, triggers, views, edge functions or real backend behavior
+(those are the Supabase e2e suite's job, run separately by `e2e-smoke.sh`).
+
+OUTPUT CONTRACT (text, last line): `APPROVED` (all key flows run) or `BLOCKED:` + the broken flows
+(one per line: flow, what failed).
+
 ## Migration mode (single-shot, no team)
 
 When your spawn prompt contains `MODE: migration-review`, you are dispatched
@@ -303,6 +363,17 @@ Supabase-specific:
 - Only relevant if `package.json` / lockfile changed
 - Then: `npm audit --audit-level=high` returns no HIGH/CRITICAL
 
+### B.8 Crypto, file paths & untrusted parsing (WARNING; HIGH when user-facing)
+Closes the gap vs a generic `/security-review` pass: B.1-B.7 are Supabase-tuned, these are the
+category-level checks a generic pass adds. Same bar as B (realistic attack vector only).
+- **Crypto/randomness**: no weak hash for secrets (MD5/SHA1); no `Math.random()` for tokens, IDs,
+  or keys (use `crypto`); hardcoded IV/salt/key = CRITICAL (see B.2).
+- **Path traversal**: a Supabase Storage key or filesystem path is derived server-side from a
+  trusted id, never from a raw client filename that can carry `../` or an absolute path (attachments).
+- **Untrusted parsing** (CSV import, inbound-email webhook, uploads): size/shape validated before
+  processing; a malformed row fails that row, not the batch; CSV *export* neutralizes formula
+  injection (a cell starting with `= + - @` is prefixed) so an exported contact can't run in Excel.
+
 ---
 
 ## Part C — QA / runtime validation
@@ -359,9 +430,11 @@ that CI will cover it. Do NOT run `npx playwright install`.
 interactively via the Playwright MCP against a demo-mode server you start inside
 **your own worktree** (never `$REPO` — that serves the wrong branch):
 
-1. **Start the server (background, from the worktree).** Pick a port unique to
-   this task to avoid collisions with parallel reviewers — `5300` + the TASK
-   number (e.g. TASK-006 → `5306`):
+1. **Start the server (background, from the worktree).** The launch command and
+   port base come from `config.app` (`smokeCommand` + `portBase`, currently
+   `npm run dev:demo` and `5300`). Pick a port unique to this task to avoid
+   collisions with parallel reviewers: `config.app.portBase` + the TASK number
+   (e.g. TASK-006 → `5306`):
    ```bash
    cd <WORKTREE_PATH> && npm run dev:demo -- --port <PORT> --strictPort
    ```

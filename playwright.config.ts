@@ -27,8 +27,10 @@ export default defineConfig({
   reporter: "list",
   /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
   use: {
-    /* Base URL to use in actions like `await page.goto('')`. */
-    // baseURL: 'http://localhost:3000',
+    /* Base URL for `page.goto('/')`. Overridable so an isolated e2e-smoke run can
+       point the specs at its own per-slot app port (audit D7). Default matches the
+       makefile's `start-app-e2e` port. */
+    baseURL: process.env.PLAYWRIGHT_BASE_URL || "http://localhost:5175",
 
     /* Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer */
     trace: "on-first-retry",

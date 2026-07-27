@@ -1,6 +1,6 @@
 // Tests for bash-guard.mjs — browser rules (any caller) and validation-command rules (gated agents only). Blocks are decision JSON on stdout with exit 0; allowed commands produce no decision.
 
-import { mkdtempSync, rmSync } from "node:fs";
+import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -26,6 +26,25 @@ const runHook = (agent, command) => {
     tool_input: { command },
   });
   return spawnSync("node", [HOOK], { input, env, encoding: "utf8" });
+};
+
+// Run the hook against a temp repo whose harness.config.json we control, so we
+// can prove the forbidden-command set is DERIVED from config.validation.
+const runHookWithConfig = (agent, command, config) => {
+  const repo = mkdtempSync(join(tmpdir(), "bash-guard-repo-"));
+  writeFileSync(join(repo, "harness.config.json"), JSON.stringify(config));
+  const env = { ...process.env, CRM_TMP_ROOT: tmpRoot, APP_DIR: repo };
+  delete env.CLAUDE_AGENT_NAME;
+  delete env.CLAUDE_PROJECT_DIR;
+  const input = JSON.stringify({
+    tool_name: "Bash",
+    agent_type: agent,
+    session_id: "test-1234",
+    tool_input: { command },
+  });
+  const r = spawnSync("node", [HOOK], { input, env, encoding: "utf8" });
+  rmSync(repo, { recursive: true, force: true });
+  return r;
 };
 
 const isBlocked = (r) => r.stdout.includes('"decision":"block"');
@@ -102,6 +121,68 @@ describe("bash-guard hook", () => {
     test("empty command → allowed", () => {
       const r = runHook("developer", "");
       expect(isBlocked(r)).toBe(false);
+    });
+  });
+
+  describe("forbidden set is config-driven (no triple-encoding)", () => {
+    // A config with only a typecheck step and no extraForbidden: typecheck stays
+    // guarded, but unit/e2e/build are no longer part of the chain, so the guard
+    // must NOT block them.
+    const typecheckOnly = {
+      validation: {
+        steps: [
+          { id: "typecheck", kind: "typecheck", command: "npm run typecheck" },
+        ],
+        extraForbidden: [],
+      },
+      roles: { developer: { model: "sonnet" } },
+    };
+
+    test("a kind present in config is still blocked", () => {
+      const r = runHookWithConfig(
+        "developer",
+        "npm run typecheck",
+        typecheckOnly,
+      );
+      expect(isBlocked(r)).toBe(true);
+    });
+
+    test("a kind absent from config is NOT blocked", () => {
+      const r = runHookWithConfig("developer", "npx vitest run", typecheckOnly);
+      expect(isBlocked(r)).toBe(false);
+    });
+
+    test("removing lint from extraForbidden stops blocking lint", () => {
+      const r = runHookWithConfig("developer", "npm run lint", typecheckOnly);
+      expect(isBlocked(r)).toBe(false);
+    });
+
+    test("a lint step in the chain blocks manual lint (no extraForbidden)", () => {
+      const withLintStep = {
+        validation: {
+          steps: [
+            {
+              id: "lint",
+              kind: "lint",
+              command: "npx eslint",
+              changedScoped: true,
+            },
+          ],
+          extraForbidden: [],
+        },
+        roles: { developer: { model: "sonnet" } },
+      };
+      const r = runHookWithConfig("developer", "npm run lint", withLintStep);
+      expect(isBlocked(r)).toBe(true);
+    });
+
+    test("extraForbidden build is blocked when listed", () => {
+      const withBuild = {
+        validation: { steps: [], extraForbidden: ["build"] },
+        roles: { developer: { model: "sonnet" } },
+      };
+      const r = runHookWithConfig("developer", "npm run build", withBuild);
+      expect(isBlocked(r)).toBe(true);
     });
   });
 

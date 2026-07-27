@@ -32,6 +32,7 @@ import { parseDispatch } from "./lib/dispatch-parse.mjs";
 import { getBaseBranch, getWorktreePaths, git } from "./lib/git.mjs";
 import { REVIEW_ROLES, reviewFlag } from "./lib/reviews.mjs";
 import { getFirstTaskId } from "./lib/teams.mjs";
+import { addWorktreeFolder } from "./lib/workspace-folders.mjs";
 import {
   simpleBranch,
   simpleWorktreePath,
@@ -239,6 +240,22 @@ if (add.status !== 0) {
 ctx.log(`CREATED branch=${branchName} path=${worktreePath}`);
 toProvision.push(worktreePath);
 
+// Surface this worktree in the editor (files + live Source Control) for a
+// technical run, so the developer can watch the code being modified. Done under
+// the session lock so a parallel wave's edits to the shared .code-workspace do
+// not race. No-op under a managed launcher (owns its own UI) or a non-technical
+// run (no progress log), matching the render-status board's gating.
+if (
+  !process.env.CHAT_SESSION_DIR &&
+  existsSync(join(ctx.sessionDir, "harness-progress.log"))
+) {
+  addWorktreeFolder(
+    ctx.repo,
+    worktreePath,
+    `🎫 ${taskId || "simple"} · ${ctx.sessionShort}`,
+  );
+}
+
 // Git-mutation region is done — release the lock before provisioning so a
 // parallel-wave waiter can serialise its own git ops while this hook copies
 // node_modules. Distinct target dirs, copied from $REPO, so the copies can run
@@ -246,15 +263,14 @@ toProvision.push(worktreePath);
 releaseLock();
 
 try {
-  for (const wt of toProvision) ctx.linkNodeModules(wt);
+  for (const wt of toProvision) ctx.provisionWorktree(wt);
 } catch (e) {
-  // Fail closed (exit 2 → block the dispatch): a developer must not start in a
+  // Fail closed (exit 2 -> block the dispatch): a developer must not start in a
   // worktree with no dependencies. An uncaught throw would exit 1, which a
-  // PreToolUse hook treats as non-blocking — letting the broken dispatch run.
-  ctx.fail(
-    `node_modules provisioning failed for ${worktreePath}: ${e.message}`,
-    { log: `provision-failed wt=${worktreePath}` },
-  );
+  // PreToolUse hook treats as non-blocking, letting the broken dispatch run.
+  ctx.fail(`worktree provisioning failed for ${worktreePath}: ${e.message}`, {
+    log: `provision-failed wt=${worktreePath}`,
+  });
 }
 
 ctx.accept(`OK wt=${worktreePath}`);

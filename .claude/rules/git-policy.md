@@ -5,27 +5,36 @@ paths:
 
 # Git policy for agents
 
-Agents must not perform history-mutating git operations. The user owns
-all branches, commits, merges, and pushes.
+The user owns the REMOTE and the promotion of shared history. Agents never push,
+pull, or force-push. What an agent MAY do LOCALLY depends on its role and is scoped
+to its own worktree / branch.
 
-## Allowed
+## Developer / simple-developer - commit your OWN task branch (required)
 
-- `git diff` (any form — working tree, staged, against a base)
-- `git status`
-- `git log`
-- `git branch --show-current`
-- `git fetch` — to refresh remote refs for comparison
-- `git stash` / `git stash pop` — to temporarily set aside changes
-  and inspect an alternate state
+Building your task branch IS the mechanism the reviewer reads and the merger merges,
+so you MUST commit. Allowed, scoped to `<WORKTREE_PATH>` on `BRANCH_NAME`:
 
-## Forbidden
+- `git add`, `git commit` - atomic commits, subject `feat(TASK-XXX):` / `fix(TASK-XXX):`
+- `git rebase session/<SESSION_SHORT_ID>` - rebase your OWN branch onto the session
+  branch (NEVER onto the base branch: that pulls other sessions' work into yours)
+- `git status` / `git diff` / `git log` / `git branch` / `git stash`
 
-- `git commit`, `git commit --amend`
-- `git checkout` (branch switching), `git switch`
-- `git push`, `git pull`
-- `git merge`, `git rebase`
-- `git reset --hard`, `git restore --source`
-- Any other history-mutating or remote-mutating command
+Not allowed: committing on the base branch / `session/<id>` / `main`; `git push` /
+`git pull`; force-push; `git reset --hard` onto a shared ref.
 
-Read-only inspection is encouraged whenever it helps catch bugs (e.g.
-fetching the latest base, stashing to compare two states).
+## Merger - the ONLY agent that mutates shared branches
+
+Merging task branches into `session/<id>`, promoting `session/<id>` into the base
+branch under `.promote.lock`, and the promotion-lock command set in MIGRATION / PROMOTE
+mode (including the destructive git ops the lock needs) ARE its job. See `merger.md`.
+
+## quality-reviewer / planner / orchestrator / documentator - read-only git
+
+`git diff` / `status` / `log` / `branch --show-current` / `git fetch` (read) /
+`git stash`. No `commit` / `rebase` / `merge` / `push` / `pull` / `reset` / branch
+`checkout`.
+
+## Never (any role)
+
+`git push`, `git pull`, force-push, or any write to the remote. The user owns the
+remote and the base branch.

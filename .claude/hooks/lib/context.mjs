@@ -5,10 +5,11 @@
 // only the detail and never repeat the name.
 
 import { appendFileSync, existsSync, mkdirSync, rmSync } from "node:fs";
-import { basename, dirname, join } from "node:path";
+import { basename, dirname, isAbsolute, join } from "node:path";
 import { decisionBlock } from "./io.mjs";
 import { REPO, TMP_ROOT, sanitizePath } from "./paths.mjs";
 import { exec } from "./process.mjs";
+import { loadConfig, worktreeProvision } from "./config.mjs";
 
 /**
  * @param {string | Record<string, unknown>} input
@@ -65,6 +66,56 @@ export function createHookContext(input, name = "hook") {
 
   const verdict = (verb, detail) => log(detail ? `${verb} ${detail}` : verb);
 
+  // The `npm-link` provisioning builtin: mirror $REPO/node_modules into the
+  // worktree. See provisionWorktree below for the config-driven dispatcher.
+  const linkNodeModules = (wt) => {
+    const target = join(wt, "node_modules");
+    if (existsSync(target)) return;
+    const source = join(REPO, "node_modules");
+    if (!existsSync(source)) return;
+    // Fast path: hardlink tree (cp -al) when the worktree base shares a
+    // filesystem with the repo. In dev containers /tmp and /workspaces are
+    // different mounts (cross-device), so cp -al fails; fall back to a full
+    // real copy. A symlinked node_modules is NOT an option: vitest browser
+    // mode (Chromium) hangs on it. See memory worktree-node-modules-provisioning.
+    if (exec("cp", ["-al", source, target]).status === 0) return;
+    rmSync(target, { recursive: true, force: true });
+    if (exec("cp", ["-a", source, target]).status !== 0) {
+      rmSync(target, { recursive: true, force: true });
+      throw new Error(`node_modules provisioning failed for ${wt} - cp -al and cp -a both failed`);
+    }
+  };
+
+  // Config-driven worktree provisioning (config.worktree.provision): the
+  // `npm-link` builtin (default, mirrors node_modules), `none` (no provisioning,
+  // for a stack that needs none), or a script path (run with the worktree as its
+  // one argument). Removes the npm assumption from worktree setup. Fail-closed on
+  // a provision-script error, like the npm-link builtin.
+  const provisionWorktree = (wt) => {
+    let mode = "npm-link";
+    try {
+      mode = worktreeProvision(loadConfig());
+    } catch {
+      mode = "npm-link";
+    }
+    if (mode === "none") {
+      log(`provision skipped (none) wt=${wt}`);
+      return;
+    }
+    if (mode === "npm-link") {
+      linkNodeModules(wt);
+      return;
+    }
+    const script = isAbsolute(mode) ? mode : join(REPO, mode);
+    const r = exec("bash", [script, wt], { cwd: REPO });
+    if (r.status !== 0) {
+      throw new Error(
+        `worktree provision script failed (${script}): ${(r.stderr || r.stdout || "").slice(0, 300)}`,
+      );
+    }
+    log(`provisioned via script ${script} wt=${wt}`);
+  };
+
   return {
     name,
     repo: REPO,
@@ -111,26 +162,9 @@ export function createHookContext(input, name = "hook") {
       process.exit(2);
     },
 
-    /**
-     * @param {string} wt
-     * @returns {void}
-     */
-    linkNodeModules(wt) {
-      const target = join(wt, "node_modules");
-      if (existsSync(target)) return;
-      const source = join(REPO, "node_modules");
-      if (!existsSync(source)) return;
-      // Fast path: hardlink tree (cp -al) when the worktree base shares a
-      // filesystem with the repo. In dev containers /tmp and /workspaces are
-      // different mounts (cross-device), so cp -al fails — fall back to a full
-      // real copy. A symlinked node_modules is NOT an option: vitest browser
-      // mode (Chromium) hangs on it. See memory worktree-node-modules-provisioning.
-      if (exec("cp", ["-al", source, target]).status === 0) return;
-      rmSync(target, { recursive: true, force: true });
-      if (exec("cp", ["-a", source, target]).status !== 0) {
-        rmSync(target, { recursive: true, force: true });
-        throw new Error(`node_modules provisioning failed for ${wt} — cp -al and cp -a both failed`);
-      }
-    },
+    // Worktree provisioning: the config-driven dispatcher plus the npm-link
+    // builtin it wraps (both defined as closures above).
+    provisionWorktree,
+    linkNodeModules,
   };
 }

@@ -3,7 +3,8 @@
 // watcher polls. Must always exit 0 (a Stop hook never blocks) and never throw on
 // a missing/malformed payload.
 
-import { existsSync, rmSync } from "node:fs";
+import { existsSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { spawnSync } from "node:child_process";
@@ -32,5 +33,27 @@ describe("turn-complete", () => {
 
   test("malformed payload → no throw, exits 0", () => {
     expect(run("not json").status).toBe(0);
+  });
+
+  test("inert when config.launcher.turnSentinelDir is unset (no launcher)", () => {
+    // A repo whose config omits turnSentinelDir: the hook writes no sentinel.
+    const repo = mkdtempSync(join(tmpdir(), "turn-complete-repo-"));
+    writeFileSync(
+      join(repo, "harness.config.json"),
+      JSON.stringify({ validation: { steps: [] }, roles: {}, launcher: {} }),
+    );
+    const otherSid = "turn-complete-inert-9c1d";
+    const wouldBe = join("/tmp/pty-sentinels", `pty-turn-done-${otherSid}`);
+    rmSync(wouldBe, { force: true });
+    const env = { ...process.env, APP_DIR: repo };
+    delete env.CLAUDE_PROJECT_DIR;
+    const r = spawnSync("node", [HOOK], {
+      input: JSON.stringify({ session_id: otherSid }),
+      env,
+      encoding: "utf8",
+    });
+    expect(r.status).toBe(0);
+    expect(existsSync(wouldBe)).toBe(false);
+    rmSync(repo, { recursive: true, force: true });
   });
 });

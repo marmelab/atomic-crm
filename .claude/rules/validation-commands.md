@@ -2,30 +2,39 @@
 paths: []
 ---
 
-# Validation commands — DO NOT RUN
+# Validation commands: DO NOT RUN
 
-Validation is automated:
-- The `validate-on-stop.mjs` SubagentStop hook runs the full chain (prettier auto-fix, typecheck, unit, e2e) after every developer stop (ticket or lightweight MODE). A failed validation rejects the stop, the developer's internal loop fixes the issue, and only a green stop returns control to the orchestrator.
-- The `bash-guard.mjs` PreToolUse hook blocks `developer`, `quality-reviewer` from running them manually.
-- Prettier is auto-applied and committed by the validation chain — formatting never needs manual action unless a file has a syntax error.
+Validation is automated and config-driven. The steps live in ONE place,
+`harness.config.json` -> `validation.steps`, consumed by both the runner and the
+guard, so they can never drift:
 
-## Forbidden commands (developer / quality-reviewer)
+- `validate-on-stop.mjs` (SubagentStop) runs the whole chain after every
+  developer / test-writer stop: the format step (prettier auto-fix + commit),
+  typecheck, lint (eslint, scoped to the stop's changed files), the unit steps,
+  then e2e once in the repo (full mode only). A failed step rejects the stop; the
+  agent's internal loop fixes it and only a green stop returns control to the
+  orchestrator.
+- `bash-guard.mjs` (PreToolUse Bash) blocks `developer` / `quality-reviewer` from
+  running those same commands manually, plus `validation.extraForbidden` (build).
+  The forbidden set is DERIVED from `validation.steps`, not hardcoded here.
 
-| Category | Commands |
-|---|---|
-| typecheck | `make typecheck`, `npm run typecheck`, `npx tsc`, `npx tsc --noEmit` |
-| prettier | `make lint`, `npm run prettier`, `npm run prettier:apply`, `npx prettier` |
-| unit tests | `npm run test:unit:app`, `npm run test:unit:functions`, `npm test`, `npx vitest`, `make test-unit*` |
-| e2e | `npx playwright test`, `make test-e2e*` |
-| lint | `npm run lint`, `npm run lint:typescript` |
-| build | `npx vite build`, `npm run build` |
+## Why blocked (developer / quality-reviewer)
 
-Why blocked:
-- Burns tool budget — each call returns a hook block error.
-- Can hang — `npx vitest` launches a headed Chromium browser; without a display it waits forever. Hooks set `CI=true` to force `chromium-headless-shell`; manual calls don't.
-- Duplicates hook work — the validation hooks already run them; failures appear in stderr.
+- Burns tool budget: each manual call the hook already runs is wasted.
+- Can hang: `npx vitest` launches a headed Chromium; without a display it waits
+  forever. The hooks set `CI=true` to force `chromium-headless-shell`; manual
+  calls do not.
+- Duplicates hook work: the validation hooks already run these; failures come back
+  on stderr.
+
+To change what runs (or what is forbidden), edit `harness.config.json`, never a
+command string in a hook or in this file.
 
 ## What to do instead
 
-- **Developer**: after implementation + commit, stop. Hooks run, inject failures via stderr if any. Fix and commit again on the next turn. Don't run the merge yourself — that's the merger's job.
-- **Reviewers**: focus on what hooks can't check (semantic review, integration wiring, e2e spec presence). To verify TypeScript, `Read` the source — don't run the compiler.
+- **Developer / test-writer**: after implementation + commit, stop. The hooks
+  run and inject any failures via stderr. Fix and commit again next turn. Do not
+  run the merge yourself: that is the merger's job.
+- **Reviewers**: focus on what hooks can't check (semantic review, integration
+  wiring, e2e spec presence). To verify TypeScript, `Read` the source, do not run
+  the compiler.

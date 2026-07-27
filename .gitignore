@@ -42,7 +42,13 @@ public/r/
 !supabase/functions/.env
 .claude/settings.local.json
 
+# Harness scratch (promotion lock; worktrees + test-results also cleaned at SessionEnd)
+.promote.lock
+# Rendered per-session harness board (render-status hook; cleaned at SessionEnd)
+/.harness/
+
 # Playwright
+.playwright-mcp/
 node_modules/
 /test-results/
 /playwright-report/
