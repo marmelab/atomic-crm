@@ -36,11 +36,13 @@ test.describe("user creating a contact from the deal form", () => {
     await page.getByRole("link", { name: "Deals" }).click();
     await page.waitForLoadState("networkidle");
 
-    await page.getByRole("button", { name: "Create deal" }).click();
+    await page.getByRole("link", { name: "Create deal" }).click();
 
     // "Linked to" keeps this scoped to the deal form once the contact sheet opens
     const dealForm = page.getByRole("dialog").filter({ hasText: "Linked to" });
-    await dealForm.getByLabel("Name", { exact: true }).fill("Big opportunity");
+    await dealForm
+      .getByRole("textbox", { name: "Name" })
+      .fill("Big opportunity");
     await dealForm.getByRole("combobox", { name: "Company" }).click();
     await page.getByRole("option", { name: "Smith Corp" }).click();
 
