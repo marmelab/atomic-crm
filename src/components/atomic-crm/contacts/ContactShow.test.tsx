@@ -5,8 +5,10 @@ import {
   type DataProvider,
 } from "ra-core";
 import { render } from "vitest-browser-react";
+import { page } from "vitest/browser";
 import { buildContact, StoryWrapper } from "@/test/StoryWrapper";
 import { ContactAside } from "./ContactAside";
+import { ContactShow } from "./ContactShow";
 import { MobileSuccess } from "./ContactShow.mobile.stories";
 
 const mockIsMobile = vi.hoisted(() => vi.fn(() => true));
@@ -74,5 +76,52 @@ describe("ContactShow", () => {
       .toBe("hot");
 
     await expect.element(screen.getByRole("combobox")).toHaveTextContent("Hot");
+  });
+
+  it("creates a deal attached to the contact from the contact show screen", async () => {
+    mockIsMobile.mockReturnValue(false);
+    page.viewport(1600, 900);
+
+    const createMock = vi
+      .fn()
+      .mockImplementation(async (_resource: string, params: any) => ({
+        data: { id: 1, ...params.data },
+      }));
+
+    const screen = await render(
+      <StoryWrapper
+        silent
+        data={{
+          companies: [{ id: 1, name: "Acme" }] as any,
+          contacts: [buildContact({ id: 1, company_id: 1 })],
+        }}
+        dataProvider={{ create: createMock }}
+      >
+        <ContactShow resource="contacts" id={1} />
+      </StoryWrapper>,
+    );
+
+    await screen.getByRole("link", { name: /create deal/i }).click();
+
+    // The deal form opens with the contact already attached
+    await expect.element(screen.getByText("Ada Lovelace")).toBeVisible();
+
+    await screen.getByLabelText(/^name/i).fill("Website redesign");
+    await screen.getByRole("button", { name: /^save$/i }).click();
+
+    await expect
+      .poll(() => createMock.mock.calls)
+      .toEqual([
+        [
+          "deals",
+          expect.objectContaining({
+            data: expect.objectContaining({
+              name: "Website redesign",
+              contact_ids: [1],
+              company_id: 1,
+            }),
+          }),
+        ],
+      ]);
   });
 });

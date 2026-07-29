@@ -1,8 +1,11 @@
 import { useRecordContext, useTranslate } from "ra-core";
+import { Plus } from "lucide-react";
+import { Link } from "react-router";
 import { EditButton } from "@/components/admin/edit-button";
 import { DeleteButton } from "@/components/admin";
 import { ReferenceManyField } from "@/components/admin/reference-many-field";
 import { ShowButton } from "@/components/admin/show-button";
+import { Button } from "@/components/ui/button";
 
 import { AddTask } from "../tasks/AddTask";
 import { TasksIterator } from "../tasks/TasksIterator";
@@ -23,12 +26,13 @@ export const ContactAside = ({ link = "edit" }: { link?: "edit" | "show" }) => {
 
   return (
     <div className="hidden sm:block w-92 min-w-92 text-sm">
-      <div className="mb-4 -ml-1">
+      <div className="mb-4 -ml-1 flex flex-wrap gap-2">
         {link === "edit" ? (
           <EditButton label="resources.contacts.action.edit" />
         ) : (
           <ShowButton label="resources.contacts.action.show" />
         )}
+        <AddDealButton contact={record} />
       </div>
 
       <AsideSection title={translate("resources.notes.fields.status")}>
@@ -82,5 +86,28 @@ export const ContactAside = ({ link = "edit" }: { link?: "edit" | "show" }) => {
         </>
       )}
     </div>
+  );
+};
+
+const AddDealButton = ({ contact }: { contact: Contact }) => {
+  const translate = useTranslate();
+
+  return (
+    <Button variant="outline" asChild>
+      <Link
+        to="/deals/create"
+        state={{
+          record: {
+            contact_ids: [contact.id],
+            ...(contact.company_id != null
+              ? { company_id: contact.company_id }
+              : {}),
+          },
+        }}
+      >
+        <Plus />
+        {translate("resources.deals.action.create")}
+      </Link>
+    </Button>
   );
 };
