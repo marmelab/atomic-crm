@@ -95,6 +95,10 @@ export const englishCrmMessages = {
         new: "New Contact",
         show: "Show contact",
       },
+      autocomplete: {
+        create_item: "Create %{item}",
+        create_label: "Start typing to create a new contact",
+      },
       background: {
         last_activity_on: "Last activity on %{date}",
         added_on: "Added on %{date}",
