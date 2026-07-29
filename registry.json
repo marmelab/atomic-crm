@@ -482,6 +482,10 @@
           "type": "registry:component"
         },
         {
+          "path": "src/components/atomic-crm/login/authConfig.ts",
+          "type": "registry:component"
+        },
+        {
           "path": "src/components/atomic-crm/login/StartPage.tsx",
           "type": "registry:component"
         },
@@ -735,6 +739,10 @@
         },
         {
           "path": "src/components/atomic-crm/contacts/Avatar.tsx",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/contacts/AutocompleteContactInput.tsx",
           "type": "registry:component"
         },
         {
