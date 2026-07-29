@@ -1,6 +1,8 @@
 import { expect, test } from "./fixtures";
 
 test.describe("user creating a contact from the deal form", () => {
+  test.skip(({ isMobile }) => isMobile, "Covered on desktop only");
+
   test.beforeEach(async ({ createSales, createCompany, createContact }) => {
     const sales = await createSales({
       first_name: "John",
