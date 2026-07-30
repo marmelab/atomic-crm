@@ -25,6 +25,7 @@ import { MobileLayout } from "../layout/MobileLayout";
 import { SignupPage } from "../login/SignupPage";
 import { ConfirmationRequired } from "../login/ConfirmationRequired";
 import { ImportPage } from "../misc/ImportPage";
+import { ChangelogPage } from "../misc/ChangelogPage";
 import {
   getAuthProvider as defaultAuthProviderBuilder,
   getDataProvider as defaultDataProviderBuilder,
@@ -85,7 +86,8 @@ export type CRMProps = {
  * @param {string[]} dealPipelineStatuses - The statuses of deals in the pipeline used in the application.
  * @param {DealStage[]} dealStages - The stages of deals used in the application.
  * @param {RaThemeOptions} lightTheme - The theme to use when the application is in light mode.
- * @param {string} logo - The logo used in the CRM application.
+ * @param {string} darkModeLogo - Logo shown in dark mode and on the auth pages. Must be an imported asset, an absolute URL, or a data URI — never a route-relative path like "./logos/x.svg", which breaks on nested routes such as /oauth/consent (issue #291).
+ * @param {string} lightModeLogo - Logo shown in light mode. Same rule as darkModeLogo: imported asset, absolute URL, or data URI only.
  * @param {NoteStatus[]} noteStatuses - The statuses of notes used in the application.
  * @param {LabeledValue[]} taskTypes - The types of tasks used in the application.
  * @param {string} title - The title of the CRM application.
@@ -98,7 +100,8 @@ export type CRMProps = {
  *
  * const App = () => (
  *     <CRM
- *         logo="/path/to/logo.png"
+ *         darkModeLogo="https://example.com/logo-dark.svg"
+ *         lightModeLogo="https://example.com/logo-light.svg"
  *         title="My Custom CRM"
  *         lightTheme={{
  *             ...defaultTheme,
@@ -126,9 +129,6 @@ export const CRM = ({
   authProvider = defaultAuthProviderBuilder(),
   i18nProvider = defaulti18nProvider,
   store = defaultStore,
-  googleWorkplaceDomain = import.meta.env.VITE_GOOGLE_WORKPLACE_DOMAIN,
-  disableEmailPasswordAuthentication = import.meta.env
-    .VITE_DISABLE_EMAIL_PASSWORD_AUTHENTICATION === "true",
   disableTelemetry,
   ...rest
 }: CRMProps) => {
@@ -148,22 +148,23 @@ export const CRM = ({
 
   // Seed the store with CRM prop values if not already stored
   // (backwards compatibility for prop-based config)
-  if (!store.getItem(CONFIGURATION_STORE_KEY)) {
-    store.setItem(CONFIGURATION_STORE_KEY, {
-      companySectors,
-      currency,
-      dealCategories,
-      dealPipelineStatuses,
-      dealStages,
-      noteStatuses,
-      taskTypes,
-      title,
-      darkModeLogo,
-      lightModeLogo,
-      googleWorkplaceDomain,
-      disableEmailPasswordAuthentication,
-    } satisfies ConfigurationContextValue);
-  }
+  useEffect(() => {
+    if (!store.getItem(CONFIGURATION_STORE_KEY)) {
+      store.setItem(CONFIGURATION_STORE_KEY, {
+        companySectors,
+        currency,
+        dealCategories,
+        dealPipelineStatuses,
+        dealStages,
+        noteStatuses,
+        taskTypes,
+        title,
+        darkModeLogo,
+        lightModeLogo,
+      } satisfies ConfigurationContextValue);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [store]);
 
   const isMobile = useIsMobile();
 
@@ -259,6 +260,7 @@ const DesktopAdmin = (
         <Route path={ProfilePage.path} element={<ProfilePage />} />
         <Route path={SettingsPage.path} element={<SettingsPage />} />
         <Route path={ImportPage.path} element={<ImportPage />} />
+        <Route path={ChangelogPage.path} element={<ChangelogPage />} />
       </CustomRoutes>
       <Resource name="deals" {...deals} />
       <Resource name="contacts" {...contacts} />
@@ -322,6 +324,7 @@ const MobileAdmin = (
             path={SettingsPageMobile.path}
             element={<SettingsPageMobile />}
           />
+          <Route path={ChangelogPage.path} element={<ChangelogPage />} />
         </CustomRoutes>
         <Resource
           name="contacts"

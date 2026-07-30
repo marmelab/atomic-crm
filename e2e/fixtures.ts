@@ -206,7 +206,7 @@ const getMenuMethod = ({ page }: { page: Page; isMobile: boolean }) => ({
 
 const dismissToast = async (page: Page, content: string) => {
   await expect(page.getByText(content)).toBeVisible();
-  await page.getByLabel("Close toast").click();
+  await page.getByLabel("Close toast").first().click();
   // Since we are in optimistic UI, dismissing the toast trigger the request to the api linked to the toast message
   await page.waitForLoadState("networkidle");
 };

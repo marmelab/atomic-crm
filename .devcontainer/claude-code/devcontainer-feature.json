@@ -1,0 +1,27 @@
+{
+  "id": "claude-code",
+  "version": "1.0.0",
+  "name": "Claude Code",
+  "mounts": [
+    {
+      "type": "bind",
+      "source": "${localEnv:HOME}/.claude.json",
+      "target": "/home/node/.claude.json"
+    },
+    {
+      "type": "bind",
+      "source": "${localEnv:HOME}/.claude",
+      "target": "/home/node/.claude"
+    },
+    {
+      "type": "volume",
+      "source": "claude-plugins",
+      "target": "/home/node/.claude/plugins"
+    }
+  ],
+  "customizations": {
+    "vscode": {
+      "extensions": ["Anthropic.claude-code"]
+    }
+  }
+}

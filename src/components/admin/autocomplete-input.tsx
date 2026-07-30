@@ -125,6 +125,7 @@ export const AutocompleteInput = (
   });
 
   const [filterValue, setFilterValue] = React.useState("");
+  const listRef = React.useRef<HTMLDivElement>(null);
 
   const [open, setOpen] = React.useState(false);
   const selectedChoice = allChoices.find(
@@ -206,7 +207,7 @@ export const AutocompleteInput = (
 
   return (
     <>
-      <FormField className={props.className} id={id} name={source}>
+      <FormField className={props.className} id={id} name={field.name}>
         {props.label !== false && (
           <FormLabel id={uniqueId}>
             <FieldTitle
@@ -239,10 +240,13 @@ export const AutocompleteInput = (
               {/* We handle the filtering ourselves */}
               <Command shouldFilter={!isFromReference}>
                 <CommandInput
-                  placeholder={placeholder}
+                  placeholder="Search..."
                   value={filterValue}
                   onValueChange={(filter) => {
                     setFilterValue(filter);
+                    requestAnimationFrame(() => {
+                      listRef.current?.scrollTo(0, 0);
+                    });
                     // We don't want the ChoicesContext to filter the choices if the input
                     // is not from a reference as it would also filter out the selected values
                     if (isFromReference) {
@@ -250,7 +254,7 @@ export const AutocompleteInput = (
                     }
                   }}
                 />
-                <CommandList>
+                <CommandList ref={listRef}>
                   <CommandEmpty>No matching item found.</CommandEmpty>
                   <CommandGroup>
                     {finalChoices.map((choice) => {
@@ -258,9 +262,18 @@ export const AutocompleteInput = (
                         !!createItem && choice?.id === createItem.id;
                       const disabled = getOptionDisabled(choice);
 
+                      const choiceText = getChoiceText(
+                        isCreateItem ? createItem : choice,
+                      );
+
                       return (
                         <CommandItem
                           key={getChoiceValue(choice)}
+                          keywords={
+                            isCreateItem || React.isValidElement(choiceText)
+                              ? undefined
+                              : [choiceText]
+                          }
                           value={
                             isCreateItem
                               ? // if it's the create option, include the filter value so it is shown in the command input
@@ -280,7 +293,7 @@ export const AutocompleteInput = (
                                 : "opacity-0",
                             )}
                           />
-                          {getChoiceText(isCreateItem ? createItem : choice)}
+                          {choiceText}
                         </CommandItem>
                       );
                     })}

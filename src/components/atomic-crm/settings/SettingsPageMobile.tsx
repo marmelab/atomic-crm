@@ -1,6 +1,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useTheme } from "@/components/admin/use-theme";
-import { KeyRound } from "lucide-react";
+import { ChevronRight, KeyRound } from "lucide-react";
+import { Link } from "react-router";
 import { Button } from "@/components/ui/button";
 import {
   Item,
@@ -42,6 +43,7 @@ import {
 
 import { MobileContent } from "../layout/MobileContent";
 import MobileHeader from "../layout/MobileHeader";
+import { ChangelogPage } from "../misc/ChangelogPage";
 import ImageEditorField from "../misc/ImageEditorField";
 import type { CrmDataProvider } from "../providers/types";
 import type { SalesFormData } from "../types";
@@ -109,9 +111,10 @@ export const SettingsPageMobile = () => {
             <PreferencesSection />
             <InboundEmailSection />
             <McpServerSection />
+            <AboutSection />
           </div>
 
-          <div className="mt-auto pt-6 space-y-3">
+          <div className="mt-auto pt-6 space-y-3 mb-4">
             <ChangePasswordButton />
             <Button
               variant="destructive"
@@ -488,6 +491,30 @@ const McpServerSection = () => {
         <CopyPasteRow
           value={`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/mcp`}
         />
+      </ItemGroup>
+    </div>
+  );
+};
+
+const AboutSection = () => {
+  const translate = useTranslate();
+
+  return (
+    <div>
+      <SectionLabel>{translate("crm.settings.about")}</SectionLabel>
+      <ItemGroup className="rounded-lg border overflow-hidden">
+        <Item asChild size="sm" className="cursor-pointer">
+          <Link to={ChangelogPage.path}>
+            <ItemContent>
+              <ItemTitle className="font-normal">
+                {translate("crm.changelog.title")}
+              </ItemTitle>
+            </ItemContent>
+            <ItemActions>
+              <ChevronRight className="size-4 text-muted-foreground" />
+            </ItemActions>
+          </Link>
+        </Item>
       </ItemGroup>
     </div>
   );

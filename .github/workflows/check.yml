@@ -31,7 +31,7 @@ jobs:
             - name: ⚙️ Setup node
               uses: actions/setup-node@v4
               with:
-                  node-version: 20
+                  node-version: 22
                   cache: npm
 
             - name: 📥 Download deps
@@ -45,6 +45,28 @@ jobs:
                   prettier: true
                   prettier_args: "--config ./.prettierrc.json \"**/*.{js,json,ts,tsx,css,md,html}\""
 
+
+    typecheck:
+        name: 🏷️ Typecheck
+        timeout-minutes: 10
+        runs-on: ubuntu-latest
+        if: ${{ !github.event.pull_request.draft || github.event_name == 'push' }}
+        steps:
+            - name: 📥 Checkout repo
+              uses: actions/checkout@v4
+
+            - name: ⚙️ Setup node
+              uses: actions/setup-node@v4
+              with:
+                  node-version: 22
+                  cache: npm
+
+            - name: 📥 Download deps
+              run: npm ci
+
+            - name: 🏷️ Typecheck
+              run: npm run typecheck
+              
     test-app:
         name: 🔎 Test
         runs-on: ubuntu-latest
@@ -57,14 +79,14 @@ jobs:
             - name: ⚙️ Setup node
               uses: actions/setup-node@v4
               with:
-                  node-version: 20
+                  node-version: 22
                   cache: npm
 
             - name: 📥 Download deps
               run: npm ci
 
             - name: 🎭 Install Playwright browsers
-              run: npx playwright install chromium chromium-headless-shell
+              run: npx playwright install chromium-headless-shell 1>/dev/null
 
             - name: 🔎 Unit Tests on App
               run: CI=1 npm run test:unit:app -- --run
@@ -81,12 +103,12 @@ jobs:
       - name: ⚙️ Setup node
         uses: actions/setup-node@v4
         with:
-            node-version: 20
+            node-version: 22
             cache: npm
       - name: Install dependencies
         run: npm ci
       - name: Install Playwright Browsers
-        run: npx playwright install --with-deps webkit chromium
+        run: npx playwright install --with-deps chromium-headless-shell 1>/dev/null
       - name: Install wait-on and serve
         run: npm install -g wait-on serve
       - name: Run Playwright tests
@@ -104,7 +126,7 @@ jobs:
             - name: ⚙️ Setup node
               uses: actions/setup-node@v4
               with:
-                  node-version: 20
+                  node-version: 22
                   cache: npm
 
             - name: 📥 Download deps

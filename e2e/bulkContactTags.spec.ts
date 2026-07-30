@@ -30,7 +30,7 @@ test("user adds a tag to several contacts", async ({
     title: "Rear Admiral",
   });
 
-  await page.goto("http://localhost:5175/");
+  await page.goto("/");
 
   await page.getByLabel("Email").fill("john@doe.com");
   await page.getByLabel("Password").fill("password");

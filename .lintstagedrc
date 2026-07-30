@@ -1,10 +1,8 @@
 {
-  "*.{js,jsx,ts,tsx}": [
-      "eslint --fix",
-      "git add"
-  ],
-  "*.{json,css,md}": [
-      "prettier",
-      "git add"
-  ]
+    "*.{mjs,ts,tsx}": [
+        "eslint --fix"
+    ],
+    "*.{mjs,js,json,ts,tsx,css,md,html}": [
+        "prettier --config ./.prettierrc.json --write --list-different"
+    ]
 }

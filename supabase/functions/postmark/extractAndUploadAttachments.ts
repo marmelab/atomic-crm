@@ -1,4 +1,4 @@
-import { decode } from "npm:base64-arraybuffer";
+import { decode } from "base64-arraybuffer";
 import { supabaseAdmin } from "../_shared/supabaseAdmin.ts";
 
 export type Attachment = {

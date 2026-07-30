@@ -2,7 +2,6 @@
 import { defineConfig } from "astro/config";
 import starlight from "@astrojs/starlight";
 import tailwindcss from "@tailwindcss/vite";
-import { server } from "typescript";
 
 // https://astro.build/config
 export default defineConfig({
@@ -16,7 +15,7 @@ export default defineConfig({
   integrations: [
     starlight({
       title: "Atomic CRM",
-      favicon: "./public/favicon.svg",
+      favicon: "./favicon.svg",
       customCss: ["./src/styles/global.css"],
       logo: {
         dark: "./public/logo_atomic_crm_dark.svg",

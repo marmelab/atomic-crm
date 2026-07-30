@@ -2,7 +2,7 @@ import { Download } from "lucide-react";
 import { useGetOne, useRecordContext, useTranslate } from "ra-core";
 import { Button } from "@/components/ui/button";
 import type { Contact, Company } from "../types";
-import { exportToVCard } from "./exportToVCard";
+import { exportToVCard } from "./contactModel";
 
 export const ExportVCardButton = () => {
   const contact = useRecordContext<Contact>();
@@ -11,7 +11,7 @@ export const ExportVCardButton = () => {
   // Fetch the company data on mount
   const { data: company } = useGetOne<Company>(
     "companies",
-    { id: contact?.company_id },
+    { id: contact?.company_id ?? undefined },
     { enabled: !!contact?.company_id },
   );
 

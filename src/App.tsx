@@ -10,16 +10,23 @@ import { CRM } from "@/components/atomic-crm/root/CRM";
  *  - dealPipelineStatuses
  *  - dealStages
  *  - lightTheme
- *  - logo
+ *  - darkModeLogo / lightModeLogo
  *  - noteStatuses
  *  - taskTypes
  *  - title
  * ... as well as all the props accepted by shadcn-admin-kit's <Admin> component.
  *
+ * Logos must be an imported asset, an absolute URL, or a data URI — never a
+ * route-relative path like "./img/logo.png", which breaks on nested routes.
+ *
  * @example
+ * import logoDark from "./logo-dark.svg";
+ * import logoLight from "./logo-light.svg";
+ *
  * const App = () => (
  *    <CRM
- *       logo="./img/logo.png"
+ *       darkModeLogo={logoDark}
+ *       lightModeLogo={logoLight}
  *       title="Acme CRM"
  *    />
  * );

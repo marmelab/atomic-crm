@@ -1,6 +1,6 @@
 /* eslint-disable react-refresh/only-export-components */
 import { memoryStore, type AuthProvider } from "ra-core";
-import { useMemo, type ReactNode } from "react";
+import { useEffect, useMemo, type ReactNode } from "react";
 import { MemoryRouter } from "react-router";
 import cloneDeep from "lodash/cloneDeep";
 import { Notification } from "@/components/admin/notification";
@@ -26,7 +26,7 @@ export const createTestAuthProvider = (): AuthProvider => ({
 
 const baseSale: Sale = {
   administrator: true,
-  avatar: DEFAULT_USER.avatar,
+  avatar: DEFAULT_USER.avatar as Sale["avatar"],
   disabled: false,
   email: DEFAULT_USER.email,
   first_name: DEFAULT_USER.first_name,
@@ -80,22 +80,29 @@ export const StoryWrapper = ({
   data,
   dataProvider: dataProviderOverrides,
   initialEntries,
+  silent = import.meta.env.MODE === "test",
 }: {
   children: ReactNode;
   data?: Partial<Db>;
   dataProvider?: Partial<ReturnType<typeof createDataProvider>>;
   initialEntries?: string[];
+  silent?: boolean;
 }) => {
   const authProvider = useMemo(() => createTestAuthProvider(), []);
   const dataProvider = useMemo(
     () => ({
-      ...createDataProvider({ db: createCrmDb(cloneDeep(data)) }),
+      ...createDataProvider({ db: createCrmDb(cloneDeep(data)), silent }),
       ...dataProviderOverrides,
     }),
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [],
   );
   const store = useMemo(() => memoryStore(), []);
+
+  useEffect(() => {
+    // Clear localStorage on mount to prevent data pollution from previous story / test, since we persist react-query cache in localStorage.
+    localStorage.clear();
+  }, []);
 
   return (
     <MemoryRouter initialEntries={initialEntries}>

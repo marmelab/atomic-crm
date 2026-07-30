@@ -12,7 +12,7 @@ import { randomDate } from "./utils";
 export const generateDeals = (db: Db): Deal[] => {
   const deals = Array.from(Array(50).keys()).map((id) => {
     const company = random.arrayElement(db.companies);
-    company.nb_deals++;
+    company.nb_deals = (company.nb_deals ?? 0) + 1;
     const contacts = random.arrayElements(
       db.contacts.filter((contact) => contact.company_id === company.id),
       datatype.number({ min: 1, max: 3 }),
@@ -39,7 +39,7 @@ export const generateDeals = (db: Db): Deal[] => {
       created_at,
       updated_at: randomDate(new Date(created_at)).toISOString(),
       expected_closing_date,
-      sales_id: company.sales_id,
+      sales_id: company.sales_id!,
       index: 0,
     };
   });

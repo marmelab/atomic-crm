@@ -2,6 +2,7 @@ import { useMutation } from "@tanstack/react-query";
 import { isValid } from "date-fns";
 import { Archive, ArchiveRestore } from "lucide-react";
 import {
+  InfiniteListBase,
   ShowBase,
   useDataProvider,
   useNotify,
@@ -15,7 +16,6 @@ import { DeleteButton } from "@/components/admin/delete-button";
 import { EditButton } from "@/components/admin/edit-button";
 import { ReferenceArrayField } from "@/components/admin/reference-array-field";
 import { ReferenceField } from "@/components/admin/reference-field";
-import { ReferenceManyField } from "@/components/admin/reference-many-field";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
@@ -168,14 +168,17 @@ const DealShowContent = () => {
 
           <div className="m-4">
             <Separator className="mb-4" />
-            <ReferenceManyField
-              target="deal_id"
-              reference="deal_notes"
+            <InfiniteListBase
+              resource="deal_notes"
+              filter={{ deal_id: record.id }}
               sort={{ field: "date", order: "DESC" }}
+              perPage={25}
+              disableSyncWithLocation
+              storeKey={false}
               empty={<NoteCreate reference={"deals"} />}
             >
               <NotesIterator reference="deals" />
-            </ReferenceManyField>
+            </InfiniteListBase>
           </div>
         </div>
       </div>

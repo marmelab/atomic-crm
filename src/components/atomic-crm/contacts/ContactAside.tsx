@@ -7,6 +7,7 @@ import { ShowButton } from "@/components/admin/show-button";
 import { AddTask } from "../tasks/AddTask";
 import { TasksIterator } from "../tasks/TasksIterator";
 import { TagsListEdit } from "./TagsListEdit";
+import { ContactStatusSelector } from "./ContactInputs";
 import { ContactPersonalInfo } from "./ContactPersonalInfo";
 import { ContactBackgroundInfo } from "./ContactBackgroundInfo";
 import { AsideSection } from "../misc/AsideSection";
@@ -19,6 +20,7 @@ export const ContactAside = ({ link = "edit" }: { link?: "edit" | "show" }) => {
   const translate = useTranslate();
 
   if (!record) return null;
+
   return (
     <div className="hidden sm:block w-92 min-w-92 text-sm">
       <div className="mb-4 -ml-1">
@@ -28,6 +30,10 @@ export const ContactAside = ({ link = "edit" }: { link?: "edit" | "show" }) => {
           <ShowButton label="resources.contacts.action.show" />
         )}
       </div>
+
+      <AsideSection title={translate("resources.notes.fields.status")}>
+        <ContactStatusSelector />
+      </AsideSection>
 
       <AsideSection
         title={translate("resources.contacts.field_categories.personal_info")}

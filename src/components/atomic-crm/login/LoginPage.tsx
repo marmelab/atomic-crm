@@ -7,6 +7,10 @@ import { TextInput } from "@/components/admin/text-input";
 import { Notification } from "@/components/admin/notification";
 import { useConfigurationContext } from "@/components/atomic-crm/root/ConfigurationContext.tsx";
 import { SSOAuthButton } from "./SSOAuthButton";
+import {
+  disableEmailPasswordAuthentication,
+  googleWorkplaceDomain,
+} from "./authConfig";
 
 /**
  * Login page displayed when authentication is enabled and the user is not authenticated.
@@ -18,12 +22,7 @@ import { SSOAuthButton } from "./SSOAuthButton";
  * @see {@link https://marmelab.com/shadcn-admin-kit/docs/security Security documentation}
  */
 export const LoginPage = (props: { redirectTo?: string }) => {
-  const {
-    darkModeLogo,
-    title,
-    googleWorkplaceDomain,
-    disableEmailPasswordAuthentication,
-  } = useConfigurationContext();
+  const { darkModeLogo, title } = useConfigurationContext();
   const { redirectTo } = props;
   const [loading, setLoading] = useState(false);
   const hasDisplayedRecoveryNotification = useRef(false);

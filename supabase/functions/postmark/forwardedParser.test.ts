@@ -1,4 +1,4 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi } from "vitest";
 import {
   stripForwardingHeaderBlock,
   stripSubjectForwardingPrefix,
@@ -7,6 +7,10 @@ import {
 } from "./forwardedParser";
 
 describe("forwardedParser", () => {
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
   describe("stripForwardingHeaderBlock", () => {
     describe("returns original text when no forwarding separator is found", () => {
       it("returns the original text for plain content", () => {
@@ -231,6 +235,7 @@ describe("forwardedParser", () => {
     });
 
     it("should return original subject if stripping results in empty string", () => {
+      vi.spyOn(console, "warn").mockImplementation(() => {});
       const subject = "Fwd: ";
       expect(stripSubjectForwardingPrefix(subject)).toBe(subject);
     });
@@ -276,6 +281,7 @@ describe("forwardedParser", () => {
     });
 
     it("returns original text when stripping results in empty content", () => {
+      vi.spyOn(console, "warn").mockImplementation(() => {});
       const text = [
         "---------- Forwarded message ----------",
         "From: Alice <alice@wonderland.com>",

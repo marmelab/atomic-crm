@@ -33,8 +33,13 @@ create or replace trigger company_saved
     before insert or update on public.companies
     for each row execute function public.handle_company_saved();
 
--- Auto-fetch contact avatar from email on save
-create or replace trigger contact_saved
+-- Lowercase contact emails before insert or update (must run before contact_saved)
+create or replace trigger "10_lowercase_contact_emails"
+    before insert or update on public.contacts
+    for each row execute function public.lowercase_email_jsonb();
+
+-- Auto-fetch contact avatar from email on save (runs after lowercase_contact_emails)
+create or replace trigger "20_contact_saved"
     before insert or update on public.contacts
     for each row execute function public.handle_contact_saved();
 

@@ -1,0 +1,107 @@
+{
+  "name": "atomic-crm",
+  "layout": {
+    "src": "src",
+    "e2e": "e2e",
+    "adr": "adr"
+  },
+  "validation": {
+    "steps": [
+      {
+        "id": "prettier",
+        "kind": "format",
+        "command": "npx prettier --write 'src/**/*.{ts,tsx,js,jsx,css,json,html}'",
+        "formatter": "npx prettier --write",
+        "autoCommit": true,
+        "extensions": [".ts", ".tsx", ".js", ".jsx", ".css", ".json", ".html"]
+      },
+      {
+        "id": "typecheck",
+        "kind": "typecheck",
+        "command": "npm run typecheck"
+      },
+      {
+        "id": "lint",
+        "kind": "lint",
+        "command": "npx eslint",
+        "changedScoped": true,
+        "extensions": [".ts", ".tsx", ".mjs"]
+      },
+      {
+        "id": "unit-app",
+        "kind": "unit",
+        "runner": "vitest",
+        "config": "vitest.config.ts",
+        "projects": ["app", "claude"],
+        "changedScoped": true
+      },
+      {
+        "id": "unit-fn",
+        "kind": "unit",
+        "runner": "vitest",
+        "config": "vitest.config.ts",
+        "projects": ["functions"],
+        "changedScoped": true,
+        "condition": { "pathExists": "supabase/functions" }
+      },
+      {
+        "id": "e2e",
+        "kind": "e2e",
+        "command": "npx playwright test",
+        "cwd": "repo",
+        "condition": { "modeNot": "demo" }
+      }
+    ],
+    "extraForbidden": ["build"]
+  },
+  "worktree": {
+    "provision": "npm-link"
+  },
+  "app": {
+    "smokeCommand": "npm run dev:demo",
+    "portBase": 5300,
+    "portArg": "--port",
+    "strictPortArg": "--strictPort",
+    "hashRouting": true,
+    "demoMode": true
+  },
+  "deploy": {
+    "adapter": "supabase",
+    "relevantGlobs": ["supabase/**"],
+    "schemaDir": "supabase/schemas",
+    "migrationsDir": "supabase/migrations"
+  },
+  "skills": {
+    "developerMenu": [
+      "frontend-dev",
+      "backend-dev",
+      "shadcn-customization",
+      "e2e-conventions",
+      "playwright-testing",
+      "adr-writing"
+    ]
+  },
+  "roles": {
+    "orchestrator": { "model": "sonnet", "pipeline": false, "debounce": false },
+    "planner": { "model": "opus", "pipeline": true, "debounce": false },
+    "developer": { "model": "sonnet", "pipeline": true, "debounce": true },
+    "simple-developer": {
+      "model": "sonnet",
+      "pipeline": true,
+      "debounce": false
+    },
+    "test-writer": { "model": "sonnet", "pipeline": true, "debounce": false },
+    "quality-reviewer": { "model": "opus", "pipeline": true, "debounce": true },
+    "merger": { "model": "haiku", "pipeline": true, "debounce": true },
+    "documentator": { "model": "sonnet", "pipeline": false, "debounce": false }
+  },
+  "documentator": {
+    "author": { "name": "Documentator", "email": "documentator@harness.local" }
+  },
+  "launcher": {
+    "sessionDirEnv": "CHAT_SESSION_DIR",
+    "turnSentinelDir": "/tmp/pty-sentinels",
+    "postCheckoutScript": "/entrypoint-helpers/apply-app-variant.sh",
+    "logsDir": "/chat-service/logs"
+  }
+}

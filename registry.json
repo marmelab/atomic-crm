@@ -342,7 +342,7 @@
           "type": "registry:component"
         },
         {
-          "path": "src/components/atomic-crm/notes/useAddInfinitePagination.ts",
+          "path": "src/components/atomic-crm/notes/noteModel.ts",
           "type": "registry:component"
         },
         {
@@ -367,6 +367,10 @@
         },
         {
           "path": "src/components/atomic-crm/notes/NoteShowPage.tsx",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/notes/NoteInputsMobile.tsx",
           "type": "registry:component"
         },
         {
@@ -450,10 +454,6 @@
           "type": "registry:component"
         },
         {
-          "path": "src/components/atomic-crm/misc/ImportFromJsonButton.tsx",
-          "type": "registry:component"
-        },
-        {
           "path": "src/components/atomic-crm/misc/ImageEditorField.tsx",
           "type": "registry:component"
         },
@@ -470,11 +470,19 @@
           "type": "registry:component"
         },
         {
+          "path": "src/components/atomic-crm/misc/ChangelogPage.tsx",
+          "type": "registry:component"
+        },
+        {
           "path": "src/components/atomic-crm/misc/AsideSection.tsx",
           "type": "registry:component"
         },
         {
           "path": "src/components/atomic-crm/misc/ActiveFilterButton.tsx",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/login/authConfig.ts",
           "type": "registry:component"
         },
         {
@@ -646,11 +654,7 @@
           "type": "registry:component"
         },
         {
-          "path": "src/components/atomic-crm/contacts/exportToVCard.ts",
-          "type": "registry:component"
-        },
-        {
-          "path": "src/components/atomic-crm/contacts/contactGender.ts",
+          "path": "src/components/atomic-crm/contacts/contactModel.ts",
           "type": "registry:component"
         },
         {
@@ -864,6 +868,11 @@
         {
           "path": "src/lib/toSlug.ts",
           "type": "registry:lib"
+        },
+        {
+          "path": "CHANGELOG.md",
+          "type": "registry:file",
+          "target": "~/CHANGELOG.md"
         }
       ]
     }

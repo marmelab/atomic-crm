@@ -103,6 +103,7 @@ export const frenchCrmMessages = {
         added_on: "Ajouté le %{date}",
         followed_by: "Suivi par %{name}",
         followed_by_you: "Suivi par vous",
+        status_none: "Aucun",
       },
       position_at: "%{title} chez",
       position_at_company: "%{title} chez %{company}",
@@ -280,6 +281,9 @@ export const frenchCrmMessages = {
         options_hint: "(joindre des fichiers ou modifier les détails)",
         show_options: "Afficher les options",
       },
+      actions: {
+        attach_document: "Joindre un document",
+      },
       validation: {
         note_or_attachment_required: "Une note ou une pièce jointe est requise",
       },
@@ -408,6 +412,9 @@ export const frenchCrmMessages = {
       loading: "Chargement...",
       me: "Moi",
     },
+    changelog: {
+      title: "Notes de version",
+    },
     activity: {
       added_company: "%{name} a ajouté l'entreprise",
       you_added_company: "Vous avez ajouté l'entreprise",
@@ -476,6 +483,7 @@ export const frenchCrmMessages = {
       title: "Importer des données",
     },
     settings: {
+      about: "À propos",
       companies: {
         sectors: "Secteurs",
       },

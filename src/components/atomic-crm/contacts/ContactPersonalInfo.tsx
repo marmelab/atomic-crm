@@ -10,7 +10,7 @@ import {
   contactGender,
   translateContactGenderLabel,
   translatePersonalInfoTypeLabel,
-} from "./contactGender";
+} from "./contactModel";
 import type { Contact } from "../types";
 
 export const ContactPersonalInfo = () => {
