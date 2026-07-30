@@ -208,6 +208,7 @@ export const frenchCrmMessages = {
         stage: "Étape",
       },
       action: {
+        add: "Ajouter une affaire",
         back_to_deal: "Retour à l'affaire",
         create: "Créer une affaire",
         new: "Nouvelle affaire",

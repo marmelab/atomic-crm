@@ -13,6 +13,7 @@ import { TagsListEdit } from "./TagsListEdit";
 import { ContactStatusSelector } from "./ContactInputs";
 import { ContactPersonalInfo } from "./ContactPersonalInfo";
 import { ContactBackgroundInfo } from "./ContactBackgroundInfo";
+import { ContactDealsList } from "./ContactDealsList";
 import { AsideSection } from "../misc/AsideSection";
 import type { Contact } from "../types";
 import { ContactMergeButton } from "./ContactMergeButton";
@@ -26,13 +27,12 @@ export const ContactAside = ({ link = "edit" }: { link?: "edit" | "show" }) => {
 
   return (
     <div className="hidden sm:block w-92 min-w-92 text-sm">
-      <div className="mb-4 -ml-1 flex flex-wrap gap-2">
+      <div className="mb-4 -ml-1">
         {link === "edit" ? (
           <EditButton label="resources.contacts.action.edit" />
         ) : (
           <ShowButton label="resources.contacts.action.show" />
         )}
-        <AddDealButton contact={record} />
       </div>
 
       <AsideSection title={translate("resources.notes.fields.status")}>
@@ -71,6 +71,13 @@ export const ContactAside = ({ link = "edit" }: { link?: "edit" | "show" }) => {
         <AddTask />
       </AsideSection>
 
+      <AsideSection
+        title={translate("resources.deals.name", { smart_count: 2 })}
+      >
+        <ContactDealsList />
+        <AddDealButton contact={record} />
+      </AsideSection>
+
       {link !== "edit" && (
         <>
           <div className="mt-6 pt-6 border-t hidden sm:flex flex-col gap-2 items-start">
@@ -89,25 +96,36 @@ export const ContactAside = ({ link = "edit" }: { link?: "edit" | "show" }) => {
   );
 };
 
+/**
+ * Opens the deal creation dialog with the contact (and its company) pre-filled.
+ * ra-core forms read their initial values from the location state.
+ */
 const AddDealButton = ({ contact }: { contact: Contact }) => {
   const translate = useTranslate();
 
   return (
-    <Button variant="outline" asChild>
-      <Link
-        to="/deals/create"
-        state={{
-          record: {
-            contact_ids: [contact.id],
-            ...(contact.company_id != null
-              ? { company_id: contact.company_id }
-              : {}),
-          },
-        }}
+    <div className="my-2">
+      <Button
+        variant="outline"
+        className="h-6 cursor-pointer"
+        size="sm"
+        asChild
       >
-        <Plus />
-        {translate("resources.deals.action.create")}
-      </Link>
-    </Button>
+        <Link
+          to="/deals/create"
+          state={{
+            record: {
+              contact_ids: [contact.id],
+              ...(contact.company_id != null
+                ? { company_id: contact.company_id }
+                : {}),
+            },
+          }}
+        >
+          <Plus className="w-4 h-4" />
+          {translate("resources.deals.action.add")}
+        </Link>
+      </Button>
+    </div>
   );
 };
