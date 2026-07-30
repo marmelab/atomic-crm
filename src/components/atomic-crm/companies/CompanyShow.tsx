@@ -19,7 +19,7 @@ import {
   useLocation,
   useMatch,
   useNavigate,
-} from "react-router-dom";
+} from "react-router";
 
 import { useIsMobile } from "@/hooks/use-mobile";
 import { ActivityLog } from "../activity/ActivityLog";
