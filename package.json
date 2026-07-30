@@ -141,6 +141,7 @@
   },
   "overrides": {
     "@joshwooding/vite-plugin-react-docgen-typescript": "^0.7.0",
+    "react-router-dom": "^7.17.0",
     "vite-plugin-pwa": {
       "vite": "$vite"
     }
