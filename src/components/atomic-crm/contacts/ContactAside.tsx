@@ -1,6 +1,7 @@
 import { useRecordContext, useTranslate } from "ra-core";
 import { Plus } from "lucide-react";
 import { Link } from "react-router";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { EditButton } from "@/components/admin/edit-button";
 import { DeleteButton } from "@/components/admin";
 import { ReferenceManyField } from "@/components/admin/reference-many-field";
@@ -22,6 +23,7 @@ import { ExportVCardButton } from "./ExportVCardButton";
 export const ContactAside = ({ link = "edit" }: { link?: "edit" | "show" }) => {
   const record = useRecordContext<Contact>();
   const translate = useTranslate();
+  const isMobile = useIsMobile();
 
   if (!record) return null;
 
@@ -71,12 +73,14 @@ export const ContactAside = ({ link = "edit" }: { link?: "edit" | "show" }) => {
         <AddTask />
       </AsideSection>
 
-      <AsideSection
-        title={translate("resources.deals.name", { smart_count: 2 })}
-      >
-        <ContactDealsList />
-        <AddDealButton contact={record} />
-      </AsideSection>
+      {!isMobile && (
+        <AsideSection
+          title={translate("resources.deals.name", { smart_count: 2 })}
+        >
+          <ContactDealsList />
+          <AddDealButton contact={record} />
+        </AsideSection>
+      )}
 
       {link !== "edit" && (
         <>

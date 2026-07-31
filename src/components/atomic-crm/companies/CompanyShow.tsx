@@ -25,14 +25,13 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { ActivityLog } from "../activity/ActivityLog";
 import { Avatar } from "../contacts/Avatar";
 import { TagsList } from "../contacts/TagsList";
-import { findDealLabel } from "../deals/dealUtils";
+import { DealsIterator } from "../deals/DealsIterator";
 import { MobileContent } from "../layout/MobileContent";
 import MobileHeader from "../layout/MobileHeader";
 import { MobileBackButton } from "../misc/MobileBackButton";
 import { formatRelativeDate } from "../misc/RelativeDate";
 import { Status } from "../misc/Status";
-import { useConfigurationContext } from "../root/ConfigurationContext";
-import type { Company, Contact, Deal } from "../types";
+import type { Company, Contact } from "../types";
 import {
   AdditionalInfo,
   AddressInfo,
@@ -174,7 +173,7 @@ const CompanyShowContent = () => {
                     target="company_id"
                     sort={{ field: "name", order: "ASC" }}
                   >
-                    <DealsIterator />
+                    <DealsIterator showLastActivity />
                   </ReferenceManyField>
                 ) : null}
               </TabsContent>
@@ -255,51 +254,5 @@ const CreateRelatedContactButton = () => {
         {translate("resources.contacts.action.add")}
       </RouterLink>
     </Button>
-  );
-};
-
-const DealsIterator = () => {
-  const translate = useTranslate();
-  const [locale = "en"] = useLocaleState();
-  const { data: deals, error, isPending } = useListContext<Deal>();
-  const { dealStages, dealCategories, currency } = useConfigurationContext();
-  if (isPending || error) return null;
-  return (
-    <div>
-      <div>
-        {deals.map((deal) => (
-          <div key={deal.id} className="p-0 text-sm">
-            <RouterLink
-              to={`/deals/${deal.id}/show`}
-              className="flex items-center justify-between hover:bg-muted py-2 px-4 transition-colors"
-            >
-              <div className="flex-1 min-w-0">
-                <div className="font-medium">{deal.name}</div>
-                <div className="text-sm text-muted-foreground">
-                  {findDealLabel(dealStages, deal.stage)},{" "}
-                  {deal.amount.toLocaleString("en-US", {
-                    notation: "compact",
-                    style: "currency",
-                    currency,
-                    currencyDisplay: "narrowSymbol",
-                    minimumSignificantDigits: 3,
-                  })}
-                  {deal.category
-                    ? `, ${dealCategories.find((c) => c.value === deal.category)?.label ?? deal.category}`
-                    : ""}
-                </div>
-              </div>
-              <div className="text-right">
-                <div className="text-sm text-muted-foreground">
-                  {translate("crm.common.last_activity_with_date", {
-                    date: formatRelativeDate(deal.updated_at, locale),
-                  })}{" "}
-                </div>
-              </div>
-            </RouterLink>
-          </div>
-        ))}
-      </div>
-    </div>
   );
 };

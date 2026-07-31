@@ -1,15 +1,7 @@
-import {
-  ListBase,
-  RecordContextProvider,
-  useListContext,
-  useRecordContext,
-} from "ra-core";
-import { Link } from "react-router";
-import { NumberField } from "@/components/admin/number-field";
-import { SelectField } from "@/components/admin/select-field";
+import { ListBase, useRecordContext } from "ra-core";
 
-import { useConfigurationContext } from "../root/ConfigurationContext";
-import type { Contact, Deal } from "../types";
+import { DealsIterator } from "../deals/DealsIterator";
+import type { Contact } from "../types";
 
 /**
  * The deals the current contact is attached to.
@@ -35,49 +27,10 @@ export const ContactDealsList = () => {
       perPage={25}
       disableSyncWithLocation
       storeKey={false}
+      loading={null}
+      error={null}
     >
       <DealsIterator />
     </ListBase>
-  );
-};
-
-const DealsIterator = () => {
-  const { data, error, isPending } = useListContext<Deal>();
-  const { dealStages, currency } = useConfigurationContext();
-
-  if (isPending || error || !data?.length) return null;
-
-  return (
-    <div className="flex flex-col">
-      {data.map((deal) => (
-        <RecordContextProvider key={deal.id} value={deal}>
-          <Link
-            to={`/deals/${deal.id}/show`}
-            className="flex flex-col -mx-1 px-1 py-1 rounded-sm hover:bg-muted transition-colors"
-          >
-            <span className="font-medium">{deal.name}</span>
-            <span className="text-xs text-muted-foreground">
-              <SelectField
-                source="stage"
-                choices={dealStages}
-                optionText="label"
-                optionValue="value"
-              />
-              {", "}
-              <NumberField
-                source="amount"
-                options={{
-                  notation: "compact",
-                  style: "currency",
-                  currency,
-                  currencyDisplay: "narrowSymbol",
-                  minimumSignificantDigits: 3,
-                }}
-              />
-            </span>
-          </Link>
-        </RecordContextProvider>
-      ))}
-    </div>
   );
 };

@@ -78,6 +78,26 @@ describe("ContactShow", () => {
     await expect.element(screen.getByRole("combobox")).toHaveTextContent("Hot");
   });
 
+  it("hides the deals section on mobile, where deals are not available", async () => {
+    mockIsMobile.mockReturnValue(true);
+    const contact = buildContact();
+
+    const screen = await render(
+      <StoryWrapper data={{ contacts: [contact] }}>
+        <ResourceContextProvider value="contacts">
+          <ShowBase id={contact.id}>
+            <ContactAside />
+          </ShowBase>
+        </ResourceContextProvider>
+      </StoryWrapper>,
+    );
+
+    await expect
+      .element(screen.getByRole("button", { name: /add task/i }))
+      .toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /add deal/i }).query()).toBeNull();
+  });
+
   it("creates a deal attached to the contact from the contact show screen", async () => {
     mockIsMobile.mockReturnValue(false);
     page.viewport(1600, 900);
