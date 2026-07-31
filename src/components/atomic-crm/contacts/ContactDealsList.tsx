@@ -30,7 +30,7 @@ export const ContactDealsList = () => {
       loading={null}
       error={null}
     >
-      <DealsIterator />
+      <DealsIterator display="small" />
     </ListBase>
   );
 };

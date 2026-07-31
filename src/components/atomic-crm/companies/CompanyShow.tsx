@@ -173,7 +173,7 @@ const CompanyShowContent = () => {
                     target="company_id"
                     sort={{ field: "name", order: "ASC" }}
                   >
-                    <DealsIterator showLastActivity />
+                    <DealsIterator />
                   </ReferenceManyField>
                 ) : null}
               </TabsContent>

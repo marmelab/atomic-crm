@@ -7,43 +7,57 @@ import { formatRelativeDate } from "../misc/RelativeDate";
 import { useConfigurationContext } from "../root/ConfigurationContext";
 import type { Deal } from "../types";
 
+type DealsIteratorDisplay = "normal" | "small";
+
 /**
  * Renders the deals of the current ListContext as links to the deal.
  *
- * Used wherever a list of deals is shown outside the deals board: the company
- * show page and the contact aside.
+ * Two display modes: "normal" for a full-width page section (company show), and
+ * "small" for the narrow contact aside, which drops the last activity column.
  */
 export const DealsIterator = ({
-  showLastActivity,
+  display = "normal",
 }: {
-  showLastActivity?: boolean;
+  display?: DealsIteratorDisplay;
 }) => (
   <RecordsIterator<Deal>
-    render={(deal) => (
-      <DealRow deal={deal} showLastActivity={showLastActivity} />
-    )}
+    render={(deal) => <DealRow deal={deal} display={display} />}
   />
 );
 
+const classes: Record<
+  DealsIteratorDisplay,
+  { row: string; name: string; meta: string }
+> = {
+  normal: {
+    row: "flex items-center justify-between text-sm hover:bg-muted py-2 px-4 transition-colors",
+    name: "font-medium",
+    meta: "text-sm text-muted-foreground",
+  },
+  small: {
+    row: "flex items-center justify-between gap-2 -mx-1 px-1 py-2 rounded-sm hover:bg-muted transition-colors",
+    name: "font-medium truncate",
+    meta: "text-xs text-muted-foreground truncate",
+  },
+};
+
 const DealRow = ({
   deal,
-  showLastActivity,
+  display,
 }: {
   deal: Deal;
-  showLastActivity?: boolean;
+  display: DealsIteratorDisplay;
 }) => {
   const translate = useTranslate();
   const [locale = "en"] = useLocaleState();
   const { dealCategories, dealStages, currency } = useConfigurationContext();
+  const className = classes[display];
 
   return (
-    <Link
-      to={`/deals/${deal.id}/show`}
-      className="flex items-center justify-between gap-2 -mx-1 px-1 py-2 rounded-sm hover:bg-muted transition-colors"
-    >
+    <Link to={`/deals/${deal.id}/show`} className={className.row}>
       <div className="flex-1 min-w-0">
-        <div className="font-medium truncate">{deal.name}</div>
-        <div className="text-xs text-muted-foreground truncate">
+        <div className={className.name}>{deal.name}</div>
+        <div className={className.meta}>
           <SelectField
             source="stage"
             choices={dealStages}
@@ -70,11 +84,13 @@ const DealRow = ({
           />
         </div>
       </div>
-      {showLastActivity && (
-        <div className="text-xs text-muted-foreground text-right">
-          {translate("crm.common.last_activity_with_date", {
-            date: formatRelativeDate(deal.updated_at, locale),
-          })}
+      {display === "normal" && (
+        <div className="text-right">
+          <div className="text-sm text-muted-foreground">
+            {translate("crm.common.last_activity_with_date", {
+              date: formatRelativeDate(deal.updated_at, locale),
+            })}
+          </div>
         </div>
       )}
     </Link>
