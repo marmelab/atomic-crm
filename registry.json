@@ -482,6 +482,10 @@
           "type": "registry:component"
         },
         {
+          "path": "src/components/atomic-crm/login/authConfig.ts",
+          "type": "registry:component"
+        },
+        {
           "path": "src/components/atomic-crm/login/StartPage.tsx",
           "type": "registry:component"
         },
@@ -555,6 +559,10 @@
         },
         {
           "path": "src/components/atomic-crm/deals/OnlyMineInput.tsx",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/deals/DealsIterator.tsx",
           "type": "registry:component"
         },
         {
@@ -711,6 +719,10 @@
         },
         {
           "path": "src/components/atomic-crm/contacts/ContactEdit.tsx",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/contacts/ContactDealsList.tsx",
           "type": "registry:component"
         },
         {

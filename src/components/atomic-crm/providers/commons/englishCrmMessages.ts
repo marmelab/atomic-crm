@@ -203,6 +203,7 @@ export const englishCrmMessages = {
         stage: "Stage",
       },
       action: {
+        add: "Add deal",
         back_to_deal: "Back to deal",
         create: "Create deal",
         new: "New Deal",
