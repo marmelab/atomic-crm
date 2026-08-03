@@ -182,7 +182,19 @@
           "type": "registry:component"
         },
         {
+          "path": "src/components/atomic-crm/root/usePreferencesLoader.ts",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/root/usePersistPreference.ts",
+          "type": "registry:component"
+        },
+        {
           "path": "src/components/atomic-crm/root/useConfigurationLoader.ts",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/root/preferences.ts",
           "type": "registry:component"
         },
         {
@@ -479,6 +491,10 @@
         },
         {
           "path": "src/components/atomic-crm/misc/ActiveFilterButton.tsx",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/login/authConfig.ts",
           "type": "registry:component"
         },
         {

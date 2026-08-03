@@ -1,5 +1,6 @@
 import { supabaseDataProvider } from "ra-supabase-core";
 import {
+  HttpError,
   withLifecycleCallbacks,
   type DataProvider,
   type GetListParams,
@@ -14,8 +15,10 @@ import type {
   Sale,
   SalesFormData,
   SignUpData,
+  UserPreferences,
 } from "../../types";
 import type { ConfigurationContextValue } from "../../root/ConfigurationContext";
+import { parseUserPreferences } from "../../root/preferences";
 import { ATTACHMENTS_BUCKET } from "../commons/attachments";
 import { getIsInitialized } from "./authProvider";
 import { getSupabaseClient } from "./supabase";
@@ -240,6 +243,64 @@ const getDataProviderWithCustomMethods = () => {
         previousData: { id: 1 },
       });
       return data.config as ConfigurationContextValue;
+    },
+    async getPreferences(): Promise<UserPreferences> {
+      const { data: session } = await getSupabaseClient().auth.getSession();
+      if (!session?.session?.user) return {};
+      const { data, error, status } = await getSupabaseClient()
+        .from("sales")
+        .select("preferences")
+        .match({ user_id: session.session.user.id })
+        .maybeSingle();
+      if (error) {
+        console.error("getPreferences.error", error);
+        throw new HttpError("Failed to read preferences", status, error);
+      }
+      return parseUserPreferences(data?.preferences);
+    },
+    async updatePreferences(
+      patch: Partial<UserPreferences>,
+    ): Promise<UserPreferences> {
+      const { data: session } = await getSupabaseClient().auth.getSession();
+      if (!session?.session?.user) {
+        throw new HttpError("Cannot save preferences without a session", 401);
+      }
+      const {
+        data: sale,
+        error: readError,
+        status: readStatus,
+      } = await getSupabaseClient()
+        .from("sales")
+        .select("preferences")
+        .match({ user_id: session.session.user.id })
+        .maybeSingle();
+      if (readError) {
+        console.error("updatePreferences.error", readError);
+        throw new HttpError(
+          "Failed to update preferences",
+          readStatus,
+          readError,
+        );
+      }
+      const stored =
+        typeof sale?.preferences === "object" && sale.preferences !== null
+          ? sale.preferences
+          : {};
+      const preferences = { ...stored, ...patch };
+      const { data, error, status } = await getSupabaseClient()
+        .from("sales")
+        .update({ preferences })
+        .match({ user_id: session.session.user.id })
+        .select("preferences")
+        .maybeSingle();
+      if (error) {
+        console.error("updatePreferences.error", error);
+        throw new HttpError("Failed to update preferences", status, error);
+      }
+      if (!data) {
+        throw new HttpError("Failed to update preferences", status);
+      }
+      return parseUserPreferences(data.preferences);
     },
   } satisfies DataProvider;
 };

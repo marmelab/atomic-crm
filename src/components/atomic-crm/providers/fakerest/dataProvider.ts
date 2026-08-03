@@ -18,8 +18,10 @@ import type {
   SalesFormData,
   SignUpData,
   Task,
+  UserPreferences,
 } from "../../types";
 import type { ConfigurationContextValue } from "../../root/ConfigurationContext";
+import { parseUserPreferences } from "../../root/preferences";
 import { getActivityLog } from "../commons/activity";
 import { getCompanyAvatar } from "../commons/getCompanyAvatar";
 import { getContactAvatar } from "../commons/getContactAvatar";
@@ -32,6 +34,16 @@ import {
 import generateData from "./dataGenerator";
 import type { Db } from "./dataGenerator/types";
 import { withSupabaseFilterAdapter } from "./internal/supabaseAdapter";
+
+const getLoggedSaleId = (): Identifier | undefined => {
+  const item = localStorage.getItem(USER_STORAGE_KEY);
+  if (!item) return undefined;
+  try {
+    return (JSON.parse(item) as Sale).id;
+  } catch {
+    return undefined;
+  }
+};
 
 const TASK_MARKED_AS_DONE = "TASK_MARKED_AS_DONE";
 const TASK_MARKED_AS_UNDONE = "TASK_MARKED_AS_UNDONE";
@@ -315,6 +327,39 @@ export const createDataProvider = ({
         previousData: prev,
       });
       return config;
+    },
+    getPreferences: async (): Promise<UserPreferences> => {
+      const saleId = getLoggedSaleId();
+      if (saleId === undefined) return {};
+      const { data } = await dataProvider.getOne<Sale>("sales", {
+        id: saleId,
+      });
+      return parseUserPreferences(data?.preferences);
+    },
+    updatePreferences: async (
+      patch: Partial<UserPreferences>,
+    ): Promise<UserPreferences> => {
+      const saleId = getLoggedSaleId();
+      if (saleId === undefined) {
+        throw new Error("Cannot save preferences without a logged in user");
+      }
+      const { data: sale } = await dataProvider.getOne<Sale>("sales", {
+        id: saleId,
+      });
+      if (!sale) {
+        throw new Error("Failed to update preferences");
+      }
+      const stored =
+        typeof sale.preferences === "object" && sale.preferences !== null
+          ? sale.preferences
+          : {};
+      const preferences = { ...stored, ...patch };
+      await dataProvider.update("sales", {
+        id: saleId,
+        data: { preferences },
+        previousData: sale,
+      });
+      return parseUserPreferences(preferences);
     },
   };
 

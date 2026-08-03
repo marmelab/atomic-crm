@@ -224,6 +224,18 @@ begin
     return new;
 end;$$;
 
+CREATE OR REPLACE FUNCTION "public"."enforce_sales_self_update_scope"() RETURNS "trigger"
+    LANGUAGE "plpgsql"
+    SET "search_path" TO ''
+    AS $$
+BEGIN
+  IF current_user IN ('authenticated', 'anon')
+     AND to_jsonb(NEW) - 'preferences' IS DISTINCT FROM to_jsonb(OLD) - 'preferences' THEN
+    RAISE EXCEPTION 'Only the preferences column may be self-updated on public.sales';
+  END IF;
+  RETURN NEW;
+END;$$;
+
 CREATE OR REPLACE FUNCTION "public"."handle_new_user"() RETURNS "trigger"
     LANGUAGE "plpgsql" SECURITY DEFINER
     SET "search_path" TO ''
