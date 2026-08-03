@@ -7,7 +7,9 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
+import type { Theme } from "@/components/admin/theme-context";
 import { useTheme } from "@/components/admin/use-theme";
+import { usePersistPreference } from "@/components/atomic-crm/root/usePersistPreference";
 
 /**
  * Toggle button that lets users switch between light, dark, and system UI themes.
@@ -19,6 +21,12 @@ import { useTheme } from "@/components/admin/use-theme";
  */
 export function ThemeModeToggle() {
   const { theme, setTheme } = useTheme();
+  const persist = usePersistPreference();
+
+  const handleSetTheme = (value: Theme) => {
+    setTheme(value);
+    persist({ theme: value });
+  };
 
   return (
     <DropdownMenu modal={false}>
@@ -30,15 +38,15 @@ export function ThemeModeToggle() {
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
-        <DropdownMenuItem onClick={() => setTheme("light")}>
+        <DropdownMenuItem onClick={() => handleSetTheme("light")}>
           Light
           <Check className={cn("ml-auto", theme !== "light" && "hidden")} />
         </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => setTheme("dark")}>
+        <DropdownMenuItem onClick={() => handleSetTheme("dark")}>
           Dark
           <Check className={cn("ml-auto", theme !== "dark" && "hidden")} />
         </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => setTheme("system")}>
+        <DropdownMenuItem onClick={() => handleSetTheme("system")}>
           System
           <Check className={cn("ml-auto", theme !== "system" && "hidden")} />
         </DropdownMenuItem>

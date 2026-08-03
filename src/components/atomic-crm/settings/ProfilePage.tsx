@@ -33,6 +33,7 @@ import {
 
 import ImageEditorField from "../misc/ImageEditorField";
 import type { CrmDataProvider } from "../providers/types";
+import { usePersistPreference } from "../root/usePersistPreference";
 import type { Sale, SalesFormData } from "../types";
 
 export const ProfilePage = () => {
@@ -275,21 +276,11 @@ const LanguageSelector = () => {
   const translate = useTranslate();
   const locales = useLocales();
   const [locale, setLocale] = useLocaleState();
-  const dataProvider = useDataProvider<CrmDataProvider>();
-  const notify = useNotify();
+  const persist = usePersistPreference();
 
   const handleSetLocale = (value: string) => {
     setLocale(value);
-    dataProvider
-      .updatePreferences({ locale: value })
-      .catch((e) =>
-        notify(
-          typeof e?.message === "string"
-            ? e?.message
-            : "ra.notification.http_error",
-          { type: "error" },
-        ),
-      );
+    persist({ locale: value });
   };
 
   if (locales.length <= 1) {

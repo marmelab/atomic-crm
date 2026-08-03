@@ -1,6 +1,7 @@
 import type { Identifier, RaRecord } from "ra-core";
 import type { ComponentType } from "react";
 
+import type { Theme } from "@/components/admin/theme-context";
 import type {
   COMPANY_CREATED,
   CONTACT_CREATED,
@@ -8,6 +9,11 @@ import type {
   DEAL_CREATED,
   DEAL_NOTE_CREATED,
 } from "./consts";
+
+export type UserPreferences = {
+  theme?: Theme;
+  locale?: string;
+};
 
 export type SignUpData = {
   email: string;
@@ -33,6 +39,7 @@ export type Sale = {
   avatar?: RAFile;
   disabled?: boolean;
   user_id: string;
+  preferences?: UserPreferences;
 
   /**
    * This is a copy of the user's email, to make it easier to handle by react admin

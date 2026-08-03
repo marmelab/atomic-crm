@@ -524,6 +524,9 @@ export const frenchCrmMessages = {
         },
       },
     },
+    preferences: {
+      update_error: "Vos préférences n'ont pas pu être enregistrées. Réessayez",
+    },
     theme: {
       dark: "Sombre",
       label: "Thème",

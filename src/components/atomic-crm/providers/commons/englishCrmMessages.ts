@@ -517,6 +517,9 @@ export const englishCrmMessages = {
         },
       },
     },
+    preferences: {
+      update_error: "Could not save your preferences. Please try again",
+    },
     theme: {
       dark: "Dark",
       label: "Theme",

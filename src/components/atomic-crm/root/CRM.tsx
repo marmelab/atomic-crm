@@ -5,7 +5,7 @@ import type {
   LayoutComponent,
 } from "ra-core";
 import { CustomRoutes, localStorageStore, Resource } from "ra-core";
-import { useEffect, useMemo } from "react";
+import { useCallback, useEffect, useMemo } from "react";
 import { Route } from "react-router";
 import { QueryClient } from "@tanstack/react-query";
 import { PersistQueryClientProvider } from "@tanstack/react-query-persist-client";
@@ -170,7 +170,7 @@ export const CRM = ({
 
   // on login, pre-fetch the configuration and preferences to avoid
   // a flickering when accessing the app for the first time
-  const prefetchConfigAndPreferences = async () => {
+  const prefetchConfigAndPreferences = useCallback(async () => {
     try {
       const config = await dataProvider.getConfiguration();
       if (Object.keys(config).length > 0) {
@@ -180,13 +180,13 @@ export const CRM = ({
       // Non-critical: config will load via useConfigurationLoader
     }
     try {
-      const prefs = await dataProvider.getPreferences();
-      if (prefs.theme) store.setItem("theme", prefs.theme);
-      if (prefs.locale) store.setItem("locale", prefs.locale);
+      const preferences = await dataProvider.getPreferences();
+      if (preferences.theme) store.setItem("theme", preferences.theme);
+      if (preferences.locale) store.setItem("locale", preferences.locale);
     } catch {
-      // Non-critical: prefs will load via usePreferencesLoader
+      // Non-critical: preferences will load via usePreferencesLoader
     }
-  };
+  }, [dataProvider, store]);
 
   const wrappedAuthProvider = useMemo<AuthProvider>(
     () => ({
@@ -215,7 +215,7 @@ export const CRM = ({
         return authProvider.logout(params);
       },
     }),
-    [authProvider, dataProvider, store],
+    [authProvider, prefetchConfigAndPreferences, store],
   );
 
   const ResponsiveAdmin = isMobile ? MobileAdmin : DesktopAdmin;

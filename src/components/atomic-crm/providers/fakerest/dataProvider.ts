@@ -18,6 +18,7 @@ import type {
   SalesFormData,
   SignUpData,
   Task,
+  UserPreferences,
 } from "../../types";
 import type { ConfigurationContextValue } from "../../root/ConfigurationContext";
 import { getActivityLog } from "../commons/activity";
@@ -316,33 +317,30 @@ export const createDataProvider = ({
       });
       return config;
     },
-    getPreferences: async (): Promise<Record<string, string>> => {
+    getPreferences: async (): Promise<UserPreferences> => {
       const identity = await getIdentity();
       if (!identity) return {};
-      const { data } = await baseDataProvider.getOne("sales", {
+      const { data } = await baseDataProvider.getOne<Sale>("sales", {
         id: identity.id,
       });
-      return (data?.preferences as Record<string, string>) ?? {};
+      return data?.preferences ?? {};
     },
     updatePreferences: async (
-      prefs: Record<string, string>,
-    ): Promise<Record<string, string>> => {
+      patch: Partial<UserPreferences>,
+    ): Promise<UserPreferences> => {
       const identity = await getIdentity();
-      if (!identity) return prefs;
-      const { data: sale } = await baseDataProvider.getOne("sales", {
+      if (!identity) return patch;
+      const { data: sale } = await baseDataProvider.getOne<Sale>("sales", {
         id: identity.id,
       });
-      if (!sale) return prefs;
-      const merged = {
-        ...((sale?.preferences as Record<string, string>) ?? {}),
-        ...prefs,
-      };
+      if (!sale) return patch;
+      const preferences = { ...(sale.preferences ?? {}), ...patch };
       await baseDataProvider.update("sales", {
         id: identity.id,
-        data: { ...sale, preferences: merged },
+        data: { preferences },
         previousData: sale,
       });
-      return merged;
+      return preferences;
     },
   };
 

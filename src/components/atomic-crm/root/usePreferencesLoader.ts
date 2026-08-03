@@ -1,25 +1,32 @@
 import { useQuery } from "@tanstack/react-query";
+import { useDataProvider, useGetIdentity, useStore } from "ra-core";
 import { useEffect } from "react";
-import { useDataProvider, useStore } from "ra-core";
 
+import type { Theme } from "@/components/admin/theme-context";
 import type { CrmDataProvider } from "../providers/types";
+import type { UserPreferences } from "../types";
+import {
+  PREFERENCES_QUERY_KEY,
+  PREFERENCES_STALE_TIME_MS,
+} from "./preferences";
 
 export const usePreferencesLoader = () => {
   const dataProvider = useDataProvider<CrmDataProvider>();
-  const [, setTheme] = useStore<string>("theme");
+  const { identity } = useGetIdentity();
+  const [, setTheme] = useStore<Theme>("theme");
   const [, setLocale] = useStore<string>("locale");
 
-  const { data } = useQuery<Record<string, string>>({
-    queryKey: ["preferences"],
+  const { data } = useQuery<UserPreferences>({
+    queryKey: [PREFERENCES_QUERY_KEY, identity?.id],
     queryFn: () => dataProvider.getPreferences(),
-    staleTime: 1000 * 60 * 5, // 5 minutes
+    enabled: !!identity,
+    staleTime: PREFERENCES_STALE_TIME_MS,
     retry: false,
   });
 
   useEffect(() => {
-    if (data) {
-      if (data.theme) setTheme(data.theme);
-      if (data.locale) setLocale(data.locale);
-    }
+    if (!data) return;
+    if (data.theme) setTheme(data.theme);
+    if (data.locale) setLocale(data.locale);
   }, [data, setTheme, setLocale]);
 };

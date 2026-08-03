@@ -47,6 +47,7 @@ import MobileHeader from "../layout/MobileHeader";
 import { ChangelogPage } from "../misc/ChangelogPage";
 import ImageEditorField from "../misc/ImageEditorField";
 import type { CrmDataProvider } from "../providers/types";
+import { usePersistPreference } from "../root/usePersistPreference";
 import type { SalesFormData } from "../types";
 
 const ChangePasswordButton = () => {
@@ -375,21 +376,11 @@ const LanguageRow = () => {
   const translate = useTranslate();
   const locales = useLocales();
   const [locale, setLocale] = useLocaleState();
-  const dataProvider = useDataProvider<CrmDataProvider>();
-  const notify = useNotify();
+  const persist = usePersistPreference();
 
   const handleSetLocale = (value: string) => {
     setLocale(value);
-    dataProvider
-      .updatePreferences({ locale: value })
-      .catch((e) =>
-        notify(
-          typeof e?.message === "string"
-            ? e?.message
-            : "ra.notification.http_error",
-          { type: "error" },
-        ),
-      );
+    persist({ locale: value });
   };
 
   if (locales.length <= 1) return null;
@@ -425,21 +416,11 @@ const LanguageRow = () => {
 const ThemeRow = () => {
   const translate = useTranslate();
   const { theme, setTheme } = useTheme();
-  const dataProvider = useDataProvider<CrmDataProvider>();
-  const notify = useNotify();
+  const persist = usePersistPreference();
 
   const handleSetTheme = (value: Theme) => {
     setTheme(value);
-    dataProvider
-      .updatePreferences({ theme: value })
-      .catch((e) =>
-        notify(
-          typeof e?.message === "string"
-            ? e?.message
-            : "ra.notification.http_error",
-          { type: "error" },
-        ),
-      );
+    persist({ theme: value });
   };
 
   return (

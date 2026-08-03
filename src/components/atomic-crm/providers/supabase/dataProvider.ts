@@ -14,6 +14,7 @@ import type {
   Sale,
   SalesFormData,
   SignUpData,
+  UserPreferences,
 } from "../../types";
 import type { ConfigurationContextValue } from "../../root/ConfigurationContext";
 import { ATTACHMENTS_BUCKET } from "../commons/attachments";
@@ -241,36 +242,52 @@ const getDataProviderWithCustomMethods = () => {
       });
       return data.config as ConfigurationContextValue;
     },
-    async getPreferences(): Promise<Record<string, string>> {
+    async getPreferences(): Promise<UserPreferences> {
       const { data: session } = await getSupabaseClient().auth.getSession();
       if (!session?.session?.user) return {};
-      const { data } = await getSupabaseClient()
+      const { data, error } = await getSupabaseClient()
         .from("sales")
         .select("preferences")
         .match({ user_id: session.session.user.id })
-        .single();
-      return (data?.preferences as Record<string, string>) ?? {};
+        .maybeSingle();
+      if (error) {
+        console.error("getPreferences.error", error);
+        throw error;
+      }
+      return (data?.preferences as UserPreferences) ?? {};
     },
     async updatePreferences(
-      prefs: Record<string, string>,
-    ): Promise<Record<string, string>> {
+      patch: Partial<UserPreferences>,
+    ): Promise<UserPreferences> {
       const { data: session } = await getSupabaseClient().auth.getSession();
-      if (!session?.session?.user) return prefs;
-      const { data: sale } = await getSupabaseClient()
+      if (!session?.session?.user) return patch;
+      const { data: sale, error: readError } = await getSupabaseClient()
         .from("sales")
         .select("preferences")
         .match({ user_id: session.session.user.id })
-        .single();
-      if (!sale) return prefs;
-      const merged = {
-        ...((sale?.preferences as Record<string, string>) ?? {}),
-        ...prefs,
+        .maybeSingle();
+      if (readError) {
+        console.error("updatePreferences.error", readError);
+        throw readError;
+      }
+      const preferences = {
+        ...((sale?.preferences as UserPreferences) ?? {}),
+        ...patch,
       };
-      await getSupabaseClient()
+      const { data, error } = await getSupabaseClient()
         .from("sales")
-        .update({ preferences: merged })
-        .match({ user_id: session.session.user.id });
-      return merged;
+        .update({ preferences })
+        .match({ user_id: session.session.user.id })
+        .select("preferences")
+        .maybeSingle();
+      if (error) {
+        console.error("updatePreferences.error", error);
+        throw error;
+      }
+      if (!data) {
+        throw new Error("Failed to update preferences");
+      }
+      return data.preferences as UserPreferences;
     },
   } satisfies DataProvider;
 };

@@ -90,6 +90,9 @@ grant all on table public.sales to anon;
 grant all on table public.sales to authenticated;
 grant all on table public.sales to service_role;
 
+revoke update on table public.sales from authenticated;
+grant update (preferences) on table public.sales to authenticated;
+
 grant all on table public.tags to anon;
 grant all on table public.tags to authenticated;
 grant all on table public.tags to service_role;
