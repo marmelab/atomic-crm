@@ -7,8 +7,10 @@ import type { UserPreferences } from "../types";
 import { PREFERENCES_QUERY_KEY } from "./preferences";
 
 let pendingWrites: Promise<unknown> = Promise.resolve();
+let generation = 0;
 
 export const resetPendingPreferenceWrites = () => {
+  generation += 1;
   pendingWrites = Promise.resolve();
 };
 
@@ -24,10 +26,18 @@ export const usePersistPreference = () => {
       const previous = queryClient.getQueryData<UserPreferences>(queryKey);
       queryClient.setQueryData(queryKey, { ...previous, ...patch });
 
+      const enqueuedAt = generation;
       pendingWrites = pendingWrites
         .catch(() => {})
-        .then(() => dataProvider.updatePreferences(patch))
-        .then((preferences) => queryClient.setQueryData(queryKey, preferences))
+        .then(() =>
+          enqueuedAt === generation
+            ? dataProvider.updatePreferences(patch)
+            : undefined,
+        )
+        .then((preferences) => {
+          if (preferences === undefined) return;
+          queryClient.setQueryData(queryKey, preferences);
+        })
         .catch(() => {
           if (previous === undefined) {
             queryClient.removeQueries({ queryKey, exact: true });

@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { useDataProvider, useGetIdentity, useStore } from "ra-core";
+import { useDataProvider, useGetIdentity, useLocales, useStore } from "ra-core";
 import { useEffect } from "react";
 
 import type { Theme } from "@/components/admin/theme-context";
@@ -13,6 +13,7 @@ import {
 export const usePreferencesLoader = () => {
   const dataProvider = useDataProvider<CrmDataProvider>();
   const { identity } = useGetIdentity();
+  const locales = useLocales();
   const [, setTheme] = useStore<Theme>("theme");
   const [, setLocale] = useStore<string>("locale");
 
@@ -27,6 +28,9 @@ export const usePreferencesLoader = () => {
   useEffect(() => {
     if (!data) return;
     if (data.theme) setTheme(data.theme);
-    if (data.locale) setLocale(data.locale);
-  }, [data, setTheme, setLocale]);
+    const isConfiguredLocale =
+      locales.length === 0 ||
+      locales.some(({ locale }) => locale === data.locale);
+    if (data.locale && isConfiguredLocale) setLocale(data.locale);
+  }, [data, locales, setTheme, setLocale]);
 };

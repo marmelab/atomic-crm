@@ -12,15 +12,16 @@ import { usePersistPreference } from "./usePersistPreference";
 
 const catalog = mergeTranslations(englishMessages, englishCrmMessages);
 
-const twoLocalesI18nProvider = polyglotI18nProvider(
-  () => catalog,
-  "en",
-  [
-    { locale: "en", name: "English" },
-    { locale: "fr", name: "Français" },
-  ],
-  { allowMissing: true },
-);
+const createTwoLocalesI18nProvider = () =>
+  polyglotI18nProvider(
+    () => catalog,
+    "en",
+    [
+      { locale: "en", name: "English" },
+      { locale: "fr", name: "Français" },
+    ],
+    { allowMissing: true },
+  );
 
 const createFakeServer = (
   initial: UserPreferences,
@@ -104,7 +105,7 @@ describe("preference persistence", () => {
     const server = createFakeServer({ theme: "dark", locale: "en" });
     const screen = await render(
       <StoryWrapper
-        i18nProvider={twoLocalesI18nProvider}
+        i18nProvider={createTwoLocalesI18nProvider()}
         dataProvider={server}
         layout={Layout}
       >
@@ -117,6 +118,22 @@ describe("preference persistence", () => {
 
     await expect.element(screen.getByText("locale: fr")).toBeVisible();
     await vi.waitFor(() => expect(server.read().locale).toBe("fr"));
+  });
+
+  it("ignores a stored locale the app does not offer", async () => {
+    const server = createFakeServer({ theme: "dark", locale: "de" });
+    const screen = await render(
+      <StoryWrapper
+        i18nProvider={createTwoLocalesI18nProvider()}
+        dataProvider={server}
+        layout={Layout}
+      >
+        <Probe />
+      </StoryWrapper>,
+    );
+
+    await expect.element(screen.getByText("theme: dark")).toBeVisible();
+    await expect.element(screen.getByText("locale: en")).toBeVisible();
   });
 
   it("does not lose one of two changes made back to back", async () => {
