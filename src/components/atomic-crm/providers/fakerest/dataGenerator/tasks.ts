@@ -36,7 +36,7 @@ export const type: string[] = [
 export const generateTasks = (db: Db) => {
   return Array.from(Array(400).keys()).map<Task>((id) => {
     const contact = random.arrayElement(db.contacts);
-    contact.nb_tasks++;
+    contact.nb_tasks = (contact.nb_tasks ?? 0) + 1;
     return {
       id,
       contact_id: contact.id,

@@ -24,8 +24,12 @@ export function validateReadOnly(sql: string): string | null {
   let stmts: Statement[];
   try {
     stmts = parse(sql);
-  } catch {
-    return "Failed to parse SQL. Please check your query syntax.";
+  } catch (err) {
+    const raw = err instanceof Error ? err.message : String(err);
+    // pgsql-ast-parser appends a parse-table dump that is useless to the
+    // LLM and consumes many tokens; keep the diagnostic prefix only.
+    const message = raw.split("Here is the state of my parse table")[0].trim();
+    return `Failed to parse SQL: ${message}`;
   }
   if (stmts.length === 0) {
     return "Empty query.";
@@ -46,8 +50,12 @@ export function validateWrite(sql: string): string | null {
   let stmts: Statement[];
   try {
     stmts = parse(sql);
-  } catch {
-    return "Failed to parse SQL. Please check your query syntax.";
+  } catch (err) {
+    const raw = err instanceof Error ? err.message : String(err);
+    // pgsql-ast-parser appends a parse-table dump that is useless to the
+    // LLM and consumes many tokens; keep the diagnostic prefix only.
+    const message = raw.split("Here is the state of my parse table")[0].trim();
+    return `Failed to parse SQL: ${message}`;
   }
   if (stmts.length === 0) {
     return "Empty query.";

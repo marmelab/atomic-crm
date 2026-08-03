@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import * as React from "react";
-import { isValidElement, useCallback } from "react";
+import { useCallback } from "react";
 import { Check, ChevronsUpDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -201,14 +201,13 @@ export const AutocompleteInput = (
       ? getCreateItem(filterValue)
       : null;
   let finalChoices = allChoices;
-
   if (createItem) {
     finalChoices = [...finalChoices, createItem];
   }
 
   return (
     <>
-      <FormField className={props.className} id={id} name={source}>
+      <FormField className={props.className} id={id} name={field.name}>
         {props.label !== false && (
           <FormLabel id={uniqueId}>
             <FieldTitle
@@ -241,7 +240,7 @@ export const AutocompleteInput = (
               {/* We handle the filtering ourselves */}
               <Command shouldFilter={!isFromReference}>
                 <CommandInput
-                  placeholder={placeholder}
+                  placeholder="Search..."
                   value={filterValue}
                   onValueChange={(filter) => {
                     setFilterValue(filter);
@@ -270,6 +269,11 @@ export const AutocompleteInput = (
                       return (
                         <CommandItem
                           key={getChoiceValue(choice)}
+                          keywords={
+                            isCreateItem || React.isValidElement(choiceText)
+                              ? undefined
+                              : [choiceText]
+                          }
                           value={
                             isCreateItem
                               ? // if it's the create option, include the filter value so it is shown in the command input
@@ -277,11 +281,6 @@ export const AutocompleteInput = (
                                 // to show the option when the filter value starts or ends with a space
                                 `?${filterValue}?`
                               : getChoiceValue(choice)
-                          }
-                          keywords={
-                            isCreateItem || isValidElement(choiceText)
-                              ? undefined
-                              : [choiceText]
                           }
                           onSelect={() => handleChangeWithCreateSupport(choice)}
                           disabled={disabled}

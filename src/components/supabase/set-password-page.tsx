@@ -1,13 +1,11 @@
 import { useState } from "react";
-import type { ValidateForm } from "ra-core";
 import { Form, required, useNotify, useTranslate } from "ra-core";
 import { useSetPassword, useSupabaseAccessToken } from "ra-supabase-core";
-import type { FieldValues, SubmitHandler } from "react-hook-form";
 import { Button } from "@/components/ui/button";
 import { TextInput } from "@/components/admin/text-input";
 import { Layout } from "@/components/supabase/layout";
 
-interface FormData {
+interface SetPasswordFormData {
   password: string;
   confirmPassword: string;
 }
@@ -24,7 +22,7 @@ export const SetPasswordPage = () => {
   const translate = useTranslate();
   const [, { mutateAsync: setPassword }] = useSetPassword();
 
-  const validate = (values: FormData) => {
+  const validate = (values: SetPasswordFormData) => {
     if (values.password !== values.confirmPassword) {
       return {
         password: "ra-supabase.validation.password_mismatch",
@@ -45,7 +43,7 @@ export const SetPasswordPage = () => {
     );
   }
 
-  const submit = async (values: FormData) => {
+  const submit = async (values: SetPasswordFormData) => {
     try {
       setLoading(true);
       await setPassword({
@@ -86,10 +84,10 @@ export const SetPasswordPage = () => {
           })}
         </h1>
       </div>
-      <Form<FormData>
+      <Form
         className="space-y-8"
-        onSubmit={submit as SubmitHandler<FieldValues>}
-        validate={validate as ValidateForm}
+        onSubmit={submit as any}
+        validate={validate as any}
       >
         <TextInput
           label={translate("ra.auth.password", {

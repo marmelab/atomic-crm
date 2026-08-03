@@ -43,6 +43,7 @@ const hooks = globSync(path.join(hooksPath, "**", "*.ts*")).filter((hook) => {
 const libFiles = globSync(path.join(libPath, "**", "*.ts*")).filter((file) => {
   return !excludedLibFiles.includes(path.basename(file));
 });
+const changelogPath = "CHANGELOG.md";
 
 const registryContent = JSON.parse(fs.readFileSync(registryPath, "utf-8"));
 
@@ -71,6 +72,11 @@ const files = [
       type: "registry:lib",
     };
   }),
+  {
+    path: changelogPath,
+    type: "registry:file",
+    target: "~/CHANGELOG.md",
+  },
 ];
 
 const newRegistryContent = {

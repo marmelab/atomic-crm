@@ -1,4 +1,3 @@
-import { DeleteButton } from "@/components/admin";
 import { SaveButton } from "@/components/admin/form";
 import {
   Sheet,
@@ -19,6 +18,7 @@ import {
   type FormProps,
 } from "ra-core";
 import { type ReactNode } from "react";
+import { cn } from "@/lib/utils";
 
 export interface EditSheetProps extends EditBaseProps {
   /**
@@ -47,9 +47,9 @@ export interface EditSheetProps extends EditBaseProps {
   defaultValues?: FormProps["defaultValues"];
 
   /**
-   * Custom delete button component. If not provided, defaults to the standard DeleteButton
+   * Optional actions to render in the sheet header, next to the title
    */
-  deleteButton?: ReactNode;
+  headerActions?: ReactNode;
 }
 
 /**
@@ -90,7 +90,7 @@ export const EditSheet = ({
   mutationOptions,
   mutationMode = "undoable",
   defaultValues,
-  deleteButton,
+  headerActions,
   ...editBaseProps
 }: EditSheetProps) => {
   const resource = useResourceContext(editBaseProps);
@@ -125,10 +125,6 @@ export const EditSheet = ({
     onSuccess: handleSuccess,
   };
 
-  const defaultDeleteButton = (
-    <DeleteButton variant="destructive" className="flex-1" />
-  );
-
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent
@@ -147,20 +143,27 @@ export const EditSheet = ({
             className="h-dvh flex-1 flex flex-col"
           >
             <SheetHeader className="border-b">
-              <SheetTitle>
-                <EditSheetTitle title={title} />
-              </SheetTitle>
+              <div
+                className={cn(
+                  "flex items-center gap-2",
+                  headerActions && "pr-12",
+                )}
+              >
+                <SheetTitle className="min-w-0 flex-1 truncate">
+                  <EditSheetTitle title={title} />
+                </SheetTitle>
+                {headerActions && (
+                  <div className="shrink-0">{headerActions}</div>
+                )}
+              </div>
             </SheetHeader>
 
             <div className="flex-1 overflow-y-auto flex flex-col gap-3 p-4">
               {children}
             </div>
 
-            <SheetFooter className="border-t">
-              <div className="flex w-full gap-4">
-                {deleteButton || defaultDeleteButton}
-                <SaveButton className="flex-1" />
-              </div>
+            <SheetFooter className="border-t flex flex-row w-full gap-4">
+              <SaveButton className="flex-1 h-12" />
             </SheetFooter>
           </Form>
         </EditBase>

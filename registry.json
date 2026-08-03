@@ -346,6 +346,10 @@
           "type": "registry:component"
         },
         {
+          "path": "src/components/atomic-crm/notes/noteModel.ts",
+          "type": "registry:component"
+        },
+        {
           "path": "src/components/atomic-crm/notes/index.ts",
           "type": "registry:component"
         },
@@ -367,6 +371,10 @@
         },
         {
           "path": "src/components/atomic-crm/notes/NoteShowPage.tsx",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/notes/NoteInputsMobile.tsx",
           "type": "registry:component"
         },
         {
@@ -450,10 +458,6 @@
           "type": "registry:component"
         },
         {
-          "path": "src/components/atomic-crm/misc/ImportFromJsonButton.tsx",
-          "type": "registry:component"
-        },
-        {
           "path": "src/components/atomic-crm/misc/ImageEditorField.tsx",
           "type": "registry:component"
         },
@@ -467,6 +471,10 @@
         },
         {
           "path": "src/components/atomic-crm/misc/ContactOption.tsx",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/misc/ChangelogPage.tsx",
           "type": "registry:component"
         },
         {
@@ -860,6 +868,11 @@
         {
           "path": "src/lib/toSlug.ts",
           "type": "registry:lib"
+        },
+        {
+          "path": "CHANGELOG.md",
+          "type": "registry:file",
+          "target": "~/CHANGELOG.md"
         }
       ]
     }

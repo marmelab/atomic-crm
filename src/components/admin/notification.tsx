@@ -42,7 +42,8 @@ export const Notification = (props: ToasterProps) => {
       const notification = takeNotification();
       if (notification) {
         const { message, type = "info", notificationOptions } = notification;
-        const { messageArgs, undoable } = notificationOptions || {};
+        const { messageArgs, undoable, autoHideDuration } =
+          notificationOptions || {};
 
         const beforeunload = (e: BeforeUnloadEvent) => {
           e.preventDefault();
@@ -81,7 +82,11 @@ export const Notification = (props: ToasterProps) => {
               : undefined
           : undefined;
 
+        const duration =
+          autoHideDuration === null ? Infinity : autoHideDuration;
+
         toast[type](finalMessage, {
+          duration,
           action: undoable
             ? {
                 label: translate("ra.action.undo"),

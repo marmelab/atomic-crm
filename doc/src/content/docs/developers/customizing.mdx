@@ -65,12 +65,13 @@ export default App;
 | ---------------------- | ------------------------------------------------------------------------------------ | -------------- |
 | `companySectors`       | The list of company sectors used in the application.                                 | LabeledValue[] |
 | `currency`             | The ISO 4217 currency code used to format monetary values (default: `"USD"`).        | string         |
+| `darkModeLogo`         | Logo shown in dark mode and on the auth pages. Use an imported asset, an absolute URL, or a data URI — never a route-relative path (it breaks on nested routes like `/oauth/consent`). | string         |
 | `darkTheme`            | The theme to use when the application is in dark mode.                               | RaThemeOptions |
 | `dealCategories`       | The categories of deals used in the application.                                     | LabeledValue[] |
 | `dealPipelineStatuses` | The statuses of deals in the pipeline used in the application                        | string[]       |
 | `dealStages`           | The stages of deals used in the application.                                         | DealStage[]    |
+| `lightModeLogo`        | Logo shown in light mode. Same rule as `darkModeLogo`: imported asset, absolute URL, or data URI only. | string         |
 | `lightTheme`           | The theme to use when the application is in light mode.                              | RaThemeOptions |
-| `logo`                 | The logo used in the CRM application.                                                | string         |
 | `noteStatuses`         | The statuses of notes used in the application.                                       | NoteStatus[]   |
 | `taskTypes`            | The types of tasks used in the application.                                          | LabeledValue[] |
 | `title`                | The title of the CRM application.                                                    | string         |

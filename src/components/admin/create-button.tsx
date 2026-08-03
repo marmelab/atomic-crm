@@ -1,7 +1,12 @@
 import React from "react";
 import { buttonVariants } from "@/components/ui/button";
 import { Plus } from "lucide-react";
-import { Translate, useCreatePath, useResourceContext } from "ra-core";
+import {
+  useCreatePath,
+  useGetResourceLabel,
+  useResourceContext,
+  useResourceTranslation,
+} from "ra-core";
 import { Link } from "react-router";
 
 export type CreateButtonProps = {
@@ -30,26 +35,34 @@ export type CreateButtonProps = {
  *   </List>
  * );
  */
-export const CreateButton = ({
-  label,
-  resource: targetResource,
-}: CreateButtonProps) => {
-  const resource = useResourceContext();
+export const CreateButton = (props: CreateButtonProps) => {
+  const { label: labelProp } = props;
+  const resource = useResourceContext(props);
   const createPath = useCreatePath();
+  const getResourceLabel = useGetResourceLabel();
   const link = createPath({
-    resource: targetResource ?? resource,
+    resource,
     type: "create",
+  });
+  const label = useResourceTranslation({
+    resourceI18nKey: resource
+      ? `resources.${resource}.action.create`
+      : undefined,
+    baseI18nKey: "ra.action.create",
+    options: {
+      name: resource ? getResourceLabel(resource, 1) : undefined,
+    },
+    userText: labelProp,
   });
   return (
     <Link
       className={buttonVariants({ variant: "outline" })}
       to={link}
       onClick={stopPropagation}
+      aria-label={typeof label === "string" ? label : undefined}
     >
       <Plus />
-      <Translate i18nKey={label ?? "ra.action.create"}>
-        {label ?? "Create"}
-      </Translate>
+      {label}
     </Link>
   );
 };

@@ -276,6 +276,9 @@ export const englishCrmMessages = {
         options_hint: "(attach files, or change details)",
         show_options: "Show options",
       },
+      actions: {
+        attach_document: "Attach document",
+      },
       validation: {
         note_or_attachment_required: "A note or an attachment is required",
       },
@@ -403,6 +406,9 @@ export const englishCrmMessages = {
       me: "Me",
       task_count: "%{smart_count} task |||| %{smart_count} tasks",
     },
+    changelog: {
+      title: "Changelog",
+    },
     activity: {
       added_company: "%{name} added company",
       you_added_company: "You added company",
@@ -470,6 +476,7 @@ export const englishCrmMessages = {
       title: "Import Data",
     },
     settings: {
+      about: "About",
       companies: {
         sectors: "Sectors",
       },

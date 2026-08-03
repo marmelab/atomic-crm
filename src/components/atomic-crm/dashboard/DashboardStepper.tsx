@@ -1,18 +1,18 @@
+import { CreateButton } from "@/components/admin/create-button";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { Progress } from "@/components/ui/progress";
 import { CheckCircle, Circle, Plus } from "lucide-react";
 import type { Identifier } from "ra-core";
 import { useTranslate } from "ra-core";
-import { Link } from "react-router";
 import { useState } from "react";
-import { CreateButton } from "@/components/admin/create-button";
-import { Progress } from "@/components/ui/progress";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
+import { Link } from "react-router";
 
-import { ContactImportButton } from "../contacts/ContactImportButton";
-import { ContactCreateSheet } from "../contacts/ContactCreateSheet";
-import { NoteCreateSheet } from "../notes/NoteCreateSheet";
-import useAppBarHeight from "../misc/useAppBarHeight";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { ContactCreateSheet } from "../contacts/ContactCreateSheet";
+import { ContactImportButton } from "../contacts/ContactImportButton";
+import useAppBarHeight from "../misc/useAppBarHeight";
+import { NoteCreateSheet } from "../notes/NoteCreateSheet";
 
 export const DashboardStepper = ({
   step,
@@ -125,7 +125,7 @@ export const DashboardStepper = ({
                     <Button
                       onClick={() => setNoteCreateOpen(true)}
                       disabled={step < 2}
-                      className="w-[100px] gap-2"
+                      className="w-fit gap-2"
                     >
                       <Plus className="h-4 w-4" />
                       {translate("resources.notes.action.add", {
@@ -133,7 +133,7 @@ export const DashboardStepper = ({
                       })}
                     </Button>
                   ) : (
-                    <Button asChild disabled={step < 2} className="w-[100px]">
+                    <Button asChild disabled={step < 2} className="w-fit">
                       <Link role="button" to={`/contacts/${contactId}/show`}>
                         {translate("resources.notes.action.add", {
                           _: "Add note",

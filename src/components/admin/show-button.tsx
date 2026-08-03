@@ -2,16 +2,21 @@ import React from "react";
 import { Link } from "react-router";
 import { buttonVariants } from "@/components/ui/button";
 import { Eye } from "lucide-react";
+import type { RaRecord } from "ra-core";
 import {
-  Translate,
   useCreatePath,
+  useGetRecordRepresentation,
+  useGetResourceLabel,
   useRecordContext,
   useResourceContext,
+  useResourceTranslation,
 } from "ra-core";
 
 export type ShowButtonProps = {
   label?: string;
   icon?: React.ReactNode;
+  record?: RaRecord;
+  resource?: string;
 } & React.AnchorHTMLAttributes<HTMLAnchorElement>;
 
 /**
@@ -29,26 +34,47 @@ export type ShowButtonProps = {
  * );
  */
 export const ShowButton = (props: ShowButtonProps) => {
-  const resource = useResourceContext();
-  const record = useRecordContext();
+  const {
+    label: labelProp,
+    icon,
+    record: _record,
+    resource: _resource,
+    ...rest
+  } = props;
+  const resource = useResourceContext(props);
+  const record = useRecordContext(props);
   const createPath = useCreatePath();
+  const getResourceLabel = useGetResourceLabel();
+  const getRecordRepresentation = useGetRecordRepresentation(resource);
+  const recordRepresentationValue = getRecordRepresentation(record);
+  const recordRepresentation =
+    typeof recordRepresentationValue === "string"
+      ? recordRepresentationValue
+      : recordRepresentationValue?.toString();
   const link = createPath({
     resource,
     type: "show",
     id: record?.id,
   });
-  const { label, icon, ...rest } = props;
+  const label = useResourceTranslation({
+    resourceI18nKey: resource ? `resources.${resource}.action.show` : undefined,
+    baseI18nKey: "ra.action.show",
+    options: {
+      name: resource ? getResourceLabel(resource, 1) : undefined,
+      recordRepresentation,
+    },
+    userText: labelProp,
+  });
   return (
     <Link
       className={buttonVariants({ variant: "outline" })}
       to={link}
       onClick={stopPropagation}
+      aria-label={typeof label === "string" ? label : undefined}
       {...rest}
     >
       {icon ?? <Eye />}
-      <Translate i18nKey={label ?? "ra.action.show"}>
-        {label ?? "Show"}
-      </Translate>
+      {label}
     </Link>
   );
 };

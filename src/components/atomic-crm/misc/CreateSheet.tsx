@@ -1,8 +1,6 @@
 import { SaveButton } from "@/components/admin/form";
-import { Button } from "@/components/ui/button";
 import {
   Sheet,
-  SheetClose,
   SheetContent,
   SheetFooter,
   SheetHeader,
@@ -19,6 +17,7 @@ import {
   type FormProps,
 } from "ra-core";
 import { type ReactNode } from "react";
+import { cn } from "@/lib/utils";
 
 export interface CreateSheetProps extends CreateBaseProps {
   /**
@@ -45,6 +44,11 @@ export interface CreateSheetProps extends CreateBaseProps {
    * Default values for the form
    */
   defaultValues?: FormProps["defaultValues"];
+
+  /**
+   * Optional actions to render in the sheet header, next to the title
+   */
+  headerActions?: ReactNode;
 }
 
 /**
@@ -83,6 +87,7 @@ export const CreateSheet = ({
   redirect: redirectTo = "show",
   mutationOptions,
   defaultValues,
+  headerActions,
   ...createBaseProps
 }: CreateSheetProps) => {
   const resource = useResourceContext(createBaseProps);
@@ -134,28 +139,31 @@ export const CreateSheet = ({
             className="h-dvh flex-1 flex flex-col"
           >
             <SheetHeader className="border-b">
-              <SheetTitle>
-                {typeof title === "string" ? (
-                  <span className="text-xl font-semibold">{title}</span>
-                ) : (
-                  title
+              <div
+                className={cn(
+                  "flex items-center gap-2",
+                  headerActions && "pr-12",
                 )}
-              </SheetTitle>
+              >
+                <SheetTitle className="min-w-0 flex-1 truncate">
+                  {typeof title === "string" ? (
+                    <span className="text-xl font-semibold">{title}</span>
+                  ) : (
+                    title
+                  )}
+                </SheetTitle>
+                {headerActions && (
+                  <div className="shrink-0">{headerActions}</div>
+                )}
+              </div>
             </SheetHeader>
 
             <div className="flex-1 overflow-y-auto flex flex-col gap-3 p-4">
               {children}
             </div>
 
-            <SheetFooter className="border-t">
-              <div className="flex w-full gap-4">
-                <SheetClose asChild>
-                  <Button variant="ghost" className="flex-1">
-                    {translate("ra.action.close")}
-                  </Button>
-                </SheetClose>
-                <SaveButton className="flex-1" />
-              </div>
+            <SheetFooter className="border-t flex flex-row w-full gap-4">
+              <SaveButton className="flex-1 h-12" />
             </SheetFooter>
           </Form>
         </CreateBase>

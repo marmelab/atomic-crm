@@ -26,7 +26,7 @@ export const createTestAuthProvider = (): AuthProvider => ({
 
 const baseSale: Sale = {
   administrator: true,
-  avatar: DEFAULT_USER.avatar,
+  avatar: DEFAULT_USER.avatar as Sale["avatar"],
   disabled: false,
   email: DEFAULT_USER.email,
   first_name: DEFAULT_USER.first_name,
