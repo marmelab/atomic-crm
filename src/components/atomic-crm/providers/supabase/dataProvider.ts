@@ -280,10 +280,11 @@ const getDataProviderWithCustomMethods = () => {
           readError,
         );
       }
-      const preferences = {
-        ...parseUserPreferences(sale?.preferences),
-        ...patch,
-      };
+      const stored =
+        typeof sale?.preferences === "object" && sale.preferences !== null
+          ? sale.preferences
+          : {};
+      const preferences = { ...stored, ...patch };
       const { data, error, status } = await getSupabaseClient()
         .from("sales")
         .update({ preferences })

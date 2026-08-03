@@ -1,4 +1,6 @@
-alter table "public"."sales" add column "preferences" jsonb;
+alter table "public"."sales" add column if not exists "preferences" jsonb;
+
+drop policy if exists "Enable self-update for authenticated users" on "public"."sales";
 
 create policy "Enable self-update for authenticated users"
   on "public"."sales"

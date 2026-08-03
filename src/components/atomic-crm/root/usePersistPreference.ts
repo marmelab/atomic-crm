@@ -25,7 +25,11 @@ export const usePersistPreference = () => {
         .then(() => dataProvider.updatePreferences(patch))
         .then((preferences) => queryClient.setQueryData(queryKey, preferences))
         .catch(() => {
-          queryClient.setQueryData(queryKey, previous);
+          if (previous === undefined) {
+            queryClient.removeQueries({ queryKey, exact: true });
+          } else {
+            queryClient.setQueryData(queryKey, previous);
+          }
           notify("crm.preferences.update_error", {
             type: "error",
             messageArgs: { _: "Could not save your preferences" },

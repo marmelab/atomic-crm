@@ -345,10 +345,11 @@ export const createDataProvider = ({
         id: saleId,
       });
       if (!sale) return patch;
-      const preferences = {
-        ...parseUserPreferences(sale.preferences),
-        ...patch,
-      };
+      const stored =
+        typeof sale.preferences === "object" && sale.preferences !== null
+          ? sale.preferences
+          : {};
+      const preferences = { ...stored, ...patch };
       await dataProvider.update("sales", {
         id: saleId,
         data: { preferences },

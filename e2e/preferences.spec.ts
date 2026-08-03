@@ -3,11 +3,17 @@ import type { Page } from "@playwright/test";
 import { expect, test } from "./fixtures";
 
 const dropLocalPreferencesKeepingSession = (page: Page) =>
-  page.evaluate(() =>
-    Object.keys(localStorage)
-      .filter((key) => key.startsWith("CRM."))
-      .forEach((key) => localStorage.removeItem(key)),
-  );
+  page.evaluate(() => {
+    const keys = Object.keys(localStorage).filter((key) =>
+      key.startsWith("RaStore"),
+    );
+    if (keys.length === 0) {
+      throw new Error(
+        `Expected ra-core store keys in localStorage, found: ${Object.keys(localStorage).join(", ")}`,
+      );
+    }
+    keys.forEach((key) => localStorage.removeItem(key));
+  });
 
 test.describe("user preferences", () => {
   test.beforeEach(async ({ createSales }) => {
