@@ -1,43 +1,15 @@
-import type { Db } from "./dataGenerator/types";
-import { USER_STORAGE_KEY } from "./authProvider";
+import { createCrmDb } from "@/test/StoryWrapper";
+import { DEFAULT_USER, USER_STORAGE_KEY } from "./authProvider";
 import { createDataProvider } from "./dataProvider";
 
-const ADMIN_SALE_ID = 0;
-
-const createDb = (): Db =>
-  ({
-    companies: [],
-    configuration: [{ config: {}, id: 1 }],
-    contact_notes: [],
-    contacts: [],
-    deal_notes: [],
-    deals: [],
-    sales: [
-      {
-        administrator: true,
-        disabled: false,
-        email: "janedoe@atomic.dev",
-        first_name: "Jane",
-        id: ADMIN_SALE_ID,
-        last_name: "Doe",
-        user_id: String(ADMIN_SALE_ID),
-      },
-    ],
-    tags: [],
-    tasks: [],
-  }) as Db;
+const createProvider = () =>
+  createDataProvider({ db: createCrmDb(), latency: 0, silent: true });
 
 describe("fakerest preferences", () => {
   it("round trips the preferences of the logged sale, whose id is 0", async () => {
-    localStorage.setItem(
-      USER_STORAGE_KEY,
-      JSON.stringify({ id: ADMIN_SALE_ID }),
-    );
-    const dataProvider = createDataProvider({
-      db: createDb(),
-      latency: 0,
-      silent: true,
-    });
+    expect(DEFAULT_USER.id).toBe(0);
+    localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(DEFAULT_USER));
+    const dataProvider = createProvider();
 
     expect(await dataProvider.getPreferences()).toEqual({});
 
@@ -53,19 +25,13 @@ describe("fakerest preferences", () => {
 
   it("does not touch any sale when nobody is logged in", async () => {
     localStorage.removeItem(USER_STORAGE_KEY);
-    const dataProvider = createDataProvider({
-      db: createDb(),
-      latency: 0,
-      silent: true,
-    });
+    const dataProvider = createProvider();
 
     expect(await dataProvider.getPreferences()).toEqual({});
 
     await dataProvider.updatePreferences({ theme: "dark" });
-    localStorage.setItem(
-      USER_STORAGE_KEY,
-      JSON.stringify({ id: ADMIN_SALE_ID }),
-    );
+
+    localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(DEFAULT_USER));
     expect(await dataProvider.getPreferences()).toEqual({});
   });
 });

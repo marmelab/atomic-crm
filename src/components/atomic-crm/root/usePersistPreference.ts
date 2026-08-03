@@ -6,6 +6,8 @@ import type { CrmDataProvider } from "../providers/types";
 import type { UserPreferences } from "../types";
 import { PREFERENCES_QUERY_KEY } from "./preferences";
 
+let pendingWrites: Promise<unknown> = Promise.resolve();
+
 export const usePersistPreference = () => {
   const dataProvider = useDataProvider<CrmDataProvider>();
   const { identity } = useGetIdentity();
@@ -18,8 +20,9 @@ export const usePersistPreference = () => {
       const previous = queryClient.getQueryData<UserPreferences>(queryKey);
       queryClient.setQueryData(queryKey, { ...previous, ...patch });
 
-      dataProvider
-        .updatePreferences(patch)
+      pendingWrites = pendingWrites
+        .catch(() => {})
+        .then(() => dataProvider.updatePreferences(patch))
         .then((preferences) => queryClient.setQueryData(queryKey, preferences))
         .catch(() => {
           queryClient.setQueryData(queryKey, previous);

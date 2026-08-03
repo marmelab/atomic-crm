@@ -22,13 +22,20 @@ const twoLocalesI18nProvider = polyglotI18nProvider(
   { allowMissing: true },
 );
 
-const createFakeServer = (initial: UserPreferences) => {
+const createFakeServer = (
+  initial: UserPreferences,
+  { writeLatency = 0 }: { writeLatency?: number } = {},
+) => {
   let stored: UserPreferences = { ...initial };
   return {
     read: () => ({ ...stored }),
     getPreferences: async () => ({ ...stored }),
     updatePreferences: async (patch: Partial<UserPreferences>) => {
-      stored = { ...stored, ...patch };
+      const current = stored;
+      if (writeLatency > 0) {
+        await new Promise((resolve) => setTimeout(resolve, writeLatency));
+      }
+      stored = { ...current, ...patch };
       return { ...stored };
     },
   };
@@ -50,6 +57,14 @@ const Probe = () => {
         }}
       >
         set french locale
+      </button>
+      <button
+        onClick={() => {
+          persist({ theme: "light" });
+          persist({ locale: "fr" });
+        }}
+      >
+        change both at once
       </button>
     </div>
   );
@@ -102,6 +117,25 @@ describe("preference persistence", () => {
 
     await expect.element(screen.getByText("locale: fr")).toBeVisible();
     await vi.waitFor(() => expect(server.read().locale).toBe("fr"));
+  });
+
+  it("does not lose one of two changes made back to back", async () => {
+    const server = createFakeServer(
+      { theme: "dark", locale: "en" },
+      { writeLatency: 30 },
+    );
+    const screen = await render(
+      <StoryWrapper dataProvider={server} layout={Layout}>
+        <Probe />
+      </StoryWrapper>,
+    );
+    await expect.element(screen.getByText("theme: dark")).toBeVisible();
+
+    await screen.getByRole("button", { name: "change both at once" }).click();
+
+    await vi.waitFor(() =>
+      expect(server.read()).toEqual({ theme: "light", locale: "fr" }),
+    );
   });
 
   it("reverts the change and warns the user when the server rejects it", async () => {
