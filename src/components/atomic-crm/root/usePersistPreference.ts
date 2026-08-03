@@ -8,6 +8,10 @@ import { PREFERENCES_QUERY_KEY } from "./preferences";
 
 let pendingWrites: Promise<unknown> = Promise.resolve();
 
+export const resetPendingPreferenceWrites = () => {
+  pendingWrites = Promise.resolve();
+};
+
 export const usePersistPreference = () => {
   const dataProvider = useDataProvider<CrmDataProvider>();
   const { identity } = useGetIdentity();

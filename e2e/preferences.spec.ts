@@ -2,17 +2,17 @@ import type { Page } from "@playwright/test";
 
 import { expect, test } from "./fixtures";
 
-const dropLocalPreferencesKeepingSession = (page: Page) =>
+const dropClientCachesKeepingSession = (page: Page) =>
   page.evaluate(() => {
-    const keys = Object.keys(localStorage).filter((key) =>
-      key.startsWith("RaStore"),
-    );
-    if (keys.length === 0) {
+    const all = Object.keys(localStorage);
+    if (!all.some((key) => key.startsWith("RaStore"))) {
       throw new Error(
-        `Expected ra-core store keys in localStorage, found: ${Object.keys(localStorage).join(", ")}`,
+        `Expected ra-core store keys in localStorage, found: ${all.join(", ")}`,
       );
     }
-    keys.forEach((key) => localStorage.removeItem(key));
+    all
+      .filter((key) => !key.startsWith("sb-"))
+      .forEach((key) => localStorage.removeItem(key));
   });
 
 test.describe("user preferences", () => {
@@ -50,7 +50,7 @@ test.describe("user preferences", () => {
     await expect(page.getByText("Langue")).toBeVisible();
     await expect(page.locator("html")).toHaveClass(/dark/);
 
-    await dropLocalPreferencesKeepingSession(page);
+    await dropClientCachesKeepingSession(page);
     await page.reload();
 
     await expect(page.locator("html")).toHaveClass(/dark/);

@@ -51,6 +51,7 @@ import {
   defaultTaskTypes,
   defaultTitle,
 } from "./defaultConfiguration";
+import { resetPendingPreferenceWrites } from "./usePersistPreference";
 import { i18nProvider as defaulti18nProvider } from "../providers/commons/i18nProvider";
 import { StartPage } from "../login/StartPage.tsx";
 import { useIsMobile } from "@/hooks/use-mobile.ts";
@@ -212,6 +213,7 @@ export const CRM = ({
         return result;
       },
       logout: async (params: any) => {
+        resetPendingPreferenceWrites();
         try {
           store.removeItem(CONFIGURATION_STORE_KEY);
         } catch {
