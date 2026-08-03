@@ -15,6 +15,15 @@ const dropClientCachesKeepingSession = (page: Page) =>
       .forEach((key) => localStorage.removeItem(key));
   });
 
+const openLanguageSetting = async (page: Page, isMobile: boolean) => {
+  if (isMobile) {
+    await page.getByRole("link", { name: /^(Settings|Paramètres)$/ }).click();
+  } else {
+    await page.getByRole("button", { name: /^Profil/ }).click();
+    await page.getByRole("menuitem", { name: /^Profil/ }).click();
+  }
+};
+
 test.describe("user preferences", () => {
   test.beforeEach(async ({ createSales }) => {
     await createSales({
@@ -33,27 +42,24 @@ test.describe("user preferences", () => {
     await expect(page).toHaveTitle(/Atomic CRM/);
 
     if (isMobile) {
-      await page.goto("/settings");
+      await openLanguageSetting(page, isMobile);
       await page.getByRole("radio", { name: "Dark" }).click();
     } else {
       await page.getByRole("button", { name: "Toggle theme" }).click();
       await page.getByRole("menuitem", { name: "Dark" }).click();
+      await openLanguageSetting(page, isMobile);
     }
     await expect(page.locator("html")).toHaveClass(/dark/);
 
-    if (!isMobile) {
-      await page.goto("/profile");
-    }
     await page.getByRole("combobox").filter({ hasText: "English" }).click();
     await page.getByRole("option", { name: "Français" }).click();
-
     await expect(page.getByText("Langue")).toBeVisible();
-    await expect(page.locator("html")).toHaveClass(/dark/);
 
     await dropClientCachesKeepingSession(page);
-    await page.reload();
+    await page.goto("/");
 
     await expect(page.locator("html")).toHaveClass(/dark/);
+    await openLanguageSetting(page, isMobile);
     await expect(page.getByText("Langue")).toBeVisible();
   });
 });

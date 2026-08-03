@@ -5,6 +5,7 @@ import {
   useGetIdentity,
   useLogout,
   UserMenuContext,
+  useTranslate,
 } from "ra-core";
 import { LogOut } from "lucide-react";
 import {
@@ -34,6 +35,7 @@ export type UserMenuProps = {
 export function UserMenu({ children }: UserMenuProps) {
   const authProvider = useAuthProvider();
   const { data: identity } = useGetIdentity();
+  const translate = useTranslate();
   const logout = useLogout();
 
   const [open, setOpen] = useState(false);
@@ -55,6 +57,7 @@ export function UserMenu({ children }: UserMenuProps) {
           <Button
             variant="ghost"
             className="relative h-8 w-8 ml-2 rounded-full"
+            aria-label={translate("ra.auth.user_menu")}
           >
             <Avatar className="h-8 w-8">
               <AvatarImage src={identity?.avatar} role="presentation" />

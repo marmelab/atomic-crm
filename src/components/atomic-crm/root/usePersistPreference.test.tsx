@@ -83,6 +83,22 @@ describe("preference persistence", () => {
     await expect.element(screen.getByText("theme: dark")).toBeVisible();
   });
 
+  it("reaches the profile page from the header user menu", async () => {
+    const server = createFakeServer({ theme: "dark", locale: "en" });
+    const screen = await render(
+      <StoryWrapper dataProvider={server} layout={Layout}>
+        <Probe />
+      </StoryWrapper>,
+    );
+    await expect.element(screen.getByText("theme: dark")).toBeVisible();
+
+    await screen.getByRole("button", { name: "Profile" }).click();
+
+    await expect
+      .element(screen.getByRole("menuitem", { name: "Profile" }))
+      .toBeVisible();
+  });
+
   it("stores the theme picked from the header toggle", async () => {
     const server = createFakeServer({ theme: "dark", locale: "fr" });
     const screen = await render(
