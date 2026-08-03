@@ -51,6 +51,7 @@ import {
   defaultTaskTypes,
   defaultTitle,
 } from "./defaultConfiguration";
+import { isOfferedLocale } from "./preferences";
 import { resetPendingPreferenceWrites } from "./usePersistPreference";
 import { i18nProvider as defaulti18nProvider } from "../providers/commons/i18nProvider";
 import { StartPage } from "../login/StartPage.tsx";
@@ -186,13 +187,16 @@ export const CRM = ({
       try {
         const preferences = await dataProvider.getPreferences();
         if (preferences.theme) store.setItem("theme", preferences.theme);
-        if (preferences.locale) store.setItem("locale", preferences.locale);
+        const offeredLocales = i18nProvider.getLocales?.() ?? [];
+        if (isOfferedLocale(preferences.locale, offeredLocales)) {
+          store.setItem("locale", preferences.locale);
+        }
       } catch {
         // Non-critical: preferences will load via usePreferencesLoader
       }
     };
     await Promise.all([loadConfiguration(), loadPreferences()]);
-  }, [dataProvider, store]);
+  }, [dataProvider, i18nProvider, store]);
 
   const wrappedAuthProvider = useMemo<AuthProvider>(
     () => ({

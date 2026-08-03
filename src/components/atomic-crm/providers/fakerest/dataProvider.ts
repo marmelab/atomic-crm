@@ -340,11 +340,15 @@ export const createDataProvider = ({
       patch: Partial<UserPreferences>,
     ): Promise<UserPreferences> => {
       const saleId = getLoggedSaleId();
-      if (saleId === undefined) return patch;
+      if (saleId === undefined) {
+        throw new Error("Cannot save preferences without a logged in user");
+      }
       const { data: sale } = await dataProvider.getOne<Sale>("sales", {
         id: saleId,
       });
-      if (!sale) return patch;
+      if (!sale) {
+        throw new Error("Failed to update preferences");
+      }
       const stored =
         typeof sale.preferences === "object" && sale.preferences !== null
           ? sale.preferences
@@ -355,7 +359,7 @@ export const createDataProvider = ({
         data: { preferences },
         previousData: sale,
       });
-      return preferences;
+      return parseUserPreferences(preferences);
     },
   };
 

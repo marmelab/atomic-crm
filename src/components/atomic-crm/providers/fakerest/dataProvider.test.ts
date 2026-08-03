@@ -48,15 +48,28 @@ describe("fakerest preferences", () => {
     });
   });
 
-  it("does not touch any sale when nobody is logged in", async () => {
+  it("refuses to write, and touches no sale, when nobody is logged in", async () => {
     localStorage.removeItem(USER_STORAGE_KEY);
     const dataProvider = createProvider();
 
     expect(await dataProvider.getPreferences()).toEqual({});
 
-    await dataProvider.updatePreferences({ theme: "dark" });
+    await expect(
+      dataProvider.updatePreferences({ theme: "dark" }),
+    ).rejects.toThrow();
 
     localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(DEFAULT_USER));
     expect(await dataProvider.getPreferences()).toEqual({});
+  });
+
+  it("returns a validated value, so a corrupt stored theme cannot reach the UI", async () => {
+    localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(DEFAULT_USER));
+    const db = structuredClone(createCrmDb());
+    db.sales[0].preferences = { theme: "a b" } as never;
+    const dataProvider = createDataProvider({ db, latency: 0, silent: true });
+
+    expect(await dataProvider.updatePreferences({ locale: "fr" })).toEqual({
+      locale: "fr",
+    });
   });
 });

@@ -22,9 +22,16 @@ export const usePersistPreference = () => {
 
   return useCallback(
     (patch: Partial<UserPreferences>) => {
-      const queryKey = [PREFERENCES_QUERY_KEY, identity?.id];
-      const previous = queryClient.getQueryData<UserPreferences>(queryKey);
-      queryClient.setQueryData(queryKey, { ...previous, ...patch });
+      const identityId = identity?.id;
+      const queryKey = [PREFERENCES_QUERY_KEY, identityId];
+      const tracksCache = identityId !== undefined;
+      let previous: UserPreferences | undefined;
+
+      if (tracksCache) {
+        queryClient.cancelQueries({ queryKey, exact: true });
+        previous = queryClient.getQueryData<UserPreferences>(queryKey);
+        queryClient.setQueryData(queryKey, { ...previous, ...patch });
+      }
 
       const enqueuedAt = generation;
       pendingWrites = pendingWrites
@@ -36,13 +43,21 @@ export const usePersistPreference = () => {
         )
         .then((preferences) => {
           if (preferences === undefined) return;
-          queryClient.setQueryData(queryKey, preferences);
+          if (tracksCache) {
+            queryClient.setQueryData(queryKey, preferences);
+          } else {
+            queryClient.invalidateQueries({
+              queryKey: [PREFERENCES_QUERY_KEY],
+            });
+          }
         })
         .catch(() => {
-          if (previous === undefined) {
-            queryClient.removeQueries({ queryKey, exact: true });
-          } else {
-            queryClient.setQueryData(queryKey, previous);
+          if (tracksCache) {
+            if (previous === undefined) {
+              queryClient.removeQueries({ queryKey, exact: true });
+            } else {
+              queryClient.setQueryData(queryKey, previous);
+            }
           }
           notify("crm.preferences.update_error", {
             type: "error",

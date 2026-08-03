@@ -6,6 +6,7 @@ import type { Theme } from "@/components/admin/theme-context";
 import type { CrmDataProvider } from "../providers/types";
 import type { UserPreferences } from "../types";
 import {
+  isOfferedLocale,
   PREFERENCES_QUERY_KEY,
   PREFERENCES_STALE_TIME_MS,
 } from "./preferences";
@@ -28,9 +29,6 @@ export const usePreferencesLoader = () => {
   useEffect(() => {
     if (!data) return;
     if (data.theme) setTheme(data.theme);
-    const isConfiguredLocale =
-      locales.length === 0 ||
-      locales.some(({ locale }) => locale === data.locale);
-    if (data.locale && isConfiguredLocale) setLocale(data.locale);
+    if (isOfferedLocale(data.locale, locales)) setLocale(data.locale);
   }, [data, locales, setTheme, setLocale]);
 };

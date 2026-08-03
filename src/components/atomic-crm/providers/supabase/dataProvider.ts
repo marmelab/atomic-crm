@@ -262,7 +262,9 @@ const getDataProviderWithCustomMethods = () => {
       patch: Partial<UserPreferences>,
     ): Promise<UserPreferences> {
       const { data: session } = await getSupabaseClient().auth.getSession();
-      if (!session?.session?.user) return patch;
+      if (!session?.session?.user) {
+        throw new HttpError("Cannot save preferences without a session", 401);
+      }
       const {
         data: sale,
         error: readError,

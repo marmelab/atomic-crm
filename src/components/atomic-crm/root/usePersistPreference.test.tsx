@@ -25,12 +25,21 @@ const createTwoLocalesI18nProvider = () =>
 
 const createFakeServer = (
   initial: UserPreferences,
-  { writeLatency = 0 }: { writeLatency?: number } = {},
+  {
+    writeLatency = 0,
+    readLatency = 0,
+  }: { writeLatency?: number; readLatency?: number } = {},
 ) => {
   let stored: UserPreferences = { ...initial };
   return {
     read: () => ({ ...stored }),
-    getPreferences: async () => ({ ...stored }),
+    getPreferences: async () => {
+      const current = stored;
+      if (readLatency > 0) {
+        await new Promise((resolve) => setTimeout(resolve, readLatency));
+      }
+      return { ...current };
+    },
     updatePreferences: async (patch: Partial<UserPreferences>) => {
       const current = stored;
       if (writeLatency > 0) {
@@ -150,6 +159,25 @@ describe("preference persistence", () => {
 
     await expect.element(screen.getByText("theme: dark")).toBeVisible();
     await expect.element(screen.getByText("locale: en")).toBeVisible();
+  });
+
+  it("is not overwritten by a read that was already in flight", async () => {
+    const server = createFakeServer(
+      { theme: "dark", locale: "en" },
+      { readLatency: 400 },
+    );
+    const screen = await render(
+      <StoryWrapper dataProvider={server} layout={Layout}>
+        <Probe />
+      </StoryWrapper>,
+    );
+
+    await screen.getByRole("button", { name: "Toggle theme" }).click();
+    await screen.getByRole("menuitem", { name: "Light" }).click();
+
+    await vi.waitFor(() => expect(server.read().theme).toBe("light"));
+    await new Promise((resolve) => setTimeout(resolve, 600));
+    await expect.element(screen.getByText("theme: light")).toBeVisible();
   });
 
   it("does not lose one of two changes made back to back", async () => {
