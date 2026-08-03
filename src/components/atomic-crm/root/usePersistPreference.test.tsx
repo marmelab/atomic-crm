@@ -1,14 +1,14 @@
 import polyglotI18nProvider from "ra-i18n-polyglot";
-import { mergeTranslations, useLocaleState, useLocales } from "ra-core";
+import { mergeTranslations, useLocaleState } from "ra-core";
 import englishMessages from "ra-language-english";
 import { render } from "vitest-browser-react";
 
 import { useTheme } from "@/components/admin/use-theme";
+import { Layout } from "../layout/Layout";
 import { englishCrmMessages } from "../providers/commons/englishCrmMessages";
 import type { UserPreferences } from "../types";
 import { StoryWrapper } from "@/test/StoryWrapper";
 import { usePersistPreference } from "./usePersistPreference";
-import { usePreferencesLoader } from "./usePreferencesLoader";
 
 const catalog = mergeTranslations(englishMessages, englishCrmMessages);
 
@@ -35,25 +35,14 @@ const createFakeServer = (initial: UserPreferences) => {
 };
 
 const Probe = () => {
-  usePreferencesLoader();
-  const { theme, setTheme } = useTheme();
+  const { theme } = useTheme();
   const [locale, setLocale] = useLocaleState();
-  const locales = useLocales();
   const persist = usePersistPreference();
 
   return (
     <div>
       <p>{`theme: ${theme}`}</p>
       <p>{`locale: ${locale}`}</p>
-      <p>{`locales: ${locales.length}`}</p>
-      <button
-        onClick={() => {
-          setTheme("light");
-          persist({ theme: "light" });
-        }}
-      >
-        set light theme
-      </button>
       <button
         onClick={() => {
           setLocale("fr");
@@ -70,7 +59,7 @@ describe("preference persistence", () => {
   it("applies the preferences stored on the server", async () => {
     const server = createFakeServer({ theme: "dark", locale: "en" });
     const screen = await render(
-      <StoryWrapper dataProvider={server}>
+      <StoryWrapper dataProvider={server} layout={Layout}>
         <Probe />
       </StoryWrapper>,
     );
@@ -78,10 +67,32 @@ describe("preference persistence", () => {
     await expect.element(screen.getByText("theme: dark")).toBeVisible();
   });
 
+  it("stores the theme picked from the header toggle", async () => {
+    const server = createFakeServer({ theme: "dark", locale: "fr" });
+    const screen = await render(
+      <StoryWrapper dataProvider={server} layout={Layout}>
+        <Probe />
+      </StoryWrapper>,
+    );
+    await expect.element(screen.getByText("theme: dark")).toBeVisible();
+
+    await screen.getByRole("button", { name: "Toggle theme" }).click();
+    await screen.getByRole("menuitem", { name: "Light" }).click();
+
+    await expect.element(screen.getByText("theme: light")).toBeVisible();
+    await vi.waitFor(() =>
+      expect(server.read()).toEqual({ theme: "light", locale: "fr" }),
+    );
+  });
+
   it("keeps the new locale applied and stores it", async () => {
     const server = createFakeServer({ theme: "dark", locale: "en" });
     const screen = await render(
-      <StoryWrapper i18nProvider={twoLocalesI18nProvider} dataProvider={server}>
+      <StoryWrapper
+        i18nProvider={twoLocalesI18nProvider}
+        dataProvider={server}
+        layout={Layout}
+      >
         <Probe />
       </StoryWrapper>,
     );
@@ -93,23 +104,6 @@ describe("preference persistence", () => {
     await vi.waitFor(() => expect(server.read().locale).toBe("fr"));
   });
 
-  it("stores a theme change without discarding the stored locale", async () => {
-    const server = createFakeServer({ theme: "dark", locale: "fr" });
-    const screen = await render(
-      <StoryWrapper dataProvider={server}>
-        <Probe />
-      </StoryWrapper>,
-    );
-    await expect.element(screen.getByText("theme: dark")).toBeVisible();
-
-    await screen.getByRole("button", { name: "set light theme" }).click();
-
-    await expect.element(screen.getByText("theme: light")).toBeVisible();
-    await vi.waitFor(() =>
-      expect(server.read()).toEqual({ theme: "light", locale: "fr" }),
-    );
-  });
-
   it("reverts the change and warns the user when the server rejects it", async () => {
     const server = createFakeServer({ theme: "dark", locale: "en" });
     const screen = await render(
@@ -118,13 +112,15 @@ describe("preference persistence", () => {
           getPreferences: server.getPreferences,
           updatePreferences: () => Promise.reject(new Error("Denied")),
         }}
+        layout={Layout}
       >
         <Probe />
       </StoryWrapper>,
     );
     await expect.element(screen.getByText("theme: dark")).toBeVisible();
 
-    await screen.getByRole("button", { name: "set light theme" }).click();
+    await screen.getByRole("button", { name: "Toggle theme" }).click();
+    await screen.getByRole("menuitem", { name: "Light" }).click();
 
     await expect
       .element(
