@@ -171,21 +171,26 @@ export const CRM = ({
   // on login, pre-fetch the configuration and preferences to avoid
   // a flickering when accessing the app for the first time
   const prefetchConfigAndPreferences = useCallback(async () => {
-    try {
-      const config = await dataProvider.getConfiguration();
-      if (Object.keys(config).length > 0) {
-        store.setItem(CONFIGURATION_STORE_KEY, config);
+    const loadConfiguration = async () => {
+      try {
+        const config = await dataProvider.getConfiguration();
+        if (Object.keys(config).length > 0) {
+          store.setItem(CONFIGURATION_STORE_KEY, config);
+        }
+      } catch {
+        // Non-critical: config will load via useConfigurationLoader
       }
-    } catch {
-      // Non-critical: config will load via useConfigurationLoader
-    }
-    try {
-      const preferences = await dataProvider.getPreferences();
-      if (preferences.theme) store.setItem("theme", preferences.theme);
-      if (preferences.locale) store.setItem("locale", preferences.locale);
-    } catch {
-      // Non-critical: preferences will load via usePreferencesLoader
-    }
+    };
+    const loadPreferences = async () => {
+      try {
+        const preferences = await dataProvider.getPreferences();
+        if (preferences.theme) store.setItem("theme", preferences.theme);
+        if (preferences.locale) store.setItem("locale", preferences.locale);
+      } catch {
+        // Non-critical: preferences will load via usePreferencesLoader
+      }
+    };
+    await Promise.all([loadConfiguration(), loadPreferences()]);
   }, [dataProvider, store]);
 
   const wrappedAuthProvider = useMemo<AuthProvider>(

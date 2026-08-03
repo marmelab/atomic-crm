@@ -21,6 +21,7 @@ import type {
   UserPreferences,
 } from "../../types";
 import type { ConfigurationContextValue } from "../../root/ConfigurationContext";
+import { parseUserPreferences } from "../../root/preferences";
 import { getActivityLog } from "../commons/activity";
 import { getCompanyAvatar } from "../commons/getCompanyAvatar";
 import { getContactAvatar } from "../commons/getContactAvatar";
@@ -319,23 +320,26 @@ export const createDataProvider = ({
     },
     getPreferences: async (): Promise<UserPreferences> => {
       const identity = await getIdentity();
-      if (!identity) return {};
-      const { data } = await baseDataProvider.getOne<Sale>("sales", {
+      if (!identity?.id) return {};
+      const { data } = await dataProvider.getOne<Sale>("sales", {
         id: identity.id,
       });
-      return data?.preferences ?? {};
+      return parseUserPreferences(data?.preferences);
     },
     updatePreferences: async (
       patch: Partial<UserPreferences>,
     ): Promise<UserPreferences> => {
       const identity = await getIdentity();
-      if (!identity) return patch;
-      const { data: sale } = await baseDataProvider.getOne<Sale>("sales", {
+      if (!identity?.id) return patch;
+      const { data: sale } = await dataProvider.getOne<Sale>("sales", {
         id: identity.id,
       });
       if (!sale) return patch;
-      const preferences = { ...(sale.preferences ?? {}), ...patch };
-      await baseDataProvider.update("sales", {
+      const preferences = {
+        ...parseUserPreferences(sale.preferences),
+        ...patch,
+      };
+      await dataProvider.update("sales", {
         id: identity.id,
         data: { preferences },
         previousData: sale,

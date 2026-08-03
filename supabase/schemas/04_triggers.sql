@@ -70,6 +70,11 @@ create or replace trigger on_deal_notes_deleted_delete_note_attachments
     after delete on public.deal_notes
     for each row execute function public.cleanup_note_attachments();
 
+-- Restrict what an authenticated user may change on their own sales row
+create or replace trigger enforce_sales_self_update_scope_trigger
+    before update on public.sales
+    for each row execute function public.enforce_sales_self_update_scope();
+
 -- Auth triggers: sync auth.users to public.sales
 create or replace trigger on_auth_user_created
     after insert on auth.users
