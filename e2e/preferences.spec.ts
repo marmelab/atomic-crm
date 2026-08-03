@@ -1,4 +1,13 @@
+import type { Page } from "@playwright/test";
+
 import { expect, test } from "./fixtures";
+
+const dropLocalPreferencesKeepingSession = (page: Page) =>
+  page.evaluate(() =>
+    Object.keys(localStorage)
+      .filter((key) => key.startsWith("CRM."))
+      .forEach((key) => localStorage.removeItem(key)),
+  );
 
 test.describe("user preferences", () => {
   test.beforeEach(async ({ createSales }) => {
@@ -35,6 +44,7 @@ test.describe("user preferences", () => {
     await expect(page.getByText("Langue")).toBeVisible();
     await expect(page.locator("html")).toHaveClass(/dark/);
 
+    await dropLocalPreferencesKeepingSession(page);
     await page.reload();
 
     await expect(page.locator("html")).toHaveClass(/dark/);

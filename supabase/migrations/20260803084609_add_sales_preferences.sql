@@ -16,7 +16,7 @@ CREATE OR REPLACE FUNCTION "public"."enforce_sales_self_update_scope"() RETURNS 
     SET "search_path" TO ''
     AS $$
 BEGIN
-  IF auth.uid() IS NOT NULL
+  IF current_user IN ('authenticated', 'anon')
      AND to_jsonb(NEW) - 'preferences' IS DISTINCT FROM to_jsonb(OLD) - 'preferences' THEN
     RAISE EXCEPTION 'Only the preferences column may be self-updated on public.sales';
   END IF;
