@@ -23,8 +23,9 @@ import { createHookContext } from "./lib/context.mjs";
 import { readAgentMeta } from "./lib/agent-meta.mjs";
 import { appendProgress } from "./lib/progress-log.mjs";
 import { bash } from "./lib/process.mjs";
+import { git } from "./lib/git.mjs";
 import { reviewFlag } from "./lib/reviews.mjs";
-import { sessionWorktreePath } from "./lib/topology.mjs";
+import { sessionBranch, sessionWorktreePath } from "./lib/topology.mjs";
 
 const FEATURE_REVIEW_KEY = "FEATURE";
 const E2E_TIMEOUT_MS = 15 * 60 * 1000;
@@ -38,17 +39,30 @@ const e2eResultPath = (ctx) =>
 const classify = (status, output) =>
   status !== 0 ? "failed" : /^SKIP:/m.test(output) ? "skipped" : "passed";
 
-function isFeatureReview(input) {
-  const meta = readAgentMeta(input);
-  if (meta && /feature-review/i.test(meta.description)) return true;
+// The dispatch prompt's `MODE:` line is the precise signal, and unlike the reviewer's
+// FINAL message it is written at the top of the transcript, so it is long flushed by
+// the time we stop. Read it first and let a `feature-smoke` match END the lookup: the
+// smoke dispatch has no description template, so an improvised description containing
+// "feature-review" would otherwise trigger a second, duplicate suite run.
+function reviewMode(input) {
   const tp = input.agent_transcript_path || input.transcript_path;
-  if (!tp || !existsSync(tp)) return false;
-  try {
-    return /MODE:\s*feature-review/.test(readFileSync(tp, "utf8"));
-  } catch {
-    return false;
+  if (tp && existsSync(tp)) {
+    try {
+      const m = readFileSync(tp, "utf8").match(
+        /MODE:\s*(feature-review|feature-smoke)/,
+      );
+      if (m) return m[1];
+    } catch {
+      // fall through to the dispatch description
+    }
   }
+  const meta = readAgentMeta(input);
+  return meta && /feature-review/i.test(meta.description)
+    ? "feature-review"
+    : "";
 }
+
+const isFeatureReview = (input) => reviewMode(input) === "feature-review";
 
 const input = JSON.parse(readFileSync(0, "utf8"));
 const ctx = createHookContext(input, "e2e-on-feature-review");
@@ -95,6 +109,10 @@ try {
         kind: "e2e-result",
         status,
         source: src,
+        // The session-branch commit the suite actually ran against. A session serves
+        // several requests, so this is what lets a reader tell "this verdict is about
+        // the code as it stands" from "this verdict predates later merges".
+        sessionSha: git(["rev-parse", sessionBranch(ctx)]).stdout.trim(),
         finishedAt: new Date().toISOString(),
         output: output.split("\n").slice(-40).join("\n"),
       },

@@ -16,10 +16,20 @@ let TMP, APP_DIR, sessionDir, env;
 const g = (...args) =>
   spawnSync("git", ["-C", APP_DIR, ...args], { encoding: "utf8" });
 
-const writeE2eResult = (status) =>
+const sessionHead = () =>
+  spawnSync("git", ["-C", APP_DIR, "rev-parse", `session/${SHORT}`], {
+    encoding: "utf8",
+  }).stdout.trim();
+
+const writeE2eResult = (status, sessionSha = undefined) =>
   writeFileSync(
     join(sessionDir, "e2e-result.json"),
-    JSON.stringify({ kind: "e2e-result", status, output: "1 failed" }),
+    JSON.stringify({
+      kind: "e2e-result",
+      status,
+      output: "1 failed",
+      ...(sessionSha === undefined ? {} : { sessionSha }),
+    }),
   );
 
 const transcriptWithMeta = (agentType) => {
@@ -66,6 +76,38 @@ beforeEach(() => {
 
 afterEach(() => rmSync(TMP, { recursive: true, force: true }));
 
+// TICKETS_DIR == <session_dir> (orchestrator.md "Environment"), so the reviewer's
+// verdict flags live at <session_dir>/reviews/, which is what reviews.mjs resolves.
+const approveTask = (taskId) => {
+  const dir = join(sessionDir, "reviews");
+  mkdirSync(dir, { recursive: true });
+  writeFileSync(join(dir, `${taskId}-quality-reviewer`), "");
+};
+
+const unmergedTaskBranch = (taskId) => {
+  g("checkout", "-q", "-b", `${SHORT}/${taskId}`, `session/${SHORT}`);
+  writeFileSync(join(APP_DIR, `${taskId}.txt`), "work");
+  g("add", "-A");
+  g("commit", "-q", "-m", `feat(${taskId}): work`);
+  g("checkout", "-q", "main");
+};
+
+describe("completion-invariant — orphaned work", () => {
+  test("rejects the stop when APPROVED work is not merged into the session branch", () => {
+    unmergedTaskBranch("TASK-001");
+    approveTask("TASK-001");
+    const r = run(transcriptWithMeta("orchestrator"));
+    expect(r.status).toBe(2);
+    expect(r.stderr).toContain("TASK-001");
+  });
+
+  test("accepts an unmerged branch with no APPROVED verdict", () => {
+    unmergedTaskBranch("TASK-002");
+    const r = run(transcriptWithMeta("orchestrator"));
+    expect(r.status).toBe(0);
+  });
+});
+
 describe("completion-invariant — red e2e", () => {
   test("rejects the orchestrator's stop once when the e2e suite failed", () => {
     writeE2eResult("failed");
@@ -98,6 +140,16 @@ describe("completion-invariant — red e2e", () => {
   test("ignores a red suite on a non-orchestrator stop", () => {
     writeE2eResult("failed");
     expect(run(transcriptWithMeta("developer")).status).toBe(0);
+  });
+
+  test("rejects a red suite recorded against the current session head", () => {
+    writeE2eResult("failed", sessionHead());
+    expect(run(transcriptWithMeta("orchestrator")).status).toBe(2);
+  });
+
+  test("ignores a red suite from an earlier request, whose commit has moved on", () => {
+    writeE2eResult("failed", "0000000000000000000000000000000000000000");
+    expect(run(transcriptWithMeta("orchestrator")).status).toBe(0);
   });
 
   test("keeps the e2e budget separate from the orphan-branch budget", () => {

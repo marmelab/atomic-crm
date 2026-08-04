@@ -154,6 +154,18 @@ describe("e2e-on-feature-review", () => {
     expect(result().status).toBe("passed");
   });
 
+  // The smoke dispatch has no description template, so an improvised description
+  // mentioning the review must not trigger a second suite run.
+  test("does not launch for a feature-smoke dispatch, whatever its description says", () => {
+    writeSmoke(SMOKE.record);
+    approve();
+    const tp = transcriptWithMeta("Feature-review smoke of the same feature");
+    writeFileSync(tp, "ROLE: quality-reviewer (MODE: feature-smoke)\n");
+    const r = run(tp);
+    expect(r.status).toBe(0);
+    expect(existsSync(join(APP_DIR, "ran-with-src"))).toBe(false);
+  });
+
   test("skips gracefully when the session worktree is absent", () => {
     writeSmoke(SMOKE.record);
     approve();
