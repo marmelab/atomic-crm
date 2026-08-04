@@ -454,9 +454,10 @@ interactively via the Playwright MCP against a demo-mode server you start inside
    (`kill <pid>` of the `dev:demo` process you started). Leaving it running
    stalls the SubagentStop validation chain.
 
-A red criterion verified here is a `[FAIL]` → REJECTED. The `npx playwright
-screenshot <url> out.png` CLI remains a fallback for a single static shot when no
-interaction is needed (it is headless by default).
+A red criterion verified here is a `[FAIL]` → REJECTED. For a single static shot
+with no interaction, use `browser_navigate` + `browser_take_screenshot` as above:
+there is no `npx playwright screenshot` CLI in the pinned Playwright (1.60 exposes
+only `playwright trace screenshot`).
 
 ### C.4 e2e spec sanity (read-only)
 

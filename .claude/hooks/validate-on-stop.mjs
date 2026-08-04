@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// SubagentStop — full validation chain (prettier auto-fix, typecheck, unit app/functions, e2e) on active worktrees with changes; exit 2 keeps the subagent alive to fix and commit. VALIDATE_DRY_RUN=1 skips the chain; =fail simulates a failure.
+// SubagentStop — full validation chain (prettier auto-fix, typecheck, lint, unit app/functions) on active worktrees with changes; exit 2 keeps the subagent alive to fix and commit. e2e is NOT in this chain (end-of-feature only, run by the orchestrator via e2e-smoke.sh). VALIDATE_DRY_RUN=1 skips the chain; =fail simulates a failure.
 
 import { existsSync, readFileSync } from "node:fs";
 import { createHookContext } from "./lib/context.mjs";
