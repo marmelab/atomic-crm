@@ -15,10 +15,16 @@ guard, so they can never drift:
   green stop returns control to the orchestrator.
   **e2e is NOT in this chain**: a ticket can legitimately be mid-feature, and the
   chain's `cwd:"repo"` steps run in the base-branch checkout, so a per-stop e2e run
-  only ever tested code the ticket had not touched. The suite runs once at
-  end-of-feature on the integrated `_session` worktree, via
-  `.claude/scripts/e2e-smoke.sh` (isolated slot-leased Supabase), driven by the
-  orchestrator.
+  only ever tested code the ticket had not touched.
+- `e2e-on-feature-review.mjs` (SubagentStop, `quality-reviewer`) is the ONLY place
+  the e2e suite is launched. It fires on the `MODE: feature-review` stop, and only
+  when that review APPROVED (it keys off the reviewer's own
+  `FEATURE-quality-reviewer` flag, not a transcript read), then runs
+  `.claude/scripts/e2e-smoke.sh` on the integrated `_session` worktree with an
+  isolated slot-leased Supabase. The outcome lands in
+  `<session_dir>/e2e-result.json` for the orchestrator to read. **No agent launches
+  the suite, the orchestrator included**, and `bash-guard` enforces that for every
+  caller.
 - `bash-guard.mjs` (PreToolUse Bash) blocks `developer` / `quality-reviewer` from
   running those same commands manually, plus `validation.extraForbidden` (build,
   e2e). The forbidden set is DERIVED from `validation.steps`, not hardcoded here.

@@ -72,10 +72,19 @@ describe("bash-guard hook", () => {
       expect(isBlocked(runHook("merger", "npx playwright codegen"))).toBe(true);
     });
 
-    test("plain playwright test from main session → allowed (headless default)", () => {
-      const r = runHook("", "npx playwright test");
+    test("headless playwright subcommand from main session → allowed", () => {
+      const r = runHook("", "npx playwright show-report");
       expect(r.status).toBe(0);
       expect(isBlocked(r)).toBe(false);
+    });
+
+    // `npx playwright test` IS refused, but by the e2e rule below (no agent launches
+    // the suite), never for a missing --headless flag the CLI cannot even accept.
+    test("plain playwright test is refused for e2e, not for headlessness", () => {
+      const r = runHook("", "npx playwright test");
+      expect(isBlocked(r)).toBe(true);
+      expect(r.stdout).toContain("e2e-on-feature-review");
+      expect(r.stdout).not.toContain("--headed");
     });
 
     test("playwright screenshot from merger → allowed (headless default)", () => {
@@ -125,6 +134,48 @@ describe("bash-guard hook", () => {
     test("non-gated agent running validation command → allowed", () => {
       const r = runHook("merger", "npm run typecheck");
       expect(isBlocked(r)).toBe(false);
+    });
+
+    // e2e is the one category scoped to EVERY caller: launching the suite is the
+    // e2e-on-feature-review hook's job, so no agent may do it by hand.
+    describe("e2e is blocked for every caller", () => {
+      const e2eCases = [
+        ["orchestrator", "npx playwright test"],
+        [
+          "orchestrator",
+          "E2E_SMOKE_SRC=/tmp/wt/_session bash .claude/scripts/e2e-smoke.sh",
+        ],
+        ["merger", "make test-e2e"],
+        ["", "make test-e2e-ci"],
+      ];
+
+      test.each(e2eCases)("%s running '%s' → blocked", (agent, command) => {
+        const r = runHook(agent, command);
+        expect(r.status).toBe(0);
+        expect(isBlocked(r)).toBe(true);
+      });
+
+      test("dropping e2e from the config unblocks it again", () => {
+        const noE2e = {
+          validation: {
+            steps: [
+              {
+                id: "typecheck",
+                kind: "typecheck",
+                command: "npm run typecheck",
+              },
+            ],
+            extraForbidden: [],
+          },
+          roles: { developer: { model: "sonnet" } },
+        };
+        const r = runHookWithConfig(
+          "orchestrator",
+          "npx playwright test",
+          noE2e,
+        );
+        expect(isBlocked(r)).toBe(false);
+      });
     });
 
     test("main session running validation command → allowed", () => {
