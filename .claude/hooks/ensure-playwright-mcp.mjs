@@ -18,6 +18,7 @@
 import { existsSync, statSync } from "node:fs";
 import { readFileSync } from "node:fs";
 import { spawn } from "node:child_process";
+import { createRequire } from "node:module";
 import { join } from "node:path";
 import { createHookContext } from "./lib/context.mjs";
 
@@ -32,8 +33,24 @@ const ctx = createHookContext(input, "ensure-playwright-mcp");
 const repo = process.env.CLAUDE_PROJECT_DIR || process.cwd();
 const mcpCli = join(repo, "node_modules", "@playwright", "mcp", "cli.js");
 
+// The package alone is not enough: with the cli.js present but its Chromium missing,
+// playwright-mcp.sh drops --executable-path and the MCP falls back to the `chrome`
+// channel, which provisioning never installs — every browser_navigate then dies with
+// "Chromium distribution 'chrome' is not found". Mirror that script's own predicate
+// (playwright-core's resolved executablePath) so the two can't drift.
+function chromiumPath() {
+  try {
+    const require_ = createRequire(join(repo, "package.json"));
+    return require_("playwright-core").chromium.executablePath();
+  } catch {
+    return "";
+  }
+}
+
+const chromium = existsSync(mcpCli) ? chromiumPath() : "";
+
 // Present -> nothing to do. Fast path, no output (avoid per-session noise).
-if (existsSync(mcpCli)) {
+if (chromium && existsSync(chromium)) {
   ctx.log("playwright MCP present");
   process.exit(0);
 }
@@ -75,7 +92,11 @@ if (!installing && process.env.PLAYWRIGHT_MCP_CHECK_ONLY !== "1") {
     );
   }
 } else {
-  ctx.log("playwright MCP missing -> install already in progress");
+  ctx.log(
+    installing
+      ? "playwright MCP unusable -> install already in progress"
+      : "playwright MCP unusable -> check-only, no install started",
+  );
 }
 
 // Warn the session: the MCP cannot connect mid-session, so feature-smoke degrades to
@@ -85,7 +106,7 @@ process.stdout.write(
     hookSpecificOutput: {
       hookEventName: "SessionStart",
       additionalContext:
-        `<playwright-mcp-status>NOT INSTALLED. The Playwright MCP browser is being ` +
+        `<playwright-mcp-status>NOT USABLE (package or Chromium missing). The Playwright MCP browser is being ` +
         `provisioned in the background (log: ${installLog}). For THIS session the harness ` +
         `feature-smoke (MODE: feature-smoke) cannot drive the UI and will fall back to ` +
         `static/compile checks; the Supabase e2e-smoke (CLI Playwright) is unaffected. It ` +

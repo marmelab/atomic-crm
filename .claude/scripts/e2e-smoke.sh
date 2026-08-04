@@ -3,9 +3,12 @@
 # instance so multiple harness sessions can run it in parallel without colliding.
 # Guaranteed teardown via `trap ... EXIT`.
 #
-# Isolation per run: a leased SLOT (0..K-1) gives offset = slot*20, applied to the
+# Isolation per run: a leased SLOT (0..K-1) gives offset = (slot+1)*20, applied to the
 # project_id, every Supabase port, and the app port + auth URLs, in a throwaway workdir.
 # The flock lease also CAPS concurrency (K stacks max) so we never OOM the host.
+# The offset starts at 20, not 0, so no slot reuses the ports config.e2e.toml itself
+# declares (54340-54349, app 5175): those belong to a human `make start-e2e`, which does
+# not take part in the slot lease, and slot 0 used to collide with it.
 #
 # Exit codes: 0 = suite passed OR gracefully skipped (no slot / low RAM / cannot start);
 #             1 = the e2e suite ran and FAILED. Skips are exit 0 by design (the caller
@@ -47,10 +50,10 @@ for i in $(seq 0 $((SLOTS - 1))); do
 done
 [ -z "$slot" ] && skip "all $SLOTS e2e slots busy; try again later."
 
-offset=$((slot * 20))
+offset=$(((slot + 1) * 20))
 project="atomic-crm-e2e-$slot"
 api_port=$((54341 + offset))
-app_port=$((5175 + slot))
+app_port=$((5176 + slot))
 workroot="$(mktemp -d)"
 workdir="$workroot/e2e"          # supabase --workdir
 mkdir -p "$workdir/supabase"
