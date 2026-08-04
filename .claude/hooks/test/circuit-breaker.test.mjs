@@ -24,7 +24,7 @@ afterAll(() => {
 // `command` decides whether the call counts: a WORK command counts, a free one does not.
 const WORK = "node work.mjs";
 const runHook = (agentId, command = WORK, sessionId = "cb-1234") => {
-  const env = { ...process.env, CRM_TMP_ROOT: tmpRoot, APP_DIR: appDir };
+  const env = { ...process.env, HARNESS_TMP_ROOT: tmpRoot, APP_DIR: appDir };
   delete env.CLAUDE_AGENT_NAME;
   const payload = {
     tool_name: "Bash",

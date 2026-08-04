@@ -60,11 +60,11 @@ const runRecord = (prompt) =>
 beforeAll(() => {
   TMP = mkdtempSync(join(tmpdir(), "wave-merger-promote-test-"));
   APP_DIR = join(TMP, "app");
-  const CRM_TMP_ROOT = join(TMP, "scratch");
-  sessionDir = join(CRM_TMP_ROOT, sanitizePath(APP_DIR), SESSION_ID);
+  const HARNESS_TMP_ROOT = join(TMP, "scratch");
+  sessionDir = join(HARNESS_TMP_ROOT, sanitizePath(APP_DIR), SESSION_ID);
   marker = join(sessionDir, "merger-stage.json");
   mkdirSync(sessionDir, { recursive: true });
-  env = { ...process.env, APP_DIR, CRM_TMP_ROOT };
+  env = { ...process.env, APP_DIR, HARNESS_TMP_ROOT };
   delete env.CHAT_SESSION_DIR;
   delete env.CLAUDE_AGENT_NAME;
 });

@@ -31,11 +31,16 @@ const flag = (name) => join(reviewsDir, name);
 beforeAll(() => {
   TMP = mkdtempSync(join(tmpdir(), "record-verdict-test-"));
   APP_DIR = join(TMP, "app");
-  const CRM_TMP_ROOT = join(TMP, "scratch");
-  reviewsDir = join(CRM_TMP_ROOT, sanitizePath(APP_DIR), SESSION_ID, "reviews");
-  env = { ...process.env, APP_DIR, CRM_TMP_ROOT };
+  const HARNESS_TMP_ROOT = join(TMP, "scratch");
+  reviewsDir = join(
+    HARNESS_TMP_ROOT,
+    sanitizePath(APP_DIR),
+    SESSION_ID,
+    "reviews",
+  );
+  env = { ...process.env, APP_DIR, HARNESS_TMP_ROOT };
   delete env.CLAUDE_AGENT_NAME;
-  // These tests assert the flag lands under ctx.sessionDir (CRM_TMP_ROOT/...).
+  // These tests assert the flag lands under ctx.sessionDir (HARNESS_TMP_ROOT/...).
   // reviewsDir() prefers CHAT_SESSION_DIR when set (managed-launcher path), so a
   // CHAT_SESSION_DIR inherited from the ambient env (e.g. CRM Builder's container)
   // would redirect the flag and break the assertion — neutralise it here. The

@@ -16,10 +16,10 @@ const HERE = dirname(fileURLToPath(import.meta.url));
 const HOOK = join(HERE, "..", "session-bootstrap.mjs");
 const TMP = mkdtempSync(join(tmpdir(), "session-bootstrap-test-"));
 const APP_DIR = join(TMP, "repo");
-const CRM_TMP_ROOT = join(TMP, "scratch");
+const HARNESS_TMP_ROOT = join(TMP, "scratch");
 const SESSION_ID = "abcd1234-1111-2222-3333-444455556666";
 
-const baseEnv = { ...process.env, APP_DIR, CRM_TMP_ROOT };
+const baseEnv = { ...process.env, APP_DIR, HARNESS_TMP_ROOT };
 delete baseEnv.CHAT_SESSION_DIR;
 delete baseEnv.CLAUDE_CODE_SESSION_ID;
 
@@ -36,7 +36,11 @@ describe("session-bootstrap", () => {
   test("injects <session_dir> built from the real session id", () => {
     const r = run({ session_id: SESSION_ID });
     expect(r.status).toBe(0);
-    const expectedDir = join(CRM_TMP_ROOT, sanitizePath(APP_DIR), SESSION_ID);
+    const expectedDir = join(
+      HARNESS_TMP_ROOT,
+      sanitizePath(APP_DIR),
+      SESSION_ID,
+    );
     expect(r.stdout).toContain(`<session_dir>${expectedDir}</session_dir>`);
     // Alignment invariant: basename(session_dir) === session_id.
     const m = r.stdout.match(/<session_dir>(.+?)<\/session_dir>/);
@@ -86,7 +90,7 @@ describe("session-bootstrap", () => {
     );
     const r = spawnSync("node", [HOOK], {
       input: JSON.stringify({ session_id: sid }),
-      env: { ...baseEnv, APP_DIR: app, CRM_TMP_ROOT: scratch },
+      env: { ...baseEnv, APP_DIR: app, HARNESS_TMP_ROOT: scratch },
       encoding: "utf8",
     });
     rmSync(app, { recursive: true, force: true });
