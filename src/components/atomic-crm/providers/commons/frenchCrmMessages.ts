@@ -121,6 +121,9 @@ export const frenchCrmMessages = {
         error:
           "Échec de l'importation de ce fichier. Veuillez vous assurer que vous avez fourni un fichier CSV valide.",
         imported: "Importé",
+        in_progress: "Import des contacts en cours…",
+        background_hint:
+          "Vous pouvez fermer cette fenêtre : l'import continue et vous serez notifié à la fin.",
         remaining_time: "Temps restant estimé :",
         running: "L'import est en cours, merci de ne pas fermer cet onglet.",
         sample_download: "Télécharger un exemple CSV",

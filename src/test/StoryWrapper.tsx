@@ -4,6 +4,7 @@ import { useEffect, useMemo, type ReactNode } from "react";
 import { MemoryRouter } from "react-router";
 import cloneDeep from "lodash/cloneDeep";
 import { Notification } from "@/components/admin/notification";
+import { ContactImportProvider } from "@/components/atomic-crm/contacts/ContactImportProvider";
 import { createDataProvider } from "@/components/atomic-crm/providers/fakerest";
 import { DEFAULT_USER } from "@/components/atomic-crm/providers/fakerest/authProvider";
 import type { Db } from "@/components/atomic-crm/providers/fakerest/dataGenerator/types";
@@ -114,10 +115,10 @@ export const StoryWrapper = ({
         store={store}
         disableTelemetry
         layout={({ children }) => (
-          <>
+          <ContactImportProvider>
             {children}
             <Notification />
-          </>
+          </ContactImportProvider>
         )}
       />
     </MemoryRouter>

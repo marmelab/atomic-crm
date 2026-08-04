@@ -1,7 +1,7 @@
 import * as Papa from "papaparse";
 import { useCallback, useMemo, useRef, useState } from "react";
 
-type Import =
+export type ImportState =
   | {
       state: "idle";
     }
@@ -38,7 +38,7 @@ export function usePapaParse<T>({
 }: usePapaParseProps<T>) {
   const importIdRef = useRef<number>(0);
 
-  const [importer, setImporter] = useState<Import>({
+  const [importer, setImporter] = useState<ImportState>({
     state: "idle",
   });
 
