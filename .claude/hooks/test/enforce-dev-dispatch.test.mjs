@@ -28,7 +28,11 @@ const run = (tool_input) =>
 
 beforeAll(() => {
   TMP = mkdtempSync(join(tmpdir(), "enforce-dev-dispatch-test-"));
-  env = { ...process.env, APP_DIR: TMP, CRM_TMP_ROOT: join(TMP, "scratch") };
+  env = {
+    ...process.env,
+    APP_DIR: TMP,
+    HARNESS_TMP_ROOT: join(TMP, "scratch"),
+  };
 });
 
 afterAll(() => rmSync(TMP, { recursive: true, force: true }));
