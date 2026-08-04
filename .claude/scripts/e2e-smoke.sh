@@ -32,10 +32,10 @@ skip() { echo "SKIP: $*"; exit 0; }   # graceful: not run here, not a failure
 
 # --- memory preflight -------------------------------------------------------
 # Each Supabase stack is ~2-3 GB. Don't attempt a boot the host can't hold; skip
-# gracefully so the caller defers to a human `make test-e2e` instead of OOM-ing.
+# gracefully so the caller defers to a human `make test-e2e-ci` instead of OOM-ing.
 avail_mb="$(free -m 2>/dev/null | awk '/^Mem:/{print $7}')"
 if [ "$DRY" != "1" ] && [ -n "$avail_mb" ] && [ "$avail_mb" -lt "$MIN_MB" ]; then
-  skip "only ${avail_mb}MB free, need ~${MIN_MB}MB for a Supabase e2e stack; run 'make test-e2e' locally."
+  skip "only ${avail_mb}MB free, need ~${MIN_MB}MB for a Supabase e2e stack; run 'make test-e2e-ci' locally."
 fi
 
 # --- lease a slot (flock; also the concurrency cap) -------------------------
@@ -99,7 +99,7 @@ docker ps -aq --filter "name=${project}" 2>/dev/null | xargs -r docker rm -f >/d
 
 # --- start the isolated stack ----------------------------------------------
 echo "e2e-smoke: starting isolated Supabase (slot $slot, api :$api_port, project $project)..."
-if ! npx supabase start --workdir "$workdir" >/"$workroot/supabase.log" 2>&1; then
+if ! npx supabase start --workdir "$workdir" >"$workroot/supabase.log" 2>&1; then
   cat "$workroot/supabase.log" >&2 || true
   skip "isolated Supabase failed to start (see log); deferring e2e to a human run."
 fi

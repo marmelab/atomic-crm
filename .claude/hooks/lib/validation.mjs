@@ -122,7 +122,8 @@ const TAIL_LINES = { format: 15, typecheck: 20, lint: 30, unit: 40, e2e: 50 };
 
 // A step is skipped when its `condition` is not met. `pathExists` gates on a
 // path under the repo (e.g. the supabase/functions unit-fn gate); `modeNot`
-// skips when MODE equals the given value (e.g. e2e in demo mode).
+// skips when MODE equals the given value (no step uses it today, and MODE is set
+// only by a managed launcher, never by this repo's settings.json).
 function stepSkipped(ctx, step) {
   const c = step.condition;
   if (!c) return false;
