@@ -9,9 +9,12 @@ import { createHookContext } from "./lib/context.mjs";
 // "documentator" (an Agent-dispatched documentator subagent, the same signal the
 // other PreToolUse hooks use). Read the payload first so agent_type is available.
 //
-// Fail closed: a malformed payload is a block signal for this restricted agent,
-// not a pass-through. Leave input empty so the !command guard below exits 2
-// (exit 1 from an uncaught throw would let the Bash command through).
+// Fail closed ONLY once the caller is known to be the documentator, which is the
+// most this hook can do: it runs on EVERY caller's Bash, so an unparseable payload
+// (identity unknowable) must pass through rather than block every agent in the run.
+// With DOCUMENTATOR_RUN=1 the identity comes from the env, independent of the
+// payload, so there a malformed payload DOES block: input stays empty and the
+// !command guard below exits 2 (exit 1 from an uncaught throw would let it through).
 let input = {};
 try {
   input = JSON.parse(readFileSync(0, "utf8"));
