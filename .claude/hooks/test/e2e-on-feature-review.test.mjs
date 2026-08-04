@@ -133,6 +133,27 @@ describe("e2e-on-feature-review", () => {
     expect(result().output).toContain("1 failed");
   });
 
+  test("drops a previous round's result when the new review did not approve", () => {
+    writeSmoke(SMOKE.pass);
+    approve();
+    run(transcriptWithMeta("Feature-review: round 1"));
+    expect(result().status).toBe("passed");
+
+    rmSync(join(sessionDir, "reviews", "FEATURE-quality-reviewer"), {
+      force: true,
+    });
+    run(transcriptWithMeta("Feature-review: round 2"));
+    expect(result()).toBe(null);
+  });
+
+  test("leaves a per-ticket review stop's result untouched", () => {
+    writeSmoke(SMOKE.pass);
+    approve();
+    run(transcriptWithMeta("Feature-review: round 1"));
+    run(transcriptWithMeta("Review TASK-003 implementation"));
+    expect(result().status).toBe("passed");
+  });
+
   test("skips gracefully when the session worktree is absent", () => {
     writeSmoke(SMOKE.record);
     approve();

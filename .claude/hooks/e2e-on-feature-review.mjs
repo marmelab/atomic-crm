@@ -17,7 +17,7 @@
 // it lands in <session_dir>/e2e-result.json plus the progress log, and the orchestrator
 // reads it after the review returns. This hook never blocks a stop.
 
-import { existsSync, readFileSync, writeFileSync } from "node:fs";
+import { existsSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { createHookContext } from "./lib/context.mjs";
 import { readAgentMeta } from "./lib/agent-meta.mjs";
@@ -54,6 +54,15 @@ const input = JSON.parse(readFileSync(0, "utf8"));
 const ctx = createHookContext(input, "e2e-on-feature-review");
 
 if (!isFeatureReview(input)) process.exit(0);
+
+// A feature review just ran, so any result from an earlier round describes code that
+// has since changed. Drop it before deciding, so the orchestrator can never read a
+// stale verdict as current: from here on, a missing file means "not run this round".
+try {
+  rmSync(e2eResultPath(ctx), { force: true });
+} catch {
+  // best-effort
+}
 
 const flag = reviewFlag(ctx, FEATURE_REVIEW_KEY, "quality-reviewer");
 if (!existsSync(flag)) {
