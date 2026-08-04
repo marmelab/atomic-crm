@@ -455,12 +455,14 @@ interactively via the Playwright MCP against a demo-mode server you start inside
    stalls the SubagentStop validation chain.
 
 A red criterion verified here is a `[FAIL]` → REJECTED. The `npx playwright
-screenshot --headless <url> out.png` CLI remains a fallback for a single static
-shot when no interaction is needed.
+screenshot <url> out.png` CLI remains a fallback for a single static shot when no
+interaction is needed (it is headless by default).
 
 ### C.4 e2e spec sanity (read-only)
 
-Execution is the SubagentStop validation chain's job (`validate-on-stop.mjs`).
+Execution happens once at end-of-feature, on the integrated `_session` worktree
+(`.claude/scripts/e2e-smoke.sh`, driven by the orchestrator); the per-ticket
+SubagentStop chain does NOT run e2e.
 Here you only verify the spec file exists when acceptance criteria require it and
 that it targets the right route/component. (Presence of a test for every new
 behavior is also enforced by A.7.)

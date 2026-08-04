@@ -43,16 +43,9 @@
         "projects": ["functions"],
         "changedScoped": true,
         "condition": { "pathExists": "supabase/functions" }
-      },
-      {
-        "id": "e2e",
-        "kind": "e2e",
-        "command": "npx playwright test",
-        "cwd": "repo",
-        "condition": { "modeNot": "demo" }
       }
     ],
-    "extraForbidden": ["build"]
+    "extraForbidden": ["build", "e2e"]
   },
   "worktree": {
     "provision": "npm-link"

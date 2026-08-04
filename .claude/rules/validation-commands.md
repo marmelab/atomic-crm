@@ -10,13 +10,18 @@ guard, so they can never drift:
 
 - `validate-on-stop.mjs` (SubagentStop) runs the whole chain after every
   developer / test-writer stop: the format step (prettier auto-fix + commit),
-  typecheck, lint (eslint, scoped to the stop's changed files), the unit steps,
-  then e2e once in the repo (full mode only). A failed step rejects the stop; the
-  agent's internal loop fixes it and only a green stop returns control to the
+  typecheck, lint (eslint, scoped to the stop's changed files) and the unit steps.
+  A failed step rejects the stop; the agent's internal loop fixes it and only a
+  green stop returns control to the orchestrator.
+  **e2e is NOT in this chain**: a ticket can legitimately be mid-feature, and the
+  chain's `cwd:"repo"` steps run in the base-branch checkout, so a per-stop e2e run
+  only ever tested code the ticket had not touched. The suite runs once at
+  end-of-feature on the integrated `_session` worktree, via
+  `.claude/scripts/e2e-smoke.sh` (isolated slot-leased Supabase), driven by the
   orchestrator.
 - `bash-guard.mjs` (PreToolUse Bash) blocks `developer` / `quality-reviewer` from
-  running those same commands manually, plus `validation.extraForbidden` (build).
-  The forbidden set is DERIVED from `validation.steps`, not hardcoded here.
+  running those same commands manually, plus `validation.extraForbidden` (build,
+  e2e). The forbidden set is DERIVED from `validation.steps`, not hardcoded here.
 
 ## Why blocked (developer / quality-reviewer)
 

@@ -17,7 +17,7 @@ afterAll(() => {
 });
 
 const runHook = (agent, command) => {
-  const env = { ...process.env, CRM_TMP_ROOT: tmpRoot };
+  const env = { ...process.env, HARNESS_TMP_ROOT: tmpRoot };
   delete env.CLAUDE_AGENT_NAME;
   const input = JSON.stringify({
     tool_name: "Bash",
@@ -33,7 +33,7 @@ const runHook = (agent, command) => {
 const runHookWithConfig = (agent, command, config) => {
   const repo = mkdtempSync(join(tmpdir(), "bash-guard-repo-"));
   writeFileSync(join(repo, "harness.config.json"), JSON.stringify(config));
-  const env = { ...process.env, CRM_TMP_ROOT: tmpRoot, APP_DIR: repo };
+  const env = { ...process.env, HARNESS_TMP_ROOT: tmpRoot, APP_DIR: repo };
   delete env.CLAUDE_AGENT_NAME;
   delete env.CLAUDE_PROJECT_DIR;
   const input = JSON.stringify({
@@ -51,27 +51,46 @@ const isBlocked = (r) => r.stdout.includes('"decision":"block"');
 
 describe("bash-guard hook", () => {
   describe("browser rules — any caller", () => {
-    test("headed playwright test from main session → blocked", () => {
-      const r = runHook("", "npx playwright test");
+    test("playwright test --headed from main session → blocked", () => {
+      const r = runHook("", "npx playwright test --headed");
       expect(r.status).toBe(0);
       expect(isBlocked(r)).toBe(true);
-      expect(r.stdout).toContain("--headless");
+      expect(r.stdout).toContain("--headed");
     });
 
-    test("headed playwright screenshot from merger → blocked", () => {
+    test("playwright test --ui / --debug → blocked", () => {
+      expect(isBlocked(runHook("", "npx playwright test --ui"))).toBe(true);
+      expect(isBlocked(runHook("", "npx playwright test --debug"))).toBe(true);
+    });
+
+    test("playwright open / codegen from merger → blocked", () => {
+      expect(
+        isBlocked(
+          runHook("merger", "npx playwright open http://localhost:5173"),
+        ),
+      ).toBe(true);
+      expect(isBlocked(runHook("merger", "npx playwright codegen"))).toBe(true);
+    });
+
+    test("plain playwright test from main session → allowed (headless default)", () => {
+      const r = runHook("", "npx playwright test");
+      expect(r.status).toBe(0);
+      expect(isBlocked(r)).toBe(false);
+    });
+
+    test("playwright screenshot from merger → allowed (headless default)", () => {
       const r = runHook(
         "merger",
         "npx playwright screenshot http://localhost:5173 out.png",
       );
-      expect(isBlocked(r)).toBe(true);
+      expect(isBlocked(r)).toBe(false);
     });
 
-    test("playwright with --headless from main session → allowed", () => {
+    test("playwright MCP cli with --headless → allowed", () => {
       const r = runHook(
         "",
-        "npx playwright screenshot --headless http://localhost:5173 out.png",
+        "node node_modules/@playwright/mcp/cli.js --headless --isolated",
       );
-      expect(r.status).toBe(0);
       expect(isBlocked(r)).toBe(false);
     });
 
@@ -92,7 +111,7 @@ describe("bash-guard hook", () => {
       ["developer", "npx tsc --noEmit"],
       ["developer", "npx vitest run"],
       ["developer", "npm run prettier:apply"],
-      ["quality-reviewer", "npx playwright test --headless"],
+      ["quality-reviewer", "npx playwright test"],
       ["quality-reviewer", "make lint"],
       ["developer", "npm run build"],
     ];

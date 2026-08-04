@@ -52,7 +52,7 @@ its commits.
 
 ## Validation & output
 
-The SubagentStop validation chain (typecheck + prettier + unit + e2e) runs on
+The SubagentStop validation chain (typecheck + prettier + lint + unit) runs on
 your stop, scoped to your worktree, exactly as it does for the developer. Do NOT
 run it manually (`.claude/rules/validation-commands.md`). If it fails, fix the
 tests and commit again on the next turn.
