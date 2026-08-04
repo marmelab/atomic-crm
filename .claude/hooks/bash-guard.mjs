@@ -26,15 +26,15 @@ if (!cmd) process.exit(0);
 // Browser rules — any caller: this sandbox has no display, a headed run hangs forever.
 const opensHeadedPlaywright = (c) =>
   /playwright/.test(c) &&
-  /(screenshot|test|codegen)/.test(c) &&
-  !c.includes("--headless");
+  (/(--headed|--ui\b|--debug\b)/.test(c) ||
+    /playwright\s+(open|codegen)\b/.test(c));
 const opensViteBrowser = (c) =>
   /(vite|npm run (dev|start|start-demo))/.test(c) && c.includes("--open");
 
 const BROWSER_RULES = [
   [
     opensHeadedPlaywright,
-    "Playwright must always use --headless. Add --headless to the command.",
+    "Playwright must stay headless (this sandbox has no display): drop --headed / --ui / --debug, and don't run `playwright open` / `codegen`. Headless is the default, no flag needed.",
   ],
   [
     opensViteBrowser,
@@ -127,7 +127,7 @@ const CATEGORY_RULES = {
   ],
   e2e: [
     runsE2eTests,
-    "e2e tests: the validation hooks run playwright in full mode only; in demo mode they're skipped. Don't run them manually.",
+    "e2e tests: per-ticket validation does NOT run playwright (a ticket can be mid-feature). The orchestrator runs the suite once at end-of-feature, on the integrated session worktree via e2e-smoke.sh. Write the spec, don't run it.",
   ],
   lint: [
     runsLint,
@@ -142,8 +142,8 @@ const CATEGORY_RULES = {
 // Which categories to guard comes from the SAME config the validation chain runs
 // (kills the triple-encoding: runner, guard, and doc no longer drift). Each
 // validation step's kind maps to a category (lint included — it is now a chain
-// step), plus validation.extraForbidden (build — never run during tickets, not
-// part of the chain). Fail-open to ALL categories if the config can't be read,
+// step), plus validation.extraForbidden (build, e2e — never run during tickets,
+// not part of the chain). Fail-open to ALL categories if the config can't be read,
 // so a malformed config never weakens the guard.
 const KIND_TO_CATEGORY = {
   format: "prettier",
