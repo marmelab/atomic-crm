@@ -24,6 +24,7 @@ import { join } from "node:path";
 import { createHookContext } from "./lib/context.mjs";
 import { readAgentMeta } from "./lib/agent-meta.mjs";
 import { getUnmergedTaskBranches, git } from "./lib/git.mjs";
+import { reviewFlag } from "./lib/reviews.mjs";
 import { sessionBranch, simpleBranch } from "./lib/topology.mjs";
 
 const REJECT_LIMIT = 2; // reject at most twice, then allow + mark for recovery
@@ -66,13 +67,16 @@ try {
   // Only an APPROVED-but-unmerged branch is "orphaned by a stall". A branch with no
   // APPROVED review flag is a FAILED or still-in-review ticket, not our concern -
   // flagging it would be a false positive on every failed-ticket run.
+  // Resolve the flag through reviews.mjs, the single source of truth shared with
+  // block-merger-without-review: TICKETS_DIR == <session_dir>, so the flags live at
+  // <session_dir>/reviews/. Hand-rolling it from ctx.ticketsDir looked in
+  // <session_dir>/tickets/reviews/ (nothing sets TICKETS_DIR in a hook's env), a
+  // directory that never exists, so this invariant silently never fired.
   const orphaned = unmerged
     .map((u) => u.branch)
     .filter((br) => {
       const taskId = br.split("/").pop(); // <short>/TASK-XXX -> TASK-XXX
-      return existsSync(
-        join(ctx.ticketsDir, "reviews", `${taskId}-quality-reviewer`),
-      );
+      return existsSync(reviewFlag(ctx, taskId, "quality-reviewer"));
     });
 
   if (orphaned.length === 0) {
@@ -124,6 +128,20 @@ function rejectOnceOnRedE2e() {
     return; // unreadable / malformed -> fail-open, same as the rest of this hook
   }
   if (result?.status !== "failed") return;
+
+  // A session serves several requests. A red verdict from an earlier one describes a
+  // commit that later merges have moved past, so it must not reject THIS request's
+  // stop. An absent sha cannot be verified, so it still rejects: swallowing a real red
+  // suite is the worse failure.
+  const head = git(["rev-parse", sessionBranch(ctx)]);
+  if (
+    result.sessionSha &&
+    head.status === 0 &&
+    result.sessionSha !== head.stdout.trim()
+  ) {
+    ctx.log("red e2e predates the current session head, ignoring");
+    return;
+  }
 
   const rejects = readE2eRejects();
   if (rejects >= E2E_REJECT_LIMIT) {
