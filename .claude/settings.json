@@ -16,7 +16,8 @@
   "skillListingMaxDescChars": 512,
   "env": {
     "ENABLE_LSP_TOOL": "1",
-    "CLAUDE_CODE_MAX_SUBAGENT_SPAWN_DEPTH": "3"
+    "CLAUDE_CODE_MAX_SUBAGENT_SPAWN_DEPTH": "3",
+    "OTEL_RESOURCE_ATTRIBUTES": "project.name=atomic-crm"
   },
   "permissions": {
     "allow": [],
