@@ -86,15 +86,6 @@ if (isOrchestrator(agent || ctx.agentType)) {
   }
 }
 
-// Validation rules — gated subagents only: the validation hooks already run
-// these; manual runs burn budget and can hang (vitest headed without CI=true).
-// Resolve identity the same robust way as the guard-state rule above: prefer the
-// payload agent_type, fall back to the CLAUDE_AGENT_NAME-derived ctx.agentType,
-// and match via the suffix-aware predicates — so a `developer-TASK-001` runtime
-// name (or an empty agent_type) is still gated, not silently waved through.
-const who = agent || ctx.agentType || "";
-if (!isDeveloper(who) && !isQualityReviewer(who)) process.exit(0);
-
 const runsTypecheck = (c) =>
   /(make\s+typecheck|npm\s+run\s+typecheck|npx\s+tsc(\s|$)|tsc\s+--noEmit)/.test(
     c,
@@ -107,7 +98,8 @@ const runsUnitTests = (c) =>
   /(npm\s+run\s+test(:unit)?(:[a-z]+)?|npm\s+test\b|npx\s+vitest|make\s+test(-unit)?(-[a-z]+)?)/.test(
     c,
   );
-const runsE2eTests = (c) => /(npx\s+playwright\s+test|make\s+test-e2e)/.test(c);
+const runsE2eTests = (c) =>
+  /(npx\s+playwright\s+test|make\s+test-e2e|e2e-smoke\.sh)/.test(c);
 const runsLint = (c) => /(make\s+lint\b|npm\s+run\s+lint\b)/.test(c);
 const runsBuild = (c) =>
   /(npx\s+vite\s+build|npm\s+run\s+build\b|make\s+build\b)/.test(c);
@@ -127,7 +119,7 @@ const CATEGORY_RULES = {
   ],
   e2e: [
     runsE2eTests,
-    "e2e tests: per-ticket validation does NOT run playwright (a ticket can be mid-feature). The orchestrator runs the suite once at end-of-feature, on the integrated session worktree via e2e-smoke.sh. Write the spec, don't run it.",
+    "e2e tests: NO agent launches the suite, not even the orchestrator. The e2e-on-feature-review hook runs it once, on the integrated session worktree, only after the feature review APPROVED, and writes <session_dir>/e2e-result.json. Write the spec, read the result, don't run it.",
   ],
   lint: [
     runsLint,
@@ -164,6 +156,26 @@ try {
 } catch {
   activeCategories = new Set(Object.keys(CATEGORY_RULES));
 }
+
+// e2e is the one category gated for EVERY caller, not just the two agents below:
+// launching the suite is a hook's job (e2e-on-feature-review.mjs), so an orchestrator
+// or a main-session Bash call must be refused too. Still config-driven — drop "e2e"
+// from validation.extraForbidden and this stops applying, like any other category.
+if (activeCategories.has("e2e") && runsE2eTests(cmd)) {
+  ctx.block({
+    reason: `Validation command forbidden: ${CATEGORY_RULES.e2e[1]} See .claude/rules/validation-commands.md.`,
+    log: `e2e any-caller cmd=${cmd.slice(0, 120)}`,
+  });
+}
+
+// Validation rules — gated subagents only: the validation hooks already run
+// these; manual runs burn budget and can hang (vitest headed without CI=true).
+// Resolve identity the same robust way as the guard-state rule above: prefer the
+// payload agent_type, fall back to the CLAUDE_AGENT_NAME-derived ctx.agentType,
+// and match via the suffix-aware predicates — so a `developer-TASK-001` runtime
+// name (or an empty agent_type) is still gated, not silently waved through.
+const who = agent || ctx.agentType || "";
+if (!isDeveloper(who) && !isQualityReviewer(who)) process.exit(0);
 
 const VALIDATION_RULES = [...activeCategories]
   .map((c) => CATEGORY_RULES[c])

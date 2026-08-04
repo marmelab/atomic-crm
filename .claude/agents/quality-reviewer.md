@@ -88,6 +88,21 @@ mistake would be most costly. Rules:
   items (style, naming, things the hooks already catch).
 - `Hotspots for human review: none identified` is a valid, complete section.
 
+**Record your verdict flag (required, do this BEFORE emitting the contract line).** The
+end-of-feature e2e suite is launched by a hook on your stop, and it keys off this flag, so a
+`BLOCKED` review never pays for a 10-minute suite. Write it yourself with a single Bash call:
+a post-stop transcript read races the flush and silently drops the verdict. The flag dir is
+`${TICKETS_DIR}/reviews`, and the key is the literal `FEATURE` (this pass has no `TASK_ID`):
+
+- APPROVED:
+  ```bash
+  RD="${TICKETS_DIR}/reviews" && mkdir -p "$RD" && touch "$RD/FEATURE-quality-reviewer"
+  ```
+- BLOCKED:
+  ```bash
+  RD="${TICKETS_DIR}/reviews" && rm -f "$RD/FEATURE-quality-reviewer"
+  ```
+
 OUTPUT CONTRACT (text, no `SendMessage`), last line exactly one of:
 - `APPROVED`: no imperative findings. Put any non-blocking notes (nits, cleanliness, ponytail
   `net: -N lines`) and the Hotspots section ABOVE the line; the orchestrator forwards them to the
