@@ -24,7 +24,13 @@ guard, so they can never drift:
   isolated slot-leased Supabase. The outcome lands in
   `<session_dir>/e2e-result.json` for the orchestrator to read. **No agent launches
   the suite, the orchestrator included**, and `bash-guard` enforces that for every
-  caller.
+  caller. A stale result from an earlier round is dropped as soon as a feature review
+  stops, so a missing file means "not run this round", never "passed earlier".
+- `completion-invariant.mjs` (SubagentStop, `orchestrator`) is the backstop on the
+  other end: reading that result is a prompt-level instruction, so stopping while it
+  says `failed` gets the stop rejected once. Then it is allowed through, on its own
+  budget and with no recovery marker, because a red suite is not an orphaned pipeline
+  and "never wedge the pipeline" still holds.
 - `bash-guard.mjs` (PreToolUse Bash) blocks `developer` / `quality-reviewer` from
   running those same commands manually, plus `validation.extraForbidden` (build,
   e2e). The forbidden set is DERIVED from `validation.steps`, not hardcoded here.

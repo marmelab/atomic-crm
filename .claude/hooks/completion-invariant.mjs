@@ -7,6 +7,11 @@
 // `needs-recovery` marker so the LAUNCHING SURFACE (main thread / chat-service, which IS
 // re-invokable) re-runs <intent>recovery</intent>. Fail-open: any doubt or error accepts
 // the stop, so this never wedges a legitimate completion.
+//
+// Second invariant, same spirit: stopping while <session_dir>/e2e-result.json says the
+// end-of-feature suite FAILED. Reading that file is only a prompt-level instruction, so
+// this is the deterministic backstop that a red suite cannot be swallowed in silence.
+// One reject (own budget, no recovery marker), then the stop is allowed.
 
 import {
   existsSync,
@@ -22,6 +27,11 @@ import { getUnmergedTaskBranches, git } from "./lib/git.mjs";
 import { sessionBranch, simpleBranch } from "./lib/topology.mjs";
 
 const REJECT_LIMIT = 2; // reject at most twice, then allow + mark for recovery
+// A red e2e is not an orphaned pipeline, so it gets its own single-shot budget and no
+// recovery marker: reject once to force the orchestrator to actually react to the result
+// it was supposed to read, then let the stop through. Its own 2-round fix bound takes it
+// from there, and "never wedge the pipeline" still holds.
+const E2E_REJECT_LIMIT = 1;
 
 let ctx;
 try {
@@ -67,6 +77,7 @@ try {
 
   if (orphaned.length === 0) {
     clearRejects();
+    rejectOnceOnRedE2e();
     ctx.accept("no approved-but-unmerged work");
   }
 
@@ -93,6 +104,43 @@ try {
   // Fail-open: our own error must never wedge a stop.
   if (ctx) ctx.log(`error, accepting: ${String(e).slice(0, 140)}`);
   process.exit(0);
+}
+
+// --- red e2e ------------------------------------------------------------------
+// The e2e verdict only exists in <session_dir>/e2e-result.json, written by
+// e2e-on-feature-review.mjs. Reading it is a prompt-level instruction, so an
+// orchestrator that never reads it would swallow a red suite in silence. Returns
+// normally (caller accepts) unless it decided to reject this stop.
+function rejectOnceOnRedE2e() {
+  let result;
+  try {
+    const p = join(
+      process.env.CHAT_SESSION_DIR || ctx.sessionDir,
+      "e2e-result.json",
+    );
+    if (!existsSync(p)) return; // not run this round -> nothing to react to
+    result = JSON.parse(readFileSync(p, "utf8"));
+  } catch {
+    return; // unreadable / malformed -> fail-open, same as the rest of this hook
+  }
+  if (result?.status !== "failed") return;
+
+  const rejects = readE2eRejects();
+  if (rejects >= E2E_REJECT_LIMIT) {
+    clearE2eRejects();
+    ctx.log(`red e2e persists after ${rejects} reject(s), allowing the stop`);
+    return;
+  }
+  writeE2eRejects(rejects + 1);
+  ctx.fail(
+    `Completion invariant: the end-of-feature e2e suite FAILED and you are stopping without ` +
+      `acting on it. Read <session_dir>/e2e-result.json, then either fix it (ONE developer on ` +
+      `<SESSION_SHORT_ID>/simple with the failing output as CHANGE_REQUEST, a STAGE: a-only ` +
+      `merger, then re-run feature-review, which re-runs the suite) or, if you have already used ` +
+      `the 2 fix rounds, state the failure explicitly in your final report. Do not end your turn ` +
+      `leaving it unmentioned. (attempt ${rejects + 1}/${E2E_REJECT_LIMIT})`,
+    { log: `reject ${rejects + 1}/${E2E_REJECT_LIMIT} red-e2e` },
+  );
 }
 
 // --- markers -----------------------------------------------------------------
@@ -122,6 +170,38 @@ function writeRejects(n) {
 function clearRejects() {
   try {
     unlinkSync(breakerFile());
+  } catch {
+    /* absent - fine */
+  }
+}
+// Separate budget from the orphan one: a red e2e must not spend the merge-stall
+// attempts, and a merge stall must not spend the e2e attempt.
+function e2eBreakerFile() {
+  const dir = join(ctx.sessionDir, "breaker");
+  try {
+    mkdirSync(dir, { recursive: true });
+  } catch {
+    /* best effort */
+  }
+  return join(dir, "completion-invariant-e2e-rejects");
+}
+function readE2eRejects() {
+  try {
+    return parseInt(readFileSync(e2eBreakerFile(), "utf8"), 10) || 0;
+  } catch {
+    return 0;
+  }
+}
+function writeE2eRejects(n) {
+  try {
+    writeFileSync(e2eBreakerFile(), String(n));
+  } catch {
+    /* best effort */
+  }
+}
+function clearE2eRejects() {
+  try {
+    unlinkSync(e2eBreakerFile());
   } catch {
     /* absent - fine */
   }
