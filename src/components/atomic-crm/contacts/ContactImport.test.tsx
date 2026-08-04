@@ -1,5 +1,11 @@
+import { useState, type ReactNode } from "react";
 import { render } from "vitest-browser-react";
-import { useNotify } from "ra-core";
+import {
+  useNotify,
+  type CreateParams,
+  type CreateResult,
+  type DataProvider,
+} from "ra-core";
 import { toast } from "sonner";
 
 import { StoryWrapper } from "@/test/StoryWrapper";
@@ -38,21 +44,49 @@ const NotifyTrigger = () => {
   );
 };
 
-const ImportHarness = () => (
+const UnmountableImportControls = () => {
+  const [isMounted, setIsMounted] = useState(true);
+  return (
+    <>
+      <button onClick={() => setIsMounted(false)}>unmount contact list</button>
+      {isMounted ? (
+        <>
+          <ContactImportButton />
+          <StartImportTrigger />
+        </>
+      ) : (
+        <p>contact list unmounted</p>
+      )}
+    </>
+  );
+};
+
+const createContact = async (
+  _resource: string,
+  params: CreateParams,
+): Promise<CreateResult> => {
+  await new Promise((resolve) => setTimeout(resolve, createDelay));
+  createdCount += 1;
+  return { data: { ...params.data, id: createdCount } };
+};
+
+const ImportHarness = ({ children }: { children?: ReactNode }) => (
   <StoryWrapper
-    dataProvider={{
-      create: async (_resource, params) => {
-        await new Promise((resolve) => setTimeout(resolve, createDelay));
-        createdCount += 1;
-        return { data: { ...params.data, id: createdCount } } as any;
-      },
-    }}
+    dataProvider={{ create: createContact as DataProvider["create"] }}
   >
-    <ContactImportButton />
-    <StartImportTrigger />
-    <NotifyTrigger />
+    {children ?? (
+      <>
+        <ContactImportButton />
+        <StartImportTrigger />
+        <NotifyTrigger />
+      </>
+    )}
   </StoryWrapper>
 );
+
+const finishRemainingBatchesFast = () => {
+  createDelay = 0;
+};
 
 const getToasterPositions = () =>
   Array.from(document.querySelectorAll("[data-sonner-toaster]")).map(
@@ -90,7 +124,7 @@ describe("contact import", () => {
       .element(screen.getByText(new RegExp(`/ ${ROW_COUNT} contacts`)))
       .toBeInTheDocument();
 
-    createDelay = 0;
+    finishRemainingBatchesFast();
 
     await expect
       .element(
@@ -116,7 +150,7 @@ describe("contact import", () => {
 
     expect(dispatchBeforeUnload().defaultPrevented).toBe(true);
 
-    createDelay = 0;
+    finishRemainingBatchesFast();
 
     await expect
       .element(screen.getByText(/Contacts import complete/))
@@ -148,7 +182,7 @@ describe("contact import", () => {
     expect(notificationStack?.position).toBe("bottom-center");
     expect(progressStack).not.toBe(notificationStack);
 
-    createDelay = 0;
+    finishRemainingBatchesFast();
     await expect
       .element(screen.getByText(/Contacts import complete/))
       .toBeInTheDocument();
@@ -179,7 +213,7 @@ describe("contact import", () => {
       .element(screen.getByText(/Importing contacts/))
       .toBeInTheDocument();
 
-    createDelay = 0;
+    finishRemainingBatchesFast();
 
     await expect
       .element(
@@ -189,5 +223,77 @@ describe("contact import", () => {
       )
       .toBeInTheDocument();
     expect(createdCount).toBe(ROW_COUNT);
+  });
+
+  it("keeps importing after the subtree holding the import button unmounts", async () => {
+    const screen = await render(
+      <ImportHarness>
+        <UnmountableImportControls />
+      </ImportHarness>,
+    );
+
+    await screen.getByRole("button", { name: "start import" }).click();
+    await expect
+      .element(screen.getByText(/Importing contacts/))
+      .toBeInTheDocument();
+
+    await screen.getByRole("button", { name: "unmount contact list" }).click();
+    await expect
+      .element(screen.getByText("contact list unmounted"))
+      .toBeVisible();
+    await expect
+      .element(screen.getByRole("button", { name: /import csv/i }))
+      .not.toBeInTheDocument();
+
+    await expect
+      .element(screen.getByText(/Importing contacts/))
+      .toBeInTheDocument();
+
+    finishRemainingBatchesFast();
+
+    await expect
+      .element(
+        screen.getByText(
+          `Contacts import complete. Imported ${ROW_COUNT} contacts, with 0 errors`,
+        ),
+      )
+      .toBeInTheDocument();
+    expect(createdCount).toBe(ROW_COUNT);
+  });
+
+  it("disables the dialog submit button until a file is selected", async () => {
+    const screen = await render(<ImportHarness />);
+
+    await screen.getByRole("button", { name: /import csv/i }).click();
+
+    await expect.element(screen.getByText(/Download CSV sample/)).toBeVisible();
+    await expect
+      .element(
+        screen
+          .getByRole("toolbar")
+          .getByRole("button", { name: /import csv/i }),
+      )
+      .toBeDisabled();
+  });
+
+  it("stops the import from the progress snackbar", async () => {
+    const screen = await render(<ImportHarness />);
+
+    await screen.getByRole("button", { name: "start import" }).click();
+    await expect
+      .element(screen.getByText(/Importing contacts/))
+      .toBeInTheDocument();
+
+    await screen.getByRole("button", { name: /stop import/i }).click();
+
+    await expect
+      .element(screen.getByText(/Importing contacts/))
+      .not.toBeInTheDocument();
+
+    const createdWhenStopped = createdCount;
+    await expect
+      .element(screen.getByText(/Contacts import complete/))
+      .not.toBeInTheDocument();
+    expect(createdWhenStopped).toBeLessThan(ROW_COUNT);
   });
 });

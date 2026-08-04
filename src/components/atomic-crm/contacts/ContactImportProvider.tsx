@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { ReactNode } from "react";
 import { useNotify, useRefresh } from "ra-core";
 
@@ -23,21 +23,26 @@ export const ContactImportProvider = ({
   });
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
+  const importerRef = useRef(importer);
+  importerRef.current = importer;
+
   useEffect(() => {
     if (importer.state === "complete") {
+      const finished = importerRef.current;
+      if (finished.state !== "complete") return;
       refresh();
       notify("resources.contacts.import.complete", {
         type: "success",
         messageArgs: {
-          importCount: importer.importCount,
-          errorCount: importer.errorCount,
+          importCount: finished.importCount,
+          errorCount: finished.errorCount,
         },
       });
     }
     if (importer.state === "error") {
       notify("resources.contacts.import.error", { type: "error" });
     }
-  }, [importer, notify, refresh]);
+  }, [importer.state, notify, refresh]);
 
   const isRunning =
     importer.state === "parsing" || importer.state === "running";

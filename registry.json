@@ -642,6 +642,10 @@
           "type": "registry:component"
         },
         {
+          "path": "src/components/atomic-crm/contacts/withContactImport.tsx",
+          "type": "registry:component"
+        },
+        {
           "path": "src/components/atomic-crm/contacts/useContactImport.tsx",
           "type": "registry:component"
         },
