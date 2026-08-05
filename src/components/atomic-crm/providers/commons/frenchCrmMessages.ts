@@ -215,6 +215,9 @@ export const frenchCrmMessages = {
       field_categories: {
         misc: "Divers",
       },
+      filters: {
+        only_mine: "Seulement les affaires que je gère",
+      },
       archived: {
         action: "Archiver",
         error: "Erreur : affaire non archivée",
@@ -396,6 +399,7 @@ export const frenchCrmMessages = {
       welcome_title: "Bienvenue sur Atomic CRM",
     },
     common: {
+      account_manager: "Responsable de compte",
       activity: "Activité",
       added: "ajoutée",
       details: "Détails",

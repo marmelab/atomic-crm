@@ -225,7 +225,8 @@ export const AutocompleteInput = (
                 variant="outline"
                 role="combobox"
                 aria-expanded={open}
-                aria-labelledby={uniqueId}
+                aria-label={props.label === false ? placeholder : undefined}
+                aria-labelledby={props.label === false ? undefined : uniqueId}
                 className="w-full justify-between h-auto py-1.75 font-normal"
               >
                 {selectedChoice ? (

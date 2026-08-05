@@ -7,7 +7,7 @@ import { Notification } from "@/components/admin/notification";
 import { createDataProvider } from "@/components/atomic-crm/providers/fakerest";
 import { DEFAULT_USER } from "@/components/atomic-crm/providers/fakerest/authProvider";
 import type { Db } from "@/components/atomic-crm/providers/fakerest/dataGenerator/types";
-import type { Contact, Sale } from "@/components/atomic-crm/types";
+import type { Company, Contact, Sale } from "@/components/atomic-crm/types";
 import { CRM } from "@/components/atomic-crm/root/CRM";
 import { testI18nProvider } from "@/components/atomic-crm/providers/commons/i18nProvider";
 
@@ -52,6 +52,33 @@ export const createCrmDb = (overrides: Partial<Db> = {}): Db =>
     ...overrides,
   }) as Db;
 
+export const buildSale = (overrides: Partial<Sale> = {}): Sale => ({
+  ...baseSale,
+  ...overrides,
+});
+
+export const buildCompany = (overrides: Partial<Company> = {}): Company => ({
+  address: "1 Infinite Loop",
+  city: "Cupertino",
+  country: "USA",
+  created_at: "2025-01-01T09:00:00.000Z",
+  description: "",
+  id: 1,
+  linkedin_url: "",
+  logo: { src: "", title: "logo" } as Company["logo"],
+  name: "Acme",
+  phone_number: "",
+  revenue: "",
+  sales_id: 0,
+  sector: "Tech",
+  size: 10,
+  state_abbr: "CA",
+  tax_identifier: "",
+  website: "",
+  zipcode: "95014",
+  ...overrides,
+});
+
 // Build a valid contact record with sensible defaults to keep tests and stories terse.
 export const buildContact = (overrides: Partial<Contact> = {}): Contact => ({
   background: "",
@@ -76,19 +103,25 @@ export const buildContact = (overrides: Partial<Contact> = {}): Contact => ({
 });
 
 export const StoryWrapper = ({
+  authProvider: authProviderOverrides,
   children,
   data,
   dataProvider: dataProviderOverrides,
   initialEntries,
   silent = import.meta.env.MODE === "test",
 }: {
+  authProvider?: Partial<AuthProvider>;
   children: ReactNode;
   data?: Partial<Db>;
   dataProvider?: Partial<ReturnType<typeof createDataProvider>>;
   initialEntries?: string[];
   silent?: boolean;
 }) => {
-  const authProvider = useMemo(() => createTestAuthProvider(), []);
+  const authProvider = useMemo(
+    () => ({ ...createTestAuthProvider(), ...authProviderOverrides }),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [],
+  );
   const dataProvider = useMemo(
     () => ({
       ...createDataProvider({ db: createCrmDb(cloneDeep(data)), silent }),
