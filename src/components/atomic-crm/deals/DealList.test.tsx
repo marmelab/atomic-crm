@@ -22,6 +22,23 @@ describe("DealList", () => {
       .not.toBeInTheDocument();
   });
 
+  it("returns to every deal after an admin clears the account manager", async () => {
+    const screen = await render(<AdminAccountManagerFilter />);
+
+    await expect.element(screen.getByText("Jane deal")).toBeVisible();
+    await expect.element(screen.getByText("Marie deal")).toBeVisible();
+
+    await screen.getByRole("combobox", { name: "Account manager" }).click();
+    await screen.getByRole("option", { name: "Marie Curie" }).click();
+
+    await expect.element(screen.getByText("Jane deal")).not.toBeInTheDocument();
+
+    await screen.getByRole("button", { name: "Clear value" }).click();
+
+    await expect.element(screen.getByText("Jane deal")).toBeVisible();
+    await expect.element(screen.getByText("Marie deal")).toBeVisible();
+  });
+
   it("keeps the only-mine switch for a user who is not an admin", async () => {
     const screen = await render(<NonAdminAccountManagerFilter />);
 

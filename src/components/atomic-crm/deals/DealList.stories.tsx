@@ -35,7 +35,10 @@ const buildDeal = (overrides: Partial<Deal> = {}): Deal => ({
 
 const dataForAccountManagerFilter = {
   companies: [buildCompany()],
-  deals: [buildDeal()],
+  deals: [
+    buildDeal({ id: 1, name: "Jane deal", sales_id: 0 }),
+    buildDeal({ id: 2, index: 1, name: "Marie deal", sales_id: 1 }),
+  ],
   sales: [
     buildSale({ administrator: true, first_name: "Jane", id: 0 }),
     buildSale({

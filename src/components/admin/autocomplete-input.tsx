@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import * as React from "react";
 import { useCallback } from "react";
-import { Check, ChevronsUpDown } from "lucide-react";
+import { Check, ChevronsUpDown, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import {
@@ -179,6 +179,15 @@ export const AutocompleteInput = (
     ],
   );
 
+  const handleReset = useEvent((event: React.MouseEvent<HTMLDivElement>) => {
+    event.stopPropagation();
+    field.onChange("");
+    setFilterValue("");
+    if (isFromReference) {
+      setFilters(filterToQuery(""));
+    }
+  });
+
   const {
     getCreateItem,
     handleChange: handleChangeWithCreateSupport,
@@ -234,7 +243,18 @@ export const AutocompleteInput = (
                 ) : (
                   <span className="text-muted-foreground">{placeholder}</span>
                 )}
-                <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                {selectedChoice && !isRequired ? (
+                  <div
+                    role="button"
+                    aria-label={translate("ra.action.clear_input_value")}
+                    className="ml-2 shrink-0 pointer-events-auto text-muted-foreground opacity-50 hover:opacity-100"
+                    onClick={handleReset}
+                  >
+                    <X className="h-4 w-4" />
+                  </div>
+                ) : (
+                  <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                )}
               </Button>
             </PopoverTrigger>
             <PopoverContent className="w-full max-w-(--radix-popover-trigger-width) p-0">

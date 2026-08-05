@@ -60,6 +60,11 @@ test.describe("admin filtering by account manager", () => {
 
     await expect(page.getByText("Grace Hopper")).toBeVisible();
     await expect(page.getByText("Ada Lovelace")).toBeHidden();
+
+    await page.getByRole("button", { name: "Clear value" }).click();
+
+    await expect(page.getByText("Ada Lovelace")).toBeVisible();
+    await expect(page.getByText("Grace Hopper")).toBeVisible();
   });
 
   test("a non-admin user gets no account manager picker", async ({
