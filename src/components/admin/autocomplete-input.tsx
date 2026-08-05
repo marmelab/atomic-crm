@@ -81,6 +81,7 @@ export const AutocompleteInput = (
     Partial<Pick<InputProps, "source">> &
     ChoicesProps & {
       className?: string;
+      clearable?: boolean;
       disableValue?: string;
       filterToQuery?: (searchText: string) => any;
       translateChoice?: boolean;
@@ -91,6 +92,7 @@ export const AutocompleteInput = (
     } & Pick<PopoverProps, "modal">,
 ) => {
   const {
+    clearable = false,
     filterToQuery = DefaultFilterToQuery,
     inputText,
     create,
@@ -114,6 +116,10 @@ export const AutocompleteInput = (
   const translate = useTranslate();
   const { placeholder = translate("ra.action.search", { _: "Search..." }) } =
     props;
+  const hasLabel = props.label !== false;
+  const accessibleName =
+    !hasLabel && props.placeholder ? placeholder : undefined;
+  const isClearable = clearable && !isRequired && !!field.value;
 
   const getRecordRepresentation = useGetRecordRepresentation(resource);
   const { getChoiceText, getChoiceValue } = useChoices({
@@ -179,13 +185,13 @@ export const AutocompleteInput = (
     ],
   );
 
-  const handleReset = useEvent((event: React.MouseEvent<HTMLDivElement>) => {
-    event.stopPropagation();
+  const handleReset = useEvent(() => {
     field.onChange("");
     setFilterValue("");
     if (isFromReference) {
       setFilters(filterToQuery(""));
     }
+    setOpen(false);
   });
 
   const {
@@ -229,34 +235,38 @@ export const AutocompleteInput = (
         )}
         <FormControl>
           <Popover open={open} onOpenChange={handleOpenChange} modal={modal}>
-            <PopoverTrigger asChild>
-              <Button
-                variant="outline"
-                role="combobox"
-                aria-expanded={open}
-                aria-label={props.label === false ? placeholder : undefined}
-                aria-labelledby={props.label === false ? undefined : uniqueId}
-                className="w-full justify-between h-auto py-1.75 font-normal"
-              >
-                {selectedChoice ? (
-                  getInputText(selectedChoice)
-                ) : (
-                  <span className="text-muted-foreground">{placeholder}</span>
-                )}
-                {selectedChoice && !isRequired ? (
-                  <div
-                    role="button"
-                    aria-label={translate("ra.action.clear_input_value")}
-                    className="ml-2 shrink-0 pointer-events-auto text-muted-foreground opacity-50 hover:opacity-100"
-                    onClick={handleReset}
-                  >
-                    <X className="h-4 w-4" />
-                  </div>
-                ) : (
+            <div className="relative">
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  role="combobox"
+                  aria-expanded={open}
+                  aria-label={accessibleName}
+                  aria-labelledby={hasLabel ? uniqueId : undefined}
+                  className={cn(
+                    "w-full justify-between h-auto py-1.75 font-normal",
+                    isClearable && "pr-9",
+                  )}
+                >
+                  {selectedChoice ? (
+                    getInputText(selectedChoice)
+                  ) : (
+                    <span className="text-muted-foreground">{placeholder}</span>
+                  )}
                   <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                )}
-              </Button>
-            </PopoverTrigger>
+                </Button>
+              </PopoverTrigger>
+              {isClearable && (
+                <button
+                  type="button"
+                  aria-label={translate("ra.action.clear_input_value")}
+                  className="absolute right-8 top-1/2 -translate-y-1/2 text-muted-foreground opacity-50 hover:opacity-100 focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50 rounded-sm"
+                  onClick={handleReset}
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              )}
+            </div>
             <PopoverContent className="w-full max-w-(--radix-popover-trigger-width) p-0">
               {/* We handle the filtering ourselves */}
               <Command shouldFilter={!isFromReference}>

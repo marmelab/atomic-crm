@@ -161,6 +161,28 @@ describe("ContactList", () => {
         .not.toBeInTheDocument();
     });
   });
+
+  describe("account manager filter on mobile", () => {
+    beforeAll(() => {
+      page.viewport(375, 667);
+    });
+
+    it("picks an account manager from inside the filter sheet", async () => {
+      const screen = await render(<AdminAccountManagerFilter />);
+
+      await expect.element(screen.getByText("Ada Lovelace")).toBeVisible();
+
+      await screen.getByRole("button", { name: "Add filter" }).click();
+      await screen.getByRole("combobox", { name: "Account manager" }).click();
+      await screen.getByRole("option", { name: "Marie Curie" }).click();
+      await screen.getByRole("button", { name: "Confirm" }).click();
+
+      await expect.element(screen.getByText("Grace Hopper")).toBeVisible();
+      await expect
+        .element(screen.getByText("Ada Lovelace"))
+        .not.toBeInTheDocument();
+    });
+  });
 });
 
 const getSelectionCheckboxes = (container: HTMLElement) =>

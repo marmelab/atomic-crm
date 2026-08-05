@@ -14,7 +14,8 @@ export const CompanyListFilter = () => {
   const { identity } = useGetIdentity();
   const { companySectors } = useConfigurationContext();
   const translate = useTranslate();
-  const canFilterByAccountManager = useCanFilterByAccountManager();
+  const { canFilter: canFilterByAccountManager } =
+    useCanFilterByAccountManager();
   const translatedSizes = sizes.map((size) => ({
     ...size,
     name: getTranslatedCompanySizeLabel(size, translate),

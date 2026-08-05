@@ -44,8 +44,6 @@ test.describe("admin filtering by account manager", () => {
     isMobile,
     menu,
   }) => {
-    test.skip(isMobile, "The filter sidebar is behind a sheet on mobile");
-
     await page.goto("/");
     await page.getByLabel("Email").fill("john@doe.com");
     await page.getByLabel("Password").fill("password");
@@ -55,13 +53,25 @@ test.describe("admin filtering by account manager", () => {
     await expect(page.getByText("Ada Lovelace")).toBeVisible();
     await expect(page.getByText("Grace Hopper")).toBeVisible();
 
+    if (isMobile) {
+      await page.getByRole("button", { name: "Add filter" }).click();
+    }
     await page.getByRole("combobox", { name: "Account manager" }).click();
     await page.getByRole("option", { name: "Marie Curie" }).click();
+    if (isMobile) {
+      await page.getByRole("button", { name: "Confirm" }).click();
+    }
 
     await expect(page.getByText("Grace Hopper")).toBeVisible();
     await expect(page.getByText("Ada Lovelace")).toBeHidden();
 
+    if (isMobile) {
+      await page.getByRole("button", { name: "Add filter" }).click();
+    }
     await page.getByRole("button", { name: "Clear value" }).click();
+    if (isMobile) {
+      await page.getByRole("button", { name: "Confirm" }).click();
+    }
 
     await expect(page.getByText("Ada Lovelace")).toBeVisible();
     await expect(page.getByText("Grace Hopper")).toBeVisible();
@@ -72,8 +82,6 @@ test.describe("admin filtering by account manager", () => {
     isMobile,
     menu,
   }) => {
-    test.skip(isMobile, "The filter sidebar is behind a sheet on mobile");
-
     await page.goto("/");
     await page.getByLabel("Email").fill("marie@curie.com");
     await page.getByLabel("Password").fill("password");
@@ -82,6 +90,9 @@ test.describe("admin filtering by account manager", () => {
     await menu.goToContacts();
     await expect(page.getByText("Grace Hopper")).toBeVisible();
 
+    if (isMobile) {
+      await page.getByRole("button", { name: "Add filter" }).click();
+    }
     await expect(
       page.getByRole("combobox", { name: "Account manager" }),
     ).toBeHidden();

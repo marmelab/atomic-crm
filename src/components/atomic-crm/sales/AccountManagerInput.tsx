@@ -2,20 +2,24 @@ import type { FormHTMLAttributes } from "react";
 import { FilterLiveForm, useTranslate } from "ra-core";
 import { AutocompleteInput } from "@/components/admin/autocomplete-input";
 import { ReferenceInput } from "@/components/admin/reference-input";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 import type { Sale } from "../types";
 
 const saleOptionRenderer = (choice: Sale) =>
   `${choice.first_name} ${choice.last_name}`;
 
-export const AccountManagerInput = (_props: {
+export const AccountManagerInput = ({
+  source = "sales_id",
+}: {
   source?: string;
   alwaysOn?: boolean;
 }) => {
   const translate = useTranslate();
+  const isMobile = useIsMobile();
   return (
     <ReferenceInput
-      source="sales_id"
+      source={source}
       reference="sales"
       filter={{ "disabled@neq": true }}
       sort={{ field: "last_name", order: "ASC" }}
@@ -23,6 +27,8 @@ export const AccountManagerInput = (_props: {
       <AutocompleteInput
         label={false}
         helperText={false}
+        clearable
+        modal={isMobile}
         optionText={saleOptionRenderer}
         placeholder={translate("crm.common.account_manager")}
       />

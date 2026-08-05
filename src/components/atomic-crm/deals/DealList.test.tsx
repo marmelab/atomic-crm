@@ -1,5 +1,5 @@
 import { render } from "vitest-browser-react";
-import { page } from "vitest/browser";
+import { page, userEvent } from "vitest/browser";
 
 import {
   AdminAccountManagerFilter,
@@ -33,7 +33,9 @@ describe("DealList", () => {
 
     await expect.element(screen.getByText("Jane deal")).not.toBeInTheDocument();
 
-    await screen.getByRole("button", { name: "Clear value" }).click();
+    const clearButton = screen.getByRole("button", { name: "Clear value" });
+    await clearButton.element().focus();
+    await userEvent.keyboard("{Enter}");
 
     await expect.element(screen.getByText("Jane deal")).toBeVisible();
     await expect.element(screen.getByText("Marie deal")).toBeVisible();

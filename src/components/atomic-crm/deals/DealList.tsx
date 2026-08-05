@@ -27,7 +27,7 @@ const DealList = () => {
   const { identity } = useGetIdentity();
   const { dealCategories } = useConfigurationContext();
   const translate = useTranslate();
-  const canFilterByAccountManager = useCanFilterByAccountManager();
+  const { canFilter, isPending } = useCanFilterByAccountManager();
 
   if (!identity) return null;
 
@@ -49,11 +49,15 @@ const DealList = () => {
         optionValue="value"
       />
     </WrapperField>,
-    canFilterByAccountManager ? (
-      <AccountManagerInput source="sales_id" alwaysOn />
-    ) : (
-      <OnlyMineInput source="sales_id" alwaysOn />
-    ),
+    ...(isPending
+      ? []
+      : [
+          canFilter ? (
+            <AccountManagerInput source="sales_id" alwaysOn />
+          ) : (
+            <OnlyMineInput source="sales_id" alwaysOn />
+          ),
+        ]),
   ];
 
   return (

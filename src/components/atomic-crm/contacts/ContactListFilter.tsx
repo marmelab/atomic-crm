@@ -23,7 +23,8 @@ export const ContactListFilter = () => {
   const isMobile = useIsMobile();
   const { identity } = useGetIdentity();
   const translate = useTranslate();
-  const canFilterByAccountManager = useCanFilterByAccountManager();
+  const { canFilter: canFilterByAccountManager } =
+    useCanFilterByAccountManager();
   const { data } = useGetList("tags", {
     pagination: { page: 1, perPage: 10 },
     sort: { field: "name", order: "ASC" },
