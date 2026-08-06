@@ -11,22 +11,14 @@ describe("DealList", () => {
     page.viewport(1600, 900);
   });
 
-  it("replaces the only-mine switch with an account manager picker for an admin", async () => {
-    const screen = await render(<AdminAccountManagerFilter />);
-
-    await expect
-      .element(screen.getByRole("combobox", { name: "Account manager" }))
-      .toBeVisible();
-    await expect
-      .element(screen.getByText("Only deals I manage"))
-      .not.toBeInTheDocument();
-  });
-
-  it("returns to every deal after an admin clears the account manager", async () => {
+  it("lets an admin filter the board by account manager instead of only-mine", async () => {
     const screen = await render(<AdminAccountManagerFilter />);
 
     await expect.element(screen.getByText("Jane deal")).toBeVisible();
     await expect.element(screen.getByText("Marie deal")).toBeVisible();
+    await expect
+      .element(screen.getByText("Only deals I manage"))
+      .not.toBeInTheDocument();
 
     await screen.getByRole("combobox", { name: "Account manager" }).click();
     await screen.getByRole("option", { name: "Marie Curie" }).click();
