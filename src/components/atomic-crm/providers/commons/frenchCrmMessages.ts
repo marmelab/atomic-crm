@@ -60,9 +60,6 @@ export const frenchCrmMessages = {
         create_item: "Créer %{item}",
         create_label: "Commencez à taper pour créer une nouvelle entreprise",
       },
-      filters: {
-        only_mine: "Seulement les entreprises que je gère",
-      },
     },
     contacts: {
       name: "Contact |||| Contacts",
