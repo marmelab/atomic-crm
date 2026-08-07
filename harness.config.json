@@ -24,6 +24,12 @@
         "command": "npm run typecheck"
       },
       {
+        "id": "typecheck-e2e",
+        "kind": "typecheck",
+        "command": "npx tsc --noEmit --project tsconfig.e2e.json",
+        "condition": { "pathExists": "e2e" }
+      },
+      {
         "id": "lint",
         "kind": "lint",
         "command": "npx eslint",
