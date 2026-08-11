@@ -111,10 +111,12 @@ export const getOrCreateContactFromEmailInfo = async ({
 };
 
 export const findActiveSaleByEmail = async (salesEmail: string) => {
+  const normalizedEmail = salesEmail.trim().toLowerCase();
+
   const byPrimaryEmail = await supabaseAdmin
     .from("sales")
     .select("*")
-    .eq("email", salesEmail)
+    .eq("email", normalizedEmail)
     .neq("disabled", true)
     .maybeSingle();
 
@@ -125,7 +127,7 @@ export const findActiveSaleByEmail = async (salesEmail: string) => {
   return await supabaseAdmin
     .from("sales")
     .select("*")
-    .contains("secondary_emails", JSON.stringify([salesEmail]))
+    .contains("secondary_emails", JSON.stringify([normalizedEmail]))
     .neq("disabled", true)
     .maybeSingle();
 };

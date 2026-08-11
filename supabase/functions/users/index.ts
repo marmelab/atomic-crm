@@ -4,7 +4,11 @@ import { corsHeaders, OptionsMiddleware } from "../_shared/cors.ts";
 import { createErrorResponse } from "../_shared/utils.ts";
 import { AuthMiddleware, UserMiddleware } from "../_shared/authentication.ts";
 import { getUserSale } from "../_shared/getUserSale.ts";
-import { normalizeSecondaryEmails } from "./normalizeSecondaryEmails.ts";
+import {
+  findInvalidEmail,
+  findTakenEmail,
+  normalizeSecondaryEmails,
+} from "./secondaryEmails.ts";
 
 async function updateSaleDisabled(user_id: string, disabled: boolean) {
   return await supabaseAdmin
@@ -53,13 +57,34 @@ async function createSale(
   return sales.at(0);
 }
 
+async function findSecondaryEmailUsedByAnotherSale(
+  sales_id: number,
+  secondary_emails: string[],
+) {
+  if (!secondary_emails.length) {
+    return undefined;
+  }
+
+  const { data: otherSales, error: salesError } = await supabaseAdmin
+    .from("sales")
+    .select("email, secondary_emails")
+    .neq("id", sales_id);
+
+  if (salesError) {
+    console.error("Error fetching sales:", salesError);
+    throw salesError;
+  }
+
+  return findTakenEmail(otherSales ?? [], secondary_emails);
+}
+
 async function updateSaleSecondaryEmails(
   user_id: string,
-  secondary_emails: unknown,
+  secondary_emails: string[],
 ) {
   const { error: salesError } = await supabaseAdmin
     .from("sales")
-    .update({ secondary_emails: normalizeSecondaryEmails(secondary_emails) })
+    .update({ secondary_emails })
     .eq("user_id", user_id);
 
   if (salesError) {
@@ -220,6 +245,30 @@ async function patchUser(req: Request, currentUserSale: any) {
     return createErrorResponse(401, "Not Authorized");
   }
 
+  let normalizedSecondaryEmails: string[] | undefined;
+  if (secondary_emails !== undefined) {
+    normalizedSecondaryEmails = normalizeSecondaryEmails(secondary_emails);
+
+    const invalidEmail = findInvalidEmail(normalizedSecondaryEmails);
+    if (invalidEmail) {
+      return createErrorResponse(
+        400,
+        `Invalid secondary email: ${invalidEmail}`,
+      );
+    }
+
+    const takenEmail = await findSecondaryEmailUsedByAnotherSale(
+      sales_id,
+      normalizedSecondaryEmails,
+    );
+    if (takenEmail) {
+      return createErrorResponse(
+        409,
+        `Secondary email already used by another user: ${takenEmail}`,
+      );
+    }
+  }
+
   const { data, error: userError } =
     await supabaseAdmin.auth.admin.updateUserById(sale.user_id, {
       email,
@@ -236,8 +285,8 @@ async function patchUser(req: Request, currentUserSale: any) {
     await updateSaleAvatar(data.user.id, avatar);
   }
 
-  if (secondary_emails !== undefined) {
-    await updateSaleSecondaryEmails(data.user.id, secondary_emails);
+  if (normalizedSecondaryEmails) {
+    await updateSaleSecondaryEmails(data.user.id, normalizedSecondaryEmails);
   }
 
   // Only administrators can update the administrator and disabled status

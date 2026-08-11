@@ -379,6 +379,38 @@ describe("addNoteToContact", () => {
       );
     });
 
+    it("lowercases the sender, since the jsonb lookup is case sensitive unlike the citext column", async () => {
+      const salesRecord = {
+        id: 1,
+        email: "sales@company.com",
+        secondary_emails: ["perso@gmail.com"],
+      };
+      const eq = vi.fn().mockReturnValue({
+        neq: () => ({
+          maybeSingle: () => Promise.resolve({ data: null, error: null }),
+        }),
+      });
+      const contains = vi.fn().mockReturnValue({
+        neq: () => ({
+          maybeSingle: () =>
+            Promise.resolve({ data: salesRecord, error: null }),
+        }),
+      });
+
+      mockFrom
+        .mockReturnValueOnce({ select: () => ({ eq }) })
+        .mockReturnValueOnce({ select: () => ({ contains }) });
+
+      const result = await findActiveSaleByEmail("  Perso@Gmail.COM  ");
+
+      expect(eq).toHaveBeenCalledWith("email", "perso@gmail.com");
+      expect(contains).toHaveBeenCalledWith(
+        "secondary_emails",
+        '["perso@gmail.com"]',
+      );
+      expect(result.data).toEqual(salesRecord);
+    });
+
     it("does not look up the secondary emails when the first query fails", async () => {
       mockFrom.mockReturnValueOnce({
         select: () => ({

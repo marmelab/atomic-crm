@@ -167,8 +167,17 @@ const getDataProviderWithCustomMethods = () => {
         });
 
       if (!updatedData || error) {
-        console.error("salesCreate.error", error);
-        throw new Error("Failed to update account manager");
+        console.error("salesUpdate.error", error);
+        const errorDetails = await (async () => {
+          try {
+            return (await error?.context?.json()) ?? {};
+          } catch {
+            return {};
+          }
+        })();
+        throw new Error(
+          errorDetails?.message || "Failed to update account manager",
+        );
       }
 
       return updatedData.data;
