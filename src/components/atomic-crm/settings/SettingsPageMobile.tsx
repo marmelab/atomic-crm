@@ -33,7 +33,7 @@ import {
   useNotify,
   useTranslate,
 } from "ra-core";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { Fragment, useCallback, useEffect, useRef, useState } from "react";
 import {
   Tooltip,
   TooltipContent,
@@ -150,10 +150,10 @@ const ProfileSection = () => {
   const queryClient = useQueryClient();
 
   const saveField = useCallback(
-    async (field: string, value: string) => {
+    async (field: string, value: string | string[]) => {
       if (!identity || !data) return;
       const current = data[field as keyof typeof data];
-      if (value === current) return;
+      if (JSON.stringify(value) === JSON.stringify(current)) return;
 
       const queryKey = [
         "sales",
@@ -257,9 +257,59 @@ const ProfileSection = () => {
           label={translate("resources.sales.fields.email")}
           value={data.email ?? ""}
           onSave={(v) => saveField("email", v)}
+          type="email"
+        />
+
+        <SecondaryEmailRows
+          emails={data.secondary_emails ?? []}
+          onSave={(emails) => saveField("secondary_emails", emails)}
         />
       </ItemGroup>
+      <p className="text-xs text-muted-foreground px-1 mt-1.5">
+        {translate("crm.profile.secondary_emails_help")}
+      </p>
     </div>
+  );
+};
+
+const SecondaryEmailRows = ({
+  emails,
+  onSave,
+}: {
+  emails: string[];
+  onSave: (emails: string[]) => void;
+}) => {
+  const translate = useTranslate();
+  const label = translate("resources.sales.fields.secondary_email");
+
+  return (
+    <>
+      {emails.map((email, index) => (
+        <Fragment key={index}>
+          <ItemSeparator />
+          <InlineEditRow
+            label={`${label} ${index + 1}`}
+            value={email}
+            type="email"
+            onSave={(value) =>
+              onSave(
+                value
+                  ? emails.map((current, i) => (i === index ? value : current))
+                  : emails.filter((_, i) => i !== index),
+              )
+            }
+          />
+        </Fragment>
+      ))}
+      <ItemSeparator />
+      <InlineEditRow
+        key={`add-${emails.length}`}
+        label={translate("crm.profile.add_secondary_email")}
+        value=""
+        type="email"
+        onSave={(value) => onSave([...emails, value])}
+      />
+    </>
   );
 };
 
@@ -267,10 +317,12 @@ const InlineEditRow = ({
   label,
   value,
   onSave,
+  type = "text",
 }: {
   label: string;
   value: string;
   onSave: (value: string) => void;
+  type?: string;
 }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [editValue, setEditValue] = useState(value);
@@ -324,6 +376,7 @@ const InlineEditRow = ({
         <ItemActions>
           <input
             ref={inputRef}
+            type={type}
             value={editValue}
             onChange={(e) => setEditValue(e.target.value)}
             onBlur={handleSave}

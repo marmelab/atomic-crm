@@ -52,9 +52,16 @@ Deno.serve(async (req) => {
     );
   }
 
-  const allSales = await supabaseAdmin.from("sales").select("email");
+  const allSales = await supabaseAdmin
+    .from("sales")
+    .select("email, secondary_emails");
   const salesEmails =
-    allSales.data?.map((s: { email: string }) => s.email) ?? [];
+    allSales.data
+      ?.flatMap((s: { email: string; secondary_emails: string[] | null }) => [
+        s.email,
+        ...(s.secondary_emails ?? []),
+      ])
+      .map((email: string) => email.toLowerCase()) ?? [];
 
   const firstToEmail = (ToFull[0]?.Email || "").toLowerCase();
 

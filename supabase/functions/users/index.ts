@@ -4,6 +4,7 @@ import { corsHeaders, OptionsMiddleware } from "../_shared/cors.ts";
 import { createErrorResponse } from "../_shared/utils.ts";
 import { AuthMiddleware, UserMiddleware } from "../_shared/authentication.ts";
 import { getUserSale } from "../_shared/getUserSale.ts";
+import { normalizeSecondaryEmails } from "./normalizeSecondaryEmails.ts";
 
 async function updateSaleDisabled(user_id: string, disabled: boolean) {
   return await supabaseAdmin
@@ -50,6 +51,21 @@ async function createSale(
     throw salesError ?? new Error("Failed to create sale");
   }
   return sales.at(0);
+}
+
+async function updateSaleSecondaryEmails(
+  user_id: string,
+  secondary_emails: unknown,
+) {
+  const { error: salesError } = await supabaseAdmin
+    .from("sales")
+    .update({ secondary_emails: normalizeSecondaryEmails(secondary_emails) })
+    .eq("user_id", user_id);
+
+  if (salesError) {
+    console.error("Error updating user:", salesError);
+    throw salesError;
+  }
 }
 
 async function updateSaleAvatar(user_id: string, avatar: string) {
@@ -182,6 +198,7 @@ async function patchUser(req: Request, currentUserSale: any) {
   const {
     sales_id,
     email,
+    secondary_emails,
     first_name,
     last_name,
     avatar,
@@ -217,6 +234,10 @@ async function patchUser(req: Request, currentUserSale: any) {
 
   if (avatar) {
     await updateSaleAvatar(data.user.id, avatar);
+  }
+
+  if (secondary_emails !== undefined) {
+    await updateSaleSecondaryEmails(data.user.id, secondary_emails);
   }
 
   // Only administrators can update the administrator and disabled status

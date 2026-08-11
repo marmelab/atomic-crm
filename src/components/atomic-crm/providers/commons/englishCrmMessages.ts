@@ -289,6 +289,8 @@ export const englishCrmMessages = {
         first_name: "First name",
         last_name: "Last name",
         email: "Email",
+        secondary_email: "Secondary email",
+        secondary_emails: "Secondary emails",
         administrator: "Admin",
         disabled: "Disabled",
       },
@@ -528,6 +530,10 @@ export const englishCrmMessages = {
       label: "CRM navigation",
     },
     profile: {
+      add_secondary_email: "Add an email",
+      no_secondary_emails: "None",
+      secondary_emails_help:
+        "Other addresses you send emails from. Leave one empty to remove it.",
       inbound: {
         description:
           "You can start sending emails to your server's inbound email address, e.g. by adding it to the %{field} field. Atomic CRM will process the emails and add notes to the corresponding contacts.",

@@ -110,6 +110,26 @@ export const getOrCreateContactFromEmailInfo = async ({
   return newContacts[0];
 };
 
+export const findActiveSaleByEmail = async (salesEmail: string) => {
+  const byPrimaryEmail = await supabaseAdmin
+    .from("sales")
+    .select("*")
+    .eq("email", salesEmail)
+    .neq("disabled", true)
+    .maybeSingle();
+
+  if (byPrimaryEmail.error || byPrimaryEmail.data) {
+    return byPrimaryEmail;
+  }
+
+  return await supabaseAdmin
+    .from("sales")
+    .select("*")
+    .contains("secondary_emails", JSON.stringify([salesEmail]))
+    .neq("disabled", true)
+    .maybeSingle();
+};
+
 export const addNoteToContact = async ({
   salesEmail,
   email,
@@ -131,12 +151,8 @@ export const addNoteToContact = async ({
   companyName: string;
   website: string;
 }) => {
-  const { data: sales, error: fetchSalesError } = await supabaseAdmin
-    .from("sales")
-    .select("*")
-    .eq("email", salesEmail)
-    .neq("disabled", true)
-    .maybeSingle();
+  const { data: sales, error: fetchSalesError } =
+    await findActiveSaleByEmail(salesEmail);
 
   if (fetchSalesError) {
     return new Response(

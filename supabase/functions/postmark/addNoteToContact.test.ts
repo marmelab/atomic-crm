@@ -2,6 +2,7 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import {
   addNoteToContact,
+  findActiveSaleByEmail,
   getOrCreateCompanyFromDomain,
   getOrCreateContactFromEmailInfo,
 } from "./addNoteToContact";
@@ -324,6 +325,79 @@ describe("addNoteToContact", () => {
     });
   });
 
+  describe("findActiveSaleByEmail", () => {
+    it("returns the active sale whose primary email matches the sender", async () => {
+      const salesRecord = { id: 1, email: "sales@company.com" };
+      mockFrom.mockReturnValueOnce({
+        select: () => ({
+          eq: () => ({
+            neq: () => ({
+              maybeSingle: () =>
+                Promise.resolve({ data: salesRecord, error: null }),
+            }),
+          }),
+        }),
+      });
+
+      const result = await findActiveSaleByEmail("sales@company.com");
+
+      expect(result.data).toEqual(salesRecord);
+      expect(mockFrom).toHaveBeenCalledTimes(1);
+    });
+
+    it("looks up the secondary emails when no primary email matches", async () => {
+      const salesRecord = {
+        id: 1,
+        email: "sales@company.com",
+        secondary_emails: ["perso@gmail.com"],
+      };
+      const contains = vi.fn().mockReturnValue({
+        neq: () => ({
+          maybeSingle: () =>
+            Promise.resolve({ data: salesRecord, error: null }),
+        }),
+      });
+
+      mockFrom
+        .mockReturnValueOnce({
+          select: () => ({
+            eq: () => ({
+              neq: () => ({
+                maybeSingle: () => Promise.resolve({ data: null, error: null }),
+              }),
+            }),
+          }),
+        })
+        .mockReturnValueOnce({ select: () => ({ contains }) });
+
+      const result = await findActiveSaleByEmail("perso@gmail.com");
+
+      expect(result.data).toEqual(salesRecord);
+      expect(contains).toHaveBeenCalledWith(
+        "secondary_emails",
+        '["perso@gmail.com"]',
+      );
+    });
+
+    it("does not look up the secondary emails when the first query fails", async () => {
+      mockFrom.mockReturnValueOnce({
+        select: () => ({
+          eq: () => ({
+            neq: () => ({
+              maybeSingle: () =>
+                Promise.resolve({ data: null, error: { message: "DB error" } }),
+            }),
+          }),
+        }),
+      });
+
+      const result = await findActiveSaleByEmail("sales@company.com");
+
+      expect(result.error).toEqual({ message: "DB error" });
+      expect(mockFrom).toHaveBeenCalledTimes(1);
+    });
+  });
+
   describe("addNoteToContact", () => {
     const baseParams = {
       salesEmail: "sales@company.com",
@@ -383,6 +457,72 @@ describe("addNoteToContact", () => {
       expect(mockFrom).toHaveBeenCalledTimes(4);
       expect(mockFrom).toHaveBeenNthCalledWith(3, "contact_notes");
       expect(mockFrom).toHaveBeenNthCalledWith(4, "contacts");
+    });
+
+    it("attaches the note to the sale when the sender only matches a secondary email", async () => {
+      const salesRecord = {
+        id: 7,
+        email: "sales@company.com",
+        secondary_emails: ["perso@gmail.com"],
+      };
+      const existingContact = {
+        id: 10,
+        first_name: "Alice",
+        last_name: "Smith",
+      };
+      const insertNote = vi.fn().mockResolvedValue({ error: null });
+
+      mockFrom
+        .mockReturnValueOnce({
+          // 1st call: fetch sales by primary email → not found
+          select: () => ({
+            eq: () => ({
+              neq: () => ({
+                maybeSingle: () => Promise.resolve({ data: null, error: null }),
+              }),
+            }),
+          }),
+        })
+        .mockReturnValueOnce({
+          // 2nd call: fetch sales by secondary emails → found
+          select: () => ({
+            contains: () => ({
+              neq: () => ({
+                maybeSingle: () =>
+                  Promise.resolve({ data: salesRecord, error: null }),
+              }),
+            }),
+          }),
+        })
+        .mockReturnValueOnce({
+          // 3rd call: fetch contact → found
+          select: () => ({
+            contains: () => ({
+              maybeSingle: () =>
+                Promise.resolve({ data: existingContact, error: null }),
+            }),
+          }),
+        })
+        .mockReturnValueOnce({
+          // 4th call: insert note into contact_notes → success
+          insert: insertNote,
+        })
+        .mockReturnValueOnce({
+          // 5th call: update contacts.last_seen
+          update: () => ({
+            eq: () => Promise.resolve({ error: null }),
+          }),
+        });
+
+      const result = await addNoteToContact({
+        ...baseParams,
+        salesEmail: "perso@gmail.com",
+      });
+
+      expect(result).toBeUndefined();
+      expect(insertNote).toHaveBeenCalledWith(
+        expect.objectContaining({ sales_id: 7, contact_id: 10 }),
+      );
     });
 
     it("returns 500 when inserting the note into contact_notes fails", async () => {
