@@ -124,12 +124,18 @@ export const findActiveSaleByEmail = async (salesEmail: string) => {
     return byPrimaryEmail;
   }
 
-  return await supabaseAdmin
+  const bySecondaryEmail = await supabaseAdmin
     .from("sales")
     .select("*")
     .contains("secondary_emails", JSON.stringify([normalizedEmail]))
     .neq("disabled", true)
-    .maybeSingle();
+    .order("id", { ascending: true })
+    .limit(1);
+
+  return {
+    data: bySecondaryEmail.data?.[0] ?? null,
+    error: bySecondaryEmail.error,
+  };
 };
 
 export const addNoteToContact = async ({

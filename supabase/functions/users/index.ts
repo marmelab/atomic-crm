@@ -57,25 +57,26 @@ async function createSale(
   return sales.at(0);
 }
 
-async function findSecondaryEmailUsedByAnotherSale(
-  sales_id: number,
-  secondary_emails: string[],
+async function findEmailUsedByAnotherSale(
+  emails: string[],
+  excludeSalesId?: number,
 ) {
-  if (!secondary_emails.length) {
+  if (!emails.length) {
     return undefined;
   }
 
-  const { data: otherSales, error: salesError } = await supabaseAdmin
-    .from("sales")
-    .select("email, secondary_emails")
-    .neq("id", sales_id);
+  const query = supabaseAdmin.from("sales").select("email, secondary_emails");
+  const { data: otherSales, error: salesError } =
+    excludeSalesId === undefined
+      ? await query
+      : await query.neq("id", excludeSalesId);
 
   if (salesError) {
     console.error("Error fetching sales:", salesError);
     throw salesError;
   }
 
-  return findTakenEmail(otherSales ?? [], secondary_emails);
+  return findTakenEmail(otherSales ?? [], emails);
 }
 
 async function updateSaleSecondaryEmails(
@@ -113,6 +114,17 @@ async function inviteUser(req: Request, currentUserSale: any) {
 
   if (!currentUserSale.administrator) {
     return createErrorResponse(401, "Not Authorized");
+  }
+
+  const takenEmail = await findEmailUsedByAnotherSale(
+    email ? [email.trim().toLowerCase()] : [],
+  );
+  if (takenEmail) {
+    return createErrorResponse(
+      409,
+      `Email already used by another user: ${takenEmail}`,
+      { code: "email_taken", email: takenEmail },
+    );
   }
 
   const { data, error: userError } = await supabaseAdmin.auth.admin.createUser({
@@ -245,26 +257,47 @@ async function patchUser(req: Request, currentUserSale: any) {
     return createErrorResponse(401, "Not Authorized");
   }
 
+  if (email && email.trim().toLowerCase() !== sale.email.toLowerCase()) {
+    const takenEmail = await findEmailUsedByAnotherSale(
+      [email.trim().toLowerCase()],
+      sales_id,
+    );
+    if (takenEmail) {
+      return createErrorResponse(
+        409,
+        `Email already used by another user: ${takenEmail}`,
+        { code: "email_taken", email: takenEmail },
+      );
+    }
+  }
+
   let normalizedSecondaryEmails: string[] | undefined;
   if (secondary_emails !== undefined) {
     normalizedSecondaryEmails = normalizeSecondaryEmails(secondary_emails);
+    if (!normalizedSecondaryEmails) {
+      return createErrorResponse(400, "secondary_emails must be an array", {
+        code: "invalid_secondary_emails_payload",
+      });
+    }
 
     const invalidEmail = findInvalidEmail(normalizedSecondaryEmails);
     if (invalidEmail) {
       return createErrorResponse(
         400,
         `Invalid secondary email: ${invalidEmail}`,
+        { code: "invalid_secondary_email", email: invalidEmail },
       );
     }
 
-    const takenEmail = await findSecondaryEmailUsedByAnotherSale(
-      sales_id,
+    const takenEmail = await findEmailUsedByAnotherSale(
       normalizedSecondaryEmails,
+      sales_id,
     );
     if (takenEmail) {
       return createErrorResponse(
         409,
         `Secondary email already used by another user: ${takenEmail}`,
+        { code: "secondary_email_taken", email: takenEmail },
       );
     }
   }
@@ -281,12 +314,17 @@ async function patchUser(req: Request, currentUserSale: any) {
     return createErrorResponse(500, "Internal Server Error");
   }
 
-  if (avatar) {
-    await updateSaleAvatar(data.user.id, avatar);
-  }
+  try {
+    if (avatar) {
+      await updateSaleAvatar(data.user.id, avatar);
+    }
 
-  if (normalizedSecondaryEmails) {
-    await updateSaleSecondaryEmails(data.user.id, normalizedSecondaryEmails);
+    if (normalizedSecondaryEmails) {
+      await updateSaleSecondaryEmails(data.user.id, normalizedSecondaryEmails);
+    }
+  } catch (e) {
+    console.error("Error patching sale:", e);
+    return createErrorResponse(500, "Internal Server Error");
   }
 
   // Only administrators can update the administrator and disabled status

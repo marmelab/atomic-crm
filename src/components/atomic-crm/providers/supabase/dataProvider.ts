@@ -175,8 +175,11 @@ const getDataProviderWithCustomMethods = () => {
             return {};
           }
         })();
-        throw new Error(
-          errorDetails?.message || "Failed to update account manager",
+        throw Object.assign(
+          new Error(
+            errorDetails?.message || "Failed to update account manager",
+          ),
+          { code: errorDetails?.code, email: errorDetails?.email },
         );
       }
 

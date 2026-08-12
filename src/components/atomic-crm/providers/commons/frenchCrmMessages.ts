@@ -538,7 +538,11 @@ export const frenchCrmMessages = {
     },
     profile: {
       add_secondary_email: "Ajouter un e-mail",
+      email_taken: "%{email} est déjà utilisée par un autre utilisateur",
       no_secondary_emails: "Aucun",
+      secondary_email_invalid: "%{email} n'est pas une adresse e-mail valide",
+      secondary_email_taken:
+        "%{email} est déjà utilisée par un autre utilisateur",
       secondary_emails_help:
         "Autres adresses depuis lesquelles vous envoyez des e-mails. Laissez-en une vide pour la supprimer.",
       inbound: {

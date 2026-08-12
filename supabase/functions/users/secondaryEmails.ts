@@ -2,9 +2,9 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export const normalizeSecondaryEmails = (
   secondaryEmails: unknown,
-): string[] => {
+): string[] | undefined => {
   if (!Array.isArray(secondaryEmails)) {
-    return [];
+    return undefined;
   }
   return [
     ...new Set(

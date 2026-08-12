@@ -7,10 +7,15 @@ import {
 } from "./secondaryEmails";
 
 describe("normalizeSecondaryEmails", () => {
-  it("returns an empty array when the value is not an array", () => {
-    expect(normalizeSecondaryEmails(undefined)).toEqual([]);
-    expect(normalizeSecondaryEmails(null)).toEqual([]);
-    expect(normalizeSecondaryEmails("john@perso.com")).toEqual([]);
+  it("returns undefined for a non-array, so the caller rejects instead of wiping", () => {
+    expect(normalizeSecondaryEmails(undefined)).toBe(undefined);
+    expect(normalizeSecondaryEmails(null)).toBe(undefined);
+    expect(normalizeSecondaryEmails("john@perso.com")).toBe(undefined);
+    expect(normalizeSecondaryEmails({ 0: "john@perso.com" })).toBe(undefined);
+  });
+
+  it("returns an empty array for an empty array, which clears the addresses", () => {
+    expect(normalizeSecondaryEmails([])).toEqual([]);
   });
 
   it("trims and lowercases every address", () => {

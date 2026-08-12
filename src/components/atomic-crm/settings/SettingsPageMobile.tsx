@@ -21,6 +21,7 @@ import {
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { Check, Copy, LogOut, Moon, Smartphone, Sun } from "lucide-react";
 import {
+  email,
   Form,
   Translate,
   useAuthProvider,
@@ -46,6 +47,7 @@ import MobileHeader from "../layout/MobileHeader";
 import { ChangelogPage } from "../misc/ChangelogPage";
 import ImageEditorField from "../misc/ImageEditorField";
 import type { CrmDataProvider } from "../providers/types";
+import { getSalesUpdateNotification } from "../sales/salesUpdateError";
 import type { SalesFormData } from "../types";
 
 const ChangePasswordButton = () => {
@@ -175,11 +177,12 @@ const ProfileSection = () => {
         notify("crm.profile.updated", {
           messageArgs: { _: "Your profile has been updated" },
         });
-      } catch {
+      } catch (error) {
         queryClient.setQueryData(queryKey, previousData);
-        notify("crm.profile.update_error", {
+        const { message, args } = getSalesUpdateNotification(error);
+        notify(message, {
           type: "error",
-          messageArgs: { _: "An error occurred. Please try again" },
+          messageArgs: { ...args, _: "An error occurred. Please try again" },
         });
       }
     },
@@ -272,6 +275,8 @@ const ProfileSection = () => {
   );
 };
 
+const validateEmail = email();
+
 const SecondaryEmailRows = ({
   emails,
   onSave,
@@ -280,7 +285,22 @@ const SecondaryEmailRows = ({
   onSave: (emails: string[]) => void;
 }) => {
   const translate = useTranslate();
+  const notify = useNotify();
   const label = translate("resources.sales.fields.secondary_email");
+
+  const saveValidated = useCallback(
+    (value: string, nextEmails: string[]) => {
+      if (value && validateEmail(value, {})) {
+        notify("crm.profile.secondary_email_invalid", {
+          type: "error",
+          messageArgs: { email: value },
+        });
+        return;
+      }
+      onSave(nextEmails);
+    },
+    [notify, onSave],
+  );
 
   return (
     <>
@@ -292,7 +312,8 @@ const SecondaryEmailRows = ({
             value={email}
             type="email"
             onSave={(value) =>
-              onSave(
+              saveValidated(
+                value,
                 value
                   ? emails.map((current, i) => (i === index ? value : current))
                   : emails.filter((_, i) => i !== index),
@@ -307,7 +328,7 @@ const SecondaryEmailRows = ({
         label={translate("crm.profile.add_secondary_email")}
         value=""
         type="email"
-        onSave={(value) => onSave([...emails, value])}
+        onSave={(value) => saveValidated(value, [...emails, value])}
       />
     </>
   );

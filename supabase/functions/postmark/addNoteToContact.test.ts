@@ -15,6 +15,24 @@ vi.mock("../_shared/supabaseAdmin.ts", () => ({
   },
 }));
 
+const secondaryLookupResult = (rows: unknown[]) => ({
+  neq: () => ({
+    order: () => ({
+      limit: () => Promise.resolve({ data: rows, error: null }),
+    }),
+  }),
+});
+
+const primaryLookupMiss = {
+  select: () => ({
+    eq: () => ({
+      neq: () => ({
+        maybeSingle: () => Promise.resolve({ data: null, error: null }),
+      }),
+    }),
+  }),
+};
+
 describe("addNoteToContact", () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -351,12 +369,9 @@ describe("addNoteToContact", () => {
         email: "sales@company.com",
         secondary_emails: ["perso@gmail.com"],
       };
-      const contains = vi.fn().mockReturnValue({
-        neq: () => ({
-          maybeSingle: () =>
-            Promise.resolve({ data: salesRecord, error: null }),
-        }),
-      });
+      const contains = vi
+        .fn()
+        .mockReturnValue(secondaryLookupResult([salesRecord]));
 
       mockFrom
         .mockReturnValueOnce({
@@ -379,6 +394,53 @@ describe("addNoteToContact", () => {
       );
     });
 
+    it("picks the lowest id instead of failing when two sales share a secondary email", async () => {
+      const firstSale = { id: 3, email: "a@company.com" };
+      const secondSale = { id: 9, email: "b@company.com" };
+
+      mockFrom
+        .mockReturnValueOnce({
+          select: () => ({
+            eq: () => ({
+              neq: () => ({
+                maybeSingle: () => Promise.resolve({ data: null, error: null }),
+              }),
+            }),
+          }),
+        })
+        .mockReturnValueOnce({
+          select: () => ({
+            contains: () => secondaryLookupResult([firstSale, secondSale]),
+          }),
+        });
+
+      const result = await findActiveSaleByEmail("shared@x.com");
+
+      expect(result.data).toEqual(firstSale);
+      expect(result.error).toBe(null);
+    });
+
+    it("returns no sale rather than an error when nothing matches", async () => {
+      mockFrom
+        .mockReturnValueOnce({
+          select: () => ({
+            eq: () => ({
+              neq: () => ({
+                maybeSingle: () => Promise.resolve({ data: null, error: null }),
+              }),
+            }),
+          }),
+        })
+        .mockReturnValueOnce({
+          select: () => ({ contains: () => secondaryLookupResult([]) }),
+        });
+
+      const result = await findActiveSaleByEmail("nobody@x.com");
+
+      expect(result.data).toBe(null);
+      expect(result.error).toBe(null);
+    });
+
     it("lowercases the sender, since the jsonb lookup is case sensitive unlike the citext column", async () => {
       const salesRecord = {
         id: 1,
@@ -390,12 +452,9 @@ describe("addNoteToContact", () => {
           maybeSingle: () => Promise.resolve({ data: null, error: null }),
         }),
       });
-      const contains = vi.fn().mockReturnValue({
-        neq: () => ({
-          maybeSingle: () =>
-            Promise.resolve({ data: salesRecord, error: null }),
-        }),
-      });
+      const contains = vi
+        .fn()
+        .mockReturnValue(secondaryLookupResult([salesRecord]));
 
       mockFrom
         .mockReturnValueOnce({ select: () => ({ eq }) })
@@ -505,25 +564,11 @@ describe("addNoteToContact", () => {
       const insertNote = vi.fn().mockResolvedValue({ error: null });
 
       mockFrom
-        .mockReturnValueOnce({
-          // 1st call: fetch sales by primary email → not found
-          select: () => ({
-            eq: () => ({
-              neq: () => ({
-                maybeSingle: () => Promise.resolve({ data: null, error: null }),
-              }),
-            }),
-          }),
-        })
+        .mockReturnValueOnce(primaryLookupMiss)
         .mockReturnValueOnce({
           // 2nd call: fetch sales by secondary emails → found
           select: () => ({
-            contains: () => ({
-              neq: () => ({
-                maybeSingle: () =>
-                  Promise.resolve({ data: salesRecord, error: null }),
-              }),
-            }),
+            contains: () => secondaryLookupResult([salesRecord]),
           }),
         })
         .mockReturnValueOnce({
