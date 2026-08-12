@@ -15,10 +15,13 @@ vi.mock("../_shared/supabaseAdmin.ts", () => ({
   },
 }));
 
-const secondaryLookupResult = (rows: unknown[]) => ({
+const secondaryLookupResult = (
+  rows: unknown[],
+  error: { message: string } | null = null,
+) => ({
   neq: () => ({
     order: () => ({
-      limit: () => Promise.resolve({ data: rows, error: null }),
+      limit: () => Promise.resolve({ data: error ? null : rows, error }),
     }),
   }),
 });
@@ -394,30 +397,65 @@ describe("addNoteToContact", () => {
       );
     });
 
-    it("picks the lowest id instead of failing when two sales share a secondary email", async () => {
-      const firstSale = { id: 3, email: "a@company.com" };
-      const secondSale = { id: 9, email: "b@company.com" };
+    it("attributes to nobody when two sales share the same secondary email", async () => {
+      const consoleSpy = vi
+        .spyOn(console, "error")
+        .mockImplementation(() => {});
 
-      mockFrom
-        .mockReturnValueOnce({
-          select: () => ({
-            eq: () => ({
-              neq: () => ({
-                maybeSingle: () => Promise.resolve({ data: null, error: null }),
-              }),
-            }),
-          }),
-        })
-        .mockReturnValueOnce({
-          select: () => ({
-            contains: () => secondaryLookupResult([firstSale, secondSale]),
-          }),
-        });
+      mockFrom.mockReturnValueOnce(primaryLookupMiss).mockReturnValueOnce({
+        select: () => ({
+          contains: () =>
+            secondaryLookupResult([
+              { id: 3, email: "a@company.com" },
+              { id: 9, email: "b@company.com" },
+            ]),
+        }),
+      });
 
       const result = await findActiveSaleByEmail("shared@x.com");
 
-      expect(result.data).toEqual(firstSale);
+      expect(result.data).toBe(null);
       expect(result.error).toBe(null);
+
+      consoleSpy.mockRestore();
+    });
+
+    it("names both sales in the logs when it refuses an ambiguous sender", async () => {
+      const consoleSpy = vi
+        .spyOn(console, "error")
+        .mockImplementation(() => {});
+
+      mockFrom.mockReturnValueOnce(primaryLookupMiss).mockReturnValueOnce({
+        select: () => ({
+          contains: () =>
+            secondaryLookupResult([
+              { id: 3, email: "a@company.com" },
+              { id: 9, email: "b@company.com" },
+            ]),
+        }),
+      });
+
+      await findActiveSaleByEmail("shared@x.com");
+
+      expect(consoleSpy).toHaveBeenCalledWith(
+        expect.stringContaining("shared@x.com"),
+      );
+      expect(consoleSpy).toHaveBeenCalledWith(expect.stringContaining("3, 9"));
+
+      consoleSpy.mockRestore();
+    });
+
+    it("surfaces a failure of the secondary lookup instead of reporting no sale", async () => {
+      mockFrom.mockReturnValueOnce(primaryLookupMiss).mockReturnValueOnce({
+        select: () => ({
+          contains: () => secondaryLookupResult([], { message: "DB error" }),
+        }),
+      });
+
+      const result = await findActiveSaleByEmail("perso@gmail.com");
+
+      expect(result.data).toBe(null);
+      expect(result.error).toEqual({ message: "DB error" });
     });
 
     it("returns no sale rather than an error when nothing matches", async () => {

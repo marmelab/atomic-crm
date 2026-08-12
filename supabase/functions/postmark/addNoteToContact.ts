@@ -130,12 +130,24 @@ export const findActiveSaleByEmail = async (salesEmail: string) => {
     .contains("secondary_emails", JSON.stringify([normalizedEmail]))
     .neq("disabled", true)
     .order("id", { ascending: true })
-    .limit(1);
+    .limit(2);
 
-  return {
-    data: bySecondaryEmail.data?.[0] ?? null,
-    error: bySecondaryEmail.error,
-  };
+  if (bySecondaryEmail.error) {
+    return { data: null, error: bySecondaryEmail.error };
+  }
+
+  const matches = bySecondaryEmail.data ?? [];
+
+  if (matches.length > 1) {
+    console.error(
+      `Ambiguous sender ${normalizedEmail}: registered as a secondary email by sales ${matches
+        .map((sale: { id: number }) => sale.id)
+        .join(", ")}. Refusing to attribute the note.`,
+    );
+    return { data: null, error: null };
+  }
+
+  return { data: matches[0] ?? null, error: null };
 };
 
 export const addNoteToContact = async ({

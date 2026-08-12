@@ -55,6 +55,12 @@ Deno.serve(async (req) => {
   const allSales = await supabaseAdmin
     .from("sales")
     .select("email, secondary_emails");
+
+  if (allSales.error) {
+    console.error("Could not fetch sales emails:", allSales.error);
+    return new Response("Could not fetch sales from database", { status: 500 });
+  }
+
   const salesEmails =
     allSales.data
       ?.flatMap((s: { email: string; secondary_emails: string[] | null }) => [

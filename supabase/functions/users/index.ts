@@ -6,7 +6,6 @@ import { AuthMiddleware, UserMiddleware } from "../_shared/authentication.ts";
 import { getUserSale } from "../_shared/getUserSale.ts";
 import {
   findInvalidEmail,
-  findTakenEmail,
   normalizeSecondaryEmails,
 } from "./secondaryEmails.ts";
 
@@ -61,22 +60,29 @@ async function findEmailUsedByAnotherSale(
   emails: string[],
   excludeSalesId?: number,
 ) {
-  if (!emails.length) {
-    return undefined;
+  for (const email of emails) {
+    let query = supabaseAdmin
+      .from("sales")
+      .select("id")
+      .or(`email.eq.${email},secondary_emails.cs.${JSON.stringify([email])}`);
+
+    if (excludeSalesId !== undefined) {
+      query = query.neq("id", excludeSalesId);
+    }
+
+    const { data: matches, error: salesError } = await query.limit(1);
+
+    if (salesError) {
+      console.error("Error fetching sales:", salesError);
+      throw salesError;
+    }
+
+    if (matches?.length) {
+      return email;
+    }
   }
 
-  const query = supabaseAdmin.from("sales").select("email, secondary_emails");
-  const { data: otherSales, error: salesError } =
-    excludeSalesId === undefined
-      ? await query
-      : await query.neq("id", excludeSalesId);
-
-  if (salesError) {
-    console.error("Error fetching sales:", salesError);
-    throw salesError;
-  }
-
-  return findTakenEmail(otherSales ?? [], emails);
+  return undefined;
 }
 
 async function updateSaleSecondaryEmails(
@@ -376,12 +382,17 @@ Deno.serve(async (req: Request) =>
           return createErrorResponse(401, "Unauthorized");
         }
 
-        if (req.method === "POST") {
-          return inviteUser(req, currentUserSale);
-        }
+        try {
+          if (req.method === "POST") {
+            return await inviteUser(req, currentUserSale);
+          }
 
-        if (req.method === "PATCH") {
-          return patchUser(req, currentUserSale);
+          if (req.method === "PATCH") {
+            return await patchUser(req, currentUserSale);
+          }
+        } catch (e) {
+          console.error("Unhandled error in the users function:", e);
+          return createErrorResponse(500, "Internal Server Error");
         }
 
         return createErrorResponse(405, "Method Not Allowed");
