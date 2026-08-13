@@ -60,11 +60,15 @@ async function findEmailUsedByAnotherSale(
   emails: string[],
   excludeSalesId?: number,
 ) {
-  for (const email of emails) {
-    let query = supabaseAdmin
-      .from("sales")
-      .select("id")
-      .or(`email.eq.${email},secondary_emails.cs.${JSON.stringify([email])}`);
+  const isTakenBy = async (
+    column: "email" | "secondary_emails",
+    email: string,
+  ) => {
+    const selected = supabaseAdmin.from("sales").select("id");
+    let query =
+      column === "email"
+        ? selected.eq("email", email)
+        : selected.contains("secondary_emails", JSON.stringify([email]));
 
     if (excludeSalesId !== undefined) {
       query = query.neq("id", excludeSalesId);
@@ -77,7 +81,14 @@ async function findEmailUsedByAnotherSale(
       throw salesError;
     }
 
-    if (matches?.length) {
+    return Boolean(matches?.length);
+  };
+
+  for (const email of emails) {
+    if (
+      (await isTakenBy("email", email)) ||
+      (await isTakenBy("secondary_emails", email))
+    ) {
       return email;
     }
   }

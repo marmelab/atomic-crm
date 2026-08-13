@@ -1,10 +1,10 @@
 import { describe, it, expect } from "vitest";
-import { getSalesUpdateNotification } from "./salesUpdateError";
+import { getSalesErrorNotification } from "./salesErrorNotification";
 
-describe("getSalesUpdateNotification", () => {
+describe("getSalesErrorNotification", () => {
   it("names the address rejected as already taken", () => {
     expect(
-      getSalesUpdateNotification(
+      getSalesErrorNotification(
         Object.assign(new Error("Secondary email already used"), {
           code: "secondary_email_taken",
           email: "shared@x.com",
@@ -18,7 +18,7 @@ describe("getSalesUpdateNotification", () => {
 
   it("names the address rejected as malformed", () => {
     expect(
-      getSalesUpdateNotification(
+      getSalesErrorNotification(
         Object.assign(new Error("Invalid secondary email"), {
           code: "invalid_secondary_email",
           email: "not-an-email",
@@ -32,22 +32,46 @@ describe("getSalesUpdateNotification", () => {
 
   it("falls back to the generic message for an unknown code", () => {
     expect(
-      getSalesUpdateNotification(
+      getSalesErrorNotification(
         Object.assign(new Error("boom"), { code: "something_else" }),
       ).message,
     ).toBe("crm.profile.update_error");
   });
 
   it("falls back to the generic message for an error carrying no code", () => {
-    expect(getSalesUpdateNotification(new Error("boom")).message).toBe(
+    expect(getSalesErrorNotification(new Error("boom")).message).toBe(
       "crm.profile.update_error",
     );
   });
 
   it("does not throw when there is no error object at all", () => {
-    expect(getSalesUpdateNotification(undefined)).toEqual({
+    expect(getSalesErrorNotification(undefined)).toEqual({
       message: "crm.profile.update_error",
       args: { email: "" },
+    });
+  });
+
+  it("uses the caller's fallback so admin pages keep their own wording", () => {
+    expect(
+      getSalesErrorNotification(
+        new Error("boom"),
+        "resources.sales.create.error",
+      ).message,
+    ).toBe("resources.sales.create.error");
+  });
+
+  it("keeps the specific message over the caller's fallback", () => {
+    expect(
+      getSalesErrorNotification(
+        Object.assign(new Error("taken"), {
+          code: "email_taken",
+          email: "dup@x.com",
+        }),
+        "resources.sales.create.error",
+      ),
+    ).toEqual({
+      message: "crm.profile.email_taken",
+      args: { email: "dup@x.com" },
     });
   });
 });

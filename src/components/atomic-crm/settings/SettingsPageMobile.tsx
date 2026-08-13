@@ -47,7 +47,7 @@ import MobileHeader from "../layout/MobileHeader";
 import { ChangelogPage } from "../misc/ChangelogPage";
 import ImageEditorField from "../misc/ImageEditorField";
 import type { CrmDataProvider } from "../providers/types";
-import { getSalesUpdateNotification } from "../sales/salesUpdateError";
+import { getSalesErrorNotification } from "../sales/salesErrorNotification";
 import type { SalesFormData } from "../types";
 
 const ChangePasswordButton = () => {
@@ -179,7 +179,7 @@ const ProfileSection = () => {
         });
       } catch (error) {
         queryClient.setQueryData(queryKey, previousData);
-        const { message, args } = getSalesUpdateNotification(error);
+        const { message, args } = getSalesErrorNotification(error);
         notify(message, {
           type: "error",
           messageArgs: { ...args, _: "An error occurred. Please try again" },

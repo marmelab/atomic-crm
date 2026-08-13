@@ -1,4 +1,4 @@
-export type SalesUpdateNotification = {
+export type SalesErrorNotification = {
   message: string;
   args: Record<string, string>;
 };
@@ -7,17 +7,17 @@ const MESSAGE_BY_CODE: Record<string, string> = {
   email_taken: "crm.profile.email_taken",
   secondary_email_taken: "crm.profile.secondary_email_taken",
   invalid_secondary_email: "crm.profile.secondary_email_invalid",
-  invalid_secondary_emails_payload: "crm.profile.update_error",
 };
 
-export const getSalesUpdateNotification = (
+export const getSalesErrorNotification = (
   error: unknown,
-): SalesUpdateNotification => {
+  fallbackMessage = "crm.profile.update_error",
+): SalesErrorNotification => {
   const { code, email } = (error ?? {}) as { code?: string; email?: string };
   const message = code ? MESSAGE_BY_CODE[code] : undefined;
 
   return {
-    message: message ?? "crm.profile.update_error",
+    message: message ?? fallbackMessage,
     args: { email: email ?? "" },
   };
 };

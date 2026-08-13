@@ -36,7 +36,7 @@ import {
 
 import ImageEditorField from "../misc/ImageEditorField";
 import type { CrmDataProvider } from "../providers/types";
-import { getSalesUpdateNotification } from "../sales/salesUpdateError";
+import { getSalesErrorNotification } from "../sales/salesErrorNotification";
 import type { Sale, SalesFormData } from "../types";
 
 export const ProfilePage = () => {
@@ -72,7 +72,7 @@ export const ProfilePage = () => {
       });
     },
     onError: (error) => {
-      const { message, args } = getSalesUpdateNotification(error);
+      const { message, args } = getSalesErrorNotification(error);
       notify(message, {
         type: "error",
         messageArgs: { ...args, _: "An error occurred. Please try again" },

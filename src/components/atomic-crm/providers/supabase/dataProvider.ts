@@ -130,7 +130,10 @@ const getDataProviderWithCustomMethods = () => {
             return {};
           }
         })();
-        throw new Error(errorDetails?.message || "Failed to create the user");
+        throw Object.assign(
+          new Error(errorDetails?.message || "Failed to create the user"),
+          { code: errorDetails?.code, email: errorDetails?.email },
+        );
       }
 
       return data.data;
