@@ -6,7 +6,9 @@ export type SalesErrorNotification = {
 const MESSAGE_BY_CODE: Record<string, string> = {
   email_taken: "crm.profile.email_taken",
   secondary_email_taken: "crm.profile.secondary_email_taken",
+  secondary_email_is_primary: "crm.profile.secondary_email_is_primary",
   invalid_secondary_email: "crm.profile.secondary_email_invalid",
+  too_many_secondary_emails: "crm.profile.too_many_secondary_emails",
 };
 
 export const getSalesErrorNotification = (

@@ -6,6 +6,7 @@ import { AuthMiddleware, UserMiddleware } from "../_shared/authentication.ts";
 import { getUserSale } from "../_shared/getUserSale.ts";
 import {
   findInvalidEmail,
+  MAX_SECONDARY_EMAILS,
   normalizeSecondaryEmails,
 } from "./secondaryEmails.ts";
 
@@ -297,12 +298,29 @@ async function patchUser(req: Request, currentUserSale: any) {
       });
     }
 
+    if (normalizedSecondaryEmails.length > MAX_SECONDARY_EMAILS) {
+      return createErrorResponse(
+        400,
+        `No more than ${MAX_SECONDARY_EMAILS} secondary emails are allowed`,
+        { code: "too_many_secondary_emails" },
+      );
+    }
+
     const invalidEmail = findInvalidEmail(normalizedSecondaryEmails);
     if (invalidEmail) {
       return createErrorResponse(
         400,
         `Invalid secondary email: ${invalidEmail}`,
         { code: "invalid_secondary_email", email: invalidEmail },
+      );
+    }
+
+    const primaryEmail = (email ?? sale.email).trim().toLowerCase();
+    if (normalizedSecondaryEmails.includes(primaryEmail)) {
+      return createErrorResponse(
+        409,
+        `Secondary email is already the main address: ${primaryEmail}`,
+        { code: "secondary_email_is_primary", email: primaryEmail },
       );
     }
 

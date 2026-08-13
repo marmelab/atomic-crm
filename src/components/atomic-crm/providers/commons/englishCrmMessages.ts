@@ -534,7 +534,10 @@ export const englishCrmMessages = {
       email_taken: "%{email} is already used by another user",
       no_secondary_emails: "None",
       secondary_email_invalid: "%{email} is not a valid email address",
+      secondary_email_is_primary: "%{email} is already your main address",
       secondary_email_taken: "%{email} is already used by another user",
+      too_many_secondary_emails:
+        "You cannot add more than 10 secondary email addresses",
       secondary_emails_help:
         "Other addresses you send emails from. Leave one empty to remove it.",
       inbound: {

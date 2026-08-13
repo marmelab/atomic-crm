@@ -1,5 +1,7 @@
 const EMAIL_PATTERN = /^[^\s@,]+@[^\s@,]+\.[^\s@,]+$/;
 
+export const MAX_SECONDARY_EMAILS = 10;
+
 export const normalizeSecondaryEmails = (
   secondaryEmails: unknown,
 ): string[] | undefined => {

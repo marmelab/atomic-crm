@@ -130,7 +130,7 @@ Deno.serve(async (req) => {
       });
     }
 
-    await addNoteToContact({
+    const errorResponse = await addNoteToContact({
       salesEmail,
       email,
       domain,
@@ -141,6 +141,10 @@ Deno.serve(async (req) => {
       companyName,
       website,
     });
+
+    if (errorResponse) {
+      return errorResponse;
+    }
   }
 
   return new Response("OK");

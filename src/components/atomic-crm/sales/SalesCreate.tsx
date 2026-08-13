@@ -31,15 +31,12 @@ export function SalesCreate() {
     onError: (error) => {
       const { message, args } = getSalesErrorNotification(
         error,
-        "resources.sales.create.error",
+        error.message ||
+          translate("resources.sales.create.error", {
+            _: "An error occurred while creating the user.",
+          }),
       );
-      notify(message, {
-        type: "error",
-        messageArgs: {
-          ...args,
-          _: "An error occurred while creating the user.",
-        },
-      });
+      notify(message, { type: "error", messageArgs: args });
     },
   });
   const onSubmit: SubmitHandler<SalesFormData> = async (data) => {
