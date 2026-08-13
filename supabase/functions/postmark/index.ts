@@ -4,7 +4,7 @@
 
 // Setup type definitions for built-in Supabase Runtime APIs
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
-import { addNoteToContact } from "./addNoteToContact.ts";
+import { addNoteToContact, findActiveSaleByEmail } from "./addNoteToContact.ts";
 import {
   getForwardedMailContent,
   stripSubjectForwardingPrefix,
@@ -112,7 +112,29 @@ Deno.serve(async (req) => {
 
   const contacts = extractMailContactData(ToFull);
 
+  const { data: sales, error: fetchSalesError } =
+    await findActiveSaleByEmail(salesEmail);
+
+  if (fetchSalesError) {
+    console.error("Could not fetch the sender's sale:", fetchSalesError);
+    return new Response(
+      `Could not fetch sales from database, email: ${salesEmail}`,
+      { status: 500 },
+    );
+  }
+
+  if (!sales) {
+    // Return a 403 to let Postmark know that it's no use to retry this request
+    // https://postmarkapp.com/developer/webhooks/inbound-webhook#errors-and-retries
+    return new Response(
+      `Unable to find (active) sales in database, email: ${salesEmail}`,
+      { status: 403 },
+    );
+  }
+
   const attachments = await extractAndUploadAttachments(Attachments);
+
+  const failedContacts: string[] = [];
 
   for (const {
     firstName,
@@ -131,6 +153,7 @@ Deno.serve(async (req) => {
     }
 
     const errorResponse = await addNoteToContact({
+      sales,
       salesEmail,
       email,
       domain,
@@ -143,8 +166,20 @@ Deno.serve(async (req) => {
     });
 
     if (errorResponse) {
-      return errorResponse;
+      console.error(
+        `Could not add the note for ${email}: ${await errorResponse.text()}`,
+      );
+      failedContacts.push(email);
     }
+  }
+
+  if (failedContacts.length) {
+    // Return a 403 to let Postmark know that it's no use to retry this request:
+    // the notes already written are not idempotent, a redelivery would duplicate them
+    return new Response(
+      `Could not add the note for: ${failedContacts.join(", ")}`,
+      { status: 403 },
+    );
   }
 
   return new Response("OK");

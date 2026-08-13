@@ -162,7 +162,6 @@ const ProfileSection = () => {
         "getOne",
         { id: String(identity.id), meta: undefined },
       ];
-      const previousData = queryClient.getQueryData(queryKey);
       queryClient.setQueryData(queryKey, (old: any) =>
         old ? { ...old, [field]: value } : old,
       );
@@ -178,7 +177,8 @@ const ProfileSection = () => {
           messageArgs: { _: "Your profile has been updated" },
         });
       } catch (error) {
-        queryClient.setQueryData(queryKey, previousData);
+        refetchIdentity();
+        refetchUser();
         const { message, args } = getSalesErrorNotification(error);
         notify(message, {
           type: "error",

@@ -528,7 +528,9 @@ describe("addNoteToContact", () => {
   });
 
   describe("addNoteToContact", () => {
+    const sales = { id: 1 };
     const baseParams = {
+      sales,
       salesEmail: "sales@company.com",
       email: "alice@acme.com",
       domain: "acme.com",
@@ -540,8 +542,15 @@ describe("addNoteToContact", () => {
       website: "https://acme.com",
     };
 
+    const contactFound = (contact: unknown) => ({
+      select: () => ({
+        contains: () => ({
+          maybeSingle: () => Promise.resolve({ data: contact, error: null }),
+        }),
+      }),
+    });
+
     it("creates a note and returns undefined on success", async () => {
-      const salesRecord = { id: 1, email: "sales@company.com" };
       const existingContact = {
         id: 10,
         first_name: "Alice",
@@ -549,32 +558,11 @@ describe("addNoteToContact", () => {
       };
 
       mockFrom
+        .mockReturnValueOnce(contactFound(existingContact))
         .mockReturnValueOnce({
-          // 1st call: fetch sales → found
-          select: () => ({
-            eq: () => ({
-              neq: () => ({
-                maybeSingle: () =>
-                  Promise.resolve({ data: salesRecord, error: null }),
-              }),
-            }),
-          }),
-        })
-        .mockReturnValueOnce({
-          // 2nd call: fetch contact → found
-          select: () => ({
-            contains: () => ({
-              maybeSingle: () =>
-                Promise.resolve({ data: existingContact, error: null }),
-            }),
-          }),
-        })
-        .mockReturnValueOnce({
-          // 3rd call: insert note into contact_notes → success
           insert: () => Promise.resolve({ error: null }),
         })
         .mockReturnValueOnce({
-          // 4th call: update contacts.last_seen
           update: () => ({
             eq: () => Promise.resolve({ error: null }),
           }),
@@ -583,47 +571,18 @@ describe("addNoteToContact", () => {
       const result = await addNoteToContact(baseParams);
 
       expect(result).toBeUndefined();
-      expect(mockFrom).toHaveBeenCalledTimes(4);
-      expect(mockFrom).toHaveBeenNthCalledWith(3, "contact_notes");
-      expect(mockFrom).toHaveBeenNthCalledWith(4, "contacts");
+      expect(mockFrom).toHaveBeenCalledTimes(3);
+      expect(mockFrom).toHaveBeenNthCalledWith(2, "contact_notes");
+      expect(mockFrom).toHaveBeenNthCalledWith(3, "contacts");
     });
 
-    it("attaches the note to the sale when the sender only matches a secondary email", async () => {
-      const salesRecord = {
-        id: 7,
-        email: "sales@company.com",
-        secondary_emails: ["perso@gmail.com"],
-      };
-      const existingContact = {
-        id: 10,
-        first_name: "Alice",
-        last_name: "Smith",
-      };
+    it("files the note under the sale it was given, without looking one up", async () => {
       const insertNote = vi.fn().mockResolvedValue({ error: null });
 
       mockFrom
-        .mockReturnValueOnce(primaryLookupMiss)
+        .mockReturnValueOnce(contactFound({ id: 10 }))
+        .mockReturnValueOnce({ insert: insertNote })
         .mockReturnValueOnce({
-          // 2nd call: fetch sales by secondary emails → found
-          select: () => ({
-            contains: () => secondaryLookupResult([salesRecord]),
-          }),
-        })
-        .mockReturnValueOnce({
-          // 3rd call: fetch contact → found
-          select: () => ({
-            contains: () => ({
-              maybeSingle: () =>
-                Promise.resolve({ data: existingContact, error: null }),
-            }),
-          }),
-        })
-        .mockReturnValueOnce({
-          // 4th call: insert note into contact_notes → success
-          insert: insertNote,
-        })
-        .mockReturnValueOnce({
-          // 5th call: update contacts.last_seen
           update: () => ({
             eq: () => Promise.resolve({ error: null }),
           }),
@@ -631,46 +590,20 @@ describe("addNoteToContact", () => {
 
       const result = await addNoteToContact({
         ...baseParams,
-        salesEmail: "perso@gmail.com",
+        sales: { id: 7 },
       });
 
       expect(result).toBeUndefined();
       expect(insertNote).toHaveBeenCalledWith(
         expect.objectContaining({ sales_id: 7, contact_id: 10 }),
       );
+      expect(mockFrom).not.toHaveBeenCalledWith("sales");
     });
 
     it("returns 500 when inserting the note into contact_notes fails", async () => {
-      const salesRecord = { id: 1, email: "sales@company.com" };
-      const existingContact = {
-        id: 10,
-        first_name: "Alice",
-        last_name: "Smith",
-      };
-
       mockFrom
+        .mockReturnValueOnce(contactFound({ id: 10 }))
         .mockReturnValueOnce({
-          // 1st call: fetch sales → found
-          select: () => ({
-            eq: () => ({
-              neq: () => ({
-                maybeSingle: () =>
-                  Promise.resolve({ data: salesRecord, error: null }),
-              }),
-            }),
-          }),
-        })
-        .mockReturnValueOnce({
-          // 2nd call: fetch contact → found
-          select: () => ({
-            contains: () => ({
-              maybeSingle: () =>
-                Promise.resolve({ data: existingContact, error: null }),
-            }),
-          }),
-        })
-        .mockReturnValueOnce({
-          // 3rd call: insert note into contact_notes → fails
           insert: () =>
             Promise.resolve({ error: { message: "Insert failed" } }),
         });
@@ -682,36 +615,22 @@ describe("addNoteToContact", () => {
       expect(await response!.text()).toBe(
         "Could not add note to contact alice@acme.com, sales sales@company.com",
       );
-      expect(mockFrom).toHaveBeenCalledTimes(3);
+      expect(mockFrom).toHaveBeenCalledTimes(2);
     });
 
     it("returns 500 when getOrCreateContactFromEmailInfo throws", async () => {
-      const salesRecord = { id: 1, email: "sales@company.com" };
       const consoleSpy = vi
         .spyOn(console, "error")
         .mockImplementation(() => {});
 
-      mockFrom
-        .mockReturnValueOnce({
-          // 1st call: fetch sales → found
-          select: () => ({
-            eq: () => ({
-              neq: () => ({
-                maybeSingle: () =>
-                  Promise.resolve({ data: salesRecord, error: null }),
-              }),
-            }),
+      mockFrom.mockReturnValueOnce({
+        select: () => ({
+          contains: () => ({
+            maybeSingle: () =>
+              Promise.resolve({ data: null, error: { message: "DB error" } }),
           }),
-        })
-        .mockReturnValueOnce({
-          // 2nd call: fetch contact → DB error, causes getOrCreateContactFromEmailInfo to throw
-          select: () => ({
-            contains: () => ({
-              maybeSingle: () =>
-                Promise.resolve({ data: null, error: { message: "DB error" } }),
-            }),
-          }),
-        });
+        }),
+      });
 
       const response = await addNoteToContact(baseParams);
 

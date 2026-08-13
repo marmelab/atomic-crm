@@ -151,6 +151,7 @@ export const findActiveSaleByEmail = async (salesEmail: string) => {
 };
 
 export const addNoteToContact = async ({
+  sales,
   salesEmail,
   email,
   domain,
@@ -161,6 +162,7 @@ export const addNoteToContact = async ({
   companyName,
   website,
 }: {
+  sales: { id: number };
   salesEmail: string;
   email: string;
   domain: string;
@@ -171,24 +173,6 @@ export const addNoteToContact = async ({
   companyName: string;
   website: string;
 }) => {
-  const { data: sales, error: fetchSalesError } =
-    await findActiveSaleByEmail(salesEmail);
-
-  if (fetchSalesError) {
-    return new Response(
-      `Could not fetch sales from database, email: ${salesEmail}`,
-      { status: 500 },
-    );
-  }
-  if (!sales) {
-    // Return a 403 to let Postmark know that it's no use to retry this request
-    // https://postmarkapp.com/developer/webhooks/inbound-webhook#errors-and-retries
-    return new Response(
-      `Unable to find (active) sales in database, email: ${salesEmail}`,
-      { status: 403 },
-    );
-  }
-
   const { contact, error } = await getOrCreateContactFromEmailInfo({
     email,
     firstName,

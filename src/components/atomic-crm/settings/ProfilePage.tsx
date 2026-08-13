@@ -72,6 +72,8 @@ export const ProfilePage = () => {
       });
     },
     onError: (error) => {
+      refetchIdentity();
+      refetchUser();
       const { message, args } = getSalesErrorNotification(error);
       notify(message, {
         type: "error",
