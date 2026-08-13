@@ -315,15 +315,6 @@ async function patchUser(req: Request, currentUserSale: any) {
       );
     }
 
-    const primaryEmail = (email ?? sale.email).trim().toLowerCase();
-    if (normalizedSecondaryEmails.includes(primaryEmail)) {
-      return createErrorResponse(
-        409,
-        `Secondary email is already the main address: ${primaryEmail}`,
-        { code: "secondary_email_is_primary", email: primaryEmail },
-      );
-    }
-
     const takenEmail = await findEmailUsedByAnotherSale(
       normalizedSecondaryEmails,
       sales_id,
@@ -335,6 +326,19 @@ async function patchUser(req: Request, currentUserSale: any) {
         { code: "secondary_email_taken", email: takenEmail },
       );
     }
+  }
+
+  const primaryEmail = (email ?? sale.email).trim().toLowerCase();
+  const effectiveSecondaryEmails =
+    normalizedSecondaryEmails ??
+    (Array.isArray(sale.secondary_emails) ? sale.secondary_emails : []);
+
+  if (effectiveSecondaryEmails.includes(primaryEmail)) {
+    return createErrorResponse(
+      409,
+      `Secondary email is already the main address: ${primaryEmail}`,
+      { code: "secondary_email_is_primary", email: primaryEmail },
+    );
   }
 
   const { data, error: userError } =

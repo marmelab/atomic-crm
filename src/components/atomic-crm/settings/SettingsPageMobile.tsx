@@ -177,8 +177,8 @@ const ProfileSection = () => {
           messageArgs: { _: "Your profile has been updated" },
         });
       } catch (error) {
+        await refetchUser();
         refetchIdentity();
-        refetchUser();
         const { message, args } = getSalesErrorNotification(error);
         notify(message, {
           type: "error",

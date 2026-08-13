@@ -174,11 +174,14 @@ Deno.serve(async (req) => {
   }
 
   if (failedContacts.length) {
-    // Return a 403 to let Postmark know that it's no use to retry this request:
-    // the notes already written are not idempotent, a redelivery would duplicate them
+    // A partial failure answers 403 so Postmark does not redeliver: the notes
+    // already written are not idempotent and would be duplicated. When every
+    // contact failed there is no note to duplicate, so a retry is safe.
+    // https://postmarkapp.com/developer/webhooks/inbound-webhook#errors-and-retries
+    const status = failedContacts.length === contacts.length ? 500 : 403;
     return new Response(
       `Could not add the note for: ${failedContacts.join(", ")}`,
-      { status: 403 },
+      { status },
     );
   }
 
