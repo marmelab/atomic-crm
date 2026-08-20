@@ -11,6 +11,7 @@ import mime from "mime/lite";
 import type { CrmDataProvider } from "../providers/types";
 import type { RAFile, Tag } from "../types";
 import { colors } from "../tags/colors";
+import { mapSizeToCategory } from "../companies/sizes";
 import { useConfigurationContext } from "../root/ConfigurationContext";
 import { contactGender } from "../contacts/contactModel";
 
@@ -806,10 +807,3 @@ const isTask = (data: any): data is TaskImport =>
  * Maps a company size number to the appropriate size category.
  * Categories: 1, 10, 50, 250, 500
  */
-const mapSizeToCategory = (size: number): 1 | 10 | 50 | 250 | 500 => {
-  if (size === 1) return 1;
-  if (size < 10) return 10;
-  if (size < 50) return 50;
-  if (size < 250) return 250;
-  return 500;
-};

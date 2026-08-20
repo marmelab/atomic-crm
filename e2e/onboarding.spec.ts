@@ -18,8 +18,9 @@ test("user onboarding", async ({ page, isMobile, menu, dismissToast }) => {
   await expect(page.getByText("Install Atomic CRM")).toBeVisible();
   await expect(page.getByText("Add your first contact")).toBeVisible();
   await expect(page.getByText("Add your first note")).toBeVisible();
+  await expect(page.getByRole("button", { name: "Import data" })).toBeVisible();
 
-  await page.getByText("New Contact").click();
+  await page.getByText("Add contact").click();
   await page.waitForLoadState("networkidle");
   await page.getByLabel("She/Her").click();
   await page.getByLabel("First name").fill("Jane");

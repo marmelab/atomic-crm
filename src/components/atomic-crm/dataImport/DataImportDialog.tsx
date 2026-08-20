@@ -1,7 +1,13 @@
 import { useEffect, useState } from "react";
 import type { MouseEvent } from "react";
-import { Upload, Loader2 } from "lucide-react";
-import { Form, useRefresh, useTranslate } from "ra-core";
+import { Loader2 } from "lucide-react";
+import {
+  Form,
+  useGetResourceLabel,
+  useRefresh,
+  useResourceTranslation,
+  useTranslate,
+} from "ra-core";
 import { Link } from "react-router";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
@@ -11,69 +17,67 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { FormToolbar } from "@/components/admin/simple-form";
 import { FileInput } from "@/components/admin/file-input";
 import { FileField } from "@/components/admin/file-field";
 
 import { usePapaParse } from "../misc/usePapaParse";
-import type { ContactImportSchema } from "./useContactImport";
-import { useContactImport } from "./useContactImport";
-import * as sampleCsv from "./contacts_export.csv?raw";
+import type { ImportableResource, ImportRow } from "./types";
 
-export const ContactImportButton = () => {
-  const translate = useTranslate();
-  const [modalOpen, setModalOpen] = useState(false);
-
-  const handleOpenModal = () => {
-    setModalOpen(true);
-  };
-
-  const handleCloseModal = () => {
-    setModalOpen(false);
-  };
-
-  return (
-    <>
-      <Button
-        variant="outline"
-        onClick={handleOpenModal}
-        className="flex items-center gap-2 cursor-pointer"
-      >
-        <Upload /> {translate("resources.contacts.import.button")}
-      </Button>
-      <ContactImportDialog open={modalOpen} onClose={handleCloseModal} />
-    </>
-  );
-};
-
-const SAMPLE_URL = `data:text/csv;name=crm_contacts_sample.csv;charset=utf-8,${encodeURIComponent(
-  sampleCsv.default,
-)}`;
-
-type ContactImportModalProps = {
+type DataImportDialogProps = {
   open: boolean;
   onClose(): void;
+  /** Resources offered in the dropdown. A single one hides the dropdown. */
+  resources: ImportableResource[];
 };
 
-export function ContactImportDialog({
+export function DataImportDialog({
   open,
   onClose,
-}: ContactImportModalProps) {
+  resources,
+}: DataImportDialogProps) {
   const translate = useTranslate();
+  const getResourceLabel = useGetResourceLabel();
   const refresh = useRefresh();
-  const processBatch = useContactImport();
-  const { importer, parseCsv, reset } = usePapaParse<ContactImportSchema>({
+  const [resource, setResource] = useState(resources[0]);
+  const [file, setFile] = useState<File | null>(null);
+
+  // Importing a single resource names the dialog after it, falling back to the
+  // generic heading for a resource that has no title of its own.
+  const title = useResourceTranslation({
+    resourceI18nKey:
+      resources.length === 1
+        ? `resources.${resource.name}.import.title`
+        : undefined,
+    baseI18nKey: "crm.data_import.title",
+  });
+  const { importer, parseCsv, reset } = usePapaParse<ImportRow>({
     batchSize: 10,
-    processBatch,
+    processBatch: resource.processBatch,
   });
 
-  const [file, setFile] = useState<File | null>(null);
+  const sampleUrl = `data:text/csv;name=${sampleFileName(resource.name)};charset=utf-8,${encodeURIComponent(resource.sampleCsv)}`;
 
   useEffect(() => {
     if (importer.state === "complete") {
       refresh();
     }
   }, [importer.state, refresh]);
+
+  const handleResourceChange = (name: string) => {
+    const next = resources.find((candidate) => candidate.name === name);
+    if (!next) return;
+    setFile(null);
+    setResource(next);
+  };
 
   const handleFileChange = (file: File | null) => {
     setFile(file);
@@ -86,6 +90,7 @@ export function ContactImportDialog({
 
   const handleClose = () => {
     reset();
+    setFile(null);
     onClose();
   };
 
@@ -96,26 +101,49 @@ export function ContactImportDialog({
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="max-w-2xl">
-        <Form className="flex flex-col gap-4">
+      <DialogContent className="max-w-[calc(100%-2rem)] gap-6 p-6 sm:max-w-2xl sm:p-8">
+        {/* Remount the form on resource change so no file survives the switch */}
+        <Form key={resource.name} className="flex flex-col gap-6">
           <DialogHeader>
-            <DialogTitle>
-              {translate("resources.contacts.import.title")}
-            </DialogTitle>
+            <DialogTitle>{title}</DialogTitle>
           </DialogHeader>
 
-          <div className="flex flex-col space-y-2">
+          <div className="flex flex-col space-y-6">
+            {resources.length > 1 && (
+              <div className="flex flex-col gap-2">
+                <Label htmlFor="data-import-resource">
+                  {translate("crm.data_import.resource")}
+                </Label>
+                <Select
+                  value={resource.name}
+                  onValueChange={handleResourceChange}
+                  disabled={importer.state !== "idle"}
+                >
+                  <SelectTrigger id="data-import-resource" className="w-full">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {resources.map(({ name }) => (
+                      <SelectItem key={name} value={name}>
+                        {getResourceLabel(name, 2)}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+
             {importer.state === "running" && (
               <div className="flex flex-col gap-2">
                 <Alert>
                   <AlertDescription className="flex flex-row gap-4">
                     <Loader2 className="h-5 w-5 animate-spin" />
-                    {translate("resources.contacts.import.running")}
+                    {translate("crm.data_import.running")}
                   </AlertDescription>
                 </Alert>
 
                 <div className="text-sm">
-                  {translate("resources.contacts.import.progress", {
+                  {translate("crm.data_import.progress", {
                     importCount: importer.importCount,
                     rowCount: importer.rowCount,
                     errorCount: importer.errorCount,
@@ -123,9 +151,7 @@ export function ContactImportDialog({
                   {importer.remainingTime !== null && (
                     <>
                       {" "}
-                      {translate(
-                        "resources.contacts.import.remaining_time",
-                      )}{" "}
+                      {translate("crm.data_import.remaining_time")}{" "}
                       <strong>
                         {millisecondsToTime(importer.remainingTime)}
                       </strong>
@@ -134,7 +160,7 @@ export function ContactImportDialog({
                         onClick={handleReset}
                         className="text-red-600 underline hover:text-red-800"
                       >
-                        {translate("resources.contacts.import.stop")}
+                        {translate("crm.data_import.stop")}
                       </button>
                     </>
                   )}
@@ -145,7 +171,7 @@ export function ContactImportDialog({
             {importer.state === "error" && (
               <Alert variant="destructive">
                 <AlertDescription>
-                  {translate("resources.contacts.import.error")}
+                  {translate("crm.data_import.error")}
                 </AlertDescription>
               </Alert>
             )}
@@ -153,7 +179,7 @@ export function ContactImportDialog({
             {importer.state === "complete" && (
               <Alert>
                 <AlertDescription>
-                  {translate("resources.contacts.import.complete", {
+                  {translate("crm.data_import.complete", {
                     importCount: importer.importCount,
                     errorCount: importer.errorCount,
                   })}
@@ -165,21 +191,21 @@ export function ContactImportDialog({
               <>
                 <Alert>
                   <AlertDescription className="flex flex-col gap-4">
-                    {translate("resources.contacts.import.sample_hint")}
+                    {translate("crm.data_import.sample_hint")}
                     <Button asChild variant="outline" size="sm">
                       <Link
-                        to={SAMPLE_URL}
-                        download={"crm_contacts_sample.csv"}
+                        to={sampleUrl}
+                        download={sampleFileName(resource.name)}
                       >
-                        {translate("resources.contacts.import.sample_download")}
+                        {translate("crm.data_import.sample_download")}
                       </Link>
-                    </Button>{" "}
+                    </Button>
                   </AlertDescription>
                 </Alert>
 
                 <FileInput
                   source="csv"
-                  label="resources.contacts.import.csv_file"
+                  label="crm.data_import.csv_file"
                   accept={{ "text/csv": [".csv"] }}
                   onChange={handleFileChange}
                 >
@@ -190,11 +216,11 @@ export function ContactImportDialog({
           </div>
         </Form>
 
-        <div className="flex justify-start pt-6">
+        <div className="flex justify-start">
           <FormToolbar>
             {importer.state === "idle" ? (
               <Button onClick={startImport} disabled={!file}>
-                {translate("resources.contacts.import.button")}
+                {translate("crm.data_import.button")}
               </Button>
             ) : (
               <Button
@@ -212,9 +238,12 @@ export function ContactImportDialog({
   );
 }
 
-function millisecondsToTime(ms: number) {
+const sampleFileName = (resourceName: string) =>
+  `crm_${resourceName}_sample.csv`;
+
+const millisecondsToTime = (ms: number) => {
   const seconds = Math.floor((ms / 1000) % 60);
   const minutes = Math.floor((ms / (60 * 1000)) % 60);
 
   return `${minutes}m ${seconds}s`;
-}
+};

@@ -27,6 +27,9 @@ export const englishCrmMessages = {
         description: "It seems your company list is empty.",
         title: "No companies found",
       },
+      import: {
+        title: "Import companies",
+      },
       field_categories: {
         contact: "Contact",
         additional_info: "Additional information",
@@ -110,21 +113,6 @@ export const englishCrmMessages = {
       },
       import: {
         title: "Import contacts",
-        button: "Import CSV",
-        complete:
-          "Contacts import complete. Imported %{importCount} contacts, with %{errorCount} errors",
-        progress:
-          "Imported %{importCount} / %{rowCount} contacts, with %{errorCount} errors.",
-        error:
-          "Failed to import this file, please make sure your provided a valid CSV file.",
-        imported: "Imported",
-        remaining_time: "Estimated remaining time:",
-        running: "The import is running, please do not close this tab.",
-        sample_download: "Download CSV sample",
-        sample_hint: "Here is a sample CSV file you can use as a template",
-        stop: "Stop import",
-        csv_file: "CSV File",
-        contacts_label: "contact |||| contacts",
       },
       inputs: {
         genders: {
@@ -231,6 +219,9 @@ export const englishCrmMessages = {
         before_create: "before creating a deal.",
         description: "It seems your deal list is empty.",
         title: "No deals found",
+      },
+      import: {
+        title: "Import deals",
       },
       invalid_date: "Invalid date",
     },
@@ -438,8 +429,25 @@ export const englishCrmMessages = {
       },
       upcoming_tasks: "Upcoming Tasks",
     },
+    data_import: {
+      button: "Import CSV",
+      complete:
+        "Import complete. Imported %{importCount} records, with %{errorCount} errors",
+      csv_file: "CSV File",
+      error:
+        "Failed to import this file, please make sure you provided a valid CSV file.",
+      progress:
+        "Imported %{importCount} / %{rowCount} records, with %{errorCount} errors.",
+      remaining_time: "Estimated remaining time:",
+      resource: "Resource",
+      running: "The import is running, please do not close this tab.",
+      sample_download: "Download CSV sample",
+      sample_hint: "Here is a sample CSV file you can use as a template",
+      stop: "Stop import",
+      title: "Import data",
+    },
     header: {
-      import_data: "Import data",
+      import_data: "Import from JSON",
     },
     image_editor: {
       change: "Change",
@@ -473,7 +481,7 @@ export const englishCrmMessages = {
         some_failed: "Some records were not imported.",
         table_caption: "Import status",
       },
-      title: "Import Data",
+      title: "Import from JSON",
     },
     settings: {
       about: "About",

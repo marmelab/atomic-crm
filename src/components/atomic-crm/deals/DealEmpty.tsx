@@ -4,6 +4,7 @@ import type { ReactNode } from "react";
 import { CreateButton } from "@/components/admin/create-button";
 import { Progress } from "@/components/ui/progress";
 
+import { DataImportButton } from "../dataImport/DataImportButton";
 import useAppBarHeight from "../misc/useAppBarHeight";
 import type { Contact } from "../types";
 import { DealCreate } from "./DealCreate";
@@ -47,6 +48,7 @@ export const DealEmpty = ({ children }: { children?: ReactNode }) => {
           </div>
           <div className="flex space-x-8">
             <CreateButton label="resources.deals.action.create" />
+            <DataImportButton resource="deals" />
           </div>
           <DealCreate open={!!matchCreate} />
           {children}

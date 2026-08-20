@@ -29,6 +29,9 @@ export const frenchCrmMessages = {
         description: "Il semble que la liste de vos entreprises soit vide.",
         title: "Aucune entreprise trouvée",
       },
+      import: {
+        title: "Importer des entreprises",
+      },
       field_categories: {
         contact: "Contact",
         additional_info: "Informations supplémentaires",
@@ -113,22 +116,6 @@ export const frenchCrmMessages = {
       },
       import: {
         title: "Importer des contacts",
-        button: "Importer un fichier CSV",
-        complete:
-          "Import des contacts terminé. %{importCount} contacts importés, %{errorCount} erreurs",
-        progress:
-          "%{importCount} / %{rowCount} contacts importés, avec %{errorCount} erreurs.",
-        error:
-          "Échec de l'importation de ce fichier. Veuillez vous assurer que vous avez fourni un fichier CSV valide.",
-        imported: "Importé",
-        remaining_time: "Temps restant estimé :",
-        running: "L'import est en cours, merci de ne pas fermer cet onglet.",
-        sample_download: "Télécharger un exemple CSV",
-        sample_hint:
-          "Voici un exemple de fichier CSV que vous pouvez utiliser comme modèle",
-        stop: "Arrêter l'importation",
-        csv_file: "Fichier CSV",
-        contacts_label: "contact |||| contacts",
       },
       inputs: {
         genders: {
@@ -236,6 +223,9 @@ export const frenchCrmMessages = {
         before_create: "avant de créer une affaire.",
         description: "Il semble que votre liste d'affaires soit vide.",
         title: "Aucune affaire trouvée",
+      },
+      import: {
+        title: "Importer des affaires",
       },
       invalid_date: "Date invalide",
     },
@@ -445,8 +435,26 @@ export const frenchCrmMessages = {
       },
       upcoming_tasks: "Tâches à venir",
     },
+    data_import: {
+      button: "Importer un fichier CSV",
+      complete:
+        "Import terminé. %{importCount} enregistrements importés, %{errorCount} erreurs",
+      csv_file: "Fichier CSV",
+      error:
+        "Échec de l'importation de ce fichier. Veuillez vous assurer que vous avez fourni un fichier CSV valide.",
+      progress:
+        "%{importCount} / %{rowCount} enregistrements importés, avec %{errorCount} erreurs.",
+      remaining_time: "Temps restant estimé :",
+      resource: "Ressource",
+      running: "L'import est en cours, merci de ne pas fermer cet onglet.",
+      sample_download: "Télécharger un exemple CSV",
+      sample_hint:
+        "Voici un exemple de fichier CSV que vous pouvez utiliser comme modèle",
+      stop: "Arrêter l'importation",
+      title: "Importer des données",
+    },
     header: {
-      import_data: "Importer des données",
+      import_data: "Importer depuis JSON",
     },
     image_editor: {
       change: "Changer",
@@ -480,7 +488,7 @@ export const frenchCrmMessages = {
         some_failed: "Certains enregistrements n'ont pas été importés.",
         table_caption: "Statut d'importation",
       },
-      title: "Importer des données",
+      title: "Importer depuis JSON",
     },
     settings: {
       about: "À propos",
