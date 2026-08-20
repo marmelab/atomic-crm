@@ -22,11 +22,13 @@ The `supabase/schemas/` directory contains the **source of truth** for the datab
 |------|----------|
 | `01_tables.sql` | Tables, foreign keys, indexes, extensions |
 | `02_functions.sql` | All PL/pgSQL functions |
+| `02b_private_functions.sql` | `SECURITY DEFINER` helpers in the `private` schema, kept out of the exposed API |
 | `03_views.sql` | Views (`contacts_summary`, `companies_summary`, `activity_log`, `init_state`) |
 | `04_triggers.sql` | All triggers (public tables + auth.users) |
 | `05_policies.sql` | Row Level Security policies |
 | `06_grants.sql` | Grants and default privileges |
 | `07_storage.sql` | Storage bucket policies |
+| `08_extensions.sql` | Extensions deliberately not installed (not covered by `db diff`) |
 
 Files are numbered to control load order (tables must exist before functions that reference them).
 
