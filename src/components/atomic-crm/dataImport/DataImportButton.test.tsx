@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { render } from "vitest-browser-react";
 import { useState } from "react";
 
@@ -9,6 +9,9 @@ import { AllResources, SingleResource } from "./DataImportButton.stories";
 import type { ImportRow, ProcessImportBatch } from "./types";
 import { useCompanyImport } from "./useCompanyImport";
 import { useDealImport } from "./useDealImport";
+
+const mockIsMobile = vi.hoisted(() => vi.fn(() => false));
+vi.mock("@/hooks/use-mobile", () => ({ useIsMobile: mockIsMobile }));
 
 const listAll = (dataProvider: DataProvider, resource: string) =>
   dataProvider.getList(resource, {
@@ -64,6 +67,10 @@ const renderImport = async (
 };
 
 describe("DataImportButton", () => {
+  beforeEach(() => {
+    mockIsMobile.mockReturnValue(false);
+  });
+
   it("offers every importable resource in the dialog", async () => {
     const screen = await render(<AllResources />);
 
@@ -132,7 +139,8 @@ describe("DataImportButton", () => {
       city: "New York",
       name: "Acme",
       sector: "information-technology",
-      size: 50,
+      // 50 employees falls in the "50-249 employees" bucket
+      size: 250,
       website: "https://acme.example",
     });
     // An unknown sector is dropped rather than stored as a free-text value
@@ -149,7 +157,31 @@ describe("DataImportButton", () => {
     await expect.element(screen.getByText("imported")).toBeVisible();
 
     const { data: companies } = await listAll(dataProvider, "companies");
+    // 42 employees is not a bucket id; it belongs to "10-49 employees"
     expect(companies[0].size).toBe(50);
+  });
+
+  it("hides a resource the running app does not register", async () => {
+    // The mobile app has no deals screens, so importing deals would create
+    // records the user could never see.
+    mockIsMobile.mockReturnValue(true);
+    const screen = await render(<AllResources />);
+
+    await screen.getByRole("button", { name: "Import data" }).click();
+    await screen.getByLabelText("Resource").click();
+    const options = screen.getByRole("listbox");
+
+    await expect.element(options.getByText("Contacts")).toBeVisible();
+    await expect.element(options.getByText("Deals")).not.toBeInTheDocument();
+  });
+
+  it("renders nothing for a resource the running app does not register", async () => {
+    mockIsMobile.mockReturnValue(true);
+    const screen = await render(<SingleResource resource="deals" />);
+
+    await expect
+      .element(screen.getByRole("button", { name: "Import CSV" }))
+      .not.toBeInTheDocument();
   });
 
   it("imports deals, reusing one company and defaulting a missing stage", async () => {
