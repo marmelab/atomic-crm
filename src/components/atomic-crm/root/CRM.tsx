@@ -29,7 +29,7 @@ import { ChangelogPage } from "../misc/ChangelogPage";
 import {
   getAuthProvider as defaultAuthProviderBuilder,
   getDataProvider as defaultDataProviderBuilder,
-} from "../providers/supabase";
+} from "../providers/local";
 import sales from "../sales";
 import { SettingsPageMobile } from "../settings/SettingsPageMobile";
 import { ProfilePage } from "../settings/ProfilePage";

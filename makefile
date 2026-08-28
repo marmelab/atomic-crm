@@ -59,7 +59,13 @@ stop-postgres: ## stop local Docker Postgres
 w0-smoke: ## reset Docker Postgres, apply schema, prove Woodley cannot see Envoy
 	bash scripts/w0-smoke.sh
 
-start: start-supabase start-app ## start the stack locally (Atomic + Supabase; going away)
+start-bff: ## local HTTP BFF against Docker Postgres :5433
+	node server/local-bff.mjs
+
+w0-isolation: ## BFF isolation: Woodley header never returns Ellis Envoy
+	bash scripts/w0-isolation.sh
+
+start: start-postgres ## Docker Postgres; run `make start-bff` and `npm run dev` in other terminals
 
 start-demo: ## start the app locally in demo mode
 	npm run dev:demo
