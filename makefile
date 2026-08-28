@@ -1,4 +1,4 @@
-.PHONY: build help
+.PHONY: build help start-postgres stop-postgres w0-smoke
 
 # Run silently, show output on failure
 run-silent = $1 >/tmp/atomic-crm-$2.log 2>&1 || (cat /tmp/atomic-crm-$2.log && false)
@@ -50,7 +50,16 @@ stop-app-e2e:
 start-app-e2e-ci: build-e2e ## start the app pointing to the e2e supabase instance in CI mode (no open, no watch)
 	npx serve -l 5175 -L -s dist &
 
-start: start-supabase start-app ## start the stack locally
+start-postgres: ## start local Docker Postgres (W0, port 5433)
+	docker compose up -d postgres
+
+stop-postgres: ## stop local Docker Postgres
+	docker compose stop postgres
+
+w0-smoke: ## reset Docker Postgres, apply schema, prove Woodley cannot see Envoy
+	bash scripts/w0-smoke.sh
+
+start: start-supabase start-app ## start the stack locally (Atomic + Supabase; going away)
 
 start-demo: ## start the app locally in demo mode
 	npm run dev:demo

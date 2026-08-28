@@ -13,18 +13,36 @@ This is **not** a tracking fork. Schema, auth, and hosting diverge on purpose:
 
 ## Status
 
-W0 started. Atomic UI still runs against Supabase locally; we will strip that. Do not add mortgage fields on the Atomic schema.
+W0: local Docker Postgres + directional schema + two-tenant smoke. Atomic UI still runs against Supabase (`make start`); that path goes away as W0–W4 land. Do not add mortgage fields on the Atomic schema.
 
 Plan: [`docs/poc-plan.md`](docs/poc-plan.md)
 
-## Demo tenants (planned)
+## Demo tenants
 
 - **Woodley** (`100004`) — walkthrough
 - **Envoy Mortgage** (`100081`) — isolation
 
+`tenants.id` is `uuid5(uuid5(DNS, 'ardley-crm.tenants'), customer_id)`. Acorn still isolates on the customer id string.
+
+## Local Postgres (W0)
+
+Docker Postgres on **5433** (avoids clashing with Supabase).
+
+```bash
+make w0-smoke
+```
+
+That resets the DB, applies [`docs/schema-direction.sql`](docs/schema-direction.sql), seeds Woodley/Envoy, and asserts RLS: a Woodley session cannot see Envoy contacts.
+
+```
+postgres://ardley:ardley@127.0.0.1:5433/ardley_crm
+```
+
+App role for RLS checks: `crm_app` / `crm_app` (sets `app.tenant_id`).
+
 ## Local (Atomic baseline, temporary)
 
-Node 22, Make, Docker. `make install` then `make start` still boots upstream Atomic + local Supabase. That path goes away as W0–W4 land.
+Node 22, Make, Docker. `make install` then `make start` still boots upstream Atomic + local Supabase.
 
 ## License
 

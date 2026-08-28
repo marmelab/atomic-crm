@@ -1,9 +1,10 @@
--- Directional schema for ardley-crm (not applied yet).
--- Target: Aurora Postgres / local Docker Postgres. No Supabase.
+-- Directional schema for ardley-crm.
+-- Applied locally by `make w0-smoke` (Docker Postgres). Aurora later (W4).
 -- Invariants: docs/poc-plan.md §17
 
 create extension if not exists "pgcrypto";
 create extension if not exists "citext";
+create extension if not exists "uuid-ossp";
 
 -- tenants.id is a deterministic UUID mapped from ardley-customers-{env} id
 -- (uuid5). Acorn isolation still uses ardley_customer_id (e.g. '100081').
@@ -224,4 +225,92 @@ create table saved_views (
     query jsonb not null default '{}'::jsonb
 );
 
--- RLS later: tenant isolation only. Owner/branch/team stay in Acorn.
+-- Tenant isolation only. Owner/branch/team stay in Acorn.
+-- Table owner (local superuser) bypasses RLS; app role crm_app does not.
+create or replace function current_tenant_id() returns uuid
+language sql
+stable
+as $$
+  select nullif(current_setting('app.tenant_id', true), '')::uuid;
+$$;
+
+do $$
+declare
+  t text;
+begin
+  foreach t in array array[
+    'tenants',
+    'crm_users',
+    'companies',
+    'contacts',
+    'contact_type_assignments',
+    'contact_identifiers',
+    'contact_affiliations',
+    'pipelines',
+    'pipeline_stages',
+    'deals',
+    'deal_parties',
+    'record_links',
+    'deal_stage_events',
+    'activities',
+    'lists',
+    'list_members',
+    'saved_views'
+  ]
+  loop
+    execute format('alter table %I enable row level security', t);
+    execute format('alter table %I force row level security', t);
+    execute format('drop policy if exists tenant_isolation on %I', t);
+  end loop;
+end
+$$;
+
+create policy tenant_isolation on tenants
+  using (id = current_tenant_id());
+
+create policy tenant_isolation on crm_users
+  using (tenant_id = current_tenant_id());
+create policy tenant_isolation on companies
+  using (tenant_id = current_tenant_id());
+create policy tenant_isolation on contacts
+  using (tenant_id = current_tenant_id());
+create policy tenant_isolation on contact_type_assignments
+  using (tenant_id = current_tenant_id());
+create policy tenant_isolation on contact_identifiers
+  using (tenant_id = current_tenant_id());
+create policy tenant_isolation on contact_affiliations
+  using (tenant_id = current_tenant_id());
+create policy tenant_isolation on pipelines
+  using (tenant_id = current_tenant_id());
+create policy tenant_isolation on pipeline_stages
+  using (tenant_id = current_tenant_id());
+create policy tenant_isolation on deals
+  using (tenant_id = current_tenant_id());
+create policy tenant_isolation on deal_parties
+  using (tenant_id = current_tenant_id());
+create policy tenant_isolation on record_links
+  using (tenant_id = current_tenant_id());
+create policy tenant_isolation on deal_stage_events
+  using (tenant_id = current_tenant_id());
+create policy tenant_isolation on activities
+  using (tenant_id = current_tenant_id());
+create policy tenant_isolation on lists
+  using (tenant_id = current_tenant_id());
+create policy tenant_isolation on list_members
+  using (tenant_id = current_tenant_id());
+create policy tenant_isolation on saved_views
+  using (tenant_id = current_tenant_id());
+
+do $$
+begin
+  if not exists (select 1 from pg_roles where rolname = 'crm_app') then
+    create role crm_app login password 'crm_app';
+  end if;
+end
+$$;
+
+grant connect on database ardley_crm to crm_app;
+grant usage on schema public to crm_app;
+grant select, insert, update, delete on all tables in schema public to crm_app;
+grant usage, select on all sequences in schema public to crm_app;
+alter default privileges in schema public grant select, insert, update, delete on tables to crm_app;
