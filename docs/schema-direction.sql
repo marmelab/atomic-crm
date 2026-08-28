@@ -5,9 +5,11 @@
 create extension if not exists "pgcrypto";
 create extension if not exists "citext";
 
--- tenants.id MUST be the Ardley customer id Acorn already isolates on.
+-- tenants.id is a deterministic UUID mapped from ardley-customers-{env} id
+-- (uuid5). Acorn isolation still uses ardley_customer_id (e.g. '100081').
 create table tenants (
     id uuid primary key,
+    ardley_customer_id text not null unique, -- '100004' Woodley, '100081' Envoy
     slug text not null unique,
     name text not null,
     created_at timestamptz not null default now()

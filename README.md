@@ -19,8 +19,8 @@ Plan: [`docs/poc-plan.md`](docs/poc-plan.md)
 
 ## Demo tenants (planned)
 
-- **Woodley Bank** — walkthrough
-- **Harborline** — isolation
+- **Woodley** (`100004`) — walkthrough
+- **Envoy Mortgage** (`100081`) — isolation
 
 ## Local (Atomic baseline, temporary)
 

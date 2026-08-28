@@ -31,20 +31,22 @@ Jesse was explicit: the walkthrough must not freeze the design. The POC is a cli
 | Deal vs title vs insurance | **N deals of one type**, linked via `record_links` (`related_deal`). Same `deals` table, different `pipeline_id`. Revisit after Jesse can click it. |
 | Multi-tenant | Shared Aurora, `tenant_id` on every business row, RLS (or equivalent API enforcement). Two tenants in the demo. |
 | Intra-tenant access (POC) | Owner edits; other users in the tenant view; tenant admin edits all. Association-driven sharing is **out of the POC**, but records carry the attributes Acorn will need later (`owner_id`, `branch_id`, `team_id`). |
-| Primary demo tenant | **Woodley Bank** |
-| Isolation tenant | **Harborline** (small seed; prove you cannot see it from Woodley) |
+| Primary demo tenant | **Woodley** — Ardley customer id **`100004`** (`woodley.dev-ardley.com`, `ardley-customers-dev`) |
+| Isolation tenant | **Envoy Mortgage** — Ardley customer id **`100081`** (`envoymortgage.dev-ardley.com`). Small seed; prove Woodley cannot see it. |
 | Backend | **No Supabase.** Aurora Serverless v2 + Lambda API + Cognito + CloudFront. Sibling app to existing CES, not embedded in the consumer app. |
 | Atomic posture | **Fork.** Do not plan to rebase via the shadcn registry after schema/show-page changes. |
 | Documentation path | This markdown → iterate → fork wiki (and optional Google Doc for sharing). |
 | Repo | **`ardley-crm`** under [Ardley-Technologies](https://github.com/Ardley-Technologies). Not bolted onto `ardley-purchase-consumer`. |
-| Auth | **Reuse existing Ardley Cognito user pools** (see §8). New app client on those pools; no CRM-only pool. |
+| Auth | **Platform Cognito pools only** (`ardley-app-users-{env}`, see §8). New CRM app client on that pool. Do **not** use per-customer pools on `ardley-customers-*` (`cognito_user_pool_id` such as Woodley `us-east-1_H7Fc7y6Iy` or Envoy `us-east-1_2uUrt8450`). |
 | Tenancy / authz | **[Acorn](https://github.com/Ardley-Technologies/acorn)** (`EvaluationPolicy.withIsolation('tenant_id')`). Tenant is **not** a Cognito pool attribute. Identity in the pool; tenant + permissions in the existing `ardley-role-configurations-*` tables. |
 | POC roles | **LO**, **viewer**, **admin**. Managers / branch owners later — new Acorn configs, not a CRM schema change. |
 | Acorn actions | `Crm*` names in §8. Stored `owner_id` is the CRM user UUID. Cognito `sub` is how we *find* that user, not what we persist on every row. |
 | Deploy order | **dev → test → demo → prod.** First AWS env is **dev**. Customer walkthroughs use **demo**. |
 | VPC | **Greenfield VPC for the POC.** A different existing VPC (not `ardley-purchase-consumer`) may be adopted later — FYI only. |
 | Deal participants | **First-class `deal_parties` table** (role, dates, primary). `record_links` stays for the rest of the graph. Harder now, flexible later. |
-| Primary keys | **UUIDs** on new and migrated tables (not Atomic bigint). |
+| Primary keys | **UUIDs** on CRM tables (not Atomic bigint). `tenants.id` is a **deterministic UUID** mapped from the Ardley customer id (see §8). |
+| Ardley customer id | Integer/string from **`ardley-customers-{env}`** (example: Envoy Mortgage **`100081`**). Stored as `tenants.ardley_customer_id`. Acorn isolation still uses this value, not the UUID. |
+| First CRM login | **Not a CRM-local allow-list.** Acorn’s `PrincipalExtractor` resolves tenant + role the same way other Ardley apps do (SSO claims, then membership table, then authz API — see §8). Once a principal exists, upsert `crm_users`. Unknown principal → Acorn 401/403, not a second CRM gate. |
 | First walkthrough | **Jesse + Haley + Chris** |
 
 ---
@@ -53,7 +55,7 @@ Jesse was explicit: the walkthrough must not freeze the design. The POC is a cli
 
 A reviewer can:
 
-1. Log in as a Woodley Bank LO and **not** see Harborline data.
+1. Log in as a Woodley LO and **not** see Envoy data.
 2. Open a borrower and see spouse, referring agent, PLACE team, LO, and the loan deal.
 3. Open the team and see nested agents and referred deals.
 4. Move a loan through numbered stages on the In Process pipeline; open a recruiting deal on a different pipeline.
@@ -77,7 +79,7 @@ If that works, the meeting thesis is proven. Everything else is a sequel.
 - Contact types; ENV vs custom lists (thin)
 - Durable IDs (NMLS / DRE / MLS / email / phone)
 - Minimal merge
-- Mortgage-shaped Woodley + Harborline seed
+- Mortgage-shaped Woodley + Envoy seed
 - Saved views as home
 - Coaching **stub** tab (extension point only)
 - Dead “Issue pre-approval” button (adoption trick, not wired)
@@ -154,7 +156,7 @@ Shared Aurora, one schema. Every business table: `tenant_id not null`.
 
 ### Tenancy and users
 
-- `tenants` — UUID PK **must be the same id Acorn already uses for that customer** (see §17). Also store `slug`, `name`. Woodley Bank, Harborline.
+- `tenants` — UUID PK **mapped from** `ardley-customers-{env}` id (see §8). Also store `ardley_customer_id` (unique), `slug`, `name`. Seed only real rows: Woodley **`100004`**, Envoy Mortgage **`100081`**.
 - `crm_users` (rename Atomic `sales`) — `id` UUID, `tenant_id`, `cognito_sub` unique, `contact_id` (the human), disabled flag. **Stored `owner_id` on records = `crm_users.id`**, never the raw `sub`.
 - Unique indexes are **per tenant** (e.g. unique `(tenant_id, id_type, value)` on identifiers)
 
@@ -265,7 +267,11 @@ Long-term fit with existing PLACE/Envoy AWS (CDK, Cognito, CloudFront). Avoids a
 
 ### Cognito pools to reuse
 
-Do not create a CRM user directory. Add a CRM app client (and callback URLs) to the pool for the environment we deploy.
+**Platform pools only.** Do not create a CRM user directory and do not attach CRM to a customer’s own pool.
+
+`ardley-customers-{env}.cognito_user_pool_id` is the **consumer/employee app** pool for that lender (Woodley `us-east-1_H7Fc7y6Iy`, Envoy `us-east-1_2uUrt8450` on dev). CRM ignores that column. Tenant still comes from `customer_id` (`100004` / `100081`).
+
+Add a CRM app client (and callback URLs) to the **platform** pool for the environment we deploy:
 
 | env | pool id | hosted domain | IdPs | paired table |
 |---|---|---|---|---|
@@ -276,7 +282,28 @@ Do not create a CRM user directory. Add a CRM app client (and callback URLs) to 
 
 **Deploy order:** stand up **dev** first, then test, demo, prod. Jesse / Haley / Chris customer-style walkthroughs happen on **demo**. Woodley Azure SSO already exists on **test** — use test when we want to show SSO, not as the first deploy.
 
-Map Cognito `sub` → Acorn principal → `sales.user_id`. **`tenant_id` comes from Acorn** (`EvaluationPolicy.withIsolation('tenant_id')`), not from pool claims and not from inventing a second mapping in CRM.
+Acorn does **not** require a CRM-specific membership check. You implement `PrincipalExtractor` (see `@ardley-technologies/acorn-lambda`). Resolve tenant + role in this order, same as the rest of the platform:
+
+1. **SSO / ID-token claims** — `custom:customerId` or `custom:tenantId`, plus role if present. Platform pools already inject `custom:customerId` at token issuance (pre-token-gen Lambda reads membership). Azure SSO users may arrive with claims and never need a table hit on that request.
+2. **Authz API / permission store** — Acorn `permissionKey()` is `[tenantId, roleId]` into `ardley-role-configurations-{env}`. If claims have tenant but not role, load role the same way other apps do.
+3. **`ardley-customer-users-{env}`** — fallback membership when claims are empty (password users, or tokens that were not enriched). Pair `sub` (or email) → customer id.
+
+**`tenant_id` for Acorn is the Ardley customer id** (`"100081"`), never `tenants.id`. Postgres FKs use the UUID. The BFF maps UUID ↔ customer id at the boundary.
+
+**`crm_users`:** upsert after a principal is resolved (we have `sub` + customer id). Do not 403 just because the membership table has no row if claims or the authz API already placed the user. Do not create a CRM user for a token that extracts no principal (Acorn returns 401).
+
+**Customer tables (source of tenant):**
+
+| env | customers | customer-users |
+|---|---|---|
+| dev | `ardley-customers-dev` | `ardley-customer-users-dev` |
+| test | `ardley-customers-test` | `ardley-customer-users-test` |
+| demo | `ardley-customers-demo` | `ardley-customer-users-demo` |
+| prod | `ardley-customers-prod` | `ardley-customer-users-prod` |
+
+Example: `100081` Envoy Mortgage (`employees.envoymortgage.com` / `envoymortgage.test-ardley.com`). Same id in every env that has that customer.
+
+**UUID map:** `tenants.id = uuid5(CRM_TENANT_NS, ardley_customer_id)` so `100081` is the same UUID in local Docker, dev, and demo. Never mint a random tenant UUID.
 
 ### Acorn store (reuse, do not fork)
 
@@ -289,7 +316,7 @@ Permission JSON already lives in Dynamo per env. CRM Lambdas **read these tables
 | `ardley-role-configurations-demo` | 420 | 20 |
 | `ardley-role-configurations-prod` | 1,209 | 36 |
 
-POC seed adds CRM actions + three roles into those tables for Woodley (and a tiny Harborline set). Same Acorn evaluation as other Ardley APIs.
+POC seed adds CRM actions + three roles into those tables for Woodley (`100004`) and a tiny Envoy set (`100081`). Same Acorn evaluation as other Ardley APIs.
 
 **POC roles and actions**
 
@@ -301,7 +328,7 @@ Prefix `Crm` so these never collide with other Ardley actions in the same Dynamo
 | `CrmCreateContact` `CrmUpdateContact` `CrmCreateCompany` `CrmUpdateCompany` `CrmCreateDeal` `CrmUpdateDeal` | — | `owner_id` match principal | all |
 | `CrmMergeContact` | — | — | all |
 
-- Isolation: `EvaluationPolicy.withIsolation('tenant_id')` on every resource. The value **is the existing Ardley customer id**, not a CRM-minted tenant UUID.
+- Isolation: `EvaluationPolicy.withIsolation('tenant_id')` on every resource. The value **is the Ardley customer id** (`"100081"`), not `tenants.id`. The Lambda puts `ardley_customer_id` on the principal and on the resource.
 - Principal: Cognito JWT → lookup `crm_users` by `cognito_sub` → Acorn principal `{ tenant_id, owner_id: crm_users.id, branch_id?, team_id? }`.
 - Resources expose `tenant_id`, `owner_id`, and nullable `branch_id` / `team_id`. Atomic `sales_id` is replaced by `owner_id`.
 - Notes / tasks / graph / lists: fold writes into `CrmUpdate*` for the POC, or add matching `Crm*` actions later.
@@ -321,7 +348,7 @@ Example LO allow on writes:
 ```
 
 > **Note:** Pool pairing vs Acorn
-> `ardley-customer-users-*` pairs Cognito users to customer records for existing apps. CRM must not create a third tenant story. Identity: Cognito. Tenant + permissions: Acorn (`ardley-role-configurations-*`). CRM `sales.tenant_id` is a projection of Acorn, kept in sync on login / seed.
+> `ardley-customers-*` is the tenant catalog. `ardley-customer-users-*` is **one** membership source, not the only one. Identity: Cognito JWT. Principal: Acorn extractor (claims → authz/role store → membership table). Permissions: `ardley-role-configurations-*`. CRM `tenants` / `crm_users` are projections after that, not a third allow-list.
 
 ### Frontend
 
@@ -338,10 +365,10 @@ Constructs:
 - **New VPC** for this POC (later we may attach the other existing VPC — not the purchase-consumer one)
 - Aurora Serverless v2 Postgres
 - HTTP API + Lambdas
-- Cognito **app client** on the existing pool for that env (see table above) — do not create a pool
+- Cognito **app client** on the **platform** pool for that env (table above) — do not create a pool and do not use `ardley-customers-*.cognito_user_pool_id`
 - Acorn via `@ardley-technologies/acorn-lambda`, loading from **`ardley-role-configurations-{env}`** (existing tables; IAM read + seed write). Isolation: `tenant_id`.
 - CloudFront + S3
-- Seed task (Lambda or one-shot) for Woodley / Harborline
+- Seed task (Lambda or one-shot) for Woodley / Envoy
 
 ### Compliance for a demo
 
@@ -357,7 +384,7 @@ Keep Atomic lists. Change show pages and home.
 2. **Company show** — parent + children, people via affiliations, referred deals.
 3. **Deal show / kanban** — pipeline switcher changes stages; numbered stages; parties with roles.
 4. **Home = saved views**, not a generic sales dashboard: My Borrowers · My Paired Agents · Recruiting · In-process loans.
-5. **Copy / theme** — Woodley Bank CRM. Deal = opportunity. Amount = loan amount. Drop SaaS “sector” language.
+5. **Copy / theme** — Woodley CRM. Deal = opportunity. Amount = loan amount. Drop SaaS “sector” language.
 6. **Coaching stub** — if type is employee or LO, tab labeled OPTAH / Coaching: “coming.”
 7. **Merge** — **admin** action on a contact (matches `CrmMergeContact`).
 8. **Dead button** on loan deal: “Issue pre-approval.”
@@ -385,9 +412,9 @@ Enough for the click-tour:
 
 Loan triangle must be complete on at least **three** showcase contacts so the demo is not one lucky row.
 
-### Harborline (isolation)
+### Envoy (isolation) — customer id `100081`
 
-~5 contacts, 1 company, 1 deal. Login as Woodley → empty search for those names.
+~5 contacts, 1 company, 1 deal. Login as Woodley (`100004`) → empty search for those names.
 
 Script in SQL or TypeScript against the new tables. Do **not** use Atomic `test-data/contacts.csv` as the story.
 
@@ -402,7 +429,7 @@ Roughly 3–5 weeks for a small team; 1–2 people will slip.
 | W0 | Create `ardley-crm` from Atomic, strip Supabase, UUID PKs, Cognito against existing pools, empty Lambda hello, `tenants` aligned to Ardley customer ids, `crm_users` | 3–5 | Two-tenant smoke locally (Docker Postgres is fine before Aurora) |
 | W1 | Graph schema: type assignments, affiliations, identifiers, `record_links` + catalogs, **`deal_parties`**, pipelines, `activities`, `deal_stage_events`, `branch_id`/`team_id` | 3–5 | SQL migrations; no cascade-delete of people |
 | W2 | UI for the triangle + pipeline kanban + types | 5–7 | Clickable graph |
-| W3 | Woodley / Harborline seed, saved views, merge, theme | 3–4 | Demo story |
+| W3 | Woodley (`100004`) / Envoy (`100081`) seed, saved views, merge, theme | 3–4 | Demo story |
 | W4 | CDK: Aurora, API, Cognito app client, Acorn wiring, CloudFront; **dev first**, then test / demo / prod | 4–6 | Public HTTPS on dev |
 | W5 | Walkthrough harden + isolation tests + “this is a POC” chrome | 2–3 | Ready for Jesse + Haley + Chris |
 
@@ -452,24 +479,26 @@ Settled this pass:
 - Acorn JSON lives in existing **`ardley-role-configurations-{env}`** Dynamo tables. No CRM-local store.
 - POC roles: **LO**, **viewer**, **admin**.
 - Actions: `CrmList*` / `CrmGet*` / `CrmCreate*` / `CrmUpdate*` / `CrmMergeContact` as in §8.
-- Owner: `owner_id` = Cognito `sub`; LO writes use `{ "owner_id": { "match": "principal" } }`.
+- Owner: stored `owner_id` = `crm_users.id`. Acorn match uses that UUID. Cognito `sub` is lookup-only on `crm_users.cognito_sub`.
 
-No product-strategy questions left. Confirm with platform (not Jesse) before W0:
+Settled 2026-08-27 (platform):
 
-- [ ] Exact Ardley **customer id** field Acorn isolation already uses — that value **is** `tenants.id`.
-- [ ] Whether `crm_users` can be inserted on first CRM login if the human is not yet in `ardley-customer-users-*`, or we only allow known customer-users.
+- **Tenant catalog:** `ardley-customers-{dev,test,demo,prod}`. Isolation value = that customer id (e.g. Envoy Mortgage `100081`).
+- **CRM `tenants.id`:** deterministic UUID mapped from that id (`uuid5`). `tenants.ardley_customer_id` unique. Acorn still sees `"100081"`.
+- **First login:** Acorn `PrincipalExtractor` (SSO claims, authz/role API, and/or `ardley-customer-users-{env}`). Upsert `crm_users` only after a principal exists. No CRM-local allow-list on that table alone.
+
+No product-strategy or platform questions left for W0.
 
 ---
 
 ## 15. Next step after this note
 
-Iterate this file until the open questions we care about are checked. Then:
+Fork and docs are done (`ardley-crm`, this file). **Start W0:**
 
-1. Fork Atomic.
-2. Add `/docs` or wiki from this note.
-3. Start W0 (Postgres + tenant column + delete Supabase client).
-
-No coding until we say this plan is good enough.
+1. Docker Postgres + `schema-direction.sql` (`tenants.ardley_customer_id` + UUID map).
+2. Strip Supabase client; Cognito app client on the **dev** pool.
+3. Login path: Cognito JWT → Acorn principal extractor (claims / role store / membership table) → upsert `crm_users`.
+4. Two-tenant smoke: Woodley **`100004`** and Envoy **`100081`** from `ardley-customers-dev`.
 
 ---
 
@@ -484,7 +513,7 @@ Use this as the W5 demo outline; refine when seed names exist.
 5. Switch to a recruiting deal on the same LO contact (different pipeline).
 6. Search NMLS → land on the same person.
 7. Admin: merge the duplicate pair.
-8. Log in as Harborline (or search Harborline names as Woodley) → isolation.
+8. Log in as Envoy (or search Envoy names as Woodley) → isolation.
 9. Point at Coaching stub and Issue pre-approval (intentionally unfinished).
 
 ---
@@ -498,7 +527,7 @@ Flexibility here means: new relationship types, new deal pipelines, new Acorn ro
 ### Invariants (do not violate in W0–W5)
 
 1. **One human row.** Every person — borrower, spouse, agent, LO, coach, recruit, employee — is a `contacts` row. `crm_users` is “this human can log in,” pointed at `contact_id`. Recruiting an LO, coaching Tara, and assigning a deal party all use the same id.
-2. **One tenant key.** `tenants.id` = Acorn isolation `tenant_id` = existing Ardley customer id. CRM does not mint a parallel tenant namespace.
+2. **One tenant key.** Ardley customer id from `ardley-customers-{env}` is the Acorn isolation value (`"100081"`). CRM stores a deterministic UUID as `tenants.id` and the same customer id as `tenants.ardley_customer_id`. Do not mint a random tenant namespace.
 3. **One owner key.** Rows store `owner_id` = `crm_users.id`. Cognito `sub` lives only on `crm_users.cognito_sub`. Transfer and re-SSO are row updates, not a rewrite of every deal.
 4. **Acorn decides who may act; Postgres only isolates tenants.** RLS: `tenant_id = current_tenant()`. Owner, branch, and team rules stay in Acorn JSON so they can change without migrations.
 5. **Membership ≠ graph ≠ party.**
@@ -543,7 +572,4 @@ Flexibility here means: new relationship types, new deal pipelines, new Acorn ro
 
 ### Platform questions (not Jesse)
 
-These block a clean W0, not the walkthrough story:
-
-1. What identifier Acorn already puts on the principal as `tenant_id` (customer UUID vs slug vs Dynamo key).
-2. Must a CRM login already exist in `ardley-customer-users-*`, or may we create `crm_users` + contact on first seen `sub`?
+Settled 2026-08-27 — see §2 / §8 / §14. No remaining W0 blockers.
