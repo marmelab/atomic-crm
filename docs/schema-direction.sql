@@ -87,7 +87,7 @@ alter table crm_users
 
 create table contact_type_assignments (
     tenant_id uuid not null references tenants (id),
-    contact_id uuid not null references contacts (id),
+    contact_id uuid not null references contacts (id) on delete restrict,
     type_id text not null references contact_types (id),
     is_primary boolean not null default false,
     primary key (tenant_id, contact_id, type_id)
@@ -96,7 +96,7 @@ create table contact_type_assignments (
 create table contact_identifiers (
     id uuid primary key default gen_random_uuid(),
     tenant_id uuid not null references tenants (id),
-    contact_id uuid not null references contacts (id),
+    contact_id uuid not null references contacts (id) on delete restrict,
     id_type text not null references identifier_types (id),
     value text not null,
     unique (tenant_id, id_type, value)
@@ -105,8 +105,8 @@ create table contact_identifiers (
 create table contact_affiliations (
     id uuid primary key default gen_random_uuid(),
     tenant_id uuid not null references tenants (id),
-    contact_id uuid not null references contacts (id),
-    company_id uuid not null references companies (id),
+    contact_id uuid not null references contacts (id) on delete restrict,
+    company_id uuid not null references companies (id) on delete restrict,
     role text,
     is_primary boolean not null default false,
     valid_from date,
@@ -151,8 +151,8 @@ create table deals (
 create table deal_parties (
     id uuid primary key default gen_random_uuid(),
     tenant_id uuid not null references tenants (id),
-    deal_id uuid not null references deals (id),
-    contact_id uuid not null references contacts (id),
+    deal_id uuid not null references deals (id) on delete restrict,
+    contact_id uuid not null references contacts (id) on delete restrict,
     role text not null references deal_party_roles (id),
     is_primary boolean not null default false,
     valid_from date,
@@ -314,3 +314,41 @@ grant usage on schema public to crm_app;
 grant select, insert, update, delete on all tables in schema public to crm_app;
 grant usage, select on all sequences in schema public to crm_app;
 alter default privileges in schema public grant select, insert, update, delete on tables to crm_app;
+
+-- Active org membership is unique; end a row (valid_to) before re-affiliating.
+create unique index contact_affiliations_active_uq
+    on contact_affiliations (tenant_id, contact_id, company_id)
+    where valid_to is null;
+
+-- PLACE team trees are trees (single parent). Recurse for company show later.
+create or replace view company_tree as
+with recursive nodes as (
+    select
+        c.id,
+        c.tenant_id,
+        c.parent_company_id,
+        c.name,
+        c.kind_id,
+        0 as depth,
+        array[c.id] as path
+    from companies c
+    where c.parent_company_id is null
+    union all
+    select
+        child.id,
+        child.tenant_id,
+        child.parent_company_id,
+        child.name,
+        child.kind_id,
+        parent.depth + 1,
+        parent.path || child.id
+    from companies child
+    join nodes parent
+      on child.parent_company_id = parent.id
+     and child.tenant_id = parent.tenant_id
+)
+select id, tenant_id, parent_company_id, name, kind_id, depth, path
+from nodes;
+
+alter view company_tree set (security_invoker = true);
+grant select on company_tree to crm_app;

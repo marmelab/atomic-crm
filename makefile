@@ -1,4 +1,4 @@
-.PHONY: build help start-postgres stop-postgres w0-smoke
+.PHONY: build help start-postgres stop-postgres w0-smoke w1-smoke w1-isolation
 
 # Run silently, show output on failure
 run-silent = $1 >/tmp/atomic-crm-$2.log 2>&1 || (cat /tmp/atomic-crm-$2.log && false)
@@ -64,6 +64,12 @@ start-bff: ## local HTTP BFF against Docker Postgres :5433
 
 w0-isolation: ## BFF isolation: Woodley header never returns Ellis Envoy
 	bash scripts/w0-isolation.sh
+
+w1-smoke: ## reset DB, seed triangle, prove restrict-delete + isolation
+	bash scripts/w1-smoke.sh
+
+w1-isolation: ## BFF isolation for companies, deals, NMLS
+	bash scripts/w1-isolation.sh
 
 start: start-postgres ## Docker Postgres; run `make start-bff` and `npm run dev` in other terminals
 

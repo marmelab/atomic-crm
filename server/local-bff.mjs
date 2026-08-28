@@ -118,6 +118,47 @@ const server = http.createServer(async (req, res) => {
       return;
     }
 
+    if (req.method === "GET" && url.pathname === "/companies") {
+      const rows = await withTenant(principal, (client) =>
+        client.query(
+          `select id, name, kind_id, parent_company_id, owner_id, tenant_id
+           from companies
+           order by name`,
+        ),
+      );
+      json(res, 200, { data: rows.rows, total: rows.rowCount });
+      return;
+    }
+
+    if (req.method === "GET" && url.pathname === "/deals") {
+      const rows = await withTenant(principal, (client) =>
+        client.query(
+          `select id, name, pipeline_id, stage_id, amount_cents, owner_id, tenant_id
+           from deals
+           order by name`,
+        ),
+      );
+      json(res, 200, { data: rows.rows, total: rows.rowCount });
+      return;
+    }
+
+    if (req.method === "GET" && url.pathname === "/identifiers") {
+      const idType = url.searchParams.get("type");
+      const value = url.searchParams.get("value");
+      const rows = await withTenant(principal, (client) =>
+        client.query(
+          `select id, contact_id, id_type, value, tenant_id
+           from contact_identifiers
+           where ($1::text is null or id_type = $1)
+             and ($2::text is null or value = $2)
+           order by id_type, value`,
+          [idType, value],
+        ),
+      );
+      json(res, 200, { data: rows.rows, total: rows.rowCount });
+      return;
+    }
+
     json(res, 404, { error: "not_found" });
   } catch (err) {
     json(res, 500, { error: String(err?.message || err) });

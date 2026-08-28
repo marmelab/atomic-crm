@@ -24,9 +24,17 @@ export const getDataProvider = (): DataProvider & {
   isInitialized: () => Promise<boolean>;
 } => ({
   getList: async (resource) => {
-    if (resource === "contacts") {
+    const path =
+      resource === "contacts"
+        ? "/contacts"
+        : resource === "companies"
+          ? "/companies"
+          : resource === "deals"
+            ? "/deals"
+            : null;
+    if (path) {
       const body = await api<{ data: Record<string, unknown>[]; total: number }>(
-        "/contacts",
+        path,
       );
       return {
         data: body.data.map((row) => ({ ...row, id: row.id })),
