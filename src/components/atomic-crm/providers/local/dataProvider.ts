@@ -35,11 +35,14 @@ export const getDataProvider = (): DataProvider & {
               ? "/pipeline-stages"
               : resource === "pipelines"
                 ? "/pipelines"
-                : null;
+                : resource === "saved_views"
+                  ? "/saved-views"
+                  : null;
     if (path) {
-      const body = await api<{ data: Record<string, unknown>[]; total: number }>(
-        path,
-      );
+      const body = await api<{
+        data: Record<string, unknown>[];
+        total: number;
+      }>(path);
       return {
         data: body.data.map((row) => ({ ...row, id: row.id })),
         total: body.total,

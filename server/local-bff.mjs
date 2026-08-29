@@ -63,6 +63,57 @@ function readBody(req) {
   });
 }
 
+async function resolveSavedView(client, view) {
+  const query = view.query || {};
+  const kind = query.kind;
+  if (kind === "contacts_by_type") {
+    const rows = await client.query(
+      `select c.id, c.first_name, c.last_name
+       from contacts c
+       join contact_type_assignments t on t.contact_id = c.id
+       where t.type_id = $1
+       order by c.last_name, c.first_name`,
+      [query.type_id],
+    );
+    return rows.rows.map((row) => ({
+      id: row.id,
+      label: `${row.first_name} ${row.last_name}`,
+      href: `/contacts/${row.id}/show`,
+    }));
+  }
+  if (kind === "list") {
+    const rows = await client.query(
+      `select c.id, c.first_name, c.last_name
+       from list_members m
+       join contacts c on c.id = m.object_id
+       where m.list_id = $1 and m.object_type = 'contact'
+       order by c.last_name, c.first_name`,
+      [query.list_id],
+    );
+    return rows.rows.map((row) => ({
+      id: row.id,
+      label: `${row.first_name} ${row.last_name}`,
+      href: `/contacts/${row.id}/show`,
+    }));
+  }
+  if (kind === "deals_by_pipeline") {
+    const rows = await client.query(
+      `select d.id, d.name, s.label as stage_label
+       from deals d
+       join pipeline_stages s on s.id = d.stage_id
+       where d.pipeline_id = $1
+       order by d.name`,
+      [query.pipeline_id],
+    );
+    return rows.rows.map((row) => ({
+      id: row.id,
+      label: row.stage_label ? `${row.name} · ${row.stage_label}` : row.name,
+      href: `/deals/${row.id}/show`,
+    }));
+  }
+  return [];
+}
+
 function principalFrom(req) {
   const raw =
     req.headers["x-ardley-customer-id"] ||
@@ -128,12 +179,37 @@ const server = http.createServer(async (req, res) => {
     if (req.method === "GET" && url.pathname === "/contacts") {
       const rows = await withTenant(principal, (client) =>
         client.query(
-          `select id, first_name, last_name, owner_id, tenant_id
-           from contacts
-           order by last_name, first_name`,
+          `select c.id, c.first_name, c.last_name, c.owner_id, c.tenant_id,
+                  (
+                    select t.type_id
+                    from contact_type_assignments t
+                    where t.contact_id = c.id
+                    order by t.is_primary desc, t.type_id
+                    limit 1
+                  ) as primary_type
+           from contacts c
+           order by c.last_name, c.first_name`,
         ),
       );
       json(res, 200, { data: rows.rows, total: rows.rowCount });
+      return;
+    }
+
+    if (req.method === "GET" && url.pathname === "/saved-views") {
+      const rows = await withTenant(principal, async (client) => {
+        const views = await client.query(
+          `select id, name, object_type, query
+           from saved_views
+           order by name`,
+        );
+        const data = [];
+        for (const view of views.rows) {
+          const results = await resolveSavedView(client, view);
+          data.push({ ...view, results, result_count: results.length });
+        }
+        return data;
+      });
+      json(res, 200, { data: rows, total: rows.length });
       return;
     }
 
