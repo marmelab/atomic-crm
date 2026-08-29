@@ -1,7 +1,7 @@
-import React from "react";
-
-const DealList = React.lazy(() => import("./DealList"));
+import { GraphDealList } from "../graph/GraphDealList";
+import { GraphDealShow } from "../graph/GraphDealShow";
 
 export default {
-  list: DealList,
+  list: GraphDealList,
+  show: GraphDealShow,
 };

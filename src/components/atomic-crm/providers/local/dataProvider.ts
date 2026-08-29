@@ -31,7 +31,11 @@ export const getDataProvider = (): DataProvider & {
           ? "/companies"
           : resource === "deals"
             ? "/deals"
-            : null;
+            : resource === "pipeline_stages"
+              ? "/pipeline-stages"
+              : resource === "pipelines"
+                ? "/pipelines"
+                : null;
     if (path) {
       const body = await api<{ data: Record<string, unknown>[]; total: number }>(
         path,
@@ -43,16 +47,43 @@ export const getDataProvider = (): DataProvider & {
     }
     return emptyList;
   },
-  getOne: async () => {
-    throw new Error("getOne is not wired on the W0 local path");
+  getOne: async (resource, params) => {
+    const path =
+      resource === "contacts"
+        ? `/contacts/${params.id}`
+        : resource === "companies"
+          ? `/companies/${params.id}`
+          : resource === "deals"
+            ? `/deals/${params.id}`
+            : null;
+    if (!path) {
+      throw new Error(`getOne is not wired for ${resource}`);
+    }
+    const body = await api<{ data: Record<string, unknown> }>(path);
+    return { data: { ...body.data, id: body.data.id } };
   },
   getMany: async () => ({ data: [] }),
   getManyReference: async () => emptyList,
   create: async () => {
     throw new Error("writes are not wired on the W0 local path");
   },
-  update: async () => {
-    throw new Error("writes are not wired on the W0 local path");
+  update: async (resource, params) => {
+    if (resource !== "deals") {
+      throw new Error("writes are not wired on the W0 local path");
+    }
+    const res = await fetch(`${API_BASE}/deals/${params.id}`, {
+      method: "PATCH",
+      headers: {
+        "content-type": "application/json",
+        "x-ardley-customer-id": getStubCustomerId(),
+      },
+      body: JSON.stringify({ stage_id: params.data.stage_id }),
+    });
+    if (!res.ok) {
+      throw new Error(`local-bff PATCH /deals/${params.id} ${res.status}`);
+    }
+    const body = (await res.json()) as { data: Record<string, unknown> };
+    return { data: { ...params.previousData, ...params.data, ...body.data } };
   },
   updateMany: async () => ({ data: [] }),
   delete: async () => {

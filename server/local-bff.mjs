@@ -39,9 +39,28 @@ function json(res, status, body) {
     "access-control-allow-origin": "*",
     "access-control-allow-headers":
       "content-type, x-ardley-customer-id, x-acorn-tenant-id",
-    "access-control-allow-methods": "GET,OPTIONS",
+    "access-control-allow-methods": "GET,PATCH,OPTIONS",
   });
   res.end(payload);
+}
+
+function readBody(req) {
+  return new Promise((resolve, reject) => {
+    const chunks = [];
+    req.on("data", (chunk) => chunks.push(chunk));
+    req.on("end", () => {
+      if (!chunks.length) {
+        resolve({});
+        return;
+      }
+      try {
+        resolve(JSON.parse(Buffer.concat(chunks).toString("utf8")));
+      } catch (err) {
+        reject(err);
+      }
+    });
+    req.on("error", reject);
+  });
 }
 
 function principalFrom(req) {
@@ -136,6 +155,237 @@ const server = http.createServer(async (req, res) => {
           `select id, name, pipeline_id, stage_id, amount_cents, owner_id, tenant_id
            from deals
            order by name`,
+        ),
+      );
+      json(res, 200, { data: rows.rows, total: rows.rowCount });
+      return;
+    }
+
+    const contactOne = url.pathname.match(/^\/contacts\/([0-9a-f-]{36})$/i);
+    if (req.method === "GET" && contactOne) {
+      const id = contactOne[1];
+      const payload = await withTenant(principal, async (client) => {
+        const contact = await client.query(
+          `select id, first_name, last_name, owner_id, tenant_id
+           from contacts where id = $1`,
+          [id],
+        );
+        if (!contact.rowCount) return null;
+        const [types, identifiers, affiliations, links, parties] =
+          await Promise.all([
+            client.query(
+              `select type_id, is_primary from contact_type_assignments
+               where contact_id = $1 order by is_primary desc, type_id`,
+              [id],
+            ),
+            client.query(
+              `select id, id_type, value from contact_identifiers
+               where contact_id = $1 order by id_type`,
+              [id],
+            ),
+            client.query(
+              `select a.id, a.company_id, a.role, a.is_primary, c.name as company_name,
+                      c.parent_company_id, p.name as parent_company_name
+               from contact_affiliations a
+               join companies c on c.id = a.company_id
+               left join companies p on p.id = c.parent_company_id
+               where a.contact_id = $1`,
+              [id],
+            ),
+            client.query(
+              `select rl.id, rl.link_type_id, rl.from_object_type, rl.from_id,
+                      rl.to_object_type, rl.to_id,
+                      concat_ws(' ', fc.first_name, fc.last_name) as from_name,
+                      concat_ws(' ', tc.first_name, tc.last_name) as to_name
+               from record_links rl
+               left join contacts fc
+                 on rl.from_object_type = 'contact' and fc.id = rl.from_id
+               left join contacts tc
+                 on rl.to_object_type = 'contact' and tc.id = rl.to_id
+               where (rl.from_object_type = 'contact' and rl.from_id = $1)
+                  or (rl.to_object_type = 'contact' and rl.to_id = $1)`,
+              [id],
+            ),
+            client.query(
+              `select dp.deal_id, dp.role, dp.is_primary, d.name as deal_name,
+                      d.pipeline_id, d.stage_id
+               from deal_parties dp
+               join deals d on d.id = dp.deal_id
+               where dp.contact_id = $1`,
+              [id],
+            ),
+          ]);
+        return {
+          ...contact.rows[0],
+          types: types.rows,
+          identifiers: identifiers.rows,
+          affiliations: affiliations.rows,
+          links: links.rows,
+          deals: parties.rows,
+        };
+      });
+      if (!payload) {
+        json(res, 404, { error: "not_found" });
+        return;
+      }
+      json(res, 200, { data: payload });
+      return;
+    }
+
+    const companyOne = url.pathname.match(/^\/companies\/([0-9a-f-]{36})$/i);
+    if (req.method === "GET" && companyOne) {
+      const id = companyOne[1];
+      const payload = await withTenant(principal, async (client) => {
+        const company = await client.query(
+          `select id, name, kind_id, parent_company_id, owner_id, tenant_id
+           from companies where id = $1`,
+          [id],
+        );
+        if (!company.rowCount) return null;
+        const [parent, children, people] = await Promise.all([
+          company.rows[0].parent_company_id
+            ? client.query(
+                `select id, name, kind_id from companies where id = $1`,
+                [company.rows[0].parent_company_id],
+              )
+            : Promise.resolve({ rows: [] }),
+          client.query(
+            `select id, name, kind_id from companies
+             where parent_company_id = $1 order by name`,
+            [id],
+          ),
+          client.query(
+            `select a.contact_id, a.role, c.first_name, c.last_name
+             from contact_affiliations a
+             join contacts c on c.id = a.contact_id
+             where a.company_id = $1
+             order by c.last_name`,
+            [id],
+          ),
+        ]);
+        return {
+          ...company.rows[0],
+          parent: parent.rows[0] ?? null,
+          children: children.rows,
+          people: people.rows,
+        };
+      });
+      if (!payload) {
+        json(res, 404, { error: "not_found" });
+        return;
+      }
+      json(res, 200, { data: payload });
+      return;
+    }
+
+    const dealOne = url.pathname.match(/^\/deals\/([0-9a-f-]{36})$/i);
+    if (req.method === "GET" && dealOne) {
+      const id = dealOne[1];
+      const payload = await withTenant(principal, async (client) => {
+        const deal = await client.query(
+          `select d.id, d.name, d.pipeline_id, d.stage_id, d.amount_cents,
+                  d.owner_id, d.tenant_id, p.name as pipeline_name, s.label as stage_label
+           from deals d
+           join pipelines p on p.id = d.pipeline_id
+           join pipeline_stages s on s.id = d.stage_id
+           where d.id = $1`,
+          [id],
+        );
+        if (!deal.rowCount) return null;
+        const parties = await client.query(
+          `select dp.contact_id, dp.role, dp.is_primary, c.first_name, c.last_name
+           from deal_parties dp
+           join contacts c on c.id = dp.contact_id
+           where dp.deal_id = $1
+           order by dp.role`,
+          [id],
+        );
+        const stages = await client.query(
+          `select id, code, label, sort_index
+           from pipeline_stages
+           where pipeline_id = $1
+           order by sort_index`,
+          [deal.rows[0].pipeline_id],
+        );
+        return {
+          ...deal.rows[0],
+          parties: parties.rows,
+          stages: stages.rows,
+        };
+      });
+      if (!payload) {
+        json(res, 404, { error: "not_found" });
+        return;
+      }
+      json(res, 200, { data: payload });
+      return;
+    }
+
+    if (req.method === "PATCH" && dealOne) {
+      const id = dealOne[1];
+      const body = await readBody(req);
+      const stageId = body?.stage_id;
+      if (!stageId) {
+        json(res, 400, { error: "stage_id_required" });
+        return;
+      }
+      const updated = await withTenant(principal, async (client) => {
+        const current = await client.query(
+          `select id, stage_id, tenant_id from deals where id = $1`,
+          [id],
+        );
+        if (!current.rowCount) return null;
+        const fromStage = current.rows[0].stage_id;
+        await client.query(`update deals set stage_id = $2, updated_at = now() where id = $1`, [
+          id,
+          stageId,
+        ]);
+        await client.query(
+          `insert into deal_stage_events
+             (tenant_id, deal_id, from_stage_id, to_stage_id, actor_user_id)
+           values ($1, $2, $3, $4, $5)`,
+          [current.rows[0].tenant_id, id, fromStage, stageId, principal.userId],
+        );
+        await client.query(
+          `insert into activities
+             (tenant_id, object_type, object_id, actor_user_id, kind, body)
+           values ($1, 'deal', $2, $3, 'stage_change', $4)`,
+          [
+            current.rows[0].tenant_id,
+            id,
+            principal.userId,
+            `Stage moved to ${stageId}`,
+          ],
+        );
+        return { id, stage_id: stageId };
+      });
+      if (!updated) {
+        json(res, 404, { error: "not_found" });
+        return;
+      }
+      json(res, 200, { data: updated });
+      return;
+    }
+
+    if (req.method === "GET" && url.pathname === "/pipelines") {
+      const rows = await withTenant(principal, (client) =>
+        client.query(
+          `select id, name, sort_index from pipelines order by sort_index, name`,
+        ),
+      );
+      json(res, 200, { data: rows.rows, total: rows.rowCount });
+      return;
+    }
+
+    if (req.method === "GET" && url.pathname === "/pipeline-stages") {
+      const pipelineId = url.searchParams.get("pipeline_id");
+      const rows = await withTenant(principal, (client) =>
+        client.query(
+          `select id, pipeline_id, code, label, sort_index, is_closed, is_won
+           from pipeline_stages
+           where ($1::uuid is null or pipeline_id = $1)
+           order by sort_index`,
+          [pipelineId],
         ),
       );
       json(res, 200, { data: rows.rows, total: rows.rowCount });

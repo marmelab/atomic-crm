@@ -13,7 +13,7 @@ This is **not** a tracking fork. Schema, auth, and hosting diverge on purpose:
 
 ## Status
 
-W0 is on `main` (local BFF + tenant smoke). **W1** adds the graph schema slice and one Woodley loan triangle. No graph UI yet.
+W0–W1 are on `main`. **W2** is the clickable loan triangle (graph show pages + stage buttons). Full roster is W3.
 
 Plan: [`docs/poc-plan.md`](docs/poc-plan.md) · W1: [`docs/w1.md`](docs/w1.md)
 
