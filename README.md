@@ -13,9 +13,9 @@ This is **not** a tracking fork. Schema, auth, and hosting diverge on purpose:
 
 ## Status
 
-W0: local Docker Postgres + directional schema + two-tenant smoke. Atomic UI still runs against Supabase (`make start`); that path goes away as W0–W4 land. Do not add mortgage fields on the Atomic schema.
+W0 is on `main` (local BFF + tenant smoke). **W1** adds the graph schema slice and one Woodley loan triangle. No graph UI yet.
 
-Plan: [`docs/poc-plan.md`](docs/poc-plan.md)
+Plan: [`docs/poc-plan.md`](docs/poc-plan.md) · W1: [`docs/w1.md`](docs/w1.md)
 
 ## Demo tenants
 
@@ -29,10 +29,10 @@ Plan: [`docs/poc-plan.md`](docs/poc-plan.md)
 Docker Postgres on **5433** (avoids clashing with Supabase).
 
 ```bash
-make w0-smoke
+make w1-smoke
 ```
 
-That resets the DB, applies [`docs/schema-direction.sql`](docs/schema-direction.sql), seeds Woodley/Envoy, and asserts RLS: a Woodley session cannot see Envoy contacts.
+That resets the DB, applies [`docs/schema-direction.sql`](docs/schema-direction.sql), seeds W0 + the W1 triangle, and asserts RLS plus no cascade-delete of people.
 
 ```
 postgres://ardley:ardley@127.0.0.1:5433/ardley_crm
