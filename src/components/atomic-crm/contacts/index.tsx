@@ -1,12 +1,12 @@
 import type { Contact } from "../types";
+import { GraphContactList } from "../graph/GraphContactList";
+import { GraphContactShow } from "../graph/GraphContactShow";
 import { ContactCreate } from "./ContactCreate";
 import { ContactEdit } from "./ContactEdit";
-import { ContactList } from "./ContactList";
-import { ContactShow } from "./ContactShow";
 
 export default {
-  list: ContactList,
-  show: ContactShow,
+  list: GraphContactList,
+  show: GraphContactShow,
   edit: ContactEdit,
   create: ContactCreate,
   recordRepresentation: (record: Contact) =>

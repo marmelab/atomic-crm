@@ -37,6 +37,16 @@ insert into pipeline_stages (id, tenant_id, pipeline_id, code, label, sort_index
         4,
         false,
         false
+    ),
+    (
+        'c1000001-0001-4000-8000-000000000042',
+        uuid_generate_v5(uuid_generate_v5(uuid_ns_dns(), 'ardley-crm.tenants'), '100004'),
+        'c1000001-0001-4000-8000-000000000004',
+        '06-in-underwriting',
+        '06 - In Underwriting',
+        6,
+        false,
+        false
     )
 on conflict (id) do nothing;
 

@@ -1,11 +1,11 @@
-import { CompanyList } from "./CompanyList";
+import { GraphCompanyList } from "../graph/GraphCompanyList";
+import { GraphCompanyShow } from "../graph/GraphCompanyShow";
 import { CompanyCreate } from "./CompanyCreate";
-import { CompanyShow } from "./CompanyShow";
 import { CompanyEdit } from "./CompanyEdit";
 
 export default {
-  list: CompanyList,
+  list: GraphCompanyList,
   create: CompanyCreate,
   edit: CompanyEdit,
-  show: CompanyShow,
+  show: GraphCompanyShow,
 };
