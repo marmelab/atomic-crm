@@ -179,7 +179,10 @@ export const createDataProvider = ({
         );
         const { page, perPage } = pagination;
         const start = (page - 1) * perPage;
-        return { data: all.slice(start, start + perPage), total: all.length };
+        return {
+          data: all.slice(start, start + perPage),
+          total: all.length,
+        } as never;
       }
       return baseDataProvider.getList(resource, params);
     },

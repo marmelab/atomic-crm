@@ -16,7 +16,7 @@ export const StartPage = () => {
   } = useQuery({
     queryKey: ["init"],
     queryFn: async () => {
-      return dataProvider.isInitialized();
+      return dataProvider.isInitialized?.() ?? false;
     },
   });
 

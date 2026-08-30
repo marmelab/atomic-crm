@@ -7,6 +7,7 @@ interface GraphContact {
   id: string;
   first_name: string;
   last_name: string;
+  primary_type?: string | null;
 }
 
 export function GraphContactList() {
@@ -30,6 +31,12 @@ function ContactRows() {
             <Link className="underline" to={`/contacts/${row.id}/show`}>
               {row.first_name} {row.last_name}
             </Link>
+            {row.primary_type ? (
+              <span className="text-muted-foreground">
+                {" "}
+                · {row.primary_type}
+              </span>
+            ) : null}
           </li>
         ))}
       </ul>

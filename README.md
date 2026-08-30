@@ -13,7 +13,7 @@ This is **not** a tracking fork. Schema, auth, and hosting diverge on purpose:
 
 ## Status
 
-W0–W1 are on `main`. **W2** is the clickable loan triangle (graph show pages + stage buttons). Full roster is W3.
+W0–W2 are on `main`. **W3** is the first demo-story seed + saved-view home. Full roster / theme / merge come later.
 
 Plan: [`docs/poc-plan.md`](docs/poc-plan.md) · W1: [`docs/w1.md`](docs/w1.md)
 
@@ -29,10 +29,10 @@ Plan: [`docs/poc-plan.md`](docs/poc-plan.md) · W1: [`docs/w1.md`](docs/w1.md)
 Docker Postgres on **5433** (avoids clashing with Supabase).
 
 ```bash
-make w1-smoke
+make w3-smoke
 ```
 
-That resets the DB, applies [`docs/schema-direction.sql`](docs/schema-direction.sql), seeds W0 + the W1 triangle, and asserts RLS plus no cascade-delete of people.
+That resets the DB, applies [`docs/schema-direction.sql`](docs/schema-direction.sql), seeds W0–W3, and asserts RLS plus saved-view counts.
 
 ```
 postgres://ardley:ardley@127.0.0.1:5433/ardley_crm

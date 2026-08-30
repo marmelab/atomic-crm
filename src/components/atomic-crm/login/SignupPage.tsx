@@ -25,7 +25,7 @@ export const SignupPage = () => {
   const { data: isInitialized, isPending } = useQuery({
     queryKey: ["init"],
     queryFn: async () => {
-      return dataProvider.isInitialized();
+      return dataProvider.isInitialized?.() ?? false;
     },
   });
 

@@ -1,4 +1,4 @@
-.PHONY: build help start-postgres stop-postgres w0-smoke w1-smoke w1-isolation w2-isolation
+.PHONY: build help start-postgres stop-postgres w0-smoke w1-smoke w1-isolation w2-isolation w3-smoke w3-isolation
 
 # Run silently, show output on failure
 run-silent = $1 >/tmp/atomic-crm-$2.log 2>&1 || (cat /tmp/atomic-crm-$2.log && false)
@@ -73,6 +73,12 @@ w1-isolation: ## BFF isolation for companies, deals, NMLS
 
 w2-isolation: ## BFF show-graph isolation for Willow / Envoy
 	bash scripts/w2-isolation.sh
+
+w3-smoke: ## reset DB, seed W3 story, prove views + isolation
+	bash scripts/w3-smoke.sh
+
+w3-isolation: ## BFF saved-view isolation
+	bash scripts/w3-isolation.sh
 
 start: start-postgres ## Docker Postgres; run `make start-bff` and `npm run dev` in other terminals
 

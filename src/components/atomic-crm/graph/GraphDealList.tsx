@@ -36,7 +36,7 @@ function DealBoard() {
   if (isPending) return null;
 
   const columns = (stages ?? []).length
-    ? stages
+    ? (stages ?? [])
     : uniqueStages(data ?? []);
 
   return (
