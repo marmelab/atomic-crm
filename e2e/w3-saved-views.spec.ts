@@ -10,9 +10,15 @@ test.describe("W3 saved views home", () => {
 
   test("home lists My Borrowers and My Paired Agents", async ({ page }) => {
     await page.goto("/#/");
-    await expect(page.getByRole("heading", { name: "My Borrowers" })).toBeVisible();
-    await expect(page.getByRole("link", { name: "Willow Woodley" })).toBeVisible();
-    await expect(page.getByRole("heading", { name: "My Paired Agents" })).toBeVisible();
+    await expect(
+      page.getByRole("heading", { name: "My Borrowers" }),
+    ).toBeVisible();
+    await expect(
+      page.getByRole("link", { name: "Willow Woodley" }),
+    ).toBeVisible();
+    await expect(
+      page.getByRole("heading", { name: "My Paired Agents" }),
+    ).toBeVisible();
     await expect(page.getByRole("link", { name: "Avery Agent" })).toBeVisible();
     await page.getByRole("link", { name: "Willow Woodley" }).click();
     await expect(page.getByText("borrower")).toBeVisible();
