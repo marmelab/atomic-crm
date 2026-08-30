@@ -1,0 +1,84 @@
+%%{init: {"theme": "neutral", "themeVariables": {"fontFamily": "IBM Plex Sans, Helvetica, sans-serif", "fontSize": "14px"}}}%%
+erDiagram
+  tenants ||--o{ crm_users : tenant
+  tenants ||--o{ contacts : tenant
+  tenants ||--o{ companies : tenant
+  tenants ||--o{ deals : tenant
+
+  crm_users ||--o{ contacts : owns
+  crm_users ||--o{ companies : owns
+  crm_users ||--o{ deals : owns
+  crm_users }o--o| contacts : "login is a contact"
+
+  contacts ||--o{ contact_type_assignments : hats
+  contact_types ||--o{ contact_type_assignments : type
+  contacts ||--o{ contact_identifiers : ids
+  identifier_types ||--o{ contact_identifiers : kind
+
+  contacts ||--o{ contact_affiliations : member
+  companies ||--o{ contact_affiliations : org
+  company_kinds ||--o{ companies : kind
+  companies ||--o{ companies : parent
+
+  pipelines ||--o{ pipeline_stages : stages
+  pipelines ||--o{ deals : book
+  pipeline_stages ||--o{ deals : current
+  deals ||--o{ deal_parties : cast
+  contacts ||--o{ deal_parties : person
+  deal_party_roles ||--o{ deal_parties : role
+  deals ||--o{ deal_stage_events : history
+
+  object_types ||--o{ link_types : endpoints
+  link_types ||--o{ record_links : type
+  tenants ||--o{ record_links : tenant
+
+  lists ||--o{ list_members : members
+  crm_users ||--o{ saved_views : owner
+  object_types ||--o{ activities : about
+
+  tenants {
+    uuid id PK
+    text ardley_customer_id UK
+    text name
+  }
+  crm_users {
+    uuid id PK
+    text cognito_sub UK
+    uuid contact_id FK
+  }
+  contacts {
+    uuid id PK
+    text first_name
+    text last_name
+    uuid merged_into_id FK
+  }
+  companies {
+    uuid id PK
+    uuid parent_company_id FK
+    text name
+  }
+  deals {
+    uuid id PK
+    text name
+    bigint amount_cents
+    text encompass_id
+  }
+  contact_affiliations {
+    uuid contact_id FK
+    uuid company_id FK
+    text role
+  }
+  deal_parties {
+    uuid deal_id FK
+    uuid contact_id FK
+    text role FK
+  }
+  record_links {
+    text link_type_id FK
+    uuid from_id
+    uuid to_id
+  }
+  contact_identifiers {
+    text id_type FK
+    text value
+  }

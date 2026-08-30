@@ -1,0 +1,27 @@
+%%{init: {"theme": "neutral", "flowchart": {"curve": "basis", "htmlLabels": true}, "themeVariables": {"fontFamily": "IBM Plex Sans, Helvetica, sans-serif", "fontSize": "16px"}}}%%
+flowchart TB
+  subgraph rule["Three facts — do not store the same thing twice"]
+    direction LR
+    M["Membership<br/>contact_affiliations"]
+    P["Deal cast<br/>deal_parties"]
+    G["Durable graph<br/>record_links"]
+  end
+
+  Brokerage["company<br/>Woodley Realty"]
+  Team["company<br/>Agents with a Grin"]
+  Brokerage -->|parent| Team
+
+  Avery["contact<br/>Avery Agent"]
+  Phil["contact<br/>Phil Officer"]
+  Willow["contact<br/>Willow Woodley"]
+  Sam["contact<br/>Sam Spouse"]
+  Deal["deal<br/>Willow purchase"]
+
+  Avery -->|affiliation: agent| Team
+  Willow ---|link: spouse| Sam
+  Phil ---|link: paired_agent| Avery
+
+  Willow -->|party: borrower| Deal
+  Sam -->|party: co_borrower| Deal
+  Avery -->|party: referring_agent| Deal
+  Phil -->|party: loan_officer| Deal
