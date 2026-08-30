@@ -7,6 +7,7 @@ import { DateTimeInput } from "@/components/admin";
 
 import { contactOptionText } from "../misc/ContactOption";
 import { useConfigurationContext } from "../root/ConfigurationContext";
+import { taskStatuses } from "./taskConstants";
 
 export const TaskFormContent = ({
   selectContact,
@@ -48,10 +49,19 @@ export const TaskFormContent = ({
           choices={taskTypes}
           optionText="label"
           optionValue="value"
-          defaultValue="none"
+          defaultValue="other"
           helperText={false}
         />
       </div>
+      <SelectInput
+        source="status"
+        label="resources.tasks.fields.status"
+        choices={taskStatuses}
+        optionText="label"
+        optionValue="value"
+        defaultValue="pending"
+        helperText={false}
+      />
     </div>
   );
 };

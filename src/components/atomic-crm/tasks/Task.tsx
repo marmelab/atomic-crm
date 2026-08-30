@@ -10,6 +10,7 @@ import {
 import { useEffect, useState } from "react";
 import { ReferenceField } from "@/components/admin/reference-field";
 import { DateField } from "@/components/admin/date-field";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
@@ -21,6 +22,7 @@ import {
 
 import { useConfigurationContext } from "../root/ConfigurationContext";
 import type { Contact, Task as TData } from "../types";
+import { taskStatusLabels } from "./taskConstants";
 import { TaskEdit } from "./TaskEdit";
 import { TaskEditSheet } from "./TaskEditSheet";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -104,7 +106,7 @@ export const Task = ({
           />
           <div className={`flex-grow ${task.done_date ? "line-through" : ""}`}>
             <div className="text-sm">
-              {task.type && task.type !== "none" && (
+              {task.type && (
                 <>
                   <span className="font-semibold text-sm">
                     {(() => {
@@ -120,6 +122,13 @@ export const Task = ({
                 </>
               )}
               {task.text}
+              {/* Pending/Completed are already conveyed by the checkbox and
+                  strikethrough; only the less obvious states get a badge. */}
+              {(task.status === "waiting" || task.status === "cancelled") && (
+                <Badge variant="outline" className="ml-2 align-middle">
+                  {taskStatusLabels[task.status]}
+                </Badge>
+              )}
             </div>
             <div className="text-sm text-muted-foreground">
               {translate("resources.tasks.fields.due_short")}

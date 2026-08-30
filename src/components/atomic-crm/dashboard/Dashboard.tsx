@@ -1,14 +1,18 @@
-import { useGetList } from "ra-core";
+import { useGetList, useTranslate } from "ra-core";
 
 import type { Contact, ContactNote } from "../types";
+import { ArtOracleCard } from "./artOracle/ArtOracleCard";
+import { BusinessAtAGlance } from "./BusinessAtAGlance";
 import { DashboardActivityLog } from "./DashboardActivityLog";
 import { DashboardStepper } from "./DashboardStepper";
-import { DealsChart } from "./DealsChart";
-import { HotContacts } from "./HotContacts";
-import { TasksList } from "./TasksList";
-import { Welcome } from "./Welcome";
+import { DashboardTasks } from "./DashboardTasks";
+import { PeopleDeciding } from "./PeopleDeciding";
 
+// Leif's daily command center: "If Today is clear, sales work is handled."
+// Hierarchy is Tasks > Business capacity > People Deciding / Art Oracle >
+// Latest Activity (collapsed) — see the Dashboard/Today slice report.
 export const Dashboard = () => {
+  const translate = useTranslate();
   const {
     data: dataContact,
     total: totalContact,
@@ -22,14 +26,7 @@ export const Dashboard = () => {
       pagination: { page: 1, perPage: 1 },
     });
 
-  const { total: totalDeal, isPending: isPendingDeal } = useGetList<Contact>(
-    "deals",
-    {
-      pagination: { page: 1, perPage: 1 },
-    },
-  );
-
-  const isPending = isPendingContact || isPendingContactNotes || isPendingDeal;
+  const isPending = isPendingContact || isPendingContactNotes;
 
   if (isPending) {
     return null;
@@ -44,23 +41,28 @@ export const Dashboard = () => {
   }
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-12 gap-6 mt-1">
-      <div className="md:col-span-3">
-        <div className="flex flex-col gap-4">
-          {import.meta.env.VITE_IS_DEMO === "true" ? <Welcome /> : null}
-          <HotContacts />
-        </div>
-      </div>
-      <div className="md:col-span-6">
-        <div className="flex flex-col gap-6">
-          {totalDeal ? <DealsChart /> : null}
-          <DashboardActivityLog />
-        </div>
+    <div className="flex flex-col gap-8 mt-1">
+      <div>
+        <h1 className="text-2xl font-semibold">
+          {translate("ra.page.dashboard")}
+        </h1>
+        <p className="text-sm text-muted-foreground">
+          {translate("crm.dashboard.orientation", {
+            _: "What needs your attention, and how full is your business?",
+          })}
+        </p>
       </div>
 
-      <div className="md:col-span-3">
-        <TasksList />
+      <DashboardTasks />
+
+      <BusinessAtAGlance />
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
+        <PeopleDeciding />
+        <ArtOracleCard />
       </div>
+
+      <DashboardActivityLog />
     </div>
   );
 };

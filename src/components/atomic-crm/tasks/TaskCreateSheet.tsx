@@ -76,7 +76,8 @@ export const TaskCreateSheet = ({
       }
       redirect={false}
       record={{
-        type: "none",
+        type: "other",
+        status: "pending",
         contact_id,
         due_date: new Date().toISOString(),
         sales_id: identity.id,

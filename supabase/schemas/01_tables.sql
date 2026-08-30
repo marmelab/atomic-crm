@@ -239,7 +239,13 @@ create table public.tasks (
     text text,
     due_date timestamp with time zone,
     done_date timestamp with time zone,
-    sales_id bigint
+    -- Tasks are reminders/actions, not sales-status controls: this never
+    -- reads from or writes to Opportunity/Application/Enrollment state.
+    -- Kept in sync with done_date by the app (Pending <-> Completed via the
+    -- checkbox); Waiting/Cancelled are set explicitly.
+    status text not null default 'pending',
+    sales_id bigint,
+    constraint tasks_status_check check (status in ('pending', 'waiting', 'completed', 'cancelled'))
 );
 
 create table public.configuration (

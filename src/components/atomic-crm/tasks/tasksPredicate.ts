@@ -2,6 +2,8 @@ import { startOfToday } from "date-fns/startOfToday";
 import { endOfToday } from "date-fns/endOfToday";
 import { endOfTomorrow } from "date-fns/endOfTomorrow";
 import { endOfWeek } from "date-fns/endOfWeek";
+import { addDays } from "date-fns/addDays";
+import { endOfDay } from "date-fns/endOfDay";
 
 import { getDay, isAfter } from "date-fns";
 
@@ -9,10 +11,18 @@ export const isBeforeFriday = () => getDay(new Date()) < 5; // Friday is represe
 
 type Task = {
   due_date: string;
-  done_date: string | null;
+  done_date?: string | null;
+  // Optional so callers with only the legacy done_date field still compile.
+  status?: "pending" | "waiting" | "completed" | "cancelled";
 };
 
-export const isDone = (task: Task) => task.done_date != null;
+// A task is "done" (no longer needs attention) once it's checked off or
+// explicitly cancelled. Checking done_date alone keeps this backward
+// compatible with any record that hasn't been given a status yet.
+export const isDone = (task: Task) =>
+  task.done_date != null ||
+  task.status === "completed" ||
+  task.status === "cancelled";
 
 // A task is recently done if it was marked as done less than 5 minutes ago
 // useful to keep recently done tasks in the list to avoid flickering when a task is marked as done while the user is consulting the list of tasks. It gives a chance to the user to see that the task was marked as done and then it will disappear after 5 minutes.
@@ -45,4 +55,14 @@ export const isDueThisWeek = (dateString: string) => {
 export const isDueLater = (dateString: string) => {
   const dueDate = new Date(dateString);
   return dueDate >= endOfWeek(new Date(), { weekStartsOn: 0 });
+};
+
+// Dashboard "Next 7 Days" bucket: everything after today through 7 full
+// days out. Deliberately bounded (unlike isDueLater) so the Dashboard's
+// Tasks section stays a short, scannable horizon — see the Dashboard/Today
+// slice report for why this is a separate bucket set from the detailed
+// Overdue/Today/Tomorrow/This Week/Later view used elsewhere.
+export const isDueNext7Days = (dateString: string) => {
+  const dueDate = new Date(dateString);
+  return dueDate >= endOfToday() && dueDate <= endOfDay(addDays(new Date(), 7));
 };

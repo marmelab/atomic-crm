@@ -59,16 +59,18 @@ export const defaultNoteStatuses = [
   { value: "in-contract", label: "In Contract", color: "#a4e87d" },
 ];
 
+// Leif's task vocabulary — what the CRM (eventually mostly automatically)
+// asks the owner to do next. "other" is the catch-all default rather than
+// a hidden "none", since every task should say what kind of action it is.
 export const defaultTaskTypes = [
-  { value: "none", label: "None" },
-  { value: "email", label: "Email" },
-  { value: "demo", label: "Demo" },
-  { value: "lunch", label: "Lunch" },
-  { value: "meeting", label: "Meeting" },
-  { value: "follow-up", label: "Follow-up" },
-  { value: "thank-you", label: "Thank you" },
-  { value: "ship", label: "Ship" },
-  { value: "call", label: "Call" },
+  { value: "review_application", label: "Review Application" },
+  { value: "sales_call", label: "Sales Call" },
+  { value: "follow_up", label: "Follow-up" },
+  { value: "nurture_follow_up", label: "Nurture Follow-up" },
+  { value: "check_payment", label: "Check Payment" },
+  { value: "send_contract", label: "Send Contract" },
+  { value: "complete_access", label: "Complete Access/Permissions" },
+  { value: "other", label: "Other" },
 ];
 
 export const defaultConfiguration: ConfigurationContextValue = {

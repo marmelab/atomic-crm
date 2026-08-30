@@ -291,12 +291,20 @@ export type Tag = {
   color: string;
 };
 
+export type TaskStatus = "pending" | "waiting" | "completed" | "cancelled";
+
 export type Task = {
   contact_id: Identifier;
   type: string;
   text: string;
   due_date: string;
   done_date?: string | null;
+  // Kept in sync with done_date (see dataProvider's "tasks" lifecycle hook):
+  // completing/uncompleting via the checkbox toggles both. "waiting" and
+  // "cancelled" are set explicitly via the task form. Tasks are reminders,
+  // never sales-status controls — this field never mutates, and is never
+  // mutated by, Opportunity/Application/Enrollment state.
+  status?: TaskStatus;
   sales_id?: Identifier;
 } & Pick<RaRecord, "id">;
 

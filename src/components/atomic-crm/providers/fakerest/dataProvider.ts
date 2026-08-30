@@ -588,14 +588,24 @@ export const createDataProvider = ({
         },
         beforeUpdate: async (params) => {
           const { data, previousData } = params;
+          let nextData = data;
           if (previousData.done_date !== data.done_date) {
             taskUpdateType = data.done_date
               ? TASK_MARKED_AS_DONE
               : TASK_MARKED_AS_UNDONE;
+            // Keep status in sync with the done_date checkbox: completing a
+            // task marks it Completed; unchecking returns it to Pending
+            // (Waiting/Cancelled are set explicitly via the task form, not
+            // by this checkbox, so they're only touched here on the way
+            // back to Pending).
+            nextData = {
+              ...data,
+              status: data.done_date ? "completed" : "pending",
+            };
           } else {
             taskUpdateType = TASK_DONE_NOT_CHANGED;
           }
-          return params;
+          return { ...params, data: nextData };
         },
         afterUpdate: async (result, dataProvider) => {
           // update the contact: if the task is done, decrement the nb tasks, otherwise increment it

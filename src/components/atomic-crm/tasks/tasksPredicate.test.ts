@@ -5,6 +5,8 @@ import {
   isDueTomorrow,
   isDueThisWeek,
   isDueLater,
+  isDueNext7Days,
+  isDone,
 } from "./tasksPredicate";
 import { startOfToday } from "date-fns/startOfToday";
 import { endOfToday } from "date-fns/endOfToday";
@@ -109,6 +111,64 @@ describe("tasksPredicate", () => {
       today.getTime() + 2 * 24 * 60 * 60 * 1000,
     ).toISOString();
     expect(isDueLater(thisWeek)).toBe(false);
+  });
+
+  describe("isDueNext7Days", () => {
+    it("returns false for a task due today", () => {
+      expect(isDueNext7Days(today.toISOString())).toBe(false);
+    });
+
+    it("returns true for a task due tomorrow", () => {
+      const tomorrow = new Date(
+        today.getTime() + 24 * 60 * 60 * 1000,
+      ).toISOString();
+      expect(isDueNext7Days(tomorrow)).toBe(true);
+    });
+
+    it("returns true for a task due exactly 7 days from now", () => {
+      const sevenDays = new Date(
+        today.getTime() + 7 * 24 * 60 * 60 * 1000,
+      ).toISOString();
+      expect(isDueNext7Days(sevenDays)).toBe(true);
+    });
+
+    it("returns false for a task due more than 7 days from now", () => {
+      const eightDays = new Date(
+        today.getTime() + 9 * 24 * 60 * 60 * 1000,
+      ).toISOString();
+      expect(isDueNext7Days(eightDays)).toBe(false);
+    });
+
+    it("returns false for an overdue task", () => {
+      const yesterday = new Date(
+        today.getTime() - 24 * 60 * 60 * 1000,
+      ).toISOString();
+      expect(isDueNext7Days(yesterday)).toBe(false);
+    });
+  });
+
+  describe("isDone", () => {
+    const base = { due_date: today.toISOString(), done_date: null };
+
+    it("is false for a pending task", () => {
+      expect(isDone({ ...base, status: "pending" })).toBe(false);
+    });
+
+    it("is false for a waiting task", () => {
+      expect(isDone({ ...base, status: "waiting" })).toBe(false);
+    });
+
+    it("is true once done_date is set, regardless of status", () => {
+      expect(isDone({ ...base, done_date: today.toISOString() })).toBe(true);
+    });
+
+    it("is true for a completed task", () => {
+      expect(isDone({ ...base, status: "completed" })).toBe(true);
+    });
+
+    it("is true for a cancelled task", () => {
+      expect(isDone({ ...base, status: "cancelled" })).toBe(true);
+    });
   });
 
   describe("boundaries", () => {
