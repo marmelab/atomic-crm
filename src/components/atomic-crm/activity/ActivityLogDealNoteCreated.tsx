@@ -56,7 +56,13 @@ export function ActivityLogDealNoteCreated({
               reference="deals"
               record={dealNote}
               link={isMobile ? false : "show"}
-            />
+            >
+              <ReferenceField
+                source="contact_id"
+                reference="contacts"
+                link={false}
+              />
+            </ReferenceField>
             {context !== "company" && (
               <>
                 {" "}

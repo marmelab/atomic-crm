@@ -20,7 +20,6 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Separator } from "@/components/ui/separator";
 
-import { Avatar } from "../contacts/Avatar";
 import { NoteCreate } from "../notes/NoteCreate";
 import { NotesIterator } from "../notes/NotesIterator";
 import { useConfigurationContext } from "../root/ConfigurationContext";
@@ -72,14 +71,13 @@ const DealShowContent = () => {
         <div className="flex-1">
           <div className="flex justify-between items-start mb-8">
             <div className="flex items-center gap-4">
-              <ReferenceField
-                source="contact_id"
-                reference="contacts"
-                link="show"
-              >
-                <Avatar />
-              </ReferenceField>
-              <h2 className="text-2xl font-semibold">{record.name}</h2>
+              <h2 className="text-2xl font-semibold">
+                <ReferenceField
+                  source="contact_id"
+                  reference="contacts"
+                  link="show"
+                />
+              </h2>
             </div>
             <div className={`flex gap-2 ${record.archived_at ? "" : "pr-12"}`}>
               {record.archived_at ? (

@@ -37,4 +37,41 @@ describe("classifyCohortOpportunity", () => {
       classifyCohortOpportunity({ stage: "decision", outcome: "lost" }),
     ).toBe("other");
   });
+
+  test("a rejected Application excludes the opportunity from in sales", () => {
+    expect(
+      classifyCohortOpportunity({
+        stage: "application_received",
+        hasRejectedApplication: true,
+      }),
+    ).toBe("other");
+  });
+
+  test("a pending Application still allows in sales", () => {
+    expect(
+      classifyCohortOpportunity({
+        stage: "application_received",
+        hasRejectedApplication: false,
+      }),
+    ).toBe("in_sales");
+  });
+
+  test("an approved Application still allows in sales", () => {
+    expect(
+      classifyCohortOpportunity({
+        stage: "approved",
+        hasRejectedApplication: false,
+      }),
+    ).toBe("in_sales");
+  });
+
+  test("a rejected Application does not override an active Enrollment", () => {
+    expect(
+      classifyCohortOpportunity({
+        stage: "won",
+        enrollment: { status: "active" },
+        hasRejectedApplication: true,
+      }),
+    ).toBe("enrolled");
+  });
 });

@@ -4,7 +4,6 @@ import { ReferenceField } from "@/components/admin/reference-field";
 import { NumberField } from "@/components/admin/number-field";
 import { Card, CardContent } from "@/components/ui/card";
 
-import { Avatar } from "../contacts/Avatar";
 import { useConfigurationContext } from "../root/ConfigurationContext";
 import type { Deal } from "../types";
 
@@ -55,13 +54,6 @@ export const DealCardContent = ({
         >
           <CardContent className="px-3 flex flex-col">
             <div className="flex-1 flex items-center gap-2">
-              <ReferenceField
-                source="contact_id"
-                reference="contacts"
-                link={false}
-              >
-                <Avatar width={20} height={20} />
-              </ReferenceField>
               <p className="flex-1 text-sm font-medium mb-0">
                 <ReferenceField
                   source="contact_id"

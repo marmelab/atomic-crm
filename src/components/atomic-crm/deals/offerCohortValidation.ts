@@ -18,7 +18,6 @@ export const validateOfferCohort = (
     );
   }
 
-   
   if (cohort.offer_id != offer.id) {
     throw new OfferCohortMismatchError(
       `Cohort ${cohort.id} does not belong to offer ${offer.id}`,

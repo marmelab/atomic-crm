@@ -18,10 +18,16 @@ export const classifyCohortOpportunity = ({
   stage,
   outcome,
   enrollment,
+  hasRejectedApplication,
 }: {
   stage: string;
   outcome?: string | null;
   enrollment?: Pick<Enrollment, "status"> | null;
+  // True if any Application linked to this Opportunity has status
+  // "rejected". This only affects Cohort "In Sales" classification — it
+  // never mutates the Opportunity itself (owner_decision stays independent
+  // of Application status; see applications/ "Application behavior").
+  hasRejectedApplication?: boolean;
 }): CohortPersonGroup => {
   if (enrollment && ACTIVE_ENROLLMENT_STATUSES.has(enrollment.status)) {
     return "enrolled";
@@ -35,6 +41,13 @@ export const classifyCohortOpportunity = ({
 
   if (enrollment) {
     // Completed (or any other non-active) enrollment: done, not in sales.
+    return "other";
+  }
+
+  // A rejected Application means this person isn't actively moving toward
+  // a purchase for this cohort anymore, even though nothing on the
+  // Opportunity record itself (stage/outcome) reflects that yet.
+  if (hasRejectedApplication) {
     return "other";
   }
 

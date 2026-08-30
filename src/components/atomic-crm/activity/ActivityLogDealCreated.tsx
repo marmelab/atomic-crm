@@ -36,9 +36,21 @@ export function ActivityLogDealCreated({
             { name: salesName },
           )}{" "}
           {isMobile ? (
-            deal.name
+            <ReferenceField
+              source="contact_id"
+              reference="contacts"
+              record={deal}
+              link={false}
+            />
           ) : (
-            <Link to={`/deals/${deal.id}/show`}>{deal.name}</Link>
+            <Link to={`/deals/${deal.id}/show`}>
+              <ReferenceField
+                source="contact_id"
+                reference="contacts"
+                record={deal}
+                link={false}
+              />
+            </Link>
           )}{" "}
           {context !== "company" && (
             <>

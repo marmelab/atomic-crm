@@ -23,7 +23,11 @@ export const OpportunitiesIterator = () => {
           to={`/deals/${deal.id}/show`}
           className="flex items-center justify-between gap-2 text-sm hover:underline"
         >
-          <span className="truncate">{deal.name}</span>
+          {/* Contact identity is implied by being on their own page already;
+              the Offer is what actually differentiates entries in this list. */}
+          <span className="truncate">
+            {deal.offer_name_snapshot ?? deal.name}
+          </span>
           <span className="text-xs text-muted-foreground whitespace-nowrap">
             {findDealLabel(dealStages, deal.stage)}
             {" · "}

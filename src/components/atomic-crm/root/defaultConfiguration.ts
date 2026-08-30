@@ -1,16 +1,21 @@
 import type { ConfigurationContextValue } from "./ConfigurationContext";
-// Import the logos as module assets so Vite resolves their URL relative to the
+// Import the logo as a module asset so Vite resolves its URL relative to the
 // JS chunk (import.meta.url), not the current route. A plain "./logos/..." path
 // breaks on nested routes like /oauth/consent and under a deployment sub-path.
-import darkModeLogo from "./logos/logo_atomic_crm_dark.svg";
-import lightModeLogo from "./logos/logo_atomic_crm_light.svg";
+//
+// Leif's real logo mark (white artwork, transparent background — designed
+// for a dark backdrop). Only one variant was supplied, so it's used for both
+// slots; it will render with poor contrast against the light-theme header
+// background until a light-mode-optimized variant is supplied. The artwork
+// itself is used as-is (not recolored/redrawn) per the brand instructions.
+import leifLogoMark from "./logos/logo_leif_mark.png";
 
-export const defaultDarkModeLogo = darkModeLogo;
-export const defaultLightModeLogo = lightModeLogo;
+export const defaultDarkModeLogo = leifLogoMark;
+export const defaultLightModeLogo = leifLogoMark;
 
 export const defaultCurrency = "USD";
 
-export const defaultTitle = "Atomic CRM";
+export const defaultTitle = "Leif CRM";
 
 export const defaultCompanySectors = [
   { value: "communication-services", label: "Communication Services" },

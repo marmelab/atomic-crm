@@ -1,7 +1,6 @@
 import {
   EditBase,
   Form,
-  useEditContext,
   useNotify,
   useRecordContext,
   useRedirect,
@@ -14,7 +13,6 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 
 import { FormToolbar } from "../layout/FormToolbar";
-import { Avatar } from "../contacts/Avatar";
 import type { Deal } from "../types";
 import { DealInputs } from "./DealInputs";
 
@@ -58,7 +56,6 @@ export const DealEdit = ({ open, id }: { open: boolean; id?: string }) => {
 
 function EditHeader() {
   const translate = useTranslate();
-  const { defaultTitle } = useEditContext<Deal>();
   const deal = useRecordContext<Deal>();
   if (!deal) {
     return null;
@@ -68,10 +65,13 @@ function EditHeader() {
     <DialogTitle className="pb-0">
       <div className="flex justify-between items-start mb-8">
         <div className="flex items-center gap-4">
-          <ReferenceField source="contact_id" reference="contacts" link="show">
-            <Avatar />
-          </ReferenceField>
-          <h2 className="text-2xl font-semibold">{defaultTitle}</h2>
+          <h2 className="text-2xl font-semibold">
+            <ReferenceField
+              source="contact_id"
+              reference="contacts"
+              link="show"
+            />
+          </h2>
         </div>
         <div className="flex gap-2 pr-12">
           <DeleteButton />
