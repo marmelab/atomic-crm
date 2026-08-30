@@ -4,6 +4,8 @@ import { Link } from "react-router";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 
+import { GraphMergeButton } from "./GraphMergeButton";
+
 interface GraphContact {
   id: string;
   first_name: string;
@@ -27,6 +29,7 @@ interface GraphContact {
     to_name: string | null;
   }[];
   deals: { deal_id: string; deal_name: string; role: string }[];
+  merged_into_id?: string | null;
 }
 
 export function GraphContactShow() {
@@ -49,11 +52,33 @@ function ContactGraph() {
         </h1>
         <div className="flex gap-2 mt-2 flex-wrap">
           {(record.types ?? []).map((type) => (
-            <Badge key={type.type_id} variant={type.is_primary ? "default" : "secondary"}>
+            <Badge
+              key={type.type_id}
+              variant={type.is_primary ? "default" : "secondary"}
+            >
               {type.type_id}
             </Badge>
           ))}
         </div>
+        {record.merged_into_id ? (
+          <p className="text-sm mt-2">
+            Merged into{" "}
+            <Link
+              className="underline"
+              to={`/contacts/${record.merged_into_id}/show`}
+            >
+              surviving contact
+            </Link>
+          </p>
+        ) : (
+          <div className="mt-4">
+            <GraphMergeButton
+              loserId={record.id}
+              firstName={record.first_name}
+              lastName={record.last_name}
+            />
+          </div>
+        )}
       </div>
 
       <section>
@@ -76,10 +101,15 @@ function ContactGraph() {
         <ul>
           {(record.affiliations ?? []).map((aff) => (
             <li key={aff.id}>
-              <Link className="underline" to={`/companies/${aff.company_id}/show`}>
+              <Link
+                className="underline"
+                to={`/companies/${aff.company_id}/show`}
+              >
                 {aff.company_name}
               </Link>
-              {aff.parent_company_name ? ` (under ${aff.parent_company_name})` : ""}
+              {aff.parent_company_name
+                ? ` (under ${aff.parent_company_name})`
+                : ""}
               {aff.role ? ` — ${aff.role}` : ""}
             </li>
           ))}
@@ -105,6 +135,16 @@ function ContactGraph() {
           })}
         </ul>
       </section>
+
+      {(record.types ?? []).some(
+        (type) =>
+          type.type_id === "employee" || type.type_id === "loan_officer",
+      ) ? (
+        <section>
+          <h2 className="font-medium mb-2">OPTAH / Coaching</h2>
+          <p className="text-sm text-muted-foreground">Coming.</p>
+        </section>
+      ) : null}
 
       <section>
         <h2 className="font-medium mb-2">Deals</h2>

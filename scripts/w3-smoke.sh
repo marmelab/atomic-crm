@@ -23,10 +23,11 @@ echo "Resetting public schema…"
 echo "Applying docs/schema-direction.sql…"
 "${PSQL[@]}" -f - < docs/schema-direction.sql
 
-echo "Seeding W0 + W1 + W3…"
+echo "Seeding W0 + W1 + W3 + roster…"
 "${PSQL[@]}" -f - < sql/seed_w0.sql
 "${PSQL[@]}" -f - < sql/seed_w1.sql
 "${PSQL[@]}" -f - < sql/seed_w3.sql
+"${PSQL[@]}" -f - < sql/seed_w3_roster.sql
 
 WOODLEY="$(
   "${PSQL[@]}" -Atc "select id from tenants where ardley_customer_id = '100004'"
@@ -65,9 +66,28 @@ views="$(
   )"
 )"
 
-echo "Woodley borrowers=$borrowers paired_list=$paired in_process=$in_process views=$views"
+contacts="$(
+  last "$(
+    "${APP_PSQL[@]}" -Atc "select set_config('app.tenant_id', '$WOODLEY', false);
+      select count(*) from contacts where merged_into_id is null"
+  )"
+)"
+agents="$(
+  last "$(
+    "${APP_PSQL[@]}" -Atc "select set_config('app.tenant_id', '$WOODLEY', false);
+      select count(*) from contact_type_assignments where type_id = 'real_estate_agent'"
+  )"
+)"
+dups="$(
+  last "$(
+    "${APP_PSQL[@]}" -Atc "select set_config('app.tenant_id', '$WOODLEY', false);
+      select count(*) from contacts where first_name = 'Willow' and last_name = 'Woodley'"
+  )"
+)"
 
-if [[ "$borrowers" != 4 || "$paired" != 2 || "$in_process" != 2 || "$views" != 4 ]]; then
+echo "Woodley borrowers=$borrowers paired_list=$paired in_process=$in_process views=$views contacts=$contacts agents=$agents willow_rows=$dups"
+
+if [[ "$borrowers" -lt 70 || "$paired" -lt 8 || "$in_process" -lt 20 || "$views" != 4 || "$contacts" -lt 80 || "$agents" -lt 35 || "$dups" -lt 2 ]]; then
   echo "W3 seed smoke failed." >&2
   exit 1
 fi
@@ -90,4 +110,4 @@ if [[ "$woodley_envoy_deal" != 0 || "$envoy_blair" != 0 ]]; then
   exit 1
 fi
 
-echo "W3 smoke passed: two triangles, paired agents, saved views, isolation."
+echo "W3 smoke passed: roster, views, isolation."

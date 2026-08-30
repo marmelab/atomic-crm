@@ -39,7 +39,7 @@ function json(res, status, body) {
     "access-control-allow-origin": "*",
     "access-control-allow-headers":
       "content-type, x-ardley-customer-id, x-acorn-tenant-id",
-    "access-control-allow-methods": "GET,PATCH,OPTIONS",
+    "access-control-allow-methods": "GET,PATCH,POST,OPTIONS",
   });
   res.end(payload);
 }
@@ -71,7 +71,7 @@ async function resolveSavedView(client, view) {
       `select c.id, c.first_name, c.last_name
        from contacts c
        join contact_type_assignments t on t.contact_id = c.id
-       where t.type_id = $1
+       where t.type_id = $1 and c.merged_into_id is null
        order by c.last_name, c.first_name`,
       [query.type_id],
     );
@@ -87,6 +87,7 @@ async function resolveSavedView(client, view) {
        from list_members m
        join contacts c on c.id = m.object_id
        where m.list_id = $1 and m.object_type = 'contact'
+         and c.merged_into_id is null
        order by c.last_name, c.first_name`,
       [query.list_id],
     );
@@ -177,9 +178,11 @@ const server = http.createServer(async (req, res) => {
     }
 
     if (req.method === "GET" && url.pathname === "/contacts") {
+      const q = url.searchParams.get("q");
       const rows = await withTenant(principal, (client) =>
         client.query(
           `select c.id, c.first_name, c.last_name, c.owner_id, c.tenant_id,
+                  c.merged_into_id,
                   (
                     select t.type_id
                     from contact_type_assignments t
@@ -188,10 +191,107 @@ const server = http.createServer(async (req, res) => {
                     limit 1
                   ) as primary_type
            from contacts c
+           where c.merged_into_id is null
+             and (
+               $1::text is null
+               or c.first_name ilike '%' || $1 || '%'
+               or c.last_name ilike '%' || $1 || '%'
+               or exists (
+                 select 1 from contact_identifiers i
+                 where i.contact_id = c.id and i.value ilike '%' || $1 || '%'
+               )
+             )
            order by c.last_name, c.first_name`,
+          [q],
         ),
       );
       json(res, 200, { data: rows.rows, total: rows.rowCount });
+      return;
+    }
+
+    if (req.method === "POST" && url.pathname === "/contacts/merge") {
+      const body = await readBody(req);
+      const loserId = body?.loser_id;
+      const winnerId = body?.winner_id;
+      if (!loserId || !winnerId || loserId === winnerId) {
+        json(res, 400, { error: "loser_id_and_winner_id_required" });
+        return;
+      }
+      const merged = await withTenant(principal, async (client) => {
+        const found = await client.query(
+          `select id, merged_into_id from contacts where id in ($1, $2)`,
+          [loserId, winnerId],
+        );
+        if (found.rowCount !== 2) return null;
+        if (found.rows.some((row) => row.merged_into_id)) {
+          throw new Error("already_merged");
+        }
+        await client.query(
+          `update contact_identifiers set contact_id = $2
+           where contact_id = $1
+             and not exists (
+               select 1 from contact_identifiers w
+               where w.contact_id = $2
+                 and w.id_type = contact_identifiers.id_type
+                 and w.value = contact_identifiers.value
+             )`,
+          [loserId, winnerId],
+        );
+        await client.query(
+          `delete from contact_identifiers where contact_id = $1`,
+          [loserId],
+        );
+        await client.query(
+          `insert into contact_type_assignments (tenant_id, contact_id, type_id, is_primary)
+           select tenant_id, $2, type_id, false
+           from contact_type_assignments
+           where contact_id = $1
+           on conflict do nothing`,
+          [loserId, winnerId],
+        );
+        await client.query(
+          `delete from contact_type_assignments where contact_id = $1`,
+          [loserId],
+        );
+        await client.query(
+          `update contact_affiliations set contact_id = $2 where contact_id = $1`,
+          [loserId, winnerId],
+        );
+        await client.query(
+          `update deal_parties set contact_id = $2
+           where contact_id = $1
+             and not exists (
+               select 1 from deal_parties w
+               where w.deal_id = deal_parties.deal_id
+                 and w.contact_id = $2
+                 and w.role = deal_parties.role
+             )`,
+          [loserId, winnerId],
+        );
+        await client.query(`delete from deal_parties where contact_id = $1`, [
+          loserId,
+        ]);
+        await client.query(
+          `update record_links set from_id = $2
+           where from_object_type = 'contact' and from_id = $1`,
+          [loserId, winnerId],
+        );
+        await client.query(
+          `update record_links set to_id = $2
+           where to_object_type = 'contact' and to_id = $1`,
+          [loserId, winnerId],
+        );
+        await client.query(
+          `update contacts set merged_into_id = $2 where id = $1`,
+          [loserId, winnerId],
+        );
+        return { loser_id: loserId, winner_id: winnerId };
+      });
+      if (!merged) {
+        json(res, 404, { error: "not_found" });
+        return;
+      }
+      json(res, 200, { data: merged });
       return;
     }
 
@@ -242,7 +342,7 @@ const server = http.createServer(async (req, res) => {
       const id = contactOne[1];
       const payload = await withTenant(principal, async (client) => {
         const contact = await client.query(
-          `select id, first_name, last_name, owner_id, tenant_id
+          `select id, first_name, last_name, owner_id, tenant_id, merged_into_id
            from contacts where id = $1`,
           [id],
         );

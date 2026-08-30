@@ -24,10 +24,13 @@ export const getDataProvider = (): DataProvider & {
   isInitialized: () => Promise<boolean>;
 } =>
   ({
-    getList: async (resource) => {
+    getList: async (resource, params) => {
+      const q = params?.filter?.q;
       const path =
         resource === "contacts"
-          ? "/contacts"
+          ? q
+            ? `/contacts?q=${encodeURIComponent(String(q))}`
+            : "/contacts"
           : resource === "companies"
             ? "/companies"
             : resource === "deals"
@@ -94,6 +97,20 @@ export const getDataProvider = (): DataProvider & {
       throw new Error("writes are not wired on the W0 local path");
     },
     deleteMany: async () => ({ data: [] }),
+    mergeContacts: async (loserId: string, winnerId: string) => {
+      const res = await fetch(`${API_BASE}/contacts/merge`, {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+          "x-ardley-customer-id": getStubCustomerId(),
+        },
+        body: JSON.stringify({ loser_id: loserId, winner_id: winnerId }),
+      });
+      if (!res.ok) {
+        throw new Error(`local-bff POST /contacts/merge ${res.status}`);
+      }
+      return (await res.json()) as { data: { winner_id: string } };
+    },
     getConfiguration: async () => ({}) as ConfigurationContextValue,
     isInitialized: async () => true,
   }) as DataProvider & {

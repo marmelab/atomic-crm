@@ -20,7 +20,7 @@ test.describe("W3 saved views home", () => {
       page.getByRole("heading", { name: "My Paired Agents" }),
     ).toBeVisible();
     await expect(page.getByRole("link", { name: "Avery Agent" })).toBeVisible();
-    await page.getByRole("link", { name: "Willow Woodley" }).click();
+    await page.getByRole("link", { name: "Willow Woodley" }).first().click();
     await expect(page.getByText("borrower")).toBeVisible();
   });
 });

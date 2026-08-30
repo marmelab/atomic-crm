@@ -53,7 +53,7 @@ const Header = () => {
               <div>
                 <nav className="flex">
                   <NavigationTab
-                    label={translate("ra.page.dashboard")}
+                    label="Home"
                     to="/"
                     isActive={currentPath === "/"}
                   />
@@ -72,9 +72,7 @@ const Header = () => {
                     isActive={currentPath === "/companies"}
                   />
                   <NavigationTab
-                    label={translate("resources.deals.name", {
-                      smart_count: 2,
-                    })}
+                    label="Opportunities"
                     to="/deals"
                     isActive={currentPath === "/deals"}
                   />
