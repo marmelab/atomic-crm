@@ -274,6 +274,10 @@
           "type": "registry:component"
         },
         {
+          "path": "src/components/atomic-crm/providers/fakerest/dataGenerator/offers.ts",
+          "type": "registry:component"
+        },
+        {
           "path": "src/components/atomic-crm/providers/fakerest/dataGenerator/leifProofSliceFixtures.ts",
           "type": "registry:component"
         },
@@ -283,6 +287,10 @@
         },
         {
           "path": "src/components/atomic-crm/providers/fakerest/dataGenerator/finalize.ts",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/providers/fakerest/dataGenerator/enrollments.ts",
           "type": "registry:component"
         },
         {
@@ -303,6 +311,10 @@
         },
         {
           "path": "src/components/atomic-crm/providers/fakerest/dataGenerator/companies.ts",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/providers/fakerest/dataGenerator/cohorts.ts",
           "type": "registry:component"
         },
         {
@@ -339,6 +351,22 @@
         },
         {
           "path": "src/components/atomic-crm/providers/commons/activity.ts",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/offers/offerConstants.ts",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/offers/index.ts",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/offers/OfferShow.tsx",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/offers/OfferList.tsx",
           "type": "registry:component"
         },
         {
@@ -550,11 +578,35 @@
           "type": "registry:component"
         },
         {
+          "path": "src/components/atomic-crm/enrollments/index.ts",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/enrollments/enrollmentConstants.ts",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/enrollments/ClientShow.tsx",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/enrollments/ClientList.tsx",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/enrollments/ClientEdit.tsx",
+          "type": "registry:component"
+        },
+        {
           "path": "src/components/atomic-crm/deals/stages.ts",
           "type": "registry:component"
         },
         {
           "path": "src/components/atomic-crm/deals/opportunityConstants.ts",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/deals/offerCohortValidation.ts",
           "type": "registry:component"
         },
         {
@@ -611,6 +663,10 @@
         },
         {
           "path": "src/components/atomic-crm/deals/DealArchivedList.tsx",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/deals/DealApplicationAndEnrollment.tsx",
           "type": "registry:component"
         },
         {
@@ -807,6 +863,66 @@
         },
         {
           "path": "src/components/atomic-crm/companies/AutocompleteCompanyInput.tsx",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/cohorts/useCohortCapacity.ts",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/cohorts/index.ts",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/cohorts/cohortConstants.ts",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/cohorts/cohortCapacity.ts",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/cohorts/CohortShow.tsx",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/cohorts/CohortPeopleSection.tsx",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/cohorts/CohortList.tsx",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/cohorts/CohortInputs.tsx",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/cohorts/CohortEdit.tsx",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/cohorts/CohortCreate.tsx",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/cohorts/CohortCapacityBadge.tsx",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/applications/index.ts",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/applications/applicationConstants.ts",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/applications/ApplicationShow.tsx",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/applications/ApplicationList.tsx",
           "type": "registry:component"
         },
         {
