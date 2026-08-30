@@ -1,6 +1,7 @@
 -- Directional schema for ardley-crm.
 -- Applied locally by `make w0-smoke` (Docker Postgres). Aurora later (W4).
 -- Invariants: docs/poc-plan.md §17
+-- Diagram: docs/data-model.md
 
 create extension if not exists "pgcrypto";
 create extension if not exists "citext";
