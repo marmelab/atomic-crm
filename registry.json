@@ -46,6 +46,10 @@
           "type": "registry:component"
         },
         {
+          "path": "src/components/atomic-crm/tasks/taskConstants.ts",
+          "type": "registry:component"
+        },
+        {
           "path": "src/components/atomic-crm/tasks/TasksListFilter.tsx",
           "type": "registry:component"
         },
@@ -602,6 +606,10 @@
           "type": "registry:component"
         },
         {
+          "path": "src/components/atomic-crm/deals/peopleDeciding.ts",
+          "type": "registry:component"
+        },
+        {
           "path": "src/components/atomic-crm/deals/opportunityConstants.ts",
           "type": "registry:component"
         },
@@ -670,6 +678,18 @@
           "type": "registry:component"
         },
         {
+          "path": "src/components/atomic-crm/dashboard/useLivingExampleCapacityData.ts",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/dashboard/livingExampleCapacity.ts",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/dashboard/cohortThreshold.ts",
+          "type": "registry:component"
+        },
+        {
           "path": "src/components/atomic-crm/dashboard/Welcome.tsx",
           "type": "registry:component"
         },
@@ -678,7 +698,15 @@
           "type": "registry:component"
         },
         {
+          "path": "src/components/atomic-crm/dashboard/PeopleDeciding.tsx",
+          "type": "registry:component"
+        },
+        {
           "path": "src/components/atomic-crm/dashboard/MobileDashboard.tsx",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/dashboard/LivingExampleCapacityCard.tsx",
           "type": "registry:component"
         },
         {
@@ -698,6 +726,10 @@
           "type": "registry:component"
         },
         {
+          "path": "src/components/atomic-crm/dashboard/DashboardTasks.tsx",
+          "type": "registry:component"
+        },
+        {
           "path": "src/components/atomic-crm/dashboard/DashboardStepper.tsx",
           "type": "registry:component"
         },
@@ -707,6 +739,34 @@
         },
         {
           "path": "src/components/atomic-crm/dashboard/Dashboard.tsx",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/dashboard/CohortCapacityCard.tsx",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/dashboard/BusinessAtAGlance.tsx",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/dashboard/artOracle/useDailyArtwork.ts",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/dashboard/artOracle/selectDailyArtwork.ts",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/dashboard/artOracle/artworks.ts",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/dashboard/artOracle/ArtworkLightbox.tsx",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/dashboard/artOracle/ArtOracleCard.tsx",
           "type": "registry:component"
         },
         {
