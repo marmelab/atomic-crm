@@ -116,10 +116,15 @@ export type ContactNote = {
 export type OpportunityOffer = "the_living_example";
 
 export type OpportunityOutcome =
-  "nurture" | "needs_higher_care" | "not_fit" | "lost";
+  | "nurture"
+  | "needs_higher_care"
+  | "not_fit"
+  | "lost";
 
 export type OpportunityOwnerDecision =
-  "would_work_with" | "workshops_only" | "do_not_engage";
+  | "would_work_with"
+  | "workshops_only"
+  | "do_not_engage";
 
 // Only meaningful when owner_decision = "would_work_with".
 export type OpportunityProspectDecision = "yes" | "thinking" | "no";
@@ -134,7 +139,9 @@ export type OpportunitySource =
   | "other";
 
 export type OpportunityEntryPath =
-  "instagram_conversation" | "sales_page" | "other";
+  | "instagram_conversation"
+  | "sales_page"
+  | "other";
 
 // The `deals` table/resource now models a Leif Opportunity: a specific
 // possible purchase belonging to exactly one Contact. Kept as "Deal" in code
@@ -217,7 +224,9 @@ export type ActivityContactNoteCreated = {
 
 export type ActivityDealCreated = {
   type: typeof DEAL_CREATED;
-  company_id: Identifier;
+  // Opportunities are no longer required to have a company (they now belong
+  // to exactly one Contact); keep this optional to match Deal.company_id.
+  company_id?: Identifier | null;
   sales_id?: Identifier;
   deal: Deal;
   date: string;

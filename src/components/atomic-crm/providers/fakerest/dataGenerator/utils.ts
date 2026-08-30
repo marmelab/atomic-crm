@@ -18,6 +18,13 @@ export const randomDate = (minDate?: Date, maxDate?: Date) => {
       : Date.now() - 5 * 365 * 24 * 60 * 60 * 1000; // 5 years
   const maxTs = maxDate instanceof Date ? maxDate.getTime() : Date.now();
   const range = maxTs - minTs;
+  // minDate can land on (or, with clock skew, after) maxDate — e.g. a fixture
+  // whose created_at is "now" generated the same millisecond this runs.
+  // Dividing by a zero/negative range below would produce NaN, so fall back
+  // to minDate directly instead of computing a random offset.
+  if (range <= 0) {
+    return new Date(minTs);
+  }
   const randomRange = faker.datatype.number({ max: range });
   // move it more towards today to account for traffic increase
   const ts = Math.sqrt(randomRange / range) * range;

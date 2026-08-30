@@ -60,7 +60,9 @@ export const generateDeals = (db: Db): Deal[] => {
     deals
       .filter((deal) => deal.stage === stage)
       .forEach((deal, index) => {
-        deals[deal.id].index = index;
+        // `id` is assigned from the generator's array position (see above),
+        // so it doubles as a safe index here.
+        deals[deal.id as number].index = index;
       });
   });
   return deals;

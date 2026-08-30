@@ -274,6 +274,10 @@
           "type": "registry:component"
         },
         {
+          "path": "src/components/atomic-crm/providers/fakerest/dataGenerator/leifProofSliceFixtures.ts",
+          "type": "registry:component"
+        },
+        {
           "path": "src/components/atomic-crm/providers/fakerest/dataGenerator/index.ts",
           "type": "registry:component"
         },
@@ -482,6 +486,10 @@
           "type": "registry:component"
         },
         {
+          "path": "src/components/atomic-crm/login/authConfig.ts",
+          "type": "registry:component"
+        },
+        {
           "path": "src/components/atomic-crm/login/StartPage.tsx",
           "type": "registry:component"
         },
@@ -546,11 +554,19 @@
           "type": "registry:component"
         },
         {
+          "path": "src/components/atomic-crm/deals/opportunityConstants.ts",
+          "type": "registry:component"
+        },
+        {
           "path": "src/components/atomic-crm/deals/index.ts",
           "type": "registry:component"
         },
         {
           "path": "src/components/atomic-crm/deals/dealUtils.ts",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/deals/OpportunitiesIterator.tsx",
           "type": "registry:component"
         },
         {
@@ -595,10 +611,6 @@
         },
         {
           "path": "src/components/atomic-crm/deals/DealArchivedList.tsx",
-          "type": "registry:component"
-        },
-        {
-          "path": "src/components/atomic-crm/deals/ContactList.tsx",
           "type": "registry:component"
         },
         {

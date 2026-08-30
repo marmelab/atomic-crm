@@ -196,17 +196,31 @@ export const frenchCrmMessages = {
       },
     },
     deals: {
-      name: "Affaire |||| Affaires",
+      name: "Opportunité |||| Opportunités",
+      pipeline_orientation:
+        "Tout le monde en train d'avancer vers un oui/non sur une offre.",
       fields: {
         name: "Nom",
         description: "Description",
         company_id: "Entreprise",
-        contact_ids: "Contacts",
+        contact_id: "Contact",
         category: "Catégorie",
-        amount: "Budget",
+        offer: "Offre",
+        amount: "Valeur potentielle",
         expected_closing_date: "Date de clôture prévue",
         stage: "Étape",
+        outcome: "Résultat",
+        owner_decision: "Décision du responsable",
+        prospect_decision: "Décision du prospect",
+        follow_up_date: "Date de relance",
+        source: "Source",
+        entry_path: "Point d'entrée",
       },
+      outcome_none: "Aucun résultat",
+      source_none: "Inconnue",
+      entry_path_none: "Inconnu",
+      owner_decision_none: "Pas encore décidé",
+      prospect_decision_none: "Pas encore décidé",
       action: {
         back_to_deal: "Retour à l'affaire",
         create: "Créer une affaire",
@@ -214,6 +228,7 @@ export const frenchCrmMessages = {
       },
       field_categories: {
         misc: "Divers",
+        sales_process: "Processus de vente",
       },
       archived: {
         action: "Archiver",
