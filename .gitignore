@@ -47,6 +47,10 @@ public/r/
 # Rendered per-session harness board (render-status hook; cleaned at SessionEnd)
 /.harness/
 
+# CDK
+infra/cdk.out/
+infra/node_modules/
+
 # Playwright
 .playwright-mcp/
 node_modules/

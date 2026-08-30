@@ -106,7 +106,7 @@ If that works, the meeting thesis is proven. Everything else is a sequel.
 
 ## 5. How this sits next to CES
 
-CRM is a **sibling app** (e.g. `crm.*`) with SSO.
+CRM is a **sibling app** with SSO. First public URL is **`https://crm.dev.ardley.us`** (API `https://api.crm.dev.ardley.us`) on hosted zone `ardley.us`. Not `{customer}.dev-ardley.com`.
 
 - Reuse the existing Ardley Cognito pools (dev / test / demo / prod). CRM is another app client on the same pool, not a new directory of users.
 - **Acorn** authorizes the API. Cognito answers “who is this?” Acorn answers “which tenant, and what may they do?” Tenants do not live in the pool.
