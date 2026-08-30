@@ -70,29 +70,26 @@ export const mergeContacts = async (
       }),
     ) || [];
 
-  // 3. Change contact in deals - replace loser ID with winner ID in contact_ids array
-  const { data: loserDeals } = await dataProvider.getList<Deal>("deals", {
-    filter: { "contact_ids@cs": `{${loserId}}` },
-    pagination: { page: 1, perPage: 1000 },
-    sort: { field: "id", order: "ASC" },
-  });
+  // 3. Reassign opportunities from loser to winner
+  const { data: loserDeals } = await dataProvider.getManyReference<Deal>(
+    "deals",
+    {
+      target: "contact_id",
+      id: loserId,
+      pagination: { page: 1, perPage: 1000 },
+      sort: { field: "id", order: "ASC" },
+      filter: {},
+    },
+  );
 
   const dealUpdates =
-    loserDeals?.map((deal) => {
-      const newContactIds = deal.contact_ids
-        .filter((id) => id !== loserId)
-        .concat(winnerId)
-        .filter(
-          (id: Identifier, index: number, self: Identifier[]) =>
-            self.indexOf(id) === index,
-        ); // Remove duplicates
-
-      return dataProvider.update<Deal>("deals", {
+    loserDeals?.map((deal) =>
+      dataProvider.update<Deal>("deals", {
         id: deal.id,
-        data: { contact_ids: newContactIds },
+        data: { contact_id: winnerId },
         previousData: deal,
-      });
-    }) || [];
+      }),
+    ) || [];
 
   // 4. Update winner contact with loser data
   const mergedEmails = mergeObjectArraysUnique(

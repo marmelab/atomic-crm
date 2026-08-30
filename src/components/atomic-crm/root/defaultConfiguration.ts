@@ -26,24 +26,26 @@ export const defaultCompanySectors = [
   { value: "utilities", label: "Utilities" },
 ];
 
+// Leif's universal sales pipeline. "won" stays a real stage value (so it's
+// selectable from the existing stage field, same as any other stage) but is
+// excluded from the active Kanban board via `defaultDealPipelineStatuses`
+// below — the same config-driven mechanism Atomic already had for this.
 export const defaultDealStages = [
-  { value: "opportunity", label: "Opportunity" },
-  { value: "proposal-sent", label: "Proposal Sent" },
-  { value: "in-negociation", label: "In Negotiation" },
+  { value: "interested", label: "Interested" },
+  { value: "application_received", label: "Application Received" },
+  { value: "approved", label: "Approved" },
+  { value: "call_booked", label: "Call Booked" },
+  { value: "decision", label: "Decision" },
+  { value: "committed", label: "Committed" },
   { value: "won", label: "Won" },
-  { value: "lost", label: "Lost" },
-  { value: "delayed", label: "Delayed" },
 ];
 
 export const defaultDealPipelineStatuses = ["won"];
 
-export const defaultDealCategories = [
-  { value: "other", label: "Other" },
-  { value: "copywriting", label: "Copywriting" },
-  { value: "print-project", label: "Print project" },
-  { value: "ui-design", label: "UI Design" },
-  { value: "website-design", label: "Website design" },
-];
+// Deal categories are Deal/agency-specific (copywriting, print, etc.) and not
+// part of Leif's model; kept as an empty list so the Settings page's
+// category manager still renders without dangling agency vocabulary.
+export const defaultDealCategories: { value: string; label: string }[] = [];
 
 export const defaultNoteStatuses = [
   { value: "cold", label: "Cold", color: "#7dbde8" },

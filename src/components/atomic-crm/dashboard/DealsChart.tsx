@@ -8,11 +8,15 @@ import { findDealLabel } from "../deals/dealUtils";
 import { useConfigurationContext } from "../root/ConfigurationContext";
 import type { Deal } from "../types";
 
-const multiplier = {
-  opportunity: 0.2,
-  "proposal-sent": 0.5,
-  "in-negociation": 0.8,
-  delayed: 0.3,
+// Rough odds-of-closing weighting per active pipeline stage; "won" and
+// "lost" (an outcome, not a stage) are handled separately below.
+const multiplier: Record<string, number> = {
+  interested: 0.1,
+  application_received: 0.2,
+  approved: 0.3,
+  call_booked: 0.4,
+  decision: 0.6,
+  committed: 0.8,
 };
 
 const threeMonthsAgo = new Date(
@@ -61,14 +65,14 @@ export const DealsChart = memo(() => {
             return acc;
           }, 0),
         pending: dealsByMonth[month]
-          .filter((deal: Deal) => !["won", "lost"].includes(deal.stage))
+          .filter((deal: Deal) => deal.stage !== "won" && !deal.outcome)
           .reduce((acc: number, deal: Deal) => {
-            // @ts-expect-error - multiplier type issue
-            acc += deal.amount * multiplier[deal.stage];
+            acc += deal.amount * (multiplier[deal.stage] ?? 0);
             return acc;
           }, 0),
+        // "Lost" is now an outcome, not a stage.
         lost: dealsByMonth[month]
-          .filter((deal: Deal) => deal.stage === "lost")
+          .filter((deal: Deal) => deal.outcome === "lost")
           .reduce((acc: number, deal: Deal) => {
             acc -= deal.amount;
             return acc;

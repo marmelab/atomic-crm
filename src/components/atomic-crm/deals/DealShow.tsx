@@ -14,20 +14,26 @@ import {
 } from "ra-core";
 import { DeleteButton } from "@/components/admin/delete-button";
 import { EditButton } from "@/components/admin/edit-button";
-import { ReferenceArrayField } from "@/components/admin/reference-array-field";
 import { ReferenceField } from "@/components/admin/reference-field";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Separator } from "@/components/ui/separator";
 
-import { CompanyAvatar } from "../companies/CompanyAvatar";
+import { Avatar } from "../contacts/Avatar";
 import { NoteCreate } from "../notes/NoteCreate";
 import { NotesIterator } from "../notes/NotesIterator";
 import { useConfigurationContext } from "../root/ConfigurationContext";
 import type { Deal } from "../types";
-import { ContactList } from "./ContactList";
 import { findDealLabel, formatISODateString } from "./dealUtils";
+import {
+  offerLabels,
+  opportunityEntryPaths,
+  opportunityOutcomes,
+  opportunitySources,
+  ownerDecisions,
+  prospectDecisions,
+} from "./opportunityConstants";
 
 export const DealShow = ({ open, id }: { open: boolean; id?: string }) => {
   const redirect = useRedirect();
@@ -48,9 +54,14 @@ export const DealShow = ({ open, id }: { open: boolean; id?: string }) => {
   );
 };
 
+const findLabel = (
+  choices: { value: string; label: string }[],
+  value?: string | null,
+) => choices.find((choice) => choice.value === value)?.label;
+
 const DealShowContent = () => {
   const translate = useTranslate();
-  const { dealStages, dealCategories, currency } = useConfigurationContext();
+  const { dealStages, currency } = useConfigurationContext();
   const record = useRecordContext<Deal>();
   if (!record) return null;
 
@@ -62,11 +73,11 @@ const DealShowContent = () => {
           <div className="flex justify-between items-start mb-8">
             <div className="flex items-center gap-4">
               <ReferenceField
-                source="company_id"
-                reference="companies"
+                source="contact_id"
+                reference="contacts"
                 link="show"
               >
-                <CompanyAvatar />
+                <Avatar />
               </ReferenceField>
               <h2 className="text-2xl font-semibold">{record.name}</h2>
             </div>
@@ -85,7 +96,14 @@ const DealShowContent = () => {
             </div>
           </div>
 
-          <div className="flex gap-8 m-4">
+          <div className="flex flex-wrap gap-8 m-4">
+            <div className="flex flex-col mr-10">
+              <span className="text-xs text-muted-foreground tracking-wide">
+                {translate("resources.deals.fields.offer")}
+              </span>
+              <span className="text-sm">{offerLabels[record.offer]}</span>
+            </div>
+
             <div className="flex flex-col mr-10">
               <span className="text-xs text-muted-foreground tracking-wide">
                 {translate("resources.deals.fields.expected_closing_date")}
@@ -119,18 +137,6 @@ const DealShowContent = () => {
               </span>
             </div>
 
-            {record.category && (
-              <div className="flex flex-col mr-10">
-                <span className="text-xs text-muted-foreground tracking-wide">
-                  {translate("resources.deals.fields.category")}
-                </span>
-                <span className="text-sm">
-                  {dealCategories.find((c) => c.value === record.category)
-                    ?.label ?? record.category}
-                </span>
-              </div>
-            )}
-
             <div className="flex flex-col mr-10">
               <span className="text-xs text-muted-foreground tracking-wide">
                 {translate("resources.deals.fields.stage")}
@@ -139,23 +145,77 @@ const DealShowContent = () => {
                 {findDealLabel(dealStages, record.stage)}
               </span>
             </div>
+
+            {record.outcome && (
+              <div className="flex flex-col mr-10">
+                <span className="text-xs text-muted-foreground tracking-wide">
+                  {translate("resources.deals.fields.outcome")}
+                </span>
+                <span className="text-sm">
+                  {findLabel(opportunityOutcomes, record.outcome)}
+                </span>
+              </div>
+            )}
           </div>
 
-          {!!record.contact_ids?.length && (
-            <div className="m-4">
-              <div className="flex flex-col min-h-12 mr-10">
+          <div className="flex flex-wrap gap-8 m-4">
+            {record.source && (
+              <div className="flex flex-col mr-10">
                 <span className="text-xs text-muted-foreground tracking-wide">
-                  {translate("resources.deals.fields.contact_ids")}
+                  {translate("resources.deals.fields.source")}
                 </span>
-                <ReferenceArrayField
-                  source="contact_ids"
-                  reference="contacts_summary"
-                >
-                  <ContactList />
-                </ReferenceArrayField>
+                <span className="text-sm">
+                  {findLabel(opportunitySources, record.source)}
+                </span>
               </div>
-            </div>
-          )}
+            )}
+
+            {record.entry_path && (
+              <div className="flex flex-col mr-10">
+                <span className="text-xs text-muted-foreground tracking-wide">
+                  {translate("resources.deals.fields.entry_path")}
+                </span>
+                <span className="text-sm">
+                  {findLabel(opportunityEntryPaths, record.entry_path)}
+                </span>
+              </div>
+            )}
+
+            {record.owner_decision && (
+              <div className="flex flex-col mr-10">
+                <span className="text-xs text-muted-foreground tracking-wide">
+                  {translate("resources.deals.fields.owner_decision")}
+                </span>
+                <span className="text-sm">
+                  {findLabel(ownerDecisions, record.owner_decision)}
+                </span>
+              </div>
+            )}
+
+            {record.owner_decision === "would_work_with" &&
+              record.prospect_decision && (
+                <div className="flex flex-col mr-10">
+                  <span className="text-xs text-muted-foreground tracking-wide">
+                    {translate("resources.deals.fields.prospect_decision")}
+                  </span>
+                  <span className="text-sm">
+                    {findLabel(prospectDecisions, record.prospect_decision)}
+                  </span>
+                </div>
+              )}
+
+            {record.prospect_decision === "thinking" &&
+              record.follow_up_date && (
+                <div className="flex flex-col mr-10">
+                  <span className="text-xs text-muted-foreground tracking-wide">
+                    {translate("resources.deals.fields.follow_up_date")}
+                  </span>
+                  <span className="text-sm">
+                    {formatISODateString(record.follow_up_date)}
+                  </span>
+                </div>
+              )}
+          </div>
 
           {record.description && (
             <div className="m-4 whitespace-pre-line">

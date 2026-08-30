@@ -1,17 +1,11 @@
-import type { ReactNode } from "react";
-import type { InputProps } from "ra-core";
 import { useGetIdentity, useListContext, useTranslate } from "ra-core";
 import { matchPath, useLocation } from "react-router";
-import { AutocompleteInput } from "@/components/admin/autocomplete-input";
 import { CreateButton } from "@/components/admin/create-button";
 import { ExportButton } from "@/components/admin/export-button";
 import { List } from "@/components/admin/list";
-import { ReferenceInput } from "@/components/admin/reference-input";
 import { FilterButton } from "@/components/admin/filter-form";
 import { SearchInput } from "@/components/admin/search-input";
-import { SelectInput } from "@/components/admin/select-input";
 
-import { useConfigurationContext } from "../root/ConfigurationContext";
 import { TopToolbar } from "../layout/TopToolbar";
 import { DealArchivedList } from "./DealArchivedList";
 import { DealCreate } from "./DealCreate";
@@ -23,36 +17,21 @@ import { OnlyMineInput } from "./OnlyMineInput";
 
 const DealList = () => {
   const { identity } = useGetIdentity();
-  const { dealCategories } = useConfigurationContext();
-  const translate = useTranslate();
 
   if (!identity) return null;
 
   const dealFilters = [
     <SearchInput source="q" alwaysOn />,
-    <ReferenceInput source="company_id" reference="companies">
-      <AutocompleteInput
-        label={false}
-        placeholder={translate("resources.deals.fields.company_id")}
-      />
-    </ReferenceInput>,
-    <WrapperField source="category" label="resources.deals.fields.category">
-      <SelectInput
-        source="category"
-        label={false}
-        emptyText="resources.deals.fields.category"
-        choices={dealCategories}
-        optionText="label"
-        optionValue="value"
-      />
-    </WrapperField>,
     <OnlyMineInput source="sales_id" alwaysOn />,
   ];
 
   return (
     <List
       perPage={100}
-      filter={{ "archived_at@is": null }}
+      // Won leaves the active board the same way an archived deal already
+      // does: excluded from the list query, still reachable by direct link
+      // and from the owning Contact's history.
+      filter={{ "archived_at@is": null, "stage@neq": "won" }}
       title={false}
       sort={{ field: "index", order: "DESC" }}
       filters={dealFilters}
@@ -66,6 +45,7 @@ const DealList = () => {
 
 const DealLayout = () => {
   const location = useLocation();
+  const translate = useTranslate();
   const matchCreate = matchPath("/deals/create", location.pathname);
   const matchShow = matchPath("/deals/:id/show", location.pathname);
   const matchEdit = matchPath("/deals/:id", location.pathname);
@@ -86,6 +66,14 @@ const DealLayout = () => {
 
   return (
     <div className="w-full">
+      <div className="mb-4">
+        <h1 className="text-2xl font-semibold">
+          {translate("resources.deals.name", { smart_count: 2 })}
+        </h1>
+        <p className="text-sm text-muted-foreground">
+          {translate("resources.deals.pipeline_orientation")}
+        </p>
+      </div>
       <DealListContent />
       <DealArchivedList />
       <DealCreate open={!!matchCreate} />
@@ -102,13 +90,5 @@ const DealActions = () => (
     <CreateButton label="resources.deals.action.new" />
   </TopToolbar>
 );
-
-/**
- *
- * Used so that label of filters can be inferred for the select display,
- * but not be displayed when showing the input.
- */
-const WrapperField = ({ children }: InputProps & { children: ReactNode }) =>
-  children;
 
 export default DealList;

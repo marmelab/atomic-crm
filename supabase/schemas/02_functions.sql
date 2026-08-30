@@ -280,7 +280,6 @@ CREATE OR REPLACE FUNCTION "public"."merge_contacts"("loser_id" bigint, "winner_
 DECLARE
   winner_contact contacts%ROWTYPE;
   loser_contact contacts%ROWTYPE;
-  deal_record RECORD;
   merged_emails jsonb;
   merged_phones jsonb;
   merged_tags bigint[];
@@ -305,22 +304,8 @@ BEGIN
   -- 2. Reassign contact notes from loser to winner
   UPDATE contact_notes SET contact_id = winner_id WHERE contact_id = loser_id;
 
-  -- 3. Update deals - replace loser with winner in contact_ids array
-  FOR deal_record IN
-    SELECT id, contact_ids
-    FROM deals
-    WHERE contact_ids @> ARRAY[loser_id]
-  LOOP
-    UPDATE deals
-    SET contact_ids = (
-      SELECT ARRAY(
-        SELECT DISTINCT unnest(
-          array_remove(deal_record.contact_ids, loser_id) || ARRAY[winner_id]
-        )
-      )
-    )
-    WHERE id = deal_record.id;
-  END LOOP;
+  -- 3. Reassign opportunities from loser to winner (single contact_id FK)
+  UPDATE deals SET contact_id = winner_id WHERE contact_id = loser_id;
 
   -- 4. Merge contact data
 

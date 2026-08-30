@@ -61,9 +61,16 @@ interface DealsTable {
   id: Generated<number>;
   name: string;
   company_id: number | null;
-  contact_ids: number[];
+  contact_id: number | null;
   category: string | null;
+  offer: string;
   stage: string;
+  outcome: string | null;
+  owner_decision: string | null;
+  prospect_decision: string | null;
+  follow_up_date: Date | null;
+  source: string | null;
+  entry_path: string | null;
   description: string | null;
   amount: number | null;
   created_at: Date;

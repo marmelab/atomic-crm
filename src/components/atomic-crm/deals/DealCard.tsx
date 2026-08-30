@@ -2,10 +2,9 @@ import { Draggable } from "@hello-pangea/dnd";
 import { useRedirect, RecordContextProvider } from "ra-core";
 import { ReferenceField } from "@/components/admin/reference-field";
 import { NumberField } from "@/components/admin/number-field";
-import { SelectField } from "@/components/admin/select-field";
 import { Card, CardContent } from "@/components/ui/card";
 
-import { CompanyAvatar } from "../companies/CompanyAvatar";
+import { Avatar } from "../contacts/Avatar";
 import { useConfigurationContext } from "../root/ConfigurationContext";
 import type { Deal } from "../types";
 
@@ -30,7 +29,7 @@ export const DealCardContent = ({
   snapshot?: any;
   deal: Deal;
 }) => {
-  const { dealCategories, currency } = useConfigurationContext();
+  const { currency } = useConfigurationContext();
   const redirect = useRedirect();
   const handleClick = () => {
     redirect(`/deals/${deal.id}/show`, undefined, undefined, undefined, {
@@ -55,25 +54,23 @@ export const DealCardContent = ({
           }`}
         >
           <CardContent className="px-3 flex flex-col">
-            <div className="flex-1 flex">
-              <p className="flex-1 text-sm font-medium mb-2">
-                <ReferenceField
-                  source="company_id"
-                  reference="companies"
-                  link={false}
-                />
-                {" - "}
-                {deal.name}
-              </p>
+            <div className="flex-1 flex items-center gap-2">
               <ReferenceField
-                source="company_id"
-                reference="companies"
+                source="contact_id"
+                reference="contacts"
                 link={false}
               >
-                <CompanyAvatar width={20} height={20} />
+                <Avatar width={20} height={20} />
               </ReferenceField>
+              <p className="flex-1 text-sm font-medium mb-0">
+                <ReferenceField
+                  source="contact_id"
+                  reference="contacts"
+                  link={false}
+                />
+              </p>
             </div>
-            <p className="text-xs text-muted-foreground">
+            <p className="text-xs text-muted-foreground mt-1">
               <NumberField
                 source="amount"
                 options={{
@@ -83,13 +80,6 @@ export const DealCardContent = ({
                   currencyDisplay: "narrowSymbol",
                   minimumSignificantDigits: 3,
                 }}
-              />
-              {deal.category && ", "}
-              <SelectField
-                source="category"
-                choices={dealCategories}
-                optionText="label"
-                optionValue="value"
               />
             </p>
           </CardContent>

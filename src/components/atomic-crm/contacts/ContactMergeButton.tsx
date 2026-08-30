@@ -111,10 +111,11 @@ const ContactMergeDialog = ({ open, onClose }: ContactMergeDialogProps) => {
     { enabled: canFetchCounts },
   );
 
-  const { total: dealsCount } = useGetList(
+  const { total: dealsCount } = useGetManyReference(
     "deals",
     {
-      filter: { "contact_ids@cs": `{${loserContact?.id}}` },
+      target: "contact_id",
+      id: loserContact?.id,
       pagination: { page: 1, perPage: 1 },
     },
     { enabled: canFetchCounts },
@@ -240,8 +241,8 @@ const ContactMergeDialog = ({ open, onClose }: ContactMergeDialogProps) => {
                   )}
                   {dealsCount != null && dealsCount > 0 && (
                     <li>
-                      • {dealsCount} deal
-                      {dealsCount !== 1 ? "s" : ""} will be updated
+                      • {dealsCount} opportunit{dealsCount !== 1 ? "ies" : "y"}{" "}
+                      will be updated
                     </li>
                   )}
                   {loserContact.email_jsonb?.length > 0 && (

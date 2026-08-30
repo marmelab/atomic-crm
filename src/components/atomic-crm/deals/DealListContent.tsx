@@ -10,17 +10,23 @@ import type { DealsByStage } from "./stages";
 import { getDealsByStage } from "./stages";
 
 export const DealListContent = () => {
-  const { dealStages } = useConfigurationContext();
+  const { dealStages, dealPipelineStatuses } = useConfigurationContext();
+  // Won (and any other configured pipeline-exit status) never renders as an
+  // active Kanban column — it's excluded from the list query itself (see
+  // DealList's filter), this just keeps the column set consistent with it.
+  const activeDealStages = dealStages.filter(
+    (stage) => !dealPipelineStatuses.includes(stage.value),
+  );
   const { data: unorderedDeals, isPending, refetch } = useListContext<Deal>();
   const dataProvider = useDataProvider();
 
   const [dealsByStage, setDealsByStage] = useState<DealsByStage>(
-    getDealsByStage([], dealStages),
+    getDealsByStage([], activeDealStages),
   );
 
   useEffect(() => {
     if (unorderedDeals) {
-      const newDealsByStage = getDealsByStage(unorderedDeals, dealStages);
+      const newDealsByStage = getDealsByStage(unorderedDeals, activeDealStages);
       if (!isEqual(newDealsByStage, dealsByStage)) {
         setDealsByStage(newDealsByStage);
       }
@@ -72,8 +78,8 @@ export const DealListContent = () => {
 
   return (
     <DragDropContext onDragEnd={onDragEnd}>
-      <div className="flex gap-4">
-        {dealStages.map((stage) => (
+      <div className="flex gap-4 overflow-x-auto pb-2">
+        {activeDealStages.map((stage) => (
           <DealColumn
             stage={stage.value}
             deals={dealsByStage[stage.value]}

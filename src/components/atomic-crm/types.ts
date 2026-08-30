@@ -111,17 +111,56 @@ export type ContactNote = {
   attachments?: AttachmentNote[];
 } & Pick<RaRecord, "id">;
 
+// Leif's fixed catalog for this proof slice. A real Offer table replaces
+// this once more than one offer needs to exist.
+export type OpportunityOffer = "the_living_example";
+
+export type OpportunityOutcome =
+  "nurture" | "needs_higher_care" | "not_fit" | "lost";
+
+export type OpportunityOwnerDecision =
+  "would_work_with" | "workshops_only" | "do_not_engage";
+
+// Only meaningful when owner_decision = "would_work_with".
+export type OpportunityProspectDecision = "yes" | "thinking" | "no";
+
+export type OpportunitySource =
+  | "instagram"
+  | "referral"
+  | "podcast"
+  | "workshop"
+  | "substack"
+  | "google"
+  | "other";
+
+export type OpportunityEntryPath =
+  "instagram_conversation" | "sales_page" | "other";
+
+// The `deals` table/resource now models a Leif Opportunity: a specific
+// possible purchase belonging to exactly one Contact. Kept as "Deal" in code
+// (table name, resource key, file names) to keep this proof slice's diff
+// contained; user-facing copy says "Opportunity" throughout.
 export type Deal = {
   name: string;
-  company_id: Identifier;
-  contact_ids: Identifier[];
-  category: string;
+  company_id?: Identifier | null;
+  contact_id: Identifier;
+  // Deal-specific, agency-style categorization; unused by Leif's Opportunity
+  // forms but left on the type/table so existing rows and the settings
+  // category manager don't break.
+  category?: string | null;
+  offer: OpportunityOffer;
   stage: string;
-  description: string;
+  outcome?: OpportunityOutcome | null;
+  owner_decision?: OpportunityOwnerDecision | null;
+  prospect_decision?: OpportunityProspectDecision | null;
+  follow_up_date?: string | null;
+  source?: OpportunitySource | null;
+  entry_path?: OpportunityEntryPath | null;
+  description?: string | null;
   amount: number;
   created_at: string;
   updated_at: string;
-  archived_at?: string;
+  archived_at?: string | null;
   expected_closing_date: string;
   sales_id: Identifier;
   index: number;

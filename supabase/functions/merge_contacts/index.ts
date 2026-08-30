@@ -1,5 +1,5 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
-import { sql, type Selectable } from "https://esm.sh/kysely@0.27.2";
+import type { Selectable } from "https://esm.sh/kysely@0.27.2";
 import { db, type ContactsTable, CompiledQuery } from "../_shared/db.ts";
 import { corsHeaders, OptionsMiddleware } from "../_shared/cors.ts";
 import { createErrorResponse } from "../_shared/utils.ts";
@@ -119,25 +119,12 @@ async function mergeContacts(
         .where("contact_id", "=", loserId)
         .execute();
 
-      // 4. Update deals - replace loserId with winnerId in contact_ids array
-      const deals = await trx
-        .selectFrom("deals")
-        .selectAll()
-        .where(sql`contact_ids @> ARRAY[${loserId}]::bigint[]`)
+      // 4. Reassign opportunities from loser to winner
+      await trx
+        .updateTable("deals")
+        .set({ contact_id: winnerId })
+        .where("contact_id", "=", loserId)
         .execute();
-
-      for (const deal of deals) {
-        const newContactIds = [
-          ...new Set(
-            deal.contact_ids.filter((id) => id !== loserId).concat(winnerId),
-          ),
-        ];
-        await trx
-          .updateTable("deals")
-          .set({ contact_ids: newContactIds })
-          .where("id", "=", deal.id)
-          .execute();
-      }
 
       // 5. Merge and update winner contact
       const mergedData = mergeContactData(winner as Contact, loser as Contact);
