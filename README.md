@@ -13,7 +13,7 @@ This is **not** a tracking fork. Schema, auth, and hosting diverge on purpose:
 
 ## Status
 
-W0–W3 slice 1 are on `main`. **W3 walkthrough** adds the census seed, merge, and Woodley copy. AWS is W4.
+W0–W3 are on `main`. **W4** is AWS: `https://crm.dev.ardley.us` (see [`docs/w4.md`](docs/w4.md)).
 
 Plan: [`docs/poc-plan.md`](docs/poc-plan.md) · W1: [`docs/w1.md`](docs/w1.md)
 
