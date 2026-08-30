@@ -42,9 +42,14 @@ function DealGraph() {
         <p className="text-muted-foreground">
           {record.pipeline_name} · {record.stage_label}
           {record.amount_cents != null
-            ? ` · $${(record.amount_cents / 100).toLocaleString()}`
+            ? ` · loan amount $${(record.amount_cents / 100).toLocaleString()}`
             : ""}
         </p>
+        {record.pipeline_name?.toLowerCase().includes("process") ? (
+          <Button className="mt-3" variant="secondary" disabled>
+            Issue pre-approval
+          </Button>
+        ) : null}
       </div>
 
       <section>
@@ -52,7 +57,10 @@ function DealGraph() {
         <ul>
           {(record.parties ?? []).map((party) => (
             <li key={`${party.contact_id}-${party.role}`}>
-              <Link className="underline" to={`/contacts/${party.contact_id}/show`}>
+              <Link
+                className="underline"
+                to={`/contacts/${party.contact_id}/show`}
+              >
                 {party.first_name} {party.last_name}
               </Link>{" "}
               — {party.role}

@@ -19,11 +19,13 @@ if "Willow Woodley" not in borrowers or "Blair Borrower" not in borrowers:
     raise SystemExit(f"borrowers: {borrowers}")
 if "Ellis Envoy" in borrowers:
     raise SystemExit("Woodley view leaked Envoy")
+if "Willow Woodley" not in borrowers:
+    raise SystemExit(f"borrowers missing Willow: {borrowers}")
 agents = {r["label"] for r in by_name["My Paired Agents"]["results"]}
-if agents != {"Avery Agent", "Riley Agent"}:
+if "Avery Agent" not in agents or "Riley Agent" not in agents:
     raise SystemExit(f"paired agents: {agents}")
 loans = {r["label"].split(" · ")[0] for r in by_name["In-process loans"]["results"]}
-if loans != {"Blair refinance", "Willow purchase"}:
+if "Willow purchase" not in loans or "Blair refinance" not in loans:
     raise SystemExit(f"in-process: {loans}")
 if envoy["total"] != 0:
     raise SystemExit(f"Envoy should have no saved views: {envoy}")

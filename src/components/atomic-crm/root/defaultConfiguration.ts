@@ -10,7 +10,7 @@ export const defaultLightModeLogo = lightModeLogo;
 
 export const defaultCurrency = "USD";
 
-export const defaultTitle = "Atomic CRM";
+export const defaultTitle = "Woodley CRM";
 
 export const defaultCompanySectors = [
   { value: "communication-services", label: "Communication Services" },
@@ -38,11 +38,10 @@ export const defaultDealStages = [
 export const defaultDealPipelineStatuses = ["won"];
 
 export const defaultDealCategories = [
-  { value: "other", label: "Other" },
-  { value: "copywriting", label: "Copywriting" },
-  { value: "print-project", label: "Print project" },
-  { value: "ui-design", label: "UI Design" },
-  { value: "website-design", label: "Website design" },
+  { value: "purchase", label: "Purchase" },
+  { value: "refinance", label: "Refinance" },
+  { value: "recruiting", label: "Recruiting" },
+  { value: "b2b", label: "Mortgage opportunity" },
 ];
 
 export const defaultNoteStatuses = [
