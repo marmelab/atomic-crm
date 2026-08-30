@@ -111,9 +111,96 @@ export type ContactNote = {
   attachments?: AttachmentNote[];
 } & Pick<RaRecord, "id">;
 
-// Leif's fixed catalog for this proof slice. A real Offer table replaces
-// this once more than one offer needs to exist.
-export type OpportunityOffer = "the_living_example";
+export type OfferType = "individual" | "group";
+
+// A persistent product/program definition (e.g. The Living Example,
+// Growing Yourself Up). Few rows, changes rarely.
+export type Offer = {
+  name: string;
+  type: OfferType;
+  duration: string;
+  current_price: number;
+  // Only meaningful for individual offers; group offers manage capacity
+  // per-Cohort instead.
+  max_active_clients?: number | null;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+} & Pick<RaRecord, "id">;
+
+// A queryable, structured payment plan for an Offer. "Financial Need"-style
+// options are authorized case-by-case (is_public: false), not offered to
+// every prospect by default.
+export type OfferPaymentOption = {
+  offer_id: Identifier;
+  name: string;
+  total: number;
+  installments: number;
+  installment_amount: number;
+  is_public: boolean;
+  created_at: string;
+  updated_at: string;
+} & Pick<RaRecord, "id">;
+
+export type CohortStatus =
+  | "draft"
+  | "applications_open"
+  | "applications_closed"
+  | "active"
+  | "completed";
+
+// A single round of a GROUP offer (e.g. a GYU cohort). Individual offers
+// never use Cohorts.
+export type Cohort = {
+  offer_id: Identifier;
+  name: string;
+  status: CohortStatus;
+  applications_open_at?: string | null;
+  applications_close_at?: string | null;
+  program_start_at?: string | null;
+  program_end_at?: string | null;
+  minimum_capacity?: number | null;
+  target_capacity?: number | null;
+  maximum_capacity?: number | null;
+  // Future integration identifiers, not wired up yet.
+  slack_channel_id?: string | null;
+  calendar_id?: string | null;
+  created_at: string;
+  updated_at: string;
+} & Pick<RaRecord, "id">;
+
+export type ApplicationStatus = "pending" | "approved" | "rejected";
+
+// A submitted program/coaching application. Approval means "qualified
+// enough for a sales call" — it is intentionally independent from the
+// Opportunity's owner_decision (whether the owner wants to work with them).
+export type Application = {
+  opportunity_id: Identifier;
+  status: ApplicationStatus;
+  submitted_at: string;
+  reviewed_at?: string | null;
+  raw_answers: Record<string, unknown>;
+  summary?: string | null;
+  created_at: string;
+  updated_at: string;
+} & Pick<RaRecord, "id">;
+
+export type EnrollmentStatus =
+  | "onboarding"
+  | "active"
+  | "offboarding"
+  | "completed";
+
+// The commercial/client lifecycle after a successful sale. At most one per
+// Opportunity.
+export type Enrollment = {
+  opportunity_id: Identifier;
+  status: EnrollmentStatus;
+  start_date?: string | null;
+  end_date?: string | null;
+  created_at: string;
+  updated_at: string;
+} & Pick<RaRecord, "id">;
 
 export type OpportunityOutcome =
   | "nurture"
@@ -155,16 +242,30 @@ export type Deal = {
   // forms but left on the type/table so existing rows and the settings
   // category manager don't break.
   category?: string | null;
-  offer: OpportunityOffer;
+  offer_id: Identifier;
+  // Only set for a group Offer, and only to a Cohort belonging to that same
+  // Offer (enforced server-side, see handle_deal_saved()).
+  cohort_id?: Identifier | null;
   stage: string;
   outcome?: OpportunityOutcome | null;
   owner_decision?: OpportunityOwnerDecision | null;
   prospect_decision?: OpportunityProspectDecision | null;
   follow_up_date?: string | null;
+  // Next scheduled sales call, if any — one ingredient of the future
+  // "Next Up" surface, alongside follow_up_date and Enrollment/Cohort dates.
+  sales_call_at?: string | null;
   source?: OpportunitySource | null;
   entry_path?: OpportunityEntryPath | null;
   description?: string | null;
   amount: number;
+  // Commercial snapshot captured at save time, so a later change to the
+  // Offer/payment option never rewrites historical sales context.
+  offer_name_snapshot?: string | null;
+  offer_price_snapshot?: number | null;
+  selected_payment_option_id?: Identifier | null;
+  selected_payment_total?: number | null;
+  selected_installment_count?: number | null;
+  selected_installment_amount?: number | null;
   created_at: string;
   updated_at: string;
   archived_at?: string | null;

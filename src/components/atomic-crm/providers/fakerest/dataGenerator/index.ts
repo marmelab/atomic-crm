@@ -1,10 +1,13 @@
+import { generateCohorts } from "./cohorts";
 import { generateCompanies } from "./companies";
 import { generateContactNotes } from "./contactNotes";
 import { generateContacts } from "./contacts";
 import { generateDealNotes } from "./dealNotes";
 import { generateDeals } from "./deals";
+import { backfillEnrollmentsForWonDeals } from "./enrollments";
 import { finalize } from "./finalize";
 import { addLeifProofSliceFixtures } from "./leifProofSliceFixtures";
+import { generateOffers } from "./offers";
 import { generateSales } from "./sales";
 import { generateTags } from "./tags";
 import { generateTasks } from "./tasks";
@@ -17,8 +20,15 @@ export default (): Db => {
   db.companies = generateCompanies(db);
   db.contacts = generateContacts(db);
   db.contact_notes = generateContactNotes(db);
+  const { offers, offerPaymentOptions } = generateOffers();
+  db.offers = offers;
+  db.offer_payment_options = offerPaymentOptions;
+  db.cohorts = generateCohorts();
+  db.applications = [];
+  db.enrollments = [];
   db.deals = generateDeals(db);
   addLeifProofSliceFixtures(db);
+  backfillEnrollmentsForWonDeals(db);
   db.deal_notes = generateDealNotes(db);
   db.tasks = generateTasks(db);
   db.configuration = [

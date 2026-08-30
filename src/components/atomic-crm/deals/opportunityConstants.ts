@@ -1,25 +1,15 @@
-// Fixed reference data for this proof slice. A single hardcoded offer
-// stands in for a future `offers` table; everything below is deliberately
-// plain data (no config/settings indirection) since it describes Leif's
-// sales process itself, not per-tenant branding.
+// Deliberately plain data (no config/settings indirection) since this
+// describes Leif's sales process itself, not per-tenant branding. Offer/
+// Cohort choices are real data now (see the `offers` and `cohorts`
+// resources) — this file only holds the sales-process vocabulary that has
+// no table of its own.
 import type {
   OpportunityEntryPath,
-  OpportunityOffer,
   OpportunityOutcome,
   OpportunityOwnerDecision,
   OpportunityProspectDecision,
   OpportunitySource,
 } from "../types";
-
-export const LIVING_EXAMPLE_OFFER: OpportunityOffer = "the_living_example";
-
-export const offerLabels: Record<OpportunityOffer, string> = {
-  the_living_example: "The Living Example",
-};
-
-// 4-month 1:1 coaching. Payment options and active-client capacity are
-// reference data only for this slice — not yet enforced anywhere.
-export const LIVING_EXAMPLE_PRICE = 4000;
 
 export const opportunitySources: { value: OpportunitySource; label: string }[] =
   [

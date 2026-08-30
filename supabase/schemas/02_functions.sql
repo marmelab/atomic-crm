@@ -224,6 +224,79 @@ begin
     return new;
 end;$$;
 
+CREATE OR REPLACE FUNCTION "public"."handle_deal_saved"() RETURNS "trigger"
+    LANGUAGE "plpgsql"
+    SET "search_path" TO 'public'
+    AS $$
+declare
+  v_offer offers%ROWTYPE;
+  v_cohort_offer_id bigint;
+begin
+  select * into v_offer from offers where id = new.offer_id;
+  if v_offer.id is null then
+    raise exception 'Invalid offer_id %', new.offer_id;
+  end if;
+
+  if new.cohort_id is not null then
+    select offer_id into v_cohort_offer_id from cohorts where id = new.cohort_id;
+    if v_cohort_offer_id is null then
+      raise exception 'Invalid cohort_id %', new.cohort_id;
+    end if;
+    if v_offer.type <> 'group' then
+      raise exception 'cohort_id can only be set on a group offer (offer_id %)', new.offer_id;
+    end if;
+    if v_cohort_offer_id <> new.offer_id then
+      raise exception 'cohort_id % does not belong to offer_id %', new.cohort_id, new.offer_id;
+    end if;
+  end if;
+
+  -- Snapshot commercial info at save time so a later Offer/payment-option
+  -- change never rewrites historical sales context on an existing Opportunity.
+  if tg_op = 'INSERT' or new.offer_id is distinct from old.offer_id then
+    new.offer_name_snapshot := v_offer.name;
+    new.offer_price_snapshot := v_offer.current_price;
+  end if;
+
+  if new.selected_payment_option_id is not null
+     and (tg_op = 'INSERT' or new.selected_payment_option_id is distinct from old.selected_payment_option_id)
+  then
+    select total, installments, installment_amount
+      into new.selected_payment_total, new.selected_installment_count, new.selected_installment_amount
+      from offer_payment_options
+      where id = new.selected_payment_option_id;
+  end if;
+
+  return new;
+end;
+$$;
+
+CREATE OR REPLACE FUNCTION "public"."handle_deal_won"() RETURNS "trigger"
+    LANGUAGE "plpgsql"
+    SET "search_path" TO 'public'
+    AS $$
+declare
+  v_cohort cohorts%ROWTYPE;
+begin
+  if new.stage = 'won' and (tg_op = 'INSERT' or old.stage is distinct from 'won') then
+    if new.cohort_id is not null then
+      select * into v_cohort from cohorts where id = new.cohort_id;
+    end if;
+
+    -- Idempotent: the unique constraint on enrollments.opportunity_id means
+    -- re-saving Won (or this trigger re-firing) never creates a duplicate.
+    insert into enrollments (opportunity_id, status, start_date, end_date)
+    values (
+      new.id,
+      'onboarding',
+      v_cohort.program_start_at::date,
+      v_cohort.program_end_at::date
+    )
+    on conflict (opportunity_id) do nothing;
+  end if;
+  return new;
+end;
+$$;
+
 CREATE OR REPLACE FUNCTION "public"."handle_new_user"() RETURNS "trigger"
     LANGUAGE "plpgsql" SECURITY DEFINER
     SET "search_path" TO ''

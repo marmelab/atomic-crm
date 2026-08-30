@@ -1,9 +1,14 @@
 import type {
+  Application,
+  Cohort,
   Company,
   Contact,
   ContactNote,
   Deal,
   DealNote,
+  Enrollment,
+  Offer,
+  OfferPaymentOption,
   Sale,
   Tag,
   Task,
@@ -14,8 +19,13 @@ export interface Db {
   companies: Company[];
   contacts: Contact[];
   contact_notes: ContactNote[];
+  offers: Offer[];
+  offer_payment_options: OfferPaymentOption[];
+  cohorts: Cohort[];
   deals: Deal[];
   deal_notes: DealNote[];
+  applications: Application[];
+  enrollments: Enrollment[];
   sales: Sale[];
   tags: Tag[];
   tasks: Task[];

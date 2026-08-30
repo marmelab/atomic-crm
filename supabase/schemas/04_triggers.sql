@@ -20,6 +20,20 @@ create or replace trigger set_deal_sales_id_trigger
     before insert on public.deals
     for each row execute function public.set_sales_id_default();
 
+-- Validate Offer/Cohort consistency and snapshot commercial info (runs
+-- before set_deal_sales_id_trigger's ordering doesn't matter here since
+-- they touch disjoint columns; alphabetical trigger name keeps it first).
+create or replace trigger "05_handle_deal_saved"
+    before insert or update on public.deals
+    for each row execute function public.handle_deal_saved();
+
+-- Create the Opportunity's Enrollment the moment it genuinely transitions
+-- into Won. Runs AFTER so the deals row (and its id) already exists for the
+-- enrollments FK.
+create or replace trigger on_deal_won
+    after insert or update on public.deals
+    for each row execute function public.handle_deal_won();
+
 create or replace trigger set_deal_notes_sales_id_trigger
     before insert on public.deal_notes
     for each row execute function public.set_sales_id_default();

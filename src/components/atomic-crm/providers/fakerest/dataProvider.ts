@@ -9,17 +9,22 @@ import {
 import fakeRestDataProvider from "ra-data-fakerest";
 
 import type {
+  Cohort,
   Company,
   Contact,
   ContactNote,
   Deal,
   DealNote,
+  Enrollment,
+  Offer,
+  OfferPaymentOption,
   Sale,
   SalesFormData,
   SignUpData,
   Task,
 } from "../../types";
 import type { ConfigurationContextValue } from "../../root/ConfigurationContext";
+import { validateOfferCohort } from "../../deals/offerCohortValidation";
 import { getActivityLog } from "../commons/activity";
 import { getCompanyAvatar } from "../commons/getCompanyAvatar";
 import { getContactAvatar } from "../commons/getContactAvatar";
@@ -110,6 +115,106 @@ async function fetchAndUpdateCompanyData(
 
   newData.company_name = company.name;
   return { ...params, data: newData };
+}
+
+// Validates the Offer/Cohort relationship and snapshots commercial info onto
+// the Opportunity, mirroring the Postgres trigger `handle_deal_saved()`
+// (supabase/schemas/02_functions.sql) so demo mode enforces the same rule as
+// production. Returns the data to save, with snapshot fields filled in.
+async function applyDealOfferCohortSnapshot(
+  data: Partial<Deal>,
+  previousData: Deal | undefined,
+  dataProvider: DataProvider,
+): Promise<Partial<Deal>> {
+  const offerId = data.offer_id ?? previousData?.offer_id;
+  if (offerId == null) {
+    return data;
+  }
+
+  const { data: offer } = await dataProvider.getOne<Offer>("offers", {
+    id: offerId,
+  });
+  if (!offer) {
+    throw new Error(`Invalid offer_id ${offerId}`);
+  }
+
+  const cohortId =
+    data.cohort_id !== undefined ? data.cohort_id : previousData?.cohort_id;
+  let cohort: Cohort | undefined;
+  if (cohortId != null) {
+    const { data: fetchedCohort } = await dataProvider.getOne<Cohort>(
+      "cohorts",
+      { id: cohortId },
+    );
+    if (!fetchedCohort) {
+      throw new Error(`Invalid cohort_id ${cohortId}`);
+    }
+    cohort = fetchedCohort;
+  }
+  validateOfferCohort(offer, cohort ?? null);
+
+  const snapshot: Partial<Deal> = { ...data };
+  const offerChanged =
+    !previousData || String(previousData.offer_id) !== String(offer.id);
+  if (offerChanged) {
+    snapshot.offer_name_snapshot = offer.name;
+    snapshot.offer_price_snapshot = offer.current_price;
+  }
+
+  const paymentOptionChanged =
+    data.selected_payment_option_id != null &&
+    (!previousData ||
+      String(previousData.selected_payment_option_id ?? "") !==
+        String(data.selected_payment_option_id));
+  if (paymentOptionChanged) {
+    const { data: paymentOption } =
+      await dataProvider.getOne<OfferPaymentOption>("offer_payment_options", {
+        id: data.selected_payment_option_id!,
+      });
+    if (paymentOption) {
+      snapshot.selected_payment_total = paymentOption.total;
+      snapshot.selected_installment_count = paymentOption.installments;
+      snapshot.selected_installment_amount = paymentOption.installment_amount;
+    }
+  }
+
+  return snapshot;
+}
+
+// Creates the Opportunity's Enrollment the moment it's genuinely Won, if one
+// doesn't already exist. Mirrors the Postgres trigger `handle_deal_won()`.
+// Idempotent: FakeRest calls are sequential/awaited so the check-then-create
+// below can't race in demo mode; production's idempotency instead comes from
+// the unique constraint on enrollments.opportunity_id (ON CONFLICT DO NOTHING).
+async function ensureEnrollmentForWonDeal(
+  deal: Deal,
+  dataProvider: DataProvider,
+): Promise<void> {
+  if (deal.stage !== "won") return;
+
+  const { total } = await dataProvider.getList<Enrollment>("enrollments", {
+    filter: { opportunity_id: deal.id },
+    pagination: { page: 1, perPage: 1 },
+    sort: { field: "id", order: "ASC" },
+  });
+  if ((total ?? 0) > 0) return;
+
+  let cohort: Cohort | undefined;
+  if (deal.cohort_id != null) {
+    const { data } = await dataProvider.getOne<Cohort>("cohorts", {
+      id: deal.cohort_id,
+    });
+    cohort = data;
+  }
+
+  await dataProvider.create("enrollments", {
+    data: {
+      opportunity_id: deal.id,
+      status: "onboarding",
+      start_date: cohort?.program_start_at?.split("T")[0] ?? null,
+      end_date: cohort?.program_end_at?.split("T")[0] ?? null,
+    },
+  });
 }
 
 export interface CreateFakeRestDataProviderOptions {
@@ -563,17 +668,22 @@ export const createDataProvider = ({
       } satisfies ResourceCallbacks<Company>,
       {
         resource: "deals",
-        beforeCreate: async (params) => {
+        beforeCreate: async (params, dataProvider) => {
+          const data = await applyDealOfferCohortSnapshot(
+            params.data,
+            undefined,
+            dataProvider,
+          );
           return {
             ...params,
             data: {
-              ...params.data,
+              ...data,
               created_at: new Date().toISOString(),
               updated_at: new Date().toISOString(),
             },
           };
         },
-        afterCreate: async (result) => {
+        afterCreate: async (result, dataProvider) => {
           // Opportunities no longer link to a company by default (Leif's
           // model has no B2B layer); only bump the count when one is set.
           if (result.data.company_id != null) {
@@ -582,16 +692,29 @@ export const createDataProvider = ({
             }));
           }
 
+          // A deal can be created directly as Won (e.g. an import); make
+          // sure it gets its Enrollment too.
+          await ensureEnrollmentForWonDeal(result.data, dataProvider);
+
           return result;
         },
-        beforeUpdate: async (params) => {
+        beforeUpdate: async (params, dataProvider) => {
+          const data = await applyDealOfferCohortSnapshot(
+            params.data,
+            params.previousData,
+            dataProvider,
+          );
           return {
             ...params,
             data: {
-              ...params.data,
+              ...data,
               updated_at: new Date().toISOString(),
             },
           };
+        },
+        afterUpdate: async (result, dataProvider) => {
+          await ensureEnrollmentForWonDeal(result.data, dataProvider);
+          return result;
         },
         afterDelete: async (result) => {
           if (result.data.company_id != null) {

@@ -25,9 +25,9 @@ import { NoteCreate } from "../notes/NoteCreate";
 import { NotesIterator } from "../notes/NotesIterator";
 import { useConfigurationContext } from "../root/ConfigurationContext";
 import type { Deal } from "../types";
+import { DealApplicationAndEnrollment } from "./DealApplicationAndEnrollment";
 import { findDealLabel, formatISODateString } from "./dealUtils";
 import {
-  offerLabels,
   opportunityEntryPaths,
   opportunityOutcomes,
   opportunitySources,
@@ -99,10 +99,33 @@ const DealShowContent = () => {
           <div className="flex flex-wrap gap-8 m-4">
             <div className="flex flex-col mr-10">
               <span className="text-xs text-muted-foreground tracking-wide">
-                {translate("resources.deals.fields.offer")}
+                {translate("resources.deals.fields.offer_id")}
               </span>
-              <span className="text-sm">{offerLabels[record.offer]}</span>
+              <span className="text-sm">
+                {record.offer_name_snapshot ?? (
+                  <ReferenceField
+                    source="offer_id"
+                    reference="offers"
+                    link={false}
+                  />
+                )}
+              </span>
             </div>
+
+            {record.cohort_id && (
+              <div className="flex flex-col mr-10">
+                <span className="text-xs text-muted-foreground tracking-wide">
+                  {translate("resources.deals.fields.cohort_id")}
+                </span>
+                <span className="text-sm">
+                  <ReferenceField
+                    source="cohort_id"
+                    reference="cohorts"
+                    link="show"
+                  />
+                </span>
+              </div>
+            )}
 
             <div className="flex flex-col mr-10">
               <span className="text-xs text-muted-foreground tracking-wide">
@@ -215,7 +238,35 @@ const DealShowContent = () => {
                   </span>
                 </div>
               )}
+
+            {record.sales_call_at && (
+              <div className="flex flex-col mr-10">
+                <span className="text-xs text-muted-foreground tracking-wide">
+                  {translate("resources.deals.fields.sales_call_at")}
+                </span>
+                <span className="text-sm">
+                  {formatISODateString(record.sales_call_at.split("T")[0])}
+                </span>
+              </div>
+            )}
+
+            {record.selected_payment_total != null && (
+              <div className="flex flex-col mr-10">
+                <span className="text-xs text-muted-foreground tracking-wide">
+                  {translate(
+                    "resources.deals.fields.selected_payment_option_id",
+                  )}
+                </span>
+                <span className="text-sm">
+                  ${record.selected_payment_total} (
+                  {record.selected_installment_count}× $
+                  {record.selected_installment_amount})
+                </span>
+              </div>
+            )}
           </div>
+
+          <DealApplicationAndEnrollment />
 
           {record.description && (
             <div className="m-4 whitespace-pre-line">

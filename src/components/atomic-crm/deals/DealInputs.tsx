@@ -1,5 +1,5 @@
 import { addDays } from "date-fns/addDays";
-import { required, useTranslate } from "ra-core";
+import { required, useGetList, useTranslate } from "ra-core";
 import { useEffect } from "react";
 import { useFormContext, useWatch } from "react-hook-form";
 import { ReferenceInput } from "@/components/admin/reference-input";
@@ -13,8 +13,8 @@ import { useIsMobile } from "@/hooks/use-mobile";
 
 import { contactOptionText } from "../misc/ContactOption";
 import { useConfigurationContext } from "../root/ConfigurationContext";
+import type { Offer, OfferPaymentOption } from "../types";
 import {
-  offerLabels,
   opportunityEntryPaths,
   opportunityOutcomes,
   opportunitySources,
@@ -39,14 +39,68 @@ export const DealInputs = () => {
   );
 };
 
+const paymentOptionText = (option: OfferPaymentOption) =>
+  `${option.name} — $${option.total} (${option.installments}× $${option.installment_amount})${option.is_public ? "" : " (authorized only)"}`;
+
 const DealInfoInputs = () => {
-  const translate = useTranslate();
+  const { control, setValue, getValues } = useFormContext();
+  const offerId = useWatch({ control, name: "offer_id" });
+  const { data: offers } = useGetList<Offer>("offers", {
+    pagination: { page: 1, perPage: 100 },
+  });
+  const selectedOffer = offers?.find(
+    (offer) => String(offer.id) === String(offerId),
+  );
+  const isGroupOffer = selectedOffer?.type === "group";
+
+  // A Cohort only ever makes sense for a group Offer. Switching to an
+  // individual offer (or changing offer entirely) clears any stale
+  // selection so it can never point at another offer's cohort.
+  useEffect(() => {
+    if (!isGroupOffer && getValues("cohort_id")) {
+      setValue("cohort_id", null, { shouldDirty: true });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [offerId, isGroupOffer]);
+
   return (
     <div className="flex flex-col gap-4 flex-1">
-      <p className="text-xs text-muted-foreground">
-        {translate("resources.deals.fields.offer")}:{" "}
-        {offerLabels.the_living_example}
-      </p>
+      <div className="flex flex-col sm:flex-row gap-4">
+        <ReferenceInput source="offer_id" reference="offers">
+          <AutocompleteInput
+            label="resources.deals.fields.offer_id"
+            optionText="name"
+            helperText={false}
+            validate={required()}
+          />
+        </ReferenceInput>
+        {isGroupOffer && (
+          <ReferenceInput
+            source="cohort_id"
+            reference="cohorts"
+            filter={{ offer_id: offerId }}
+          >
+            <AutocompleteInput
+              label="resources.deals.fields.cohort_id"
+              optionText="name"
+              helperText={false}
+            />
+          </ReferenceInput>
+        )}
+      </div>
+      {offerId && (
+        <ReferenceInput
+          source="selected_payment_option_id"
+          reference="offer_payment_options"
+          filter={{ offer_id: offerId }}
+        >
+          <AutocompleteInput
+            label="resources.deals.fields.selected_payment_option_id"
+            optionText={paymentOptionText}
+            helperText={false}
+          />
+        </ReferenceInput>
+      )}
       <TextInput source="name" validate={required()} helperText={false} />
       <TextInput source="description" multiline rows={3} helperText={false} />
     </div>
@@ -172,6 +226,11 @@ const DealSalesProcessInputs = () => {
         optionValue="value"
         helperText={false}
         emptyText="resources.deals.entry_path_none"
+      />
+      <DateInput
+        source="sales_call_at"
+        label="resources.deals.fields.sales_call_at"
+        helperText={false}
       />
       <SelectInput
         source="owner_decision"

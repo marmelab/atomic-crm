@@ -1,4 +1,4 @@
-import { FileText, Import, Settings, User, Users } from "lucide-react";
+import { FileText, Import, Settings, Tag, User, Users } from "lucide-react";
 import { CanAccess, useTranslate, useUserMenu } from "ra-core";
 import { Link, matchPath, useLocation } from "react-router";
 import { RefreshButton } from "@/components/admin/refresh-button";
@@ -18,12 +18,16 @@ const Header = () => {
   let currentPath: string | boolean = "/";
   if (matchPath("/", location.pathname)) {
     currentPath = "/";
-  } else if (matchPath("/contacts/*", location.pathname)) {
-    currentPath = "/contacts";
-  } else if (matchPath("/companies/*", location.pathname)) {
-    currentPath = "/companies";
   } else if (matchPath("/deals/*", location.pathname)) {
     currentPath = "/deals";
+  } else if (matchPath("/applications/*", location.pathname)) {
+    currentPath = "/applications";
+  } else if (matchPath("/enrollments/*", location.pathname)) {
+    currentPath = "/enrollments";
+  } else if (matchPath("/cohorts/*", location.pathname)) {
+    currentPath = "/cohorts";
+  } else if (matchPath("/contacts/*", location.pathname)) {
+    currentPath = "/contacts";
   } else {
     currentPath = false;
   }
@@ -58,25 +62,39 @@ const Header = () => {
                     isActive={currentPath === "/"}
                   />
                   <NavigationTab
-                    label={translate("resources.contacts.name", {
-                      smart_count: 2,
-                    })}
-                    to="/contacts"
-                    isActive={currentPath === "/contacts"}
-                  />
-                  <NavigationTab
-                    label={translate("resources.companies.name", {
-                      smart_count: 2,
-                    })}
-                    to="/companies"
-                    isActive={currentPath === "/companies"}
-                  />
-                  <NavigationTab
                     label={translate("resources.deals.name", {
                       smart_count: 2,
                     })}
                     to="/deals"
                     isActive={currentPath === "/deals"}
+                  />
+                  <NavigationTab
+                    label={translate("resources.applications.name", {
+                      smart_count: 2,
+                    })}
+                    to="/applications"
+                    isActive={currentPath === "/applications"}
+                  />
+                  <NavigationTab
+                    label={translate("resources.enrollments.name", {
+                      smart_count: 2,
+                    })}
+                    to="/enrollments"
+                    isActive={currentPath === "/enrollments"}
+                  />
+                  <NavigationTab
+                    label={translate("resources.cohorts.name", {
+                      smart_count: 2,
+                    })}
+                    to="/cohorts"
+                    isActive={currentPath === "/cohorts"}
+                  />
+                  <NavigationTab
+                    label={translate("resources.contacts.name", {
+                      smart_count: 2,
+                    })}
+                    to="/contacts"
+                    isActive={currentPath === "/contacts"}
                   />
                 </nav>
               </div>
@@ -88,6 +106,7 @@ const Header = () => {
                   <CanAccess resource="sales" action="list">
                     <UsersMenu />
                   </CanAccess>
+                  <OffersMenu />
                   <CanAccess resource="configuration" action="edit">
                     <SettingsMenu />
                   </CanAccess>
@@ -151,6 +170,24 @@ const ProfileMenu = () => {
       <Link to="/profile" className="flex items-center gap-2">
         <User />
         {translate("crm.profile.title")}
+      </Link>
+    </DropdownMenuItem>
+  );
+};
+
+// Administrative/reference UI (see resources/offers): low-prominence by
+// design, so it lives in the user menu rather than the primary navigation.
+const OffersMenu = () => {
+  const translate = useTranslate();
+  const userMenuContext = useUserMenu();
+  if (!userMenuContext) {
+    throw new Error("<OffersMenu> must be used inside <UserMenu>");
+  }
+  return (
+    <DropdownMenuItem asChild onClick={userMenuContext.onClose}>
+      <Link to="/offers" className="flex items-center gap-2">
+        <Tag />
+        {translate("resources.offers.name", { smart_count: 2 })}
       </Link>
     </DropdownMenuItem>
   );

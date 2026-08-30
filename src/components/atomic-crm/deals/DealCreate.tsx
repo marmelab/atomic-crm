@@ -14,7 +14,6 @@ import { Dialog, DialogContent } from "@/components/ui/dialog";
 
 import type { Deal } from "../types";
 import { DealInputs } from "./DealInputs";
-import { LIVING_EXAMPLE_OFFER } from "./opportunityConstants";
 
 export const DealCreate = ({ open }: { open: boolean }) => {
   const redirect = useRedirect();
@@ -80,7 +79,6 @@ export const DealCreate = ({ open }: { open: boolean }) => {
           <Form
             defaultValues={{
               sales_id: identity?.id,
-              offer: LIVING_EXAMPLE_OFFER,
               stage: "interested",
               index: 0,
             }}

@@ -15,11 +15,15 @@ import { ForgotPasswordPage } from "@/components/supabase/forgot-password-page";
 import { SetPasswordPage } from "@/components/supabase/set-password-page";
 import { OAuthConsentPage } from "@/components/supabase/oauth-consent-page";
 
+import applications from "../applications";
+import cohorts from "../cohorts";
 import companies from "../companies";
 import contacts from "../contacts";
 import { Dashboard } from "../dashboard/Dashboard";
 import { MobileDashboard } from "../dashboard/MobileDashboard";
 import deals from "../deals";
+import enrollments from "../enrollments";
+import offers from "../offers";
 import { Layout } from "../layout/Layout";
 import { MobileLayout } from "../layout/MobileLayout";
 import { SignupPage } from "../login/SignupPage";
@@ -263,8 +267,17 @@ const DesktopAdmin = (
         <Route path={ChangelogPage.path} element={<ChangelogPage />} />
       </CustomRoutes>
       <Resource name="deals" {...deals} />
+      <Resource name="applications" {...applications} />
+      <Resource
+        name="enrollments"
+        {...enrollments}
+        options={{ label: "Clients" }}
+      />
+      <Resource name="cohorts" {...cohorts} />
       <Resource name="contacts" {...contacts} />
       <Resource name="companies" {...companies} />
+      <Resource name="offers" {...offers} />
+      <Resource name="offer_payment_options" />
       <Resource name="contact_notes" />
       <Resource name="deal_notes" />
       <Resource name="tasks" />

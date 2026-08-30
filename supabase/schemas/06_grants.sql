@@ -33,6 +33,14 @@ grant all on function public.handle_company_saved() to anon;
 grant all on function public.handle_company_saved() to authenticated;
 grant all on function public.handle_company_saved() to service_role;
 
+grant all on function public.handle_deal_saved() to anon;
+grant all on function public.handle_deal_saved() to authenticated;
+grant all on function public.handle_deal_saved() to service_role;
+
+grant all on function public.handle_deal_won() to anon;
+grant all on function public.handle_deal_won() to authenticated;
+grant all on function public.handle_deal_won() to service_role;
+
 grant all on function public.handle_contact_note_created_or_updated() to anon;
 grant all on function public.handle_contact_note_created_or_updated() to authenticated;
 grant all on function public.handle_contact_note_created_or_updated() to service_role;
@@ -106,6 +114,26 @@ grant all on table public.favicons_excluded_domains to anon;
 grant all on table public.favicons_excluded_domains to authenticated;
 grant all on table public.favicons_excluded_domains to service_role;
 
+grant all on table public.offers to anon;
+grant all on table public.offers to authenticated;
+grant all on table public.offers to service_role;
+
+grant all on table public.offer_payment_options to anon;
+grant all on table public.offer_payment_options to authenticated;
+grant all on table public.offer_payment_options to service_role;
+
+grant all on table public.cohorts to anon;
+grant all on table public.cohorts to authenticated;
+grant all on table public.cohorts to service_role;
+
+grant all on table public.applications to anon;
+grant all on table public.applications to authenticated;
+grant all on table public.applications to service_role;
+
+grant all on table public.enrollments to anon;
+grant all on table public.enrollments to authenticated;
+grant all on table public.enrollments to service_role;
+
 -- View grants
 grant all on table public.activity_log to anon;
 grant all on table public.activity_log to authenticated;
@@ -159,6 +187,26 @@ grant all on sequence public.tags_id_seq to service_role;
 grant all on sequence public.tasks_id_seq to anon;
 grant all on sequence public.tasks_id_seq to authenticated;
 grant all on sequence public.tasks_id_seq to service_role;
+
+grant all on sequence public.offers_id_seq to anon;
+grant all on sequence public.offers_id_seq to authenticated;
+grant all on sequence public.offers_id_seq to service_role;
+
+grant all on sequence public.offer_payment_options_id_seq to anon;
+grant all on sequence public.offer_payment_options_id_seq to authenticated;
+grant all on sequence public.offer_payment_options_id_seq to service_role;
+
+grant all on sequence public.cohorts_id_seq to anon;
+grant all on sequence public.cohorts_id_seq to authenticated;
+grant all on sequence public.cohorts_id_seq to service_role;
+
+grant all on sequence public.applications_id_seq to anon;
+grant all on sequence public.applications_id_seq to authenticated;
+grant all on sequence public.applications_id_seq to service_role;
+
+grant all on sequence public.enrollments_id_seq to anon;
+grant all on sequence public.enrollments_id_seq to authenticated;
+grant all on sequence public.enrollments_id_seq to service_role;
 
 -- Default privileges
 alter default privileges for role postgres in schema public grant all on sequences to postgres;

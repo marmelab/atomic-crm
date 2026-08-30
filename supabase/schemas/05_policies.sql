@@ -14,6 +14,11 @@ alter table public.tags enable row level security;
 alter table public.tasks enable row level security;
 alter table public.configuration enable row level security;
 alter table public.favicons_excluded_domains enable row level security;
+alter table public.offers enable row level security;
+alter table public.offer_payment_options enable row level security;
+alter table public.cohorts enable row level security;
+alter table public.applications enable row level security;
+alter table public.enrollments enable row level security;
 
 -- Companies
 create policy "Enable read access for authenticated users" on public.companies for select to authenticated using (true);
@@ -67,3 +72,33 @@ create policy "Enable update for admins" on public.configuration for update to a
 
 -- Favicons excluded domains
 create policy "Enable access for authenticated users only" on public.favicons_excluded_domains to authenticated using (true) with check (true);
+
+-- Offers
+create policy "Enable read access for authenticated users" on public.offers for select to authenticated using (true);
+create policy "Enable insert for authenticated users only" on public.offers for insert to authenticated with check (true);
+create policy "Enable update for authenticated users only" on public.offers for update to authenticated using (true) with check (true);
+create policy "Offers Delete Policy" on public.offers for delete to authenticated using (true);
+
+-- Offer Payment Options
+create policy "Enable read access for authenticated users" on public.offer_payment_options for select to authenticated using (true);
+create policy "Enable insert for authenticated users only" on public.offer_payment_options for insert to authenticated with check (true);
+create policy "Enable update for authenticated users only" on public.offer_payment_options for update to authenticated using (true) with check (true);
+create policy "Offer Payment Options Delete Policy" on public.offer_payment_options for delete to authenticated using (true);
+
+-- Cohorts
+create policy "Enable read access for authenticated users" on public.cohorts for select to authenticated using (true);
+create policy "Enable insert for authenticated users only" on public.cohorts for insert to authenticated with check (true);
+create policy "Enable update for authenticated users only" on public.cohorts for update to authenticated using (true) with check (true);
+create policy "Cohorts Delete Policy" on public.cohorts for delete to authenticated using (true);
+
+-- Applications
+create policy "Enable read access for authenticated users" on public.applications for select to authenticated using (true);
+create policy "Enable insert for authenticated users only" on public.applications for insert to authenticated with check (true);
+create policy "Enable update for authenticated users only" on public.applications for update to authenticated using (true) with check (true);
+create policy "Applications Delete Policy" on public.applications for delete to authenticated using (true);
+
+-- Enrollments
+create policy "Enable read access for authenticated users" on public.enrollments for select to authenticated using (true);
+create policy "Enable insert for authenticated users only" on public.enrollments for insert to authenticated with check (true);
+create policy "Enable update for authenticated users only" on public.enrollments for update to authenticated using (true) with check (true);
+create policy "Enrollments Delete Policy" on public.enrollments for delete to authenticated using (true);

@@ -1,9 +1,9 @@
 import { datatype, lorem, random } from "faker/locale/en_US";
 
 import { defaultDealStages } from "../../../root/defaultConfiguration";
-import { LIVING_EXAMPLE_OFFER } from "../../../deals/opportunityConstants";
 import type { Deal } from "../../../types";
 import type { Db } from "./types";
+import { LIVING_EXAMPLE_OFFER_ID } from "./offers";
 import { randomDate, weightedBoolean } from "./utils";
 
 // Every generated opportunity is for the one offer this proof slice models.
@@ -41,7 +41,9 @@ export const generateDeals = (db: Db): Deal[] => {
       id,
       name: `${contact.first_name} ${contact.last_name} — The Living Example`,
       contact_id: contact.id,
-      offer: LIVING_EXAMPLE_OFFER,
+      offer_id: LIVING_EXAMPLE_OFFER_ID,
+      offer_name_snapshot: "The Living Example",
+      offer_price_snapshot: 4000,
       stage,
       source: random.arrayElement(sources),
       entry_path: random.arrayElement(entryPaths),
