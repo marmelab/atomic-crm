@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 
 import { PageHeader, PersonCard, Section } from "../misc/ProgramLayout";
+import { formatMonthDayString } from "../deals/dealUtils";
 import { enrollmentStatusLabels } from "../enrollments/enrollmentConstants";
 import { AddToWaitlistButton } from "../waitlist/AddToWaitlistButton";
 import { WaitlistSection } from "../waitlist/WaitlistSection";
@@ -133,7 +134,7 @@ export const IndividualProgramPage = () => {
               <Card key={opening.date}>
                 <CardContent className="py-3">
                   <p className="text-sm font-medium">
-                    {formatMonthDay(opening.date)}
+                    {formatMonthDayString(opening.date)}
                     {" — "}
                     {translate("crm.programs.opening_count", {
                       _: "%{count} opening |||| %{count} openings",
@@ -164,13 +165,3 @@ export const IndividualProgramPage = () => {
 };
 
 IndividualProgramPage.path = "/programs/individual/:offerId";
-
-// Same UTC/local-safe formatting rationale as dashboard cards — see
-// dashboard/LivingExampleCapacityCard.tsx.
-const formatMonthDay = (isoDate: string) => {
-  const [year, month, day] = isoDate.split("-").map(Number);
-  return new Date(year!, month! - 1, day!).toLocaleDateString("en-US", {
-    month: "short",
-    day: "numeric",
-  });
-};

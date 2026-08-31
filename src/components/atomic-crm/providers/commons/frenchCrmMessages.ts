@@ -649,6 +649,22 @@ export const frenchCrmMessages = {
       people_deciding_empty: "Personne n'est actuellement en réflexion.",
       follow_up_on: "relance le %{date}",
       art_oracle_title: "Oracle artistique",
+      coming_up_title: "À venir",
+      coming_up_orientation:
+        "Dates importantes à venir pour vos clients et programmes.",
+      coming_up_empty:
+        "Aucune date importante de programme ou de client à venir.",
+      coming_up_today: "Aujourd'hui",
+      coming_up_le_completes: "%{names} termine |||| %{names} terminent",
+      coming_up_le_opening_detail:
+        "%{count} place Living Example disponible |||| %{count} places Living Example disponibles",
+      coming_up_cohort_starts: "%{name} commence",
+      coming_up_cohort_ends: "%{name} se termine",
+      coming_up_cohort_applications_open: "%{name} — Candidatures ouvertes",
+      coming_up_cohort_applications_close: "%{name} — Candidatures fermées",
+      coming_up_cohort_enrolled_of_max: "%{enrolled} / %{max} inscrits",
+      coming_up_cohort_enrolled: "%{count} inscrits",
+      coming_up_cohort_completing: "%{count} en fin de programme",
     },
     header: {
       import_data: "Importer des données",

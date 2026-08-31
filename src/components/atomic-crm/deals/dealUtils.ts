@@ -60,3 +60,20 @@ export function formatISODateString(dateString: string) {
 export function formatTimestampString(timestamp: string) {
   return format(new Date(timestamp), "PP");
 }
+
+// Short "Oct 31" form of a "YYYY-MM-DD" (or "YYYY-MM") date-only string —
+// the same UTC/local-safe manual parsing as formatISODateString above (a
+// bare `new Date(str).toLocaleDateString()` risks an off-by-one day
+// depending on the viewer's timezone), just a terser output format.
+// Extracted here after this exact logic was independently duplicated in
+// programs/IndividualProgramPage.tsx and dashboard/
+// LivingExampleCapacityCard.tsx — Next Up / Coming Up (Dashboard slice) is
+// a third caller, past the point where copy-pasting it again was
+// reasonable.
+export function formatMonthDayString(isoDate: string) {
+  const [year, month, day] = isoDate.split("-").map(Number);
+  return new Date(year!, month! - 1, day!).toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+  });
+}

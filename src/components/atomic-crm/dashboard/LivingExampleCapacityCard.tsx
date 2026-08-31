@@ -2,19 +2,9 @@ import { useTranslate } from "ra-core";
 import { Link } from "react-router";
 import { Card, CardContent } from "@/components/ui/card";
 
+import { formatMonthDayString } from "../deals/dealUtils";
 import { useWaitlistEntries } from "../waitlist/useWaitlistEntries";
 import { useLivingExampleCapacityData } from "./useLivingExampleCapacityData";
-
-// Formats a "YYYY-MM-DD" or "YYYY-MM" date string without the UTC/local
-// off-by-one risk that new Date(str).toLocaleDateString() can produce for
-// date-only strings — same rationale as deals/dealUtils.ts.
-const formatMonthDay = (isoDate: string) => {
-  const [year, month, day] = isoDate.split("-").map(Number);
-  return new Date(year!, month! - 1, day!).toLocaleDateString("en-US", {
-    month: "short",
-    day: "numeric",
-  });
-};
 
 const monthName = (yearMonth: string) => {
   const [year, month] = yearMonth.split("-").map(Number);
@@ -89,7 +79,7 @@ export const LivingExampleCapacityCard = () => {
                 })
               : translate("crm.dashboard.next_opening", {
                   _: "Next opening: %{date}",
-                  date: formatMonthDay(capacity.nextOpening.date),
+                  date: formatMonthDayString(capacity.nextOpening.date),
                 })}
           </Link>
         )}
