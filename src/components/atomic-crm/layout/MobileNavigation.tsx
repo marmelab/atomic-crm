@@ -6,13 +6,30 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
-import { Home, ListTodo, Plus, Settings, Users } from "lucide-react";
+import {
+  ClipboardList,
+  Contact,
+  Handshake,
+  Home,
+  LayoutGrid,
+  ListTodo,
+  MoreHorizontal,
+  Settings,
+  Users,
+} from "lucide-react";
 import { useTranslate } from "ra-core";
-import { Link, matchPath, useLocation, useMatch } from "react-router";
-import { ContactCreateSheet } from "../contacts/ContactCreateSheet";
-import { useState } from "react";
-import { NoteCreateSheet } from "../notes/NoteCreateSheet";
-import { TaskCreateSheet } from "../tasks/TaskCreateSheet";
+import { Link, matchPath, useLocation } from "react-router";
+
+// Primary mobile bottom nav (routing/shell regression fix, Programs +
+// Opportunity UX slice): reuses Atomic's existing bottom-bar shell — no new
+// nav architecture — but points at the real CRM sections (Opportunities,
+// Programs, Clients) instead of the original scaffold's Contacts/Tasks/+.
+// The remaining sections (Applications, Contacts, Tasks, Settings) live
+// under "More" rather than crowding five bars into one row. No Companies,
+// no dead Cohorts list link, no generic create action (each destination's
+// own list page carries its own create button — see ContactList.tsx /
+// MobileTasksList.tsx).
+const MORE_PATHS = ["/applications", "/contacts", "/tasks", "/settings"];
 
 export const MobileNavigation = () => {
   const location = useLocation();
@@ -21,14 +38,16 @@ export const MobileNavigation = () => {
   let currentPath: string | boolean = "/";
   if (matchPath("/", location.pathname)) {
     currentPath = "/";
-  } else if (matchPath("/contacts/*", location.pathname)) {
-    currentPath = "/contacts";
-  } else if (matchPath("/companies/*", location.pathname)) {
-    currentPath = "/companies";
-  } else if (matchPath("/tasks/*", location.pathname)) {
-    currentPath = "/tasks";
   } else if (matchPath("/deals/*", location.pathname)) {
     currentPath = "/deals";
+  } else if (matchPath("/programs/*", location.pathname)) {
+    currentPath = "/programs";
+  } else if (matchPath("/enrollments/*", location.pathname)) {
+    currentPath = "/enrollments";
+  } else if (
+    MORE_PATHS.some((path) => matchPath(`${path}/*`, location.pathname))
+  ) {
+    currentPath = "/more";
   } else {
     currentPath = false;
   }
@@ -53,30 +72,31 @@ export const MobileNavigation = () => {
       }}
     >
       <div className="flex justify-center">
-        <>
-          <NavigationButton
-            href="/"
-            Icon={Home}
-            label={translate("ra.page.dashboard")}
-            isActive={currentPath === "/"}
-          />
-          <NavigationButton
-            href="/contacts"
-            Icon={Users}
-            label={translate("resources.contacts.name", {
-              smart_count: 2,
-            })}
-            isActive={currentPath === "/contacts"}
-          />
-          <CreateButton />
-          <NavigationButton
-            href="/tasks"
-            Icon={ListTodo}
-            label={translate("resources.tasks.name", { smart_count: 2 })}
-            isActive={currentPath === "/tasks"}
-          />
-          <SettingsButton />
-        </>
+        <NavigationButton
+          href="/"
+          Icon={Home}
+          label={translate("ra.page.dashboard")}
+          isActive={currentPath === "/"}
+        />
+        <NavigationButton
+          href="/deals"
+          Icon={Handshake}
+          label={translate("resources.deals.name", { smart_count: 2 })}
+          isActive={currentPath === "/deals"}
+        />
+        <NavigationButton
+          href="/programs"
+          Icon={LayoutGrid}
+          label={translate("crm.programs.name", { _: "Programs" })}
+          isActive={currentPath === "/programs"}
+        />
+        <NavigationButton
+          href="/enrollments"
+          Icon={Users}
+          label={translate("resources.enrollments.name", { smart_count: 2 })}
+          isActive={currentPath === "/enrollments"}
+        />
+        <MoreButton isActive={currentPath === "/more"} />
       </div>
     </nav>
   );
@@ -108,82 +128,51 @@ const NavigationButton = ({
   </Button>
 );
 
-const CreateButton = () => {
+const MoreButton = ({ isActive }: { isActive: boolean }) => {
   const translate = useTranslate();
-  const contact_id = useMatch("/contacts/:id/*")?.params.id;
-  const [contactCreateOpen, setContactCreateOpen] = useState(false);
-  const [noteCreateOpen, setNoteCreateOpen] = useState(false);
-  const [taskCreateOpen, setTaskCreateOpen] = useState(false);
 
   return (
-    <>
-      <ContactCreateSheet
-        open={contactCreateOpen}
-        onOpenChange={setContactCreateOpen}
-      />
-      <NoteCreateSheet
-        open={noteCreateOpen}
-        onOpenChange={setNoteCreateOpen}
-        contact_id={contact_id}
-      />
-      <TaskCreateSheet
-        open={taskCreateOpen}
-        onOpenChange={setTaskCreateOpen}
-        contact_id={contact_id}
-      />
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button
-            variant="default"
-            size="icon"
-            className="h-16 w-16 rounded-full -mt-3"
-            aria-label={translate("ra.action.create")}
-          >
-            <Plus className="size-10" />
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent>
-          <DropdownMenuItem
-            className="h-12 px-4 text-base"
-            onSelect={() => {
-              setContactCreateOpen(true);
-            }}
-          >
-            {translate("resources.contacts.forcedCaseName")}
-          </DropdownMenuItem>
-          <DropdownMenuItem
-            className="h-12 px-4 text-base"
-            onSelect={() => {
-              setNoteCreateOpen(true);
-            }}
-          >
-            {translate("resources.notes.forcedCaseName")}
-          </DropdownMenuItem>
-          <DropdownMenuItem
-            className="h-12 px-4 text-base"
-            onSelect={() => {
-              setTaskCreateOpen(true);
-            }}
-          >
-            {translate("resources.tasks.forcedCaseName")}
-          </DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
-    </>
-  );
-};
-
-const SettingsButton = () => {
-  const translate = useTranslate();
-  const location = useLocation();
-  const isActive = !!matchPath("/settings", location.pathname);
-
-  return (
-    <NavigationButton
-      href="/settings"
-      Icon={Settings}
-      label={translate("crm.settings.title")}
-      isActive={isActive}
-    />
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button
+          variant="ghost"
+          className={cn(
+            "flex-col gap-1 h-auto py-2 px-1 rounded-md w-16",
+            isActive ? null : "text-muted-foreground",
+          )}
+        >
+          <MoreHorizontal className="size-6" />
+          <span className="text-[0.6rem] font-medium">
+            {translate("crm.navigation.more", { _: "More" })}
+          </span>
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end" side="top">
+        <DropdownMenuItem asChild>
+          <Link to="/applications" className="flex items-center gap-2">
+            <ClipboardList className="size-4" />
+            {translate("resources.applications.name", { smart_count: 2 })}
+          </Link>
+        </DropdownMenuItem>
+        <DropdownMenuItem asChild>
+          <Link to="/contacts" className="flex items-center gap-2">
+            <Contact className="size-4" />
+            {translate("resources.contacts.name", { smart_count: 2 })}
+          </Link>
+        </DropdownMenuItem>
+        <DropdownMenuItem asChild>
+          <Link to="/tasks" className="flex items-center gap-2">
+            <ListTodo className="size-4" />
+            {translate("resources.tasks.name", { smart_count: 2 })}
+          </Link>
+        </DropdownMenuItem>
+        <DropdownMenuItem asChild>
+          <Link to="/settings" className="flex items-center gap-2">
+            <Settings className="size-4" />
+            {translate("crm.settings.title")}
+          </Link>
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
 };

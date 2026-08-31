@@ -699,6 +699,7 @@ export const frenchCrmMessages = {
     language: "Langue",
     navigation: {
       label: "Navigation CRM",
+      more: "Plus",
     },
     profile: {
       inbound: {

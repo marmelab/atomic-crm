@@ -1,13 +1,19 @@
-import { useGetList, useTimeout } from "ra-core";
-import { Skeleton } from "@/components/ui/skeleton";
-
-import type { Contact, ContactNote } from "../types";
-import { DashboardActivityLog } from "./DashboardActivityLog";
-import { DashboardStepper } from "./DashboardStepper";
 import MobileHeader from "../layout/MobileHeader";
 import { MobileContent } from "../layout/MobileContent";
 import { useConfigurationContext } from "../root/ConfigurationContext";
+import { Dashboard } from "./Dashboard";
 
+// Chaos Monkey routing/shell regression fix (Programs + Opportunity UX
+// slice): this used to render only DashboardActivityLog — a leftover from
+// before the Dashboard/Today slice, which only ever rebuilt the desktop
+// branch. At any viewport narrow enough to use the Mobile shell (see
+// hooks/use-mobile.ts), "/#/" showed just a "Latest Activity" fragment
+// instead of the real Dashboard. Per explicit human acceptance direction:
+// every viewport renders the SAME Dashboard (Tasks, Business at a Glance,
+// People Deciding, Art Oracle, Latest Activity) — only the mobile chrome
+// (header, bottom nav) differs. Dashboard.tsx's own responsive classes
+// (grid-cols-1 at narrow widths) handle the stacking; no separate mobile
+// dashboard content exists anymore.
 const Wrapper = ({ children }: { children: React.ReactNode }) => {
   const { darkModeLogo, lightModeLogo, title } = useConfigurationContext();
   return (
@@ -31,57 +37,8 @@ const Wrapper = ({ children }: { children: React.ReactNode }) => {
   );
 };
 
-const Loading = () => (
+export const MobileDashboard = () => (
   <Wrapper>
-    <Skeleton className="h-4 w-3/4 mb-4" />
-    <Skeleton className="h-4 w-full mb-2" />
-    <Skeleton className="h-4 w-full mb-2" />
-    <Skeleton className="h-4 w-full mb-2" />
-    <Skeleton className="h-4 w-full mb-2" />
+    <Dashboard />
   </Wrapper>
 );
-
-export const MobileDashboard = () => {
-  const {
-    data: dataContact,
-    total: totalContact,
-    isPending: isPendingContact,
-  } = useGetList<Contact>("contacts", {
-    pagination: { page: 1, perPage: 1 },
-  });
-  const { total: totalContactNotes, isPending: isPendingContactNotes } =
-    useGetList<ContactNote>("contact_notes", {
-      pagination: { page: 1, perPage: 1 },
-    });
-  const oneSecondHasPassed = useTimeout(1000);
-
-  const isPending = isPendingContact || isPendingContactNotes;
-
-  if (isPending) {
-    return oneSecondHasPassed ? <Loading /> : null;
-  }
-
-  if (!totalContact) {
-    return (
-      <Wrapper>
-        <DashboardStepper step={1} />
-      </Wrapper>
-    );
-  }
-
-  if (!totalContactNotes) {
-    return (
-      <Wrapper>
-        <DashboardStepper step={2} contactId={dataContact?.[0]?.id} />
-      </Wrapper>
-    );
-  }
-
-  return (
-    <Wrapper>
-      <div className="grid grid-cols-1 md:grid-cols-12 gap-6 mt-1">
-        <DashboardActivityLog />
-      </div>
-    </Wrapper>
-  );
-};

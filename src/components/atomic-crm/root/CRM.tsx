@@ -345,7 +345,25 @@ const MobileAdmin = (
             element={<SettingsPageMobile />}
           />
           <Route path={ChangelogPage.path} element={<ChangelogPage />} />
+          <Route path={ProgramsPage.path} element={<ProgramsPage />} />
+          <Route
+            path={IndividualProgramPage.path}
+            element={<IndividualProgramPage />}
+          />
         </CustomRoutes>
+        {/* Opportunities/Programs/Clients are primary mobile nav destinations
+            (see layout/MobileNavigation.tsx); Applications joins Contacts/
+            Tasks/Settings under "More". Cohorts gets only a `show` route —
+            reachable from a Programs hub card, never a mobile nav item or a
+            list route of its own (routing/shell regression fix). */}
+        <Resource name="deals" {...deals} />
+        <Resource
+          name="enrollments"
+          {...enrollments}
+          options={{ label: "Clients" }}
+        />
+        <Resource name="applications" {...applications} />
+        <Resource name="cohorts" show={cohorts.show} edit={cohorts.edit} />
         <Resource
           name="contacts"
           list={ContactListMobile}
