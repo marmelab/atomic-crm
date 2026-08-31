@@ -42,6 +42,10 @@
           "type": "registry:component"
         },
         {
+          "path": "src/components/atomic-crm/waitlist/waitlistSync.ts",
+          "type": "registry:component"
+        },
+        {
           "path": "src/components/atomic-crm/waitlist/waitlistEntryValidation.ts",
           "type": "registry:component"
         },
@@ -79,6 +83,14 @@
         },
         {
           "path": "src/components/atomic-crm/waitlist/ContactWaitlists.tsx",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/waitlist/ContactWaitlistConvertButton.tsx",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/waitlist/ContactSalesAction.tsx",
           "type": "registry:component"
         },
         {
@@ -923,6 +935,10 @@
         },
         {
           "path": "src/components/atomic-crm/contacts/ContactPersonalInfo.tsx",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/contacts/ContactNewOpportunityButton.tsx",
           "type": "registry:component"
         },
         {
