@@ -7,7 +7,6 @@ import {
   useRecordContext,
   required,
   useTranslate,
-  type Identifier,
 } from "ra-core";
 import { useFormContext, useWatch } from "react-hook-form";
 import { AutocompleteInput } from "@/components/admin/autocomplete-input";
@@ -16,29 +15,8 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Ban } from "lucide-react";
 
 import type { Contact, Deal } from "../types";
+import { doNotEngageValidator } from "../contacts/doNotEngageGuard";
 import { personOptionText } from "./PersonOption";
-
-// Blocks a NEW direct-sales Opportunity from being created for a Contact
-// already marked Do Not Engage (Native Applications repair pass, §4) — the
-// person stays fully visible and selectable here (removing them from the
-// selector would just invite an accidental duplicate Contact instead), but
-// selecting them shows why immediately, and submitting is prevented.
-// `enabled: false` (editing an Opportunity that already exists) is a no-op:
-// this only guards *creating* a new one, never blocks editing history that
-// already exists for a Contact who became DNE afterward.
-const doNotEngageValidator =
-  (
-    dataProvider: ReturnType<typeof useDataProvider>,
-    message: string,
-    enabled: boolean,
-  ) =>
-  async (value?: Identifier) => {
-    if (!enabled || !value) return undefined;
-    const { data: contact } = await dataProvider.getOne<Contact>("contacts", {
-      id: value,
-    });
-    return contact.sales_eligibility === "do_not_engage" ? message : undefined;
-  };
 
 // The single "PERSON" field for the Opportunity create/edit form (§1 of the
 // Programs + Opportunity UX slice), replacing the old separate Name +

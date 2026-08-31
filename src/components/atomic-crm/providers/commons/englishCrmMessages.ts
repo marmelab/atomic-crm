@@ -360,6 +360,53 @@ export const englishCrmMessages = {
         end_date: "End",
       },
     },
+    waitlist_entries: {
+      name: "Waitlist |||| Waitlists",
+      count: "%{count} waiting",
+      empty: "Nobody waiting.",
+      fields: {
+        joined_at: "Joined",
+        desired_timing: "Desired timing",
+        notes: "Notes",
+        priority: "Priority (lower = sooner; optional)",
+        source: "Source",
+      },
+      action: {
+        add: "Add to Waitlist",
+      },
+      actions: {
+        title: "Waitlist entry actions",
+        edit: "Edit",
+        mark_invited: "Mark Invited",
+        convert: "Convert to Opportunity",
+        remove: "Remove from Waitlist",
+      },
+      sheet: {
+        add: "Add to Waitlist",
+        edit: "Edit waitlist entry",
+      },
+      person_input: {
+        do_not_engage_error:
+          "This person is marked Do Not Engage — they can't be added to a waitlist.",
+        duplicate_error: "This person is already waiting for this program.",
+        create_error: "An error occurred while creating the person",
+      },
+      notifications: {
+        invited: "Marked Invited",
+        converted: "Converted to a new Opportunity",
+        converted_existing: "Linked to their existing active Opportunity",
+        removed: "Removed from waitlist",
+        do_not_engage:
+          "This person is marked Do Not Engage — they can't be converted.",
+        stale: "This entry was already updated — showing the current state.",
+      },
+      contact_detail: {
+        joined: "Joined %{date}",
+        preferred: "Preferred timing: %{timing}",
+        converted: "Converted %{date}",
+        removed: "Removed %{date}",
+      },
+    },
     notes: {
       name: "Note |||| Notes",
       forcedCaseName: "Note",
@@ -652,6 +699,8 @@ export const englishCrmMessages = {
       opening_count: "%{count} opening |||| %{count} openings",
       opening_completes: "%{name} completes",
       individual_not_found: "This program could not be found.",
+      group_not_found: "This program could not be found.",
+      cohorts_section: "Cohorts",
       cohort_details: "Cohort Details",
     },
     settings: {

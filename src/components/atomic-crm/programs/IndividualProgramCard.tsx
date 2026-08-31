@@ -3,6 +3,7 @@ import { Link } from "react-router";
 import { Card, CardContent } from "@/components/ui/card";
 
 import type { Offer } from "../types";
+import { useWaitlistEntries } from "../waitlist/useWaitlistEntries";
 import { useIndividualProgramData } from "./useIndividualProgramData";
 
 // A 1:1 program's summary card on the Programs hub (§6) — unlike the
@@ -12,8 +13,12 @@ import { useIndividualProgramData } from "./useIndividualProgramData";
 export const IndividualProgramCard = ({ offer }: { offer: Offer }) => {
   const translate = useTranslate();
   const { isPending, capacity } = useIndividualProgramData(offer.id);
+  const { isPending: waitlistPending, entries: waitlist } = useWaitlistEntries({
+    offerId: offer.id,
+    cohortId: null,
+  });
 
-  if (isPending || !capacity) return null;
+  if (isPending || waitlistPending || !capacity) return null;
 
   return (
     <Card className="p-0">
@@ -41,6 +46,14 @@ export const IndividualProgramCard = ({ offer }: { offer: Offer }) => {
               {translate("crm.dashboard.capacity_openings", {
                 _: "%{count} openings",
                 count: capacity.openings,
+              })}
+            </p>
+          )}
+          {waitlist.length > 0 && (
+            <p className="text-sm text-muted-foreground">
+              {translate("resources.waitlist_entries.count", {
+                _: "%{count} waiting",
+                count: waitlist.length,
               })}
             </p>
           )}

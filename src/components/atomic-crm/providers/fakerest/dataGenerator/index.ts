@@ -15,6 +15,7 @@ import { generateSales } from "./sales";
 import { generateTags } from "./tags";
 import { generateTasks } from "./tasks";
 import type { Db } from "./types";
+import { addWaitlistFixtures } from "./waitlistFixtures";
 
 export default (): Db => {
   const db = {} as Db;
@@ -29,8 +30,10 @@ export default (): Db => {
   db.cohorts = generateCohorts();
   db.applications = [];
   db.enrollments = [];
+  db.waitlist_entries = [];
   db.deals = generateDeals(db);
   const { pendingReviewApplicants } = addLeifProofSliceFixtures(db);
+  addWaitlistFixtures(db);
   backfillEnrollmentsForWonDeals(db);
   db.deal_notes = generateDealNotes(db);
   db.tasks = generateTasks(db);

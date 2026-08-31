@@ -20,9 +20,8 @@ const thresholdLabels = {
 // here.
 export const CohortCapacityCard = ({ cohort }: { cohort: Cohort }) => {
   const translate = useTranslate();
-  const { isPending, enrolledCount, inSalesCount } = useCohortCapacity(
-    cohort.id,
-  );
+  const { isPending, enrolledCount, inSalesCount, waitingCount } =
+    useCohortCapacity(cohort.id);
 
   if (isPending || enrolledCount == null) return null;
 
@@ -73,6 +72,14 @@ export const CohortCapacityCard = ({ cohort }: { cohort: Cohort }) => {
               {translate("crm.dashboard.people_deciding_count", {
                 _: "%{count} people deciding",
                 count: inSalesCount,
+              })}
+            </p>
+          )}
+          {!!waitingCount && waitingCount > 0 && (
+            <p className="text-sm text-muted-foreground">
+              {translate("resources.waitlist_entries.count", {
+                _: "%{count} waiting",
+                count: waitingCount,
               })}
             </p>
           )}

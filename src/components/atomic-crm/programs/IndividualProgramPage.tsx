@@ -6,6 +6,9 @@ import { Card, CardContent } from "@/components/ui/card";
 
 import { PageHeader, PersonCard, Section } from "../misc/ProgramLayout";
 import { enrollmentStatusLabels } from "../enrollments/enrollmentConstants";
+import { AddToWaitlistButton } from "../waitlist/AddToWaitlistButton";
+import { WaitlistSection } from "../waitlist/WaitlistSection";
+import { useWaitlistEntries } from "../waitlist/useWaitlistEntries";
 import { useIndividualProgramData } from "./useIndividualProgramData";
 
 // The Living Example (or any future 1:1 Offer's) program page — §8-9 of the
@@ -20,6 +23,10 @@ export const IndividualProgramPage = () => {
   const translate = useTranslate();
   const { isPending, offer, capacity, currentClients, upcomingOpenings } =
     useIndividualProgramData(offerId);
+  const { isPending: waitlistPending, entries: waitlist } = useWaitlistEntries({
+    offerId,
+    cohortId: null,
+  });
 
   // The Dashboard's "Next opening" link (LivingExampleCapacityCard.tsx)
   // points at this page's #upcoming-openings anchor. HashRouter's own `#`
@@ -32,7 +39,7 @@ export const IndividualProgramPage = () => {
     target?.scrollIntoView({ block: "start" });
   }, [isPending, location.hash]);
 
-  if (isPending) return null;
+  if (isPending || waitlistPending) return null;
   if (!offer) {
     return (
       <div className="p-4">
@@ -47,25 +54,37 @@ export const IndividualProgramPage = () => {
 
   return (
     <div className="flex flex-col gap-8 mt-1 p-1 max-w-3xl">
-      <PageHeader
-        title={offer.name}
-        summary={
-          <>
-            {capacity?.active}
-            {capacity?.max != null && <span> / {capacity.max}</span>}{" "}
-            {translate("crm.dashboard.capacity_active", { _: "active" })}
-            {capacity?.openings != null && (
-              <span>
-                {" · "}
-                {translate("crm.dashboard.capacity_openings", {
-                  _: "%{count} openings",
-                  count: capacity.openings,
-                })}
-              </span>
-            )}
-          </>
-        }
-      />
+      <div className="flex items-start justify-between gap-4">
+        <PageHeader
+          title={offer.name}
+          summary={
+            <>
+              {capacity?.active}
+              {capacity?.max != null && <span> / {capacity.max}</span>}{" "}
+              {translate("crm.dashboard.capacity_active", { _: "active" })}
+              {capacity?.openings != null && (
+                <span>
+                  {" · "}
+                  {translate("crm.dashboard.capacity_openings", {
+                    _: "%{count} openings",
+                    count: capacity.openings,
+                  })}
+                </span>
+              )}
+              {waitlist.length > 0 && (
+                <span>
+                  {" · "}
+                  {translate("resources.waitlist_entries.count", {
+                    _: "%{count} waiting",
+                    count: waitlist.length,
+                  })}
+                </span>
+              )}
+            </>
+          }
+        />
+        <AddToWaitlistButton offerId={offer.id} cohortId={null} />
+      </div>
 
       <Section
         title={translate("crm.programs.current_clients", {
@@ -138,6 +157,8 @@ export const IndividualProgramPage = () => {
           </div>
         )}
       </Section>
+
+      <WaitlistSection entries={waitlist} />
     </div>
   );
 };

@@ -218,6 +218,37 @@ export type Enrollment = {
   updated_at: string;
 } & Pick<RaRecord, "id">;
 
+export type WaitlistEntryStatus =
+  | "waiting"
+  | "invited"
+  | "converted"
+  | "removed";
+
+// A person waiting for space/timing in a program, independent of the
+// active sales pipeline (Waitlists slice, §1/§2) — see
+// supabase/schemas/01_tables.sql for the full product-model rationale.
+// cohort_id null means an Offer-level entry ("wants GYU generally" /
+// "wants 1:1 when an opening opens up"); set, it means a specific Cohort.
+export type WaitlistEntry = {
+  contact_id: Identifier;
+  offer_id: Identifier;
+  cohort_id?: Identifier | null;
+  status: WaitlistEntryStatus;
+  joined_at: string;
+  desired_timing?: string | null;
+  notes?: string | null;
+  // Leif's manual ordering signal, not a strict FIFO queue (§14).
+  priority?: number | null;
+  source?: OpportunitySource | null;
+  invited_at?: string | null;
+  converted_at?: string | null;
+  // The Opportunity this entry became, once converted (§12).
+  converted_opportunity_id?: Identifier | null;
+  removed_at?: string | null;
+  created_at: string;
+  updated_at: string;
+} & Pick<RaRecord, "id">;
+
 export type OpportunityOutcome =
   | "nurture"
   | "needs_higher_care"

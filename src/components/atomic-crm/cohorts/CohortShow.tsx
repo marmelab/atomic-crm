@@ -13,6 +13,9 @@ import {
 } from "../applications/applicationConstants";
 import { enrollmentStatusLabels } from "../enrollments/enrollmentConstants";
 import type { Cohort } from "../types";
+import { AddToWaitlistButton } from "../waitlist/AddToWaitlistButton";
+import { WaitlistSection } from "../waitlist/WaitlistSection";
+import { useWaitlistEntries } from "../waitlist/useWaitlistEntries";
 import { cohortStatusLabels } from "./cohortConstants";
 import { describeCohortThreshold } from "../dashboard/cohortThreshold";
 import { useCohortPageData } from "./useCohortPageData";
@@ -44,8 +47,12 @@ const CohortShowContent = () => {
   const { dealStages } = useConfigurationContext();
   const { isPending, enrolledClients, peopleDeciding, applications } =
     useCohortPageData(record?.id);
+  const { isPending: waitlistPending, entries: waitlist } = useWaitlistEntries({
+    offerId: record?.offer_id,
+    cohortId: record?.id ?? null,
+  });
 
-  if (!record || isPending) return null;
+  if (!record || isPending || waitlistPending) return null;
 
   const threshold = describeCohortThreshold({
     enrolled: enrolledClients.length,
@@ -92,6 +99,11 @@ const CohortShowContent = () => {
                     _: "%{count} people deciding",
                     count: peopleDeciding.length,
                   })}`}
+                {waitlist.length > 0 &&
+                  ` · ${translate("resources.waitlist_entries.count", {
+                    _: "%{count} waiting",
+                    count: waitlist.length,
+                  })}`}
               </span>
               {thresholdLabel && (
                 <Badge variant="outline">{thresholdLabel}</Badge>
@@ -99,7 +111,10 @@ const CohortShowContent = () => {
             </span>
           }
         />
-        <EditButton />
+        <div className="flex items-center gap-2">
+          <AddToWaitlistButton offerId={record.offer_id} cohortId={record.id} />
+          <EditButton />
+        </div>
       </div>
 
       <Section
@@ -155,6 +170,8 @@ const CohortShowContent = () => {
           </div>
         )}
       </Section>
+
+      <WaitlistSection entries={waitlist} />
 
       <Section
         title={translate("resources.applications.name", { smart_count: 2 })}

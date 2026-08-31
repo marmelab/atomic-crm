@@ -2,6 +2,7 @@ import { useGetList, type Identifier } from "ra-core";
 
 import type { Application, Deal, Enrollment } from "../types";
 import { NON_APPROVED_TERMINAL_APPLICATION_STATUSES } from "../applications/applicationConstants";
+import { useWaitlistEntries } from "../waitlist/useWaitlistEntries";
 import { classifyCohortOpportunity } from "./cohortCapacity";
 
 export type CohortPerson = { deal: Deal; group: "enrolled" | "in_sales" };
@@ -45,11 +46,21 @@ export const useCohortCapacity = (cohortId?: Identifier) => {
       { enabled: !dealsPending },
     );
 
-  if (dealsPending || enrollmentsPending || applicationsPending || !deals) {
+  const { isPending: waitlistPending, entries: waitlistEntries } =
+    useWaitlistEntries({ cohortId: cohortId ?? null });
+
+  if (
+    dealsPending ||
+    enrollmentsPending ||
+    applicationsPending ||
+    waitlistPending ||
+    !deals
+  ) {
     return {
       isPending: true,
       enrolledCount: undefined,
       inSalesCount: undefined,
+      waitingCount: undefined,
       people: [] as CohortPerson[],
     };
   }
@@ -88,6 +99,9 @@ export const useCohortCapacity = (cohortId?: Identifier) => {
     isPending: false,
     enrolledCount: people.filter((p) => p.group === "enrolled").length,
     inSalesCount: people.filter((p) => p.group === "in_sales").length,
+    // Never counted as enrolled/in_sales — a separate population (Waitlists
+    // slice, §15).
+    waitingCount: waitlistEntries.length,
     people,
   };
 };

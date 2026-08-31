@@ -367,6 +367,55 @@ export const frenchCrmMessages = {
         end_date: "Fin",
       },
     },
+    waitlist_entries: {
+      name: "Liste d'attente |||| Listes d'attente",
+      count: "%{count} en attente",
+      empty: "Personne en attente.",
+      fields: {
+        joined_at: "Inscrit le",
+        desired_timing: "Moment souhaité",
+        notes: "Notes",
+        priority: "Priorité (plus bas = plus tôt ; optionnel)",
+        source: "Source",
+      },
+      action: {
+        add: "Ajouter à la liste d'attente",
+      },
+      actions: {
+        title: "Actions de la liste d'attente",
+        edit: "Modifier",
+        mark_invited: "Marquer Invité",
+        convert: "Convertir en opportunité",
+        remove: "Retirer de la liste d'attente",
+      },
+      sheet: {
+        add: "Ajouter à la liste d'attente",
+        edit: "Modifier l'entrée de liste d'attente",
+      },
+      person_input: {
+        do_not_engage_error:
+          "Cette personne est marquée « Ne pas contacter » — elle ne peut pas être ajoutée à une liste d'attente.",
+        duplicate_error: "Cette personne attend déjà pour ce programme.",
+        create_error:
+          "Une erreur est survenue lors de la création de la personne",
+      },
+      notifications: {
+        invited: "Marqué Invité",
+        converted: "Converti en nouvelle opportunité",
+        converted_existing: "Lié à son opportunité active existante",
+        removed: "Retiré de la liste d'attente",
+        do_not_engage:
+          "Cette personne est marquée « Ne pas contacter » — elle ne peut pas être convertie.",
+        stale:
+          "Cette entrée avait déjà été mise à jour — affichage de l'état actuel.",
+      },
+      contact_detail: {
+        joined: "Inscrit le %{date}",
+        preferred: "Moment préféré : %{timing}",
+        converted: "Converti le %{date}",
+        removed: "Retiré le %{date}",
+      },
+    },
     notes: {
       name: "Note |||| Notes",
       forcedCaseName: "Note",
@@ -664,6 +713,8 @@ export const frenchCrmMessages = {
       opening_count: "%{count} place |||| %{count} places",
       opening_completes: "%{name} termine",
       individual_not_found: "Ce programme est introuvable.",
+      group_not_found: "Ce programme est introuvable.",
+      cohorts_section: "Cohortes",
       cohort_details: "Détails de la cohorte",
     },
     settings: {

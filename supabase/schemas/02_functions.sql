@@ -280,6 +280,40 @@ begin
 end;
 $$;
 
+-- Validates the Offer/Cohort relationship on a Waitlist Entry (Waitlists
+-- slice, §3) — mirrors the same rule handle_deal_saved() enforces for
+-- Opportunities: a Cohort is only ever set on a group Offer, and only to a
+-- Cohort that actually belongs to it.
+CREATE OR REPLACE FUNCTION "public"."handle_waitlist_entry_saved"() RETURNS "trigger"
+    LANGUAGE "plpgsql"
+    SET "search_path" TO 'public'
+    AS $$
+declare
+  v_offer offers%ROWTYPE;
+  v_cohort_offer_id bigint;
+begin
+  select * into v_offer from offers where id = new.offer_id;
+  if v_offer.id is null then
+    raise exception 'Invalid offer_id %', new.offer_id;
+  end if;
+
+  if new.cohort_id is not null then
+    select offer_id into v_cohort_offer_id from cohorts where id = new.cohort_id;
+    if v_cohort_offer_id is null then
+      raise exception 'Invalid cohort_id %', new.cohort_id;
+    end if;
+    if v_offer.type <> 'group' then
+      raise exception 'cohort_id can only be set on a group offer (offer_id %)', new.offer_id;
+    end if;
+    if v_cohort_offer_id <> new.offer_id then
+      raise exception 'cohort_id % does not belong to offer_id %', new.cohort_id, new.offer_id;
+    end if;
+  end if;
+
+  return new;
+end;
+$$;
+
 CREATE OR REPLACE FUNCTION "public"."handle_deal_won"() RETURNS "trigger"
     LANGUAGE "plpgsql"
     SET "search_path" TO 'public'

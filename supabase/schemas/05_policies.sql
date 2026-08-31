@@ -19,6 +19,7 @@ alter table public.offer_payment_options enable row level security;
 alter table public.cohorts enable row level security;
 alter table public.applications enable row level security;
 alter table public.enrollments enable row level security;
+alter table public.waitlist_entries enable row level security;
 
 -- Companies
 create policy "Enable read access for authenticated users" on public.companies for select to authenticated using (true);
@@ -102,3 +103,9 @@ create policy "Enable read access for authenticated users" on public.enrollments
 create policy "Enable insert for authenticated users only" on public.enrollments for insert to authenticated with check (true);
 create policy "Enable update for authenticated users only" on public.enrollments for update to authenticated using (true) with check (true);
 create policy "Enrollments Delete Policy" on public.enrollments for delete to authenticated using (true);
+
+-- Waitlist Entries
+create policy "Enable read access for authenticated users" on public.waitlist_entries for select to authenticated using (true);
+create policy "Enable insert for authenticated users only" on public.waitlist_entries for insert to authenticated with check (true);
+create policy "Enable update for authenticated users only" on public.waitlist_entries for update to authenticated using (true) with check (true);
+create policy "Waitlist Entries Delete Policy" on public.waitlist_entries for delete to authenticated using (true);

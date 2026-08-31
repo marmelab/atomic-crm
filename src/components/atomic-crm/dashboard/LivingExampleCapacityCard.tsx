@@ -2,6 +2,7 @@ import { useTranslate } from "ra-core";
 import { Link } from "react-router";
 import { Card, CardContent } from "@/components/ui/card";
 
+import { useWaitlistEntries } from "../waitlist/useWaitlistEntries";
 import { useLivingExampleCapacityData } from "./useLivingExampleCapacityData";
 
 // Formats a "YYYY-MM-DD" or "YYYY-MM" date string without the UTC/local
@@ -25,8 +26,12 @@ const monthName = (yearMonth: string) => {
 export const LivingExampleCapacityCard = () => {
   const translate = useTranslate();
   const { isPending, offer, capacity } = useLivingExampleCapacityData();
+  const { isPending: waitlistPending, entries: waitlist } = useWaitlistEntries({
+    offerId: offer?.id,
+    cohortId: null,
+  });
 
-  if (isPending) return null;
+  if (isPending || waitlistPending) return null;
   if (!offer || !capacity) return null;
 
   const programPath = `/programs/individual/${offer.id}`;
@@ -59,6 +64,14 @@ export const LivingExampleCapacityCard = () => {
               {translate("crm.dashboard.capacity_openings", {
                 _: "%{count} openings",
                 count: capacity.openings,
+              })}
+            </p>
+          )}
+          {waitlist.length > 0 && (
+            <p className="text-sm text-muted-foreground">
+              {translate("resources.waitlist_entries.count", {
+                _: "%{count} waiting",
+                count: waitlist.length,
               })}
             </p>
           )}

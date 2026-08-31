@@ -13,6 +13,7 @@ import { ContactPersonalInfo } from "./ContactPersonalInfo";
 import { ContactBackgroundInfo } from "./ContactBackgroundInfo";
 import { AsideSection } from "../misc/AsideSection";
 import type { Contact } from "../types";
+import { ContactWaitlists } from "../waitlist/ContactWaitlists";
 import { ContactMergeButton } from "./ContactMergeButton";
 import { ExportVCardButton } from "./ExportVCardButton";
 
@@ -66,6 +67,8 @@ export const ContactAside = ({ link = "edit" }: { link?: "edit" | "show" }) => {
           <OpportunitiesIterator />
         </ReferenceManyField>
       </AsideSection>
+
+      <ContactWaitlists contactId={record.id} />
 
       <AsideSection
         title={translate("resources.tasks.name", { smart_count: 2 })}

@@ -34,6 +34,11 @@ create or replace trigger on_deal_won
     after insert or update on public.deals
     for each row execute function public.handle_deal_won();
 
+-- Validate Offer/Cohort consistency on a Waitlist Entry (Waitlists slice).
+create or replace trigger "05_handle_waitlist_entry_saved"
+    before insert or update on public.waitlist_entries
+    for each row execute function public.handle_waitlist_entry_saved();
+
 create or replace trigger set_deal_notes_sales_id_trigger
     before insert on public.deal_notes
     for each row execute function public.set_sales_id_default();

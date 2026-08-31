@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useGetList, useTranslate } from "ra-core";
 import { Plus } from "lucide-react";
+import { Link } from "react-router";
 import { Button } from "@/components/ui/button";
 
 import { CohortCapacityCard } from "../dashboard/CohortCapacityCard";
@@ -102,9 +103,12 @@ export const ProgramsPage = () => {
           <div className="flex flex-col gap-4">
             {groupOffers.map((offer) => (
               <div key={offer.id} className="flex flex-col gap-2">
-                <h3 className="text-base font-medium text-muted-foreground">
+                <Link
+                  to={`/programs/group/${offer.id}`}
+                  className="text-base font-medium text-muted-foreground hover:underline w-fit"
+                >
                   {offer.name}
-                </h3>
+                </Link>
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 items-start">
                   {(cohortsByOffer.get(String(offer.id)) ?? []).map(
                     (cohort) => (

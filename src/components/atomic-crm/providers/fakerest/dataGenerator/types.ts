@@ -12,6 +12,7 @@ import type {
   Sale,
   Tag,
   Task,
+  WaitlistEntry,
 } from "../../../types";
 import type { ConfigurationContextValue } from "../../../root/ConfigurationContext";
 
@@ -26,6 +27,7 @@ export interface Db {
   deal_notes: DealNote[];
   applications: Application[];
   enrollments: Enrollment[];
+  waitlist_entries: WaitlistEntry[];
   sales: Sale[];
   tags: Tag[];
   tasks: Task[];

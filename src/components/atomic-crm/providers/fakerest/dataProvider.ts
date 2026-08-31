@@ -22,6 +22,7 @@ import type {
   SalesFormData,
   SignUpData,
   Task,
+  WaitlistEntry,
 } from "../../types";
 import type { ConfigurationContextValue } from "../../root/ConfigurationContext";
 import { validateOfferCohort } from "../../deals/offerCohortValidation";
@@ -29,6 +30,8 @@ import { getActivityLog } from "../commons/activity";
 import { getCompanyAvatar } from "../commons/getCompanyAvatar";
 import { getContactAvatar } from "../commons/getContactAvatar";
 import { mergeContacts } from "../commons/mergeContacts";
+import { assertNoDuplicateActiveWaitlistEntry } from "../../waitlist/waitlistEntryValidation";
+import { ACTIVE_WAITLIST_STATUSES } from "../../waitlist/waitlistConstants";
 import type { CrmDataProvider } from "../types";
 import {
   authProvider as defaultAuthProvider,
@@ -193,6 +196,74 @@ async function applyDealOfferCohortSnapshot(
   }
 
   return snapshot;
+}
+
+// Mirrors the Postgres trigger handle_waitlist_entry_saved() (Offer/Cohort
+// consistency) plus the partial unique index waitlist_entries_active_
+// unique_idx (duplicate-active prevention) — FakeRest has no constraint
+// engine at all, so this hook is the *only* enforcement there (Waitlists
+// slice, §4/§19).
+async function validateWaitlistEntrySave(
+  params: CreateParams<WaitlistEntry>,
+  dataProvider: DataProvider,
+): Promise<CreateParams<WaitlistEntry>>;
+async function validateWaitlistEntrySave(
+  params: UpdateParams<WaitlistEntry>,
+  dataProvider: DataProvider,
+): Promise<UpdateParams<WaitlistEntry>>;
+async function validateWaitlistEntrySave(
+  params: CreateParams<WaitlistEntry> | UpdateParams<WaitlistEntry>,
+  dataProvider: DataProvider,
+): Promise<CreateParams<WaitlistEntry> | UpdateParams<WaitlistEntry>> {
+  const { data } = params;
+  const previousData =
+    "previousData" in params ? params.previousData : undefined;
+
+  const offerId = data.offer_id ?? previousData?.offer_id;
+  const cohortId =
+    data.cohort_id !== undefined ? data.cohort_id : previousData?.cohort_id;
+
+  if (offerId != null) {
+    const { data: offer } = await dataProvider.getOne<Offer>("offers", {
+      id: offerId,
+    });
+    if (!offer) {
+      throw new Error(`Invalid offer_id ${offerId}`);
+    }
+    let cohort: Cohort | undefined;
+    if (cohortId != null) {
+      const { data: fetchedCohort } = await dataProvider.getOne<Cohort>(
+        "cohorts",
+        { id: cohortId },
+      );
+      if (!fetchedCohort) {
+        throw new Error(`Invalid cohort_id ${cohortId}`);
+      }
+      cohort = fetchedCohort;
+    }
+    validateOfferCohort(offer, cohort ?? null);
+  }
+
+  const contactId = data.contact_id ?? previousData?.contact_id;
+  const nextStatus = data.status ?? previousData?.status ?? "waiting";
+  const identityChanged =
+    !previousData ||
+    String(previousData.contact_id) !== String(contactId) ||
+    String(previousData.offer_id) !== String(offerId) ||
+    String(previousData.cohort_id ?? "") !== String(cohortId ?? "");
+  const becameActive =
+    ACTIVE_WAITLIST_STATUSES.has(nextStatus) &&
+    (identityChanged || !ACTIVE_WAITLIST_STATUSES.has(previousData!.status));
+
+  if (becameActive && contactId != null && offerId != null) {
+    await assertNoDuplicateActiveWaitlistEntry(dataProvider, {
+      contactId,
+      offerId,
+      cohortId: cohortId ?? null,
+    });
+  }
+
+  return params;
 }
 
 // Creates the Opportunity's Enrollment the moment it's genuinely Won, if one
@@ -750,6 +821,11 @@ export const createDataProvider = ({
           return result;
         },
       } satisfies ResourceCallbacks<Deal>,
+      {
+        resource: "waitlist_entries",
+        beforeCreate: validateWaitlistEntrySave,
+        beforeUpdate: validateWaitlistEntrySave,
+      } satisfies ResourceCallbacks<WaitlistEntry>,
       {
         resource: "contact_notes",
         beforeSave: async (params) => preserveAttachmentMimeType(params),

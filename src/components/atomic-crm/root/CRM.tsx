@@ -30,6 +30,7 @@ import { SignupPage } from "../login/SignupPage";
 import { ConfirmationRequired } from "../login/ConfirmationRequired";
 import { ImportPage } from "../misc/ImportPage";
 import { ChangelogPage } from "../misc/ChangelogPage";
+import { GroupProgramPage } from "../programs/GroupProgramPage";
 import { IndividualProgramPage } from "../programs/IndividualProgramPage";
 import { ProgramsPage } from "../programs/ProgramsPage";
 import {
@@ -272,6 +273,7 @@ const DesktopAdmin = (
           path={IndividualProgramPage.path}
           element={<IndividualProgramPage />}
         />
+        <Route path={GroupProgramPage.path} element={<GroupProgramPage />} />
       </CustomRoutes>
       <Resource name="deals" {...deals} />
       <Resource name="applications" {...applications} />
@@ -285,6 +287,7 @@ const DesktopAdmin = (
       <Resource name="companies" {...companies} />
       <Resource name="offers" {...offers} />
       <Resource name="offer_payment_options" />
+      <Resource name="waitlist_entries" />
       <Resource name="contact_notes" />
       <Resource name="deal_notes" />
       <Resource name="tasks" />
@@ -350,6 +353,7 @@ const MobileAdmin = (
             path={IndividualProgramPage.path}
             element={<IndividualProgramPage />}
           />
+          <Route path={GroupProgramPage.path} element={<GroupProgramPage />} />
         </CustomRoutes>
         {/* Opportunities/Programs/Clients are primary mobile nav destinations
             (see layout/MobileNavigation.tsx); Applications joins Contacts/
@@ -363,6 +367,7 @@ const MobileAdmin = (
           options={{ label: "Clients" }}
         />
         <Resource name="applications" {...applications} />
+        <Resource name="waitlist_entries" />
         <Resource name="cohorts" show={cohorts.show} edit={cohorts.edit} />
         <Resource
           name="contacts"
