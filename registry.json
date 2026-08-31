@@ -686,10 +686,6 @@
           "type": "registry:component"
         },
         {
-          "path": "src/components/atomic-crm/deals/OnlyMineInput.tsx",
-          "type": "registry:component"
-        },
-        {
           "path": "src/components/atomic-crm/deals/DealShow.tsx",
           "type": "registry:component"
         },
@@ -827,6 +823,10 @@
         },
         {
           "path": "src/components/atomic-crm/contacts/useContactImport.tsx",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/contacts/salesEligibility.ts",
           "type": "registry:component"
         },
         {
@@ -1030,6 +1030,18 @@
           "type": "registry:component"
         },
         {
+          "path": "src/components/atomic-crm/applications/useApplicationReviewData.ts",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/applications/reviewApplicationTask.ts",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/applications/reviewApplication.ts",
+          "type": "registry:component"
+        },
+        {
           "path": "src/components/atomic-crm/applications/index.ts",
           "type": "registry:component"
         },
@@ -1038,11 +1050,23 @@
           "type": "registry:component"
         },
         {
+          "path": "src/components/atomic-crm/applications/answerLabels.ts",
+          "type": "registry:component"
+        },
+        {
           "path": "src/components/atomic-crm/applications/ApplicationShow.tsx",
           "type": "registry:component"
         },
         {
+          "path": "src/components/atomic-crm/applications/ApplicationReviewActions.tsx",
+          "type": "registry:component"
+        },
+        {
           "path": "src/components/atomic-crm/applications/ApplicationList.tsx",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/applications/ApplicationAnswers.tsx",
           "type": "registry:component"
         },
         {
