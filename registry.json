@@ -42,6 +42,54 @@
           "type": "registry:component"
         },
         {
+          "path": "src/components/atomic-crm/waitlist/waitlistEntryValidation.ts",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/waitlist/waitlistConstants.ts",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/waitlist/waitlistActions.ts",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/waitlist/useWaitlistEntries.ts",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/waitlist/useContactWaitlists.ts",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/waitlist/WaitlistSection.tsx",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/waitlist/WaitlistPersonInput.tsx",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/waitlist/WaitlistEntryEditSheet.tsx",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/waitlist/WaitlistEntryActions.tsx",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/waitlist/ContactWaitlists.tsx",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/waitlist/AddToWaitlistSheet.tsx",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/waitlist/AddToWaitlistButton.tsx",
+          "type": "registry:component"
+        },
+        {
           "path": "src/components/atomic-crm/tasks/tasksPredicate.ts",
           "type": "registry:component"
         },
@@ -258,6 +306,10 @@
           "type": "registry:component"
         },
         {
+          "path": "src/components/atomic-crm/providers/fakerest/dataGenerator/waitlistFixtures.ts",
+          "type": "registry:component"
+        },
+        {
           "path": "src/components/atomic-crm/providers/fakerest/dataGenerator/utils.ts",
           "type": "registry:component"
         },
@@ -362,6 +414,10 @@
           "type": "registry:component"
         },
         {
+          "path": "src/components/atomic-crm/programs/useGroupProgramData.ts",
+          "type": "registry:component"
+        },
+        {
           "path": "src/components/atomic-crm/programs/upcomingOpenings.ts",
           "type": "registry:component"
         },
@@ -379,6 +435,10 @@
         },
         {
           "path": "src/components/atomic-crm/programs/IndividualProgramCard.tsx",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/programs/GroupProgramPage.tsx",
           "type": "registry:component"
         },
         {
@@ -827,6 +887,10 @@
         },
         {
           "path": "src/components/atomic-crm/contacts/index.tsx",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/contacts/doNotEngageGuard.ts",
           "type": "registry:component"
         },
         {
