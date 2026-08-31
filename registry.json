@@ -506,6 +506,10 @@
           "type": "registry:component"
         },
         {
+          "path": "src/components/atomic-crm/misc/ProgramLayout.tsx",
+          "type": "registry:component"
+        },
+        {
           "path": "src/components/atomic-crm/misc/MobileBackButton.tsx",
           "type": "registry:component"
         },
@@ -978,6 +982,10 @@
           "type": "registry:component"
         },
         {
+          "path": "src/components/atomic-crm/cohorts/useCohortPageData.ts",
+          "type": "registry:component"
+        },
+        {
           "path": "src/components/atomic-crm/cohorts/useCohortCapacity.ts",
           "type": "registry:component"
         },
@@ -998,10 +1006,6 @@
           "type": "registry:component"
         },
         {
-          "path": "src/components/atomic-crm/cohorts/CohortPeopleSection.tsx",
-          "type": "registry:component"
-        },
-        {
           "path": "src/components/atomic-crm/cohorts/CohortList.tsx",
           "type": "registry:component"
         },
@@ -1019,6 +1023,10 @@
         },
         {
           "path": "src/components/atomic-crm/cohorts/CohortCapacityBadge.tsx",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/applications/useApplicationsGrouped.ts",
           "type": "registry:component"
         },
         {
