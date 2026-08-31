@@ -1098,6 +1098,10 @@
           "type": "registry:hook"
         },
         {
+          "path": "src/hooks/use-mobile.test.tsx",
+          "type": "registry:hook"
+        },
+        {
           "path": "src/hooks/simple-form-iterator-context.tsx",
           "type": "registry:hook"
         },
