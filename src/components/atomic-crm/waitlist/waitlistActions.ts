@@ -9,6 +9,7 @@ import type { DataProvider, Identifier } from "ra-core";
 
 import { isContactDoNotEngage } from "../contacts/doNotEngageGuard";
 import type { Deal, Offer, WaitlistEntry } from "../types";
+import { syncWaitlistForActiveDeal } from "./waitlistSync";
 
 export type WaitlistTransitionResult =
   | { applied: true }
@@ -110,17 +111,28 @@ export const convertToOpportunity = async (
   });
   const existingActiveDeal = existingDeals.find(isActiveDeal);
 
-  const convertedAt = new Date().toISOString();
   let dealId: Identifier;
   let reusedExisting: boolean;
 
   if (existingActiveDeal) {
     dealId = existingActiveDeal.id;
     reusedExisting = true;
+    // Reusing writes nothing to "deals", so dataProvider.ts's centralized
+    // afterCreate/afterUpdate sync (waitlistSync.ts) never fires for this
+    // path — call it directly, the only place that needs to. It marks
+    // THIS entry (and any other compatible one, e.g. a sibling general-
+    // Offer-level entry — §4) Converted, so no separate update is needed
+    // here.
+    await syncWaitlistForActiveDeal(existingActiveDeal, dataProvider);
   } else {
     const { data: offer } = await dataProvider.getOne<Offer>("offers", {
       id: entry.offer_id,
     });
+    // The "deals" afterCreate hook (dataProvider.ts) runs
+    // syncWaitlistForActiveDeal for the new deal before create() resolves
+    // (FakeRest calls are sequential/awaited — see ensureEnrollmentFor-
+    // WonDeal's own comment) — this entry is already Converted by the
+    // time this call returns; nothing further to do here either.
     const { data: createdDeal } = await dataProvider.create<Deal>("deals", {
       data: {
         contact_id: entry.contact_id,
@@ -136,16 +148,6 @@ export const convertToOpportunity = async (
     dealId = createdDeal.id;
     reusedExisting = false;
   }
-
-  await dataProvider.update("waitlist_entries", {
-    id: entry.id,
-    data: {
-      status: "converted",
-      converted_at: convertedAt,
-      converted_opportunity_id: dealId,
-    },
-    previousData: entry,
-  });
 
   return { applied: true, dealId, reusedExisting };
 };

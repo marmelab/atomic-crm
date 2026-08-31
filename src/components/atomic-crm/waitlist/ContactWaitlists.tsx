@@ -5,18 +5,26 @@ import { Card, CardContent } from "@/components/ui/card";
 import { useIsMobile } from "@/hooks/use-mobile";
 
 import { formatTimestampString } from "../deals/dealUtils";
+import { ContactWaitlistConvertButton } from "./ContactWaitlistConvertButton";
 import {
+  ACTIVE_WAITLIST_STATUSES,
   waitlistEntryStatusBadgeVariant,
   waitlistEntryStatusLabels,
 } from "./waitlistConstants";
 import { useContactWaitlists } from "./useContactWaitlists";
 
-// ContactShow's "Waitlists" section (Waitlists slice, §10): the Contact's
-// full lifetime history, active and historical alike — read-only here
-// (status transitions happen from the Program/Cohort page, not here), so a
-// past relationship stays visible even after it converts or ends. Heading
-// style matches misc/AsideSection.tsx's own mobile/desktop split since
-// this is used directly (not wrapped in AsideSection) in both contexts.
+// ContactShow's "Waitlists" section (Waitlists slice, §10, actionability
+// improved in the Human-acceptance repair pass, §3A/§7): the Contact's
+// full lifetime history, active and historical alike, so a past
+// relationship stays visible even after it converts or ends. A historical
+// (converted/removed) row stays pure read-only; an active (waiting/
+// invited) one additionally gets its own "Convert to Opportunity" button —
+// once a compatible active Opportunity exists, the centralized sync
+// (waitlist/waitlistSync.ts) will already have flipped the entry to
+// Converted, so this button never has to guard against "already has one"
+// itself. Heading style matches misc/AsideSection.tsx's own mobile/
+// desktop split since this is used directly (not wrapped in AsideSection)
+// in both contexts.
 export const ContactWaitlists = ({ contactId }: { contactId: Identifier }) => {
   const translate = useTranslate();
   const isMobile = useIsMobile();
@@ -35,23 +43,30 @@ export const ContactWaitlists = ({ contactId }: { contactId: Identifier }) => {
       <div className="flex flex-col gap-2">
         {entries.map((entry) => (
           <Card key={entry.entryId}>
-            <CardContent className="flex items-center justify-between gap-4 py-3">
-              <div className="flex min-w-0 flex-col">
-                <Link
-                  to={entry.programPath}
-                  className="text-sm font-medium hover:underline truncate"
-                >
-                  {entry.cohortName
-                    ? `${entry.offerName} — ${entry.cohortName}`
-                    : entry.offerName}
-                </Link>
-                <span className="text-xs text-muted-foreground truncate">
-                  {detailLine(entry, translate)}
-                </span>
+            <CardContent className="flex flex-col gap-2 py-3">
+              <div className="flex items-center justify-between gap-4">
+                <div className="flex min-w-0 flex-col">
+                  <Link
+                    to={entry.programPath}
+                    className="text-sm font-medium hover:underline truncate"
+                  >
+                    {entry.cohortName
+                      ? `${entry.offerName} — ${entry.cohortName}`
+                      : entry.offerName}
+                  </Link>
+                  <span className="text-xs text-muted-foreground truncate">
+                    {detailLine(entry, translate)}
+                  </span>
+                </div>
+                <Badge variant={waitlistEntryStatusBadgeVariant[entry.status]}>
+                  {waitlistEntryStatusLabels[entry.status]}
+                </Badge>
               </div>
-              <Badge variant={waitlistEntryStatusBadgeVariant[entry.status]}>
-                {waitlistEntryStatusLabels[entry.status]}
-              </Badge>
+              {ACTIVE_WAITLIST_STATUSES.has(entry.status) && (
+                <div>
+                  <ContactWaitlistConvertButton entryId={entry.entryId} />
+                </div>
+              )}
             </CardContent>
           </Card>
         ))}

@@ -32,6 +32,7 @@ import { getContactAvatar } from "../commons/getContactAvatar";
 import { mergeContacts } from "../commons/mergeContacts";
 import { assertNoDuplicateActiveWaitlistEntry } from "../../waitlist/waitlistEntryValidation";
 import { ACTIVE_WAITLIST_STATUSES } from "../../waitlist/waitlistConstants";
+import { syncWaitlistForActiveDeal } from "../../waitlist/waitlistSync";
 import type { CrmDataProvider } from "../types";
 import {
   authProvider as defaultAuthProvider,
@@ -791,6 +792,12 @@ export const createDataProvider = ({
           // sure it gets its Enrollment too.
           await ensureEnrollmentForWonDeal(result.data, dataProvider);
 
+          // Human-acceptance repair pass, §4: creating ANY active
+          // Opportunity (New Opportunity, an Application, a future
+          // integration) converts any compatible Waitlist Entry — the one
+          // centralized place, see waitlist/waitlistSync.ts.
+          await syncWaitlistForActiveDeal(result.data, dataProvider);
+
           return result;
         },
         beforeUpdate: async (params, dataProvider) => {
@@ -809,6 +816,11 @@ export const createDataProvider = ({
         },
         afterUpdate: async (result, dataProvider) => {
           await ensureEnrollmentForWonDeal(result.data, dataProvider);
+          // Covers every stage/outcome change made anywhere — Application
+          // approval (reviewApplication.ts), Kanban drag-and-drop
+          // (DealListContent.tsx), a manual Edit — since they all write
+          // through this one dataProvider.update("deals", ...) call.
+          await syncWaitlistForActiveDeal(result.data, dataProvider);
           return result;
         },
         afterDelete: async (result) => {

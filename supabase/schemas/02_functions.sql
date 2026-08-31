@@ -341,6 +341,36 @@ begin
 end;
 $$;
 
+-- Human-acceptance repair pass, §4/§5: a Contact cannot stay Waiting/
+-- Invited for a relationship they already have an active Opportunity for
+-- (mirrors src/components/atomic-crm/waitlist/waitlistSync.ts exactly —
+-- keep both in sync). "Active" = not archived and no exit outcome
+-- (needs_higher_care/not_fit/nurture/lost); Won counts as active here too,
+-- since it is certainly not "still waiting". Compatible = same Contact +
+-- Offer, and either the Waitlist Entry is cohort-specific and matches this
+-- Deal's own cohort exactly, or it is offer-level (cohort_id null — "I
+-- want this generally") and therefore satisfied by ANY cohort of that
+-- Offer. Runs AFTER (like handle_deal_won()) so it only fires once the
+-- deals row is committed.
+CREATE OR REPLACE FUNCTION "public"."handle_deal_waitlist_sync"() RETURNS "trigger"
+    LANGUAGE "plpgsql"
+    SET "search_path" TO 'public'
+    AS $$
+begin
+  if new.archived_at is null and new.outcome is null then
+    update waitlist_entries
+    set status = 'converted',
+        converted_at = now(),
+        converted_opportunity_id = new.id
+    where contact_id = new.contact_id
+      and offer_id = new.offer_id
+      and status in ('waiting', 'invited')
+      and (cohort_id is null or cohort_id = new.cohort_id);
+  end if;
+  return new;
+end;
+$$;
+
 CREATE OR REPLACE FUNCTION "public"."handle_new_user"() RETURNS "trigger"
     LANGUAGE "plpgsql" SECURITY DEFINER
     SET "search_path" TO ''

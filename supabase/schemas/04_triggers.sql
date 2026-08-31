@@ -34,6 +34,13 @@ create or replace trigger on_deal_won
     after insert or update on public.deals
     for each row execute function public.handle_deal_won();
 
+-- Convert any compatible Waitlist Entry the moment this Deal establishes
+-- an active sales relationship, regardless of which flow created/advanced
+-- it (Human-acceptance repair pass, §4/§5).
+create or replace trigger on_deal_waitlist_sync
+    after insert or update on public.deals
+    for each row execute function public.handle_deal_waitlist_sync();
+
 -- Validate Offer/Cohort consistency on a Waitlist Entry (Waitlists slice).
 create or replace trigger "05_handle_waitlist_entry_saved"
     before insert or update on public.waitlist_entries

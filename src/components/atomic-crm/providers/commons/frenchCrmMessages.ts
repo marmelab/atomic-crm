@@ -371,6 +371,8 @@ export const frenchCrmMessages = {
       name: "Liste d'attente |||| Listes d'attente",
       count: "%{count} en attente",
       empty: "Personne en attente.",
+      search_placeholder: "Rechercher un nom ou un e-mail…",
+      search_empty: "Personne ne correspond à « %{query} ».",
       fields: {
         joined_at: "Inscrit le",
         desired_timing: "Moment souhaité",

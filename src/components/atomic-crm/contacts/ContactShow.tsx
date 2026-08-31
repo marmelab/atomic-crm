@@ -30,6 +30,7 @@ import { ContactBackgroundInfo } from "./ContactBackgroundInfo";
 import { ContactTasksList } from "./ContactTasksList";
 import { DoNotEngageBadge } from "./DoNotEngageBadge";
 import type { Contact } from "../types";
+import { ContactSalesAction } from "../waitlist/ContactSalesAction";
 import { ContactWaitlists } from "../waitlist/ContactWaitlists";
 import { Avatar } from "./Avatar";
 import { ContactAside } from "./ContactAside";
@@ -231,6 +232,7 @@ const ContactShowContentMobile = () => {
                 </div>
               </div>
               <ContactWaitlists contactId={record.id} />
+              <ContactSalesAction contactId={record.id} />
             </div>
           </TabsContent>
         </Tabs>

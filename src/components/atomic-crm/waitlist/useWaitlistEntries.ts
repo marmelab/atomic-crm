@@ -7,6 +7,11 @@ export type WaitlistEntryRow = {
   entryId: Identifier;
   contactId: Identifier;
   name: string;
+  // Every email on file, joined — used only for local search matching
+  // (WaitlistSection.tsx, human-acceptance repair pass §1), never
+  // displayed. No dedicated Instagram-handle field exists on Contact yet,
+  // so search matches name/email only — see that file's own comment.
+  email: string | null;
   status: WaitlistEntryStatus;
   joinedAt: string;
   desiredTiming: string | null;
@@ -79,12 +84,19 @@ export const useWaitlistEntries = ({
     const contact = contactById.get(String(contactId));
     return contact ? `${contact.first_name} ${contact.last_name}` : "";
   };
+  const emailFor = (contactId: Identifier) => {
+    const emails = (contactById.get(String(contactId))?.email_jsonb ?? [])
+      .map((entry) => entry.email)
+      .filter(Boolean);
+    return emails.length > 0 ? emails.join(", ") : null;
+  };
 
   const rows: WaitlistEntryRow[] = activeEntries
     .map((entry) => ({
       entryId: entry.id,
       contactId: entry.contact_id,
       name: nameFor(entry.contact_id),
+      email: emailFor(entry.contact_id),
       status: entry.status,
       joinedAt: entry.joined_at,
       desiredTiming: entry.desired_timing ?? null,

@@ -364,6 +364,8 @@ export const englishCrmMessages = {
       name: "Waitlist |||| Waitlists",
       count: "%{count} waiting",
       empty: "Nobody waiting.",
+      search_placeholder: "Search name or email…",
+      search_empty: "No one matches “%{query}”.",
       fields: {
         joined_at: "Joined",
         desired_timing: "Desired timing",
