@@ -806,11 +806,23 @@
           "type": "registry:component"
         },
         {
+          "path": "src/components/atomic-crm/dashboard/useComingUpItems.ts",
+          "type": "registry:component"
+        },
+        {
           "path": "src/components/atomic-crm/dashboard/livingExampleCapacity.ts",
           "type": "registry:component"
         },
         {
+          "path": "src/components/atomic-crm/dashboard/comingUpProjection.ts",
+          "type": "registry:component"
+        },
+        {
           "path": "src/components/atomic-crm/dashboard/cohortThreshold.ts",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/dashboard/cohortEvents.ts",
           "type": "registry:component"
         },
         {
@@ -863,6 +875,10 @@
         },
         {
           "path": "src/components/atomic-crm/dashboard/Dashboard.tsx",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/dashboard/ComingUp.tsx",
           "type": "registry:component"
         },
         {
