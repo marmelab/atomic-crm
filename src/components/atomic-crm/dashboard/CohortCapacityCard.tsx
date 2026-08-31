@@ -1,4 +1,5 @@
 import { useTranslate } from "ra-core";
+import { Link } from "react-router";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 
@@ -38,39 +39,44 @@ export const CohortCapacityCard = ({ cohort }: { cohort: Cohort }) => {
       : null;
 
   return (
-    <Card>
-      <CardContent className="flex flex-col gap-1">
-        <p className="text-sm font-medium">{cohort.name}</p>
-        <p className="text-2xl font-semibold">
-          {enrolledCount}
-          {cohort.maximum_capacity != null && (
-            <span className="text-muted-foreground text-lg">
+    <Card className="p-0">
+      <CardContent className="p-0">
+        <Link
+          to={`/cohorts/${cohort.id}/show`}
+          className="flex flex-col gap-1 p-6 hover:bg-accent/50 rounded-xl transition-colors"
+        >
+          <p className="text-sm font-medium">{cohort.name}</p>
+          <p className="text-2xl font-semibold">
+            {enrolledCount}
+            {cohort.maximum_capacity != null && (
+              <span className="text-muted-foreground text-lg">
+                {" "}
+                / {cohort.maximum_capacity}
+              </span>
+            )}
+            <span className="text-sm text-muted-foreground font-normal">
               {" "}
-              / {cohort.maximum_capacity}
+              {translate("crm.dashboard.capacity_enrolled", { _: "enrolled" })}
             </span>
+          </p>
+          {seatsRemaining != null && (
+            <p className="text-sm text-muted-foreground">
+              {translate("crm.dashboard.seats_remaining", {
+                _: "%{count} seats left",
+                count: seatsRemaining,
+              })}
+            </p>
           )}
-          <span className="text-sm text-muted-foreground font-normal">
-            {" "}
-            {translate("crm.dashboard.capacity_enrolled", { _: "enrolled" })}
-          </span>
-        </p>
-        {seatsRemaining != null && (
-          <p className="text-sm text-muted-foreground">
-            {translate("crm.dashboard.seats_remaining", {
-              _: "%{count} seats left",
-              count: seatsRemaining,
-            })}
-          </p>
-        )}
-        {thresholdLabel && <Badge variant="outline">{thresholdLabel}</Badge>}
-        {inSalesCount > 0 && (
-          <p className="text-sm text-muted-foreground">
-            {translate("crm.dashboard.people_deciding_count", {
-              _: "%{count} people deciding",
-              count: inSalesCount,
-            })}
-          </p>
-        )}
+          {thresholdLabel && <Badge variant="outline">{thresholdLabel}</Badge>}
+          {inSalesCount > 0 && (
+            <p className="text-sm text-muted-foreground">
+              {translate("crm.dashboard.people_deciding_count", {
+                _: "%{count} people deciding",
+                count: inSalesCount,
+              })}
+            </p>
+          )}
+        </Link>
       </CardContent>
     </Card>
   );

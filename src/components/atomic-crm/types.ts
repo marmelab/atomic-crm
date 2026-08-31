@@ -269,7 +269,10 @@ export type Deal = {
   created_at: string;
   updated_at: string;
   archived_at?: string | null;
-  expected_closing_date: string;
+  // Not collected in the create/edit UI (Programs + Opportunity UX slice,
+  // §4) — kept nullable for compatibility with existing rows and any future
+  // "Next Up" surface built on real events, not a fabricated date.
+  expected_closing_date?: string | null;
   sales_id: Identifier;
   index: number;
 } & Pick<RaRecord, "id">;

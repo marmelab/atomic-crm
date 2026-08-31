@@ -231,6 +231,7 @@ CREATE OR REPLACE FUNCTION "public"."handle_deal_saved"() RETURNS "trigger"
 declare
   v_offer offers%ROWTYPE;
   v_cohort_offer_id bigint;
+  v_contact contacts%ROWTYPE;
 begin
   select * into v_offer from offers where id = new.offer_id;
   if v_offer.id is null then
@@ -264,6 +265,15 @@ begin
       into new.selected_payment_total, new.selected_installment_count, new.selected_installment_amount
       from offer_payment_options
       where id = new.selected_payment_option_id;
+  end if;
+
+  -- The Opportunity's name is always derived from its Contact, never
+  -- user-typed (Programs + Opportunity UX slice, §1): this is what makes it
+  -- structurally impossible for an Opportunity to display one person while
+  -- being linked to another.
+  select * into v_contact from contacts where id = new.contact_id;
+  if v_contact.id is not null then
+    new.name := trim(both ' ' from coalesce(v_contact.first_name, '') || ' ' || coalesce(v_contact.last_name, ''));
   end if;
 
   return new;

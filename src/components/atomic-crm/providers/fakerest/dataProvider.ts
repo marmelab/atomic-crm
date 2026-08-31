@@ -178,6 +178,20 @@ async function applyDealOfferCohortSnapshot(
     }
   }
 
+  // The Opportunity's `name` is always derived from its Contact, never
+  // user-typed (Programs + Opportunity UX slice, §1) — this is what makes
+  // it structurally impossible for an Opportunity to display one person
+  // while being linked to another.
+  const contactId = data.contact_id ?? previousData?.contact_id;
+  if (contactId != null) {
+    const { data: contact } = await dataProvider.getOne<Contact>("contacts", {
+      id: contactId,
+    });
+    if (contact) {
+      snapshot.name = `${contact.first_name} ${contact.last_name}`.trim();
+    }
+  }
+
   return snapshot;
 }
 

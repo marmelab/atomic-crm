@@ -344,7 +344,10 @@ const lifeCycleCallbacks: ResourceCallbacks[] = [
   {
     resource: "contacts_summary",
     beforeGetList: async (params) => {
-      return applyFullTextSearch(["first_name", "last_name"])(params);
+      // Search must find a person by name OR email — e.g. the Opportunity
+      // "Person" field looking up a returning client by "chris@..." — not
+      // just by name (Programs + Opportunity UX slice, §2).
+      return applyFullTextSearch(["first_name", "last_name", "email"])(params);
     },
   },
   {

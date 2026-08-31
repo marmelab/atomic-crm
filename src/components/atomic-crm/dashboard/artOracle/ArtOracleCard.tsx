@@ -26,14 +26,14 @@ export const ArtOracleCard = () => {
             <button
               type="button"
               onClick={() => setOpen(true)}
-              className="block w-full cursor-pointer"
+              className="block w-full cursor-pointer bg-neutral-900 dark:bg-black"
               aria-label={artwork.title}
             >
               <img
                 src={artwork.image_url}
                 alt={artwork.title}
                 onError={() => setImageFailed(true)}
-                className="w-full h-48 object-cover"
+                className="w-full h-72 sm:h-80 object-contain"
               />
             </button>
           )}

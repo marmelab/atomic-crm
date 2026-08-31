@@ -1,6 +1,6 @@
 import { addDays } from "date-fns/addDays";
-import { required, useGetList, useTranslate } from "ra-core";
-import { useEffect } from "react";
+import { required, useGetList, useGetOne, useTranslate } from "ra-core";
+import { useEffect, useRef } from "react";
 import { useFormContext, useWatch } from "react-hook-form";
 import { ReferenceInput } from "@/components/admin/reference-input";
 import { AutocompleteInput } from "@/components/admin/autocomplete-input";
@@ -11,9 +11,10 @@ import { SelectInput } from "@/components/admin/select-input";
 import { Separator } from "@/components/ui/separator";
 import { useIsMobile } from "@/hooks/use-mobile";
 
-import { contactOptionText } from "../misc/ContactOption";
 import { useConfigurationContext } from "../root/ConfigurationContext";
 import type { Offer, OfferPaymentOption } from "../types";
+import { resolveOpportunityAmount } from "./dealAmount";
+import { OpportunityPersonInput } from "./OpportunityPersonInput";
 import {
   opportunityEntryPaths,
   opportunityOutcomes,
@@ -26,11 +27,10 @@ export const DealInputs = () => {
   const isMobile = useIsMobile();
   return (
     <div className="flex flex-col gap-8">
+      <OpportunityPersonInput />
       <DealInfoInputs />
 
       <div className={`flex gap-6 ${isMobile ? "flex-col" : "flex-row"}`}>
-        <DealLinkedToInputs />
-        <Separator orientation={isMobile ? "horizontal" : "vertical"} />
         <DealMiscInputs />
         <Separator orientation={isMobile ? "horizontal" : "vertical"} />
         <DealSalesProcessInputs />
@@ -45,6 +45,10 @@ const paymentOptionText = (option: OfferPaymentOption) =>
 const DealInfoInputs = () => {
   const { control, setValue, getValues } = useFormContext();
   const offerId = useWatch({ control, name: "offer_id" });
+  const paymentOptionId = useWatch({
+    control,
+    name: "selected_payment_option_id",
+  });
   const { data: offers } = useGetList<Offer>("offers", {
     pagination: { page: 1, perPage: 100 },
   });
@@ -52,6 +56,12 @@ const DealInfoInputs = () => {
     (offer) => String(offer.id) === String(offerId),
   );
   const isGroupOffer = selectedOffer?.type === "group";
+
+  const { data: selectedPaymentOption } = useGetOne<OfferPaymentOption>(
+    "offer_payment_options",
+    { id: paymentOptionId },
+    { enabled: paymentOptionId != null },
+  );
 
   // A Cohort only ever makes sense for a group Offer. Switching to an
   // individual offer (or changing offer entirely) clears any stale
@@ -63,9 +73,43 @@ const DealInfoInputs = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [offerId, isGroupOffer]);
 
+  // A selected payment option only ever makes sense for the Offer it
+  // belongs to; changing Offer away from it clears the stale selection so
+  // it can never linger and drive the amount below.
+  useEffect(() => {
+    if (
+      selectedPaymentOption &&
+      String(selectedPaymentOption.offer_id) !== String(offerId)
+    ) {
+      setValue("selected_payment_option_id", null, { shouldDirty: true });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [offerId, selectedPaymentOption]);
+
+  // Potential Value is never something the user types when it's already
+  // encoded in the payment option: the selected option's total wins,
+  // falling back to the Offer's current price with none selected (§3).
+  // Skips the very first run so loading an existing Opportunity never
+  // clobbers a value someone already saved.
+  const hasMounted = useRef(false);
+  useEffect(() => {
+    if (!hasMounted.current) {
+      hasMounted.current = true;
+      return;
+    }
+    const amount = resolveOpportunityAmount(
+      paymentOptionId ? selectedPaymentOption : null,
+      selectedOffer,
+    );
+    if (amount != null) {
+      setValue("amount", amount, { shouldDirty: true });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [paymentOptionId, selectedPaymentOption, selectedOffer]);
+
   return (
     <div className="flex flex-col gap-4 flex-1">
-      <div className="flex flex-col sm:flex-row gap-4">
+      <div className="flex flex-col sm:flex-row gap-4 [&>div]:flex-1 [&_button]:w-full">
         <ReferenceInput source="offer_id" reference="offers">
           <AutocompleteInput
             label="resources.deals.fields.offer_id"
@@ -98,30 +142,11 @@ const DealInfoInputs = () => {
             label="resources.deals.fields.selected_payment_option_id"
             optionText={paymentOptionText}
             helperText={false}
+            className="w-full [&_button]:w-full"
           />
         </ReferenceInput>
       )}
-      <TextInput source="name" validate={required()} helperText={false} />
       <TextInput source="description" multiline rows={3} helperText={false} />
-    </div>
-  );
-};
-
-const DealLinkedToInputs = () => {
-  const translate = useTranslate();
-  return (
-    <div className="flex flex-col gap-4 flex-1">
-      <h3 className="text-base font-medium">
-        {translate("resources.deals.inputs.linked_to")}
-      </h3>
-      <ReferenceInput source="contact_id" reference="contacts_summary">
-        <AutocompleteInput
-          label="resources.deals.fields.contact_id"
-          optionText={contactOptionText}
-          helperText={false}
-          validate={required()}
-        />
-      </ReferenceInput>
     </div>
   );
 };
@@ -141,12 +166,6 @@ const DealMiscInputs = () => {
         defaultValue={0}
         helperText={false}
         validate={required()}
-      />
-      <DateInput
-        validate={required()}
-        source="expected_closing_date"
-        helperText={false}
-        defaultValue={new Date().toISOString().split("T")[0]}
       />
       <SelectInput
         source="stage"

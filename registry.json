@@ -358,6 +358,30 @@
           "type": "registry:component"
         },
         {
+          "path": "src/components/atomic-crm/programs/useIndividualProgramData.ts",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/programs/upcomingOpenings.ts",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/programs/ProgramsPage.tsx",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/programs/NewProgramDialog.tsx",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/programs/IndividualProgramPage.tsx",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/programs/IndividualProgramCard.tsx",
+          "type": "registry:component"
+        },
+        {
           "path": "src/components/atomic-crm/offers/offerConstants.ts",
           "type": "registry:component"
         },
@@ -371,6 +395,14 @@
         },
         {
           "path": "src/components/atomic-crm/offers/OfferList.tsx",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/offers/OfferInputs.tsx",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/offers/OfferCreate.tsx",
           "type": "registry:component"
         },
         {
@@ -602,7 +634,15 @@
           "type": "registry:component"
         },
         {
+          "path": "src/components/atomic-crm/deals/usePersonContextLabels.ts",
+          "type": "registry:component"
+        },
+        {
           "path": "src/components/atomic-crm/deals/stages.ts",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/deals/personContext.ts",
           "type": "registry:component"
         },
         {
@@ -623,6 +663,18 @@
         },
         {
           "path": "src/components/atomic-crm/deals/dealUtils.ts",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/deals/dealAmount.ts",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/deals/PersonOption.tsx",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/deals/OpportunityPersonInput.tsx",
           "type": "registry:component"
         },
         {

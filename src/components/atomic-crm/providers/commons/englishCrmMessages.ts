@@ -236,8 +236,12 @@ export const englishCrmMessages = {
         title: "Archived Opportunity",
         view: "View archived opportunities",
       },
-      inputs: {
-        linked_to: "Linked to",
+      person_input: {
+        label: "Person",
+        placeholder: "Search by name or email…",
+        create_label: "Add a new person",
+        create_item_label: 'Add "%{item}" as a new person',
+        create_error: "An error occurred while creating the person",
       },
       unarchived: {
         action: "Send back to the board",
@@ -261,6 +265,9 @@ export const englishCrmMessages = {
         current_price: "Current price",
         max_active_clients: "Max active clients",
         is_active: "Active",
+      },
+      action: {
+        create: "Create Offer",
       },
       active: "Active",
       inactive: "Inactive",
@@ -601,6 +608,33 @@ export const englishCrmMessages = {
         table_caption: "Import status",
       },
       title: "Import Data",
+    },
+    programs: {
+      name: "Programs",
+      title: "Programs",
+      orientation: "Your current and upcoming ways of working with clients.",
+      new_program_action: "New Program",
+      new_program_title: "New Program",
+      new_program_choose: "How do you work with clients in this program?",
+      one_on_one_program: "1:1 Program",
+      one_on_one_program_hint:
+        "Ongoing individual coaching, like The Living Example.",
+      group_program: "Group Program",
+      group_program_hint: "A cohort-based program, like Growing Yourself Up.",
+      new_program_first_cohort:
+        "%{offer} was created. Now set up its first Cohort.",
+      one_on_one_section: "1:1 Programs",
+      group_section: "Group Programs",
+      no_individual_programs: "No 1:1 programs yet.",
+      no_group_programs: "No group programs yet.",
+      no_active_cohorts: "No active cohorts.",
+      current_clients: "Current Clients",
+      no_current_clients: "No current clients.",
+      upcoming_openings: "Upcoming Openings",
+      no_upcoming_openings: "No upcoming openings.",
+      opening_count: "%{count} opening |||| %{count} openings",
+      opening_completes: "%{name} completes",
+      individual_not_found: "This program could not be found.",
     },
     settings: {
       about: "About",

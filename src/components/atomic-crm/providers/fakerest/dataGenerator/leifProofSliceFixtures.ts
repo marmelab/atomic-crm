@@ -17,6 +17,18 @@ import { GYU_OFFER_ID, LIVING_EXAMPLE_OFFER_ID } from "./offers";
  * - Alex: a GYU opportunity still in sales for the September cohort
  *   (approved application, not yet Won).
  * - Jordan: a GYU applicant who exited (application rejected).
+ * - Chris: a RETURNING client — completed a Growing Yourself Up cohort in
+ *   the past (Enrollment status "completed"), no open Opportunity right
+ *   now. Exists so the Opportunity "Person" field's search can be tested
+ *   against a real past client (Programs + Opportunity UX slice, §2/§14):
+ *   searching "Chr" should surface Chris with a "Past ... client" context
+ *   label, and selecting them for a new Opportunity must reuse this same
+ *   Contact rather than creating a second "Chris".
+ * - Kathy, Dave, Julia: active Living Example clients with real future
+ *   Enrollment end dates, staggered so Dave and Julia share the same date
+ *   (two openings on one day) while Kathy's is sooner (§9/§14).
+ * - Nora: a COMPLETED Living Example Enrollment in the past — must never
+ *   appear as a future opening (§9/§14).
  */
 export const addLeifProofSliceFixtures = (db: Db) => {
   const salesId = db.sales[0]!.id;
@@ -305,6 +317,163 @@ export const addLeifProofSliceFixtures = (db: Db) => {
       availability: "Not yet sure",
     },
     summary: "Not ready for a group cohort at this time.",
+    created_at: now,
+    updated_at: now,
+  });
+
+  // --- Chris: RETURNING client, completed GYU in the past -----------------
+  const chris = baseContact({
+    first_name: "Chris",
+    last_name: "Smith",
+    gender: "male",
+    email_jsonb: [{ email: "chris.smith@example.com", type: "Home" }],
+    background: "Completed Growing Yourself Up; no open opportunity today.",
+    status: "cold",
+  });
+  db.contacts.push(chris);
+
+  const chrisPastStart = new Date(now);
+  chrisPastStart.setMonth(chrisPastStart.getMonth() - 4);
+  const chrisPastEnd = new Date(now);
+  chrisPastEnd.setMonth(chrisPastEnd.getMonth() - 2);
+  const chrisOpportunity = baseDeal({
+    name: "Chris Smith — Growing Yourself Up",
+    contact_id: chris.id,
+    offer_id: GYU_OFFER_ID,
+    offer_name_snapshot: "Growing Yourself Up",
+    offer_price_snapshot: 1400,
+    stage: "won",
+    owner_decision: "would_work_with",
+    prospect_decision: "yes",
+    amount: 1400,
+    source: "referral",
+    entry_path: "sales_page",
+    description:
+      "Acceptance-test fixture: past client, completed. See §2/§14 of the Programs + Opportunity UX slice.",
+  });
+  db.deals.push(chrisOpportunity);
+
+  db.enrollments.push({
+    id: nextEnrollmentId(),
+    opportunity_id: chrisOpportunity.id,
+    status: "completed",
+    start_date: chrisPastStart.toISOString().split("T")[0],
+    end_date: chrisPastEnd.toISOString().split("T")[0],
+    created_at: now,
+    updated_at: now,
+  });
+
+  // --- Kathy, Dave, Julia: active Living Example clients with real ---------
+  // future end dates (Dave and Julia share a date — two openings, one day).
+  const soon = new Date(now);
+  soon.setMonth(soon.getMonth() + 2);
+  const soonDate = soon.toISOString().split("T")[0];
+
+  const later = new Date(now);
+  later.setMonth(later.getMonth() + 3);
+  const laterDate = later.toISOString().split("T")[0];
+
+  const pastStart = new Date(now);
+  pastStart.setMonth(pastStart.getMonth() - 2);
+  const pastStartDate = pastStart.toISOString().split("T")[0];
+
+  const addActiveLivingExampleClient = (contact: Contact, endDate: string) => {
+    db.contacts.push(contact);
+    const opportunity = baseDeal({
+      name: `${contact.first_name} ${contact.last_name} — The Living Example`,
+      contact_id: contact.id,
+      offer_id: LIVING_EXAMPLE_OFFER_ID,
+      offer_name_snapshot: "The Living Example",
+      offer_price_snapshot: 4000,
+      stage: "won",
+      owner_decision: "would_work_with",
+      prospect_decision: "yes",
+      amount: 4000,
+      source: "referral",
+      entry_path: "sales_page",
+      description: "Acceptance-test fixture: active Living Example client.",
+    });
+    db.deals.push(opportunity);
+    db.enrollments.push({
+      id: nextEnrollmentId(),
+      opportunity_id: opportunity.id,
+      status: "active",
+      start_date: pastStartDate,
+      end_date: endDate,
+      created_at: now,
+      updated_at: now,
+    });
+  };
+
+  addActiveLivingExampleClient(
+    baseContact({
+      first_name: "Kathy",
+      last_name: "Reyes",
+      email_jsonb: [{ email: "kathy.reyes@example.com", type: "Home" }],
+      background: "Living Example client, completing soon.",
+      status: "in-contract",
+    }),
+    soonDate,
+  );
+  addActiveLivingExampleClient(
+    baseContact({
+      first_name: "Dave",
+      last_name: "Kim",
+      gender: "male",
+      email_jsonb: [{ email: "dave.kim@example.com", type: "Home" }],
+      background: "Living Example client.",
+      status: "in-contract",
+    }),
+    laterDate,
+  );
+  addActiveLivingExampleClient(
+    baseContact({
+      first_name: "Julia",
+      last_name: "Chen",
+      email_jsonb: [{ email: "julia.chen@example.com", type: "Home" }],
+      background: "Living Example client, same completion date as Dave.",
+      status: "in-contract",
+    }),
+    laterDate,
+  );
+
+  // --- Nora: COMPLETED Living Example Enrollment (must not free a slot) ---
+  const nora = baseContact({
+    first_name: "Nora",
+    last_name: "Whitfield",
+    email_jsonb: [{ email: "nora.whitfield@example.com", type: "Home" }],
+    background: "Completed the Living Example already.",
+    status: "cold",
+  });
+  db.contacts.push(nora);
+
+  const noraStart = new Date(now);
+  noraStart.setMonth(noraStart.getMonth() - 6);
+  const noraEnd = new Date(now);
+  noraEnd.setMonth(noraEnd.getMonth() - 2);
+  const noraOpportunity = baseDeal({
+    name: "Nora Whitfield — The Living Example",
+    contact_id: nora.id,
+    offer_id: LIVING_EXAMPLE_OFFER_ID,
+    offer_name_snapshot: "The Living Example",
+    offer_price_snapshot: 4000,
+    stage: "won",
+    owner_decision: "would_work_with",
+    prospect_decision: "yes",
+    amount: 4000,
+    source: "referral",
+    entry_path: "sales_page",
+    description:
+      "Acceptance-test fixture: completed — must never appear as an upcoming opening (§9/§14).",
+  });
+  db.deals.push(noraOpportunity);
+
+  db.enrollments.push({
+    id: nextEnrollmentId(),
+    opportunity_id: noraOpportunity.id,
+    status: "completed",
+    start_date: noraStart.toISOString().split("T")[0],
+    end_date: noraEnd.toISOString().split("T")[0],
     created_at: now,
     updated_at: now,
   });

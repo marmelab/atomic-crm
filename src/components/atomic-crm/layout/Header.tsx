@@ -24,8 +24,8 @@ const Header = () => {
     currentPath = "/applications";
   } else if (matchPath("/enrollments/*", location.pathname)) {
     currentPath = "/enrollments";
-  } else if (matchPath("/cohorts/*", location.pathname)) {
-    currentPath = "/cohorts";
+  } else if (matchPath("/programs/*", location.pathname)) {
+    currentPath = "/programs";
   } else if (matchPath("/contacts/*", location.pathname)) {
     currentPath = "/contacts";
   } else {
@@ -82,11 +82,11 @@ const Header = () => {
                     isActive={currentPath === "/enrollments"}
                   />
                   <NavigationTab
-                    label={translate("resources.cohorts.name", {
-                      smart_count: 2,
+                    label={translate("crm.programs.name", {
+                      _: "Programs",
                     })}
-                    to="/cohorts"
-                    isActive={currentPath === "/cohorts"}
+                    to="/programs"
+                    isActive={currentPath === "/programs"}
                   />
                   <NavigationTab
                     label={translate("resources.contacts.name", {

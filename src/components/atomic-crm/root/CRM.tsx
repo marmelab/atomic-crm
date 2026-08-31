@@ -30,6 +30,8 @@ import { SignupPage } from "../login/SignupPage";
 import { ConfirmationRequired } from "../login/ConfirmationRequired";
 import { ImportPage } from "../misc/ImportPage";
 import { ChangelogPage } from "../misc/ChangelogPage";
+import { IndividualProgramPage } from "../programs/IndividualProgramPage";
+import { ProgramsPage } from "../programs/ProgramsPage";
 import {
   getAuthProvider as defaultAuthProviderBuilder,
   getDataProvider as defaultDataProviderBuilder,
@@ -265,6 +267,11 @@ const DesktopAdmin = (
         <Route path={SettingsPage.path} element={<SettingsPage />} />
         <Route path={ImportPage.path} element={<ImportPage />} />
         <Route path={ChangelogPage.path} element={<ChangelogPage />} />
+        <Route path={ProgramsPage.path} element={<ProgramsPage />} />
+        <Route
+          path={IndividualProgramPage.path}
+          element={<IndividualProgramPage />}
+        />
       </CustomRoutes>
       <Resource name="deals" {...deals} />
       <Resource name="applications" {...applications} />

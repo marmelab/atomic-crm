@@ -241,8 +241,13 @@ export const frenchCrmMessages = {
         title: "Affaire archivée",
         view: "Afficher les affaires archivées",
       },
-      inputs: {
-        linked_to: "Lié à",
+      person_input: {
+        label: "Personne",
+        placeholder: "Rechercher par nom ou email…",
+        create_label: "Ajouter une nouvelle personne",
+        create_item_label: 'Ajouter "%{item}" comme nouvelle personne',
+        create_error:
+          "Une erreur est survenue lors de la création de la personne",
       },
       unarchived: {
         action: "Renvoyer au tableau",
@@ -266,6 +271,9 @@ export const frenchCrmMessages = {
         current_price: "Prix actuel",
         max_active_clients: "Clients actifs max",
         is_active: "Active",
+      },
+      action: {
+        create: "Créer une offre",
       },
       active: "Active",
       inactive: "Inactive",
@@ -610,6 +618,35 @@ export const frenchCrmMessages = {
         table_caption: "Statut d'importation",
       },
       title: "Importer des données",
+    },
+    programs: {
+      name: "Programmes",
+      title: "Programmes",
+      orientation:
+        "Vos façons actuelles et à venir de travailler avec vos clients.",
+      new_program_action: "Nouveau programme",
+      new_program_title: "Nouveau programme",
+      new_program_choose:
+        "Comment travaillez-vous avec les clients de ce programme ?",
+      one_on_one_program: "Programme individuel",
+      one_on_one_program_hint:
+        "Accompagnement individuel continu, comme The Living Example.",
+      group_program: "Programme de groupe",
+      group_program_hint: "Un programme en cohorte, comme Growing Yourself Up.",
+      new_program_first_cohort:
+        "%{offer} a été créée. Configurez maintenant sa première cohorte.",
+      one_on_one_section: "Programmes individuels",
+      group_section: "Programmes de groupe",
+      no_individual_programs: "Aucun programme individuel pour le moment.",
+      no_group_programs: "Aucun programme de groupe pour le moment.",
+      no_active_cohorts: "Aucune cohorte active.",
+      current_clients: "Clients actuels",
+      no_current_clients: "Aucun client actuel.",
+      upcoming_openings: "Prochaines places disponibles",
+      no_upcoming_openings: "Aucune place à venir.",
+      opening_count: "%{count} place |||| %{count} places",
+      opening_completes: "%{name} termine",
+      individual_not_found: "Ce programme est introuvable.",
     },
     settings: {
       about: "À propos",
