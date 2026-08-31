@@ -5,6 +5,18 @@ import type { Task, TaskStatus } from "../../../types";
 import type { Db } from "./types";
 import { randomDate } from "./utils";
 
+// "review_application" now carries real system meaning — the domain action
+// in applications/reviewApplicationTask.ts matches/completes a Contact's
+// pending review task by contact_id + this type alone (Task has no
+// Application FK). A randomly-generated task of this same type on the same
+// contact as a real pending Application would collide with that lookup and
+// get auto-completed instead of the real one (observed live: Native
+// Applications slice, §8). Excluded from the random pool so this type is
+// only ever created deterministically, by ensureReviewApplicationTask.
+const randomTaskTypes = defaultTaskTypes.filter(
+  (type) => type.value !== "review_application",
+);
+
 export const generateTasks = (db: Db) => {
   const tasks = Array.from(Array(400).keys()).map<Task>((id) => {
     const contact = random.arrayElement(db.contacts);
@@ -12,7 +24,7 @@ export const generateTasks = (db: Db) => {
     return {
       id,
       contact_id: contact.id,
-      type: random.arrayElement(defaultTaskTypes).value,
+      type: random.arrayElement(randomTaskTypes).value,
       text: lorem.sentence(),
       due_date: randomDate(
         datatype.boolean() ? new Date() : new Date(contact.first_seen),

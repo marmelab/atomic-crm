@@ -1,139 +1,113 @@
-import { Check, X } from "lucide-react";
-import {
-  useNotify,
-  useRecordContext,
-  useRefresh,
-  useTranslate,
-  useUpdate,
-} from "ra-core";
-import { DateField } from "@/components/admin/date-field";
-import { ReferenceField } from "@/components/admin/reference-field";
-import { RecordField } from "@/components/admin/record-field";
-import { Show } from "@/components/admin/show";
+import { ShowBase, useRecordContext, useTranslate } from "ra-core";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 
 import type { Application } from "../types";
-import { applicationStatusLabels } from "./applicationConstants";
+import { findDealLabel, formatTimestampString } from "../deals/dealUtils";
+import { PageHeader, PersonCard, Section } from "../misc/ProgramLayout";
+import { useConfigurationContext } from "../root/ConfigurationContext";
+import { ApplicationAnswers } from "./ApplicationAnswers";
+import {
+  applicationStatusBadgeVariant,
+  applicationStatusLabels,
+} from "./applicationConstants";
+import { ApplicationReviewActions } from "./ApplicationReviewActions";
+import { useApplicationReviewData } from "./useApplicationReviewData";
 
+// The review command center (Native Applications slice, §2/§3): titled by
+// the applicant, not "Application #4", using the same visual language as
+// Living Example / GYU Cohort / Programs (PageHeader/Section/PersonCard —
+// no new styling system).
 export const ApplicationShow = () => (
-  <Show actions={false}>
-    <div className="flex flex-col gap-4">
-      <RecordField label="resources.applications.fields.contact">
-        <ReferenceField source="opportunity_id" reference="deals" link={false}>
-          <ReferenceField
-            source="contact_id"
-            reference="contacts"
-            link="show"
-          />
-        </ReferenceField>
-      </RecordField>
-      <RecordField label="resources.applications.fields.offer">
-        <ReferenceField source="opportunity_id" reference="deals" link={false}>
-          <ReferenceField source="offer_id" reference="offers" link={false} />
-        </ReferenceField>
-      </RecordField>
-      <RecordField label="resources.applications.fields.cohort">
-        <ReferenceField source="opportunity_id" reference="deals" link={false}>
-          <ReferenceField
-            source="cohort_id"
-            reference="cohorts"
-            link={false}
-            empty=""
-          />
-        </ReferenceField>
-      </RecordField>
-      <RecordField label="resources.applications.fields.opportunity">
-        <ReferenceField source="opportunity_id" reference="deals" link="show" />
-      </RecordField>
-      <RecordField label="resources.applications.fields.submitted_at">
-        <DateField source="submitted_at" showTime />
-      </RecordField>
-      <RecordField label="resources.applications.fields.status">
-        <StatusRow />
-      </RecordField>
-      <RecordField source="summary" />
-      <RawAnswers />
-    </div>
-  </Show>
+  <ShowBase>
+    <ApplicationShowContent />
+  </ShowBase>
 );
 
-const StatusRow = () => {
+const ApplicationShowContent = () => {
   const record = useRecordContext<Application>();
   const translate = useTranslate();
-  const [update, { isPending }] = useUpdate();
-  const notify = useNotify();
-  const refresh = useRefresh();
-  if (!record) return null;
+  const { dealStages } = useConfigurationContext();
+  const { isPending, deal, contact, offer, cohort } =
+    useApplicationReviewData(record);
 
-  const setStatus = (status: Application["status"]) => {
-    update(
-      "applications",
-      {
-        id: record.id,
-        data: { status, reviewed_at: new Date().toISOString() },
-        previousData: record,
-      },
-      {
-        onSuccess: () => {
-          notify("resources.applications.updated", { type: "info" });
-          refresh();
-        },
-      },
-    );
-  };
+  if (!record || isPending || !deal || !contact || !offer) return null;
 
-  return (
-    <div className="flex items-center gap-2">
-      <Badge variant={record.status === "pending" ? "outline" : "secondary"}>
-        {applicationStatusLabels[record.status]}
-      </Badge>
-      {record.status === "pending" && (
-        <>
-          <Button
-            size="sm"
-            variant="outline"
-            disabled={isPending}
-            onClick={() => setStatus("approved")}
-          >
-            <Check className="w-4 h-4" />
-            {translate("resources.applications.action.approve")}
-          </Button>
-          <Button
-            size="sm"
-            variant="outline"
-            disabled={isPending}
-            onClick={() => setStatus("rejected")}
-          >
-            <X className="w-4 h-4" />
-            {translate("resources.applications.action.reject")}
-          </Button>
-        </>
-      )}
-    </div>
+  const applicantName = `${contact.first_name} ${contact.last_name}`;
+  const submittedLabel = translate(
+    "resources.applications.fields.submitted_at",
+    { _: "Submitted" },
   );
-};
-
-const RawAnswers = () => {
-  const record = useRecordContext<Application>();
-  const translate = useTranslate();
-  if (!record || !record.raw_answers) return null;
-  const entries = Object.entries(record.raw_answers);
-  if (!entries.length) return null;
+  const contextLine = [
+    offer.name,
+    cohort?.name,
+    `${submittedLabel} ${formatTimestampString(record.submitted_at)}`,
+  ]
+    .filter(Boolean)
+    .join(" · ");
+  const stageLabel = findDealLabel(dealStages, deal.stage) ?? deal.stage;
 
   return (
-    <div className="flex flex-col gap-2">
-      <span className="text-xs text-muted-foreground tracking-wide">
-        {translate("resources.applications.fields.raw_answers")}
-      </span>
-      <dl className="flex flex-col gap-2 text-sm">
-        {entries.map(([question, answer]) => (
-          <div key={question}>
-            <dt className="text-muted-foreground">{question}</dt>
-            <dd>{String(answer)}</dd>
-          </div>
-        ))}
-      </dl>
+    <div className="flex flex-col gap-8 mt-1 p-1 max-w-3xl">
+      <PageHeader
+        title={applicantName}
+        summary={
+          <span className="flex flex-wrap items-center gap-2">
+            <span>{contextLine}</span>
+            <Badge variant={applicationStatusBadgeVariant[record.status]}>
+              {applicationStatusLabels[record.status]}
+            </Badge>
+          </span>
+        }
+      />
+
+      <Section
+        title={translate("resources.applications.review.summary_title", {
+          _: "Application Summary",
+        })}
+      >
+        {record.summary ? (
+          <p className="text-sm">{record.summary}</p>
+        ) : (
+          <p className="text-sm text-muted-foreground">
+            {translate("resources.applications.review.summary_empty", {
+              _: "No summary yet.",
+            })}
+          </p>
+        )}
+      </Section>
+
+      <Section
+        title={translate("resources.applications.review.answers_title", {
+          _: "Application Answers",
+        })}
+      >
+        <ApplicationAnswers answers={record.raw_answers} />
+      </Section>
+
+      <Section
+        title={translate("resources.applications.review.decision_title", {
+          _: "Review Decision",
+        })}
+      >
+        <ApplicationReviewActions
+          application={record}
+          deal={deal}
+          applicantName={applicantName}
+        />
+      </Section>
+
+      <Section
+        title={translate("resources.applications.review.related_sales_title", {
+          _: "Related Sales",
+        })}
+      >
+        <PersonCard
+          contactId={contact.id}
+          to={`/deals/${deal.id}/show`}
+          name={stageLabel}
+          meta={[offer.name, cohort?.name].filter(Boolean).join(" · ")}
+        />
+      </Section>
     </div>
   );
 };

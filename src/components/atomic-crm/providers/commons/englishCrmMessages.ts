@@ -57,9 +57,6 @@ export const englishCrmMessages = {
         create_item: "Create %{item}",
         create_label: "Start typing to create a new company",
       },
-      filters: {
-        only_mine: "Only companies I manage",
-      },
     },
     contacts: {
       name: "Contact |||| Contacts",
@@ -323,7 +320,22 @@ export const englishCrmMessages = {
       },
       action: {
         approve: "Approve",
-        reject: "Reject",
+        needs_higher_care: "Needs Higher Care",
+        not_fit: "Not Fit",
+        do_not_engage: "Do Not Engage",
+      },
+      review: {
+        summary_title: "Application Summary",
+        summary_empty: "No summary yet.",
+        answers_title: "Application Answers",
+        decision_title: "Review Decision",
+        related_sales_title: "Related Sales",
+        already_reviewed: "Reviewed — no further action needed.",
+        already_reviewed_notice:
+          "This application was already reviewed — showing the current state.",
+        dne_confirm_title: "Mark %{name} as Do Not Engage?",
+        dne_confirm_body:
+          "This removes them from future direct sales eligibility.",
       },
       updated: "Application updated",
       empty: "No applications yet.",

@@ -60,9 +60,6 @@ export const frenchCrmMessages = {
         create_item: "Créer %{item}",
         create_label: "Commencez à taper pour créer une nouvelle entreprise",
       },
-      filters: {
-        only_mine: "Seulement les entreprises que je gère",
-      },
     },
     contacts: {
       name: "Contact |||| Contacts",
@@ -329,7 +326,22 @@ export const frenchCrmMessages = {
       },
       action: {
         approve: "Approuver",
-        reject: "Rejeter",
+        needs_higher_care: "Besoin de plus d'attention",
+        not_fit: "Ne convient pas",
+        do_not_engage: "Ne pas contacter",
+      },
+      review: {
+        summary_title: "Résumé de la candidature",
+        summary_empty: "Pas encore de résumé.",
+        answers_title: "Réponses à la candidature",
+        decision_title: "Décision de révision",
+        related_sales_title: "Vente associée",
+        already_reviewed: "Révisée — aucune action requise.",
+        already_reviewed_notice:
+          "Cette candidature avait déjà été révisée — affichage de l'état actuel.",
+        dne_confirm_title: "Marquer %{name} comme « Ne pas contacter » ?",
+        dne_confirm_body:
+          "Cela retire cette personne des futures opportunités de vente directe.",
       },
       updated: "Candidature mise à jour",
       empty: "Aucune candidature pour le moment.",

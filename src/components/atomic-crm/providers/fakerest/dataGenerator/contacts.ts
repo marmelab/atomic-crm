@@ -90,6 +90,7 @@ export const generateContacts = (db: Db, size = 500): Required<Contact>[] => {
       last_seen: last_seen,
       has_newsletter: weightedBoolean(30),
       status: random.arrayElement(defaultNoteStatuses).value,
+      sales_eligibility: "normal",
       tags: random
         .arrayElements(db.tags, random.arrayElement([0, 0, 0, 1, 1, 2]))
         .map((tag) => tag.id), // finalize

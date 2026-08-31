@@ -3,7 +3,10 @@ import { Badge } from "@/components/ui/badge";
 import { DateField } from "@/components/admin/date-field";
 
 import { PageHeader, PersonCard, Section } from "../misc/ProgramLayout";
-import { applicationStatusLabels } from "./applicationConstants";
+import {
+  applicationStatusBadgeVariant,
+  applicationStatusLabels,
+} from "./applicationConstants";
 import {
   useApplicationsGrouped,
   type ApplicationRow,
@@ -99,9 +102,7 @@ const ApplicationRows = ({ rows }: { rows: ApplicationRow[] }) => {
               </>
             }
             trailing={
-              <Badge
-                variant={row.status === "pending" ? "outline" : "secondary"}
-              >
+              <Badge variant={applicationStatusBadgeVariant[row.status]}>
                 {applicationStatusLabels[row.status]}
               </Badge>
             }

@@ -1,6 +1,7 @@
 import { useGetList, useGetMany, type Identifier } from "ra-core";
 
 import type { Application, Contact, Deal, Enrollment } from "../types";
+import { NON_APPROVED_TERMINAL_APPLICATION_STATUSES } from "../applications/applicationConstants";
 import { classifyCohortOpportunity } from "./cohortCapacity";
 
 const ACTIVE_ENROLLMENT_STATUSES: ReadonlySet<Enrollment["status"]> = new Set([
@@ -109,9 +110,17 @@ export const useCohortPageData = (cohortId?: Identifier) => {
       enrollment,
     ]),
   );
+  // "rejected" no longer exists as a single status (Native Applications
+  // slice, §1: outcomes are distinct) — any of the three non-approved
+  // terminal review outcomes means this person isn't moving toward a
+  // purchase anymore. Deal.outcome already carries this once reviewApplication
+  // runs, but this stays as a defensive fallback for classifyCohortOpportunity
+  // (see its own doc comment).
   const rejectedApplicationOpportunityIds = new Set(
     (applications ?? [])
-      .filter((application) => application.status === "rejected")
+      .filter((application) =>
+        NON_APPROVED_TERMINAL_APPLICATION_STATUSES.has(application.status),
+      )
       .map((application) => String(application.opportunity_id)),
   );
 

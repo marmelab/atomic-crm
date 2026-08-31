@@ -6,7 +6,10 @@ import { generateDealNotes } from "./dealNotes";
 import { generateDeals } from "./deals";
 import { backfillEnrollmentsForWonDeals } from "./enrollments";
 import { finalize } from "./finalize";
-import { addLeifProofSliceFixtures } from "./leifProofSliceFixtures";
+import {
+  addLeifProofSliceFixtures,
+  addReviewApplicationTaskFixtures,
+} from "./leifProofSliceFixtures";
 import { generateOffers } from "./offers";
 import { generateSales } from "./sales";
 import { generateTags } from "./tags";
@@ -27,10 +30,11 @@ export default (): Db => {
   db.applications = [];
   db.enrollments = [];
   db.deals = generateDeals(db);
-  addLeifProofSliceFixtures(db);
+  const { pendingReviewApplicants } = addLeifProofSliceFixtures(db);
   backfillEnrollmentsForWonDeals(db);
   db.deal_notes = generateDealNotes(db);
   db.tasks = generateTasks(db);
+  addReviewApplicationTaskFixtures(db, pendingReviewApplicants);
   db.configuration = [
     {
       id: 1,

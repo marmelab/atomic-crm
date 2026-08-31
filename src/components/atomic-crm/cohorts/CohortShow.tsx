@@ -7,7 +7,10 @@ import { Card, CardContent } from "@/components/ui/card";
 import { PageHeader, PersonCard, Section } from "../misc/ProgramLayout";
 import { useConfigurationContext } from "../root/ConfigurationContext";
 import { findDealLabel, formatISODateString } from "../deals/dealUtils";
-import { applicationStatusLabels } from "../applications/applicationConstants";
+import {
+  applicationStatusBadgeVariant,
+  applicationStatusLabels,
+} from "../applications/applicationConstants";
 import { enrollmentStatusLabels } from "../enrollments/enrollmentConstants";
 import type { Cohort } from "../types";
 import { cohortStatusLabels } from "./cohortConstants";
@@ -168,12 +171,15 @@ const CohortShowContent = () => {
               <PersonCard
                 key={application.applicationId}
                 contactId={application.contactId}
+                to={`/applications/${application.applicationId}/show`}
                 name={application.name}
                 meta={formatISODateString(
                   application.submittedAt.split("T")[0]!,
                 )}
                 trailing={
-                  <Badge variant="outline">
+                  <Badge
+                    variant={applicationStatusBadgeVariant[application.status]}
+                  >
                     {applicationStatusLabels[application.status]}
                   </Badge>
                 }

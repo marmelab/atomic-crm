@@ -50,3 +50,13 @@ export function formatISODateString(dateString: string) {
 
   return format(date, "PP");
 }
+
+// For full timestamps (timestamptz columns, e.g. Application.submitted_at)
+// where formatISODateString's YYYY-MM-DD guard would throw — no local-noon
+// reinterpretation issue here since the value already carries a time
+// component. Kept distinct from formatISODateString rather than relaxing
+// its regex, so a date-only value still fails loudly if it's ever passed
+// somewhere that expects a real timestamp.
+export function formatTimestampString(timestamp: string) {
+  return format(new Date(timestamp), "PP");
+}

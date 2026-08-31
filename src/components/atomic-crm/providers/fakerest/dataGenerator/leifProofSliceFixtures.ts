@@ -33,6 +33,19 @@ import { GYU_OFFER_ID, LIVING_EXAMPLE_OFFER_ID } from "./offers";
  *   only individual-offer Application fixture, so the Applications page's
  *   "1:1 — The Living Example" section has something real to show next to
  *   Growing Yourself Up's (Runtime + Visual Consistency slice, §5).
+ * - Naomi: a 1:1 applicant already Approved — proves the Approved outcome's
+ *   Application/Opportunity sync in fixture data (Native Applications
+ *   slice, §4/§15).
+ * - Felix: a GYU applicant reviewed as Needs Higher Care — proves the
+ *   Opportunity exits the active pipeline via `outcome` alone, stage left
+ *   untouched (§5/§15).
+ * - Portia: a GYU applicant reviewed as Do Not Engage — proves the
+ *   Contact-level sales_eligibility gate end-to-end (§7/§15).
+ *
+ * Priya and Rosalind (both still pending) also get a deterministic "Review
+ * Application" Task each — see addReviewApplicationTaskFixtures below,
+ * called separately after the random Task generator runs so ids never
+ * collide (§8/§15).
  */
 export const addLeifProofSliceFixtures = (db: Db) => {
   const salesId = db.sales[0]!.id;
@@ -59,6 +72,7 @@ export const addLeifProofSliceFixtures = (db: Db) => {
     has_newsletter: false,
     tags: [],
     status: "warm",
+    sales_eligibility: "normal",
     linkedin_url: null,
     nb_tasks: 0,
     sales_id: salesId,
@@ -306,14 +320,14 @@ export const addLeifProofSliceFixtures = (db: Db) => {
     amount: 1400,
     source: "instagram",
     entry_path: "instagram_conversation",
-    description: "Acceptance-test fixture: application rejected, exited.",
+    description: "Acceptance-test fixture: application reviewed, Not Fit.",
   });
   db.deals.push(jordanOpportunity);
 
   db.applications.push({
     id: nextApplicationId(),
     opportunity_id: jordanOpportunity.id,
-    status: "rejected",
+    status: "not_fit",
     submitted_at: now,
     reviewed_at: now,
     raw_answers: {
@@ -520,4 +534,189 @@ export const addLeifProofSliceFixtures = (db: Db) => {
     created_at: now,
     updated_at: now,
   });
+
+  // --- Naomi: 1:1 (Living Example) applicant, already Approved -----------
+  // Proves the Approved outcome end-to-end in fixture data: stage moved to
+  // 'approved', outcome stays null, Application.status/reviewed_at are set
+  // — exactly what reviewApplication.ts itself writes (Native Applications
+  // slice, §4/§15).
+  const naomi = baseContact({
+    first_name: "Naomi",
+    last_name: "Ellison",
+    email_jsonb: [{ email: "naomi.ellison@example.com", type: "Home" }],
+    background: "Applied for The Living Example; approved for a sales call.",
+  });
+  db.contacts.push(naomi);
+
+  const naomiOpportunity = baseDeal({
+    name: "Naomi Ellison — The Living Example",
+    contact_id: naomi.id,
+    offer_id: LIVING_EXAMPLE_OFFER_ID,
+    offer_name_snapshot: "The Living Example",
+    offer_price_snapshot: 4000,
+    stage: "approved",
+    outcome: null,
+    amount: 4000,
+    source: "other",
+    entry_path: "sales_page",
+    description:
+      "Acceptance-test fixture: 1:1 applicant already Approved (§4/§15).",
+  });
+  db.deals.push(naomiOpportunity);
+
+  db.applications.push({
+    id: nextApplicationId(),
+    opportunity_id: naomiOpportunity.id,
+    status: "approved",
+    submitted_at: now,
+    reviewed_at: now,
+    raw_answers: {
+      why_this_program: "Ready to commit to consistent 1:1 coaching.",
+      availability: "Weekday afternoons",
+    },
+    summary: "Strong fit; approved for a sales call.",
+    created_at: now,
+    updated_at: now,
+  });
+
+  // --- Felix: GYU applicant reviewed as Needs Higher Care -----------------
+  // Proves the Opportunity exits the active pipeline via `outcome` alone
+  // (stage is deliberately left untouched, matching reviewApplication.ts —
+  // §5/§15) while the Contact stays fully eligible for future contact.
+  const felix = baseContact({
+    first_name: "Felix",
+    last_name: "Adeyemi",
+    gender: "male",
+    email_jsonb: [{ email: "felix.adeyemi@example.com", type: "Home" }],
+    background:
+      "Applied for September GYU; reviewed as needing more support first.",
+  });
+  db.contacts.push(felix);
+
+  const felixOpportunity = baseDeal({
+    name: "Felix Adeyemi — Growing Yourself Up",
+    contact_id: felix.id,
+    offer_id: GYU_OFFER_ID,
+    offer_name_snapshot: "Growing Yourself Up",
+    offer_price_snapshot: 1400,
+    cohort_id: SEPTEMBER_GYU_COHORT_ID,
+    stage: "application_received",
+    outcome: "needs_higher_care",
+    amount: 1400,
+    source: "workshop",
+    entry_path: "other",
+    description:
+      "Acceptance-test fixture: reviewed as Needs Higher Care (§5/§15).",
+  });
+  db.deals.push(felixOpportunity);
+
+  db.applications.push({
+    id: nextApplicationId(),
+    opportunity_id: felixOpportunity.id,
+    status: "needs_higher_care",
+    submitted_at: now,
+    reviewed_at: now,
+    raw_answers: {
+      why_this_cohort: "Saw it mentioned at a workshop and got curious.",
+      availability: "Weekday evenings",
+    },
+    summary:
+      "Some concerning signals in the answers; needs a higher-care check-in before any group cohort.",
+    created_at: now,
+    updated_at: now,
+  });
+
+  // --- Portia: GYU applicant reviewed as Do Not Engage --------------------
+  // Proves the Contact-level Sales Eligibility gate end-to-end: the
+  // Opportunity exits (outcome 'lost' + owner_decision 'do_not_engage',
+  // reusing existing Opportunity architecture — §7) and the Contact itself
+  // is marked do_not_engage, independent of any single Opportunity.
+  const portia = baseContact({
+    first_name: "Portia",
+    last_name: "Vance",
+    email_jsonb: [{ email: "portia.vance@example.com", type: "Home" }],
+    background: "Applied for September GYU; reviewed as Do Not Engage.",
+    sales_eligibility: "do_not_engage",
+  });
+  db.contacts.push(portia);
+
+  const portiaOpportunity = baseDeal({
+    name: "Portia Vance — Growing Yourself Up",
+    contact_id: portia.id,
+    offer_id: GYU_OFFER_ID,
+    offer_name_snapshot: "Growing Yourself Up",
+    offer_price_snapshot: 1400,
+    cohort_id: SEPTEMBER_GYU_COHORT_ID,
+    stage: "application_received",
+    outcome: "lost",
+    owner_decision: "do_not_engage",
+    amount: 1400,
+    source: "instagram",
+    entry_path: "instagram_conversation",
+    description: "Acceptance-test fixture: reviewed as Do Not Engage (§7/§15).",
+  });
+  db.deals.push(portiaOpportunity);
+
+  db.applications.push({
+    id: nextApplicationId(),
+    opportunity_id: portiaOpportunity.id,
+    status: "do_not_engage",
+    submitted_at: now,
+    reviewed_at: now,
+    raw_answers: {
+      why_this_cohort: "N/A",
+      availability: "N/A",
+    },
+    summary: "Do not engage — see review notes.",
+    created_at: now,
+    updated_at: now,
+  });
+
+  // Contacts with a pending Application still needing their "Review
+  // Application" task — created after generateTasks() runs (see index.ts)
+  // so the deterministic task ids never collide with the random generator's
+  // 0..399 range (§8/§15).
+  return {
+    pendingReviewApplicants: [
+      { contactId: priya.id, applicantName: "Priya Nair" },
+      { contactId: rosalind.id, applicantName: "Rosalind Park" },
+    ],
+  };
+};
+
+// Called from index.ts after db.tasks = generateTasks(db), so these
+// deterministic ids continue the sequence rather than colliding with the
+// random generator's 0..399 (Native Applications slice, §8): one pending
+// "Review Application" task per still-pending Application fixture, proving
+// the Task <-> Application linkage the review actions rely on.
+export const addReviewApplicationTaskFixtures = (
+  db: Db,
+  pendingReviewApplicants: {
+    contactId: Contact["id"];
+    applicantName: string;
+  }[],
+) => {
+  const salesId = db.sales[0]!.id;
+  const now = new Date().toISOString();
+  const nextTaskId = () => db.tasks.length;
+
+  for (const { contactId, applicantName } of pendingReviewApplicants) {
+    db.tasks.push({
+      id: nextTaskId(),
+      contact_id: contactId,
+      type: "review_application",
+      text: `Review ${applicantName}'s application`,
+      due_date: now,
+      done_date: undefined,
+      status: "pending",
+      sales_id: salesId,
+    });
+
+    // Mirrors generateTasks()'s own inline nb_tasks bump (this denormalized
+    // counter is otherwise only kept in sync at task-generation time).
+    const contact = db.contacts.find((c) => c.id === contactId);
+    if (contact) {
+      contact.nb_tasks = (contact.nb_tasks ?? 0) + 1;
+    }
+  }
 };

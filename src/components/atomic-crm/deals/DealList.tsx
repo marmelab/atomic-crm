@@ -13,25 +13,30 @@ import { DealEdit } from "./DealEdit";
 import { DealEmpty } from "./DealEmpty";
 import { DealListContent } from "./DealListContent";
 import { DealShow } from "./DealShow";
-import { OnlyMineInput } from "./OnlyMineInput";
 
 const DealList = () => {
   const { identity } = useGetIdentity();
 
   if (!identity) return null;
 
-  const dealFilters = [
-    <SearchInput source="q" alwaysOn />,
-    <OnlyMineInput source="sales_id" alwaysOn />,
-  ];
+  const dealFilters = [<SearchInput source="q" alwaysOn />];
 
   return (
     <List
       perPage={100}
       // Won leaves the active board the same way an archived deal already
       // does: excluded from the list query, still reachable by direct link
-      // and from the owning Contact's history.
-      filter={{ "archived_at@is": null, "stage@neq": "won" }}
+      // and from the owning Contact's history. An outcome (Nurture/Needs
+      // Higher Care/Not Fit/Lost) is this app's other established "exited"
+      // signal (see peopleDeciding.ts, personContext.ts,
+      // classifyCohortOpportunity) — Application review now sets it on a
+      // still-open stage (Native Applications slice, §5/§6/§7), so the
+      // active pipeline must exclude it here too.
+      filter={{
+        "archived_at@is": null,
+        "stage@neq": "won",
+        "outcome@is": null,
+      }}
       title={false}
       sort={{ field: "index", order: "DESC" }}
       filters={dealFilters}

@@ -81,6 +81,12 @@ export type PhoneNumberAndType = {
   type: "Work" | "Home" | "Other";
 };
 
+// Independent of `status` (Cold/Warm/Hot/In Contract, a note-driven
+// temperature label). 'do_not_engage' is a durable future-sales gate set
+// by Application review (Native Applications slice, §7) — the anchor a
+// future Kit suppression sync would read from.
+export type ContactSalesEligibility = "normal" | "do_not_engage";
+
 export type Contact = {
   first_name: string;
   last_name: string;
@@ -96,6 +102,7 @@ export type Contact = {
   gender: string;
   sales_id?: Identifier;
   status: string;
+  sales_eligibility: ContactSalesEligibility;
   background: string;
   phone_jsonb: PhoneNumberAndType[];
   nb_tasks?: number;
@@ -169,7 +176,16 @@ export type Cohort = {
   updated_at: string;
 } & Pick<RaRecord, "id">;
 
-export type ApplicationStatus = "pending" | "approved" | "rejected";
+// Distinct review outcomes (Native Applications slice, §1) — never
+// collapsed into a generic Approve/Reject. "approved" means "qualified
+// enough for a sales call", not "Leif wants to work with them"; that call
+// is still made later, independent of the Opportunity's owner_decision.
+export type ApplicationStatus =
+  | "pending"
+  | "approved"
+  | "needs_higher_care"
+  | "not_fit"
+  | "do_not_engage";
 
 // A submitted program/coaching application. Approval means "qualified
 // enough for a sales call" — it is intentionally independent from the

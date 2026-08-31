@@ -112,6 +112,7 @@ select
     co.last_seen,
     co.has_newsletter,
     co.status,
+    co.sales_eligibility,
     co.tags,
     co.company_id,
     co.sales_id,
