@@ -101,6 +101,9 @@ export const englishCrmMessages = {
       },
       position_at: "%{title} at",
       position_at_company: "%{title} at %{company}",
+      sales_eligibility: {
+        do_not_engage: "Do Not Engage",
+      },
       empty: {
         description: "It seems your contact list is empty.",
         title: "No contacts found",
@@ -239,6 +242,9 @@ export const englishCrmMessages = {
         create_label: "Add a new person",
         create_item_label: 'Add "%{item}" as a new person',
         create_error: "An error occurred while creating the person",
+        do_not_engage_title: "Do Not Engage",
+        do_not_engage_error:
+          "This person is marked Do Not Engage — a new Opportunity can't be created for them.",
       },
       unarchived: {
         action: "Send back to the board",

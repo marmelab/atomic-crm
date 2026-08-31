@@ -204,4 +204,60 @@ describe("OpportunityPersonInput", () => {
       name: "Chris Smith",
     });
   });
+
+  // Native Applications repair pass, §4: a Do Not Engage Contact must stay
+  // findable/selectable here (removing them would just invite an
+  // accidental duplicate Contact) — but selecting them must clearly
+  // indicate why, and Save must not create the Opportunity.
+  it("keeps a Do Not Engage Contact selectable in the Person field, but blocks creating a new Opportunity for them", async () => {
+    const dneContact = buildContact({
+      id: 7,
+      first_name: "Willis",
+      last_name: "Byrne",
+      email_jsonb: [{ email: "willis.byrne@example.com", type: "Work" }],
+      sales_eligibility: "do_not_engage",
+    });
+    const dataProvider = createDataProvider({
+      db: createCrmDb({
+        offers: [livingExample],
+        contacts: [dneContact],
+        ...emptyRelatedCollections,
+      }),
+      silent: true,
+    });
+
+    const screen = await render(
+      <StoryWrapper
+        initialEntries={["/deals/create"]}
+        dataProvider={dataProvider}
+      >
+        <></>
+      </StoryWrapper>,
+    );
+
+    await screen.getByText("Search by name or email…").click();
+    await screen.getByPlaceholder("Search...").fill("Willis");
+    // Findable — never hidden from the selector.
+    await expect.element(screen.getByText("Willis Byrne")).toBeInTheDocument();
+    await screen.getByText("Willis Byrne").click();
+
+    // Clearly indicated immediately upon selection.
+    await expect
+      .element(
+        screen.getByText(
+          "This person is marked Do Not Engage — a new Opportunity can't be created for them.",
+        ),
+      )
+      .toBeInTheDocument();
+
+    await selectOfferAndSave(screen);
+
+    // Blocked: no Opportunity is created for them.
+    const { total } = await dataProvider.getList("deals", {
+      filter: {},
+      pagination: { page: 1, perPage: 10 },
+      sort: { field: "id", order: "ASC" },
+    });
+    expect(total).toBe(0);
+  });
 });

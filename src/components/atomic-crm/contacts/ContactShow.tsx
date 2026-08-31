@@ -28,6 +28,7 @@ import { ContactStatusSelector } from "./ContactInputs";
 import { ContactPersonalInfo } from "./ContactPersonalInfo";
 import { ContactBackgroundInfo } from "./ContactBackgroundInfo";
 import { ContactTasksList } from "./ContactTasksList";
+import { DoNotEngageBadge } from "./DoNotEngageBadge";
 import type { Contact } from "../types";
 import { Avatar } from "./Avatar";
 import { ContactAside } from "./ContactAside";
@@ -100,8 +101,9 @@ const ContactShowContentMobile = () => {
           <div className="flex items-center mb-4">
             <Avatar />
             <div className="mx-3 flex-1">
-              <h2 className="text-2xl font-bold">
+              <h2 className="text-2xl font-bold flex items-center gap-2">
                 <RecordRepresentation />
+                <DoNotEngageBadge contact={record} />
               </h2>
               <div className="text-sm text-muted-foreground">
                 {record.title && record.company_id != null
@@ -248,8 +250,9 @@ const ContactShowContent = () => {
             <div className="flex">
               <Avatar />
               <div className="ml-2 flex-1">
-                <h5 className="text-xl font-semibold">
+                <h5 className="text-xl font-semibold flex items-center gap-2">
                   <RecordRepresentation />
+                  <DoNotEngageBadge contact={record} />
                 </h5>
                 <div className="inline-flex text-sm text-muted-foreground">
                   {record.title && record.company_id != null

@@ -1,15 +1,44 @@
 import {
   useCreate,
+  useDataProvider,
   useGetIdentity,
+  useGetOne,
   useNotify,
+  useRecordContext,
   required,
   useTranslate,
+  type Identifier,
 } from "ra-core";
+import { useFormContext, useWatch } from "react-hook-form";
 import { AutocompleteInput } from "@/components/admin/autocomplete-input";
 import { ReferenceInput } from "@/components/admin/reference-input";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Ban } from "lucide-react";
 
-import type { Contact } from "../types";
+import type { Contact, Deal } from "../types";
 import { personOptionText } from "./PersonOption";
+
+// Blocks a NEW direct-sales Opportunity from being created for a Contact
+// already marked Do Not Engage (Native Applications repair pass, §4) — the
+// person stays fully visible and selectable here (removing them from the
+// selector would just invite an accidental duplicate Contact instead), but
+// selecting them shows why immediately, and submitting is prevented.
+// `enabled: false` (editing an Opportunity that already exists) is a no-op:
+// this only guards *creating* a new one, never blocks editing history that
+// already exists for a Contact who became DNE afterward.
+const doNotEngageValidator =
+  (
+    dataProvider: ReturnType<typeof useDataProvider>,
+    message: string,
+    enabled: boolean,
+  ) =>
+  async (value?: Identifier) => {
+    if (!enabled || !value) return undefined;
+    const { data: contact } = await dataProvider.getOne<Contact>("contacts", {
+      id: value,
+    });
+    return contact.sales_eligibility === "do_not_engage" ? message : undefined;
+  };
 
 // The single "PERSON" field for the Opportunity create/edit form (§1 of the
 // Programs + Opportunity UX slice), replacing the old separate Name +
@@ -38,6 +67,24 @@ export const OpportunityPersonInput = () => {
   const [create] = useCreate();
   const { identity } = useGetIdentity();
   const notify = useNotify();
+  const dataProvider = useDataProvider();
+  const existingDeal = useRecordContext<Deal>();
+  const isCreatingNewOpportunity = existingDeal?.id == null;
+  const { control } = useFormContext();
+  const selectedContactId = useWatch({ control, name: "contact_id" });
+  const { data: selectedContact } = useGetOne<Contact>(
+    "contacts",
+    { id: selectedContactId },
+    { enabled: selectedContactId != null },
+  );
+  const isDoNotEngage = selectedContact?.sales_eligibility === "do_not_engage";
+
+  const doNotEngageMessage = translate(
+    "resources.deals.person_input.do_not_engage_error",
+    {
+      _: "This person is marked Do Not Engage — a new Opportunity can't be created for them.",
+    },
+  );
 
   const handleCreatePerson = async (name?: string) => {
     if (!name) return;
@@ -84,12 +131,30 @@ export const OpportunityPersonInput = () => {
             choice ? `${choice.first_name} ${choice.last_name}` : ""
           }
           helperText={false}
-          validate={required()}
+          validate={[
+            required(),
+            doNotEngageValidator(
+              dataProvider,
+              doNotEngageMessage,
+              isCreatingNewOpportunity,
+            ),
+          ]}
           onCreate={handleCreatePerson}
           createLabel="resources.deals.person_input.create_label"
           createItemLabel="resources.deals.person_input.create_item_label"
         />
       </ReferenceInput>
+      {isCreatingNewOpportunity && isDoNotEngage && (
+        <Alert variant="destructive">
+          <Ban />
+          <AlertTitle>
+            {translate("resources.deals.person_input.do_not_engage_title", {
+              _: "Do Not Engage",
+            })}
+          </AlertTitle>
+          <AlertDescription>{doNotEngageMessage}</AlertDescription>
+        </Alert>
+      )}
     </div>
   );
 };

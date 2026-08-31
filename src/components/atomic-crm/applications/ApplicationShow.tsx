@@ -1,5 +1,6 @@
 import { ShowBase, useRecordContext, useTranslate } from "ra-core";
 import { Badge } from "@/components/ui/badge";
+import { Card, CardContent } from "@/components/ui/card";
 
 import type { Application } from "../types";
 import { findDealLabel, formatTimestampString } from "../deals/dealUtils";
@@ -60,41 +61,54 @@ const ApplicationShowContent = () => {
         }
       />
 
-      <Section
-        title={translate("resources.applications.review.summary_title", {
-          _: "Application Summary",
-        })}
-      >
-        {record.summary ? (
-          <p className="text-sm">{record.summary}</p>
-        ) : (
-          <p className="text-sm text-muted-foreground">
-            {translate("resources.applications.review.summary_empty", {
-              _: "No summary yet.",
+      {/*
+        The Application is the page's primary object (Native Applications
+        repair pass, §1): Summary/Answers/Review Decision all live inside
+        one large rounded container, the same Card primitive every other
+        "big rounded box" on this page's siblings (PersonCard, Cohort
+        Details) already uses — so the Application itself is unmistakably
+        what this page is about, and Related Sales below reads as
+        supporting context, not a competing object.
+      */}
+      <Card>
+        <CardContent className="flex flex-col gap-6">
+          <Section
+            title={translate("resources.applications.review.summary_title", {
+              _: "Application Summary",
             })}
-          </p>
-        )}
-      </Section>
+          >
+            {record.summary ? (
+              <p className="text-sm">{record.summary}</p>
+            ) : (
+              <p className="text-sm text-muted-foreground">
+                {translate("resources.applications.review.summary_empty", {
+                  _: "No summary yet.",
+                })}
+              </p>
+            )}
+          </Section>
 
-      <Section
-        title={translate("resources.applications.review.answers_title", {
-          _: "Application Answers",
-        })}
-      >
-        <ApplicationAnswers answers={record.raw_answers} />
-      </Section>
+          <Section
+            title={translate("resources.applications.review.answers_title", {
+              _: "Application Answers",
+            })}
+          >
+            <ApplicationAnswers answers={record.raw_answers} />
+          </Section>
 
-      <Section
-        title={translate("resources.applications.review.decision_title", {
-          _: "Review Decision",
-        })}
-      >
-        <ApplicationReviewActions
-          application={record}
-          deal={deal}
-          applicantName={applicantName}
-        />
-      </Section>
+          <Section
+            title={translate("resources.applications.review.decision_title", {
+              _: "Review Decision",
+            })}
+          >
+            <ApplicationReviewActions
+              application={record}
+              deal={deal}
+              applicantName={applicantName}
+            />
+          </Section>
+        </CardContent>
+      </Card>
 
       <Section
         title={translate("resources.applications.review.related_sales_title", {

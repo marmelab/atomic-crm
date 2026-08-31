@@ -104,6 +104,9 @@ export const frenchCrmMessages = {
       },
       position_at: "%{title} chez",
       position_at_company: "%{title} chez %{company}",
+      sales_eligibility: {
+        do_not_engage: "Ne pas contacter",
+      },
       empty: {
         description: "Il semble que votre liste de contacts soit vide.",
         title: "Aucun contact trouvé",
@@ -245,6 +248,9 @@ export const frenchCrmMessages = {
         create_item_label: 'Ajouter "%{item}" comme nouvelle personne',
         create_error:
           "Une erreur est survenue lors de la création de la personne",
+        do_not_engage_title: "Ne pas contacter",
+        do_not_engage_error:
+          "Cette personne est marquée « Ne pas contacter » — une nouvelle opportunité ne peut pas être créée pour elle.",
       },
       unarchived: {
         action: "Renvoyer au tableau",

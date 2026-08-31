@@ -253,4 +253,41 @@ describe("ApplicationShow", () => {
       .element(screen.getByRole("button", { name: /Approve/ }))
       .not.toBeInTheDocument();
   });
+
+  it("gives the Application primary visual containment and Related Sales secondary treatment", async () => {
+    await page.viewport(1280, 900);
+    const screen = await render(
+      buildTestCrm({
+        deal: pendingLivingExampleDeal,
+        application: pendingApplication,
+      }),
+    );
+    const { container } = screen;
+    await expect
+      .element(screen.getByText("Application Summary"))
+      .toBeInTheDocument();
+
+    // Summary/Answers/Review Decision all live inside ONE rounded Card
+    // (Native Applications repair pass, §1) — not floating directly on
+    // the page, and not each in their own separate card.
+    const summaryHeading = [...container.querySelectorAll("h2")].find(
+      (el) => el.textContent === "Application Summary",
+    );
+    const answersHeading = [...container.querySelectorAll("h2")].find(
+      (el) => el.textContent === "Application Answers",
+    );
+    const decisionHeading = [...container.querySelectorAll("h2")].find(
+      (el) => el.textContent === "Review Decision",
+    );
+    const applicationCard = summaryHeading?.closest('[class*="rounded-xl"]');
+    expect(applicationCard).not.toBeNull();
+    expect(applicationCard?.contains(answersHeading ?? null)).toBe(true);
+    expect(applicationCard?.contains(decisionHeading ?? null)).toBe(true);
+
+    // Related Sales is a single compact row, not the same large container.
+    const relatedSalesHeading = [...container.querySelectorAll("h2")].find(
+      (el) => el.textContent === "Related Sales",
+    );
+    expect(applicationCard?.contains(relatedSalesHeading ?? null)).toBe(false);
+  });
 });
