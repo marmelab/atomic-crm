@@ -304,11 +304,8 @@ export const englishCrmMessages = {
       },
       enrolled_count: "%{enrolled} / %{maximum} enrolled",
       enrolled_count_label: "Enrolled",
-      capacity_summary: "Minimum %{minimum} · Target %{target}",
       people: {
-        title: "People",
-        enrolled: "Enrolled",
-        in_sales: "In Sales",
+        enrolled: "Enrolled Clients",
         empty: "Nobody yet.",
       },
     },
@@ -329,6 +326,8 @@ export const englishCrmMessages = {
         reject: "Reject",
       },
       updated: "Application updated",
+      empty: "No applications yet.",
+      individual_group_label: "1:1 — %{name}",
     },
     enrollments: {
       name: "Client |||| Clients",
@@ -635,6 +634,7 @@ export const englishCrmMessages = {
       opening_count: "%{count} opening |||| %{count} openings",
       opening_completes: "%{name} completes",
       individual_not_found: "This program could not be found.",
+      cohort_details: "Cohort Details",
     },
     settings: {
       about: "About",

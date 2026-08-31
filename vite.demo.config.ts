@@ -49,4 +49,10 @@ export default defineConfig({
       "@": path.resolve(__dirname, "./src"),
     },
   },
+  optimizeDeps: {
+    // See vite.config.ts — @hello-pangea/dnd is only reachable through the
+    // lazy-loaded DealList chunk, so it must be pre-bundled explicitly to
+    // avoid an on-demand re-optimize race on first navigation to /deals.
+    include: ["@hello-pangea/dnd"],
+  },
 });

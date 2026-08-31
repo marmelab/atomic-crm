@@ -310,11 +310,8 @@ export const frenchCrmMessages = {
       },
       enrolled_count: "%{enrolled} / %{maximum} inscrits",
       enrolled_count_label: "Inscrits",
-      capacity_summary: "Minimum %{minimum} · Cible %{target}",
       people: {
-        title: "Personnes",
-        enrolled: "Inscrits",
-        in_sales: "En cours de vente",
+        enrolled: "Clients inscrits",
         empty: "Personne pour l'instant.",
       },
     },
@@ -335,6 +332,8 @@ export const frenchCrmMessages = {
         reject: "Rejeter",
       },
       updated: "Candidature mise à jour",
+      empty: "Aucune candidature pour le moment.",
+      individual_group_label: "1:1 — %{name}",
     },
     enrollments: {
       name: "Client |||| Clients",
@@ -647,6 +646,7 @@ export const frenchCrmMessages = {
       opening_count: "%{count} place |||| %{count} places",
       opening_completes: "%{name} termine",
       individual_not_found: "Ce programme est introuvable.",
+      cohort_details: "Détails de la cohorte",
     },
     settings: {
       about: "À propos",

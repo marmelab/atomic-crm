@@ -1,83 +1,113 @@
-import { useRecordContext, useTranslate } from "ra-core";
-import { DataTable } from "@/components/admin/data-table";
-import { DateField } from "@/components/admin/date-field";
-import { List } from "@/components/admin/list";
-import { ReferenceField } from "@/components/admin/reference-field";
+import { useTranslate } from "ra-core";
 import { Badge } from "@/components/ui/badge";
+import { DateField } from "@/components/admin/date-field";
 
-import type { Application } from "../types";
+import { PageHeader, PersonCard, Section } from "../misc/ProgramLayout";
 import { applicationStatusLabels } from "./applicationConstants";
+import {
+  useApplicationsGrouped,
+  type ApplicationRow,
+} from "./useApplicationsGrouped";
 
+// Applications is a single, unified Application table underneath — the
+// grouping below is purely presentational, derived from each Application's
+// real Offer/Cohort relationship (Runtime + Visual Consistency slice, §5):
+// one section per individual (1:1) Offer, and one section per Cohort under
+// its group Offer. No new Application resource, no hand-maintained list.
 export const ApplicationList = () => {
   const translate = useTranslate();
+  const { isPending, individualGroups, groupOfferGroups } =
+    useApplicationsGrouped();
+
+  if (isPending) return null;
+
+  const isEmpty =
+    individualGroups.length === 0 && groupOfferGroups.length === 0;
+
   return (
-    <List
-      title={false}
-      sort={{ field: "submitted_at", order: "DESC" }}
-      pagination={false}
-    >
-      <div className="mb-4">
-        <h1 className="text-2xl font-semibold">
-          {translate("resources.applications.name", { smart_count: 2 })}
-        </h1>
+    <div className="flex flex-col gap-8 mt-1 p-1 max-w-3xl">
+      <PageHeader
+        title={translate("resources.applications.name", { smart_count: 2 })}
+        summary={translate("resources.applications.orientation")}
+      />
+
+      {isEmpty && (
         <p className="text-sm text-muted-foreground">
-          {translate("resources.applications.orientation")}
+          {translate("resources.applications.empty", {
+            _: "No applications yet.",
+          })}
         </p>
-      </div>
-      <DataTable rowClick="show">
-        <DataTable.Col label="resources.applications.fields.contact">
-          <ReferenceField
-            source="opportunity_id"
-            reference="deals"
-            link={false}
-          >
-            <ReferenceField
-              source="contact_id"
-              reference="contacts"
-              link="show"
-            />
-          </ReferenceField>
-        </DataTable.Col>
-        <DataTable.Col label="resources.applications.fields.offer">
-          <ReferenceField
-            source="opportunity_id"
-            reference="deals"
-            link={false}
-          >
-            <ReferenceField source="offer_id" reference="offers" link={false} />
-          </ReferenceField>
-        </DataTable.Col>
-        <DataTable.Col label="resources.applications.fields.cohort">
-          <ReferenceField
-            source="opportunity_id"
-            reference="deals"
-            link={false}
-          >
-            <ReferenceField
-              source="cohort_id"
-              reference="cohorts"
-              link={false}
-              empty=""
-            />
-          </ReferenceField>
-        </DataTable.Col>
-        <DataTable.Col label="resources.applications.fields.submitted_at">
-          <DateField source="submitted_at" />
-        </DataTable.Col>
-        <DataTable.Col label="resources.applications.fields.status">
-          <StatusBadge />
-        </DataTable.Col>
-      </DataTable>
-    </List>
+      )}
+
+      {individualGroups.map((group) => (
+        <Section
+          key={`offer-${group.offer.id}`}
+          title={translate("resources.applications.individual_group_label", {
+            _: `1:1 — ${group.offer.name}`,
+            name: group.offer.name,
+          })}
+        >
+          <ApplicationRows rows={group.applications} />
+        </Section>
+      ))}
+
+      {groupOfferGroups.map((group) => (
+        <div key={`offer-${group.offer.id}`} className="flex flex-col gap-4">
+          <h2 className="text-lg font-semibold text-muted-foreground">
+            {group.offer.name}
+          </h2>
+          {group.cohorts.map((cohortGroup) => (
+            <Section
+              key={`cohort-${cohortGroup.cohort.id}`}
+              title={cohortGroup.cohort.name}
+            >
+              <ApplicationRows rows={cohortGroup.applications} />
+            </Section>
+          ))}
+        </div>
+      ))}
+    </div>
   );
 };
 
-const StatusBadge = () => {
-  const record = useRecordContext<Application>();
-  if (!record) return null;
+const ApplicationRows = ({ rows }: { rows: ApplicationRow[] }) => {
+  const translate = useTranslate();
   return (
-    <Badge variant={record.status === "pending" ? "outline" : "secondary"}>
-      {applicationStatusLabels[record.status]}
-    </Badge>
+    <div className="flex flex-col gap-2">
+      {rows.map((row) => {
+        const submittedLabel = translate(
+          "resources.applications.fields.submitted_at",
+          { _: "Submitted" },
+        );
+        return (
+          <PersonCard
+            key={row.applicationId}
+            contactId={row.contactId}
+            to={`/applications/${row.applicationId}/show`}
+            name={row.contactName}
+            meta={
+              <>
+                {submittedLabel}{" "}
+                {/* submitted_at is a full timestamp (timestamptz), not a
+                    bare date — formatISODateString is for date-only columns
+                    and throws on this shape, so reuse the same DateField
+                    the previous flat table used for this exact column. */}
+                <DateField
+                  source="submitted_at"
+                  record={{ submitted_at: row.submittedAt }}
+                />
+              </>
+            }
+            trailing={
+              <Badge
+                variant={row.status === "pending" ? "outline" : "secondary"}
+              >
+                {applicationStatusLabels[row.status]}
+              </Badge>
+            }
+          />
+        );
+      })}
+    </div>
   );
 };

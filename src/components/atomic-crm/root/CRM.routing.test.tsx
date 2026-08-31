@@ -14,6 +14,7 @@ import {
   createTestAuthProvider,
 } from "@/test/StoryWrapper";
 import type { Cohort, ContactNote, Offer } from "@/components/atomic-crm/types";
+import type { Db } from "@/components/atomic-crm/providers/fakerest/dataGenerator/types";
 
 // Chaos Monkey routing/shell regression: at any viewport narrow enough to
 // use the Mobile shell, "/" rendered only a "Latest Activity" fragment
@@ -71,7 +72,11 @@ const seededContactNote: ContactNote = {
   status: "warm",
 };
 
-const buildTestCrm = (initialEntries: string[]) => {
+const buildTestCrm = (
+  initialEntries: string[],
+  deals: Db["deals"] = [],
+  enrollments: Db["enrollments"] = [],
+) => {
   const dataProvider = createDataProvider({
     db: createCrmDb({
       contacts: [buildContact({ id: 1 })],
@@ -80,8 +85,8 @@ const buildTestCrm = (initialEntries: string[]) => {
       cohorts: [septemberCohort],
       offer_payment_options: [],
       applications: [],
-      enrollments: [],
-      deals: [],
+      enrollments,
+      deals,
     }),
     silent: true,
   });
@@ -138,8 +143,115 @@ describe("CRM Dashboard and Cohort routes at a narrow (sub-768px) viewport", () 
     await screen.getByText("September GYU Cohort").click();
 
     await expect.element(screen.getByText("Not Found")).not.toBeInTheDocument();
+    // CohortShow was rewritten this slice (§3) to match the Living Example
+    // page's visual language: the Cohort's own name is now the page's h1,
+    // with no "Cohort " prefix.
     await expect
-      .element(screen.getByText("Cohort September GYU Cohort"))
+      .element(screen.getByRole("heading", { name: "September GYU Cohort" }))
       .toBeInTheDocument();
+  });
+});
+
+// Runtime Fix + Visual Consistency slice, §1/§12: the Opportunities pipeline
+// was down with "Failed to fetch dynamically imported module" (root-caused
+// to @hello-pangea/dnd only being reachable through DealList's lone
+// React.lazy() boundary — fixed via optimizeDeps.include in vite.config.ts
+// / vite.demo.config.ts). That specific dev-server dependency-optimization
+// race isn't reproducible in a unit-test environment (no real Vite dev
+// server involved), so this instead guards the code-level half of the
+// regression: the lazy-loaded /deals route still mounts and renders real
+// data through to completion, with no dead-route fallback.
+describe("Opportunities pipeline (DealList) route", () => {
+  it("renders the Kanban board via its lazy-loaded route", async () => {
+    await page.viewport(1280, 900);
+    const deal: Db["deals"][number] = {
+      id: 1,
+      name: "Ada Lovelace — The Living Example",
+      contact_id: 1,
+      offer_id: 1,
+      stage: "call_booked",
+      outcome: null,
+      amount: 4000,
+      sales_id: 0,
+      index: 0,
+      created_at: "2025-01-01T00:00:00.000Z",
+      updated_at: "2025-01-01T00:00:00.000Z",
+    };
+    const screen = await render(buildTestCrm(["/deals"], [deal]));
+
+    await expect.element(screen.getByText("Not Found")).not.toBeInTheDocument();
+    // Each Kanban card shows its linked Contact's name, not the Deal's own
+    // `name` field — see DealCard.tsx.
+    await expect.element(screen.getByText("Ada Lovelace")).toBeInTheDocument();
+  });
+});
+
+// §12: "relevant GYU cohort link destinations" — a Cohort page's person
+// links must land on a real Contact page for both a still-deciding
+// applicant and an already-enrolled client, never a dead route.
+describe("GYU Cohort person links", () => {
+  it("a person still deciding links through to their Contact page", async () => {
+    await page.viewport(1280, 900);
+    const decidingDeal: Db["deals"][number] = {
+      id: 2,
+      name: "Ada Lovelace — Growing Yourself Up",
+      contact_id: 1,
+      offer_id: 2,
+      cohort_id: 1,
+      stage: "call_booked",
+      outcome: null,
+      amount: 1400,
+      sales_id: 0,
+      index: 0,
+      created_at: "2025-01-01T00:00:00.000Z",
+      updated_at: "2025-01-01T00:00:00.000Z",
+    };
+    const screen = await render(
+      buildTestCrm(["/cohorts/1/show"], [decidingDeal]),
+    );
+
+    await expect
+      .element(screen.getByRole("heading", { name: "People Deciding" }))
+      .toBeInTheDocument();
+    await screen.getByRole("link", { name: "Ada Lovelace" }).click();
+
+    await expect.element(screen.getByText("Not Found")).not.toBeInTheDocument();
+    await expect.element(screen.getByText("CTO")).toBeInTheDocument();
+  });
+
+  it("an enrolled client links through to their Contact page", async () => {
+    await page.viewport(1280, 900);
+    const enrolledDeal: Db["deals"][number] = {
+      id: 3,
+      name: "Ada Lovelace — Growing Yourself Up",
+      contact_id: 1,
+      offer_id: 2,
+      cohort_id: 1,
+      stage: "won",
+      outcome: null,
+      amount: 1400,
+      sales_id: 0,
+      index: 0,
+      created_at: "2025-01-01T00:00:00.000Z",
+      updated_at: "2025-01-01T00:00:00.000Z",
+    };
+    const enrollment: Db["enrollments"][number] = {
+      id: 1,
+      opportunity_id: 3,
+      status: "active",
+      created_at: "2025-01-01T00:00:00.000Z",
+      updated_at: "2025-01-01T00:00:00.000Z",
+    };
+    const screen = await render(
+      buildTestCrm(["/cohorts/1/show"], [enrolledDeal], [enrollment]),
+    );
+
+    await expect
+      .element(screen.getByRole("heading", { name: "Enrolled Clients" }))
+      .toBeInTheDocument();
+    await screen.getByRole("link", { name: "Ada Lovelace" }).click();
+
+    await expect.element(screen.getByText("Not Found")).not.toBeInTheDocument();
+    await expect.element(screen.getByText("CTO")).toBeInTheDocument();
   });
 });

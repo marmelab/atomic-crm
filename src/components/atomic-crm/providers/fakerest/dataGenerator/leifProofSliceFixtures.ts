@@ -29,6 +29,10 @@ import { GYU_OFFER_ID, LIVING_EXAMPLE_OFFER_ID } from "./offers";
  *   (two openings on one day) while Kathy's is sooner (§9/§14).
  * - Nora: a COMPLETED Living Example Enrollment in the past — must never
  *   appear as a future opening (§9/§14).
+ * - Rosalind: a 1:1 (Living Example) applicant, application pending — the
+ *   only individual-offer Application fixture, so the Applications page's
+ *   "1:1 — The Living Example" section has something real to show next to
+ *   Growing Yourself Up's (Runtime + Visual Consistency slice, §5).
  */
 export const addLeifProofSliceFixtures = (db: Db) => {
   const salesId = db.sales[0]!.id;
@@ -474,6 +478,45 @@ export const addLeifProofSliceFixtures = (db: Db) => {
     status: "completed",
     start_date: noraStart.toISOString().split("T")[0],
     end_date: noraEnd.toISOString().split("T")[0],
+    created_at: now,
+    updated_at: now,
+  });
+
+  // --- Rosalind: 1:1 (Living Example) applicant, application pending ------
+  const rosalind = baseContact({
+    first_name: "Rosalind",
+    last_name: "Park",
+    email_jsonb: [{ email: "rosalind.park@example.com", type: "Home" }],
+    background: "Applied for The Living Example.",
+  });
+  db.contacts.push(rosalind);
+
+  const rosalindOpportunity = baseDeal({
+    name: "Rosalind Park — The Living Example",
+    contact_id: rosalind.id,
+    offer_id: LIVING_EXAMPLE_OFFER_ID,
+    offer_name_snapshot: "The Living Example",
+    offer_price_snapshot: 4000,
+    stage: "application_received",
+    amount: 4000,
+    source: "instagram",
+    entry_path: "instagram_conversation",
+    description:
+      "Acceptance-test fixture: 1:1 applicant, so Applications separates 1:1 from Growing Yourself Up (§5/§14).",
+  });
+  db.deals.push(rosalindOpportunity);
+
+  db.applications.push({
+    id: nextApplicationId(),
+    opportunity_id: rosalindOpportunity.id,
+    status: "pending",
+    submitted_at: now,
+    reviewed_at: null,
+    raw_answers: {
+      why_this_program: "Ready for consistent 1:1 support.",
+      availability: "Weekday mornings",
+    },
+    summary: null,
     created_at: now,
     updated_at: now,
   });

@@ -1,15 +1,19 @@
 import { useEffect } from "react";
 import { useTranslate } from "ra-core";
-import { Link, useLocation, useParams } from "react-router";
+import { useLocation, useParams } from "react-router";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 
+import { PageHeader, PersonCard, Section } from "../misc/ProgramLayout";
 import { enrollmentStatusLabels } from "../enrollments/enrollmentConstants";
 import { useIndividualProgramData } from "./useIndividualProgramData";
 
 // The Living Example (or any future 1:1 Offer's) program page — §8-9 of the
 // Programs + Opportunity UX slice. A real user-facing page over the
-// existing Offer + Enrollment data, not a new "Program" table.
+// existing Offer + Enrollment data, not a new "Program" table. Its visual
+// language (PageHeader/Section/PersonCard from misc/ProgramLayout.tsx) is
+// the reference the Runtime + Visual Consistency slice carries to the GYU
+// Cohort page and beyond.
 export const IndividualProgramPage = () => {
   const { offerId } = useParams();
   const location = useLocation();
@@ -43,30 +47,31 @@ export const IndividualProgramPage = () => {
 
   return (
     <div className="flex flex-col gap-8 mt-1 p-1 max-w-3xl">
-      <div>
-        <h1 className="text-2xl font-semibold">{offer.name}</h1>
-        <p className="text-lg text-muted-foreground">
-          {capacity?.active}
-          {capacity?.max != null && <span> / {capacity.max}</span>}{" "}
-          {translate("crm.dashboard.capacity_active", { _: "active" })}
-          {capacity?.openings != null && (
-            <span>
-              {" · "}
-              {translate("crm.dashboard.capacity_openings", {
-                _: "%{count} openings",
-                count: capacity.openings,
-              })}
-            </span>
-          )}
-        </p>
-      </div>
+      <PageHeader
+        title={offer.name}
+        summary={
+          <>
+            {capacity?.active}
+            {capacity?.max != null && <span> / {capacity.max}</span>}{" "}
+            {translate("crm.dashboard.capacity_active", { _: "active" })}
+            {capacity?.openings != null && (
+              <span>
+                {" · "}
+                {translate("crm.dashboard.capacity_openings", {
+                  _: "%{count} openings",
+                  count: capacity.openings,
+                })}
+              </span>
+            )}
+          </>
+        }
+      />
 
-      <div className="flex flex-col gap-3">
-        <h2 className="text-xl font-semibold">
-          {translate("crm.programs.current_clients", {
-            _: "Current Clients",
-          })}
-        </h2>
+      <Section
+        title={translate("crm.programs.current_clients", {
+          _: "Current Clients",
+        })}
+      >
         {currentClients.length === 0 ? (
           <p className="text-sm text-muted-foreground">
             {translate("crm.programs.no_current_clients", {
@@ -76,30 +81,27 @@ export const IndividualProgramPage = () => {
         ) : (
           <div className="flex flex-col gap-2">
             {currentClients.map((client) => (
-              <Card key={client.enrollmentId}>
-                <CardContent className="flex items-center justify-between py-3">
-                  <Link
-                    to={`/contacts/${client.contactId}/show`}
-                    className="text-sm font-medium hover:underline"
-                  >
-                    {client.name}
-                  </Link>
+              <PersonCard
+                key={client.enrollmentId}
+                contactId={client.contactId}
+                name={client.name}
+                trailing={
                   <Badge variant="outline">
                     {enrollmentStatusLabels[client.status]}
                   </Badge>
-                </CardContent>
-              </Card>
+                }
+              />
             ))}
           </div>
         )}
-      </div>
+      </Section>
 
-      <div id="upcoming-openings" className="flex flex-col gap-3 scroll-mt-4">
-        <h2 className="text-xl font-semibold">
-          {translate("crm.programs.upcoming_openings", {
-            _: "Upcoming Openings",
-          })}
-        </h2>
+      <Section
+        id="upcoming-openings"
+        title={translate("crm.programs.upcoming_openings", {
+          _: "Upcoming Openings",
+        })}
+      >
         {upcomingOpenings.length === 0 ? (
           <p className="text-sm text-muted-foreground">
             {translate("crm.programs.no_upcoming_openings", {
@@ -135,7 +137,7 @@ export const IndividualProgramPage = () => {
             ))}
           </div>
         )}
-      </div>
+      </Section>
     </div>
   );
 };

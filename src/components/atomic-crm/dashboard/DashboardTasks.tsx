@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
 import { useGetIdentity, useGetList, useTranslate } from "ra-core";
+import { Card, CardContent } from "@/components/ui/card";
 
 import { Task } from "../tasks/Task";
 import {
@@ -87,44 +88,46 @@ const TaskBucket = ({
   const remaining = tasks.length - visibleTasks.length;
 
   return (
-    <div className="flex flex-col gap-2 min-w-0">
-      <div className="flex items-center gap-2">
-        <p
-          className={`text-xs uppercase tracking-wider font-medium ${
-            emphasize && tasks.length > 0
-              ? "text-destructive"
-              : "text-muted-foreground"
-          }`}
-        >
-          {title}
-        </p>
-        <span className="text-xs text-muted-foreground">{tasks.length}</span>
-      </div>
-      {tasks.length === 0 ? (
-        <p className="text-sm text-muted-foreground">
-          {translate("crm.dashboard.tasks_bucket_empty", {
-            _: "Nothing here.",
-          })}
-        </p>
-      ) : (
-        <div className="flex flex-col gap-3">
-          {visibleTasks.map((task) => (
-            <Task task={task} showContact key={task.id} />
-          ))}
-          {remaining > 0 && (
-            <button
-              type="button"
-              onClick={() => setExpanded(true)}
-              className="text-sm text-muted-foreground underline hover:no-underline text-left"
-            >
-              {translate("crm.dashboard.tasks_load_more", {
-                _: "%{count} more",
-                count: remaining,
-              })}
-            </button>
-          )}
+    <Card className="min-w-0">
+      <CardContent className="flex flex-col gap-2">
+        <div className="flex items-center gap-2">
+          <p
+            className={`text-xs uppercase tracking-wider font-medium ${
+              emphasize && tasks.length > 0
+                ? "text-destructive"
+                : "text-muted-foreground"
+            }`}
+          >
+            {title}
+          </p>
+          <span className="text-xs text-muted-foreground">{tasks.length}</span>
         </div>
-      )}
-    </div>
+        {tasks.length === 0 ? (
+          <p className="text-sm text-muted-foreground">
+            {translate("crm.dashboard.tasks_bucket_empty", {
+              _: "Nothing here.",
+            })}
+          </p>
+        ) : (
+          <div className="flex flex-col gap-3">
+            {visibleTasks.map((task) => (
+              <Task task={task} showContact key={task.id} />
+            ))}
+            {remaining > 0 && (
+              <button
+                type="button"
+                onClick={() => setExpanded(true)}
+                className="text-sm text-muted-foreground underline hover:no-underline text-left"
+              >
+                {translate("crm.dashboard.tasks_load_more", {
+                  _: "%{count} more",
+                  count: remaining,
+                })}
+              </button>
+            )}
+          </div>
+        )}
+      </CardContent>
+    </Card>
   );
 };

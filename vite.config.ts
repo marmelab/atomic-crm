@@ -69,4 +69,14 @@ export default defineConfig({
       "@": path.resolve(__dirname, "./src"),
     },
   },
+  optimizeDeps: {
+    // @hello-pangea/dnd (the Opportunities Kanban board) is only ever
+    // reached through deals/index.ts's React.lazy(() => import("./DealList")),
+    // so Vite's dependency crawler never discovers it at server start — only
+    // on first navigation to /deals, which forces an on-demand re-optimize
+    // and hands the in-flight lazy chunk a second, mismatched React module
+    // graph ("Invalid hook call" / "Failed to fetch dynamically imported
+    // module"). Listing it here makes Vite pre-bundle it eagerly instead.
+    include: ["@hello-pangea/dnd"],
+  },
 });
