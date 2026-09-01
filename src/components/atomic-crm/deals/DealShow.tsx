@@ -31,8 +31,6 @@ import {
   opportunityEntryPaths,
   opportunityOutcomes,
   opportunitySources,
-  ownerDecisions,
-  prospectDecisions,
 } from "./opportunityConstants";
 
 export const DealShow = ({ open, id }: { open: boolean; id?: string }) => {
@@ -182,6 +180,16 @@ const DealShowContent = () => {
             )}
           </div>
 
+          {/* Human-acceptance repair pass, §Repair 1: Sales Call is now the
+              most prominent operational content on this page — what
+              happened on the call matters substantially more than the
+              metadata below it (Source, Entry path). Placed right after
+              the concise summary above, before that lower-priority
+              metadata and well before Description/Notes, so its length
+              (Judy Holloway's fixture Notes run very long) can never bury
+              the action. */}
+          <DealSalesCallSection />
+
           <div className="flex flex-wrap gap-8 m-4">
             {record.source && (
               <div className="flex flex-col mr-10">
@@ -205,52 +213,6 @@ const DealShowContent = () => {
               </div>
             )}
 
-            {record.owner_decision && (
-              <div className="flex flex-col mr-10">
-                <span className="text-xs text-muted-foreground tracking-wide">
-                  {translate("resources.deals.fields.owner_decision")}
-                </span>
-                <span className="text-sm">
-                  {findLabel(ownerDecisions, record.owner_decision)}
-                </span>
-              </div>
-            )}
-
-            {record.owner_decision === "would_work_with" &&
-              record.prospect_decision && (
-                <div className="flex flex-col mr-10">
-                  <span className="text-xs text-muted-foreground tracking-wide">
-                    {translate("resources.deals.fields.prospect_decision")}
-                  </span>
-                  <span className="text-sm">
-                    {findLabel(prospectDecisions, record.prospect_decision)}
-                  </span>
-                </div>
-              )}
-
-            {record.prospect_decision === "thinking" &&
-              record.follow_up_date && (
-                <div className="flex flex-col mr-10">
-                  <span className="text-xs text-muted-foreground tracking-wide">
-                    {translate("resources.deals.fields.follow_up_date")}
-                  </span>
-                  <span className="text-sm">
-                    {formatISODateString(record.follow_up_date)}
-                  </span>
-                </div>
-              )}
-
-            {record.sales_call_at && (
-              <div className="flex flex-col mr-10">
-                <span className="text-xs text-muted-foreground tracking-wide">
-                  {translate("resources.deals.fields.sales_call_at")}
-                </span>
-                <span className="text-sm">
-                  {formatISODateString(record.sales_call_at.split("T")[0])}
-                </span>
-              </div>
-            )}
-
             {record.selected_payment_total != null && (
               <div className="flex flex-col mr-10">
                 <span className="text-xs text-muted-foreground tracking-wide">
@@ -268,7 +230,6 @@ const DealShowContent = () => {
           </div>
 
           <DealApplicationAndEnrollment />
-          <DealSalesCallSection />
 
           {record.description && (
             <div className="m-4 whitespace-pre-line">

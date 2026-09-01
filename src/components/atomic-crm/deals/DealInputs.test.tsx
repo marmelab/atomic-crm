@@ -1,0 +1,90 @@
+import { describe, expect, it } from "vitest";
+import { render } from "vitest-browser-react";
+
+import { createDataProvider } from "@/components/atomic-crm/providers/fakerest";
+import { buildContact, createCrmDb, StoryWrapper } from "@/test/StoryWrapper";
+import type { Deal, Offer } from "@/components/atomic-crm/types";
+
+// Human-acceptance repair pass, §Repair 3: generic Edit must never expose
+// owner_decision/prospect_decision/follow_up_date/sales_call_at as raw
+// editable fields again — that's exactly how a real accepted call ended up
+// recorded as "Would Work With / Yes" while the Opportunity silently
+// stayed at Call Booked (generic Edit writes raw fields with no
+// synchronization). Source/Entry path stay — they're genuine metadata,
+// not business events requiring Complete Sales Call's synchronization.
+const emptyRelatedCollections = {
+  offer_payment_options: [],
+  cohorts: [],
+  applications: [],
+  enrollments: [],
+};
+
+const livingExample: Offer = {
+  id: 1,
+  name: "The Living Example",
+  type: "individual",
+  duration: "4 months",
+  current_price: 4000,
+  max_active_clients: 12,
+  is_active: true,
+  created_at: "2025-01-01T00:00:00.000Z",
+  updated_at: "2025-01-01T00:00:00.000Z",
+};
+
+describe("DealInputs (generic Edit)", () => {
+  it("does not expose owner_decision, prospect_decision, follow_up_date, or sales_call_at as editable fields", async () => {
+    const contact = buildContact({ id: 1 });
+    const deal: Deal = {
+      id: 1,
+      name: "Ada Lovelace",
+      contact_id: 1,
+      offer_id: 1,
+      offer_name_snapshot: "The Living Example",
+      stage: "call_booked",
+      owner_decision: null,
+      prospect_decision: null,
+      amount: 4000,
+      created_at: "2026-01-01T00:00:00.000Z",
+      updated_at: "2026-01-01T00:00:00.000Z",
+      sales_id: 0,
+      index: 0,
+    };
+    const dataProvider = createDataProvider({
+      db: createCrmDb({
+        contacts: [contact],
+        offers: [livingExample],
+        deals: [deal],
+        ...emptyRelatedCollections,
+      }),
+      silent: true,
+    });
+
+    const screen = await render(
+      <StoryWrapper initialEntries={["/deals/1"]} dataProvider={dataProvider}>
+        <></>
+      </StoryWrapper>,
+    );
+
+    // Still present — genuine metadata, not a business event.
+    await expect
+      .element(screen.getByLabelText(/^source$/i))
+      .toBeInTheDocument();
+    await expect
+      .element(screen.getByLabelText(/entry path/i))
+      .toBeInTheDocument();
+
+    // Gone — only Complete Sales Call may write these now.
+    await expect
+      .element(screen.getByLabelText(/owner decision/i))
+      .not.toBeInTheDocument();
+    await expect
+      .element(screen.getByLabelText(/prospect decision/i))
+      .not.toBeInTheDocument();
+    await expect
+      .element(screen.getByLabelText(/follow-up date/i))
+      .not.toBeInTheDocument();
+    await expect
+      .element(screen.getByLabelText(/^sales call$/i))
+      .not.toBeInTheDocument();
+  });
+});

@@ -1,4 +1,3 @@
-import { addDays } from "date-fns/addDays";
 import { required, useGetList, useGetOne, useTranslate } from "ra-core";
 import { useEffect, useRef } from "react";
 import { useFormContext, useWatch } from "react-hook-form";
@@ -6,7 +5,6 @@ import { ReferenceInput } from "@/components/admin/reference-input";
 import { AutocompleteInput } from "@/components/admin/autocomplete-input";
 import { TextInput } from "@/components/admin/text-input";
 import { NumberInput } from "@/components/admin/number-input";
-import { DateInput } from "@/components/admin/date-input";
 import { SelectInput } from "@/components/admin/select-input";
 import { Separator } from "@/components/ui/separator";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -19,8 +17,6 @@ import {
   opportunityEntryPaths,
   opportunityOutcomes,
   opportunitySources,
-  ownerDecisions,
-  prospectDecisions,
 } from "./opportunityConstants";
 
 export const DealInputs = () => {
@@ -189,39 +185,19 @@ const DealMiscInputs = () => {
   );
 };
 
+// Human-acceptance repair pass (Sales Call discoverability, §3): owner_
+// decision, prospect_decision, follow_up_date, and sales_call_at used to
+// live here as raw editable fields — which is exactly how a real accepted
+// call ended up recorded as "Would Work With / Yes" while the Opportunity
+// silently stayed at Call Booked (generic Edit writes the raw fields with
+// no synchronization). These are business EVENTS now, not metadata: they
+// can only be safely mutated through the Complete Sales Call action
+// (sales-calls/CompleteSalesCallDialog.tsx), which keeps sales_calls,
+// Sales Call Events, stage/outcome, Tasks, and Contact DNE state in sync
+// the way a raw field edit never can. The underlying columns are
+// untouched — only this form's field list changed.
 const DealSalesProcessInputs = () => {
   const translate = useTranslate();
-  const { control, setValue, getValues } = useFormContext();
-  const ownerDecision = useWatch({ control, name: "owner_decision" });
-  const prospectDecision = useWatch({ control, name: "prospect_decision" });
-
-  // Prospect decision only makes sense once the owner would work with this
-  // person; switching away from that clears it so a stale decision doesn't
-  // linger on an opportunity that isn't headed toward a sale anymore.
-  useEffect(() => {
-    if (ownerDecision !== "would_work_with" && getValues("prospect_decision")) {
-      setValue("prospect_decision", null, { shouldDirty: true });
-      setValue("follow_up_date", null, { shouldDirty: true });
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [ownerDecision]);
-
-  // Thinking always needs a follow-up date; default it once, on the way in.
-  useEffect(() => {
-    if (prospectDecision === "thinking" && !getValues("follow_up_date")) {
-      setValue(
-        "follow_up_date",
-        addDays(new Date(), 4).toISOString().split("T")[0],
-        {
-          shouldDirty: true,
-        },
-      );
-    }
-    if (prospectDecision !== "thinking" && getValues("follow_up_date")) {
-      setValue("follow_up_date", null, { shouldDirty: true });
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [prospectDecision]);
 
   return (
     <div className="flex flex-col gap-4 flex-1">
@@ -246,38 +222,6 @@ const DealSalesProcessInputs = () => {
         helperText={false}
         emptyText="resources.deals.entry_path_none"
       />
-      <DateInput
-        source="sales_call_at"
-        label="resources.deals.fields.sales_call_at"
-        helperText={false}
-      />
-      <SelectInput
-        source="owner_decision"
-        label="resources.deals.fields.owner_decision"
-        choices={ownerDecisions}
-        optionText="label"
-        optionValue="value"
-        helperText={false}
-        emptyText="resources.deals.owner_decision_none"
-      />
-      {ownerDecision === "would_work_with" && (
-        <SelectInput
-          source="prospect_decision"
-          label="resources.deals.fields.prospect_decision"
-          choices={prospectDecisions}
-          optionText="label"
-          optionValue="value"
-          helperText={false}
-          emptyText="resources.deals.prospect_decision_none"
-        />
-      )}
-      {prospectDecision === "thinking" && (
-        <DateInput
-          source="follow_up_date"
-          label="resources.deals.fields.follow_up_date"
-          helperText={false}
-        />
-      )}
     </div>
   );
 };

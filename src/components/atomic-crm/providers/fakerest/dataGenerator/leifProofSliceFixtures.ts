@@ -1,4 +1,11 @@
-import type { Application, Contact, Deal, Enrollment } from "../../../types";
+import type {
+  Application,
+  Contact,
+  Deal,
+  Enrollment,
+  SalesCall,
+  SalesCallEvent,
+} from "../../../types";
 import type { Db } from "./types";
 import { SEPTEMBER_GYU_COHORT_ID } from "./cohorts";
 import { GYU_OFFER_ID, LIVING_EXAMPLE_OFFER_ID } from "./offers";
@@ -8,7 +15,11 @@ import { GYU_OFFER_ID, LIVING_EXAMPLE_OFFER_ID } from "./offers";
  * and Offer/Cohort/Application/Enrollment domain model (fake/demo data
  * only — not real client data). Appended after the random generators so
  * their ids are stable and easy to find:
- * - Judy: an active Living Example opportunity, visible on the Kanban board.
+ * - Judy: an active Living Example opportunity, visible on the Kanban board,
+ *   at Call Booked with a real sales_calls record behind it (Human-
+ *   acceptance repair pass, §Repair 2) — proves Complete Sales Call is
+ *   immediately available rather than falling into the legacy/
+ *   inconsistent-record recovery state.
  * - Marcus: a Living Example opportunity already Won, with an active
  *   Enrollment, to show it leaving the active board while staying visible
  *   on his Contact page.
@@ -55,6 +66,8 @@ export const addLeifProofSliceFixtures = (db: Db) => {
   const nextDealId = () => db.deals.length;
   const nextApplicationId = () => db.applications.length;
   const nextEnrollmentId = () => db.enrollments.length;
+  const nextSalesCallId = () => db.sales_calls.length;
+  const nextSalesCallEventId = () => db.sales_call_events.length;
 
   const baseContact = (
     overrides: Partial<Contact> & Pick<Contact, "first_name" | "last_name">,
@@ -103,6 +116,14 @@ export const addLeifProofSliceFixtures = (db: Db) => {
   });
   db.contacts.push(judy);
 
+  // A Call Booked Opportunity needs a real sales_calls record behind it —
+  // Judy is the fixture proving that (Human-acceptance repair pass,
+  // §Repair 2: a Call Booked Opportunity with no Sales Call record is
+  // exactly the "legacy/inconsistent" state DealSalesCallSection.tsx
+  // must recover from gracefully, never reach in fixture data).
+  const judySalesCallScheduledAt = new Date(now);
+  judySalesCallScheduledAt.setDate(judySalesCallScheduledAt.getDate() + 3);
+
   const judyOpportunity = baseDeal({
     name: "Judy Holloway — The Living Example",
     contact_id: judy.id,
@@ -110,11 +131,36 @@ export const addLeifProofSliceFixtures = (db: Db) => {
     offer_name_snapshot: "The Living Example",
     offer_price_snapshot: 4000,
     stage: "call_booked",
+    sales_call_at: judySalesCallScheduledAt.toISOString(),
     source: "instagram",
     entry_path: "instagram_conversation",
     description: "Acceptance-test fixture: active opportunity for Judy.",
   });
   db.deals.push(judyOpportunity);
+
+  const judySalesCall: SalesCall = {
+    id: nextSalesCallId(),
+    opportunity_id: judyOpportunity.id,
+    contact_id: judy.id,
+    status: "booked",
+    original_scheduled_at: judySalesCallScheduledAt.toISOString(),
+    scheduled_at: judySalesCallScheduledAt.toISOString(),
+    reschedule_count: 0,
+    source: "manual",
+    created_at: now,
+    updated_at: now,
+  };
+  db.sales_calls.push(judySalesCall);
+
+  const judySalesCallEvent: SalesCallEvent = {
+    id: nextSalesCallEventId(),
+    sales_call_id: judySalesCall.id,
+    kind: "booked",
+    occurred_at: now,
+    new_scheduled_at: judySalesCallScheduledAt.toISOString(),
+    created_at: now,
+  };
+  db.sales_call_events.push(judySalesCallEvent);
 
   // --- Marcus: Won Living Example opportunity, with an Enrollment --------
   const marcus = baseContact({

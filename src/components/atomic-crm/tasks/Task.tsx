@@ -2,6 +2,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { MoreVertical } from "lucide-react";
 import {
   useDeleteWithUndoController,
+  useGetOne,
   useGetRecordRepresentation,
   useNotify,
   useTranslate,
@@ -42,9 +43,15 @@ const typeLabel = (
 export const Task = ({
   task,
   showContact,
+  onCompleted,
 }: {
   task: TData;
   showContact?: boolean;
+  // Fired the instant a not-yet-done Task is checked (never on reopen) —
+  // Dashboard task completion UX repair pass: lets the Dashboard keep the
+  // row visibly checked in place for a moment before it moves to
+  // Completed Today, rather than this component deciding that on its own.
+  onCompleted?: (task: TData) => void;
 }) => {
   const isMobile = useIsMobile();
   const { taskTypes } = useConfigurationContext();
@@ -52,6 +59,15 @@ export const Task = ({
   const translate = useTranslate();
   const queryClient = useQueryClient();
   const getContactRepresentation = useGetRecordRepresentation("contacts");
+  // Already fetched by the ReferenceField below in the common case — this
+  // read is deduped against that same cache entry, not a second request.
+  // Needed synchronously here (not just declaratively in JSX) for the
+  // undo toast's task title.
+  const { data: contact } = useGetOne<Contact>(
+    "contacts",
+    { id: task.contact_id },
+    { enabled: task.contact_id != null },
+  );
 
   const [openEdit, setOpenEdit] = useState(false);
 
@@ -61,6 +77,10 @@ export const Task = ({
 
   const [update, { isPending: isUpdatePending, isSuccess, variables }] =
     useUpdate();
+  // Dashboard task completion UX repair pass: a separate hook instance,
+  // undoable, only for the checkbox — completing/reopening from postpone
+  // or other raw edits stays on the plain `update` above unchanged.
+  const [updateDone] = useUpdate();
   const { handleDelete } = useDeleteWithUndoController({
     record: task,
     redirect: false,
@@ -77,14 +97,41 @@ export const Task = ({
     setOpenEdit(true);
   };
 
+  const taskTitle = (() => {
+    const type = typeLabel(task, taskTypes);
+    const name = contact ? getContactRepresentation(contact) : null;
+    if (type && name) return `${type}: ${name}`;
+    return type ?? name ?? undefined;
+  })();
+
   const handleCheck = () => () => {
-    update("tasks", {
-      id: task.id,
-      data: {
-        done_date: task.done_date ? null : new Date().toISOString(),
+    const completing = !task.done_date;
+    updateDone(
+      "tasks",
+      {
+        id: task.id,
+        data: {
+          done_date: completing ? new Date().toISOString() : null,
+          status: completing ? "completed" : "pending",
+        },
+        previousData: task,
       },
-      previousData: task,
-    });
+      {
+        mutationMode: "undoable",
+        onSuccess: () => {
+          if (!completing) return;
+          onCompleted?.(task);
+          notify("resources.tasks.completed_undoable", {
+            type: "info",
+            undoable: true,
+            messageArgs: {
+              _: "Task completed — %{title}",
+              title: taskTitle ?? "",
+            },
+          });
+        },
+      },
+    );
   };
 
   useEffect(() => {
@@ -109,11 +156,24 @@ export const Task = ({
           className="flex items-start gap-2 flex-1"
           onClick={isMobile ? handleCheck() : undefined}
         >
+          {/* No `disabled` here on purpose (Dashboard task completion UX
+              repair pass, §E): disabling during the mutation's pending
+              window showed a prohibited/not-allowed cursor for as long as
+              FakeRest's simulated latency lasted. Undoable mode below
+              already updates the cache instantly, so there's nothing that
+              needs guarding against a mid-flight double click.
+              stopPropagation is load-bearing on mobile (found while adding
+              onCompleted, §Repair 6): the row's own onClick above already
+              toggles the same Task on mobile for a larger tap target, so
+              without this a tap directly on the checkbox bubbled into that
+              handler too — firing handleCheck() twice for one tap (a
+              double-undo-toast in practice). Desktop is unaffected since
+              the row has no onClick to bubble into. */}
           <Checkbox
             id={labelId}
             checked={!!task.done_date}
             onCheckedChange={handleCheck()}
-            disabled={isUpdatePending}
+            onClick={(event) => event.stopPropagation()}
             className="mt-1"
           />
           <div className={`flex-grow ${task.done_date ? "line-through" : ""}`}>

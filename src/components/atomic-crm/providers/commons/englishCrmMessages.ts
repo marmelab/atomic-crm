@@ -525,6 +525,7 @@ export const englishCrmMessages = {
       },
       added: "Task added",
       deleted: "Task deleted successfully",
+      completed_undoable: "Task completed — %{title}",
       dialog: {
         create: "Create task",
         create_for: "Create task for %{name}",
@@ -640,6 +641,7 @@ export const englishCrmMessages = {
       tasks_next_7_days: "Next 7 Days",
       tasks_bucket_empty: "Nothing here.",
       tasks_load_more: "%{count} more",
+      completed_today: "Completed Today",
       business_at_a_glance_title: "Business at a Glance",
       business_at_a_glance_orientation:
         "A quick look at client capacity and current programs.",

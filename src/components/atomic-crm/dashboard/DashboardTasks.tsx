@@ -1,5 +1,6 @@
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { useGetIdentity, useGetList, useTranslate } from "ra-core";
+import type { Identifier } from "ra-core";
 import { Card, CardContent } from "@/components/ui/card";
 
 import { Task } from "../tasks/Task";
@@ -29,14 +30,38 @@ export const DashboardTasks = () => {
     { enabled: !!identity },
   );
 
+  // Dashboard task completion UX repair pass, §A: a just-completed Task
+  // stays visible (checked, muted) for a moment instead of vanishing the
+  // instant its optimistic done_date lands — reusing tasksPredicate.ts's
+  // own "recently done" idea (isRecentlyDone, already relied on by the
+  // Contact page's task list) would keep it around for 5 minutes, far
+  // longer than the brief acknowledgement this needs, so this tracks its
+  // own short-lived id set instead.
+  const [recentlyCompletedIds, setRecentlyCompletedIds] = useState<
+    Set<Identifier>
+  >(new Set());
+  const handleTaskCompleted = useCallback((task: TaskType) => {
+    setRecentlyCompletedIds((prev) => new Set(prev).add(task.id));
+    setTimeout(() => {
+      setRecentlyCompletedIds((prev) => {
+        if (!prev.has(task.id)) return prev;
+        const next = new Set(prev);
+        next.delete(task.id);
+        return next;
+      });
+    }, 1500);
+  }, []);
+
   const { overdue, today, next7Days } = useMemo(() => {
-    const ongoing = (tasks ?? []).filter((task) => !isDone(task));
+    const ongoing = (tasks ?? []).filter(
+      (task) => !isDone(task) || recentlyCompletedIds.has(task.id),
+    );
     return {
       overdue: ongoing.filter((task) => isOverdue(task.due_date)),
       today: ongoing.filter((task) => isDueToday(task.due_date)),
       next7Days: ongoing.filter((task) => isDueNext7Days(task.due_date)),
     };
-  }, [tasks]);
+  }, [tasks, recentlyCompletedIds]);
 
   if (isPending) return null;
 
@@ -54,17 +79,20 @@ export const DashboardTasks = () => {
         <TaskBucket
           title={translate("crm.dashboard.tasks_overdue", { _: "Overdue" })}
           tasks={overdue}
+          onTaskCompleted={handleTaskCompleted}
           emphasize
         />
         <TaskBucket
           title={translate("crm.dashboard.tasks_today", { _: "Today" })}
           tasks={today}
+          onTaskCompleted={handleTaskCompleted}
         />
         <TaskBucket
           title={translate("crm.dashboard.tasks_next_7_days", {
             _: "Next 7 Days",
           })}
           tasks={next7Days}
+          onTaskCompleted={handleTaskCompleted}
         />
       </div>
     </div>
@@ -76,10 +104,12 @@ const VISIBLE_COUNT = 5;
 const TaskBucket = ({
   title,
   tasks,
+  onTaskCompleted,
   emphasize,
 }: {
   title: string;
   tasks: TaskType[];
+  onTaskCompleted: (task: TaskType) => void;
   emphasize?: boolean;
 }) => {
   const translate = useTranslate();
@@ -111,7 +141,12 @@ const TaskBucket = ({
         ) : (
           <div className="flex flex-col gap-3">
             {visibleTasks.map((task) => (
-              <Task task={task} showContact key={task.id} />
+              <Task
+                task={task}
+                showContact
+                onCompleted={onTaskCompleted}
+                key={task.id}
+              />
             ))}
             {remaining > 0 && (
               <button

@@ -12,6 +12,7 @@ import {
 } from "./leifProofSliceFixtures";
 import { generateOffers } from "./offers";
 import { generateSales } from "./sales";
+import { backfillSalesCallsForCallLifecycleDeals } from "./salesCalls";
 import { generateTags } from "./tags";
 import { generateTasks } from "./tasks";
 import type { Db } from "./types";
@@ -37,6 +38,7 @@ export default (): Db => {
   const { pendingReviewApplicants } = addLeifProofSliceFixtures(db);
   addWaitlistFixtures(db);
   backfillEnrollmentsForWonDeals(db);
+  backfillSalesCallsForCallLifecycleDeals(db);
   db.deal_notes = generateDealNotes(db);
   db.tasks = generateTasks(db);
   addReviewApplicationTaskFixtures(db, pendingReviewApplicants);

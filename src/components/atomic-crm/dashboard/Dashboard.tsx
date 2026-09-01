@@ -4,6 +4,7 @@ import type { Contact, ContactNote } from "../types";
 import { ArtOracleCard } from "./artOracle/ArtOracleCard";
 import { BusinessAtAGlance } from "./BusinessAtAGlance";
 import { ComingUp } from "./ComingUp";
+import { CompletedTodayTasks } from "./CompletedTodayTasks";
 import { DashboardActivityLog } from "./DashboardActivityLog";
 import { DashboardStepper } from "./DashboardStepper";
 import { DashboardTasks } from "./DashboardTasks";
@@ -57,6 +58,8 @@ export const Dashboard = () => {
       </div>
 
       <DashboardTasks />
+
+      <CompletedTodayTasks />
 
       <ComingUp />
 

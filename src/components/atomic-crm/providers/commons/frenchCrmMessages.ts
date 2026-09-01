@@ -535,6 +535,7 @@ export const frenchCrmMessages = {
       },
       added: "Tâche ajoutée",
       deleted: "Tâche supprimée avec succès",
+      completed_undoable: "Tâche terminée — %{title}",
       dialog: {
         create: "Créer une tâche",
         create_for: "Créer une tâche pour %{name}",
@@ -652,6 +653,7 @@ export const frenchCrmMessages = {
       tasks_next_7_days: "7 prochains jours",
       tasks_bucket_empty: "Rien ici.",
       tasks_load_more: "%{count} de plus",
+      completed_today: "Terminées aujourd'hui",
       business_at_a_glance_title: "Aperçu de l'activité",
       business_at_a_glance_orientation:
         "Un aperçu rapide de la capacité client et des programmes en cours.",

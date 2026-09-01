@@ -278,6 +278,10 @@
           "type": "registry:component"
         },
         {
+          "path": "src/components/atomic-crm/sales-calls/LogSalesCallDialog.tsx",
+          "type": "registry:component"
+        },
+        {
           "path": "src/components/atomic-crm/sales-calls/DealSalesCallSection.tsx",
           "type": "registry:component"
         },
@@ -443,6 +447,10 @@
         },
         {
           "path": "src/components/atomic-crm/providers/fakerest/dataGenerator/tags.ts",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/providers/fakerest/dataGenerator/salesCalls.ts",
           "type": "registry:component"
         },
         {
@@ -926,6 +934,10 @@
           "type": "registry:component"
         },
         {
+          "path": "src/components/atomic-crm/dashboard/completedTodaySelection.ts",
+          "type": "registry:component"
+        },
+        {
           "path": "src/components/atomic-crm/dashboard/comingUpProjection.ts",
           "type": "registry:component"
         },
@@ -987,6 +999,10 @@
         },
         {
           "path": "src/components/atomic-crm/dashboard/Dashboard.tsx",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/dashboard/CompletedTodayTasks.tsx",
           "type": "registry:component"
         },
         {
