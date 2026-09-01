@@ -33,6 +33,10 @@ import { ChangelogPage } from "../misc/ChangelogPage";
 import { GroupProgramPage } from "../programs/GroupProgramPage";
 import { IndividualProgramPage } from "../programs/IndividualProgramPage";
 import { ProgramsPage } from "../programs/ProgramsPage";
+import { LivingExampleApplicationPage } from "../public-application/LivingExampleApplicationPage";
+import { GrowingYourselfUpApplicationPage } from "../public-application/GrowingYourselfUpApplicationPage";
+import { createDataProviderPublicApplicationDataSource } from "../public-application/publicApplicationDataSource";
+import type { PublicApplicationDataSource } from "../public-application/publicApplicationDataSource";
 import {
   getAuthProvider as defaultAuthProviderBuilder,
   getDataProvider as defaultDataProviderBuilder,
@@ -77,6 +81,17 @@ export type CRMProps = {
   store?: CoreAdminProps["store"];
   dashboard?: DashboardComponent;
   layout?: LayoutComponent;
+  // Native Application Intake acceptance-repair pass: the public /apply
+  // routes' read+write boundary (§15 — RLS blocks an anon client from
+  // reading Offers/Cohorts or writing Contacts/Deals/Applications/Tasks
+  // directly, so production must go through the public_application Edge
+  // Function while FakeRest dev/demo can call the dataProvider directly).
+  // Each entry (src/App.tsx, demo/App.tsx) passes the implementation that
+  // matches its own dataProvider; defaults to a dataProvider-backed one
+  // built from CRM's own `dataProvider` prop so <CRM/> never crashes if
+  // an integration forgets to pass one (fails loud — RLS rejects the
+  // call — rather than silently misbehaving).
+  publicApplicationDataSource?: PublicApplicationDataSource;
 } & Partial<ConfigurationContextValue>;
 
 /**
@@ -137,8 +152,16 @@ export const CRM = ({
   i18nProvider = defaulti18nProvider,
   store = defaultStore,
   disableTelemetry,
+  publicApplicationDataSource,
   ...rest
 }: CRMProps) => {
+  const resolvedPublicApplicationDataSource = useMemo(
+    () =>
+      publicApplicationDataSource ??
+      createDataProviderPublicApplicationDataSource(dataProvider),
+    [publicApplicationDataSource, dataProvider],
+  );
+
   useEffect(() => {
     if (
       disableTelemetry ||
@@ -232,6 +255,7 @@ export const CRM = ({
       loginPage={StartPage}
       requireAuth
       disableTelemetry
+      publicApplicationDataSource={resolvedPublicApplicationDataSource}
       {...rest}
     />
   );
@@ -241,14 +265,34 @@ const DesktopAdmin = (
   props: CoreAdminProps & {
     dashboard?: DashboardComponent;
     layout?: LayoutComponent;
+    publicApplicationDataSource: PublicApplicationDataSource;
   },
 ) => {
+  const { publicApplicationDataSource, ...adminProps } = props;
   return (
     <Admin
-      layout={props.layout ?? Layout}
-      dashboard={props.dashboard ?? Dashboard}
-      {...props}
+      layout={adminProps.layout ?? Layout}
+      dashboard={adminProps.dashboard ?? Dashboard}
+      {...adminProps}
     >
+      {/* Native Application Intake acceptance-repair pass: /apply/* joins
+          this SAME "custom routes with no layout are always rendered,
+          regardless of the auth status" escape hatch Signup/ForgotPassword/
+          etc. already use (ra-core's own CoreAdminRoutes.tsx comment) —
+          the ONLY mechanism in this app that renders a route with no auth
+          gate. Reusing it (rather than a second top-level Router branching
+          on window.location.pathname, the original approach) is what makes
+          a public submission and the CRM's own read of that data share the
+          exact same live dataProvider/HashRouter instance: crossing between
+          "/#/apply/..." and any other "/#/..." path is a same-document hash
+          change, never a full page reload, so FakeRest's in-memory demo
+          store (module-singleton, reseeded fresh on every real page load)
+          survives the crossing. The previous PublicApplicationApp.tsx (its
+          own standalone BrowserRouter, chosen via a pathname check in
+          src/App.tsx / demo/App.tsx before either tree mounted) forced a
+          hard navigation at exactly that crossing and is why a human
+          tester's post-submission Contact/Application/Opportunity/Task
+          never appeared — deleted, not superseded by a second mechanism. */}
       <CustomRoutes noLayout>
         <Route path={SignupPage.path} element={<SignupPage />} />
         <Route
@@ -261,6 +305,22 @@ const DesktopAdmin = (
           element={<ForgotPasswordPage />}
         />
         <Route path={OAuthConsentPage.path} element={<OAuthConsentPage />} />
+        <Route
+          path={LivingExampleApplicationPage.path}
+          element={
+            <LivingExampleApplicationPage
+              dataSource={publicApplicationDataSource}
+            />
+          }
+        />
+        <Route
+          path={GrowingYourselfUpApplicationPage.path}
+          element={
+            <GrowingYourselfUpApplicationPage
+              dataSource={publicApplicationDataSource}
+            />
+          }
+        />
       </CustomRoutes>
 
       <CustomRoutes>
@@ -301,8 +361,10 @@ const MobileAdmin = (
   props: CoreAdminProps & {
     dashboard?: DashboardComponent;
     layout?: LayoutComponent;
+    publicApplicationDataSource: PublicApplicationDataSource;
   },
 ) => {
+  const { publicApplicationDataSource, ...adminProps } = props;
   const queryClient = new QueryClient({
     defaultOptions: {
       queries: {
@@ -325,9 +387,9 @@ const MobileAdmin = (
     >
       <Admin
         queryClient={queryClient}
-        layout={props.layout ?? MobileLayout}
-        dashboard={props.dashboard ?? MobileDashboard}
-        {...props}
+        layout={adminProps.layout ?? MobileLayout}
+        dashboard={adminProps.dashboard ?? MobileDashboard}
+        {...adminProps}
       >
         <CustomRoutes noLayout>
           <Route path={SignupPage.path} element={<SignupPage />} />
@@ -341,6 +403,22 @@ const MobileAdmin = (
             element={<ForgotPasswordPage />}
           />
           <Route path={OAuthConsentPage.path} element={<OAuthConsentPage />} />
+          <Route
+            path={LivingExampleApplicationPage.path}
+            element={
+              <LivingExampleApplicationPage
+                dataSource={publicApplicationDataSource}
+              />
+            }
+          />
+          <Route
+            path={GrowingYourselfUpApplicationPage.path}
+            element={
+              <GrowingYourselfUpApplicationPage
+                dataSource={publicApplicationDataSource}
+              />
+            }
+          />
         </CustomRoutes>
         <CustomRoutes>
           <Route

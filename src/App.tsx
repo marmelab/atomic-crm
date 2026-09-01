@@ -1,5 +1,4 @@
 import { CRM } from "@/components/atomic-crm/root/CRM";
-import { PublicApplicationApp } from "@/components/atomic-crm/public-application/PublicApplicationApp";
 import { supabasePublicApplicationDataSource } from "@/components/atomic-crm/providers/supabase/publicApplicationDataSource";
 
 /**
@@ -33,17 +32,14 @@ import { supabasePublicApplicationDataSource } from "@/components/atomic-crm/pro
  *    />
  * );
  */
-// Native Application Intake slice (§2/§15): /apply/* is a genuinely public,
-// unauthenticated surface, rendered instead of <CRM/> (never alongside —
-// see PublicApplicationApp.tsx's own header for why this keeps <CRM/>'s
-// existing HashRouter behavior completely untouched). A plain pathname
-// check, not a shared top-level Router: this decision has to happen
-// before either tree mounts.
-const App = () =>
-  window.location.pathname.startsWith("/apply") ? (
-    <PublicApplicationApp dataSource={supabasePublicApplicationDataSource} />
-  ) : (
-    <CRM />
-  );
+// Native Application Intake (§2/§15), acceptance-repair pass: /apply/* is
+// registered as an unauthenticated CustomRoutes entry inside <CRM/> itself
+// (see root/CRM.tsx's own header comment) — production must not read/write
+// through the client-side anon dataProvider (RLS is `to authenticated`
+// only everywhere), so this entry explicitly passes the Edge-Function-
+// backed data source.
+const App = () => (
+  <CRM publicApplicationDataSource={supabasePublicApplicationDataSource} />
+);
 
 export default App;
