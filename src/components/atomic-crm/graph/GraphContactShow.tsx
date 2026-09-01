@@ -29,6 +29,16 @@ interface GraphContact {
     to_name: string | null;
   }[];
   deals: { deal_id: string; deal_name: string; role: string }[];
+  deal_graph?: {
+    deal_id: string;
+    deal_name: string;
+    contact_id: string;
+    first_name: string;
+    last_name: string;
+    role: string;
+    company_id?: string | null;
+    company_name?: string | null;
+  }[];
   merged_into_id?: string | null;
 }
 
@@ -114,6 +124,43 @@ function ContactGraph() {
             </li>
           ))}
         </ul>
+      </section>
+
+      <section>
+        <h2 className="font-medium mb-2">Loan triangle</h2>
+        {(record.deal_graph ?? []).length === 0 ? (
+          <p className="text-sm text-muted-foreground">None</p>
+        ) : (
+          <ul>
+            {(record.deal_graph ?? []).map((party) => (
+              <li key={`${party.deal_id}-${party.contact_id}-${party.role}`}>
+                <Link
+                  className="underline"
+                  to={`/contacts/${party.contact_id}/show`}
+                >
+                  {party.first_name} {party.last_name}
+                </Link>{" "}
+                — {party.role}
+                {party.company_id && party.company_name ? (
+                  <>
+                    {" "}
+                    at{" "}
+                    <Link
+                      className="underline"
+                      to={`/companies/${party.company_id}/show`}
+                    >
+                      {party.company_name}
+                    </Link>
+                  </>
+                ) : null}{" "}
+                on{" "}
+                <Link className="underline" to={`/deals/${party.deal_id}/show`}>
+                  {party.deal_name}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        )}
       </section>
 
       <section>

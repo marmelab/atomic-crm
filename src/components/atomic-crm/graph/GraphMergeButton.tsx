@@ -1,13 +1,27 @@
 import { useState } from "react";
-import { useNotify, useRedirect } from "ra-core";
+import { useDataProvider, useGetList, useNotify, useRedirect } from "ra-core";
 
 import { Button } from "@/components/ui/button";
-import { getStubCustomerId } from "../providers/local/principal";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import type { CrmDataProvider } from "../providers/types";
 
 interface GraphMergeButtonProps {
   loserId: string;
   firstName: string;
   lastName: string;
+}
+
+interface MergeCandidate {
+  id: string;
+  first_name: string;
+  last_name: string;
+  primary_type?: string | null;
 }
 
 export function GraphMergeButton({
@@ -19,34 +33,41 @@ export function GraphMergeButton({
   const [busy, setBusy] = useState(false);
   const notify = useNotify();
   const redirect = useRedirect();
-  const apiBase = import.meta.env.VITE_CRM_API_URL ?? "http://127.0.0.1:8787";
+  const dataProvider = useDataProvider<CrmDataProvider>();
+  const { data } = useGetList<MergeCandidate>("contacts", {
+    pagination: { page: 1, perPage: 200 },
+    sort: { field: "last_name", order: "ASC" },
+  });
+  const candidates = (data ?? []).filter((row) => row.id !== loserId);
 
   return (
     <div className="flex flex-wrap items-end gap-2">
       <label className="text-sm">
-        Merge into contact id
-        <input
-          className="mt-1 block w-80 border rounded px-2 py-1 font-mono text-xs"
-          value={winnerId}
-          onChange={(event) => setWinnerId(event.target.value.trim())}
-          placeholder="uuid of the contact to keep"
-        />
+        Merge into
+        <Select value={winnerId} onValueChange={setWinnerId}>
+          <SelectTrigger className="mt-1 w-80" aria-label="Merge into">
+            <SelectValue placeholder="Choose the contact to keep" />
+          </SelectTrigger>
+          <SelectContent>
+            {candidates.map((row) => (
+              <SelectItem key={row.id} value={row.id}>
+                {row.first_name} {row.last_name}
+                {row.primary_type ? ` · ${row.primary_type}` : ""}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </label>
       <Button
         variant="outline"
-        disabled={busy || !winnerId || winnerId === loserId}
+        disabled={busy || !winnerId}
         onClick={async () => {
           try {
             setBusy(true);
-            const res = await fetch(`${apiBase}/contacts/merge`, {
-              method: "POST",
-              headers: {
-                "content-type": "application/json",
-                "x-ardley-customer-id": getStubCustomerId(),
-              },
-              body: JSON.stringify({ loser_id: loserId, winner_id: winnerId }),
-            });
-            if (!res.ok) throw new Error(String(res.status));
+            if (!dataProvider.mergeContacts) {
+              throw new Error("merge is not wired");
+            }
+            await dataProvider.mergeContacts(loserId, winnerId);
             notify("Contacts merged", { type: "success" });
             redirect("show", "contacts", winnerId);
           } catch {

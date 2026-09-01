@@ -7,6 +7,8 @@ interface SavedViewResult {
   id: string;
   label: string;
   href: string;
+  primary_type?: string | null;
+  possible_duplicate?: boolean;
 }
 
 interface SavedView {
@@ -50,6 +52,18 @@ export function GraphHome() {
                   <Link className="underline" to={row.href}>
                     {row.label}
                   </Link>
+                  {row.primary_type ? (
+                    <span className="text-muted-foreground">
+                      {" "}
+                      · {row.primary_type}
+                    </span>
+                  ) : null}
+                  {row.possible_duplicate ? (
+                    <span className="text-muted-foreground">
+                      {" "}
+                      · possible duplicate
+                    </span>
+                  ) : null}
                 </li>
               ))}
             </ul>

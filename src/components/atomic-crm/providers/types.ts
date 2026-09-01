@@ -5,4 +5,5 @@ import type { ConfigurationContextValue } from "../root/ConfigurationContext";
 export type CrmDataProvider = DataProvider & {
   getConfiguration: () => Promise<ConfigurationContextValue>;
   isInitialized: () => Promise<boolean>;
+  mergeContacts?: (loserId: string, winnerId: string) => Promise<unknown>;
 };

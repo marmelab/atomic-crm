@@ -6,12 +6,14 @@ import { Skeleton } from "@/components/ui/skeleton";
 
 import { useConfigurationLoader } from "../root/useConfigurationLoader";
 import Header from "./Header";
+import { PocBanner } from "./PocBanner";
 
 export const Layout = ({ children }: { children: ReactNode }) => {
   useConfigurationLoader();
   return (
     <>
       <Header />
+      <PocBanner />
       <main className="max-w-screen-xl mx-auto pt-4 px-4" id="main-content">
         <ErrorBoundary FallbackComponent={Error}>
           <Suspense fallback={<Skeleton className="h-12 w-12 rounded-full" />}>

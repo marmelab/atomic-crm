@@ -1,8 +1,9 @@
-import { type FormEvent } from "react";
+import { useEffect, useState } from "react";
 import { ListBase, useListContext } from "ra-core";
 import { Link, useSearchParams } from "react-router";
 
 import { Card } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
 
 interface GraphContact {
   id: string;
@@ -28,28 +29,33 @@ export function GraphContactList() {
 function ContactRows() {
   const { data, isPending } = useListContext<GraphContact>();
   const [params, setParams] = useSearchParams();
-  if (isPending) return null;
+  const [q, setQ] = useState(params.get("q") ?? "");
 
-  const onSearch = (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    const value = new FormData(event.currentTarget).get("q");
-    const next = new URLSearchParams(params);
-    if (typeof value === "string" && value.trim()) next.set("q", value.trim());
-    else next.delete("q");
-    setParams(next);
-  };
+  useEffect(() => {
+    const handle = window.setTimeout(() => {
+      const next = new URLSearchParams(params);
+      const trimmed = q.trim();
+      if (trimmed) next.set("q", trimmed);
+      else next.delete("q");
+      if (next.toString() !== params.toString()) setParams(next);
+    }, 200);
+    return () => window.clearTimeout(handle);
+  }, [q, params, setParams]);
+
+  if (isPending && !data) return null;
 
   return (
     <Card className="p-4">
       <h1 className="text-xl font-semibold mb-4">Contacts</h1>
-      <form className="mb-4" onSubmit={onSearch}>
-        <input
-          name="q"
-          defaultValue={params.get("q") ?? ""}
+      <div className="mb-4">
+        <Input
+          value={q}
+          onChange={(event) => setQ(event.target.value)}
           placeholder="Search name or NMLS"
-          className="border rounded px-2 py-1 w-72"
+          className="w-72"
+          aria-label="Search name or NMLS"
         />
-      </form>
+      </div>
       <ul className="divide-y">
         {(data ?? []).map((row) => (
           <li key={row.id} className="py-2">
