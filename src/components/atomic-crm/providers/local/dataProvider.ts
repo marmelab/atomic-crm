@@ -1,15 +1,28 @@
 import type { DataProvider } from "ra-core";
 
 import type { ConfigurationContextValue } from "../../root/ConfigurationContext";
+import { isCognitoConfigured, readSession } from "./cognito";
 import { getStubCustomerId } from "./principal";
 
 const API_BASE = import.meta.env.VITE_CRM_API_URL ?? "http://127.0.0.1:8787";
 
+function authHeaders(extra: Record<string, string> = {}): HeadersInit {
+  const session = isCognitoConfigured() ? readSession() : null;
+  if (session?.idToken) {
+    return {
+      authorization: `Bearer ${session.idToken}`,
+      ...extra,
+    };
+  }
+  return {
+    "x-ardley-customer-id": getStubCustomerId(),
+    ...extra,
+  };
+}
+
 async function api<T>(path: string): Promise<T> {
   const res = await fetch(`${API_BASE}${path}`, {
-    headers: {
-      "x-ardley-customer-id": getStubCustomerId(),
-    },
+    headers: authHeaders(),
   });
   if (!res.ok) {
     throw new Error(`local-bff ${path} ${res.status}`);
@@ -80,10 +93,7 @@ export const getDataProvider = (): DataProvider & {
       }
       const res = await fetch(`${API_BASE}/deals/${params.id}`, {
         method: "PATCH",
-        headers: {
-          "content-type": "application/json",
-          "x-ardley-customer-id": getStubCustomerId(),
-        },
+        headers: authHeaders({ "content-type": "application/json" }),
         body: JSON.stringify({ stage_id: params.data.stage_id }),
       });
       if (!res.ok) {
@@ -100,10 +110,7 @@ export const getDataProvider = (): DataProvider & {
     mergeContacts: async (loserId: string, winnerId: string) => {
       const res = await fetch(`${API_BASE}/contacts/merge`, {
         method: "POST",
-        headers: {
-          "content-type": "application/json",
-          "x-ardley-customer-id": getStubCustomerId(),
-        },
+        headers: authHeaders({ "content-type": "application/json" }),
         body: JSON.stringify({ loser_id: loserId, winner_id: winnerId }),
       });
       if (!res.ok) {

@@ -105,7 +105,21 @@ export const LoginPage = (props: { redirectTo?: string }) => {
                 {translate("ra.auth.sign_in")}
               </h1>
             </div>
-            {disableEmailPasswordAuthentication ? null : (
+            {import.meta.env.VITE_COGNITO_CLIENT_ID ? (
+              <Button
+                type="button"
+                className="cursor-pointer w-full"
+                disabled={loading}
+                onClick={() => {
+                  setLoading(true);
+                  login({}, redirectTo).catch(() => setLoading(false));
+                }}
+              >
+                Sign in with Ardley
+              </Button>
+            ) : null}
+            {disableEmailPasswordAuthentication ||
+            import.meta.env.VITE_COGNITO_CLIENT_ID ? null : (
               <Form className="space-y-8" onSubmit={handleSubmit}>
                 <TextInput
                   label="ra.auth.email"
@@ -137,7 +151,8 @@ export const LoginPage = (props: { redirectTo?: string }) => {
                 })}
               </SSOAuthButton>
             ) : null}
-            {disableEmailPasswordAuthentication ? null : (
+            {disableEmailPasswordAuthentication ||
+            import.meta.env.VITE_COGNITO_CLIENT_ID ? null : (
               <Link
                 to={"/forgot-password"}
                 className="block text-sm text-center hover:underline"

@@ -9,7 +9,7 @@ create extension if not exists "uuid-ossp";
 
 -- tenants.id is a deterministic UUID mapped from ardley-customers-{env} id
 -- (uuid5). Acorn isolation still uses ardley_customer_id (e.g. '100081').
-create table tenants (
+create table if not exists tenants (
     id uuid primary key,
     ardley_customer_id text not null unique, -- '100004' Woodley, '100081' Envoy
     slug text not null unique,
@@ -17,37 +17,37 @@ create table tenants (
     created_at timestamptz not null default now()
 );
 
-create table object_types (
+create table if not exists object_types (
     id text primary key -- contact | company | deal
 );
 
-create table link_types (
+create table if not exists link_types (
     id text primary key,
     directed boolean not null default true,
     from_object_type text not null references object_types (id),
     to_object_type text not null references object_types (id)
 );
 
-create table contact_types (
+create table if not exists contact_types (
     id text primary key,
     label text not null,
     is_env boolean not null default false
 );
 
-create table company_kinds (
+create table if not exists company_kinds (
     id text primary key,
     label text not null
 );
 
-create table identifier_types (
+create table if not exists identifier_types (
     id text primary key -- nmls | dre | mls | email | phone
 );
 
-create table deal_party_roles (
+create table if not exists deal_party_roles (
     id text primary key -- borrower | co_borrower | referring_agent | loan_officer | ...
 );
 
-create table crm_users (
+create table if not exists crm_users (
     id uuid primary key default gen_random_uuid(),
     tenant_id uuid not null references tenants (id),
     cognito_sub text not null,
@@ -58,7 +58,7 @@ create table crm_users (
     unique (tenant_id, id)
 );
 
-create table companies (
+create table if not exists companies (
     id uuid primary key default gen_random_uuid(),
     tenant_id uuid not null references tenants (id),
     owner_id uuid not null references crm_users (id),
@@ -70,7 +70,7 @@ create table companies (
     created_at timestamptz not null default now()
 );
 
-create table contacts (
+create table if not exists contacts (
     id uuid primary key default gen_random_uuid(),
     tenant_id uuid not null references tenants (id),
     owner_id uuid not null references crm_users (id),
@@ -86,7 +86,7 @@ alter table crm_users
     add constraint crm_users_contact_id_fkey
     foreign key (contact_id) references contacts (id);
 
-create table contact_type_assignments (
+create table if not exists contact_type_assignments (
     tenant_id uuid not null references tenants (id),
     contact_id uuid not null references contacts (id) on delete restrict,
     type_id text not null references contact_types (id),
@@ -94,7 +94,7 @@ create table contact_type_assignments (
     primary key (tenant_id, contact_id, type_id)
 );
 
-create table contact_identifiers (
+create table if not exists contact_identifiers (
     id uuid primary key default gen_random_uuid(),
     tenant_id uuid not null references tenants (id),
     contact_id uuid not null references contacts (id) on delete restrict,
@@ -103,7 +103,7 @@ create table contact_identifiers (
     unique (tenant_id, id_type, value)
 );
 
-create table contact_affiliations (
+create table if not exists contact_affiliations (
     id uuid primary key default gen_random_uuid(),
     tenant_id uuid not null references tenants (id),
     contact_id uuid not null references contacts (id) on delete restrict,
@@ -114,14 +114,14 @@ create table contact_affiliations (
     valid_to date
 );
 
-create table pipelines (
+create table if not exists pipelines (
     id uuid primary key default gen_random_uuid(),
     tenant_id uuid not null references tenants (id),
     name text not null,
     sort_index int not null default 0
 );
 
-create table pipeline_stages (
+create table if not exists pipeline_stages (
     id uuid primary key default gen_random_uuid(),
     tenant_id uuid not null references tenants (id),
     pipeline_id uuid not null references pipelines (id),
@@ -132,7 +132,7 @@ create table pipeline_stages (
     is_won boolean not null default false
 );
 
-create table deals (
+create table if not exists deals (
     id uuid primary key default gen_random_uuid(),
     tenant_id uuid not null references tenants (id),
     owner_id uuid not null references crm_users (id),
@@ -149,7 +149,7 @@ create table deals (
     updated_at timestamptz not null default now()
 );
 
-create table deal_parties (
+create table if not exists deal_parties (
     id uuid primary key default gen_random_uuid(),
     tenant_id uuid not null references tenants (id),
     deal_id uuid not null references deals (id) on delete restrict,
@@ -161,7 +161,7 @@ create table deal_parties (
     unique (tenant_id, deal_id, contact_id, role)
 );
 
-create table record_links (
+create table if not exists record_links (
     id uuid primary key default gen_random_uuid(),
     tenant_id uuid not null references tenants (id),
     link_type_id text not null references link_types (id),
@@ -181,7 +181,7 @@ create unique index record_links_active_uq
     )
     where valid_to is null;
 
-create table deal_stage_events (
+create table if not exists deal_stage_events (
     id uuid primary key default gen_random_uuid(),
     tenant_id uuid not null references tenants (id),
     deal_id uuid not null references deals (id),
@@ -191,7 +191,7 @@ create table deal_stage_events (
     at timestamptz not null default now()
 );
 
-create table activities (
+create table if not exists activities (
     id uuid primary key default gen_random_uuid(),
     tenant_id uuid not null references tenants (id),
     object_type text not null references object_types (id),
@@ -202,14 +202,14 @@ create table activities (
     at timestamptz not null default now()
 );
 
-create table lists (
+create table if not exists lists (
     id uuid primary key default gen_random_uuid(),
     tenant_id uuid not null references tenants (id),
     name text not null,
     is_env boolean not null default false
 );
 
-create table list_members (
+create table if not exists list_members (
     tenant_id uuid not null references tenants (id),
     list_id uuid not null references lists (id),
     object_type text not null references object_types (id),
@@ -217,7 +217,7 @@ create table list_members (
     primary key (list_id, object_type, object_id)
 );
 
-create table saved_views (
+create table if not exists saved_views (
     id uuid primary key default gen_random_uuid(),
     tenant_id uuid not null references tenants (id),
     owner_id uuid references crm_users (id),

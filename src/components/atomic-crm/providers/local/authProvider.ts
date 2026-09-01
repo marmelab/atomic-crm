@@ -1,6 +1,16 @@
 import type { AuthProvider } from "ra-core";
 
 import { canAccess } from "../commons/canAccess";
+import {
+  clearSession,
+  consumeAuthCode,
+  exchangeCode,
+  hostedLoginUrl,
+  hostedLogoutUrl,
+  isCognitoConfigured,
+  readSession,
+  writeSession,
+} from "./cognito";
 import { getStubCustomerId, setStubCustomerId } from "./principal";
 
 const IDENTITY = {
@@ -14,16 +24,73 @@ const IDENTITY = {
   },
 } as const;
 
-export const getAuthProvider = (): AuthProvider => ({
-  login: async (params: { customerId?: string } = {}) => {
-    const id = params.customerId === "100081" ? "100081" : "100004";
-    setStubCustomerId(id);
-  },
-  logout: async () => {
-    setStubCustomerId("100004");
-  },
-  checkAuth: async () => undefined,
-  checkError: async () => undefined,
-  getIdentity: async () => IDENTITY[getStubCustomerId()],
-  canAccess: async ({ signal: _signal, ...params }) => canAccess("user", params),
-});
+export const getAuthProvider = (): AuthProvider => {
+  if (!isCognitoConfigured()) {
+    return {
+      login: async (params: { customerId?: string } = {}) => {
+        const id = params.customerId === "100081" ? "100081" : "100004";
+        setStubCustomerId(id);
+      },
+      logout: async () => {
+        setStubCustomerId("100004");
+      },
+      checkAuth: async () => undefined,
+      checkError: async () => undefined,
+      getIdentity: async () => IDENTITY[getStubCustomerId()],
+      canAccess: async ({ signal: _signal, ...params }) =>
+        canAccess("user", params),
+    };
+  }
+
+  return {
+    login: async () => {
+      window.location.assign(hostedLoginUrl());
+      return Promise.reject();
+    },
+    logout: async () => {
+      const hadSession = Boolean(readSession());
+      clearSession();
+      // Only bounce through Cognito hosted logout after a real session.
+      // checkAuth failures also call logout; sending those to /logout
+      // redirects back here and loops.
+      if (hadSession) {
+        window.location.assign(hostedLogoutUrl());
+        return Promise.reject();
+      }
+    },
+    checkAuth: async () => {
+      if (readSession()) return;
+      const code = consumeAuthCode();
+      if (code) {
+        const session = await exchangeCode(code);
+        writeSession(session);
+        window.history.replaceState({}, document.title, "/");
+        return;
+      }
+      throw new Error("not_authenticated");
+    },
+    checkError: async (error: { status?: number }) => {
+      if (error?.status === 401 || error?.status === 403) {
+        clearSession();
+        throw error;
+      }
+    },
+    getIdentity: async () => {
+      const session = readSession();
+      if (!session) throw new Error("not_authenticated");
+      return {
+        id: session.sub ?? session.email ?? "unknown",
+        fullName: session.name || session.email || "Woodley user",
+      };
+    },
+    handleCallback: async () => {
+      const code = consumeAuthCode();
+      if (!code) throw new Error("missing_code");
+      const session = await exchangeCode(code);
+      writeSession(session);
+      window.history.replaceState({}, document.title, "/");
+    },
+    canAccess: async ({ signal: _signal, ...params }) =>
+      canAccess("user", params),
+  };
+};

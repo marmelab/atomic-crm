@@ -16,7 +16,7 @@ export default defineConfig({
     react(),
     tailwindcss(),
     visualizer({
-      open: process.env.NODE_ENV !== "CI",
+      open: process.env.VITE_OPEN_STATS === "true",
       filename: "./dist/stats.html",
     }),
     createHtmlPlugin({
@@ -27,17 +27,49 @@ export default defineConfig({
         },
       },
     }),
-    VitePWA({
-      registerType: "autoUpdate",
-      workbox: {
-        globPatterns: ["**/*.{js,css,html,ico,png,svg,woff,woff2}"],
-        maximumFileSizeToCacheInBytes: 5 * 1024 * 1024, // 5 MiB
-      },
-      manifest: false, // Use existing manifest.json from public/
-    }),
+    ...(process.env.VITE_DISABLE_PWA === "true"
+      ? []
+      : [
+          VitePWA({
+            registerType: "autoUpdate",
+            workbox: {
+              globPatterns: ["**/*.{js,css,html,ico,png,svg,woff,woff2}"],
+              maximumFileSizeToCacheInBytes: 5 * 1024 * 1024, // 5 MiB
+            },
+            manifest: false, // Use existing manifest.json from public/
+          }),
+        ]),
   ],
-  define:
-    process.env.NODE_ENV === "production" && process.env.VITE_SUPABASE_URL
+  define: {
+    ...(process.env.VITE_CRM_API_URL
+      ? {
+          "import.meta.env.VITE_CRM_API_URL": JSON.stringify(
+            process.env.VITE_CRM_API_URL,
+          ),
+        }
+      : {}),
+    ...(process.env.VITE_COGNITO_USER_POOL_ID
+      ? {
+          "import.meta.env.VITE_COGNITO_USER_POOL_ID": JSON.stringify(
+            process.env.VITE_COGNITO_USER_POOL_ID,
+          ),
+        }
+      : {}),
+    ...(process.env.VITE_COGNITO_CLIENT_ID
+      ? {
+          "import.meta.env.VITE_COGNITO_CLIENT_ID": JSON.stringify(
+            process.env.VITE_COGNITO_CLIENT_ID,
+          ),
+        }
+      : {}),
+    ...(process.env.VITE_COGNITO_DOMAIN
+      ? {
+          "import.meta.env.VITE_COGNITO_DOMAIN": JSON.stringify(
+            process.env.VITE_COGNITO_DOMAIN,
+          ),
+        }
+      : {}),
+    ...(process.env.NODE_ENV === "production" && process.env.VITE_SUPABASE_URL
       ? {
           "import.meta.env.VITE_IS_DEMO": JSON.stringify(
             process.env.VITE_IS_DEMO,
@@ -55,8 +87,9 @@ export default defineConfig({
             process.env.VITE_ATTACHMENTS_BUCKET,
           ),
         }
-      : undefined,
-  base: "./",
+      : {}),
+  },
+  base: process.env.VITE_APP_BASE || "./",
   esbuild: {
     keepNames: true,
   },
