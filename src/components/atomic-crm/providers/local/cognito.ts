@@ -80,6 +80,19 @@ export function sessionFromTokens(tokens: {
   };
 }
 
+export function consumeAuthCode(): string | null {
+  const fromSearch = new URLSearchParams(window.location.search).get("code");
+  if (fromSearch) return fromSearch;
+  // HashRouter puts the real path after #. Cognito still returns ?code= on
+  // the pre-hash URL; if a later rewrite stuffed it after the hash, read that.
+  const hash = window.location.hash.startsWith("#")
+    ? window.location.hash.slice(1)
+    : window.location.hash;
+  const qIndex = hash.indexOf("?");
+  if (qIndex === -1) return null;
+  return new URLSearchParams(hash.slice(qIndex + 1)).get("code");
+}
+
 export function hostedLoginUrl(): string {
   const { clientId, domain, redirectUri } = cognitoConfig();
   if (!clientId || !domain) throw new Error("cognito_not_configured");

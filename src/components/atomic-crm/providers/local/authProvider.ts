@@ -3,6 +3,7 @@ import type { AuthProvider } from "ra-core";
 import { canAccess } from "../commons/canAccess";
 import {
   clearSession,
+  consumeAuthCode,
   exchangeCode,
   hostedLoginUrl,
   hostedLogoutUrl,
@@ -58,9 +59,15 @@ export const getAuthProvider = (): AuthProvider => {
       }
     },
     checkAuth: async () => {
-      if (!readSession()) {
-        throw new Error("not_authenticated");
+      if (readSession()) return;
+      const code = consumeAuthCode();
+      if (code) {
+        const session = await exchangeCode(code);
+        writeSession(session);
+        window.history.replaceState({}, document.title, "/");
+        return;
       }
+      throw new Error("not_authenticated");
     },
     checkError: async (error: { status?: number }) => {
       if (error?.status === 401 || error?.status === 403) {
@@ -77,11 +84,11 @@ export const getAuthProvider = (): AuthProvider => {
       };
     },
     handleCallback: async () => {
-      const params = new URLSearchParams(window.location.search);
-      const code = params.get("code");
+      const code = consumeAuthCode();
       if (!code) throw new Error("missing_code");
       const session = await exchangeCode(code);
       writeSession(session);
+      window.history.replaceState({}, document.title, "/");
     },
     canAccess: async ({ signal: _signal, ...params }) =>
       canAccess("user", params),

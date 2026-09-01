@@ -16,7 +16,7 @@ export default defineConfig({
     react(),
     tailwindcss(),
     visualizer({
-      open: process.env.NODE_ENV !== "CI",
+      open: process.env.VITE_OPEN_STATS === "true",
       filename: "./dist/stats.html",
     }),
     createHtmlPlugin({
