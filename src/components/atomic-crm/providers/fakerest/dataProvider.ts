@@ -19,6 +19,7 @@ import type {
   Offer,
   OfferPaymentOption,
   Sale,
+  SalesCall,
   SalesFormData,
   SignUpData,
   Task,
@@ -42,6 +43,8 @@ import generateData from "./dataGenerator";
 import type { Db } from "./dataGenerator/types";
 import { withSupabaseFilterAdapter } from "./internal/supabaseAdapter";
 import { syncContactRelationshipFields } from "./contactRelationshipFields";
+import { syncDealSalesCallAt } from "../../sales-calls/syncDealSalesCallAt";
+import { assertNoDuplicateBookedSalesCall } from "../../sales-calls/salesCallValidation";
 
 const TASK_MARKED_AS_DONE = "TASK_MARKED_AS_DONE";
 const TASK_MARKED_AS_UNDONE = "TASK_MARKED_AS_UNDONE";
@@ -847,6 +850,52 @@ export const createDataProvider = ({
         beforeCreate: validateWaitlistEntrySave,
         beforeUpdate: validateWaitlistEntrySave,
       } satisfies ResourceCallbacks<WaitlistEntry>,
+      {
+        // Mirrors the Postgres trigger sync_deal_sales_call_at() (afterX
+        // hooks) and the real DB's partial unique index (beforeX hooks) —
+        // keeps deals.sales_call_at synchronized with sales_calls on every
+        // write, and enforces "at most one booked call per Opportunity"
+        // (FakeRest has no constraint engine, see salesCallValidation.ts).
+        resource: "sales_calls",
+        beforeCreate: async (params, dataProvider) => {
+          await assertNoDuplicateBookedSalesCall(dataProvider, {
+            opportunityId: params.data.opportunity_id,
+          });
+          return params;
+        },
+        beforeUpdate: async (params, dataProvider) => {
+          const nextStatus = params.data.status ?? params.previousData.status;
+          if (nextStatus === "booked") {
+            const opportunityId =
+              params.data.opportunity_id !== undefined
+                ? params.data.opportunity_id
+                : params.previousData.opportunity_id;
+            await assertNoDuplicateBookedSalesCall(dataProvider, {
+              opportunityId,
+              excludeSalesCallId: params.previousData.id,
+            });
+          }
+          return params;
+        },
+        afterCreate: async (result, dataProvider) => {
+          if (result.data.opportunity_id != null) {
+            await syncDealSalesCallAt(dataProvider, result.data.opportunity_id);
+          }
+          return result;
+        },
+        afterUpdate: async (result, dataProvider) => {
+          if (result.data.opportunity_id != null) {
+            await syncDealSalesCallAt(dataProvider, result.data.opportunity_id);
+          }
+          return result;
+        },
+        afterDelete: async (result, dataProvider) => {
+          if (result.data.opportunity_id != null) {
+            await syncDealSalesCallAt(dataProvider, result.data.opportunity_id);
+          }
+          return result;
+        },
+      } satisfies ResourceCallbacks<SalesCall>,
       {
         resource: "contact_notes",
         beforeSave: async (params) => preserveAttachmentMimeType(params),

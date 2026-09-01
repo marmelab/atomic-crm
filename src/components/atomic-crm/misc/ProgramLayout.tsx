@@ -28,20 +28,36 @@ export const PageHeader = ({
 // A titled group of content — the "clean rounded section" unit. Content is
 // left to the caller (a list of PersonCard rows, a details Card, an empty
 // state) so this stays a layout primitive, not a data component.
+//
+// `emphasis` (Applications hierarchy repair): "primary" (default, unchanged
+// for every existing caller) is the full text-xl heading. "secondary" is
+// for a Section nested under a more important heading of its own (e.g. a
+// Cohort's Section nested under its parent Offer's heading) — smaller and
+// muted, so the parent stays visually primary.
 export const Section = ({
   title,
   id,
+  emphasis = "primary",
   children,
 }: {
   title: string;
   id?: string;
+  emphasis?: "primary" | "secondary";
   children: ReactNode;
 }) => (
   <div
     id={id}
     className={id ? "flex flex-col gap-3 scroll-mt-4" : "flex flex-col gap-3"}
   >
-    <h2 className="text-xl font-semibold">{title}</h2>
+    <h2
+      className={
+        emphasis === "secondary"
+          ? "text-base font-medium text-muted-foreground"
+          : "text-xl font-semibold"
+      }
+    >
+      {title}
+    </h2>
     {children}
   </div>
 );

@@ -348,6 +348,7 @@ const DesktopAdmin = (
       <Resource name="offers" {...offers} />
       <Resource name="offer_payment_options" />
       <Resource name="waitlist_entries" />
+      <Resource name="sales_calls" />
       <Resource name="contact_notes" />
       <Resource name="deal_notes" />
       <Resource name="tasks" />
@@ -446,6 +447,7 @@ const MobileAdmin = (
         />
         <Resource name="applications" {...applications} />
         <Resource name="waitlist_entries" />
+        <Resource name="sales_calls" />
         <Resource name="cohorts" show={cohorts.show} edit={cohorts.edit} />
         <Resource
           name="contacts"

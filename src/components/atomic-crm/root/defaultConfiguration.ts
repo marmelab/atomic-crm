@@ -70,6 +70,10 @@ export const defaultTaskTypes = [
   { value: "check_payment", label: "Check Payment" },
   { value: "send_contract", label: "Send Contract" },
   { value: "complete_access", label: "Complete Access/Permissions" },
+  // Acuity/Sales Call Lifecycle slice: surfaces a booking that couldn't be
+  // safely matched to exactly one active Opportunity, rather than burying
+  // it — see sales-calls/resolveSalesCallTask.ts.
+  { value: "resolve_sales_call", label: "Resolve Sales Call" },
   { value: "other", label: "Other" },
 ];
 

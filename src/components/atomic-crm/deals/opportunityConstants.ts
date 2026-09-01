@@ -44,6 +44,9 @@ export const opportunityOutcomes: {
   { value: "needs_higher_care", label: "Needs Higher Care" },
   { value: "not_fit", label: "Not Fit" },
   { value: "lost", label: "Lost" },
+  // Acuity/Sales Call Lifecycle slice: a genuine pipeline exit, explicitly
+  // not a lost sale (set together with owner_decision = "workshops_only").
+  { value: "workshops_only", label: "Workshops Only" },
 ];
 
 export const ownerDecisions: {

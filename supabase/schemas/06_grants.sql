@@ -134,6 +134,14 @@ grant all on table public.enrollments to anon;
 grant all on table public.enrollments to authenticated;
 grant all on table public.enrollments to service_role;
 
+grant all on table public.sales_calls to anon;
+grant all on table public.sales_calls to authenticated;
+grant all on table public.sales_calls to service_role;
+
+grant all on table public.sales_call_events to anon;
+grant all on table public.sales_call_events to authenticated;
+grant all on table public.sales_call_events to service_role;
+
 -- View grants
 grant all on table public.activity_log to anon;
 grant all on table public.activity_log to authenticated;
@@ -207,6 +215,14 @@ grant all on sequence public.applications_id_seq to service_role;
 grant all on sequence public.enrollments_id_seq to anon;
 grant all on sequence public.enrollments_id_seq to authenticated;
 grant all on sequence public.enrollments_id_seq to service_role;
+
+grant all on sequence public.sales_calls_id_seq to anon;
+grant all on sequence public.sales_calls_id_seq to authenticated;
+grant all on sequence public.sales_calls_id_seq to service_role;
+
+grant all on sequence public.sales_call_events_id_seq to anon;
+grant all on sequence public.sales_call_events_id_seq to authenticated;
+grant all on sequence public.sales_call_events_id_seq to service_role;
 
 -- Default privileges
 alter default privileges for role postgres in schema public grant all on sequences to postgres;

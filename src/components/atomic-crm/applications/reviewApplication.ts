@@ -1,6 +1,10 @@
 import type { DataProvider } from "ra-core";
 
 import type { Application, ApplicationStatus, Deal } from "../types";
+import {
+  applyDoNotEngageToContact,
+  buildDoNotEngageDealUpdate,
+} from "../deals/dneOutcome";
 import { completeReviewApplicationTask } from "./reviewApplicationTask";
 
 export type ApplicationReviewOutcome = Exclude<ApplicationStatus, "pending">;
@@ -62,14 +66,7 @@ export const reviewApplication = async ({
   });
 
   if (outcome === "do_not_engage") {
-    const { data: contact } = await dataProvider.getOne("contacts", {
-      id: currentDeal.contact_id,
-    });
-    await dataProvider.update("contacts", {
-      id: currentDeal.contact_id,
-      data: { sales_eligibility: "do_not_engage" },
-      previousData: contact,
-    });
+    await applyDoNotEngageToContact(dataProvider, currentDeal.contact_id);
   }
 
   // Review Application completes automatically on any outcome (§4-§7) —
@@ -95,13 +92,10 @@ const buildDealUpdate = (outcome: ApplicationReviewOutcome): Partial<Deal> => {
     case "not_fit":
       return { outcome: "not_fit" };
     case "do_not_engage":
-      // No 'do_not_engage' Opportunity outcome exists in the schema, and
-      // none is needed: the Contact-level sales_eligibility flag above is
-      // the durable signal. This Opportunity exits the active pipeline
-      // like any other decline (outcome: 'lost'), with the existing
-      // owner_decision field recording the specific reason (§7) — reusing
-      // established Opportunity-level architecture rather than inventing
-      // a new outcome value for one case.
-      return { outcome: "lost", owner_decision: "do_not_engage" };
+      // See deals/dneOutcome.ts for why this is 'lost' + owner_decision
+      // rather than a dedicated Opportunity outcome value (§7) — shared
+      // with sales-calls/completeSalesCallOutcome.ts's own Do Not Engage
+      // branch so the logic lives in exactly one place.
+      return buildDoNotEngageDealUpdate();
   }
 };

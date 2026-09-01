@@ -46,6 +46,12 @@ create or replace trigger "05_handle_waitlist_entry_saved"
     before insert or update on public.waitlist_entries
     for each row execute function public.handle_waitlist_entry_saved();
 
+-- Keep deals.sales_call_at synchronized with sales_calls, the durable
+-- source of truth (Acuity/Sales Call Lifecycle slice).
+create or replace trigger on_sales_call_saved
+    after insert or update or delete on public.sales_calls
+    for each row execute function public.sync_deal_sales_call_at();
+
 create or replace trigger set_deal_notes_sales_id_trigger
     before insert on public.deal_notes
     for each row execute function public.set_sales_id_default();

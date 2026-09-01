@@ -341,6 +341,39 @@ begin
 end;
 $$;
 
+-- Acuity/Sales Call Lifecycle slice: keeps deals.sales_call_at (the
+-- existing "next scheduled call" denormalized convenience field, read by
+-- DealShow/DealInputs unchanged) in sync with sales_calls, the new source
+-- of truth. Recomputes from scratch on every insert/update/delete rather
+-- than trying to track "was this row the one currently reflected" —
+-- always the scheduled_at of the Opportunity's most recent still-booked
+-- call, or null if none. Mirrors providers/fakerest/dataProvider.ts's own
+-- "sales_calls" resource hooks (dual-implementation convention).
+CREATE OR REPLACE FUNCTION "public"."sync_deal_sales_call_at"() RETURNS "trigger"
+    LANGUAGE "plpgsql"
+    SET "search_path" TO 'public'
+    AS $$
+declare
+  v_opportunity_id bigint;
+  v_latest timestamp with time zone;
+begin
+  v_opportunity_id := coalesce(new.opportunity_id, old.opportunity_id);
+  if v_opportunity_id is null then
+    return coalesce(new, old);
+  end if;
+
+  select scheduled_at into v_latest
+    from sales_calls
+    where opportunity_id = v_opportunity_id and status = 'booked'
+    order by scheduled_at desc
+    limit 1;
+
+  update deals set sales_call_at = v_latest where id = v_opportunity_id;
+
+  return coalesce(new, old);
+end;
+$$;
+
 -- Human-acceptance repair pass, §4/§5: a Contact cannot stay Waiting/
 -- Invited for a relationship they already have an active Opportunity for
 -- (mirrors src/components/atomic-crm/waitlist/waitlistSync.ts exactly —

@@ -142,6 +142,10 @@ export type Offer = {
   // per-Cohort instead.
   max_active_clients?: number | null;
   is_active: boolean;
+  // Acuity/Sales Call Lifecycle slice: only meaningful for an individual
+  // Offer (e.g. The Living Example) — a group Offer maps per-Cohort
+  // instead (see Cohort.acuity_appointment_type_id).
+  acuity_appointment_type_id?: string | null;
   created_at: string;
   updated_at: string;
 } & Pick<RaRecord, "id">;
@@ -183,6 +187,11 @@ export type Cohort = {
   // Future integration identifiers, not wired up yet.
   slack_channel_id?: string | null;
   calendar_id?: string | null;
+  // Acuity/Sales Call Lifecycle slice: the Acuity appointment type whose
+  // bookings belong to this Cohort's sales calls (a GYU cohort typically
+  // gets its own appointment type/calendar per round). Stable-ID mapping,
+  // never a display-name match — see sales-calls/offerCohortAcuityMapping.ts.
+  acuity_appointment_type_id?: string | null;
   created_at: string;
   updated_at: string;
 } & Pick<RaRecord, "id">;
@@ -260,11 +269,89 @@ export type WaitlistEntry = {
   updated_at: string;
 } & Pick<RaRecord, "id">;
 
+// "workshops_only" (Acuity/Sales Call Lifecycle slice) is a genuine exit
+// from the LE/GYU sales pipeline but explicitly NOT a lost sale — the
+// owner would work with this person, just not in this program. Kept
+// distinct from "lost" so later analytics never conflates the two (see
+// deals.owner_decision = "workshops_only", set together with this).
+// Acuity/Sales Call Lifecycle slice: the durable current-state record for a
+// sales call/appointment, one row per LOGICAL appointment — a reschedule
+// updates this row (never creates a second one), so it can never look like
+// two independent calls in later conversion analytics. `opportunity_id` is
+// nullable: a booking that can't be safely matched to exactly one active
+// Opportunity is preserved with opportunity_id = null (see sales-calls/
+// matchAcuityBooking.ts) rather than guessed, and surfaced via a "Resolve
+// Sales Call" task (sales-calls/resolveSalesCallTask.ts) rather than
+// silently buried. `contact_id` is always resolved (normalized-email
+// match-or-create, same principle as Native Application Intake).
+//
+// Individual lifecycle facts (booked/rescheduled/cancelled/attendance
+// recorded, with occurred_at and whatever old/new values are relevant) are
+// preserved separately in SalesCallEvent — this row is only ever the
+// current/summary state, never the history itself.
+export type SalesCallStatus = "booked" | "cancelled";
+export type SalesCallAttendance = "attended" | "no_show";
+export type SalesCallSource = "acuity" | "manual";
+
+export type SalesCall = {
+  opportunity_id?: Identifier | null;
+  contact_id: Identifier;
+  status: SalesCallStatus;
+  // Set once at creation, never updated — the very first time this was
+  // scheduled, independent of any later reschedule.
+  original_scheduled_at: string;
+  // The current/latest scheduled time. Mirrored onto the owning
+  // Opportunity's `sales_call_at` (a denormalized convenience field) by
+  // the sales_calls "afterSave" sync — see providers/fakerest/
+  // dataProvider.ts and, for production, the sync_deal_sales_call_at()
+  // trigger.
+  scheduled_at: string;
+  reschedule_count: number;
+  last_rescheduled_at?: string | null;
+  cancelled_at?: string | null;
+  // Always a human/CRM action (Complete Sales Call), never inferred from
+  // Acuity — an appointment's time having passed does not prove attendance
+  // (Acuity's own no-show flag requires an admin to set it there too).
+  attendance?: SalesCallAttendance | null;
+  attendance_recorded_at?: string | null;
+  source: SalesCallSource;
+  acuity_appointment_id?: string | null;
+  acuity_appointment_type_id?: string | null;
+  created_at: string;
+  updated_at: string;
+} & Pick<RaRecord, "id">;
+
+export type SalesCallEventKind =
+  | "booked"
+  | "rescheduled"
+  | "cancelled"
+  | "attendance_recorded";
+
+// The append-only lifecycle history a SalesCall's current-state row can't
+// hold on its own (Acuity/Sales Call Lifecycle slice, per Leif's own
+// decision: durable individual events, not just a reschedule_count +
+// last_rescheduled_at summary). Deliberately NOT a generalized event-
+// sourcing log — SalesCall stays the easy current-state record this app
+// reads from everywhere; this table exists only so multiple reschedules
+// don't collapse into a single count.
+export type SalesCallEvent = {
+  sales_call_id: Identifier;
+  kind: SalesCallEventKind;
+  occurred_at: string;
+  // Only set for kind = "rescheduled".
+  previous_scheduled_at?: string | null;
+  new_scheduled_at?: string | null;
+  // Only set for kind = "attendance_recorded".
+  attendance?: SalesCallAttendance | null;
+  created_at: string;
+} & Pick<RaRecord, "id">;
+
 export type OpportunityOutcome =
   | "nurture"
   | "needs_higher_care"
   | "not_fit"
-  | "lost";
+  | "lost"
+  | "workshops_only";
 
 export type OpportunityOwnerDecision =
   | "would_work_with"

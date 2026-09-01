@@ -23,6 +23,7 @@ import { Separator } from "@/components/ui/separator";
 import { NoteCreate } from "../notes/NoteCreate";
 import { NotesIterator } from "../notes/NotesIterator";
 import { useConfigurationContext } from "../root/ConfigurationContext";
+import { DealSalesCallSection } from "../sales-calls/DealSalesCallSection";
 import type { Deal } from "../types";
 import { DealApplicationAndEnrollment } from "./DealApplicationAndEnrollment";
 import { findDealLabel, formatISODateString } from "./dealUtils";
@@ -267,6 +268,7 @@ const DealShowContent = () => {
           </div>
 
           <DealApplicationAndEnrollment />
+          <DealSalesCallSection />
 
           {record.description && (
             <div className="m-4 whitespace-pre-line">

@@ -31,6 +31,8 @@ export default (): Db => {
   db.applications = [];
   db.enrollments = [];
   db.waitlist_entries = [];
+  db.sales_calls = [];
+  db.sales_call_events = [];
   db.deals = generateDeals(db);
   const { pendingReviewApplicants } = addLeifProofSliceFixtures(db);
   addWaitlistFixtures(db);

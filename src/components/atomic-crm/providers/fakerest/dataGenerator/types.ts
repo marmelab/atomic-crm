@@ -10,6 +10,8 @@ import type {
   Offer,
   OfferPaymentOption,
   Sale,
+  SalesCall,
+  SalesCallEvent,
   Tag,
   Task,
   WaitlistEntry,
@@ -28,6 +30,8 @@ export interface Db {
   applications: Application[];
   enrollments: Enrollment[];
   waitlist_entries: WaitlistEntry[];
+  sales_calls: SalesCall[];
+  sales_call_events: SalesCallEvent[];
   sales: Sale[];
   tags: Tag[];
   tasks: Task[];

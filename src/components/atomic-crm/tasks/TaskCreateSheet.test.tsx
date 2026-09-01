@@ -58,7 +58,10 @@ describe("TaskCreateSheet", () => {
 
     await typeInput.click();
     const typeOptions = screen.getByRole("listbox");
-    await typeOptions.getByText("Call").click();
+    // Exact match: "Call" alone is now ambiguous between "Sales Call" and
+    // "Resolve Sales Call" (Acuity/Sales Call Lifecycle slice's new task
+    // type) — this test selects "Sales Call" specifically.
+    await typeOptions.getByText("Sales Call", { exact: true }).click();
 
     const dueDateInput = screen.getByLabelText(/due date/i);
     await dueDateInput.clear();

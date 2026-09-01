@@ -125,13 +125,19 @@ const ApplicationGroupSections = ({
     ))}
 
     {groups.groupOfferGroups.map((group) => (
+      // Applications hierarchy repair: the Offer (parent Program, e.g.
+      // "Growing Yourself Up") is now the visually primary heading and
+      // each Cohort (the particular run, e.g. "September Cohort") is
+      // secondary/smaller — previously reversed, since Section's own
+      // title was always the larger of the two regardless of which
+      // concept it labeled. Grouping/domain behavior and the persisted
+      // Offer/Cohort names are untouched — display hierarchy only.
       <div key={`offer-${group.offer.id}`} className="flex flex-col gap-4">
-        <h3 className="text-lg font-semibold text-muted-foreground">
-          {group.offer.name}
-        </h3>
+        <h3 className="text-xl font-semibold">{group.offer.name}</h3>
         {group.cohorts.map((cohortGroup) => (
           <Section
             key={`cohort-${cohortGroup.cohort.id}`}
+            emphasis="secondary"
             // Redundant Offer initials dropped from the Cohort name (e.g.
             // "September GYU Cohort" -> "September Cohort") — a pure
             // presentation helper, the persisted Cohort name is untouched
