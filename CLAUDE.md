@@ -31,9 +31,15 @@ without promoting.
 A request may carry `gate=none|migration|plan|waves`, default **`plan`**: it pauses after
 planning so you review the real tickets, and stops before applying a database migration.
 
-For a vague or broad `#harness` request, run `Skill({skill: "grill-me"})` first and fold
-the answers into the dispatch: the planner never questions, and `gate=plan` only reacts
-after a plan already exists.
+On **every** `#harness` request, run `Skill({skill: "grill-me"})` first and fold its
+answers into the dispatch. Do not judge beforehand whether the request is vague enough:
+the skill's own Step 0 makes that call and exits in one line when the scope is already
+precise, so a run with no questions still tells you why. Judging first is what made this
+fire inconsistently.
+
+Waiting for the pipeline to ask instead does not work. The planner stops for **one**
+question, and only when a request is too vague to decompose at all, by which point the
+dispatch prompt is already written; `gate=plan` only reacts after a plan exists.
 
 **"Launched" is not "done".** Some runtimes return `Async agent launched … agentId: <id>`
 immediately and deliver the result later as a `task-notification`. That ack means
