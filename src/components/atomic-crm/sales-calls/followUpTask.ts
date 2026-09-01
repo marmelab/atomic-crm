@@ -1,5 +1,6 @@
 import type { DataProvider, Identifier } from "ra-core";
 
+import { dateOnlyToTimestamp } from "../misc/dateOnlyToTimestamp";
 import type { Task } from "../types";
 
 const FOLLOW_UP_TASK_TYPE = "follow_up";
@@ -9,14 +10,9 @@ const FOLLOW_UP_TASK_TYPE = "follow_up";
 // this column), but tasks.due_date is a real timestamptz and Task.tsx
 // always renders it via dealUtils.ts's formatTimestampString, which
 // (correctly, per its own header) assumes its input already carries a
-// time component. Storing the bare date string directly would let
-// `new Date("2026-09-05")` (parsed as UTC midnight) display as "Sep 4" for
-// any viewer west of UTC — local noon is far enough from both UTC day
-// boundaries that no real-world timezone can shift the calendar day.
-const followUpDateToTimestamp = (isoDate: string): string => {
-  const [year, month, day] = isoDate.split("-").map(Number);
-  return new Date(year!, month! - 1, day!, 12, 0, 0).toISOString();
-};
+// time component. See misc/dateOnlyToTimestamp.ts for why this needs a
+// conversion at all, and for the small polish/cleanup slice that also
+// reuses it for Task.tsx's postpone-tomorrow/postpone-next-week actions.
 
 // Mirrors applications/reviewApplicationTask.ts's find/ensure/complete
 // shape. Created when a completed sales call's prospect decision is
@@ -53,7 +49,7 @@ export const ensureFollowUpTask = async (
     salesId?: Identifier | null;
   },
 ): Promise<void> => {
-  const dueDate = followUpDateToTimestamp(followUpDate);
+  const dueDate = dateOnlyToTimestamp(followUpDate);
   const existing = await findPendingFollowUpTask(dataProvider, contactId);
   if (existing) {
     if (existing.due_date === dueDate) return;

@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { render } from "vitest-browser-react";
 
 import { createDataProvider } from "@/components/atomic-crm/providers/fakerest";
@@ -139,5 +139,59 @@ describe("DealInputs (generic Edit)", () => {
     await expect
       .element(screen.getByLabelText(/^source$/i))
       .not.toBeInTheDocument();
+  });
+});
+
+// Small polish/cleanup slice: root-caused to admin/number-input.tsx
+// itself, not this usage — NumberInput spread react-admin's own
+// "defaultValue" (the seed-a-new-record concept useInput reads) straight
+// onto the underlying <input>'s DOM props, alongside the explicit `value`
+// it also sets, which is exactly what triggers React's controlled/
+// uncontrolled warning. Fixed at the component level (strips
+// `defaultValue` from the DOM-bound `...rest`, same as the already-
+// existing `validate`/`format` handling), so every NumberInput caller
+// benefits — regression-tested here through Potential Value
+// (deals/DealInputs.tsx's `defaultValue={0}`), the field that surfaced it.
+describe("DealInputs (Create) — Potential Value", () => {
+  it("auto-populates from the selected Offer with no controlled/uncontrolled console warning", async () => {
+    const errors: unknown[][] = [];
+    vi.spyOn(console, "error").mockImplementation((...args) => {
+      errors.push(args);
+    });
+
+    const dataProvider = createDataProvider({
+      db: createCrmDb({
+        // DealEmpty.tsx only renders <DealCreate> once at least one
+        // Contact exists — otherwise it shows the "add a Contact first"
+        // empty state instead.
+        contacts: [buildContact({ id: 1 })],
+        offers: [livingExample],
+        ...emptyRelatedCollections,
+      }),
+      silent: true,
+    });
+
+    const screen = await render(
+      <StoryWrapper
+        initialEntries={["/deals/create"]}
+        dataProvider={dataProvider}
+      >
+        <></>
+      </StoryWrapper>,
+    );
+
+    const amountInput = screen.getByLabelText(/potential value/i);
+    await expect.element(amountInput).toHaveValue(0);
+
+    // Preserve current behavior: selecting an Offer still auto-populates
+    // Potential Value from its price.
+    await screen.getByLabelText(/^offer/i).click();
+    await screen.getByText("The Living Example").click();
+    await expect.element(amountInput).toHaveValue(4000);
+
+    const controlledWarnings = errors.filter((args) =>
+      args.some((arg) => typeof arg === "string" && /controlled/i.test(arg)),
+    );
+    expect(controlledWarnings).toHaveLength(0);
   });
 });

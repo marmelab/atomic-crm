@@ -81,7 +81,7 @@ export const MobileNavigation = () => {
         <NavigationButton
           href="/deals"
           Icon={Handshake}
-          label={translate("resources.deals.name", { smart_count: 2 })}
+          label={translate("crm.navigation.pipeline")}
           isActive={currentPath === "/deals"}
         />
         <NavigationButton

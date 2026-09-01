@@ -110,6 +110,10 @@
           "type": "registry:component"
         },
         {
+          "path": "src/components/atomic-crm/tasks/postponeTaskDate.ts",
+          "type": "registry:component"
+        },
+        {
           "path": "src/components/atomic-crm/tasks/TasksListFilter.tsx",
           "type": "registry:component"
         },
@@ -683,6 +687,10 @@
         },
         {
           "path": "src/components/atomic-crm/misc/fetchWithTimeout.ts",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/misc/dateOnlyToTimestamp.ts",
           "type": "registry:component"
         },
         {

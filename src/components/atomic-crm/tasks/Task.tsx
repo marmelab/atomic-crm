@@ -23,6 +23,7 @@ import {
 import { useConfigurationContext } from "../root/ConfigurationContext";
 import { formatTimestampString } from "../deals/dealUtils";
 import type { Contact, LabeledValue, Task as TData } from "../types";
+import { computePostponeDueDate } from "./postponeTaskDate";
 import { taskStatusLabels } from "./taskConstants";
 import { TaskEdit } from "./TaskEdit";
 import { TaskEditSheet } from "./TaskEditSheet";
@@ -263,11 +264,7 @@ export const Task = ({
               onClick={() => {
                 update("tasks", {
                   id: task.id,
-                  data: {
-                    due_date: new Date(Date.now() + 24 * 60 * 60 * 1000)
-                      .toISOString()
-                      .slice(0, 10),
-                  },
+                  data: { due_date: computePostponeDueDate(new Date(), 1) },
                   previousData: task,
                 });
               }}
@@ -279,11 +276,7 @@ export const Task = ({
               onClick={() => {
                 update("tasks", {
                   id: task.id,
-                  data: {
-                    due_date: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
-                      .toISOString()
-                      .slice(0, 10),
-                  },
+                  data: { due_date: computePostponeDueDate(new Date(), 7) },
                   previousData: task,
                 });
               }}

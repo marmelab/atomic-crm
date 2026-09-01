@@ -3,7 +3,9 @@ import { CoreAdminContext, useGetList } from "ra-core";
 import fakeDataProvider from "ra-data-fakerest";
 
 import { Task } from "./Task";
+import { formatTimestampString } from "../deals/dealUtils";
 import type { Task as TaskType } from "../types";
+import { computePostponeDueDate } from "./postponeTaskDate";
 
 // Dashboard task completion UX repair pass: the checkbox itself (shared by
 // every task list, not just the Dashboard — the cursor bug and undoable
@@ -134,5 +136,47 @@ describe("Task checkbox", () => {
     await checkbox.click();
 
     await expect.element(checkbox).toHaveAttribute("data-state", "unchecked");
+  });
+});
+
+// Small polish/cleanup slice: end-to-end wiring check that the "Postpone"
+// menu items actually reach the Dashboard-visible due date without a day
+// shift — postponeTaskDate.test.ts covers the date math itself (and the
+// America/Denver boundary specifically) in isolation; this confirms
+// Task.tsx's own dropdown wires computePostponeDueDate(new Date(), ...)
+// through correctly. Expectations are derived from the same functions
+// Task.tsx itself uses, rather than a hardcoded future date, since
+// "tomorrow" is always relative to whenever the test actually runs.
+describe("Task postpone actions", () => {
+  it("postpone tomorrow advances the displayed due date by exactly one day", async () => {
+    const task = buildTask({ due_date: "2026-01-01T18:00:00.000Z" });
+    const screen = await renderTask(task);
+    const expected = formatTimestampString(
+      computePostponeDueDate(new Date(), 1),
+    );
+
+    await screen
+      .getByRole("button", { name: "resources.tasks.actions.title" })
+      .click();
+    await screen.getByText("resources.tasks.actions.postpone_tomorrow").click();
+
+    await expect.element(screen.getByText(expected)).toBeInTheDocument();
+  });
+
+  it("postpone next week advances the displayed due date by exactly seven days", async () => {
+    const task = buildTask({ due_date: "2026-01-01T18:00:00.000Z" });
+    const screen = await renderTask(task);
+    const expected = formatTimestampString(
+      computePostponeDueDate(new Date(), 7),
+    );
+
+    await screen
+      .getByRole("button", { name: "resources.tasks.actions.title" })
+      .click();
+    await screen
+      .getByText("resources.tasks.actions.postpone_next_week")
+      .click();
+
+    await expect.element(screen.getByText(expected)).toBeInTheDocument();
   });
 });

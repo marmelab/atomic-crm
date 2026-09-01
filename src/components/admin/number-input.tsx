@@ -37,6 +37,14 @@ export const NumberInput = (props: NumberInputProps) => {
     resource: resourceProp,
     validate: _validateProp,
     format: _formatProp,
+    // react-admin's own "seed the form field on a new record" concept
+    // (consumed by useInput(props) below, which receives the full props
+    // object) — not the DOM <input> attribute of the same name. Left in
+    // `...rest`, it would spread onto the underlying <input> alongside the
+    // `value` prop set explicitly below, producing React's controlled/
+    // uncontrolled warning for every NumberInput a caller passes
+    // defaultValue to (e.g. deals/DealInputs.tsx's Potential Value).
+    defaultValue: _defaultValueProp,
     parse = convertStringToNumber,
     onFocus,
     helperText,

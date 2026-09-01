@@ -689,6 +689,7 @@ export const frenchCrmMessages = {
     },
     header: {
       import_data: "Importer des données",
+      wordmark: "Leif Ariel",
     },
     image_editor: {
       change: "Changer",
@@ -808,6 +809,7 @@ export const frenchCrmMessages = {
     navigation: {
       label: "Navigation CRM",
       more: "Plus",
+      pipeline: "Pipeline",
     },
     profile: {
       inbound: {

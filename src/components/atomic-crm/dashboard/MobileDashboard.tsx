@@ -1,6 +1,7 @@
+import { useTranslate } from "ra-core";
+
 import MobileHeader from "../layout/MobileHeader";
 import { MobileContent } from "../layout/MobileContent";
-import { useConfigurationContext } from "../root/ConfigurationContext";
 import { Dashboard } from "./Dashboard";
 
 // Chaos Monkey routing/shell regression fix (Programs + Opportunity UX
@@ -15,21 +16,12 @@ import { Dashboard } from "./Dashboard";
 // (grid-cols-1 at narrow widths) handle the stacking; no separate mobile
 // dashboard content exists anymore.
 const Wrapper = ({ children }: { children: React.ReactNode }) => {
-  const { darkModeLogo, lightModeLogo, title } = useConfigurationContext();
+  const translate = useTranslate();
   return (
     <>
       <MobileHeader>
-        <div className="flex items-center gap-2 text-secondary-foreground no-underline py-3">
-          <img
-            className="[.light_&]:hidden h-9 w-9"
-            src={darkModeLogo}
-            alt={title}
-          />
-          <img
-            className="[.dark_&]:hidden h-9 w-9"
-            src={lightModeLogo}
-            alt={title}
-          />
+        <div className="text-secondary-foreground no-underline font-semibold tracking-tight">
+          {translate("crm.header.wordmark")}
         </div>
       </MobileHeader>
       <MobileContent>{children}</MobileContent>

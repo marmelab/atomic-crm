@@ -6,12 +6,10 @@ import { ThemeModeToggle } from "@/components/admin/theme-mode-toggle";
 import { UserMenu } from "@/components/admin/user-menu";
 import { DropdownMenuItem } from "@/components/ui/dropdown-menu";
 
-import { useConfigurationContext } from "../root/ConfigurationContext";
 import { ImportPage } from "../misc/ImportPage";
 import { ChangelogPage } from "../misc/ChangelogPage";
 
 const Header = () => {
-  const { darkModeLogo, lightModeLogo, title } = useConfigurationContext();
   const location = useLocation();
   const translate = useTranslate();
 
@@ -40,18 +38,9 @@ const Header = () => {
             <div className="flex justify-between items-center flex-1">
               <Link
                 to="/"
-                className="flex items-center gap-2 text-secondary-foreground no-underline"
+                className="text-secondary-foreground no-underline font-semibold tracking-tight"
               >
-                <img
-                  className="[.light_&]:hidden h-14 w-14"
-                  src={darkModeLogo}
-                  alt={title}
-                />
-                <img
-                  className="[.dark_&]:hidden h-14 w-14"
-                  src={lightModeLogo}
-                  alt={title}
-                />
+                {translate("crm.header.wordmark")}
               </Link>
               <div>
                 <nav className="flex">
@@ -61,9 +50,7 @@ const Header = () => {
                     isActive={currentPath === "/"}
                   />
                   <NavigationTab
-                    label={translate("resources.deals.name", {
-                      smart_count: 2,
-                    })}
+                    label={translate("crm.navigation.pipeline")}
                     to="/deals"
                     isActive={currentPath === "/deals"}
                   />

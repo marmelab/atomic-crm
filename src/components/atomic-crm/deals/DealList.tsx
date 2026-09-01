@@ -79,7 +79,7 @@ const DealLayout = () => {
     <div className="w-full">
       <div className="mb-4">
         <h1 className="text-2xl font-semibold">
-          {translate("resources.deals.name", { smart_count: 2 })}
+          {translate("crm.navigation.pipeline")}
         </h1>
         <p className="text-sm text-muted-foreground">
           {translate("resources.deals.pipeline_orientation")}

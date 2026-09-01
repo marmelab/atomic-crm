@@ -675,6 +675,12 @@ export const englishCrmMessages = {
     },
     header: {
       import_data: "Import data",
+      // Small polish/cleanup slice: a restrained text wordmark replacing
+      // the meditation/labyrinth logo in the header chrome (desktop nav
+      // and the mobile Dashboard header) — text only, no icon, no "CRM",
+      // no subtitle. The logo asset/config (darkModeLogo/lightModeLogo)
+      // is untouched and still used elsewhere (Settings, Login, Signup).
+      wordmark: "Leif Ariel",
     },
     image_editor: {
       change: "Change",
@@ -792,6 +798,14 @@ export const englishCrmMessages = {
     navigation: {
       label: "CRM navigation",
       more: "More",
+      // Small polish/cleanup slice: the nav destination's own display
+      // label — the Opportunity domain model, its resource/table name,
+      // and contextual per-record language ("New Opportunity") are
+      // unchanged; only this one collection-view label reads differently
+      // (Header.tsx desktop tab, MobileNavigation.tsx bottom nav,
+      // DealList.tsx's own page heading, so the page you land on matches
+      // the tab you clicked).
+      pipeline: "Pipeline",
     },
     profile: {
       inbound: {
