@@ -10,8 +10,8 @@ export function DashboardActivityLog() {
   const translate = useTranslate();
   return (
     <div className="flex flex-col">
-      <div className="flex items-center mb-4 md:mb-2">
-        <div className="mr-3 flex">
+      <div className="flex gap-3 items-center mb-4 md:mb-2">
+        <div className="flex">
           <Clock className="text-muted-foreground w-6 h-6" />
         </div>
         <h2 className="text-xl font-semibold text-muted-foreground">

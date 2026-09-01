@@ -20,10 +20,10 @@ describe("formatISODateString", () => {
   });
 
   it("should not shift the date regardless of timezone", async () => {
-    // Uses CDP (Emulation.setTimezoneOverride) to actually change the browser's
-    // timezone at runtime so we can catch regressions where someone replaces the
-    // manual date-component parse with new Date(isoString), which would shift
-    // dates in negative-offset timezones like America/New_York.
+    
+    
+    
+    
     const isoDate = "2024-06-15";
     await commands.setTimezone("America/New_York");
     expect(formatISODateString(isoDate)).toBe("Jun 15, 2024");

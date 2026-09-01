@@ -1,4 +1,4 @@
-import { add } from "date-fns";
+import { add } from "date-fns-jalali";
 import { datatype, lorem, random } from "faker/locale/en_US";
 
 import {
@@ -43,7 +43,7 @@ export const generateDeals = (db: Db): Deal[] => {
       index: 0,
     };
   });
-  // compute index based on stage
+  
   defaultDealStages.forEach((stage) => {
     deals
       .filter((deal) => deal.stage === stage.value)

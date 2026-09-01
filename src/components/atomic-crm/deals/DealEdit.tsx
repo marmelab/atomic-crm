@@ -29,8 +29,15 @@ export const DealEdit = ({ open, id }: { open: boolean; id?: string }) => {
   };
 
   return (
-    <Dialog open={open} onOpenChange={() => handleClose()}>
-      <DialogContent className="lg:max-w-4xl p-4 overflow-y-auto max-h-9/10 top-1/20 translate-y-0">
+    <Dialog open={open} onOpenChange={(isOpen) => {
+      if (!isOpen) handleClose();
+    }}>
+      <DialogContent 
+        className="lg:max-w-4xl p-4 overflow-y-auto max-h-9/10 top-1/20 translate-y-0"
+        onInteractOutside={(e) => {
+          e.preventDefault();
+        }}
+      >
         {id ? (
           <EditBase
             id={id}
@@ -46,6 +53,7 @@ export const DealEdit = ({ open, id }: { open: boolean; id?: string }) => {
           >
             <EditHeader />
             <Form>
+              
               <DealInputs />
               <FormToolbar />
             </Form>

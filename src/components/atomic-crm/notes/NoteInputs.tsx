@@ -3,7 +3,8 @@ import { required, useGetOne, useTranslate } from "ra-core";
 import { TextInput } from "@/components/admin/text-input";
 import { FileInput } from "@/components/admin/file-input";
 import { SelectInput } from "@/components/admin/select-input";
-import { DateTimeInput } from "@/components/admin/date-time-input";
+
+import { JalaliDateInput } from "@/components/admin/jalali-date-input";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useFormContext, useWatch } from "react-hook-form";
@@ -11,7 +12,6 @@ import { useFormContext, useWatch } from "react-hook-form";
 import type { ContactNote, DealNote } from "../types";
 import { Status } from "../misc/Status";
 import { useConfigurationContext } from "../root/ConfigurationContext";
-import { getCurrentDate } from "./utils";
 import { AttachmentField } from "./AttachmentField";
 import { foreignKeyMapping } from "./foreignKeyMapping";
 import { AutocompleteInput, ReferenceInput } from "@/components/admin";
@@ -41,6 +41,7 @@ export const NoteInputs = ({
   const selectedStatus = useWatch({ control, name: "status" });
   const textValue = useWatch({ control, name: "text" as any });
   const isExpanded = isFocused || !!textValue;
+  
   useEffect(() => {
     if (!textValue) {
       setIsFocused(false);
@@ -50,6 +51,7 @@ export const NoteInputs = ({
       }
     }
   }, [textValue]);
+  
   const shouldHydrateStatus =
     showStatus &&
     (defaultStatus !== undefined ||
@@ -89,9 +91,6 @@ export const NoteInputs = ({
     shouldHydrateStatus,
   ]);
 
-  // We manually define the input labels because the default ones
-  // would use the resource from the context, which is either "contact_notes" or "deal_notes",
-  // but we want it to be "notes" regardless of the context
   return (
     <div ref={containerRef} className="space-y-2">
       <TextInput
@@ -171,12 +170,14 @@ export const NoteInputs = ({
               helperText={false}
             />
           )}
-          <DateTimeInput
+          
+          
+          <JalaliDateInput
             source="date"
             label="resources.notes.fields.date"
             helperText={false}
             className="text-primary"
-            defaultValue={getCurrentDate()}
+            defaultValue={new Date().toISOString().split("T")[0]}
           />
         </div>
         <FileInput

@@ -3,7 +3,8 @@ import { ReferenceInput } from "@/components/admin/reference-input";
 import { SelectInput } from "@/components/admin/select-input";
 import { TextInput } from "@/components/admin/text-input";
 import { required } from "ra-core";
-import { DateTimeInput } from "@/components/admin";
+
+import { JalaliDateInput } from "@/components/admin/jalali-date-input";
 
 import { contactOptionText } from "../misc/ContactOption";
 import { useConfigurationContext } from "../root/ConfigurationContext";
@@ -37,8 +38,10 @@ export const TaskFormContent = ({
       )}
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <DateTimeInput
+        
+        <JalaliDateInput
           source="due_date"
+          label="resources.tasks.fields.due_date"
           helperText={false}
           validate={required()}
         />

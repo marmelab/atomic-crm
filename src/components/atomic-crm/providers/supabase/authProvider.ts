@@ -21,8 +21,8 @@ const getBaseAuthProvider = () =>
     },
   });
 
-// To speed up checks, we cache the initialization state
-// and the current sale in the local storage. They are cleared on logout.
+
+
 const IS_INITIALIZED_CACHE_KEY = "RaStore.auth.is_initialized";
 const CURRENT_SALE_CACHE_KEY = "RaStore.auth.current_sale";
 
@@ -41,6 +41,7 @@ export async function getIsInitialized() {
   }
 
   const { data } = await getSupabaseClient()
+    .schema("public")
     .from("init_state")
     .select("is_initialized");
   const isInitialized = data?.at(0)?.is_initialized > 0;
@@ -62,7 +63,7 @@ const getSale = async () => {
   const { data: dataSession, error: errorSession } =
     await getSupabaseClient().auth.getSession();
 
-  // Shouldn't happen after login but just in case
+  
   if (dataSession?.session?.user == null || errorSession) {
     return undefined;
   }
@@ -73,7 +74,7 @@ const getSale = async () => {
     .match({ user_id: dataSession?.session?.user.id })
     .single();
 
-  // Shouldn't happen either as all users are sales but just in case
+  
   if (dataSale == null || errorSale) {
     return undefined;
   }
@@ -109,21 +110,21 @@ export const getAuthProvider = (): AuthProvider => {
       return baseAuthProvider.logout(params);
     },
     checkAuth: async (params) => {
-      // Users are on the set-password page, nothing to do
+      
       if (
         window.location.pathname === "/set-password" ||
         window.location.hash.includes("#/set-password")
       ) {
         return;
       }
-      // Users are on the forgot-password page, nothing to do
+      
       if (
         window.location.pathname === "/forgot-password" ||
         window.location.hash.includes("#/forgot-password")
       ) {
         return;
       }
-      // Users are on the sign-up page, nothing to do
+      
       if (
         window.location.pathname === "/sign-up" ||
         window.location.hash.includes("#/sign-up")
@@ -147,11 +148,11 @@ export const getAuthProvider = (): AuthProvider => {
       const isInitialized = await getIsInitialized();
       if (!isInitialized) return false;
 
-      // Get the current user
+      
       const sale = await getSale();
       if (sale == null) return false;
 
-      // Compute access rights from the sale role
+      
       const role = sale.administrator ? "admin" : "user";
       return canAccess(role, params);
     },

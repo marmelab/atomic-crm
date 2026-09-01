@@ -1,5 +1,5 @@
 import { useMutation } from "@tanstack/react-query";
-import { isValid } from "date-fns";
+import { isValid } from "date-fns-jalali";
 import { Archive, ArchiveRestore } from "lucide-react";
 import {
   InfiniteListBase,
@@ -50,7 +50,7 @@ export const DealShow = ({ open, id }: { open: boolean; id?: string }) => {
 
 const DealShowContent = () => {
   const translate = useTranslate();
-  const { dealStages, dealCategories, currency } = useConfigurationContext();
+  const { dealStages, dealCategories } = useConfigurationContext();
   const record = useRecordContext<Deal>();
   if (!record) return null;
 
@@ -108,14 +108,9 @@ const DealShowContent = () => {
               <span className="text-xs text-muted-foreground tracking-wide">
                 {translate("resources.deals.fields.amount")}
               </span>
-              <span className="text-sm">
-                {record.amount.toLocaleString("en-US", {
-                  notation: "compact",
-                  style: "currency",
-                  currency,
-                  currencyDisplay: "narrowSymbol",
-                  minimumSignificantDigits: 3,
-                })}
+              <span className="text-sm font-medium">
+                {}
+                {record.amount ? `${Number(record.amount).toLocaleString("fa-IR")} تومان` : "۰ تومان"}
               </span>
             </div>
 

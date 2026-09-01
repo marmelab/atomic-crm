@@ -4,7 +4,7 @@ import { ReferenceArrayInput } from "@/components/admin/reference-array-input";
 import { ReferenceInput } from "@/components/admin/reference-input";
 import { TextInput } from "@/components/admin/text-input";
 import { NumberInput } from "@/components/admin/number-input";
-import { DateInput } from "@/components/admin/date-input";
+import { JalaliDateInput } from "@/components/admin/jalali-date-input";
 import { SelectInput } from "@/components/admin/select-input";
 import { Separator } from "@/components/ui/separator";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -79,13 +79,16 @@ const DealMiscInputs = () => {
         optionValue="value"
         helperText={false}
       />
+      
       <NumberInput
         source="amount"
+        label="مبلغ (تومان)"
         defaultValue={0}
         helperText={false}
         validate={required()}
       />
-      <DateInput
+      
+      <JalaliDateInput
         validate={required()}
         source="expected_closing_date"
         helperText={false}

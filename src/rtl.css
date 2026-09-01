@@ -1,0 +1,35 @@
+/* RTL-specific styles */
+[dir="rtl"] {
+  /* Fixes for components that don't automatically adapt to RTL */
+  .react-flow__controls-button {
+    transform: scaleX(-1);
+  }
+
+  /* Ensure icons in buttons are mirrored */
+  .lucide-arrow-right {
+    transform: scaleX(-1);
+  }
+
+  .lucide-arrow-left {
+    transform: scaleX(-1);
+  }
+
+  .lucide-chevron-right {
+    transform: scaleX(-1);
+  }
+
+  .lucide-chevron-left {
+    transform: scaleX(-1);
+  }
+
+  /* Fix for react-admin's DataGrid pagination */
+  .MuiDataGrid-columnHeader--alignRight .MuiDataGrid-columnHeaderTitleContainer {
+    flex-direction: row-reverse;
+  }
+
+  /* Fix for react-admin's FilterForm */
+  .RaFilterForm-input {
+    margin-left: 0;
+    margin-right: 0.5rem;
+  }
+}

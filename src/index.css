@@ -1,11 +1,15 @@
 @import "tailwindcss";
 @import "tw-animate-css";
-@import "@fontsource-variable/inter";
+@import "@fontsource/vazirmatn/400.css";
+@import "@fontsource/vazirmatn/500.css";
+@import "@fontsource/vazirmatn/600.css";
+@import "@fontsource/vazirmatn/700.css";
+@import "./rtl.css";
 
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
-  --font-sans: "Inter Variable", ui-sans-serif, system-ui, sans-serif;
+  --font-sans: Vazirmatn, ui-sans-serif, system-ui, sans-serif;
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
@@ -141,48 +145,3 @@ input {
   cursor: text;
 }
 
-/* Prevent mobile zoom on input focus by ensuring 16px minimum font size */
-@media screen and (max-width: 768px) {
-  html {
-    font-size: 17px;
-  }
-  input,
-  textarea,
-  select {
-    font-size: 16px !important;
-  }
-}
-
-a[aria-disabled="true"],
-button[aria-disabled="true"],
-button:disabled,
-input[aria-disabled="true"],
-input:disabled {
-  cursor: not-allowed;
-}
-
-input[type="date"],
-input[type="datetime-local"],
-input[type="month"],
-input[type="time"] {
-  position: relative;
-}
-
-.dark ::-webkit-calendar-picker-indicator {
-  filter: invert(1);
-  position: absolute;
-  right: 0.75rem;
-}
-
-@layer base {
-  * {
-    @apply border-border outline-ring/50;
-  }
-  body {
-    @apply bg-background text-foreground font-sans;
-  }
-}
-
-body {
-  font-family: "Inter Variable", ui-sans-serif, system-ui, sans-serif;
-}

@@ -5,58 +5,58 @@ export const defaultLightModeLogo = "./logos/logo_atomic_crm_light.svg";
 
 export const defaultCurrency = "USD";
 
-export const defaultTitle = "Atomic CRM";
+export const defaultTitle = "سی آر ام اتمیک";
 
 export const defaultCompanySectors = [
-  { value: "communication-services", label: "Communication Services" },
-  { value: "consumer-discretionary", label: "Consumer Discretionary" },
-  { value: "consumer-staples", label: "Consumer Staples" },
-  { value: "energy", label: "Energy" },
-  { value: "financials", label: "Financials" },
-  { value: "health-care", label: "Health Care" },
-  { value: "industrials", label: "Industrials" },
-  { value: "information-technology", label: "Information Technology" },
-  { value: "materials", label: "Materials" },
-  { value: "real-estate", label: "Real Estate" },
-  { value: "utilities", label: "Utilities" },
+  { value: "communication-services", label: "خدمات ارتباطی" },
+  { value: "consumer-discretionary", label: "کالاهای مصرفی اختیاری" },
+  { value: "consumer-staples", label: "کالاهای اساسی مصرفی" },
+  { value: "energy", label: "انرژی" },
+  { value: "financials", label: "مالی" },
+  { value: "health-care", label: "بهداشت و درمان" },
+  { value: "industrials", label: "صنعتی" },
+  { value: "information-technology", label: "فناوری اطلاعات" },
+  { value: "materials", label: "مواد" },
+  { value: "real-estate", label: "املاک و مستغلات" },
+  { value: "utilities", label: "خدمات عمومی" },
 ];
 
 export const defaultDealStages = [
-  { value: "opportunity", label: "Opportunity" },
-  { value: "proposal-sent", label: "Proposal Sent" },
-  { value: "in-negociation", label: "In Negotiation" },
-  { value: "won", label: "Won" },
-  { value: "lost", label: "Lost" },
-  { value: "delayed", label: "Delayed" },
+  { value: "opportunity", label: "فرصت" },
+  { value: "proposal-sent", label: "پیشنهاد ارسال شد" },
+  { value: "in-negociation", label: "در مذاکره" },
+  { value: "won", label: "برنده" },
+  { value: "lost", label: "باخته" },
+  { value: "delayed", label: "به تعویق افتاده" },
 ];
 
 export const defaultDealPipelineStatuses = ["won"];
 
 export const defaultDealCategories = [
-  { value: "other", label: "Other" },
-  { value: "copywriting", label: "Copywriting" },
-  { value: "print-project", label: "Print project" },
-  { value: "ui-design", label: "UI Design" },
-  { value: "website-design", label: "Website design" },
+  { value: "other", label: "سایر" },
+  { value: "copywriting", label: "کپی‌رایتینگ" },
+  { value: "print-project", label: "پروژه چاپ" },
+  { value: "ui-design", label: "طراحی رابط کاربری" },
+  { value: "website-design", label: "طراحی وب‌سایت" },
 ];
 
 export const defaultNoteStatuses = [
-  { value: "cold", label: "Cold", color: "#7dbde8" },
-  { value: "warm", label: "Warm", color: "#e8cb7d" },
-  { value: "hot", label: "Hot", color: "#e88b7d" },
-  { value: "in-contract", label: "In Contract", color: "#a4e87d" },
+  { value: "cold", label: "سرد", color: "#7dbde8" },
+  { value: "warm", label: "گرم", color: "#e8cb7d" },
+  { value: "hot", label: "داغ", color: "#e88b7d" },
+  { value: "in-contract", label: "در قرارداد", color: "#a4e87d" },
 ];
 
 export const defaultTaskTypes = [
-  { value: "none", label: "None" },
-  { value: "email", label: "Email" },
-  { value: "demo", label: "Demo" },
-  { value: "lunch", label: "Lunch" },
-  { value: "meeting", label: "Meeting" },
-  { value: "follow-up", label: "Follow-up" },
-  { value: "thank-you", label: "Thank you" },
-  { value: "ship", label: "Ship" },
-  { value: "call", label: "Call" },
+  { value: "none", label: "هیچ‌کدام" },
+  { value: "email", label: "ایمیل" },
+  { value: "demo", label: "دمو" },
+  { value: "lunch", label: "ناهار" },
+  { value: "meeting", label: "جلسه" },
+  { value: "follow-up", label: "پیگیری" },
+  { value: "thank-you", label: "تشکر" },
+  { value: "ship", label: "ارسال" },
+  { value: "call", label: "تماس" },
 ];
 
 export const defaultConfiguration: ConfigurationContextValue = {

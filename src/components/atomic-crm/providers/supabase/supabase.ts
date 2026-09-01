@@ -1,7 +1,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { createClient } from "@supabase/supabase-js";
 
-let supabaseClient: SupabaseClient | null = null;
+let supabaseClient: SupabaseClient<any, "public"> | null = null;
 
 export const getSupabaseClient = () => {
   if (!supabaseClient) {

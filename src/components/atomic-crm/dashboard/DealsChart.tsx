@@ -1,5 +1,5 @@
 import { ResponsiveBar } from "@nivo/bar";
-import { format, startOfMonth } from "date-fns";
+import { format, startOfMonth } from "date-fns-jalali";
 import { TrendingUp } from "lucide-react";
 import { useGetList, useTranslate } from "ra-core";
 import { memo, useMemo } from "react";
@@ -19,16 +19,11 @@ const threeMonthsAgo = new Date(
   new Date().setMonth(new Date().getMonth() - 6),
 ).toISOString();
 
-const DEFAULT_LOCALE = "en-US";
-
 export const DealsChart = memo(() => {
   const translate = useTranslate();
-  const { dealStages, currency } = useConfigurationContext();
-  const acceptedLanguages = navigator
-    ? navigator.languages || [navigator.language]
-    : [DEFAULT_LOCALE];
-  const wonLabel = findDealLabel(dealStages, "won") ?? "Won";
-  const lostLabel = findDealLabel(dealStages, "lost") ?? "Lost";
+  const { dealStages } = useConfigurationContext(); 
+  const wonLabel = findDealLabel(dealStages, "won") ?? "برنده";
+  const lostLabel = findDealLabel(dealStages, "lost") ?? "باخته";
 
   const { data, isPending } = useGetList<Deal>("deals", {
     pagination: { perPage: 100, page: 1 },
@@ -40,6 +35,7 @@ export const DealsChart = memo(() => {
       "created_at@gte": threeMonthsAgo,
     },
   });
+
   const months = useMemo(() => {
     if (!data) return [];
     const dealsByMonth = data.reduce((acc, deal) => {
@@ -53,7 +49,8 @@ export const DealsChart = memo(() => {
 
     const amountByMonth = Object.keys(dealsByMonth).map((month) => {
       return {
-        date: format(month, "MMM"),
+        
+        date: format(new Date(month), "MMM"),
         won: dealsByMonth[month]
           .filter((deal: Deal) => deal.stage === "won")
           .reduce((acc: number, deal: Deal) => {
@@ -63,7 +60,7 @@ export const DealsChart = memo(() => {
         pending: dealsByMonth[month]
           .filter((deal: Deal) => !["won", "lost"].includes(deal.stage))
           .reduce((acc: number, deal: Deal) => {
-            // @ts-expect-error - multiplier type issue
+            // @ts-expect-error - deal.stage may not exist in multiplier
             acc += deal.amount * multiplier[deal.stage];
             return acc;
           }, 0),
@@ -79,7 +76,8 @@ export const DealsChart = memo(() => {
     return amountByMonth;
   }, [data]);
 
-  if (isPending) return null; // FIXME return skeleton instead
+  if (isPending) return null;
+
   const range = months.reduce(
     (acc, month) => {
       acc.min = Math.min(acc.min, month.lost);
@@ -88,23 +86,26 @@ export const DealsChart = memo(() => {
     },
     { min: 0, max: 0 },
   );
+
   return (
     <div className="flex flex-col">
-      <div className="flex items-center mb-4">
-        <div className="mr-3 flex">
+      <div className="flex items-center mb-4 gap-3">
+        <div className="flex">
           <TrendingUp className="text-muted-foreground w-6 h-6" />
         </div>
         <h2 className="text-xl font-semibold text-muted-foreground">
           {translate("crm.dashboard.deals_chart")}
         </h2>
       </div>
-      <div className="h-[400px]">
+      
+      {}
+      <div className="h-[400px]" dir="ltr">
         <ResponsiveBar
           data={months}
           indexBy="date"
           keys={["won", "pending", "lost"]}
           colors={["#61cdbb", "#97e3d5", "#e25c3b"]}
-          margin={{ top: 30, right: 50, bottom: 30, left: 0 }}
+          margin={{ top: 30, right: 60, bottom: 30, left: 10 }}
           padding={0.3}
           valueScale={{
             type: "linear",
@@ -116,28 +117,20 @@ export const DealsChart = memo(() => {
           enableGridY={false}
           enableLabel={false}
           tooltip={({ value, indexValue }) => (
-            <div className="p-2 bg-secondary rounded shadow inline-flex items-center gap-1 text-secondary-foreground">
-              <strong>{indexValue}: </strong>&nbsp;{value > 0 ? "+" : ""}
-              {value.toLocaleString(acceptedLanguages.at(0) ?? DEFAULT_LOCALE, {
-                style: "currency",
-                currency,
-              })}
+            <div className="p-2 bg-secondary rounded shadow inline-flex items-center gap-1 text-secondary-foreground" dir="rtl">
+              <strong>{indexValue}: </strong>&nbsp;
+              <span dir="ltr">
+                {value > 0 ? "+" : ""}
+                {value ? `${Number(value).toLocaleString("fa-IR")}` : "۰"} تومان
+              </span>
             </div>
           )}
           axisTop={{
             tickSize: 0,
             tickPadding: 12,
             style: {
-              ticks: {
-                text: {
-                  fill: "var(--color-muted-foreground)",
-                },
-              },
-              legend: {
-                text: {
-                  fill: "var(--color-muted-foreground)",
-                },
-              },
+              ticks: { text: { fill: "var(--color-muted-foreground)", fontFamily: "inherit" } },
+              legend: { text: { fill: "var(--color-muted-foreground)" } },
             },
           }}
           axisBottom={{
@@ -146,33 +139,17 @@ export const DealsChart = memo(() => {
             tickSize: 0,
             tickPadding: 12,
             style: {
-              ticks: {
-                text: {
-                  fill: "var(--color-muted-foreground)",
-                },
-              },
-              legend: {
-                text: {
-                  fill: "var(--color-muted-foreground)",
-                },
-              },
+              ticks: { text: { fill: "var(--color-muted-foreground)", fontFamily: "inherit" } },
+              legend: { text: { fill: "var(--color-muted-foreground)" } },
             },
           }}
           axisLeft={null}
           axisRight={{
-            format: (v: any) => `${Math.abs(v / 1000)}k`,
+            format: (v: any) => `${Number(Math.abs(v / 1000)).toLocaleString("fa-IR")}k`,
             tickValues: 8,
             style: {
-              ticks: {
-                text: {
-                  fill: "var(--color-muted-foreground)",
-                },
-              },
-              legend: {
-                text: {
-                  fill: "var(--color-muted-foreground)",
-                },
-              },
+              ticks: { text: { fill: "var(--color-muted-foreground)", fontFamily: "inherit" } },
+              legend: { text: { fill: "var(--color-muted-foreground)" } },
             },
           }}
           markers={
@@ -181,7 +158,7 @@ export const DealsChart = memo(() => {
                 axis: "y",
                 value: 0,
                 lineStyle: { strokeOpacity: 0 },
-                textStyle: { fill: "#2ebca6" },
+                textStyle: { fill: "#2ebca6", fontFamily: "inherit" },
                 legend: wonLabel,
                 legendPosition: "top-left",
                 legendOrientation: "vertical",
@@ -189,11 +166,8 @@ export const DealsChart = memo(() => {
               {
                 axis: "y",
                 value: 0,
-                lineStyle: {
-                  stroke: "#f47560",
-                  strokeWidth: 1,
-                },
-                textStyle: { fill: "#e25c3b" },
+                lineStyle: { stroke: "#f47560", strokeWidth: 1 },
+                textStyle: { fill: "#e25c3b", fontFamily: "inherit" },
                 legend: lostLabel,
                 legendPosition: "bottom-left",
                 legendOrientation: "vertical",

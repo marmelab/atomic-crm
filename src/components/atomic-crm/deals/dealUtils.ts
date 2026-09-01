@@ -1,4 +1,4 @@
-import { format } from "date-fns";
+import { format } from "date-fns-jalali";
 
 import type { DealStage } from "../types";
 
@@ -19,8 +19,7 @@ export function getRelativeTimeString(
 
   const diff = date.getTime() - today.getTime();
   const unitDiff = Math.round(diff / (1000 * 60 * 60 * 24));
-
-  // Check if the date is more than one week old
+  
   if (Math.abs(unitDiff) > 7) {
     return new Intl.DateTimeFormat(locale, {
       day: "numeric",
@@ -28,7 +27,6 @@ export function getRelativeTimeString(
     }).format(date);
   }
 
-  // Intl.RelativeTimeFormat for dates within the last week
   const rtf = new Intl.RelativeTimeFormat(locale, { numeric: "auto" });
   return ucFirst(rtf.format(unitDiff, "day"));
 }
@@ -43,8 +41,6 @@ export function formatISODateString(dateString: string) {
   if (!isoDateStringRegex.test(dateString)) {
     throw new Error("Invalid date format. Expected YYYY-MM-DD.");
   }
-  // Some browsers will consider a date in the format YYYY-MM-DD as UTC, which can cause off-by-one-day issues depending on the user's timezone.
-  // To avoid this, we can parse the date components manually and create a date object in the local timezone.
   const [year, month, day] = dateString.split("-").map(Number);
   const date = new Date(year, month - 1, day);
 

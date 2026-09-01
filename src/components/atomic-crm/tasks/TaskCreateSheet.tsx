@@ -58,7 +58,7 @@ export const TaskCreateSheet = ({
     });
 
     notify("resources.tasks.added");
-    // No redirect, only close the sheet
+    
     onOpenChange(false);
   };
 
@@ -78,7 +78,8 @@ export const TaskCreateSheet = ({
       record={{
         type: "none",
         contact_id,
-        due_date: new Date().toISOString(),
+        
+        due_date: new Date().toISOString().split("T")[0],
         sales_id: identity.id,
       }}
       mutationOptions={{

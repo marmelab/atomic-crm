@@ -1,4 +1,4 @@
-import { endOfYesterday, startOfMonth, startOfWeek, subMonths } from "date-fns";
+import { endOfYesterday, startOfMonth, startOfWeek, subMonths } from "date-fns-jalali";
 import { CheckSquare, Clock, Tag, TrendingUp, Users } from "lucide-react";
 import {
   useGetIdentity,

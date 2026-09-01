@@ -31,12 +31,9 @@ export const DealCreate = ({ open }: { open: boolean }) => {
       redirect("/deals");
       return;
     }
-    // increase the index of all deals in the same stage as the new deal
-    // first, get the list of deals in the same stage
     const deals = allDeals.filter(
       (d: Deal) => d.stage === deal.stage && d.id !== deal.id,
     );
-    // update the actual deals in the database
     await Promise.all(
       deals.map(async (oldDeal) =>
         dataProvider.update("deals", {
@@ -46,8 +43,6 @@ export const DealCreate = ({ open }: { open: boolean }) => {
         }),
       ),
     );
-    // refresh the list of deals in the cache as we used dataProvider.update(),
-    // which does not update the cache
     const dealsById = deals.reduce(
       (acc, d) => ({
         ...acc,
@@ -73,8 +68,16 @@ export const DealCreate = ({ open }: { open: boolean }) => {
   const { identity } = useGetIdentity();
 
   return (
-    <Dialog open={open} onOpenChange={() => handleClose()}>
-      <DialogContent className="lg:max-w-4xl overflow-y-auto max-h-9/10 top-1/20 translate-y-0">
+    <Dialog open={open} onOpenChange={(isOpen) => {
+      if (!isOpen) handleClose();
+    }}>
+      <DialogContent 
+        className="lg:max-w-4xl overflow-y-auto max-h-9/10 top-1/20 translate-y-0"
+        onInteractOutside={(e) => {
+          
+          e.preventDefault();
+        }}
+      >
         <Create resource="deals" mutationOptions={{ onSuccess }}>
           <Form
             defaultValues={{

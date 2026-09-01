@@ -1,4 +1,4 @@
-import { formatDistance } from "date-fns";
+import { formatDistance } from "date-fns-jalali";
 import { FileText } from "lucide-react";
 import { useGetIdentity, useGetList, useTranslate } from "ra-core";
 import { ReferenceField } from "@/components/admin/reference-field";
@@ -31,7 +31,7 @@ export const LatestNotes = () => {
   if (contactNotesLoading || dealNotesLoading) {
     return null;
   }
-  // TypeScript guards
+  
   if (!contactNotesData || !dealNotesData) {
     return null;
   }

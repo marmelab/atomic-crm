@@ -33,8 +33,8 @@ export const HotContacts = () => {
 
   return (
     <div className="flex flex-col gap-2">
-      <div className="flex items-center">
-        <div className="mr-3 flex">
+      <div className="flex gap-3 items-center">
+        <div className="flex">
           <Users className="text-muted-foreground w-6 h-6" />
         </div>
         <h2 className="text-xl font-semibold text-muted-foreground">
