@@ -159,32 +159,6 @@ export const AutocompleteInput = (
     }
   });
 
-  const handleChange = useCallback(
-    (choice: any) => {
-      if (field.value === getChoiceValue(choice) && !isRequired) {
-        field.onChange("");
-        setFilterValue("");
-        if (isFromReference) {
-          setFilters(filterToQuery(""));
-        }
-        setOpen(false);
-        return;
-      }
-      field.onChange(getChoiceValue(choice));
-      setOpen(false);
-    },
-    [
-      field,
-      getChoiceValue,
-      isRequired,
-      setFilterValue,
-      isFromReference,
-      setFilters,
-      filterToQuery,
-      setOpen,
-    ],
-  );
-
   const handleReset = useEvent(() => {
     field.onChange("");
     setFilterValue("");
@@ -193,6 +167,18 @@ export const AutocompleteInput = (
     }
     setOpen(false);
   });
+
+  const handleChange = useCallback(
+    (choice: any) => {
+      if (field.value === getChoiceValue(choice) && !isRequired) {
+        handleReset();
+        return;
+      }
+      field.onChange(getChoiceValue(choice));
+      setOpen(false);
+    },
+    [field, getChoiceValue, isRequired, handleReset, setOpen],
+  );
 
   const {
     getCreateItem,

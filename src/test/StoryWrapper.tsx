@@ -7,7 +7,12 @@ import { Notification } from "@/components/admin/notification";
 import { createDataProvider } from "@/components/atomic-crm/providers/fakerest";
 import { DEFAULT_USER } from "@/components/atomic-crm/providers/fakerest/authProvider";
 import type { Db } from "@/components/atomic-crm/providers/fakerest/dataGenerator/types";
-import type { Company, Contact, Sale } from "@/components/atomic-crm/types";
+import type {
+  Company,
+  Contact,
+  Deal,
+  Sale,
+} from "@/components/atomic-crm/types";
 import { CRM } from "@/components/atomic-crm/root/CRM";
 import { testI18nProvider } from "@/components/atomic-crm/providers/commons/i18nProvider";
 
@@ -99,6 +104,24 @@ export const buildContact = (overrides: Partial<Contact> = {}): Contact => ({
   status: "warm",
   tags: [],
   title: "CTO",
+  ...overrides,
+});
+
+export const buildDeal = (overrides: Partial<Deal> = {}): Deal => ({
+  amount: 1000,
+  archived_at: undefined,
+  category: "Other",
+  company_id: 1,
+  contact_ids: [],
+  created_at: "2025-01-01T09:00:00.000Z",
+  description: "",
+  expected_closing_date: "2025-02-01T09:00:00.000Z",
+  id: 1,
+  index: 0,
+  name: "Acme deal",
+  sales_id: 0,
+  stage: "opportunity",
+  updated_at: "2025-01-01T09:00:00.000Z",
   ...overrides,
 });
 
