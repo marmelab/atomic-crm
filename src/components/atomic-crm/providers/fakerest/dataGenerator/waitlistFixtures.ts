@@ -165,6 +165,7 @@ export const addWaitlistFixtures = (db: Db) => {
     expected_closing_date: daysAgo(5).split("T")[0],
     sales_id: salesId,
     index: 0,
+    stage_entered_at: daysAgo(5),
   };
   db.deals.push(ivyOpportunity);
   addEntry({

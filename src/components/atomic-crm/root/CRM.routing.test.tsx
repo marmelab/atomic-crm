@@ -177,6 +177,7 @@ describe("Opportunities pipeline (DealList) route", () => {
       index: 0,
       created_at: "2025-01-01T00:00:00.000Z",
       updated_at: "2025-01-01T00:00:00.000Z",
+      stage_entered_at: "2025-01-01T00:00:00.000Z",
     };
     // Acceptance-repair pass, round 2: the Kanban card previously showed
     // only the Contact's name and the amount, with no way to tell a Living
@@ -201,6 +202,7 @@ describe("Opportunities pipeline (DealList) route", () => {
       index: 1,
       created_at: "2025-01-01T00:00:00.000Z",
       updated_at: "2025-01-01T00:00:00.000Z",
+      stage_entered_at: "2025-01-01T00:00:00.000Z",
     };
     const screen = await render(
       buildTestCrm(["/deals"], [leDeal, gyuDeal], [], [gyuContact]),
@@ -248,6 +250,7 @@ describe("GYU Cohort person links", () => {
       index: 0,
       created_at: "2025-01-01T00:00:00.000Z",
       updated_at: "2025-01-01T00:00:00.000Z",
+      stage_entered_at: "2025-01-01T00:00:00.000Z",
     };
     const screen = await render(
       buildTestCrm(["/cohorts/1/show"], [decidingDeal]),
@@ -277,6 +280,7 @@ describe("GYU Cohort person links", () => {
       index: 0,
       created_at: "2025-01-01T00:00:00.000Z",
       updated_at: "2025-01-01T00:00:00.000Z",
+      stage_entered_at: "2025-01-01T00:00:00.000Z",
     };
     const enrollment: Db["enrollments"][number] = {
       id: 1,

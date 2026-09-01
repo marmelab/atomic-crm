@@ -222,6 +222,7 @@ describe("Dashboard — Coming Up", () => {
       updated_at: "2026-01-01T00:00:00.000Z",
       sales_id: 0,
       index: 0,
+      stage_entered_at: "2026-01-01T00:00:00.000Z",
     };
     const leEnrollment: Enrollment = {
       id: 1,
@@ -304,6 +305,7 @@ describe("Dashboard — Coming Up", () => {
         updated_at: "2026-01-01T00:00:00.000Z",
         sales_id: 0,
         index: 0,
+        stage_entered_at: "2026-01-01T00:00:00.000Z",
       },
       {
         id: 2,
@@ -317,6 +319,7 @@ describe("Dashboard — Coming Up", () => {
         updated_at: "2026-01-01T00:00:00.000Z",
         sales_id: 0,
         index: 0,
+        stage_entered_at: "2026-01-01T00:00:00.000Z",
       },
     ];
     const enrollments: Enrollment[] = [

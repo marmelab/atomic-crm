@@ -164,6 +164,7 @@ describe("removeFromWaitlist", () => {
       updated_at: "2026-01-01T00:00:00.000Z",
       sales_id: 0,
       index: 0,
+      stage_entered_at: "2026-01-01T00:00:00.000Z",
     };
     const { dataProvider } = buildFixtures(
       { status: "waiting" },
@@ -242,6 +243,7 @@ describe("convertToOpportunity", () => {
       updated_at: "2026-01-01T00:00:00.000Z",
       sales_id: 0,
       index: 0,
+      stage_entered_at: "2026-01-01T00:00:00.000Z",
     };
     const { dataProvider } = buildFixtures(
       { status: "waiting" },
@@ -282,6 +284,7 @@ describe("convertToOpportunity", () => {
       updated_at: "2026-01-01T00:00:00.000Z",
       sales_id: 0,
       index: 0,
+      stage_entered_at: "2026-01-01T00:00:00.000Z",
     };
     const { dataProvider } = buildFixtures(
       { status: "waiting" },

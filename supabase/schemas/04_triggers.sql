@@ -27,12 +27,28 @@ create or replace trigger "05_handle_deal_saved"
     before insert or update on public.deals
     for each row execute function public.handle_deal_saved();
 
+-- Kanban queue-ordering slice: stamp stage_entered_at on every genuine
+-- stage change, for every real pathway (Application review, sales-call
+-- booking/outcomes, Kanban drag/drop, any other function that updates
+-- deals.stage) — they all go through this one shared write path, so none
+-- of them can bypass it. BEFORE so the value lands in the same row write.
+create or replace trigger on_deal_stage_entered_at
+    before insert or update on public.deals
+    for each row execute function public.set_deal_stage_entered_at();
+
 -- Create the Opportunity's Enrollment the moment it genuinely transitions
 -- into Won. Runs AFTER so the deals row (and its id) already exists for the
 -- enrollments FK.
 create or replace trigger on_deal_won
     after insert or update on public.deals
     for each row execute function public.handle_deal_won();
+
+-- Companion AFTER half of on_deal_stage_entered_at above: appends the
+-- permanent deal_stage_events history row once the row (and its id) is
+-- committed.
+create or replace trigger on_deal_stage_event
+    after insert or update on public.deals
+    for each row execute function public.record_deal_stage_event();
 
 -- Convert any compatible Waitlist Entry the moment this Deal establishes
 -- an active sales relationship, regardless of which flow created/advanced

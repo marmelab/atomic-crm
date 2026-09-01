@@ -36,6 +36,13 @@ export const generateDeals = (db: Db): Deal[] => {
     const expected_closing_date = randomDate(new Date(created_at))
       .toISOString()
       .split("T")[0];
+    // Kanban queue-ordering slice: no real stage-transition history exists
+    // for a randomly generated fixture, so — same safe deterministic
+    // fallback as the deploy-time migration's backfill for pre-existing
+    // rows — reuse the row's own last-updated time as the stage-entry
+    // proxy. Varies per deal (never identical), never fabricated as a
+    // separate, more-precise-looking timestamp.
+    const stage_entered_at = randomDate(new Date(created_at)).toISOString();
 
     return {
       id,
@@ -50,7 +57,8 @@ export const generateDeals = (db: Db): Deal[] => {
       description: lorem.paragraphs(datatype.number({ min: 1, max: 2 })),
       amount: 4000,
       created_at,
-      updated_at: randomDate(new Date(created_at)).toISOString(),
+      updated_at: stage_entered_at,
+      stage_entered_at,
       expected_closing_date,
       sales_id: contact.sales_id!,
       index: 0,

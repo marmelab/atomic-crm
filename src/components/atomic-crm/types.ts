@@ -423,6 +423,26 @@ export type Deal = {
   expected_closing_date?: string | null;
   sales_id: Identifier;
   index: number;
+  // Kanban queue-ordering slice: when this Opportunity entered its CURRENT
+  // stage — set exactly once per genuine stage change (see
+  // set_deal_stage_entered_at() / providers/fakerest/dataProvider.ts's
+  // "deals" hooks), never by an unrelated field edit, a note, or metadata
+  // change. Kanban columns sort on this, oldest first. Full transition
+  // history (including earlier stages) lives separately in
+  // DealStageEvent — the same current-state/history split as SalesCall/
+  // SalesCallEvent above.
+  stage_entered_at: string;
+} & Pick<RaRecord, "id">;
+
+// Append-only history of every genuine stage transition an Opportunity has
+// made (Kanban queue-ordering slice) — mirrors SalesCallEvent's role for
+// Deal.stage_entered_at. Deliberately narrow: preserves stage transitions
+// only, not a general audit log of every field change.
+export type DealStageEvent = {
+  opportunity_id: Identifier;
+  stage: string;
+  entered_at: string;
+  created_at: string;
 } & Pick<RaRecord, "id">;
 
 export type DealNote = {

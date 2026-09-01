@@ -25,6 +25,7 @@ const buildDeal = (
   updated_at: "2026-08-20T00:00:00.000Z",
   sales_id: 0,
   index: 0,
+  stage_entered_at: "2026-08-20T00:00:00.000Z",
   ...overrides,
 });
 

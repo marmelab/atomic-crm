@@ -44,6 +44,7 @@ import type { Db } from "./dataGenerator/types";
 import { withSupabaseFilterAdapter } from "./internal/supabaseAdapter";
 import { syncContactRelationshipFields } from "./contactRelationshipFields";
 import { syncDealSalesCallAt } from "../../sales-calls/syncDealSalesCallAt";
+import { ensureDealStageEvent } from "../../deals/ensureDealStageEvent";
 import { assertNoDuplicateBookedSalesCall } from "../../sales-calls/salesCallValidation";
 
 const TASK_MARKED_AS_DONE = "TASK_MARKED_AS_DONE";
@@ -788,6 +789,10 @@ export const createDataProvider = ({
               ...data,
               created_at: new Date().toISOString(),
               updated_at: new Date().toISOString(),
+              // Kanban queue-ordering slice: mirrors the Postgres BEFORE
+              // trigger set_deal_stage_entered_at() — an insert is always a
+              // genuine stage entry.
+              stage_entered_at: new Date().toISOString(),
             },
           };
         },
@@ -810,6 +815,10 @@ export const createDataProvider = ({
           // centralized place, see waitlist/waitlistSync.ts.
           await syncWaitlistForActiveDeal(result.data, dataProvider);
 
+          // Kanban queue-ordering slice: permanent history row for the
+          // stage this Opportunity was created into.
+          await ensureDealStageEvent(dataProvider, result.data);
+
           return result;
         },
         beforeUpdate: async (params, dataProvider) => {
@@ -818,11 +827,25 @@ export const createDataProvider = ({
             params.previousData,
             dataProvider,
           );
+          // Kanban queue-ordering slice: mirrors the Postgres BEFORE
+          // trigger set_deal_stage_entered_at() exactly — stamp
+          // stage_entered_at only when `stage` is genuinely changing (every
+          // real stage-changing pathway — Application review, sales-call
+          // booking/outcomes, Kanban drag/drop — writes `data.stage` through
+          // this one shared "deals" update hook, so none of them can bypass
+          // this). An unrelated field edit, a note, or a same-stage index
+          // reorder never sets `data.stage`, so it never touches this.
+          const stageChanged =
+            data.stage !== undefined &&
+            data.stage !== params.previousData.stage;
           return {
             ...params,
             data: {
               ...data,
               updated_at: new Date().toISOString(),
+              ...(stageChanged
+                ? { stage_entered_at: new Date().toISOString() }
+                : {}),
             },
           };
         },
@@ -833,6 +856,11 @@ export const createDataProvider = ({
           // (DealListContent.tsx), a manual Edit — since they all write
           // through this one dataProvider.update("deals", ...) call.
           await syncWaitlistForActiveDeal(result.data, dataProvider);
+          // Kanban queue-ordering slice: same centralization — appends a
+          // deal_stage_events row only when stage_entered_at just changed
+          // (ensureDealStageEvent is idempotent, so this is a no-op for
+          // every unrelated update).
+          await ensureDealStageEvent(dataProvider, result.data);
           return result;
         },
         afterDelete: async (result) => {

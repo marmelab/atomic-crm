@@ -130,6 +130,7 @@ describe("Opportunity creation converts a compatible Waitlist Entry (§4)", () =
       updated_at: "2026-01-01T00:00:00.000Z",
       sales_id: 0,
       index: 0,
+      stage_entered_at: "2026-01-01T00:00:00.000Z",
     };
     const dataProvider = buildProvider(
       [buildEntry({ status: "waiting" })],

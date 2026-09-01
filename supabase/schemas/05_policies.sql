@@ -22,6 +22,7 @@ alter table public.enrollments enable row level security;
 alter table public.waitlist_entries enable row level security;
 alter table public.sales_calls enable row level security;
 alter table public.sales_call_events enable row level security;
+alter table public.deal_stage_events enable row level security;
 
 -- Companies
 create policy "Enable read access for authenticated users" on public.companies for select to authenticated using (true);
@@ -123,3 +124,9 @@ create policy "Enable read access for authenticated users" on public.sales_call_
 create policy "Enable insert for authenticated users only" on public.sales_call_events for insert to authenticated with check (true);
 create policy "Enable update for authenticated users only" on public.sales_call_events for update to authenticated using (true) with check (true);
 create policy "Sales Call Events Delete Policy" on public.sales_call_events for delete to authenticated using (true);
+
+-- Deal Stage Events
+create policy "Enable read access for authenticated users" on public.deal_stage_events for select to authenticated using (true);
+create policy "Enable insert for authenticated users only" on public.deal_stage_events for insert to authenticated with check (true);
+create policy "Enable update for authenticated users only" on public.deal_stage_events for update to authenticated using (true) with check (true);
+create policy "Deal Stage Events Delete Policy" on public.deal_stage_events for delete to authenticated using (true);

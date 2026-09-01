@@ -22,10 +22,19 @@ export const getDealsByStage = (
       {} as Record<Deal["stage"], Deal[]>,
     ),
   );
-  // order each column by index
+  // Kanban queue-ordering slice: each column sorts by how long an
+  // Opportunity has been sitting in its CURRENT stage — oldest (longest
+  // waiting) at the top, most-recently-entered at the bottom — using the
+  // durable stage_entered_at set by every real stage-changing pathway
+  // (see providers/fakerest/dataProvider.ts's "deals" hooks /
+  // supabase/schemas/02_functions.sql's set_deal_stage_entered_at()).
+  // Replaces the old manual drag-and-drop `index` field, which never
+  // reflected genuine time-in-stage.
   dealStages.forEach((stage) => {
     dealsByStage[stage.value] = dealsByStage[stage.value].sort(
-      (recordA: Deal, recordB: Deal) => recordA.index - recordB.index,
+      (recordA: Deal, recordB: Deal) =>
+        new Date(recordA.stage_entered_at).getTime() -
+        new Date(recordB.stage_entered_at).getTime(),
     );
   });
   return dealsByStage;

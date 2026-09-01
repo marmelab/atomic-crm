@@ -38,7 +38,13 @@ const DealList = () => {
         "outcome@is": null,
       }}
       title={false}
-      sort={{ field: "index", order: "DESC" }}
+      // Kanban queue-ordering slice: getDealsByStage (DealListContent.tsx)
+      // always re-sorts each column by stage_entered_at client-side, but
+      // this list has no pagination UI (perPage=100, pagination={null}) —
+      // matching the fetch order to the real sort keeps whichever 100
+      // records this ever truncates to the oldest-in-stage ones, not an
+      // arbitrary index order.
+      sort={{ field: "stage_entered_at", order: "ASC" }}
       filters={dealFilters}
       actions={<DealActions />}
       pagination={null}

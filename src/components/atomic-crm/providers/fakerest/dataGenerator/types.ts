@@ -6,6 +6,7 @@ import type {
   ContactNote,
   Deal,
   DealNote,
+  DealStageEvent,
   Enrollment,
   Offer,
   OfferPaymentOption,
@@ -27,6 +28,7 @@ export interface Db {
   cohorts: Cohort[];
   deals: Deal[];
   deal_notes: DealNote[];
+  deal_stage_events: DealStageEvent[];
   applications: Application[];
   enrollments: Enrollment[];
   waitlist_entries: WaitlistEntry[];

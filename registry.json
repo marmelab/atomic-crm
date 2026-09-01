@@ -482,6 +482,10 @@
           "type": "registry:component"
         },
         {
+          "path": "src/components/atomic-crm/providers/fakerest/dataGenerator/dealStageEvents.ts",
+          "type": "registry:component"
+        },
+        {
           "path": "src/components/atomic-crm/providers/fakerest/dataGenerator/dealNotes.ts",
           "type": "registry:component"
         },
@@ -851,6 +855,10 @@
         },
         {
           "path": "src/components/atomic-crm/deals/index.ts",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/deals/ensureDealStageEvent.ts",
           "type": "registry:component"
         },
         {

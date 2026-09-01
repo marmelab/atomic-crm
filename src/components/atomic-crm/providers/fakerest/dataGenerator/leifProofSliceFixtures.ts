@@ -104,8 +104,20 @@ export const addLeifProofSliceFixtures = (db: Db) => {
     expected_closing_date: now.split("T")[0],
     sales_id: salesId,
     index: 0,
+    // Placeholder — every fixture Opportunity below gets a real, staggered
+    // value at the end of this function (see the Kanban queue-ordering
+    // pass below `return`), so several fixtures sharing one stage (e.g.
+    // the five "application_received" applicants) never tie.
+    stage_entered_at: now,
     ...overrides,
   });
+
+  // Kanban queue-ordering slice: every deal pushed below this point gets a
+  // staggered stage_entered_at (see the loop just before `return`) — real
+  // per-row variety instead of every named fixture sharing the identical
+  // `now`, which would leave same-stage deals (e.g. the five
+  // application_received applicants) with no meaningful sort order.
+  const firstStaggeredDealId = nextDealId();
 
   // --- Judy: active Living Example opportunity ---------------------------
   const judy = baseContact({
@@ -717,6 +729,22 @@ export const addLeifProofSliceFixtures = (db: Db) => {
     created_at: now,
     updated_at: now,
   });
+
+  // Kanban queue-ordering slice: give every fixture Opportunity pushed
+  // above a distinct stage_entered_at, oldest-declared first, one hour
+  // apart, all safely in the past. Real values (never fabricated as more
+  // precise than "roughly when this fixture was written"), but no two
+  // deals — including the five that share application_received — ever
+  // tie, so the Kanban's oldest-first sort has real fixture data to prove
+  // itself against. Immutability: replaces each array slot with a new
+  // object rather than mutating the one baseDeal() returned.
+  for (let id = firstStaggeredDealId; id < db.deals.length; id += 1) {
+    const hoursAgo = db.deals.length - id;
+    const staggered = new Date(
+      new Date(now).getTime() - hoursAgo * 60 * 60 * 1000,
+    ).toISOString();
+    db.deals[id] = { ...db.deals[id], stage_entered_at: staggered };
+  }
 
   // Contacts with a pending Application still needing their "Review
   // Application" task — created after generateTasks() runs (see index.ts)

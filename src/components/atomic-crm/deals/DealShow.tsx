@@ -1,5 +1,4 @@
 import { useMutation } from "@tanstack/react-query";
-import { isValid } from "date-fns";
 import { Archive, ArchiveRestore } from "lucide-react";
 import {
   InfiniteListBase,
@@ -15,7 +14,6 @@ import {
 import { DeleteButton } from "@/components/admin/delete-button";
 import { EditButton } from "@/components/admin/edit-button";
 import { ReferenceField } from "@/components/admin/reference-field";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Separator } from "@/components/ui/separator";
@@ -26,7 +24,7 @@ import { useConfigurationContext } from "../root/ConfigurationContext";
 import { DealSalesCallSection } from "../sales-calls/DealSalesCallSection";
 import type { Deal } from "../types";
 import { DealApplicationAndEnrollment } from "./DealApplicationAndEnrollment";
-import { findDealLabel, formatISODateString } from "./dealUtils";
+import { findDealLabel } from "./dealUtils";
 import {
   opportunityEntryPaths,
   opportunityOutcomes,
@@ -121,26 +119,6 @@ const DealShowContent = () => {
                     link="show"
                   />
                 </span>
-              </div>
-            )}
-
-            {record.expected_closing_date && (
-              <div className="flex flex-col mr-10">
-                <span className="text-xs text-muted-foreground tracking-wide">
-                  {translate("resources.deals.fields.expected_closing_date")}
-                </span>
-                <div className="flex items-center gap-2">
-                  <span className="text-sm">
-                    {isValid(new Date(record.expected_closing_date))
-                      ? formatISODateString(record.expected_closing_date)
-                      : translate("resources.deals.invalid_date")}
-                  </span>
-                  {new Date(record.expected_closing_date) < new Date() ? (
-                    <Badge variant="destructive">
-                      {translate("crm.common.past")}
-                    </Badge>
-                  ) : null}
-                </div>
               </div>
             )}
 

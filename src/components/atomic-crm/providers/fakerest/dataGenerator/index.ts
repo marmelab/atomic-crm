@@ -2,6 +2,7 @@ import { generateCohorts } from "./cohorts";
 import { generateCompanies } from "./companies";
 import { generateContactNotes } from "./contactNotes";
 import { generateContacts } from "./contacts";
+import { backfillDealStageEvents } from "./dealStageEvents";
 import { generateDealNotes } from "./dealNotes";
 import { generateDeals } from "./deals";
 import { backfillEnrollmentsForWonDeals } from "./enrollments";
@@ -34,11 +35,15 @@ export default (): Db => {
   db.waitlist_entries = [];
   db.sales_calls = [];
   db.sales_call_events = [];
+  db.deal_stage_events = [];
   db.deals = generateDeals(db);
   const { pendingReviewApplicants } = addLeifProofSliceFixtures(db);
   addWaitlistFixtures(db);
   backfillEnrollmentsForWonDeals(db);
   backfillSalesCallsForCallLifecycleDeals(db);
+  // Every deal (random-generated and every named fixture) now has its
+  // final stage_entered_at — seed the matching history row for each.
+  backfillDealStageEvents(db);
   db.deal_notes = generateDealNotes(db);
   db.tasks = generateTasks(db);
   addReviewApplicationTaskFixtures(db, pendingReviewApplicants);

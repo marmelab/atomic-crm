@@ -48,6 +48,7 @@ describe("DealInputs (generic Edit)", () => {
       updated_at: "2026-01-01T00:00:00.000Z",
       sales_id: 0,
       index: 0,
+      stage_entered_at: "2026-01-01T00:00:00.000Z",
     };
     const dataProvider = createDataProvider({
       db: createCrmDb({
@@ -85,6 +86,58 @@ describe("DealInputs (generic Edit)", () => {
       .not.toBeInTheDocument();
     await expect
       .element(screen.getByLabelText(/^sales call$/i))
+      .not.toBeInTheDocument();
+    // Programs + Opportunity UX slice, §4 (reconfirmed by the Kanban
+    // queue-ordering slice): never a create/edit input, so it can never
+    // block a save.
+    await expect
+      .element(screen.getByLabelText(/expected closing date/i))
+      .not.toBeInTheDocument();
+  });
+
+  it("does not require Expected Closing Date to save the form", async () => {
+    const contact = buildContact({ id: 1 });
+    const deal: Deal = {
+      id: 1,
+      name: "Ada Lovelace",
+      contact_id: 1,
+      offer_id: 1,
+      offer_name_snapshot: "The Living Example",
+      stage: "call_booked",
+      owner_decision: null,
+      prospect_decision: null,
+      amount: 4000,
+      created_at: "2026-01-01T00:00:00.000Z",
+      updated_at: "2026-01-01T00:00:00.000Z",
+      sales_id: 0,
+      index: 0,
+      stage_entered_at: "2026-01-01T00:00:00.000Z",
+      expected_closing_date: null,
+    };
+    const dataProvider = createDataProvider({
+      db: createCrmDb({
+        contacts: [contact],
+        offers: [livingExample],
+        deals: [deal],
+        ...emptyRelatedCollections,
+      }),
+      silent: true,
+    });
+
+    const screen = await render(
+      <StoryWrapper initialEntries={["/deals/1"]} dataProvider={dataProvider}>
+        <></>
+      </StoryWrapper>,
+    );
+
+    await screen.getByRole("button", { name: /save/i }).click();
+
+    // A blocking "required" validation error on a field this form doesn't
+    // even render would leave the Edit form (and its "Source" input) in
+    // place; instead the save succeeds and DealEdit's own onSuccess
+    // navigates to the Show page, so the Edit form is gone.
+    await expect
+      .element(screen.getByLabelText(/^source$/i))
       .not.toBeInTheDocument();
   });
 });
