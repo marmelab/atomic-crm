@@ -50,6 +50,8 @@ public/r/
 # CDK
 infra/cdk.out/
 infra/node_modules/
+infra/lambda/**/node_modules/
+infra/lambda/seed/sql/
 
 # Playwright
 .playwright-mcp/
